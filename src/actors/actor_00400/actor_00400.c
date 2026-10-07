@@ -435,6 +435,16 @@ enum {
     ACTOR_00400_ROOM_INTRO_DEPTH   = 0x3E8
 };
 
+/// Spawn argument compared whole by the swimming death handlers.
+enum { ACTOR_00400_SPAWN_WOUNDED_FLOAT = 7 };
+
+/// Shared idle index of the lying and floating wounded state tables.
+enum { ACTOR_00400_WOUNDED_STATE_IDLE = 0 };
+
+/// Scale of the wounded float's Q12 sine: Q10 reduction gives 64 units,
+/// Q9 reduction gives 128 units.
+enum { ACTOR_00400_WOUNDED_FLOAT_BOB_SCALE = 16 };
+
 static void _actor00400TurnTowardPointMaskedRange(Task* task, const SVECTOR* target, s32 yawStep, s32 deadband);
 static void _actor00400RequestClipBlend(Task* task, s16 clipIndex, s16 rate, s16 blendFrames);
 static void _actor00400UpdateNeckRetraction(Task* task, s32 unusedNeckRetracted);
@@ -457,12 +467,12 @@ static void _actor00400CapturePartMidpointXZ(Task* task, s16 firstPartIndex, s16
 static void _actor00400AlignPartMidpointXZ(Task* task, s16 firstPartIndex, s16 secondPartIndex, const SVECTOR* anchor);
 static void _actor00400SwimLightRecoilWait(Task* task);
 static void Actor00400_Fn097C8(Task* arg0);
-static void Actor00400_Fn06EA4(Task* arg0);
+static void _actor00400WoundedGroundIdleTick(Task* task);
 static void Actor00400_Fn08ADC(Task* arg0);
 static void Actor00400_Fn08A88(Task* arg0);
 static void Actor00400_Fn08B40(Task* arg0);
 static void Actor00400_Fn08B94(Task* arg0);
-static void Actor00400_Fn06F64(Task* arg0);
+static void _actor00400WoundedGroundFlinchWait(Task* task);
 static void _actor00400StrandedLightRecoilEnter(Task* task);
 static void _actor00400StrandedLightRecoilWait(Task* task);
 static void _actor00400StrandedHeavyRecoilEnter(Task* task);
@@ -491,19 +501,19 @@ static void Actor00400_Fn0A510(Task* arg0);
 static void Actor00400_Fn0A57C(Task* arg0);
 
 /* States the dispatch tables name before their definitions. */
-static void Actor00400_Fn042C0(Task* arg0);
-static void Actor00400_Fn04414(Task* arg0);
-static void Actor00400_Fn04CF8(Task* arg0);
-static void Actor00400_Fn05728(Task* arg0);
-static void Actor00400_Fn07738(Task* arg0);
+static void _actor00400SwimDeathEnter(Task* task);
+static void _actor00400SwimDeathFallWait(Task* task);
+static void _actor00400StrandedDeathEnter(Task* task);
+static void _actor00400SwimDecide(Task* task);
+static void _actor00400SwimStart(Task* task);
 static void Actor00400_Fn077F4(Task* arg0);
 static void Actor00400_Fn078C8(Task* arg0);
 static void Actor00400_Fn0793C(Task* arg0);
-static void Actor00400_Fn07998(Task* task);
-static void Actor00400_Fn079A0(Task* task);
-static void Actor00400_Fn079A8(Task* arg0);
+static void _actor00400SwimUnusedState5(Task* task);
+static void _actor00400SwimUnusedState6(Task* task);
+static void _actor00400SwimLightRecoil(Task* task);
 static void Actor00400_Fn079FC(Task* arg0);
-static void Actor00400_Fn07ABC(Task* arg0);
+static void _actor00400SwimStatusHold(Task* task);
 static void Actor00400_Fn07B10(Task* arg0);
 static void Actor00400_Fn07B98(Task* arg0);
 static void Actor00400_Fn07C04(Task* arg0);
@@ -1346,16 +1356,16 @@ static inline void     _actor00400TurnTowardPoint(Task* task, const SVECTOR* tar
 static inline void     Actor00400_SpawnRing(Task* arg0, _Actor00400Work* work, GfxCoord* coord);
 static void            Actor00400_Fn05320(Task* arg0);
 static void            Actor00400_Fn05D00(Task* arg0);
-static void            Actor00400_Fn05EA4(Task* arg0);
+static void            _actor00400DiveSwimToSurfaceSpot(Task* task);
 static void            Actor00400_Fn061E8(Task* arg0);
-static void            Actor00400_Fn06380(Task* arg0);
+static void            _actor00400SwimAttackWindup(Task* task);
 static inline void     Actor00400_SpawnMarker(Task* arg0);
 static void            Actor00400_Fn064B0(Task* arg0);
 static void            _actor00400TunnelPatrolSwim(Task* task);
 static void            _actor00400RoomIntroBeginDischarge(Task* task);
 static inline s32      _actor00400ConsumeWoundedHitReaction(_Actor00400Work* work);
-static void            Actor00400_Fn07400(Task* arg0);
-static void            Actor00400_Fn07518(Task* arg0);
+static void            _actor00400WoundedFloatIdleTick(Task* task);
+static void            _actor00400WoundedFloatFlinchTick(Task* task);
 static inline s32      Actor00400_TakeStateRequest(Task* arg0);
 
 #include "../../shared/diver_inlines.inc.c"
@@ -2909,8 +2919,8 @@ static __inline__ void _actor00400UpdateModelColor(Task* task, GfxCoord* sampleC
 /// States `Actor00400_Fn040DC` dispatches on `_Actor00400Work::state`:
 /// `ACTOR_00400_SWIM_DEATH_*`.
 static const TaskFuncTable11 Actor00400_D0007C = { {
-    Actor00400_Fn042C0,
-    Actor00400_Fn04414,
+    _actor00400SwimDeathEnter,
+    _actor00400SwimDeathFallWait,
     Actor00400_Fn07CC4,
     Actor00400_Fn07DE0,
     Actor00400_Fn07E20,
@@ -2965,83 +2975,83 @@ static void Actor00400_Fn040DC(Task* arg0)
     }
 }
 
-static void Actor00400_Fn042C0(Task* arg0)
+/// Queues the diver's hit sound with its placement tag and signed-byte spatial controls.
+///
+/// Requires the live enemy and root coordinate. Pan and depth are deliberately
+/// narrowed to signed bytes before promotion to the sound request's word arguments.
+static inline void _actor00400PlayHitSound(Task* task)
 {
-    _Actor00400Work* work;
-    Enemy*           obj;
-    s32              id;
+    const Enemy* enemy;
+    s32          soundId;
+    s32          pan;
 
-    work = arg0->work;
-    obj  = arg0->spawnArg2.pointer;
-    if (arg0->extra.tmd->coords->coord.t[1] - work->waterLevel < 0x320) {
+    enemy   = task->spawnArg2.pointer;
+    soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_HIT;
+    pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+}
+
+/// Removes the dying swimmer from combat and enters its fall or blast sequence.
+///
+/// Requires the live enemy, model and four collision bodies. Releases the
+/// battle reference and hit contacts before unlinking the bodies. A blast
+/// selects its hide state; otherwise an exact spawn argument of 7 retains
+/// the wounded floating pose, and other spawns request surfaced clip 1 at
+/// triple rate. A root less than 800 units below water aims for the surface.
+static void _actor00400SwimDeathEnter(Task* task)
+{
+    enum { ACTOR_00400_SWIM_DEATH_SURFACE_DEPTH = 800 };
+    _Actor00400Work* work;
+    Enemy*           enemy;
+
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    if (task->extra.tmd->coords->coord.t[1] - work->waterLevel < ACTOR_00400_SWIM_DEATH_SURFACE_DEPTH) {
         work->goalY = work->waterLevel;
     }
-    worldTargetUnlinkNode(&obj->node);
-    sceneReleaseBattleRefWithRewards(arg0, 0);
-    obj->recs = NULL;
+    // Retire combat membership before choosing the visual death sequence.
+    worldTargetUnlinkNode(&enemy->node);
+    sceneReleaseBattleRefWithRewards(task, 0);
+    enemy->recs = NULL;
     worldCollisionUnlinkBody(&work->trunkBody);
     worldCollisionUnlinkBody(&work->headBody);
     worldCollisionUnlinkBody(&work->attackBody);
     worldCollisionUnlinkBody(&work->gridBody);
     work->stateFrames = 0;
     if (work->hitReaction == ACTOR_00400_HIT_REACTION_BLAST) {
-        _Actor00400Work* w = arg0->work;
-        w->state           = ACTOR_00400_SWIM_DEATH_BLAST_HIDE;
-        w->subState        = 0;
+        _Actor00400Work* nextWork = task->work;
+        nextWork->state           = ACTOR_00400_SWIM_DEATH_BLAST_HIDE;
+        nextWork->subState        = 0;
         return;
     }
-    if (arg0->spawnArg1.value != 7) {
-        _Actor00400Work* w;
-        id = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-        sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
-                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        w              = arg0->work;
-        w->animStep    = 0x30;
-        w->animBlend   = 4;
-        w->animClip    = 1;
-        w->animRequest = DIVER_ANIM_REQUEST_BLEND;
+    if (task->spawnArg1.value != ACTOR_00400_SPAWN_WOUNDED_FLOAT) {
+        _Actor00400Work* nextWork;
+        _actor00400PlayHitSound(task);
+        nextWork = task->work;
+        _diverRequestClipBlend(nextWork, ACTOR_00400_ANIM_SURFACED, ANIMATION_RATE_ONE * 3, 4);
     }
     work->state++;
 }
 
-static void Actor00400_Fn04414(Task* arg0)
+/// Advances the swimming death pose until its boundary, jump or settled status.
+///
+/// Requires the initialized body rig and published slot-1 status. Ticks slots
+/// 1..14, then tests the published status from the preceding frame. Normal
+/// spawns request clip 14 before entering the rest state; an exact spawn
+/// argument of 7 enters rest after one tick without waiting or changing clip.
+static void _actor00400SwimDeathFallWait(Task* task)
 {
     _Actor00400Work* work;
-    _Actor00400Work* w;
-    _Actor00400Work* w2;
-    s32              i;
+    _Actor00400Work* requestWork;
 
-    work = arg0->work;
-    w    = arg0->work;
-    if (w->animRequest == DIVER_ANIM_REQUEST_BLEND) {
-        if (w->animPlaying != w->animClip) {
-            w->animFrames = 0;
-        } else {
-            w->animFrames = _actor00400ScaleFramesForAnimRate(arg0, w->animFrames);
-        }
-        _actor00400BlendRequestedClip(arg0);
-        w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-    } else if (w->animRequest == DIVER_ANIM_REQUEST_RESET) {
-        _diverRestartClip(arg0);
-        w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-        w->animFrames  = 0;
-    } else if (w->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
-        w->animFrames++;
-    }
-    i = 1;
-    do {
-        animationTickSlot(&w->rig.anim, i);
-        i++;
-    } while (i < ARRAY_SIZE(w->rig.slots));
-    if (arg0->spawnArg1.value != 7) {
-        if (!_diverClipHasBoundaryOrJump(arg0)) {
+    work = task->work;
+    _actor00400AdvanceAnimation(task);
+    if (task->spawnArg1.value != ACTOR_00400_SPAWN_WOUNDED_FLOAT) {
+        if (!_diverClipHasBoundaryOrJump(task)) {
             return;
         }
-        w2              = arg0->work;
-        w2->animBlend   = 4;
-        w2->animStep    = ANIMATION_RATE_ONE;
-        w2->animClip    = 0xE;
-        w2->animRequest = DIVER_ANIM_REQUEST_BLEND;
+        requestWork = task->work;
+        _diverRequestClipBlend(requestWork, ACTOR_00400_ANIM_SWIM_STATUS_HOLD_ENTER, ANIMATION_RATE_ONE, 4);
     }
     work->state++;
 }
@@ -3213,7 +3223,7 @@ static void _actor00400StrandedHeavyRecoilWait(Task* task)
 /// States `Actor00400_Fn04B48` dispatches on `_Actor00400Work::state`:
 /// `ACTOR_00400_STRANDED_DEATH_*`.
 static const TaskFuncTable10 Actor00400_D000D0 = { {
-    Actor00400_Fn04CF8,
+    _actor00400StrandedDeathEnter,
     Actor00400_Fn08C54,
     Actor00400_Fn08D70,
     Actor00400_Fn08DFC,
@@ -3261,54 +3271,56 @@ static void Actor00400_Fn04B48(Task* arg0)
     }
 }
 
-static void Actor00400_Fn04CF8(Task* arg0)
+/// Unlinks the stranded diver from combat and starts its death or blast sequence.
+///
+/// Requires the live enemy, model and four collision bodies. Clears the hit
+/// records, unlinks the bodies and target, and releases the battle reference.
+/// A blast selects the hide state; otherwise queues normal-rate clip 15 with
+/// an eight-frame blend, clears elapsed frames and plays the hit sound.
+static void _actor00400StrandedDeathEnter(Task* task)
 {
+    enum { ACTOR_00400_LIVING_SHADOW_SHADE = 128 };
     _Actor00400Work* work;
-    Enemy*           obj;
-    s32              id;
-    _Actor00400Work* w;
+    Enemy*           enemy;
+    _Actor00400Work* nextWork;
 
-    work      = arg0->work;
-    obj       = arg0->spawnArg2.pointer;
-    obj->recs = NULL;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    // Retire combat membership before choosing the visual death sequence.
+    enemy->recs = NULL;
     worldCollisionUnlinkBody(&work->gridBody);
     worldCollisionUnlinkBody(&work->trunkBody);
     worldCollisionUnlinkBody(&work->headBody);
     worldCollisionUnlinkBody(&work->attackBody);
-    worldTargetUnlinkNode(&obj->node);
-    sceneReleaseBattleRefWithRewards(arg0, 0);
-    work->shadowShade = 0x80;
+    worldTargetUnlinkNode(&enemy->node);
+    sceneReleaseBattleRefWithRewards(task, 0);
+    work->shadowShade = ACTOR_00400_LIVING_SHADOW_SHADE;
     if (work->hitReaction == ACTOR_00400_HIT_REACTION_BLAST) {
-        w           = arg0->work;
-        w->state    = ACTOR_00400_STRANDED_DEATH_BLAST_HIDE;
-        w->subState = 0;
+        nextWork           = task->work;
+        nextWork->state    = ACTOR_00400_STRANDED_DEATH_BLAST_HIDE;
+        nextWork->subState = 0;
         return;
     }
-    w                 = arg0->work;
-    w->animBlend      = 8;
-    w->animStep       = ANIMATION_RATE_ONE;
-    w->animClip       = 0xF;
-    w->animRequest    = DIVER_ANIM_REQUEST_BLEND;
+    nextWork = task->work;
+    _diverRequestClipBlend(nextWork, ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_ENTER, ANIMATION_RATE_ONE, 8);
     work->stateFrames = 0;
-    id                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
-                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    _actor00400PlayHitSound(task);
     work->state++;
 }
 
 /// States `Actor00400_Fn04E18` dispatches on `_Actor00400Work::state`:
 /// `ACTOR_00400_SWIM_STATE_*` and the three `ACTOR_00400_STATE_*`.
 static const _Actor00400SwimStateTable Actor00400_D000F8 = { {
-    Actor00400_Fn07738,
+    _actor00400SwimStart,
     Actor00400_Fn077F4,
-    Actor00400_Fn05728,
+    _actor00400SwimDecide,
     Actor00400_Fn078C8,
     Actor00400_Fn0793C,
-    Actor00400_Fn07998,
-    Actor00400_Fn079A0,
-    Actor00400_Fn079A8,
+    _actor00400SwimUnusedState5,
+    _actor00400SwimUnusedState6,
+    _actor00400SwimLightRecoil,
     Actor00400_Fn079FC,
-    Actor00400_Fn07ABC,
+    _actor00400SwimStatusHold,
     Actor00400_Fn07B10,
     Actor00400_Fn07B98,
     Actor00400_Fn07C04,
@@ -3582,58 +3594,78 @@ static void Actor00400_Fn05320(Task* arg0)
     }
 }
 
-static void Actor00400_Fn05728(Task* arg0)
+/// Advances the three-choice decision history, wrapping after its last entry.
+///
+/// Requires a writable work block and an index in 0..2. The caller has already
+/// stored the newest choice; the byte-sized increment selects its successor.
+static inline void _actor00400AdvanceDecisionHistory(_Actor00400Work* work)
 {
-    _Actor00400Work* work;
-    _Actor00400Work* work2;
-    _Actor00400Work* w;
-    _Actor00400Work* w2;
-    _Actor00400Work* w3;
-    u32              random;
-    s16              next;
-    u8               idx;
-    u8               idx2;
+    u8 nextHistoryIndex;
 
-    work = arg0->work;
-    if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
-        if (work->targetDistance < 0x2710 && (u32)(work->targetBearing - 0xC0) >= 0xE81U) {
-            random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = random;
-            if ((random >> 16) & 1) {
-                work2                                         = arg0->work;
-                work2->state                                  = ACTOR_00400_SWIM_STATE_ATTACK;
-                work2->subState                               = 0;
-                work2->stateHistory[work2->stateHistoryIndex] = work2->state;
-                next                                          = ACTOR_00400_SWIM_STATE_DIVE;
-                if (work2->stateHistory[0] == work2->stateHistory[1] &&
-                    work2->stateHistory[0] == work2->stateHistory[2] && work2->stateHistory[0] == ACTOR_00400_SWIM_STATE_ATTACK) {
-                    w                                             = arg0->work;
-                    w->state                                      = next;
-                    w->subState                                   = 0;
-                    work2->stateHistory[work2->stateHistoryIndex] = next;
-                    work2->emergeCooldown                         = 90;
+    nextHistoryIndex        = work->stateHistoryIndex + 1;
+    work->stateHistoryIndex = nextHistoryIndex;
+    if (nextHistoryIndex >= (u32)ARRAY_SIZE(work->stateHistory)) {
+        work->stateHistoryIndex = 0;
+    }
+}
+
+/// Chooses a swimming attack or dive and limits runs of attacks to two.
+///
+/// Requires current target distance/bearing and a history index in 0..2.
+/// Distances are signed halfword horizontal coordinate units; bearings are
+/// 0..4095 per turn. Within 10000 units and 191 angle units either side of
+/// forward, one LCG bit chooses attack or a dive with a 90-frame emerge delay.
+/// Three recorded attacks replace the newest with a delayed dive. A random
+/// refusal leaves history alone; an out-of-reach dive records its choice.
+static void _actor00400SwimDecide(Task* task)
+{
+    enum {
+        ACTOR_00400_SWIM_ATTACK_DISTANCE       = 10000,
+        ACTOR_00400_SWIM_ATTACK_EXCLUDED_START = 192,
+        ACTOR_00400_SWIM_ATTACK_EXCLUDED_WIDTH = 3713U,
+        ACTOR_00400_SWIM_DECISION_EMERGE_DELAY = 90
+    };
+    _Actor00400Work* work;
+    _Actor00400Work* attackWork;
+    _Actor00400Work* fallbackWork;
+    _Actor00400Work* declinedWork;
+    _Actor00400Work* outOfReachWork;
+    u32              randomValue;
+    s16              fallbackState;
+
+    work = task->work;
+    if ((_actor00400ApplyHitReaction(task) << 0x10) == 0) {
+        if (work->targetDistance < ACTOR_00400_SWIM_ATTACK_DISTANCE && (u32)(work->targetBearing - ACTOR_00400_SWIM_ATTACK_EXCLUDED_START) >= ACTOR_00400_SWIM_ATTACK_EXCLUDED_WIDTH) {
+            randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = randomValue;
+            if ((randomValue >> 16) & 1) {
+                attackWork                                              = task->work;
+                attackWork->state                                       = ACTOR_00400_SWIM_STATE_ATTACK;
+                attackWork->subState                                    = 0;
+                attackWork->stateHistory[attackWork->stateHistoryIndex] = attackWork->state;
+                fallbackState                                           = ACTOR_00400_SWIM_STATE_DIVE;
+                // Replace the newest choice when it completes three consecutive attacks.
+                if (attackWork->stateHistory[0] == attackWork->stateHistory[1] &&
+                    attackWork->stateHistory[0] == attackWork->stateHistory[2] && attackWork->stateHistory[0] == ACTOR_00400_SWIM_STATE_ATTACK) {
+                    fallbackWork                                            = task->work;
+                    fallbackWork->state                                     = fallbackState;
+                    fallbackWork->subState                                  = 0;
+                    attackWork->stateHistory[attackWork->stateHistoryIndex] = fallbackState;
+                    attackWork->emergeCooldown                              = ACTOR_00400_SWIM_DECISION_EMERGE_DELAY;
                 }
-                idx                      = work2->stateHistoryIndex + 1;
-                work2->stateHistoryIndex = idx;
-                if (idx >= (u32)ARRAY_SIZE(work2->stateHistory)) {
-                    work2->stateHistoryIndex = 0;
-                }
+                _actor00400AdvanceDecisionHistory(attackWork);
             } else {
-                work->emergeCooldown = 90;
-                w2                   = arg0->work;
-                w2->state            = ACTOR_00400_SWIM_STATE_DIVE;
-                w2->subState         = 0;
+                work->emergeCooldown   = ACTOR_00400_SWIM_DECISION_EMERGE_DELAY;
+                declinedWork           = task->work;
+                declinedWork->state    = ACTOR_00400_SWIM_STATE_DIVE;
+                declinedWork->subState = 0;
             }
         } else {
-            w3                                          = arg0->work;
-            w3->state                                   = ACTOR_00400_SWIM_STATE_DIVE;
-            w3->subState                                = 0;
+            outOfReachWork                              = task->work;
+            outOfReachWork->state                       = ACTOR_00400_SWIM_STATE_DIVE;
+            outOfReachWork->subState                    = 0;
             work->stateHistory[work->stateHistoryIndex] = work->state;
-            idx2                                        = work->stateHistoryIndex + 1;
-            work->stateHistoryIndex                     = idx2;
-            if (idx2 >= (u32)ARRAY_SIZE(work->stateHistory)) {
-                work->stateHistoryIndex = 0;
-            }
+            _actor00400AdvanceDecisionHistory(work);
         }
     }
 }
@@ -3763,44 +3795,60 @@ static void Actor00400_Fn05D00(Task* arg0)
     work->subState++;
 }
 
-static void Actor00400_Fn05EA4(Task* arg0)
+/// Swims toward a claimed surface spot until it is near enough to emerge.
+///
+/// Requires the live root, enemy, eight-waypoint ring (index 0..7), writable
+/// room-owned surface spot list and initialized scratch stack for its search.
+/// Searches for the eligible spot nearest the party target each tick; with
+/// none, keeps the previous spot position and uses the list's entry-0 fallback.
+/// With a signed-halfword XZ distance below 800 and no emerge delay, restores
+/// normal colour and enters emerge; otherwise swims 96 units per tick, with
+/// a 48-unit yaw step and 256-unit deadband (4096 per turn). The swim sound
+/// plays when the frame counter's low four bits are zero.
+static void _actor00400DiveSwimToSurfaceSpot(Task* task)
 {
+    enum {
+        ACTOR_00400_DIVE_ARRIVAL_DISTANCE = 800,
+        ACTOR_00400_DIVE_STEP_DISTANCE    = 96,
+        ACTOR_00400_DIVE_SOUND_PERIOD     = 16
+    };
     _Actor00400Work* work;
-    GfxCoord*        coord;
-    SVECTOR          vec;
-    s32              id;
-    s32              pan;
+    GfxCoord*        rootCoord;
+    SVECTOR          spotOffset;
+    s32              soundId;
+    s32              panOffset;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    _actor00400ClaimNearestSurfaceSpot(arg0);
-    vec.vx      = work->surfaceSpot.vx - coord->coord.t[0];
-    vec.vy      = 0;
-    vec.vz      = work->surfaceSpot.vz - coord->coord.t[2];
-    work->goalY = (u16)work->waypoints[work->waypointIndex].vy + work->waterLevel;
-    if ((s16)SquareRoot0(vec.vx * vec.vx + vec.vz * vec.vz) < 800 && work->emergeCooldown == 0) {
-        _Actor00400Work* w;
-        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
-        work->stateFrames = 0;
-        w                 = arg0->work;
-        w->state          = ACTOR_00400_SWIM_STATE_EMERGE;
-        w->subState       = 0;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    _actor00400ClaimNearestSurfaceSpot(task);
+    // Measure the XZ displacement after narrowing it to signed halfwords.
+    spotOffset.vx = work->surfaceSpot.vx - rootCoord->coord.t[0];
+    spotOffset.vy = 0;
+    spotOffset.vz = work->surfaceSpot.vz - rootCoord->coord.t[2];
+    work->goalY   = (u16)work->waypoints[work->waypointIndex].vy + work->waterLevel;
+    if ((s16)SquareRoot0(spotOffset.vx * spotOffset.vx + spotOffset.vz * spotOffset.vz) < ACTOR_00400_DIVE_ARRIVAL_DISTANCE && work->emergeCooldown == 0) {
+        _Actor00400Work* nextWork;
+        worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+        work->stateFrames  = 0;
+        nextWork           = task->work;
+        nextWork->state    = ACTOR_00400_SWIM_STATE_EMERGE;
+        nextWork->subState = 0;
         return;
     }
-    if (work->animClip != 3) {
-        _Actor00400Work* w;
-        w              = arg0->work;
-        w->animBlend   = 10;
-        w->animStep    = ANIMATION_RATE_ONE;
-        w->animClip    = 3;
-        w->animRequest = DIVER_ANIM_REQUEST_BLEND;
+    if (work->animClip != ACTOR_00400_ANIM_SWIM) {
+        _Actor00400Work* nextWork;
+        nextWork = task->work;
+        _diverRequestClipBlend(nextWork, ACTOR_00400_ANIM_SWIM, ANIMATION_RATE_ONE, 10);
     }
-    _actor00400TurnTowardPoint(arg0, &work->surfaceSpot, 0x30, 0x100);
-    _diverStepForward(arg0, 0x60, work->rotation.vy);
-    if (!(work->frameCount & 0xF)) {
-        id  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040001;
-        pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    _actor00400TurnTowardPoint(task, &work->surfaceSpot, 0x30, 0x100);
+    _diverStepForward(task, ACTOR_00400_DIVE_STEP_DISTANCE, work->rotation.vy);
+    if (!(work->frameCount & (ACTOR_00400_DIVE_SOUND_PERIOD - 1))) {
+        const Enemy* enemy;
+
+        enemy     = task->spawnArg2.pointer;
+        soundId   = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_SWIM;
+        panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
 }
 
@@ -3873,24 +3921,32 @@ static void Actor00400_Fn061E8(Task* arg0)
     work->subState++;
 }
 
-static void Actor00400_Fn06380(Task* arg0)
+/// Aims a 36-frame swimming attack windup around a 24-frame spark discharge.
+///
+/// Requires the live rig and current target position. Starts the discharge
+/// countdown on elapsed frame 1; the frame driver emits its sparks separately.
+/// Turns at 16 angle units per tick with a 32-unit deadband (4096 per turn).
+/// At frame 36, clears elapsed frames, queues normal-rate discharge clip 7
+/// with an eight-frame blend and enters the shot-firing wait.
+static void _actor00400SwimAttackWindup(Task* task)
 {
+    enum {
+        ACTOR_00400_SWIM_DISCHARGE_FRAMES = 24,
+        ACTOR_00400_SWIM_WINDUP_FRAMES    = 36
+    };
     _Actor00400Work* work;
-    _Actor00400Work* w;
+    _Actor00400Work* requestWork;
 
-    work = arg0->work;
+    work = task->work;
     work->stateFrames++;
-    _actor00400TurnTowardPoint(arg0, &work->targetPos, 0x10, 0x20);
+    _actor00400TurnTowardPoint(task, &work->targetPos, 0x10, 0x20);
     if (work->stateFrames == 1) {
-        work->attackFrames = 0x18;
+        work->attackFrames = ACTOR_00400_SWIM_DISCHARGE_FRAMES;
     }
-    if (work->stateFrames >= 0x24) {
+    if (work->stateFrames >= ACTOR_00400_SWIM_WINDUP_FRAMES) {
         work->stateFrames = 0;
-        w                 = arg0->work;
-        w->animBlend      = 8;
-        w->animStep       = ANIMATION_RATE_ONE;
-        w->animClip       = 7;
-        w->animRequest    = DIVER_ANIM_REQUEST_BLEND;
+        requestWork       = task->work;
+        _diverRequestClipBlend(requestWork, ACTOR_00400_ANIM_DISCHARGE, ANIMATION_RATE_ONE, 8);
         work->subState++;
     }
 }
@@ -4186,45 +4242,48 @@ static inline s32 _actor00400ConsumeWoundedHitReaction(_Actor00400Work* work)
     return 1;
 }
 
-static void Actor00400_Fn06EA4(Task* arg0)
+/// Keeps the wounded diver lying still, restarting its pose at quarter rate.
+///
+/// Requires the live rig and pending hit fields. A consumed hit restarts the
+/// wounded flinch state; otherwise a published clip boundary, jump or settled
+/// status queues clip 15 with an eight-frame blend, without ticking playback.
+static void _actor00400WoundedGroundIdleTick(Task* task)
 {
     _Actor00400Work* work;
-    _Actor00400Work* work2;
+    _Actor00400Work* requestWork;
 
-    work = arg0->work;
+    work = task->work;
     if (_actor00400ConsumeWoundedHitReaction(work) == 0) {
-        if (_diverClipHasBoundaryOrJump(arg0)) {
-            work2              = arg0->work;
-            work2->animBlend   = 8;
-            work2->animStep    = 4;
-            work2->animClip    = 0xF;
-            work2->animRequest = DIVER_ANIM_REQUEST_BLEND;
+        if (_diverClipHasBoundaryOrJump(task)) {
+            requestWork = task->work;
+            _diverRequestClipBlend(requestWork, ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_ENTER, ANIMATION_RATE_ONE / 4, 8);
         }
     }
 }
 
-static void Actor00400_Fn06F64(Task* arg0)
+/// Holds the lying wounded diver's flinch until its published clip status fires.
+///
+/// Requires the live rig and enemy. A repeated light hit queues normal-rate
+/// clip 19 with a two-frame blend and sound, then leaves the reaction pending.
+/// Other consumed hits restart flinch; without one, a boundary, jump or settled
+/// pose selects wounded idle at substate zero.
+static void _actor00400WoundedGroundFlinchWait(Task* task)
 {
+    enum { ACTOR_00400_ANIM_WOUNDED_GROUND_FLINCH = 19 };
     _Actor00400Work* work;
-    _Actor00400Work* work2;
-    s32              id;
+    _Actor00400Work* nextStateWork;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitTaken != 0 && work->hitReaction == ACTOR_00400_HIT_REACTION_LIGHT) {
-        work->animBlend   = 2;
-        work->animStep    = ANIMATION_RATE_ONE;
-        work->animClip    = 0x13;
-        work->animRequest = DIVER_ANIM_REQUEST_BLEND;
-        id                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-        sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
-                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        _diverRequestClipBlend(work, ACTOR_00400_ANIM_WOUNDED_GROUND_FLINCH, ANIMATION_RATE_ONE, 2);
+        _actor00400PlayHitSound(task);
         return;
     }
     if (_actor00400ConsumeWoundedHitReaction(work) == 0) {
-        if (_diverClipHasBoundaryOrJump(arg0)) {
-            work2           = arg0->work;
-            work2->state    = 0;
-            work2->subState = 0;
+        if (_diverClipHasBoundaryOrJump(task)) {
+            nextStateWork           = task->work;
+            nextStateWork->state    = ACTOR_00400_WOUNDED_STATE_IDLE;
+            nextStateWork->subState = 0;
         }
     }
 }
@@ -4315,48 +4374,58 @@ static void Actor00400_Fn070C0(Task* arg0)
     }
 }
 
-static void Actor00400_Fn07400(Task* arg0)
+/// Bobs the floating wounded diver and renews its pose at one-eighth rate.
+///
+/// Requires the live rig and room water height. A consumed hit pauses the bob
+/// and light, heavy, status or blast reactions restart flinch; otherwise the elapsed halfword drives a 64-tick
+/// sine cycle with 64-unit amplitude about waterLevel plus floatOffset. A
+/// published boundary, jump or settled status queues clip 16 with an
+/// eight-frame blend. The frame driver eases the root toward this goal height.
+static void _actor00400WoundedFloatIdleTick(Task* task)
 {
     _Actor00400Work* work;
-    _Actor00400Work* work3;
-    s32              phase;
+    _Actor00400Work* requestWork;
+    s32              bobFrame;
 
-    work = arg0->work;
+    work = task->work;
     if (_actor00400ConsumeWoundedHitReaction(work) == 0) {
-        phase             = (u16)work->stateFrames + 1;
-        work->stateFrames = phase;
-        work->goalY       = work->floatOffset + ((u16)work->waterLevel + ((rsin(phase << 16 >> 10) * 0x10) >> 10));
-        if (_diverClipHasBoundaryOrJump(arg0)) {
-            work3              = arg0->work;
-            work3->animBlend   = 8;
-            work3->animStep    = 2;
-            work3->animClip    = 0x10;
-            work3->animRequest = DIVER_ANIM_REQUEST_BLEND;
+        bobFrame          = (u16)work->stateFrames + 1;
+        work->stateFrames = bobFrame;
+        work->goalY       = work->floatOffset + ((u16)work->waterLevel + ((rsin(bobFrame << 16 >> 10) * ACTOR_00400_WOUNDED_FLOAT_BOB_SCALE) >> 10));
+        if (_diverClipHasBoundaryOrJump(task)) {
+            requestWork = task->work;
+            _diverRequestClipBlend(requestWork, ACTOR_00400_ANIM_SWIM_STATUS_HOLD_LOOP, ANIMATION_RATE_ONE / 8, 8);
         }
     }
 }
 
-static void Actor00400_Fn07518(Task* arg0)
+/// Bobs the wounded floating flinch for 121 hit-free ticks before returning idle.
+///
+/// Requires the live rig and room water height. A repeated light hit queues
+/// normal-rate clip 18 with a two-frame blend. A consumed hit pauses the timer;
+/// light, heavy, status and blast reactions restart flinch. Other ticks advance
+/// the halfword counter and a 32-tick, 128-unit sine about waterLevel plus
+/// floatOffset.
+/// At elapsed frame 121 selects wounded idle at substate zero.
+static void _actor00400WoundedFloatFlinchTick(Task* task)
 {
+    enum { ACTOR_00400_WOUNDED_FLOAT_FLINCH_FRAMES = 121 };
     _Actor00400Work* work;
-    _Actor00400Work* work2;
-    s32              phase;
+    _Actor00400Work* nextStateWork;
+    s32              bobFrame;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitTaken != 0 && work->hitReaction == ACTOR_00400_HIT_REACTION_LIGHT) {
-        work->animBlend   = 2;
-        work->animStep    = ANIMATION_RATE_ONE;
-        work->animClip    = 0x12;
-        work->animRequest = DIVER_ANIM_REQUEST_BLEND;
+        _diverRequestClipBlend(work, ACTOR_00400_ANIM_SWIM_STATUS_HOLD_HIT, ANIMATION_RATE_ONE, 2);
     }
-    if (_actor00400ConsumeWoundedHitReaction(arg0->work) == 0) {
-        phase             = (u16)work->stateFrames + 1;
-        work->stateFrames = phase;
-        work->goalY       = work->floatOffset + ((u16)work->waterLevel + ((rsin(phase << 16 >> 9) * 0x10) >> 9));
-        if (work->stateFrames >= 0x79) {
-            work2           = arg0->work;
-            work2->state    = 0;
-            work2->subState = 0;
+    if (_actor00400ConsumeWoundedHitReaction(task->work) == 0) {
+        bobFrame          = (u16)work->stateFrames + 1;
+        work->stateFrames = bobFrame;
+        work->goalY       = work->floatOffset + ((u16)work->waterLevel + ((rsin(bobFrame << 16 >> 9) * ACTOR_00400_WOUNDED_FLOAT_BOB_SCALE) >> 9));
+        if (work->stateFrames >= ACTOR_00400_WOUNDED_FLOAT_FLINCH_FRAMES) {
+            nextStateWork           = task->work;
+            nextStateWork->state    = ACTOR_00400_WOUNDED_STATE_IDLE;
+            nextStateWork->subState = 0;
         }
     }
 }
@@ -4379,30 +4448,34 @@ static void _actor00400GroundStainTask(Task* task)
     states[task->state](task);
 }
 
-/// Draws two LCG values into the work's bob phase and `frameCount`, resets the
-/// state counters and copies the root coordinate's `t[1]` into `goalY`.
-static void Actor00400_Fn07738(Task* arg0)
+/// Acquires a battle reference and starts the swimming patrol with random phases.
+///
+/// Requires the live enemy, initialized rig and root coordinate. Advances the
+/// LCG twice, narrowing its upper halves into bobPhase and frameCount. Requests
+/// normal-rate surfaced clip 1 without blending, enters patrol at substate zero
+/// and seeds the goal height from the root's current parent-space Y.
+static void _actor00400SwimStart(Task* task)
 {
     _Actor00400Work* work;
-    _Actor00400Work* w;
-    _Actor00400Work* w2;
-    GfxCoord*        coord;
+    _Actor00400Work* requestWork;
+    _Actor00400Work* nextStateWork;
+    GfxCoord*        rootCoord;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     sceneAcquireBattleRef(0);
-    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->bobPhase   = gRandomLcgState >> 16;
-    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->frameCount = gRandomLcgState >> 16;
-    w                = arg0->work;
-    w->animStep      = ANIMATION_RATE_ONE;
-    w->animClip      = 1;
-    w->animRequest   = DIVER_ANIM_REQUEST_RESET;
-    w2               = arg0->work;
-    w2->state        = ACTOR_00400_SWIM_STATE_PATROL;
-    w2->subState     = 0;
-    work->goalY      = coord->coord.t[1];
+    gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->bobPhase           = gRandomLcgState >> 16;
+    gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->frameCount         = gRandomLcgState >> 16;
+    requestWork              = task->work;
+    requestWork->animStep    = ANIMATION_RATE_ONE;
+    requestWork->animClip    = ACTOR_00400_ANIM_SURFACED;
+    requestWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+    nextStateWork            = task->work;
+    nextStateWork->state     = ACTOR_00400_SWIM_STATE_PATROL;
+    nextStateWork->subState  = 0;
+    work->goalY              = rootCoord->coord.t[1];
 }
 
 /// States `Actor00400_Fn077F4` dispatches on `_Actor00400Work.subState`.
@@ -4450,7 +4523,7 @@ static void Actor00400_Fn078C8(Task* arg0)
 static const TaskFuncTable3 Actor00400_D00144 = { {
     Actor00400_Fn05D00,
     Actor00400_Fn096C0,
-    Actor00400_Fn05EA4,
+    _actor00400DiveSwimToSurfaceSpot,
 } };
 
 static void Actor00400_Fn0793C(Task* arg0)
@@ -4463,23 +4536,36 @@ static void Actor00400_Fn0793C(Task* arg0)
     fns.funcs[work->subState](arg0);
 }
 
-static void Actor00400_Fn07998(Task* task)
+/// Leaves unused swimming state-table slot 5 inert.
+///
+/// The swimming table retains a distinct callback at this slot; no state
+/// transition selects it. Accepts the dispatcher task without accessing it.
+static void _actor00400SwimUnusedState5(Task* task)
 {
 }
 
-static void Actor00400_Fn079A0(Task* task)
+/// Leaves unused swimming state-table slot 6 inert.
+///
+/// The swimming table retains a distinct callback at this slot; no state
+/// transition selects it. Accepts the dispatcher task without accessing it.
+static void _actor00400SwimUnusedState6(Task* task)
 {
 }
 
-static void Actor00400_Fn079A8(Task* arg0)
+/// Dispatches the swimming light recoil's entry or animation wait.
+///
+/// Requires live work and subState 0 (enter) or 1 (wait); there is no bounds
+/// check. The stack table calls the shared recoil entry and the swimming wait,
+/// which handles new hits before returning to the decision state.
+static void _actor00400SwimLightRecoil(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[2])(Task*) = {
+    _Actor00400Work* work      = task->work;
+    TaskFunc         states[2] = {
         _diverEnterRecoil,
         _actor00400SwimLightRecoilWait,
     };
 
-    states[work->subState](arg0);
+    states[work->subState](task);
 }
 
 static inline s32 Actor00400_TakeStateRequest(Task* arg0)
@@ -4520,21 +4606,26 @@ static void Actor00400_Fn079FC(Task* arg0)
     }
 }
 
-static void Actor00400_Fn07ABC(Task* arg0)
+/// Dispatches entry and ticking of the swimming status hold.
+///
+/// Requires live work and subState 0 (enter) or 1 (tick); there is no bounds
+/// check. The stack table drives the temporary critical-chance multiplier,
+/// held pose and status-buildup release of this swimming state.
+static void _actor00400SwimStatusHold(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[2])(Task*) = {
+    _Actor00400Work* work      = task->work;
+    TaskFunc         states[2] = {
         _actor00400SwimStatusHoldEnter,
         _actor00400SwimStatusHoldTick,
     };
 
-    states[work->subState](arg0);
+    states[work->subState](task);
 }
 
 /// States `Actor00400_Fn07B10` dispatches on `_Actor00400Work.subState`.
 static const TaskFuncTable3 Actor00400_D00150 = { {
     Actor00400_Fn09A1C,
-    Actor00400_Fn06380,
+    _actor00400SwimAttackWindup,
     Actor00400_Fn064B0,
 } };
 
@@ -5102,7 +5193,7 @@ static void Actor00400_Fn08A88(Task* arg0)
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
         Actor00400_Fn08ADC,
-        Actor00400_Fn06EA4,
+        _actor00400WoundedGroundIdleTick,
     };
 
     states[work->subState](arg0);
@@ -5131,7 +5222,7 @@ static void Actor00400_Fn08B40(Task* arg0)
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
         Actor00400_Fn08B94,
-        Actor00400_Fn06F64,
+        _actor00400WoundedGroundFlinchWait,
     };
 
     states[work->subState](arg0);
@@ -6124,7 +6215,7 @@ static void Actor00400_Fn0A468(Task* arg0)
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
         Actor00400_Fn0A510,
-        Actor00400_Fn07400,
+        _actor00400WoundedFloatIdleTick,
     };
 
     states[work->subState](arg0);
@@ -6135,7 +6226,7 @@ static void Actor00400_Fn0A4BC(Task* arg0)
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
         Actor00400_Fn0A57C,
-        Actor00400_Fn07518,
+        _actor00400WoundedFloatFlinchTick,
     };
 
     states[work->subState](arg0);
@@ -6309,22 +6400,6 @@ static void _actor00400StrandedDischargeWait(Task* task)
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
         work->subState = 0;
     }
-}
-
-/// Queues the diver's hit sound with its placement tag and signed-byte spatial controls.
-///
-/// Requires the live enemy and root coordinate. Pan and depth are deliberately
-/// narrowed to signed bytes before promotion to the sound request's word arguments.
-static inline void _actor00400PlayHitSound(Task* task)
-{
-    Enemy* enemy;
-    s32    soundId;
-    s32    pan;
-
-    enemy   = task->spawnArg2.pointer;
-    soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_HIT;
-    pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 
 /// Plays the placement-tagged hit sound and enters the stranded light-recoil wait.

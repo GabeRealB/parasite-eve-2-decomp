@@ -90954,7 +90954,7 @@ plain `mem`. Inputs: `base_2.i`
 
 ### Two reloads of the same pointer in two registers means two locals, even in one block
 
-`Actor00400_Fn07738` reloads `index->field_1C` twice in one basic block, and the
+`_actor00400SwimStart` reloads `task->work` twice in one basic block, and the
 target keeps the copies in *different* registers (`lw v1,0x1c(s0)`, later
 `lw v0,0x1c(s0)`). Reusing one `state` local for both reloads compiled at
 87.8% with `regs=34` and every allocation in the function shifted: a pseudo set
@@ -90963,10 +90963,10 @@ so `state` went to global alloc (a3) and changed what local alloc could hand
 the LCG temporaries and the shared constant `1`.
 
 ```c
-state  = arg0->field_1C;   /* v1 */
-state->field_632 = 0x10; ...
-state2 = arg0->field_1C;   /* v0 - a second local, not `state` again */
-state2->state = 1; ...
+requestWork = task->work;   /* v1 */
+requestWork->animStep = ANIMATION_RATE_ONE; ...
+nextStateWork = task->work; /* v0 - a second local, not `requestWork` again */
+nextStateWork->state = ACTOR_00400_SWIM_STATE_PATROL; ...
 ```
 
 Two distinct locals gave two local quantities and 100%. The misleading symptom
@@ -91022,7 +91022,7 @@ flipped the order, with no instruction change.
 
 ### A store that reuses a compared register behind a multi-way label is a variable, not CSE
 
-`Actor00400_Fn06F64` tests `hitTaken == 1`, then `hitReaction` against 1..4
+`_actor00400WoundedGroundFlinchWait` tests `hitTaken == 1`, then `hitReaction` against 1..4
 (`beq`/`beq`/`beq`/`bne`), and the joined block stores `sh a1,0x638` - the
 register holding the `hitTaken` read. Two separate fixes were needed. First,
 `req == 1 || req == 2 || ...` folds to `addiu -1; sltiu 4` (so does a
@@ -91034,15 +91034,15 @@ store. Holding the read in a local (`s32 state = work->hitTaken;`, then
 
 The surrounding `v0 = 0; ...; v0 = 1; bnez v0` came from an inline helper
 returning `s32` (the same shape as the sibling `_actor00400ApplyHitReaction` call, but
-without the `<< 16`). The helper takes `work` rather than `index` because the
-target does not reload `field_1C`. The last register swap (`work` in `a0`
-instead of `v1`) went away when the later `index->field_1C` reload was assigned
+without the `<< 16`). The helper takes `work` rather than `task` because the
+target does not reload `Task::work`. The last register swap (`work` in `a0`
+instead of `v1`) went away when the later `task->work` reload was assigned
 back to `work` instead of a second local, which raised `work`'s allocation
 priority above the helper's `req`.
 
 ### `li C; slt $r,$r,x; beqz` for `x > C` means C was a register at expand time
 
-The usual branch form of `x > C` is `slti x,C+1; bnez`. `Actor00400_Fn05EA4`
+The usual branch form of `x > C` is `slti x,C+1; bnez`. `_actor00400DiveSwimToSurfaceSpot`
 instead had `li v1,0x100; slt v1,v1,v0; beqz v1`, next to a normal
 `slti v0,v0,-0x100` for the paired `x < -C`. The cause is MIPS
 `gen_int_relational` (`config/mips/mips.c`). It adds 1 to a constant `cmp1` and
@@ -91055,9 +91055,9 @@ Fix: make C an inline-function parameter. After integration it is a pseudo
 holding 0x100 when the comparison is expanded:
 
 ```c
-static inline void TurnToward(Actor100400* arg0, SVECTOR* target, s32 step, s32 range)
+static inline void TurnToward(Task* task, SVECTOR* target, s32 step, s32 range)
 { ... if (diff > range) ... else if (diff < -range) ... }
-TurnToward(arg0, &work->surfaceSpot, 0x30, 0x100);
+TurnToward(task, &work->surfaceSpot, 0x30, 0x100);
 ```
 
 Writing `0x100 < diff` does not work, because fold canonicalizes it back to
@@ -91149,7 +91149,7 @@ So the asymmetry — one argument folded to an immediate, the other stranded in 
 register — is itself the evidence that both came from one inlined call. Do not
 read it as a hand-written `0x20 < x`, and do not add a pin to force the `li`.
 
-Worked example: `Actor00400_Fn06380` (`src/actors/lib/actor_100400_text.c`),
+Worked example: `_actor00400SwimAttackWindup` (`src/actors/actor_00400/actor_00400.c`),
 68.1% -> 100% in one attempt. The same helper shape appears as
 `ActorsShared801698d4` and in `actor_104400_text_tail.c`.
 
@@ -91290,7 +91290,7 @@ swapped and the block is otherwise identical, look for a load the original
 performed that CSE would have folded away — the fold is invisible in the
 assembly but not in the ranking.
 
-Worked example: `Actor00400_Fn05728` (`src/actors/lib/actor_100400_text.c`),
+Worked example: `_actor00400SwimDecide` (`src/actors/actor_00400/actor_00400.c`),
 96.9% -> 99.6% with the hoisted constant, -> 100% with the reload idiom; the
 calibration came from the already-matched `_actor00400StrandedDecide`.
 
@@ -91328,14 +91328,14 @@ semantic decision, not a formatting one.
 
 **Corollary, for reading a permuter candidate.** These effects are separable
 and additive, so a candidate that changes two use sites at once can be split
-and each half measured. For `Actor00400_Fn05728`, reverting one use at a time
+and each half measured. For `_actor00400SwimDecide`, reverting one use at a time
 gave distances 569 (neither), 614 (push 1 only), 414 (both), 369 (push 2 only):
 push 2 is worth -200 (the deleted reload), push 1 is worth +45 (the
 `$v0`/`$v1` swap above), in either order. The permuter had bundled a -200 gain
 with a +45 regression; taking only the gain beat its own candidate. Always try
 the one-at-a-time 2x2 before porting a multi-site permutation.
 
-Worked example: `Actor00400_Fn05728`, evidence in the scratch archive
+Worked example: `_actor00400SwimDecide`, evidence in the scratch archive
 (`base_6.c` `56ef70cdde8a…`, `base_7.c` `96a300410b7f…`, parent
 `8c86cfac9f83…`, permuter candidate `4bcd89c96728…`).
 ## An address expression used after several calls comes out re-materialized unless the source names it *before* the early-return branch (func_actor_510900_8013A5B8, 2026-09-16)
@@ -93346,7 +93346,7 @@ rewrites one that exists), so no matched body was lost and
 Inputs: `base_15.i`
 `733499da18bf72f55e469e3731d0554896bcb27b59d6132bd602bbed093fa0b5` (99.339% on
 symbol rendering; the unscoped build matches).
-## `REG_N_REFS` is weighted by loop depth, so a `do { } while (0)` reorders global allocation (Actor00400_Fn07518, 2026-09-16)
+## `REG_N_REFS` is weighted by loop depth, so a `do { } while (0)` reorders global allocation (_actor00400WoundedFloatFlinchTick, 2026-09-16)
 
 Two pseudos swapped hard registers against the target: a `_Actor00400Work*`
 came out in `$a0` where the target had `$v1`, and the `s16` it compared against
@@ -104352,7 +104352,7 @@ return 0;
 
 ```c
 /* Actor00400_Fn095D8: the phi form, condition sequence byte-identical
-   to the already-matched Actor00400_Fn04414 */
+   to the already-matched _actor00400SwimDeathFallWait */
 w2 = arg0->field_1C;
 if ((w2->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (w2->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (w2->animStatus & ANIMATION_SLOT_SETTLED)) {
 ## A naming pass makes twins invisible to `overlay_dup_index.py find` — the wildcard is name-shaped
@@ -105227,7 +105227,7 @@ Distinguish the two readings structurally: a stack-argument call writes the args
 in a register; a local table writes them *before* the index load (`lh 0x422`
 comes last, after both `sw`s) and the `lw` from `$sp + index*4` *is* the target.
 The 2-element local array is the family idiom, already matched in
-`src/actors/lib/actor_100400_text.c` (`Actor00400_Fn079A8`, `Actor00400_Fn089C8`)
+`src/actors/actor_00400/actor_00400.c` (`_actor00400SwimLightRecoil`, `Actor00400_Fn089C8`)
 — check a matched sibling in the same family before writing the body by hand.
 
 Inputs: `base.i` SHA256
