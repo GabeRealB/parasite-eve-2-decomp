@@ -508,7 +508,7 @@ quantity IDs `(0,1), (1,2), (0,1)`, while swapping entries of `qty_order`.
 They do not compare the IDs currently in those entries. With priorities
 `[3750,10000,10000]`, the first and last swaps cancel, leaving allocation order
 `[0,1,2]`: the lowest-priority quantity allocates first. This exact order is
-traced in `func_actor_800200_801647A8` after splitting a reused constant into
+traced in `_actor800200TickTimedWait` after splitting a reused constant into
 two locals. The suggestion sort has the same fixed-ID form. For three
 quantities, inspect that path rather than assuming the general priority sort.
 Evidence: `tools/compiler_evidence/2026-09-20-actor800200-647a8.json`.

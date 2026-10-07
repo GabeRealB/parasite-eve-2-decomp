@@ -55815,7 +55815,7 @@ the thing that makes the block match.
 
 ## The same alias rule run backwards: a pointer-reached load reorders a scalar store
 
-**Problem.** `func_actor_800200_80162088` matched at 99.13% with `reorder=2`:
+**Problem.** `_actor800200InitTask` matched at 99.13% with `reorder=2`:
 one store and its `lui`, `sw s2,%lo(D_80115764)(v0)`, were emitted 18 positions
 too early — immediately after the prologue instead of after `sh v0,0x938(s0)`,
 where the source and the target both put it. Every register was already
@@ -75867,7 +75867,7 @@ in the file, not just the one being matched.
 
 ### m2c's `&&` of two compares against one value folds to a single compare
 
-`func_actor_800200_80165E50` tests a state field against two constants and
+`_actor800200TickRouteAnimation` tests a state field against two constants and
 leaves the function from both tests:
 
 ```
@@ -106256,7 +106256,7 @@ other change and no `li` added anywhere else. Reading the compared field back
 keeps the constant.
 
 The same shape written as an `if` chain and not a `switch` is the same trade.
-`func_actor_800200_8016436C` compares `state != 0` (the `beqz` the arm is reached by) and then
+`_actor800200TickActionBurst` compares `state != 0` (the `beqz` the arm is reached by) and then
 `state != 1`, so the constant is again materialised on the path the `beqz` skips: `actor->statePhase = 1;`
 grew its own `(set (reg:HI 111) (const_int 1))` and stopped at 99.24%. One `s32 next = 1;` whose value
 the arm stores makes the store `(set (mem:HI ...) (subreg:HI (reg:SI ...) 0))`, cse gives the compare
@@ -106686,9 +106686,9 @@ decides the register.
 
 Inputs: `base_5.i` (95.375%, one-statement divide), `base_6.i` (96.414%).
 
-## An `if/else` with equal block and insn counts left only `reorder`: the block that falls through is the `then` (func_actor_800200_80163F5C, 2026-09-16)
+## An `if/else` with equal block and insn counts left only `reorder`: the block that falls through is the `then` (_actor800200TickPlayerFollow, 2026-09-16)
 
-`func_actor_800200_80163F5C` dispatches on a `u16` state with `switch (actor->statePhase)` and cases
+`_actor800200TickPlayerFollow` dispatches on a `u16` state with `switch (actor->statePhase)` and cases
 0..3. Two things about the shape are worth keeping:
 
 The **dispatch** is `lhu $v0, 0x95E($s0)` / `beqz $v0, case0` / `bltz $v0, default` /
@@ -106788,7 +106788,7 @@ later distance local for the `playerActorPlayChildSlotsWithBlend` argument emitt
 `li v0,5` / `li v0,6` plus a `move a1,v0` at the join; a local that only the two
 arms assign gives the target's `li a1,5` / `li a1,6` directly.
 
-Example: `func_actor_800200_80164180` — 94.4% with the compared expression
+Example: `_actor800200TickTargetTurn` — 94.4% with the compared expression
 trailing, 100% with the `u16` flag. Inputs: `base_2.i`
 `0461c71fa0443937c7091fb279985815ea3c37d7c4c8120f225765b1816a3e10`,
 `base_3.i`
@@ -106860,7 +106860,7 @@ actor->statePhase = flag;
 actor->movementSign = flag;
 ```
 
-`func_actor_800200_80164598`: 99.16% with the literals (`regs=1 insert=1`, the
+`_actor800200TickApproach`: 99.16% with the literals (`regs=1 insert=1`, the
 extra `li`), 100% with the shared `flag`. Swapping the two stores is a trap — it
 merges the constants too, but the scheduler does not reorder two stores, so the
 `sh` / `sb` come out in the wrong order (99.55%, `reorder=1`). The same function
@@ -106869,9 +106869,9 @@ also needs the scratch allocator's intermediate pointer pinned
 `Gp_PlayerMode2State4`): unpinned, local-alloc coalesces `tmp` into the
 call-saved `block` it feeds, losing the `move $s1,$a0` the target has.
 
-## A sibling whose *assembly* is instruction-identical can still hide the answer in its C: the `register asm()` pin (func_actor_800200_80164EBC, 2026-09-16)
+## A sibling whose *assembly* is instruction-identical can still hide the answer in its C: the `register asm()` pin (_actor800200TickScriptedRunToDestination, 2026-09-16)
 
-`func_actor_800200_80164EBC` is `Gp_PlayerMode2State4` with three constants
+`_actor800200TickScriptedRunToDestination` is `Gp_PlayerMode2State4` with three constants
 changed, and the clean-room rewrite of it reached 95.49% on the first build --
 `regs=19` plus a `branch=4` that traced back to a single register. In the
 `case 2` distance test the target reads
@@ -106922,7 +106922,7 @@ confirms both halves. Its target is an instruction-for-instruction twin of
 identical -- differing only in `addiu $v0,$zero,0x5` against `0x1`
 (`actor->movementMode = 5` against `= 1`). The copies are variants of one body that
 differ in *data constants*: State4 stores 1, `80164C54` stores 5, the already
-matched `func_actor_800200_80164EBC` stores 6 and differs further only in its
+matched `_actor800200TickScriptedRunToDestination` stores 6 and differs further only in its
 `case 1` mode selection. Porting State4's source with that one constant changed
 scored 93.597% unpinned and 100.000% once its same two `register asm()`
 declarations were adopted verbatim -- so when a twin appears, take its source
@@ -110046,7 +110046,7 @@ for all three render nodes, so only one quantity competes.
 **Fix:** collapse sequentially-used pointers into the single variable the
 original source had. Here the three pointers became one `obj` and the score went
 95.18% -> 97.78% (regs 79 -> 10, frame `-0x40` -> `-0x38`). The already-matched
-siblings in the same family (`func_actor_800200_80162088`,
+siblings in the same family (`_actor800200InitTask`,
 `func_actor_800300_80161E80`) had the answer in their source all along: copy the
 *source shape*, not just the statements, from a matched sibling.
 
@@ -123994,7 +123994,7 @@ homes: the discarded state temporary had been taking `$s0`, pushing `actor` to
 
 **Where the shared statement goes.** The two remaining hunks were both the
 `actor->movementSign = 1` that case 0 and cases 1-3 share. The sibling
-(`func_actor_800200_80163F5C`) writes it as the *last* statement of case 0,
+(`_actor800200TickPlayerFollow`) writes it as the *last* statement of case 0,
 before the fallthrough; the target wants it as the **first** statement of the
 1/2/3 body, so case 0 reaches it after its call and the dispatch's `j` can carry
 the `sb` in its delay slot:
@@ -136674,7 +136674,7 @@ Evidence: base_4/base_6 `.rtl`, `.loop`, `.cse2`, `.greg` and experiment plans.
 This is an observed result for this table and compiler; it is not a universal
 rule that removing pointer locals improves loop code.
 
-## A split constant exposes GCC's three-quantity local-sort exception, then dbr removes the redundant load (func_actor_800200_801647A8, 2026-09-20)
+## A split constant exposes GCC's three-quantity local-sort exception, then dbr removes the redundant load (_actor800200TickTimedWait, 2026-09-20)
 
 The 99.014% retry seed reused `s32 next` for case 0's state store and a later
 reset block's repeat-count store. Its case-0 constant occupied v1, while the
@@ -136707,12 +136707,12 @@ Result: 100.000%, every penalty zero, unscoped BUILD SUCCEEDED. No pins,
 barriers, header changes or permuter discovery. A bounded router search had
 missed before this manual experiment. Evidence and selected trace events:
 `tools/compiler_evidence/2026-09-20-actor800200-647a8.json`; full sources,
-dumps, journal and trace retained under `tools/permuter_findings/func_actor_800200_801647A8/`.
+dumps, journal and trace retained under `tools/permuter_findings/`.
 Inputs: base_1 `f2385cf9a9bf81c5e61818f5c2375e5ce05d14ea58ce8f4832017baf56cd914b`,
 base_2 `e199d5967294a882733d9bc2e15f2eb59f1d1a4fdd5f2a5238f4d235cb29c43a`;
 compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Reusing a global temporary can reverse two local load homes without a tie (func_actor_800200_801649D8, 2026-09-20)
+## Reusing a global temporary can reverse two local load homes without a tie (_actor800200TickClearanceEscape, 2026-09-20)
 
 The archived 98.579% seed loaded signed headings in the correct order but into
 v1/v0 instead of v0/v1. Earlier notes attributed this to subtraction operand
@@ -136743,7 +136743,7 @@ Readable current-header port base_5 is exact; unscoped BUILD SUCCEEDED. No pins
 or asm helpers. The concurrent bounded router's alternate reproduced no gain
 (distance407 ->407); the manual experiments supplied this match. Evidence:
 `tools/compiler_evidence/2026-09-20-actor800200-649d8.json`; full inputs/dumps and
-traces archived in `tools/permuter_findings/func_actor_800200_801649D8/`.
+traces archived in `tools/permuter_findings/`.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Input base: `c9836f8068bf3987175e75ac6a19ffa72f3dd1e457515671048b41e6a87e444f`;
 base_3: `9f5a709da399986dcb7aee89ca5f958e9f748229f91c1e3c250a594b438eebbd`.
@@ -146358,7 +146358,7 @@ block as one `s16 field_0[0x40]`, so the second ring became
 overlay or file declares the same block with two arrays, try the two-array
 view before steering the address arithmetic.
 
-### A halfword then a byte store of the same constant: only an `s32` local makes both reuse an earlier register (func_actor_800200_80164598, 2026-09-27)
+### A halfword then a byte store of the same constant: only an `s32` local makes both reuse an earlier register (_actor800200TickApproach, 2026-09-27)
 
 The target stores `sh s2,0x95E` then `sb s2,0x973`, where `s2` already holds
 the switch's `1`. Written as two `= 1` stores, the `sh` takes `s2` but the
@@ -150540,7 +150540,7 @@ attempts; left as it was.
 - **`case 3: goto call;` into the then-arm of an `if`/`else` after the switch**
   (`_actor800200TickFreeIdle`) is the call written in the case; first try.
 - **`value = A; goto store;` into `if (value < MIN) { value = MIN; store:
-  timer = value; }`** (`func_actor_800200_801647A8`) is a `static inline void`
+  timer = value; }`** (`_actor800200TickTimedWait`) is a `static inline void`
   that stores `timer = A` and returns early, and otherwise `timer = value; if
   (value < MIN) { timer = MIN; }`. The inline is needed only because the code
   continues into the next case, so there is nothing to `return` from.
@@ -150558,7 +150558,7 @@ attempts; left as it was.
   (`_actor800200TickArea2Route`, `_actor800200TickArea5Route`, `_actor800200TickArea1Route`, `_actor800200TickArea20Route8To10`). `actor->stateAux++`
   in place of the `flag` local is not folded to a constant. Those seven keep
   the goto.
-- Not converted: `func_actor_800200_80163F5C`'s `goto resume;` from the
+- Not converted: `_actor800200TickPlayerFollow`'s `goto resume;` from the
   follow cases back into case 0's else arm. Written as a loop around the
   follow cases with the start block as an inline, loop.c hoists and the frame
   grows by two saved registers (137 -> 155 insns).
@@ -150683,7 +150683,7 @@ constant).
   `switch (actor->statePhase) { case 0: ...; case 1: ... }` loads its own
   `li v0,1` in HImode; `s32 next = 1; actor->statePhase = next;` is an SImode
   pseudo that cse equates with the `1` the dispatch already holds
-  (`func_actor_800200_8016436C`: the goto went, the local stays). The `flag`
+  (`_actor800200TickActionBurst`: the goto went, the local stays). The `flag`
   locals of the companion route functions in the same file are the same thing.
 - **`goto fail` where the dispatch constant is live in the jumping block stays
   a goto**: in `_actor800200TickArea19Route`/`_actor800200TickArea15Route` the arrival block

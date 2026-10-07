@@ -43,6 +43,19 @@
 
 enum { COMPANION_ROUTE_COMPLETE = 1 };
 
+/// Task teardown, clearance behavior and native animation selections.
+enum {
+    ACTOR_800200_TASK_TEARDOWN           = 3,
+    ACTOR_800200_STATE_CLEARANCE_ESCAPE  = 10,
+    ACTOR_800200_ANIMATION_WALK          = 2,
+    ACTOR_800200_ANIMATION_RUN           = 4,
+    ACTOR_800200_ANIMATION_TURN_NEGATIVE = 5,
+    ACTOR_800200_ANIMATION_TURN_POSITIVE = 6,
+    ACTOR_800200_ANIMATION_REST_EXIT     = 8,
+    ACTOR_800200_ANIMATION_ACTION_BASE   = 10,
+    ACTOR_800200_MOVEMENT_BLEND_FRAMES   = 5
+};
+
 /// Normal behavior selectors and animation choices used by the route entries.
 enum {
     ACTOR_800200_STATE_PLAYER_FOLLOW       = 1,
@@ -66,6 +79,13 @@ enum {
     ACTOR_800200_ANIMATION_IDLE            = 1,
     ACTOR_800200_ANIMATION_ROUTE           = 14,
     ACTOR_800200_ENTRY_BLEND_FRAMES        = 3
+};
+
+/// Common destination approach phases; the turn helper advances initial entry.
+enum {
+    ACTOR_800200_DESTINATION_START_PHASE  = 0,
+    ACTOR_800200_DESTINATION_TURN_PHASE   = 1,
+    ACTOR_800200_DESTINATION_TRAVEL_PHASE = 2
 };
 
 /// Persistent route phases and exclusive X/Z arrival limits in game units.
@@ -111,7 +131,7 @@ extern _Actor800200Waypoint D_actor_800200_8016A108[];
 extern _Actor800200Waypoint D_actor_800200_8016A128[];
 extern _Actor800200Waypoint D_actor_800200_8016A130[];
 
-static void func_actor_800200_801626A0(Task* task);
+static void _actor800200TeardownTask(Task* task);
 static void func_actor_800200_801652EC(Task* arg0);
 static void _actor800200EnterPlayerFollow(Task* task);
 static void _actor800200EnterTargetTurn(Task* task);
@@ -130,12 +150,12 @@ static void _actor800200CompleteArea25Route7(Task* task);
 static void _actor800200TickArea3Route(Task* task);
 static void _actor800200TickArea24Route10(Task* task);
 static void func_actor_800200_80165B84(Task* arg0);
-static void func_actor_800200_80165CB4(Task* arg0);
-static void func_actor_800200_80165D44(Task* arg0);
-static void func_actor_800200_80165E50(Task* arg0);
+static void _actor800200TickScheduleIdle(Task* task);
+static void _actor800200TickRest(Task* task);
+static void _actor800200TickRouteAnimation(Task* task);
 static void func_actor_800200_80165E90(Task* arg0);
-static void func_actor_800200_80165F28(Task* arg0);
-static void func_actor_800200_80165F48(Task* arg0);
+static void _actor800200TickDamageRecovery(Task* task);
+static void _actor800200HoldStoppedPose(Task* unusedTask);
 static void func_actor_800200_80165F50(Task* arg0);
 static void func_actor_800200_80165FF0(Task* arg0);
 static s32  _actor800200GetContactDistance(const GfxCoord* coord, const WorldCollisionContact* contact, u16* contactZY);
@@ -896,9 +916,9 @@ AnimationBank D_actor_800200_8016F208 = { { {
     NULL,
 } } };
 
-static void func_actor_800200_80162088(Task* arg0);
+static void _actor800200InitTask(Task* task);
 static void func_actor_800200_801622B0(Task* arg0);
-static void func_actor_800200_80162694(Task* arg0);
+static void _actor800200AdvanceToTeardown(Task* task);
 static void _actor800200TickFreeIdle(Task* task);
 static void _actor800200TickArea26Route(Task* task);
 static void _actor800200TickArea23Route1(Task* task);
@@ -913,98 +933,139 @@ static void _actor800200TickArea1Route(Task* task);
 static void _actor800200TickArea20Route8To10(Task* task);
 static void _actor800200TickArea19Route(Task* task);
 static void _actor800200TickArea15Route(Task* task);
-static void func_actor_800200_80163F5C(Task* arg0);
-static void func_actor_800200_80164180(Task* arg0);
-static void func_actor_800200_8016436C(Task* arg0);
-static void func_actor_800200_80164598(Task* arg0);
-static void func_actor_800200_801647A8(Task* arg0);
-static void func_actor_800200_801649D8(Task* arg0);
+static void _actor800200TickPlayerFollow(Task* task);
+static void _actor800200TickTargetTurn(Task* task);
+static void _actor800200TickActionBurst(Task* task);
+static void _actor800200TickApproach(Task* task);
+static void _actor800200TickTimedWait(Task* task);
+static void _actor800200TickClearanceEscape(Task* task);
 static void func_actor_800200_80164C54(Task* arg0);
-static void func_actor_800200_80164EBC(Task* arg0);
+static void _actor800200TickScriptedRunToDestination(Task* task);
 static s32  func_actor_800200_80165104(Task* arg0);
 
-static void func_actor_800200_80162088(Task* arg0)
+/// Resets a normal stationary action burst while retaining its borrowed focus.
+///
+/// Requires live actor work; targetVariant is 0 for player or 1 for lock target.
+/// Preserves route progress and the repetition byte selected by the caller.
+static inline void _actor800200ResetActionBurst(GameActor* actor, u16 targetVariant)
 {
+    actor->mode                        = GAME_ACTOR_MODE_NORMAL;
+    actor->state                       = ACTOR_800200_STATE_ACTION_BURST;
+    actor->movementMode                = ACTOR_800200_MOVEMENT_STOPPED;
+    actor->turnRateIndex               = ACTOR_800200_TURN_DISABLED;
+    actor->animationState              = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
+    actor->statePhase                  = 0;
+    actor->attackControl.targetVariant = targetVariant;
+}
+
+/// Starts a normal target turn without replacing the focus or repetition byte.
+static inline void _actor800200ResetTargetTurn(GameActor* actor)
+{
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->state          = ACTOR_800200_STATE_TARGET_TURN;
+    actor->turnRateIndex  = ACTOR_800200_TURN_TARGET;
+    actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
+    actor->statePhase     = 0;
+}
+
+/// Initializes the companion task's native animation, movement bodies and forward probe.
+///
+/// Requires allocated GameActor/CompanionWork work and the 19-part model, with
+/// unlinked bodies and a valid initial animation in actionArgument. Publishes
+/// the companion registry slot and installs teardown. The root and part-4
+/// spheres borrow one contact table and use characterId in the player-body key
+/// category. The probe copies its endpoint before the eight-byte reservation
+/// is released; only six bytes of that reservation hold the endpoint.
+static void _actor800200InitTask(Task* task)
+{
+    enum { ACTOR_800200_PROBE_SCRATCH_BYTES = 8,
+           ACTOR_800200_ROOT_BODY_RADIUS    = 250,
+           ACTOR_800200_PART4_BODY_RADIUS   = 200,
+           ACTOR_800200_PART4_COORD_INDEX   = 4,
+           ACTOR_800200_PROBE_NEAR_Y        = -256,
+           ACTOR_800200_PROBE_NEAR_Z        = 512,
+           ACTOR_800200_PROBE_FAR_Z         = 1536 };
     GameActor*             actor;
-    TmdObject*             extra;
-    GfxCoord*              coord;
-    GfxCoord*              next;
-    GfxCoord**             addr;
-    WorldCollisionBody*    obj;
-    WorldCollisionContact* recs;
-    McSaveData*            save;
-    SVECTOR3*              scratch;
-    void*                  head;
-    s32                    packed;
+    TmdObject*             model;
+    GfxCoord*              rootCoord;
+    GfxCoord*              modelCoords;
+    GfxCoord**             coordsSlot;
+    WorldCollisionBody*    body;
+    WorldCollisionContact* contacts;
+    const McSaveData*      liveSave;
+    SVECTOR3*              nearEndpoint;
+    u8*                    scratchEnd;
+    s32                    bodyKeyKind;
 
-    actor                      = arg0->work;
-    head                       = SCRATCH_STACK_CURSOR(void);
-    SCRATCH_STACK_CURSOR(void) = head - 8;
-    scratch                    = (SVECTOR3*)(head - 8);
-    extra                      = arg0->extra.tmd;
-    addr                       = &extra->coords;
-    coord                      = *addr;
-    arg0->state++;
-    arg0->msgTable                                 = D_actor_800200_80169EF0;
-    arg0->exitCallback                             = &func_actor_800200_801626A0;
+    actor                    = task->work;
+    scratchEnd               = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = scratchEnd - ACTOR_800200_PROBE_SCRATCH_BYTES;
+    nearEndpoint             = (SVECTOR3*)(scratchEnd - ACTOR_800200_PROBE_SCRATCH_BYTES);
+    model                    = task->extra.tmd;
+    coordsSlot               = &model->coords;
+    rootCoord                = *coordsSlot;
+    task->state++;
+    task->msgTable                                 = D_actor_800200_80169EF0;
+    task->exitCallback                             = &_actor800200TeardownTask;
     actor->animationSlotCount                      = GAME_ACTOR_NORMAL_ANIMATION_SLOTS;
-    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = arg0;
-    coord->parent                                  = &gGfxViewCoord;
-    coord->composeStamp                            = GRAPHICS_COORD_DIRTY;
-    extra->flags                                   = 0;
-    RotMatrix(&actor->rotation, &coord->coord);
-    companionInitNativeAnimation(arg0);
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = task;
+    rootCoord->parent                              = &gGfxViewCoord;
+    rootCoord->composeStamp                        = GRAPHICS_COORD_DIRTY;
+    model->flags                                   = 0;
+    RotMatrix(&actor->rotation, &rootCoord->coord);
+    companionInitNativeAnimation(task);
     actor->animationRate = ANIMATION_RATE_ONE;
-    playerActorResetChildSlots(arg0, actor->actionArgument);
-    playerActorTickChildSlots(arg0);
-    recs                                       = actor->collisionContacts;
-    obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
-    actor->previousPosition.vx                 = coord->coord.t[0];
-    actor->previousPosition.vy                 = coord->coord.t[1];
-    actor->previousPosition.vz                 = coord->coord.t[2];
-    obj->context.motion                        = &actor->collisionMotionContexts[0];
-    obj->coord                                 = coord;
-    actor->collisionMotionContexts[0].contacts = recs;
-    save                                       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    obj->pos.vx                                = 0;
-    obj->pos.vy                                = -0xFA;
-    obj->pos.vz                                = 0;
+    playerActorResetChildSlots(task, actor->actionArgument);
+    playerActorTickChildSlots(task);
+    // Both movement spheres share the actor contact table; the probe owns its result.
+    contacts                                   = actor->collisionContacts;
+    body                                       = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
+    actor->previousPosition.vx                 = rootCoord->coord.t[0];
+    actor->previousPosition.vy                 = rootCoord->coord.t[1];
+    actor->previousPosition.vz                 = rootCoord->coord.t[2];
+    body->context.motion                       = &actor->collisionMotionContexts[0];
+    body->coord                                = rootCoord;
+    actor->collisionMotionContexts[0].contacts = contacts;
+    liveSave                                   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    body->pos.vx                               = 0;
+    body->pos.vy                               = -ACTOR_800200_ROOT_BODY_RADIUS;
+    body->pos.vz                               = 0;
     {
-        s32 temp;
+        s32 characterId;
 
-        temp        = save->state.characterId;
-        obj->radius = 0xFA;
-        obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
-        packed      = 0x10000;
-        obj->key    = temp | packed;
-        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
+        characterId  = liveSave->state.characterId;
+        body->radius = ACTOR_800200_ROOT_BODY_RADIUS;
+        body->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
+        bodyKeyKind  = WORLD_COLLISION_CONTACT_PLAYER_BODY;
+        body->key    = characterId | bodyKeyKind;
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, body);
     }
     worldCollisionInitContacts(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
-    obj->flags                                |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
-    next                                       = arg0->extra.tmd->coords;
-    obj->context.motion                        = &actor->collisionMotionContexts[1];
-    obj->coord                                 = next + 4;
-    actor->collisionMotionContexts[1].contacts = recs;
-    obj->pos.vx                                = 0;
-    obj->pos.vy                                = 0;
-    obj->pos.vz                                = 0;
+    body->flags                               |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    body                                       = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
+    modelCoords                                = task->extra.tmd->coords;
+    body->context.motion                       = &actor->collisionMotionContexts[1];
+    body->coord                                = modelCoords + ACTOR_800200_PART4_COORD_INDEX;
+    actor->collisionMotionContexts[1].contacts = contacts;
+    body->pos.vx                               = 0;
+    body->pos.vy                               = 0;
+    body->pos.vz                               = 0;
     {
-        s32 temp;
+        s32 characterId;
 
-        temp        = save->state.characterId;
-        obj->radius = 0xC8;
-        obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
-        obj->key    = temp | packed;
-        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
+        characterId  = liveSave->state.characterId;
+        body->radius = ACTOR_800200_PART4_BODY_RADIUS;
+        body->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
+        body->key    = characterId | bodyKeyKind;
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, body);
     }
-    obj->flags                 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    actor->collisionEnableMask  = GAME_ACTOR_COLLISION_REQUEST_MASK;
-    ((SVECTOR3*)(head - 8))->vx = 0;
-    scratch->vy                 = -0x100;
-    scratch->vz                 = 0x200;
-    companionBindCollisionProbe(arg0, scratch, 0x600);
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    body->flags               |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    actor->collisionEnableMask = GAME_ACTOR_COLLISION_REQUEST_MASK;
+    nearEndpoint->vx           = 0;
+    nearEndpoint->vy           = ACTOR_800200_PROBE_NEAR_Y;
+    nearEndpoint->vz           = ACTOR_800200_PROBE_NEAR_Z;
+    companionBindCollisionProbe(task, nearEndpoint, ACTOR_800200_PROBE_FAR_Z);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_800200_PROBE_SCRATCH_BYTES);
 }
 
 static void func_actor_800200_801622B0(Task* arg0)
@@ -1102,20 +1163,21 @@ static void func_actor_800200_801622B0(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(CompanionMoveScratch);
 }
 
-static void func_actor_800200_80162694(Task* arg0)
+/// Selects the final task state so the next dispatch tears down this companion.
+static void _actor800200AdvanceToTeardown(Task* task)
 {
-    arg0->state = 3;
+    task->state = ACTOR_800200_TASK_TEARDOWN;
 }
 
-/// Teardown of the actor's main task, run both as its exit callback and as
-/// the last entry of its state table: clears the second `gPlayerActorTasks` slot,
-/// unlinks the two collision objects the set-up state linked, and kills the
-/// task.
-static void func_actor_800200_801626A0(Task* task)
+/// Clears the companion registry, unlinks its two movement bodies and kills the task.
+///
+/// Runs as the exit callback or final task state while GameActor work is live.
+/// The separately allocated companion work and its probe are left intact.
+static void _actor800200TeardownTask(Task* task)
 {
     GameActor* actor;
 
-    actor                                          = (GameActor*)task->work;
+    actor                                          = task->work;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
     worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_ROOT]);
     worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_PART4]);
@@ -1126,10 +1188,10 @@ static void func_actor_800200_801626A0(Task* task)
 /// per-frame update, a step that only advances to the last state, and the
 /// teardown.
 static const TaskFuncTable4 D_actor_800200_80161E24 = { {
-    func_actor_800200_80162088,
+    _actor800200InitTask,
     func_actor_800200_801622B0,
-    func_actor_800200_80162694,
-    func_actor_800200_801626A0,
+    _actor800200AdvanceToTeardown,
+    _actor800200TeardownTask,
 } };
 
 /// Handlers `func_actor_800200_801652EC` runs, indexed by `mode`.
@@ -2053,222 +2115,247 @@ static void _actor800200TickArea15Route(Task* task)
     }
 }
 
-static void func_actor_800200_80163F5C(Task* arg0)
+/// Follows the player, switching walk/run pace or scanning for an obstruction escape.
+///
+/// Requires live companion/model/player state in one root-parent frame. Stops
+/// within 768 planar game units; running begins at 3584 units and uses randomized
+/// hysteresis until 240 follow updates force steady walking. A nonzero probe
+/// clearance below 769 units starts the clearance sweep. Body and aim track the
+/// player except on the early sweep transition; route progress is retained.
+static void _actor800200TickPlayerFollow(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    GfxCoord*      target;
-    VECTOR3*       vec;
-    GameActor*     hit;
-    s32            mode;
-    s32            dist;
-    s32            angle;
+    enum { ACTOR_800200_FOLLOW_CHOOSE_PACE_PHASE = 0 };
+    enum { ACTOR_800200_FOLLOW_OBSTRUCTION_LIMIT   = 769,
+           ACTOR_800200_FOLLOW_STOP_DISTANCE_LIMIT = 769,
+           ACTOR_800200_FOLLOW_RUN_DISTANCE        = 3584,
+           ACTOR_800200_FOLLOW_WALK_PHASE          = 1,
+           ACTOR_800200_FOLLOW_RUN_PHASE           = 2,
+           ACTOR_800200_FOLLOW_STEADY_WALK_PHASE   = 3,
+           ACTOR_800200_FOLLOW_RECHECK_TICKS       = 240,
+           ACTOR_800200_FOLLOW_JITTER_MASK         = 0x3FF,
+           ACTOR_800200_FOLLOW_WALK_DISTANCE       = 2048,
+           ACTOR_800200_FOLLOW_RUN_DISTANCE_BASE   = 3072 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    GfxCoord*       rootCoord;
+    const GfxCoord* playerCoord;
+    const VECTOR3*  playerPosition;
+    GameActor*      currentActor;
+    s32             animationId;
+    s32             planarDistance;
+    s32             distanceJitter;
 
-    coord  = arg0->extra.tmd->coords;
-    target = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    actor  = arg0->work;
-    dist   = _actor800200GetContactDistance(coord, actor->companionWork->probe.contacts, NULL);
-    if (dist != 0 && dist < 0x301) {
-        hit                      = arg0->work;
-        companion                = hit->companionWork;
-        hit->state               = 0xA;
-        hit->turnRateIndex       = 2;
-        hit->mode                = GAME_ACTOR_MODE_NORMAL;
-        hit->animationState      = 0;
-        hit->statePhase          = 0;
-        hit->movementSign        = 0;
-        hit->turnSign            = 0;
-        companion->scanClearance = COMPANION_SCAN_UNTESTED;
-        companion->scanAngle     = 0;
-        playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 3);
+    rootCoord      = task->extra.tmd->coords;
+    playerCoord    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    actor          = task->work;
+    planarDistance = _actor800200GetContactDistance(rootCoord, actor->companionWork->probe.contacts, NULL);
+    // An obstruction interrupts following and starts a fresh clearance sweep.
+    if (planarDistance != 0 && planarDistance < ACTOR_800200_FOLLOW_OBSTRUCTION_LIMIT) {
+        currentActor                 = task->work;
+        companion                    = currentActor->companionWork;
+        currentActor->state          = ACTOR_800200_STATE_CLEARANCE_ESCAPE;
+        currentActor->turnRateIndex  = ACTOR_800200_TURN_TARGET;
+        currentActor->mode           = GAME_ACTOR_MODE_NORMAL;
+        currentActor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
+        currentActor->statePhase     = 0;
+        currentActor->movementSign   = 0;
+        currentActor->turnSign       = 0;
+        companion->scanClearance     = COMPANION_SCAN_UNTESTED;
+        companion->scanAngle         = 0;
+        playerActorPlayChildSlotsWithBlend(task, ACTOR_800200_ANIMATION_IDLE, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
         return;
     }
     switch (actor->statePhase) {
-        case 0:
+        case ACTOR_800200_FOLLOW_CHOOSE_PACE_PHASE:
             actor->stateTimer = 0;
-            if (companionGetPlayerPlanarDistance(coord) >= 0xE00) {
-                mode                = 4;
-                actor->statePhase   = 2;
-                actor->movementMode = 6;
+            if (companionGetPlayerPlanarDistance(rootCoord) >= ACTOR_800200_FOLLOW_RUN_DISTANCE) {
+                animationId         = ACTOR_800200_ANIMATION_RUN;
+                actor->statePhase   = ACTOR_800200_FOLLOW_RUN_PHASE;
+                actor->movementMode = ACTOR_800200_MOVEMENT_RUN;
             } else {
             resume:
-                if (actor->statePhase != 3) {
-                    actor->statePhase = 1;
+                if (actor->statePhase != ACTOR_800200_FOLLOW_STEADY_WALK_PHASE) {
+                    actor->statePhase = ACTOR_800200_FOLLOW_WALK_PHASE;
                 }
-                actor->movementMode = 5;
-                mode                = 2;
+                actor->movementMode = ACTOR_800200_MOVEMENT_WALK;
+                animationId         = ACTOR_800200_ANIMATION_WALK;
             }
             actor->movementSign = 1;
-            playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
-        case 1:
-        case 2:
-        case 3:
-            dist = companionGetPlayerPlanarDistance(coord);
-            if (dist < 0x301) {
-                companionEnterIdle(arg0, 0);
+            playerActorPlayChildSlotsWithBlend(task, animationId, 0, ACTOR_800200_MOVEMENT_BLEND_FRAMES);
+        case ACTOR_800200_FOLLOW_WALK_PHASE:
+        case ACTOR_800200_FOLLOW_RUN_PHASE:
+        case ACTOR_800200_FOLLOW_STEADY_WALK_PHASE:
+            planarDistance = companionGetPlayerPlanarDistance(rootCoord);
+            if (planarDistance < ACTOR_800200_FOLLOW_STOP_DISTANCE_LIMIT) {
+                companionEnterIdle(task, 0);
                 break;
             }
-            if (actor->statePhase == 3) {
+            if (actor->statePhase == ACTOR_800200_FOLLOW_STEADY_WALK_PHASE) {
                 break;
             }
             actor->stateTimer++;
-            if (actor->stateTimer == 0xF0) {
-                actor->statePhase = 3;
+            if (actor->stateTimer == ACTOR_800200_FOLLOW_RECHECK_TICKS) {
+                actor->statePhase = ACTOR_800200_FOLLOW_STEADY_WALK_PHASE;
                 goto resume;
             }
-            angle = rand() & 0x3FF;
-            if (((0x800 - angle) >= dist && actor->statePhase == 2) || (dist >= angle + 0xC00 && actor->statePhase == 1)) {
-                actor->statePhase = 0;
+            distanceJitter = rand() & ACTOR_800200_FOLLOW_JITTER_MASK;
+            if (((ACTOR_800200_FOLLOW_WALK_DISTANCE - distanceJitter) >= planarDistance && actor->statePhase == ACTOR_800200_FOLLOW_RUN_PHASE) || (planarDistance >= distanceJitter + ACTOR_800200_FOLLOW_RUN_DISTANCE_BASE && actor->statePhase == ACTOR_800200_FOLLOW_WALK_PHASE)) {
+                actor->statePhase = ACTOR_800200_FOLLOW_CHOOSE_PACE_PHASE;
             }
             break;
         default:
             break;
     }
-    vec = (VECTOR3*)&target->coord.t[0];
-    playerActorTurnBodyTowardPoint(arg0, vec);
-    playerActorTurnAimTowardPoint(arg0, vec);
+    playerPosition = MATRIX_TRANS(&playerCoord->coord);
+    playerActorTurnBodyTowardPoint(task, playerPosition);
+    playerActorTurnAimTowardPoint(task, playerPosition);
 }
 
-static void func_actor_800200_80164180(Task* arg0)
+/// Turns toward a borrowed lock target or the player, then resumes an action burst or idle.
+///
+/// Angles use 4096 units per turn; the turn completes within 256 angle units.
+/// Retains the signed action-repeat byte. Reserves sixteen scratch bytes for a
+/// twelve-byte focus position. An un-lockable node forces completion but still
+/// queries the uninitialized position, preserving the original behavior.
+static void _actor800200TickTargetTurn(Task* task)
 {
+    enum { ACTOR_800200_TARGET_TURN_START_PHASE   = 0,
+           ACTOR_800200_TARGET_TURN_ACTIVE_PHASE  = 1,
+           ACTOR_800200_TARGET_TURN_INVALID_PHASE = 2 };
+    enum { ACTOR_800200_FOCUS_SCRATCH_BYTES        = 16,
+           ACTOR_800200_TARGET_TURN_COMPLETE_LIMIT = 257 };
     GameActor*       actor;
     CompanionWork*   companion;
-    GfxCoord*        target;
-    WorldTargetNode* node;
-    u8*              head;
-    u8*              tmp;
-    VECTOR3*         vec;
-    GameActor*       actor2;
+    const GfxCoord*  playerCoord;
+    WorldTargetNode* targetNode;
+    VECTOR3*         focusPosition;
+    GameActor*       currentActor;
     s32              turnDelta;
-    s32              anim;
-    u16              flag;
+    s32              animationId;
+    u16              targetVariant;
 
-    actor                    = arg0->work;
-    companion                = actor->companionWork;
-    target                   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    tmp                      = head - 0x10;
-    SCRATCH_STACK_CURSOR(u8) = tmp;
-    vec                      = (VECTOR3*)tmp;
-    node                     = actor->targetNode;
-    if (node != NULL) {
-        if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            worldTargetGetBodyPosition(node, vec);
+    actor         = task->work;
+    companion     = actor->companionWork;
+    playerCoord   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    focusPosition = SCRATCH_STACK_RESERVE_BYTES(ACTOR_800200_FOCUS_SCRATCH_BYTES);
+    targetNode    = actor->targetNode;
+    if (targetNode != NULL) {
+        if (!(targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
+            worldTargetGetBodyPosition(targetNode, focusPosition);
         } else {
-            actor->statePhase = 2;
+            actor->statePhase = ACTOR_800200_TARGET_TURN_INVALID_PHASE;
         }
     } else {
-        ((VECTOR3*)(head - 0x10))->vx = target->coord.t[0];
-        vec->vy                       = target->coord.t[1];
-        vec->vz                       = target->coord.t[2];
+        focusPosition->vx = playerCoord->coord.t[0];
+        focusPosition->vy = playerCoord->coord.t[1];
+        focusPosition->vz = playerCoord->coord.t[2];
     }
     switch (actor->statePhase) {
-        case 0:
-            actor->statePhase   = 1;
-            actor->movementMode = 5;
+        case ACTOR_800200_TARGET_TURN_START_PHASE:
+            actor->statePhase   = ACTOR_800200_TARGET_TURN_ACTIVE_PHASE;
+            actor->movementMode = ACTOR_800200_MOVEMENT_WALK;
             actor->movementSign = 1;
-            if (playerActorGetTurnToPoint(arg0, vec) < 0) {
+            if (playerActorGetTurnToPoint(task, focusPosition) < 0) {
                 actor->turnSign = -1;
-                anim            = 5;
+                animationId     = ACTOR_800200_ANIMATION_TURN_NEGATIVE;
             } else {
                 actor->turnSign = 1;
-                anim            = 6;
+                animationId     = ACTOR_800200_ANIMATION_TURN_POSITIVE;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, anim, 1, 5);
-        case 1:
-        case 2:
-            turnDelta = playerActorGetTurnToPoint(arg0, vec);
+            playerActorPlayChildSlotsWithBlend(task, animationId, 1, ACTOR_800200_MOVEMENT_BLEND_FRAMES);
+        case ACTOR_800200_TARGET_TURN_ACTIVE_PHASE:
+        case ACTOR_800200_TARGET_TURN_INVALID_PHASE:
+            turnDelta = playerActorGetTurnToPoint(task, focusPosition);
             if (turnDelta < 0) {
                 turnDelta = -turnDelta;
             }
-            if ((turnDelta < 0x101) || (actor->statePhase == 2)) {
+            if ((turnDelta < ACTOR_800200_TARGET_TURN_COMPLETE_LIMIT) || (actor->statePhase == ACTOR_800200_TARGET_TURN_INVALID_PHASE)) {
                 if ((s8)companion->activity.combat.repeatsRemaining > 0) {
-                    flag                                = actor->targetNode != 0;
-                    actor2                              = arg0->work;
-                    actor2->mode                        = GAME_ACTOR_MODE_NORMAL;
-                    actor2->state                       = 4;
-                    actor2->movementMode                = 0;
-                    actor2->turnRateIndex               = 0;
-                    actor2->animationState              = 0;
-                    actor2->statePhase                  = 0;
-                    actor2->attackControl.targetVariant = flag;
+                    targetVariant = actor->targetNode != 0;
+                    currentActor  = task->work;
+                    _actor800200ResetActionBurst(currentActor, targetVariant);
                 } else {
-                    companionEnterIdle(arg0, 0);
+                    companionEnterIdle(task, 0);
                 }
             }
             break;
         default:
             break;
     }
-    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_800200_FOCUS_SCRATCH_BYTES);
 }
 
-static void func_actor_800200_8016436C(Task* arg0)
+/// Plays and repeats a player- or target-directed animation and positional sound.
+///
+/// Variant 0 selects clip 10/script 9; variant 1 selects clip 11/script 10 in
+/// this actor's sound bank. Completion decrements the signed repeat byte or
+/// turns toward a focus at least 641 angle units and 513 planar game units away.
+/// A missing or un-lockable target shortens the burst to one repetition while
+/// leaving the focus scratch position uninitialized; that query is retained.
+/// Reserves sixteen bytes for a twelve-byte point and releases them each call.
+static void _actor800200TickActionBurst(Task* task)
 {
+    enum { ACTOR_800200_ACTION_REQUEST_PHASE = 0,
+           ACTOR_800200_ACTION_PLAY_PHASE    = 1 };
+    enum { ACTOR_800200_FOCUS_SCRATCH_BYTES  = 16,
+           ACTOR_800200_ACTION_TURN_ANGLE    = 641,
+           ACTOR_800200_ACTION_TURN_DISTANCE = 513,
+           ACTOR_800200_ACTION_BLEND_FRAMES  = 4,
+           ACTOR_800200_ACTION_SOUND_BASE    = SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 9) };
     GameActor*       actor;
     CompanionWork*   companion;
-    GfxCoord*        target;
-    WorldTargetNode* node;
-    u8*              tmp;
-    GfxCoord*        coord;
-    VECTOR3*         vec;
-    u8*              head;
-    s8               count;
+    const GfxCoord*  playerCoord;
+    WorldTargetNode* targetNode;
+    GfxCoord*        rootCoord;
+    VECTOR3*         focusPosition;
+    s8               repeatsRemaining;
     s32              pan;
     s32              turnDelta;
-    s32              next = 1;
-    GameActor*       actor2;
+    s32              playingPhase = ACTOR_800200_ACTION_PLAY_PHASE;
+    GameActor*       currentActor;
 
-    actor                    = arg0->work;
-    companion                = actor->companionWork;
-    target                   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    tmp                      = head - 0x10;
-    SCRATCH_STACK_CURSOR(u8) = tmp;
-    vec                      = (VECTOR3*)tmp;
-    coord                    = arg0->extra.tmd->coords;
+    actor         = task->work;
+    companion     = actor->companionWork;
+    playerCoord   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    focusPosition = SCRATCH_STACK_RESERVE_BYTES(ACTOR_800200_FOCUS_SCRATCH_BYTES);
+    rootCoord     = task->extra.tmd->coords;
     if (actor->targetNode != NULL) {
-        node              = worldTargetFindLockNode(arg0);
-        actor->targetNode = node;
-        if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            worldTargetGetBodyPosition(node, vec);
+        targetNode        = worldTargetFindLockNode(task);
+        actor->targetNode = targetNode;
+        if ((targetNode != NULL) && !(targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
+            worldTargetGetBodyPosition(targetNode, focusPosition);
         } else {
             companion->activity.combat.repeatsRemaining = 1;
         }
     } else {
-        ((VECTOR3*)(head - 0x10))->vx = target->coord.t[0];
-        vec->vy                       = target->coord.t[1];
-        vec->vz                       = target->coord.t[2];
+        focusPosition->vx = playerCoord->coord.t[0];
+        focusPosition->vy = playerCoord->coord.t[1];
+        focusPosition->vz = playerCoord->coord.t[2];
     }
     switch (actor->statePhase) {
-        case 0:
-            actor->statePhase = next;
-            playerActorPlayChildSlotsWithBlend(arg0, actor->attackControl.targetVariant + 0xA, 0, 4);
-            pan = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(actor->attackControl.targetVariant + 0x40720009, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        case ACTOR_800200_ACTION_REQUEST_PHASE:
+            actor->statePhase = playingPhase;
+            playerActorPlayChildSlotsWithBlend(task, actor->attackControl.targetVariant + ACTOR_800200_ANIMATION_ACTION_BASE, 0, ACTOR_800200_ACTION_BLEND_FRAMES);
+            pan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(actor->attackControl.targetVariant + ACTOR_800200_ACTION_SOUND_BASE, pan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             /* fallthrough */
-        case 1:
-            if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-                turnDelta = playerActorGetTurnToPoint(arg0, vec);
+        case ACTOR_800200_ACTION_PLAY_PHASE:
+            if (playerActorIsSlotAdvancingLinearly(task, 1, 0, 0) == 0) {
+                turnDelta = playerActorGetTurnToPoint(task, focusPosition);
                 if (turnDelta < 0) {
                     turnDelta = -turnDelta;
                 }
-                if ((turnDelta >= 0x281) && (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), vec) >= 0x201)) {
-                    actor2                 = arg0->work;
-                    actor2->mode           = GAME_ACTOR_MODE_NORMAL;
-                    actor2->state          = 2;
-                    actor2->turnRateIndex  = 2;
-                    actor2->animationState = 0;
-                    actor2->statePhase     = 0;
+                if ((turnDelta >= ACTOR_800200_ACTION_TURN_ANGLE) && (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), focusPosition) >= ACTOR_800200_ACTION_TURN_DISTANCE)) {
+                    currentActor = task->work;
+                    _actor800200ResetTargetTurn(currentActor);
                 } else {
-                    count                                       = companion->activity.combat.repeatsRemaining - 1;
-                    companion->activity.combat.repeatsRemaining = count;
-                    if (count <= 0) {
-                        companionEnterIdle(arg0, 0);
+                    repeatsRemaining                            = companion->activity.combat.repeatsRemaining - 1;
+                    companion->activity.combat.repeatsRemaining = repeatsRemaining;
+                    if (repeatsRemaining <= 0) {
+                        companionEnterIdle(task, 0);
                     } else {
-                        actor->statePhase = 0;
+                        actor->statePhase = ACTOR_800200_ACTION_REQUEST_PHASE;
                     }
                 }
             }
@@ -2276,60 +2363,82 @@ static void func_actor_800200_8016436C(Task* arg0)
         default:
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_800200_FOCUS_SCRATCH_BYTES);
 }
 
-static void func_actor_800200_80164598(Task* arg0)
-{
-    PlayerActorApproachScratch* block;
-    GfxCoord*                   coord;
-    GameActor*                  actor;
-    s32                         val;
-    s32                         mode;
-    s32                         flag;
-
-    actor                         = arg0->work;
-    coord                         = arg0->extra.tmd->coords;
-    block                         = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorApproachScratch);
-    block->targetDelta.vx         = actor->destination.vx - coord->coord.t[0];
-    block->targetDelta.vy         = actor->destination.vy - coord->coord.t[1];
-    block->targetDelta.vz         = actor->destination.vz - coord->coord.t[2];
-    actor->scriptMotion.targetYaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
-    val                           = playerActorShortestTurn(actor->rotation.vy, actor->scriptMotion.targetYaw);
-    block->turnStep               = val;
-    if (val > 0x30) {
-        block->turnStep = 0x30;
-    } else if (val < -0x30) {
-        block->turnStep = -0x30;
-    } else if (actor->statePhase == 0) {
-        actor->statePhase = 1;
+/// Steps root yaw toward the parent-frame destination and records the signed step.
+///
+/// actor/rootCoord/scratch must be live, turnDelta a writable s32 local, and
+/// maxTurnStep a positive angle-unit limit (4096 per turn). Inputs are evaluated
+/// repeatedly and must be side-effect-free. No identifiers are captured.
+/// Writes XYZ delta, target yaw, clamped step, wrapped root yaw and the initial
+/// turning phase. Expands to a compound statement; invoke only in braced blocks.
+#define ACTOR_800200_STEP_DESTINATION_TURN(actor, rootCoord, scratch, turnDelta, maxTurnStep)                             \
+    {                                                                                                                     \
+        (scratch)->targetDelta.vx       = (actor)->destination.vx - (rootCoord)->coord.t[0];                              \
+        (scratch)->targetDelta.vy       = (actor)->destination.vy - (rootCoord)->coord.t[1];                              \
+        (scratch)->targetDelta.vz       = (actor)->destination.vz - (rootCoord)->coord.t[2];                              \
+        (actor)->scriptMotion.targetYaw = ratan2((scratch)->targetDelta.vx, (scratch)->targetDelta.vz);                   \
+        (turnDelta)                     = playerActorShortestTurn((actor)->rotation.vy, (actor)->scriptMotion.targetYaw); \
+        (scratch)->turnStep             = (turnDelta);                                                                    \
+        if ((turnDelta) > (maxTurnStep)) {                                                                                \
+            (scratch)->turnStep = (maxTurnStep);                                                                          \
+        } else if ((turnDelta) < -(maxTurnStep)) {                                                                        \
+            (scratch)->turnStep = -(maxTurnStep);                                                                         \
+        } else if ((actor)->statePhase == ACTOR_800200_DESTINATION_START_PHASE) {                                         \
+            (actor)->statePhase = ACTOR_800200_DESTINATION_TURN_PHASE;                                                    \
+        }                                                                                                                 \
+        (actor)->rotation.vy = ((actor)->rotation.vy + (scratch)->turnStep) & ACTOR_TRANSFORM_ANGLE_MASK;                 \
     }
-    actor->rotation.vy = (actor->rotation.vy + block->turnStep) & 0xFFF;
+
+/// Turns and walks or runs toward the stored route or target destination.
+///
+/// Requires live companion/model state and a destination in the root-parent
+/// frame. Turns by at most 48 angle units per update (4096 per turn), then
+/// narrows the speed-row argument in stateTimer into movementMode (5 walk,
+/// 6 run). Returns to idle within 192 planar game units or on wall contact.
+/// Borrows one PlayerActorApproachScratch block and retains route progress.
+static void _actor800200TickApproach(Task* task)
+{
+    enum { ACTOR_800200_APPROACH_TURN_STEP     = 48,
+           ACTOR_800200_APPROACH_ARRIVAL_LIMIT = 193 };
+    PlayerActorApproachScratch* scratch;
+    GfxCoord*                   rootCoord;
+    GameActor*                  actor;
+    s32                         turnDelta;
+    s32                         animationId;
+    s32                         movingPhase;
+
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorApproachScratch);
+    ACTOR_800200_STEP_DESTINATION_TURN(actor, rootCoord, scratch, turnDelta, ACTOR_800200_APPROACH_TURN_STEP);
+    // Finish the turn before consuming the requested speed row in stateTimer.
     switch (actor->statePhase) {
-        case 0:
-            flag                = 1;
-            actor->statePhase   = flag;
-            actor->movementSign = flag;
-            mode                = 6;
-            if (block->turnStep < 0) {
-                mode = 5;
+        case ACTOR_800200_DESTINATION_START_PHASE:
+            movingPhase         = ACTOR_800200_DESTINATION_TURN_PHASE;
+            actor->statePhase   = movingPhase;
+            actor->movementSign = movingPhase;
+            animationId         = ACTOR_800200_ANIMATION_TURN_POSITIVE;
+            if (scratch->turnStep < 0) {
+                animationId = ACTOR_800200_ANIMATION_TURN_NEGATIVE;
             }
-            playerActorPlayChildSlots(arg0, mode, 1);
-        case 1:
-            if (block->turnStep == 0) {
+            playerActorPlayChildSlots(task, animationId, 1);
+        case ACTOR_800200_DESTINATION_TURN_PHASE:
+            if (scratch->turnStep == 0) {
                 actor->movementMode = actor->stateTimer;
                 actor->statePhase++;
-                mode = 4;
-                if ((u16)actor->stateTimer == 5) {
-                    mode = 2;
+                animationId = ACTOR_800200_ANIMATION_RUN;
+                if ((u16)actor->stateTimer == ACTOR_800200_MOVEMENT_WALK) {
+                    animationId = ACTOR_800200_ANIMATION_WALK;
                 }
-                playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
+                playerActorPlayChildSlotsWithBlend(task, animationId, 0, ACTOR_800200_MOVEMENT_BLEND_FRAMES);
             }
             break;
-        case 2:
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0xC1 ||
-                playerActorHasWallContact(arg0) != 0) {
-                companionEnterIdle(arg0, 0);
+        case ACTOR_800200_DESTINATION_TRAVEL_PHASE:
+            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_APPROACH_ARRIVAL_LIMIT ||
+                playerActorHasWallContact(task) != 0) {
+                companionEnterIdle(task, 0);
             } else {
                 actor->movementSign = 1;
             }
@@ -2338,120 +2447,150 @@ static void func_actor_800200_80164598(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
-/// Starts the wait of `func_actor_800200_801647A8`: with a lockable target in
-/// a battle, a random delay that grows with the distance to it; otherwise one
-/// that shrinks with the distance to the player, no shorter than 0x60 frames.
-static inline void _actor800200StartWait(Task* task, GameActor* actor, GfxCoord* coord, VECTOR3* vec)
+/// Initializes a distance-dependent delay before the next action burst.
+///
+/// Requires live actor/root state and a writable twelve-byte targetPosition.
+/// In engaged combat, stores the borrowed lock node and uses distance buckets
+/// of 640 game units, clamped to 0..7: 0..127 random ticks plus 32 per bucket.
+/// Otherwise uses player distance to subtract 48 per bucket from 0..511 random
+/// ticks, with a 96-tick minimum. The caller decrements on this same update.
+static inline void _actor800200InitWaitDelay(Task* task, GameActor* actor, const GfxCoord* rootCoord, VECTOR3* targetPosition)
 {
-    WorldTargetNode* node;
-    s32              dist;
-    s32              value;
+    enum { ACTOR_800200_WAIT_BUCKET_UNITS        = 640,
+           ACTOR_800200_WAIT_BUCKET_COUNT        = 8,
+           ACTOR_800200_WAIT_TARGET_RANDOM_MASK  = 0x7F,
+           ACTOR_800200_WAIT_TARGET_BUCKET_SHIFT = 5,
+           ACTOR_800200_WAIT_PLAYER_RANDOM_MASK  = 0x1FF,
+           ACTOR_800200_WAIT_PLAYER_BUCKET_TICKS = 48,
+           ACTOR_800200_WAIT_PLAYER_MIN_TICKS    = 96 };
+    WorldTargetNode* targetNode;
+    s32              distanceBucket;
+    s32              delayTicks;
 
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-        node              = worldTargetFindLockNode(task);
-        actor->targetNode = node;
-        if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            worldTargetGetBodyPosition(node, vec);
-            dist = playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), vec);
-            dist = dist / 640;
-            if (dist >= 8) {
-                dist = 7;
+        targetNode        = worldTargetFindLockNode(task);
+        actor->targetNode = targetNode;
+        if ((targetNode != NULL) && !(targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
+            worldTargetGetBodyPosition(targetNode, targetPosition);
+            distanceBucket = playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), targetPosition);
+            distanceBucket = distanceBucket / ACTOR_800200_WAIT_BUCKET_UNITS;
+            if (distanceBucket >= ACTOR_800200_WAIT_BUCKET_COUNT) {
+                distanceBucket = ACTOR_800200_WAIT_BUCKET_COUNT - 1;
             }
-            actor->stateTimer = (rand() & 0x7F) + (dist << 5);
+            actor->stateTimer = (rand() & ACTOR_800200_WAIT_TARGET_RANDOM_MASK) + (distanceBucket << ACTOR_800200_WAIT_TARGET_BUCKET_SHIFT);
             return;
         }
     }
-    dist = companionGetPlayerPlanarDistance(coord);
-    dist = dist / 640;
-    if (dist >= 8) {
-        dist = 7;
+    distanceBucket = companionGetPlayerPlanarDistance(rootCoord);
+    distanceBucket = distanceBucket / ACTOR_800200_WAIT_BUCKET_UNITS;
+    if (distanceBucket >= ACTOR_800200_WAIT_BUCKET_COUNT) {
+        distanceBucket = ACTOR_800200_WAIT_BUCKET_COUNT - 1;
     }
-    value             = (rand() & 0x1FF) - (dist * 0x30);
-    actor->stateTimer = value;
-    if (value < 0x60) {
-        actor->stateTimer = 0x60;
+    delayTicks        = (rand() & ACTOR_800200_WAIT_PLAYER_RANDOM_MASK) - (distanceBucket * ACTOR_800200_WAIT_PLAYER_BUCKET_TICKS);
+    actor->stateTimer = delayTicks;
+    if (delayTicks < ACTOR_800200_WAIT_PLAYER_MIN_TICKS) {
+        actor->stateTimer = ACTOR_800200_WAIT_PLAYER_MIN_TICKS;
     }
 }
 
-static void func_actor_800200_801647A8(Task* arg0)
+/// Waits for a sampled delay, then selects a focus and starts one action burst.
+///
+/// Requires live companion/model/player state. Phase 0 initializes the delay
+/// and falls through to the first decrement; phase 1 keeps counting active
+/// updates. At expiry an engaged battle borrows a lock node, otherwise the
+/// focus is the player. Keeps aim toward the player and retains route progress.
+/// Reserves sixteen scratch bytes for the delay helper's twelve-byte point.
+static void _actor800200TickTimedWait(Task* task)
 {
-    GameActor* actor;
-    GameActor* actor2;
-    GameActor* actor3;
-    GfxCoord*  coord;
-    GfxCoord*  target;
-    VECTOR3*   vec;
-    u8*        head;
-    u8*        tmp;
-    s32        value;
-    u16        flag;
-    u16        state;
-    s32        next;
-    s32        initialState;
+    enum { ACTOR_800200_WAIT_INITIALIZE_PHASE = 0,
+           ACTOR_800200_WAIT_COUNT_PHASE      = 1 };
+    enum { ACTOR_800200_FOCUS_SCRATCH_BYTES = 16 };
+    GameActor*      actor;
+    GameActor*      actionActor;
+    GameActor*      currentActor;
+    GfxCoord*       rootCoord;
+    const GfxCoord* playerCoord;
+    VECTOR3*        targetPosition;
+    s32             ticksRemaining;
+    u16             targetVariant;
+    u16             waitPhase;
+    s32             actionCount;
+    s32             countingPhase;
 
-    target                   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    tmp                      = head - 0x10;
-    SCRATCH_STACK_CURSOR(u8) = tmp;
-    vec                      = (VECTOR3*)tmp;
-    actor                    = arg0->work;
-    coord                    = arg0->extra.tmd->coords;
-    state                    = actor->statePhase;
-    switch (state) {
-        case 0:
-            initialState      = 1;
-            actor->statePhase = initialState;
-            _actor800200StartWait(arg0, actor, coord, vec);
-        case 1:
-            value             = actor->stateTimer - 1;
-            actor->stateTimer = value;
-            if (value <= 0) {
-                actor2                                                  = arg0->work;
-                next                                                    = 1;
-                actor2->companionWork->activity.combat.repeatsRemaining = next;
-                if (gSceneCombatState.signals.bytes.battlePhase == next) {
-                    actor2->targetNode = worldTargetFindLockNode(arg0);
+    playerCoord    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    targetPosition = SCRATCH_STACK_RESERVE_BYTES(ACTOR_800200_FOCUS_SCRATCH_BYTES);
+    actor          = task->work;
+    rootCoord      = task->extra.tmd->coords;
+    waitPhase      = actor->statePhase;
+    switch (waitPhase) {
+        case ACTOR_800200_WAIT_INITIALIZE_PHASE:
+            countingPhase     = ACTOR_800200_WAIT_COUNT_PHASE;
+            actor->statePhase = countingPhase;
+            _actor800200InitWaitDelay(task, actor, rootCoord, targetPosition);
+        case ACTOR_800200_WAIT_COUNT_PHASE:
+            ticksRemaining    = actor->stateTimer - 1;
+            actor->stateTimer = ticksRemaining;
+            if (ticksRemaining <= 0) {
+                actionActor                                                  = task->work;
+                actionCount                                                  = 1;
+                actionActor->companionWork->activity.combat.repeatsRemaining = actionCount;
+                if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+                    actionActor->targetNode = worldTargetFindLockNode(task);
                 } else {
-                    actor2->targetNode = NULL;
+                    actionActor->targetNode = NULL;
                 }
-                flag                                = actor2->targetNode != 0;
-                actor3                              = arg0->work;
-                actor3->mode                        = GAME_ACTOR_MODE_NORMAL;
-                actor3->state                       = 4;
-                actor3->movementMode                = 0;
-                actor3->turnRateIndex               = 0;
-                actor3->animationState              = 0;
-                actor3->statePhase                  = 0;
-                actor3->attackControl.targetVariant = flag;
+                targetVariant = actionActor->targetNode != 0;
+                currentActor  = task->work;
+                _actor800200ResetActionBurst(currentActor, targetVariant);
             }
             break;
     }
-    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_800200_FOCUS_SCRATCH_BYTES);
 }
 
-static void func_actor_800200_801649D8(Task* arg0)
+/// Chooses a probe-clearance heading, turns onto it and advances for a bounded interval.
+///
+/// Requires scanAngle zero and scanClearance -1 on entry. Samples 32 headings
+/// at 128 angle units (4096 per turn), preferring clear contact over distance.
+/// Converts the selected yaw to absolute root-parent yaw and finishes turning
+/// within 63 units using the retained raw heading difference. Moves for 20..51
+/// combat updates or 60..187 other updates, stopping on nonzero clearance below
+/// 833 game units. This handler advances scanAngle but does not rotate the probe.
+static void _actor800200TickClearanceEscape(Task* task)
 {
+    enum { ACTOR_800200_ESCAPE_SCAN_PHASE = 0,
+           ACTOR_800200_ESCAPE_TURN_PHASE = 1,
+           ACTOR_800200_ESCAPE_MOVE_PHASE = 2 };
+    enum { ACTOR_800200_ESCAPE_TURN_COMPLETE_LIMIT = 64,
+           ACTOR_800200_ESCAPE_STOP_DISTANCE_LIMIT = 833,
+           ACTOR_800200_ESCAPE_COMBAT_MIN_TICKS    = 20,
+           ACTOR_800200_ESCAPE_COMBAT_RANDOM_MASK  = 0x1F,
+           ACTOR_800200_ESCAPE_CALM_MIN_TICKS      = 60,
+           ACTOR_800200_ESCAPE_CALM_RANDOM_MASK    = 0x7F,
+           ACTOR_800200_ESCAPE_SIGN_TEST_SHIFT     = 16,
+           ACTOR_800200_ESCAPE_RANDOM_DRAW_SHIFT   = 16 };
     GameActor*     actor;
     CompanionWork* companion;
     s32            distance;
-    s32            one;
-    s32            turnAnim;
-    s32            turn;
-    s32            idleAnim;
-    s32            delta;
-    s32            value;
-    s32            heading;
-    u32            random;
-    u16            target;
+    s32            turningPhase;
+    s32            turnAnimationId;
+    s32            turnSignTest;
+    s32            movementAnimationId;
+    s32            headingDistance;
+    s32            phaseOrHeading;
+    s32            currentHeading;
+    u32            delayRandom;
+    u16            absoluteHeading;
 
-    actor     = arg0->work;
-    companion = actor->companionWork;
-    distance  = _actor800200GetContactDistance(arg0->extra.tmd->coords, companion->probe.contacts, NULL);
-    value     = actor->statePhase;
-    one       = 1;
-    switch (value) {
-        case 0:
+    actor          = task->work;
+    companion      = actor->companionWork;
+    distance       = _actor800200GetContactDistance(task->extra.tmd->coords, companion->probe.contacts, NULL);
+    phaseOrHeading = actor->statePhase;
+    turningPhase   = ACTOR_800200_ESCAPE_TURN_PHASE;
+    // Scan 32 headings, then convert the chosen relative heading to absolute yaw.
+    switch (phaseOrHeading) {
+        case ACTOR_800200_ESCAPE_SCAN_PHASE:
             if (companion->scanAngle < ACTOR_TRANSFORM_ANGLE_TURN) {
                 // Retain the best clearance until the sweep has completed.
                 if ((companion->scanClearance != COMPANION_SCAN_CLEAR) && ((companion->scanClearance < distance) || (distance == COMPANION_SCAN_CLEAR))) {
@@ -2461,58 +2600,59 @@ static void func_actor_800200_801649D8(Task* arg0)
                 companion->scanAngle = (u16)companion->scanAngle + COMPANION_SCAN_ANGLE_STEP;
                 return;
             }
-            actor->statePhase        = one;
-            target                   = ((u16)companion->targetHeading + actor->rotation.vy) & ACTOR_TRANSFORM_ANGLE_MASK;
-            companion->targetHeading = target;
-            turn                     = playerActorShortestTurn((s16)actor->rotation.vy, (s16)target) << 0x10;
-            turnAnim                 = 5;
-            if (turn > 0) {
-                turnAnim           = 6;
+            actor->statePhase        = turningPhase;
+            absoluteHeading          = ((u16)companion->targetHeading + actor->rotation.vy) & ACTOR_TRANSFORM_ANGLE_MASK;
+            companion->targetHeading = absoluteHeading;
+            turnSignTest             = playerActorShortestTurn((s16)actor->rotation.vy, (s16)absoluteHeading) << ACTOR_800200_ESCAPE_SIGN_TEST_SHIFT;
+            turnAnimationId          = ACTOR_800200_ANIMATION_TURN_NEGATIVE;
+            if (turnSignTest > 0) {
+                turnAnimationId    = ACTOR_800200_ANIMATION_TURN_POSITIVE;
                 companion->turnDir = 1;
             } else {
                 companion->turnDir = -1;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, turnAnim, 0, 3);
+            playerActorPlayChildSlotsWithBlend(task, turnAnimationId, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
             return;
 
-        case 1:
+        case ACTOR_800200_ESCAPE_TURN_PHASE:
             actor->turnSign = companion->turnDir;
             do {
-                heading = (s16)actor->rotation.vy;
-                value   = companion->targetHeading;
-                delta   = heading - value;
+                currentHeading  = (s16)actor->rotation.vy;
+                phaseOrHeading  = companion->targetHeading;
+                headingDistance = currentHeading - phaseOrHeading;
             } while (0);
-            if (delta < 0) {
-                delta = -delta;
+            if (headingDistance < 0) {
+                headingDistance = -headingDistance;
             }
-            if (delta < 0x40) {
+            if (headingDistance < ACTOR_800200_ESCAPE_TURN_COMPLETE_LIMIT) {
                 actor->statePhase += 1;
                 actor->rotation.vy = (u16)companion->targetHeading;
                 actor->turnSign    = 0;
                 if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                    idleAnim            = 4;
-                    actor->movementMode = 6;
-                    random              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState     = random;
-                    random              = ((random >> 0x10) & 0x1F) + 0x14;
-                    actor->stateTimer   = random;
-                    playerActorPlayChildSlotsWithBlend(arg0, idleAnim, 0, 3);
+                    movementAnimationId = ACTOR_800200_ANIMATION_RUN;
+                    actor->movementMode = ACTOR_800200_MOVEMENT_RUN;
+                    delayRandom         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState     = delayRandom;
+                    delayRandom         = ((delayRandom >> ACTOR_800200_ESCAPE_RANDOM_DRAW_SHIFT) & ACTOR_800200_ESCAPE_COMBAT_RANDOM_MASK) + ACTOR_800200_ESCAPE_COMBAT_MIN_TICKS;
+                    actor->stateTimer   = delayRandom;
+                    playerActorPlayChildSlotsWithBlend(task, movementAnimationId, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
                 } else {
-                    idleAnim            = 2;
-                    actor->movementMode = 5;
-                    random              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState     = random;
-                    random              = ((random >> 0x10) & 0x7F) + 0x3C;
-                    actor->stateTimer   = random;
-                    playerActorPlayChildSlotsWithBlend(arg0, idleAnim, 0, 3);
+                    movementAnimationId = ACTOR_800200_ANIMATION_WALK;
+                    actor->movementMode = ACTOR_800200_MOVEMENT_WALK;
+                    delayRandom         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState     = delayRandom;
+                    delayRandom         = ((delayRandom >> ACTOR_800200_ESCAPE_RANDOM_DRAW_SHIFT) & ACTOR_800200_ESCAPE_CALM_RANDOM_MASK) + ACTOR_800200_ESCAPE_CALM_MIN_TICKS;
+                    actor->stateTimer   = delayRandom;
+                    playerActorPlayChildSlotsWithBlend(task, movementAnimationId, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
                 }
                 return;
             }
             return;
 
-        case 2:
-            if (((distance < 0x341) && (distance != 0)) || (--actor->stateTimer <= 0)) {
-                companionEnterIdle(arg0, 0);
+        // Advance only while clearance and the sampled movement interval permit.
+        case ACTOR_800200_ESCAPE_MOVE_PHASE:
+            if (((distance < ACTOR_800200_ESCAPE_STOP_DISTANCE_LIMIT) && (distance != 0)) || (--actor->stateTimer <= 0)) {
+                companionEnterIdle(task, 0);
             } else {
                 actor->movementSign = 1;
             }
@@ -2590,88 +2730,89 @@ static void func_actor_800200_80164C54(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
-static void func_actor_800200_80164EBC(Task* arg0)
+/// Turns and runs to a scripted destination, then acknowledges completion.
+///
+/// Scripted-mode state 8 requires live actor/model state and a destination in
+/// the root-parent frame. Turns at most 64 angle units per update, selects speed
+/// row 6 and default run clip 4, and permits an actionArgument clip override.
+/// Arrival requires both X/Z differences below 105 game units; it clears the
+/// pending flag, selects scripted state 1 and plays actionValue or idle clip 1.
+/// Ticks child slots and releases its approach scratch block before returning.
+static void _actor800200TickScriptedRunToDestination(Task* task)
 {
-    PlayerActorApproachScratch* block;
-    GfxCoord*                   coord;
+    enum { ACTOR_800200_SCRIPT_RUN_TURN_STEP          = 64,
+           ACTOR_800200_SCRIPT_RUN_AXIS_ARRIVAL_LIMIT = 105,
+           ACTOR_800200_SCRIPT_RUN_FINISHED_STATE     = 1 };
+    PlayerActorApproachScratch* scratch;
+    GfxCoord*                   rootCoord;
     GameActor*                  actor;
-    s32                         val;
-    s32                         mode;
+    s32                         turnDelta;
+    s32                         animationId;
 
-    actor                         = arg0->work;
-    coord                         = arg0->extra.tmd->coords;
-    block                         = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorApproachScratch);
-    block->targetDelta.vx         = actor->destination.vx - coord->coord.t[0];
-    block->targetDelta.vy         = actor->destination.vy - coord->coord.t[1];
-    block->targetDelta.vz         = actor->destination.vz - coord->coord.t[2];
-    actor->scriptMotion.targetYaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
-    val                           = playerActorShortestTurn(actor->rotation.vy, actor->scriptMotion.targetYaw);
-    block->turnStep               = val;
-    if (val > 0x40) {
-        block->turnStep = 0x40;
-    } else if (val < -0x40) {
-        block->turnStep = -0x40;
-    } else if (actor->statePhase == 0) {
-        actor->statePhase = 1;
-    }
-    actor->rotation.vy = (actor->rotation.vy + block->turnStep) & 0xFFF;
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorApproachScratch);
+    ACTOR_800200_STEP_DESTINATION_TURN(actor, rootCoord, scratch, turnDelta, ACTOR_800200_SCRIPT_RUN_TURN_STEP);
+    // Turn first, then run until both parent-frame axes meet their limits.
     switch (actor->statePhase) {
-        case 0:
-            actor->statePhase = 1;
-            mode              = 6;
-            if (block->turnStep < 0) {
-                mode = 5;
+        case ACTOR_800200_DESTINATION_START_PHASE:
+            actor->statePhase = ACTOR_800200_DESTINATION_TURN_PHASE;
+            animationId       = ACTOR_800200_ANIMATION_TURN_POSITIVE;
+            if (scratch->turnStep < 0) {
+                animationId = ACTOR_800200_ANIMATION_TURN_NEGATIVE;
             }
-            playerActorPlayChildSlots(arg0, mode, 1);
-        case 1:
-            if (block->turnStep == 0) {
-                actor->movementMode = 6;
+            playerActorPlayChildSlots(task, animationId, 1);
+        case ACTOR_800200_DESTINATION_TURN_PHASE:
+            if (scratch->turnStep == 0) {
+                actor->movementMode = ACTOR_800200_MOVEMENT_RUN;
                 actor->statePhase++;
-                mode = 4;
+                animationId = ACTOR_800200_ANIMATION_RUN;
                 if (actor->actionArgument != 0) {
-                    mode = actor->actionArgument;
+                    animationId = actor->actionArgument;
                 }
-                playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
+                playerActorPlayChildSlotsWithBlend(task, animationId, 0, ACTOR_800200_MOVEMENT_BLEND_FRAMES);
             }
             break;
-        case 2:
-            if (abs(coord->coord.t[0] - actor->destination.vx) < 0x69) {
-                if (abs(coord->coord.t[2] - actor->destination.vz) < 0x69) {
+        case ACTOR_800200_DESTINATION_TRAVEL_PHASE:
+            if (abs(rootCoord->coord.t[0] - actor->destination.vx) < ACTOR_800200_SCRIPT_RUN_AXIS_ARRIVAL_LIMIT) {
+                if (abs(rootCoord->coord.t[2] - actor->destination.vz) < ACTOR_800200_SCRIPT_RUN_AXIS_ARRIVAL_LIMIT) {
                     actor->scriptedMotionPending = 0;
-                    actor->state                 = 1;
-                    mode                         = 1;
+                    actor->state                 = ACTOR_800200_SCRIPT_RUN_FINISHED_STATE;
+                    animationId                  = ACTOR_800200_ANIMATION_IDLE;
                     if (actor->actionValue != 0) {
-                        mode = actor->actionValue;
+                        animationId = actor->actionValue;
                     }
-                    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
+                    playerActorPlayChildSlotsWithBlend(task, animationId, 0, ACTOR_800200_MOVEMENT_BLEND_FRAMES);
                     break;
                 }
             }
             actor->movementSign = 1;
-            playerActorStepMovement(arg0);
+            playerActorStepMovement(task);
             break;
     }
-    playerActorTickChildSlots(arg0);
+    playerActorTickChildSlots(task);
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
+#undef ACTOR_800200_STEP_DESTINATION_TURN
+
 /// Handlers `func_actor_800200_80165B84` runs, indexed by `state`.
 static const TaskFuncTable12 D_actor_800200_80161E5C = { {
-    func_actor_800200_80165CB4,
-    func_actor_800200_80163F5C,
-    func_actor_800200_80164180,
-    func_actor_800200_80165CB4,
-    func_actor_800200_8016436C,
-    func_actor_800200_80165CB4,
-    func_actor_800200_80165CB4,
-    func_actor_800200_80165D44,
-    func_actor_800200_80164598,
-    func_actor_800200_801647A8,
-    func_actor_800200_801649D8,
-    func_actor_800200_80165E50,
+    _actor800200TickScheduleIdle,
+    _actor800200TickPlayerFollow,
+    _actor800200TickTargetTurn,
+    _actor800200TickScheduleIdle,
+    _actor800200TickActionBurst,
+    _actor800200TickScheduleIdle,
+    _actor800200TickScheduleIdle,
+    _actor800200TickRest,
+    _actor800200TickApproach,
+    _actor800200TickTimedWait,
+    _actor800200TickClearanceEscape,
+    _actor800200TickRouteAnimation,
 } };
 
-/// Handlers `func_actor_800200_80165CB4` runs, indexed by the low nibble of
+/// Handlers `_actor800200TickScheduleIdle` runs, indexed by the low nibble of
 /// the task's `spawnArg1`.
 static const TaskFuncTable11 D_actor_800200_80161E8C = { {
     _actor800200TickFreeIdle,
@@ -2689,10 +2830,10 @@ static const TaskFuncTable11 D_actor_800200_80161E8C = { {
 
 /// Handlers `func_actor_800200_80165E90` runs, indexed by `hitRegion`.
 static const TaskFuncTable4 D_actor_800200_80161EB8 = { {
-    func_actor_800200_80165F28,
-    func_actor_800200_80165F28,
-    func_actor_800200_80165F28,
-    func_actor_800200_80165F48,
+    _actor800200TickDamageRecovery,
+    _actor800200TickDamageRecovery,
+    _actor800200TickDamageRecovery,
+    _actor800200HoldStoppedPose,
 } };
 
 /// Handlers `func_actor_800200_80165F50` runs, indexed by `state`; the
@@ -2706,7 +2847,7 @@ static const TaskFuncTable9 D_actor_800200_80161EC8 = { {
     Gp_PlayerMode2State1,
     Gp_PlayerMode2State1,
     Gp_PlayerMode2State1,
-    func_actor_800200_80164EBC,
+    _actor800200TickScriptedRunToDestination,
 } };
 
 static s32 func_actor_800200_80165104(Task* arg0)
@@ -3221,53 +3362,78 @@ static void func_actor_800200_80165B84(Task* arg0)
     playerActorStepMovement(arg0);
 }
 
-static void func_actor_800200_80165CB4(Task* arg0)
+/// Dispatches idle behavior for the companion-2 schedule captured when the task spawned.
+///
+/// The spawn argument's low nibble must be 0..10, as established by the schedule
+/// flag writers and companion setup; the mask does not admit table slots 11..15.
+/// Idle states 0, 3, 5 and 6 share this dispatcher. Schedule changes take effect
+/// when a new task is spawned, rather than by rereading the flag each update.
+static void _actor800200TickScheduleIdle(Task* task)
 {
-    TaskFuncTable11 sp;
+    enum { ACTOR_800200_SPAWN_SCHEDULE_MASK = 0xF };
+    TaskFuncTable11 handlers;
 
-    sp = D_actor_800200_80161E8C;
-    sp.funcs[arg0->spawnArg1.value & 0xF](arg0);
+    handlers = D_actor_800200_80161E8C;
+    handlers.funcs[task->spawnArg1.value & ACTOR_800200_SPAWN_SCHEDULE_MASK](task);
 }
 
-static void func_actor_800200_80165D44(Task* arg0)
+/// Holds the resting pose, then gets up when the player moves away or combat engages.
+///
+/// Requires live companion/model/player state. Animation completion advances
+/// phase 0 to 1; phase 1 installs hold clip 9 and checks phase 2 immediately.
+/// At 1280 planar game units or engaged combat it plays exit clip 8; controller
+/// completion advances phase 3 to 4 and returns to idle. Aim tracks the player.
+static void _actor800200TickRest(Task* task)
 {
-    GameActor* actor;
-    GfxCoord*  coord;
-    GfxCoord*  target;
+    enum { ACTOR_800200_REST_ENTERED_PHASE   = 1,
+           ACTOR_800200_REST_HOLD_PHASE      = 2,
+           ACTOR_800200_REST_EXIT_PHASE      = 3,
+           ACTOR_800200_REST_FINISHED_PHASE  = 4,
+           ACTOR_800200_REST_PLAYER_DISTANCE = 1280 };
+    GameActor*      actor;
+    GfxCoord*       rootCoord;
+    const GfxCoord* playerCoord;
 
-    coord  = arg0->extra.tmd->coords;
-    target = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    actor  = arg0->work;
+    rootCoord   = task->extra.tmd->coords;
+    playerCoord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    actor       = task->work;
     switch (actor->statePhase) {
-        case 1:
-            actor->animationState = 0;
+        case ACTOR_800200_REST_ENTERED_PHASE:
+            actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
             actor->statePhase    += 1;
-            playerActorResetChildSlots(arg0, 9);
-        case 2:
-            if ((companionGetPlayerPlanarDistance(coord) >= 0x500) || (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
-                actor->animationState = 7;
+            playerActorResetChildSlots(task, ACTOR_800200_ANIMATION_REST_HOLD);
+        case ACTOR_800200_REST_HOLD_PHASE:
+            if ((companionGetPlayerPlanarDistance(rootCoord) >= ACTOR_800200_REST_PLAYER_DISTANCE) || (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
+                actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_ONCE;
                 actor->statePhase    += 1;
-                playerActorPlayChildSlotsWithBlend(arg0, 8, 0, 3);
+                playerActorPlayChildSlotsWithBlend(task, ACTOR_800200_ANIMATION_REST_EXIT, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
             }
             break;
-        case 4:
-            companionEnterIdle(arg0, 0);
+        case ACTOR_800200_REST_FINISHED_PHASE:
+            companionEnterIdle(task, 0);
             break;
         default:
         case 0:
-        case 3:
+        case ACTOR_800200_REST_EXIT_PHASE:
             break;
     }
-    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
+    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
 }
 
-static void func_actor_800200_80165E50(Task* arg0)
+/// Returns to companion idle when the one-shot route animation completes.
+///
+/// Animation controller 7 advances phase 0 to 1. Other phases leave behavior
+/// intact; completion preserves the route phase and waypoint index.
+static void _actor800200TickRouteAnimation(Task* task)
 {
-    u16 state = ((GameActor*)arg0->work)->statePhase;
+    enum { ACTOR_800200_ROUTE_ANIMATION_PLAYING_PHASE  = 0,
+           ACTOR_800200_ROUTE_ANIMATION_FINISHED_PHASE = 1 };
+    const GameActor* actor = task->work;
+    u16              phase = actor->statePhase;
 
-    if (state != 0) {
-        if (state == 1) {
-            companionEnterIdle(arg0, 0);
+    if (phase != ACTOR_800200_ROUTE_ANIMATION_PLAYING_PHASE) {
+        if (phase == ACTOR_800200_ROUTE_ANIMATION_FINISHED_PHASE) {
+            companionEnterIdle(task, 0);
         }
     }
 }
@@ -3286,12 +3452,23 @@ static void func_actor_800200_80165E90(Task* arg0)
     playerActorStepMovement(arg0);
 }
 
-static void func_actor_800200_80165F28(Task* arg0)
+/// Finishes ordinary damage reactions through the shared player-side recovery handler.
+///
+/// Damage selectors 0..2 share this callback. Requires live native actor/model
+/// state; phase 1 clears the pending hit and arms 18 recovery ticks. A retained
+/// zero state enters normal idle; a nonzero state enters player-follow state 1
+/// through the shared aim entry with its twelve-frame blend. Other phases leave
+/// the reaction active.
+static void _actor800200TickDamageRecovery(Task* task)
 {
-    playerActorFinishDamageReaction(arg0);
+    playerActorFinishDamageReaction(task);
 }
 
-static void func_actor_800200_80165F48(Task* arg0)
+/// Holds the stopped damage pose without recovery; the task parameter is unused.
+///
+/// The stopped-pose entry selects damage selector 3 and native clip 18. Normal
+/// damage dispatch keeps animation/facing updates running around this no-op.
+static void _actor800200HoldStoppedPose(Task* unusedTask)
 {
 }
 
