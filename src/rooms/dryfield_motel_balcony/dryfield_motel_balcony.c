@@ -64,6 +64,9 @@
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
+static s32 _roomVariantMotelBalconyDoorsMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _motelBalconyCueSoundMsg(Task* task, s32 messageId, s32 cueKey, s32 secondArg);
+
 extern RoomEventActiveBytes gRoomEventActive;
 
 /// Descriptor of the event task the gate spawns.
@@ -103,11 +106,11 @@ static s32 _dryfieldMotelBalconyRoomActionMsg(Task* task, s32 messageId, s32 fir
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_motel_balcony_8018227C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMotelBalconyDoorsMsg },
     { DRYFIELD_MOTEL_BALCONY_MESSAGE_USE_KEY_ITEM, _dryfieldMotelBalconyUseKeyItemMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelBalconyRoomActionMsg },
     { ROOM_MESSAGE_COMMAND, _dryfieldMotelBalconyCommandMsg },
-    { ROOM_MESSAGE_SOUND, roomVariantMotelBalconySoundMsg },
+    { ROOM_MESSAGE_SOUND, _motelBalconyCueSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

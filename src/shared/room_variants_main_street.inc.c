@@ -1,23 +1,25 @@
 /* Part of the room variants library; see room_variants.h. */
 
-/// Message-table handler for id 0x13EE: echoes the incoming record into the
-/// reply and, for a message 2 that is not report-only (`queryOnly == 0`),
-/// answers game nibble 0x61 plus one while game nibble 0x7A is below 4, and 3
-/// once it has reached 4. Returns 1.
-s32 roomVariantMainStreetMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves the night motel rooms' destination on main street from story progress.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; `task` and `messageId` are unused.
+/// Borrows a complete request and writable reply, which may alias. Copies the
+/// request; execution selects room 3 at the final Dryfield chapter, otherwise
+/// the balcony-scene flag plus one. Queries retain the copied room. Returns 1.
+static s32 _roomVariantMainStreetMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    s32 val;
-    s32 n;
+    s32 destinationRoom;
+    s32 storyChapter;
 
-    *out = *in;
-    if (in->areaId == GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        n = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
-        if (n >= 4) {
-            val = 3;
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET && request->queryOnly == ROOM_EVENT_EXECUTE) {
+        storyChapter = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
+        if (storyChapter >= ROOM_VARIANT_DRYFIELD_FINAL_CHAPTER) {
+            destinationRoom = ROOM_VARIANT_MAIN_STREET_FINAL_ROOM;
         } else {
-            val = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+            destinationRoom = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
-        out->room = val;
+        reply->room = destinationRoom;
     }
-    return 1;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }

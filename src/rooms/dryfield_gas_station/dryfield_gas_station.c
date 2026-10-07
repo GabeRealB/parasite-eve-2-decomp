@@ -134,7 +134,7 @@ s32 func_dryfield_gas_station_8017FD4C(Task*, s32, s32, s32);
 s32 func_dryfield_gas_station_8017FD54(Task*, s32, s32, s32);
 
 TaskMessageEntry D_dryfield_gas_station_80181E54[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantGasStationMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGasStationMsg },
     { 5105, func_dryfield_gas_station_8017FD4C },
     { ROOM_MESSAGE_COMMAND, func_dryfield_gas_station_8017FD54 },
     { ROOM_MESSAGE_SOUND, gasStationCueSoundMsg },

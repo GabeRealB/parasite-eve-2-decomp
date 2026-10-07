@@ -608,6 +608,21 @@ static in their prologues; `map_neo_ark` binds its public
 `mapNeoArkResolveRoomVariant`, declared in its public header. Each binding
 surrounds the corresponding fragment include and is undefined afterwards.
 
+Dryfield's room-transition message handlers also use `roomVariant`. Their
+request is borrowed and their reply writable; both may be the same record.
+Queries preserve the copied room and suppress departure effects. Local copies
+are static. `ROOM_VARIANT_MOTEL_BALCONY_MSG` and
+`ROOM_VARIANT_MOTEL_BALCONY_DOORS_MSG` select a carrier-declared instance in
+their fragments: the night loft and balcony keep external linkage between
+their source files, declared in their overlay-private headers.
+
+`motelBalcony` owns the included balcony CAP sound-cue handler. It maps room
+sound messages' cue keys to balcony-bank scripts for the current stage.
+`MOTEL_BALCONY_CUE_SOUND_MSG` selects the carrier-declared instance: static in
+the day room, or shared between the night room's source files through its
+overlay-private header. The fragment documents the binding and clears it after
+the definition.
+
 `effectSprite` owns the included animated sprite and debris tasks and their
 textured quad drawers. Its interface is `src/shared/effect_sprite.h`; its
 configuration macros use `EFFECT_SPRITE_` and select declarations matching each

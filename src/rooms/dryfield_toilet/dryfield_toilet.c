@@ -51,7 +51,7 @@ s32 func_dryfield_toilet_8017D8C0(Task*, s32, s32, s32);
 s32 func_dryfield_toilet_8017D8C8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 TaskMessageEntry D_dryfield_toilet_801802A4[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantParkingLotMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantParkingLotMsg },
     { 5105, func_dryfield_toilet_8017D8B8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_toilet_8017D8C8 },
     { ROOM_MESSAGE_COMMAND, func_dryfield_toilet_8017D8C0 },

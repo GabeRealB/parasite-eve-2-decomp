@@ -56,6 +56,14 @@ extern SpriteBatch D_dryfield_night_motel_loft_8017FB64[4];
 void func_dryfield_night_motel_loft_8017D9BC(s32 arg0);
 
 // Callbacks referenced by the overlay's shared data tables.
+/// Resolves the night balcony's room after its story scene.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; `task` and `messageId` are unused.
+/// Borrows a complete request and writable reply, which may alias. Copies the
+/// request; execution selects room 1 before the balcony scene and room 3 after
+/// it. Queries retain the copied room. Returns 1 for every destination.
+s32 roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+
 s32 func_dryfield_night_motel_loft_8017D5F8(Task*, s32, s32, s32);
 
 s32 func_dryfield_night_motel_loft_8017D67C(Task*, s32, s32, s32);

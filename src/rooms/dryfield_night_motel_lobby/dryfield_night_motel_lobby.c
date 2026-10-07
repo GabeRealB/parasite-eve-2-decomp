@@ -145,7 +145,7 @@ s32 func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, const void*, s32);
 s32 func_dryfield_night_motel_lobby_8017FCDC(Task*, s32, s32, s32);
 
 TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantParkingLotMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantParkingLotMsg },
     { 5105, func_dryfield_night_motel_lobby_8017FB00 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_lobby_8017FC6C },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_lobby_8017FB7C },

@@ -33,6 +33,8 @@
 
 #include "mapui/map_dryfield_full.h"
 
+#include "../../shared/room_variants.h"
+
 extern WorldCollisionTrigger D_dryfield_night_motel_loft_801803F4[14];
 
 /// The room's 0x7DB payload buffer.
@@ -338,6 +340,7 @@ s32 func_dryfield_night_motel_loft_8017D5F8(Task* task, s32 msgId, s32 arg2, s32
     return 0;
 }
 
+#define ROOM_VARIANT_MOTEL_BALCONY_MSG roomVariantMotelBalconyMsg
 #include "../../shared/room_variants_motel_balcony.inc.c"
 
 /// Message-table handler for id 0x13F0: on command 3 (`arg2`) silences the

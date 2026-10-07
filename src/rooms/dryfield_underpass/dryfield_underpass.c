@@ -128,7 +128,7 @@ TaskDesc gUnderpassSwitchTaskDesc[2] = {
 };
 
 TaskMessageEntry D_dryfield_underpass_8017E830[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantUnderpassMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantUnderpassMsg },
     { DRYFIELD_UNDERPASS_MESSAGE_USE_KEY_ITEM, _dryfieldUnderpassRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_underpass_8017D908 },
     { ROOM_MESSAGE_COMMAND, underpassSwitchMsg },

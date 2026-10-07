@@ -66,6 +66,8 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 #include "../../shared/room_variants.h"
+
+static s32 _roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 /// Selects the nighttime motel room 6 glow export and action-handler signature.
 ///
 /// Keep this binding through all motel room 6 implementation fragments.
@@ -215,7 +217,7 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMotelBalconyMsg },
     { DRYFIELD_NIGHT_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom6RejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom6IgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, motelRoom6CutsceneMsg },

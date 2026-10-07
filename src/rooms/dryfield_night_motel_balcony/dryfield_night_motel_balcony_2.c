@@ -26,7 +26,6 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
 
 void func_dryfield_night_motel_balcony_8017E068(Task*);
 
@@ -39,7 +38,7 @@ TaskMessageEntry D_dryfield_night_motel_balcony_80182804[6] = {
     { 5105, func_dryfield_night_motel_balcony_8017DC18 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_balcony_8017DC28 },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_balcony_8017DC20 },
-    { ROOM_MESSAGE_SOUND, roomVariantMotelBalconySoundMsg },
+    { ROOM_MESSAGE_SOUND, motelBalconyCueSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

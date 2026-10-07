@@ -27,6 +27,8 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
 
+static s32 _roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_dryfield_night_motel_room_5_8017DA30[];
 
@@ -35,7 +37,7 @@ s32 func_dryfield_night_motel_room_5_8017D674(Task*, s32, s32, s32);
 s32 func_dryfield_night_motel_room_5_8017D67C(Task*, s32, s32, s32);
 
 TaskMessageEntry D_dryfield_night_motel_room_5_8017DA30[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMotelBalconyMsg },
     { 5105, func_dryfield_night_motel_room_5_8017D5F0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_5_8017D67C },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_room_5_8017D674 },

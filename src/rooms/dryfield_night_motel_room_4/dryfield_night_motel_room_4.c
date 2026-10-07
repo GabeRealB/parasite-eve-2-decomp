@@ -61,7 +61,7 @@ extern WorldCollisionTrigger  D_dryfield_night_motel_room_4_8017FE30[7];
 extern WorldCoordRoomLights   D_dryfield_night_motel_room_4_801802A8[1];
 
 TaskMessageEntry D_dryfield_night_motel_room_4_8017DA48[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMainStreetMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMainStreetMsg },
     { DRYFIELD_NIGHT_MOTEL_ROOM_4_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom4RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom4IgnoreActionRequest },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightMotelRoom4IgnoreCommand },

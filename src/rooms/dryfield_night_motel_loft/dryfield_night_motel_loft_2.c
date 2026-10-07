@@ -37,7 +37,6 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
-#include "../../shared/room_variants.h"
 
 /// Scratch-stack block the room's falling triangle is drawn from.
 ///

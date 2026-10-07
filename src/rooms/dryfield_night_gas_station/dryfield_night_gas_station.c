@@ -293,7 +293,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task*);
 #include "../../shared/telephone_data.inc.c"
 
 TaskMessageEntry D_dryfield_night_gas_station_80184034[7] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantGasStationMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGasStationMsg },
     { 5105, func_dryfield_night_gas_station_8017F7E0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_gas_station_8017F990 },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_gas_station_8017F89C },

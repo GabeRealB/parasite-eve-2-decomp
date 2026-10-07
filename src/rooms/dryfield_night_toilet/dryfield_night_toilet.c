@@ -64,7 +64,7 @@ extern WorldCollisionTrigger  D_dryfield_night_toilet_8017F064[8];
 extern WorldCoordRoomLights   D_dryfield_night_toilet_8017EE84[1];
 
 TaskMessageEntry D_dryfield_night_toilet_8017DA70[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantParkingLotMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantParkingLotMsg },
     { DRYFIELD_NIGHT_TOILET_MESSAGE_USE_KEY_ITEM, _dryfieldNightToiletRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightToiletIgnoreActionRequest },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightToiletIgnoreCommandMessage },

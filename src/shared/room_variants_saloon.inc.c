@@ -1,31 +1,38 @@
 /* Part of the room variants library; see room_variants.h. */
 
-/// Handler for message 0x13EE in the room's message table, which filters a
-/// warp request: copies `in` to `out`, and for area 0xF picks the destination
-/// room from game-flag nibble 0x61 (unless `in->queryOnly` asks for a dry run),
-/// then passes the warp through the event gate with the room's own request -
-/// nibble 0x35, no collected bit, cap command 2 and two stage sound ids. Any other area
-/// answers 1.
-s32 roomVariantSaloonMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves the saloon's parking-lot exit and gates its first door-opening event.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; `task` and `messageId` are unused.
+/// Borrows a complete request and writable reply, which may alias. Copies the
+/// request and resolves parking lot's room only on execution. The gate receives
+/// the request, so a distinct reply's resolved room is not latched for the event.
+/// Returns the gate's result (1 bypassed, 2 eligible), or 1 for other areas.
+/// Queries suppress the gate's CAP, flag and task-start effects.
+/// The gate resets its event-start indication even on queries.
+static s32 _roomVariantSaloonMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq req;
-    u16          msgId;
+    enum {
+        ROOM_VARIANT_SALOON_CAP_OPEN_PARKING_LOT_DOOR = 2,
+        ROOM_VARIANT_SALOON_NO_COLLECTION_REQUIRED    = 0,
+    };
+    RoomEventReq eventRequest;
+    u16          destinationArea;
 
-    *out  = *in;
-    msgId = in->areaId;
-    if (msgId == 0xF) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+    *reply          = *request;
+    destinationArea = request->areaId;
+    if (destinationArea == GAME_AREA_DRYFIELD_PARKING_LOT) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
-        if (in->areaId == msgId) {
-            req.capCmd        = 2;
-            req.missingCapCmd = 2;
-            req.firstSnd      = sndScriptResolveStageId(SOUND_SALOON_G_R_DOOR_UNLOCK);
-            req.secondSnd     = sndScriptResolveStageId(SOUND_SALOON_G_R_DOOR_OPEN);
-            req.flagId        = GAME_FLAG_SALOON_PARKING_LOT_DOOR_UNLOCKED;
-            req.collectedBit  = 0;
-            return _roomEventGate(&req, in);
+        if (request->areaId == destinationArea) {
+            eventRequest.capCmd        = ROOM_VARIANT_SALOON_CAP_OPEN_PARKING_LOT_DOOR;
+            eventRequest.missingCapCmd = ROOM_VARIANT_SALOON_CAP_OPEN_PARKING_LOT_DOOR;
+            eventRequest.firstSnd      = sndScriptResolveStageId(SOUND_SALOON_G_R_DOOR_UNLOCK);
+            eventRequest.secondSnd     = sndScriptResolveStageId(SOUND_SALOON_G_R_DOOR_OPEN);
+            eventRequest.flagId        = GAME_FLAG_SALOON_PARKING_LOT_DOOR_UNLOCKED;
+            eventRequest.collectedBit  = ROOM_VARIANT_SALOON_NO_COLLECTION_REQUIRED;
+            return _roomEventGate(&eventRequest, request);
         }
     }
-    return 1;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }

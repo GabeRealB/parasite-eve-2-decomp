@@ -1,50 +1,60 @@
 /* Part of the room variants library; see room_variants.h. */
 
-/// Answers the room message `in`, copying it to `out` first. For message 2 it
-/// reports in `out->room` how far nibble 0x61 has advanced (3 once nibble
-/// 0x7A reaches 4). Message 3 returns 2 when the session sits at stage 3,
-/// place 1 with `gSceneCombatState` agreeing, and 0 while nibble 0x3B is clear;
-/// message 2 returns 0 while nibble 0x45 reads 1. The cap commands and nibble
-/// write that go with those answers run only when `in->queryOnly` is clear.
-/// Every other case returns 1.
-s32 roomVariantGasStationMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves the gas station's main-street departure and checks its two exits.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; `task` and `messageId` are unused.
+/// Borrows a complete request and writable reply, which may be the same record.
+/// Copies the request before resolving main street's room on execution only.
+/// Returns 0 for a locked general-store exit or blocked main-street exit, 2
+/// for the combat-controlled general-store exit in night variant 1, otherwise 1.
+/// Queries suppress CAP commands and the optional refusal-flag write.
+static s32 _roomVariantGasStationMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    s32 n;
-    s32 val;
+    enum {
+        ROOM_VARIANT_GAS_STATION_BATTLE_VARIANT           = 1,
+        ROOM_VARIANT_GAS_STATION_MAIN_STREET_BLOCKED      = 1,
+        ROOM_VARIANT_GAS_STATION_CAP_COMBAT_EXIT          = 0x15,
+        ROOM_VARIANT_GAS_STATION_CAP_GENERAL_STORE_LOCKED = 7,
+        ROOM_VARIANT_GAS_STATION_CAP_MAIN_STREET_BLOCKED  = 8,
+        ROOM_VARIANT_GAS_STATION_REFUSAL_FLAG_VALUE       = 2,
+    };
+    s32 storyChapter;
+    s32 destinationRoom;
 
-    *out = *in;
-    if (in->areaId == 2 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        n = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
-        if (n >= 4) {
-            val = 3;
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_MAIN_STREET && request->queryOnly == ROOM_EVENT_EXECUTE) {
+        storyChapter = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
+        if (storyChapter >= ROOM_VARIANT_DRYFIELD_FINAL_CHAPTER) {
+            destinationRoom = ROOM_VARIANT_MAIN_STREET_FINAL_ROOM;
         } else {
-            val = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+            destinationRoom = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
-        out->room = val;
+        reply->room = destinationRoom;
     }
-    if (in->areaId == 3) {
-        if ((gGameSession->location.loc.stage == in->areaId) && (gGameSession->location.loc.variant == 1) &&
+    // In night variant 1, combat claims the general-store exit before its lock test.
+    if (request->areaId == GAME_AREA_DRYFIELD_GENERAL_STORE) {
+        if ((gGameSession->location.loc.stage == request->areaId) && (gGameSession->location.loc.variant == ROOM_VARIANT_GAS_STATION_BATTLE_VARIANT) &&
             (gSceneCombatState.signals.bytes.battlePhase == gGameSession->location.loc.variant)) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                capRunCommandWithTransition(0x15);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capRunCommandWithTransition(ROOM_VARIANT_GAS_STATION_CAP_COMBAT_EXIT);
             }
-            return 2;
+            return ROOM_VARIANT_TRANSITION_HANDLED;
         }
         if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_DOOR_UNLOCKED) == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                capRunCommandWithTransition(7);
-                gameFlagSetNibbleIfPresent(in->flagId, 2);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capRunCommandWithTransition(ROOM_VARIANT_GAS_STATION_CAP_GENERAL_STORE_LOCKED);
+                gameFlagSetNibbleIfPresent(request->flagId, ROOM_VARIANT_GAS_STATION_REFUSAL_FLAG_VALUE);
             }
-            return 0;
+            return ROOM_VARIANT_TRANSITION_REFUSED;
         }
     }
-    if (in->areaId == 2) {
-        if (gameFlagGetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED) == 1) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                capRunCommandWithTransition(8);
+    if (request->areaId == GAME_AREA_DRYFIELD_MAIN_STREET) {
+        if (gameFlagGetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED) == ROOM_VARIANT_GAS_STATION_MAIN_STREET_BLOCKED) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capRunCommandWithTransition(ROOM_VARIANT_GAS_STATION_CAP_MAIN_STREET_BLOCKED);
             }
-            return 0;
+            return ROOM_VARIANT_TRANSITION_REFUSED;
         }
     }
-    return 1;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }

@@ -88,7 +88,7 @@ D_map_dryfield_full_8017D038 = 0x8017D038; // absolute:True
 
 dryfieldNightUnderpassDrawFlaresTask = 0x8017DC3C; // type:func
 _glowDrawFlare = 0x8017D9B4; // type:func
-roomVariantUnderpassMsg = 0x8017D788; // type:func
+_roomVariantUnderpassMsg = 0x8017D788; // type:func
 underpassSwitchTask = 0x8017D5D0; // type:func
 underpassSwitchMsg = 0x8017D868; // type:func
 underpassSoundMsg = 0x8017D8CC; // type:func

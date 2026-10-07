@@ -96,7 +96,7 @@ extern SpriteSource D_dryfield_saloon_g_r_8017FAF4[14];
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_saloon_g_r_8017ECBC[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantSaloonMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantSaloonMsg },
     { DRYFIELD_SALOON_G_R_MESSAGE_USE_KEY_ITEM, _dryfieldSaloonGRRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldSaloonGRIgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, func_dryfield_saloon_g_r_8017D99C },

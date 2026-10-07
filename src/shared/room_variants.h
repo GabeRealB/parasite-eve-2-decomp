@@ -3,9 +3,8 @@
  * unless the request is a query, writes `room` for the areas whose room
  * changes with the story. The stage's map overlay exports the resolver to its
  * rooms; a room that settles a departure's destination itself carries its own
- * copy. The Dryfield rooms
- * answer message 0x13EE for single neighbouring areas with small handlers of
- * the same kind.
+ * copy. Dryfield's ROOM_EVENT_MESSAGE_RESOLVE handlers also check departures
+ * and start door events; their queries retain the copied room selector.
  *
  * Include this header in the prologue and each fragment at its function's
  * position. A map overlay binds the corresponding resolver identifier before
@@ -43,15 +42,29 @@ typedef s32 (*RoomVariantResolver)(RoomEventMsg* request, RoomEventMsg* reply);
 #define ROOM_VARIANT_RESOLVE_SHELTER _roomVariantResolveShelter
 #endif
 
-s32 roomVariantMainStreetMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
-s32 roomVariantParkingLotMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
-s32 roomVariantMotelBalconyMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+/// Departure choices returned by Dryfield's room-transition handlers.
+///
+/// A query chooses the caller's departure path: 0 refuses the transition,
+/// 1 permits the ordinary departure, and 2 leaves handling to the receiver.
+enum {
+    ROOM_VARIANT_TRANSITION_REFUSED = 0,
+    ROOM_VARIANT_TRANSITION_DIRECT  = 1,
+    ROOM_VARIANT_TRANSITION_HANDLED = 2,
+};
 
-s32 roomVariantMotelBalconyDoorsMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out);
-s32 roomVariantMotelBalconySoundMsg(Task* task, s32 msgId, s32 arg2, s32 arg3);
+/// Main-street selection after the final Dryfield story chapter begins.
+enum {
+    ROOM_VARIANT_DRYFIELD_FINAL_CHAPTER = 4,
+    ROOM_VARIANT_MAIN_STREET_FINAL_ROOM = 3,
+};
 
-s32 roomVariantSaloonMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
-s32 roomVariantUnderpassMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
-s32 roomVariantGasStationMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+static s32 _roomVariantMainStreetMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _roomVariantParkingLotMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _roomVariantSaloonMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _roomVariantUnderpassMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _roomVariantGasStationMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+
+// Balcony and loft carriers declare their selected message-handler instances
+// in their source prologues or overlay-private headers before their tables.
 
 #endif /* SRC_SHARED_ROOM_VARIANTS_H */

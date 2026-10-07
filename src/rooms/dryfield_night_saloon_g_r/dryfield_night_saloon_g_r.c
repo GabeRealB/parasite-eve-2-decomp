@@ -232,7 +232,7 @@ enum {
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_saloon_g_r_8017F918[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantSaloonMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantSaloonMsg },
     { DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM, _dryfieldNightSaloonGRRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_saloon_g_r_8017DE68 },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_saloon_g_r_8017DD84 },
