@@ -10569,7 +10569,7 @@ v0,CASE01` / `beq v1,v0(=2),CASE2` / `j TAIL` — with the bodies in source orde
 after it and the case-2 body falling into the epilogue. m2c renders that source
 as a nested if/else and cannot be patched into the layout: the same C scored
 64.5% (`branch=2 regs=5 reorder=4 insert=6 delete=8`) with the case-2 body
-inlined between the tests, while the switch form (`func_actor_107600_80134C54`)
+inlined between the tests, while the switch form (`_actor107600BeginTargetBehaviour`)
 took 100% on the first attempt. The leading `bltz` is not the tell — the m2c
 nest emits the same branch for its `if (v >= 0)` wrapper — the body placement
 is.
@@ -13193,7 +13193,7 @@ placement.
 `dlabel` runs to the next label, so it swallows any alignment word between the
 table and what follows. `D_actor_107600_80131E34` is `.size` 16 — three function
 pointers plus the `0x00000000` word that pads the `jtbl_actor_107600_80131E44`
-after it — but `func_actor_107600_80132CD4` copies three words, so the extern is
+after it — but `_actor107600UpdateMountBehaviour` copies three words, so the extern is
 `TaskFuncTable3` and the trailing zero belongs to nobody. Declaring it
 `TaskFuncTable4` because the symbol measures 16 bytes emits the four-word
 multi-load the sibling `func_actor_107600_801328CC` has and costs the match.
@@ -65517,7 +65517,7 @@ plain HImode move. No value ever widens to SImode, so GCC 2.8.1 selects `movhi`,
 whose load half is `lhu` — the zero-extension is free and the high bits are dead
 before the `sh`. `lh` appears only where the loaded `short` is *used* at word
 width: as an operand of arithmetic, a comparison, or a call argument, as in the
-same overlay's caller `func_actor_107600_80132B7C`, which does
+same overlay's caller `_actor107600UpdateMountRotation`, which does
 `lh $a0, 0x40($s1)` to pass an angle to `RotMatrixX`.
 
 So when reading a run of loads: `lhu` next to an `sh` of the same value is a copy
@@ -76716,12 +76716,12 @@ scored 95.96% with `regs=6 reorder=3`, and every one of those was downstream of
 these two immediates.
 
 Fix by finding the type the *destination* names, not by adjusting the constant:
-the scratchpad head is a `u8*`, and the target of the matrix copy is a field of
-a known struct, so
+the scratchpad cursor steps by one `MATRIX`, and the target of the matrix copy
+is a field of a known struct, so
 
 ```c
-m = (MATRIX*)(*(u8**)SCRATCH_STACK_CURSOR_SLOT - 0x20);
-_actor107600CopyMountRotation(m, &coord->coord);
+rotation = SCRATCH_STACK_CURSOR(MATRIX) - 1;
+_actor107600CopyMountRotation(rotation, &rootCoord->coord);
 ```
 
 The tell that this is the bug and not a coincidence: the wrong immediate is
@@ -76730,7 +76730,7 @@ the function's own code. Look for an already-matched sibling carrying the same
 callee sequence first - here `ActorsShared80139948` (shared lib) and the inlined
 `Actor400600_RebuildRotation` are the same body, and lifting their source shape
 reproduced the target instruction for instruction, mask-load order and
-delay-slot store included. `func_actor_107600_80132B7C` (95.96% -> 100%).
+delay-slot store included. `_actor107600UpdateMountRotation` (95.96% -> 100%).
 
 ## The *load*'s `MEM_IN_STRUCT_P` decides whether a constant-address store sinks past it
 
@@ -76924,9 +76924,9 @@ Example: `func_actor_107600_80134EF4`.
 
 ## A live call result pushes the scratch-head reload from `$v0` into `$v1` - and that is what costs the `nop`
 
-**Symptom.** `func_actor_107600_80134D9C` carves a `VECTOR` off `SCRATCH_STACK_CURSOR_SLOT`,
+**Symptom.** `_actor107600MeasureTargetPlayerDistance` carves a `VECTOR` off `SCRATCH_STACK_CURSOR_SLOT`,
 calls `playerActorPlanarLength` for an XZ distance, then releases the block with
-`*scratch = (u8*)*scratch + 0x10;`. It scored 93.57% with `regs=3 insert=2
+`SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(*offset));`. It scored 93.57% with `regs=3 insert=2
 delete=1`: the reload came out in `$v0`, which forced it *after* the store of
 the call's result, so the load-delay slot had nothing to fill it and a `nop`
 appeared. The target has the reload in `$v1` with that store sitting in the
@@ -76943,9 +76943,9 @@ assembly is the delay-slot filler, not the source order.
 **Fix.** Hold the call's result in a local and store it *after* the release:
 
 ```c
-dist = playerActorPlanarLength(block->vx, block->vz);
-*scratch = (u8*)*scratch + 0x10;
-work->playerDistance = dist;
+distance = playerActorPlanarLength(offset->vx, offset->vz);
+SCRATCH_POP_BYTES_AT(scratchSlot, sizeof(*offset));
+work->playerDistance = distance;
 ```
 
 Written the other way round - `work->playerDistance = playerActorPlanarLength(...);` before the
@@ -76959,7 +76959,7 @@ the same shape but `return distance;` after the release, so its result is unavoi
 live across it; its tail there is `lw v1,0(s1)` / `nop` / `addiu v1,v1,0x10` /
 `sw v1,0(s1)`. `_actor107600PlaceTargetOffset`, with no live value at that point,
 reloads into `$v0` and fills the delay with an independent `lw`. Example:
-`func_actor_107600_80134D9C` (93.57% -> 100%).
+`_actor107600MeasureTargetPlayerDistance` (93.57% -> 100%).
 
 ## Assembly is the launch order *reversed* - so a wrong group order is a source-order problem, not a comparator one
 
