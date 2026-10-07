@@ -148730,6 +148730,10 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   `sh` on the loaded register (the copy is then presumably a SUBREG, which that
   pass does not take; not checked in the dump) but moves the `lhu` below the
   branch.
+  *Note 2026-10-07:* now none, with a fitted `if`/`else`. The store's `a2` is
+  not local-alloc's: it is written by the delay-slot pass, and only when the
+  loop's `li 1` is below the copy. See the section at the end of this file
+  with this function's name.
 - `actor510900FlameSpriteTask45` (`"=r"(glowBrightness) : "0"(fadeBrightness)`). `andi a2,s3,0xff`
   survives only if `reg_nonzero_bits[glowBrightness]` covers the low nibble. A second set
   of `glowBrightness` from anything with low bits does that (`glowBrightness = rand & 0xF;
