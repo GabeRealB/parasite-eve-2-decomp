@@ -70,8 +70,6 @@
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
-#define D_shelter_b4_upper_sewer_80186520 (D_shelter_b4_upper_sewer_801864F0 + 6)
-
 /// A rectangular water patch in world coordinates whose entry chooses its own strip axis.
 ///
 /// The same rectangle as `RoomWaterSurface`, with height supplied by its
@@ -1296,7 +1294,7 @@ void shelterB4UpperSewerDrawGlowsTask(Task* task)
             break;
         }
         case 12:
-            _glowDrawCapsule(D_shelter_b4_upper_sewer_80186520, SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[6], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
             break;
         case 13:
             _glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[12], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BLUE);
