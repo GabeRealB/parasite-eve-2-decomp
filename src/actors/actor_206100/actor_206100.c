@@ -272,8 +272,8 @@ typedef _Actor206100Work DiverWork;
 #define ACTOR_206100_SHOT_BURST_SIZE_MAX 0x600
 
 /// Added to `_Actor206100ShotWork::burstSize` to make the size word handed to
-/// `diverImpactBurst`: effect variant 2 in bits 12..15. Bit 28 is set as well,
-/// and the burst does not read it.
+/// `_diverImpactBurst`: a room-particle size bias of 2 in bits 12..15. Bit 28
+/// is set as well; the burst ignores bits 16..31.
 #define ACTOR_206100_SHOT_BURST_VARIANT 0x10002000
 
 /// Work block of a shot of the Sea Diver's attack.
@@ -501,7 +501,7 @@ static const TaskFuncTable3 D_actor_206100_80149E24 = {
     {
         func_actor_206100_8014EEC0,
         func_actor_206100_8014B8B4,
-        diverStrikeTeardown,
+        _diverStrikeTeardown,
     },
 };
 
@@ -1405,15 +1405,15 @@ static void func_actor_206100_8014B8B4(Task* task)
     WorldCollisionDelta   delta;
     s32                   mask;
     s32                   hit;
-    s32                   mode;
+    s32                   burstKind;
     s32                   i;
     s32                   n;
     s32                   v;
 
-    hit   = 0;
-    shot  = task->work;
-    coord = task->extra.tmd->coords;
-    mode  = 1;
+    hit       = 0;
+    shot      = task->work;
+    coord     = task->extra.tmd->coords;
+    burstKind = DIVER_BURST_TRAIL;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         shot->velocity.vy    += ACTOR_206100_SHOT_GRAVITY;
         *&coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1443,7 +1443,7 @@ static void func_actor_206100_8014B8B4(Task* task)
         if ((++task->killCountdown >= ACTOR_206100_SHOT_LIFETIME) || (hit != 0)) {
             task->killCountdown            = 0;
             shot->strike.attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            mode                           = 2;
+            burstKind                      = DIVER_BURST_IMPACT;
             task->state                   += 1;
         }
         v = shot->burstSize;
@@ -1452,7 +1452,7 @@ static void func_actor_206100_8014B8B4(Task* task)
         } else {
             shot->burstSize = ACTOR_206100_SHOT_BURST_SIZE_MAX;
         }
-        diverImpactBurst(coord, shot->burstPhase, mode, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
+        _diverImpactBurst(coord, shot->burstPhase, burstKind, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
     }
 }
 /// Damage / knock-back tick: walks the six contact records of the actor's
@@ -1623,7 +1623,7 @@ static void func_actor_206100_8014BAA8(Task* task)
 /// clip phase `animFrames` when the clip playing (`animPlaying`) is not the
 /// requested one (`animClip`), otherwise hands it to
 /// `func_actor_206100_8014F3C8`, and then calls `func_actor_206100_8014F2F0`;
-/// kind 2 calls `diverRestartClip` and zeroes the phase.  Both leave
+/// kind 2 calls `_diverRestartClip` and zeroes the phase.  Both leave
 /// kind 3, which advances the phase by one each call.
 static inline void _actor206100AnimUpdate(Task* task)
 {
@@ -1642,7 +1642,7 @@ static inline void _actor206100AnimUpdate(Task* task)
         func_actor_206100_8014F2F0(task);
         work->animRequest = DIVER_ANIM_REQUEST_PLAYING;
     } else if (kind == DIVER_ANIM_REQUEST_RESET) {
-        diverRestartClip(task);
+        _diverRestartClip(task);
         work->animRequest = DIVER_ANIM_REQUEST_PLAYING;
         work->animFrames  = 0;
     } else if (kind == DIVER_ANIM_REQUEST_PLAYING) {
@@ -2003,7 +2003,7 @@ static void func_actor_206100_8014C458(Task* task)
                 func_actor_206100_8014F2F0(task);
                 anim->animRequest = DIVER_ANIM_REQUEST_PLAYING;
             } else if (state == DIVER_ANIM_REQUEST_RESET) {
-                diverRestartClip(task);
+                _diverRestartClip(task);
                 anim->animRequest = DIVER_ANIM_REQUEST_PLAYING;
                 anim->animFrames  = 0;
             } else if (state == DIVER_ANIM_REQUEST_PLAYING) {
@@ -2147,7 +2147,7 @@ static void func_actor_206100_8014CD08(Task* task)
         return;
     }
     work->goalY = work->goalY + ((0x1D4C - work->goalY) >> 2);
-    diverStepForward(task, 0x30, work->rotation.vy);
+    _diverStepForward(task, 0x30, work->rotation.vy);
 }
 /// State handler 4 of `D_actor_206100_80149E94`: clears the fixed-address
 /// `D_neo_ark_submarine_gallery_801818B8` flag, ticks the per-state counter `stateFrames` and seeds
@@ -2315,7 +2315,7 @@ static void func_actor_206100_8014CFF4(Task* task)
 ///   `$s3` / `$s0` across the calls in between.
 /// - the reads of `task->work` after the first are separate loads: the
 ///   clip-ended test and the state change each reload it inside their inlined
-///   helper (`diverClipEnded`, `set_state`), and the tail reloads it into
+///   helper (`_diverClipHasBoundaryOrJump`, `set_state`), and the tail reloads it into
 ///   `work`.  A single variable assigned in all three places is one pseudo
 ///   with three definitions, and `global_alloc` homes the whole of it in one
 ///   callee-saved register -- `$s0` for the flags test and the state change as
@@ -2354,7 +2354,7 @@ static void func_actor_206100_8014D14C(Task* task)
         sub->stateFrames == 0x69 || sub->stateFrames == 0x70 || sub->stateFrames == 0x77) {
         sub->shotRequested = 1;
     }
-    if (diverClipEnded(task)) {
+    if (_diverClipHasBoundaryOrJump(task)) {
         sndEvtRequestScriptStop(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         set_state(task, ACTOR_206100_FIGHT_STATE_DIVE);
     }
@@ -2700,7 +2700,7 @@ static void func_actor_206100_8014DA28(Task* task)
                 func_actor_206100_8014F2F0(task);
                 next->animRequest = DIVER_ANIM_REQUEST_PLAYING;
             } else if (state == DIVER_ANIM_REQUEST_RESET) {
-                diverRestartClip(task);
+                _diverRestartClip(task);
                 next->animRequest = DIVER_ANIM_REQUEST_PLAYING;
                 next->animFrames  = 0;
             } else if (state == DIVER_ANIM_REQUEST_PLAYING) {
@@ -2828,7 +2828,7 @@ static void func_actor_206100_8014DD3C(Task* task)
 /// planar distance below 0x3E8) advances `waypointIndex` modulo 8 and the ring-step
 /// counter `waypointsSinceRoll`, which resets after its sixth step and re-arms the roll;
 /// otherwise it steers the yaw `rotation.vy` toward the vertex by 0x2C a frame
-/// and hands the actor to `diverStepForward` for a 0x40 step.
+/// and hands the actor to `_diverStepForward` for a 0x40 step.
 ///
 /// The three diffs are written into the `delta` `SVECTOR` although only `vx`
 /// and `vz` are read back -- the distance is planar, so `vy` is dead.  That
@@ -2902,7 +2902,7 @@ static void func_actor_206100_8014DEAC(Task* task)
         } else if (diff < -0x100) {
             work->rotation.vy = angle + 0x2C;
         }
-        diverStepForward(task, 0x40, sub->rotation.vy);
+        _diverStepForward(task, 0x40, sub->rotation.vy);
     }
 }
 /// Recoil tick: `func_actor_206100_8014EB48` arms `recoilPhase` to 1 with the
@@ -3077,8 +3077,8 @@ static void func_actor_206100_8014E228(Task* task)
     actorRenderComposeCoord(c1);
     actorRenderComposeCoord(c2);
     actorRenderComposeCoord(c3);
-    diverTurnJoint(c2, (s16)work->lookYaw / 3);
-    diverTurnJoint(c3, (s16)work->lookYaw / 3);
+    _diverTurnJoint(c2, (s16)work->lookYaw / 3);
+    _diverTurnJoint(c3, (s16)work->lookYaw / 3);
 
     mc.rotationWords.m00M01 = ONE;
     mc.rotationWords.m02M10 = 0;
@@ -3192,7 +3192,7 @@ static void func_actor_206100_8014E964(Task* task)
         func_actor_206100_8014F2F0(task);
         next->animRequest = DIVER_ANIM_REQUEST_PLAYING;
     } else if (state == DIVER_ANIM_REQUEST_RESET) {
-        diverRestartClip(task);
+        _diverRestartClip(task);
         next->animRequest = DIVER_ANIM_REQUEST_PLAYING;
         next->animFrames  = 0;
     } else if (state == DIVER_ANIM_REQUEST_PLAYING) {
@@ -3291,7 +3291,7 @@ static void func_actor_206100_8014ED3C(Task* task, s16 arg1)
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor206100OriginDistanceScratch);
     work    = task->work;
     coord   = task->extra.tmd->coords;
-    diverStepForward(task, arg1, work->rotation.vy);
+    _diverStepForward(task, arg1, work->rotation.vy);
     scratch->toOrigin.vx = -(u16)coord->coord.t[0];
     scratch->toOrigin.vz = -(u16)coord->coord.t[2];
     scratch->distance    = SquareRoot0(scratch->toOrigin.vx * scratch->toOrigin.vx +
@@ -3348,7 +3348,7 @@ static void func_actor_206100_8014EEC0(Task* task)
     worldCollisionInitContacts(contacts, ARRAY_SIZE(shot->contacts), 0);
     shot->strike.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actorRenderComposeCoord(coord);
-    diverImpactBurst(coord, (u16)shot->burstPhase, 0, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
+    _diverImpactBurst(coord, (u16)shot->burstPhase, DIVER_BURST_LAUNCH, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
     task->state++;
 }
 
@@ -3499,7 +3499,7 @@ static void func_actor_206100_8014F5B4(Task* task)
 {
     _Actor206100Work* work                = task->work;
     void              (*states[2])(Task*) = {
-        diverState7Enter,
+        _diverEnterRecoil,
         func_actor_206100_8014F970,
     };
 
@@ -3628,7 +3628,7 @@ static void func_actor_206100_8014F970(Task* task)
 {
     _Actor206100Work* work;
 
-    if (diverClipEnded(task)) {
+    if (_diverClipHasBoundaryOrJump(task)) {
         work           = task->work;
         work->state    = ACTOR_206100_FIGHT_STATE_DIVE;
         work->subState = 0;
@@ -3660,7 +3660,7 @@ static void func_actor_206100_8014FA08(Task* task)
     if ((s16)timer >= 0x1F) {
         work->targetPart = 1;
     }
-    if (diverClipEnded(task)) {
+    if (_diverClipHasBoundaryOrJump(task)) {
         next              = task->work;
         next->animBlend   = 8;
         next->animStep    = 8;
@@ -3783,7 +3783,7 @@ static void func_actor_206100_8014FCD4(Task* task)
         func_actor_206100_8014F2F0(task);
         next->animRequest = DIVER_ANIM_REQUEST_PLAYING;
     } else if (state == DIVER_ANIM_REQUEST_RESET) {
-        diverRestartClip(task);
+        _diverRestartClip(task);
         next->animRequest = DIVER_ANIM_REQUEST_PLAYING;
         next->animFrames  = 0;
     } else if (state == DIVER_ANIM_REQUEST_PLAYING) {

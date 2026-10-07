@@ -115,6 +115,9 @@ STATIC_ASSERT_SIZEOF(_Actor00400GroundStainWork, 0x28);
 /// Frame count at which a shot still flying bursts by itself.
 #define ACTOR_00400_SHOT_LIFETIME 0x3D
 
+/// Billboard/flash size 768, with one extra size unit for the room particle.
+enum { ACTOR_00400_SHOT_BURST_SIZE_AND_SPRAY_BIAS = 0x1300 };
+
 /// Work block of the shot the attack in water fires.
 ///
 /// The shot is a task of its own with a coordinate for a body, parented to the
@@ -1620,8 +1623,8 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     actorRenderComposeCoord(c1);
     actorRenderComposeCoord(c2);
     actorRenderComposeCoord(c3);
-    diverTurnJoint(c2, (s16)work->lookYaw / 3);
-    diverTurnJoint(c3, (s16)work->lookYaw / 3);
+    _diverTurnJoint(c2, (s16)work->lookYaw / 3);
+    _diverTurnJoint(c3, (s16)work->lookYaw / 3);
 
     mc.rotationWords.m00M01 = ONE;
     mc.rotationWords.m02M10 = 0;
@@ -1951,7 +1954,7 @@ static s32 Actor00400_Fn02208(Task* arg0)
         return 1;
     } else {
         _actor00400TurnTowardPointMaskedRange(arg0, &work->waypoints[work->waypointIndex], 0x2C, 0x100);
-        diverStepForward(arg0, 0x60, work->rotation.vy);
+        _diverStepForward(arg0, 0x60, work->rotation.vy);
         return 0;
     }
 }
@@ -2312,13 +2315,13 @@ static void Actor00400_Fn02D48(Task* arg0)
     s32                  mask;
     s32                  i;
     s32                  n;
-    u16                  kind;
+    u16                  burstKind;
 
     hidden                = 0;
     work                  = arg0->work;
     coord                 = arg0->extra.tmd->coords;
     *&coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    kind                  = 1;
+    burstKind             = DIVER_BURST_TRAIL;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->frames      += 1;
@@ -2370,10 +2373,10 @@ static void Actor00400_Fn02D48(Task* arg0)
             if ((++arg0->killCountdown >= ACTOR_00400_SHOT_LIFETIME) || (gSceneCombatState.actor00400HideRequested != 0) || (hidden != 0)) {
                 arg0->killCountdown           = 0;
                 work->child.attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                kind                          = 2;
+                burstKind                     = DIVER_BURST_IMPACT;
                 arg0->state                  += 1;
             }
-            diverImpactBurst(coord, work->frames, kind, 0x1300);
+            _diverImpactBurst(coord, work->frames, burstKind, ACTOR_00400_SHOT_BURST_SIZE_AND_SPRAY_BIAS);
             break;
     }
 }
@@ -2547,7 +2550,7 @@ static void _actor00400DrawGroundStain(SVECTOR* corner0, SVECTOR* corner1, SVECT
 static const TaskFuncTable3 Actor00400_D0002C = { {
     Actor00400_Fn0A190,
     Actor00400_Fn02D48,
-    diverStrikeTeardown,
+    _diverStrikeTeardown,
 } };
 
 /// The eight states `Actor00400_Fn08948` dispatches on `field_30`. The zero
@@ -2877,7 +2880,7 @@ static void Actor00400_Fn03920(Task* arg0)
         _actor00400BlendRequestedClip(arg0);
         anim->animRequest = DIVER_ANIM_REQUEST_PLAYING;
     } else if (anim->animRequest == DIVER_ANIM_REQUEST_RESET) {
-        diverRestartClip(arg0);
+        _diverRestartClip(arg0);
         anim->animRequest = DIVER_ANIM_REQUEST_PLAYING;
         anim->animFrames  = 0;
     } else if (anim->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
@@ -3030,7 +3033,7 @@ static void Actor00400_Fn04414(Task* arg0)
         _actor00400BlendRequestedClip(arg0);
         w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
     } else if (w->animRequest == DIVER_ANIM_REQUEST_RESET) {
-        diverRestartClip(arg0);
+        _diverRestartClip(arg0);
         w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
         w->animFrames  = 0;
     } else if (w->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
@@ -3042,7 +3045,7 @@ static void Actor00400_Fn04414(Task* arg0)
         i++;
     } while (i < ARRAY_SIZE(w->rig.slots));
     if (arg0->spawnArg1.value != 7) {
-        if (!diverClipEnded(arg0)) {
+        if (!_diverClipHasBoundaryOrJump(arg0)) {
             return;
         }
         w2              = arg0->work;
@@ -3110,7 +3113,7 @@ static void Actor00400_Fn04580(Task* arg0)
                 _actor00400BlendRequestedClip(arg0);
                 w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
             } else if (w->animRequest == DIVER_ANIM_REQUEST_RESET) {
-                diverRestartClip(arg0);
+                _diverRestartClip(arg0);
                 w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
                 w->animFrames  = 0;
             } else if (w->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
@@ -3179,7 +3182,7 @@ static void Actor00400_Fn04900(Task* arg0)
         return;
     }
     if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
-        if (diverClipEnded(arg0)) {
+        if (_diverClipHasBoundaryOrJump(arg0)) {
             work2           = arg0->work;
             work2->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
             work2->subState = 0;
@@ -3207,7 +3210,7 @@ static void Actor00400_Fn04A1C(Task* arg0)
         return;
     }
     if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
-        if (diverClipEnded(arg0)) {
+        if (_diverClipHasBoundaryOrJump(arg0)) {
             work3           = arg0->work;
             work3->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
             work3->subState = 0;
@@ -3428,7 +3431,7 @@ static void Actor00400_Fn04E18(Task* arg0)
                 _actor00400BlendRequestedClip(arg0);
                 w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
             } else if (w->animRequest == DIVER_ANIM_REQUEST_RESET) {
-                diverRestartClip(arg0);
+                _diverRestartClip(arg0);
                 w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
                 w->animFrames  = 0;
             } else if (w->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
@@ -3578,7 +3581,7 @@ static void Actor00400_Fn05320(Task* arg0)
         pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if (diverClipEnded(arg0)) {
+    if (_diverClipHasBoundaryOrJump(arg0)) {
         Actor00400_SpawnRing(arg0, work, coord);
         sound3 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040008;
         pan3   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -3807,7 +3810,7 @@ static void Actor00400_Fn05EA4(Task* arg0)
         w->animRequest = DIVER_ANIM_REQUEST_BLEND;
     }
     _actor00400TurnTowardPoint(arg0, &work->surfaceSpot, 0x30, 0x100);
-    diverStepForward(arg0, 0x60, work->rotation.vy);
+    _diverStepForward(arg0, 0x60, work->rotation.vy);
     if (!(work->frameCount & 0xF)) {
         id  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040001;
         pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -3832,7 +3835,7 @@ static void Actor00400_Fn060CC(Task* arg0)
         return;
     }
     if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
-        if (diverClipEnded(arg0)) {
+        if (_diverClipHasBoundaryOrJump(arg0)) {
             work2           = arg0->work;
             work2->state    = ACTOR_00400_SWIM_STATE_DECIDE;
             work2->subState = 0;
@@ -3976,7 +3979,7 @@ static void Actor00400_Fn064B0(Task* arg0)
     if (work->stateFrames == 0x2B) {
         Actor00400_SpawnMarker(arg0);
     }
-    if (diverClipEnded(arg0)) {
+    if (_diverClipHasBoundaryOrJump(arg0)) {
         work2           = arg0->work;
         work2->state    = ACTOR_00400_SWIM_STATE_DECIDE;
         work2->subState = 0;
@@ -4021,7 +4024,7 @@ static void Actor00400_Fn06798(Task* arg0)
             _actor00400BlendRequestedClip(arg0);
             a->animRequest = DIVER_ANIM_REQUEST_PLAYING;
         } else if (a->animRequest == DIVER_ANIM_REQUEST_RESET) {
-            diverRestartClip(arg0);
+            _diverRestartClip(arg0);
             a->animRequest = DIVER_ANIM_REQUEST_PLAYING;
             a->animFrames  = 0;
         } else if (a->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
@@ -4034,7 +4037,7 @@ static void Actor00400_Fn06798(Task* arg0)
         } while (i < ARRAY_SIZE(a->rig.slots));
     }
     _actor00400TurnTowardPoint(arg0, &work->waypoints[work->waypointIndex], 0x2C, 0x100);
-    diverStepForward(arg0, 0x60, work->rotation.vy);
+    _diverStepForward(arg0, 0x60, work->rotation.vy);
     worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
 }
 
@@ -4132,7 +4135,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
                 _actor00400BlendRequestedClip(arg0);
                 w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
             } else if (w->animRequest == DIVER_ANIM_REQUEST_RESET) {
-                diverRestartClip(arg0);
+                _diverRestartClip(arg0);
                 w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
                 w->animFrames  = 0;
             } else if (w->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
@@ -4222,7 +4225,7 @@ static void Actor00400_Fn06EA4(Task* arg0)
 
     work = arg0->work;
     if (_actor00400ConsumeWoundedHitReaction(work) == 0) {
-        if (diverClipEnded(arg0)) {
+        if (_diverClipHasBoundaryOrJump(arg0)) {
             work2              = arg0->work;
             work2->animBlend   = 8;
             work2->animStep    = 4;
@@ -4250,7 +4253,7 @@ static void Actor00400_Fn06F64(Task* arg0)
         return;
     }
     if (_actor00400ConsumeWoundedHitReaction(work) == 0) {
-        if (diverClipEnded(arg0)) {
+        if (_diverClipHasBoundaryOrJump(arg0)) {
             work2           = arg0->work;
             work2->state    = 0;
             work2->subState = 0;
@@ -4299,7 +4302,7 @@ static void Actor00400_Fn070C0(Task* arg0)
                 _actor00400BlendRequestedClip(arg0);
                 w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
             } else if (w->animRequest == DIVER_ANIM_REQUEST_RESET) {
-                diverRestartClip(arg0);
+                _diverRestartClip(arg0);
                 w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
                 w->animFrames  = 0;
             } else if (w->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
@@ -4361,7 +4364,7 @@ static void Actor00400_Fn07400(Task* arg0)
         phase             = (u16)work->stateFrames + 1;
         work->stateFrames = phase;
         work->goalY       = work->floatOffset + ((u16)work->waterLevel + ((rsin(phase << 16 >> 10) * 0x10) >> 10));
-        if (diverClipEnded(arg0)) {
+        if (_diverClipHasBoundaryOrJump(arg0)) {
             work3              = arg0->work;
             work3->animBlend   = 8;
             work3->animStep    = 2;
@@ -4510,7 +4513,7 @@ static void Actor00400_Fn079A8(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        diverState7Enter,
+        _diverEnterRecoil,
         Actor00400_Fn060CC,
     };
 
@@ -4653,7 +4656,7 @@ static void Actor00400_Fn07CC4(Task* arg0)
         _actor00400BlendRequestedClip(arg0);
         w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
     } else if (w->animRequest == DIVER_ANIM_REQUEST_RESET) {
-        diverRestartClip(arg0);
+        _diverRestartClip(arg0);
         w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
         w->animFrames  = 0;
     } else if (w->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
@@ -5077,7 +5080,7 @@ static void Actor00400_Fn08814(Task* arg0)
         _actor00400BlendRequestedClip(arg0);
         work->animRequest = DIVER_ANIM_REQUEST_PLAYING;
     } else if (work->animRequest == DIVER_ANIM_REQUEST_RESET) {
-        diverRestartClip(arg0);
+        _diverRestartClip(arg0);
         work->animRequest = DIVER_ANIM_REQUEST_PLAYING;
         work->animFrames  = 0;
     } else if (work->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
@@ -5111,10 +5114,10 @@ static void _actor00400RequestClipBlend(Task* task, s16 clipIndex, s16 rate, s16
 /// Tests the diver's last animation tick for a boundary, jump or settled pose.
 ///
 /// Uses the slot-1 result copied into `animStatus`. Returns 0 or 1 with the
-/// same semantics as `diverClipEnded`.
+/// same semantics as `_diverClipHasBoundaryOrJump`.
 static s16 _actor00400ClipEnded(Task* task)
 {
-    return diverClipEnded(task);
+    return _diverClipHasBoundaryOrJump(task);
 }
 
 void Actor00400_Fn08948(Task* arg0)
@@ -5234,7 +5237,7 @@ static void Actor00400_Fn08C54(Task* arg0)
         _actor00400BlendRequestedClip(arg0);
         w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
     } else if (mode == DIVER_ANIM_REQUEST_RESET) {
-        diverRestartClip(arg0);
+        _diverRestartClip(arg0);
         w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
         w->animFrames  = 0;
     } else if (mode == DIVER_ANIM_REQUEST_PLAYING) {
@@ -5567,7 +5570,7 @@ static void Actor00400_Fn095D8(Task* arg0)
 
     work                = arg0->work;
     work->neckRetracted = 1;
-    if (diverClipEnded(arg0)) {
+    if (_diverClipHasBoundaryOrJump(arg0)) {
         work->subState = 1;
     }
 }
@@ -5599,7 +5602,7 @@ static void Actor00400_Fn096C0(Task* arg0)
     _Actor00400Work* work;
 
     work = arg0->work;
-    if (diverClipEnded(arg0)) {
+    if (_diverClipHasBoundaryOrJump(arg0)) {
         work->subState = work->subState + 1;
     }
 }
@@ -5619,7 +5622,7 @@ static void Actor00400_Fn097C8(Task* arg0)
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if (diverClipEnded(arg0)) {
+    if (_diverClipHasBoundaryOrJump(arg0)) {
         w           = arg0->work;
         w->state    = ACTOR_00400_SWIM_STATE_DECIDE;
         w->subState = 0;
@@ -5667,7 +5670,7 @@ static void Actor00400_Fn09924(Task* arg0)
         w->animClip    = 0x12;
         w->animRequest = mode;
     } else {
-        if (diverClipEnded(arg0)) {
+        if (_diverClipHasBoundaryOrJump(arg0)) {
             w              = arg0->work;
             w->animBlend   = 8;
             w->animStep    = ANIMATION_RATE_ONE;
@@ -5778,7 +5781,7 @@ static void Actor00400_Fn09B74(Task* arg0)
 
     work = arg0->work;
     if (++work->stateFrames < 0x30) {
-        diverStepForward(arg0, 0xA0, work->rotation.vy);
+        _diverStepForward(arg0, 0xA0, work->rotation.vy);
         return;
     }
     work->subState++;
@@ -5881,7 +5884,7 @@ static void Actor00400_Fn09D98(Task* arg0)
     count             = work->stateFrames + 1;
     work->stateFrames = count;
     if ((s16)count < 0x30) {
-        diverStepForward(arg0, 0x60, work->rotation.vy);
+        _diverStepForward(arg0, 0x60, work->rotation.vy);
         if (!(work->frameCount & 0xF)) {
             sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040001;
             pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
@@ -6009,7 +6012,7 @@ static void Actor00400_Fn0A034(Task* arg0)
 #include "../../shared/coord_math_local_to_world.inc.c"
 
 /// First state of the shot's task, entered the frame the shot is spawned:
-/// `Actor00400_Fn02D48` flies it afterwards and `diverStrikeTeardown` retires it.
+/// `Actor00400_Fn02D48` flies it afterwards and `_diverStrikeTeardown` retires it.
 ///
 /// `task->work` is the `_Actor00400ShotWork` block `Actor00400_SpawnMarker`
 /// allocated, and `task->extra` the `TmdObject` whose `coords` is the
@@ -6055,7 +6058,7 @@ static void Actor00400_Fn0A190(Task* task)
     work->child.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actorRenderComposeCoord(coord);
     work->velocity.vy = ACTOR_00400_SHOT_LAUNCH_SPEED_Y;
-    diverImpactBurst(coord, (u16)work->frames, 0, 0x1300);
+    _diverImpactBurst(coord, (u16)work->frames, DIVER_BURST_LAUNCH, ACTOR_00400_SHOT_BURST_SIZE_AND_SPRAY_BIAS);
     task->state++;
 }
 
@@ -6223,7 +6226,7 @@ static void Actor00400_Fn0A6B0(Task* arg0)
 {
     _Actor00400Work* work;
 
-    if (diverClipEnded(arg0)) {
+    if (_diverClipHasBoundaryOrJump(arg0)) {
         work           = arg0->work;
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
         work->subState = 0;
@@ -6255,7 +6258,7 @@ static void Actor00400_Fn0A760(Task* arg0)
         return;
     }
     Actor00400_Fn00C84(arg0);
-    if (diverClipEnded(arg0)) {
+    if (_diverClipHasBoundaryOrJump(arg0)) {
         work           = arg0->work;
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
         work->subState = 0;
@@ -6279,7 +6282,7 @@ static void Actor00400_Fn0A82C(Task* arg0)
 {
     _Actor00400Work* work;
 
-    if (diverClipEnded(arg0)) {
+    if (_diverClipHasBoundaryOrJump(arg0)) {
         work           = arg0->work;
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
         work->subState = 0;
@@ -6346,7 +6349,7 @@ static void Actor00400_Fn0AA40(Task* arg0)
 
     work = arg0->work;
     work->stateFrames++;
-    if (diverClipEnded(arg0)) {
+    if (_diverClipHasBoundaryOrJump(arg0)) {
         w              = arg0->work;
         w->animBlend   = 8;
         w->animStep    = ANIMATION_RATE_ONE;

@@ -3880,7 +3880,7 @@ split was a union laying a `u32 word` view over the flags and the unrelated
 halfword after them; the three-test form on the plain field has since replaced
 it at all 18 sites of the file, and at the Sea Diver's three. Seventeen of
 those and the Sea Diver's three now make the test through the Diver library's
-inlined `diverClipEnded`; `_actor00400ClipEnded` is the eighteenth, the same test
+inlined `_diverClipHasBoundaryOrJump`; `_actor00400ClipEnded` is the eighteenth, the same test
 compiled out of line.
 
 The idiom is common here: `src/shared/stalker_zebra_ivory_clip_done.inc.c` carries this same body
@@ -117872,7 +117872,7 @@ two that stay inside a block get the scratch register on their own.
 
 The state change here still goes through the inlined `set_state`, which is a third
 variable and so a third pseudo -- it builds to the same 100.000%. The flags
-test has since gone the same way, into the inlined `diverClipEnded`: each
+test has since gone the same way, into the inlined `_diverClipHasBoundaryOrJump`: each
 helper's own `task->work` local is its own pseudo, so the function keeps one
 explicit reload, the tail's.
 
@@ -147446,7 +147446,7 @@ fall speed read as `(s16)` to `s16`, which also made the `u16` local copying
 it unnecessary. Count the casts per member before trusting its signedness: a
 member cast at most of its reads was fitted to the minority.
 
-## `cond = 1; else cond = 0;` after a fresh `task->work` load is an inlined predicate (diverClipEnded, 2026-10-04)
+## `cond = 1; else cond = 0;` after a fresh `task->work` load is an inlined predicate (_diverClipHasBoundaryOrJump, 2026-10-04)
 
 Both Divers tested "the clip ended" twenty times as
 
@@ -147462,7 +147462,7 @@ Both Divers tested "the clip ended" twenty times as
 
 A flag materialised only to be tested, behind a reload of a pointer the
 function already holds, is what an inlined `if (...) return 1; return 0;`
-leaves. One `static __inline__ s32 diverClipEnded(Task* task)` in
+leaves. One `static __inline__ s32 _diverClipHasBoundaryOrJump(Task* task)` in
 `src/shared/diver_inlines.inc.c`, taking the task and loading the work block
 itself, replaced all twenty and both packages still match. The Bog Diver also
 carries the test out of line (`_actor00400ClipEnded`, an `s16` return), which is

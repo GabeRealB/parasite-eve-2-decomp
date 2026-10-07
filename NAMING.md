@@ -664,7 +664,9 @@ animation-request code shared by the Bog Diver (`actor_00400`) and the Sea
 Diver (`actor_206100`). Its implementation interface is `src/shared/diver.h`,
 one fragment per function. Each package names its own work type `DiverWork`
 before including the fragments and spells the members they reach alike; the
-header lists them. Animation request values use `DIVER_ANIM_REQUEST_`.
+header lists them. Each carrier keeps static instances marked `_diver`.
+Animation request values use `DIVER_ANIM_REQUEST_`, and strike-effect recipes
+use `DIVER_BURST_`.
 
 `sucklerceph` owns the included Sucklerceph enemy shared by `actor_04600` and
 `actor_07000`. Its implementation interface is `src/shared/sucklerceph.h`, one

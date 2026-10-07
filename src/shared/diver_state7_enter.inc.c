@@ -1,20 +1,28 @@
 /* Part of the Diver library; see diver.h. */
 
-/// Sub-state 0 of state 7: requests a blend into clip 0xA (6 frames, normal rate),
-/// plays voice cue 6 and moves on to sub-state 1.
-void diverState7Enter(Task* arg0)
+/// Starts the recoil animation and voice, then advances to its waiting step.
+///
+/// Requires the live carrier work, initialized rig, loaded recoil clip and the
+/// Enemy stored in `spawnArg2.pointer`. Queues a six-frame normal-rate blend;
+/// the animation driver applies it. The placement index tags the sound instance,
+/// with pan and attenuation sampled at the model root. Does not change the
+/// carrier's state or clear hit flags; the next substate waits on clip status.
+static void _diverEnterRecoil(Task* task)
 {
-    s32        sound;
-    s32        pan;
+    enum {
+        DIVER_RECOIL_CLIP          = 10,
+        DIVER_RECOIL_BLEND_FRAMES  = 6,
+        DIVER_RECOIL_SOUND         = 0x40040006,
+        DIVER_SOUND_INSTANCE_SHIFT = 8
+    };
+    s32        soundId;
+    s32        panOffset;
     DiverWork* work;
 
-    work              = arg0->work;
-    work->animBlend   = 6;
-    work->animStep    = ANIMATION_RATE_ONE;
-    work->animClip    = 0xA;
-    work->animRequest = DIVER_ANIM_REQUEST_BLEND;
-    sound             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    work = task->work;
+    _diverRequestClipBlend(work, DIVER_RECOIL_CLIP, ANIMATION_RATE_ONE, DIVER_RECOIL_BLEND_FRAMES);
+    soundId   = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << DIVER_SOUND_INSTANCE_SHIFT) | DIVER_RECOIL_SOUND;
+    panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     work->subState++;
 }

@@ -2,8 +2,8 @@
  * Sea Diver (actor_206100) share. Both attack by
  * spawning a short-lived strike child. The child is a task holding a sphere
  * collision body that carries the attack, placed at the strike point. On spawn
- * and on hits it bursts impact sparks: a rotating six-frame spark billboard,
- * plus room-effect puffs and randomly aimed sparks depending on the burst
+ * and on hits it bursts impact sparks: a six-frame spark billboard,
+ * plus room particles and flashes at random offsets depending on the burst
  * kind. The shared code also includes their world-space joint turn,
  * used to twist body parts by a third of a yaw each, and its step-along-
  * heading helper.
@@ -39,7 +39,7 @@
 #include "main/coord.h"
 #include "main/task_types.h"
 
-#include "gameplay/actor.h"
+#include "gameplay/world_collision.h"
 
 /// Values of `DiverWork::animRequest`, which each package's animation step
 /// consumes once a frame.
@@ -64,16 +64,25 @@ typedef struct {
 } DiverStrikeWork;
 STATIC_ASSERT_SIZEOF(DiverStrikeWork, 0x28);
 
-void diverImpactBurst(GfxCoord* coord, u16 arg1, u16 arg2, u32 arg3);
-void diverDrawSpark(GfxCoord* arg0, u16 arg1, u16 arg2, s32 arg3);
-void diverTurnJoint(GfxCoord* coord, s16 yaw);
-void diverStepForward(Task* task, s16 arg1, s16 arg2);
-void diverStrikeTeardown(Task* task);
-void diverRestartClip(Task* arg0);
-void diverState7Enter(Task* arg0);
+/// Strike-effect recipes passed to `_diverImpactBurst` by either carrier.
+enum {
+    DIVER_BURST_LAUNCH = 0, // one room particle at the strike coordinate
+    DIVER_BURST_TRAIL  = 1, // billboard, periodic room particles and offset flashes
+    DIVER_BURST_IMPACT = 2  // billboard, one upright particle and four particle/flash pairs
+};
 
-static inline s32       diverAccumulateRotation(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2);
-static inline GfxCoord* diverLocalizeRotation(GfxCoord* arg0, MATRIX* arg1);
-static inline s32       diverClipEnded(Task* task);
+/// Cells in the spark strip; each cell occupies 40 by 40 texels.
+enum { DIVER_SPARK_FRAME_COUNT = 6 };
+
+/// Teardown ticks a burst strike lingers before its linked attack body is removed.
+enum { DIVER_STRIKE_LINGER_FRAMES = 12 };
+
+static void _diverImpactBurst(GfxCoord* coord, u16 phase, u16 kind, u32 sizeAndSprayBias);
+static void _diverDrawSpark(const GfxCoord* coord, u16 frameIndex, u16 size, s32 angle);
+static void _diverTurnJoint(GfxCoord* coord, s16 yaw);
+static void _diverStepForward(Task* task, s16 distance, s16 yaw);
+static void _diverStrikeTeardown(Task* task);
+static void _diverRestartClip(Task* task);
+static void _diverEnterRecoil(Task* task);
 
 #endif /* SRC_SHARED_DIVER_H */
