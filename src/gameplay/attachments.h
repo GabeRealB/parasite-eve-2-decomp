@@ -149,12 +149,6 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1);
 
 void Gp_SelectArmorMenuTask(Task* arg0);
 
-void Gp_ReloadPromptTask(Task* arg0);
-
-void Gp_AttachPromptTask(Task* arg0);
-
-void Gp_EquipPromptTask(Task* arg0);
-
 void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1);
 
 void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1);

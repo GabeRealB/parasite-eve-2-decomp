@@ -362,6 +362,43 @@ void itemMenuInfoTaskExit(Task* task);
 /// Active panels accept on timeout or Confirm/Cancel; Menu yields CANCEL.
 void itemMenuNoticeTask(Task* task);
 
+/// Loads or removes weapon consumables and displays a timed Reload notice.
+///
+/// `spawnArg2.pointer` is the live task-owned UiObject; state starts at zero.
+/// Bits 0..7 of `spawnArg1.value` are the consumable id, bits 8..15 the weapon
+/// id (0x80..0x9F); other bits are ignored. A nonzero consumable (0xA0..0xBF)
+/// is identified and loaded to capacity from the live carried range. The range
+/// must fit its table and contain the weapon; the load result is not checked.
+/// Zero removes the loads selected by `Gp_ReloadMode` (1 primary, 2 secondary,
+/// other values both), preserving built-in supplies. A single selected item's
+/// id is copied into the argument's low byte before clearing for later drawing.
+/// Starts a 188-tick counter, including opening/inactive callbacks. An active
+/// panel yields DISMISS on timeout or Confirm/Cancel, and CANCEL on Menu.
+void itemMenuReloadNoticeTask(Task* task);
+
+/// Displays a timed Attach notice naming the item supplied in the task argument.
+///
+/// `spawnArg1.value` is a catalogue item id and `spawnArg2.pointer` the live
+/// task-owned UiObject; state starts at zero. Sizes the panel and plays the
+/// equipment sound once the panel opens. The 188-tick counter also advances
+/// while opening or inactive. An active panel yields DISMISS on timeout or
+/// Confirm/Cancel, and CANCEL on Menu. Attachment state is left intact.
+void itemMenuAttachNoticeTask(Task* task);
+
+/// Selects carried equipment and displays a timed Equip notice.
+///
+/// `spawnArg1.value` is a weapon id (0x80..0x9F) or armor id (0x60..0x7F), and
+/// `spawnArg2.pointer` the live task-owned UiObject; state starts at zero.
+/// A weapon and its previous selection, if any, must have carried rows. On a
+/// changed weapon, the old row inherits the new row's positive armor slot;
+/// otherwise its removable loads are cleared. The new weapon is detached and
+/// identified. Changed armor refreshes statistics and detaches attachments.
+/// The carried range must fit its table; armor mode and selector must satisfy
+/// `equipmentEquipCarriedArmor`'s contract. The sound waits for the open panel;
+/// the 188-tick counter includes opening/inactive callbacks. Active panels yield
+/// DISMISS on timeout or Confirm/Cancel, and CANCEL on Menu.
+void itemMenuEquipNoticeTask(Task* task);
+
 /// Draws two identified PE description lines and the learned level's casting-cost bar.
 ///
 /// `abilityId` is a packed PE catalogue id in 0x300..0x3FF. Its low two bits

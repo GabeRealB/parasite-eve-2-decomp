@@ -6750,11 +6750,11 @@ join:
 
 Invert to `if (state != 0x20) { B } else { A }`. The `j join` after
 `if (width < other) width = other` only appears when the `==` body is
-still below it. `Gp_ReloadPromptTask` is the example.
+still below it. `itemMenuReloadNoticeTask` is the example.
 
-## Inline the first `0x606060`; assign `color` only after a later call
+## Inline the first `0x606060`; assign `textColorRgb` only after a later call
 
-A `color` local reused across two `textDrawUiLine` calls is allocated to
+A `textColorRgb` local reused across two `textDrawUiLine` calls is allocated to
 `$v1` from the start, because the later call needs `$v0` for the returned
 x. That also pulls `lh a1` / `lh a2` *after* the tail-merged join (the
 free `$v0` is used for `li v0, 1` early). The target loads the first
@@ -6773,9 +6773,9 @@ li     v0, 1
 ```
 
 Inline `0x606060` on the first (and one-line) prompt so that temp dies at
-the `jal`. Assign `color = 0x606060` only after the middle call, when
-`$v0` holds the returned width and the constant naturally lands in `$v1`.
-`Gp_ReloadPromptTask` is the example.
+the `jal`. Assign `textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB` only after the middle call, when
+`$v0` holds `textEndX` and the constant naturally lands in `$v1`.
+`itemMenuReloadNoticeTask` is the example.
 
 ## Pin later `$s` regs so an early arg lands in `$fp` *and* is saved
 
@@ -32099,29 +32099,29 @@ beqz  v0, skip
 move  s0, v1
 ```
 
-Reusing the `spawnArg1` local (`val`, already in `$s0`/`$s1` across the
+Reusing the `spawnArg1` local (`itemId`, already in `$s0`/`$s1` across the
 equip block) for that second width pins the copy to a callee-saved
 register (`move s1, v0`). Give the compare its own short-lived temp.
 
 The same function also calls `itemGetText` once to measure and again
-to draw. Assigning both results to one `text` local makes that variable
-interfere with `rec` (`$s1`) and `&gPlayerStatus` (`$s2`), so the later
-`color = 0x606060` / `text = itemGetText(...)` pair swaps (`color` in
-`$s1`, `text` in `$s2`). Nest the first call so `text` is only assigned
+to draw. Assigning both results to one `itemText` local makes that variable
+interfere with `weaponRow` (`$s1`) and `&gPlayerStatus` (`$s2`), so the later
+`textColorRgb = 0x606060` / `itemText = itemGetText(...)` pair swaps (`textColorRgb` in
+`$s1`, `itemText` in `$s2`). Nest the first call so `itemText` is only assigned
 on the draw path:
 
 ```c
-width = textMeasureLineWidth(itemGetText(arg0->spawnArg1, 0, 0)) + 0xB;
-other = textMeasureLineWidth(Gp_StrEquipped);
-if (width < other) {
-    width = other;
+contentWidth = textMeasureLineWidth(itemGetText(task->spawnArg1.value, ITEM_TEXT_NAME, 0)) + 0xB;
+verbWidth = textMeasureLineWidth((const u8*)Gp_StrEquipped);
+if (contentWidth < verbWidth) {
+    contentWidth = verbWidth;
 }
 ...
-text  = itemGetText(arg0->spawnArg1, 0, 0);
-color = 0x606060;
+itemText = itemGetText(task->spawnArg1.value, ITEM_TEXT_NAME, 0);
+textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
 ```
 
-`Gp_EquipPromptTask` is the example.
+`itemMenuEquipNoticeTask` is the example.
 
 ## Store the compared byte through an `s32`; pin jal-return + subtract copies
 

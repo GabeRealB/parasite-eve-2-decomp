@@ -23,15 +23,19 @@ extern UiListRowCallback Gp_ItemCmdRows[2];
 
 extern const u8 Gp_StrWrongAmmo2[];
 
-static inline s32 _gpIsArmorItem(u8 id);
+enum {
+    ITEM_MENU_ARMOR_ITEM_FIRST       = 0x60,
+    ITEM_MENU_EQUIPMENT_ITEM_COUNT_U = 0x20U,
+    ITEM_MENU_NOTICE_TIMEOUT_TICKS   = 188,
+    ITEM_MENU_NOTICE_DISMISSED_TICKS = 0x7FFF,
+    ITEM_MENU_NOTICE_TEXT_COLOR_RGB  = 0x606060,
+    ITEM_MENU_NOTICE_ITEM_COLOR_RGB  = 0x037A78
+};
 
-static inline s32 _gpFindSpareArmor(s32 index);
-
-static inline void _gpApplyChildResults(UiObject* obj, Task* task);
-
-static inline s32 _gpIsArmorItem(u8 id)
+/// Returns 1 for armor catalogue ids 0x60..0x7F, otherwise 0.
+static inline s32 _itemIsArmorItem(u8 itemId)
 {
-    return (u32)(id - 0x60) < 0x20U;
+    return (u32)(itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U;
 }
 
 #define GP_SET_PREVIEW_ITEM(item, slot)             \
@@ -51,111 +55,177 @@ static inline s32 _gpIsArmorItem(u8 id)
             itemMenuEnqueuePreviewLoad(item, slot); \
         }                                           \
     } while (0)
-#define GP_FIND_SPARE_ARMOR(found, index)                                               \
-    do {                                                                                \
-        PlayerStatus*       _cfg;                                                       \
-        InventoryItemRange* _scan;                                                      \
-        InventoryItemRow*   _rec;                                                       \
-        s32                 _i;                                                         \
-        s32                 _n;                                                         \
-                                                                                        \
-        _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;               \
-        _cfg    = &gPlayerStatus;                                                       \
-        _n      = (index);                                                              \
-        _rec    = inventoryGetRangeTable(_scan);                                        \
-        (found) = _i = 0;                                                               \
-        _rec         = &_rec[_scan->firstRow];                                          \
-        for (; _i < _scan->rowCount; _i++) {                                            \
-            if (_gpIsArmorItem(_rec->itemId) && (_cfg->armor != _rec->itemId - 0x5F)) { \
-                _n--;                                                                   \
-                if (_n < 0) {                                                           \
-                    (found) = _rec->itemId;                                             \
-                    break;                                                              \
-                }                                                                       \
-            }                                                                           \
-            _rec++;                                                                     \
-        }                                                                               \
+#define GP_FIND_SPARE_ARMOR(found, index)                                                 \
+    do {                                                                                  \
+        PlayerStatus*       _cfg;                                                         \
+        InventoryItemRange* _scan;                                                        \
+        InventoryItemRow*   _rec;                                                         \
+        s32                 _i;                                                           \
+        s32                 _n;                                                           \
+                                                                                          \
+        _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;                 \
+        _cfg    = &gPlayerStatus;                                                         \
+        _n      = (index);                                                                \
+        _rec    = inventoryGetRangeTable(_scan);                                          \
+        (found) = _i = 0;                                                                 \
+        _rec         = &_rec[_scan->firstRow];                                            \
+        for (; _i < _scan->rowCount; _i++) {                                              \
+            if (_itemIsArmorItem(_rec->itemId) && (_cfg->armor != _rec->itemId - 0x5F)) { \
+                _n--;                                                                     \
+                if (_n < 0) {                                                             \
+                    (found) = _rec->itemId;                                               \
+                    break;                                                                \
+                }                                                                         \
+            }                                                                             \
+            _rec++;                                                                       \
+        }                                                                                 \
     } while (0)
-#define GP_COUNT_SPARE_ARMOR(count)                                                     \
-    do {                                                                                \
-        PlayerStatus*       _cfg;                                                       \
-        InventoryItemRange* _scan;                                                      \
-        InventoryItemRow*   _rec;                                                       \
-        s32                 _i;                                                         \
-                                                                                        \
-        (count) = 0;                                                                    \
-        _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;               \
-        _cfg    = &gPlayerStatus;                                                       \
-        _rec    = inventoryGetRangeTable(_scan);                                        \
-        _i      = 0;                                                                    \
-        _rec    = &_rec[_scan->firstRow];                                               \
-        for (; _i < _scan->rowCount; _i++) {                                            \
-            if (_gpIsArmorItem(_rec->itemId) && (_cfg->armor != _rec->itemId - 0x5F)) { \
-                (count)++;                                                              \
-            }                                                                           \
-            _rec++;                                                                     \
-        }                                                                               \
+#define GP_COUNT_SPARE_ARMOR(count)                                                       \
+    do {                                                                                  \
+        PlayerStatus*       _cfg;                                                         \
+        InventoryItemRange* _scan;                                                        \
+        InventoryItemRow*   _rec;                                                         \
+        s32                 _i;                                                           \
+                                                                                          \
+        (count) = 0;                                                                      \
+        _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;                 \
+        _cfg    = &gPlayerStatus;                                                         \
+        _rec    = inventoryGetRangeTable(_scan);                                          \
+        _i      = 0;                                                                      \
+        _rec    = &_rec[_scan->firstRow];                                                 \
+        for (; _i < _scan->rowCount; _i++) {                                              \
+            if (_itemIsArmorItem(_rec->itemId) && (_cfg->armor != _rec->itemId - 0x5F)) { \
+                (count)++;                                                                \
+            }                                                                             \
+            _rec++;                                                                       \
+        }                                                                                 \
     } while (0)
-static inline s32 _gpFindSpareArmor(s32 index)
+/// Returns the armor item id at a zero-based position in the unequipped list, or 0.
+///
+/// Scans the live carried range in row order, skipping every row of the equipped
+/// armor id. The range must fit its readable table. Negative list positions
+/// select the first eligible row; positions past the list return INVENTORY_ITEM_NONE.
+/// Duplicate item ids remain separate rows; quantity and attachment markers do
+/// not affect eligibility. No saved state is changed or pointer retained.
+static inline s32 _itemMenuGetUnequippedArmorItem(s32 listIndex)
 {
-    PlayerStatus*       cfg;
-    InventoryItemRange* scan;
-    InventoryItemRow*   rec;
-    s32                 i;
-    s32                 found;
+    const PlayerStatus*       player;
+    const InventoryItemRange* carriedRange;
+    const InventoryItemRow*   row;
+    s32                       rowIndex;
+    s32                       armorItemId;
 
-    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    cfg   = &gPlayerStatus;
-    rec   = inventoryGetRangeTable(scan);
-    found = i = 0;
-    rec       = &rec[scan->firstRow];
-    for (; i < scan->rowCount; i++) {
-        if (_gpIsArmorItem(rec->itemId) && (cfg->armor != rec->itemId - 0x5F)) {
-            index--;
-            if (index < 0) {
-                found = rec->itemId;
+    carriedRange = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    player       = &gPlayerStatus;
+    row          = inventoryGetRangeTable(carriedRange);
+    armorItemId  = INVENTORY_ITEM_NONE;
+    rowIndex     = 0;
+    row          = &row[carriedRange->firstRow];
+    for (; rowIndex < carriedRange->rowCount; rowIndex++) {
+        if (_itemIsArmorItem(row->itemId) && (player->armor != row->itemId - (ITEM_MENU_ARMOR_ITEM_FIRST - 1))) {
+            listIndex--;
+            if (listIndex < 0) {
+                armorItemId = row->itemId;
                 break;
             }
         }
-        rec++;
+        row++;
     }
-    return found;
+    return armorItemId;
 }
-static inline void _gpApplyChildResults(UiObject* obj, Task* task)
+
+/// Propagates child dismissal/cancellation and closes accepted child dialogs.
+///
+/// The live task's circular child ring must contain task-owned UiObjects in
+/// spawnArg2. CONFIRM detaches and starts closing that child's subtree, then
+/// reactivates the parent panel; DISMISS and CANCEL copy to the parent's result.
+/// Other outcomes leave it intact. Closing defers release to later task updates.
+/// Reaching the current ring head ends the pass, including after closing its
+/// previous head while siblings remain.
+static inline void _itemMenuApplyChildDialogResults(UiObject* object, Task* task)
 {
     Task*     child;
-    Task*     next;
-    Task*     head;
-    UiObject* childObj;
-    s32       flag;
+    Task*     nextSibling;
+    Task*     childHead;
+    UiObject* childObject;
+    s32       childResult;
 
     child = task->firstChild;
     if (child != NULL) {
         do {
-            childObj = child->spawnArg2.pointer;
-            flag     = childObj->result;
-            next     = child->nextSibling;
-            switch (flag) {
+            childObject = child->spawnArg2.pointer;
+            childResult = childObject->result;
+            // Closing detaches the child, so save its link before handling the result.
+            nextSibling = child->nextSibling;
+            switch (childResult) {
                 case USER_INTERFACE_RESULT_DISMISS:
-                    obj->result = flag;
+                    object->result = childResult;
                     break;
                 case USER_INTERFACE_RESULT_CANCEL:
-                    obj->result = flag;
+                    object->result = childResult;
                     break;
                 case USER_INTERFACE_RESULT_CONFIRM:
-                    uiStartTreeClosing(childObj, childObj->owner);
-                    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+                    uiStartTreeClosing(childObject, childObject->owner);
+                    object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     break;
             }
-            head  = task->firstChild;
-            child = next;
-            if (child == head) {
+            childHead = task->firstChild;
+            child     = nextSibling;
+            if (child == childHead) {
                 break;
             }
-            if (head == NULL) {
+            if (childHead == NULL) {
                 break;
             }
         } while (1);
+    }
+}
+
+/// Switches to a carried weapon, transferring its armor slot to the previous weapon.
+///
+/// Both weapon rows must exist when their selectors are nonzero. If the new
+/// weapon has no positive attachment slot, the previous weapon's removable
+/// loads are cleared. A changed weapon is detached from armor and identified.
+static inline void _equipmentEquipCarriedWeapon(s32 weaponItemId)
+{
+    PlayerStatus*     player;
+    InventoryItemRow* weaponRow;
+    InventoryItemRow* previousWeaponRow;
+    u8                previousWeapon;
+
+    player         = &gPlayerStatus;
+    weaponRow      = inventoryFindLastCarriedItemRow(weaponItemId);
+    previousWeapon = player->weapon;
+    if (previousWeapon != weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
+        if (previousWeapon != PLAYER_STATUS_EQUIPMENT_NONE) {
+            previousWeaponRow = inventoryFindLastCarriedItemRow(previousWeapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));
+            if (weaponRow->attachSlot > INVENTORY_ATTACHMENT_NONE) {
+                previousWeaponRow->attachSlot = weaponRow->attachSlot;
+            } else {
+                equipmentClearSelectedRemovableLoads(previousWeaponRow->itemId, EQUIPMENT_CLEAR_LOAD_BOTH);
+            }
+        }
+        player->weapon = weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+        inventoryDetachItem(weaponRow);
+        itemSetIdentified(weaponItemId, 1);
+    }
+}
+
+/// Advances a notice's tick counter and publishes dismissal or menu cancellation.
+///
+/// The live task owns the object. Opening and inactive panels still count down;
+/// only active panels act on expiration or pressed buttons. Dismissal resets the
+/// signed-halfword counter to defer another timeout during the closing animation.
+static inline void _itemMenuUpdateNoticeResult(UiObject* object, Task* task)
+{
+    task->killCountdown--;
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+            object->result = USER_INTERFACE_RESULT_CANCEL;
+        } else if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+            object->result      = USER_INTERFACE_RESULT_DISMISS;
+            task->killCountdown = ITEM_MENU_NOTICE_DISMISSED_TICKS;
+        }
     }
 }
 
@@ -378,7 +448,7 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
     s32         baseY;
     s32         status;
 
-    item   = _gpFindSpareArmor(arg0->currentItemIndex);
+    item   = _itemMenuGetUnequippedArmorItem(arg0->currentItemIndex);
     status = arg1->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
@@ -484,78 +554,88 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         }
     }
 
-    _gpApplyChildResults(obj, arg0);
+    _itemMenuApplyChildDialogResults(obj, arg0);
 
     if (obj->result == USER_INTERFACE_RESULT_DISMISS) {
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 
-void Gp_ReloadPromptTask(Task* arg0)
+void itemMenuReloadNoticeTask(Task* task)
 {
-    UiObject*            obj;
-    const u8*            text;
-    s32                  lo;
-    s32                  hi;
-    s32                  width;
-    s32                  other;
-    s32                  rows;
-    s32                  color;
-    s32                  one;
-    EquipmentWeaponLoad* slot;
+    enum {
+        ITEM_MENU_RELOAD_NOTICE_START          = 0,
+        ITEM_MENU_RELOAD_NOTICE_LOADED         = 1,
+        ITEM_MENU_RELOAD_NOTICE_REMOVED_ITEM   = 0x10,
+        ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS  = 0x20,
+        ITEM_MENU_RELOAD_ARGUMENT_ITEM_MASK    = 0xFF,
+        ITEM_MENU_RELOAD_ARGUMENT_WEAPON_SHIFT = 8
+    };
+    UiObject*                  obj;
+    const u8*                  itemText;
+    s32                        consumableItemId;
+    s32                        weaponItemId;
+    s32                        contentWidth;
+    s32                        verbWidth;
+    s32                        textRows;
+    s32                        textColorRgb;
+    s32                        drawMode;
+    s32                        textEndX;
+    const EquipmentWeaponLoad* weaponLoad;
 
-    obj         = arg0->spawnArg2.pointer;
-    lo          = arg0->spawnArg1.value & 0xFF;
-    hi          = (arg0->spawnArg1.value >> 8) & 0xFF;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrReload);
-    if (arg0->state == 0) {
-        if (lo == 0) {
-            slot        = equipmentGetWeaponLoad(hi);
-            arg0->state = 0x10;
-            if (Gp_ReloadMode == 1) {
-                if (slot->primaryItemId != INVENTORY_ITEM_NONE) {
-                    arg0->spawnArg1.value |= slot->primaryItemId;
-                    text                   = itemGetText(slot->primaryItemId, ITEM_TEXT_NAME, 0);
+    obj              = task->spawnArg2.pointer;
+    consumableItemId = task->spawnArg1.value & ITEM_MENU_RELOAD_ARGUMENT_ITEM_MASK;
+    weaponItemId     = (task->spawnArg1.value >> ITEM_MENU_RELOAD_ARGUMENT_WEAPON_SHIFT) & ITEM_MENU_RELOAD_ARGUMENT_ITEM_MASK;
+    obj->result      = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&obj->panel, Gp_StrReload);
+    if (task->state == ITEM_MENU_RELOAD_NOTICE_START) {
+        if (consumableItemId == INVENTORY_ITEM_NONE) {
+            // Preserve the selected item's name before clearing its load record.
+            weaponLoad  = equipmentGetWeaponLoad(weaponItemId);
+            task->state = ITEM_MENU_RELOAD_NOTICE_REMOVED_ITEM;
+            if (Gp_ReloadMode == EQUIPMENT_CLEAR_LOAD_PRIMARY) {
+                if (weaponLoad->primaryItemId != INVENTORY_ITEM_NONE) {
+                    task->spawnArg1.value |= weaponLoad->primaryItemId;
+                    itemText               = itemGetText(weaponLoad->primaryItemId, ITEM_TEXT_NAME, 0);
                 } else {
-                    arg0->state = 0x20;
-                    text        = Gp_StrRemovedAmmo;
+                    task->state = ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS;
+                    itemText    = (const u8*)Gp_StrRemovedAmmo;
                 }
-            } else if (Gp_ReloadMode == 2) {
-                if (slot->secondaryItemId != INVENTORY_ITEM_NONE) {
-                    arg0->spawnArg1.value |= slot->secondaryItemId;
-                    text                   = itemGetText(slot->secondaryItemId, ITEM_TEXT_NAME, 0);
+            } else if (Gp_ReloadMode == EQUIPMENT_CLEAR_LOAD_SECONDARY) {
+                if (weaponLoad->secondaryItemId != INVENTORY_ITEM_NONE) {
+                    task->spawnArg1.value |= weaponLoad->secondaryItemId;
+                    itemText               = itemGetText(weaponLoad->secondaryItemId, ITEM_TEXT_NAME, 0);
                 } else {
-                    arg0->state = 0x20;
-                    text        = Gp_StrRemovedAmmo;
+                    task->state = ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS;
+                    itemText    = (const u8*)Gp_StrRemovedAmmo;
                 }
             } else {
-                arg0->state = 0x20;
-                text        = Gp_StrRemovedAmmo;
+                task->state = ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS;
+                itemText    = (const u8*)Gp_StrRemovedAmmo;
             }
-            equipmentClearSelectedRemovableLoads(hi, Gp_ReloadMode);
-            other = textMeasureLineWidth((const u8*)Gp_StrRemoved);
+            equipmentClearSelectedRemovableLoads(weaponItemId, Gp_ReloadMode);
+            verbWidth = textMeasureLineWidth((const u8*)Gp_StrRemoved);
         } else {
-            itemSetIdentified(lo, 1);
-            text = itemGetText(lo, ITEM_TEXT_NAME, 0);
-            equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, hi, lo, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
-            other       = textMeasureLineWidth((const u8*)Gp_StrLoaded);
-            arg0->state = 1;
+            itemSetIdentified(consumableItemId, 1);
+            itemText = itemGetText(consumableItemId, ITEM_TEXT_NAME, 0);
+            equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, consumableItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
+            verbWidth   = textMeasureLineWidth((const u8*)Gp_StrLoaded);
+            task->state = ITEM_MENU_RELOAD_NOTICE_LOADED;
         }
-        if (arg0->state != 0x20) {
-            width = textMeasureLineWidth(text) + 0xB;
-            if (width < other) {
-                width = other;
+        if (task->state != ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS) {
+            contentWidth = textMeasureLineWidth(itemText) + 0xB;
+            if (contentWidth < verbWidth) {
+                contentWidth = verbWidth;
             }
-            rows = 2;
+            textRows = 2;
         } else {
-            width = textMeasureLineWidth(text);
-            rows  = 1;
+            contentWidth = textMeasureLineWidth(itemText);
+            textRows     = 1;
         }
-        uiSetPanelContentSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(rows) + 1);
-        (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
-        if (arg0->state < 0x20) {
-            if (arg0->state < 0x10) {
+        uiSetPanelContentSize(&obj->panel, contentWidth + 5, uiGetTextRowsHeight(textRows) + 1);
+        obj->panel.bounds.rect.x = (-obj->panel.bounds.rect.w) >> 1;
+        if (task->state < ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS) {
+            if (task->state < ITEM_MENU_RELOAD_NOTICE_REMOVED_ITEM) {
                 sndEvtRequestScriptStart(SOUND_AMMO_LOAD, 0, 0);
             } else {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -563,145 +643,109 @@ void Gp_ReloadPromptTask(Task* arg0)
         } else {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         }
-        arg0->killCountdown = 0xBC;
-    } else if (arg0->state < 0x20) {
-        text = itemGetText(lo, ITEM_TEXT_NAME, 0);
-        if (arg0->state < 0x10) {
-            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrLoaded, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        task->killCountdown = ITEM_MENU_NOTICE_TIMEOUT_TICKS;
+    } else if (task->state < ITEM_MENU_RELOAD_NOTICE_REMOVED_LOADS) {
+        itemText = itemGetText(consumableItemId, ITEM_TEXT_NAME, 0);
+        if (task->state < ITEM_MENU_RELOAD_NOTICE_REMOVED_ITEM) {
+            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrLoaded, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         } else {
-            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrRemoved, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrRemoved, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         }
-        one   = 1;
-        width = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
-        color = 0x606060;
-        textDrawUiLine(obj, width, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
+        drawMode     = TEXT_DRAW_OUTLINED;
+        textEndX     = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, itemText, ITEM_MENU_NOTICE_ITEM_COLOR_RGB, drawMode, TEXT_ALIGNMENT_LEFT);
+        textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
+        textDrawUiLine(obj, textEndX, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
     } else {
-        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrRemovedAmmo, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrRemovedAmmo, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
-    arg0->killCountdown--;
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if ((arg0->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            obj->result         = USER_INTERFACE_RESULT_DISMISS;
-            arg0->killCountdown = 0x7FFF;
-        }
-    }
+    _itemMenuUpdateNoticeResult(obj, task);
 }
 
-void Gp_AttachPromptTask(Task* arg0)
+void itemMenuAttachNoticeTask(Task* task)
 {
+    enum {
+        ITEM_MENU_ATTACH_NOTICE_START         = 0,
+        ITEM_MENU_ATTACH_NOTICE_WAIT_FOR_OPEN = 1
+    };
     UiObject* obj;
-    const u8* text;
-    s32       color;
-    s32       one;
-    s32       width;
+    const u8* itemText;
+    s32       textColorRgb;
+    s32       contentWidth;
+    s32       textEndX;
 
-    obj         = arg0->spawnArg2.pointer;
+    obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    text        = itemGetText(arg0->spawnArg1.value, ITEM_TEXT_NAME, 0);
-    if (arg0->state == 0) {
-        width = textMeasureLineWidth(text) + 0x40;
-        uiSetPanelContentSize(&(obj)->panel, width, uiGetTextRowsHeight(2) + 8);
-        (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
-        arg0->killCountdown            = 0xBC;
-        arg0->state                    = arg0->state + 1;
-    } else if (arg0->state == 1) {
+    itemText    = itemGetText(task->spawnArg1.value, ITEM_TEXT_NAME, 0);
+    if (task->state == ITEM_MENU_ATTACH_NOTICE_START) {
+        contentWidth = textMeasureLineWidth(itemText) + 0x40;
+        uiSetPanelContentSize(&obj->panel, contentWidth, uiGetTextRowsHeight(2) + 8);
+        obj->panel.bounds.rect.x = (-obj->panel.bounds.rect.w) >> 1;
+        task->killCountdown      = ITEM_MENU_NOTICE_TIMEOUT_TICKS;
+        task->state              = task->state + 1;
+    } else if (task->state == ITEM_MENU_ATTACH_NOTICE_WAIT_FOR_OPEN) {
         if (obj->panel.state == USER_INTERFACE_PANEL_OPEN) {
             sndEvtRequestScriptStart(SOUND_WEAPON_EQUIP, 0, 0);
-            arg0->state = arg0->state + 1;
+            task->state = task->state + 1;
         }
     }
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrAttach);
-    color = 0x606060;
-    one   = 1;
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0, (const u8*)Gp_StrEquipped, color, one, TEXT_ALIGNMENT_LEFT);
-    width = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0xE, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, width, 0xE, (const u8*)Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
-    arg0->killCountdown--;
-    if (obj->panel.control.word == one) {
-        if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if ((arg0->killCountdown <= 0) || (padCheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            obj->result         = USER_INTERFACE_RESULT_DISMISS;
-            arg0->killCountdown = 0x7FFF;
-        }
-    }
+    uiDrawPanelLabel(&obj->panel, Gp_StrAttach);
+    textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0, (const u8*)Gp_StrEquipped, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textEndX = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0xE, itemText, ITEM_MENU_NOTICE_ITEM_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, textEndX, 0xE, (const u8*)Gp_StrDot, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _itemMenuUpdateNoticeResult(obj, task);
 }
 
-void Gp_EquipPromptTask(Task* arg0)
+void itemMenuEquipNoticeTask(Task* task)
 {
-    UiObject*         obj;
-    const u8*         text;
-    s32               color;
-    s32               one;
-    s32               width;
-    s32               val;
-    s32               other;
-    PlayerStatus*     p;
-    InventoryItemRow* rec;
-    InventoryItemRow* prev;
-    u8                field21;
+    enum {
+        ITEM_MENU_EQUIP_NOTICE_START         = 0,
+        ITEM_MENU_EQUIP_NOTICE_WAIT_FOR_OPEN = 1
+    };
+    UiObject* obj;
+    const u8* itemText;
+    s32       textColorRgb;
+    s32       contentWidth;
+    s32       itemId;
+    s32       verbWidth;
+    s32       textEndX;
 
-    obj         = arg0->spawnArg2.pointer;
+    obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    if (arg0->state == 0) {
-        val = arg0->spawnArg1.value;
-        if ((u32)(val - 0x80) < 0x20U) {
-            p       = &gPlayerStatus;
-            rec     = inventoryFindLastCarriedItemRow(val);
-            field21 = p->weapon;
-            if (field21 != val - 0x7F) {
-                if (field21 != 0) {
-                    prev = inventoryFindLastCarriedItemRow(field21 + 0x7F);
-                    if (rec->attachSlot > INVENTORY_ATTACHMENT_NONE) {
-                        prev->attachSlot = rec->attachSlot;
-                    } else {
-                        equipmentClearSelectedRemovableLoads(prev->itemId, EQUIPMENT_CLEAR_LOAD_BOTH);
-                    }
-                }
-                p->weapon = val - 0x7F;
-                inventoryDetachItem(rec);
-                itemSetIdentified(val, 1);
-            }
-        } else if ((u32)(val - 0x60) < 0x20U) {
-            equipmentEquipCarriedArmor(val);
+    if (task->state == ITEM_MENU_EQUIP_NOTICE_START) {
+        // Apply the selection before sizing and displaying its confirmation.
+        itemId = task->spawnArg1.value;
+        if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U) {
+            _equipmentEquipCarriedWeapon(itemId);
+        } else if ((u32)(itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U) {
+            equipmentEquipCarriedArmor(itemId);
         }
-        width = textMeasureLineWidth(itemGetText(arg0->spawnArg1.value, ITEM_TEXT_NAME, 0)) + 0xB;
-        other = textMeasureLineWidth((const u8*)Gp_StrEquipped);
-        if (width < other) {
-            width = other;
+        contentWidth = textMeasureLineWidth(itemGetText(task->spawnArg1.value, ITEM_TEXT_NAME, 0)) + 0xB;
+        verbWidth    = textMeasureLineWidth((const u8*)Gp_StrEquipped);
+        if (contentWidth < verbWidth) {
+            contentWidth = verbWidth;
         }
-        uiSetPanelContentSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
-        (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
-        arg0->killCountdown            = 0xBC;
-        arg0->state                    = arg0->state + 1;
-    } else if (arg0->state == 1) {
+        uiSetPanelContentSize(&obj->panel, contentWidth + 5, uiGetTextRowsHeight(2) + 1);
+        obj->panel.bounds.rect.x = (-obj->panel.bounds.rect.w) >> 1;
+        task->killCountdown      = ITEM_MENU_NOTICE_TIMEOUT_TICKS;
+        task->state              = task->state + 1;
+    } else if (task->state == ITEM_MENU_EQUIP_NOTICE_WAIT_FOR_OPEN) {
         if (obj->panel.state == USER_INTERFACE_PANEL_OPEN) {
-            if ((u32)(arg0->spawnArg1.value - 0x80) < 0x20U) {
+            if ((u32)(task->spawnArg1.value - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U) {
                 sndEvtRequestScriptStart(SOUND_WEAPON_EQUIP, 0, 0);
             } else {
                 sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
             }
-            arg0->state = arg0->state + 1;
+            task->state = task->state + 1;
         }
     }
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrEquip);
-    text  = itemGetText(arg0->spawnArg1.value, ITEM_TEXT_NAME, 0);
-    color = 0x606060;
-    one   = 1;
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrEquipped, color, one, TEXT_ALIGNMENT_LEFT);
-    width = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, width, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
-    arg0->killCountdown--;
-    if (obj->panel.control.word == one) {
-        if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if ((arg0->killCountdown <= 0) || (padCheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            obj->result         = USER_INTERFACE_RESULT_DISMISS;
-            arg0->killCountdown = 0x7FFF;
-        }
-    }
+    uiDrawPanelLabel(&obj->panel, Gp_StrEquip);
+    itemText     = itemGetText(task->spawnArg1.value, ITEM_TEXT_NAME, 0);
+    textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
+    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrEquipped, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textEndX = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, itemText, ITEM_MENU_NOTICE_ITEM_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, textEndX, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _itemMenuUpdateNoticeResult(obj, task);
 }
 
 void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
