@@ -187,7 +187,7 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, titleExitTask },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0x0 } }, NULL },
-    { { { TASK_BODY_NONE, 0x18 } }, GameFlow_DispatchTable },
+    { { { TASK_BODY_NONE, 0x18 } }, gameFlowStartSessionTask },
     { { { TASK_BODY_NONE, 0x10 } }, mcSaveDialogTask },
     { { { TASK_BODY_NONE, 0x10 } }, mcLoadDialogTask },
     { { { TASK_BODY_NONE, 0xC0 } }, taskNoopBank0Slot12 },
@@ -1518,7 +1518,7 @@ static void Text_BootTask(Task* task)
 {
     Text_LoadClutImages();
     displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
-    Game_ClearSession();
+    gameClearSession();
     taskSpawnFromTable(Title_TaskDescs, 0, 0, 0);
     taskKill(task);
 }

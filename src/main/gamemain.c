@@ -17,7 +17,6 @@
 #include "display_types.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
-#include "gameflow.h"
 #include "gfx.h"
 #include "gpuext.h"
 #include "mc.h"
@@ -252,7 +251,7 @@ static void Display_VSyncCallback(void)
     gDisplayState.vsyncCount += 1;
     CdAudio_Tick();
     Audio_IrqFrameWork();
-    Pad_PollControllers();
+    padPollPort0();
     D_8005EC74 = VSync(1) - (start & 0xFFFF);
 }
 

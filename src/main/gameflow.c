@@ -107,23 +107,23 @@ static const TaskFuncTable3 GameFlow_States3;
 
 static void GameFlow_InitSystems(void);
 
-static void Game_ResetSessionAndBuffers(Task* task);
+static void _gameFlowResetNewSession(Task* task);
 
 static void GameFlow_SpawnMenu(Task* task);
 
-static void GameFlow_WaitMenuDone(Task* task);
+static void _gameFlowWaitForLoadDialog(Task* task);
 
-static void GameFlow_CountdownAdvance(Task* task);
+static void _gameFlowWaitAfterLoadDialog(Task* task);
 
 static void GameFlow_SpawnMainWhenReady(Task* task);
 
-static void GameFlow_CopySaveIds(Task* task);
+static void _gameFlowRestoreSavedLocation(Task* task);
 
 static void GameFlow_EnqueueDefaultLoad(Task* task);
 
 static void GameFlow_SpawnWhenIdle(Task* task);
 
-static void Pad_TickEventBanks(PadState* pad);
+static void _padTickVibrationRequests(PadState* pad);
 
 enum {
     PAD_DIRECTION_REPEAT_DELAY_TICKS   = 30,
@@ -149,15 +149,15 @@ static u8  D_8005ED84[] = { 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF };
 u16        D_8005ED8A   = 0;
 
 static const TaskFuncTable5 GameFlow_States5 = { {
-    Game_ResetSessionAndBuffers,
+    _gameFlowResetNewSession,
     GameFlow_SpawnMenu,
-    GameFlow_WaitMenuDone,
-    GameFlow_CountdownAdvance,
+    _gameFlowWaitForLoadDialog,
+    _gameFlowWaitAfterLoadDialog,
     GameFlow_SpawnMainWhenReady,
 } };
 
 static const TaskFuncTable3 GameFlow_States3 = { {
-    GameFlow_CopySaveIds,
+    _gameFlowRestoreSavedLocation,
     GameFlow_EnqueueDefaultLoad,
     GameFlow_SpawnWhenIdle,
 } };
@@ -283,9 +283,8 @@ void fadeDrawOverlay(u8 red, u8 green, u8 blue, s32 blendMode)
     _fadeQueueBlendMode(blendMode, FADE_OVERLAY_OT_INDEX);
 }
 
-void Game_ClearSession(void)
+void gameClearSession(void)
 {
-
     MEM_CLEAR(gGameSession, sizeof(*gGameSession));
     gDisplayState.control.flags.pendingPlayerPos = 0;
 }
@@ -298,24 +297,28 @@ static void GameFlow_InitSystems(void)
     taskSpawn(0, 9, 0, 0);
 }
 
-static void Game_ResetSessionAndBuffers(Task* task)
+/// Resets live session/save progress for the load-dialog path, preserving vibration.
+///
+/// The flow task must be in state 0. Arms the pause block until the loading fade
+/// releases it, skips the title intro and advances to dialog creation. Existing
+/// session handles are discarded without teardown; the task/heap reset is later.
+static void _gameFlowResetNewSession(Task* task)
 {
-    s32         saved;
-    CdCmdQueue* p;
+    s32         savedVibration;
+    CdCmdQueue* cdQueue;
 
-    p     = &gCdCmdQueue;
-    saved = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
+    cdQueue        = &gCdCmdQueue;
+    savedVibration = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
     MEM_CLEAR(gGameSession, sizeof(*gGameSession));
     gDisplayState.control.flags.pendingPlayerPos = 0;
     gDisplayState.gameRunning                    = 1;
-    p->releasePauseBlockAfterFade                = 1;
-    p->blockGamePause                            = 1;
+    cdQueue->releasePauseBlockAfterFade          = 1;
+    cdQueue->blockGamePause                      = 1;
     Wip_SysFlags.skipTitleIntro                  = 1;
+    // Reset progress and option defaults, then retain the previous vibration choice.
     mcResetSaveData();
-    do {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = saved;
-    } while (0);
-    task->state = task->state + 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = savedVibration;
+    task->state                                        = task->state + 1;
 }
 
 static void GameFlow_SpawnMenu(Task* task)
@@ -333,27 +336,41 @@ static void GameFlow_SpawnMenu(Task* task)
     }
 }
 
-static void GameFlow_WaitMenuDone(Task* task)
+/// Closes the load dialog on its closure result and applies the live audio options.
+///
+/// State 2 borrows the live `UiObject` stored by dialog creation in `spawnArg2`.
+/// The dialog publishes CANCEL to request closure regardless of load success.
+/// Starts a twelve-callback closing delay; the UI owns the object's teardown.
+static void _gameFlowWaitForLoadDialog(Task* task)
 {
-    UiObject* obj;
+    enum {
+        MEMORY_CARD_OPTION_SOUND_MONO    = 1,
+        GAME_FLOW_DIALOG_CLOSE_CALLBACKS = 12,
+    };
+    UiObject* loadDialog;
 
-    obj = task->spawnArg2.pointer;
-    if (obj->result == USER_INTERFACE_RESULT_CANCEL) {
-        uiStartTreeClosing(obj, obj->owner);
+    loadDialog = task->spawnArg2.pointer;
+    if (loadDialog->result == USER_INTERFACE_RESULT_CANCEL) {
+        uiStartTreeClosing(loadDialog, loadDialog->owner);
         gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
         gGameSession->uiOpen   = 0;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode == 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode == MEMORY_CARD_OPTION_SOUND_MONO) {
             sndOutputSetStereo(SOUND_OUTPUT_MONO);
         } else {
             sndOutputSetStereo(SOUND_OUTPUT_STEREO);
         }
         midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
-        task->killCountdown = 0xC;
+        task->killCountdown = GAME_FLOW_DIALOG_CLOSE_CALLBACKS;
         task->state         = task->state + 1;
     }
 }
 
-static void GameFlow_CountdownAdvance(Task* task)
+/// Counts one dialog-closing callback and advances only on the zero transition.
+///
+/// State 3 uses the signed halfword `killCountdown` seeded by dialog completion.
+/// Decrement/narrowing happens before the test; zero or negative inputs wrap
+/// rather than completing immediately. Expiry renews port 0's input block.
+static void _gameFlowWaitAfterLoadDialog(Task* task)
 {
     task->killCountdown--;
     if (task->killCountdown != 0) {
@@ -387,10 +404,16 @@ void GameFlow_DispatchTable5(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void GameFlow_CopySaveIds(Task* task)
+/// Restores the full live-save location cell and restarts the required-disc check.
+///
+/// State 0 copies all eight bytes, including the location cell's two unknown
+/// trailing bytes, then advances to disk checking and the initial file load.
+static void _gameFlowRestoreSavedLocation(Task* task)
 {
+    enum { LOAD_UI_DISK_SWAP_INITIAL = 0 };
+
     gGameSession->location = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
-    D_8007A394             = 0;
+    D_8007A394             = LOAD_UI_DISK_SWAP_INITIAL;
     task->state            = task->state + 1;
 }
 
@@ -426,96 +449,134 @@ static void GameFlow_SpawnWhenIdle(Task* task)
     }
 }
 
-void GameFlow_DispatchTable(Task* task)
+void gameFlowStartSessionTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = GameFlow_States3;
+    states = GameFlow_States3;
     padStartInputBlock(0);
-    sp.funcs[task->state](task);
+    states.funcs[task->state](task);
 }
 
-static void Pad_TickEventBanks(PadState* pad)
+/// Counts one serviced poll of an active vibration request and expires it at zero.
+///
+/// The caller checks `active` before entering and mixes the final contribution
+/// even if expiry clears it here. The signed halfword countdown wraps on storage.
+static inline void _padAdvanceVibrationRequest(PadVibrationRequest* request)
 {
-    u8*                  motor;
-    PadVibrationRequest* request;
-    s32                  i;
+    if (--request->pollsRemaining == 0) {
+        request->active = PAD_VIBRATION_INACTIVE;
+    }
+}
 
-    SCRATCH_STACK_RESERVE_BYTES(4);
-    motor    = SCRATCH_STACK_CURSOR(u8);
-    motor[1] = 0;
-    motor[0] = 0;
+/// Advances and mixes one serviced poll of a port's two vibration-request banks.
+///
+/// `pad` borrows writable resident controller state. Active requests decrement
+/// their signed halfword countdown with wrap, expire at zero and still contribute
+/// on that poll. Binary drive mixes by OR, variable drive by maximum. The saved
+/// vibration preference suppresses output after all requests have advanced.
+/// Writes the aligned motor pair; the caller applies legacy protocol encoding.
+static void _padTickVibrationRequests(PadState* pad)
+{
+    enum {
+        PAD_VIBRATION_MIX_STACK_BYTES   = sizeof(u32),
+        MEMORY_CARD_OPTION_VIBRATION_ON = 0,
+    };
+    u8*                  motorDrive;
+    PadVibrationRequest* request;
+    s32                  requestIndex;
+
+    // Two drive bytes use a word-sized reservation to preserve scratch alignment.
+    SCRATCH_STACK_RESERVE_BYTES(PAD_VIBRATION_MIX_STACK_BYTES);
+    motorDrive                               = SCRATCH_STACK_CURSOR(u8);
+    motorDrive[PAD_VIBRATION_MOTOR_VARIABLE] = 0;
+    motorDrive[PAD_VIBRATION_MOTOR_BINARY]   = 0;
 
     // Binary requests combine by logical OR, including each request's expiry poll.
     request = pad->vibrationRequests[PAD_VIBRATION_MOTOR_BINARY];
-    for (i = 0; i < ARRAY_SIZE(pad->vibrationRequests[PAD_VIBRATION_MOTOR_BINARY]); i++, request++) {
+    for (requestIndex = 0; requestIndex < ARRAY_SIZE(pad->vibrationRequests[PAD_VIBRATION_MOTOR_BINARY]); requestIndex++, request++) {
         if (request->active != PAD_VIBRATION_INACTIVE) {
-            if (--request->pollsRemaining == 0) {
-                request->active = PAD_VIBRATION_INACTIVE;
-            }
+            _padAdvanceVibrationRequest(request);
             if (request->intensity != 0) {
-                motor[0] = 1;
+                motorDrive[PAD_VIBRATION_MOTOR_BINARY] = PAD_VIBRATION_BINARY_ON;
             }
         }
     }
 
     // Variable motor requests combine by maximum intensity.
     request = pad->vibrationRequests[PAD_VIBRATION_MOTOR_VARIABLE];
-    for (i = 0; i < ARRAY_SIZE(pad->vibrationRequests[PAD_VIBRATION_MOTOR_VARIABLE]); i++, request++) {
+    for (requestIndex = 0; requestIndex < ARRAY_SIZE(pad->vibrationRequests[PAD_VIBRATION_MOTOR_VARIABLE]); requestIndex++, request++) {
         if (request->active != PAD_VIBRATION_INACTIVE) {
-            if (--request->pollsRemaining == 0) {
-                request->active = PAD_VIBRATION_INACTIVE;
-            }
-            if (motor[1] < request->intensity) {
-                motor[1] = request->intensity;
+            _padAdvanceVibrationRequest(request);
+            if (motorDrive[PAD_VIBRATION_MOTOR_VARIABLE] < request->intensity) {
+                motorDrive[PAD_VIBRATION_MOTOR_VARIABLE] = request->intensity;
             }
         }
     }
 
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration == 0) {
-        pad->actuatorCommand[0] = motor[0];
-        pad->actuatorCommand[1] = motor[1];
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration == MEMORY_CARD_OPTION_VIBRATION_ON) {
+        pad->actuatorCommand[PAD_VIBRATION_MOTOR_BINARY]   = motorDrive[PAD_VIBRATION_MOTOR_BINARY];
+        pad->actuatorCommand[PAD_VIBRATION_MOTOR_VARIABLE] = motorDrive[PAD_VIBRATION_MOTOR_VARIABLE];
     } else {
-        pad->actuatorCommand[0] = 0;
-        pad->actuatorCommand[1] = 0;
+        pad->actuatorCommand[PAD_VIBRATION_MOTOR_BINARY]   = 0;
+        pad->actuatorCommand[PAD_VIBRATION_MOTOR_VARIABLE] = 0;
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(4);
+    SCRATCH_STACK_RELEASE_BYTES(PAD_VIBRATION_MIX_STACK_BYTES);
 }
 
-void Pad_PollControllers(void)
+void padPollPort0(void)
 {
+    enum {
+        PAD_POLLED_PORT_COUNT             = 1,
+        PAD_LIBPAD_PORT_STRIDE            = 0x10,
+        PAD_MODE_ID_NONE                  = 0,
+        PAD_MODE_ID_MOUSE                 = PAD_INPUT_FORMAT_MOUSE >> 4,
+        PAD_MODE_ID_KONAMI_GUN            = 3,
+        PAD_MODE_ID_ANALOG_JOYSTICK       = 5,
+        PAD_MODE_ID_NAMCO_GUN             = 6,
+        PAD_MODE_ID_ANALOG_CONTROLLER     = PAD_INPUT_FORMAT_ANALOG >> 4,
+        PAD_MODE_ID_MULTITAP              = 8,
+        PAD_ANALOG_MODE_TABLE_INDEX       = 1,
+        PAD_MODE_KEEP_SELECTOR_LOCK       = 0,
+        PAD_RAW_BUTTON_BYTE_RELEASED      = 0xFF,
+        PAD_STICK_RAW_NEGATIVE_FULL_SCALE = 1,
+        PAD_STICK_RAW_POSITIVE_FULL_SCALE = 0xFE,
+        PAD_STICK_CENTER_MIN_RAW          = PAD_STICK_RAW_NEGATIVE_FULL_SCALE + PAD_STICK_DEAD_ZONE_RAW + 1,
+        PAD_STICK_CENTER_MAX_RAW          = PAD_STICK_RAW_POSITIVE_FULL_SCALE - PAD_STICK_DEAD_ZONE_RAW - 1,
+    };
     _PadPollWork  workStorage;
     _PadPollWork* work;
     PadState*     pad;
-    s16*          axis;
-    s16           status;
-    s32           portId;
-    s32           delta;
-    s32           i;
-    s32           modeRequested;
+    s16*          normalizedAxis;
+    s16           inputFormat;
+    s32           libpadPort;
+    s32           rawDelta;
+    s32           axisIndex;
+    s32           modeRequestAttempted;
     s32           port;
-    PadRawPort*   raw;
-    u32           state;
-    u32           mode;
-    u32           savedState;
-    u8*           rawAxis;
+    PadRawPort*   rawPort;
+    u32           connectionState;
+    u32           modeId;
+    u32           actuatorState;
+    const u8*     rawAxis;
     u8            center;
 
     // The work block is always addressed through this pointer; direct member access generates different code.
     work = &workStorage;
     port = 0;
     do {
-        portId       = port * 0x10;
-        pad          = &gPadStates[port];
-        work->portId = portId;
-        state        = PadGetState(portId);
-        work->state  = state;
-        switch (state) {
+        libpadPort      = port * PAD_LIBPAD_PORT_STRIDE;
+        pad             = &gPadStates[port];
+        work->portId    = libpadPort;
+        connectionState = PadGetState(libpadPort);
+        work->state     = connectionState;
+        switch (connectionState) {
             case PadStateReqInfo:
                 break;
             case PadStateDiscon:
                 pad->modeSetupPending = 1;
+                // Fall through: a disconnected port also loses actuator alignment.
 
             case PadStateFindPad:
                 pad->actuatorAlignmentReady = 0;
@@ -525,23 +586,24 @@ void Pad_PollControllers(void)
             case PadStateFindCTP2:
             case PadStateExecCmd:
             case PadStateStable:
-                modeRequested = 0;
-                if ((pad->modeSetupPending == 1) && ((PadInfoMode(work->portId, InfoModeCurExID, 0) == 0) || (modeRequested = 1, (PadSetMainMode(work->portId, 1, 0) != 0)))) {
+                // A mode request and actuator alignment cannot be submitted together.
+                modeRequestAttempted = 0;
+                if ((pad->modeSetupPending == 1) && ((PadInfoMode(work->portId, InfoModeCurExID, 0) == 0) || (modeRequestAttempted = 1, (PadSetMainMode(work->portId, PAD_ANALOG_MODE_TABLE_INDEX, PAD_MODE_KEEP_SELECTOR_LOCK) != 0)))) {
                     pad->modeSetupPending = 0;
                 }
-                Pad_TickEventBanks(pad);
+                _padTickVibrationRequests(pad);
                 if (pad->actuatorAlignmentReady == 0) {
-                    savedState = work->state;
-                    if (savedState == PadStateFindCTP1) {
+                    actuatorState = work->state;
+                    if (actuatorState == PadStateFindCTP1) {
                         // Libpad retains this buffer; encode the legacy command after registering it.
                         PadSetAct(work->portId, pad->actuatorCommand, sizeof(pad->actuatorCommand));
                         if (pad->actuatorCommand[0] != 0) {
-                            pad->actuatorCommand[1] = 1;
+                            pad->actuatorCommand[1] = PAD_VIBRATION_BINARY_ON;
                         } else {
                             pad->actuatorCommand[1] = 0;
                         }
                         pad->actuatorCommand[0] = PAD_LEGACY_VIBRATION_PREFIX;
-                    } else if ((savedState == PadStateStable) && (modeRequested == 0)) {
+                    } else if ((actuatorState == PadStateStable) && (modeRequestAttempted == 0)) {
                         PadSetAct(work->portId, pad->actuatorCommand, sizeof(pad->actuatorCommand));
                         if (PadSetActAlign(work->portId, D_8005ED84) != 0) {
                             pad->actuatorAlignmentReady = 1;
@@ -550,63 +612,64 @@ void Pad_PollControllers(void)
                 }
                 break;
         }
-        mode = PadInfoMode(work->portId, InfoModeCurID, 0);
-        switch (mode) {
-            case 5:
-            case 7:
+        modeId = PadInfoMode(work->portId, InfoModeCurID, 0);
+        switch (modeId) {
+            case PAD_MODE_ID_ANALOG_JOYSTICK:
+            case PAD_MODE_ID_ANALOG_CONTROLLER:
                 if (pad->inputFormat != PAD_INPUT_FORMAT_ANALOG) {
+                    // Resident port entries are word-aligned; seed all four centers together.
                     *(u32*)pad->stickCenters = PAD_STICK_CENTER_WORD;
-                    for (i = 0; i < ARRAY_SIZE(pad->stickCenters); i++) {
-                        center = pad->stickCenters[i];
-                        if (center < 0x1AU) {
-                            pad->stickCenters[i] = 0x1A;
-                        } else if (center >= 0xE6U) {
-                            pad->stickCenters[i] = 0xE5;
+                    for (axisIndex = 0; axisIndex < ARRAY_SIZE(pad->stickCenters); axisIndex++) {
+                        center = pad->stickCenters[axisIndex];
+                        if (center < PAD_STICK_CENTER_MIN_RAW) {
+                            pad->stickCenters[axisIndex] = PAD_STICK_CENTER_MIN_RAW;
+                        } else if (center >= PAD_STICK_CENTER_MAX_RAW + 1U) {
+                            pad->stickCenters[axisIndex] = PAD_STICK_CENTER_MAX_RAW;
                         }
                     }
                     pad->inputFormat = PAD_INPUT_FORMAT_ANALOG;
                 }
                 // Normalize all four wire-order axes after removing the raw dead zone.
-                axis    = pad->stickAxes;
-                rawAxis = Pad_RawPorts[port].stickAxes;
-                i       = 0;
+                normalizedAxis = pad->stickAxes;
+                rawAxis        = Pad_RawPorts[port].stickAxes;
+                axisIndex      = 0;
                 do {
-                    delta       = *rawAxis - pad->stickCenters[i];
-                    work->delta = delta;
-                    if ((u32)(delta + PAD_STICK_DEAD_ZONE_RAW) < 2U * PAD_STICK_DEAD_ZONE_RAW + 1) {
-                        *axis++ = 0;
+                    rawDelta    = *rawAxis - pad->stickCenters[axisIndex];
+                    work->delta = rawDelta;
+                    if ((u32)(rawDelta + PAD_STICK_DEAD_ZONE_RAW) < 2U * PAD_STICK_DEAD_ZONE_RAW + 1) {
+                        *normalizedAxis++ = 0;
                     } else {
-                        if (*rawAxis < 2U) {
-                            *axis++ = -PAD_STICK_FULL_SCALE;
-                        } else if (*rawAxis >= 0xFEU) {
-                            *axis++ = PAD_STICK_FULL_SCALE;
+                        if (*rawAxis < PAD_STICK_RAW_NEGATIVE_FULL_SCALE + 1U) {
+                            *normalizedAxis++ = -PAD_STICK_FULL_SCALE;
+                        } else if (*rawAxis >= PAD_STICK_RAW_POSITIVE_FULL_SCALE) {
+                            *normalizedAxis++ = PAD_STICK_FULL_SCALE;
                         } else if (work->delta < 0) {
-                            work->range = pad->stickCenters[i] - 0x19;
-                            work->delta = (-PAD_STICK_DEAD_ZONE_RAW - work->delta) << PAD_STICK_FRACTION_BITS;
-                            work->delta = work->delta / work->range;
-                            *axis++     = -work->delta;
+                            work->range       = pad->stickCenters[axisIndex] - (PAD_STICK_RAW_NEGATIVE_FULL_SCALE + PAD_STICK_DEAD_ZONE_RAW);
+                            work->delta       = (-PAD_STICK_DEAD_ZONE_RAW - work->delta) << PAD_STICK_FRACTION_BITS;
+                            work->delta       = work->delta / work->range;
+                            *normalizedAxis++ = -work->delta;
                         } else {
-                            work->range = 0xE6 - pad->stickCenters[i];
-                            work->delta = (work->delta - PAD_STICK_DEAD_ZONE_RAW) << PAD_STICK_FRACTION_BITS;
-                            work->delta = work->delta / work->range;
-                            *axis++     = work->delta;
+                            work->range       = (PAD_STICK_RAW_POSITIVE_FULL_SCALE - PAD_STICK_DEAD_ZONE_RAW) - pad->stickCenters[axisIndex];
+                            work->delta       = (work->delta - PAD_STICK_DEAD_ZONE_RAW) << PAD_STICK_FRACTION_BITS;
+                            work->delta       = work->delta / work->range;
+                            *normalizedAxis++ = work->delta;
                         }
                     }
-                    i += 1;
+                    axisIndex += 1;
                     rawAxis++;
-                } while (i < ARRAY_SIZE(pad->stickAxes));
+                } while (axisIndex < ARRAY_SIZE(pad->stickAxes));
                 pad->inputFormat = PAD_INPUT_FORMAT_ANALOG;
                 break;
-            case 0:
-            case 1:
-            case 3:
-            case 6:
-            case 8:
-                raw                               = &Pad_RawPorts[port];
-                raw->buttonsHigh                  = 0xFF;
-                raw->buttonsLow                   = 0xFF;
-                status                            = PAD_INPUT_FORMAT_UNAVAILABLE;
-                pad->inputFormat                  = status;
+            case PAD_MODE_ID_NONE:
+            case PAD_MODE_ID_MOUSE:
+            case PAD_MODE_ID_KONAMI_GUN:
+            case PAD_MODE_ID_NAMCO_GUN:
+            case PAD_MODE_ID_MULTITAP:
+                rawPort                           = &Pad_RawPorts[port];
+                rawPort->buttonsHigh              = PAD_RAW_BUTTON_BYTE_RELEASED;
+                rawPort->buttonsLow               = PAD_RAW_BUTTON_BYTE_RELEASED;
+                inputFormat                       = PAD_INPUT_FORMAT_UNAVAILABLE;
+                pad->inputFormat                  = inputFormat;
                 pad->stickAxes[PAD_STICK_LEFT_Y]  = 0;
                 pad->stickAxes[PAD_STICK_LEFT_X]  = 0;
                 pad->stickAxes[PAD_STICK_RIGHT_Y] = 0;
@@ -621,7 +684,7 @@ void Pad_PollControllers(void)
                 break;
         }
         port += 1;
-    } while (port <= 0);
+    } while (port < PAD_POLLED_PORT_COUNT);
 }
 
 void Pad_UpdatePort0(void)

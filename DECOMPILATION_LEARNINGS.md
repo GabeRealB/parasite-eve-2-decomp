@@ -12310,7 +12310,7 @@ typedef struct {
 gGameSession->location = gMcSaveData[0].state.location;
 ```
 
-`GameFlow_CopySaveIds` is the pure example (`gGameSession` ← `gMcSaveData`).
+`_gameFlowRestoreSavedLocation` is the pure example (`gGameSession` ← `gMcSaveData`).
 
 ## Big-endian halfword from two `u8` fields (stack `sb`/`sb`/`lhu`)
 
@@ -13075,7 +13075,7 @@ void dispatcher(Task* arg0)
 ```
 
 The index form then becomes `addiu v1,sp,0x10` / `sll` / `addu v1,v1,v0` /
-`lw v0,0(v1)`. `GameFlow_DispatchTable` is the pure example (3 entries). The same idea
+`lw v0,0(v1)`. `gameFlowStartSessionTask` is the pure example (3 entries). The same idea
 applies to `GameFlow_States5` (5 entries) for the sibling dispatcher `GameFlow_DispatchTable5`.
 
 Two-arg handlers (e.g. `_UiPanelLifecycleFunc` / `Ui_ObjectStates` / `_uiDispatchPanelLifecycle`) use the same
@@ -13107,7 +13107,7 @@ order; `addiu v1,sp,0x10` then fills the load delay slot:
 sp.funcs[((volatile Task*)task)->state](task);
 ```
 
-`func_800AC0F0` is the example (`D_801153F4` + `GameFlow_DispatchTable` shape).
+`func_800AC0F0` is the example (`D_801153F4` + `gameFlowStartSessionTask` shape).
 Do not flip the global to `volatile` just for this — other writers of the same
 byte already match with a plain store.
 
@@ -13429,7 +13429,7 @@ if (flag == 1) {
 ```
 
 Declare the flag as `s8` (not plain `char` / `u8`) so the load is `lb`,
-matching the target. `GameFlow_WaitMenuDone` (`D_80072311`) is the example.
+matching the target. `_gameFlowWaitForLoadDialog` (`D_80072311`) is the example.
 
 ## Dual `return -1` paths: early-exit reuses a preloaded `$v0`
 
@@ -14976,7 +14976,7 @@ if (flag == 0) {
 ```
 
 `midiApplyMusicVolume` (`D_80072311` → `sndOutputSetStereo`) is the pure `== 0` example.
-`GameFlow_WaitMenuDone` is the sibling `== 1` form (`sndOutputSetStereo(0)` vs `(1)`).
+`_gameFlowWaitForLoadDialog` is the sibling `== 1` form (`sndOutputSetStereo(0)` vs `(1)`).
 
 ## Goto-forced block order for shared-default multi-way branch
 
@@ -15117,7 +15117,7 @@ saved = D_80072189;   /* lb, not lbu */
 D_80072189 = saved;   /* sb */
 ```
 
-`Game_ResetSessionAndBuffers` is the pure example.
+`_gameFlowResetNewSession` is the pure example.
 
 ## `do {} while (0)` keeps a post-call store before a later load
 
@@ -15146,7 +15146,7 @@ do {
 arg0->field_30 = arg0->field_30 + 1;
 ```
 
-`Game_ResetSessionAndBuffers` is the pure example.
+`_gameFlowResetNewSession` now matches with a plain restore statement.
 
 ## Per-branch stores beat a phi-merged store for load/store ordering
 
@@ -19481,10 +19481,11 @@ if ((half << 16) == 0) { /* sll; bnez zero-check on the low half */
 ```
 
 Do **not** use a packed `{u8; u16}` view of `field_1`/`field_2` — GCC 2.8.1
-emits byte-wise loads/stores for the "unaligned" u16. Pair with
-`pad = index` plus a short-lived `register void** scratch asm("a0")` block so
-`$a0` holds `SCRATCH_STACK_CURSOR_SLOT` for the alloc and is free to reuse as the second
-bank's `field_1` pointer. `Pad_TickEventBanks` is the pure example.
+emits byte-wise loads/stores for the "unaligned" u16.
+Current `_padTickVibrationRequests` uses `PadVibrationRequest::pollsRemaining`
+as `s16` in `_padAdvanceVibrationRequest`; its `sll 16` zero-test comes from
+signed halfword storage. The volatile byte view above and the earlier pinned
+scratch pointer were reconstruction scaffolding.
 
 ## Separate cleanup tails: early `return` + distinct base pointers
 
@@ -20636,7 +20637,7 @@ register for a saved global (e.g. `lb s1, D_xxx` / `sb s1, D_xxx`) so
 A function-scope `u8* ptr; u32 i; for (...)` clear of `GameSession` often
 allocates `i` to `$a0` and the pointer to `$v1` when other locals are live.
 Wrapping the clear in a nested block with its own `clearPtr`/`clearI` restores
-the `Game_ClearSession` pattern (`a0`=ptr, `v1`=counter) used by simple clears:
+the `gameClearSession` pattern (`a0`=ptr, `v1`=counter) used by simple clears:
 
 ```c
 {
@@ -20651,7 +20652,7 @@ the `Game_ClearSession` pattern (`a0`=ptr, `v1`=counter) used by simple clears:
 ```
 
 Use function-scope `ptr`/`i` when the target wants the inverse allocation
-(e.g. after `a0` was already zeroed as the counter, as in `Game_ResetSessionAndBuffers`).
+(e.g. after `a0` was already zeroed as the counter, as in `_gameFlowResetNewSession`).
 
 ## Variable-bound search: plain `for` emits `beqz len`, not outer `if`
 
@@ -25599,7 +25600,7 @@ funcs[arg0->state](arg0);
 
 A `TaskFuncTable2` aggregate initializer produces the same code. This is the
 sibling of the global-table struct copy (`sp = D_xxx`) used by
-`GameFlow_DispatchTable`: no `.data` table, so the addresses are built in
+`gameFlowStartSessionTask`: no `.data` table, so the addresses are built in
 place. `worldCoordPlayerLightingTask` is the example.
 
 ## Hoist `one = 1` so a loop bit-test stays `sllv` + `and`
@@ -146757,7 +146758,7 @@ that shape gave the load a different slot.
 `base + (half * 2 + 0x40)` (the per-channel stride), with no temporary. The
 load lands after the stores on its own, and the hand-built sign-extend shift
 becomes a plain `half * 2` on the `s16` field.
-### `--field == 0` on a halfword: `sll 16`/`bnez` means `s16`, `andi 0xffff` means `u16` (Pad_TickEventBanks, 2026-09-27)
+### `--field == 0` on a halfword: `sll 16`/`bnez` means `s16`, `andi 0xffff` means `u16` (_padTickVibrationRequests, 2026-09-27)
 
 Both types load with `lhu` when the decremented value is only stored back and
 tested, so the load says nothing. The zero test does: an `s16` field compiles

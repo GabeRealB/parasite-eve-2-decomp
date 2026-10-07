@@ -315,7 +315,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `06` | `C0` | `titleExitTask` | Dispatches this task's installed exit handler (initially `taskKill`). Also a `Title_MenuSpawnIds` entry; requires the title overlay |
 | `07` | `C0` | `taskKill` | Unused slot |
 | `08` | `00` | NULL | Unused |
-| `09` | `18` | `GameFlow_DispatchTable` | **Main in-game flow.** Spawned after session reset, from title, etc. |
+| `09` | `18` | `gameFlowStartSessionTask` | Session startup: restore the live-save location, wait for the required disc, queue the initial load, then hand off when the CD queue drains. |
 | `0A` | `10` | `mcSaveDialogTask` | Memory-card save dialog |
 | `0B` | `10` | `mcLoadDialogTask` | Memory-card load dialog and file selection |
 | `0C` | `C0` | `func_80036A1C` | Memcard menu dispatcher (`mcmenu.c`) |
