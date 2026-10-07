@@ -307,7 +307,7 @@ static AnimationSet _gActor04600Actor104600Animation06474 = {
     { NULL, _gActor04600Actor104600Animation06474Bank1, NULL, NULL, _gActor04600Actor104600Animation06474Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc Actor04600_D0649C = { { { TASK_BODY_TMD, 96 } }, skullStalkerTask, { .model = &_gActor04600SkullStalkerBody } };
+TaskDesc Actor04600_D0649C = { { { TASK_BODY_TMD, 96 } }, _skullStalkerTask, { .model = &_gActor04600SkullStalkerBody } };
 
 AnimationSet* gSkullStalkerAnimSets[3] = {
     NULL,
@@ -394,10 +394,10 @@ static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
 
 #include "../../shared/skull_stalker_death_state.inc.c"
 
-/// Task states of the second enemy as `skullStalkerTask` dispatches them:
+/// Task states of the second enemy as `_skullStalkerTask` dispatches them:
 /// spawn, per-frame update and the dying tick.
 static const EnemyTaskFuncTable3 gSkullStalkerTaskStates = {
-    { skullStalkerSpawnState, skullStalkerUpdateState, skullStalkerDeathState },
+    { _skullStalkerSpawnState, _skullStalkerUpdateState, _skullStalkerDeathState },
 };
 
 #include "../../shared/skull_stalker_task.inc.c"

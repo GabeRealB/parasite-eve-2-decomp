@@ -129,7 +129,7 @@ static AnimationSet _gActor207200Animation0495C = {
     { NULL, _gActor207200Animation0495CBank1, NULL, NULL, _gActor207200Animation0495CBank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_207200_8014E7A4 = { { { TASK_BODY_TMD, 96 } }, skullStalkerTask, { .model = &_gActor207200SkullStalkerBody } };
+TaskDesc D_actor_207200_8014E7A4 = { { { TASK_BODY_TMD, 96 } }, _skullStalkerTask, { .model = &_gActor207200SkullStalkerBody } };
 
 u8 gSkullStalkerAnimSets[12] = {
     0,
@@ -163,9 +163,9 @@ DamageAttack D_actor_207200_8014E7CC[2] = { { 25, 11 }, { 10, 0 } };
 #include "../../shared/skull_stalker_death_state.inc.c"
 
 /// The small enemy's state handlers - spawn, live tick and dying tick - which
-/// `skullStalkerTask` dispatches through by task state.
+/// `_skullStalkerTask` dispatches through by task state.
 static const EnemyTaskFuncTable3 gSkullStalkerTaskStates = {
-    { skullStalkerSpawnState, skullStalkerUpdateState, skullStalkerDeathState }
+    { _skullStalkerSpawnState, _skullStalkerUpdateState, _skullStalkerDeathState }
 };
 
 #include "../../shared/skull_stalker_task.inc.c"

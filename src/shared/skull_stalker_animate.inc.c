@@ -1,8 +1,10 @@
 /* Part of the Skull Stalker library; see skull_stalker.h. */
 
-/// The second enemy's animation rebind, `skullStalkerTickAnim`, as an
-/// out-of-line function.
-void skullStalkerAnimate(Task* arg0)
+/// Applies the requested animation or advances the two animated model parts.
+///
+/// This out-of-line entry shares its playback operation with the death state.
+/// Requires initialized work and the live three-part TMD model.
+static void _skullStalkerAnimate(Task* task)
 {
-    skullStalkerTickAnim(arg0);
+    _skullStalkerTickAnimation(task);
 }

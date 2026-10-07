@@ -20,11 +20,11 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
-#include "main/session_types.h"
-
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"
+#include "gameplay/enemy.h"
+
+#include "main/task_types.h"
 
 /// Values of `SkullStalkerWork::state`, the behaviour the per-frame dispatch runs.
 enum {
@@ -48,6 +48,21 @@ enum {
 
 /// Value of `SkullStalkerWork::fadeFrames` at which the enemy is out of sight.
 enum { SKULL_STALKER_FADE_FRAMES = 18 };
+
+/// Task-state indices in the three-entry Skull Stalker dispatch table.
+enum {
+    SKULL_STALKER_TASK_SPAWN  = 0,
+    SKULL_STALKER_TASK_ACTIVE = 1,
+    SKULL_STALKER_TASK_DEATH  = 2
+};
+
+/// Idle fade waits in animation ticks: visible 18..49, hidden 100..163.
+enum {
+    SKULL_STALKER_VISIBLE_WAIT_BASE        = 18,
+    SKULL_STALKER_VISIBLE_WAIT_JITTER_MASK = 31,
+    SKULL_STALKER_HIDDEN_WAIT_BASE         = 100,
+    SKULL_STALKER_HIDDEN_WAIT_JITTER_MASK  = 63
+};
 
 /// Work block of a Skull Stalker task.
 ///
@@ -102,22 +117,21 @@ typedef struct {
 } SkullStalkerWork;
 STATIC_ASSERT_SIZEOF(SkullStalkerWork, 0x2B0);
 
-void skullStalkerSpawnState(Enemy* arg0, Task* arg1);
-void skullStalkerIdleTick(Task* arg0);
-void skullStalkerHits(Task* arg0);
-void skullStalkerDeathState(Enemy* arg0, Task* arg1);
-void skullStalkerUpdateState(Enemy* arg0, Task* arg1);
-void skullStalkerReactionFlags(Task* arg0);
-void skullStalkerReactionDispatch(Task* task);
-void skullStalkerLightRamp(Task* task);
-void skullStalkerFlatten(Task* arg0);
-void skullStalkerExit(Task* task);
+static void _skullStalkerSpawnState(Enemy* enemy, Task* task);
+static void _skullStalkerIdleTick(Task* task);
+static void _skullStalkerProcessContacts(Task* task);
+static void _skullStalkerDeathState(Enemy* enemy, Task* task);
+static void _skullStalkerUpdateState(Enemy* enemy, Task* task);
+static void _skullStalkerConsumeReactions(Task* task);
+static void _skullStalkerUpdateBehavior(Task* task);
+static void _skullStalkerUpdateVisibility(Task* task);
+static void _skullStalkerFlatten(Task* task);
+static void _skullStalkerExit(Task* task);
+static void _skullStalkerUpdateColor(Enemy* enemy, Task* task);
 
-void skullStalkerColour(Enemy* arg0, Task* task);
+static inline void _skullStalkerTickAnimation(Task* task);
 
-static inline void skullStalkerTickAnim(Task* task);
-
-void skullStalkerTask(Task* arg0);
-void skullStalkerAnimate(Task* arg0);
+static void _skullStalkerTask(Task* task);
+static void _skullStalkerAnimate(Task* task);
 
 #endif /* SRC_SHARED_SKULL_STALKER_H */

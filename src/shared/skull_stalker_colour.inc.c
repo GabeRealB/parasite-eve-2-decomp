@@ -1,22 +1,25 @@
 /* Part of the Skull Stalker library; see skull_stalker.h. */
 
-/// Colours the Skull Stalker from the world position of its model's second
-/// coordinate, staged in a `VECTOR` taken off the scratch stack.
-void skullStalkerColour(Enemy* arg0, Task* task)
+/// Updates the model's lighting and color blend at its second part's composed origin.
+///
+/// The live enemy must own the task; coordinate 1 must already be composed.
+/// Reserves one VECTOR on the scratch stack for the XYZ sample in game units;
+/// the lighting query takes additional scratch and retains no sample pointer.
+static void _skullStalkerUpdateColor(Enemy* enemy, Task* task)
 {
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
+    GfxCoord* sampleCoord;
+    void**    cursorSlot;
+    VECTOR*   scratchHead;
+    VECTOR*   worldPosition;
 
-    coord                          = &task->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    worldCoordUpdateActorColor(arg0, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    sampleCoord                         = &task->extra.tmd->coords[1];
+    cursorSlot                          = SCRATCH_HEAD_ADDR;
+    scratchHead                         = SCRATCH_HEAD_AT(cursorSlot, VECTOR);
+    worldPosition                       = scratchHead - 1;
+    worldPosition->vx                   = sampleCoord->workm.t[0];
+    worldPosition->vy                   = sampleCoord->workm.t[1];
+    worldPosition->vz                   = sampleCoord->workm.t[2];
+    SCRATCH_HEAD_AT(cursorSlot, VECTOR) = worldPosition;
+    worldCoordUpdateActorColor(enemy, worldPosition, 0, 0);
+    SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*worldPosition));
 }

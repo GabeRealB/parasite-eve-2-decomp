@@ -1,12 +1,14 @@
 /* Part of the Skull Stalker library; see skull_stalker.h. */
 
-/// Task handler of the second enemy: runs the entry of `gSkullStalkerTaskStates` for
-/// the task's state with the enemy and the task, from a copy of the table on
-/// the stack.
-void skullStalkerTask(Task* arg0)
+/// Dispatches the Skull Stalker's spawn, active or death task state.
+///
+/// State must be 0..2, with the enemy in spawnArg2 and a live TMD body. Copies
+/// the carrier's three callback pointers by value before dispatch; the handler
+/// can destroy the task, so no task access follows the call.
+static void _skullStalkerTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 states;
 
-    sp = gSkullStalkerTaskStates;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    states = gSkullStalkerTaskStates;
+    states.funcs[task->state](task->spawnArg2.pointer, task);
 }

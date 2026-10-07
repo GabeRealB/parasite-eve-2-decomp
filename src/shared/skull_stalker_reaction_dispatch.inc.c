@@ -1,18 +1,19 @@
 /* Part of the Skull Stalker library; see skull_stalker.h. */
 
-/// Per-frame dispatch on the second enemy's `state`: the idle state runs the
-/// idle tick and the inert one does nothing. The status hold clears
-/// `field_292` and turns the fade toward in sight, resets the remembered
-/// animation id to the idle one and the counters every fourth frame, and
-/// returns to the idle state once `damageTickEnemyBuildup` reports the reaction over.
-void skullStalkerReactionDispatch(Task* task)
+/// Runs the idle behavior or holds the enemy visible during status buildup.
+///
+/// The status hold resets animation bookkeeping every four ticks and returns
+/// to idle when buildup ends. The inert behavior runs nothing; unknown state
+/// values also leave the work unchanged. Requires initialized work and enemy.
+static void _skullStalkerUpdateBehavior(Task* task)
 {
+    enum { SKULL_STALKER_STATUS_RESET_TICKS = 4 };
     SkullStalkerWork* work;
 
     work = task->work;
     switch (work->state) {
         case SKULL_STALKER_STATE_IDLE:
-            skullStalkerIdleTick(task);
+            _skullStalkerIdleTick(task);
             break;
         case SKULL_STALKER_STATE_INERT:
             break;
@@ -20,7 +21,7 @@ void skullStalkerReactionDispatch(Task* task)
             work->field_292   = 0;
             work->hiding      = 0;
             work->phaseFrames = work->phaseFrames + 1;
-            if (work->phaseFrames >= 4) {
+            if (work->phaseFrames >= SKULL_STALKER_STATUS_RESET_TICKS) {
                 work->appliedAnim = SKULL_STALKER_ANIM_IDLE;
                 work->animFrames  = 0;
                 work->phaseFrames = 0;

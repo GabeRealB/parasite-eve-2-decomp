@@ -1,52 +1,53 @@
 /* Part of the Skull Stalker library; see skull_stalker.h. */
 
-/// Dying-state tick of the second enemy, under the `gSceneCombatState.actorControl` mode byte: 1
-/// does nothing and 2 hides the model. Otherwise the root's matrix is saved
-/// into `savedRootMtx` and refolded with the decaying Y scale. In the linger
-/// phase the enemy is destroyed after 0x3D frames; before that, the kill
-/// countdown running out releases state 0xF0, enters the linger phase and
-/// unlinks the enemy's node and its three bodies, and the two animation slots
-/// are rebound or advanced.
-void skullStalkerDeathState(Enemy* arg0, Task* arg1)
+/// Counts down a kill, detaches the enemy, then destroys it after the linger period.
+///
+/// Paused actor control stops all death progress; hidden control hides the model
+/// and disables lock-on. Otherwise the root is saved and flattened each tick.
+/// Countdown ticks still advance animation. After detachment the linger ticks
+/// only flatten; the terminal tick frees the enemy and requests task teardown.
+static void _skullStalkerDeathState(Enemy* enemy, Task* task)
 {
+    enum { SKULL_STALKER_DEATH_LINGER_TICKS = 61 };
     SkullStalkerWork* work;
-    TmdObject*        obj;
-    GfxCoord*         coord;
+    TmdObject*        model;
+    GfxCoord*         rootCoord;
 
-    work  = arg1->work;
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
+    work      = task->work;
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
     if (work->deathPhase != SKULL_STALKER_DEATH_PHASE_COUNTDOWN) {
-        work->savedRootMtx = coord->coord;
-        skullStalkerFlatten(arg1);
+        work->savedRootMtx = rootCoord->coord;
+        _skullStalkerFlatten(task);
         work->phaseFrames++;
-        if (work->phaseFrames >= 0x3D) {
-            enemyDestroy(arg0, arg1);
+        if (work->phaseFrames >= SKULL_STALKER_DEATH_LINGER_TICKS) {
+            enemyDestroy(enemy, task);
         }
         return;
     }
-    work->savedRootMtx = coord->coord;
-    skullStalkerFlatten(arg1);
-    arg1->killCountdown--;
-    if (arg1->killCountdown <= 0) {
-        sceneReleaseBattleRefWithRewards(arg1, 0x2F);
+    work->savedRootMtx = rootCoord->coord;
+    _skullStalkerFlatten(task);
+    // Detach embedded records before the linger can release their owning work.
+    task->killCountdown--;
+    if (task->killCountdown <= 0) {
+        sceneReleaseBattleRefWithRewards(task, 0x2F);
         work->deathPhase  = SKULL_STALKER_DEATH_PHASE_LINGER;
         work->phaseFrames = 0;
-        arg0->recs        = 0;
-        worldTargetUnlinkNode(&arg0->node);
+        enemy->recs       = 0;
+        worldTargetUnlinkNode(&enemy->node);
         worldCollisionUnlinkBody(&work->senseBody);
         worldCollisionUnlinkBody(&work->frontSenseBody);
         worldCollisionUnlinkBody(&work->body);
     }
-    skullStalkerTickAnim(arg1);
+    _skullStalkerTickAnimation(task);
 }

@@ -2,66 +2,73 @@
 
 /* Part of the Skull Stalker library; see skull_stalker.h. */
 
-/// Idle tick of the second enemy. A 0x10000-class contact on either of its two
-/// single-record tables sets `gSceneCombatState.signals.bytes.enemyAlert`, sets `alertRequested` and selects
-/// the alert animation; if the enemy is fully hidden, one sound plays, the fade
-/// is turned to bring it into sight and a new 0x12..0x31 frame wait is rolled.
-/// A requested alert plays a second sound, clears the 0x8000 bit of the two
-/// sensing bodies and arms state 0xF0. Under the idle animation the frame count
-/// passing `fadeWaitFrames` fades a fully hidden enemy in (with the first
-/// sound), or fades one fully in sight out again with a new 0x64..0xA3 frame
-/// wait; under the alert animation the second sound repeats every 0x28 frames.
-/// `variant` picks between two sets of sound ids.
-void skullStalkerIdleTick(Task* arg0)
+/// Alternates hidden and visible waits until sensing selects the alert animation.
+///
+/// Player-body contacts raise the scene alert, reveal a fully hidden enemy and
+/// request a cry and battle engagement. Alert animation repeats its cry every
+/// 40 animation ticks. Nonzero placement variants select the alternate sound
+/// bank; placement index identifies the sound instance. Requires a composed
+/// root for spatial audio and initialized, LAST-terminated sensing tables.
+static void _skullStalkerIdleTick(Task* task)
 {
+    enum {
+        SKULL_STALKER_SOUND_APPEAR         = 0x402E0006,
+        SKULL_STALKER_SOUND_APPEAR_VARIANT = 0x40480007,
+        SKULL_STALKER_SOUND_ALERT          = 0x402E0007,
+        SKULL_STALKER_SOUND_ALERT_VARIANT  = 0x40480008,
+        SKULL_STALKER_CRY_INTERVAL_TICKS   = 40,
+        SKULL_STALKER_IDLE_SCRATCH_BYTES   = 8
+    };
     SkullStalkerWork* work;
-    GfxCoord*         obj;
-    s32               snd;
+    GfxCoord*         rootCoord;
+    s32               soundId;
     s16               animId;
-    s32               id;
-    Enemy*            ctx;
+    s32               soundScript;
+    Enemy*            enemy;
 
-    work = arg0->work;
-    SCRATCH_STACK_RESERVE_BYTES(8);
-    obj = arg0->extra.tmd->coords;
+    /// Queues one placement-tagged spatial sound.
+    ///
+    /// Captures task, rootCoord, enemy, soundScript and soundId; the last three
+    /// locals are overwritten. scriptId is evaluated once. Use only within a
+    /// braced compound statement, with a live task and composed root coordinate.
+#define SKULL_STALKER_PLAY_IDLE_SOUND(scriptId)                                      \
+    enemy       = task->spawnArg2.pointer;                                           \
+    soundScript = (scriptId);                                                        \
+    soundId     = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundScript; \
+    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord))
+
+    work = task->work;
+    // This tick reserves an extra scratch frame whose contents are never accessed.
+    SCRATCH_STACK_RESERVE_BYTES(SKULL_STALKER_IDLE_SCRATCH_BYTES);
+    rootCoord = task->extra.tmd->coords;
     if (worldCollisionCountContactsByKind(work->senseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0 || worldCollisionCountContactsByKind(work->frontSenseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
         gSceneCombatState.signals.bytes.enemyAlert = 1;
         work->alertRequested                       = 1;
         work->animId                               = SKULL_STALKER_ANIM_ALERT;
         if (work->hiding != 0 && work->fadeFrames == SKULL_STALKER_FADE_FRAMES) {
             if (work->variant != 0) {
-                ctx = arg0->spawnArg2.pointer;
-                id  = 0x40480007;
-                snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                SKULL_STALKER_PLAY_IDLE_SOUND(SKULL_STALKER_SOUND_APPEAR_VARIANT);
             } else {
-                ctx = arg0->spawnArg2.pointer;
-                id  = 0x402E0006;
-                snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                SKULL_STALKER_PLAY_IDLE_SOUND(SKULL_STALKER_SOUND_APPEAR);
             }
             work->animFrames     = 0;
             work->hiding         = 0;
             gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->fadeWaitFrames = ((gRandomLcgState >> 16) & 0x1F) + 0x12;
+            work->fadeWaitFrames = ((gRandomLcgState >> 16) & SKULL_STALKER_VISIBLE_WAIT_JITTER_MASK) + SKULL_STALKER_VISIBLE_WAIT_BASE;
         }
     }
     if (work->alertRequested != 0) {
         if (work->variant != 0) {
-            ctx = arg0->spawnArg2.pointer;
-            id  = 0x40480008;
-            snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-            sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+            SKULL_STALKER_PLAY_IDLE_SOUND(SKULL_STALKER_SOUND_ALERT_VARIANT);
         } else {
-            ctx = arg0->spawnArg2.pointer;
-            id  = 0x402E0007;
-            snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-            sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+            SKULL_STALKER_PLAY_IDLE_SOUND(SKULL_STALKER_SOUND_ALERT);
         }
         work->senseBody.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->frontSenseBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         sceneEngageBattle(1);
     }
+    // Only the sphere table is cleared. A front-capsule contact stays occupied
+    // after pair testing is disabled and can request the alert again next tick.
     worldCollisionClearContacts(work->senseContacts);
     animId = work->animId;
     if (animId == SKULL_STALKER_ANIM_IDLE) {
@@ -70,43 +77,32 @@ void skullStalkerIdleTick(Task* arg0)
         if (work->animFrames > work->fadeWaitFrames) {
             if (work->hiding != 0 && work->fadeFrames == SKULL_STALKER_FADE_FRAMES) {
                 if (work->variant != 0) {
-                    ctx = arg0->spawnArg2.pointer;
-                    id  = 0x40480007;
-                    snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                    SKULL_STALKER_PLAY_IDLE_SOUND(SKULL_STALKER_SOUND_APPEAR_VARIANT);
                 } else {
-                    ctx = arg0->spawnArg2.pointer;
-                    id  = 0x402E0006;
-                    snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                    SKULL_STALKER_PLAY_IDLE_SOUND(SKULL_STALKER_SOUND_APPEAR);
                 }
                 work->animFrames     = 0;
                 work->hiding         = 0;
                 gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->fadeWaitFrames = ((gRandomLcgState >> 16) & 0x1F) + 0x12;
+                work->fadeWaitFrames = ((gRandomLcgState >> 16) & SKULL_STALKER_VISIBLE_WAIT_JITTER_MASK) + SKULL_STALKER_VISIBLE_WAIT_BASE;
             } else if (work->fadeFrames == 0 && work->hiding == 0) {
                 work->animFrames     = 0;
                 work->hiding         = 1;
                 gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->fadeWaitFrames = ((gRandomLcgState >> 16) & 0x3F) + 0x64;
+                work->fadeWaitFrames = ((gRandomLcgState >> 16) & SKULL_STALKER_HIDDEN_WAIT_JITTER_MASK) + SKULL_STALKER_HIDDEN_WAIT_BASE;
             }
         }
     } else if (animId == SKULL_STALKER_ANIM_ALERT) {
         work->alertRequested = 0;
-        if (work->animFrames >= 0x28) {
+        if (work->animFrames >= SKULL_STALKER_CRY_INTERVAL_TICKS) {
             if (work->variant != 0) {
-                ctx = arg0->spawnArg2.pointer;
-                id  = 0x40480008;
-                snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                SKULL_STALKER_PLAY_IDLE_SOUND(SKULL_STALKER_SOUND_ALERT_VARIANT);
             } else {
-                ctx = arg0->spawnArg2.pointer;
-                id  = 0x402E0007;
-                snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+                SKULL_STALKER_PLAY_IDLE_SOUND(SKULL_STALKER_SOUND_ALERT);
             }
             work->animFrames = 0;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(SKULL_STALKER_IDLE_SCRATCH_BYTES);
+#undef SKULL_STALKER_PLAY_IDLE_SOUND
 }

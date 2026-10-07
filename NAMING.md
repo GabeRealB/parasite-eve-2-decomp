@@ -832,6 +832,14 @@ scratch block of its contact pass, private to that interface. The block of its
 drop's collision step is `ActorContactDeltaWideScratch` in `include/actors/actor.h`, public
 because `actor_521100` and `actor_403600` reserve the same block.
 
+`skullStalker` owns the included Skull Stalker enemy shared by `actor_04600`
+and `actor_207200`: sensing, intermittent visibility, animation, contact
+reactions and task lifetime. Its implementation interface is
+`src/shared/skull_stalker.h`, one fragment per function. Each carrier keeps
+static instances marked `_skullStalker`; no other image imports them. The
+carrier supplies the enemy parameters, animation-set table, contact-effect
+offsets and three-entry task-state table. Constants use `SKULL_STALKER_`.
+
 `viewFigure` owns the included figure parented to the view coordinate, shared
 by `actor_110300` and `actor_110800`. Its implementation interface is
 `src/shared/view_figure.h`, which declares the task's work block
