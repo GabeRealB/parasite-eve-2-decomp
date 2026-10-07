@@ -2325,7 +2325,6 @@ static inline s32 _actor403600TrailEmpty(Actor403600Ripple* state)
 void func_actor_403600_80135C28(Task* arg0)
 {
     SVECTOR            sp10;
-    MATRIX*            mtx;
     Actor403600Ripple* temp_s0;
     Actor403600Ripple* temp_v0_2;
     GfxCoord*          temp_s4;
@@ -2358,12 +2357,7 @@ void func_actor_403600_80135C28(Task* arg0)
             temp_v0_2->shallow = 0;
             sp10               = D_actor_403600_80131E2C;
             actorRenderCopyCoordBodyTransform(arg0, &temp_s2->parent->extra.tmd->coords[1], &sp10);
-            mtx                               = &temp_v0_2->clipCoord.coord;
-            MATRIX_PAIR(mtx, 0, 0)            = 0x1000;
-            MATRIX_PAIR(mtx, 0, 2)            = 0;
-            MATRIX_PAIR(mtx, 1, 1)            = 0x1000;
-            MATRIX_PAIR(mtx, 2, 0)            = 0;
-            mtx->m[2][2]                      = 0x1000;
+            gfxSetRotIdentity(&temp_v0_2->clipCoord.coord);
             temp_v0_2->clipCoord.coord.t[0]   = 0;
             temp_v0_2->clipCoord.coord.t[1]   = 0;
             temp_v0_2->clipCoord.coord.t[2]   = 0;
@@ -2384,7 +2378,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 case 2:
                     arg0->killCountdown      = 0x2E;
                     temp_v0_2->clipCountdown = 0x1F;
-                    gfxRotMatrixZ(mtx, 0x800, GRAPHICS_ROTATION_COMPOSE);
+                    gfxRotMatrixZ(&temp_v0_2->clipCoord.coord, 0x800, GRAPHICS_ROTATION_COMPOSE);
                     temp_s4->composeStamp = GRAPHICS_COORD_DIRTY;
                     break;
                 default:
