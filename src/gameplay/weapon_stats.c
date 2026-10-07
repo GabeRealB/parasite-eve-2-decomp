@@ -752,7 +752,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
     }
 
     if (item != 0) {
-        rec = Gp_FindItemById(item);
+        rec = inventoryFindLastCarriedItemRow(item);
         qty = rec->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item);
         if (Gp_ReloadMode == 0) {
             load = equipmentGetWeaponLoad(spawnArg);

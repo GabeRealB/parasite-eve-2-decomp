@@ -64,8 +64,6 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0);
 /// `arg1` supplies the total quantity for ammo ids 0xA0–0xBF, including loaded rounds.
 static s32 Gp_ItemIsUnusable(s32 arg0, InventoryItemRow* arg1);
 
-static InventoryItemRow* Gp_FindItemByKind(s32 arg0);
-
 WorldCoordRoomAmbientEntry Gp_RoomBoundDefault = { .color = { 16, 16, 16, 16 } };
 
 s32 D_8010F9EC = -0x10000;
@@ -638,72 +636,65 @@ s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1)
     return Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, val, -1);
 }
 
-InventoryItemRow* Gp_FindItemById(s32 arg0)
+/// Borrows the last row with this exact item id, or returns `NULL` if absent.
+static inline InventoryItemRow* _inventoryFindLastItemRowInRange(s32 itemId, const InventoryItemRange* range)
 {
-    InventoryItemRange* scan;
-    InventoryItemRow*   table;
-    s32                 i;
-    s32                 count;
-    InventoryItemRow*   rec;
+    InventoryItemRow* row;
+    s32               rowIndex;
+    s32               rowCount;
+    InventoryItemRow* matchingRow;
 
-    rec   = NULL;
-    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table = inventoryGetRangeTable(scan);
-    i     = 0;
-    table = &table[scan->firstRow];
-    count = scan->rowCount;
-    for (; i < count; i++) {
-        if (table->itemId == arg0) {
-            rec = table;
+    matchingRow = NULL;
+    row         = inventoryGetRangeTable(range);
+    row        += range->firstRow;
+    rowCount    = range->rowCount;
+    for (rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+        if (row->itemId == itemId) {
+            matchingRow = row;
         }
-        table++;
+        row++;
     }
-    return rec;
+    return matchingRow;
 }
 
-static InventoryItemRow* Gp_FindItemByKind(s32 arg0)
+InventoryItemRow* inventoryFindLastCarriedItemRow(s32 itemId)
 {
-    InventoryItemRange* scan;
-    InventoryItemRow*   table;
-    s32                 i;
-    s32                 count;
-    InventoryItemRow*   rec;
+    return _inventoryFindLastItemRowInRange(itemId, &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems);
+}
 
-    rec   = NULL;
-    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table = inventoryGetRangeTable(scan);
-    i     = 0;
-    table = &table[scan->firstRow];
-    count = scan->rowCount;
-    for (; i < count; i++) {
-        if (table->attachSlot == arg0 + 1) {
-            rec = table;
+/// Borrows the first carried row at a zero-based armour attachment position.
+///
+/// Positions 0..9 correspond to stored slots 1..10; -1 selects unattached rows
+/// and -2 selects equipped armour. Item id and quantity are not checked.
+/// Returns `NULL` when no row matches. The carried range must fit its selected
+/// table; sorting, transfers or replacing the live save can change the item
+/// at the returned address.
+static InventoryItemRow* _inventoryFindCarriedAttachmentRow(s32 attachmentIndex)
+{
+    const InventoryItemRange* range;
+    InventoryItemRow*         row;
+    s32                       rowIndex;
+    s32                       rowCount;
+    InventoryItemRow*         matchingRow;
+
+    matchingRow = NULL;
+    range       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    row         = inventoryGetRangeTable(range);
+    row        += range->firstRow;
+    rowCount    = range->rowCount;
+    for (rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+        if (row->attachSlot == attachmentIndex + 1) {
+            matchingRow = row;
             break;
         }
-        table++;
+        row++;
     }
-    return rec;
+    return matchingRow;
 }
 
-InventoryItemRow* Gp_FindItemInScan(s32 arg0, InventoryItemRange* arg1)
+InventoryItemRow* inventoryFindLastItemRowInRange(s32 itemId, const InventoryItemRange* range)
 {
-    InventoryItemRow* table;
-    s32               i;
-    s32               count;
-    InventoryItemRow* rec;
-
-    rec   = NULL;
-    table = inventoryGetRangeTable(arg1);
-    i     = 0;
-    table = &table[arg1->firstRow];
-    count = arg1->rowCount;
-    for (; i < count; i++) {
-        if (table->itemId == arg0) {
-            rec = table;
-        }
-        table++;
-    }
-    return rec;
+    return _inventoryFindLastItemRowInRange(itemId, range);
 }
 
 void Gp_DrawWeaponLabel(Task* arg0)

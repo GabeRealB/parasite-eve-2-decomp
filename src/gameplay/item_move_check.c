@@ -94,7 +94,7 @@ s32 Gp_CanMoveItems(void)
             if (table[row].itemId != INVENTORY_ITEM_NONE) {
                 /* 0xA0-0xBF items need no new row if the destination already holds one */
                 if ((u8)(table[row].itemId + 0x60) < 0x20) {
-                    if (Gp_FindItemInScan(table[row].itemId, &Gp_MoveScanDst) == 0) {
+                    if (inventoryFindLastItemRowInRange(table[row].itemId, &Gp_MoveScanDst) == 0) {
                         count++;
                     }
                 } else {

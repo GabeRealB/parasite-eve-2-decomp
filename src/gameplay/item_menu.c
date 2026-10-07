@@ -736,7 +736,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
         if ((u32)(item - 0xA0) < 0x20U) {
             scanOwner = arg1->owner;
             if (scanOwner->status != 0) {
-                if ((Gp_FindItemInScan(item, (&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1))) == NULL) && (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) == 0)) {
+                if ((inventoryFindLastItemRowInRange(item, (&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1))) == NULL) && (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) == 0)) {
                     prompt = 6;
                 }
             } else if ((Gp_SumScanQty((&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1)), item) != 0) || (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) != 0)) {

@@ -1035,8 +1035,8 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         hasMod = 0;
         if ((u32)(arg3 - 0x80) < 0x20U) {
             slot = equipmentGetWeaponLoad(arg3);
-            if (((slot->primaryQty != 0) && (Gp_FindItemById(slot->primaryItemId) != NULL)) ||
-                ((slot->secondaryQty != 0) && (Gp_FindItemById(slot->secondaryItemId) != NULL))) {
+            if (((slot->primaryQty != 0) && (inventoryFindLastCarriedItemRow(slot->primaryItemId) != NULL)) ||
+                ((slot->secondaryQty != 0) && (inventoryFindLastCarriedItemRow(slot->secondaryItemId) != NULL))) {
                 hasMod = 1;
             }
         }
@@ -1763,7 +1763,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
         if (mode == 0) {
             rec = NULL;
             if (item != 0) {
-                rec = Gp_FindItemById(item);
+                rec = inventoryFindLastCarriedItemRow(item);
             }
             Gp_SelItemRec = rec;
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {

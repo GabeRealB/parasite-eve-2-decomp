@@ -71,9 +71,24 @@ void func_800D6334(Task* arg0);
 /// ignores it.
 s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1);
 
-InventoryItemRow* Gp_FindItemById(s32 arg0);
+/// Borrows the last carried inventory row with this exact item id.
+///
+/// Returns `NULL` if no row matches, including an empty carried range.
+/// Item ids are compared without narrowing; 0 selects the last free row.
+/// Quantity and attachment state are ignored. The live carried range must fit
+/// its selected table. Sorting, transfers or replacing the live save can
+/// change the item at the returned writable address.
+InventoryItemRow* inventoryFindLastCarriedItemRow(s32 itemId);
 
-InventoryItemRow* Gp_FindItemInScan(s32 arg0, InventoryItemRange* arg1);
+/// Borrows the last inventory row with this exact item id in `range`.
+///
+/// Returns `NULL` if no row matches, including a zero-row range. Item ids are
+/// compared without narrowing; 0 selects the last free row. Quantity and
+/// attachment state are ignored. `range` must be readable and its first row
+/// and row count must fit the selected table, which must remain available.
+/// The writable result borrows that table; sorting and transfers can change
+/// the item at the same address. The descriptor and rows are left intact.
+InventoryItemRow* inventoryFindLastItemRowInRange(s32 itemId, const InventoryItemRange* range);
 
 void Gp_DrawWeaponLabel(Task* arg0);
 

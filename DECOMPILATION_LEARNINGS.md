@@ -26501,25 +26501,27 @@ When the target forms `&global.field` with split addresses (`lui s0, %hi`;
 
 ```
 lbu  v1, %lo(G+off)(s0)   /* first field via leftover hi */
-move s0, a1               /* rec = 0, reused from i */
+move s0, a1               /* matchingRow = 0, reused from rowIndex */
 lbu  a2, 1(s1)            /* second field via the pointer */
 ```
 
 the result pointer and the leftover hi share `$s0` because their live
-ranges do not overlap. Assign `rec = NULL` *before* the call so the
+ranges do not overlap. Assign `matchingRow = NULL` *before* the call so the
 constant 0 is rematerialized after the hi is consumed:
 
 ```c
-rec   = NULL;
-scan  = &gMcSaveData.carriedItems;
-table = inventoryGetRangeTable(scan);
-i     = 0;
-table = &table[scan->firstRow];
-count = scan->rowCount;
+matchingRow = NULL;
+range       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+row         = inventoryGetRangeTable(range);
+row        += range->firstRow;
+rowCount    = range->rowCount;
+for (rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+    /* Search the attachment positions. */
+}
 ```
 
-`rec = NULL` after the call CSEs with `i = 0` and lands in `$a3`, so the
-hi stays in `$s0` for the whole function (~92%). `Gp_FindItemByKind` is the
+`matchingRow = NULL` after the call CSEs with `rowIndex = 0` and lands in `$a3`, so the
+hi stays in `$s0` for the whole function (~92%). `_inventoryFindCarriedAttachmentRow` is the
 example; `func_800CE980` is the same search with the scan passed in
 (result stays in `$a3` because there is no leftover hi).
 

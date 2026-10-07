@@ -468,11 +468,11 @@ void Gp_EquipMod(s32 arg0)
         if (cfg->armor != (arg0 - 0x5F)) {
             InventoryItemRow* found;
 
-            found = Gp_FindItemById(arg0);
+            found = inventoryFindLastCarriedItemRow(arg0);
             if (found != NULL) {
                 found->attachSlot = INVENTORY_ATTACHMENT_EQUIPPED_ARMOR;
                 if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-                    found = Gp_FindItemById(cfg->armor + 0x5F);
+                    found = inventoryFindLastCarriedItemRow(cfg->armor + 0x5F);
                     if (found != NULL) {
                         found->attachSlot = INVENTORY_ATTACHMENT_NONE;
                     }

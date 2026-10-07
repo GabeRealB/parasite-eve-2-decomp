@@ -700,11 +700,11 @@ void Gp_EquipHeld(s32 arg0)
     u8                field21;
 
     p       = &gPlayerStatus;
-    rec     = Gp_FindItemById(arg0);
+    rec     = inventoryFindLastCarriedItemRow(arg0);
     field21 = p->weapon;
     if (field21 != arg0 - 0x7F) {
         if (field21 != 0) {
-            prev = Gp_FindItemById(field21 + 0x7F);
+            prev = inventoryFindLastCarriedItemRow(field21 + 0x7F);
             if (rec->attachSlot > INVENTORY_ATTACHMENT_NONE) {
                 prev->attachSlot = rec->attachSlot;
             } else {

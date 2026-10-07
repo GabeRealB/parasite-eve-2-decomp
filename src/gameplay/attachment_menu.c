@@ -653,11 +653,11 @@ void Gp_EquipPromptTask(Task* arg0)
         val = arg0->spawnArg1.value;
         if ((u32)(val - 0x80) < 0x20U) {
             p       = &gPlayerStatus;
-            rec     = Gp_FindItemById(val);
+            rec     = inventoryFindLastCarriedItemRow(val);
             field21 = p->weapon;
             if (field21 != val - 0x7F) {
                 if (field21 != 0) {
-                    prev = Gp_FindItemById(field21 + 0x7F);
+                    prev = inventoryFindLastCarriedItemRow(field21 + 0x7F);
                     if (rec->attachSlot > INVENTORY_ATTACHMENT_NONE) {
                         prev->attachSlot = rec->attachSlot;
                     } else {

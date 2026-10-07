@@ -784,7 +784,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             cfg        = &gPlayerStatus;
             slotSrc    = equipmentGetWeaponLoad(src);
             slotDst    = equipmentGetWeaponLoad(result);
-            rec        = Gp_FindItemById(src);
+            rec        = inventoryFindLastCarriedItemRow(src);
             newWork    = memCalloc(sizeof(_ItemMenuWeaponCreateWork), 0);
             scanInit   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             arg1->work = newWork;
