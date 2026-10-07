@@ -5,8 +5,8 @@ void stalkerZebraIvoryAnimateUntilDone(Task* arg0)
 {
     StalkerZebraIvoryWork* work = (StalkerZebraIvoryWork*)arg0->work;
 
-    stalkerZebraIvoryTickAnim(arg0);
-    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+    _stalkerZebraIvoryTickAnim(arg0);
+    if ((_stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         work->state = work->state + 1;
     }
 }

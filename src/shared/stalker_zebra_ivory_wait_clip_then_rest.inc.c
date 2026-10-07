@@ -9,11 +9,11 @@ void stalkerZebraIvoryWaitClipThenRest(Task* arg0)
     u32                    rnd;
 
     work = (StalkerZebraIvoryWork*)arg0->work;
-    if ((stalkerZebraIvoryTakePending(arg0) << 0x10) != 0) {
+    if ((_stalkerZebraIvoryApplyPendingReaction(arg0) << 0x10) != 0) {
         rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rnd;
         work->countdown = ((rnd >> 0x10) & 0x7F) + 0x1E;
-    } else if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+    } else if ((_stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rnd;
         work->countdown = ((rnd >> 0x10) & 0x7F) + 0x1E;

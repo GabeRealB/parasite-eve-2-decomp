@@ -1,7 +1,10 @@
 /* Part of the Ivory/Zebra Stalker library; see stalker_zebra_ivory.h. */
 
-/// Out-of-line form of `stalkerZebraIvoryTickAnimInline`.
-void stalkerZebraIvoryTickAnim(Task* arg0)
+/// Applies a pending body-animation request and advances body tracks once.
+///
+/// Out-of-line entry for `_stalkerZebraIvoryTickAnimInline`, with the same
+/// initialized-rig, clip, rate and storage requirements.
+static void _stalkerZebraIvoryTickAnim(Task* task)
 {
-    stalkerZebraIvoryTickAnimInline(arg0);
+    _stalkerZebraIvoryTickAnimInline(task);
 }

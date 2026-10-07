@@ -6,7 +6,7 @@ void stalkerZebraIvoryWaitClip(Task* arg0)
 {
     StalkerZebraIvoryWork* work;
 
-    if (((stalkerZebraIvoryTakePending(arg0) << 0x10) == 0) && ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0)) {
+    if (((_stalkerZebraIvoryApplyPendingReaction(arg0) << 0x10) == 0) && ((_stalkerZebraIvoryClipDone(arg0) << 0x10) != 0)) {
         work           = (StalkerZebraIvoryWork*)arg0->work;
         work->state    = 2;
         work->subState = 0;

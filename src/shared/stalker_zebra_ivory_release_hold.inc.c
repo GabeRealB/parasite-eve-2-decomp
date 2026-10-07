@@ -14,7 +14,7 @@ void stalkerZebraIvoryReleaseHold(Task* arg0)
         if (work->holdKilledPlayer == 0) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         }
-        stalkerZebraIvorySeedTimer(arg0, 0x3C);
+        _stalkerZebraIvorySeedTimer(arg0, 0x3C);
         work->roll      = 0;
         work2           = (StalkerZebraIvoryWork*)arg0->work;
         work2->state    = 2;

@@ -3883,8 +3883,9 @@ those and the Sea Diver's three now make the test through the Diver library's
 inlined `diverClipEnded`; `_actor00400ClipEnded` is the eighteenth, the same test
 compiled out of line.
 
-The idiom is common here: `actors_shared_8013a0b0.c` and
-`actors_shared_8016974c.c` are this same body over their own flag unions, and
+The idiom is common here: `src/shared/stalker_zebra_ivory_clip_done.inc.c` carries this same body
+as `_stalkerZebraIvoryClipDone` in both Stalker packages, testing the three
+`rig.slots[1].status.fields.flags` bits, and
 ten more copies of the test sit inline in `src/actors/lib/actor_100400_text.c`.
 Before writing such a test from the assembly, grep the codebase for a matched
 sibling - and where the sibling still reaches the word load through a union,

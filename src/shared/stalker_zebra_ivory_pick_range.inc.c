@@ -9,7 +9,7 @@ void stalkerZebraIvoryPickRange(Task* arg0)
     StalkerZebraIvoryWork* work3;
 
     work = (StalkerZebraIvoryWork*)arg0->work;
-    stalkerZebraIvoryDropCapsuleGrid(arg0);
+    _stalkerZebraIvoryDisableCapsuleGrid(arg0);
     if (work->playerDistance > 2000) {
         work2           = (StalkerZebraIvoryWork*)arg0->work;
         work2->state    = 0xD;

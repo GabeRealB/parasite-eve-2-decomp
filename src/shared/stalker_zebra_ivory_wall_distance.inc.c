@@ -1,45 +1,53 @@
 /* Part of the Ivory/Zebra Stalker library; see stalker_zebra_ivory.h. */
 
-/// Distance to the first grid-face contact of the capsule, measured as the
-/// `distanceMode` asks (1: in X/Z, 2: in X/Y, 0: just 1 for a hit); 0 when
-/// there is none. Clears the contact table's occupancy.
-s32 stalkerZebraIvoryWallDistance(Task* arg0)
+/// Reads the first probe-grid contact and clears the capsule's contact table.
+///
+/// Returns 0 without a grid hit, or 1 in hit-only mode. X/Z and X/Y modes
+/// measure from the root's cached translation in the contact's view space,
+/// narrowing deltas and the square root to s16; zero distance becomes 1.
+/// The squared delta sum must fit s32 before the square-root call.
+/// The root cache and eight-entry contact table must be current. The table
+/// must keep its initialized LAST terminator; non-grid keys are skipped.
+static s32 _stalkerZebraIvoryWallDistance(Task* task)
 {
+    enum { STALKER_ZEBRA_IVORY_WALL_PROBE_HIT_ONLY = 0,
+           STALKER_ZEBRA_IVORY_WALL_PROBE_XZ       = 1,
+           STALKER_ZEBRA_IVORY_WALL_PROBE_XY       = 2 };
     StalkerZebraIvoryWork* work;
-    GfxCoord*              coord;
-    SVECTOR                v;
-    s16                    dist;
-    s32                    i;
+    GfxCoord*              rootCoord;
+    SVECTOR                contactDelta;
+    s16                    distance;
+    s32                    contactIndex;
 
-    dist  = 0;
-    work  = (StalkerZebraIvoryWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    for (i = 0; i < 8; i++) {
-        if ((work->capsuleContacts[i].key.value & 0xFFFF0000) != 0x100000) {
-            dist = 0;
+    distance  = 0;
+    work      = (StalkerZebraIvoryWork*)task->work;
+    rootCoord = task->extra.tmd->coords;
+    for (contactIndex = 0; contactIndex < (s32)ARRAY_SIZE(work->capsuleContacts); contactIndex++) {
+        if ((work->capsuleContacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_GRID) {
+            distance = 0;
         } else {
-            if (work->distanceMode == 0) {
-                dist = 1;
-            } else if (work->distanceMode == 1) {
-                v.vx = work->capsuleContacts[i].point.vx - coord->workm.t[0];
-                v.vy = 0;
-                v.vz = work->capsuleContacts[i].point.vz - coord->workm.t[2];
-                dist = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
-                if (dist == 0) {
-                    dist = 1;
+            if (work->distanceMode == STALKER_ZEBRA_IVORY_WALL_PROBE_HIT_ONLY) {
+                distance = 1;
+            } else if (work->distanceMode == STALKER_ZEBRA_IVORY_WALL_PROBE_XZ) {
+                contactDelta.vx = work->capsuleContacts[contactIndex].point.vx - rootCoord->workm.t[0];
+                contactDelta.vy = 0;
+                contactDelta.vz = work->capsuleContacts[contactIndex].point.vz - rootCoord->workm.t[2];
+                distance        = SquareRoot0(contactDelta.vx * contactDelta.vx + contactDelta.vz * contactDelta.vz);
+                if (distance == 0) {
+                    distance = 1;
                 }
-            } else if (work->distanceMode == 2) {
-                v.vx = work->capsuleContacts[i].point.vx - coord->workm.t[0];
-                v.vy = work->capsuleContacts[i].point.vy - coord->workm.t[1];
-                v.vz = 0;
-                dist = SquareRoot0(v.vx * v.vx + v.vy * v.vy);
-                if (dist == 0) {
-                    dist = 1;
+            } else if (work->distanceMode == STALKER_ZEBRA_IVORY_WALL_PROBE_XY) {
+                contactDelta.vx = work->capsuleContacts[contactIndex].point.vx - rootCoord->workm.t[0];
+                contactDelta.vy = work->capsuleContacts[contactIndex].point.vy - rootCoord->workm.t[1];
+                contactDelta.vz = 0;
+                distance        = SquareRoot0(contactDelta.vx * contactDelta.vx + contactDelta.vy * contactDelta.vy);
+                if (distance == 0) {
+                    distance = 1;
                 }
             }
             break;
         }
     }
     worldCollisionClearContacts(work->capsuleContacts);
-    return dist;
+    return distance;
 }

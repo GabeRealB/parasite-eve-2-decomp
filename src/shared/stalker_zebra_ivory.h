@@ -1,7 +1,7 @@
 /* Pose helpers the Zebra Stalker (actor_400600) and the Ivory Stalker
  * (actor_405800) share. It leaps and lands with a slam that raises dust, and carries
  * two child models parented to root parts 10 and 7. The helpers turn it toward
- * a point, read a part's view-space position, light it from its body part and
+ * a point, read a part's world-space X/Z position, light it from its body part and
  * rebuild its root rotation from pitch, yaw and roll. The shared behaviour
  * covers the animation request (play, blend or restart a clip, tick the
  * slots, scale the frame counter, report the clip done), the pending-action
@@ -17,7 +17,7 @@
  * the members below, which both packages declare with the same name and type:
  *
  *   pose        `pitch`, `yaw`, `roll` (s16 root angles, 4096ths of a turn);
- *               `anchorPos` (SVECTOR3, the pinned part's view-space position)
+ *               `anchorPos` (SVECTOR3, the pinned part's world-space position)
  *   animation   `rig` (ActorAnimRig18), of which they drive slots 1 to 17
  *               through `rig.anim` and `rig.slots`; the request
  *               `animRequest`, `animClip`, `animStep`, `animBlend`,
@@ -45,7 +45,7 @@
 
 /* Per kind: the sound bank of the clip-4 footstep cues (cue | 1, cue | 2); and
  * where the two builds' shared code differs -
- *   RIGHTING_PINS_PART  righting itself first pins part 0xE to its view spot
+ *   RIGHTING_PINS_PART  righting itself first pins part 0xE to its world-space spot
  *   REBLEND_SAME_CLIP   a request for the clip already playing blends again
  *   PIN_UPDATES_ROOT    pinning a part recomposes the root afterwards (else it
  *                       marks the root dirty before measuring)
@@ -74,8 +74,6 @@
 
 #include "main/task_types.h"
 
-#include "main/task_types.h"
-
 /// Values of the work block's `animRequest`.
 enum {
     STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND   = 1, // blend into `animClip` over `animBlend` frames
@@ -93,35 +91,35 @@ enum {
     STALKER_ZEBRA_IVORY_PENDING_KNOCKDOWN = 5  // knockdown (state 0xF); on the ceiling, knocked off it (state 0xE)
 };
 
-void stalkerZebraIvoryTurnToward(Task* arg0, SVECTOR* target, s32 step);
-void stalkerZebraIvoryReadPartViewXZ(Task* task, s16 index, SVECTOR3* out);
-void stalkerZebraIvoryUpdateColor(Task* task);
-void stalkerZebraIvoryApplyRotation(Task* arg0);
-void stalkerZebraIvoryStepClip4(Task* arg0);
-void stalkerZebraIvoryRightItself(Task* arg0);
-s32  stalkerZebraIvoryTakePending(Task* arg0);
-s32  stalkerZebraIvoryWallDistance(Task* arg0);
-void stalkerZebraIvoryPinPartXZ(Task* arg0, s16 index, SVECTOR3* pos);
-void stalkerZebraIvoryWaitClipThenRest(Task* arg0);
-void stalkerZebraIvoryReleaseHold(Task* arg0);
-void stalkerZebraIvoryRunSubStates(Task* arg0);
-void stalkerZebraIvorySetMoveMode(Task* arg0, s32 arg1, u16* arg2, s32 arg3);
-void stalkerZebraIvoryRestartClip(Task* arg0);
-void stalkerZebraIvoryResumeClip(Task* arg0);
-void stalkerZebraIvoryPickRange(Task* arg0);
-void stalkerZebraIvoryAnimateUntilDone(Task* arg0);
-void stalkerZebraIvoryWaitClip(Task* arg0);
-void stalkerZebraIvoryClearQueued(Task* arg0);
-void stalkerZebraIvorySeedTimer(Task* arg0, STALKER_ZEBRA_IVORY_TIMER_BASE base);
-void stalkerZebraIvoryDropCapsuleGrid(Task* arg0);
-void stalkerZebraIvoryTickAnim(Task* arg0);
-void stalkerZebraIvoryPlayClip(Task* arg0, s16 clip, s16 step);
-s32  stalkerZebraIvoryClipDone(Task* arg0);
-s32  stalkerZebraIvoryTakeArmedPending(Task* arg0);
-void stalkerZebraIvoryBlendClip(Task* arg0);
-s16  stalkerZebraIvoryScaleFrame(Task* arg0, s16 frame);
+void        stalkerZebraIvoryTurnToward(Task* arg0, SVECTOR* target, s32 step);
+static void _stalkerZebraIvoryReadPartWorldXZ(Task* task, s16 partIndex, SVECTOR3* worldPosition);
+void        stalkerZebraIvoryUpdateColor(Task* task);
+static void _stalkerZebraIvoryApplyRotation(Task* task);
+void        stalkerZebraIvoryStepClip4(Task* arg0);
+void        stalkerZebraIvoryRightItself(Task* arg0);
+static s32  _stalkerZebraIvoryApplyPendingReaction(Task* task);
+static s32  _stalkerZebraIvoryWallDistance(Task* task);
+static void _stalkerZebraIvoryPinPartXZ(Task* task, s16 partIndex, const SVECTOR3* anchorPosition);
+void        stalkerZebraIvoryWaitClipThenRest(Task* arg0);
+void        stalkerZebraIvoryReleaseHold(Task* arg0);
+void        stalkerZebraIvoryRunSubStates(Task* arg0);
+void        stalkerZebraIvorySetMoveMode(Task* arg0, s32 arg1, u16* arg2, s32 arg3);
+static void _stalkerZebraIvoryRestartClip(Task* task);
+void        stalkerZebraIvoryResumeClip(Task* arg0);
+void        stalkerZebraIvoryPickRange(Task* arg0);
+void        stalkerZebraIvoryAnimateUntilDone(Task* arg0);
+void        stalkerZebraIvoryWaitClip(Task* arg0);
+static void _stalkerZebraIvoryFoldArms(Task* task);
+static void _stalkerZebraIvorySeedTimer(Task* task, STALKER_ZEBRA_IVORY_TIMER_BASE baseFrames);
+static void _stalkerZebraIvoryDisableCapsuleGrid(Task* task);
+static void _stalkerZebraIvoryTickAnim(Task* task);
+static void _stalkerZebraIvoryRequestClipRestart(Task* task, s16 clipIndex, s16 rate);
+static s32  _stalkerZebraIvoryClipDone(Task* task);
+s32         stalkerZebraIvoryTakeArmedPending(Task* arg0);
+static void _stalkerZebraIvoryBlendClip(Task* task);
+static s16  _stalkerZebraIvoryFrameToTicks(Task* task, s16 normalFrames);
 
-static __inline__ void stalkerZebraIvoryTickAnimInline(Task* arg0);
-static __inline__ void stalkerZebraIvoryApplyRotationInline(Task* arg0);
+static __inline__ void _stalkerZebraIvoryTickAnimInline(Task* task);
+static __inline__ void _stalkerZebraIvoryApplyRotationInline(Task* task);
 
 #endif /* SRC_SHARED_STALKER_ZEBRA_IVORY_H */

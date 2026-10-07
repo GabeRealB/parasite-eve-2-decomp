@@ -29,7 +29,7 @@ void stalkerZebraIvoryStepClip4(Task* arg0)
         work->animBlend   = 4;
         work->animClip    = 4;
         work->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
-        stalkerZebraIvoryTickAnimInline(arg0);
+        _stalkerZebraIvoryTickAnimInline(arg0);
     }
     start0 = 0;
     if (((StalkerZebraIvoryWork*)arg0->work)->animStep == 0) {
@@ -50,11 +50,11 @@ void stalkerZebraIvoryStepClip4(Task* arg0)
         tmp2 = (u32)(0x1B00 / ((StalkerZebraIvoryWork*)arg0->work)->animStep) >> 4;
     }
     end1 = tmp2;
-    if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+    if ((_stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         work->animFrame = 0;
     }
     if (work->animFrame == start0) {
-        stalkerZebraIvoryReadPartViewXZ(arg0, 8, &work->anchorPos);
+        _stalkerZebraIvoryReadPartWorldXZ(arg0, 8, &work->anchorPos);
         id = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 1;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0001;
@@ -71,7 +71,7 @@ void stalkerZebraIvoryStepClip4(Task* arg0)
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->animFrame == start1) {
-        stalkerZebraIvoryReadPartViewXZ(arg0, 0xB, &work->anchorPos);
+        _stalkerZebraIvoryReadPartWorldXZ(arg0, 0xB, &work->anchorPos);
         id = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 2;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0002;
@@ -86,10 +86,10 @@ void stalkerZebraIvoryStepClip4(Task* arg0)
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->animFrame >= start0 && work->animFrame <= end0) {
-        stalkerZebraIvoryPinPartXZ(arg0, 8, &work->anchorPos);
+        _stalkerZebraIvoryPinPartXZ(arg0, 8, &work->anchorPos);
     }
     if (work->animFrame >= start1 && work->animFrame <= end1) {
-        stalkerZebraIvoryPinPartXZ(arg0, 0xB, &work->anchorPos);
+        _stalkerZebraIvoryPinPartXZ(arg0, 0xB, &work->anchorPos);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
