@@ -483,10 +483,10 @@ gRoomEffectWaterRippleId = 0x8011574C; // absolute:True
 gRoomEffectSparkBurstId = 0x80115750; // absolute:True
 gRoomEffectOrangeBurst2Id = 0x80115754; // absolute:True
 gRoomEffectFlashId = 0x80115758; // absolute:True
-func_actor_160700_80131E24 = 0x80131E24; // type:func absolute:True owner=actor_160700 shared=actors
+actor160700RestoreMeetingAnimation = 0x80131E24; // type:func absolute:True owner=actor_160700 shared=actors
 func_actor_450800_80131E2C = 0x80131E2C; // type:func absolute:True owner=actor_450800
 func_actor_161500_80131E38 = 0x80131E38; // type:func absolute:True owner=actor_161500 shared=actors
-func_actor_160700_80131E70 = 0x80131E70; // type:func absolute:True owner=actor_160700
+actor160700StartMeetingScript = 0x80131E70; // type:func absolute:True owner=actor_160700
 func_actor_150400_80131FB8 = 0x80131FB8; // type:func absolute:True owner=actor_150400
 func_actor_161500_80131FBC = 0x80131FBC; // type:func absolute:True owner=actor_161500
 func_actor_450800_80132000 = 0x80132000; // type:func absolute:True owner=actor_450800

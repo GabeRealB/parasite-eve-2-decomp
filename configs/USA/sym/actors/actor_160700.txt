@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_160700.
-func_actor_160700_801325F0 = 0x801325F0; // type:func
+_pacedWalkPlayAnimation = 0x801325F0; // type:func
 D_actor_160700_801354E0 = 0x801354E0; // size:0x14 defined:True
 D_actor_160700_801354F4 = 0x801354F4; // size:0x14 defined:True
 D_actor_160700_80135508 = 0x80135508; // size:0x14 defined:True
@@ -283,3 +283,9 @@ _pacedWalkBlendAnim = 0x8013258C; // type:func
 pacedWalkTo = 0x80132740; // type:func
 _actorRenderDrawFixedWalkerGroundShadow = 0x8013243C; // type:func
 pacedWalkPlace = 0x801326C0; // type:func
+actor160700RestoreMeetingAnimation = 0x80131e24; // type:func
+actor160700StartMeetingScript = 0x80131e70; // type:func
+_actor160700Exit = 0x80132414; // type:func
+_pacedWalkSetPairModelDraw = 0x8013265c; // type:func
+_actor160700IgnoreCommand = 0x80132738; // type:func
+_pacedWalkSubModelTask = 0x80132808; // type:func

@@ -1,3 +1,5 @@
+#include "actors/actor_160700.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -25,8 +27,17 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_messages.h"
 #include "../../shared/paced_walk.h"
 #include "../../shared/walker.h"
+
+/// Conversation progress handled while the actor is in the GOLEM freezer room.
+enum {
+    ACTOR_160700_MEETING_UNMET       = 0,
+    ACTOR_160700_MEETING_FIRST_SEEN  = 1,
+    ACTOR_160700_MEETING_SECOND_SEEN = 2,
+    ACTOR_160700_MEETING_THIRD_SEEN  = 3,
+};
 
 /// The clips this actor's meeting scenes add to the player's animation bank,
 /// with the copy request that installs them and two play requests.
@@ -72,7 +83,7 @@ extern EvsCommand           D_actor_160700_801362F4[];
 extern EvsCommand           D_actor_160700_80136414[];
 
 static void func_actor_160700_80132390(Enemy* enemy, Task* task);
-static void func_actor_160700_80132414(Task* task);
+static void _actor160700Exit(Task* task);
 
 extern AnimationPlayRequest D_actor_160700_80135288;
 extern AnimationPlayRequest D_actor_160700_8013529C;
@@ -100,11 +111,11 @@ extern AnimationPlayRequest D_actor_160700_801354B8;
 
 static TmdSource _gActor160700PierceCarradineBody;
 static TmdSource _gActor160700Actor113100Model07960;
-s32              func_actor_160700_801325F0(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_160700_8013265C(Task*, s32, s32, s32);
-s32              func_actor_160700_80132738(Task*, s32, s32, s32);
+static s32       _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32       _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 flags, s32 unusedArg);
+static s32       _actor160700IgnoreCommand(Task* task, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArg);
 void             func_actor_160700_8013233C(Task*);
-void             func_actor_160700_80132808(Task*);
+static void      _pacedWalkSubModelTask(Task* task);
 
 static AnimationPackedPose _gActor160700Animation00C90Bank1[2] = {
 #include "assets/actor_160700_animation_00C90_bank1.inc"
@@ -1365,17 +1376,17 @@ static AnimationSet _gActor160700Animation0F830 = {
 };
 
 TaskMessageEntry D_actor_160700_80141678[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_160700_801325F0 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_160700_8013265C },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlayAnimation },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _pacedWalkSetPairModelDraw },
     { ACTOR_MESSAGE_PLACE, pacedWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_160700_80132738 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor160700IgnoreCommand },
     { ACTOR_MESSAGE_WALK_TO, pacedWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_160700_801416A8[2] = {
     { { { TASK_BODY_TMD, 96 } }, func_actor_160700_8013233C, { .model = &_gActor160700PierceCarradineBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_160700_80132808, { .model = &_gActor160700Actor113100Model07960 } },
+    { { { TASK_BODY_TMD, 192 } }, _pacedWalkSubModelTask, { .model = &_gActor160700Actor113100Model07960 } },
 };
 
 u8 D_actor_160700_801416C0[100] = {
@@ -1481,40 +1492,45 @@ u8 D_actor_160700_801416C0[100] = {
     0,
 };
 
-void        func_actor_160700_80131E24(void);
-void        func_actor_160700_80131E70(void);
 static void func_actor_160700_80131F70(Enemy* enemy, Task* task);
 
-void func_actor_160700_80131E24(void)
+void actor160700RestoreMeetingAnimation(void)
 {
-    Task* slot;
+    enum { ACTOR_160700_MEETING_PLACE_KEY = 0 };
+    Task* actorTask;
 
-    if (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) != 0) {
-        slot = sceneFindPlacedActor(0);
-        if (slot != 0) {
-            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_160700_801354CC, 0);
+    if (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) != ACTOR_160700_MEETING_UNMET) {
+        actorTask = sceneFindPlacedActor(ACTOR_160700_MEETING_PLACE_KEY);
+        if (actorTask != NULL) {
+            TASK_MESSAGE_DISPATCH_POINTER(actorTask, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_160700_801354CC, 0);
         }
     }
 }
 
-void func_actor_160700_80131E70(void)
+void actor160700StartMeetingScript(void)
 {
+    enum {
+        ACTOR_160700_FOLLOW_UP_NOT_STARTED              = 0,
+        ACTOR_160700_STORY_DIALOGUE_AFTER_FIRST_MEETING = 12,
+    };
+
+    // Progress advances when playback starts, including a skipped conversation.
     switch (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS)) {
-        case 0:
+        case ACTOR_160700_MEETING_UNMET:
             evsStartScriptWithSkip(D_actor_160700_80135664, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160700_80135ACC);
-            gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 1);
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0xC);
+            gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, ACTOR_160700_MEETING_FIRST_SEEN);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACTOR_160700_FOLLOW_UP_NOT_STARTED);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACTOR_160700_STORY_DIALOGUE_AFTER_FIRST_MEETING);
             break;
-        case 1:
+        case ACTOR_160700_MEETING_FIRST_SEEN:
             evsStartScriptWithSkip(D_actor_160700_80135BD4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160700_80135ACC);
-            gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 2);
+            gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, ACTOR_160700_MEETING_SECOND_SEEN);
             break;
-        case 2:
+        case ACTOR_160700_MEETING_SECOND_SEEN:
             evsStartScript(D_actor_160700_801362F4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 3);
+            gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, ACTOR_160700_MEETING_THIRD_SEEN);
             break;
-        case 3:
+        case ACTOR_160700_MEETING_THIRD_SEEN:
             evsStartScript(D_actor_160700_80136414, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
@@ -1543,7 +1559,7 @@ static void func_actor_160700_80131F70(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_160700_80132414;
+    task->exitCallback               = _actor160700Exit;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
@@ -1595,8 +1611,12 @@ void func_actor_160700_8013233C(Task* task)
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// Exit callback: hands the task's `Enemy` back to `enemyDestroy`.
-static void func_actor_160700_80132414(Task* task)
+/// Releases this walker's enemy and tears down its task and adopted child model.
+///
+/// Requires the spawned task with its live `Enemy` in `spawnArg2.pointer`.
+/// Task teardown releases the paced-walk work and applies the runtime's normal
+/// or immediate body-release policy. Do not use the enemy or work afterwards.
+static void _actor160700Exit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
@@ -1611,92 +1631,144 @@ static void func_actor_160700_80132414(Task* task)
 
 #include "../../shared/paced_walk_blend_anim.inc.c"
 
-/// Starts the actor's scripted animation selected by the request.
+/// Records a clip and transition choice for the walker's animation reseed.
 ///
-/// Rejects ids 0x19 and above before changing playback state.
-/// The blend path carries the requested duration in whole frames.
-s32 func_actor_160700_801325F0(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Both pointers are borrowed through the call. The caller supplies a loaded
+/// clip and applies the recorded request. Clip and blend duration retain their
+/// signed-halfword stores. Does not play tracks or retain the request pointer.
+static __inline__ void _pacedWalkApplyAnimationRequest(PacedWalkWork* work, const AnimationPlayRequest* request)
 {
+    work->st.animId = request->animationId;
+    if (request->blend != ANIMATION_BLEND_RESET) {
+        work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
+        work->blendFrames = request->blendFrames;
+    } else {
+        work->st.state = ACTOR_ENEMY_ANIM_RESET;
+    }
+    work->st.field_6 = 0;
+}
+
+/// Immediately reseeds the walker's non-root tracks from a scripted play request.
+///
+/// Requires a spawned TMD walker and live `PacedWalkWork` rig. The package's
+/// loaded clips are IDs 1..23; its bank entries 0 and 24 are NULL. The retained
+/// check rejects only IDs >=25, so callers must exclude negative and unloaded
+/// IDs. The request is borrowed only through this call, while the rig's clip
+/// storage must outlive playback on parts 1 through 19.
+/// Nonzero `blend` captures the old poses and narrows `blendFrames` to a signed
+/// halfword duration in whole normal-rate frames; 0..2047 keeps transition time
+/// nonnegative. Reset ignores the duration. Travel is unchanged. Ignores the
+/// request's bank selector and collision choice, message ID and second payload.
+/// Returns 0 after reseeding or -1 for IDs >=25, without changing state.
+static s32 _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
+{
+    enum {
+        PACED_WALK_ANIMATION_ID_LIMIT         = 25,
+        PACED_WALK_ANIMATION_REQUEST_APPLIED  = 0,
+        PACED_WALK_ANIMATION_REQUEST_REJECTED = -1,
+    };
     PacedWalkWork* work;
 
     work = task->work;
-    if (args->animationId < 0x19) {
-        work->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
-            work->blendFrames = args->blendFrames;
-        } else {
-            work->st.state = ACTOR_ENEMY_ANIM_RESET;
-        }
-        work->st.field_6 = 0;
+    if (request->animationId < PACED_WALK_ANIMATION_ID_LIMIT) {
+        _pacedWalkApplyAnimationRequest(work, request);
         _pacedWalkUpdate(task);
-        return 0;
+        return PACED_WALK_ANIMATION_REQUEST_APPLIED;
     }
-    return -1;
+    return PACED_WALK_ANIMATION_REQUEST_REJECTED;
 }
 
-/// Script opcode: sets the visibility flags of the actor's model and of the
-/// model of the enemy spawned alongside it. `flags` bit 0 makes both visible
-/// (`TmdObject::flags` 0) and its absence hides them (0x80); bit 1 also sets
-/// 0x4. The middle argument is the one every opcode of the table receives.
-s32 func_actor_160700_8013265C(Task* task, s32 arg1, s32 flags, s32 arg3)
+/// Replaces the walker and its carried model's draw flags together.
+///
+/// Requires live TMD models on `task` and its `PacedWalkWork::pairTask`.
+/// `ACTOR_MESSAGE_PAIR_SHOW` clears all flags; its absence replaces them with
+/// active-draw exclusion. `ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER` adds that bit
+/// to both models. Other request bits are ignored; neither allocates nor frees
+/// buffers. The message ID and second payload are ignored. Returns 0.
+static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 flags, s32 unusedArg)
 {
-    TmdObject* self;
-    TmdObject* other;
+    PacedWalkWork* work;
+    TmdObject*     model;
+    TmdObject*     pairModel;
 
-    self  = task->extra.tmd;
-    other = ((PacedWalkWork*)task->work)->pairTask->extra.tmd;
+    model     = task->extra.tmd;
+    work      = task->work;
+    pairModel = work->pairTask->extra.tmd;
 
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
+    if (flags & ACTOR_MESSAGE_PAIR_SHOW) {
+        model->flags     = 0;
+        pairModel->flags = 0;
     } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        pairModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (flags & ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER) {
+        model->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        pairModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
 
 #include "../../shared/paced_walk_place.inc.c"
 
-/// Script opcode (message 0x7DB) that does nothing.
-s32 func_actor_160700_80132738(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores actor commands and returns zero without changing the walker.
+///
+/// Keeps the task-message ABI for `ACTOR_COMMAND_MESSAGE_APPLY`; the receiver,
+/// command pointer and other argument words are never read or retained.
+static s32 _actor160700IgnoreCommand(Task* task, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArg)
 {
     return 0;
 }
 
 #include "../../shared/paced_walk_to.inc.c"
 
-/// Handler of the sub-model the actor spawns and adopts as its child. On the
-/// first frame it points the sub-model's light and colour matrices at the
-/// parent's, makes it visible with `flags` 0 and parents its root coordinate
-/// to part 4 of the parent's model; every frame it clears the coordinate's
-/// `composeStamp` so it is recomputed from that part.
-void func_actor_160700_80132808(Task* task)
+/// Borrows a walker part and its lighting for the carried model's root.
+///
+/// The writable model and root belong to the child; the parent's attachment
+/// coordinate and work must outlive it. Replaces all model flags with zero
+/// and marks the root dirty so its next composition uses the new parent.
+static __inline__ void _pacedWalkAttachCarriedModel(TmdObject* model, GfxCoord* rootCoord,
+                                                    GfxCoord* attachmentCoord, PacedWalkWork* parentWork)
 {
-    char           pad[0x10];
-    Task*          parent = task->parent;
-    TmdObject*     obj    = task->extra.tmd;
-    GfxCoord*      coord  = obj->coords;
-    GfxCoord*      sub    = &parent->extra.tmd->coords[4];
-    PacedWalkWork* work   = parent->work;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->lightMtx         = &parentWork->light;
+    model->flags            = 0;
+    model->colorMtx         = &parentWork->color;
+    rootCoord->parent       = attachmentCoord;
+}
+
+/// Attaches the carried model to walker part 4 and refreshes its root composition.
+///
+/// Requires a live TMD child task parented under the spawned walker, whose
+/// model has at least five coordinates and whose work is `PacedWalkWork`.
+/// State 0 clears the child's model flags, borrows the parent's lighting
+/// matrices and part-4 coordinate, then enters state 1. Both states mark the
+/// child's root dirty; other states do nothing. The parent's model and work
+/// must outlive the child, which belongs to its task teardown tree.
+static void _pacedWalkSubModelTask(Task* task)
+{
+    enum {
+        PACED_WALK_SUB_MODEL_ATTACH = 0,
+        PACED_WALK_SUB_MODEL_FOLLOW = 1,
+        PACED_WALK_ATTACHMENT_PART  = 4,
+    };
+
+    // Retain the original unused stack reservation.
+    char           unusedStackFrame[0x10];
+    Task*          parentTask      = task->parent;
+    TmdObject*     model           = task->extra.tmd;
+    GfxCoord*      rootCoord       = model->coords;
+    GfxCoord*      attachmentCoord = &parentTask->extra.tmd->coords[PACED_WALK_ATTACHMENT_PART];
+    PacedWalkWork* parentWork      = parentTask->work;
 
     switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            obj->lightMtx       = &work->light;
-            obj->flags          = 0;
-            obj->colorMtx       = &work->color;
-            coord->parent       = sub;
+        case PACED_WALK_SUB_MODEL_ATTACH:
+            _pacedWalkAttachCarriedModel(model, rootCoord, attachmentCoord, parentWork);
             task->state++;
             break;
-        case 1:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        case PACED_WALK_SUB_MODEL_FOLLOW:
+            rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }
 }
