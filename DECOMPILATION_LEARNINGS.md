@@ -8412,7 +8412,7 @@ jr    ra
  nop
 ```
 
-`CdAudio_SetLocBase` (`_gCdAudioState.playback.baseSector = arg0`) is a pure example — only a
+`_cdAudioSetBaseSector` (`_gCdAudioState.playback.baseSector = baseSector`) is a pure example — only a
 volatile `_gCdAudioState` matches.
 
 `D_800680C0` is another interrupt-shared flag: the SPU timer callback

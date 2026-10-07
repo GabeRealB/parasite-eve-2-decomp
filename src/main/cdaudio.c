@@ -292,21 +292,11 @@ static void _cdAudioWaveSectorReadyCallback(u8 interruptStatus, u8* unusedResult
 
 static u8 _cdAudioGetDriver(void);
 
-static s32 CdAudio_Reset(s32 arg0);
-
-static s32 CdAudio_SetupStream(void);
-
-static s32 CdAudio_SeekRelative(s32 arg0);
-
-static s32 CdAudio_RequestStopA(void);
-
 static s32 _cdAudioFadeOutTableTrack(void);
 
 static s32 _cdAudioResetTrack(s32 baseSector);
 
 static s32 _cdAudioOpenTrackIfPresent(s32 startSector);
-
-static void CdAudio_SetLocBase(s32 arg0);
 
 static s32 _cdAudioSelectHeaderTrack(s32 trackIndex);
 
@@ -1117,8 +1107,9 @@ static void _cdAudioWaveSectorReadyCallback(u8 interruptStatus, u8* unusedResult
 
 /// Repeats a clear of one word without advancing to the rest of the control block.
 ///
-/// `firstWord` must be word-aligned writable storage. At least one store occurs,
-/// even for a zero repetition count; the pointer is borrowed only for the call.
+/// `firstWord` is a borrowed, plain representation view of four word-aligned,
+/// writable bytes. `repetitions` counts stores to those same bytes, not an extent
+/// to clear. A zero count still performs one store; no later word is accessed.
 static inline void _cdAudioRepeatFirstWordClear(s32* firstWord, u32 repetitions)
 {
     u32 stores = 0;
@@ -1162,7 +1153,13 @@ void CdAudio_Tick(void)
     }
 }
 
-static s32 CdAudio_Reset(s32 arg0)
+/// Sets the absolute disc read base and clears retained read-failure bookkeeping.
+///
+/// Clears the track-entry base index and settling delay, then drops the header
+/// buffer pointer without freeing its allocation or clearing the table aliases.
+/// Progress steps and the selected driver are retained. A zero base suppresses
+/// driver updates. Always returns 0; this retained entry point has no caller.
+static s32 _cdAudioResetReadBase(s32 baseSector)
 {
     volatile _CdAudioDriverStatus* driverStatus;
 
@@ -1172,44 +1169,71 @@ static s32 CdAudio_Reset(s32 arg0)
     driverStatus->settleTicks          = 0;
     driverStatus->failedStep           = 0;
     driverStatus->failureKind          = CD_AUDIO_FAILURE_NONE;
-    _gCdAudioState.playback.baseSector = arg0;
-    CdAudio_SectorBuffer               = 0;
+    _gCdAudioState.playback.baseSector = baseSector;
+    CdAudio_SectorBuffer               = NULL;
     return 0;
 }
 
-static s32 CdAudio_SetupStream(void)
+/// Replaces the header-sector buffer and requests a read at the stored base sector.
+///
+/// The nonzero base is an absolute disc sector. Previous header consumers and CD
+/// ready callbacks must be quiescent before their buffer is freed. The sound heap
+/// must supply a complete header sector; allocation failure is not checked.
+/// The player owns the new buffer, and its track table borrows that allocation.
+/// Continue driver updates until `CD_AUDIO_HEADER_READ_STEP_DONE` before selecting
+/// a header track, or `CD_AUDIO_HEADER_READ_STEP_FAILED` if the read is abandoned.
+/// Returns 0 regardless of the drive-mode result.
+/// This retained entry point has no caller.
+static s32 _cdAudioStartHeaderRead(void)
 {
-    u8              mode;
+    u8              driveMode;
     _CdAudioHeader* header;
-    u8*             buf;
 
     CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_SET_LOCATION;
     CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
-    buf = CdAudio_SectorBuffer;
-    if (buf != 0) {
-        sndHeapFree(buf);
+
+    // Replace the owned sector; the slot-table alias is rebound after the read.
+    if (CdAudio_SectorBuffer != NULL) {
+        sndHeapFree(CdAudio_SectorBuffer);
     }
-    header                         = sndHeapAlloc(sizeof(_CdAudioHeader));
+    header                         = sndHeapAlloc(sizeof(*header));
     CdAudio_SectorBuffer           = (u8*)header;
     CdAudio_SectorEntries          = header->trackEntries;
     _gCdAudioState.playback.driver = CD_AUDIO_DRIVER_READ_HEADER;
-    mode                           = CdlModeSpeed | CdlModeSize1;
-    CdControlB(CdlSetmode, &mode, NULL);
+    driveMode                      = CdlModeSpeed | CdlModeSize1;
+    CdControlB(CdlSetmode, &driveMode, NULL);
     return 0;
 }
 
-static s32 CdAudio_SeekRelative(s32 arg0)
+/// Selects a header track's metadata and requests opening its absolute sector.
+///
+/// Uses trackNumber's low byte: 0 does nothing; 1..255 name entries 0..254 from
+/// the track-entry base. The buffered header and slot table must remain readable,
+/// and the entry must precede the slot table; no track count or check is available.
+/// Metadata is selected even when playback prevents another opening request.
+/// Returns the masked track number, without reporting whether opening started.
+/// This retained entry point has no caller.
+static s32 _cdAudioOpenHeaderTrack(s32 trackNumber)
 {
-    s32 temp_s0;
+    enum {
+        CD_AUDIO_HEADER_TRACK_NUMBER_MASK = 0xFF,
+        CD_AUDIO_HEADER_TRACK_NONE        = 0,
+    };
+    s32 selectedTrackNumber;
 
-    temp_s0 = arg0 & 0xFF;
-    if (temp_s0 != 0) {
-        _cdAudioOpenTrackAtSector(_gCdAudioState.playback.baseSector + _cdAudioSelectHeaderTrack((arg0 - 1) & 0xFF));
+    selectedTrackNumber = trackNumber & CD_AUDIO_HEADER_TRACK_NUMBER_MASK;
+    if (selectedTrackNumber != CD_AUDIO_HEADER_TRACK_NONE) {
+        _cdAudioOpenTrackAtSector(_gCdAudioState.playback.baseSector + _cdAudioSelectHeaderTrack((trackNumber - 1) & CD_AUDIO_HEADER_TRACK_NUMBER_MASK));
     }
-    return temp_s0;
+    return selectedTrackNumber;
 }
 
-static s32 CdAudio_RequestStopA(void)
+/// Requests playback of an opened stream through the retained private entry point.
+///
+/// Returns `CD_AUDIO_PLAY_REQUESTED` or `CD_AUDIO_PLAY_NOT_OPEN`; refusal marks
+/// playback done and selects the fade stop step. Continue servicing the audio
+/// driver after acceptance. This standalone wrapper has no caller.
+static s32 _cdAudioPlay(void)
 {
     return _cdAudioRequestPlay();
 }
@@ -1320,9 +1344,13 @@ s32 cdAudioLoadWaves(s32 firstSector)
     return CD_AUDIO_WAVE_LOAD_REQUESTED;
 }
 
-static void CdAudio_SetLocBase(s32 arg0)
+/// Sets the absolute disc-sector base for header track offsets and wave reads.
+///
+/// Set the base before preparing a read's seek location. A zero base suppresses
+/// driver updates. This retained setter has no caller.
+static void _cdAudioSetBaseSector(s32 baseSector)
 {
-    _gCdAudioState.playback.baseSector = arg0;
+    _gCdAudioState.playback.baseSector = baseSector;
 }
 
 void spuQueueVoiceAttributes(s8 voiceIdx, const SpuVoiceAttr* attributes)
