@@ -967,7 +967,7 @@ void CdAudio_Init(void)
     D_8008277C                      = 0;
     CdAudio_SectorBuffer            = 0;
     _gCdAudioState.playback.spuBase = 0x51010;
-    Spu_SetVoiceRange(3, 0x16, 2);
+    spuSetVoiceRange(SPU_VOICE_RANGE_CD_STREAM, 22, 2);
     CdStream_Reset();
     sndOutputSetStereo(SOUND_OUTPUT_STEREO);
 }

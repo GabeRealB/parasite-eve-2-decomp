@@ -836,7 +836,7 @@ void Snd_SetModeFlag(s32 arg0)
 
 void Snd_PollAsync(s32 unused)
 {
-    AsyncCb_Poll();
+    asyncCbPoll();
 }
 
 void Snd_RegisterTickCallbacks(void)
@@ -893,7 +893,7 @@ s32 Snd_ReverbWarmupCb(s32* arg0)
     if (temp < 0x3D) {
         return 0;
     }
-    Spu_SetReverbDepth(0x2800);
+    spuSetReverbDepth(0x2800);
     return -1;
 }
 
@@ -923,7 +923,7 @@ s32 Snd_InitBanks(u32 unused)
     s32                id;
 
     *(volatile s32*)&D_80068A78 = 0xFF;
-    Spu_SetVoiceRange(1, 0x12, 6);
+    spuSetVoiceRange(SPU_VOICE_RANGE_SOUND_SCRIPTS, 18, 6);
     SndVoice_Init();
     _sndScriptSetReverb(SOUND_SCRIPT_REVERB_DEFAULT_LEVEL);
     sndScriptSetTypeRequestsEnabled(1, SOUND_BANK_TYPE_ALL_NON_AMBIENT);

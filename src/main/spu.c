@@ -2,6 +2,7 @@
 
 #include <psyq/sys/types.h>
 #include <psyq/libspu.h>
+#include <psyq/limits.h>
 
 #include "common.h"
 
@@ -14,6 +15,13 @@
 /// Audio ticks after a key-on request during which a voice reading
 /// `SPU_ON_ENV_OFF` is not yet taken to have finished.
 #define SPU_KEY_ON_GRACE_TICKS 5
+
+/// SPU byte address and envelope words used when parking a voice on silence.
+enum {
+    SPU_SILENT_BLOCK_ADDRESS = 0x7B440,
+    SPU_SILENT_ADSR1         = 0x80FF,
+    SPU_SILENT_ADSR2         = 0xFFE0
+};
 
 /// Allocation and key state of the SPU's hardware voices.
 ///
@@ -122,17 +130,9 @@ static _SpuReverbConfig Spu_ReverbCfg;
 
 static u8 Spu_InitialAdpcmBlock[];
 
-static inline s32 Spu_ReleaseVoiceSlotInline(u32 voiceIdx);
-
 static inline s32 _spuGetVoiceRef(s8 voiceIdx, SpuVoiceRef* ref);
 
-static void Spu_QueryReverbVoices(void);
-
-static void Spu_SetReverbMode(u32 mode);
-
-static bool Spu_ReverbVoiceIsEnabled(u32 voiceIdx);
-
-static void Spu_ApplyReverbConfig(void);
+static void _spuApplyReverbUpdates(void);
 
 static void _spuKeyOnSilentBlock(u32 voiceIdx);
 
@@ -140,14 +140,62 @@ static u8 Spu_InitialAdpcmBlock[] = {
 #include "assets/spu_voice_block.inc"
 };
 
-void AsyncCb_Poll(void)
+/// Selects the same SPU byte address for a queued voice's start and loop.
+///
+/// ref is a live SpuVoiceRef value, evaluated once; address is evaluated twice
+/// and must have no side effects. The caller selects the attribute mask.
+#define SPU_SET_VOICE_SAMPLE_ADDRESS(ref, address) \
+    {                                              \
+        SpuVoiceAttr* attr = (ref).attr;           \
+        attr->loop_addr    = (address);            \
+        attr->addr         = (address);            \
+    }
+
+/// Sets a queued voice's signed left and right volume register values.
+///
+/// ref is a live SpuVoiceRef value. Each argument is evaluated once, right
+/// before left; values are narrowed to s16. The caller selects the mask.
+#define SPU_SET_VOICE_VOLUMES(ref, leftVolume, rightVolume) \
+    {                                                       \
+        SpuVoiceAttr* attr = (ref).attr;                    \
+        attr->volume.right = (rightVolume);                 \
+        attr->volume.left  = (leftVolume);                  \
+    }
+
+/// Sets a queued voice's left and right volume sweep modes.
+///
+/// ref is a live SpuVoiceRef value. Each argument is evaluated once, right
+/// before left; modes are SPU_VOICE_* values. The caller selects the mask.
+#define SPU_SET_VOICE_VOLUME_MODES(ref, leftMode, rightMode) \
+    {                                                        \
+        SpuVoiceAttr* attr  = (ref).attr;                    \
+        attr->volmode.right = (rightMode);                   \
+        attr->volmode.left  = (leftMode);                    \
+    }
+
+/// Sets both packed ADSR register words in a queued voice's attributes.
+///
+/// ref is a live SpuVoiceRef value, evaluated twice, and must have no side
+/// effects. Each word is evaluated once and narrowed to u16, adsr1 before
+/// adsr2. The caller selects the mask. Use as a statement inside braces.
+#define SPU_SET_VOICE_ADSR(ref, adsrWord1, adsrWord2) \
+    {                                                 \
+        SpuVoiceAttr* attr = (ref).attr;              \
+        attr->adsr1        = (adsrWord1);             \
+    }                                                 \
+    {                                                 \
+        SpuVoiceAttr* attr = (ref).attr;              \
+        attr->adsr2        = (adsrWord2);             \
+    }
+
+void asyncCbPoll(void)
 {
     AsyncCbEntry* entry;
-    s8            current;
+    s8            readIdx;
 
-    current = AsyncCb_Queue.readIdx;
-    if (AsyncCb_Queue.writeIdx != current) {
-        entry = &AsyncCb_Queue.entries[current];
+    readIdx = AsyncCb_Queue.readIdx;
+    if (AsyncCb_Queue.writeIdx != readIdx) {
+        entry = &AsyncCb_Queue.entries[readIdx];
         if (entry->status.active) {
             if (entry->pollFn(entry) != 0) {
                 if (entry->doneFn != NULL) {
@@ -160,10 +208,7 @@ void AsyncCb_Poll(void)
                 }
             }
         } else {
-            // A cancelled job that had started gets its cancel callback, again on every
-            // poll for as long as that returns an odd value; one that never ran is
-            // dropped. The two tests stay nested: joined by `&&` they compile to a single
-            // masked compare.
+            // Only a job that started needs cancellation; an odd result keeps it queued.
             if (entry->status.cancelled) {
                 if (!entry->status.firstPoll) {
                     if (entry->cancelFn != NULL) {
@@ -181,18 +226,18 @@ void AsyncCb_Poll(void)
     }
 }
 
-void AsyncCb_Reset(void)
+void asyncCbReset(void)
 {
-    u32  i;
-    s32* ptr;
+    u32  wordsCleared;
+    s32* clearWord;
 
-    ptr = (s32*)&AsyncCb_Queue;
-    i   = 0;
+    clearWord    = (s32*)&AsyncCb_Queue;
+    wordsCleared = 0;
     do {
-        *ptr = 0;
-        i++;
-        ptr++;
-    } while (i < sizeof(AsyncCb_Queue) / sizeof(*ptr));
+        *clearWord = 0;
+        wordsCleared++;
+        clearWord++;
+    } while (wordsCleared < sizeof(AsyncCb_Queue) / sizeof(*clearWord));
 }
 
 s16 asyncCbEnqueue(const AsyncCbEntry* callbacks)
@@ -241,87 +286,66 @@ void asyncCbCancel(s16 handle)
     }
 }
 
-void Spu_InitVoices(void)
+void spuInitVoices(void)
 {
     SpuVoiceRef voiceRef;
-    s32*        ptr;
-    s32         i;
-    s8          sVoiceIdx;
-    u32         spuAddr;
+    s32*        clearWord;
+    s32         index;
+    s8          voiceIndex;
+    u32         silentBlockAddr;
 
-    spuAddr = 0x7B440;
-    SpuSetTransferStartAddr(spuAddr);
-    SpuWrite(Spu_InitialAdpcmBlock, 0x30U);
-    SpuIsTransferCompleted(1);
+    // Install the silent loop before any voice can select it.
+    silentBlockAddr = SPU_SILENT_BLOCK_ADDRESS;
+    SpuSetTransferStartAddr(silentBlockAddr);
+    SpuWrite(Spu_InitialAdpcmBlock, sizeof(Spu_InitialAdpcmBlock));
+    SpuIsTransferCompleted(SPU_TRANSFER_WAIT);
 
-    ptr                = (s32*)&Spu_LVoiceTable;
-    i                  = 0;
+    clearWord          = (s32*)&Spu_LVoiceTable;
+    index              = 0;
     Spu_KeyOnMask      = 0;
     Spu_KeyOnMaskExtra = 0;
     Spu_KeyOffMask     = 0;
     do {
-        *ptr = 0;
-        i++;
-        ptr++;
-    } while ((u32)i < sizeof(Spu_LVoiceTable) / sizeof(*ptr));
+        *clearWord = 0;
+        index++;
+        clearWord++;
+    } while ((u32)index < sizeof(Spu_LVoiceTable) / sizeof(*clearWord));
 
-    ptr = (s32*)&Spu_VoiceState;
-    i   = 0;
+    clearWord = (s32*)&Spu_VoiceState;
+    index     = 0;
     do {
-        *ptr = 0;
-        i++;
-        ptr++;
-    } while ((u32)i < sizeof(Spu_VoiceState) / sizeof(*ptr));
+        *clearWord = 0;
+        index++;
+        clearWord++;
+    } while ((u32)index < sizeof(Spu_VoiceState) / sizeof(*clearWord));
 
-    i = 0;
+    // Queue every voice on silence; the next flush applies this complete batch.
+    index = 0;
     do {
-        sVoiceIdx = i;
-        spuGetVoiceRef(sVoiceIdx, &voiceRef);
+        voiceIndex = index;
+        spuGetVoiceRef(voiceIndex, &voiceRef);
 
-        {
-            SpuVoiceAttr* attr = voiceRef.attr;
-            attr->loop_addr    = spuAddr;
-            attr->addr         = spuAddr;
-        }
-        {
-            SpuVoiceAttr* attr = voiceRef.attr;
-            attr->volume.right = 0;
-            attr->volume.left  = 0;
-        }
-        {
-            SpuVoiceAttr* attr  = voiceRef.attr;
-            attr->volmode.right = 0;
-            attr->volmode.left  = 0;
-        }
-        {
-            SpuVoiceAttr* attr = voiceRef.attr;
-            attr->adsr1        = 0x80FF;
-        }
-        {
-            SpuVoiceAttr* attr = voiceRef.attr;
-            attr->adsr2        = 0xFFE0;
-        }
-        {
-            SpuVoiceAttr* attr = voiceRef.attr;
-            attr->mask         = 0x7008FU;
-        }
-        {
-            SpuVoiceAttr* attr = voiceRef.attr;
-            attr->voice        = 1 << i;
-        }
+        SPU_SET_VOICE_SAMPLE_ADDRESS(voiceRef, silentBlockAddr);
+        SPU_SET_VOICE_VOLUMES(voiceRef, 0, 0);
+        SPU_SET_VOICE_VOLUME_MODES(voiceRef, SPU_VOICE_DIRECT, SPU_VOICE_DIRECT);
+        SPU_SET_VOICE_ADSR(voiceRef, SPU_SILENT_ADSR1, SPU_SILENT_ADSR2);
+        voiceRef.attr->mask  = (u32)(SPU_VOICE_VOLL | SPU_VOICE_VOLR | SPU_VOICE_VOLMODEL | SPU_VOICE_VOLMODER |
+                                    SPU_VOICE_WDSA | SPU_VOICE_LSAX | SPU_VOICE_ADSR_ADSR1 | SPU_VOICE_ADSR_ADSR2);
+        voiceRef.attr->voice = SPU_VOICECH(index);
 
-        _spuKeyOnSilentBlock(sVoiceIdx);
-        i++;
-    } while (i < 0x18);
+        _spuKeyOnSilentBlock(voiceIndex);
+        index++;
+    } while (index < SPU_VOICE_COUNT);
 
-    Spu_SetVoiceRange(2, 0x10, 2);
+    spuSetVoiceRange(SPU_VOICE_RANGE_SHARED, 16, 2);
 }
 
-/// Notifies a voice's previous owner when both handler and borrowed context are present.
+/// Notifies a voice's registered owner when both handler and borrowed context are present.
 ///
 /// state must remain live and voiceIdx must be 0..23. The registration is
-/// retained so the allocating caller can replace it after taking ownership.
-static inline void _spuNotifyVoiceOwner(const _SpuVoiceState* state, s8 voiceIdx)
+/// retained unless clearAfterNotification is true, which requires writable state.
+/// A disabled notification leaves the registration intact in either case.
+static inline void _spuNotifyVoiceOwner(_SpuVoiceState* state, s32 voiceIdx, bool clearAfterNotification)
 {
     SpuVoiceCallback callback;
     void*            context;
@@ -331,6 +355,10 @@ static inline void _spuNotifyVoiceOwner(const _SpuVoiceState* state, s8 voiceIdx
         context = state->callbackContexts[voiceIdx];
         if (context != NULL) {
             callback(context);
+            if (clearAfterNotification) {
+                state->callbacks[voiceIdx]        = NULL;
+                state->callbackContexts[voiceIdx] = NULL;
+            }
         }
     }
 }
@@ -397,7 +425,7 @@ s32 spuAllocVoice(const s16* rangeIndices, s32 rangeCount, s32 priority)
 
     // Ownership changes here; the new owner replaces the retained notification.
     if (candidateVoiceIdx >= 0) {
-        _spuNotifyVoiceOwner(state, candidateVoiceIdx);
+        _spuNotifyVoiceOwner(state, candidateVoiceIdx, false);
         state->priorities[candidateVoiceIdx] = priority;
         state->ages[candidateVoiceIdx]       = 0;
         state->keyStatus[candidateVoiceIdx]  = SPU_ON;
@@ -405,15 +433,19 @@ s32 spuAllocVoice(const s16* rangeIndices, s32 rangeCount, s32 priority)
     return candidateVoiceIdx;
 }
 
-static inline s32 Spu_ReleaseVoiceSlotInline(u32 voiceIdx)
+/// Releases allocation, priority and age without touching key state or callbacks.
+///
+/// Requires voiceIdx in 0..23. Returns 0 on release or -1 on rejection;
+/// the retained unsigned-byte guard also admits 24, beyond the voice arrays.
+static inline s32 _spuReleaseVoiceSlot(u32 voiceIdx)
 {
-    s8 sVoiceIdx = (s8)voiceIdx;
-    if ((u8)sVoiceIdx > (u32)SPU_VOICE_COUNT) {
+    s8 voiceIndex = (s8)voiceIdx;
+    if ((u8)voiceIndex > (u32)SPU_VOICE_COUNT) {
         return -1;
     }
-    Spu_VoiceState.allocated[sVoiceIdx]  = false;
-    Spu_VoiceState.priorities[sVoiceIdx] = 0;
-    Spu_VoiceState.ages[sVoiceIdx]       = 0;
+    Spu_VoiceState.allocated[voiceIndex]  = false;
+    Spu_VoiceState.priorities[voiceIndex] = 0;
+    Spu_VoiceState.ages[voiceIndex]       = 0;
     return 0;
 }
 
@@ -450,75 +482,60 @@ static inline s32 _spuGetVoiceRef(s8 voiceIdx, SpuVoiceRef* ref)
     }
 }
 
-void Spu_TickVoices(void)
+void spuTickVoices(void)
 {
-    SpuVoiceRef      ref;
-    _SpuVoiceState*  state;
-    s32              i;
-    s32              age;
-    s8               status;
-    SpuVoiceCallback callback;
-    void*            context;
+    SpuVoiceRef     voiceRef;
+    _SpuVoiceState* state;
+    s32             voiceIdx;
+    s32             voiceAge;
+    s8              keyStatus;
 
     state = &Spu_VoiceState;
     SpuGetAllKeysStatus(state->keyStatus);
-    for (i = 0; i < SPU_VOICE_COUNT; i++) {
-        if (state->keyOnGraceTicks[i] != 0) {
-            state->keyOnGraceTicks[i]--;
+    for (voiceIdx = 0; voiceIdx < SPU_VOICE_COUNT; voiceIdx++) {
+        if (state->keyOnGraceTicks[voiceIdx] != 0) {
+            state->keyOnGraceTicks[voiceIdx]--;
         }
-        age = state->ages[i];
-        if (age < 0x7FFFFFFF) {
-            state->ages[i] = age + 1;
+        voiceAge = state->ages[voiceIdx];
+        if (voiceAge < INT_MAX) {
+            state->ages[voiceIdx] = voiceAge + 1;
         }
-        status = state->keyStatus[i];
-        if (status != SPU_OFF) {
-            if (status != SPU_ON_ENV_OFF || state->keyOnGraceTicks[i] != 0) {
+        keyStatus = state->keyStatus[voiceIdx];
+        if (keyStatus != SPU_OFF) {
+            if (keyStatus != SPU_ON_ENV_OFF || state->keyOnGraceTicks[voiceIdx] != 0) {
                 continue;
             }
-            if ((state->startedVoices >> i) & 1) {
-                spuKeyOff((s8)i);
+            if ((state->startedVoices >> voiceIdx) & 1) {
+                spuKeyOff((s8)voiceIdx);
             }
         }
-        Spu_ReleaseVoiceSlotInline(i);
-        callback = state->callbacks[i];
-        if (callback != NULL) {
-            context = state->callbackContexts[i];
-            if (context != NULL) {
-                callback(context);
-                state->callbacks[i]        = NULL;
-                state->callbackContexts[i] = NULL;
-            }
-        }
-        if ((state->startedVoices >> i) & 1) {
-            _spuGetVoiceRef((s8)i, &ref);
-            {
-                SpuVoiceAttr* attr = ref.attr;
-                attr->loop_addr    = 0x7B440;
-                attr->addr         = 0x7B440;
-            }
-            {
-                SpuVoiceAttr* attr = ref.attr;
-                attr->volume.right = 0;
-                attr->volume.left  = 0;
-            }
-            ref.attr->adsr1 = 0x80FF;
-            ref.attr->adsr2 = 0xFFE0;
-            ref.attr->mask |= 0x70083;
-            _spuKeyOnSilentBlock((s8)i);
+        // Release completed voices and clear only registrations that were notified.
+        _spuReleaseVoiceSlot(voiceIdx);
+        _spuNotifyVoiceOwner(state, voiceIdx, true);
+        if ((state->startedVoices >> voiceIdx) & 1) {
+            // Park voices marked by an ordinary sound start on silence.
+            _spuGetVoiceRef((s8)voiceIdx, &voiceRef);
+            SPU_SET_VOICE_SAMPLE_ADDRESS(voiceRef, SPU_SILENT_BLOCK_ADDRESS);
+            SPU_SET_VOICE_VOLUMES(voiceRef, 0, 0);
+            SPU_SET_VOICE_ADSR(voiceRef, SPU_SILENT_ADSR1, SPU_SILENT_ADSR2);
+            voiceRef.attr->mask |= SPU_VOICE_VOLL | SPU_VOICE_VOLR | SPU_VOICE_WDSA |
+                                   SPU_VOICE_LSAX | SPU_VOICE_ADSR_ADSR1 | SPU_VOICE_ADSR_ADSR2;
+            _spuKeyOnSilentBlock((s8)voiceIdx);
         }
     }
 }
 
-void Spu_FlushVoiceUpdates(void)
+void spuFlushVoiceUpdates(void)
 {
     s32                  voiceIdx;
     _SpuVoiceUpdateList* list;
 
     if (Spu_ReverbCfg.isDirty) {
-        Spu_ApplyReverbConfig();
+        _spuApplyReverbUpdates();
         Spu_ReverbCfg.isDirty = false;
     }
 
+    // Stop pending sound key-ons first, then apply attributes before restarting them.
     Spu_KeyOffMask |= Spu_KeyOnMask;
     if (Spu_KeyOffMask != 0) {
         SpuSetKey(SPU_OFF, Spu_KeyOffMask);
@@ -536,6 +553,7 @@ void Spu_FlushVoiceUpdates(void)
         list->count = 0;
     }
 
+    // Only ordinary sound starts enter completion-reset tracking.
     if ((Spu_KeyOnMask | Spu_KeyOnMaskExtra) != 0) {
         SpuSetKey(SPU_ON, Spu_KeyOnMask | Spu_KeyOnMaskExtra);
         if (Spu_KeyOnMask != 0) {
@@ -565,15 +583,15 @@ void spuClearVoiceCallback(u32 voiceIdx)
     Spu_VoiceState.callbackContexts[voiceIndex] = NULL;
 }
 
-s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
+s32 spuSetVoiceRange(s32 rangeIndex, s32 firstVoice, s32 voiceCount)
 {
     _SpuVoiceRange* range;
-    s16             sIdx;
+    s16             rangeSlot;
 
-    sIdx         = idx;
-    range        = &Spu_VoiceRanges[sIdx];
-    range->first = arg1;
-    range->count = arg2;
+    rangeSlot    = rangeIndex;
+    range        = &Spu_VoiceRanges[rangeSlot];
+    range->first = firstVoice;
+    range->count = voiceCount;
     return 0;
 }
 
@@ -633,12 +651,13 @@ void spuKeyOff(u32 voiceIdx)
     Spu_KeyOnMaskExtra &= ~voiceMask;
 }
 
-static void Spu_QueryReverbVoices(void)
+/// Refreshes the cached hardware reverb-routing mask; retained without callers.
+static void _spuRefreshReverbVoiceStatus(void)
 {
     Spu_VoiceState.reverbVoiceStatus = SpuGetReverbVoice();
 }
 
-void Spu_ConfigReverb(s32 mode)
+void spuInitReverb(s32 mode)
 {
     SpuReserveReverbWorkArea(SPU_ON);
     SpuSetReverbVoice(SPU_OFF, SPU_ALLCH);
@@ -656,7 +675,7 @@ void Spu_ConfigReverb(s32 mode)
     Spu_ReverbCfg.attr.mask = 0;
 }
 
-void Spu_SetReverbDepth(s16 depth)
+void spuSetReverbDepth(s16 depth)
 {
     Spu_ReverbCfg.isDirty          = true;
     Spu_ReverbCfg.attr.depth.right = depth;
@@ -664,7 +683,13 @@ void Spu_SetReverbDepth(s16 depth)
     Spu_ReverbCfg.attr.mask       |= SPU_REV_DEPTHR | SPU_REV_DEPTHL;
 }
 
-static void Spu_SetReverbMode(u32 mode)
+/// Queues a mode change only away from a non-OFF mode recorded by this helper.
+///
+/// mode is an SPU_REV_MODE_* value. Clears the previously recorded mode's
+/// work area immediately and defers the parameter update until the next flush.
+/// Retained without callers: startup does not seed activeMode, so its zero
+/// initial value prevents this helper from making a first change.
+static void _spuSetReverbMode(u32 mode)
 {
     if (Spu_ReverbCfg.activeMode != mode && Spu_ReverbCfg.activeMode != SPU_REV_MODE_OFF) {
         SpuClearReverbWorkArea(Spu_ReverbCfg.activeMode);
@@ -697,12 +722,19 @@ void spuDisableVoiceReverb(u32 voiceIdx)
     Spu_ReverbCfg.enableVoices  &= ~voiceMask;
 }
 
-static bool Spu_ReverbVoiceIsEnabled(u32 voiceIdx)
+/// Tests a voice's cached reverb routing; retained without callers.
+///
+/// Requires voiceIdx in 0..23 and a previously refreshed status mask.
+/// Pending routing changes do not update this snapshot.
+static bool _spuIsVoiceReverbEnabled(u32 voiceIdx)
 {
     return (Spu_VoiceState.reverbVoiceStatus >> voiceIdx) & 1;
 }
 
-static void Spu_ApplyReverbConfig(void)
+/// Applies pending reverb routing and parameters, then empties their masks.
+///
+/// The flush owns isDirty; depth requests always select both stereo channels.
+static void _spuApplyReverbUpdates(void)
 {
     if (Spu_ReverbCfg.disableVoices != 0) {
         SpuSetReverbVoice(SPU_OFF, Spu_ReverbCfg.disableVoices);
@@ -791,19 +823,19 @@ static void _spuKeyOnSilentBlock(u32 voiceIdx)
     Spu_KeyOffMask                  &= ~voiceMask;
 }
 
-void Spu_ArmKeyOn(u32 voiceIdx)
+void spuKeyOnStreamVoice(u32 voiceIdx)
 {
     _SpuVoiceState* state;
-    u32*            pKeyOn;
-    u32             channel;
+    u32*            keyOnMask;
+    u32             voiceMask;
 
     state                            = &Spu_VoiceState;
-    pKeyOn                           = &Spu_KeyOnMaskExtra;
+    keyOnMask                        = &Spu_KeyOnMaskExtra;
     voiceIdx                         = (s8)voiceIdx;
     state->keyOnGraceTicks[voiceIdx] = SPU_KEY_ON_GRACE_TICKS;
-    channel                          = SPU_VOICECH(voiceIdx);
-    *pKeyOn                         |= channel;
-    state->silentKeyOnVoices        &= ~channel;
-    Spu_KeyOnMask                   &= ~channel;
-    Spu_KeyOffMask                  &= ~channel;
+    voiceMask                        = SPU_VOICECH(voiceIdx);
+    *keyOnMask                      |= voiceMask;
+    state->silentKeyOnVoices        &= ~voiceMask;
+    Spu_KeyOnMask                   &= ~voiceMask;
+    Spu_KeyOffMask                  &= ~voiceMask;
 }

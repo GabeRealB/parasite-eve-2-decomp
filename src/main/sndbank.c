@@ -421,9 +421,9 @@ static inline void Spu_InitSystemLocked(s32 arg0)
 
     _sndHeapReset();
     sndEvtReset();
-    AsyncCb_Reset();
-    Spu_ConfigReverb(3);
-    Spu_InitVoices();
+    asyncCbReset();
+    spuInitReverb(SPU_REV_MODE_STUDIO_B);
+    spuInitVoices();
     _sndBankResetDescriptors();
     _audioTickReset();
     Snd_RegisterTickCallbacks();
@@ -550,10 +550,10 @@ void Audio_IrqFrameWork(void)
 {
     if (D_800680C0 != 0) {
         D_800680C0 = 0;
-        Spu_TickVoices();
+        spuTickVoices();
         SndEvt_Process();
         _audioTickProcess();
-        Spu_FlushVoiceUpdates();
+        spuFlushVoiceUpdates();
         D_800680BC += 1;
         if (gDisplayState.region == MODE_PAL) {
             D_8007E0CC = 6;
@@ -958,9 +958,9 @@ static s32 Spu_TimerReentryWork(void)
         return 0;
     }
     D_800680C0 = 0;
-    Spu_TickVoices();
+    spuTickVoices();
     _audioTickProcess();
-    Spu_FlushVoiceUpdates();
+    spuFlushVoiceUpdates();
     D_800680C0  = 1;
     D_800680BC += 1;
     return 0;

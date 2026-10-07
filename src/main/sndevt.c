@@ -821,7 +821,7 @@ s32 Midi_InitSystem(u32 unused)
     D_800820E9 = 0;
     D_800820E0 = 0;
     D_800820E4 = 0;
-    Spu_SetVoiceRange(0, 0, 0x10);
+    spuSetVoiceRange(SPU_VOICE_RANGE_MUSIC, 0, 16);
     song                = _midiPrepareSongForLoad(SOUND_EVENT_MIDI_INVALID_SEQUENCE);
     song->sequenceId    = SOUND_EVENT_MIDI_INVALID_SEQUENCE;
     song->sequenceBytes = 0x10;
@@ -1751,7 +1751,7 @@ static u8* Midi_Event3(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* track)
                 if (track->nrpnLsb != status) {
                     return arg1 + 3;
                 }
-                Spu_SetReverbDepth((s16)(arg1[2] << 8));
+                spuSetReverbDepth((s16)(arg1[2] << 8));
                 track->nrpnMsb = MIDI_TRACK_NRPN_IDLE;
                 track->nrpnLsb = MIDI_TRACK_NRPN_IDLE;
             }

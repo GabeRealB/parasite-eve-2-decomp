@@ -1926,34 +1926,34 @@ DisableEvent                = 0x8004DC7C;
 //--------------------------------------------------------------------
 //--- PA: 0x3E48C   VA: 0x8004DC7C   subsegment: c, 3E48C
 //--------------------------------------------------------------------
-AsyncCb_Poll               = 0x8004DC8C; // type:func
-AsyncCb_Reset               = 0x8004DDF0; // type:func
+asyncCbPoll               = 0x8004DC8C; // type:func
+asyncCbReset               = 0x8004DDF0; // type:func
 asyncCbEnqueue               = 0x8004DE18; // type:func
 asyncCbCancel               = 0x8004DEBC; // type:func
-Spu_InitVoices               = 0x8004DF10; // type:func
+spuInitVoices               = 0x8004DF10; // type:func
 spuAllocVoice               = 0x8004E060; // type:func
-Spu_TickVoices               = 0x8004E200; // type:func
-Spu_FlushVoiceUpdates             = 0x8004E44C; // type:func
+spuTickVoices               = 0x8004E200; // type:func
+spuFlushVoiceUpdates             = 0x8004E44C; // type:func
 spuSetVoiceCallback               = 0x8004E560; // type:func
 spuClearVoiceCallback               = 0x8004E580; // type:func
-Spu_SetVoiceRange               = 0x8004E5A0; // type:func
+spuSetVoiceRange               = 0x8004E5A0; // type:func
 spuGetVoiceRef               = 0x8004E5C4; // type:func
 spuReleaseVoiceSlot             = 0x8004E660; // type:func
 spuGetVoiceKeyStatus               = 0x8004E6A4; // type:func
 spuKeyOn               = 0x8004E6C4; // type:func
 spuKeyOff               = 0x8004E71C; // type:func
-Spu_QueryReverbVoices    = 0x8004E764; // type:func
-Spu_ConfigReverb      = 0x8004E788; // type:func
-Spu_SetReverbDepth       = 0x8004E814; // type:func
-Spu_SetReverbMode        = 0x8004E83C; // type:func
+_spuRefreshReverbVoiceStatus    = 0x8004E764; // type:func
+spuInitReverb      = 0x8004E788; // type:func
+spuSetReverbDepth       = 0x8004E814; // type:func
+_spuSetReverbMode        = 0x8004E83C; // type:func
 spuEnableVoiceReverb          = 0x8004E8A8; // type:func
 spuDisableVoiceReverb         = 0x8004E8E4; // type:func
-Spu_ReverbVoiceIsEnabled = 0x8004E920; // type:func
-Spu_ApplyReverbConfig    = 0x8004E938; // type:func
+_spuIsVoiceReverbEnabled = 0x8004E920; // type:func
+_spuApplyReverbUpdates    = 0x8004E938; // type:func
 spuCalcPitch               = 0x8004E9D8; // type:func
 sndBankGetLayer               = 0x8004EA60; // type:func
 _spuKeyOnSilentBlock               = 0x8004EAA0; // type:func
-Spu_ArmKeyOn               = 0x8004EAF8; // type:func
+spuKeyOnStreamVoice               = 0x8004EAF8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x3F360   VA: 0x8004EB60   subsegment: o, libspu/s_sr

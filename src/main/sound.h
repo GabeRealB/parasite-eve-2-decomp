@@ -207,7 +207,21 @@ s32 spuAllocVoice(const s16* rangeIndices, s32 rangeCount, s32 priority);
 /// The context must remain live until the registration is replaced or cleared.
 void spuSetVoiceCallback(u32 voiceIdx, SpuVoiceCallback callback, void* context);
 
-s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2);
+/// Registered voice-pool ranges; the script and stream ranges may overlap.
+enum {
+    SPU_VOICE_RANGE_MUSIC         = 0,
+    SPU_VOICE_RANGE_SOUND_SCRIPTS = 1,
+    SPU_VOICE_RANGE_SHARED        = 2,
+    SPU_VOICE_RANGE_CD_STREAM     = 3
+};
+
+/// Registers a consecutive run of hardware voices for allocation requests.
+///
+/// rangeIndex must select one of the four SPU_VOICE_RANGE_* slots after signed
+/// 16-bit narrowing. firstVoice and voiceCount are stored as signed halfwords;
+/// their resulting run must stay in 0..23. A zero count disables the range.
+/// Overlap is allowed. Performs no bounds checks and always returns 0.
+s32 spuSetVoiceRange(s32 rangeIndex, s32 firstVoice, s32 voiceCount);
 
 /// Gets a voice's attributes in the batch waiting for the next SPU flush.
 ///
@@ -235,7 +249,14 @@ void spuClearVoiceCallback(u32 voiceIdx);
 /// records this voice for reset onto the silent block when playback ends.
 void spuKeyOn(u32 voiceIdx);
 
-void Spu_ArmKeyOn(u32 voiceIdx);
+/// Queues a CD-stream voice's key-on without recording a new sound start.
+///
+/// voiceIdx must be 0..23. Starts the five-tick grace period and withdraws
+/// pending key-off, ordinary key-on and the silent mark. The next flush starts
+/// the voice without adding it to completion-reset tracking; any existing
+/// tracked sound start is retained.
+/// Allocation and callback registration remain the caller's responsibility.
+void spuKeyOnStreamVoice(u32 voiceIdx);
 
 /// Queues a voice's key-off and withdraws both kinds of pending key-on.
 ///
@@ -263,7 +284,13 @@ u16 spuCalcPitch(s32 key, s32 pitchOffset, s32 rootKey, s32 fineTune);
 /// or reloaded; callers do not own it.
 SndBankLayer* sndBankGetLayer(SndBank* bank, u8 group, u8 layer);
 
-void Spu_FlushVoiceUpdates(void);
+/// Submits accumulated reverb, key and voice-attribute changes to the SPU.
+///
+/// Applies reverb first, then key-off, queued attributes and key-on. The
+/// attribute batch is emptied, invalidating all SpuVoiceRef attribute pointers.
+/// Ordinary sound key-ons enter completion-reset tracking; silent-block and
+/// CD-stream key-ons do not. Call after the tick's sound producers finish.
+void spuFlushVoiceUpdates(void);
 
 /// Returns a voice's allocation slot to the pool without changing hardware state.
 ///
@@ -272,9 +299,18 @@ void Spu_FlushVoiceUpdates(void);
 /// the narrowed index fails the retained guard, which also admits index 24.
 s32 spuReleaseVoiceSlot(u32 voiceIdx);
 
-void Spu_ConfigReverb(s32 mode);
+/// Immediately enables reverb with no routed voices and zero stereo depth.
+///
+/// mode is an SPU_REV_MODE_* preset. Reserves the SPU reverb work area and
+/// applies the preset now; this startup path does not record activeMode for
+/// the retained private mode-change helper. Call before queuing reverb changes.
+void spuInitReverb(s32 mode);
 
-void Spu_SetReverbDepth(s16 depth);
+/// Queues equal left and right reverb output depth for the next SPU flush.
+///
+/// depth is a signed 16-bit SPU depth register value.
+/// Later requests before the flush replace both values.
+void spuSetReverbDepth(s16 depth);
 
 /// Queues reverb routing on for one voice at the next SPU flush.
 ///
@@ -534,11 +570,28 @@ void sndBankSlotReleaseImage(s32 slotIndex);
 
 void Spu_Init(void);
 
-void AsyncCb_Poll(void);
+/// Services the head asynchronous job once and retires it when finished.
+///
+/// A nonzero poll result calls the optional done handler before advancing.
+/// A cancelled job that started calls its cancel handler until the result's
+/// low bit clears; a job that never started is dropped. All handlers receive
+/// the queue-owned entry. A call never starts polling a second entry.
+void asyncCbPoll(void);
 
-void AsyncCb_Reset(void);
+/// Discards all asynchronous jobs and clears the ring without calling handlers.
+///
+/// Invalidates outstanding cancellation handles. Call with polling and queue
+/// producers quiescent; owners must release any job resources separately.
+void asyncCbReset(void);
 
-void Spu_InitVoices(void);
+/// Uploads the silent ADPCM loop and resets the voice allocator and update batch.
+///
+/// Waits for the upload, drops callback registrations without notification,
+/// then queues silent attributes and key-on for all 24 hardware voices.
+/// The next flush applies those requests. Registers the shared allocation
+/// range at voices 16..17; other clients register their own ranges separately.
+/// Call with voice users quiescent; existing attribute references expire.
+void spuInitVoices(void);
 
 /// Results of registering an audio-update poll.
 enum {
@@ -586,7 +639,14 @@ s32 Snd_InitBanks(u32);
 
 void Spu_ResetCommonAttr(void);
 
-/// Refreshes hardware voice status and runs pending voice callbacks and updates.
-extern void Spu_TickVoices(void);
+/// Samples hardware key status and releases completed voices once per audio tick.
+///
+/// Ages saturate at INT_MAX. SPU_OFF finishes immediately; SPU_ON_ENV_OFF
+/// finishes after the five-tick key-on grace period. Releases allocation and
+/// notifies owners only when both callback and context are present, then clears
+/// those notified registrations. Sound voices are queued back onto the silent
+/// block; a later flush applies the changes. Callbacks run in the audio update
+/// context and may use queued attributes only until that flush.
+void spuTickVoices(void);
 
 #endif // MAIN_PRIVATE_SOUND_H

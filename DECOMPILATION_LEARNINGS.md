@@ -8813,7 +8813,7 @@ bnez   v0, loop
  addiu a0, a0, 4
 ```
 
-Match with an unsigned counter and a `do`/`while` (`AsyncCb_Reset`):
+Match with an unsigned counter and a `do`/`while` (`asyncCbReset`):
 
 ```c
 u32 i;
@@ -12273,10 +12273,10 @@ that EBAC is the early-loaded `$a2` value. `spuKeyOn` is the pure
 early-`nor` counterpart: pointer on the `|=` target plus `voiceMask = ~voiceMask`
 before the two clears.
 
-`Spu_ArmKeyOn` is late-`nor` with an extra struct-field clear in the middle
+`spuKeyOnStreamVoice` is late-`nor` with an extra struct-field clear in the middle
 (`A |= mask; field &= ~mask; B &= ~mask; C &= ~mask`). Same recipe as E71C:
-local pointer on A (`&Spu_KeyOnMaskExtra`) and three inline `~channel` uses — not
-`channel = ~channel`. Dropping the pointer alone leaves only `li a1,1`
+local pointer on A (`&Spu_KeyOnMaskExtra`) and three inline `~voiceMask` uses — not
+`voiceMask = ~voiceMask`. Dropping the pointer alone leaves only `li a1,1`
 mis-scheduled before the `sb`; using `channel = ~channel` with the pointer
 falls back to ~70%.
 
@@ -17707,7 +17707,7 @@ Keep large constants (e.g. `0x7008FU` for a `mask` field) as *literals* at the
 store site, not loop-invariant locals — otherwise GCC pins them in a callee-
 saved reg (`s3`) instead of interleaving `lui`/`ori` into `$a1` delay slots.
 
-`Spu_InitVoices` is the pure example (voice-attr init after `spuGetVoiceRef`).
+`spuInitVoices` is the pure example (voice-attr init after `spuGetVoiceRef`).
 
 ## Empty asm after pinned arg copies for prologue `li sN` order
 
@@ -19112,7 +19112,7 @@ if ((entry->status.cancelPending = entry->cancelFn(entry))) {
 }
 ```
 
-`AsyncCb_Poll` is the pure example. On a plain word, assign the mask to its
+`asyncCbPoll` is the pure example. On a plain word, assign the mask to its
 **own** temporary first — do not reuse the early `flags` name, which can pull
 the initial `flags` load into `$a0` (~99.8% with only that reg wrong):
 
@@ -20051,7 +20051,7 @@ changes the `bne` delay from `addiu s1,sp,0x10` to `addiu s2,sp,0x18`. Pass
 
 ## Ring-buffer queue drain: non-volatile entry + split index advances
 
-`CdReady_Poll` (and the sibling `AsyncCb_Poll`) process one slot of a 4-entry
+`CdReady_Poll` (and the sibling `asyncCbPoll`) process one slot of a 4-entry
 callback ring. Two matching details that look like style nits but are required:
 
 1. **Non-volatile entry pointer.** The queue's header fields are `volatile`
@@ -20076,7 +20076,7 @@ entry->cancelled = 0;
    them onto `$s1` and shrinks the function. Duplicate the increment/wrap
    literally, once via `queue` and once via the global name.
 
-`AsyncCb_Poll` is the pure template for control flow; `CdReady_Poll` adds the
+`asyncCbPoll` is the pure template for control flow; `CdReady_Poll` adds the
 `field_0` lock check and the no-arg `doneFn` callback.
 
 ## Sign-extend loop counter via `next` in `$v0` + empty asm barrier
@@ -139898,7 +139898,7 @@ test), which is where the walking pointer and the register `addu` come from.
 
 The same reversal through a struct pointer keeps the member's displacement on
 the store: `li v1,23; addu v0,s0,v1; L: sb zero,0x664(v0); ...` in
-`Spu_FlushVoiceUpdates` is `for (i = 0; i < 24; i++) list->slotByVoice[i] = 0;`.
+`spuFlushVoiceUpdates` is `for (i = 0; i < 24; i++) list->slotByVoice[i] = 0;`.
 The reduced giv is `list + i`, so the pointer walks the struct base and the
 field offset stays in the `sb`. A hand-written reverse walk needs a byte view
 of the whole struct plus `OFFSET_OF` to reproduce that; the forward loop needs
@@ -147461,7 +147461,7 @@ itself matches as well. No word view of the bitfield is needed.
 The same conversion needs `&&` over two bits of the word written as nested
 `if`s (the `fold_truthop` entries above): `CdReady_Poll`'s
 `cancelled && !firstPoll` otherwise becomes `(word & 6) == 4`, and
-`AsyncCb_Poll`'s the same.
+`asyncCbPoll`'s the same.
 
 ## A `u16` counter fitted to two reads dresses every other one: try the member signed before keeping `(s16)` casts (`_Actor04000Work::stateFrame`, 2026-10-04)
 

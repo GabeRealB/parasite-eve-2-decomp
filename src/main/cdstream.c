@@ -1393,8 +1393,8 @@ static void CdStream_TickPlayback(void)
         channels          = PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr;
         channels->voice   = (s32)(1 << (s8)CdStream_Runtime.state.voiceL);
         channels[1].voice = (s32)(1 << CdStream_Runtime.state.voiceR);
-        Spu_ArmKeyOn((s8)CdStream_Runtime.state.voiceL);
-        Spu_ArmKeyOn((s8)CdStream_Runtime.state.voiceR);
+        spuKeyOnStreamVoice((s8)CdStream_Runtime.state.voiceL);
+        spuKeyOnStreamVoice((s8)CdStream_Runtime.state.voiceR);
         channels->mask    = 0x6009F;
         channels[1].mask  = 0x6009F;
         channels->adsr1   = 0xFF;
@@ -1684,8 +1684,8 @@ void CdStream_Drive(void)
                         channels->voice   = (s32)(1 << (s8)CdStream_Runtime.state.voiceL);
                         channels[1].voice = (s32)(1 << CdStream_Runtime.state.voiceR);
                         if (!(((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1)) {
-                            Spu_ArmKeyOn((u32)(s8)CdStream_Runtime.state.voiceL);
-                            Spu_ArmKeyOn((u32)(s8)CdStream_Runtime.state.voiceR);
+                            spuKeyOnStreamVoice((u32)(s8)CdStream_Runtime.state.voiceL);
+                            spuKeyOnStreamVoice((u32)(s8)CdStream_Runtime.state.voiceR);
                         }
                         if (CdStream_Runtime.state.startCb != NULL) {
                             CdStream_Runtime.state.startCb((1 << CdStream_Runtime.state.voiceL) | (1 << CdStream_Runtime.state.voiceR));
