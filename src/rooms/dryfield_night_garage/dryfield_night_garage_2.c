@@ -39,7 +39,6 @@
 #include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/gfx.h"
-#include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -1167,7 +1166,7 @@ void func_dryfield_night_garage_80180B20(Task* arg0)
     switch (task->state) {
         case 0:
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             task->state++;
             return;
         case 1:
@@ -1214,11 +1213,11 @@ void func_dryfield_night_garage_80180B20(Task* arg0)
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             task->state++;
             return;
         case 5:
-            if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
                 return;
             }
             taskKill(task);

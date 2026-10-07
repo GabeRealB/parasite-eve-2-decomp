@@ -2379,7 +2379,7 @@ void func_mist_shooting_gallery_80180F2C(Task* arg0)
     switch (task->state) {
         case 0:
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             task->state = task->state + 1;
             break;
         case 1:
@@ -2414,11 +2414,11 @@ void func_mist_shooting_gallery_80180F2C(Task* arg0)
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             task->state = task->state + 1;
             break;
         case 5:
-            if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
                 break;
             }
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;

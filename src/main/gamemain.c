@@ -209,7 +209,7 @@ void Display_FlipDraw(s32 bufferIndex)
                 Display_LoadImageStrips(bufferIndex);
                 savedDrawBuffer          = gDisplayState.drawBuffer;
                 gDisplayState.drawBuffer = bufferIndex;
-                Stream_PresentFrame();
+                streamPresentMovieFrame();
                 gDisplayState.drawBuffer = savedDrawBuffer;
             }
             DrawOTag((u_long*)Gpu_OtBuffers[gDisplayState.otBuffer].tag);
@@ -234,7 +234,7 @@ static inline void _displayPresentFrame(s32 buf)
     if (gDisplayState.control.flags.imageSource != DISPLAY_IMAGE_NONE) {
         Display_LoadImageStrips(buf);
     }
-    Stream_PresentFrame();
+    streamPresentMovieFrame();
     if (gDisplayState.skipDraw == 0) {
         DrawOTag((u_long*)Gpu_OtBuffers[buf].tag);
     }
@@ -659,7 +659,7 @@ static void Display_PutEnvAndDraw(s32 arg0)
     if (gDisplayState.control.flags.imageSource != DISPLAY_IMAGE_NONE) {
         Display_LoadImageStrips(arg0);
     }
-    Stream_PresentFrame();
+    streamPresentMovieFrame();
     if (gDisplayState.skipDraw == 0) {
         DrawOTag((u_long*)Gpu_OtBuffers[arg0].tag);
     }

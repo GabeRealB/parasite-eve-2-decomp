@@ -47,9 +47,41 @@ extern u16 D_8006AC6C;
 /// it does not queue an independent decode or retain the `viewId` pointer.
 void mdecRequestSceneImageDecode(const u8* viewId);
 
-u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1);
+/// Reserves movie decoding storage and optionally saves the VRAM images it displaces.
+///
+/// Resets GPU drawing and invalidates model buffers before resetting the saved
+/// whole image-memory region as an auxiliary heap. Reserves 0x4A800 bytes in
+/// normal video mode, otherwise 0x45400 bytes, without checking allocation failure.
+/// The saved region must be configured and large enough for this allocation and
+/// heap metadata; its previous allocations must no longer be in use.
+///
+/// A nonzero `preserveVramImages` saves the two 160-word by 256-row regions at
+/// (320,0) and (320,256) to (704,0) and (864,0). Keep those backup regions intact
+/// through `streamPollGameRestore`. Blocks game pause until restoration releases
+/// it; the workspace remains borrowed by the movie decoder until restoration.
+void streamPrepareMovieWorkspace(s16 preserveVramImages);
 
-void Stream_ResetRestoreState(void);
+/// Restores game image memory and model buffers after movie playback has ended.
+///
+/// Call `streamResetGameRestore` before beginning a new restore. The first poll
+/// restores any saved VRAM images and configures memory for the current stage
+/// and area. Only low halfwords are examined: `selectConfiguredAuxHeap == 1`
+/// selects the saved auxiliary portion before restoring model buffers; every
+/// other value keeps the freshly configured selection. A nonzero
+/// `reloadSpriteImages` queues an images-only load for the current sprite variant.
+/// The session, map resources and any saved VRAM regions must remain available.
+///
+/// Returns 0 while that load is pending, then 1 once the CD queue is idle and
+/// the pause block is released. Without a reload, the first poll returns 1 with
+/// the pause block intact; a later poll can release it once the queue is idle.
+/// Completed polls keep returning 1. Neither result restores display visibility.
+u16 streamPollGameRestore(s32 selectConfiguredAuxHeap, s32 reloadSpriteImages);
+
+/// Makes the next `streamPollGameRestore` begin a new post-movie restoration.
+///
+/// Only resets the polling step; it does not restore memory, discard the saved
+/// VRAM images or release the pause block. Any preceding restore must have ended.
+void streamResetGameRestore(void);
 
 /// Failure result from the movie-slot lookups.
 enum { STREAM_SLOT_NOT_FOUND = -1 };

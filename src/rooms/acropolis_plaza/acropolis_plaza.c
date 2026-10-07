@@ -3496,7 +3496,7 @@ void func_acropolis_plaza_8017DBFC(Task* task)
     switch (task->state) {
         case 0:
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             task->state++;
             break;
         case 1:
@@ -3528,11 +3528,11 @@ void func_acropolis_plaza_8017DBFC(Task* task)
             }
             break;
         case 5:
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             task->state++;
             break;
         case 6:
-            if (Stream_RestoreAfterLoad(1, 0) & 0xFFFF) {
+            if (streamPollGameRestore(1, 0) & 0xFFFF) {
                 taskKill(task);
                 displayResumeGameLoop();
             }

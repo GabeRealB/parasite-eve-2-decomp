@@ -32,7 +32,6 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gfx.h"
-#include "main/mem.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"

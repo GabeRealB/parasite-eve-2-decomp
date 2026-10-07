@@ -214,7 +214,7 @@ void func_mist_parking_801837B8(Task* task)
         case 0:
             Stage_RequestMidiFromMap(0xA);
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             task->state = task->state + 1;
             return;
         case 1:
@@ -253,11 +253,11 @@ void func_mist_parking_801837B8(Task* task)
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             task->state = task->state + 1;
             return;
         case 5:
-            if ((Stream_RestoreAfterLoad(0, 0) & 0xFFFF) == 0) {
+            if ((streamPollGameRestore(0, 0) & 0xFFFF) == 0) {
                 return;
             }
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));

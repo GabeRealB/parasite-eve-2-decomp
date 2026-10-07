@@ -496,7 +496,7 @@ void Title_DemoStreamTask(Task* task)
         case 0:
             memCopyBytes(Fs_Streams, Stream_Slots, sizeof(Fs_Streams));
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             task->state++;
             break;
         case 1:
@@ -547,14 +547,14 @@ void Title_DemoStreamTask(Task* task)
             }
             break;
         case 6:
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             Display_LoadImageStrips(gDisplayState.drawBuffer);
             Display_LoadImageStrips(gDisplayState.drawBuffer ^ 1);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
             task->state++;
             break;
         case 7:
-            if (Stream_RestoreAfterLoad(0, 0)) {
+            if (streamPollGameRestore(0, 0)) {
                 taskKill(task);
                 displayResumeGameLoop();
             }

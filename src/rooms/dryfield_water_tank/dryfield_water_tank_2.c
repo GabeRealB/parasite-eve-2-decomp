@@ -987,7 +987,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
     switch (task->state) {
         case 0:
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             sndEvtRequestScriptStop(SOUND_WATER_TANK_AMBIENCE, 0x3C);
             task->state = task->state + 1;
             return;
@@ -1027,11 +1027,11 @@ void func_dryfield_water_tank_8017E568(Task* task)
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             task->state = task->state + 1;
             return;
         case 5:
-            if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
                 return;
             }
             sndEvtRequestScriptStart(SOUND_WATER_TANK_AMBIENCE, 0, 0);

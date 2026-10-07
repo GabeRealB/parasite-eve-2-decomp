@@ -4174,7 +4174,7 @@ void func_actor_560800_801321A0(Task* task)
     switch (task->state) {
         case 0:
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             task->state++;
             break;
         case 1:
@@ -4206,12 +4206,12 @@ void func_actor_560800_801321A0(Task* task)
             break;
         case 4:
             if (cdCmdIsIdle()) {
-                Stream_ResetRestoreState();
+                streamResetGameRestore();
                 task->state++;
             }
             break;
         case 5:
-            if (Stream_RestoreAfterLoad(0, 1)) {
+            if (streamPollGameRestore(0, 1)) {
                 taskKill(task);
                 displayResumeGameLoop();
             }

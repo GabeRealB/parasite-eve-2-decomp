@@ -12,7 +12,6 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
-#include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/session_types.h"

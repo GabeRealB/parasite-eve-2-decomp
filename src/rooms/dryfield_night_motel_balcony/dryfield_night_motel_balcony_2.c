@@ -15,7 +15,6 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflow.h"
-#include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -66,7 +65,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
     switch (task->state) {
         case 0:
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             task->state = task->state + 1;
             return;
         case 1:
@@ -139,11 +138,11 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             task->state = task->state + 1;
             return;
         case 8:
-            if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
                 return;
             }
             taskKill(task);

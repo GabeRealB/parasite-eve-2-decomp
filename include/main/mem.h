@@ -139,9 +139,6 @@ void memFreeFromHeap(void* allocation, bool auxHeap);
 /// repurposing that storage must no longer be in use.
 void memSelectAuxHeapRegion(bool configuredAuxHeap);
 
-/// Alloc aux buffer and optionally MoveImage two VRAM strips (src/main/stream.c).
-void Mem_AllocAuxWithImages(s16 flags);
-
 /// Configures the image-memory region, GPU primitive reservation and auxiliary heaps.
 ///
 /// `stageId` is in 0..5. Stage 0 or `DISPLAY_VIDEO_NORMAL` selects the default

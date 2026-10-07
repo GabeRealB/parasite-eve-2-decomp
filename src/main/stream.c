@@ -90,17 +90,15 @@ extern void func_map_neo_ark_801799BC(u8* arg0);
 
 static void Mdec_SetupBuffers(u8* arg0);
 
-static void Stream_InitFromSlot(u32 arg0);
+static void _streamLoadMovieSlotState(u32 slotIndex);
 
-/* Clears both display buffers to black, at the width of the current MDEC mode. */
-static __inline__ void _streamClearDisplayBuffers(RECT* rect);
+static __inline__ void _streamClearDisplayBuffers(RECT* clearRect);
 
-/// Initializes the MDEC ring, output callback and frame decode state.
-static void Stream_StartDecoder(void);
+static void _streamCompleteDecodedFrame(void);
 
-static void Mdec_UploadSlice(void);
+static void _mdecMovieOutputCallback(void);
 
-static void Mdec_KickStrip(void);
+static void _mdecStartMovieFrameOutput(void);
 
 static void Mdec_DecodeFrame(void);
 
@@ -110,11 +108,32 @@ static __inline__ u16 Stream_SeekPosition(u8* loc);
  * callback and applies CD volume table entry 0 ahead of a streaming read. */
 static __inline__ void _streamStartDecode(void);
 
-/* Starts the streaming read; ADPCM playback is enabled when the stream's
- * volume table entry is nonzero. */
 static __inline__ s32 _streamStartRead(void);
 
-static __inline__ void Stream_UploadFrameStrips(RECT* rect, u32 x, u32 y, u16 useDisplayBuffer);
+static __inline__ void _streamUploadFrameStrips(RECT* uploadRect, u32 vramX, u32 vramY, u16 offsetDrawBuffer);
+
+/// VRAM layout and byte capacities reserved for resident movie playback.
+enum {
+    STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS    = 272,
+    STREAM_MOVIE_RGB24_DISPLAY_WORDS        = FILE_SYSTEM_IMAGE_WIDTH * 3 / 2,
+    STREAM_MOVIE_RGB24_STRIP_WORDS          = FILE_SYSTEM_IMAGE_STRIP_WIDTH * 3 / 2,
+    STREAM_MOVIE_RGB16_OUTPUT_WORDS_PER_ROW = FILE_SYSTEM_IMAGE_STRIP_WIDTH / 2,
+    STREAM_MOVIE_RGB24_OUTPUT_WORDS_PER_ROW = STREAM_MOVIE_RGB24_STRIP_WORDS / 2,
+    STREAM_MOVIE_WORKSPACE_NORMAL_BYTES     = 0x4A800,
+    STREAM_MOVIE_WORKSPACE_STREAMING_BYTES  = 0x45400,
+    STREAM_MOVIE_SAVED_IMAGE_X              = 320,
+    STREAM_MOVIE_SAVED_IMAGE_WORDS          = 160,
+    STREAM_MOVIE_SAVED_IMAGE_ROWS           = 256,
+    STREAM_MOVIE_IMAGE_BACKUP_FIRST_X       = 704,
+    STREAM_MOVIE_IMAGE_BACKUP_SECOND_X      = 864,
+};
+
+/// Steps of the post-movie memory and optional sprite-image restoration.
+enum {
+    STREAM_GAME_RESTORE_MEMORY      = 0,
+    STREAM_GAME_RESTORE_WAIT_IMAGES = 1,
+    STREAM_GAME_RESTORE_COMPLETE    = 2,
+};
 
 u16 D_8005EAEC = 0;
 u16 D_8005EAEE = 0;
@@ -182,25 +201,30 @@ static void Mdec_SetupBuffers(u8* arg0)
     }
 }
 
-static void Stream_InitFromSlot(u32 arg0)
+/// Caches a movie descriptor and resets presentation suppression and VLC slicing.
+///
+/// The low halfword of `slotIndex` must select a movie slot in 0..14. Dimensions
+/// are pixels/rows, the VRAM origin is words/rows, and the frame limit is one-based
+/// (1..32767 for the signed completion clamp). No validation or allocation occurs.
+static void _streamLoadMovieSlotState(u32 slotIndex)
 {
-    StreamSlot* slots;
-    StreamSlot* slot;
+    const StreamSlot* slotTable;
+    const StreamSlot* movieSlot;
 
-    gCdCmdQueue.suppressMoviePresentation = 0;
-    slots                                 = Stream_Slots;
+    gCdCmdQueue.suppressMoviePresentation = false;
+    slotTable                             = Stream_Slots;
     D_8006AC12                            = 0;
-    slot                                  = &slots[arg0 & 0xFFFF];
-    D_8006AC08                            = slot->startSector;
-    D_8006AC0C                            = slot->data.movie.frameLimit;
-    D_8006AC5A                            = slot->data.movie.width;
-    D_8006AC6C                            = slot->data.movie.height;
-    D_8006AC0E                            = slot->data.movie.vramX;
-    D_8006AC10                            = slot->data.movie.vramY;
-    D_8006AC16                            = slot->data.movie.loopMode;
-    D_8006AC14                            = slot->data.movie.displayMode;
-    D_8006AC58                            = slot->data.movie.volumeTableIndex;
-    D_8006AC18                            = slot->data.movie.uploadMode;
+    movieSlot                             = &slotTable[slotIndex & 0xFFFF];
+    D_8006AC08                            = movieSlot->startSector;
+    D_8006AC0C                            = movieSlot->data.movie.frameLimit;
+    D_8006AC5A                            = movieSlot->data.movie.width;
+    D_8006AC6C                            = movieSlot->data.movie.height;
+    D_8006AC0E                            = movieSlot->data.movie.vramX;
+    D_8006AC10                            = movieSlot->data.movie.vramY;
+    D_8006AC16                            = movieSlot->data.movie.loopMode;
+    D_8006AC14                            = movieSlot->data.movie.displayMode;
+    D_8006AC58                            = movieSlot->data.movie.volumeTableIndex;
+    D_8006AC18                            = movieSlot->data.movie.uploadMode;
 }
 
 s16 streamFindMovieSlot(const GameLocationKey* location, s32 subId, s32 requireViewStream)
@@ -301,36 +325,37 @@ s16 streamFindViewMovieSlot(const GameLocationKey* location)
     return STREAM_SLOT_NOT_FOUND;
 }
 
-u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
+u16 streamPollGameRestore(s32 selectConfiguredAuxHeap, s32 reloadSpriteImages)
 {
-    RECT         rect;
-    u8           param1[8];
-    u8           param2[8];
-    GameSession* g;
-    CdCmdQueue*  p;
-    s32          state;
-    u8           f7;
-    u8           f6;
-    u8           f74;
+    RECT         restoreRect;
+    u8           fileKey[4];
+    u8           loadOptions[4];
+    GameSession* session;
+    CdCmdQueue*  queue;
+    s32          restoreStep;
+    u8           stageId;
+    u8           areaId;
+    u8           spriteVariant;
 
-    p     = &gCdCmdQueue;
-    state = D_8006AC28;
-    switch (state) {
-        case 0:
+    queue       = &gCdCmdQueue;
+    restoreStep = D_8006AC28;
+    switch (restoreStep) {
+        case STREAM_GAME_RESTORE_MEMORY:
+            // Recover displaced VRAM before reusing the movie's auxiliary storage.
             if (D_8006AC1E != 0) {
-                rect.x = 0x2C0;
-                rect.y = 0;
-                rect.w = 0xA0;
-                rect.h = 0x100;
-                MoveImage2(&rect, 0x140, 0);
-                rect.x = 0x360;
-                rect.y = 0;
-                rect.w = 0xA0;
-                rect.h = 0x100;
-                MoveImage2(&rect, 0x140, 0x100);
+                restoreRect.x = STREAM_MOVIE_IMAGE_BACKUP_FIRST_X;
+                restoreRect.y = 0;
+                restoreRect.w = STREAM_MOVIE_SAVED_IMAGE_WORDS;
+                restoreRect.h = STREAM_MOVIE_SAVED_IMAGE_ROWS;
+                MoveImage2(&restoreRect, STREAM_MOVIE_SAVED_IMAGE_X, 0);
+                restoreRect.x = STREAM_MOVIE_IMAGE_BACKUP_SECOND_X;
+                restoreRect.y = 0;
+                restoreRect.w = STREAM_MOVIE_SAVED_IMAGE_WORDS;
+                restoreRect.h = STREAM_MOVIE_SAVED_IMAGE_ROWS;
+                MoveImage2(&restoreRect, STREAM_MOVIE_SAVED_IMAGE_X, STREAM_MOVIE_SAVED_IMAGE_ROWS);
             }
             memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-            if ((arg0 & 0xFFFF) == 1) {
+            if ((selectConfiguredAuxHeap & 0xFFFF) == true) {
                 memSelectAuxHeapRegion(true);
             }
             tmdResetAuxHeapAndRestoreBuffers();
@@ -339,49 +364,51 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
                 cdCmdSelectMovieWorkspace();
             }
             D_8006AC28 = D_8006AC28 + 1;
-            if (arg1 & 0xFFFF) {
-                g         = gGameSession;
-                f7        = g->location.loc.stage;
-                param1[3] = f7;
-                f6        = g->location.loc.area;
-                param1[0] = 0;
-                param1[2] = f6;
-                f74       = g->spriteVariant;
-                param2[1] = 5;
-                param2[2] = 0;
-                param2[3] = 0;
-                param2[0] = f74;
-                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            if (reloadSpriteImages & 0xFFFF) {
+                session        = gGameSession;
+                stageId        = session->location.loc.stage;
+                fileKey[3]     = stageId;
+                areaId         = session->location.loc.area;
+                fileKey[0]     = 0;
+                fileKey[2]     = areaId;
+                spriteVariant  = session->spriteVariant;
+                loadOptions[1] = CD_COMMAND_LOAD_IMAGES_ONLY;
+                loadOptions[2] = 0;
+                loadOptions[3] = 0;
+                loadOptions[0] = spriteVariant;
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadOptions);
                 break;
             }
             return 1;
-        case 1:
+        case STREAM_GAME_RESTORE_WAIT_IMAGES:
             if (cdCmdIsIdle() & 0xFFFF) {
-                p->blockGamePause = 0;
-                D_8006AC28        = D_8006AC28 + 1;
+                queue->blockGamePause = false;
+                D_8006AC28            = D_8006AC28 + 1;
                 return 1;
             }
             break;
-        case 2:
+        case STREAM_GAME_RESTORE_COMPLETE:
             return 1;
     }
     return 0;
 }
 
-/* Clears both display buffers to black, at the width of the current MDEC mode. */
-static __inline__ void _streamClearDisplayBuffers(RECT* rect)
+/// Clears both 320x240 movie framebuffers, using 480 VRAM words per row for RGB24.
+///
+/// Borrows `clearRect` as writable scratch; it ends describing the lower buffer.
+static __inline__ void _streamClearDisplayBuffers(RECT* clearRect)
 {
-    rect->y = 0;
-    rect->x = 0;
+    clearRect->y = 0;
+    clearRect->x = 0;
     if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
-        rect->w = 0x1E0;
+        clearRect->w = STREAM_MOVIE_RGB24_DISPLAY_WORDS;
     } else {
-        rect->w = 0x140;
+        clearRect->w = FILE_SYSTEM_IMAGE_WIDTH;
     }
-    rect->h = 0xF0;
-    ClearImage(rect, 0, 0, 0);
-    rect->y = 0x110;
-    ClearImage(rect, 0, 0, 0);
+    clearRect->h = FILE_SYSTEM_IMAGE_HEIGHT;
+    ClearImage(clearRect, 0, 0, 0);
+    clearRect->y = STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS;
+    ClearImage(clearRect, 0, 0, 0);
 }
 
 u32 Stream_InitializePlayback(u32 slotIndex)
@@ -397,7 +424,7 @@ u32 Stream_InitializePlayback(u32 slotIndex)
     queue->movieStep         = CD_COMMAND_MOVIE_WAIT_READY;
     queue->movieAtEnd        = 0;
     queue->movieFrameChanged = 0;
-    Stream_InitFromSlot(slot);
+    _streamLoadMovieSlotState(slot);
     if (D_8006AC58 != 0) {
         if (D_8006AC30.startSector == 0) {
             return 1U;
@@ -470,186 +497,213 @@ s32 CdCmd_StopMdec(s32 arg0)
     return 0;
 }
 
-static void Stream_StartDecoder(void)
+/// Publishes the clamped STR movie position and its forward or reverse scene frame.
+static __inline__ void _streamPublishMovieFrame(CdCmdQueue* queue, CdlLOC* backLocation)
 {
-    CdlLOC      loc;
-    RECT        rect;
-    s16         backFrame;
-    s32         width;
-    s16         frame;
-    s16         stripWidth;
-    s32         index;
-    s32         stride;
-    u16         i;
-    s32         imageX;
-    s32         nextStrip;
-    u16         originX;
-    u16         x, y;
-    RECT*       stripRect;
-    CdCmdQueue* queue;
-    u16         imageY;
-    u_long*     data;
-    u32         frameWidth;
+    enum { STREAM_MOVIE_FIRST_FRAME = 1 };
+    s16 receivedFrameMinusOne;
+    s16 movieFrame;
 
-    queue     = &gCdCmdQueue;
-    backFrame = StGetBackloc(&loc) - 1;
-    frame     = backFrame;
-    if (backFrame <= 0) {
-        frame = 1;
+    receivedFrameMinusOne = StGetBackloc(backLocation) - 1;
+    movieFrame            = receivedFrameMinusOne;
+    if (receivedFrameMinusOne <= 0) {
+        movieFrame = STREAM_MOVIE_FIRST_FRAME;
     }
-    if ((s16)D_8006AC0C < frame) {
-        frame = (s16)D_8006AC0C;
+    if ((s16)D_8006AC0C < movieFrame) {
+        movieFrame = (s16)D_8006AC0C;
     }
-    if (queue->movieFrame != frame) {
-        queue->movieFrame        = (u16)frame;
-        queue->movieFrameChanged = 1;
-        queue->movieReady        = 1;
+    if (queue->movieFrame != movieFrame) {
+        queue->movieFrame        = (u16)movieFrame;
+        queue->movieFrameChanged = true;
+        queue->movieReady        = true;
     }
     if (queue->reverseSceneFrames == 0) {
-        queue->sceneFrame = (u16)frame;
+        queue->sceneFrame = (u16)movieFrame;
     } else {
-        queue->sceneFrame = (D_8006AC0C - frame) + 1;
+        queue->sceneFrame = (D_8006AC0C - movieFrame) + 1;
     }
-    queue->mdecOutputPending = 0;
+}
+
+/// Completes a movie frame, publishing texture output or uploading the final display column.
+///
+/// Updates one-based movie/scene frame counters from the STR ring and clears
+/// the pending-output latch. Display movies switch framebuffer after the final
+/// column; staging uploads use the current output-buffer selector before it flips.
+static void _streamCompleteDecodedFrame(void)
+{
+    CdlLOC      backLocation;
+    RECT        uploadRect;
+    s32         stripWords;
+    s16         stagingStripWords;
+    s32         stripIndex;
+    s32         stripBytes;
+    u16         stagingStripIndex;
+    s32         stripX;
+    s32         nextStripCount;
+    u16         vramX;
+    u16         stagingX, stagingY;
+    RECT*       stagingRect;
+    CdCmdQueue* queue;
+    u16         stripY;
+    u_long*     stripPixels;
+    u32         widthPixels;
+
+    // Clamp the ring's frame position and publish the scene traversal frame.
+    queue = &gCdCmdQueue;
+    _streamPublishMovieFrame(queue, &backLocation);
+    queue->mdecOutputPending = false;
     if (D_8006AC14 == STREAM_MOVIE_DISPLAY_TEXTURE) {
-        queue->movieFrameAvailable = 1;
+        queue->movieFrameAvailable = true;
     } else {
-        nextStrip  = D_8006AC1C + 1;
-        D_8006AC1C = nextStrip;
-        index      = (nextStrip & 0xFFFF) - 1;
-        originX    = D_8006AC0E;
+        nextStripCount = D_8006AC1C + 1;
+        D_8006AC1C     = nextStripCount;
+        stripIndex     = (nextStripCount & 0xFFFF) - 1;
+        vramX          = D_8006AC0E;
         if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
-            imageX = originX + index * 0x18;
+            stripX = vramX + stripIndex * STREAM_MOVIE_RGB24_STRIP_WORDS;
         } else {
-            imageX = originX + index * 0x10;
+            stripX = vramX + stripIndex * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
         }
-        imageY = D_8006AC10;
-        rect.x = imageX;
+        stripY       = D_8006AC10;
+        uploadRect.x = stripX;
         if (gDisplayState.frameBuffer != 0) {
-            imageY += 0x110;
+            stripY += STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS;
         }
-        rect.y = imageY;
-        width  = 0x10;
+        uploadRect.y = stripY;
+        stripWords   = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
         if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
-            width = 0x18;
+            stripWords = STREAM_MOVIE_RGB24_STRIP_WORDS;
         }
-        rect.h = D_8006AC6C;
-        rect.w = width;
-        LoadImage(&rect, D_8006AC48[D_8005EAEE ^ 1]);
+        uploadRect.h = D_8006AC6C;
+        uploadRect.w = stripWords;
+        LoadImage(&uploadRect, D_8006AC48[D_8005EAEE ^ 1]);
         gDisplayState.frameBuffer ^= 1;
     }
-    stripWidth = 0x10;
+    stagingStripWords = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
+    // A staged texture frame is laid out as successive full-height columns.
     if (queue->movieVramStaging != 0) {
-        x         = queue->movieStagingX;
-        y         = queue->movieStagingY;
-        stripRect = &rect;
+        stagingX    = queue->movieStagingX;
+        stagingY    = queue->movieStagingY;
+        stagingRect = &uploadRect;
         if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
-            stripWidth = 0x18;
+            stagingStripWords = STREAM_MOVIE_RGB24_STRIP_WORDS;
         }
-        stripRect->y = y;
-        stripRect->w = stripWidth;
-        stripRect->h = D_8006AC6C;
-        rect.x       = x;
-        data         = D_8006AC48[D_8005EAEE];
-        stride       = stripWidth * D_8006AC6C * 2;
-        frameWidth   = D_8006AC5A;
-        for (i = 0; (u32)(i & 0xFFFF) < (frameWidth >> 4); i++) {
-            LoadImage(stripRect, data);
-            stripRect->x += stripWidth;
-            data          = (u_long*)((u8*)data + stride);
+        stagingRect->y = stagingY;
+        stagingRect->w = stagingStripWords;
+        stagingRect->h = D_8006AC6C;
+        uploadRect.x   = stagingX;
+        stripPixels    = D_8006AC48[D_8005EAEE];
+        stripBytes     = stagingStripWords * D_8006AC6C * 2;
+        widthPixels    = D_8006AC5A;
+        for (stagingStripIndex = 0; (u32)stagingStripIndex < (widthPixels / FILE_SYSTEM_IMAGE_STRIP_WIDTH); stagingStripIndex++) {
+            LoadImage(stagingRect, stripPixels);
+            stagingRect->x += stagingStripWords;
+            stripPixels     = (u_long*)((u8*)stripPixels + stripBytes);
         }
     }
     D_8006AC1C  = 0;
     D_8005EAEE ^= 1;
 }
 
-static void Mdec_UploadSlice(void)
+/// Handles one MDEC output completion, requesting the next column or completing the frame.
+///
+/// Display output alternates output slots as finished columns reach the GPU;
+/// the configured slots may alias. Texture output completes in one transfer.
+/// Display width must be a positive multiple of 16 pixels; output sizes are 32-bit words.
+static void _mdecMovieOutputCallback(void)
 {
-    RECT     rect;
-    s32      nextStrip;
-    s32      index;
-    s32      imageX;
-    u16      imageY;
-    u16      originX;
-    s32      width;
-    u16      height;
-    s32      size;
-    u_long** out;
+    RECT     uploadRect;
+    s32      nextStripCount;
+    s32      stripIndex;
+    s32      stripX;
+    u16      stripY;
+    u16      vramX;
+    s32      stripWords;
+    u16      heightRows;
+    s32      outputWords;
+    u_long** outputSlot;
 
     if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
+        // Service the deferred CD interrupt before chaining an RGB24 output.
         if ((D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) && (StCdIntrFlag != 0)) {
             StCdInterrupt();
             StCdIntrFlag = 0;
         }
-        if (D_8006AC1C != ((D_8006AC5A >> 4) - 1)) {
-            nextStrip  = D_8006AC1C + 1;
-            D_8006AC1C = nextStrip;
-            index      = (nextStrip & 0xFFFF) - 1;
-            originX    = D_8006AC0E;
+        if (D_8006AC1C != ((D_8006AC5A / FILE_SYSTEM_IMAGE_STRIP_WIDTH) - 1)) {
+            nextStripCount = D_8006AC1C + 1;
+            D_8006AC1C     = nextStripCount;
+            stripIndex     = (nextStripCount & 0xFFFF) - 1;
+            vramX          = D_8006AC0E;
             if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
-                imageX = originX + index * 0x18;
+                stripX = vramX + stripIndex * STREAM_MOVIE_RGB24_STRIP_WORDS;
             } else {
-                imageX = originX + index * 0x10;
+                stripX = vramX + stripIndex * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
             }
-            imageY = D_8006AC10;
-            rect.x = imageX;
+            stripY       = D_8006AC10;
+            uploadRect.x = stripX;
             if (gDisplayState.frameBuffer != 0) {
-                imageY += 0x110;
+                stripY += STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS;
             }
-            width  = 0x10;
-            rect.y = imageY;
+            stripWords   = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
+            uploadRect.y = stripY;
             if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
-                width = 0x18;
+                stripWords = STREAM_MOVIE_RGB24_STRIP_WORDS;
             }
-            rect.h = D_8006AC6C;
-            rect.w = width;
-            LoadImage(&rect, D_8006AC48[D_8005EAEE ^ 1]);
+            uploadRect.h = D_8006AC6C;
+            uploadRect.w = stripWords;
+            LoadImage(&uploadRect, D_8006AC48[D_8005EAEE ^ 1]);
             D_8005EAEE ^= 1;
-            out         = &D_8006AC48[D_8005EAEE ^ 1];
-            height      = D_8006AC6C;
+            outputSlot  = &D_8006AC48[D_8005EAEE ^ 1];
+            heightRows  = D_8006AC6C;
             if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
-                size = height * 12;
+                outputWords = heightRows * STREAM_MOVIE_RGB24_OUTPUT_WORDS_PER_ROW;
             } else {
-                size = height * 8;
+                outputWords = heightRows * STREAM_MOVIE_RGB16_OUTPUT_WORDS_PER_ROW;
             }
-            DecDCTout(*out, size);
+            DecDCTout(*outputSlot, outputWords);
             return;
         }
     }
-    Stream_StartDecoder();
+    _streamCompleteDecodedFrame();
 }
 
-static void Mdec_KickStrip(void)
+/// Submits a VLC-expanded movie frame to MDEC and starts its first output transfer.
+///
+/// Releases the compressed frame's ring storage before feeding the expanded
+/// buffer. Display movies output one 16-pixel column; texture movies output the
+/// full RGB16 frame. Output sizes are 32-bit words, not bytes. Buffer selectors
+/// must be 0 or 1 and their workspaces must outlive the pending DMA transfers.
+static void _mdecStartMovieFrameOutput(void)
 {
-    CdCmdQueue* p;
-    s32         size;
-    u_long**    base;
-    u_long**    outs;
-    u16         ac6c;
-    s32         temp;
+    CdCmdQueue* queue;
+    s32         outputWords;
+    u_long**    outputBuffers;
+    u_long**    outputSlot;
+    u16         stripHeightRows;
+    s32         frameHeightRows;
 
-    p = &gCdCmdQueue;
+    queue = &gCdCmdQueue;
     StFreeRing(D_8006AC68);
-    DecDCTin(D_8006AC50[D_8005EAEC], D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB16 ? STREAM_MOVIE_DISPLAY_TEXTURE : D_8006AC14);
+    DecDCTin(D_8006AC50[D_8005EAEC], D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB16 ? MDEC_IMAGE_MODE_RGB16 : D_8006AC14);
     if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
-        base = D_8006AC48;
-        outs = &base[D_8005EAEE ^ 1];
-        ac6c = D_8006AC6C;
+        outputBuffers   = D_8006AC48;
+        outputSlot      = &outputBuffers[D_8005EAEE ^ 1];
+        stripHeightRows = D_8006AC6C;
         if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
-            size = ac6c * 12;
+            outputWords = stripHeightRows * STREAM_MOVIE_RGB24_OUTPUT_WORDS_PER_ROW;
         } else {
-            size = ac6c * 8;
+            outputWords = stripHeightRows * STREAM_MOVIE_RGB16_OUTPUT_WORDS_PER_ROW;
         }
-        DecDCTout(*outs, size);
+        DecDCTout(*outputSlot, outputWords);
     } else {
-        temp = D_8006AC6C;
-        size = (D_8006AC5A * temp) / 2;
-        base = D_8006AC48;
-        DecDCTout(base[D_8005EAEE ^ 1], size);
+        frameHeightRows = D_8006AC6C;
+        outputWords     = (D_8006AC5A * frameHeightRows) / 2;
+        outputBuffers   = D_8006AC48;
+        DecDCTout(outputBuffers[D_8005EAEE ^ 1], outputWords);
     }
-    p->mdecOutputPending = 1;
-    D_8006AC1A           = 0;
-    D_8005EAEC          ^= 1;
+    queue->mdecOutputPending = true;
+    D_8006AC1A               = false;
+    D_8005EAEC              ^= 1;
 }
 
 static void Mdec_DecodeFrame(void)
@@ -661,7 +715,7 @@ static void Mdec_DecodeFrame(void)
     p = &gCdCmdQueue;
     if (D_8006AC1A != 0) {
         if (DecDCTvlc2(NULL, NULL, D_8006AC38) == 0) {
-            Mdec_KickStrip();
+            _mdecStartMovieFrameOutput();
         }
         return;
     }
@@ -685,7 +739,7 @@ static void Mdec_DecodeFrame(void)
     }
 
     if (DecDCTvlc2(D_8006AC68, D_8006AC50[D_8005EAEC], D_8006AC38) == 0) {
-        Mdec_KickStrip();
+        _mdecStartMovieFrameOutput();
     } else {
         D_8006AC1A = 1;
     }
@@ -715,14 +769,16 @@ static __inline__ void _streamStartDecode(void)
     StSetRing((u_long*)D_8006AC60, D_8006AC24);
     StClearRing();
     Wip_SysFlags.movieStreamActive = 1;
-    DecDCToutCallback(Mdec_UploadSlice);
+    DecDCToutCallback(_mdecMovieOutputCallback);
     CdVol_ApplyFromTable(0);
     queue->mdecOutputPending = 0;
     D_8006AC1A               = 0;
 }
 
-/* Starts the streaming read; ADPCM playback is enabled when the stream's
- * volume table entry is nonzero. */
+/// Starts a double-speed STR read, enabling XA ADPCM for a nonzero volume-table index.
+///
+/// Requires a completed CD seek and the cached movie volume selection. Returns the
+/// SDK read-start result (zero means failure); it does not wait for a frame.
 static __inline__ s32 _streamStartRead(void)
 {
     if (D_8006AC58 != 0) {
@@ -890,76 +946,89 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
     return 0;
 }
 
-static __inline__ void Stream_UploadFrameStrips(RECT* rect, u32 x, u32 y, u16 useDisplayBuffer)
+/// Uploads a completed RAM movie frame's columns to a fixed or draw-buffer VRAM origin.
+///
+/// Borrows `uploadRect` as mutable scratch. Only low halfwords of coordinates
+/// reach VRAM; nonzero `offsetDrawBuffer` adds the current draw-buffer Y offset.
+/// The pixel width must be a positive multiple of 16 and all columns must fit
+/// the buffer and destination. Each column is 16/24 VRAM words wide in RGB16/24,
+/// so its byte stride is width-in-words times height-in-rows times two.
+static __inline__ void _streamUploadFrameStrips(RECT* uploadRect, u32 vramX, u32 vramY, u16 offsetDrawBuffer)
 {
-    s16 stripWidth;
-    s32 bufferY;
-    s32 stride;
-    u16 i;
-    u8* data;
-    u32 frameWidth;
+    s16 stripWords;
+    s32 drawBufferY;
+    s32 stripBytes;
+    u16 stripIndex;
+    u8* stripPixels;
+    u32 widthPixels;
 
-    stripWidth = 0x10;
+    stripWords = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
     if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
-        stripWidth = 0x18;
+        stripWords = STREAM_MOVIE_RGB24_STRIP_WORDS;
     }
-    if (useDisplayBuffer & 0xFFFF) {
-        bufferY = y & 0xFFFF;
+    if (offsetDrawBuffer) {
+        drawBufferY = vramY & 0xFFFF;
         if (gDisplayState.drawBuffer != 0) {
-            bufferY += 0x110;
+            drawBufferY += STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS;
         }
-        rect->y = bufferY;
+        uploadRect->y = drawBufferY;
     } else {
-        rect->y = y;
+        uploadRect->y = vramY;
     }
-    rect->w    = stripWidth;
-    rect->x    = x;
-    rect->h    = (s16)D_8006AC6C;
-    stride     = stripWidth * D_8006AC6C * 2;
-    data       = (u8*)D_8006AC48[D_8005EAEE];
-    frameWidth = D_8006AC5A;
-    for (i = 0; (u32)(i & 0xFFFF) < (frameWidth >> 4); i++) {
-        LoadImage(rect, (u_long*)data);
-        rect->x = (u16)rect->x + stripWidth;
-        data   += stride;
+    uploadRect->w = stripWords;
+    uploadRect->x = vramX;
+    uploadRect->h = D_8006AC6C;
+    stripBytes    = stripWords * D_8006AC6C * 2;
+    stripPixels   = (u8*)D_8006AC48[D_8005EAEE];
+    widthPixels   = D_8006AC5A;
+    for (stripIndex = 0; (u32)stripIndex < (widthPixels / FILE_SYSTEM_IMAGE_STRIP_WIDTH); stripIndex++) {
+        LoadImage(uploadRect, (u_long*)stripPixels);
+        uploadRect->x = (u16)uploadRect->x + stripWords;
+        stripPixels  += stripBytes;
     }
 }
 
-void Stream_PresentFrame(void)
+void streamPresentMovieFrame(void)
 {
-    RECT        rect;
-    s32         yOffset;
+    enum {
+        STREAM_MOVIE_PRESENT_NEW_FRAME    = 0,
+        STREAM_MOVIE_PRESENT_REPEAT_FRAME = 1,
+    };
+    RECT        presentRect;
+    s32         drawBufferY;
     CdCmdQueue* queue;
-    s32         useDisplayBuffer;
-    s32         x;
-    s32         y;
+    s32         offsetDrawBuffer;
+    s32         vramX;
+    s32         vramY;
 
     queue = &gCdCmdQueue;
     if ((queue->suppressMoviePresentation == 0) && (queue->movieFrameAvailable != 0)) {
+        // Repeated presentations advance the scene substep but retain the frame.
         if (queue->movieFrame == D_8006AC0C) {
-            queue->movieFrameSubstep = 0;
+            queue->movieFrameSubstep = STREAM_MOVIE_PRESENT_NEW_FRAME;
         } else if (queue->movieFrameChanged != 0) {
-            queue->movieFrameChanged = 0;
-            queue->movieFrameSubstep = 0;
+            queue->movieFrameChanged = false;
+            queue->movieFrameSubstep = STREAM_MOVIE_PRESENT_NEW_FRAME;
         } else {
-            queue->movieFrameSubstep = 1;
+            queue->movieFrameSubstep = STREAM_MOVIE_PRESENT_REPEAT_FRAME;
         }
+        // Present from RAM columns or from the already uploaded staging rectangle.
         if (queue->movieVramStaging == 0) {
-            useDisplayBuffer = D_8006AC18 != STREAM_MOVIE_UPLOAD_FIXED_VRAM;
-            x                = D_8006AC0E;
-            y                = D_8006AC10;
-            Stream_UploadFrameStrips(&rect, x, y, useDisplayBuffer);
+            offsetDrawBuffer = D_8006AC18 != STREAM_MOVIE_UPLOAD_FIXED_VRAM;
+            vramX            = D_8006AC0E;
+            vramY            = D_8006AC10;
+            _streamUploadFrameStrips(&presentRect, vramX, vramY, offsetDrawBuffer);
         } else {
-            rect.x = queue->movieStagingX;
-            rect.y = queue->movieStagingY;
-            rect.w = (s16)D_8006AC5A;
-            rect.h = (s16)D_8006AC6C;
+            presentRect.x = queue->movieStagingX;
+            presentRect.y = queue->movieStagingY;
+            presentRect.w = D_8006AC5A;
+            presentRect.h = D_8006AC6C;
             if (D_8006AC18 == STREAM_MOVIE_UPLOAD_FIXED_VRAM) {
-                yOffset = 0;
+                drawBufferY = 0;
             } else {
-                yOffset = gDisplayState.drawBuffer != 0 ? 0x110 : 0;
+                drawBufferY = gDisplayState.drawBuffer != 0 ? STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS : 0;
             }
-            MoveImage(&rect, (s32)D_8006AC0E, yOffset + D_8006AC10);
+            MoveImage(&presentRect, D_8006AC0E, drawBufferY + D_8006AC10);
         }
     }
 }
@@ -969,39 +1038,40 @@ StreamSlot* streamGetSlot(u16 slotIndex)
     return &Stream_Slots[slotIndex];
 }
 
-void Mem_AllocAuxWithImages(s16 arg0)
+void streamPrepareMovieWorkspace(s16 preserveVramImages)
 {
-    RECT        rect;
-    CdCmdQueue* p;
+    RECT        backupRect;
+    CdCmdQueue* queue;
 
-    p = &gCdCmdQueue;
+    queue = &gCdCmdQueue;
+    // Retire graphics allocations before turning the whole region into decoder storage.
     gpuResetAndInvalidateModelBuffers();
     memSelectAuxHeapRegion(false);
     memInitAuxHeap();
     if (gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) {
-        D_8006AC40 = memMalloc(0x4A800, true);
+        D_8006AC40 = memMalloc(STREAM_MOVIE_WORKSPACE_NORMAL_BYTES, true);
     } else {
-        D_8006AC40 = memMalloc(0x45400, true);
+        D_8006AC40 = memMalloc(STREAM_MOVIE_WORKSPACE_STREAMING_BYTES, true);
     }
-    if ((arg0 & 0xFFFF) != 0) {
-        rect.x = 0x140;
-        rect.y = 0;
-        rect.w = 0xA0;
-        rect.h = 0x100;
-        MoveImage2(&rect, 0x2C0, 0);
-        rect.x = 0x140;
-        rect.y = 0x100;
-        rect.w = 0xA0;
-        rect.h = 0x100;
-        MoveImage2(&rect, 0x360, 0);
+    if ((preserveVramImages & 0xFFFF) != 0) {
+        backupRect.x = STREAM_MOVIE_SAVED_IMAGE_X;
+        backupRect.y = 0;
+        backupRect.w = STREAM_MOVIE_SAVED_IMAGE_WORDS;
+        backupRect.h = STREAM_MOVIE_SAVED_IMAGE_ROWS;
+        MoveImage2(&backupRect, STREAM_MOVIE_IMAGE_BACKUP_FIRST_X, 0);
+        backupRect.x = STREAM_MOVIE_SAVED_IMAGE_X;
+        backupRect.y = STREAM_MOVIE_SAVED_IMAGE_ROWS;
+        backupRect.w = STREAM_MOVIE_SAVED_IMAGE_WORDS;
+        backupRect.h = STREAM_MOVIE_SAVED_IMAGE_ROWS;
+        MoveImage2(&backupRect, STREAM_MOVIE_IMAGE_BACKUP_SECOND_X, 0);
     }
-    D_8006AC1E        = arg0;
-    p->blockGamePause = 1;
+    D_8006AC1E            = preserveVramImages;
+    queue->blockGamePause = true;
 }
 
-void Stream_ResetRestoreState(void)
+void streamResetGameRestore(void)
 {
-    D_8006AC28 = 0;
+    D_8006AC28 = STREAM_GAME_RESTORE_MEMORY;
 }
 
 s16 streamHasLoadedViewMovie(void* unusedLocation)

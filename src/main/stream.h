@@ -30,8 +30,16 @@ void mdecRequestImageVlcRebuild(void);
 /// Initializes a stream slot and its display buffers before playback.
 u32 Stream_InitializePlayback(u32 slotIndex);
 
-/// Uploads and presents a completed streaming frame when its timing allows.
-void Stream_PresentFrame(void);
+/// Copies the available texture-movie frame into its VRAM presentation destination.
+///
+/// Does nothing while movie presentation is suppressed or no frame is available.
+/// Uploads the completed RAM buffer's columns, or copies the staging rectangle,
+/// at the movie origin. Upload mode 1 uses fixed VRAM; every other mode adds the
+/// current draw-buffer Y offset. The available frame and staging pixels must
+/// remain valid through GPU transfer, and the destination must fit in VRAM.
+/// Updates the presentation substep (0 new/terminal frame, 1 repeated frame)
+/// without clearing availability or changing the display environments.
+void streamPresentMovieFrame(void);
 
 /// Returns 1 if any resident movie with an ID below 100 has a loaded sector, else 0.
 ///

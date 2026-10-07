@@ -627,7 +627,7 @@ void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
     switch (arg0->state) {
         case 0:
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             arg0->state++;
             break;
         case 1:
@@ -660,13 +660,13 @@ void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
             break;
         case 4:
             if (cdCmdIsIdle() & 0xFFFF) {
-                Stream_ResetRestoreState();
+                streamResetGameRestore();
                 arg0->state++;
                 break;
             }
             break;
         case 5:
-            if (Stream_RestoreAfterLoad(0, 0) & 0xFFFF) {
+            if (streamPollGameRestore(0, 0) & 0xFFFF) {
                 memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
                 SetDispMask(1);
                 taskKill(arg0);

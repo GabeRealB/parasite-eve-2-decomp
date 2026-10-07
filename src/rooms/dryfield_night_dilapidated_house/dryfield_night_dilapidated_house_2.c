@@ -2410,7 +2410,7 @@ void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
     switch (task->state) {
         case 0:
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             task->state = task->state + 1;
             return;
         case 1:
@@ -2449,11 +2449,11 @@ void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             task->state = task->state + 1;
             return;
         case 5:
-            if ((Stream_RestoreAfterLoad(0, 0) & 0xFFFF) == 0) {
+            if ((streamPollGameRestore(0, 0) & 0xFFFF) == 0) {
                 return;
             }
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));

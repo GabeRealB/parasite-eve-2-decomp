@@ -906,7 +906,7 @@ void func_acropolis_cafeteria_8017E47C(Task* arg0)
     switch (task->state) {
         case 0:
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             task->state = task->state + 1;
             break;
 
@@ -950,12 +950,12 @@ void func_acropolis_cafeteria_8017E47C(Task* arg0)
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             task->state = task->state + 1;
             break;
 
         case 5:
-            if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
                 return;
             }
             if (task->spawnArg1.value == 0) {

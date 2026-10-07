@@ -48,7 +48,7 @@ void func_dryfield_gas_station_8017FFE4(Task* arg0)
     switch (task->state) {
         case 0:
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             task->state = task->state + 1;
             break;
         case 1:
@@ -92,11 +92,11 @@ void func_dryfield_gas_station_8017FFE4(Task* arg0)
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             task->state = task->state + 1;
             break;
         case 5:
-            if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
                 break;
             }
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));

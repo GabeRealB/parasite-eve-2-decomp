@@ -368,7 +368,7 @@ void func_actor_120500_80131E58(Task* arg0)
     switch (arg0->state) {
         case 0:
             SetDispMask(0);
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             arg0->state = arg0->state + 1;
             return;
         case 1:
@@ -404,11 +404,11 @@ void func_actor_120500_80131E58(Task* arg0)
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             arg0->state = arg0->state + 1;
             return;
         case 5:
-            if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
                 return;
             }
             taskSpawnFromTableOnDefaultList(D_actor_120500_80138418, 1, 8, 0);

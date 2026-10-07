@@ -285,7 +285,7 @@ names; the C movie interpretation is `data.movie`.
 | `0x24` | `u16` | `data.movie.volumeTableIndex` | `movie_number` | Low byte selects CD volume; any nonzero value selects INTER seeking and enables streaming audio → `D_8006AC58` | High |
 | `0x26` | `u16` | `data.movie.uploadMode` | `unknown8` | `1` uses fixed VRAM coordinates; other values add the current draw-buffer Y offset → `D_8006AC18` | High |
 
-`Stream_InitFromSlot` wiring (slot field → BSS):
+`_streamLoadMovieSlotState` wiring (slot field → BSS):
 
 ```text
 startSector                → D_8006AC08   (seek sector; may be rewritten)
@@ -314,7 +314,7 @@ The engine does **not** scan INTER for a valid frame. It always:
 ```text
 caller supplies stream id (+ optional sub keys)
     → streamFindMovieSlot (exact match on key.parts.id / subId / key.parts.group rules)
-    → Stream_InitFromSlot(slot)
+    → _streamLoadMovieSlotState(slot)
     → if data.movie.volumeTableIndex ≠ 0: seek INTER_LBA + source.interSectorOffset
       else:                seek absolutized offset (stage CDF)
     → CdCmd 0x61 play
@@ -386,7 +386,7 @@ Runtime absolutization of `startSector` (table load):
 - STAGE0: `startSector += Fs_StageCdfSectors[0]` (STAGE0.CDF LBA)
 - Folder: `startSector += folder.sectorOffset + Fs_StageCdfSectors[stage]`
 
-Play init (`Stream_InitFromSlot` + `Stream_InitializePlayback`):
+Play init (`_streamLoadMovieSlotState` + `Stream_InitializePlayback`):
 
 1. `D_8006AC08 = startSector` (absolute LBA into stage CDF space)
 2. If **`data.movie.volumeTableIndex != 0`**: **overwrite**
@@ -520,7 +520,7 @@ Disc insert → ISO scan → INTER LBA + disc class flag
 Folder/HED load → Stream_Slots (all descriptors, including duals)
 Caller sets stream id (title: disc flag; in-game: session/event)
 streamFindMovieSlot(&key.loc, subId, 0) → slot
-CdCmd 0x61 + Stream_InitFromSlot
+CdCmd 0x61 + _streamLoadMovieSlotState
   data.movie.volumeTableIndex≠0 → seek INTER + source.interSectorOffset
   data.movie.volumeTableIndex==0 → seek stage CDF + startSector
 STR → demux → MDEC → VRAM

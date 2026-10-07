@@ -14105,7 +14105,7 @@ if (flag == 0) {
 ```
 
 Polarity still matters: fall-through must be the `== 0` arm (`bnez` to the
-non-zero constant). `Mem_AllocAuxWithImages` is the pure example.
+non-zero constant). `streamPrepareMovieWorkspace` is the pure example.
 
 ## `ptr = (u8*)&global; ptr += 4` for shared-`%hi` base then offset
 
@@ -17235,7 +17235,7 @@ ret_zero:
 
 `goto ret_zero` / `goto ret_one` also keeps a dedicated `move v0, zero` /
 `li v0, 1` before the epilogue instead of reusing a delay-slot instruction as a
-branch target. `Stream_RestoreAfterLoad`.
+branch target. `streamPollGameRestore`.
 
 When setting several `u8` stack slots from one struct (e.g. `cdCmdEnqueue`
 params), load each field into a local before the corresponding `sb` so the
@@ -18071,7 +18071,7 @@ Pair with `register u_long **base asm("v1")` when a later double-buffer base
 (`D_8006AC48`) must also be `lui v1; addiu v1,v1,%lo` rather than
 `lui v0; addiu v1,v0`.
 
-`Mdec_KickStrip` is the pure example.
+`_mdecStartMovieFrameOutput` is the pure example.
 
 ## Dual 7-bit volume product divides by 16129 (127×127)
 
@@ -18997,7 +18997,7 @@ index = (new_val & mask) - 1;
 p = &base[t & mask]; /* keeps andi after lhu / xori */
 ```
 
-`Mdec_UploadSlice` needs this so `xori` (flip) and `andi`/`sll`/`addu` (pointer)
+`_mdecMovieOutputCallback` needs this so `xori` (flip) and `andi`/`sll`/`addu` (pointer)
 share the same `lhu` of `D_8005EAEE`.
 
 ## Pin callee-saved reg + empty asm for store-in-delay-slot schedules
@@ -19029,7 +19029,7 @@ DecDCTout(*p, size);
 
 Without `asm("s1")` on `base`, the empty asm alone matched the body but
 swapped `$s0`/`$s1` between `D_8005EAEE` (`%hi` only) and `D_8006AC48`
-(full address). `Mdec_UploadSlice` is the pure example.
+(full address). `_mdecMovieOutputCallback` is the pure example.
 
 ## Snapshot compare operand so a post-load `arg++` fills the `bne` delay
 
@@ -145589,7 +145589,7 @@ cases as `if (...) {...} else if (...) {...} else {...}` followed by one
 their copy of the return move by dbr, the shared exit keeps it outside the slot.
 The same body inlined into a sibling in the file already had that if/else shape.
 
-## A flipped double-buffer index read back after its store leaves an `andi 0xffff`, and a `u16` copy of a halfword load moves a store into a delay slot (Mdec_UploadSlice, 2026-09-26)
+## A flipped double-buffer index read back after its store leaves an `andi 0xffff`, and a `u16` copy of a halfword load moves a store into a delay slot (_mdecMovieOutputCallback, 2026-09-26)
 
 The target flipped a `u16` buffer index and took the other buffer's slot as
 `lhu v0,idx; xori v1,v0,1; andi v0,v0,0xffff; sll; addu a0,v0,base` with the

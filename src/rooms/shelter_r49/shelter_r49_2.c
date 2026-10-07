@@ -25,7 +25,6 @@
 #include "main/fs_types.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
-#include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -212,7 +211,7 @@ void func_shelter_r49_8017D71C(Task* arg0)
             if (task->killCountdown < 0x1F) {
                 break;
             }
-            Mem_AllocAuxWithImages(1);
+            streamPrepareMovieWorkspace(1);
             task->state++;
             break;
         case 2:
@@ -246,11 +245,11 @@ void func_shelter_r49_8017D71C(Task* arg0)
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
-            Stream_ResetRestoreState();
+            streamResetGameRestore();
             task->state++;
             break;
         case 6:
-            if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
                 break;
             }
             taskKill(task);
