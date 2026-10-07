@@ -636,7 +636,17 @@ s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1)
     return Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, val, -1);
 }
 
-/// Borrows the last row with this exact item id, or returns `NULL` if absent.
+/// Borrows the highest-index row in `range` whose item id equals `itemId`.
+///
+/// Returns `NULL` for no match, including a zero-row range. The comparison
+/// does not narrow `itemId`: 0 selects the last free row, and values outside
+/// 0..255 never match. Quantity and attachment state are ignored.
+/// `range` must be readable, and `firstRow + rowCount` must fit its selected
+/// table; both fields count rows, including free rows. The descriptor and rows
+/// are left intact.
+/// The writable result borrows the table, whose storage must remain available.
+/// Sorting, transfers or replacing saved contents can change the item at the
+/// returned address.
 static inline InventoryItemRow* _inventoryFindLastItemRowInRange(s32 itemId, const InventoryItemRange* range)
 {
     InventoryItemRow* row;
