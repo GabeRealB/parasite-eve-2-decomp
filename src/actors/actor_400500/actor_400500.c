@@ -3433,15 +3433,10 @@ static void func_actor_400500_801361EC(Task* arg0)
                     work->yaw                 = tx;
                     tx                        = 0x800;
                     work->roll                = tx;
-                    tx                        = ONE;
                     src                       = &rot;
                     work->pitch               = 0;
                     work->posture             = 0;
-                    rot.rotationWords.m00M01  = tx;
-                    src->rotationWords.m02M10 = 0;
-                    src->rotationWords.m11M12 = tx;
-                    src->rotationWords.m20M21 = 0;
-                    src->rotationWords.m22    = tx;
+                    gfxSetRotIdentity(&src->mat);
                     RotMatrixZ(work->roll, &src->mat);
                     RotMatrixY(work->yaw, &src->mat);
                     dst          = &coord->coord;
