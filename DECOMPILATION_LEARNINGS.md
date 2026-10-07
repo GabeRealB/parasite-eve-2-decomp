@@ -78724,12 +78724,12 @@ read its own statement above the `if` keeps it in the entry block and the delay
 slot refills from there:
 
 ```c
-self = (TmdObject*)task->extra;
-work = (Actor460200PairedWork*)task->work;   /* stays in the entry block */
-if (task->spawnArg1 != 0) {
-    other = (TmdObject*)work->field_4F0->extra;
+walkerModel = task->extra.tmd;
+work = task->work;   /* PacedWalkWork*; stays in the entry block */
+if (task->spawnArg1.value != 0) {
+    pairModel = work->pairTask->extra.tmd;
 } else {
-    other = self;
+    pairModel = walkerModel;
 }
 ```
 
@@ -78737,13 +78737,13 @@ The **statement order of the two independent reads decides their emission
 order**: their scheduler priorities tie, and `rank_for_schedule` then falls back
 to `INSN_LUID` - the order the front end created them. Emitting `work` first picks
 `lw a1,0x1c(a0)` first and needs a fourth hard register (`a1`,`v1`,`v0`,`a0`);
-emitting `self` first gives `lw a1,0x2c(a0)` first and reuses the dead `work`
-register for `other`, which is what the target does.
+emitting `walkerModel` first gives `lw a1,0x2c(a0)` first and reuses the dead `work`
+register for `pairModel`, which is what the target does.
 
 So when an entry block is one load short and the penalties are all layout, check
 whether the missing load belongs to one arm - and once it is hoisted, check its
-order against the target's. `func_actor_460200_80132B98` is the worked example
-(86.31% -> 100% in three builds, `regs` 15 -> 3 -> 0).
+order against the target's. actor_460200's `_pacedWalkSetPairModelDraw` is the
+worked example (86.31% -> 100% in three builds, `regs` 15 -> 3 -> 0).
 
 ## `overlay_dup_index.py promote` writes the configs but renumbers the carrier's units
 

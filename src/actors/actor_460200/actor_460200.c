@@ -81,6 +81,8 @@ static s32 _pacedWalkSetSoldierCModelDraw(Task* task, s32 messageId, s32 flags, 
 
 // Message-table callbacks use the argument views required by this TU.
 
+static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlags, s32 unusedArg);
+
 extern TaskMessageEntry gPacedWalkMsgTable[6];
 extern AnimationSet*    gPacedWalkAnimBank[16];
 
@@ -2521,7 +2523,7 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args,
 #define PACED_WALK_SET_PAIR_MODEL_DRAW _pacedWalkSetSoldierCModelDraw
 #include "../../shared/paced_walk_show_pair.inc.c"
 #undef PACED_WALK_SET_PAIR_MODEL_DRAW
-#define PACED_WALK_SET_PAIR_MODEL_DRAW pacedWalkShowPair
+#define PACED_WALK_SET_PAIR_MODEL_DRAW _pacedWalkSetPairModelDraw
 
 // Soldier C's placement uses the restored PacedWalkWork binding.
 #undef PACED_WALK_PLACE

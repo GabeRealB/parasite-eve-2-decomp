@@ -182,27 +182,28 @@ static s32 PACED_WALK_SET_WALK_TARGET(Task* task, s32 messageId, const ActorTran
 static s32 PACED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 
 #ifndef PACED_WALK_SET_PAIR_MODEL_DRAW
-/// Function identifier selecting a paced walker's paired model-draw callback.
+/// Function identifier selecting a paced walker's private paired model-draw callback.
 ///
-/// Defaults to `pacedWalkShowPair`, with signature
-/// `s32 (Task* task, s32 messageId, s32 flags, s32 unusedArg)`.
-/// Bind before this header's first inclusion, or undefine and rebind around
-/// another draw fragment's inclusion. Declare additional private instances
-/// `static` in the carrier's prologue before their message tables: the fragment
-/// definition inherits that linkage. Use the same identifier in the table and
-/// at the definition, then restore the first binding afterwards.
-/// Each instance requires `PacedWalkWork` at `Task::work`, independent of
-/// `PACED_WALK_WORK_T`. Nonzero `Task::spawnArg1.value` requires a live paired TMD
-/// task in that work block; zero makes both model pointers alias the receiver.
+/// Defaults to `_pacedWalkSetPairModelDraw`, with signature
+/// `static s32 (Task* task, s32 messageId, s32 requestFlags, s32 unusedArg)`.
+/// Declare every selected instance `static` in the carrier's prologue before
+/// its message table; the draw fragment also defines it `static`. Bind before
+/// this header's first inclusion, or undefine and rebind around an additional
+/// fragment copy. Use the same identifier in the table and at the definition,
+/// then restore the first binding afterwards. actor_160600 carries the default;
+/// actor_460200 carries the default and `_pacedWalkSetSoldierCModelDraw`.
+/// A nonzero `Task::spawnArg1.value` requires live `PacedWalkWork` at `Task::work`
+/// with a live paired TMD task, independent of `PACED_WALK_WORK_T`. Zero makes
+/// both model pointers alias the receiver without dereferencing the work block.
+/// `requestFlags` carries `ACTOR_MESSAGE_PAIR_*` bits, not TMD object flags.
 /// This object-like alias evaluates no arguments, captures no locals and uses
 /// no stringification or token pasting. Header guards select the default once.
-#define PACED_WALK_SET_PAIR_MODEL_DRAW pacedWalkShowPair
+#define PACED_WALK_SET_PAIR_MODEL_DRAW _pacedWalkSetPairModelDraw
 #endif
 
 void       pacedWalkFrame(Enemy* enemy, Task* task);
 void       pacedWalkSpawn(Enemy* enemy, Task* task);
 static s32 _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
-s32        PACED_WALK_SET_PAIR_MODEL_DRAW(Task* task, s32 messageId, s32 flags, s32 unusedArg);
 
 /* Defined by each package. */
 void pacedWalkExit(Task* task);

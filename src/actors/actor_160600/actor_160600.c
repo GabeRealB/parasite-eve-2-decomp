@@ -91,6 +91,8 @@ extern _Actor160600PlayerAnimationBankExtensionStorage D_actor_160600_80134E00;
 
 // Message-table callbacks use the argument views required by this TU.
 
+static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlags, s32 unusedArg);
+
 extern TaskMessageEntry gPacedWalkMsgTable[6];
 extern u8               gPacedWalkAnimBank[];
 extern u8               gPacedWalkEffectParts[];
@@ -1119,7 +1121,7 @@ static AnimationSet _gActor160600Animation0C128 = {
 
 TaskMessageEntry gPacedWalkMsgTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlayAnimation },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, pacedWalkShowPair },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _pacedWalkSetPairModelDraw },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_160600_8013268C },
     { ACTOR_MESSAGE_WALK_TO, _pacedWalkSetWalkTarget },

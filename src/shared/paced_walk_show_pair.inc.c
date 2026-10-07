@@ -29,27 +29,29 @@ static inline void _pacedWalkReplacePairDrawFlags(TmdObject* walkerModel, TmdObj
 
 /// Replaces the paced walker and its optional carried model's draw flags.
 ///
-/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` on a live TMD task with
-/// `PacedWalkWork` at `Task::work`. Nonzero `Task::spawnArg1.value` requires a live
-/// TMD task in `PacedWalkWork::pairTask`; otherwise both writes target the
-/// receiver's model. `ACTOR_MESSAGE_PAIR_SHOW` clears every model flag; its
-/// absence replaces them with active-draw exclusion. The independent
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` on a live, writable TMD task. Nonzero
+/// `Task::spawnArg1.value` requires live `PacedWalkWork` at `Task::work` with a
+/// live TMD task in `pairTask`; zero targets the receiver's model twice without
+/// dereferencing the work block. Neither model pointer is retained.
+///
+/// `requestFlags` uses `ACTOR_MESSAGE_PAIR_*` bits. SHOW clears every model flag;
+/// its absence replaces them with active-draw exclusion. The independent
 /// `ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER` bit adds automatic-buffer suppression.
 /// Other request bits are ignored. Neither allocates nor releases buffers.
 /// The message ID and second payload are ignored. Returns 0.
-s32 PACED_WALK_SET_PAIR_MODEL_DRAW(Task* task, s32 messageId, s32 flags, s32 unusedArg)
+static s32 PACED_WALK_SET_PAIR_MODEL_DRAW(Task* task, s32 messageId, s32 requestFlags, s32 unusedArg)
 {
     PacedWalkWork* work;
-    TmdObject*     model;
+    TmdObject*     walkerModel;
     TmdObject*     pairModel;
 
-    model = task->extra.tmd;
-    work  = task->work;
+    walkerModel = task->extra.tmd;
+    work        = task->work;
     if (task->spawnArg1.value != 0) {
         pairModel = work->pairTask->extra.tmd;
     } else {
-        pairModel = model;
+        pairModel = walkerModel;
     }
-    _pacedWalkReplacePairDrawFlags(model, pairModel, flags);
+    _pacedWalkReplacePairDrawFlags(walkerModel, pairModel, requestFlags);
     return 0;
 }
