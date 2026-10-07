@@ -22,15 +22,12 @@
 
 #include "gameplay/action_prompt.h"
 
-/// Rectangle the action prompt's outline drawer takes: a left and top edge
-/// with a width and height, in the center-origin screen pixels of an
-/// `ActionPromptHotspot`.
+/// Unsigned screen rectangle used by the retained room-specific prompt drawer.
 ///
-/// It is the unsigned reading of a hotspot's first four fields, and callers
-/// pass a hotspot entry through it. The drawer only adds the fields and stores
-/// the low 16 bits on a line's signed vertices, so a negative hotspot
-/// coordinate arrives at the line unchanged. The outline spans (`x`, `y`) to
-/// (`x + w`, `y + h`).
+/// Left and top are center-origin screen pixels in the same space as an
+/// `ActionPromptHotspot`. Vertex stores retain the low 16 bits, preserving
+/// signed coordinate bit patterns. The outline spans (`x`, `y`) to
+/// (`x + w`, `y + h`); the shared hotspot drawer takes the hotspot itself.
 typedef struct {
     u16 x; // Left edge, pixels from the screen center; the low 16 bits of a signed coordinate
     u16 y; // Top edge, pixels from the screen center, increasing downward; also the low 16 bits
@@ -121,7 +118,22 @@ static void ACTION_PROMPT_DRAW_CURSOR(s32 cursorX, s32 cursorY, s32 cursorMode);
 /// `hotspots` must provide writable entries followed by a readable entry whose
 /// `id` is `ACTION_PROMPT_HOTSPOT_END`. The sentinel's other fields are untouched;
 /// an empty table returns 0. Storage remains owned by the caller.
-s32  ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
-void actionPromptOutlineRect(ActionPromptRect* rect, u8 r, u8 g, u8 b);
+s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
+
+/// Selects the function declared here and defined by the outline fragment.
+///
+/// Bind to a function identifier with signature
+/// `void(const ActionPromptHotspot* hotspot, u8 red, u8 green, u8 blue)`.
+/// The default is `actionPromptOutlineRect`. Shelter R47 selects an additional
+/// `_actionPromptOutlineRect` instance, declared static in its prologue, around
+/// its fragment inclusion, then restores the default. A binding supplied before
+/// this header also selects its prototype; the carrier establishes linkage.
+/// This object-like alias only substitutes an identifier: it captures no
+/// arguments, repeats no evaluation and uses neither stringification nor
+/// token pasting.
+#ifndef ACTION_PROMPT_OUTLINE_RECT
+#define ACTION_PROMPT_OUTLINE_RECT actionPromptOutlineRect
+#endif
+void ACTION_PROMPT_OUTLINE_RECT(const ActionPromptHotspot* hotspot, u8 red, u8 green, u8 blue);
 
 #endif /* SRC_SHARED_ACTION_PROMPT_H */

@@ -63,6 +63,7 @@ static void func_shelter_r47_801844A0(Task* task);
 static void func_shelter_r47_80184658(Task* task);
 static void _actionPromptMoveCursors(Task* task);
 static void _actionPromptDrawCursor(s32 cursorX, s32 cursorY, s32 cursorMode);
+static void _actionPromptOutlineRect(const ActionPromptHotspot* hotspot, u8 red, u8 green, u8 blue);
 static void func_shelter_r47_80185028(Task* task);
 static void func_shelter_r47_80185098(Task* task);
 static void func_shelter_r47_801851B8(Task* task);
@@ -1665,8 +1666,6 @@ u8 D_shelter_r47_8018A697;
 
 RoomCutsceneRec D_shelter_r47_8018A698;
 
-static void func_shelter_r47_8018489C(ActionPromptRect* rect, u8 r, u8 g, u8 b);
-
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
@@ -1893,10 +1892,12 @@ static void func_shelter_r47_80184658(Task* task)
     task->state = 2;
 }
 
-/// The second prompt's copy.
-#define actionPromptOutlineRect func_shelter_r47_8018489C
+/// Selects the additional private outline drawer; its rectangle is read-only.
+#undef ACTION_PROMPT_OUTLINE_RECT
+#define ACTION_PROMPT_OUTLINE_RECT _actionPromptOutlineRect
 #include "../../shared/action_prompt_outline_rect.inc.c"
-#undef actionPromptOutlineRect
+#undef ACTION_PROMPT_OUTLINE_RECT
+#define ACTION_PROMPT_OUTLINE_RECT actionPromptOutlineRect
 
 /// Selects the additional private cursor task, with signature `void(Task*)`.
 #undef ACTION_PROMPT_MOVE_CURSORS_TASK
