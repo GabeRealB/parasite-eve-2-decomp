@@ -1131,11 +1131,11 @@ static void func_actor_206100_8014AF74(Task* task)
 static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
 {
     VECTOR            scale;
-    GfxMatrix         rot;
-    GfxMatrix         ma;
-    GfxMatrix         mb;
+    MATRIX            rot;
+    MATRIX            ma;
+    MATRIX            mb;
     SVECTOR           euler;
-    GfxMatrix         mc;
+    MATRIX            mc;
     _Actor206100Work* work;
     GfxCoord*         base;
     GfxCoord*         c2;
@@ -1171,12 +1171,12 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     work->upperNeckAngles.vx = (u16)work->upperNeckAngles.vx + ((s32) - (work->upperNeckAngles.vx * 0x10) >> 7);
                     work->upperNeckAngles.vy = (u16)work->upperNeckAngles.vy + ((s32) - (work->upperNeckAngles.vy * 0x10) >> 7);
                     work->upperNeckAngles.vz = (u16)work->upperNeckAngles.vz + ((s32) - (work->upperNeckAngles.vz * 0x10) >> 7);
-                    gfxSetRotIdentity(&rot.mat);
-                    RotMatrix(&work->lowerNeckAngles, &rot.mat);
-                    func_actor_206100_8014F4B8(&rot.mat, &c2->coord);
-                    gfxSetRotIdentity(&rot.mat);
-                    RotMatrix(&work->upperNeckAngles, &rot.mat);
-                    func_actor_206100_8014F4B8(&rot.mat, &c3->coord);
+                    gfxSetRotIdentity(&rot);
+                    RotMatrix(&work->lowerNeckAngles, &rot);
+                    func_actor_206100_8014F4B8(&rot, &c2->coord);
+                    gfxSetRotIdentity(&rot);
+                    RotMatrix(&work->upperNeckAngles, &rot);
+                    func_actor_206100_8014F4B8(&rot, &c3->coord);
                     if ((abs(work->lowerNeckAngles.vx) < 0x30) && (abs(work->lowerNeckAngles.vy) < 0x30) && (abs(work->lowerNeckAngles.vz) < 0x30) &&
                         (abs(work->upperNeckAngles.vx) < 0x30) && (abs(work->upperNeckAngles.vy) < 0x30) && (abs(work->upperNeckAngles.vz) < 0x30)) {
                         work->neckPhase = ACTOR_206100_NECK_RETRACTED;
@@ -1190,28 +1190,28 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                 case ACTOR_206100_NECK_RETRACTED: {
                     gfxExtractEulerAngles(&c4->coord, &euler);
                     work->neckScale = (u16)work->neckScale + ((0x2AA - work->neckScale) >> 3);
-                    gfxSetRotIdentity(&ma.mat);
+                    gfxSetRotIdentity(&ma);
                     scale.vx = 0x1000;
                     scale.vy = 0x1000;
                     scale.vz = work->neckScale;
-                    ScaleMatrix(&ma.mat, &scale);
-                    func_actor_206100_8014F4B8(&ma.mat, &c2->coord);
-                    gfxSetRotIdentity(&mb.mat);
+                    ScaleMatrix(&ma, &scale);
+                    func_actor_206100_8014F4B8(&ma, &c2->coord);
+                    gfxSetRotIdentity(&mb);
                     scale.vx = 0x1000;
                     scale.vy = 0x1000;
                     scale.vz = 0x1000;
-                    ScaleMatrix(&mb.mat, &scale);
-                    func_actor_206100_8014F4B8(&mb.mat, &c3->coord);
-                    gfxSetRotIdentity(&mc.mat);
+                    ScaleMatrix(&mb, &scale);
+                    func_actor_206100_8014F4B8(&mb, &c3->coord);
+                    gfxSetRotIdentity(&mc);
                     scale.vx = 0x1000;
                     scale.vy = 0x1000;
                     invScale = 0x1000000 / work->neckScale;
                     scale.vz = invScale;
-                    ScaleMatrix(&mc.mat, &scale);
-                    gfxSetRotIdentity(&rot.mat);
-                    RotMatrix(&euler, &rot.mat);
-                    MulMatrix(&mc.mat, &rot.mat);
-                    func_actor_206100_8014F4B8(&mc.mat, &c4->coord);
+                    ScaleMatrix(&mc, &scale);
+                    gfxSetRotIdentity(&rot);
+                    RotMatrix(&euler, &rot);
+                    MulMatrix(&mc, &rot);
+                    func_actor_206100_8014F4B8(&mc, &c4->coord);
                     base[2].composeStamp = GRAPHICS_COORD_DIRTY;
                     base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                     base[4].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1230,28 +1230,28 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
             if (work->neckScale < 0xF80) {
                 gfxExtractEulerAngles(&c4->coord, &euler);
                 work->neckScale = (u16)work->neckScale + ((0x1000 - work->neckScale) >> 2);
-                gfxSetRotIdentity(&ma.mat);
+                gfxSetRotIdentity(&ma);
                 scale.vx = 0x1000;
                 scale.vy = 0x1000;
                 scale.vz = work->neckScale;
-                ScaleMatrix(&ma.mat, &scale);
-                func_actor_206100_8014F4B8(&ma.mat, &c2->coord);
-                gfxSetRotIdentity(&mb.mat);
+                ScaleMatrix(&ma, &scale);
+                func_actor_206100_8014F4B8(&ma, &c2->coord);
+                gfxSetRotIdentity(&mb);
                 scale.vx = 0x1000;
                 scale.vy = 0x1000;
                 scale.vz = 0x1000;
-                ScaleMatrix(&mb.mat, &scale);
-                func_actor_206100_8014F4B8(&mb.mat, &c3->coord);
-                gfxSetRotIdentity(&mc.mat);
+                ScaleMatrix(&mb, &scale);
+                func_actor_206100_8014F4B8(&mb, &c3->coord);
+                gfxSetRotIdentity(&mc);
                 scale.vx = 0x1000;
                 scale.vy = 0x1000;
                 invScale = 0x1000000 / work->neckScale;
                 scale.vz = invScale;
-                ScaleMatrix(&mc.mat, &scale);
-                gfxSetRotIdentity(&rot.mat);
-                RotMatrix(&euler, &rot.mat);
-                MulMatrix(&mc.mat, &rot.mat);
-                func_actor_206100_8014F4B8(&mc.mat, &c4->coord);
+                ScaleMatrix(&mc, &scale);
+                gfxSetRotIdentity(&rot);
+                RotMatrix(&euler, &rot);
+                MulMatrix(&mc, &rot);
+                func_actor_206100_8014F4B8(&mc, &c4->coord);
                 base[2].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[4].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1717,11 +1717,11 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
 /// `ONE` = 1.0.
 static inline void _actor206100ScaleCoord(GfxCoord* coord, VECTOR* factors)
 {
-    GfxMatrix scaling;
+    MATRIX    scaling;
 
-    gfxSetRotIdentity(&scaling.mat);
-    ScaleMatrix(&scaling.mat, factors);
-    MulMatrix(&coord->coord, &scaling.mat);
+    gfxSetRotIdentity(&scaling);
+    ScaleMatrix(&scaling, factors);
+    MulMatrix(&coord->coord, &scaling);
 }
 
 /// Multiplies `coord`'s rotation by the uniform `scale`, `ONE` = 1.0.
@@ -1743,24 +1743,24 @@ static inline void _actor206100ApplyRootRotation(Task* task)
 {
     _Actor206100Work* work;
     GfxCoord*         coord;
-    GfxMatrix         m;
+    MATRIX            m;
     MATRIX*           dest;
 
     coord = task->extra.tmd->coords;
     work  = task->work;
-    gfxSetRotIdentity(&m.mat);
-    RotMatrixZ(work->rotation.vz, &m.mat);
-    RotMatrixY(work->rotation.vy, &m.mat);
+    gfxSetRotIdentity(&m);
+    RotMatrixZ(work->rotation.vz, &m);
+    RotMatrixY(work->rotation.vy, &m);
     dest                = &coord->coord;
-    dest->m[0][0]       = m.mat.m[0][0];
-    dest->m[0][1]       = m.mat.m[0][1];
-    dest->m[0][2]       = m.mat.m[0][2];
-    dest->m[1][0]       = m.mat.m[1][0];
-    dest->m[1][1]       = m.mat.m[1][1];
-    dest->m[1][2]       = m.mat.m[1][2];
-    dest->m[2][0]       = m.mat.m[2][0];
-    dest->m[2][1]       = m.mat.m[2][1];
-    dest->m[2][2]       = m.mat.m[2][2];
+    dest->m[0][0]       = m.m[0][0];
+    dest->m[0][1]       = m.m[0][1];
+    dest->m[0][2]       = m.m[0][2];
+    dest->m[1][0]       = m.m[1][0];
+    dest->m[1][1]       = m.m[1][1];
+    dest->m[1][2]       = m.m[1][2];
+    dest->m[2][0]       = m.m[2][0];
+    dest->m[2][1]       = m.m[2][1];
+    dest->m[2][2]       = m.m[2][2];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -2592,9 +2592,9 @@ static void func_actor_206100_8014DA28(Task* task)
     GfxCoord*         coord;
     GfxCoord*         scaled;
     MATRIX*           dest;
-    GfxMatrix         matrix;
+    MATRIX            matrix;
     VECTOR            scale;
-    GfxMatrix         scaling;
+    MATRIX            scaling;
     s32               i;
     s16               state;
 
@@ -2630,27 +2630,27 @@ static void func_actor_206100_8014DA28(Task* task)
             func_actor_206100_8014B0AC(task, work->neckRetracted);
             coord = task->extra.tmd->coords;
             sub   = task->work;
-            gfxSetRotIdentity(&matrix.mat);
-            RotMatrixZ(sub->rotation.vz, &matrix.mat);
-            RotMatrixY(sub->rotation.vy, &matrix.mat);
+            gfxSetRotIdentity(&matrix);
+            RotMatrixZ(sub->rotation.vz, &matrix);
+            RotMatrixY(sub->rotation.vy, &matrix);
             dest                = &coord->coord;
-            dest->m[0][0]       = matrix.mat.m[0][0];
-            dest->m[0][1]       = matrix.mat.m[0][1];
-            dest->m[0][2]       = matrix.mat.m[0][2];
-            dest->m[1][0]       = matrix.mat.m[1][0];
-            dest->m[1][1]       = matrix.mat.m[1][1];
-            dest->m[1][2]       = matrix.mat.m[1][2];
-            dest->m[2][0]       = matrix.mat.m[2][0];
-            dest->m[2][1]       = matrix.mat.m[2][1];
-            dest->m[2][2]       = matrix.mat.m[2][2];
+            dest->m[0][0]       = matrix.m[0][0];
+            dest->m[0][1]       = matrix.m[0][1];
+            dest->m[0][2]       = matrix.m[0][2];
+            dest->m[1][0]       = matrix.m[1][0];
+            dest->m[1][1]       = matrix.m[1][1];
+            dest->m[1][2]       = matrix.m[1][2];
+            dest->m[2][0]       = matrix.m[2][0];
+            dest->m[2][1]       = matrix.m[2][1];
+            dest->m[2][2]       = matrix.m[2][2];
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             scaled              = task->extra.tmd->coords;
             scale.vx            = work->modelScale;
             scale.vy            = scale.vx;
             scale.vz            = scale.vx;
-            gfxSetRotIdentity(&scaling.mat);
-            ScaleMatrix(&scaling.mat, &scale);
-            MulMatrix(&scaled->coord, &scaling.mat);
+            gfxSetRotIdentity(&scaling);
+            ScaleMatrix(&scaling, &scale);
+            MulMatrix(&scaled->coord, &scaling);
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
             Actor206100_UpdateColor(task);
@@ -2872,9 +2872,9 @@ static void func_actor_206100_8014E228(Task* task)
     MATRIX            t1;
     MATRIX            t2;
     MATRIX            t3;
-    GfxMatrix         ma;
-    GfxMatrix         mb;
-    GfxMatrix         mc;
+    MATRIX            ma;
+    MATRIX            mb;
+    MATRIX            mc;
     MATRIX            view;
     VECTOR            delta;
     VECTOR            local;
@@ -2936,40 +2936,40 @@ static void func_actor_206100_8014E228(Task* task)
     }
     m2 = &c2->coord;
 
-    gfxSetRotIdentity(&ma.mat);
-    gfxSetRotIdentity(&mb.mat);
-    gfxSetRotIdentity(&mc.mat);
+    gfxSetRotIdentity(&ma);
+    gfxSetRotIdentity(&mb);
+    gfxSetRotIdentity(&mc);
 
     gfxExtractEulerAngles(m2, &rot1);
     m3 = &c3->coord;
     gfxExtractEulerAngles(&c3->coord, &rot2);
-    RotMatrixX(rot1.vx + (s16)(work->recoilPitch / 3), &ma.mat);
-    RotMatrixX(rot2.vx + (s16)(work->recoilPitch / 3), &mb.mat);
-    c2->coord.m[0][0] = ma.mat.m[0][0];
-    m2->m[0][1]       = ma.mat.m[0][1];
-    m2->m[0][2]       = ma.mat.m[0][2];
-    m2->m[1][0]       = ma.mat.m[1][0];
-    m2->m[1][1]       = ma.mat.m[1][1];
-    m2->m[1][2]       = ma.mat.m[1][2];
-    m2->m[2][0]       = ma.mat.m[2][0];
-    m2->m[2][1]       = ma.mat.m[2][1];
-    m2->m[2][2]       = ma.mat.m[2][2];
-    c3->coord.m[0][0] = mb.mat.m[0][0];
-    m3->m[0][1]       = mb.mat.m[0][1];
-    m3->m[0][2]       = mb.mat.m[0][2];
-    m3->m[1][0]       = mb.mat.m[1][0];
-    m3->m[1][1]       = mb.mat.m[1][1];
-    m3->m[1][2]       = mb.mat.m[1][2];
-    m3->m[2][0]       = mb.mat.m[2][0];
-    m3->m[2][1]       = mb.mat.m[2][1];
-    m3->m[2][2]       = mb.mat.m[2][2];
+    RotMatrixX(rot1.vx + (s16)(work->recoilPitch / 3), &ma);
+    RotMatrixX(rot2.vx + (s16)(work->recoilPitch / 3), &mb);
+    c2->coord.m[0][0] = ma.m[0][0];
+    m2->m[0][1]       = ma.m[0][1];
+    m2->m[0][2]       = ma.m[0][2];
+    m2->m[1][0]       = ma.m[1][0];
+    m2->m[1][1]       = ma.m[1][1];
+    m2->m[1][2]       = ma.m[1][2];
+    m2->m[2][0]       = ma.m[2][0];
+    m2->m[2][1]       = ma.m[2][1];
+    m2->m[2][2]       = ma.m[2][2];
+    c3->coord.m[0][0] = mb.m[0][0];
+    m3->m[0][1]       = mb.m[0][1];
+    m3->m[0][2]       = mb.m[0][2];
+    m3->m[1][0]       = mb.m[1][0];
+    m3->m[1][1]       = mb.m[1][1];
+    m3->m[1][2]       = mb.m[1][2];
+    m3->m[2][0]       = mb.m[2][0];
+    m3->m[2][1]       = mb.m[2][1];
+    m3->m[2][2]       = mb.m[2][2];
     actorRenderComposeCoord(c1);
     actorRenderComposeCoord(c2);
     actorRenderComposeCoord(c3);
     _diverTurnJoint(c2, (s16)work->lookYaw / 3);
     _diverTurnJoint(c3, (s16)work->lookYaw / 3);
 
-    gfxSetRotIdentity(&mc.mat);
+    gfxSetRotIdentity(&mc);
 
     total = (s16)work->lookPitch + work->recoilPitch;
     limit = total;
@@ -2978,14 +2978,14 @@ static void func_actor_206100_8014E228(Task* task)
     } else if (limit < -0x200) {
         limit = -0x200;
     }
-    RotMatrixX((s32)limit, &mc.mat);
-    RotMatrixY((s16)((s16)work->lookYaw / 3), &mc.mat);
+    RotMatrixX((s32)limit, &mc);
+    RotMatrixY((s16)((s16)work->lookYaw / 3), &mc);
     TransposeMatrix(&c1->coord, &t1);
     TransposeMatrix(&c2->coord, &t2);
     TransposeMatrix(&c3->coord, &t3);
     MulMatrix(&t1, &t2);
     MulMatrix(&t1, &t3);
-    MulMatrix(&t1, &mc.mat);
+    MulMatrix(&t1, &mc);
     dest             = &c4->coord;
     dest->m[0][0]    = t1.m[0][0];
     dest->m[0][1]    = t1.m[0][1];
@@ -3108,27 +3108,27 @@ static void func_actor_206100_8014EB60(Task* task)
     _Actor206100Work* work;
     GfxCoord*         coords;
     SVECTOR           rot;
-    GfxMatrix         matrix;
+    MATRIX            matrix;
     MATRIX*           dest;
 
     work   = task->work;
     coords = task->extra.tmd->coords;
     dest   = &coords[5].coord;
 
-    gfxSetRotIdentity(&matrix.mat);
+    gfxSetRotIdentity(&matrix);
 
     gfxExtractEulerAngles(dest, &rot);
     rot.vx += work->part5Pitch;
-    RotMatrix(&rot, &matrix.mat);
-    dest->m[0][0] = matrix.mat.m[0][0];
-    dest->m[0][1] = matrix.mat.m[0][1];
-    dest->m[0][2] = matrix.mat.m[0][2];
-    dest->m[1][0] = matrix.mat.m[1][0];
-    dest->m[1][1] = matrix.mat.m[1][1];
-    dest->m[1][2] = matrix.mat.m[1][2];
-    dest->m[2][0] = matrix.mat.m[2][0];
-    dest->m[2][1] = matrix.mat.m[2][1];
-    dest->m[2][2] = matrix.mat.m[2][2];
+    RotMatrix(&rot, &matrix);
+    dest->m[0][0] = matrix.m[0][0];
+    dest->m[0][1] = matrix.m[0][1];
+    dest->m[0][2] = matrix.m[0][2];
+    dest->m[1][0] = matrix.m[1][0];
+    dest->m[1][1] = matrix.m[1][1];
+    dest->m[1][2] = matrix.m[1][2];
+    dest->m[2][0] = matrix.m[2][0];
+    dest->m[2][1] = matrix.m[2][1];
+    dest->m[2][2] = matrix.m[2][2];
 }
 
 static void func_actor_206100_8014EC54(Task* task)
