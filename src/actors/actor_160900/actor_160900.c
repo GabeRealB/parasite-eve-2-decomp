@@ -145,8 +145,7 @@ STATIC_ASSERT_SIZEOF(_Actor160900KyleModelWork, 0x4BC);
 /// spawned by `func_actor_160900_801346B0` / `func_actor_160900_801346E0`.
 extern TaskDesc D_actor_160900_8013FB50[];
 
-/// Animation script `func_actor_160900_801326EC` walks and the animation-set
-/// table it hands the player task as message 0x3F4's `field_0`.
+/// Clip chain `_actor160900AdvancePlayerAnimChain` follows for the player.
 extern ActorAnimChainLink D_actor_160900_8013F1CC[];
 
 extern u8       D_actor_160900_8013F210[];
@@ -181,31 +180,37 @@ extern ScreenWaveOscillator gScreenWaveColumns[13];
 
 extern ScreenWaveOscillator gScreenWaveRows[30];
 
+/// Clip transitions are measured in normal-rate frames; cue zero means idle.
+enum {
+    ACTOR_160900_ANIM_BLEND_FRAMES = 10,
+    ACTOR_160900_CUE_NONE          = 0,
+};
+
 static TmdSource _gActor160900KyleMadiganBody;
 static TmdSource _gActor160900KyleMadiganGun;
 static TmdSource _gActor160900KyleMadiganLeft;
 static TmdSource _gActor160900KyleMadiganHandRight;
 void             func_actor_160900_80132A14(Task*);
 void             func_actor_160900_80132C08(Task*);
-void             func_actor_160900_80132E80(Task*);
+static void      _actor160900DrawLightQuadTask(Task* task);
 void             func_actor_160900_80133880(void);
 void             func_actor_160900_80133A84(void);
 void             func_actor_160900_80133F90(void);
 void             func_actor_160900_8013418C(Task*);
-void             func_actor_160900_801343E4(Task*);
-void             func_actor_160900_801344D8(Task*);
+static void      _actor160900FadeOutTask(Task* task);
+static void      _actor160900FadeInTask(Task* task);
 void             func_actor_160900_801346B0(s32);
 void             func_actor_160900_801346E0(s32);
-void             func_actor_160900_80134710(void);
-void             func_actor_160900_80134790(s16);
-void             func_actor_160900_801347B0(s16);
-void             func_actor_160900_801347D0(s16);
-void             func_actor_160900_801347F0(void);
-void             func_actor_160900_80134830(void);
-void             func_actor_160900_80134850(void);
-void             func_actor_160900_80134870(void);
+static void      _actor160900KillLightQuads(void);
+static void      _actor160900PostPlayerCue(s16 cueId);
+static void      _actor160900PostKyleCue(s16 cueId);
+static void      _actor160900PostEffectCue(s16 cueId);
+static void      _actor160900SkipCutscene(void);
+static void      _actor160900StageSceneAudioStart(void);
+static void      _actor160900EnqueueScenePlayback(void);
+static void      _actor160900FinishScenePlayback(void);
 
-void func_actor_160900_801345D0(Task*, s32, s32, s32);
+static void _actor160900SetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 
 static TmdBone _gActor160900KyleMadiganBodySkeleton[20] = {
 #include "assets/kyle_madigan_body_skeleton.inc"
@@ -670,7 +675,7 @@ ActorAnimChainLink D_actor_160900_8013F1F8[2] = {
 // Message-table callbacks use the argument views required by this TU.
 
 TaskMessageEntry D_actor_160900_8013F200[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_160900_801345D0 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor160900SetModelDraw },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
@@ -866,60 +871,60 @@ EvsSceneKey D_actor_160900_8013F530 = { 6, 9, 11 };
 EvsCommand D_actor_160900_8013F538[58] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_TAKE_PLACE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = ACTOR_160900_KYLE_CUE_HIDE_AND_PLACE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347D0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_TAKE_PLACE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostKyleCue }, { .value = ACTOR_160900_KYLE_CUE_HIDE_AND_PLACE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_160900_8013F530 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80134830 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80133880 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80134850 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_160900_801346B0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347D0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80134710 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900KillLightQuads }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80133A84 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = ACTOR_160900_KYLE_CUE_APPEAR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostKyleCue }, { .value = ACTOR_160900_KYLE_CUE_APPEAR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347D0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80134710 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900KillLightQuads }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80133F90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_WALK_TO_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_WALK_TO_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_WAVE_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_WAVE_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347D0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80134710 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_80134790 }, { .value = ACTOR_160900_PLAYER_CUE_WAVE_END }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900KillLightQuads }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_WAVE_END }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = ACTOR_160900_KYLE_CUE_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostKyleCue }, { .value = ACTOR_160900_KYLE_CUE_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347D0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = roomEffectRequestCancelAll }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_160900_801346E0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = ACTOR_160900_KYLE_CUE_GROUND_DECAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostKyleCue }, { .value = ACTOR_160900_KYLE_CUE_GROUND_DECAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80134870 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900FinishScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -927,7 +932,7 @@ EvsCommand D_actor_160900_8013F538[58] = {
 EvsCommand D_actor_160900_8013FAA8[7] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_801347F0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900SkipCutscene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 43 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -936,13 +941,13 @@ EvsCommand D_actor_160900_8013FAA8[7] = {
 
 TaskDesc D_actor_160900_8013FB50[8] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_160900_8013418C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_160900_801344D8, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_160900_801343E4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor160900FadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor160900FadeOutTask, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132C08, { .model = &_gActor160900KyleMadiganBody } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &_gActor160900KyleMadiganGun } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &_gActor160900KyleMadiganLeft } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &_gActor160900KyleMadiganHandRight } },
-    { { { TASK_BODY_COORD, 192 } }, func_actor_160900_80132E80, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _actor160900DrawLightQuadTask, { .value = 0 } },
 };
 
 ScreenWaveCtx* gScreenWaveCtx;
@@ -964,8 +969,8 @@ extern ActorAnimChainLink D_actor_160900_8013F1F8[];
 
 extern TaskMessageEntry D_actor_160900_8013F200[2];
 
-static s32         func_actor_160900_801326EC(Task* arg0);
-static inline void func_actor_160900_Reseed(Task* arg0, u16 anim);
+static s32         _actor160900AdvancePlayerAnimChain(Task* task);
+static inline void _actor160900BlendKyleAnim(Task* task, u16 animationId);
 static s32         func_actor_160900_80132844(Task* arg0);
 static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj);
 static inline void func_actor_160900_SetAnim(Task* task, u16 anim);
@@ -976,36 +981,56 @@ static void        func_actor_160900_80133758(SVECTOR* pts);
 
 #include "../../shared/screen_wave.inc.c"
 
-static s32 func_actor_160900_801326EC(Task* arg0)
+/// Advances the cutscene player's clip chain by one update.
+///
+/// Requires a live cutscene work block and a valid player clip index (0..10).
+/// A nonzero hold duration counts updates; zero waits for playback to finish.
+/// Successors start with a ten-frame blend and world collision enabled. The
+/// borrowed player task and animation data must remain live during dispatch.
+/// Returns 1 when the player is absent or a reached link has no successor,
+/// otherwise 0; this does not clear a cue or stop the last clip.
+static s32 _actor160900AdvancePlayerAnimChain(Task* task)
 {
     _Actor160900CutsceneWork* work;
-    ActorAnimChainLink*       table;
-    ActorAnimChainLink*       entry;
-    ActorAnimChainLink*       entry2;
-    AnimationPlayRequest      msg;
-    u16                       anim;
-    u16                       anim2;
+    ActorAnimChainLink*       chain;
+    ActorAnimChainLink*       link;
+    ActorAnimChainLink*       finishedLink;
+    AnimationPlayRequest      request;
+    u16                       nextAnimationId;
+    u16                       finishedAnimationId;
 
-    work = arg0->work;
+    /// Starts a successor clip and resets its hold counter after dispatch.
+    ///
+    /// work is a live cutscene-work pointer, clipId a valid u16 set index,
+    /// and request a writable AnimationPlayRequest lvalue. Arguments must be
+    /// stable locals without side effects: each is evaluated repeatedly.
+    /// Borrows the package's player animation table and retains no payload;
+    /// dispatch is synchronous and its result is ignored.
+#define ACTOR_160900_START_PLAYER_CHAIN_CLIP(work, clipId, request)                                       \
+    do {                                                                                                  \
+        (request).source.sets          = _gActor160900PlayerAnimationSets;                                \
+        (work)->playerAnimId           = (clipId);                                                        \
+        (request).animationId          = (clipId);                                                        \
+        (request).blend                = ANIMATION_BLEND_INTERPOLATE;                                     \
+        (request).blendFrames          = ACTOR_160900_ANIM_BLEND_FRAMES;                                  \
+        (request).enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                                \
+        TASK_MESSAGE_DISPATCH_POINTER((work)->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(request), 0); \
+        (work)->playerAnimHold = 0;                                                                       \
+    } while (0)
+
+    work = task->work;
     if (work->player == NULL) {
         return 1;
     }
-    table = D_actor_160900_8013F1CC;
-    entry = &table[work->playerAnimId];
-    if (entry->holdFrames != 0) {
-        if (work->playerAnimHold >= entry->holdFrames) {
-            if (entry->nextAnimId < 0) {
+    chain = D_actor_160900_8013F1CC;
+    link  = &chain[work->playerAnimId];
+    if (link->holdFrames != 0) {
+        if (work->playerAnimHold >= link->holdFrames) {
+            if (link->nextAnimId < 0) {
                 return 1;
             }
-            anim                     = entry->nextAnimId;
-            msg.source.sets          = _gActor160900PlayerAnimationSets;
-            work->playerAnimId       = anim;
-            msg.animationId          = anim;
-            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-            msg.blendFrames          = 0xA;
-            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
-            work->playerAnimHold = 0;
+            nextAnimationId = link->nextAnimId;
+            ACTOR_160900_START_PLAYER_CHAIN_CLIP(work, nextAnimationId, request);
         } else {
             work->playerAnimHold += 1;
         }
@@ -1013,37 +1038,24 @@ static s32 func_actor_160900_801326EC(Task* arg0)
         if (taskMessageDispatch(work->player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
             return 0;
         }
-        entry2 = &D_actor_160900_8013F1CC[work->playerAnimId];
-        if (entry2->nextAnimId < 0) {
+        finishedLink = &D_actor_160900_8013F1CC[work->playerAnimId];
+        if (finishedLink->nextAnimId < 0) {
             return 1;
         }
-        work = arg0->work;
+        work = task->work;
         if (work->player != NULL) {
-            anim2                    = entry2->nextAnimId;
-            msg.source.sets          = _gActor160900PlayerAnimationSets;
-            work->playerAnimId       = anim2;
-            msg.animationId          = anim2;
-            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-            msg.blendFrames          = 0xA;
-            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
-            work->playerAnimHold = 0;
+            finishedAnimationId = finishedLink->nextAnimId;
+            ACTOR_160900_START_PLAYER_CHAIN_CLIP(work, finishedAnimationId, request);
         }
     }
+#undef ACTOR_160900_START_PLAYER_CHAIN_CLIP
     return 0;
 }
-/// Restarts the hold counter of the model's current clip.
-///
-/// FITTED: the two arms are the same store. The image has one `sh zero` here
-/// and no test, but what follows it was compiled as a new basic block: the
-/// blend loop's `li 1` and `li 10` stay below the two stores (in one block
-/// sched1 lifts both above them), which is also what lets the delay-slot pass
-/// reach the copy of the clip id and make the `animId` store read the
-/// argument register. A branch whose arms jump2 merges leaves exactly that.
-/// The original condition is unknown; `work` is used because testing it costs
-/// no instruction. Same shape as `_actor560800ResetAnimHold`.
-static inline void func_actor_160900_ResetAnimHold(_Actor160900KyleModelWork* work)
+/// Clears Kyle's current clip hold counter in a live model work block.
+static inline void _actor160900ResetKyleAnimHold(_Actor160900KyleModelWork* work)
 {
+    // Fitted branch: identical arms preserve the blend loop's instruction order.
+    // The original condition is unknown; work must be non-NULL.
     if (work != NULL) {
         work->animHold = 0;
     } else {
@@ -1051,16 +1063,21 @@ static inline void func_actor_160900_ResetAnimHold(_Actor160900KyleModelWork* wo
     }
 }
 
-static inline void func_actor_160900_Reseed(Task* arg0, u16 anim)
+/// Restarts Kyle's clip chain on a selected clip with a ten-frame pose blend.
+///
+/// Requires the body's live, bound twenty-part rig and an animation id in 0..1.
+/// Resets the hold counter and seeks slots 1..19 to record zero; slot 0 and
+/// the slots' playback rates are retained. The model and clip data are borrowed.
+static inline void _actor160900BlendKyleAnim(Task* task, u16 animationId)
 {
     _Actor160900KyleModelWork* work;
-    u16                        i;
+    u16                        slotIndex;
 
-    work         = arg0->work;
-    work->animId = anim;
-    func_actor_160900_ResetAnimHold(work);
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationSeekSlotWithBlend(&work->rig.anim, i, anim, 0, 0xA);
+    work         = task->work;
+    work->animId = animationId;
+    _actor160900ResetKyleAnimHold(work);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationSeekSlotWithBlend(&work->rig.anim, slotIndex, animationId, 0, ACTOR_160900_ANIM_BLEND_FRAMES);
     }
 }
 
@@ -1090,7 +1107,7 @@ static s32 func_actor_160900_80132844(Task* arg0)
     if (table[work->animId].holdFrames != 0) {
         if (work->animHold >= table[work->animId].holdFrames) {
             if (table[work->animId].nextAnimId >= 0) {
-                func_actor_160900_Reseed(arg0, table[work->animId].nextAnimId);
+                _actor160900BlendKyleAnim(arg0, table[work->animId].nextAnimId);
             } else {
                 return 1;
             }
@@ -1099,7 +1116,7 @@ static s32 func_actor_160900_80132844(Task* arg0)
         }
     } else if (done) {
         if (table[work->animId].nextAnimId >= 0) {
-            func_actor_160900_Reseed(arg0, table[work->animId].nextAnimId);
+            _actor160900BlendKyleAnim(arg0, table[work->animId].nextAnimId);
         } else {
             return 1;
         }
@@ -1167,18 +1184,21 @@ void func_actor_160900_80132A14(Task* arg0)
     }
 }
 
-/// Clears the model's clip id and hold counter and resets slots 1-19 to unit rate.
-static inline void func_actor_160900_ResetAnimSlots(Task* task)
+/// Restarts Kyle's body at clip zero and normal playback rate.
+///
+/// Requires live model work with a bound twenty-part rig. Clears the clip id
+/// and hold counter and resets slots 1..19; slot 0 remains untouched.
+static inline void _actor160900ResetKyleAnimSlots(Task* task)
 {
     _Actor160900KyleModelWork* work;
-    u16                        i;
+    u16                        slotIndex;
 
     work           = task->work;
     work->animId   = 0;
     work->animHold = 0;
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        work->rig.slots[i].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&work->rig.anim, i, 0);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&work->rig.anim, slotIndex, 0);
     }
 }
 
@@ -1191,7 +1211,7 @@ static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj)
     work = task->work;
     animationInitContext(&work->rig.anim, D_actor_160900_8013F1C4, obj, work->rig.poses, work->rig.slots);
     work->animChain = D_actor_160900_8013F1F8;
-    func_actor_160900_ResetAnimSlots(task);
+    _actor160900ResetKyleAnimSlots(task);
 }
 
 void func_actor_160900_80132C08(Task* task)
@@ -1246,149 +1266,179 @@ void func_actor_160900_80132C08(Task* task)
     worldCoordSetModelLighting(obj2, &pos, 0, 3);
 }
 
-void func_actor_160900_80132E80(Task* task)
+/// Shades a light quad from a live task's six-valued spawn pattern.
+///
+/// quad must be writable; task's first spawn argument is 0..5. Writes only RGB
+/// bytes, retaining packet metadata and coordinates. Neither pointer is retained.
+static inline void _actor160900ShadeLightQuad(POLY_G4* quad, Task* task)
 {
-    s16                        xs[4];
-    s16                        ys[4];
-    SVECTOR                    origin;
-    s32                        sxy;
-    s32                        otz;
-    GfxCoord*                  coord;
+    enum {
+        ACTOR_160900_LIGHT_WHITE_CORNER_3    = 0,
+        ACTOR_160900_LIGHT_WHITE_CORNER_2    = 1,
+        ACTOR_160900_LIGHT_WHITE_CORNERS_1_3 = 2,
+        ACTOR_160900_LIGHT_WHITE_CORNERS_0_2 = 3,
+        ACTOR_160900_LIGHT_WHITE_CORNERS_2_3 = 4,
+        ACTOR_160900_LIGHT_WHITE_ALL_CORNERS = 5,
+        ACTOR_160900_LIGHT_MAX_INTENSITY     = 255,
+    };
+    quad->r0 = 0;
+    quad->g0 = 0;
+    quad->b0 = 0;
+    quad->r1 = 0;
+    quad->g1 = 0;
+    quad->b1 = 0;
+    switch (task->spawnArg1.value) {
+        case ACTOR_160900_LIGHT_WHITE_CORNER_3:
+            quad->r0 = 0;
+            quad->g0 = 0;
+            quad->b0 = 0;
+            quad->r1 = 0;
+            quad->g1 = 0;
+            quad->b1 = 0;
+            quad->r2 = 0;
+            quad->g2 = 0;
+            quad->b2 = 0;
+            quad->r3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            break;
+        case ACTOR_160900_LIGHT_WHITE_CORNER_2:
+            quad->r0 = 0;
+            quad->g0 = 0;
+            quad->b0 = 0;
+            quad->r1 = 0;
+            quad->g1 = 0;
+            quad->b1 = 0;
+            quad->r3 = 0;
+            quad->g3 = 0;
+            quad->b3 = 0;
+            quad->r2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            break;
+        case ACTOR_160900_LIGHT_WHITE_CORNERS_1_3:
+            quad->r0 = 0;
+            quad->g0 = 0;
+            quad->b0 = 0;
+            quad->r1 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g1 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b1 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->r2 = 0;
+            quad->g2 = 0;
+            quad->b2 = 0;
+            quad->r3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            break;
+        case ACTOR_160900_LIGHT_WHITE_CORNERS_0_2:
+            quad->r0 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g0 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b0 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->r1 = 0;
+            quad->g1 = 0;
+            quad->b1 = 0;
+            quad->r2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->r3 = 0;
+            quad->g3 = 0;
+            quad->b3 = 0;
+            break;
+        case ACTOR_160900_LIGHT_WHITE_CORNERS_2_3:
+            quad->r0 = 0;
+            quad->g0 = 0;
+            quad->b0 = 0;
+            quad->r1 = 0;
+            quad->g1 = 0;
+            quad->b1 = 0;
+            quad->r2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->r3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            break;
+        case ACTOR_160900_LIGHT_WHITE_ALL_CORNERS:
+            quad->r0 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g0 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b0 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->r1 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g1 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b1 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->r2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b2 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->r3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->g3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            quad->b3 = ACTOR_160900_LIGHT_MAX_INTENSITY;
+            break;
+    }
+}
+
+/// Draws one additive gradient light quad in the cutscene.
+///
+/// Requires a live coordinate body and four local-space corners in the task's
+/// work. The first spawn argument selects white corners (0 corner 3, 1 corner 2,
+/// 2 corners 1 and 3, 3 corners 0 and 2, 4 corners 2 and 3, 5 all four);
+/// remaining corners are black. Callers must supply one of these six patterns.
+/// The coordinate origin supplies the ordering depth, quantized by four bits;
+/// that tag must fit the current ordering table. The current frame arena must
+/// hold a POLY_G4 and DR_TPAGE through GPU drawing. Projection changes GTE state.
+static void _actor160900DrawLightQuadTask(Task* task)
+{
+    enum { ACTOR_160900_LIGHT_DEPTH_SHIFT = 4 };
     _Actor160900LightQuadWork* work;
-    POLY_G4*                   poly;
-    DR_TPAGE*                  tp;
-    s16                        i;
+    s16                        screenX[ARRAY_SIZE(work->corners)];
+    s16                        screenY[ARRAY_SIZE(work->corners)];
+    SVECTOR                    origin;
+    s32                        screenXY;
+    s32                        originDepth;
+    GfxCoord*                  coord;
+    POLY_G4*                   quad;
+    DR_TPAGE*                  drawMode;
+    s16                        cornerIndex;
 
     coord = task->extra.coordBody->coord;
     work  = task->work;
     actorRenderComposeCoord(coord);
     gte_SetTransMatrix(&coord->workm);
     gte_SetRotMatrix(&coord->workm);
+    // Sort the whole quad by its origin, then project its four local corners.
     origin.vz = 0;
     origin.vy = 0;
     origin.vx = 0;
     gte_ldv0(&origin);
     gte_rtps();
-    gte_stsxy(&sxy);
-    gte_stszotz(&otz);
-    for (i = 0; i < ARRAY_SIZE(work->corners); i++) {
-        gte_ldv0(&work->corners[i]);
+    gte_stsxy(&screenXY);
+    gte_stszotz(&originDepth);
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(work->corners); cornerIndex++) {
+        gte_ldv0(&work->corners[cornerIndex]);
         gte_rtps();
-        gte_stsxy(&sxy);
-        xs[i] = sxy;
-        ys[i] = sxy >> 16;
+        gte_stsxy(&screenXY);
+        screenX[cornerIndex] = screenXY;
+        screenY[cornerIndex] = screenXY >> 16;
     }
 
-    poly           = gGpuPrimCursor;
-    gGpuPrimCursor = poly + 1;
-    setlen(poly, 8);
-    setcode(poly, 0x3A);
-    poly->r0 = 0;
-    poly->g0 = 0;
-    poly->b0 = 0;
-    poly->r1 = 0;
-    poly->g1 = 0;
-    poly->b1 = 0;
-    switch (task->spawnArg1.value) {
-        case 0:
-            poly->r0 = 0;
-            poly->g0 = 0;
-            poly->b0 = 0;
-            poly->r1 = 0;
-            poly->g1 = 0;
-            poly->b1 = 0;
-            poly->r2 = 0;
-            poly->g2 = 0;
-            poly->b2 = 0;
-            poly->r3 = 0xFF;
-            poly->g3 = 0xFF;
-            poly->b3 = 0xFF;
-            break;
-        case 1:
-            poly->r0 = 0;
-            poly->g0 = 0;
-            poly->b0 = 0;
-            poly->r1 = 0;
-            poly->g1 = 0;
-            poly->b1 = 0;
-            poly->r3 = 0;
-            poly->g3 = 0;
-            poly->b3 = 0;
-            poly->r2 = 0xFF;
-            poly->g2 = 0xFF;
-            poly->b2 = 0xFF;
-            break;
-        case 2:
-            poly->r0 = 0;
-            poly->g0 = 0;
-            poly->b0 = 0;
-            poly->r1 = 0xFF;
-            poly->g1 = 0xFF;
-            poly->b1 = 0xFF;
-            poly->r2 = 0;
-            poly->g2 = 0;
-            poly->b2 = 0;
-            poly->r3 = 0xFF;
-            poly->g3 = 0xFF;
-            poly->b3 = 0xFF;
-            break;
-        case 3:
-            poly->r0 = 0xFF;
-            poly->g0 = 0xFF;
-            poly->b0 = 0xFF;
-            poly->r1 = 0;
-            poly->g1 = 0;
-            poly->b1 = 0;
-            poly->r2 = 0xFF;
-            poly->g2 = 0xFF;
-            poly->b2 = 0xFF;
-            poly->r3 = 0;
-            poly->g3 = 0;
-            poly->b3 = 0;
-            break;
-        case 4:
-            poly->r0 = 0;
-            poly->g0 = 0;
-            poly->b0 = 0;
-            poly->r1 = 0;
-            poly->g1 = 0;
-            poly->b1 = 0;
-            poly->r2 = 0xFF;
-            poly->g2 = 0xFF;
-            poly->b2 = 0xFF;
-            poly->r3 = 0xFF;
-            poly->g3 = 0xFF;
-            poly->b3 = 0xFF;
-            break;
-        case 5:
-            poly->r0 = 0xFF;
-            poly->g0 = 0xFF;
-            poly->b0 = 0xFF;
-            poly->r1 = 0xFF;
-            poly->g1 = 0xFF;
-            poly->b1 = 0xFF;
-            poly->r2 = 0xFF;
-            poly->g2 = 0xFF;
-            poly->b2 = 0xFF;
-            poly->r3 = 0xFF;
-            poly->g3 = 0xFF;
-            poly->b3 = 0xFF;
-            break;
-    }
-    poly->x0 = xs[0];
-    poly->y0 = ys[0];
-    poly->x1 = xs[1];
-    poly->y1 = ys[1];
-    poly->x2 = xs[2];
-    poly->y2 = ys[2];
-    poly->x3 = xs[3];
-    poly->y3 = ys[3];
-    addPrim(&gGpuCurrentOt[otz >> 4], poly);
-    tp             = gGpuPrimCursor;
-    gGpuPrimCursor = tp + 1;
-    setlen(tp, 1);
-    tp->code[0] = 0xE1000220;
-    addPrim(&gGpuCurrentOt[otz >> 4], tp);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyG4(quad);
+    setSemiTrans(quad, true);
+    _actor160900ShadeLightQuad(quad, task);
+    quad->x0 = screenX[0];
+    quad->y0 = screenY[0];
+    quad->x1 = screenX[1];
+    quad->y1 = screenY[1];
+    quad->x2 = screenX[2];
+    quad->y2 = screenY[2];
+    quad->x3 = screenX[3];
+    quad->y3 = screenY[3];
+    addPrim(&gGpuCurrentOt[originDepth >> ACTOR_160900_LIGHT_DEPTH_SHIFT], quad);
+    // Prepending the mode packet makes additive blending active before the quad.
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setlen(drawMode, 1);
+    drawMode->code[0] = _get_mode(false, true, getTPage(0, GPU_BLEND_ADD, 0, 0));
+    addPrim(&gGpuCurrentOt[originDepth >> ACTOR_160900_LIGHT_DEPTH_SHIFT], drawMode);
 }
 
 static inline void func_actor_160900_SetAnim(Task* task, u16 anim)
@@ -1446,7 +1496,7 @@ static void func_actor_160900_80133238(Task* arg0)
     s32                       weaponId;
 
     work = arg0->work;
-    func_actor_160900_801326EC(arg0);
+    _actor160900AdvancePlayerAnimChain(arg0);
     switch (work->playerCue.id) {
         case 0:
             break;
@@ -1541,16 +1591,16 @@ static void func_actor_160900_8013358C(Task* arg0)
         case 0:
             break;
         case ACTOR_160900_KYLE_CUE_HIDE_AND_PLACE:
-            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, D_actor_160900_8013F240, 0);
             break;
         case ACTOR_160900_KYLE_CUE_APPEAR:
-            taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            taskMessageDispatch(work->kyleFreeHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+            taskMessageDispatch(work->kyleFreeHand, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             if (work->kyleGun != NULL) {
-                taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             }
-            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             ofs.vx = -100;
             ofs.vy = 100;
             ofs.vz = -1200;
@@ -1983,178 +2033,254 @@ void func_actor_160900_8013418C(Task* arg0)
     }
 }
 
-void func_actor_160900_801343E4(Task* arg0)
+/// Darkens the cutscene to black and holds its subtractive overlay.
+///
+/// Start at state 0 with no owned work. Allocates primary-heap fade work,
+/// killing the task on failure; normal task teardown releases the work.
+/// The unsigned low half of spawnArg1 adds intensity units per update, after
+/// drawing the low red/green/red bytes. Stored channels narrow to signed
+/// halfwords before the red >= 256 test clamps all three to 255. Large rates
+/// can wrap negative; zero holds the current level. Other states do nothing.
+/// Requires the frame arena and foreground tag used by `fadeDrawOverlay`.
+static void _actor160900FadeOutTask(Task* task)
 {
-    ScreenFadeWork* work;
-    ScreenFadeWork* alloc;
+    enum {
+        ACTOR_160900_FADE_OUT_INITIALIZE = 0,
+        ACTOR_160900_FADE_OUT_RAMP       = 1,
+        ACTOR_160900_FADE_MAX_INTENSITY  = 255,
+    };
+    ScreenFadeWork* fade;
+    ScreenFadeWork* allocatedFade;
 
-    work = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+    fade = task->work;
+    switch (task->state) {
+        case ACTOR_160900_FADE_OUT_INITIALIZE:
+            allocatedFade = memMalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 return;
             }
-            work         = alloc;
-            work->b      = 0;
-            work->g      = 0;
-            work->r      = 0;
-            arg0->state += 1;
+            fade         = allocatedFade;
+            fade->b      = 0;
+            fade->g      = 0;
+            fade->r      = 0;
+            task->state += 1;
+            // Initialization also draws and advances the ramp.
             /* fallthrough */
-        case 1:
-            fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_SUBTRACT);
-            work->r += (u16)arg0->spawnArg1.value;
-            work->g += (u16)arg0->spawnArg1.value;
-            work->b += (u16)arg0->spawnArg1.value;
-            if (work->r >= 0x100) {
-                work->b = 0xFF;
-                work->g = 0xFF;
-                work->r = 0xFF;
+        case ACTOR_160900_FADE_OUT_RAMP:
+            fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
+            fade->r += task->spawnArg1.halves.low;
+            fade->g += task->spawnArg1.halves.low;
+            fade->b += task->spawnArg1.halves.low;
+            if (fade->r > ACTOR_160900_FADE_MAX_INTENSITY) {
+                fade->b = ACTOR_160900_FADE_MAX_INTENSITY;
+                fade->g = ACTOR_160900_FADE_MAX_INTENSITY;
+                fade->r = ACTOR_160900_FADE_MAX_INTENSITY;
             }
             break;
     }
 }
-void func_actor_160900_801344D8(Task* arg0)
+/// Reveals the cutscene while restoring display output after three updates.
+///
+/// Start at state 0 with no owned work. Allocates primary-heap fade work at
+/// intensity 255, killing the task on failure; teardown releases the work.
+/// States 0..4 draw and step each update; state 3 enables display output, then
+/// state 4 holds the ramp phase. Other states do nothing. The unsigned low half
+/// of spawnArg1 subtracts intensity units after drawing low red/green/red bytes.
+/// Channels narrow to signed halfwords; negative stored red kills the task.
+/// Large rates can wrap, and zero holds indefinitely. Requires the frame arena
+/// and foreground ordering-table tag used by `fadeDrawOverlay`.
+static void _actor160900FadeInTask(Task* task)
 {
-    ScreenFadeWork* work;
-    ScreenFadeWork* alloc;
+    enum {
+        ACTOR_160900_FADE_IN_INITIALIZE     = 0,
+        ACTOR_160900_FADE_IN_WAIT_FIRST     = 1,
+        ACTOR_160900_FADE_IN_WAIT_SECOND    = 2,
+        ACTOR_160900_FADE_IN_ENABLE_DISPLAY = 3,
+        ACTOR_160900_FADE_IN_RAMP           = 4,
+        ACTOR_160900_FADE_MAX_INTENSITY     = 255,
+    };
+    ScreenFadeWork* fade;
+    ScreenFadeWork* allocatedFade;
 
-    work = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+    fade = task->work;
+    switch (task->state) {
+        case ACTOR_160900_FADE_IN_INITIALIZE:
+            allocatedFade = memMalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 return;
             }
-            work         = alloc;
-            work->b      = 0xFF;
-            work->g      = 0xFF;
-            work->r      = 0xFF;
-            arg0->state += 1;
+            fade         = allocatedFade;
+            fade->b      = ACTOR_160900_FADE_MAX_INTENSITY;
+            fade->g      = ACTOR_160900_FADE_MAX_INTENSITY;
+            fade->r      = ACTOR_160900_FADE_MAX_INTENSITY;
+            task->state += 1;
             break;
-        case 3:
-            SetDispMask(1);
+        case ACTOR_160900_FADE_IN_ENABLE_DISPLAY:
+            SetDispMask(true);
             /* fallthrough */
-        case 1:
-        case 2:
-            arg0->state += 1;
+        case ACTOR_160900_FADE_IN_WAIT_FIRST:
+        case ACTOR_160900_FADE_IN_WAIT_SECOND:
+            task->state += 1;
             break;
-        case 4:
+        case ACTOR_160900_FADE_IN_RAMP:
             break;
         default:
             return;
     }
-    fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_SUBTRACT);
-    work->r -= (u16)arg0->spawnArg1.value;
-    work->g -= (u16)arg0->spawnArg1.value;
-    work->b -= (u16)arg0->spawnArg1.value;
-    if (work->r < 0) {
-        taskKill(arg0);
+    // Fade progress continues while the display is masked.
+    fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
+    fade->r -= task->spawnArg1.halves.low;
+    fade->g -= task->spawnArg1.halves.low;
+    fade->b -= task->spawnArg1.halves.low;
+    if (fade->r < 0) {
+        taskKill(task);
     }
 }
-/// Message 0x7D5 handler of `D_actor_160900_8013F200`: argument 1 clears the
-/// 0x84 bits of the task's `TmdObject` flags, argument 2 sets them, and any
-/// other value does nothing.
-void func_actor_160900_801345D0(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Applies a draw request to one of Kyle's live TMD models.
+///
+/// SHOW clears active-draw and automatic-buffer exclusions; HIDE_SKIP_AUTO_BUFFER
+/// sets both. Mode 0 and other values leave all flags intact. Neither allocates
+/// nor releases a buffer. The message id and second payload are ignored;
+/// callers must ignore the dispatch result because no return value is defined.
+static void _actor160900SetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
-    TmdObject* extra;
+    enum { ACTOR_160900_MODEL_DRAW_KEEP = 0 };
+    TmdObject* model;
 
-    extra = task->extra.tmd;
-    switch (arg2) {
-        case 0:
+    model = task->extra.tmd;
+    switch (mode) {
+        case ACTOR_160900_MODEL_DRAW_KEEP:
             break;
-        case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags = model->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
-        case 2:
-            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags = model->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }
 
 #include "../../shared/actor_messages_place_ypr.inc.c"
 
-/// Spawns `func_actor_160900_801344D8`, entry 1 of `D_actor_160900_8013FB50`,
+/// Spawns `_actor160900FadeInTask`, entry 1 of `D_actor_160900_8013FB50`,
 /// with `arg0` as its first spawn argument.
 void func_actor_160900_801346B0(s32 arg0)
 {
     taskSpawnFromTable(D_actor_160900_8013FB50, 1, arg0, 0);
 }
 
-/// Spawns the fade task `func_actor_160900_801343E4`, entry 2 of
+/// Spawns the fade task `_actor160900FadeOutTask`, entry 2 of
 /// `D_actor_160900_8013FB50`, with `arg0` as its first spawn argument.
 void func_actor_160900_801346E0(s32 arg0)
 {
     taskSpawnFromTable(D_actor_160900_8013FB50, 2, arg0, 0);
 }
 
-void func_actor_160900_80134710(void)
+/// Kills and clears every light quad held by the running cutscene.
+///
+/// Requires the published cutscene task and its work to remain live. Empty
+/// slots are skipped; killing a quad releases its owned corner work and body.
+static void _actor160900KillLightQuads(void)
 {
     _Actor160900CutsceneWork* work;
-    Task*                     task;
-    s16                       i;
+    Task*                     quadTask;
+    s16                       quadIndex;
 
     work = D_actor_160900_8013FBB4->work;
-    for (i = 0; i < ARRAY_SIZE(work->lightQuads); i++) {
-        task = work->lightQuads[i];
-        if (task != NULL) {
-            taskKill(task);
-            work->lightQuads[i] = NULL;
+    for (quadIndex = 0; quadIndex < ARRAY_SIZE(work->lightQuads); quadIndex++) {
+        quadTask = work->lightQuads[quadIndex];
+        if (quadTask != NULL) {
+            taskKill(quadTask);
+            work->lightQuads[quadIndex] = NULL;
         }
     }
 }
-void func_actor_160900_80134790(s16 arg0)
+/// Replaces Aya's pending cutscene cue and restarts its step at zero.
+///
+/// Requires the running cutscene's published work. cueId is zero for none or
+/// an ACTOR_160900_PLAYER_CUE_* value; it narrows to the stored unsigned halfword.
+/// Posting retains the cue counter; the action that uses it initializes it.
+static void _actor160900PostPlayerCue(s16 cueId)
 {
     _Actor160900CutsceneWork* work;
 
     work                 = D_actor_160900_8013FBB4->work;
-    work->playerCue.id   = arg0;
+    work->playerCue.id   = cueId;
     work->playerCue.step = 0;
 }
-void func_actor_160900_801347B0(s16 arg0)
+/// Replaces Kyle's pending cutscene cue and restarts its step at zero.
+///
+/// Requires the running cutscene's published work. cueId is zero for none or
+/// an ACTOR_160900_KYLE_CUE_* value; it narrows to the stored unsigned halfword.
+/// Posting leaves the cue counter intact.
+static void _actor160900PostKyleCue(s16 cueId)
 {
     _Actor160900CutsceneWork* work;
 
     work               = D_actor_160900_8013FBB4->work;
-    work->kyleCue.id   = arg0;
+    work->kyleCue.id   = cueId;
     work->kyleCue.step = 0;
 }
 
-void func_actor_160900_801347D0(s16 arg0)
+/// Selects the point list for the cutscene's repeating effect cue.
+///
+/// Requires the running cutscene's published work. cueId is zero for none or
+/// 1..5 for a point list, stored as an unsigned halfword. Replaces the pending
+/// id and clears its step, retaining its counter; the handler emits every
+/// eighth frame until the script changes or clears the cue.
+static void _actor160900PostEffectCue(s16 cueId)
 {
     _Actor160900CutsceneWork* work;
 
     work                 = D_actor_160900_8013FBB4->work;
-    work->effectCue.id   = arg0;
+    work->effectCue.id   = cueId;
     work->effectCue.step = 0;
 }
-void func_actor_160900_801347F0(void)
+/// Stops pending cutscene cues and scene playback when the skip script runs.
+///
+/// Requires the published cutscene work and a previously selected scene.
+/// Clears the three cue ids, retaining their progress, requests CD cancellation
+/// and restores display output. The following script command handles teardown.
+static void _actor160900SkipCutscene(void)
 {
     _Actor160900CutsceneWork* work;
 
     work               = D_actor_160900_8013FBB4->work;
-    work->playerCue.id = 0;
-    work->kyleCue.id   = 0;
-    work->effectCue.id = 0;
+    work->playerCue.id = ACTOR_160900_CUE_NONE;
+    work->kyleCue.id   = ACTOR_160900_CUE_NONE;
+    work->effectCue.id = ACTOR_160900_CUE_NONE;
     cdCmdCancelScene();
-    SetDispMask(1);
+    SetDispMask(true);
 }
 
-void func_actor_160900_80134830(void)
+/// Stages the cutscene's selected audio session for deferred start.
+///
+/// The scene descriptor and playback buffers must survive the later command
+/// commit and consumption. Called by the event script after scene selection.
+static void _actor160900StageSceneAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-void func_actor_160900_80134850(void)
+/// Enqueues playback of the cutscene's selected scene/audio session.
+///
+/// Requires prepared scene storage that survives command consumption and the
+/// free command-ring capacity required by `cdCmdEnqueueScenePlayback`.
+static void _actor160900EnqueueScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-void func_actor_160900_80134870(void)
+/// Cancels cutscene playback and finishes its scene-streaming state.
+///
+/// Requires a previously selected scene. Keeps both finish operations: the CD
+/// cancellation path finishes the scene first, then this callback repeats it,
+/// restoring the saved random generators again. Task teardown is script-owned.
+static void _actor160900FinishScenePlayback(void)
 {
     cdCmdCancelScene();
     streamFinishScene();

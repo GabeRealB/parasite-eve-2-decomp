@@ -83709,7 +83709,7 @@ C before touching pins or barriers.
 
 ## The `%hi` temp and a loaded index tie in local-alloc, and which takes `$v0` decides the branch's delay slot
 
-`func_actor_160900_801326EC` walks `T[work->field_64]` behind a guard on a
+`_actor160900AdvancePlayerAnimChain` walks `T[work->playerAnimId]` behind a guard on a
 pointer loaded just before it. The target's guard is `beqz a0,<epilogue>` with
 `li v0,1` **copied** into its delay slot (86 instructions); the 98.4% seed's was
 `beqz a0,<return block>` with the head's `lui v1` **moved** into it (85) — and
@@ -83736,9 +83736,9 @@ epilogue — the target, one instruction longer.
 
 ```c
     table  = D_actor_160900_8013F1CC;   /* %hi born first: takes $v0 */
-    entry = &table[work->field_64];
+    entry = &table[work->playerAnimId];
 ```
-versus `entry = &D_actor_160900_8013F1CC[work->field_64];`, which emits the
+versus `entry = &D_actor_160900_8013F1CC[work->playerAnimId];`, which emits the
 index load first and gives it `$v0`. The named pointer survives as the `reg/v`
 that becomes `$s1` (live across the two calls, so callee-saved), and the second
 table access reuses it with no `lui`/`addiu` at all.
@@ -83753,7 +83753,7 @@ sets it. Dumps: `base_9.i.sched` (chain order), `lregwalk.py base_9.i.lreg 89 90
 
 ## An instruction duplicated in a delay slot *and* after a call is one RTL insn
 
-`func_actor_160900_80134710` shows its loop increment twice:
+`_actor160900KillLightQuads` shows its loop increment twice:
 
 ```
     beqz  $a0, .L60
@@ -83789,10 +83789,10 @@ natural loop and let `.loop` and `.dbr` produce the pair:
 
 ```c
 for (i = 0; i < 10; i++) {
-    task = work->field_C[i];
+    task = work->lightQuads[i];
     if (task != NULL) {
         taskKill(task);
-        work->field_C[i] = NULL;
+        work->lightQuads[i] = NULL;
     }
 }
 ```
@@ -83811,7 +83811,7 @@ A seed that matches topology, calls and predicates but scores ~70% with only
 `opcode_delta` names the opcodes that differ, and opcodes 40/41 (`sb`/`sh`)
 against 36/37 (`lbu`/`lhu`) mean the field *width* is wrong, not the shape.
 
-`func_actor_160900_801343E4` is an 8-byte fade block whose three RGB halfwords are
+The work of `_actor160900FadeOutTask` is an 8-byte fade block whose three RGB halfwords are
 only ever *read* as bytes - the two `fadeDrawOverlay` arguments - so m2c declared
 all three `u8` (`s16` stores in the zeroing path, `u8` everywhere else) and the
 seed emitted 4 `sb` and 7 `lbu` against the target's 9 `sh` and 6 `lhu`. The width
@@ -83876,7 +83876,7 @@ in the register the call already returned it in. `work` is the one that crosses
 the calls and takes `$s0`.
 
 Both shapes are already in the tree, so the target decides which to write:
-`func_actor_160900_801343E4` (same overlay) uses the two-name form and compiles to
+`_actor160900FadeOutTask` (same overlay) uses the two-name form and compiles to
 exactly this, and `func_actor_560800_80135BD8` uses one name and compiles to
 `addu s1, v0` before `bnez s1`. A single reused variable is *not* always the better
 guess — when the target tests `$v0` after a call whose result is stored and kept,
@@ -83951,7 +83951,7 @@ with `branch`/`insert`/`delete` non-zero and the body has repeated tails.
 
 ## A `break` whose `j` no cross-jump can manufacture is an explicit `goto`
 
-`func_actor_160900_801344D8` is a 5-case fade state machine whose draw code sits
+`_actor160900FadeInTask` is a 5-case fade state machine whose draw code sits
 inside the last case, which puts the switch's exit label at the epilogue:
 
 ```
@@ -83986,7 +83986,7 @@ is source shape, not allocation.
 
 ## The prepended package id in unit 1's `.rodata` shifts every jump table's `.align 3` by 4
 
-`func_actor_160900_801344D8` matched at 100.000% with all penalties zero and the
+`_actor160900FadeInTask` matched at 100.000% with all penalties zero and the
 overlay still failed its checksum: `build/USA/out/actor_160900` came out 56992
 bytes against the package's 56988, the first differing byte was offset `0x4`, and
 every pointer from there on was the target's plus 4. The generated 5-word table
@@ -124906,7 +124906,7 @@ variable gave `v + 16` as `addiu 0x80` (SImode) where the direct macro argument
 gave `-0x80`.
 ## The fade-task family: `memMalloc(8, 0)` + `switch (Task::state)` + `fadeDrawOverlay` repeats across actors and rooms, and its matched twins hand over the source shape (_actor121300FadeInTask, 2026-09-17)
 
-`_actor121300FadeInTask` is `func_actor_160900_801344D8`,
+`_actor121300FadeInTask` is `_actor160900FadeInTask`,
 `_actor560800FadeInTask` and its own TU sibling `_actor121300FadeOutTask`
 with the state numbers moved: an 8-byte RGB block allocated into `Task::work`
 (0x1C), three `s16` channels at 0x2/0x4/0x6, and a `switch (index->state)` in
@@ -148771,7 +148771,7 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   *Note 2026-10-07:* now none. The angle was not a local of its own: it
   shares a result variable with the next case. See the section at the end of
   this file with this function's name.
-- `func_actor_160900_Reseed` (`TOUCH_REG_USE2`). The target is
+- `_actor160900BlendKyleAnim` (`TOUCH_REG_USE2`). The target is
   `lw work; move s2,a2; sh a2`: the `id = anim` copy sits after the stores at
   `.lreg` (sched2 lifts it into the load-delay slot later). Plain C gives the
   stores priority 2 (they depend on the in-block `lw`, cost 2) and the copy and
@@ -152931,7 +152931,7 @@ register below an address chain, read sched1's trace for the block (`-dS`, the
 the launched insn that fills the stall is a store's constant, and writing that
 store earlier or later frees the cycle for the leftover.
 
-## The store that reads the argument register is the delay-slot pass's doing, and it needs the loop's `li 1` below the stores (func_actor_160900_Reseed, 2026-10-07)
+## The store that reads the argument register is the delay-slot pass's doing, and it needs the loop's `li 1` below the stores (_actor160900BlendKyleAnim, 2026-10-07)
 
 **Was.** `TOUCH_REG_USE2(id, work, work)` after the two stores of the Kyle
 model's clip reseed, with a `u16 id` copy of the inline's parameter and `i = 1`
@@ -153538,10 +153538,10 @@ itself, and the unmasked counter with `andi` at each use is what a `u16`
 counter compiles to here, not evidence of an `s32`. Without the second
 `work = task->work` the hoisted `li s3,16` moves up beside `li s1,1` and one
 `lw` goes (3 lines). The reload is what a nested `static inline` taking the
-`Task*` leaves, so the tail is now `func_actor_160900_ResetAnimSlots(task)`.
+`Task*` leaves, so the tail is now `_actor160900ResetKyleAnimSlots(task)`.
 
-**Not the Reseed shape.** The sibling `func_actor_160900_Reseed` needs
-`func_actor_160900_ResetAnimHold(work)` (a block boundary) between the stores
+**Not the Reseed shape.** The sibling `_actor160900BlendKyleAnim` needs
+`_actor160900ResetKyleAnimHold(work)` (a block boundary) between the stores
 and the loop. Here the same helper is wrong by 21 lines: it holds `li 1` below
 the stores, and this image has it above the first load. The two inlines differ
 in that helper as well as in the loop body, so they are not one function with
