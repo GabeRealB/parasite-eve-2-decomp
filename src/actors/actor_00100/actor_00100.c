@@ -2429,7 +2429,7 @@ static void Actor00100_Fn061FC(Task* arg0)
     }
     radius = 1000;
     _desertChaserAnimTick(arg0);
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &delta);
     if (work->rig.slots[1].status.fields.flags & 0x100) {
         outside     = actorOutsideRadius(&delta, radius);
         work->state = outside == 0 ? 0x1F : 0x26;

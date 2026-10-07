@@ -1199,12 +1199,20 @@ static __inline__ s16 _actorAngleNormalizeYaw(s16 yaw)
     return yaw;
 }
 
-/// The offset from `coord` to the translation of `config`'s coordinate.
-static __inline__ void actorConfigPositionDelta(const PlayerStatus* config, GfxCoord* coord, SVECTOR* pos)
+/// Writes the translation offset from an actor's root to the live player.
+///
+/// `playerStatus->coordMtx` and `actorRoot` must be live roots whose local
+/// matrices use the same parent coordinate frame. Their translations are in
+/// game coordinate units; no hierarchy composition or rotation is performed.
+/// `toPlayer` must supply a writable `SVECTOR`, separate from both inputs and
+/// the player matrix. Its XYZ components receive player minus actor translation,
+/// narrowed to signed 16 bits without saturation; `pad` stays intact.
+/// All pointers are borrowed for this call, and no storage is reserved.
+static __inline__ void _actorPositionDeltaToPlayer(const PlayerStatus* playerStatus, const GfxCoord* actorRoot, SVECTOR* toPlayer)
 {
-    pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
-    pos->vy = config->coordMtx->t[1] - coord->coord.t[1];
-    pos->vz = config->coordMtx->t[2] - coord->coord.t[2];
+    toPlayer->vx = playerStatus->coordMtx->t[0] - actorRoot->coord.t[0];
+    toPlayer->vy = playerStatus->coordMtx->t[1] - actorRoot->coord.t[1];
+    toPlayer->vz = playerStatus->coordMtx->t[2] - actorRoot->coord.t[2];
 }
 
 /// Returns the signed horizontal turn from the actor's heading toward the player.
@@ -1225,7 +1233,7 @@ static __inline__ s16 _actorAngleTurnToPlayer(const Task* actor, SVECTOR* toPlay
     const GfxCoord* rootCoord;
     s32             playerBearing;
 
-    actorConfigPositionDelta(playerStatus, actor->extra.tmd->coords, toPlayer);
+    _actorPositionDeltaToPlayer(playerStatus, actor->extra.tmd->coords, toPlayer);
     rootCoord     = actor->extra.tmd->coords;
     playerBearing = ratan2(toPlayer->vx, toPlayer->vz);
     return _actorAngleNormalizeYaw(playerBearing - ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]));

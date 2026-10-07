@@ -35,7 +35,7 @@ void desertChaserSteer(Task* arg0)
         ((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts), &delta) != 0)) {
         work->state = 0x22;
     }
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &delta);
     if (!actorOutsideRadius(&delta, DESERT_CHASER_CLOSE_IN)) {
         work->state = 0x22;
     }

@@ -1419,12 +1419,12 @@ static void func_actor_356100_80164158(Task* arg0)
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     Actor356100_PushRecords(arg0->extra.tmd->coords, work->pushContacts, ARRAY_SIZE(work->pushContacts), 0x10);
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_356100_80163508(arg0);
     aim->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                             (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     yaw                 = ratan2(aim->delta.vx, aim->delta.vz) + 0x800;
     aim->yawFromPlayer  = yaw;
     aim->yawFromPlayer  = _actorAngleNormalizeYaw(yaw);
@@ -1534,7 +1534,7 @@ static void func_actor_356100_80164ACC(Task* arg0)
     if (hit != 0) {
         work->stateCounter++;
     }
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     if (work->stateCounter >= 7) {
         chase->playerYaw     = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
@@ -1591,7 +1591,7 @@ static void func_actor_356100_80164ACC(Task* arg0)
         if (++work->stateTimer == 5) {
             chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-            actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
+            _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
             chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
             yaw                  = _actorAngleNormalizeYaw(chase->yawFromPlayer);
             chase->yawFromPlayer = yaw;
@@ -1732,7 +1732,7 @@ static void func_actor_356100_80165B30(Task* arg0)
         tmdAllocPrimitiveBuffer(obj);
         work->hitRadius  = 0xC0;
         work->stateTimer = 0;
-        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
+        _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
         aim->turn = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->sidestepSide == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2024,7 +2024,7 @@ static void func_actor_356100_80166CF0(Task* arg0)
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     Actor356100_PushRecords(arg0->extra.tmd->coords, work->pushContacts, ARRAY_SIZE(work->pushContacts), 0x10);
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_356100_80163508(arg0);
     ang                 = _actorAngleTurnToOffset(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);

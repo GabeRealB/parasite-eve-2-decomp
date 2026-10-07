@@ -109,7 +109,7 @@ void oddStrangerPatrol(Task* arg0)
 #endif
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         if (_playerDetectionSightBlocked(arg0) != 1) {
-            actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &turn->delta);
+            _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &turn->delta);
             if (!_oddStrangerOutOfRange(&turn->delta, work->noticeRadius)) {
                 work->state = ODD_STRANGER_STATE_ALERT;
             } else if (!_oddStrangerOutOfRange(&turn->delta, 0xFA0)) {

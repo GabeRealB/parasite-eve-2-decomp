@@ -60,7 +60,7 @@ void oddStrangerChase(Task* arg0)
     } else {
         oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     if (work->exitCounter >= 7) {
         chase->playerYaw     = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
@@ -119,7 +119,7 @@ void oddStrangerChase(Task* arg0)
         if (++work->stateTimer == 5) {
             chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-            actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
+            _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
             chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
             chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
             yaw                  = chase->yawFromPlayer - chase->playerYaw;

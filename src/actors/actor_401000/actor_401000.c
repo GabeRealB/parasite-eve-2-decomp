@@ -1540,12 +1540,12 @@ static void func_actor_401000_80135AA4(Task* arg0)
     work->exitCounter++;
     head  = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     chase = (SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1);
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &head[-1].delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &head[-1].delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     _oddStrangerDriveAnimation(arg0);
     chase->playerYaw = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
                               gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
     chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
     coord                = arg0->extra.tmd->coords;

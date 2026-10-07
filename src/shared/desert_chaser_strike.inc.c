@@ -32,7 +32,7 @@ void desertChaserStrike(Task* arg0)
         work->stateTimer                                     = 0;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->animRate                                       = work->baseRate;
-        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, vec);
+        _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(0x20);
         gte_ldsv(vec);
@@ -60,7 +60,7 @@ void desertChaserStrike(Task* arg0)
     switch (state) {
         case 5:
             if (work->rig.slots[1].status.fields.flags & 0x100) {
-                actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, vec);
+                _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, vec);
                 outside = actorOutsideRadius(vec, 2000);
                 if (outside) {
                     work->state = 0x26;

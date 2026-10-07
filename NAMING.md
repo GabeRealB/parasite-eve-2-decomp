@@ -447,6 +447,13 @@ advance their poses and count ticks and slot-1 control-jump ticks. The resident
 `animation` subsystem supplies slot playback; it does not own these actors'
 request state or counters.
 
+`actorPosition` owns translation-only relative-position queries shared by actor
+packages. Its inline interface is `include/actors/actor.h`, with static instances
+marked `_`. The player offset subtracts the actor root's local translation from
+the live player root's in their common parent frame, narrowing each component
+to signed 16-bit game coordinates. It does not compose transforms or apply
+rotation or scale; range tests and bearing calculations consume its result.
+
 `actorAngle` owns scalar heading and turn-angle normalization, and the turn from
 a coordinate's heading toward an X/Z offset or the live player, shared by actor
 packages. Its inline interface is `include/actors/actor.h`, with static instances

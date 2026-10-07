@@ -3229,7 +3229,7 @@ static void func_actor_401300_801376E4(Task* arg0)
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         func_actor_401300_80133A3C(arg0);
-        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
+        _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
         coord               = arg0->extra.tmd->coords;
         chase->turn         = _actorAngleNormalizeYaw(ratan2(head[-1].delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         facing              = arg0->extra.tmd->coords;
@@ -3243,7 +3243,7 @@ static void func_actor_401300_801376E4(Task* arg0)
     SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
     chase                                   = head - 1;
     func_actor_401300_80133A3C(arg0);
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     if (work->turnYaw == work->turnYawTarget) {
         if (work->field_D1C < 2 || _actorRangeOutsideRadiusXZ(&chase->delta, 0x384)) {
             work->state = ACTOR_401300_STATE_WITHDRAW;
@@ -3311,7 +3311,7 @@ static void func_actor_401300_80137D78(Task* arg0)
         work->stateTimer        = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
+        _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
         aim->turn = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->sidestepSide == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -3922,7 +3922,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
         func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &turn->delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &turn->delta);
     if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0x7D0)) {
         work->state = ACTOR_401300_STATE_ALERT;
     } else if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0xFA0)) {
@@ -4502,7 +4502,7 @@ static void func_actor_401300_8013D2AC(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_401300_80133A3C(arg0);
     if (work->stateTimer < 0xE) {
@@ -4577,7 +4577,7 @@ static void func_actor_401300_8013D6C4(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_401300_80133A3C(arg0);
     if (work->stateTimer < 0xE) {

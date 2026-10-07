@@ -108525,19 +108525,19 @@ declares it `s32` for the same reason.
 
 ## The position-delta inline reads a `long t[i]` with `lhu`: the store is what narrows it
 
-Every actor family's `*_ConfigPositionDelta` writes three halfwords out of two
+The shared `_actorPositionDeltaToPlayer` writes three halfwords out of two
 `MATRIX` translations, and the object reads them at the very addresses the
 32-bit `t[i]` lives at:
 
 ```c
-pos->vx = config->field_4->t[0] - coord->coord.t[0];   /* MATRIX.t is `long` */
+toPlayer->vx = playerStatus->coordMtx->t[0] - actorRoot->coord.t[0];   /* MATRIX.t is `long` */
 ```
 
 ```asm
 lhu  $v0, 0x14($v1)      /* gPlayerStatus.coordMtx->t[0] */
-lhu  $v1, 0x18($a1)      /* coord->coord.t[0] */
+lhu  $v1, 0x18($a1)      /* actorRoot->coord.t[0] */
 subu $v0, $v0, $v1
-sh   $v0, -0x10($s0)     /* into pos->vx, an s16 member */
+sh   $v0, -0x10($s0)     /* into toPlayer->vx, an s16 member */
 ```
 
 Nothing here is a halfword field and nothing is misaligned: the destination is
@@ -109860,7 +109860,7 @@ Three things made it one-shot:
    *is* the target's allocation, so its declarations are the cheapest oracle.
 
 2. **Use the *host* overlay's inline helpers, not the twin's.** The 401300 side
-   names them `actorConfigPositionDelta` / `_NormalizeYaw` / `_RescaleYaw` /
+   names them `_actorPositionDeltaToPlayer` / `_NormalizeYaw` / `_RescaleYaw` /
    `_OutOfRange` / `_MoveForward`; `src/actors/actor_401000/actor_401000.c` already
    carries the 401000 copies of all five, and they expand to the same RTL. The one
    place the two differ is the helper *boundary*, not the body: this target inlines
@@ -113119,10 +113119,10 @@ on a load is `lhu`.
 **Fix.** Write the plain 32-bit read:
 
 ```c
-pos->vx = config->field_4->t[0] - coord->coord.t[0];
+toPlayer->vx = playerStatus->coordMtx->t[0] - actorRoot->coord.t[0];
 ```
 
-`actorConfigPositionDelta` / `actorConfigPositionDelta` say the same
+`_actorPositionDeltaToPlayer` / `_actorPositionDeltaToPlayer` say the same
 thing and are matched bodies; `func_actor_401300_8013AE48` is the independent
 replication — same `lhu` pair, same offsets, same matched source line.
 
