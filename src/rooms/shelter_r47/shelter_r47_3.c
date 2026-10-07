@@ -1897,7 +1897,7 @@ static void func_shelter_r47_80184658(Task* task)
 #define ACTION_PROMPT_OUTLINE_RECT _actionPromptOutlineRect
 #include "../../shared/action_prompt_outline_rect.inc.c"
 #undef ACTION_PROMPT_OUTLINE_RECT
-#define ACTION_PROMPT_OUTLINE_RECT actionPromptOutlineRect
+#define ACTION_PROMPT_OUTLINE_RECT _actionPromptOutlineRectDefault
 
 /// Selects the additional private cursor task, with signature `void(Task*)`.
 #undef ACTION_PROMPT_MOVE_CURSORS_TASK

@@ -77,7 +77,7 @@ func_dryfield_breezeway_80181264 = 0x80181264; // type:func
 func_dryfield_breezeway_8017DC3C = 0x8017DC3C; // type:func
 
 func_dryfield_breezeway_8017FF7C = 0x8017FF7C; // type:func
-actionPromptOutlineRect = 0x8017E948; // type:func
+_actionPromptOutlineRectDefault = 0x8017E948; // type:func
 _actionPromptMoveCursorsDefault = 0x8017F538; // type:func
 _actionPromptDrawCursorDefault = 0x8017F998; // type:func
 _actionPromptHitTestDefault = 0x8017FCB4; // type:func

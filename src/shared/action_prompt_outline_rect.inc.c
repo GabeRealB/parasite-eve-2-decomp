@@ -16,24 +16,27 @@
     (line)->g0 = (green);                                                                   \
     (line)->b0 = (blue);
 
-/// Queues the four edges of an action-prompt hotspot in an RGB byte colour.
+/// Queues an opaque four-line outline of one action-prompt hotspot.
 ///
-/// `hotspot` is a borrowed hotspot in center-origin screen pixels, with Y
-/// increasing downward. Far edges are x + w and y + h. The coordinate reads
-/// use unsigned halfwords; each vertex retains the low 16 bits, preserving
-/// negative coordinate bit patterns. Choice and hit fields are untouched,
-/// including on a sentinel entry. The hotspot is not kept.
-/// Requires room for four word-aligned LINE_F2 packets (64 bytes) at
-/// `gGpuPrimCursor` and a writable ordering-table entry 1. Packets stay in the
-/// frame arena until GPU drawing completes; no capacity check is performed.
-/// Shelter R47's additional static instance has no callers.
-void ACTION_PROMPT_OUTLINE_RECT(const ActionPromptHotspot* hotspot, u8 red, u8 green, u8 blue)
+/// Borrows readable geometry in center-origin screen pixels, with Y increasing
+/// downward. Far edges are `x + w` and `y + h`; vertex coordinates retain their
+/// low 16 bits, including for negative positions. RGB channels are 0..255.
+/// Choice, prompt-kind and hit fields are ignored, so even a sentinel entry
+/// queues an outline. The input is neither changed nor retained.
+///
+/// Requires four word-aligned `LINE_F2` packets of free arena space at
+/// `gGpuPrimCursor` and a writable ordering-table entry 1. Advances the cursor
+/// by `4 * sizeof(LINE_F2)` bytes without checking capacity; packets remain in
+/// the frame arena until GPU drawing completes. Only actor_143000 calls the
+/// ordinary instance; the other carriers retain unused copies.
+static void ACTION_PROMPT_OUTLINE_RECT(const ActionPromptHotspot* hotspot, u8 red, u8 green, u8 blue)
 {
     enum {
         ACTION_PROMPT_OUTLINE_OT_SLOT = 1,
     };
     LINE_F2* line;
 
+    // Unsigned geometry loads preserve the signed pixel bits at each vertex store.
     line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     ACTION_PROMPT_INIT_OUTLINE_EDGE(line, (u16)hotspot->x, (u16)hotspot->y, (u16)hotspot->x + (u16)hotspot->w, (u16)hotspot->y, red, green, blue);

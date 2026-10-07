@@ -70,7 +70,7 @@ D_actor_143000_801350C8 = 0x801350C8; // size:0xC defined:True
 D_shelter_b2_laboratory_80186488 = 0x80186488; // absolute:True owner=shelter_b2_laboratory
 
 D_shelter_b2_laboratory_8018649C = 0x8018649C; // absolute:True owner=shelter_b2_laboratory
-actionPromptOutlineRect = 0x80133334; // type:func
+_actionPromptOutlineRectDefault = 0x80133334; // type:func
 _actionPromptMoveCursorsDefault = 0x80131F80; // type:func
 _actionPromptDrawCursorDefault = 0x801323E0; // type:func
 _actionPromptResetDefault = 0x80133C90; // type:func

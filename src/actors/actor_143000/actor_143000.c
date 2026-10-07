@@ -860,7 +860,7 @@ static s32 func_actor_143000_80133AE8(ActionPromptHotspot* p, s16 x, s16 y)
         do {
             if (x >= p->x && x < p->x + p->w && y >= p->y && y < p->y + p->h) {
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
-                    actionPromptOutlineRect(p, 0, 0, 0);
+                    _actionPromptOutlineRectDefault(p, 0, 0, 0);
                 }
                 p->hit = 1;
                 if (result == 0) {
@@ -868,7 +868,7 @@ static s32 func_actor_143000_80133AE8(ActionPromptHotspot* p, s16 x, s16 y)
                 }
             } else {
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
-                    actionPromptOutlineRect(p, 0xFF, 0, 0);
+                    _actionPromptOutlineRectDefault(p, 0xFF, 0, 0);
                 }
                 p->hit = 0;
             }
@@ -884,7 +884,7 @@ static void func_actor_143000_80133C2C(void)
 
     if (p->id != ACTION_PROMPT_HOTSPOT_END) {
         do {
-            actionPromptOutlineRect(p, 0, 0xFF, 0);
+            _actionPromptOutlineRectDefault(p, 0, 0xFF, 0);
             p++;
         } while (p->id != ACTION_PROMPT_HOTSPOT_END);
     }

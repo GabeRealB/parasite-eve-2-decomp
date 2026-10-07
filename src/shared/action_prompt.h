@@ -10,7 +10,7 @@
  * carrier, as does the event-end state (declared in its carrier's prologue);
  * reset and cursor-motion instances are also static. Hotspot tests are static
  * except the shrine and night motel lobby copies called from another file;
- * the outline defaults to external linkage. Declare reset instances in the
+ * every outline instance is static. Declare reset instances in the
  * carrier's prologue; reset and motion bindings can select additional private
  * instances there.
  */
@@ -122,18 +122,21 @@ s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 curso
 
 /// Selects the function declared here and defined by the outline fragment.
 ///
-/// Bind to a function identifier with signature
+/// Bind to a translation-unit-local function identifier with signature
 /// `void(const ActionPromptHotspot* hotspot, u8 red, u8 green, u8 blue)`.
-/// The default is `actionPromptOutlineRect`. Shelter R47 selects an additional
-/// `_actionPromptOutlineRect` instance, declared static in its prologue, around
-/// its fragment inclusion, then restores the default. A binding supplied before
-/// this header also selects its prototype; the carrier establishes linkage.
+/// The default is `_actionPromptOutlineRectDefault`. The header and fragment
+/// declare each selected instance static; a binding supplied before this header
+/// also selects its prototype. Keep that binding through the fragment and any
+/// callers that spell it.
+///
+/// Shelter R47 selects an additional `_actionPromptOutlineRect`, declared static
+/// in its prologue, around its fragment inclusion, then restores the default.
 /// This object-like alias only substitutes an identifier: it captures no
 /// arguments, repeats no evaluation and uses neither stringification nor
 /// token pasting.
 #ifndef ACTION_PROMPT_OUTLINE_RECT
-#define ACTION_PROMPT_OUTLINE_RECT actionPromptOutlineRect
+#define ACTION_PROMPT_OUTLINE_RECT _actionPromptOutlineRectDefault
 #endif
-void ACTION_PROMPT_OUTLINE_RECT(const ActionPromptHotspot* hotspot, u8 red, u8 green, u8 blue);
+static void ACTION_PROMPT_OUTLINE_RECT(const ActionPromptHotspot* hotspot, u8 red, u8 green, u8 blue);
 
 #endif /* SRC_SHARED_ACTION_PROMPT_H */

@@ -114,7 +114,7 @@ gFactoryLiftTurnedTemplate = 0x80186DBC; // size:0x24 defined:True
 gFactoryNightSpawnTable = 0x80186DE0; // size:0x60 defined:True
 
 dryfieldNightFactoryDrawGlowsTask = 0x801825F0; // type:func
-actionPromptOutlineRect = 0x80180BA4; // type:func
+_actionPromptOutlineRectDefault = 0x80180BA4; // type:func
 _actionPromptMoveCursorsDefault = 0x801810D8; // type:func
 _actionPromptDrawCursorDefault = 0x80181538; // type:func
 _actionPromptHitTestDefault = 0x80181778; // type:func

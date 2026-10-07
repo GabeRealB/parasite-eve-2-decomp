@@ -173,7 +173,7 @@ acropolisBridgeEffectSpriteDebrisTask = 0x80182AF8; // type:func
 acropolisBridgeDustMoteTask = 0x80182394; // type:func
 
 _acropolisBridgeWaitForKeypadResult = 0x8017DC68; // type:func
-actionPromptOutlineRect = 0x8017E908; // type:func
+_actionPromptOutlineRectDefault = 0x8017E908; // type:func
 _actionPromptMoveCursorsDefault = 0x8017ED38; // type:func
 _actionPromptDrawCursorDefault = 0x8017F198; // type:func
 _actionPromptHitTestDefault = 0x8017F6D4; // type:func
