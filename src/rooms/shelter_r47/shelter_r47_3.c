@@ -73,7 +73,7 @@ static void func_shelter_r47_80185510(Task* task);
 static void func_shelter_r47_801855B8(Task* task);
 static void func_shelter_r47_801856AC(Task* task);
 static void func_shelter_r47_8018571C(Task* task);
-static void func_shelter_r47_8018585C(Task* task);
+static void _actionPromptReset(Task* task);
 
 /// Disc colours and perspective radius scales for this room's view glows.
 ///
@@ -2137,22 +2137,24 @@ static void func_shelter_r47_8018571C(Task* task)
 }
 
 /// Two-state dispatcher of the action prompt, with its handler table built on
-/// the stack: state 0 runs `func_shelter_r47_8018585C` and state 1 runs
+/// the stack: state 0 runs `_actionPromptReset` and state 1 runs
 /// `_actionPromptMoveCursors`.
 static void func_shelter_r47_8018580C(Task* task)
 {
     TaskFunc funcs[2] = {
-        func_shelter_r47_8018585C,
+        _actionPromptReset,
         _actionPromptMoveCursors,
     };
 
     funcs[task->state](task);
 }
 
-/// The second prompt's copy.
-#define actionPromptReset func_shelter_r47_8018585C
+// Bind the additional private reset callback, with signature void(Task*).
+#undef ACTION_PROMPT_RESET_TASK
+#define ACTION_PROMPT_RESET_TASK _actionPromptReset
 #include "../../shared/action_prompt_reset.inc.c"
-#undef actionPromptReset
+#undef ACTION_PROMPT_RESET_TASK
+#define ACTION_PROMPT_RESET_TASK actionPromptReset
 
 /// Queues the additive, flickering cool-grey disc pair used by this room's view glows.
 ///

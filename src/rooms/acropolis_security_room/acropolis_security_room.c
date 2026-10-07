@@ -478,7 +478,7 @@ static void func_acropolis_security_room_801800A4(Task* task);
 static void func_acropolis_security_room_8018014C(Task* task);
 static void func_acropolis_security_room_801801C4(Task* task);
 static void func_acropolis_security_room_80180218(Task* task);
-static void func_acropolis_security_room_80180308(Task* task);
+static void _actionPromptReset(Task* task);
 static void _acropolisSecurityRoomDrawSweepLine(Task* task);
 
 void func_acropolis_security_room_8017E9D8(Task*);
@@ -2884,12 +2884,12 @@ static void func_acropolis_security_room_8017F300(Task* task)
 /// Task callback of the descriptor at `D_acropolis_security_room_801826C0`:
 /// a two-state dispatcher whose handler table is built on the stack rather
 /// than read from `.data`, so state 0 runs
-/// `func_acropolis_security_room_80180308` and state 1 runs
+/// `_actionPromptReset` and state 1 runs
 /// `_actionPromptMoveCursors`.
 void func_acropolis_security_room_8017F9C8(Task* task)
 {
     TaskFunc funcs[2] = {
-        func_acropolis_security_room_80180308,
+        _actionPromptReset,
         _actionPromptMoveCursors,
     };
 
@@ -3209,10 +3209,12 @@ void func_acropolis_security_room_80180294(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// The second prompt's copy.
-#define actionPromptReset func_acropolis_security_room_80180308
+// Bind the additional private reset callback, with signature void(Task*).
+#undef ACTION_PROMPT_RESET_TASK
+#define ACTION_PROMPT_RESET_TASK _actionPromptReset
 #include "../../shared/action_prompt_reset.inc.c"
-#undef actionPromptReset
+#undef ACTION_PROMPT_RESET_TASK
+#define ACTION_PROMPT_RESET_TASK actionPromptReset
 
 /// First `TaskDesc` of `D_acropolis_security_room_80182700`: starts the room's
 /// looping ambience, then rides alongside the cutscene task

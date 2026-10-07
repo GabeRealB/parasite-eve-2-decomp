@@ -8,8 +8,9 @@
  * _outline_rect and _event_end (each with the .inc.c suffix). A package includes only the
  * fragments it carries. The cursor drawer has a static instance in each
  * carrier, as does the event-end state (declared in its carrier's prologue);
- * the other functions have external linkage, since some packages call them
- * from another of their files.
+ * the other fragments default to external linkage for callers in the same
+ * package's other files. Reset and motion bindings can also select additional
+ * private instances declared in the carrier's prologue.
  */
 
 #ifndef SRC_SHARED_ACTION_PROMPT_H
@@ -36,7 +37,20 @@ typedef struct {
 } ActionPromptRect;
 STATIC_ASSERT_SIZEOF(ActionPromptRect, 0x8);
 
-void actionPromptReset(Task* task);
+/// Selects the task callback defined by the reset fragment.
+///
+/// Bind to a function identifier with signature `void(Task* task)`. The default
+/// is `actionPromptReset`, shared between files in some packages. Acropolis
+/// security and Shelter R47 bind an additional static `_actionPromptReset`
+/// instance, declared in each carrier's prologue before its callers. Rebind
+/// around that reset fragment and restore the default afterwards. A binding
+/// supplied before this header also selects this prototype.
+/// This object-like alias captures no arguments, repeats no evaluation and
+/// uses neither stringification nor token pasting.
+#ifndef ACTION_PROMPT_RESET_TASK
+#define ACTION_PROMPT_RESET_TASK actionPromptReset
+#endif
+void ACTION_PROMPT_RESET_TASK(Task* task);
 
 /// Selects the task callback defined by the cursor-motion fragment.
 ///
