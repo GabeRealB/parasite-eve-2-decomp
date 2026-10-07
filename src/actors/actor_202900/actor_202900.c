@@ -64,20 +64,21 @@ extern Task* gActorSelfTask;
 /// actor's, and the task is killed when the actor's exit callback runs.
 extern Task* gActorHelperTask;
 
-static void func_actor_202900_8014A0B4(Enemy* enemy, Task* task);
-static void func_actor_202900_8014A158(Task* arg0);
-static void func_actor_202900_8014A194(Task* arg0);
-static void func_actor_202900_8014A208(void);
-static void func_actor_202900_8014A260(void);
-static void func_actor_202900_8014A304(void);
-static s32  func_actor_202900_8014A394(void);
+static void _actor202900UpdateState(Enemy* unusedEnemy, Task* task);
+static void _viewFigureExit(Task* task);
+static void _actor202900StepAnim(Task* unusedTask);
+static void _actor202900TickAnim(void);
+static void _actor202900ResetAnim(void);
+static void _actor202900BlendAnim(void);
+static u8   _actor202900LatchSoundCue(void);
 
 static TmdSource _gActor202900AnmcWomanCafeteriaBody;
 static TmdSource _gActor202900Model0BC44;
 void             func_actor_202900_8014A02C(Task*);
-void             func_actor_202900_8014A088(Task*);
+static void      _actor202900CarriedModelTask(Task* task);
 
-s32 func_actor_202900_8014A3E0(Task*, s32, AnimationPlayRequest*, s32);
+static s32 _actor202900PlayAnimation(Task* unusedTask, s32 messageId,
+                                     const AnimationPlayRequest* request, s32 unusedArgument);
 
 static AnimationPackedPose _gActor202900Animation06098Bank1[158] = {
 #include "assets/actor_202900_animation_06098_bank1.inc"
@@ -210,14 +211,14 @@ static AnimationSet _gActor202900Animation0CFC4 = {
 };
 
 TaskMessageEntry D_actor_202900_80156E0C[3] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_202900_8014A3E0 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor202900PlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetPairVisibility },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_202900_80156E24[2] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_202900_8014A02C, { .model = &_gActor202900AnmcWomanCafeteriaBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_202900_8014A088, { .model = &_gActor202900Model0BC44 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor202900CarriedModelTask, { .model = &_gActor202900Model0BC44 } },
 };
 
 AnimationSet* D_actor_202900_80156E3C[6] = {
@@ -254,7 +255,7 @@ static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_202900_8014A158;
+    task->exitCallback               = _viewFigureExit;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
@@ -277,7 +278,7 @@ static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
     D_actor_202900_80156E54->st.state     = ACTOR_ENEMY_ANIM_RESET;
     D_actor_202900_80156E54->st.cueRecord = 0;
     task->msgTable                        = D_actor_202900_80156E0C;
-    func_actor_202900_8014A194(task);
+    _actor202900StepAnim(task);
     task->state++;
 }
 
@@ -285,180 +286,199 @@ static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
 /// `D_actor_202900_80156E54`, so the overlay's other functions can reach it
 /// without the task in hand, then dispatches on the task's state to the setup
 /// handler `func_actor_202900_80149E24` (state 0) or the per-frame handler
-/// `func_actor_202900_8014A0B4` (state 1), passing the task's enemy record
+/// `_actor202900UpdateState` (state 1), passing the task's enemy record
 /// along with the task.
 void func_actor_202900_8014A02C(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
         func_actor_202900_80149E24,
-        func_actor_202900_8014A0B4,
+        _actor202900UpdateState,
     };
 
     D_actor_202900_80156E54 = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Update of the second task: parents its model to the fifth coordinate of the
-/// actor's model, marks the coordinate for recomputation and shows the model.
-void func_actor_202900_8014A088(Task* arg0)
+/// Keeps the carried model visible and attached to body part 4.
+///
+/// Both published tasks must own live TMD models. The carried model borrows
+/// its parent's coordinate until helper teardown, which precedes body teardown.
+static void _actor202900CarriedModelTask(Task* task)
 {
-    GfxCoord*  parent;
-    GfxCoord*  coord;
-    TmdObject* extra;
+    enum { ACTOR_202900_ATTACHMENT_PART = 4 };
 
-    extra               = arg0->extra.tmd;
-    parent              = gActorSelfTask->extra.tmd->coords;
-    coord               = extra->coords;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags        = 0;
-    coord->parent       = parent + 4;
+    GfxCoord*  bodyCoords;
+    GfxCoord*  rootCoord;
+    TmdObject* model;
+
+    model                   = task->extra.tmd;
+    bodyCoords              = gActorSelfTask->extra.tmd->coords;
+    rootCoord               = model->coords;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->flags            = 0;
+    rootCoord->parent       = &bodyCoords[ACTOR_202900_ATTACHMENT_PART];
 }
 
-/// Per-frame handler, state 1 of the actor's update: passes the model and a
-/// point 0x320 above its origin to `worldCoordSetModelLighting`, runs the step dispatcher,
-/// and while animation 1 plays enqueues a sound event each time the second
-/// animation slot reaches frame 0x15.
-static void func_actor_202900_8014A0B4(Enemy* enemy, Task* task)
+/// Samples the woman's full model lighting 800 world units above its origin.
+///
+/// Requires a composed root and live writable model lighting matrices.
+static inline void _actor202900RelightModel(TmdObject* model)
 {
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     pos;
+    enum { ACTOR_202900_LIGHT_SAMPLE_HEIGHT = 800 };
 
-    obj    = task->extra.tmd;
-    coord  = obj->coords;
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1] - 0x320;
-    pos.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &pos, 0, 3);
-    func_actor_202900_8014A194(task);
-    if (D_actor_202900_80156E54->st.animId == 1 && (func_actor_202900_8014A394() & 0xFF)) {
+    GfxCoord* rootCoord;
+    VECTOR    lightPosition;
+
+    rootCoord        = model->coords;
+    lightPosition.vx = rootCoord->workm.t[0];
+    lightPosition.vy = rootCoord->workm.t[1] - ACTOR_202900_LIGHT_SAMPLE_HEIGHT;
+    lightPosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightPosition, 0, ARRAY_SIZE(model->lightMtx->m));
+}
+
+/// Relights and animates the cafeteria woman, sounding her cue once per spawn.
+///
+/// State 1 requires the published work block and model bindings from setup.
+/// `unusedEnemy` retains the setup/update dispatch signature. Clip 1 cues the
+/// sound on slot 1's record 21; the latch is cleared only by setup, so later
+/// playback requests cannot rearm it.
+static void _actor202900UpdateState(Enemy* unusedEnemy, Task* task)
+{
+    enum { ACTOR_202900_SOUND_ANIM = 1 };
+
+    TmdObject* model;
+
+    model = task->extra.tmd;
+    _actor202900RelightModel(model);
+    _actor202900StepAnim(task);
+    if (D_actor_202900_80156E54->st.animId == ACTOR_202900_SOUND_ANIM && _actor202900LatchSoundCue()) {
         sndEvtRequestScriptStart(SOUND_ACROPOLIS_CAFETERIA_WOMAN_CUE, 0, 0);
     }
 }
 
-/// Exit callback: kills the second task and destroys the enemy.
-static void func_actor_202900_8014A158(Task* arg0)
-{
-    taskKill(gActorHelperTask);
-    enemyDestroy(arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/view_figure_exit.inc.c"
 
-/// Runs the body the actor's step selects and then leaves it in step 3, the
-/// running state. Steps 1 and 2 each return through their own copy of the
-/// advance; the two are identical, so jump.c cross-jumps them and only the
-/// second survives. `arg0` is handed the actor but the body ignores it: it
-/// reaches the work block through the global, like the overlay's other
-/// functions.
-static void func_actor_202900_8014A194(Task* arg0)
+/// Applies a pending animation reseed or advances the running body tracks.
+///
+/// Uses the published live work block; `unusedTask` is ignored. A reseed enters
+/// `ACTOR_ENEMY_ANIM_TICK` without a further tick, and other states do nothing.
+static void _actor202900StepAnim(Task* unusedTask)
 {
     if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_BLEND) {
-        func_actor_202900_8014A304();
+        _actor202900BlendAnim();
         D_actor_202900_80156E54->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
     if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_RESET) {
-        func_actor_202900_8014A260();
+        _actor202900ResetAnim();
         D_actor_202900_80156E54->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
     if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_TICK) {
-        func_actor_202900_8014A208();
+        _actor202900TickAnim();
     }
 }
 
-/// Ticks animation slots 1..0x12 of the actor's animation context.
-static void func_actor_202900_8014A208(void)
+/// Advances body parts 1 through 18 and writes their model coordinates.
+///
+/// Requires the published bound rig, initialized slots and loaded clip data.
+/// Slot indices must equal their track indices for `animationTickDirectSlot`
+/// to recover the array base. Root part 0 is left alone. Storage, scratch-stack
+/// and GTE requirements follow `animationTickSlotPose`.
+static void _actor202900TickAnim(void)
 {
-    s32 i;
+    s32 slotIndex;
 
-    i = 1;
-    do {
-        animationTickDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i]);
-        i++;
-    } while (i < 0x13);
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(D_actor_202900_80156E54->rig.slots); slotIndex++) {
+        animationTickDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[slotIndex]);
+    }
 }
 
-/// Reseeds animation slots 1..0x12 from `animId`, forcing each slot's set
-/// index to 1 first, and latches that id into `st.appliedAnimId` as the one now
-/// playing.
+/// Restarts body parts 1 through 18 on the requested clip without a blend.
 ///
-/// The third argument is the loop counter itself, and the two scaled induction variables are the
-/// compiler's own, not a pair of source level pointers.
-static void func_actor_202900_8014A260(void)
+/// Requires a bound rig and loaded tracks/coordinates for every driven part.
+/// `animationInitDirectSlot` maps zero to set 1 and negative IDs to their
+/// magnitude. Each slot finishes at `ANIMATION_RATE_ONE` without advancing or
+/// writing a pose. Records the request in `st.appliedAnimId`; root 0 is untouched.
+static void _actor202900ResetAnim(void)
 {
-    s32 i;
+    enum { ACTOR_202900_PRE_RESET_RATE = 1 }; // Sixteenths of a frame; initialization replaces it
 
-    i = 1;
-    do {
-        D_actor_202900_80156E54->rig.slots[i].rate = 1;
-        animationInitDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i], i,
+    s32 slotIndex;
+
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(D_actor_202900_80156E54->rig.slots); slotIndex++) {
+        D_actor_202900_80156E54->rig.slots[slotIndex].rate = ACTOR_202900_PRE_RESET_RATE;
+        animationInitDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[slotIndex], slotIndex,
                                 D_actor_202900_80156E54->st.animId);
-        i++;
-    } while (i < 0x13);
+    }
     D_actor_202900_80156E54->st.appliedAnimId = D_actor_202900_80156E54->st.animId;
 }
 
-/// Reseeds animation slots 1..0x12 from `animId` and latches that id into
-/// `st.appliedAnimId` as the one now playing.
+/// Reseeds body parts 1 through 18 with an eight-frame blend in demo scene 1.
 ///
-/// The third argument is the loop counter itself. Giving the call its own
-/// counter copy (as m2c does) makes the preheader's `a2` initialisation a
-/// separate pseudo, and the scheduler then orders the prologue saves around it
-/// instead of leaving each `sw` paired with the load that overwrites it.
-static void func_actor_202900_8014A304(void)
+/// Requires the published bound rig and loaded tracks. In demo scene 1, slots
+/// must already be initialized with track indices matching their array indices;
+/// each captures its ticked pose before blending to record offset zero.
+/// Outside that scene, `animationStartDirectSlot` restarts the normalized set
+/// without a blend. Root 0 is untouched; the requested clip is recorded in
+/// `st.appliedAnimId`. Borrowed pose storage must remain live through playback.
+static void _actor202900BlendAnim(void)
 {
-    s32 i;
+    enum { ACTOR_202900_BLEND_FRAMES = 8 };
 
-    i = 1;
-    do {
-        animationStartDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[i], i,
-                                 D_actor_202900_80156E54->st.animId, 0, 8);
-        i++;
-    } while (i < 0x13);
+    s32 slotIndex;
+
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(D_actor_202900_80156E54->rig.slots); slotIndex++) {
+        animationStartDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[slotIndex], slotIndex,
+                                 D_actor_202900_80156E54->st.animId, 0, ACTOR_202900_BLEND_FRAMES);
+    }
     D_actor_202900_80156E54->st.appliedAnimId = D_actor_202900_80156E54->st.animId;
 }
 
-/// Watches the second animation slot for the frame the overlay reacts to:
-/// while it holds 0x15, records it in `st.cueRecord` and reports whether that is
-/// a change.
+/// Reports slot 1's first visit to sound-cue record 21 since setup.
 ///
-/// The mask is written at each use rather than hoisted into a `u16` local.
-/// Hoisting makes the local a copy of the masked word, and combine then folds
-/// the compare's zero-extension into a `move`; masking where the value is read
-/// keeps the `andi $a1,$a0,0xffff`.
-static s32 func_actor_202900_8014A394(void)
+/// Reads the current endpoint's low ten record-index bits, not elapsed frames.
+/// Requires the published initialized rig. Latches 21 in `st.cueRecord` and
+/// returns 1 on its first visit, otherwise 0; reseeds never clear this latch.
+static u8 _actor202900LatchSoundCue(void)
 {
-    u16 frame;
+    enum { ACTOR_202900_SOUND_CUE_RECORD = 21 };
 
-    frame = D_actor_202900_80156E54->rig.slots[1].currentPose.indices.recordIndex;
-    if ((frame & ANIMATION_POSE_CUE_INDEX_MASK) == 0x15) {
-        if (D_actor_202900_80156E54->st.cueRecord != (frame & ANIMATION_POSE_CUE_INDEX_MASK)) {
-            D_actor_202900_80156E54->st.cueRecord = frame & ANIMATION_POSE_CUE_INDEX_MASK;
+    u16 recordIndex;
+
+    recordIndex = D_actor_202900_80156E54->rig.slots[1].currentPose.indices.recordIndex;
+    if ((recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_202900_SOUND_CUE_RECORD) {
+        if (D_actor_202900_80156E54->st.cueRecord != (recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+            D_actor_202900_80156E54->st.cueRecord = recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             return 1;
         }
-        D_actor_202900_80156E54->st.cueRecord = frame & ANIMATION_POSE_CUE_INDEX_MASK;
+        D_actor_202900_80156E54->st.cueRecord = recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     return 0;
 }
 
-/// Message 0x7D3 handler, animation start: seeds the work block's `animId` with the requested
-/// one, rejecting anything from 5 up, and leaves the actor in step 2 with
-/// `st.field_6` cleared before running the step dispatcher.
+/// Restarts the published woman's requested animation synchronously.
 ///
-/// The actor is read into a local between the first two stores on purpose: that
-/// is where the original evaluates it, and it is what puts the global's
-/// `lui`/`lw` ahead of the `li 2` and leaves the `st.field_6` clear for the
-/// call's delay slot.
-s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION`; receiver, message ID and second
+/// payload are ignored. Reads only `request->animationId`, borrowing the
+/// request through this call; bank, blend and collision choices are ignored.
+/// Returns -1 unchanged for IDs 5 and above, otherwise narrows the ID to s16,
+/// clears `st.field_6` (role unproven) and resets all driven slots. Returns 0.
+/// The upper-bound check does not validate negative IDs or unloaded table entries;
+/// callers must select a normalized loaded set (1 or 4) after narrowing.
+/// The bound rig and clip storage must remain live throughout playback.
+static s32 _actor202900PlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
-    Task* actor;
+    enum { ACTOR_202900_ANIM_ID_LIMIT = 5 };
 
-    if (args->animationId < 5) {
-        D_actor_202900_80156E54->st.animId  = args->animationId;
-        actor                               = gActorSelfTask;
+    Task* actorTask;
+
+    if (request->animationId < ACTOR_202900_ANIM_ID_LIMIT) {
+        D_actor_202900_80156E54->st.animId  = request->animationId;
+        actorTask                           = gActorSelfTask;
         D_actor_202900_80156E54->st.state   = ACTOR_ENEMY_ANIM_RESET;
         D_actor_202900_80156E54->st.field_6 = 0;
-        func_actor_202900_8014A194(actor);
+        _actor202900StepAnim(actorTask);
         return 0;
     }
     return -1;

@@ -635,7 +635,8 @@ because `actor_521100` and `actor_403600` reserve the same block.
 `viewFigure` owns the included figure parented to the view coordinate, shared
 by `actor_110300` and `actor_110800`. Its implementation interface is
 `src/shared/view_figure.h`, which declares the task's work block
-`ViewFigureWork`.
+`ViewFigureWork`. Other figures can reuse its helper-model exit fragment
+independently of that work block and the twenty-part animation rig.
 
 Scratch blocks that packages reserve in functions of their own stay in
 `include/actors/actor.h`. `ActorContactDeltaScratch`,

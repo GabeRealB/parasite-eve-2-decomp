@@ -5069,31 +5069,31 @@ tail:
 Each body sits *immediately after its own test*, which is what an if-chain
 emits. A `switch` puts the whole compare chain first and every body after it -
 the layout the sibling section above relies on - so it is the wrong tool here
-even though the arms share a tail. `func_actor_202900_8014A194` scores 44.4%
+even though the arms share a tail. `_actor202900StepAnim` scores 44.4%
 (`blocks 8/11`, `insert=13 delete=6`) as m2c's `switch` with a `goto block_4`,
 and 100% on the first build as an if-chain:
 
 ```c
-if (ActorsShared80131f9cWork->field_47C == 1) {
-    func_actor_202900_8014A304();
-    ActorsShared80131f9cWork->field_47C = 3;
+if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_BLEND) {
+    _actor202900BlendAnim();
+    D_actor_202900_80156E54->st.state = ACTOR_ENEMY_ANIM_TICK;
     return;
 }
-if (ActorsShared80131f9cWork->field_47C == 2) {
-    func_actor_202900_8014A260();
-    ActorsShared80131f9cWork->field_47C = 3;
+if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_RESET) {
+    _actor202900ResetAnim();
+    D_actor_202900_80156E54->st.state = ACTOR_ENEMY_ANIM_TICK;
     return;
 }
-if (ActorsShared80131f9cWork->field_47C == 3) {
-    func_actor_202900_8014A208();
+if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_TICK) {
+    _actor202900TickAnim();
 }
 ```
 
 The explicit `return` after each step store is what does the merging: the two
-copies of `field_47C = 3` are then identical statements in two different
+copies of `st.state = ACTOR_ENEMY_ANIM_TICK` are then identical statements in two different
 blocks, jump.c cross-jumps them into the single advance at `join`, and the
 global is reloaded there through `$s0` - which is why the prologue keeps
-`ActorsShared80131f9cWork` in `$s0` across the calls. Collapsing the two stores
+`D_actor_202900_80156E54` in `$s0` across the calls. Collapsing the two stores
 into one shared statement by hand (the `goto block_4` m2c produced) reaches the
 same target but leaves the block where the first user sits and loses the
 reload's home. The same body exists at 0x474 in `actor_110300` and 0x4B4 in
@@ -86278,24 +86278,24 @@ Inputs: `base.i` (m2c seed, 73.333%)
 
 ## A store between two `a->b` references reloads it and extends `a`'s live range: cache the field in a local
 
-`func_actor_202900_8014A088` (actors/actor_202900) writes
-`((TmdObject*)index->extra)->flags = 0` after `coord->composeStamp = 0`, and the m2c
+`_actor202900CarriedModelTask` (actors/actor_202900) writes
+`task->extra.tmd->flags = 0` after `rootCoord->composeStamp = GRAPHICS_COORD_DIRTY`, and the m2c
 seed that spells both references out reloads the chain:
 
 ```c
-/* 72.417%: lw v1,0x2c(a0) ... lw v0,0x2c(a0)  - arg0 never dies */
-parent = D_actor_202900_80156E58->extra->coords;
-coord  = arg0->extra->coords;
-coord->composeStamp = 0;
-arg0->extra->flags = 0;        /* reload: $v1 now holds parent */
-coord->parent = parent + 4;
+/* 72.417%: lw v1,0x2c(a0) ... lw v0,0x2c(a0)  - task never dies */
+bodyCoords = gActorSelfTask->extra.tmd->coords;
+rootCoord  = task->extra.tmd->coords;
+rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+task->extra.tmd->flags = 0;        /* reload: $v1 now holds bodyCoords */
+rootCoord->parent = &bodyCoords[ACTOR_202900_ATTACHMENT_PART];
 ```
 
-The intervening `sw zero,0(a0)` kills the CSE entry for `index->extra`, so the
-second reference is a fresh load. That reload keeps `index` alive three
+The intervening `sw zero,0(a0)` kills the CSE entry for `task->extra.tmd`, so the
+second reference is a fresh load. That reload keeps `task` alive three
 instructions past its last real use, and the cost is not the extra `lw`: the
-result quantity `coord` would otherwise land in `$a0`, the argument register
-`index` frees. Local-alloc has no free `$a0` to give it, so `coord` goes to
+result quantity `rootCoord` would otherwise land in `$a0`, the argument register
+`task` frees. Local-alloc has no free `$a0` to give it, so `rootCoord` goes to
 `$a1` and the whole block rotates (`a1`/`v1`/`v0` instead of `a0`/`v0`/`v1`).
 
 Caching the base pointer in a local removes the second memory reference
@@ -86303,12 +86303,12 @@ entirely - the pseudo is never reloaded - and the allocation falls out
 (100.000%, zero penalties):
 
 ```c
-extra  = arg0->extra;
-parent = D_actor_202900_80156E58->extra->coords;
-coord  = extra->coords;
-coord->composeStamp = 0;
-extra->flags = 0;
-coord->parent = parent + 4;
+model      = task->extra.tmd;
+bodyCoords = gActorSelfTask->extra.tmd->coords;
+rootCoord  = model->coords;
+rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+model->flags = 0;
+rootCoord->parent = &bodyCoords[ACTOR_202900_ATTACHMENT_PART];
 ```
 
 Read this as the mirror of the `shelter_b3_dumping_hole_8017E7DC` entry above
@@ -86325,11 +86325,11 @@ Inputs: `base_1.i` (both references spelled out, 72.417%, `regs=6 insert=2`)
 `base_2.i` (cached local, 100.000%)
 `d897007ded7e2b9185baae952874b1bfafb21593c71fbd2fc2d9ea0e5c29269f`.
 
-## A hand-written walking offset inverts the interleaved prologue; the indexed `slots[i]` form is what puts it right
+## A hand-written walking offset inverts the interleaved prologue; the indexed `rig.slots[slotIndex]` form is what puts it right
 
 A loop that ticks an animation slot array can be written either with a walking
 byte offset (`off = 0x7C; … off += 0x28;`) or as the indexed access the original
-used, `&work->slots[i]`, which loop.c strength-reduces to the same walking
+used, `&work->rig.slots[slotIndex]`, which loop.c strength-reduces to the same walking
 offset. Both compile to the *same 22 instructions and the same registers*, and
 still score 87.727% with `reorder=1 insert=1 delete=1` — the diff is one swapped
 pair of `(sw $sN, li $sN)` in the interleaved prologue and nothing else.
@@ -86354,12 +86354,10 @@ before the loop stays ahead of it. The indexed form's offset init is created by
 strength reduction *after* that hoist, which is what moves it behind.
 
 ```c
-    i = 1;
-    do {
-        animationTickDirectSlot(&ActorsShared80131f9cWork->anim,
-                        &ActorsShared80131f9cWork->slots[i]);
-        i++;
-    } while (i < 0x13);
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(D_actor_202900_80156E54->rig.slots); slotIndex++) {
+        animationTickDirectSlot(&D_actor_202900_80156E54->rig.anim,
+                        &D_actor_202900_80156E54->rig.slots[slotIndex]);
+    }
 ```
 
 Read the explicit-offset version as a rewrite of GCC's own strength reduction,
@@ -86367,7 +86365,7 @@ not as a reconstruction: when the target walks a pointer with a byte offset but
 the callee's first argument is a struct member, write the index form and let
 loop.c produce the walk. The family idiom agrees — `_Actor143900Work` and
 `FootstepWalkWork` both put `AnimationContext` at 0x40 and the slots at 0x54, so
-`slots[1]` is the 0x7C the target's `addiu $s0,$zero,0x7C` starts at.
+`rig.slots[1]` is the 0x7C the target's `addiu $s0,$zero,0x7C` starts at.
 
 The traces that settle it are the `;; ready list initially:` line of the
 `.sched2` dump: `61 12 9 70` (offset written out) versus `69 63 9 90` (indexed).
@@ -86380,7 +86378,7 @@ Inputs: `base_1.i` (offset local, 87.727%)
 ## The guard's polarity picks which arm is the fall-through, and the layout follows
 
 An `if` whose arms both return has two source spellings that compile to the same
-CFG, but not to the same block order. `func_actor_202900_8014A3E0` is the clean
+CFG, but not to the same block order. `_actor202900PlayAnimation` is the clean
 case: the same signature and the same five statements, only the guard written
 the other way round, and 13.3% between them.
 
@@ -86404,11 +86402,11 @@ comes back in the wrong polarity. Write the accepting arm as the `if` and the
 rejection after it:
 
 ```c
-    if (args->animId < 5) {     /* bnez to the body, -1 inline after it */
+    if (request->animationId < ACTOR_202900_ANIM_ID_LIMIT) {     /* bnez to the body, -1 inline after it */
         ...;
         return 0;
     }
-    return -1;                  /* not: if (args->animId >= 5) return -1; */
+    return -1;                  /* not: if (request->animationId >= ACTOR_202900_ANIM_ID_LIMIT) return -1; */
 ```
 
 This is the same shape the sibling `func_actor_110300_80132280` is written in,
@@ -86435,7 +86433,7 @@ sh      v0,0x480($v1)
 
 That is not two fields and not a `(u16)` cast written at the use site. It is what
 GCC 2.8.1 emits for a plain assignment whose source is `s32` and whose
-destination is `u16`: the compare keeps its `lw`, and the narrowing conversion
+destination is a 16-bit integer: the compare keeps its `lw`, and the narrowing conversion
 costs a fresh 16-bit access because the 32-bit value is dead after the `slti`.
 The first RTL dump already carries both — `(set (reg:SI 84) (mem/s:SI ... 4))`
 for the compare and `(set (reg:HI 89) (mem/s:HI ... 4))` for the store — so it is
@@ -86443,10 +86441,10 @@ a front-end conversion, not a `combine` or peephole fold.
 
 ```c
     /* AnimationPlayRequest          */ s32 animationId;  /* 0x4 */
-    /* _Actor202900Work    */ u16 animId;   /* 0x480 */
+    /* ActorEnemyState              */ s16 animId;        /* st.animId */
     ...
-    if (args->animationId < 5) {
-        ActorsShared80131f9cWork->animId = args->animationId;  /* lw compare, lhu store */
+    if (request->animationId < ACTOR_202900_ANIM_ID_LIMIT) {
+        D_actor_202900_80156E54->st.animId = request->animationId;  /* lw compare, lhu store */
 ```
 
 Pick the width from the *store* and leave the load alone: declaring the source
@@ -100840,7 +100838,7 @@ by 20 points, because gcc emits the then-block inline.
 `1d4d0d2820487b1621e40a0f69a5049ad90b260fb08c13801eaa717b54754a03`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/func_actor_341300_80163A10-vacuum` (`base_4_diff`).
-## Hoisting a `& 0x3FF` into a `u16` local folds the compare's zero-extension to a `move` (func_actor_202900_8014A394, 2026-09-16)
+## Hoisting a `& 0x3FF` into a `u16` local folds the compare's zero-extension to a `move` (_actor202900LatchSoundCue, 2026-09-16)
 
 The slot's cue index is the low ten bits of `AnimationSlot.currentPose.indices.recordIndex`, and the
 target masks it at every use - the mask and the re-extension of its own result
@@ -100905,7 +100903,7 @@ Inputs: `base.c` (80.905%)
 `7c29f53e1f3797e505b5548a5407cc2466ffb5cec3538d673e6edfb826a0f79a`.
 
 ## Locals m2c invents for a loop's index and its walk offset reorder the
-backward schedule's callee-save block (func_actor_202900_8014A304, 2026-09-16)
+backward schedule's callee-save block (_actor202900BlendAnim, 2026-09-16)
 
 The target and the m2c seed held the *same 36 instructions in the same three
 blocks*; every difference was inside the prologue, where the target pairs each
@@ -100931,7 +100929,7 @@ natural 122 subu; 124 sw ra; 126 sw s3; 128 sw s2; 130 sw s1; 132 sw s0;
 ```
 
 Writing the loop the way the sibling `func_actor_521100_80136820` does —
-`&work->slots[i]` with `i` itself as the call's third argument — is what removes
+`&work->rig.slots[slotIndex]` with `slotIndex` itself as the call's third argument — is what removes
 the extra leaf: `loop.c` then creates the walking offset biv and the argument
 copy itself, and both land where the target has them (the biv at the end of the
 preheader, the copy at the top of the body). 100.000%, all penalties zero.
