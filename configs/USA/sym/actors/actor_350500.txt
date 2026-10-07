@@ -44,3 +44,4 @@ _reverseWalkRunStep = 0x801624A0; // type:func
 _reverseWalkBindLighting = 0x8016247C; // type:func
 _reverseWalkExit = 0x8016245C; // type:func
 _actor350500ReverseWalkCommandMsg = 0x80162abc; // type:func
+_actor350500ReverseWalkTask = 0x80162360; // type:func

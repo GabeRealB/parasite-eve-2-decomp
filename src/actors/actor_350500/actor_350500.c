@@ -39,7 +39,7 @@ extern AnimationSet** gActorMotionAnimBanks19[1];
 
 extern TaskMessageEntry gReverseWalkMessages[];
 
-/// Spawn, tick and exit handlers, dispatched by `func_actor_350500_80162360`.
+/// Spawn, tick and exit handlers, dispatched by `_actor350500ReverseWalkTask`.
 static const TaskFuncTable3 D_actor_350500_80161E24 = { {
     _reverseWalkSpawn,
     _reverseWalkUpdate,
@@ -62,7 +62,7 @@ static const VECTOR _gReverseWalkForward = { 0, 0, 0x200000, 0 };
 
 static TmdSource _gActor350500EveBreaMaskedBody;
 static s32       _actor350500ReverseWalkCommandMsg(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
-void             func_actor_350500_80162360(Task*);
+static void      _actor350500ReverseWalkTask(Task* task);
 
 static TmdBone _gActor350500EveBreaMaskedBodySkeleton[19] = {
 #include "assets/eve_brea_masked_body_skeleton.inc"
@@ -196,7 +196,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_350500_80168E8C,
 };
 
-TaskDesc D_actor_350500_80168EA4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_350500_80162360, { .model = &_gActor350500EveBreaMaskedBody } };
+TaskDesc D_actor_350500_80168EA4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350500ReverseWalkTask, { .model = &_gActor350500EveBreaMaskedBody } };
 
 TaskMessageEntry gReverseWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
@@ -212,16 +212,19 @@ TaskMessageEntry gReverseWalkMessages[6] = {
 
 #include "../../shared/reversing_walker_start.inc.c"
 
-/// Per-frame dispatcher: runs the spawn, tick or exit state from
-/// `D_actor_350500_80161E24`, skipping the frame while the global freeze
-/// byte is set.
-void func_actor_350500_80162360(Task* task)
+/// Runs actor 350500's reversing-walker task state while actor control is running.
+///
+/// Requires a live TMD task with an owned enemy in `spawnArg2.pointer` and
+/// `state` in 0..2 (0 spawn, 1 update, 2 exit); the index is unchecked.
+/// Spawn initializes the owned work before updates can run. Spawn failure or
+/// exit can release the task, so do not access it after dispatch.
+/// Any actor-control value other than running skips all three states.
+static void _actor350500ReverseWalkTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    const TaskFuncTable3 stateHandlers = D_actor_350500_80161E24;
 
-    sp = D_actor_350500_80161E24;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        stateHandlers.funcs[task->state](task);
     }
 }
 
