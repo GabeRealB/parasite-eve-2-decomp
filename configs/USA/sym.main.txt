@@ -2189,10 +2189,10 @@ cdAudioCancel               = 0x80056700; // type:func
 //--------------------------------------------------------------------
 //--- PA: 0x46FE4   VA: 0x800567E4   subsegment: c, 46FE4
 //--------------------------------------------------------------------
-CdAudio_DriveStream               = 0x800567E4; // type:func
-CdAudio_DrivePhase0               = 0x800569D4; // type:func
-CdAudio_DriveSeek               = 0x80056B28; // type:func
-CdAudio_DriveRead               = 0x80056E38; // type:func
+_cdAudioOpenDriver               = 0x800567E4; // type:func
+_cdAudioStopDriver               = 0x800569D4; // type:func
+_cdAudioReadHeaderDriver               = 0x80056B28; // type:func
+_cdAudioLoadWavesDriver               = 0x80056E38; // type:func
 _cdAudioWaveSectorReadyCallback               = 0x800572FC; // type:func
 CdAudio_Init               = 0x800574BC; // type:func
 CdAudio_GetState               = 0x80057554; // type:func
@@ -2216,7 +2216,7 @@ _cdAudioRequestPlay               = 0x80057ACC; // type:func
 _cdAudioStartFadeOut               = 0x80057B24; // type:func
 _cdAudioStartWaveLoad               = 0x80057B88; // type:func
 _cdAudioIdleDriver               = 0x80057BC0; // type:func
-CdAudio_DrivePhase1               = 0x80057BC8; // type:func
+_cdAudioPlayDriver               = 0x80057BC8; // type:func
 _cdAudioHeaderSectorReadyCallback               = 0x80057C74; // type:func
 _cdAudioStreamOpeningDoneCallback               = 0x80057D24; // type:func
 _cdReadyEnqueue             = 0x80057D3C; // type:func

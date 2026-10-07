@@ -8328,13 +8328,13 @@ case 3:
 return ret; /* promotes to s32 at the return */
 ```
 
-`CdAudio_DrivePhase0` is the pure example. Leaving `ret` as `s32` stuck at ~96% with
+`_cdAudioStopDriver` is the pure example. Leaving `nextDriver` as `s32` stuck at ~96% with
 an otherwise identical switch.
 
 Same fix for jump-table index shifts: `s32 ret = 2` is CSE'd into the
 `index << 2` as `sllv v1,v1,s0` (shift amount is already in `$s0`), while the
 target wants `sll v1,v1,0x2`. An `s16 ret` keeps the HImode register out of
-SImode shift-amount CSE. `CdAudio_DrivePhase1` is the pure example — otherwise a
+SImode shift-amount CSE. `_cdAudioPlayDriver` is the pure example — otherwise a
 100% body with only the `sll`/`sllv` line wrong.
 
 ## Compute else-only address temps so they fill the `bne` delay slot in `$v0`
@@ -8365,7 +8365,7 @@ if (interp->gain == interp->targetGain) {
 }
 ```
 
-`CdAudio_DrivePhase0` needs this (together with the `s16 ret` tip above). Its
+`_cdAudioStopDriver` needs this (together with the `s16 nextDriver` tip above). Its
 ramp and playback block are members of one volatile `_gCdAudioState`, so the
 else names the sibling member and needs no parent pointer:
 
@@ -20130,7 +20130,19 @@ asm("" : "+r"(temp));
 status = (s8)temp;
 ```
 
-`CdAudio_DriveStream` is the pure example (voice poll over slots 0x16..0x17).
+The current `_cdAudioOpenDriver` polls voices 22..23 through
+`_cdAudioSilenceReservedVoices`, with ordinary signed-byte locals and no barrier:
+
+```c
+for (voiceIdx = CD_AUDIO_RESERVED_VOICE_FIRST;
+     voiceIdx < CD_AUDIO_RESERVED_VOICE_FIRST + CD_AUDIO_RESERVED_VOICE_COUNT;
+     voiceIdx++) {
+    keyStatusSum += spuGetVoiceKeyStatus(voiceIdx);
+    if (keyStatusSum != SPU_OFF) {
+        spuKeyOff(voiceIdx);
+    }
+}
+```
 
 ## Cast a `u8`-returning helper through an `s32` function pointer
 
@@ -20145,7 +20157,9 @@ temp = acc + ((s32 (*)(s32))spuGetVoiceKeyStatus)(voice);
 
 Safe only when the callee already returns a clean low byte (e.g. via `lbu`).
 Do not change the shared `u8` declaration — other matched callers may depend on
-the `andi`. `CdAudio_DriveStream` needs this for `spuGetVoiceKeyStatus`.
+the `andi`. The current `_cdAudioOpenDriver` uses the declared
+`spuGetVoiceKeyStatus` directly through its signed-byte polling helper and
+requires no callback cast.
 
 ## Jump-table mult: load order vs `mult` operand order
 
@@ -21015,36 +21029,40 @@ const s32 jtbl_B[] = { 0x800xxxxx, … };
 INCLUDE_ASM(…, func_B);
 ```
 
-`CdAudio_DriveSeek` / `jtbl_80014204` (still-asm `CdAudio_DriveRead`) is the example.
+`_cdAudioReadHeaderDriver` / `jtbl_80014204` from `_cdAudioLoadWavesDriver`
+was the example while the latter still used assembly; both drivers now have C
+bodies and compiler-generated tables.
 
-## Early `header` load + `register asm` pins for multi-use sector pointer
+## Load the header after the switch step and retain the slot-table buffer reload
 
-A volatile buffer pointer loaded once at function entry (`header = (T*)D_xxx`) and
-reused for field reads, with a second volatile reload of `D_xxx` for base+index
-addressing, needs:
-
-1. Read the switch discriminator *before* the buffer load so `lbu` /
-   `lw D_xxx` interleave and the table index stays in `$a0`.
-2. Pin `header` to `$a2`, the second base to `$v1`, and the final
-   `counter += 1` temp to `$a0` when the shared epilogue uses that colouring.
-3. Prefer `table[idx]` (array form) over `*(s32*)((s32)table + (idx << 2))` once
-   the pins are in place — the array form colouring matches the target.
+`_cdAudioReadHeaderDriver` loads the step before the header pointer so `lbu` /
+`lw CdAudio_SectorBuffer` interleave and the table index stays in `$a0`. The
+header pointer supplies the serialized indices, while the slot-table expression
+reloads the buffer after drive calls. Ordinary locals and typed array access
+match without register pins:
 
 ```c
-phase  = state->field_3;
-header = (_CdAudioHeader*)D_80082750; /* fills lbu delay; pin header to a2 */
-switch (phase) {
-case 8:
-    idx = header->spuBaseIndex;
-    val = D_80068B18[idx];
-    ptr = D_80082750;           /* pin ptr to v1 */
-    audio->field_8 = val;
-    …
+step   = CdAudio_Phase.headerReadStep;
+header = (_CdAudioHeader*)CdAudio_SectorBuffer;
+switch (step) {
+case CD_AUDIO_HEADER_READ_STEP_WAIT_SECTOR:
+    /* ...wait and error checks... */
+    _gCdAudioState.playback.spuBase = D_80068B18[header->spuBaseIndex];
+    CdAudio_Tbl.slotTable = (_CdAudioHeaderSlot*)&
+        ((u32*)CdAudio_SectorBuffer)[header->slotTableOffset];
+    /* ...pause... */
 }
-tmp = counter; tmp = tmp + 1; counter = tmp; /* pin tmp to a0 */
+waitTicks = CdAudio_Ctl.waitTicks;
+waitTicks = waitTicks + 1;
+CdAudio_Ctl.waitTicks = waitTicks;
 ```
 
-`CdAudio_DriveSeek` is the pure example.
+Using `header` itself for the slot-table base removes the reload and two
+instructions; the global-buffer expression above preserves it. The word index
+is relative to the whole sector. A `trackEntries[offset - 1]` address through
+the same reload also matches, but would require a nonzero offset that the code
+never checks. The whole-sector view retains offset zero and avoids indexing
+before that member array.
 
 ## Flip comparison operators to control load order of slt operands
 
@@ -21112,7 +21130,7 @@ CdAudio_Tbl.waveLoadNextSector = _gCdAudioState.playback.baseSector;
 CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
 ```
 
-`CdAudio_DriveRead` is the pure example.
+`_cdAudioLoadWavesDriver` is the pure example.
 
 ## Force `move v0,v1` + reload: dual `asm("v0")` temps with empty barrier
 
@@ -145012,7 +145030,7 @@ does not count as a first file-scope declaration, so the unit's definitions
 still set the `.bss` order. Turning the inline into a macro instead changed
 register allocation at its call site.
 
-### Folding labels into one struct: read the member's first field through its pointer, not through the global (CdAudio_DrivePhase0, 2026-09-26)
+### Folding labels into one struct: read the member's first field through its pointer, not through the global (_cdAudioStopDriver, 2026-09-26)
 
 When separate labels become members of one object, `Label.f0` rewritten as
 `G.m.f0` is not the same code. With `p = &G.m` (offset 0x14) live in a
@@ -145436,7 +145454,7 @@ constant, and the one after the call reloads it from the stack. That
 asymmetry means one obj-relative draw was used twice, not two differently
 written draws.
 
-## A block-local `x++` on a global can never put the count in `$a0` while its `%hi` sits in `$v1` (CdAudio_DriveSeek, 2026-09-26)
+## A block-local `x++` on a global can never put the count in `$a0` while its `%hi` sits in `$v1` (_cdAudioReadHeaderDriver, 2026-09-26)
 
 A dispatch function's shared tail `g.count++; return 5;` is, in retail,
 `lui v1,%hi(g)` / `lw a0,%lo(g)(v1)` / `li v0,5` / `addiu a0,a0,1` / `sw a0`.
@@ -145451,6 +145469,10 @@ also lives in another block, so global-alloc places it after local-alloc has
 spent `$v1` on the `%hi`. Reusing a function-wide variable (`status`, `val`)
 does that, but the variable's other life must then also fit `$a0`. Check that
 before reaching for a pin; if no variable qualifies, the `$a0` pin is still open.
+
+The current `_cdAudioReadHeaderDriver` keeps one `waitTicks` local in both the
+default arm and the common tail. It therefore lives across blocks and matches
+the target allocation without a pin.
 ## Two loads of one word around a byte store: a bitfield read and a `volatile` global (_cdStreamPollDiscInit, 2026-09-26)
 
 The target read the flags word twice, `lw v0; lw v1; srl/andi` on both, and
@@ -150548,7 +150570,7 @@ attempts; left as it was.
   of its own skips the bound test, 2 insns short). The third node below 2
   that shares the default's code gives `bgt 2 -> right; j default`, which
   jump.c inverts into the `slti 3; bnez default`. Four ladders in
-  `CdAudio_DriveSeek` and `CdAudio_DriveRead`; the `status` and `ret` locals
+  `_cdAudioReadHeaderDriver` and `_cdAudioLoadWavesDriver`; the `status` and `ret` locals
   and the doubled `driverStatus = &CdAudio_Ctl` labels went with them. Case
   order in the source is the block order in the image (`CdlDiskError` first).
 - **An error call at the end of the function, reached from two guards, with
@@ -150590,7 +150612,7 @@ attempts; left as it was.
     `stream_error` tails follow the switch behind the `break` target; a
     duplicate of either after `CdStream_LastErrorCode = CdStream_ErrorCode`
     would reuse the loaded error code where the label reloads it.
-  - `CdAudio_DriveSeek`: the tick-and-return after the switch is the `break`
+  - `_cdAudioReadHeaderDriver`: the tick-and-return after the switch is the `break`
     target (a `j` to it carries a fresh `lui v1,%hi(CdAudio_Ctl)` right after
     a store through `&CdAudio_Ctl`), and the error block sits behind that
     `return`, so it is reachable only by a jump.

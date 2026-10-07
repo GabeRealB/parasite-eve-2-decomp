@@ -143,8 +143,8 @@ segments:
       - [0x4864, .rodata, "sndevt"]
       # jtbl_800140E8 + stageMusicSelectColumn's columnCounts template and jtbl + StopMatching / TickEnvelope jtbls
       - [0x48e8, .rodata, "sndscript"]
-      # jtbl_800141C4 (CdAudio_DriveStream) + jtbl from CdAudio_DriveSeek +
-      # jtbl from CdAudio_DriveRead + jtbl from CdAudio_DrivePhase1
+      # jtbl_800141C4 (_cdAudioOpenDriver) + jtbl from _cdAudioReadHeaderDriver +
+      # jtbl from _cdAudioLoadWavesDriver + jtbl from _cdAudioPlayDriver
       - [0x49c4, .rodata, "cdaudio"]
       # jtbls from _cdStreamPollChunkRead, _cdStreamPollDiscInit and _cdStreamCancelChunkRead
       - [0x4a48, .rodata, "cdstream"]
