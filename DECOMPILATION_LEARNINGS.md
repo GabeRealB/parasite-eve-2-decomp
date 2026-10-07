@@ -15551,7 +15551,7 @@ Bare `args->level.attenuation` with an `s8` formal also yields `lb`, but
 then the callee mismatches. Prefer `s32` formals + `(s8)` at the few call sites,
 or type each view of the field for its reader — the pan ramp's view is `s8`,
 while `sndScriptRampVolume` reads the same byte through a `u8` one.
-`sndScriptRampMix` / `SndEvt_HandlePanRamp` are the pure example (sibling
+`sndScriptRampMix` / `_sndEvtHandleScriptMix` are the pure example (sibling
 `sndScriptRampVolume` already takes `s32` and its caller reads it unsigned).
 
 ## Early load into a temp forces prior store before zero-fills

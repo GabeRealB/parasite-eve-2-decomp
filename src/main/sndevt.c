@@ -370,31 +370,31 @@ static void _sndEvtHandleNoOp(SndEvt* event);
 
 static void _sndEvtHandleMidiStart(SndEvt* event);
 
-static void SndEvt_HandleStartFadeOut(SndEvt* event);
+static void _sndEvtHandleMidiStop(SndEvt* event);
 
 static void _sndEvtHandleMidiMute(SndEvt* event);
 
 static void _sndEvtHandleMidiUnmute(SndEvt* event);
 
-static void SndEvt_HandleSetVolume(SndEvt* event);
+static void _sndEvtHandleMidiVolume(SndEvt* event);
 
 static void _sndEvtHandleScriptStart(SndEvt* event);
 
-static void SndEvt_HandleType7(SndEvt* event);
+static void _sndEvtHandleScriptStop(SndEvt* event);
 
 static void _sndEvtHandleScriptMute(SndEvt* event);
 
 static void _sndEvtHandleScriptUnmute(SndEvt* event);
 
-static void SndEvt_HandlePanRamp(SndEvt* event);
+static void _sndEvtHandleScriptMix(SndEvt* event);
 
 static void SndEvt_HandleVolumeRamp(SndEvt* event);
 
-static void SndEvt_HandleRefCountInc(SndEvt* unused);
+static void _sndEvtHandleScriptDuckAcquire(SndEvt* event);
 
-static void SndEvt_HandleRefCountDec(SndEvt* unused);
+static void _sndEvtHandleScriptDuckRelease(SndEvt* event);
 
-static void SndEvt_HandleKeyOffMatching(SndEvt* unused);
+static void _sndEvtHandleScriptKeyOff(SndEvt* event);
 
 static s32 _midiStartSequence(u8 sequenceId, u16 fadeTicks);
 
@@ -459,22 +459,22 @@ static void _sndLoadResetState(s32 feedMode, void* sectorBuffer);
 static s32 _sndLoadPrepareBankSlot(u16 bankId, s32 imageKind);
 
 void (*SndEvt_Handlers[])(SndEvt*) = {
-    _sndEvtHandleNoOp,           // SOUND_EVENT_NO_OP
-    _sndEvtHandleMidiStart,      // SOUND_EVENT_MIDI_START
-    SndEvt_HandleStartFadeOut,   // SOUND_EVENT_MIDI_STOP
-    _sndEvtHandleMidiMute,       // SOUND_EVENT_MIDI_MUTE
-    _sndEvtHandleMidiUnmute,     // SOUND_EVENT_MIDI_UNMUTE
-    SndEvt_HandleSetVolume,      // SOUND_EVENT_MIDI_SET_VOLUME
-    _sndEvtHandleScriptStart,    // SOUND_EVENT_SCRIPT_START
-    SndEvt_HandleType7,          // SOUND_EVENT_SCRIPT_STOP
-    _sndEvtHandleScriptMute,     // SOUND_EVENT_SCRIPT_MUTE
-    _sndEvtHandleScriptUnmute,   // SOUND_EVENT_SCRIPT_UNMUTE
-    SndEvt_HandlePanRamp,        // SOUND_EVENT_SCRIPT_SET_PAN_ATTENUATION
-    SndEvt_HandleVolumeRamp,     // SOUND_EVENT_SCRIPT_SET_VOLUME
-    _sndEvtHandleNoOp,           // SOUND_EVENT_RESERVED_NO_OP
-    SndEvt_HandleRefCountInc,    // SOUND_EVENT_SCRIPT_DUCK_ACQUIRE
-    SndEvt_HandleRefCountDec,    // SOUND_EVENT_SCRIPT_DUCK_RELEASE
-    SndEvt_HandleKeyOffMatching, // SOUND_EVENT_SCRIPT_KEY_OFF
+    _sndEvtHandleNoOp,              // SOUND_EVENT_NO_OP
+    _sndEvtHandleMidiStart,         // SOUND_EVENT_MIDI_START
+    _sndEvtHandleMidiStop,          // SOUND_EVENT_MIDI_STOP
+    _sndEvtHandleMidiMute,          // SOUND_EVENT_MIDI_MUTE
+    _sndEvtHandleMidiUnmute,        // SOUND_EVENT_MIDI_UNMUTE
+    _sndEvtHandleMidiVolume,        // SOUND_EVENT_MIDI_SET_VOLUME
+    _sndEvtHandleScriptStart,       // SOUND_EVENT_SCRIPT_START
+    _sndEvtHandleScriptStop,        // SOUND_EVENT_SCRIPT_STOP
+    _sndEvtHandleScriptMute,        // SOUND_EVENT_SCRIPT_MUTE
+    _sndEvtHandleScriptUnmute,      // SOUND_EVENT_SCRIPT_UNMUTE
+    _sndEvtHandleScriptMix,         // SOUND_EVENT_SCRIPT_SET_PAN_ATTENUATION
+    SndEvt_HandleVolumeRamp,        // SOUND_EVENT_SCRIPT_SET_VOLUME
+    _sndEvtHandleNoOp,              // SOUND_EVENT_RESERVED_NO_OP
+    _sndEvtHandleScriptDuckAcquire, // SOUND_EVENT_SCRIPT_DUCK_ACQUIRE
+    _sndEvtHandleScriptDuckRelease, // SOUND_EVENT_SCRIPT_DUCK_RELEASE
+    _sndEvtHandleScriptKeyOff,      // SOUND_EVENT_SCRIPT_KEY_OFF
 };
 
 static _MidiEventHandler Midi_EventFns[] = {
@@ -737,7 +737,13 @@ static void _sndEvtHandleMidiStart(SndEvt* event)
     _midiStartSequence(event->args.midi.sequenceId, event->args.midi.fadeTicks);
 }
 
-static void SndEvt_HandleStartFadeOut(SndEvt* event)
+/// Schedules the event's matching MIDI sequences to fade out or stop.
+///
+/// Selector zero addresses every sequence. Normally playing songs use the
+/// unsigned fade duration in audio updates; other phases stop immediately.
+/// Zero duration or master gain bypasses interpolation. Dispatch retains the
+/// event reservation until this handler returns.
+static void _sndEvtHandleMidiStop(SndEvt* event)
 {
     _midiStopMatching(event->args.midi.sequenceId, event->args.midi.fadeTicks);
 }
@@ -760,7 +766,13 @@ static void _sndEvtHandleMidiUnmute(SndEvt* event)
     _midiSetMuteMatching(event->args.midi.sequenceId, false);
 }
 
-static void SndEvt_HandleSetVolume(SndEvt* event)
+/// Applies the event's sequence gain and marks every matching channel for remixing.
+///
+/// Selector zero addresses every sequence. The unsigned gain byte multiplies
+/// the sequence's mix-table level; producers supply 0..127. Matching sequences
+/// must have loaded ids in 0..99 for that table. Master gain and fades apply
+/// separately, and sequence 0x5A uses its fixed mixing gain instead.
+static void _sndEvtHandleMidiVolume(SndEvt* event)
 {
     _midiSetSequenceVolume(event->args.midi.sequenceId, event->args.midi.volumeScale);
 }
@@ -778,12 +790,22 @@ static void _sndEvtHandleScriptStart(SndEvt* event)
     sndScriptTryStart(scriptArgs->soundId, scriptArgs->panOffset, scriptArgs->level.attenuation, scriptArgs->bankSlot, scriptArgs->entryControls);
 }
 
-static void SndEvt_HandleType7(SndEvt* event)
+/// Applies the event's resolved stop selector and control to sound-script instances.
+///
+/// A nonzero entry selects an exact id or its all-instance form; a zero entry
+/// compares the whole selector against bank-type nibbles, with the all-types
+/// selector excluding ambient scripts. No bank remapping occurs here.
+/// Running entry matches stop without fading for controls 0 and 1 (0 retains
+/// their release policy, 1 keeps their ADSR); 2..65535 fade in audio updates.
+/// Type stops bypass the fade and keep ADSR only for control 1. Other phases
+/// follow `sndScriptStopMatching`'s stop rules. The scan result is discarded;
+/// dispatch retains the event reservation.
+static void _sndEvtHandleScriptStop(SndEvt* event)
 {
-    SndEvtScriptArgs* args;
+    const SndEvtScriptArgs* scriptArgs;
 
-    args = &event->args.script;
-    sndScriptStopMatching(args->soundId, args->stopControl);
+    scriptArgs = &event->args.script;
+    sndScriptStopMatching(scriptArgs->soundId, scriptArgs->stopControl);
 }
 
 /// Requests the fixed mute ramp for scripts matching an exact id or bank type.
@@ -804,15 +826,22 @@ static void _sndEvtHandleScriptUnmute(SndEvt* event)
     sndScriptSetMuteMatching(event->args.script.soundId, false);
 }
 
-static void SndEvt_HandlePanRamp(SndEvt* event)
+/// Applies the event's pan and attenuation to the first live script with its exact id.
+///
+/// Starting, running, releasing and fading-out slots qualify; idle, stopping,
+/// muting and unmuting slots do not. A missing id is ignored. Both mix controls
+/// retain their signed bytes: pan adds three SPU steps per unit, attenuation
+/// uses its magnitude, and -128 targets the unattenuated level. Larger changes
+/// ramp per voice visit during later audio updates; dispatch retains the event.
+static void _sndEvtHandleScriptMix(SndEvt* event)
 {
-    s32               scriptSlotIndex;
-    SndEvtScriptArgs* args;
+    s32                     scriptSlotIndex;
+    const SndEvtScriptArgs* scriptArgs;
 
-    args            = &event->args.script;
-    scriptSlotIndex = sndScriptFindInstanceById(args->soundId);
+    scriptArgs      = &event->args.script;
+    scriptSlotIndex = sndScriptFindInstanceById(scriptArgs->soundId);
     if (scriptSlotIndex >= 0) {
-        sndScriptRampMix(scriptSlotIndex, args->panOffset, args->level.attenuation);
+        sndScriptRampMix(scriptSlotIndex, scriptArgs->panOffset, scriptArgs->level.attenuation);
     }
 }
 
@@ -828,17 +857,32 @@ static void SndEvt_HandleVolumeRamp(SndEvt* event)
     }
 }
 
-static void SndEvt_HandleRefCountInc(SndEvt* unused)
+/// Acquires one nested request to duck the sound-script master gain toward 48.
+///
+/// The first eligible request saves the current gain and starts the downward
+/// ramp; further requests only increment the count. The count must remain in
+/// signed-word range. The event payload is unused, and dispatch releases it.
+static void _sndEvtHandleScriptDuckAcquire(SndEvt* event)
 {
     sndScriptAcquireDuck();
 }
 
-static void SndEvt_HandleRefCountDec(SndEvt* unused)
+/// Releases one nested sound-script duck request, restoring gain on the last release.
+///
+/// Extra releases do nothing. A last release with a saved gain starts restoration
+/// on subsequent audio updates. The event payload is unused; dispatch releases it.
+static void _sndEvtHandleScriptDuckRelease(SndEvt* event)
 {
     sndScriptReleaseDuck();
 }
 
-static void SndEvt_HandleKeyOffMatching(SndEvt* unused)
+/// Keys off type-1 and area-script voices and makes their script slots idle.
+///
+/// The head voice receives rate-11 exponential release; other voices retain
+/// their release settings. Voice links and ownership remain through completion
+/// or slot reuse, and hardware changes await the SPU flush. No selector is read:
+/// the event payload is unused, and dispatch releases the event afterward.
+static void _sndEvtHandleScriptKeyOff(SndEvt* event)
 {
     sndScriptKeyOffType1AndArea();
 }
@@ -884,14 +928,15 @@ s32 midiInitSystem(u32 unused)
 
 /// Seeds a track countdown from its first delta and advances to its first event.
 ///
-/// The caller has stored both startup cursors and checked the delta's address;
-/// the borrowed image must contain a terminating delta VLQ. The fractional
-/// numerator starts at 3599 in both regions.
-static inline void _midiInitializeTrackClock(_MidiTrack* track, u8* trackData)
+/// `track->eventCursor` must borrow the first delta in a loaded sequence image,
+/// readable through its terminating VLQ byte. The countdown is in MIDI ticks;
+/// the encoded length advances the cursor in bytes. No stream bound is checked.
+/// The fractional numerator starts at 3599 in both PAL and NTSC.
+static inline void _midiInitializeTrackClock(_MidiTrack* track)
 {
     u8 deltaBytes;
 
-    track->ticksUntilEvent = _midiReadDeltaTime(trackData, &deltaBytes);
+    track->ticksUntilEvent = _midiReadDeltaTime(track->eventCursor, &deltaBytes);
     track->eventCursor    += deltaBytes;
     track->tickFraction    = MIDI_TRACK_INITIAL_TICK_FRACTION;
 }
@@ -956,7 +1001,7 @@ static s32 _midiStartSequence(u8 sequenceId, u16 fadeTicks)
                         if ((trackData < D_8007F8E0) || (trackData >= D_8007F8E0 + sizeof(D_8007F8E0))) {
                             return MIDI_START_INVALID_IMAGE;
                         }
-                        _midiInitializeTrackClock(track, trackData);
+                        _midiInitializeTrackClock(track);
                         entryIndex++;
                         track++;
                     } while (entryIndex < song->trackCount);
