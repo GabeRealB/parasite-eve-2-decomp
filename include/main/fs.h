@@ -182,7 +182,30 @@ void cdCmdSelectMovieWorkspace(void);
 
 void CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2);
 
-void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2);
+/// Display-resource profiles accepted by `cdCmdEnqueueDisplayResource`.
+enum {
+    CD_COMMAND_DISPLAY_LOAD_MENU              = 0, // Relocate images: X offset -8 pages, header Y adjustment -3
+    CD_COMMAND_DISPLAY_LOAD_PREVIEW           = 1, // Normal load: X unchanged, header Y adjustment -2
+    CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW = 2, // Relocate images: X unchanged, header Y adjustment -2
+    CD_COMMAND_DISPLAY_LOAD_DEFAULT           = 3, // Normal load without image offsets
+    CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW = 4, // Consume a pending seek back to the mapped room view
+};
+
+/// Queues a stage-zero display resource or a conditional seek to the current view.
+///
+/// Uses the low bytes of both ID components: the packed file ID is
+/// `20000 + fileIdHundreds * 100 + fileIndex`. The low byte of `loadProfile`
+/// must select one of `CD_COMMAND_DISPLAY_LOAD_*`; other values leave load
+/// options uninitialized. Image X offsets count 64-word VRAM pages. Header Y
+/// adjustments count rows and apply to headers at rows 245..255, in addition
+/// to the load policy's own displacement (one extra header row for relocation).
+/// The seek profile ignores the supplied ID and uses the live stage, area,
+/// mapped view and sprite variant. It consumes the pending view-seek latch even
+/// when a scene-audio ring head suppresses the enqueue. Other profiles arm it.
+/// Requires an initialized scratch stack with eight free bytes and the free
+/// ring capacity of `cdCmdEnqueue`. A pending view seek also requires loaded
+/// gameplay view mappings. Neither parameter block survives this call.
+void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProfile);
 
 void CdCmd_StepVlcRebuild(void);
 

@@ -18813,7 +18813,7 @@ lui  v1, 0x1f80
 ori  v1, v1, 0x3fc
 lw   a3, 0(v1)        /* head */
 addiu v0, a3, -8
-move s1, v0           /* param1 */
+move s1, v0           /* fileKey */
 sw   v0, 0(v1)
 li   v0, 2
 andi v1, a2, 0xff     /* reuse dead scratch ptr */
@@ -18835,16 +18835,16 @@ register void*  temp asm("v0");
 scratch  = SCRATCH_STACK_CURSOR_SLOT;
 head     = *scratch;
 temp     = (u8*)head - 8;
-param1   = temp;
+fileKey  = temp;
 *scratch = temp;
-param1[2] = 2;
-param1[3] = 0;
-((u8*)head)[-8] = arg1; /* not param1[0] */
+fileKey->fileGroup = 2;
+fileKey->stage = 0;
+((u8*)head)[-8] = fileIndex; /* not fileKey->fileIndex */
 ```
 
 Free paths after a `jal` must rematerialize with a bare
 `*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 8` (do not keep the
-`scratch` local live across the call). `CdCmd_EnqueueLoadFile` is the pure example.
+`scratch` local live across the call). `cdCmdEnqueueDisplayResource` is the pure example.
 
 ## Nested `register asm` blocks so `$v0`/`$v1` can be reused
 
@@ -18867,15 +18867,21 @@ not overlap. For the `or v1, v0, v1` form, load hi then lo then
 
 ## `s8` stack slots for signed `li` of negative byte constants
 
-Under `-funsigned-char`, `u8 param2[4]; param2[i] = -8` emits `li v0, 0xf8`.
-The target often wants `addiu v0, zero, -8` / `sb`. Declare the stack array
-as `s8`; `cdCmdEnqueue` reads its raw bytes through a `const void*` input:
+Under `-funsigned-char`, storing -8 through a `u8` field or array element emits
+`li v0, 0xf8`. The target often wants `addiu v0, zero, -8` / `sb`. Use signed
+byte fields or `s8` array elements; `cdCmdEnqueue` reads the raw bytes through
+a `const void*` input. `cdCmdEnqueueDisplayResource` uses named fields:
 
 ```c
-s8 param2[4];
-param2[2] = -8; /* li v0, -8 */
-param2[3] = -3;
-cdCmdEnqueue(0x21, param1, param2);
+struct {
+    u8 fileIdHundreds;
+    s8 loadMode;
+    s8 imageXPageOffset;
+    s8 imageYOffset;
+} loadArgs;
+loadArgs.imageXPageOffset = -8; /* li v0, -8 */
+loadArgs.imageYOffset = -3;
+cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, &loadArgs);
 ```
 
 ## Jump-table slot with trailing zero pad
@@ -18891,7 +18897,7 @@ starts at the pad word:
 ```
 
 Do not expand the C range to include the zero — GCC will not emit it and the
-layout shifts. `CdCmd_EnqueueLoadFile` / `jtbl_80013EE8`.
+layout shifts. `cdCmdEnqueueDisplayResource` / `jtbl_80013EE8`.
 
 ## `goto` body forces `bnez` over a mid-function shared `return 0`
 
@@ -20000,7 +20006,7 @@ addPrim(gGpuCurrentOt - 0x10, p);
 Scratch-object matching can still report 100% when only the I-type immediate
 differs if the scoreer is too loose; always confirm with
 `./tools/build-and-verify.sh` (`build/USA/out/SLUS_010.42: OK`).
-`Prim_DrawLoadingSprt` is the pure example (also `1C034.c` / `bootload.c` use `-0x10`).
+`_loadUiDrawDiskSwapMessage` is the pure example (also `1C034.c` / `bootload.c` use `-0x10`).
 
 ## Dual-scope `RECT*` for early `$a1` vs late `$s1` (same address)
 

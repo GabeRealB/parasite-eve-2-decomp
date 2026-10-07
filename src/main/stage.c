@@ -925,7 +925,7 @@ static void Display_TaskLoadStep(Task* task)
         tmdResetAuxHeapAndRestoreBuffers();
         spriteAllocateViewCachedPackets();
     }
-    CdCmd_EnqueueLoadFile(0, 0, 4);
+    cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
     task->state = (s32)(task->state + 1);
     _stageWaitModeExitLoad(task);
 }

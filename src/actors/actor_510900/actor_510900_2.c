@@ -1952,7 +1952,7 @@ static void func_actor_510900_80137868(Task* arg0)
                 case 0:
                     break;
                 case 1:
-                    CdCmd_EnqueueLoadFile(9, 0x1E, 3);
+                    cdCmdEnqueueDisplayResource(9, 0x1E, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
                     work->deathSoundLoadStep = 2;
                     break;
                 case 2:

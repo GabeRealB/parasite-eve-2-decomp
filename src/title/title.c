@@ -210,7 +210,7 @@ static void Title_InitTask(Task* arg0)
         if (ds->debugMode != 0) {
             func_807246B4();
         }
-        CdCmd_EnqueueLoadFile(1, 0, 0);
+        cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU);
         arg0->state += 2;
         Title_MenuTask(arg0);
     }

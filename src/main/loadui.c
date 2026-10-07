@@ -25,7 +25,7 @@
 #include "main/wipsys_types.h"
 
 #include "gameplay/effect_tasks.h"
-#include "gameplay/loading.h"
+#include "gameplay/view.h"
 
 /// Music volume for each music-volume setting, copied to the stack as a whole.
 ///
@@ -51,7 +51,10 @@ s16 D_8007A396;
 /// Music volume for each of the four volume settings, loudest first.
 static const _SndMusicVolumeTable D_80013F18;
 
-static void Prim_DrawLoadingSprt(void);
+static void _loadUiDrawDiskSwapMessage(void);
+
+/// Foreground ordering-table tag shared by the prompt sprite and its texture page.
+enum { LOAD_UI_DISK_SWAP_MESSAGE_OT_INDEX = -16 };
 
 static const _SndMusicVolumeTable D_80013F18;
 
@@ -65,58 +68,77 @@ TaskDesc D_800626EC[6] = {
     { { { TASK_BODY_TMD, 0x70 } }, Gp_EffAttachTask37 },
 };
 
-void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
+void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProfile)
 {
-    s8  param2[4];
-    u8* param1;
+    enum {
+        CD_COMMAND_DISPLAY_FILE_GROUP           = 2,
+        CD_COMMAND_DISPLAY_FILE_KEY_STACK_BYTES = 8,
+        CD_COMMAND_DISPLAY_MENU_X_PAGE_OFFSET   = -8,
+        CD_COMMAND_DISPLAY_MENU_Y_OFFSET        = -3,
+        CD_COMMAND_DISPLAY_PREVIEW_Y_OFFSET     = -2
+    };
+    struct {
+        u8 fileIdHundreds;   // Hundreds component, or the current room's sprite variant
+        s8 loadMode;         // A CD_COMMAND_LOAD_* policy, independent of the public profile
+        s8 imageXPageOffset; // Signed displacement in 64-word VRAM pages
+        s8 imageYOffset;     // Signed displacement of image headers at rows 245..255
+    } loadArgs;
+    struct {
+        u8 fileIndex;      // Stage-zero low ID component, or the mapped view index
+        u8 ignoredByQueue; // This byte is not read by the enqueue API and remains untouched
+        u8 fileGroup;      // Stage-zero category, or the current area
+        u8 stage;          // CDF selector (0 stage-zero library, 1..5 room resources)
+    }* fileKey;
 
-    param1 = SCRATCH_STACK_RESERVE_BYTES(8);
+    // The queue reads only key bytes 0, 2 and 3 from this eight-byte reservation.
+    fileKey = SCRATCH_STACK_RESERVE_BYTES(CD_COMMAND_DISPLAY_FILE_KEY_STACK_BYTES);
 
-    param1[2] = 2;
-    param1[3] = 0;
-    param1[0] = arg1;
-    param2[0] = arg0;
+    fileKey->fileGroup      = CD_COMMAND_DISPLAY_FILE_GROUP;
+    fileKey->stage          = 0;
+    fileKey->fileIndex      = fileIndex;
+    loadArgs.fileIdHundreds = fileIdHundreds;
 
-    switch ((u8)arg2) {
-        case 0:
-            param2[1] = 3;
-            param2[2] = -8;
-            param2[3] = -3;
+    switch ((u8)loadProfile) {
+        case CD_COMMAND_DISPLAY_LOAD_MENU:
+            loadArgs.loadMode         = CD_COMMAND_LOAD_RELOCATE_IMAGES;
+            loadArgs.imageXPageOffset = CD_COMMAND_DISPLAY_MENU_X_PAGE_OFFSET;
+            loadArgs.imageYOffset     = CD_COMMAND_DISPLAY_MENU_Y_OFFSET;
             break;
-        case 1:
-            param2[2] = 0;
-            param2[1] = 0;
-            param2[3] = -2;
+        case CD_COMMAND_DISPLAY_LOAD_PREVIEW:
+            loadArgs.imageXPageOffset = 0;
+            loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
+            loadArgs.imageYOffset     = CD_COMMAND_DISPLAY_PREVIEW_Y_OFFSET;
             break;
-        case 2:
-            param2[1] = 3;
-            param2[2] = 0;
-            param2[3] = -2;
+        case CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW:
+            loadArgs.loadMode         = CD_COMMAND_LOAD_RELOCATE_IMAGES;
+            loadArgs.imageXPageOffset = 0;
+            loadArgs.imageYOffset     = CD_COMMAND_DISPLAY_PREVIEW_Y_OFFSET;
             break;
-        case 3:
-            param2[3] = 0;
-            param2[2] = 0;
-            param2[1] = 0;
+        case CD_COMMAND_DISPLAY_LOAD_DEFAULT:
+            loadArgs.imageYOffset     = 0;
+            loadArgs.imageXPageOffset = 0;
+            loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
             break;
-        case 4:
+        case CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW:
+            // Consume the pending seek even if scene audio prevents queueing it.
             if (D_800626E8 != 0) {
-                param1[3] = gGameSession->location.loc.stage;
-                param1[2] = gGameSession->location.loc.area;
-                param1[0] = viewGetMappedIndex();
-                param2[0] = gGameSession->spriteVariant;
-                param2[1] = 1;
-                param2[3] = 0;
-                param2[2] = 0;
-                cdCmdEnqueueUnlessSceneAudioPending(CD_COMMAND_LOAD_FILE, param1, param2);
+                fileKey->stage            = gGameSession->location.loc.stage;
+                fileKey->fileGroup        = gGameSession->location.loc.area;
+                fileKey->fileIndex        = viewGetMappedIndex();
+                loadArgs.fileIdHundreds   = gGameSession->spriteVariant;
+                loadArgs.loadMode         = CD_COMMAND_LOAD_SEEK_ONLY;
+                loadArgs.imageYOffset     = 0;
+                loadArgs.imageXPageOffset = 0;
+                cdCmdEnqueueUnlessSceneAudioPending(CD_COMMAND_LOAD_FILE, fileKey, &loadArgs);
                 D_800626E8 = 0;
             }
-            SCRATCH_STACK_RELEASE_BYTES(8);
+            SCRATCH_STACK_RELEASE_BYTES(CD_COMMAND_DISPLAY_FILE_KEY_STACK_BYTES);
             return;
     }
 
-    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, &loadArgs);
     D_800626E8 = 1;
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(CD_COMMAND_DISPLAY_FILE_KEY_STACK_BYTES);
 }
 
 s32 LoadUi_PollDiskSwap(void)
@@ -135,11 +157,11 @@ s32 LoadUi_PollDiskSwap(void)
             gDisplayState.gameMode                  = DISPLAY_GAME_MODAL;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             if (D_8007A393 == 1) {
-                CdCmd_EnqueueLoadFile(1, 0x3C, 3);
+                cdCmdEnqueueDisplayResource(1, 0x3C, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
                 D_8007A392 = 0;
             }
             if (D_8007A393 == 2) {
-                CdCmd_EnqueueLoadFile(1, 0x3D, 3);
+                cdCmdEnqueueDisplayResource(1, 0x3D, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
                 D_8007A392 = 1;
             }
             D_8007A390            = 5;
@@ -154,7 +176,7 @@ s32 LoadUi_PollDiskSwap(void)
             }
             return 0xFF;
         case 2:
-            Prim_DrawLoadingSprt();
+            _loadUiDrawDiskSwapMessage();
             D_8007A390--;
             if ((D_8007A390 & 0x7FFF) == 0) {
                 if (D_8007A390 & 0x8000) {
@@ -216,52 +238,77 @@ s32 LoadUi_PollDiskSwap(void)
     return 0;
 }
 
-static void Prim_DrawLoadingSprt(void)
+/// Prepends the loaded disk-prompt texture page to its foreground ordering tag.
+///
+/// Selects 4-bit VRAM (960, 0), with dithering and display-area drawing disabled.
+/// Requires one DR_TPAGE at the word-aligned cursor and the prompt's OT tag.
+static inline void _loadUiPrependDiskSwapTexturePage(void)
 {
-    SPRT*     p;
-    DR_TPAGE* dr;
-    u8        mode;
+    DR_TPAGE* drawMode;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setlen(p, 4);
-    setcode(p, 0x67);
-    p->clut = GetClut(0, 0xFF);
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, 0, 0, getTPage(0, 0, 960, 0));
+    addPrim(gGpuCurrentOt + LOAD_UI_DISK_SWAP_MESSAGE_OT_INDEX, drawMode);
+}
 
-    mode = D_8007A392;
-    switch (mode) {
-        case 0:
-            p->w  = 0x9F;
-            p->h  = 0x10;
-            p->x0 = -0x50;
-            p->u0 = 0;
-            p->v0 = 0;
-            p->y0 = 0x32;
+/// Draws the selected disk-swap message from the loaded prompt texture.
+///
+/// The selector is 0 (disc 1), 1 (disc 2) or 2 (rejected disc/read failure).
+/// Uses a raw semitransparent 4-bit sprite and the palette at VRAM (0, 255).
+/// Requires a loaded prompt sheet at VRAM (960, 0), a word-aligned primitive
+/// cursor with sizeof(SPRT) + sizeof(DR_TPAGE) free bytes, and foreground OT
+/// tag -16. Packets borrow that storage until the current frame is drawn.
+static void _loadUiDrawDiskSwapMessage(void)
+{
+    enum {
+        LOAD_UI_DISK_SWAP_MESSAGE_DISC_1      = 0,
+        LOAD_UI_DISK_SWAP_MESSAGE_DISC_2      = 1,
+        LOAD_UI_DISK_SWAP_MESSAGE_REJECTED    = 2,
+        LOAD_UI_DISK_SWAP_MESSAGE_ROW_HEIGHT  = 16,
+        LOAD_UI_DISK_SWAP_MESSAGE_CLUT_Y      = 255,
+        LOAD_UI_DISK_SWAP_MESSAGE_SPRITE_CODE = 0x67 // Raw texture with semitransparency
+    };
+    SPRT* sprite;
+    u8    messageKind;
+
+    sprite         = gGpuPrimCursor;
+    gGpuPrimCursor = sprite + 1;
+    setSprt(sprite);
+    setcode(sprite, LOAD_UI_DISK_SWAP_MESSAGE_SPRITE_CODE);
+    sprite->clut = GetClut(0, LOAD_UI_DISK_SWAP_MESSAGE_CLUT_Y);
+
+    messageKind = D_8007A392;
+    switch (messageKind) {
+        case LOAD_UI_DISK_SWAP_MESSAGE_DISC_1:
+            sprite->w  = 159;
+            sprite->h  = LOAD_UI_DISK_SWAP_MESSAGE_ROW_HEIGHT;
+            sprite->x0 = -80;
+            sprite->u0 = 0;
+            sprite->v0 = 0;
+            sprite->y0 = 50;
             break;
-        case 1:
-            p->v0 = 0x10;
-            p->w  = 0x9F;
-            p->h  = 0x10;
-            p->x0 = -0x50;
-            p->u0 = 0;
-            p->y0 = 0x32;
+        case LOAD_UI_DISK_SWAP_MESSAGE_DISC_2:
+            sprite->v0 = LOAD_UI_DISK_SWAP_MESSAGE_ROW_HEIGHT;
+            sprite->w  = 159;
+            sprite->h  = LOAD_UI_DISK_SWAP_MESSAGE_ROW_HEIGHT;
+            sprite->x0 = -80;
+            sprite->u0 = 0;
+            sprite->y0 = 50;
             break;
-        case 2:
-            p->v0 = 0x20;
-            p->w  = 0x68;
-            p->h  = 0x10;
-            p->x0 = -0x32;
-            p->u0 = 0;
-            p->y0 = 0x32;
+        case LOAD_UI_DISK_SWAP_MESSAGE_REJECTED:
+            sprite->v0 = 2 * LOAD_UI_DISK_SWAP_MESSAGE_ROW_HEIGHT;
+            sprite->w  = 104;
+            sprite->h  = LOAD_UI_DISK_SWAP_MESSAGE_ROW_HEIGHT;
+            sprite->x0 = -50;
+            sprite->u0 = 0;
+            sprite->y0 = 50;
             break;
     }
 
-    addPrim(gGpuCurrentOt - 0x10, p);
-
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 0, 0, 0xF);
-    addPrim(gGpuCurrentOt - 0x10, dr);
+    // Prepending the page after the sprite makes it execute before the sprite.
+    addPrim(gGpuCurrentOt + LOAD_UI_DISK_SWAP_MESSAGE_OT_INDEX, sprite);
+    _loadUiPrependDiskSwapTexturePage();
 }
 
 void midiApplyMusicVolume(u16 volumeOverride)

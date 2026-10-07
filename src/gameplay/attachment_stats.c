@@ -1282,7 +1282,7 @@ static void Gp_UseItemTask(HudState* hud)
                 Gp_StateC08.menuOpen           = ATTACHMENT_MENU_CLOSED;
                 Gp_StateC08.effectPhase        = ATTACHMENT_EFFECT_RELEASED;
                 Gp_ItemGrantCooldown           = 0x14;
-                CdCmd_EnqueueLoadFile(0, 0, 4);
+                cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
                 if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
                     cfg->hp -= Gp_GetAttachParam(ATTACHMENT_LEVEL_CAST_COST) * 2;
                     if (cfg->hp <= 0) {
@@ -1313,7 +1313,7 @@ static void Gp_UseItemTask(HudState* hud)
         if ((Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK) ||
             (Gp_StateC08.activeIndex < ATTACHMENT_SPELL_COUNT && (gGameSession->padPressed & 0x40))) {
             gGameSession->loadedSndId = 0;
-            CdCmd_EnqueueLoadFile(0, 0, 4);
+            cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
             if (Gp_StateC08.mode >= ATTACHMENT_MODE_ARMED) {
                 Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_CANCELLED;
             }
@@ -1591,7 +1591,7 @@ void Gp_HudTask(HudState* hud)
                     n = combat->signals.bytes.endDelayFrames;
                     if (n == 2) {
                         Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
-                        CdCmd_EnqueueLoadFile(0, 0, 4);
+                        cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
                         if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
                             attachment->effectPhase = n;
                         }
@@ -1715,7 +1715,7 @@ void Gp_HudTask(HudState* hud)
             if (m == 1) {
                 hud->battleStep = HUD_BATTLE_STEP_START;
                 hud->inBattle   = m;
-                CdCmd_EnqueueLoadFile(0, 0, 4);
+                cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
                 attachment = &Gp_StateC08;
                 if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
                     attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;

@@ -308,7 +308,7 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
             two = 2;
             if (arg1->owner->spawnArg1.value != two) {
                 cdCmdDropQueuedTail();
-                CdCmd_EnqueueLoadFile(1, 0, 0);
+                cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU);
                 Gp_ClearPreviewItems();
                 arg1->owner->spawnArg1.value = two;
             }
@@ -1720,7 +1720,7 @@ void Gp_HelpPanelTask(Task* arg0)
     uiDrawPanelLabel(&(obj)->panel, Gp_StrHelp);
     switch (arg0->state) {
         case 0:
-            CdCmd_EnqueueLoadFile(8, D_8010F13D, 0);
+            cdCmdEnqueueDisplayResource(8, D_8010F13D, CD_COMMAND_DISPLAY_LOAD_MENU);
             arg0->state = arg0->state + 1;
             break;
         case 1:

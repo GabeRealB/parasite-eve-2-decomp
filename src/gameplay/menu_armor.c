@@ -462,7 +462,7 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
         }
     }
 
-    CdCmd_EnqueueLoadFile(type, index & 0xFF, arg1 & 0xFF);
+    cdCmdEnqueueDisplayResource(type, index & 0xFF, arg1 & 0xFF);
 }
 
 /// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the

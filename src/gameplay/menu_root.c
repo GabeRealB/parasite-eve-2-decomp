@@ -461,7 +461,7 @@ void Gp_MenuRootTask(Task* arg0)
             arg = arg0->spawnArg1.value;
             if (arg == 0x45) {
                 Wip_UiHolder = NULL;
-                CdCmd_EnqueueLoadFile(1, 0, 0);
+                cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU);
                 obj = uiSpawnObject(&D_8010EEA4, 1, 1, 2, 0);
             } else if (arg == 0x44) {
                 obj = uiSpawnObject(&D_mist_shooting_gallery_80184F70, 0, 1, 1, 0);

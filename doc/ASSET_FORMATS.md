@@ -422,7 +422,7 @@ uses that palette” link. The runtime:
 
 Different draw sites can pick different rows of the **same** CLUT block
 (e.g. a full-colour map palette vs a monochrome overlay). Example in main:
-`Prim_DrawLoadingSprt` uses `GetClut(0, 0xFF)` — VRAM `(0, 255)`, which is
+`_loadUiDrawDiskSwapMessage` selects VRAM `(0, 255)` with `GetClut`, which is
 exactly where several stage0 CLUTs load.
 
 ### 7.4 Offline PNG colourisation
@@ -454,7 +454,8 @@ the highest-scoring row recovers the real map. Meta JSON notes
 
 HED file order (`stages.json` TREE names): **gameplay** (file 0), **title**
 (file 1), **file2** (still + chrome). Boot brings in the title overlay from
-file 1; `Title_InitTask` then `CdCmd_EnqueueLoadFile(1, …)` (same file) and
+file 1; `Title_InitTask` then queues the category-2 display resource 20100 with
+`cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU)` and calls
 `Text_LoadClutImages`. Chrome/still are file 2.
 
 | Path | Payload | VRAM (halfwords) | BPP |

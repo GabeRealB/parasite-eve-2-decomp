@@ -270,7 +270,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
             sub = work->timer;
             switch (sub) {
                 case 0:
-                    CdCmd_EnqueueLoadFile(9, 0x1E, 3);
+                    cdCmdEnqueueDisplayResource(9, 0x1E, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
                     work->timer = 1;
                     break;
                 case 1:

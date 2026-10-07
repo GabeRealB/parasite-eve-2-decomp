@@ -1139,7 +1139,7 @@ void func_800A7DE0(void)
 {
     AttachmentState* attachment;
 
-    CdCmd_EnqueueLoadFile(0, 0, 4);
+    cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
     attachment = &Gp_StateC08;
     if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
         attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;

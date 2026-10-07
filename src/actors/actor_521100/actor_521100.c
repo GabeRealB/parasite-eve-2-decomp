@@ -2811,7 +2811,7 @@ static void func_actor_521100_801339B0(Task* arg0)
             if (state != 1) {
                 if (state < 2) {
                     if (state == 0) {
-                        CdCmd_EnqueueLoadFile(9, 0x1E, 3);
+                        cdCmdEnqueueDisplayResource(9, 0x1E, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
                         work->stateCounter = 1;
                     }
                 }

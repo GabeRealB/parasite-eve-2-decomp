@@ -1478,9 +1478,9 @@ SetTile                     = 0x80042344;
 //--------------------------------------------------------------------
 //--- PA: 0x32B64   VA: 0x80042364   subsegment: c, 32B64
 //--------------------------------------------------------------------
-CdCmd_EnqueueLoadFile               = 0x80042364; // type:func
+cdCmdEnqueueDisplayResource               = 0x80042364; // type:func
 LoadUi_PollDiskSwap               = 0x80042500; // type:func
-Prim_DrawLoadingSprt               = 0x80042838; // type:func
+_loadUiDrawDiskSwapMessage               = 0x80042838; // type:func
 midiApplyMusicVolume               = 0x800429C8; // type:func
 
 //--------------------------------------------------------------------

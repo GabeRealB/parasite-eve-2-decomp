@@ -329,7 +329,7 @@ static void func_replay_bonus_80117848(Task* arg0)
     if ((s16)timer >= 0x78) {
         gGameSession->uiOpen = 1;
         displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-        CdCmd_EnqueueLoadFile(1, 0x3E, 3);
+        cdCmdEnqueueDisplayResource(1, 0x3E, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
         arg0->state = arg0->state + 1;
     }
 }

@@ -16,7 +16,7 @@ TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
 | Load addresses | `assets/USA/stages.json` (`type: room_pkg`, `load_addr`) |
 | File tree / ids | `tools/peassets/asset_data.py` (`TREE`) |
 | CD file lookup | `src/main/fs.c` (`Fs_LoadFile`, `Fs_InitStage0TablesCb`) |
-| Room enter | `src/main/stage.c` (`Display_TaskLoadStep`), `src/main/loadui.c` (`CdCmd_EnqueueLoadFile`) |
+| Room enter | `src/main/stage.c` (`Display_TaskLoadStep`), `src/main/loadui.c` (`cdCmdEnqueueDisplayResource`) |
 | Inflated bodies | `assets/USA/pe2pkg/` (LZSS-decoded); on-disc in `raw/pe2pkg/` |
 | Model stream | `_tmdResolveSourceDrawHandlers` / `tmdBuildBufferHalf` |
 | Anim player | `AnimationContext` / `AnimationSlot` / `AnimationSet` (`scene_runtime.c`) |
@@ -226,9 +226,12 @@ records where its name came from in a `note`.
 The remaining 12 are cutscene or one-off rooms that no map names — five of them
 identified as such by the derivation itself (they are the holes that make the
 alignment work), the rest by inspection. They keep `<area>_r<nn>` and say so in
-a `note`, so an unnamed room reads as a finding rather than as unfinished work. Entering a room is `CdCmd_EnqueueLoadFile(0, 0, 4)`
-(`stage.c` / `gameplay.c`), which fills the request from
-`gGameSession->location.loc.area` / `location.loc.stage` (folder / stage).
+a `note`, so an unnamed room reads as a finding rather than as unfinished work.
+The display-transition path calls
+`cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW)`
+(`stage.c` / gameplay). When a view seek is pending, it requests a seek to the
+live stage/area's mapped view in the sprite-variant folder; this request reads
+no room payload and can be suppressed by a scene-audio command at the ring head.
 
 ### 4.2 Size (inflated = RAM payload)
 
@@ -615,8 +618,10 @@ No anim chunk type exists in `STAGE*.CDF`. If it is not in that `.pe2pkg`
 ## 7. How a room enter looks
 
 1. Gameplay stays at `0x80093800`.
-2. `Display_TaskLoadStep` → `CdCmd_EnqueueLoadFile(0, 0, 4)` reads
-   `gGameSession->location.loc.area` / `location.loc.stage` and loads that room’s `file0`.
+2. `Display_TaskLoadStep` →
+   `cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW)`
+   conditionally seeks back to the current mapped view using the live
+   stage/area and sprite variant. It does not load the room's `file0`.
 3. The `0x8017D5C0` room overlay (and its cap2) always swap.
 4. Aya / weapon / the three actor slots stay unless the room asks for
    different stage-0 ids.

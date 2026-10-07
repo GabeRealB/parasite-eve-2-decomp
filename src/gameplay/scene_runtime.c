@@ -1336,7 +1336,7 @@ static void Gp_StartStageLoad(Task* task)
             cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
             fileId = 9;
         }
-        CdCmd_EnqueueLoadFile(fileId, 0, 3);
+        cdCmdEnqueueDisplayResource(fileId, 0, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
         gDisplayState.skipDraw = 0;
         task->state++;
     }
