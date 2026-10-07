@@ -693,10 +693,10 @@ declare each instance `static`; further instances are declared `static` in the
 carrier's prologue before their callers.
 Private instances keep the `pacedWalk` prefix and the `_` marker.
 `PACED_WALK_BLEND_ANIM` selects a blended clip-reseed definition and its update
-callers, defaulting to `pacedWalkBlendAnim`. A carrier declares additional
-private instances `static` in its prologue and binds `PACED_WALK_WORK_T` to
-their allocated type around the definitions; that type also provides
-`blendFrames` in whole normal-rate frames.
+callers, defaulting to `_pacedWalkBlendAnim`. Its header and fragment declare
+each instance `static`; a carrier declares additional instances `static` in
+its prologue and binds `PACED_WALK_WORK_T` to their allocated type around the
+definitions. That type also provides `blendFrames` in whole normal-rate frames.
 
 `strideWalk` owns the included walk of the soldier NPC that can carry a second
 model and turns its head toward the player during talk scenes, carried by

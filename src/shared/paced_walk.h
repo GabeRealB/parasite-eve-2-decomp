@@ -100,25 +100,25 @@ STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 #endif
 
 #ifndef PACED_WALK_BLEND_ANIM
-/// Function identifier shared by a walker's blended clip reseed and update calls.
+/// Function identifier binding a walker's private buffered blend to its update calls.
 ///
-/// The default is `pacedWalkBlendAnim`, with signature `void (Task* task)`.
-/// Bind before this header or around a further blend fragment's inclusion,
-/// using the same identifier at its definition and update calls. Declare
-/// additional private instances `static` in the carrier's prologue before
-/// their callers; the fragment's definition inherits that linkage.
-/// Bind `PACED_WALK_WORK_T` to the walker's allocated type at the definition;
-/// it must provide `rig`, `st` and an `s16 blendFrames`.
-/// Undefine before rebinding: the header guard selects the default only on
-/// the first inclusion. This object-like alias evaluates no arguments and
-/// captures no local identifiers; it uses no stringification or token pasting.
-#define PACED_WALK_BLEND_ANIM pacedWalkBlendAnim
+/// Defaults to `_pacedWalkBlendAnim`; every selected instance has signature
+/// `static void (Task* task)`. The header declares the first instance and the
+/// blend fragment defines it. Bind before this header's first inclusion, or
+/// undefine and rebind around another walker's update and blend fragments.
+/// Declare additional instances `static` in the carrier's prologue before
+/// their callers. Header guards select the default only once.
+/// At each blend definition, `PACED_WALK_WORK_T` must name that walker's
+/// allocated type with `ActorAnimRig20 rig`, `ActorEnemyState st` and
+/// `s16 blendFrames`. This object-like alias evaluates no arguments, captures
+/// no local identifiers and uses no stringification or token pasting.
+#define PACED_WALK_BLEND_ANIM _pacedWalkBlendAnim
 #endif
 
 void        pacedWalkUpdate(Task* task);
 static void PACED_WALK_TICK_ANIM(Task* task);
 static void PACED_WALK_RESET_ANIM(Task* task);
-void        PACED_WALK_BLEND_ANIM(Task* task);
+static void PACED_WALK_BLEND_ANIM(Task* task);
 s32         pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);
 
 s32 pacedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);

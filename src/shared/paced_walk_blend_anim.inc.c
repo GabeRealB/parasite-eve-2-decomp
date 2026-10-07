@@ -1,22 +1,24 @@
 /* Part of the paced walk library; see paced_walk.h. */
 
-/// Blends the walker's non-root parts toward the requested clip's track starts.
+/// Starts a buffered blend to the requested clip on the walker's non-root parts.
 ///
-/// `task->work` holds a live `PACED_WALK_WORK_T`, with `rig.anim` bound to
-/// its twenty slots, encoded-pose buffer and model coordinates. Slots 1 through
-/// 19 must already be seeded. `st.animId` selects a loaded clip with valid
-/// tracks compatible with those slots' existing encoding. Targets begin at
-/// their track starts; control records may redirect them.
-/// `blendFrames` counts whole normal-rate frames (0 requests no transition
-/// time; 0..2047 keeps the signed remaining time nonnegative).
+/// `task->work` must hold the allocated `PACED_WALK_WORK_T`, whose `rig.anim`
+/// is bound to its twenty slots, pose-buffer entries and model coordinates.
+/// Slots 1 through 19 must have initialized playback. `st.animId` selects a
+/// loaded clip, excluding `ANIMATION_SET_BUFFERED_POSE`, with tracks and pose
+/// encoding compatible with each slot. Each destination starts at that slot's
+/// track start, following any control records there.
 ///
-/// Each slot advances once before installing its buffered pose as the blend's
-/// source. A skipped pose capture retains the buffer's existing contents.
-/// Keep the work block, model coordinates and borrowed clip data live through
-/// playback. Bounds, timing conversion and scratch/GTE requirements follow
-/// `animationSeekSlotWithBlend`; none are checked here. Slot 0 and `st.state`
-/// are unchanged; `st.appliedAnimId` records the requested clip.
-void PACED_WALK_BLEND_ANIM(Task* task)
+/// Each slot ticks its existing playback once to capture the source pose;
+/// skipped pose writes retain the previous buffer contents. Playback rates
+/// and the capture tick's flags and boundary latch are retained. `blendFrames`
+/// counts whole normal-rate frames: zero gives no transition time, and 0..2047
+/// keeps the narrowed signed remaining time nonnegative. No bounds are checked.
+/// Keep the work, coordinates and borrowed clip storage live through playback;
+/// track/record bounds and scratch/GTE requirements follow
+/// `animationSeekSlotWithBlend`. Slot 0 and `st.state` remain unchanged, while
+/// `st.appliedAnimId` records the clip installed on the other slots.
+static void PACED_WALK_BLEND_ANIM(Task* task)
 {
     PACED_WALK_WORK_T* work;
     s32                slotIndex;
