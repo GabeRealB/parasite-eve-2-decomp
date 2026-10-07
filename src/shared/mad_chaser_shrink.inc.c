@@ -10,7 +10,7 @@ void madChaserShrink(Task* arg0)
     TmdObject*     obj;
     GfxCoord*      coord;
     VECTOR         scale;
-    GfxMatrix      m;
+    MATRIX         m;
 
     work                = (MadChaserWork*)arg0->work;
     obj                 = arg0->extra.tmd;
@@ -20,9 +20,9 @@ void madChaserShrink(Task* arg0)
     scale.vy            = (s16)work->shrinkScaleY;
     scale.vz            = 0x1000;
     coord->coord        = work->savedRootMtx;
-    gfxSetRotIdentity(&m.mat);
-    ScaleMatrix(&m.mat, &scale);
-    MulMatrix(&coord->coord, &m.mat);
+    gfxSetRotIdentity(&m);
+    ScaleMatrix(&m, &scale);
+    MulMatrix(&coord->coord, &m);
     if ((s16)++work->stateFrames == 0x10) {
         worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     }
