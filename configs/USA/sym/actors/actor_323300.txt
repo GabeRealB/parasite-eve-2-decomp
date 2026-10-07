@@ -76,3 +76,6 @@ _actor323300StrangerPlayAnimation = 0x80163718; // type:func
 _actor323300StrangerSpawn = 0x80162be4; // type:func
 _actor323300StrangerUpdate = 0x80162df0; // type:func
 _actor323300StrangerTask = 0x80163840; // type:func
+_actor323300WomanSpawn = 0x80161e78; // type:func
+_actor323300WomanApplyCommand = 0x80162360; // type:func
+_actor323300WomanTask = 0x80162630; // type:func

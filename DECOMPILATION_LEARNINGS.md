@@ -82882,23 +82882,23 @@ callee's first `lw` off `$a0` before trusting m2c's argument split; the sibling
 
 ## A load the target hoists above a store is a load written *before* that store
 
-**Problem.** `func_actor_323300_80161E78` seeds the display node at `work->body`
+**Problem.** `_actor323300WomanSpawn` seeds the collision body at `work->body`
 and derives one of its fields from the model:
 
 ```c
-obj->field_C  = &work->contact;                /* sw v0, 0xc(s0) */
-obj->field_18 = 0x30000;
+body->context.contacts = &work->contact;       /* sw v0, 0xc(s0) */
+body->key = WORLD_COLLISION_CONTACT_ENEMY_BODY;
 ...
-obj->flags    = 1;
-extra         = arg0->extra;                 /* lw v0, 0x2c(s3) */
-obj->field_8  = extra->coords + 1;          /* lw v1, 8(v0) */
-worldCollisionLinkBody(2, obj);
+body->flags = WORLD_COLLISION_BODY_SPHERE;
+model = task->extra.tmd;                       /* lw v0, 0x2c(s3) */
+body->coord = model->coords + 1;               /* lw v1, 8(v0) */
+worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
 ```
 
-with the loads written last (the natural place, since `field_8` is the last
+with the loads written last (the natural place, since `coord` is the last
 field assigned) the target's two `lw` come out *after* all seven stores, and the
 block scores 95.7% with `regs=3 reorder=3` that no statement permutation inside
-the tail fixes. Moving the `extra` / `field_8` pair above the other stores —
+the tail fixes. Moving the `model` / `coord` pair above the other stores —
 which reads less naturally, since the field is stored last in the target too —
 gives 100% with every penalty zero.
 

@@ -121,7 +121,7 @@ STATIC_ASSERT_SIZEOF(_Actor323300StrangerWork, 0x6B0);
 
 extern TaskMessageEntry D_actor_323300_80172574[];
 
-/// Animation source table `func_actor_323300_80162360` and
+/// Animation source table `_actor323300WomanApplyCommand` and
 /// `_actorMotionPlayAnim19` index by `_Actor323300WomanWork::model.bank`.
 extern AnimationSet*  D_actor_323300_80172548[4];
 extern AnimationSet** gActorMotionAnimBanks19[1];
@@ -130,7 +130,7 @@ extern AnimationSet** gActorMotionAnimBanks19[1];
 /// task kept in `_Actor323300WomanWork::strangerTask`.
 extern TaskDesc D_actor_323300_8017255C[];
 
-/// Placement `func_actor_323300_80161E78` hands `actorMsgPlaceEuler`.
+/// Placement `_actor323300WomanSpawn` hands `actorMsgPlaceEuler`.
 extern ActorTransform D_actor_323300_8017259C;
 
 /// Animation presets the spawn handler, the 0x7DB handler and the two states
@@ -159,7 +159,7 @@ enum {
     ACTOR_323300_WOMAN_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
 };
 
-static void func_actor_323300_80161E78(Task* arg0);
+static void _actor323300WomanSpawn(Task* task);
 static void _actor323300WomanUpdate(Task* task);
 static s32  _actor323300WomanSetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 static void _actor323300WomanExit(Task* task);
@@ -174,19 +174,19 @@ static void _actor323300StrangerTurnBody(Task* task, s16 turnAngle);
 static s32  _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 static s32  _actor323300StrangerPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 
-/// State table `func_actor_323300_80162630` copies onto the stack and indexes
+/// State table `_actor323300WomanTask` copies onto the stack and indexes
 /// by `Task::state`: spawn, per-frame runner and exit of the woman.
 static const TaskFuncTable3 D_actor_323300_80161E24 = { {
-    func_actor_323300_80161E78,
+    _actor323300WomanSpawn,
     _actor323300WomanUpdate,
     _actor323300WomanExit,
 } };
 
-s32 func_actor_323300_80162360(Task* task, s32 msgId, ActorCommand* msg, ActorTransform* place);
+static s32 _actor323300WomanApplyCommand(Task* task, s32 messageId, const ActorCommand* command, const ActorTransform* placement);
 
 static TmdSource _gActor323300AnmcWoman1Body;
 static TmdSource _gActor323300LesserStrangerBody;
-void             func_actor_323300_80162630(Task*);
+static void      _actor323300WomanTask(Task* task);
 static void      _actor323300StrangerTask(Task* task);
 
 static AnimationSet _gActor323300Animation11FC4;
@@ -337,7 +337,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 };
 
 TaskDesc D_actor_323300_8017255C[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_323300_80162630, { .model = &_gActor323300AnmcWoman1Body } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor323300WomanTask, { .model = &_gActor323300AnmcWoman1Body } },
     { { { TASK_BODY_TMD, 192 } }, _actor323300StrangerTask, { .model = &_gActor323300LesserStrangerBody } },
 };
 
@@ -345,7 +345,7 @@ TaskMessageEntry D_actor_323300_80172574[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor323300WomanSetModelDraw },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_323300_80162360 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor323300WomanApplyCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -449,10 +449,13 @@ static void _actor323300StrangerTurnJoint(GfxCoord* joint, s16 yawDelta);
 
 /// Saves a model's rest XYZ components into a morph's borrowed snapshot buffers.
 ///
-/// The source and buffers must cover the record's vertex and normal counts.
-/// Normals are saved only when target normals exist; fourth halfwords are
-/// untouched. The record and snapshot remain owned by the loaded room, and
-/// the saved shape must remain unchanged until its transformation finishes.
+/// Requires a live TMD task and a readable morph record. `savedVertexCount`
+/// and `normalCount` are nonnegative element counts from index zero, independent
+/// of the delta range. The source and writable snapshot arrays must cover those
+/// counts and must not overlap. Normals are saved only when `targetNormals` is
+/// non-NULL; neither target array is read. Each vector's fourth halfword stays
+/// intact. All storage is borrowed during this call; the saved XYZ values must
+/// remain unchanged for subsequent blends using this rest shape.
 static inline void _modelMorphSaveRestShape(const Task* task, const ModelMorph* morph)
 {
     const TmdSource* source;
@@ -493,47 +496,58 @@ static inline void _actorRenderInstallJointRotation(GfxCoord* joint, const MATRI
     actorRenderComposeCoord(joint);
 }
 
-/// Allocates the `_Actor323300WomanWork` this actor's whole lifetime runs on,
-/// links `body` with its one-entry contact table, then binds the message
-/// handlers and the animation presets the state functions drive. Bails out
-/// through `enemyTaskExit` when the room flag 0x60 is already set (the actor
-/// already spawned) or the allocation fails.
-static void func_actor_323300_80161E78(Task* arg0)
+/// Initializes the toilet-event woman while the event has not yet been seen.
+///
+/// Requires the woman's nineteen-part model and the live enemy passed in the
+/// task's second spawn argument. An already-seen event or primary-heap allocation
+/// failure tears the task down. Success owns zeroed work until exit; the model
+/// borrows its lighting matrices and the list-2 collision sphere borrows part 1
+/// and a single contact entry. The model starts hidden at the event placement,
+/// playing clip 1 with collision pair tests disabled. The toilet sound starts
+/// at pan 0 and attenuation 40; initialization then advances to task state 1.
+static void _actor323300WomanSpawn(Task* task)
 {
+    enum {
+        ACTOR_323300_WOMAN_BODY_RADIUS    = 256, // Model-coordinate units
+        ACTOR_323300_WOMAN_NO_BUFFER_FREE = -1,
+    };
     _Actor323300WomanWork* work;
-    TmdObject*             extra;
+    TmdObject*             model;
     WorldCollisionBody*    body;
 
     if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) != 0 || (work = memCalloc(sizeof(_Actor323300WomanWork), 0)) == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
-    arg0->work             = work;
+    task->work             = work;
     work->model.animId     = ACTOR_MODEL_STATE_NONE;
     work->model.bank       = ACTOR_MODEL_STATE_NONE;
     work->loopSoundEnabled = 1;
-    work->freeCountdown    = -1;
-    _actor323300WomanBindLighting(arg0);
-    extra                  = arg0->extra.tmd;
+    work->freeCountdown    = ACTOR_323300_WOMAN_NO_BUFFER_FREE;
+    _actor323300WomanBindLighting(task);
+    // Establish the contact storage before the model's visibility controls pair tests.
+    model                  = task->extra.tmd;
     body                   = &work->body;
-    body->coord            = extra->coords + 1;
+    body->coord            = model->coords + 1;
     body->context.contacts = &work->contact;
-    body->key              = 0x30000;
+    body->key              = WORLD_COLLISION_CONTACT_ENEMY_BODY;
     body->pos.vx           = 0;
     body->pos.vy           = 0;
     body->pos.vz           = 0;
-    body->radius           = 0x100;
+    body->radius           = ACTOR_323300_WOMAN_BODY_RADIUS;
     body->flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, 1, 0);
-    arg0->msgTable = D_actor_323300_80172574;
-    _actor323300WomanSetModelDraw(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-    actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_8017259C, 0);
-    _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725B4, 0);
-    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
-    arg0->exitCallback = _actor323300WomanExit;
-    arg0->state       += 1;
+    // Install message handling, the initial pose and its looping sound.
+    task->msgTable = D_actor_323300_80172574;
+    _actor323300WomanSetModelDraw(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);
+    // The original direct placement call uses the animation tag; the callback ignores it.
+    actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_8017259C, 0);
+    _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725B4, 0);
+    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, ACTOR_323300_WOMAN_VIEW2_ATTENUATION);
+    task->exitCallback = _actor323300WomanExit;
+    task->state       += 1;
 }
 
 /// Advances the toilet-event woman's motion, animation, sound and buffer-release delay.
@@ -659,104 +673,142 @@ static s32 _actor323300WomanSetModelDraw(Task* task, s32 messageId, s32 mode, s3
     return result;
 }
 
-/// Message 0x7DB handler, listed in `D_actor_323300_80172574` after the 0x7D3 /
-/// 0x7D4 / 0x7D5 ones. The payload halfword selects one of five actions: 0
-/// shows the model through the 0x7D5 visibility switch, 10/11 spawn and kill
-/// the Lesser Stranger at `strangerTask`, 12 latches a placement and starts preset
-/// `D_actor_323300_801725C8` (inlining the 0x7D3 preset body of
-/// `_actorMotionPlayAnim19`), 13 posts effect 0x600A2 on part 6.
-s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTransform* place)
+/// Applies a changed animation request to the woman's nineteen-part rig.
+///
+/// Requires initialized woman work, a live model and a borrowed request that
+/// does not overlap playback storage. Bank 0 supplies the loaded clips 1..3;
+/// stored IDs narrow to signed bytes. A bank change rebinds the rig and
+/// invalidates its clip. Slots 1..18 blend for `blendFrames` normal-rate frames
+/// (0..2047) if requested and already ticking, or reset otherwise, then tick
+/// once. Repeating the clip leaves playback unchanged; its coordinates, poses
+/// and clip data stay borrowed until playback ends.
+static inline void _actor323300WomanApplyAnimationRequest(Task* task, const AnimationPlayRequest* request)
 {
-    _Actor323300WomanWork* w;
     _Actor323300WomanWork* work;
-    AnimationPlayRequest*  preset;
-    TmdObject*             extra;
-    Task*                  spawned;
-    GfxCoord*              src;
-    GfxCoord*              dst;
-    SVECTOR                vec;
-    s32                    i;
+    TmdObject*             model;
+    s32                    slotIndex;
 
-    w = arg0->work;
-    switch (msg->command) {
-        case 0:
-            _actor323300WomanSetModelDraw(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            break;
-        case 10:
-            spawned         = taskSpawnFromTable(D_actor_323300_8017255C, 1, 0, 0);
-            w->strangerTask = spawned;
-            if (spawned != NULL) {
-                // The stranger appears where the woman stands.
-                src        = arg0->extra.tmd->coords;
-                dst        = spawned->extra.tmd->coords;
-                dst->coord = src->coord;
+    work  = task->work;
+    model = task->extra.tmd;
+    if (request->source.index != work->model.bank) {
+        work->model.bank   = request->source.index;
+        work->model.animId = ACTOR_MODEL_STATE_NONE;
+        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], model,
+                             work->rig.poses, work->rig.slots);
+    }
+    if (request->animationId != work->model.animId) {
+        work->model.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
+            for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
             }
-            w->loopSoundEnabled = 0;
-            break;
-        case 11:
-            if (w->strangerTask != NULL) {
-                taskKill(w->strangerTask);
+        } else {
+            for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
             }
-            w->loopSoundEnabled = 0;
+        }
+        for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
+        }
+        work->model.ticking = 1;
+    }
+}
+
+/// Applies the toilet-event woman's visibility, transformation, turn and spray commands.
+///
+/// Handles `ACTOR_COMMAND_MESSAGE_APPLY` with initialized woman work and a live
+/// nineteen-part model: commands 0 show, 10 spawn the Lesser Stranger, copy the
+/// woman's root matrix to it and disable sound retriggers, 11 kill that task and
+/// stop the toilet sound, 12 turn in place to the placement yaw, and 13 emit
+/// spray from part 6 for ten active effect ticks. A failed spawn still disables
+/// retriggers; killing leaves the saved task pointer intact. Spawn and spray
+/// require the toilet overlay's task and effect resources to remain loaded.
+///
+/// The command is borrowed and read only during dispatch. Command 12 also
+/// requires a borrowed placement with XYZ position and rotation initialized;
+/// the position is retained but does not move the actor. Angles use 4096 units
+/// per turn. Other commands ignore placement. Context tags and message ID are
+/// ignored, and every command, including an unknown one, returns 0.
+static s32 _actor323300WomanApplyCommand(Task* task, s32 messageId, const ActorCommand* command, const ActorTransform* placement)
+{
+    enum {
+        ACTOR_323300_WOMAN_COMMAND_SHOW              = 0,
+        ACTOR_323300_WOMAN_COMMAND_SPAWN_STRANGER    = 10,
+        ACTOR_323300_WOMAN_COMMAND_KILL_STRANGER     = 11,
+        ACTOR_323300_WOMAN_COMMAND_TURN_TO_PLACEMENT = 12,
+        ACTOR_323300_WOMAN_COMMAND_SPRAY             = 13,
+        ACTOR_323300_STRANGER_TASK_INDEX             = 1,
+        ACTOR_323300_WOMAN_TURN_CLIP                 = 2,
+        ACTOR_323300_WOMAN_SPRAY_PART                = 6,
+        ACTOR_323300_WOMAN_SPRAY_TICKS               = 10,
+    };
+    _Actor323300WomanWork* work;
+    Task*                  strangerTask;
+    GfxCoord*              womanRoot;
+    GfxCoord*              strangerRoot;
+    SVECTOR                sprayOffset;
+
+    work = task->work;
+    switch (command->command) {
+        case ACTOR_323300_WOMAN_COMMAND_SHOW:
+            _actor323300WomanSetModelDraw(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+            break;
+        case ACTOR_323300_WOMAN_COMMAND_SPAWN_STRANGER:
+            strangerTask       = taskSpawnFromTable(D_actor_323300_8017255C, ACTOR_323300_STRANGER_TASK_INDEX, 0, 0);
+            work->strangerTask = strangerTask;
+            if (strangerTask != NULL) {
+                // Seed the new root; the stranger's initialization later applies its placement preset.
+                womanRoot           = task->extra.tmd->coords;
+                strangerRoot        = strangerTask->extra.tmd->coords;
+                strangerRoot->coord = womanRoot->coord;
+            }
+            work->loopSoundEnabled = 0;
+            break;
+        case ACTOR_323300_WOMAN_COMMAND_KILL_STRANGER:
+            if (work->strangerTask != NULL) {
+                taskKill(work->strangerTask);
+            }
+            work->loopSoundEnabled = 0;
             sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), SOUND_SCRIPT_STOP_KEEP_RELEASE);
             break;
-        case 12:
-            w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
-            w->walk.motionStep   = 0;
-            w->walk.target.vx    = place->pos.vx;
-            w->walk.target.vy    = place->pos.vy;
-            w->walk.target.vz    = place->pos.vz;
-            w->walk.targetRot.vx = place->rot.vx;
-            w->walk.targetRot.vy = place->rot.vy;
-            w->walk.targetRot.vz = place->rot.vz;
-            w->model.nextAnimId  = 2;
+        case ACTOR_323300_WOMAN_COMMAND_TURN_TO_PLACEMENT:
+            // Retain the complete target, but only yaw steers the in-place turn.
+            work->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+            work->walk.motionStep   = ACTOR_323300_WOMAN_TURN_START;
+            work->walk.target.vx    = placement->pos.vx;
+            work->walk.target.vy    = placement->pos.vy;
+            work->walk.target.vz    = placement->pos.vz;
+            work->walk.targetRot.vx = placement->rot.vx;
+            work->walk.targetRot.vy = placement->rot.vy;
+            work->walk.targetRot.vz = placement->rot.vz;
+            work->model.nextAnimId  = ACTOR_323300_WOMAN_TURN_CLIP;
 
-            preset = &D_actor_323300_801725C8;
-            work   = arg0->work;
-            extra  = arg0->extra.tmd;
-            if (preset->source.index != work->model.bank) {
-                work->model.bank   = preset->source.index;
-                work->model.animId = ACTOR_MODEL_STATE_NONE;
-                animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], extra,
-                                     work->rig.poses, work->rig.slots);
-            }
-            if (preset->animationId != work->model.animId) {
-                work->model.animId = preset->animationId;
-                if (preset->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-                    for (i = 1; i < 0x13; i++) {
-                        animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, preset->blendFrames);
-                    }
-                } else {
-                    for (i = 1; i < 0x13; i++) {
-                        animationResetSlot(&work->rig.anim, i, work->model.animId);
-                    }
-                }
-                for (i = 1; i < 0x13; i++) {
-                    animationTickSlot(&work->rig.anim, i);
-                }
-                work->model.ticking = 1;
-            }
+            _actor323300WomanApplyAnimationRequest(task, &D_actor_323300_801725C8);
             break;
-        case 13:
-            vec.vy = 0x3C;
-            vec.vx = 0;
-            vec.vz = 0xC8;
-            effectSpawn(EFFECT_DRYFIELD_TOILET_SPRAY_EMITTER, &arg0->extra.tmd->coords[6], 0xA, &vec);
+        case ACTOR_323300_WOMAN_COMMAND_SPRAY:
+            sprayOffset.vy = 60;
+            sprayOffset.vx = 0;
+            sprayOffset.vz = 200;
+            effectSpawn(EFFECT_DRYFIELD_TOILET_SPRAY_EMITTER, &task->extra.tmd->coords[ACTOR_323300_WOMAN_SPRAY_PART], ACTOR_323300_WOMAN_SPRAY_TICKS, &sprayOffset);
             break;
     }
     return 0;
 }
 
-/// Per-frame dispatcher of the woman: runs its spawn, tick or exit
-/// state from `D_actor_323300_80161E24` by `Task::state`, skipping the frame
-/// while the global freeze byte is set.
-void func_actor_323300_80162630(Task* task)
+/// Dispatches the toilet-event woman's initialization, update or teardown state.
+///
+/// Requires `task->state` 0 (spawn), 1 (update) or 2 (exit); the table is copied
+/// before selection and has no bounds check. Only `SCENE_COMBAT_ACTORS_RUNNING`
+/// dispatches a state; paused or hidden actor control skips the call, including
+/// the spawn and exit slots. The descriptor supplies the woman's nineteen-part TMD model;
+/// update and exit require the work initialized by the spawn state.
+static void _actor323300WomanTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_323300_80161E24;
+    stateHandlers = D_actor_323300_80161E24;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        stateHandlers.funcs[task->state](task);
     }
 }
 
