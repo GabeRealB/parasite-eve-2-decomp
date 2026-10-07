@@ -67,31 +67,6 @@
 
 static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
 
-/// The clip the room adds to the player's animation bank, with the event
-/// scene's records stored after it.
-///
-/// The scene script sends `data.copy` to the player before it plays the clip.
-/// The copy takes `ANIMATION_BANK_EXTENSION_CAPACITY` words from the start of
-/// the storage, which is more than the one-entry clip table holds: the set
-/// pointer occupies extended id 47, and the copy request, the play request and
-/// the script's first four commands are written into the bank after it. The
-/// play request selects id 47 only, so none of those words is played as a clip.
-///
-/// The script is not animation-bank data. It is part of this object because
-/// the copied span ends inside it.
-typedef union {
-    struct {
-        AnimationSet*            sets[1];        // Player clip for extended id 47
-        AnimationBankCopyRequest copy;           // Installs the first `ANIMATION_BANK_EXTENSION_CAPACITY` words of this storage in the player's bank extension
-        AnimationPlayRequest     playRequest;    // Blends the player into extended id 47 over 15 frames
-        EvsCommand               sceneScript[8]; // The room's one-time event scene: starts CAP sequence 12, installs and plays the clip, waits for the CAP cue and ends the player's scripted control
-    } data;                                      // The records by name
-    s32 words[56];                               // The same storage as the copy reads it; the last 24 words lie beyond the copied span
-} _NeoArkObservatoryAnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_NeoArkObservatoryAnimationBankExtensionStorage, 224);
-
-extern _NeoArkObservatoryAnimationBankExtensionStorage D_neo_ark_observatory_801811E0;
-
 extern EvsCommand D_actor_450200_80137EE4[];
 extern EvsCommand D_actor_450200_80138694[];
 extern EvsCommand D_actor_450200_8013C72C[];
@@ -238,7 +213,40 @@ TaskMessageEntry D_neo_ark_observatory_801811B8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-_NeoArkObservatoryAnimationBankExtensionStorage D_neo_ark_observatory_801811E0 = { .data = { { &_gNeoArkObservatoryAnimation03BC4 }, { { .words = D_neo_ark_observatory_801811E0.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE }, { { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_neo_ark_observatory_801811E0.data.copy } }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_observatory_801811E0.data.playRequest }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55070009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } }, { .opcode = EVENT_SCRIPT_OPCODE_END } } } };
+/// Player clip for extended id 47.
+///
+/// The scene script sends the player its copy request before it plays the
+/// clip. `D_neo_ark_observatory_801811E4` copies
+/// `ANIMATION_BANK_EXTENSION_CAPACITY` (32) words starting here into the
+/// player's bank, which is 31 words past the end of this array: the read runs
+/// on through `D_neo_ark_observatory_801811E4`,
+/// `D_neo_ark_observatory_801811EC` and the first 24 words of
+/// `D_neo_ark_observatory_80181200`, that script's first four commands. That
+/// overrun is the original's and is kept as it is: the request carries the
+/// bank's fixed capacity, while the table was stored with only its own entry.
+/// The play request selects id 47 only, so none of the words installed after
+/// the table is played as a clip.
+AnimationSet* D_neo_ark_observatory_801811E0[1] = { &_gNeoArkObservatoryAnimation03BC4 };
+
+// Installs the player's clip; the count is the bank's capacity, not the one entry of its source.
+AnimationBankCopyRequest D_neo_ark_observatory_801811E4 = { { .sets = D_neo_ark_observatory_801811E0 }, ANIMATION_BANK_EXTENSION_CAPACITY };
+
+// Blends the player into extended id 47 over 15 frames.
+AnimationPlayRequest D_neo_ark_observatory_801811EC = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE };
+
+// The room's one-time event scene: starts CAP sequence 12, installs and plays
+// the clip, waits for the CAP cue and ends the player's scripted control. It
+// is not animation-bank data.
+EvsCommand D_neo_ark_observatory_80181200[8] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_neo_ark_observatory_801811E4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_observatory_801811EC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55070009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_END },
+};
 
 EvsCommand D_neo_ark_observatory_801812C0[7] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1708,7 +1716,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
     }
     if (request->actionId == 4 && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0 && gameFlagGetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN) == 0) {
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN, 1);
-        evsStartScriptWithSkip(D_neo_ark_observatory_801811E0.data.sceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_observatory_801812C0);
+        evsStartScriptWithSkip(D_neo_ark_observatory_80181200, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_observatory_801812C0);
     }
     return 0;
 }

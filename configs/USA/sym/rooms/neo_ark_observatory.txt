@@ -97,7 +97,10 @@ _gNeoArkObservatoryAnimation03BC4Indices = 0x8018115C; // size:0x28 defined:True
 _gNeoArkObservatoryAnimation03BC4 = 0x80181184; // size:0x28 defined:True
 D_neo_ark_observatory_801811AC = 0x801811AC; // size:0xC defined:True
 D_neo_ark_observatory_801811B8 = 0x801811B8; // size:0x28 defined:True
-D_neo_ark_observatory_801811E0 = 0x801811E0; // size:0xE0 defined:True
+D_neo_ark_observatory_801811E0 = 0x801811E0; // size:0x4 defined:True
+D_neo_ark_observatory_801811E4 = 0x801811E4; // size:0x8 defined:True
+D_neo_ark_observatory_801811EC = 0x801811EC; // size:0x14 defined:True
+D_neo_ark_observatory_80181200 = 0x80181200; // size:0xC0 defined:True
 D_neo_ark_observatory_80187A3C = 0x80187A3C; // size:0x2 defined:True
 
 neoArkObservatorySetLightBeamIntensity = 0x80180DAC; // type:func
