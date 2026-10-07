@@ -1722,22 +1722,14 @@ void Gp_EffCtlTask6E(Task* arg0)
 void Gp_EffCtlTask6D(Task* arg0)
 {
     GfxCoord* coord;
-    MATRIX*   m;
     void*     mem;
     s32       i;
-    s32       one;
 
-    i                    = 0;
-    one                  = ONE;
-    coord                = arg0->extra.coordBody->coord;
-    mem                  = arg0->spawnArg2.pointer;
-    m                    = &coord->coord;
-    *(s32*)&coord->coord = one;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1) = one;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    m->m[2][2]           = one;
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+    i     = 0;
+    coord = arg0->extra.coordBody->coord;
+    mem   = arg0->spawnArg2.pointer;
+    gfxSetRotIdentity(&coord->coord);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
 
     for (; i < 6; i++) {
