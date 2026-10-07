@@ -107,7 +107,6 @@ void func_apobiosis_8012EF4C(Task* arg0)
 {
     EffectWork*       mem;
     GfxCoord*         coord;
-    GfxRotationWords* rot;
     s32               i;
     s32               n;
     s32               pan;
@@ -120,13 +119,8 @@ void func_apobiosis_8012EF4C(Task* arg0)
         switch (arg0->state) {
             case 0:
                 D_apobiosis_80130BA0 = arg0;
-                rot                  = (GfxRotationWords*)&coord->coord;
                 coord->parent        = mem->parent;
-                rot->m00M01          = ONE;
-                rot->m02M10          = 0;
-                rot->m11M12          = ONE;
-                rot->m20M21          = 0;
-                rot->m22             = ONE;
+                gfxSetRotIdentity(&coord->coord);
                 coord->coord.t[0]    = 0;
                 coord->coord.t[1]    = 0;
                 coord->coord.t[2]    = 0;
