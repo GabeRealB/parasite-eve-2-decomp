@@ -42,9 +42,6 @@ extern SVECTOR D_shelter_b1_sleeping_quarters_801805EC[];
 extern SVECTOR D_shelter_b1_sleeping_quarters_8018060C[];
 
 // Existing slice names select endpoints within one shared table, in SVECTOR elements.
-#define D_shelter_b1_sleeping_quarters_8018058C (D_shelter_b1_sleeping_quarters_8018056C + 4)
-#define D_shelter_b1_sleeping_quarters_8018059C (D_shelter_b1_sleeping_quarters_8018056C + 6)
-#define D_shelter_b1_sleeping_quarters_801805BC (D_shelter_b1_sleeping_quarters_8018056C + 10)
 
 SVECTOR D_shelter_b1_sleeping_quarters_8018054C[2] = {
     { -350, -2200, -580, 0 },
@@ -144,7 +141,7 @@ void shelterB1SleepingQuartersDrawViewLightsTask(Task* task)
     // Views 4, 5 and 7 share endpoint pairs from the same table.
     switch (viewGetMappedIndex() & VIEW_INDEX_MASK) {
         case 3:
-            _glowDrawBeam(D_shelter_b1_sleeping_quarters_8018058C, BEAM_RADIUS_SCALE, 0, LIGHT_WHITE);
+            _glowDrawBeam(&D_shelter_b1_sleeping_quarters_8018056C[4], BEAM_RADIUS_SCALE, 0, LIGHT_WHITE);
             // Fall through: view 3 also contains view 2's green beam.
         case 2:
             _glowDrawBeam(D_shelter_b1_sleeping_quarters_8018054C, BEAM_RADIUS_SCALE, 0, LIGHT_GREEN);
@@ -158,7 +155,7 @@ void shelterB1SleepingQuartersDrawViewLightsTask(Task* task)
         }
         case 5: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_sleeping_quarters_8018059C;
+            lightPoints = &D_shelter_b1_sleeping_quarters_8018056C[6];
             _glowDrawBeam(&lightPoints[0], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
             _glowDrawBeam(&lightPoints[6], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
             _glowDrawBeam(&lightPoints[8], BEAM_RADIUS_SCALE, 0, LIGHT_WHITE);
@@ -181,7 +178,7 @@ void shelterB1SleepingQuartersDrawViewLightsTask(Task* task)
             break;
         }
         case 8:
-            _glowDrawBeam(D_shelter_b1_sleeping_quarters_801805BC, BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
+            _glowDrawBeam(&D_shelter_b1_sleeping_quarters_8018056C[10], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
             // Fall through: view 8 also contains view 9's red glow disc.
         case 9:
             _glowDrawBitDisc(D_shelter_b1_sleeping_quarters_8018055C, DISC_RADIUS_SCALE, LIGHT_RED);
