@@ -3347,8 +3347,8 @@ static u16             func_acropolis_plaza_8017FB50(Task* task);
 /// Only runs while the slot `gCdCmdQueue.readIdx` selects holds one of the
 /// stream opcodes 0x71..0x73; the entry packs the slot in `args.stream.slotIndex`
 /// and a signed sector offset in `args.stream.sectorOffsetHigh:sectorOffsetLow`.
-/// Step 0 waits for `CdCmd_PollStatus`: status
-/// 0 keeps waiting, status 2 flushes the drive first, and status 1 (or 2)
+/// Step 0 waits for `cdSyncPollCommand`: CD_SYNC_PENDING keeps waiting,
+/// CD_SYNC_RETRY flushes the drive first, and CD_SYNC_COMPLETE (or RETRY)
 /// promotes a 0x72 entry to 0x71 -- clearing the MDEC strip counters -- kicks
 /// the decoder, primes `Stream_PollPlayback` and advances to step 1. Step 1 polls
 /// `Stream_PollPlayback` every frame and retires the command once it reports done.
@@ -3372,13 +3372,13 @@ void func_acropolis_plaza_8017D6D4(void)
                 if (cmd >= CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
                     switch (q->step) {
                         case 0:
-                            switch ((s16)CdCmd_PollStatus(0, 0)) {
-                                case 0:
+                            switch (cdSyncPollCommand(0, 0)) {
+                                case CD_SYNC_PENDING:
                                     return;
-                                case 2:
+                                case CD_SYNC_RETRY:
                                     CdFlush();
                                     /* fallthrough */
-                                case 1:
+                                case CD_SYNC_COMPLETE:
                                     if (q->entries[q->readIdx].cmd == CD_COMMAND_RESET_STREAM_AT_OFFSET) {
                                         D_8005EAEC                 = 0;
                                         D_8005EAEE                 = 0;

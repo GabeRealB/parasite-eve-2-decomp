@@ -102,7 +102,7 @@ static void _mdecStartMovieFrameOutput(void);
 
 static void Mdec_DecodeFrame(void);
 
-static __inline__ u16 Stream_SeekPosition(u8* loc);
+static __inline__ u16 Stream_SeekPosition(CdlLOC* loc);
 
 /* Resets the decoder and the stream ring, routes decoded slices to the upload
  * callback and applies CD volume table entry 0 ahead of a streaming read. */
@@ -456,7 +456,7 @@ s32 CdCmd_StopMdec(s32 arg0)
     s32         f12a;
     CdCmdQueue* p;
 
-    if (CdCmd_PausePoll() & 0xFFFF) {
+    if (cdSyncPollPause() != 0) {
         p = &gCdCmdQueue;
         DecDCToutCallback(0);
         DecDCTReset(0);
@@ -749,9 +749,9 @@ static void Mdec_DecodeFrame(void)
     }
 }
 
-static __inline__ u16 Stream_SeekPosition(u8* loc)
+static __inline__ u16 Stream_SeekPosition(CdlLOC* loc)
 {
-    if (CdCmd_SeekL(loc, 0) & 0xFFFF) {
+    if (cdSyncPollLogicalSeek(loc, 0) != 0) {
         return 1;
     }
     return 0;
@@ -808,12 +808,12 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
                 state->blockGamePause             = 1;
             }
             state->movieDiskRecoveryActive = 0;
-            switch ((s16)CdCmd_PollStatus(0, 0)) {
-                case 0:
+            switch (cdSyncPollCommand(0, 0)) {
+                case CD_SYNC_PENDING:
                     break;
-                case 2:
+                case CD_SYNC_RETRY:
                     CdFlush();
-                case 1:
+                case CD_SYNC_COMPLETE:
                     state->movieStep++;
                     break;
             }
@@ -831,7 +831,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             state->cdOperationPending = 1;
             state->movieReadPending   = 1;
             CdIntToPos(sector, &scratch.location);
-            ready = Stream_SeekPosition((u8*)&scratch.location);
+            ready = Stream_SeekPosition(&scratch.location);
             if (ready & 0xFFFF) {
                 CdVol_ApplyFromTable((u8)D_8006AC58);
                 if (!(_streamStartRead() & 0xFFFF)) {
@@ -849,7 +849,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             break;
         case CD_COMMAND_MOVIE_DECODE:
             Mdec_DecodeFrame();
-            if (CdSync_IsShellOpenBitSet() != 0) {
+            if (cdSyncHasShellOpenStatus() != 0) {
                 state->movieDiskRecoveryActive = 1;
                 cdCmdSetBusy();
                 state->movieStep = CD_COMMAND_MOVIE_RECOVER;
@@ -858,7 +858,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
         case CD_COMMAND_MOVIE_PAUSE:
             Mdec_DecodeFrame();
             state->cdOperationPending = 1;
-            if (CdCmd_PausePoll() & 0xFFFF) {
+            if (cdSyncPollPause() != 0) {
                 state->movieStep++;
             }
             break;
@@ -905,7 +905,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             }
             return 1;
         case CD_COMMAND_MOVIE_RECOVER:
-            if (CdCmd_RecoverDisk() != 0) {
+            if (cdSyncPollDiscRecovery() != 0) {
                 state->movieStep++;
             }
             break;
@@ -923,7 +923,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             break;
         case CD_COMMAND_MOVIE_SEEK_RESUME:
             CdIntToPos(D_8006AC08 + (state->movieFrame - 1) * 10, &scratch.location);
-            ready = Stream_SeekPosition((u8*)&scratch.location);
+            ready = Stream_SeekPosition(&scratch.location);
             if (ready & 0xFFFF) {
                 if (!(_streamStartRead() & 0xFFFF)) {
                     D_8006AC20       = 8;

@@ -196,7 +196,7 @@ segments:
       - [0xc37c, c, cdcmd] # CdCmd queue consumer + load-command dispatch
       - [0xe4b4, o, libcd/s_002] # CdIntToPos, CdPosToInt
       - [0xe644, o, libpress/build] # DecDCTvlcBuild
-      - [0xe734, c, cdsync] # CdCmd_SeekL / PausePoll / RecoverDisk / PollStatus
+      - [0xe734, c, cdsync] # cdSync logical seek / pause / disc recovery / command completion
       - [0xf014, o, libcd/type] # CdDiskReady, CdGetDiskType
       - [0xf2c4, o, libc2/strncmp] # strncmp
       - [0xf344, c, stream] # F344: Stream_Slots / CD stream decode helpers

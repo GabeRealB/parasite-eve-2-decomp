@@ -805,15 +805,15 @@ void Gp_StepCdAudioCmd(void)
                 case 0:
                     cdCmdSetBusy();
                     p->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
-                    ret               = CdCmd_PollStatus(0, 0);
-                    if (ret != 1) {
-                        if (ret < 2) {
-                            if (ret == 0) {
+                    ret               = cdSyncPollCommand(0, 0);
+                    if (ret != CD_SYNC_COMPLETE) {
+                        if (ret < CD_SYNC_RETRY) {
+                            if (ret == CD_SYNC_PENDING) {
                                 return;
                             }
                             break;
                         }
-                        if (ret != 2) {
+                        if (ret != CD_SYNC_RETRY) {
                             break;
                         }
                         CdFlush();
@@ -849,15 +849,15 @@ void Gp_StepCdAudioCmd(void)
                     if (Fs_CdOpStatus != 0xFF) {
                         break;
                     }
-                    ret = CdCmd_PollStatus(0, 0);
-                    if (ret != 1) {
-                        if (ret < 2) {
-                            if (ret == 0) {
+                    ret = cdSyncPollCommand(0, 0);
+                    if (ret != CD_SYNC_COMPLETE) {
+                        if (ret < CD_SYNC_RETRY) {
+                            if (ret == CD_SYNC_PENDING) {
                                 return;
                             }
                             break;
                         }
-                        if (ret != 2) {
+                        if (ret != CD_SYNC_RETRY) {
                             break;
                         }
                         CdFlush();

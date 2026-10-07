@@ -1,6 +1,9 @@
 #ifndef MAIN_PRIVATE_FS_H
 #define MAIN_PRIVATE_FS_H
 
+#include <psyq/sys/types.h>
+#include <psyq/libcd.h>
+
 #include "types.h"
 
 #include "fs_types.h"
@@ -75,14 +78,40 @@ u16 cdCmdRequestSuspend(void);
 /// requires free ring capacity as in `cdCmdEnqueue`.
 u16 cdCmdResumeSuspendedMovie(void);
 
-/// Polls a seek; callers supply a second argument that the routine ignores.
-s32 CdCmd_SeekL(u8* loc, s32 unused);
+/// Issues a logical seek and polls until it completes, retrying drive errors.
+///
+/// Returns 0 while pending and 1 on completion, resetting the seek step.
+/// Start with `seekStep` at CD_COMMAND_SEEK_SET_LOCATION. `location` supplies
+/// three BCD minute/second/sector bytes (00..99, 00..59, 00..74); its track
+/// byte is ignored. Keep the same target across polls; the pointer is read
+/// synchronously only when issuing Setloc and is never retained. The second
+/// argument is ignored. Requires serialized use of the resident drive state.
+u16 cdSyncPollLogicalSeek(CdlLOC* location, s32 unused);
 
-s16 CdSync_IsShellOpenBitSet(void);
+/// Returns 1 when a blocking NOP response contains latched shell-open status.
+///
+/// Returns 0 otherwise. This reports the drive's "shell was opened" bit,
+/// rather than guaranteeing that the shell is currently open. Shares the
+/// command channel with other CD operations; requires serialized drive use.
+s16 cdSyncHasShellOpenStatus(void);
 
-s32 CdCmd_PausePoll(void);
+/// Issues pause and polls completion, flushing and reissuing on retry.
+///
+/// Returns 0 while pending and 1 when pause completes, resetting `pauseStep`.
+/// Start with `pauseStep` at CD_COMMAND_PAUSE_ISSUE. Shares command recovery
+/// with seek and movie playback; requires serialized use of the resident state.
+u16 cdSyncPollPause(void);
 
-s16 CdCmd_RecoverDisk(void);
+/// Advances disc recovery through readiness, mode setup and a read probe.
+///
+/// Returns 1 unless the ready drive's probe reports both CdlStatError and
+/// response-byte-1 bit 0x40, resetting `diskRecoveryStep`; other polls return 0.
+/// Mode setup selects double speed and sector headers and waits three VBlanks.
+/// The probe uses raw parameters {0x0A, 0, 0}; their location is unproven.
+/// A rejected probe enters a state that polls shell-open status and resets
+/// movie playback to its initial step, but never returns completion or leaves
+/// that recovery state. Requires serialized drive use; command calls block.
+s16 cdSyncPollDiscRecovery(void);
 
 s32 CdCmd_StopMdec(s32 clearFb);
 

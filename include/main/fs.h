@@ -133,7 +133,28 @@ void cdCmdCompleteHeadRequest(void);
 /// or 0 when neither is present; completion requires subsequent CD dispatches.
 s32 cdCmdRequestCancel(void);
 
-s32 CdCmd_PollStatus(s32 arg0, s32 arg1);
+/// Results of polling a drive command; recovery itself reports only pending/complete.
+enum {
+    CD_SYNC_PENDING              = 0,
+    CD_SYNC_COMPLETE             = 1,
+    CD_SYNC_RETRY                = 2,
+    CD_SYNC_ERROR_VALUE_MISMATCH = 3,
+};
+
+/// Polls command completion, recovering a shell-open disk error before retrying.
+///
+/// Returns CD_SYNC_PENDING while the command or recovery is pending,
+/// CD_SYNC_COMPLETE on completion, or CD_SYNC_RETRY for an unhandled interrupt,
+/// a disk error without shell-open status, or completed recovery. Does not
+/// flush or reissue the interrupted command. Shares the resident sync/recovery
+/// state with seek, pause and movie playback; callers must serialize drive use.
+///
+/// On a disk error without shell-open status, a nonzero low halfword of
+/// `acceptedDiskErrorValue` instead enables comparison with the low halfword of
+/// `diskErrorValue`: equality reports COMPLETE and inequality reports
+/// ERROR_VALUE_MISMATCH. These are opaque caller values. Only actual command
+/// completion clears the disk-error flag.
+s16 cdSyncPollCommand(s32 diskErrorValue, s32 acceptedDiskErrorValue);
 
 /// Enqueues playback of the selected scene/audio session.
 ///

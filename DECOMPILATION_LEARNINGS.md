@@ -11485,7 +11485,7 @@ default:
 return 0;
 ```
 
-`CdCmd_PollStatus` needs this so the shell-open path can delay-slot-fill
+`cdSyncPollCommand` needs this so the shell-open path can delay-slot-fill
 `andi a1, s1, 0xFFFF` from the not-open fall-through instead of preloading
 `v0 = 0`.
 
@@ -11554,8 +11554,8 @@ beqz v0, ...
 
 Declare (or cast) the callee as returning `s16`, not `bool`/`s32`. A `bool`
 definition still matches the callee body for 0/1 results, but call sites then
-lose the `sll`. `CdSync_IsShellOpenBitSet` was retyped from `bool` to `s16` so
-`CdCmd_PollStatus` (and other CD helpers that already had the `sll` in target asm)
+lose the `sll`. `cdSyncHasShellOpenStatus` was retyped from `bool` to `s16` so
+`cdSyncPollCommand` (and other CD helpers that already had the `sll` in target asm)
 match at the call site.
 
 ## Two-case switch may drop the `slti` range check
@@ -13384,7 +13384,7 @@ L_ret0:
 later `field = one` stores. Falling case3 into `L_ret0` avoids an extra
 `move v0, zero` / `j` before the shared epilogue path.
 
-`CdCmd_PausePoll` is the full example (two copies of the CdSync status machine
+`cdSyncPollPause` is the full example (two copies of the CdSync status machine
 plus this final switch).
 
 ## Dual `func(0)` / `func(1)` calls vs a computed argument
@@ -14335,7 +14335,7 @@ if (temp != 0) {
 }
 ```
 
-`CdCmd_RecoverDisk` case 1 is the example (`CdlStatShellOpen == 0x10`).
+`cdSyncPollDiscRecovery` case 1 is the example (`CdlStatShellOpen == 0x10`).
 
 ## Reassign call result to force `li`/`bne` equality tests
 
@@ -14355,7 +14355,7 @@ if (temp != 0) {
 }
 ```
 
-`CdCmd_RecoverDisk` case 0 is the example.
+`cdSyncPollDiscRecovery` case 0 is the example.
 
 ## Place loop-invariant table load inside the `if` to order `andi` before `lui`
 
@@ -18382,7 +18382,7 @@ site (duplicate the small blocks). GCC still cross-jumps the *identical*
 `ret < 2 → (ret==0 ? return : end)` sequences into one shared block, so you
 keep a single handle without the bad merge — and the sites that need a
 *different* shape (case 5 retry uses an inverted `ret >= 2` tree) stay
-separate. Also avoids `move a0, v0` after `CdCmd_PollStatus` that appears when
+separate. Also avoids `move a0, v0` after `cdSyncPollCommand` that appears when
 `ret` is live into a multi-predecessor shared label across calls.
 
 `CdCmd_HandleFileLoad` is the pure example (paired with the busy-temp tip above).
@@ -149064,7 +149064,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
   switch (`func_actor_205200_8014C59C`). The order of the blocks in the image
   is the order of the cases in the source.
 - **`temp = K; goto join; ... join: status = temp; switch (status)`, twice in
-  one function, was a `static inline` returning `s16`** (`CdCmd_PausePoll`, 21
+  one function, was a `static inline` returning `s16`** (`cdSyncPollPause`, 21
   gotos). The narrow return type is what matters: the inlined body sets the
   promoted return pseudo and the caller's `switch` index is a second pseudo, so
   every `return K` is `li v0,K` followed by `move v1,v0`. With an `s32` return
@@ -150785,8 +150785,8 @@ constant).
   the zero-extension to `move v1,a1`. In the `goto` form the stores sit behind
   the `check:` label. Not converted.
 - **Three hand-expanded copies of a poll with `temp = K; goto join` are the
-  inline that already existed for the sibling** (`CdCmd_SeekL` and
-  `CdCmd_SyncPoll`, 29 gotos, plus the `one`, `p`, `temp`, `status` locals).
+  inline that already existed for the sibling** (`cdSyncPollLogicalSeek` and
+  `_cdSyncPollPendingCommand`, 29 gotos, plus the `one`, `p`, `temp`, `status` locals).
   The inline has to be defined above its caller. The shared flush tail is
   written in both states; `return 0` in the earlier state and `break` in the
   last one makes the last copy the survivor. The 8 bytes of unused stack are

@@ -202,13 +202,13 @@ static void CdCmd_HandleStreamDecode(void)
                 state->busy          = 1;
                 gDisplayState.cdBusy = DISPLAY_CD_BUSY;
             }
-            switch ((s16)CdCmd_PollStatus(0, 0)) {
-                case 0:
+            switch (cdSyncPollCommand(0, 0)) {
+                case CD_SYNC_PENDING:
                     return;
-                case 2:
+                case CD_SYNC_RETRY:
                     CdFlush();
                     /* fallthrough */
-                case 1:
+                case CD_SYNC_COMPLETE:
                     entry = &state->entries[state->readIdx];
                     if (entry->cmd == CD_COMMAND_PLAY_STREAM) {
                         D_8005EAEC = 0;
@@ -292,13 +292,13 @@ static void CdCmd_HandleFileLoad(void)
                     gDisplayState.cdBusy = DISPLAY_CD_BUSY;
                 }
             }
-            switch ((s16)CdCmd_PollStatus(0, 0)) {
-                case 0:
+            switch (cdSyncPollCommand(0, 0)) {
+                case CD_SYNC_PENDING:
                     return;
-                case 2:
+                case CD_SYNC_RETRY:
                     CdFlush();
                     /* fallthrough */
-                case 1:
+                case CD_SYNC_COMPLETE:
                     break;
                 default:
                     goto end_check;
@@ -327,13 +327,13 @@ static void CdCmd_HandleFileLoad(void)
             status = Fs_CdOpStatus;
             switch (status) {
                 case 0x80:
-                    switch ((s16)CdCmd_PollStatus(0, 0)) {
-                        case 0:
+                    switch (cdSyncPollCommand(0, 0)) {
+                        case CD_SYNC_PENDING:
                             return;
-                        case 2:
+                        case CD_SYNC_RETRY:
                             CdFlush();
                             /* fallthrough */
-                        case 1:
+                        case CD_SYNC_COMPLETE:
                             if (CdSync(1, NULL) == CdlDiskError) {
                                 cdSyncWaitForReadableDisc(1);
                             }
@@ -349,13 +349,13 @@ static void CdCmd_HandleFileLoad(void)
                 case 0x10:
                 case 0x20:
                 case 0x40:
-                    switch ((s16)CdCmd_PollStatus(0, 0)) {
-                        case 0:
+                    switch (cdSyncPollCommand(0, 0)) {
+                        case CD_SYNC_PENDING:
                             return;
-                        case 2:
+                        case CD_SYNC_RETRY:
                             CdFlush();
                             /* fallthrough */
-                        case 1:
+                        case CD_SYNC_COMPLETE:
                             Fs_RetryReadN();
                             break;
                     }
@@ -363,13 +363,13 @@ static void CdCmd_HandleFileLoad(void)
             }
             break;
         case 3:
-            switch ((s16)CdCmd_PollStatus(0, 0)) {
-                case 0:
+            switch (cdSyncPollCommand(0, 0)) {
+                case CD_SYNC_PENDING:
                     return;
-                case 2:
+                case CD_SYNC_RETRY:
                     CdFlush();
                     /* fallthrough */
-                case 1:
+                case CD_SYNC_COMPLETE:
                     fsBuildFolderTables(req[3], req[2], req[1]);
                     state->step = state->step + 1;
                     break;
@@ -396,13 +396,13 @@ static void CdCmd_HandleFileLoad(void)
             status = Fs_CdOpStatus;
             switch (status) {
                 case 0x80:
-                    switch ((s16)CdCmd_PollStatus(0, 0)) {
-                        case 0:
+                    switch (cdSyncPollCommand(0, 0)) {
+                        case CD_SYNC_PENDING:
                             return;
-                        case 2:
+                        case CD_SYNC_RETRY:
                             CdFlush();
                             /* fallthrough */
-                        case 1:
+                        case CD_SYNC_COMPLETE:
                             if (CdSync(1, NULL) == CdlDiskError) {
                                 cdSyncWaitForReadableDisc(1);
                             }
@@ -434,13 +434,13 @@ static void CdCmd_HandleFileLoad(void)
                 case 0x10:
                 case 0x20:
                 case 0x40:
-                    switch ((s16)CdCmd_PollStatus(0, 0)) {
-                        case 0:
+                    switch (cdSyncPollCommand(0, 0)) {
+                        case CD_SYNC_PENDING:
                             return;
-                        case 1:
+                        case CD_SYNC_COMPLETE:
                             Fs_RetryReadN();
                             break;
-                        case 2:
+                        case CD_SYNC_RETRY:
                             CdFlush();
                             Fs_RetryReadN();
                             break;
@@ -499,17 +499,17 @@ static void CdCmd_HandleMount(void)
                     status = Fs_CdOpStatus;
                     switch (status) {
                         case 0x80:
-                            switch ((s16)CdCmd_PollStatus(0, 0)) {
-                                case 2:
+                            switch (cdSyncPollCommand(0, 0)) {
+                                case CD_SYNC_RETRY:
                                     CdFlush();
                                     /* fallthrough */
-                                case 1:
+                                case CD_SYNC_COMPLETE:
                                     if (CdSync(1, NULL) == CdlDiskError) {
                                         cdSyncWaitForReadableDisc(1);
                                     }
                                     state->step = 0;
                                     return;
-                                case 0:
+                                case CD_SYNC_PENDING:
                                 default:
                                     return;
                             }
@@ -521,25 +521,25 @@ static void CdCmd_HandleMount(void)
                         case 0x10:
                         case 0x20:
                         case 0x40:
-                            switch ((s16)CdCmd_PollStatus(0, 0)) {
-                                case 2:
+                            switch (cdSyncPollCommand(0, 0)) {
+                                case CD_SYNC_RETRY:
                                     CdFlush();
                                     /* fallthrough */
-                                case 1:
+                                case CD_SYNC_COMPLETE:
                                     Fs_RetryReadN();
                                     return;
-                                case 0:
+                                case CD_SYNC_PENDING:
                                 default:
                                     return;
                             }
                     }
                     return;
                 case 2:
-                    switch ((s16)CdCmd_PollStatus(0, 0)) {
-                        case 2:
+                    switch (cdSyncPollCommand(0, 0)) {
+                        case CD_SYNC_RETRY:
                             CdFlush();
                             /* fallthrough */
-                        case 1:
+                        case CD_SYNC_COMPLETE:
                             fsInitFolderTable(stageIndex & 0xFF);
                             if (state->busy != 0) {
                                 state->busy          = 0;
@@ -555,7 +555,7 @@ static void CdCmd_HandleMount(void)
                                 state->readIdx                         = state->readIdx % ARRAY_SIZE(state->entries);
                             }
                             return;
-                        case 0:
+                        case CD_SYNC_PENDING:
                         default:
                             return;
                     }
@@ -583,17 +583,17 @@ static void CdCmd_HandleMount(void)
             if (status != 0x80) {
                 return;
             }
-            switch ((s16)CdCmd_PollStatus(0, 0)) {
-                case 2:
+            switch (cdSyncPollCommand(0, 0)) {
+                case CD_SYNC_RETRY:
                     CdFlush();
                     /* fallthrough */
-                case 1:
+                case CD_SYNC_COMPLETE:
                     if (CdSync(1, NULL) == CdlDiskError) {
                         cdSyncWaitForReadableDisc(1);
                     }
                     fsStartStage0HeaderRead();
                     return;
-                case 0:
+                case CD_SYNC_PENDING:
                 default:
                     return;
             }

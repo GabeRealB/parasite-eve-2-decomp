@@ -430,12 +430,12 @@ DecDCTvlcBuild              = 0x8001DE44;
 //--------------------------------------------------------------------
 //--- PA: 0x0E734   VA: 0x8001DF34   subsegment: c, E734
 //--------------------------------------------------------------------
-CdCmd_SeekL               = 0x8001DF34; // type:func
-CdCmd_PausePoll               = 0x8001E2D4; // type:func
-CdCmd_RecoverDisk               = 0x8001E57C; // type:func
-CdCmd_PollStatus               = 0x8001E6AC; // type:func
-CdSync_IsShellOpenBitSet    = 0x8001E7C0; // type:func
-CdSync_CanIssueCommand      = 0x8001E7F0; // type:func
+cdSyncPollLogicalSeek               = 0x8001DF34; // type:func
+cdSyncPollPause               = 0x8001E2D4; // type:func
+cdSyncPollDiscRecovery               = 0x8001E57C; // type:func
+cdSyncPollCommand               = 0x8001E6AC; // type:func
+cdSyncHasShellOpenStatus    = 0x8001E7C0; // type:func
+_cdSyncIsDiscReady      = 0x8001E7F0; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x0F014   VA: 0x8001E814   subsegment: o, libcd/type
