@@ -72,7 +72,7 @@
 #define MAIN_STREET_PUFF_TASK dryfieldNightMainStreetPuffTask
 #include "../../shared/main_street.h"
 
-#define DRYFIELD_NIGHT_MAIN_STREET_RAND()     ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
+#define DRYFIELD_NIGHT_MAIN_STREET_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
 /// Advances the gameplay LCG and yields the high half of the new state.
 
