@@ -83,7 +83,7 @@ segments:
       - [0x78, .rodata, attachment_stats] # jtbl from Gp_ApplyAttachStats, then the prompt labels
       - [0x9C, .rodata, linked_actors] # status-icon mask initializer of hudDrawStatusBlock
       - [0xAC, .rodata, hud_sprites] # hidden-amount label
-      - [0xB4, .rodata, cd_loading] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from Gp_EnqueueWeaponCd, then the session, load and room-object tables
+      - [0xB4, .rodata, cd_loading] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from _loadingEnqueueWeaponAmmoResources, then the session, load and room-object tables
       - [0x150, .rodata, area_transitions] # the direction tables, then the jtbl from menuMapGetMarkerState
       - [0x1BC, .rodata, scene_runtime] # jtbls from streamReadSceneImageSector and Gp_StepCdAudioCmd, then its strings and state tables
       - [0x268, .rodata, equipment] # jtbl from inventoryIsItemLimitReached, then Gp_StrNotice2
@@ -122,7 +122,7 @@ segments:
       - [0x12C80, c, hud_sprites] # Gp_DrawHudSprites
       - [0x15810, c, view_load] # Gp_ViewBeginLoad
       - [0x159CC, c, view_image] # Gp_ViewLoadImage
-      - [0x15B10, c, cd_loading] # Gp_EnqueueWeaponCd
+      - [0x15B10, c, cd_loading] # _loadingEnqueueWeaponAmmoResources
       - [0x16644, c, area_cd] # Gp_PollAreaCdLoads
       - [0x16D48, c, load_screen] # func_800AA548
       - [0x1824C, c, companion_load] # Gp_PickCompanion

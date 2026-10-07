@@ -1089,7 +1089,7 @@ void Gp_MapTaskState2(Task* arg0)
             _menuMapPrepareClosing(arg0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
-                Gp_LoadViewAndCd(1);
+                loadingRestoreViewImageAndEnqueueResources(1);
             }
             arg0->state = 3;
             return;
@@ -1098,7 +1098,7 @@ void Gp_MapTaskState2(Task* arg0)
             _menuMapPrepareClosing(arg0);
             obj->result = USER_INTERFACE_RESULT_CANCEL;
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
-                Gp_LoadViewAndCd(1);
+                loadingRestoreViewImageAndEnqueueResources(1);
             }
             arg0->state = 3;
             return;
@@ -1154,7 +1154,7 @@ void Gp_MapTaskState2(Task* arg0)
             _menuMapPrepareClosing(arg0);
             obj->result = USER_INTERFACE_RESULT_CANCEL;
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
-                Gp_LoadViewAndCd(1);
+                loadingRestoreViewImageAndEnqueueResources(1);
             }
             arg0->state = 3;
         }

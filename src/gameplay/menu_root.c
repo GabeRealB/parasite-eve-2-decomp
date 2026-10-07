@@ -532,7 +532,7 @@ void Gp_MenuRootTask(Task* arg0)
                 attachmentEnqueueHealingSoundLoad();
             }
             if (D_80114D88 == 1) {
-                Gp_LoadViewAndCd(1);
+                loadingRestoreViewImageAndEnqueueResources(1);
             }
             secondaryItemId = -1;
             memInitAuxHeap();
@@ -558,7 +558,7 @@ void Gp_MenuRootTask(Task* arg0)
             disp->immediateTaskFree = 0;
             cfg->weapon             = saved;
             taskSetActiveList(previousList);
-            Gp_EnqueueHeldWeaponCd();
+            loadingEnqueueEquippedWeaponResources();
             break;
         }
         case 0x3C: {

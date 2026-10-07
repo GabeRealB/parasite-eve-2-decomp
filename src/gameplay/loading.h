@@ -47,7 +47,14 @@ extern const TaskFuncTable8 Gp_LoadStateFns;
 
 extern const TaskFuncTable3 Gp_RoomObjStates;
 
-void Gp_EnqueueViewCd(Task* task);
+/// Queues the current mapped view's resources once the CD queue is idle.
+///
+/// Loading-dispatch state 1. Uses the session's stage/area folder with suffix 1
+/// and the mapped view file index, default policy and zero image displacement.
+/// Advances the live task's state by one only after queueing. Requires loaded
+/// location/view tables and writable file destinations. Sources are copied
+/// immediately; advancing the state does not mean the load has completed.
+void loadingEnqueueViewResourcesTask(Task* task);
 
 /// Applies the companion texture relocation to a task's model and its cached packets.
 ///
@@ -62,13 +69,41 @@ void companionRelocateModelTextures(Task* companionTask);
 
 void Gp_FinishLoadWait(Task* task);
 
-void Gp_LoadViewAndCd(u8 arg0);
+/// Uploads the retained current-view image and queues a reload of its resources.
+///
+/// Requires valid session/view tables, live retained filesystem resources and
+/// `fsUploadImageChunk`'s scratch/GPU contract. A matching image slot is retried
+/// until upload returns COMPLETE, including after timer failure; no timeout is
+/// imposed. An absent image skips the upload. Nonzero `skipBackground` omits
+/// the background from the queued reload; zero selects the default policy.
+/// Requires one free CD ring slot. The request is copied immediately and
+/// completes asynchronously; this function does not rebuild model/sprite packets.
+void loadingRestoreViewImageAndEnqueueResources(u8 skipBackground);
 
 void Gp_LoadViewImages(void);
 
-void Gp_EnqueueStageCd(void);
+/// Queues the current stage's CDF mount followed by its map and room-name package.
+///
+/// Requires a live session with stage 1..5 and two free CD ring slots. The map
+/// package is global file 900000 + stage. Both requests are copied immediately;
+/// this function does not wait or update the session's loaded-stage cache.
+/// The mount retains the enqueue API's reads of argument bytes from address zero.
+void loadingEnqueueStageResources(void);
 
-void Gp_EnqueueCompanionCd(u8 type, u8 variant);
+/// Queues a companion family's base package and an optional variant package.
+///
+/// `companionType` is 0 (no operation) or 1..3. Current schedules use family 1
+/// variants 1..5 and variant 0 for families 2/3; the arguments are not checked.
+/// Global files are 800000 + type*100, followed by that ID + variant when
+/// nonzero. Both use default policy, a four-page horizontal image displacement
+/// (256 VRAM words) and a six-row palette displacement. After queueing variant
+/// 5, writes variant 3 into the session and live save for subsequent actor setup.
+///
+/// Requires a live session/save, one free CD ring slot (two for a variant),
+/// valid file destinations and an initialized scratch stack with eight bytes
+/// available. The reservation is released before return; request sources are
+/// copied synchronously.
+void companionEnqueueResources(u8 companionType, u8 resourceVariant);
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern ViewCountTable* Gp_ViewCountTables[];

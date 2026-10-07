@@ -51,7 +51,7 @@ void Gp_ViewBeginLoad(Task* task)
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 cdCmdRequestCancel();
                 task->state += 1;
-                Gp_EnqueueViewCd(task);
+                loadingEnqueueViewResourcesTask(task);
             } else {
                 param1[3] = sess->stage;
                 param1[2] = sess->area;

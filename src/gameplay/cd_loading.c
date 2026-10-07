@@ -343,6 +343,30 @@ typedef struct {
 } _LoadingConfigFileHundreds;
 STATIC_ASSERT_SIZEOF(_LoadingConfigFileHundreds, 5);
 
+/// Four-byte file key read synchronously by `cdCmdEnqueue`.
+///
+/// Byte 1 is ignored; these fields select a global file or a stage-folder file.
+typedef struct {
+    u8 fileIndex;      // Low file-ID component or mapped view index
+    u8 ignoredByQueue; // Unread byte; not initialized by these producers
+    u8 fileGroup;      // Global category or area-folder hundreds component
+    u8 stage;          // CDF selector (0 global library, 1..5 stage folders)
+} _LoadingFileKey;
+STATIC_ASSERT_SIZEOF(_LoadingFileKey, 4);
+
+/// File-load options using `CdCmdEntry.args.file`'s types and four-byte layout.
+typedef __typeof__(gCdCmdQueue.entries[0].args.file) _LoadingFileArgs;
+STATIC_ASSERT_SIZEOF(_LoadingFileArgs, 4);
+
+/// Global-library selectors and the request to seek back to the current view.
+enum {
+    LOADING_GLOBAL_CDF         = 0,
+    LOADING_PLAYER_FILE_GROUP  = 1,
+    LOADING_VIEW_FOLDER_SUFFIX = 1,
+    LOADING_AMMO_FILE_NONE     = 0,
+    LOADING_VIEW_SEEK_PENDING  = 1,
+};
+
 extern AreaRecord D_8010CBE4[21];
 
 /// End marker following the stage 1 room table.
@@ -372,9 +396,7 @@ static const TaskFuncTable6 Gp_LoadWaitFns;
 
 static const _LoadingConfigFileHundreds Gp_ConfigCdTable;
 
-/// Maps `gPlayerStatus.weapon` / `gPlayerStatus.weaponSlotItem` (and the 0x1B attach id) to a
-/// CdCmd 0x21 payload. No-op when `gPlayerStatus.weapon` is 0 or the mapped byte is 0.
-static void Gp_EnqueueWeaponCd(void);
+static void _loadingEnqueueWeaponAmmoResources(void);
 
 static void Gp_LoadWaitCdBusy(Task* task);
 
@@ -597,7 +619,7 @@ const TaskFuncTable3 Gp_RoomObjStates;
 
 static const TaskFuncTable6 Gp_LoadWaitFns = { {
     Gp_ViewBeginLoad,
-    Gp_EnqueueViewCd,
+    loadingEnqueueViewResourcesTask,
     Gp_ViewLoadImage,
     Gp_LoadWaitCdBusy,
     Gp_LoadWaitIdle,
@@ -629,128 +651,178 @@ static __inline__ void _loadingRestoreViewGraphics(s32 keepGraphics)
     spriteAllocateViewCachedPackets();
 }
 
-/// Maps `gPlayerStatus.weapon` / `gPlayerStatus.weaponSlotItem` (and the 0x1B attach id) to a
-/// CdCmd 0x21 payload. No-op when `gPlayerStatus.weapon` is 0 or the mapped byte is 0.
-static void Gp_EnqueueWeaponCd(void)
+/// Queues the equipped weapon's ammunition-dependent global resource package.
+///
+/// Requires live player/save data, valid file destinations and one free CD ring
+/// slot when a package is selected. An unequipped or unsupported weapon queues
+/// nothing. Request sources are copied immediately; loading is asynchronous.
+/// Also requests the drive's later seek back to the current view.
+static void _loadingEnqueueWeaponAmmoResources(void)
 {
-    u8  param1[8];
-    u8  param2[8];
-    u16 item;
-    s32 val;
-    s32 attach;
-    s32 flag;
+    /// Selects a weapon's ammunition-dependent file index, or zero when absent.
+    ///
+    /// Both arguments must be simple local lvalues without side effects: the key
+    /// is written repeatedly, and the weapon index can be read again for its load.
+    /// Reads `gPlayerStatus` and, for M4A1 Grenade, the live save's secondary load.
+    /// Unsupported or empty ammunition selects that weapon's default package.
+    /// Only `fileIndex` is written. The local binding is undefined after its use.
+#define LOADING_SELECT_WEAPON_AMMO_FILE(fileKey, weaponIndex)                                                                                      \
+    do {                                                                                                                                           \
+        enum {                                                                                                                                     \
+            LOADING_WEAPON_GRENADE_PISTOL             = 0xB,                                                                                       \
+            LOADING_WEAPON_MM1                        = 0xC,                                                                                       \
+            LOADING_WEAPON_PA3                        = 0xD,                                                                                       \
+            LOADING_WEAPON_SP12                       = 0xE,                                                                                       \
+            LOADING_WEAPON_AS12                       = 0xF,                                                                                       \
+            LOADING_WEAPON_GUNBLADE                   = 0x17,                                                                                      \
+            LOADING_WEAPON_M4A1_GRENADE               = 0x1B,                                                                                      \
+            LOADING_AMMO_AIRBURST                     = 0xB,                                                                                       \
+            LOADING_AMMO_RIOT                         = 0xC,                                                                                       \
+            LOADING_AMMO_FIREFLY                      = 0xE,                                                                                       \
+            LOADING_AMMO_SLUG                         = 0xF,                                                                                       \
+            LOADING_AMMO_ITEM_INDEX_BASE              = 0x9F,                                                                                      \
+            LOADING_AMMO_FILE_GRENADE_PISTOL_DEFAULT  = 1,                                                                                         \
+            LOADING_AMMO_FILE_GRENADE_PISTOL_AIRBURST = 2,                                                                                         \
+            LOADING_AMMO_FILE_GRENADE_PISTOL_RIOT     = 3,                                                                                         \
+            LOADING_AMMO_FILE_MM1_DEFAULT             = 4,                                                                                         \
+            LOADING_AMMO_FILE_MM1_AIRBURST            = 5,                                                                                         \
+            LOADING_AMMO_FILE_MM1_RIOT                = 6,                                                                                         \
+            LOADING_AMMO_FILE_PA3_DEFAULT             = 7,                                                                                         \
+            LOADING_AMMO_FILE_PA3_FIREFLY             = 8,                                                                                         \
+            LOADING_AMMO_FILE_PA3_SLUG                = 9,                                                                                         \
+            LOADING_AMMO_FILE_SP12_DEFAULT            = 10,                                                                                        \
+            LOADING_AMMO_FILE_SP12_FIREFLY            = 11,                                                                                        \
+            LOADING_AMMO_FILE_SP12_SLUG               = 12,                                                                                        \
+            LOADING_AMMO_FILE_AS12_DEFAULT            = 13,                                                                                        \
+            LOADING_AMMO_FILE_M4A1_GRENADE_DEFAULT    = 16,                                                                                        \
+            LOADING_AMMO_FILE_M4A1_GRENADE_AIRBURST   = 17,                                                                                        \
+            LOADING_AMMO_FILE_M4A1_GRENADE_RIOT       = 18,                                                                                        \
+            LOADING_AMMO_FILE_GUNBLADE_DEFAULT        = 19,                                                                                        \
+            LOADING_AMMO_FILE_GUNBLADE_FIREFLY        = 20,                                                                                        \
+            LOADING_AMMO_FILE_GUNBLADE_SLUG           = 21,                                                                                        \
+        };                                                                                                                                         \
+        s32 primaryAmmoIndex;                                                                                                                      \
+        s32 secondaryAmmoIndex;                                                                                                                    \
+                                                                                                                                                   \
+        (fileKey).fileIndex = LOADING_AMMO_FILE_NONE;                                                                                              \
+        switch ((weaponIndex)) {                                                                                                                   \
+            case LOADING_WEAPON_GRENADE_PISTOL:                                                                                                    \
+                (fileKey).fileIndex = LOADING_AMMO_FILE_GRENADE_PISTOL_DEFAULT;                                                                    \
+                if (gPlayerStatus.weaponSlotItem == LOADING_AMMO_AIRBURST) {                                                                       \
+                    (fileKey).fileIndex = LOADING_AMMO_FILE_GRENADE_PISTOL_AIRBURST;                                                               \
+                }                                                                                                                                  \
+                if (gPlayerStatus.weaponSlotItem == LOADING_AMMO_RIOT) {                                                                           \
+                    (fileKey).fileIndex = LOADING_AMMO_FILE_GRENADE_PISTOL_RIOT;                                                                   \
+                }                                                                                                                                  \
+                break;                                                                                                                             \
+            case LOADING_WEAPON_MM1:                                                                                                               \
+                (fileKey).fileIndex = LOADING_AMMO_FILE_MM1_DEFAULT;                                                                               \
+                if (gPlayerStatus.weaponSlotItem == LOADING_AMMO_AIRBURST) {                                                                       \
+                    (fileKey).fileIndex = LOADING_AMMO_FILE_MM1_AIRBURST;                                                                          \
+                }                                                                                                                                  \
+                if (gPlayerStatus.weaponSlotItem == LOADING_AMMO_RIOT) {                                                                           \
+                    (fileKey).fileIndex = LOADING_AMMO_FILE_MM1_RIOT;                                                                              \
+                }                                                                                                                                  \
+                break;                                                                                                                             \
+            case LOADING_WEAPON_PA3:                                                                                                               \
+                (fileKey).fileIndex = LOADING_AMMO_FILE_PA3_DEFAULT;                                                                               \
+                if (gPlayerStatus.weaponSlotItem == LOADING_AMMO_FIREFLY) {                                                                        \
+                    (fileKey).fileIndex = LOADING_AMMO_FILE_PA3_FIREFLY;                                                                           \
+                }                                                                                                                                  \
+                if (gPlayerStatus.weaponSlotItem == LOADING_AMMO_SLUG) {                                                                           \
+                    (fileKey).fileIndex = LOADING_AMMO_FILE_PA3_SLUG;                                                                              \
+                }                                                                                                                                  \
+                break;                                                                                                                             \
+            case LOADING_WEAPON_SP12:                                                                                                              \
+                (fileKey).fileIndex = LOADING_AMMO_FILE_SP12_DEFAULT;                                                                              \
+                if (gPlayerStatus.weaponSlotItem == LOADING_AMMO_FIREFLY) {                                                                        \
+                    (fileKey).fileIndex = LOADING_AMMO_FILE_SP12_FIREFLY;                                                                          \
+                }                                                                                                                                  \
+                if (gPlayerStatus.weaponSlotItem == LOADING_AMMO_SLUG) {                                                                           \
+                    (fileKey).fileIndex = LOADING_AMMO_FILE_SP12_SLUG;                                                                             \
+                }                                                                                                                                  \
+                break;                                                                                                                             \
+            case LOADING_WEAPON_AS12:                                                                                                              \
+                (fileKey).fileIndex = LOADING_AMMO_FILE_AS12_DEFAULT;                                                                              \
+                primaryAmmoIndex    = gPlayerStatus.weaponSlotItem;                                                                                \
+                if (primaryAmmoIndex == LOADING_AMMO_FIREFLY) {                                                                                    \
+                    (fileKey).fileIndex = primaryAmmoIndex;                                                                                        \
+                }                                                                                                                                  \
+                if (primaryAmmoIndex == LOADING_AMMO_SLUG) {                                                                                       \
+                    (fileKey).fileIndex = primaryAmmoIndex;                                                                                        \
+                }                                                                                                                                  \
+                break;                                                                                                                             \
+            case LOADING_WEAPON_GUNBLADE:                                                                                                          \
+                (fileKey).fileIndex = LOADING_AMMO_FILE_GUNBLADE_DEFAULT;                                                                          \
+                if (gPlayerStatus.weaponSlotItem == LOADING_AMMO_FIREFLY) {                                                                        \
+                    (fileKey).fileIndex = LOADING_AMMO_FILE_GUNBLADE_FIREFLY;                                                                      \
+                }                                                                                                                                  \
+                if (gPlayerStatus.weaponSlotItem == LOADING_AMMO_SLUG) {                                                                           \
+                    (fileKey).fileIndex = LOADING_AMMO_FILE_GUNBLADE_SLUG;                                                                         \
+                }                                                                                                                                  \
+                break;                                                                                                                             \
+                /* This attachment selects its package from the secondary ammunition load. */                                                      \
+            case LOADING_WEAPON_M4A1_GRENADE: {                                                                                                    \
+                EquipmentWeaponLoad* weaponLoad;                                                                                                   \
+                                                                                                                                                   \
+                (fileKey).fileIndex = LOADING_AMMO_FILE_M4A1_GRENADE_DEFAULT;                                                                      \
+                weaponLoad          = equipmentGetWeaponLoad((weaponIndex) + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));                                   \
+                if (weaponLoad->secondaryItemId != INVENTORY_ITEM_NONE && weaponLoad->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) { \
+                    secondaryAmmoIndex = weaponLoad->secondaryItemId - LOADING_AMMO_ITEM_INDEX_BASE;                                               \
+                    if (secondaryAmmoIndex == LOADING_AMMO_AIRBURST) {                                                                             \
+                        (fileKey).fileIndex = LOADING_AMMO_FILE_M4A1_GRENADE_AIRBURST;                                                             \
+                    }                                                                                                                              \
+                    if (secondaryAmmoIndex == LOADING_AMMO_RIOT) {                                                                                 \
+                        (fileKey).fileIndex = LOADING_AMMO_FILE_M4A1_GRENADE_RIOT;                                                                 \
+                    }                                                                                                                              \
+                }                                                                                                                                  \
+                break;                                                                                                                             \
+            }                                                                                                                                      \
+        }                                                                                                                                          \
+    } while (0)
+    enum { LOADING_AMMO_FILE_HUNDREDS = 10 };
+    _LoadingFileKey  fileKey;
+    _LoadingFileArgs loadArgs;
+    u16              weaponIndex;
 
-    item = gPlayerStatus.weapon;
-    if (item == 0) {
+    weaponIndex = gPlayerStatus.weapon;
+    if (weaponIndex == PLAYER_STATUS_EQUIPMENT_NONE) {
         return;
     }
 
-    param1[0] = 0;
-    switch (item) {
-        case 0xB:
-            param1[0] = 1;
-            if (gPlayerStatus.weaponSlotItem == 0xB) {
-                param1[0] = 2;
-            }
-            if (gPlayerStatus.weaponSlotItem == 0xC) {
-                param1[0] = 3;
-            }
-            break;
-        case 0xC:
-            param1[0] = 4;
-            if (gPlayerStatus.weaponSlotItem == 0xB) {
-                param1[0] = 5;
-            }
-            if (gPlayerStatus.weaponSlotItem == 0xC) {
-                param1[0] = 6;
-            }
-            break;
-        case 0xD:
-            param1[0] = 7;
-            if (gPlayerStatus.weaponSlotItem == 0xE) {
-                param1[0] = 8;
-            }
-            if (gPlayerStatus.weaponSlotItem == 0xF) {
-                param1[0] = 9;
-            }
-            break;
-        case 0xE:
-            param1[0] = 0xA;
-            if (gPlayerStatus.weaponSlotItem == 0xE) {
-                param1[0] = 0xB;
-            }
-            if (gPlayerStatus.weaponSlotItem == 0xF) {
-                param1[0] = 0xC;
-            }
-            break;
-        case 0xF:
-            param1[0] = 0xD;
-            val       = gPlayerStatus.weaponSlotItem;
-            if (val == 0xE) {
-                param1[0] = val;
-            }
-            if (val == 0xF) {
-                param1[0] = val;
-            }
-            break;
-        case 0x17:
-            param1[0] = 0x13;
-            if (gPlayerStatus.weaponSlotItem == 0xE) {
-                param1[0] = 0x14;
-            }
-            if (gPlayerStatus.weaponSlotItem == 0xF) {
-                param1[0] = 0x15;
-            }
-            break;
-        case 0x1B: {
-            EquipmentWeaponLoad* slot;
+    LOADING_SELECT_WEAPON_AMMO_FILE(fileKey, weaponIndex);
+#undef LOADING_SELECT_WEAPON_AMMO_FILE
 
-            param1[0] = 0x10;
-            slot      = equipmentGetWeaponLoad(item + 0x7F);
-            if (slot->secondaryItemId != INVENTORY_ITEM_NONE && slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-                attach = slot->secondaryItemId - 0x9F;
-                if (attach == 0xB) {
-                    param1[0] = 0x11;
-                }
-                if (attach == 0xC) {
-                    param1[0] = 0x12;
-                }
-            }
-            break;
-        }
-    }
-
-    if (param1[0] == 0) {
+    if (fileKey.fileIndex == LOADING_AMMO_FILE_NONE) {
         return;
     }
 
-    flag      = 1;
-    param1[3] = 0;
-    param1[2] = flag;
-    param2[0] = 0xA;
-    param2[3] = 0;
-    param2[2] = 0;
-    param2[1] = 0;
-    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-    D_800626E8 = flag;
+    fileKey.stage             = LOADING_GLOBAL_CDF;
+    fileKey.fileGroup         = LOADING_PLAYER_FILE_GROUP;
+    loadArgs.fileIdHundreds   = LOADING_AMMO_FILE_HUNDREDS;
+    loadArgs.imageYOffset     = 0;
+    loadArgs.imageXPageOffset = 0;
+    loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &loadArgs);
+    D_800626E8 = LOADING_VIEW_SEEK_PENDING;
 }
 
-void Gp_EnqueueViewCd(Task* task)
+void loadingEnqueueViewResourcesTask(Task* task)
 {
-    GameLocationKey* sess;
-    u8               param1[8];
-    u8               param2[8];
+    GameLocationKey* location;
+    _LoadingFileKey  fileKey;
+    _LoadingFileArgs loadArgs;
 
-    sess = &gGameSession->location.loc;
-    if (cdCmdIsIdle() & 0xFFFF) {
-        param1[3] = sess->stage;
-        param1[2] = sess->area;
-        param1[0] = viewGetMappedIndex();
-        param2[0] = 1;
-        param2[1] = 0;
-        param2[2] = 0;
-        param2[3] = 0;
-        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+    location = &gGameSession->location.loc;
+    if (cdCmdIsIdle()) {
+        fileKey.stage             = location->stage;
+        fileKey.fileGroup         = location->area;
+        fileKey.fileIndex         = viewGetMappedIndex();
+        loadArgs.fileIdHundreds   = LOADING_VIEW_FOLDER_SUFFIX;
+        loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
+        loadArgs.imageXPageOffset = 0;
+        loadArgs.imageYOffset     = 0;
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &loadArgs);
         task->state++;
     }
 }
@@ -873,9 +945,13 @@ void viewCommitIndexTask(Task* task)
     taskKill(task);
 }
 
-void func_800A99B4(void)
+void loadingRequestViewGraphicsRestore(void)
 {
-    displaySpawnTask(0, 0x26, 0, 0);
+    enum {
+        LOADING_VIEW_GRAPHICS_RESTORE_TASK_BANK = 0,
+        LOADING_VIEW_GRAPHICS_RESTORE_TASK_SLOT = 0x26,
+    };
+    displaySpawnTask(LOADING_VIEW_GRAPHICS_RESTORE_TASK_BANK, LOADING_VIEW_GRAPHICS_RESTORE_TASK_SLOT, 0, 0);
 }
 
 void loadingRestoreViewGraphicsTask(Task* task)
@@ -892,138 +968,158 @@ void loadingRestoreViewGraphicsTask(Task* task)
     displayResumeGameLoop();
 }
 
-void Gp_LoadViewAndCd(u8 arg0)
+void loadingRestoreViewImageAndEnqueueResources(u8 skipBackground)
 {
-    u8           view;
-    u8           i;
-    GameSession* session;
-    u8           param2[8];
-    u8           param1[8];
+    u8               mappedViewIndex;
+    u8               resourceSlotIndex;
+    GameSession*     session;
+    _LoadingFileArgs loadArgs;
+    _LoadingFileKey  fileKey;
 
-    view = viewGetMappedIndex();
-    for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
-        if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
-            if (view - 1 == i) {
-                while (fsUploadImageChunk(D_8006C338[i].data, 1)) {
+    // Restore the retained image before the queued file reload can replace resources.
+    mappedViewIndex = viewGetMappedIndex();
+    for (resourceSlotIndex = 0; resourceSlotIndex < ARRAY_SIZE(D_8006C338); resourceSlotIndex++) {
+        if (D_8006C338[resourceSlotIndex].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
+            if (mappedViewIndex - 1 == resourceSlotIndex) {
+                while (fsUploadImageChunk(D_8006C338[resourceSlotIndex].data, 1) != FILE_SYSTEM_IMAGE_UPLOAD_COMPLETE) {
                 }
                 break;
             }
         }
     }
-    session   = gGameSession;
-    param1[3] = session->location.loc.stage;
-    param1[2] = session->location.loc.area;
-    param1[0] = viewGetMappedIndex();
-    param2[0] = 1;
-    if (arg0 != 0) {
-        param2[1] = 4;
+    session                 = gGameSession;
+    fileKey.stage           = session->location.loc.stage;
+    fileKey.fileGroup       = session->location.loc.area;
+    fileKey.fileIndex       = viewGetMappedIndex();
+    loadArgs.fileIdHundreds = LOADING_VIEW_FOLDER_SUFFIX;
+    if (skipBackground != 0) {
+        loadArgs.loadMode = CD_COMMAND_LOAD_SKIP_BACKGROUND;
     } else {
-        param2[1] = 0;
+        loadArgs.loadMode = CD_COMMAND_LOAD_DEFAULT;
     }
-    param2[3] = 0;
-    param2[2] = 0;
-    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+    loadArgs.imageYOffset     = 0;
+    loadArgs.imageXPageOffset = 0;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &loadArgs);
 }
 
-void Gp_EnqueueConfigCd(s32 arg0)
+void loadingEnqueueCharacterResources(s32 imagesOnly)
 {
-    u8                         param1[8];
-    u8                         param2[8];
-    _LoadingConfigFileHundreds table;
+    enum {
+        LOADING_CHARACTER_FILE_INDEX          = 0,
+        LOADING_CHARACTER_IMAGE_X_PAGE_OFFSET = 6,
+    };
+    _LoadingFileKey            fileKey;
+    _LoadingFileArgs           loadArgs;
+    _LoadingConfigFileHundreds fileHundredsByVariant;
 
-    table = Gp_ConfigCdTable;
+    fileHundredsByVariant = Gp_ConfigCdTable;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId != 0) {
-        param1[3] = 0;
-        param1[2] = 1;
-        param1[0] = 0;
-        param2[0] = table.fileIdHundreds[gPlayerStatus.resourceVariant - 1];
-        if ((u8)arg0 == 0) {
-            param2[1] = 0;
+        fileKey.stage           = LOADING_GLOBAL_CDF;
+        fileKey.fileGroup       = LOADING_PLAYER_FILE_GROUP;
+        fileKey.fileIndex       = LOADING_CHARACTER_FILE_INDEX;
+        loadArgs.fileIdHundreds = fileHundredsByVariant.fileIdHundreds[gPlayerStatus.resourceVariant - 1];
+        if ((u8)imagesOnly == 0) {
+            loadArgs.loadMode = CD_COMMAND_LOAD_DEFAULT;
         } else {
-            param2[1] = 5;
+            loadArgs.loadMode = CD_COMMAND_LOAD_IMAGES_ONLY;
         }
-        param2[2] = 6;
-        param2[3] = 0;
-        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        loadArgs.imageXPageOffset = LOADING_CHARACTER_IMAGE_X_PAGE_OFFSET;
+        loadArgs.imageYOffset     = 0;
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &loadArgs);
     }
 }
 
-void Gp_EnqueueHeldWeaponCd(void)
+void loadingEnqueueEquippedWeaponResources(void)
 {
-    u8  param1[8];
-    u8  param2[8];
-    u8  val;
-    s32 flag;
+    enum { LOADING_WEAPON_FILE_HUNDREDS      = 3,
+           LOADING_UNARMED_WEAPON_FILE_INDEX = 1 };
+    _LoadingFileKey  fileKey;
+    _LoadingFileArgs loadArgs;
+    u8               weaponIndex;
 
-    val = gPlayerStatus.weapon;
-    if (val == 0) {
-        val = 1;
+    weaponIndex = gPlayerStatus.weapon;
+    if (weaponIndex == PLAYER_STATUS_EQUIPMENT_NONE) {
+        weaponIndex = LOADING_UNARMED_WEAPON_FILE_INDEX;
     }
-    flag      = 1;
-    param1[0] = val;
-    param1[3] = 0;
-    param1[2] = flag;
-    param2[0] = 3;
-    param2[3] = 0;
-    param2[2] = 0;
-    param2[1] = 0;
-    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-    D_800626E8 = flag;
-    Gp_EnqueueWeaponCd();
+    fileKey.fileIndex         = weaponIndex;
+    fileKey.stage             = LOADING_GLOBAL_CDF;
+    fileKey.fileGroup         = LOADING_PLAYER_FILE_GROUP;
+    loadArgs.fileIdHundreds   = LOADING_WEAPON_FILE_HUNDREDS;
+    loadArgs.imageYOffset     = 0;
+    loadArgs.imageXPageOffset = 0;
+    loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &loadArgs);
+    // Loading this library file moves the drive away from the current view.
+    D_800626E8 = LOADING_VIEW_SEEK_PENDING;
+    _loadingEnqueueWeaponAmmoResources();
 }
 
-void Gp_EnqueueStageCd(void)
+void loadingEnqueueStageResources(void)
 {
-    u8 param1[8];
-    u8 param2[8];
+    enum { LOADING_STAGE_MAP_FILE_GROUP = 90 };
+    _LoadingFileKey  fileKey;
+    _LoadingFileArgs loadArgs;
 
+    // Mount the new CDF before loading its stage-specific map and room names.
     cdCmdEnqueue(CD_COMMAND_MOUNT_STAGE, &gGameSession->location.loc, NULL);
-    param1[3] = 0;
-    param1[2] = 0x5A;
-    param1[0] = gGameSession->location.loc.stage;
-    param2[3] = 0;
-    param2[2] = 0;
-    param2[1] = 0;
-    param2[0] = 0;
-    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+    fileKey.stage             = LOADING_GLOBAL_CDF;
+    fileKey.fileGroup         = LOADING_STAGE_MAP_FILE_GROUP;
+    fileKey.fileIndex         = gGameSession->location.loc.stage;
+    loadArgs.imageYOffset     = 0;
+    loadArgs.imageXPageOffset = 0;
+    loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
+    loadArgs.fileIdHundreds   = 0;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &loadArgs);
 }
 
-void Gp_EnqueueCompanionCd(u8 type, u8 variant)
+void companionEnqueueResources(u8 companionType, u8 resourceVariant)
 {
-    u8  param2[4];
-    u8* param1;
+    enum {
+        COMPANION_TYPE_NONE                     = 0,
+        COMPANION_RESOURCE_BASE_FILE_INDEX      = 0,
+        COMPANION_RESOURCE_FILE_GROUP           = 80,
+        COMPANION_REQUEST_SCRATCH_BYTES         = 8,
+        COMPANION_RESOURCE_IMAGE_X_PAGE_OFFSET  = 4,
+        COMPANION_RESOURCE_IMAGE_Y_OFFSET       = 6,
+        COMPANION_RESOURCE_VARIANT_REMAP_SOURCE = 5,
+        COMPANION_RESOURCE_VARIANT_REMAP_TARGET = 3,
+    };
+    _LoadingFileArgs loadArgs;
+    _LoadingFileKey* fileKey;
 
-    if (type == 0) {
+    if (companionType == COMPANION_TYPE_NONE) {
         return;
     }
 
-    param1                 = SCRATCH_STACK_RESERVE_BYTES(8);
-    gGameSession->field_80 = 0;
-    param1[3]              = 0;
-    param1[2]              = 0x50;
-    param1[0]              = 0;
-    param2[0]              = type;
-    param2[1]              = 0;
-    param2[2]              = 4;
-    param2[3]              = 6;
-    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+    // Only the first four bytes of this eight-byte scratch reservation form the key.
+    fileKey                   = SCRATCH_STACK_RESERVE_BYTES(COMPANION_REQUEST_SCRATCH_BYTES);
+    gGameSession->field_80    = 0;
+    fileKey->stage            = LOADING_GLOBAL_CDF;
+    fileKey->fileGroup        = COMPANION_RESOURCE_FILE_GROUP;
+    fileKey->fileIndex        = COMPANION_RESOURCE_BASE_FILE_INDEX;
+    loadArgs.fileIdHundreds   = companionType;
+    loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
+    loadArgs.imageXPageOffset = COMPANION_RESOURCE_IMAGE_X_PAGE_OFFSET;
+    loadArgs.imageYOffset     = COMPANION_RESOURCE_IMAGE_Y_OFFSET;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, &loadArgs);
 
-    if (variant != 0) {
-        param1[3] = 0;
-        param1[2] = 0x50;
-        param1[0] = variant;
-        param2[0] = type;
-        param2[1] = 0;
-        param2[2] = 4;
-        param2[3] = 6;
-        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-        if (variant == 5) {
-            gGameSession->companionVariant                            = 3;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = 3;
+    if (resourceVariant != COMPANION_RESOURCE_BASE_FILE_INDEX) {
+        fileKey->stage            = LOADING_GLOBAL_CDF;
+        fileKey->fileGroup        = COMPANION_RESOURCE_FILE_GROUP;
+        fileKey->fileIndex        = resourceVariant;
+        loadArgs.fileIdHundreds   = companionType;
+        loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
+        loadArgs.imageXPageOffset = COMPANION_RESOURCE_IMAGE_X_PAGE_OFFSET;
+        loadArgs.imageYOffset     = COMPANION_RESOURCE_IMAGE_Y_OFFSET;
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, &loadArgs);
+        // Variant 5 loads a special package but subsequently uses variant 3 actor data.
+        if (resourceVariant == COMPANION_RESOURCE_VARIANT_REMAP_SOURCE) {
+            gGameSession->companionVariant                            = COMPANION_RESOURCE_VARIANT_REMAP_TARGET;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = COMPANION_RESOURCE_VARIANT_REMAP_TARGET;
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(COMPANION_REQUEST_SCRATCH_BYTES);
 }
 
 void companionRelocateModelTextures(Task* companionTask)

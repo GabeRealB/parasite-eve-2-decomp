@@ -269,8 +269,8 @@ void Gp_LoadWaitBoot(Task* task)
         if (session->loadedCharacterId != save->state.characterId || session->loadedConfigSet != gPlayerStatus.resourceVariant) {
             GameSession* sess;
 
-            Gp_EnqueueConfigCd(0);
-            Gp_EnqueueHeldWeaponCd();
+            loadingEnqueueCharacterResources(0);
+            loadingEnqueueEquippedWeaponResources();
             sess                    = gGameSession;
             sess->loadedCharacterId = save->state.characterId;
             sess->loadedConfigSet   = gPlayerStatus.resourceVariant;
@@ -336,7 +336,7 @@ void Gp_LoadWaitStage(Task* task)
     }
     if (cdCmdIsIdle() & 0xFFFF) {
         if (gGameSession->location.loc.stage != gGameSession->loadedStage) {
-            Gp_EnqueueStageCd();
+            loadingEnqueueStageResources();
             gGameSession->loadedStage = gGameSession->location.loc.stage;
         }
         task->state++;
@@ -452,7 +452,7 @@ void Gp_LoadWaitCompanion(Task* task)
         flag = Gp_PickCompanion();
         if (flag != 0) {
             gGameSession->companionType = flag;
-            Gp_EnqueueCompanionCd(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant);
+            companionEnqueueResources(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant);
         }
         task->state++;
     }

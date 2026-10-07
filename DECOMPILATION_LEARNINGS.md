@@ -24683,7 +24683,7 @@ if ((u8)flag != 0) {
 Do not write `flag = (u8)flag` before the first call — that hoists the `andi`
 above the `jal`. Named locals for constants reused on both enqueue setups
 (`c50`/`c4`/`c6`) claim `$s7`/`$s5`/`$s4` and leave `$fp` for `%hi(gGameSession)`.
-`Gp_EnqueueCompanionCd` is the example.
+`companionEnqueueResources` is the example.
 
 Same schedule either way — only the dest of the `and` and the s-reg
 pairing change. `companionSetDecisionDelay` is the example.
@@ -27283,12 +27283,12 @@ typedef struct {
 } _LoadingConfigFileHundreds;
 
 extern _LoadingConfigFileHundreds Gp_ConfigCdTable;
-_LoadingConfigFileHundreds        table;
+_LoadingConfigFileHundreds        fileHundredsByVariant;
 
-table = Gp_ConfigCdTable; /* lwl/lwr/lb of Gp_ConfigCdTable */
+fileHundredsByVariant = Gp_ConfigCdTable; /* lwl/lwr/lb of Gp_ConfigCdTable */
 ```
 
-`Gp_EnqueueConfigCd` is the example.
+`loadingEnqueueCharacterResources` is the example.
 
 ## Pin the table `lhu` to `$v1` so a live `u8` can keep `$a0`
 
@@ -32177,19 +32177,19 @@ slot. Pin the pointer to `$a0` and force the subtract source through a
 temp:
 
 ```c
-register EquipmentWeaponLoad* slot asm("a0");
+register EquipmentWeaponLoad* weaponLoad asm("a0");
 
-slot = equipmentGetWeaponLoad(item + 0x7F);
-asm volatile("" : "+r"(slot));
-attach = slot->field_2;
-if (attach != 0 && attach != 0xFF) {
-    temp = attach;
+weaponLoad = equipmentGetWeaponLoad(weaponIndex + 0x7F);
+asm volatile("" : "+r"(weaponLoad));
+secondaryAmmoIndex = weaponLoad->secondaryItemId;
+if (secondaryAmmoIndex != 0 && secondaryAmmoIndex != 0xFF) {
+    temp = secondaryAmmoIndex;
     asm volatile("" : "+r"(temp));
-    attach = temp - 0x9F;
+    secondaryAmmoIndex = temp - 0x9F;
 }
 ```
 
-`Gp_EnqueueWeaponCd` is the example.
+`_loadingEnqueueWeaponAmmoResources` is the example.
 
 ## Inline a helper with literal `0` so field loads use `$zero`
 
@@ -146990,11 +146990,11 @@ all penalties zero. The rest of the function, including its pins and address
 asm, stayed unchanged. These paired results support removing the two barriers
 together; they do not establish that the remaining constraints are redundant.
 
-## Re-reading a guarded byte field can preserve both a pointer copy and a value copy (Gp_EnqueueWeaponCd, 2026-09-27)
+## Re-reading a guarded byte field can preserve both a pointer copy and a value copy (_loadingEnqueueWeaponAmmoResources, 2026-09-27)
 
 Replacing a cached secondary consumable id with
-`if (slot->secondaryItemId != INVENTORY_ITEM_NONE && slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE)` followed by
-`attach = slot->secondaryItemId - 0x9F` removes an `a0` pointer pin and two
+`if (weaponLoad->secondaryItemId != INVENTORY_ITEM_NONE && weaponLoad->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE)` followed by
+`secondaryAmmoIndex = weaponLoad->secondaryItemId - 0x9F` removes an `a0` pointer pin and two
 `TOUCH_REG` sites while retaining a 100.000% match. Caching the byte in an
 `s32` before the guard instead scores 98.441%, missing two copies.
 

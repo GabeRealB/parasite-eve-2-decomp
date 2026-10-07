@@ -1087,7 +1087,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 5:
             blackout = 1;
-            func_800A99B4();
+            loadingRequestViewGraphicsRestore();
             task->state += 1;
             break;
         case 6:

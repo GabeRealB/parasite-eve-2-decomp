@@ -1237,7 +1237,7 @@ static inline s32 _acropolisHelicopterLandingPadSampleScreenShake(Task* task, s3
 /// slot-4 entry 1 on a second-or-later visit (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant`), stamps
 /// the save location with 0x12 and sets the override vector. States 1-4 wait
 /// for `gGameSession->viewReady`, post 0x7D9 to slot 4 on a first visit, then
-/// call `func_800A99B4`. State 5 asks the scene task to look up child 0x28,
+/// call `loadingRequestViewGraphicsRestore`. State 5 asks the scene task to look up child 0x28,
 /// plays that child's animation from a zeroed request, pushes the slot-3
 /// weapon record with `field_4 = 9`
 /// and hands the enemy's coordinate to slot 3 (0x3F5). State 6 queues CD
@@ -1283,7 +1283,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             task->state += 1;
             break;
         case 4:
-            func_800A99B4();
+            loadingRequestViewGraphicsRestore();
             task->state += 1;
             break;
         case 5:
@@ -1320,7 +1320,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
                 task->state = 9;
             } else if (cdCmdIsIdle()) {
-                func_800A99B4();
+                loadingRequestViewGraphicsRestore();
                 task->state += 1;
             }
             break;

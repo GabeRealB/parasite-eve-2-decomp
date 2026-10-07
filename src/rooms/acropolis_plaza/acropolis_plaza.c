@@ -3738,7 +3738,7 @@ void func_acropolis_plaza_80180054(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;
-            Gp_EnqueueHeldWeaponCd();
+            loadingEnqueueEquippedWeaponResources();
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             taskSpawn(0, 0x11, 0, 0);
             q->blockGamePause = 0;

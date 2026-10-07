@@ -15,11 +15,35 @@
 /// Per-area pointer table. Index is `GameLocationKey.stage`.
 extern AreaRecord* Gp_AreaTables[];
 
-void func_800A99B4(void);
+/// Requests an asynchronous restoration of the current view's graphics.
+///
+/// Spawns `loadingRestoreViewGraphicsTask` on the display list. Requires the
+/// presentation ownership, disposable task-list storage and resource lifetimes
+/// of `displaySpawnTask` and `loadingRestoreViewGraphicsTask`. The callback runs
+/// later; this wrapper discards the spawn result. A rejected request does
+/// nothing, while allocation failure can leave prepared display buffers and an
+/// empty display list without transferring presentation ownership.
+void loadingRequestViewGraphicsRestore(void);
 
-void Gp_EnqueueHeldWeaponCd(void);
+/// Queues the equipped weapon package and any ammunition-dependent resource package.
+///
+/// Weapon indices 1..32 select global files 10301..10332. An unequipped player
+/// still queues 10301, without changing the equipped selection. Also requests
+/// a later seek back to the current view. Sources are copied immediately;
+/// completion is asynchronous. Requires one free CD ring slot, plus a second
+/// for weapons with an ammunition-dependent package, and live player/save data.
+void loadingEnqueueEquippedWeaponResources(void);
 
-void Gp_EnqueueConfigCd(s32 arg0);
+/// Queues the player's selected character resource package or only its images.
+///
+/// Does nothing when the live save's character ID is zero. Otherwise requires
+/// `gPlayerStatus.resourceVariant` in 1..5; it selects global files 10400,
+/// 10300, 10200, 10500 or 10600. A zero low byte of `imagesOnly` loads normally;
+/// a nonzero low byte uploads images only. Textures shift by six 64-word VRAM
+/// pages horizontally, with no vertical displacement. Requires one free CD
+/// ring slot and valid file destinations; it neither waits nor updates the
+/// session's character-resource cache. Request sources are copied immediately.
+void loadingEnqueueCharacterResources(s32 imagesOnly);
 
 /// Commits a logical view index to the current session and live save, then kills the task.
 ///
