@@ -4,7 +4,7 @@
 /// idle tick and the inert one does nothing. The status hold clears
 /// `field_292` and turns the fade toward in sight, resets the remembered
 /// animation id to the idle one and the counters every fourth frame, and
-/// returns to the idle state once `Gp_TickObjFlag2` reports the reaction over.
+/// returns to the idle state once `damageTickEnemyBuildup` reports the reaction over.
 void skullStalkerReactionDispatch(Task* task)
 {
     SkullStalkerWork* work;
@@ -25,7 +25,7 @@ void skullStalkerReactionDispatch(Task* task)
                 work->animFrames  = 0;
                 work->phaseFrames = 0;
             }
-            if (Gp_TickObjFlag2(task->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
                 work->state = SKULL_STALKER_STATE_IDLE;
             }
             break;

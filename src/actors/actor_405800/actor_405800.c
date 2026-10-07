@@ -23,7 +23,6 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/model_lighting.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -2837,7 +2836,7 @@ static void func_actor_405800_80136388(Task* arg0)
                 work->pendingArmed = 1;
                 dmg                = Gp_ComputeDamage(work->bodyContacts[i].key.value, work->playerDistance, 0, 0);
                 amount             = dmg;
-                work->hitCooldown  = Gp_GetIdParam2(work->bodyContacts[i].key.value);
+                work->hitCooldown  = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
                 if (damageRollCriticalHit(enemy, work->bodyContacts[i].key.value, 0) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
@@ -2848,7 +2847,7 @@ static void func_actor_405800_80136388(Task* arg0)
                 if (enemy->hp < 0) {
                     enemy->hp = 0;
                 }
-                func_800FDB18(Gp_GetIdParam1(work->bodyContacts[i].key.value) & 0xFFFF,
+                func_800FDB18(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value),
                               &arg0->extra.tmd->coords[4], NULL, &work->effectArg);
                 if (amount >= 0xB4) {
                     work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_HEAVY;
@@ -2857,18 +2856,18 @@ static void func_actor_405800_80136388(Task* arg0)
                 } else {
                     work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                 }
-                switch (Gp_GetIdParam0(work->bodyContacts[i].key.value) & 0xFFFF) {
-                    case 0:
+                switch (damageGetPlayerAttackReaction(work->bodyContacts[i].key.value) & 0xFFFF) {
+                    case DAMAGE_PLAYER_REACTION_NONE:
                         break;
-                    case 1:
-                        Gp_SetObjFlag1(enemy);
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
+                        damageStartEnemyStagger(enemy);
                         break;
-                    case 2:
-                        Gp_SetObjFlag2(enemy, work->bodyContacts[i].key.value, 0);
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
+                        damageStartEnemyBuildup(enemy, work->bodyContacts[i].key.value, 0);
                         work->stunKind = ACTOR_405800_STUN_STATUS;
                         break;
-                    case 3:
-                        Gp_SetObjFlag4(enemy, work->bodyContacts[i].key.value, 0);
+                    case DAMAGE_PLAYER_REACTION_POISON:
+                        damageTryStartEnemyDamageOverTime(enemy, work->bodyContacts[i].key.value, 0);
                         break;
                     case 4:
                         work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_BLAST;
@@ -2876,10 +2875,10 @@ static void func_actor_405800_80136388(Task* arg0)
                     case 5:
                         work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_HEAVY;
                         break;
-                    case 6:
+                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
                         work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_BLAST;
                         break;
-                    case 7:
+                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
                         work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_HEAVY;
                         break;
                     case 8:
@@ -2890,7 +2889,7 @@ static void func_actor_405800_80136388(Task* arg0)
                         }
                         break;
                 }
-            } else if ((Gp_GetIdParam1(work->bodyContacts[i].key.value) & 0xFFFF) == 0xD) {
+            } else if ((damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value)) == 0xD) {
                 func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
             }
         }
@@ -2907,7 +2906,7 @@ static void func_actor_405800_80136388(Task* arg0)
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         work->damageOverTimeSeen = 1;
-        tmp                      = Gp_TickObjFlag4(enemy);
+        tmp                      = damageTickEnemyDamageOverTime(enemy);
         tick                     = tmp;
         if (tick != 0) {
             enemy->hp -= tmp;
@@ -2918,7 +2917,7 @@ static void func_actor_405800_80136388(Task* arg0)
             work->pendingArmed  = 1;
             work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_HEAVY;
         }
-        if (Gp_ObjFlag4Expired(enemy) != 0) {
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
@@ -4154,7 +4153,7 @@ static void func_actor_405800_801393E8(Task* arg0)
 
     work = (_Actor405800IvoryStalkerWork*)arg0->work;
     if (work->stunKind == ACTOR_405800_STUN_STATUS) {
-        if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+        if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
             if (work->onBack == 0) {
                 work2              = (_Actor405800IvoryStalkerWork*)arg0->work;
                 work2->animBlend   = 8;

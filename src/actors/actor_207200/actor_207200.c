@@ -14,7 +14,6 @@
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/enemy.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"

@@ -20,7 +20,6 @@
 #include "gameplay/geometry.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -1446,7 +1445,7 @@ static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
     work->effectArg.coord      = &arg0->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x300;
     work->effectArg.spawnArgHi = 2;
-    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, &arg0->extra.tmd->coords[dir->pad], dir, &work->effectArg);
+    func_800FDB18(damageGetPlayerAttackEffectId(id), &arg0->extra.tmd->coords[dir->pad], dir, &work->effectArg);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
@@ -1600,8 +1599,8 @@ static void Actor01900_Fn02A50(Task* arg0)
                 hitPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 sndEvtRequestScriptStart(hitSound, hitPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
-            work->hitCooldown = Gp_GetIdParam2(s->hitKey);
-            switch (Gp_GetIdParam0(s->hitKey) & 0xFFFF) {
+            work->hitCooldown = damageGetPlayerAttackHitCooldown(s->hitKey);
+            switch (damageGetPlayerAttackReaction(s->hitKey) & 0xFFFF) {
                 case 4:
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     state                   = work->state;
@@ -1613,10 +1612,10 @@ static void Actor01900_Fn02A50(Task* arg0)
                         }
                     }
                     break;
-                case 0:
+                case DAMAGE_PLAYER_REACTION_NONE:
                 case 5:
-                case 6:
-                case 7:
+                case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                case DAMAGE_PLAYER_REACTION_INCENDIARY:
                     if (work->state == ACTOR_01900_STATE_DORMANT_SCRIPTED || work->state == ACTOR_01900_STATE_PATROL) {
                         work->state = ACTOR_01900_STATE_ALERT;
                     }
@@ -1641,9 +1640,9 @@ static void Actor01900_Fn02A50(Task* arg0)
                         work->blendRequest = ACTOR_01900_ANIM_REQUEST_RESET;
                     }
                     break;
-                case 2:
+                case DAMAGE_PLAYER_REACTION_BUILDUP:
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    Gp_SetObjFlag2(enemy, s->hitKey, 0);
+                    damageStartEnemyBuildup(enemy, s->hitKey, 0);
                     state = work->state;
                     if (state != ACTOR_01900_STATE_DOWN && state != ACTOR_01900_STATE_STATUS_HOLD) {
                         if (state == ACTOR_01900_STATE_RISE && work->stateTimer < 0xC) {
@@ -1655,14 +1654,14 @@ static void Actor01900_Fn02A50(Task* arg0)
                         work->state = ACTOR_01900_STATE_STATUS_HOLD;
                     }
                     break;
-                case 3:
+                case DAMAGE_PLAYER_REACTION_POISON:
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     if (work->state == ACTOR_01900_STATE_DORMANT_SCRIPTED || work->state == ACTOR_01900_STATE_PATROL) {
                         work->state = ACTOR_01900_STATE_ALERT;
                     }
-                    Gp_SetObjFlag4(enemy, s->hitKey, 0);
+                    damageTryStartEnemyDamageOverTime(enemy, s->hitKey, 0);
                     break;
-                case 1:
+                case DAMAGE_PLAYER_REACTION_STAGGER:
                     enemy->reactionFlags   &= ENEMY_REACTION_STAGGER_CLEAR;
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     state                   = work->state;
@@ -1710,8 +1709,8 @@ static void Actor01900_Fn02A50(Task* arg0)
             work->recentHitFrames--;
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            s->damage = Gp_TickObjFlag4(enemy);
-            if (Gp_ObjFlag4Expired(enemy) != 0) {
+            s->damage = damageTickEnemyDamageOverTime(enemy);
+            if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
                 enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
             }
             if (s->damage != 0) {
@@ -1738,7 +1737,7 @@ static void Actor01900_Fn02A50(Task* arg0)
         }
         if (enemy->hp <= 0) {
             if (s->hitKey != 0) {
-                if ((Gp_GetIdParam0(s->hitKey) & 0xFFFF) == 4 || (Gp_GetIdParam0(s->hitKey) & 0xFFFF) == 6) {
+                if ((damageGetPlayerAttackReaction(s->hitKey) & 0xFFFF) == 4 || (damageGetPlayerAttackReaction(s->hitKey) & 0xFFFF) == DAMAGE_PLAYER_REACTION_EXPLOSION) {
                     if (work->animId == 2 || work->animId == 3) {
                         work->state = ACTOR_01900_STATE_DEATH_BURST_WALK;
                     } else {
@@ -1795,7 +1794,7 @@ static void Actor01900_Fn03710(Task* arg0)
         work->animRate = 0x10;
     }
     Actor01900_Fn01C94(arg0);
-    if (Gp_TickObjFlag2(enemy) == 1) {
+    if (damageTickEnemyBuildup(enemy) == 1) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->state           = ACTOR_01900_STATE_DOWN;
     }
@@ -2684,7 +2683,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
         work->effectArg.spawnArgLo = 0x200;
         work->effectArg.spawnArgHi = 2;
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 3, 0, 0) || (u8)viewGetMappedIndex() != 0x10) {
-            func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
+            func_800FDB18(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
         }
     }
     work->dormantAnimFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;

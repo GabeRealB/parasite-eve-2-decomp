@@ -65,7 +65,7 @@ void oddStrangerStunned(Task* arg0)
         work->animRate = 0x10;
     }
     oddStrangerDrive(arg0);
-    if (Gp_TickObjFlag2(enemy) == 1) {
+    if (damageTickEnemyBuildup(enemy) == 1) {
         enemy->reactionFlags &= ~ENEMY_REACTION_BUILDUP;
         work->state           = ODD_STRANGER_STATE_DOWN;
     }

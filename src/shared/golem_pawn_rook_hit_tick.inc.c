@@ -101,7 +101,7 @@ void golemPawnRookTakeHits(Task* arg0)
                 damage                   = Gp_ComputeDamage(work->hurtContacts[i].key.value,
                                                             SquareRoot0((scratch->delta.vector.vx * scratch->delta.vector.vx) + (scratch->delta.vector.vy * scratch->delta.vector.vy) + (scratch->delta.vector.vz * scratch->delta.vector.vz)),
                                                             0, 0);
-                kind                     = Gp_GetIdParam0(work->hurtContacts[i].key.value);
+                kind                     = damageGetPlayerAttackReaction(work->hurtContacts[i].key.value);
                 if (work->shieldRaised != 0 && work->hitFromFront == 1 && work->downedPose == 0) {
                     if (work->hurtContacts[i].key.value & 0x8000) {
                         if (gGolemPawnRookWeakPointPe[work->hurtContacts[i].key.value & 0x7F] != 0) {
@@ -125,7 +125,7 @@ void golemPawnRookTakeHits(Task* arg0)
                             }
                         }
                         worldTargetAddReadoutAmount(&enemy->node, 0, 0);
-                        cooldown = Gp_GetIdParam2(work->hurtContacts[i].key.value);
+                        cooldown = damageGetPlayerAttackHitCooldown(work->hurtContacts[i].key.value);
                         if (cooldown > 0) {
                             work->hitCooldown = cooldown;
                         }
@@ -177,7 +177,7 @@ void golemPawnRookTakeHits(Task* arg0)
                         break;
                     case 2:
                         if (work->screamCharges == 0 && work->downedPose == 0 && result < 3) {
-                            Gp_SetObjFlag2(enemy, work->hurtContacts[i].key.value, 0);
+                            damageStartEnemyBuildup(enemy, work->hurtContacts[i].key.value, 0);
                             result = 1;
                         }
                         break;
@@ -196,10 +196,10 @@ void golemPawnRookTakeHits(Task* arg0)
                     scratch->effectOffset.vx = 0;
                     scratch->effectOffset.vy = 0;
                     scratch->effectOffset.vz = (work->hitFromFront == 1) ? 0x12C : -0x96;
-                    func_800FDB18(Gp_GetIdParam1(work->hurtContacts[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[3],
+                    func_800FDB18(damageGetPlayerAttackEffectId(work->hurtContacts[i].key.value), &arg0->extra.tmd->coords[3],
                                   &scratch->effectOffset, &work->hitEffectArg);
                 }
-                cooldown = Gp_GetIdParam2(work->hurtContacts[i].key.value);
+                cooldown = damageGetPlayerAttackHitCooldown(work->hurtContacts[i].key.value);
                 if (cooldown > 0) {
                     work->hitCooldown = cooldown;
                 }

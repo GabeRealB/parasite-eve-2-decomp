@@ -18,7 +18,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -1023,7 +1022,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             work->effectArg.coord      = &arg1->extra.tmd->coords[4];
             work->effectArg.spawnArgLo = 0x120;
             work->effectArg.spawnArgHi = 2;
-            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[4], NULL, &work->effectArg);
+            func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg1->extra.tmd->coords[4], NULL, &work->effectArg);
             Gp_SpawnScript18Ex(Actor01200_D04044, Actor01200_D04050, (s16)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             work->burstAttackBody.radius = 0x320;
             work->burstWaveBody.radius   = 0xC8;
@@ -1039,7 +1038,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             work->effectArg.coord      = &arg1->extra.tmd->coords[1];
             work->effectArg.spawnArgLo = 0x80;
             work->effectArg.spawnArgHi = 2;
-            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[1], NULL, &work->effectArg);
+            func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg1->extra.tmd->coords[1], NULL, &work->effectArg);
             work->burstWaveBody.radius = 0x320;
             break;
         case 0x2E:
@@ -1049,7 +1048,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             work->effectArg.coord      = &arg1->extra.tmd->coords[1];
             work->effectArg.spawnArgLo = 0x200;
             work->effectArg.spawnArgHi = 2;
-            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[1], NULL, &work->effectArg);
+            func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg1->extra.tmd->coords[1], NULL, &work->effectArg);
             Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, &ofs);
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400C0004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
@@ -1161,7 +1160,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
             work->effectArg.coord      = &arg1->extra.tmd->coords[4];
             work->effectArg.spawnArgLo = 0x120;
             work->effectArg.spawnArgHi = 2;
-            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[4], NULL, &work->effectArg);
+            func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg1->extra.tmd->coords[4], NULL, &work->effectArg);
             break;
         case 0xF:
             work->burstWaveBody.radius   = 0xC8;
@@ -1173,7 +1172,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
             work->effectArg.coord      = &arg1->extra.tmd->coords[2];
             work->effectArg.spawnArgLo = 0x100;
             work->effectArg.spawnArgHi = 2;
-            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[2], NULL, &work->effectArg);
+            func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg1->extra.tmd->coords[2], NULL, &work->effectArg);
             break;
         case 0x11:
             work->burstWaveBody.radius = 0x320;
@@ -1187,7 +1186,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
             work->effectArg.coord      = &arg1->extra.tmd->coords[1];
             work->effectArg.spawnArgLo = 0x200;
             work->effectArg.spawnArgHi = 2;
-            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[1], NULL, &work->effectArg);
+            func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg1->extra.tmd->coords[1], NULL, &work->effectArg);
             break;
         case 0x15:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1294,7 +1293,7 @@ static void Actor01200_Fn026A0(Task* arg0, s16 arg1, u32 arg2)
     work->effectArg.spawnArgHi = 2;
     work->effectArg.coord      = coord;
     work->hitEffectOffset      = *sc;
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->hitEffectOffset, &work->effectArg);
+    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->hitEffectOffset, &work->effectArg);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 

@@ -52,11 +52,11 @@ extern s32 D_80114F28;
 
 void Gp_UpdateAttachCombo(s32 arg0);
 
-/// Percentages `Gp_ObjFlag4Expired` scales an enemy's `param->damageOverTimeTicks` by,
+/// Percentages `damageIsEnemyDamageOverTimeExpired` scales an enemy's `param->damageOverTimeTicks` by,
 /// one per `Enemy.damageOverTimeGrade`: how long the damage-over-time reaction lasts.
 extern u16 D_80113D28[];
 
-/// Percentages `Gp_TickObjFlag2` scales an enemy's `param->buildupSteps` by, one
+/// Percentages `damageTickEnemyBuildup` scales an enemy's `param->buildupSteps` by, one
 /// per `Enemy.buildupGrade`: how far the buildup reaction builds up.
 extern u16 D_80113D30[];
 

@@ -23,7 +23,6 @@
 #include "gameplay/player_state.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
@@ -535,19 +534,19 @@ static void Actor02400_Fn00C08(Task* task)
                 if (!(work->bodyContacts[i].key.value & 0x8000)) {
                     kind = Actor02400_D045DC[work->bodyContacts[i].key.value & 0x7F];
                 }
-                switch (Gp_GetIdParam0(work->bodyContacts[i].key.value) & 0xFFFF) {
-                    case 3:
+                switch (damageGetPlayerAttackReaction(work->bodyContacts[i].key.value) & 0xFFFF) {
+                    case DAMAGE_PLAYER_REACTION_POISON:
                     case 4:
                         kind = 3;
                         break;
-                    case 1:
-                    case 7:
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
+                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
                         kind = 1;
                         break;
-                    case 0:
-                    case 2:
+                    case DAMAGE_PLAYER_REACTION_NONE:
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
                     case 5:
-                    case 6:
+                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
                     case 8:
                     case 9:
                         break;
@@ -587,7 +586,7 @@ static void Actor02400_Fn00C08(Task* task)
                         work->speed              = 0;
                         work->turnRate           = 0;
                         work->armOut             = 0;
-                        param                    = Gp_GetIdParam1(work->bodyContacts[i].key.value) & 0xFFFF;
+                        param                    = damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value);
                         if (Actor02400_D0463C[param] == 0 && lastId != work->bodyContacts[i].key.value) {
                             lastId = work->bodyContacts[i].key.value;
                             func_800FDB18(param, coord, NULL, &work->effectArg);
@@ -627,7 +626,7 @@ static void Actor02400_Fn00C08(Task* task)
                 if ((enemy->hp -= damage) <= 0) {
                     task->state = 2;
                 }
-                stun = Gp_GetIdParam2(work->bodyContacts[i].key.value);
+                stun = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
                 if (stun > 0) {
                     work->hitCooldown = stun;
                 }

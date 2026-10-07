@@ -14,7 +14,6 @@
 #include "gameplay/damage.h"
 #include "gameplay/enemy.h"
 #include "gameplay/lighting_work.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
@@ -1845,7 +1844,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
                 work->knockback.vz = work->contacts[i].response.direction.vz;
                 func_actor_107600_80134D9C(arg0);
                 damage            = Gp_ComputeDamage(work->contacts[i].key.value, work->playerDistance, 0, 0);
-                work->hitCooldown = Gp_GetIdParam2(work->contacts[i].key.value);
+                work->hitCooldown = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
                 work->hitDamage   = damage;
                 worldTargetAddReadoutAmount(&enemy->node, damage, 0);
                 enemy->hp -= damage;

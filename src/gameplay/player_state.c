@@ -20,7 +20,7 @@
 #include "loading.h"
 #include "gameplay/message.h"
 #include "gameplay/model_objects.h"
-#include "gameplay/object_fields.h"
+#include "gameplay/damage.h"
 #include "gameplay/player_actor.h"
 #include "player_actor.h"
 #include "player_state.h"
@@ -1082,7 +1082,7 @@ static void func_8010B348(Task* arg0, WorldCollisionContact* arg1, s32 arg2)
                 inner->damageReaction = GAME_ACTOR_REACTION_ORDINARY;
                 break;
         }
-        inner->pendingDamage = Gp_LookupIdField(arg1->key.value, 0);
+        inner->pendingDamage = damageGetHazardDamage(arg1->key.value, DAMAGE_HAZARD_VICTIM_PLAYER);
     }
 }
 

@@ -28,7 +28,7 @@ void oddStrangerGrabHold(Task* arg0)
         work->effectArg.coord      = arg0->extra.tmd->coords + 1;
         work->effectArg.spawnArgLo = ODD_STRANGER_PART1_FX_SCALE;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
+        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
 #if ODD_STRANGER_VARIANT == 1
         work->state = ODD_STRANGER_STATE_GRAB_RELEASE;
 #endif

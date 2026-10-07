@@ -8232,7 +8232,7 @@ if ((id & 0x3F) == 0x31) {
 p->field_5D = Gp_StateC08.attachId % 10U;
 ```
 
-`Gp_SetObjFlag2` is the example. The `&&` / else-zero form stuck at 87% with
+`damageStartEnemyBuildup` is the example. The `&&` / else-zero form stuck at 87% with
 only the branch inverted and the zero store at the end.
 
 ## Store `== K` in an `s32` and test `== 0` so the false return is `beqz`
@@ -10683,7 +10683,7 @@ switch** and the argument setup lands in the merged tail:
 ```
 .Ltail:
     sh   $v0, 0x4($s0)
-    jal  Gp_GetIdParam1
+    jal  damageGetPlayerAttackEffectId
      addu $a0, $s1, $zero      # one copy, in the delay slot
 ```
 
@@ -10698,7 +10698,7 @@ setup copied into each arm instead:
     j    .Ltail
      addiu $v0, $zero, 0x2BC
 .Ltail:
-    jal  Gp_GetIdParam1
+    jal  damageGetPlayerAttackEffectId
      sh  $v0, 0x4($s0)
 ```
 
@@ -10735,7 +10735,7 @@ only behaves specially for 2, 4, 6 and 7, but its table spans 0..9, so the
 original enumerated the other six explicitly alongside `default:`:
 
 ```c
-switch (Gp_GetIdParam0(id) & 0xFFFF) {
+switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
     case 2: case 4: case 6: case 7:
         ...
         break;
@@ -27283,7 +27283,7 @@ if (arg0->count >= (val * scale) / 100) {
 ```
 
 A plain `s32 scale` (no pin) is not enough: local-alloc still hands the
-`lhu` `$a0`. `Gp_ObjFlag4Expired` is the example.
+`lhu` `$a0`. `damageIsEnemyDamageOverTimeExpired` is the example.
 
 ## Copy `arg2` inside the inner if so `$a2` can hold a table
 
@@ -45468,7 +45468,7 @@ beq  v1, v0, ...
 already has other definitions elsewhere in the function keeps the copy, and puts
 it in the register that scratch already uses. Pick the reused local by which
 register the target wants: in `Actor00400_Fn01B90` the `$v1` scratch holds the
-`Gp_TickObjFlag4` result, the `worldCollisionResolvePushback` switch index *and* the switch
+`damageTickEnemyDamageOverTime` result, the `worldCollisionResolvePushback` switch index *and* the switch
 index copy, while a second scratch in `$a1` holds only the sign-extended tick
 count — using the wrong one of the two moved four `lh` loads to `$a1`.
 
@@ -47481,7 +47481,7 @@ s32 state = work->actionStep;
 switch (state) {
 /* … */
 case 1:
-    if (Gp_TickObjFlag2(arg0->field_20) != 0) {
+    if (damageTickEnemyBuildup(arg0->field_20) != 0) {
         work->action = state;   /* sh $s1 — no reload */
     }
 }
@@ -78066,7 +78066,7 @@ else therefore hash apart, and `find` reports one copy each.
 `func_actor_300700_801645F8` against `Actor00700_Fn01148`
 (`src/actors/lib/actor_100700_text.c`) is the case: 111 canonical lines each, 46
 differing lines, and every differing line a label — no operand, displacement or
-callee differs, and the `jal Gp_TickObjFlag2` words are identical. `similar`
+callee differs, and the `jal damageTickEnemyBuildup` words are identical. `similar`
 reported 1.00 in `shape`, `fields` and `cflow`; the body ported with its field
 offsets renumbered scored 100.00 with every penalty zero on the first build.
 
@@ -79627,7 +79627,7 @@ regs=27`. The only missing instruction was a copy after the second call, and the
 
 ```
 lw    a0, 0x2b8(s3)
-jal   Gp_GetIdParam2
+jal   damageGetPlayerAttackHitCooldown
 move  s4, v0          /* target; absent in the candidate */
 blez  s4, 5e0
 sh    s4, 0x390(s0)
@@ -79637,13 +79637,13 @@ sh    s4, 0x390(s0)
 `allocno_calls_crossed == 0`, so any `move $sN, v0` at a call site says the
 destination pseudo reaches across a call and therefore had to live in a
 callee-saved register. The target produces the same `move s4, v0` after
-`worldCollisionResolvePushback` *and* after `Gp_GetIdParam2`, with everything between them
+`worldCollisionResolvePushback` *and* after `damageGetPlayerAttackHitCooldown`, with everything between them
 reading `$s4`; two short block-local pseudos (which is what two C variables
 give, and what the candidate had) cannot do that. The source change is to merge
 the two locals — here the stun value into the movement value:
 
 ```c
-movement = Gp_GetIdParam2(work->field_2B4[i].field_4);
+movement = damageGetPlayerAttackHitCooldown(work->field_2B4[i].field_4);
 if (movement > 0) {
     work->field_390 = movement;
 }
@@ -97830,7 +97830,7 @@ The fix came from the matched sibling `func_actor_356100_8016A468`
 BRIEF's "similar matched bodies" list (none above 0.80) surfaces such a sibling,
 because both compare splat's disassembly *text* and these actors carry the idiom
 at different addresses. Grepping `src/` for a distinctive callee chain does —
-here `Gp_GetIdParam1(0x1001)` next to `func_800FDB18`, or `damagePackEnemyAttackKey((GpObj50*)…, 0)`
+here `damageGetPlayerAttackEffectId(0x1001)` next to `func_800FDB18`, or `damagePackEnemyAttackKey((GpObj50*)…, 0)`
 with message `0x3FF`. Read that sibling's *source*, not just its asm: it also
 carried the statement order the next paragraph needed.
 
@@ -113037,7 +113037,7 @@ Also needed, and each was observable on its own: `_Actor356100Work::stateTimer` 
 `u16` the header had, or the `== 0` test emits `lhu` where the target has `lh`;
 and filling the `D_actor_356100_801732A8` record with `field_0` first rather than
 last lets the model coordinate load schedule ahead of the two `sh` stores and the
-store land in the `Gp_GetIdParam1` delay slot.
+store land in the `damageGetPlayerAttackEffectId` delay slot.
 
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`;
 matching input `base_5.i` SHA256
@@ -118459,7 +118459,7 @@ builds a second chain.
 **Fix.** Write the inner test as a `switch` whose extra case is empty:
 
 ```c
-switch (Gp_GetIdParam0(work->field_49C[i].field_4) & 0xFFFF) {
+switch (damageGetPlayerAttackReaction(work->field_49C[i].field_4) & 0xFFFF) {
     case 1:
         found = 1;
         break;
@@ -127810,7 +127810,7 @@ if (id == 7 && work->lastCueIndex != id) {
     eff.coord      = ((TmdObject*)task->extra)->coords; /* part 0, no addiu */
     eff.spawnArgLo = 0x100;
     eff.spawnArgHi = 2;
-    func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
+    func_800FDB18(damageGetPlayerAttackEffectId(0x1001), ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
 }
 work->lastCueIndex = work->rig.slots[0].currentPose.indices.recordIndex & 0x3FF; /* 0x16 -- slot 0, not 1 */
 ```

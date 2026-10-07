@@ -22,7 +22,6 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -2271,12 +2270,12 @@ static void func_actor_421600_801354D8(Task* arg0)
         }
         if (scratch->hitKey != 0) {
             scratch->criticalEffect = -1;
-            work->hitCooldown       = Gp_GetIdParam2(scratch->hitKey);
-            kind                    = Gp_GetIdParam0(scratch->hitKey) & 0xFFFF;
+            work->hitCooldown       = damageGetPlayerAttackHitCooldown(scratch->hitKey);
+            kind                    = damageGetPlayerAttackReaction(scratch->hitKey) & 0xFFFF;
             switch (kind) {
-                case 0:
-                case 6:
-                case 7:
+                case DAMAGE_PLAYER_REACTION_NONE:
+                case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                case DAMAGE_PLAYER_REACTION_INCENDIARY:
                 case 8:
                 case 9:
                     state0 = work->state;
@@ -2312,7 +2311,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                         work->state = 20;
                     }
                     break;
-                case 2:
+                case DAMAGE_PLAYER_REACTION_BUILDUP:
                     state3 = work->state;
                     if (state3 == 33 || state3 == 4 || state3 == 11 || state3 == 17) {
                         work->state     = 11;
@@ -2320,9 +2319,9 @@ static void func_actor_421600_801354D8(Task* arg0)
                     } else if (state3 != 21 && state3 != 7) {
                         work->state = 20;
                     }
-                    Gp_SetObjFlag2(enemy, scratch->hitKey, 0);
+                    damageStartEnemyBuildup(enemy, scratch->hitKey, 0);
                     break;
-                case 3:
+                case DAMAGE_PLAYER_REACTION_POISON:
                     state4 = work->state;
                     if ((state4 == 0x18) || (state4 == 0x26) || (state4 == 1) ||
                         (state4 == 0x20)) {
@@ -2331,9 +2330,9 @@ static void func_actor_421600_801354D8(Task* arg0)
                     if (work->state == 0x21) {
                         work->state = 0x22;
                     }
-                    Gp_SetObjFlag4(enemy, scratch->hitKey, 0);
+                    damageTryStartEnemyDamageOverTime(enemy, scratch->hitKey, 0);
                     break;
-                case 1:
+                case DAMAGE_PLAYER_REACTION_STAGGER:
                     state5 = work->state;
                     if (state5 != 7) {
                         if (state5 == 4 || state5 == 11 || state5 == 20 || state5 == 17 ||
@@ -2417,7 +2416,7 @@ static void func_actor_421600_801354D8(Task* arg0)
             work->recentDamage = totalDamage;
             if (enemy->hp <= 0) {
                 D_actor_421600_80151268 -= 1;
-                if ((Gp_GetIdParam0(scratch->hitKey) & 0xFFFF) == 4) {
+                if ((damageGetPlayerAttackReaction(scratch->hitKey) & 0xFFFF) == 4) {
                     work->state = 8;
                 } else {
                     deathState = work->state;
@@ -2466,8 +2465,8 @@ static void func_actor_421600_801354D8(Task* arg0)
             }
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            scratch->damage = Gp_TickObjFlag4(enemy);
-            if (Gp_ObjFlag4Expired(enemy) != 0) {
+            scratch->damage = damageTickEnemyDamageOverTime(enemy);
+            if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
                 enemy->reactionFlags = (u8)(enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR);
             }
             enemy->hp  = (s16)((u16)enemy->hp - (u16)scratch->damage);

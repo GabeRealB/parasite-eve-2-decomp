@@ -2184,7 +2184,7 @@ static __inline__ void _worldCollisionGetBodyComposedPosition(const WorldCollisi
 /// Bit 15 selects attachment-ability rows instead of weapon-attack rows; the
 /// low seven bits select a row and all other bits are ignored. The row must be
 /// below 47 for weapon attacks or ATTACHMENT_LEVEL_ROW_COUNT for attachments.
-/// Returns the same reaction field as `Gp_GetIdParam0`, without its s32 widening.
+/// Returns the same reaction field as `damageGetPlayerAttackReaction`.
 /// This translation unit has no caller; the helper emits no out-of-line body.
 static inline u16 _objectFieldGetAttackHitReaction(s32 attackId)
 {

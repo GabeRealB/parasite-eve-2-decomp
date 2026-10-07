@@ -24,7 +24,6 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -1055,13 +1054,13 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
 /// `damageRollCriticalHit`, and halved (or zeroed for 0x8000 ids) while the
 /// shield is up, which also plays the deflect flash and sound. The id
 /// parameter may ask for a stagger or, with the shield down, for
-/// `Gp_SetObjFlag2` or `Gp_SetObjFlag4`. The hit credits Life Drain healing
+/// `damageStartEnemyBuildup` or `damageTryStartEnemyDamageOverTime`. The hit credits Life Drain healing
 /// through `damageAccumulateLifeDrainHp`, updates the readout through
 /// `worldTargetAddReadoutAmount`, and reduces HP; at 0 the actor goes to
 /// `ACTION_DEFEATED`, and `staggerDamage` reaching 0x1A4 (or the stagger
 /// request) sends it to `ACTION_STAGGER`, breaking a charge in progress.
 /// Either ends `ringEffect`. A new id sparks `func_800FDB18` once, and
-/// `Gp_GetIdParam2` arms the cooldown. The tail releases the hit table, steps
+/// `damageGetPlayerAttackHitCooldown` arms the cooldown. The tail releases the hit table, steps
 /// `staggerTimer`, and starts the knockback when `touchContacts` holds a
 /// player character's body.
 static void func_actor_105100_80132C2C(Task* arg0)
@@ -1117,30 +1116,30 @@ static void func_actor_105100_80132C2C(Task* arg0)
             }
             worldTargetAddReadoutAmount(&ctx->node, damage, 0);
             if (damage != 0) {
-                switch (Gp_GetIdParam0(work->hitContacts[i].key.value) & 0xFFFF) {
-                    case 0:
+                switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                    case DAMAGE_PLAYER_REACTION_NONE:
                         break;
-                    case 1:
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
                         if ((work->hitContacts[i].key.value & 0x3F) != 0x1C) {
                             flag = 1;
                         }
                         break;
-                    case 2:
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
                         if (work->shield.fields.active == 0) {
-                            Gp_SetObjFlag2(ctx, work->hitContacts[i].key.value, 0);
+                            damageStartEnemyBuildup(ctx, work->hitContacts[i].key.value, 0);
                         }
                         break;
-                    case 3:
+                    case DAMAGE_PLAYER_REACTION_POISON:
                         if (work->shield.fields.active == 0) {
-                            Gp_SetObjFlag4(ctx, work->hitContacts[i].key.value, 0);
+                            damageTryStartEnemyDamageOverTime(ctx, work->hitContacts[i].key.value, 0);
                         }
                         break;
                     case 4:
                         flag = 1;
                         break;
                     case 5:
-                    case 6:
-                    case 7:
+                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
                     case 8:
                     case 9:
                         break;
@@ -1177,10 +1176,10 @@ static void func_actor_105100_80132C2C(Task* arg0)
                 work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 if (lastId != work->hitContacts[i].key.value) {
                     lastId = work->hitContacts[i].key.value;
-                    func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL,
+                    func_800FDB18(damageGetPlayerAttackEffectId(lastId), &arg0->extra.tmd->coords[3], NULL,
                                   &work->hitEffectArg);
                 }
-                wait = Gp_GetIdParam2(work->hitContacts[i].key.value);
+                wait = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
                 if (wait > 0) {
                     work->hitCooldown = wait;
                 }
@@ -2520,7 +2519,7 @@ static void func_actor_105100_80135E54(Task* arg0)
         work->buildupPending = 1;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        tick = Gp_TickObjFlag4(enemy) << 0x10;
+        tick = damageTickEnemyDamageOverTime(enemy) << 0x10;
         if (tick != 0) {
             damage = tick >> 0x12;
             worldTargetAddReadoutAmount(&enemy->node, damage, 0);
@@ -2535,7 +2534,7 @@ static void func_actor_105100_80135E54(Task* arg0)
             work->action     = state;
             work->actionStep = 0;
         }
-        if (Gp_ObjFlag4Expired(enemy) != 0) {
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
@@ -2595,7 +2594,7 @@ static void func_actor_105100_80135FCC(Task* arg0)
 /// `ACTION_BUILDUP`: step 0 starts the held animation, breaks a charge in
 /// progress, clears the summon phase, stops the looping sounds, turns
 /// `strikeBody`'s pair tests off and ends `ringEffect`; unless a charge was
-/// broken it also arms the shield cooldown. Step 1 waits on `Gp_TickObjFlag2`
+/// broken it also arms the shield cooldown. Step 1 waits on `damageTickEnemyBuildup`
 /// before clearing the enemy's buildup bit and `buildupPending`. Step 2 waits
 /// for frame 0xB of the recovery animation and returns to `ACTION_IDLE`.
 static void func_actor_105100_801360AC(Task* arg0)
@@ -2630,7 +2629,7 @@ static void func_actor_105100_801360AC(Task* arg0)
             }
             break;
         case 1:
-            if (Gp_TickObjFlag2(enemy) != 0) {
+            if (damageTickEnemyBuildup(enemy) != 0) {
                 work->anim            = ACTOR_105100_ANIM_BUILDUP_END;
                 work->actionStep      = 2;
                 work->buildupPending  = 0;

@@ -79,7 +79,7 @@ void generatorBodyHit(Task* arg0)
             }
             if (lastId != work->contacts[i].key.value) {
                 lastId               = work->contacts[i].key.value;
-                val                  = Gp_GetIdParam1(lastId) & 0xFFFF;
+                val                  = damageGetPlayerAttackEffectId(lastId);
                 scr->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
                 scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
                 scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
@@ -89,7 +89,7 @@ void generatorBodyHit(Task* arg0)
                     func_800FDB18((u16)val, coord, &scr->effectOffset, &work->effectArg);
                 }
             }
-            val = Gp_GetIdParam2(work->contacts[i].key.value);
+            val = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
             if (val > 0) {
                 work->hitCooldown = val;
             }

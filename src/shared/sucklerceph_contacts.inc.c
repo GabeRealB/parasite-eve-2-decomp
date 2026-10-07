@@ -85,24 +85,24 @@ void sucklercephContacts(Task* arg0)
                     } else {
                         damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, damage, 0);
                         sucklercephTakeDamage(arg0, damage);
-                        effect = Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF;
+                        effect = damageGetPlayerAttackReaction(work->contacts[i].key.value) & 0xFFFF;
                         switch (effect) {
-                            case 1:
+                            case DAMAGE_PLAYER_REACTION_STAGGER:
                                 work->animFrozen = 1;
                                 work->awakeStage = SUCKLERCEPH_AWAKE_STAGE_SWELL;
                                 break;
-                            case 3:
-                                Gp_SetObjFlag4(enemy, work->contacts[i].key.value, 0);
+                            case DAMAGE_PLAYER_REACTION_POISON:
+                                damageTryStartEnemyDamageOverTime(enemy, work->contacts[i].key.value, 0);
                                 break;
-                            case 2:
+                            case DAMAGE_PLAYER_REACTION_BUILDUP:
                             case 9:
-                                Gp_SetObjFlag2(enemy, work->contacts[i].key.value, 0);
+                                damageStartEnemyBuildup(enemy, work->contacts[i].key.value, 0);
                                 break;
                         }
                         if (enemy->hp > 0) {
-                            func_800FDB18(Gp_GetIdParam1(work->contacts[i].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, NULL, &work->hitEffectArg);
+                            func_800FDB18(damageGetPlayerAttackEffectId(work->contacts[i].key.value), arg0->extra.tmd->coords + 1, NULL, &work->hitEffectArg);
                         }
-                        hitCooldown = Gp_GetIdParam2(work->contacts[i].key.value);
+                        hitCooldown = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
                         if (hitCooldown > 0) {
                             work->hitCooldown = hitCooldown;
                         }

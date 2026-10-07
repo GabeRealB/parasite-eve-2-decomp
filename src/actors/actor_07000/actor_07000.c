@@ -16,7 +16,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -1160,7 +1159,7 @@ static void Actor07000_Fn03164(Enemy* arg0, Task* arg1)
                 work->animFrames  = 0;
                 work->stateFrames = 0;
             }
-            if (Gp_TickObjFlag2(arg1->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(arg1->spawnArg2.pointer) != 0) {
                 work->state = ACTOR_07000_SLOUCH_STATE_IDLE;
             }
             break;
@@ -1513,10 +1512,10 @@ static void Actor07000_Fn03E08(Task* arg0)
                     }
                     damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, (s32)damage, 0);
                     Actor07000_Fn04274(arg0, (s32)damage);
-                    reaction = Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF;
+                    reaction = damageGetPlayerAttackReaction(work->contacts[i].key.value) & 0xFFFF;
                     switch (reaction) {
-                        case 1:
-                        case 7:
+                        case DAMAGE_PLAYER_REACTION_STAGGER:
+                        case DAMAGE_PLAYER_REACTION_INCENDIARY:
                             if (work->state <= ACTOR_07000_SLOUCH_STATE_ENGAGED) {
                                 work->animFrames    = 0;
                                 work->state         = ACTOR_07000_SLOUCH_STATE_ENGAGED;
@@ -1524,16 +1523,16 @@ static void Actor07000_Fn03E08(Task* arg0)
                                 work->engagedAction = ACTOR_07000_SLOUCH_ENGAGED_RECOIL;
                             }
                             break;
-                        case 3:
-                            Gp_SetObjFlag4(enemy, work->contacts[i].key.value, 0);
+                        case DAMAGE_PLAYER_REACTION_POISON:
+                            damageTryStartEnemyDamageOverTime(enemy, work->contacts[i].key.value, 0);
                             break;
-                        case 2:
+                        case DAMAGE_PLAYER_REACTION_BUILDUP:
                         case 8:
                         case 9:
-                            Gp_SetObjFlag2(enemy, work->contacts[i].key.value, 0);
+                            damageStartEnemyBuildup(enemy, work->contacts[i].key.value, 0);
                             break;
                         case 4:
-                        case 6:
+                        case DAMAGE_PLAYER_REACTION_EXPLOSION:
                             if (enemy->hp < 0) {
                                 Actor07000_Fn049C0(arg0);
                                 work->hasBurst = 1;
@@ -1541,8 +1540,8 @@ static void Actor07000_Fn03E08(Task* arg0)
                             break;
                     }
                     work->alert = 1;
-                    func_800FDB18(Gp_GetIdParam1(work->contacts[i].key.value) & 0xFFFF, (arg0->extra.tmd->coords + 1), &Actor07000_D0D7B0, &work->hitEffectArg);
-                    cooldown = Gp_GetIdParam2(work->contacts[i].key.value);
+                    func_800FDB18(damageGetPlayerAttackEffectId(work->contacts[i].key.value), (arg0->extra.tmd->coords + 1), &Actor07000_D0D7B0, &work->hitEffectArg);
+                    cooldown = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
                     if ((cooldown << 0x10) > 0) {
                         work->hitCooldown = cooldown;
                     }
@@ -2654,13 +2653,13 @@ static void Actor07000_Fn0662C(Task* arg0)
             work->stateFrames     = 0;
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            tick = Gp_TickObjFlag4(enemy);
+            tick = damageTickEnemyDamageOverTime(enemy);
             if (tick != 0) {
                 Actor07000_Fn04274(arg0, tick);
                 work->state  = ACTOR_07000_SLOUCH_STATE_IDLE;
                 work->animId = ACTOR_07000_SLOUCH_ANIM_STATUS_FLINCH;
             }
-            if (Gp_ObjFlag4Expired(enemy) != 0) {
+            if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
                 enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
             }
         }

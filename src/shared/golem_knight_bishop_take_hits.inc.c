@@ -116,7 +116,7 @@ void golemKnightBishopTakeHits(Task* arg0)
                                                       sc->delta.vector.vy * sc->delta.vector.vy +
                                                       sc->delta.vector.vz * sc->delta.vector.vz),
                                           0, 0);
-                kind   = Gp_GetIdParam0(work->hurtContacts[i].key.value);
+                kind   = damageGetPlayerAttackReaction(work->hurtContacts[i].key.value);
                 if ((u16)kind == 5) {
                     damage *= 2;
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
@@ -132,16 +132,16 @@ void golemKnightBishopTakeHits(Task* arg0)
                 enemy->hp             -= damage;
                 work->interruptDamage += damage;
                 switch ((u16)kind) {
-                    case 0:
-                    case 3:
+                    case DAMAGE_PLAYER_REACTION_NONE:
+                    case DAMAGE_PLAYER_REACTION_POISON:
                     case 4:
                     case 5:
-                    case 6:
-                    case 7:
+                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
                     case 8:
                         break;
-                    case 1:
-                    case 2:
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
                         if (work->flickerStage == 0) {
                             work->flickerStage = 1;
                             work->fadeState    = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_START;
@@ -160,11 +160,11 @@ void golemKnightBishopTakeHits(Task* arg0)
                         t = 0xC8;
                     }
                     sc->effectOffset.vz = t;
-                    func_800FDB18((u16)Gp_GetIdParam1(work->hurtContacts[i].key.value),
+                    func_800FDB18(damageGetPlayerAttackEffectId(work->hurtContacts[i].key.value),
                                   &arg0->extra.tmd->coords[3], &sc->effectOffset,
                                   &work->hitEffectArg);
                 }
-                wait = Gp_GetIdParam2(work->hurtContacts[i].key.value);
+                wait = damageGetPlayerAttackHitCooldown(work->hurtContacts[i].key.value);
                 if (wait > 0) {
                     work->hitCooldown = wait;
                 }

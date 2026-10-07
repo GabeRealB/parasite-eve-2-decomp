@@ -1,7 +1,7 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
 /// Picks one of twelve hit positions out of `gDesertChaserHitOffsets` by damage
-/// magnitude `arg1`, then spawns effect `Gp_GetIdParam1(arg2)` on the model
+/// magnitude `arg1`, then spawns effect `damageGetPlayerAttackEffectId(arg2)` on the model
 /// part that entry names.
 void desertChaserHitEffect(Task* arg0, s16 arg1, s32 arg2)
 {
@@ -63,6 +63,6 @@ void desertChaserHitEffect(Task* arg0, s16 arg1, s32 arg2)
     work->effectArg.spawnArgLo = 0x100;
     work->effectArg.spawnArgHi = 2;
     work->hitOffset            = *sc;
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->hitOffset, &work->effectArg);
+    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->hitOffset, &work->effectArg);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

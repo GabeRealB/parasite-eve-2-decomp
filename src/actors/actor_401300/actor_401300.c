@@ -18,7 +18,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -2430,7 +2429,7 @@ static void func_actor_401300_80134BA4(Task* arg0, s16 arg1, s32 arg2)
     work->effectArg.coord      = &arg0->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x300;
     work->effectArg.spawnArgHi = 2;
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], sc, &work->effectArg);
+    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], sc, &work->effectArg);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
@@ -2568,8 +2567,8 @@ static void func_actor_401300_80134F90(Task* arg0)
                 hitPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 sndEvtRequestScriptStart(hitSound, hitPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
-            work->hitCooldown = Gp_GetIdParam2(s->hitKey);
-            switch (Gp_GetIdParam0(s->hitKey) & 0xFFFF) {
+            work->hitCooldown = damageGetPlayerAttackHitCooldown(s->hitKey);
+            switch (damageGetPlayerAttackReaction(s->hitKey) & 0xFFFF) {
                 case 4:
                     state = work->state;
                     if (state != ACTOR_401300_STATE_FALL_BACK && state != ACTOR_401300_STATE_FALL_FRONT && state != ACTOR_401300_STATE_REFALL_BACK && state != ACTOR_401300_STATE_REFALL_FRONT && state != ACTOR_401300_STATE_WOUNDED && state != ACTOR_401300_STATE_STATUS_HOLD && state != ACTOR_401300_STATE_DOWN) {
@@ -2584,10 +2583,10 @@ static void func_actor_401300_80134F90(Task* arg0)
                         }
                     }
                     break;
-                case 0:
+                case DAMAGE_PLAYER_REACTION_NONE:
                 case 5:
-                case 6:
-                case 7:
+                case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                case DAMAGE_PLAYER_REACTION_INCENDIARY:
                 case 8:
                 case 9:
                     if (work->state == ACTOR_401300_STATE_STATUS_HOLD) {
@@ -2613,8 +2612,8 @@ static void func_actor_401300_80134F90(Task* arg0)
                         }
                     }
                     break;
-                case 2:
-                    Gp_SetObjFlag2(enemy, s->hitKey, 0);
+                case DAMAGE_PLAYER_REACTION_BUILDUP:
+                    damageStartEnemyBuildup(enemy, s->hitKey, 0);
                     state = work->state;
                     if (state == ACTOR_401300_STATE_DOWN || state == ACTOR_401300_STATE_WOUNDED || state == ACTOR_401300_STATE_STATUS_HOLD) {
                         work->state     = ACTOR_401300_STATE_STATUS_HOLD;
@@ -2631,14 +2630,14 @@ static void func_actor_401300_80134F90(Task* arg0)
                         }
                     }
                     break;
-                case 3:
+                case DAMAGE_PLAYER_REACTION_POISON:
                     state = work->state;
                     if (state == ACTOR_401300_STATE_PATROL || state == ACTOR_401300_STATE_DORMANT || state == ACTOR_401300_STATE_DORMANT_SCRIPTED) {
                         work->state = ACTOR_401300_STATE_FLINCH;
                     }
-                    Gp_SetObjFlag4(enemy, s->hitKey, 0);
+                    damageTryStartEnemyDamageOverTime(enemy, s->hitKey, 0);
                     break;
-                case 1:
+                case DAMAGE_PLAYER_REACTION_STAGGER:
                     enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
                     state                 = work->state;
                     if (state != ACTOR_401300_STATE_FALL_BACK && state != ACTOR_401300_STATE_FALL_FRONT && state != ACTOR_401300_STATE_WOUNDED && state != ACTOR_401300_STATE_STATUS_HOLD && state != ACTOR_401300_STATE_REFALL_BACK && state != ACTOR_401300_STATE_REFALL_FRONT && state != ACTOR_401300_STATE_DOWN) {
@@ -2662,8 +2661,8 @@ static void func_actor_401300_80134F90(Task* arg0)
             }
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            s->damage = Gp_TickObjFlag4(enemy);
-            if (Gp_ObjFlag4Expired(enemy) != 0) {
+            s->damage = damageTickEnemyDamageOverTime(enemy);
+            if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
                 enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
             }
             if (s->damage != 0) {
@@ -2695,7 +2694,7 @@ static void func_actor_401300_80134F90(Task* arg0)
         }
         if (enemy->hp <= 0) {
             if (s->hitKey != 0) {
-                if ((Gp_GetIdParam0(s->hitKey) & 0xFFFF) == 4) {
+                if ((damageGetPlayerAttackReaction(s->hitKey) & 0xFFFF) == 4) {
                     state = work->animId;
                     if (state == 2 || state == 3 || state == 0x1B || state == 0x1C || state == 0x1D) {
                         work->state = ACTOR_401300_STATE_DEATH_BURST_WALK;
@@ -2777,7 +2776,7 @@ static void func_actor_401300_80135DDC(Task* arg0)
         work->animRate = 0x10;
     }
     func_actor_401300_80133A3C(arg0);
-    if (Gp_TickObjFlag2(enemy) == 1) {
+    if (damageTickEnemyBuildup(enemy) == 1) {
         enemy->reactionFlags &= ~ENEMY_REACTION_BUILDUP;
         work->animRate        = 0x10;
         if ((arg0->spawnArg1.value >> 16) == 0x20) {
@@ -3498,7 +3497,7 @@ static void func_actor_401300_80138800(Task* arg0)
         work->effectArg.coord      = &arg0->extra.tmd->coords[1];
         work->effectArg.spawnArgLo = 0x300;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->extra.tmd->coords[5], NULL, &work->effectArg);
+        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[5], NULL, &work->effectArg);
         work->state = ACTOR_401300_STATE_GRAB_STRIKE;
     }
 }
@@ -3524,7 +3523,7 @@ static void func_actor_401300_80138B24(Task* arg0)
         work->effectArg.coord      = &arg0->extra.tmd->coords[1];
         work->effectArg.spawnArgLo = 0x300;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->extra.tmd->coords[5], NULL, &work->effectArg);
+        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[5], NULL, &work->effectArg);
         work->state = ACTOR_401300_STATE_GRAB_DONE;
     }
     work->grabAnimFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
@@ -3827,7 +3826,7 @@ static void func_actor_401300_801397F8(Task* arg0)
         work->effectArg.coord      = arg0->extra.tmd->coords + 1;
         work->effectArg.spawnArgLo = 0x300;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
+        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
     }
     work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
     coord              = arg0->extra.tmd->coords;

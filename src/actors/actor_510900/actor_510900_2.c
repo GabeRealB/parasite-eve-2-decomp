@@ -24,7 +24,6 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -812,7 +811,7 @@ static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1);
 /// is halved for 0x8000 ids, otherwise scaled by the player's distance and
 /// doubled/quadrupled by the id's class and `damageRollCriticalHit`, and may pick
 /// a flinch (`reaction`) that sets the next handler. Type-5 ids apply the
-/// `Gp_LookupIdField` table damage directly.
+/// `damageGetHazardDamage` table damage directly.
 static void func_actor_510900_80135744(Task* arg0)
 {
     s32              lastId;
@@ -854,7 +853,7 @@ static void func_actor_510900_80135744(Task* arg0)
                 if (work->hitCooldown != 0) {
                     break;
                 }
-                param = Gp_GetIdParam0(work->bodyContacts[i].key.value);
+                param = damageGetPlayerAttackReaction(work->bodyContacts[i].key.value);
                 if (work->bodyContacts[i].key.value & 0x8000) {
                     if ((u8)work->bodyContacts[i].key.value - 1 < 6U) {
                         reaction = 2;
@@ -882,14 +881,14 @@ static void func_actor_510900_80135744(Task* arg0)
                     }
                 }
                 switch ((u16)param) {
-                    case 0:
+                    case DAMAGE_PLAYER_REACTION_NONE:
                     case 5:
-                    case 6:
-                    case 7:
+                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
                     case 8:
                     case 9:
                         break;
-                    case 1:
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
                         if (work->buildupStunned == 0) {
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             if ((gRandomLcgState >> 16) & 1) {
@@ -897,12 +896,12 @@ static void func_actor_510900_80135744(Task* arg0)
                             }
                         }
                         break;
-                    case 2:
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
                         if (work->lethalAttackPhase == 0) {
-                            Gp_SetObjFlag2(enemy, work->bodyContacts[i].key.value, 0);
+                            damageStartEnemyBuildup(enemy, work->bodyContacts[i].key.value, 0);
                         }
                         break;
-                    case 3:
+                    case DAMAGE_PLAYER_REACTION_POISON:
                         if (work->buildupStunned == 0) {
                             reaction = 2;
                         }
@@ -989,9 +988,9 @@ static void func_actor_510900_80135744(Task* arg0)
                 }
                 if (lastId != work->bodyContacts[i].key.value) {
                     lastId = work->bodyContacts[i].key.value;
-                    func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
+                    func_800FDB18(damageGetPlayerAttackEffectId(lastId), &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
                 }
-                wait = Gp_GetIdParam2(work->bodyContacts[i].key.value);
+                wait = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
                 if (wait > 0) {
                     work->hitCooldown = wait;
                 }
@@ -1018,7 +1017,7 @@ static void func_actor_510900_80135744(Task* arg0)
                 if (hit) {
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    loss                       = Gp_LookupIdField((u16)work->bodyContacts[i].key.value, 1);
+                    loss                       = damageGetHazardDamage((u16)work->bodyContacts[i].key.value, DAMAGE_HAZARD_VICTIM_ENEMY);
                     enemy->hp                 -= loss;
                     worldTargetAddReadoutAmount(&enemy->node, loss, 0);
                     if (enemy->hp <= 0) {
@@ -3816,7 +3815,7 @@ static void func_actor_510900_8013B988(Task* arg0)
         case 0:
             work->lapSpeed    = 0;
             work->animationId = 0x13;
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
                 work->animationId    = 0x14;
                 work->subState       = 1;
                 work->buildupStunned = 0;

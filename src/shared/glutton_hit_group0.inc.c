@@ -10,7 +10,7 @@
 /// hit. The scan is `_gluttonScanGroup`.
 ///
 /// A hit spawns the impact effect on the part's coordinate, publishes
-/// `Gp_GetIdParam2` of the attack id to all four per-group slots at 0xE8C, and
+/// `damageGetPlayerAttackHitCooldown` of the attack id to all four per-group slots at 0xE8C, and
 /// then takes the damage off the host: the player-relative offset to the part
 /// gives the `playerDistance` `Gp_ComputeDamage` scales `damage` by, quadrupled when
 /// `damageRollCriticalHit` fires. The contact point is re-read relative to the
@@ -21,7 +21,7 @@
 /// mirrored onto the three escorts sharing its pool.
 ///
 /// The second arm runs the same tick when `reactionFlags` has damage over time
-/// set, which `Gp_TickObjFlag4` turns into damage of its own; that one only comes off the
+/// set, which `damageTickEnemyDamageOverTime` turns into damage of its own; that one only comes off the
 /// host.
 ///
 /// `esc3` / `esc0` / `esc1` and the `hp` load are not spare: read as three
@@ -56,15 +56,15 @@ void gluttonHitGroup0(Task* arg0)
     if (id != 0) {
         gluttonHitEffect(work->hits[0].body.coord, id);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        param                    = Gp_GetIdParam2(sc->attackKey);
+        param                    = damageGetPlayerAttackHitCooldown(sc->attackKey);
         work->groups6To8Cooldown = param;
         work->groups3To5Cooldown = param;
         work->group0Cooldown     = param;
         work->groups1To2Cooldown = param;
 #else
-        work->group0Cooldown = Gp_GetIdParam2(sc->attackKey);
+        work->group0Cooldown = damageGetPlayerAttackHitCooldown(sc->attackKey);
 #endif
-        Gp_GetIdParam0(sc->attackKey);
+        damageGetPlayerAttackReaction(sc->attackKey);
 
         sc->toPlayer.vx    = cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
         dx2                = sc->toPlayer.vx * sc->toPlayer.vx;
@@ -123,8 +123,8 @@ void gluttonHitGroup0(Task* arg0)
     }
 
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        sc->damage = Gp_TickObjFlag4(enemy);
-        if (Gp_ObjFlag4Expired(enemy) != 0) {
+        sc->damage = damageTickEnemyDamageOverTime(enemy);
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE

@@ -1,7 +1,7 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 /// Once the hit flags are set, requests animation 0xB; once the enemy's
-/// buildup countdown (`Gp_TickObjFlag2`) runs out, moves the state machine to state 3.
+/// buildup countdown (`damageTickEnemyBuildup`) runs out, moves the state machine to state 3.
 void madChaserStatusHold(Task* arg0)
 {
     MadChaserWork* work;
@@ -14,7 +14,7 @@ void madChaserStatusHold(Task* arg0)
         work->animId          = 0xB;
         work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
     }
-    if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+    if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
         work2           = (MadChaserWork*)arg0->work;
         work2->state    = 3;
         work2->subState = 0;

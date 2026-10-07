@@ -158,7 +158,7 @@ segments:
       - [0x4A140, c, collision_grid] # func_800DD940
       - [0x4CA94, c, object_lists] # worldCollisionResetListsAndGrid
       - [0x4E7EC, c, damage] # Gp_ComputeDamage
-      - [0x4F4D4, c, object_fields] # Gp_LookupIdField
+      - [0x4F4D4, c, object_fields] # damageGetHazardDamage
       - [0x4F9E8, c, object_task] # func_800E31E8
       - [0x4FCD8, c, cap_commands] # Gp_RunCapCmd and gameplay caption commands
       - [0x508EC, c, cap_reloc] # Gp_RelocCapFile

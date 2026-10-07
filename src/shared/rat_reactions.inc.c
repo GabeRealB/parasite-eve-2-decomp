@@ -2,7 +2,7 @@
 
 /// Folds the enemy's reaction flags into the behaviour mode: stagger switches
 /// to mode 2, build-up to mode 3 (unless already in 2 or 3). Damage-over-time
-/// ticks Gp_TickObjFlag4 damage into the hit points, entering death (task state
+/// ticks damageTickEnemyDamageOverTime damage into the hit points, entering death (task state
 /// 2) or the hurt mode 4, and clears those flags once expired.
 void ratReactions(Task* arg0)
 {
@@ -26,7 +26,7 @@ void ratReactions(Task* arg0)
         work->buildupHeld = 1;
     }
     if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        damage = Gp_TickObjFlag4(ctx);
+        damage = damageTickEnemyDamageOverTime(ctx);
         if (damage != 0) {
             worldTargetAddReadoutAmount(&ctx->node, damage, 0);
             remaining = ctx->hp - damage;
@@ -40,7 +40,7 @@ void ratReactions(Task* arg0)
                 work->step = 0;
             }
         }
-        if (Gp_ObjFlag4Expired(ctx) != 0) {
+        if (damageIsEnemyDamageOverTimeExpired(ctx) != 0) {
             ctx->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }

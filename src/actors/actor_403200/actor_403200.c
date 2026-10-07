@@ -25,7 +25,6 @@
 #include "gameplay/enemy.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -4217,7 +4216,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 /// done three times over the parts it does not cover, each group only scanned
 /// when the previous one landed nothing and the part it hit reported no attack
 /// id back. Like the sibling actor's `func_actor_444000_8013CA60`, this one runs
-/// no `Gp_GetIdParam0` switch: the call is made and its kind thrown away, so
+/// no `damageGetPlayerAttackReaction` switch: the call is made and its kind thrown away, so
 /// every hit is treated alike, and the group 3 arm is the one that gives up and
 /// leaves the frame once it comes back empty.
 ///
@@ -4261,12 +4260,12 @@ static void func_actor_403200_8013A4A0(Task* arg0)
     if ((_gluttonScanGroup(sc, &work->hits[3]) != 0 && _gluttonHitLanded(sc, &work->hits[3])) ||
         (_gluttonScanGroup(sc, &work->hits[4]) != 0 && _gluttonHitLanded(sc, &work->hits[4])) ||
         (_gluttonScanGroup(sc, &work->hits[5]) != 0 && _gluttonHitLanded(sc, &work->hits[5]))) {
-        param                    = Gp_GetIdParam2(sc->attackKey);
+        param                    = damageGetPlayerAttackHitCooldown(sc->attackKey);
         work->groups6To8Cooldown = param;
         work->groups3To5Cooldown = param;
         work->group0Cooldown     = param;
         work->groups1To2Cooldown = param;
-        Gp_GetIdParam0(sc->attackKey);
+        damageGetPlayerAttackReaction(sc->attackKey);
 
         sc->toPlayer.vx    = (cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0]) + 0x51F;
         dx2                = sc->toPlayer.vx * sc->toPlayer.vx;

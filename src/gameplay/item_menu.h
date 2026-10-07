@@ -208,7 +208,7 @@ void func_800CE188(Task* arg0);
 
 void Gp_PickupExitTask(Task* arg0);
 
-/// 10-byte records selected by `Gp_GetIdParam2` when the id's 0x8000 bit is
+/// 10-byte records selected by `damageGetPlayerAttackHitCooldown` when the id's 0x8000 bit is
 /// clear. Indexed by `id & 0x7F`.
 extern WeaponAttackRow Gp_IdParamLo[];
 

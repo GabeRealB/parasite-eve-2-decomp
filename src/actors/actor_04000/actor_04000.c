@@ -18,7 +18,6 @@
 #include "gameplay/enemy.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -2253,7 +2252,7 @@ static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
     work->hitEffectArg.spawnArgLo = 0x100;
     work->hitEffectArg.spawnArgHi = 1;
     work->hitEffectArg.coord      = coord;
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->hitEffectOffset, &work->hitEffectArg);
+    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->hitEffectOffset, &work->hitEffectArg);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 

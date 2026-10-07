@@ -101,10 +101,10 @@ void skullStalkerHits(Task* arg0)
                     arg0->state         = 2;
                     break;
                 }
-                switch ((u16)Gp_GetIdParam0(work->bodyContacts[i].key.value)) {
-                    case 2:
+                switch ((u16)damageGetPlayerAttackReaction(work->bodyContacts[i].key.value)) {
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
                     case 9:
-                        Gp_SetObjFlag2(enemy, work->bodyContacts[i].key.value, 0);
+                        damageStartEnemyBuildup(enemy, work->bodyContacts[i].key.value, 0);
                         break;
                     case 8:
                         work->hiding = 1;

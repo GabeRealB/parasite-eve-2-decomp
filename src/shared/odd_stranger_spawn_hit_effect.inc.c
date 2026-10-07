@@ -71,9 +71,9 @@ void oddStrangerSpawnHitEffect(Task* arg0, s16 arg1, s32 arg2)
     work->effectArg.spawnArgHi = 2;
 #if ODD_STRANGER_HIT_FX_OFFSET
     work->effectOffset = *sc;
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], &work->effectOffset, &work->effectArg);
+    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->effectOffset, &work->effectArg);
 #else
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], sc, &work->effectArg);
+    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], sc, &work->effectArg);
 #endif
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

@@ -23,7 +23,6 @@
 #include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"

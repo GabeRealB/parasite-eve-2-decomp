@@ -29,7 +29,6 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
@@ -1563,28 +1562,28 @@ static void Actor00300_Fn00E54(Task* arg0)
                 if (work->hitCooldown != 0) {
                     break;
                 }
-                switch (Gp_GetIdParam0(work->hitContacts[i].key.value) & 0xFFFF) {
-                    case 1:
+                switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
                         if (work->knockDown == 0) {
                             work->knockDown = 1;
                         }
                         break;
-                    case 2:
-                        Gp_SetObjFlag2(enemy, work->hitContacts[i].key.value, 0);
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
+                        damageStartEnemyBuildup(enemy, work->hitContacts[i].key.value, 0);
                         break;
-                    case 3:
-                        Gp_SetObjFlag4(enemy, work->hitContacts[i].key.value, 0);
+                    case DAMAGE_PLAYER_REACTION_POISON:
+                        damageTryStartEnemyDamageOverTime(enemy, work->hitContacts[i].key.value, 0);
                         break;
                     case 4:
                         work->burstStage = 1;
                         break;
-                    case 6:
+                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
                         work->burstStage = 1;
                         break;
-                    case 7:
+                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
                         critical = 1;
                         break;
-                    case 0:
+                    case DAMAGE_PLAYER_REACTION_NONE:
                     case 5:
                     case 8:
                     case 9:
@@ -1648,9 +1647,9 @@ static void Actor00300_Fn00E54(Task* arg0)
                 }
                 if (lastId != work->hitContacts[i].key.value) {
                     lastId = work->hitContacts[i].key.value;
-                    func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
+                    func_800FDB18(damageGetPlayerAttackEffectId(lastId), &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
                 }
-                cooldown = Gp_GetIdParam2(work->hitContacts[i].key.value);
+                cooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
                 if (cooldown > 0) {
                     work->hitCooldown = cooldown;
                 }
@@ -3237,7 +3236,7 @@ static void Actor00300_Fn04A2C(Task* arg0)
         work->actionStep = 0;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        damage          = Gp_TickObjFlag4(enemy);
+        damage          = damageTickEnemyDamageOverTime(enemy);
         work->hitDamage = damage;
         if (damage != 0) {
             worldTargetAddReadoutAmount(&enemy->node, (s32)damage, 0);
@@ -3245,7 +3244,7 @@ static void Actor00300_Fn04A2C(Task* arg0)
             work->action     = ACTOR_00300_ACTION_HURT;
             work->actionStep = 0;
         }
-        if (Gp_ObjFlag4Expired(enemy) != 0) {
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
@@ -3342,7 +3341,7 @@ static void Actor00300_Fn04D28(Task* arg0)
                 work->chargeEffectTimer = 0;
                 sndEvtRequestScriptStop(work->chargeSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             }
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
                 enemy                 = arg0->spawnArg2.pointer;
                 enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
                 work->anim            = ACTOR_00300_ANIM_BUILDUP_END;

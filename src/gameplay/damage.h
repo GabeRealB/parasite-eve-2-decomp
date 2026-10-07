@@ -3,6 +3,20 @@
 
 #include "common.h"
 
+/// Player attack row selection, and the low-six-bit buildup grade exception.
+enum {
+    DAMAGE_PLAYER_ATTACK_ROW_MASK    = 0x7F,
+    DAMAGE_PLAYER_ATTACK_ATTACHMENT  = 0x8000,
+    DAMAGE_BUILDUP_UNGRADED_ROW_MASK = 0x3F,
+    DAMAGE_BUILDUP_UNGRADED_ROW      = 0x31,
+};
+
+/// Chance calculations use twelve fractional bits and a draw in 0..4095.
+enum {
+    DAMAGE_CHANCE_FRACTION_BITS = 12,
+    DAMAGE_CHANCE_DRAW_MASK     = (1 << DAMAGE_CHANCE_FRACTION_BITS) - 1,
+};
+
 /// HP bands a `DamageReceivedScaleRow` distinguishes, weakest first.
 #define DAMAGE_RECEIVED_HP_BAND_COUNT 5
 

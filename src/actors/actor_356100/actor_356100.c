@@ -18,7 +18,6 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -1166,7 +1165,7 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor)
 /// until clip 0xB has reached frame 6 or clip 0xC frame 9, then park `animRate`
 /// at 0x20. Once the actor is no longer live the same slot is halved per frame as
 /// a scale ramp that bounces between 0x10 and -0x10 — ending the state with
-/// `state = 0x11` when `Gp_TickObjFlag2` reports the flag has expired.
+/// `state = 0x11` when `damageTickEnemyBuildup` reports the flag has expired.
 static void func_actor_356100_80163CD4(Task* arg0)
 {
     _Actor356100Work* work;
@@ -1204,7 +1203,7 @@ static void func_actor_356100_80163CD4(Task* arg0)
         work->animRate = 0x10;
     }
     func_actor_356100_80163508(arg0);
-    if (Gp_TickObjFlag2(ctx) == 1) {
+    if (damageTickEnemyBuildup(ctx) == 1) {
         ctx->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->state         = ACTOR_356100_STATE_DOWN;
     }
@@ -2193,7 +2192,7 @@ static void func_actor_356100_80167818(Task* arg0)
         D_actor_356100_801732A8.coord      = arg0->extra.tmd->coords;
         D_actor_356100_801732A8.spawnArgLo = 0x100;
         D_actor_356100_801732A8.spawnArgHi = 2;
-        func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL,
+        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL,
                       &D_actor_356100_801732A8);
     }
     work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;

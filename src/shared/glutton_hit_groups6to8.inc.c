@@ -4,7 +4,7 @@
 /// as `func_actor_403200_8013A4A0` runs for groups 3, 4 and 5, with the next
 /// group only scanned when the previous one landed nothing and the part it hit
 /// reported no attack id back. In both room builds, the first two groups share one call site
-/// through `coord`, and `Gp_GetIdParam0` is called and its kind thrown away.
+/// through `coord`, and `damageGetPlayerAttackReaction` is called and its kind thrown away.
 ///
 /// Damage is the distance-scaled hit -- measured from an offset point rather
 /// than the model origin -- quadrupled when `damageRollCriticalHit` fires, then
@@ -69,15 +69,15 @@ void gluttonHitGroups6To8(Task* arg0)
     if (_gluttonScanGroup(sc, &work->hits[8]) != 0 && _gluttonHitLanded(sc, &work->hits[8])) {
     body:
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        param                    = Gp_GetIdParam2(sc->attackKey);
+        param                    = damageGetPlayerAttackHitCooldown(sc->attackKey);
         work->groups6To8Cooldown = param;
         work->groups3To5Cooldown = param;
         work->group0Cooldown     = param;
         work->groups1To2Cooldown = param;
 #else
-        work->groups6To8Cooldown = Gp_GetIdParam2(sc->attackKey);
+        work->groups6To8Cooldown = damageGetPlayerAttackHitCooldown(sc->attackKey);
 #endif
-        Gp_GetIdParam0(sc->attackKey);
+        damageGetPlayerAttackReaction(sc->attackKey);
 
         sc->toPlayer.vx    = (cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0]) - 0x51F;
         dx2                = sc->toPlayer.vx * sc->toPlayer.vx;

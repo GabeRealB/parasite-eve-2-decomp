@@ -2,7 +2,7 @@
 
 /// Behaviour mode 3: stops, plays animation 6 the first time (or waits a random
 /// 0-15 frames if already latched), then plays animation 8 and waits until
-/// Gp_TickObjFlag2 reports the build-up effect over. It then clears the build-
+/// damageTickEnemyBuildup reports the build-up effect over. It then clears the build-
 /// up reaction flag and returns to mode 0 with the sensor flag latched.
 void ratBuildup(Task* arg0)
 {
@@ -48,7 +48,7 @@ void ratBuildup(Task* arg0)
             }
             break;
         case 3:
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
                 ctx                   = arg0->spawnArg2.pointer;
                 ctx->reactionFlags   &= ENEMY_REACTION_BUILDUP_CLEAR;
                 work->mode            = RAT_MODE_IDLE;

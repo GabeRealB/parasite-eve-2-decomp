@@ -4,7 +4,7 @@
 
 /// `MAGGOT_CATERPILLAR_BEHAVIOUR_STUN`. On entry it starts
 /// `MAGGOT_CATERPILLAR_ANIM_STUN` and stops the forward and turn steps; each
-/// frame after that `Gp_TickObjFlag2` is ticked on the context, and when it
+/// frame after that `damageTickEnemyBuildup` is ticked on the context, and when it
 /// returns non-zero the actor goes to `MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM` with
 /// `MAGGOT_CATERPILLAR_ANIM_HURT`, `stunned` cleared and a random 0..15 in
 /// `stateCounter`.
@@ -24,7 +24,7 @@ void maggotCaterpillarStunState(Task* arg0)
             work->step         = 1;
             return;
         case 1:
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
                 work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM;
                 work->step         = 0;
                 work->animId       = MAGGOT_CATERPILLAR_ANIM_HURT;

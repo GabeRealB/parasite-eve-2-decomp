@@ -18,7 +18,6 @@
 #include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -483,7 +482,7 @@ static inline void _actor311500SpawnEffect(Task* task)
     pos.vx         = 0x3C;
     pos.vy         = -0xC;
     pos.vz         = 0x1E;
-    func_800FDB18(Gp_GetIdParam1(work->lastHitKey) & 0xFFFF, &task->extra.tmd->coords[2], &pos, &eff);
+    func_800FDB18(damageGetPlayerAttackEffectId(work->lastHitKey), &task->extra.tmd->coords[2], &pos, &eff);
 }
 
 static s32 func_actor_311500_80162F28(Task* arg0)

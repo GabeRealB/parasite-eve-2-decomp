@@ -32,30 +32,15 @@
 /// The distance row occupies bits 8..13. Bit 14 chooses the alternate critical
 /// percentage; its other attack behavior is outside this calculation.
 enum {
-    DAMAGE_PLAYER_ATTACK_ROW_MASK           = 0x7F,
-    DAMAGE_PLAYER_ATTACK_ATTACHMENT         = 0x8000,
     DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_SHIFT = 8,
     DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_MASK  = 0x3F,
     DAMAGE_PLAYER_ATTACK_ALTERNATE_CRITICAL = 0x4000,
-    DAMAGE_BUILDUP_UNGRADED_ROW_MASK        = 0x3F,
-    DAMAGE_BUILDUP_UNGRADED_ROW             = 0x31,
     DAMAGE_LIFE_DRAIN_FIRST_ROW             = 0x19,
     DAMAGE_LIFE_DRAIN_LEVEL_COUNT           = 3,
 };
 
-/// Weapon/PE reactions handled here; these differ from `DamageAttack.reaction`.
+/// Distance classes and table columns of the critical-hit calculation.
 enum {
-    DAMAGE_PLAYER_REACTION_NONE      = 0,
-    DAMAGE_PLAYER_REACTION_STAGGER   = 1,
-    DAMAGE_PLAYER_REACTION_BUILDUP   = 2,
-    DAMAGE_PLAYER_REACTION_POISON    = 3,
-    DAMAGE_PLAYER_REACTION_EXPLOSION = 6,
-};
-
-/// Chance calculations use twelve fractional bits and a draw in 0..4095.
-enum {
-    DAMAGE_CHANCE_FRACTION_BITS                = 12,
-    DAMAGE_CHANCE_DRAW_MASK                    = (1 << DAMAGE_CHANCE_FRACTION_BITS) - 1,
     DAMAGE_DISTANCE_BAND_UNITS                 = 1000,
     DAMAGE_DISTANCE_FARTHEST_CLASS             = 5,
     DAMAGE_CRITICAL_PERCENT_COLUMN             = 6,

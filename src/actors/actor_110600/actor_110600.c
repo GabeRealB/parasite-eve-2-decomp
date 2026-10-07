@@ -23,7 +23,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -324,7 +323,7 @@ static s32 func_actor_110600_80134564(_Actor110600Work* work);
 static void func_actor_110600_80135A18(Task* arg0);
 
 /// Picks one of twelve hit positions out of `D_actor_110600_801485C4` by damage
-/// magnitude `arg1`, then spawns effect `Gp_GetIdParam1(arg2)` on the model
+/// magnitude `arg1`, then spawns effect `damageGetPlayerAttackEffectId(arg2)` on the model
 /// part that entry names.
 static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2);
 
@@ -354,7 +353,7 @@ static void func_actor_110600_80138CA4(Task* arg0);
 /// `animId` / `animRate` and the `gridBody.flags` 0x4000 / `attackBody.flags`
 /// 0x8000 masks, then tick twice. On a dead one it is the model-shrink tail:
 /// halves `animRate` each tick — parking at -0x10 when the halving lands on 1
-/// and bouncing -1 back to 0x10 — and once `Gp_TickObjFlag2` reports 1, drops
+/// and bouncing -1 back to 0x10 — and once `damageTickEnemyBuildup` reports 1, drops
 /// bit 1 of the enemy node's flags and moves the actor to state 3.
 static void func_actor_110600_80138D7C(Task* arg0);
 
@@ -2216,7 +2215,7 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
     D_actor_110600_80148698.coord      = &arg0->extra.tmd->coords[1];
     D_actor_110600_80148698.spawnArgLo = 0x100;
     D_actor_110600_80148698.spawnArgHi = 3;
-    func_800FDB18(Gp_GetIdParam1(arg2) & 0xFFFF, &arg0->extra.tmd->coords[sc->pad], sc, &D_actor_110600_80148698);
+    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], sc, &D_actor_110600_80148698);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
@@ -2329,34 +2328,34 @@ static void func_actor_110600_80136210(Task* arg0)
             pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
             sndEvtRequestScriptStart(SOUND_STRANGER_HURT, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         }
-        work->hitCooldown = Gp_GetIdParam2(scratch->hitKey);
-        kind              = Gp_GetIdParam0(scratch->hitKey) & 0xFFFF;
+        work->hitCooldown = damageGetPlayerAttackHitCooldown(scratch->hitKey);
+        kind              = damageGetPlayerAttackReaction(scratch->hitKey) & 0xFFFF;
         switch (kind) {
-            case 0:
+            case DAMAGE_PLAYER_REACTION_NONE:
             case 4:
             case 5:
-            case 6:
-            case 7:
+            case DAMAGE_PLAYER_REACTION_EXPLOSION:
+            case DAMAGE_PLAYER_REACTION_INCENDIARY:
                 work->blendActive  = 1;
                 work->blendAnimId  = 0xB;
                 work->blendRequest = ACTOR_110600_ANIM_REQUEST_RESET;
                 break;
-            case 1:
+            case DAMAGE_PLAYER_REACTION_STAGGER:
             case 8:
             case 9:
                 break;
-            case 2:
-                Gp_SetObjFlag2(enemy, scratch->hitKey, 0);
+            case DAMAGE_PLAYER_REACTION_BUILDUP:
+                damageStartEnemyBuildup(enemy, scratch->hitKey, 0);
                 work->state = ACTOR_110600_STATE_STATUS_HOLD;
                 break;
-            case 3:
-                Gp_SetObjFlag4(enemy, scratch->hitKey, 0);
+            case DAMAGE_PLAYER_REACTION_POISON:
+                damageTryStartEnemyDamageOverTime(enemy, scratch->hitKey, 0);
                 break;
         }
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        scratch->damage = Gp_TickObjFlag4(enemy);
-        if (Gp_ObjFlag4Expired(enemy) != 0) {
+        scratch->damage = damageTickEnemyDamageOverTime(enemy);
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
         if (scratch->damage != 0) {
@@ -2835,7 +2834,7 @@ static void func_actor_110600_801372CC(Task* arg0)
                 D_actor_110600_80148698.spawnArgLo = 0x100;
                 D_actor_110600_80148698.spawnArgHi = 3;
                 D_actor_110600_80148698.coord      = effectCoord;
-                func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->extra.tmd->coords[9], &vec, &D_actor_110600_80148698);
+                func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[9], &vec, &D_actor_110600_80148698);
             } else {
                 d             = &D_actor_110600_80148698;
                 vec.vx        = -0x19;
@@ -2845,7 +2844,7 @@ static void func_actor_110600_801372CC(Task* arg0)
                 d->spawnArgLo = 0x100;
                 d->spawnArgHi = 3;
                 d->coord      = effectCoord2;
-                func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->extra.tmd->coords[2], &vec, &D_actor_110600_80148698);
+                func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[2], &vec, &D_actor_110600_80148698);
             }
         }
     }
@@ -2868,9 +2867,9 @@ static void func_actor_110600_801372CC(Task* arg0)
                 tailEffect->spawnArgLo = 0x100;
                 tailEffect->spawnArgHi = 3;
                 tailEffect->coord      = effectCoord3;
-                func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
-                func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
-                func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
+                func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
+                func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
+                func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
             }
         }
     }
@@ -3728,7 +3727,7 @@ static void func_actor_110600_80138D7C(Task* arg0)
         work->animRate = 0x10;
     }
     func_actor_110600_80134728(arg0);
-    if (Gp_TickObjFlag2(enemy) == 1) {
+    if (damageTickEnemyBuildup(enemy) == 1) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->state           = ACTOR_110600_STATE_CHASE;
     }

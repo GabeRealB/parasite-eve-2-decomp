@@ -152,8 +152,8 @@ void oddStrangerTakeHit(Task* arg0)
                 hitPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 sndEvtRequestScriptStart(hitSound, hitPan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
-            work->hitCooldown = Gp_GetIdParam2(s->hitKey);
-            switch (Gp_GetIdParam0(s->hitKey) & 0xFFFF) {
+            work->hitCooldown = damageGetPlayerAttackHitCooldown(s->hitKey);
+            switch (damageGetPlayerAttackReaction(s->hitKey) & 0xFFFF) {
                 case 4:
                     state = work->state;
                     if (state != ODD_STRANGER_STATE_FALL_BACK && state != ODD_STRANGER_STATE_FALL_FRONT && state != ODD_STRANGER_STATE_REFALL_BACK && state != ODD_STRANGER_STATE_REFALL_FRONT
@@ -174,10 +174,10 @@ void oddStrangerTakeHit(Task* arg0)
                         }
                     }
                     break;
-                case 0:
+                case DAMAGE_PLAYER_REACTION_NONE:
                 case 5:
-                case 6:
-                case 7:
+                case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                case DAMAGE_PLAYER_REACTION_INCENDIARY:
 #if ODD_STRANGER_VARIANT == 2
                     if (work->state == ODD_STRANGER_STATE_PATROL || work->state == ODD_STRANGER_STATE_DORMANT || work->state == ODD_STRANGER_STATE_DORMANT_SCRIPTED) {
                         work->state = ODD_STRANGER_STATE_ALERT;
@@ -211,8 +211,8 @@ void oddStrangerTakeHit(Task* arg0)
                         work->blendRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
                     }
                     break;
-                case 2:
-                    Gp_SetObjFlag2(enemy, s->hitKey, 0);
+                case DAMAGE_PLAYER_REACTION_BUILDUP:
+                    damageStartEnemyBuildup(enemy, s->hitKey, 0);
                     state = work->state;
                     if (state == ODD_STRANGER_STATE_DOWN || state == ODD_STRANGER_STATE_STATUS_HOLD) {
                         work->state = ODD_STRANGER_STATE_STATUS_HOLD;
@@ -228,14 +228,14 @@ void oddStrangerTakeHit(Task* arg0)
                         work->state = (mag < 0x400) ? ODD_STRANGER_STATE_FALL_BACK : ODD_STRANGER_STATE_FALL_FRONT;
                     }
                     break;
-                case 3:
+                case DAMAGE_PLAYER_REACTION_POISON:
                     state = work->state;
                     if (state == ODD_STRANGER_STATE_PATROL || state == ODD_STRANGER_STATE_DORMANT || state == ODD_STRANGER_STATE_DORMANT_SCRIPTED) {
                         work->state = ODD_STRANGER_STATE_ALERT;
                     }
-                    Gp_SetObjFlag4(enemy, s->hitKey, 0);
+                    damageTryStartEnemyDamageOverTime(enemy, s->hitKey, 0);
                     break;
-                case 1:
+                case DAMAGE_PLAYER_REACTION_STAGGER:
                     enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
                     state                 = work->state;
 #if ODD_STRANGER_VARIANT == 1
@@ -306,8 +306,8 @@ void oddStrangerTakeHit(Task* arg0)
             work->recentDamageTimer = (u16)work->recentDamageTimer - 1;
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            s->damage = Gp_TickObjFlag4(enemy);
-            if (Gp_ObjFlag4Expired(enemy) != 0) {
+            s->damage = damageTickEnemyDamageOverTime(enemy);
+            if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
                 enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
             }
             if (s->damage != 0) {
@@ -358,12 +358,12 @@ void oddStrangerTakeHit(Task* arg0)
         if (enemy->hp <= 0) {
 #if ODD_STRANGER_VARIANT == 1
             if (s->hitKey != 0) {
-                if ((Gp_GetIdParam0(s->hitKey) & 0xFFFF) == 4 || (Gp_GetIdParam0(s->hitKey) & 0xFFFF) == 6) {
+                if ((damageGetPlayerAttackReaction(s->hitKey) & 0xFFFF) == 4 || (damageGetPlayerAttackReaction(s->hitKey) & 0xFFFF) == DAMAGE_PLAYER_REACTION_EXPLOSION) {
                     if ((u16)(work->animId - 2) < 2) {
 #else
             value = s->hitKey;
             if (value != 0) {
-                if ((Gp_GetIdParam0(value) & 0xFFFF) == 4 || (Gp_GetIdParam0(s->hitKey) & 0xFFFF) == 6) {
+                if ((damageGetPlayerAttackReaction(value) & 0xFFFF) == 4 || (damageGetPlayerAttackReaction(s->hitKey) & 0xFFFF) == DAMAGE_PLAYER_REACTION_EXPLOSION) {
                     animState = work->animId;
                     if (animState == 2 || animState == 3) {
 #endif

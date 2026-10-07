@@ -16,7 +16,6 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/player_state.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -615,7 +614,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 Gp_SpawnPadLerp(10, 0xFF, 0x80);
             } else if (damage > 0) {
                 if (part->effectCooldown == 0) {
-                    if ((Gp_GetIdParam0(part->contacts[i].key.value) & 0xFFFF) == 7) {
+                    if ((damageGetPlayerAttackReaction(part->contacts[i].key.value) & 0xFFFF) == DAMAGE_PLAYER_REACTION_INCENDIARY) {
                         func_800FDB18(3, coord, NULL, &part->effectArg);
                     }
                     func_800FDB18(7, coord, NULL, &part->effectArg);
@@ -627,7 +626,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                     clamped = ACTOR_205200_PART_SPARK_DAMAGE_CAP;
                 }
                 part->sparkTimer = (clamped * 120) / ACTOR_205200_PART_SPARK_DAMAGE_CAP + 30;
-                hitTime          = Gp_GetIdParam2(part->contacts[i].key.value);
+                hitTime          = damageGetPlayerAttackHitCooldown(part->contacts[i].key.value);
                 if (hitTime > 0) {
                     part->hitCooldown = hitTime;
                 }

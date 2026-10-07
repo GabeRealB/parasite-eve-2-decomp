@@ -28,7 +28,6 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -3975,7 +3974,7 @@ static void func_actor_403100_8013335C(Task* arg0)
                 D_actor_403100_80155808->hitTaken    = 1;
                 damage                               = Gp_ComputeDamage(D_actor_403100_80155808->hitContacts[i].key.value, D_actor_403100_80155808->hitDistance / 2, 0, 0);
                 scaledDamage                         = damage;
-                D_actor_403100_80155808->hitCooldown = Gp_GetIdParam2(D_actor_403100_80155808->hitContacts[i].key.value);
+                D_actor_403100_80155808->hitCooldown = damageGetPlayerAttackHitCooldown(D_actor_403100_80155808->hitContacts[i].key.value);
                 if (damageRollCriticalHit(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0) != 0) {
                     scaledDamage = damage * 4;
                     effectKind   = 1;
@@ -3999,19 +3998,19 @@ static void func_actor_403100_8013335C(Task* arg0)
                 if ((s16)hp < 0) {
                     D_actor_403100_8015580C->hp = 0U;
                 }
-                func_800FDB18(Gp_GetIdParam1(D_actor_403100_80155808->hitContacts[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
+                func_800FDB18(damageGetPlayerAttackEffectId(D_actor_403100_80155808->hitContacts[i].key.value), &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
                 D_actor_403100_80155808->hitReaction = 1;
-                switch (Gp_GetIdParam0(D_actor_403100_80155808->hitContacts[i].key.value) & 0xFFFF) {
-                    case 0:
+                switch (damageGetPlayerAttackReaction(D_actor_403100_80155808->hitContacts[i].key.value) & 0xFFFF) {
+                    case DAMAGE_PLAYER_REACTION_NONE:
                         break;
-                    case 1:
-                        Gp_SetObjFlag1(D_actor_403100_8015580C);
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
+                        damageStartEnemyStagger(D_actor_403100_8015580C);
                         break;
-                    case 2:
-                        Gp_SetObjFlag2(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0);
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
+                        damageStartEnemyBuildup(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0);
                         break;
-                    case 3:
-                        Gp_SetObjFlag4(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0);
+                    case DAMAGE_PLAYER_REACTION_POISON:
+                        damageTryStartEnemyDamageOverTime(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0);
                         break;
                     case 4:
                         D_actor_403100_80155808->hitReaction = 1;
@@ -4019,10 +4018,10 @@ static void func_actor_403100_8013335C(Task* arg0)
                     case 5:
                         D_actor_403100_80155808->hitReaction = 1;
                         break;
-                    case 6:
+                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
                         D_actor_403100_80155808->hitReaction = 1;
                         break;
-                    case 7:
+                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
                         D_actor_403100_80155808->hitReaction = 1;
                         break;
                     case 8:
@@ -4037,7 +4036,7 @@ static void func_actor_403100_8013335C(Task* arg0)
                     D_actor_403100_80155808->hitColorFrames = 0x10;
                     worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
                 }
-            } else if ((Gp_GetIdParam1(hitId) & 0xFFFF) == 0xD) {
+            } else if ((damageGetPlayerAttackEffectId(hitId)) == 0xD) {
                 func_800FDB18(0xD, &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
             }
         }
@@ -4054,7 +4053,7 @@ static void func_actor_403100_8013335C(Task* arg0)
         D_actor_403100_80155808->hitReaction    = 3;
     }
     if (D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        tickDamage = (u32)Gp_TickObjFlag4(D_actor_403100_8015580C) >> 2;
+        tickDamage = (u32)damageTickEnemyDamageOverTime(D_actor_403100_8015580C) >> 2;
         if ((s16)tickDamage != 0) {
             D_actor_403100_8015580C->hp = (u16)((u16)D_actor_403100_8015580C->hp - tickDamage);
             worldTargetAddReadoutAmount(&D_actor_403100_8015580C->node, (s16)tickDamage, 0);
@@ -4064,7 +4063,7 @@ static void func_actor_403100_8013335C(Task* arg0)
             D_actor_403100_80155808->hitTaken    = 1;
             D_actor_403100_80155808->hitReaction = 2;
         }
-        expired = Gp_ObjFlag4Expired(D_actor_403100_8015580C);
+        expired = damageIsEnemyDamageOverTimeExpired(D_actor_403100_8015580C);
         if (expired != 0) {
             D_actor_403100_8015580C->reactionFlags = (u8)(D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR);
         }

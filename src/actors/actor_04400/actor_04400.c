@@ -19,7 +19,6 @@
 #include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -918,7 +917,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                     work->hitTaken    = 1;
                     dmg               = Gp_ComputeDamage(work->contacts[i].key.value, work->playerDist, 0, 0);
                     amount            = dmg;
-                    work->hitCooldown = Gp_GetIdParam2(work->contacts[i].key.value);
+                    work->hitCooldown = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
                     if (damageRollCriticalHit(enemy, work->contacts[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
@@ -929,24 +928,24 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                     if (enemy->hp < 0) {
                         enemy->hp = 0;
                     }
-                    func_800FDB18(Gp_GetIdParam1(work->contacts[i].key.value) & 0xFFFF,
+                    func_800FDB18(damageGetPlayerAttackEffectId(work->contacts[i].key.value),
                                   &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
                     if (amount >= 0x28) {
                         work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
                     } else {
                         work->hitReaction = MAD_CHASER_HIT_REACTION_LIGHT;
                     }
-                    switch (Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF) {
-                        case 0:
+                    switch (damageGetPlayerAttackReaction(work->contacts[i].key.value) & 0xFFFF) {
+                        case DAMAGE_PLAYER_REACTION_NONE:
                             break;
-                        case 1:
-                            Gp_SetObjFlag1(enemy);
+                        case DAMAGE_PLAYER_REACTION_STAGGER:
+                            damageStartEnemyStagger(enemy);
                             break;
-                        case 2:
-                            Gp_SetObjFlag2(enemy, work->contacts[i].key.value, 0);
+                        case DAMAGE_PLAYER_REACTION_BUILDUP:
+                            damageStartEnemyBuildup(enemy, work->contacts[i].key.value, 0);
                             break;
-                        case 3:
-                            Gp_SetObjFlag4(enemy, work->contacts[i].key.value, 0);
+                        case DAMAGE_PLAYER_REACTION_POISON:
+                            damageTryStartEnemyDamageOverTime(enemy, work->contacts[i].key.value, 0);
                             break;
                         case 4:
                             work->hitReaction = MAD_CHASER_HIT_REACTION_BLAST;
@@ -954,10 +953,10 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                         case 5:
                             work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
                             break;
-                        case 6:
+                        case DAMAGE_PLAYER_REACTION_EXPLOSION:
                             work->hitReaction = MAD_CHASER_HIT_REACTION_BLAST;
                             break;
-                        case 7:
+                        case DAMAGE_PLAYER_REACTION_INCENDIARY:
                             work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
                             break;
                         case 8:
@@ -967,7 +966,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                             work->hitReaction = MAD_CHASER_HIT_REACTION_STATUS;
                             break;
                     }
-                } else if ((Gp_GetIdParam1(work->contacts[i].key.value) & 0xFFFF) == 0xD) {
+                } else if ((damageGetPlayerAttackEffectId(work->contacts[i].key.value)) == 0xD) {
                     func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
                 }
                 break;
@@ -984,7 +983,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         work->damageOverTimeSeen = 1;
-        tmp                      = Gp_TickObjFlag4(enemy);
+        tmp                      = damageTickEnemyDamageOverTime(enemy);
         tick                     = tmp;
         if (tick != 0) {
             enemy->hp -= tmp;
@@ -995,7 +994,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
             work->hitTaken    = 1;
             work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
         }
-        if (Gp_ObjFlag4Expired(enemy) != 0) {
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }

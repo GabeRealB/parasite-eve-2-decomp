@@ -128,26 +128,26 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                     work->struck            = one;
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 }
-                switch (Gp_GetIdParam0(work->bodyContacts[i].key.value) & 0xFFFF) {
-                    case 0:
-                    case 1:
+                switch (damageGetPlayerAttackReaction(work->bodyContacts[i].key.value) & 0xFFFF) {
+                    case DAMAGE_PLAYER_REACTION_NONE:
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
                     case 5:
                     case 8:
                     case 9:
                         break;
-                    case 2:
-                        Gp_SetObjFlag2(enemy, work->bodyContacts[i].key.value, 0);
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
+                        damageStartEnemyBuildup(enemy, work->bodyContacts[i].key.value, 0);
                         break;
-                    case 3:
-                        Gp_SetObjFlag4(enemy, work->bodyContacts[i].key.value, 0);
+                    case DAMAGE_PLAYER_REACTION_POISON:
+                        damageTryStartEnemyDamageOverTime(enemy, work->bodyContacts[i].key.value, 0);
                         break;
                     case 4:
-                    case 6:
+                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
                         if (work->reactionMode != one) {
                             work->burst = one;
                         }
                         break;
-                    case 7:
+                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
                         if (work->burning == 0) {
                             work->burning          = one;
                             work->burnSoundTimer   = 0;
@@ -162,9 +162,9 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                     scratch->shortVector.vx = 0;
                     scratch->shortVector.vy = -0xC8;
                     scratch->shortVector.vz = 0;
-                    func_800FDB18(Gp_GetIdParam1(work->bodyContacts[i].key.value) & 0xFFFF, arg0->extra.tmd->coords + 1, &scratch->shortVector, &work->effectArg);
+                    func_800FDB18(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value), arg0->extra.tmd->coords + 1, &scratch->shortVector, &work->effectArg);
                 }
-                result = Gp_GetIdParam2(work->bodyContacts[i].key.value);
+                result = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
                 if (result > 0) {
                     work->hitCooldown = result;
                 }

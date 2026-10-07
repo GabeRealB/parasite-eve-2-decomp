@@ -36,11 +36,11 @@ void sucklercephReactionFlags(Task* arg0)
             work->animFrozen      = 1;
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            tick = Gp_TickObjFlag4(enemy);
+            tick = damageTickEnemyDamageOverTime(enemy);
             if (tick != 0) {
                 sucklercephTakeDamage(arg0, tick);
             }
-            if (Gp_ObjFlag4Expired(enemy) != 0) {
+            if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
                 enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
             }
         }

@@ -26,7 +26,6 @@
 #include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -1458,7 +1457,7 @@ static void func_actor_206100_8014B8B4(Task* task)
 }
 /// Damage / knock-back tick: walks the six contact records of the actor's
 /// `hitContacts` table and turns the first occupied one into a hit.  `hitCooldown` is
-/// the cooldown that gates it -- `Gp_GetIdParam2` of the record arms it, and
+/// the cooldown that gates it -- `damageGetPlayerAttackHitCooldown` of the record arms it, and
 /// `hit` / `heavy` are the two reactions it leaves in `hitReaction`, the light
 /// recoil (1) and the heavy one (2) that the consumer `take_request` maps to the
 /// 0x135 and 0x3A0 peaks of `recoilPitch`.  Both are initialised before the loop
@@ -1513,38 +1512,38 @@ static void func_actor_206100_8014BAA8(Task* task)
                 work->wasHit      = hit;
                 dmg               = Gp_ComputeDamage(work->hitContacts[i].key.value, work->targetDistance, 0, 0);
                 amount            = dmg;
-                work->hitCooldown = Gp_GetIdParam2(work->hitContacts[i].key.value);
+                work->hitCooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
                 if (damageRollCriticalHit(enemy, work->hitContacts[i].key.value, 0) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
                     kind   = 1;
                 }
-                func_800FDB18(Gp_GetIdParam1(work->hitContacts[i].key.value) & 0xFFFF,
+                func_800FDB18(damageGetPlayerAttackEffectId(work->hitContacts[i].key.value),
                               &task->extra.tmd->coords[work->targetPart], 0, &work->effectArg);
                 if (amount >= 0xB4) {
                     work->hitReaction = heavy;
                 } else {
                     work->hitReaction = hit;
                 }
-                switch (Gp_GetIdParam0(work->hitContacts[i].key.value) & 0xFFFF) {
-                    case 0:
+                switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                    case DAMAGE_PLAYER_REACTION_NONE:
                         break;
-                    case 1:
-                        Gp_SetObjFlag1(enemy);
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
+                        damageStartEnemyStagger(enemy);
                         break;
-                    case 2:
-                        Gp_SetObjFlag2(enemy, work->hitContacts[i].key.value, 0);
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
+                        damageStartEnemyBuildup(enemy, work->hitContacts[i].key.value, 0);
                         break;
-                    case 3:
-                        Gp_SetObjFlag4(enemy, work->hitContacts[i].key.value, 0);
+                    case DAMAGE_PLAYER_REACTION_POISON:
+                        damageTryStartEnemyDamageOverTime(enemy, work->hitContacts[i].key.value, 0);
                         break;
                     case 4:
                         work->hitReaction = ACTOR_206100_HIT_REACTION_BLAST;
                         break;
                     case 5:
-                    case 6:
+                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
                         work->hitReaction = heavy;
                         break;
-                    case 7:
+                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
                         kind              = 2;
                         work->hitReaction = ACTOR_206100_HIT_REACTION_HEAVY;
                         amount           += amount;
@@ -1576,7 +1575,7 @@ static void func_actor_206100_8014BAA8(Task* task)
                 if ((s16)enemy->hp < 0) {
                     enemy->hp = 0;
                 }
-            } else if ((Gp_GetIdParam1(work->hitContacts[i].key.value) & 0xFFFF) == 0xD) {
+            } else if ((damageGetPlayerAttackEffectId(work->hitContacts[i].key.value)) == 0xD) {
                 func_800FDB18(0xD, &task->extra.tmd->coords[1], 0, &work->effectArg);
             }
         }
@@ -1593,7 +1592,7 @@ static void func_actor_206100_8014BAA8(Task* task)
         work->hitReaction     = ACTOR_206100_HIT_REACTION_STATUS;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        tmp  = Gp_TickObjFlag4(enemy);
+        tmp  = damageTickEnemyDamageOverTime(enemy);
         tick = (s16)tmp;
         if (tick != 0) {
             enemy->hp -= tmp;
@@ -1604,7 +1603,7 @@ static void func_actor_206100_8014BAA8(Task* task)
             work->hitTaken    = 1;
             work->hitReaction = ACTOR_206100_HIT_REACTION_LIGHT;
         }
-        if (Gp_ObjFlag4Expired(enemy) != 0) {
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
@@ -3668,7 +3667,7 @@ static void func_actor_206100_8014FA08(Task* task)
         next->animClip    = 0x10;
         next->animRequest = DIVER_ANIM_REQUEST_BLEND;
     }
-    if (Gp_TickObjFlag2(task->spawnArg2.pointer) != 0) {
+    if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
         work->targetPart = 4;
         next             = task->work;
         next->state      = ACTOR_206100_FIGHT_STATE_ATTACK;

@@ -4,11 +4,11 @@
 /// is consumed, unless `reactionMode` is
 /// `MAGGOT_CATERPILLAR_REACTION_COMMITTED`, by switching to
 /// `MAGGOT_CATERPILLAR_BEHAVIOUR_STUN` with `stunned` set. While damage over
-/// time is set, `Gp_TickObjFlag4` yields a per-frame damage that is passed to
+/// time is set, `damageTickEnemyDamageOverTime` yields a per-frame damage that is passed to
 /// `worldTargetAddReadoutAmount` and taken from `hp`; outside that reaction mode the actor
 /// then enters `MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD` when they run out (setting
 /// `field_30` to 2) or `MAGGOT_CATERPILLAR_BEHAVIOUR_HURT` otherwise. The bits
-/// are cleared once `Gp_ObjFlag4Expired` returns non-zero.
+/// are cleared once `damageIsEnemyDamageOverTimeExpired` returns non-zero.
 void maggotCaterpillarApplyStatus(Task* arg0)
 {
     MaggotCaterpillarWork* work;
@@ -27,7 +27,7 @@ void maggotCaterpillarApplyStatus(Task* arg0)
         work->stunned      = 1;
     }
     if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        damage = Gp_TickObjFlag4(ctx);
+        damage = damageTickEnemyDamageOverTime(ctx);
         if ((s16)damage != 0) {
             worldTargetAddReadoutAmount(&ctx->node, (s16)damage, 0);
             remaining = (u16)ctx->hp - damage;
@@ -43,7 +43,7 @@ void maggotCaterpillarApplyStatus(Task* arg0)
                 }
             }
         }
-        if (Gp_ObjFlag4Expired(ctx) != 0) {
+        if (damageIsEnemyDamageOverTimeExpired(ctx) != 0) {
             ctx->reactionFlags = (u8)(ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR);
         }
     }

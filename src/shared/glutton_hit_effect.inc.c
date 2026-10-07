@@ -26,19 +26,19 @@ void gluttonHitEffect(GfxCoord* coord, s32 id)
     scratch->effectArg.coord      = coord;
     scratch->effectArg.spawnArgHi = 3;
 
-    switch (Gp_GetIdParam0(id) & 0xFFFF) {
-        case 2:
+    switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+        case DAMAGE_PLAYER_REACTION_BUILDUP:
         case 4:
-        case 6:
-        case 7:
+        case DAMAGE_PLAYER_REACTION_EXPLOSION:
+        case DAMAGE_PLAYER_REACTION_INCENDIARY:
             scratch->offset.vx = 0;
             scratch->offset.vy = -0x190;
             scratch->offset.vz = 0x258;
-            func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &scratch->offset, &scratch->effectArg);
+            func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &scratch->offset, &scratch->effectArg);
             break;
-        case 0:
-        case 1:
-        case 3:
+        case DAMAGE_PLAYER_REACTION_NONE:
+        case DAMAGE_PLAYER_REACTION_STAGGER:
+        case DAMAGE_PLAYER_REACTION_POISON:
         case 5:
         case 8:
         case 9:
@@ -49,19 +49,19 @@ void gluttonHitEffect(GfxCoord* coord, s32 id)
                     scratch->offset.vy = 0;
                     scratch->offset.vx = 0;
                     scratch->offset.vz = 0x384;
-                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &scratch->offset, &scratch->effectArg);
+                    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &scratch->offset, &scratch->effectArg);
                     break;
                 case 1:
                     scratch->offset.vx = 0x258;
                     scratch->offset.vy = -0xC8;
                     scratch->offset.vz = 0x2BC;
-                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &scratch->offset, &scratch->effectArg);
+                    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &scratch->offset, &scratch->effectArg);
                     break;
                 case 2:
                     scratch->offset.vx = -0x12C;
                     scratch->offset.vy = -0x320;
                     scratch->offset.vz = 0x320;
-                    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &scratch->offset, &scratch->effectArg);
+                    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &scratch->offset, &scratch->effectArg);
                     break;
             }
             break;

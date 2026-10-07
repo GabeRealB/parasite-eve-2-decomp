@@ -18,7 +18,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
+#include "gameplay/damage.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -489,11 +489,11 @@ static void func_actor_205200_8014BD4C(Task* arg0)
         for (i = 0; i < ARRAY_SIZE(work->hitContacts); i++) {
             if ((work->hitContacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x20000) {
                 worldTargetAddReadoutAmount(&((Enemy*)arg0->spawnArg2.pointer)->node, 0, 0);
-                switch (Gp_GetIdParam0(work->hitContacts[i].key.value) & 0xFFFF) {
-                    case 1:
+                switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
                         found = 1;
                         break;
-                    case 2:
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
                         break;
                 }
                 if (found == 0) {
@@ -503,10 +503,10 @@ static void func_actor_205200_8014BD4C(Task* arg0)
                 work->actionStep = ACTOR_205200_HIT_REACTION_BEGIN;
                 if (last != work->hitContacts[i].key.value) {
                     last = work->hitContacts[i].key.value;
-                    func_800FDB18(Gp_GetIdParam1(last) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL,
+                    func_800FDB18(damageGetPlayerAttackEffectId(last), &arg0->extra.tmd->coords[3], NULL,
                                   &work->hitEffectArg);
                 }
-                if ((n = Gp_GetIdParam2(work->hitContacts[i].key.value)) > 0) {
+                if ((n = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value)) > 0) {
                     work->hitCooldown = n;
                 }
             }

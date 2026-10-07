@@ -85,31 +85,31 @@ void ratContacts(Task* actor)
                         work->step = 0;
                     }
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    switch (Gp_GetIdParam0(work->hitContacts[i].key.value) & 0xFFFF) {
-                        case 0:
+                    switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                        case DAMAGE_PLAYER_REACTION_NONE:
                         case 4:
                         case 5:
-                        case 6:
-                        case 7:
+                        case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                        case DAMAGE_PLAYER_REACTION_INCENDIARY:
                         case 8:
                             break;
-                        case 2:
-                            Gp_SetObjFlag2(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
+                        case DAMAGE_PLAYER_REACTION_BUILDUP:
+                            damageStartEnemyBuildup(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
                             break;
-                        case 3:
-                            Gp_SetObjFlag4(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
+                        case DAMAGE_PLAYER_REACTION_POISON:
+                            damageTryStartEnemyDamageOverTime(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
                             break;
-                        case 1:
+                        case DAMAGE_PLAYER_REACTION_STAGGER:
                         case 9:
-                            Gp_SetObjFlag1(actor->spawnArg2.pointer);
+                            damageStartEnemyStagger(actor->spawnArg2.pointer);
                             break;
                     }
                     hitId = work->hitContacts[i].key.value;
                     if (lastId != hitId) {
                         lastId = hitId;
-                        func_800FDB18(Gp_GetIdParam1(hitId) & 0xFFFF, coord, NULL, &work->hitEffectArg);
+                        func_800FDB18(damageGetPlayerAttackEffectId(hitId), coord, NULL, &work->hitEffectArg);
                     }
-                    cooldownParam = Gp_GetIdParam2(work->hitContacts[i].key.value);
+                    cooldownParam = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
                     if (cooldownParam > 0) {
                         work->hitCooldown = cooldownParam;
                     }

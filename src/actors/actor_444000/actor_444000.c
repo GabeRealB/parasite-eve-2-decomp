@@ -29,7 +29,6 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -4496,7 +4495,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 /// The hit handler for collision groups 3, 4 and 5 -- `gluttonHitGroups1To2`
 /// done three times, the next group only scanned when the previous one landed
 /// nothing and the part it hit reported no attack id back. Unlike groups 1 and 2
-/// this one runs no `Gp_GetIdParam0` switch: the call is made and its kind
+/// this one runs no `damageGetPlayerAttackReaction` switch: the call is made and its kind
 /// thrown away, so every hit is treated alike.
 ///
 /// The damage is the distance-scaled hit quadrupled when `damageRollCriticalHit`
@@ -4610,8 +4609,8 @@ found3:
         goto out;
     }
 body:
-    work->groups3To5Cooldown = Gp_GetIdParam2(sc->attackKey);
-    Gp_GetIdParam0(sc->attackKey);
+    work->groups3To5Cooldown = damageGetPlayerAttackHitCooldown(sc->attackKey);
+    damageGetPlayerAttackReaction(sc->attackKey);
 
     sc->toPlayer.vx    = (cfg->coordMtx->t[0] - task->extra.tmd->coords->coord.t[0]) + 0x51F;
     dx2                = sc->toPlayer.vx * sc->toPlayer.vx;

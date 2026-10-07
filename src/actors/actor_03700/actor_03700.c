@@ -17,7 +17,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -952,7 +951,7 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
                         broke  = 1;
                         damage = 0;
                     } else {
-                        broke = Gp_GetIdParam1(id) & 0xFFFF;
+                        broke = damageGetPlayerAttackEffectId(id);
                         if ((u32)(broke - 0xC) < 2) {
                             func_800FDB18(broke, coord, NULL, &work->hitEffectArg);
                         }
@@ -960,7 +959,7 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
                         broke             = 0;
                     }
                 } else {
-                    work->deathEffect = (Gp_GetIdParam1(id) & 0xFFFF) == 7;
+                    work->deathEffect = (damageGetPlayerAttackEffectId(id)) == 7;
                 }
                 worldTargetAddReadoutAmount(&((Enemy*)task->spawnArg2.pointer)->node, damage, 0);
                 damageAccumulateLifeDrainHp(task->spawnArg2.pointer, work->contacts[i].key.value, damage, 0);
@@ -969,7 +968,7 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
                     work->action                          = ACTOR_03700_ACTION_DIE;
                     work->actionStep                      = 0;
                     task->state                           = 2;
-                } else if (((Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF) == 8 || broke == 1) &&
+                } else if (((damageGetPlayerAttackReaction(work->contacts[i].key.value) & 0xFFFF) == 8 || broke == 1) &&
                            (u16)(work->action - ACTOR_03700_ACTION_PERCH_DROP) >= 2) { // not on either perch
                     if (work->holdingPlayer == 0) {
                         work->action     = ACTOR_03700_ACTION_RETREAT;

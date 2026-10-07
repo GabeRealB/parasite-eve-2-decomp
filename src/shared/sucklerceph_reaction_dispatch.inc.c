@@ -3,7 +3,7 @@
 /// Per-frame dispatch of the first enemy on its reaction state `state`:
 /// 0 is the dormant arm `sucklercephDormantTick` and 1 the live handler
 /// `sucklercephAwakeTick`. State 3 suppresses the rebind until
-/// `Gp_TickObjFlag2` reports the reaction over, then returns the enemy to the
+/// `damageTickEnemyBuildup` reports the reaction over, then returns the enemy to the
 /// live stage, and ends with a step of the root. States 4 and 5 collapse the
 /// enemy: both scale its second part at the base factor, count frames and
 /// spawn the 0x60080 effect every 0x10; state 5 also counts those spawns and,
@@ -26,7 +26,7 @@ void sucklercephReactionDispatch(Task* arg0)
             return;
         case SUCKLERCEPH_STATE_STATUS_HOLD:
             work->animFrozen = 1;
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
                 work->animFrozen   = 0;
                 work->state        = SUCKLERCEPH_STATE_AWAKE;
                 work->awakeStage   = SUCKLERCEPH_AWAKE_STAGE_CRAWL;

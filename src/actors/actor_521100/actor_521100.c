@@ -26,7 +26,6 @@
 #include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -1900,7 +1899,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 work->hitTwist.vy    = angle2;
                 work->hitTwistActive = 1;
                 damage             >>= 1;
-                if ((Gp_GetIdParam0(work->bodyContacts[i].key.value) & 0xFFFF) == 5) {
+                if ((damageGetPlayerAttackReaction(work->bodyContacts[i].key.value) & 0xFFFF) == 5) {
                     damage *= 2;
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
                 }
@@ -1954,9 +1953,9 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
         enemy->hp = (u16)enemy->hp - damage;
         if (lastId != work->bodyContacts[i].key.value) {
             lastId = work->bodyContacts[i].key.value;
-            func_800FDB18(Gp_GetIdParam1(work->bodyContacts[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
+            func_800FDB18(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value), &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
         }
-        wait = Gp_GetIdParam2(work->bodyContacts[i].key.value);
+        wait = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
         if (wait > 0) {
             work->hitCooldown = wait;
         }

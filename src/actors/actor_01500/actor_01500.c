@@ -17,7 +17,6 @@
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -1080,35 +1079,35 @@ static void Actor01500_Fn004EC(Task* actor)
                     worldTargetAddReadoutAmount(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
                     damageAccumulateLifeDrainHp(actor->spawnArg2.pointer, work->contacts[i].key.value, damage, 0);
                     Actor01500_Fn00AFC(actor, damage);
-                    switch (Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF) {
-                        case 0:
+                    switch (damageGetPlayerAttackReaction(work->contacts[i].key.value) & 0xFFFF) {
+                        case DAMAGE_PLAYER_REACTION_NONE:
                         case 5:
-                        case 7:
+                        case DAMAGE_PLAYER_REACTION_INCENDIARY:
                             break;
-                        case 1:
-                            Gp_SetObjFlag1(actor->spawnArg2.pointer);
+                        case DAMAGE_PLAYER_REACTION_STAGGER:
+                            damageStartEnemyStagger(actor->spawnArg2.pointer);
                             break;
-                        case 3:
-                            Gp_SetObjFlag4(actor->spawnArg2.pointer, work->contacts[i].key.value, 0);
+                        case DAMAGE_PLAYER_REACTION_POISON:
+                            damageTryStartEnemyDamageOverTime(actor->spawnArg2.pointer, work->contacts[i].key.value, 0);
                             break;
                         case 4:
-                        case 6:
+                        case DAMAGE_PLAYER_REACTION_EXPLOSION:
                             if (((Enemy*)actor->spawnArg2.pointer)->hp <= 0) {
                                 work->burstPending = 1;
                             }
                             break;
-                        case 2:
+                        case DAMAGE_PLAYER_REACTION_BUILDUP:
                         case 8:
                         case 9:
-                            Gp_SetObjFlag2(actor->spawnArg2.pointer, work->contacts[i].key.value, 0);
+                            damageStartEnemyBuildup(actor->spawnArg2.pointer, work->contacts[i].key.value, 0);
                             break;
                     }
                     hitId = work->contacts[i].key.value;
                     if (lastId != hitId) {
                         lastId = hitId;
-                        func_800FDB18(Gp_GetIdParam1(hitId) & 0xFFFF, coord, NULL, &work->hitEffectArg);
+                        func_800FDB18(damageGetPlayerAttackEffectId(hitId), coord, NULL, &work->hitEffectArg);
                     }
-                    damage = Gp_GetIdParam2(work->contacts[i].key.value);
+                    damage = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
                     if ((s32)damage > 0) {
                         work->hitCooldown = damage;
                     }
@@ -2036,12 +2035,12 @@ static void Actor01500_Fn025C8(Task* actor)
         work->loopSound = 0;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        damage = Gp_TickObjFlag4(enemy);
+        damage = damageTickEnemyDamageOverTime(enemy);
         if (damage != 0) {
             Actor01500_Fn00AFC(actor, damage);
             worldTargetAddReadoutAmount(&enemy->node, damage, 0);
         }
-        if (Gp_ObjFlag4Expired(enemy) != 0) {
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }

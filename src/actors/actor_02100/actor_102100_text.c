@@ -18,7 +18,6 @@
 #include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
@@ -749,7 +748,7 @@ static void Actor02100_Fn004C4(Task* arg0)
                         scratch->shortVec.vx = 0;
                         scratch->shortVec.vy = 0;
                         scratch->shortVec.vz = 0xC8;
-                        if ((Gp_GetIdParam0(work->hitContacts[0].key.value) & 0xFFFF) == 7) {
+                        if ((damageGetPlayerAttackReaction(work->hitContacts[0].key.value) & 0xFFFF) == DAMAGE_PLAYER_REACTION_INCENDIARY) {
                             Gp_SpawnEff(EFFECT_HIT_BLAST, coord,
                                         work->hitEffect.spawnArgLo | (work->hitEffect.spawnArgHi << 16),
                                         &scratch->shortVec);
@@ -761,7 +760,7 @@ static void Actor02100_Fn004C4(Task* arg0)
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
                     depth = (s8)worldCoordGetOriginAudioDepth(coord);
                     sndEvtRequestScriptStart(sound, pan, depth);
-                    stun = Gp_GetIdParam2(work->hitContacts[0].key.value);
+                    stun = damageGetPlayerAttackHitCooldown(work->hitContacts[0].key.value);
                     if (stun > 0) {
                         work->hitCooldown = stun;
                     }

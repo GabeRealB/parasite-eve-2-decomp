@@ -21,7 +21,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -2692,11 +2691,11 @@ static void func_actor_403000_80134910(Task* arg0, s16 arg1, s32 arg2)
     work->hitEffectArg.spawnArgLo = 0x500;
     work->hitEffectArg.spawnArgHi = 3;
     eff                           = &work->hitEffectArg;
-    func_800FDB18((u16)Gp_GetIdParam1(arg2), &arg0->extra.tmd->coords[scratch[0].pad], &scratch[0], eff);
+    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[scratch[0].pad], &scratch[0], eff);
     work->hitEffectArg.coord      = &arg0->extra.tmd->coords[scratch[1].pad];
     work->hitEffectArg.spawnArgLo = 0x400;
     work->hitEffectArg.spawnArgHi = 2;
-    func_800FDB18((u16)Gp_GetIdParam1(arg2), &arg0->extra.tmd->coords[scratch[1].pad], &scratch[1], eff);
+    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[scratch[1].pad], &scratch[1], eff);
     SCRATCH_STACK_CURSOR(SVECTOR) += 2;
 }
 
@@ -2859,12 +2858,12 @@ static void func_actor_403000_80134F44(Task* arg0)
             if (work->state == ACTOR_403000_STATE_WATCH) {
                 work->ambushRequested = 1;
             }
-            work->hitCooldown = Gp_GetIdParam2(scratch->hitKey);
-            switch (Gp_GetIdParam0(scratch->hitKey) & 0xFFFF) {
-                case 0:
+            work->hitCooldown = damageGetPlayerAttackHitCooldown(scratch->hitKey);
+            switch (damageGetPlayerAttackReaction(scratch->hitKey) & 0xFFFF) {
+                case DAMAGE_PLAYER_REACTION_NONE:
                 case 5:
-                case 6:
-                case 7:
+                case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                case DAMAGE_PLAYER_REACTION_INCENDIARY:
                 case 8:
                 case 9:
                     if (work->state == ACTOR_403000_STATE_WATCH || work->state == ACTOR_403000_STATE_PROWL) {
@@ -2890,9 +2889,9 @@ static void func_actor_403000_80134F44(Task* arg0)
                         work->state = ACTOR_403000_STATE_KNOCKDOWN;
                     }
                     break;
-                case 2:
+                case DAMAGE_PLAYER_REACTION_BUILDUP:
                     if (work->state != ACTOR_403000_STATE_AMBUSH && !(work->state == ACTOR_403000_STATE_DROP && arg0->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) && work->state != ACTOR_403000_STATE_KNOCKDOWN && work->state != ACTOR_403000_STATE_DROP_CATCH && work->playerCaught != 1) {
-                        Gp_SetObjFlag2(enemy, scratch->hitKey, 0);
+                        damageStartEnemyBuildup(enemy, scratch->hitKey, 0);
                         if (work->state == ACTOR_403000_STATE_STUNNED || work->state == ACTOR_403000_STATE_DOWN || work->state == ACTOR_403000_STATE_DOWN_HIT || (work->state == ACTOR_403000_STATE_GET_UP && work->stateFrame < 0x12)) {
                             work->state     = ACTOR_403000_STATE_DOWN_HIT;
                             work->prevState = -1;
@@ -2901,10 +2900,10 @@ static void func_actor_403000_80134F44(Task* arg0)
                         work->state = ACTOR_403000_STATE_KNOCKDOWN;
                     }
                     break;
-                case 3:
-                    Gp_SetObjFlag4(enemy, scratch->hitKey, 0);
+                case DAMAGE_PLAYER_REACTION_POISON:
+                    damageTryStartEnemyDamageOverTime(enemy, scratch->hitKey, 0);
                     break;
-                case 1:
+                case DAMAGE_PLAYER_REACTION_STAGGER:
                     enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
                     if (work->state == ACTOR_403000_STATE_STUNNED || work->state == ACTOR_403000_STATE_DOWN || work->state == ACTOR_403000_STATE_DOWN_HIT || (work->state == ACTOR_403000_STATE_GET_UP && work->stateFrame < 0x12)) {
                         work->state     = ACTOR_403000_STATE_DOWN_HIT;
@@ -2974,8 +2973,8 @@ static void func_actor_403000_80134F44(Task* arg0)
             }
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            scratch->damage = Gp_TickObjFlag4(enemy);
-            if (Gp_ObjFlag4Expired(enemy) != 0) {
+            scratch->damage = damageTickEnemyDamageOverTime(enemy);
+            if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
                 enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
             }
             if (scratch->damage != 0) {
@@ -3043,7 +3042,7 @@ static void func_actor_403000_80135F08(Task* arg0)
     } else {
         work->animRate = 0x10;
     }
-    if ((Gp_TickObjFlag2(obj) == 1) || (obj->hp <= 0)) {
+    if ((damageTickEnemyBuildup(obj) == 1) || (obj->hp <= 0)) {
         obj->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->state         = ACTOR_403000_STATE_DOWN;
     }
@@ -3979,7 +3978,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         work->hitEffectArg.coord      = &player->extra.tmd->coords[3];
         work->hitEffectArg.spawnArgLo = 0x500;
         work->hitEffectArg.spawnArgHi = 3;
-        func_800FDB18(Gp_GetIdParam1(0x100F) & 0xFFFF, &player->extra.tmd->coords[3], 0, &work->hitEffectArg);
+        func_800FDB18(damageGetPlayerAttackEffectId(0x100F), &player->extra.tmd->coords[3], 0, &work->hitEffectArg);
     }
     if (work->stateFrame < 10) {
         coord = arg0->extra.tmd->coords;

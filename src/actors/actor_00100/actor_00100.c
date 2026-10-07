@@ -25,7 +25,6 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -2197,7 +2196,7 @@ static void Actor00100_Fn0375C(Task* arg0)
         if (scratch->hitKey != 0) {
             work->hitFlag                         = 1;
             scratch->criticalEffect               = -1;
-            work->hitCooldown                     = Gp_GetIdParam2(scratch->hitKey);
+            work->hitCooldown                     = damageGetPlayerAttackHitCooldown(scratch->hitKey);
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(arg0->extra.tmd->coords);
             scratch->hitOffset.vx = scratch->hitPos.vx - arg0->extra.tmd->coords->workm.t[0];
@@ -2223,12 +2222,12 @@ static void Actor00100_Fn0375C(Task* arg0)
                 }
             }
             scratch->hitYaw = wrapped;
-            kind            = Gp_GetIdParam0(scratch->hitKey) & 0xFFFF;
+            kind            = damageGetPlayerAttackReaction(scratch->hitKey) & 0xFFFF;
             switch (kind) {
-                case 0:
+                case DAMAGE_PLAYER_REACTION_NONE:
                 case 5:
-                case 6:
-                case 7:
+                case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                case DAMAGE_PLAYER_REACTION_INCENDIARY:
                     state0 = work->state;
                     if ((state0 == 0x18) || (state0 == 0x26) || (state0 == 0x20)) {
                         work->state = 0x1C;
@@ -2264,11 +2263,11 @@ static void Actor00100_Fn0375C(Task* arg0)
                 case 9:
                     Actor00100_SetHitState(work);
                     break;
-                case 2:
+                case DAMAGE_PLAYER_REACTION_BUILDUP:
                     Actor00100_SetHitState(work);
-                    Gp_SetObjFlag2(ctx, scratch->hitKey, 0);
+                    damageStartEnemyBuildup(ctx, scratch->hitKey, 0);
                     break;
-                case 3:
+                case DAMAGE_PLAYER_REACTION_POISON:
                     state3 = work->state;
                     if ((state3 == 0x18) || (state3 == 0x26) || (state3 == 0x20)) {
                         work->state = 0x1C;
@@ -2276,9 +2275,9 @@ static void Actor00100_Fn0375C(Task* arg0)
                     if (work->state == 0x21) {
                         work->state = 0x22;
                     }
-                    Gp_SetObjFlag4(ctx, scratch->hitKey, 0);
+                    damageTryStartEnemyDamageOverTime(ctx, scratch->hitKey, 0);
                     break;
-                case 1:
+                case DAMAGE_PLAYER_REACTION_STAGGER:
                 case 4:
                     state4 = work->state;
                     if (state4 == 4 || state4 == 7 || state4 == 0x21 || state4 == 0x14 || state4 == 0xB || state4 == 0x11 || (state4 == 0x24 && work->stateTimer < 10)) {
@@ -2328,7 +2327,7 @@ static void Actor00100_Fn0375C(Task* arg0)
                 work->broadcast.context.loc.area  = 1;
                 work->broadcast.command           = 4;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &work->broadcast, ACTOR_COMMAND_MESSAGE_APPLY);
-                if ((Gp_GetIdParam0(scratch->hitKey) & 0xFFFF) == 4) {
+                if ((damageGetPlayerAttackReaction(scratch->hitKey) & 0xFFFF) == 4) {
                     work->state = 3;
                 } else {
                     deathState = work->state;
@@ -2354,8 +2353,8 @@ static void Actor00100_Fn0375C(Task* arg0)
             }
         }
         if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            scratch->damage = Gp_TickObjFlag4(ctx);
-            if (Gp_ObjFlag4Expired(ctx) != 0) {
+            scratch->damage = damageTickEnemyDamageOverTime(ctx);
+            if (damageIsEnemyDamageOverTimeExpired(ctx) != 0) {
                 ctx->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
             }
             ctx->hp    = ctx->hp - scratch->damage;

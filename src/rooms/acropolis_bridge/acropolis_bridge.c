@@ -36,7 +36,6 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -5892,7 +5891,7 @@ void func_acropolis_bridge_801874DC(Task* task)
         work->effectArg.coord      = &task->extra.tmd->coords[1];
         work->effectArg.spawnArgLo = 0xA0;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &task->extra.tmd->coords[1], NULL,
+        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &task->extra.tmd->coords[1], NULL,
                       &work->effectArg);
         worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
         Gp_SpawnEff(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[1], 1, NULL);
@@ -5939,7 +5938,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
         work->effectArg.coord      = &task->extra.tmd->coords[1];
         work->effectArg.spawnArgLo = 0x80;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18(Gp_GetIdParam1(attackId) & 0xFFFF, &task->extra.tmd->coords[1],
+        func_800FDB18(damageGetPlayerAttackEffectId(attackId), &task->extra.tmd->coords[1],
                       NULL, &work->effectArg);
         if (damageRollCriticalHit(enemy, attackId, 0) != 0) {
             damage *= 4;

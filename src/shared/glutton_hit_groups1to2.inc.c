@@ -7,7 +7,7 @@
 /// allocates its registers differently, as in `gluttonHitGroups6To8`.
 ///
 /// A hit spawns the impact effect on the part's coordinate, publishes
-/// `Gp_GetIdParam2` of the attack id to all four per-group slots at 0xE8C and
+/// `damageGetPlayerAttackHitCooldown` of the attack id to all four per-group slots at 0xE8C and
 /// then takes the damage off the host: the player-relative offset to the part
 /// gives the `playerDistance` `Gp_ComputeDamage` scales `damage` by, quadrupled when
 /// `damageRollCriticalHit` fires, and zeroed unless the attack kind came back 2.
@@ -72,26 +72,26 @@ void gluttonHitGroups1To2(Task* arg0)
     gluttonHitEffect(coord, id);
     if (sc->attackKey != 0) {
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        param                    = Gp_GetIdParam2(sc->attackKey);
+        param                    = damageGetPlayerAttackHitCooldown(sc->attackKey);
         work->groups6To8Cooldown = param;
         work->groups3To5Cooldown = param;
         work->group0Cooldown     = param;
         work->groups1To2Cooldown = param;
 #else
-        work->groups1To2Cooldown = Gp_GetIdParam2(sc->attackKey);
+        work->groups1To2Cooldown = damageGetPlayerAttackHitCooldown(sc->attackKey);
 #endif
-        switch (Gp_GetIdParam0(sc->attackKey) & 0xFFFF) {
-            case 0:
-            case 1:
-            case 3:
+        switch (damageGetPlayerAttackReaction(sc->attackKey) & 0xFFFF) {
+            case DAMAGE_PLAYER_REACTION_NONE:
+            case DAMAGE_PLAYER_REACTION_STAGGER:
+            case DAMAGE_PLAYER_REACTION_POISON:
             case 5:
-            case 7:
+            case DAMAGE_PLAYER_REACTION_INCENDIARY:
             case 8:
             case 9:
                 break;
 
             case 4:
-            case 6:
+            case DAMAGE_PLAYER_REACTION_EXPLOSION:
                 state = work->state;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
                 if (state != 3) {
@@ -111,7 +111,7 @@ void gluttonHitGroups1To2(Task* arg0)
                 }
                 break;
 
-            case 2:
+            case DAMAGE_PLAYER_REACTION_BUILDUP:
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
                 if (work->summonsAlive == 0 && (state = work->state, state != 3)) {
 #else
@@ -149,7 +149,7 @@ void gluttonHitGroups1To2(Task* arg0)
             }
             sc->damage *= 4;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        } else if ((Gp_GetIdParam0(sc->attackKey) & 0xFFFF) != 2) {
+        } else if ((damageGetPlayerAttackReaction(sc->attackKey) & 0xFFFF) != DAMAGE_PLAYER_REACTION_BUILDUP) {
 #else
         } else {
 #endif

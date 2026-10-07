@@ -29,7 +29,6 @@
 #include "gameplay/geometry.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
@@ -732,7 +731,7 @@ static void func_actor_403600_8013955C(Task* arg0)
         }
         if (temp_s0->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
             if (work->action != ACTOR_403600_ACTION_RUSH) {
-                temp_ret = Gp_TickObjFlag4(temp_s0);
+                temp_ret = damageTickEnemyDamageOverTime(temp_s0);
                 if (temp_ret != 0) {
                     temp_v1_2       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     gRandomLcgState = temp_v1_2;
@@ -748,7 +747,7 @@ static void func_actor_403600_8013955C(Task* arg0)
                     func_actor_403600_8013DAF4(arg0, temp_ret / 5);
                 }
             }
-            if ((Gp_ObjFlag4Expired(temp_s0) != 0) || (temp_s0->hp < 0x1F4)) {
+            if ((damageIsEnemyDamageOverTimeExpired(temp_s0) != 0) || (temp_s0->hp < 0x1F4)) {
                 temp_s0->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
             }
         }
@@ -2576,13 +2575,13 @@ static void func_actor_403600_8013D15C(Task* arg0)
         } else if (hitKind == 2) {
             Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, 0);
         }
-        switch ((u16)Gp_GetIdParam0(work->hitContacts[i].key.value)) {
-            case 0:
+        switch ((u16)damageGetPlayerAttackReaction(work->hitContacts[i].key.value)) {
+            case DAMAGE_PLAYER_REACTION_NONE:
                 break;
-            case 2:
+            case DAMAGE_PLAYER_REACTION_BUILDUP:
                 if (work->committed == 0) {
                     work->exposed = 0;
-                    Gp_SetObjFlag2(arg0->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
+                    damageStartEnemyBuildup(arg0->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
                     if (((u16)work->animId - 0x10 < 2U) && ((u16)work->phaseFrame - 6 < 0x18U)) {
                         work->stunFrames = D_actor_403600_80150EC8.buildupSteps;
                     }
@@ -2591,9 +2590,9 @@ static void func_actor_403600_8013D15C(Task* arg0)
                     }
                 }
                 break;
-            case 3:
+            case DAMAGE_PLAYER_REACTION_POISON:
                 if ((work->committed == 0) && (enemy->hp > 500)) {
-                    Gp_SetObjFlag4(arg0->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
+                    damageTryStartEnemyDamageOverTime(arg0->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
                 }
                 if (work->hitContacts[i].key.value & 8) {
                     if (_actor403600Rand() & 1) {
@@ -2608,10 +2607,10 @@ static void func_actor_403600_8013D15C(Task* arg0)
                     }
                 }
                 break;
-            case 1:
+            case DAMAGE_PLAYER_REACTION_STAGGER:
             case 4:
                 if (work->exposed != 0) {
-                    Gp_SetObjFlag1(enemy);
+                    damageStartEnemyStagger(enemy);
                     work->exposed = 0;
                     if (((u16)(_actor403600Rand() % 10) == 0) && (work->weakPhase == 0) && (work->repositioning == 0)) {
                         work->weakFrames      = 0;
@@ -2620,8 +2619,8 @@ static void func_actor_403600_8013D15C(Task* arg0)
                         enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
                     }
                 }
-            case 6:
-            case 7:
+            case DAMAGE_PLAYER_REACTION_EXPLOSION:
+            case DAMAGE_PLAYER_REACTION_INCENDIARY:
             case 9:
                 hpMax = work->hpMax;
                 if (enemy->hp < hpMax / 10) {
@@ -2672,9 +2671,9 @@ static void func_actor_403600_8013D15C(Task* arg0)
         }
         work->damageTaken += damage;
         if ((enemy->hp > 0) && (arg0 == D_actor_403600_801606A8)) {
-            func_800FDB18((u16)Gp_GetIdParam1(work->hitContacts[i].key.value), &work->worldCoord, &work->hitEffectOffset, &work->hitEffectArg);
+            func_800FDB18(damageGetPlayerAttackEffectId(work->hitContacts[i].key.value), &work->worldCoord, &work->hitEffectOffset, &work->hitEffectArg);
         }
-        stun = Gp_GetIdParam2(work->hitContacts[i].key.value);
+        stun = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
         if (stun > 0) {
             work->hitCooldown = stun;
         }

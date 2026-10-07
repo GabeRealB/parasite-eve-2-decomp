@@ -1,19 +1,14 @@
-#include "gameplay/object_fields.h"
+#include "gameplay/damage.h"
 
 #include "common.h"
 
-#include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "attachments.h"
-#include "gameplay/enemy.h"
 #include "item_menu.h"
 #include "gameplay/enemy_params.h"
-#include "gameplay/damage.h"
-#include "weapon_data.h"
+#include "damage.h"
 
 #include "main/random.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
 
 /// What a hazard contact does to the player, one row per hazard id.
 ///
@@ -42,10 +37,10 @@ typedef struct {
 } _HazardEnemyDamage;
 STATIC_ASSERT_SIZEOF(_HazardEnemyDamage, 0x6);
 
-/// 4-byte records selected by `Gp_LookupIdField(..., 0)`.
+/// 4-byte records selected by `damageGetHazardDamage(..., 0)`.
 extern _HazardPlayerDamage Gp_IdField0[];
 
-/// 6-byte records selected by `Gp_LookupIdField(..., 1)`.
+/// 6-byte records selected by `damageGetHazardDamage(..., 1)`.
 extern _HazardEnemyDamage Gp_IdField1[];
 
 /// Unreferenced nonzero halfword following the ID-field table.
@@ -80,174 +75,185 @@ _HazardEnemyDamage Gp_IdField1[11] = {
 /// Unreferenced nonzero halfword following the ID-field table.
 u16 D_80114096 = 0x3430;
 
-s32 Gp_LookupIdField(s32 arg0, s32 arg1)
+/// Draws the next 83..98-frame pulse delay from the shared random sequence.
+///
+/// Updates the live enemy's byte delay and advances the shared state once.
+static inline void _damageReseedEnemyDamageOverTimeDelay(Enemy* enemy)
 {
-    s32 ret;
+    gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    enemy->damageOverTimeDelay = (gRandomLcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
+}
 
-    ret = 0;
-    switch (arg1) {
-        case 0:
-            ret = Gp_IdField0[(u16)arg0].damage;
+s32 damageGetHazardDamage(s32 hazardKey, s32 victim)
+{
+    s32 damage;
+
+    damage = 0;
+    switch (victim) {
+        case DAMAGE_HAZARD_VICTIM_PLAYER:
+            damage = Gp_IdField0[(u16)hazardKey].damage;
             break;
-        case 1:
-            ret = Gp_IdField1[(u16)arg0].damage;
+        case DAMAGE_HAZARD_VICTIM_ENEMY:
+            damage = Gp_IdField1[(u16)hazardKey].damage;
             break;
     }
-    return ret;
+    return damage;
 }
 
-s32 Gp_GetIdParam0(s32 arg0)
+s32 damageGetPlayerAttackReaction(s32 attackKey)
 {
-    s32 ret;
+    u16 reaction;
 
-    if ((arg0 & 0x8000) == 0) {
-        ret = Gp_IdParamLo[arg0 & 0x7F].hitReaction;
+    if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
+        reaction = Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitReaction;
     } else {
-        ret = Gp_IdParamHi.rows[arg0 & 0x7F].column.outcome.hitReaction;
+        reaction = Gp_IdParamHi.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.outcome.hitReaction;
     }
-    return ret;
+    return reaction;
 }
 
-s32 Gp_GetIdParam1(s32 arg0)
+u16 damageGetPlayerAttackEffectId(s32 attackKey)
 {
-    s32 ret;
+    u16 effectId;
 
-    if ((arg0 & 0x8000) == 0) {
-        ret = Gp_IdParamLo[arg0 & 0x7F].effectId;
+    if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
+        effectId = Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].effectId;
     } else {
-        ret = Gp_IdParamHi.rows[arg0 & 0x7F].column.effectId;
+        effectId = Gp_IdParamHi.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.effectId;
     }
-    return ret;
+    return effectId;
 }
 
-void Gp_SetObjFlag4(Enemy* arg0, s32 arg1, s32 arg2)
+void damageTryStartEnemyDamageOverTime(Enemy* enemy, s32 attackKey, s32 unused)
 {
-    s32 val;
-    s32 limit;
-    s32 rand;
+    s32 poisonPercent;
+    s32 poisonChance;
+    s32 roll;
 
-    val             = arg0->param->damageOverTimeChance;
-    limit           = (val << 12) / 100;
+    // Roll the kind's percent chance before changing any reaction state.
+    poisonPercent   = enemy->param->damageOverTimeChance;
+    poisonChance    = (poisonPercent << DAMAGE_CHANCE_FRACTION_BITS) / 100;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    rand            = gRandomLcgState >> 16 & 0xFFF;
-    if (rand < limit) {
-        arg0->damageOverTimePulse = 0;
-        arg0->reactionFlags      |= ENEMY_REACTION_DAMAGE_OVER_TIME;
-        gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        arg0->damageOverTimeDelay = (gRandomLcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
-        if ((arg1 & 0x8000) == 0) {
-            arg0->damageOverTimeGrade = 0;
+    roll            = gRandomLcgState >> 16 & DAMAGE_CHANCE_DRAW_MASK;
+    if (roll < poisonChance) {
+        enemy->damageOverTimePulse = 0;
+        enemy->reactionFlags      |= ENEMY_REACTION_DAMAGE_OVER_TIME;
+        _damageReseedEnemyDamageOverTimeDelay(enemy);
+        if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
+            enemy->damageOverTimeGrade = 0;
             return;
         }
-        arg0->damageOverTimeGrade = Gp_StateC08.attachId % 10U;
+        enemy->damageOverTimeGrade = Gp_StateC08.attachId % 10U;
     }
 }
 
-s32 Gp_TickObjFlag4(Enemy* arg0)
+s32 damageTickEnemyDamageOverTime(Enemy* enemy)
 {
-    s32 ret;
-    s32 val;
-    s32 scale;
+    s32 damage;
+    s32 maxHp;
+    s32 damagePercent;
 
-    ret = 0;
-    arg0->damageOverTimeDelay--;
-    if (arg0->damageOverTimeDelay == 0) {
-        arg0->damageOverTimePulse++;
-        gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        arg0->damageOverTimeDelay = (gRandomLcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
-        val                       = arg0->param->hpMax;
-        scale                     = D_80113D38[arg0->damageOverTimeGrade];
-        ret                       = (val * scale) / 100;
-        if (ret == 0) {
-            ret = 1;
+    damage = 0;
+    enemy->damageOverTimeDelay--;
+    if (enemy->damageOverTimeDelay == 0) {
+        enemy->damageOverTimePulse++;
+        _damageReseedEnemyDamageOverTimeDelay(enemy);
+        maxHp         = enemy->param->hpMax;
+        damagePercent = D_80113D38[enemy->damageOverTimeGrade];
+        damage        = (maxHp * damagePercent) / 100;
+        if (damage == 0) {
+            damage = 1;
         }
     }
-    return ret;
+    return damage;
 }
 
-s32 Gp_ObjFlag4Expired(Enemy* arg0)
+s32 damageIsEnemyDamageOverTimeExpired(const Enemy* enemy)
 {
-    s32 val;
-    s32 ret;
+    s32 pulseLimit;
+    s32 expired;
 
-    ret = 0;
-    val = arg0->param->damageOverTimeTicks;
-    if (!(arg0->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME)) {
+    expired    = 0;
+    pulseLimit = enemy->param->damageOverTimeTicks;
+    if (!(enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME)) {
         return 1;
     }
-    if (val == 0) {
+    if (pulseLimit == 0) {
         return 0;
     }
-    val = (val * D_80113D28[arg0->damageOverTimeGrade]) / 100;
-    if (arg0->damageOverTimePulse >= val) {
-        ret = 1;
+    pulseLimit = (pulseLimit * D_80113D28[enemy->damageOverTimeGrade]) / 100;
+    if (enemy->damageOverTimePulse >= pulseLimit) {
+        expired = 1;
     }
-    return ret;
+    return expired;
 }
 
-void Gp_SetObjFlag1(Enemy* arg0)
+void damageStartEnemyStagger(Enemy* enemy)
 {
-    arg0->reactionFlags |= ENEMY_REACTION_STAGGER;
+    enemy->reactionFlags |= ENEMY_REACTION_STAGGER;
 }
 
-void Gp_SetObjFlag2(Enemy* arg0, s32 arg1, s32 arg2)
+void damageStartEnemyBuildup(Enemy* enemy, s32 attackKey, s32 unused)
 {
-    arg0->buildupStep    = 0;
-    arg0->buildupTimer   = 0;
-    arg0->reactionFlags |= ENEMY_REACTION_BUILDUP;
-    if ((arg1 & 0x8000) == 0) {
-        arg0->buildupGrade = 0;
+    enemy->buildupStep    = 0;
+    enemy->buildupTimer   = 0;
+    enemy->reactionFlags |= ENEMY_REACTION_BUILDUP;
+    if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
+        enemy->buildupGrade = 0;
         return;
     }
-    if ((arg1 & 0x3F) == 0x31) {
-        arg0->buildupGrade = 0;
+    // This attachment attack always uses grade zero.
+    if ((attackKey & DAMAGE_BUILDUP_UNGRADED_ROW_MASK) == DAMAGE_BUILDUP_UNGRADED_ROW) {
+        enemy->buildupGrade = 0;
         return;
     }
-    arg0->buildupGrade = Gp_StateC08.attachId % 10U;
+    enemy->buildupGrade = Gp_StateC08.attachId % 10U;
 }
 
-s32 Gp_TickObjFlag2(Enemy* arg0)
+s32 damageTickEnemyBuildup(Enemy* enemy)
 {
-    s32 ret;
-    s32 limit;
-    s32 val;
-    s32 scale;
+    s32 expired;
+    s32 stepLimit;
+    s32 baseSteps;
+    s32 stepPercent;
 
-    ret = 0;
-    val = arg0->param->buildupSteps;
-    if (val == 0) {
-        return ret;
+    expired   = 0;
+    baseSteps = enemy->param->buildupSteps;
+    if (baseSteps == 0) {
+        return expired;
     }
-    scale = D_80113D30[arg0->buildupGrade];
-    limit = (val * scale) / 100;
-    if (arg0->buildupStep < limit) {
-        arg0->buildupTimer++;
-        if (arg0->buildupTimer >= ENEMY_BUILDUP_STEP_FRAMES) {
-            arg0->buildupStep++;
-            if (arg0->buildupStep >= limit) {
-                gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                arg0->buildupTimer = gRandomLcgState >> 16 & ENEMY_BUILDUP_COUNTDOWN_MASK;
+    stepPercent = D_80113D30[enemy->buildupGrade];
+    stepLimit   = (baseSteps * stepPercent) / 100;
+    // Accumulate full steps before starting the final hold countdown.
+    if (enemy->buildupStep < stepLimit) {
+        enemy->buildupTimer++;
+        if (enemy->buildupTimer >= ENEMY_BUILDUP_STEP_FRAMES) {
+            enemy->buildupStep++;
+            if (enemy->buildupStep >= stepLimit) {
+                gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                enemy->buildupTimer = gRandomLcgState >> 16 & ENEMY_BUILDUP_COUNTDOWN_MASK;
             } else {
-                arg0->buildupTimer = 0;
+                enemy->buildupTimer = 0;
             }
         }
     } else {
-        arg0->buildupTimer--;
-        if (arg0->buildupTimer == 0) {
-            ret = 1;
+        // Keep the byte wraparound of a zero countdown.
+        enemy->buildupTimer--;
+        if (enemy->buildupTimer == 0) {
+            expired = 1;
         }
     }
-    return ret;
+    return expired;
 }
 
-s32 Gp_GetIdParam2(s32 arg0)
+s32 damageGetPlayerAttackHitCooldown(s32 attackKey)
 {
-    s32 ret;
+    u16 cooldownFrames;
 
-    if ((arg0 & 0x8000) == 0) {
-        ret = Gp_IdParamLo[arg0 & 0x7F].hitCooldown;
+    if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
+        cooldownFrames = Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitCooldown;
     } else {
-        ret = Gp_IdParamHi.rows[arg0 & 0x7F].column.hitCooldown;
+        cooldownFrames = Gp_IdParamHi.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.hitCooldown;
     }
-    return ret;
+    return cooldownFrames;
 }

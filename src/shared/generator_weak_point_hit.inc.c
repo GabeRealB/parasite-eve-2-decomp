@@ -59,13 +59,13 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (damage > 0) {
                 if (part->hitEffectCooldown == 0) {
-                    if ((Gp_GetIdParam0(part->contacts[0].key.value) & 0xFFFF) == 7) {
+                    if ((damageGetPlayerAttackReaction(part->contacts[0].key.value) & 0xFFFF) == DAMAGE_PLAYER_REACTION_INCENDIARY) {
                         func_800FDB18(3, coord, NULL, &part->effectArg);
                     }
                     func_800FDB18(7, coord, NULL, &part->effectArg);
                     part->hitEffectCooldown = 10;
                 }
-                hitTime = Gp_GetIdParam2(part->contacts[0].key.value);
+                hitTime = damageGetPlayerAttackHitCooldown(part->contacts[0].key.value);
                 if (hitTime > 0) {
                     part->hitCooldown = hitTime;
                 }

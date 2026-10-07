@@ -25,7 +25,6 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -1340,28 +1339,28 @@ static inline void _actor503500HandleHit(Task* arg0, Actor503500Work* work, Enem
         func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_DEFEATED);
         work->defeated = 1;
     } else {
-        switch (Gp_GetIdParam0(id) & 0xFFFF) {
-            case 0:
+        switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+            case DAMAGE_PLAYER_REACTION_NONE:
             case 4:
             case 5:
-            case 6:
-            case 7:
+            case DAMAGE_PLAYER_REACTION_EXPLOSION:
+            case DAMAGE_PLAYER_REACTION_INCENDIARY:
             case 8:
             case 9:
                 break;
-            case 1:
-                Gp_SetObjFlag1(enemy);
+            case DAMAGE_PLAYER_REACTION_STAGGER:
+                damageStartEnemyStagger(enemy);
                 break;
-            case 2:
-                Gp_SetObjFlag2(enemy, id, 0);
+            case DAMAGE_PLAYER_REACTION_BUILDUP:
+                damageStartEnemyBuildup(enemy, id, 0);
                 break;
-            case 3:
-                Gp_SetObjFlag4(enemy, id, 0);
+            case DAMAGE_PLAYER_REACTION_POISON:
+                damageTryStartEnemyDamageOverTime(enemy, id, 0);
                 break;
         }
     }
-    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, NULL, &work->hitEffect);
-    stun = Gp_GetIdParam2(id);
+    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, NULL, &work->hitEffect);
+    stun = damageGetPlayerAttackHitCooldown(id);
     if (work->hitCooldown < stun) {
         work->hitCooldown = stun;
     }
@@ -2064,7 +2063,7 @@ static void func_actor_503500_80136304(Task* arg0)
                 func_actor_503500_80135FB4(arg0, 6, 0x10);
                 work->stunAnimationTimer = 3;
             }
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
                 func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
                 work->attackDelay = 0x3C;
             }
@@ -2971,23 +2970,23 @@ static inline void _actor503500PinkFlashEmitterHandleHit(Task* arg0, _Actor50350
     if (enemy->hp <= 0) {
         func_actor_503500_80138490(arg0, ACTOR_503500_PINK_FLASH_EMITTER_STATE_DYING);
     }
-    switch (Gp_GetIdParam0(id) & 0xFFFF) {
-        case 0:
+    switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+        case DAMAGE_PLAYER_REACTION_NONE:
         case 4:
         case 5:
-        case 6:
-        case 7:
+        case DAMAGE_PLAYER_REACTION_EXPLOSION:
+        case DAMAGE_PLAYER_REACTION_INCENDIARY:
         case 8:
         case 9:
             break;
-        case 1:
-            Gp_SetObjFlag1(enemy);
+        case DAMAGE_PLAYER_REACTION_STAGGER:
+            damageStartEnemyStagger(enemy);
             break;
-        case 2:
-            Gp_SetObjFlag2(enemy, id, 0);
+        case DAMAGE_PLAYER_REACTION_BUILDUP:
+            damageStartEnemyBuildup(enemy, id, 0);
             break;
-        case 3:
-            Gp_SetObjFlag4(enemy, id, 0);
+        case DAMAGE_PLAYER_REACTION_POISON:
+            damageTryStartEnemyDamageOverTime(enemy, id, 0);
             break;
     }
     gte_TransposeMatrix(&coord->workm, &rot);
@@ -3005,11 +3004,11 @@ static inline void _actor503500PinkFlashEmitterHandleHit(Task* arg0, _Actor50350
     pos.vx += D_actor_503500_8016F068.vx;
     pos.vy += D_actor_503500_8016F068.vy;
     pos.vz += D_actor_503500_8016F068.vz;
-    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->hitEffect);
+    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
         Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }
-    stun = Gp_GetIdParam2(id);
+    stun = damageGetPlayerAttackHitCooldown(id);
     if (work->hitCooldown < stun) {
         work->hitCooldown = stun;
     }
@@ -3726,11 +3725,11 @@ static void func_actor_503500_801398D0(Task* arg0)
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
             func_actor_503500_8013ACC4(arg0, ACTOR_503500_LARGE_CHAIN_STATE_DAMAGE_OVER_TIME);
-            if (Gp_ObjFlag4Expired(arg0->spawnArg2.pointer) != 0) {
+            if (damageIsEnemyDamageOverTimeExpired(arg0->spawnArg2.pointer) != 0) {
                 enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
                 func_actor_503500_8013ACC4(arg0, ACTOR_503500_LARGE_CHAIN_STATE_IDLE);
             } else {
-                dmg = Gp_TickObjFlag4(enemy);
+                dmg = damageTickEnemyDamageOverTime(enemy);
                 if (dmg != 0) {
                     enemy->hp -= dmg;
                     worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
@@ -3795,23 +3794,23 @@ static inline void _actor503500LargeChainHandleHit(Task* arg0, _Actor503500Large
     if (enemy->hp <= 0) {
         func_actor_503500_8013ACC4(arg0, ACTOR_503500_LARGE_CHAIN_STATE_DYING);
     } else {
-        switch (Gp_GetIdParam0(id) & 0xFFFF) {
-            case 0:
+        switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+            case DAMAGE_PLAYER_REACTION_NONE:
             case 4:
             case 5:
-            case 6:
-            case 7:
+            case DAMAGE_PLAYER_REACTION_EXPLOSION:
+            case DAMAGE_PLAYER_REACTION_INCENDIARY:
             case 8:
             case 9:
                 break;
-            case 1:
-                Gp_SetObjFlag1(enemy);
+            case DAMAGE_PLAYER_REACTION_STAGGER:
+                damageStartEnemyStagger(enemy);
                 break;
-            case 2:
-                Gp_SetObjFlag2(enemy, id, 0);
+            case DAMAGE_PLAYER_REACTION_BUILDUP:
+                damageStartEnemyBuildup(enemy, id, 0);
                 break;
-            case 3:
-                Gp_SetObjFlag4(enemy, id, 0);
+            case DAMAGE_PLAYER_REACTION_POISON:
+                damageTryStartEnemyDamageOverTime(enemy, id, 0);
                 break;
         }
     }
@@ -3830,11 +3829,11 @@ static inline void _actor503500LargeChainHandleHit(Task* arg0, _Actor503500Large
     pos.vx += D_actor_503500_8016F0B0.vx;
     pos.vy += D_actor_503500_8016F0B0.vy;
     pos.vz += D_actor_503500_8016F0B0.vz;
-    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->hitEffect);
+    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
         Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }
-    stun = Gp_GetIdParam2(id);
+    stun = damageGetPlayerAttackHitCooldown(id);
     if (work->hitCooldown < stun) {
         work->hitCooldown = stun;
     }

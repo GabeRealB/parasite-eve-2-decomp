@@ -21,7 +21,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -1442,7 +1441,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
         damage += hitDamage;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        dotDamage = Gp_TickObjFlag4(enemy);
+        dotDamage = damageTickEnemyDamageOverTime(enemy);
         if (dotDamage > 0) {
             Gp_SpawnEff(EFFECT_HIT_PUFF, &task->extra.tmd->coords[4], 0x11112400, 0);
             damage += dotDamage;
@@ -1456,10 +1455,10 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
         work->hitCooldown = cooldown - 1;
         damage            = 0;
     } else if (hitKey != 0) {
-        work->hitCooldown = Gp_GetIdParam2((s32)hitKey);
+        work->hitCooldown = damageGetPlayerAttackHitCooldown((s32)hitKey);
     }
     if (damage == 0) {
-        kind = Gp_GetIdParam0((s32)hitKey) & 0xFFFF;
+        kind = damageGetPlayerAttackReaction((s32)hitKey) & 0xFFFF;
         if (kind < 0xA) {
             if (kind >= 8) {
                 worldTargetAddReadoutAmount(&enemy->node, 0, 0);
@@ -1467,7 +1466,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
         }
     } else if ((s32)damage > 0) {
         died                  = 0;
-        work->hitEffectKind   = Gp_GetIdParam1((s32)hitKey) & 0xFFFF;
+        work->hitEffectKind   = damageGetPlayerAttackEffectId((s32)hitKey);
         reaction              = ACTOR_01100_REACTION_FLINCH;
         work->hitEffectFrames = 0;
         level                 = (u16)work->recentDamage + damage;
@@ -1486,26 +1485,26 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
         if (reaction < level) {
             reaction = level;
         }
-        idKind = Gp_GetIdParam0((s32)hitKey) & 0xFFFF;
+        idKind = damageGetPlayerAttackReaction((s32)hitKey) & 0xFFFF;
         switch (idKind) {
-            case 0:
+            case DAMAGE_PLAYER_REACTION_NONE:
                 break;
-            case 1:
-                Gp_SetObjFlag1(enemy);
+            case DAMAGE_PLAYER_REACTION_STAGGER:
+                damageStartEnemyStagger(enemy);
                 break;
-            case 2:
+            case DAMAGE_PLAYER_REACTION_BUILDUP:
                 if (!(enemy->reactionFlags & ENEMY_REACTION_BUILDUP)) {
-                    Gp_SetObjFlag2(enemy, sourceKey, 0);
+                    damageStartEnemyBuildup(enemy, sourceKey, 0);
                     if ((enemy->reactionFlags & ENEMY_REACTION_BUILDUP) && (work->reaction != ACTOR_01100_REACTION_STUNNED)) {
                         reaction = ACTOR_01100_REACTION_FALL;
                     }
                 } else {
-                    Gp_SetObjFlag2(enemy, sourceKey, 0);
+                    damageStartEnemyBuildup(enemy, sourceKey, 0);
                 }
                 break;
-            case 3:
+            case DAMAGE_PLAYER_REACTION_POISON:
                 Gp_SpawnEff(EFFECT_HIT_PUFF, &task->extra.tmd->coords[4], 0x11112400, 0);
-                Gp_SetObjFlag4(enemy, sourceKey, 0);
+                damageTryStartEnemyDamageOverTime(enemy, sourceKey, 0);
                 break;
             case 5:
                 if (doubleDamage == 0) {
@@ -1519,10 +1518,10 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 work->hitEffectFrames = 0x1E;
                 break;
             case 4:
-            case 6:
+            case DAMAGE_PLAYER_REACTION_EXPLOSION:
                 kind4or6 = 1;
                 break;
-            case 7:
+            case DAMAGE_PLAYER_REACTION_INCENDIARY:
                 if (doubleDamage == 0) {
                     damage *= 2;
                     if (sparkLevel < 2) {
@@ -1550,7 +1549,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
             reaction             = ACTOR_01100_REACTION_FALL;
             enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
         }
-        if ((enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) && (Gp_ObjFlag4Expired(enemy) != 0)) {
+        if ((enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) && (damageIsEnemyDamageOverTimeExpired(enemy) != 0)) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
         damageAccumulateLifeDrainHp(enemy, (s32)hitKey, (s32)damage, 0);
@@ -1707,7 +1706,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
     worldCollisionClearContacts(work->contacts[ACTOR_01100_BODY_LEFT_HAND]);
     worldCollisionClearContacts(work->contacts[ACTOR_01100_BODY_RIGHT_HAND]);
     worldCollisionClearContacts(work->contacts[ACTOR_01100_BODY_CHEST]);
-    if ((enemy->reactionFlags & ENEMY_REACTION_BUILDUP) && (Gp_TickObjFlag2(enemy) != 0)) {
+    if ((enemy->reactionFlags & ENEMY_REACTION_BUILDUP) && (damageTickEnemyBuildup(enemy) != 0)) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
     }
     return damaged;

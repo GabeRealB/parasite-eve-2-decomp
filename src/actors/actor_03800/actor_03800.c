@@ -18,7 +18,6 @@
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -990,7 +989,7 @@ static void Actor03800_Fn00974(Task* arg0)
         }
     }
     if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        damage = Gp_TickObjFlag4(ctx);
+        damage = damageTickEnemyDamageOverTime(ctx);
         if (damage != 0) {
             worldTargetAddReadoutAmount(&ctx->node, (s32)damage, 0);
             remaining = ctx->hp - damage;
@@ -1002,7 +1001,7 @@ static void Actor03800_Fn00974(Task* arg0)
             }
             work->actionStep = 0;
         }
-        if (Gp_ObjFlag4Expired(ctx) != 0) {
+        if (damageIsEnemyDamageOverTimeExpired(ctx) != 0) {
             ctx->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
@@ -1112,12 +1111,12 @@ static void Actor03800_Fn00A98(Task* arg0)
                     if (ctx->hp <= 0) {
                         reaction = 2;
                     }
-                    switch (Gp_GetIdParam0(work->hitContacts[i].key.value) & 0xFFFF) {
-                        case 0:
+                    switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                        case DAMAGE_PLAYER_REACTION_NONE:
                         default:
                             break;
-                        case 3:
-                            Gp_SetObjFlag4(ctx, work->hitContacts[i].key.value, 0);
+                        case DAMAGE_PLAYER_REACTION_POISON:
+                            damageTryStartEnemyDamageOverTime(ctx, work->hitContacts[i].key.value, 0);
                             break;
                         case 4:
                             if (ctx->hp > 0) {
@@ -1128,7 +1127,7 @@ static void Actor03800_Fn00A98(Task* arg0)
                                 work->burstStage = 1;
                             }
                             break;
-                        case 6:
+                        case DAMAGE_PLAYER_REACTION_EXPLOSION:
                             if (ctx->hp <= 0) {
                                 work->burstStage = 1;
                             } else if (work->overturned == 0) {
@@ -1137,11 +1136,11 @@ static void Actor03800_Fn00A98(Task* arg0)
                             break;
                         case 8:
                             if (work->overturned == 0 && reaction == 0) {
-                                Gp_SetObjFlag2(ctx, work->hitContacts[i].key.value, 0);
+                                damageStartEnemyBuildup(ctx, work->hitContacts[i].key.value, 0);
                             }
                             break;
-                        case 1:
-                        case 2:
+                        case DAMAGE_PLAYER_REACTION_STAGGER:
+                        case DAMAGE_PLAYER_REACTION_BUILDUP:
                         case 5:
                         case 9:
                             if (work->overturned == 0 && reaction == 0) {
@@ -1168,9 +1167,9 @@ static void Actor03800_Fn00A98(Task* arg0)
                     hitId = work->hitContacts[i].key.value;
                     if (lastId != hitId) {
                         lastId = hitId;
-                        func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, arg0->extra.tmd->coords + 3, NULL, &work->hitEffectArg);
+                        func_800FDB18(damageGetPlayerAttackEffectId(lastId), arg0->extra.tmd->coords + 3, NULL, &work->hitEffectArg);
                     }
-                    result = Gp_GetIdParam2(work->hitContacts[i].key.value);
+                    result = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
                     if (result > 0) {
                         work->hitCooldown = result;
                     }
@@ -1550,7 +1549,7 @@ static void Actor03800_Fn01AD0(Task* arg0)
         gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->timer       = ((gRandomLcgState >> 16) & 7) + 3;
     }
-    if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+    if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
         work->inBuildup = 0;
         if (work->mode == ACTOR_03800_MODE_FLOOR) {
             if (work->overturned == 0) {

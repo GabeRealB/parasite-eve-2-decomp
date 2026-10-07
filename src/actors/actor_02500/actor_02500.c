@@ -17,7 +17,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -859,7 +858,7 @@ static void Actor02500_Fn00494(Task* actor)
                                                               SquareRoot0(frame->delta.vector.vx * frame->delta.vector.vx + frame->delta.vector.vy * frame->delta.vector.vy +
                                                                           frame->delta.vector.vz * frame->delta.vector.vz),
                                                               0, 0);
-                    param0                 = Gp_GetIdParam0(work->hitContacts[i].key.value);
+                    param0                 = damageGetPlayerAttackReaction(work->hitContacts[i].key.value);
                     if ((param0 & 0xFFFF) == 5) {
                         damage *= 2;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 2, NULL);
@@ -898,12 +897,12 @@ static void Actor02500_Fn00494(Task* actor)
                             break;
                         case 1:
                             if (work->inBuildup == 0) {
-                                Gp_SetObjFlag1(ctx);
+                                damageStartEnemyStagger(ctx);
                             }
                             work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                             break;
                         case 2:
-                            Gp_SetObjFlag2(ctx, work->hitContacts[i].key.value, 0);
+                            damageStartEnemyBuildup(ctx, work->hitContacts[i].key.value, 0);
                             work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                             break;
                         case 4:
@@ -915,9 +914,9 @@ static void Actor02500_Fn00494(Task* actor)
                     }
                     if (lastId != work->hitContacts[i].key.value) {
                         lastId = work->hitContacts[i].key.value;
-                        func_800FDB18(Gp_GetIdParam1(lastId) & 0xFFFF, coord, 0, &work->hitEffectArg);
+                        func_800FDB18(damageGetPlayerAttackEffectId(lastId), coord, 0, &work->hitEffectArg);
                     }
-                    cooldown = Gp_GetIdParam2(work->hitContacts[i].key.value);
+                    cooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
                     if (cooldown > 0) {
                         work->hitCooldown = cooldown;
                     }
@@ -1747,7 +1746,7 @@ static void Actor02500_Fn021F8(Task* arg0)
             work->actionStep = ACTOR_02500_REACTION_STEP_HOLD;
             break;
         case ACTOR_02500_REACTION_STEP_HOLD:
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
                 work->action     = ACTOR_02500_ACTION_CHASE;
                 work->actionStep = ACTOR_02500_CHASE_STEP_BEGIN;
                 work->inBuildup  = 0;

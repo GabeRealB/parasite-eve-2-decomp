@@ -22,7 +22,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -1720,7 +1719,7 @@ static void Actor01600_Fn00A4C(Task* arg0)
     }
     if ((ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) && (work->airborne == 0)) {
         Actor01600_Fn06F10(arg0);
-        damage = Gp_TickObjFlag4(ctx);
+        damage = damageTickEnemyDamageOverTime(ctx);
         if (damage != 0) {
             state = work->behavior;
             if ((state != ACTOR_01600_BEHAVIOR_STAGGER) && (state != ACTOR_01600_BEHAVIOR_BUILDUP_DOWN)) {
@@ -1729,7 +1728,7 @@ static void Actor01600_Fn00A4C(Task* arg0)
             }
             Actor01600_Fn0131C(arg0, damage);
         }
-        if (Gp_ObjFlag4Expired(ctx) != 0) {
+        if (damageIsEnemyDamageOverTimeExpired(ctx) != 0) {
             ctx->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
@@ -1806,12 +1805,12 @@ static void Actor01600_Fn00BAC(Task* actor)
                     }
                     damageAccumulateLifeDrainHp(ctx, work->bodySphere.contacts[contactIndex].key.value, damage, 0);
                     Actor01600_Fn0131C(actor, damage);
-                    count = Gp_GetIdParam2(work->bodySphere.contacts[contactIndex].key.value);
+                    count = damageGetPlayerAttackHitCooldown(work->bodySphere.contacts[contactIndex].key.value);
                     if (count > 0)
                         work->hitCooldown = count;
-                    switch (Gp_GetIdParam0(work->bodySphere.contacts[contactIndex].key.value) & 0xFFFF) {
+                    switch (damageGetPlayerAttackReaction(work->bodySphere.contacts[contactIndex].key.value) & 0xFFFF) {
                         case 4:
-                        case 6:
+                        case DAMAGE_PLAYER_REACTION_EXPLOSION:
                             if ((s16)ctx->hp <= 0) {
                                 work->burstState = 0;
                                 Actor01600_Fn0646C(actor);
@@ -1819,14 +1818,14 @@ static void Actor01600_Fn00BAC(Task* actor)
                                 work->airborne   = 0;
                                 return;
                             }
-                            Gp_SetObjFlag1(actor->spawnArg2.pointer);
+                            damageStartEnemyStagger(actor->spawnArg2.pointer);
                             break;
-                        case 2:
+                        case DAMAGE_PLAYER_REACTION_BUILDUP:
                         case 9:
                             if (work->behavior != ACTOR_01600_BEHAVIOR_BUILDUP) {
                                 ignoredState = ACTOR_01600_BEHAVIOR_BUILDUP_DOWN;
                                 if (work->behavior != ignoredState) {
-                                    Gp_SetObjFlag2(actor->spawnArg2.pointer, work->bodySphere.contacts[contactIndex].key.value, 0);
+                                    damageStartEnemyBuildup(actor->spawnArg2.pointer, work->bodySphere.contacts[contactIndex].key.value, 0);
                                     work->buildupKnocksDown = 1;
                                 }
                             }
@@ -1835,28 +1834,28 @@ static void Actor01600_Fn00BAC(Task* actor)
                             if (work->behavior != ACTOR_01600_BEHAVIOR_BUILDUP) {
                                 ignoredState = ACTOR_01600_BEHAVIOR_BUILDUP_DOWN;
                                 if (work->behavior != ignoredState) {
-                                    Gp_SetObjFlag2(actor->spawnArg2.pointer, work->bodySphere.contacts[contactIndex].key.value, 0);
+                                    damageStartEnemyBuildup(actor->spawnArg2.pointer, work->bodySphere.contacts[contactIndex].key.value, 0);
                                     work->buildupKnocksDown = 0;
                                 }
                             }
                             break;
-                        case 1:
+                        case DAMAGE_PLAYER_REACTION_STAGGER:
                         case 5:
                             if (work->behavior != ACTOR_01600_BEHAVIOR_BUILDUP) {
                                 ignoredState = ACTOR_01600_BEHAVIOR_BUILDUP_DOWN;
                                 if (work->behavior != ignoredState) {
-                                    Gp_SetObjFlag1(actor->spawnArg2.pointer);
+                                    damageStartEnemyStagger(actor->spawnArg2.pointer);
                                 }
                             }
                             break;
-                        case 0:
+                        case DAMAGE_PLAYER_REACTION_NONE:
                             break;
-                        case 3:
-                            Gp_SetObjFlag4(actor->spawnArg2.pointer, work->bodySphere.contacts[contactIndex].key.value, 0);
+                        case DAMAGE_PLAYER_REACTION_POISON:
+                            damageTryStartEnemyDamageOverTime(actor->spawnArg2.pointer, work->bodySphere.contacts[contactIndex].key.value, 0);
                             break;
                     }
                     if (damage >= 40 && work->buildupKnocksDown == 0) {
-                        Gp_SetObjFlag1(ctx);
+                        damageStartEnemyStagger(ctx);
                         if (work->behavior == ACTOR_01600_BEHAVIOR_ROAM && work->airborne != 0) {
                             work->airborne      = 0;
                             work->verticalSpeed = 0;
@@ -1884,7 +1883,7 @@ static void Actor01600_Fn00BAC(Task* actor)
                         }
                         work->attackAction = ACTOR_01600_ACTION_KNOCKBACK;
                     }
-                    func_800FDB18(Gp_GetIdParam1(work->bodySphere.contacts[contactIndex].key.value) & 0xFFFF, world, 0, &work->hitEffect);
+                    func_800FDB18(damageGetPlayerAttackEffectId(work->bodySphere.contacts[contactIndex].key.value), world, 0, &work->hitEffect);
                 }
                 break;
             case 3:
@@ -1999,7 +1998,7 @@ static void Actor01600_Fn0131C(Task* arg0, s32 damage)
 /// 0xE and under 0x11 frames in, requests animation 0x16 at frame 0x28 and,
 /// past frame 0x5B, returns to roam on animation 0x19 with the pair test of
 /// `sight` enabled again. Buildup plays animation 0x13 until
-/// `Gp_TickObjFlag2` fires. Posed only selects animation 0x11. The
+/// `damageTickEnemyBuildup` fires. Posed only selects animation 0x11. The
 /// knocked-down buildup sets `recoilRotation.vx` once per fall (animation
 /// 0xE, past frame 0x2C, `recoilActive` still clear and bit 1 of `animFrame`
 /// set) and, on animation 0x16 past frame 0x32, returns to roam the same way
@@ -2056,7 +2055,7 @@ static void Actor01600_Fn01420(Task* arg0)
         case ACTOR_01600_BEHAVIOR_BUILDUP:
             Actor01600_Fn06F10(arg0);
             work->animRequest = 0x13;
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
                 work->behavior          = ACTOR_01600_BEHAVIOR_ROAM;
                 work->animRequest       = 0x19;
                 work->sight.body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -2083,7 +2082,7 @@ static void Actor01600_Fn01420(Task* arg0)
                     work->sight.body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
             }
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
                 work->animRequest = 0x16;
             }
             work->forwardSpeed = 0;
@@ -2970,7 +2969,7 @@ static void Actor01600_Fn020F8(Task* actor)
                     if ((s16)temp_v0_6 == 0x14) {
                         work->grabBiteTimer = 0U;
                         work->grabBiteCount = (u16)work->grabBiteCount + 1;
-                        func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, effectCoord, &offset, &work->hitEffect);
+                        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), effectCoord, &offset, &work->hitEffect);
                         if (work->grabTargetIndex == 0) {
                             Gp_SpawnPadLerp(0xA, 0x80U, 0x80U);
                         }

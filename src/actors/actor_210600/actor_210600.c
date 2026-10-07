@@ -17,7 +17,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
-#include "gameplay/object_fields.h"
+#include "gameplay/damage.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
@@ -467,7 +467,7 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
 /// runs the animation driver, rebuilds the model root's rotation around its
 /// yaw at 0.75 scale, and when the current pose of animation slot 1 is at cue
 /// index 7 while `lastCueIndex` is not, spawns the effect
-/// `Gp_GetIdParam1(0x1001)` on the model's second part. `lastCueIndex` is then
+/// `damageGetPlayerAttackEffectId(0x1001)` on the model's second part. `lastCueIndex` is then
 /// taken from slot 0, not from the slot just tested. `enemy` is unused.
 static void func_actor_210600_8014B434(Enemy* enemy, Task* task)
 {
@@ -487,7 +487,7 @@ static void func_actor_210600_8014B434(Enemy* enemy, Task* task)
             eff.coord      = task->extra.tmd->coords;
             eff.spawnArgLo = 0x100;
             eff.spawnArgHi = 2;
-            func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, task->extra.tmd->coords + 1, &vec, &eff);
+            func_800FDB18(damageGetPlayerAttackEffectId(0x1001), task->extra.tmd->coords + 1, &vec, &eff);
         }
         work->lastCueIndex = work->rig.slots[0].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }

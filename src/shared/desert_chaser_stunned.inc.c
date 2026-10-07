@@ -36,7 +36,7 @@ void desertChaserStunned(Task* arg0)
         work->animRate = 0x10;
     }
     desertChaserAnimTick(arg0);
-    if (Gp_TickObjFlag2(ctx) == 1) {
+    if (damageTickEnemyBuildup(ctx) == 1) {
         ctx->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->state         = 0x24;
     }

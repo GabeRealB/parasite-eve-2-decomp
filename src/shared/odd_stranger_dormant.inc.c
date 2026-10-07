@@ -40,7 +40,7 @@ void oddStrangerDormant(Task* arg0)
         work->effectArg.coord      = arg0->extra.tmd->coords + 1;
         work->effectArg.spawnArgLo = ODD_STRANGER_PART1_FX_SCALE;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
+        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
     }
     work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
     coord              = arg0->extra.tmd->coords;

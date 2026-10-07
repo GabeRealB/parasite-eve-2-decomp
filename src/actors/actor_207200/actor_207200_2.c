@@ -19,7 +19,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
-#include "gameplay/object_fields.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -1162,11 +1161,11 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 damage                   = SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx +
                                                        scratch->delta.vector.vy * scratch->delta.vector.vy +
                                                        scratch->delta.vector.vz * scratch->delta.vector.vz);
-                Gp_GetIdParam0(work->bodyContacts[i].key.value);
+                damageGetPlayerAttackReaction(work->bodyContacts[i].key.value);
                 damage = Gp_ComputeDamage(work->bodyContacts[i].key.value, damage, 0, 0);
-                func_800FDB18((u16)Gp_GetIdParam1(work->bodyContacts[i].key.value),
+                func_800FDB18(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value),
                               arg0->extra.tmd->coords + 1, &D_actor_207200_80153F10, &work->bodyHitEffectArg);
-                n = Gp_GetIdParam2(work->bodyContacts[i].key.value);
+                n = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
                 if ((s16)n > 0) {
                     work->hitCooldown = n;
                 }
@@ -1234,13 +1233,13 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             scratch->delta.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             damage                   = SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy +
                                                    scratch->delta.vector.vz * scratch->delta.vector.vz);
-            param                    = Gp_GetIdParam0(work->headContacts[i].key.value);
+            param                    = damageGetPlayerAttackReaction(work->headContacts[i].key.value);
             damage                   = Gp_ComputeDamage(work->headContacts[i].key.value, damage, 0, 0);
             switch ((u16)param) {
-                case 1:
+                case DAMAGE_PLAYER_REACTION_STAGGER:
                 case 4:
                 case 5:
-                case 6:
+                case DAMAGE_PLAYER_REACTION_EXPLOSION:
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 2, NULL);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     worldTargetAddReadoutAmount(&enemy->node, D_actor_207200_8014E7D4.hpMax * 2 + (u16)((gRandomLcgState >> 16) % 100), 0);
@@ -1250,7 +1249,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                     return;
                 case 8:
                 case 9:
-                    Gp_SetObjFlag2(enemy, work->headContacts[i].key.value, 0);
+                    damageStartEnemyBuildup(enemy, work->headContacts[i].key.value, 0);
                 default:
                     if ((damageRollCriticalHit(arg0->spawnArg2.pointer, work->headContacts[i].key.value, 0) != 0 ||
                          work->state == ACTOR_207200_STATE_STATUS_HOLD) &&
@@ -1261,9 +1260,9 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                     }
                     damageAccumulateLifeDrainHp(enemy, work->headContacts[i].key.value, damage, 0);
                     func_actor_207200_8014C870(arg0, damage);
-                    func_800FDB18((u16)Gp_GetIdParam1(work->headContacts[i].key.value),
+                    func_800FDB18(damageGetPlayerAttackEffectId(work->headContacts[i].key.value),
                                   arg0->extra.tmd->coords + 3, &D_actor_207200_80153F08, &work->headHitEffectArg);
-                    n = Gp_GetIdParam2(work->headContacts[i].key.value);
+                    n = damageGetPlayerAttackHitCooldown(work->headContacts[i].key.value);
                     if ((s16)n > 0) {
                         work->hitCooldown = n;
                     }
@@ -1644,7 +1643,7 @@ static void func_actor_207200_8014D41C(Task* arg0)
 /// countdown on the task is decremented first and clamped at zero. The dormant
 /// and active states hand the actor to their own tick bodies; the status hold
 /// counts `work->phaseFrames` up to 0x3D frames before requesting the fidget
-/// animation afresh, and drops back to the dormant state once `Gp_TickObjFlag2`
+/// animation afresh, and drops back to the dormant state once `damageTickEnemyBuildup`
 /// reports that the status buildup is done; the recoil waits until
 /// `work->animFrames` reaches 0x69 and then returns to the dormant state, with
 /// the idle animation when the head is lost (`work->headLost != 0`) and with
@@ -1675,7 +1674,7 @@ static void func_actor_207200_8014D49C(Task* arg0)
                 work->animFrames  = 0;
                 work->phaseFrames = 0;
             }
-            if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
                 work->state = ACTOR_207200_STATE_DORMANT;
             }
             break;
