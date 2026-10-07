@@ -330,6 +330,8 @@ volatile u8 D_80082136;
 
 #include "sound.h"
 
+#include "mapui/map_neo_ark.h"
+
 // Loader policies shared by sector processing and image installation.
 enum {
     SOUND_LOAD_IMAGE_LENGTH_MASK         = 0xFFFC, // Word alignment with the serialized 16-bit length retained
@@ -351,8 +353,6 @@ static _MidiEventHandler Midi_EventFns[];
 static volatile s32 D_800689E8;
 
 static u8 D_800689F0[];
-
-extern s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp);
 
 static void _sndEvtRelease(SndEvt* event);
 
@@ -1511,7 +1511,7 @@ static void Midi_UpdateVoiceVolumes(_MidiSong* song)
 
     interp = &song->volumeRamp;
     if (song->sequenceId == 0x4F && D_80082120 == 5) {
-        volume = func_map_neo_ark_80179BE4((u16)song->volumeScale, D_80082136, interp);
+        volume = mapNeoArkUpdateMusicVolume((u16)song->volumeScale, D_80082136, interp);
     } else if (song->sequenceId == 0x5A) {
         volume = linInterpApply(interp, (u32)((midiGetMasterVolume() & 0xFF) * ((D_800689F0[0x5A] * 3) << 5)) / 127U);
     } else {

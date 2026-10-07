@@ -325,4 +325,4 @@ D_mappic_s3_03_8012EFD8 = 0x8012EFD8; // absolute:True owner=mappic_s3_03 shared
 D_mappic_s3_03_8012F084 = 0x8012F084; // absolute:True owner=mappic_s3_03 shared=mappic
 D_mappic_s3_03_8012F180 = 0x8012F180; // absolute:True owner=mappic_s3_03 shared=mappic
 
-func_map_dryfield_full_80179954 = 0x80179954; // type:func
+mapDryfieldFullResolveRoomVariant = 0x80179954; // type:func

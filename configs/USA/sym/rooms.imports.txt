@@ -612,8 +612,8 @@ D_actor_342400_8016BFE0 = 0x8016BFE0; // absolute:True owner=actor_342400
 D_actor_560800_8016EA28 = 0x8016EA28; // absolute:True owner=actor_560800
 D_actor_560800_801718F0 = 0x801718F0; // absolute:True owner=actor_560800
 D_actor_560800_801752EC = 0x801752EC; // absolute:True owner=actor_560800
-func_map_akropolis_80179FC8 = 0x80179FC8; // type:func absolute:True owner=map_akropolis
-func_map_akropolis_8017A038 = 0x8017A038; // type:func absolute:True owner=map_akropolis
+mapAkropolisOpenKeyItemMenu = 0x80179FC8; // type:func absolute:True owner=map_akropolis
+mapAkropolisWasDryfieldMapSelected = 0x8017A038; // type:func absolute:True owner=map_akropolis
 func_807245E4 = 0x807245E4; // type:func absolute:True
 func_80724608 = 0x80724608; // type:func absolute:True
 
@@ -629,7 +629,7 @@ Fs_ChunkOutputSizes = 0x8006D860; // absolute:True size:0xC
 // The full dual-bank flag buffer; biased player-address immediates fall inside it.
 gGameFlagNibbleBanks = 0x80073980; // absolute:True size:0x200
 
-func_map_dryfield_full_80179954 = 0x80179954; // type:func absolute:True owner=map_dryfield_full shared=mapui
+mapDryfieldFullResolveRoomVariant = 0x80179954; // type:func absolute:True owner=map_dryfield_full shared=mapui
 
 mapShelterRoomVariantResolve = 0x80179A04; // type:func absolute:True owner=map_shelter
 

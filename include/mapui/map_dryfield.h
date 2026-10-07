@@ -13,6 +13,7 @@
 #include "gameplay/view.h"
 
 #include "main/gfx_types.h"
+#include "main/session_types.h"
 #include "main/stage_types.h"
 #include "main/task_types.h"
 
@@ -191,8 +192,16 @@ extern InventoryBattleReward D_map_dryfield_8017BCE4[];
 
 extern InventoryBattleReward D_map_dryfield_8017BD80[];
 
-/// The Dryfield map's part of main's MDEC buffer setup: `Mdec_SetupBuffers`
-/// calls this map-slot address (as `func_80179954`) for one of its layouts.
-void func_map_dryfield_80179954(u8* entry);
+/// Places movie decode buffers for the daytime Dryfield Gas Station.
+///
+/// Borrows `location` only for its area ID and disables VRAM staging. Main must
+/// first cache dimensions and reserve movie and actor-buffer-0 storage. With
+/// P = width * height pixels, places decoded frames at workspace + 3P and + 5P
+/// bytes, and VLC outputs at ring + 0x10000 bytes and the workspace base.
+/// Each decoded frame occupies 2P bytes; all extents must fit their reserved,
+/// word-aligned regions. Other areas retain the preceding buffer pointers.
+/// Clears the session reuse fields for actor buffers 0/1; never allocates.
+/// Storage remains borrowed by the decoder through playback.
+void mapDryfieldSetupMovieBuffers(const GameLocationKey* location);
 
 #endif // INCLUDE_MAPUI_MAP_DRYFIELD_H

@@ -331,3 +331,4 @@ D_mappic_s2_02_8012FDF0 = 0x8012FDF0; // absolute:True owner=mappic_s2_02
 D_mappic_s2_03_8012EFD8 = 0x8012EFD8; // absolute:True owner=mappic_s2_03 shared=mappic
 D_mappic_s2_03_8012F084 = 0x8012F084; // absolute:True owner=mappic_s2_03 shared=mappic
 D_mappic_s2_03_8012F180 = 0x8012F180; // absolute:True owner=mappic_s2_03 shared=mappic
+mapDryfieldSetupMovieBuffers = 0x80179954; // type:func

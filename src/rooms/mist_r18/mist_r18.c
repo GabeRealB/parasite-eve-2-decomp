@@ -54,9 +54,6 @@ enum {
 
 extern WorldCoordRoomLights D_mist_r18_80186E44[1];
 
-s32 func_map_akropolis_8017A038(void);
-s32 func_map_akropolis_80179FC8(s32 arg0, s32 arg1);
-
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_mist_r18_8017D960(Task* task);
 static void _mistR18DrawFadeSprites(s32 fadeActive, s32 shade);
@@ -1184,7 +1181,7 @@ static void _mistR18CaptionTask(Task* task)
 
 /// Cutscene step of the room's cutscene task: while no event is running and
 /// neither gate is set, start the next script of the sequence whose step
-/// `D_mist_r18_80186E9C` holds. At step 4 it branches on `func_8017A038`,
+/// `D_mist_r18_80186E9C` holds. At step 4 it branches on `mapAkropolisWasDryfieldMapSelected`,
 /// setting `D_mist_r18_80186EA0` and staying on that step when the alternate
 /// script runs.
 static void func_mist_r18_8017D960(Task* task)
@@ -1204,7 +1201,7 @@ static void func_mist_r18_8017D960(Task* task)
             evsStartScript(D_mist_r18_8018603C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             D_mist_r18_80186E9C = 4;
         } else if (state == 4) {
-            if (func_map_akropolis_8017A038() != 1) {
+            if (mapAkropolisWasDryfieldMapSelected() != 1) {
                 evsStartScript(D_mist_r18_801861BC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 D_mist_r18_80186EA0 = 1;
                 return;
@@ -1789,7 +1786,7 @@ void func_mist_r18_8017ECC0(s8 arg0)
 
 void func_mist_r18_8017ECCC(void)
 {
-    func_map_akropolis_80179FC8(0, D_mist_r18_80186EA0);
+    mapAkropolisOpenKeyItemMenu(0, D_mist_r18_80186EA0);
 }
 
 static void func_mist_r18_8017ECF4(Task* arg0)

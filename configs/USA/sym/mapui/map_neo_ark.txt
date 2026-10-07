@@ -353,3 +353,5 @@ D_mappic_s5_03_8012F2B8 = 0x8012F2B8; // absolute:True owner=mappic_s5_03
 D_mappic_s5_03_8012F348 = 0x8012F348; // absolute:True owner=mappic_s5_03
 
 mapNeoArkResolveRoomVariant = 0x80179B14; // type:func
+mapNeoArkSetupMovieBuffers = 0x801799bc; // type:func
+mapNeoArkUpdateMusicVolume = 0x80179be4; // type:func

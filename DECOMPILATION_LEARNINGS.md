@@ -48476,7 +48476,7 @@ D_map_akropolis_8017997C = 0x8017997C; // force_not_migration:True
 The symbol then gets `asm/USA/<overlay>/nonmatchings/<unit>/D_..._<addr>.s` of
 its own and the decompiled C keeps it with an `INCLUDE_RODATA` line plus an
 `extern char D_..._<addr>[];`. This is the move when the block is *not*
-expressible as C - `func_map_akropolis_80179D78` references a 0x44-byte blob
+expressible as C - `_mapAkropolisKeyItemPanelTask` references a 0x44-byte blob
 that starts with the string `"Key Item"` and continues into what disassembles
 as a jump-table dispatcher, so there is nothing sensible to write out by hand.
 Keep the `INCLUDE_RODATA` line where the block belongs in address order, the
@@ -59925,7 +59925,7 @@ pick in C is therefore free for the checksum -- but it is *not* free for the
 scheduler, because GCC 2.8.1 sets `MEM_IN_STRUCT_P` on an array/struct
 reference and not on a plain scalar global.
 
-In `func_map_neo_ark_801799BC` the tail is
+In `mapNeoArkSetupMovieBuffers` the tail is
 
 ```c
 D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
@@ -59954,10 +59954,10 @@ scheduler's ready list break by insn UID, so a constant whose first store sits
 later in the source is materialised later and takes the higher-numbered
 register.
 
-In `func_map_neo_ark_801799BC` the target opens its case with `li $t0, 1` and
+In `mapNeoArkSetupMovieBuffers` the target opens its case with `li $t0, 1` and
 assigns `$a3` to `0x10000`; writing the `= 1` stores after the `= 0x180` /
 `= 0x100` stores gave the opposite pairing and a `regs` penalty of 14 across the
-block. Moving the single statement `q->movieVramStaging = 1;` to the top of the case
+block. Moving the single statement `queue->movieVramStaging = 1;` to the top of the case
 hoisted the `li` and fixed all of it -- the emitted *store* order did not
 change, because the scheduler moved the store back down on its own. Reorder the
 statement that first mentions the constant, not the stores you can see.
@@ -59983,14 +59983,15 @@ with the Psy-Q macro and let the scheduler produce the order you see.
 
 ## A shared constant sinks to its first use; a loop note pins it at the block top
 
-GCC 2.8.1 does not keep `s16 one = 1;` where you wrote it. The pseudo carries a
+GCC 2.8.1 does not keep `s16 stagingEnabled = 1;` where you wrote it. The pseudo
+carries a
 `REG_EQUIV (const_int 1)` note, and by the `.lreg` dump the `li` has been moved
 down to just before the first store that uses it — even when the assignment is
 the first statement of the block. Compare the `.combine` and `.lreg` dumps for
 the same file: in `.combine` the `const_int 1` insn precedes the other two
 constants, in `.lreg` it follows them.
 
-In `func_map_akropolis_80179988` (case 8 of an MDEC-setup switch) the target
+In `mapAkropolisSetupMovieBuffers` (case 8 of an MDEC-setup switch) the target
 opens the block with `li $t0, 1` and only uses `$t0` eleven instructions later,
 for three separate `sh` stores. Every source order that keeps the two `sh $t0`
 stores in the target's order sank the `li` three slots, and no statement
@@ -60004,12 +60005,12 @@ may move the insn:
 ```c
 /* The loop note pins `li 1` at the top of the block. */
 do {
-    one = 1;
+    stagingEnabled = 1;
 } while (0);
-q->movieStagingX = 0x180;
-q->movieStagingY = 0x100;
-D_8006AC5C   = one;
-q->movieVramStaging = one;
+queue->movieStagingX = 0x180;
+queue->movieStagingY = 0x100;
+D_8006AC5C   = stagingEnabled;
+queue->movieVramStaging = stagingEnabled;
 ```
 
 Two traps in getting there. Declare the shared constant `s16`/`u16`, not `s32`:

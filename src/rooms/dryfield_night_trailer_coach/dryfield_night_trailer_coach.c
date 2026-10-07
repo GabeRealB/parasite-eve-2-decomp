@@ -971,11 +971,11 @@ s32 func_dryfield_night_trailer_coach_801826A0(Task* task, s32 messageId, s32 fi
 }
 
 /// Message handler that copies the incoming record onto the outgoing one and
-/// forwards both to `func_map_dryfield_full_80179954`. Always returns 1.
+/// forwards both to `mapDryfieldFullResolveRoomVariant`. Always returns 1.
 s32 func_dryfield_night_trailer_coach_801826A8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_dryfield_full_80179954(in, out);
+    mapDryfieldFullResolveRoomVariant(in, out);
     return 1;
 }
 

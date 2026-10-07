@@ -20,7 +20,9 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
+#include "mapui/map_akropolis.h"
 #include "mapui/map_dryfield.h"
+#include "mapui/map_neo_ark.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
 static s32 D_8006AC08;
@@ -84,11 +86,7 @@ u16 D_8006AC6C;
 
 extern s32 StCdIntrFlag;
 
-extern void func_map_akropolis_80179988(u8* arg0);
-
-extern void func_map_neo_ark_801799BC(u8* arg0);
-
-static void Mdec_SetupBuffers(u8* arg0);
+static void Mdec_SetupBuffers(const GameLocationKey* arg0);
 
 static void _streamLoadMovieSlotState(u32 slotIndex);
 
@@ -159,7 +157,7 @@ enum {
 u16 D_8005EAEC = 0;
 u16 D_8005EAEE = 0;
 
-static void Mdec_SetupBuffers(u8* arg0)
+static void Mdec_SetupBuffers(const GameLocationKey* arg0)
 {
     s32     temp_lo;
     u16*    temp_v1;
@@ -178,7 +176,7 @@ static void Mdec_SetupBuffers(u8* arg0)
     D_8006AC60                   = (u16*)((u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES);
     D_8006AC64                   = D_8006AC40;
 
-    switch ((s8)(arg0[3] + 1)) {
+    switch ((s8)(arg0->stage + 1)) {
         case 0:
             D_8006AC24 = 0x28;
             D_8006AC38 = (u_short*)D_8006AC40;
@@ -211,13 +209,13 @@ static void Mdec_SetupBuffers(u8* arg0)
             return;
         }
         case 2:
-            func_map_akropolis_80179988(arg0);
+            mapAkropolisSetupMovieBuffers(arg0);
             return;
         case 3:
-            func_map_dryfield_80179954(arg0);
+            mapDryfieldSetupMovieBuffers(arg0);
             return;
         case 6:
-            func_map_neo_ark_801799BC(arg0);
+            mapNeoArkSetupMovieBuffers(arg0);
             return;
     }
 }
@@ -434,7 +432,7 @@ static __inline__ void _streamClearDisplayBuffers(RECT* clearRect)
 
 u32 Stream_InitializePlayback(u32 slotIndex)
 {
-    u8          params[8];
+    GameLoc     params;
     RECT        clearRect;
     CdCmdQueue* queue;
     u32         slot;
@@ -453,8 +451,8 @@ u32 Stream_InitializePlayback(u32 slotIndex)
         D_8006AC08 = Stream_Slots[slot].source.interSectorOffset + D_8006AC30.startSector;
     }
     if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
-        params[3] = 0xFF;
-        Mdec_SetupBuffers(params);
+        params.loc.stage = 0xFF;
+        Mdec_SetupBuffers(&params.loc);
         queue->movieFrame = 1;
         _streamClearDisplayBuffers(&clearRect);
         if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
@@ -466,7 +464,7 @@ u32 Stream_InitializePlayback(u32 slotIndex)
         DecDCTvlcBuild(D_8006AC38);
         return 0U;
     }
-    Mdec_SetupBuffers((u8*)&gGameSession->location.loc);
+    Mdec_SetupBuffers(&gGameSession->location.loc);
     return 0U;
 }
 

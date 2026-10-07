@@ -18,6 +18,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gfx_types.h"
@@ -96,10 +97,10 @@
  * pictures' marker models.
  */
 
-s32 func_map_dryfield_full_80179954(RoomEventMsg* arg0, RoomEventMsg* arg1)
+s32 mapDryfieldFullResolveRoomVariant(const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    if ((arg0->areaId == 0x1A) && (arg0->queryOnly == ROOM_EVENT_EXECUTE)) {
-        arg1->room = gameFlagGetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) + 1;
+    if ((request->areaId == GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
+        reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) + 1;
     }
     return 1;
 }

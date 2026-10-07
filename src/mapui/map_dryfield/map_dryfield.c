@@ -16,6 +16,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gfx_types.h"
@@ -97,17 +98,20 @@
  * the stage's room packages or at the map pictures' marker models.
  */
 
-void func_map_dryfield_80179954(u8* entry)
+/// Byte extent of the 32-sector movie ring before the first VLC output buffer.
+enum { MAP_DRYFIELD_MOVIE_RING_BYTES = 0x10000 };
+
+void mapDryfieldSetupMovieBuffers(const GameLocationKey* location)
 {
-    s32 size;
+    s32 pixelCount;
 
     gCdCmdQueue.movieVramStaging = 0;
-    if (entry[2] == 1) {
-        size          = D_8006AC5A * D_8006AC6C;
-        D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);
+    if (location->area == GAME_AREA_DRYFIELD_GAS_STATION) {
+        pixelCount    = D_8006AC5A * D_8006AC6C;
+        D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + MAP_DRYFIELD_MOVIE_RING_BYTES);
         D_8006AC50[1] = D_8006AC40;
-        D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + size * 3);
-        D_8006AC48[1] = (u_long*)((u8*)D_8006AC40 + size * 3 + size * 2);
+        D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + pixelCount * 3);
+        D_8006AC48[1] = (u_long*)((u8*)D_8006AC40 + pixelCount * 3 + pixelCount * 2);
     }
     D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
     gGameSession->field_7C = 0;

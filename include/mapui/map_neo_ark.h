@@ -14,6 +14,8 @@
 #include "gameplay/view.h"
 
 #include "main/gfx_types.h"
+#include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/stage_types.h"
 #include "main/task_types.h"
 
@@ -263,6 +265,35 @@ extern AreaPlacement D_map_neo_ark_8017C760[];
 extern InventoryBattleReward D_map_neo_ark_8017C9B0[];
 
 extern InventoryBattleReward D_map_neo_ark_8017CB0C[];
+
+/// Places movie decode buffers for the Guardroom or Eve Elevator area.
+///
+/// Borrows only `location->area`. Main must first cache dimensions, reserve the
+/// movie workspace and actor-buffer-0 ring/table region, and reset staging.
+/// Each decoded frame occupies width * height * 2 bytes. The Guardroom uses
+/// two consecutive decoded frames after the workspace's VLC buffer; the Eve
+/// Elevator shares one output frame, places both VLC buffers after the
+/// 0x10000-byte ring, and stages columns at VRAM (384,256), in words/rows.
+/// All extents must fit their reserved word-aligned storage. Other areas retain
+/// prior pointers. Clears session fields for reused actor buffers; never allocates.
+/// Storage remains borrowed by the decoder through playback.
+void mapNeoArkSetupMovieBuffers(const GameLocationKey* location);
+
+/// Applies Neo Ark's area-dependent ducking to sequence 0x4F's song volume.
+///
+/// `fullVolume` is the zero-extended 16-bit product of sequence-table gain and
+/// requested MIDI gain. Substation waits until its counter reaches 121 volume
+/// updates, then steps down by 768 per call toward half volume; Power Plant 2
+/// starts at half, waits for 241 updates, then steps up toward full volume.
+/// The fixed signed step is unchecked; target tests view the cached level as
+/// u32. Other areas reset both counters and use `fullVolume`. Counters count calls,
+/// not frames.
+///
+/// Combines the selected level with the low-byte master gain divided by 127,
+/// then applies the borrowed song ramp and returns the SPU playback level.
+/// Gain products use unsigned 32-bit arithmetic. Uses singleton resident
+/// counters; requires this map overlay and a live ramp for the call.
+s32 mapNeoArkUpdateMusicVolume(u32 fullVolume, u8 areaId, LinInterp* ramp);
 
 /// Resolves a destination's progress-dependent room variant in the Neo Ark stage.
 ///

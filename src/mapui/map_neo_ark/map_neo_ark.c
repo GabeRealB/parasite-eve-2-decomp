@@ -15,6 +15,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
@@ -110,40 +111,37 @@ static AreaObjectPlace D_map_neo_ark_8017C930[4];
 static AreaObjectPlace D_map_neo_ark_8017C970[2];
 static AreaObjectPlace D_map_neo_ark_8017C990[2];
 
-void func_map_neo_ark_801799BC(u8* arg0);
-s32  func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp);
+/// Movie ring byte extent and Eve Elevator staging origin in VRAM words/rows.
+enum {
+    MAP_NEO_ARK_MOVIE_RING_BYTES               = 0x10000,
+    MAP_NEO_ARK_MOVIE_ELEVATOR_STAGING_X_WORDS = 384,
+    MAP_NEO_ARK_MOVIE_ELEVATOR_STAGING_Y_ROWS  = 256,
+};
 
-/// MDEC buffer layout hook for the Neo Ark map, reached from
-/// `Mdec_SetupBuffers` (main) for stream kinds 6 and 9. Both kinds park the
-/// two decode buffers (`D_8006AC48`) and the two VLC buffers (`D_8006AC50`)
-/// around the frame allocation, differing only in how far apart the halves sit;
-/// kind 9 additionally rewinds the CD queue and asks for the 0x180 x 0x100
-/// display. `D_8006AC44` always ends up one full frame past the second decode
-/// buffer.
-void func_map_neo_ark_801799BC(u8* arg0)
+void mapNeoArkSetupMovieBuffers(const GameLocationKey* location)
 {
-    CdCmdQueue* q = &gCdCmdQueue;
-    s32         stride;
+    CdCmdQueue* queue = &gCdCmdQueue;
+    s32         frameBytes;
 
-    switch (arg0[2]) {
-        case 6:
-            stride        = D_8006AC5A * D_8006AC6C * 2;
-            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);
-            D_8006AC50[1] = (u_long*)D_8006AC40;
-            D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + stride);
-            D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + stride);
+    switch (location->area) {
+        case GAME_AREA_SHELTER_1F_GUARDROOM:
+            frameBytes    = D_8006AC5A * D_8006AC6C * 2;
+            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + MAP_NEO_ARK_MOVIE_RING_BYTES);
+            D_8006AC50[1] = D_8006AC40;
+            D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + frameBytes);
+            D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + frameBytes);
             break;
-        case 9:
-            q->movieVramStaging    = 1;
-            q->movieStagingX       = 0x180;
-            q->movieStagingY       = 0x100;
-            D_8006AC5C             = 1;
-            D_8006AC50[0]          = (u_long*)((u8*)D_8006AC60 + 0x10000);
-            D_8006AC48[1]          = (u_long*)D_8006AC40;
-            D_8006AC48[0]          = (u_long*)D_8006AC40;
-            D_8006AC50[1]          = (u_long*)((u8*)D_8006AC50[0] + D_8006AC5A * D_8006AC6C);
-            gGameSession->field_80 = 0;
-            q->field_24A           = 1;
+        case GAME_AREA_NEO_ARK_EVE_ELEVATOR:
+            queue->movieVramStaging = 1;
+            queue->movieStagingX    = MAP_NEO_ARK_MOVIE_ELEVATOR_STAGING_X_WORDS;
+            queue->movieStagingY    = MAP_NEO_ARK_MOVIE_ELEVATOR_STAGING_Y_ROWS;
+            D_8006AC5C              = 1;
+            D_8006AC50[0]           = (u_long*)((u8*)D_8006AC60 + MAP_NEO_ARK_MOVIE_RING_BYTES);
+            D_8006AC48[1]           = D_8006AC40;
+            D_8006AC48[0]           = D_8006AC40;
+            D_8006AC50[1]           = (u_long*)((u8*)D_8006AC50[0] + D_8006AC5A * D_8006AC6C);
+            gGameSession->field_80  = 0;
+            queue->field_24A        = 1;
             break;
     }
     D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
@@ -159,57 +157,67 @@ void func_map_neo_ark_801799BC(u8* arg0)
 #include "../../shared/room_variants_neo_ark.inc.c"
 #undef ROOM_VARIANT_RESOLVE_NEO_ARK
 
-/// Music-volume hook the Midi driver calls for the Neo Ark map (via
-/// `func_80179BE4`, see `Midi_UpdateVoiceVolumes`). `arg1` is the cue type:
-/// 0x21 ducks the song down to half `arg0`, 0x10 brings it back up to `arg0`,
-/// and anything else plays at `arg0` with both ramps reset. Each ramp waits out
-/// its own counter (0x79 / 0xF1 frames), then walks `D_800820E0` by 0x300 a
-/// frame until it reaches the target and the counter is parked at 0xFF.
-s32 func_map_neo_ark_80179BE4(u32 arg0, u8 arg1, LinInterp* ramp)
-{
-    s32 volume;
-    u32 temp;
+/// Unity MIDI master gain used to normalize the selected song level.
+enum { MAP_NEO_ARK_MIDI_GAIN_FULL = 127 };
 
-    if (arg1 == 0x21) {
+/// Applies master gain and the song ramp to the area's current singleton level.
+static __inline__ s32 _mapNeoArkApplyAreaMusicVolume(LinInterp* ramp)
+{
+    u32 scaledVolume;
+
+    scaledVolume = midiGetMasterVolume() & 0xFF;
+    scaledVolume = scaledVolume * D_800820E0;
+    return linInterpApply(ramp, scaledVolume / (u32)MAP_NEO_ARK_MIDI_GAIN_FULL);
+}
+
+s32 mapNeoArkUpdateMusicVolume(u32 fullVolume, u8 areaId, LinInterp* ramp)
+{
+    enum {
+        MAP_NEO_ARK_MUSIC_DUCK_WAIT_UPDATES    = 121,
+        MAP_NEO_ARK_MUSIC_RESTORE_WAIT_UPDATES = 241,
+        MAP_NEO_ARK_MUSIC_VOLUME_STEP          = 0x300,
+        MAP_NEO_ARK_MUSIC_RAMP_SETTLED         = 255,
+    };
+    s32 volume;
+    u32 scaledVolume;
+
+    // Delay each area transition before stepping the shared song gain.
+    if (areaId == GAME_AREA_NEO_ARK_SUBSTATION) {
         if (D_800820E4 == 0) {
             D_800820E4 = 1;
             D_800820E6 = 0;
-            D_800820E0 = arg0;
-        } else if (D_800820E4 < 0x79) {
+            D_800820E0 = fullVolume;
+        } else if (D_800820E4 < MAP_NEO_ARK_MUSIC_DUCK_WAIT_UPDATES) {
             D_800820E4 = D_800820E4 + 1;
-        } else if ((arg0 >> 1) < (u32)D_800820E0) {
-            D_800820E0 = D_800820E0 - 0x300;
+        } else if ((fullVolume >> 1) < (u32)D_800820E0) {
+            D_800820E0 = D_800820E0 - MAP_NEO_ARK_MUSIC_VOLUME_STEP;
         } else {
-            D_800820E4 = 0xFF;
+            D_800820E4 = MAP_NEO_ARK_MUSIC_RAMP_SETTLED;
             D_800820E6 = 0;
-            D_800820E0 = arg0 >> 1;
+            D_800820E0 = fullVolume >> 1;
         }
-        temp   = midiGetMasterVolume() & 0xFF;
-        temp   = temp * D_800820E0;
-        volume = linInterpApply(ramp, temp / 127U);
-    } else if (arg1 == 0x10) {
+        volume = _mapNeoArkApplyAreaMusicVolume(ramp);
+    } else if (areaId == GAME_AREA_NEO_ARK_POWER_PLANT_2) {
         if (D_800820E6 == 0) {
             D_800820E4 = 0;
             D_800820E6 = 1;
-            D_800820E0 = arg0 >> 1;
-        } else if (D_800820E6 < 0xF1) {
+            D_800820E0 = fullVolume >> 1;
+        } else if (D_800820E6 < MAP_NEO_ARK_MUSIC_RESTORE_WAIT_UPDATES) {
             D_800820E6 = D_800820E6 + 1;
-        } else if ((u32)D_800820E0 < arg0) {
-            D_800820E0 = D_800820E0 + 0x300;
+        } else if ((u32)D_800820E0 < fullVolume) {
+            D_800820E0 = D_800820E0 + MAP_NEO_ARK_MUSIC_VOLUME_STEP;
         } else {
             D_800820E4 = 0;
-            D_800820E6 = 0xFF;
-            D_800820E0 = arg0;
+            D_800820E6 = MAP_NEO_ARK_MUSIC_RAMP_SETTLED;
+            D_800820E0 = fullVolume;
         }
-        temp   = midiGetMasterVolume() & 0xFF;
-        temp   = temp * D_800820E0;
-        volume = linInterpApply(ramp, temp / 127U);
+        volume = _mapNeoArkApplyAreaMusicVolume(ramp);
     } else {
-        temp       = midiGetMasterVolume() & 0xFF;
-        temp       = temp * arg0;
-        volume     = linInterpApply(ramp, temp / 127U);
-        D_800820E4 = 0;
-        D_800820E6 = 0;
+        scaledVolume = midiGetMasterVolume() & 0xFF;
+        scaledVolume = scaledVolume * fullVolume;
+        volume       = linInterpApply(ramp, scaledVolume / (u32)MAP_NEO_ARK_MIDI_GAIN_FULL);
+        D_800820E4   = 0;
+        D_800820E6   = 0;
     }
     return volume;
 }

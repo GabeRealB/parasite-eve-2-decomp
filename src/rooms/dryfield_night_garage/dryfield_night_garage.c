@@ -460,11 +460,11 @@ s32 func_dryfield_night_garage_80180358(Task* task, s32 msgId, s32 arg2, s32 arg
 }
 
 /// Message handler that copies the incoming record onto the outgoing one and
-/// forwards both to `func_map_dryfield_full_80179954`. Always returns 1.
+/// forwards both to `mapDryfieldFullResolveRoomVariant`. Always returns 1.
 s32 func_dryfield_night_garage_80180360(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_dryfield_full_80179954(in, out);
+    mapDryfieldFullResolveRoomVariant(in, out);
     return 1;
 }
 

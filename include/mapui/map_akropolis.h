@@ -13,8 +13,35 @@
 #include "gameplay/view.h"
 
 #include "main/gfx_types.h"
+#include "main/session_types.h"
 #include "main/stage_types.h"
 #include "main/task_types.h"
+
+/// Places movie decode buffers for the current Acropolis area.
+///
+/// Borrows `location` only for its area ID. Main must first cache movie pixel
+/// dimensions, reserve the movie workspace and actor-buffer-0 ring/table region,
+/// and reset staging flags. The 32-sector ring occupies 0x10000 bytes; all VLC
+/// and decoded-frame extents must fit the reserved regions and be word-aligned.
+/// Layouts reuse actor buffers, clear their session reuse fields and stage
+/// decoded columns in VRAM at (704,0) or (384,256), in words/rows. Other areas
+/// retain the preceding buffer pointers. No allocation or bounds check occurs.
+/// Storage remains borrowed by the decoder through playback.
+void mapAkropolisSetupMovieBuffers(const GameLocationKey* location);
+
+/// Queues the MIST briefing's four-item menu as a display-mode task.
+///
+/// `unused` is ignored. With zero `retainSelection`, marks all four briefing
+/// items collected and clears the Dryfield-map choice; nonzero preserves it.
+/// Always returns 1, including when queueing fails. The singleton list and
+/// choice storage require this overlay to remain loaded throughout the menu.
+s32 mapAkropolisOpenKeyItemMenu(s32 unused, s32 retainSelection);
+
+/// Returns 1 once the briefing menu has opened the Dryfield map, otherwise 0.
+///
+/// The latch survives menu closure and reopening with nonzero retainSelection.
+/// A fresh menu request clears it; opening another item's detail does not.
+s32 mapAkropolisWasDryfieldMapSelected(void);
 
 /// Image slots of each map, indexed by `Gfx_ImageSlotTables`.
 extern GfxImageSlot D_map_akropolis_8017A048[];

@@ -16,6 +16,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
@@ -83,9 +84,9 @@
  * map pictures' marker models.
  */
 
-static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1);
-static void func_map_akropolis_80179D78(Task* task);
-static void func_map_akropolis_80179E8C(Task* task);
+static void _mapAkropolisDrawKeyItemRow(UiList* list, UiObject* object);
+static void _mapAkropolisKeyItemPanelTask(Task* task);
+static void _mapAkropolisKeyItemMenuTask(Task* task);
 
 static const char      D_map_akropolis_8017997C[12];
 static s32             D_map_akropolis_8017A9A8;
@@ -108,187 +109,204 @@ static AreaObjectPlace D_map_akropolis_8017C00C[2];
 static AreaObjectPlace D_map_akropolis_8017C02C[1];
 static AreaObjectPlace D_map_akropolis_8017C03C[10];
 
-void func_map_akropolis_80179988(u8* arg0);
-s32  func_map_akropolis_80179FC8(s32 arg0, s32 arg1);
-s32  func_map_akropolis_8017A038(void);
+/// Movie ring byte extent and decoded-column staging origins in VRAM words/rows.
+enum {
+    MAP_AKROPOLIS_MOVIE_RING_BYTES               = 0x10000,
+    MAP_AKROPOLIS_MOVIE_PLAZA_STAGING_X_WORDS    = 704,
+    MAP_AKROPOLIS_MOVIE_FOUNTAIN_STAGING_X_WORDS = 384,
+    MAP_AKROPOLIS_MOVIE_FOUNTAIN_STAGING_Y_ROWS  = 256,
+};
 
-/// MDEC buffer layout hook for the Akropolis map, reached from
-/// `Mdec_SetupBuffers` (main) for the stream kinds this overlay plays. Every
-/// kind parks the two VLC buffers (`D_8006AC50`) and the two decode buffers
-/// (`D_8006AC48`) around the frame allocation; they differ in how far apart
-/// the halves sit — one frame (kinds 6/9/10), one and a half (11/14) — and in
-/// whether they also resize the display. `D_8006AC44` always ends up one full
-/// frame past the second decode buffer.
-void func_map_akropolis_80179988(u8* arg0)
+/// Lifecycle steps and teardown delay of the key-item display-mode task.
+enum {
+    MAP_AKROPOLIS_KEY_ITEM_MENU_START       = 0,
+    MAP_AKROPOLIS_KEY_ITEM_MENU_ACTIVE      = 1,
+    MAP_AKROPOLIS_KEY_ITEM_MENU_CLOSING     = 2,
+    MAP_AKROPOLIS_KEY_ITEM_MENU_CLOSE_TICKS = 10,
+};
+
+/// Places two full decoded frames after the workspace's VLC output buffer.
+static __inline__ void _mapAkropolisPlaceMovieFrames(s32 frameBytes)
 {
-    CdCmdQueue* q = &gCdCmdQueue;
-    s16         one;
-    s32         strideA;
-    s32         strideB;
-    s32         halfA;
-    s32         halfB;
+    D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
+    D_8006AC50[1] = D_8006AC40;
+    D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + frameBytes);
+    D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + frameBytes);
+}
 
-    switch (arg0[2]) {
-        case 5:
-            q->movieVramStaging = 1;
-            q->movieStagingX    = 0x2C0;
-            D_8006AC3C          = 0;
-            q->movieStagingY    = 0;
-            D_8006AC50[0]       = (u_long*)((u8*)D_8006AC60 + 0x10000);
-            D_8006AC50[1]       = (u_long*)D_8006AC40;
-            D_8006AC48[1]       = (u_long*)((u8*)D_8006AC40 + D_8006AC5A * D_8006AC6C);
-            D_8006AC48[0]       = D_8006AC48[1];
+void mapAkropolisSetupMovieBuffers(const GameLocationKey* location)
+{
+    CdCmdQueue* queue = &gCdCmdQueue;
+    s16         stagingEnabled;
+    s32         fountainFrameBytes;
+    s32         frameBytes;
+    s32         promenadePixelCount;
+    s32         bridgePixelCount;
+
+    // Select byte offsets for the current area's movie and shared actor storage.
+    switch (location->area) {
+        case GAME_AREA_ACROPOLIS_PLAZA:
+            queue->movieVramStaging = 1;
+            queue->movieStagingX    = MAP_AKROPOLIS_MOVIE_PLAZA_STAGING_X_WORDS;
+            D_8006AC3C              = 0;
+            queue->movieStagingY    = 0;
+            D_8006AC50[0]           = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
+            D_8006AC50[1]           = D_8006AC40;
+            D_8006AC48[1]           = (u_long*)((u8*)D_8006AC40 + D_8006AC5A * D_8006AC6C);
+            D_8006AC48[0]           = D_8006AC48[1];
             break;
-        case 8:
-            /* The loop note pins `li 1` at the top of the block; without it the
-               scheduler sinks it past the two display-size stores. */
+        case GAME_AREA_ACROPOLIS_FOUNTAIN:
+            // This one-iteration loop preserves the original instruction schedule.
             do {
-                one = 1;
+                stagingEnabled = 1;
             } while (0);
-            q->movieStagingX       = 0x180;
-            q->movieStagingY       = 0x100;
-            D_8006AC5C             = one;
-            q->movieVramStaging    = one;
-            strideA                = D_8006AC5A * D_8006AC6C * 2;
-            D_8006AC50[0]          = (u_long*)((u8*)D_8006AC60 + 0x10000);
-            D_8006AC48[0]          = (u_long*)D_8006AC40;
-            D_8006AC50[1]          = (u_long*)((u8*)D_8006AC50[0] + strideA);
-            D_8006AC48[1]          = (u_long*)((u8*)D_8006AC48[0] + strideA);
-            gGameSession->field_80 = 0;
-            q->field_24A           = one;
+            queue->movieStagingX    = MAP_AKROPOLIS_MOVIE_FOUNTAIN_STAGING_X_WORDS;
+            queue->movieStagingY    = MAP_AKROPOLIS_MOVIE_FOUNTAIN_STAGING_Y_ROWS;
+            D_8006AC5C              = stagingEnabled;
+            queue->movieVramStaging = stagingEnabled;
+            fountainFrameBytes      = D_8006AC5A * D_8006AC6C * 2;
+            D_8006AC50[0]           = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
+            D_8006AC48[0]           = D_8006AC40;
+            D_8006AC50[1]           = (u_long*)((u8*)D_8006AC50[0] + fountainFrameBytes);
+            D_8006AC48[1]           = (u_long*)((u8*)D_8006AC48[0] + fountainFrameBytes);
+            gGameSession->field_80  = 0;
+            queue->field_24A        = stagingEnabled;
             break;
-        case 6:
-        case 9:
-        case 10:
-            strideB       = D_8006AC5A * D_8006AC6C * 2;
-            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);
-            D_8006AC50[1] = (u_long*)D_8006AC40;
-            D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + strideB);
-            D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + strideB);
+        case GAME_AREA_ACROPOLIS_SECURITY_ROOM:
+        case GAME_AREA_ACROPOLIS_FORKED_ROAD:
+        case GAME_AREA_ACROPOLIS_OBSERVATORY:
+            frameBytes = D_8006AC5A * D_8006AC6C * 2;
+            _mapAkropolisPlaceMovieFrames(frameBytes);
             break;
-        case 11:
-            halfA         = D_8006AC5A * D_8006AC6C;
-            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);
-            D_8006AC50[1] = (u_long*)D_8006AC40;
-            D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + halfA * 3 / 2);
-            D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + halfA * 2);
+        case GAME_AREA_ACROPOLIS_PROMENADE:
+            promenadePixelCount = D_8006AC5A * D_8006AC6C;
+            D_8006AC50[0]       = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
+            D_8006AC50[1]       = D_8006AC40;
+            D_8006AC48[0]       = (u_long*)((u8*)D_8006AC40 + promenadePixelCount * 3 / 2);
+            D_8006AC48[1]       = (u_long*)((u8*)D_8006AC48[0] + promenadePixelCount * 2);
             break;
-        case 14:
-            halfB         = D_8006AC5A * D_8006AC6C;
-            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);
-            D_8006AC48[0] = (u_long*)D_8006AC40;
-            D_8006AC50[1] = (u_long*)((u8*)D_8006AC50[0] + halfB * 3 / 2);
-            D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + halfB * 2);
+        case GAME_AREA_ACROPOLIS_BRIDGE:
+            bridgePixelCount = D_8006AC5A * D_8006AC6C;
+            D_8006AC50[0]    = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
+            D_8006AC48[0]    = D_8006AC40;
+            D_8006AC50[1]    = (u_long*)((u8*)D_8006AC50[0] + bridgePixelCount * 3 / 2);
+            D_8006AC48[1]    = (u_long*)((u8*)D_8006AC48[0] + bridgePixelCount * 2);
             break;
     }
+    // Record the decoded-storage end and clear the actor-buffer reuse fields.
     D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
     gGameSession->field_7C = 0;
     gGameSession->field_7E = 0;
 }
 
-/// Draws one row of the Akropolis map's key-item list: the item's name at the
-/// row's position, previewed while the row is highlighted. Confirming on the
-/// selected row opens the item-detail panel `D_8010EAB4[45]`; picking the row whose
-/// item is 0x10C also records that choice in `D_map_akropolis_8017A9A8`, which
-/// `func_map_akropolis_8017A038` reports back to the caller.
-static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1)
+/// Draws, previews and opens the current row of the MIST briefing's key-item list.
+///
+/// The list supplies a valid index into the four-item briefing table and row
+/// coordinates in panel pixels. Opening the Dryfield map latches that choice
+/// immediately, before the detail child reports its result.
+static void _mapAkropolisDrawKeyItemRow(UiList* list, UiObject* object)
 {
-    s32 item;
-    s32 sel;
+    enum { MAP_AKROPOLIS_KEY_ITEM_DETAIL_DESCRIPTOR_INDEX = 45 };
+    s32 itemId;
+    s32 inputEnabled;
 
-    item = D_map_akropolis_8017A9AC[arg0->currentItemIndex];
-    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, itemGetText(item, ITEM_TEXT_NAME, 0), arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (((arg1->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (arg1->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
-        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
+    itemId = D_map_akropolis_8017A9AC[list->currentItemIndex];
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, itemGetText(itemId, ITEM_TEXT_NAME, 0), list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (((object->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            itemMenuSetPreviewItem(itemId, CD_COMMAND_DISPLAY_LOAD_MENU);
         }
     }
-    sel = arg0->rowInputEnabled;
-    if (sel == 1) {
+    inputEnabled = list->rowInputEnabled;
+    if (inputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[45], item, 1, 1, arg1);
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            if (item == 0x10C) {
-                D_map_akropolis_8017A9A8 = sel;
+            uiSpawnObject(&D_8010EAB4[MAP_AKROPOLIS_KEY_ITEM_DETAIL_DESCRIPTOR_INDEX], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            if (itemId == INVENTORY_COLLECTION_ID_DRYFIELD_MAP) {
+                D_map_akropolis_8017A9A8 = inputEnabled;
             }
         }
     }
 }
 
-/// Per-frame handler for the Akropolis key-item map panel: draws the "Key Item"
-/// heading, lays the key-item list out over the panel on the first frame, then
-/// updates it. Cancel/menu asks the parent to close (`result` cancel); once the
-/// spawned item-detail child reports cancel or confirm the child tree is torn down and the
-/// panel goes back to its active state.
-static void func_map_akropolis_80179D78(Task* task)
+/// Updates the briefing's key-item panel and its item-detail child.
+///
+/// The owning UI task supplies its live UiObject in spawnArg2. First dispatch
+/// fits the singleton list to the panel; confirm closes the detail child and
+/// resumes list input, while cancel propagates to the menu host.
+static void _mapAkropolisKeyItemPanelTask(Task* task)
 {
-    UiObject* obj;
+    enum { MAP_AKROPOLIS_KEY_ITEM_PANEL_INITIALIZE = 0 };
+    UiObject* object;
     UiList*   list;
-    UiObject* child;
-    s32       result;
+    UiObject* detailObject;
+    s32       detailResult;
 
-    list        = &D_map_akropolis_8017A9C0;
-    obj         = task->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, D_map_akropolis_8017997C);
-    if (task->state == 0) {
-        uiFitPanelToList(list, &(obj)->panel);
+    list           = &D_map_akropolis_8017A9C0;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, D_map_akropolis_8017997C);
+    if (task->state == MAP_AKROPOLIS_KEY_ITEM_PANEL_INITIALIZE) {
+        uiFitPanelToList(list, &object->panel);
         list->flags           = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         task->spawnArg1.value = -1;
         task->state          += 1;
     }
-    uiUpdateList(list, &obj->panel);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
-        obj->result = USER_INTERFACE_RESULT_CANCEL;
+    uiUpdateList(list, &object->panel);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+        object->result = USER_INTERFACE_RESULT_CANCEL;
     }
     if (task->firstChild != NULL) {
-        child  = task->firstChild->spawnArg2.pointer;
-        result = child->result;
-        switch (result) {
+        detailObject = task->firstChild->spawnArg2.pointer;
+        detailResult = detailObject->result;
+        switch (detailResult) {
             case USER_INTERFACE_RESULT_CONFIRM:
-                uiStartTreeClosing(child, child->owner);
-                obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+                uiStartTreeClosing(detailObject, detailObject->owner);
+                object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 break;
             case USER_INTERFACE_RESULT_CANCEL:
-                obj->result = result;
+                object->result = detailResult;
                 break;
         }
     }
 }
 
-/// Task driving the Akropolis key-item map screen: spawns the UI tree
-/// `D_map_akropolis_8017A9E4`, freezes the game's frame timing while it is up,
-/// then tears it down and releases the screen once the tree reports cancel or confirm.
-static void func_map_akropolis_80179E8C(Task* task)
+/// Owns the briefing's key-item UI tree until its closing animation finishes.
+///
+/// spawnArg2 holds the live root object after successful allocation. Runs the
+/// menu every VBLANK, then restores two-VBLANK timing and releases its primitive
+/// buffer before requesting display-mode exit. This singleton owns uiOpen.
+static void _mapAkropolisKeyItemMenuTask(Task* task)
 {
-    UiObject* obj;
+    UiObject* object;
     s16       result;
 
-    if (task->state == 0) {
+    if (task->state == MAP_AKROPOLIS_KEY_ITEM_MENU_START) {
         stageEnsureHeapTaskPrimitiveBuffer();
         itemMenuClearPreviewItems();
-        obj = uiSpawnObject(&D_map_akropolis_8017A9E4, task->spawnArg1, 1, 1, NULL);
-        if (obj == NULL) {
+        object = uiSpawnObject(&D_map_akropolis_8017A9E4, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+        if (object == NULL) {
             return;
         }
         displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen    = 1;
-        task->spawnArg2.pointer = obj;
+        task->spawnArg2.pointer = object;
         task->state            += 1;
     }
 
-    if (task->state == 1) {
-        obj    = task->spawnArg2.pointer;
-        result = obj->result;
+    if (task->state == MAP_AKROPOLIS_KEY_ITEM_MENU_ACTIVE) {
+        object = task->spawnArg2.pointer;
+        result = object->result;
         if ((result == USER_INTERFACE_RESULT_CANCEL) || (result == USER_INTERFACE_RESULT_CONFIRM)) {
-            uiStartTreeClosing(obj, obj->owner);
-            task->killCountdown = 0xA;
-            task->state         = 2;
+            uiStartTreeClosing(object, object->owner);
+            task->killCountdown = MAP_AKROPOLIS_KEY_ITEM_MENU_CLOSE_TICKS;
+            task->state         = MAP_AKROPOLIS_KEY_ITEM_MENU_CLOSING;
         }
     }
 
-    if (task->state == 2) {
+    // Keep the primitive storage until the UI closing animation has run.
+    if (task->state == MAP_AKROPOLIS_KEY_ITEM_MENU_CLOSING) {
         task->killCountdown -= 1;
         if (task->killCountdown <= 0) {
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
@@ -300,25 +318,25 @@ static void func_map_akropolis_80179E8C(Task* task)
     }
 }
 
-s32 func_map_akropolis_80179FC8(s32 arg0, s32 arg1)
+s32 mapAkropolisOpenKeyItemMenu(s32 unused, s32 retainSelection)
 {
-    s32* p;
-    s32  i;
+    s32* itemIdCursor;
+    s32  itemIndex;
 
-    if (arg1 == 0) {
-        i = 0;
-        p = D_map_akropolis_8017A9AC;
+    if (retainSelection == 0) {
+        itemIndex    = 0;
+        itemIdCursor = D_map_akropolis_8017A9AC;
         do {
-            inventorySetCollectedBit(*p++);
-            i++;
-        } while (i < 4);
+            inventorySetCollectedBit(*itemIdCursor++);
+            itemIndex++;
+        } while (itemIndex < ARRAY_SIZE(D_map_akropolis_8017A9AC));
         D_map_akropolis_8017A9A8 = 0;
     }
     displayQueueModeTask(&D_map_akropolis_8017AA00, 0, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
-s32 func_map_akropolis_8017A038(void)
+s32 mapAkropolisWasDryfieldMapSelected(void)
 {
     return D_map_akropolis_8017A9A8;
 }
@@ -604,7 +622,7 @@ static s32 D_map_akropolis_8017A9A8 = 0;
 static s32 D_map_akropolis_8017A9AC[4] = { 0x109, 0x10A, 0x10B, 0x10C };
 
 /// One-entry row-draw table for the list below; `UiList.rowCallbacks` points here.
-static UiListRowCallback D_map_akropolis_8017A9BC[1] = { func_map_akropolis_80179C50 };
+static UiListRowCallback D_map_akropolis_8017A9BC[1] = { _mapAkropolisDrawKeyItemRow };
 
 /// The key-item list: four rows of one line each, 0x0F tall, everything else
 /// filled in at runtime by the list reset.
@@ -629,7 +647,7 @@ static UiList D_map_akropolis_8017A9C0 = {
 };
 
 /// The panel `uiSpawnObject` builds for the key-item view: 0xFF9C x 0xFFD8,
-/// 0xC8 x 0x3C, drawn by func_map_akropolis_80179D78.
+/// 0xC8 x 0x3C, drawn by _mapAkropolisKeyItemPanelTask.
 static UiObjectDesc D_map_akropolis_8017A9E4 = {
     USER_INTERFACE_PANEL_TITLE_STYLE,
     { -100,
@@ -640,12 +658,12 @@ static UiObjectDesc D_map_akropolis_8017A9E4 = {
     0,
     TASK_BODY_NONE,
     0xC0,
-    func_map_akropolis_80179D78,
+    _mapAkropolisKeyItemPanelTask,
     0,
 };
 
 /// The display-mode task `displayQueueModeTask` seeds for this map.
-static TaskDesc D_map_akropolis_8017AA00 = { { { TASK_BODY_NONE, 0xC0 } }, func_map_akropolis_80179E8C, 0 };
+static TaskDesc D_map_akropolis_8017AA00 = { { { TASK_BODY_NONE, 0xC0 } }, _mapAkropolisKeyItemMenuTask, 0 };
 
 u16 D_map_akropolis_8017AA0C[14] = {
     0x1F7,

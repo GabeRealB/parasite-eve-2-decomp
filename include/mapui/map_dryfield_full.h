@@ -272,7 +272,14 @@ extern InventoryBattleReward D_map_dryfield_full_8017D0B8[];
 
 extern InventoryBattleReward D_map_dryfield_full_8017D1CC[];
 
-/// Updates the outgoing room marker state for this stage.
-s32 func_map_dryfield_full_80179954(RoomEventMsg* in, RoomEventMsg* out);
+/// Resolves the night Junk Yard's destination room from event progress.
+///
+/// On ROOM_EVENT_EXECUTE for that area, writes only reply->room to the event
+/// progress nibble plus 1 (1..16). The flag must select a room present in the
+/// destination's tables. Queries and other areas leave the reply untouched;
+/// initialize it before calling. The borrowed records may alias and are never
+/// retained. Always returns 1, without testing passage gates. Requires this
+/// map overlay to remain loaded for the call.
+s32 mapDryfieldFullResolveRoomVariant(const RoomEventMsg* request, RoomEventMsg* reply);
 
 #endif // INCLUDE_MAPUI_MAP_DRYFIELD_FULL_H

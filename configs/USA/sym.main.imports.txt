@@ -88,9 +88,9 @@ modelLightingReserveStreamPrimG3 = 0x8009FC90; // type:func absolute:True
 // Code main calls in whichever overlay occupies a load slot at the time (the
 // map-UI, room, options and actor slots). No single overlay owns these
 // addresses, so they are declared here rather than in an overlay's map.
-func_map_akropolis_80179988 = 0x80179988; // type:func absolute:True owner=map_akropolis
-func_map_neo_ark_801799BC = 0x801799BC; // type:func absolute:True owner=map_neo_ark
-func_map_neo_ark_80179BE4 = 0x80179BE4; // type:func absolute:True owner=map_neo_ark
+mapAkropolisSetupMovieBuffers = 0x80179988; // type:func absolute:True owner=map_akropolis
+mapNeoArkSetupMovieBuffers = 0x801799BC; // type:func absolute:True owner=map_neo_ark
+mapNeoArkUpdateMusicVolume = 0x80179BE4; // type:func absolute:True owner=map_neo_ark
 optionsUpdateMenuTask = 0x801D4B64; // type:func absolute:True owner=options
 actor403600DrawStreamGt3BottomFade = 0x80136224; // type:func absolute:True owner=actor_403600
 actor403600DrawStreamGt3PreXformBottomFade = 0x80136500; // type:func absolute:True owner=actor_403600
@@ -306,6 +306,6 @@ D_80400000 = 0x80400000; // absolute:True
 
 D_80114B34 = 0x80114B34; // absolute:True size:0x48
 
-func_map_dryfield_80179954 = 0x80179954; // type:func absolute:True owner=map_dryfield shared=mapui
+mapDryfieldSetupMovieBuffers = 0x80179954; // type:func absolute:True owner=map_dryfield shared=mapui
 
 func_acropolis_plaza_8017D6D4 = 0x8017D6D4; // type:func absolute:True owner=acropolis_plaza shared=rooms
