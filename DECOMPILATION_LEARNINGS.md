@@ -432,7 +432,7 @@ Preprocessed inputs: base_1
 `b37b97a0bda1dc08773e1c40470781f2347bbd44442a0531f3996ff4934aa304`;
 base_2 `dfcbb674a0edc28c2b9d035b17f3a79602e034b5260ed8d5e020dd7fdbec8f46`.
 
-## Delay the scratch-position copy through a flag load, with scalar accesses separating memory dependencies (func_actor_511000_80133B80, 2026-09-20)
+## Delay the scratch-position copy through a flag load, with scalar accesses separating memory dependencies (_actor511000TickNo9Golem, 2026-09-20)
 
 The archived 99.652% body had the right instruction order but assigned the
 scratch address to v1, the model pointer to a0 and the first flag load to v0.
@@ -728,7 +728,7 @@ for (i = 0; i < 1; i++) {
 The giv base becomes that sum with a 0x20 step - 99.767%. The remainder was the
 entry block's load order rather than the loop: `extra = index->extra;` has to
 precede `work = (_Actor323300WomanWork*)index->work;`, the order the sibling handlers
-of the actor family use (`func_actor_511000_801327A0`), for 100.000% with
+of the actor family use (`_actor511000SetRupertModelDraw`), for 100.000% with
 all-zero penalties.
 
 The per-case tails here are `jump2`'s cross-jump, not source structure: the
@@ -774,7 +774,7 @@ first and then splits on a range is a switch, whatever source shape it suggests.
 Source case order does not matter (GCC sorts the values); what stays in source
 order is the case *bodies*, which is how the family of four-way visibility
 handlers is spelled throughout the actors (`func_actor_141000_80133E8C`,
-`func_actor_503500_80132584`, `func_actor_511000_801327A0`) - read a matched one
+`func_actor_503500_80132584`, `_actor511000SetRupertModelDraw`) - read a matched one
 before writing the next.
 
 ## One local assigned twice is one quantity: the reused definition cannot tie to its source, and that is what keeps both halves in one register
@@ -11507,7 +11507,7 @@ merge needs the `set` to match as well — and it does not, because one of the t
 blocks carries an `expand_value_return` `(use (reg/i:SI 2 v0))` between the set
 and the return while the other's was already deleted or moved before the target
 label. base_1 (`default: return 0;`) scored 97.06% and base_4
-(`default: child = NULL; break;`) 98.18% on `func_actor_511000_8013287C`; both
+(`default: child = NULL; break;`) 98.18% on `_actor511000ApplyRupertCommand`; both
 left the second return.
 
 Give every path the *same* return statement instead:
@@ -98869,7 +98869,7 @@ The second `if` keeps m2c's `if (!(x & 4)) { ...; tmdAllocPrimitiveBuffer(x); re
 x |= 4;` shape, which is what leaves its `bnez` on the *set* arm with the
 clearing arm, call and all, as the fall-through.
 
-## A switch's case bodies are laid out in source order, so an out-of-order target layout is the source's case order (func_actor_511000_80132904, 2026-09-16)
+## A switch's case bodies are laid out in source order, so an out-of-order target layout is the source's case order (_actor511000SetRupertEyes, 2026-09-16)
 
 A four-value mode switch that stores one of three image records into a local and
 passes it to `actorRenderUploadTexture`, with the cases written ascending
@@ -111679,7 +111679,7 @@ member) both updates load `lh`. Three ways to ask for the unsigned load:
 reproducing the other, so they compile to the same object. Land 3: it is the
 rule in `CODEGEN_MODEL.md` §3, it keeps the member's real `SVECTOR` type at the
 sibling `RotMatrix` calls, and it leaves the struct's other readers alone. Here
-re-typing was safe - `func_actor_511000_801336E0` and `_actor511000PlaceHelicopterPart` only ever *store*
+re-typing was safe - `_actor511000PoseHelicopterSequenceFrame` and `_actor511000PlaceHelicopterPart` only ever *store*
 into `rot`, and an `s16` -> `u16` store is the same `sh` - but that is analysis
 of those two callers, not a property of the change.
 
@@ -111700,7 +111700,7 @@ source `base_3.c` `dd5ad9488c048d4700a7b2155651a9ed7617f6341278e713c05808cfa4ebc
 
 ## A pointer load sitting in the entry block means the source read it *before* the `switch`
 
-`func_actor_511000_801327A0`, the message-0x7D5 handler, is the same four-way
+`_actor511000SetRupertModelDraw`, the message-0x7D5 handler, is the same four-way
 mode dispatch as the already-matched `func_actor_141000_80133E8C` and
 `func_actor_503500_80132584`, which both name the work pointer inline in the one
 arm that uses it (`((Worker*)task->work)->field_44 = mode;`). Here the target
@@ -111717,9 +111717,9 @@ is per-block, so a load reaches the entry block only because the source put it
 there. Reading the pointer into a local before the switch
 
 ```c
-    work = (_Actor511000RupertBroderickWork*)arg0->actor;
+    work = task->work;
     ...
-        case 2: work->freeCountdown = mode;
+        case 2: work->freeCountdown = drawMode;
 ```
 
 matches 100%. Copying the siblings' inline form instead is 94.286%
@@ -111735,7 +111735,7 @@ source `base_1.c` `7d66465b9e7705a66239407080a379d4e989b558ef6260adc5d9c68c11a37
 `4b30bc48843a8f5e5642cd0f6ed98062af70dfe3e4551e3c38d974a1beb35dc2`, source
 `base_2.c` `37cd3f32c2ae01d0c2ce4d4a19c88b0aa7308268b4afe88383fdb44e95d6e0d4`
 (94.286%). Target `d96cb58530a42fdb3157c15cfacfe13d5535c864e11a49af91267bbbdf99f354`.
-Scratch `nonmatchings/func_actor_511000_801327A0-vacuum`.
+Scratch `nonmatchings/_actor511000SetRupertModelDraw-vacuum`.
 
 ## A separate temp for `t - 1` is born while `t` is still live, so `global_conflicts` forces two registers; compute it once, on the same variable, after the join (func_actor_511000_801330F0, 2026-09-17)
 
