@@ -3520,7 +3520,6 @@ static void Actor01100_Fn0638C(Task* task)
     s32                    pan;
     WorldCollisionBody*    obj;
     GfxCoord*              coord;
-    GfxRotationWords*      rotation;
 
     coord        = task->extra.tmd->coords;
     stageAreaKey = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
@@ -3540,13 +3539,8 @@ static void Actor01100_Fn0638C(Task* task)
         taskReparent(task, effect->task);
     }
     task->killCountdown   = 0x5A;
-    rotation              = (GfxRotationWords*)&coord->coord;
     obj                   = &work->body;
-    rotation->m00M01      = ONE;
-    rotation->m02M10      = 0;
-    rotation->m11M12      = ONE;
-    rotation->m20M21      = 0;
-    rotation->m22         = ONE;
+    gfxSetRotIdentity(&coord->coord);
     rec                   = work->contacts;
     coord->composeStamp   = GRAPHICS_COORD_DIRTY;
     coord->coord.t[1]    += 0x30;
