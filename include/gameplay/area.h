@@ -79,17 +79,20 @@ typedef struct {
 } AreaRecord;
 STATIC_ASSERT_SIZEOF(AreaRecord, 8);
 
-/// The placement an inline accessor was handed. It exists for what the compiler
-/// does with its argument: an inlined function's actual argument is expanded as
-/// an address, scaled index first, which is the order the callers' element
-/// addresses have and a plain `&records[index]` does not produce.
-static __inline__ AreaPlacement* gpAreaPlaceRef(AreaPlacement* record)
+/// Returns a borrowed area-placement pointer unchanged.
+///
+/// `gpAreaPlaceAt` supplies an already-indexed element address. This helper
+/// neither dereferences the pointer nor checks the index or terminator, and
+/// does not extend the placement table's lifetime. A NULL input remains NULL.
+/// Keep the inline call boundary: it preserves the indexed-address instruction
+/// order and registers required by its callers' matching builds.
+static __inline__ AreaPlacement* _areaPlacementRef(AreaPlacement* placement)
 {
-    return record;
+    return placement;
 }
 
 /// Resolve a placement index within its loaded room resource.
 /// `index` must be within the borrowed `records` array; no bounds check is made.
-#define gpAreaPlaceAt(records, index) gpAreaPlaceRef(&(records)[index])
+#define gpAreaPlaceAt(records, index) _areaPlacementRef(&(records)[index])
 
 #endif // GAMEPLAY_AREA_H
