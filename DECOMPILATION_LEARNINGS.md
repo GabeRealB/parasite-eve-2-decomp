@@ -23471,7 +23471,7 @@ Pin the call arguments in hard registers and barrier them so setup wins the
 delay slots:
 
 ```c
-/* After a successful Pad_CheckFlag800: */
+/* After a successful padIsStartPressed: */
 register s32 mask asm("a0");
 mask = 0;
 asm("" : "+r"(mask));

@@ -3237,7 +3237,7 @@ void func_acropolis_security_room_80180368(Task* task)
             if (cdCmdIsIdle() & 0xFFFF) {
                 task->state = task->state + 1;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 return;
             }
             if (work->fadeStarted == 0) {
@@ -3268,7 +3268,7 @@ void func_acropolis_security_room_801804CC(Task* arg0)
             arg0->state = arg0->state + 1;
             return;
         case 1:
-            if ((cdCmdIsIdle() & 0xFFFF) || Pad_CheckFlag800() != 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) || padIsStartPressed() != 0) {
                 arg0->state = arg0->state + 1;
             }
             return;

@@ -932,7 +932,7 @@ void func_acropolis_cafeteria_8017E47C(Task* arg0)
                 task->state = task->state + 1;
                 break;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 return;
             }
             SetDispMask(0);

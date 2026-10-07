@@ -1275,7 +1275,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             work->playerMtx->t[0] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vx;
             work->playerMtx->t[1] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vy;
             work->playerMtx->t[2] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vz;
-            if ((Pad_CheckFlag800() != 0) || ((queue->movieFrame - 1) >= 0x78)) {
+            if ((padIsStartPressed() != 0) || ((queue->movieFrame - 1) >= 0x78)) {
                 task->state = task->state + 1;
             }
             break;
@@ -1382,7 +1382,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                     task->state = task->state + 1;
                     break;
                 }
-            } else if (Pad_CheckFlag800() != 0) {
+            } else if (padIsStartPressed() != 0) {
                 work->skipFadeTask    = taskSpawnFromTable(D_acropolis_forked_road_80180F44, 3, 0, 0);
                 work->skipFadeStarted = 1;
             }

@@ -437,7 +437,7 @@ void func_replay_bonus_80117A08(Task* arg0)
                 taskSpawnFromTable(D_replay_bonus_8011922C, 1, 0xB4, 0);
                 arg0->state = 0xA;
             }
-            if (Pad_CheckFlag800() != 0) {
+            if (padIsStartPressed() != 0) {
                 taskSpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
                 CdCmd_CancelReplaceAndActivate();
                 arg0->state         = 0xB;
@@ -460,7 +460,7 @@ void func_replay_bonus_80117A08(Task* arg0)
                 arg0->state            += 1;
                 arg0->killCountdown     = params->endHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
             }
-            if (Pad_CheckFlag800() != 0) {
+            if (padIsStartPressed() != 0) {
                 CdCmd_CancelReplaceAndActivate();
                 taskSpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
                 arg0->killCountdown = 0x1E;

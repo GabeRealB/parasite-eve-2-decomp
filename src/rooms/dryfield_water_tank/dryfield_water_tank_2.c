@@ -1014,7 +1014,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
                 task->state = task->state + 1;
                 return;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 return;
             }
             sndEvtRequestScriptStop(SOUND_WATER_TANK_MOVIE_SFX_A, 0x1E);

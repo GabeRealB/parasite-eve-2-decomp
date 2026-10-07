@@ -29,8 +29,12 @@ extern s32 Pad_MaskCancel;
 
 extern s32 Pad_MaskMenu;
 
-/// Returns padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START); non-void so callers can branch on v0.
-s32 Pad_CheckFlag800(void);
+/// Tests the stored Start-button press on controller port 0.
+///
+/// Returns a signed 32-bit 1 or 0 using `PAD_BUTTON_QUERY_PRESSED`.
+/// Reads input without polling or consuming it. UI repeat affects only D-pad
+/// buttons, so holding Start does not generate repeated presses.
+s32 padIsStartPressed(void);
 
 /// Active-high button bits in the processed pad sample, using Psy-Q bit order.
 ///

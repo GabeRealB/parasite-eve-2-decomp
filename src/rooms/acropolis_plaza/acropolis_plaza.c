@@ -3516,7 +3516,7 @@ void func_acropolis_plaza_8017DBFC(Task* task)
             if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state++;
-            } else if (Pad_CheckFlag800() != 0) {
+            } else if (padIsStartPressed() != 0) {
                 cdCmdRequestCancel();
                 task->state++;
             }
@@ -4198,7 +4198,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 ///
 /// States 9 to 12 restart stream slot 3, run `D_acropolis_plaza_801830DC`,
 /// spawn table entry 8 after 0xB frames and re-enable the display. State 13 is
-/// the exit: the start button (`Pad_CheckFlag800`) skips to state 15, otherwise
+/// the exit: a Start press (`padIsStartPressed`) skips to state 15, otherwise
 /// it requests the map's own MIDI and starts the closing stream, state 14 runs
 /// `D_acropolis_plaza_801834B4`, and state 15 releases slot 3 and kills the
 /// task. Every state from 7 on also steps the room's per-frame work.
@@ -4365,7 +4365,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             }
             return;
         case 13:
-            if (Pad_CheckFlag800() != 0) {
+            if (padIsStartPressed() != 0) {
                 Stage_RequestMidiFromMap(0xA);
                 cdCmdRequestCancel();
                 task->state = 0xF;

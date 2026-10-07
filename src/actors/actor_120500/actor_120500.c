@@ -393,7 +393,7 @@ void func_actor_120500_80131E58(Task* arg0)
                 arg0->state = arg0->state + 1;
                 return;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 return;
             }
             SetDispMask(0);

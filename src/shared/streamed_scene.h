@@ -1,7 +1,7 @@
 /* A room task that plays a CD-streamed scene in place of the room: it blanks the
  * display, queues CD command 0x61 on the stream slot of the current location
  * with its view replaced by 0x64, shows the display once the command queue
- * signals, and runs until the CD is idle or the pad aborts it; then it restores
+ * signals, and runs until the CD is idle or a Start press aborts it; then it restores
  * the stream state and ends. One version ends at once, the other records the
  * abort and, when not aborted, holds 60 frames first.
  *

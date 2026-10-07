@@ -750,7 +750,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
                     task->state = task->state + 1;
                     break;
                 }
-            } else if (Pad_CheckFlag800() != 0) {
+            } else if (padIsStartPressed() != 0) {
                 work->skipFadeTask    = taskSpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
                 work->skipFadeStarted = 1;
             }
@@ -788,7 +788,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
 /// to come up (`gCdCmdQueue::movieReady`), then starts the script pair and
 /// adopts its task as a child. State 2 drives the ride: every frame it moves
 /// the player's matrix to the `field_1EA`th entry of the path table; the first
-/// time `Pad_CheckFlag800` reports the pad it spawns the fade-out task (entry 2
+/// time `padIsStartPressed` reports a Start press it spawns the fade-out task (entry 2
 /// of the room's task table), and once that task has finished it warps slot 3
 /// with a 0x3E9 placement and spawns the fade-in (entry 3); past frame 0xE6 it
 /// sends the same placement as a
@@ -855,7 +855,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
                     task->state = task->state + 1;
                     break;
                 }
-            } else if (Pad_CheckFlag800() != 0) {
+            } else if (padIsStartPressed() != 0) {
                 work->skipFadeTask    = taskSpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
                 work->skipFadeStarted = 1;
             }

@@ -645,7 +645,7 @@ void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
                 arg0->state++;
                 break;
             }
-            if (Pad_CheckFlag800() != 0) {
+            if (padIsStartPressed() != 0) {
                 SetDispMask(0);
                 cdCmdRequestCancel();
                 arg0->state++;

@@ -2013,9 +2013,9 @@ static void _acropolisPromenadeUpdateBridgeVisibility(Task* task)
 /// 3 with a 0x3E8 record. State 1 waits for the stream to come up
 /// (`gCdCmdQueue::movieReady`), then starts the script pair and adopts its task
 /// as a child. State 2 drives the ride: every frame it moves the player's
-/// matrix to the path entry the stream's countdown selects, offers the pad
-/// prompt once (`Pad_CheckFlag800`, entry 3 of the room's task table) and, when
-/// the prompt task reports back, warps slot 3 with a 0x3E9 placement and spawns
+/// matrix to the path entry the stream's countdown selects, starts a skip task
+/// once on a Start press (`padIsStartPressed`, entry 3 of the room's task table)
+/// and, when that task finishes, warps slot 3 with a 0x3E9 placement and spawns
 /// entry 4 instead; once the countdown is within 6 frames of the end it sends
 /// the same placement as a 0x3F2 and moves on either way. State 3 waits for
 /// slot 3 to go idle (msg 0x3F0), releases it (0x3F1), stops the stream
@@ -2080,7 +2080,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                     task->state = task->state + 1;
                     break;
                 }
-            } else if (Pad_CheckFlag800() != 0) {
+            } else if (padIsStartPressed() != 0) {
                 work->skipFadeTask    = taskSpawnFromTable(D_acropolis_promenade_80181148, 3, 0, 0);
                 work->skipFadeStarted = 1;
             }

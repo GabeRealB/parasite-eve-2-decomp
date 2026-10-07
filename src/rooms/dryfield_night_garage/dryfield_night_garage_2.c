@@ -1203,7 +1203,7 @@ void func_dryfield_night_garage_80180B20(Task* arg0)
                 task->state++;
                 return;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 return;
             }
             SetDispMask(0);

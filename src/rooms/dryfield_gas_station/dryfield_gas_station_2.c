@@ -78,7 +78,7 @@ void func_dryfield_gas_station_8017FFE4(Task* arg0)
                 task->state = task->state + 1;
                 break;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 break;
             }
             if (task->spawnArg1.value == 0) {

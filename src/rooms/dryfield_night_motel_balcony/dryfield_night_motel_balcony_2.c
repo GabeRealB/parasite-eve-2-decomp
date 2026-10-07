@@ -94,7 +94,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
                 task->state = task->state + 1;
                 return;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 return;
             }
             SetDispMask(0);
@@ -128,7 +128,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
                 task->state = task->state + 1;
                 return;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 return;
             }
             SetDispMask(0);

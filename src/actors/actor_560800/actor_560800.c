@@ -4199,7 +4199,7 @@ void func_actor_560800_801321A0(Task* task)
             if (cdCmdIsIdle()) {
                 SetDispMask(0);
                 task->state++;
-            } else if (Pad_CheckFlag800()) {
+            } else if (padIsStartPressed()) {
                 SetDispMask(0);
                 cdCmdRequestCancel();
                 task->state++;

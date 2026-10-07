@@ -21,7 +21,7 @@ enum {
     AYA_20900_GAME_OVER_PHASE_DARKEN_SCENE = 1, // Darken the preserved picture to black, logo hidden
     AYA_20900_GAME_OVER_PHASE_REVEAL_START = 2, // First reveal frame, drawn before the display is unmasked
     AYA_20900_GAME_OVER_PHASE_REVEAL       = 3, // Unmask the display and brighten the logo out of black
-    AYA_20900_GAME_OVER_PHASE_HOLD         = 4, // Show the logo until a pad press skips it or the hold runs out
+    AYA_20900_GAME_OVER_PHASE_HOLD         = 4, // Show the logo until a Start press skips it or the hold runs out
     AYA_20900_GAME_OVER_PHASE_DARKEN_OUT   = 5  // Darken to black, then report the screen finished
 };
 
@@ -180,7 +180,7 @@ static s32 func_aya_20900_80115A14(Task* arg0)
         case AYA_20900_GAME_OVER_PHASE_HOLD:
             work->holdFrames += 1;
             if (work->holdFrames < AYA_20900_GAME_OVER_HOLD_FRAMES) {
-                if (Pad_CheckFlag800() != 0) {
+                if (padIsStartPressed() != 0) {
                     sndEvtRequestMidiStop(0x62, 1);
                     work->phase += 1;
                 }

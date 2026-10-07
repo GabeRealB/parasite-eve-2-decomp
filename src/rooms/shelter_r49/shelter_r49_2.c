@@ -235,7 +235,7 @@ void func_shelter_r49_8017D71C(Task* arg0)
                 task->state++;
                 break;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 break;
             }
             SetDispMask(0);

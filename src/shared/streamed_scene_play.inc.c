@@ -32,7 +32,7 @@ void streamedScenePlay(Task* task)
             if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state++;
-            } else if (Pad_CheckFlag800() != 0) {
+            } else if (padIsStartPressed() != 0) {
                 SetDispMask(0);
                 cdCmdRequestCancel();
                 task->state++;

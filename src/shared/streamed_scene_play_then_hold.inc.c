@@ -3,7 +3,7 @@
 /// Streamed-scene task. It blanks the display and queues CD command 0x61 on
 /// the stream slot of the current location with its view replaced by 0x64,
 /// then shows the display once the command queue signals it. The scene runs
-/// until the CD is idle or the pad check aborts it, which is recorded in
+/// until the CD is idle or a Start press aborts it, which is recorded in
 /// `spawnArg1`. After the stream state is restored an aborted scene kills the
 /// task at once, and a finished one after 0x3D more ticks; either way the
 /// session image memory is restored and presentation returns to the game loop.
@@ -38,7 +38,7 @@ void streamedScenePlayThenHold(Task* task)
                 SetDispMask(0);
                 task->spawnArg1.value = 0;
                 task->state++;
-            } else if (Pad_CheckFlag800() != 0) {
+            } else if (padIsStartPressed() != 0) {
                 SetDispMask(0);
                 cdCmdRequestCancel();
                 task->spawnArg1.value = 1;

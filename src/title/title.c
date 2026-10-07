@@ -519,7 +519,7 @@ void Title_DemoStreamTask(Task* task)
         case 3:
             if (cdCmdIsIdle()) {
                 task->state++;
-            } else if (Pad_CheckFlag800()) {
+            } else if (padIsStartPressed()) {
                 Title_SkipFadeFlag = 0;
                 SetDispMask(0);
                 cdCmdRequestCancel();

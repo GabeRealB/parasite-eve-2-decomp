@@ -242,7 +242,7 @@ void func_mist_parking_801837B8(Task* task)
                 task->state = task->state + 1;
                 return;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 return;
             }
             SetDispMask(0);

@@ -1699,7 +1699,7 @@ PCinit                      = 0x8004AC4C;
 //--------------------------------------------------------------------
 gameFlagSetNibble               = 0x8004AC58; // type:func
 gameFlagGetNibble               = 0x8004ACAC; // type:func
-Pad_CheckFlag800               = 0x8004ACF0; // type:func
+padIsStartPressed               = 0x8004ACF0; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x3B518   VA: 0x8004AD18   subsegment: o, libgpu/p34

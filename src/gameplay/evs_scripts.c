@@ -215,11 +215,11 @@ static void Gp_ScriptTaskState1(Task* arg0)
         return;
     }
 
-    if (gDisplayState.demoScene != DISPLAY_DEMO_NONE && Pad_CheckFlag800() != 0 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+    if (gDisplayState.demoScene != DISPLAY_DEMO_NONE && padIsStartPressed() != 0 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
 
-    if (Pad_CheckFlag800() != 0 && D_801156D0 != NULL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_801156F0 == 0) {
+    if (padIsStartPressed() != 0 && D_801156D0 != NULL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_801156F0 == 0) {
         if (D_801156F4.sceneKey != NULL) {
             CdCmd_CancelReplaceAndActivate();
         }

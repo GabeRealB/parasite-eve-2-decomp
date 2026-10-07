@@ -2313,7 +2313,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
 
         case 3:
             arg0->killCountdown += 1;
-            if (arg0->killCountdown < 0x97 && Pad_CheckFlag800() == 0) {
+            if (arg0->killCountdown < 0x97 && padIsStartPressed() == 0) {
                 return;
             }
             arg0->killCountdown = 0;
@@ -2403,7 +2403,7 @@ void func_mist_shooting_gallery_80180F2C(Task* arg0)
                 task->state = task->state + 1;
                 break;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 break;
             }
             SetDispMask(0);

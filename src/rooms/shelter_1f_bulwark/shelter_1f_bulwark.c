@@ -503,7 +503,7 @@ void func_shelter_1f_bulwark_8017DC78(Task* arg0)
                 task->state = task->state + 1;
                 break;
             }
-            if (Pad_CheckFlag800() == 0) {
+            if (padIsStartPressed() == 0) {
                 break;
             }
             SetDispMask(0);
