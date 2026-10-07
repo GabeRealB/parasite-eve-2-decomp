@@ -1243,11 +1243,7 @@ static void func_actor_107600_80132B7C(Task* arg0)
     work->yaw                   &= 0xFFF;
     work->roll                  &= 0xFFF;
     m                            = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
-    MATRIX_PAIR(m, 0, 0)         = 0x1000;
-    MATRIX_PAIR(m, 0, 2)         = 0;
-    MATRIX_PAIR(m, 1, 1)         = 0x1000;
-    MATRIX_PAIR(m, 2, 0)         = 0;
-    m->m[2][2]                   = 0x1000;
+    gfxSetRotIdentity(m);
     SCRATCH_STACK_CURSOR(MATRIX) = m;
     RotMatrixZ(work->roll, m);
     RotMatrixX(work->pitch, m);
