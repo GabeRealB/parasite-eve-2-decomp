@@ -15,6 +15,6 @@
 
 #include "main/task_types.h"
 
-s32 gasStationCueSoundMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+static s32 _gasStationCueSoundMsg(Task* task, s32 messageId, s32 cueKey, s32 unusedArg);
 
 #endif /* SRC_SHARED_GAS_STATION_SOUNDS_H */

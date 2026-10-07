@@ -2,10 +2,13 @@
 
 /* Part of the Glutton library; see glutton.h. */
 
-/// Records the glob's launch-to-player travel and resets its descent counters.
+/// Records the glob's horizontal launch offset and initializes its descent.
 ///
-/// Requires live projectile work and TMD coordinates for the glob and player
-/// in the view frame. Travel uses world units; no pointer is retained.
+/// Both TMD roots must use the view coordinate as their parent. Offsets use
+/// signed world-coordinate units; the fall step narrows to a signed halfword as
+/// launch Y / 15, truncated toward zero. Descent spends X/Z in fifteenths and
+/// adds the fall step's magnitude to Y. Clears elapsed ticks and caught state;
+/// all arguments are borrowed for this call.
 static __inline__ void _gluttonCaptureGlobTravel(GluttonProjectileWork* work, Task* task, Task* playerTask)
 {
     enum { GLUTTON_GLOB_FALL_TICKS = 15 };

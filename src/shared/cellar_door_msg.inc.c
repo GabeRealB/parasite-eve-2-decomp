@@ -1,27 +1,36 @@
 /* Part of the cellar library; see cellar.h. */
 
-/// Message-table handler for message 0x13EE. Copies the incoming record onto
-/// the outgoing one; for a query 0x26 without `queryOnly` set it answers in
-/// `room` from event nibbles 0xC9, 0x53 and 0x51 (1 to 4 while 0xC9 is set,
-/// 5 or 6 otherwise). Always answers 1.
-s32 cellarDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves the cellar's underpass destination from saved event and switch state.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` in both cellar rooms. Borrows a readable
+/// request and writable reply, which may alias, and copies the complete record.
+/// Executing an underpass transition selects room 1..6; queries and other areas
+/// preserve the requested room. Always returns 1; receiver and ID are unused.
+static s32 _roomVariantResolveCellar(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+    enum {
+        CELLAR_UNDERPASS_ROOM_AFTER_EVENT             = 1,
+        CELLAR_UNDERPASS_ROOM_AFTER_EVENT_FLAG_053    = 2,
+        CELLAR_UNDERPASS_SWITCH_OFF_ROOM_OFFSET       = 2,
+        CELLAR_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_ON  = 5,
+        CELLAR_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_OFF = 6,
+    };
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_UNDERPASS && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
             if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
-                out->room = 2;
+                reply->room = CELLAR_UNDERPASS_ROOM_AFTER_EVENT_FLAG_053;
             } else {
-                out->room = 1;
+                reply->room = CELLAR_UNDERPASS_ROOM_AFTER_EVENT;
             }
             if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
-                out->room = (u8)out->room + 2;
+                reply->room = (u8)reply->room + CELLAR_UNDERPASS_SWITCH_OFF_ROOM_OFFSET;
             }
         } else {
             if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {
-                out->room = 5;
+                reply->room = CELLAR_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_ON;
             } else {
-                out->room = 6;
+                reply->room = CELLAR_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_OFF;
             }
         }
     }

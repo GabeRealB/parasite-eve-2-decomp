@@ -137,7 +137,7 @@ TaskMessageEntry D_dryfield_gas_station_80181E54[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGasStationMsg },
     { 5105, func_dryfield_gas_station_8017FD4C },
     { ROOM_MESSAGE_COMMAND, func_dryfield_gas_station_8017FD54 },
-    { ROOM_MESSAGE_SOUND, gasStationCueSoundMsg },
+    { ROOM_MESSAGE_SOUND, _gasStationCueSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

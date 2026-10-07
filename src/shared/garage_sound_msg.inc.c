@@ -1,15 +1,20 @@
 /* Part of the garage library; see garage.h. */
 
-/// Handler for message 0x13F2 in the room's message table: on event 9 it plays
-/// stage sound 0x52030009, on event 0x6C it reads the cap event key, and it
-/// always reports the message as not handled.
-s32 garageSoundMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles the garage's CAP sound cues for the current stage.
+///
+/// Installed for `ROOM_MESSAGE_SOUND` in both garage rooms. Cue 9 queues the
+/// general-store bank's entry 9; cue 0x6C queries the CAP variant and discards
+/// its result. Other cues do nothing. Always returns 0; receiver, message ID
+/// and the second payload are unused.
+static s32 _garageSoundMsg(Task* task, s32 messageId, s32 cueKey, s32 unusedArg)
 {
-    switch (arg2) {
-        case 0x9:
+    enum { GARAGE_SOUND_CUE_PLAY          = 9,
+           GARAGE_SOUND_CUE_QUERY_VARIANT = 0x6C };
+    switch (cueKey) {
+        case GARAGE_SOUND_CUE_PLAY:
             sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 9), 0, 0);
             break;
-        case 0x6C:
+        case GARAGE_SOUND_CUE_QUERY_VARIANT:
             capGetVariantKey();
             break;
     }

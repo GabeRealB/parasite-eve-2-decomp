@@ -398,7 +398,7 @@ void func_m4a1_grenade_8011DE68(Task* task)
     TaskFunc states[4] = {
         func_m4a1_grenade_8011D654,
         func_m4a1_grenade_8011D994,
-        grenadeShellBlast,
+        _grenadeShellBlast,
         _grenadeShellExit,
     };
 

@@ -331,7 +331,7 @@ TaskMessageEntry D_dryfield_night_gas_station_80184034[7] = {
     { 5105, func_dryfield_night_gas_station_8017F7E0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_gas_station_8017F990 },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_gas_station_8017F89C },
-    { ROOM_MESSAGE_SOUND, gasStationCueSoundMsg },
+    { ROOM_MESSAGE_SOUND, _gasStationCueSoundMsg },
     { ROOM_MESSAGE_ACTOR_EVENT, func_dryfield_night_gas_station_8017F9E8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

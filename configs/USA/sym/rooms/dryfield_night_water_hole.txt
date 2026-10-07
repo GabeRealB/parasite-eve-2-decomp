@@ -128,6 +128,6 @@ _roomVariantResolveShelter = 0x8017D6AC; // type:func
 waterHoleDoorMsg = 0x8017DADC; // type:func
 waterHoleWaterTask = 0x8017E630; // type:func
 _waterHoleWaterStart = 0x8017E690; // type:func
-waterHoleDrawSurfaces = 0x8017DF28; // type:func
+_waterHoleDrawSurfaces = 0x8017DF28; // type:func
 _dryfieldNightWaterHoleRejectKeyItemUse = 0x8017dad4; // type:func
 _dryfieldNightWaterHoleRoomIdle = 0x8017de20; // type:func

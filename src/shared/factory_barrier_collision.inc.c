@@ -1,55 +1,63 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Restores two faces of the stage variant's collision grid -- normals,
-/// corners and face records -- from a template, then slides their eight
-/// corners 2000 units along x once game flag 0x47 is set: at once in state 0,
-/// which then kills the task, or from state 1 when the flag turns positive
-/// later.
 void factoryBarrierCollision(Task* task)
 {
-    WorldCollisionGrid* src = &gFactoryBarrierTemplate;
-    WorldCollisionGrid* geom;
-    s32                 i;
+    enum { FACTORY_BARRIER_STATE_RESTORE     = 0,
+           FACTORY_BARRIER_STATE_WAIT        = 1,
+           FACTORY_BARRIER_FACE_COUNT        = 2,
+           FACTORY_BARRIER_VERTICES_PER_FACE = 4,
+           FACTORY_BARRIER_VERTEX_COUNT      = FACTORY_BARRIER_FACE_COUNT * FACTORY_BARRIER_VERTICES_PER_FACE,
+           FACTORY_BARRIER_CLEAR_X_OFFSET    = 2000 };
+    WorldCollisionGrid* templateGrid = &gFactoryBarrierTemplate;
+    WorldCollisionGrid* roomGrid;
+    s32                 recordIndex;
+
+    /// Moves the eight reserved vertices to the cleared barrier position.
+    ///
+    /// Captures roomGrid and recordIndex; adds the fixed X offset with
+    /// halfword truncation. Requires eight writable vertices and a braced call
+    /// site. Takes no arguments and is undefined before leaving this function.
+#define FACTORY_BARRIER_SHIFT_VERTICES()                                               \
+    for (recordIndex = 0; recordIndex < FACTORY_BARRIER_VERTEX_COUNT; recordIndex++) { \
+        roomGrid->vertices[recordIndex].vx += FACTORY_BARRIER_CLEAR_X_OFFSET;          \
+    }
 
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-        geom = &gFactoryDayGrid;
+        roomGrid = &gFactoryDayGrid;
     } else {
-        geom = &gFactoryNightGrid;
+        roomGrid = &gFactoryNightGrid;
     }
     switch (task->state) {
-        case 0:
-            for (i = 0; i < 2; i++) {
-                geom->normals[i].vx          = src->normals[i].vx;
-                geom->normals[i].vy          = src->normals[i].vy;
-                geom->normals[i].vz          = src->normals[i].vz;
-                geom->vertices[i * 4 + 0].vx = src->vertices[i * 4 + 0].vx;
-                geom->vertices[i * 4 + 0].vy = src->vertices[i * 4 + 0].vy;
-                geom->vertices[i * 4 + 0].vz = src->vertices[i * 4 + 0].vz;
-                geom->vertices[i * 4 + 1].vx = src->vertices[i * 4 + 1].vx;
-                geom->vertices[i * 4 + 1].vy = src->vertices[i * 4 + 1].vy;
-                geom->vertices[i * 4 + 1].vz = src->vertices[i * 4 + 1].vz;
-                geom->vertices[i * 4 + 2].vx = src->vertices[i * 4 + 2].vx;
-                geom->vertices[i * 4 + 2].vy = src->vertices[i * 4 + 2].vy;
-                geom->vertices[i * 4 + 2].vz = src->vertices[i * 4 + 2].vz;
-                geom->vertices[i * 4 + 3].vx = src->vertices[i * 4 + 3].vx;
-                geom->vertices[i * 4 + 3].vy = src->vertices[i * 4 + 3].vy;
-                geom->vertices[i * 4 + 3].vz = src->vertices[i * 4 + 3].vz;
-                geom->faces[i]               = src->faces[i];
+        case FACTORY_BARRIER_STATE_RESTORE:
+            // Restore only the reserved barrier geometry, preserving SVECTOR pad words.
+            for (recordIndex = 0; recordIndex < FACTORY_BARRIER_FACE_COUNT; recordIndex++) {
+                roomGrid->normals[recordIndex].vx                                          = templateGrid->normals[recordIndex].vx;
+                roomGrid->normals[recordIndex].vy                                          = templateGrid->normals[recordIndex].vy;
+                roomGrid->normals[recordIndex].vz                                          = templateGrid->normals[recordIndex].vz;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 0].vx = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 0].vx;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 0].vy = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 0].vy;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 0].vz = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 0].vz;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 1].vx = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 1].vx;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 1].vy = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 1].vy;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 1].vz = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 1].vz;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 2].vx = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 2].vx;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 2].vy = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 2].vy;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 2].vz = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 2].vz;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 3].vx = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 3].vx;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 3].vy = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 3].vy;
+                roomGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 3].vz = templateGrid->vertices[recordIndex * FACTORY_BARRIER_VERTICES_PER_FACE + 3].vz;
+                roomGrid->faces[recordIndex]                                               = templateGrid->faces[recordIndex];
             }
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) != 0) {
-                for (i = 0; i < 8; i++) {
-                    geom->vertices[i].vx += 2000;
-                }
+                FACTORY_BARRIER_SHIFT_VERTICES();
                 taskKill(task);
                 return;
             }
             task->state++;
             break;
-        case 1:
+        case FACTORY_BARRIER_STATE_WAIT:
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) > 0) {
-                for (i = 0; i < 8; i++) {
-                    geom->vertices[i].vx += 2000;
-                }
+                FACTORY_BARRIER_SHIFT_VERTICES();
                 task->state++;
             }
             break;
@@ -57,4 +65,5 @@ void factoryBarrierCollision(Task* task)
             taskKill(task);
             break;
     }
+#undef FACTORY_BARRIER_SHIFT_VERTICES
 }

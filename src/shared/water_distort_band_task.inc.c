@@ -3,8 +3,11 @@
 /// Completes one raw framebuffer strip and links its caller-owned packet.
 ///
 /// Screen X/Y, U coordinates and the texture page must already be initialized.
-/// Source rows include the sixteen-texel framebuffer gap; `otIndex` selects a
-/// valid current ordering-table tag. Packet storage must survive GPU drawing.
+/// `sourceRow` is the reflected framebuffer row in 0..238; buffer index is
+/// 0 or 1. Adds the second buffer's sixteen-texel gap, then spans that row and
+/// the next in byte-sized V coordinates. Uses raw texture colour without
+/// semitransparency. `otIndex` counts tags in the current ordering table and
+/// must be valid; packet storage is borrowed until the GPU consumes it.
 static inline void _waterFinishDistortionStrip(POLY_FT4* strip, s32 sourceRow, s32 sourceBufferIndex, s32 otIndex)
 {
     enum {

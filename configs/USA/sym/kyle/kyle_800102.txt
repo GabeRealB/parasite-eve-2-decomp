@@ -12,4 +12,4 @@ _grenadeShellExit = 0x80168270; // type:func
 gGrenadeShellMuzzleOffsets = 0x80177424;
 gGrenadeShellBlastRadii = 0x80177434;
 gGrenadeShellSpeeds = 0x8017743C;
-grenadeShellBlast = 0x80168244; // type:func
+_grenadeShellBlast = 0x80168244; // type:func

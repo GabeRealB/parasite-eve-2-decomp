@@ -115,7 +115,7 @@ void fireballDrawGlow(GfxCoord* coord, s16 size)
             prim);
         if (gRoomEffectState->groundTraceEnabled != 0) {
             if (worldCollisionProjectGroundCoord(coord, &ground) == 1) {
-                fireballDrawGroundGlow(&ground, (s32)(s16)(outerSize * 2));
+                _fireballDrawGroundGlow(&ground, (s32)(s16)(outerSize * 2));
             }
         }
     }

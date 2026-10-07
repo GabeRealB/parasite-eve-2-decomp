@@ -1651,10 +1651,10 @@ static const TaskFuncTable3 D_acropolis_promenade_8017D5C4 = {
 
 /// State table of the prop task, run by `func_acropolis_promenade_8017D988`.
 static const TaskFuncTable3 D_acropolis_promenade_8017D5D0 = {
-    { bridgeModelSetup, _acropolisPromenadeUpdateBridgeVisibility, taskKill },
+    { _bridgeModelSetup, _acropolisPromenadeUpdateBridgeVisibility, taskKill },
 };
 
-/// Runs the prop task's current state (`bridgeModelSetup`,
+/// Runs the prop task's current state (`_bridgeModelSetup`,
 /// `_acropolisPromenadeUpdateBridgeVisibility`, then `taskKill`) through a copy of its
 /// handler table on the stack.
 void func_acropolis_promenade_8017D988(Task* task)

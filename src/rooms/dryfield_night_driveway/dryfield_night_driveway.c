@@ -288,7 +288,7 @@ TaskMessageEntry D_dryfield_night_driveway_8017F7A4[6] = {
     { DRYFIELD_NIGHT_DRIVEWAY_MESSAGE_USE_KEY_ITEM, _dryfieldNightDrivewayRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightDrivewayIgnoreDirectionAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightDrivewayIgnoreRoomCommand },
-    { ROOM_MESSAGE_SOUND, drivewayScriptSound },
+    { ROOM_MESSAGE_SOUND, _drivewayScriptSound },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

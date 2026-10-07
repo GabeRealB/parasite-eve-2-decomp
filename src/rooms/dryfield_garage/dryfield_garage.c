@@ -106,7 +106,7 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskMessageEntry D_dryfield_garage_8017DC7C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_garage_8017D91C },
     { DRYFIELD_GARAGE_MESSAGE_USE_KEY_ITEM, _dryfieldGarageRejectKeyItemUse },
-    { ROOM_MESSAGE_SOUND, garageSoundMsg },
+    { ROOM_MESSAGE_SOUND, _garageSoundMsg },
     { ROOM_MESSAGE_COMMAND, func_dryfield_garage_8017DA18 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_garage_8017DA54 },
     { TASK_MESSAGE_TABLE_END, NULL },

@@ -150162,7 +150162,7 @@ attempts; left as it was.
 - **`id = K; goto play;` in every case with `play: f(id, 0, 0)` in the last**
   is the call written in each case; cross-jumping merges `move a1,zero; jal;
   move a2,a1` and leaves each case its `lui/ori` and a jump
-  (`gasStationCueSoundMsg`, 8 gotos, first try).
+  (`_gasStationCueSoundMsg`, 8 gotos, first try).
 - **A flag local set to 1 in three arms and 0 at the end, passed to one call**
   (`Gp_ApplyNpcRoomSnd`) is a `static inline s32` with three `return 1` and a
   final `return 0` as the call's argument: the returns go straight into `$a0`.

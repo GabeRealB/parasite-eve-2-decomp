@@ -19,10 +19,10 @@
 
 #include "main/task_types.h"
 
-s32  drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
-void drivewayBlackoutTask(Task* arg0);
-void drivewayCutsceneTask(Task* arg0);
-s32  drivewayScriptSound(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32        drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+void       drivewayBlackoutTask(Task* arg0);
+void       drivewayCutsceneTask(Task* arg0);
+static s32 _drivewayScriptSound(Task* task, s32 messageId, s32 cueKey, s32 unusedArg);
 
 void drivewaySetViewDirty(s16 arg0);
 

@@ -2730,7 +2730,7 @@ static const TaskFuncTable3 D_acropolis_bridge_8017D5C4 = {
 
 /// State handlers of the bridge model task.
 static const TaskFuncTable3 D_acropolis_bridge_8017D5D0 = {
-    { bridgeModelSetup, _acropolisBridgeUpdateModelVisibility, taskKill }
+    { _bridgeModelSetup, _acropolisBridgeUpdateModelVisibility, taskKill }
 };
 
 /// Three-state dispatcher of the bridge model task: setup, per-frame update,

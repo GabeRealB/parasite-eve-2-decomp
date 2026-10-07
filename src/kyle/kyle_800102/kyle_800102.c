@@ -48,7 +48,7 @@ void func_kyle_800102_801682B4(Task* task)
     TaskFunc states[4] = {
         grenadeShellSpawn,
         grenadeShellFly,
-        grenadeShellBlast,
+        _grenadeShellBlast,
         _grenadeShellExit,
     };
 

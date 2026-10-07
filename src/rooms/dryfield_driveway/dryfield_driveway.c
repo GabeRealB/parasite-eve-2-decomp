@@ -189,7 +189,7 @@ TaskMessageEntry D_dryfield_driveway_8017E754[6] = {
     { 5105, func_dryfield_driveway_8017DCC0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldDrivewayIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldDrivewayIgnoreRoomCommand },
-    { ROOM_MESSAGE_SOUND, drivewayScriptSound },
+    { ROOM_MESSAGE_SOUND, _drivewayScriptSound },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

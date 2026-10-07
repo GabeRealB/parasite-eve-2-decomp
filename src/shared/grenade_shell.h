@@ -20,8 +20,8 @@
 
 #include "main/task_types.h"
 
-void grenadeShellSpawn(Task* arg0);
-void grenadeShellFly(Task* arg0);
-void grenadeShellBlast(Task* task);
+void        grenadeShellSpawn(Task* arg0);
+void        grenadeShellFly(Task* arg0);
+static void _grenadeShellBlast(Task* task);
 
 #endif /* SRC_SHARED_GRENADE_SHELL_H */

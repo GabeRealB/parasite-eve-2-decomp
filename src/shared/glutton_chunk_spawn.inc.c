@@ -6,16 +6,19 @@
 /// Links the debris chunk's independent room-grid sphere and its contact table.
 ///
 /// Requires an unlinked body and a nonnegative radius in world units. The work
-/// and borrowed coordinate must stay live until unlink. The caller initializes
-/// the grid contacts before enabling grid tests.
+/// and borrowed coordinate must stay live until unlink. Its centre is the
+/// coordinate's origin and its enemy-body identity is 10. Linking leaves grid
+/// tests disabled; the caller initializes all three contacts before enabling
+/// them. Assigning sphere flags replaces any previous test flags.
 static __inline__ void _gluttonLinkChunkGridSphere(GluttonProjectileWork* work, GfxCoord* coord, s16 radius)
 {
+    enum { GLUTTON_CHUNK_GRID_BODY_ID = 10 };
     work->gridBody.coord            = coord;
     work->gridBody.context.contacts = work->gridContacts;
     work->gridBody.pos.vx           = 0;
     work->gridBody.pos.vy           = 0;
     work->gridBody.pos.vz           = 0;
-    work->gridBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | 10;
+    work->gridBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | GLUTTON_CHUNK_GRID_BODY_ID;
     work->gridBody.radius           = radius;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);

@@ -3,7 +3,11 @@
 #ifndef SCREEN_NEGATIVE_WORD_PAIR_HELPER_DEFINED
 #define SCREEN_NEGATIVE_WORD_PAIR_HELPER_DEFINED
 
-/// Converts two adjacent writable GPU words from RGB555 to a grayscale negative.
+/// Converts four RGB555 pixels in two writable words to their grayscale negative.
+///
+/// Requires two distinct word-aligned words in pixel order. Each output channel
+/// is 31 - floor((3R + 4G + B) / 8); bit 15 is cleared. Loads both input words
+/// before writing either output and retains neither pointer.
 static inline void _screenNegativeConvertWordPair(u_long* firstWord, u_long* secondWord)
 {
     enum {
@@ -11,6 +15,9 @@ static inline void _screenNegativeConvertWordPair(u_long* firstWord, u_long* sec
         SCREEN_NEGATIVE_PAIR_GREEN_MASK   = 0x03E003E0,
         SCREEN_NEGATIVE_ODD_LANE_MASK     = 0x1F001F00,
         SCREEN_NEGATIVE_LANE_MAXIMA       = 0x1F1F1F1F,
+        SCREEN_NEGATIVE_RED_WEIGHT        = 3,
+        SCREEN_NEGATIVE_GREEN_WEIGHT      = 4,
+        SCREEN_NEGATIVE_WEIGHT_SUM_SHIFT  = 3,
     };
     u32 secondPixelPair;
     u32 firstPixelPair;
@@ -25,18 +32,18 @@ static inline void _screenNegativeConvertWordPair(u_long* firstWord, u_long* sec
     packedChannel     = secondPixelPair & SCREEN_NEGATIVE_PAIR_CHANNEL_MASK;
     packedChannel   <<= 8;
     packedChannel    |= firstPixelPair & SCREEN_NEGATIVE_PAIR_CHANNEL_MASK;
-    packedLuminance   = packedChannel * 3;
+    packedLuminance   = packedChannel * SCREEN_NEGATIVE_RED_WEIGHT;
     packedChannel     = secondPixelPair & SCREEN_NEGATIVE_PAIR_GREEN_MASK;
     packedChannel   <<= 3;
     firstPixelPair  >>= 5;
     packedChannel    |= firstPixelPair & SCREEN_NEGATIVE_PAIR_CHANNEL_MASK;
-    packedLuminance  += packedChannel * 4;
+    packedLuminance  += packedChannel * SCREEN_NEGATIVE_GREEN_WEIGHT;
     secondPixelPair >>= 2;
     packedChannel     = secondPixelPair & SCREEN_NEGATIVE_ODD_LANE_MASK;
     firstPixelPair  >>= 5;
     packedChannel    |= firstPixelPair & SCREEN_NEGATIVE_PAIR_CHANNEL_MASK;
     packedLuminance  += packedChannel;
-    packedLuminance   = (packedLuminance >> 3) & SCREEN_NEGATIVE_LANE_MAXIMA;
+    packedLuminance   = (packedLuminance >> SCREEN_NEGATIVE_WEIGHT_SUM_SHIFT) & SCREEN_NEGATIVE_LANE_MAXIMA;
     packedLuminance   = SCREEN_NEGATIVE_LANE_MAXIMA - packedLuminance;
 
     // Repack the alternating lanes as two RGB555 pixel pairs.

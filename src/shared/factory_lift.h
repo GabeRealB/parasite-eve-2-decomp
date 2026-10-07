@@ -266,6 +266,16 @@ s32  factoryLiftJamTurnOut(Task* task);
 s32  factoryLiftJamTurnBack(Task* task);
 void factoryPowerScene(Task* task);
 void factoryWhiteoutScene(Task* task);
+/// Restores and then moves the factory barrier's two reserved collision faces.
+///
+/// Both grid variants need at least two normals/faces and eight leading vertices
+/// reserved for the barrier; the template supplies exactly those records. State
+/// 0 restores XYZ and faces while preserving SVECTOR pad words. A cleared-barrier
+/// flag shifts all eight X coordinates by 2000 world units and ends the task;
+/// otherwise state 1 waits for that flag, shifts once and advances to teardown.
+/// Runtime stage selects the day grid for daytime Dryfield and the night grid
+/// otherwise. Cell lists are retained, so both positions must use their existing
+/// reserved memberships. No work block or collision records are owned here.
 void factoryBarrierCollision(Task* task);
 void factoryLiftUpdate(Task* task);
 void factoryLiftBindLighting(Task* task);
@@ -287,6 +297,12 @@ void factoryPanelWaitMove(Task* task);
 
 void factoryLiftExit(Task* task);
 void factoryLiftRun(Task* task);
+/// Dispatches the hatch task's setup, per-frame update or teardown state.
+///
+/// Requires a live hatch task with `Task::state` in 0..2. Copies the carrier's
+/// three callbacks onto the stack and calls the selected slot without a bounds
+/// check. The update state separately dispatches `FactoryHatchWork::state`;
+/// this wrapper does not interpret its movement-handler completion result.
 void factoryHatchRun(Task* task);
 void factoryCapScene(Task* arg0);
 void factoryEntryIdle(Task* task);

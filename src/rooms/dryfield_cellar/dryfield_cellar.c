@@ -66,7 +66,7 @@ extern WorldCoordRoomLights   D_dryfield_cellar_80180898[1];
 extern WorldCoordRoomLights   D_dryfield_cellar_80180A90[1];
 
 TaskMessageEntry D_dryfield_cellar_8017DB8C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, cellarDoorMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveCellar },
     { DRYFIELD_CELLAR_MESSAGE_USE_KEY_ITEM, _dryfieldCellarRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldCellarIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, cellarCapMsg },

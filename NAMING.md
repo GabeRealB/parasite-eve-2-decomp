@@ -648,6 +648,8 @@ surrounds the corresponding fragment include and is undefined afterwards.
 
 Dryfield's room-transition message handlers also use `roomVariant`. Their
 request is borrowed and their reply writable; both may be the same record.
+The paired cellar rooms' underpass resolver follows this interface as well;
+its implementation declaration is in `src/shared/cellar.h`.
 Queries preserve the copied room and suppress departure effects. Local copies
 are static. `ROOM_VARIANT_MOTEL_BALCONY_MSG` and
 `ROOM_VARIANT_MOTEL_BALCONY_DOORS_MSG` select a carrier-declared instance in
@@ -660,6 +662,29 @@ sound messages' cue keys to balcony-bank scripts for the current stage.
 the day room, or shared between the night room's source files through its
 overlay-private header. The fragment documents the binding and clears it after
 the definition.
+
+`driveway`, `garage` and `gasStation` own their paired Dryfield rooms' included
+CAP sound-cue mappings. Their interfaces are `src/shared/dryfield_driveway.h`,
+`src/shared/garage.h` and `src/shared/gas_station_sounds.h`. These callbacks
+receive `ROOM_MESSAGE_SOUND` and pass stage-relative sound IDs to `sndEvt`;
+each carrier keeps its own static instance. Cue constants use `DRIVEWAY_`,
+`GARAGE_` and `GAS_STATION_`.
+
+`bridgeModel` owns the fixed translucent-plane setup shared by the Acropolis
+bridge and promenade, declared in `src/shared/bridge_model.h`. Each carrier
+keeps static setup and room-specific visibility states. The interface names
+the rooms carrying the plane; its further visual role remains unproven.
+
+`fireball` owns the included flying-fireball glow drawers in
+`src/shared/fireball.h`. The ground drawer constructs a world-ground quad
+around a composed view-space point and uses an additive two-cell texture;
+its instances are static. Rendering constants use `FIREBALL_`.
+
+`waterHole` owns the paired Dryfield water-hole rooms' included water surface
+drawer in `src/shared/water_hole.h`. It draws two subtractive strips per
+rectangle, with 64 columns and a waving seam along X, in a reserved actor-load
+arena. Drawer instances are static; geometry and arena constants use
+`WATER_HOLE_`. The general refraction and distortion helpers keep `water`.
 
 `effectSprite` owns the included animated sprite and debris tasks and their
 textured quad drawers. Its interface is `src/shared/effect_sprite.h`; its

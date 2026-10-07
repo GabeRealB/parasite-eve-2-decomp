@@ -201,7 +201,7 @@ TaskMessageEntry D_dryfield_night_garage_80181C38[6] = {
     { 5105, func_dryfield_night_garage_80180358 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_garage_801800C8 },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_garage_801803A4 },
-    { ROOM_MESSAGE_SOUND, garageSoundMsg },
+    { ROOM_MESSAGE_SOUND, _garageSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

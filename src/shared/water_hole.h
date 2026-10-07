@@ -34,7 +34,7 @@ STATIC_ASSERT_SIZEOF(WaterHoleSurface, 0xC);
 s32         waterHoleDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 void        waterHoleWaterTask(Task* task);
 static void _waterHoleWaterStart(Task* task);
-void        waterHoleDrawSurfaces(Task* task);
+static void _waterHoleDrawSurfaces(Task* task);
 
 /// The room's water surfaces, ended by an entry whose `y` is `WATER_SURFACE_LIST_END`.
 extern WaterHoleSurface gWaterHoleSurfaces[];

@@ -116,7 +116,7 @@ void func_grenade_pistol_8011D1D4(Task* arg0)
 static const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
     grenadeShellSpawn,
     grenadeShellFly,
-    grenadeShellBlast,
+    _grenadeShellBlast,
     _grenadeShellExit,
 } };
 

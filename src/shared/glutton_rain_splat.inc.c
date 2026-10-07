@@ -2,7 +2,10 @@
 
 /// Composes the unscaled attack coordinate at the splatted blob's translation.
 ///
-/// Borrows live arguments for this call; no pointer is retained.
+/// Requires the identity rotation and view parent installed at rain spawn.
+/// Copies local XYZ in world units from the blob's coordinate body, leaving
+/// its visual flattening out of the attack sphere's transform, then composes
+/// the attack coordinate. Both arguments are borrowed for this call.
 static __inline__ void _gluttonComposeSplatAttackCoord(GluttonProjectileWork* work, Task* task)
 {
     work->bodyCoord.coord.t[0]   = task->extra.coordBody->coord->coord.t[0];

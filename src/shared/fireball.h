@@ -15,8 +15,8 @@
 
 #include "main/coord.h"
 
-void fireballDrawGlow(GfxCoord* coord, s16 size);
-void fireballDrawGroundGlow(GfxCoord* arg0, s32 arg1);
-void fireballSpawnEmber(GfxCoord* arg0, s32 arg1);
+void        fireballDrawGlow(GfxCoord* coord, s16 size);
+static void _fireballDrawGroundGlow(const GfxCoord* coord, s32 halfExtent);
+void        fireballSpawnEmber(GfxCoord* arg0, s32 arg1);
 
 #endif /* SRC_SHARED_FIREBALL_H */

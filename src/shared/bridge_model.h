@@ -1,5 +1,5 @@
-/* The Akropolis bridge as a separate model, shown in the rooms that see it: a
- * room task parks the model at a fixed world position under the room's view
+/* The fixed translucent plane shared by the Akropolis bridge and promenade:
+ * the setup state parks the model at a world position under the room's view
  * coordinate system and, each frame, hides it on the room's own camera views.
  * The setup state is shared; each room keeps its per-frame state, which tests
  * its own views.
@@ -25,6 +25,6 @@ typedef struct {
 } BridgeModelWork;
 STATIC_ASSERT_SIZEOF(BridgeModelWork, 0x4);
 
-static void bridgeModelSetup(Task* task);
+static void _bridgeModelSetup(Task* task);
 
 #endif /* SRC_SHARED_BRIDGE_MODEL_H */

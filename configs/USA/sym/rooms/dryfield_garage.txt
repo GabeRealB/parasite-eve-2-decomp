@@ -68,6 +68,6 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 dryfieldGarageEffectNoopTaskD6 = 0x8017DC68; // type:func
 _roomEventGate = 0x8017D5E8; // type:func
 roomEventTask = 0x8017D74C; // type:func
-garageSoundMsg = 0x8017D8BC; // type:func
+_garageSoundMsg = 0x8017D8BC; // type:func
 _dryfieldGarageRejectKeyItemUse = 0x8017d914; // type:func
 _dryfieldGarageIdleRoomTask = 0x8017dc08; // type:func

@@ -2,25 +2,33 @@
 
 /// Revives the first placed enemy from reserve slot zero at the ambush position.
 ///
-/// Uses the prepared shared command and keeps repeated actor lookups around
-/// synchronous dispatch. No reserve HP is consumed when the enemy work is absent.
+/// Requires the prepared ambush command and actor 0's live TMD body when that
+/// actor exists. Dispatches before looking up the enemy and placing its root at
+/// (5, 0, -800) world units, facing a quarter-turn. Transfers reserve slot 0's
+/// HP and clears reactions only when an enemy exists, then restarts the shared
+/// cooldown. Repeated lookups preserve the order around synchronous dispatch.
 static inline void _roamerReviveAmbushEnemy(void)
 {
+    enum { ROAMER_AMBUSH_ACTOR_INDEX  = 0,
+           ROAMER_AMBUSH_RESERVE_SLOT = 0,
+           ROAMER_AMBUSH_WORLD_X      = 5,
+           ROAMER_AMBUSH_WORLD_Y      = 0,
+           ROAMER_AMBUSH_WORLD_Z      = -800 };
     Enemy* enemy;
 
-    if (sceneFindPlacedActor(0) != 0) {
-        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY,
+    if (sceneFindPlacedActor(ROAMER_AMBUSH_ACTOR_INDEX) != NULL) {
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ROAMER_AMBUSH_ACTOR_INDEX), ACTOR_COMMAND_MESSAGE_APPLY,
                                       &gRoamerCommand, 0);
-        enemy                                                  = sceneFindPlacedActor(0)->spawnArg2.pointer;
-        sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[0] = 5;
-        sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[1] = 0;
-        sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[2] = -0x320;
-        if (enemy != 0) {
-            enemy->hp            = gRoamerReserveHp[0];
-            gRoamerReserveHp[0]  = 0;
-            enemy->reactionFlags = 0;
+        enemy                                                                          = sceneFindPlacedActor(ROAMER_AMBUSH_ACTOR_INDEX)->spawnArg2.pointer;
+        sceneFindPlacedActor(ROAMER_AMBUSH_ACTOR_INDEX)->extra.tmd->coords->coord.t[0] = ROAMER_AMBUSH_WORLD_X;
+        sceneFindPlacedActor(ROAMER_AMBUSH_ACTOR_INDEX)->extra.tmd->coords->coord.t[1] = ROAMER_AMBUSH_WORLD_Y;
+        sceneFindPlacedActor(ROAMER_AMBUSH_ACTOR_INDEX)->extra.tmd->coords->coord.t[2] = ROAMER_AMBUSH_WORLD_Z;
+        if (enemy != NULL) {
+            enemy->hp                                    = gRoamerReserveHp[ROAMER_AMBUSH_RESERVE_SLOT];
+            gRoamerReserveHp[ROAMER_AMBUSH_RESERVE_SLOT] = 0;
+            enemy->reactionFlags                         = 0;
         }
-        gfxRotMatrixY(&sceneFindPlacedActor(0)->extra.tmd->coords->coord,
+        gfxRotMatrixY(&sceneFindPlacedActor(ROAMER_AMBUSH_ACTOR_INDEX)->extra.tmd->coords->coord,
                       ACTOR_TRANSFORM_ANGLE_TURN / 4, GRAPHICS_ROTATION_REPLACE);
         _gRoamerCooldownFrames = ROAMER_ACTION_COOLDOWN_FRAMES;
     }
