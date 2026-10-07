@@ -99,6 +99,9 @@ enum {
     MAD_CHASER_STANCE_UPRIGHT = 1
 };
 
+/// Upright clip requested by light recoil entry and repeated-hit recovery.
+enum { MAD_CHASER_LIGHT_RECOIL_UPRIGHT_CLIP = 11 };
+
 /// Capture distance in parent-coordinate units and clips used by both pull steps.
 enum {
     MAD_CHASER_PULL_CAPTURE_DISTANCE    = 800,
@@ -225,15 +228,15 @@ STATIC_ASSERT_SIZEOF(MadChaserLimbShadowScratch, 0x90);
 void        madChaserTwistSpine(Task* arg0);
 static void _madChaserLinkBodies(Task* task);
 void        madChaserPinPart(Task* arg0, s16 part, SVECTOR3* pos);
-void        madChaserBeginDeath(Task* arg0);
+static void _madChaserDeathStartShrink(Task* task);
 void        madChaserCreepUntilHit(Task* arg0);
 
 static void _madChaserStartLeap(Task* task);
 static void _madChaserLurkStartIdleHold(Task* task);
 static void _madChaserStartAlert(Task* task);
 void        madChaserBurst(Task* arg0);
-void        madChaserDropBodies(Task* arg0);
-void        madChaserBeginShrink(Task* task);
+static void _madChaserDropBodies(Task* task);
+static void _madChaserBeginShrink(Task* task);
 
 void madChaserSpawnGibs(Task* arg0);
 
@@ -252,7 +255,6 @@ void        madChaserApplyContacts(Task* arg0, s16 arg1);
 static void _madChaserTickAnim(Task* task);
 void        madChaserShrinkWithDust(Task* arg0);
 void        madChaserTrackPlayer(Task* arg0);
-void        madChaserRecoilRecover(Task* arg0);
 static void _madChaserLurkLookAround(Task* task);
 static void _madChaserLurkSidestepToCombat(Task* task);
 static void _madChaserLurkSidestepRight(Task* task);
@@ -284,15 +286,15 @@ static void _madChaserAlertRelease(Task* task);
 static void _madChaserAlertStartSidestep(Task* task);
 static void _madChaserAlertSidestep(Task* task);
 static void _madChaserDangleSway(Task* task);
-void        madChaserDeathCry(Task* arg0);
-void        madChaserDeathSettle(Task* arg0);
-void        madChaserDeathWaitAnim(Task* task);
+static void _madChaserDeathReleaseTarget(Task* task);
+static void _madChaserDeathSettle(Task* task);
+static void _madChaserDeathWaitAnim(Task* task);
 void        madChaserDeathTurnTranslucent(Task* arg0);
 static void _madChaserDespawn(Task* task);
-void        madChaserRecoilLight(Task* arg0);
+static void _madChaserRecoilLight(Task* task);
 static void _madChaserRecoilHeavy(Task* task);
 static void _madChaserRecoilHeavyEnd(Task* task);
-void        madChaserLurkRiseState(Task* arg0);
+static void _madChaserLurkRiseState(Task* task);
 static void _madChaserLurkWait(Task* task);
 static void _madChaserLurkIdleEnd(Task* task);
 static void _madChaserLurkPrepareLook(Task* task);
@@ -308,7 +310,7 @@ static void _madChaserVanishFree(Task* task);
 static void _madChaserDeathRequestSettle(Task* task);
 void        madChaserDeathCryUnlink(Task* task);
 void        madChaserShrink(Task* arg0);
-s32         madChaserTakeKnockdownRequest(Task* arg0);
+static s32  _madChaserTakeKnockdownRequest(Task* task);
 
 static inline void _madChaserEnterTaskState(Task* task, s32 taskState);
 static inline void madChaserUpdateColor(void* enemy, GfxCoord* coord);
@@ -335,7 +337,7 @@ void        madChaserDangleState(Task* arg0);
 static void _madChaserVanishState(Task* task);
 void        madChaserRecoilLightState(Task* arg0);
 static s16  _madChaserJoinAlert(Task* task);
-void        madChaserDeathPause(Task* arg0);
+static void _madChaserDeathPause(Task* task);
 static s16  _madChaserAnimHasBoundaryStatus(Task* task);
 static void _madChaserAlertWait(Task* task);
 static void _madChaserDangleStart(Task* task);

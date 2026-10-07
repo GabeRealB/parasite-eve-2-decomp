@@ -1,42 +1,53 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Releases the gSceneCombatState reference and requests the settle animation that
-/// follows the playing one (5 or 6 after animation 8), then ticks it and
-/// advances.
-void madChaserDeathSettle(Task* arg0)
+/// Requests a four-frame normal-rate blend into a death settle clip.
+///
+/// Requires initialized task-owned animation storage and a valid settle clip.
+/// Reloads the live request work without advancing playback or behavior.
+static __inline__ void _madChaserDeathBlendSettle(Task* task, s16 settleClip)
 {
-    MadChaserWork* work;
-    MadChaserWork* work2;
-    MadChaserWork* work3;
-    MadChaserWork* work4;
-    s16            anim;
-    s16            next;
+    enum { MAD_CHASER_DEATH_SETTLE_BLEND_FRAMES = 4 };
+    MadChaserWork* requestWork = task->work;
 
-    work = (MadChaserWork*)arg0->work;
-    sceneReleaseBattleRefWithRewards(arg0, 0);
-    anim = work->animId;
-    if (anim == 8) {
+    requestWork->animBlendFrames = MAD_CHASER_DEATH_SETTLE_BLEND_FRAMES;
+    requestWork->animRate        = ANIMATION_RATE_ONE;
+    requestWork->animId          = settleClip;
+    requestWork->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+}
+
+/// Credits the dying enemy's rewards and starts its stance-appropriate settle pose.
+///
+/// Requires a live enemy, model and initialized nine-slot animation/work storage
+/// in ordinary-death behavior 1. The current clip must be in 1..19 for every
+/// carrier's one-based settle mapping. Clip 8 chooses clip 5 before the first
+/// leap, clip 6 afterwards; other clips use that mapping. Releases one battle
+/// hold with rewards, requests a four-frame normal-rate blend, ticks slots 1..8
+/// and advances to behavior 2. All task, model and clip storage remain live.
+static void _madChaserDeathSettle(Task* task)
+{
+    enum {
+        MAD_CHASER_DEATH_LEAP_CLIP           = 8,
+        MAD_CHASER_DEATH_LOW_SETTLE_CLIP     = 5,
+        MAD_CHASER_DEATH_UPRIGHT_SETTLE_CLIP = 6,
+    };
+    MadChaserWork* work;
+    s16            currentClip;
+    s16            settleClip;
+
+    work = task->work;
+    // Reward release precedes selection and the first tick of the death pose.
+    sceneReleaseBattleRefWithRewards(task, 0);
+    currentClip = work->animId;
+    if (currentClip == MAD_CHASER_DEATH_LEAP_CLIP) {
         if (work->hasLeaped == 0) {
-            work2                  = (MadChaserWork*)arg0->work;
-            work2->animBlendFrames = 4;
-            work2->animRate        = ANIMATION_RATE_ONE;
-            work2->animId          = 5;
-            work2->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+            _madChaserDeathBlendSettle(task, MAD_CHASER_DEATH_LOW_SETTLE_CLIP);
         } else {
-            work3                  = (MadChaserWork*)arg0->work;
-            work3->animBlendFrames = 4;
-            work3->animRate        = ANIMATION_RATE_ONE;
-            work3->animId          = 6;
-            work3->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+            _madChaserDeathBlendSettle(task, MAD_CHASER_DEATH_UPRIGHT_SETTLE_CLIP);
         }
     } else {
-        next                   = gMadChaserSettleAnims[anim - 1];
-        work4                  = (MadChaserWork*)arg0->work;
-        work4->animBlendFrames = 4;
-        work4->animRate        = ANIMATION_RATE_ONE;
-        work4->animId          = next;
-        work4->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+        settleClip = gMadChaserSettleAnims[currentClip - 1];
+        _madChaserDeathBlendSettle(task, settleClip);
     }
-    _madChaserTickAnim(arg0);
+    _madChaserTickAnim(task);
     work->state++;
 }

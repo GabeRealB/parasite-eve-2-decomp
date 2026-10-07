@@ -1,27 +1,31 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// State handler: with `stateScratch` 1, a pending request 1 while `hitTaken`
-/// is set queues animation 0xB (kind 2, speed 0x20); otherwise a consumed
-/// request wins, and animation boundary status moves to state 3. With `stateScratch` clear, boundary status
-/// calls `_madChaserSetAlertHold` and moves to state 5. The request test
-/// compares against the constant 1, which CSE folds into the `stateScratch`
-/// register; writing `== work->stateScratch` reloads the byte instead.
-void madChaserRecoilRecover(Task* arg0)
+/// Completes light recoil using the interrupted clip's saved stance.
+///
+/// Requires live initialized Mad Chaser work and animation storage in combat
+/// light-recoil recovery. Upright stance restarts clip 11 at twice normal rate
+/// for any nonzero hit latch with a light reaction, retaining the latch/reaction.
+/// Otherwise an exact-one hit latch consumes its reaction before boundary status
+/// can resume walking. Low stance ignores hit requests and claims the alert at
+/// a boundary, control jump or held pose. Behavior changes reset subState; slot
+/// status is retained and the combat frame callback owns animation ticking.
+static void _madChaserRecoilLightRecover(Task* task)
 {
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    MadChaserWork* work = task->work;
 
-    if (work->stateScratch == 1) {
+    if (work->stateScratch == MAD_CHASER_STANCE_UPRIGHT) {
         if (work->hitTaken != 0 && work->hitReaction == MAD_CHASER_HIT_REACTION_LIGHT) {
-            work->animRate    = 0x20;
-            work->animId      = 0xB;
+            work->animRate    = 2 * ANIMATION_RATE_ONE;
+            work->animId      = MAD_CHASER_LIGHT_RECOIL_UPRIGHT_CLIP;
             work->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
             return;
         }
-        if (_madChaserTakeHitReaction(arg0) == 0 && _madChaserAnimHasBoundaryStatusInline(arg0)) {
-            _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_WALK);
+        // A consumed hit takes precedence over returning to the walk.
+        if (_madChaserTakeHitReaction(task) == 0 && _madChaserAnimHasBoundaryStatusInline(task)) {
+            _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_WALK);
         }
-    } else if (_madChaserAnimHasBoundaryStatusInline(arg0)) {
-        _madChaserSetAlertHold(arg0, 1);
-        _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_ALERT);
+    } else if (_madChaserAnimHasBoundaryStatusInline(task)) {
+        _madChaserSetAlertHold(task, 1);
+        _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_ALERT);
     }
 }

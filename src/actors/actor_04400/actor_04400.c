@@ -1050,14 +1050,14 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
 
 /// State handlers `madChaserDeathTick` dispatches by `state`.
 static const TaskFuncTable9 gMadChaserDeathStates = { {
-    madChaserDeathCry,
-    madChaserDeathSettle,
-    madChaserDeathWaitAnim,
-    madChaserBeginDeath,
+    _madChaserDeathReleaseTarget,
+    _madChaserDeathSettle,
+    _madChaserDeathWaitAnim,
+    _madChaserDeathStartShrink,
     madChaserDeathTurnTranslucent,
     madChaserShrinkWithDust,
     madChaserStartDespawn,
-    madChaserDeathPause,
+    _madChaserDeathPause,
     madChaserBurst,
 } };
 
@@ -1102,7 +1102,7 @@ static void _madChaserRecoilRecover(Task* task)
 static const TaskFuncTable5 Actor04400_D00128 = { {
     _madChaserLurkIdleState,
     _madChaserLurkLookState,
-    madChaserLurkRiseState,
+    _madChaserLurkRiseState,
     _madChaserLurkAlertState,
     Actor04400_Fn07F04,
 } };
@@ -1216,7 +1216,7 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     madChaserDeathCryUnlink,
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,
-    madChaserDropBodies,
+    _madChaserDropBodies,
     _madChaserDropDeathHold,
 } };
 
@@ -1225,7 +1225,7 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     _madChaserShrinkDeathStart,
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,
-    madChaserBeginShrink,
+    _madChaserBeginShrink,
     Actor04400_Fn08C08,
     madChaserShrink,
     Actor04400_Fn08DA4,
@@ -1334,28 +1334,28 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 #undef madChaserLeapState
 #undef gMadChaserLeapSteps
 
-/// This package's own madChaserRecoilRecover stands in.
-#define madChaserRecoilRecover _madChaserRecoilRecover
+/// Use this carrier's signed-halfword behavior setter during recoil recovery.
+#define _madChaserRecoilLightRecover _madChaserRecoilRecover
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
-#undef madChaserRecoilRecover
+#undef _madChaserRecoilLightRecover
 
 /// A further copy, under this file's own name.
-#define madChaserRecoilLightState Actor04400_Fn06A24
-#define madChaserRecoilLight      _madChaserRecoilHeavy
-#define madChaserRecoilRecover    _madChaserRecoilHeavyEnd
+#define madChaserRecoilLightState    Actor04400_Fn06A24
+#define _madChaserRecoilLight        _madChaserRecoilHeavy
+#define _madChaserRecoilLightRecover _madChaserRecoilHeavyEnd
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef madChaserRecoilLightState
-#undef madChaserRecoilLight
-#undef madChaserRecoilRecover
+#undef _madChaserRecoilLight
+#undef _madChaserRecoilLightRecover
 
 /// A further copy, under this file's own name.
-#define madChaserRecoilLightState Actor04400_Fn06A78
-#define madChaserRecoilLight      _madChaserStatusHoldStart
-#define madChaserRecoilRecover    _madChaserStatusHold
+#define madChaserRecoilLightState    Actor04400_Fn06A78
+#define _madChaserRecoilLight        _madChaserStatusHoldStart
+#define _madChaserRecoilLightRecover _madChaserStatusHold
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef madChaserRecoilLightState
-#undef madChaserRecoilLight
-#undef madChaserRecoilRecover
+#undef _madChaserRecoilLight
+#undef _madChaserRecoilLightRecover
 
 #include "../../shared/mad_chaser_knockdown_state.inc.c"
 
@@ -1494,7 +1494,7 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 ///
 /// Must name a statically declared void(Task*) callback. The following fragment
 /// include consumes this identifier-only binding; undefine it afterwards so the
-/// ordinary death instance remains `madChaserDeathWaitAnim`.
+/// ordinary death instance remains `_madChaserDeathWaitAnim`.
 #define MAD_CHASER_DEATH_WAIT_ANIM_HANDLER _madChaserCommandDeathWaitAnimBoundary
 #include "../../shared/mad_chaser_death_wait_anim.inc.c"
 #undef MAD_CHASER_DEATH_WAIT_ANIM_HANDLER

@@ -1,15 +1,20 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Advances the state after two frames.
-void madChaserDeathPause(Task* arg0)
+/// Waits two updating death frames before the blast burst step.
+///
+/// Requires live Mad Chaser work in ordinary-death behavior 7, with stateFrames
+/// reset on entry. The counter wraps as u16 and its low halfword is compared
+/// signed; reaching two advances to behavior 8. Does not tick animation.
+static void _madChaserDeathPause(Task* task)
 {
-    u16            ticks;
+    enum { MAD_CHASER_DEATH_BLAST_PAUSE_FRAMES = 2 };
+    u16            elapsedFrames;
     MadChaserWork* work;
 
-    work              = (MadChaserWork*)arg0->work;
-    ticks             = work->stateFrames + 1;
-    work->stateFrames = ticks;
-    if ((s16)ticks >= 2) {
+    work              = task->work;
+    elapsedFrames     = work->stateFrames + 1;
+    work->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames >= MAD_CHASER_DEATH_BLAST_PAUSE_FRAMES) {
         work->state = work->state + 1;
     }
 }

@@ -1,9 +1,10 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Copies the replacement dangle rotation while retaining root translation.
+/// Replaces the root's nine Q12 rotation coefficients for the dangle fall.
 ///
-/// Requires readable source and writable destination 3x3 coefficients. The
-/// matrices are borrowed; translation and composition stamps are retained.
+/// Both matrices must be live through the call. Copies only the 3x3 basis;
+/// translation and the matrix's alignment halfword are retained. The caller
+/// is responsible for invalidating coordinate composition.
 static __inline__ void _madChaserDangleFallCopyRotation(MATRIX* rootMatrix, const MATRIX* rotationMatrix)
 {
     rootMatrix->m[0][0] = rotationMatrix->m[0][0];

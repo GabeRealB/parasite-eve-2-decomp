@@ -881,14 +881,14 @@ static __inline__ void set_state_s16(Task* arg0, s16 state);
 /// Nine state handlers, indexed by `MadChaserWork::state`; copied to the
 /// stack before dispatch.
 static const TaskFuncTable9 gMadChaserDeathStates = { {
-    madChaserDeathCry,
-    madChaserDeathSettle,
-    madChaserDeathWaitAnim,
-    madChaserBeginDeath,
+    _madChaserDeathReleaseTarget,
+    _madChaserDeathSettle,
+    _madChaserDeathWaitAnim,
+    _madChaserDeathStartShrink,
     madChaserDeathTurnTranslucent,
     madChaserShrinkWithDust,
     madChaserStartDespawn,
-    madChaserDeathPause,
+    _madChaserDeathPause,
     madChaserBurst,
 } };
 
@@ -902,11 +902,11 @@ static const TaskFuncTable9 gMadChaserDeathStates = { {
 
 /// The five state handlers of the second enemy form, indexed by
 /// `MadChaserWork::state`; copied to the stack before dispatch. It sits
-/// between `madChaserRecoilRecover`'s jump table and this function's own.
+/// between `_madChaserRecoilLightRecover`'s jump table and this function's own.
 static const TaskFuncTable5 gMadChaserLurkStates = { {
     _madChaserLurkIdleState,
     _madChaserLurkLookState,
-    madChaserLurkRiseState,
+    _madChaserLurkRiseState,
     _madChaserLurkAlertState,
     func_actor_341700_80169D54,
 } };
@@ -927,7 +927,7 @@ static const TaskFuncTable3 gMadChaserLurkCrouchSteps = { {
     _madChaserLurkLookAround,
 } };
 
-/// Sub-state handlers `madChaserLurkRiseState` dispatches by `subState`.
+/// Sub-state handlers `_madChaserLurkRiseState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
     _madChaserStartAlert,
     _madChaserLurkAlertStartSidestep,
@@ -973,7 +973,7 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     madChaserDeathCryUnlink,
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,
-    madChaserDropBodies,
+    _madChaserDropBodies,
     func_actor_341700_8016A8EC,
 } };
 
@@ -983,7 +983,7 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     _madChaserShrinkDeathStart,
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,
-    madChaserBeginShrink,
+    _madChaserBeginShrink,
     func_actor_341700_8016AA58,
     madChaserShrink,
     func_actor_341700_8016ABF4,
@@ -1107,22 +1107,22 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 
 /// A further copy, under this file's own name.
-#define madChaserRecoilLightState func_actor_341700_80168874
-#define madChaserRecoilLight      _madChaserRecoilHeavy
-#define madChaserRecoilRecover    _madChaserRecoilHeavyEnd
+#define madChaserRecoilLightState    func_actor_341700_80168874
+#define _madChaserRecoilLight        _madChaserRecoilHeavy
+#define _madChaserRecoilLightRecover _madChaserRecoilHeavyEnd
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef madChaserRecoilLightState
-#undef madChaserRecoilLight
-#undef madChaserRecoilRecover
+#undef _madChaserRecoilLight
+#undef _madChaserRecoilLightRecover
 
 /// A further copy, under this file's own name.
-#define madChaserRecoilLightState func_actor_341700_801688C8
-#define madChaserRecoilLight      _madChaserStatusHoldStart
-#define madChaserRecoilRecover    _madChaserStatusHold
+#define madChaserRecoilLightState    func_actor_341700_801688C8
+#define _madChaserRecoilLight        _madChaserStatusHoldStart
+#define _madChaserRecoilLightRecover _madChaserStatusHold
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef madChaserRecoilLightState
-#undef madChaserRecoilLight
-#undef madChaserRecoilRecover
+#undef _madChaserRecoilLight
+#undef _madChaserRecoilLightRecover
 
 #include "../../shared/mad_chaser_knockdown_state.inc.c"
 
@@ -1261,7 +1261,7 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 ///
 /// Must name a statically declared void(Task*) callback. The following fragment
 /// include consumes this identifier-only binding; undefine it afterwards so the
-/// ordinary death instance remains `madChaserDeathWaitAnim`.
+/// ordinary death instance remains `_madChaserDeathWaitAnim`.
 #define MAD_CHASER_DEATH_WAIT_ANIM_HANDLER _madChaserCommandDeathWaitAnimBoundary
 #include "../../shared/mad_chaser_death_wait_anim.inc.c"
 #undef MAD_CHASER_DEATH_WAIT_ANIM_HANDLER

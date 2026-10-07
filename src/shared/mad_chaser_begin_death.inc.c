@@ -1,27 +1,38 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// First step of the death squash: drops the enemy's contact records, unlinks
-/// the three collision spheres and snapshots the root matrix with the Y scale
-/// `shrinkScaleY` at 0x1000, then switches the model to light mode 1, clears the
-/// frame counter and advances the state.
-void madChaserBeginDeath(Task* arg0)
+/// Removes the three task-owned collision bodies from their active lists.
+///
+/// The work block and body storage remain live; contact arrays are retained.
+static __inline__ void _madChaserDeathStartShrinkUnlinkBodies(MadChaserWork* bodyWork)
 {
-    GfxCoord*      coord = arg0->extra.tmd->coords;
-    Enemy*         enemy = (Enemy*)arg0->spawnArg2.pointer;
-    MadChaserWork* work  = (MadChaserWork*)arg0->work;
-    MadChaserWork* objWork;
+    worldCollisionUnlinkBody(&bodyWork->pairBody);
+    worldCollisionUnlinkBody(&bodyWork->gridBody);
+    worldCollisionUnlinkBody(&bodyWork->attackBody);
+}
 
-    enemy->recs = 0;
+/// Starts the ordinary-death shrink after the settle animation reaches a boundary.
+///
+/// Requires a live enemy, model root and task-owned Mad Chaser work. Detaches
+/// the enemy's contact records and unlinks all three collision bodies, retaining
+/// their storage. Saves the complete local root matrix for subsequent shrink
+/// frames and starts at Q12 Y scale 1.0 with weighted colour. Clears stateFrames
+/// and advances the death behavior from 3 to 4; resources remain task-owned.
+static void _madChaserDeathStartShrink(Task* task)
+{
+    GfxCoord*      root  = task->extra.tmd->coords;
+    Enemy*         enemy = task->spawnArg2.pointer;
+    MadChaserWork* work  = task->work;
+    MadChaserWork* bodyWork;
 
-    objWork = (MadChaserWork*)arg0->work;
-    worldCollisionUnlinkBody(&objWork->pairBody);
-    worldCollisionUnlinkBody(&objWork->gridBody);
-    worldCollisionUnlinkBody(&objWork->attackBody);
+    enemy->recs = NULL;
 
-    work->shrinkScaleY = 0x1000;
-    work->savedRootMtx = coord->coord;
+    bodyWork = task->work;
+    _madChaserDeathStartShrinkUnlinkBodies(bodyWork);
 
-    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
+    work->shrinkScaleY = ONE;
+    work->savedRootMtx = root->coord;
+
+    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
 
     work->stateFrames = 0;
     work->state++;

@@ -2,9 +2,11 @@
 
 /// Steps the root along local -Z at the walk animation's current rate.
 ///
-/// Requires live model/work storage and a heading in 4096ths of a turn. Motion
-/// uses parent-coordinate units, with the rate-scaled distance narrowed to s16;
-/// signed Q12 sine/cosine products retain their shift order. Dirties composition.
+/// work must be the task's live Mad Chaser work, with heading in 4096ths of a
+/// turn and animRate in sixteenths of a frame. The normal-rate distance is -16
+/// parent-coordinate units; rate scaling narrows it to s16 before multiplying
+/// signed Q12 sine/cosine. Updates only X/Z translation and marks composition
+/// dirty; animation playback and collision belong to the caller.
 static __inline__ void _madChaserWalkApproachAdvanceRoot(Task* task, MadChaserWork* work)
 {
     enum {

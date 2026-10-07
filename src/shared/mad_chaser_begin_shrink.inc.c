@@ -1,24 +1,34 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Starts the death shrink, the same body as `madChaserBeginDeath`:
-/// detaches the records, unlinks the three hit bodies, sets the Y scale to
-/// 1.0, saves the root matrix, sets light mode 1 and advances the state.
-void madChaserBeginShrink(Task* task)
+/// Unlinks the three retained collision bodies used by command shrink-death.
+static __inline__ void _madChaserBeginShrinkUnlinkBodies(MadChaserWork* bodyWork)
 {
-    Enemy*         enemy = (Enemy*)task->spawnArg2.pointer;
-    MadChaserWork* work  = (MadChaserWork*)task->work;
-    GfxCoord*      coord = task->extra.tmd->coords;
-    MadChaserWork* objWork;
+    worldCollisionUnlinkBody(&bodyWork->pairBody);
+    worldCollisionUnlinkBody(&bodyWork->gridBody);
+    worldCollisionUnlinkBody(&bodyWork->attackBody);
+}
 
-    enemy->recs = 0;
+/// Saves the root transform and starts command shrink-death at full Y scale.
+///
+/// Requires a live enemy, model root and task-owned Mad Chaser work in command
+/// shrink-death behavior 3. Detaches contact records and unlinks all three
+/// collision bodies, retaining their storage. Saves the complete local root
+/// matrix for subsequent shrink frames, sets Q12 Y scale 1.0 and selects weighted
+/// colour. Clears stateFrames and advances to behavior 4; resources stay live.
+static void _madChaserBeginShrink(Task* task)
+{
+    Enemy*         enemy = task->spawnArg2.pointer;
+    MadChaserWork* work  = task->work;
+    GfxCoord*      root  = task->extra.tmd->coords;
+    MadChaserWork* bodyWork;
 
-    objWork = (MadChaserWork*)task->work;
-    worldCollisionUnlinkBody(&objWork->pairBody);
-    worldCollisionUnlinkBody(&objWork->gridBody);
-    worldCollisionUnlinkBody(&objWork->attackBody);
+    enemy->recs = NULL;
 
-    work->shrinkScaleY = 0x1000;
-    work->savedRootMtx = coord->coord;
+    bodyWork = task->work;
+    _madChaserBeginShrinkUnlinkBodies(bodyWork);
+
+    work->shrinkScaleY = ONE;
+    work->savedRootMtx = root->coord;
 
     worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
 

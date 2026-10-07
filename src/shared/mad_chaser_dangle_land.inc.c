@@ -2,18 +2,22 @@
 
 /// Plays a landing cue on this enemy's positional character-bank channel.
 ///
-/// Requires live enemy/model storage and a character-bank cue without channel
-/// bits set. Pan and depth are signed bytes; the place index supplies channel
-/// bits 8..11. Borrows the task and queues the sound without advancing state.
+/// Requires a live enemy and a model root whose local-to-view matrix is already
+/// composed. cue is a packed character-bank script id with a zero instance byte;
+/// the enemy's place index supplies bits 8..11. Pan is -16..15 and attenuation
+/// depth -128..127; both are passed as signed bytes. Requires the origin-audio
+/// queries' initialized scratch stack and projection state. Retains no storage.
 static __inline__ void _madChaserDangleLandPlayCue(Task* task, u32 cue)
 {
+    enum { MAD_CHASER_DANGLE_SOUND_INSTANCE_SHIFT = 8 };
     u32 soundId;
     s32 audioPan;
 
-    soundId    = ((Enemy*)task->spawnArg2.pointer)->placeKey;
-    soundId  >>= ENEMY_PLACE_INDEX_SHIFT;
-    soundId  <<= 8;
-    soundId   |= cue;
+    soundId   = ((Enemy*)task->spawnArg2.pointer)->placeKey;
+    soundId >>= ENEMY_PLACE_INDEX_SHIFT;
+    soundId <<= MAD_CHASER_DANGLE_SOUND_INSTANCE_SHIFT;
+    soundId  |= cue;
+    // Keep the low-byte sign extension before querying attenuation depth.
     audioPan   = worldCoordGetOriginAudioPan(task->extra.tmd->coords) << 24;
     audioPan >>= 24;
     sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));

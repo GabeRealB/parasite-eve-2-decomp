@@ -1,21 +1,24 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// While `hitTaken` is 1, consumes the pending request in `hitReaction`:
-/// request 3 moves the state machine to state 8 and request 5 to state 9,
-/// anything else is just cleared. Returns 1 when `hitTaken` is 1 and 0
-/// otherwise.
-s32 madChaserTakeKnockdownRequest(Task* arg0)
+/// Consumes hit reactions that can replace an active knockdown behavior.
+///
+/// Requires live Mad Chaser work in combat. Only hitTaken == 1 consumes the
+/// request: status selects behavior 8, knockdown selects 9, and both reset
+/// subState. Other reactions only clear hitReaction. Returns an s32 boolean,
+/// 1 for the exact-one latch even for an absent/unsupported reaction, otherwise
+/// 0. The hit latch, counters and task state are retained; playback is unchanged.
+static s32 _madChaserTakeKnockdownRequest(Task* task)
 {
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    MadChaserWork* work = task->work;
 
     if (work->hitTaken == 1) {
         switch (work->hitReaction) {
             case MAD_CHASER_HIT_REACTION_STATUS:
-                work->state    = 8;
+                work->state    = MAD_CHASER_COMBAT_STATE_STATUS_HOLD;
                 work->subState = 0;
                 break;
             case MAD_CHASER_HIT_REACTION_KNOCKDOWN:
-                work->state    = 9;
+                work->state    = MAD_CHASER_COMBAT_STATE_KNOCKDOWN;
                 work->subState = 0;
                 break;
         }

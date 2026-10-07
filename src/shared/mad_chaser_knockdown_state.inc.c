@@ -1,7 +1,7 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 /// Combat state 9: runs the `subState` knockdown sub-state from a three-entry
-/// table, then while `stateScratch` is 1 lets `madChaserTakeKnockdownRequest` take
+/// table, then while `stateScratch` is 1 lets `_madChaserTakeKnockdownRequest` take
 /// a pending request.
 void madChaserKnockdownState(Task* arg0)
 {
@@ -12,6 +12,6 @@ void madChaserKnockdownState(Task* arg0)
     sp   = gMadChaserKnockdownSteps;
     sp.funcs[(s16)work->subState](arg0);
     if (work->stateScratch == 1) {
-        madChaserTakeKnockdownRequest(arg0);
+        _madChaserTakeKnockdownRequest(arg0);
     }
 }

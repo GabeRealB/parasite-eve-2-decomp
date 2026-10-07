@@ -1,16 +1,21 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Lurk state 2: unless another Mad Chaser has raised the alert, runs its two sub-
-/// states (request animation 0xF, then wait for it to end).
-void madChaserLurkRiseState(Task* arg0)
+/// Dispatches the lurk rise unless a claimed alert switches the enemy to combat.
+///
+/// Requires live Mad Chaser work in lurk behavior 2 and subState in 0..1.
+/// Sub-state 0 requests the rise clip; 1 waits for slot 1's boundary/jump/held
+/// status before returning to lurk idle. Any claimed Mad Chaser alert, including
+/// this enemy's, instead selects combat alert at sub-state zero. The lurk frame
+/// callback owns animation ticking and root updates.
+static void _madChaserLurkRiseState(Task* task)
 {
-    MadChaserWork* work                = (MadChaserWork*)arg0->work;
-    void           (*states[2])(Task*) = {
+    MadChaserWork* work        = task->work;
+    TaskFunc       riseSteps[] = {
         _madChaserLurkRiseStart,
         _madChaserLurkRiseEnd,
     };
 
-    if (_madChaserJoinAlert(arg0) == 0) {
-        states[(s16)work->subState](arg0);
+    if (_madChaserJoinAlert(task) == 0) {
+        riseSteps[(s16)work->subState](task);
     }
 }
