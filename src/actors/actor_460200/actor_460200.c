@@ -2403,7 +2403,7 @@ s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args, s32 arg
 #define PACED_WALK_BLEND_ANIM _pacedWalkBlendSoldierCAnim
 #include "../../shared/paced_walk_update.inc.c"
 #undef PACED_WALK_UPDATE
-#define PACED_WALK_UPDATE pacedWalkUpdate
+#define PACED_WALK_UPDATE _pacedWalkUpdate
 #undef PACED_WALK_TICK_ANIM
 #undef PACED_WALK_RESET_ANIM
 #undef PACED_WALK_BLEND_ANIM

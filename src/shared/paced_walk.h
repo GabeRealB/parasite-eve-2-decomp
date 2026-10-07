@@ -119,20 +119,20 @@ STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 #ifndef PACED_WALK_UPDATE
 /// Function identifier selecting a paced walker's request and movement update.
 ///
-/// Defaults to `pacedWalkUpdate`, with signature `void (Task* task)`.
+/// Defaults to `_pacedWalkUpdate`, with signature `static void (Task* task)`.
 /// The update requires a live `PacedWalkWork` at `Task::work`, independent of
 /// `PACED_WALK_WORK_T`. Select the matching tick, reset and blend instances
 /// with the three animation bindings before including the update fragment.
-/// Bind before this header for its declaration, or undefine and rebind around
-/// a further fragment copy. Declare additional private instances `static` in
-/// the carrier's prologue; their definitions inherit that linkage. Restore the
-/// first binding afterwards if later fragments call the first walker.
+/// Bind before this header for its static declaration, or undefine and rebind
+/// around a further fragment copy. Declare additional instances `static` in
+/// the carrier's prologue before their callers. Restore the first binding
+/// afterwards if later fragments call the first walker.
 /// This object-like alias evaluates no arguments, captures no locals and uses
 /// no stringification or token pasting. Header guards select the default once.
-#define PACED_WALK_UPDATE pacedWalkUpdate
+#define PACED_WALK_UPDATE _pacedWalkUpdate
 #endif
 
-void        PACED_WALK_UPDATE(Task* task);
+static void PACED_WALK_UPDATE(Task* task);
 static void PACED_WALK_TICK_ANIM(Task* task);
 static void PACED_WALK_RESET_ANIM(Task* task);
 static void PACED_WALK_BLEND_ANIM(Task* task);

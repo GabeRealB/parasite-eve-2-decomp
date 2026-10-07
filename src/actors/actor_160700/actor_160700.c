@@ -1567,7 +1567,7 @@ static void func_actor_160700_80131F70(Enemy* enemy, Task* task)
                          work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable = D_actor_160700_80141678;
-    pacedWalkUpdate(task);
+    _pacedWalkUpdate(task);
     task->state += 1;
 }
 
@@ -1587,7 +1587,7 @@ void func_actor_160700_8013233C(Task* task)
 }
 
 #define walkerFrame  func_actor_160700_80132390
-#define walkerUpdate pacedWalkUpdate
+#define walkerUpdate _pacedWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
@@ -1629,7 +1629,7 @@ s32 func_actor_160700_801325F0(Task* task, s32 arg1, AnimationPlayRequest* args,
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         work->st.field_6 = 0;
-        pacedWalkUpdate(task);
+        _pacedWalkUpdate(task);
         return 0;
     }
     return -1;

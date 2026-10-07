@@ -37,7 +37,8 @@ static __inline__ void _pacedWalkCompleteTravelTick(PacedWalkWork* work)
 /// storage live, with the movement and animation helpers' scratch/GTE state
 /// initialized. BLEND captures the old poses and RESET restarts the requested
 /// tracks; each enters TICK and returns without an ordinary animation tick.
-/// Other states besides TICK do nothing.
+/// Other states besides TICK do nothing. Request states, clip-bank indices,
+/// track bounds and blend durations are not validated here.
 ///
 /// TICK attempts a 12-parent-coordinate-unit step along the normalized local
 /// Z axis only for requested walk clip 4 with nonzero `st.travel`, then ticks
@@ -45,7 +46,7 @@ static __inline__ void _pacedWalkCompleteTravelTick(PacedWalkWork* work)
 /// freezing suppresses movement; the signed-halfword count is not clamped.
 /// At zero it records idle clip 1 and a ten-frame blend duration, leaving TICK
 /// and the playing tracks intact. A later reseed request applies a clip change.
-void PACED_WALK_UPDATE(Task* task)
+static void PACED_WALK_UPDATE(Task* task)
 {
     enum {
         PACED_WALK_ANIM_WALK  = 4,
@@ -55,6 +56,7 @@ void PACED_WALK_UPDATE(Task* task)
     PacedWalkWork* work;
 
     work = task->work;
+    // Reseeding installs the request; ordinary ticking resumes on the next call.
     if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         PACED_WALK_BLEND_ANIM(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
