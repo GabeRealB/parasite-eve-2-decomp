@@ -453,7 +453,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 }
                 arg0->spawnArg1.value = 1;
-                Gp_AbortCap();
+                capAbortPlayback();
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, 0, 0);
                 if (D_8010FBE0 != NULL) {

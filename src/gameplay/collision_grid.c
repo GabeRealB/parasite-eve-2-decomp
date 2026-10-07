@@ -251,10 +251,14 @@ static void _worldCollisionMarkGridFaceCandidates(VECTOR gridEndpoints[2], s32 u
 
 static void _worldCollisionMarkViewSegmentCandidates(const SVECTOR* target, const SVECTOR* start);
 
-/// Rotates one local footprint endpoint and adds room translation and grid bias.
+/// Places one body-local footprint endpoint in biased collision-grid coordinates.
 ///
-/// The GTE rotation matrix must already be the scratch block's `bodyToRoom`;
-/// endpointIndex is 0 or 1. Writes grid XYZ only, with Y zero, in game units.
+/// scratch borrows a live query block whose selected signed-halfword endpoint
+/// and bodyToRoom transform are initialized. endpointIndex is 0 or 1, as selected
+/// by both callers' two-element loops. The GTE rotation matrix must already be
+/// bodyToRoom and the active grid must be live. Adds full-word room translation
+/// and grid bias to rotated X/Z, forces Y to zero and leaves the fourth vector
+/// word untouched. Coordinates use game units; the input endpoint is unchanged.
 static __inline__ void _worldCollisionPlaceBodyGridEndpoint(_WorldCollisionGridBodyQueryScratch* scratch, s32 endpointIndex)
 {
     gte_ldv0(&scratch->localEndpoints[endpointIndex]);

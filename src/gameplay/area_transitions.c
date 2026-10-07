@@ -650,17 +650,6 @@ static void _directionUpdateStairAction(void)
     phaseTable.handlers[(s16)Gp_DirPhase]();
 }
 
-/// Discards both latched trigger parameters without changing action activity.
-static inline void _directionClearTriggerParameters(void)
-{
-    Gp_DirNibble    = 0;
-    Gp_DirByte      = 0;
-    Gp_DirFlags     = 0;
-    Gp_DirAltNibble = 0;
-    Gp_DirAlt       = 0;
-    D_80114CD4      = 0;
-}
-
 /// Ends the active direction action and discards both latched trigger hits.
 ///
 /// Leaves the session busy flag for the next direction update to release.

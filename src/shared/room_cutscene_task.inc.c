@@ -84,7 +84,7 @@ void roomCutsceneTask(Task* task)
             }
             break;
         case 6:
-            Gp_AbortCap();
+            capAbortPlayback();
             task->state++;
             break;
         case 7:

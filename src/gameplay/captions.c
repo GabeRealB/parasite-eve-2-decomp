@@ -78,11 +78,20 @@ enum {
     CAP_TEXT_BOTTOM_BASELINE_Y = 208
 };
 
+/// Screen-centre and box-edge pixel offsets shared by CAP text drawing.
+enum {
+    CAP_TEXT_SCREEN_CENTER_X    = CAP_TEXT_SCREEN_WIDTH / 2,
+    CAP_TEXT_SCREEN_CENTER_Y    = 120,
+    CAP_TEXT_BOX_LEFT_X_OFFSET  = CAP_TEXT_SCREEN_CENTER_X + 7,
+    CAP_TEXT_BOX_RIGHT_X_OFFSET = CAP_TEXT_SCREEN_CENTER_X + 14,
+    CAP_TEXT_BOX_BOTTOM_Y       = CAP_TEXT_BOTTOM_BASELINE_Y - CAP_TEXT_SCREEN_CENTER_Y + 1,
+};
+
 /// Inclusive grey-pulse levels; the upper level also normalizes vertex colours.
 enum { CAP_MARKER_PULSE_MIN = 8,
        CAP_MARKER_PULSE_MAX = 15 };
 
-u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3);
+static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revealAll, u16 titleAndFlags);
 
 static void _capDrawChoiceMarker(void);
 
@@ -373,7 +382,7 @@ void func_800E44A0(Task* task)
         } else if (D_801155AC == 1) {
             if (Gp_CapTable[(s16)D_801155AE].control.packed & CAP_SEQUENCE_TIMING_MASK) {
                 if (D_80115698 != 0) {
-                    func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+                    _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
                     D_80115698 = (u16)D_80115698 - 1;
                     return;
                 }
@@ -396,7 +405,7 @@ void func_800E44A0(Task* task)
                     return;
                 }
             } else {
-                func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+                _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
                 nextChoiceIndex = capFindVariantRecord((s16)D_801155AE + 1);
                 if (((Gp_CapTable[nextChoiceIndex].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextChoiceIndex].actionId == 0) && ((Gp_CapTable[nextChoiceIndex].control.text.displayFrames != 0) || (Gp_CapTable[nextChoiceIndex].control.text.pauseFrames == 0)) && (D_801155BE == 0) && !(Gp_CapTable[nextChoiceIndex].control.text.flags & CAP_SEQUENCE_VIEW_CONTROL)) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
                     _capDrawContinueCaret(0xA0, 0xDC);
@@ -464,7 +473,7 @@ void func_800E44A0(Task* task)
                 }
             }
         } else if ((Gp_CapTable[(s16)D_801155AE].control.text.displayFrames != 0) && !(D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
-            D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 0, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+            D_801155AC = _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 0, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
             if ((s8)D_801155B8 > D_801155B9) {
                 D_801155B9 = (u8)D_801155B9 + 1;
             } else {
@@ -483,7 +492,7 @@ void func_800E44A0(Task* task)
         } else {
             if (Gp_CapTable[(s16)D_801155AE].control.packed & CAP_SEQUENCE_TIMING_MASK) {
                 if (Gp_CapTable[(s16)D_801155AE].control.text.displayFrames != 0) {
-                    func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+                    _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
                 }
                 D_80115664 = 0;
                 D_801155AC = 1;
@@ -504,7 +513,7 @@ void func_800E44A0(Task* task)
                 return;
             }
             if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
-                D_801155AC    = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+                D_801155AC    = _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
                 nextTextIndex = capFindVariantRecord((s16)D_801155AE + 1);
                 if (((Gp_CapTable[nextTextIndex].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextTextIndex].actionId == 0) && ((Gp_CapTable[nextTextIndex].control.text.displayFrames != 0) || (Gp_CapTable[nextTextIndex].control.text.pauseFrames == 0))) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
                     _capDrawContinueCaret(0xA0, 0xDC);
@@ -514,7 +523,7 @@ void func_800E44A0(Task* task)
                 return;
             }
 
-            D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 0, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+            D_801155AC = _capDrawTextStream(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 0, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
             if ((s8)D_801155B8 > D_801155B9) {
                 D_801155B9 = (u8)D_801155B9 + 1;
                 return;
@@ -525,314 +534,375 @@ void func_800E44A0(Task* task)
     }
 }
 
-u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
+/// Queues the CAP box's two gradient passes and single drawing-mode packet.
+///
+/// Uses cached screen-pixel left/height metrics and the live vertical shake.
+/// Requires writable primitive storage for two G4s and one DR_MODE, plus OT 3;
+/// those packets remain live through GPU completion. The final command has one
+/// payload word even though DR_MODE reserves space for two.
+static inline void _capDrawTextBackground(void)
 {
-    u8             title;
-    u8             flagA;
-    const u16*     text;
-    const u16*     body;
-    s16            lineEnd;
-    u16            ret;
-    u16            inChoice;
-    s16            lineIdx;
-    u8             centered;
-    u8             selected;
-    s16            nChoice;
-    s16            x;
-    s32            y;
-    s16            i;
-    s16            sel;
-    u16            code;
-    s16            attr;
-    s16            sc;
-    s16            t;
-    s16            glyphY;
-    s32            palette;
-    s32            titleWidth;
-    const u16*     next;
-    s32            g;
-    s16            t2;
-    s16            top;
-    s32            base59;
-    POLY_G4*       bg;
-    POLY_G4*       bg2;
-    DR_MODE*       dm;
-    POLY_FT4*      ft;
-    POLY_GT4*      gt;
-    POLY_GT4*      gt2;
-    TextGlyphCell* icon;
-    CapChoice*     choices;
-    CapChoice*     choice;
+    enum { CAP_TEXT_BACKGROUND_DRAW_MODE = 0xE100020A };
+    POLY_G4* background;
+    POLY_G4* backgroundCopy;
+    DR_MODE* backgroundDrawMode;
+
+    background     = gGpuPrimCursor;
+    gGpuPrimCursor = background + 1;
+    setPolyG4(background);
+    setSemiTrans(background, 1);
+    setRGB0(background, 0, 0, 0);
+    setRGB1(background, 0, 0, 0);
+    setRGB2(background, 0, 0x40, 0x20);
+    setRGB3(background, 0, 0x40, 0x20);
+    background->x0 = (u16)D_801155B2 - CAP_TEXT_BOX_LEFT_X_OFFSET;
+    background->y0 = (CAP_TEXT_BOX_BOTTOM_Y - (u16)D_801155B6) - gDisplayState.vramYOffset;
+    background->x1 = (u16)D_801155B2 - D_801155B2 * 2 + CAP_TEXT_BOX_RIGHT_X_OFFSET;
+    background->y1 = (CAP_TEXT_BOX_BOTTOM_Y - (u16)D_801155B6) - gDisplayState.vramYOffset;
+    background->x2 = (u16)D_801155B2 - CAP_TEXT_BOX_LEFT_X_OFFSET;
+    background->y2 = CAP_TEXT_BOX_BOTTOM_Y - gDisplayState.vramYOffset;
+    background->x3 = (u16)D_801155B2 - D_801155B2 * 2 + CAP_TEXT_BOX_RIGHT_X_OFFSET;
+    background->y3 = CAP_TEXT_BOX_BOTTOM_Y - gDisplayState.vramYOffset;
+    addPrim(&gGpuCurrentOt[3], background);
+    backgroundCopy  = gGpuPrimCursor;
+    gGpuPrimCursor  = backgroundCopy + 1;
+    *backgroundCopy = *background;
+    addPrim(&gGpuCurrentOt[3], backgroundCopy);
+    backgroundDrawMode = gGpuPrimCursor;
+    gGpuPrimCursor     = backgroundDrawMode + 1;
+    setlen(backgroundDrawMode, 1);
+    backgroundDrawMode->code[0] = CAP_TEXT_BACKGROUND_DRAW_MODE;
+    addPrim(&gGpuCurrentOt[3], backgroundDrawMode);
+}
+
+/// Draws the current CAP text box and replays its visible text/control codes.
+///
+/// textStream borrows a live, halfword-aligned, 0xFFFF-terminated u16 stream.
+/// revealAll == 0 draws through the inclusive global reveal index; a terminator there or an encountered
+/// choice code returns 1. Other nonzero revealAll values draw through the stream,
+/// lay out choices and return 1. Otherwise returns 0. unusedDrawArg is ignored.
+/// titleAndFlags uses its low byte as title glyph + 1 (0 none) and bit 9 for left
+/// alignment; all other bits, including the published title-bank bit, are ignored.
+///
+/// Requires cached screen-pixel text metrics, a valid reveal index and active
+/// glyph/texture storage. Code and line indices must fit signed 16 bits; glyph
+/// indices use the low ten bits, icons the low byte (0..3 in the icon table).
+/// Streams must fit CAP_CHOICE_CAPACITY and close their final choice with a line
+/// break to publish its count. Embedded view selectors must resolve successfully.
+/// Pen X narrows to signed 16 bits; drawing removes vertical shake from pen Y.
+///
+/// Publishes the final pen, choice count and glyph delay; embedded view codes
+/// can queue transitions or hide scene actors and the HUD. Requires live session,
+/// save and stage state. OT entries 2/3 and primitive storage must stay writable
+/// through GPU completion: two G4s and a DR_MODE, one FT4 per title/icon, and two
+/// GT4s per glyph. The borrowed stream and glyph/icon tables are not modified.
+static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revealAll, u16 titleAndFlags)
+{
+    enum {
+        CAP_TEXT_COLUMN_TOP_Y                    = -88,
+        CAP_TEXT_CARET_X_OFFSET                  = 4,
+        CAP_TEXT_CARET_Y_OFFSET                  = 2,
+        CAP_TEXT_LEFT_ALIGN_BIT                  = 9,
+        CAP_TEXT_CODE_VALUE_MASK                 = 0xFF,
+        CAP_TEXT_VIEW_FAMILY_MASK                = 0x9F00,
+        CAP_TEXT_CODE_VIEW                       = 0x8000,
+        CAP_TEXT_VIEW_DIRECT_INDEX               = 0x2000,
+        CAP_TEXT_VIEW_HIDE_ACTORS                = 0x4000,
+        CAP_TEXT_VIEW_TRANSITION_WAIT            = 2,
+        CAP_TEXT_VIEW_TRANSITION_FILTERED_ACTORS = 1,
+        CAP_TEXT_GLYPH_PALETTE_SHIFT             = 10,
+        CAP_TEXT_GLYPH_PALETTE_MASK              = 3,
+        CAP_TEXT_GLYPH_DELAY_SHIFT               = 11,
+        CAP_TEXT_GLYPH_DELAY_MASK                = 0xE,
+        CAP_TEXT_GLYPH_GREY                      = 0x70,
+        CAP_TEXT_TITLE_CLUT                      = 0x3D93,
+        CAP_TEXT_ICON_CLUT                       = 0x3C00,
+        CAP_TEXT_ICON_TPAGE                      = 0x1E,
+        CAP_TEXT_GLYPH_CLUT_BASE                 = 0x3D50,
+        CAP_TEXT_HIGHLIGHT_CLUT                  = 0x3D52,
+    };
+    u8                   title;
+    const u16*           text;
+    const u16*           codes;
+    s16                  revealEndIndex;
+    u16                  textComplete;
+    u16                  choiceOpen;
+    s16                  lineIndex;
+    u8                   centerLines;
+    u8                   choiceHighlighted;
+    s16                  choiceIndex;
+    s16                  penX;
+    s32                  penY;
+    s16                  codeIndex;
+    s16                  viewIndex;
+    u16                  code;
+    s16                  controlCode;
+    s16                  iconBaselineY;
+    s16                  glyphLeftX;
+    s16                  glyphBaselineY;
+    s32                  glyphPalette;
+    s32                  titleRightXOffset;
+    const u16*           nextLine;
+    s32                  lineBreakDependency;
+    s16                  nextLineIndex;
+    s16                  boxTopY;
+    s32                  boxBottomY;
+    POLY_FT4*            spriteQuad;
+    POLY_GT4*            glyphQuad;
+    POLY_GT4*            subtractGlyphQuad;
+    const TextGlyphCell* icon;
+    CapChoice*           choices;
+    CapChoice*           choice;
 
     const CapTextLayout* layout;
 
-    text     = arg0;
-    layout   = &D_80097518;
-    nChoice  = 0;
-    title    = arg3;
-    inChoice = 0;
-    lineIdx  = 0;
-    selected = 0;
-    centered = ((arg3 >> 9) ^ 1) & 1;
-    flagA    = arg2;
-    if (centered) {
-        x = _capGetTextLineLeftX(arg0, 0) - 0xA0;
+    // Convert cached screen-space metrics to centre-relative pen coordinates.
+    text              = textStream;
+    layout            = &D_80097518;
+    choiceIndex       = 0;
+    title             = titleAndFlags;
+    choiceOpen        = 0;
+    lineIndex         = 0;
+    choiceHighlighted = 0;
+    centerLines       = ((titleAndFlags >> CAP_TEXT_LEFT_ALIGN_BIT) ^ 1) & 1;
+    if (centerLines) {
+        penX = _capGetTextLineLeftX(textStream, 0) - CAP_TEXT_SCREEN_CENTER_X;
     } else {
-        x = (u16)D_801155B2 - 0xA0;
+        penX = (u16)D_801155B2 - CAP_TEXT_SCREEN_CENTER_X;
     }
-    y       = (u16)D_801155B4 - 0x78;
-    body    = text;
-    lineEnd = D_801155B0;
-    code    = text[lineEnd];
-    if (flagA == 0) {
-        if ((s16)code == -1) {
-            ret     = 1;
-            lineEnd = lineEnd - 1;
+    penY           = (u16)D_801155B4 - CAP_TEXT_SCREEN_CENTER_Y;
+    codes          = text;
+    revealEndIndex = D_801155B0;
+    code           = text[revealEndIndex];
+    if (revealAll == 0) {
+        if ((s16)code == CAP_TEXT_CODE_END) {
+            textComplete   = 1;
+            revealEndIndex = revealEndIndex - 1;
         } else {
-            ret = 0;
+            textComplete = 0;
         }
     } else {
-        ret = 1;
+        textComplete = 1;
     }
 
-    bg             = gGpuPrimCursor;
-    gGpuPrimCursor = bg + 1;
-    setlen(bg, 8);
-    setcode(bg, 0x3A);
-    setRGB0(bg, 0, 0, 0);
-    setRGB1(bg, 0, 0, 0);
-    setRGB2(bg, 0, 0x40, 0x20);
-    setRGB3(bg, 0, 0x40, 0x20);
-    bg->x0 = (u16)D_801155B2 - 0xA7;
-    bg->y0 = (0x59 - (u16)D_801155B6) - gDisplayState.vramYOffset;
-    bg->x1 = (u16)D_801155B2 - D_801155B2 * 2 + 0xAE;
-    bg->y1 = (0x59 - (u16)D_801155B6) - gDisplayState.vramYOffset;
-    bg->x2 = (u16)D_801155B2 - 0xA7;
-    bg->y2 = 0x59 - gDisplayState.vramYOffset;
-    bg->x3 = (u16)D_801155B2 - D_801155B2 * 2 + 0xAE;
-    bg->y3 = 0x59 - gDisplayState.vramYOffset;
-    addPrim(&gGpuCurrentOt[3], bg);
-    bg2            = gGpuPrimCursor;
-    gGpuPrimCursor = bg2 + 1;
-    *bg2           = *bg;
-    addPrim(&gGpuCurrentOt[3], bg2);
-    dm             = gGpuPrimCursor;
-    gGpuPrimCursor = dm + 1;
-    setlen(dm, 1);
-    dm->code[0] = 0xE100020A;
-    addPrim(&gGpuCurrentOt[3], dm);
+    _capDrawTextBackground();
 
+    // The title selector uses only its low byte; the published bank bit is ignored.
     if (title) {
-        ft             = gGpuPrimCursor;
-        gGpuPrimCursor = ft + 1;
-        setlen(ft, 9);
-        setcode(ft, 0x2D);
-        title      = title - 1;
-        base59     = 0x59;
-        top        = base59 - (u16)D_801155B6;
-        ft->x0     = (u16)D_801155B2 - 0xA7;
-        ft->y0     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].height;
-        titleWidth = Gp_CapGlyphs[title].width - 0xA7;
-        ft->x1     = (u16)D_801155B2 + titleWidth;
-        ft->y1     = (top - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].height;
-        ft->x2     = (u16)D_801155B2 - 0xA7;
-        ft->y2     = (base59 - gDisplayState.vramYOffset) - (u16)D_801155B6;
-        titleWidth = Gp_CapGlyphs[title].width - 0xA7;
-        ft->x3     = (u16)D_801155B2 + titleWidth;
-        ft->y3     = (base59 - gDisplayState.vramYOffset) - (u16)D_801155B6;
-        ft->u0     = Gp_CapGlyphs[title].u;
-        ft->v0     = Gp_CapGlyphs[title].v;
-        ft->u1     = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].width;
-        ft->v1     = Gp_CapGlyphs[title].v;
-        ft->u2     = Gp_CapGlyphs[title].u;
-        ft->v2     = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].height;
-        ft->u3     = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].width;
-        ft->v3     = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].height;
-        ft->clut   = 0x3D93;
-        ft->tpage  = getTPage(0, 1, D_80115654, D_80115656);
-        addPrim(&gGpuCurrentOt[2], ft);
+        spriteQuad     = gGpuPrimCursor;
+        gGpuPrimCursor = spriteQuad + 1;
+        setPolyFT4(spriteQuad);
+        setShadeTex(spriteQuad, 1);
+        title             = title - 1;
+        boxBottomY        = CAP_TEXT_BOX_BOTTOM_Y;
+        boxTopY           = boxBottomY - (u16)D_801155B6;
+        spriteQuad->x0    = (u16)D_801155B2 - CAP_TEXT_BOX_LEFT_X_OFFSET;
+        spriteQuad->y0    = (boxTopY - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].height;
+        titleRightXOffset = Gp_CapGlyphs[title].width - CAP_TEXT_BOX_LEFT_X_OFFSET;
+        spriteQuad->x1    = (u16)D_801155B2 + titleRightXOffset;
+        spriteQuad->y1    = (boxTopY - gDisplayState.vramYOffset) - Gp_CapGlyphs[title].height;
+        spriteQuad->x2    = (u16)D_801155B2 - CAP_TEXT_BOX_LEFT_X_OFFSET;
+        spriteQuad->y2    = (boxBottomY - gDisplayState.vramYOffset) - (u16)D_801155B6;
+        titleRightXOffset = Gp_CapGlyphs[title].width - CAP_TEXT_BOX_LEFT_X_OFFSET;
+        spriteQuad->x3    = (u16)D_801155B2 + titleRightXOffset;
+        spriteQuad->y3    = (boxBottomY - gDisplayState.vramYOffset) - (u16)D_801155B6;
+        spriteQuad->u0    = Gp_CapGlyphs[title].u;
+        spriteQuad->v0    = Gp_CapGlyphs[title].v;
+        spriteQuad->u1    = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].width;
+        spriteQuad->v1    = Gp_CapGlyphs[title].v;
+        spriteQuad->u2    = Gp_CapGlyphs[title].u;
+        spriteQuad->v2    = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].height;
+        spriteQuad->u3    = Gp_CapGlyphs[title].u + Gp_CapGlyphs[title].width;
+        spriteQuad->v3    = Gp_CapGlyphs[title].v + Gp_CapGlyphs[title].height;
+        spriteQuad->clut  = CAP_TEXT_TITLE_CLUT;
+        spriteQuad->tpage = getTPage(0, GPU_BLEND_ADD, D_80115654, D_80115656);
+        addPrim(&gGpuCurrentOt[2], spriteQuad);
     }
 
-    i = 0;
+    // Replay visible codes each frame, applying control codes as well as drawing.
+    codeIndex = 0;
     while (1) {
-        code = body[i];
-        if (flagA == 0) {
-            if (lineEnd < i) {
+        code = codes[codeIndex];
+        if (revealAll == 0) {
+            if (revealEndIndex < codeIndex) {
                 break;
             }
         } else {
-            if ((s16)code == -1) {
+            if ((s16)code == CAP_TEXT_CODE_END) {
                 break;
             }
         }
-        if ((s16)code == -2 && inChoice == 1) {
-            nChoice++;
-            inChoice = 0;
-            selected = 0;
+        if ((s16)code == CAP_TEXT_CODE_LINE_BREAK && choiceOpen == 1) {
+            choiceIndex++;
+            choiceOpen        = 0;
+            choiceHighlighted = 0;
         }
-        sc   = code;
-        attr = code;
-        if (sc == -2) {
-            Gp_CapCaretY = y - 2;
-            Gp_CapCaretX = x + 4;
-            t2           = lineIdx + 1;
-            next         = &body[i + 1];
-            asm("" : "=r"(g), "+m"(*next) : "r"(lineIdx));
-            lineIdx = t2;
+        controlCode = code;
+        if (controlCode == CAP_TEXT_CODE_LINE_BREAK) {
+            Gp_CapCaretY  = penY - CAP_TEXT_CARET_Y_OFFSET;
+            Gp_CapCaretX  = penX + CAP_TEXT_CARET_X_OFFSET;
+            nextLineIndex = lineIndex + 1;
+            nextLine      = &codes[codeIndex + 1];
+            // Retained scheduling dependencies preserve the spilled line-index update.
+            asm("" : "=r"(lineBreakDependency), "+m"(*nextLine) : "r"(lineIndex));
+            lineIndex = nextLineIndex;
             if (layout->vertical == 0) {
-                y += _capGetTextLineAdvance(next);
-                if (centered != 0) {
-                    x = _capGetTextLineLeftX(arg0, (s16)lineIdx) - 0xA0;
+                penY += _capGetTextLineAdvance(nextLine);
+                if (centerLines != 0) {
+                    penX = _capGetTextLineLeftX(textStream, (s16)lineIndex) - CAP_TEXT_SCREEN_CENTER_X;
                 } else {
-                    x = (u16)D_801155B2 - 0xA0;
+                    penX = (u16)D_801155B2 - CAP_TEXT_SCREEN_CENTER_X;
                 }
             } else {
-                asm("" : "+r"(i) : "r"(g));
-                y  = -0x58;
-                x -= _capGetTextLineAdvance(next);
+                asm("" : "+r"(codeIndex) : "r"(lineBreakDependency));
+                penY  = CAP_TEXT_COLUMN_TOP_Y;
+                penX -= _capGetTextLineAdvance(nextLine);
             }
-            i++;
+            codeIndex++;
             continue;
         } else {
-            if (sc == -3) {
+            if (controlCode == CAP_TEXT_CODE_SPACER) {
                 if (layout->vertical == 0) {
-                    x += 3;
+                    penX += CAP_TEXT_SPACER_WIDTH;
                 } else {
-                    y += 3;
+                    penY += CAP_TEXT_SPACER_WIDTH;
                 }
-                i++;
+                codeIndex++;
                 continue;
-            } else if ((code & 0x9F00) == 0x8000) {
-                if (code & 0x2000) {
-                    sel = code & 0xFF;
+            } else if ((code & CAP_TEXT_VIEW_FAMILY_MASK) == CAP_TEXT_CODE_VIEW) {
+                // View commands are idempotent once the saved view matches their selector.
+                if (code & CAP_TEXT_VIEW_DIRECT_INDEX) {
+                    viewIndex = code & CAP_TEXT_CODE_VALUE_MASK;
                 } else {
-                    sel = viewFindLogicalIndex(code & 0xFF);
+                    viewIndex = viewFindLogicalIndex(code & CAP_TEXT_CODE_VALUE_MASK);
                 }
-                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != sel) {
-                    if (D_80115666 != 0) {
-                        stageRequestViewTransition(sel, 1);
-                        D_801155BC = 2;
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != viewIndex) {
+                    if (D_80115666 != CAP_PLAYBACK_IN_PLACE) {
+                        stageRequestViewTransition(viewIndex, CAP_TEXT_VIEW_TRANSITION_FILTERED_ACTORS);
+                        D_801155BC = CAP_TEXT_VIEW_TRANSITION_WAIT;
                     } else {
-                        if (attr & 0x4000) {
+                        if (controlCode & CAP_TEXT_VIEW_HIDE_ACTORS) {
                             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                         }
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = sel;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewIndex;
                         gGameSession->hideHud                                      = 1;
                         gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
                     }
                 }
-                i++;
+                codeIndex++;
                 continue;
-            } else if ((code & 0xFF00) == CAP_TEXT_CHOICE_CONFIRM || (code & 0xFF00) == CAP_TEXT_CHOICE_SILENT || (code & 0xFF00) == CAP_TEXT_CHOICE_CURSOR) {
-                if (flagA == 0) {
-                    ret = 1;
+            } else if ((code & CAP_TEXT_CODE_FAMILY_MASK) == CAP_TEXT_CHOICE_CONFIRM || (code & CAP_TEXT_CODE_FAMILY_MASK) == CAP_TEXT_CHOICE_SILENT || (code & CAP_TEXT_CODE_FAMILY_MASK) == CAP_TEXT_CHOICE_CURSOR) {
+                if (revealAll == 0) {
+                    textComplete = 1;
                     break;
                 }
-                if (inChoice == 1) {
-                    nChoice++;
-                    selected = 0;
+                if (choiceOpen == 1) {
+                    choiceIndex++;
+                    choiceHighlighted = 0;
                 }
                 // Record the pen, variant key and confirm-sound class for this line.
-                inChoice             = 1;
+                choiceOpen           = 1;
                 choices              = D_801155D0;
-                choice               = &choices[nChoice];
-                choice->confirmSound = (attr & CAP_TEXT_CHOICE_SOUND_MASK) >> 8;
-                choice->x            = x;
-                choice->y            = y;
-                choice->eventKey     = attr & 0xFF;
-                if (nChoice == D_801155C0) {
-                    selected = 1;
+                choice               = &choices[choiceIndex];
+                choice->confirmSound = (controlCode & CAP_TEXT_CHOICE_SOUND_MASK) >> 8;
+                choice->x            = penX;
+                choice->y            = penY;
+                choice->eventKey     = controlCode & CAP_TEXT_CODE_VALUE_MASK;
+                if (choiceIndex == D_801155C0) {
+                    choiceHighlighted = 1;
                 }
-                i++;
+                codeIndex++;
                 continue;
-            } else if ((code & 0xFF00) == 0x8400) {
-                icon           = &D_8010FB70[code & 0xFF];
-                ft             = gGpuPrimCursor;
-                gGpuPrimCursor = ft + 1;
-                setlen(ft, 9);
-                setcode(ft, 0x2D);
-                ft->clut  = 0x3C00;
-                ft->tpage = 0x1E;
-                t         = (y - gDisplayState.vramYOffset) + 1;
-                ft->x0    = x;
-                ft->y0    = t - icon->height;
-                ft->x1    = x + icon->width;
-                ft->y1    = t - icon->height;
-                ft->x2    = x;
-                ft->y2    = t;
-                ft->x3    = x + icon->width;
-                ft->y3    = t;
-                ft->u0    = icon->u;
-                ft->v0    = icon->v;
-                ft->u1    = icon->u + icon->width;
-                ft->v1    = icon->v;
-                ft->u2    = icon->u;
-                ft->v2    = icon->v + icon->height;
-                ft->u3    = icon->u + icon->width;
-                ft->v3    = icon->v + icon->height;
-                addPrim(&gGpuCurrentOt[2], ft);
-                x += icon->width;
-                i++;
+            } else if ((code & CAP_TEXT_CODE_FAMILY_MASK) == CAP_TEXT_CODE_ICON) {
+                icon           = &D_8010FB70[code & CAP_TEXT_CODE_VALUE_MASK];
+                spriteQuad     = gGpuPrimCursor;
+                gGpuPrimCursor = spriteQuad + 1;
+                setPolyFT4(spriteQuad);
+                setShadeTex(spriteQuad, 1);
+                spriteQuad->clut  = CAP_TEXT_ICON_CLUT;
+                spriteQuad->tpage = CAP_TEXT_ICON_TPAGE;
+                iconBaselineY     = (penY - gDisplayState.vramYOffset) + 1;
+                spriteQuad->x0    = penX;
+                spriteQuad->y0    = iconBaselineY - icon->height;
+                spriteQuad->x1    = penX + icon->width;
+                spriteQuad->y1    = iconBaselineY - icon->height;
+                spriteQuad->x2    = penX;
+                spriteQuad->y2    = iconBaselineY;
+                spriteQuad->x3    = penX + icon->width;
+                spriteQuad->y3    = iconBaselineY;
+                spriteQuad->u0    = icon->u;
+                spriteQuad->v0    = icon->v;
+                spriteQuad->u1    = icon->u + icon->width;
+                spriteQuad->v1    = icon->v;
+                spriteQuad->u2    = icon->u;
+                spriteQuad->v2    = icon->v + icon->height;
+                spriteQuad->u3    = icon->u + icon->width;
+                spriteQuad->v3    = icon->v + icon->height;
+                addPrim(&gGpuCurrentOt[2], spriteQuad);
+                penX += icon->width;
+                codeIndex++;
                 continue;
             } else {
-                D_801155B8     = ((s16)code >> 11) & 0xE;
-                palette        = ((s16)code >> 10) & 3;
-                code           = code & 0x3FF;
-                glyphY         = y - gDisplayState.vramYOffset;
-                gt             = gGpuPrimCursor;
-                gGpuPrimCursor = gt + 1;
-                setlen(gt, 12);
-                setcode(gt, 0x3C);
-                t = x;
-                if (selected == 0) {
-                    gt->clut = palette | 0x3D50;
+                // Glyph attributes select the palette and an even reveal-delay threshold.
+                D_801155B8     = ((s16)code >> CAP_TEXT_GLYPH_DELAY_SHIFT) & CAP_TEXT_GLYPH_DELAY_MASK;
+                glyphPalette   = ((s16)code >> CAP_TEXT_GLYPH_PALETTE_SHIFT) & CAP_TEXT_GLYPH_PALETTE_MASK;
+                code           = code & CAP_TEXT_GLYPH_INDEX_MASK;
+                glyphBaselineY = penY - gDisplayState.vramYOffset;
+                glyphQuad      = gGpuPrimCursor;
+                gGpuPrimCursor = glyphQuad + 1;
+                setPolyGT4(glyphQuad);
+                glyphLeftX = penX;
+                if (choiceHighlighted == 0) {
+                    glyphQuad->clut = glyphPalette | CAP_TEXT_GLYPH_CLUT_BASE;
                 } else {
-                    gt->clut = 0x3D52;
+                    glyphQuad->clut = CAP_TEXT_HIGHLIGHT_CLUT;
                 }
-                setShadeTex(gt, 1);
-                setRGB0(gt, 0x70, 0x70, 0x70);
-                setRGB1(gt, 0x70, 0x70, 0x70);
-                setRGB2(gt, 0x70, 0x70, 0x70);
-                setRGB3(gt, 0x70, 0x70, 0x70);
-                setSemiTrans(gt, 1);
-                gt->tpage = getTPage(0, 1, D_80115654, D_80115656);
-                gt->x0    = t;
-                gt->y0    = glyphY - Gp_CapGlyphs[(s16)code].height;
-                gt->x1    = t + Gp_CapGlyphs[(s16)code].width;
-                gt->y1    = glyphY - Gp_CapGlyphs[(s16)code].height;
-                gt->x2    = t;
-                gt->y2    = glyphY;
-                gt->x3    = t + Gp_CapGlyphs[(s16)code].width;
-                gt->y3    = glyphY;
-                gt->u0    = Gp_CapGlyphs[(s16)code].u;
-                gt->v0    = Gp_CapGlyphs[(s16)code].v;
-                gt->u1    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].width;
-                gt->v1    = Gp_CapGlyphs[(s16)code].v;
-                gt->u2    = Gp_CapGlyphs[(s16)code].u;
-                gt->v2    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].height;
-                gt->u3    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].width;
-                gt->v3    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].height;
-                addPrim(&gGpuCurrentOt[2], gt);
-                gt2            = gGpuPrimCursor;
-                gGpuPrimCursor = gt2 + 1;
-                *gt2           = *gt;
-                gt2->tpage     = getTPage(0, GPU_BLEND_SUBTRACT, D_80115654, D_80115656);
-                addPrim(&gGpuCurrentOt[2], gt2);
+                setShadeTex(glyphQuad, 1);
+                setRGB0(glyphQuad, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY);
+                setRGB1(glyphQuad, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY);
+                setRGB2(glyphQuad, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY);
+                setRGB3(glyphQuad, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY, CAP_TEXT_GLYPH_GREY);
+                setSemiTrans(glyphQuad, 1);
+                glyphQuad->tpage = getTPage(0, GPU_BLEND_ADD, D_80115654, D_80115656);
+                glyphQuad->x0    = glyphLeftX;
+                glyphQuad->y0    = glyphBaselineY - Gp_CapGlyphs[(s16)code].height;
+                glyphQuad->x1    = glyphLeftX + Gp_CapGlyphs[(s16)code].width;
+                glyphQuad->y1    = glyphBaselineY - Gp_CapGlyphs[(s16)code].height;
+                glyphQuad->x2    = glyphLeftX;
+                glyphQuad->y2    = glyphBaselineY;
+                glyphQuad->x3    = glyphLeftX + Gp_CapGlyphs[(s16)code].width;
+                glyphQuad->y3    = glyphBaselineY;
+                glyphQuad->u0    = Gp_CapGlyphs[(s16)code].u;
+                glyphQuad->v0    = Gp_CapGlyphs[(s16)code].v;
+                glyphQuad->u1    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].width;
+                glyphQuad->v1    = Gp_CapGlyphs[(s16)code].v;
+                glyphQuad->u2    = Gp_CapGlyphs[(s16)code].u;
+                glyphQuad->v2    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].height;
+                glyphQuad->u3    = Gp_CapGlyphs[(s16)code].u + Gp_CapGlyphs[(s16)code].width;
+                glyphQuad->v3    = Gp_CapGlyphs[(s16)code].v + Gp_CapGlyphs[(s16)code].height;
+                addPrim(&gGpuCurrentOt[2], glyphQuad);
+                // The second textured pass subtracts the same glyph.
+                subtractGlyphQuad        = gGpuPrimCursor;
+                gGpuPrimCursor           = subtractGlyphQuad + 1;
+                *subtractGlyphQuad       = *glyphQuad;
+                subtractGlyphQuad->tpage = getTPage(0, GPU_BLEND_SUBTRACT, D_80115654, D_80115656);
+                addPrim(&gGpuCurrentOt[2], subtractGlyphQuad);
                 if (layout->vertical == 0) {
-                    x = Gp_CapGlyphs[(s16)code].width + x - 1;
+                    penX = Gp_CapGlyphs[(s16)code].width + penX - 1;
                 } else {
-                    y = Gp_CapGlyphs[(s16)code].height + y - 1;
+                    penY = Gp_CapGlyphs[(s16)code].height + penY - 1;
                 }
             }
         }
-        i++;
+        codeIndex++;
     }
 
-    D_80115650 = x;
-    D_801155BE = nChoice;
-    D_80115652 = y - gDisplayState.vramYOffset;
-    return ret;
+    // A break closes an open choice, turning its index into the published count.
+    D_80115650 = penX;
+    D_801155BE = choiceIndex;
+    D_80115652 = penY - gDisplayState.vramYOffset;
+    return textComplete;
 }
 
 /// Draws the pulsing marker at the highlighted CAP dialogue choice.
@@ -879,10 +949,11 @@ static void _capDrawChoiceMarker(void)
     }
 }
 
-/// Restores the live HUD, saved view and automatic actor drawing after in-place CAP.
+/// Restores the HUD, pre-CAP view and automatic drawing of the player and companion.
 ///
-/// Called only when no event owns presentation. Uses the still-live CAP saved
-/// view and debug frame counter; changes no actor-control or playback flags.
+/// In-place playback calls this only when the session event state is idle.
+/// Requires the saved view and debug frame counter from the live playback;
+/// debug mode also passes that frame/view pair to the tooling hook.
 static inline void _capRestoreInPlacePresentation(void)
 {
     gGameSession->hideHud                                      = 0;
@@ -1181,16 +1252,19 @@ s32 capIsBusy(void)
     return Gp_CapTable != 0;
 }
 
-s32 Gp_AbortCap(void)
+s32 capAbortPlayback(void)
 {
-    if (Gp_CapTable != 0) {
+    enum { CAP_ABORT_SUCCESS     = 0,
+           CAP_ABORT_UNAVAILABLE = -1 };
+
+    if (Gp_CapTable != NULL) {
         if (Gp_CapTask != NULL) {
             _capFinishPlayback(Gp_CapTask);
-            return 0;
+            return CAP_ABORT_SUCCESS;
         }
-        return -1;
+        return CAP_ABORT_UNAVAILABLE;
     }
-    return -1;
+    return CAP_ABORT_UNAVAILABLE;
 }
 
 s32 capGetVariantKey(void)

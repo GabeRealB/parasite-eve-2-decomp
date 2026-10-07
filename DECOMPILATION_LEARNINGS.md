@@ -67100,7 +67100,7 @@ register pins. Inspect the actual RTL volatility flag rather than inferring
 it from a helper's name.
 
 
-## `func_800E5578`: spill-register rotation, sched1 launch priority, and reload's stack-slot `REG_DEAD` note
+## `_capDrawTextStream`: spill-register rotation, sched1 launch priority, and reload's stack-slot `REG_DEAD` note
 
 The archived seed scored 99.847% with three register hunks and 84 prior
 attempts. Each hunk was a different compiler mechanism; none of them yields to
@@ -67118,13 +67118,13 @@ decrement is deferred to the head *before* the `gDisplayState` address. Declarin
 `title` as `u32` keeps the decrement a plain single-set `addu` on the same
 pseudo, which the target wants after that address. A `u32` copy of a `u32`
 parameter is then a cse equivalence, and `make_regs_eqv` makes the longer-lived
-register canonical, so `arg3 = (u16)arg3` moved off `a3`; a `SOFT_TOUCH_REG`
+register canonical, so `titleAndFlags = (u16)titleAndFlags` moved off `a3`; a `SOFT_TOUCH_REG`
 on the copy breaks the equivalence without changing allocation.
 
 **A constant array address materialised early and added second.**
-`&D_801155D0[nChoice]` swaps the constant to the second operand
+`&D_801155D0[choiceIndex]` swaps the constant to the second operand
 (`expand_binop`) and forces the symbol into a register after the index, so the
-`lui` follows the shifts. `ch = D_801155D0; p = &ch[nChoice]` with another
+`lui` follows the shifts. `ch = D_801155D0; p = &ch[choiceIndex]` with another
 dead `ch = D_801155D0` earlier makes `ch` a multi-set pointer: the address is
 deferred to the block head, `loop.c` does not hoist it, and cse still knows its
 value so `fold_rtx` swaps the `plus` back to offset-plus-address. The result
@@ -67133,24 +67133,24 @@ pseudo `p` is separate, which is what gives `sll v1; addu v1,v1,v0`.
 **Reload allocates spill registers round-robin in insn order.** `t3`, `t4`,
 `t8`, `t9` cycle per reload (`last_spill_reg` in `allocate_reload_reg`), so
 which spilled variable is reloaded first decides which register it gets, and
-later users inherit the same register. The target wanted `lineIdx` before
-`body`, i.e. the increment before `next = &body[i + 1]` in the post-sched1
+later users inherit the same register. The target wanted `lineIndex` before
+`codes`, i.e. the increment before `nextLine = &codes[codeIndex + 1]` in the post-sched1
 order, while sched2 placed the increment after the flag load. The seed's asm
-read `lineIdx` after the `addu`, which allocated `body` first.
+read `lineIndex` after the `addu`, which allocated `codes` first.
 
 **Reload's `REG_DEAD` note on a stack slot makes an insn a memory reader.**
 When a spilled pseudo dies in an insn, reload leaves `REG_DEAD (mem sp+N)` on
 it, and sched2 (`reload_completed`) runs `sched_analyze_2` on that note. Any
 later asm with a `"memory"` clobber or a register-addressed memory operand then
 gets an anti-dependence on the increment and cannot precede it. Giving the
-gate asm an explicit `"r"(lineIdx)` input moves the death, and the note, onto
+gate asm an explicit `"r"(lineIndex)` input moves the death, and the note, onto
 the asm. `memrefs_conflict_p` treats symbol-addressed memory as disjoint from
 `sp`-based slots but a bare `(reg)` address as conflicting with everything, and
 after reload a constant address becomes `(mem (reg t4))`.
 
-The landed shape is `t2 = lineIdx + 1; next = &body[i + 1];
-asm("" : "=r"(g), "+m"(*next) : "r"(lineIdx)); lineIdx = t2;` with
-`asm("" : "+r"(i) : "r"(g))` in the vertical branch. The `"+m"(*next)` gates
+The landed shape is `nextLineIndex = lineIndex + 1; nextLine = &codes[codeIndex + 1];
+asm("" : "=r"(lineBreakDependency), "+m"(*nextLine) : "r"(lineIndex)); lineIndex = nextLineIndex;` with
+`asm("" : "+r"(codeIndex) : "r"(lineBreakDependency))` in the vertical branch. The `"+m"(*nextLine)` gates
 the `addu` behind the flag load and gives that load priority 2; the `=r`
 output consumed in another block makes the asm a launch insn so it beats the
 increment at the sched1 tie; the copy-back last keeps the store initially
@@ -143930,16 +143930,16 @@ forced came back on its own. One path, the test directly before an out-of-line
 block reached by `goto`, still had to `goto next` into the end copy. Duplicated
 there too, jump2 merged every tail into that copy instead of the last one.
 
-## `move sN,aK` then `andi aK,aK,...`: the long-lived copy is a narrower local (func_800E5578, 2026-09-26)
+## `move sN,aK` then `andi aK,aK,...`: the long-lived copy is a narrower local (_capDrawTextStream, 2026-09-26)
 
 The target copied a parameter into `s1` and then masked the parameter in its
 own register (`andi a3,a3,0xFFFF`), testing the copy later with `andi v0,s1,0xFF`.
-Written `u32 title = arg3;`, cse puts `title` and `arg3` in one equivalence class
+Written `u32 title = titleAndFlags;`, cse puts `title` and `titleAndFlags` in one equivalence class
 and canonicalises every use to the longer-lived `title`, so the mask reads `s1`
 and the parameter pseudo disappears; the tree had pinned it apart with
 `SOFT_TOUCH_REG(title)`. Declaring `u8 title` makes the copy a `QImode` subreg
 set, which is not an equivalence with the `SImode` parameter: the mask keeps
-reading `arg3`, which ties to `a3` and dies there. The `& 0xFF` at every use
+reading `titleAndFlags`, which ties to `a3` and dies there. The `& 0xFF` at every use
 disappears with it, since those were the `u8` zero-extensions.
 
 ## `setSemiTrans(prim, cond)`, not `if (cond) setSemiTrans(prim, 1)`: the dead else-store's label keeps a scratch block in its own register (Gp_DrawEffSprite81, 2026-09-26)
@@ -148829,7 +148829,7 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
 
 ### Unresolved, with the mechanism measured: five gameplay barriers, and how sched1 orders a block (2026-10-05)
 
-A dehack pass removed nothing from `equipmentLoadWeaponConsumable`, `func_800E5578`,
+A dehack pass removed nothing from `equipmentLoadWeaponConsumable`, `_capDrawTextStream`,
 `itemMenuInfoTask`, `Gp_EffSprTask7C` and `_worldCoordScoreDirectionalLight`. What
 each barrier stands for is below; none of it is a fix.
 
@@ -148870,13 +148870,13 @@ address add is placed directly in front of the load that reads it.
   reach `.lreg` between the add and the load: anywhere below the add will do,
   because sched2 has no launches and puts it back. See the section at the end
   of this file with this function's name.
-- `func_800E5578`, the two asms in the `-2` handler: reload hands out
-  `t9,t3,t4` in insn order, so the block must reach reload as `lineIdx + 1`,
-  `next = body + off`, `lbu layout->vertical`. `next` is single-set and live, so
+- `_capDrawTextStream`, the two asms in the `-2` handler: reload hands out
+  `t9,t3,t4` in insn order, so the block must reach reload as `lineIndex + 1`,
+  `nextLine = codes + off`, `lbu layout->vertical`. `nextLine` is single-set and live, so
   it is launched the moment the branch is scheduled and takes the `lbu`'s stall
-  cycle: `lbu` then `next`. It has to be unready at that point, i.e. the `lbu`
-  or the `lineIdx` store must depend on it; the asm reads `*next`. A two-set
-  `next` (not launched) reorders the caret stores as well and leaves `$a0`.
+  cycle: `lbu` then `nextLine`. It has to be unready at that point, i.e. the `lbu`
+  or the `lineIndex` store must depend on it; the asm reads `*nextLine`. A two-set
+  `nextLine` (not launched) reorders the caret stores as well and leaves `$a0`.
 - `_worldCoordScoreDirectionalLight`, `USE_REG3`: local-alloc priorities in
   the block are g*3 chain 36/8, `ONE` 8/2, blue 24/6 = 4.0, red chain (load,
   `<<3`, two sums, `>>8`) 80/22 = 3.64. Blue goes first and takes `$v1`; the
@@ -152740,51 +152740,51 @@ instead of the move, something modifies the first register before the second
 read in the post-reload order; look for a constant folded into the first
 read's expression and give it its own statement.
 
-### `func_800E5578`: the two line-break barriers stand for one sched1 order that no plain C in the block gives (unchanged, 2026-10-07)
+### `_capDrawTextStream`: the two line-break barriers stand for one sched1 order that no plain C in the block gives (unchanged, 2026-10-07)
 
 Both `asm` statements in the `-2` arm stay. What they are needed for was
 measured by removing their effects one at a time; the result is a list of
 conditions, and a reason each plain-C form fails one of them.
 
-**What the image fixes.** `lineIdx`, `body` and `layout` are spilled, and
+**What the image fixes.** `lineIndex`, `codes` and `layout` are spilled, and
 reload hands out `t8 → t9 → t3 → t4` in insn order (the block before ends on
 `t8`). The target has `lhu t9,48(sp)` / `lw t3,20(sp)` / `lui t4`, so at
-reload the block reads `lineIdx + 1`, then `next = body + off`, then the
+reload the block reads `lineIndex + 1`, then `nextLine = codes + off`, then the
 `layout->vertical` byte. The target also has `sh s0,48(sp)` in the branch delay
 slot, after the `lbu`. After reload the `lbu` address is a bare `(reg t4)`,
 which conflicts with every `sp` slot, so sched2 cannot move that store across
-the `lbu`: the copy `lineIdx = <temp>` must already follow the `lbu` when
+the `lbu`: the copy `lineIndex = <temp>` must already follow the `lbu` when
 sched1 is done. The sched1 order is therefore forced:
-`lineIdx + 1` < `next` < `lbu` < `lineIdx = ...` < branch.
+`lineIndex + 1` < `nextLine` < `lbu` < `lineIndex = ...` < branch.
 
 **Why the plain forms miss it** (backward scheduling, `sched.c`):
 
-- `lineIdx++; next = &body[i + 1]; if (layout->vertical == 0)`: after the
-  branch, `next` is single-set and live out, so it is launched at T-2; the
+- `lineIndex++; nextLine = &codes[codeIndex + 1]; if (layout->vertical == 0)`: after the
+  branch, `nextLine` is single-set and live out, so it is launched at T-2; the
   `lbu` is queued one cycle (load to branch) and lands above it. Reload order
-  `lineIdx, layout, body` (`t9, t3, t4`), 13 lines differ.
+  `lineIndex, layout, codes` (`t9, t3, t4`), 13 lines differ.
 - The copy can only be taken at T-2 when it is alone in the ready list: any
-  ready caret store beats it on `potential_hazard`, a ready `next` beats it on
-  priority. So both caret stores and `next` need an unscheduled dependent
-  there. `"+m"(*next)` is that dependent (it uses `next`, the stores precede
-  it, the `lbu` follows it). The target has no store or load through `next`.
-- With only the fake store (`asm("" : "+m"(*next))`), `lineIdx + 1` is
+  ready caret store beats it on `potential_hazard`, a ready `nextLine` beats it on
+  priority. So both caret stores and `nextLine` need an unscheduled dependent
+  there. `"+m"(*nextLine)` is that dependent (it uses `nextLine`, the stores precede
+  it, the `lbu` follows it). The target has no store or load through `nextLine`.
+- With only the fake store (`asm("" : "+m"(*nextLine))`), `lineIndex + 1` is
   released at T-3, is launch priority and beats the priority-1 `asm`: it lands
-  after `next`, and `t9`/`t3` swap (8 lines). The `"=r"(g)` output read in the
+  after `nextLine`, and `t9`/`t3` swap (8 lines). The `"=r"(lineBreakDependency)` output read in the
   other arm makes the `asm` a launch insn with a higher LUID, which is all the
   second `asm` is for.
-- An `asm` reading the incremented value instead (`"+m"(*next) : "r"(t2)`)
+- An `asm` reading the incremented value instead (`"+m"(*nextLine) : "r"(nextLineIndex)`)
   gives the right reload registers with one site, but sched2 then keeps
   `addiu s0,t9,1` above the `lbu` (5 lines).
-- Reusing an existing local for `lineIdx + 1` (`sel`, `t`) changes nothing:
-  cse puts the SI temporary back. `next = body; next += i + 1;` and a dead
-  `next = 0` at the top leave `next` single-set. A constant local
-  (`g = -0x58; ... y = g;`) is propagated by cse and leaves no insn.
+- Reusing an existing local for `lineIndex + 1` (`viewIndex`, `glyphLeftX`) changes nothing:
+  cse puts the SI temporary back. `nextLine = codes; nextLine += codeIndex + 1;` and a dead
+  `nextLine = 0` at the top leave `nextLine` single-set. A constant local
+  (`lineBreakDependency = -0x58; ... penY = lineBreakDependency;`) is propagated by cse and leaves no insn.
 - A block boundary or a loop-note fence (`do { } while (0)`) cannot be it: in
   sched2 the `lui t4` pair moves above `lw t3` and `addiu s0` below the `lbu`,
   both across any point where the fence would sit.
 - A temporary shared between the offset and the flag would give the
-  anti-dependence, but the offset then has to be `i + 1` in a variable, which
+  anti-dependence, but the offset then has to be `codeIndex + 1` in a variable, which
   costs `sll 16 / sra 16 / addiu 1 / sll 1`, or combine folds it away.
 
 One permuter run (600 s, about 3000 candidates) from the plain form found

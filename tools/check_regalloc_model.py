@@ -26,7 +26,7 @@ decays with register number, means the model in section 10 needs revisiting.
     python3 tools/check_regalloc_model.py <scratch>/*.i.lreg
     python3 tools/check_regalloc_model.py --inversions <scratch>/*.i.lreg
 
-Measured over 86 dumps from func_800E5578 and acropolisPlazaSirenLightTask:
+Measured over 86 dumps from _capDrawTextStream and acropolisPlazaSirenLightTask:
 66% of comparable pairs ordered correctly, 38% of pairs at an exact tie, and
 inversions decaying from 4.8 per assignment on $v0 to zero by $t3 - the shape
 of the suggestion pass, recorded in section 10.5.

@@ -79,16 +79,14 @@ _DirectionStairSurfaces D_801149FC[5] = {
     { D_shelter_b4_reservoir_801850C8, D_shelter_b4_reservoir_801850D8 }
 };
 
-/// Ends the latched action and discards any secondary trigger hit.
+/// Releases action activity, then discards the primary parameters and secondary hit.
+///
+/// Used on stair-climb completion and after consuming a CAP interaction.
+/// The phase, trigger-control change latch and session busy flag are left for callers.
 static inline void _directionClearRequest(void)
 {
-    D_80114CF8      = 0;
-    Gp_DirNibble    = 0;
-    Gp_DirByte      = 0;
-    Gp_DirFlags     = 0;
-    Gp_DirAltNibble = 0;
-    Gp_DirAlt       = 0;
-    D_80114CD4      = 0;
+    D_80114CF8 = 0;
+    _directionClearTriggerParameters();
 }
 
 void directionAwaitStairClimb(void)

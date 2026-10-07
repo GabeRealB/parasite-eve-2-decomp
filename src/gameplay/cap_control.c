@@ -118,7 +118,7 @@ s32 func_800E731C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 s32 Gp_AbortCapClear(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     D_801156B0 = 0;
-    return Gp_AbortCap();
+    return capAbortPlayback();
 }
 
 s32 func_800E7358(Task* task, s32 msgId, s32 arg2, s32 arg3)

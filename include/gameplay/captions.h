@@ -20,7 +20,7 @@ enum {
     /// the control's completion flag (`Gp_StartCapAndClear`).
     CAP_CONTROL_MESSAGE_START = 0xFA0,
     /// Clears the completion flag and aborts the running CAP sequence, returning
-    /// `Gp_AbortCap`'s result (`Gp_AbortCapClear`).
+    /// `capAbortPlayback`'s result (`Gp_AbortCapClear`).
     CAP_CONTROL_MESSAGE_ABORT = 0xFA2,
     /// Returns nonzero while a CAP sequence table is loaded (`capIsBusy`).
     CAP_CONTROL_MESSAGE_IS_BUSY = 0xFA3,
@@ -139,7 +139,15 @@ s16 capStartSequenceSlot(s16 commandIndex, s16 playbackMode, s16 variantKey);
 /// playback. Completion, abort and reset release it.
 s32 capIsBusy(void);
 
-s32 Gp_AbortCap(void);
+/// Stops a selected CAP sequence whose playback task has been allocated.
+///
+/// Releases the sequence selection and kills its live task. Queued playback
+/// requests stage-mode exit and any needed saved-view transition; in-place
+/// playback restores actors and the HUD when its event/control gates permit.
+/// Returns 0 on that cleanup, or -1 when no sequence or task exists.
+/// A queued selection with a NULL task is
+/// left selected; this does not cancel the queued display transition.
+s32 capAbortPlayback(void);
 
 /// Clears CAP playback selection and restores the bundle's default dialogue resource.
 ///

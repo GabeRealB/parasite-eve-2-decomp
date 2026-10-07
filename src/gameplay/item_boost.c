@@ -303,7 +303,11 @@ static inline void _inventoryClearItems(const InventoryItemRange* range)
 }
 /// Sums the quantities of every matching item row in a readable range.
 ///
-/// The range must fit its table. This includes loaded ammunition in row totals.
+/// The borrowed range must fit its live backing table; its count is in rows,
+/// including free rows. Zero rows returns zero. itemId is compared without
+/// narrowing against each row's byte id, so values outside 0..255 return zero.
+/// Quantities include loaded ammunition. The maximum 255 unsigned-halfword
+/// quantities fit the signed-word result. No collection-bit lookup occurs.
 static inline s32 _inventorySumMatchingRowQuantities(const InventoryItemRange* range, s32 itemId)
 {
     InventoryItemRow*       table;

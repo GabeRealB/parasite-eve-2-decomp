@@ -595,17 +595,19 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
     }
 }
 
-/// Tests transfer restrictions without changing the selected row or context.
+/// Returns whether the transfer context forbids moving or swapping this item.
 ///
-/// itemId must index the catalogue; battleFieldMode == 1 enforces NO_DISCARD.
-/// The Acropolis container kind 0x703 separately keeps the M93R in place.
+/// itemId must index the live ordinary-item catalogue. Only battle-field mode
+/// enforces ITEM_FLAG_NO_DISCARD; other mode values leave that flag unrestricted.
+/// The current Acropolis container kind 0x703 independently retains the M93R.
+/// Returns 0 or 1 and borrows the catalogue, save and context without changing them.
 static inline s32 _itemMenuCheckTransferRestriction(s32 itemId, s32 battleFieldMode)
 {
     s32 restricted;
 
     restricted = 0;
     if (Gp_ItemDescs[itemId].flags & ITEM_FLAG_NO_DISCARD) {
-        restricted = battleFieldMode == 1;
+        restricted = battleFieldMode == ITEM_MENU_PANE_MODE_BATTLE_FIELD;
     }
     if ((Gp_MoveItemKey == ITEM_MENU_M93R_RESTRICTED_CONTAINER_KIND) && (itemId == ITEM_MENU_M93R_ITEM_ID) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == GAME_STAGE_ACROPOLIS)) {
         restricted = 1;

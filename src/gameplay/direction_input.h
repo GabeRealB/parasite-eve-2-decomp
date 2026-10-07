@@ -24,6 +24,21 @@ extern u8 Gp_DirAlt;
 
 extern u8 Gp_DirAltNibble;
 
+/// Discards the primary action parameters and the secondary trigger hit.
+///
+/// Clears both control words and their two byte parameters. The active-action
+/// marker, phase, trigger-control change latch and session busy flag remain intact;
+/// callers decide when to release activity. Each gameplay TU uses an inline copy.
+static inline void _directionClearTriggerParameters(void)
+{
+    Gp_DirNibble    = 0;
+    Gp_DirByte      = 0;
+    Gp_DirFlags     = 0;
+    Gp_DirAltNibble = 0;
+    Gp_DirAlt       = 0;
+    D_80114CD4      = 0;
+}
+
 extern u8 D_80114CDC;
 
 extern u8 D_80114CDD;
