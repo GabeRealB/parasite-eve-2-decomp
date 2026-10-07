@@ -1455,7 +1455,6 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
     GfxCoord*        coord;
     TmdObject*       obj;
     _Actor01600Work* work;
-    MATRIX*          matrix;
 
     obj        = actor->extra.tmd;
     coord      = obj->coords;
@@ -1471,12 +1470,7 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
     obj->lightMtx                                = &work->lightMatrix;
     obj->colorMtx                                = &work->colorMatrix;
     work->targetAnchor.parent                    = &gGfxViewCoord;
-    matrix                                       = &work->targetAnchor.coord;
-    MATRIX_PAIR(&work->targetAnchor.coord, 0, 0) = 0x1000;
-    MATRIX_PAIR(matrix, 0, 2)                    = 0;
-    MATRIX_PAIR(matrix, 1, 1)                    = 0x1000;
-    MATRIX_PAIR(matrix, 2, 0)                    = 0;
-    matrix->m[2][2]                              = 0x1000;
+    gfxSetRotIdentity(&work->targetAnchor.coord);
     work->targetAnchor.coord.t[0]                = (s32)coord->coord.t[0];
     work->targetAnchor.coord.t[1]                = (s32)coord->coord.t[1];
     work->targetAnchor.coord.t[2]                = (s32)coord->coord.t[2];
