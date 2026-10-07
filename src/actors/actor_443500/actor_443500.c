@@ -2759,6 +2759,7 @@ static void _actor443500BindModelLighting(Task* task)
 static inline void _actor443500ApplyAnimationRequest(_Actor443500PierceCarradineWork* work, TmdObject* model,
                                                      const AnimationPlayRequest* request)
 {
+    enum { ACTOR_443500_FIRST_DRIVEN_SLOT = 1 };
     s32 slotIndex;
 
     if (request->source.index != work->model.bank) {
@@ -2768,16 +2769,16 @@ static inline void _actor443500ApplyAnimationRequest(_Actor443500PierceCarradine
     }
     work->model.animId = request->animationId;
     if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        for (slotIndex = ACTOR_443500_FIRST_DRIVEN_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
         }
     } else {
-        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        for (slotIndex = ACTOR_443500_FIRST_DRIVEN_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
         }
     }
     // Seed the new pose before the next frame and restart its synchronized cue.
-    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+    for (slotIndex = ACTOR_443500_FIRST_DRIVEN_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationTickSlot(&work->rig.anim, slotIndex);
     }
     work->model.ticking = 1;

@@ -1395,22 +1395,24 @@ static void _actor361100DrawStreamRefraction(Task* task)
 
 /// Ramps the retained head-aim rate by ONE/16, with halfword truncation before clamping.
 ///
-/// aim is live writable state; nonzero tracking ramps toward ONE, zero toward 0.
+/// `aim` is live writable state; nonzero `tracking` ramps toward ONE, zero
+/// toward 0. The Q12 increment is 256 per dispatch. Each halfword result is
+/// stored before the signed endpoint check, including halfword wrap.
 static inline void _actor361100RampHeadAimRate(AnimationHeadAim* aim, s32 tracking)
 {
     enum { ACTOR_361100_HEAD_AIM_RATE_STEP = ONE / 16 };
-    u16 rate;
+    s16 nextRate;
 
     if (tracking != 0) {
-        rate      = aim->rate + ACTOR_361100_HEAD_AIM_RATE_STEP;
-        aim->rate = rate;
-        if ((s16)rate > ONE) {
+        nextRate  = aim->rate + ACTOR_361100_HEAD_AIM_RATE_STEP;
+        aim->rate = nextRate;
+        if (nextRate > ONE) {
             aim->rate = ONE;
         }
     } else {
-        rate      = aim->rate - ACTOR_361100_HEAD_AIM_RATE_STEP;
-        aim->rate = rate;
-        if ((s16)rate < 0) {
+        nextRate  = aim->rate - ACTOR_361100_HEAD_AIM_RATE_STEP;
+        aim->rate = nextRate;
+        if (nextRate < 0) {
             aim->rate = 0;
         }
     }

@@ -31,6 +31,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/acropolis_cafeteria.h"
+#include "../../shared/actor_motion_walk_helpers.h"
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_messages.h"
 
@@ -582,25 +583,6 @@ static void func_actor_310600_80161FA0(Task* task)
     }
 }
 
-/// Measures an axis gap using the direction of the full-word difference.
-///
-/// Borrows two word-aligned coordinate components through the call. The signed
-/// difference must fit a word; its direction chooses which unsigned low
-/// halfwords to subtract. Returns that subtraction before signed-halfword
-/// truncation, preserving wrap at 65536 rather than taking a full-word absolute
-/// value. The caller narrows the result for the arrival comparison.
-static inline s32 _actor310600WalkAxisGap(const long* targetAxis, const long* rootAxis)
-{
-    s32 gap;
-
-    if (*targetAxis - *rootAxis >= 0) {
-        gap = (u16)*targetAxis - (u16)*rootAxis;
-    } else {
-        gap = (u16)*rootAxis - (u16)*targetAxis;
-    }
-    return gap;
-}
-
 /// Stops the retained walk once neither horizontal axis gets closer.
 ///
 /// Requires live body work and coordinate 0. Distances use root-parent units,
@@ -623,9 +605,9 @@ static void _actor310600CheckWalkArrival(Task* task)
     work      = task->work;
     rootCoord = task->extra.tmd->coords;
     // Compare full words for direction, then retain only a signed halfword gap.
-    deltaX      = _actor310600WalkAxisGap(&work->walkTarget.vx, &rootCoord->coord.t[0]);
+    deltaX      = _actorMotionWalkAxisGap(&work->walkTarget.vx, &rootCoord->coord.t[0]);
     distance.vx = deltaX;
-    deltaZ      = _actor310600WalkAxisGap(&work->walkTarget.vz, &rootCoord->coord.t[2]);
+    deltaZ      = _actorMotionWalkAxisGap(&work->walkTarget.vz, &rootCoord->coord.t[2]);
     distance.vz = deltaZ;
     if (distance.vx >= work->walkLastDistance.vx && distance.vz >= work->walkLastDistance.vz) {
         if (work->animId == ACTOR_310600_RETAINED_WALK_CLIP) {

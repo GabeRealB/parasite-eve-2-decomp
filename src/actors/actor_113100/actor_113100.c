@@ -158,7 +158,7 @@ static const TaskFuncTable3 D_actor_113100_80131E30 = { {
 } };
 
 /// The actor's own three states - setup, per-frame tick and exit -
-/// dispatched by `func_actor_113100_80132E98`.
+/// dispatched by `_actor113100PierceCarradineTask`.
 static const TaskFuncTable3 D_actor_113100_80131E3C = { {
     func_actor_113100_80131E58,
     func_actor_113100_80132104,
@@ -175,7 +175,7 @@ static const TaskFuncTable4 D_actor_113100_80131E48 = { {
 } };
 
 static TmdSource _gActor113100PierceCarradineBody;
-void             func_actor_113100_80132E98(Task*);
+static void      _actor113100PierceCarradineTask(Task* task);
 
 static TmdBone _gActor113100PierceCarradineBodySkeleton[20] = {
 #include "assets/pierce_carradine_body_skeleton.inc"
@@ -1153,13 +1153,12 @@ u8 D_actor_113100_801442E4[36] = {
     0,
 };
 
-void             func_actor_113100_80132E98(Task*);
 static TmdSource _gActor113100Model07BC4;
 static TmdSource _gActor113100Model07960;
 static TmdSource _gActor113100Model07AB4;
 
 TaskDesc D_actor_113100_80144308[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_113100_80132E98, { .model = &_gActor113100PierceCarradineBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor113100PierceCarradineTask, { .model = &_gActor113100PierceCarradineBody } },
     { { { TASK_BODY_TMD, 192 } }, _actor113100BillboardTask, { .model = &_gActor113100Model07BC4 } },
     { { { TASK_BODY_TMD, 192 } }, _actor113100AttachedModelTask, { .model = &_gActor113100Model07960 } },
     { { { TASK_BODY_TMD, 192 } }, _actor113100AttachedModelTask, { .model = &_gActor113100Model07AB4 } },
@@ -1745,12 +1744,19 @@ static void _actor113100AttachedModelTask(Task* task)
 
 #include "../../shared/model_placement_mirror_parent.inc.c"
 
-void func_actor_113100_80132E98(Task* task)
+/// Dispatches Pierce Carradine's body setup, frame update or teardown.
+///
+/// Requires the twenty-part TMD task created by this package's body descriptor
+/// and `state` in 0..2. Setup allocates owned work and collision storage; update
+/// moves and animates the body; teardown unlinks collision before releasing it.
+/// Dispatch continues independently of the scene's actor-control gate. A state
+/// callback may destroy the task. The state index is unchecked.
+static void _actor113100PierceCarradineTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_113100_80131E3C;
-    sp.funcs[task->state](task);
+    states = D_actor_113100_80131E3C;
+    states.funcs[task->state](task);
 }
 
 /// Unlinks Pierce's collision sphere before releasing his body task and work.

@@ -495,13 +495,13 @@ ActorTransform D_actor_503500_8014BCF0 = { { 7960, -3360, 7040, 0 }, { 0, -512, 
 
 ActorTransform D_actor_503500_8014BD08 = { { 7960, -3360, 7040, 0 }, { 0, 1535, 0, 0 } };
 
-ActorCommand D_actor_503500_8014BD20 = { { .loc = { 4, 48 } }, 0 };
+ActorCommand D_actor_503500_8014BD20 = { { .loc = { 4, 48 } }, ACTOR_503500_SLIDER_COMMAND_STOP };
 
-ActorCommand D_actor_503500_8014BD24 = { { .loc = { 4, 48 } }, 1 };
+ActorCommand D_actor_503500_8014BD24 = { { .loc = { 4, 48 } }, ACTOR_503500_SLIDER_COMMAND_PATH_FIRST };
 
-ActorCommand D_actor_503500_8014BD28 = { { .loc = { 4, 48 } }, 2 };
+ActorCommand D_actor_503500_8014BD28 = { { .loc = { 4, 48 } }, ACTOR_503500_SLIDER_COMMAND_PATH_SECOND };
 
-ActorCommand D_actor_503500_8014BD2C = { { .loc = { 4, 48 } }, 3 };
+ActorCommand D_actor_503500_8014BD2C = { { .loc = { 4, 48 } }, ACTOR_503500_SLIDER_COMMAND_SHAKE };
 
 EvsSceneKey D_actor_503500_8014BD30 = { 6, 10, 11 };
 

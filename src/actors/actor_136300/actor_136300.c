@@ -129,7 +129,7 @@ void                        func_actor_136300_80132910(s32);
 void                        func_actor_136300_80132998(void);
 void                        func_actor_136300_801329EC(void);
 void                        func_actor_136300_80132A4C(s32);
-void                        func_actor_136300_80132A7C(s32);
+static void                 _actor136300SelectSceneCaptions(s32 restoreDefaults);
 
 void func_actor_136300_801328E0(s32);
 void func_actor_136300_80132910(s32);
@@ -1182,7 +1182,7 @@ ActorTransform D_actor_136300_8013B570 = { { 2230, 0, 5240, 0 }, { 0, -1024, 0, 
 GameActorMoveAnim D_actor_136300_8013B588 = { 19, 47 };
 
 EvsCommand D_actor_136300_8013B590[149] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136300_80132A7C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300SelectSceneCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_136300_8013B518 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_136300_8013B520 } }, { .value = 0 } },
@@ -1329,7 +1329,7 @@ EvsCommand D_actor_136300_8013B590[149] = {
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136300_80132A7C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300SelectSceneCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1348,7 +1348,7 @@ EvsCommand D_actor_136300_8013C388[16] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136300_80132A7C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300SelectSceneCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1359,7 +1359,7 @@ EvsCommand D_actor_136300_8013C508[8] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136300_80132A7C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300SelectSceneCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1574,12 +1574,24 @@ void func_actor_136300_80132A4C(s32 arg0)
     displayQueueModeTask(&D_actor_136300_8013B134, arg0, 0, STAGE_ENTRY_GRAY_CAPTURE);
 }
 
-void func_actor_136300_80132A7C(s32 arg0)
+/// Selects this scene's CAP resource and texture page, or restores CAP defaults.
+///
+/// Zero selects data-resource ordinal 1 and VRAM origin (384, 256) in 16-bit
+/// pixels; any nonzero value resets CAP to ordinal 0 and origin (384, 0).
+/// The selected bundle and its textures must already be loaded and remain live
+/// while CAP uses them. Selection clears the current file even if no resource
+/// matches. The event scripts pass 0 on entry and 1 on cleanup.
+static void _actor136300SelectSceneCaptions(s32 restoreDefaults)
 {
-    if (arg0 == 0) {
-        Gp_CapFile = 0;
-        capSelectLoadedFile(1);
-        capSetTexturePage(0x180, 0x100);
+    enum {
+        ACTOR_136300_SCENE_CAP_FILE_ORDINAL   = 1,
+        ACTOR_136300_SCENE_CAP_TEXTURE_VRAM_X = 384,
+        ACTOR_136300_SCENE_CAP_TEXTURE_VRAM_Y = 256,
+    };
+    if (restoreDefaults == 0) {
+        Gp_CapFile = NULL;
+        capSelectLoadedFile(ACTOR_136300_SCENE_CAP_FILE_ORDINAL);
+        capSetTexturePage(ACTOR_136300_SCENE_CAP_TEXTURE_VRAM_X, ACTOR_136300_SCENE_CAP_TEXTURE_VRAM_Y);
         return;
     }
     capReset();

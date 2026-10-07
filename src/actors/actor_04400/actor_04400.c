@@ -725,7 +725,7 @@ u8 gMadChaserSettleAnims[19] = { 5, 6, 5, 6, 5, 6, 6, 5, 5, 5, 6, 6, 5, 5, 5, 6,
 
 #include "../../shared/mad_chaser_inlines.inc.c"
 
-static void Actor04400_Fn03390(Task* arg0);
+static void _madChaserRecoilRecover(Task* task);
 
 /// Selects one axis of collision correction, giving grid pushback priority.
 ///
@@ -1067,29 +1067,34 @@ static const TaskFuncTable9 gMadChaserDeathStates = { {
 
 #include "../../shared/mad_chaser_track_player.inc.c"
 
-/// State handler: with `stateScratch` 1, a pending request 1 while `hitTaken`
-/// is set queues animation 0xB (kind 2, speed 0x20); otherwise a consumed
-/// request wins, and animation boundary status moves to state 3. With `stateScratch` clear, boundary status
-/// calls `_madChaserSetAlertHold` and moves to state 5. The request test
-/// compares against the constant 1, which CSE folds into the `stateScratch`
-/// register; writing `== work->stateScratch` reloads the byte instead.
-static void Actor04400_Fn03390(Task* arg0)
+/// Finishes light recoil according to the interrupted clip's stance.
+///
+/// Requires initialized Mad Chaser body work and its live animation rig. An
+/// upright light hit restarts recoil at twice normal speed. Otherwise an
+/// upright actor consumes any new hit before a clip boundary can resume walking;
+/// a low actor returns to alert with a fresh hold at the boundary. The stance
+/// was copied from the interrupted clip's stance table by recoil entry.
+static void _madChaserRecoilRecover(Task* task)
 {
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    enum {
+        MAD_CHASER_RECOIL_UPRIGHT_STANCE = 1,
+        MAD_CHASER_RECOIL_UPRIGHT_ANIM   = 11,
+    };
+    MadChaserWork* work = task->work;
 
-    if (work->stateScratch == 1) {
+    if (work->stateScratch == MAD_CHASER_RECOIL_UPRIGHT_STANCE) {
         if (work->hitTaken != 0 && work->hitReaction == MAD_CHASER_HIT_REACTION_LIGHT) {
-            work->animRate    = 0x20;
-            work->animId      = 0xB;
+            work->animRate    = 2 * ANIMATION_RATE_ONE;
+            work->animId      = MAD_CHASER_RECOIL_UPRIGHT_ANIM;
             work->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
             return;
         }
-        if (_madChaserTakeHitReaction(arg0) == 0 && _madChaserAnimHasBoundaryStatusInline(arg0)) {
-            _madChaserSetBehaviorStateS16(arg0, MAD_CHASER_COMBAT_STATE_WALK);
+        if (_madChaserTakeHitReaction(task) == 0 && _madChaserAnimHasBoundaryStatusInline(task)) {
+            _madChaserSetBehaviorStateS16(task, MAD_CHASER_COMBAT_STATE_WALK);
         }
-    } else if (_madChaserAnimHasBoundaryStatusInline(arg0)) {
-        _madChaserSetAlertHold(arg0, 1);
-        _madChaserSetBehaviorStateS16(arg0, MAD_CHASER_COMBAT_STATE_ALERT);
+    } else if (_madChaserAnimHasBoundaryStatusInline(task)) {
+        _madChaserSetAlertHold(task, 1);
+        _madChaserSetBehaviorStateS16(task, MAD_CHASER_COMBAT_STATE_ALERT);
     }
 }
 
@@ -1328,7 +1333,7 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 #undef gMadChaserLeapSteps
 
 /// This package's own madChaserRecoilRecover stands in.
-#define madChaserRecoilRecover Actor04400_Fn03390
+#define madChaserRecoilRecover _madChaserRecoilRecover
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef madChaserRecoilRecover
 

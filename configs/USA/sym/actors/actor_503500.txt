@@ -520,3 +520,5 @@ _actor503500ExitBoss = 0x80136228; // type:func
 actor503500AcquireProjectileEffectCost = 0x80137290; // type:func
 _actor503500PinkFlashEmitterExit = 0x80138288; // type:func
 _actor503500LargeChainExit = 0x8013a900; // type:func
+_actor503500SliderSetModelDraw = 0x80132584; // type:func
+_actor503500SliderApplyCommand = 0x80132664; // type:func

@@ -1,4 +1,5 @@
 #include "actors/actor_503500.h"
+#include "actor_503500_private.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -53,13 +54,13 @@ static SVECTOR _gActor503500Model15820Verts[92];
 static TmdBone _gActor503500Model15820Skeleton[1];
 static u32     _gActor503500Model15820Stream[459];
 
-s32 func_actor_503500_80132584(Task*, s32, s32, s32);
-s32 func_actor_503500_80132664(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+static s32 _actor503500SliderSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
+static s32 _actor503500SliderApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 
 TaskMessageEntry D_actor_503500_80146888[4] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_503500_80132584 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_503500_80132664 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor503500SliderSetModelDraw },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor503500SliderApplyCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -246,65 +247,96 @@ static void func_actor_503500_801324EC(Task* arg0)
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode, s32 arg3)
+/// Sets a slider model's drawing and primitive-buffer policy.
+///
+/// Requires a live TMD model, plus initialized work for mode 2. Modes 0/1 hide
+/// or show with automatic buffering; showing requests a buffer. Mode 2 hides,
+/// suppresses automatic buffering and sets a two-tick release countdown. The
+/// tick finding zero frees the buffer. Mode 3 shows with automatic buffering
+/// suppressed. Show requests retain any pending release. Ignores message ID and
+/// second payload. Returns 0 for modes 0..3 (even on allocation failure), 1 otherwise.
+static s32 _actor503500SliderSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    TmdObject*              obj;
+    enum {
+        ACTOR_503500_SLIDER_DRAW_HIDE                  = 0,
+        ACTOR_503500_SLIDER_DRAW_SHOW                  = 1,
+        ACTOR_503500_SLIDER_DRAW_HIDE_AND_RELEASE      = 2,
+        ACTOR_503500_SLIDER_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
+    };
+    TmdObject*              model;
     _Actor503500SliderWork* work;
-    s32                     ret;
+    s32                     result;
 
-    obj = task->extra.tmd;
-    ret = 0;
-    switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+    model  = task->extra.tmd;
+    result = 0;
+    switch (drawMode) {
+        case ACTOR_503500_SLIDER_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_503500_SLIDER_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work                = task->work;
-            work->freeCountdown = mode;
-            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_503500_SLIDER_DRAW_HIDE_AND_RELEASE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work          = task->work;
+            // Retain the request word: release is checked after subsequent ticks.
+            work->freeCountdown = drawMode;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_503500_SLIDER_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    return ret;
+    return result;
 }
 
-s32 func_actor_503500_80132664(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Starts a slider path, stops its motion/shake, or starts stationary shaking.
+///
+/// Borrows initialized slider work, a live model and a readable command for
+/// this call. Actions 0..3 are `ACTOR_503500_SLIDER_COMMAND_*`; the command
+/// context is ignored. Paths reset their step to zero and set OT offsets in
+/// tags; stationary shaking counts down for 10000 update calls. Stop clears the
+/// persistent display shake immediately. Unknown commands preserve all state.
+/// Ignores message ID and second payload, retains no payload pointer and returns 0.
+static s32 _actor503500SliderApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
+    enum {
+        ACTOR_503500_SLIDER_PATH_NONE             = 0,
+        ACTOR_503500_SLIDER_PATH_FIRST            = 1,
+        ACTOR_503500_SLIDER_PATH_SECOND           = 2,
+        ACTOR_503500_SLIDER_PATH_FIRST_OT_OFFSET  = 21,
+        ACTOR_503500_SLIDER_PATH_SECOND_OT_OFFSET = 20,
+        ACTOR_503500_SLIDER_SHAKE_TICKS           = 10000,
+    };
     _Actor503500SliderWork* work;
 
     work = task->work;
-    switch (msg->command) {
-        case 0:
-            work->path  = 0;
+    switch (command->command) {
+        case ACTOR_503500_SLIDER_COMMAND_STOP:
+            work->path  = ACTOR_503500_SLIDER_PATH_NONE;
             work->timer = 0;
             displaySetShakeY(0);
             break;
-        case 1:
-            work->path                = 1;
+        case ACTOR_503500_SLIDER_COMMAND_PATH_FIRST:
+            work->path                = ACTOR_503500_SLIDER_PATH_FIRST;
             work->timer               = 0;
-            task->extra.tmd->otOffset = 0x15;
+            task->extra.tmd->otOffset = ACTOR_503500_SLIDER_PATH_FIRST_OT_OFFSET;
             break;
-        case 2:
-            work->path                = 2;
+        case ACTOR_503500_SLIDER_COMMAND_PATH_SECOND:
+            work->path                = ACTOR_503500_SLIDER_PATH_SECOND;
             work->timer               = 0;
-            task->extra.tmd->otOffset = 0x14;
+            task->extra.tmd->otOffset = ACTOR_503500_SLIDER_PATH_SECOND_OT_OFFSET;
             break;
-        case 3:
-            work->path  = 0;
-            work->timer = 10000;
+        case ACTOR_503500_SLIDER_COMMAND_SHAKE:
+            work->path  = ACTOR_503500_SLIDER_PATH_NONE;
+            work->timer = ACTOR_503500_SLIDER_SHAKE_TICKS;
             break;
     }
     return 0;

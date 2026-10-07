@@ -222,3 +222,4 @@ _actor113100TurnToArrivalYaw = 0x801330e8; // type:func
 _actor113100StepWalk = 0x80132fb4; // type:func
 _actor113100StartWalk = 0x801328ec; // type:func
 _actor113100ApplyCommand = 0x801333b8; // type:func
+_actor113100PierceCarradineTask = 0x80132e98; // type:func

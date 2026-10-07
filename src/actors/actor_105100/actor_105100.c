@@ -2705,6 +2705,7 @@ static void _actor105100ApplyPartnerHealing(Task* task)
 
 /// Disables the charge's strike sphere and stops drawing the active ring.
 ///
+/// Requires live writable work; a non-NULL ring must still own a live task.
 /// Drops the actor's ring reference after requesting state 4. Summon rings
 /// release themselves in that state; charge rings remain dormant until room
 /// cancellation. The effect task continues to own its work in either case.

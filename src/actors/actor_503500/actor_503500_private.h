@@ -24,6 +24,17 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
+/// Commands shared by the intro script and its slab-model slider tasks.
+///
+/// Stop clears both path and shake timer. Path commands restart the selected
+/// 360-update path; shake leaves the model still for a finite countdown.
+enum {
+    ACTOR_503500_SLIDER_COMMAND_STOP        = 0,
+    ACTOR_503500_SLIDER_COMMAND_PATH_FIRST  = 1,
+    ACTOR_503500_SLIDER_COMMAND_PATH_SECOND = 2,
+    ACTOR_503500_SLIDER_COMMAND_SHAKE       = 3,
+};
+
 struct Actor503500Work;
 
 /// An attack of the boss: a routine the attack state calls once a frame, from

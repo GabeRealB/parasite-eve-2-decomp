@@ -1810,7 +1810,13 @@ static void _actor401000FallBack(Task* task)
     }
 }
 
-/// Restores body-grid response and selects death, status hold or ordinary rest.
+/// Restores grid response after a fall and selects the next downed state.
+///
+/// Borrows initialized writable body work and its live enemy record through
+/// the call. Nonpositive HP selects burning death; living enemies with buildup
+/// enter status hold, otherwise stay down. Other body flags are retained, and
+/// the reaction flag is tested without consuming it. Call after a fall boundary
+/// or a settled interrupted-rise pose; no animation or lifetime changes occur here.
 static __inline__ void _actor401000FinishFall(OddStrangerWork* work, Enemy* enemy)
 {
     work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;

@@ -774,7 +774,7 @@ first and then splits on a range is a switch, whatever source shape it suggests.
 Source case order does not matter (GCC sorts the values); what stays in source
 order is the case *bodies*, which is how the family of four-way visibility
 handlers is spelled throughout the actors (`_actor141000SetAyaBreaDrawMode`,
-`func_actor_503500_80132584`, `_actor511000SetRupertModelDraw`) - read a matched one
+`_actor503500SliderSetModelDraw`, `_actor511000SetRupertModelDraw`) - read a matched one
 before writing the next.
 
 ## One local assigned twice is one quantity: the reused definition cannot tie to its source, and that is what keeps both halves in one register
@@ -1345,7 +1345,7 @@ argument. Message dispatch passes all four argument registers through the
 unprototyped `TaskMessageHandler`; its common handler contract confirms arity
 4 and the signed result the caller's sloppy `extern void` had hidden.
 
-Take the body from the shaped sibling, not from m2c: `func_actor_503500_80132584`
+Take the body from the shaped sibling, not from m2c: `_actor503500SliderSetModelDraw`
 is byte-identical apart from `sb`/`sw` on the work block's `freeCountdown`, so the
 sibling's case order and two-statement `|= 0x80` then `&= ~0x4` spelling (which
 the target merges into one read-modify-write) are what to copy. One instruction
@@ -49490,7 +49490,7 @@ as immediate addresses and store them straight into the frame:
 ```
 lw  $v1,0x1C($a0)          ; the work block
 lui $v0,%hi(Actor04400_Fn07A38) ; addiu $v0,$v0,%lo(...) ; sw $v0,0x10($sp)
-lui $v0,%hi(Actor04400_Fn03390) ; addiu $v0,$v0,%lo(...) ; sw $v0,0x14($sp)
+lui $v0,%hi(_madChaserRecoilRecover) ; addiu $v0,$v0,%lo(...) ; sw $v0,0x14($sp)
 lh  $v0,0x422($v1) ; sll $v0,$v0,2 ; addu $v0,$sp,$v0 ; lw $v0,0x10($v0) ; jalr $v0
 ```
 
@@ -49512,7 +49512,7 @@ order* moved 21 instructions to the target's 21:
 
 ```c
 work = (Actor104400Work*)arg0->work;       /* first, so the load is not deferred */
-void (*states[2])(Task*) = { Actor04400_Fn07A38, Actor04400_Fn03390 };
+void (*states[2])(Task*) = { Actor04400_Fn07A38, _madChaserRecoilRecover };
 states[(s16)work->field_422](arg0);
 ```
 
@@ -83457,20 +83457,20 @@ alone that reads like hand-written `goto` control flow.
 
 **Fix.** Do not restructure it by hand. `tools/overlay_dup_index.py find` on the
 function is the first thing to run, and BRIEF.md's *shape* `1.00` candidate was
-the answer: `func_actor_503500_80132584` in `actor_503500_2.c` is byte-identical
+the answer: `_actor503500SliderSetModelDraw` in `actor_503500_2.c` is byte-identical
 to this target for all 56 instructions, differing only in one store
 displacement (`sb a2,0x44(v0)` vs `sb a2,0x4A2(v0)`). Its C is a plain `switch`
 with the arms written out in full:
 
 ```c
-    obj = task->extra;
-    ret = 0;
-    switch (mode) {
-        case 0: obj->field_C |= 0x80;  obj->field_C &= ~4; break;
-        case 1: obj->field_C &= ~0x80; tmdAllocPrimitiveBuffer(obj); obj->field_C &= ~4; break;
-        case 2: obj->field_C |= 0x80;  work->field_44 = mode; obj->field_C |= 4; break;
-        case 3: obj->field_C &= ~0x80; obj->field_C |= 4; break;
-        default: ret = 1; break;
+    model = task->extra.tmd;
+    result = 0;
+    switch (drawMode) {
+        case 0: model->flags |= 0x80;  model->flags &= ~4; break;
+        case 1: model->flags &= ~0x80; tmdAllocPrimitiveBuffer(model); model->flags &= ~4; break;
+        case 2: model->flags |= 0x80;  work->freeCountdown = drawMode; model->flags |= 4; break;
+        case 3: model->flags &= ~0x80; model->flags |= 4; break;
+        default: result = 1; break;
     }
 ```
 
@@ -85223,7 +85223,7 @@ files from it, then re-split. splat will not rewrite an existing
 `actor_104400_text.c`, so trimming it by hand is required. Apply the same
 `shared` / `rodata` keys to every overlay that links the body.
 
-Example: `Actor04400_Fn03390` (scratch `base_1.c`, 100%; sibling
+Example: `_madChaserRecoilRecover` (scratch `base_1.c`, 100%; sibling
 `func_actor_342400_801664C4`). Compare `field_448` against the constant 1 so
 CSE keeps `field_44F` in `$a0`; `== work->field_44F` reloads the byte.
 
@@ -111749,8 +111749,8 @@ source `base_3.c` `dd5ad9488c048d4700a7b2155651a9ed7617f6341278e713c05808cfa4ebc
 
 `_actor511000SetRupertModelDraw`, the message-0x7D5 handler, is the same four-way
 mode dispatch as the already-matched `_actor141000SetAyaBreaDrawMode` and
-`func_actor_503500_80132584`, which both name the work pointer inline in the one
-arm that uses it (`((Worker*)task->work)->field_44 = mode;`). Here the target
+`_actor503500SliderSetModelDraw`, which both name the work pointer inline in the one
+arm that uses it (`((_Actor503500SliderWork*)task->work)->freeCountdown = drawMode;`). Here the target
 loads it once, in the entry block, *above* the dispatch test:
 
 ```

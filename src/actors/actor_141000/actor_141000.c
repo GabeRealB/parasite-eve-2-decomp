@@ -170,7 +170,7 @@ static void _actor141000IdleFlightModel(Task* task);
 static s32  _actor141000ApplyFlightPathFrame(GfxCoord* rootCoord, s32 pathFrame);
 static void _actor141000ScaleFlightModelZ(GfxCoord* rootCoord, s32 zScale);
 static void _actor141000AttachRingBeam(Task* task);
-static void func_actor_141000_80133260(Task* arg0);
+static void _actor141000DrawCappedBeam(Task* task);
 static void _actor141000UpdateAyaBreaWalker(Task* task);
 static void _actor141000TickAyaBreaBlink(Task* task);
 static void _actor141000SpawnAyaBreaWalker(Task* task);
@@ -184,10 +184,10 @@ static void _actor141000TurnAyaBreaToYaw(Task* task);
 
 /// The model actor's attach states: chain under the spawner, then draw the
 /// sixteen quads every frame, then `taskKill`. Dispatched by
-/// `func_actor_141000_801331AC`.
+/// `_actor141000CappedBeamTask`.
 static const TaskFuncTable3 D_actor_141000_80131E24 = { {
     _actor141000AttachRingBeam,
-    func_actor_141000_80133260,
+    _actor141000DrawCappedBeam,
     taskKill,
 } };
 
@@ -239,7 +239,7 @@ static u32     _gActor141000Model0230CStream[54];
 static TmdSource _gActor141000Model0230C;
 static void      _actor141000FlightControllerTask(Task* task);
 static void      _actor141000SmokeTrailTask(Task* task);
-void             func_actor_141000_801331AC(Task*);
+static void      _actor141000CappedBeamTask(Task* task);
 
 static AnimationSet _gActor141000Animation084A0;
 static AnimationSet _gActor141000Animation08898;
@@ -365,7 +365,7 @@ SVECTOR D_actor_141000_801348A8[6] = {
 
 TaskDesc D_actor_141000_801348D8[3] = {
     { { { TASK_BODY_TMD, 192 } }, _actor141000FlightControllerTask, { .model = &_gActor141000Model0230C } },
-    { { { TASK_BODY_COORD, 192 } }, func_actor_141000_801331AC, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _actor141000CappedBeamTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, _actor141000SmokeTrailTask, { .value = 0 } },
 };
 
@@ -1077,12 +1077,18 @@ static void _actor141000SmokeTrailTask(Task* task)
     }
 }
 
-void func_actor_141000_801331AC(Task* task)
+/// Dispatches the flight controller's capped-beam attachment, draw or teardown.
+///
+/// Requires a coordinate-body task with `state` in 0..2. Attachment borrows the
+/// live TMD controller from `spawnArg2.pointer` and joins its teardown tree;
+/// its coordinates and work must outlive beam drawing. Dispatch has no actor
+/// freeze gate or bounds check. The selected callback may destroy the task.
+static void _actor141000CappedBeamTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_141000_80131E24;
-    sp.funcs[task->state](task);
+    states = D_actor_141000_80131E24;
+    states.funcs[task->state](task);
 }
 
 /// Attaches the ring beam's coordinate and teardown lifetime to its controller.
@@ -1101,14 +1107,23 @@ static void _actor141000AttachRingBeam(Task* task)
     task->state        += 1;
 }
 
-static void func_actor_141000_80133260(Task* arg0)
+/// Projects and queues one frame of the controller's beam core and halo caps.
+///
+/// Requires an attached coordinate-body task and a live controller model/work.
+/// The builder fills X/Y of 24 screen points; Z and fourth halfwords are unused.
+/// Both projected endpoint depths must be nonzero for perspective sizing. The
+/// start depth sorts all sixteen quads at camera Z / 4 minus 20 OT tags, which
+/// must be in the active table. Projection flags are collected but not tested.
+/// Brightness is the controller's signed low-halfword Q12 beam level. Geometry
+/// uses the current 4096-unit halo angle before drawing updates its wrap state.
+static void _actor141000DrawCappedBeam(Task* task)
 {
     SVECTOR screenPoints[ACTOR_141000_BEAM_SCREEN_POINT_COUNT];
     s32     startDepth;
     s32     projectionFlags;
 
-    _actor141000BuildRingBeamPoints(arg0, screenPoints, &startDepth, &projectionFlags);
-    _glowDrawCappedBeam(arg0, screenPoints, startDepth);
+    _actor141000BuildRingBeamPoints(task, screenPoints, &startDepth, &projectionFlags);
+    _glowDrawCappedBeam(task, screenPoints, startDepth);
 }
 
 /// Applies one frame's signed 16.16 XYZ velocity, retaining unsigned fractions.
