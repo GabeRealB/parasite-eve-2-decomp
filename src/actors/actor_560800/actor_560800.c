@@ -6688,7 +6688,6 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg, s32 arg3)
     ActorTransform*             pose;
     _Actor560800PropWork*       chain;
     GfxCoord*                   coord;
-    GfxMatrix*                  mat;
     s32                         i;
     s32                         j;
 
@@ -6711,12 +6710,7 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg, s32 arg3)
             do {
                 if (work->chains[i & 0xFFFF] != NULL) {
                     coord                     = work->chains[i & 0xFFFF]->extra.tmd->coords;
-                    mat                       = (GfxMatrix*)&coord->coord;
-                    mat->rotationWords.m00M01 = ONE;
-                    mat->rotationWords.m02M10 = 0;
-                    mat->rotationWords.m11M12 = ONE;
-                    mat->rotationWords.m20M21 = 0;
-                    mat->rotationWords.m22    = ONE;
+                    gfxSetRotIdentity(&coord->coord);
                     coord->parent             = &gGfxViewCoord;
                     chain                     = work->chains[i & 0xFFFF]->work;
                     chain->position.vx        = msg->vx + pose->pos.vx;
