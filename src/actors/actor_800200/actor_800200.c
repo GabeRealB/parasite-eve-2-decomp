@@ -1138,7 +1138,7 @@ static void func_actor_800200_80162750(Task* arg0)
     companion                = actor->companionWork;
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
         state             = 0;
-        lock              = Gp_FindLockNode(arg0);
+        lock              = worldTargetFindLockNode(arg0);
         actor->targetNode = lock;
         if (lock != NULL) {
             worldTargetGetBodyPosition(lock, vec);
@@ -2074,7 +2074,7 @@ static void func_actor_800200_8016436C(Task* arg0)
     vec                      = (VECTOR3*)tmp;
     coord                    = arg0->extra.tmd->coords;
     if (actor->targetNode != NULL) {
-        node              = Gp_FindLockNode(arg0);
+        node              = worldTargetFindLockNode(arg0);
         actor->targetNode = node;
         if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
             worldTargetGetBodyPosition(node, vec);
@@ -2192,7 +2192,7 @@ static inline void _actor800200StartWait(Task* task, GameActor* actor, GfxCoord*
     s32              value;
 
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-        node              = Gp_FindLockNode(task);
+        node              = worldTargetFindLockNode(task);
         actor->targetNode = node;
         if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
             worldTargetGetBodyPosition(node, vec);
@@ -2254,7 +2254,7 @@ static void func_actor_800200_801647A8(Task* arg0)
                 next                                                    = 1;
                 actor2->companionWork->activity.combat.repeatsRemaining = next;
                 if (gSceneCombatState.signals.bytes.battlePhase == next) {
-                    actor2->targetNode = Gp_FindLockNode(arg0);
+                    actor2->targetNode = worldTargetFindLockNode(arg0);
                 } else {
                     actor2->targetNode = NULL;
                 }
@@ -2702,7 +2702,7 @@ static void func_actor_800200_8016545C(Task* arg0, s8 arg1)
 
     actor->companionWork->activity.combat.repeatsRemaining = arg1;
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-        actor->targetNode = Gp_FindLockNode(arg0);
+        actor->targetNode = worldTargetFindLockNode(arg0);
     } else {
         actor->targetNode = 0;
     }

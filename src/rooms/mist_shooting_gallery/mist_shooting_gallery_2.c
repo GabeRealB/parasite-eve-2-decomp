@@ -38,7 +38,6 @@ s32 D_mist_shooting_gallery_8018E0C0;
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -3174,7 +3173,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
             timer       = work->timer - 1;
             work->timer = timer;
             if ((s32)(timer << 16) <= 0) {
-                Gp_ReleaseStateF0Clear(arg0, 0);
+                sceneReleaseBattleRefAndClearRewards(arg0, 0);
                 taskKill(arg0);
                 return;
             }
@@ -3223,7 +3222,7 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
             actor->movementInputDisabled                        = 0;
             actor->pendingCollisionUpdates                      = 7;
             actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
-            Gp_ReleaseStateF0Clear(arg0, 0);
+            sceneReleaseBattleRefAndClearRewards(arg0, 0);
             func_actor_215100_8014A908();
             return;
         case 3:
@@ -3479,7 +3478,7 @@ static void func_mist_shooting_gallery_80184A80(Task* arg0)
     actor->pendingCollisionUpdates                      = 7;
     actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
     displayReleaseMenuHold();
-    Gp_ReleaseStateF0Clear(arg0, 0);
+    sceneReleaseBattleRefAndClearRewards(arg0, 0);
     taskKill(arg0);
 }
 

@@ -2847,7 +2847,7 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->hitBody);
             worldCollisionUnlinkBody(&work->drainBody);
             worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
-            Gp_ReleaseStateF0Add(arg1, 3);
+            sceneReleaseBattleRefWithRewards(arg1, 3);
             work->timer      = 0;
             work->actionStep = 1;
             if (work->burstStage != 0) {

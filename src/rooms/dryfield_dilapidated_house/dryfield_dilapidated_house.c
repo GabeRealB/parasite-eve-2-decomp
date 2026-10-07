@@ -43,7 +43,6 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -2697,7 +2696,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
             return;
         case 1:
             if (gGameSession->eventState == 2) {
-                Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1B);
+                sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0x1B);
                 gSceneCombatState.signals.bytes.endDelayFrames = 3;
                 task->state                                   += 1;
             }

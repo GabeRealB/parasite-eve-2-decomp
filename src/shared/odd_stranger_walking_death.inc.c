@@ -82,7 +82,7 @@ void oddStrangerWalkingDeath(Task* arg0)
             }
             switch ((s16)(work->stateTimer - 0x19)) {
                 case 0:
-                    Gp_ReleaseStateF0Add(arg0, 0xA);
+                    sceneReleaseBattleRefWithRewards(arg0, 0xA);
                     break;
                 case 5:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);

@@ -12,7 +12,6 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/random.h"
@@ -537,7 +536,7 @@ static void func_actor_342400_80162AB0(Task* arg0)
             }
         }
         if (count == 17) {
-            Gp_ReleaseStateF0Clear(arg0, 0);
+            sceneReleaseBattleRefAndClearRewards(arg0, 0);
             gGameSession->spawnPhase[1] = GAME_SESSION_SPAWN_COMPLETE;
             taskKill(arg0);
         }

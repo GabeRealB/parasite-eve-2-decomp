@@ -53,7 +53,7 @@ void ratDeath(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->gridBody);
             worldCollisionUnlinkBody(&work->attackBody);
             worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
-            Gp_ReleaseStateF0Add(arg1, 7);
+            sceneReleaseBattleRefWithRewards(arg1, 7);
             work->step = 1;
             work2      = arg1->work;
             if (work2->animId != work2->appliedAnimId) {

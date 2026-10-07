@@ -2603,7 +2603,7 @@ static void Actor01900_Fn06904(Task* arg0)
     if (work->stateTimer < 0x401) {
         switch ((s16)(work->stateTimer++ - 0x18)) {
             case 0:
-                Gp_ReleaseStateF0Add(arg0, 0x13);
+                sceneReleaseBattleRefWithRewards(arg0, 0x13);
                 break;
             case 5:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
@@ -3045,7 +3045,7 @@ static void Actor01900_Fn08724(Task* arg0)
         vec.vz                        = 0;
         vec.vy                        = 0;
         Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
-        Gp_ReleaseStateF0Add(arg0, 0x13);
+        sceneReleaseBattleRefWithRewards(arg0, 0x13);
     }
     work->stateTimer++;
     switch (work->stateTimer) {
@@ -3130,7 +3130,7 @@ static void Actor01900_Fn0892C(Task* arg0)
             }
             switch ((s16)(work->stateTimer - 0x19)) {
                 case 0:
-                    Gp_ReleaseStateF0Add(arg0, 0x13);
+                    sceneReleaseBattleRefWithRewards(arg0, 0x13);
                     break;
                 case 5:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);

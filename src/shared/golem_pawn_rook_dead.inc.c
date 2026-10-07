@@ -64,7 +64,7 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
             if ((u32)((u16)work->actorId - 0x38) < 2U) {
                 worldCollisionUnlinkBody(&work->laserBody);
             }
-            Gp_ReleaseStateF0Add(arg1, work->actorId);
+            sceneReleaseBattleRefWithRewards(arg1, work->actorId);
             anim = 0x1D;
             if (work->downedPose == 1) {
                 anim = 0x19;

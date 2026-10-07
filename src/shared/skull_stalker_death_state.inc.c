@@ -39,7 +39,7 @@ void skullStalkerDeathState(Enemy* arg0, Task* arg1)
     skullStalkerFlatten(arg1);
     arg1->killCountdown--;
     if (arg1->killCountdown <= 0) {
-        Gp_ReleaseStateF0Add(arg1, 0x2F);
+        sceneReleaseBattleRefWithRewards(arg1, 0x2F);
         work->deathPhase  = SKULL_STALKER_DEATH_PHASE_LINGER;
         work->phaseFrames = 0;
         arg0->recs        = 0;

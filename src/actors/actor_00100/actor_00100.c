@@ -3334,7 +3334,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
     worldCollisionClearContacts(work->wallProbe.contacts);
     if ((work->deathPending == 1) && (work->playerHeld == 0)) {
         work->deathPending = 0;
-        Gp_ReleaseStateF0Add(actor, 1);
+        sceneReleaseBattleRefWithRewards(actor, 1);
     }
     if (work->chaseHoldoff > 0) {
         work->chaseHoldoff = (s16)((u16)work->chaseHoldoff - 1);
@@ -3595,7 +3595,7 @@ static void Actor00100_Fn0BCBC(Enemy* enemy, Task* task)
     work = task->work;
     if (work->deathPending == 1) {
         work->deathPending = 0;
-        Gp_ReleaseStateF0Add(task, 1);
+        sceneReleaseBattleRefWithRewards(task, 1);
     }
     if (work->deathPending == 0) {
         task->state++;

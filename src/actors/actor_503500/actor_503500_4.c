@@ -1052,7 +1052,7 @@ static void func_actor_503500_8013B8D0(Task* arg0)
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
-            Gp_ReleaseStateF0Add(arg0, 0);
+            sceneReleaseBattleRefWithRewards(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             pan                   = (s8)worldCoordGetOriginAudioPan(coord);
@@ -1432,7 +1432,7 @@ static void func_actor_503500_8013C558(Task* arg0)
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
-            Gp_ReleaseStateF0Add(arg0, 0);
+            sceneReleaseBattleRefWithRewards(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             pan                                               = (s8)worldCoordGetOriginAudioPan(coord);
@@ -1893,7 +1893,7 @@ static void func_actor_503500_8013D558(Task* arg0)
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
-            Gp_ReleaseStateF0Add(arg0, 0);
+            sceneReleaseBattleRefWithRewards(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             pan                                               = (s8)worldCoordGetOriginAudioPan(coord);
@@ -2438,7 +2438,7 @@ static void func_actor_503500_8013E740(Task* arg0)
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
-            Gp_ReleaseStateF0Add(arg0, 0);
+            sceneReleaseBattleRefWithRewards(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             pan                   = (s8)worldCoordGetOriginAudioPan(coord);
@@ -2856,7 +2856,7 @@ static void func_actor_503500_8013F4A4(Task* arg0)
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
-            Gp_ReleaseStateF0Add(arg0, 0);
+            sceneReleaseBattleRefWithRewards(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             pan                   = (s8)worldCoordGetOriginAudioPan(coord);
@@ -3385,7 +3385,7 @@ static void func_actor_503500_80140654(Task* arg0)
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
-            Gp_ReleaseStateF0Add(arg0, 0);
+            sceneReleaseBattleRefWithRewards(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             work->tipTarget.vy    = 0x7D0;
@@ -4340,7 +4340,7 @@ static void func_actor_503500_80142980(Task* arg0)
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
-            Gp_ReleaseStateF0Add(arg0, 0);
+            sceneReleaseBattleRefWithRewards(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags             &= ENEMY_REACTION_LOW_CLEAR;
             work->spin.fixed.vx.word          = 0;

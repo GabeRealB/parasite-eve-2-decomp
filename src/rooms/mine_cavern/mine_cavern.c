@@ -22,7 +22,6 @@ s32 D_mine_cavern_8018EB50;
 #include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
-#include "gameplay/world_targets.h"
 
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -409,7 +408,7 @@ void func_mine_cavern_8017DFAC(s32 arg0)
 {
     if ((gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 1 && D_mine_cavern_8018EB54 == 0) ||
         (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 2 && D_mine_cavern_8018EB54 == 1)) {
-        Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1E);
+        sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0x1E);
         gSceneCombatState.signals.bytes.endDelayFrames = arg0;
         gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         D_mine_cavern_8018EB54                        += 1;

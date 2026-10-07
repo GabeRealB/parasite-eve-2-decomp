@@ -2054,7 +2054,7 @@ static void func_actor_401000_8013B1E4(Task* arg0)
         work->effectOffset.vz         = 0;
         work->effectOffset.vy         = 0;
         Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &work->effectOffset);
-        Gp_ReleaseStateF0Add(arg0, 0xA);
+        sceneReleaseBattleRefWithRewards(arg0, 0xA);
     }
     next             = work->stateTimer + 1;
     work->stateTimer = next;

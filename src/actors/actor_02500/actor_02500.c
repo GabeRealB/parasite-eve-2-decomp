@@ -1489,7 +1489,7 @@ static void Actor02500_Fn01AC8(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->gridBody);
             worldCollisionUnlinkBody(&work->attackBody);
             worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
-            Gp_ReleaseStateF0Add(arg1, 0x19);
+            sceneReleaseBattleRefWithRewards(arg1, 0x19);
             c      = arg1->extra.tmd->coords;
             vec.vx = c->workm.t[0];
             vec.vy = c->workm.t[1];

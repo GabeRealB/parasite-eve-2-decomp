@@ -32,7 +32,6 @@
 #include "gameplay/scene_combat.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -688,7 +687,7 @@ void func_shelter_b6_corridor_8017E19C(s32 arg0)
     if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON)) {
         gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         gSceneCombatState.signals.bytes.endDelayFrames = arg0;
-        Gp_ReleaseStateF0Add(Gp_LookupSlot4(1), 0x31);
+        sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(1), 0x31);
         taskCallExit(Gp_LookupSlot4(1));
     }
 }

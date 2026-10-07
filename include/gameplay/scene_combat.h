@@ -3,6 +3,8 @@
 
 #include "gameplay/world_state.h"
 
+#include "main/task_types.h"
+
 /// Scene-wide battle state, actor controls, rewards and enemy-group signals.
 ///
 /// The gameplay overlay owns this storage and resets it on scene loading.
@@ -49,5 +51,32 @@ void sceneSetEnemyAlert(s32 alertClass);
 /// callers must balance holds with the battle-release APIs and avoid overflow.
 /// Acquiring a hold does not change the battle phase or pending rewards.
 void sceneAcquireBattleRef(s32 unusedArg);
+
+/// Releases one battle hold while preserving accumulated rewards.
+///
+/// A zero count is a no-op. The last release sets the finished phase, clears
+/// action/enemy stimuli and starts the 60-frame end delay. Unless area-music
+/// changes are suppressed, it queues a fade of all sequences over 180 audio
+/// updates; queue admission failure is ignored. It does not destroy a task.
+/// `unusedTask` and `unusedArg` are ignored; their argument slots are retained.
+void sceneReleaseBattleRef(Task* unusedTask, s32 unusedArg);
+
+/// Releases one battle hold and credits the enemy's EXP, BP and MP rewards.
+///
+/// Uses `sceneReleaseBattleRef`'s final-release transition and music policy.
+/// Every nonzero-count release adds rewards, including the last; a zero count
+/// touches neither the task nor the totals. For a nonzero count, `enemyTask`
+/// must be live with an `Enemy` in `spawnArg2.pointer`. A NULL parameter record
+/// adds nothing. Totals use signed 32-bit addition without clamping. Ownership
+/// and task lifetime are unchanged. `unusedArg` is ignored, including actor IDs
+/// supplied by callers; rewards come exclusively from the enemy parameters.
+void sceneReleaseBattleRefWithRewards(Task* enemyTask, s32 unusedArg);
+
+/// Releases one battle hold, clearing accumulated rewards only on the last release.
+///
+/// Uses `sceneReleaseBattleRef`'s final-release transition and music policy.
+/// Non-final releases preserve the totals; a zero count is a no-op. Both
+/// `unusedTask` and `unusedArg` are ignored; their argument slots are retained.
+void sceneReleaseBattleRefAndClearRewards(Task* unusedTask, s32 unusedArg);
 
 #endif // GAMEPLAY_SCENE_COMBAT_H

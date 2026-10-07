@@ -19,7 +19,7 @@ void roamerBankRetreat(Task* task, s32 arg1, s32 arg2, s32 arg3)
                     ((s16*)gRoamerReserveHp)[i] = gRoamerParams.hpMax;
                 }
                 if (gSceneCombatState.battleRefs >= 2) {
-                    Gp_ReleaseStateF0(task, 0xD);
+                    sceneReleaseBattleRef(task, 0xD);
                 } else {
                     gRoamerReleasePending = 1;
                 }

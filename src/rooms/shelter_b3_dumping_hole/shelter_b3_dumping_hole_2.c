@@ -42,7 +42,6 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -3768,7 +3767,7 @@ void func_shelter_b3_dumping_hole_801818E0(void)
 {
     _ShelterB3DumpingHoleCollapseEventWork* work = D_shelter_b3_dumping_hole_8018F4AC->work;
     if (work->battleReleased == 0) {
-        Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x20);
+        sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0x20);
         gSceneCombatState.battleRefs = 0;
         gGameSession->flowFlags     |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         work->battleReleased         = 1;
@@ -4148,7 +4147,7 @@ static void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
             }
         }
         if (count == 0x10) {
-            Gp_ReleaseStateF0Clear(arg0, 0);
+            sceneReleaseBattleRefAndClearRewards(arg0, 0);
             gGameSession->spawnPhase[0] = GAME_SESSION_SPAWN_COMPLETE;
             taskKill(arg0);
         }

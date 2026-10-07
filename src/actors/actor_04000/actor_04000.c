@@ -1766,7 +1766,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
             work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
         case 0x60:
-            Gp_ReleaseStateF0Add(arg1, 0xC);
+            sceneReleaseBattleRefWithRewards(arg1, 0xC);
             work->burstWaveBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
         case 0x62:
@@ -2014,7 +2014,7 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
             work->burstWaveBody.radius = 0x3E8;
             break;
         case 0x2E:
-            Gp_ReleaseStateF0Add(arg1, 0xC);
+            sceneReleaseBattleRefWithRewards(arg1, 0xC);
             work->burstWaveBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
         case 0x30:
@@ -2129,7 +2129,7 @@ static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
             Gp_SpawnScript18(Actor04000_D07094, Actor04000_D070A0);
             break;
         case 0xF:
-            Gp_ReleaseStateF0Add(arg1, 0xC);
+            sceneReleaseBattleRefWithRewards(arg1, 0xC);
             work->burstWaveBody.radius   = 0xFA;
             work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->burstWaveBody.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;

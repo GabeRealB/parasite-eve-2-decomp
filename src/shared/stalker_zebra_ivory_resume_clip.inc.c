@@ -7,7 +7,7 @@ void stalkerZebraIvoryResumeClip(Task* arg0)
 {
     StalkerZebraIvoryWork* work = (StalkerZebraIvoryWork*)arg0->work;
 
-    Gp_ReleaseStateF0Add(arg0, 0);
+    sceneReleaseBattleRefWithRewards(arg0, 0);
     stalkerZebraIvoryPlayClip(arg0, gStalkerZebraIvoryResumeClips[work->animClip], 0x10);
     stalkerZebraIvoryTickAnim(arg0);
     work->state = work->state + 1;

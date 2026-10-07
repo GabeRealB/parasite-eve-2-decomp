@@ -5606,7 +5606,7 @@ static void func_actor_400500_8013A8E4(Task* arg0)
         i++;
     } while (i < ARRAY_SIZE(work2->rig.slots));
     worldTargetUnlinkNode(&enemy->node);
-    Gp_ReleaseStateF0Add(arg0, 0);
+    sceneReleaseBattleRefWithRewards(arg0, 0);
     enemy->recs = 0;
     worldCollisionUnlinkBody(&work->body);
     worldCollisionUnlinkBody(&work->rightArmOuter);

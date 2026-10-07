@@ -39,7 +39,6 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -3421,8 +3420,8 @@ void func_mine_mesa_801811C4(s32 height)
 /// random from the subset the current view allows, textured from the area's
 /// place record; `MineMesaCooldown` then delays the next spawn. When one
 /// kill remains, nothing spawns until both slots are empty. Once the counter
-/// is zero the task hands `Gp_ReleaseStateF0` an empty enemy record and
-/// advances its state.
+/// is zero the task releases its last battle hold with `sceneReleaseBattleRef`
+/// without adding rewards, then advances its state.
 static void func_mine_mesa_80181358(Task* arg0)
 {
     GameLocationKey      key;
@@ -3519,7 +3518,7 @@ static void func_mine_mesa_80181358(Task* arg0)
     arg0->spawnArg2.pointer                                = &result;
     result.param                                           = NULL;
     gSceneCombatState.battleRefs                           = 1;
-    Gp_ReleaseStateF0(arg0, 0);
+    sceneReleaseBattleRef(arg0, 0);
     gStageSceneMusicEntry = 1;
     arg0->state++;
 }

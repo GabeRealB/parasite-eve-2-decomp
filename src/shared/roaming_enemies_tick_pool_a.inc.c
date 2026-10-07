@@ -25,7 +25,7 @@ void roamerTickPoolA(Task* task)
     }
     if (gRoamerReleasePending == 1 && gSceneCombatState.battleRefs >= 2) {
         gRoamerReleasePending = 0;
-        Gp_ReleaseStateF0(task, 0xD);
+        sceneReleaseBattleRef(task, 0xD);
     }
     if (gSceneCombatState.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
         gRoamerCooldown = 0x96;

@@ -4040,7 +4040,7 @@ static void func_actor_403600_80140488(Enemy* arg0, Task* arg1)
             }
             break;
         case 1:
-            Gp_ReleaseStateF0Add(arg1, 0x24);
+            sceneReleaseBattleRefWithRewards(arg1, 0x24);
             globalWork->childEnemy          = NULL;
             enemy                           = arg1->spawnArg2.pointer;
             cleanupWork                     = arg1->work;
@@ -4171,7 +4171,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
         case 9:
-            Gp_ReleaseStateF0Add(arg0, 0x24);
+            sceneReleaseBattleRefWithRewards(arg0, 0x24);
             gGameSession->flowFlags                        = (u8)(gGameSession->flowFlags | GAME_SESSION_FLOW_REEQUIP_WEAPON);
             gSceneCombatState.signals.bytes.endDelayFrames = 5;
             break;

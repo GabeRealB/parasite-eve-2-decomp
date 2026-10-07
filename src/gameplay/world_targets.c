@@ -136,11 +136,82 @@ SceneCombatState gSceneCombatState;
 #include "gameplay/scene_combat.h"
 #include "gameplay/world_targets.h"
 
-static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag);
+/// Lock scan modes and ranking scales; angles use 4096 units per turn.
+enum {
+    WORLD_TARGET_LOCK_SCAN_AUTOMATIC           = 0,
+    WORLD_TARGET_LOCK_SCAN_LEFT                = 1,
+    WORLD_TARGET_LOCK_SCAN_RIGHT               = -1,
+    WORLD_TARGET_LOCK_ANGLE_TURN               = 0x1000,
+    WORLD_TARGET_LOCK_INITIAL_SCORE            = 0x3000,
+    WORLD_TARGET_LOCK_REJECT_SCORE             = 0x2000,
+    WORLD_TARGET_LOCK_INITIAL_DISTANCE_SQUARED = 0x7FFFFFFF,
+    WORLD_TARGET_LOCK_NEAR_DISTANCE_SQUARED    = 0x300000,
+    WORLD_TARGET_LOCK_PROXIMITY_SHIFT          = 13,
+    WORLD_TARGET_LOCK_SCORE_SHIFT              = 10,
+    WORLD_TARGET_LOCK_EYE_HEIGHT               = 1000
+};
+
+/// Selector and audio-update duration of the final battle hold's music fade.
+enum { SCENE_COMBAT_END_MUSIC_ALL_SEQUENCES = 0,
+       SCENE_COMBAT_END_MUSIC_FADE_TICKS    = 180 };
+
+static WorldTargetNode* _worldTargetScanLockNodes(Task* aimingTask, VECTOR3* outPosition, s32 scanMode);
 
 static void _worldTargetDrawReadouts(void);
 
-static void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos);
+static WorldTargetNode* _worldTargetFindLockNodeAndPositionFromPad(Task* aimingTask, VECTOR3* outPosition);
+
+/// Marks the final battle release and starts its frame delay, preserving rewards.
+///
+/// `combat` must be `&gSceneCombatState`; callers have already dropped the final
+/// hold. Music and reward handling follow separately so their ordering is kept.
+static __inline__ void _sceneFinishBattleSignals(SceneCombatState* combat)
+{
+    gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
+    combat->signals.bytes.actionFlags           = 0;
+    combat->signals.bytes.enemyAlert            = 0;
+    combat->signals.bytes.endDelayFrames        = SCENE_COMBAT_END_DELAY_FRAMES;
+}
+
+/// Reads port-zero held directions for lock cycling, with left taking precedence.
+static __inline__ s32 _worldTargetGetPadLockScanMode(void)
+{
+    s32 scanMode;
+
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_LEFT) != 0) {
+        scanMode = WORLD_TARGET_LOCK_SCAN_LEFT;
+    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT) != 0) {
+        scanMode = WORLD_TARGET_LOCK_SCAN_RIGHT;
+    } else {
+        scanMode = WORLD_TARGET_LOCK_SCAN_AUTOMATIC;
+    }
+    return scanMode;
+}
+
+/// Places a candidate's local body point in the view frame used by sight occluders.
+///
+/// Both pointers must be live and disjoint; the scratch reservation belongs to
+/// the caller. Narrows the body's XYZ to signed halfwords, saturates the GTE
+/// rotation and then adds the composed view-space translation with narrowing.
+static __inline__ void _worldTargetTransformLockCandidate(WorldTargetNode* candidate, _WorldTargetLockScanScratch* scratch)
+{
+    GfxCoord* targetCoord;
+    SVECTOR   targetLocal;
+
+    actorRenderComposeCoord(GP_NODE_ENEMY(candidate)->coord);
+    scratch->targetView.vx = GP_NODE_ENEMY(candidate)->bodyPos.vx;
+    scratch->targetView.vy = GP_NODE_ENEMY(candidate)->bodyPos.vy;
+    scratch->targetView.vz = GP_NODE_ENEMY(candidate)->bodyPos.vz;
+    targetCoord            = GP_NODE_ENEMY(candidate)->coord;
+    targetLocal            = scratch->targetView;
+    gte_SetRotMatrix(&targetCoord->workm);
+    gte_ldv0(&targetLocal);
+    gte_rtv0();
+    gte_stsv(&scratch->targetView);
+    scratch->targetView.vx += GP_NODE_ENEMY(candidate)->coord->workm.t[0];
+    scratch->targetView.vy += GP_NODE_ENEMY(candidate)->coord->workm.t[1];
+    scratch->targetView.vz += GP_NODE_ENEMY(candidate)->coord->workm.t[2];
+}
 
 /// Clears the player and companion actors' borrowed lock-on references to `node`.
 ///
@@ -362,119 +433,121 @@ void worldTargetDrawOverlay(void)
     }
 }
 
-static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
+/// Selects a visible enemy node by automatic ranking or directional cycling.
+///
+/// `scanMode` is automatic (0), left (1) or right (-1). Cached target offsets
+/// are in the player's rotated frame even when the aiming task is a companion.
+/// Automatic mode minimizes the proximity-adjusted absolute bearing, quantized
+/// by 10 bits, then proximity-adjusted squared distance; equal ties favor later entries.
+/// Cycling wraps the bearing difference by one turn and reverses the left score.
+/// Both modes penalize the current target by one turn rather than excluding it.
+/// Writes only the selected body's world-space XYZ; no selection leaves output
+/// unchanged. Returns a borrowed live node or NULL without changing actor locks.
+/// Requires the public finders' actor/list contract, a separate writable output,
+/// and 56 scratch bytes plus callees (200 bytes at the occlusion-query peak).
+/// Short-vector transforms narrow/saturate coordinates; integer scoring retains
+/// the target's arithmetic widths. Releases scratch and changes GTE state.
+static WorldTargetNode* _worldTargetScanLockNodes(Task* aimingTask, VECTOR3* outPosition, s32 scanMode)
 {
-    _WorldTargetLockScanScratch* block;
-    GameActor*                   actor;
-    GfxCoord*                    coord;
-    GfxCoord*                    nodeCoord;
-    WorldTargetNode*             node;
-    WorldTargetNode*             best;
-    s32                          bestAngle;
-    u32                          bestDist;
-    s32                          baseAngle;
-    s32                          angle;
-    u32                          dist;
-    s32                          sub;
-    SVECTOR                      tmp;
-    SVECTOR*                     srcp;
+    _WorldTargetLockScanScratch* scratch;
+    GameActor*                   aimingActor;
+    GfxCoord*                    aimingCoord;
+    WorldTargetNode*             candidate;
+    WorldTargetNode*             selected;
+    s32                          bestScore;
+    u32                          bestDistanceSquared;
+    s32                          currentBearing;
+    s32                          candidateScore;
+    u32                          distanceSquared;
+    s32                          proximityBonus;
+    SVECTOR*                     aimWorldPoint;
 
-    best = NULL;
-    SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetLockScanScratch);
-    block              = SCRATCH_STACK_CURSOR(_WorldTargetLockScanScratch);
-    actor              = arg0->work;
-    coord              = arg0->extra.tmd->coords;
-    block->eyeWorld.vx = coord->coord.t[0];
-    block->eyeWorld.vy = coord->coord.t[1] - 1000;
-    block->eyeWorld.vz = coord->coord.t[2];
+    // Place the aiming actor's raised eye point in the view frame used by occluders.
+    selected             = NULL;
+    scratch              = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetLockScanScratch);
+    aimingActor          = aimingTask->work;
+    aimingCoord          = aimingTask->extra.tmd->coords;
+    scratch->eyeWorld.vx = aimingCoord->coord.t[0];
+    scratch->eyeWorld.vy = aimingCoord->coord.t[1] - WORLD_TARGET_LOCK_EYE_HEIGHT;
+    scratch->eyeWorld.vz = aimingCoord->coord.t[2];
     actorRenderComposeCoord(&gGfxViewCoord);
-    srcp = &block->eyeWorld;
+    aimWorldPoint = &scratch->eyeWorld;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(srcp);
+    gte_ldv0(aimWorldPoint);
     gte_rtv0();
-    gte_stsv(&block->eyeView);
-    block->eyeView.vx += gGfxViewCoord.workm.t[0];
-    block->eyeView.vy += gGfxViewCoord.workm.t[1];
-    block->eyeView.vz += gGfxViewCoord.workm.t[2];
+    gte_stsv(&scratch->eyeView);
+    scratch->eyeView.vx += gGfxViewCoord.workm.t[0];
+    scratch->eyeView.vy += gGfxViewCoord.workm.t[1];
+    scratch->eyeView.vz += gGfxViewCoord.workm.t[2];
 
-    if (actor->targetNode != NULL && flag != 0) {
-        node      = actor->targetNode;
-        baseAngle = ratan2(GP_NODE_ENEMY(node)->playerRelPos.vx, GP_NODE_ENEMY(node)->playerRelPos.vz);
+    if (aimingActor->targetNode != NULL && scanMode != WORLD_TARGET_LOCK_SCAN_AUTOMATIC) {
+        candidate      = aimingActor->targetNode;
+        currentBearing = ratan2(GP_NODE_ENEMY(candidate)->playerRelPos.vx, GP_NODE_ENEMY(candidate)->playerRelPos.vz);
     } else {
-        baseAngle = 0;
+        currentBearing = 0;
     }
-    bestAngle = 0x3000;
-    bestDist  = 0x7FFFFFFF;
-    dist      = 0;
-    for (node = gWorldTargetListHead; node != NULL; node = node->next) {
-        if (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
+    bestScore           = WORLD_TARGET_LOCK_INITIAL_SCORE;
+    bestDistanceSquared = WORLD_TARGET_LOCK_INITIAL_DISTANCE_SQUARED;
+    distanceSquared     = 0;
+    for (candidate = gWorldTargetListHead; candidate != NULL; candidate = candidate->next) {
+        if (candidate->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
             continue;
         }
-        angle = ratan2(GP_NODE_ENEMY(node)->playerRelPos.vx, GP_NODE_ENEMY(node)->playerRelPos.vz);
-        if (flag == 0) {
-            dist = GP_NODE_ENEMY(node)->playerRelPos.vz * GP_NODE_ENEMY(node)->playerRelPos.vz + GP_NODE_ENEMY(node)->playerRelPos.vx * GP_NODE_ENEMY(node)->playerRelPos.vx + GP_NODE_ENEMY(node)->playerRelPos.vy * GP_NODE_ENEMY(node)->playerRelPos.vy;
-            if (angle < 0) {
-                angle = -angle;
+        candidateScore = ratan2(GP_NODE_ENEMY(candidate)->playerRelPos.vx, GP_NODE_ENEMY(candidate)->playerRelPos.vz);
+        // Automatic selection favors proximity and forward bearing; cycling wraps from the current bearing.
+        if (scanMode == WORLD_TARGET_LOCK_SCAN_AUTOMATIC) {
+            distanceSquared = GP_NODE_ENEMY(candidate)->playerRelPos.vz * GP_NODE_ENEMY(candidate)->playerRelPos.vz + GP_NODE_ENEMY(candidate)->playerRelPos.vx * GP_NODE_ENEMY(candidate)->playerRelPos.vx + GP_NODE_ENEMY(candidate)->playerRelPos.vy * GP_NODE_ENEMY(candidate)->playerRelPos.vy;
+            if (candidateScore < 0) {
+                candidateScore = -candidateScore;
             }
-            if (dist <= 0x300000) {
-                sub    = 0x300000 - dist;
-                sub  >>= 13;
-                sub   *= 3;
-                angle -= sub;
-                if (angle < 0) {
-                    angle = 0;
+            if (distanceSquared <= WORLD_TARGET_LOCK_NEAR_DISTANCE_SQUARED) {
+                proximityBonus   = WORLD_TARGET_LOCK_NEAR_DISTANCE_SQUARED - distanceSquared;
+                proximityBonus >>= WORLD_TARGET_LOCK_PROXIMITY_SHIFT;
+                proximityBonus  *= 3;
+                candidateScore  -= proximityBonus;
+                if (candidateScore < 0) {
+                    candidateScore = 0;
                 }
-                dist += sub / 3;
+                distanceSquared += proximityBonus / 3;
             }
-            angle >>= 10;
-            if (node == actor->targetNode) {
-                angle += 0x1000;
+            candidateScore >>= WORLD_TARGET_LOCK_SCORE_SHIFT;
+            if (candidate == aimingActor->targetNode) {
+                candidateScore += WORLD_TARGET_LOCK_ANGLE_TURN;
             }
-            if (angle == bestAngle && dist > bestDist) {
-                angle = 0x2000;
+            if (candidateScore == bestScore && distanceSquared > bestDistanceSquared) {
+                candidateScore = WORLD_TARGET_LOCK_REJECT_SCORE;
             }
         } else {
-            angle -= baseAngle;
-            if (angle < 0) {
-                angle += 0x1000;
+            candidateScore -= currentBearing;
+            if (candidateScore < 0) {
+                candidateScore += WORLD_TARGET_LOCK_ANGLE_TURN;
             }
-            if (angle >= 0x1000) {
-                angle -= 0x1000;
+            if (candidateScore >= WORLD_TARGET_LOCK_ANGLE_TURN) {
+                candidateScore -= WORLD_TARGET_LOCK_ANGLE_TURN;
             }
-            if (flag == 1) {
-                angle = -angle;
+            if (scanMode == WORLD_TARGET_LOCK_SCAN_LEFT) {
+                candidateScore = -candidateScore;
             }
-            if (node == actor->targetNode) {
-                angle += 0x1000;
+            if (candidate == aimingActor->targetNode) {
+                candidateScore += WORLD_TARGET_LOCK_ANGLE_TURN;
             }
         }
-        if (angle > bestAngle) {
+        if (candidateScore > bestScore) {
             continue;
         }
-        actorRenderComposeCoord(GP_NODE_ENEMY(node)->coord);
-        block->targetView.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
-        block->targetView.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
-        block->targetView.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
-        nodeCoord            = GP_NODE_ENEMY(node)->coord;
-        tmp                  = block->targetView;
-        gte_SetRotMatrix(&nodeCoord->workm);
-        gte_ldv0(&tmp);
-        gte_rtv0();
-        gte_stsv(&block->targetView);
-        block->targetView.vx += GP_NODE_ENEMY(node)->coord->workm.t[0];
-        block->targetView.vy += GP_NODE_ENEMY(node)->coord->workm.t[1];
-        block->targetView.vz += GP_NODE_ENEMY(node)->coord->workm.t[2];
-        if (worldCollisionSegmentOccluded(&block->targetView, &block->eyeView) != 1) {
-            bestAngle = angle;
-            best      = node;
-            bestDist  = dist;
+        // Only a visible candidate can replace the best score found so far.
+        _worldTargetTransformLockCandidate(candidate, scratch);
+        if (worldCollisionSegmentOccluded(&scratch->targetView, &scratch->eyeView) != true) {
+            bestScore           = candidateScore;
+            selected            = candidate;
+            bestDistanceSquared = distanceSquared;
         }
     }
-    if (best != NULL) {
-        worldTargetGetBodyPosition(best, out);
+    if (selected != NULL) {
+        worldTargetGetBodyPosition(selected, outPosition);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetLockScanScratch);
-    return best;
+    return selected;
 }
 
 void worldTargetAddReadoutAmount(WorldTargetNode* node, s32 amount, s32 unusedArg)
@@ -818,42 +891,35 @@ void worldTargetDisableNodeLockOn(WorldTargetNode* node)
     node->state.parts.flags    = flags | WORLD_TARGET_NOT_LOCKABLE;
 }
 
-void* Gp_FindLockNode(Task* arg0)
+WorldTargetNode* worldTargetFindLockNode(Task* aimingTask)
 {
-    VECTOR3 pos;
+    VECTOR3 targetPosition;
 
-    return Gp_ScanLockNodes(arg0, &pos, 0);
+    return _worldTargetScanLockNodes(aimingTask, &targetPosition, WORLD_TARGET_LOCK_SCAN_AUTOMATIC);
 }
 
-void* Gp_FindLockNodePad(Task* arg0)
+WorldTargetNode* worldTargetFindLockNodeFromPad(Task* aimingTask)
 {
-    VECTOR3  pos;
-    VECTOR3* p;
-    s32      flag;
+    VECTOR3  targetPosition;
+    VECTOR3* positionOutput;
+    s32      scanMode;
 
-    p = &pos;
-    if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_LEFT) != 0) {
-        flag = 1;
-    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT) != 0) {
-        flag = -1;
-    } else {
-        flag = 0;
-    }
-    return Gp_ScanLockNodes(arg0, p, flag);
+    positionOutput = &targetPosition;
+    scanMode       = _worldTargetGetPadLockScanMode();
+    return _worldTargetScanLockNodes(aimingTask, positionOutput, scanMode);
 }
 
-static void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos)
+/// Selects a lock target from port-zero input and writes its world-space body point.
+///
+/// Uses the same borrowed-node, actor and scratch contract as `worldTargetFindLockNodeFromPad`.
+/// `outPosition` provides three writable signed 32-bit components and is unchanged
+/// when no target is selected. Its storage must remain clear of the scratch stack.
+static WorldTargetNode* _worldTargetFindLockNodeAndPositionFromPad(Task* aimingTask, VECTOR3* outPosition)
 {
-    s32 flag;
+    s32 scanMode;
 
-    if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_LEFT) != 0) {
-        flag = 1;
-    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT) != 0) {
-        flag = -1;
-    } else {
-        flag = 0;
-    }
-    return Gp_ScanLockNodes(arg0, pos, flag);
+    scanMode = _worldTargetGetPadLockScanMode();
+    return _worldTargetScanLockNodes(aimingTask, outPosition, scanMode);
 }
 
 void worldTargetGetBodyPosition(const WorldTargetNode* node, VECTOR3* outPosition)
@@ -1161,25 +1227,23 @@ void sceneAcquireBattleRef(s32 unusedArg)
     gSceneCombatState.battleRefs++;
 }
 
-void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
+void sceneReleaseBattleRefWithRewards(Task* enemyTask, s32 unusedArg)
 {
-    SceneCombatState* combat;
-    SceneCombatState* rewards;
-    EnemyParams*      params;
+    SceneCombatState*  combat;
+    SceneCombatState*  rewards;
+    const EnemyParams* params;
 
     combat = &gSceneCombatState;
     if (combat->battleRefs != 0) {
         combat->battleRefs--;
         if (combat->battleRefs == 0) {
-            gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
-            combat->signals.bytes.actionFlags           = 0;
-            combat->signals.bytes.enemyAlert            = 0;
-            combat->signals.bytes.endDelayFrames        = SCENE_COMBAT_END_DELAY_FRAMES;
+            _sceneFinishBattleSignals(combat);
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
-                sndEvtRequestMidiStop(0, 0xB4);
+                sndEvtRequestMidiStop(SCENE_COMBAT_END_MUSIC_ALL_SEQUENCES, SCENE_COMBAT_END_MUSIC_FADE_TICKS);
             }
         }
-        params = ((Enemy*)arg0->spawnArg2.pointer)->param;
+        // Credit this release even when other holds remain; parameters may be absent.
+        params = ((Enemy*)enemyTask->spawnArg2.pointer)->param;
         if (params != NULL) {
             rewards             = &gSceneCombatState;
             rewards->expReward += params->exp;
@@ -1189,7 +1253,7 @@ void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
     }
 }
 
-void Gp_ReleaseStateF0Clear(Task* unusedTask, s32 unusedArg)
+void sceneReleaseBattleRefAndClearRewards(Task* unusedTask, s32 unusedArg)
 {
     SceneCombatState* combat;
 
@@ -1197,21 +1261,18 @@ void Gp_ReleaseStateF0Clear(Task* unusedTask, s32 unusedArg)
     if (combat->battleRefs != 0) {
         combat->battleRefs--;
         if (combat->battleRefs == 0) {
-            gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
-            combat->signals.bytes.actionFlags           = 0;
-            combat->signals.bytes.enemyAlert            = 0;
-            combat->signals.bytes.endDelayFrames        = SCENE_COMBAT_END_DELAY_FRAMES;
-            combat->expReward                           = 0;
-            combat->bpReward                            = 0;
-            combat->mpReward                            = 0;
+            _sceneFinishBattleSignals(combat);
+            combat->expReward = 0;
+            combat->bpReward  = 0;
+            combat->mpReward  = 0;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
-                sndEvtRequestMidiStop(0, 0xB4);
+                sndEvtRequestMidiStop(SCENE_COMBAT_END_MUSIC_ALL_SEQUENCES, SCENE_COMBAT_END_MUSIC_FADE_TICKS);
             }
         }
     }
 }
 
-void Gp_ReleaseStateF0(Task* arg0, s32 arg1)
+void sceneReleaseBattleRef(Task* unusedTask, s32 unusedArg)
 {
     SceneCombatState* combat;
 
@@ -1219,12 +1280,9 @@ void Gp_ReleaseStateF0(Task* arg0, s32 arg1)
     if (combat->battleRefs != 0) {
         combat->battleRefs--;
         if (combat->battleRefs == 0) {
-            gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
-            combat->signals.bytes.actionFlags           = 0;
-            combat->signals.bytes.enemyAlert            = 0;
-            combat->signals.bytes.endDelayFrames        = SCENE_COMBAT_END_DELAY_FRAMES;
+            _sceneFinishBattleSignals(combat);
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
-                sndEvtRequestMidiStop(0, 0xB4);
+                sndEvtRequestMidiStop(SCENE_COMBAT_END_MUSIC_ALL_SEQUENCES, SCENE_COMBAT_END_MUSIC_FADE_TICKS);
             }
         }
     }

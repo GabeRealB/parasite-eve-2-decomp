@@ -2985,7 +2985,7 @@ static void Actor00400_Fn042C0(Task* arg0)
         work->goalY = work->waterLevel;
     }
     worldTargetUnlinkNode(&obj->node);
-    Gp_ReleaseStateF0Add(arg0, 0);
+    sceneReleaseBattleRefWithRewards(arg0, 0);
     obj->recs = NULL;
     worldCollisionUnlinkBody(&work->trunkBody);
     worldCollisionUnlinkBody(&work->headBody);
@@ -3281,7 +3281,7 @@ static void Actor00400_Fn04CF8(Task* arg0)
     worldCollisionUnlinkBody(&work->headBody);
     worldCollisionUnlinkBody(&work->attackBody);
     worldTargetUnlinkNode(&obj->node);
-    Gp_ReleaseStateF0Add(arg0, 0);
+    sceneReleaseBattleRefWithRewards(arg0, 0);
     work->shadowShade = 0x80;
     if (work->hitReaction == ACTOR_00400_HIT_REACTION_BLAST) {
         w           = arg0->work;

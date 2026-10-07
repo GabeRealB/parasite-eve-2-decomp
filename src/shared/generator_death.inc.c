@@ -11,7 +11,7 @@
 /// same two randomly offset effects every fourth frame, setting bit 1 of the
 /// model's `field_C` at frame 0x14, spawning effect 0x600A5 at 0x1E and
 /// switching the light mode at 0x6E, then ends in state 2. Independently,
-/// `battleExitState` 0 calls `Gp_ReleaseStateF0Add` once with this sub-state's entry
+/// `battleExitState` 0 calls `sceneReleaseBattleRefWithRewards` once with this sub-state's entry
 /// of `gGeneratorReleaseIds` (message bit 2 clears the hold value 2). The
 /// pose and colour are ticked every frame, and the enemy is destroyed once the
 /// sequence has ended and the release has run.
@@ -193,7 +193,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
             break;
     }
     if (work->battleExitState == GENERATOR_BATTLE_EXIT_DUE) {
-        Gp_ReleaseStateF0Add(arg1, gGeneratorReleaseIds[work->kind]);
+        sceneReleaseBattleRefWithRewards(arg1, gGeneratorReleaseIds[work->kind]);
         work->battleExitState = GENERATOR_BATTLE_EXIT_DONE;
         Gp_ClearAreaFlag4(&gGameSession->location.loc);
     }

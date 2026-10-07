@@ -665,7 +665,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
             worldTargetUnlinkNode(&arg0->node);
             worldCollisionUnlinkBody(&part->body);
-            Gp_ReleaseStateF0Add(arg1, 0x34);
+            sceneReleaseBattleRefWithRewards(arg1, 0x34);
             arg0->recs         = 0;
             work->nearestStale = 1;
             work->partCount--;
@@ -720,7 +720,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             }
             break;
         case ACTOR_205200_PART_DOWN_RETIRING:
-            (Gp_ReleaseStateF0)(arg1, 0x34);
+            sceneReleaseBattleRef(arg1, 0x34);
             worldTargetUnlinkNode(&arg0->node);
             worldCollisionUnlinkBody(&part->body);
             part->downState = ACTOR_205200_PART_DOWN_RETIRED;

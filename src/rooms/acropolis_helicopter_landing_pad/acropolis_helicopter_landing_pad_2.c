@@ -32,7 +32,6 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1587,7 +1586,7 @@ void func_acropolis_helicopter_landing_pad_8017E6C0(s32 arg0)
 
 void func_acropolis_helicopter_landing_pad_8017E6F0(void)
 {
-    Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1B);
+    sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0x1B);
     gSceneCombatState.signals.bytes.endDelayFrames = 3;
 }
 

@@ -13,7 +13,7 @@ void madChaserDeathSettle(Task* arg0)
     s16            next;
 
     work = (MadChaserWork*)arg0->work;
-    Gp_ReleaseStateF0Add(arg0, 0);
+    sceneReleaseBattleRefWithRewards(arg0, 0);
     anim = work->animId;
     if (anim == 8) {
         if (work->hasLeaped == 0) {

@@ -26,7 +26,7 @@ void madChaserPulledIn(Task* arg0)
         gSceneCombatState.madChaserAlertOwner = 0;
     }
     worldTargetUnlinkNode(&enemy->node);
-    Gp_ReleaseStateF0Add(arg0, 0);
+    sceneReleaseBattleRefWithRewards(arg0, 0);
     enemy->recs = 0;
     objs        = (MadChaserWork*)arg0->work;
     worldCollisionUnlinkBody(&objs->pairBody);

@@ -3471,7 +3471,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
                     state->actor01600Wave = state->actor01600Wave + 1;
                 }
             } else {
-                Gp_ReleaseStateF0Add(arg1, 0x10);
+                sceneReleaseBattleRefWithRewards(arg1, 0x10);
             }
             work->deathPhase = ACTOR_01600_DEATH_COLLAPSE;
             break;
@@ -3527,7 +3527,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
                     arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                     break;
                 }
-                Gp_ReleaseStateF0Add(arg1, 0x10);
+                sceneReleaseBattleRefWithRewards(arg1, 0x10);
             }
             work->exitTimer         = 0x3C;
             arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -4382,7 +4382,7 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
             }
             break;
         case 8:
-            Gp_ReleaseStateF0Add(arg0, 0x10);
+            sceneReleaseBattleRefWithRewards(arg0, 0x10);
             enemyDestroy(ctx, arg0);
             Actor01600_D12874 -= 1;
             break;
@@ -4964,7 +4964,7 @@ static void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
         worldCollisionUnlinkBody(&work->bite.body);
     }
     worldCoordSetActorColorMode(ctx, ENEMY_COLOR_WEIGHTED);
-    Gp_ReleaseStateF0Add(arg0, 0x10);
+    sceneReleaseBattleRefWithRewards(arg0, 0x10);
     enemyDestroy(ctx, arg0);
     Actor01600_D12874 -= 1;
 }

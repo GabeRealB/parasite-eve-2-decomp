@@ -54,7 +54,7 @@ void mothDeath(Enemy* arg0, Task* arg1)
                     pan                    = (s8)worldCoordGetOriginAudioPan(coord);
                     sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                     worldTargetUnlinkNode(&arg0->node);
-                    Gp_ReleaseStateF0Add(arg1, 8);
+                    sceneReleaseBattleRefWithRewards(arg1, 8);
                     work->timer     = 1;
                     work->deathStep = 1;
                     break;

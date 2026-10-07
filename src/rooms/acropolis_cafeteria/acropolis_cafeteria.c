@@ -37,7 +37,6 @@
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/view.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1147,7 +1146,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             task->state += 1;
             break;
         case 21:
-            Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0xA);
+            sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0xA);
             gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             gSceneCombatState.signals.bytes.endDelayFrames = 3;
             D_acropolis_cafeteria_80184164                 = 2;

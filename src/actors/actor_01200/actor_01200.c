@@ -1058,7 +1058,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0x45:
-            Gp_ReleaseStateF0Add(arg1, 0xC);
+            sceneReleaseBattleRefWithRewards(arg1, 0xC);
             work->state = ACTOR_01200_STATE_HIDDEN;
             break;
         default:
@@ -1192,7 +1192,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case 0x26:
-            Gp_ReleaseStateF0Add(arg1, 0xC);
+            sceneReleaseBattleRefWithRewards(arg1, 0xC);
             work->state = ACTOR_01200_STATE_HIDDEN;
             break;
     }

@@ -6275,18 +6275,17 @@ matched body into a family's shared library"). `Actor04400_Fn08A40` is the
 example: one C copy stays in `actor_104400_text.c`, the 341700/342400 copies
 share `ActorsShared8016a890`.
 
-## Extra `$a0`/`$a1` on a `void(void)` import: function-pointer cast
+## Unused imported argument slots still need the caller's signature
 
-An overlay jal of a `void f(void)` import (e.g. `Gp_ReleaseStateF0Clear`)
-may still set `$a0`/`$a1` in the delay slot — the original TU had no
-prototype. Including the real header and calling `f()` drops those
-moves (`insert`/`delete` around the jal). Do not redeclare the symbol
-with extra args if the header is already in the TU.
-
-Cast the call:
+An overlay jal of an import with unused arguments (e.g. `sceneReleaseBattleRefAndClearRewards`)
+may still set `$a0`/`$a1` in the delay slot. Declaring it `void(void)` and calling
+it without arguments drops those moves (`insert`/`delete` around the jal).
+The declaration must reflect the caller's Task* and s32 argument slots even
+though the definition ignores both. The current public header declares that
+signature, so callers use it directly:
 
 ```c
-((void (*)(Task*, s32))Gp_ReleaseStateF0Clear)(arg0, 0);
+sceneReleaseBattleRefAndClearRewards(arg0, 0);
 ```
 
 A neighboring `void(void)` jal whose delay slot is an unrelated store
@@ -7917,25 +7916,25 @@ sb v0,1(a0)` before `lui gGameSession`) and loads `gGameSession` into
 Use a new local for the later stores:
 
 ```c
-p = &gSceneCombatState;
-if (p->battleRefs != 0) {
-    p->battleRefs--;
-    if (p->battleRefs == 0) {
+combat = &gSceneCombatState;
+if (combat->battleRefs != 0) {
+    combat->battleRefs--;
+    if (combat->battleRefs == 0) {
         gSceneCombatState.signals.bytes.battlePhase = 2;
-        p->signals.bytes.actionFlags         = 0;
-        p->signals.bytes.enemyAlert         = 0;
-        p->signals.bytes.endDelayFrames         = 0x3C;
+        combat->signals.bytes.actionFlags         = 0;
+        combat->signals.bytes.enemyAlert         = 0;
+        combat->signals.bytes.endDelayFrames         = 0x3C;
         /* ... */
     }
-    rec = arg0->field_20->field_50;
-    if (rec != NULL) {
-        q = &gSceneCombatState;
-        q->expReward += rec->field_6;
+    params = ((Enemy*)enemyTask->spawnArg2.pointer)->param;
+    if (params != NULL) {
+        rewards = &gSceneCombatState;
+        rewards->expReward += params->exp;
     }
 }
 ```
 
-`Gp_ReleaseStateF0Add` is the example. Reusing `p` for the second half stuck
+`sceneReleaseBattleRefWithRewards` is the example. Reusing `combat` for the second half stuck
 at 94.4% with only that last-ref schedule and the `$a0`/`$v1` reload
 different.
 
@@ -24072,16 +24071,16 @@ logical change. Assign the argument only after each call so it can stay in
 
 ```c
 if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_LEFT) != 0) {
-    flag = 1;
+    scanMode = 1;
 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT) != 0) {
-    flag = -1;
+    scanMode = -1;
 } else {
-    flag = 0;
+    scanMode = 0;
 }
-return func(arg0, pos, flag);
+return func(aimingTask, outPosition, scanMode);
 ```
 
-`Gp_FindLockNodeAt` is the example. `flag = 1` before the first poll scored ~77%.
+`_worldTargetFindLockNodeAndPositionFromPad` is the example. `scanMode = 1` before the first poll scored ~77%.
 
 ## Take `&local` into a pointer temp before the first call
 
@@ -24091,22 +24090,22 @@ only at the final use lets GCC form the address in that last delay slot and
 drop the extra saved register (0x28 frame vs 0x30). Assign the address first:
 
 ```c
-VECTOR3 pos;
-VECTOR3* p;
+VECTOR3 targetPosition;
+VECTOR3* positionOutput;
 
-p = &pos;
+positionOutput = &targetPosition;
 if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_LEFT) != 0) {
-    flag = 1;
+    scanMode = 1;
 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT) != 0) {
-    flag = -1;
+    scanMode = -1;
 } else {
-    flag = 0;
+    scanMode = 0;
 }
-return func(arg0, p, flag);
+return func(aimingTask, positionOutput, scanMode);
 ```
 
-`Gp_FindLockNodePad` is the example — the same flag pattern as `Gp_FindLockNodeAt`, but
-with a stack `VECTOR3`. Bare `&pos` at the call scored ~78%.
+`worldTargetFindLockNodeFromPad` is the example — the same scanMode pattern as `_worldTargetFindLockNodeAndPositionFromPad`, but
+with a stack `VECTOR3`. Bare `&targetPosition` at the call scored ~78%.
 
 ## `if (next == NULL)` keeps the unlink `j` / `nop` delay; `!=` fills it
 
@@ -39135,9 +39134,9 @@ two independent scratch-head store-address materializations.
 Adding a matrix translation into a scratch `SVECTOR` three components at a time:
 
 ```c
-block->eyeView.vx += *(u16*)&gGfxViewCoord.workm.t[0];   /* wrong */
-block->eyeView.vy += *(u16*)&gGfxViewCoord.workm.t[1];
-block->eyeView.vz += *(u16*)&gGfxViewCoord.workm.t[2];
+scratch->eyeView.vx += *(u16*)&gGfxViewCoord.workm.t[0];   /* wrong */
+scratch->eyeView.vy += *(u16*)&gGfxViewCoord.workm.t[1];
+scratch->eyeView.vz += *(u16*)&gGfxViewCoord.workm.t[2];
 ```
 
 emits the right eight instructions but in the wrong order: GCC 2.8.1 hoists the
@@ -39147,34 +39146,34 @@ too keeps each component self-contained, so the schedule degenerates back to
 `lhu`/`lhu`/`nop`/`addu`/`sh` per component exactly as in the target:
 
 ```c
-*(u16*)&block->eyeView.vx = *(u16*)&block->eyeView.vx + *(u16*)&gGfxViewCoord.workm.t[0];
-*(u16*)&block->eyeView.vy = *(u16*)&block->eyeView.vy + *(u16*)&gGfxViewCoord.workm.t[1];
-*(u16*)&block->eyeView.vz = *(u16*)&block->eyeView.vz + *(u16*)&gGfxViewCoord.workm.t[2];
+*(u16*)&scratch->eyeView.vx = *(u16*)&scratch->eyeView.vx + *(u16*)&gGfxViewCoord.workm.t[0];
+*(u16*)&scratch->eyeView.vy = *(u16*)&scratch->eyeView.vy + *(u16*)&gGfxViewCoord.workm.t[1];
+*(u16*)&scratch->eyeView.vz = *(u16*)&scratch->eyeView.vz + *(u16*)&gGfxViewCoord.workm.t[2];
 ```
 
 The `+=` form goes through the `s16` field's own mode, which gives the RMW a
 distinct pseudo per component that the scheduler is free to interleave; the
 all-`u16` form makes load, add and store one dependency chain. This was worth
-95.9% -> 97.7% in `Gp_ScanLockNodes`. Note the neighbouring, already-matched
+95.9% -> 97.7% in `_worldTargetScanLockNodes`. Note the neighbouring, already-matched
 `Gp_UpdateLinkXforms` wants the `+=` form — check which schedule the target has
 before copying either idiom.
 
 ## Chain compound assignments to make a multi-step expression reuse one register
 
-`sub = ((0x300000 - dist) >> 13) * 3;` allocates a fresh pseudo per sub-result,
+`proximityBonus = ((0x300000 - distanceSquared) >> 13) * 3;` allocates a fresh pseudo per sub-result,
 so the subtract, the shift and the `*3` land in whatever registers are free
 (`subu v0` / `sra v1,v0` / `sll v0,v1` / `addu v1,v1,v0`). Writing the same
 arithmetic as compound assignments to one variable makes every step reuse that
 variable's pseudo, which is what the target does:
 
 ```c
-sub   = 0x300000 - dist;   /* subu v1,a3,s3 */
-sub >>= 13;                /* sra  v1,v1,0xd */
-sub  *= 3;                 /* sll  v0,v1,1 ; addu v1,v1,v0 */
+proximityBonus   = 0x300000 - distanceSquared;   /* subu v1,a3,s3 */
+proximityBonus >>= 13;                /* sra  v1,v1,0xd */
+proximityBonus  *= 3;                 /* sll  v0,v1,1 ; addu v1,v1,v0 */
 ```
 
-Split one step at a time from the end: `sub *= 3` alone fixed the `sll`/`addu`
-pair, and moving the subtraction into `sub` as well fixed the `subu`/`sra`.
+Split one step at a time from the end: `proximityBonus *= 3` alone fixed the `sll`/`addu`
+pair, and moving the subtraction into `proximityBonus` as well fixed the `subu`/`sra`.
 
 The same applies to an `(s8)` cast of a call result held across a later call.
 `pan = (s8)worldCoordGetOriginAudioPan(...)` shifts into a scratch `$v0` and only the `sra`
@@ -41950,7 +41949,7 @@ time.
 Two different functions can plausibly earn the same descriptive name.
 `func_800B2200` (a `ScreenFade` TILE task in 1BC) and the already-named
 `fadeDisplayTransitionTask` at `0x800BF738` in 4CC are both "the fade tile task"; so are
-`func_800DA2A0` and the existing `Gp_FindLockNodeAt`. Renaming into a taken
+`func_800DA2A0` and the existing `_worldTargetFindLockNodeAndPositionFromPad`. Renaming into a taken
 name puts two addresses behind one symbol in `sym.gameplay.txt`.
 
 This does **not** always fail loudly: the token substitution rewrites both
@@ -44813,7 +44812,7 @@ task = arg1;
 if (state->field_1C >= 3) {
     if (Actor01600_Fn06F78(task) == 1) { … }
 } else {
-    Gp_ReleaseStateF0Add(task, 0x10);
+    sceneReleaseBattleRefWithRewards(task, 0x10);
 }
 ```
 
@@ -46778,7 +46777,7 @@ Merging `Actor03800_Fn02068`'s L-label span needed the byte at `0x801153F2`,
 which is `gSceneCombatState.signals.bytes.actionFlags` in `include/gameplay/scene_combat.h`. Adding that include
 to `src/actors/lib/actor_103800_text.c` does not build: the file opens with its
 own hand-written prototypes for `worldTargetUnlinkNode`, `worldCollisionUnlinkBody`,
-`worldCoordSetActorColorMode`, `Gp_ReleaseStateF0Add`, `worldCoordUpdateActorColor`,
+`worldCoordSetActorColorMode`, `sceneReleaseBattleRefWithRewards`, `worldCoordUpdateActorColor`,
 `worldCoordGetOriginAudioPan` and `worldCoordGetOriginAudioDepth`, and several of them disagree with the
 header in *arity*, not just in pointer type (`worldCoordUpdateActorColor` is declared
 with four arguments locally and two in the header). cc1 stops with
@@ -74060,7 +74059,7 @@ cross-jump merges the two copies back into one:
 
 ```c
     if (D_801153F6 >= 2) {
-        Gp_ReleaseStateF0((GpObj20E*)task, 0xD);
+        sceneReleaseBattleRef(task, 0xD);
     } else {
         D_neo_ark_woodland_path_80184996 = 1;
     }
@@ -75855,14 +75854,14 @@ compares of the one value.
 ### Reassigning a local reuses its pseudo, so a repeated load needs a second variable
 
 `func_actor_800200_8016545C` reads `index->actor` twice - once before the call to
-`Gp_FindLockNode` and once after it, which cse cannot merge across the call -
+`worldTargetFindLockNode` and once after it, which cse cannot merge across the call -
 and the target keeps the two in different registers (`$s0` for the first,
 `$v0` for everything after the call). Writing it the obvious way does not:
 
 ```c
 GameActor* actor = arg0->actor;   /* -> $s0 */
 actor->companionWork->activity.combat.repeatsRemaining = arg1;
-if (gSceneCombatState.signals.bytes.battlePhase == 1) { actor->targetNode = Gp_FindLockNode(arg0); }
+if (gSceneCombatState.signals.bytes.battlePhase == 1) { actor->targetNode = worldTargetFindLockNode(arg0); }
 ...
 actor = arg0->actor;              /* still the same pseudo: one quantity */
 actor->mode = 0;

@@ -2801,7 +2801,7 @@ static void func_actor_503500_80137678(Task* arg0)
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
-            Gp_ReleaseStateF0Add(arg0, 0);
+            sceneReleaseBattleRefWithRewards(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags             &= ENEMY_REACTION_LOW_CLEAR;
             work->spin.fixed.vx.word          = 0;
@@ -3521,7 +3521,7 @@ static void func_actor_503500_80139014(Task* arg0)
             func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
-            Gp_ReleaseStateF0Add(arg0, 0);
+            sceneReleaseBattleRefWithRewards(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
             enemy->reactionFlags    &= ENEMY_REACTION_LOW_CLEAR;
             work->tipTarget.vy       = 0x1388;

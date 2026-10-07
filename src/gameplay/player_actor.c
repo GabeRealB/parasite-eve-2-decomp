@@ -8642,7 +8642,7 @@ static void Gp_ArmLockOnState(Task* arg0)
     s32              flag;
 
     inner               = arg0->work;
-    node                = Gp_FindLockNode(arg0);
+    node                = worldTargetFindLockNode(arg0);
     inner->movementSign = 0;
     if ((node != NULL && gSceneCombatState.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || (flag = 1, gSceneCombatState.signals.bytes.battlePhase == flag) ||
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.field_929 != 0) {
@@ -9134,7 +9134,7 @@ static void Gp_PlayerNormalState1(Task* arg0)
 
     Gp_TrackLockTarget(arg0);
     inner               = arg0->work;
-    node                = Gp_FindLockNode(arg0);
+    node                = worldTargetFindLockNode(arg0);
     inner->movementSign = 0;
     if ((node != NULL && gSceneCombatState.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || (flag = 1, gSceneCombatState.signals.bytes.battlePhase == flag) ||
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.field_929 != 0) {
@@ -9316,11 +9316,11 @@ static void Gp_UpdateLockTarget(Task* arg0)
         if (flags & 0x40) {
             Gp_DetachLinkNode(arg0);
         } else if (((inner->padHeld & 0x80) && (flags & 0xA000)) || (flags & 0x80)) {
-            _playerActorSetTargetNode(arg0, Gp_FindLockNodePad(arg0));
+            _playerActorSetTargetNode(arg0, worldTargetFindLockNodeFromPad(arg0));
         }
     } else if ((inner->padPressed & 0x80) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS)) {
         inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
-        _playerActorSetTargetNode(arg0, Gp_FindLockNode(arg0));
+        _playerActorSetTargetNode(arg0, worldTargetFindLockNode(arg0));
     }
 }
 

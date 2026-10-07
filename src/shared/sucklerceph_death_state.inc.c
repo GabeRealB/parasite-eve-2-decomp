@@ -52,7 +52,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                             sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                         }
                         task->killCountdown = 0;
-                        Gp_ReleaseStateF0Add(task, 0x2E);
+                        sceneReleaseBattleRefWithRewards(task, 0x2E);
                         if (work->hasBurst != 0) {
                             Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, task->extra.tmd->coords, 0, NULL);
                         }

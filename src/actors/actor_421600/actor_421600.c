@@ -2810,7 +2810,7 @@ static void func_actor_421600_801369A0(Task* arg0)
         do {
         } while (0);
         if (gSceneCombatState.battleRefs >= 2U) {
-            Gp_ReleaseStateF0Add(arg0, 1);
+            sceneReleaseBattleRefWithRewards(arg0, 1);
         }
         if (D_actor_421600_80151268 <= 0) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);

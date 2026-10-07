@@ -4482,7 +4482,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     }
 
     gSceneCombatState.battleRefs = 0xA;
-    Gp_ReleaseStateF0Add(task, 0x20);
+    sceneReleaseBattleRefWithRewards(task, 0x20);
     _gGluttonHostTask.task = task;
     work->summonsSpawned = work->summonsAlive = 0;
     task->state                              += 1;

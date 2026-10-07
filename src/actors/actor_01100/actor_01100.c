@@ -1562,7 +1562,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) {
                     work->roomNotified = 0;
                 } else {
-                    Gp_ReleaseStateF0Add(task, work->entryId);
+                    sceneReleaseBattleRefWithRewards(task, work->entryId);
                 }
                 died   = 1;
                 sndId  = (work->waterRoom << 0x16) | 0x400B0006;

@@ -3865,7 +3865,7 @@ static void func_actor_405800_80138C30(Task* task)
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     func_actor_405800_80136E14(task);
     work->shadowShade = 0;
-    Gp_ReleaseStateF0Add(task, 0);
+    sceneReleaseBattleRefWithRewards(task, 0);
     enemy->recs = 0;
     worldCollisionUnlinkBody(&work->gridBody);
     worldCollisionUnlinkBody(&work->body);

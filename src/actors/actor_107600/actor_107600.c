@@ -1199,7 +1199,7 @@ static void func_actor_107600_80132AC0(Task* arg0)
     _Actor107600MountWork* work = arg0->work;
 
     if (work->behaviour != ACTOR_107600_MOUNT_FIXED) {
-        Gp_ReleaseStateF0Add(arg0, 0);
+        sceneReleaseBattleRefWithRewards(arg0, 0);
     }
     enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }

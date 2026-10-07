@@ -5886,7 +5886,7 @@ void func_acropolis_bridge_801874DC(Task* task)
             sceneEngageBattle(1);
         }
         if (enemy->hp > 0) {
-            Gp_ReleaseStateF0Add(task, 0x29);
+            sceneReleaseBattleRefWithRewards(task, 0x29);
         }
         work->effectArg.coord      = &task->extra.tmd->coords[1];
         work->effectArg.spawnArgLo = 0xA0;
@@ -5953,7 +5953,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
             return;
         }
         if (gSceneCombatState.battleRefs != 0) {
-            Gp_ReleaseStateF0Add(task, 0x29);
+            sceneReleaseBattleRefWithRewards(task, 0x29);
         }
         if (work->hp > 0) {
             return;

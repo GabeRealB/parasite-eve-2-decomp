@@ -643,7 +643,7 @@ void func_8010A670(Task* arg0)
             } else {
                 mode = inner->state;
                 if (mode == 2 && !(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) && (rand() & 3)) {
-                    node = Gp_FindLockNode(arg0);
+                    node = worldTargetFindLockNode(arg0);
                     if (node != NULL) {
                         inner->aimTrackingState = mode;
                         playerActorSetLockTarget(arg0, node);

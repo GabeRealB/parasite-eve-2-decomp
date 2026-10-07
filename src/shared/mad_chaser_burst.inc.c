@@ -17,7 +17,7 @@ void madChaserBurst(Task* arg0)
     tmdFreePrimitiveBuffer(model);
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     madChaserSpawnGibs(arg0);
-    Gp_ReleaseStateF0Add(arg0, 0);
+    sceneReleaseBattleRefWithRewards(arg0, 0);
     enemy->recs = 0;
     work        = (MadChaserWork*)arg0->work;
     worldCollisionUnlinkBody(&work->pairBody);

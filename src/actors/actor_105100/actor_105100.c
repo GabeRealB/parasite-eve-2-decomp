@@ -1851,7 +1851,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             if (work->timer >= 0x1F) {
                 work->anim       = ACTOR_105100_ANIM_DIE;
                 work->actionStep = 2;
-                Gp_ReleaseStateF0Add(actor, 0x33);
+                sceneReleaseBattleRefWithRewards(actor, 0x33);
                 work->deathEventPending = 1;
             }
             _actor105100AnimUpdate(actor);

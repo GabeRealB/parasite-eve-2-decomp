@@ -31,7 +31,6 @@
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 #include "gameplay/scene_combat.h"
 
 #include "main/coord.h"
@@ -2884,7 +2883,7 @@ void func_dryfield_water_tower_8017F82C(void)
     if (state->reequipRequested == 0) {
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON);
-        Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 1);
+        sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 1);
         state->reequipRequested = 1;
     }
 }

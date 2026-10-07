@@ -5,7 +5,7 @@
 /// Otherwise the work's `step` steps: step 0 saves the coordinate in
 /// `baseMatrix` for the squash, unlinks the context node and the work's four
 /// collision objects, passes 0x37 (0x1A when `isCaterpillar` is clear) to
-/// `Gp_ReleaseStateF0Add` and starts `MAGGOT_CATERPILLAR_ANIM_HURT`; step 1
+/// `sceneReleaseBattleRefWithRewards` and starts `MAGGOT_CATERPILLAR_ANIM_HURT`; step 1
 /// squashes the model (and, once `burst` has passed 1, frees its buffers and
 /// spawns the model effect of `maggotCaterpillarSpawnHusk` in its place),
 /// spawns effect 0x600A5 at frame 0xF and moves to step 2 at frame 0x3C; step 2
@@ -48,7 +48,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                     if (work->isCaterpillar == 0) {
                         releaseId = 0x1A;
                     }
-                    Gp_ReleaseStateF0Add(arg1, releaseId);
+                    sceneReleaseBattleRefWithRewards(arg1, releaseId);
                     sceneSetEnemyAlert(2);
                     work->stateCounter = 0;
                     work->step         = 1;

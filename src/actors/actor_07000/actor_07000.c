@@ -1714,7 +1714,7 @@ static void Actor07000_Fn04468(Enemy* arg0, Task* arg1)
                     worldCollisionUnlinkBody(&work->senseBody);
                     worldCollisionUnlinkBody(&work->body);
                     worldCollisionUnlinkBody(&work->attackBody);
-                    Gp_ReleaseStateF0Add(arg1, 0x2A);
+                    sceneReleaseBattleRefWithRewards(arg1, 0x2A);
                     work->animId      = ACTOR_07000_SLOUCH_ANIM_DEATH;
                     work->stateFrames = 0;
                     work->deathPhase  = ACTOR_07000_SLOUCH_DEATH_PHASE_FLATTEN;

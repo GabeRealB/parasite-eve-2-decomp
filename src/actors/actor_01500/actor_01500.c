@@ -1791,7 +1791,7 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->roomBody);
             worldCollisionUnlinkBody(&work->attackBody);
             worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
-            Gp_ReleaseStateF0Add(arg1, 0xF);
+            sceneReleaseBattleRefWithRewards(arg1, 0xF);
             work->timer      = 0;
             work->actionStep = ACTOR_01500_DEATH_SHRINK;
             if (work->burstPending != 0) {
@@ -1837,7 +1837,7 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
                 worldCollisionUnlinkBody(&work->body);
                 worldCollisionUnlinkBody(&work->roomBody);
                 worldCollisionUnlinkBody(&work->attackBody);
-                Gp_ReleaseStateF0Add(arg1, 0xF);
+                sceneReleaseBattleRefWithRewards(arg1, 0xF);
             }
             work->timer++;
             if (work->timer >= 61) {

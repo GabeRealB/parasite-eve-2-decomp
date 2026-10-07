@@ -20,7 +20,6 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1859,7 +1858,7 @@ void func_actor_503500_80132CA4(void)
 
 void func_actor_503500_80132CC4(s8 arg0)
 {
-    Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x23);
+    sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0x23);
     gSceneCombatState.signals.bytes.endDelayFrames = arg0;
 }
 

@@ -2079,7 +2079,7 @@ static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->gridBody);
             worldCollisionUnlinkBody(&work->attackBody);
             worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
-            Gp_ReleaseStateF0Add(arg1, 0x26);
+            sceneReleaseBattleRefWithRewards(arg1, 0x26);
             work->actionStep = 1;
             if (work->burstStage != 0) {
                 obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;

@@ -70,9 +70,30 @@ void worldTargetSetPlayerLock(WorldTargetNode* node);
 /// The caller retains ownership; this does not unlink or free the entry.
 void worldTargetDisableNodeLockOn(WorldTargetNode* node);
 
-void* Gp_FindLockNode(Task* arg0);
+/// Finds a visible lock-on target, preferring forward bearing and nearby bodies.
+///
+/// Returns a borrowed live enemy target entry or NULL; does not set an actor
+/// lock or change list membership. The current target is penalized, so an
+/// alternative visible target wins when available. Bearings/distances use the
+/// per-frame player-relative cache, including for a companion's query.
+/// `aimingTask` must have live `GameActor` work and a model root whose translation
+/// is in world game units. The tracked list must be acyclic with live embedded
+/// enemy nodes, current player-relative offsets and valid coordinate chains.
+/// Requires current view/occluder state and an initialized scratch stack with
+/// 200 bytes available for nested queries. Releases scratch before return;
+/// updates coordinate caches and GTE state, with signed-halfword narrowing and
+/// saturation in the visibility transforms. No allocation or ownership transfer.
+WorldTargetNode* worldTargetFindLockNode(Task* aimingTask);
 
-void* Gp_FindLockNodePad(Task* arg0);
+/// Finds a lock-on target using held left/right input from controller port zero.
+///
+/// Left takes precedence when both buttons are held. Either direction cycles
+/// around the current target's player-relative bearing; no direction uses the
+/// automatic ranking of `worldTargetFindLockNode`. A missing current target
+/// uses forward bearing as the cycle origin. The current target remains eligible
+/// with a score penalty. Uses the same actor/list/scratch and borrowed-pointer
+/// contract as `worldTargetFindLockNode`, and does not change the actor's lock.
+WorldTargetNode* worldTargetFindLockNodeFromPad(Task* aimingTask);
 
 /// Writes the target's body point in world-space game coordinates.
 ///
@@ -92,13 +113,5 @@ void* Gp_FindLockNodePad(Task* arg0);
 /// scratch stack with 40 bytes plus the called transform's 48-byte reservation.
 /// Releases scratch before return and changes GTE transform/arithmetic state.
 void worldTargetGetBodyPosition(const WorldTargetNode* node, VECTOR3* outPosition);
-
-void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1);
-
-/// Clear accumulated rewards on the last release. Both caller-supplied
-/// arguments are unused.
-void Gp_ReleaseStateF0Clear(Task* unusedTask, s32 unusedArg);
-
-void Gp_ReleaseStateF0(Task* arg0, s32 arg1);
 
 #endif // GAMEPLAY_WORLD_TARGETS_H

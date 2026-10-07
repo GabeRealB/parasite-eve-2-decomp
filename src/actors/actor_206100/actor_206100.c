@@ -3729,7 +3729,7 @@ static void func_actor_206100_8014FBE4(Task* task)
     Gp_ApplyAreaRecs(D_neo_ark_submarine_gallery_8018590C);
     work->goalY = work->waterLevel;
     worldTargetUnlinkNode(&enemy->node);
-    Gp_ReleaseStateF0Add(task, 0);
+    sceneReleaseBattleRefWithRewards(task, 0);
     gameFlagSetNibble(GAME_FLAG_0F3, 1);
     enemy->recs = 0;
     worldCollisionUnlinkBody(&work->trunkBody);

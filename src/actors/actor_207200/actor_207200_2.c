@@ -1412,7 +1412,7 @@ static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1)
             state = work->deathPhase;
             switch (state) {
                 case ACTOR_207200_DEATH_PHASE_BEGIN:
-                    Gp_ReleaseStateF0Add(arg1, 0x2B);
+                    sceneReleaseBattleRefWithRewards(arg1, 0x2B);
                     work->deathPhase    = ACTOR_207200_DEATH_PHASE_SETTLE;
                     work->phaseFrames   = 0;
                     work->flattenScaleY = 0x1000;

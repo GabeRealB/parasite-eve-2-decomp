@@ -4746,7 +4746,7 @@ static void func_actor_400600_8013A864(Task* arg0)
     tmdFreePrimitiveBuffer(model);
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     func_actor_400600_80137240(arg0);
-    Gp_ReleaseStateF0Add(arg0, 0);
+    sceneReleaseBattleRefWithRewards(arg0, 0);
     enemy->recs = 0;
     worldCollisionUnlinkBody(&work->body);
     worldCollisionUnlinkBody(&work->rightArmBody);

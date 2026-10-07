@@ -8431,7 +8431,7 @@ static void func_actor_403100_8013E624(Task* arg0)
     timer                                = D_actor_403100_80155808->stateFrames + 1;
     D_actor_403100_80155808->stateFrames = timer;
     if ((s16)timer == 0x12) {
-        Gp_ReleaseStateF0Add(arg0, 0);
+        sceneReleaseBattleRefWithRewards(arg0, 0);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x168) {
         arg0->state                       = 5;
@@ -8777,7 +8777,7 @@ static void func_actor_403100_8013F0A8(Task* arg0)
     D_actor_403100_8014762C.mp         = 0;
     D_actor_403100_8014762C.exp      >>= 1;
     gGameSession->location.loc.variant = 4;
-    Gp_ReleaseStateF0Add(arg0, 0);
+    sceneReleaseBattleRefWithRewards(arg0, 0);
     arg0->state                       = 5;
     D_actor_403100_80155808->state    = 0;
     D_actor_403100_80155808->subState = 0;

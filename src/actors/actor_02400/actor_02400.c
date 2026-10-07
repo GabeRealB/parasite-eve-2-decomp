@@ -1250,7 +1250,7 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
                     worldCollisionUnlinkBody(&work->body);
                     worldCollisionUnlinkBody(&work->attackBody);
                     worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
-                    Gp_ReleaseStateF0Add(arg1, 0x18);
+                    sceneReleaseBattleRefWithRewards(arg1, 0x18);
                     work->phase = ACTOR_02400_DEATH_PHASE_SQUASH;
                     cur         = arg1->extra.tmd->coords;
                     pos.vx      = cur->workm.t[0];

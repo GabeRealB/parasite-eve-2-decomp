@@ -1805,7 +1805,7 @@ static inline s32 _actor800100LockTargetTurn(Task* task, GameActor* actor, VECTO
     s32 val;
 
     if (actor->targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
-        actor->targetNode = Gp_FindLockNodePad(task);
+        actor->targetNode = worldTargetFindLockNodeFromPad(task);
     }
     worldTargetGetBodyPosition(actor->targetNode, pos);
     val = func_8010BCF4(task, pos);
@@ -1816,7 +1816,7 @@ static inline s32 _actor800100LockTargetTurn(Task* task, GameActor* actor, VECTO
 }
 
 /// Second arm of the lock-on drive: builds the lock position at
-/// `the scratch stack - 0x10` (`worldTargetGetBodyPosition`, or `Gp_FindLockNodePad` when
+/// `the scratch stack - 0x10` (`worldTargetGetBodyPosition`, or `worldTargetFindLockNodeFromPad` when
 /// `targetNode` is flagged) and measures the distance to it with
 /// `func_8010BCF4`. Close enough latches `statePhase` to 1 and plays the slot-7
 /// child animation; otherwise the target is handed to `Gp_TrackAllyLockTarget`
@@ -2429,7 +2429,7 @@ static void func_actor_800100_801655C0(Task* arg0)
     actor->statePhase                                      = 0;
     actor->companionWork->activity.combat.repeatsRemaining = 0;
     actor->aimTrackingState                                = GAME_ACTOR_AIM_TRACKING_TARGET;
-    actor->targetNode                                      = Gp_FindLockNode(arg0);
+    actor->targetNode                                      = worldTargetFindLockNode(arg0);
     playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 6);
 }
 
@@ -2546,7 +2546,7 @@ static void func_actor_800100_80165748(Task* arg0)
         actor->statePhase                                      = 0;
         actor->companionWork->activity.combat.repeatsRemaining = 0;
         actor->aimTrackingState                                = GAME_ACTOR_AIM_TRACKING_TARGET;
-        actor->targetNode                                      = Gp_FindLockNode(arg0);
+        actor->targetNode                                      = worldTargetFindLockNode(arg0);
         playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 6);
         return;
     }
@@ -2670,7 +2670,7 @@ static void func_actor_800100_801659EC(Task* arg0)
     actor                         = arg0->work;
     companion                     = actor->companionWork;
     coord                         = arg0->extra.tmd->coords;
-    node                          = Gp_FindLockNode(arg0);
+    node                          = worldTargetFindLockNode(arg0);
     actor->targetNode             = node;
     if (node != NULL) {
         worldTargetGetBodyPosition(node, lock);

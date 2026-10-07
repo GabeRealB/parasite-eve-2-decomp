@@ -5687,7 +5687,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
         }
     }
     if ((work->deathPending == 1) && (work->playerHeld == 0)) {
-        Gp_ReleaseStateF0Add(actor, 0xD);
+        sceneReleaseBattleRefWithRewards(actor, 0xD);
         work->deathPending = 0;
     }
     if ((gSceneCombatState.signals.bytes.enemyAlert == 1) && (work->state == ACTOR_401300_STATE_PATROL)) {

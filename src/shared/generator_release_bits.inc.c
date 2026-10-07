@@ -3,7 +3,7 @@
 /// Message handler in the main task's message table: ORs the bit the payload's
 /// selector names into the work block's `releaseBits` (1, 2 or both for
 /// selector 3; 0 is a no-op). Bit 1 releases the death handler from its wait,
-/// bit 2 lets it run its `Gp_ReleaseStateF0Add` call.
+/// bit 2 lets it run its `sceneReleaseBattleRefWithRewards` call.
 s32 generatorSetReleaseBits(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
 {
     GeneratorWork* work;

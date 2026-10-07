@@ -541,7 +541,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
         case ACTOR_311500_DEATH_STEP_BURN:
             switch (work->stepFrame) {
                 case 0:
-                    Gp_ReleaseStateF0Add(arg0, 0xA);
+                    sceneReleaseBattleRefWithRewards(arg0, 0xA);
                     enemy->recs = 0;
                     worldCollisionUnlinkBody(&work->hitBody);
                     enemy->node.state.parts.flags = state;

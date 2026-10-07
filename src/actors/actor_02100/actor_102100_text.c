@@ -2027,7 +2027,7 @@ static void Actor02100_Fn035D4(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->playerStrikeBody);
             worldCollisionUnlinkBody(&work->enemyStrikeBody);
             arg0->recs = 0;
-            Gp_ReleaseStateF0Add(arg1, 0x15);
+            sceneReleaseBattleRefWithRewards(arg1, 0x15);
             work->step       = ACTOR_02100_DEATH_STEP_WAIT;
             work->stepFrames = 0x3C;
             if (work->loopSoundKind != ACTOR_02100_LOOP_SOUND_NONE) {

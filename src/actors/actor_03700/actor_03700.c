@@ -1792,7 +1792,7 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
                     enemy->recs = 0;
                     worldCollisionUnlinkBody(&work->body);
                     worldTargetUnlinkNode(&enemy->node);
-                    Gp_ReleaseStateF0Add(task, 0x25);
+                    sceneReleaseBattleRefWithRewards(task, 0x25);
                     model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     sound        = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40250003;
                     sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
