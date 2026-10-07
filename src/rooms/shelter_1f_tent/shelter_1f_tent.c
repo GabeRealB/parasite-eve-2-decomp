@@ -8,6 +8,8 @@
 
 #include "shelter_1f_tent_private.h"
 
+#include "actors/actor_460200.h"
+
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
@@ -47,10 +49,6 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_cutscene.h"
-
-extern void func_actor_460200_80132210(void);
-extern void func_actor_460200_801322B8(void);
-extern void func_actor_460200_80132390(void);
 
 extern UiObjectDesc D_800611E4;
 
@@ -165,7 +163,7 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
     task->msgTable = D_shelter_1f_tent_80181CDC;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
-        func_actor_460200_80132210();
+        actor460200SetupTentSoldiers();
     }
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED) == 0) {
         gameFlagSetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED, 1);
@@ -245,10 +243,10 @@ s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 s32 func_shelter_1f_tent_8017FD54(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
 {
     if (arg2->warp == 1) {
-        func_actor_460200_801322B8();
+        actor460200TalkToSoldierC();
     }
     if (arg2->warp == 2) {
-        func_actor_460200_80132390();
+        actor460200TalkToSoldierA();
     }
     return 0;
 }

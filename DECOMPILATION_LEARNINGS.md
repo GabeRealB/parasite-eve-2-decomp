@@ -78660,7 +78660,7 @@ One pseudo now carries every definition, so the add *is* the source's register
 (`addiu $v0, $v0, -1`), and `dbr_schedule` can thread it from the branch target
 into the `bgez` delay slot. The reload has to be an explicit re-read of the
 field, not a spill: `lw`/`addiu` here are `$v0` on both paths.
-`func_actor_460200_80132090` is the example (99.25% -> 100%, `regs` 3 -> 0).
+`_actor460200ModeExitCountdownTask` is the example (99.25% -> 100%, `regs` 3 -> 0).
 
 ## m2c drops an unused *middle* parameter, so later arguments read the wrong register
 
@@ -78804,7 +78804,7 @@ worktree's match commit: land the match, and let a later
 the body up. `overlay_dup_index.py find` marks the duplicate, so nothing is lost
 by waiting.
 
-## func_actor_460200_801338C0: a separate allocation temporary keeps the call result in `$v0`
+## _pacedWalkSpawnSoldierC: a separate allocation temporary keeps the call result in `$v0`
 
 The spawn routine scored 99.877% with `regs=2`: it emitted `addu s1,v0,$zero`
 then `sw $s1,0x1C(s4)` / `bnez $s1`, where the target stores and tests the raw
@@ -78842,7 +78842,7 @@ scored 100%. Compiler SHA256:
 
 `base_10.c` preprocessed SHA256: 2759df986d5f915cb2c790eb59549469b799aea9220dc8d11d98211617d437a4.
 
-Evidence: tools/permuter_findings/func_actor_460200_801338C0/sessions/7fee7c7e577c4ba2abd7620172d0e73a/277e68d1389c85d2d1f6
+Evidence: tools/permuter_findings/_pacedWalkSpawnSoldierC/sessions/7fee7c7e577c4ba2abd7620172d0e73a/277e68d1389c85d2d1f6
 (seed `base_5.c`, retained post-cse RTL, `.lreg` and `.greg` dumps).
 
 ## m2c's typed allocation temporary scales every work-block offset by the struct size
@@ -78866,7 +78866,7 @@ arithmetic is scaled, and it is scaled silently - the C compiles and links, and
 the mismatch reads as a register-allocation problem.
 
 Retyping the function against the real structs removes it in one edit: this
-function is the twin of the already-matched `func_actor_460200_801338C0` in
+function is the twin of the already-matched `_pacedWalkSpawnSoldierC` in
 `actor_460200_4`, so `obj = task->extra; coord = obj->field_8; work =
 (Actor460200Work*)workMem;` with `Actor460200Work*`/`TmdObject*`/`GfxCoord*`
 locals scored 100.000% with every penalty zero. The remaining differences from
@@ -86622,7 +86622,7 @@ taken arm first, the equal case - scored 100.00%.
 ## m2c's temp plus per-arm duplicate splits one value into three pseudos; reuse one local for the RMW (func_dryfield_dilapidated_house_8017E858, 2026-09-15)
 
 `func_dryfield_dilapidated_house_8017E858` is 20 instructions and its body is
-byte-identical to the already-matched `func_actor_460200_80132090`
+byte-identical to the already-matched `_actor460200ModeExitCountdownTask`
 (`overlay_dup_index.py find` reports `=`, not `~`). The m2c seed below scored
 99.250% with `regs=3` and no other penalty: the only difference was the store
 operand, `sw $v0` in retail against `sw $v1` in the build.

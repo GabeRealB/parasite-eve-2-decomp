@@ -1,3 +1,5 @@
+#include "actors/actor_460200.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -46,6 +48,14 @@
 #include "../../shared/walker.h"
 #include "../../shared/stride_walk.h"
 
+/// Saved tent conversation progression; the fourth conversation repeats.
+enum {
+    ACTOR_460200_TALK_FIRST  = 0,
+    ACTOR_460200_TALK_SECOND = 1,
+    ACTOR_460200_TALK_THIRD  = 2,
+    ACTOR_460200_TALK_REPEAT = 3,
+};
+
 /// The clips the soldiers' scenes add to the player's animation bank, with the
 /// copy request that installs them and the scene-actor play requests stored
 /// after it.
@@ -74,8 +84,6 @@ typedef union {
 STATIC_ASSERT_SIZEOF(_Actor460200AnimationBankExtensionStorage, ANIMATION_BANK_EXTENSION_CAPACITY * sizeof(s32));
 
 extern _Actor460200AnimationBankExtensionStorage D_actor_460200_80135E30;
-
-s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
 
 static s32 _pacedWalkSetSoldierCModelDraw(Task* task, s32 messageId, s32 flags, s32 unusedArg);
 
@@ -111,9 +119,9 @@ static void _pacedWalkTickSoldierBAnim(Task* task);
 static void _pacedWalkResetSoldierBAnim(Task* task);
 static void _pacedWalkBlendSoldierBAnim(Task* task);
 static void _pacedWalkUpdateSoldierC(Task* task);
-static void func_actor_460200_801338C0(Enemy* enemy, Task* task);
+static void _pacedWalkSpawnSoldierC(Enemy* enemy, Task* task);
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
-static void func_actor_460200_80133A88(Task* task);
+static void _pacedWalkExitSoldierC(Task* task);
 static void _actorRenderDrawThirdFixedWalkerGroundShadow(Task* task);
 static void _pacedWalkTickSoldierCAnim(Task* task);
 static void _pacedWalkResetSoldierCAnim(Task* task);
@@ -124,14 +132,14 @@ static TmdSource _gActor460200SoldierBBody;
 void             func_actor_460200_801330C8(Task*);
 
 static s32 _pacedWalkPlaceSoldierB(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
-s32        func_actor_460200_80133568(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
+static s32 _strideWalkSetTurnMode(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
 
 static TmdSource _gActor460200SoldierCBody;
-s32              func_actor_460200_80133C64(Task*, s32, AnimationPlayRequest*, s32);
+static s32       _pacedWalkPlaySoldierCAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
 static s32       _pacedWalkPlaceSoldierC(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
-s32              func_actor_460200_80133DC4(Task*, s32, s32, s32);
+static s32       _actor460200IgnoreSoldierCCommand(Task* unusedTask, s32 unusedMessageId, const ActorCommand* unusedCommand, s32 unusedArgument);
 static s32       _pacedWalkSetSoldierCWalkTarget(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument);
-void             func_actor_460200_8013386C(Task*);
+static void      _actor460200SoldierCTask(Task* task);
 
 extern AnimationPlayRequest D_actor_460200_80135E1C;
 extern AnimationPlayRequest D_actor_460200_80135F28;
@@ -141,7 +149,7 @@ extern AnimationPlayRequest D_actor_460200_80136090;
 extern AnimationPlayRequest D_actor_460200_801360A4;
 extern AnimationPlayRequest D_actor_460200_801360B8;
 extern AnimationPlayRequest D_actor_460200_801360CC;
-s32                         func_actor_460200_80132C8C(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
+static s32                  _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
 void                        func_actor_460200_801327B4(Task*);
 
 extern AnimationPlayRequest D_actor_460200_80135EB0;
@@ -176,10 +184,10 @@ extern ActorTransform       D_actor_460200_801361D4;
 extern ActorTransform       D_actor_460200_801361EC;
 extern ActorTransform       D_actor_460200_80136204;
 extern ActorTransform       D_actor_460200_8013621C;
-void                        func_actor_460200_80132090(Task*);
-void                        func_actor_460200_801320E0(s32);
+static void                 _actor460200ModeExitCountdownTask(Task* task);
+static void                 _actor460200SelectCaptionFile(s32 dataResourceOrdinal);
 static void                 func_actor_460200_80132124(void);
-void                        func_actor_460200_80132204(s8);
+static void                 _actor460200SetSceneEvent(s8 sceneEvent);
 
 extern _Actor460200AnimationBankExtensionStorage D_actor_460200_80135E30;
 void                                             func_actor_460200_80131E24(Task*);
@@ -578,11 +586,11 @@ ActorTransform D_actor_460200_8013627C = { { -1000, 0, 4490, 0 }, { 0, -1024, 0,
 
 ActorTransform D_actor_460200_80136294 = { { -1300, 0, 3300, 0 }, { 0, -568, 0, 0 } };
 
-TaskDesc D_actor_460200_801362AC = { { { TASK_BODY_NONE, 32 } }, func_actor_460200_80132090, { .value = 0 } };
+TaskDesc D_actor_460200_801362AC = { { { TASK_BODY_NONE, 32 } }, _actor460200ModeExitCountdownTask, { .value = 0 } };
 
 EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_460200_801320E0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor460200SelectCaptionFile }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_460200_80135E30.data.copy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -806,12 +814,12 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_460200_8013607C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_460200_801320E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor460200SelectCaptionFile }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x551C0009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x551C000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_460200_80132204 }, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor460200SetSceneEvent }, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -820,7 +828,7 @@ EvsCommand D_actor_460200_80137890[22] = {
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x551C0007 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x551C0008 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_460200_80132204 }, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor460200SetSceneEvent }, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -834,7 +842,7 @@ EvsCommand D_actor_460200_80137890[22] = {
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_460200_801320E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor460200SelectCaptionFile }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x551C0009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x551C000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -1299,7 +1307,7 @@ TaskMessageEntry gPacedWalkMsgTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, PACED_WALK_SET_PAIR_MODEL_DRAW },
     { ACTOR_MESSAGE_PLACE, PACED_WALK_PLACE },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80132C8C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _pacedWalkStartSmoking },
     { ACTOR_MESSAGE_WALK_TO, PACED_WALK_SET_WALK_TARGET },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1650,7 +1658,7 @@ TaskMessageEntry gStrideWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _strideWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _strideWalkSetModelDraw },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlaceSoldierB },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80133568 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _strideWalkSetTurnMode },
     { ACTOR_MESSAGE_WALK_TO, _strideWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -2118,15 +2126,15 @@ static AnimationSet _gActor460200Animation1F6B4 = {
 };
 
 TaskMessageEntry D_actor_460200_801514FC[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_460200_80133C64 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlaySoldierCAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pacedWalkSetSoldierCModelDraw },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlaceSoldierC },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80133DC4 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor460200IgnoreSoldierCCommand },
     { ACTOR_MESSAGE_WALK_TO, _pacedWalkSetSoldierCWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_460200_8015152C = { { { TASK_BODY_TMD, 96 } }, func_actor_460200_8013386C, { .model = &_gActor460200SoldierCBody } };
+TaskDesc D_actor_460200_8015152C = { { { TASK_BODY_TMD, 96 } }, _actor460200SoldierCTask, { .model = &_gActor460200SoldierCBody } };
 
 s32 D_actor_460200_80151538 = 0;
 
@@ -2150,10 +2158,6 @@ AnimationSet* D_actor_460200_8015153C[17] = {
     &_gActor460200Animation1F6B4,
 };
 
-void func_actor_460200_80132210(void);
-void func_actor_460200_801322B8(void);
-void func_actor_460200_80132390(void);
-
 #include "../../shared/screen_negative_capture.inc.c"
 
 /// The scene's negative freeze-frame (see screen_negative.h).
@@ -2164,26 +2168,44 @@ void func_actor_460200_80131E24(Task* task)
 
 #include "../../shared/screen_negative_filter.inc.c"
 
-void func_actor_460200_80132090(Task* arg0)
+/// Requests mode teardown after the signed task countdown becomes negative.
+///
+/// Decrements `spawnArg1.value` once per invocation, testing its previous value.
+/// A nonnegative starting count N requests exit on invocation N+2. The task
+/// must remain addressable through `taskKill`; its spawn argument is reread
+/// afterwards before the final decrement/store.
+static void _actor460200ModeExitCountdownTask(Task* task)
 {
-    s32 var_v0;
+    s32 remainingTicks;
 
-    var_v0 = arg0->spawnArg1.value;
-    if (var_v0 < 0) {
+    remainingTicks = task->spawnArg1.value;
+    if (remainingTicks < 0) {
         stageRequestModeTaskExit();
-        taskKill(arg0);
-        var_v0 = arg0->spawnArg1.value;
+        taskKill(task);
+        // Teardown may change the task; decrement the value left by that call.
+        remainingTicks = task->spawnArg1.value;
     }
-    var_v0                = var_v0 - 1;
-    arg0->spawnArg1.value = var_v0;
+    remainingTicks        = remainingTicks - 1;
+    task->spawnArg1.value = remainingTicks;
 }
 
-void func_actor_460200_801320E0(s32 arg0)
+/// Selects the tent cutscene's loaded CAP resource, or restores default selection.
+///
+/// Zero calls `capReset`. Other values are data-resource ordinals in the loaded
+/// CDF bundle, with `capSelectLoadedFile`'s relocation and borrowed-storage
+/// requirements, and use the cutscene texture origin in VRAM pixels.
+static void _actor460200SelectCaptionFile(s32 dataResourceOrdinal)
 {
-    if (arg0 != 0) {
-        Gp_CapFile = 0;
-        capSelectLoadedFile(arg0);
-        capSetTexturePage(0x340, 0);
+    enum {
+        ACTOR_460200_DEFAULT_CAP_RESOURCE = 0,
+        ACTOR_460200_CUTSCENE_CAP_VRAM_X  = 832,
+        ACTOR_460200_CUTSCENE_CAP_VRAM_Y  = 0,
+    };
+
+    if (dataResourceOrdinal != ACTOR_460200_DEFAULT_CAP_RESOURCE) {
+        Gp_CapFile = NULL;
+        capSelectLoadedFile(dataResourceOrdinal);
+        capSetTexturePage(ACTOR_460200_CUTSCENE_CAP_VRAM_X, ACTOR_460200_CUTSCENE_CAP_VRAM_Y);
         return;
     }
     capReset();
@@ -2194,67 +2216,73 @@ void func_actor_460200_801320E0(s32 arg0)
 #include "../../shared/screen_negative_filter.inc.c"
 #undef screenNegativeFilter
 
-void func_actor_460200_80132204(s8 arg0)
+/// Sets the live save's signed-byte scene-event key for subsequent music selection.
+static void _actor460200SetSceneEvent(s8 sceneEvent)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }
 
-void func_actor_460200_80132210(void)
+void actor460200SetupTentSoldiers(void)
 {
-    Task* slot;
+    enum {
+        ACTOR_460200_TENT_SOLDIER_C = 0,
+        ACTOR_460200_TENT_SOLDIER_B = 1,
+        ACTOR_460200_TENT_SOLDIER_A = 2,
+    };
+    Task* actorTask;
 
-    slot = sceneFindPlacedActor(0);
-    if (slot != NULL) {
-        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_actor_460200_80136234, 0);
-        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_460200_8013607C, 0);
+    actorTask = sceneFindPlacedActor(ACTOR_460200_TENT_SOLDIER_C);
+    if (actorTask != NULL) {
+        TASK_MESSAGE_DISPATCH_POINTER(actorTask, ACTOR_MESSAGE_PLACE, &D_actor_460200_80136234, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(actorTask, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_460200_8013607C, 0);
     }
-    if (sceneFindPlacedActor(1) != 0) {
-        sceneSetPlacedActorDrawMode(1, 2);
+    if (sceneFindPlacedActor(ACTOR_460200_TENT_SOLDIER_B) != NULL) {
+        sceneSetPlacedActorDrawMode(ACTOR_460200_TENT_SOLDIER_B, ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER);
     }
-    slot = sceneFindPlacedActor(2);
-    if (slot != NULL) {
-        sceneSetPlacedActorDrawMode(2, 1);
-        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_460200_80135F14, 0);
+    actorTask = sceneFindPlacedActor(ACTOR_460200_TENT_SOLDIER_A);
+    if (actorTask != NULL) {
+        sceneSetPlacedActorDrawMode(ACTOR_460200_TENT_SOLDIER_A, ACTOR_MESSAGE_PAIR_SHOW);
+        TASK_MESSAGE_DISPATCH_POINTER(actorTask, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_460200_80135F14, 0);
     }
 }
 
-void func_actor_460200_801322B8(void)
+void actor460200TalkToSoldierC(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A)) {
-        case 0:
+        case ACTOR_460200_TALK_FIRST:
             evsStartScript(D_actor_460200_80137AA0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 1);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, ACTOR_460200_TALK_SECOND);
             break;
-        case 1:
+        case ACTOR_460200_TALK_SECOND:
             evsStartScript(D_actor_460200_80137BA8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 2);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, ACTOR_460200_TALK_THIRD);
             break;
-        case 2:
+        case ACTOR_460200_TALK_THIRD:
             evsStartScript(D_actor_460200_80137CB0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 3);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, ACTOR_460200_TALK_REPEAT);
             break;
-        case 3:
+        case ACTOR_460200_TALK_REPEAT:
             evsStartScript(D_actor_460200_80137DA0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }
 
-void func_actor_460200_80132390(void)
+void actor460200TalkToSoldierA(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B)) {
-        case 0:
+        case ACTOR_460200_TALK_FIRST:
             evsStartScript(D_actor_460200_80137F98, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 1);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, ACTOR_460200_TALK_SECOND);
             break;
-        case 1:
+        case ACTOR_460200_TALK_SECOND:
             evsStartScript(D_actor_460200_80137FE0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 2);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, ACTOR_460200_TALK_THIRD);
             break;
-        case 2:
+        case ACTOR_460200_TALK_THIRD:
             evsStartScript(D_actor_460200_80138028, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 3);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, ACTOR_460200_TALK_REPEAT);
             break;
-        case 3:
+        case ACTOR_460200_TALK_REPEAT:
             evsStartScript(D_actor_460200_80138070, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
@@ -2297,18 +2325,22 @@ void pacedWalkExit(Task* task)
 
 #include "../../shared/paced_walk_place.inc.c"
 
-/// Script opcode: raise the work block's `smoking`, which makes the per-frame
-/// state emit smoke puffs, when the payload is exactly 1. Any other payload is
-/// ignored and leaves the flag as it was.
-s32 func_actor_460200_80132C8C(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
+/// Latches a paced walker's smoke emission on for command word 1.
+///
+/// Requires live `PacedWalkWork` at `task->work` and a readable `ActorCommand`
+/// through this call. Other command words leave the latch unchanged. The
+/// context, message ID and second payload are ignored; the pointer is not
+/// retained. Returns 0.
+static s32 _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument)
 {
+    enum { PACED_WALK_COMMAND_START_SMOKING = 1 };
     PacedWalkWork* work;
-    u16            value;
+    u16            commandValue;
 
-    value = args->command;
-    work  = task->work;
-    if (value == 1) {
-        work->smoking = value;
+    commandValue = command->command;
+    work         = task->work;
+    if (commandValue == PACED_WALK_COMMAND_START_SMOKING) {
+        work->smoking = commandValue;
     }
     return 0;
 }
@@ -2383,14 +2415,18 @@ void strideWalkExit(Task* task)
 #undef PACED_WALK_WORK_T
 #define PACED_WALK_WORK_T PacedWalkWork
 
-/// Turn command: sets the work block's `turnMode`, which selects whether the
-/// per-frame state turns the walker's head toward the player
-/// (`STRIDE_WALK_TURN_PLAYER`) or lets it settle back, to the command's value.
-s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
+/// Sets a stride walker's head-turn mode from a borrowed command word.
+///
+/// Requires live `StrideWalkWork` at `task->work` and a readable command through
+/// this call. Narrows its unsigned word to signed 16 bits without validation:
+/// `STRIDE_WALK_TURN_PLAYER` aims at the player; every other value releases
+/// toward the animation pose. Context, message ID and second payload are
+/// ignored. Retains no pointer and returns 0.
+static s32 _strideWalkSetTurnMode(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument)
 {
     StrideWalkWork* work = task->work;
 
-    work->turnMode = args->command;
+    work->turnMode = command->command;
     return 0;
 }
 
@@ -2411,51 +2447,78 @@ s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args, s32 arg
 #undef PACED_WALK_RESET_ANIM
 #undef PACED_WALK_BLEND_ANIM
 
-void func_actor_460200_8013386C(Task* task)
+/// Runs Soldier C's spawn or model-frame state.
+///
+/// Requires a TMD task with state 0 (spawn) or 1 (frame) and a live borrowed
+/// `Enemy*` in `spawnArg2.pointer`. Spawn installs the work, exit and message
+/// callbacks and advances to frame state; later calls update and draw the rig.
+static void _actor460200SoldierCTask(Task* task)
 {
-    EnemyTaskFunc fns[2] = { func_actor_460200_801338C0, _actorRenderWalkerFrame };
+    EnemyTaskFunc states[2] = { _pacedWalkSpawnSoldierC, _actorRenderWalkerFrame };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    states[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Spawn routine of the actor whose `func_actor_460200_80133A88` exit path
-/// hands it back to `enemyDestroy`: it allocates the `PacedWalkWork` block (the
-/// matrix pair its sub-model reads through `TmdObject::lightMtx`/`colorMtx`
-/// plus the animation state below), parks the enemy in `PacedWalkWork::enemy`
-/// and runs the step body `_pacedWalkUpdateSoldierC` once in state 2.
-static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
+/// Binds Soldier C's task-owned lighting matrices and samples light above its root.
+///
+/// Requires live, disjoint model/work/root storage and initialized room lighting
+/// and graphics scratch state. The model retains the two matrix pointers; work
+/// must live through model teardown. Root translation is in world units with
+/// negative Y upward. The lighting query reads only XYZ of the local vector.
+static inline void _pacedWalkInitializeSoldierCModelLighting(TmdObject* model, PacedWalkWork* work, const GfxCoord* rootCoord)
 {
-    PacedWalkWork* work;
-    void*          workMem;
-    TmdObject*     obj;
-    GfxCoord*      coord;
-    VECTOR         vec;
+    enum {
+        PACED_WALK_SOLDIER_C_LIGHT_HEIGHT = 800,
+        PACED_WALK_SOLDIER_C_LIGHT_COUNT  = 3,
+    };
+    VECTOR lightingPosition;
 
-    obj     = task->extra.tmd;
-    coord   = obj->coords;
-    workMem = memCalloc(sizeof(PacedWalkWork), 0);
-    work    = workMem;
+    model->lightMtx     = &work->light;
+    model->colorMtx     = &work->color;
+    lightingPosition.vx = rootCoord->workm.t[0];
+    lightingPosition.vy = rootCoord->workm.t[1] - PACED_WALK_SOLDIER_C_LIGHT_HEIGHT;
+    lightingPosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightingPosition, 0, PACED_WALK_SOLDIER_C_LIGHT_COUNT);
+}
+
+/// Initializes Soldier C's paced-walk rig and starts its initial clip.
+///
+/// Requires task state 0, a live TMD body with twenty part coordinates and its
+/// live enemy work. Allocates zeroed `PacedWalkWork` owned by the task; failure
+/// destroys the enemy and starts task teardown. The model borrows the work's
+/// lighting matrices, and the rig borrows its model coordinates and clip bank
+/// through teardown. Requires the view, room lighting and graphics scratch
+/// state initialized. Reseeds non-root tracks once and advances to frame state.
+static void _pacedWalkSpawnSoldierC(Enemy* enemy, Task* task)
+{
+    enum { PACED_WALK_SOLDIER_C_INITIAL_CLIP = 2 };
+    PacedWalkWork* work;
+    PacedWalkWork* allocation;
+    TmdObject*     model;
+    GfxCoord*      rootCoord;
+
+    model      = task->extra.tmd;
+    rootCoord  = model->coords;
+    allocation = memCalloc(sizeof(PacedWalkWork), false);
+    work       = allocation;
     if ((task->work = work) == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_460200_80133A88;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    // The model borrows task-owned matrices and is excluded from lock-on.
+    task->exitCallback               = _pacedWalkExitSoldierC;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->flags                       = 0;
-    obj->otOffset                    = 1;
+    model->flags                     = 0;
+    model->otOffset                  = 1;
     work->enemy                      = enemy;
-    work->st.animId                  = 2;
-    obj->lightMtx                    = &work->light;
-    obj->colorMtx                    = &work->color;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
-    vec.vz                           = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&work->rig.anim, (AnimationSet**)&D_actor_460200_80151538, obj, work->rig.poses, work->rig.slots);
+    work->st.animId                  = PACED_WALK_SOLDIER_C_INITIAL_CLIP;
+    _pacedWalkInitializeSoldierCModelLighting(model, work, rootCoord);
+    // Install the bank before the initial reset primes the non-root tracks.
+    animationInitContext(&work->rig.anim, (AnimationSet**)&D_actor_460200_80151538, model, work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable = D_actor_460200_801514FC;
     _pacedWalkUpdateSoldierC(task);
@@ -2480,7 +2543,11 @@ static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-static void func_actor_460200_80133A88(Task* task)
+/// Releases Soldier C's enemy and starts teardown of its model and work block.
+///
+/// Requires a live task and its live borrowed `Enemy*` in `spawnArg2.pointer`.
+/// The enemy is invalid after this call; task/model release follows `taskKill`.
+static void _pacedWalkExitSoldierC(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
@@ -2504,24 +2571,34 @@ static void func_actor_460200_80133A88(Task* task)
 #include "../../shared/paced_walk_blend_anim.inc.c"
 #undef PACED_WALK_BLEND_ANIM
 
-s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Immediately reseeds Soldier C's non-root tracks from a scripted play request.
+///
+/// Requires a live TMD task and `PacedWalkWork` rig with loaded clips 1..17.
+/// The signed check rejects only IDs >=18; callers must exclude negative IDs
+/// and unloaded ID 0. Borrows the word-aligned request for this call only;
+/// model, rig and clip storage must remain live throughout playback.
+///
+/// Nonzero `blend` stores its whole-frame duration as a signed halfword;
+/// 0..2047 keeps the slot blend countdowns nonnegative. Reset ignores duration.
+/// Reseeding drives parts 1..19, leaving the root and travel unchanged. The
+/// bank selector, collision choice, message ID and second payload are ignored.
+/// Returns 0 after reseeding, or -1 for a rejected ID without changing playback.
+static s32 _pacedWalkPlaySoldierCAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
+    enum {
+        PACED_WALK_SOLDIER_C_CLIP_LIMIT       = 18,
+        PACED_WALK_SOLDIER_C_REQUEST_APPLIED  = 0,
+        PACED_WALK_SOLDIER_C_REQUEST_REJECTED = -1,
+    };
     PacedWalkWork* work;
 
     work = task->work;
-    if (args->animationId < 0x12) {
-        work->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
-            work->blendFrames = args->blendFrames;
-        } else {
-            work->st.state = ACTOR_ENEMY_ANIM_RESET;
-        }
-        work->st.field_6 = 0;
+    if (request->animationId < PACED_WALK_SOLDIER_C_CLIP_LIMIT) {
+        _pacedWalkApplyAnimationRequest(work, request);
         _pacedWalkUpdateSoldierC(task);
-        return 0;
+        return PACED_WALK_SOLDIER_C_REQUEST_APPLIED;
     }
-    return -1;
+    return PACED_WALK_SOLDIER_C_REQUEST_REJECTED;
 }
 
 // Select Soldier C's private draw-message callback.
@@ -2538,9 +2615,14 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args,
 #undef PACED_WALK_PLACE
 #define PACED_WALK_PLACE _pacedWalkPlace
 
-s32 func_actor_460200_80133DC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Accepts Soldier C's actor-command message without changing any state.
+///
+/// Reads none of its arguments, retains no pointers and returns 0.
+static s32 _actor460200IgnoreSoldierCCommand(Task* unusedTask, s32 unusedMessageId, const ActorCommand* unusedCommand, s32 unusedArgument)
 {
-    return 0;
+    enum { ACTOR_460200_COMMAND_IGNORED = 0 };
+
+    return ACTOR_460200_COMMAND_IGNORED;
 }
 
 // Soldier C records travel in its own PacedWalkWork.
