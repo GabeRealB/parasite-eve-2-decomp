@@ -444,7 +444,7 @@ static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatche
 }
 
 /// Room handler for the save-location message: copies the incoming record onto
-/// the outgoing one and forwards both to `func_map_neo_ark_80179B14`. Messages 0x13 and
+/// the outgoing one and forwards both to `mapNeoArkResolveRoomVariant`. Messages 0x13 and
 /// 0x15 build the room's event record - cap command 3 / 2, the stage sound and
 /// flag 0x15E / 0x15F - and hand it to `NeoArkSavannaZone_StartEvent`; every
 /// other message is not consumed and answers 1.
@@ -456,7 +456,7 @@ s32 func_neo_ark_savanna_zone_8017D77C(Task* arg0, s32 arg1, RoomEventMsg* in, R
     s16              flag;
 
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     if (in->areaId != GAME_AREA_NEO_ARK_SOUTH_PROMENADE) {
         goto message15;
     }

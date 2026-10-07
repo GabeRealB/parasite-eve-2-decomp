@@ -137,7 +137,7 @@ s32 func_neo_ark_garden_8017E840(Task* task, s32 msgId, s32 arg2, s32 arg3)
 s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     if (in->areaId != GAME_AREA_NEO_ARK_SUBSTATION) {
         return 1;
     }

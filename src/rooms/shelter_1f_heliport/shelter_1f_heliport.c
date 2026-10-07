@@ -645,7 +645,7 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
     RoomLatchedEvent event;
 
     *dst = *src;
-    func_map_neo_ark_80179B14(src, dst);
+    mapNeoArkResolveRoomVariant(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_1F_TENT && src->queryOnly == ROOM_EVENT_EXECUTE) {
         sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, SOUND_SCRIPT_STOP_KEEP_RELEASE);

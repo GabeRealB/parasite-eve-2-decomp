@@ -90672,12 +90672,12 @@ typed `DirectionActionRequest*` form), target
 ## The same handler as a `switch` instead of an if/else chain is what hands the second delay slot to the fall-through (func_neo_ark_eve_access_tunnel_8017DC6C, 2026-09-16)
 
 The tunnel's message handler is the family shape its neighbours use - copy the incoming
-record, `func_80179B14`, then answer message 9 off flag nibble 0xB9, with `field_5`
+record, `mapNeoArkResolveRoomVariant`, then answer message 9 off flag nibble 0xB9, with `field_5`
 suppressing the side effects. Written as an if/else chain:
 
 ```c
     *dst = *src;
-    func_80179B14(src, dst);
+    mapNeoArkResolveRoomVariant(src, dst);
     if (*(u16*)src != 9) {
         return 1;
     }
@@ -91591,7 +91591,7 @@ because the copy is untyped it leaves the parameters as `void *`. The seed score
 Writing the copy as `*dst = *src;` against the family's `RoomEventMsg *` (an 8-byte
 struct carrying `STATIC_ASSERT_SIZEOF`) produces exactly those eight
 instructions, and the rest of the function then follows the sibling
-`func_neo_ark_eve_access_tunnel_8017DC6C` field for field: `func_80179B14(src,
+`func_neo_ark_eve_access_tunnel_8017DC6C` field for field: `mapNeoArkResolveRoomVariant(src,
 dst)`, a dispatch on `src->areaId`, the same three `(u8)dst->areaId`, `dst->warp`, and `dst->room` stores into
 the overlay's staging `RoomEventMsg`, `Gp_MsgPlayerWeapon(0)`, then
 `taskSpawnFromTable`. That port scored 100.00% with every penalty zero on the
@@ -92481,8 +92481,8 @@ The gate itself varies too, so read the family as the `*out = *in` plus
 `RoomEventMsg` skeleton rather than the nibble specifically:
 `func_neo_ark_eve_elevator_8017D5D8` keeps the `msgId` and `queryOnly` tests but
 gates on `cdCmdIsIdle()` and answers with `Gp_SpawnIfCapIdle(1, 1)`, where the
-siblings latch a nibble and run a cap command. `func_80179B14` is the shared
-forwarder the shrine, garden, observatory and elevator forms all call with
+siblings latch a nibble and run a cap command. `mapNeoArkResolveRoomVariant` is the shared
+room-variant resolver the shrine, garden, observatory and elevator forms all call with
 `(in, out)` right after the copy - `func_80179A04` plays that role in mine_gorge -
 so its absence is what tells you a handler has been recognised as a variant at
 all.
@@ -94963,7 +94963,7 @@ and they are all the same body with three substitutions:
 s32 func_<room>_<addr>(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    func_80179A04(src, dst);          /* or func_80179B14 */
+    func_80179A04(src, dst);          /* or mapNeoArkResolveRoomVariant */
     if (src->areaId == <area>) {        /* the area id, an immediate */
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             D_<room>_<addr2>.warp = (u8)dst->areaId; /* saved-location byte order */

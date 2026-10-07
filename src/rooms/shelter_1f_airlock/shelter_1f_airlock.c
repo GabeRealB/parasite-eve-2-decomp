@@ -406,11 +406,11 @@ static s32 _shelter1fAirlockRejectKeyItemUse(Task* unusedTask, s32 unusedMessage
 }
 
 /// The room's handler for message 0x13EE: copies the incoming save location
-/// onto the outgoing one, passes both to `func_map_neo_ark_80179B14` and returns 1.
+/// onto the outgoing one, passes both to `mapNeoArkResolveRoomVariant` and returns 1.
 s32 func_shelter_1f_airlock_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     return 1;
 }
 

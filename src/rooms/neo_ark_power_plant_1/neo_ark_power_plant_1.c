@@ -146,12 +146,12 @@ s32 func_neo_ark_power_plant_1_8017D7AC(Task* task, s32 msgId, s32 arg2, s32 arg
 }
 
 /// Handler the room's message table gives message 0x13EE: copies the incoming
-/// `RoomEventMsg` onto the outgoing one and passes both on to `func_map_neo_ark_80179B14`.
+/// `RoomEventMsg` onto the outgoing one and passes both on to `mapNeoArkResolveRoomVariant`.
 /// Always returns 1.
 s32 func_neo_ark_power_plant_1_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     return 1;
 }
 

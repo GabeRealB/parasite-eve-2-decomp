@@ -210,11 +210,11 @@ s32 func_shelter_1f_tent_8017FC54(Task* task, s32 msgId, s32 arg2, s32 arg3)
 }
 
 /// Copies the incoming `RoomEventMsg` onto the outgoing one, hands both to
-/// `func_map_neo_ark_80179B14` and returns 1.
+/// `mapNeoArkResolveRoomVariant` and returns 1.
 s32 func_shelter_1f_tent_8017FC5C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     return 1;
 }
 

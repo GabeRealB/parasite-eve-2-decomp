@@ -154,7 +154,7 @@ s32 func_neo_ark_submarine_gallery_8017EA04(Task* task, s32 msgId, s32 arg2, s32
 s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    func_map_neo_ark_80179B14(src, dst);
+    mapNeoArkResolveRoomVariant(src, dst);
     if (src->areaId == GAME_AREA_NEO_ARK_ISLAND) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             D_neo_ark_submarine_gallery_80185924.warp              = (u8)dst->areaId;

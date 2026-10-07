@@ -352,4 +352,4 @@ D_mappic_s5_03_8012F1F0 = 0x8012F1F0; // absolute:True owner=mappic_s5_03
 D_mappic_s5_03_8012F2B8 = 0x8012F2B8; // absolute:True owner=mappic_s5_03
 D_mappic_s5_03_8012F348 = 0x8012F348; // absolute:True owner=mappic_s5_03
 
-func_map_neo_ark_80179B14 = 0x80179B14; // type:func
+mapNeoArkResolveRoomVariant = 0x80179B14; // type:func

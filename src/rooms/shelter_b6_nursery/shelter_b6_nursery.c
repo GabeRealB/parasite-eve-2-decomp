@@ -988,7 +988,7 @@ static s32 _shelterB6NurseryRejectKeyItemUse(Task* task, s32 messageId, s32 item
 s32 func_shelter_b6_nursery_8017FDD4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    func_map_neo_ark_80179B14(src, dst);
+    mapNeoArkResolveRoomVariant(src, dst);
     if (src->queryOnly == ROOM_EVENT_EXECUTE) {
         Gp_RunCapCmd1(0xC);
     }

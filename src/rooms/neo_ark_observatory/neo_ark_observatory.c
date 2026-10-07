@@ -1764,14 +1764,14 @@ static s32 _neoArkObservatoryRejectKeyItemMessage(Task* task, s32 messageId, s32
 }
 
 /// Room event-script handler: mirrors the incoming message onto the outgoing
-/// one and lets `func_map_neo_ark_80179B14` act on both. Once the observatory has been
+/// one and lets `mapNeoArkResolveRoomVariant` act on both. Once the observatory has been
 /// reached from both routes (nibbles 0xD1 == 3 and 0x4C == 9) and the script
 /// raises one of the two arrival ids with no sub-state pending, nibble 0x4C is
 /// cleared and the room's area records are applied.
 s32 func_neo_ark_observatory_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     if ((gameFlagGetNibble(GAME_FLAG_0D1) == 3) && (gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE) == 9) &&
         ((in->areaId == GAME_AREA_NEO_ARK_NORTH_PROMENADE) || (in->areaId == GAME_AREA_NEO_ARK_SOUTH_PROMENADE)) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
         gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);

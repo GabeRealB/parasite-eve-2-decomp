@@ -772,12 +772,12 @@ s32 func_neo_ark_woodland_path_8017E888(Task* task, s32 msgId, s32 arg2, s32 arg
 }
 
 /// Room message handler for the path's save location: copies the incoming
-/// record onto the outgoing one and forwards both to `func_map_neo_ark_80179B14`. Always
+/// record onto the outgoing one and forwards both to `mapNeoArkResolveRoomVariant`. Always
 /// answers 1.
 s32 func_neo_ark_woodland_path_8017E890(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     return 1;
 }
 

@@ -633,7 +633,7 @@ func_map_dryfield_full_80179954 = 0x80179954; // type:func absolute:True owner=m
 
 mapShelterRoomVariantResolve = 0x80179A04; // type:func absolute:True owner=map_shelter
 
-func_map_neo_ark_80179B14 = 0x80179B14; // type:func absolute:True owner=map_neo_ark
+mapNeoArkResolveRoomVariant = 0x80179B14; // type:func absolute:True owner=map_neo_ark
 
 D_actor_310100_801797FC = 0x801797FC; // absolute:True
 

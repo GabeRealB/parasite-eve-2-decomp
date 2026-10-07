@@ -788,11 +788,11 @@ static s32 _neoArkPowerPlant2RejectKeyItemUse(Task* task, s32 messageId, s32 ite
 }
 
 /// Message handler that copies the incoming record onto the outgoing one and
-/// passes both on to `func_map_neo_ark_80179B14`. Always returns 1.
+/// passes both on to `mapNeoArkResolveRoomVariant`. Always returns 1.
 s32 func_neo_ark_power_plant_2_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     return 1;
 }
 

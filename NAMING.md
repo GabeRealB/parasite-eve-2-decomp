@@ -487,11 +487,13 @@ package prefixes.
 tasks. Its implementation interface is `src/shared/room_events.h`; record types
 used by several room overlays are declared in `include/rooms/room_common.h`.
 
-`roomVariant` owns the included progress-based selection of a destination's
-room within its area. Its implementation interface is `src/shared/room_variants.h`;
-configuration bindings use `ROOM_VARIANT_`. Rooms can carry their own resolver
-instance for departures; a map overlay's instance exported to other packages
-adds its package prefix. `ROOM_VARIANT_RESOLVE_SHELTER` selects the Mine/Shelter
+`roomVariant` owns the included progress-dependent destination-room selection.
+Its implementation interface is `src/shared/room_variants.h`. Resolvers borrow
+a `RoomEventMsg` request and update the initialized reply's room selector;
+the same record may serve both roles. `ROOM_VARIANT_` configuration bindings
+select each carrier's function identifier. A map overlay exports its instance
+under its package prefix for other rooms; room-local copies keep the shared
+subsystem identity. `ROOM_VARIANT_RESOLVE_SHELTER` selects the Mine/Shelter
 definition and prototype together, with `map_shelter` supplying the public
 `mapShelterRoomVariantResolve` instance.
 

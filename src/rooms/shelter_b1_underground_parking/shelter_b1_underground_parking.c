@@ -1941,10 +1941,10 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
 /// weapon and ends the task.
 void func_shelter_b1_underground_parking_80182DB4(Task* task)
 {
-    RoomDeparture  rec;
-    RoomEventMsg   msg;
-    RoomDeparture* p;
-    s32            (*handler)(RoomEventMsg*, RoomEventMsg*);
+    RoomDeparture       rec;
+    RoomEventMsg        msg;
+    RoomDeparture*      p;
+    RoomVariantResolver handler;
 
     switch (task->state) {
         case 0:
@@ -2074,7 +2074,9 @@ static void _shelterB1UndergroundParkingAmbienceTask(Task* task)
     }
 }
 
+#define ROOM_VARIANT_RESOLVE_NEO_ARK roomVariantResolveNeoArk
 #include "../../shared/room_variants_neo_ark.inc.c"
+#undef ROOM_VARIANT_RESOLVE_NEO_ARK
 
 /// The examine task's eight states, run by
 /// `func_shelter_b1_underground_parking_80184284`, from set-up to the closing

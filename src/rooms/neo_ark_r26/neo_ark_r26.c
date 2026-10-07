@@ -473,11 +473,11 @@ static s32 _neoArkR26RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32
 }
 
 /// Message handler for the save location: copies the incoming `RoomEventMsg`
-/// onto the outgoing one and passes both to `func_map_neo_ark_80179B14`. Returns 1.
+/// onto the outgoing one and passes both to `mapNeoArkResolveRoomVariant`. Returns 1.
 s32 func_neo_ark_r26_8017D650(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     return 1;
 }
 

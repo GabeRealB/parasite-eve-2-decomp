@@ -466,14 +466,14 @@ static s32 _shelter1fParkingGarageRejectKeyItemMessage(Task* task, s32 messageId
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_map_neo_ark_80179B14`. Message 5 starts the room's event on flag 0x159; any
+/// `mapNeoArkResolveRoomVariant`. Message 5 starts the room's event on flag 0x159; any
 /// other message answers 1.
 s32 func_shelter_1f_parking_garage_8017DCF4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
 
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     if (in->areaId != GAME_AREA_SHELTER_1F_AIRLOCK) {
         return 1;
     }

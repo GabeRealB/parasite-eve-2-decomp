@@ -410,7 +410,7 @@ static s32 _neoArkNorthPromenadeRejectKeyItemUse(Task* task, s32 messageId, s32 
 s32 func_neo_ark_north_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     if (in->areaId != GAME_AREA_NEO_ARK_FOREST_ZONE) {
         return 1;
     }

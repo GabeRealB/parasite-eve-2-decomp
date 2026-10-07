@@ -151,10 +151,13 @@ void func_map_neo_ark_801799BC(u8* arg0)
     gGameSession->field_7E = 0;
 }
 
-/// The Neo Ark resolver, which rooms call by this name.
-#define roomVariantResolveNeoArk func_map_neo_ark_80179B14
+/// Binds the room-variant fragment to this overlay's cross-room export.
+///
+/// The replacement is a function identifier with the `RoomVariantResolver`
+/// signature. The binding applies only to the included definition.
+#define ROOM_VARIANT_RESOLVE_NEO_ARK mapNeoArkResolveRoomVariant
 #include "../../shared/room_variants_neo_ark.inc.c"
-#undef roomVariantResolveNeoArk
+#undef ROOM_VARIANT_RESOLVE_NEO_ARK
 
 /// Music-volume hook the Midi driver calls for the Neo Ark map (via
 /// `func_80179BE4`, see `Midi_UpdateVoiceVolumes`). `arg1` is the cue type:

@@ -543,7 +543,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC64(Task* task, s32 msgId, s32 arg2, s32
 s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    func_map_neo_ark_80179B14(src, dst);
+    mapNeoArkResolveRoomVariant(src, dst);
     switch (src->areaId) {
         case GAME_AREA_NEO_ARK_EVE_ELEVATOR:
             switch (gameFlagGetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED)) {

@@ -269,11 +269,11 @@ s32 func_neo_ark_submarine_tunnel_8017F27C(Task* task, s32 msgId, s32 arg2, s32 
 }
 
 /// Save-location message handler: copies the incoming `RoomEventMsg` onto the
-/// outgoing one, forwards both to `func_map_neo_ark_80179B14` and answers 1.
+/// outgoing one, forwards both to `mapNeoArkResolveRoomVariant` and answers 1.
 s32 func_neo_ark_submarine_tunnel_8017F284(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     return 1;
 }
 

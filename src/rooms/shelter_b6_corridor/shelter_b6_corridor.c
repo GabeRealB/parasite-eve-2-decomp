@@ -549,7 +549,7 @@ s32 func_shelter_b6_corridor_8017DEB0(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     s32 k;
 
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     k  = in->areaId;
     id = k;
     k  = 0x19;

@@ -130,7 +130,7 @@ static __inline__ s32 NeoArkForestZone_StartEvent(RoomEventMsg* dst, RoomLatched
 }
 
 /// Room handler for the save-location message: copies the incoming record onto
-/// the outgoing one and forwards both to `func_map_neo_ark_80179B14`. On a first pass
+/// the outgoing one and forwards both to `mapNeoArkResolveRoomVariant`. On a first pass
 /// (`queryOnly` clear, the flag that asks a handler to only report what *would*
 /// happen) it also restarts the room's ambience sound. Message 0x1D builds the
 /// room's event record - cap command 2, the stage sound, flag 0x140 - and hands
@@ -141,7 +141,7 @@ s32 func_neo_ark_forest_zone_8017D7E4(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     RoomLatchedEvent event;
 
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
         sndEvtRequestScriptStop(SOUND_NEO_ARK_FOREST_ZONE_AMBIENCE, 0x3C);
     }

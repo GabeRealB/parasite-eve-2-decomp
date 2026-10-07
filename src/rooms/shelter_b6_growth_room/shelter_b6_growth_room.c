@@ -50,11 +50,11 @@ s32 func_shelter_b6_growth_room_8017D5E8(Task* task, s32 msgId, s32 arg2, s32 ar
 }
 
 /// The room's handler for message 0x13EE: copies the incoming `RoomEventMsg` onto
-/// the outgoing one, passes both to `func_map_neo_ark_80179B14`, and returns 1.
+/// the outgoing one, passes both to `mapNeoArkResolveRoomVariant`, and returns 1.
 s32 func_shelter_b6_growth_room_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     return 1;
 }
 

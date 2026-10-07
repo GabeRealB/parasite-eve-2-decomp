@@ -1771,8 +1771,8 @@ static const TaskFuncTable3 D_shelter_b2_main_corridor_8017D5F0 = {
 
 void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
 {
-    RoomEventMsg param;
-    s32          (*resolve)(RoomEventMsg*, RoomEventMsg*);
+    RoomEventMsg        param;
+    RoomVariantResolver resolve;
 
     switch (arg0->state) {
         case 0:
@@ -1834,7 +1834,9 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
     }
 }
 
+#define ROOM_VARIANT_RESOLVE_NEO_ARK roomVariantResolveNeoArk
 #include "../../shared/room_variants_neo_ark.inc.c"
+#undef ROOM_VARIANT_RESOLVE_NEO_ARK
 
 /// Refuses every key-item use in this room, returning the menu's unavailable result zero.
 static s32 _shelterB2MainCorridorRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)

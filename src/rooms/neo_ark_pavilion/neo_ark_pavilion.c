@@ -1117,7 +1117,7 @@ static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEv
 }
 
 /// Room message handler for the pavilion's save location: copies the incoming
-/// record onto the outgoing one and forwards both to `func_map_neo_ark_80179B14`. Message
+/// record onto the outgoing one and forwards both to `mapNeoArkResolveRoomVariant`. Message
 /// `0xC` builds the room's event record - cap command 4, flag `0x17E` - and
 /// hands it to `NeoArkPavilion_StartEvent`; every other message answers 1.
 s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -1125,7 +1125,7 @@ s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomE
     RoomLatchedEvent event;
 
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     if (in->areaId != GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL) {
         return 1;
     }

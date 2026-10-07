@@ -335,7 +335,7 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, R
     RoomLatchedEvent event;
 
     *dst = *src;
-    func_map_neo_ark_80179B14(src, dst);
+    mapNeoArkResolveRoomVariant(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_1F_HELIPORT) {
         if (gameFlagGetNibble(GAME_FLAG_BULWARK_HELIPORT_UNBLOCKED) == 0) {
             Gp_SpawnIfCapIdle(1, 0);

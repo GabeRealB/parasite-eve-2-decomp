@@ -267,11 +267,11 @@ static s32 _shelter1fGuardroomRejectKeyItemUse(Task* unusedTask, s32 unusedMessa
 }
 
 /// The room's handler for message 0x13EE: copies the incoming `RoomEventMsg` onto
-/// the outgoing one, passes both to `func_map_neo_ark_80179B14`, and returns 1.
+/// the outgoing one, passes both to `mapNeoArkResolveRoomVariant`, and returns 1.
 s32 func_shelter_1f_guardroom_8017D744(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_neo_ark_80179B14(in, out);
+    mapNeoArkResolveRoomVariant(in, out);
     return 1;
 }
 

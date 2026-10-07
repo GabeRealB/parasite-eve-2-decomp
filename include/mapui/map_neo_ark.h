@@ -264,7 +264,17 @@ extern InventoryBattleReward D_map_neo_ark_8017C9B0[];
 
 extern InventoryBattleReward D_map_neo_ark_8017CB0C[];
 
-/// Updates the outgoing room marker state for this stage.
-s32 func_map_neo_ark_80179B14(RoomEventMsg* in, RoomEventMsg* out);
+/// Resolves a destination's progress-dependent room variant in the Neo Ark stage.
+///
+/// `request` borrows a `RoomEventMsg` with a stage-5 `areaId` and `queryOnly` choice.
+/// On `ROOM_EVENT_EXECUTE`, updates only `reply->room` for the observatory,
+/// pavilion, altar, shrine and pyramid. Queries and other areas leave the reply
+/// untouched. Room IDs are 1-based; the caller must initialize the reply's
+/// remaining fields (room handlers copy the request first).
+///
+/// Both arguments may point to the same record. Neither pointer is retained;
+/// game flags are only read. Always returns 1, without testing passage gates.
+/// The `map_neo_ark` overlay must remain loaded for the call.
+s32 mapNeoArkResolveRoomVariant(RoomEventMsg* request, RoomEventMsg* reply);
 
 #endif // INCLUDE_MAPUI_MAP_NEO_ARK_H
