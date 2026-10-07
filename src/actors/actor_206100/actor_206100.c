@@ -1718,14 +1718,8 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
 static inline void _actor206100ScaleCoord(GfxCoord* coord, VECTOR* factors)
 {
     GfxMatrix scaling;
-    MATRIX*   mtx;
 
-    mtx                          = &scaling.mat;
-    scaling.rotationWords.m00M01 = ONE;
-    scaling.rotationWords.m02M10 = 0;
-    MATRIX_PAIR(mtx, 1, 1)       = ONE;
-    scaling.rotationWords.m20M21 = 0;
-    mtx->m[2][2]                 = ONE;
+    gfxSetRotIdentity(&scaling.mat);
     ScaleMatrix(&scaling.mat, factors);
     MulMatrix(&coord->coord, &scaling.mat);
 }
