@@ -161,7 +161,7 @@ segments:
       - [0x4F4D4, c, object_fields] # damageGetHazardDamage
       - [0x4F9E8, c, object_task] # func_800E31E8
       - [0x4FCD8, c, cap_commands] # Gp_RunCapCmd and gameplay caption commands
-      - [0x508EC, c, cap_reloc] # Gp_RelocCapFile
+      - [0x508EC, c, cap_reloc] # capRelocateFile
       - [0x509F4, c, cap_start] # Gp_StartCap
       - [0x50CA0, c, captions] # caption interpreter, layout, events and file loading
       - [0x538AC, c, cap_script] # func_800E70AC

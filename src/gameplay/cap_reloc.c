@@ -66,56 +66,75 @@ TextGlyphCell* Gp_CapGlyphs;
 
 u8 D_80115680;
 
-s32 Gp_RelocCapFile(CapFile* file)
+bool capRelocateFile(CapFile* file)
 {
-    s32                i;
-    s32                count;
-    s32                flag;
-    CapSequenceRecord* rec;
-    CapCommandRef*     ptr;
+    /// Rebases a text reference or skips the slot following a terminator.
+    ///
+    /// `recordCursor` is a writable `CapSequenceRecord*` local, `fileBase` is
+    /// its containing `CapFile*`, and `endTextRef` is `CAP_TEXT_REF_END`.
+    /// Arguments have no side effects; the cursor is evaluated more than once.
+    /// The caller advances one record after this block. A terminal reference
+    /// is preserved, and its extra skip is not counted.
+#define CAP_RELOCATE_SEQUENCE_TEXT_RECORD(recordCursor, fileBase, endTextRef) \
+    {                                                                         \
+        if ((recordCursor)->textRef.offset != (endTextRef)) {                 \
+            (recordCursor)->textRef.offset += (u32)(fileBase);                \
+        } else {                                                              \
+            (recordCursor)++;                                                 \
+        }                                                                     \
+    }
+
+    enum { CAP_MAGIC_PREFIX_BYTES = 3 };
+    s32                entryIndex;
+    s32                sequenceRecordCount;
+    s32                sequenceEndRef;
+    s32                commandCount;
+    CapSequenceRecord* record;
+    CapCommandRef*     commandRef;
     CapSequenceTable*  sequenceTable;
     CapCommandTable*   commandTable;
 
-    if (strncmp(file->magic, Gp_StrCapMagic, 3) != 0) {
-        return 0;
+    if (strncmp(file->magic, Gp_StrCapMagic, CAP_MAGIC_PREFIX_BYTES) != 0) {
+        return false;
     }
 
-    i = 0;
+    entryIndex = 0;
+    // Relocated KSEG0 addresses are negative in the signed offset word.
     if (file->glyphs.offset > 0) {
+        // Add the 32-bit address to serialized byte offsets, without pointer scaling.
         file->glyphs.offset    += (u32)file;
         file->sequences.offset += (u32)file;
         file->commands.offset  += (u32)file;
         sequenceTable           = file->sequences.table;
-        rec                     = sequenceTable->records;
-        count                   = sequenceTable->count;
-        if (count > 0) {
-            flag = CAP_TEXT_REF_END;
+        record                  = sequenceTable->records;
+        sequenceRecordCount     = sequenceTable->count;
+        // Terminators skip the next slot so later sequences' commands stay intact.
+        if (sequenceRecordCount > 0) {
+            sequenceEndRef = CAP_TEXT_REF_END;
             do {
-                if (rec->textRef.offset != flag) {
-                    rec->textRef.offset += (u32)file;
-                } else {
-                    rec++;
-                }
-                i++;
-                rec++;
-            } while (i < count);
+                CAP_RELOCATE_SEQUENCE_TEXT_RECORD(record, file, sequenceEndRef);
+                entryIndex++;
+                record++;
+            } while (entryIndex < sequenceRecordCount);
+#undef CAP_RELOCATE_SEQUENCE_TEXT_RECORD
         }
         commandTable = file->commands.table;
-        i            = 0;
-        count        = commandTable->count;
-        ptr          = commandTable->entries;
-        if (count > 0) {
+        entryIndex   = 0;
+        commandCount = commandTable->count;
+        commandRef   = commandTable->entries;
+        if (commandCount > 0) {
             do {
-                if (ptr->offset != 0) {
-                    ptr->offset += (u32)file;
+                if (commandRef->offset != 0) {
+                    commandRef->offset += (u32)file;
                 }
-                i++;
-                ptr++;
-            } while (i < count);
+                entryIndex++;
+                commandRef++;
+            } while (entryIndex < commandCount);
         }
     }
 
+    // Repeated calls republish the tables without rebasing them again.
     Gp_CapGlyphs = file->glyphs.cells;
-    Gp_CapCmds   = (file->commands.table)->entries;
-    return 1;
+    Gp_CapCmds   = file->commands.table->entries;
+    return true;
 }

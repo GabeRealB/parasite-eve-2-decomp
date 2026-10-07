@@ -88,7 +88,7 @@ void Gp_CapTaskState1(Task* task)
         func_80724324();
     }
     if (Gp_CapFile != 0) {
-        Gp_RelocCapFile(Gp_CapFile);
+        capRelocateFile(Gp_CapFile);
     }
     if (capIsBusy() != 0 && D_801156B0 != 0) {
         D_801156BC++;

@@ -29,14 +29,16 @@ Everything below is read off the matched interpreter in
 ```
 
 The three offsets are **file-relative on disc** and rebased in place by
-`Gp_RelocCapFile`, which is also the format validator: wrong magic returns 0,
-and nothing is relocated when `glyphs.offset <= 0`. A relocated KSEG0 pointer
-is negative as a signed word, so the same test also refuses a second pass.
+`capRelocateFile`: a wrong three-byte "CAP" prefix returns 0 without changing
+the file or active tables. No offset or table-bound validation is performed.
+Nothing is relocated when `glyphs.offset <= 0`. A relocated KSEG0 pointer is
+negative as a signed word, so repeated calls skip rebasing but still publish
+the glyph and command tables and return 1.
 Retail payloads store glyph offset `0x14`, the first byte after this header.
 
 ## 2. Relocation
 
-`Gp_RelocCapFile` adds the file base to `glyphs.offset`, `sequences.offset`
+`capRelocateFile` adds the file base to `glyphs.offset`, `sequences.offset`
 and `commands.offset`, then walks both tables:
 
 - **Sequence table** — `CapSequenceTable`:
@@ -82,8 +84,8 @@ and `commands.offset`, then walks both tables:
 Then:
 
 ```c
-Gp_CapGlyphs = base.file->glyphs.cells;
-Gp_CapCmds   = base.file->commands.table->entries;
+Gp_CapGlyphs = file->glyphs.cells;
+Gp_CapCmds   = file->commands.table->entries;
 ```
 
 `Gp_CapCmds[i].command` is the `CapCommand*` in slot zero, and
@@ -235,7 +237,7 @@ playing.
 opaque (§3.6 of `ASSET_FORMATS.md` — no LZSS), so the extracted bytes are what
 the loader sees.
 
-**The magic on disc is `"CAP2"`, four characters.** `Gp_RelocCapFile` compares
+**The magic on disc is `"CAP2"`, four characters.** `capRelocateFile` compares
 only three, so any `CAP*` passes. Do not write a 4-byte comparison.
 
 **One raw chunk is a resource bundle containing images and data blobs.** This

@@ -30049,8 +30049,8 @@ file->glyphs.offset += (s32)file;
 
 Zero the loop index before `if (file->glyphs.offset > 0)` so it sinks into
 that `blez` delay slot as `move a0, zero`. A terminator compare of
-`-1` should be a hoisted local (`flag = -1`) so it lives in `$a2`.
-`Gp_RelocCapFile` is the example.
+`-1` should be a hoisted local (`sequenceEndRef = CAP_TEXT_REF_END`) so it lives in `$a2`.
+`capRelocateFile` is the example.
 
 ## Index a global table inside the `jal` so fail paths preload `$a0`
 

@@ -103,7 +103,22 @@ extern s16 D_8011567A;
 
 extern TextGlyphCell* Gp_CapGlyphs;
 
-s32 Gp_RelocCapFile(CapFile* file);
+/// Relocates a loaded CAP file in place and selects its glyph and command tables.
+///
+/// Returns false without changing the file or active tables when the first
+/// three magic bytes are not "CAP"; otherwise returns true. The fourth byte
+/// is ignored.
+/// A positive glyph offset triggers relocation of all three header offsets,
+/// nonterminal text references and nonzero command references. A relocated
+/// KSEG0 glyph address is negative, so repeated calls only select the tables.
+///
+/// `file` must be non-null, word-aligned, writable KSEG0 storage containing a
+/// complete serialized or already relocated CAP file. The signed sequence count
+/// counts playback records, including terminators, but excludes command slots
+/// skipped after terminators; the signed command count counts reference words.
+/// Neither offsets nor table extents are checked. The file must remain loaded
+/// while its published tables or text are used.
+bool capRelocateFile(CapFile* file);
 
 extern CapSequenceRecord* Gp_CapTable;
 

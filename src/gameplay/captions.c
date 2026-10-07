@@ -1186,7 +1186,7 @@ void Gp_LoadCapFile(s32 arg0)
                     func_80724714();
                 }
                 Gp_CapFile = D_8006C338[i].data;
-                Gp_RelocCapFile(Gp_CapFile);
+                capRelocateFile(Gp_CapFile);
                 break;
             }
             count++;

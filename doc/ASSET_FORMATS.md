@@ -984,7 +984,7 @@ Suggested roadmap: (1) structural `hONE` → JSON events, (2) timed events after
 
 - **`.pe2cap2`**: per-room dialogue, magic `"CAP"`. A header of three
   file-relative offsets (glyph table, sequence table, command index) rebased in
-  place by `Gp_RelocCapFile`; the command index is a counted `CapCommandTable`
+  place by `capRelocateFile`; the command index is a counted `CapCommandTable`
   driving a five-opcode chooser over counters and game flags. Full layout and
   opcode reference in [`CAP_FORMAT.md`](CAP_FORMAT.md). May carry a RAM load
   address in `load_addr`.

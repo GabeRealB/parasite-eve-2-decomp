@@ -101,7 +101,7 @@ CAP_CAPTION_DRAW_CURRENT_LINKAGE void CapCaption_DrawCurrent(void)
 }
 
 /// Relocates a caption file in place, the counterpart of gameplay's
-/// `Gp_RelocCapFile`, and publishes its glyph and script tables. Returns 0
+/// `capRelocateFile`, and publishes its glyph and script tables. Returns 0
 /// when the "CAP" magic is missing.
 static s32 CapCaption_Relocate(CapFile* file)
 {
