@@ -1062,7 +1062,6 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
     _Actor01100Work*  work;
     TmdObject*        extra;
     GfxCoord*         parts;
-    GfxRotationWords* mtx;
     SceneCombatState* combat;
     u8                param1[8];
     u8                param2[8];
@@ -1124,12 +1123,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
     work->startedMotion = 1;
     work->motion        = 1;
 
-    mtx         = (GfxRotationWords*)&work->scaleCoord.coord;
-    mtx->m00M01 = ONE;
-    mtx->m02M10 = 0;
-    mtx->m11M12 = ONE;
-    mtx->m20M21 = 0;
-    mtx->m22    = ONE;
+    gfxSetRotIdentity(&work->scaleCoord.coord);
     if (work->entryId == 0x31) {
         scale = Actor01100_D00010;
         Actor01100_Fn067C0(&work->scaleCoord.coord, &scale);
