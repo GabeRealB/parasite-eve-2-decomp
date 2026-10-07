@@ -21183,19 +21183,19 @@ temporary up to `$a2`. The symptom is a `regs`-only mismatch around 98% whose
 two objects are otherwise instruction-identical — every opcode, immediate and
 operand the same bar that one register pair, so `diff.py` shows one column.
 
-`func_actor_215100_8014CD4C` is `ActorsShared80132710`'s body (bit 0 of `flags`
-hides both models by zeroing `TmdObject::flags`, its absence restores 0x80,
-bit 1 ORs in 0x4) over a work block whose paired task sits 0x38 higher:
+`_pacedWalkSetPairModelDraw` in `actor_215100_2.c` is `ActorsShared80132710`'s
+body (bit 0 of `requestFlags` shows both models by zeroing `TmdObject::flags`,
+its absence excludes active drawing with 0x80, bit 1 ORs in 0x4) over a work block whose paired task sits 0x38 higher:
 
 ```c
-s32 func_actor_215100_8014CD4C(Task* task, s32 arg1, s32 flags)  /* 100%    */
-s32 func_actor_215100_8014CD4C(Task* task, s32 flags)            /*  98.6%  */
+s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlags)  /* 100%    */
+s32 _pacedWalkSetPairModelDraw(Task* task, s32 requestFlags)            /*  98.6%  */
 ```
 
 `value` is dead either way; only the incoming argument register the flag lands in
 changes. So read the **neighbouring** function in the same TU before trusting
-m2c's arity — `func_actor_215100_8014CCE0` next door is
-`(Task*, s32, AnimationPlayRequest*)` with its middle argument unused too, and
+m2c's arity — `_pacedWalkPlayAnimation` next door is
+`(Task*, s32, const AnimationPlayRequest*, s32)` with its message ID unused too, and
 that is the family's convention rather than a quirk of one body. Being a leaf
 with no calls and no data references makes the body promotable once matched;
 `overlay_dup_index.py promote` then shares it with `actor_160700`, which carries
@@ -46469,7 +46469,7 @@ dividend is a *signed* modulo of an `s16` - declare the field `s16` and write
 the plain `x->field % 48`. The read-modify-write beside it then needs no cast:
 GCC 2.8.1 emits the same `lhu` / `addiu` / `sh` for `x->field = x->field + 1` as
 for the `temp = (u16)x->field + 1;` idiom, so a `lhu` on the increment is not
-evidence of an unsigned field (checked both ways on `func_actor_215100_8014AD50`,
+evidence of an unsigned field (checked both ways on `_actor215100GalleryRedFlashLoopTask`,
 identical objects).
 
 ## An overlay can allocate more than one `Task::work` work block
@@ -80986,7 +80986,8 @@ seed was this artefact, not an allocation problem.
 
 ## A missing frame is a shared-epilogue difference, not just a `stack` penalty
 
-`func_actor_215100_8014CEF8` is a leaf — no calls and no locals — yet the target
+`_pacedWalkSubModelTask` in `actor_215100_2.c` has no emitted calls or live stack
+locals, yet the target
 opens `addiu sp,sp,-0x10` and ends `jr ra` / `addiu sp,sp,0x10`. Written
 naturally, the body scores 72.1% with `stack=2 branch=2 regs=1 insert=3
 delete=5`, and the diff is not two instructions: with no frame, GCC 2.8.1 gives
@@ -81000,10 +81001,10 @@ epilogue. The matched sibling `ActorsShared801328bc` carries the pad that
 creates it, and copying that line took the score to 100.00%:
 
 ```c
-void func_actor_215100_8014CEF8(Task* task)
+static void _pacedWalkSubModelTask(Task* task)
 {
-    char           pad[0x10];   /* unused; GCC 2.8.1 keeps it and it is the frame */
-    Task*          parent = task->parent;
+    char           unusedStackFrame[0x10]; /* unused; GCC 2.8.1 keeps it and it is the frame */
+    Task*          parentTask = task->parent;
 ```
 
 So when a leaf target has a 16-byte frame nothing in the C asks for, look for an
@@ -118284,7 +118285,7 @@ confirmed from `.cse`. Prediction was made before the build.
 `func_actor_215100_80149F2C` matched at 100% with all penalties zero. Its table
 sits at `0x4`, so it needed `rodata_head = "0x4"`. The overlay still built 4 bytes
 long, though. The same unit already held a matched C switch
-(`func_actor_215100_8014ABAC`), whose table is at `0xD8`. Before this change that
+(`_actor215100GalleryIntroTask`), whose table is at `0xD8`. Before this change that
 table was aligned because the unit's `.rodata` began at `0x0`, with the id word
 and an asm table in front of it. Once `.rodata` began at `0x4`, the table was at
 section offset `0xD4`, so `.align 3` inserted a pad word. The two tables cannot
@@ -128901,7 +128902,7 @@ copy in the delay slot mean the value is a variable in the original too — see
 The last 92.37% → 100% was the `SOFT_BARRIER()` lever on the second `beqz`,
 unchanged: without it the fall-through arm's `state = 1` fills the slot, with it
 the else arm's `state = 2` does, exactly as that section describes. The sibling
-bodies `func_actor_150400_801326A4` and `func_actor_215100_8014CCE0` are this
+bodies `func_actor_150400_801326A4` and `_pacedWalkPlayAnimation` are this
 same function in other overlays.
 
 Inputs: scratch `nonmatchings/func_actor_160600_8013252C-vacuum`; `base_1.c`

@@ -10,6 +10,8 @@
 
 #include "mist_shooting_gallery_private.h"
 
+#include "actors/actor_215100.h"
+
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
@@ -156,7 +158,6 @@ static const char D_mist_shooting_gallery_8017D850[];
 extern void func_actor_215100_8014A398(void);
 extern s32  func_actor_215100_8014AA54(RoomEventMsg* loc);
 extern void func_actor_215100_8014AB6C(void);
-extern void func_actor_215100_8014AF0C(void);
 extern void func_actor_215100_8014C5E0(s16, s16, s16);
 
 extern s32        D_actor_215100_8014D038;
@@ -1955,7 +1956,7 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* first
         D_80114D08 = 0xA;
     }
     if ((request->actionId == 2) && (gameFlagGetNibble(GAME_FLAG_0ED) == 0)) {
-        func_actor_215100_8014AF0C();
+        actor215100StartPierceConversation();
     }
     if (request->actionId == 3) {
         func_actor_215100_8014AB6C();

@@ -1,3 +1,4 @@
+#include "actors/actor_215100.h"
 #include "actor_215100_private.h"
 
 #include <psyq/sys/types.h>
@@ -116,7 +117,7 @@ static u8 CapCaption_Data_8015E66C[4];
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
-static void func_actor_215100_8014CB04(Task* task);
+static void _pacedWalkExit(Task* task);
 
 /* cap captions instance: retain the original overlay symbols. */
 static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2);
@@ -181,11 +182,10 @@ static CapCaptionScheduleWindow CapCaption_Data_80154514[];
 
 static TmdSource _gActor215100PierceCarradineBody;
 static TmdSource _gActor215100Actor113100Model07960;
-s32              func_actor_215100_8014CCE0(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_215100_8014CD4C(Task*, s32, s32, s32);
-s32              func_actor_215100_8014CE28(Task*, s32, s32, s32);
+static s32       _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlags, s32 unusedArgument);
+static s32       _actor215100IgnoreCommand(Task* task, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument);
 void             func_actor_215100_8014CA2C(Task*);
-void             func_actor_215100_8014CEF8(Task*);
+static void      _pacedWalkSubModelTask(Task* task);
 
 static AnimationSet _gActor215100Animation10DE8;
 static AnimationSet _gActor215100Animation111A0;
@@ -210,20 +210,20 @@ static AnimationSet _gActor215100Animation14368;
 static AnimationSet _gActor215100Animation14590;
 static AnimationSet _gActor215100Animation14758;
 
-void func_actor_215100_8014AEC4(s32);
+static void _actor215100SetConversationCap(s32 enabled);
 
-void func_actor_215100_8014ABAC(Task*);
-void func_actor_215100_8014AD50(Task*);
-void func_actor_215100_8014ADD8(void);
-void func_actor_215100_8014AE08(s32);
-void func_actor_215100_8014AE2C(s32);
-void func_actor_215100_8014AE90(s16);
-void func_actor_215100_8014AEB4(s16);
+static void _actor215100GalleryIntroTask(Task* task);
+static void _actor215100GalleryRedFlashLoopTask(Task* task);
+void        func_actor_215100_8014ADD8(void);
+void        func_actor_215100_8014AE08(s32);
+static void _actor215100SetGalleryRedFlashLoop(s32 enabled);
+void        func_actor_215100_8014AE90(s16);
+static void _actor215100SetViewRespawnPending(s16 pending);
 
 TaskDesc D_actor_215100_8014E13C[3] = {
-    { { { TASK_BODY_NONE, 32 } }, func_actor_215100_8014ABAC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _actor215100GalleryIntroTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, func_actor_215100_80149F2C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_actor_215100_8014AD50, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _actor215100GalleryRedFlashLoopTask, { .value = 0 } },
 };
 
 _Actor215100GallerySessionAnimationBankExtensionStorage D_actor_215100_8014E160 = { .data = { { &gActor215100Animation034E4, &gActor215100Animation03754, &gActor215100Animation039AC, &gActor215100Animation03B48, &gActor215100Animation03D98, &gActor215100Animation03FF0, NULL, NULL, NULL, NULL, &gActor215100Animation042F4 }, { { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 19, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 20, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 21, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
@@ -287,7 +287,7 @@ EvsCommand D_actor_215100_8014E370[59] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AE08 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AE2C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetGalleryRedFlashLoop }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 80 }, { .value = 80 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -296,7 +296,7 @@ EvsCommand D_actor_215100_8014E370[59] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5114000D }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AE2C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetGalleryRedFlashLoop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E268 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E254 }, { .value = 0 } },
@@ -333,10 +333,10 @@ EvsCommand D_actor_215100_8014E8F8[17] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_215100_8014AEB4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor215100SetViewRespawnPending }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 80 }, { .value = 80 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AE2C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetGalleryRedFlashLoop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_8014E254 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -933,7 +933,7 @@ AnimationPlayRequest D_actor_215100_8015324C = { { .index = 1 }, 1, ANIMATION_BL
 AnimationPlayRequest D_actor_215100_80153260 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
 EvsCommand D_actor_215100_80153274[117] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AEC4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153260 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1048,7 +1048,7 @@ EvsCommand D_actor_215100_80153274[117] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_80153234 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AEC4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1066,12 +1066,12 @@ EvsCommand D_actor_215100_80153D6C[15] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AEC4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_215100_80153ED4[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AEC4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153260 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153014 } }, { .value = 0 } },
@@ -1080,12 +1080,12 @@ EvsCommand D_actor_215100_80153ED4[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AEC4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_215100_80153FDC[43] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AEC4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_215100_801531CC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153260 }, { .value = 0 } },
@@ -1126,12 +1126,12 @@ EvsCommand D_actor_215100_80153FDC[43] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_801531B8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AEC4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_215100_801543E4[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AEC4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_215100_80153260 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80153014 } }, { .value = 0 } },
@@ -1140,7 +1140,7 @@ EvsCommand D_actor_215100_801543E4[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_215100_80152FEC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AEC4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetConversationCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1703,17 +1703,17 @@ static AnimationSet _gActor215100Animation14758 = {
 };
 
 TaskMessageEntry D_actor_215100_8015E5A0[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_215100_8014CCE0 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_215100_8014CD4C },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlayAnimation },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _pacedWalkSetPairModelDraw },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_215100_8014CE28 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor215100IgnoreCommand },
     { ACTOR_MESSAGE_WALK_TO, _pacedWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_215100_8015E5D0[2] = {
     { { { TASK_BODY_TMD, 96 } }, func_actor_215100_8014CA2C, { .model = &_gActor215100PierceCarradineBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_215100_8014CEF8, { .model = &_gActor215100Actor113100Model07960 } },
+    { { { TASK_BODY_TMD, 192 } }, _pacedWalkSubModelTask, { .model = &_gActor215100Actor113100Model07960 } },
 };
 
 AnimationSet* D_actor_215100_8015E5E8[25] = {
@@ -1784,7 +1784,6 @@ void func_actor_215100_8014A908(void);
 void func_actor_215100_8014A9A0(void);
 s32  func_actor_215100_8014AA54(RoomEventMsg* arg0);
 void func_actor_215100_8014AB6C(void);
-void func_actor_215100_8014AF0C(void);
 
 static void func_actor_215100_8014C660(Enemy* enemy, Task* task);
 
@@ -2056,64 +2055,96 @@ void func_actor_215100_8014AB6C(void)
     capSpawnEventIfIdle(0x11, CAP_EVENT_PAUSE_ACTORS);
 }
 
-void func_actor_215100_8014ABAC(Task* arg0)
+/// Runs the first-visit gallery introduction and hands control to its menu or exit scene.
+///
+/// Spawned on gallery entry with a live room overlay. Hides the HUD immediately;
+/// an already-seen introduction goes straight to the menu. Otherwise the task
+/// waits for each event script, uses the CAP reply to choose the menu or exit,
+/// and kills itself after the handoff. Event scripts own HUD/control restoration.
+static void _actor215100GalleryIntroTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum {
+        ACTOR_215100_GALLERY_INTRO_START         = 0,
+        ACTOR_215100_GALLERY_INTRO_WAIT          = 1,
+        ACTOR_215100_GALLERY_REPLY_START         = 2,
+        ACTOR_215100_GALLERY_REPLY_WAIT          = 3,
+        ACTOR_215100_GALLERY_EXIT_START          = 4,
+        ACTOR_215100_GALLERY_MENU_REPLY_START    = 10,
+        ACTOR_215100_GALLERY_MENU_REPLY_WAIT     = 11,
+        ACTOR_215100_GALLERY_MENU_TASK           = 1,
+        ACTOR_215100_GALLERY_MENU_REPLY_SEQUENCE = 7,
+        ACTOR_215100_GALLERY_EXIT_REPLY_SEQUENCE = 8,
+        ACTOR_215100_GALLERY_INTRO_OBJECTIVE     = 0x3A,
+    };
+
+    switch (task->state) {
+        case ACTOR_215100_GALLERY_INTRO_START:
+            // Mark the introduction before playback, so skipping still consumes it.
             gGameSession->hideHud = 1;
             if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN) == 0) {
                 gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN, 1);
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x3A);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_215100_GALLERY_INTRO_OBJECTIVE);
                 evsStartScriptWithSkip(D_actor_215100_8014E370, EVENT_SCRIPT_HUD_KEEP, D_actor_215100_8014E8F8);
-                arg0->state++;
+                task->state++;
             } else {
-                taskSpawnFromTable(D_actor_215100_8014E13C, 1, 0, 0);
-                taskKill(arg0);
+                taskSpawnFromTable(D_actor_215100_8014E13C, ACTOR_215100_GALLERY_MENU_TASK, 0, 0);
+                taskKill(task);
             }
             break;
-        case 1:
+        case ACTOR_215100_GALLERY_INTRO_WAIT:
             if (gGameSession->eventState == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 2:
+        case ACTOR_215100_GALLERY_REPLY_START:
             evsStartScript(D_actor_215100_8014EA90, EVENT_SCRIPT_HUD_KEEP);
-            arg0->state++;
+            task->state++;
             break;
-        case 3:
+        case ACTOR_215100_GALLERY_REPLY_WAIT:
             if (gGameSession->eventState == 0) {
                 if (capGetVariantKey() != 0) {
-                    arg0->state = 10;
+                    task->state = ACTOR_215100_GALLERY_MENU_REPLY_START;
                 } else {
-                    arg0->state++;
+                    task->state++;
                 }
             }
             break;
-        case 4:
-            capStartSequenceSlot(8, 0, 0);
+        case ACTOR_215100_GALLERY_EXIT_START:
+            capStartSequenceSlot(ACTOR_215100_GALLERY_EXIT_REPLY_SEQUENCE, 0, 0);
             evsStartScript(D_actor_215100_8014EBE0, EVENT_SCRIPT_HUD_KEEP);
-            taskKill(arg0);
+            taskKill(task);
             break;
-        case 10:
-            capStartSequenceSlot(7, 0, 0);
+        case ACTOR_215100_GALLERY_MENU_REPLY_START:
+            capStartSequenceSlot(ACTOR_215100_GALLERY_MENU_REPLY_SEQUENCE, 0, 0);
             evsStartScript(D_actor_215100_8014EB08, EVENT_SCRIPT_HUD_KEEP);
-            arg0->state++;
+            task->state++;
             break;
-        case 11:
+        case ACTOR_215100_GALLERY_MENU_REPLY_WAIT:
             if (gGameSession->eventState == 0) {
-                taskSpawnFromTable(D_actor_215100_8014E13C, 1, 0, 0);
-                taskKill(arg0);
+                taskSpawnFromTable(D_actor_215100_8014E13C, ACTOR_215100_GALLERY_MENU_TASK, 0, 0);
+                taskKill(task);
             }
             break;
     }
 }
 
-void func_actor_215100_8014AD50(Task* arg0)
+/// Spawns a gallery red flash whenever its elapsed counter is divisible by 48.
+///
+/// Includes the first tick. Uses the task's zero-initialized signed-halfword
+/// counter as elapsed ticks;
+/// increments retain halfword wrapping. Requires the gallery flash table to
+/// remain loaded. No work is allocated; the event callback kills this task.
+static void _actor215100GalleryRedFlashLoopTask(Task* task)
 {
-    if (arg0->killCountdown % 48 == 0) {
-        taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+    enum {
+        ACTOR_215100_GALLERY_RED_FLASH_PERIOD_TICKS = 48,
+        ACTOR_215100_GALLERY_RED_FLASH_TASK         = 1,
+    };
+
+    if (task->killCountdown % ACTOR_215100_GALLERY_RED_FLASH_PERIOD_TICKS == 0) {
+        taskSpawnFromTable(D_mist_shooting_gallery_801856B8, ACTOR_215100_GALLERY_RED_FLASH_TASK, 0, 0);
     }
-    arg0->killCountdown = arg0->killCountdown + 1;
+    task->killCountdown = task->killCountdown + 1;
 }
 
 void func_actor_215100_8014ADD8(void)
@@ -2128,10 +2159,18 @@ void func_actor_215100_8014AE08(s32 arg0)
     }
 }
 
-void func_actor_215100_8014AE2C(s32 arg0)
+/// Starts or stops the repeated red flashes used during the gallery introduction.
+///
+/// Nonzero spawns and publishes a loop task; zero kills the published task and
+/// clears its handle. The script must stop an existing loop before starting
+/// another: a repeated start overwrites the handle without killing its task.
+/// Both actor and gallery overlays must remain loaded until the loop is stopped.
+static void _actor215100SetGalleryRedFlashLoop(s32 enabled)
 {
-    if (arg0 != 0) {
-        D_actor_215100_8015E64C = taskSpawnFromTable(D_actor_215100_8014E13C, 2, 0, 0);
+    enum { ACTOR_215100_GALLERY_RED_FLASH_LOOP_TASK = 2 };
+
+    if (enabled != 0) {
+        D_actor_215100_8015E64C = taskSpawnFromTable(D_actor_215100_8014E13C, ACTOR_215100_GALLERY_RED_FLASH_LOOP_TASK, 0, 0);
         return;
     }
     if (D_actor_215100_8015E64C != NULL) {
@@ -2145,34 +2184,54 @@ void func_actor_215100_8014AE90(s16 arg0)
     func_mist_shooting_gallery_801811C0(arg0);
 }
 
-void func_actor_215100_8014AEB4(s16 arg0)
+/// Sets the deferred view-respawn request when the introduction is skipped.
+///
+/// Stores the signed halfword unchanged; nonzero asks gameplay to respawn the
+/// saved view when scene loading permits, and zero clears the request.
+static void _actor215100SetViewRespawnPending(s16 pending)
 {
-    gGameSession->viewDirty = arg0;
+    gGameSession->viewDirty = pending;
 }
 
-void func_actor_215100_8014AEC4(s32 arg0)
+/// Selects the CAP resource and texture page for Pierce's conversation scenes.
+///
+/// Nonzero selects data-resource ordinal 1 and VRAM origin (768, 0); zero
+/// restores the bundle's default CAP selection. Requires those resources loaded.
+static void _actor215100SetConversationCap(s32 enabled)
 {
-    if (arg0 != 0) {
-        Gp_CapFile = 0;
-        capSelectLoadedFile(1);
-        capSetTexturePage(0x300, 0);
+    enum {
+        ACTOR_215100_CONVERSATION_CAP_RESOURCE_ORDINAL = 1,
+        ACTOR_215100_CONVERSATION_CAP_VRAM_X           = 768,
+        ACTOR_215100_CONVERSATION_CAP_VRAM_Y           = 0,
+    };
+
+    if (enabled != 0) {
+        Gp_CapFile = NULL;
+        capSelectLoadedFile(ACTOR_215100_CONVERSATION_CAP_RESOURCE_ORDINAL);
+        capSetTexturePage(ACTOR_215100_CONVERSATION_CAP_VRAM_X, ACTOR_215100_CONVERSATION_CAP_VRAM_Y);
         return;
     }
     capReset();
 }
 
-void func_actor_215100_8014AF0C(void)
+void actor215100StartPierceConversation(void)
 {
+    enum {
+        ACTOR_215100_PIERCE_TALK_FIRST  = 0,
+        ACTOR_215100_PIERCE_TALK_SECOND = 1,
+        ACTOR_215100_PIERCE_TALK_REPEAT = 2,
+    };
+
     switch (gameFlagGetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS)) {
-        case 0:
-            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, 1);
+        case ACTOR_215100_PIERCE_TALK_FIRST:
+            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, ACTOR_215100_PIERCE_TALK_SECOND);
             evsStartScript(D_actor_215100_80153ED4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
-        case 1:
+        case ACTOR_215100_PIERCE_TALK_SECOND:
             evsStartScript(D_actor_215100_80153FDC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, 2);
+            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, ACTOR_215100_PIERCE_TALK_REPEAT);
             break;
-        case 2:
+        case ACTOR_215100_PIERCE_TALK_REPEAT:
             evsStartScript(D_actor_215100_801543E4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
@@ -2215,7 +2274,7 @@ static void func_actor_215100_8014C660(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_215100_8014CB04;
+    task->exitCallback               = _pacedWalkExit;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
@@ -2277,8 +2336,12 @@ void func_actor_215100_8014CA2C(Task* task)
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// Exit callback: hands the task's `Enemy` back to `enemyDestroy`.
-static void func_actor_215100_8014CB04(Task* task)
+/// Releases the walker's enemy record and tears down its task tree.
+///
+/// Installed after the walker allocates its work. `spawnArg2.pointer` must
+/// retain the live owning enemy through this callback; task teardown releases
+/// the work, model and carried child. Neither pointer survives teardown.
+static void _pacedWalkExit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
@@ -2293,93 +2356,152 @@ static void func_actor_215100_8014CB04(Task* task)
 
 #include "../../shared/paced_walk_blend_anim.inc.c"
 
-/// Starts the actor's scripted animation selected by the request.
+/// Records the requested clip and next reseed without changing heading or travel.
 ///
-/// Rejects ids 0x19 and above before changing playback state.
-/// The blend path carries the requested duration in whole frames.
-s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Borrows both pointers for the call. Clip and blend duration narrow to signed
+/// halfwords. A nonzero blend selects interpolation; reset leaves the previous
+/// duration untouched. Clears `st.field_6`, whose role is unproven.
+static inline void _pacedWalkApplyAnimationRequest(PacedWalkWork* work, const AnimationPlayRequest* request)
 {
+    work->st.animId = request->animationId;
+    if (request->blend != ANIMATION_BLEND_RESET) {
+        work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
+        work->blendFrames = request->blendFrames;
+    } else {
+        work->st.state = ACTOR_ENEMY_ANIM_RESET;
+    }
+    work->st.field_6 = 0;
+}
+
+/// Immediately reseeds the walker's non-root tracks from a scripted play request.
+///
+/// Requires a spawned TMD walker with live `PacedWalkWork`. The bank has loaded
+/// clips 1..15 and 18..24; entries 0, 16 and 17 are NULL. The signed check rejects
+/// only IDs >=25, so callers must exclude negative and unloaded IDs. The request
+/// is borrowed through dispatch; clip storage must outlive playback on parts 1..19.
+/// Nonzero blend captures old poses and narrows the duration to a signed halfword
+/// in normal-rate frames; 0..2047 keeps blend time nonnegative. Reset ignores it.
+/// Ignores the bank selector, collision choice, message ID and second payload.
+/// Returns 0 after reseeding or -1 for a rejected ID without changing playback.
+static s32 _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
+{
+    enum {
+        PACED_WALK_ANIMATION_ID_LIMIT         = ARRAY_SIZE(D_actor_215100_8015E5E8),
+        PACED_WALK_ANIMATION_REQUEST_APPLIED  = 0,
+        PACED_WALK_ANIMATION_REQUEST_REJECTED = -1,
+    };
     PacedWalkWork* work;
 
     work = task->work;
-    if (args->animationId < 0x19) {
-        work->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
-            work->blendFrames = args->blendFrames;
-        } else {
-            work->st.state = ACTOR_ENEMY_ANIM_RESET;
-        }
-        work->st.field_6 = 0;
+    if (request->animationId < PACED_WALK_ANIMATION_ID_LIMIT) {
+        _pacedWalkApplyAnimationRequest(work, request);
         _pacedWalkUpdate(task);
-        return 0;
+        return PACED_WALK_ANIMATION_REQUEST_APPLIED;
     }
-    return -1;
+    return PACED_WALK_ANIMATION_REQUEST_REJECTED;
 }
 
-/// Script opcode: sets the visibility flags of the actor's model and of the
-/// model of the enemy spawned alongside it. `flags` bit 0 shows both
-/// (`TmdObject::flags` 0) and its absence hides them with
-/// `TMD_OBJECT_SKIP_ACTIVE_DRAW`. Bit 1 also sets `TMD_OBJECT_SKIP_AUTO_BUFFER`.
-/// The middle argument is the one every opcode of the table receives.
-s32 func_actor_215100_8014CD4C(Task* task, s32 arg1, s32 flags, s32 arg3)
+/// Replaces both model flags from paired-draw request bits, in receiver-first order.
+///
+/// Both TMD objects must be live and writable; pointers may alias. SHOW clears
+/// all flags, its absence excludes active drawing, and SKIP_AUTO_BUFFER adds
+/// automatic-buffer suppression. Other bits are ignored; no buffers are changed.
+static inline void _pacedWalkReplacePairDrawFlags(TmdObject* walkerModel, TmdObject* pairModel, s32 requestFlags)
 {
-    TmdObject* self;
-    TmdObject* other;
+    enum { PACED_WALK_PAIR_MODEL_NO_FLAGS = 0 };
 
-    self  = task->extra.tmd;
-    other = ((PacedWalkWork*)task->work)->pairTask->extra.tmd;
-
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
+    if (requestFlags & ACTOR_MESSAGE_PAIR_SHOW) {
+        walkerModel->flags = PACED_WALK_PAIR_MODEL_NO_FLAGS;
+        pairModel->flags   = PACED_WALK_PAIR_MODEL_NO_FLAGS;
     } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        walkerModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        pairModel->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
+    if (requestFlags & ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER) {
+        walkerModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        pairModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    }
+}
 
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
+/// Replaces the walker and its carried model's draw flags together.
+///
+/// Requires live TMD models on the receiver and its `PacedWalkWork::pairTask`,
+/// regardless of spawn arguments. Uses `ACTOR_MESSAGE_PAIR_*` request bits:
+/// SHOW clears all flags; without it, both exclude active drawing. The separate
+/// SKIP_AUTO_BUFFER bit adds that object flag. Other bits are ignored. Does not
+/// allocate or release buffers. Ignores the message ID and second payload; returns 0.
+static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlags, s32 unusedArgument)
+{
+    PacedWalkWork* work;
+    TmdObject*     walkerModel;
+    TmdObject*     pairModel;
+
+    walkerModel = task->extra.tmd;
+    work        = task->work;
+    pairModel   = work->pairTask->extra.tmd;
+    _pacedWalkReplacePairDrawFlags(walkerModel, pairModel, requestFlags);
     return 0;
 }
 
 #include "../../shared/paced_walk_place.inc.c"
 
-/// Script opcode that does nothing.
-s32 func_actor_215100_8014CE28(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores actor commands without changing the walker.
+///
+/// Retains the four-word ABI of `ACTOR_COMMAND_MESSAGE_APPLY`. The receiver,
+/// borrowed command and other argument words are never read or retained; returns 0.
+static s32 _actor215100IgnoreCommand(Task* task, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument)
 {
     return 0;
 }
 
 #include "../../shared/paced_walk_to.inc.c"
 
-/// Handler of the sub-model the actor spawns and adopts as its child. On the
-/// first frame it points the sub-model's light and colour matrices at the
-/// parent's, makes it visible with `flags` 0 and parents its root coordinate
-/// to part 4 of the parent's model; every frame it clears the coordinate's
-/// `composeStamp` so it is recomputed from that part.
-void func_actor_215100_8014CEF8(Task* task)
+/// Links a carried model to a walker part and borrows the walker's lighting.
+///
+/// Both the part coordinate and work matrices must outlive the child. Keeps its
+/// root's local transform, invalidates composition and clears all model flags.
+/// Requires live writable storage and an acyclic coordinate ancestry.
+static inline void _pacedWalkAttachCarriedModel(TmdObject* carriedModel, GfxCoord* attachmentCoord, PacedWalkWork* parentWork)
 {
-    char           pad[0x10];
-    Task*          parent = task->parent;
-    TmdObject*     obj    = task->extra.tmd;
-    GfxCoord*      coord  = obj->coords;
-    GfxCoord*      sub    = &parent->extra.tmd->coords[4];
-    PacedWalkWork* work   = parent->work;
+    enum { PACED_WALK_CARRIED_MODEL_NO_FLAGS = 0 };
+    GfxCoord* rootCoord = carriedModel->coords;
+
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    carriedModel->lightMtx  = &parentWork->light;
+    carriedModel->flags     = PACED_WALK_CARRIED_MODEL_NO_FLAGS;
+    carriedModel->colorMtx  = &parentWork->color;
+    rootCoord->parent       = attachmentCoord;
+}
+
+/// Attaches the carried model to walker part 4 and refreshes its root composition.
+///
+/// Requires a live TMD child task under a spawned walker with `PacedWalkWork`
+/// and at least five model coordinates. State 0 borrows part 4 and the parent's
+/// light matrices, clears all flags and enters state 1. Both states mark the
+/// root dirty; other states do nothing. The parent's model and work must outlive
+/// this child, which belongs to the parent's task teardown tree.
+static void _pacedWalkSubModelTask(Task* task)
+{
+    enum {
+        PACED_WALK_SUB_MODEL_ATTACH = 0,
+        PACED_WALK_SUB_MODEL_FOLLOW = 1,
+        PACED_WALK_ATTACHMENT_PART  = 4,
+    };
+    // The original unused reservation retains the shared return epilogue.
+    char           unusedStackFrame[0x10];
+    Task*          parentTask      = task->parent;
+    TmdObject*     carriedModel    = task->extra.tmd;
+    GfxCoord*      rootCoord       = carriedModel->coords;
+    GfxCoord*      attachmentCoord = &parentTask->extra.tmd->coords[PACED_WALK_ATTACHMENT_PART];
+    PacedWalkWork* parentWork      = parentTask->work;
 
     switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            obj->lightMtx       = &work->light;
-            obj->flags          = 0;
-            obj->colorMtx       = &work->color;
-            coord->parent       = sub;
+        case PACED_WALK_SUB_MODEL_ATTACH:
+            _pacedWalkAttachCarriedModel(carriedModel, attachmentCoord, parentWork);
             task->state++;
             break;
-        case 1:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        case PACED_WALK_SUB_MODEL_FOLLOW:
+            rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }
 }
