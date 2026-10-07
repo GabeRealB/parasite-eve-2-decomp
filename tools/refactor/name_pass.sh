@@ -57,6 +57,19 @@
 # front of it - the same division of labour the overlay sweep uses. The workers
 # are then reset to the landed state, so each round starts from one tree again.
 #
+# --queue K lets a worker that finishes early take another step of the same
+# round instead of waiting for the slowest. The round's steps are chosen once,
+# when it starts - up to K per worker, all ready and none overlapping another -
+# and since nothing lands before the join, none of them can stop being ready or
+# become ready while the round runs: the queue is simply worked off. A worker
+# takes one step, and on finishing asks for the next. It is given one until
+# every worker has finished its first, and after that it is told to stop; the
+# steps still queued stay in the worklist for the next round. A second step is
+# worked in the tree that holds the worker's first commit, and the join replays
+# every commit in the order the steps were started. The join, the verification
+# and the worklist rebuild happen once, when all workers have stopped. K = 1 is
+# one step per worker, as before; the default is 3.
+#
 # Only steps that do not wait on each other share a round. The worklist's
 # `after` column gives the last step each one depends on, and a round is
 # widened only while that stays behind the round's first step; the dependency
@@ -94,6 +107,7 @@ PROFILE="${PROFILE-${VACUUM_PROFILE:-}}"
 # had run out of work.
 TIMES=0
 WORKERS=1
+QUEUE="${PE2_NAME_QUEUE:-3}"
 # Beside the repository by default, the way the matching vacuum places its
 # worktrees, so a checkout is not nested inside another one.
 WORKER_ROOT="${NAME_PASS_WORKTREE_ROOT:-$(dirname "$ROOT")}"
@@ -116,6 +130,7 @@ REFRESH=1
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --times) TIMES="$2"; shift 2 ;;
+    --queue) QUEUE="$2"; shift 2 ;;
     --workers|-j) WORKERS="$2"; shift 2 ;;
     --batch) export PE2_NAME_BATCH="$2"; shift 2 ;;
     --batch-funcs) export PE2_NAME_BATCH_FUNCS="$2"; shift 2 ;;
@@ -194,7 +209,8 @@ review_file() { echo "local/name-pass/reviews/$RUN_ID-r$i-step$1.json"; }
 # ever, against the same tree it just failed against.
 SKIP_NAMES=" "
 
-# The orders to work next, at most $WORKERS of them, one per line.
+# The orders to work next, at most $WORKERS * $QUEUE of them, one per line: the
+# first $WORKERS start the round and the rest are its queue.
 #
 # The first is the lowest outstanding step, as it always was. Each further one
 # is a candidate only if everything it depends on comes before that first step,
@@ -256,7 +272,7 @@ next_batch() {
   done < <(rows)
   if (( ${#cands[@]} > 1 && WORKERS > 1 )); then
     printf '%s\n' "${cands[@]}" \
-      | venv/bin/python3 tools/refactor/dep_graph.py round --workers "$WORKERS" \
+      | venv/bin/python3 tools/refactor/dep_graph.py round --workers "$(( WORKERS * (QUEUE > 0 ? QUEUE : 1) ))" \
           --worklist "$WORKLIST" 2>>"$LOG" \
       || echo "${cands[0]}"
   elif (( ${#cands[@]} > 0 )); then
@@ -452,7 +468,7 @@ WORKLIST="$SNAPSHOT"
 # abandon a round outright, send the driver SIGTERM (or Ctrl-\) - its shielded
 # children then have to be stopped by hand.
 STOP_REQUESTED=0
-trap 'echo ""; echo "Interrupt received; stopping after this round (kill -TERM $$ to abandon it)."; STOP_REQUESTED=1' INT
+trap 'echo ""; echo "Interrupt received; stopping after this round (kill -TERM $$ to abandon it)."; STOP_REQUESTED=1; [[ -z "${QDIR:-}" ]] || : >"$QDIR/stop"' INT
 shielded() {
   if command -v setsid >/dev/null 2>&1; then
     setsid -w "$@"
@@ -655,6 +671,40 @@ $brief" "$log" "$term"; rc=$?
     return 0
   fi
   printf '%s %s\n' "$outcome" "$(git -C "$dir" rev-parse HEAD)" >"$status"
+}
+
+# --- the round's queue ----------------------------------------------------------
+# $QDIR holds the round's state, shared by the worker subshells: `queue` (orders
+# not yet started, one per line), `started` (orders in the order they were
+# taken, which is the order the join replays them in), `worker.<order>`,
+# `status.<order>`, `first.<w>` once worker w has finished a step, and `stop`
+# when the driver was interrupted. $QACTIVE is how many workers the round has.
+queue_take() {
+  local w="$1"
+  (
+    flock 9
+    if [[ -e "$QDIR/first.$w" ]]; then
+      [[ ! -e "$QDIR/stop" ]] || exit 0
+      # Every worker has finished its first step: the round is closing.
+      (( $(find "$QDIR" -maxdepth 1 -name 'first.*' | wc -l) < QACTIVE )) || exit 0
+    fi
+    next="$(head -n 1 "$QDIR/queue" 2>/dev/null)"
+    [[ -n "$next" ]] || exit 0
+    sed -i 1d "$QDIR/queue"
+    echo "$w" >"$QDIR/worker.$next"
+    echo "$next" >>"$QDIR/started"
+    echo "$next"
+  ) 9>"$QDIR/lock"
+}
+
+worker_loop() {
+  local w="$1" order wlog="${LOG%.log}-w$1.log"
+  while order="$(queue_take "$w")" && [[ -n "$order" ]]; do
+    echo "--- worker $w: step $order (${step_items[$order]}) -> $wlog" | tee -a "$LOG"
+    work_step "$(worker_dir "$w")" "$order" "${step_items[$order]}" \
+              "$(build_brief "$order")" "$wlog" "$QDIR/status.$order" 0
+    ( flock 9; : >"$QDIR/first.$w" ) 9>"$QDIR/lock"
+  done
 }
 
 # --- worker worktrees ---------------------------------------------------------
@@ -1003,18 +1053,18 @@ BARRIER
               "$(build_brief "$order")" "$LOG" "$st" 1
     status_of[$order]="$(cat "$st")"; rm -f "$st"
   else
-    # Fork. Each worker gets one step, its own worktree and its own log; the
-    # terminal would be unreadable with several agents streaming into it, so it
-    # gets a line per worker and the logs hold the detail.
-    pids=(); sts=(); w=0
-    for order in "${batch[@]}"; do
-      w=$((w + 1))
-      wlog="${LOG%.log}-w$w.log"
-      st="$(mktemp -t name_pass_status.XXXXXX)"
-      sts[$w]="$st"
-      echo "--- worker $w: step $order (${step_items[$order]}) -> $wlog" | tee -a "$LOG"
-      work_step "$(worker_dir "$w")" "$order" "${step_items[$order]}" \
-                "$(build_brief "$order")" "$wlog" "$st" 0 &
+    # Fork. Each worker gets its own worktree and its own log, and works the
+    # round's queue (see queue_take); the terminal would be unreadable with
+    # several agents streaming into it, so it gets a line per step and the logs
+    # hold the detail.
+    QDIR="$(mktemp -d -t name_pass_round.XXXXXX)"
+    printf '%s\n' "${batch[@]}" >"$QDIR/queue"
+    : >"$QDIR/started"
+    QACTIVE=$(( ${#batch[@]} < WORKERS ? ${#batch[@]} : WORKERS ))
+    (( STOP_REQUESTED )) && : >"$QDIR/stop"
+    pids=()
+    for w in $(seq 1 "$QACTIVE"); do
+      worker_loop "$w" &
       pids[$w]=$!
     done
     for w in "${!pids[@]}"; do wait "${pids[$w]}" || true; done
@@ -1022,17 +1072,22 @@ BARRIER
     # neither the loop above nor one bare wait is enough: keep waiting until
     # no worker is left running.
     while [[ -n "$(jobs -rp)" ]]; do wait 2>/dev/null || true; done
-    w=0
+    # From here the round is the steps that were started, in that order; what
+    # is still queued was never begun and stays in the worklist.
+    mapfile -t unstarted <"$QDIR/queue"
+    mapfile -t batch <"$QDIR/started"
+    (( ${#unstarted[@]} == 0 )) || echo "--- ${#unstarted[@]} queued step(s) not started this round: ${unstarted[*]}" | tee -a "$LOG"
+    declare -A collected=()
     for order in "${batch[@]}"; do
-      w=$((w + 1))
-      status_of[$order]="$(cat "${sts[$w]}" 2>/dev/null)"
-      rm -f "${sts[$w]}"
-      collect_renames "$(worker_dir "$w")"
+      w="$(cat "$QDIR/worker.$order")"
+      status_of[$order]="$(cat "$QDIR/status.$order" 2>/dev/null)"
+      [[ -n "${collected[$w]:-}" ]] || { collect_renames "$(worker_dir "$w")"; collected[$w]=1; }
       report="$(review_file "$order")"
       mkdir -p "$(dirname "$report")"
       [[ ! -f "$(worker_dir "$w")/$report" ]] || cp "$(worker_dir "$w")/$report" "$report"
       echo "--- worker $w: step $order ${status_of[$order]:-no status}" | tee -a "$LOG"
     done
+    rm -rf "$QDIR"; QDIR=
   fi
 
   # Join. In the serial case the commit is already on the branch and there is
