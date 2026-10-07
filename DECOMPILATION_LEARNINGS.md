@@ -1147,10 +1147,8 @@ to 100% is to find that body's C source and port it, not to re-derive the shape
 from the target. Grep the decomp trees for a rare literal in the function — an
 offset, a scale, a magic constant — and, when the brief's similar-body list
 names a candidate, read its source first. `grep -rn 0x171 src/` found
-`Actor01900_Fn05B4C` in `src/actors/lib/actor_101900_text.c` for
+`_actor01900StateSidestep` in `src/actors/actor_01900/actor_01900.c` for
 `_actor356100Sidestep`; the two were instruction-for-instruction
-`_actor01900StateSidestep` in `src/actors/lib/actor_101900_text.c` for
-`func_actor_356100_80165B30`; the two were instruction-for-instruction
 identical (314 instructions, only the field offsets differing), so every
 codegen question the diff left open — which register a halfword lands in,
 whether a load hoists above an intervening store — was already answered.
