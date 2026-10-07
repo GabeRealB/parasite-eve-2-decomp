@@ -130,7 +130,7 @@ STATIC_ASSERT_SIZEOF(_Actor444000EventWork, 0x34);
 /// 4096 units per turn.
 typedef struct {
     SVECTOR   offset;        // Offset from the host's root to the player, whose yaw against the host's facing becomes the neck's yaw target; in the turn, the facing axis of `rootMatrix` scaled to the step forward, then that of the turned matrix scaled to the step back
-    GfxMatrix rootMatrix;    // Working copy of the host's root matrix for one tick of the turn; a state change seeds its rotation with identity, which the copy replaces before anything reads it
+    MATRIX    rootMatrix;    // Working copy of the host's root matrix for one tick of the turn; a state change seeds its rotation with identity, which the copy replaces before anything reads it
     byte      unknown_28[2]; // Never accessed; role unproven
     s16       yaw;           // Host's heading advanced by this tick's 0xD, the yaw the rotation is rebuilt about; set to 0x800 on the tick the half turn completes
 } _Actor444000RunScratch;
@@ -3123,7 +3123,7 @@ static void func_actor_444000_8013482C(Task* task)
         work->animStep                = GLUTTON_ANIM_STEP_BLEND;
         work->hostExposed             = 0;
         work->neckPitchTarget         = 0;
-        gfxSetRotIdentity(&sc->rootMatrix.mat);
+        gfxSetRotIdentity(&sc->rootMatrix);
     }
 
     _gluttonTickAnim(task);
@@ -3185,23 +3185,23 @@ static void func_actor_444000_8013482C(Task* task)
                 }
             } else {
                 sc->yaw            = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0xD;
-                sc->rootMatrix.mat = task->extra.tmd->coords->coord;
+                sc->rootMatrix = task->extra.tmd->coords->coord;
 
-                gfxReadMatrixZAxis(&sc->rootMatrix.mat, &sc->offset);
+                gfxReadMatrixZAxis(&sc->rootMatrix, &sc->offset);
                 VectorNormalSS(&sc->offset, &sc->offset);
                 gte_lddp(0xBEA);
                 gte_ldsv(&sc->offset);
                 gte_gpf12();
                 gte_stsv(&sc->offset);
 
-                sc->rootMatrix.mat.t[0] += sc->offset.vx;
-                sc->rootMatrix.mat.t[1] += sc->offset.vy;
-                sc->rootMatrix.mat.t[2] += sc->offset.vz;
+                sc->rootMatrix.t[0] += sc->offset.vx;
+                sc->rootMatrix.t[1] += sc->offset.vy;
+                sc->rootMatrix.t[2] += sc->offset.vz;
 
-                gfxRotMatrixY(&sc->rootMatrix.mat, sc->yaw, 1);
-                task->extra.tmd->coords->coord = sc->rootMatrix.mat;
+                gfxRotMatrixY(&sc->rootMatrix, sc->yaw, 1);
+                task->extra.tmd->coords->coord = sc->rootMatrix;
 
-                gfxReadMatrixZAxis(&sc->rootMatrix.mat, &sc->offset);
+                gfxReadMatrixZAxis(&sc->rootMatrix, &sc->offset);
                 VectorNormalSS(&sc->offset, &sc->offset);
                 gte_lddp(-0xBB8);
                 gte_ldsv(&sc->offset);
