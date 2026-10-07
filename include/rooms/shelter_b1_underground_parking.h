@@ -57,7 +57,14 @@ extern WorldCollisionSurfaceProperties* D_shelter_b1_underground_parking_8018D72
 /// and its state table must remain loaded for the task's lifetime.
 void shelterB1UndergroundParkingRoomTask(Task* task);
 
-void func_shelter_b1_underground_parking_8017EDE8(Task* task);
+/// Updates this room's telephone save and play-data menu.
+///
+/// Gameplay routes the area-20 menu callback here. Requires a live UI object in
+/// `task->spawnArg2.pointer` and this room overlay for the menu's lifetime.
+/// State 0 opens saving directly during normal play; after a clear or in demo
+/// scene 1 it offers saving and statistics. Child answers drive the notice and
+/// reopening states, and cancellation is published on the owning UI object.
+void shelterB1UndergroundParkingTelephoneMenuTask(Task* task);
 
 /// Draws this room's light glows and beams for the current mapped view each frame.
 ///

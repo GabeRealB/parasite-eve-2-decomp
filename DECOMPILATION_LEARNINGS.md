@@ -48429,13 +48429,13 @@ jal    callee
 lh     a0,8(s0)
 ```
 
-Direct `D_80114D28.field` references never do this - the address pseudo is
+Direct `D_80114D28[0].field` references never do this - the address pseudo is
 born at the first reference, so its live range starts after the call. Bind it
 to a local pointer declared *before* the call and the pseudo is live across
 the call, so regalloc must give it a saved register:
 
 ```c
-SbupActionPrompt*                      prompt = &D_80114D28;
+ActionPrompt*                         prompt = D_80114D28;
 _ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
 _shelterB1UndergroundParkingDrawPanelIndicators();
@@ -48445,7 +48445,7 @@ prompt->mode = 0;
 Declaration order also picks the registers: the first local named takes `$s0`,
 so listing the global's pointer ahead of the work pointer gives `s0` = global,
 `s1` = work, `s2` = the saved argument.
-`func_shelter_b1_underground_parking_80184594` is the example; inlined it
+`_shelterB1UndergroundParkingPanelOpenCommands` is the example; inlined it
 scored 76.4% with `regs=18`, the local pointer matched.
 
 ## A same-unit `.rodata` block disappears when you decompile the function that owns it
@@ -87643,7 +87643,7 @@ side of the pair the target pins before reaching for one.
 ## A same-body room twin with `$s1`/`$s2` swapped is a local-alloc `refs` race, not a CFG difference (_neoArkShrineOpenPuzzleCommands, 2026-09-15)
 
 `_neoArkShrineOpenPuzzleCommands` (25 insns) is the same body as the already-matched
-`func_shelter_b1_underground_parking_80184594` — leading per-step helper, prompt
+`_shelterB1UndergroundParkingPanelOpenCommands` — leading per-step helper, prompt
 reset, `itemMenuOpenHotspotCommands` re-spawn, `task->state = 4` — and the two targets are
 identical insn for insn except that the shrine puts `task` in `$s1` and the
 `Task::work` local in `$s2`, the shelter the other way. Rewriting the m2c seed
@@ -88639,7 +88639,7 @@ Inputs: `base.i`
 ## Passing the enclosing parameter to a call emits no instruction, but still moves the allocation
 
 `func_dryfield_night_motel_lobby_80180FD8` is the room's "re-spawn the action
-prompt" state. The already-matched `func_shelter_b1_underground_parking_80184594`
+prompt" state. The already-matched `_shelterB1UndergroundParkingPanelOpenCommands`
 carries the same body, so the seed was written from it with the leading call
 left argument-less, as m2c had it, and scored 98.2% (`regs=9`) with exactly one
 difference - `task` and `work` swap `$s1` and `$s2`:
@@ -88690,7 +88690,7 @@ reordered statements.
 Check the callee's prototype whenever two call-crossing pointers swap `$sN` in
 a room state body: a `jal` whose argument setup is missing because the value is
 already in `$a0` is not "no argument". The sibling that matches *with* the
-argument is evidence for it; `func_shelter_b1_underground_parking_80184594`'s
+argument is evidence for it; `_shelterB1UndergroundParkingPanelOpenCommands`'s
 `_shelterB1UndergroundParkingDrawPanelIndicators()` is genuinely `void (void)`, so
 its silence is not. This is the same lever as "m2c drops a leading call argument
 that is already in `$a0` on entry" above, but that one *clobbers* `$a0` with
@@ -141027,7 +141027,7 @@ loads stay the same. Use `u32`: an `s32` word narrows to `lh`. The matched
 local for the UV base also adds insns (138), but its sign extension survives
 and changes the scheduling.
 
-## Escaping local-alloc's three-quantity order with a duplicated tail store that crossjump merges (func_shelter_b1_underground_parking_801845F8, 2026-09-24)
+## Escaping local-alloc's three-quantity order with a duplicated tail store that crossjump merges (_shelterB1UndergroundParkingPanelHandleCommand, 2026-09-24)
 
 **Symptom.** A block `lui hi; lbu a,%lo(g)(hi); lbu b,0xC(s1); xor; jal; sb` came out
 with the three registers permuted (`hi` in `$v0`, target `$a3`). The instruction

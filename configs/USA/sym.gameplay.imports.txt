@@ -1713,7 +1713,7 @@ func_mine_refuge_8017EA78 = 0x8017EA78; // type:func absolute:True owner=mine_re
 
 func_shelter_b1_sterilization_room_8017EB2C = 0x8017EB2C; // type:func absolute:True owner=shelter_b1_sterilization_room
 
-func_shelter_b1_underground_parking_8017EDE8 = 0x8017EDE8; // type:func absolute:True owner=shelter_b1_underground_parking
+shelterB1UndergroundParkingTelephoneMenuTask = 0x8017EDE8; // type:func absolute:True owner=shelter_b1_underground_parking
 
 func_shelter_b2_laboratory_8017EAB4 = 0x8017EAB4; // type:func absolute:True owner=shelter_b2_laboratory
 

@@ -264,7 +264,7 @@ D_shelter_b1_underground_parking_8018D78A = 0x8018D78A; // size:0x2 defined:True
 D_shelter_b1_underground_parking_8018D78C = 0x8018D78C; // size:0x2 defined:True
 D_shelter_b1_underground_parking_8018771C = 0x8018771C; // size:0x68 defined:True
 
-func_shelter_b1_underground_parking_8017EDE8 = 0x8017EDE8; // type:func
+shelterB1UndergroundParkingTelephoneMenuTask = 0x8017EDE8; // type:func
 
 shelterB1UndergroundParkingDrawGlowsTask = 0x80184A18; // type:func
 _telephoneDrawPlayDataRow = 0x8017DA50; // type:func
@@ -332,3 +332,14 @@ _shelterB1UndergroundParkingAmbienceTask = 0x80182fc8; // type:func
 _shelterB1UndergroundParkingCapSoundCue = 0x801833dc; // type:func
 _shelterB1UndergroundParkingSetPlayerTickHold = 0x80183804; // type:func
 shelterB1UndergroundParkingRoomTask = 0x801838b4; // type:func
+_shelterB1UndergroundParkingStartRoom7SceneTask = 0x8018363c; // type:func
+_shelterB1UndergroundParkingUseKeyItem = 0x80183284; // type:func
+_shelterB1UndergroundParkingResolveRoom6ChoiceTask = 0x80183560; // type:func
+_shelterB1UndergroundParkingResumePlayerAfterCaptionTask = 0x801836d8; // type:func
+_shelterB1UndergroundParkingActionPromptTask = 0x80184234; // type:func
+_shelterB1UndergroundParkingPanelScanHotspots = 0x80184468; // type:func
+_shelterB1UndergroundParkingPanelOpenCommands = 0x80184594; // type:func
+_shelterB1UndergroundParkingPanelHandleCommand = 0x801845f8; // type:func
+_shelterB1UndergroundParkingPanelCancel = 0x801846ec; // type:func
+_shelterB1UndergroundParkingPanelFadeOut = 0x801847d0; // type:func
+_shelterB1UndergroundParkingPanelTask = 0x80184284; // type:func
