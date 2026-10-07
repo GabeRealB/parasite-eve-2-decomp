@@ -243,21 +243,24 @@ static void SCRIPTED_WALK_BLEND_ANIM(void);
 s32         scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
 
 #ifndef SCRIPTED_WALK_PLACE
-/// Selects the placement callback defined by this walker's placement fragment.
+/// Selects the private placement callback for one scripted walker instance.
 ///
-/// Bind to a function identifier with signature
-/// `s32 name(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument)`.
-/// The default selects `scriptedWalkPlace` for the sole or first walker in
+/// Bind before this header to a TU-private function identifier with signature
+/// `s32 name(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument)`;
+/// the header and placement fragment declare it `static`.
+/// The default selects `_scriptedWalkPlace` for the sole or first walker in
 /// actor_143900, actor_146300, actor_260400 and actor_461800.
-/// Declare any additional instance in the carrier prologue, establishing its
-/// linkage before its message table. Rebind around its placement fragment with
-/// `SCRIPTED_WALK_WORK` selecting the same receiver's live work, then restore
-/// both bindings. actor_143900 selects `_scriptedWalkPlaceSecond` this way.
+/// Declare an additional instance `static` in the carrier prologue before its
+/// message table, then rebind around its placement fragment. `SCRIPTED_WALK_WORK`
+/// must publish the receiver's live work block so placement retains its heading.
+/// Restore both bindings afterwards; actor_143900 selects `_scriptedWalkPlaceSecond`
+/// this way. actor_420700 includes the header but carries no placement fragment.
 /// This identifier alias takes no arguments, captures no locals and evaluates
-/// no objects. It does not alter the task-message argument transport.
-#define SCRIPTED_WALK_PLACE scriptedWalkPlace
+/// no objects. Its replacement is a single identifier, used without token
+/// pasting or stringification. It preserves the task-message word transport.
+#define SCRIPTED_WALK_PLACE _scriptedWalkPlace
 #endif
 
-s32 SCRIPTED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
+static s32 SCRIPTED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 
 #endif /* SRC_SHARED_SCRIPTED_WALK_H */

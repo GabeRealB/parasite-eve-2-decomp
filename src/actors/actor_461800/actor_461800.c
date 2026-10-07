@@ -456,7 +456,7 @@ static s16 _gScriptedWalkBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 TaskMessageEntry D_actor_461800_80139F5C[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor461800PlayScriptedWalkerAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor461800SetScriptedWalkerModelDraw },
-    { ACTOR_MESSAGE_PLACE, scriptedWalkPlace },
+    { ACTOR_MESSAGE_PLACE, _scriptedWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor461800ApplyScriptedWalkerCommand },
     { ACTOR_MESSAGE_WALK_TO, scriptedWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },

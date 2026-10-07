@@ -1633,7 +1633,7 @@ s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2, s32 arg3)
 #define SCRIPTED_WALK_WORK _gScriptedWalkSecondWork
 #include "../../shared/scripted_walk_place.inc.c"
 #undef SCRIPTED_WALK_PLACE
-#define SCRIPTED_WALK_PLACE scriptedWalkPlace
+#define SCRIPTED_WALK_PLACE _scriptedWalkPlace
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
 
