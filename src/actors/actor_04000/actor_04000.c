@@ -1591,11 +1591,11 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
         return;
     }
     if (work->stateFrame == 8) {
-        actorStepForward(arg1->extra.tmd->coords, 0x32);
+        _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 0x32);
         return;
     }
     if (work->stateFrame == 9) {
-        actorStepForward(arg1->extra.tmd->coords, 0x32);
+        _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 0x32);
     }
     work->state       = ACTOR_04000_STATE_LUNGE_RECOVER;
     scratch           = SCRATCH_STACK_RESERVE_BLOCK(_Actor04000LungeScratch);
@@ -1919,7 +1919,7 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
     }
     turn->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
-    actorStepForward(arg1->extra.tmd->coords, 0x14);
+    _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 0x14);
     _actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     if (_actorRangeOutsideRadiusXZ(&turn->delta, 1000)) {
         work->chaseFarFrames++;
@@ -2378,7 +2378,7 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
     }
     turn->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
-    actorStepForward(arg1->extra.tmd->coords, 5);
+    _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 5);
     if (_actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts))) {
         work->stateFrame++;
     }
@@ -2462,7 +2462,7 @@ static void Actor04000_Fn049C0(Enemy* arg0, Task* arg1)
     }
     turn->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
-    actorStepForward(arg1->extra.tmd->coords, 8);
+    _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 8);
     _actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     if (!_actorRangeOutsideRadiusXZ(&turn->delta, 80)) {
         work->state = ACTOR_04000_STATE_SETTLE;
@@ -2588,12 +2588,12 @@ static void Actor04000_Fn0522C(Enemy* arg0, Task* arg1)
         case 5:
         case 7:
         case 8:
-            actorStepForward(arg1->extra.tmd->coords, -0x78);
+            _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, -0x78);
             break;
         case 11:
         case 12:
         case 14:
-            actorStepForward(arg1->extra.tmd->coords, 0xC8);
+            _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 0xC8);
             break;
         case 17:
             work->driver.rate = ANIMATION_RATE_ONE;
@@ -2670,7 +2670,7 @@ static void Actor04000_Fn055C8(Enemy* arg0, Task* arg1)
             }
             _animDriverTick(arg1);
             if (work->stateFrame < 0xA) {
-                actorStepForward(arg1->extra.tmd->coords, 0x23);
+                _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 0x23);
             }
             if (work->stateFrame < 4) {
                 arg1->extra.tmd->coords->coord.t[1] -= 0x67;
@@ -2757,13 +2757,13 @@ static void Actor04000_Fn05AE8(Enemy* arg0, Task* arg1)
     work->stateFrame++;
     _animDriverTick(arg1);
     if (work->stateFrame >= 0x13 && work->stateFrame < 0x23) {
-        actorStepForward(arg1->extra.tmd->coords, 4);
+        _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 4);
     }
     if (work->stateFrame >= 0x23 && work->stateFrame < 0x28) {
-        actorStepForward(arg1->extra.tmd->coords, 0xC);
+        _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 0xC);
     }
     if (work->stateFrame >= 0x28 && work->stateFrame < 0x31) {
-        actorStepForward(arg1->extra.tmd->coords, 0x18);
+        _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 0x18);
         arg1->extra.tmd->coords->coord.t[1] += 0x28;
     }
     if (work->stateFrame > 0x30) {

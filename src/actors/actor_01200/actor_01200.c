@@ -921,7 +921,7 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
     part         = arg1->extra.tmd->coords;
     turn->angle += ratan2(-part->coord.m[2][0], part->coord.m[2][2]);
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
-    actorStepForward(arg1->extra.tmd->coords, 0x14);
+    _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 0x14);
     _actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     if (_actorRangeOutsideRadiusXZ(&turn->delta, 1000)) {
         work->chaseFarFrames++;
@@ -1409,7 +1409,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
     }
     turn->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
-    actorStepForward(arg1->extra.tmd->coords, 5);
+    _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 5);
     if (_actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts))) {
         work->stateFrame++;
     }
@@ -1494,7 +1494,7 @@ static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
     facing       = arg1->extra.tmd->coords;
     turn->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
-    actorStepForward(arg1->extra.tmd->coords, 8);
+    _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 8);
     _actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     work->stateFrame++;
     if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0x50) || work->stateFrame >= 0xDD) {

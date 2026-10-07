@@ -88292,7 +88292,7 @@ class of `vec` and takes an entry with **equal address cost and higher rtx
 cost**, which is `(plus x 44)`, so `vec->vx` becomes `0x2C(x)`. A
 `(plus head -8)` address only has equal-cost `(plus x 44)` alternatives and is
 left alone. `vec->vy` / `vec->vz` (`(plus vec 2)`) stay on `vec` for the same
-reason. Fix in `Actor01900_Fn06100`: `actorStepForward` (reads `vec->vx`)
+reason. Fix in `Actor01900_Fn06100`: `_actorMovementTranslateForwardNonzero` (reads `displacement->vx`)
 instead of `_actorMovementStepForward`.
 
 ## A base-register + displacement residual at ≥99%: grep the corpus for the address, not the mechanism
@@ -88302,7 +88302,7 @@ every instruction count, block and predicate matching and three changed sites:
 the scratch pop's released value staying live in `$s2` (target reloads into
 `$s2` and leaves the release in `$v0`), and the step's X read as `lh v1,
 -8($s2)` where the target has `lh v1, 0x2C($s2)`. The fix is the one already
-recorded above — `actorStepForward`, which reads `vec->vx`, instead of a
+recorded above — `_actorMovementTranslateForwardNonzero`, which reads `displacement->vx`, instead of a
 `head[-1]` copy. Three builds went into `.lreg`/`.jump`/`.combine` dumps,
 `find_best_addr` cost arithmetic and allocno priorities before a two-line
 corpus search turned up the answer that was already there
@@ -88327,7 +88327,7 @@ push form `*(T**)SCRATCH_STACK_CURSOR_SLOT -= 1; s = *(T**)SCRATCH_STACK_CURSOR_
 written through `s->` is the whole fix: the decremented value is a short-lived
 pseudo, the reload CSEs into the `move`, and the store still lands after the
 field writes. Read the copy as the signature of the compound push. The same
-function also needed `actorStepForward` rather than `StepForwardHead`
+function also needed `_actorMovementTranslateForwardNonzero` rather than `StepForwardHead`
 after the `0x1194` rescale (see "`0x2C(x)` vs `-8(head)` after a scratch pop").
 
 Same push when the block outlives a *call*: `ActorsShared80131e24Sub1` (the
@@ -108295,15 +108295,14 @@ seven `$sN` (s0-s6) where the target saves six, and everything downstream is re-
 literal; a helper boundary, not the macro, is what buys the displacement form.
 
 So when a twin's scratch block matches but the function it was pasted into does not, check
-whether the block belongs in the inlined helper rather than the caller. `actor_401800` needed
-*two* step helpers for this: `_actorMovementTranslateForwardNonzero` (its scratch `displacement`
-passed to `_actorMovementBuildDisplacement`, used where the step is a variable)
-and `actorStepForward` (step applied through `vec`
-itself, used by `8013945C` with the constant `-0x57`, and by the chase body
-`80137714` with `0x28` / `0x14`). Compiling `8013945C` against the
-separate-GTE-operand variant scores 96% - the copy `(set reg120 reg118)` survives local-alloc as a real
+whether the block belongs in the inlined helper rather than the caller. Both
+step contexts in `actor_401800` use `_actorMovementTranslateForwardNonzero`:
+its scratch `displacement` is passed to `_actorMovementBuildDisplacement`,
+including `8013945C` with the constant `-0x57` and the chase body
+`80137714` with `0x28` / `0x14`. Earlier, compiling `8013945C` against the
+separate-GTE-operand variant scored 96% - the copy `(set reg120 reg118)` survived local-alloc as a real
 `addu s1,s0,zero` the target does not have - and swapping the shared helper to the single-GTE-operand
-body breaks `80139118` instead, which is the mirror image. The zero-distance guard is *not* part
+body broke `80139118` instead, which is the mirror image. The zero-distance guard is *not* part
 of that difference: dropping `if (stepDistance != 0)` from the helper still matches 100%, because a
 constant `stepDistance` folds the branch away either way.
 
@@ -113851,8 +113850,8 @@ enclosing branch to the read, so the base is the RotScratch head instead of the
 block, and three instructions differ (`addiu $s0,$s0,0x2c` vs
 `addiu $s0,$s2,0x2c`, then `lh $v1,-0x8(s2)` vs `lh $v1,0x2c(s2)`) at 99.871%.
 
-Spelling the three component reads through `vec` — the form
-`actorStepForward` already uses — lets the forwarded value stay an
+Spelling the three component reads through the displacement pointer — the form
+`_actorMovementTranslateForwardNonzero` uses — lets the forwarded value stay an
 expression and fold to `blk + 0x2C`, keeping the block pointer in the register
 the release left it in. 100.000% with `regs` 10 → 0.
 
@@ -113905,18 +113904,18 @@ For `_actor356100Approach` the two spellings of one call site moved
 ```c
     if (work->blendActive == 0) {
         coord = arg0->field_2C->field_8;      /* 96.454%: branch=3 insert=9 delete=5 */
-        actorStepForward(coord, 0x78);
+        _actorMovementTranslateForwardNonzero(coord, 0x78);
     } else {
         coord = arg0->field_2C->field_8;
-        actorStepForward(coord, 0x3C);
+        _actorMovementTranslateForwardNonzero(coord, 0x3C);
     }
 ```
 versus
 ```c
     if (work->blendActive == 0) {
-        actorStepForward(arg0->field_2C->field_8, 0x78);   /* 99.866%, all four at 0 */
+        _actorMovementTranslateForwardNonzero(arg0->field_2C->field_8, 0x78);   /* 99.866%, all four at 0 */
     } else {
-        actorStepForward(arg0->field_2C->field_8, 0x3C);
+        _actorMovementTranslateForwardNonzero(arg0->field_2C->field_8, 0x3C);
     }
 ```
 
@@ -114077,10 +114076,10 @@ Scratch `nonmatchings/_actor356100Chase-vacuum`.
 GCC 2.8.1 sets `DECL_SAVED_INSNS` when a function's own `rest_of_compilation`
 runs, i.e. when its definition is reached; a call above that point cannot
 inline and is emitted as a real `jal`. A scratch `base.c` holds one function and
-the headers, so helpers that live in the `.c` — here `_actorAngleTurnToOffset`,
-`actorStepForward` and `_actorContactPushRoot` — are not visible at all
-and become implicit declarations. Nothing warns under `-w`, the build passes,
-and the score is merely low: 60.998% with 491 instructions against the target's
+the headers, so helpers then defined later in the `.c` — here `_actorAngleTurnToOffset`,
+`_actorMovementTranslateForwardNonzero` and `_actorContactPushRoot` — were not visible at all
+and became implicit declarations. Nothing warned under `-w`, the build passed,
+and the score was merely low: 60.998% with 491 instructions against the target's
 605, `delete=164`, because three inlined bodies (most of `PushRecords`) were
 emitted as calls instead. The baseline is not a baseline at that point.
 
@@ -151530,9 +151529,9 @@ No instruction changes; only the order of allocation does.
   the reserve followed by `vec = SCRATCH_STACK_CURSOR(T)`: the new cursor is a
   temporary, `vec` a copy of it, and cse writes the first field through the
   old cursor (`sh ...,-8(old)`) because the bare address has the older
-  equivalent. The `head[-1].vx` spelled out in
-  `actorStepForward` (`include/actors/actor.h`)
-  may be this same artifact; not checked.
+  equivalent. `_actorMovementTranslateForwardNonzero` (`include/actors/actor.h`)
+  reserves one `SVECTOR` and reads `displacement->vx`; an explicit cursor-relative
+  first-component alias is unnecessary.
 - The `.sched` dump prints each ready list with priorities
   (`7f000001` = a boosted birth) and ends with `register N life shortened from
   A to B`; here the `.lreg` header already showed B.

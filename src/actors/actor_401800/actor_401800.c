@@ -1715,7 +1715,7 @@ static void func_actor_401800_8013945C(Task* arg0)
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     if ((work->animId == 0xA) && ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0)) {
-        actorStepForward(arg0->extra.tmd->coords, -0x57);
+        _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, -0x57);
     }
     _oddStrangerDriveAnimation(arg0);
     if ((work->rig.slots[1].status.fields.flags & 1) && (work->animId == 0xA)) {

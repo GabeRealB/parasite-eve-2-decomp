@@ -1470,33 +1470,6 @@ static __inline__ void actorRescaleYawY(GfxCoord* coord, s32 scale, s16 scaleY)
     coord->coord.m[2][2] = m22;
 }
 
-/// `_actorMovementTranslateForwardNonzero` with a cursor-relative X-component read.
-static __inline__ void actorStepForward(GfxCoord* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-        vec                           = head - 1;
-        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        if (amount != 0) {
-            SOFT_TOUCH_REG(vec);
-            gfxReadMatrixZAxis(&coord->coord, vec);
-            VectorNormalSS(vec, vec);
-            gte_lddp(amount);
-            gte_ldsv(vec);
-            gte_gpf12();
-            gte_stsv(vec);
-            coord->coord.t[0]  += head[-1].vx;
-            coord->coord.t[1]  += vec->vy;
-            coord->coord.t[2]  += vec->vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        }
-        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
-    }
-}
-
 /// The first of the leading twelve contact records whose kind is 0x20000:
 /// copies its point to `pos` and returns its key, or returns 0 when none is
 /// found before the table ends.
