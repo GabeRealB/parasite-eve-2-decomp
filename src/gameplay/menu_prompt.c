@@ -515,15 +515,21 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     s32           xOff;
     s32           x;
     s32           y;
-    register s32  y2 asm("s2");
+    s32           y2;
     s32           barX;
     s32           color;
     s32           max;
 
-    cfg  = &gPlayerStatus;
-    xOff = arg0->contentLeft.signedValue;
+    cfg = &gPlayerStatus;
+    /* The left edge is read into x and copied out before x is indented: the
+     * image only shows that x's register outranks the row cursor's, which the
+     * two references of this load supply (combine merges the load into the
+     * copy and keeps the count). The load precedes contentTop's, so the copy
+     * sits here; what the original named these two values is unknown. */
+    x    = arg0->contentLeft.signedValue;
     arg1 = arg1 + 8;
-    x    = xOff + 6;
+    xOff = x;
+    x   += 6;
     y    = arg0->contentTop.signedValue + arg1;
     if (Gp_HpMpWork.hp < cfg->hp) {
         Gp_HpMpWork.hp = Gp_HpMpWork.hp + 1;
