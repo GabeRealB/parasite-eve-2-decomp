@@ -3110,18 +3110,12 @@ static void func_actor_206100_8014EB60(Task* task)
     SVECTOR           rot;
     GfxMatrix         matrix;
     MATRIX*           dest;
-    MATRIX*           mtx;
 
     work   = task->work;
     coords = task->extra.tmd->coords;
     dest   = &coords[5].coord;
-    mtx    = &matrix.mat;
 
-    matrix.rotationWords.m00M01 = ONE;
-    matrix.rotationWords.m02M10 = 0;
-    MATRIX_PAIR(mtx, 1, 1)      = 0x1000;
-    matrix.rotationWords.m20M21 = 0;
-    mtx->m[2][2]                = 0x1000;
+    gfxSetRotIdentity(&matrix.mat);
 
     gfxExtractEulerAngles(dest, &rot);
     rot.vx += work->part5Pitch;
