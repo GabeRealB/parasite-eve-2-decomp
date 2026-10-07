@@ -2209,7 +2209,7 @@ static void _actor460200SelectCaptionFile(s32 dataResourceOrdinal)
 #define SCREEN_NEGATIVE_FILTER _screenNegativeFilterCutscene
 #include "../../shared/screen_negative_filter.inc.c"
 #undef SCREEN_NEGATIVE_FILTER
-#define SCREEN_NEGATIVE_FILTER screenNegativeFilter
+#define SCREEN_NEGATIVE_FILTER _screenNegativeFilter
 
 /// Sets the live save's signed-byte scene-event key for subsequent music selection.
 static void _actor460200SetSceneEvent(s8 sceneEvent)

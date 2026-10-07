@@ -120835,8 +120835,8 @@ rooms, nothing to share"), and the copies in the other family are already
 matched in their own overlay, so each overlay owns its body and nothing moves.
 
 **Transcribe the sibling's register pins too.** `=`, not `~`:
-`func_dryfield_dilapidated_house_8017E48C` is byte-identical to
-`func_actor_460200_80131FB0` and `_screenNegativeFilterCutscene`, and the sibling's
+dryfield_dilapidated_house's `_screenNegativeFilter` is byte-identical to
+actor_460200's `_screenNegativeFilter` and `_screenNegativeFilterCutscene`, and the sibling's
 C opens `register u32 v0 asm("v0"); register u32 v1 asm("v1");`. Dropping them -
 the pin policy's "unpin and rescore" default, and the honest first move - gives
 96.273% with `regs=41`, and the object diff is a clean mirror image: `.greg`

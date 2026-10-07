@@ -57,30 +57,27 @@ static inline void _screenNegativeConvertWordPair(u_long* firstWord, u_long* sec
 }
 #endif
 
-/// Replaces the resident image workspace with its grayscale photographic negative.
+/// Converts the resident RGB555 frame in place to its weighted grayscale negative.
 ///
-/// `Fs_ImgBuffers` must hold a complete writable, word-aligned 320x240 RGB555
-/// frame. Finish GPU capture or image decoding before calling, and keep other
-/// users out of the workspace during the conversion. Each output channel is
-/// 31 - floor((3R + 4G + B) / 8), in five-bit channel units; pixel bit 15 is
-/// cleared. All 0x25800 frame bytes are rewritten in place, preserving pixel
-/// order. The caller owns capture, upload and the workspace's lifetime.
+/// `Fs_ImgBuffers` must provide the complete writable, word-aligned 320x240
+/// frame after GPU capture or image decoding has finished. Other workspace
+/// users must wait until conversion returns. Each output channel is
+/// 31 - floor((3R + 4G + B) / 8) in five-bit channel units; pixel bit 15 is
+/// cleared. All 153,600 bytes are rewritten, retaining their contiguous or
+/// strip layout. The caller controls capture, upload and workspace reuse.
 static void SCREEN_NEGATIVE_FILTER(void)
 {
     u_long(*frameWords)[FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS];
     s32     wordPairsProcessed;
     u_long* firstWord;
-    u_long* secondWord;
 
-    // View the whole frame as GPU words, including every adjacent strip.
+    // Borrow the complete word array so traversal can cross strip boundaries.
     frameWords         = (u_long(*)[FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS]) Fs_ImgBuffers;
     firstWord          = *frameWords;
     wordPairsProcessed = 0;
-    secondWord         = firstWord + 1;
     do {
         wordPairsProcessed++;
-        _screenNegativeConvertWordPair(firstWord, secondWord);
-        secondWord += 2;
-        firstWord  += 2;
+        _screenNegativeConvertWordPair(firstWord, firstWord + 1);
+        firstWord += 2;
     } while (wordPairsProcessed < ARRAY_SIZE(*frameWords) / 2);
 }

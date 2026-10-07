@@ -36,16 +36,18 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ScreenNegativeCaptureArgs, 0x4);
 
 #ifndef SCREEN_NEGATIVE_FILTER
-/// Selects the private `void (void)` filter declared here and defined by the fragment.
+/// Selects the private `void (void)` grayscale-negative filter instance.
 ///
-/// The value must be a bare function identifier. The default capture-task copy
-/// is `screenNegativeFilter`. For a further copy, declare its static prototype
-/// in the carrier's prologue, undefine this binding and rebind it around the
-/// fragment inclusion, then restore the default. The guarded header does not
-/// declare further copies. This alias has no arguments, captures no values and
-/// constructs no tokens. The fragment requires `main/fs.h`, `main/fs_types.h`
-/// and `common.h`; capture callers must use the same binding as their filter.
-#define SCREEN_NEGATIVE_FILTER screenNegativeFilter
+/// Bind a bare function identifier before this header to select its static
+/// prototype, capture-task call and filter-fragment definition together. The
+/// default is `_screenNegativeFilter`, used independently by actor_460200 and
+/// dryfield_dilapidated_house. A further fragment inclusion needs its own static
+/// prototype in the carrier's prologue; rebind around that inclusion, then
+/// restore the capture-task binding. The header guard prevents a second
+/// prototype. This object-like alias has no arguments, captured values or token
+/// construction. The fragment requires `main/fs.h`, `main/fs_types.h` and
+/// `common.h`; it borrows the completed frame from `Fs_ImgBuffers`.
+#define SCREEN_NEGATIVE_FILTER _screenNegativeFilter
 #endif
 
 static void SCREEN_NEGATIVE_FILTER(void);
