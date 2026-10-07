@@ -1723,18 +1723,24 @@ static s32 _actor160700IgnoreCommand(Task* task, s32 messageId, const ActorComma
 
 #include "../../shared/paced_walk_to.inc.c"
 
-/// Borrows a walker part and its lighting for the carried model's root.
+/// Links a carried model's root to a walker part and shares the walker's lighting.
 ///
-/// The writable model and root belong to the child; the parent's attachment
-/// coordinate and work must outlive it. Replaces all model flags with zero
-/// and marks the root dirty so its next composition uses the new parent.
-static __inline__ void _pacedWalkAttachCarriedModel(TmdObject* model, GfxCoord* rootCoord,
-                                                    GfxCoord* attachmentCoord, PacedWalkWork* parentWork)
+/// Requires a live writable `carriedModel` with coordinate 0 and a spawned
+/// `PacedWalkWork`. The borrowed `attachmentCoord` and work matrices must stay
+/// live through the child's updates and drawing; coordinate ancestry must be
+/// acyclic. Keeps the root's local transform and invalidates its composition.
+/// Clears all model flags, permitting active drawing and automatic buffer
+/// allocation without performing either here. Task ownership is caller-managed.
+static __inline__ void _pacedWalkAttachCarriedModel(TmdObject* carriedModel, GfxCoord* attachmentCoord,
+                                                    PacedWalkWork* parentWork)
 {
+    enum { PACED_WALK_CARRIED_MODEL_NO_FLAGS = 0 };
+    GfxCoord* rootCoord = carriedModel->coords;
+
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    model->lightMtx         = &parentWork->light;
-    model->flags            = 0;
-    model->colorMtx         = &parentWork->color;
+    carriedModel->lightMtx  = &parentWork->light;
+    carriedModel->flags     = PACED_WALK_CARRIED_MODEL_NO_FLAGS;
+    carriedModel->colorMtx  = &parentWork->color;
     rootCoord->parent       = attachmentCoord;
 }
 
@@ -1764,7 +1770,7 @@ static void _pacedWalkSubModelTask(Task* task)
 
     switch (task->state) {
         case PACED_WALK_SUB_MODEL_ATTACH:
-            _pacedWalkAttachCarriedModel(model, rootCoord, attachmentCoord, parentWork);
+            _pacedWalkAttachCarriedModel(model, attachmentCoord, parentWork);
             task->state++;
             break;
         case PACED_WALK_SUB_MODEL_FOLLOW:
