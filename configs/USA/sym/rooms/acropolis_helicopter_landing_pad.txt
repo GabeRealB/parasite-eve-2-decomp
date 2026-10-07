@@ -178,15 +178,15 @@ acropolisHelicopterLandingPadDrawLowerSparkLine = 0x80180A64; // type:func
 
 acropolisHelicopterLandingPadPerimeterLightsTask = 0x801818F0; // type:func
 
-func_acropolis_helicopter_landing_pad_8017FA30 = 0x8017FA30; // type:func
+acropolisHelicopterLandingPadEmberTask = 0x8017FA30; // type:func
 
-func_acropolis_helicopter_landing_pad_80181064 = 0x80181064; // type:func
+acropolisHelicopterLandingPadLensFlareTask = 0x80181064; // type:func
 
-func_acropolis_helicopter_landing_pad_80180E40 = 0x80180E40; // type:func
+acropolisHelicopterLandingPadFlareEmitterTask = 0x80180E40; // type:func
 
 func_acropolis_helicopter_landing_pad_8017EF60 = 0x8017EF60; // type:func
 
-func_acropolis_helicopter_landing_pad_801802E0 = 0x801802E0; // type:func
+acropolisHelicopterLandingPadDamagedLightSparksTask = 0x801802E0; // type:func
 _actorContactApplyGridPushback = 0x801819C0; // type:func
 ActorContact_Push = 0x80181B64; // type:func
 actorMsgPlaceEuler = 0x8017D8E8; // type:func
@@ -211,3 +211,8 @@ acropolisHelicopterLandingPadSetPlayerPitchPulseState = 0x8017e75c; // type:func
 acropolisHelicopterLandingPadMovePlayerToSceneMarkTask = 0x8017e76c; // type:func
 acropolisHelicopterLandingPadScreenShakeTask = 0x8017e81c; // type:func
 acropolisHelicopterLandingPadRoomTask = 0x8017eb00; // type:func
+acropolisHelicopterLandingPadUpdateEncounterPhase = 0x8017d9bc; // type:func
+_acropolisHelicopterLandingPadMovieTask = 0x8017eb58; // type:func
+_acropolisHelicopterLandingPadStartMovieTask = 0x8017ed00; // type:func
+_acropolisHelicopterLandingPadResolveExit = 0x8017ed50; // type:func
+acropolisHelicopterLandingPadPickupModelTask = 0x801822b0; // type:func

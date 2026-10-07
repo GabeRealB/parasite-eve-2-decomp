@@ -95,15 +95,29 @@ extern AnimationSet* D_acropolis_helicopter_landing_pad_801838F4[3];
 extern SVECTOR D_acropolis_helicopter_landing_pad_80184E80[12];
 extern s32     D_acropolis_helicopter_landing_pad_80184EE0[12];
 
-static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0);
+// The two sprite tasks use signed Q12 trig results and the same texture page.
+enum {
+    ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TEXTURE_PAGE       = 0x2B,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TRIG_FRACTION_BITS = 12,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_RAW_TEXTURE_CODE   = 0x2D,
+};
+
+// Transient-light RGB uses twelve fractional bits; blue varies from 9/16 to 1.
+enum {
+    ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_HALF_INTENSITY   = ONE / 2,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_RANDOM_MASK = 7 * ONE / 16,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_BASE        = 9 * ONE / 16,
+};
+
+static void _acropolisHelicopterLandingPadResolveExit(Task* task);
 static void _acropolisHelicopterLandingPadTurnPlayerToExit(Task* task);
 static void _acropolisHelicopterLandingPadDescendExitStairs(Task* task);
 static void _acropolisHelicopterLandingPadWaitForPlayerTurn(Task* task);
 static void _acropolisHelicopterLandingPadDrawPerimeterLight(const SVECTOR* worldPoint, s16 lightIndex, s32 brightness);
 static void _acropolisHelicopterLandingPadDrawUpperSparkLine(GfxCoord* coord);
 
-void func_acropolis_helicopter_landing_pad_8017EB58(Task*);
-void func_acropolis_helicopter_landing_pad_8017ED00(Task*);
+static void _acropolisHelicopterLandingPadMovieTask(Task* task);
+static void _acropolisHelicopterLandingPadStartMovieTask(Task* task);
 
 extern WorldCollisionGrid D_acropolis_helicopter_landing_pad_80185998[1];
 
@@ -484,8 +498,8 @@ AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E3C = { { .index = 
 ActorTransform D_acropolis_helicopter_landing_pad_80184E50 = { { -6801, 0, -1998, 0 }, { 0, 1024, 0, 0 } };
 
 TaskDesc D_acropolis_helicopter_landing_pad_80184E68[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_helicopter_landing_pad_8017ED00, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_helicopter_landing_pad_8017EB58, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisHelicopterLandingPadStartMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisHelicopterLandingPadMovieTask, { .value = 0 } },
 };
 
 SVECTOR D_acropolis_helicopter_landing_pad_80184E80[12] = {
@@ -616,90 +630,120 @@ WorldCollisionTrigger D_acropolis_helicopter_landing_pad_801859BC[16] = {
 
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0);
 
-void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
+/// Plays the room's view-100 movie, permits Start cancellation and restores gameplay.
+///
+/// Runs as the display-owned task with state 0..5. Requires the current location's
+/// movie lookup to yield slot 0..14, serialized CD access and valid image-memory
+/// storage. Preserves displaced VRAM images, waits for playback/cancellation to
+/// end, restores model resources and clears the complete resident image workspace.
+/// The room overlay remains loaded until the task ends and resumes the game loop.
+static void _acropolisHelicopterLandingPadMovieTask(Task* task)
 {
-    u8          slotParam[4];
-    GameLoc     key;
-    s16         slot;
-    CdCmdQueue* queue;
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PREPARE    = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_QUEUE      = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_WAIT_READY = 2,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PLAY       = 3,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_WAIT_IDLE  = 4,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_RESTORE    = 5,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_VIEW       = 100,
+    };
+    u8          movieArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
+    GameLoc     movieLocation;
+    s16         movieSlot;
+    CdCmdQueue* cdQueue;
 
-    queue = &gCdCmdQueue;
-    switch (arg0->state) {
-        case 0:
+    cdQueue = &gCdCmdQueue;
+    switch (task->state) {
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PREPARE:
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
-            arg0->state++;
+            task->state++;
             break;
-        case 1:
-            key          = gGameSession->location;
-            key.loc.view = 0x64;
-            slot         = streamFindMovieSlot(&key.loc, 0, 0);
-            slotParam[0] = slot;
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            arg0->state++;
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_QUEUE:
+            movieLocation          = gGameSession->location;
+            movieLocation.loc.view = ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_VIEW;
+            movieSlot              = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            // The queue copies four bytes; playback uses only the slot byte.
+            movieArgs[0] = movieSlot;
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, NULL, movieArgs);
+            task->state++;
             break;
-        case 2:
-            if (queue->movieReady != 0) {
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_WAIT_READY:
+            if (cdQueue->movieReady != 0) {
                 SetDispMask(1);
-                arg0->state++;
+                task->state++;
                 break;
             }
             break;
-        case 3:
-            if (cdCmdIsIdle() & 0xFFFF) {
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PLAY:
+            if (cdCmdIsIdle()) {
                 SetDispMask(0);
-                arg0->state++;
+                task->state++;
                 break;
             }
             if (padIsStartPressed() != 0) {
                 SetDispMask(0);
                 cdCmdRequestCancel();
-                arg0->state++;
+                task->state++;
                 break;
             }
             break;
-        case 4:
-            if (cdCmdIsIdle() & 0xFFFF) {
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_WAIT_IDLE:
+            if (cdCmdIsIdle()) {
                 streamResetGameRestore();
-                arg0->state++;
+                task->state++;
                 break;
             }
             break;
-        case 5:
-            if (streamPollGameRestore(0, 0) & 0xFFFF) {
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_RESTORE:
+            if (streamPollGameRestore(0, 0)) {
                 memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
                 SetDispMask(1);
-                taskKill(arg0);
+                taskKill(task);
                 displayResumeGameLoop();
             }
             break;
     }
 }
 
-void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
+/// Hands display presentation to the movie task and retires the requesting room task.
+///
+/// Queues the current camera and packets after selecting task-only flips.
+/// Requires the room's movie descriptors to remain loaded through playback.
+static void _acropolisHelicopterLandingPadStartMovieTask(Task* task)
 {
-    displaySpawnTaskFromTable(D_acropolis_helicopter_landing_pad_80184E68, 1, 0, 0);
+    enum { ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_TASK_ENTRY = 1 };
+
+    displaySpawnTaskFromTable(D_acropolis_helicopter_landing_pad_80184E68, ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_TASK_ENTRY, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
-    taskKill(arg0);
+    taskKill(task);
 }
 
-/// Asks the slot-7 task to warp to stage 0xF, room 3 (message 0x13EE with the
-/// room's `RoomEventMsg`); advances on success, otherwise kills the task.
-static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
+/// Resolves the fire-escape exit before the player turns and descends the stairs.
+///
+/// Requests area 15, room 1, warp 3 in the current stage. The room task resolves
+/// the shared request/reply synchronously. A nonzero result advances this exit
+/// sequence; zero kills it. The request remains live for the later transition.
+static void _acropolisHelicopterLandingPadResolveExit(Task* task)
 {
-    Task* slot = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_ROOM = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_WARP = 3,
+    };
+    Task* roomTask = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
 
     D_acropolis_helicopter_landing_pad_80187F90.field_4   = 1;
-    D_acropolis_helicopter_landing_pad_80187F90.room      = 1;
+    D_acropolis_helicopter_landing_pad_80187F90.room      = ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_ROOM;
     D_acropolis_helicopter_landing_pad_80187F90.areaId    = GAME_AREA_ACROPOLIS_FIRE_ESCAPE;
-    D_acropolis_helicopter_landing_pad_80187F90.warp      = 3;
+    D_acropolis_helicopter_landing_pad_80187F90.warp      = ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_WARP;
     D_acropolis_helicopter_landing_pad_80187F90.queryOnly = ROOM_EVENT_EXECUTE;
-    if (TASK_MESSAGE_DISPATCH_POINTERS(slot, ROOM_EVENT_MESSAGE_RESOLVE, &D_acropolis_helicopter_landing_pad_80187F90,
+    if (TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, &D_acropolis_helicopter_landing_pad_80187F90,
                                        &D_acropolis_helicopter_landing_pad_80187F90) != 0) {
-        arg0->state += 1;
+        task->state += 1;
     } else {
-        taskKill(arg0);
+        taskKill(task);
     }
 }
 
@@ -773,7 +817,7 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 {
     GameActor* actor     = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
     TaskFunc   states[5] = {
-        func_acropolis_helicopter_landing_pad_8017ED50,
+        _acropolisHelicopterLandingPadResolveExit,
         _acropolisHelicopterLandingPadTurnPlayerToExit,
         _acropolisHelicopterLandingPadWaitForPlayerTurn,
         _acropolisHelicopterLandingPadDescendExitStairs,
@@ -956,196 +1000,199 @@ static void _acropolisHelicopterLandingPadDrawPerimeterLight(const SVECTOR* worl
     }
 }
 
-/// Draws one helipad ember / spark sprite. `spawnArg1` non-zero spawns the
-/// bright variant (`scale` 0x300..0x3FF, no drift beyond a fixed -0x18 on
-/// Y, `step` 2..5 with `period` up to 0x3F); zero spawns the dim one
-/// (`scale` 0x100..0x1FF, random 3D drift, `step` / `period` 1..4).
-/// The sprite lives `step * 6` frames counted in `age`. Each frame
-/// the coord's translation is projected through `GsWSMATRIX` into a
-/// semi-transparent `POLY_FT4` (tpage 0x2B, clut 0x4383, one of the 32x32
-/// cells on row 0x28) whose corners are the projected centre plus / minus
-/// `scale * 31 / otz` rotated by `angle` and `angle + 0x400`. A
-/// bright sprite (`spawnArg1 == 1`) flickers a random green / blue-white tint
-/// on 1-in-4 LCG rolls and, before its last two frames, fires a 0x600E0
-/// effect on 1-in-16. While `gRoomEffectState->effectControl` is 0 the coord drifts,
-/// `scale` grows by `period` and the frame counter advances until it
-/// expires, which releases the state-1C memory; `field_4 >= 4` releases it at
-/// once and 2..3 idles.
-void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
+/// Projects a sprite's cached origin through `GsWSMATRIX`.
+///
+/// Borrows a composed coordinate and a writable 28-byte scratch block. Narrows
+/// the cached translation to s16 before projection, stores raw screen XY and
+/// GTE flags, and leaves the GTE depth available to the accepted-projection path.
+static inline void _acropolisHelicopterLandingPadProjectSpriteCentre(EffectShapeScratch* projection, const GfxCoord* coord)
 {
-    EffectWork*         mem;
-    GfxCoord*           coord;
-    void**              scratch;
-    EffectShapeScratch* head;
-    EffectShapeScratch* blk;
-    POLY_FT4*           prim;
-    u32                 tmp;
-    s16                 n;
+    projection->worldPoint.vx = coord->workm.t[0];
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&projection->worldPoint);
+    gte_rtps();
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+}
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+void acropolisHelicopterLandingPadEmberTask(Task* task)
+{
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_INITIALIZE       = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_FLICKER_VARIANT  = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CLUT             = 0x4383,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS      = 32,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_TEXTURE_ROW      = 0x28,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_FRAMES_PER_CELL  = 6,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_BRIGHT_RISE_STEP = 24,
+    };
+
+    EffectWork*         work;
+    GfxCoord*           coord;
+    EffectShapeScratch* projection;
+    POLY_FT4*           sprite;
+    u32                 colorSample;
+    s16                 nextAge;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
         }
         return;
     }
-    {
-        actorRenderComposeCoord(coord);
-        if (arg0->state == 0) {
-            if (arg0->spawnArg1.value != 0) {
-                mem->move.vx    = 0;
-                mem->move.vy    = -0x18;
-                mem->move.vz    = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->scale      = ((gRandomLcgState >> 16) & 0xFF) + 0x300;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->period     = (gRandomLcgState >> 16) & 0x3F;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->step       = ((gRandomLcgState >> 16) & 3) + 2;
-            } else {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->scale      = ((gRandomLcgState >> 16) & 0xFF) + 0x100;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->period     = ((gRandomLcgState >> 16) & 3) + 1;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->step       = ((gRandomLcgState >> 16) & 3) + 1;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = ((gRandomLcgState >> 16) & 7) - 4;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = ~((gRandomLcgState >> 16) & 0xF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = ((gRandomLcgState >> 16) & 7) - 4;
-            }
-            arg0->state++;
+    // Render the current pose before advancing its local drift and atlas frame.
+    actorRenderComposeCoord(coord);
+    if (task->state == ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_INITIALIZE) {
+        if (task->spawnArg1.value != 0) {
+            work->move.vx   = 0;
+            work->move.vy   = -ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_BRIGHT_RISE_STEP;
+            work->move.vz   = 0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->scale     = ((gRandomLcgState >> 16) & 0xFF) + 0x300;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle     = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->period    = (gRandomLcgState >> 16) & 0x3F;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->step      = ((gRandomLcgState >> 16) & 3) + 2;
+        } else {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->scale     = ((gRandomLcgState >> 16) & 0xFF) + 0x100;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle     = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->period    = ((gRandomLcgState >> 16) & 3) + 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->step      = ((gRandomLcgState >> 16) & 3) + 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vx   = ((gRandomLcgState >> 16) & 7) - 4;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vy   = ~((gRandomLcgState >> 16) & 0xF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vz   = ((gRandomLcgState >> 16) & 7) - 4;
         }
-        scratch            = SCRATCH_STACK_CURSOR_SLOT;
-        head               = *scratch;
-        *scratch           = head - 1;
-        blk                = head - 1;
-        blk->worldPoint.vx = coord->workm.t[0];
-        blk->worldPoint.vy = coord->workm.t[1];
-        blk->worldPoint.vz = coord->workm.t[2];
-        gte_SetTransMatrix(&GsWSMATRIX);
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->worldPoint);
-        gte_rtps();
-        gte_stsxy(&(head - 1)->screenX);
-        gte_stflg(&(head - 1)->projectionFlags);
-        if (blk->projectionFlags >= 0) {
-            gte_stszotz(&(head - 1)->depth);
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyFT4(prim);
-            if (arg0->spawnArg1.value == 1) {
+        task->state++;
+    }
+    projection = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    _acropolisHelicopterLandingPadProjectSpriteCentre(projection, coord);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        sprite         = gGpuPrimCursor;
+        gGpuPrimCursor = sprite + 1;
+        setPolyFT4(sprite);
+        if (task->spawnArg1.value == ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_FLICKER_VARIANT) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (((gRandomLcgState >> 16) & 3) == 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 16) & 3) == 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    tmp             = (gRandomLcgState >> 16) & 0xFF;
-                    setRGB0(prim, tmp >> 1, tmp, 0xFF);
-                } else {
-                    prim->code |= 1;
-                }
-                if (mem->age < mem->step * 6 - 2) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                        effectSpawn(EFFECT_FLASH_BURST, coord, 0x100, NULL);
-                    }
-                }
+                colorSample     = (gRandomLcgState >> 16) & 0xFF;
+                setRGB0(sprite, colorSample >> 1, colorSample, 0xFF);
             } else {
-                prim->code = 0x2D;
+                setShadeTex(sprite, true);
             }
-            prim->tpage          = 0x2B;
-            prim->clut           = 0x4383;
-            prim->code          |= 2;
-            prim->u0             = (mem->age / mem->step + 1) * 0x20;
-            prim->v0             = 0x28;
-            prim->u1             = (mem->age / mem->step + 1) * 0x20 + 0x1F;
-            prim->v1             = 0x28;
-            prim->u2             = (mem->age / mem->step + 1) * 0x20;
-            prim->v2             = 0x47;
-            prim->u3             = (mem->age / mem->step + 1) * 0x20 + 0x1F;
-            prim->v3             = 0x47;
-            blk->extent.corner.x = ((mem->scale * 0x1F / blk->depth) * rsin(mem->angle)) >> 12;
-            blk->extent.corner.y = ((mem->scale * 0x1F / blk->depth) * rcos(mem->angle)) >> 12;
-            prim->x0             = blk->screenX + (u16)blk->extent.corner.x;
-            prim->x3             = blk->screenX - (u16)blk->extent.corner.x;
-            prim->y0             = blk->screenY - (u16)blk->extent.corner.y;
-            prim->y3             = blk->screenY + (u16)blk->extent.corner.y;
-            blk->extent.corner.x = ((mem->scale * 0x1F / blk->depth) * rsin(mem->angle + 0x400)) >> 12;
-            blk->extent.corner.y = ((mem->scale * 0x1F / blk->depth) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1             = blk->screenX + (u16)blk->extent.corner.x;
-            prim->x2             = blk->screenX - (u16)blk->extent.corner.x;
-            prim->y1             = blk->screenY - (u16)blk->extent.corner.y;
-            prim->y2             = blk->screenY + (u16)blk->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+            if (work->age < work->step * ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_FRAMES_PER_CELL - 2) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                    effectSpawn(EFFECT_FLASH_BURST, coord, 0x100, NULL);
+                }
+            }
+        } else {
+            sprite->code = ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_RAW_TEXTURE_CODE;
         }
-        SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
-        if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-            coord->coord.t[0]  += mem->move.vx;
-            coord->coord.t[1]  += mem->move.vy;
-            coord->coord.t[2]  += mem->move.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            mem->scale         += mem->period;
-            n                   = mem->age + 1;
-            mem->age            = n;
-            if (n > mem->step * 6 - 1) {
-                effectKillTask(mem, arg0);
-            }
+        sprite->tpage = ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TEXTURE_PAGE;
+        sprite->clut  = ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CLUT;
+        setSemiTrans(sprite, true);
+        sprite->u0                  = (work->age / work->step + 1) * ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS;
+        sprite->v0                  = ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_TEXTURE_ROW;
+        sprite->u1                  = (work->age / work->step + 1) * ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS + (ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS - 1);
+        sprite->v1                  = ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_TEXTURE_ROW;
+        sprite->u2                  = (work->age / work->step + 1) * ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS;
+        sprite->v2                  = ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_TEXTURE_ROW + ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS - 1;
+        sprite->u3                  = (work->age / work->step + 1) * ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS + (ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS - 1);
+        sprite->v3                  = ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_TEXTURE_ROW + ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS - 1;
+        projection->extent.corner.x = ((work->scale * (ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS - 1) / projection->depth) * rsin(work->angle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TRIG_FRACTION_BITS;
+        projection->extent.corner.y = ((work->scale * (ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS - 1) / projection->depth) * rcos(work->angle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TRIG_FRACTION_BITS;
+        sprite->x0                  = projection->screenX + (u16)projection->extent.corner.x;
+        sprite->x3                  = projection->screenX - (u16)projection->extent.corner.x;
+        sprite->y0                  = projection->screenY - (u16)projection->extent.corner.y;
+        sprite->y3                  = projection->screenY + (u16)projection->extent.corner.y;
+        projection->extent.corner.x = ((work->scale * (ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS - 1) / projection->depth) * rsin(work->angle + ACTOR_TRANSFORM_ANGLE_TURN / 4)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TRIG_FRACTION_BITS;
+        projection->extent.corner.y = ((work->scale * (ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_CELL_PIXELS - 1) / projection->depth) * rcos(work->angle + ACTOR_TRANSFORM_ANGLE_TURN / 4)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TRIG_FRACTION_BITS;
+        sprite->x1                  = projection->screenX + (u16)projection->extent.corner.x;
+        sprite->x2                  = projection->screenX - (u16)projection->extent.corner.x;
+        sprite->y1                  = projection->screenY - (u16)projection->extent.corner.y;
+        sprite->y2                  = projection->screenY + (u16)projection->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), sprite);
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->scale        += work->period;
+        nextAge             = work->age + 1;
+        work->age           = nextAge;
+        if (nextAge > work->step * ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_FRAMES_PER_CELL - 1) {
+            effectKillTask(work, task);
         }
     }
 }
 
-/// Effect task for the helipad floodlights anchored to `gWorldCoordTransientPointLights[4]` and
-/// `[5]`. On first run it parents the coord to the work's `parent` and
-/// positions it from `pos`. State 0 draws 0-3 upper spark lines with
-/// `_acropolisHelicopterLandingPadDrawUpperSparkLine` and, on a 1-in-4 roll, a
-/// lower line with `acropolisHelicopterLandingPadDrawLowerSparkLine`; it refreshes slot 4 as a
-/// light with a four-frame expiry countdown. State 1 (also reached by fallthrough) rearms
-/// `scale` on a 1-in-4 roll every 8th frame; when armed it plays sound
-/// `0x51100001` panned at the coord, spawns one 0x6003B and six 0x600A4
-/// effects reparented under this task, and refreshes slot 5 as a light. State 2
-/// releases the state-1C memory, the only step taken while
-/// `gRoomEffectState->effectControl` is set.
-void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
+void acropolisHelicopterLandingPadDamagedLightSparksTask(Task* task)
 {
-    EffectWork*                    mem;
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LINES_AND_BURSTS     = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_BURSTS_ONLY          = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_RELEASE              = 2,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LINE_LIGHT_SLOT      = 4,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_BURST_LIGHT_SLOT     = 5,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LIGHT_FRAMES         = 4,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_CHILD_COUNT          = 6,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LINE_INNER_DISTANCE  = 5600,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LINE_OUTER_DISTANCE  = 6400,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_BURST_INNER_DISTANCE = 4000,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_BURST_OUTER_DISTANCE = 4800,
+    };
+
+    EffectWork*                    work;
     GfxCoord*                      coord;
     WorldCoordTransientPointLight* lightSlot;
-    WorldCoordPointLight*          slot;
-    EffectWork*                    eff;
-    s32                            i;
-    s32                            n;
-    s32                            pan;
+    WorldCoordPointLight*          light;
+    EffectWork*                    childWork;
+    s32                            sparkIndex;
+    s32                            upperSparkCount;
+    s32                            audioPan;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (arg0->state == 2) {
-            effectKillTask(mem, arg0);
+        if (task->state == ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_RELEASE) {
+            effectKillTask(work, task);
         }
         return;
     }
-    if (mem->index == 0) {
-        coord->parent       = mem->parent;
-        coord->coord.t[0]   = mem->pos.vx;
-        coord->coord.t[1]   = mem->pos.vy;
-        coord->coord.t[2]   = mem->pos.vz;
+    // Follow the damaged model part in its local frame for the effect lifetime.
+    if (work->index == 0) {
+        coord->parent       = work->parent;
+        coord->coord.t[0]   = work->pos.vx;
+        coord->coord.t[1]   = work->pos.vy;
+        coord->coord.t[2]   = work->pos.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
-        mem->scale = 1;
-        mem->index++;
+        work->scale = 1;
+        work->index++;
     }
-    mem->age++;
-    switch (arg0->state) {
-        case 0:
+    work->age++;
+    switch (task->state) {
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LINES_AND_BURSTS:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            n               = (gRandomLcgState >> 16) & 3;
-            for (i = 0; i < n; i++) {
+            upperSparkCount = (gRandomLcgState >> 16) & 3;
+            for (sparkIndex = 0; sparkIndex < upperSparkCount; sparkIndex++) {
                 _acropolisHelicopterLandingPadDrawUpperSparkLine(coord);
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1154,53 +1201,54 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                     acropolisHelicopterLandingPadDrawLowerSparkLine(coord);
                 }
             }
-            lightSlot             = &gWorldCoordTransientPointLights[4];
-            slot                  = &lightSlot->light;
-            lightSlot->framesLeft = 4;
-            slot->inner           = 0x15E0;
-            slot->outer           = 0x1900;
-            slot->head.color.r    = 0x800;
-            slot->head.color.g    = 0x800;
+            lightSlot             = &gWorldCoordTransientPointLights[ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LINE_LIGHT_SLOT];
+            light                 = &lightSlot->light;
+            lightSlot->framesLeft = ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LIGHT_FRAMES;
+            light->inner          = ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LINE_INNER_DISTANCE;
+            light->outer          = ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LINE_OUTER_DISTANCE;
+            light->head.color.r   = ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_HALF_INTENSITY;
+            light->head.color.g   = ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_HALF_INTENSITY;
             gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x900;
+            light->head.color.b   = ((gRandomLcgState >> 16) & ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_RANDOM_MASK) + ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_BASE;
             gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             /* fallthrough */
-        case 1:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_BURSTS_ONLY:
             if ((gDisplayState.animFrame & 7) == 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (((gRandomLcgState >> 16) & 3) == 0) {
-                    mem->scale = 1;
+                    work->scale = 1;
                 }
             }
-            if (mem->scale != 0) {
-                pan = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(SOUND_HELICOPTER_LANDING_PAD_LIGHT_SPARK, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-                mem->scale = 0;
-                eff        = effectSpawn(EFFECT_IMPACT_SPARK, coord, 0x200, NULL);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+            // Link emitted tasks under this controller so parent teardown reaches them.
+            if (work->scale != 0) {
+                audioPan = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(SOUND_HELICOPTER_LANDING_PAD_LIGHT_SPARK, audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
+                work->scale = 0;
+                childWork   = effectSpawn(EFFECT_IMPACT_SPARK, coord, 0x200, NULL);
+                if (childWork != NULL) {
+                    taskReparent(task, childWork->task);
                 }
-                for (i = 0; i < 6; i++) {
-                    eff = effectSpawn(EFFECT_PIXEL_SPARK, coord, 1, NULL);
-                    if (eff != NULL) {
-                        taskReparent(arg0, eff->task);
+                for (sparkIndex = 0; sparkIndex < ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_CHILD_COUNT; sparkIndex++) {
+                    childWork = effectSpawn(EFFECT_PIXEL_SPARK, coord, 1, NULL);
+                    if (childWork != NULL) {
+                        taskReparent(task, childWork->task);
                     }
                 }
-                lightSlot             = &gWorldCoordTransientPointLights[5];
-                slot                  = &lightSlot->light;
-                lightSlot->framesLeft = 4;
-                slot->inner           = 0xFA0;
-                slot->outer           = 0x12C0;
-                slot->head.color.r    = 0xC00;
-                slot->head.color.g    = 0xC00;
-                slot->head.color.b    = 0x600;
+                lightSlot             = &gWorldCoordTransientPointLights[ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_BURST_LIGHT_SLOT];
+                light                 = &lightSlot->light;
+                lightSlot->framesLeft = ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LIGHT_FRAMES;
+                light->inner          = ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_BURST_INNER_DISTANCE;
+                light->outer          = ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_BURST_OUTER_DISTANCE;
+                light->head.color.r   = ONE * 3 / 4;
+                light->head.color.g   = ONE * 3 / 4;
+                light->head.color.b   = ONE * 3 / 8;
                 gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
                 lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             }
             break;
-        case 2:
-            effectKillTask(mem, arg0);
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_RELEASE:
+            effectKillTask(work, task);
             break;
     }
 }
@@ -1321,198 +1369,186 @@ void acropolisHelicopterLandingPadDrawLowerSparkLine(GfxCoord* coord)
 
 #undef ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT
 
-/// Effect task for the helipad beacon anchored to `gWorldCoordTransientPointLights[4]`. State 0
-/// spawns two 0x6005E effects, enables the slot for four gameplay frames and seeds its
-/// light parameters from the coord and an LCG draw; state 1 spawns two more
-/// with arg 0; state 2 fires a 0x6005A effect on 1-in-16 LCG rolls every
-/// 64th frame; state 3 releases the state-1C memory. Idle while
-/// `gRoomEffectState->effectControl` is set.
-void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
+void acropolisHelicopterLandingPadFlareEmitterTask(Task* task)
 {
-    EffectWork*                    mem;
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_FLASH               = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_RAW                 = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_EMBERS              = 2,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_RELEASE             = 3,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_LIGHT_SLOT          = 4,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_LIGHT_FRAMES        = 4,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_INNER_DISTANCE      = 6400,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_OUTER_DISTANCE      = 7200,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_FRAME_HALF_BIT      = 0x40,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_LARGE_EMBER_VARIANT = 2,
+    };
+
+    EffectWork*                    work;
     GfxCoord*                      coord;
     WorldCoordTransientPointLight* lightSlot;
-    WorldCoordPointLight*          slot;
+    WorldCoordPointLight*          light;
 
-    lightSlot = &gWorldCoordTransientPointLights[4];
-    slot      = &lightSlot->light;
-    mem       = arg0->spawnArg2.pointer;
-    coord     = arg0->extra.coordBody->coord;
-    if (arg0->state == 3) {
-        effectKillTask(mem, arg0);
+    lightSlot = &gWorldCoordTransientPointLights[ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_LIGHT_SLOT];
+    light     = &lightSlot->light;
+    work      = task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
+    if (task->state == ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_RELEASE) {
+        effectKillTask(work, task);
         return;
     }
-    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING && arg0->state < 3) {
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING && task->state < ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_RELEASE) {
         return;
     }
     actorRenderComposeCoord(coord);
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_FLASH:
             effectSpawn(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 1, NULL);
             effectSpawn(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 1, NULL);
-            lightSlot->framesLeft                              = 4;
-            slot->inner                                        = 0x1900;
-            slot->outer                                        = 0x1C20;
-            slot->head.color.r                                 = 0x800;
-            slot->head.color.g                                 = 0x800;
-            gRandomLcgState                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b                                 = ((gRandomLcgState >> 16) & 0x700) + 0x900;
-            slot->head.transform.coord.coord.t[0]              = coord->coord.t[0];
-            slot->head.transform.coord.coord.t[1]              = coord->coord.t[1];
-            slot->head.transform.coord.coord.t[2]              = coord->coord.t[2];
+            lightSlot->framesLeft = ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_LIGHT_FRAMES;
+            light->inner          = ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_INNER_DISTANCE;
+            light->outer          = ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_OUTER_DISTANCE;
+            light->head.color.r   = ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_HALF_INTENSITY;
+            light->head.color.g   = ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_HALF_INTENSITY;
+            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            light->head.color.b   = ((gRandomLcgState >> 16) & ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_RANDOM_MASK) + ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_BASE;
+            // Spawn places the emitter under the view; copy that parent-frame translation.
+            light->head.transform.coord.coord.t[0]             = coord->coord.t[0];
+            light->head.transform.coord.coord.t[1]             = coord->coord.t[1];
+            light->head.transform.coord.coord.t[2]             = coord->coord.t[2];
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             break;
-        case 1:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_RAW:
             effectSpawn(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 0, NULL);
             effectSpawn(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 0, NULL);
             break;
-        case 2:
-            if (gDisplayState.animFrame & 0x40) {
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_EMBERS:
+            if (gDisplayState.animFrame & ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_FRAME_HALF_BIT) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (((gRandomLcgState >> 16) & 0xF) == 0) {
-                    effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, coord, 2, NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, coord, ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_LARGE_EMBER_VARIANT, NULL);
                 }
             }
             break;
-        case 3:
-            effectKillTask(mem, arg0);
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_RELEASE:
+            effectKillTask(work, task);
             break;
     }
 }
 
-/// Effect task for one helipad lens flare. State 0 seeds the `EffectWork`
-/// from the LCG: a 0x200..0x3FF radius (`scale`), a 12-bit angle
-/// (`angle`), a 1..4 lifetime scale (`step`, the flare lives
-/// `step * 6` frames counted in `age`) and a per-frame drift
-/// (`move` / `move.vy` / `move.vz`). Each frame the coord's translation
-/// is projected through `GsWSMATRIX` into a semi-transparent `POLY_FT4`
-/// (tpage 0x2B, clut 0x4384, one of `step` 40x40 cells on row 0x48)
-/// whose four corners are the projected centre plus / minus
-/// `scale * 39 / otz` rotated by `angle` and `angle + 0x400`. The
-/// last eight frames fade to grey; before that a spawned flare
-/// (`spawnArg1`) flickers a random green / blue-white tint on 1-in-4 LCG rolls
-/// and fires a 0x600E0 effect on 1-in-16, and every flare fires 0x6005A on
-/// 1-in-16. While `gRoomEffectState->effectControl` is 0 the coord drifts and the frame
-/// counter advances until it expires, which releases the state-1C memory;
-/// `field_4 >= 4` releases it at once and 2..3 idles.
-void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
+void acropolisHelicopterLandingPadLensFlareTask(Task* task)
 {
-    EffectWork*         mem;
-    GfxCoord*           coord;
-    void**              scratch;
-    EffectShapeScratch* head;
-    EffectShapeScratch* blk;
-    POLY_FT4*           prim;
-    s32                 span;
-    s32                 n;
-    s32                 lvl;
-    u8                  tmp;
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_INITIALIZE      = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CLUT            = 0x4384,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS     = 40,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_TEXTURE_ROW     = 0x48,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_FRAMES_PER_CELL = 6,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_FADE_FRAMES     = 8,
+    };
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    EffectWork*         work;
+    GfxCoord*           coord;
+    EffectShapeScratch* projection;
+    POLY_FT4*           sprite;
+    s32                 lifetimeFrames;
+    s32                 age;
+    s32                 fadeIntensity;
+    u8                  greenIntensity;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
         }
         return;
     }
-    {
-        actorRenderComposeCoord(coord);
-        if (arg0->state == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->scale      = ((gRandomLcgState >> 16) & 0x1FF) + 0x200;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->step       = ((gRandomLcgState >> 16) & 3) + 1;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vx    = -((gRandomLcgState >> 16) & 0x1F) - 0x40;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vy    = ((gRandomLcgState >> 16) & 0xF) - 8;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vz    = ((gRandomLcgState >> 16) & 0xF) - 8;
-            arg0->state++;
-        }
-        scratch            = SCRATCH_STACK_CURSOR_SLOT;
-        head               = *scratch;
-        *scratch           = head - 1;
-        blk                = head - 1;
-        blk->worldPoint.vx = coord->workm.t[0];
-        blk->worldPoint.vy = coord->workm.t[1];
-        blk->worldPoint.vz = coord->workm.t[2];
-        gte_SetTransMatrix(&GsWSMATRIX);
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->worldPoint);
-        gte_rtps();
-        gte_stsxy(&(head - 1)->screenX);
-        gte_stflg(&(head - 1)->projectionFlags);
-        if (blk->projectionFlags >= 0) {
-            gte_stszotz(&(head - 1)->depth);
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyFT4(prim);
-            span = mem->step * 6;
-            n    = mem->age;
-            if (span - 8 < n) {
-                lvl = (span - n + 1) * 16;
-                setRGB0(prim, lvl, lvl, lvl);
-            } else {
-                if (arg0->spawnArg1.value != 0) {
+    actorRenderComposeCoord(coord);
+    if (task->state == ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_INITIALIZE) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->scale     = ((gRandomLcgState >> 16) & 0x1FF) + 0x200;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->angle     = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->step      = ((gRandomLcgState >> 16) & 3) + 1;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->move.vx   = -((gRandomLcgState >> 16) & 0x1F) - 0x40;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->move.vy   = ((gRandomLcgState >> 16) & 0xF) - 8;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->move.vz   = ((gRandomLcgState >> 16) & 0xF) - 8;
+        task->state++;
+    }
+    projection = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    _acropolisHelicopterLandingPadProjectSpriteCentre(projection, coord);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        sprite         = gGpuPrimCursor;
+        gGpuPrimCursor = sprite + 1;
+        setPolyFT4(sprite);
+        // Retain the strict fade threshold: the final seven drawn ages fade.
+        lifetimeFrames = work->step * ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_FRAMES_PER_CELL;
+        age            = work->age;
+        if (lifetimeFrames - ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_FADE_FRAMES < age) {
+            fadeIntensity = (lifetimeFrames - age + 1) * 16;
+            setRGB0(sprite, fadeIntensity, fadeIntensity, fadeIntensity);
+        } else {
+            if (task->spawnArg1.value != 0) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 3) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if (((gRandomLcgState >> 16) & 3) == 0) {
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        tmp             = gRandomLcgState >> 16;
-                        setRGB0(prim, tmp >> 1, tmp, 0xFF);
-                    } else {
-                        prim->code |= 1;
-                    }
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                        effectSpawn(EFFECT_FLASH_BURST, coord, 0x100, NULL);
-                    }
+                    greenIntensity  = gRandomLcgState >> 16;
+                    setRGB0(sprite, greenIntensity >> 1, greenIntensity, 0xFF);
                 } else {
-                    prim->code = 0x2D;
+                    setShadeTex(sprite, true);
                 }
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                    effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, coord, 2 - arg0->spawnArg1.value, NULL);
+                    effectSpawn(EFFECT_FLASH_BURST, coord, 0x100, NULL);
                 }
+            } else {
+                sprite->code = ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_RAW_TEXTURE_CODE;
             }
-            prim->tpage          = 0x2B;
-            prim->code          |= 2;
-            prim->clut           = 0x4384;
-            prim->u0             = (mem->age / mem->step) * 0x28;
-            prim->v0             = 0x48;
-            prim->u1             = (mem->age / mem->step) * 0x28 + 0x27;
-            prim->v1             = 0x48;
-            prim->u2             = (mem->age / mem->step) * 0x28;
-            prim->v2             = 0x6F;
-            prim->u3             = (mem->age / mem->step) * 0x28 + 0x27;
-            prim->v3             = 0x6F;
-            blk->extent.corner.x = ((mem->scale * 0x27 / blk->depth) * rsin(mem->angle)) >> 12;
-            blk->extent.corner.y = ((mem->scale * 0x27 / blk->depth) * rcos(mem->angle)) >> 12;
-            prim->x0             = blk->screenX + (u16)blk->extent.corner.x;
-            prim->x3             = blk->screenX - (u16)blk->extent.corner.x;
-            prim->y0             = blk->screenY - (u16)blk->extent.corner.y;
-            prim->y3             = blk->screenY + (u16)blk->extent.corner.y;
-            blk->extent.corner.x = ((mem->scale * 0x27 / blk->depth) * rsin(mem->angle + 0x400)) >> 12;
-            blk->extent.corner.y = ((mem->scale * 0x27 / blk->depth) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1             = blk->screenX + (u16)blk->extent.corner.x;
-            prim->x2             = blk->screenX - (u16)blk->extent.corner.x;
-            prim->y1             = blk->screenY - (u16)blk->extent.corner.y;
-            prim->y2             = blk->screenY + (u16)blk->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, coord, 2 - task->spawnArg1.value, NULL);
+            }
         }
-        SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
-        if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-            coord->coord.t[0]  += mem->move.vx;
-            coord->coord.t[1]  += mem->move.vy;
-            coord->coord.t[2]  += mem->move.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            mem->age++;
-            if (mem->age > mem->step * 6 - 1) {
-                effectKillTask(mem, arg0);
-            }
+        sprite->tpage = ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TEXTURE_PAGE;
+        setSemiTrans(sprite, true);
+        sprite->clut                = ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CLUT;
+        sprite->u0                  = (work->age / work->step) * ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS;
+        sprite->v0                  = ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_TEXTURE_ROW;
+        sprite->u1                  = (work->age / work->step) * ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS + (ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS - 1);
+        sprite->v1                  = ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_TEXTURE_ROW;
+        sprite->u2                  = (work->age / work->step) * ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS;
+        sprite->v2                  = ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_TEXTURE_ROW + ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS - 1;
+        sprite->u3                  = (work->age / work->step) * ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS + (ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS - 1);
+        sprite->v3                  = ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_TEXTURE_ROW + ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS - 1;
+        projection->extent.corner.x = ((work->scale * (ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS - 1) / projection->depth) * rsin(work->angle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TRIG_FRACTION_BITS;
+        projection->extent.corner.y = ((work->scale * (ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS - 1) / projection->depth) * rcos(work->angle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TRIG_FRACTION_BITS;
+        sprite->x0                  = projection->screenX + (u16)projection->extent.corner.x;
+        sprite->x3                  = projection->screenX - (u16)projection->extent.corner.x;
+        sprite->y0                  = projection->screenY - (u16)projection->extent.corner.y;
+        sprite->y3                  = projection->screenY + (u16)projection->extent.corner.y;
+        projection->extent.corner.x = ((work->scale * (ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS - 1) / projection->depth) * rsin(work->angle + ACTOR_TRANSFORM_ANGLE_TURN / 4)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TRIG_FRACTION_BITS;
+        projection->extent.corner.y = ((work->scale * (ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_CELL_PIXELS - 1) / projection->depth) * rcos(work->angle + ACTOR_TRANSFORM_ANGLE_TURN / 4)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_TRIG_FRACTION_BITS;
+        sprite->x1                  = projection->screenX + (u16)projection->extent.corner.x;
+        sprite->x2                  = projection->screenX - (u16)projection->extent.corner.x;
+        sprite->y1                  = projection->screenY - (u16)projection->extent.corner.y;
+        sprite->y2                  = projection->screenY + (u16)projection->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), sprite);
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+        coord->coord.t[0]  += work->move.vx;
+        coord->coord.t[1]  += work->move.vy;
+        coord->coord.t[2]  += work->move.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->age++;
+        if (work->age > work->step * ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_FRAMES_PER_CELL - 1) {
+            effectKillTask(work, task);
         }
     }
 }
@@ -1560,25 +1596,25 @@ void acropolisHelicopterLandingPadPerimeterLightsTask(Task* task)
 
 #include "../../shared/actor_contacts_push.inc.c"
 
-/// Task step of an item-pickup model: when the item's 2-bit flag reads 2 it
-/// sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, otherwise it selects the flagged draw
-/// pass, clears the draw offset and allocates the buffers. The view index is
-/// fetched and ignored.
-void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
+void acropolisHelicopterLandingPadPickupModelTask(Task* task)
 {
-    Enemy*     enemy;
-    TmdObject* tmd;
-    s32        flag;
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_PICKUP_COLLECTED = 2,
+    };
 
-    enemy = task->spawnArg2.pointer;
-    tmd   = task->extra.tmd;
-    flag  = areaGetCurrentObjectState((u8)enemy->placeKey);
+    Enemy*     placement;
+    TmdObject* model;
+    s32        placementState;
+
+    placement      = task->spawnArg2.pointer;
+    model          = task->extra.tmd;
+    placementState = areaGetCurrentObjectState((u8)placement->placeKey);
     viewGetMappedIndex();
-    if (flag == 2) {
-        tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (placementState == ACROPOLIS_HELICOPTER_LANDING_PAD_PICKUP_COLLECTED) {
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
-        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
-        tmd->otOffset = 0;
-        tmdAllocPrimitiveBuffer(tmd);
+        model->flags    = TMD_OBJECT_FLAGGED_PASS;
+        model->otOffset = 0;
+        tmdAllocPrimitiveBuffer(model);
     }
 }

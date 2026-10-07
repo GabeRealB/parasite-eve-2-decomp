@@ -628,12 +628,12 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGroundGlowTask, { NULL } },                                       // 0x057
     { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathWaterRippleTask, { NULL } },                                      // 0x058
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask59, { NULL } },                                           // 0x059
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_helicopter_landing_pad_8017FA30, { NULL } },                         // 0x05A
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_helicopter_landing_pad_801802E0, { NULL } },                         // 0x05B
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisHelicopterLandingPadEmberTask, { NULL } },                                 // 0x05A
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisHelicopterLandingPadDamagedLightSparksTask, { NULL } },                    // 0x05B
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask5C, { NULL } },                                                        // 0x05C
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x05D
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_helicopter_landing_pad_80181064, { NULL } },                         // 0x05E
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_helicopter_landing_pad_80180E40, { NULL } },                         // 0x05F
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisHelicopterLandingPadLensFlareTask, { NULL } },                             // 0x05E
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisHelicopterLandingPadFlareEmitterTask, { NULL } },                          // 0x05F
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_cafeteria_8017E708, { NULL } },                                      // 0x060
     { { { TASK_BODY_COORD, 0x70 } }, acropolisCafeteriaPuffTask, { NULL } },                                             // 0x061
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGlowLampTask, { NULL } },                                         // 0x062

@@ -15,8 +15,8 @@
 #include "main/task_types.h"
 
 /// Two descriptors that attach no model: entry 0 runs
-/// `func_acropolis_helicopter_landing_pad_8017ED00`, entry 1
-/// `func_acropolis_helicopter_landing_pad_8017EB58`.
+/// `_acropolisHelicopterLandingPadStartMovieTask`, entry 1
+/// `_acropolisHelicopterLandingPadMovieTask`.
 extern TaskDesc D_acropolis_helicopter_landing_pad_80184E68[];
 
 /// Progress of the helicopter sequence. The msg 0x3EF handler moves it from 0
@@ -74,8 +74,14 @@ extern AnimationPlayRequest D_acropolis_helicopter_landing_pad_80184E3C;
 
 extern ActorTransform D_acropolis_helicopter_landing_pad_80184E50;
 
-/// Per-frame phase tick of the room's script task.
-void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task);
+/// Advances encounter completion once the actor and presentation holds have cleared.
+///
+/// Phase 1 polls placed actor 0; absence, a closed attachment wheel and no pending
+/// display mode start the ending/skip scripts, select objective 8 and set phase 2.
+/// View 5 latches the encounter-start gate. An inactive session event clears the
+/// post-encounter placement latch. Requires the live session and room resources;
+/// `unusedTask` is ignored. This is the room task's per-frame update callback.
+void acropolisHelicopterLandingPadUpdateEncounterPhase(Task* unusedTask);
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_acropolis_helicopter_landing_pad_8017DA9C(Task*);

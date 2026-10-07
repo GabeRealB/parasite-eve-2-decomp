@@ -581,11 +581,11 @@ func_acropolis_forked_road_801802CC = 0x801802CC; // type:func absolute:True own
 
 acropolisFountainSprayTask = 0x8017DD44; // type:func absolute:True owner=acropolis_fountain shared=rooms
 
-func_acropolis_helicopter_landing_pad_8017FA30 = 0x8017FA30; // type:func absolute:True owner=acropolis_helicopter_landing_pad
+acropolisHelicopterLandingPadEmberTask = 0x8017FA30; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
-func_acropolis_helicopter_landing_pad_80180E40 = 0x80180E40; // type:func absolute:True owner=acropolis_helicopter_landing_pad
+acropolisHelicopterLandingPadFlareEmitterTask = 0x80180E40; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
-func_acropolis_helicopter_landing_pad_80181064 = 0x80181064; // type:func absolute:True owner=acropolis_helicopter_landing_pad
+acropolisHelicopterLandingPadLensFlareTask = 0x80181064; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
 acropolisHelicopterLandingPadPerimeterLightsTask = 0x801818F0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
@@ -1947,7 +1947,7 @@ shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask = 0x8017F7D4; // type:
 
 acropolisForkedRoadLeafFallTask = 0x8017E81C; // type:func absolute:True owner=acropolis_forked_road shared=rooms
 
-func_acropolis_helicopter_landing_pad_801802E0 = 0x801802E0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
+acropolisHelicopterLandingPadDamagedLightSparksTask = 0x801802E0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
 neoArkForestZoneLeafFallTask = 0x8017DC20; // type:func absolute:True owner=neo_ark_forest_zone shared=rooms
 
@@ -1961,7 +1961,7 @@ shelterB2PodBottomEnergyRingTask = 0x8017F448; // type:func absolute:True owner=
 
 mistShootingGalleryTracerTask = 0x80182064; // type:func absolute:True owner=mist_shooting_gallery shared=rooms
 
-neoArkWoodlandPathLeafFallTask = 0x8017ED00; // type:func absolute:True owner=neo_ark_woodland_path shared=rooms
+neoArkWoodlandPathLeafFallTask = 0x8017ED00; // type:func absolute:True owner=neo_ark_woodland_path
 
 func_mist_parking_8018345C = 0x8018345C; // type:func absolute:True owner=mist_parking
 

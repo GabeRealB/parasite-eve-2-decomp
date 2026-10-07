@@ -83,7 +83,7 @@ static const char D_acropolis_helicopter_landing_pad_8017D5D0[] = "%s (%5d,%5d,%
 /// `acropolisHelicopterLandingPadRoomTask`, indexed by
 /// `Task::state`: set-up, the per-frame phase tick and `taskKill`.
 static const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5E4 = {
-    { func_acropolis_helicopter_landing_pad_8017EA6C, func_acropolis_helicopter_landing_pad_8017D9BC, taskKill },
+    { func_acropolis_helicopter_landing_pad_8017EA6C, acropolisHelicopterLandingPadUpdateEncounterPhase, taskKill },
 };
 
 extern SpriteDrawArea D_acropolis_helicopter_landing_pad_80186C8C[2];
@@ -1189,8 +1189,9 @@ RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90 = { 0, 0, 0, 0, 0, 0 };
 
 /// Composes one weighted pitch pulse into the player's borrowed model coordinate.
 ///
-/// Weight is signed Q12 in 0..4096; pitch peaks at -96 angle units. Dirties and
-/// recomposes the coordinate chain after changing its local matrix.
+/// Borrows a live, writable coordinate with an animation-supplied local matrix.
+/// Weight is signed Q12 in 0..4096; pitch peaks at -96 angle units (4096 per
+/// turn). Composes about local X, dirties the cache and recomposes the chain.
 static inline void _acropolisHelicopterLandingPadApplyPlayerPitchPulse(GfxCoord* playerPart, s32 weight)
 {
     enum {
@@ -1206,8 +1207,10 @@ static inline void _acropolisHelicopterLandingPadApplyPlayerPitchPulse(GfxCoord*
 /// Samples one triangular shake envelope point, advancing the shared random sequence.
 ///
 /// Borrows the shake task and re-reads its cursor for the alternating sign.
-/// Half-duration must be nonzero; the packed amplitude is signed pixels above
-/// bit 7. Retains signed 32-bit multiply and division before the Q16 shift.
+/// The cursor must be in [-halfDurationFrames, halfDurationFrames], with a
+/// half-duration of 1..255 updates. Arithmetic shift by 8 gives the packed
+/// signed pixel amplitude. Both signed products must fit s32; division truncates
+/// toward zero before the Q16 shift. Changes the LCG but does not move the cursor.
 static inline s32 _acropolisHelicopterLandingPadSampleScreenShake(Task* task, s32 packedShake, s32 halfDurationFrames)
 {
     enum {

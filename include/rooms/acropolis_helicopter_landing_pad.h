@@ -65,15 +65,62 @@ void acropolisHelicopterLandingPadDrawLowerSparkLine(GfxCoord* coord);
 /// Borrows the work and authored position tables without allocating or freeing them.
 void acropolisHelicopterLandingPadPerimeterLightsTask(Task* task);
 
-void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0);
+/// Animates one drifting helipad ember from the six-cell 32-pixel sprite row.
+///
+/// Bank-6 slot 0x5A owns zeroed counted `EffectWork` in `spawnArg2` and borrows
+/// its coordinate body. `spawnArg1.value` 0 chooses small random drift; nonzero
+/// chooses a larger sprite rising 24 local units per update. Only value 1 flickers
+/// blue-white and can emit flash bursts; value 2 keeps the raw texture colours.
+/// State 0 chooses the random size, angle, growth and frame duration, then state 1
+/// renders ages 0..6*step-1 (step 1..4 for small, 2..5 for large). Growth and drift
+/// occur only while effects run. Frozen effects still draw; hidden effects wait;
+/// cancellation or expiry releases the work and task.
+/// Projects the narrowed cached translation through `GsWSMATRIX`; accepted projections
+/// require nonzero depth. Uses one 28-byte scratch block and one semitransparent
+/// `POLY_FT4` per accepted projection. The room overlay and atlas must stay loaded.
+void acropolisHelicopterLandingPadEmberTask(Task* task);
 
-void func_acropolis_helicopter_landing_pad_80181064(Task* arg0);
+/// Animates one drifting helipad flare from the six-cell 40-pixel sprite row.
+///
+/// Bank-6 slot 0x5E owns zeroed counted `EffectWork` in `spawnArg2` and borrows
+/// its coordinate body. State 0 seeds the size, angle, step 1..4 and drift, then
+/// state 1 renders ages 0..6*step-1. It drifts along local negative X and fades
+/// during the final seven ages (the whole lifetime when step is 1). Before that,
+/// nonzero `spawnArg1.value` permits blue-white flicker and flash bursts; either
+/// variant can emit embers with argument 2 minus this value (authored inputs 0/1).
+/// Frozen effects still draw and consume random samples; movement and child
+/// spawns require running effects. Hidden effects wait, cancellation or expiry
+/// releases the work and task. Projects the narrowed cached translation through
+/// `GsWSMATRIX`, requiring nonzero accepted depth; consumes a 28-byte scratch
+/// block and one semitransparent `POLY_FT4`. Keep the room overlay and atlas loaded.
+void acropolisHelicopterLandingPadLensFlareTask(Task* task);
 
-void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0);
+/// Emits flares and embers at the shot helipad blast source under actor control.
+///
+/// Bank-6 slot 0x5F owns counted `EffectWork` in `spawnArg2` and borrows its
+/// view-parented coordinate body. The actor selects states without automatic
+/// advancement: 0 emits two flickering flares per running update and refreshes
+/// transient light 4 for four frames; 1 emits two raw-colour flares per update;
+/// 2 has a 1-in-16 ember chance each frame while animation-frame bit 6 is set.
+/// State 3 releases work and task even while effects are paused. Other states
+/// wait while effects are not running. Shares light 4 with the damaged-light
+/// effect; emitted effects keep their own lifetimes. Keep the room overlay loaded.
+void acropolisHelicopterLandingPadFlareEmitterTask(Task* task);
 
 void func_acropolis_helicopter_landing_pad_8017EF60(s32 unused0, s32 unused1);
 
-void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0);
+/// Follows a damaged helipad light and drives its spark lines, bursts and transient lights.
+///
+/// Bank-6 slot 0x5B owns zeroed counted `EffectWork` in `spawnArg2` and borrows
+/// its coordinate body and retained parent coordinate. The first running update
+/// parents the coordinate to `EffectWork::parent` at its copied local offset.
+/// Actor-selected state 0 draws random lines and refreshes light 4, then runs
+/// state 1's burst logic; state 1 emits intermittent sound, impact and six pixel
+/// sparks and refreshes light 5. Both lights expire after four gameplay frames.
+/// Emitted tasks join this controller's teardown tree. State 2 releases work and
+/// task even while effects are paused; other states wait while not running.
+/// The parent chain and room overlay must remain live until teardown.
+void acropolisHelicopterLandingPadDamagedLightSparksTask(Task* task);
 
 void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0);
 
@@ -96,6 +143,15 @@ void acropolisHelicopterLandingPadLiftTask(Task* task);
 /// loaded while this task or its spawned room tasks run.
 void acropolisHelicopterLandingPadRoomTask(Task* task);
 
-void func_acropolis_helicopter_landing_pad_801822B0(Task* task);
+/// Selects the placed pickup model's draw and buffer policy from its saved object state.
+///
+/// Area object kind 0xA4 requires a TMD body and live `Enemy` placement data in
+/// `spawnArg2`. The place key's low byte must select object index 0..63 in the
+/// current stage. Collected state 2 sets skip-auto-buffer without freeing an
+/// existing buffer; other states select the flagged draw pass, clear its ordering
+/// offset and allocate missing primitive buffers. Retains the unused mapped-view
+/// lookup, which requires valid loaded view maps. The task keeps its state and
+/// owns no additional work here.
+void acropolisHelicopterLandingPadPickupModelTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_HELICOPTER_LANDING_PAD_H

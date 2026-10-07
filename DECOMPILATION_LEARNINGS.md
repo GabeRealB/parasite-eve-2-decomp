@@ -52663,13 +52663,13 @@ include when the body is ported.
 
 ### A raw `D_8011xxxx` import can be an interior slot of a named gameplay array
 
-`func_acropolis_helicopter_landing_pad_80180E40` writes through
+`acropolisHelicopterLandingPadFlareEmitterTask` writes through
 `D_801150C0` (rooms.imports.txt), which has no declaration anywhere in
 `include/`. `sym.gameplay.txt` places it inside `gWorldCoordTransientPointLights`
 (`0x80114F30`, size `0x320`): `0x801150C0 - 0x80114F30 = 0x190 = 4 * 0x64`,
 so it is `&gWorldCoordTransientPointLights[4]`, and the sibling imports `D_80115124` /
 `D_80115188` are slots 5 and 6. Writing it as `lightSlot = &gWorldCoordTransientPointLights[4];
-slot = &lightSlot->light;` — the shape gameplay's matched
+light = &lightSlot->light;` — the shape gameplay's matched
 `Gp_EffCtlTask6B` uses for slot 0 — reproduces the `lui/addiu` pair, the
 `%lo(sym)($s5)` store for `framesLeft` and the `4($s6)` store for `light.head.transform.coord.composeStamp`.
 
@@ -52966,18 +52966,18 @@ lhu   v1,0x22(s2)
 lh    a0,0x2a(s2)
 addiu v1,v1,1
 sh    v1,0x22(s2)
-sll   v1,v1,0x10        ; the *reload* of field_22, folded by CSE
+sll   v1,v1,0x10        ; the *reload* of age, folded by CSE
 sra   v1,v1,0x10
-sll   v0,a0,0x1         ; field_2A * 6 - 1
+sll   v0,a0,0x1         ; step * 6 - 1
 addu  v0,v0,a0
 sll   v0,v0,0x1
 addiu v0,v0,-0x1
 slt   v0,v0,v1
 ```
 
-The `lhu` is not a sign of a `u16` field: a plain `s16` `mem->field_22++` is
+The `lhu` is not a sign of a `u16` field: a plain `s16` `work->age++` is
 HImode arithmetic, and the MIPS `movhi` load is `lhu`. The `sll`/`sra` pair is
-a second read of the same field, `mem->field_22` in the compare, which
+a second read of the same field, `work->age` in the compare, which
 `cse_insn` finds in the just-stored `(mem:HI)` and rewrites to a sign-extend of
 the incremented register. Spelling it with a local (`next = (u16)f + 1; f = next;
 if (limit < next)`) gives the same instructions but places the `sh`/`sll`/`sra`
@@ -52986,12 +52986,12 @@ extend land on follows the compare's operand order, because the extend is
 emitted where the reread is evaluated:
 
 ```c
-mem->field_22++;
-if (mem->field_22 > mem->field_2A * 6 - 1) {   /* store + extend first */
+work->age++;
+if (work->age > work->step * 6 - 1) {   /* store + extend first */
 ```
 
 `a > b` still becomes `slt v0, b, a`, so the operand swap costs nothing.
-Last leftover in `func_acropolis_helicopter_landing_pad_80181064`.
+Last leftover in `acropolisHelicopterLandingPadLensFlareTask`.
 
 ## `move_movables` by the numbers: threshold 29, `insn_count` includes the movables, forcing doubles `savings`
 

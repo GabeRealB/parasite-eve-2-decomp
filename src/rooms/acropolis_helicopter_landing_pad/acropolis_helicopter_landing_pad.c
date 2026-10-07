@@ -309,27 +309,29 @@ void acropolisHelicopterLandingPadLiftTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-/// Per-frame phase tick of the room's script task. In phase 1 it posts msg
-/// 0x7D6 to slot-4 entry 0; once that returns 0 and neither `Gp_StateC08.mode` nor
-/// `gDisplayState.pendingMode` holds it back, it moves to phase 2, starts the script pair
-/// and queues sound 0xA2. Camera view 5 of the session raises
-/// `D_acropolis_helicopter_landing_pad_80184E0C`; a cleared
-/// `gGameSession->eventState` resets `D_acropolis_helicopter_landing_pad_80187F84`.
-void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task)
+void acropolisHelicopterLandingPadUpdateEncounterPhase(Task* unusedTask)
 {
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STARTED        = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_FINISHED       = 2,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR          = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ARM_VIEW       = 5,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_POST_ENCOUNTER_OBJECTIVE = 8,
+    };
     s32 phase = D_acropolis_helicopter_landing_pad_80184D9C;
 
-    if (phase == 1) {
-        if (taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
+    // Wait for the encounter actor and the presentation holds before starting the ending scripts.
+    if (phase == ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STARTED) {
+        if (taskMessageDispatch(sceneFindPlacedActor(ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
             if ((Gp_StateC08.mode != phase) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                D_acropolis_helicopter_landing_pad_80184D9C = 2;
+                D_acropolis_helicopter_landing_pad_80184D9C = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_FINISHED;
                 evsStartScriptWithSkip(D_acropolis_helicopter_landing_pad_80184124, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        D_acropolis_helicopter_landing_pad_801844B4);
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 8);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_HELICOPTER_LANDING_PAD_POST_ENCOUNTER_OBJECTIVE);
             }
         }
     }
-    if (gGameSession->location.loc.view == 5) {
+    if (gGameSession->location.loc.view == ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ARM_VIEW) {
         D_acropolis_helicopter_landing_pad_80184E0C = 1;
     }
     if (gGameSession->eventState == 0) {

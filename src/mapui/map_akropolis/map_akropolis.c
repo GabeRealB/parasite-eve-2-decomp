@@ -572,7 +572,7 @@ static AreaObjectPlace D_map_akropolis_8017A7AC[2] = {
 
 static AreaObjectSpawn D_map_akropolis_8017A7CC[3] = {
     { 0x204, { { { TASK_BODY_TMD, 0x62 } }, acropolisHelicopterLandingPadLiftTask, { &gAcropolisHelicopterLandingPadModel0547C } } },
-    { 0xA4, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_helicopter_landing_pad_801822B0, { &gAcropolisHelicopterLandingPadModel0A8E8 } } },
+    { 0xA4, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, acropolisHelicopterLandingPadPickupModelTask, { &gAcropolisHelicopterLandingPadModel0A8E8 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
