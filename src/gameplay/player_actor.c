@@ -7193,7 +7193,7 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg)
         if (ret != 0) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
         } else if (actor->companionWork == 0) {
-            func_8010A42C(arg0, (u8)out);
+            playerStateApplyReactionEffect(arg0, (u8)out);
         }
     }
     return ret;
@@ -7807,7 +7807,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
     sp    = D_8009794C;
     actor = arg0->work;
     if (gPlayerStatus.statusFlags & PLAYER_STATUS_CONFUSION) {
-        func_8010A670(arg0);
+        playerActorApplyConfusionInput(arg0);
     }
     if (actor->movementInputDisabled == 0) {
         func_80109250(arg0);
@@ -7842,8 +7842,8 @@ static void Gp_TickPlayerNormal(Task* arg0)
         }
     }
     sp.funcs[actor->state](arg0);
-    func_80109FC4(arg0);
-    Gp_PlayerStepSfx(arg0);
+    playerStateTickStatusEffects(arg0);
+    playerActorCheckContactDamage(arg0);
     playerActorTickAnimationState(arg0);
     playerActorTickChildSlots(arg0);
     playerActorUpdateFacing(arg0);
@@ -8679,7 +8679,7 @@ static void Gp_PlayerMode2StateB(Task* arg0)
             break;
     }
     playerActorTickChildSlots(arg0);
-    Gp_PlayerStepSfx(arg0);
+    playerActorCheckContactDamage(arg0);
 }
 
 static void Gp_TickPlayerActor(Task* arg0)
@@ -9523,7 +9523,7 @@ static void Gp_PlayerMode2State7(Task* arg0)
             playerActorTickChildSlots(arg0);
             break;
     }
-    Gp_PlayerStepSfx(arg0);
+    playerActorCheckContactDamage(arg0);
 }
 
 /// Advances only child animation slots in scripted player state 9.

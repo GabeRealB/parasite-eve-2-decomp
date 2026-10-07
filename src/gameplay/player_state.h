@@ -12,11 +12,33 @@ Task* Gp_SetupAllyWeapon(void);
 
 Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, ActorSpawnOptions* options);
 
-void func_80109FC4(Task* arg0);
+/// Advances the live player's timed status effects by one normal-mode update.
+///
+/// Requires live player GameActor/session state. Expired halfword durations
+/// clear their flags. Poison deals one HP at signed-byte intervals of 120 ticks
+/// stopped, 20 running, or 60 otherwise; its damage tick precedes expiry.
+/// Berserker's duration pauses in either active attachment mode. Timers advance
+/// only when called, and no new pointer is retained.
+void playerStateTickStatusEffects(Task* task);
 
-void func_8010A42C(Task* arg0, s32 arg1);
+/// Applies a received attack's status or tint effect to the live player.
+///
+/// The low byte of `reaction` selects `GAME_ACTOR_REACTION_*`; ordinary and
+/// unsupported codes do nothing. Accepted ailments refresh 600 active ticks
+/// unless equipment resists them. Reaction 4 emits only its tint; reaction 9
+/// applies the still-unidentified timed status bit 0x20 without effective
+/// equipment resistance. Requires live player
+/// work and presentation resources; does not apply HP loss or choose a hit clip.
+void playerStateApplyReactionEffect(Task* task, s32 reaction);
 
-void func_8010A670(Task* arg0);
+/// Adds confused direction input and occasionally changes the player's lock target.
+///
+/// Call during normal mode while confusion is active, before deriving movement
+/// from `padHeld`. Every 10..41 active calls selects or clears synthetic d-pad
+/// directions and may release or acquire a combat target. Directions are ORed
+/// into input only while the session holds a d-pad direction. Requires live
+/// player/session and combat target resources; does not own selected targets.
+void playerActorApplyConfusionInput(Task* task);
 
 /// Applies player HP damage with equipment modifiers and fatal-hit handling.
 ///
@@ -34,7 +56,16 @@ void func_8010AC54(Task* arg0);
 
 void func_8010AD64(Task* arg0);
 
-void Gp_PlayerStepSfx(Task* arg0);
+/// Resolves player body contacts and presents a pending collision hit.
+///
+/// Cheat mode or nonzero signed-byte recovery suppresses the whole check.
+/// Requires live player GameActor/model, full collision contacts and native
+/// weapon/animation resources under `playerActorResolveBodyContacts`' contract.
+/// A hit stops the weapon, applies HP/status damage when HP was positive, then
+/// blends set 16 for body part 4 or 17 otherwise over three normal-rate frames
+/// and starts positional hit sound 6 or 7. Retains the hit until recovery;
+/// contact pushback can occur without a damage hit.
+void playerActorCheckContactDamage(Task* task);
 
 /// Clears the actor's pending collision hit region, reaction and HP damage.
 ///

@@ -107,7 +107,7 @@ segments:
       - [0x3E60, .rodata, pad_input] # jtbl from padInputChangeSuppression
       - [0x3E78, .rodata, room_effects] # D_80097678, then the jtbl from _roomEffectInitController
       - [0x3E9C, .rodata, effect_tasks] # jtbls: Gp_EffCtlTask2B + effectThrownModelTask
-      - [0x3FB8, .rodata, player_actor] # effect and player-state dispatch tables through func_8010A42C
+      - [0x3FB8, .rodata, player_actor] # effect and player-state dispatch tables through playerStateApplyReactionEffect
       - [0x4268, .rodata, player_state] # player state jump tables and callbacks
       # Code units group related functions where the section layout permits it.
       - [0x42C0, c, actor_render] # Gp_DrawActorTmdFlagged

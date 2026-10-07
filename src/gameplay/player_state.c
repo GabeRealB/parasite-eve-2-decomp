@@ -38,6 +38,7 @@
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -46,6 +47,15 @@
 
 /// Duration of each timed player ailment, in active status updates.
 enum { PLAYER_STATE_STATUS_DURATION_TICKS = 600 };
+
+/// Countdown-only status mask; its gameplay effect remains unproven.
+enum { PLAYER_STATE_TIMED_EFFECT_20 = 0x20 };
+
+/// Confusion chooses its next direction after 10..41 active input updates.
+enum {
+    PLAYER_ACTOR_CONFUSION_DIRECTION_RANDOM_MASK = 0x1F,
+    PLAYER_ACTOR_CONFUSION_DIRECTION_BASE_TICKS  = 10
+};
 
 /// Scratch-stack block for turning a player actor's body yaw toward a point.
 ///
@@ -115,9 +125,9 @@ extern const TaskFuncTable4 D_80097AB0;
 
 static inline void _playerActorResumeAfterHit(Task* task);
 
-static void func_8010AAB4(Task* arg0);
+static void _playerActorEnterDamageReaction(Task* task);
 
-static void func_8010AB70(Task* arg0);
+static void _playerActorRecoverFromHit(Task* task);
 
 static void func_8010AE98(Task* arg0);
 
@@ -147,7 +157,7 @@ static void _modelObjectDeferChildTaskRemoval(Task* task);
 
 static void _modelObjectKillChildTask(Task* task);
 
-static void func_8010C46C(Task* arg0);
+static void _companionBeginScriptedControl(Task* task);
 
 /// Clears a pending hit and blends back to aim or locomotion with 18 recovery ticks.
 ///
@@ -353,83 +363,79 @@ void playerActorResolveBodyContacts(Task* task, const WorldCollisionContact* con
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorPushbackScratch);
 }
 
-void func_80109FC4(Task* arg0)
+void playerStateTickStatusEffects(Task* task)
 {
-    s32        flags;
+    enum {
+        PLAYER_STATE_POISON_DAMAGE_HP        = 1,
+        PLAYER_STATE_POISON_STOPPED_INTERVAL = 120,
+        PLAYER_STATE_POISON_RUNNING_INTERVAL = 20,
+        PLAYER_STATE_POISON_OTHER_INTERVAL   = 60,
+        PLAYER_STATE_POISON_MOVEMENT_STOPPED = 0,
+        PLAYER_STATE_POISON_MOVEMENT_RUN     = 3
+    };
+    s32        statusFlags;
     GameActor* actor;
-    s32        temp;
-    s32        mode;
+    s32        remainingTicks;
+    s32        movementMode;
 
-    flags = gPlayerStatus.statusFlags;
-    actor = arg0->work;
-    if (flags != 0) {
-        if (flags & PLAYER_STATUS_DARKNESS) {
-            temp                             = (u16)actor->effectTimer.darknessTicks - 1;
-            actor->effectTimer.darknessTicks = temp;
-            if ((s16)temp <= 0) {
-                flags &= ~PLAYER_STATUS_DARKNESS;
-            }
+    /// Decrements a status duration and removes its flag after signed-halfword expiry.
+    ///
+    /// Local to this update; uses its s32 `remainingTicks` temporary. Both lvalue
+    /// arguments must have no side effects: the duration is read and written,
+    /// and the flags are updated only at expiry. The mask is evaluated once.
+#define PLAYER_STATE_TICK_STATUS_DURATION(durationTicks, statusFlags, effectMask) \
+    {                                                                             \
+        remainingTicks  = (u16)(durationTicks) - 1;                               \
+        (durationTicks) = remainingTicks;                                         \
+        if ((s16)remainingTicks <= 0) {                                           \
+            (statusFlags) &= ~(effectMask);                                       \
+        }                                                                         \
+    }
+
+    statusFlags = gPlayerStatus.statusFlags;
+    actor       = task->work;
+    if (statusFlags != 0) {
+        if (statusFlags & PLAYER_STATUS_DARKNESS) {
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->effectTimer.darknessTicks, statusFlags, PLAYER_STATUS_DARKNESS);
         }
-        if (flags & PLAYER_STATUS_PARALYSIS) {
-            temp                  = (u16)actor->paralysisTicks - 1;
-            actor->paralysisTicks = temp;
-            if ((s16)temp <= 0) {
-                flags &= ~PLAYER_STATUS_PARALYSIS;
-            }
+        if (statusFlags & PLAYER_STATUS_PARALYSIS) {
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->paralysisTicks, statusFlags, PLAYER_STATUS_PARALYSIS);
         }
-        if (flags & PLAYER_STATUS_POISON) {
-            temp                     = actor->poisonDamageTicks - 1;
-            actor->poisonDamageTicks = temp;
-            if ((s8)temp <= 0) {
-                playerStateApplyHpDamage(1);
-                mode = (u16)actor->movementMode;
-                if (mode == 0) {
-                    actor->poisonDamageTicks = 0x78;
-                } else if (mode == 3) {
-                    actor->poisonDamageTicks = 0x14;
+        if (statusFlags & PLAYER_STATUS_POISON) {
+            remainingTicks           = actor->poisonDamageTicks - 1;
+            actor->poisonDamageTicks = remainingTicks;
+            if ((s8)remainingTicks <= 0) {
+                playerStateApplyHpDamage(PLAYER_STATE_POISON_DAMAGE_HP);
+                movementMode = (u16)actor->movementMode;
+                if (movementMode == PLAYER_STATE_POISON_MOVEMENT_STOPPED) {
+                    actor->poisonDamageTicks = PLAYER_STATE_POISON_STOPPED_INTERVAL;
+                } else if (movementMode == PLAYER_STATE_POISON_MOVEMENT_RUN) {
+                    actor->poisonDamageTicks = PLAYER_STATE_POISON_RUNNING_INTERVAL;
                 } else {
-                    actor->poisonDamageTicks = 0x3C;
+                    actor->poisonDamageTicks = PLAYER_STATE_POISON_OTHER_INTERVAL;
                 }
             }
-            temp               = (u16)actor->poisonTicks - 1;
-            actor->poisonTicks = temp;
-            if ((s16)temp <= 0) {
-                flags &= ~PLAYER_STATUS_POISON;
-            }
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->poisonTicks, statusFlags, PLAYER_STATUS_POISON);
         }
-        if (flags & PLAYER_STATUS_SILENCE) {
-            temp                = (u16)actor->silenceTicks - 1;
-            actor->silenceTicks = temp;
-            if ((s16)temp <= 0) {
-                flags &= ~PLAYER_STATUS_SILENCE;
-            }
+        if (statusFlags & PLAYER_STATUS_SILENCE) {
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->silenceTicks, statusFlags, PLAYER_STATUS_SILENCE);
         }
-        if (flags & 0x20) {
-            temp                 = (u16)actor->status20Ticks - 1;
-            actor->status20Ticks = temp;
-            if ((s16)temp <= 0) {
-                flags &= ~0x20;
-            }
+        if (statusFlags & PLAYER_STATE_TIMED_EFFECT_20) {
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->status20Ticks, statusFlags, PLAYER_STATE_TIMED_EFFECT_20);
         }
-        if (flags & PLAYER_STATUS_CONFUSION) {
-            temp                  = (u16)actor->confusionTicks - 1;
-            actor->confusionTicks = temp;
-            if ((s16)temp <= 0) {
-                flags &= ~PLAYER_STATUS_CONFUSION;
-            }
+        if (statusFlags & PLAYER_STATUS_CONFUSION) {
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->confusionTicks, statusFlags, PLAYER_STATUS_CONFUSION);
         }
-        if (flags & PLAYER_STATUS_BERSERKER) {
+        if (statusFlags & PLAYER_STATUS_BERSERKER) {
+            // Active attachment modes keep Berserker's remaining duration intact.
             if ((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) >= 2U) {
-                temp                  = (u16)actor->berserkerTicks - 1;
-                actor->berserkerTicks = temp;
-                if ((s16)temp <= 0) {
-                    flags &= ~PLAYER_STATUS_BERSERKER;
-                }
+                PLAYER_STATE_TICK_STATUS_DURATION(actor->berserkerTicks, statusFlags, PLAYER_STATUS_BERSERKER);
             }
         }
-        gPlayerStatus.statusFlags = flags;
+        gPlayerStatus.statusFlags = statusFlags;
     }
 }
+#undef PLAYER_STATE_TICK_STATUS_DURATION
 
 void playerStateSetStatusEffects(s32 clearEffects, s32 statusMask)
 {
@@ -515,106 +521,108 @@ void playerStateSetStatusEffects(s32 clearEffects, s32 statusMask)
     }
 }
 
-void func_8010A42C(Task* arg0, s32 arg1)
+void playerStateApplyReactionEffect(Task* task, s32 reaction)
 {
-    u8 kind;
+    enum { PLAYER_STATE_REACTION_4 = 4 }; // Tint-only reaction; presentation identity unproven
+    u8 reactionCode;
 
-    kind = arg1;
-    if (kind != 0) {
-        switch (kind) {
-            case 0:
+    // Only the low byte selects an effect; unsupported reaction codes do nothing.
+    reactionCode = reaction;
+    if (reactionCode != GAME_ACTOR_REACTION_ORDINARY) {
+        switch (reactionCode) {
+            case GAME_ACTOR_REACTION_ORDINARY:
                 break;
-            case 1: {
-                GameActor* inner;
+            case GAME_ACTOR_REACTION_DARKNESS: {
+                GameActor* actor;
 
-                inner = arg0->work;
+                actor = task->work;
                 if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_DARKNESS) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
-                inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
                 roomEffectStartDarknessDim();
-                playerActorClearLockTarget(arg0);
+                playerActorClearLockTarget(task);
                 roomEffectStartStatusTint(PLAYER_STATUS_DARKNESS);
                 break;
             }
-            case 2: {
-                GameActor* inner;
+            case GAME_ACTOR_REACTION_PARALYSIS: {
+                GameActor* actor;
 
-                inner = arg0->work;
+                actor = task->work;
                 if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_PARALYSIS) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_PARALYSIS;
-                inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
-                inner->paralysisProgress   = 0;
-                playerActorClearPendingHit(arg0);
+                actor->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->paralysisProgress   = 0;
+                playerActorClearPendingHit(task);
                 roomEffectStartStatusTint(PLAYER_STATUS_PARALYSIS);
                 break;
             }
-            case 3: {
-                GameActor* inner;
+            case GAME_ACTOR_REACTION_POISON: {
+                GameActor* actor;
 
-                inner = arg0->work;
+                actor = task->work;
                 if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_POISON) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
-                inner->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
-                inner->poisonDamageTicks   = 0;
+                actor->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->poisonDamageTicks   = 0;
                 roomEffectStartStatusTint(PLAYER_STATUS_POISON);
                 break;
             }
-            case 4:
+            case PLAYER_STATE_REACTION_4:
                 roomEffectStartStatusTint(ROOM_EFFECT_STATUS_TINT_REACTION_4);
                 break;
-            case 8: {
-                GameActor* inner;
+            case GAME_ACTOR_REACTION_SILENCE: {
+                GameActor* actor;
 
-                inner = arg0->work;
+                actor = task->work;
                 if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_SILENCE) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
-                inner->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
                 roomEffectStartStatusTint(PLAYER_STATUS_SILENCE);
                 break;
             }
-            case 9: {
-                GameActor* inner;
+            case GAME_ACTOR_REACTION_STATUS20: {
+                GameActor* actor;
 
-                inner = arg0->work;
+                actor = task->work;
                 if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_TIMED_STATUS_20) != 0) {
                     return;
                 }
-                gPlayerStatus.statusFlags |= 0x20;
-                inner->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
+                gPlayerStatus.statusFlags |= PLAYER_STATE_TIMED_EFFECT_20;
+                actor->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
                 roomEffectStartStatusTint(ROOM_EFFECT_STATUS_TINT_STATUS_20);
                 break;
             }
-            case 10: {
-                GameActor* inner;
+            case GAME_ACTOR_REACTION_CONFUSION: {
+                GameActor* actor;
 
-                inner = arg0->work;
+                actor = task->work;
                 if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_CONFUSION) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags     |= PLAYER_STATUS_CONFUSION;
-                inner->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
-                inner->confusionDirectionTicks = (rand() & 0x1F) + 0xA;
-                inner->confusionDirections     = 0;
+                actor->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->confusionDirectionTicks = (rand() & PLAYER_ACTOR_CONFUSION_DIRECTION_RANDOM_MASK) + PLAYER_ACTOR_CONFUSION_DIRECTION_BASE_TICKS;
+                actor->confusionDirections     = 0;
                 roomEffectStartStatusTint(PLAYER_STATUS_CONFUSION);
                 break;
             }
-            case 11: {
-                GameActor* inner;
+            case GAME_ACTOR_REACTION_BERSERKER: {
+                GameActor* actor;
 
-                inner = arg0->work;
+                actor = task->work;
                 if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_BERSERKER) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;
-                inner->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
                 roomEffectStartStatusTint(PLAYER_STATUS_BERSERKER);
                 roomEffectStartBerserkerGlow();
                 break;
@@ -623,68 +631,70 @@ void func_8010A42C(Task* arg0, s32 arg1)
     }
 }
 
-void func_8010A670(Task* arg0)
+void playerActorApplyConfusionInput(Task* task)
 {
-    GameActor*       inner;
-    WorldTargetNode* node;
-    s32              left;
-    s32              right;
-    s32              pad;
-    s32              bits;
-    s32              timer;
-    s32              next;
-    s32              mode;
-    s32              dir;
+    enum { PLAYER_ACTOR_CONFUSION_AIM_STATE = 2 };
+    GameActor*       actor;
+    WorldTargetNode* targetNode;
+    s32              leftDirection;
+    s32              rightDirection;
+    s32              heldButtons;
+    s32              heldDirections;
+    s32              remainingTicks;
+    s32              nextDirectionTicks;
+    s32              normalState;
+    s32              direction;
 
-    inner                          = arg0->work;
-    timer                          = inner->confusionDirectionTicks - 1;
-    inner->confusionDirectionTicks = timer;
-    if ((s8)timer == 0) {
-        left                           = 0x8000;
-        next                           = (rand() & 0x1F) + 0xA;
-        pad                            = inner->padHeld;
-        inner->confusionDirectionTicks = next;
-        bits                           = pad & 0xF000;
-        if (bits == left || bits == (right = 0x2000)) {
-            if (!(inner->confusionDirections & 0x5000)) {
+    actor                          = task->work;
+    remainingTicks                 = actor->confusionDirectionTicks - 1;
+    actor->confusionDirectionTicks = remainingTicks;
+    // Add a perpendicular input and occasionally change combat lock-on.
+    if ((s8)remainingTicks == 0) {
+        leftDirection                  = PAD_BUTTON_LEFT;
+        nextDirectionTicks             = (rand() & PLAYER_ACTOR_CONFUSION_DIRECTION_RANDOM_MASK) + PLAYER_ACTOR_CONFUSION_DIRECTION_BASE_TICKS;
+        heldButtons                    = actor->padHeld;
+        actor->confusionDirectionTicks = nextDirectionTicks;
+        heldDirections                 = heldButtons & (PAD_BUTTON_UP | PAD_BUTTON_RIGHT | PAD_BUTTON_DOWN | PAD_BUTTON_LEFT);
+        if (heldDirections == leftDirection || heldDirections == (rightDirection = PAD_BUTTON_RIGHT)) {
+            if (!(actor->confusionDirections & (PAD_BUTTON_UP | PAD_BUTTON_DOWN))) {
                 if (rand() & 1) {
-                    dir = 0x4000;
+                    direction = PAD_BUTTON_DOWN;
                 } else {
-                    dir = 0x1000;
+                    direction = PAD_BUTTON_UP;
                 }
-                inner->confusionDirections = dir;
+                actor->confusionDirections = direction;
             }
         } else {
-            bits = pad & 0x5000;
-            if (bits) {
+            heldDirections = heldButtons & (PAD_BUTTON_UP | PAD_BUTTON_DOWN);
+            if (heldDirections) {
                 if (rand() & 4) {
-                    inner->confusionDirections &= 0xAFFF;
+                    actor->confusionDirections &= (0xFFFF ^ (PAD_BUTTON_UP | PAD_BUTTON_DOWN));
                 } else if (rand() & 1) {
-                    inner->confusionDirections = left;
+                    actor->confusionDirections = leftDirection;
                 } else {
-                    inner->confusionDirections = right;
+                    actor->confusionDirections = rightDirection;
                 }
             }
         }
         if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-            if (inner->targetNode != NULL) {
+            if (actor->targetNode != NULL) {
                 if (rand() & 3) {
-                    playerActorClearLockTarget(arg0);
+                    playerActorClearLockTarget(task);
                 }
             } else {
-                mode = inner->state;
-                if (mode == 2 && !(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) && (rand() & 3)) {
-                    node = worldTargetFindLockNode(arg0);
-                    if (node != NULL) {
-                        inner->aimTrackingState = mode;
-                        playerActorSetLockTarget(arg0, node);
+                normalState = actor->state;
+                if (normalState == PLAYER_ACTOR_CONFUSION_AIM_STATE && !(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) && (rand() & 3)) {
+                    targetNode = worldTargetFindLockNode(task);
+                    if (targetNode != NULL) {
+                        actor->aimTrackingState = normalState;
+                        playerActorSetLockTarget(task, targetNode);
                     }
                 }
             }
         }
     }
-    if (gGameSession->padHeld & 0xF000) {
-        inner->padHeld |= inner->confusionDirections;
+    if (gGameSession->padHeld & (PAD_BUTTON_UP | PAD_BUTTON_RIGHT | PAD_BUTTON_DOWN | PAD_BUTTON_LEFT)) {
+        actor->padHeld |= actor->confusionDirections;
     }
 }
 
@@ -743,7 +753,7 @@ void func_8010A9D0(Task* arg0)
     s32        mode;
 
     inner = arg0->work;
-    func_8010AAB4(arg0);
+    _playerActorEnterDamageReaction(arg0);
     if ((u16)inner->hitRegion == 1) {
         mode = 0x10;
     } else {
@@ -778,34 +788,57 @@ void playerActorEnterStoppedPose(Task* task, s32 blendFrames)
     actor->pendingCollisionUpdates |= (GAME_ACTOR_COLLISION_FIRST_TWO_REQUESTS << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
 }
 
-static void func_8010AAB4(Task* arg0)
+/// Stops player movement and selects the damage clip's completion controller.
+///
+/// Borrows live GameActor work; retains its normal state for later recovery.
+static inline void _playerActorStopForDamageClip(GameActor* actor)
 {
-    GameActor*    inner;
-    PlayerStatus* p;
+    enum { PLAYER_ACTOR_DAMAGE_ANIMATION_CONTROLLER = 7 };
 
-    p                  = &gPlayerStatus;
-    inner              = arg0->work;
+    actor->mode           = GAME_ACTOR_MODE_DAMAGE;
+    actor->movementMode   = 0;
+    actor->turnRateIndex  = 0;
+    actor->animationState = PLAYER_ACTOR_DAMAGE_ANIMATION_CONTROLLER;
+    actor->statePhase     = 0;
+    actor->movementSign   = 0;
+}
+
+/// Stops the player's weapon and enters damage mode for its pending contact hit.
+///
+/// Requires live player actor/native weapon resources. Positive starting HP
+/// selects clip-end controller 7, stops movement, applies pending HP loss and
+/// the reaction effect, disables weapon contacts and decays tracked aim.
+/// Even zero HP locks attachment use and resets the weapon attack. The caller
+/// selects the hit clip, and the pending hit remains until recovery clears it.
+static void _playerActorEnterDamageReaction(Task* task)
+{
+    GameActor*    actor;
+    PlayerStatus* playerStatus;
+
+    playerStatus = &gPlayerStatus;
+    actor        = task->work;
+    // Stop the weapon even when HP is already zero; only a living player reacts.
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-    playerActorResetWeaponAttack(arg0, p->weapon, 0);
-    if (p->hp > 0) {
-        inner->mode           = GAME_ACTOR_MODE_DAMAGE;
-        inner->movementMode   = 0;
-        inner->turnRateIndex  = 0;
-        inner->animationState = 7;
-        inner->statePhase     = 0;
-        inner->movementSign   = 0;
-        playerStateApplyHpDamage(inner->pendingDamage);
-        inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        if ((s8)inner->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
-            inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
+    playerActorResetWeaponAttack(task, playerStatus->weapon, 0);
+    if (playerStatus->hp > 0) {
+        _playerActorStopForDamageClip(actor);
+        playerStateApplyHpDamage(actor->pendingDamage);
+        actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+        if (actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
+            actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
         }
-        func_8010A42C(arg0, inner->damageReaction);
+        playerStateApplyReactionEffect(task, actor->damageReaction);
     }
 }
 
-static void func_8010AB70(Task* arg0)
+/// Clears a pending hit and returns to normal aim or locomotion with recovery.
+///
+/// Arms 18 active recovery ticks without requiring clip completion. Requires
+/// live native playback; nonzero retained state selects aim with a 12-frame
+/// blend, and zero selects locomotion with its ordinary blend.
+static void _playerActorRecoverFromHit(Task* task)
 {
-    _playerActorResumeAfterHit(arg0);
+    _playerActorResumeAfterHit(task);
 }
 
 void playerActorFinishDamageReaction(Task* task)
@@ -996,42 +1029,51 @@ static void func_8010B0C8(Task* arg0)
     roomEffectStartBerserkerGlow();
 }
 
-void Gp_PlayerStepSfx(Task* arg0)
+void playerActorCheckContactDamage(Task* task)
 {
-    GameActor* inner;
-    GameActor* inner2;
-    GfxCoord*  obj;
-    s32        mode;
-    s32        snd;
-    s32        temp;
-    s32        temp2;
+    enum {
+        PLAYER_ACTOR_CONTACT_HIT_PART4_SET        = 16,
+        PLAYER_ACTOR_CONTACT_HIT_OTHER_BODY_SET   = 17,
+        PLAYER_ACTOR_CONTACT_HIT_BLEND_FRAMES     = 3,
+        PLAYER_ACTOR_CONTACT_HIT_PART4_SOUND      = 6,
+        PLAYER_ACTOR_CONTACT_HIT_OTHER_BODY_SOUND = 7
+    };
+    const GameActor* actor;
+    const GameActor* hitActor;
+    GfxCoord*        rootCoord;
+    s32              animationSet;
+    s32              soundScript;
+    s32              audioPan;
+    s32              audioDepth;
 
-    inner = arg0->work;
-    obj   = arg0->extra.tmd->coords;
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode != 0) {
         return;
     }
-    if ((s8)inner->recoveryTicks != 0) {
+    if ((s8)actor->recoveryTicks != 0) {
         return;
     }
-    playerActorResolveBodyContacts(arg0, inner->collisionContacts);
-    if ((u16)inner->hitRegion == 0) {
+    // Resolve contacts before selecting the pending body hit.
+    playerActorResolveBodyContacts(task, actor->collisionContacts);
+    if ((u16)actor->hitRegion == PLAYER_ACTOR_HIT_REGION_NONE) {
         return;
     }
-    inner2 = arg0->work;
-    func_8010AAB4(arg0);
-    mode = 0x11;
-    if ((u16)inner2->hitRegion == 1) {
-        mode = 0x10;
+    hitActor = task->work;
+    _playerActorEnterDamageReaction(task);
+    animationSet = PLAYER_ACTOR_CONTACT_HIT_OTHER_BODY_SET;
+    if ((u16)hitActor->hitRegion == PLAYER_ACTOR_HIT_REGION_PART4) {
+        animationSet = PLAYER_ACTOR_CONTACT_HIT_PART4_SET;
     }
-    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 3);
-    temp  = (s8)worldCoordGetOriginAudioPan(obj);
-    temp2 = (s8)worldCoordGetOriginAudioDepth(obj);
-    snd   = 7;
-    if ((u16)inner->hitRegion == 1) {
-        snd = 6;
+    playerActorPlayChildSlotsWithBlend(task, animationSet, 0, PLAYER_ACTOR_CONTACT_HIT_BLEND_FRAMES);
+    // Sample both positional channels before selecting the body hit sound.
+    audioPan    = (s8)worldCoordGetOriginAudioPan(rootCoord);
+    audioDepth  = (s8)worldCoordGetOriginAudioDepth(rootCoord);
+    soundScript = PLAYER_ACTOR_CONTACT_HIT_OTHER_BODY_SOUND;
+    if ((u16)actor->hitRegion == PLAYER_ACTOR_HIT_REGION_PART4) {
+        soundScript = PLAYER_ACTOR_CONTACT_HIT_PART4_SOUND;
     }
-    sndEvtRequestScriptStart(snd, temp, temp2);
+    sndEvtRequestScriptStart(soundScript, audioPan, audioDepth);
 }
 
 void playerActorClearPendingHit(Task* task)
@@ -1785,27 +1827,6 @@ s32 companionEndScriptedMotion(Task* task, s32 unusedMessageId, s32 unusedFirstA
     return 0;
 }
 
-static void func_8010C46C(Task* arg0)
-{
-    GameActor* actor;
-
-    actor                                                 = arg0->work;
-    actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
-    actor->statePhase                                     = 0;
-    actor->movementSign                                   = 0;
-    actor->turnSign                                       = 0;
-    actor->part3Pitch                                     = 0;
-    actor->part2Pitch                                     = 0;
-    actor->part3Roll                                      = 0;
-    actor->part2Roll                                      = 0;
-    actor->aimYaw                                         = 0;
-    actor->field_68                                       = 0;
-    actor->part6Pitch                                     = 0;
-    actor->hitRegion                                      = 0;
-    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    playerActorResetWeaponAttack(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
-}
-
 /// Stops companion motion and aim offsets and disables its weapon attack for scripted control.
 ///
 /// Requires live GameActor work and the saved variant's native weapon resources.
@@ -1829,6 +1850,19 @@ static inline void _companionEnterScriptedMode(Task* task, GameActor* actor)
     actor->hitRegion                                      = PLAYER_ACTOR_HIT_REGION_NONE;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     playerActorResetWeaponAttack(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+}
+
+/// Stops a companion's native weapon and motion for scripted dispatch.
+///
+/// Requires live companion actor/weapon resources and a valid saved variant.
+/// Clears its pending hit selector and aim offsets; state and playback remain
+/// the caller's responsibility. Preserves lock target and player input latch.
+static void _companionBeginScriptedControl(Task* task)
+{
+    GameActor* actor;
+
+    actor = task->work;
+    _companionEnterScriptedMode(task, actor);
 }
 
 s32 companionPlayScriptedAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg)

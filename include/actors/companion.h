@@ -6,7 +6,7 @@
 #include "main/task_types.h"
 
 /// Overlay-imported s16 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant` and passed
-/// to `playerActorResetWeaponAttack` (`func_8010C46C` / `companionPlayScriptedAnimation` / `companionAwaitButtonPresses`).
+/// to `playerActorResetWeaponAttack` (`_companionBeginScriptedControl` / `companionPlayScriptedAnimation` / `companionAwaitButtonPresses`).
 extern s16 D_actor_800100_80167218[];
 
 /// Overlay-imported s16 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant` and passed

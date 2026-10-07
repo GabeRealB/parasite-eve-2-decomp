@@ -23646,7 +23646,7 @@ do {
 ## `u8` switch: `if (kind)` plus dummy `case 0` keeps table index 0
 
 A dense `switch` on a byte whose real cases start at 1 normally subtracts 1
-(`addiu v1,v1,-1` / `sltiu …,0xB`). The target for `func_8010A42C` instead
+(`addiu v1,v1,-1` / `sltiu …,0xB`). The target for `playerStateApplyReactionEffect` instead
 does `andi v1,a1,0xFF` / `beqz v1,default` / `sltiu v1,0xC` and indexes a
 12-entry table that still has a default slot at 0.
 
@@ -23694,7 +23694,7 @@ between the two C switches.
 Do **not** also emit a C `const s32 jtbl_XXXXXXXX[]` copy: the included
 `dlabel` and the C symbol collide (`symbol already defined`). Drop the
 absolute copy and let the migrated `.s` own the middle slot until that
-function is matched. `Gp_PlayerMode1State0` / `jtbl_80097A68` / `func_8010A42C` is
+function is matched. `Gp_PlayerMode1State0` / `jtbl_80097A68` / `playerStateApplyReactionEffect` is
 the example.
 
 ## Overlay imports use the same name as main
@@ -24075,7 +24075,7 @@ if (actor->statePhase != 0) {
 }
 ```
 
-`playerActorFinishDamageReaction` is the example — it is `func_8010AB70` behind that guard.
+`playerActorFinishDamageReaction` is the example — it is `_playerActorRecoverFromHit` behind that guard.
 
 ## Do not pre-assign a later call argument that is live across an earlier call
 
@@ -26450,7 +26450,7 @@ if ((u16)p->field == 1) {
 func_C(snd, temp, temp2);
 ```
 
-`Gp_PlayerStepSfx` is the example. Same pair as `worldCoordPlaySound`, but that
+`playerActorCheckContactDamage` is the example. Same pair as `worldCoordPlaySound`, but that
 helper takes the first `SndEvt` argument as a parameter so it never has
 this hoist.
 
@@ -28684,7 +28684,7 @@ if (bits == left || bits == (right = 0x2000)) {
 `(s8)timer` after `timer = u8_field - 1` is the zero test as `sll 24; bnez`
 (not `andi 0xff`). Reusing `timer` for `next`, or writing `else if (pad & 0x5000)`
 without the `bits =` assign, stuck at 97% with only that load/store order and
-the andi dest swapped. `func_8010A670` is the example.
+the andi dest swapped. `playerActorApplyConfusionInput` is the example.
 
 ## Reconstruct a 2-case switch with a shared (case 1 / default) tail
 
@@ -33667,7 +33667,7 @@ if (mode == 0) {
 ```
 
 GCC coalesces the three stores back into one `sb` and keeps `bnez` +
-`j`. `func_80109FC4` is the example.
+`j`. `playerStateTickStatusEffects` is the example.
 
 ## Jump-thread deletes `move v0, zero` when obj lives in `$v0`
 
