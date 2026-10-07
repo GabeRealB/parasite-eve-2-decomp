@@ -260,8 +260,6 @@ enum {
 /// gameplay view mappings. Neither parameter block survives this call.
 void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProfile);
 
-void CdCmd_StepVlcRebuild(void);
-
 /// Interpretations of sectors read without a CDF chunk header.
 ///
 /// These byte values also select continuation processing after a chunk header.

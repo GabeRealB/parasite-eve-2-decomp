@@ -266,7 +266,7 @@ static void func_map_akropolis_80179E8C(Task* task)
     s16       result;
 
     if (task->state == 0) {
-        Stage_InitPrimBufOnce();
+        stageEnsureHeapTaskPrimitiveBuffer();
         itemMenuClearPreviewItems();
         obj = uiSpawnObject(&D_map_akropolis_8017A9E4, task->spawnArg1, 1, 1, NULL);
         if (obj == NULL) {
@@ -294,7 +294,7 @@ static void func_map_akropolis_80179E8C(Task* task)
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
             taskKill(task);
-            Stage_ReleasePrimBuf();
+            stageReleaseTaskPrimitiveBuffer();
             stageRequestModeTaskExit();
         }
     }

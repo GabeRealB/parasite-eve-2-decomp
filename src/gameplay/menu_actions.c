@@ -3083,7 +3083,7 @@ void Gp_MapScreenTask(Task* arg0)
             obj->panel.bounds.unsignedRect.x = (u16)D_80114E8C;
             obj->panel.bounds.unsignedRect.y = (u16)D_80114E90;
         }
-        Stage_InitPrimBufOnce();
+        stageEnsureHeapTaskPrimitiveBuffer();
         displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen = 1;
         D_80114E88           = 0;
@@ -3100,7 +3100,7 @@ void Gp_MapScreenTask(Task* arg0)
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
             taskKill(arg0);
-            Stage_ReleasePrimBuf();
+            stageReleaseTaskPrimitiveBuffer();
             stageRequestModeTaskExit();
         }
     }

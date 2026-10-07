@@ -74,11 +74,11 @@ void func_800B65B0(Task* task)
                 save->state.playerExp  = cfg->exp;
                 save->state.playerBp   = cfg->bp;
                 save->state.savePoint  = Gp_PubItemLoc;
-                Stage_InitPrimBufOnce();
+                stageEnsureHeapTaskPrimitiveBuffer();
                 desc = &D_8010D348;
                 break;
             default:
-                Stage_InitPrimBufOnce();
+                stageEnsureHeapTaskPrimitiveBuffer();
                 desc = &D_8010D6D8;
                 break;
         }
@@ -140,7 +140,7 @@ void func_800B65B0(Task* task)
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             request->done          = 1;
             gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
-            Stage_ReleasePrimBuf();
+            stageReleaseTaskPrimitiveBuffer();
             taskKill(task);
         }
     }

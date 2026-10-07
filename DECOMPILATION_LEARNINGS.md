@@ -14573,7 +14573,7 @@ if (!(Stage_Ctx->field_1c & mask)) {
 
 That pins the mask in `$s1` and shifts `index`/`value` into `$s2`/`$s3` to match
 the target prologue (`move s2,a0` early, `lui s1,0x4000` after the field load,
-`move s3,a1` in the `bnez` delay slot). `Stage_BeginTransition` is the pure example.
+`move s3,a1` in the `bnez` delay slot). `stageRequestViewTransition` is the pure example.
 
 ## Live `0xFFFF` register for ones-complement stores (`subu` not `nor`)
 
@@ -16624,7 +16624,7 @@ if (flag) {
 }
 ```
 
-That yields `andi v1, v1, 0x1; beqz v1, ...`. `Display_SpawnFromMode` needs this on
+That yields `andi v1, v1, 0x1; beqz v1, ...`. `_stageSpawnModeTask` needs this on
 both copies of the slot-3 object setup. A `register u32 flag asm("v1")` pin
 also works but is unnecessary once the assign-then-test form is used.
 
@@ -16662,7 +16662,7 @@ block_default:
 end:
 ```
 
-`Display_SpawnFromMode` is the pure example (mode 4 first, then range `< 5`, then 1/3,
+`_stageSpawnModeTask` is the pure example (mode 4 first, then range `< 5`, then 1/3,
 with 4 falling into the 1/3 block).
 
 ## `getClut` between SPRT `u0`/`v0` stores needs a `u8` temp for `v`
@@ -23004,7 +23004,7 @@ off  = base + off;          /* addu v0, v1, v0 */
 if (*(s16*)(off + 0x24) != 0) { … }
 ```
 
-(`Mdec_ProcessDecode` relocateStripLists / relocateImageChunks walks.)
+(`_mdecStepSceneImageDecode` relocateStripLists / relocateImageChunks walks.)
 
 ## `u8` store of `-3`: need `li v0, -3` not `0xfd`
 
@@ -23055,7 +23055,7 @@ __asm__ volatile(
 ```
 
 Pin a second quartet for a following loop that reuses the same s-regs with a
-different global set. `Mdec_ProcessDecode` is the pure example (99.84% → 100%).
+different global set. `_mdecStepSceneImageDecode` is the pure example (99.84% → 100%).
 
 
 ## `bnez` + delay-slot `lui` hi + `j`/`ori` lo (ternary default constant)
@@ -142092,7 +142092,7 @@ When a load the target keeps below a global store is hoisted above it, look for
 the read that went through a pointer, not for a different declaration of the
 global.
 
-## Pinned loop constants and hand-hoisted `%hi` addresses mean the loop was written as gotos (Mdec_ProcessDecode, 2026-09-25)
+## Pinned loop constants and hand-hoisted `%hi` addresses mean the loop was written as gotos (_mdecStepSceneImageDecode, 2026-09-25)
 
 A function whose asm keeps `lui %hi(global)` and small loop constants (1,
 0x7F) in callee-saved registers across a loop was matched with register pins,
@@ -149075,7 +149075,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
   later stores. The other four functions of `src/main/cdsync.c` carry the same
   hand-expanded poll.
 - **`if (x < 5) { if (x < 3) { if (x != 1) goto body; } } else { body: ... }`**
-  is `if (x >= 5 || (x < 3 && x != 1))` (`Display_TaskLoadStep`); a `switch`
+  is `if (x >= 5 || (x < 3 && x != 1))` (`_stageBeginModeExitLoad`); a `switch`
   with cases 1, 3, 4 tests 1 first and does not match.
 - **A jump over an `else` arm into the code after it** (`block_10` of
   `func_actor_421600_8013BA70`) was an inline with early `return`s: clamp X and
@@ -150740,7 +150740,7 @@ constant).
   linearly. The fix was the field's type (`u32 transitionStep`), not a cast.
 - **Reading the pivot gives the number of nodes, including ones that only
   reach `default`.** `beq 4; sltiu x,5 -> default; beq 1; beq 3`
-  (`Display_SpawnFromMode`) pivots on the third of `1 3 4 ...`, so two single
+  (`_stageSpawnModeTask`) pivots on the third of `1 3 4 ...`, so two single
   values or one range sat above 4 (a range counts twice in
   `balance_case_nodes`). `beq 2; sltiu x,3 -> default; beq 3; bne 4`
   (`_playerActorRecordHazardContact`) and `beq 1; slti x,2 -> default; bnez` (`func_800A63B4`)

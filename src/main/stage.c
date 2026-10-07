@@ -151,7 +151,7 @@ static void _stageStepFadeOverlay(void);
 
 static s32 _stageStepFileLoadTransition(Task* unused);
 
-static Task* Display_SpawnFromMode(void);
+static Task* _stageSpawnModeTask(void);
 
 static void Display_TransitionTask(Task* task);
 
@@ -163,11 +163,11 @@ static s32 Stage_BeginTransitionKind3(void);
 
 static void Stage_SetModeAndFlip(u8 arg0);
 
-static void Stage_WaitCdActivate(Task* task);
+static void _stageSuspendCdAndSpawnModeTask(Task* task);
 
-static void Stage_WaitCdAndSpawn(Task* task);
+static void _stageWaitCdAndSpawnModeTask(Task* task);
 
-static void Display_TaskLoadStep(Task* task);
+static void _stageBeginModeExitLoad(Task* task);
 
 static void _stageWaitModeExitLoad(Task* task);
 
@@ -177,8 +177,7 @@ static void Display_DispatchTaskTable(Task* task);
 
 static __inline__ void _mdecFinishImageDecode(void);
 
-/// imageDecodeStep state machine: start DCT, apply work-lists / image chunks, complete.
-static void Mdec_ProcessDecode(void);
+static void _mdecStepSceneImageDecode(void);
 
 static void _mdecStepStandaloneImageDecode(void);
 
@@ -200,15 +199,20 @@ TaskDesc         D_800626AC[]         = {
 };
 
 static const TaskFuncTable6 Display_TaskStates = { {
-    Stage_WaitCdActivate,
-    Stage_WaitCdAndSpawn,
+    _stageSuspendCdAndSpawnModeTask,
+    _stageWaitCdAndSpawnModeTask,
     Display_TransitionTask,
-    Display_TaskLoadStep,
+    _stageBeginModeExitLoad,
     _stageWaitModeExitLoad,
     _stageResumeMovieAndFinishModeTask,
 } };
 
 /// Links the current grey fade tile behind its add/subtract draw-mode command.
+///
+/// Appends a 320x240 semitransparent TILE and DR_TPAGE to the current primitive
+/// arena, which must have room for both. Uses depth zero or the last entry of
+/// the selected small/full ordering table. The tile's origin compensates the
+/// display's draw-origin Y offset; the draw command executes before the tile.
 static __inline__ void _stageAppendFadeOverlay(void)
 {
     enum {
@@ -379,29 +383,51 @@ static s32 _stageStepFileLoadTransition(Task* unused)
 }
 #undef STAGE_CLEAR_LOAD_FRAMEBUFFERS
 
-static Task* Display_SpawnFromMode(void)
+/// Applies the mode-entry correction and retires the player's shared contacts.
+///
+/// Requires the live player model and work. Correction reads only six entries;
+/// clearing follows the final-entry marker in the shared eighteen-entry table.
+static __inline__ void _stageResolvePlayerContacts(void)
 {
-    Task*            ret;
-    Task*            slot;
-    GameActor*       obj;
-    GfxCoord*        ptr;
-    GameLocationKey* ed;
-    s32              flag;
+    enum { STAGE_PLAYER_RESPONSE_CONTACTS = 6 };
+    Task*      playerTask;
+    GameActor* player;
+    GfxCoord*  rootCoord;
+    s32        rootResponseEnabled;
 
-    ret = taskSpawnFromTable(Stage_Ctx->taskDesc, 0, Stage_Ctx->spawnArg1, Stage_Ctx->spawnArg2);
-    if (ret != NULL) {
+    playerTask          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    player              = playerTask->work;
+    rootResponseEnabled = player->collisionEnableMask & (1 << GAME_ACTOR_BODY_ROOT);
+    rootCoord           = playerTask->extra.tmd->coords;
+    if (rootResponseEnabled) {
+        worldCollisionApplyResponsePushback(rootCoord, player->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].contacts,
+                                            STAGE_PLAYER_RESPONSE_CONTACTS, &player->surfaceClass);
+    }
+    worldCollisionClearContacts(player->collisionContacts);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Spawns entry zero of the queued mode's task table and prepares its presentation.
+///
+/// Returns the spawned task or NULL. Presentation changes only after success;
+/// the caller still advances on failure. Keep/hold/actor modes retain resources,
+/// while other modes capture the area's frame and reset the auxiliary heap.
+/// Actor drawing and capture paths require the live player task, its GameActor
+/// work, model root and initialized contact table; they correct the first six
+/// contacts when root response is enabled, clear the shared table and invalidate
+/// the root transform.
+static Task* _stageSpawnModeTask(void)
+{
+    enum { STAGE_MODE_TASK_ENTRY = 0 };
+    Task*            modeTask;
+    GameLocationKey* location;
+
+    modeTask = taskSpawnFromTable(Stage_Ctx->taskDesc, STAGE_MODE_TASK_ENTRY, Stage_Ctx->spawnArg1, Stage_Ctx->spawnArg2);
+    if (modeTask != NULL) {
         switch (Stage_Ctx->entryMode) {
             case STAGE_ENTRY_DRAW_ACTORS:
                 Stage_Ctx->transitionKind = STAGE_TRANSITION_ACTORS;
-                slot                      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                obj                       = (GameActor*)slot->work;
-                flag                      = obj->collisionEnableMask & 1;
-                ptr                       = slot->extra.tmd->coords;
-                if (flag) {
-                    worldCollisionApplyResponsePushback(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
-                }
-                worldCollisionClearContacts(obj->collisionContacts);
-                ptr->composeStamp = GRAPHICS_COORD_DIRTY;
+                _stageResolvePlayerContacts();
                 // fallthrough
             case STAGE_ENTRY_KEEP:
             case STAGE_ENTRY_HOLD:
@@ -415,30 +441,22 @@ static Task* Display_SpawnFromMode(void)
                 }
                 break;
             case STAGE_ENTRY_GRAY_CAPTURE:
-            case STAGE_ENTRY_GRAY_CAPTURE + 1: // placeholder: the tree pivots on DRAW_ACTORS, so two values (or a range) above it were listed
+            case STAGE_ENTRY_RELOAD_FORCED:
             default:
-                ed = &gGameSession->location.loc;
+                location = &gGameSession->location.loc;
                 gpuResetAndInvalidateModelBuffers();
-                gfxCaptureAreaFrame(ed->stage, ed->area, gDisplayState.drawBuffer, MEMORY_PRIMITIVE_HEAP_BYTES);
+                gfxCaptureAreaFrame(location->stage, location->area, gDisplayState.drawBuffer, MEMORY_PRIMITIVE_HEAP_BYTES);
                 if (Stage_Ctx->entryMode == STAGE_ENTRY_GRAY_CAPTURE) {
                     _gfxInvertCapturedFrameGray();
                 }
                 memInitAuxHeap();
                 gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
-                slot                                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                obj                                     = (GameActor*)slot->work;
-                flag                                    = obj->collisionEnableMask & 1;
-                ptr                                     = slot->extra.tmd->coords;
-                if (flag) {
-                    worldCollisionApplyResponsePushback(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
-                }
-                worldCollisionClearContacts(obj->collisionContacts);
-                ptr->composeStamp = GRAPHICS_COORD_DIRTY;
+                _stageResolvePlayerContacts();
                 break;
         }
     }
-    return ret;
+    return modeTask;
 }
 
 static void Display_TransitionTask(Task* task)
@@ -521,7 +539,7 @@ static void Display_TransitionTask(Task* task)
                     if ((s32)Stage_Ctx->requestFlags < 0) {
                         padClearInputBlock(0);
                         task->state = task->state + 1;
-                        Display_TaskLoadStep(task);
+                        _stageBeginModeExitLoad(task);
                         return;
                     }
                     Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
@@ -541,7 +559,7 @@ static void Display_TransitionTask(Task* task)
         _stageStepFileLoadTransition(task);
     } else if ((s32)flags < 0) {
         task->state = task->state + 1;
-        Display_TaskLoadStep(task);
+        _stageBeginModeExitLoad(task);
     } else if (flags & STAGE_REQUEST_CAPTURE) {
         gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer,
                             MEMORY_PRIMITIVE_HEAP_BYTES);
@@ -681,44 +699,45 @@ s32 stageRequestModeTaskExit(void)
     return 0;
 }
 
-s32 Stage_BeginTransition(s32 arg0, s32 arg1)
+s32 stageRequestViewTransition(s32 view, s32 transitionKind)
 {
     StageCtx* stage;
-    s32       mask;
+    s32       transitionMask;
 
-    mask = STAGE_REQUEST_TRANSITION;
-    if (!(Stage_Ctx->requestFlags & mask)) {
+    transitionMask = STAGE_REQUEST_TRANSITION;
+    if (!(Stage_Ctx->requestFlags & transitionMask)) {
         padStartInputBlock(0);
         stage                  = Stage_Ctx;
-        stage->pendingView     = arg0;
+        stage->pendingView     = view;
         stage->heldFrameBuffer = 0;
         stage->transitionStep  = 0;
-        stage->transitionKind  = arg1;
-        stage->requestFlags   |= mask;
+        stage->transitionKind  = transitionKind;
+        stage->requestFlags   |= transitionMask;
     }
     return gGameSession->location.loc.view;
 }
 
-s32 Stage_BeginTransitionKind7(s32 arg0)
+s32 stageRequestViewTransitionAndModeExit(s32 view)
 {
+    enum { STAGE_VIEW_TRANSITION_BUSY = -1 };
     StageCtx* stage;
-    s32       mask;
-    s32       ret;
+    s32       transitionMask;
+    s32       previousView;
 
-    mask = STAGE_REQUEST_TRANSITION;
-    ret  = -1;
-    if (!(Stage_Ctx->requestFlags & mask)) {
+    transitionMask = STAGE_REQUEST_TRANSITION;
+    previousView   = STAGE_VIEW_TRANSITION_BUSY;
+    if (!(Stage_Ctx->requestFlags & transitionMask)) {
         padStartInputBlock(0);
         stage                    = Stage_Ctx;
-        stage->pendingView       = arg0;
+        stage->pendingView       = view;
         stage->heldFrameBuffer   = 0;
         stage->transitionStep    = 0;
         stage->transitionKind    = STAGE_TRANSITION_KIND_7;
-        stage->requestFlags     |= mask;
-        ret                      = gGameSession->location.loc.view;
+        stage->requestFlags     |= transitionMask;
+        previousView             = gGameSession->location.loc.view;
         Stage_Ctx->requestFlags |= STAGE_REQUEST_ENDING;
     }
-    return ret;
+    return previousView;
 }
 
 s32 stageRequestFrameCapture(void)
@@ -727,21 +746,21 @@ s32 stageRequestFrameCapture(void)
     return 0;
 }
 
-s32 Stage_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 stageConfigureFade(s32 decreasing, s32 additiveBlend, s32 stepPerTick, s32 frontOfOt)
 {
-    if (arg2 == 0) {
+    if (stepPerTick == 0) {
         Stage_Ctx->fadeStep = STAGE_FADE_DEFAULT_STEP;
     } else {
-        Stage_Ctx->fadeStep = arg2;
+        Stage_Ctx->fadeStep = stepPerTick;
     }
-    if (arg0 != 0) {
+    if (decreasing != 0) {
         Stage_Ctx->fadeStep = -Stage_Ctx->fadeStep;
     }
     Stage_Ctx->fadeFlags = 0;
-    if (arg1 != 0) {
+    if (additiveBlend != 0) {
         Stage_Ctx->fadeFlags |= STAGE_FADE_ADDITIVE;
     }
-    if (arg3 != 0) {
+    if (frontOfOt != 0) {
         Stage_Ctx->fadeFlags |= STAGE_FADE_FRONT;
     }
     return 0;
@@ -763,12 +782,12 @@ s32 stageGetFadeStatus(void)
     return STAGE_FADE_BETWEEN;
 }
 
-s32 Stage_HasTransitionFlags(void)
+s32 stageIsTransitionPending(void)
 {
     return (Stage_Ctx->requestFlags & STAGE_REQUEST_BUSY) != 0;
 }
 
-void Stage_InitOtOnce(void)
+void stageEnsureTaskOrderingTables(void)
 {
     if (Stage_Ctx->fullOtReady == 0) {
         gpuInitTaskOrderingTables();
@@ -776,7 +795,7 @@ void Stage_InitOtOnce(void)
     }
 }
 
-void Stage_InitPrimBufOnce(void)
+void stageEnsureHeapTaskPrimitiveBuffer(void)
 {
     if (Stage_Ctx->largePrimBuf == 0) {
         displayUseHeapTaskPrimitiveBuffer();
@@ -784,7 +803,7 @@ void Stage_InitPrimBufOnce(void)
     }
 }
 
-void Stage_ReleasePrimBuf(void)
+void stageReleaseTaskPrimitiveBuffer(void)
 {
     if (Stage_Ctx->largePrimBuf == 1) {
         displayUseStaticTaskPrimitiveBuffer();
@@ -792,9 +811,9 @@ void Stage_ReleasePrimBuf(void)
     }
 }
 
-void Stage_SetFadeMax(u8 arg0)
+void stageSetFadeMax(u8 maxLevel)
 {
-    Stage_Ctx->fadeMax = arg0;
+    Stage_Ctx->fadeMax = maxLevel;
 }
 
 void displaySetTaskDrawMode(s32 drawMode)
@@ -884,42 +903,57 @@ static void Stage_SetModeAndFlip(u8 arg0)
     }
 }
 
-void Stage_ResetFade(void)
+void stageResetFadeLevel(void)
 {
     Stage_Ctx->fadeLevel = 0;
     Stage_Ctx->fadeMax   = STAGE_FADE_OPAQUE;
 }
 
-static void Stage_WaitCdActivate(Task* task)
+/// Requests CD-head suspension before handing presentation to the queued mode task.
+///
+/// A requested or ongoing suspension selects the wait state. An empty or
+/// scene/audio ring head permits spawning immediately and skips that state.
+/// Leaves one controller poll blocked after either successful or failed spawn.
+static void _stageSuspendCdAndSpawnModeTask(Task* task)
 {
     padStartInputBlock(0);
     if (cdCmdRequestSuspend() != 0) {
         task->state += 1;
     } else {
         gPadStates[0].inputBlockPolls = 1;
-        Display_SpawnFromMode();
+        _stageSpawnModeTask();
         task->state += 2;
     }
 }
 
-static void Stage_WaitCdAndSpawn(Task* task)
+/// Spawns the queued mode task once the CD ring is idle or has a scene/audio head.
+///
+/// Blocks controller input while waiting, then leaves one poll blocked and
+/// enters the transition state even if task allocation failed.
+static void _stageWaitCdAndSpawnModeTask(Task* task)
 {
     padStartInputBlock(0);
     if (cdCmdIsIdleOrSceneAudioPending() != 0) {
         gPadStates[0].inputBlockPolls = 1;
-        Display_SpawnFromMode();
+        _stageSpawnModeTask();
         task->state += 1;
     }
 }
 
-static void Display_TaskLoadStep(Task* task)
+/// Starts the current view's resource reload before the mode task resumes playback.
+///
+/// Holds presentation. Modes 1, 3 and 4 retain image/model/sprite resources;
+/// other modes reconfigure image memory and restore model/view-sprite buffers.
+/// Enqueues the current-view load/seek and polls its wait state immediately.
+/// Requires valid session/view resources and space in the CD request ring.
+static void _stageBeginModeExitLoad(Task* task)
 {
-    u32 temp_v1;
+    u32 entryMode;
 
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
-    temp_v1                              = Stage_Ctx->entryMode;
+    entryMode                            = Stage_Ctx->entryMode;
     // Modes 1, 3 and 4 keep the room's current resources.
-    if (temp_v1 >= 5U || (temp_v1 < 3U && temp_v1 != STAGE_ENTRY_KEEP)) {
+    if (entryMode >= STAGE_ENTRY_DRAW_ACTORS + 1U || (entryMode < STAGE_ENTRY_HOLD && entryMode != STAGE_ENTRY_KEEP)) {
         memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
         tmdResetAuxHeapAndRestoreBuffers();
         spriteAllocateViewCachedPackets();
@@ -1056,100 +1090,110 @@ static __inline__ void _mdecFinishImageDecode(void)
     queue->scenePayloadReusable = 0;
 }
 
-/// imageDecodeStep state machine: start DCT, apply work-lists / image chunks, complete.
-static void Mdec_ProcessDecode(void)
+/// Steps a cached scene image decode, its optional image uploads and timing copy.
+///
+/// Retries header selection from the live view, starts VLC/MDEC, then waits for
+/// all twenty output strips before consuming byte-offset payload records. Header
+/// and output waits finish after 91 polls as well. Requires aligned, in-bounds
+/// payload offsets and live image, VLC, timing and auxiliary workspaces. The VLC
+/// expansion is unrestricted; this function does not check its output capacity.
+/// Timeout completion uses the cached header and does not stop MDEC DMA itself.
+static void _mdecStepSceneImageDecode(void)
 {
     enum {
+        MDEC_SCENE_TIMEOUT_POLLS         = 91,
+        MDEC_VLC_UNLIMITED_OUTPUT        = 0,
         STREAM_SCENE_STRIP_X_SHIFT_PAGES = -8,
         STREAM_SCENE_CHUNK_Y_SHIFT_ROWS  = -3,
     };
-    CdCmdQueue* p;
-    u16         i;
-    s32         r;
+    CdCmdQueue* queue;
+    u16         imageIndex;
+    s32         stripUploadResult;
 
-    p = &gCdCmdQueue;
-    switch (p->imageDecodeStep) {
+    queue = &gCdCmdQueue;
+    switch (queue->imageDecodeStep) {
         case CD_COMMAND_IMAGE_WAIT_HEADER:
             mdecRequestSceneImageDecode(&gGameSession->location.loc.view);
-            if ((u32)++D_8007A358 >= 0x5B) {
+            if ((u32)++D_8007A358 >= MDEC_SCENE_TIMEOUT_POLLS) {
                 D_8007A358 = 0;
                 gpuResetAndInvalidateModelBuffers();
                 if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
-                    p->decodeBufferBytes = p->nextDecodeBufferBytes;
+                    queue->decodeBufferBytes = queue->nextDecodeBufferBytes;
                 }
                 _mdecFinishImageDecode();
             }
             break;
         case CD_COMMAND_IMAGE_START:
             gpuResetAndInvalidateModelBuffers();
-            p->mdecOutputPending = 1;
-            if (p->sceneVlcTableMode == STREAM_SCENE_VLC_IMAGE_BUFFER) {
+            queue->mdecOutputPending = 1;
+            if (queue->sceneVlcTableMode == STREAM_SCENE_VLC_IMAGE_BUFFER) {
                 DecDCTvlcBuild((u16*)((u8*)Fs_ImgBuffers + FILE_SYSTEM_IMAGE_VLC_OFFSET));
-                p->rebuildImageVlcTable = 0;
-                p->vlcTable             = (u16*)((u8*)Fs_ImgBuffers + FILE_SYSTEM_IMAGE_VLC_OFFSET);
+                queue->rebuildImageVlcTable = 0;
+                queue->vlcTable             = (u16*)((u8*)Fs_ImgBuffers + FILE_SYSTEM_IMAGE_VLC_OFFSET);
             }
             DecDCTReset(0);
-            DecDCTvlcSize2(0);
-            DecDCTvlc2((u_long*)D_8007A360, gMemActiveAuxHeap,
-                       p->vlcTable);
+            DecDCTvlcSize2(MDEC_VLC_UNLIMITED_OUTPUT);
+            DecDCTvlc2(D_8007A360, gMemActiveAuxHeap,
+                       queue->vlcTable);
             D_8007A35E = 1;
             DecDCToutCallback(_mdecImageStripCallback);
-            DecDCTin(gMemActiveAuxHeap, p->imageMdecMode);
-            p->imageMdecMode = MDEC_IMAGE_MODE_RGB16;
+            DecDCTin(gMemActiveAuxHeap, queue->imageMdecMode);
+            queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16;
             DecDCTout(Fs_ImgBuffers->strips[0], FILE_SYSTEM_IMAGE_STRIP_WORDS);
             D_8007A358 = 0;
-            p->imageDecodeStep++;
+            queue->imageDecodeStep++;
             /* fallthrough */
         case CD_COMMAND_IMAGE_WAIT_OUTPUT:
-            if (p->mdecOutputPending == 0) {
+            if (queue->mdecOutputPending == 0) {
                 // Upload the payload's optional strip lists and image chunks.
-                for (i = 0; i < ARRAY_SIZE(Stage_CdEntry->stripListOffsets); i++) {
-                    if (Stage_CdEntry->stripListOffsets[i] != 0) {
-                        if (Stage_CdEntry->relocateStripLists[i] != 0) {
+                for (imageIndex = 0; imageIndex < ARRAY_SIZE(Stage_CdEntry->stripListOffsets); imageIndex++) {
+                    if (Stage_CdEntry->stripListOffsets[imageIndex] != 0) {
+                        if (Stage_CdEntry->relocateStripLists[imageIndex] != 0) {
                             Fs_ChunkMode    = 2;
                             D5B498_8006C233 = STREAM_SCENE_STRIP_X_SHIFT_PAGES;
                         }
-                        fsBeginImageColumns((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[i]));
+                        fsBeginImageColumns((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[imageIndex]));
+                        // Both upload polls are retained; a retry restarts this column stream.
                         while (fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_RESIDENT_INPUT) != FILE_SYSTEM_IMAGE_STRIPS_COMPLETE) {
-                            r = fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_RESIDENT_INPUT);
-                            if (r == FILE_SYSTEM_IMAGE_STRIPS_COMPLETE) {
+                            stripUploadResult = fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_RESIDENT_INPUT);
+                            if (stripUploadResult == FILE_SYSTEM_IMAGE_STRIPS_COMPLETE) {
                                 break;
                             }
-                            if (r == FILE_SYSTEM_IMAGE_STRIPS_RETRY) {
-                                fsBeginImageColumns((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[i]));
+                            if (stripUploadResult == FILE_SYSTEM_IMAGE_STRIPS_RETRY) {
+                                fsBeginImageColumns((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[imageIndex]));
                             }
                         }
                         Fs_ChunkMode    = 0;
                         D5B498_8006C233 = 0;
                     }
                 }
-                for (i = 0; i < ARRAY_SIZE(Stage_CdEntry->imageChunkOffsets); i++) {
-                    if (Stage_CdEntry->imageChunkOffsets[i] != 0) {
-                        if (Stage_CdEntry->relocateImageChunks[i] != 0) {
+                for (imageIndex = 0; imageIndex < ARRAY_SIZE(Stage_CdEntry->imageChunkOffsets); imageIndex++) {
+                    if (Stage_CdEntry->imageChunkOffsets[imageIndex] != 0) {
+                        if (Stage_CdEntry->relocateImageChunks[imageIndex] != 0) {
                             Fs_ChunkMode    = 2;
                             D5B498_8006C234 = STREAM_SCENE_CHUNK_Y_SHIFT_ROWS;
                         }
-                        while (fsUploadImageChunk((const FsImageChunk*)(Mdec_DecodeBase + Stage_CdEntry->imageChunkOffsets[i]), 1)) {
+                        while (fsUploadImageChunk((const FsImageChunk*)(Mdec_DecodeBase + Stage_CdEntry->imageChunkOffsets[imageIndex]), 1)) {
                         }
                         Fs_ChunkMode    = 0;
                         D5B498_8006C234 = 0;
                     }
                 }
-                p->imageLayout = FILE_SYSTEM_IMAGE_STRIPS;
+                queue->imageLayout = FILE_SYSTEM_IMAGE_STRIPS;
                 if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
-                    p->decodeBufferBytes = p->nextDecodeBufferBytes;
+                    queue->decodeBufferBytes = queue->nextDecodeBufferBytes;
                 }
                 // Refresh timing data before releasing the completed decode operation.
-                if (p->sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
-                    memCopyBytes(&Mdec_DecodeBase[Stage_CdEntry->timingDataOffset], p->timingBuffer,
+                if (queue->sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
+                    memCopyBytes(&Mdec_DecodeBase[Stage_CdEntry->timingDataOffset], queue->timingBuffer,
                                  Stage_CdEntry->timingDataBytes);
                 }
                 _mdecFinishImageDecode();
-            } else if ((u32)++D_8007A358 >= 0x5B) {
+            } else if ((u32)++D_8007A358 >= MDEC_SCENE_TIMEOUT_POLLS) {
                 D_8007A358 = 0;
                 gpuResetAndInvalidateModelBuffers();
                 if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
-                    p->decodeBufferBytes = p->nextDecodeBufferBytes;
+                    queue->decodeBufferBytes = queue->nextDecodeBufferBytes;
                 }
                 _mdecFinishImageDecode();
             }
@@ -1227,21 +1271,21 @@ static void _mdecStepStandaloneImageDecode(void)
     }
 }
 
-void CdCmd_StepVlcRebuild(void)
+void mdecStepImageDecode(void)
 {
-    CdCmdQueue* p;
+    CdCmdQueue* queue;
 
-    p = &gCdCmdQueue;
-    if (p->scenePayloadAvailable == 0) {
-        if (p->rebuildImageVlcTable != 0) {
+    queue = &gCdCmdQueue;
+    if (queue->scenePayloadAvailable == 0) {
+        if (queue->rebuildImageVlcTable != 0) {
             DecDCTvlcBuild((u16*)((u8*)Fs_ImgBuffers + FILE_SYSTEM_IMAGE_VLC_OFFSET));
-            p->rebuildImageVlcTable = 0;
+            queue->rebuildImageVlcTable = 0;
         }
-        if ((p->imageDecodePending != 0) && (p->rebuildImageVlcTable == 0)) {
+        if ((queue->imageDecodePending != 0) && (queue->rebuildImageVlcTable == 0)) {
             _mdecStepStandaloneImageDecode();
         }
-    } else if (p->imageDecodePending != 0) {
-        Mdec_ProcessDecode();
+    } else if (queue->imageDecodePending != 0) {
+        _mdecStepSceneImageDecode();
     }
 }
 

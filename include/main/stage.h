@@ -27,22 +27,61 @@ extern u8 gStageRoomSong;
 /// the caller's task nor waits for the reload.
 s32 stageRequestModeTaskExit(void);
 
-void Stage_ReleasePrimBuf(void);
+/// Restores the static task primitive buffer if this mode selected the heap buffer.
+///
+/// Clears the mode's selection latch; it does not free heap storage or wait for
+/// GPU work. Call before repurposing the primitive heap, after its drawing ends.
+void stageReleaseTaskPrimitiveBuffer(void);
 
 /// Overlay callers pass 1; the argument is unused.
 void Stage_RequestSpecialFlag(s32 unused);
 
-s32 Stage_BeginTransition(s32 arg0, s32 arg1);
+/// Requests a view change within the active mode task and returns the current view.
+///
+/// An already pending view change leaves the request intact. Otherwise blocks
+/// controller input and records `view` until the mode task updates the session.
+/// The session stores the view as a byte; it must select a loaded area's view.
+/// `transitionKind` is narrowed to a byte: 0 skips intermediate drawing;
+/// 1 draws filtered tasks/actors, 2 active actors, 3 or 0x20 all tasks, and
+/// 7 no extra drawing. Returns the live view even when the request was ignored.
+s32 stageRequestViewTransition(s32 view, s32 transitionKind);
 
-s32 Stage_BeginTransitionKind7(s32 arg0);
+/// Requests a view change with no extra drawing, then the active mode task's exit.
+///
+/// Uses the view/lifetime contract of `stageRequestViewTransition`. Returns -1
+/// without changing an already pending view transition, otherwise returns the
+/// current view and queues both the view change and mode-exit request.
+s32 stageRequestViewTransitionAndModeExit(s32 view);
 
-s32 Stage_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Configures the active mode task's grey fade overlay, returning 0.
+///
+/// An argument of zero for `stepPerTick` selects 32; other arguments store the
+/// low byte. Nonzero `decreasing` negates the byte; the stepper reads it as signed
+/// and multiplies it by nominal frame ticks. Ordinary ramp magnitudes are
+/// 1..127; other values retain their byte wrapping. Nonzero `additiveBlend`
+/// adds grey, otherwise subtracts it. Nonzero `frontOfOt` selects the first
+/// drawn table depth (its last entry), otherwise depth zero.
+/// Replaces all fade flags, including the one-step skip, without changing the
+/// current level or maximum. The overlay advances only while the mode task runs.
+s32 stageConfigureFade(s32 decreasing, s32 additiveBlend, s32 stepPerTick, s32 frontOfOt);
 
-void Stage_SetFadeMax(u8 arg0);
+/// Sets the grey fade's upper level (0..255), without immediately clamping it.
+///
+/// The next advancing step clamps against this maximum. Zero-level status takes
+/// precedence when the maximum is zero; changing the maximum does not start a fade.
+void stageSetFadeMax(u8 maxLevel);
 
-void Stage_InitPrimBufOnce(void);
+/// Selects the 0x10000-byte heap task primitive buffer once per active mode.
+///
+/// Borrows the configured primitive heap; it does not allocate or clear it.
+/// The heap must remain writable and reserved for drawing until
+/// `stageReleaseTaskPrimitiveBuffer` restores the static selection.
+void stageEnsureHeapTaskPrimitiveBuffer(void);
 
-s32 Stage_HasTransitionFlags(void);
+/// Returns 1 while a view change or file-load transition is requested, else 0.
+///
+/// Capture, keep-view and mode-exit bits alone do not make this predicate true.
+s32 stageIsTransitionPending(void);
 
 /// Queues capture of the framebuffer presented when the mode task handles the request.
 ///
@@ -69,7 +108,11 @@ enum {
 /// the level without advancing the fade or testing whether its step is stopped.
 s32 stageGetFadeStatus(void);
 
-void Stage_InitOtOnce(void);
+/// Initializes full-depth task ordering tables once per active mode.
+///
+/// Replaces the small-table selection and clears the presented framebuffer's
+/// task table. Mode initialization resets the latch for the next mode.
+void stageEnsureTaskOrderingTables(void);
 
 /// Reads the latch recording whether a file-load transition cleared both framebuffers.
 ///
@@ -78,6 +121,10 @@ void Stage_InitOtOnce(void);
 /// inspect the current framebuffer contents.
 s32 stageGetLoadBuffersCleared(void);
 
-void Stage_ResetFade(void);
+/// Clears the mode fade's current level and restores its maximum to 255.
+///
+/// Retains its step and blend/placement flags, so a configured ramp can resume
+/// from zero when the mode task next advances the overlay.
+void stageResetFadeLevel(void);
 
 #endif // MAIN_STAGE_H

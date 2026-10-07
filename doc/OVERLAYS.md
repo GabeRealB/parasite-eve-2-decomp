@@ -16,7 +16,7 @@ TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
 | Load addresses | `assets/USA/stages.json` (`type: room_pkg`, `load_addr`) |
 | File tree / ids | `tools/peassets/asset_data.py` (`TREE`) |
 | CD file lookup | `src/main/fs.c` (`Fs_LoadFile`, `_fsStage0HeaderReadyCallback`) |
-| Room enter | `src/main/stage.c` (`Display_TaskLoadStep`), `src/main/loadui.c` (`cdCmdEnqueueDisplayResource`) |
+| Room enter | `src/main/stage.c` (`_stageBeginModeExitLoad`), `src/main/loadui.c` (`cdCmdEnqueueDisplayResource`) |
 | Inflated bodies | `assets/USA/pe2pkg/` (LZSS-decoded); on-disc in `raw/pe2pkg/` |
 | Model stream | `_tmdResolveSourceDrawHandlers` / `tmdBuildBufferHalf` |
 | Anim player | `AnimationContext` / `AnimationSlot` / `AnimationSet` (`scene_runtime.c`) |
@@ -621,7 +621,7 @@ No anim chunk type exists in `STAGE*.CDF`. If it is not in that `.pe2pkg`
 ## 7. How a room enter looks
 
 1. Gameplay stays at `0x80093800`.
-2. `Display_TaskLoadStep` →
+2. `_stageBeginModeExitLoad` →
    `cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW)`
    conditionally seeks back to the current mapped view using the live
    stage/area and sprite variant. It does not load the room's `file0`.

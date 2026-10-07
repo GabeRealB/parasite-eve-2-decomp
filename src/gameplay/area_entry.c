@@ -67,7 +67,7 @@ void Gp_AreaEnterTask(Task* arg0)
         hud           = arg0->spawnArg2.pointer;
         stageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
         stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
-        Stage_InitPrimBufOnce();
+        stageEnsureHeapTaskPrimitiveBuffer();
         for (i = 0; i < PLAYER_ACTOR_TASK_COUNT; i++) {
             slot = gPlayerActorTasks[i];
             if (slot != NULL) {
@@ -166,7 +166,7 @@ void Gp_AreaEnterTask(Task* arg0)
                 displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
                 SndEvt_EnqueueType9(SOUND_COMMON(0x0D));
                 taskKill(arg0);
-                Stage_ReleasePrimBuf();
+                stageReleaseTaskPrimitiveBuffer();
                 stageRequestModeTaskExit();
             }
         }

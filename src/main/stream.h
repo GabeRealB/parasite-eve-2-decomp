@@ -22,7 +22,7 @@ void mdecRequestImageDecode(u_long* bitstream);
 ///
 /// Call when a background load reuses the image storage. Sets a pending flag
 /// without building the table or accessing the buffer; repeated requests coalesce.
-/// `CdCmd_StepVlcRebuild` rebuilds it before the next standalone image decode,
+/// `mdecStepImageDecode` rebuilds it before the next standalone image decode,
 /// once no scene payload is available. The image workspace must then be writable.
 /// A scene decode using that workspace can also satisfy the request.
 void mdecRequestImageVlcRebuild(void);

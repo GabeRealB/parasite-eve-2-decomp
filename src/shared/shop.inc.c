@@ -1272,7 +1272,7 @@ static void Shop_SessionTask(Task* task)
     UiObject* obj;
 
     if (task->state == 0) {
-        Stage_InitPrimBufOnce();
+        stageEnsureHeapTaskPrimitiveBuffer();
         obj = uiSpawnObject(&Shop_Data_80181B30, task->spawnArg1, 1, 1, NULL);
         if (obj == NULL) {
             return;
@@ -1298,7 +1298,7 @@ static void Shop_SessionTask(Task* task)
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
             taskKill(task);
-            Stage_ReleasePrimBuf();
+            stageReleaseTaskPrimitiveBuffer();
             stageRequestModeTaskExit();
         }
     }

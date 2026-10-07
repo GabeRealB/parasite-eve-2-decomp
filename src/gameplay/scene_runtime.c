@@ -1029,7 +1029,7 @@ void Gp_StepCdAudioCmd(void)
             }
             break;
     }
-    CdCmd_StepVlcRebuild();
+    mdecStepImageDecode();
 }
 
 /// Stops script sounds selected by a scene mask and closes their request gates.

@@ -172,7 +172,7 @@ void func_800E44A0(Task* task)
         return;
     }
     if (D_801155BC == 2) {
-        if (Stage_HasTransitionFlags() != 0) {
+        if (stageIsTransitionPending() != 0) {
             return;
         }
         D_801155BC = 1;
@@ -710,7 +710,7 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 }
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != sel) {
                     if (D_80115666 != 0) {
-                        Stage_BeginTransition(sel, 1);
+                        stageRequestViewTransition(sel, 1);
                         D_801155BC = 2;
                     } else {
                         if (attr & 0x4000) {
@@ -893,7 +893,7 @@ void Gp_CapExit(Task* arg0)
             stageRequestModeTaskExit();
         } else {
             queue->imageMdecMode = D_8011565C;
-            Stage_BeginTransitionKind7(D_8011566C);
+            stageRequestViewTransitionAndModeExit(D_8011566C);
         }
     } else {
         if (D_80115690 == 0) {

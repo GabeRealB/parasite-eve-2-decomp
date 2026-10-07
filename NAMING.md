@@ -294,7 +294,7 @@ in a row identify different responsibilities in the same source group.
 | `playClock` | Resetting the resident partial-minute play-time accumulator after a save load; gameplay advances it | `gameflow.c` | `src/main/session.h` |
 | `gameDebug` | Resident diagnostic controls, input overrides/replay and session-load status shared with gameplay | `stage.c` (resident storage), `gamemain.c` (reset), gameplay consumers | `include/main/game_debug_types.h` (state type); pointer currently declared in `include/main/pad.h` |
 | `loadUi` | Loading and disk-swap presentation | `loadui.c` | `include/main/loadui.h` |
-| `stage` | Stage transitions and music selection | `stage.c`, `stage_music.c` | `include/main/stage.h`, `include/main/stage_types.h`, `src/main/stage.h` |
+| `stage` | Stage mode tasks, view/file transitions, their grey fade and guarded graphics resources, and music selection | `stage.c`, `stage_music.c` | `include/main/stage.h`, `include/main/stage_types.h`, `src/main/stage.h` |
 | `display`, `gpu` | Frame presentation, display state and ordering tables | `gamemain.c`, `displaymode.c`, `otutil.c` | `include/main/display.h`, `include/main/display_types.h`, `src/main/display.h` |
 | `gfx` | Graphics coordinates, matrices, lights and image slots | `gfxlight.c`, `gfxmtx.c`, `boot.c` | `include/main/gfx.h`, `include/main/gfx_types.h`, `include/main/coord.h`, `src/main/gfx.h` |
 | `gpuExt` | GPU status helpers | `gpuext.c` | `src/main/gpuext.h` |

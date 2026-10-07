@@ -1906,7 +1906,7 @@ void Gp_SpawnPickupUiTask(Task* arg0)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint = Gp_PubItemLoc;
                 break;
             default:
-                Stage_InitPrimBufOnce();
+                stageEnsureHeapTaskPrimitiveBuffer();
                 desc = &D_8010D6D8;
                 break;
         }
@@ -1976,7 +1976,7 @@ void Gp_PickupExitTask(Task* arg0)
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {
         taskKill(arg0);
-        Stage_ReleasePrimBuf();
+        stageReleaseTaskPrimitiveBuffer();
         stageRequestModeTaskExit();
     }
 }

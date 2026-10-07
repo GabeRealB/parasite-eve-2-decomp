@@ -417,7 +417,7 @@ void Gp_MenuRootTask(Task* arg0)
                 return;
             }
             stageRequestFrameCapture();
-            Stage_ResetFade();
+            stageResetFadeLevel();
             arg0->killCountdown = 2;
             arg0->state        += 5;
             return;
@@ -427,8 +427,8 @@ void Gp_MenuRootTask(Task* arg0)
                 return;
             }
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
-            Stage_InitOtOnce();
-            Stage_InitPrimBufOnce();
+            stageEnsureTaskOrderingTables();
+            stageEnsureHeapTaskPrimitiveBuffer();
             arg0->state += 5;
             return;
         case 0x14: {
@@ -497,8 +497,8 @@ void Gp_MenuRootTask(Task* arg0)
                 sndEvtRequestScriptStart(SOUND_MENU_CLOSE, 0, 0);
             }
             arg0->killCountdown = 0xC;
-            Stage_SetFadeMax(0xFF);
-            Stage_SetFadeRate(0, 0, 0, 1);
+            stageSetFadeMax(0xFF);
+            stageConfigureFade(0, 0, 0, 1);
             arg0->state += 0xA;
             return;
         }
@@ -525,7 +525,7 @@ void Gp_MenuRootTask(Task* arg0)
                     return;
                 }
                 d->control.flags.flipMode = DISPLAY_FLIP_HOLD;
-                Stage_ReleasePrimBuf();
+                stageReleaseTaskPrimitiveBuffer();
             }
             memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
             if (sceneIsBattleActive() == 0) {
@@ -598,7 +598,7 @@ void Gp_MenuRootTask(Task* arg0)
             if (stageGetLoadBuffersCleared() == 0) {
                 stageRequestModeTaskExit();
             } else {
-                Stage_BeginTransitionKind7(gGameSession->location.loc.view);
+                stageRequestViewTransitionAndModeExit(gGameSession->location.loc.view);
             }
             taskSpawnOnDefaultList(FADE_DISPLAY_TASK_BANK, FADE_DISPLAY_TASK_TYPE, FADE_DISPLAY_REVEAL_WORLD, 0);
             if (taskSpawnFromTableOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {

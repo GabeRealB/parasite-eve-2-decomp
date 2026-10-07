@@ -8,7 +8,7 @@ void jukeboxHostTask(Task* task)
     UiObject* obj;
 
     if (task->state == 0) {
-        Stage_InitPrimBufOnce();
+        stageEnsureHeapTaskPrimitiveBuffer();
         obj = uiSpawnObject(&gJukeboxPanelDesc, task->spawnArg1, 1, 1, NULL);
         if (obj == NULL) {
             return;
@@ -34,7 +34,7 @@ void jukeboxHostTask(Task* task)
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
             taskKill(task);
-            Stage_ReleasePrimBuf();
+            stageReleaseTaskPrimitiveBuffer();
             stageRequestModeTaskExit();
         }
     }

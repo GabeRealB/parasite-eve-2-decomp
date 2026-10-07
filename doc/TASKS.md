@@ -444,10 +444,10 @@ These are real actors too; they just skip `gTaskDescBanks`.
 |-------|-----------------|
 | `Title_TaskDescs[0]` | `Title_BootTask` |
 | `Title_TaskDescs[1]` | `Title_DemoStreamTask` (`displaySpawnTaskFromTable`) |
-| `D_8006269C[0]` | `Display_DispatchTaskTable` — 6-way stage load (`Stage_WaitCdActivate` … `_stageResumeMovieAndFinishModeTask`) |
+| `D_8006269C[0]` | `Display_DispatchTaskTable` — 6-way stage load (`_stageSuspendCdAndSpawnModeTask` … `_stageResumeMovieAndFinishModeTask`) |
 | `D_80062774[0]` | `Stage_DispatchTaskTable` — bank-load spawn from gameplay |
 | `D_8006268C[0]` | `0x800BF9FC` (gameplay) |
-| `Stage_Ctx->taskDesc` | Per-stage desc table; `Display_SpawnFromMode` spawns index 0 |
+| `Stage_Ctx->taskDesc` | Per-stage desc table; `_stageSpawnModeTask` spawns index 0 |
 | `D_80725C54` | External debug-address descriptor view, from `taskDebugLaunchCallback`; backing storage unproven |
 | `D_8010D1FC`, `D_8010FB4C`, `D_80115D9C`, `D_80119218`, `D_8011922C`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`1BC.c` `func_800B25B0` switches on `gMcSaveData`) |
 | Stack `TaskDesc` | `uiSpawnObject` copies `UiObjectDesc.taskFlags`, `taskPriority` and `taskDataValue`; task callback dispatches the panel, which keeps `contentCallback` |

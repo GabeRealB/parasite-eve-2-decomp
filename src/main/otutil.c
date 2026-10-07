@@ -296,15 +296,15 @@ s32 Display_DispatchModeId(s32 arg0)
             }
             gDisplayState.pendingMode = arg0;
             if (gDisplayState.demoScene != DISPLAY_DEMO_NONE) {
-                Stage_SetFadeMax(0xFF);
-                Stage_SetFadeRate(0, 0, 0x10, 1);
+                stageSetFadeMax(0xFF);
+                stageConfigureFade(0, 0, 0x10, 1);
             } else if (arg0 != 0x42) {
                 if (arg0 == 0x43) {
-                    Stage_SetFadeMax(0xFF);
-                    Stage_SetFadeRate(0, 0, 0x20, 1);
+                    stageSetFadeMax(0xFF);
+                    stageConfigureFade(0, 0, 0x20, 1);
                 } else {
-                    Stage_SetFadeMax(0x20);
-                    Stage_SetFadeRate(0, 0, 8, 1);
+                    stageSetFadeMax(0x20);
+                    stageConfigureFade(0, 0, 8, 1);
                 }
             }
         }

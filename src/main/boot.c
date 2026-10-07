@@ -61,6 +61,7 @@ size_t Mem_AuxRegionBytes;
 #include "main/fs.h"
 #include "main/mem.h"
 #include "mem.h"
+#include "main/stream.h"
 
 /// Fixed addresses no image defines, which main points at: the image-buffer
 /// region, the work area at 0x801FD000, the load addresses of the three actor
@@ -218,7 +219,7 @@ void Boot_LoadInitialFile(Task* task)
             cdCmdEnqueue(CD_COMMAND_READ_STAGE_HEADER, NULL, NULL);
             memConfigureImageMemory(GAME_STAGE_NONE, 0);
             while (queue->imageLoadStatus != CD_COMMAND_IMAGE_COMPLETE) {
-                CdCmd_StepVlcRebuild();
+                mdecStepImageDecode();
             }
             param1[3] = 0;
             param1[2] = 0;

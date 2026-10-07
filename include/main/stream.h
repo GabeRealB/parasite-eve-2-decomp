@@ -47,6 +47,18 @@ extern u16 D_8006AC6C;
 /// it does not queue an independent decode or retain the `viewId` pointer.
 void mdecRequestSceneImageDecode(const u8* viewId);
 
+/// Advances the pending standalone or cached-scene background image decode.
+///
+/// With no scene payload, rebuilds a requested VLC table before expanding a
+/// standalone bitstream. An available scene payload selects the scene decoder,
+/// which also uploads its optional images and copies timing data. Repeated calls
+/// service the request; MDEC output completes through its DMA callback. Scene
+/// header/output waits give up after 91 polls and report completion as well.
+/// Input, VLC, payload and output storage must remain valid until consumed, and
+/// the selected auxiliary region must fit the complete expanded command stream.
+/// This call neither allocates a request nor guarantees completion on return.
+void mdecStepImageDecode(void);
+
 /// Reserves movie decoding storage and optionally saves the VRAM images it displaces.
 ///
 /// Resets GPU drawing and invalidates model buffers before resetting the saved

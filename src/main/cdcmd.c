@@ -452,7 +452,7 @@ static void CdCmd_HandleFileLoad(void)
 
 end_check:
     if (state->imageDecodePending != 0) {
-        CdCmd_StepVlcRebuild();
+        mdecStepImageDecode();
     }
 }
 
