@@ -7,7 +7,6 @@ s32 factoryHatchOpen(Task* task)
 {
     FactoryHatchWork* work  = task->work;
     GfxCoord*         coord = task->extra.tmd->coords;
-    GfxMatrix*        mat;
     s32               ret = 0;
 
     switch (work->step) {
@@ -48,13 +47,8 @@ s32 factoryHatchOpen(Task* task)
             break;
     }
 
-    mat                       = (GfxMatrix*)&coord->coord;
-    mat->rotationWords.m00M01 = ONE;
-    mat->rotationWords.m02M10 = 0;
-    mat->rotationWords.m11M12 = ONE;
-    mat->rotationWords.m20M21 = 0;
-    mat->rotationWords.m22    = ONE;
-    RotMatrixX(work->angle.halves.integer, &mat->mat);
+    gfxSetRotIdentity(&coord->coord);
+    RotMatrixX(work->angle.halves.integer, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return ret;
 }
