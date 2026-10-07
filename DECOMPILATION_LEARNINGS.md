@@ -144222,7 +144222,7 @@ work->verts[1].vy = -(size * rsin(0x155) / 4096) - ((RAND() & 1) ? size / 10 : 0
 
 The same spelling, `base + (RAND() & 1 ? RAND() & 0x1F : -(RAND() & 0x1F))`,
 replaces an `if/else` over a `base` local for velocity jitter.
-## A pointer local set twice per iteration also adds base + offset every pass; a scalar offset is not the only source (Actor01100_Fn0097C, 2026-09-26)
+## A pointer local set twice per iteration also adds base + offset every pass; a scalar offset is not the only source (_actor01100Init, 2026-09-26)
 
 The rule under "`arr[i]` strength-reduces to a walking pointer" reads a per-iteration
 `addu base,off` as proof of a scalar byte-offset variable. There is a second
@@ -148770,7 +148770,7 @@ loaded through another pointer, write the chain through one local. The emitted
 code does not change; the priority does. Compare `used N times` in `.lreg`
 with the mentions you can count in the RTL to spot a stale count.
 
-## A value masked in its own statement is set twice, so its load is not birth-promoted (Actor01100_Fn0097C, 2026-10-05)
+## A value masked in its own statement is set twice, so its load is not birth-promoted (_actor01100Init, 2026-10-05)
 
 **Symptom.** `lui/lw` of a global, then a run of byte stores, then
 `and`/`lui K`/`bne`. Written as `if ((word & MASK) == K)` sched1 sinks the load
@@ -150237,7 +150237,7 @@ attempts; left as it was.
   `s32` return the test uses `a0` directly (two insns shorter).
 - **A constant in the middle of an `|` chain moves to the end when written as
   a literal.** `(a << 22) | snd | (b << 8)` with `snd` one of two constants
-  set in front of a shared call (`Actor01100_Fn0516C`) compiles as `(a << 22 |
+  set in front of a shared call (`_actor01100Advance`) compiles as `(a << 22 |
   K) | (b << 8)` only while `snd` is a variable; with the literal, fold
   reassociates to `((a << 22) | (b << 8)) | K`. A `static inline` taking the
   constant keeps the order, and cross-jumping still merges the two calls.
