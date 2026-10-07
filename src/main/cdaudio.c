@@ -416,14 +416,14 @@ static s32 CdAudio_DrivePhase0(void)
         case CD_AUDIO_STOP_STEP_FADE:
             ramp               = (LinInterp*)&_gCdAudioState.ramp;
             progress->playStep = CD_AUDIO_PLAY_STEP_DONE;
-            LinInterp_Step(ramp);
+            linInterpStep(ramp);
             if (ramp->gain == ramp->targetGain) {
                 ramp->enabled = LINEAR_INTERPOLATOR_BYPASS;
                 CdStream_SetVolume(0);
                 CdStream_Stop();
                 progress->stopStep = CD_AUDIO_STOP_STEP_RELEASE_VOICES;
             } else {
-                CdStream_SetVolume((s16)LinInterp_Apply(ramp, _gCdAudioState.playback.volume));
+                CdStream_SetVolume((s16)linInterpApply(ramp, _gCdAudioState.playback.volume));
             }
             break;
         case CD_AUDIO_STOP_STEP_RELEASE_VOICES:
@@ -1010,9 +1010,9 @@ static s32 CdAudio_SetupStream(void)
     CdIntToPos(_gCdAudioState.playback.baseSector, (CdlLOC*)&_gCdAudioState.seekLoc);
     buf = CdAudio_SectorBuffer;
     if (buf != 0) {
-        SndHeap_Free(buf);
+        sndHeapFree(buf);
     }
-    header                         = SndHeap_Malloc(sizeof(_CdAudioHeader));
+    header                         = sndHeapAlloc(sizeof(_CdAudioHeader));
     CdAudio_SectorBuffer           = (u8*)header;
     CdAudio_SectorEntries          = header->trackEntries;
     _gCdAudioState.playback.driver = CD_AUDIO_DRIVER_READ_HEADER;
@@ -1199,7 +1199,7 @@ static void CdAudio_StartVolumeRamp(s32 arg0)
     LinInterp* ramp;
 
     ramp = (LinInterp*)&_gCdAudioState.ramp;
-    LinInterp_Setup(ramp, (_gCdAudioState.playback.volume >> CD_AUDIO_VOLUME_LEVEL_SHIFT) & 0xFF, 0, arg0);
+    linInterpSetup(ramp, (_gCdAudioState.playback.volume >> CD_AUDIO_VOLUME_LEVEL_SHIFT) & 0xFF, 0, arg0);
     CdAudio_Phase.playStep         = CD_AUDIO_PLAY_STEP_DONE;
     CdAudio_Phase.stopStep         = CD_AUDIO_STOP_STEP_FADE;
     _gCdAudioState.playback.driver = CD_AUDIO_DRIVER_FADE_OUT;

@@ -8369,7 +8369,7 @@ ramp = (LinInterp*)&_gCdAudioState.ramp;
 if (ramp->gain == ramp->targetGain) {
     CdStream_SetVolume(0);
 } else {
-    CdStream_SetVolume((s16)LinInterp_Apply(ramp, _gCdAudioState.playback.volume));
+    CdStream_SetVolume((s16)linInterpApply(ramp, _gCdAudioState.playback.volume));
 }
 ```
 
@@ -8616,7 +8616,7 @@ base = _gSndBankSlots;
 p = &base[(s8)arg0];
 ```
 
-`SndBankSlot_Free` needs this form so `SndHeap_Free` can take `p->image` with the
+`SndBankSlot_Free` needs this form so `sndHeapFree` can take `p->image` with the
 base already in `$v0` before the stride multiply lands in `$s0`.
 
 **Matrix cluster on an embedded MATRIX — first element on the struct base, rest
@@ -11955,8 +11955,8 @@ while (1) {
         break;
     }
     if (poll != NULL) {
-        if (poll(node->arg) == -1) {
-            node = AudioTick_Remove(node);
+        if (poll(node->arg) == AUDIO_TICK_POLL_FINISHED) {
+            node = _audioTickRemove(node);
             continue;
         }
     }
@@ -11968,7 +11968,7 @@ Also load `head = &global` *before* the enable-flag check so GCC materializes
 both `%hi/%lo` pairs up front (see "Hold a global's address in a local
 pointer"). Nested `if (flag) { if (head != NULL) { ... } }` rather than
 `flag && head` keeps the second null test in the first's delay-slot region.
-`AudioTick_Process` is the reference.
+`_audioTickProcess` is the reference.
 
 ## K&R definition when a same-TU caller uses indeterminate args
 
@@ -12432,7 +12432,7 @@ for (i = 0, ptr = D_arr; i < n; i++, ptr++) {
 }
 ```
 
-`Snd_FindBank` is the pure example.
+`sndBankFind` is the pure example.
 
 ## Hoist compare-constants as `s32` locals *inside* the early-exit `if`
 
@@ -12888,7 +12888,7 @@ cast and the arithmetic so the pointer-arithmetic linter stays quiet:
 p = &Later;
 parent = (volatile Earlier*)p;
 parent = parent - 1;   /* sizeof(Earlier) == 0x14 */
-LinInterp_Setup(p, (parent->field_2 >> 7) & 0xFF, 0, arg0);
+linInterpSetup(p, (parent->field_2 >> 7) & 0xFF, 0, arg0);
 parent->field_0 = 3;   /* sb …, -0x14(s0) */
 ```
 
@@ -12903,7 +12903,7 @@ arithmetic in the source.
 
 ```c
 ramp = (LinInterp*)&_gCdAudioState.ramp;
-LinInterp_Setup(ramp, (_gCdAudioState.playback.volume >> CD_AUDIO_VOLUME_LEVEL_SHIFT) & 0xFF, 0, arg0);
+linInterpSetup(ramp, (_gCdAudioState.playback.volume >> CD_AUDIO_VOLUME_LEVEL_SHIFT) & 0xFF, 0, arg0);
 _gCdAudioState.playback.driver = CD_AUDIO_DRIVER_FADE_OUT;   /* sb …, -0x14(s0) */
 ```
 
@@ -12935,7 +12935,7 @@ The advance is a no-op on the early-return path (local only). Same shape as the
 classic countdown `for (i = n - 2; i != -1; i--)` body; only the hoist of the
 pointer step matters.
 
-`Snd_BuildGroupIndex` is the pure example (u16 prefix table + 4-byte group headers).
+`sndBankBuildLayerIndex` is the pure example (u16 prefix table + 4-byte group headers).
 
 ## Dual-global update: read first to pin `a3`/`a2` order
 
@@ -13010,7 +13010,7 @@ var = (var * scale) / 65535;
 var = (s32)((u32)(var * scale) / 65535);
 ```
 
-`LinInterp_Apply` is the pure example (`LinInterp` gain makes the scaling product unsigned).
+`linInterpApply` is the pure example (`LinInterp` gain makes the scaling product unsigned).
 
 
 ## SndVoice voice list (script-owned)
@@ -14025,7 +14025,7 @@ Branch polarity for the decreasing arm: write `if (end + step >= cur) clamp;
 else subtract` so fall-through is clamp and `bnez` targets subtract (matches
 `sltu`/`bnez`). Inverting to `<` swaps the arms.
 
-`LinInterp_Step` is the pure example (`LinInterp` normalized gain ramp tick).
+`linInterpStep` is the pure example (`LinInterp` normalized gain ramp tick).
 
 ## Empty switch case as binary-search pivot to shared default
 
@@ -14172,7 +14172,7 @@ build has `div` then immediate `mflo` (and the rest of the function shifts by
 Fix: enable `--expand-div` for the translation unit in `ninja_config.py`
 (`EXPANDIVFLAG`), and use the same flag in the scratch `build.sh`. Power-of-two
 divides that become shifts do not need this. Known TUs: `tmd.c`
-(`_mdecImageStripCallback`), `sndbank.c` (`LinInterp_Setup`).
+(`_mdecImageStripCallback`), `sndbank.c` (`linInterpSetup`).
 
 ## Keep the `- 1` outside the div assignment for schedule
 
@@ -15250,7 +15250,7 @@ for (i = 0; i <= 0; i++) {
     if ((id == ptr->field_1) || (id == 0)) {
         if (ptr->field_0 == 2) {
             ptr->field_0 = 0x80;
-            LinInterp_Setup(&ptr->field_14, vol, 0, fade);
+            linInterpSetup(&ptr->field_14, vol, 0, fade);
         } else {
             ptr->field_0 = 4;
         }
@@ -16522,7 +16522,7 @@ start and (b) takes the address of a mid/high field for a call, writing:
 _SndScript* p = SndScript_Slots;
 for (i = 0; i < 8; i++, p++) {
     if (p->soundId == arg0) {
-        LinInterp_Setup(&p->volumeRamp, ...);
+        linInterpSetup(&p->volumeRamp, ...);
     }
 }
 ```
@@ -16540,7 +16540,7 @@ for (i = 0; i < 8; i++) {
     if ((arg0 == p->soundId) || ((p->soundId & 0xF0000000) == arg0)) {
         if (p->state == SOUND_SCRIPT_MUTING) {
             p->state = SOUND_SCRIPT_UNMUTING;
-            LinInterp_Setup(&p->volumeRamp, 0, (u8)D_80082748, 8);
+            linInterpSetup(&p->volumeRamp, 0, (u8)D_80082748, 8);
         }
     }
 }
@@ -17145,7 +17145,7 @@ prev = curr;
 } while (prev->next != 0);   /* GOOD */
 ```
 
-`AudioTick_Remove` is the pure example.
+`_audioTickRemove` is the pure example.
 
 ## Doubly-linked unlink: re-read `arg->next` after storing it (aliasing)
 
@@ -17183,7 +17183,7 @@ return prev->next;
 
 Also assign `head = &sentinel` *before* any callback that may clobber
 caller-saved regs — that keeps `&sentinel` in a callee-saved register across
-the call (matches early `addiu s1, ..., %lo(head)`). `AudioTick_Remove`.
+the call (matches early `addiu s1, ..., %lo(head)`). `_audioTickRemove`.
 
 ## State-machine dispatch: `goto case0` after the `>= N` arm
 
@@ -17428,7 +17428,7 @@ filling”). `Snd_InitBanks` is the pure example.
 
 When the target prepares a constant call argument only after unrelated
 address setup (e.g. `sw field_10` then `lui %hi(slot); li a0, 0x582; lb …`),
-writing `SndHeap_Malloc(0x582)` in straight-line code often hoists
+writing `sndHeapAlloc(0x582)` in straight-line code often hoists
 `li a0, 0x582` immediately after the previous `jal` returns — free `$a0` and
 an independent constant. That early `li` also steals the `lui` of the next
 symbol into `$v1` instead of `$v0`.
@@ -17442,7 +17442,7 @@ do {
     bank                       = &Snd_Banks[D_800680BB];
     state->field_40            = bank;
     bank->bankId               = 0xF0FF;
-    state->field_40->heapBlock = SndHeap_Malloc(0x582);
+    state->field_40->heapBlock = sndHeapAlloc(0x582);
 } while (0);
 state->field_40->groups = state->field_40->heapBlock;
 /* … */
@@ -18265,7 +18265,7 @@ temp = table[idx];
 bank = &banks[(s8)slot];
 ```
 
-`Snd_AllocBank` is the pure example.
+`sndBankAllocTables` is the pure example.
 
 ## Kill parameter `$a1` liveness after pin-copy so CSE can reuse it for call args
 
@@ -21880,7 +21880,7 @@ instead of `ori …, 0xffc0; addu` (the latter appears when
 register s32 f3 asm("v0");
 f3  = channelControls->pan;
 f3 -= 0x40;
-Spu_ApplyPanVolume(sp18, slot->pan + f3, vol);
+spuCalcPanVolumes(&panVolumes, slot->pan + f3, vol);
 ```
 
 Pair with `register s32 temp asm("v0"); register s32 scale asm("v1");` for the
@@ -23121,7 +23121,7 @@ also pinning `$s2/$s1/$s0`: that steals `$a0` from the flag address. Leave the
 ## Fail-path `j` / `move v0,s1` vs shared epilogue
 
 When several paths merge on `imageBuffer = 0; bank = 0; return`, the fail path
-needs `j epilogue; move v0,s1` while the free path after `SndHeap_Free` must not
+needs `j epilogue; move v0,s1` while the free path after `sndHeapFree` must not
 fall through a `block_ret: v0 = s1` that GCC would merge away. Force the free
 exit with tab-noreorder `j label; move $2,s1`, land with a unique asm label, and
 clear `imageBuffer` via `*(volatile s32*)&p->imageBuffer = 0` so the store is not
@@ -63593,19 +63593,20 @@ scores 96.4% (regs=40, stack=7), `head` alone 96.4%, `v` alone 99.5%. The pins
 are the established idiom for the routine rather than an ad-hoc fix, so a
 sibling that carries them is worth copying verbatim — only the loop pointer's
 register changes between instances.
-## Saved-register coloring flipped by a parameter's width (AudioTick_Insert)
+## Saved-register coloring flipped by a parameter's width (audioTickInsert)
 
 Symptom: every instruction matched but a set of callee-saved regs (s0..s3) were
 assigned in a cyclic rotation vs the target — pure `regs=` penalty,
 `branch=insert=delete=0`. No C-level statement reorder or copy-direction swap
 moved it.
 
-Two independent tricks were needed:
-- The target kept two live copies of the same value (`sh` of the id early,
-  `andi id,0xffff` in the loop). Reproduce with two locals off the param,
-  `id16 = id; key = id16;` (store uses id16, loop uses key), plus a separate
-  walker pointer seeded after the alloc (`p = head;`) so the anchor `head` stays
-  in its own saved reg across the call.
+Two independent choices established the match:
+- The target stores the id early (`sh`) and compares its unsigned halfword
+  value in the loop (`andi id,0xffff`). Use `node->id = id` and compare each
+  `next->id` with `id`, plus a separate walker pointer seeded after the alloc
+  (`previous = head;`) so the anchor `head` stays in its own saved reg across
+  the call. With the node's id also declared `u16`, no duplicate id locals are
+  needed.
 - The final coloring only matched once the priority tie was broken by narrowing
   the parameter type (`u32 id` -> `u16 id`). Param width changes the entry
   extension and the register the value first lands in, which reshuffles
@@ -144950,7 +144951,7 @@ register alive across a call beside `p = s0 + %lo`:
 ```
 lui   s0,%hi(G+0x14)            lui   v0,%hi(G)
 addiu s1,s0,%lo(G+0x14)         addiu s0,v0,%lo(G+0x14)
-jal   LinInterp_Step            jal   LinInterp_Step
+jal   linInterpStep            jal   linInterpStep
 lw    v1,%lo(G+0x14)(s0)        lw    v1,0(s0)
 ```
 
@@ -145465,7 +145466,7 @@ explained this way and stays a question: the map overlays have two (a `u8`
 flag table and the word after a task table), declared here as a longer array
 and as an unreferenced static respectively.
 
-## A hoisted constant losing its register to other loop invariants may be a store duplicated in both arms (SndHeap_Malloc, 2026-09-26)
+## A hoisted constant losing its register to other loop invariants may be a store duplicated in both arms (sndHeapAlloc, 2026-09-26)
 
 A loop hoists three invariants - a bound, a magic halfword and the `1` stored
 by `block->isAllocated = true` just before the loop's `return` - and the
@@ -146693,7 +146694,7 @@ constant *between* pointer and offset, `p + 8 + len + 8`, matches with no cast:
 variable offset ends up as the first operand of the remaining add. Where the
 source already has a natural constant step before the offset (skip a header,
 then the body it sizes), try that spelling before an integer cast.
-## `lb v1; beq v1,-1; move a0,v1`: a narrow local taken from a widened value *before* the test (Snd_AllocBank, 2026-09-27)
+## `lb v1; beq v1,-1; move a0,v1`: a narrow local taken from a widened value *before* the test (sndBankAllocTables, 2026-09-27)
 
 **Symptom.** A signed-byte table entry is loaded once, compared with `-1`, and
 copied into `$a0` in the delay slot; the slot index later re-extends it

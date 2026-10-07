@@ -823,7 +823,7 @@ s32 Midi_InitSystem(u32 unused)
         bank                  = &Snd_Banks[Snd_BankSlotsByType[15]];
         song->bank            = bank;
         bank->bankId          = 0xF0FF;
-        song->bank->heapBlock = SndHeap_Malloc(SOUND_BANK_SEQUENCE_TABLE_BYTES);
+        song->bank->heapBlock = sndHeapAlloc(SOUND_BANK_SEQUENCE_TABLE_BYTES);
     } while (0);
     song->bank->groups          = song->bank->heapBlock;
     song->bank->layers          = song->bank->heapBlock;
@@ -892,7 +892,7 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
                 song->pendingTempoOffsetBpm = 0;
                 song->currentTempoOffsetBpm = 0;
                 song->volumeScale           = (D_800689F0[song->sequenceId] * 3) << 5;
-                LinInterp_Setup(&song->volumeRamp, 0, D_8007F2F0, arg1);
+                linInterpSetup(&song->volumeRamp, 0, D_8007F2F0, arg1);
 
                 if (arg1 != 0) {
                     song->status = MIDI_SONG_FADING_IN;
@@ -943,7 +943,7 @@ s32 Midi_Tick(s32* unused)
                 }
                 /* fallthrough */
             case MIDI_SONG_MUTED:
-                LinInterp_Step(&song->volumeRamp);
+                linInterpStep(&song->volumeRamp);
                 song->volumeDirtyChannels = MIDI_SONG_ALL_CHANNELS_DIRTY;
                 /* fallthrough */
             case MIDI_SONG_PLAYING:
@@ -969,7 +969,7 @@ s32 Midi_Tick(s32* unused)
                     song->status              = MIDI_SONG_PLAYING;
                     goto play;
                 }
-                LinInterp_Step(&song->volumeRamp);
+                linInterpStep(&song->volumeRamp);
                 song->volumeDirtyChannels = MIDI_SONG_ALL_CHANNELS_DIRTY;
                 goto play;
         }
@@ -1145,7 +1145,7 @@ static void Midi_StartFadeOut(u8 arg0, u16 arg1)
         if ((arg0 == song->sequenceId) || (arg0 == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
             if (song->status == MIDI_SONG_PLAYING) {
                 song->status = MIDI_SONG_FADING_OUT;
-                LinInterp_Setup(&song->volumeRamp, D_8007F2F0, 0, arg1);
+                linInterpSetup(&song->volumeRamp, D_8007F2F0, 0, arg1);
             } else {
                 song->status = MIDI_SONG_STOPPING;
             }
@@ -1164,12 +1164,12 @@ static void Midi_FadeVolume(u8 arg0, s32 arg1)
             if (arg1 == 0) {
                 if (song->status == MIDI_SONG_MUTED) {
                     song->status = MIDI_SONG_UNMUTING;
-                    LinInterp_Setup(&song->volumeRamp, 0, D_8007F2F0, 8);
+                    linInterpSetup(&song->volumeRamp, 0, D_8007F2F0, 8);
                 }
             } else {
                 if (song->status & MIDI_SONG_MUTABLE) {
                     song->status = MIDI_SONG_MUTED;
-                    LinInterp_Setup(&song->volumeRamp, D_8007F2F0, 0, 8);
+                    linInterpSetup(&song->volumeRamp, D_8007F2F0, 0, 8);
                 }
             }
         }
@@ -1337,7 +1337,7 @@ static void Midi_InitSlot(s32 arg0)
         p++;
     } while (i < sizeof(*song) / sizeof(*p));
 
-    LinInterp_Setup(&song->volumeRamp, 0, 0, 0);
+    linInterpSetup(&song->volumeRamp, 0, 0, 0);
     _midiResetChannelTable(&song->channels);
 
     for (i = 0; (s32)i < ARRAY_SIZE(song->voiceSlots); i++) {
@@ -1482,7 +1482,7 @@ static void Midi_UpdateVoiceVolumes(_MidiSong* song)
         MIDI_VOICE_GAIN_DIVISOR   = SOUND_EVENT_MIDI_VOLUME_FULL * SOUND_EVENT_MIDI_VOLUME_FULL
     };
     SpuVoiceRef    voiceRef;
-    s16            sp18[2];
+    SpuVolume      panVolumes;
     LinInterp*     interp;
     s32            volume;
     s32            i;
@@ -1499,9 +1499,9 @@ static void Midi_UpdateVoiceVolumes(_MidiSong* song)
     if (song->sequenceId == 0x4F && D_80082120 == 5) {
         volume = func_map_neo_ark_80179BE4((u16)song->volumeScale, D_80082136, interp);
     } else if (song->sequenceId == 0x5A) {
-        volume = LinInterp_Apply(interp, (u32)((midiGetMasterVolume() & 0xFF) * ((D_800689F0[0x5A] * 3) << 5)) / 127U);
+        volume = linInterpApply(interp, (u32)((midiGetMasterVolume() & 0xFF) * ((D_800689F0[0x5A] * 3) << 5)) / 127U);
     } else {
-        volume = LinInterp_Apply(interp, (u32)((midiGetMasterVolume() & 0xFF) * (u16)song->volumeScale) / 127U);
+        volume = linInterpApply(interp, (u32)((midiGetMasterVolume() & 0xFF) * (u16)song->volumeScale) / 127U);
     }
     i    = 0;
     slot = song->voiceSlots;
@@ -1516,14 +1516,14 @@ static void Midi_UpdateVoiceVolumes(_MidiSong* song)
                 product         = product / MIDI_CHANNEL_GAIN_DIVISOR;
                 vol             = (u32)(volume * slot->volumeScale * product) / (u32)MIDI_VOICE_GAIN_DIVISOR;
                 pan             = channelControls->pan - MIDI_CHANNEL_PAN_CENTER;
-                Spu_ApplyPanVolume(sp18, slot->pan + pan, vol);
+                spuCalcPanVolumes(&panVolumes, slot->pan + pan, vol);
                 Spu_GetVoiceRef(voice, &voiceRef);
                 if (D_800820E9 == 1 && song->sequenceId != 0x5A) {
                     voiceRef.attr->volume.left  = 0;
                     voiceRef.attr->volume.right = 0;
                 } else {
-                    voiceRef.attr->volume.left  = sp18[0];
-                    voiceRef.attr->volume.right = sp18[1];
+                    voiceRef.attr->volume.left  = panVolumes.left;
+                    voiceRef.attr->volume.right = panVolumes.right;
                 }
                 voiceRef.attr->volmode.left  = 0;
                 voiceRef.attr->volmode.right = 0;
@@ -2052,7 +2052,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
             }
             {
                 SndBank* tmp;
-                tmp         = Snd_AllocBank(&state->payload.header);
+                tmp         = sndBankAllocTables(&state->payload.header);
                 state->bank = tmp;
                 if (tmp == 0) {
                     state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
@@ -2085,7 +2085,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
             state->imageBuffer    = mem;
             if (mem == 0) {
                 state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
-                Snd_FreeBank(state->bank);
+                sndBankFree(state->bank);
                 state->bank = 0;
                 break;
             }
@@ -2125,7 +2125,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
             if (spuAddr == 0) {
                 D_800689E8   = 4;
                 state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
-                Snd_FreeBank(state->bank);
+                sndBankFree(state->bank);
                 state->bank = 0;
                 break;
             }
@@ -2150,7 +2150,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
             if (state->syncUpload == 0) {
                 if (SpuIsTransferCompleted(SPU_TRANSFER_PEEK) == 0) {
                     if (state->feedMode != SOUND_LOAD_FEED_CD_AUDIO) {
-                        Snd_FreeBank(state->bank);
+                        sndBankFree(state->bank);
                         state->bank = 0;
                     }
                     D_800689E8   = 5;
@@ -2228,7 +2228,7 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
         bankLayer->waveAddr += spuAddr;
         bankLayer++;
     }
-    Snd_BuildGroupIndex(bankSlot->bank);
+    sndBankBuildLayerIndex(bankSlot->bank);
     gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
     load->bank        = 0;
     load->imageBuffer = 0;
@@ -2280,7 +2280,7 @@ static s32 SndLoad_Complete(SndLoadState* load)
                     song->bank          = bank;
                     song->waveBytes     = load->payload.header.waveBytes;
                     _sndBankRebaseLayerWaveAddresses(bank, load->payload.header.layerCount);
-                    Snd_BuildGroupIndex(song->bank);
+                    sndBankBuildLayerIndex(song->bank);
                     ret               = 0;
                     gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
                     load->bank        = 0;
@@ -2290,7 +2290,7 @@ static s32 SndLoad_Complete(SndLoadState* load)
             case SOUND_BANK_IMAGE_SCRIPT:
                 ret = SndBank_SetupFromLoad(load);
                 if (ret == -1) {
-                    SndHeap_Free(load->imageBuffer);
+                    sndHeapFree(load->imageBuffer);
                 }
                 break;
             default:
@@ -2325,9 +2325,9 @@ void SndLoad_Teardown(void)
     state      = &SndLoad_State;
     if (state->phase != SOUND_LOAD_PHASE_WAIT_FAIL) {
         state->phase = SOUND_LOAD_PHASE_TORN_DOWN;
-        SndHeap_Free(state->imageBuffer);
+        sndHeapFree(state->imageBuffer);
         state->imageBuffer = 0;
-        Snd_FreeBank(state->bank);
+        sndBankFree(state->bank);
         state->bank = 0;
     }
 }
@@ -2415,7 +2415,7 @@ s32 SndBank_FinalizeLoad(SndLoadState* load)
         bankLayer->waveAddr += base;
         bankLayer++;
     }
-    Snd_BuildGroupIndex(song->bank);
+    sndBankBuildLayerIndex(song->bank);
     gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
     load->bank        = 0;
     load->imageBuffer = 0;
@@ -2445,7 +2445,7 @@ static void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2)
             }
             break;
     }
-    return SndHeap_Malloc(arg2);
+    return sndHeapAlloc(arg2);
 }
 
 static s32 SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2)

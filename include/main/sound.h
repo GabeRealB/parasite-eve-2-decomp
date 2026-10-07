@@ -53,7 +53,13 @@ enum {
 /// uses gains 120, 0, 120, 0 in `CdlATV` order.
 void sndOutputSetStereo(s32 enabled);
 
-s32 LinInterp_Apply(LinInterp* ramp, s32 arg1);
+/// Applies a ramp's normalized gain to a playback level, or bypasses scaling.
+///
+/// With LINEAR_INTERPOLATOR_SCALE, the unsigned 32-bit product of level and gain
+/// is divided by 65535; callers use nonnegative audio levels whose product fits.
+/// At the endpoint this also clears the step, retaining the gain and scaling.
+/// Other enabled values return level unchanged. The ramp remains caller-owned.
+s32 linInterpApply(LinInterp* ramp, s32 level);
 
 /// Admission failures shared by MIDI start and stop requests.
 enum {

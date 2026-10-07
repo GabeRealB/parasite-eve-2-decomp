@@ -932,7 +932,7 @@ descending, because `SZ3` grows with distance and negating Y does not touch Z.
   | Offset | Field |
   |--------|--------|
   | 0 | `u32` `tag`, the `hSPK` FourCC `0x4B505368`; the loader copies it and does not validate it |
-  | 4 | `u16` `bankId` (high nibble = bank type for `Snd_AllocBank`) |
+  | 4 | `u16` `bankId` (high nibble = bank type for `sndBankAllocTables`) |
   | 6 | `u8` `imageKind` (`SOUND_BANK_IMAGE_SEQUENCE` 0, `SOUND_BANK_IMAGE_SCRIPT` 2) |
   | 7 | `u8` `groupCount` |
   | 8 | `u8` `layerCount` (sample-layer records; copied to `SndBank::layerCount`) |

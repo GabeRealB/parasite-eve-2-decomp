@@ -526,7 +526,7 @@ static s32 SndVoice_Tick(_SndVoice* voice);
 
 static s32 SndScript_TickVoices(_SndScript* script);
 
-static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, _SndVoice* voice, LinInterp* ramp, s16* arg4);
+static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, _SndVoice* voice, LinInterp* ramp, SpuVolume* panVolumes);
 
 static void SndVoice_SetupEnvelope(_SndVoice* voice, s16 envelopeOffset, u32 pitch, SndBankLayer* bankLayer);
 
@@ -585,7 +585,7 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
     temp_v1 = (s8)D_80082135;
     switch (temp_v1) {
         case 0:
-            Snd_FreeBank(&Snd_Banks[4]);
+            sndBankFree(&Snd_Banks[4]);
             SndBankSlot_Free(4);
         case 1:
             D_80082122 = 0;
@@ -600,13 +600,13 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
     SndLoad_State.bank        = 0;
     D_8008212C                = D_80082122;
     D_80082121                = D_80082135;
-    Snd_FreeBank(var_s0);
-    Snd_FreeBank(var_s0 + 6);
-    Snd_FreeBank(var_s0 + 4);
+    sndBankFree(var_s0);
+    sndBankFree(var_s0 + 6);
+    sndBankFree(var_s0 + 4);
     SndBankSlot_Free(5);
-    Snd_FreeBank(var_s0 + 5);
+    sndBankFree(var_s0 + 5);
     SndBankSlot_Free(6);
-    Snd_FreeBank(var_s0 + 2);
+    sndBankFree(var_s0 + 2);
     SndBankSlot_Free(3);
     SndBank_SetEnableFlags(1, 0x40000000);
 }
@@ -779,7 +779,7 @@ static void Snd_ClearBusy(void)
 static void Snd_SetBusyFlag(s32 arg0)
 {
     if (arg0 == 0) {
-        Snd_FreeBank(&Snd_Banks[12]);
+        sndBankFree(&Snd_Banks[12]);
         D_80082134 = 0;
         return;
     }
@@ -809,8 +809,8 @@ void Snd_PollAsync(s32 unused)
 
 void Snd_RegisterTickCallbacks(void)
 {
-    AudioTick_Insert(Midi_Tick, NULL, 0x4800, NULL);
-    AudioTick_Insert(SndVoice_DriveSlots, NULL, 0x8800, NULL);
+    audioTickInsert(Midi_Tick, NULL, AUDIO_TICK_ID_MIDI, NULL);
+    audioTickInsert(SndVoice_DriveSlots, NULL, AUDIO_TICK_ID_SOUND_SCRIPTS, NULL);
     D_80082130 = 0x3D010;
     D_80082128 = 0x63810;
     D_80082124 = D_80082128;
@@ -905,11 +905,11 @@ s32 Snd_InitBanks(u32 unused)
         bankSlot->bank                  = bank;
         bankSlot->bankId                = id;
         bank->bankId                    = entry->bankId;
-        bankSlot->bank->heapBlock       = SndHeap_Malloc(entry->tableBytes);
+        bankSlot->bank->heapBlock       = sndHeapAlloc(entry->tableBytes);
         bankSlot->bank->groups          = bankSlot->bank->heapBlock;
         bankSlot->bank->layers          = bankSlot->bank->heapBlock;
         bankSlot->bank->groupFirstLayer = bankSlot->bank->heapBlock;
-        bankSlot->image                 = SndHeap_Malloc(entry->imageBytes);
+        bankSlot->image                 = sndHeapAlloc(entry->imageBytes);
         bankSlot->spuAddr               = entry->spuAddr;
     }
 
@@ -1194,7 +1194,7 @@ s32 SndScript_StopMatching(s32 arg0, s32 arg1)
                 case SOUND_SCRIPT_RUNNING:
                     if (arg1 != 0) {
                         if (arg1 != SOUND_SCRIPT_KEEP_RELEASE) {
-                            LinInterp_Setup(&p->volumeRamp, (u8)D_80082748, 0, arg1);
+                            linInterpSetup(&p->volumeRamp, (u8)D_80082748, 0, arg1);
                             p->state = SOUND_SCRIPT_FADING_OUT;
                             break;
                         }
@@ -1245,7 +1245,7 @@ static void SndVoice_StepMasterLevel(void)
 static s32 SndVoice_DriveSlots(s32* unused)
 {
     SpuVoiceRef   ref;
-    s16           vol[2];
+    SpuVolume     panVolumes;
     SpuVoiceAttr* attr;
     _SndScript*   p;
     _SndVoice*    node;
@@ -1285,7 +1285,7 @@ static s32 SndVoice_DriveSlots(s32* unused)
                     p->state = SOUND_SCRIPT_STOPPING;
                     goto stop;
                 }
-                LinInterp_Step(&p->volumeRamp);
+                linInterpStep(&p->volumeRamp);
                 p->mixDirty = 1;
                 /* fallthrough */
             case SOUND_SCRIPT_RUNNING:
@@ -1349,9 +1349,9 @@ static s32 SndVoice_DriveSlots(s32* unused)
                         if (p->mixDirty == 1) {
                             Spu_GetVoiceRef(node->spuVoice, &ref);
                             attr = ref.attr;
-                            SndVoice_ScaleVolume(p->panOffset, p->attenuation, node, &p->volumeRamp, vol);
-                            attr->volume.left   = vol[0];
-                            attr->volume.right  = vol[1];
+                            SndVoice_ScaleVolume(p->panOffset, p->attenuation, node, &p->volumeRamp, &panVolumes);
+                            attr->volume.left   = panVolumes.left;
+                            attr->volume.right  = panVolumes.right;
                             attr->volmode.left  = 0;
                             attr->volmode.right = 0;
                             attr->mask         |= 0xF;
@@ -1366,13 +1366,13 @@ static s32 SndVoice_DriveSlots(s32* unused)
                 break;
 
             case SOUND_SCRIPT_MUTING:
-                LinInterp_Step(&p->volumeRamp);
+                linInterpStep(&p->volumeRamp);
                 p->mixDirty = 1;
                 goto update;
 
             case SOUND_SCRIPT_UNMUTING:
                 p->mixDirty = 1;
-                LinInterp_Step(&p->volumeRamp);
+                linInterpStep(&p->volumeRamp);
                 if (p->volumeRamp.gain == p->volumeRamp.targetGain) {
                     p->state = SOUND_SCRIPT_RUNNING;
                     goto run;
@@ -1555,7 +1555,7 @@ static s32 SndScript_Exec(_SndScript* script)
         SOUND_BANK_KEY_FRACTION_BITS = 7
     };
     SpuVoiceRef     voiceRef;
-    s16             volume[2];
+    SpuVolume       panVolumes;
     _SndScriptCmd*  cmd;
     _SndScriptNote* note;
     _SndVoice*      voice;
@@ -1644,7 +1644,7 @@ static s32 SndScript_Exec(_SndScript* script)
             if (voice != NULL) {
                 bankSlot = script->bankSlot;
                 if (note->bankId != 0) {
-                    bank = Snd_FindBank(note->bankId);
+                    bank = sndBankFind(note->bankId);
                     if (bank == 0) {
                         // Not loaded yet: release the voice and retry this command.
                         voice->allocated = 0;
@@ -1701,9 +1701,9 @@ static s32 SndScript_Exec(_SndScript* script)
                     Spu_EnableReverbVoice(voice->spuVoice);
                     voice->field_1 = 1;
                 }
-                SndVoice_ScaleVolume(script->panOffset, script->attenuation, voice, &script->volumeRamp, volume);
-                attr->volume.left   = volume[0];
-                attr->volume.right  = volume[1];
+                SndVoice_ScaleVolume(script->panOffset, script->attenuation, voice, &script->volumeRamp, &panVolumes);
+                attr->volume.left   = panVolumes.left;
+                attr->volume.right  = panVolumes.right;
                 attr->volmode.left  = 0;
                 attr->volmode.right = 0;
                 attr->mask          = 0x6009F;
@@ -1864,12 +1864,12 @@ void SndVoice_FadeMatching(s32 arg0, s32 arg1)
             if (arg1 == 0) {
                 if (p->state == SOUND_SCRIPT_MUTING) {
                     p->state = SOUND_SCRIPT_UNMUTING;
-                    LinInterp_Setup(&p->volumeRamp, 0, (u8)D_80082748, 8);
+                    linInterpSetup(&p->volumeRamp, 0, (u8)D_80082748, 8);
                 }
             } else {
                 if (p->state & SOUND_SCRIPT_MUTABLE) {
                     p->state = SOUND_SCRIPT_MUTING;
-                    LinInterp_Setup(&p->volumeRamp, (u8)D_80082748, 0, 8);
+                    linInterpSetup(&p->volumeRamp, (u8)D_80082748, 0, 8);
                 }
             }
         }
@@ -2297,7 +2297,7 @@ void SndBankSlot_Free(s32 arg0)
     if ((u8)arg0 < ARRAY_SIZE(_gSndBankSlots)) {
         base = _gSndBankSlots;
         slot = &base[(s8)arg0];
-        SndHeap_Free(slot->image);
+        sndHeapFree(slot->image);
         slot->bankId = SOUND_BANK_SLOT_ID_FREE;
         slot->image  = NULL;
     }
@@ -2423,7 +2423,7 @@ static s32 SndScript_TickVoices(_SndScript* script)
     return count;
 }
 
-static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, _SndVoice* voice, LinInterp* ramp, s16* arg4)
+static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, _SndVoice* voice, LinInterp* ramp, SpuVolume* panVolumes)
 {
     s32 vol;
 
@@ -2431,8 +2431,8 @@ static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, _SndVoice* voice, LinInterp* 
         vol = 0x7F - abs(arg1);
         vol = voice->scaledVolume * abs(vol) / 127;
         vol = (vol < 0x80) ? ((vol < 0) ? 0 : vol) : 0x7F;
-        Spu_ApplyPanVolume(arg4, (s8)voice->basePan + arg0 * 3,
-                           LinInterp_Apply(ramp, Snd_VelocityGainTable[vol]));
+        spuCalcPanVolumes(panVolumes, (s8)voice->basePan + arg0 * 3,
+                          linInterpApply(ramp, Snd_VelocityGainTable[vol]));
     }
 }
 

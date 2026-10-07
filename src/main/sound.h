@@ -85,23 +85,84 @@ void Spu_WaitDma(void);
 
 void Audio_IrqFrameWork(void);
 
-SndBank* Snd_AllocBank(SndBankPayload* payload);
+/// Reserves a bank descriptor's program, layer and first-layer tables for a load.
+///
+/// The high nibble of `payload->bankId` selects the descriptor slot; unsupported
+/// types return NULL. Type 4 uses the active upload slot. Non-sequence loads
+/// release the slot's prior tables before allocating, so failure can leave it
+/// free. Type F reuses retained sequence storage when available, which must be
+/// large enough for all three tables. Types 2, E and F reserve minimum capacities.
+/// The returned descriptor is borrowed; counts, id and table contents are filled
+/// by the loader. NULL also reports allocation failure. `payload` is not retained.
+SndBank* sndBankAllocTables(const SndBankPayload* payload);
 
-void* SndHeap_Malloc(size_t);
+/// Allocates a 4-byte-aligned payload from the sound heap, or returns NULL.
+///
+/// `payloadBytes` excludes the private block header. The header and payload are
+/// rounded up together; a remainder no larger than a header stays in the block.
+/// Zero bytes still reserve a block. The request plus header and alignment must
+/// fit in size_t without wrapping. Storage lasts until `sndHeapFree` or a sound
+/// system reset. Call with sound-heap operations serialized against audio updates.
+void* sndHeapAlloc(size_t payloadBytes);
 
-void SndHeap_Free(void* ptr);
+/// Releases a sound-heap payload and coalesces adjacent free blocks.
+///
+/// NULL is accepted; otherwise `payload` must be a live result of `sndHeapAlloc`.
+/// The numeric range check includes the buffer's end and does not validate an
+/// arbitrary pointer. The allocation flag is cleared before either recognized
+/// header marker is checked. Call with sound-heap operations serialized.
+void sndHeapFree(void* payload);
 
-void Snd_FreeBank(SndBank* bank);
+/// Releases a non-sequence bank's table block and marks its descriptor free.
+///
+/// NULL and type-F descriptors are left alone, including the free-id sentinel.
+/// Groups, layers and first-layer indices become NULL; their borrowed pointers
+/// cease to be valid. Separate script/sequence images and SPU samples are not
+/// released here. Counts and the SPU base remain stored in the descriptor.
+void sndBankFree(SndBank* bank);
 
-SndBank* Snd_FindBank(u16 bankId);
+/// Finds the first descriptor with the exact bank id, or returns NULL.
+///
+/// `SOUND_BANK_ID_FREE` requests bank 0 rather than finding an unused slot.
+/// The result is a borrowed, stable descriptor; reload/reset replaces its
+/// contents. Finding it does not prove that its tables have finished loading.
+/// No bank-type-only matching is performed.
+SndBank* sndBankFind(u16 bankId);
 
-void Snd_BuildGroupIndex(SndBank* bank);
+/// Builds each program's first-layer offset, measured in SndBankLayer elements.
+///
+/// A NULL `groupFirstLayer` skips the build. Otherwise it must hold at least
+/// max(1, groupCount) writable u16 entries: entry zero is always written, even
+/// for zero groups. Nonempty banks require groupCount readable program records;
+/// each following index sums the preceding programs' layer counts.
+void sndBankBuildLayerIndex(SndBank* bank);
 
-void LinInterp_Setup(LinInterp* ramp, s32 arg1, s32 arg2, s32 arg3);
+/// Initializes a normalized fade direction from two low-byte level selectors.
+///
+/// Only the selectors' ordering matters: increasing selects 0 -> 65535,
+/// decreasing selects 65535 -> 0. Equal selectors or zero updateCount bypass
+/// scaling and clear the gains and step, leaving direction unchanged.
+/// The signed step is 65535 / updateCount, truncated toward zero. Positive
+/// counts 1..65535 advance the fade; larger counts hold it, and negative counts
+/// retain the signed quotient and the step routine's unsigned gain arithmetic.
+/// Each caller determines what one update means; rounding can extend a fade.
+void linInterpSetup(LinInterp* ramp, s32 startLevel, s32 endLevel, s32 updateCount);
 
-void LinInterp_Step(LinInterp* ramp);
+/// Advances a ramp by one step and clamps its gain toward its selected endpoint.
+///
+/// A zero step holds the gain; enabled does not gate stepping. Signed step
+/// participates in unsigned gain arithmetic. Reaching the endpoint leaves the
+/// step stored until `linInterpApply` clears it. The caller supplies the clock.
+void linInterpStep(LinInterp* ramp);
 
-void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2);
+/// Calculates left/right direct SPU volumes for the current output selection.
+///
+/// `pan` is signed: <=1 is fully left, 64 is centre, >=127 is fully right.
+/// Q12 table gains scale a nonnegative `volume` in SPU volume units; each output
+/// saturates at 16383. Mono sums the stereo gains and applies the centre gain
+/// before writing equal channels. Products retain their 32-bit arithmetic.
+/// `volumes` is caller-owned output; no SPU attribute is submitted here.
+void spuCalcPanVolumes(SpuVolume* volumes, s16 pan, s32 volume);
 
 /// Returns the resident output selection (0 mono, 1 stereo).
 ///
@@ -316,7 +377,30 @@ void AsyncCb_Reset(void);
 
 void Spu_InitVoices(void);
 
-s32 AudioTick_Insert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32* arg);
+/// Results of registering an audio-update poll.
+enum {
+    AUDIO_TICK_INSERTED     = 0,
+    AUDIO_TICK_NO_MEMORY    = -1,
+    AUDIO_TICK_DUPLICATE_ID = -2
+};
+
+/// Driver registration ids; their ordering runs MIDI, scripts, then reverb warmup.
+enum {
+    AUDIO_TICK_ID_MIDI          = 0x4800,
+    AUDIO_TICK_ID_SOUND_SCRIPTS = 0x8800,
+    AUDIO_TICK_ID_REVERB_WARMUP = 0x8801
+};
+
+/// Registers an audio-update poll under a unique ascending unsigned 16-bit id.
+///
+/// NULL poll and removal handlers are accepted. `pollArg` is passed unchanged
+/// to each poll and must outlive the registration; the driver neither reads nor
+/// frees it. A poll returning -1 ends registration and invokes onRemove first.
+/// Removed nodes remain allocated until a sound-system reset. An audio update
+/// arriving while the list is disabled skips all polls. This guard does not
+/// serialize concurrent list edits; callers must serialize registrations.
+/// Returns AUDIO_TICK_INSERTED, AUDIO_TICK_NO_MEMORY or AUDIO_TICK_DUPLICATE_ID.
+s32 audioTickInsert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32* pollArg);
 
 /// Discards all sound-event reservations and commands, then enables queue draining.
 ///

@@ -146,19 +146,49 @@ void func_807257A0(Task* arg0);
 
 static void Spu_InitSystem(s32 arg0);
 
-static void Snd_ClearBanks(void);
+static void _sndBankResetDescriptors(void);
 
-static void SndHeap_Reset(void);
+static void _sndHeapReset(void);
 
 static long Spu_TimerCallback(void);
 
 static s32 Spu_TimerReentryWork(void);
 
-static void AudioTick_Reset(void);
+static void _audioTickReset(void);
 
-static void AudioTick_Process(void);
+static void _audioTickProcess(void);
 
-static _AudioTickNode* AudioTick_Remove(_AudioTickNode* arg0);
+static _AudioTickNode* _audioTickRemove(_AudioTickNode* node);
+
+// A poll's completion result; every other result keeps its registration.
+enum { AUDIO_TICK_POLL_FINISHED = -1 };
+
+/// Links a free remainder after its block and reserves the leading block.
+static inline void _sndHeapSplitBlock(_SndHeapBlockHeader* block, _SndHeapBlockHeader* remainder, size_t blockBytes, size_t remainderBytes)
+{
+    remainder->size        = remainderBytes;
+    remainder->magic       = SNDHEAP_MAGIC;
+    remainder->isAllocated = false;
+    if (block->next == NULL) {
+        remainder->next = NULL;
+    } else {
+        block->next->prev = remainder;
+        remainder->next   = block->next;
+    }
+    block->next        = remainder;
+    remainder->prev    = block;
+    block->size        = blockBytes;
+    block->isAllocated = true;
+}
+
+/// Unlinks a registration while retaining its node and argument allocations.
+static inline void _audioTickUnlinkNode(_AudioTickNode* previous, _AudioTickNode* node)
+{
+    previous->next = node->next;
+    if (node->next != NULL) {
+        node->next->prev = previous;
+    }
+}
 
 TaskDesc D_80067828[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -377,21 +407,21 @@ static inline void Spu_InitSystemLocked(s32 arg0)
             return;
     }
 
-    SndHeap_Reset();
+    _sndHeapReset();
     sndEvtReset();
     AsyncCb_Reset();
     Spu_ConfigReverb(3);
     Spu_InitVoices();
-    Snd_ClearBanks();
-    AudioTick_Reset();
+    _sndBankResetDescriptors();
+    _audioTickReset();
     Snd_RegisterTickCallbacks();
     Snd_InitBanks(0);
     Midi_InitSystem(0);
 
-    temp_v0  = SndHeap_Malloc(4);
+    temp_v0  = sndHeapAlloc(4);
     *temp_v0 = 0;
 
-    AudioTick_Insert(&Snd_ReverbWarmupCb, NULL, 0x8801, temp_v0);
+    audioTickInsert(&Snd_ReverbWarmupCb, NULL, AUDIO_TICK_ID_REVERB_WARMUP, temp_v0);
     if (D58028_SpuTimerEnabled) {
         DisableEvent(D648E0_SpuTimerED);
         CloseEvent(D648E0_SpuTimerED);
@@ -424,66 +454,73 @@ static void Spu_InitSystem(s32 arg0)
     D_800680C0 = 1;
 }
 
-SndBank* Snd_AllocBank(SndBankPayload* payload)
+SndBank* sndBankAllocTables(const SndBankPayload* payload)
 {
     // These bank types reserve a minimum table block, in bytes, even for smaller loads.
     enum {
         SOUND_BANK_TYPE_2_MIN_TABLE_BYTES  = 0xCE,
-        SOUND_BANK_TYPE_14_MIN_TABLE_BYTES = 0x78
+        SOUND_BANK_TYPE_14_MIN_TABLE_BYTES = 0x78,
+        SOUND_BANK_TYPE_2                  = 0x2000,
+        SOUND_BANK_TYPE_4                  = 0x4000,
+        SOUND_BANK_TYPE_14                 = 0xE000,
+        SOUND_BANK_TYPE_4_FIRST_SLOT       = 4,
+        SOUND_BANK_SLOT_UNSUPPORTED        = -1
     };
     SndBank* bank;
-    s32      size;
-    u8*      heap;
-    u16      type  = payload->bankId & SOUND_BANK_TYPE_MASK;
-    s32      entry = Snd_BankSlotsByType[type >> 12];
-    s8       slot  = entry;
+    s32      tableBytes;
+    u8*      tableCursor;
+    u16      bankType       = payload->bankId & SOUND_BANK_TYPE_MASK;
+    s32      mappedSlot     = Snd_BankSlotsByType[bankType >> 12];
+    s8       descriptorSlot = mappedSlot;
 
-    if (entry == -1) {
+    if (mappedSlot == SOUND_BANK_SLOT_UNSUPPORTED) {
         return NULL;
     }
 
-    if (type == 0x4000) {
-        slot = D_80082122 + 4;
+    if (bankType == SOUND_BANK_TYPE_4) {
+        descriptorSlot = D_80082122 + SOUND_BANK_TYPE_4_FIRST_SLOT;
     }
 
-    if (type == SOUND_BANK_TYPE_SEQUENCE && Snd_SequenceBankBuffer != 0) {
-        bank            = &Snd_Banks[slot];
+    // Sequence reloads retain their table block; other slots release theirs first.
+    if (bankType == SOUND_BANK_TYPE_SEQUENCE && Snd_SequenceBankBuffer != NULL) {
+        bank            = &Snd_Banks[descriptorSlot];
         bank->heapBlock = Snd_SequenceBankBuffer;
     } else {
-        bank = &Snd_Banks[slot];
-        Snd_FreeBank(bank);
+        bank = &Snd_Banks[descriptorSlot];
+        sndBankFree(bank);
 
-        size = (payload->layerCount * (s32)(sizeof(*bank->layers) / sizeof(u32)) + payload->groupCount * (s32)(sizeof(*bank->groups) / sizeof(u32))) * (s32)sizeof(u32) + payload->groupCount * (s32)sizeof(*bank->groupFirstLayer);
+        tableBytes = payload->groupCount * (s32)sizeof(*bank->groups) + payload->layerCount * (s32)sizeof(*bank->layers) + payload->groupCount * (s32)sizeof(*bank->groupFirstLayer);
 
         switch (payload->bankId & SOUND_BANK_TYPE_MASK) {
-            case 0x2000:
-                if (size < SOUND_BANK_TYPE_2_MIN_TABLE_BYTES + 1) {
-                    size = SOUND_BANK_TYPE_2_MIN_TABLE_BYTES;
+            case SOUND_BANK_TYPE_2:
+                if (tableBytes < SOUND_BANK_TYPE_2_MIN_TABLE_BYTES + 1) {
+                    tableBytes = SOUND_BANK_TYPE_2_MIN_TABLE_BYTES;
                 }
                 break;
-            case 0xE000:
-                if (size < SOUND_BANK_TYPE_14_MIN_TABLE_BYTES + 1) {
-                    size = SOUND_BANK_TYPE_14_MIN_TABLE_BYTES;
+            case SOUND_BANK_TYPE_14:
+                if (tableBytes < SOUND_BANK_TYPE_14_MIN_TABLE_BYTES + 1) {
+                    tableBytes = SOUND_BANK_TYPE_14_MIN_TABLE_BYTES;
                 }
                 break;
             case SOUND_BANK_TYPE_SEQUENCE:
-                if (size < SOUND_BANK_SEQUENCE_TABLE_BYTES + 1) {
-                    size = SOUND_BANK_SEQUENCE_TABLE_BYTES;
+                if (tableBytes < SOUND_BANK_SEQUENCE_TABLE_BYTES + 1) {
+                    tableBytes = SOUND_BANK_SEQUENCE_TABLE_BYTES;
                 }
                 break;
         }
 
-        bank->heapBlock = SndHeap_Malloc(size);
+        bank->heapBlock = sndHeapAlloc(tableBytes);
         if (bank->heapBlock == NULL) {
             return NULL;
         }
     }
 
-    heap                  = bank->heapBlock;
+    // Tables share one allocation: programs, sample layers, then element indices.
+    tableCursor           = bank->heapBlock;
     bank->groups          = bank->heapBlock;
-    heap                 += payload->groupCount * (s32)sizeof(*bank->groups);
-    bank->layers          = (SndBankLayer*)heap;
-    bank->groupFirstLayer = (u16*)(heap + payload->layerCount * (s32)sizeof(*bank->layers));
+    tableCursor          += payload->groupCount * (s32)sizeof(*bank->groups);
+    bank->layers          = (SndBankLayer*)tableCursor;
+    bank->groupFirstLayer = (u16*)(tableCursor + payload->layerCount * (s32)sizeof(*bank->layers));
     return bank;
 }
 
@@ -503,7 +540,7 @@ void Audio_IrqFrameWork(void)
         D_800680C0 = 0;
         Spu_TickVoices();
         SndEvt_Process();
-        AudioTick_Process();
+        _audioTickProcess();
         Spu_FlushVoiceUpdates();
         D_800680BC += 1;
         if (gDisplayState.region == MODE_PAL) {
@@ -515,38 +552,43 @@ void Audio_IrqFrameWork(void)
     }
 }
 
-static void Snd_ClearBanks(void)
+/// Clears every bank descriptor and forgets retained sequence storage.
+///
+/// The sound heap has already been reset; this does not free table blocks.
+static void _sndBankResetDescriptors(void)
 {
-    s32      i;
-    s32*     p;
-    SndBank* ptr;
-    u16      flag;
+    s32      wordIndex;
+    s32*     words;
+    s32      bankIndex;
+    SndBank* bank;
+    u16      freeId;
 
-    p = (s32*)Snd_Banks;
-    i = 0;
+    // Clear the complete descriptor array with word stores before marking ids free.
+    words     = (s32*)Snd_Banks;
+    wordIndex = 0;
     do {
-        *p = 0;
-        i++;
-        p++;
-    } while ((u32)i < sizeof(Snd_Banks) / sizeof(*p));
+        *words = 0;
+        wordIndex++;
+        words++;
+    } while ((u32)wordIndex < sizeof(Snd_Banks) / sizeof(*words));
 
-    flag = SOUND_BANK_ID_FREE;
-    i    = ARRAY_SIZE(Snd_Banks) - 1;
-    ptr  = Snd_Banks;
-    ptr += ARRAY_SIZE(Snd_Banks) - 1;
+    freeId    = SOUND_BANK_ID_FREE;
+    bankIndex = ARRAY_SIZE(Snd_Banks) - 1;
+    bank      = Snd_Banks;
+    bank     += ARRAY_SIZE(Snd_Banks) - 1;
     do {
-        ptr->bankId = flag;
-        i--;
-        ptr--;
-    } while (i >= 0);
+        bank->bankId = freeId;
+        bankIndex--;
+        bank--;
+    } while (bankIndex >= 0);
 
-    Snd_SequenceBankBuffer = 0;
+    Snd_SequenceBankBuffer = NULL;
 }
 
-void Snd_FreeBank(SndBank* bank)
+void sndBankFree(SndBank* bank)
 {
     if ((bank != NULL) && ((bank->bankId & SOUND_BANK_TYPE_MASK) != SOUND_BANK_TYPE_SEQUENCE)) {
-        SndHeap_Free(bank->heapBlock);
+        sndHeapFree(bank->heapBlock);
         bank->heapBlock       = NULL;
         bank->groups          = NULL;
         bank->layers          = NULL;
@@ -556,62 +598,63 @@ void Snd_FreeBank(SndBank* bank)
     }
 }
 
-SndBank* Snd_FindBank(u16 bankId)
+SndBank* sndBankFind(u16 bankId)
 {
-    s32      i;
-    SndBank* ptr;
-    s32      id;
+    s32      bankIndex;
+    SndBank* bank;
+    s32      lookupId;
 
     if (bankId == SOUND_BANK_ID_FREE) {
         bankId = 0;
     }
-    id = bankId;
+    lookupId = bankId;
 
-    for (i = 0, ptr = Snd_Banks; i < ARRAY_SIZE(Snd_Banks); i++, ptr++) {
-        if (ptr->bankId == id) {
-            return ptr;
+    for (bankIndex = 0, bank = Snd_Banks; bankIndex < ARRAY_SIZE(Snd_Banks); bankIndex++, bank++) {
+        if (bank->bankId == lookupId) {
+            return bank;
         }
     }
     return NULL;
 }
 
-void Snd_BuildGroupIndex(SndBank* bank)
+void sndBankBuildLayerIndex(SndBank* bank)
 {
-    u16*          table;
+    u16*          layerIndex;
     SndBankGroup* group;
-    s32           i;
-    u8            count;
+    s32           groupCountdown;
+    u8            groupCount;
 
-    table = bank->groupFirstLayer;
-    if (table != NULL) {
-        group  = bank->groups;
-        *table = 0;
-        count  = bank->groupCount;
-        table++;
-        i = count - 1;
-        if (i > 0) {
-            i = count - 2;
-            if (i != -1) {
+    layerIndex = bank->groupFirstLayer;
+    if (layerIndex != NULL) {
+        group       = bank->groups;
+        *layerIndex = 0;
+        groupCount  = bank->groupCount;
+        layerIndex++;
+        groupCountdown = groupCount - 1;
+        if (groupCountdown > 0) {
+            groupCountdown = groupCount - 2;
+            if (groupCountdown != -1) {
                 do {
-                    *table = table[-1] + group->layerCount;
+                    *layerIndex = layerIndex[-1] + group->layerCount;
                     group++;
-                    i--;
-                    table++;
-                } while (i != -1);
+                    groupCountdown--;
+                    layerIndex++;
+                } while (groupCountdown != -1);
             }
         }
     }
 }
 
-void LinInterp_Setup(LinInterp* ramp, s32 arg1, s32 arg2, s32 arg3)
+void linInterpSetup(LinInterp* ramp, s32 startLevel, s32 endLevel, s32 updateCount)
 {
-    s32 temp;
-    s32 limit;
+    enum { LINEAR_INTERPOLATOR_LEVEL_MASK = 0xFF };
+    s32 levelDelta;
+    s32 unityGain;
 
-    arg1 &= 0xFF;
-    arg2 &= 0xFF;
+    startLevel &= LINEAR_INTERPOLATOR_LEVEL_MASK;
+    endLevel   &= LINEAR_INTERPOLATOR_LEVEL_MASK;
 
-    if (arg1 == arg2 || arg3 == 0) {
+    if (startLevel == endLevel || updateCount == 0) {
         ramp->step       = 0;
         ramp->targetGain = 0;
         ramp->gain       = 0;
@@ -619,36 +662,34 @@ void LinInterp_Setup(LinInterp* ramp, s32 arg1, s32 arg2, s32 arg3)
         return;
     }
 
-    limit      = LINEAR_INTERPOLATOR_UNITY_GAIN;
-    ramp->step = limit / arg3;
-    temp       = arg2 - arg1;
-    if (temp < 0) {
+    // Select normalized endpoints; selector magnitudes are not ramp gains.
+    unityGain  = LINEAR_INTERPOLATOR_UNITY_GAIN;
+    ramp->step = unityGain / updateCount;
+    levelDelta = endLevel - startLevel;
+    if (levelDelta < 0) {
         ramp->direction  = LINEAR_INTERPOLATOR_DECREASING;
-        ramp->gain       = limit;
+        ramp->gain       = unityGain;
         ramp->targetGain = 0;
     } else {
         ramp->direction  = LINEAR_INTERPOLATOR_INCREASING;
         ramp->gain       = 0;
-        ramp->targetGain = limit;
+        ramp->targetGain = unityGain;
     }
     ramp->enabled = LINEAR_INTERPOLATOR_SCALE;
 }
 
-s32 LinInterp_Apply(LinInterp* ramp, s32 arg1)
+s32 linInterpApply(LinInterp* ramp, s32 level)
 {
-    s32 var_a1;
-
-    var_a1 = arg1;
     if (ramp->enabled == LINEAR_INTERPOLATOR_SCALE) {
         if (ramp->gain == ramp->targetGain) {
             ramp->step = 0;
         }
-        var_a1 = (s32)((var_a1 * ramp->gain) / LINEAR_INTERPOLATOR_UNITY_GAIN);
+        level = (s32)((level * ramp->gain) / LINEAR_INTERPOLATOR_UNITY_GAIN);
     }
-    return var_a1;
+    return level;
 }
 
-void LinInterp_Step(LinInterp* ramp)
+void linInterpStep(LinInterp* ramp)
 {
     s32 step = ramp->step;
 
@@ -668,127 +709,135 @@ void LinInterp_Step(LinInterp* ramp)
     }
 }
 
-void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2)
+void spuCalcPanVolumes(SpuVolume* volumes, s16 pan, s32 volume)
 {
+    enum {
+        SPU_PAN_MAX                = 127,
+        SPU_PAN_TABLE_LAST_INDEX   = SPU_PAN_MAX - 1,
+        SPU_PAN_TABLE_CENTER_INDEX = SPU_PAN_TABLE_LAST_INDEX / 2,
+        SPU_PAN_GAIN_FRACTION_BITS = 12,
+        SPU_DIRECT_VOLUME_MAX      = 0x3FFF
+    };
     s16 index;
     u32 left;
     u32 right;
 
-    if (arg1 > 0) {
-        index = arg1 - 1;
-        if (arg1 >= 0x80) {
-            index = 0x7E;
+    if (pan > 0) {
+        index = pan - 1;
+        if (pan > SPU_PAN_MAX) {
+            index = SPU_PAN_TABLE_LAST_INDEX;
         }
     } else {
         index = 0;
     }
 
-    left  = (u32)(arg2 * Snd_PanGainTable[index]) >> 0xC;
-    right = (u32)(arg2 * Snd_PanGainTable[0x7E - index]) >> 0xC;
+    left  = (u32)(volume * Snd_PanGainTable[index]) >> SPU_PAN_GAIN_FRACTION_BITS;
+    right = (u32)(volume * Snd_PanGainTable[SPU_PAN_TABLE_LAST_INDEX - index]) >> SPU_PAN_GAIN_FRACTION_BITS;
 
+    // Mono folds both gains through the same centre-pan attenuation.
     if (!sndOutputIsStereo()) {
-        right = (u32)((left + right) * Snd_PanGainTable[0x3F]) >> 0xC;
+        right = (u32)((left + right) * Snd_PanGainTable[SPU_PAN_TABLE_CENTER_INDEX]) >> SPU_PAN_GAIN_FRACTION_BITS;
         left  = right;
     }
 
-    if (left < 0x4000U) {
-        arg0[0] = (s16)left;
+    if (left < SPU_DIRECT_VOLUME_MAX + 1U) {
+        volumes->left = (s16)left;
     } else {
-        arg0[0] = 0x3FFF;
+        volumes->left = SPU_DIRECT_VOLUME_MAX;
     }
 
-    if (right < 0x4000U) {
-        arg0[1] = (s16)right;
+    if (right < SPU_DIRECT_VOLUME_MAX + 1U) {
+        volumes->right = (s16)right;
     } else {
-        arg0[1] = 0x3FFF;
+        volumes->right = SPU_DIRECT_VOLUME_MAX;
     }
 }
 
-s32 AudioTick_Insert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32* arg)
+s32 audioTickInsert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32* pollArg)
 {
     _AudioTickNode* node;
     _AudioTickNode* head;
-    _AudioTickNode* p;
+    _AudioTickNode* previous;
     _AudioTickNode* next;
-    u16             id16;
-    u16             key;
 
-    id16 = id;
-    key  = id16;
     head = &AudioTick_List;
     if (head == NULL) {
-        return -1;
+        return AUDIO_TICK_NO_MEMORY;
     }
+    // Disable polling during allocation and the ordered-id search.
     AudioTick_Enabled = 0;
-    node              = SndHeap_Malloc(sizeof(_AudioTickNode));
+    node              = sndHeapAlloc(sizeof(*node));
     if (node == NULL) {
         AudioTick_Enabled = 1;
-        return -1;
+        return AUDIO_TICK_NO_MEMORY;
     }
     node->poll     = poll;
     node->onRemove = onRemove;
-    node->id       = id16;
-    node->arg      = arg;
+    node->id       = id;
+    node->arg      = pollArg;
     node->prev     = NULL;
     node->next     = NULL;
 
-    p = head;
+    previous = head;
     for (;;) {
-        next = p->next;
+        next = previous->next;
         if (next == NULL) {
-            p->next           = node;
-            node->prev        = p;
+            previous->next    = node;
+            node->prev        = previous;
             node->next        = NULL;
             AudioTick_Enabled = 1;
-            return 0;
+            return AUDIO_TICK_INSERTED;
         }
-        if (next->id == key) {
-            SndHeap_Free(node);
+        if (next->id == id) {
+            sndHeapFree(node);
             AudioTick_Enabled = 1;
-            return -2;
+            return AUDIO_TICK_DUPLICATE_ID;
         }
-        if (key < next->id) {
-            node->next        = next;
-            AudioTick_Enabled = 1;
-            p->next->prev     = node;
-            p->next           = node;
-            node->prev        = p;
-            return 0;
+        if (id < next->id) {
+            node->next           = next;
+            AudioTick_Enabled    = 1;
+            previous->next->prev = node;
+            previous->next       = node;
+            node->prev           = previous;
+            return AUDIO_TICK_INSERTED;
         }
-        p = next;
+        previous = next;
     }
 }
 
-static void SndHeap_Reset(void)
+/// Resets the sound heap to one free block occupying the complete buffer.
+///
+/// Invalidates every prior payload; callers and audio callbacks must be quiescent.
+static void _sndHeapReset(void)
 {
     SndHeap_Start              = (_SndHeapBlockHeader*)SndHeap_Buffer;
-    SndHeap_Start->size        = SNDHEAP_SIZE;
+    SndHeap_Start->size        = sizeof(SndHeap_Buffer);
     SndHeap_Start->magic       = SNDHEAP_START_MAGIC;
     SndHeap_Start->isAllocated = false;
     SndHeap_Start->prev        = NULL;
     SndHeap_Start->next        = NULL;
 }
 
-void* SndHeap_Malloc(size_t size)
+void* sndHeapAlloc(size_t payloadBytes)
 {
     // First fit over the address-ordered chain. Split a free block when the
     // remainder can hold another header; otherwise reserve the whole block and
     // leave its length unchanged. The returned pointer is the payload.
-    size_t               maxBlockSize;
+    enum { SOUND_HEAP_BLOCK_ALIGNMENT = 4 };
+    size_t               maxFreeBlockBytes;
     size_t               newBlockSize;
-    size_t               allocSize;
+    size_t               blockBytes;
     _SndHeapBlockHeader* block;
     _SndHeapBlockHeader* newBlock;
 
-    maxBlockSize = 0;
-
+    maxFreeBlockBytes = 0;
     // Header plus payload, rounded up to the block alignment.
-    allocSize = (size + sizeof(_SndHeapBlockHeader) + 3) & ~3;
+    blockBytes = (payloadBytes + sizeof(_SndHeapBlockHeader) + SOUND_HEAP_BLOCK_ALIGNMENT - 1) & ~(SOUND_HEAP_BLOCK_ALIGNMENT - 1);
 
     for (block = SndHeap_Start; block != NULL; block = block->next) {
         // A header outside the buffer is not a sound-heap block.
-        if (block < (_SndHeapBlockHeader*)SndHeap_Buffer ||
-            (_SndHeapBlockHeader*)&SndHeap_Buffer[SNDHEAP_SIZE] < block) {
+        if ((uintptr)block < (uintptr)SndHeap_Buffer ||
+            (uintptr)(SndHeap_Buffer + sizeof(SndHeap_Buffer)) < (uintptr)block) {
             return NULL;
         }
 
@@ -796,44 +845,31 @@ void* SndHeap_Malloc(size_t size)
             continue;
         }
 
-        // Retained search step. The running maximum is not read again.
-        if (maxBlockSize < block->size) {
-            maxBlockSize = block->size;
+        // The original search retains this running maximum without using the result.
+        if (maxFreeBlockBytes < block->size) {
+            maxFreeBlockBytes = block->size;
         }
 
-        if (block->size >= allocSize) {
-            newBlockSize = block->size - allocSize;
-            newBlock     = (_SndHeapBlockHeader*)((u8*)block + allocSize);
+        if (block->size >= blockBytes) {
+            newBlockSize = block->size - blockBytes;
+            newBlock     = (_SndHeapBlockHeader*)((u8*)block + blockBytes);
 
             // Insert the remainder immediately after this block.
             if (sizeof(_SndHeapBlockHeader) < newBlockSize) {
-                newBlock->size        = newBlockSize;
-                newBlock->magic       = SNDHEAP_MAGIC;
-                newBlock->isAllocated = false;
-
-                if (block->next == NULL) {
-                    newBlock->next = NULL;
-                } else {
-                    block->next->prev = newBlock;
-                    newBlock->next    = block->next;
-                }
-                block->next        = newBlock;
-                newBlock->prev     = block;
-                block->size        = allocSize;
-                block->isAllocated = true;
+                _sndHeapSplitBlock(block, newBlock, blockBytes, newBlockSize);
             } else {
                 block->isAllocated = true;
             }
 
             // The allocated data is located just after the header.
-            return (u8*)(block + 1);
+            return block + 1;
         }
     }
 
     return NULL;
 }
 
-void SndHeap_Free(void* ptr)
+void sndHeapFree(void* payload)
 {
     // Release a payload pointer, or return on NULL. Coalesce with free
     // neighbors so the chain stays in address order.
@@ -841,21 +877,21 @@ void SndHeap_Free(void* ptr)
     uintptr              heapEnd;
     _SndHeapBlockHeader* header;
 
-    if (ptr == NULL) {
+    if (payload == NULL) {
         return;
     }
 
     // Compare numeric addresses because an invalid input may point outside
     // this allocation; relational C pointer comparisons would not be defined.
     // Keep the original inclusive upper-bound test. A valid input is still
-    // required to be a payload returned by SndHeap_Malloc.
+    // required to be a payload returned by sndHeapAlloc.
     heapStart = (uintptr)SndHeap_Buffer;
-    if ((uintptr)ptr < heapStart) {
+    if ((uintptr)payload < heapStart) {
         return;
     }
 
-    heapEnd = heapStart + SNDHEAP_SIZE;
-    if (heapEnd < (uintptr)ptr) {
+    heapEnd = heapStart + sizeof(SndHeap_Buffer);
+    if (heapEnd < (uintptr)payload) {
         return;
     }
 
@@ -863,7 +899,7 @@ void SndHeap_Free(void* ptr)
     // cleared before the recognizer is tested; any other value returns without
     // coalescing, so the flag stays clear. Both sound-heap recognizers take
     // the same merge path.
-    header              = (_SndHeapBlockHeader*)ptr - 1;
+    header              = (_SndHeapBlockHeader*)payload - 1;
     header->isAllocated = false;
     if (header->magic != SNDHEAP_MAGIC && header->magic != SNDHEAP_START_MAGIC) {
         return;
@@ -873,7 +909,6 @@ void SndHeap_Free(void* ptr)
     if (header->prev != NULL && header->prev->isAllocated == false) {
         if (header->next != NULL) {
             header->next->prev = header->prev;
-            header->prev       = header->prev; // Retained; the value does not change.
         }
         header->prev->next  = header->next;
         header->prev->size += header->size;
@@ -912,14 +947,17 @@ static s32 Spu_TimerReentryWork(void)
     }
     D_800680C0 = 0;
     Spu_TickVoices();
-    AudioTick_Process();
+    _audioTickProcess();
     Spu_FlushVoiceUpdates();
     D_800680C0  = 1;
     D_800680BC += 1;
     return 0;
 }
 
-static void AudioTick_Reset(void)
+/// Clears the poll-list sentinel and enables polling for sound-system startup.
+///
+/// Existing nodes are forgotten, not freed; the sound heap was reset first.
+static void _audioTickReset(void)
 {
     AudioTick_List.poll     = NULL;
     AudioTick_List.onRemove = NULL;
@@ -930,7 +968,12 @@ static void AudioTick_Reset(void)
     AudioTick_Enabled       = 1;
 }
 
-static void AudioTick_Process(void)
+/// Polls registrations in ascending id order once for an audio update.
+///
+/// Runs after voice ticks in vertical-blank and PAL timer interrupt work.
+/// A disabled list skips the entire update. Completion unlinks a node and
+/// resumes at its successor without releasing either node or argument storage.
+static void _audioTickProcess(void)
 {
     _AudioTickNode* head;
     _AudioTickNode* node;
@@ -946,8 +989,8 @@ static void AudioTick_Process(void)
                 }
                 poll = node->poll;
                 if (poll != NULL) {
-                    if (poll(node->arg) == -1) {
-                        node = AudioTick_Remove(node);
+                    if (poll(node->arg) == AUDIO_TICK_POLL_FINISHED) {
+                        node = _audioTickRemove(node);
                         continue;
                     }
                 }
@@ -957,34 +1000,37 @@ static void AudioTick_Process(void)
     }
 }
 
-static _AudioTickNode* AudioTick_Remove(_AudioTickNode* arg0)
+/// Unlinks a registered node by id and returns the next node to poll.
+///
+/// Runs its optional removal handler before unlinking, with polling disabled.
+/// Returns NULL when the id is absent. Neither the node nor its argument is
+/// returned to the heap; their storage lasts until sound-system reset.
+static _AudioTickNode* _audioTickRemove(_AudioTickNode* node)
 {
     AudioTickOnRemove onRemove;
     _AudioTickNode*   head;
-    _AudioTickNode*   prev;
-    _AudioTickNode*   curr;
+    _AudioTickNode*   previous;
+    _AudioTickNode*   current;
 
     head              = &AudioTick_List;
-    onRemove          = arg0->onRemove;
+    onRemove          = node->onRemove;
     AudioTick_Enabled = 0;
     if (onRemove != NULL) {
         onRemove();
     }
 
-    prev = head;
-    if (prev->next != NULL) {
+    // Re-find the preceding registration by id; the node's prev link is not read.
+    previous = head;
+    if (previous->next != NULL) {
         do {
-            curr = prev->next;
-            if (curr->id == arg0->id) {
-                prev->next = arg0->next;
-                if (arg0->next != NULL) {
-                    arg0->next->prev = prev;
-                }
+            current = previous->next;
+            if (current->id == node->id) {
+                _audioTickUnlinkNode(previous, node);
                 AudioTick_Enabled = 1;
-                return prev->next;
+                return previous->next;
             }
-            prev = curr;
-        } while (prev->next != NULL);
+            previous = current;
+        } while (previous->next != NULL);
     }
     AudioTick_Enabled = 1;
     return NULL;

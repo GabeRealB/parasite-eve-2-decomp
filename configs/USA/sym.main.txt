@@ -1875,27 +1875,27 @@ RotMatrixZXY                = 0x8004C9C8;
 //--- PA: 0x3D458   VA: 0x8004CC58   subsegment: c, 3D458
 //--------------------------------------------------------------------
 Spu_InitSystem               = 0x8004CC58; // type:func
-Snd_AllocBank               = 0x8004CE28; // type:func
+sndBankAllocTables               = 0x8004CE28; // type:func
 Spu_Init               = 0x8004CFC8; // type:func
 Spu_WaitDma               = 0x8004CFE8; // type:func
 Audio_IrqFrameWork               = 0x8004D008; // type:func
-Snd_ClearBanks               = 0x8004D0A0; // type:func
-Snd_FreeBank               = 0x8004D0F0; // type:func
-Snd_FindBank               = 0x8004D150; // type:func
-Snd_BuildGroupIndex               = 0x8004D19C; // type:func
-LinInterp_Setup               = 0x8004D200; // type:func
-LinInterp_Apply               = 0x8004D298; // type:func
-LinInterp_Step               = 0x8004D2EC; // type:func
-Spu_ApplyPanVolume               = 0x8004D35C; // type:func
-AudioTick_Insert               = 0x8004D460; // type:func
-SndHeap_Reset            = 0x8004D5A8; // type:func
-SndHeap_Malloc               = 0x8004D5D8; // type:func
-SndHeap_Free                 = 0x8004D6C8; // type:func
+_sndBankResetDescriptors               = 0x8004D0A0; // type:func
+sndBankFree               = 0x8004D0F0; // type:func
+sndBankFind               = 0x8004D150; // type:func
+sndBankBuildLayerIndex               = 0x8004D19C; // type:func
+linInterpSetup               = 0x8004D200; // type:func
+linInterpApply               = 0x8004D298; // type:func
+linInterpStep               = 0x8004D2EC; // type:func
+spuCalcPanVolumes               = 0x8004D35C; // type:func
+audioTickInsert               = 0x8004D460; // type:func
+_sndHeapReset            = 0x8004D5A8; // type:func
+sndHeapAlloc               = 0x8004D5D8; // type:func
+sndHeapFree                 = 0x8004D6C8; // type:func
 Spu_TimerCallback               = 0x8004D7D4; // type:func
 Spu_TimerReentryWork               = 0x8004D820; // type:func
-AudioTick_Reset             = 0x8004D88C; // type:func
-AudioTick_Process               = 0x8004D8BC; // type:func
-AudioTick_Remove               = 0x8004D94C; // type:func
+_audioTickReset             = 0x8004D88C; // type:func
+_audioTickProcess               = 0x8004D8BC; // type:func
+_audioTickRemove               = 0x8004D94C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x3E21C   VA: 0x8004DA1C   subsegment: o, libspu/s_i
