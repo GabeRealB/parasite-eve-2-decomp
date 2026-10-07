@@ -111,7 +111,7 @@ static const TaskFuncTable3 D_mist_r18_8017D5D0 = {
 /// capture the framebuffer as the backdrop, wait for the new view, crossfade, then
 /// `taskKill`.
 static const TaskFuncTable4 D_mist_r18_8017D5DC = {
-    { _mistR18CaptureBackdropState, _mistR18WaitForCrossfadeViewState, crossfadeOutState, taskKill },
+    { _mistR18CaptureBackdropState, _mistR18WaitForCrossfadeViewState, _crossfadeOutState, taskKill },
 };
 
 extern AreaResource D_mist_r18_80186BD8[3];

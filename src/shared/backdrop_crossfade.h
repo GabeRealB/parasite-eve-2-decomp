@@ -26,7 +26,7 @@ enum {
 };
 
 static void _crossfadeDrawLive(s32 shade);
-void        crossfadeOutState(Task* task);
+static void _crossfadeOutState(Task* task);
 static void _crossfadeSetTpage(s32 vramX, s16 vramY);
 
 /* Each carrier defines a private drawer for its saved-backdrop VRAM layout. */

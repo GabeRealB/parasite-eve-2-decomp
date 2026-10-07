@@ -1084,7 +1084,7 @@ static const TaskFuncTable4 D_shelter_b1_sterilization_room_8017D700 = {
     {
         func_shelter_b1_sterilization_room_80180828,
         func_shelter_b1_sterilization_room_80181244,
-        crossfadeOutState,
+        _crossfadeOutState,
         taskKill,
     },
 };
