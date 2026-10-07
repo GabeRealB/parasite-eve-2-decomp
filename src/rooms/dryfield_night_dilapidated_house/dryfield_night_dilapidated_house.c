@@ -222,8 +222,8 @@ static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN) == 0) {
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-            func_800E8634(D_dryfield_night_dilapidated_house_801868F4, 0,
-                          D_dryfield_night_dilapidated_house_80187134);
+            evsStartScriptWithSkip(D_dryfield_night_dilapidated_house_801868F4, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                   D_dryfield_night_dilapidated_house_80187134);
         }
         gameFlagSetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN, 1);
         gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 3);

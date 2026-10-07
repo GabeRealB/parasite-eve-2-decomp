@@ -9,6 +9,7 @@
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
 
 #include "main/session.h"
 #include "main/session_types.h"
@@ -218,14 +219,14 @@ void func_actor_215100_80149F2C(Task* task)
                 return;
             }
             if (task->spawnArg1.value == 0) {
-                func_800E8614(D_actor_215100_8014ED90, 1);
+                evsStartScript(D_actor_215100_8014ED90, EVENT_SCRIPT_HUD_KEEP);
             } else {
                 slot = 0x1C;
                 if (D_actor_215100_8014D040 == 0) {
                     slot = 0x15;
                 }
                 Gp_StartCapSlot(slot, 0, 0);
-                func_800E8614(D_actor_215100_8014EE68, 1);
+                evsStartScript(D_actor_215100_8014EE68, EVENT_SCRIPT_HUD_KEEP);
             }
             task->state++;
             break;
@@ -247,7 +248,7 @@ void func_actor_215100_80149F2C(Task* task)
                 slot = 0x19;
             }
             Gp_StartCapSlot(slot, 0, 0);
-            func_800E8614(D_actor_215100_8014EBE0, 1);
+            evsStartScript(D_actor_215100_8014EBE0, EVENT_SCRIPT_HUD_KEEP);
             taskKill(task);
             break;
         case 0x5:
@@ -256,7 +257,7 @@ void func_actor_215100_80149F2C(Task* task)
                 slot = 0x18;
             }
             Gp_StartCapSlot(slot, 0, 0);
-            func_800E8614(D_actor_215100_8014EB98, 1);
+            evsStartScript(D_actor_215100_8014EB98, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case 0x6:
@@ -293,7 +294,7 @@ void func_actor_215100_80149F2C(Task* task)
         case 0x1E:
             Gp_PlayerWeaponId(&D_actor_215100_8014CF84.source.index);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_215100_8014CF84, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014D010, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), 0x7D3, &D_actor_215100_8014D010, 0);
             task->killCountdown = 0x1B;
             Gp_StartCapSlot(0xB, 0, 0);
             task->state++;
@@ -303,10 +304,10 @@ void func_actor_215100_80149F2C(Task* task)
                 task->killCountdown--;
             }
             if (task->killCountdown == 0) {
-                TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014D024, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), 0x7D3, &D_actor_215100_8014D024, 0);
             }
             if (task->killCountdown == -0x16) {
-                TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014CFAC, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), 0x7D3, &D_actor_215100_8014CFAC, 0);
             }
             if (capIsBusy() == 0) {
                 task->state++;
@@ -319,7 +320,7 @@ void func_actor_215100_80149F2C(Task* task)
             break;
         case 0x28:
             Gp_StartCapSlot(capGetVariantKey() + 0xB, 0, 0);
-            func_800E8614(D_actor_215100_8014F138, 1);
+            evsStartScript(D_actor_215100_8014F138, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case 0x2A:
@@ -329,9 +330,9 @@ void func_actor_215100_80149F2C(Task* task)
             D_actor_215100_8014D040++;
             Gp_StateC08.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
             if (D_actor_215100_8015E670 < 3) {
-                func_800E8614(D_actor_215100_8014EFA0, 1);
+                evsStartScript(D_actor_215100_8014EFA0, EVENT_SCRIPT_HUD_KEEP);
             } else {
-                func_800E8614(D_actor_215100_8014F060, 1);
+                evsStartScript(D_actor_215100_8014F060, EVENT_SCRIPT_HUD_KEEP);
             }
             D_actor_215100_8014D038 = 1;
             task->state++;

@@ -49,6 +49,7 @@ s32 D_801156A8;
 
 #include "gameplay/captions.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
 
 #include "captions.h"
 
@@ -1260,7 +1261,7 @@ void capClearUnstartedSequenceTask(Task* task)
 
 /// `spawnArg1` packs three bytes: bits 0-7 are the message argument, bits
 /// 8-15 the delay in frames, and bits 16-23 the recipient - 0 for slot 3, 1
-/// for slot 0xA, otherwise `Gp_LookupSlot4(n - 2)`.
+/// for slot 0xA, otherwise `sceneFindPlacedActor(n - 2)`.
 void Gp_DelayedMsgTask(Task* task)
 {
     s32   val;
@@ -1284,7 +1285,7 @@ void Gp_DelayedMsgTask(Task* task)
                         taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, val, 0);
                     }
                 } else {
-                    slot = Gp_LookupSlot4(mode - 2);
+                    slot = sceneFindPlacedActor(mode - 2);
                     if (slot != NULL) {
                         taskMessageDispatch(slot, 0x7E0, val, 0);
                     }

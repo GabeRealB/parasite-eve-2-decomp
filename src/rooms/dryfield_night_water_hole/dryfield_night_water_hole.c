@@ -32,6 +32,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
@@ -103,7 +104,7 @@ extern TaskMessageEntry D_dryfield_night_water_hole_801805F8[];
 /// the four-record run at 0x80180654, which differ only in the halfword at 0x2.
 extern s32 D_dryfield_night_water_hole_8018065C;
 extern s32 D_dryfield_night_water_hole_80180660;
-/// The records message 0x13EF passes to `func_800E8614` on the first visit
+/// The records message 0x13EF passes to `evsStartScript` on the first visit
 /// through sub-id 1, for `field_2` 2 and 1 respectively.
 extern EvsCommand D_dryfield_night_water_hole_8018067C[];
 extern EvsCommand D_dryfield_night_water_hole_801807FC[];
@@ -1062,11 +1063,11 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
     } else {
         func_dryfield_night_water_hole_8017DE88(D_dryfield_night_water_hole_801835D8);
     }
-    if (gGameSession->location.loc.variant == 1 && Gp_LookupSlot4(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) != 0) {
+    if (gGameSession->location.loc.variant == 1 && sceneFindPlacedActor(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) != 0) {
         if (gGameSession->location.loc.warp == 2) {
-            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_water_hole_80180660, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_water_hole_80180660, 0);
         } else {
-            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_water_hole_8018065C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_water_hole_8018065C, 0);
         }
     }
     if (gGameSession->location.loc.variant == 0xA && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
@@ -1151,7 +1152,7 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
 /// Message 0x13EF handler. On a visit through sub-id 1 with progress nibble
 /// 0x95 still clear, a record whose `field_2` is 2 or 1 latches the nibble and
 /// passes `D_dryfield_night_water_hole_8018067C` or
-/// `D_dryfield_night_water_hole_801807FC` respectively to `func_800E8614`.
+/// `D_dryfield_night_water_hole_801807FC` respectively to `evsStartScript`.
 /// Always returns 0.
 s32 func_dryfield_night_water_hole_8017DD5C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -1159,12 +1160,12 @@ s32 func_dryfield_night_water_hole_8017DD5C(Task* arg0, s32 arg1, RoomEventMsg* 
 
     if ((in->warp == 2) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == 1)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
-        func_800E8614(D_dryfield_night_water_hole_8018067C, 0);
+        evsStartScript(D_dryfield_night_water_hole_8018067C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     temp_s0 = in->warp;
     if ((temp_s0 == 1) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == temp_s0)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
-        func_800E8614(D_dryfield_night_water_hole_801807FC, 0);
+        evsStartScript(D_dryfield_night_water_hole_801807FC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }

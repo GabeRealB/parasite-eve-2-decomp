@@ -818,7 +818,7 @@ void func_actor_450900_8013223C(Task* task)
             gameFlagSetNibble(GAME_FLAG_0D8, 1);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_RunCapCmd(2, 0);
-            func_800E8614(D_actor_450900_80136B00, 0);
+            evsStartScript(D_actor_450900_80136B00, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             task->state = task->state + 1;
             break;
         case 3:
@@ -848,7 +848,7 @@ void func_actor_450900_8013235C(Task* task)
                 taskKill(task);
                 Gp_MsgPlayerWeapon(1);
             } else {
-                func_800E8614(D_actor_450900_80136BD8, 0);
+                evsStartScript(D_actor_450900_80136BD8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 task->state = task->state + 1;
             }
             break;
@@ -1000,14 +1000,14 @@ void func_actor_450900_801327A8(void)
     if (gameFlagGetNibble(GAME_FLAG_0D8) != 0) {
         if (D_actor_450900_80135E74 == 0) {
             D_actor_450900_80135E74 = 1;
-            func_800E8614(D_actor_450900_80136890, 0);
+            evsStartScript(D_actor_450900_80136890, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         } else {
             Gp_SpawnIfCapIdle(0xC, 1);
         }
     } else if (D_map_neo_ark_8017A99C < 0x30C) {
-        func_800E8614(D_actor_450900_80136470, 0);
+        evsStartScript(D_actor_450900_80136470, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     } else {
-        func_800E8614(D_actor_450900_80136680, 0);
+        evsStartScript(D_actor_450900_80136680, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
 }
 

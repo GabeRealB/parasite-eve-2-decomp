@@ -1529,12 +1529,12 @@ void func_actor_260500_80149E38(s32 arg0)
 }
 
 /// Sends message 0x7D4 (placement) with the record at
-/// `D_actor_260500_8014CAF4.data.actorPlacements[0]` to the task in lookup slot 4, when there is one.
+/// `D_actor_260500_8014CAF4.data.actorPlacements[0]` to placed actor 0, when present.
 void func_actor_260500_80149E80(void)
 {
     Task* slot;
 
-    slot = Gp_LookupSlot4(0);
+    slot = sceneFindPlacedActor(0);
     if (slot != 0) {
         TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_actor_260500_8014CAF4.data.actorPlacements[0], 0);
     }
@@ -1544,23 +1544,23 @@ void func_actor_260500_80149EBC(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS)) {
         case 0:
-            func_800E8634(D_actor_260500_8014CBF8, 0, D_actor_260500_8014D630);
+            evsStartScriptWithSkip(D_actor_260500_8014CBF8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_260500_8014D630);
             gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 1);
             break;
         case 1:
-            func_800E8614(D_actor_260500_8014D7C8, 0);
+            evsStartScript(D_actor_260500_8014D7C8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 2);
             break;
         case 2:
-            func_800E8614(D_actor_260500_8014D948, 0);
+            evsStartScript(D_actor_260500_8014D948, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 3);
             break;
         case 3:
-            func_800E8614(D_actor_260500_8014DAB0, 0);
+            evsStartScript(D_actor_260500_8014DAB0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 4);
             break;
         case 4:
-            func_800E8614(D_actor_260500_8014DCC0, 0);
+            evsStartScript(D_actor_260500_8014DCC0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }

@@ -10,7 +10,7 @@ void drivewayBlackoutTask(Task* arg0)
         D_80115768            = 1;
         SetDispMask(0);
         func_800E3FAC(0xA2, 0x10);
-        func_800E8634(gDrivewayBlackoutScript, 0, gDrivewayBlackoutTail);
+        evsStartScriptWithSkip(gDrivewayBlackoutScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gDrivewayBlackoutTail);
     } else {
         taskKill(arg0);
         inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_WIRE_ROPE);

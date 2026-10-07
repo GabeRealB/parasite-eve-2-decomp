@@ -70,13 +70,13 @@ s32 func_shelter_r49_8017D640(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 /// The room task's setup state: installs the room's message table, stores the
 /// task in pointer slot 7 and, unless `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` is 9, calls
-/// `func_800E8634`.
+/// `evsStartScriptWithSkip`.
 static void func_shelter_r49_8017D648(Task* arg0)
 {
     arg0->msgTable = D_shelter_r49_8017D9D8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-        func_800E8634(D_actor_143900_80133560, 0, D_actor_143900_80133860);
+        evsStartScriptWithSkip(D_actor_143900_80133560, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_143900_80133860);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

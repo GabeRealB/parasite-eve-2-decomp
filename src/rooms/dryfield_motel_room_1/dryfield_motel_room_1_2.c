@@ -129,7 +129,7 @@ extern ActorTransform D_dryfield_motel_room_1_8017E100[2];
 /// the attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is live, so the task
 /// only steps the script. Otherwise it builds the work block, sends the slot-3
 /// weapon record as message 0x3E8 and hands the cutscene's two script blocks to
-/// `func_800E8634`. States 0 and 1 then advance the state and step the driver;
+/// `evsStartScriptWithSkip`. States 0 and 1 then advance the state and step the driver;
 /// state 1 does that only while the session is still up, and state 2 only once
 /// the session's `location.loc.view` has reached 2, which is where the task kills itself.
 void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
@@ -156,7 +156,7 @@ void func_dryfield_motel_room_1_8017DF08(void);
 /// setup, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record
 /// uses.
 
-/// The cutscene script's two blocks, handed to `func_800E8634` by the room
+/// The cutscene script's two blocks, handed to `evsStartScriptWithSkip` by the room
 /// task's state 0.
 extern EvsCommand D_dryfield_motel_room_1_8017E160[];
 extern EvsCommand D_dryfield_motel_room_1_8017E340[];
@@ -1190,8 +1190,8 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_dryfield_motel_room_1_8017DC2C(arg0);
                 _dryfieldMotelRoom1PlayPlayerAnimation(1, ANIMATION_BLEND_INTERPOLATE, 5);
-                func_800E8634(D_dryfield_motel_room_1_8017E160, 0,
-                              D_dryfield_motel_room_1_8017E340);
+                evsStartScriptWithSkip(D_dryfield_motel_room_1_8017E160, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                       D_dryfield_motel_room_1_8017E340);
                 arg0->state = arg0->state + 1;
                 break;
             }

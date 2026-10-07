@@ -2558,7 +2558,7 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
         gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 2);
         func_dryfield_night_gas_station_80180C20();
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-            func_800E8634(D_dryfield_night_gas_station_801892E4, 0, D_dryfield_night_gas_station_80189A7C);
+            evsStartScriptWithSkip(D_dryfield_night_gas_station_801892E4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_gas_station_80189A7C);
         }
     }
     arg0->state = (s32)(arg0->state + 1);
@@ -2636,7 +2636,7 @@ s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32
 s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
 {
     if ((msg->actionId == 0xE) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= 2)) {
-        func_800E8614(D_dryfield_night_gas_station_8018920C, 0);
+        evsStartScript(D_dryfield_night_gas_station_8018920C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
@@ -2650,7 +2650,7 @@ s32 func_dryfield_night_gas_station_8017F9E8(Task* task, s32 msgId, s32 arg2, s3
 {
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, 1);
-        func_800E8614(D_dryfield_night_gas_station_80188B64, 1);
+        evsStartScript(D_dryfield_night_gas_station_80188B64, EVENT_SCRIPT_HUD_KEEP);
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         Gp_ApplyAreaRecs(D_dryfield_night_gas_station_801907A0);
         gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED, 0);
@@ -2669,7 +2669,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
     D_80115768            = 1;
     SetDispMask(0);
     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN);
-    func_800E8634(D_dryfield_night_gas_station_801840AC, 0, D_dryfield_night_gas_station_801841FC);
+    evsStartScriptWithSkip(D_dryfield_night_gas_station_801840AC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_gas_station_801841FC);
     func_800E3FAC(0xA2, 0x16);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
     taskKill(arg0);
@@ -2687,7 +2687,7 @@ static void func_dryfield_night_gas_station_8017FAEC(Task* task)
         temp_v0 = gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS);
         if ((temp_v0 == 1) && (Gp_StateC08.mode != temp_v0)) {
             gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, 2);
-            func_800E8634(D_dryfield_night_gas_station_80188BF4, 0, D_dryfield_night_gas_station_80189014);
+            evsStartScriptWithSkip(D_dryfield_night_gas_station_80188BF4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_gas_station_80189014);
         }
     }
 }

@@ -2788,7 +2788,7 @@ s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, Room
         if (gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN, 1);
-                func_800E8634(D_acropolis_bridge_80188EBC, 0, D_acropolis_bridge_8018912C);
+                evsStartScriptWithSkip(D_acropolis_bridge_80188EBC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_bridge_8018912C);
                 gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, 1);
                 key.stage = GAME_STAGE_ACROPOLIS;
                 key.area  = GAME_AREA_ACROPOLIS_SANCTUARY;

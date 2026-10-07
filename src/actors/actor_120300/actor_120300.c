@@ -1927,15 +1927,15 @@ static s32 func_actor_120300_801334A4(Task* arg0)
                 case 0:
                     switch (work->talkStage) {
                         case 0:
-                            func_800E8614(D_actor_120300_801416D4, 0);
+                            evsStartScript(D_actor_120300_801416D4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                             work->talkStage++;
                             break;
                         case 1:
-                            func_800E8614(D_actor_120300_801417AC, 0);
+                            evsStartScript(D_actor_120300_801417AC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                             work->talkStage++;
                             break;
                         default:
-                            func_800E8614(D_actor_120300_80141884, 0);
+                            evsStartScript(D_actor_120300_80141884, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                             break;
                     }
                     work->interactionStep++;
@@ -1950,7 +1950,7 @@ static s32 func_actor_120300_801334A4(Task* arg0)
         case ACTOR_120300_INTERACTION_REMARK:
             switch (work->interactionStep) {
                 case 0:
-                    func_800E8614(D_actor_120300_80141A34, 0);
+                    evsStartScript(D_actor_120300_80141A34, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                     work->interactionStep++;
                     break;
                 case 1:
@@ -2083,7 +2083,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     gameFlagSetNibble(GAME_FLAG_02C, 1);
                     gameFlagSetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN, 1);
                     func_800E3FAC(0xA2, 0xB);
-                    func_800E8634(D_actor_120300_80140B94, 0, D_actor_120300_80141524);
+                    evsStartScriptWithSkip(D_actor_120300_80140B94, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_120300_80141524);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
                     arg0->state                                        += 1;
                 }
@@ -2258,7 +2258,7 @@ void func_actor_120300_80133F14(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            func_800E8614(D_actor_120300_8014195C, 0);
+            evsStartScript(D_actor_120300_8014195C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             arg0->state += 1;
             break;
         case 1:

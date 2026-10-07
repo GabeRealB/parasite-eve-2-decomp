@@ -16,6 +16,7 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/model_objects.h"
+#include "gameplay/scene_runtime.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -217,7 +218,7 @@ static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
 /// player task (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`) as its subject. Three places turn it on,
 /// each for a set of views: area 7 of stage 5 while the session is in room 2,
 /// area 0x1E of stages 2 and 3, and area 0x12 of stage 4. In stage 4's area the
-/// subject becomes the `Gp_LookupSlot4(0)` task instead, and only when the
+/// subject becomes the `sceneFindPlacedActor(0)` task instead, and only when the
 /// key's `variant` is 0xB; with any other `variant`, `disabled` is set so the
 /// mirror task exits on its first frame.
 ///
@@ -259,7 +260,7 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _ShelterB1ControlR
             if (area == 0x12) {
                 if (key->variant == 0xB) {
                     cfg->subjectIsPlayer = 0;
-                    cfg->subject         = Gp_LookupSlot4(0);
+                    cfg->subject         = sceneFindPlacedActor(0);
                     if (view == 4 || view == 1) {
                         cfg->normal.vz      = -0x1000;
                         cfg->offset.vz      = -0xABE;
@@ -731,7 +732,7 @@ static void func_shelter_b1_control_room_8017EE2C(Task* arg0)
     if (gGameSession->location.loc.variant == 0xB) {
         func_actor_150400_80131FB8();
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-            func_800E8634(D_actor_150400_80132D70, 0, D_actor_150400_80133088);
+            evsStartScriptWithSkip(D_actor_150400_80132D70, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_150400_80133088);
         }
     }
     arg0->state = (s32)(arg0->state + 1);

@@ -2,7 +2,7 @@
 
 /// Pull: plays global sound 2, snapshots the root, clears the counters,
 /// advances, and records as the pull point the world position of part 3 of the
-/// room's slot-4 task, carried up its coordinate chain.
+/// room's placed actor 0, carried up its coordinate chain.
 void madChaserPullStart(Task* arg0)
 {
     MadChaserWork* work;
@@ -25,7 +25,7 @@ void madChaserPullStart(Task* arg0)
     work->subState++;
     pos     = &work->pullPoint;
     pos->vx = pos->vy = pos->vz = 0;
-    current                     = &Gp_LookupSlot4(0)->extra.tmd->coords[3];
+    current                     = &sceneFindPlacedActor(0)->extra.tmd->coords[3];
     local.vx                    = pos->vx;
     local.vy                    = pos->vy;
     local.vz                    = pos->vz;

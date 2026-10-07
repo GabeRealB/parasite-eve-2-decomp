@@ -380,7 +380,7 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
 /// sibling of `func_...801806D8`: counts the room's countdown down, and once the
 /// reference count on `gSceneCombatState` has dropped to zero folds the still-pending
 /// spawn slots back into game flags 0x167 and 0x10A. When a spawn point has
-/// been requested it hands the first pending slot to a waiting slot-4 task,
+/// been requested it hands the first pending slot to a waiting placed actor,
 /// sends it the 0x7DB message and places it at one of five fixed points.
 static void func_neo_ark_woodland_path_80180DDC(Task* task)
 {
@@ -442,10 +442,10 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
         gRoamerCommand.context.loc.area  = 0xB;
         gRoamerCommand.command           = 0xB;
         for (i = 0; i < 2; i++) {
-            if (Gp_LookupSlot4(i) == 0) {
+            if (sceneFindPlacedActor(i) == 0) {
                 break;
             }
-            obj = Gp_LookupSlot4(i)->spawnArg2.pointer;
+            obj = sceneFindPlacedActor(i)->spawnArg2.pointer;
             if (obj == NULL) {
                 break;
             }
@@ -461,48 +461,48 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                 if (obj->hp > 0) {
                     sceneAcquireBattleRef(0);
                     gRoamerCooldown += 0x5A;
-                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
                     switch ((s16)(gRoamerSpawnRequest - 1)) {
                         case 0:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[0].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[0].z;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[0].x;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1]   = 0;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[0].z;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
                                           D_neo_ark_woodland_path_80184A14[0].yaw, 1);
                             break;
                         case 1:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[1].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[1].z;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[1].x;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1]   = 0;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[1].z;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
                                           D_neo_ark_woodland_path_80184A14[1].yaw, 1);
                             break;
                         case 2:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[2].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[2].z;
-                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[2].x;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1] = 0;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[2].z;
+                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
                                           D_neo_ark_woodland_path_80184A14[2].yaw, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 3:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[3].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[3].z;
-                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[3].x;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1] = 0;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[3].z;
+                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
                                           D_neo_ark_woodland_path_80184A14[3].yaw, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 4:
                         default:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[4].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[4].z;
-                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[4].x;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1] = 0;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[4].z;
+                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
                                           D_neo_ark_woodland_path_80184A14[4].yaw, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                     }
                 }

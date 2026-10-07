@@ -167,7 +167,7 @@ extern TaskMessageEntry D_dryfield_night_garage_80181C38[];
 /// payload of the 0x3E8 message.
 extern AnimationPlayRequest D_dryfield_night_garage_80181C68;
 
-/// Script blob passed to `func_800E8614` when game flag 0x8E is already set.
+/// Script blob passed to `evsStartScript` when game flag 0x8E is already set.
 extern EvsCommand D_dryfield_night_garage_80181C7C[];
 
 /// Two layout templates and the live copy the resets restore from them.
@@ -378,9 +378,9 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN) == 0) {
             Gp_FillAllyHp();
             gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN, 1);
-            func_800E8634(D_actor_136300_8013B590, 0, D_actor_136300_8013C388);
+            evsStartScriptWithSkip(D_actor_136300_8013B590, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_136300_8013C388);
         } else {
-            func_800E8614(D_dryfield_night_garage_80181C7C, 1);
+            evsStartScript(D_dryfield_night_garage_80181C7C, EVENT_SCRIPT_HUD_KEEP);
         }
     }
     if (gGameSession->location.loc.variant == 2 && gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0) {
@@ -419,8 +419,8 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
                     obj          = base + 2;
                     base->flags |= WORLD_COLLISION_TRIGGER_ENABLED;
                     obj->flags  &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-                    func_800E8634(D_dryfield_night_garage_80182DF8, 0,
-                                  D_dryfield_night_garage_801831B8);
+                    evsStartScriptWithSkip(D_dryfield_night_garage_80182DF8, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                           D_dryfield_night_garage_801831B8);
                     gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS, 1);
                     func_800E3FAC(0xA2, 0x17);
                     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE);

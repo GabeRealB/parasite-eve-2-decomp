@@ -2194,7 +2194,7 @@ void func_shelter_b1_underground_parking_80183560(Task* arg0)
                 gGameSession->location.loc.room                            = 6;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 6;
                 gGameSession->roomObjsDirty                                = state;
-                func_800E8614(D_shelter_b1_underground_parking_801872D8, 1);
+                evsStartScript(D_shelter_b1_underground_parking_801872D8, EVENT_SCRIPT_HUD_KEEP);
                 gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 1);
                 Gp_SetItemSeenBit(0x123, 1);
             } else {
@@ -2211,7 +2211,7 @@ void func_shelter_b1_underground_parking_8018363C(Task* arg0)
         SetDispMask(0);
         D_80115768            = 1;
         gGameSession->hideHud = 1;
-        func_800E8634(D_shelter_b1_underground_parking_801873DC, 0, D_shelter_b1_underground_parking_80187544);
+        evsStartScriptWithSkip(D_shelter_b1_underground_parking_801873DC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_underground_parking_80187544);
         gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 2);
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING, 0);
         arg0->state += 1;

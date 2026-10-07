@@ -16,6 +16,7 @@
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
+#include "gameplay/scene_runtime.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -319,11 +320,11 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task)
     s32 phase = D_acropolis_helicopter_landing_pad_80184D9C;
 
     if (phase == 1) {
-        if (taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
+        if (taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
             if ((Gp_StateC08.mode != phase) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 D_acropolis_helicopter_landing_pad_80184D9C = 2;
-                func_800E8634(D_acropolis_helicopter_landing_pad_80184124, 0,
-                              D_acropolis_helicopter_landing_pad_801844B4);
+                evsStartScriptWithSkip(D_acropolis_helicopter_landing_pad_80184124, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                       D_acropolis_helicopter_landing_pad_801844B4);
                 func_800E3FAC(0xA2, 8);
             }
         }

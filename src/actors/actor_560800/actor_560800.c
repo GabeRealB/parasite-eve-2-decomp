@@ -273,7 +273,7 @@ extern s32 D_actor_560800_801757A4;
 /// control back to gameplay.
 extern u32 D_actor_560800_801757A8;
 
-/// Pair of blocks `func_actor_560800_80135D54` passes to `func_800E8634`.
+/// Pair of blocks `func_actor_560800_80135D54` passes to `evsStartScriptWithSkip`.
 extern EvsCommand D_actor_560800_8016F5E0[];
 extern EvsCommand D_actor_560800_80171800[];
 
@@ -5753,7 +5753,7 @@ void func_actor_560800_80135D54(Task* arg0)
             arg0->state++;
         case 1:
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            func_800E8634(D_actor_560800_8016F5E0, 1, D_actor_560800_80171800);
+            evsStartScriptWithSkip(D_actor_560800_8016F5E0, EVENT_SCRIPT_HUD_KEEP, D_actor_560800_80171800);
             arg0->state++;
             break;
         case 2:

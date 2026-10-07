@@ -1232,7 +1232,7 @@ static void func_acropolis_west_elevator_hall_8017F354(Task* task)
         sessionState = gGameSession->location.loc.warp;
         if (sessionState == 1) {
             D_acropolis_west_elevator_hall_801849C8 = sessionState;
-            func_800E8634(D_acropolis_west_elevator_hall_80184620, 0, D_acropolis_west_elevator_hall_80184890);
+            evsStartScriptWithSkip(D_acropolis_west_elevator_hall_80184620, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_west_elevator_hall_80184890);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
             gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 1);

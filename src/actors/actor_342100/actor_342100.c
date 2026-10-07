@@ -163,7 +163,7 @@ extern SVECTOR D_actor_342100_80164960[];
 extern SVECTOR D_actor_342100_80164980[];
 
 /// Model/animation set `func_actor_342100_80162F54` installs with
-/// `func_800E8614` on the same arm; a byte address is all the installer sees.
+/// `evsStartScript` on the same arm; a byte address is all the installer sees.
 extern EvsCommand D_actor_342100_801649C8[];
 
 /// Effect record `blazeBodyFireTask` hands `func_800FDB18` together
@@ -606,7 +606,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-            func_800E8614(D_actor_342100_801649C8, 0);
+            evsStartScript(D_actor_342100_801649C8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->fadeTask   = taskSpawnFromTable(D_actor_342100_80164B78, 2, 0, arg0);
             work->sceneState = work->sceneState + 1;

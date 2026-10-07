@@ -514,17 +514,17 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
             gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 1);
             gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, 2);
             gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 8);
-            func_800E8634(D_actor_160600_80135D78, 0, D_actor_160600_80136258);
+            evsStartScriptWithSkip(D_actor_160600_80135D78, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160600_80136258);
             areaSetPlacementVariant(&gGameSession->location.loc, 6, AREA_VARIANT_RESET_ALWAYS);
         } else {
             gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 2);
             gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, 1);
-            func_800E8634(D_actor_160600_80135AC0, 0, D_actor_160600_80136258);
+            evsStartScriptWithSkip(D_actor_160600_80135AC0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160600_80136258);
         }
     }
     func_shelter_b1_sterilization_room_80180340(0);
     if (gGameSession->location.loc.variant == 5) {
-        target = Gp_LookupSlot4(0);
+        target = sceneFindPlacedActor(0);
         if (target != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(target, ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b1_sterilization_room_80184E7C, 0);
         }
@@ -548,8 +548,8 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, Direction
         case 1:
             if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 0) {
                 if (gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN) != 0) {
-                    func_800E8634(D_shelter_b1_sterilization_room_8018873C, 0,
-                                  D_shelter_b1_sterilization_room_80188AB4);
+                    evsStartScriptWithSkip(D_shelter_b1_sterilization_room_8018873C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                           D_shelter_b1_sterilization_room_80188AB4);
                     gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED, 1);
                 }
             }
@@ -666,7 +666,7 @@ s32 func_shelter_b1_sterilization_room_8017FF80(Task* arg0, s32 arg1, s32 arg2, 
         if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 1 && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 0) {
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F) == 0) {
                 Gp_MsgPlayerWeapon(0);
-                func_800E8634(D_shelter_b1_sterilization_room_80188ED4, 0, D_shelter_b1_sterilization_room_80188FDC);
+                evsStartScriptWithSkip(D_shelter_b1_sterilization_room_80188ED4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_sterilization_room_80188FDC);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F, 1);
             } else {
                 taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 0xB, 0);
@@ -736,7 +736,7 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
 
 static void func_shelter_b1_sterilization_room_80180340(s32 arg0)
 {
-    Task* slot   = Gp_LookupSlot4(0);
+    Task* slot   = sceneFindPlacedActor(0);
     Task* task   = slot;
     s32   isNull = (slot == NULL);
 

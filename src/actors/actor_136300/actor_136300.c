@@ -105,7 +105,7 @@ extern TaskDesc D_actor_136300_8013B134;
 extern AnimationPlayRequest D_actor_136300_8013B208;
 extern AnimationPlayRequest D_actor_136300_8013B230;
 
-/// Script pair handed to `func_800E8614` -- the first while the ending is being
+/// Script pair handed to `evsStartScript` -- the first while the ending is being
 /// armed, the second when the capture event is cancelled.
 extern EvsCommand D_actor_136300_8013C5C8[];
 extern EvsCommand D_actor_136300_8013C6C0[];
@@ -1427,7 +1427,7 @@ ScreenWaveCtx D_actor_136300_8013C99C = { 0 };
 
 /// State machine for the capture-event actor: arms the ending, waits for the
 /// capture key, then hands control to the boot loader and spawns the drop-in
-/// task. The two `func_800E8614` calls and the `arg0->state += 1` blocks are
+/// task. The two `evsStartScript` calls and the `arg0->state += 1` blocks are
 /// written out in every arm that needs them; jump optimization merges the
 /// identical tails, so one copy of the increment lands between case 3 and case
 /// 6 and one copy of the call lands after case 0. Hoisting either tail into a
@@ -1439,7 +1439,7 @@ void func_actor_136300_8013267C(Task* arg0)
         case 0:
             gGameSession->hideHud = 1;
             Gp_MsgPlayerWeapon(0);
-            func_800E8614(D_actor_136300_8013C5C8, 1);
+            evsStartScript(D_actor_136300_8013C5C8, EVENT_SCRIPT_HUD_KEEP);
             arg0->state += 1;
             return;
         case 1:
@@ -1454,7 +1454,7 @@ void func_actor_136300_8013267C(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            func_800E8614(D_actor_136300_8013C6C0, 1);
+            evsStartScript(D_actor_136300_8013C6C0, EVENT_SCRIPT_HUD_KEEP);
             arg0->state += 1;
             return;
         case 3:

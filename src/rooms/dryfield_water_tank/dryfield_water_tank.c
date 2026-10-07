@@ -1020,13 +1020,13 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, const void* firstAr
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
         Gp_ApplyAreaRecs(D_dryfield_water_tank_80188D1C);
         Gp_MsgPlayerWeapon(0);
-        func_800E8634(D_dryfield_water_tank_80184E0C, 0, D_dryfield_water_tank_801859DC);
+        evsStartScriptWithSkip(D_dryfield_water_tank_80184E0C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tank_801859DC);
     }
     if (request->actionId == 3) {
-        func_800E8614(D_dryfield_water_tank_8017F114, 0);
+        evsStartScript(D_dryfield_water_tank_8017F114, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     if (request->actionId == 4) {
-        func_800E8614(D_dryfield_water_tank_8017F21C, 0);
+        evsStartScript(D_dryfield_water_tank_8017F21C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 1;
 }
@@ -1273,7 +1273,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             break;
         case 1:
             TASK_MESSAGE_DISPATCH_POINTER(work->propTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tank_8017FD60, 0);
-            func_800E8634(D_dryfield_water_tank_8017FDC0, 0, D_dryfield_water_tank_8017FEC8);
+            evsStartScriptWithSkip(D_dryfield_water_tank_8017FDC0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tank_8017FEC8);
             arg0->state = arg0->state + 1;
             break;
         case 2:

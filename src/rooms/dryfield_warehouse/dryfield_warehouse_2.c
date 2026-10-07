@@ -737,8 +737,8 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                 D_80115768                    = 1;
                 arg0->state                   = arg0->state + 1;
                 case 1:
-                    func_800E8634(D_dryfield_warehouse_8017F880, 0,
-                                  D_dryfield_warehouse_8017FA00);
+                    evsStartScriptWithSkip(D_dryfield_warehouse_8017F880, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                           D_dryfield_warehouse_8017FA00);
                     arg0->state = arg0->state + 1;
                     return;
             }

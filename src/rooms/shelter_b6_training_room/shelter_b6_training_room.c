@@ -408,8 +408,8 @@ s32 func_shelter_b6_training_room_8017D75C(Task* task, s32 msgId, s32 arg2, s32 
 s32 func_shelter_b6_training_room_8017D764(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-    func_800E8634(D_shelter_b6_training_room_80183BB4, 0, D_shelter_b6_training_room_80184124);
-    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(3), ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b6_training_room_80182B24, 0);
+    evsStartScriptWithSkip(D_shelter_b6_training_room_80183BB4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b6_training_room_80184124);
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(3), ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b6_training_room_80182B24, 0);
     D_shelter_b6_training_room_80185C58 = 1;
     return 0;
 }
@@ -442,7 +442,7 @@ static void func_shelter_b6_training_room_8017D874(Task* task)
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     place                     = gGameSession->location.loc.variant;
     if (place == 1 && gGameSession->eventState == 0 && D_shelter_b6_training_room_80185C58 == place) {
-        func_800E8614(D_shelter_b6_training_room_80184274, 0);
+        evsStartScript(D_shelter_b6_training_room_80184274, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         D_shelter_b6_training_room_80185C58 = 2;
     }
 }

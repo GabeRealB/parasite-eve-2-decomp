@@ -1515,7 +1515,7 @@ void func_acropolis_square_80181AEC(Task* task)
             Gp_MsgPlayerWeapon(0);
             D_acropolis_square_8018382C = 1;
             D_acropolis_square_80188898 = 0;
-            func_800E8634(D_acropolis_square_80183834, 0, D_acropolis_square_801838DC);
+            evsStartScriptWithSkip(D_acropolis_square_80183834, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_square_801838DC);
             task->state += 1;
             return;
 
@@ -1756,7 +1756,7 @@ static void func_acropolis_square_801822A4(Task* task)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 7 && D_acropolis_square_80183830 == 0) {
         D_acropolis_square_80183830                         = 1;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
-        func_800E8634(D_acropolis_square_8018399C, 0, D_acropolis_square_80183A5C);
+        evsStartScriptWithSkip(D_acropolis_square_8018399C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_square_80183A5C);
     }
 }
 

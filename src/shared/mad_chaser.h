@@ -60,7 +60,7 @@ typedef struct {
     MATRIX                colorMtx;                              // storage for the model's `TmdObject::colorMtx`
     MATRIX                lightMtx;                              // storage for the model's `TmdObject::lightMtx`
     VECTOR                prevRootPos;                           // root position at the start of the frame; restored when the collision step reports a conflict
-    SVECTOR               pullPoint;                             // point a pull drags the root to: part 3 of the room's first slot-4 task, in the root's parent space
+    SVECTOR               pullPoint;                             // point a pull drags the root to: part 3 of the room's placed actor 0, in the root's parent space
     SVECTOR               rotation;                              // root rotation in 4096ths of a turn: `vx` pitch, `vy` heading, `vz` roll
     SVECTOR               anchorPos;                             // spawn position, moved with every collision step; where part 6 hangs while the enemy dangles
     SVECTOR               toPlayer;                              // offset from the root to the nearer player actor

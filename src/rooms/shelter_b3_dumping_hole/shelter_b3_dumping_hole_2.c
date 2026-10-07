@@ -3015,7 +3015,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             arg0->state++;
             break;
         case 2:
-            func_800E8634(D_shelter_b3_dumping_hole_80188640, 0, D_shelter_b3_dumping_hole_80188A78);
+            evsStartScriptWithSkip(D_shelter_b3_dumping_hole_80188640, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b3_dumping_hole_80188A78);
             arg0->state++;
             break;
         case 3:
@@ -3740,7 +3740,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             break;
         case 1:
             D_shelter_b3_dumping_hole_8018809C = 0;
-            func_800E8634(D_shelter_b3_dumping_hole_8018968C, 0, D_shelter_b3_dumping_hole_801899A4);
+            evsStartScriptWithSkip(D_shelter_b3_dumping_hole_8018968C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b3_dumping_hole_801899A4);
             task->state++;
             break;
         case 2:
@@ -3767,7 +3767,7 @@ void func_shelter_b3_dumping_hole_801818E0(void)
 {
     _ShelterB3DumpingHoleCollapseEventWork* work = D_shelter_b3_dumping_hole_8018F4AC->work;
     if (work->battleReleased == 0) {
-        sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0x20);
+        sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x20);
         gSceneCombatState.battleRefs = 0;
         gGameSession->flowFlags     |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         work->battleReleased         = 1;

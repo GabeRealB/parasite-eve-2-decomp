@@ -1028,7 +1028,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
                 break;
             }
             Gp_MsgSlot4Chain(0, 0);
-            func_800E8634(D_shelter_b4_reservoir_80184948, 0, D_shelter_b4_reservoir_80184DC8);
+            evsStartScriptWithSkip(D_shelter_b4_reservoir_80184948, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b4_reservoir_80184DC8);
             task->state++;
             break;
         case 4:

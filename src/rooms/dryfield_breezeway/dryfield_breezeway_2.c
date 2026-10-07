@@ -417,10 +417,8 @@ GpuImageUpload D_dryfield_breezeway_80182F24[2] = {
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-/// The pair of cutscene blocks `func_800E8634` hands to `taskSpawn` (bank 9,
-/// type 7): the table the spawned task starts from and the event-command
-/// stream it parks in `D_801156D0` for the task that follows it. Both live in
-/// the room's trailing data blob.
+/// The event script and its input skip script started with `evsStartScriptWithSkip`.
+/// Both live in the room's trailing data blob.
 extern EvsCommand D_dryfield_breezeway_80181E70[];
 
 extern EvsCommand D_dryfield_breezeway_80181F90[];
@@ -540,7 +538,7 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
 /// next frame. It allocates the `_DryfieldBreezewayFirstEventWork` block, publishes the room task
 /// in `D_dryfield_breezeway_801843C0`, plays the player's animation 1 for the
 /// equipped weapon (`ANIMATION_MESSAGE_PLAY`, interpolated over 10 frames) and starts the room's
-/// opening cutscene through `func_800E8634`, which is what raises
+/// opening cutscene through `evsStartScriptWithSkip`, which is what raises
 /// `gGameSession::eventState`. It then advances to state 1.
 ///
 /// State 1 runs the sequencer every frame until the cutscene clears
@@ -578,7 +576,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
             buf.blendFrames          = 0xA;
             buf.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf, 0);
-            func_800E8634(D_dryfield_breezeway_80181E70, 0, D_dryfield_breezeway_80181F90);
+            evsStartScriptWithSkip(D_dryfield_breezeway_80181E70, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_breezeway_80181F90);
             arg0->state += 1;
             break;
         case 1:

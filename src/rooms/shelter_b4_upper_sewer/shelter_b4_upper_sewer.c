@@ -839,7 +839,7 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
                 D_80114D08                     = 0xA;
                 break;
             }
-            func_800E8614(D_shelter_b4_upper_sewer_80186318, 0);
+            evsStartScript(D_shelter_b4_upper_sewer_80186318, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN, 1);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 0);
             task->state++;

@@ -47,7 +47,7 @@ extern AreaApplyRec D_dryfield_night_water_tank_801808B0[];
 
 /// Main-executable halfword the second state waits on before it may advance.
 
-/// Event scripts handed to `func_800E8634`: the one it starts and its skip
+/// Event scripts handed to `evsStartScriptWithSkip`: the one it starts and its skip
 /// target.
 extern EvsCommand D_actor_146300_80137C28[];
 extern EvsCommand D_actor_146300_80138570[];
@@ -613,7 +613,7 @@ static void func_dryfield_night_water_tank_8017D94C(Task* task);
 /// `gGameSession::flowFlags` once `gSceneCombatState` has reached 1, then advances;
 /// state 1 advances to 2 as soon as the halfword at `gSceneCombatState.battleRefs` clears; state
 /// 2 runs the room's ending -- apply the area records, set flags 0x7B, 0x83,
-/// 0x155 and 3, spawn the script `func_800E8634` is handed -- and kills the
+/// 0x155 and 3, spawn the script `evsStartScriptWithSkip` is handed -- and kills the
 /// task, or, while `gGameSession::battleResetPending` is still clear, just ticks
 /// `Task::killCountdown` down and waits for another frame.
 void func_dryfield_night_water_tank_8017D5D0(Task* task)
@@ -639,7 +639,7 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
                 Gp_ApplyAreaRecs(D_dryfield_night_water_tank_801808B0);
                 gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 2);
                 gameFlagSetNibble(GAME_FLAG_083, 1);
-                func_800E8634(D_actor_146300_80137C28, 0, D_actor_146300_80138570);
+                evsStartScriptWithSkip(D_actor_146300_80137C28, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_146300_80138570);
                 gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                 gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0xE);
                 taskKill(task);
@@ -689,10 +689,10 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
 
     if ((gGameSession->location.loc.variant != 0xA) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2)) {
         if (in->warp == 3) {
-            func_800E8614(D_dryfield_night_water_tank_8017DDD8, 0);
+            evsStartScript(D_dryfield_night_water_tank_8017DDD8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
         if (in->warp == 4) {
-            func_800E8614(D_dryfield_night_water_tank_8017DEE0, 0);
+            evsStartScript(D_dryfield_night_water_tank_8017DEE0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
     }
     if (in->warp == 5) {

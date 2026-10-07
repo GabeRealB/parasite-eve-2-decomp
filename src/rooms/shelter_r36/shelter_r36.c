@@ -602,7 +602,7 @@ static void func_shelter_r36_8017D9CC(Task* task);
 /// Entry 0 of `D_shelter_r36_8017DF14`, spawned on arrival by warp 1. If
 /// event nibble 0x113 is clear it starts CAP slot 1; otherwise it loads CAP
 /// file 3 and starts slot 2, then passes the first pair of event blocks to
-/// `func_800E8634`. Once `eventState` is back to 0 it either sets restart mode
+/// `evsStartScriptWithSkip`. Once `eventState` is back to 0 it either sets restart mode
 /// 0xFF and session `deathFadeFrames` to 1 and ends (nibble still clear), or resets
 /// the CAP state and passes the second pair before ending.
 void func_shelter_r36_8017D5E8(Task* task)
@@ -622,7 +622,7 @@ void func_shelter_r36_8017D5E8(Task* task)
                 slot = 2;
             }
             Gp_StartCapSlot(slot, 0, 0);
-            func_800E8634(D_shelter_r36_8017DF2C, 0, D_shelter_r36_8017E5A4);
+            evsStartScriptWithSkip(D_shelter_r36_8017DF2C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_r36_8017E5A4);
             task->state++;
             break;
         case 1:
@@ -638,7 +638,7 @@ void func_shelter_r36_8017D5E8(Task* task)
             }
             break;
         case 2:
-            func_800E8634(D_shelter_r36_8017E664, 0, D_shelter_r36_8017E8BC);
+            evsStartScriptWithSkip(D_shelter_r36_8017E664, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_r36_8017E8BC);
             taskKill(task);
             break;
     }

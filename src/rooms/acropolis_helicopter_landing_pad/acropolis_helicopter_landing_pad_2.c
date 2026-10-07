@@ -1213,7 +1213,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             Gp_MsgPlayerWeapon(0);
             task->state += 1;
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
-                taskMessageDispatch(Gp_LookupSlot4(1), ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+                taskMessageDispatch(sceneFindPlacedActor(1), ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
             vec.vx                                                     = 0x4B0;
@@ -1288,8 +1288,8 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
         case 9:
             task->spawnArg1.value -= 1;
             if (task->spawnArg1.value <= 0) {
-                func_800E8634(D_acropolis_helicopter_landing_pad_8018467C, 1,
-                              D_acropolis_helicopter_landing_pad_80184CF4);
+                evsStartScriptWithSkip(D_acropolis_helicopter_landing_pad_8018467C, EVENT_SCRIPT_HUD_KEEP,
+                                       D_acropolis_helicopter_landing_pad_80184CF4);
                 taskKill(task);
             }
             break;
@@ -1529,7 +1529,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, const 
     if ((((const DirectionActionRequest*)firstArg)->actionId == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_REEQUIP_WEAPON);
         gStageSceneMusicEntry   = 1;
-        func_800E8634(D_acropolis_helicopter_landing_pad_80183A34, 0, D_acropolis_helicopter_landing_pad_80183FA4);
+        evsStartScriptWithSkip(D_acropolis_helicopter_landing_pad_80183A34, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_helicopter_landing_pad_80183FA4);
         D_acropolis_helicopter_landing_pad_80184D9C = 1;
         obj                                         = (D_acropolis_helicopter_landing_pad_80185E7C + 4);
         obj2                                        = obj + 4;
@@ -1586,7 +1586,7 @@ void func_acropolis_helicopter_landing_pad_8017E6C0(s32 arg0)
 
 void func_acropolis_helicopter_landing_pad_8017E6F0(void)
 {
-    sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0x1B);
+    sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x1B);
     gSceneCombatState.signals.bytes.endDelayFrames = 3;
 }
 
@@ -1695,7 +1695,7 @@ static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
     D_acropolis_helicopter_landing_pad_80187F84 = 0;
     D_acropolis_helicopter_landing_pad_80184E0C = 0;
     task->state++;
-    func_800E8614(D_acropolis_helicopter_landing_pad_80183A04, 1);
+    evsStartScript(D_acropolis_helicopter_landing_pad_80183A04, EVENT_SCRIPT_HUD_KEEP);
     D_acropolis_helicopter_landing_pad_80187F80                 = taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 7, 0, 0);
     (D_acropolis_helicopter_landing_pad_80185E7C + 4)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
 }

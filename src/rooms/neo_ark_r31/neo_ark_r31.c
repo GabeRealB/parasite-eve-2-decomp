@@ -232,7 +232,7 @@ s32 func_neo_ark_r31_8017D904(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 /// Room task state 0: installs the message table, claims pointer slot 7,
 /// sets `gCdCmdQueue.imageMdecMode` to 2 and starts the room script with
-/// `func_800E8634`. Advances to state 1.
+/// `evsStartScriptWithSkip`. Advances to state 1.
 static void func_neo_ark_r31_8017D90C(Task* arg0)
 {
     CdCmdQueue* queue;
@@ -241,7 +241,7 @@ static void func_neo_ark_r31_8017D90C(Task* arg0)
     arg0->msgTable = D_neo_ark_r31_8017D9F4;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    func_800E8634(D_actor_461800_80133F90, 0, D_actor_461800_80134470);
+    evsStartScriptWithSkip(D_actor_461800_80133F90, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_461800_80134470);
     arg0->state = (s32)(arg0->state + 1);
 }
 

@@ -2204,15 +2204,15 @@ void func_actor_460200_80132210(void)
 {
     Task* slot;
 
-    slot = Gp_LookupSlot4(0);
+    slot = sceneFindPlacedActor(0);
     if (slot != NULL) {
         TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_actor_460200_80136234, 0);
         TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_460200_8013607C, 0);
     }
-    if (Gp_LookupSlot4(1) != 0) {
+    if (sceneFindPlacedActor(1) != 0) {
         Gp_MsgSlot4Chain(1, 2);
     }
-    slot = Gp_LookupSlot4(2);
+    slot = sceneFindPlacedActor(2);
     if (slot != NULL) {
         Gp_MsgSlot4Chain(2, 1);
         TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_460200_80135F14, 0);
@@ -2223,19 +2223,19 @@ void func_actor_460200_801322B8(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A)) {
         case 0:
-            func_800E8614(D_actor_460200_80137AA0, 0);
+            evsStartScript(D_actor_460200_80137AA0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 1);
             break;
         case 1:
-            func_800E8614(D_actor_460200_80137BA8, 0);
+            evsStartScript(D_actor_460200_80137BA8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 2);
             break;
         case 2:
-            func_800E8614(D_actor_460200_80137CB0, 0);
+            evsStartScript(D_actor_460200_80137CB0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_A, 3);
             break;
         case 3:
-            func_800E8614(D_actor_460200_80137DA0, 0);
+            evsStartScript(D_actor_460200_80137DA0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }
@@ -2244,19 +2244,19 @@ void func_actor_460200_80132390(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B)) {
         case 0:
-            func_800E8614(D_actor_460200_80137F98, 0);
+            evsStartScript(D_actor_460200_80137F98, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 1);
             break;
         case 1:
-            func_800E8614(D_actor_460200_80137FE0, 0);
+            evsStartScript(D_actor_460200_80137FE0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 2);
             break;
         case 2:
-            func_800E8614(D_actor_460200_80138028, 0);
+            evsStartScript(D_actor_460200_80138028, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_C_TALK_COUNT_B, 3);
             break;
         case 3:
-            func_800E8614(D_actor_460200_80138070, 0);
+            evsStartScript(D_actor_460200_80138070, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }

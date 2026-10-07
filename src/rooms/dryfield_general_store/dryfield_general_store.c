@@ -1606,7 +1606,7 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
             break;
         case 2:
             if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED && gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 1) {
-                func_800E8614(D_dryfield_general_store_8017E568, 1);
+                evsStartScript(D_dryfield_general_store_8017E568, EVENT_SCRIPT_HUD_KEEP);
             }
             gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 2);
             break;

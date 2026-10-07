@@ -22,6 +22,7 @@ s32 D_mine_cavern_8018EB50;
 #include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/scene_runtime.h"
 
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -327,7 +328,7 @@ s32 func_mine_cavern_8017DC9C(Task* task, s32 msgId, s32 arg2, s32 arg3)
         D_mine_cavern_8018EB50 = 1;
     } else if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 1) {
         func_800E3FAC(0xA2, 0x3D);
-        func_800E8634(D_mine_cavern_80188A3C, 0, D_mine_cavern_80188D24);
+        evsStartScriptWithSkip(D_mine_cavern_80188A3C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_80188D24);
         gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, 2);
     }
     return 0;
@@ -362,7 +363,7 @@ static void func_mine_cavern_8017DDFC(Task* arg0)
     arg0->msgTable = D_mine_cavern_80183C6C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) == 0)) {
-        func_800E8634(D_mine_cavern_80187C74, 0, D_mine_cavern_8018804C);
+        evsStartScriptWithSkip(D_mine_cavern_80187C74, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_8018804C);
         func_mine_cavern_8017E394();
         gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN, 1);
     } else {
@@ -384,7 +385,7 @@ static void func_mine_cavern_8017DEE4(Task* task)
 
     flag = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS);
     if ((flag == 1) && (D_mine_cavern_8018EB50 == flag) && (Gp_StateC08.mode != D_mine_cavern_8018EB50)) {
-        func_800E8634(D_mine_cavern_80188214, 0, D_mine_cavern_801887B4);
+        evsStartScriptWithSkip(D_mine_cavern_80188214, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_801887B4);
         D_mine_cavern_8018EB50 = 2;
     }
 }
@@ -408,7 +409,7 @@ void func_mine_cavern_8017DFAC(s32 arg0)
 {
     if ((gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 1 && D_mine_cavern_8018EB54 == 0) ||
         (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 2 && D_mine_cavern_8018EB54 == 1)) {
-        sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0x1E);
+        sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x1E);
         gSceneCombatState.signals.bytes.endDelayFrames = arg0;
         gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         D_mine_cavern_8018EB54                        += 1;

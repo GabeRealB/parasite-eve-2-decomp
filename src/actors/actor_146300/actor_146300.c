@@ -1404,7 +1404,7 @@ void func_actor_146300_80131ECC(Task* task)
                         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
                         task->state = 0x28;
                     } else {
-                        func_800E8614(D_actor_146300_80138AC8, 0);
+                        evsStartScript(D_actor_146300_80138AC8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                         taskKill(task);
                     }
                     break;
@@ -1419,7 +1419,7 @@ void func_actor_146300_80131ECC(Task* task)
             break;
         case 10:
             Gp_StartCapSlot((s16)D_actor_146300_80142824, 0, 0);
-            func_800E8614(D_actor_146300_801386C0, 1);
+            evsStartScript(D_actor_146300_801386C0, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case 11:
@@ -1429,11 +1429,11 @@ void func_actor_146300_80131ECC(Task* task)
             break;
         case 20:
             Gp_StartCapSlot((s16)D_actor_146300_80142824, 0, 1);
-            func_800E8614(D_actor_146300_80138810, 1);
+            evsStartScript(D_actor_146300_80138810, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case 30:
-            func_800E8614(D_actor_146300_801388D0, 1);
+            evsStartScript(D_actor_146300_801388D0, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case 31:
@@ -1443,7 +1443,7 @@ void func_actor_146300_80131ECC(Task* task)
             break;
         case 40:
             Gp_StartCapSlot(0x15, 0, 1);
-            func_800E8614(D_actor_146300_80138A38, 1);
+            evsStartScript(D_actor_146300_80138A38, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case 21:
@@ -1459,32 +1459,32 @@ void func_actor_146300_8013224C(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS)) {
         case 2:
-            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B38, 0);
             break;
         case 3:
             if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
                 if (areaGetCurrentObjectState(0x1F) == 1) {
-                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137AAC, 0);
                 } else {
-                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B38, 0);
                 }
             } else {
-                TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B38, 0);
             }
             break;
         case 4:
             if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
                 if (areaGetCurrentObjectState(0x20) == 1) {
-                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137AAC, 0);
                 } else {
-                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B38, 0);
                 }
                 break;
             }
             /* fallthrough */
         case 5:
-            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_actor_146300_80137C10, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B60, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D4, &D_actor_146300_80137C10, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B60, 0);
             break;
     }
 }
@@ -1500,12 +1500,12 @@ void func_actor_146300_80132418(s32 arg0)
     switch (arg0) {
         case 0:
             if (capGetVariantKey() == 1) {
-                TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B10, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B10, 0);
             }
             break;
         case 1:
             if (capGetVariantKey() == 2) {
-                TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137AAC, 0);
             }
             break;
     }

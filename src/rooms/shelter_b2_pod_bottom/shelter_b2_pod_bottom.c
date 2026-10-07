@@ -18,6 +18,7 @@
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
@@ -1020,7 +1021,7 @@ s32 func_shelter_b2_pod_bottom_8017D640(Task* task, s32 msgId, s32 arg2, s32 arg
 
 /// The room task's setup state: installs the room's message table, stores the
 /// task in pointer slot 7 and, on place 1, calls `func_80162B0C` and
-/// `func_800E8634`; elsewhere it sends message 0x7DB to the slot-4 task.
+/// `evsStartScriptWithSkip`; elsewhere it sends message 0x7DB to placed actor 0.
 static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
 {
     ActorCommand msg;
@@ -1029,12 +1030,12 @@ static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
         func_actor_361100_80162B0C(0);
-        func_800E8634(D_actor_361100_80165F48, 0, D_actor_361100_80166848);
+        evsStartScriptWithSkip(D_actor_361100_80165F48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_361100_80166848);
     } else {
         msg.context.loc.stage = 0;
         msg.context.loc.area  = 0;
         msg.command           = 7;
-        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
     }
     arg0->state++;
 }

@@ -545,9 +545,9 @@ static void func_actor_310600_80161FA0(Task* task)
                             case 2:
                                 if (work->shotCueCount++ < 5) {
                                     effectSpawn(EFFECT_ACTOR_MUZZLE_FLASH, coord, 9, NULL);
-                                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_8017969C, 0);
+                                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_8017969C, 0);
                                 } else {
-                                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_801796A0, 0);
+                                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_801796A0, 0);
                                     taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, 2, 0, 0);
                                 }
                                 break;

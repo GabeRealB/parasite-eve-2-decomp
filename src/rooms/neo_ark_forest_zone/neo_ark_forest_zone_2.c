@@ -17,7 +17,6 @@
 #include "gameplay/direction.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
-#include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/enemy_params.h"
@@ -641,10 +640,10 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
         gRoamerCommand.context.loc.area  = 0xB;
         gRoamerCommand.command           = 0xB;
         for (i = 0; i < 2; i++) {
-            if (Gp_LookupSlot4(i) == 0) {
+            if (sceneFindPlacedActor(i) == 0) {
                 break;
             }
-            obj = Gp_LookupSlot4(i)->spawnArg2.pointer;
+            obj = sceneFindPlacedActor(i)->spawnArg2.pointer;
             if (obj == NULL) {
                 break;
             }
@@ -660,48 +659,48 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
                 if (obj->hp > 0) {
                     sceneAcquireBattleRef(0);
                     gRoamerCooldown += 0x5A;
-                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
                     switch ((s16)(gRoamerSpawnRequest - 1)) {
                         case 0:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182DE8[0].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182DE8[0].z;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182DE8[0].x;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1]   = 0;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182DE8[0].z;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
                                           D_neo_ark_forest_zone_80182DE8[0].yaw, 1);
                             break;
                         case 1:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182DE8[1].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182DE8[1].z;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182DE8[1].x;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1]   = 0;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182DE8[1].z;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
                                           D_neo_ark_forest_zone_80182DE8[1].yaw, 1);
                             break;
                         case 2:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[2].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[2].z;
-                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[2].x;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1] = 0;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[2].z;
+                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
                                           D_neo_ark_forest_zone_80182DE8[2].yaw, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 3:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[3].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[3].z;
-                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[3].x;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1] = 0;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[3].z;
+                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
                                           D_neo_ark_forest_zone_80182DE8[3].yaw, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 4:
                         default:
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[4].x;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
-                            Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[4].z;
-                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[4].x;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1] = 0;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[4].z;
+                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
                                           D_neo_ark_forest_zone_80182DE8[4].yaw, 1);
-                            Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                     }
                 }

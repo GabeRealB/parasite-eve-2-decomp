@@ -2,7 +2,7 @@
 
 /// Death: plays sound 3 unless the enemy's HP is already negative, releases
 /// `gSceneCombatState`'s hold if it points at this enemy, unlinks the enemy node and
-/// its three hit bodies, moves the task to state 5, tells slot-4 task 0 with
+/// its three hit bodies, moves the task to state 5, tells placed actor 0 with
 /// message 0x13F4, and hides the model.
 void madChaserPulledIn(Task* arg0)
 {
@@ -33,6 +33,6 @@ void madChaserPulledIn(Task* arg0)
     worldCollisionUnlinkBody(&objs->gridBody);
     worldCollisionUnlinkBody(&objs->attackBody);
     madChaserEnterState(arg0, 5);
-    taskMessageDispatch(Gp_LookupSlot4(0), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
+    taskMessageDispatch(sceneFindPlacedActor(0), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
     tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }

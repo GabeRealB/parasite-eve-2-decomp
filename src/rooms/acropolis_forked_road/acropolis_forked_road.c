@@ -176,7 +176,7 @@ s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, const void* first
     if (request->actionId == 1 && (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2)) {
         temp = gGameSession->location.loc.variant;
         if (((temp == 4) || (temp == 8)) && (gameFlagGetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN) == 0)) {
-            func_800E8614(D_acropolis_forked_road_801820B8, 1);
+            evsStartScript(D_acropolis_forked_road_801820B8, EVENT_SCRIPT_HUD_KEEP);
             gameFlagSetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN, 1);
         }
     }

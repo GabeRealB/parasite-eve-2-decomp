@@ -358,11 +358,11 @@ static SVECTOR                _gDryfieldWaterTowerCollision04608[8];
 static SVECTOR                _gDryfieldWaterTowerCollision04648[8];
 static WorldCollisionGridFace _gDryfieldWaterTowerCollision04688[2];
 
-/// The pair of blocks the cap script's state 8 hands to `func_800E8634`.
+/// The pair of blocks the cap script's state 8 hands to `evsStartScriptWithSkip`.
 extern EvsCommand D_dryfield_water_tower_801820B0[];
 extern EvsCommand D_dryfield_water_tower_80182248[];
 
-/// The two `func_800E8634` pairs the rotation step hands over: `80181C78` /
+/// The two `evsStartScriptWithSkip` pairs the rotation step hands over: `80181C78` /
 /// `80181DC8` when it starts a rotation from view 7, `80181E88` / `80181FF0`
 /// when it ends one.
 extern EvsCommand D_dryfield_water_tower_80181C78[];
@@ -409,9 +409,7 @@ extern ActorTransform D_dryfield_water_tower_801823A8;
 /// `actorMsgPlaceYawPitchRoll`, the handler the room's script table
 /// pairs with 0x7D4.
 
-/// The pair of cutscene blocks `func_800E8634` hands to `taskSpawn` (bank 9,
-/// type 7): the one the running scene starts and the one it parks in
-/// `D_801156D0` for the task that follows it.
+/// The event script and its input skip script started with `evsStartScriptWithSkip`.
 extern EvsCommand D_dryfield_water_tower_80182464[];
 extern EvsCommand D_dryfield_water_tower_80182674[];
 
@@ -2458,7 +2456,7 @@ static inline u16 _dryfieldWaterTowerStepFrames(Task* task)
 ///
 /// State 0 either starts a rotation (`mechanismState` 0: message 0x7DA with 9 to the
 /// slot-4 game task, view 7 recorded in `nextView`, the `runningSoundStarted` latch
-/// cleared and the first `func_800E8634` pair handed over), or, when the cap
+/// cleared and the first `evsStartScriptWithSkip` pair handed over), or, when the cap
 /// has already been placed, restores view 7 and the lowered cap directly and
 /// goes to state 2. Either way it clears bit 0x40 of the room's 4A object, loads
 /// the run's time limit and restores the first block of each script
@@ -2509,7 +2507,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg0, ACTOR_COMMAND_MESSAGE_APPLY);
                 state->nextView            = Gp_FindViewIndex(7);
                 state->runningSoundStarted = 0;
-                func_800E8634(D_dryfield_water_tower_80181C78, 0, D_dryfield_water_tower_80181DC8);
+                evsStartScriptWithSkip(D_dryfield_water_tower_80181C78, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tower_80181DC8);
                 state->phase++;
             } else {
                 TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40[1], 0);
@@ -2556,7 +2554,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 (objId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (reason = (s8)objA) == 2) {
                 worldCollisionUnlinkTrigger(0, (D_dryfield_water_tower_80186A84 + 6));
                 state->nextView = Gp_FindViewIndex(9);
-                func_800E8634(D_dryfield_water_tower_80181E88, 0, D_dryfield_water_tower_80181FF0);
+                evsStartScriptWithSkip(D_dryfield_water_tower_80181E88, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tower_80181FF0);
                 state->runResult = reason;
                 state->phase++;
                 break;
@@ -2568,7 +2566,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             if (D_dryfield_water_tower_801876AA < D_dryfield_water_tower_801876A8) {
                 state->timeouts++;
                 state->nextView = gGameSession->location.loc.view;
-                func_800E8634(D_dryfield_water_tower_80181E88, 0, D_dryfield_water_tower_80181FF0);
+                evsStartScriptWithSkip(D_dryfield_water_tower_80181E88, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tower_80181FF0);
                 state->runResult = DRYFIELD_WATER_TOWER_RUN_TIMED_OUT;
                 state->phase++;
             }
@@ -2625,7 +2623,7 @@ static inline u16 _dryfieldWaterTowerState7Step(Task* arg0)
 
 /// State 8 of the cap script, one call per frame, returning non-zero once the
 /// step is complete. On its first frame (`phase` 0) it hands the room's two
-/// blocks at 0x801820B0 / 0x80182248 to `func_800E8634`, retrying on later
+/// blocks at 0x801820B0 / 0x80182248 to `evsStartScriptWithSkip`, retrying on later
 /// frames while `Gp_StateC08.mode` is 1 or `gDisplayState.pendingMode` is set; after that it waits
 /// for the session's `eventState` to go idle and sets nibble 0x32 to 2.
 static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
@@ -2640,7 +2638,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
             if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return 0;
             }
-            func_800E8634(D_dryfield_water_tower_801820B0, 0, D_dryfield_water_tower_80182248);
+            evsStartScriptWithSkip(D_dryfield_water_tower_801820B0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tower_80182248);
             work->phase++;
             break;
         case DRYFIELD_WATER_TOWER_CLOSING_PHASE_WAIT:
@@ -2883,7 +2881,7 @@ void func_dryfield_water_tower_8017F82C(void)
     if (state->reequipRequested == 0) {
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON);
-        sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 1);
+        sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 1);
         state->reequipRequested = 1;
     }
 }
@@ -3135,7 +3133,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             task->state++;
             break;
         case 1:
-            func_800E8634(D_dryfield_water_tower_80182464, 0, D_dryfield_water_tower_80182674);
+            evsStartScriptWithSkip(D_dryfield_water_tower_80182464, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tower_80182674);
             task->state++;
             break;
         case 2:

@@ -192,7 +192,7 @@ void capClearUnstartedSequenceTask(Task* task);
 
 /// `spawnArg1` packs three bytes: bits 0-7 are the message argument, bits
 /// 8-15 the delay in frames, and bits 16-23 the recipient - 0 for slot 3, 1
-/// for slot 0xA, otherwise `Gp_LookupSlot4(n - 2)`.
+/// for slot 0xA, otherwise `sceneFindPlacedActor(n - 2)`.
 void Gp_DelayedMsgTask(Task* task);
 
 #endif // GAMEPLAY_PRIVATE_CAPTIONS_H

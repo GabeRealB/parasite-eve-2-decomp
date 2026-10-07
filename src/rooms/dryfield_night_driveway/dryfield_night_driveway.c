@@ -93,7 +93,7 @@ extern TaskDesc gRoomEventStagedTaskDesc;
 /// event gate spawns entry 1.
 extern TaskDesc gDrivewayCutsceneTasks[];
 
-/// Blocks the room's tasks hand to `func_800E8614` / `func_800E8634`.
+/// Blocks the room's tasks hand to `evsStartScript` / `evsStartScriptWithSkip`.
 extern EvsCommand gDrivewayCutsceneScript[];
 extern EvsCommand gDrivewayBlackoutScript[];
 extern EvsCommand gDrivewayBlackoutTail[];
@@ -1022,14 +1022,14 @@ static s32 _dryfieldNightDrivewayIgnoreDirectionAction(Task* task, s32 messageId
 /// First state of the room task: installs the room's message table and takes
 /// pointer slot 7; when slot 0xA is set and the room was entered by warp 4, it
 /// also hands `D_dryfield_night_driveway_8017FB00` and
-/// `D_dryfield_night_driveway_8017F998` to `func_800E8634`. Then advances the
+/// `D_dryfield_night_driveway_8017F998` to `evsStartScriptWithSkip`. Then advances the
 /// state.
 static void func_dryfield_night_driveway_8017DCFC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_driveway_8017F7A4;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) && (gGameSession->location.loc.warp == 4)) {
-        func_800E8634(D_dryfield_night_driveway_8017FB00, 0, D_dryfield_night_driveway_8017F998);
+        evsStartScriptWithSkip(D_dryfield_night_driveway_8017FB00, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_driveway_8017F998);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

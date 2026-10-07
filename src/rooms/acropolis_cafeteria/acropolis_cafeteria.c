@@ -1060,7 +1060,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
     switch (task->state) {
         case 0:
             gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
-            func_800E8634(D_acropolis_cafeteria_80182E74, 1, D_acropolis_cafeteria_801831BC);
+            evsStartScriptWithSkip(D_acropolis_cafeteria_80182E74, EVENT_SCRIPT_HUD_KEEP, D_acropolis_cafeteria_801831BC);
             task->state += 1;
             break;
         case 1:
@@ -1124,7 +1124,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             }
             break;
         case 15:
-            func_800E8614(D_acropolis_cafeteria_80183F3C, 0);
+            evsStartScript(D_acropolis_cafeteria_80183F3C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             task->state += 1;
             break;
         case 16:
@@ -1134,7 +1134,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             }
             break;
         case 18:
-            if (taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL &&
+            if (taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL &&
                 gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 Gp_MsgPlayerWeapon(0);
                 task->state += 1;
@@ -1142,11 +1142,11 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 19:
             displaySetShakeY(0);
-            func_800E8634(D_acropolis_cafeteria_8018330C, 0, D_acropolis_cafeteria_801834D4);
+            evsStartScriptWithSkip(D_acropolis_cafeteria_8018330C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_cafeteria_801834D4);
             task->state += 1;
             break;
         case 21:
-            sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0xA);
+            sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0xA);
             gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             gSceneCombatState.signals.bytes.endDelayFrames = 3;
             D_acropolis_cafeteria_80184164                 = 2;
@@ -1223,7 +1223,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             break;
 
         case 6:
-            func_800E8634(D_acropolis_cafeteria_8018363C, 0, D_acropolis_cafeteria_80183DBC);
+            evsStartScriptWithSkip(D_acropolis_cafeteria_8018363C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_cafeteria_80183DBC);
             task->state = task->state + 1;
             break;
 
@@ -1259,11 +1259,11 @@ void func_acropolis_cafeteria_8017DF68(Task* task)
 {
     GfxCoord* coord;
 
-    coord = Gp_LookupSlot4(0)->extra.tmd->coords;
+    coord = sceneFindPlacedActor(0)->extra.tmd->coords;
     switch (task->state) {
         case 0:
-            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_cafeteria_80182D28, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_cafeteria_80182DB8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D4, &D_acropolis_cafeteria_80182D28, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_cafeteria_80182DB8, 0);
             D_acropolis_cafeteria_8018D6A0 = 0;
             D_acropolis_cafeteria_8018D6A4 = -0x14;
             D_acropolis_cafeteria_8018D6A8 = -0x14;
@@ -1376,7 +1376,7 @@ static void func_acropolis_cafeteria_8017E348(Task* task)
         Gp_MsgSlot4Chain(1, 2);
         Gp_MsgSlot4Chain(2, 1);
         (D_acropolis_cafeteria_801891E4 + 9)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(2), 0x7D4, &D_acropolis_cafeteria_80182DDC, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(2), 0x7D4, &D_acropolis_cafeteria_80182DDC, 0);
     }
     task->state = task->state + 1;
 }

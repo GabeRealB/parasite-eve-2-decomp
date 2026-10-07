@@ -246,7 +246,7 @@ s32 func_mine_gorge_8017D784(Task* task, s32 msgId, const void* firstArg, s32 ar
 
     if (actionId == 1 && gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
         gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN, 1);
-        func_800E8614(D_mine_gorge_8017E610, 0);
+        evsStartScript(D_mine_gorge_8017E610, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
@@ -270,7 +270,7 @@ void func_mine_gorge_8017D828(Task* arg0)
         D_80115768 = 1;
         SetDispMask(0);
         gGameSession->hideHud = 1;
-        func_800E8634(D_mine_gorge_8017E2F0, 0, D_mine_gorge_8017E500);
+        evsStartScriptWithSkip(D_mine_gorge_8017E2F0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_gorge_8017E500);
     } else {
         taskKill(arg0);
         inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_OAK_BOARD);

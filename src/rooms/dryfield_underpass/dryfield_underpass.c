@@ -823,7 +823,7 @@ s32 func_dryfield_underpass_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     temp_v1 = in->warp;
     if ((temp_v1 == 1) && (gGameSession->location.loc.variant == temp_v1) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN, 1);
-        func_800E8614(D_dryfield_underpass_8017E8D8, 0);
+        evsStartScript(D_dryfield_underpass_8017E8D8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }

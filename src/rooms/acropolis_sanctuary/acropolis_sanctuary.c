@@ -36,6 +36,7 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
@@ -209,7 +210,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 /// Payloads the sanctuary cutscene task sends: `..._801820E4` is the record
 /// slot-3 msg 0x3F4 takes and `..._801820F0` / `..._801821C8` the script pair
-/// `func_800E8634` is started on.
+/// `evsStartScriptWithSkip` is started on.
 extern AnimationSet* D_acropolis_sanctuary_801820E4[1];
 extern EvsCommand    D_acropolis_sanctuary_801820F0[];
 extern EvsCommand    D_acropolis_sanctuary_801821C8[];
@@ -1788,7 +1789,7 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
 
     if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.loc.warp == 3) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, 2);
-        func_800E8634(D_acropolis_sanctuary_80180B0C, 0, D_acropolis_sanctuary_80181664);
+        evsStartScriptWithSkip(D_acropolis_sanctuary_80180B0C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_sanctuary_80181664);
         Gp_ApplyAreaRecs(D_acropolis_sanctuary_80186418);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 5);
@@ -1866,7 +1867,7 @@ static s32 _acropolisSanctuaryRejectKeyItem(Task* task, s32 messageId, s32 itemI
 s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0 && gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
-        func_800E8614(D_acropolis_sanctuary_80181814, 0);
+        evsStartScript(D_acropolis_sanctuary_80181814, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
@@ -1923,7 +1924,7 @@ static void func_acropolis_sanctuary_8017D930(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     arg0->state = arg0->state + 1;
     if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) != 1) {
-        slot = Gp_LookupSlot4(1);
+        slot = sceneFindPlacedActor(1);
         Gp_MsgSlot4Chain(1, 1);
         if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) != 0 && slot != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_acropolis_sanctuary_80180AE8, 0);
@@ -2054,7 +2055,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(initialWork->playerTask, ANIMATION_MESSAGE_PLAY, &request, 0);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 7), 0, 0);
-                func_800E8634(D_acropolis_sanctuary_801820F0, 0, D_acropolis_sanctuary_801821C8);
+                evsStartScriptWithSkip(D_acropolis_sanctuary_801820F0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_sanctuary_801821C8);
                 arg0->state = arg0->state + 1;
             }
             break;

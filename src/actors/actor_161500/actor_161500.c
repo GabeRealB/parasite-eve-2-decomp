@@ -1401,22 +1401,22 @@ void func_actor_161500_80131E38(void)
 
     switch (gameFlagGetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE)) {
         case 0:
-            func_800E8614(D_actor_161500_80135668, 0);
+            evsStartScript(D_actor_161500_80135668, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
         case 1:
-            func_800E8614(D_actor_161500_801357E8, 0);
+            evsStartScript(D_actor_161500_801357E8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 3);
             break;
         case 2:
-            func_800E8614(D_actor_161500_80135968, 0);
+            evsStartScript(D_actor_161500_80135968, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 3);
             break;
         case 3:
-            func_800E8614(D_actor_161500_80135AE8, 0);
+            evsStartScript(D_actor_161500_80135AE8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 0);
             break;
         case 4:
-            func_800E8614(D_actor_161500_80135C68, 0);
+            evsStartScript(D_actor_161500_80135C68, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 0);
             break;
     }
@@ -1449,7 +1449,7 @@ void func_actor_161500_80131FBC(void)
 
     temp_s0 = (gGameSession->location.loc.variant == 1) * 4;
     temp_v0 = gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_A);
-    func_800E8614(D_actor_161500_80134920[temp_v0 + temp_s0], 0);
+    evsStartScript(D_actor_161500_80134920[temp_v0 + temp_s0], EVENT_SCRIPT_HUD_HIDE_RESTORE);
     if (temp_v0 < 3) {
         gameFlagSetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_A, temp_v0 + 1);
     }
@@ -1462,7 +1462,7 @@ void func_actor_161500_80132038(void)
 
     temp_s0 = (gGameSession->location.loc.variant == 1) * 4;
     temp_v0 = gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B);
-    func_800E8614(D_actor_161500_80135288[temp_v0 + temp_s0], 0);
+    evsStartScript(D_actor_161500_80135288[temp_v0 + temp_s0], EVENT_SCRIPT_HUD_HIDE_RESTORE);
     if (temp_v0 < 3) {
         gameFlagSetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B, temp_v0 + 1);
     }
@@ -1486,9 +1486,9 @@ void func_actor_161500_801320F0(s32 arg0)
 void func_actor_161500_80132110(void)
 {
     if (gameFlagGetNibble(GAME_FLAG_105) == 0) {
-        func_800E8614(D_actor_161500_801352A8, 0);
+        evsStartScript(D_actor_161500_801352A8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     } else {
-        func_800E8614(D_actor_161500_801354B8, 0);
+        evsStartScript(D_actor_161500_801354B8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
 }
 
@@ -1506,7 +1506,7 @@ void func_actor_161500_801321B4(Task* arg0)
     D_80115768 = 1;
     Gp_SetItemSeenBit(0x124, 1);
     gameFlagSetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, 2);
-    func_800E8614(D_actor_161500_80137AB8, 0);
+    evsStartScript(D_actor_161500_80137AB8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     taskKill(arg0);
 }
 
@@ -1536,9 +1536,9 @@ void func_actor_161500_801322A0(void)
         temp_v0 = gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE);
         if (temp_v0 == 1) {
             if (areaGetCurrentObjectState(3) == temp_v0) {
-                func_800E8614(D_actor_161500_801378D8, 0);
+                evsStartScript(D_actor_161500_801378D8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else {
-                func_800E8614(D_actor_161500_801376F8, 0);
+                evsStartScript(D_actor_161500_801376F8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
         }
     }
@@ -1552,11 +1552,11 @@ void func_actor_161500_8013230C(void)
         temp_v0 = gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE);
         switch (temp_v0) {
             case 0:
-                func_800E8634(D_actor_161500_80137080, 0, D_actor_161500_80136E88);
+                evsStartScriptWithSkip(D_actor_161500_80137080, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_161500_80136E88);
                 gameFlagSetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, 1);
                 break;
             case 1:
-                func_800E8614(D_actor_161500_80137650, 1);
+                evsStartScript(D_actor_161500_80137650, EVENT_SCRIPT_HUD_KEEP);
                 break;
             case 2:
                 break;

@@ -2460,7 +2460,7 @@ static void func_actor_121300_80133BFC(Task* task)
 /// `func_actor_121300_80133BFC` and arms the player's weapon: the slot-3
 /// message 0x3E8 record is `gPlayerStatus.weapon` plus 1 in the alternate weapon block
 /// and plus 0x22 in the base one, with `field_4` 1 and the rest of the frame
-/// zero.  State 1 hands the cutscene's two script blocks to `func_800E8634`,
+/// zero.  State 1 hands the cutscene's two script blocks to `evsStartScriptWithSkip`,
 /// state 2 spawns the `D_actor_121300_8013D390[9]` child while the session is
 /// still down, and state 3 blanks the display, marks save slot 9 / the state
 /// and re-arms the first tick before killing the task.
@@ -2498,7 +2498,7 @@ void func_actor_121300_80133D98(Task* arg0)
             return;
         }
         case 1:
-            func_800E8634(D_actor_121300_8013CE08, 0, D_actor_121300_8013D2E8);
+            evsStartScriptWithSkip(D_actor_121300_8013CE08, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_121300_8013D2E8);
             arg0->state += 1;
             break;
         case 2:

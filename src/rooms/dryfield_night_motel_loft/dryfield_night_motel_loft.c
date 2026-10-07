@@ -16,6 +16,7 @@
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 
 #include "main/coord.h"
@@ -409,9 +410,9 @@ static void func_dryfield_night_motel_loft_8017D808(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_motel_loft_8017EB1C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (Gp_LookupSlot4(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) != 0) {
+    if (sceneFindPlacedActor(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) != 0) {
         D_dryfield_night_motel_loft_8018092C.command = 1;
-        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_motel_loft_8018092C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_motel_loft_8018092C, 0);
     }
     func_dryfield_night_motel_loft_8017D9BC(areaGetCurrentObjectState(0xA) == 2);
     arg0->state = (s32)(arg0->state + 1);
@@ -430,9 +431,9 @@ static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
             object->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
         }
     }
-    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN) && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0 && Gp_LookupSlot4(0)) {
+    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN) && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0 && sceneFindPlacedActor(0)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN, 1);
-        func_800E8614(D_dryfield_night_motel_loft_8017EB78, 0);
+        evsStartScript(D_dryfield_night_motel_loft_8017EB78, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         func_800E3FAC(0xA2, 0x15);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
     }

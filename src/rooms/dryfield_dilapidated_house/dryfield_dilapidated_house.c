@@ -153,7 +153,7 @@ extern AreaApplyRec D_dryfield_dilapidated_house_80189AA0[];
 extern AreaApplyRec D_dryfield_dilapidated_house_80189B24[];
 
 /// The room's cutscene task, spawned from entry 0 of
-/// `D_dryfield_dilapidated_house_80183EB4` when `Gp_LookupSlot4(1)` is non-zero
+/// `D_dryfield_dilapidated_house_80183EB4` when `sceneFindPlacedActor(1)` is non-zero
 /// as the room starts, and NULL otherwise.
 extern Task* D_dryfield_dilapidated_house_80189B78;
 
@@ -2602,7 +2602,7 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task)
         if (D_dryfield_dilapidated_house_80183EFC == 1) {
             D_dryfield_dilapidated_house_80183EFC = 2;
         } else if ((D_dryfield_dilapidated_house_80183EFC == 2) &&
-                   (taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
+                   (taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
             if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     D_dryfield_dilapidated_house_80183EFC += 1;
@@ -2611,8 +2611,8 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task)
             }
         }
     }
-    if ((gDisplayState.debugMode != 0) && (Gp_LookupSlot4(1) != 0)) {
-        func_80724608(Gp_LookupSlot4(1), -0x8C, 0xA, "AUNT");
+    if ((gDisplayState.debugMode != 0) && (sceneFindPlacedActor(1) != 0)) {
+        func_80724608(sceneFindPlacedActor(1), -0x8C, 0xA, "AUNT");
         func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), -0x8C, 0x14, "Player");
     }
 }
@@ -2680,7 +2680,7 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
 }
 
 /// Scene-clear task: the room's hand-off to the rest of the game. State 0
-/// starts the streamed scene named by the two blocks `func_800E8634` takes,
+/// starts the streamed scene named by the two blocks `evsStartScriptWithSkip` takes,
 /// state 1 fires when the session is back in play (`gGameSession->eventState`
 /// is 2) and hands slot 0 the release event 0x1B, state 6 waits for the room
 /// message (`gGameSession->battleResetPending`), and state 7 -- reached once the save
@@ -2691,12 +2691,12 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
 {
     switch (task->state) {
         case 0:
-            func_800E8634(D_dryfield_dilapidated_house_80184EA0, 0, D_dryfield_dilapidated_house_801855F0);
+            evsStartScriptWithSkip(D_dryfield_dilapidated_house_80184EA0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_dilapidated_house_801855F0);
             task->state += 1;
             return;
         case 1:
             if (gGameSession->eventState == 2) {
-                sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0x1B);
+                sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x1B);
                 gSceneCombatState.signals.bytes.endDelayFrames = 3;
                 task->state                                   += 1;
             }
@@ -2806,7 +2806,7 @@ s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, const void* 
     actionId = request->actionId;
     if ((actionId == 1) && (D_dryfield_dilapidated_house_80183EFC == 0)) {
         D_dryfield_dilapidated_house_80183EFC = actionId;
-        func_800E8634(D_dryfield_dilapidated_house_80184408, 0, D_dryfield_dilapidated_house_80184C60);
+        evsStartScriptWithSkip(D_dryfield_dilapidated_house_80184408, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_dilapidated_house_80184C60);
     }
     return 0;
 }
@@ -2818,7 +2818,7 @@ void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
     s32   temp_v1;
 
     temp_s1 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    temp_a1 = Gp_LookupSlot4(1);
+    temp_a1 = sceneFindPlacedActor(1);
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
         case 0:
@@ -2993,7 +2993,7 @@ static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
 {
     arg0->msgTable = D_dryfield_dilapidated_house_80183E8C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (Gp_LookupSlot4(1) != 0) {
+    if (sceneFindPlacedActor(1) != 0) {
         D_dryfield_dilapidated_house_80189B78 =
             taskSpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 0, 0, 0);
     }

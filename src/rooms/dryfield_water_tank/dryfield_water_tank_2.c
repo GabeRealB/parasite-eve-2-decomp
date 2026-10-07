@@ -100,7 +100,7 @@ extern AnimationSet* D_dryfield_water_tank_801804EC[2];
 /// The placement the room sends the player task with message 0x3E9.
 extern ActorTransform D_dryfield_water_tank_801804F4;
 
-/// The two event scripts `func_800E8634` is handed.
+/// The two event scripts `evsStartScriptWithSkip` is handed.
 extern EvsCommand D_dryfield_water_tank_8018050C[];
 extern EvsCommand D_dryfield_water_tank_8018068C[];
 
@@ -1175,8 +1175,8 @@ void func_dryfield_water_tank_8017E9F8(Task* task)
                 script.blendFrames          = 0xA;
                 script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &script, 0);
-                func_800E8634(D_dryfield_water_tank_8018050C, 0,
-                              D_dryfield_water_tank_8018068C);
+                evsStartScriptWithSkip(D_dryfield_water_tank_8018050C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                       D_dryfield_water_tank_8018068C);
                 task->state = task->state + 1;
             }
             break;

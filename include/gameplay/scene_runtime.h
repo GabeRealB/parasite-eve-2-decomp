@@ -262,6 +262,14 @@ void Gp_SpawnArea(GameLocationKey* location);
 /// exits or releases its enemy work. Does not create or retain a reference.
 Enemy* sceneFindEnemyByPlaceKey(u16 placeKey);
 
+/// Finds the placed actor at an instance index in the current stage and area.
+///
+/// `placementIndex` is 0..15, packed into the high nibble of the placement key;
+/// it is not range-checked or narrowed. Requires the initialized scene manager.
+/// Returns a borrowed `Task*`, or NULL if no placed actor matches. The caller
+/// must keep the actor live while using the result.
+Task* sceneFindPlacedActor(s32 placementIndex);
+
 /// Changes a model's encoded texture-page and CLUT-row displacements and refreshes both buffer halves.
 ///
 /// Both arguments narrow to signed bytes; -128..127 preserves their values.

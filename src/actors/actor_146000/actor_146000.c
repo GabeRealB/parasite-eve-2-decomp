@@ -592,11 +592,11 @@ void func_actor_146000_80131E24(Task* arg0)
     switch (state) {
         case 0:
             if (gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {
-                func_800E8634(D_actor_146000_80135980, 0, D_actor_146000_80135BD8);
+                evsStartScriptWithSkip(D_actor_146000_80135980, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_146000_80135BD8);
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 7);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 4;
             } else {
-                func_800E8634(D_actor_146000_80135428, 1, D_actor_146000_80135BD8);
+                evsStartScriptWithSkip(D_actor_146000_80135428, EVENT_SCRIPT_HUD_KEEP, D_actor_146000_80135BD8);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
             }
             arg0->state++;

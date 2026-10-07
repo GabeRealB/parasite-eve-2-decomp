@@ -34,6 +34,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
@@ -857,7 +858,7 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
     Task* temp_v0;
 
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
-        temp_v0 = Gp_LookupSlot4(0);
+        temp_v0 = sceneFindPlacedActor(0);
         if ((temp_v0 != 0) && (taskMessageDispatch(temp_v0, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) &&
             (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED, 1);
@@ -871,7 +872,7 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
             func_800E3FAC(0xA2, 0x2E);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);
-            func_800E8634(D_neo_ark_power_plant_2_801802A8, 0, D_neo_ark_power_plant_2_80180560);
+            evsStartScriptWithSkip(D_neo_ark_power_plant_2_801802A8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_power_plant_2_80180560);
         }
     }
 }

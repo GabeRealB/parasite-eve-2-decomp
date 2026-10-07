@@ -178,7 +178,7 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
         func_800E3FAC(0xA2, 0x36);
         Gp_FillPlayerHpMp();
         Gp_ApplyAreaRecs(D_shelter_1f_tent_801842D4);
-        func_800E8634(D_actor_460200_801362B8, 0, D_actor_460200_80137890);
+        evsStartScriptWithSkip(D_actor_460200_801362B8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_460200_80137890);
         if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
             Gp_ApplyAreaRecs(D_shelter_1f_tent_801843B0);
             Gp_ApplyAreaRecs(D_shelter_1f_tent_801843B8);

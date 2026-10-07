@@ -29,6 +29,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
@@ -658,7 +659,7 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
         func_800E3FAC(0xA2, 7);
     }
     if (event == 1) {
-        slot = Gp_LookupSlot4(0);
+        slot = sceneFindPlacedActor(0);
         cap  = 1;
         if (slot != NULL) {
             result = taskMessageDispatch(slot, ACTOR_MESSAGE_IS_PRESENT, 0, 0);
@@ -790,7 +791,7 @@ static void func_acropolis_fire_escape_8017FECC(Task* task)
 {
     Task* slot;
 
-    slot = Gp_LookupSlot4(0);
+    slot = sceneFindPlacedActor(0);
     if (slot == NULL || taskMessageDispatch(slot, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
         {
             WorldCollisionTrigger* object = &D_acropolis_fire_escape_8018252C[5];

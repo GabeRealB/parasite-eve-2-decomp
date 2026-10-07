@@ -27,6 +27,7 @@
 #include "gameplay/model_objects.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
@@ -774,7 +775,7 @@ s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, const void
     const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 0 && gameFlagGetNibble(0) == 0 && D_acropolis_east_elevator_hall_8018631C == 0) {
-        func_800E8634(D_acropolis_east_elevator_hall_80185D54, 0, D_acropolis_east_elevator_hall_801860B4);
+        evsStartScriptWithSkip(D_acropolis_east_elevator_hall_80185D54, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_east_elevator_hall_801860B4);
         D_acropolis_east_elevator_hall_8018631C = 1;
         gameFlagSetNibble(0, 1);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
@@ -788,7 +789,7 @@ s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, const void
 s32 func_acropolis_east_elevator_hall_8017F420(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 2) {
-        func_800E8614(D_acropolis_east_elevator_hall_8018621C, 0);
+        evsStartScript(D_acropolis_east_elevator_hall_8018621C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
@@ -803,7 +804,7 @@ static void func_acropolis_east_elevator_hall_8017F478(Task* task)
     task->msgTable = D_acropolis_east_elevator_hall_801862F4;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     Gp_MsgSlot4Chain(0, 1);
-    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_acropolis_east_elevator_hall_80185C8C, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_acropolis_east_elevator_hall_80185C8C, 0);
     task->state++;
 }
 

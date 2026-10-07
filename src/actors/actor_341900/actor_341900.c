@@ -190,7 +190,7 @@ extern ActorTransform D_actor_341900_80163AE0;
 extern ActorTransform D_actor_341900_80163AF8;
 extern ActorTransform D_actor_341900_80163B10;
 extern ActorTransform D_actor_341900_80163B28;
-/// Event scripts in the overlay's `.data`, handed to `func_800E8634` (which
+/// Event scripts in the overlay's `.data`, handed to `evsStartScriptWithSkip` (which
 /// forwards the first to `taskSpawn`).
 extern EvsCommand D_actor_341900_80163B48[];
 extern EvsCommand D_actor_341900_80163FB0[];
@@ -942,7 +942,7 @@ void func_actor_341900_80162EFC(Task* arg0)
         case 1:
             gStageSceneMusicEntry                               = 4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xC;
-            func_800E8634(D_actor_341900_80163B48, 0, D_actor_341900_80163FB0);
+            evsStartScriptWithSkip(D_actor_341900_80163B48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_341900_80163FB0);
             arg0->state += 1;
             return;
         case 2:

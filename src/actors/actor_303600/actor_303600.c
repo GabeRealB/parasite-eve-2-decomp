@@ -117,7 +117,7 @@ extern TaskMessageEntry D_actor_303600_8016E480[];
 /// `func_actor_303600_80162A0C`; one `GsF_LIGHT` (0x10 bytes) each.
 extern GsF_LIGHT D_actor_303600_8016E490[3];
 
-/// The cutscene's two script blocks, handed to `func_800E8634` together when the
+/// The cutscene's two script blocks, handed to `evsStartScriptWithSkip` together when the
 /// controller below arms the cutscene.
 extern EvsCommand D_actor_303600_80162AF0[];
 extern EvsCommand D_actor_303600_80162DD8[];
@@ -1765,7 +1765,7 @@ static void func_actor_303600_80161F40(Task* arg0)
 /// `_Actor303600CutsceneWork` block, zeroes it, parks the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task in
 /// `player` and publishes itself in `D_actor_303600_8016E4C0` with
 /// `D_actor_303600_8016E4C4` cleared, then falls into state 1, which hands the
-/// overlay's two cutscene script blocks to `func_800E8634`. State 2 waits for
+/// overlay's two cutscene script blocks to `evsStartScriptWithSkip`. State 2 waits for
 /// the session's `eventState` to clear -- the cutscene having finished -- and then
 /// sets the saved location in `gMcSaveData` to stage 5, area 0x1F, warp 1,
 /// room 1, raises the `gDisplayState.spriteVariant` latch, starts the stage-0 type-0x11 task and
@@ -1793,7 +1793,7 @@ void func_actor_303600_8016216C(Task* arg0)
             arg0->state += 1;
             /* fallthrough */
         case 1:
-            func_800E8634(D_actor_303600_80162AF0, 0, D_actor_303600_80162DD8);
+            evsStartScriptWithSkip(D_actor_303600_80162AF0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_303600_80162DD8);
             arg0->state += 1;
             break;
         case 2:

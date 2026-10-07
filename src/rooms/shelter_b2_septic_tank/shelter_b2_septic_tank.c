@@ -33,6 +33,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_targets.h"
@@ -1272,7 +1273,7 @@ s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg
     if (kind == 2) {
         flag = gameFlagGetNibble(GAME_FLAG_0EB);
         if (flag == 1 && D_shelter_b2_septic_tank_80187045 == flag) {
-            func_800E8614(D_shelter_b2_septic_tank_8018310C, 0);
+            evsStartScript(D_shelter_b2_septic_tank_8018310C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             D_shelter_b2_septic_tank_80187045 = kind;
         }
     }
@@ -1295,7 +1296,7 @@ void func_shelter_b2_septic_tank_8017D9A0(void)
     GfxCoord* player;
     GfxCoord* coords;
 
-    target = Gp_LookupSlot4(0);
+    target = sceneFindPlacedActor(0);
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     if (target != NULL) {
         coords = target->extra.tmd->coords;
@@ -1325,7 +1326,7 @@ static void func_shelter_b2_septic_tank_8017DA74(Task* task)
         place = gGameSession->location.loc.variant;
         if (place == 1 && Gp_StateC08.mode != place && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_shelter_b2_septic_tank_80187045 == 0) {
             if (gameFlagGetNibble(GAME_FLAG_0EB) == 0) {
-                func_800E8614(D_shelter_b2_septic_tank_80183004, 0);
+                evsStartScript(D_shelter_b2_septic_tank_80183004, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
             D_shelter_b2_septic_tank_80187045 = place;
         }

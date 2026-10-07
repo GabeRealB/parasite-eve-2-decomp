@@ -1684,11 +1684,11 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
         gameFlagSetNibble(GAME_FLAG_0D7, 1);
         if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
             func_800E3FAC(0xA2, 0x2C);
-            func_800E8634(D_actor_450200_8013C72C, 0, D_actor_450200_8013CAEC);
+            evsStartScriptWithSkip(D_actor_450200_8013C72C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450200_8013CAEC);
         } else {
             func_800E3FAC(0xA2, 0x2D);
             gameFlagSetNibble(GAME_FLAG_0D1, 3);
-            func_800E8634(D_actor_450200_80137EE4, 0, D_actor_450200_80138694);
+            evsStartScriptWithSkip(D_actor_450200_80137EE4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450200_80138694);
         }
     }
     if (request->actionId == 2) {
@@ -1697,7 +1697,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
             gameFlagSetNibble(GAME_FLAG_0E1, 1);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x15;
-            func_800E8634(D_actor_450200_8013FC58, 0, D_actor_450200_80140078);
+            evsStartScriptWithSkip(D_actor_450200_8013FC58, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450200_80140078);
         }
     }
     if (request->actionId == 3 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gGameSession->location.loc.view == 2) {
@@ -1705,7 +1705,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
     }
     if (request->actionId == 4 && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0 && gameFlagGetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN) == 0) {
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN, 1);
-        func_800E8634(D_neo_ark_observatory_801811E0.data.sceneScript, 0, D_neo_ark_observatory_801812C0);
+        evsStartScriptWithSkip(D_neo_ark_observatory_801811E0.data.sceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_observatory_801812C0);
     }
     return 0;
 }

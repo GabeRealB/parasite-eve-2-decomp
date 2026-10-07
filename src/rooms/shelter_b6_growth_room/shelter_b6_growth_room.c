@@ -91,7 +91,7 @@ static void func_shelter_b6_growth_room_8017D71C(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     Gp_FillAllyHp();
     Gp_ApplyAreaRecs(D_shelter_b6_growth_room_801807C8);
-    func_800E8634(D_actor_450900_80136110, 0, D_actor_450900_80136308);
+    evsStartScriptWithSkip(D_actor_450900_80136110, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450900_80136308);
     taskSpawnFromTable(D_actor_450900_80135E78, 1, 0, 0);
     taskSpawnFromTable(D_actor_450900_80135E78, 2, 0, 0);
     func_800E3FAC(0xA2, 0x33);

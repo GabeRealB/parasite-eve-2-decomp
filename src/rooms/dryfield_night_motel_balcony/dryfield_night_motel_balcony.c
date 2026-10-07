@@ -35,7 +35,7 @@ extern RoomEventActiveBytes gRoomEventActive;
 /// A gameplay state byte; the one-shot balcony event waits while it is 1.
 
 /// Gameplay-resident script data the room task starts: the pair handed to
-/// `func_800E8634` on the first visit, and the one handed to `func_800E8614`
+/// `evsStartScriptWithSkip` on the first visit, and the one handed to `evsStartScript`
 /// by the one-shot event.
 extern EvsCommand D_actor_335800_80165060[];
 extern EvsCommand D_actor_335800_80165798[];
@@ -99,7 +99,7 @@ static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
     func_dryfield_night_motel_balcony_8017E3C8();
     field9 = gGameSession->location.loc.variant;
     if (field9 == 2 && gGameSession->location.loc.room == field9 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
-        func_800E8634(D_actor_335800_80165060, 0, D_actor_335800_80165798);
+        evsStartScriptWithSkip(D_actor_335800_80165060, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_335800_80165798);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN, 1);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, 1);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
@@ -114,7 +114,7 @@ static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
 static void func_dryfield_night_motel_balcony_8017DD0C(Task* task)
 {
     if (gGameSession->eventState == 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE) == 1) {
-        func_800E8614(D_actor_335800_80165720, 0);
+        evsStartScript(D_actor_335800_80165720, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, 2);
     }
 }

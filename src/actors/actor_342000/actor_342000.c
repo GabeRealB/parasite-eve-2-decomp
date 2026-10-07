@@ -1172,7 +1172,7 @@ void func_actor_342000_8016382C(Task* arg0)
             break;
         case 2:
             Gp_MsgPlayerWeapon(0);
-            func_800E8634(D_actor_342000_80164968, 0, D_actor_342000_80164E30);
+            evsStartScriptWithSkip(D_actor_342000_80164968, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_342000_80164E30);
             arg0->state++;
             break;
         case 3:

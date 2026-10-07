@@ -1599,7 +1599,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            func_800E8614(D_dryfield_trailer_coach_80185AFC, 1);
+            evsStartScript(D_dryfield_trailer_coach_80185AFC, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case 1:
@@ -1609,10 +1609,10 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
             break;
         case 2:
             if (capGetVariantKey() == 0xB) {
-                func_800E8614(D_dryfield_trailer_coach_80185C4C, 0);
+                evsStartScript(D_dryfield_trailer_coach_80185C4C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) < 2) {
-                func_800E8634(D_dryfield_trailer_coach_80185D54, 0,
-                              D_dryfield_trailer_coach_80186684);
+                evsStartScriptWithSkip(D_dryfield_trailer_coach_80185D54, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                       D_dryfield_trailer_coach_80186684);
                 gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS, 2);
                 gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, 1);
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 1);
@@ -1622,16 +1622,16 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
             } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_MONKEY_WRENCH) == 0 && gameFlagGetNibble(GAME_FLAG_DRYFIELD_TRAILER_COACH_04F) != 0) {
                 if (gameFlagGetNibble(GAME_FLAG_0FD) == 0) {
                     gameFlagSetNibble(GAME_FLAG_0FD, 1);
-                    func_800E8614(D_dryfield_trailer_coach_80186D2C, 0);
+                    evsStartScript(D_dryfield_trailer_coach_80186D2C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 } else {
-                    func_800E8614(D_dryfield_trailer_coach_80187074, 0);
+                    evsStartScript(D_dryfield_trailer_coach_80187074, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
             } else if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) == 2) {
-                func_800E8634(D_dryfield_trailer_coach_8018681C, 0,
-                              D_dryfield_trailer_coach_80186A74);
+                evsStartScriptWithSkip(D_dryfield_trailer_coach_8018681C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                       D_dryfield_trailer_coach_80186A74);
                 gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS, 3);
             } else {
-                func_800E8614(D_dryfield_trailer_coach_80186BDC, 0);
+                evsStartScript(D_dryfield_trailer_coach_80186BDC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
             task->state++;
             break;
@@ -1832,7 +1832,7 @@ static void func_dryfield_trailer_coach_80182888(Task* arg0)
     arg0->msgTable = D_dryfield_trailer_coach_80184FA0;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 2) {
-        func_800E8634(D_dryfield_trailer_coach_801853F4, 0, D_dryfield_trailer_coach_80185964);
+        evsStartScriptWithSkip(D_dryfield_trailer_coach_801853F4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_trailer_coach_80185964);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
     } else {

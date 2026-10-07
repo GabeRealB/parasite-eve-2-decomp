@@ -137,7 +137,7 @@ extern AnimationSet* D_actor_120500_8013807C[];
 extern ActorTransform D_actor_120500_80138090;
 extern ActorTransform D_actor_120500_801380A8;
 
-/// Pair of blocks `func_actor_120500_8013241C` passes to `func_800E8634`.
+/// Pair of blocks `func_actor_120500_8013241C` passes to `evsStartScriptWithSkip`.
 extern EvsCommand D_actor_120500_801380D8[];
 extern EvsCommand D_actor_120500_80138318[];
 
@@ -581,7 +581,7 @@ static void func_actor_120500_801322A0(Task* task)
 /// until `Gp_StateC08.mode` is not 1 and `gDisplayState.pendingMode` is clear, then brings the actor
 /// up through `func_actor_120500_801322A0`, sends the task in pointer slot 3
 /// the equipped-weapon animation as message 0x3E8 and installs the two
-/// `func_800E8634` blocks; state 1 kills the actor once the session's
+/// `evsStartScriptWithSkip` blocks; state 1 kills the actor once the session's
 /// `eventState` clears.
 ///
 /// Every state then steps the request handler, ticks the nineteen animation
@@ -625,7 +625,7 @@ void func_actor_120500_8013241C(Task* arg0)
                 request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
                 func_800E3FAC(0xA2, 0xD);
-                func_800E8634(D_actor_120500_801380D8, 0, D_actor_120500_80138318);
+                evsStartScriptWithSkip(D_actor_120500_801380D8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_120500_80138318);
                 arg0->state += 1;
                 break;
             }

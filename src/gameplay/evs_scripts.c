@@ -186,15 +186,12 @@ static const char Gp_StrDemoPause[] = "Demo Pause";
 // Script light values gain four fractional bits before their s16 conversion.
 enum { EVENT_SCRIPT_LIGHT_VALUE_SCALE = 16 };
 
-/// Ends the script's secondary screen fade and forgets its task.
+/// Cancels the interpreter's secondary screen fade and clears its borrowed handle.
 ///
-/// The fade task exits by itself once its record reports done, so the handle
-/// is only killed while the fade is still in progress.
-static inline void _evsCancelSecondaryFade(Task* task)
+/// `work` must be live interpreter work. A done phase means the fade task has
+/// released itself; clear that stale handle without dereferencing it.
+static inline void _evsCancelSecondaryFade(_EvsInterpreterWork* work)
 {
-    _EvsInterpreterWork* work;
-
-    work = task->work;
     if (work->secondaryFadeTask != NULL) {
         if (D_801156D8.phase != SCREEN_FADE_DONE) {
             taskKill(work->secondaryFadeTask);
@@ -461,7 +458,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     taskCallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
                 }
-                _evsCancelSecondaryFade(arg0);
+                _evsCancelSecondaryFade(arg0->work);
                 break;
 
             case EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE:
@@ -562,7 +559,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_CANCEL_SECONDARY_FADE:
-                _evsCancelSecondaryFade(arg0);
+                _evsCancelSecondaryFade(arg0->work);
                 break;
 
             case EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS:
@@ -714,36 +711,45 @@ void evsSoundAttenuationFadeTask(Task* task)
     }
 }
 
-void func_800E8614(EvsCommand* arg0, s32 arg1)
+void evsStartScript(EvsCommand* script, s32 hudMode)
 {
-    func_800E8634(arg0, arg1, NULL);
+    evsStartScriptWithSkip(script, hudMode, NULL);
 }
 
-void func_800E8634(EvsCommand* arg0, s32 arg1, EvsCommand* arg2)
+void evsStartScriptWithSkip(EvsCommand* script, s32 hudMode, EvsCommand* skipScript)
 {
-    gGameSession->eventState = 1;
+    enum {
+        EVENT_SCRIPT_INITIAL_EVENT_STATE = 1,
+        EVENT_SCRIPT_SKIP_DELAY_UPDATES  = 5,
+        EVENT_SCRIPT_INTERPRETER_BANK    = 9,
+        EVENT_SCRIPT_INTERPRETER_TYPE    = 7
+    };
+
+    // Reset the shared event controls before queuing the interpreter.
+    gGameSession->eventState = EVENT_SCRIPT_INITIAL_EVENT_STATE;
     gGameSession->evtSkipped = 0;
-    D_8010FBE0               = 0;
-    D_8010FBE4               = 0;
-    D_801156D0               = arg2;
+    D_8010FBE0               = NULL;
+    D_8010FBE4               = NULL;
+    D_801156D0               = skipScript;
     D_801156C9               = 0;
     D_801156CC               = 0;
-    D_801156F0               = 5;
+    D_801156F0               = EVENT_SCRIPT_SKIP_DELAY_UPDATES;
     D_801156CD               = 0;
     D_801156CE               = 0;
     D_801156F8               = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     D_801156EC               = gPlayerStatus.weapon;
     sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    taskSpawn(9, 7, arg1, arg0);
+    taskSpawn(EVENT_SCRIPT_INTERPRETER_BANK, EVENT_SCRIPT_INTERPRETER_TYPE, hudMode, script);
 }
 
-Task* Gp_LookupSlot4(s32 arg0)
+Task* sceneFindPlacedActor(s32 placementIndex)
 {
-    Task* out;
+    s32   placeKey;
+    Task* actorTask;
 
-    arg0 = (arg0 << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
-    TASK_MESSAGE_DISPATCH_SECOND_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_FIND_PLACED_ACTOR, arg0, &out);
-    return out;
+    placeKey = (placementIndex << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
+    TASK_MESSAGE_DISPATCH_SECOND_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_FIND_PLACED_ACTOR, placeKey, &actorTask);
+    return actorTask;
 }
 
 static void Gp_ScriptInit(Task* arg0)

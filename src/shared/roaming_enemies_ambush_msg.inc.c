@@ -2,7 +2,7 @@
 
 /// 0x7DB handler of the second arming state's message table, for messages
 /// from sender 0xB05: command 0 stops the countdown at -1, command 2 hands
-/// spawn slot 0 to the first slot-4 task, sends it message 0x7DB and places it
+/// spawn slot 0 to placed actor 0, sends it message 0x7DB and places it
 /// at (5, 0, -0x320) facing 0x400, restarting the countdown. Answers 1 only
 /// for command 2.
 s32 roamerAmbushMsg(Task* task, s32 arg1, struct ActorCommand* msg, s32 arg3)
@@ -24,19 +24,19 @@ s32 roamerAmbushMsg(Task* task, s32 arg1, struct ActorCommand* msg, s32 arg3)
                 gRoamerCommand.context.loc.area  = 0xB;
                 gRoamerCommand.command           = 0xC;
                 result                           = 1;
-                if (Gp_LookupSlot4(0) != 0) {
-                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY,
+                if (sceneFindPlacedActor(0) != 0) {
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY,
                                                   &gRoamerCommand, 0);
-                    obj                                              = Gp_LookupSlot4(0)->spawnArg2.pointer;
-                    Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[0] = 5;
-                    Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[1] = 0;
-                    Gp_LookupSlot4(0)->extra.tmd->coords->coord.t[2] = -0x320;
+                    obj                                                    = sceneFindPlacedActor(0)->spawnArg2.pointer;
+                    sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[0] = 5;
+                    sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[1] = 0;
+                    sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[2] = -0x320;
                     if (obj != 0) {
                         obj->hp             = gRoamerReserveHp[0];
                         gRoamerReserveHp[0] = 0;
                         obj->reactionFlags  = 0;
                     }
-                    gfxRotMatrixY(&Gp_LookupSlot4(0)->extra.tmd->coords->coord,
+                    gfxRotMatrixY(&sceneFindPlacedActor(0)->extra.tmd->coords->coord,
                                   0x400, 1);
                     gRoamerCooldown = 0x5A;
                 }

@@ -17,6 +17,7 @@
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/scene_runtime.h"
 
 #include "main/display.h"
 #include "main/display_types.h"
@@ -101,7 +102,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
     Task* slot;
 
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
-        slot = Gp_LookupSlot4(0);
+        slot = sceneFindPlacedActor(0);
         if (slot != 0) {
             if (taskMessageDispatch(slot, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
                 if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) {
@@ -111,7 +112,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
                         gameFlagSetNibble(GAME_FLAG_MAP_MARK_POWER_PLANT_1, 0);
                         Gp_ApplyAreaRecs(D_neo_ark_power_plant_1_80181C00);
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x16;
-                        func_800E8634(D_neo_ark_power_plant_1_8017EB7C, 0, D_neo_ark_power_plant_1_8017EDBC);
+                        evsStartScriptWithSkip(D_neo_ark_power_plant_1_8017EB7C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_power_plant_1_8017EDBC);
                     }
                 }
             }
@@ -121,7 +122,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_0FB, 1);
         gGameSession->battleResetPending            = 0;
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
-        func_800E8614(D_neo_ark_power_plant_1_8017EEE4, 0);
+        evsStartScript(D_neo_ark_power_plant_1_8017EEE4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0)) {
         D_neo_ark_power_plant_1_8017F01C = 4;

@@ -260,7 +260,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             capSetTexturePage(0x340, 0);
             Gp_SetItemSeenBit(0x121, 1);
             Gp_SetItemSeenBit(0x122, 1);
-            func_800E8614(D_actor_143000_80135A20, 1);
+            evsStartScript(D_actor_143000_80135A20, EVENT_SCRIPT_HUD_KEEP);
             arg0->state++;
             return;
         case 1:
@@ -302,7 +302,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             }
             return;
         case 10:
-            func_800E8614(D_actor_143000_80135AE0, 0);
+            evsStartScript(D_actor_143000_80135AE0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             arg0->state++;
             return;
         case 11:
@@ -390,7 +390,7 @@ void func_actor_143000_80133EE4(Task* arg0)
                 }
                 gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                 gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
-                func_800E8634(D_actor_143000_801351B0, 0, D_actor_143000_80135870);
+                evsStartScriptWithSkip(D_actor_143000_801351B0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_143000_80135870);
                 taskKill(arg0);
             }
             return;

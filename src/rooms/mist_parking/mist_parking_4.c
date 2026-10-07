@@ -434,7 +434,7 @@ void func_mist_parking_80183EAC(Task* task)
         case 0:
             memFillBytes(talk, 0, sizeof(*talk));
             func_mist_parking_801846A4(1);
-            func_800E8614(D_mist_parking_80191154, 1);
+            evsStartScript(D_mist_parking_80191154, EVENT_SCRIPT_HUD_KEEP);
             Gp_RunCapCmd(6, 0);
             task->state++;
             break;
@@ -455,7 +455,7 @@ void func_mist_parking_80183EAC(Task* task)
             break;
         case 2:
             func_mist_parking_801846A4(2);
-            func_800E8614(D_mist_parking_80191154, 1);
+            evsStartScript(D_mist_parking_80191154, EVENT_SCRIPT_HUD_KEEP);
             Gp_RunCapCmd(1, 0);
             talk->businessDone = 1;
             task->state++;
@@ -505,7 +505,7 @@ void func_mist_parking_80183EAC(Task* task)
             }
             break;
         case 5:
-            func_800E8614(D_mist_parking_80191154, 1);
+            evsStartScript(D_mist_parking_80191154, EVENT_SCRIPT_HUD_KEEP);
             Gp_RunCapCmd(talk->prizeClosingCommand, 0);
             task->state++;
             break;
@@ -534,13 +534,13 @@ void func_mist_parking_80183EAC(Task* task)
             key                   = capGetVariantKey();
             task->spawnArg1.value = key;
             if (key == 6) {
-                func_800E8614(D_mist_parking_80191214, 1);
+                evsStartScript(D_mist_parking_80191214, EVENT_SCRIPT_HUD_KEEP);
                 talk->businessDone = 1;
             } else if (key == 7) {
-                func_800E8614(D_mist_parking_80191304, 1);
+                evsStartScript(D_mist_parking_80191304, EVENT_SCRIPT_HUD_KEEP);
                 talk->businessDone = 1;
             } else {
-                func_800E8614(D_mist_parking_801913C4, 1);
+                evsStartScript(D_mist_parking_801913C4, EVENT_SCRIPT_HUD_KEEP);
             }
             task->state++;
             break;
@@ -592,7 +592,7 @@ void func_mist_parking_801842DC(Task* task)
     switch (task->state) {
         case 0:
             func_mist_parking_801846A4(1);
-            func_800E8614(D_mist_parking_80190C74, 1);
+            evsStartScript(D_mist_parking_80190C74, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case 1:
@@ -607,13 +607,13 @@ void func_mist_parking_801842DC(Task* task)
             task->spawnArg1.value = key;
             switch (key) {
                 case 1:
-                    func_800E8614(D_mist_parking_80190D64, 1);
+                    evsStartScript(D_mist_parking_80190D64, EVENT_SCRIPT_HUD_KEEP);
                     break;
                 case 2:
-                    func_800E8614(D_mist_parking_80190E84, 1);
+                    evsStartScript(D_mist_parking_80190E84, EVENT_SCRIPT_HUD_KEEP);
                     break;
                 case 3:
-                    func_800E8614(D_mist_parking_80191034, 1);
+                    evsStartScript(D_mist_parking_80191034, EVENT_SCRIPT_HUD_KEEP);
                     break;
             }
             task->state++;

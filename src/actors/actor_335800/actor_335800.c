@@ -1137,9 +1137,9 @@ void func_actor_335800_80162364(Task* arg0)
 {
     if (arg0->state == 0) {
         if (arg0->spawnArg1.value != 0) {
-            func_800E8614(D_actor_335800_80166098, 0);
+            evsStartScript(D_actor_335800_80166098, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         } else {
-            func_800E8614(D_actor_335800_80165FC0, 0);
+            evsStartScript(D_actor_335800_80165FC0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
         arg0->state += 1;
         return;

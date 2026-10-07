@@ -988,27 +988,27 @@ void func_actor_260400_80149E38(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS)) {
         case 0:
-            func_800E8634(D_actor_260400_8014C788, 0, D_actor_260400_8014CF38);
+            evsStartScriptWithSkip(D_actor_260400_8014C788, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_260400_8014CF38);
             gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 1);
             break;
         case 1:
             if ((areaGetCurrentObjectState(4) == 1) || (areaGetCurrentObjectState(5) == 1)) {
-                func_800E8614(D_actor_260400_8014D118, 0);
+                evsStartScript(D_actor_260400_8014D118, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else {
-                func_800E8614(D_actor_260400_8014D208, 0);
+                evsStartScript(D_actor_260400_8014D208, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 2);
             }
             break;
         case 2:
-            func_800E8614(D_actor_260400_8014D340, 0);
+            evsStartScript(D_actor_260400_8014D340, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 3);
             break;
         case 3:
-            func_800E8614(D_actor_260400_8014D4A8, 0);
+            evsStartScript(D_actor_260400_8014D4A8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 4);
             break;
         case 4:
-            func_800E8614(D_actor_260400_8014D610, 0);
+            evsStartScript(D_actor_260400_8014D610, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }
@@ -1028,7 +1028,7 @@ void func_actor_260400_80149FA4(void)
 {
     Task* slot;
 
-    slot = Gp_LookupSlot4(0);
+    slot = sceneFindPlacedActor(0);
     if (slot != 0) {
         TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_actor_260400_8014C668.data.actorPlacements[0], 0);
     }

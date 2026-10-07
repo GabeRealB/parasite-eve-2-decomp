@@ -9,11 +9,36 @@
 
 extern u8 D_801156F9;
 
-Task* Gp_LookupSlot4(s32 arg0);
+/// HUD handling selected when an event script starts.
+enum {
+    EVENT_SCRIPT_HUD_HIDE_RESTORE = 0, // Hide at initialization; show on scene cleanup or script end
+    EVENT_SCRIPT_HUD_KEEP         = 1  // Leave HUD visibility unchanged; any nonzero mode has this behavior
+};
 
-void func_800E8614(EvsCommand* arg0, s32 arg1);
+/// Starts an event script with no initial input skip target.
+///
+/// Uses `evsStartScriptWithSkip` with a NULL skip script and the same HUD and
+/// lifetime contract. The script may enable skipping with its own commands.
+void evsStartScript(EvsCommand* script, s32 hudMode);
 
-void func_800E8634(EvsCommand* arg0, s32 arg1, EvsCommand* arg2);
+/// Starts the shared event-script interpreter with an optional input skip script.
+///
+/// `script` and a non-NULL `skipScript` are borrowed command streams that must
+/// remain loaded until the interpreter ends, including any call/jump targets.
+/// Stream bounds and call depth are unchecked; allow at most eight pending
+/// script calls and return only from a call. Skipping retains pending returns.
+/// Run only one event script at a time: starting resets shared event and skip
+/// state without cancelling an existing interpreter. A NULL skip script
+/// disables input skipping initially; script commands may replace that target.
+/// Input skipping becomes eligible after five unpaused interpreter updates.
+///
+/// `hudMode` is `EVENT_SCRIPT_HUD_HIDE_RESTORE` or `EVENT_SCRIPT_HUD_KEEP`.
+/// Zero hides the HUD at initialization and shows it at scene cleanup or end;
+/// any nonzero value leaves it unchanged. The HUD change occurs when the task
+/// initializes. Requires an initialized task execution list and, in hide/restore
+/// mode, a live CAP controller. Allocation failure is not reported and does not
+/// clear the reset event state.
+void evsStartScriptWithSkip(EvsCommand* script, s32 hudMode, EvsCommand* skipScript);
 
 /// Runs the event-script vertical screen shake with a triangular amplitude envelope.
 ///

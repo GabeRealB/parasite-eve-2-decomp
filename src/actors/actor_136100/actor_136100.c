@@ -2018,7 +2018,7 @@ void func_actor_136100_8013379C(s32 arg0)
 /// Cue handler: when the pending `worldCollisionReadActionHit` event is a positive
 /// id 5 (and `gPlayerStatus.interactionPressed` is set), kind 0x12 in phase 0 or kind 0x13 in phase 1
 /// notifies via `func_actor_136100_80134A18` and plays the phase's first cue on
-/// the first hit (`func_800E8634`, advancing `followUpSeen`) or its repeat cue after.
+/// the first hit (`evsStartScriptWithSkip`, advancing `followUpSeen`) or its repeat cue after.
 /// `ready` must be `s16`: as `s32` the `!= 0` store fuses into the callee-saved
 /// home and the join copy into `$v0` disappears.
 static s32 func_actor_136100_80133904(Task* task)
@@ -2046,20 +2046,20 @@ static s32 func_actor_136100_80133904(Task* task)
     if ((s8)evtKind == 0x12 && work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
         func_actor_136100_80134A18(task);
         if (work->followUpSeen == 0) {
-            func_800E8634(D_actor_136100_8013F94C, 0, D_actor_136100_8013FAE4);
+            evsStartScriptWithSkip(D_actor_136100_8013F94C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_136100_8013FAE4);
             work->followUpSeen++;
         } else {
-            func_800E8614(D_actor_136100_8013FC64, 0);
+            evsStartScript(D_actor_136100_8013FC64, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
         return 1;
     }
     if ((s8)evtKind == 0x13 && work->scene == ACTOR_136100_SCENE_BEFORE_BURNER) {
         func_actor_136100_80134A18(task);
         if (work->followUpSeen == 0) {
-            func_800E8634(D_actor_136100_801402C4, 0, D_actor_136100_801404EC);
+            evsStartScriptWithSkip(D_actor_136100_801402C4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_136100_801404EC);
             work->followUpSeen++;
         } else {
-            func_800E8614(D_actor_136100_8014063C, 0);
+            evsStartScript(D_actor_136100_8014063C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
         return 1;
     }
@@ -2275,7 +2275,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                     return;
                 }
                 ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 1, 0xA, message.animation);
-                func_800E8634(D_actor_136100_8013F46C, 0, D_actor_136100_8013F784);
+                evsStartScriptWithSkip(D_actor_136100_8013F46C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_136100_8013F784);
                 worldCollisionUnlinkTrigger(0, &D_dryfield_night_main_street_8018824C[8]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(arg0, message.copy);
                 gameFlagSetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);
@@ -2290,7 +2290,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                     return;
                 }
                 ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 1, 0xA, message.animation);
-                func_800E8634(D_actor_136100_8013FD84, 0, D_actor_136100_80140114);
+                evsStartScriptWithSkip(D_actor_136100_8013FD84, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_136100_80140114);
                 worldCollisionUnlinkTrigger(0, &D_dryfield_night_main_street_8018824C[9]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(arg0, message.copy);
                 gameFlagSetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);

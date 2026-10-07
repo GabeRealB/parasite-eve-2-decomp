@@ -1965,7 +1965,7 @@ void func_mine_forked_tunnel_8017E2E0(Task* arg0)
         case 1:
             if (capIsBusy() == 0) {
                 if (capGetVariantKey() == state) {
-                    func_800E8634(D_mine_forked_tunnel_801831AC, 0, D_mine_forked_tunnel_801834F4);
+                    evsStartScriptWithSkip(D_mine_forked_tunnel_801831AC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_forked_tunnel_801834F4);
                     gameFlagSetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED, 1);
                 }
                 taskKill(arg0);

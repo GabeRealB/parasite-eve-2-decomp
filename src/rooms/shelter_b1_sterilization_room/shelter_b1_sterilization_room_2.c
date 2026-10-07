@@ -937,7 +937,7 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
             return;
         case 2:
             if (capGetVariantKey() == 1) {
-                func_800E8634(D_shelter_b1_sterilization_room_80188C94, 0, D_shelter_b1_sterilization_room_80188E14);
+                evsStartScriptWithSkip(D_shelter_b1_sterilization_room_80188C94, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_sterilization_room_80188E14);
                 gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED, 1);
                 gGameSession->restartMode = GAME_SESSION_RESTART_NORMAL;
             } else {

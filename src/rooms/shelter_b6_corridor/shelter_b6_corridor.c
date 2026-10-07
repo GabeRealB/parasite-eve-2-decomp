@@ -30,6 +30,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
@@ -610,7 +611,7 @@ static s32 _shelterB6CorridorIgnoreRoomAction(Task* unusedTask, s32 unusedMessag
 
 s32 func_shelter_b6_corridor_8017E028(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    func_800E8634(D_shelter_b6_corridor_8017F354, 0, D_shelter_b6_corridor_8017F684);
+    evsStartScriptWithSkip(D_shelter_b6_corridor_8017F354, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b6_corridor_8017F684);
     func_800E3FAC(0xA2, 0x2F);
     return 0;
 }
@@ -687,8 +688,8 @@ void func_shelter_b6_corridor_8017E19C(s32 arg0)
     if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON)) {
         gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         gSceneCombatState.signals.bytes.endDelayFrames = arg0;
-        sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(1), 0x31);
-        taskCallExit(Gp_LookupSlot4(1));
+        sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(1), 0x31);
+        taskCallExit(sceneFindPlacedActor(1));
     }
 }
 

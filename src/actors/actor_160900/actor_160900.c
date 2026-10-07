@@ -161,7 +161,7 @@ extern SVECTOR D_actor_160900_8013F3B0[];
 extern SVECTOR D_actor_160900_8013F400[];
 extern SVECTOR D_actor_160900_8013F458[];
 
-/// Pair of blocks `func_actor_160900_8013418C` passes to `func_800E8634`.
+/// Pair of blocks `func_actor_160900_8013418C` passes to `evsStartScriptWithSkip`.
 extern EvsCommand D_actor_160900_8013F538[];
 extern EvsCommand D_actor_160900_8013FAA8[];
 
@@ -1932,7 +1932,7 @@ void func_actor_160900_8013418C(Task* arg0)
             arg0->state += 1;
             return;
         case 1:
-            func_800E8634(D_actor_160900_8013F538, 0, D_actor_160900_8013FAA8);
+            evsStartScriptWithSkip(D_actor_160900_8013F538, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160900_8013FAA8);
             arg0->state += 1;
             break;
         case 2:

@@ -152,13 +152,13 @@ s32 func_dryfield_night_junk_yard_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* i
 
 /// Handler for message 0x13EF in the room's message table. When the record's
 /// `field_2` is 3 on the visit whose `place` is 1, it latches nibble 0x9F once
-/// and passes `D_dryfield_night_junk_yard_801805A4` to `func_800E8614`. Always
+/// and passes `D_dryfield_night_junk_yard_801805A4` to `evsStartScript`. Always
 /// returns 0.
 s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg* in, s32 arg3)
 {
     if ((in->warp == 3) && (gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN, 1);
-        func_800E8614(D_dryfield_night_junk_yard_801805A4, 0);
+        evsStartScript(D_dryfield_night_junk_yard_801805A4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }

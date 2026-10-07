@@ -5462,7 +5462,7 @@ static void func_actor_403100_80136830(Task* arg0)
                     D_actor_403100_8015580C->reactionFlags      = 0;
                     worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                     D_actor_403100_8015580C->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
-                    func_800E8614(D_actor_335800_80166098, 0);
+                    evsStartScript(D_actor_335800_80166098, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                     arg0->state                       = 1;
                     D_actor_403100_80155808->state    = 0;
                     D_actor_403100_80155808->subState = 0;
@@ -8184,7 +8184,7 @@ static void func_actor_403100_8013D8F4(Task* arg0)
     worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
-    func_800E8614(D_actor_335800_80165FC0, 0);
+    evsStartScript(D_actor_335800_80165FC0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     arg0->state                       = 1;
     D_actor_403100_80155808->state    = 0;
     D_actor_403100_80155808->subState = 0;

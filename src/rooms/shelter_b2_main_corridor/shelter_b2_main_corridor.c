@@ -143,7 +143,7 @@ extern TaskMessageEntry D_shelter_b2_main_corridor_80182C14[];
 /// Descriptor of the tasks the room's message handler spawns.
 extern TaskDesc D_shelter_b2_main_corridor_80182C44[];
 
-/// Passed by address to `func_800E8614` when the room's one-shot flag event
+/// Passed by address to `evsStartScript` when the room's one-shot flag event
 /// fires; its contents are not read here.
 extern EvsCommand D_shelter_b2_main_corridor_80182CA8[];
 
@@ -1757,7 +1757,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, const void* fir
         gameFlagSetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0D3, 1);
         gameFlagSetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, 1);
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 0);
-        func_800E8614(D_shelter_b2_main_corridor_80182CA8, 0);
+        evsStartScript(D_shelter_b2_main_corridor_80182CA8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }

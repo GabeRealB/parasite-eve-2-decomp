@@ -1378,19 +1378,19 @@ void func_actor_450200_80132220(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT)) {
         case 0:
-            func_800E8614(D_actor_450200_80138870, 0);
+            evsStartScript(D_actor_450200_80138870, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 1);
             break;
         case 1:
-            func_800E8614(D_actor_450200_80138A68, 0);
+            evsStartScript(D_actor_450200_80138A68, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 2);
             break;
         case 2:
-            func_800E8614(D_actor_450200_80138C60, 0);
+            evsStartScript(D_actor_450200_80138C60, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 3);
             break;
         case 3:
-            func_800E8614(D_actor_450200_80138E88, 0);
+            evsStartScript(D_actor_450200_80138E88, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }
@@ -1398,7 +1398,7 @@ void func_actor_450200_80132220(void)
 void func_actor_450200_801322F8(void)
 {
     if (gameFlagGetNibble(GAME_FLAG_0D7) != 0) {
-        func_800E8614(D_actor_450200_80139098, 1);
+        evsStartScript(D_actor_450200_80139098, EVENT_SCRIPT_HUD_KEEP);
     } else {
         func_neo_ark_observatory_8017FA98(0);
     }

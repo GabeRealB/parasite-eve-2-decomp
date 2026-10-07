@@ -2676,9 +2676,9 @@ void func_actor_450800_80131E2C(void)
             D_actor_450800_8013930C = temp_v0;
             if (temp_v0 >= 3) {
                 D_actor_450800_8013930C = 3;
-                func_800E8614(D_actor_450800_8013A774, 0);
+                evsStartScript(D_actor_450800_8013A774, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else {
-                func_800E8614(D_actor_450800_8013A684, 0);
+                evsStartScript(D_actor_450800_8013A684, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
         } else {
             n = gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) + 1;
@@ -2688,13 +2688,13 @@ void func_actor_450800_80131E2C(void)
             gameFlagSetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT, n);
             if (n == 1) {
                 if (gameFlagGetNibble(GAME_FLAG_083) == n) {
-                    func_800E8614(D_actor_450800_8013A984, 0);
+                    evsStartScript(D_actor_450800_8013A984, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 } else {
-                    func_800E8614(D_actor_450800_8013AB7C, 0);
+                    evsStartScript(D_actor_450800_8013AB7C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
                 func_800E3FAC(0xA2, 0x32);
             } else {
-                func_800E8614(D_actor_450800_8013ACFC, 0);
+                evsStartScript(D_actor_450800_8013ACFC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
         }
     }
@@ -2746,13 +2746,13 @@ void func_actor_450800_80131F98(s32 arg0)
 
 void func_actor_450800_80132000(void)
 {
-    func_800E8614(D_actor_450800_8013A564, 0);
+    evsStartScript(D_actor_450800_8013A564, EVENT_SCRIPT_HUD_HIDE_RESTORE);
 }
 
 void func_actor_450800_80132028(void)
 {
-    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_450800_801397A4, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_actor_450800_801398EC, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_450800_801397A4, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D4, &D_actor_450800_801398EC, 0);
 }
 
 void func_actor_450800_80132080(void)

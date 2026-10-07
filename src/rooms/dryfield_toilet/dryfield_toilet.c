@@ -190,7 +190,7 @@ s32 func_dryfield_toilet_8017D8C8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
     u8 subId = in->warp;
 
     if (subId == 1 && gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == subId) {
-        func_800E8634(D_dryfield_toilet_80180C58, 1, D_dryfield_toilet_80180F40);
+        evsStartScriptWithSkip(D_dryfield_toilet_80180C58, EVENT_SCRIPT_HUD_KEEP, D_dryfield_toilet_80180F40);
         gameFlagSetNibble(GAME_FLAG_TOILET_EVENT_SEEN, 1);
     }
     return 0;

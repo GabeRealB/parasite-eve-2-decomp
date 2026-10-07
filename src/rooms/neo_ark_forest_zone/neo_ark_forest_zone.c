@@ -175,7 +175,7 @@ s32 func_neo_ark_forest_zone_8017D958(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     if (visit == 1) {
         if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == visit) {
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN, 1);
-            func_800E8614(D_neo_ark_forest_zone_80181E6C, 0);
+            evsStartScript(D_neo_ark_forest_zone_80181E6C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
     }
     if (D_neo_ark_forest_zone_80181E68 != NULL) {

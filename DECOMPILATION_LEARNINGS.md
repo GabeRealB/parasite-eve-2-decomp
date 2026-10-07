@@ -4809,7 +4809,7 @@ one call. m2c wrote the natural single-call shape
 ```c
 s32 *p;
 if (gameFlagGetNibble(0x105) == 0) p = &A; else p = &B;
-func_800E8614((s32)p, 0);
+evsStartScript((s32)p, 0);
 ```
 
 which scores 86% and cannot be fixed by tweaking that shape. The target instead
@@ -4817,8 +4817,8 @@ has the address materialised *into `$a0`* in each arm, and that falls out of the
 two-call source:
 
 ```c
-if (gameFlagGetNibble(0x105) == 0) func_800E8614((s32)&A, 0);
-else                                func_800E8614((s32)&B, 0);
+if (gameFlagGetNibble(0x105) == 0) evsStartScript((s32)&A, 0);
+else                                evsStartScript((s32)&B, 0);
 ```
 
 Cross-jumping (the `jump2` pass, `jump.c`'s `find_cross_jump`) compares each
@@ -7229,15 +7229,15 @@ else:
 lui   a0, %hi(D_8013A8DC)
 addiu a0, a0, %lo(D_8013A8DC)
 join:
-jal   func_800E8614
+jal   evsStartScript
  li   a1, 1
 ```
 
 ```c
 if (gameFlagGetNibble(0xC7) == 1) {
-    func_800E8614((s32)&D_8013A84C, 1);
+    evsStartScript((s32)&D_8013A84C, 1);
 } else {
-    func_800E8614((s32)&D_8013A8DC, 1);
+    evsStartScript((s32)&D_8013A8DC, 1);
 }
 ```
 
@@ -42571,18 +42571,18 @@ pool with (`func_..._801812F8`, `func_..._8018176C`) read only `0x0` and take a
 single point. One flat `SVECTOR` array with doubled indices is the only typing
 that is honest for both.
 
-## Cap-script task: do not let the first `8614(..., 1)` join the later phi
+## Cap-script task: do not let the first `evsStartScript(..., 1)` join the later phi
 
 A 0..4 cutscene driver that increments through a shared `inc:` after cases 1/3
-often has two different `func_800E8614` shapes:
+often has two different `evsStartScript` shapes:
 
-- Case 0, first-time flag: `func_800E8614(&script, 1); goto inc;` — own `jal`
+- Case 0, first-time flag: `evsStartScript(&script, 1); goto inc;` — own `jal`
   with `li a1, 1` in the delay, then `j inc`.
 - Case 2 event keys: a phi of `(addr, a1)` that B/C/D-else jump into, one `jal`.
 
 Written without a barrier, GCC 2.8.1 jump-threads the first call into the
-case-2 `a1 = 1; 8614(cap, flag)` label (`j` onto that `jal`, `delete` the first
-call). `SOFT_BARRIER()` between the first `8614` and `goto inc` keeps it
+case-2 `a1 = 1; evsStartScript(cap, flag)` label (`j` onto that `jal`, `delete` the first
+call). `SOFT_BARRIER()` between the first `evsStartScript` and `goto inc` keeps it
 separate.
 
 The case-0 "already seen" fork (two scripts, then `taskKill`) wants **direct
@@ -42592,11 +42592,11 @@ calls**, not an address local:
 if (gameFlagGetNibble(0xE0) == 0) {
     if (gameFlagGetNibble(0x7A) >= 4) {
         gameFlagSetNibble(0xE0, 1);
-        func_800E8614((s32)&scriptA, 0);
+        evsStartScript((s32)&scriptA, 0);
         goto kill;
     }
 }
-func_800E8614((s32)&scriptB, 0);
+evsStartScript((s32)&scriptB, 0);
 kill:
     taskKill(task);
 ```
@@ -49595,7 +49595,7 @@ in one edit. Do not chase the shift with pins or the permuter.
 The shift need not stay inside the one call. `func_dryfield_night_driveway_8017DCFC`
 came back at 97.97% with `regs=1 reorder=1`: the `regs` was m2c's
 `gameSetTaskSlot(7)` against the target's `gameSetTaskSlot(index, 7)`, and the
-`reorder` was an unrelated second call (`func_800E8634(&D_a, 0, &D_b)`) whose
+`reorder` was an unrelated second call (`evsStartScriptWithSkip(&D_a, 0, &D_b)`) whose
 `li a1,0` and `lui a2` had swapped — the constant sitting in `$a1` had changed
 the sched1 region's pressure, not its own statement order. Both penalties went
 to zero on that one edit. So an arity error found in one call is worth fixing
@@ -61520,8 +61520,8 @@ Declaring one struct and passing `&msg` is enough:
 typedef struct { u8 field_0; u8 field_1; u16 field_2; } SlotMsg;
 SlotMsg msg;
 msg.field_0 = 1; msg.field_1 = 3; msg.field_2 = 0;
-taskMessageDispatch(Gp_LookupSlot4(2), 0x7DB, (s32)&msg, 0);
-taskMessageDispatch(Gp_LookupSlot4(3), 0x7DB, (s32)&msg, 0);
+taskMessageDispatch(sceneFindPlacedActor(2), 0x7DB, (s32)&msg, 0);
+taskMessageDispatch(sceneFindPlacedActor(3), 0x7DB, (s32)&msg, 0);
 ```
 
 The aggregation, not the store count, is what stops the CSE: an attempt that
@@ -85377,9 +85377,9 @@ Writing the call in each arm instead:
 
 ```c
 if (areaGetCurrentObjectState(3) == temp_v0) {
-    func_800E8614((s32)&D_actor_161500_801378D8, 0);
+    evsStartScript((s32)&D_actor_161500_801378D8, 0);
 } else {
-    func_800E8614((s32)&D_actor_161500_801376F8, 0);
+    evsStartScript((s32)&D_actor_161500_801376F8, 0);
 }
 ```
 
@@ -85455,7 +85455,7 @@ extern s32 D_actor_161500_80134920[8];
 ...
 temp_s0 = (gGameSession->location.loc.variant == 1) * 4;
 temp_v0 = gameFlagGetNibble(0x103);
-func_800E8614(D_actor_161500_80134920[temp_v0 + temp_s0], 0);
+evsStartScript(D_actor_161500_80134920[temp_v0 + temp_s0], 0);
 ```
 
 That is byte-identical to the target on the first build (100.000%). m2c had
@@ -91487,8 +91487,8 @@ It does not carry over to the carrier's content, passed in as arguments.
 `func_dryfield_night_driveway_8017DAF4` (night) and
 `func_dryfield_driveway_8017DAD0` (day) are the same 38 instructions apart
 from two addresses - `D_dryfield_night_driveway_8017F54C` / `...F6CC` against
-`D_dryfield_driveway_8017E4FC` / `...E67C`, the model and animation banks the
-body hands to `func_800E8634`. `find` reports `~` (same body, different link
+`D_dryfield_driveway_8017E4FC` / `...E67C`, the event and skip scripts the
+body hands to `evsStartScriptWithSkip`. `find` reports `~` (same body, different link
 offset) and `promote` refuses:
 
 ```
@@ -92036,7 +92036,7 @@ switch (arg2->field_2) {
         break;
     case 2:
         if (gSceneCombatState.signals.bytes.battlePhase != 1 && gameFlagGetNibble(0x5E) == 1) {
-            func_800E8614((s32)&D_dryfield_general_store_8017E568, 1);
+            evsStartScript((s32)&D_dryfield_general_store_8017E568, 1);
         }
         gameFlagSetNibble(0x5E, 2);
         break;
@@ -92297,7 +92297,7 @@ li    s0,1
 jal   SetDispMask
 sb    s0,%lo(D_80115768)(v0)     # D_80115768 = 1
 ...
-jal   func_800E8634
+jal   evsStartScriptWithSkip
 sb    s0,0x68(v0)                # gGameSession->hideHud = 1
 ```
 
@@ -92668,7 +92668,7 @@ queue            = &gCdCmdQueue;      /* before the call: the range spans it */
 arg0->field_24   = D_neo_ark_r31_8017D9F4;
 gameSetTaskSlot(arg0, 7);
 queue->imageMdecMode = 2;
-func_800E8634((s32)&D_80133F90, 0, (s32)&D_80134470);
+evsStartScriptWithSkip((s32)&D_80133F90, 0, (s32)&D_80134470);
 arg0->state      = (s32)(arg0->state + 1);
 ```
 
@@ -94625,7 +94625,7 @@ constant:
 ```c
 case 2:
     ...
-    if (Gp_LookupSlot4(0) != 0) {
+    if (sceneFindPlacedActor(0) != 0) {
         ...
         D_neo_ark_woodland_path_8018498E = 0x5A;
         return 1;
@@ -94644,7 +94644,7 @@ allocating `[129] -> $v1` (priority 10000, the value) and then `[128] -> $a0`
 assignment to 1 already sits in the branch's delay slot:
 
 ```c
-    if (Gp_LookupSlot4(0) != 0) {
+    if (sceneFindPlacedActor(0) != 0) {
         ...
         D_neo_ark_woodland_path_8018498E.s = 0x5A;
     }
@@ -120399,7 +120399,7 @@ The target's dispatch is two guards that both leave for the epilogue:
 ```
 case0:  beq  v1,v0,.Lepilogue     # cutscene running
         bnez v0,.Lepilogue        # area cleared
-        ... malloc, msg 0x3E8, func_800E8634, state += 1 ...
+        ... malloc, msg 0x3E8, evsStartScriptWithSkip, state += 1 ...
         j    .Ltail
 case1:  bnez v0,.Ltail            # sequence still running
         jal  taskKill

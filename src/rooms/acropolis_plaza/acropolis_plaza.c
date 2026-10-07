@@ -406,20 +406,20 @@ extern WorldCollisionTrigger D_acropolis_plaza_8019923C[4];
 /// The block `func_acropolis_plaza_8017E9A8` runs once its stream reports in.
 extern EvsCommand D_acropolis_plaza_80182B24[];
 
-/// The pair of blocks `func_acropolis_plaza_8017E7E4` hands to `func_800E8634`
+/// The pair of blocks `func_acropolis_plaza_8017E7E4` hands to `evsStartScriptWithSkip`
 /// once the streamed scene it waits on has finished.
 extern EvsCommand D_acropolis_plaza_80182734[];
 extern EvsCommand D_acropolis_plaza_80182A34[];
 
-/// The pair of blocks the opening sequence hands to `func_800E8634` in state 4,
-/// and the two it runs on its own with `func_800E8614` in states 10 and 14.
+/// The pair of blocks the opening sequence hands to `evsStartScriptWithSkip` in state 4,
+/// and the two it runs on its own with `evsStartScript` in states 10 and 14.
 extern EvsCommand D_acropolis_plaza_80182C90[];
 extern EvsCommand D_acropolis_plaza_80182F18[];
 extern EvsCommand D_acropolis_plaza_801830DC[];
 extern EvsCommand D_acropolis_plaza_801834B4[];
 
 /// The three blocks `func_acropolis_plaza_8017F48C` picks between with
-/// `Task::spawnArg1` before handing one to `func_800E8614`.
+/// `Task::spawnArg1` before handing one to `evsStartScript`.
 extern EvsCommand D_acropolis_plaza_80183554[];
 extern EvsCommand D_acropolis_plaza_8018365C[];
 extern EvsCommand D_acropolis_plaza_80183764[];
@@ -3911,7 +3911,7 @@ void func_acropolis_plaza_8017DFE0(Task* task)
 /// 0x3F2; states 1 and 2 wait for slot 3 to go idle (msg 0x3F0), state 1
 /// following up with the 0xD55 warp (msg 0x3EE). State 3 waits for the stream
 /// to finish, latches `gCdCmdQueue.sceneFrame` into the sequence work block's
-/// `resumeFrame`, kills its `sceneTask` and runs `func_800E8634`; state 4 kills
+/// `resumeFrame`, kills its `sceneTask` and runs `evsStartScriptWithSkip`; state 4 kills
 /// this task once the session is out of its transition.
 void func_acropolis_plaza_8017E7E4(Task* task)
 {
@@ -3957,7 +3957,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             }
             ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = q->sceneFrame;
             taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
-            func_800E8634(D_acropolis_plaza_80182734, 1, D_acropolis_plaza_80182A34);
+            evsStartScriptWithSkip(D_acropolis_plaza_80182734, EVENT_SCRIPT_HUD_KEEP, D_acropolis_plaza_80182A34);
             task->state = task->state + 1;
             return;
         case 4:
@@ -4154,7 +4154,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (q->movieReady == 0) {
                 return;
             }
-            func_800E8614(D_acropolis_plaza_80182B24, 1);
+            evsStartScript(D_acropolis_plaza_80182B24, EVENT_SCRIPT_HUD_KEEP);
             task->state = task->state + 1;
             return;
         case 5:
@@ -4260,7 +4260,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 4:
             if (cdCmdIsIdle() != 0) {
-                func_800E8634(D_acropolis_plaza_80182C90, 1, D_acropolis_plaza_80182F18);
+                evsStartScriptWithSkip(D_acropolis_plaza_80182C90, EVENT_SCRIPT_HUD_KEEP, D_acropolis_plaza_80182F18);
                 task->state = task->state + 1;
                 return;
             }
@@ -4344,7 +4344,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             if (cdCmdIsIdle() == 0) {
                 return;
             }
-            func_800E8614(D_acropolis_plaza_801830DC, 1);
+            evsStartScript(D_acropolis_plaza_801830DC, EVENT_SCRIPT_HUD_KEEP);
             work->elapsedFrames = 0;
             task->state         = task->state + 1;
             return;
@@ -4382,7 +4382,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 14:
             if (q->movieReady != 0) {
-                func_800E8614(D_acropolis_plaza_801834B4, 1);
+                evsStartScript(D_acropolis_plaza_801834B4, EVENT_SCRIPT_HUD_KEEP);
                 task->state = task->state + 1;
             }
             func_acropolis_plaza_8017DE24(5);
@@ -4432,13 +4432,13 @@ void func_acropolis_plaza_8017F48C(Task* task)
                 taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
                 switch (task->spawnArg1.value) {
                     case 0:
-                        func_800E8614(D_acropolis_plaza_80183554, 1);
+                        evsStartScript(D_acropolis_plaza_80183554, EVENT_SCRIPT_HUD_KEEP);
                         break;
                     case 1:
-                        func_800E8614(D_acropolis_plaza_8018365C, 1);
+                        evsStartScript(D_acropolis_plaza_8018365C, EVENT_SCRIPT_HUD_KEEP);
                         break;
                     case 2:
-                        func_800E8614(D_acropolis_plaza_80183764, 1);
+                        evsStartScript(D_acropolis_plaza_80183764, EVENT_SCRIPT_HUD_KEEP);
                         break;
                 }
                 task->state = task->state + 1;

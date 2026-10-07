@@ -1188,7 +1188,7 @@ s32 func_acropolis_roof_garden_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in, 
             break;
         case 2:
             if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == 1)) {
-                func_800E8614(D_acropolis_roof_garden_80184B08, 1);
+                evsStartScript(D_acropolis_roof_garden_80184B08, EVENT_SCRIPT_HUD_KEEP);
                 gameFlagSetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS, 2);
             }
             break;
@@ -1311,7 +1311,7 @@ static void func_acropolis_roof_garden_8017DBEC(Task* task)
 
     if ((gGameSession->location.loc.warp == 2) && (D_acropolis_roof_garden_8018432C == 0)) {
         D_acropolis_roof_garden_8018432C = 1;
-        func_800E8634(D_acropolis_roof_garden_80183D74, 0, D_acropolis_roof_garden_80184194);
+        evsStartScriptWithSkip(D_acropolis_roof_garden_80183D74, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_roof_garden_80184194);
         gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, 1);
         key.stage = GAME_STAGE_ACROPOLIS;
         key.area  = GAME_AREA_ACROPOLIS_SANCTUARY;

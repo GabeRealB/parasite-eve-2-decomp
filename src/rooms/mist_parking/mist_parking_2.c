@@ -762,7 +762,7 @@ void func_mist_parking_80182A44(Task* task)
     switch (task->state) {
         case 0:
             memFillBytes(announcement, 0, sizeof(*announcement));
-            func_800E8614(D_mist_parking_8018F9A4, 1);
+            evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
             Gp_RunCapCmd(2, 0);
             task->state++;
             break;
@@ -783,7 +783,7 @@ void func_mist_parking_80182A44(Task* task)
             break;
         case 2:
             func_mist_parking_80183708(2);
-            func_800E8614(D_mist_parking_8018F9A4, 1);
+            evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
             Gp_RunCapCmd(6, 0);
             task->state++;
             break;
@@ -807,7 +807,7 @@ void func_mist_parking_80182A44(Task* task)
                             gameFlagSetNibble(flag, 3);
                         }
                     }
-                    func_800E8614(D_mist_parking_8018F9A4, 1);
+                    evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
                     Gp_RunCapCmd(8, 0);
                     task->state = 6;
                     break;
@@ -825,7 +825,7 @@ void func_mist_parking_80182A44(Task* task)
                             areaSetCurrentObjectState(0x24, 2);
                         }
                     }
-                    func_800E8614(D_mist_parking_8018F9A4, 1);
+                    evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
                     Gp_RunCapCmd(4, 0);
                     task->state = 6;
                     break;
@@ -864,7 +864,7 @@ void func_mist_parking_80182A44(Task* task)
                 return;
             }
             if (capIsBusy() == 0) {
-                func_800E8614(D_mist_parking_8018F9A4, 1);
+                evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
                 Gp_RunCapCmd(2, 0);
                 task->state++;
             }
@@ -892,9 +892,9 @@ void func_mist_parking_80182A44(Task* task)
                 return;
             }
             if (capGetVariantKey() == 1) {
-                func_800E8614(D_mist_parking_8018FA4C, 1);
+                evsStartScript(D_mist_parking_8018FA4C, EVENT_SCRIPT_HUD_KEEP);
             } else {
-                func_800E8614(D_mist_parking_8018FB3C, 1);
+                evsStartScript(D_mist_parking_8018FB3C, EVENT_SCRIPT_HUD_KEEP);
             }
             task->state++;
             break;
@@ -921,7 +921,7 @@ void func_mist_parking_80182F60(Task* task)
 
     switch (task->state) {
         case 0:
-            func_800E8614(D_mist_parking_8018F374, 1);
+            evsStartScript(D_mist_parking_8018F374, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
         case 1:
@@ -936,13 +936,13 @@ void func_mist_parking_80182F60(Task* task)
             task->spawnArg1.value = key;
             switch (key) {
                 case 4:
-                    func_800E8614(D_mist_parking_8018F4AC, 1);
+                    evsStartScript(D_mist_parking_8018F4AC, EVENT_SCRIPT_HUD_KEEP);
                     break;
                 case 5:
-                    func_800E8614(D_mist_parking_8018F5E4, 1);
+                    evsStartScript(D_mist_parking_8018F5E4, EVENT_SCRIPT_HUD_KEEP);
                     break;
                 case 6:
-                    func_800E8614(D_mist_parking_8018F824, 1);
+                    evsStartScript(D_mist_parking_8018F824, EVENT_SCRIPT_HUD_KEEP);
                     break;
             }
             task->state++;
@@ -1106,9 +1106,9 @@ void func_mist_parking_8018345C(Task* arg0)
 {
     if (gGameSession->eventState == 0 && capIsBusy() == 0) {
         if (D_mist_parking_8019531C == 2) {
-            func_800E8614(D_mist_parking_8018F5E4, 1);
+            evsStartScript(D_mist_parking_8018F5E4, EVENT_SCRIPT_HUD_KEEP);
         } else {
-            func_800E8614(D_mist_parking_8018F4AC, 1);
+            evsStartScript(D_mist_parking_8018F4AC, EVENT_SCRIPT_HUD_KEEP);
         }
         taskKill(arg0);
     }
@@ -1118,9 +1118,9 @@ void func_mist_parking_801834D4(Task* arg0)
 {
     if (gGameSession->eventState == 0 && capIsBusy() == 0) {
         if (D_mist_parking_8019531C == 2) {
-            func_800E8614(D_mist_parking_8018FB3C, 1);
+            evsStartScript(D_mist_parking_8018FB3C, EVENT_SCRIPT_HUD_KEEP);
         } else {
-            func_800E8614(D_mist_parking_8018FA4C, 1);
+            evsStartScript(D_mist_parking_8018FA4C, EVENT_SCRIPT_HUD_KEEP);
         }
         taskKill(arg0);
     }

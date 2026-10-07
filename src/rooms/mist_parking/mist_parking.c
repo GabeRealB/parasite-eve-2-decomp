@@ -979,11 +979,11 @@ s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             if (temp == 2) {
                 if (gameFlagGetNibble(GAME_FLAG_0F1) == 1) {
                     Gp_MsgPlayerWeapon(0);
-                    func_800E8614(D_mist_parking_8018F0A4, 1);
+                    evsStartScript(D_mist_parking_8018F0A4, EVENT_SCRIPT_HUD_KEEP);
                     gameFlagSetNibble(GAME_FLAG_0F1, 2);
                 } else if (gameFlagGetNibble(GAME_FLAG_0F1) == temp) {
                     Gp_MsgPlayerWeapon(0);
-                    func_800E8614(D_mist_parking_8018F194, 1);
+                    evsStartScript(D_mist_parking_8018F194, EVENT_SCRIPT_HUD_KEEP);
                     gameFlagSetNibble(GAME_FLAG_0F1, 3);
                 } else if (gameFlagGetNibble(GAME_FLAG_0F1) == 3) {
                     Gp_MsgPlayerWeapon(0);
@@ -1017,7 +1017,7 @@ s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             }
             break;
         case 1:
-            func_800E8614(D_mist_parking_80186EFC, 1);
+            evsStartScript(D_mist_parking_80186EFC, EVENT_SCRIPT_HUD_KEEP);
             break;
     }
     return 0;
@@ -1052,10 +1052,10 @@ s32 func_mist_parking_801826C0(Task* task, s32 msgId, RoomEventMsg* src, RoomEve
 s32 func_mist_parking_801826E8(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
 {
     if (request->actionId == 1) {
-        func_800E8614(D_mist_parking_80186C5C, 1);
+        evsStartScript(D_mist_parking_80186C5C, EVENT_SCRIPT_HUD_KEEP);
     }
     if (request->actionId == 2) {
-        func_800E8614(D_mist_parking_80186DC4, 1);
+        evsStartScript(D_mist_parking_80186DC4, EVENT_SCRIPT_HUD_KEEP);
         gameFlagSetNibble(GAME_FLAG_0ED, 1);
     }
     return 1;
@@ -1084,10 +1084,10 @@ static void func_mist_parking_801827C0(Task* arg0)
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 3) {
             func_800E3FAC(0xA2, 0x3C);
             func_mist_parking_801837A4(0);
-            func_800E8634(D_mist_parking_8018DF34, 0, D_mist_parking_8018EDBC);
+            evsStartScriptWithSkip(D_mist_parking_8018DF34, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_parking_8018EDBC);
         } else {
             func_mist_parking_8018471C(0);
-            func_800E8614(D_mist_parking_8018EFE4, 1);
+            evsStartScript(D_mist_parking_8018EFE4, EVENT_SCRIPT_HUD_KEEP);
         }
     }
     arg0->state = arg0->state + 1;

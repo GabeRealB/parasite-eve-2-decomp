@@ -1490,7 +1490,7 @@ void func_actor_160700_80131E24(void)
     Task* slot;
 
     if (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) != 0) {
-        slot = Gp_LookupSlot4(0);
+        slot = sceneFindPlacedActor(0);
         if (slot != 0) {
             TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_160700_801354CC, 0);
         }
@@ -1501,21 +1501,21 @@ void func_actor_160700_80131E70(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS)) {
         case 0:
-            func_800E8634(D_actor_160700_80135664, 0, D_actor_160700_80135ACC);
+            evsStartScriptWithSkip(D_actor_160700_80135664, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160700_80135ACC);
             gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 1);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0xC);
             break;
         case 1:
-            func_800E8634(D_actor_160700_80135BD4, 0, D_actor_160700_80135ACC);
+            evsStartScriptWithSkip(D_actor_160700_80135BD4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160700_80135ACC);
             gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 2);
             break;
         case 2:
-            func_800E8614(D_actor_160700_801362F4, 0);
+            evsStartScript(D_actor_160700_801362F4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 3);
             break;
         case 3:
-            func_800E8614(D_actor_160700_80136414, 0);
+            evsStartScript(D_actor_160700_80136414, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }

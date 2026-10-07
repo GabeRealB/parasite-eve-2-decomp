@@ -1,7 +1,7 @@
 /* The Neo Ark forest rooms' pool of roaming enemies. The room keeps up to five
  * reserve slots of banked HP, sized from game-flag nibbles per session slot:
  * each visit adds the slot's arming count (per location variant) to a running
- * total and caps it at five. The room's dormant slot-4 enemies (hp -999) are
+ * total and caps it at five. The room's dormant placed actors (hp -999) are
  * revived from this pool. A 0x13EF request names a spawn point, and the room
  * gives the next dormant enemy a banked HP, raises a battle-state reference,
  * sends it the 0x7DB actor command and places it at that point with its yaw.

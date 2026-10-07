@@ -87,7 +87,7 @@ extern RoomSavedViewStorage D_dryfield_night_saloon_g_r_80188FA4;
 extern TaskMessageEntry D_dryfield_night_saloon_g_r_8017F918[];
 extern TaskDesc         D_dryfield_night_saloon_g_r_8017F940[];
 
-/// Cutscene script blobs handed to `func_800E8614` / `func_800E8634`.
+/// Cutscene script blobs handed to `evsStartScript` / `evsStartScriptWithSkip`.
 extern EvsCommand D_dryfield_night_saloon_g_r_801848DC[];
 extern EvsCommand D_dryfield_night_saloon_g_r_80184B34[];
 extern EvsCommand D_dryfield_night_saloon_g_r_80184D2C[];
@@ -1961,15 +1961,15 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
             break;
         case 8:
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) == 0) {
-                func_800E8614(D_dryfield_night_saloon_g_r_801848DC, 0);
+                evsStartScript(D_dryfield_night_saloon_g_r_801848DC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 1);
             } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) == 1) {
-                func_800E8614(D_dryfield_night_saloon_g_r_80184B34, 0);
+                evsStartScript(D_dryfield_night_saloon_g_r_80184B34, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
             break;
         case 10:
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) < 2) {
-                func_800E8614(D_dryfield_night_saloon_g_r_80184D2C, 0);
+                evsStartScript(D_dryfield_night_saloon_g_r_80184D2C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
             break;
     }
@@ -1989,7 +1989,7 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, const void* f
     u8           temp_s0;
 
     if (((const DirectionActionRequest*)firstArg)->actionId == 7 && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN) == 0) {
-        func_800E8634(D_dryfield_night_saloon_g_r_80183C94, 0, D_dryfield_night_saloon_g_r_801847A4);
+        evsStartScriptWithSkip(D_dryfield_night_saloon_g_r_80183C94, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_saloon_g_r_801847A4);
         gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
     }
     temp_s0 = gGameSession->location.loc.variant;

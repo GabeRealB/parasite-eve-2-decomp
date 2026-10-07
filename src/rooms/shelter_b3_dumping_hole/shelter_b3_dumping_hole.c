@@ -269,8 +269,8 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
     if (gameFlagGetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN) == 0) {
         if (gGameSession->location.loc.variant == 1) {
             if (gGameSession->location.loc.warp == 3) {
-                func_800E8634(D_shelter_b3_dumping_hole_8018B080, 0,
-                              D_shelter_b3_dumping_hole_8018B428);
+                evsStartScriptWithSkip(D_shelter_b3_dumping_hole_8018B080, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                       D_shelter_b3_dumping_hole_8018B428);
             }
             func_800E3FAC(0xA2, 0x21);
             gameFlagSetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN, 1);

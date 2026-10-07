@@ -1362,7 +1362,7 @@ static void func_actor_361100_80161FF8(Task* arg0)
 /// toward 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it
 /// is not, then hands the record to `func_800B17D4` between the slot-3 task
 /// (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`, the skeleton whose head turns) and the
-/// `Gp_LookupSlot4(2)` task it turns toward. Every other state kills the task
+/// `sceneFindPlacedActor(2)` task it turns toward. Every other state kills the task
 /// and clears `D_actor_361100_80171BE0`. State 0 reaching a NULL allocation
 /// falls out of its own `if` into that kill, rather than into state 1.
 void func_actor_361100_801627D4(Task* task)
@@ -1373,7 +1373,7 @@ void func_actor_361100_801627D4(Task* task)
     u16               rate;
 
     looker = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    target = Gp_LookupSlot4(2);
+    target = sceneFindPlacedActor(2);
     if (D_801156F9 == 0) {
         if ((looker == NULL) || (target == NULL)) {
             task->state = -1;

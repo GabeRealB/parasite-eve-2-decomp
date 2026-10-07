@@ -60,7 +60,7 @@ STATIC_ASSERT_SIZEOF(_Actor503500DriftSpriteEmitterWork, 0xC);
 extern SVECTOR D_actor_503500_8014B97C[];
 
 extern TaskDesc D_actor_503500_8014B964[];
-/// Event scripts in the overlay's `.data`, handed to `func_800E8634` (which
+/// Event scripts in the overlay's `.data`, handed to `evsStartScriptWithSkip` (which
 /// forwards the first to `taskSpawn`).
 extern EvsCommand D_actor_503500_8014CD98[];
 extern EvsCommand D_actor_503500_8014D098[];
@@ -1858,7 +1858,7 @@ void func_actor_503500_80132CA4(void)
 
 void func_actor_503500_80132CC4(s8 arg0)
 {
-    sceneReleaseBattleRefWithRewards(Gp_LookupSlot4(0), 0x23);
+    sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x23);
     gSceneCombatState.signals.bytes.endDelayFrames = arg0;
 }
 
@@ -1872,7 +1872,7 @@ void func_actor_503500_80132D00(s32 bits)
 
 void func_actor_503500_80132D20(Task* arg0)
 {
-    func_800E8634(D_actor_503500_8014CD98, 0, D_actor_503500_8014D098);
+    evsStartScriptWithSkip(D_actor_503500_8014CD98, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_503500_8014D098);
     taskKill(arg0);
 }
 

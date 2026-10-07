@@ -795,8 +795,8 @@ void func_dryfield_gas_station_801807E0(Task* task)
                     TASK_MESSAGE_DISPATCH_POINTER(work2->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
                 }
                 func_800E3FAC(0xA2, 9);
-                func_800E8634(D_dryfield_gas_station_80182E8C, 0,
-                              D_dryfield_gas_station_8018303C);
+                evsStartScriptWithSkip(D_dryfield_gas_station_80182E8C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                       D_dryfield_gas_station_8018303C);
                 task->state = task->state + 1;
                 return;
             }

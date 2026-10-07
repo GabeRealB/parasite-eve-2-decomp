@@ -20,8 +20,7 @@
 
 #include "mapui/map_shelter.h"
 
-/// Cutscene script blob handed to `func_800E8614`; unnamed in the gameplay
-/// map, which keeps the raw address.
+/// Event script started with `evsStartScript`.
 extern EvsCommand D_mine_tunnel_8017E024[];
 
 /// The room's message table: 0x13EE is handled by `func_mine_tunnel_8017D5EC`,
@@ -130,7 +129,7 @@ s32 func_mine_tunnel_8017D670(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
     if ((temp_v1 == 1) && (gGameSession->location.loc.variant == temp_v1) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN, 1);
         Gp_MsgPlayerWeapon(0);
-        func_800E8614(D_mine_tunnel_8017E024, 1);
+        evsStartScript(D_mine_tunnel_8017E024, EVENT_SCRIPT_HUD_KEEP);
     }
     return 0;
 }

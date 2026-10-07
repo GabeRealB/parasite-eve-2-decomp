@@ -1807,7 +1807,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task);
 /// the location's place is 1 it keeps `flowFlags` at 0xA and runs a latch on
 /// `gSceneCombatState.signals.bytes.battlePhase`: when that flag drops after having been 1, a sound
 /// event is queued, and once the session's `battleResetPending` is then non-zero,
-/// `func_800E8634` is called with the room's two data blocks.
+/// `evsStartScriptWithSkip` is called with the room's two data blocks.
 static void func_acropolis_promenade_8017D5E4(Task* task)
 {
     u8 temp;
@@ -1835,7 +1835,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
         }
         if ((D_acropolis_promenade_80181144 == 2) && (gGameSession->battleResetPending != 0)) {
             D_acropolis_promenade_80181144 = 0;
-            func_800E8634(D_acropolis_promenade_80180F00, 0, D_acropolis_promenade_80181068);
+            evsStartScriptWithSkip(D_acropolis_promenade_80180F00, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_promenade_80181068);
         }
     }
 }

@@ -2260,10 +2260,10 @@ s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in, s32 arg3)
 s32 func_shelter_r48_8017E0EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE) == 1) {
-        func_800E8614(D_actor_503500_8014D158, 0);
+        evsStartScript(D_actor_503500_8014D158, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 2);
     } else {
-        func_800E8634(D_actor_503500_8014C540, 0, D_actor_503500_8014CAF8);
+        evsStartScriptWithSkip(D_actor_503500_8014C540, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_503500_8014CAF8);
         taskSpawnFromTable(D_actor_503500_8014B964, 0, 0, 0);
         taskSpawnFromTable(D_actor_503500_8014B964, 0, 1, 0);
         taskSpawnFromTable(D_actor_503500_8014B964, 0, 3, 0);
@@ -2277,7 +2277,7 @@ static void func_shelter_r48_8017E1A4(Task* arg0)
     arg0->msgTable = D_shelter_r48_80182FB8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_actor_503500_80132F58(0);
-    func_800E8634(D_actor_503500_8014BD48, 0, D_actor_503500_8014C288);
+    evsStartScriptWithSkip(D_actor_503500_8014BD48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_503500_8014C288);
     gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 1);
     arg0->state = (s32)(arg0->state + 1);
 }

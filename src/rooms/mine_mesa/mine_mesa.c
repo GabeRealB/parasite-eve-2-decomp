@@ -2584,7 +2584,7 @@ static void func_mine_mesa_8017D808(Task* task)
     if ((gGameSession->eventState == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (field9 = gGameSession->location.loc.variant, field9 == 1)) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_MESA_ARRIVAL_SEEN) == 0) {
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-                func_800E8634(D_mine_mesa_8018578C, 0, D_mine_mesa_801861DC);
+                evsStartScriptWithSkip(D_mine_mesa_8018578C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_mesa_801861DC);
             }
             func_800E3FAC(0xA2, 0x1B);
             gameFlagSetNibble(GAME_FLAG_MINE_MESA_ARRIVAL_SEEN, 1);
@@ -2592,7 +2592,7 @@ static void func_mine_mesa_8017D808(Task* task)
         }
         nibble = gameFlagGetNibble(GAME_FLAG_MINE_MESA_0CD);
         if ((nibble == field9) && (D_mine_mesa_80189B50 == nibble)) {
-            func_800E8634(D_mine_mesa_80184664, 0, D_mine_mesa_80184BA4);
+            evsStartScriptWithSkip(D_mine_mesa_80184664, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_mesa_80184BA4);
             D_mine_mesa_80189B50 = 2;
         }
     }
@@ -2670,7 +2670,7 @@ s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, const void* firstArg, s32 arg
         case 1:
             if (gameFlagGetNibble(GAME_FLAG_MINE_MESA_TRIGGER_1_SEEN) == 0) {
                 if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-                    func_800E8614(D_mine_mesa_801850E4, 0);
+                    evsStartScript(D_mine_mesa_801850E4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
                 func_800E3FAC(0xA2, 0x1C);
                 gameFlagSetNibble(GAME_FLAG_MINE_MESA_TRIGGER_1_SEEN, 1);
@@ -2681,11 +2681,11 @@ s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, const void* firstArg, s32 arg
             if (gameFlagGetNibble(GAME_FLAG_MINE_MESA_TRIGGER_1_SEEN) <= 0) {
                 if (gameFlagGetNibble(GAME_FLAG_MINE_MESA_COMPANION_TALK_SEEN) == 0) {
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-                        func_800E8634(D_mine_mesa_80184D9C, 1, D_mine_mesa_80184FF4);
+                        evsStartScriptWithSkip(D_mine_mesa_80184D9C, EVENT_SCRIPT_HUD_KEEP, D_mine_mesa_80184FF4);
                     }
                     gameFlagSetNibble(GAME_FLAG_MINE_MESA_COMPANION_TALK_SEEN, 1);
                 } else if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-                    func_800E8634(D_mine_mesa_801854BC, 1, D_mine_mesa_801856B4);
+                    evsStartScriptWithSkip(D_mine_mesa_801854BC, EVENT_SCRIPT_HUD_KEEP, D_mine_mesa_801856B4);
                 }
             }
             break;

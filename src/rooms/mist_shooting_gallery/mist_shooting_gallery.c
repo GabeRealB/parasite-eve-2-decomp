@@ -1960,7 +1960,7 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* first
     if ((request->actionId == 4) && (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
         func_800E3FAC(0xA2, 0x3B);
         gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN, 1);
-        func_800E8634(D_actor_215100_80153274, 0, D_actor_215100_80153D6C);
+        evsStartScriptWithSkip(D_actor_215100_80153274, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_215100_80153D6C);
     }
     return 0;
 }

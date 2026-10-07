@@ -1703,7 +1703,7 @@ static void _dryfieldJunkYardDrawModelGroundShadow(Task* task)
 /// State 0 of the room task: publishes the message table and claims game
 /// pointer slot 7. With a slot-0xA task present, it sends that task its
 /// opening messages while nibble 0x38 is clear, then either latches nibble
-/// 0x39 and starts the `func_800E8634` sequence (once nibble 0x28 has reached
+/// 0x39 and starts the `evsStartScriptWithSkip` sequence (once nibble 0x28 has reached
 /// 2) or, on a visit whose `warp` is 2, sends it message 0x3E9. Advances the
 /// state either way.
 static void func_dryfield_junk_yard_8017D708(Task* arg0)
@@ -1718,7 +1718,7 @@ static void func_dryfield_junk_yard_8017D708(Task* arg0)
         }
         if ((gameFlagGetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN) == 0) && (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) >= 2)) {
             gameFlagSetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN, 1);
-            func_800E8634(D_dryfield_junk_yard_8017E490, 0, D_dryfield_junk_yard_8017E658);
+            evsStartScriptWithSkip(D_dryfield_junk_yard_8017E490, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E658);
         } else if (gGameSession->location.loc.warp == 2) {
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE30, 0);
         }
@@ -1727,7 +1727,7 @@ static void func_dryfield_junk_yard_8017D708(Task* arg0)
 }
 
 /// The sequence task `D_dryfield_junk_yard_8017DD48` describes, spawned by
-/// the 0x13EF handler. State 0 starts a `func_800E8634` sequence and state 1
+/// the 0x13EF handler. State 0 starts a `evsStartScriptWithSkip` sequence and state 1
 /// waits for `gGameSession->eventState` to clear. States 3, 5 and 7 send the
 /// slot-0xA task a message (`0x3EE`, `0x3E8`, `0x3E8`) with a payload; states
 /// 4 and 6 send the bare `0x3F0` / `0x3ED` and hold while it answers nonzero.
@@ -1740,7 +1740,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
 {
     switch (task->state) {
         case 0:
-            func_800E8634(D_dryfield_junk_yard_8017DE48, 0, D_dryfield_junk_yard_8017E028);
+            evsStartScriptWithSkip(D_dryfield_junk_yard_8017DE48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E028);
             task->state = task->state + 1;
             return;
         case 1:
@@ -1796,7 +1796,7 @@ static s32 _dryfieldJunkYardRejectKeyItemUse(Task* task, s32 messageId, s32 item
 /// incoming record to the outgoing one, then edits the copy: message 0x18
 /// answers `room` 2 once nibble 0x7A has reached 4, else 1. Message 0x1B,
 /// while nibble 0x38 is 1, returns 2, advancing the nibble to 2 and starting a
-/// `func_800E8634` sequence; otherwise, with nibble 0x28 still clear, it
+/// `evsStartScriptWithSkip` sequence; otherwise, with nibble 0x28 still clear, it
 /// answers `warp` 2 and sets nibbles 0x28 and 0x4B. Returns 1.
 ///
 /// `queryOnly` non-zero means "report only", which suppresses every side effect.
@@ -1814,7 +1814,7 @@ s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
         if (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 1) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, 2);
-                func_800E8634(D_dryfield_junk_yard_8017E3D0, 0, D_dryfield_junk_yard_8017E2B0);
+                evsStartScriptWithSkip(D_dryfield_junk_yard_8017E3D0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E2B0);
             }
             return 2;
         }
@@ -1831,7 +1831,7 @@ s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 /// `actionId` is 1 and nibble 0x38 is clear, it latches the nibble to 1 and
 /// spawns the sequence task. When it is 2, the slot-0xA task stands at x
 /// 0x5209 or beyond and nibble 0x38 is 1, it advances the nibble to 2 and
-/// starts a `func_800E8634` sequence. Always returns 0.
+/// starts a `evsStartScriptWithSkip` sequence. Always returns 0.
 s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
     const DirectionActionRequest* msg = firstArg;
@@ -1849,7 +1849,7 @@ s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, const void* firstArg
         if ((player != NULL) && (player->extra.tmd->coords->coord.t[0] >= 0x5209) &&
             (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 1)) {
             gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, 2);
-            func_800E8634(D_dryfield_junk_yard_8017E160, 0, D_dryfield_junk_yard_8017E2B0);
+            evsStartScriptWithSkip(D_dryfield_junk_yard_8017E160, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E2B0);
         }
     }
     return 0;

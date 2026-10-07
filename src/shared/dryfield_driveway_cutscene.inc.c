@@ -20,7 +20,7 @@ void drivewayCutsceneTask(Task* arg0)
             arg0->state = 2;
             return;
         case 2:
-            func_800E8614(gDrivewayCutsceneScript, 0);
+            evsStartScript(gDrivewayCutsceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             arg0->state += 1;
             /* fallthrough */
         case 3:

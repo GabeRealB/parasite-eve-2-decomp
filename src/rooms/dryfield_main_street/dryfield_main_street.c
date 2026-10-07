@@ -114,7 +114,7 @@ extern TaskMessageEntry D_dryfield_main_street_80180EA0[];
 extern s32 D_dryfield_main_street_80180ED0;
 
 /// The two arguments `func_dryfield_main_street_8017E05C` hands to
-/// `func_800E8634`.
+/// `evsStartScriptWithSkip`.
 extern EvsCommand D_dryfield_main_street_80181624[];
 extern EvsCommand D_dryfield_main_street_80181A14[];
 
@@ -990,7 +990,7 @@ static s32 _dryfieldMainStreetRejectKeyItemUse(Task* receiver, s32 messageId, s3
 
 /// On a message whose `actionId` is 1, the first time only (nibble 0x5F still
 /// clear): forgets the task `func_dryfield_main_street_8017E320` spawned, calls
-/// `func_800E8634` with the room's two data blocks, and sets nibbles 0x5F and
+/// `evsStartScriptWithSkip` with the room's two data blocks, and sets nibbles 0x5F and
 /// 0x155 and clears nibble 3. Always answers 0.
 s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
@@ -998,7 +998,7 @@ s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstA
 
     if ((msg->actionId == 1) && (gameFlagGetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN) == 0)) {
         func_dryfield_main_street_8017E4A4(0);
-        func_800E8634(D_dryfield_main_street_80181624, 0, D_dryfield_main_street_80181A14);
+        evsStartScriptWithSkip(D_dryfield_main_street_80181624, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_main_street_80181A14);
         gameFlagSetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN, 1);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);

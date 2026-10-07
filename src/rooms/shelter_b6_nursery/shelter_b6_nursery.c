@@ -1004,7 +1004,7 @@ s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionReque
         func_actor_450800_80132000();
     }
     if (msg->actionId == 3 && gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) != 0) {
-        func_800E8634(D_actor_450800_8013AF8C, 0, D_actor_450800_8013BA84);
+        evsStartScriptWithSkip(D_actor_450800_8013AF8C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450800_8013BA84);
     }
     return 0;
 }
@@ -1016,13 +1016,13 @@ static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
     Gp_FillAllyHp();
     if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
         gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 1);
-        func_800E8634(D_actor_450800_80139964, 0, D_actor_450800_8013A33C);
+        evsStartScriptWithSkip(D_actor_450800_80139964, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450800_8013A33C);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         func_800E3FAC(0xA2, 0x30);
     } else if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 1) {
-        func_800E8614(D_actor_450800_8013A84C, 1);
+        evsStartScript(D_actor_450800_8013A84C, EVENT_SCRIPT_HUD_KEEP);
     } else {
-        func_800E8614(D_actor_450800_8013A8DC, 1);
+        evsStartScript(D_actor_450800_8013A8DC, EVENT_SCRIPT_HUD_KEEP);
     }
     arg0->state++;
 }

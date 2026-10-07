@@ -201,7 +201,7 @@ STATIC_ASSERT_SIZEOF(_GluttonHostTaskStorage, 8);
 /// task table the successor is spawned from, `D_shelter_b3_garbage_incinerator_8018FBC8[0]` the view id copied
 /// into `GameSession::sceneClock`, and `D_shelter_b3_garbage_incinerator_801855DE` a counter cleared with it.
 
-/// Spawn tables `func_800E8634` forwards to `taskSpawn`, taken as raw
+/// Spawn tables `evsStartScriptWithSkip` forwards to `taskSpawn`, taken as raw
 /// addresses: the first pair is used by the `spawnArg1` fast path in state 0
 /// and the second by state 2.
 extern EvsCommand D_actor_444000_80144634[];
@@ -2893,7 +2893,7 @@ void func_actor_444000_80132358(Task* task)
                 work            = task->work;
                 work->savedView = gGameSession->location.loc.view;
                 Gp_MsgPlayerWeapon(0);
-                func_800E8634(D_actor_444000_80144634, 0, D_actor_444000_8014488C);
+                evsStartScriptWithSkip(D_actor_444000_80144634, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_444000_8014488C);
                 task->state = 3;
             } else {
                 task->state += 1;
@@ -2924,7 +2924,7 @@ void func_actor_444000_80132358(Task* task)
             task->killCountdown = timer;
             if (timer >= 0x15) {
                 work->savedView = gGameSession->location.loc.view;
-                func_800E8634(D_actor_444000_8014431C, 0, D_actor_444000_801444E4);
+                evsStartScriptWithSkip(D_actor_444000_8014431C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_444000_801444E4);
                 task->state += 1;
             }
             break;
@@ -4828,7 +4828,7 @@ static void func_actor_444000_8013D96C(Task* arg0)
 /// A reset request (`stateChanged`) re-arms the block on animation 3, clears the host
 /// model's flag word and pushes it onto each of the seven escorts' models, makes
 /// sure the host and every escort has its model buffers allocated, re-seeds the
-/// spinner target `gGluttonSpinnerTarget` from the fourth part of slot 4's
+/// spinner target `gGluttonSpinnerTarget` from the fourth part of placed actor 0's
 /// model and announces sub-state 2 through message 0x7DA.
 ///
 /// Every tick then pins the player down to the arena floor, runs the ordinary
@@ -4907,7 +4907,7 @@ static void func_actor_444000_8013E058(Task* task)
         posp->vz               = 0;
         posp->vy               = 0;
         posp->vx               = 0;
-        actorLocalToView(&Gp_LookupSlot4(0)->extra.tmd->coords[3], posp);
+        actorLocalToView(&sceneFindPlacedActor(0)->extra.tmd->coords[3], posp);
         D_actor_444000_80161888.command.context.loc.stage = 0;
         D_actor_444000_80161888.command.context.loc.area  = 0x2C;
         D_actor_444000_80161888.command.command           = 2;

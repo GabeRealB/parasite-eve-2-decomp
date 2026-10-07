@@ -1158,22 +1158,22 @@ static void func_mist_r18_8017D960(Task* task)
     if ((gGameSession->eventState == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         state = D_mist_r18_80186E9C;
         if (state == 1) {
-            func_800E8634(D_mist_r18_80185EBC, 0, D_mist_r18_80186564);
+            evsStartScriptWithSkip(D_mist_r18_80185EBC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_r18_80186564);
             D_mist_r18_80186E9C = 2;
         } else if (state == 2) {
-            func_800E8634(D_mist_r18_8018576C, 0, D_mist_r18_8018645C);
+            evsStartScriptWithSkip(D_mist_r18_8018576C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_r18_8018645C);
             D_mist_r18_80186EA0 = 0;
             D_mist_r18_80186E9C = 3;
         } else if (state == 3) {
-            func_800E8614(D_mist_r18_8018603C, 0);
+            evsStartScript(D_mist_r18_8018603C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             D_mist_r18_80186E9C = 4;
         } else if (state == 4) {
             if (func_map_akropolis_8017A038() != 1) {
-                func_800E8614(D_mist_r18_801861BC, 0);
+                evsStartScript(D_mist_r18_801861BC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 D_mist_r18_80186EA0 = 1;
                 return;
             }
-            func_800E8634(D_mist_r18_80185AE4, 0, D_mist_r18_8018651C);
+            evsStartScriptWithSkip(D_mist_r18_80185AE4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_r18_8018651C);
             D_mist_r18_80186E9C = 5;
         }
     }
@@ -1671,7 +1671,7 @@ static void func_mist_r18_8017ECF4(Task* arg0)
     D_mist_r18_80186E94 = 0;
     D_mist_r18_80186E98 = 0;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    func_800E8634(D_mist_r18_8018522C, 0, D_mist_r18_8018639C);
+    evsStartScriptWithSkip(D_mist_r18_8018522C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_r18_8018639C);
     arg0->state         = (s32)(arg0->state + 1);
     D_mist_r18_80186E9C = 1;
 }

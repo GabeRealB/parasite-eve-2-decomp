@@ -32,10 +32,10 @@
 
 #include "mapui/map_neo_ark.h"
 
-/// Cutscene script blob argument of `func_800E8634`.
+/// Cutscene script blob argument of `evsStartScriptWithSkip`.
 extern EvsCommand D_neo_ark_r26_8017DA74[];
 
-/// Cutscene script blob argument of `func_800E8634`.
+/// Cutscene script blob argument of `evsStartScriptWithSkip`.
 extern EvsCommand D_neo_ark_r26_8017DFCC[];
 
 /// Room message handler table installed into `Task::msgTable`.
@@ -506,7 +506,7 @@ static void func_neo_ark_r26_8017D6A4(Task* arg0)
     arg0->msgTable = D_neo_ark_r26_8017E0A4;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-        func_800E8634(D_neo_ark_r26_8017DA74, 0, D_neo_ark_r26_8017DFCC);
+        evsStartScriptWithSkip(D_neo_ark_r26_8017DA74, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_r26_8017DFCC);
     }
     arg0->state = arg0->state + 1;
 }

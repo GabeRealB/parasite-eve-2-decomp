@@ -48,7 +48,7 @@ s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 /// The area-record id the event handler publishes, and the event scripts
-/// `func_800E8634` / `func_800E8614` are handed.
+/// `evsStartScriptWithSkip` / `evsStartScript` are handed.
 extern EvsCommand D_actor_451100_80135220[];
 extern EvsCommand D_actor_451100_80135FD0[];
 extern EvsCommand D_actor_451100_80136108[];
@@ -233,19 +233,19 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
         gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, 2);
         gameFlagSetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, 1);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1A;
-        func_800E8634(D_actor_451100_80135220, 0, D_actor_451100_80135FD0);
+        evsStartScriptWithSkip(D_actor_451100_80135220, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_451100_80135FD0);
     }
     if ((arg2->warp == 2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) == 0)) {
         temp_s0_2 = gGameSession->location.loc.variant;
         if (temp_s0_2 == 1) {
-            func_800E8614(D_neo_ark_submarine_tunnel_80181AF0, 0);
+            evsStartScript(D_neo_ark_submarine_tunnel_80181AF0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_2;
         }
     }
     temp_s0_3 = arg2->warp;
     if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->location.loc.warp == 2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == 0) && (gGameSession->location.loc.variant == temp_s0_3)) {
         gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, 1);
-        func_800E8614(D_actor_451100_80136108, 0);
+        evsStartScript(D_actor_451100_80136108, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }
     if ((arg2->warp == 2) && (D_neo_ark_submarine_tunnel_80181DF0 == 0)) {

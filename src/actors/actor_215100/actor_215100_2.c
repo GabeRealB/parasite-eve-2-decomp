@@ -2062,7 +2062,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
             if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN) == 0) {
                 gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN, 1);
                 func_800E3FAC(0xA2, 0x3A);
-                func_800E8634(D_actor_215100_8014E370, 1, D_actor_215100_8014E8F8);
+                evsStartScriptWithSkip(D_actor_215100_8014E370, EVENT_SCRIPT_HUD_KEEP, D_actor_215100_8014E8F8);
                 arg0->state++;
             } else {
                 taskSpawnFromTable(D_actor_215100_8014E13C, 1, 0, 0);
@@ -2075,7 +2075,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
             }
             break;
         case 2:
-            func_800E8614(D_actor_215100_8014EA90, 1);
+            evsStartScript(D_actor_215100_8014EA90, EVENT_SCRIPT_HUD_KEEP);
             arg0->state++;
             break;
         case 3:
@@ -2089,12 +2089,12 @@ void func_actor_215100_8014ABAC(Task* arg0)
             break;
         case 4:
             Gp_StartCapSlot(8, 0, 0);
-            func_800E8614(D_actor_215100_8014EBE0, 1);
+            evsStartScript(D_actor_215100_8014EBE0, EVENT_SCRIPT_HUD_KEEP);
             taskKill(arg0);
             break;
         case 10:
             Gp_StartCapSlot(7, 0, 0);
-            func_800E8614(D_actor_215100_8014EB08, 1);
+            evsStartScript(D_actor_215100_8014EB08, EVENT_SCRIPT_HUD_KEEP);
             arg0->state++;
             break;
         case 11:
@@ -2164,14 +2164,14 @@ void func_actor_215100_8014AF0C(void)
     switch (gameFlagGetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS)) {
         case 0:
             gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, 1);
-            func_800E8614(D_actor_215100_80153ED4, 0);
+            evsStartScript(D_actor_215100_80153ED4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
         case 1:
-            func_800E8614(D_actor_215100_80153FDC, 0);
+            evsStartScript(D_actor_215100_80153FDC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, 2);
             break;
         case 2:
-            func_800E8614(D_actor_215100_801543E4, 0);
+            evsStartScript(D_actor_215100_801543E4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }

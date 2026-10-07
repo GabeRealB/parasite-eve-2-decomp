@@ -1733,18 +1733,18 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(0) < 2) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
-            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_8018044C, 0);
-            taskMessageDispatch(Gp_LookupSlot4(0), ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D4, &D_acropolis_patio_80180428, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_8018044C, 0);
+            taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             D_acropolis_patio_80187060 = taskSpawnFromTable(D_acropolis_patio_801802BC, 2, 0, 0);
         }
-        temp = Gp_LookupSlot4(1);
+        temp = sceneFindPlacedActor(1);
         if (temp != 0) {
             TASK_MESSAGE_DISPATCH_POINTER(temp, 0x7D4, &D_acropolis_patio_8018046C, 0);
         }
     }
     if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
-        temp = Gp_LookupSlot4(1);
+        temp = sceneFindPlacedActor(1);
         if (temp != 0) {
             TASK_MESSAGE_DISPATCH_POINTER(temp, ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_80180440, 0);
         }
@@ -1753,8 +1753,8 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
         msg.context.loc.stage = 1;
         msg.context.loc.area  = 3;
         msg.command           = 0;
-        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(2), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-        TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(3), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(2), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(3), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
     }
     arg0->state = arg0->state + 1;
 }
@@ -1785,7 +1785,7 @@ s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, Room
             var_v0 = 2;
             if (arg2->queryOnly == 0) {
                 if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN) == 0) {
-                    func_800E8634(D_acropolis_patio_80180DEC, 0, D_acropolis_patio_80180EDC);
+                    evsStartScriptWithSkip(D_acropolis_patio_80180DEC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_80180EDC);
                     gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN, 1);
                     return 2;
                 }
@@ -1882,19 +1882,19 @@ s32 func_acropolis_patio_8017DBAC(Task* arg0, s32 arg1, const void* arg2, s32 ar
 
     if ((request->actionId == 0) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 3);
-        func_800E8634(D_acropolis_patio_80180484, 0, D_acropolis_patio_801806AC);
+        evsStartScriptWithSkip(D_acropolis_patio_80180484, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_801806AC);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
         gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
     if ((request->actionId == 1) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3) &&
-        (taskMessageDispatch(Gp_LookupSlot4(1), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
+        (taskMessageDispatch(sceneFindPlacedActor(1), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 4);
-        func_800E8634(D_acropolis_patio_8018082C, 0, D_acropolis_patio_80180C64);
+        evsStartScriptWithSkip(D_acropolis_patio_8018082C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_80180C64);
     }
     state = request->actionId;
     if ((state == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == 0) && (gameFlagGetNibble(0) == state)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PATIO_026, 1);
-        func_800E8634(D_acropolis_patio_8018280C, 0, D_acropolis_patio_80182BE4);
+        evsStartScriptWithSkip(D_acropolis_patio_8018280C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_80182BE4);
     }
     // No result is set; the sender of a room action ignores it.
 }

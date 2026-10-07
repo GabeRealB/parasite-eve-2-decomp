@@ -403,7 +403,7 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         if (gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
             gameFlagSetNibble(GAME_FLAG_0CF, 1);
-            func_800E8634(D_actor_142900_801378D0, 0, D_actor_142900_801380F8);
+            evsStartScriptWithSkip(D_actor_142900_801378D0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_142900_801380F8);
             func_800E3FAC(0xA2, 0x24);
         } else {
             gGameSession->hideHud    = 1;

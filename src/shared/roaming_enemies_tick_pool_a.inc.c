@@ -4,7 +4,7 @@
 /// countdown down, releases a pending `gSceneCombatState` reference, and once that
 /// reference has dropped folds the still-pending spawn slots back into game
 /// flags 0x168 and 0x10C. On a placement request it hands the first pending
-/// slot to a waiting slot-4 task (one whose enemy `hp` still reads -999), sends it
+/// slot to a waiting placed actor (one whose enemy `hp` still reads -999), sends it
 /// message 0x7DB and places it at the requested point.
 void roamerTickPoolA(Task* task)
 {
@@ -62,10 +62,10 @@ void roamerTickPoolA(Task* task)
         gRoamerCommand.context.loc.area  = 0x1D;
         gRoamerCommand.command           = 0xB;
         for (i = 0; i < 2; i++) {
-            if (Gp_LookupSlot4(i) == 0) {
+            if (sceneFindPlacedActor(i) == 0) {
                 break;
             }
-            obj = Gp_LookupSlot4(i)->spawnArg2.pointer;
+            obj = sceneFindPlacedActor(i)->spawnArg2.pointer;
             if (obj == NULL) {
                 break;
             }
@@ -81,12 +81,12 @@ void roamerTickPoolA(Task* task)
                 if (obj->hp > 0) {
                     sceneAcquireBattleRef(0);
                     gRoamerCooldown += 0x5A;
-                    TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].x;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].z;
-                    Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
+                    sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].x;
+                    sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1]   = 0;
+                    sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].z;
+                    sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                    gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
                                   gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].yaw, 1);
                 }
                 break;

@@ -48,7 +48,7 @@
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
 
-/// The pair of cutscene blocks the walkway's scene hands to `func_800E8634`.
+/// The pair of cutscene blocks the walkway's scene hands to `evsStartScriptWithSkip`.
 extern EvsCommand D_actor_341300_80165354[];
 extern EvsCommand D_actor_341300_80165834[];
 
@@ -783,7 +783,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, Roo
     u8 subId = in->warp;
 
     if (subId == 1 && gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN) == 0 && gGameSession->location.loc.variant == subId) {
-        func_800E8634(D_actor_341300_80165354, 0, D_actor_341300_80165834);
+        evsStartScriptWithSkip(D_actor_341300_80165354, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_341300_80165834);
         func_800E3FAC(0xA2, 0x20);
         gameFlagSetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN, 1);
         Gp_ApplyAreaRecs(D_shelter_b2_north_maintenance_walkway_80186380);

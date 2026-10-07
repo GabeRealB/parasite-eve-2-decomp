@@ -1206,7 +1206,7 @@ static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0)
         gameFlagSetNibble(GAME_FLAG_118, 2);
         func_800E3FAC(0xA2, 0x37);
     } else if (gameFlagGetNibble(GAME_FLAG_POD_ACCESS_TUNNEL_SCENE_SEEN) == 0) {
-        func_800E8634(D_shelter_b1_pod_access_tunnel_80182FFC, 0, D_shelter_b1_pod_access_tunnel_8018380C);
+        evsStartScriptWithSkip(D_shelter_b1_pod_access_tunnel_80182FFC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_pod_access_tunnel_8018380C);
         func_800E3FAC(0xA2, 0x1E);
         gameFlagSetNibble(GAME_FLAG_POD_ACCESS_TUNNEL_SCENE_SEEN, 1);
     }
@@ -1232,7 +1232,7 @@ void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task)
 
 /// Two-state task: state 0, unless blocked by `Gp_StateC08.mode` or `gDisplayState.pendingMode`,
 /// sends the slot-3 task a `AnimationPlayRequest` built from `gPlayerStatus.weapon` (msg 0x3E8) and runs
-/// `D_shelter_b1_pod_access_tunnel_80181120` through `func_800E8614`; state 1
+/// `D_shelter_b1_pod_access_tunnel_80181120` through `evsStartScript`; state 1
 /// sets `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` to 0x1D and kills this task once the session is idle.
 void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
 {
@@ -1253,7 +1253,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
                 rec.blendFrames          = 0;
                 rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
-                func_800E8614(D_shelter_b1_pod_access_tunnel_80181120, 0);
+                evsStartScript(D_shelter_b1_pod_access_tunnel_80181120, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 task->state = task->state + 1;
             }
             break;

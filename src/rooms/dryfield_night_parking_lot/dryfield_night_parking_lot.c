@@ -81,7 +81,7 @@ s32 func_dryfield_night_parking_lot_8017DB0C(Task* arg0, s32 arg1, s32 arg2, s32
 /// Handler for message 0x13EF in the room's message table. When the record's
 /// `actionId` is 1 on the visit whose `place` is 3, it latches nibble 0x79 once,
 /// sends the player-weapon message and passes
-/// `D_dryfield_night_parking_lot_8017ECB4` to `func_800E8614`. Always returns 0.
+/// `D_dryfield_night_parking_lot_8017ECB4` to `evsStartScript`. Always returns 0.
 s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, const void* firstArg, s32 arg3)
 {
     const DirectionActionRequest* request = firstArg;
@@ -89,7 +89,7 @@ s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, const void* 
     if ((request->actionId == 1) && (gGameSession->location.loc.variant == 3) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN, 1);
         Gp_MsgPlayerWeapon(0);
-        func_800E8614(D_dryfield_night_parking_lot_8017ECB4, 1);
+        evsStartScript(D_dryfield_night_parking_lot_8017ECB4, EVENT_SCRIPT_HUD_KEEP);
     }
     return 0;
 }

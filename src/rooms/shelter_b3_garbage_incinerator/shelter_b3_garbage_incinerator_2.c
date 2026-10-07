@@ -181,7 +181,7 @@ extern AnimationSet* D_shelter_b3_garbage_incinerator_80186F78[4];
 /// none.
 extern s16 D_shelter_b3_garbage_incinerator_80186F88[];
 
-/// Model/animation set installed with `func_800E8614` on arming.
+/// Event script started with `evsStartScript` on arming.
 extern EvsCommand D_shelter_b3_garbage_incinerator_80186FB8[];
 
 /// Effect record handed to `func_800FDB18`: `coord` is the chosen part of the
@@ -1073,7 +1073,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-            func_800E8614(D_shelter_b3_garbage_incinerator_80186FB8, 0);
+            evsStartScript(D_shelter_b3_garbage_incinerator_80186FB8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->fadeTask   = taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
             work->sceneState = work->sceneState + 1;
