@@ -976,7 +976,6 @@ void func_actor_361100_80161E3C(Task* arg0)
 {
     Actor403600Ripple* state;
     GfxCoord*          coord;
-    MATRIX*            mtx;
     s32                i;
     u8*                writePtr;
     u32                streamLeft;
@@ -1005,12 +1004,7 @@ void func_actor_361100_80161E3C(Task* arg0)
                 i += 1;
             } while (i < 0x1E);
             coord->parent                    = &gGfxViewCoord;
-            mtx                              = &coord->coord;
-            MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-            MATRIX_PAIR(mtx, 0, 2)           = 0;
-            MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
-            MATRIX_PAIR(mtx, 2, 0)           = 0;
-            mtx->m[2][2]                     = 0x1000;
+            gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]                = 0x1CA2;
             coord->coord.t[1]                = 0x712;
             coord->coord.t[2]                = 0x189C;
