@@ -4,23 +4,28 @@
 #error Include room_variants.h and retain its resolver binding through this fragment.
 #endif
 
-/// Selects the underground parking layout reached by its event sequence.
+/// Sets the Shelter B1 underground parking destination room from event progress.
+///
+/// Progress states 0/1/2/3 select rooms 1/6/7/8; other nibble values select room 1.
+/// The caller selects the parking area and gates query requests. Borrows a live,
+/// writable `reply` for this call; only `reply->room` changes, and no field needs
+/// an initial value. The room selectors are one-based indices within the area.
 static __inline__ void _roomVariantShelterResolveParking(RoomEventMsg* reply)
 {
     enum {
-        ROOM_VARIANT_DEFAULT_ROOM                        = 1,
-        ROOM_VARIANT_PARKING_STATE_INITIAL               = 0,
-        ROOM_VARIANT_PARKING_STATE_AFTER_CHOICE          = 1,
-        ROOM_VARIANT_PARKING_STATE_SCENE_STARTED         = 2,
-        ROOM_VARIANT_PARKING_STATE_STERILIZATION_ENTERED = 3,
-        ROOM_VARIANT_PARKING_ROOM_AFTER_CHOICE           = 6,
-        ROOM_VARIANT_PARKING_ROOM_SCENE_STARTED          = 7,
-        ROOM_VARIANT_PARKING_ROOM_STERILIZATION_ENTERED  = 8
+        ROOM_VARIANT_PARKING_STATE_INITIAL                     = 0,
+        ROOM_VARIANT_PARKING_STATE_AFTER_CHOICE                = 1,
+        ROOM_VARIANT_PARKING_STATE_SCENE_STARTED               = 2,
+        ROOM_VARIANT_PARKING_STATE_STERILIZATION_EVENT_STARTED = 3,
+        ROOM_VARIANT_PARKING_ROOM_INITIAL                      = 1,
+        ROOM_VARIANT_PARKING_ROOM_AFTER_CHOICE                 = 6,
+        ROOM_VARIANT_PARKING_ROOM_SCENE_STARTED                = 7,
+        ROOM_VARIANT_PARKING_ROOM_STERILIZATION_EVENT_STARTED  = 8
     };
 
     switch (gameFlagGetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE)) {
         case ROOM_VARIANT_PARKING_STATE_INITIAL:
-            reply->room = ROOM_VARIANT_DEFAULT_ROOM;
+            reply->room = ROOM_VARIANT_PARKING_ROOM_INITIAL;
             break;
         case ROOM_VARIANT_PARKING_STATE_AFTER_CHOICE:
             reply->room = ROOM_VARIANT_PARKING_ROOM_AFTER_CHOICE;
@@ -28,11 +33,11 @@ static __inline__ void _roomVariantShelterResolveParking(RoomEventMsg* reply)
         case ROOM_VARIANT_PARKING_STATE_SCENE_STARTED:
             reply->room = ROOM_VARIANT_PARKING_ROOM_SCENE_STARTED;
             break;
-        case ROOM_VARIANT_PARKING_STATE_STERILIZATION_ENTERED:
-            reply->room = ROOM_VARIANT_PARKING_ROOM_STERILIZATION_ENTERED;
+        case ROOM_VARIANT_PARKING_STATE_STERILIZATION_EVENT_STARTED:
+            reply->room = ROOM_VARIANT_PARKING_ROOM_STERILIZATION_EVENT_STARTED;
             break;
         default:
-            reply->room = ROOM_VARIANT_DEFAULT_ROOM;
+            reply->room = ROOM_VARIANT_PARKING_ROOM_INITIAL;
             break;
     }
 }
