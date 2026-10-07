@@ -30,7 +30,15 @@ extern SpriteView D_mine_mesa_80188744[];
 
 extern WorldCollisionSurfaceProperties* D_mine_mesa_80189A60[];
 
-void func_mine_mesa_801811C4(s32 height);
+/// Rebuilds the room grid's four reserved vertical wall faces from their base edges.
+///
+/// Requires Mine Mesa's loaded wall table and active collision grid, with
+/// normals/faces through index 6 and vertices through index 27 writable.
+/// `height` is in game-coordinate units, subtracted from the base Y of upper
+/// corners because grid Y points down; vertex arithmetic narrows to s16.
+/// Fills faces 3..6 with surface class 3 and normalized horizontal normals.
+/// Keeps the existing cell lists; call only with the Mine Mesa room active.
+void mineMesaBuildWalls(s32 height);
 
 /// Charges a pink flash, tints the screen at its peak, then fades it as a star.
 ///

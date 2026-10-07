@@ -79,6 +79,29 @@
 
 #define MINE_MESA_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
+// Script arguments shared by the room's head-aim tasks and their controllers.
+enum {
+    MINE_MESA_HEAD_AIM_RELEASE               = 0,
+    MINE_MESA_HEAD_AIM_TRACK                 = 1,
+    MINE_MESA_HEAD_AIM_MODE_COUNT            = 2,
+    MINE_MESA_HEAD_AIM_CANCEL                = -1,
+    MINE_MESA_HEAD_AIM_INITIALIZE            = 0,
+    MINE_MESA_HEAD_AIM_UPDATE                = 1,
+    MINE_MESA_HEAD_BLEND_ACTIVE              = 0,
+    MINE_MESA_HEAD_AIM_YAW_LIMIT             = 768,
+    MINE_MESA_PLAYER_HEAD_AIM_PITCH_LIMIT    = 512,
+    MINE_MESA_COMPANION_HEAD_AIM_PITCH_LIMIT = 256,
+    MINE_MESA_PLAYER_HEAD_BLEND_PITCH_LIMIT  = 16,
+    MINE_MESA_HEAD_AIM_RATE_STEP             = ONE / 16,
+};
+
+enum {
+    MINE_MESA_FADE_CANCEL             = -1,
+    MINE_MESA_SCENE_MUSIC_ENTRY       = 2,
+    MINE_MESA_SCENE_COLLISION_NORMAL  = 0,
+    MINE_MESA_SCENE_COLLISION_LOWERED = 1,
+};
+
 extern WorldCollisionGrid D_mine_mesa_801864A4;
 
 extern WorldCollisionGrid D_mine_mesa_8018700C;
@@ -100,7 +123,7 @@ extern Task* D_mine_mesa_80189B54;
 /// while none runs.
 extern Task* D_mine_mesa_80189B5C;
 
-void func_mine_mesa_8017E15C(Task* arg0);
+static void _mineMesaPlayerHeadAimTask(Task* task);
 
 extern s16 MineMesaRemaining;
 extern s16 MineMesaCooldown;
@@ -176,7 +199,7 @@ static void func_mine_mesa_8017DD44(void);
 static void func_mine_mesa_8017EB38(void);
 static void func_mine_mesa_801817BC(void);
 
-void func_mine_mesa_8017E074(Task*);
+static void _mineMesaPlayerPathTask(Task* task);
 
 static AnimationSet _gMineMesaAnimation046D0;
 
@@ -216,22 +239,22 @@ extern ActorTransform            D_mine_mesa_80184590;
 extern ActorTransform            D_mine_mesa_801845A8;
 extern ActorTransform            D_mine_mesa_801845C0;
 void                             func_mine_mesa_8017DDF0(void);
-void                             func_mine_mesa_8017E5A0(void);
-void                             func_mine_mesa_8017E5C0(void);
-void                             func_mine_mesa_8017E5E0(void);
+static void                      _mineMesaStageSceneAudioStart(void);
+static void                      _mineMesaEnqueueScenePlayback(void);
+static void                      _mineMesaFinishScene(void);
 void                             func_mine_mesa_8017E620(void);
 void                             func_mine_mesa_8017E650(void);
-void                             func_mine_mesa_8017E684(s32);
+static void                      _mineMesaSetPlayerHeadAimMode(s32 mode);
 void                             func_mine_mesa_8017E6D8(void);
-void                             func_mine_mesa_8017E70C(s32);
+static void                      _mineMesaSetCompanionHeadAimMode(s32 mode);
 void                             func_mine_mesa_8017E760(void);
 void                             func_mine_mesa_8017E91C(void);
-void                             func_mine_mesa_8017E93C(u8);
+static void                      _mineMesaSetSceneMusicEntry(u8 musicEntry);
 void                             func_mine_mesa_8017E948(void);
 void                             func_mine_mesa_8017EA24(void);
 void                             func_mine_mesa_8017EA78(void);
 static void                      _mineMesaRequestViewRefresh(void);
-void                             func_mine_mesa_8017EB54(s32);
+static void                      _mineMesaSetSceneCollisionLowered(s32 lowered);
 
 extern AnimationPlayRequest     D_mine_mesa_80184360;
 extern AnimationPlayRequest     D_mine_mesa_801843B0;
@@ -257,21 +280,17 @@ extern ActorTransform             D_mine_mesa_801845F0;
 extern ActorTransform             D_mine_mesa_80184608;
 extern ActorTransform             D_mine_mesa_80184620;
 extern ActorTransform             D_mine_mesa_80184638;
-void                              func_mine_mesa_8017E600(void);
+static void                       _mineMesaCancelScene(void);
 void                              func_mine_mesa_8017E650(void);
-void                              func_mine_mesa_8017E684(s32);
 void                              func_mine_mesa_8017E6D8(void);
-void                              func_mine_mesa_8017E70C(s32);
 void                              func_mine_mesa_8017E8B0(s32);
-void                              func_mine_mesa_8017E8FC(s32);
-void                              func_mine_mesa_8017E93C(u8);
+static void                       _mineMesaSetFadeFromBlackState(s32 state);
 void                              func_mine_mesa_8017EAC0(void);
 void                              func_mine_mesa_8017EB18(void);
-void                              func_mine_mesa_8017EB54(s32);
 
 extern WorldCoordPointLight D_mine_mesa_801887C8[8];
 extern WorldCoordSpotLight  D_mine_mesa_80188AC8[1];
-s32                         func_mine_mesa_80181800(Task*, s32, s32, s32);
+static s32                  _mineMesaEnemyWaveActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 unused);
 void                        func_mine_mesa_80181894(Task*);
 
 static s32 _mineMesaRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
@@ -545,17 +564,16 @@ SVECTOR D_mine_mesa_80184184[46] = {
 #include "assets/mine_mesa_motion_06BC4.inc"
 };
 
-void        func_mine_mesa_8017E074(Task*);
-void        func_mine_mesa_8017E2A4(Task*);
+static void _mineMesaCompanionHeadAimTask(Task* task);
 static void _mineMesaFadeFromBlackTask(Task* task);
-void        func_mine_mesa_8017E7B0(Task*);
+static void _mineMesaPlayerHeadBlendTask(Task* task);
 static void _mineMesaRunSoundCuesTask(Task* task);
 
 TaskDesc D_mine_mesa_801842F4[6] = {
-    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E074, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E15C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E2A4, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E7B0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mineMesaPlayerPathTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mineMesaPlayerHeadAimTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mineMesaCompanionHeadAimTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mineMesaPlayerHeadBlendTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _mineMesaFadeFromBlackTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _mineMesaRunSoundCuesTask, { .value = 0 } },
 };
@@ -685,7 +703,7 @@ EvsCommand D_mine_mesa_80184664[56] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E760 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_TRACK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_801844B4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -700,14 +718,14 @@ EvsCommand D_mine_mesa_80184664[56] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801845C0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_801844F0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54010003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184374 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017EB54 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetSceneCollisionLowered }, { .value = MINE_MESA_SCENE_COLLISION_LOWERED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017DDF0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -729,8 +747,8 @@ EvsCommand D_mine_mesa_80184BA4[21] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801845A8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184344 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184374 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017EB54 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetSceneCollisionLowered }, { .value = MINE_MESA_SCENE_COLLISION_LOWERED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017DDF0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -754,19 +772,19 @@ EvsCommand D_mine_mesa_80184D9C[25] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E650 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E6D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E70C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetCompanionHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_TRACK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E70C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetCompanionHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018452C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E70C }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetCompanionHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -777,8 +795,8 @@ EvsCommand D_mine_mesa_80184FF4[10] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E70C }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetCompanionHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -796,7 +814,7 @@ EvsCommand D_mine_mesa_801850E4[5] = {
 
 EvsCommand D_mine_mesa_8018515C[17] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_mine_mesa_8018465C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E5A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineMesaStageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E91C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
@@ -804,12 +822,12 @@ EvsCommand D_mine_mesa_8018515C[17] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_mine_mesa_80184650 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineMesaRequestViewRefresh }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E5C0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineMesaEnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_mine_mesa_80189A80 }, { .vibrationSegments = D_mine_mesa_80189A90 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E5E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_mine_mesa_8017E93C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineMesaFinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSetSceneMusicEntry }, { .value = MINE_MESA_SCENE_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
@@ -817,8 +835,8 @@ EvsCommand D_mine_mesa_8018515C[17] = {
 EvsCommand D_mine_mesa_801852F4[19] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E600 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetFadeFromBlackState }, { .value = MINE_MESA_FADE_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineMesaCancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184344 } }, { .value = 0 } },
@@ -830,9 +848,9 @@ EvsCommand D_mine_mesa_801852F4[19] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_mine_mesa_8017E93C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSetSceneMusicEntry }, { .value = MINE_MESA_SCENE_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017EB54 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetSceneCollisionLowered }, { .value = MINE_MESA_SCENE_COLLISION_NORMAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -844,19 +862,19 @@ EvsCommand D_mine_mesa_801854BC[21] = {
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E650 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_TRACK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E6D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E70C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetCompanionHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_TRACK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E70C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetCompanionHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_8018452C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E70C }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetCompanionHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -864,8 +882,8 @@ EvsCommand D_mine_mesa_801856B4[9] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E684 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E70C }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetPlayerHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetCompanionHeadAimMode }, { .value = MINE_MESA_HEAD_AIM_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -881,7 +899,7 @@ EvsCommand D_mine_mesa_8018578C[110] = {
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_mine_mesa_8018515C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetFadeFromBlackState }, { .value = MINE_MESA_FADE_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
@@ -921,7 +939,7 @@ EvsCommand D_mine_mesa_8018578C[110] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54010006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetFadeFromBlackState }, { .value = MINE_MESA_FADE_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -933,7 +951,7 @@ EvsCommand D_mine_mesa_8018578C[110] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x40010012 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetFadeFromBlackState }, { .value = MINE_MESA_FADE_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_8018443C } }, { .value = 0 } },
@@ -960,7 +978,7 @@ EvsCommand D_mine_mesa_8018578C[110] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E8B0 }, { .value = 300 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetFadeFromBlackState }, { .value = MINE_MESA_FADE_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_80184638 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184568 }, { .value = 0 } },
@@ -970,17 +988,17 @@ EvsCommand D_mine_mesa_8018578C[110] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E8B0 }, { .value = 1110 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetFadeFromBlackState }, { .value = MINE_MESA_FADE_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801843F4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_mesa_801845F0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017EB54 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetSceneCollisionLowered }, { .value = MINE_MESA_SCENE_COLLISION_NORMAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_mine_mesa_8017E93C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSetSceneMusicEntry }, { .value = MINE_MESA_SCENE_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -988,9 +1006,9 @@ EvsCommand D_mine_mesa_8018578C[110] = {
 EvsCommand D_mine_mesa_801861DC[24] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E600 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineMesaCancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017EB18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017E8FC }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetFadeFromBlackState }, { .value = MINE_MESA_FADE_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
@@ -1000,14 +1018,14 @@ EvsCommand D_mine_mesa_801861DC[24] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_mesa_80184484 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184360 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_mesa_80184568 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_mesa_8017EB54 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetSceneCollisionLowered }, { .value = MINE_MESA_SCENE_COLLISION_NORMAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_mine_mesa_8017E93C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSetSceneMusicEntry }, { .value = MINE_MESA_SCENE_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -2487,7 +2505,7 @@ _MineMesaSpawnPoint D_mine_mesa_80189AFC[4] = {
 };
 
 TaskMessageEntry D_mine_mesa_80189B1C[2] = {
-    { ROOM_MESSAGE_ACTOR_EVENT, func_mine_mesa_80181800 },
+    { ROOM_MESSAGE_ACTOR_EVENT, _mineMesaEnemyWaveActorEventMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2751,145 +2769,143 @@ void func_mine_mesa_8017E024(Task* arg0)
     taskKill(arg0);
 }
 
-/// Walks the mesa one step along `D_mine_mesa_80184184` per frame: sends slot 3
-/// that entry as an `ActorTransform` -- the table position with x pulled back
-/// 0x64 and z pushed out 0xC8 -- and advances `killCountdown`. At 0x2E the mesa
-/// has finished its run, and the task kills itself; the session's overlay-wait
-/// gate cuts the run short the same way.
-void func_mine_mesa_8017E074(Task* arg0)
+/// Places the player at successive samples of the room's scripted path.
+///
+/// `killCountdown` is a nonnegative sample index, initially zero. Each tick
+/// sends a borrowed `ActorTransform` synchronously, offset by (-100, 0, 200)
+/// game-coordinate units and facing yaw 785 (4096 units per turn). Exhausting
+/// the 46 samples or skipping the event releases the task. The player must be live.
+static void _mineMesaPlayerPathTask(Task* task)
 {
-    ActorTransform rec;
+    enum { PATH_X_OFFSET = -100,
+           PATH_Z_OFFSET = 200,
+           PATH_YAW      = 785 };
+    ActorTransform placement;
 
-    if (arg0->killCountdown >= 0x2E || gGameSession->evtSkipped != 0) {
-        taskKill(arg0);
+    if (task->killCountdown >= (s32)ARRAY_SIZE(D_mine_mesa_80184184) || gGameSession->evtSkipped != 0) {
+        taskKill(task);
         return;
     }
-    rec.pos.vx  = D_mine_mesa_80184184[arg0->killCountdown].vx;
-    rec.pos.vy  = D_mine_mesa_80184184[arg0->killCountdown].vy;
-    rec.pos.vz  = D_mine_mesa_80184184[arg0->killCountdown].vz;
-    rec.pos.vx -= 0x64;
-    rec.pos.vz += 0xC8;
-    rec.rot.vx  = 0;
-    rec.rot.vy  = 0x311;
-    rec.rot.vz  = 0;
-    arg0->killCountdown++;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
+    placement.pos.vx  = D_mine_mesa_80184184[task->killCountdown].vx;
+    placement.pos.vy  = D_mine_mesa_80184184[task->killCountdown].vy;
+    placement.pos.vz  = D_mine_mesa_80184184[task->killCountdown].vz;
+    placement.pos.vx += PATH_X_OFFSET;
+    placement.pos.vz += PATH_Z_OFFSET;
+    placement.rot.vx  = 0;
+    placement.rot.vy  = PATH_YAW;
+    placement.rot.vz  = 0;
+    task->killCountdown++;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &placement, 0);
 }
 
-/// Head-aim state of the mesa's run task, run only while `D_801156F9` is clear:
-/// a missing slot-3 or slot-0xA task parks the state machine on -1. State 0
-/// allocates the `AnimationHeadAim` record into `Task::work` and seeds its
-/// clamps to 0x300 yaw and 0x200 pitch; state 1 ramps its `rate` up toward
-/// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
-/// not, then hands the record to `animationAimHeadAt` between the slot-3 task whose
-/// head turns and the slot-0xA task it turns toward -- the mirror of
-/// `func_mine_mesa_8017E2A4`, which looks from slot 0xA. Every other state
-/// kills the task and clears `D_mine_mesa_80189B54`, and a state-0 NULL
-/// allocation falls out of its own `if` into that same kill.
-void func_mine_mesa_8017E15C(Task* arg0)
+/// Ramps retained head-aim rate by ONE/16 toward ONE or zero.
+///
+/// `aim` is writable and normally has rate in 0..ONE. Nonzero `tracking`
+/// selects the upper endpoint. Store the narrowed halfword before its signed
+/// endpoint test, preserving wrap and endpoint-store order.
+static inline void _mineMesaRampHeadAimRate(AnimationHeadAim* aim, s32 tracking)
 {
-    Task*             turner;
-    Task*             looker;
+    s16 nextRate;
+
+    if (tracking != 0) {
+        nextRate  = aim->rate + MINE_MESA_HEAD_AIM_RATE_STEP;
+        aim->rate = nextRate;
+        if (nextRate > ONE) {
+            aim->rate = ONE;
+        }
+    } else {
+        nextRate  = aim->rate - MINE_MESA_HEAD_AIM_RATE_STEP;
+        aim->rate = nextRate;
+        if (nextRate < 0) {
+            aim->rate = 0;
+        }
+    }
+}
+
+/// Turns the player's head toward the companion with retained pitch-wrap history.
+///
+/// Both tasks need live TMD models with five root-to-head coordinates. The
+/// script freeze gate suspends updates. Initialization owns zeroed
+/// `AnimationHeadAim` work, sets yaw/pitch limits to 768/512 angle units
+/// (4096 per turn), and updates immediately. Nonzero `spawnArg1.value` ramps
+/// the Q12 rate toward ONE; zero ramps toward zero, by ONE/16 per active tick.
+/// Missing tasks, allocation failure or other states release the task and
+/// clear its tracked handle; task teardown frees the work.
+static void _mineMesaPlayerHeadAimTask(Task* task)
+{
+    Task*             playerTask;
+    Task*             companionTask;
     AnimationHeadAim* aim;
     s32               state;
-    u16               rateUp;
-    u16               rateDown;
 
-    turner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    looker = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    playerTask    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (D_801156F9 == 0) {
-        if ((turner == NULL) || (looker == NULL)) {
-            arg0->state = -1;
+        if ((playerTask == NULL) || (companionTask == NULL)) {
+            task->state = MINE_MESA_HEAD_AIM_CANCEL;
         }
-        state = arg0->state;
+        state = task->state;
         switch (state) {
-            case 0:
+            case MINE_MESA_HEAD_AIM_INITIALIZE:
                 aim = memCalloc(sizeof(AnimationHeadAim), false);
                 if (aim != NULL) {
-                    arg0->work      = aim;
-                    aim->yawLimit   = 0x300;
-                    aim->pitchLimit = 0x200;
-                    arg0->state++;
+                    task->work      = aim;
+                    aim->yawLimit   = MINE_MESA_HEAD_AIM_YAW_LIMIT;
+                    aim->pitchLimit = MINE_MESA_PLAYER_HEAD_AIM_PITCH_LIMIT;
+                    task->state++;
                         /* fallthrough */
-                    case 1:
-                        aim = arg0->work;
-                        if (arg0->spawnArg1.value != 0) {
-                            rateUp    = aim->rate + 0x100;
-                            aim->rate = rateUp;
-                            if ((s16)rateUp > ONE) {
-                                aim->rate = ONE;
-                            }
-                        } else {
-                            rateDown  = aim->rate - 0x100;
-                            aim->rate = rateDown;
-                            if ((s16)rateDown < 0) {
-                                aim->rate = 0;
-                            }
-                        }
-                        animationAimHeadAt(turner, looker, aim);
+                    case MINE_MESA_HEAD_AIM_UPDATE:
+                        aim = task->work;
+                        _mineMesaRampHeadAimRate(aim, task->spawnArg1.value);
+                        animationAimHeadAt(playerTask, companionTask, aim);
                         return;
                 }
                 /* fallthrough */
             default:
-                taskKill(arg0);
+                taskKill(task);
                 D_mine_mesa_80189B54 = NULL;
                 break;
         }
     }
 }
 
-/// Head-aim state of the mesa's tracked task, run only while `D_801156F9` is
-/// clear: a missing `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)` task parks the state machine on -1.
-/// State 0 allocates the `AnimationHeadAim` record into `Task::work` and seeds
-/// its clamps to 0x300 yaw and 0x100 pitch; state 1 ramps its `rate` up toward
-/// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
-/// not, then hands the record to `animationAimHeadAt` between the
-/// `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)` task whose head turns and the slot-3 task it turns
-/// toward -- the reverse of `func_mine_mesa_8017E15C` and of
-/// `_actor450200HeadAimTask`, which look from slot 3. Every other state
-/// kills the task and clears `D_mine_mesa_80189B58`, and a state-0 NULL
-/// allocation falls out of its own `if` into that same kill.
-void func_mine_mesa_8017E2A4(Task* arg0)
+/// Turns the companion's head toward the player with retained pitch-wrap history.
+///
+/// The script freeze gate suspends updates. Initialization owns zeroed
+/// `AnimationHeadAim` work, sets yaw/pitch limits to 768/256 angle units
+/// (4096 per turn), and updates immediately. Nonzero `spawnArg1.value` ramps
+/// the Q12 rate toward ONE; zero ramps toward zero, by ONE/16 per active tick.
+/// Both models need five root-to-head coordinates and the player must be live:
+/// only the companion is checked. A missing companion, allocation failure or
+/// other state releases the task, frees its work and clears its tracked handle.
+static void _mineMesaCompanionHeadAimTask(Task* task)
 {
-    Task*             looker;
+    Task*             companionTask;
     AnimationHeadAim* aim;
-    u16               rate;
 
-    looker = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (D_801156F9 == 0) {
-        if (looker == NULL) {
-            arg0->state = -1;
+        if (companionTask == NULL) {
+            task->state = MINE_MESA_HEAD_AIM_CANCEL;
         }
-        switch (arg0->state) {
-            case 0:
+        switch (task->state) {
+            case MINE_MESA_HEAD_AIM_INITIALIZE:
                 aim = memCalloc(sizeof(AnimationHeadAim), false);
                 if (aim != NULL) {
-                    arg0->work      = aim;
-                    aim->yawLimit   = 0x300;
-                    aim->pitchLimit = 0x100;
-                    arg0->state++;
+                    task->work      = aim;
+                    aim->yawLimit   = MINE_MESA_HEAD_AIM_YAW_LIMIT;
+                    aim->pitchLimit = MINE_MESA_COMPANION_HEAD_AIM_PITCH_LIMIT;
+                    task->state++;
                         /* fallthrough */
-                    case 1:
-                        aim = arg0->work;
-                        if (arg0->spawnArg1.value != 0) {
-                            rate      = aim->rate + 0x100;
-                            aim->rate = rate;
-                            if ((s16)rate > ONE) {
-                                aim->rate = ONE;
-                            }
-                        } else {
-                            rate      = aim->rate - 0x100;
-                            aim->rate = rate;
-                            if ((s16)rate < 0) {
-                                aim->rate = 0;
-                            }
-                        }
-                        animationAimHeadAt(looker, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), aim);
+                    case MINE_MESA_HEAD_AIM_UPDATE:
+                        aim = task->work;
+                        _mineMesaRampHeadAimRate(aim, task->spawnArg1.value);
+                        animationAimHeadAt(companionTask, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), aim);
                         return;
                 }
                 /* fallthrough */
             default:
-                taskKill(arg0);
+                taskKill(task);
                 D_mine_mesa_80189B58 = NULL;
                 break;
         }
@@ -2898,10 +2914,15 @@ void func_mine_mesa_8017E2A4(Task* arg0)
 
 /// Queues a centred 320x240 subtractive tile and its blend command at OT slot 3.
 ///
-/// The channels are byte intensities. Both packets borrow the current frame arena
-/// through GPU drawing; the arena must have room for a TILE and a DR_TPAGE.
+/// Byte RGB values are channel amounts subtracted from the frame, with 255 on
+/// all channels producing black. Requires an initialized frame arena with room
+/// for a TILE and a DR_TPAGE; both packets remain live until GPU drawing ends.
 static inline void _mineMesaDrawBlackOverlay(u8 red, u8 green, u8 blue)
 {
+    enum { OVERLAY_WIDTH        = 320,
+           OVERLAY_HEIGHT       = 240,
+           OVERLAY_OT_INDEX     = 3,
+           OVERLAY_BLEND_PAGE_X = 320 };
     TILE*     tile;
     DR_TPAGE* drawMode;
 
@@ -2909,16 +2930,16 @@ static inline void _mineMesaDrawBlackOverlay(u8 red, u8 green, u8 blue)
     gGpuPrimCursor = tile + 1;
     setTile(tile);
     SetSemiTrans(tile, 1);
-    tile->x0 = -160;
-    tile->y0 = -120;
-    tile->w  = 320;
-    tile->h  = 240;
+    tile->x0 = -OVERLAY_WIDTH / 2;
+    tile->y0 = -OVERLAY_HEIGHT / 2;
+    tile->w  = OVERLAY_WIDTH;
+    tile->h  = OVERLAY_HEIGHT;
     setRGB0(tile, red, green, blue);
-    addPrim(gGpuCurrentOt + 3, tile);
+    addPrim(gGpuCurrentOt + OVERLAY_OT_INDEX, tile);
     drawMode       = gGpuPrimCursor;
     gGpuPrimCursor = drawMode + 1;
-    setDrawTPage(drawMode, 1, 0, getTPage(0, GPU_BLEND_SUBTRACT, 320, 0));
-    addPrim(gGpuCurrentOt + 3, drawMode);
+    setDrawTPage(drawMode, 1, 0, getTPage(0, GPU_BLEND_SUBTRACT, OVERLAY_BLEND_PAGE_X, 0));
+    addPrim(gGpuCurrentOt + OVERLAY_OT_INDEX, drawMode);
 }
 
 /// Holds a black screen for the spawn delay, then reveals it eight shade levels per tick.
@@ -2963,23 +2984,37 @@ static void _mineMesaFadeFromBlackTask(Task* task)
     _mineMesaDrawBlackOverlay(red, green, blue);
 }
 
-void func_mine_mesa_8017E5A0(void)
+/// Stages the selected scene's deferred audio-start request for the room script.
+///
+/// Scene selection and prepared buffers must survive request consumption.
+/// A later CD replacement commit enqueues it; this callback does not start playback.
+static void _mineMesaStageSceneAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-void func_mine_mesa_8017E5C0(void)
+/// Enqueues playback of the room script's selected scene/audio session.
+///
+/// Requires prepared playback storage to remain live through the queued request.
+static void _mineMesaEnqueueScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-void func_mine_mesa_8017E5E0(void)
+/// Finishes scene streaming and restores the random state saved at scene selection.
+///
+/// Requires a successfully selected scene. Playback buffers and tasks retain their
+/// owners; this callback clears streaming state without releasing that storage.
+static void _mineMesaFinishScene(void)
 {
     streamFinishScene();
 }
 
-/// Room script callback: clear the queued CD command and restart the CD queue.
-void func_mine_mesa_8017E600(void)
+/// Cancels the room script's selected scene and pending CD request.
+///
+/// Discards the deferred replacement and restores scene/random state immediately;
+/// CD cancellation completes on later dispatches. Requires prior scene selection.
+static void _mineMesaCancelScene(void)
 {
     cdCmdCancelScene();
 }
@@ -2994,18 +3029,21 @@ void func_mine_mesa_8017E650(void)
     D_mine_mesa_80189B54 = taskSpawnFromTable(D_mine_mesa_801842F4, 1, 0, 0);
 }
 
-/// Hands `arg0` to the task in `D_mine_mesa_80189B54` as its `spawnArg1` when
-/// it is 0 or 1; any other value kills the task and clears the handle.
-void func_mine_mesa_8017E684(s32 arg0)
+/// Controls the tracked player head-aim task, if one is live.
+///
+/// `mode` 0 releases the blend and 1 enables tracking; every other value kills
+/// the task and clears its handle. The player's handle can also hold the direct
+/// head-blend task. Killing a retained-aim task releases its owned work.
+static void _mineMesaSetPlayerHeadAimMode(s32 mode)
 {
-    Task* t = D_mine_mesa_80189B54;
+    Task* headAimTask = D_mine_mesa_80189B54;
 
-    if (t == NULL) {
+    if (headAimTask == NULL) {
         return;
     }
-    if (arg0 < 2) {
-        if (arg0 >= 0) {
-            t->spawnArg1.value = arg0;
+    if (mode < MINE_MESA_HEAD_AIM_MODE_COUNT) {
+        if (mode >= MINE_MESA_HEAD_AIM_RELEASE) {
+            headAimTask->spawnArg1.value = mode;
             return;
         }
     }
@@ -3018,12 +3056,16 @@ void func_mine_mesa_8017E6D8(void)
     D_mine_mesa_80189B58 = taskSpawnFromTable(D_mine_mesa_801842F4, 2, 0, 0);
 }
 
-void func_mine_mesa_8017E70C(s32 arg0)
+/// Controls the tracked companion head-aim task, if one is live.
+///
+/// `mode` 0 releases the blend and 1 enables tracking; every other value kills
+/// the task and clears its handle. Killing a retained-aim task releases its owned work.
+static void _mineMesaSetCompanionHeadAimMode(s32 mode)
 {
     if (D_mine_mesa_80189B58 != NULL) {
-        if (arg0 < 2) {
-            if (arg0 >= 0) {
-                D_mine_mesa_80189B58->spawnArg1.value = arg0;
+        if (mode < MINE_MESA_HEAD_AIM_MODE_COUNT) {
+            if (mode >= MINE_MESA_HEAD_AIM_RELEASE) {
+                D_mine_mesa_80189B58->spawnArg1.value = mode;
                 return;
             }
         }
@@ -3040,39 +3082,52 @@ void func_mine_mesa_8017E760(void)
     D_mine_mesa_80189B54 = taskSpawnFromTable(D_mine_mesa_801842F4, 3, 0, 0);
 }
 
-/// Head-aim driver for the slot-3 skeleton: turns its head toward the slot-A
-/// task, with a 0x300 yaw and 0x10 pitch limit and a step of
-/// `killCountdown / 0x1000` of the remaining angle. `killCountdown` ramps up
-/// while `spawnArg1` is set and back down otherwise. While the pause flag
-/// `D_801156F9` is clear, a missing slot forces `state` to -1, which kills the
-/// task and clears the spawner's pointer (`func_mine_mesa_8017E760`).
-void func_mine_mesa_8017E7B0(Task* task)
+/// Ramps the direct head blend's retained Q12 weight by ONE/16.
+///
+/// Nonzero tracking selects ONE, zero selects zero. The live task keeps the
+/// weight in its signed halfword timer; truncation precedes endpoint clamping.
+static inline void _mineMesaRampHeadBlendWeight(Task* task, s32 tracking)
+{
+    s16 nextWeight;
+
+    if (tracking != 0) {
+        nextWeight          = task->killCountdown + MINE_MESA_HEAD_AIM_RATE_STEP;
+        task->killCountdown = nextWeight;
+        if (nextWeight > ONE) {
+            task->killCountdown = ONE;
+        }
+    } else {
+        nextWeight          = task->killCountdown - MINE_MESA_HEAD_AIM_RATE_STEP;
+        task->killCountdown = nextWeight;
+        if (nextWeight < 0) {
+            task->killCountdown = 0;
+        }
+    }
+}
+
+/// Blends the player's head toward the companion without retained pitch history.
+///
+/// Both tasks need live TMD models with five root-to-head coordinates. The
+/// script freeze gate suspends updates. State 0 uses `killCountdown` as a Q12
+/// weight, normally 0..ONE: nonzero `spawnArg1.value` ramps up by ONE/16;
+/// zero ramps down by ONE/16. Halfword truncation precedes signed clamping.
+/// Yaw/pitch limits are 768/16 angle units (4096 per turn), widened to preserve
+/// the existing pose. Missing tasks or other states kill and clear the player
+/// head-aim handle. This task owns no work block.
+static void _mineMesaPlayerHeadBlendTask(Task* task)
 {
     Task* playerTask;
     Task* companionTask;
-    u16   tick;
 
     playerTask    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (D_801156F9 == 0) {
         if ((playerTask == NULL) || (companionTask == NULL)) {
-            task->state = -1;
+            task->state = MINE_MESA_HEAD_AIM_CANCEL;
         }
-        if (task->state == 0) {
-            if (task->spawnArg1.value != 0) {
-                tick                = task->killCountdown + 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick >= 0x1001) {
-                    task->killCountdown = 0x1000;
-                }
-            } else {
-                tick                = task->killCountdown - 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick < 0) {
-                    task->killCountdown = 0;
-                }
-            }
-            animationAimHeadAtTask(playerTask, companionTask, 0x300, 0x10, task->killCountdown);
+        if (task->state == MINE_MESA_HEAD_BLEND_ACTIVE) {
+            _mineMesaRampHeadBlendWeight(task, task->spawnArg1.value);
+            animationAimHeadAtTask(playerTask, companionTask, MINE_MESA_HEAD_AIM_YAW_LIMIT, MINE_MESA_PLAYER_HEAD_BLEND_PITCH_LIMIT, task->killCountdown);
             return;
         }
         taskKill(task);
@@ -3086,10 +3141,16 @@ void func_mine_mesa_8017E8B0(s32 arg0)
     fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
 }
 
-void func_mine_mesa_8017E8FC(s32 arg0)
+/// Sets the tracked black-screen fade task's state when its handle is non-NULL.
+///
+/// States 0/1/2 initialize, hold and reveal; any other value requests task
+/// release on its next tick. The full signed state word is stored unchanged;
+/// room scripts pass -1 to cancel the overlay.
+/// Requires a live task for a non-NULL handle; fade teardown leaves it unchanged.
+static void _mineMesaSetFadeFromBlackState(s32 state)
 {
     if (D_mine_mesa_80189B5C != NULL) {
-        D_mine_mesa_80189B5C->state = arg0;
+        D_mine_mesa_80189B5C->state = state;
     }
 }
 
@@ -3098,9 +3159,13 @@ void func_mine_mesa_8017E91C(void)
     gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
 }
 
-void func_mine_mesa_8017E93C(u8 arg0)
+/// Selects the room script's scene-music table entry for a later music request.
+///
+/// `musicEntry` must fit the active stage's scene-music table. This byte setter
+/// neither loads nor starts music; the room scripts select entry 2.
+static void _mineMesaSetSceneMusicEntry(u8 musicEntry)
 {
-    gStageSceneMusicEntry = arg0;
+    gStageSceneMusicEntry = musicEntry;
 }
 
 void func_mine_mesa_8017E948(void)
@@ -3183,41 +3248,65 @@ static void func_mine_mesa_8017EB38(void)
     D_mine_mesa_80189B5C = NULL;
 }
 
-/// Refreshes the live collision mesh from the template: three normals and
-/// faces and eight vertices, then shifts every vertex by (0x1838, -0xB4, 0x9F6), or by
-/// (0x1838, 0x7D0, 0x9F6) when `arg0` is non-zero.
-void func_mine_mesa_8017EB54(s32 arg0)
-{
-    WorldCollisionGrid* dst = &D_mine_mesa_8018700C;
-    WorldCollisionGrid* src = &D_mine_mesa_801864A4;
-    SVECTOR             ofs;
-    s32                 i;
+/// Restores the live grid's reserved three-face mesh from its template.
+///
+/// Both grids must cover three normals/faces and eight vertices. Copy XYZ
+/// only for vectors, retaining destination pad words; faces copy completely.
+/// Pointer arguments must be stable, side-effect-free `WorldCollisionGrid*`
+/// expressions, with disjoint source and destination pools. `elementIndex`
+/// is a writable s32 lvalue evaluated repeatedly and left at eight. The fixed
+/// template array extents select the copy lengths. Use as a complete statement.
+#define MINE_MESA_RESTORE_SCENE_COLLISION(liveGrid, templateGrid, elementIndex)                                       \
+    {                                                                                                                 \
+        for ((elementIndex) = 0; (elementIndex) < (s32)ARRAY_SIZE(_gMineMesaCollision08EE4Faces); (elementIndex)++) { \
+            (liveGrid)->normals[(elementIndex)].vx = (templateGrid)->normals[(elementIndex)].vx;                      \
+            (liveGrid)->normals[(elementIndex)].vy = (templateGrid)->normals[(elementIndex)].vy;                      \
+            (liveGrid)->normals[(elementIndex)].vz = (templateGrid)->normals[(elementIndex)].vz;                      \
+            (liveGrid)->faces[(elementIndex)]      = (templateGrid)->faces[(elementIndex)];                           \
+        }                                                                                                             \
+        for ((elementIndex) = 0; (elementIndex) < (s32)ARRAY_SIZE(_gMineMesaCollision08EE4Verts); (elementIndex)++) { \
+            (liveGrid)->vertices[(elementIndex)].vx = (templateGrid)->vertices[(elementIndex)].vx;                    \
+            (liveGrid)->vertices[(elementIndex)].vy = (templateGrid)->vertices[(elementIndex)].vy;                    \
+            (liveGrid)->vertices[(elementIndex)].vz = (templateGrid)->vertices[(elementIndex)].vz;                    \
+        }                                                                                                             \
+    }
 
-    for (i = 0; i < 3; i++) {
-        dst->normals[i].vx = src->normals[i].vx;
-        dst->normals[i].vy = src->normals[i].vy;
-        dst->normals[i].vz = src->normals[i].vz;
-        dst->faces[i]      = src->faces[i];
-    }
-    for (i = 0; i < 8; i++) {
-        dst->vertices[i].vx = src->vertices[i].vx;
-        dst->vertices[i].vy = src->vertices[i].vy;
-        dst->vertices[i].vz = src->vertices[i].vz;
-    }
-    if (arg0 == 0) {
-        ofs.vx = 0x1838;
-        ofs.vy = -0xB4;
+/// Restores and places the room's three-face scene collision mesh.
+///
+/// Copies three normals/faces and eight XYZ vertices from the template into the
+/// live grid's reserved leading entries, then translates them by (6200, -180,
+/// 2550) game units for zero `lowered`, or (6200, 2000, 2550) for nonzero.
+/// Positive grid Y points down. Other faces, vertex pad words and cell lists
+/// remain intact; repeated calls place from the template rather than accumulate.
+static void _mineMesaSetSceneCollisionLowered(s32 lowered)
+{
+    enum { SCENE_COLLISION_X         = 6200,
+           SCENE_COLLISION_Z         = 2550,
+           SCENE_COLLISION_NORMAL_Y  = -180,
+           SCENE_COLLISION_LOWERED_Y = 2000 };
+    WorldCollisionGrid* liveGrid     = &D_mine_mesa_8018700C;
+    WorldCollisionGrid* templateGrid = &D_mine_mesa_801864A4;
+    SVECTOR             translation;
+    s32                 elementIndex;
+
+    // Restore the reserved mesh before applying its room-space placement.
+    MINE_MESA_RESTORE_SCENE_COLLISION(liveGrid, templateGrid, elementIndex);
+    if (lowered == MINE_MESA_SCENE_COLLISION_NORMAL) {
+        translation.vx = SCENE_COLLISION_X;
+        translation.vy = SCENE_COLLISION_NORMAL_Y;
     } else {
-        ofs.vx = 0x1838;
-        ofs.vy = 0x7D0;
+        translation.vx = SCENE_COLLISION_X;
+        translation.vy = SCENE_COLLISION_LOWERED_Y;
     }
-    ofs.vz = 0x9F6;
-    for (i = 0; i < 8; i++) {
-        dst->vertices[i].vx += ofs.vx;
-        dst->vertices[i].vy += ofs.vy;
-        dst->vertices[i].vz += ofs.vz;
+    translation.vz = SCENE_COLLISION_Z;
+    for (elementIndex = 0; elementIndex < (s32)ARRAY_SIZE(_gMineMesaCollision08EE4Verts); elementIndex++) {
+        liveGrid->vertices[elementIndex].vx += translation.vx;
+        liveGrid->vertices[elementIndex].vy += translation.vy;
+        liveGrid->vertices[elementIndex].vz += translation.vz;
     }
 }
+
+#undef MINE_MESA_RESTORE_SCENE_COLLISION
 
 void mineMesaDrawViewFlaresTask(Task* task)
 {
@@ -3333,42 +3422,52 @@ void func_mine_mesa_8018057C(Task* task)
 
 #include "../../shared/room_visual_effects_glow.inc.c"
 
-/// Rebuilds collision faces 3-6 of the room's grid as vertical walls, one per
-/// entry of `D_mine_mesa_80189A9C`. Each face is a quad whose lower corners are
-/// the wall's two base points and whose upper corners sit `height` above them
-/// (the grid's y axis points down), with a horizontal normal perpendicular to
-/// the base.
-void func_mine_mesa_801811C4(s32 height)
+/// Builds one reserved wall quad and its normal from a room-table edge.
+///
+/// The three writable pools must cover this wall's face and four vertices.
+/// `wallIndex` indexes the loaded four-edge table; height is in game units.
+static inline void _mineMesaBuildWallFace(SVECTOR* normals, SVECTOR* vertices,
+                                          WorldCollisionGridFace* faces, s16 wallIndex, s32 height)
+{
+    enum { WALL_FIRST_FACE        = 3,
+           WALL_VERTICES_PER_FACE = 4,
+           WALL_SURFACE_CLASS     = 3 };
+    s16 faceIndex;
+
+    faceIndex                                       = wallIndex + WALL_FIRST_FACE;
+    vertices[faceIndex * WALL_VERTICES_PER_FACE].vx = vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vx = D_mine_mesa_80189A9C[wallIndex].start.vx;
+    vertices[faceIndex * WALL_VERTICES_PER_FACE].vy = vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vy = D_mine_mesa_80189A9C[wallIndex].start.vy;
+    vertices[faceIndex * WALL_VERTICES_PER_FACE].vz = vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vz = D_mine_mesa_80189A9C[wallIndex].start.vz;
+    vertices[faceIndex * WALL_VERTICES_PER_FACE + 1].vx = vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vx = D_mine_mesa_80189A9C[wallIndex].end.vx;
+    vertices[faceIndex * WALL_VERTICES_PER_FACE + 1].vy = vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vy = D_mine_mesa_80189A9C[wallIndex].end.vy;
+    vertices[faceIndex * WALL_VERTICES_PER_FACE + 1].vz = vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vz = D_mine_mesa_80189A9C[wallIndex].end.vz;
+    vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vy                                                      -= height;
+    vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vy                                                      -= height;
+    faces[faceIndex].vertexIndices[1]                                                                         = faceIndex * WALL_VERTICES_PER_FACE + 1;
+    faces[faceIndex].vertexIndices[0]                                                                         = faceIndex * WALL_VERTICES_PER_FACE;
+    faces[faceIndex].vertexIndices[2]                                                                         = faceIndex * WALL_VERTICES_PER_FACE + 2;
+    faces[faceIndex].vertexIndices[3]                                                                         = faceIndex * WALL_VERTICES_PER_FACE + 3;
+    faces[faceIndex].surfaceClass                                                                             = WALL_SURFACE_CLASS;
+    faces[faceIndex].normalIndex                                                                              = faceIndex;
+    normals[faceIndex].vx                                                                                     = D_mine_mesa_80189A9C[wallIndex].start.vz - D_mine_mesa_80189A9C[wallIndex].end.vz;
+    normals[faceIndex].vy                                                                                     = 0;
+    normals[faceIndex].vz                                                                                     = D_mine_mesa_80189A9C[wallIndex].end.vx - D_mine_mesa_80189A9C[wallIndex].start.vx;
+    VectorNormalSS(&normals[faceIndex], &normals[faceIndex]);
+}
+
+void mineMesaBuildWalls(s32 height)
 {
     SVECTOR*                normals;
-    SVECTOR*                verts;
+    SVECTOR*                vertices;
     WorldCollisionGridFace* faces;
-    s16                     i;
-    s16                     face;
+    s16                     wallIndex;
 
-    normals = Gp_GridParams->normals;
-    verts   = Gp_GridParams->vertices;
-    faces   = Gp_GridParams->faces;
-    for (i = 0; i < 4; i++) {
-        face               = i + 3;
-        verts[face * 4].vx = verts[face * 4 + 2].vx = D_mine_mesa_80189A9C[i].start.vx;
-        verts[face * 4].vy = verts[face * 4 + 2].vy = D_mine_mesa_80189A9C[i].start.vy;
-        verts[face * 4].vz = verts[face * 4 + 2].vz = D_mine_mesa_80189A9C[i].start.vz;
-        verts[face * 4 + 1].vx = verts[face * 4 + 3].vx = D_mine_mesa_80189A9C[i].end.vx;
-        verts[face * 4 + 1].vy = verts[face * 4 + 3].vy = D_mine_mesa_80189A9C[i].end.vy;
-        verts[face * 4 + 1].vz = verts[face * 4 + 3].vz = D_mine_mesa_80189A9C[i].end.vz;
-        verts[face * 4 + 2].vy                         -= height;
-        verts[face * 4 + 3].vy                         -= height;
-        faces[face].vertexIndices[1]                    = face * 4 + 1;
-        faces[face].vertexIndices[0]                    = face * 4;
-        faces[face].vertexIndices[2]                    = face * 4 + 2;
-        faces[face].vertexIndices[3]                    = face * 4 + 3;
-        faces[face].surfaceClass                        = 3;
-        faces[face].normalIndex                         = face;
-        normals[face].vx                                = D_mine_mesa_80189A9C[i].start.vz - D_mine_mesa_80189A9C[i].end.vz;
-        normals[face].vy                                = 0;
-        normals[face].vz                                = D_mine_mesa_80189A9C[i].end.vx - D_mine_mesa_80189A9C[i].start.vx;
-        VectorNormalSS(&normals[face], &normals[face]);
+    normals  = Gp_GridParams->normals;
+    vertices = Gp_GridParams->vertices;
+    faces    = Gp_GridParams->faces;
+    // Extend each base edge upward; preserve the grid's existing cell lists.
+    for (wallIndex = 0; wallIndex < (s32)ARRAY_SIZE(D_mine_mesa_80189A9C); wallIndex++) {
+        _mineMesaBuildWallFace(normals, vertices, faces, wallIndex, height);
     }
 }
 
@@ -3483,7 +3582,7 @@ static void func_mine_mesa_80181358(Task* arg0)
 
 /// Picks the height the room's terrain updater subtracts from its mesh
 /// vertices: 0x7D0 while `gGameSession->location.loc.variant` says the session is in area 1
-/// or 7, 0x190 otherwise, then hands that to `func_mine_mesa_801811C4`.
+/// or 7, 0x190 otherwise, then hands that to `mineMesaBuildWalls`.
 static void func_mine_mesa_801817BC(void)
 {
     s32 offset;
@@ -3493,25 +3592,30 @@ static void func_mine_mesa_801817BC(void)
     } else {
         offset = 0x190;
     }
-    func_mine_mesa_801811C4(offset);
+    mineMesaBuildWalls(offset);
 }
 
-/// Message 0x13F4 handler, the only entry of the room's `TaskMessageEntry` table
-/// `D_mine_mesa_80189B1C`. Once the enemy parked in slot `slot` of
-/// `D_mine_mesa_80189B74` is dead (`field_40` is its HP) the slot is emptied and
-/// the room's remaining-enemy countdown ticks down. Always consumes the message.
-s32 func_mine_mesa_80181800(Task* task, s32 msgId, s32 slot, s32 arg3)
+/// Consumes an enemy-wave actor event, releasing a dead enemy's occupied slot.
+///
+/// `slotIndex` is the integer first payload, 0 or 1, supplied from the spawned
+/// enemy's placement-index nibble. The other payload and receiver are unused.
+/// A nonpositive HP clears the slot and decrements the signed halfword kill
+/// counter; the unsigned view preserves its low-halfword subtraction. Empty or
+/// still-live slots leave the wave unchanged. Returns 1 for every event.
+static s32 _mineMesaEnemyWaveActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 unused)
 {
-    if (D_mine_mesa_80189B74[slot] != NULL && D_mine_mesa_80189B74[slot]->hp <= 0) {
-        D_mine_mesa_80189B74[slot] = NULL;
-        MineMesaRemaining          = (u16)MineMesaRemaining - 1;
+    enum { ACTOR_EVENT_CONSUMED = 1 };
+
+    if (D_mine_mesa_80189B74[slotIndex] != NULL && D_mine_mesa_80189B74[slotIndex]->hp <= 0) {
+        D_mine_mesa_80189B74[slotIndex] = NULL;
+        MineMesaRemaining               = (u16)MineMesaRemaining - 1;
     }
-    return 1;
+    return ACTOR_EVENT_CONSUMED;
 }
 
 /// Starts the room's slot countdown: seeds `MineMesaRemaining` to 10, clears
 /// the two slots at `D_mine_mesa_80189B74`, points the task at the room's state
-/// descriptor and advances a state. `func_mine_mesa_80181800` later empties a
+/// descriptor and advances a state. `_mineMesaEnemyWaveActorEventMsg` later empties a
 /// slot and decrements the counter once the thing in it is gone.
 static void func_mine_mesa_80181848(Task* arg0)
 {

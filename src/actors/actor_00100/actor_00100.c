@@ -2040,7 +2040,7 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
         }
     }
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
-        func_mine_mesa_801811C4(0x7D0);
+        mineMesaBuildWalls(0x7D0);
     }
     worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts);
     worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts);
@@ -2858,7 +2858,7 @@ static void Actor00100_Fn09724(Task* arg0)
         work->waistYaw                                        = 0;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         work->animRate                                        = work->baseRate;
-        func_mine_mesa_801811C4(0x7D0);
+        mineMesaBuildWalls(0x7D0);
     }
     work->stateTimer += 1;
     _desertChaserAnimTick(arg0);

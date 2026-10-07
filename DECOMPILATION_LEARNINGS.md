@@ -88888,7 +88888,7 @@ condition, two constants and one call is this family's signature, and the
 `{ u32 msgId, handler }` pairs, so an unmatched one is cheap to locate: the id
 beside it says which message it serves.
 
-## Two compares in the object mean the source had nested `if`s: the tree folder merges a single `&&` into one range test (func_mine_mesa_8017E70C, 2026-09-15)
+## Two compares in the object mean the source had nested `if`s: the tree folder merges a single `&&` into one range test (_mineMesaSetCompanionHeadAimMode, 2026-09-15)
 
 A bound check is the one place where writing the source the obvious way changes
 the branch count. This room message handler's target carries *two* compares that
@@ -88896,8 +88896,8 @@ jump to the same block - `slti $v0,$a0,2; beqz $v0,.Lkill` then `bltz
 $a0,.Lkill` - over six blocks. The m2c seed's condition,
 
 ```c
-if ((arg0 < 2) && (arg0 >= 0)) {
-    D_mine_mesa_80189B58->spawnArg1 = arg0;
+if ((mode < 2) && (mode >= 0)) {
+    D_mine_mesa_80189B58->spawnArg1.value = mode;
     return;
 }
 ```
@@ -88920,12 +88920,12 @@ so the folder never sees a pair to merge, and the branch structure of the target
 falls out directly:
 
 ```c
-void func_mine_mesa_8017E70C(s32 arg0)
+void _mineMesaSetCompanionHeadAimMode(s32 mode)
 {
     if (D_mine_mesa_80189B58 != NULL) {
-        if (arg0 < 2) {
-            if (arg0 >= 0) {
-                D_mine_mesa_80189B58->spawnArg1 = arg0;
+        if (mode < 2) {
+            if (mode >= 0) {
+                D_mine_mesa_80189B58->spawnArg1.value = mode;
                 return;
             }
         }
@@ -88962,7 +88962,7 @@ addiu $v0, $zero, 0x7              ;   (delay slot: the second test's constant)
 bne   $v1, $v0, .L_E8              ; second disjunct, inverted -> the join
 addiu $a0, $zero, 0x190            ;   (delay slot: the *else* assignment)
 .L_E4:  addiu $a0, $zero, 0x7D0
-.L_E8:  jal    func_mine_mesa_801811C4
+.L_E8:  jal    mineMesaBuildWalls
 ```
 
 Two things fall out of that layout. The then-block sits *after* the else, so the
@@ -88983,7 +88983,7 @@ if (gGameSession->location.loc.variant == 1 || gGameSession->location.loc.varian
 } else {
     offset = 0x190;
 }
-func_mine_mesa_801811C4(offset);
+mineMesaBuildWalls(offset);
 ```
 
 The m2c seed reached 100% on the first build with the comma-operator form
@@ -88993,15 +88993,15 @@ the readable form. What produces a *different* function is hoisting the call int
 the arms - `if (cond) f(0x7D0); else f(0x190);` gives two call blocks and two
 jals, which is not this target. Note also that `fold_range_test` does **not**
 apply: the two tests are equality against 1 and 7, whose ranges do not merge, so
-unlike a bound check (see the `func_mine_mesa_8017E70C` entry above) the `||`
+unlike a bound check (see the `_mineMesaSetCompanionHeadAimMode` entry above) the `||`
 survives as two compares.
 
-## How the subscript is spelled decides whether the base or the index is emitted first (func_mine_mesa_80181800, 2026-09-15)
+## How the subscript is spelled decides whether the base or the index is emitted first (_mineMesaEnemyWaveActorEventMsg, 2026-09-15)
 
 m2c takes the address of an element into a local pointer before touching it:
 
 ```c
-s32 *temp_a2 = &D_mine_mesa_80189B74[arg2];
+s32 *temp_a2 = &D_mine_mesa_80189B74[slotIndex];
 temp_v0 = *temp_a2;
 if (...) { *temp_a2 = 0; ... }
 ```
@@ -89027,10 +89027,10 @@ pointer, takes the `ARRAY_REF` case instead: `get_inner_reference` expands `tem`
 needs it.
 
 ```c
-s32 func_mine_mesa_80181800(Task* task, s32 msgId, s32 slot, s32 arg3)
+s32 _mineMesaEnemyWaveActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 unused)
 {
-    if (D_mine_mesa_80189B74[slot] != NULL && D_mine_mesa_80189B74[slot]->field_40 <= 0) {
-        D_mine_mesa_80189B74[slot] = NULL;
+    if (D_mine_mesa_80189B74[slotIndex] != NULL && D_mine_mesa_80189B74[slotIndex]->hp <= 0) {
+        D_mine_mesa_80189B74[slotIndex] = NULL;
         MineMesaRemaining          = (u16)MineMesaRemaining - 1;
     }
     return 1;
@@ -89051,7 +89051,7 @@ entry above before the ordering mattered. Fixing both in one build (80.2% -> 100
 is what the two-attempt history here shows: `regs=0 stack=0` after the prototype,
 `reorder=0 insert=0` after the subscript form.
 
-## An unsigned read of a signed global is a per-use cast, and a sibling's load sign says which (func_mine_mesa_80181800, 2026-09-15)
+## An unsigned read of a signed global is a per-use cast, and a sibling's load sign says which (_mineMesaEnemyWaveActorEventMsg, 2026-09-15)
 
 The matched body reads a countdown with `lhu` and writes it back with `sh`, which
 is what `u16` gives - but the sibling `func_mine_mesa_80181358`, still
@@ -94530,23 +94530,23 @@ at 96% with `branch=2 regs=1 delete=1` and the overlay struct alone took it to
 100% on the first edit. Read the shape-similar matched siblings for the rest of
 the body -- `Room_Util16` / `Room_Util17` carry the same `Gp_SprtTables`
 walk.
-## A duplicated store to one address is a source-level double write; stores only sink, never rise (func_mine_mesa_8017E074, 2026-09-16)
+## A duplicated store to one address is a source-level double write; stores only sink, never rise (_mineMesaPlayerPathTask, 2026-09-16)
 
 **Problem.** An `ActorTransform` builder stores two words to each of two stack
 slots -- the raw table value, then the adjusted one:
 
 ```
-sw    $a0,0x10($sp)     # rec.pos.vx = tbl[i].vx
+sw    $a0,0x10($sp)     # placement.pos.vx = tbl[i].vx
 ...
 addiu $a0,$a0,-0x64
-sw    $a0,0x10($sp)     # rec.pos.vx -= 0x64
+sw    $a0,0x10($sp)     # placement.pos.vx -= 0x64
 ...
-sw    $v1,0x18($sp)     # rec.pos.vz = tbl[i].vz
+sw    $v1,0x18($sp)     # placement.pos.vz = tbl[i].vz
 addiu $v1,$v1,0xc8
-sw    $v1,0x18($sp)     # rec.pos.vz += 0xC8
+sw    $v1,0x18($sp)     # placement.pos.vz += 0xC8
 ```
 
-Writing the field once (`rec.pos.vx = tbl[i].vx - 0x64;`) compiles to a single
+Writing the field once (`placement.pos.vx = tbl[i].vx - 0x64;`) compiles to a single
 store, so the duplicate is not something to mimic from the asm -- it is the
 fingerprint of the source writing the field twice. `cse` forwards the stored
 value to the in-place update (the `addiu` reuses the load's register; no reload
@@ -94564,14 +94564,14 @@ late, which is what sinks the `vz` pair below the `rot` stores; the adjusted
 it where the target has it:
 
 ```c
-rec.pos.vx = D_x[i].vx;
-rec.pos.vy = D_x[i].vy;
-rec.pos.vz = D_x[i].vz;
-rec.pos.vx -= 0x64;      /* must precede the rot stores */
-rec.pos.vz += 0xC8;      /* may sink below them */
-rec.rot.vx = 0;
-rec.rot.vy = 0x311;
-rec.rot.vz = 0;
+placement.pos.vx = D_x[i].vx;
+placement.pos.vy = D_x[i].vy;
+placement.pos.vz = D_x[i].vz;
+placement.pos.vx -= 0x64;      /* must precede the rot stores */
+placement.pos.vz += 0xC8;      /* may sink below them */
+placement.rot.vx = 0;
+placement.rot.vy = 0x311;
+placement.rot.vz = 0;
 ```
 
 So read a store sitting later than its statement suggests as the scheduler
@@ -118913,7 +118913,7 @@ jumping to a shared label. Semantics are identical (both skip the code in
 between) and the build goes to 100.00% with every penalty zero. Same pass and
 same tell as "A call's `a0` setup in the delay slot of the *preceding* `if`
 branch means the call is duplicated in both arms" above.
-## Argument-register setup follows source order: swapping two arguments moves one `move`, and a 100% scratch score does not cover the port (func_mine_mesa_8017E2A4, 2026-09-17)
+## Argument-register setup follows source order: swapping two arguments moves one `move`, and a 100% scratch score does not cover the port (_mineMesaCompanionHeadAimTask, 2026-09-17)
 
 Target tail: `jal gameGetTaskSlot; li a0,3; move a0,s2; move a1,v0; jal
 animationAimHeadAt`. The two setup instructions are in that order, and the function
@@ -118921,10 +118921,10 @@ scored 100.00% in the scratch env. Porting it, the two arguments were renamed
 and written swapped --
 
 ```c
-    looker = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);              /* s2 */
+    companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);              /* s2 */
     ...
     animationAimHeadAt(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), target, aim);  /* WRONG */
-    animationAimHeadAt(looker, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), aim);  /* matches */
+    animationAimHeadAt(companionTask, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), aim);  /* matches */
 ```
 
 -- which emits `move a0,v0; move a1,s2` instead. Same mnemonics, same count,
@@ -118945,17 +118945,17 @@ Two lessons, and the second is the general one:
   spelling that alters its type, or re-associating an expression is a new
   source and needs a fresh score. Re-score the exact landed text.
 
-## Splitting one variable into an m2c temp pair also splits its *preferences* (func_mine_mesa_8017E15C, 2026-09-17)
+## Splitting one variable into an m2c temp pair also splits its *preferences* (_mineMesaPlayerHeadAimTask, 2026-09-17)
 
-`func_mine_mesa_8017E15C` keeps an `AnimationHeadAim*` in `$a2` from the moment
+`_mineMesaPlayerHeadAimTask` keeps an `AnimationHeadAim*` in `$a2` from the moment
 `memCalloc` returns it (`move a2,v0`), through the two clamp stores, until the
 record is handed to `animationAimHeadAt` as its `aim`; the case-1 re-read
-`aim = index->work;` is likewise `lw $a2,0x1C($s0)`. m2c wrote
+`aim = task->work;` is likewise `lw $a2,0x1C($s0)`. m2c wrote
 that one source variable as two -- `temp_v0` for the allocation, `temp_a2` for
 the re-read -- and the object came out `move v1,v0` / `sw v1,0x1C(s0)` /
 `sh v0,0(v1)`: 94.817%, `regs=5 insert=2 delete=2`, structure already matching
 17/17 blocks and 82/82 instructions. Writing the single variable the sibling
-`func_mine_mesa_8017E2A4` (and the 1.00-shape twin `_actor361100HeadAimTask`)
+`_mineMesaCompanionHeadAimTask` (and the 1.00-shape twin `_actor361100HeadAimTask`)
 uses is the whole register fix.
 
 **Mechanism.** A named C variable is one pseudo (the rule in "One variable is
@@ -119004,11 +119004,11 @@ target `.o` SHA256 `0e31eee4a036e5daae39d25dd68dcfe9ee3a16f1effa16ae826d27a18934
 The `x & 0x8000` -> signed-compare rule above ("An m2c `x & 0x8000` test is the
 original's signed compare") also covers the *inverted* polarity, which is worth
 naming because the branch mnemonic differs and the pattern is easy to read as
-unrelated. In `func_mine_mesa_8017E15C` the ramp-down arm is
+unrelated. `_mineMesaPlayerHeadAimTask` calls `_mineMesaRampHeadAimRate`, whose ramp-down arm is
 
-    rateDown  = aim->rate - 0x100;
-    aim->rate = rateDown;
-    if ((s16)rateDown < 0) {
+    nextRate  = aim->rate - 0x100;
+    aim->rate = nextRate;
+    if (nextRate < 0) {
 
 and the target is `lhu v0,4(a2)` / `addiu v0,v0,-0x100` / `sh v0,4(a2)` /
 `sll v0,v0,0x10` / `bgez v0,.Lmine_mesa_8017E26C` -- `bgez`, not `bltz`, because
@@ -119072,7 +119072,7 @@ Inputs: `base_1.c` SHA256 `4b40e09f2905a5c21905a19a757c60767a756a97d5b2a879626a1
 two builds, no pins, no search. Scratch
 `nonmatchings/func_mine_mesa_8017D8F8-vacuum`.
 
-## m2c address arithmetic is scaled by the pointee type: `M2C_UNK` is `s32` (func_mine_mesa_801811C4, 2026-09-17)
+## m2c address arithmetic is scaled by the pointee type: `M2C_UNK` is `s32` (mineMesaBuildWalls, 2026-09-17)
 
 m2c renders a byte-offset address as an integer expression added to a symbol or
 pointer, and the C front end then scales it by whatever type it decides that
@@ -119099,7 +119099,7 @@ also keeps the two diff lines matching. Both fixes in this function - the 96-vs
 88.0% on their own, and the remaining diff (a preheader `addiu` and a loop-tail
 register) is unrelated to them.
 
-## A preheader value the C cannot explain was created after cse (func_mine_mesa_801811C4, 2026-09-17)
+## A preheader value the C cannot explain was created after cse (mineMesaBuildWalls, 2026-09-17)
 
 When the target's loop preheader has a *computed* value where your build has a
 constant - here the target computes `addiu $t0,$s0,3` once before the loop label
@@ -149512,7 +149512,7 @@ attempts; left as it was.
 - **`if (x >= 2) goto kill; if (x < 0) goto kill; store; return; kill:`**:
   `if (x >= 2 || x < 0)` and `if (x < 2 && x >= 0)` both fold to
   `sltiu x,2`. The nested form `if (x < 2) { if (x >= 0) { store; return; } }`
-  keeps the two signed tests (`func_mine_mesa_8017E684`).
+  keeps the two signed tests (`_mineMesaSetPlayerHeadAimMode`).
 - Not converted: **a backward `goto fire` from case 5 into case 2, which
   falls through into case 3** (`func_m950_8011D1DC`, `func_m249_8011D1DC`).
   Writing the start-shot and step-shot blocks as inlines called in both places

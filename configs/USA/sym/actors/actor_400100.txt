@@ -949,4 +949,4 @@ Actor00100_D1BA54 = 0x8014D874; // size:0x30 defined:True
 Actor00100_D1BA84 = 0x8014D8A4; // size:0xC defined:True
 ActorContact_ScratchPosition = 0x8014D8B0; // size:0x8 defined:True
 
-func_mine_mesa_801811C4 = 0x801811C4; // type:func absolute:True owner=mine_mesa
+mineMesaBuildWalls = 0x801811C4; // type:func absolute:True owner=mine_mesa
