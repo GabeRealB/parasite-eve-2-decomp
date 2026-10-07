@@ -37,11 +37,7 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern s8 D_shelter_b1_north_maintenance_walkway_80185B7C[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern s8 D_shelter_b1_north_maintenance_walkway_80185B7C_value __asm__("D_shelter_b1_north_maintenance_walkway_80185B7C");
+extern s8 D_shelter_b1_north_maintenance_walkway_80185B7C;
 
 extern TaskMessageEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
 extern TaskDesc         D_shelter_b1_north_maintenance_walkway_80184AAC[];
@@ -141,7 +137,7 @@ static __inline__ void _shelterB1NorthMaintenanceWalkwayBindEffectTasks(void)
 static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
     RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_b1_north_maintenance_walkway_80185B7C_value = 0;
+    D_shelter_b1_north_maintenance_walkway_80185B7C = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
@@ -150,7 +146,7 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
                 gameFlagSetNibble(event->flagId, 1);
             }
             taskSpawnFromTable(&D_shelter_b1_north_maintenance_walkway_80184A78, 0, 0, 0);
-            D_shelter_b1_north_maintenance_walkway_80185B7C_value = 1;
+            D_shelter_b1_north_maintenance_walkway_80185B7C = 1;
         }
         return 2;
     }

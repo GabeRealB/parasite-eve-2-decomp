@@ -337,12 +337,14 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-s8 D_shelter_b1_north_maintenance_walkway_80185B7C[4] = {
-    0,
-    89,
-    61,
-    49,
-};
+s8 D_shelter_b1_north_maintenance_walkway_80185B7C = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_shelter_b1_north_maintenance_walkway_80185B7D = 89;
+
+u8 D_shelter_b1_north_maintenance_walkway_80185B7E = 61;
+
+u8 D_shelter_b1_north_maintenance_walkway_80185B7F = 49;
 
 RoomLatchedEvent gRoomEventLatched;
 
