@@ -46344,13 +46344,13 @@ while two nearby `addiu`s were scaled. m2c only scales explicit pointer
 arithmetic, so a seed can mix right byte offsets from `M2C_FIELD` with wrong ones
 from `ptr + n`, and the diff shows only the latter.
 
-One `addiu` alone is enough. `func_actor_213000_8014A5D0`'s seed wrote
-`temp_s3->field_8 + 0x50` against a `GfxCoord*` (0x50 bytes, so the
+One `addiu` alone is enough. `_actor213000UpdateBody`'s seed wrote
+`model->coords + 0x50` against a `GfxCoord*` (0x50 bytes, so the
 immediate came out `0x1900`), scoring 99.909% with `regs=1` over 55 instructions
 - one wrong constant, wearing an allocation penalty. `0x1900 / 0x50 = 0x50`
-recovers it, and `&extra->coords[1]` is the C that emits the target's
-`addiu s1,v0,0x50`; the round's `field_8` walk is a per-part index, so the
-operand is `[n]`, never a byte offset. `func_actor_213000_8014A5D0 1 attempt,
+recovers it, and `&model->coords[1]` is the C that emits the target's
+`addiu s1,v0,0x50`; the round's `coords` walk is a per-part index, so the
+operand is `[n]`, never a byte offset. `_actor213000UpdateBody 1 attempt,
 base_1.c 100.00%`.
 
 ## Diff the whole object, not your functions: a retyped global rescales old code
@@ -128152,9 +128152,9 @@ pins, no empty asm. Scratch
 `nonmatchings/func_actor_213000_80149E54-vacuum`; permuter evidence
 `PERMUTER_EVIDENCE/c7b2001a645c47ab/`.
 
-## `p[i + 9]` makes a second biv where `p + i + 9` folds the constant into the body (func_actor_213000_8014A35C, 2026-09-17)
+## `p[i + 9]` makes a second biv where `p + i + 9` folds the constant into the body (_actor213000AttachThreeRootModel, 2026-09-17)
 
-`func_actor_213000_8014A35C` clears three `GfxCoord` slots of the spawned
+`_actor213000AttachThreeRootModel` clears three `GfxCoord` slots of the spawned
 model's coord array and links each to its spawner's slot nine higher. The target
 carries **two** loop registers stepping by the same `0x50`, one of them starting
 at the constant:
@@ -128163,7 +128163,7 @@ at the constant:
 li    a1,0x2d0          # second IV, init 9 * 0x50
 move  a0,a2             # first IV, init 0
 .L:   lw    v0,0x2c(s1)      # parent->extra
-      lw    v1,8(v0)         # ->field_8, re-loaded every iteration
+      lw    v1,8(v0)         # ->coords, re-loaded every iteration
       lw    v0,0x2c(s2)      # task->extra
       lw    v0,8(v0)
       addu  v1,v1,a1         # source      = base + (9 + i) * 0x50
@@ -128173,7 +128173,7 @@ move  a0,a2             # first IV, init 0
       addiu a0,a0,0x50       # in the loop's delay slot
 ```
 
-Writing the source slot as a pointer sum, `...->field_8 + i + 9`, compiles to
+Writing the source slot as a pointer sum, `...->coords + i + 9`, compiles to
 **one** IV with `0x2D0` added in the body instead, and moves the rest of the
 allocation with it — 88.893%, `regs=26`:
 
@@ -128183,7 +128183,7 @@ move  a1,a2             # the single IV
       addiu v1,v1,0x2d0 # the 9 stays a run-time add
 ```
 
-Writing it as a subscript, `&((GfxCoord *)...->field_8)[i + 9]`, restores
+Writing it as a subscript, `&(...->coords)[i + 9]`, restores
 the target's second IV and gives 100.000%. The `.loop` dump says it directly —
 pointer sum:
 
@@ -128217,13 +128217,13 @@ scalar-offset entry above, one level in: there the choice was index vs offset,
 here it is subscript-with-a-sum vs pointer-sum.
 
 This function needed a second, unrelated reorder. With the m2c statement order
-(`obj->field_1C = ...; t = obj->field_C | 0x80; obj->field_C = t; obj->field_20 = ...`)
-sched1 hoists the `lhu obj->field_C` above the preceding `sw obj->field_1C`,
+(`childModel->lightMtx = ...; t = childModel->flags | 0x80; childModel->flags = t; childModel->colorMtx = ...`)
+sched1 hoists the `lhu childModel->flags` above the preceding `sw childModel->lightMtx`,
 which leaves local-alloc free to tie the `ori` result to the load's register and
-costs `regs=8` at 95.200%. Moving the `field_20` copy up so the
+costs `regs=8` at 95.200%. Moving the `colorMtx` copy up so the
 read-modify-write is the **last** of the three statements removes the hoist, the
-tie and the `regs` penalty. The target's emitted order — `lw/sw field_1C`,
-`lhu field_C`, `lw field_20`, `ori`, `sh`, `sw field_20` — is sched2's
+tie and the `regs` penalty. The target's emitted order — `lw/sw lightMtx`,
+`lhu flags`, `lw colorMtx`, `ori`, `sh`, `sw colorMtx` — is sched2's
 interleaving of that source order, not the source order itself, so it cannot be
 read back as the original statement sequence.
 
@@ -128236,7 +128236,7 @@ Inputs: `base.i` (95.200%) SHA256
 `base_6.i` (100.000%) SHA256
 `67dd8a42b92ff54eaa9c3ec26712d68d453b7400014bdc1dc53f8fbddee05683`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
-pins, no empty asm. Scratch `nonmatchings/func_actor_213000_8014A35C-vacuum`.
+pins, no empty asm. Scratch `nonmatchings/_actor213000AttachThreeRootModel-vacuum`.
 
 ## Reading the same field through the same pointer twice is what puts `addu $aN,$sN,$zero` in front of a load — `cse` folds the second load into a copy, and it is already at `.lreg` (func_actor_342100_80162F54, 2026-09-17)
 
@@ -128994,7 +128994,7 @@ spelling out:
 
 Splitting `temp_v0` from `var_v0_2` hands `local-alloc` two quantities where
 `x--` hands it one whose value dies at the subtract, so the subtract's
-destination can share the load's register. `func_actor_213000_8014A5D0` and
+destination can share the load's register. `_actor213000UpdateBody` and
 `func_actor_335800_80163568` are the same tail written the plain way. Worth
 checking on any seed whose tail carries a `var_vN` assigned in two branches, and
 it is cheap: that one statement was the last 0.19% (`base_6` 99.811% ->

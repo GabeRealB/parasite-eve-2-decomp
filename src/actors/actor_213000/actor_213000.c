@@ -68,22 +68,26 @@ extern AnimationSet** D_actor_213000_80157DDC[1];
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlagsTask(Task* childTask);
-static void func_actor_213000_8014A158(Task* task);
-static void func_actor_213000_8014A5D0(Task* task);
-static void func_actor_213000_8014A6AC(Task* task);
+static void _actor213000HeldModelIdle(Task* unusedTask);
+static void _actor213000AttachThreeRootModel(Task* childTask);
+static void _actor213000UpdateBody(Task* actorTask);
+static void _actor213000InitBodyLighting(Task* actorTask);
 
 static TmdSource _gActor213000EricBaldwinBody;
 static TmdSource _gActor213000Model06A10;
 static TmdSource _gActor213000EricBaldwinHandRight;
 static TmdSource _gActor213000Model072AC;
 static TmdSource _gActor213000Prop;
-s32              func_actor_213000_8014A70C(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_213000_8014A8A4(Task*, s32, s32, s32);
-s32              func_actor_213000_8014A980(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-void             func_actor_213000_8014A084(Task*);
-void             func_actor_213000_8014A160(Task*);
-void             func_actor_213000_8014A520(Task*);
-void             func_actor_213000_8014A578(Task*);
+static s32       _actor213000PlayAnimation(Task* actorTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
+static s32       _actor213000SetModelDraw(Task* actorTask, s32 messageId, s32 mode, s32 unusedSecondArg);
+static s32       _actor213000ApplyHeldModelCommand(Task* actorTask, s32 messageId, const ActorCommand* request, s32 unusedSecondArg);
+static void      _actor213000HeldModelTask(Task* heldModelTask);
+static void      _actor213000RightHandTask(Task* handTask);
+static void      _actor213000ThreeRootModelTask(Task* childTask);
+static void      _actor213000BodyTask(Task* actorTask);
+
+/// Body part whose world translation supplies the lighting sample.
+enum { ACTOR_213000_LIGHTING_PART = 1 };
 
 static TmdBone _gActor213000EricBaldwinBodySkeleton[20] = {
 #include "assets/eric_baldwin_body_skeleton.inc"
@@ -480,23 +484,22 @@ AnimationSet** D_actor_213000_80157DDC[1] = {
 };
 
 TaskDesc D_actor_213000_80157DE0[5] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_213000_8014A578, { .model = &_gActor213000EricBaldwinBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_213000_8014A084, { .model = &_gActor213000Model072AC } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_213000_8014A084, { .model = &_gActor213000Prop } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_213000_8014A520, { .model = &_gActor213000Model06A10 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_213000_8014A160, { .model = &_gActor213000EricBaldwinHandRight } },
+    { { { TASK_BODY_TMD, 192 } }, _actor213000BodyTask, { .model = &_gActor213000EricBaldwinBody } },
+    { { { TASK_BODY_TMD, 192 } }, _actor213000HeldModelTask, { .model = &_gActor213000Model072AC } },
+    { { { TASK_BODY_TMD, 192 } }, _actor213000HeldModelTask, { .model = &_gActor213000Prop } },
+    { { { TASK_BODY_TMD, 192 } }, _actor213000ThreeRootModelTask, { .model = &_gActor213000Model06A10 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor213000RightHandTask, { .model = &_gActor213000EricBaldwinHandRight } },
 };
 
 TaskMessageEntry D_actor_213000_80157E1C[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_213000_8014A70C },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor213000PlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_213000_8014A8A4 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_213000_8014A980 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor213000SetModelDraw },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor213000ApplyHeldModelCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 }; /// Spawn handler: allocates the work block, seeds its animation bytes and
 
 static void func_actor_213000_80149E54(Task* task);
-static void func_actor_213000_8014A35C(Task* task);
 
 /// countdown, hides the model, then spawns the four children of the spawn
 /// table -- entries 1 and 2 attached to part 8 and kept in `heldModelTasks`,
@@ -580,7 +583,7 @@ static void func_actor_213000_80149E54(Task* task)
             tmdBuildBufferHalf(model);
         }
     }
-    func_actor_213000_8014A6AC(task);
+    _actor213000InitBodyLighting(task);
     task->msgTable     = D_actor_213000_80157E1C;
     task->exitCallback = enemyTaskExit;
     task->state++;
@@ -591,26 +594,31 @@ static void func_actor_213000_80149E54(Task* task)
 static const TaskFuncTable3 D_actor_213000_80149E24 = {
     {
         _modelPlacementAttachPartTask,
-        func_actor_213000_8014A158,
+        _actor213000HeldModelIdle,
         taskKill,
     },
 };
 
-/// Body of the children spawned from table entries 1 and 2: dispatches on
-/// the state through `D_actor_213000_80149E24`.
-void func_actor_213000_8014A084(Task* task)
+/// Runs a held model's attachment, idle or teardown state.
+///
+/// Requires a live TMD task and state 0..2. Setup borrows the parent task in
+/// `spawnArg2.pointer` and the body-part index in `spawnArg1.value` (8 here),
+/// retaining the model's local pose and draw flags. Commands control its active
+/// drawing independently of the body. State 2 may release the task.
+static void _actor213000HeldModelTask(Task* heldModelTask)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_213000_80149E24;
-    sp.funcs[task->state](task);
+    states = D_actor_213000_80149E24;
+    states.funcs[heldModelTask->state](heldModelTask);
 }
 
 #include "../../shared/model_placement_attach_part.inc.c"
 
-/// The idle state of the children spawned from table entries 1 and 2: does
-/// nothing.
-static void func_actor_213000_8014A158(Task* task)
+/// Keeps a held model attached without changing its pose, flags or task state.
+///
+/// The task argument is unused; rendering follows the borrowed parent coordinate.
+static void _actor213000HeldModelIdle(Task* unusedTask)
 {
 }
 
@@ -623,67 +631,97 @@ static const TaskFuncTable3 D_actor_213000_80149E30 = {
     },
 };
 
-/// Body of the child spawned from table entry 4: dispatches on the state
-/// through `D_actor_213000_80149E30`.
-void func_actor_213000_8014A160(Task* task)
+/// Runs the right-hand model's attachment, draw-policy update or teardown state.
+///
+/// Requires a live one-part TMD task and state 0..2. Setup attaches its retained
+/// local pose to the parent in `spawnArg2.pointer` at `spawnArg1.value` (part
+/// 12 here), borrows lighting and joins the parent's teardown tree. The update
+/// inherits active-draw exclusion and automatic-buffer policy. State 2 may
+/// release the task; the parent and its borrowed resources must remain live
+/// while the hand uses them.
+static void _actor213000RightHandTask(Task* handTask)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_213000_80149E30;
-    sp.funcs[task->state](task);
+    states = D_actor_213000_80149E30;
+    states.funcs[handTask->state](handTask);
 }
 
 #include "../../shared/model_placement_attach.inc.c"
 
 #include "../../shared/model_placement_mirror_parent.inc.c"
 
-/// Setup state of the child spawned from table entry 3: hangs each of the
-/// child's three root coordinates off the parent's part nine slots above it
-/// (parts 9 to 11) with a zero local transform, shares the parent's light and
-/// colour matrices, mirrors the parent's model bits 0x80 (hidden) and 0x4 as
-/// the tick state does, draws the model at order-table offset -4, reparents
-/// the task under the parent and steps to the tick state.
-static void func_actor_213000_8014A35C(Task* task)
+/// Links a fresh child root to a live parent part with zero translation and Euler angles.
+///
+/// Borrows parentPart and invalidates composition; the existing matrix rotation
+/// is retained. The two coordinates must be distinct and ancestry must stay acyclic.
+static inline void _actor213000LinkAttachmentRoot(GfxCoord* childRoot, GfxCoord* parentPart)
 {
-    Task*      parent;
-    TmdObject* obj;
-    TmdObject* parentObj;
-    GfxCoord*  coords;
-    GfxCoord*  root;
-    s32        i;
-    u16        flags;
+    childRoot->parent       = parentPart;
+    childRoot->coord.t[0]   = 0;
+    childRoot->coord.t[1]   = 0;
+    childRoot->coord.t[2]   = 0;
+    childRoot->param.rot.vx = 0;
+    childRoot->param.rot.vy = 0;
+    childRoot->param.rot.vz = 0;
+    childRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+}
 
-    parent    = task->spawnArg2.pointer;
-    obj       = task->extra.tmd;
-    parentObj = parent->extra.tmd;
-    for (i = 0; i < 3; i++) {
-        coords             = &(parent->extra.tmd->coords)[i + 9];
-        root               = &(task->extra.tmd->coords)[i];
-        root->parent       = coords;
-        root->coord.t[0]   = 0;
-        root->coord.t[1]   = 0;
-        root->coord.t[2]   = 0;
-        root->param.rot.vx = 0;
-        root->param.rot.vy = 0;
-        root->param.rot.vz = 0;
-        root->composeStamp = GRAPHICS_COORD_DIRTY;
+/// Attaches three child model parts independently to body parts 9..11.
+///
+/// Requires the fresh three-part TMD task and a live twenty-part body task in
+/// `spawnArg2.pointer`. Replaces the child's original coordinate hierarchy,
+/// zeroes local translations and stored Euler angles, and retains the source's
+/// identity rotation matrices. Borrows the body's lighting, inherits active-draw
+/// exclusion and automatic-buffer policy, and allocates a missing buffer when
+/// permitted. Other flags, including flagged-pass selection, are retained.
+///
+/// The parent coordinates and lighting must outlive the child's uses. Joins
+/// the parent's teardown tree and advances state 0 to 1 even if buffer allocation
+/// fails; the update can retry. Draws four OT entries earlier, which must remain
+/// within the selected ordering table. Spawn arguments are retained.
+static void _actor213000AttachThreeRootModel(Task* childTask)
+{
+    enum {
+        ACTOR_213000_ATTACHMENT_PART_COUNT        = 3,
+        ACTOR_213000_ATTACHMENT_FIRST_PARENT_PART = 9,
+        ACTOR_213000_ATTACHMENT_OT_OFFSET         = -4,
+    };
+
+    Task*      parentTask;
+    TmdObject* childModel;
+    TmdObject* parentModel;
+    GfxCoord*  parentPart;
+    GfxCoord*  childRoot;
+    s32        partIndex;
+    u16        initialFlags;
+
+    parentTask  = childTask->spawnArg2.pointer;
+    childModel  = childTask->extra.tmd;
+    parentModel = parentTask->extra.tmd;
+    // Each child part follows its corresponding body part instead of another child part.
+    for (partIndex = 0; partIndex < ACTOR_213000_ATTACHMENT_PART_COUNT; partIndex++) {
+        parentPart = &parentTask->extra.tmd->coords[partIndex + ACTOR_213000_ATTACHMENT_FIRST_PARENT_PART];
+        childRoot  = &childTask->extra.tmd->coords[partIndex];
+        _actor213000LinkAttachmentRoot(childRoot, parentPart);
     }
-    obj->lightMtx = parentObj->lightMtx;
-    obj->colorMtx = parentObj->colorMtx;
-    flags         = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    obj->flags    = flags;
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        obj->flags = flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    childModel->lightMtx = parentModel->lightMtx;
+    childModel->colorMtx = parentModel->colorMtx;
+    initialFlags         = childModel->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    childModel->flags    = initialFlags;
+    if (!(parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        childModel->flags = initialFlags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        tmdAllocPrimitiveBuffer(obj);
+    // Recover missing primitive buffers even while active drawing is excluded.
+    if (!(parentModel->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        childModel->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        tmdAllocPrimitiveBuffer(childModel);
     } else {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        childModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
-    obj->otOffset = -4;
-    taskReparent(parent, task);
-    task->state += 1;
+    childModel->otOffset = ACTOR_213000_ATTACHMENT_OT_OFFSET;
+    taskReparent(parentTask, childTask);
+    childTask->state += 1;
 }
 
 /// Selects the private flag-mirroring tick for the three-root attached model.
@@ -696,122 +734,149 @@ static void func_actor_213000_8014A35C(Task* task)
 /// State table of the child spawned from table entry 3: setup, tick, kill.
 static const TaskFuncTable3 D_actor_213000_80149E3C = {
     {
-        func_actor_213000_8014A35C,
+        _actor213000AttachThreeRootModel,
         _modelPlacementMirrorParentDrawFlagsTask,
         taskKill,
     },
 };
 
-/// Body of the child spawned from table entry 3: dispatches on the state
-/// through `D_actor_213000_80149E3C`.
-void func_actor_213000_8014A520(Task* task)
+/// Runs the three-part model's body attachment, draw-policy update or teardown state.
+///
+/// Requires a live TMD task and state 0..2. Setup uses
+/// `_actor213000AttachThreeRootModel`; subsequent updates inherit the body's
+/// active-draw and buffer policy. State 2 may release the task.
+static void _actor213000ThreeRootModelTask(Task* childTask)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_213000_80149E3C;
-    sp.funcs[task->state](task);
+    states = D_actor_213000_80149E3C;
+    states.funcs[childTask->state](childTask);
 }
 
 /// The actor's three states: spawn, per-frame tick and teardown.
 static const TaskFuncTable3 D_actor_213000_80149E48 = {
     {
         func_actor_213000_80149E54,
-        func_actor_213000_8014A5D0,
+        _actor213000UpdateBody,
         enemyTaskExit,
     },
 };
 
-/// Body of the actor's task (spawn table entry 0): dispatches on the state
-/// through `D_actor_213000_80149E48`.
-void func_actor_213000_8014A578(Task* task)
+/// Runs Eric Baldwin's body spawn, update or teardown state.
+///
+/// Requires a live twenty-part TMD task and state 0..2. State 0 owns allocation
+/// of the animation/lighting work and four child tasks; state 1 consumes that
+/// initialized work. `spawnArg2.pointer` borrows the scene's `Enemy` record.
+/// Allocation failure or state 2 may release the task and its resources.
+static void _actor213000BodyTask(Task* actorTask)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_213000_80149E48;
-    sp.funcs[task->state](task);
+    states = D_actor_213000_80149E48;
+    states.funcs[actorTask->state](actorTask);
 }
 
-/// Per-frame tick: ticks the work block's animation slots once a preset has
-/// started them, and once the view is ready rebuilds model part 1's world
-/// matrix and hands its translation to `worldCoordSetModelLighting`. `freeCountdown` then
-/// frees the model's buffers as it reaches zero.
-static void func_actor_213000_8014A5D0(Task* task)
+/// Advances body animation, refreshes lighting and services delayed buffer release.
+///
+/// Requires the initialized body task and its live work/model. Advances slots
+/// 1..19 after playback starts, retaining the root pose. When the view is ready,
+/// composes part 1 and samples room/transient lights at its world translation.
+/// A nonnegative buffer countdown is decremented once per call; a call finding
+/// zero releases both primitive halves and leaves -1 (no release pending).
+/// GPU use must have finished before that release. Model and work remain owned
+/// by the task; this does not end playback or change draw flags.
+static void _actor213000UpdateBody(Task* actorTask)
 {
     _Actor213000EricBaldwinWork* work;
-    TmdObject*                   extra;
-    GfxCoord*                    coords;
-    s32                          i;
+    TmdObject*                   model;
+    GfxCoord*                    lightingPart;
+    s32                          slotIndex;
 
-    extra  = task->extra.tmd;
-    work   = task->work;
-    coords = &extra->coords[1];
+    model        = actorTask->extra.tmd;
+    work         = actorTask->work;
+    lightingPart = &model->coords[ACTOR_213000_LIGHTING_PART];
     if (work->ticking != 0) {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
+    // Sample lighting after animation has changed the model-part transforms.
     if (gGameSession->viewReady != 0) {
-        coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coords);
-        worldCoordSetModelLighting(extra, coords->workm.t, 0, 3);
+        lightingPart->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(lightingPart);
+        worldCoordSetModelLighting(model, lightingPart->workm.t, 0, ARRAY_SIZE(work->light.m));
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(extra);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
 }
 
-/// Points the model's light and colour matrices at the work block's own pair,
-/// then rebuilds model part 1's world matrix and hands its translation to
-/// `worldCoordSetModelLighting`.
-static void func_actor_213000_8014A6AC(Task* task)
+/// Binds the body's work-owned lighting matrices and samples lights at part 1.
+///
+/// Requires the allocated work, twenty-part model and current view transform.
+/// Composes part 1 before using its world-unit translation. The model borrows
+/// the work's matrices while it uses lighting; neither allocation is transferred
+/// or released. This initial sample is performed without a `viewReady` check.
+static void _actor213000InitBodyLighting(Task* actorTask)
 {
     _Actor213000EricBaldwinWork* work;
-    GfxCoord*                    coords;
-    TmdObject*                   extra;
+    GfxCoord*                    modelCoords;
+    TmdObject*                   model;
 
-    work                   = task->work;
-    extra                  = task->extra.tmd;
-    coords                 = extra->coords;
-    extra->lightMtx        = &work->light;
-    extra->colorMtx        = &work->color;
-    coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&coords[1]);
-    worldCoordSetModelLighting(extra, coords[1].workm.t, 0, 3);
+    work            = actorTask->work;
+    model           = actorTask->extra.tmd;
+    modelCoords     = model->coords;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+
+    modelCoords[ACTOR_213000_LIGHTING_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&modelCoords[ACTOR_213000_LIGHTING_PART]);
+    worldCoordSetModelLighting(model, modelCoords[ACTOR_213000_LIGHTING_PART].workm.t, 0, ARRAY_SIZE(work->light.m));
 }
 
-/// Applies the requested animation bank and clip to this actor's rig.
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` for the body's nineteen animated parts.
 ///
-/// A changed bank installs its set table. The requested clip is applied to the slots.
-/// Requested blending uses 6 frames; otherwise the slots reset.
-s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
+/// Requires initialized body work and a request borrowed through this call.
+/// The package has bank 0 and loaded clips 1..10; indices are unchecked and
+/// stored in signed bytes. The first request must use `ANIMATION_BLEND_RESET`,
+/// since blending captures existing slot state. A later nonzero blend selects
+/// six normal-rate frames, ignoring `blendFrames` and `enableWorldCollision`.
+/// Restarts or blends slots 1..19, ticks each immediately and enables future
+/// per-frame ticking. The root slot is retained. No request pointer is kept;
+/// the package's clip data and task-owned playback storage must remain live.
+/// The message ID and second argument are ignored. Returns 0.
+static s32 _actor213000PlayAnimation(Task* actorTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
 {
-    _Actor213000EricBaldwinWork* work;
-    TmdObject*                   ext;
-    s32                          i;
+    enum { ACTOR_213000_ANIMATION_BLEND_FRAMES = 6 };
 
-    work = task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->bank) {
-        work->bank   = msg->source.index;
+    _Actor213000EricBaldwinWork* work;
+    TmdObject*                   model;
+    s32                          slotIndex;
+
+    work  = actorTask->work;
+    model = actorTask->extra.tmd;
+    if (request->source.index != work->bank) {
+        work->bank   = request->source.index;
         work->animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_213000_80157DDC[work->bank], ext, work->rig.poses,
+        animationInitContext(&work->rig.anim, D_actor_213000_80157DDC[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }
-    work->animId = msg->animationId;
-    if (msg->blend != ANIMATION_BLEND_RESET) {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, 6);
+    work->animId = request->animationId;
+    if (request->blend != ANIMATION_BLEND_RESET) {
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, ACTOR_213000_ANIMATION_BLEND_FRAMES);
         }
     } else {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationResetSlot(&work->rig.anim, i, work->animId);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationResetSlot(&work->rig.anim, slotIndex, work->animId);
         }
     }
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationTickSlot(&work->rig.anim, i);
+    // Apply a pose during dispatch, before the next body update.
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
     work->ticking = 1;
     return 0;
@@ -819,93 +884,105 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// Message-0x7D5 display handler, switching on the message's mode word. Mode
-/// 0 hides the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 1 shows it, reallocates its buffers
-/// through `tmdAllocPrimitiveBuffer` and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 2 hides it, sets
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts
-/// `freeCountdown` at 2, after which the tick frees the buffers; 3
-/// shows it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. The handled modes return 0; any other mode changes
-/// nothing and returns 1.
-/// The handler reads `work` before the switch even though mode 2 is its only
-/// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block.
-s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode, s32 arg3)
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` for the body and its primitive buffers.
+///
+/// Requires live body work/model. Modes 0/1 exclude/permit active drawing and
+/// permit automatic buffer recovery; 1 also requests a missing buffer now.
+/// Mode 2 excludes active drawing, suppresses recovery and schedules release
+/// after two countdown ticks followed by the tick finding zero. Mode 3 permits
+/// drawing and suppresses automatic recovery without allocating a buffer.
+/// Other flags and any pending release in modes 0/1/3 are retained, so showing
+/// the model does not cancel an earlier release. Flagged-pass selection is
+/// independent. Returns 0 for modes 0..3 and 1 otherwise, even if allocation
+/// fails. The message ID and second argument are ignored.
+static s32 _actor213000SetModelDraw(Task* actorTask, s32 messageId, s32 mode, s32 unusedSecondArg)
 {
-    TmdObject*                   obj;
-    _Actor213000EricBaldwinWork* work;
-    s32                          ret;
+    enum {
+        ACTOR_213000_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
+        ACTOR_213000_BUFFER_FREE_DELAY_TICKS    = 2,
+    };
 
-    obj  = task->extra.tmd;
-    work = task->work;
-    ret  = 0;
+    TmdObject*                   model;
+    _Actor213000EricBaldwinWork* work;
+    s32                          result;
+
+    model  = actorTask->extra.tmd;
+    work   = actorTask->work;
+    result = 0;
 
     switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->freeCountdown = 2;
-            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = ACTOR_213000_BUFFER_FREE_DELAY_TICKS;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_213000_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    return ret;
+    return result;
 }
 
-/// Message-0x7DB handler: shows or hides the models of the two children the
-/// work block keeps in `heldModelTasks`. Mode 0 shows the first
-/// (clears bit 0x80 of its `TmdObject::flags`) and 1 hides it; 2 and 3 show
-/// and hide the second. A missing child or an unknown mode touches nothing.
-/// Every path returns 0.
-/// Both `|= 0x80` arms are written out in the source; the post-reload `jump2`
-/// cross-jump folds mode 1's copy into mode 3's, which is why retail's mode-1
-/// arm is only the `lw` plus a jump while modes 0 and 2 each keep their own
-/// `& 0xFF7F` copy. Which tails jump2 merges is decided by which jumps share a
-/// target label, not by how alike the bodies are.
-s32 func_actor_213000_8014A980(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Handles `ACTOR_COMMAND_MESSAGE_APPLY` by showing or hiding either held model.
+///
+/// Requires live body work and a readable command borrowed through the call.
+/// Commands 0/1 permit/exclude active drawing of `heldModelTasks[0]`; 2/3 do the
+/// same for `heldModelTasks[1]`. The context tag is ignored. Missing child tasks
+/// and other commands change nothing. Only active-draw exclusion changes;
+/// buffer policy, flagged-pass selection and the body are retained. No payload
+/// pointer is kept. The message ID and second argument are ignored. Returns 0.
+static s32 _actor213000ApplyHeldModelCommand(Task* actorTask, s32 messageId, const ActorCommand* request, s32 unusedSecondArg)
 {
+    enum {
+        ACTOR_213000_COMMAND_SHOW_FIRST_HELD_MODEL  = 0,
+        ACTOR_213000_COMMAND_HIDE_FIRST_HELD_MODEL  = 1,
+        ACTOR_213000_COMMAND_SHOW_SECOND_HELD_MODEL = 2,
+        ACTOR_213000_COMMAND_HIDE_SECOND_HELD_MODEL = 3,
+    };
+
     _Actor213000EricBaldwinWork* work;
-    Task*                        child;
-    u16                          mode;
+    Task*                        heldModelTask;
+    u16                          command;
 
-    mode = msg->command;
-    work = task->work;
+    command = request->command;
+    work    = actorTask->work;
 
-    switch (mode) {
-        case 0:
-            child = work->heldModelTasks[0];
-            if (child != NULL) {
-                child->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    switch (command) {
+        case ACTOR_213000_COMMAND_SHOW_FIRST_HELD_MODEL:
+            heldModelTask = work->heldModelTasks[0];
+            if (heldModelTask != NULL) {
+                heldModelTask->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
-        case 1:
-            child = work->heldModelTasks[0];
-            if (child != NULL) {
-                child->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_213000_COMMAND_HIDE_FIRST_HELD_MODEL:
+            heldModelTask = work->heldModelTasks[0];
+            if (heldModelTask != NULL) {
+                heldModelTask->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
-        case 2:
-            child = work->heldModelTasks[1];
-            if (child != NULL) {
-                child->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_213000_COMMAND_SHOW_SECOND_HELD_MODEL:
+            heldModelTask = work->heldModelTasks[1];
+            if (heldModelTask != NULL) {
+                heldModelTask->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
-        case 3:
-            child = work->heldModelTasks[1];
-            if (child != NULL) {
-                child->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_213000_COMMAND_HIDE_SECOND_HELD_MODEL:
+            heldModelTask = work->heldModelTasks[1];
+            if (heldModelTask != NULL) {
+                heldModelTask->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
     }
