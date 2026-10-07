@@ -54,12 +54,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/shelter_elevator.h"
 
-#define D_shelter_b1_elevator_hall_80182D04 (D_shelter_b1_elevator_hall_80182CF4 + 2)
-#define D_shelter_b1_elevator_hall_80182D14 (D_shelter_b1_elevator_hall_80182CF4 + 4)
-#define D_shelter_b1_elevator_hall_80182D24 (D_shelter_b1_elevator_hall_80182CF4 + 6)
-#define D_shelter_b1_elevator_hall_80182D34 (D_shelter_b1_elevator_hall_80182CF4 + 8)
-#define D_shelter_b1_elevator_hall_80182D84 (D_shelter_b1_elevator_hall_80182CF4 + 18)
-
 /// Per-index shifts applied to the flash brightness, one per colour channel.
 
 /// Offsets of the two trail anchors from the effect's parent; the second entry
@@ -544,14 +538,14 @@ void shelterB1ElevatorHallDrawGlowsTask(Task* task)
             break;
         case 3: {
             const SVECTOR* glowPoints;
-            glowPoints = D_shelter_b1_elevator_hall_80182D04;
+            glowPoints = &D_shelter_b1_elevator_hall_80182CF4[2];
             _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
             _glowDrawCapsule(&glowPoints[18], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 4: {
             const SVECTOR* glowPoints;
-            glowPoints = D_shelter_b1_elevator_hall_80182D14;
+            glowPoints = &D_shelter_b1_elevator_hall_80182CF4[4];
             _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
             _glowDrawCapsule(&glowPoints[8], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
             _glowDrawCapsule(&glowPoints[16], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
@@ -559,7 +553,7 @@ void shelterB1ElevatorHallDrawGlowsTask(Task* task)
         }
         case 5: {
             const SVECTOR* glowPoints;
-            glowPoints = D_shelter_b1_elevator_hall_80182D24;
+            glowPoints = &D_shelter_b1_elevator_hall_80182CF4[6];
             _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
             _glowDrawCapsule(&glowPoints[6], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
             _glowDrawCapsule(&glowPoints[8], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
@@ -569,14 +563,14 @@ void shelterB1ElevatorHallDrawGlowsTask(Task* task)
         }
         case 7: {
             const SVECTOR* glowPoints;
-            glowPoints = D_shelter_b1_elevator_hall_80182D84;
+            glowPoints = &D_shelter_b1_elevator_hall_80182CF4[18];
             _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
             _glowDrawCapsule(&glowPoints[6], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 8: {
             const SVECTOR* glowPoints;
-            glowPoints = D_shelter_b1_elevator_hall_80182D34;
+            glowPoints = &D_shelter_b1_elevator_hall_80182CF4[8];
             _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
             _glowDrawCapsule(&glowPoints[2], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
             _glowDrawCapsule(&glowPoints[14], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
