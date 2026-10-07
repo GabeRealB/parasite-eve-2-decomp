@@ -136,31 +136,6 @@ typedef struct {
 } OverlayCoordChainScratch;
 STATIC_ASSERT_SIZEOF(OverlayCoordChainScratch, 0x20);
 
-/// Wraps an angle into [-0x800, 0x800]. Each loop tests in an `if` with the
-/// `break` in its `else`, which keeps the test at the top (see
-/// DECOMPILATION_LEARNINGS.md, "A loop that is not rotated").
-static __inline__ s16 overlayWrapAngle(s16 angle)
-{
-    if (angle < 0) {
-        for (;;) {
-            if (angle < -0x800) {
-                angle += 0x1000;
-            } else {
-                break;
-            }
-        }
-    } else {
-        for (;;) {
-            if (angle > 0x800) {
-                angle -= 0x1000;
-            } else {
-                break;
-            }
-        }
-    }
-    return angle;
-}
-
 /// Carries `v` from the frame of `coord` up the parent chain into world
 /// space, walking in an `OverlayCoordChainScratch` taken from the scratch pad.
 static __inline__ void overlayToWorld(GfxCoord* coord, SVECTOR* v)

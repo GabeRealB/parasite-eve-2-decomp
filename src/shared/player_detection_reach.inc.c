@@ -19,7 +19,7 @@ s32 detectPlayerOutOfReach(GfxCoord* coord, s16 range, s16 offset)
     d.vx   = (u16)player->extra.tmd->coords->coord.t[0] - (u16)coord->coord.t[0];
     d.vy   = (u16)player->extra.tmd->coords->coord.t[1] - (u16)coord->coord.t[1];
     d.vz   = (u16)player->extra.tmd->coords->coord.t[2] - (u16)coord->coord.t[2];
-    angle  = overlayWrapAngle(ratan2(d.vx, d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    angle  = _actorAngleNormalizeYaw(ratan2(d.vx, d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     x      = angle << 16;
     if (offset >= 0) {
         if (abs(x >> 16) > 0x400) {

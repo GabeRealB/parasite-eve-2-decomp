@@ -63,7 +63,7 @@ void bossStrangerAvoidContacts(BossStrangerWalker* work)
 
     for (s->i = 0; s->i < s->count; s->i++) {
         for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = overlayWrapAngle((u16)s->bearing[s->i] - (u16)s->bearing[s->j]);
+            s->diff = _actorAngleNormalizeYaw(s->bearing[s->i] - s->bearing[s->j]);
             if (abs(s->diff) > 0x400) {
                 s->kept[s->i] = 0;
                 s->kept[s->j] = 0;

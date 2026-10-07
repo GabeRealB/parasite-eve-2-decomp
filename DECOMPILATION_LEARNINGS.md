@@ -149049,9 +149049,10 @@ for (;;) {
 }
 ```
 
-compiles to the unrotated loop. `overlayWrapAngle` (`include/overlay.h`) and
-the three in-line wraps of `Actor00100_Fn08E7C` are now this form; the whole
-project still matches.
+compiles to the unrotated loop. The three in-line wraps of
+`Actor00100_Fn08E7C` use this form. The shared angle wrap now uses
+`_actorAngleNormalizeYaw` (`include/actors/actor.h`), whose explicit
+top-tested exits also leave the whole project matching.
 
 ### A `goto` loop is not a loop to loop.c, and that leaks into its callers
 
@@ -149064,11 +149065,11 @@ The scan had been written as a `goto` loop with the hoisted constants
 
 Mechanism: `find_and_verify_loops` (loop.c) moves a block that ends in an
 unconditional jump out of the loop to the nearest `BARRIER` *at the jump
-target's loop level*. The backward `goto` of the old `overlayWrapAngle` left
+target's loop level*. The backward `goto` of the former shared angle wrap left
 such a barrier at level -1. Written as a real loop, its barrier is inside
 that loop, nothing qualifies, and the block stays. So a goto-loop in one
 inline changed the layout of another loop in the same function. After the
-`overlayWrapAngle` change the plain `for` helper matches (argument order
+shared angle-wrap change the plain `for` helper matches (argument order
 `(pos, records, count)`: arguments are expanded in order, and the image
 computes `pos` first).
 

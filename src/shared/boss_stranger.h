@@ -16,6 +16,8 @@
 
 #include "types.h"
 
+#include "actors/actor.h"
+
 #include "overlay.h"
 
 #include "gameplay/geometry.h"

@@ -17,6 +17,8 @@
 
 #include "common.h"
 
+#include "actors/actor.h"
+
 #include "main/coord.h"
 #include "main/task_types.h"
 

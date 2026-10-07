@@ -13,6 +13,7 @@
 #include "mine_cavern_private.h"
 
 #include "actors/task_tables.h"
+#include "actors/actor.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor.h"
@@ -3101,7 +3102,7 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
         blk->offset.vz -= arg1->extra.tmd->coords->workm.t[2];
         angle = blk->hitBearing = ratan2(blk->offset.vx, blk->offset.vz) - ratan2(-arg1->extra.tmd->coords->workm.m[2][0],
                                                                                   arg1->extra.tmd->coords->workm.m[2][2]);
-        blk->hitBearing         = overlayWrapAngle(angle);
+        blk->hitBearing         = _actorAngleNormalizeYaw(angle);
         blk->vec.vx             = player->extra.tmd->coords->coord.t[0] - arg1->extra.tmd->coords->coord.t[0];
         blk->vec.vy             = player->extra.tmd->coords->coord.t[1] - arg1->extra.tmd->coords->coord.t[1];
         blk->vec.vz             = player->extra.tmd->coords->coord.t[2] - arg1->extra.tmd->coords->coord.t[2];

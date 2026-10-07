@@ -16,7 +16,7 @@ void bossStrangerTurnToward(BossStrangerWalker* work, SVECTOR3* pos)
     coord = work->coord;
     diff  = overlayCoordBearingXZ(pos, coord) -
            ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    angle    = overlayWrapAngle(diff);
+    angle    = _actorAngleNormalizeYaw(diff);
     s->angle = angle;
     if (angle != 0)
         work->turnRun++;
