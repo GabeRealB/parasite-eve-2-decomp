@@ -3193,38 +3193,28 @@ static void func_actor_405800_8013706C(Task* arg0, s16 arg1)
     switch (arg1) {
         case 0:
             if (work->onCeiling == 0) {
-                GfxMatrix* m = &rot;
 
                 v.vx                     = work->targetPos.vx - arg0->extra.tmd->coords->coord.t[0];
                 v.vy                     = work->targetPos.vy - arg0->extra.tmd->coords->coord.t[1] - 0x384;
                 v.vz                     = work->targetPos.vz - arg0->extra.tmd->coords->coord.t[2];
-                rot.rotationWords.m00M01 = ONE;
-                rot.rotationWords.m02M10 = 0;
-                m->rotationWords.m11M12  = ONE;
-                rot.rotationWords.m20M21 = 0;
-                m->rotationWords.m22     = ONE;
+                gfxSetRotIdentity(&rot.mat);
                 rot.mat.t[0]             = 0;
                 rot.mat.t[1]             = 0;
                 rot.mat.t[2]             = 0;
-                RotMatrixY(-work->yaw, &m->mat);
-                ApplyMatrixSV(&m->mat, &v, &out);
+                RotMatrixY(-work->yaw, &rot.mat);
+                ApplyMatrixSV(&rot.mat, &v, &out);
             } else {
-                GfxMatrix* m = &rot;
 
                 v.vx                     = work->targetPos.vx - arg0->extra.tmd->coords->coord.t[0];
                 v.vy                     = work->targetPos.vy - arg0->extra.tmd->coords->coord.t[1] - 0x640;
                 v.vz                     = work->targetPos.vz - arg0->extra.tmd->coords->coord.t[2];
-                rot.rotationWords.m00M01 = ONE;
-                rot.rotationWords.m02M10 = 0;
-                m->rotationWords.m11M12  = ONE;
-                rot.rotationWords.m20M21 = 0;
-                m->rotationWords.m22     = ONE;
+                gfxSetRotIdentity(&rot.mat);
                 rot.mat.t[0]             = 0;
                 rot.mat.t[1]             = 0;
                 rot.mat.t[2]             = 0;
-                RotMatrixY(-work->yaw, &m->mat);
-                RotMatrixZ(-work->roll, &m->mat);
-                ApplyMatrixSV(&m->mat, &v, &out);
+                RotMatrixY(-work->yaw, &rot.mat);
+                RotMatrixZ(-work->roll, &rot.mat);
+                ApplyMatrixSV(&rot.mat, &v, &out);
             }
             work->capsule.ends[0].vx = out.vx;
             work->capsule.ends[0].vy = out.vy;
