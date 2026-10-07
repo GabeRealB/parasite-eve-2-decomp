@@ -96380,6 +96380,12 @@ lets cse2 fold it to `return 1`, which then cross-jumps onto an unrelated
 
 ## A store through a bare pointer cast lets `sched1` hoist a later struct load above it
 
+*Note 2026-10-07:* the struct view is not the only fix and no function uses
+`ScratchStackCursor` any more. The scalar reservation holds its place when it
+is written as one expression whose value is assigned
+(`vec = SCRATCH_STACK_RESERVE_BLOCK(T);`). See the section at the end of this
+file named for `sucklercephScalePart`.
+
 `_actor510900ApplyHitTwist` pushes a `MATRIX` onto the scratch stack and then
 reads two pointers out of its argument:
 
@@ -153525,3 +153531,40 @@ a loop start written early, try the plain `u16` `for`: these three came from
 copying m2c's reading of the image and none was load-bearing. A second load of
 the same field through the same base, after a call, is the one thing to keep,
 and a helper taking the outer pointer explains it.
+
+## A scalar scratch reservation stays ahead of a struct load when it is one assignment expression, not read / decrement / write-back (sucklercephScalePart, 2026-10-07)
+
+**Symptom.** The target prologue is `lw v1,0(a2)` / `lw a0,28(a0)` /
+`addiu v1,v1,-8` / `sw v1,0(a2)` / `lw v0,684(a0)`: cursor store before the
+first `work->swellScale` load. The body reached it through
+`((ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT)->top`, a structure store,
+with a header comment that the scalar macro orders differently.
+
+**Measured, on both including objects (actor_04600, actor_07000).**
+
+| reservation | result |
+|---|---|
+| `vec = SCRATCH_STACK_CURSOR(SVECTOR); work = arg0->work; vec--; SCRATCH_STACK_CURSOR(SVECTOR) = vec;` | 7 lines: store sinks below the `swellScale` load, into the first clamp's test |
+| same through a `void** head` local (`SCRATCH_HEAD_AT`) | the same 7 lines |
+| `vec = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR); work = arg0->work;` | match |
+| `work = arg0->work; vec = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);` | match |
+| `vec = SCRATCH_PUSH_AT(head, SVECTOR);` before or after `work` | match |
+
+**Mechanism.** The fixed-address scalar store has no dependence on the
+`mem/s` field load in either form (`anti_dependence`), so only priority places
+it. Written as three statements the user variable is the stored value:
+`vec = mem; vec = vec - 8; mem = vec`, the add has the store as its only
+consumer in the block, and sched1 emits cursor load, `swellScale` load, add,
+store. Written as one expression the stored value is a temporary and `vec` is
+a copy made after the store (`t = mem - 8; mem = t; vec = t`); the add then
+feeds both the store and the copy, and the store stays where the source has
+it. (The two insn orders are read from `.lreg`; that the extra consumer
+raises the chain's priority is the inferred reason, the priorities were not
+traced.) The statement order against
+`work = arg0->work` does not matter here; the pop is the plain
+`SCRATCH_STACK_RELEASE_BLOCK(SVECTOR)`, and cse keeps the slot address in one
+register for both without a head-pointer local.
+
+**Use.** Where a scratch reservation needs a struct view of the cursor or a
+`head`/`head - 1` pair to hold its place, try the single-expression macro
+first. `ScratchStackCursor` in `include/main/scratch.h` now has no user.

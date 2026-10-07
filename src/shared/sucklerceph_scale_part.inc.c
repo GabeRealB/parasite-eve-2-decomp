@@ -6,16 +6,12 @@
 /// factor on the GTE and written back.
 void sucklercephScalePart(Task* arg0, GfxCoord* arg1)
 {
-    ScratchStackCursor* scratch;
-    SVECTOR*            vec;
-    MATRIX*             matrix;
-    SucklercephWork*    work;
+    SVECTOR*         vec;
+    MATRIX*          matrix;
+    SucklercephWork* work;
 
-    scratch = (ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT;
-    vec     = scratch->top;
-    work    = arg0->work;
-    vec--;
-    scratch->top = vec;
+    vec  = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    work = arg0->work;
     if (work->swellScale >= 0x13E8) {
         work->swellScale = 0x13E8;
     }
@@ -45,5 +41,5 @@ void sucklercephScalePart(Task* arg0, GfxCoord* arg1)
     gte_stsv(vec);
     gte_WriteMatrixColumn(vec, matrix, 2);
 
-    SCRATCH_POP_AT(&scratch->top, SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
