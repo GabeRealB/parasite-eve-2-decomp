@@ -217,8 +217,17 @@ static inline InventoryConsumableStack* gpItemStock(s32 itemId)
     return &Gp_StackLimits[itemId - 0xA0];
 }
 
-/// True if `arg1` can be added to the item table selected by `arg0`.
-s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1);
+/// Returns 1 if an item has a free row or its first consumable stack has room.
+///
+/// Existing consumables need room for at least one unit, independently of pack
+/// size or a pickup's quantity. A full first stack returns 0 even with free
+/// rows. A missing stack or other row item needs one free row. Ids >= 0x100
+/// return 1 after scanning the rows, without testing collection-bit possession.
+/// Row-item ids must be 1..0xBF; reserved ids 0xC0..0xFF are not rejected and
+/// would index beyond the 32-row consumable catalogue if a matching row exists.
+/// The range must fit readable backing storage. Neither input is changed or
+/// retained. This is a capacity query; it does not reserve space or add items.
+s32 inventoryCanAddItem(const InventoryItemRange* range, s32 itemId);
 
 /// Catalogue field indices and raw id dispatch boundaries for `itemGetText`.
 enum {

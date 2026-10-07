@@ -363,8 +363,8 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                 qtySrc = recSrc->qty;
                 idSrc  = recSrc->itemId;
                 inventoryRemoveItemRow(src, recSrc, qtySrc);
-                Gp_SetScanItem(dst, rowDst, idSrc, qtySrc);
-                Gp_SetScanItem(src, rowSrc, idDst, qtyDst);
+                inventoryPlaceItemAtRow(dst, rowDst, idSrc, qtySrc);
+                inventoryPlaceItemAtRow(src, rowSrc, idDst, qtyDst);
                 if ((u8)(recDst->itemId + 0x80) < 0x20) {
                     equipmentClearRemovableLoads(recDst->itemId);
                 }
@@ -383,8 +383,8 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                     idB             = recB->itemId;
                     attachmentSlotB = recB->attachSlot;
                     inventoryRemoveItemRow(scan, recB, qtyB);
-                    Gp_SetScanItem(scan, rowA, idB, qtyB)->attachSlot = attachmentSlotB;
-                    Gp_SetScanItem(scan, rowB, idA, qtyA)->attachSlot = attachmentSlotA;
+                    inventoryPlaceItemAtRow(scan, rowA, idB, qtyB)->attachSlot = attachmentSlotB;
+                    inventoryPlaceItemAtRow(scan, rowB, idA, qtyA)->attachSlot = attachmentSlotA;
                 }
             }
             work->panes[work->focusedPane]->owner->state     = 1;
@@ -736,15 +736,15 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
         if ((u32)(item - 0xA0) < 0x20U) {
             scanOwner = arg1->owner;
             if (scanOwner->status != 0) {
-                if ((inventoryFindLastItemRowInRange(item, (&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1))) == NULL) && (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) == 0)) {
+                if ((inventoryFindLastItemRowInRange(item, (&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1))) == NULL) && (inventoryCanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) == 0)) {
                     prompt = 6;
                 }
-            } else if ((Gp_SumScanQty((&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1)), item) != 0) || (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) != 0)) {
+            } else if ((Gp_SumScanQty((&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1)), item) != 0) || (inventoryCanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) != 0)) {
                 chooseQty = 1;
             } else {
                 prompt = 6;
             }
-        } else if (Gp_CanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) != 0) {
+        } else if (inventoryCanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) != 0) {
             owner      = arg1->owner;
             flags      = owner->parent->status;
             restricted = 0;

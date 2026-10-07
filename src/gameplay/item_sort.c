@@ -58,12 +58,17 @@
 
 static inline InventoryItemRow* _inventoryGetRangeTable(const InventoryItemRange* range);
 
-/// True if `arg2` of item `arg1` can be added to the item table selected
-/// by `arg0`. Ids `>= 0x100` always succeed. Ids `0xA0..0xFF` stack onto
-/// an existing row when `qty + arg2` fits `Gp_StackLimits[id-0xA0].maxHeld`;
-/// `arg2 < 0` uses that row's `packQty` as the addend. Other ids need a
-/// free slot.
-static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2);
+/// First item id whose possession uses collection bits rather than item rows.
+enum { INVENTORY_COLLECTION_ITEM_FIRST = 0x100 };
+
+/// Result of checking the first matching consumable stack for room.
+enum {
+    INVENTORY_STACK_ABSENT      = 0,
+    INVENTORY_STACK_ACCEPTS_ADD = 1,
+    INVENTORY_STACK_REJECTS_ADD = 2
+};
+
+static s32 _inventoryCanAddItemQuantity(const InventoryItemRange* range, s32 itemId, s32 quantity);
 
 static inline bool _itemIsIdentified(s32 itemId);
 
@@ -374,262 +379,242 @@ void inventorySortItems(const InventoryItemRange* range, s32 unused)
 #undef INVENTORY_GET_SORT_KEY
 }
 
-/// True if `arg2` of item `arg1` can be added to the item table selected
-/// by `arg0`. Ids `>= 0x100` always succeed. Ids `0xA0..0xFF` stack onto
-/// an existing row when `qty + arg2` fits `Gp_StackLimits[id-0xA0].maxHeld`;
-/// `arg2 < 0` uses that row's `packQty` as the addend. Other ids need a
-/// free slot.
-static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
+/// Returns 1 if a requested addition fits an existing stack or has a free row.
+///
+/// Quantity counts item units; every negative value requests one catalogue pack,
+/// including `INVENTORY_GIVE_FULL_STACK`. The first matching stack must fit the entire
+/// addition. A new stack only needs a free row: its eventual capacity clamp is
+/// not checked here. Other row items need a free row regardless of quantity.
+/// Ids >= 0x100 return 1 after the occupied-row scan, without testing possession.
+/// Row-item ids must be 1..0xBF; 0xC0..0xFF are not bounds-checked and cannot
+/// index the 32-row consumable catalogue safely. The range must fit readable
+/// backing storage. Neither the descriptor nor its rows are changed or retained.
+static s32 _inventoryCanAddItemQuantity(const InventoryItemRange* range, s32 itemId, s32 quantity)
 {
-    InventoryItemRow*         tmp;
-    InventoryItemRow*         table;
-    InventoryItemRow*         row;
-    s32                       i;
-    s32                       occupied;
-    s32                       count;
-    s32                       start;
-    s32                       limit;
-    s32                       used;
-    s32                       found;
-    InventoryItemRow*         table2;
-    InventoryItemRow*         stackRow;
-    s32                       count2;
-    s32                       start2;
-    InventoryConsumableStack* stacks;
-    s32                       idx;
-    InventoryConsumableStack* stack;
-    s32                       capacity;
+    const InventoryItemRow*         table;
+    const InventoryItemRow*         row;
+    s32                             rangeIndex;
+    s32                             occupiedRows;
+    s32                             rowCount;
+    s32                             firstRow;
+    s32                             scanRowCount;
+    s32                             requiredRows;
+    s32                             stackResult;
+    const InventoryItemRow*         stackTable;
+    const InventoryItemRow*         stackRow;
+    s32                             stackRowCount;
+    s32                             stackFirstRow;
+    const InventoryConsumableStack* stackCatalogue;
+    s32                             consumableIndex;
+    const InventoryConsumableStack* stackLimits;
+    s32                             rowCapacity;
 
-    switch (arg0->tableId) {
-        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            tmp = Gp_ItemTable2;
-            break;
-        case INVENTORY_ITEM_TABLE_INDIRECT:
-            tmp = Gp_ItemTable1;
-            break;
-        default:
-            tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-            break;
-    }
-    table    = tmp;
-    i        = 0;
-    count    = arg0->rowCount;
-    start    = arg0->firstRow;
-    occupied = i;
-    if (count != 0) {
-        limit = count;
-        row   = gpItemRowAt(table, start);
+    // Count occupied rows before deciding whether another row is needed.
+    table        = _inventoryGetRangeTable(range);
+    rangeIndex   = 0;
+    rowCount     = range->rowCount;
+    firstRow     = range->firstRow;
+    occupiedRows = 0;
+    if (rowCount != 0) {
+        scanRowCount = rowCount;
+        row          = gpItemRowAt(table, firstRow);
         do {
             if (row->itemId != INVENTORY_ITEM_NONE) {
-                occupied++;
+                occupiedRows++;
             }
-            i++;
+            rangeIndex++;
             row++;
-        } while (i < limit);
+        } while (rangeIndex < scanRowCount);
     }
 
-    capacity = arg0->rowCount;
-    used     = occupied;
-    if (arg1 >= 0x100) {
+    rowCapacity  = range->rowCount;
+    requiredRows = occupiedRows;
+    if (itemId >= INVENTORY_COLLECTION_ITEM_FIRST) {
         return 1;
     }
 
-    if (arg1 >= 0xA0) {
-        found  = 0;
-        start2 = arg0->firstRow;
-        switch (arg0->tableId) {
-            case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-                table2 = Gp_ItemTable2;
-                break;
-            case INVENTORY_ITEM_TABLE_INDIRECT:
-                table2 = Gp_ItemTable1;
-                break;
-            default:
-                table2 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-                break;
+    // The first matching consumable stack decides whether the addition fits.
+    if (itemId >= INVENTORY_CONSUMABLE_ITEM_FIRST) {
+        stackResult   = INVENTORY_STACK_ABSENT;
+        stackFirstRow = range->firstRow;
+        stackTable    = _inventoryGetRangeTable(range);
+        if (quantity < 0) {
+            quantity = Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].packQty;
         }
-        if (arg2 < 0) {
-            arg2 = Gp_StackLimits[arg1 - 0xA0].packQty;
-        }
-        i      = 0;
-        count2 = arg0->rowCount;
-        if (count2 != 0) {
-            stacks   = Gp_StackLimits;
-            idx      = arg1 - 0xA0;
-            stack    = gpStackLimitAt(stacks, idx);
-            stackRow = gpItemRowAt(table2, start2);
+        rangeIndex    = 0;
+        stackRowCount = range->rowCount;
+        if (stackRowCount != 0) {
+            stackCatalogue  = Gp_StackLimits;
+            consumableIndex = itemId - INVENTORY_CONSUMABLE_ITEM_FIRST;
+            stackLimits     = gpStackLimitAt(stackCatalogue, consumableIndex);
+            stackRow        = gpItemRowAt(stackTable, stackFirstRow);
             do {
-                if (stackRow->itemId == arg1) {
-                    found = 2;
-                    if (stack->maxHeld >= stackRow->qty + arg2) {
-                        found = 1;
+                if (stackRow->itemId == itemId) {
+                    stackResult = INVENTORY_STACK_REJECTS_ADD;
+                    if (stackLimits->maxHeld >= stackRow->qty + quantity) {
+                        stackResult = INVENTORY_STACK_ACCEPTS_ADD;
                     }
                     break;
                 }
-                i++;
+                rangeIndex++;
                 stackRow++;
-            } while (i < count2);
+            } while (rangeIndex < stackRowCount);
         }
 
-        if (found == 0) {
-            used++;
+        if (stackResult == INVENTORY_STACK_ABSENT) {
+            requiredRows++;
         }
-        if (found == 2) {
+        if (stackResult == INVENTORY_STACK_REJECTS_ADD) {
             return 0;
         }
     } else {
-        used++;
+        requiredRows++;
     }
-    return used <= capacity;
+    return requiredRows <= rowCapacity;
 }
 
-s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
+s32 inventoryCanAddItem(const InventoryItemRange* range, s32 itemId)
 {
-    InventoryItemRow*         tmp;
-    InventoryItemRow*         table;
-    InventoryItemRow*         row;
-    s32                       i;
-    s32                       occupied;
-    s32                       count;
-    s32                       start;
-    s32                       limit;
-    s32                       used;
-    s32                       found;
-    InventoryItemRow*         table2;
-    InventoryItemRow*         stackRow;
-    s32                       count2;
-    s32                       start2;
-    InventoryConsumableStack* stacks;
-    s32                       idx;
-    InventoryConsumableStack* stack;
-    s32                       capacity;
+    const InventoryItemRow*         table;
+    const InventoryItemRow*         row;
+    s32                             rangeIndex;
+    s32                             occupiedRows;
+    s32                             rowCount;
+    s32                             firstRow;
+    s32                             scanRowCount;
+    s32                             requiredRows;
+    s32                             stackResult;
+    const InventoryItemRow*         stackTable;
+    const InventoryItemRow*         stackRow;
+    s32                             stackRowCount;
+    s32                             stackFirstRow;
+    const InventoryConsumableStack* stackCatalogue;
+    s32                             consumableIndex;
+    const InventoryConsumableStack* stackLimits;
+    s32                             rowCapacity;
 
-    switch (arg0->tableId) {
-        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            tmp = Gp_ItemTable2;
-            break;
-        case INVENTORY_ITEM_TABLE_INDIRECT:
-            tmp = Gp_ItemTable1;
-            break;
-        default:
-            tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-            break;
-    }
-    table    = tmp;
-    i        = 0;
-    count    = arg0->rowCount;
-    start    = arg0->firstRow;
-    occupied = i;
-    if (count != 0) {
-        limit = count;
-        row   = gpItemRowAt(table, start);
+    // Count occupied rows before deciding whether another row is needed.
+    table        = _inventoryGetRangeTable(range);
+    rangeIndex   = 0;
+    rowCount     = range->rowCount;
+    firstRow     = range->firstRow;
+    occupiedRows = 0;
+    if (rowCount != 0) {
+        scanRowCount = rowCount;
+        row          = gpItemRowAt(table, firstRow);
         do {
             if (row->itemId != INVENTORY_ITEM_NONE) {
-                occupied++;
+                occupiedRows++;
             }
-            i++;
+            rangeIndex++;
             row++;
-        } while (i < limit);
+        } while (rangeIndex < scanRowCount);
     }
 
-    capacity = arg0->rowCount;
-    used     = occupied;
-    if (arg1 >= 0x100) {
+    rowCapacity  = range->rowCount;
+    requiredRows = occupiedRows;
+    if (itemId >= INVENTORY_COLLECTION_ITEM_FIRST) {
         return 1;
     }
 
-    if (arg1 >= 0xA0) {
-        found  = 0;
-        start2 = arg0->firstRow;
-        switch (arg0->tableId) {
-            case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-                table2 = Gp_ItemTable2;
-                break;
-            case INVENTORY_ITEM_TABLE_INDIRECT:
-                table2 = Gp_ItemTable1;
-                break;
-            default:
-                table2 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-                break;
-        }
-        i      = 0;
-        count2 = arg0->rowCount;
-        if (count2 != 0) {
-            stacks   = Gp_StackLimits;
-            idx      = arg1 - 0xA0;
-            stack    = gpStackLimitAt(stacks, idx);
-            stackRow = gpItemRowAt(table2, start2);
+    // The first matching consumable stack decides whether the addition fits.
+    if (itemId >= INVENTORY_CONSUMABLE_ITEM_FIRST) {
+        stackResult   = INVENTORY_STACK_ABSENT;
+        stackFirstRow = range->firstRow;
+        stackTable    = _inventoryGetRangeTable(range);
+        rangeIndex    = 0;
+        stackRowCount = range->rowCount;
+        if (stackRowCount != 0) {
+            stackCatalogue  = Gp_StackLimits;
+            consumableIndex = itemId - INVENTORY_CONSUMABLE_ITEM_FIRST;
+            stackLimits     = gpStackLimitAt(stackCatalogue, consumableIndex);
+            stackRow        = gpItemRowAt(stackTable, stackFirstRow);
             do {
-                if (stackRow->itemId == arg1) {
-                    if (stackRow->qty < stack->maxHeld) {
-                        found = 1;
+                if (stackRow->itemId == itemId) {
+                    if (stackRow->qty < stackLimits->maxHeld) {
+                        stackResult = INVENTORY_STACK_ACCEPTS_ADD;
                     } else {
-                        found = 2;
+                        stackResult = INVENTORY_STACK_REJECTS_ADD;
                     }
                     break;
                 }
-                i++;
+                rangeIndex++;
                 stackRow++;
-            } while (i < count2);
+            } while (rangeIndex < stackRowCount);
         }
 
-        if (found == 0) {
-            used++;
+        if (stackResult == INVENTORY_STACK_ABSENT) {
+            requiredRows++;
         }
-        if (found == 2) {
+        if (stackResult == INVENTORY_STACK_REJECTS_ADD) {
             return 0;
         }
     } else {
-        used++;
+        requiredRows++;
     }
-    return used <= capacity;
+    return requiredRows <= rowCapacity;
 }
 
-InventoryItemRow* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
+InventoryItemRow* inventoryPlaceItemAtRow(const InventoryItemRange* range, s32 rowIndex, s32 itemId, s32 quantity)
 {
     InventoryItemRow* table;
-    InventoryItemRow* dest;
-    s32               row;
-    s32               i;
-    s32               item;
-    s32               qty;
+    InventoryItemRow* placedRow;
+    s32               tableIndex;
+    s32               rangeIndex;
+    s32               displacedItemId;
+    s32               displacedQuantity;
 
-    table = _inventoryGetRangeTable(arg0);
-    if ((u32)(arg2 - 0xA0) < 0x20U) {
-        dest = inventoryGiveItem(arg0, arg2, arg3);
-        i    = arg0->firstRow;
-        if (table[i + arg1].itemId == INVENTORY_ITEM_NONE) {
-            row = i;
-            for (i = 0; i < arg0->rowCount; i++, row++) {
-                if (table[row].itemId == arg2) {
-                    if (i == arg1) {
+    /// Moves a stack's id and quantity to an empty row, retaining both attachments.
+    ///
+    /// `destinationIndex` is relative to `itemRange`; `sourceIndex` is absolute
+    /// in its writable `rows` table. The rows must be distinct and in bounds.
+    /// Arguments must be side-effect-free scalars; `result` is a separate row
+    /// pointer lvalue. Rows, range and result are evaluated repeatedly. Use as
+    /// a statement inside braces. This binding is limited to this function.
+#define INVENTORY_RELOCATE_STACK(rows, itemRange, destinationIndex, sourceIndex, incomingId, result)                  \
+    {                                                                                                                 \
+        (result)                                               = &(rows)[(itemRange)->firstRow + (destinationIndex)]; \
+        (result)->itemId                                       = (incomingId);                                        \
+        (rows)[(itemRange)->firstRow + (destinationIndex)].qty = (rows)[(sourceIndex)].qty;                           \
+        (rows)[(sourceIndex)].itemId                           = INVENTORY_ITEM_NONE;                                 \
+        (rows)[(sourceIndex)].qty                              = 0;                                                   \
+    }
+
+    table = _inventoryGetRangeTable(range);
+    if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
+        // Merge first; an empty requested row can then receive the whole stack.
+        placedRow  = inventoryGiveItem(range, itemId, quantity);
+        rangeIndex = range->firstRow;
+        if (table[rangeIndex + rowIndex].itemId == INVENTORY_ITEM_NONE) {
+            tableIndex = rangeIndex;
+            for (rangeIndex = 0; rangeIndex < range->rowCount; rangeIndex++, tableIndex++) {
+                if (table[tableIndex].itemId == itemId) {
+                    if (rangeIndex == rowIndex) {
                         break;
                     }
-                    dest                             = &table[arg0->firstRow + arg1];
-                    dest->itemId                     = arg2;
-                    table[arg0->firstRow + arg1].qty = table[row].qty;
-                    table[row].itemId                = INVENTORY_ITEM_NONE;
-                    table[row].qty                   = 0;
+                    INVENTORY_RELOCATE_STACK(table, range, rowIndex, tableIndex, itemId, placedRow);
                     break;
                 }
             }
         }
     } else {
-        row = arg0->firstRow + arg1;
-        if (table[row].itemId == INVENTORY_ITEM_NONE) {
-            dest         = &table[row];
-            dest->itemId = arg2;
-            dest->qty    = 1;
+        // Replace this row and try to preserve the displaced item elsewhere.
+        tableIndex = range->firstRow + rowIndex;
+        if (table[tableIndex].itemId == INVENTORY_ITEM_NONE) {
+            placedRow         = &table[tableIndex];
+            placedRow->itemId = itemId;
+            placedRow->qty    = 1;
         } else {
-            dest         = &table[row];
-            item         = dest->itemId;
-            qty          = dest->qty;
-            dest->itemId = arg2;
-            dest->qty    = 1;
-            inventoryGiveItem(arg0, item, qty);
+            placedRow         = &table[tableIndex];
+            displacedItemId   = placedRow->itemId;
+            displacedQuantity = placedRow->qty;
+            placedRow->itemId = itemId;
+            placedRow->qty    = 1;
+            inventoryGiveItem(range, displacedItemId, displacedQuantity);
         }
     }
-    return dest;
+    return placedRow;
+#undef INVENTORY_RELOCATE_STACK
 }
 
 InventoryItemRow* inventoryAddItem(const InventoryItemRange* range, s32 itemId, s32 quantity)

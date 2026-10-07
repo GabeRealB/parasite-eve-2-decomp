@@ -31310,34 +31310,34 @@ operand order:
 walker = (GpItemRec*)((start2 << 2) + (s32)table2);
 ```
 
-`addu a2, v0, a2`. `Gp_CanAddItem` is the example.
+`addu a2, v0, a2`. `inventoryCanAddItem` is the example.
 
-The quantity-aware sibling (`Gp_CanAddItemQty`) is the same two walks plus a
-live `arg2`, so every temp shifts one register (`table` `$t0`→`$t1`,
-`occupied` `$a2`→`$a3`, `used` `$t1`→`$t2`). After the second table
-select, `if (arg2 < 0) arg2 = Gp_StackLimits[id-0xA0].field_0` parks the
+The quantity-aware sibling (`_inventoryCanAddItemQuantity`) is the same two walks plus a
+live `quantity`, so every temp shifts one register (`table` `$t0`→`$t1`,
+`occupiedRows` `$a2`→`$a3`, `requiredRows` `$t1`→`$t2`). After the second table
+select, `if (quantity < 0) quantity = Gp_StackLimits[itemId-INVENTORY_CONSUMABLE_ITEM_FIRST].packQty` parks the
 `lui` in the `bgez` delay. The stack check wants
 
 ```
-slt   v1, cap, qty+arg2
+slt   v1, maxHeld, qty+quantity
 bnez  v1, out
- li   found, 2
+ li   stackResult, 2
 j     out
- li   found, 1
+ li   stackResult, 1
 ```
 
-`if (cap < qty + arg2) found = 2; else found = 1;` inverts to `beqz` /
+`if (stackLimits->maxHeld < stackRow->qty + quantity) stackResult = 2; else stackResult = 1;` inverts to `beqz` /
 `li 1` / `j` / `li 2`. Assign the delay-slot default first:
 
 ```c
-found = 2;
-if (cap->field_2 >= walker->qty + arg2) {
-    found = 1;
+stackResult = INVENTORY_STACK_REJECTS_ADD;
+if (stackLimits->maxHeld >= stackRow->qty + quantity) {
+    stackResult = INVENTORY_STACK_ACCEPTS_ADD;
 }
 ```
 
-`Gp_CanAddItem` keeps the inverted `sltu` / `beqz` / `li 2` / `j` / `li 1`
-because it is `if (walker < cap) found = 1; else found = 2`.
+`inventoryCanAddItem` keeps the inverted `sltu` / `beqz` / `li 2` / `j` / `li 1`
+because it is `if (stackRow->qty < stackLimits->maxHeld) stackResult = 1; else stackResult = 2`.
 
 ## Hoist `id << elem_size` and share that temp with the other arm's `$v1`
 
@@ -31607,7 +31607,7 @@ addiu a0, v0, %lo(gMcSaveData+0x1AC)
 `addiu a0, a0` and puts the case-2 hi in that delay slot instead. Leave
 `tmp` unconstrained so GCC uses `$v0` as the address builder; `tmp`
 still lands in `$a0` when the else path indexes it after the range
-check. `Gp_SetScanItem` is the example.
+check. `inventoryPlaceItemAtRow` is the example.
 
 ## Reassign the running pointer before a `qty` store to kill the IV
 
@@ -31626,7 +31626,7 @@ table          = found;
 table->qty     = 0;
 ```
 
-`found->qty = 0` still builds the IV. `Gp_SetScanItem` is the example.
+`found->qty = 0` still builds the IV. `inventoryPlaceItemAtRow` is the example.
 
 ## Occupied-slot `return dest` after a delayed `dest = jal` skips `move v0, s0`
 
@@ -31636,7 +31636,7 @@ shared `move v0, s0` (GCC sees `$v0` is still live). Sibling arms that
 clobbered `$v0` still need that move, so the target shares one label.
 
 `goto` the shared return instead of `return dest` on the occupied arm
-so every path hits `move v0, s0`. `Gp_SetScanItem` is the example.
+so every path hits `move v0, s0`. `inventoryPlaceItemAtRow` is the example.
 
 ## INCLUDE_ASM can hide a second function after the last `jr ra`
 
@@ -143567,7 +143567,7 @@ address is freshly materialized, and no asm remains: scratch `base_11.c` scores
 related constant uses inside those tails and inspect scheduling before the
 shared calls as well as the resulting address lifetimes.
 
-## A copy the fall-through branch keeps but the jump-target branch drops is an inline helper's return (Gp_SetScanItem)
+## A copy the fall-through branch keeps but the jump-target branch drops is an inline helper's return (inventoryPlaceItemAtRow)
 
 **Symptom.** A switch selects a table into `$a0`, the join copies it into a
 callee-saved `$s1`, the fall-through branch (which makes a call) uses only

@@ -742,7 +742,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 if (Gp_SumScanQty(scan, 0x94) != 0) {
                     if (item == 0xA) {
                         arg1->status = 0x1A;
-                    } else if (Gp_CanAddItem(scan, 0xA) != 0) {
+                    } else if (inventoryCanAddItem(scan, 0xA) != 0) {
                         bonus = 0xA;
                     } else {
                         arg1->status = 0x1B;
@@ -1281,7 +1281,7 @@ void Gp_PickupTask(Task* arg0)
             if (spawned != NULL) {
                 spawned->resultValue = 0x33;
             }
-        } else if (Gp_CanAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_PubItemLoc) != 0) {
+        } else if (inventoryCanAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_PubItemLoc) != 0) {
             one = 1;
             uiSpawnObject(desc + 1, 0, one, one, obj);
         } else {
@@ -1465,7 +1465,7 @@ void Gp_PickupAskTask(Task* arg0)
                     if (childObj->resultValue == 0x33) {
                         if (Gp_PubItemLoc < 0xC0U) {
                             scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                            if (Gp_CanAddItem(scan, Gp_PubItemLoc) != 0) {
+                            if (inventoryCanAddItem(scan, Gp_PubItemLoc) != 0) {
                                 inventoryGiveItem(scan, Gp_PubItemLoc, Gp_PubItemQty);
                             } else {
                                 childObj->resultValue = 0x34;

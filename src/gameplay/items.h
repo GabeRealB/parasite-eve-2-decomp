@@ -248,10 +248,20 @@ extern u8 Gp_ItemSortKeyA0[];
 /// addresses but may refer to different items afterwards. `unused` is ignored.
 void inventorySortItems(const InventoryItemRange* range, s32 unused);
 
-/// Writes item `arg2` into scan slot `arg1`. Ids `0xA0..0xBF` are added with
-/// `inventoryGiveItem` first, then an existing stack is moved onto the slot when
-/// it is empty. Other ids overwrite the slot (re-adding the previous item).
-InventoryItemRow* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Adds an item for a row transfer, using the requested position when possible.
+///
+/// Consumables (0xA0..0xBF) use `inventoryGiveItem`'s quantity and capacity
+/// rules. If the requested row is empty, their first stack moves there in full;
+/// an occupied requested row stays intact and the returned stack can be elsewhere.
+/// Other ids replace the requested row with quantity one, ignoring `quantity`,
+/// and attempt to re-add its displaced item. A failed re-add loses that item.
+/// Zero is allowed to leave an empty row. Attachments are left in their original
+/// rows, including a relocated stack's vacated row; callers restore them for swaps.
+/// `rowIndex` must be 0..rowCount-1, `itemId` a one-byte row id, and the range
+/// must fit writable backing storage. No index check is performed. The descriptor
+/// is unchanged. The result borrows its table, or is NULL if a consumable could
+/// not be added; sorting or later transfers can replace its item.
+InventoryItemRow* inventoryPlaceItemAtRow(const InventoryItemRange* range, s32 rowIndex, s32 itemId, s32 quantity);
 
 /// Returns the zero-based matching weapon id from the selected table.
 ///

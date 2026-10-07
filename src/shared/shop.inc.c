@@ -849,7 +849,7 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
         scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         if (cfg->bp >= price) {
-            if (Gp_CanAddItem(scan, itemId) == 0) {
+            if (inventoryCanAddItem(scan, itemId) == 0) {
                 if ((u32)(itemId - 0xA0) < 0x20U && Gp_SumScanQty(scan, itemId) != 0) {
                     uiSpawnObject(&Shop_Data_80181BA0, 2, 1, 1, obj);
                 } else {
