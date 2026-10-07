@@ -1,11 +1,10 @@
-/* A small collision grid (4 faces, 8 corners) that follows a character's
- * model. The room's handler takes task slot 0xA, falling back to the player
- * (slot 3), and rebuilds the live grid from its pristine copy under that
- * model's root coordinate. When a game-flag nibble says the obstacle is
- * inactive, it pushes the grid 10000 units up and out of reach.
+/* Included room-local actor-following collision obstacle.
  *
- * Include this header in the prologue and each fragment at its function's
- * position.
+ * Include this header in the prologue and the rebuild fragment at its original
+ * function position. Each carrier supplies gFollowCollisionSource and
+ * gFollowCollisionGrid before including the fragment: the former holds the
+ * obstacle's local geometry, the latter the room grid whose leading entries
+ * reserve space for that obstacle.
  */
 
 #ifndef SRC_SHARED_FOLLOW_COLLISION_H
@@ -14,10 +13,8 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
-
 #include "main/coord.h"
 
-void followCollisionRebuild(GfxCoord* coord, SVECTOR* offset);
+static void _followCollisionRebuildObstacle(const GfxCoord* modelRoot, const SVECTOR* roomOffset);
 
 #endif /* SRC_SHARED_FOLLOW_COLLISION_H */

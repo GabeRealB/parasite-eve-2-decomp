@@ -684,7 +684,7 @@ void func_shelter_1f_heliport_801802AC(s32 arg0)
     } else {
         D_shelter_1f_heliport_80181204.vy = 0x2710;
     }
-    followCollisionRebuild(task->extra.tmd->coords, &D_shelter_1f_heliport_80181204);
+    _followCollisionRebuildObstacle(task->extra.tmd->coords, &D_shelter_1f_heliport_80181204);
 }
 
 s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, s32 arg3)

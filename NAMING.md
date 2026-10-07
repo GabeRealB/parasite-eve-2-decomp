@@ -587,6 +587,14 @@ package prefixes.
 tasks. Its implementation interface is `src/shared/room_events.h`; record types
 used by several room overlays are declared in `include/rooms/room_common.h`.
 
+`followCollision` owns the included actor-following obstacle rebuild in
+`src/shared/follow_collision_rebuild.inc.c`. Its private implementation interface
+is `src/shared/follow_collision.h`; each room keeps a static instance marked `_`.
+Carriers supply the local obstacle source and the room grid containing its
+reserved leading faces, normals and vertices. The rebuild applies the model
+root's local-to-room matrix and an optional room-axis offset without rebuilding
+the grid's cell lists. Geometry counts use `FOLLOW_COLLISION_OBSTACLE_`.
+
 `roomCutscene` owns the included room cutscene runner and its timed sound task.
 Its implementation interface is `src/shared/room_cutscene.h`; rooms supply the
 cutscene record, task descriptors and running sound-task handle. The sound

@@ -186,5 +186,5 @@ Shop_Data_8017D6DC = 0x8017D6DC;
 Shop_Data_8017D6E4 = 0x8017D6E4;
 Shop_Data_8017D6EC = 0x8017D6EC;
 roomEventStagedTask = 0x8017FF08; // type:func
-followCollisionRebuild = 0x8018085C; // type:func
+_followCollisionRebuildObstacle = 0x8018085C; // type:func
 capDialogueLoopTask = 0x80180594; // type:func

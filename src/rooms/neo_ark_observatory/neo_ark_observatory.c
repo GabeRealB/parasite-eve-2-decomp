@@ -1740,7 +1740,7 @@ void func_neo_ark_observatory_8017FA98(s32 arg0)
     } else {
         D_neo_ark_observatory_80181368.vy = 0x2710;
     }
-    followCollisionRebuild(task->extra.tmd->coords, &D_neo_ark_observatory_80181368);
+    _followCollisionRebuildObstacle(task->extra.tmd->coords, &D_neo_ark_observatory_80181368);
 }
 
 void func_neo_ark_observatory_8017FB1C(Task* task)
