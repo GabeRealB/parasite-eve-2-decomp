@@ -153712,3 +153712,37 @@ a per-object comparison against a snapshot reports "0 objects changed" for an
 edit that was never compiled. Run the unscoped build before trusting object
 comparisons again (`ninja -t query <obj>` shows an empty node when the graph is
 scoped).
+
+## Bank-extension storage as its real objects: the 32-word copy's overrun is stated, not modelled (actor_450900, 2026-10-07)
+
+Supersedes, for `actor_450900`, the two 2026-10-07 entries above that kept the
+`_...AnimationBankExtensionStorage` union and its `__asm__("D_x+100")` alias.
+CLAUDE.md's in-bounds rule now exempts an access past an object whose
+boundaries are certain, and here they are, without using the copy as evidence:
+
+| Offset | Object | Established by |
+|---|---|---|
+| +0 | `AnimationSet*[10]` | ten set pointers; the player's copy request points at +0, the companion's at +40 |
+| +40 | `AnimationSet*[6]` | six set pointers, then a word that is not one (a pointer back into this data) |
+| +64, +72 | two `AnimationBankCopyRequest` | `{pointer, 32}` each; both addresses are named by scripts and code |
+| +80 ... | `AnimationPlayRequest` records | `{1, id, blend, frames, collision}`, 20 bytes each, continuing past +180 into the records the file already declared one by one; +100 and +120 are named |
+
+Declared consecutively in that order the image is identical, and the code
+matches with no alias: `&Actor450900AllyAnim` and `&D_..._80135F00` are two
+symbols, so GCC forms each address afresh, which is what the alias was
+imitating. The copy requests name the set array (`{ { .sets = D_x },
+ANIMATION_BANK_EXTENSION_CAPACITY }`; `AnimationSet**` converts to the
+`AnimationSet* const*` member with no cast), and the doc comment on each set
+array says how many words past its end the copy reads and through which
+objects.
+
+What the bytes do not decide: whether neighbouring play requests that nothing
+addresses were one array or several scalars. It changes no byte and no access,
+so the file's existing convention is kept - an addressed record is its own
+object, an unaddressed run is an array.
+
+`tools/asm-differ/diff.py` cannot be run from the repository root for an
+overlay function (its settings name the scratch environment's `target.bin` /
+`source.bin`); for a data-layout change, `cmp build/USA/out/<pkg>
+assets/USA/pe2pkg/<pkg>.pe2pkg` plus `objdump -dr` on the object for the
+relocation symbols is the check.

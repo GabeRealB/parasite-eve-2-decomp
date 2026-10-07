@@ -35,48 +35,6 @@
 
 #include "rooms/shelter_b6_growth_room.h"
 
-/// The clips the scene adds to the player's and the companion's animation
-/// banks, with both copy requests and the first companion play requests stored
-/// after them.
-///
-/// The package's event scripts and its two periodic reaction handlers send a
-/// receiver its copy request before they play any of these clips on it. Each
-/// copy takes `ANIMATION_BANK_EXTENSION_CAPACITY` words, which is more than
-/// either clip table holds. The player's starts at the first word of the
-/// storage: its ten clips occupy extended ids 47-56, and the companion's six
-/// clips, both copy requests and the first twelve words of the play requests
-/// are written into the player's bank after them. The companion's starts at the
-/// companion's own clips, which occupy extended ids 47-52 of its bank, and runs
-/// on through both copy requests and the first 22 words of the play requests,
-/// stopping three words short of the end of the storage. The requests that are
-/// played select ids 51 and 53-56 on the player and ids 47, 48, 51 and 52 on
-/// the companion, so none of the words following either table is played as a
-/// clip.
-///
-/// The play requests are the first five of the run of requests the package
-/// keeps for the companion and are part of this object only because the copied
-/// spans reach over them; the rest of the run follows as separate objects. The
-/// companion's periodic handler fills in the bank index of the request it plays
-/// in place, so the storage is written as well as read.
-typedef union {
-    struct {
-        AnimationSet*            playerSets[10];           // Player clips for extended ids 47-56
-        AnimationSet*            companionSets[6];         // Companion clips for extended ids 47-52 of the companion's bank
-        AnimationBankCopyRequest companionCopy;            // Installs the 32 words from `companionSets` on in the companion's bank extension
-        AnimationBankCopyRequest playerCopy;               // Installs the first 32 words of this storage in the player's bank extension
-        AnimationPlayRequest     companionPlayRequests[5]; // Requests for the companion's extended ids 47, 47, 48, 49 and 50; only the second and third are referenced
-    } data;                                                // The records by name
-    s32 words[45];                                         // The same storage as the copies read it
-} _Actor450900AnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_Actor450900AnimationBankExtensionStorage, 180);
-STATIC_ASSERT(OFFSET_OF(_Actor450900AnimationBankExtensionStorage, data.companionPlayRequests[1]) == 100, actor450900_ally_anim_offset);
-
-extern _Actor450900AnimationBankExtensionStorage D_actor_450900_80135EC0;
-
-// This record has an independently materialized address in the caller.
-// The symbol view shares the union backing; it allocates no extra storage.
-extern AnimationPlayRequest Actor450900AllyAnim __asm__("D_actor_450900_80135EC0+100");
-
 extern s32                  D_map_neo_ark_8017A99C;
 extern s8                   D_actor_450900_80135E70;
 extern s32                  D_actor_450900_80135E74;
@@ -515,7 +473,50 @@ TaskDesc D_actor_450900_80135E78[6] = {
     { { { TASK_BODY_NONE, 97 } }, _actor450900HeadAimTask, { .value = 0 } },
 };
 
-_Actor450900AnimationBankExtensionStorage D_actor_450900_80135EC0 = { .data = { { &_gActor450900Animation020EC, &_gActor450900Animation02428, &_gActor450900Animation025F0, &_gActor450900Animation02A30, &_gActor450900Animation030F4, &_gActor450900Animation04028, &_gActor450900Animation03338, &_gActor450900Animation03738, &_gActor450900Animation03934, &_gActor450900Animation03C70 }, { &_gActor450900Animation00F80, &_gActor450900Animation012D8, &_gActor450900Animation0176C, &_gActor450900Animation01934, &_gActor450900Animation01B50, &_gActor450900Animation01D04 }, { { .words = &D_actor_450900_80135EC0.words[ARRAY_SIZE(D_actor_450900_80135EC0.data.playerSets)] }, ANIMATION_BANK_EXTENSION_CAPACITY }, { { .words = D_actor_450900_80135EC0.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
+/// Player clips for extended ids 47-56.
+///
+/// The package's event scripts and its two periodic reaction handlers send a
+/// receiver its copy request before they play any of the clips below on it.
+/// `D_actor_450900_80135F08` copies `ANIMATION_BANK_EXTENSION_CAPACITY` (32)
+/// words starting here into the player's bank, which is 22 words past the end
+/// of this array: the read runs on through `D_actor_450900_80135EE8`, both copy
+/// requests, `D_actor_450900_80135F10`, `Actor450900AllyAnim` and the first two
+/// words of `D_actor_450900_80135F38`. That overrun is the original's and is
+/// kept as it is. The requests played on the player select ids 51 and 53-56, so
+/// none of the words installed after the ten clips is played as one.
+AnimationSet* D_actor_450900_80135EC0[10] = { &_gActor450900Animation020EC, &_gActor450900Animation02428, &_gActor450900Animation025F0, &_gActor450900Animation02A30, &_gActor450900Animation030F4, &_gActor450900Animation04028, &_gActor450900Animation03338, &_gActor450900Animation03738, &_gActor450900Animation03934, &_gActor450900Animation03C70 };
+
+/// Companion clips for extended ids 47-52 of the companion's bank.
+///
+/// `D_actor_450900_80135F00` copies `ANIMATION_BANK_EXTENSION_CAPACITY` (32)
+/// words starting here into the companion's bank, which is 26 words past the
+/// end of this array: the read runs on through both copy requests,
+/// `D_actor_450900_80135F10`, `Actor450900AllyAnim`, `D_actor_450900_80135F38`
+/// and the first seven words of `D_actor_450900_80135F4C`. That overrun is the
+/// original's and is kept as it is. The requests played on the companion select
+/// ids 47, 48, 51 and 52, so none of the words installed after the six clips is
+/// played as one.
+AnimationSet* D_actor_450900_80135EE8[6] = { &_gActor450900Animation00F80, &_gActor450900Animation012D8, &_gActor450900Animation0176C, &_gActor450900Animation01934, &_gActor450900Animation01B50, &_gActor450900Animation01D04 };
+
+// Installs the companion's clips; the count is the bank's capacity, not the six entries of its source.
+AnimationBankCopyRequest D_actor_450900_80135F00 = { { .sets = D_actor_450900_80135EE8 }, ANIMATION_BANK_EXTENSION_CAPACITY };
+
+// Installs the player's clips; the count is the bank's capacity, not the ten entries of its source.
+AnimationBankCopyRequest D_actor_450900_80135F08 = { { .sets = D_actor_450900_80135EC0 }, ANIMATION_BANK_EXTENSION_CAPACITY };
+
+// Requests for the companion's extended ids start here. This one is not referenced.
+AnimationPlayRequest D_actor_450900_80135F10 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+// The companion's periodic handler fills in the bank index in place before playing it.
+AnimationPlayRequest Actor450900AllyAnim = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_actor_450900_80135F38 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+
+// Not referenced.
+AnimationPlayRequest D_actor_450900_80135F4C[2] = {
+    { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+};
 
 AnimationPlayRequest D_actor_450900_80135F74 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -556,8 +557,8 @@ ActorTransform D_actor_450900_801360E0 = { { 3300, 0, 6378, 0 }, { 0, 2048, 0, 0
 ActorTransform D_actor_450900_801360F8 = { { 750, 0, 3710, 0 }, { 0, -1024, 0, 0 } };
 
 EvsCommand D_actor_450900_80136110[21] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135EC0.data.playerCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135EC0.data.companionCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135F08 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135F00 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450900_801360F8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b6_growth_room_8017D82C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -601,8 +602,8 @@ ActorTransform D_actor_450900_80136458 = { { 0, 0, 0, 0 }, { 0, -1024, 0, 0 } };
 EvsCommand D_actor_450900_80136470[22] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450900_801360C8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135EC0.data.playerCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135EC0.data.companionCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135F08 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135F00 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450900PreparePlayerFacingCompanion }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_450900_80136458 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -635,7 +636,7 @@ EvsCommand D_actor_450900_80136680[22] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450900_80136064 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450900_80135EC0.data.companionPlayRequests[2] }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450900_80135F38 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450900PlayCompanionVoice }, { .value = ACTOR_450900_COMPANION_VOICE_FIXED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450900_801360B4 }, { .value = 0 } },
@@ -652,8 +653,8 @@ EvsCommand D_actor_450900_80136890[26] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b6_growth_room_8017D82C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor450900SetActorControl }, { .value = SCENE_COMBAT_ACTORS_PAUSED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135EC0.data.playerCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135EC0.data.companionCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135F08 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135F00 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450900PreparePlayerFacingCompanion }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_450900_80136458 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -678,7 +679,7 @@ EvsCommand D_actor_450900_80136890[26] = {
 };
 
 EvsCommand D_actor_450900_80136B00[9] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135EC0.data.playerCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135F08 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450900_80136028 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -767,7 +768,7 @@ static void _actor450900CompanionDistressTask(Task* task)
                         sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_2, pan, depth);
                     }
                     companionWriteAnimationBankIndex(&Actor450900AllyAnim.source.index);
-                    TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.companionCopy, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135F00, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &Actor450900AllyAnim, 0);
                     taskMessageDispatch(companionTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, ACTOR_450900_DISTRESS_ATTACK_KEY, 0);
                 } else if (distressTicks % ACTOR_450900_REACTION_PERIOD_TICKS == ACTOR_450900_DISTRESS_IDLE_DELAY_TICKS) {
@@ -818,7 +819,7 @@ static void _actor450900PlayerReactionTask(Task* task)
                     } else {
                         sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_PLAYER_VOICE_2, pan, depth);
                     }
-                    TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.playerCopy, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135F08, 0);
                     playerActorWriteWeaponAnimationBankIndex(&D_actor_450900_80135FEC.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_PLAY, &D_actor_450900_80135FEC, 0);
                 } else if ((D_map_neo_ark_8017A99C - ACTOR_450900_PLAYER_REACTION_START_TICKS) % ACTOR_450900_REACTION_PERIOD_TICKS == ACTOR_450900_PLAYER_RESPONSE_TICKS) {
