@@ -167,7 +167,6 @@ void func_800C5F70(Task* arg0)
     s32              saved;
     ArmorStats*      attr;
     u8**             names;
-    u8*              text;
     WeaponAttackRow* rec;
     WeaponAttackRow* recBase;
     s32              idx;
@@ -180,8 +179,6 @@ void func_800C5F70(Task* arg0)
     s32              spriteI;
     s32              baseY;
     s32              spriteMode;
-    const ItemDesc*  descBase;
-    const ItemDesc*  desc;
 
     ready = 0;
     flags = ready;
@@ -392,22 +389,24 @@ void func_800C5F70(Task* arg0)
                 req30.drawMode   = TEXT_DRAW_OUTLINED;
                 textDrawString(&req30, Gp_StrOperation);
             } else if ((u32)(item - 0x60) < 0x20U) {
-                attr      = &Gp_ModStatAttrs[(item)-0x60];
-                featCount = 0;
-                altColor  = 0x808008;
-                x         = 2;
-                text      = Gp_StrAddHp;
-                SOFT_TOUCH_REG_USE(text, attr);
-                flags            = (u32)attr->features;
-                y                = obj->panel.contentTop.signedValue + 0x1E;
-                req30.x          = obj->panel.contentOriginX.unsignedValue + x;
-                req30.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
-                req30.otIndex    = obj->panel.otIndex.signedValue + 1;
-                req30.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+                attr          = &Gp_ModStatAttrs[(item)-0x60];
+                featCount     = 0;
+                altColor      = 0x808008;
+                x             = 2;
+                flags         = (u32)attr->features;
+                y             = obj->panel.contentTop.signedValue + 0x1E;
+                req30.x       = obj->panel.contentOriginX.unsignedValue + x;
+                req30.y       = obj->panel.contentOriginY.unsignedValue + (y - 2);
+                req30.otIndex = obj->panel.otIndex.signedValue + 1;
+                // The colour is stored before the glyph table. The image has
+                // the two stores the other way round (sched2 puts them back),
+                // so their source order is known only from where the label's
+                // address lands: after the `attr` address, not before it.
                 req30.colorRgb   = 0x606060;
+                req30.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                 req30.alignment  = TEXT_ALIGNMENT_LEFT;
                 req30.drawMode   = TEXT_DRAW_OUTLINED;
-                textDrawString(&req30, text);
+                textDrawString(&req30, Gp_StrAddHp);
                 if (attr->hpBonus == 0) {
                     req60.x          = obj->panel.contentOriginX.unsignedValue + 0x78;
                     req60.y          = obj->panel.contentOriginY.unsignedValue + y;
@@ -518,17 +517,18 @@ void func_800C5F70(Task* arg0)
             } else {
                 idx = item - 0xA0;
                 if ((u32)idx < 0x20U) {
-                    descBase = Gp_ItemDescs;
-                    desc     = descBase + item;
-                    TOUCH_REG(desc);
-                    caliber          = desc->classification & ITEM_SUBTYPE_MASK;
-                    baseY            = obj->panel.contentTop.signedValue;
-                    reqB0.x          = obj->panel.contentOriginX.unsignedValue + 2;
-                    reqB0.y          = obj->panel.contentOriginY.unsignedValue + baseY + 0x1C;
-                    reqB0.otIndex    = obj->panel.otIndex.signedValue + 1;
-                    reqB0.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+                    caliber       = Gp_ItemDescs[item].classification & ITEM_SUBTYPE_MASK;
+                    baseY         = obj->panel.contentTop.signedValue;
+                    reqB0.x       = obj->panel.contentOriginX.unsignedValue + 2;
+                    reqB0.y       = obj->panel.contentOriginY.unsignedValue + baseY + 0x1C;
+                    reqB0.otIndex = obj->panel.otIndex.signedValue + 1;
+                    // As in the armor panel's first label: the colour store
+                    // comes before the glyph table's, which is what leaves the
+                    // colour's `lui` below the descriptor address. The image
+                    // itself has the two stores in the other order.
                     textColor        = 0x606060;
                     reqB0.colorRgb   = textColor;
+                    reqB0.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                     reqB0.alignment  = TEXT_ALIGNMENT_LEFT;
                     reqB0.drawMode   = TEXT_DRAW_OUTLINED;
                     textDrawString(&reqB0, Gp_CaliberNameTbl[caliber]);

@@ -66862,6 +66862,12 @@ quantity's allocation and reached 100% without hard-register pins. An earlier
 reused text-color local. The eligible unpinned variant was also run through the
 permuter before the final manual register fix.
 
+*Note 2026-10-07:* the base and record locals and the fence are gone. An rvalue
+`Gp_ItemDescs[item].classification` already loads the base before the index
+(only `&table[i]` scales the index first), and the colour's `lui` is fixed by
+the order of two stores. See the section at the end of this file named
+`func_800C5F70`.
+
 
 ## `worldCollisionTestOccluderSegment`: remove pins, reuse the loop counter, preserve the scratch copy
 
@@ -148780,12 +148786,20 @@ address add is placed directly in front of the load that reads it.
   the result's register (`lui v0; sll v1; addu v0,v1,v0` for `lui v1; sll v0;
   addu v0,v0,v1`). Needed: the add's result in a pseudo set twice, with the
   base in another.
+  *Note 2026-10-07:* now none. The add is launched and the `lui` is a
+  leftover, as said, but a leftover is also taken whenever a load stall leaves
+  nothing else ready, and the store order decides who gets that slot. See the
+  section at the end of this file with this function's name.
 - `func_800C5F70`, `SOFT_TOUCH_REG_USE(text, attr)`: `a1 = &Gp_StrAddHp` is the
   highest-LUID leftover. `flags = attr->features` is a load, wins the first
   leftover slot on hazard and launches the `attr` add, so `a1` ends above the
   add with `a0`. The target has it between the add and the load; the asm does
   that by making the `a1` set a second dependent of the add. Four statement
   orders give identical code.
+  *Note 2026-10-07:* now none, by the same store order. `a1` does not have to
+  reach `.lreg` between the add and the load: anywhere below the add will do,
+  because sched2 has no launches and puts it back. See the section at the end
+  of this file with this function's name.
 - `func_800E5578`, the two asms in the `-2` handler: reload hands out
   `t9,t3,t4` in insn order, so the block must reach reload as `lineIdx + 1`,
   `next = body + off`, `lbu layout->vertical`. `next` is single-set and live, so
@@ -152773,3 +152787,76 @@ of five asm statements and one fake loop.
 for both a cse result and a schedule, check whether cse2 is the pass that still
 gets through (`-dt`). If it is, only a label explains the image, and a branch
 on a register with identical arms is the smallest source that leaves one.
+
+## A leftover is scheduled in the first load stall with nothing else ready; the order of two constant stores decides which one (func_800C5F70, 2026-10-07)
+
+**Was.** Two barriers in the item-specs panel. `SOFT_TOUCH_REG_USE(text, attr)`
+held `lui a1 / addiu a1` (the first label's string) between the `attr` address
+and `lw flags`; `TOUCH_REG(desc)` held `textColor`'s `lui` below the descriptor
+address. Around them: a `text` local for the string and `descBase` / `desc`
+locals for the table row. Both sites were recorded as unreachable ("needs a
+second dependent of the add", "needs the add in a pseudo set twice").
+
+**The target state, restated.** Both are the same shape: a launched address
+chain (`sll`, `lui`, `addiu`, `addu`, pulled up by the load that reads through
+it) sitting *above* a priority-1 leftover (`a1 = &string`; the `lui` half of a
+32-bit constant). Leftovers are normally taken last in the backward pass and so
+end at the top of the block, above every launched chain. The earlier analysis
+stopped there. But it only has to hold at `.lreg` that the leftover is *below*
+the add, anywhere: sched2 has no launching (`birthing_insn_p` returns 0 after
+reload), every insn of that group has priority 1 there, and they come out in
+`.lreg` order with the loads and spill stores sunk under them. So `a1` in the
+middle of the block at `.lreg` is the image's `addu s0 / lui a1 / addiu a1 /
+sw / sw / lw s8`.
+
+**How a leftover gets below a chain.** In sched1's backward pass a leftover is
+taken as soon as the ready list holds nothing of higher priority, and that
+happens once per load whose consumer was just scheduled and which is itself
+queued for a cycle, *unless* a launched insn is ready to fill the cycle. A text
+request ends
+
+```c
+req.otIndex    = obj->panel.otIndex.signedValue + 1;   /* lh; addiu; sw */
+req.glyphTable = TEXT_GLYPH_TABLE_SMALL;               /* li 5; sb      */
+req.colorRgb   = 0x606060;                             /* sw            */
+req.alignment  = ...;  req.drawMode = ...;
+```
+
+The stores are taken last-written first. With `glyphTable` written before
+`colorRgb`, the glyph store is the last of them, its `li 5` (single-set, so
+launched) becomes ready exactly when the `lh otIndex` stalls, and fills the
+cycle. With `colorRgb` written first, `li 5` is already placed, the stall has
+nothing launched to take, and the highest-LUID leftover goes there: the
+string's `a1` at the armor label, the constant's `ori` at the ammunition label
+(whose `lui` then gets the next stall, at `lhu originY`, instead of waiting for
+the top). sched2 moves the two stores back into the image's order, so the
+image does not show which was written first; the leftover's position does.
+
+**Fix.** `req.colorRgb` before `req.glyphTable` in those two requests, nothing
+else. The `text` local is a literal at the call, and the descriptor is
+`Gp_ItemDescs[item].classification & ITEM_SUBTYPE_MASK` with no locals: an
+rvalue `table[i].field` forces the table's address before it scales the index
+(`lui; addiu; sll; addu`), which is what `descBase` had been imitating;
+`&table[i]` is pointer arithmetic and scales first (`sll; lui; addiu; addu`, the
+armor row's `attr`).
+
+**What is fitted.** The order of the two stores, at both sites; commented
+there. Nothing else replaced the two asm statements, and three locals went.
+
+**Checked and not it.** A `text` variable reassigned per row (combine merges
+it into the `a1` set either way), `desc =
+descBase; desc += item` (combine merges the copy and the pseudo is single-set
+again), an `if`/`else` with identical arms around the descriptor add (the
+boundary works, but the duplicated arm gives `item` one more reference, which
+lifts it past another pseudo in global-alloc's order and swaps `$s6`/`$s7`),
+the same around `textColor = K` (identical to the code with no branch: two
+equal register sets do not leave a boundary).
+`recBase` / `recIndex` / `rec` in the same block are still needed as written:
+`&Gp_IdParamLo[item - 0x9F]` and the rvalue forms scale the index first or fold
+the bias into the symbol.
+
+**Use.** When a barrier only keeps a constant, a string address or an argument
+register below an address chain, read sched1's trace for the block (`-dS`, the
+`;; ready list at T-n` lines of the `.sched` dump) and look for `blocking insn N for 1 cycles, now <launched insn>`:
+the launched insn that fills the stall is a store's constant, and writing that
+store earlier or later frees the cycle for the leftover.
