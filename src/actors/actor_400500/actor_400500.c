@@ -1896,7 +1896,6 @@ static void func_actor_400500_80132C54(Task* arg0)
 {
     _Actor400500GrayStalkerWork* work;
     GfxMatrix                    rot;
-    GfxMatrix*                   src;
     GfxCoord*                    coord;
     s32                          tx;
 
@@ -1938,16 +1937,10 @@ static void func_actor_400500_80132C54(Task* arg0)
             coord->coord.t[2] = tx;
             break;
     }
-    tx                        = ONE;
-    src                       = &rot;
-    rot.rotationWords.m00M01  = tx;
-    src->rotationWords.m02M10 = 0;
-    src->rotationWords.m11M12 = tx;
-    src->rotationWords.m20M21 = 0;
-    src->rotationWords.m22    = tx;
-    RotMatrixZ(work->roll, &src->mat);
-    RotMatrixY(work->yaw, &src->mat);
-    _actor400500CopyRotation(&src->mat, &coord->coord);
+    gfxSetRotIdentity(&rot.mat);
+    RotMatrixZ(work->roll, &rot.mat);
+    RotMatrixY(work->yaw, &rot.mat);
+    _actor400500CopyRotation(&rot.mat, &coord->coord);
     func_actor_400500_8013DBCC(arg0, 0xB, &work->anchorPos);
 }
 
