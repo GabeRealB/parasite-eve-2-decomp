@@ -1901,14 +1901,7 @@ void worldCoordPlayerLightingTask(Task* task)
 /// RGB values are signed Q12 intensities; no coordinate or scratch state is used.
 static s32 _worldCoordScoreDirectionalLightOutOfLine(WorldCoordLight* light)
 {
-    s16 viewId;
-
-    viewId = light->transform.lighting.viewId;
-    if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
-        return 0;
-    }
-    light->transform.lighting.attenuation = ONE;
-    return ((light->color.r * WORLD_COORDINATE_LIGHT_SCORE_RED_WEIGHT + light->color.g * WORLD_COORDINATE_LIGHT_SCORE_GREEN_WEIGHT + light->color.b * WORLD_COORDINATE_LIGHT_SCORE_BLUE_WEIGHT) >> WORLD_COORDINATE_LIGHT_SCORE_RGB_SHIFT) + WORLD_COORDINATE_LIGHT_SCORE_BASE;
+    return _worldCoordScoreDirectionalLight(light);
 }
 
 /// Returns a coordinate's cached local-origin X in its composition-root frame.
