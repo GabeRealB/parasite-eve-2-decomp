@@ -682,7 +682,6 @@ void func_actor_342000_801628C8(Task* arg0)
 {
     _Actor342000GluttonModelWork* work;
     _Actor342000GluttonModelWork* data;
-    GfxMatrix*                    mtx;
     s32*                          ang;
     TmdObject*                    extra;
     VECTOR                        pos;
@@ -696,17 +695,12 @@ void func_actor_342000_801628C8(Task* arg0)
             arg0->state += 1;
             return;
         case 1:
-            mtx                       = (GfxMatrix*)&work->coord.coord;
-            mtx->rotationWords.m00M01 = ONE;
-            mtx->rotationWords.m02M10 = 0;
-            mtx->rotationWords.m11M12 = ONE;
-            mtx->rotationWords.m20M21 = 0;
-            mtx->rotationWords.m22    = ONE;
+            gfxSetRotIdentity(&work->coord.coord);
             ang                       = work->rotation;
-            gfxRotMatrixY(&mtx->mat, ang[1], 1);
-            gfxRotMatrixX(&mtx->mat, ang[0], GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixZ(&mtx->mat, ang[2], GRAPHICS_ROTATION_COMPOSE);
-            gfxScaleMatrixColumns(&mtx->mat, &work->scale);
+            gfxRotMatrixY(&work->coord.coord, ang[1], 1);
+            gfxRotMatrixX(&work->coord.coord, ang[0], GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixZ(&work->coord.coord, ang[2], GRAPHICS_ROTATION_COMPOSE);
+            gfxScaleMatrixColumns(&work->coord.coord, &work->scale);
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             /* fallthrough */
         default:
