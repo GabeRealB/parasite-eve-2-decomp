@@ -464,7 +464,14 @@ void itemMenuDrawEquipmentMarker(const UiObject* object, s32 x, s32 y, s32 itemI
 /// initialized display values, menu/text textures and writable GPU storage.
 void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset);
 
-void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Draws the equipped weapon and its available consumable-load rows.
+///
+/// x/rowY are content-relative pixels at the weapon row's baseline. The live
+/// weapon selector must be 0..32. Empty slots retain their row, quantities are
+/// drawn only for nonempty loads, and the Tonfa Baton has no load rows.
+/// object is borrowed unchanged; menu textures, text and writable GPU storage
+/// must be ready. unused is ignored by this drawing routine.
+void itemMenuDrawWeaponSummary(const UiObject* object, s32 x, s32 rowY, s32 unused);
 
 void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1);
 
@@ -472,7 +479,14 @@ void Gp_StatusPanelTask(Task* arg0);
 
 void Gp_HpMpBarTask(Task* arg0);
 
-void Gp_ArmorStatsPanelTask(Task* arg0);
+/// Draws the equipped armour's HP/MP bonuses and attachment-slot overview.
+///
+/// task->spawnArg2 supplies the live UiObject. The armour selector must be
+/// 0..32; zero draws only the title and separator. Up to ten attachment slots
+/// are shown five per line, using the first carried row at each stored slot
+/// without checking its quantity. The carried range must fit its item table.
+/// Clears the object's result each frame; requires menu textures and GPU space.
+void itemMenuArmorSummaryTask(Task* task);
 
 /// Draws the menu's four-element, three-ability Parasite Energy summary.
 ///
@@ -498,7 +512,16 @@ void Gp_ItemDestCursorTask(Task* arg0);
 
 void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj);
 
-void Gp_WeaponMenuTask(Task* arg0);
+/// Updates the equipped-weapon and load-slot pane of the item destination menu.
+///
+/// task->spawnArg2 supplies the live UiObject, with an inventory-pane parent.
+/// State zero initializes the shared list; every frame refreshes available rows.
+/// Right transfers focus at the cursor's screen Y, Down at the list end moves
+/// to armour, Cancel returns to the parent, and Menu publishes CANCEL. Child
+/// confirmations restore focus; command 0x23 also enters item-swapping mode.
+/// The pane hides while the item-detail panel is open. Requires the live menu
+/// tree, shared lists and drawing resources for the task's lifetime.
+void itemMenuWeaponPanelTask(Task* task);
 
 void Gp_ArmorMenuTask(Task* arg0);
 

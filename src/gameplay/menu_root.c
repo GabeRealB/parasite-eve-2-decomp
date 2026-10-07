@@ -345,7 +345,7 @@ UiObjectDesc D_8010EAB4[50] = {
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 120 }, 40, 0, TASK_BODY_NONE, 192, Gp_KeyItemMenuTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -39, 144, 120 }, 512, 0, TASK_BODY_NONE, 192, Gp_ArmorStatsPanelTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -39, 144, 120 }, 512, 0, TASK_BODY_NONE, 192, itemMenuArmorSummaryTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, 33, 144, 48 }, 516, 0, TASK_BODY_NONE, 192, itemMenuParasiteEnergySummaryTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 200, 24 }, 40, 0, TASK_BODY_NONE, 192, Gp_PeListPanelTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
@@ -382,7 +382,7 @@ UiObjectDesc D_8010EAB4[50] = {
     { (s32)(USER_INTERFACE_PANEL_NO_FRAME | USER_INTERFACE_PANEL_TITLE_STYLE), { -90, -40, 178, 78 }, 8, 0, TASK_BODY_NONE, 192, itemMenuUseKeyItemTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 208 }, 8, 0, TASK_BODY_NONE, 192, itemMenuInfoTask, 0 },
     { 3, { -144, 64, 288, 40 }, 56, 0, TASK_BODY_NONE, 192, Gp_ItemMenuTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 72 }, 960, 0, TASK_BODY_NONE, 192, Gp_WeaponMenuTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 72 }, 960, 0, TASK_BODY_NONE, 192, itemMenuWeaponPanelTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -32, 144, 91 }, 976, 0, TASK_BODY_NONE, 192, Gp_ArmorMenuTask, 0 },
     { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -150, -80, 120, 70 }, 60, 0, TASK_BODY_NONE, 192, Gp_PickupTask, 0 },
 };

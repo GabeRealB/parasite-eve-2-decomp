@@ -425,7 +425,7 @@ void Gp_WeaponSummaryTask(Task* arg0)
         arg0->state = arg0->state + 1;
     }
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Gp_DrawEquipSummary(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, 0);
+    itemMenuDrawWeaponSummary(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, 0);
     uiDrawTitle(&(obj)->panel, Gp_StrWeaponTitle);
 }
 

@@ -726,7 +726,7 @@ void Gp_DrawWeaponLabel(Task* arg0)
     uiUpdatePanelContentLayout(panel, NULL, NULL, 0);
     x = panel->contentLeft.signedValue;
     y = panel->contentTop.signedValue;
-    Gp_DrawEquipSummary(panel, x + 2, y + 0xF, 1);
+    itemMenuDrawWeaponSummary(PARENT_OF(panel, UiObject, panel), x + 2, y + 0xF, 1);
     uiDrawPanelLabel(panel, Gp_StrWeapon);
 }
 

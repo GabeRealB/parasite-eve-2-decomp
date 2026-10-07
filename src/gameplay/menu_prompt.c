@@ -91,7 +91,7 @@ enum {
         }                                                                                                                                                              \
     }
 
-static void func_800C0B98(UiList* arg0, UiObject* arg1, u32 arg2);
+static void _itemMenuDrawRowSprite(const UiList* list, const UiObject* object, u32 packedUvSize);
 
 static inline void _itemMenuDrawItemLabelAt(const UiObject* object, s32 x, s32 y, s32 colorRgb, s32 itemId, s32 attachmentState);
 
@@ -405,27 +405,38 @@ void itemMenuDrawItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId, s32 
     }
 }
 
-static void func_800C0B98(UiList* arg0, UiObject* arg1, u32 arg2)
+/// Draws a raw-texture sprite at the current list row, fifteen pixels above its baseline.
+///
+/// packedUvSize stores U, V, width and height in successive low-to-high bytes;
+/// dimensions are pixels. Active rows use the active palette, all others the
+/// inactive palette. Inputs are borrowed unchanged. Requires the menu texture
+/// in VRAM and GPU space for one SPRT and a texture-page command at panel OT + 1.
+static void _itemMenuDrawRowSprite(const UiList* list, const UiObject* object, u32 packedUvSize)
 {
-    SPRT* p;
+    enum {
+        ITEM_MENU_ROW_SPRITE_ACTIVE_CLUT      = 0x3C09,
+        ITEM_MENU_ROW_SPRITE_INACTIVE_CLUT    = 0x3C01,
+        ITEM_MENU_ROW_SPRITE_RAW_TEXTURE_CODE = 0x65
+    };
+    SPRT* sprite;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    p->x0          = arg0->rowTextX.unsignedValue + arg1->panel.contentOriginX.unsignedValue;
-    p->y0          = arg0->rowTextY.unsignedValue + arg1->panel.contentOriginY.unsignedValue - 0xF;
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        p->clut = 0x3C09;
+    sprite         = gGpuPrimCursor;
+    gGpuPrimCursor = sprite + 1;
+    sprite->x0     = list->rowTextX.unsignedValue + object->panel.contentOriginX.unsignedValue;
+    sprite->y0     = list->rowTextY.unsignedValue + object->panel.contentOriginY.unsignedValue - ITEM_MENU_LIST_ROW_HEIGHT;
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        sprite->clut = ITEM_MENU_ROW_SPRITE_ACTIVE_CLUT;
     } else {
-        p->clut = 0x3C01;
+        sprite->clut = ITEM_MENU_ROW_SPRITE_INACTIVE_CLUT;
     }
-    p->v0 = arg2 >> 8;
-    p->w  = (arg2 >> 16) & 0xFF;
-    p->h  = arg2 >> 24;
-    setlen(p, 4);
-    p->u0 = arg2;
-    setcode(p, 0x65);
-    addPrim(gGpuCurrentOt + arg1->panel.otIndex.signedValue + 1, p);
-    uiQueueTexturePage(arg1->panel.otIndex.signedValue + 1, 0);
+    sprite->v0 = packedUvSize >> 8;
+    sprite->w  = (packedUvSize >> 16) & 0xFF;
+    sprite->h  = packedUvSize >> 24;
+    setlen(sprite, 4);
+    sprite->u0 = packedUvSize;
+    setcode(sprite, ITEM_MENU_ROW_SPRITE_RAW_TEXTURE_CODE);
+    addPrim(gGpuCurrentOt + object->panel.otIndex.signedValue + 1, sprite);
+    uiQueueTexturePage(object->panel.otIndex.signedValue + 1, 0);
 }
 
 void Gp_StatusPanelTask(Task* arg0)
@@ -676,8 +687,6 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
     textDrawString(&bpLabelText, Gp_StrBp);
 }
 
-#undef ITEM_MENU_INIT_STATS_TEXT
-
 void Gp_HpMpBarTask(Task* arg0)
 {
     UiObject*     obj;
@@ -738,122 +747,107 @@ void Gp_HpMpBarTask(Task* arg0)
     itemMenuDrawPlayerStats(&(obj)->panel, 0xB);
 }
 
-void Gp_ArmorStatsPanelTask(Task* arg0)
+void itemMenuArmorSummaryTask(Task* task)
 {
-    u8            buf[0x20];
-    TextDrawReq   req1;
-    TextDrawReq   req2;
-    TextDrawReq   req3;
-    TextDrawReq   req4;
-    TextDrawReq   req5;
-    s32           savedX;
-    s32           mid;
-    UiObject*     obj;
-    PlayerStatus* cfg;
-    s32           item;
-    s32           color;
-    s32           x;
-    s32           y;
-    s32           base;
-    s32           i;
-    ArmorStats*   attr;
+    enum { ITEM_MENU_ARMOR_ATTACHMENT_COLUMNS = 5,
+           ITEM_MENU_ARMOR_EMPTY_SLOT_COLOR   = 0x102010 };
 
-    obj         = arg0->spawnArg2.pointer;
-    cfg         = &gPlayerStatus;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
+    u8                  bonusText[0x20];
+    TextDrawReq         hpBonusReq;
+    TextDrawReq         mpBonusReq;
+    TextDrawReq         hpLabelReq;
+    TextDrawReq         mpLabelReq;
+    TextDrawReq         attachmentsLabelReq;
+    s32                 contentLeft;
+    s32                 columnWidth;
+    UiObject*           object;
+    const PlayerStatus* player;
+    s32                 itemId;
+    s32                 colorRgb;
+    s32                 rowX;
+    s32                 rowY;
+    s32                 topY;
+    s32                 attachmentIndex;
+    const ArmorStats*   armorStats;
 
-    savedX = obj->panel.contentLeft.signedValue;
-    x      = savedX + 2;
-    item   = cfg->armor;
-    base   = obj->panel.contentTop.signedValue;
-    y      = base + 0xF;
-    mid    = (obj->panel.contentRight.signedValue - x) / 2;
-    uiDrawTitle(&(obj)->panel, Gp_StrArmor);
+    object         = task->spawnArg2.pointer;
+    player         = &gPlayerStatus;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawHorizontalSeparator(&(object)->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + 0x11);
 
-    if (item > 0) {
-        item += 0x5F;
-        color = 0x606060;
-        attr  = &Gp_ModStatAttrs[(item)-0x60];
-        itemMenuDrawItemRow(obj, x, y, item, color, 0);
+    contentLeft = object->panel.contentLeft.signedValue;
+    rowX        = contentLeft + 2;
+    itemId      = player->armor;
+    topY        = object->panel.contentTop.signedValue;
+    rowY        = topY + ITEM_MENU_LIST_ROW_HEIGHT;
+    columnWidth = (object->panel.contentRight.signedValue - rowX) / 2;
+    uiDrawTitle(&(object)->panel, Gp_StrArmor);
 
-        y               = base + 0x1D;
-        req1.x          = obj->panel.contentOriginX.unsignedValue + 0x20 + x;
-        req1.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req1.colorRgb   = color;
-        req1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req1.alignment  = TEXT_ALIGNMENT_LEFT;
-        req1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req1, textItoaSignPrefixed(buf, attr->hpBonus));
+    // Convert the one-based equipment selector to the armour catalogue id.
+    if (itemId > PLAYER_STATUS_EQUIPMENT_NONE) {
+        itemId    += ITEM_MENU_ARMOR_ITEM_FIRST - 1;
+        colorRgb   = ITEM_MENU_STAT_TEXT_COLOR;
+        armorStats = &Gp_ModStatAttrs[itemId - ITEM_MENU_ARMOR_ITEM_FIRST];
+        itemMenuDrawItemRow(object, rowX, rowY, itemId, colorRgb, 0);
 
-        req2.x          = obj->panel.contentOriginX.unsignedValue + (x + (mid + 0x1E));
-        req2.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req2.colorRgb   = color;
-        req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req2.alignment  = TEXT_ALIGNMENT_LEFT;
-        req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req2, textItoaSignPrefixed(buf, attr->mpBonus));
+        rowY         = topY + 0x1D;
+        hpBonusReq.x = object->panel.contentOriginX.unsignedValue + 0x20 + rowX;
+        hpBonusReq.y = object->panel.contentOriginY.unsignedValue + rowY;
+        ITEM_MENU_INIT_STATS_TEXT(hpBonusReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        textDrawString(&hpBonusReq, textItoaSignPrefixed(bonusText, armorStats->hpBonus));
 
-        req3.x          = obj->panel.contentOriginX.unsignedValue + 2 + x;
-        req3.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
-        req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req3.colorRgb   = color;
-        req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-        req3.alignment  = TEXT_ALIGNMENT_LEFT;
-        req3.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req3, Gp_StrHp);
+        mpBonusReq.x = object->panel.contentOriginX.unsignedValue + (rowX + (columnWidth + 0x1E));
+        mpBonusReq.y = object->panel.contentOriginY.unsignedValue + rowY;
+        ITEM_MENU_INIT_STATS_TEXT(mpBonusReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        textDrawString(&mpBonusReq, textItoaSignPrefixed(bonusText, armorStats->mpBonus));
 
-        req4.x          = obj->panel.contentOriginX.unsignedValue + (x + mid);
-        req4.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
-        x               = savedX + 4;
-        req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req4.colorRgb   = color;
-        req4.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-        req4.alignment  = TEXT_ALIGNMENT_LEFT;
-        req4.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req4, Gp_StrMp);
+        hpLabelReq.x = object->panel.contentOriginX.unsignedValue + 2 + rowX;
+        hpLabelReq.y = object->panel.contentOriginY.unsignedValue + (rowY - 2);
+        ITEM_MENU_INIT_STATS_TEXT(hpLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+        textDrawString(&hpLabelReq, Gp_StrHp);
 
-        y               = base + 0x3D;
-        req5.x          = obj->panel.contentOriginX.unsignedValue + x;
-        req5.y          = obj->panel.contentOriginY.unsignedValue + base + 0x2C;
-        req5.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req5.colorRgb   = color;
-        req5.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-        req5.alignment  = TEXT_ALIGNMENT_LEFT;
-        req5.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req5, Gp_StrAttachments);
+        mpLabelReq.x = object->panel.contentOriginX.unsignedValue + (rowX + columnWidth);
+        mpLabelReq.y = object->panel.contentOriginY.unsignedValue + (rowY - 2);
+        rowX         = contentLeft + 4;
+        ITEM_MENU_INIT_STATS_TEXT(mpLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+        textDrawString(&mpLabelReq, Gp_StrMp);
 
-        for (i = 0; i < equipmentGetArmorAttachmentSlotCount(item); i++) {
-            InventoryItemRange* scan;
-            InventoryItemRow*   rec;
-            InventoryItemRow*   found;
-            s32                 col;
-            s32                 row;
-            s32                 j;
-            s32                 id;
+        rowY                  = topY + 0x3D;
+        attachmentsLabelReq.x = object->panel.contentOriginX.unsignedValue + rowX;
+        attachmentsLabelReq.y = object->panel.contentOriginY.unsignedValue + topY + 0x2C;
+        ITEM_MENU_INIT_STATS_TEXT(attachmentsLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+        textDrawString(&attachmentsLabelReq, Gp_StrAttachments);
 
-            col   = i % 5;
-            row   = i / 5;
-            scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-            rec   = inventoryGetRangeTable(scan);
-            found = NULL;
-            rec   = &rec[scan->firstRow];
-            for (j = 0; j < scan->rowCount; j++, rec++) {
-                if (rec->attachSlot == i + 1) {
-                    found = rec;
+        // Attachment slots are one-based in carried rows and displayed five per line.
+        for (attachmentIndex = 0; attachmentIndex < equipmentGetArmorAttachmentSlotCount(itemId); attachmentIndex++) {
+            const InventoryItemRange* carriedRange;
+            const InventoryItemRow*   inventoryRow;
+            const InventoryItemRow*   attachmentRow;
+            s32                       columnIndex;
+            s32                       lineIndex;
+            s32                       inventoryRowIndex;
+            s32                       attachmentItemId;
+
+            columnIndex   = attachmentIndex % ITEM_MENU_ARMOR_ATTACHMENT_COLUMNS;
+            lineIndex     = attachmentIndex / ITEM_MENU_ARMOR_ATTACHMENT_COLUMNS;
+            carriedRange  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+            inventoryRow  = inventoryGetRangeTable(carriedRange);
+            attachmentRow = NULL;
+            inventoryRow  = &inventoryRow[carriedRange->firstRow];
+            for (inventoryRowIndex = 0; inventoryRowIndex < carriedRange->rowCount; inventoryRowIndex++, inventoryRow++) {
+                if (inventoryRow->attachSlot == attachmentIndex + 1) {
+                    attachmentRow = inventoryRow;
                     break;
                 }
             }
-            id = 0;
-            if (found != NULL) {
-                id = found->itemId;
+            attachmentItemId = INVENTORY_ITEM_NONE;
+            if (attachmentRow != NULL) {
+                attachmentItemId = attachmentRow->itemId;
             }
-            if (id != 0) {
-                itemMenuDrawItemIcon(obj, x + col * 16, y + row * 16, id, ITEM_MENU_ICON_DEFAULT);
+            if (attachmentItemId != INVENTORY_ITEM_NONE) {
+                itemMenuDrawItemIcon(object, rowX + columnIndex * 16, rowY + lineIndex * 16, attachmentItemId, ITEM_MENU_ICON_DEFAULT);
             }
-            uiDrawRecessedRect(&obj->panel, x + col * 16, y + row * 16 - 0xE, 0xE, 0xE, 0x102010);
+            uiDrawRecessedRect(&object->panel, rowX + columnIndex * 16, rowY + lineIndex * 16 - 0xE, 0xE, 0xE, ITEM_MENU_ARMOR_EMPTY_SLOT_COLOR);
         }
     }
 }
@@ -973,53 +967,52 @@ void itemMenuParasiteEnergySummaryTask(Task* task)
     uiQueueTexturePage(object->panel.otIndex.signedValue + 1, 0);
 }
 
-void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
+void itemMenuDrawWeaponSummary(const UiObject* object, s32 x, s32 rowY, s32 unused)
 {
-    TextDrawReq          req;
-    EquipmentWeaponLoad* slot;
-    s32                  item;
-    s32                  color;
-    s32                  loadedItemId;
-    s32                  count;
+    TextDrawReq                ammoLabelReq;
+    const EquipmentWeaponLoad* load;
+    s32                        weaponItemId;
+    s32                        colorRgb;
+    s32                        loadedItemId;
+    s32                        loadedQuantity;
 
-    item = gPlayerStatus.weapon;
-    if (item > 0) {
-        item += 0x7F;
+    weaponItemId = gPlayerStatus.weapon;
+    if (weaponItemId > PLAYER_STATUS_EQUIPMENT_NONE) {
+        weaponItemId += EQUIPMENT_WEAPON_ITEM_FIRST - 1;
     }
-    color = 0x606060;
-    itemMenuDrawItemRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, item, color, 0);
-    uiDrawHorizontalSeparator(arg0, arg0->contentLeft.signedValue, arg0->contentRight.signedValue, arg0->contentTop.signedValue + 0x11);
-    arg2          += 7;
-    req.x          = arg0->contentOriginX.unsignedValue + arg1;
-    req.y          = arg0->contentOriginY.unsignedValue + 2 + arg2;
-    req.otIndex    = arg0->otIndex.signedValue + 1;
-    req.colorRgb   = color;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Gp_StrAmmoCaps);
-    arg2 += 0x13;
-    if (item > 0) {
-        if (item != 0x92) {
-            slot         = equipmentGetWeaponLoad(item);
-            loadedItemId = slot->primaryItemId;
-            count        = slot->primaryQty;
-            if (loadedItemId != 0) {
-                itemMenuDrawQuantity(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
+    colorRgb = ITEM_MENU_STAT_TEXT_COLOR;
+    itemMenuDrawItemRow(object, x, rowY, weaponItemId, colorRgb, 0);
+    uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + 0x11);
+    rowY          += 7;
+    ammoLabelReq.x = object->panel.contentOriginX.unsignedValue + x;
+    ammoLabelReq.y = object->panel.contentOriginY.unsignedValue + 2 + rowY;
+    ITEM_MENU_INIT_STATS_TEXT(ammoLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    textDrawString(&ammoLabelReq, Gp_StrAmmoCaps);
+    rowY += 0x13;
+    // Empty loads still draw their slot; unavailable secondary loads have no row.
+    if (weaponItemId > PLAYER_STATUS_EQUIPMENT_NONE) {
+        if (weaponItemId != ITEM_MENU_TONFA_BATON_ITEM) {
+            load           = equipmentGetWeaponLoad(weaponItemId);
+            loadedItemId   = load->primaryItemId;
+            loadedQuantity = load->primaryQty;
+            if (loadedItemId != INVENTORY_ITEM_NONE) {
+                itemMenuDrawQuantity(object, x, rowY, loadedQuantity, colorRgb);
             }
-            itemMenuDrawItemSlotRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, loadedItemId, color, 0);
-            if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-                loadedItemId = slot->secondaryItemId;
-                count        = slot->secondaryQty;
-                arg2        += 0x10;
-                if (loadedItemId != 0) {
-                    itemMenuDrawQuantity(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
+            itemMenuDrawItemSlotRow(object, x, rowY, loadedItemId, colorRgb, 0);
+            if (load->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+                loadedItemId   = load->secondaryItemId;
+                loadedQuantity = load->secondaryQty;
+                rowY          += 0x10;
+                if (loadedItemId != INVENTORY_ITEM_NONE) {
+                    itemMenuDrawQuantity(object, x, rowY, loadedQuantity, colorRgb);
                 }
-                itemMenuDrawItemSlotRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, loadedItemId, color, 0);
+                itemMenuDrawItemSlotRow(object, x, rowY, loadedItemId, colorRgb, 0);
             }
         }
     }
 }
+
+#undef ITEM_MENU_INIT_STATS_TEXT
 
 void itemMenuDrawEquipmentMarker(const UiObject* object, s32 x, s32 y, s32 itemId, s32 attachmentState)
 {
@@ -1868,137 +1861,156 @@ static inline void _itemMenuClampArmorSelection(UiList* list, s32 visibleEndInde
     }
 }
 
-void Gp_WeaponMenuTask(Task* arg0)
+/// Closes an accepted child dialog and restores weapon-pane input.
+///
+/// beginSwap != 0 also selects the carried-item swapping mode. Both nodes
+/// and the child's owner must remain live during tree closing.
+static inline void _itemMenuAcceptWeaponPanelChild(UiObject* object, UiObject* childObject, s32 beginSwap)
 {
-    UiObject*        obj;
-    UiList*          menu;
-    s32              status;
-    Task*            owner;
-    Task*            child;
-    Task*            next;
-    Task*            head;
-    UiObject*        childObj;
-    s32              one;
-    s32              mask;
-    s32              flag;
-    UiCursorPosition cursor;
+    enum { ITEM_MENU_WEAPON_MODE_SWAP = 1 };
 
-    obj         = arg0->spawnArg2.pointer;
-    menu        = &D_8010E884;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrWeaponTitle);
-    if (arg0->state == 0) {
-        _itemMenuSetWeaponRows(menu);
-        menu->selectedItemIndex = 0;
-        uiInitList(menu, &(obj)->panel);
-        arg0->state = arg0->state + 1;
+    uiStartTreeClosing(childObject, childObject->owner);
+    object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+    if (beginSwap != 0) {
+        Gp_ItemOrderMode = ITEM_MENU_WEAPON_MODE_SWAP;
     }
-    _itemMenuSetWeaponRows(menu);
-    uiRefreshListViewport(menu, &(obj)->panel);
-    uiUpdateList(menu, &obj->panel);
-    if ((Gp_ItemCountShow == 1) && (uiIsPanelHidingOrHidden(obj) == 0)) {
-        uiStartPanelHiding(obj, obj->owner);
-    } else if ((Gp_ItemCountShow == 0) && (uiIsPanelHidingOrHidden(obj) == 1)) {
-        uiLimitHiddenDelayOrOpen(&(obj)->panel, obj->owner, 0x10);
+    object->panel.style &= (u32)~USER_INTERFACE_PANEL_DIMMED;
+}
+
+void itemMenuWeaponPanelTask(Task* task)
+{
+    enum {
+        ITEM_MENU_WEAPON_PANEL_INITIAL = 0,
+        ITEM_MENU_WEAPON_MODE_SELECT   = 0,
+        ITEM_MENU_RESULT_BEGIN_SWAP    = 0x23,
+        ITEM_MENU_FOCUS_FIRST_ROW_Y    = -160,
+        ITEM_MENU_REOPEN_DELAY_TICKS   = 16
+    };
+
+    UiObject*        object;
+    UiList*          weaponList;
+    s32              controlMode;
+    Task*            ownerTask;
+    Task*            childTask;
+    Task*            nextChild;
+    Task*            firstChild;
+    UiObject*        childObject;
+    s32              childResult;
+    UiCursorPosition cursorPosition;
+
+    object         = task->spawnArg2.pointer;
+    weaponList     = &D_8010E884;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&(object)->panel, Gp_StrWeaponTitle);
+    // Initialize the equipped-weapon rows, then refresh them as loads change.
+    if (task->state == ITEM_MENU_WEAPON_PANEL_INITIAL) {
+        _itemMenuSetWeaponRows(weaponList);
+        weaponList->selectedItemIndex = 0;
+        uiInitList(weaponList, &(object)->panel);
+        task->state = task->state + 1;
     }
-    status = obj->panel.control.word;
-    if (status == 1) {
-        if (menu->actionResult == USER_INTERFACE_LIST_ACTION_AT_END) {
+    _itemMenuSetWeaponRows(weaponList);
+    uiRefreshListViewport(weaponList, &(object)->panel);
+    uiUpdateList(weaponList, &object->panel);
+    if ((Gp_ItemCountShow == 1) && (uiIsPanelHidingOrHidden(object) == 0)) {
+        uiStartPanelHiding(object, object->owner);
+    } else if ((Gp_ItemCountShow == 0) && (uiIsPanelHidingOrHidden(object) == 1)) {
+        uiLimitHiddenDelayOrOpen(&(object)->panel, object->owner, ITEM_MENU_REOPEN_DELAY_TICKS);
+    }
+    // Hand focus to the armour or inventory pane without changing the cursor height.
+    controlMode = object->panel.control.word;
+    if (controlMode == USER_INTERFACE_PANEL_ACTIVE) {
+        if (weaponList->actionResult == USER_INTERFACE_LIST_ACTION_AT_END) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            D_80114D98[1]->resultValue        = -0xA0;
+            D_80114D98[1]->resultValue        = ITEM_MENU_FOCUS_FIRST_ROW_Y;
             D_80114D98[1]->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
-            obj->panel.control.word           = USER_INTERFACE_PANEL_INACTIVE;
+            object->panel.control.word        = USER_INTERFACE_PANEL_INACTIVE;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
-            Task*     parent;
-            UiObject* parentObj;
+            Task*     parentTask;
+            UiObject* parentObject;
 
-            parent = arg0->parent;
-            if (parent != 0) {
-                UiList* other;
-                s16     row;
+            parentTask = task->parent;
+            if (parentTask != NULL) {
+                UiList* inventoryList;
+                s16     cursorRow;
 
-                parentObj = parent->spawnArg2.pointer;
+                parentObject = parentTask->spawnArg2.pointer;
                 sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-                *(s32*)&cursor           = uiGetCursorPositionWord();
-                other                    = &D_8010E854;
-                row                      = cursor.y.unsignedValue - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
-                row                      = row / other->rowHeight;
-                other->selectedItemIndex = row + other->firstVisibleItemIndex.signedValue;
-                _itemMenuClampArmorSelection(other, other->firstVisibleItemIndex.signedValue + other->visibleRowCount.signedValue);
-                parentObj->panel.control.word = status;
-                obj->panel.control.word       = USER_INTERFACE_PANEL_INACTIVE;
+                *(s32*)&cursorPosition           = uiGetCursorPositionWord();
+                inventoryList                    = &D_8010E854;
+                cursorRow                        = cursorPosition.y.unsignedValue - (parentObject->panel.contentOriginY.unsignedValue + parentObject->panel.contentTop.unsignedValue);
+                cursorRow                        = cursorRow / inventoryList->rowHeight;
+                inventoryList->selectedItemIndex = cursorRow + inventoryList->firstVisibleItemIndex.signedValue;
+                _itemMenuClampArmorSelection(inventoryList, inventoryList->firstVisibleItemIndex.signedValue + inventoryList->visibleRowCount.signedValue);
+                parentObject->panel.control.word = controlMode;
+                object->panel.control.word       = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-            Task*     parent;
-            UiObject* parentObj;
+            Task*     parentTask;
+            UiObject* parentObject;
 
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            parent = arg0->parent;
-            if (parent != 0) {
-                parentObj = parent->spawnArg2.pointer;
-                if (Gp_ItemOrderMode == 0) {
-                    parentObj->resultValue = status;
-                    parentObj->result      = USER_INTERFACE_RESULT_CONFIRM;
+            parentTask = task->parent;
+            if (parentTask != NULL) {
+                parentObject = parentTask->spawnArg2.pointer;
+                if (Gp_ItemOrderMode == ITEM_MENU_WEAPON_MODE_SELECT) {
+                    parentObject->resultValue = controlMode;
+                    parentObject->result      = USER_INTERFACE_RESULT_CONFIRM;
                 } else {
-                    parentObj->panel.control.word = status;
-                    obj->panel.control.word       = USER_INTERFACE_PANEL_INACTIVE;
-                    Gp_ItemOrderMode              = 0;
+                    parentObject->panel.control.word = controlMode;
+                    object->panel.control.word       = USER_INTERFACE_PANEL_INACTIVE;
+                    Gp_ItemOrderMode                 = ITEM_MENU_WEAPON_MODE_SELECT;
                 }
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
-    owner = obj->owner;
-    head  = owner->firstChild;
-    if (head != NULL) {
-        child = head;
-        one   = 1;
-        mask  = (u32)~USER_INTERFACE_PANEL_DIMMED;
+    // Child results close their dialog and may enter item-swapping mode.
+    ownerTask  = object->owner;
+    firstChild = ownerTask->firstChild;
+    if (firstChild != NULL) {
+        childTask = firstChild;
         do {
-            childObj = child->spawnArg2.pointer;
-            flag     = childObj->result;
-            next     = child->nextSibling;
-            switch (flag) {
+            childObject = childTask->spawnArg2.pointer;
+            childResult = childObject->result;
+            nextChild   = childTask->nextSibling;
+            switch (childResult) {
                 case USER_INTERFACE_RESULT_CANCEL:
-                    obj->result = flag;
+                    object->result = childResult;
                     break;
                 case USER_INTERFACE_RESULT_CONFIRM:
-                    uiStartTreeClosing(childObj, childObj->owner);
-                    obj->panel.control.word = one;
-                    obj->panel.style       &= mask;
+                    _itemMenuAcceptWeaponPanelChild(object, childObject, 0);
                     break;
-                case 0x23:
-                    uiStartTreeClosing(childObj, childObj->owner);
-                    obj->panel.control.word = one;
-                    Gp_ItemOrderMode        = one;
-                    obj->panel.style       &= mask;
+                case ITEM_MENU_RESULT_BEGIN_SWAP:
+                    _itemMenuAcceptWeaponPanelChild(object, childObject, 1);
                     break;
             }
-            head  = owner->firstChild;
-            child = next;
-            if (child == head) {
+            firstChild = ownerTask->firstChild;
+            childTask  = nextChild;
+            if (childTask == firstChild) {
                 break;
             }
-        } while (head != NULL);
+        } while (firstChild != NULL);
     }
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_FOCUS_TRANSFER) {
-        s32 t;
+    // Map the transferred screen Y to a weapon/load row; preserve the original thresholds.
+    if (object->panel.control.word == USER_INTERFACE_PANEL_FOCUS_TRANSFER) {
+        s32 rowOffsetY;
 
-        t  = obj->panel.contentOriginY.signedValue;
-        t += obj->panel.contentTop.signedValue;
-        t  = obj->resultValue - t;
-        if (t < menu->rowHeight) {
-            menu->selectedItemIndex = 0;
-        } else if ((menu->rowHeight * 2 + 0xA) >= t) {
-            menu->selectedItemIndex = 1;
-        } else if (menu->itemCount < 2) {
-            menu->selectedItemIndex = 1;
+        rowOffsetY  = object->panel.contentOriginY.signedValue;
+        rowOffsetY += object->panel.contentTop.signedValue;
+        rowOffsetY  = object->resultValue - rowOffsetY;
+        if (rowOffsetY < weaponList->rowHeight) {
+            weaponList->selectedItemIndex = 0;
+        } else if ((weaponList->rowHeight * 2 + 0xA) >= rowOffsetY) {
+            weaponList->selectedItemIndex = 1;
+        } else if (weaponList->itemCount < 2) {
+            weaponList->selectedItemIndex = 1;
         } else {
-            menu->selectedItemIndex = 2;
+            weaponList->selectedItemIndex = 2;
         }
-        obj->resultValue        = 0;
-        obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+        object->resultValue        = 0;
+        object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
     }
 }
 

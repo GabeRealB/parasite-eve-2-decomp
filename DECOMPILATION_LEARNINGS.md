@@ -7280,7 +7280,7 @@ if (arg0->rowInputEnabled == 1) {
 }
 ```
 
-`func_800C0B98` is the example.
+`_itemMenuDrawRowSprite` is the example.
 
 The same field-in-both-arms rule applies to `DR_TPAGE` blend codes.
 A named `code` temp is hoisted as default+override (`lui`/`ori` 0xE1000220
@@ -26816,7 +26816,7 @@ CSE's `1` into a callee-saved (`li s0, 1`) and skips the second load. The
 - rematerializes each `1` in `$v0` / `$v1` instead of `$sN`
 
 `Gp_ItemDestCursorTask` is the example. The nested if/else stuck at 88% with only the
-flag block different. `Gp_WeaponMenuTask` and `Gp_ArmorMenuTask` share the same shape.
+flag block different. `itemMenuWeaponPanelTask` and `Gp_ArmorMenuTask` share the same shape.
 
 ## Copy a packed halfword to a temp so `lhu` sits between two stores
 
@@ -30299,13 +30299,13 @@ beq   v1, v0, skip
 ```
 
 ```c
-if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-    loadedItemId = slot->secondaryItemId;
-    count  = slot->secondaryQty;
+if (load->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+    loadedItemId   = load->secondaryItemId;
+    loadedQuantity = load->secondaryQty;
 }
 ```
 
-`Gp_DrawEquipSummary` is the example. Assign-then-compare stuck at 97.9%.
+`itemMenuDrawWeaponSummary` is the example. Assign-then-compare stuck at 97.9%.
 
 ## Load `spawnArg2` before the `bodyKind` test so it fills the `lbu` delay
 
@@ -35331,7 +35331,7 @@ with `li v0, 0x92`. An empty `asm("")` between the `if (n) goto` and
 `n = 0x92` keeps `bnez` / `li v0, 1`. The `uiInitList` copy did not need
 it because `menu->selectedItemIndex = 0` already sat after the store.
 
-`Gp_WeaponMenuTask` is the example.
+`itemMenuWeaponPanelTask` is the example.
 
 ## Empty `case` so a 2-node switch subtree still emits `sltu` to default
 
@@ -36453,21 +36453,21 @@ earlier body pinned `$8`, faked the `lui` in asm and moved the `found = rec`
 assignment behind gotos to reproduce it. It is the ordinary scan idiom:
 
 ```c
-col   = i % 5;
-row   = i / 5;
-scan  = &gMcSaveData.carriedItems;
-rec   = inventoryGetRangeTable(scan);
-found = NULL;
-rec   = &rec[scan->firstRow];
-for (j = 0; j < scan->rowCount; j++, rec++) {
-    if (rec->attachSlot == i + 1) { found = rec; break; }
+columnIndex   = attachmentIndex % ITEM_MENU_ARMOR_ATTACHMENT_COLUMNS;
+lineIndex     = attachmentIndex / ITEM_MENU_ARMOR_ATTACHMENT_COLUMNS;
+carriedRange  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+inventoryRow  = inventoryGetRangeTable(carriedRange);
+attachmentRow = NULL;
+inventoryRow  = &inventoryRow[carriedRange->firstRow];
+for (inventoryRowIndex = 0; inventoryRowIndex < carriedRange->rowCount; inventoryRowIndex++, inventoryRow++) {
+    if (inventoryRow->attachSlot == attachmentIndex + 1) { attachmentRow = inventoryRow; break; }
 }
 ```
 
-CSE folds `scan->firstRow` into a `%lo` load off the symbol while `rowCount`
-stays on the `scan` register. Writing the remainder before the quotient gives
+CSE folds `carriedRange->firstRow` into a `%lo` load off the symbol while `rowCount`
+stays on the `carriedRange` register. Writing the remainder before the quotient gives
 the `move v1, s1` copy the division pins were building.
-`Gp_ArmorStatsPanelTask` is the example.
+`itemMenuArmorSummaryTask` is the example.
 
 ## One extra `asm volatile("" :: "r"(long_lived))` to sit between two t-reg priorities
 
@@ -153257,7 +153257,7 @@ what cse and the schedulers make of the inline.
   cells, is describing the output. Try the inline with the parent store first.
 - The rest of the tree has 51 more sites spelled with `MATRIX_PAIR` (some mixed
   with `rotationWords` fields); all 51 set the full identity. None was tried.
-### `lb a0,5` / `lb v1,9` / `addu v0,v0,v1` / `addu v1,v1,a0` / `sw v0,16`: one load of the field is still the field read twice (Gp_WeaponMenuTask, Gp_ArmorMenuTask, 2026-10-07)
+### `lb a0,5` / `lb v1,9` / `addu v0,v0,v1` / `addu v1,v1,a0` / `sw v0,16`: one load of the field is still the field read twice (itemMenuWeaponPanelTask, Gp_ArmorMenuTask, 2026-10-07)
 
 **Symptom.** The cursor-row blocks of both tasks held `vis`, `row9` and `sel`
 locals and a written-out clamp. The image loads the first visible row once,
@@ -153268,9 +153268,9 @@ reads like three locals.
 other `Gp_ArmorMenuTask` site, without the `+ 1`:
 
 ```c
-row                      = row / other->rowHeight;
-other->selectedItemIndex = row + other->firstVisibleItemIndex.signedValue;
-_itemMenuClampArmorSelection(other, other->firstVisibleItemIndex.signedValue + other->visibleRowCount.signedValue);
+cursorRow                        = cursorRow / inventoryList->rowHeight;
+inventoryList->selectedItemIndex = cursorRow + inventoryList->firstVisibleItemIndex.signedValue;
+_itemMenuClampArmorSelection(inventoryList, inventoryList->firstVisibleItemIndex.signedValue + inventoryList->visibleRowCount.signedValue);
 ```
 
 - The inline's first `list->selectedItemIndex` read is the value just stored,
@@ -153284,7 +153284,7 @@ _itemMenuClampArmorSelection(other, other->firstVisibleItemIndex.signedValue + o
 - The clamps written out with the fields at each use give the same bytes. The
   inline was chosen because the file already has it.
 
-**Gotcha.** The inline was defined after `Gp_WeaponMenuTask`. GCC 2.8.1 then
+**Gotcha.** The inline was defined after `itemMenuWeaponPanelTask`. GCC 2.8.1 then
 emits it out of line and calls it (296 instructions against 305, with a `jal`),
 despite the forward `static inline` declaration. The definition moved above
 its first caller.
