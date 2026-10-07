@@ -73,9 +73,6 @@ const char Gp_StrEXP[] = "EXP";
 
 const char Gp_StrItem[] = "Item";
 
-// "Item obtained!"
-// "Bonus item!!"
-
 void Gp_EndingTask(Task* arg0)
 {
     GameSession* session;

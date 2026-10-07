@@ -68,10 +68,7 @@ u8           Gp_StrMore[]        = "More ";
 u8           Gp_StrAttachAvail[] = "attachments available.";
 UiObjectDesc Gp_BoostPanelDesc   = { USER_INTERFACE_PANEL_TITLE_STYLE, { 10, 20, 30, 40 }, 12, 0, TASK_BODY_NONE, 192, Gp_TickBoostPanel, 0 };
 
-/* Item names and descriptions shared by the inventory tables. */
-
 /* Item table a scan window lies in. */
-
 static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan)
 {
     InventoryItemRow* table;

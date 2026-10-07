@@ -45,10 +45,6 @@ UiListRowCallback Gp_ItemActionFns[3] = {
     NULL,
 };
 
-/* Item names and descriptions shared by the inventory tables. */
-
-/* Item table a scan window lies in. */
-
 s32 Gp_CanMoveItems(void)
 {
     InventoryItemRange* src;

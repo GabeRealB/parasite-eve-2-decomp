@@ -173,10 +173,6 @@ u16 Gp_CollectedIds[41] = {
 /// Unreferenced nonzero halfword after the collected-item terminator.
 u16 D_80114B32 = 0x1131;
 
-/* Item names and descriptions shared by the inventory tables. */
-
-/* Item table a scan window lies in. */
-
 s32 inventoryGetCollectedItemId(s32 collectedIndex, s32 unused)
 {
     enum {

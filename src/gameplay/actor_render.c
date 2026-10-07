@@ -27,9 +27,6 @@ enum { ACTOR_RENDER_COORD_PASS_PARITY_MASK = 1 };
 /// No game code reads it. The pointer is borrowed and may outlive its node.
 static GfxCoord* _gActorRenderLastFullChainCoord = NULL;
 
-// "Item obtained!"
-// "Bonus item!!"
-
 /* r1 = long vector in, r2 = long vector out: r2 = RT * r1 + TR at full
  * 32-bit precision, the input split into three 10/11-bit slices. */
 #define gte_RotTransLV(r1, r2) __asm__ volatile( \

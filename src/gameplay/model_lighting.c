@@ -163,9 +163,6 @@ CVECTOR D_80114BA8 = { 0, 0, 0, 0 };
 /// Unreferenced nonzero word before the stored BSS.
 u32 D_80114BAC = 0x10FF2220;
 
-// "Item obtained!"
-// "Bonus item!!"
-
 /// Tests whether a quad's second triangle faces the viewer.
 ///
 /// Call after the first triangle fails its positive-sign test and corner 3

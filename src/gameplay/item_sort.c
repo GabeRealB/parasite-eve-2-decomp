@@ -236,8 +236,6 @@ u8 Gp_ItemSortKeyA0[33] = {
     255
 };
 
-/* Item names and descriptions shared by the inventory tables. */
-
 /// Borrows the complete row table selected by a range, before its first-row offset.
 ///
 /// The range owns no rows. Unrecognized selectors use the live save table;
