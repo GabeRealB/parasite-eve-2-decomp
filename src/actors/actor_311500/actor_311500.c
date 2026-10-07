@@ -102,9 +102,9 @@ extern AnimationSet* D_actor_311500_801692F4[2];
 
 extern TaskMessageEntry D_actor_311500_80169330[1];
 
-extern s32 D_actor_311500_801692FC[2];
-extern s32 D_actor_311500_80169304[8];
-extern s32 D_actor_311500_80169324[3];
+extern SVECTOR                D_actor_311500_801692FC[1];
+extern SVECTOR                D_actor_311500_80169304[4];
+extern WorldCollisionGridFace D_actor_311500_80169324[1];
 
 static AnimationSet _gActor311500Animation07188;
 static AnimationSet _gActor311500Animation07470;
@@ -221,26 +221,16 @@ AnimationSet* D_actor_311500_801692F4[2] = {
     &_gActor311500Animation07188,
 };
 
-s32 D_actor_311500_801692FC[2] = {
-    0,
-    4096,
+SVECTOR D_actor_311500_801692FC[1] = {
+#include "assets/actor_311500_collision_074DC.inc"
 };
 
-s32 D_actor_311500_80169304[8] = {
-    -0x12BF448,
-    0xFC18,
-    -0x12BFC18,
-    0xFC18,
-    3000,
-    0xFC18,
-    1000,
-    0xFC18,
+SVECTOR D_actor_311500_80169304[4] = {
+#include "assets/actor_311500_collision_074E4.inc"
 };
 
-s32 D_actor_311500_80169324[3] = {
-    0x10000,
-    0x30002,
-    0x60000,
+WorldCollisionGridFace D_actor_311500_80169324[1] = {
+#include "assets/actor_311500_collision_07504.inc"
 };
 
 TaskMessageEntry D_actor_311500_80169330[1] = {

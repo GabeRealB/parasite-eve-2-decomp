@@ -4527,6 +4527,7 @@ objects = [
   { kind = "model", at = "0x1894", in_c = true },
   { kind = "modelSource", at = "0x6DD8", in_c = true },
   { kind = "animation", at = "0x6DFC", sets = ["0x7188", "0x7470"], in_c = true },
+  { kind = "collisionPatch", at = "0x74DC", pieces = ["vectors 1", "vectors 4", "faces 1"], in_c = true },
 ]
 
 [actors.overlays.actor_111800]
