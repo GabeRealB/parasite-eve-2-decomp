@@ -39,10 +39,6 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-#define D_shelter_b6_growth_room_8017F298 (D_shelter_b6_growth_room_8017F258 + 8)
-#define D_shelter_b6_growth_room_8017F2C8 (D_shelter_b6_growth_room_8017F258 + 14)
-#define D_shelter_b6_growth_room_8017F300 (D_shelter_b6_growth_room_8017F258 + 21)
-
 static void _shelterB6GrowthRoomDrawBottomGlow(s16 heightPixels, s16 brightness);
 static void _shelterB6GrowthRoomDrawMist(const GfxCoord* coord, u16 frame, s16 size, u16 brightness);
 static void _shelterB6GrowthRoomDrawDriftPuff(const GfxCoord* coord, u16 frame, s16 size, s16 angle);
@@ -509,20 +505,20 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
     _shelterB6GrowthRoomDrawBottomGlow(task->spawnArg1.value, (task->spawnArg1.value >> 1) + 0x50);
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[0], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[1], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[6], 0x180, 0x400);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[7], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[8], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[9], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[10], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[11], 0x180, 0x440);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[12], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[13], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[14], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[15], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[20], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[21], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[8], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[9], 0x200, 0x400);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[14], 0x180, 0x400);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[15], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[16], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[17], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[18], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[19], 0x180, 0x440);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[20], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[28], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[29], 0x200, 0x444);
             break;
         case 3:
             glowDrawDisc(&D_shelter_b6_growth_room_8017F258[0], 0x200, 0x44);
@@ -539,9 +535,9 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
             glowDrawDisc(&D_shelter_b6_growth_room_8017F258[25], 0x200, 0x444);
             break;
         case 4:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F300[0], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F300[1], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F300[2], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], 0x100, 0x44);
             break;
         case 5:
             glowDrawDisc(&D_shelter_b6_growth_room_8017F258[0], 0x200, 0x44);
@@ -554,22 +550,22 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
             glowDrawDisc(&D_shelter_b6_growth_room_8017F258[7], 0x200, 0x44);
             break;
         case 6:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[0], 0x180, 0x400);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[1], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[2], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[7], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[8], 0x100, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F2C8[9], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[14], 0x180, 0x400);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[15], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[16], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[21], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[22], 0x100, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[23], 0x100, 0x44);
             break;
         case 7:
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[0], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[1], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[2], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[3], 0x200, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[9], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[10], 0x180, 0x44);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[11], 0x180, 0x440);
-            glowDrawDisc(&D_shelter_b6_growth_room_8017F298[12], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[8], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[9], 0x200, 0x400);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[10], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[11], 0x200, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[17], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[18], 0x180, 0x44);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[19], 0x180, 0x440);
+            glowDrawDisc(&D_shelter_b6_growth_room_8017F258[20], 0x200, 0x44);
             break;
     }
 }
