@@ -68,11 +68,6 @@ static _Actor143900Work* _gScriptedWalkWork;
 /// visibility and play-animation handlers can reach it.
 extern Task* D_actor_143900_801496BC;
 
-/// Reset argument the first variant forwards to the reseed: its play-animation
-/// handler latches the preset's `field_C` here, and the update sets it to 10
-/// when a walk ends.
-extern s16 gScriptedWalkBlendFrames;
-
 /// The first variant's message table; its spawn routine publishes it as
 /// `Task::msgTable`.
 // Handler views preserve the signatures used by this TU. The dispatcher
@@ -96,11 +91,6 @@ extern Task* D_actor_143900_801496C8;
 /// independent value selects a 60-unit forward, 15-unit backward or 25-unit
 /// forward step until the next approach message.
 static s16 _gScriptedWalkSecondMode;
-
-/// Reset argument the second variant forwards to the reseed: its
-/// play-animation handler latches the preset's `field_C` here, and the update
-/// sets it to 10 when a walk ends.
-extern s16 D_actor_143900_80149630;
 
 /// The second variant's message table; its spawn routine publishes it as
 /// `Task::msgTable`.
@@ -677,7 +667,13 @@ static AnimationSet _gActor143900Animation0F570 = {
     { NULL, _gActor143900Animation0F570Bank1, NULL, NULL, _gActor143900Animation0F570Bank4, NULL, NULL, NULL },
 };
 
-s16 gScriptedWalkBlendFrames = 8;
+/// Latched duration of the first walker's next child-part blend, in whole normal-rate frames.
+///
+/// Play requests narrow `AnimationPlayRequest.blendFrames` to this signed
+/// halfword; walk completion replaces it with `SCRIPTED_WALK_IDLE_BLEND_FRAMES`.
+/// Plain resets leave it intact. Zero requests no transition time; 0..2047
+/// keeps the playback timer nonnegative. The range is not checked.
+static s16 _gScriptedWalkBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_143900_801413BC[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_143900_80132624 },
@@ -1089,7 +1085,14 @@ static TmdSource _gActor143900Model17688 = {
     _gActor143900Model17688Stream,
 };
 
-s16 D_actor_143900_80149630 = 8;
+/// Latched duration of the second walker's next child-part blend, in whole normal-rate frames.
+///
+/// Independent of the first walker's latch. Play requests narrow
+/// `AnimationPlayRequest.blendFrames` to this signed halfword; walk completion
+/// replaces it with `SCRIPTED_WALK_IDLE_BLEND_FRAMES`. Plain resets leave it
+/// intact. Zero requests no transition time; 0..2047 keeps the playback timer
+/// nonnegative. The range is not checked.
+static s16 _gScriptedWalkSecondBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_143900_80149634[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_143900_801331C4 },
@@ -1298,8 +1301,8 @@ static void func_actor_143900_80132404(Task* task)
 #include "../../shared/scripted_walk_blend_anim.inc.c"
 
 /// Message 0x7D3 handler of the first variant: adopts `preset`'s animation id
-/// when it is one of the first 0x14, latches the reset mode and the reset
-/// argument the reseed uses, then hands the published task to the per-frame
+/// when it is one of the first 0x14, latches the reset mode and the blend
+/// duration, then hands the published task to the per-frame
 /// update. Ids past the range are rejected with -1 and leave the work block
 /// untouched.
 s32 func_actor_143900_80132624(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
@@ -1308,7 +1311,7 @@ s32 func_actor_143900_80132624(Task* task, s32 arg1, AnimationPlayRequest* prese
         _gScriptedWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            gScriptedWalkBlendFrames     = preset->blendFrames;
+            _gScriptedWalkBlendFrames    = preset->blendFrames;
         } else {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
@@ -1431,8 +1434,12 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #define SCRIPTED_WALK_BLEND_ANIM _scriptedWalkBlendSecondAnim
 #undef SCRIPTED_WALK_WORK
 /// Selects the second walker's allocation for this fragment instance.
-#define SCRIPTED_WALK_WORK       _gScriptedWalkSecondWork
-#define gScriptedWalkBlendFrames D_actor_143900_80149630
+#define SCRIPTED_WALK_WORK _gScriptedWalkSecondWork
+#undef SCRIPTED_WALK_BLEND_FRAMES
+/// Selects the second walker's independent writable `s16` duration latch.
+///
+/// Whole normal-rate frames, with the same binding at the blend definition.
+#define SCRIPTED_WALK_BLEND_FRAMES (_gScriptedWalkSecondBlendFrames)
 #undef SCRIPTED_WALK_MODE
 /// Selects the second walker's independent signed-halfword approach mode.
 #define SCRIPTED_WALK_MODE (_gScriptedWalkSecondMode)
@@ -1444,10 +1451,11 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #undef SCRIPTED_WALK_RESET_ANIM
 #define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetAnim
 #undef SCRIPTED_WALK_BLEND_ANIM
-#define SCRIPTED_WALK_BLEND_ANIM scriptedWalkBlendAnim
+#define SCRIPTED_WALK_BLEND_ANIM _scriptedWalkBlendAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
-#undef gScriptedWalkBlendFrames
+#undef SCRIPTED_WALK_BLEND_FRAMES
+#define SCRIPTED_WALK_BLEND_FRAMES (_gScriptedWalkBlendFrames)
 #undef SCRIPTED_WALK_MODE
 #define SCRIPTED_WALK_MODE gScriptedWalkModeValue
 #undef SCRIPTED_WALK_WORK_T
@@ -1549,18 +1557,21 @@ void func_actor_143900_80132FB0(Task* task)
 /// Defines the private child-track blend selected by the second walker's update.
 #define SCRIPTED_WALK_BLEND_ANIM _scriptedWalkBlendSecondAnim
 #undef SCRIPTED_WALK_WORK
-#define SCRIPTED_WALK_WORK       _gScriptedWalkSecondWork
-#define gScriptedWalkBlendFrames D_actor_143900_80149630
+#define SCRIPTED_WALK_WORK _gScriptedWalkSecondWork
+#undef SCRIPTED_WALK_BLEND_FRAMES
+/// Supplies the same whole-frame `s16` latch selected by the second update.
+#define SCRIPTED_WALK_BLEND_FRAMES (_gScriptedWalkSecondBlendFrames)
 #include "../../shared/scripted_walk_blend_anim.inc.c"
 #undef SCRIPTED_WALK_BLEND_ANIM
-#define SCRIPTED_WALK_BLEND_ANIM scriptedWalkBlendAnim
+#define SCRIPTED_WALK_BLEND_ANIM _scriptedWalkBlendAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
-#undef gScriptedWalkBlendFrames
+#undef SCRIPTED_WALK_BLEND_FRAMES
+#define SCRIPTED_WALK_BLEND_FRAMES (_gScriptedWalkBlendFrames)
 
 /// Message 0x7D3 handler of the second variant: adopts `preset`'s animation id
-/// when it is one of the first 0xC, latches the reset mode and the reset
-/// argument the reseed uses, then hands the published task to the per-frame
+/// when it is one of the first 0xC, latches the reset mode and the blend
+/// duration, then hands the published task to the per-frame
 /// update. Ids past the range are rejected with -1 and leave the work block
 /// untouched.
 s32 func_actor_143900_801331C4(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
@@ -1569,7 +1580,7 @@ s32 func_actor_143900_801331C4(Task* task, s32 arg1, AnimationPlayRequest* prese
         _gScriptedWalkSecondWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
             _gScriptedWalkSecondWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            D_actor_143900_80149630            = preset->blendFrames;
+            _gScriptedWalkSecondBlendFrames    = preset->blendFrames;
         } else {
             _gScriptedWalkSecondWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }

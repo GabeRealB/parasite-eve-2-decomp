@@ -95,9 +95,6 @@ extern s32 D_actor_461800_80143890;
 extern TaskMessageEntry gFootstepWalkMsgTable[6];
 extern AnimationSet*    gFootstepWalkAnims[35];
 
-/// Reset argument the first variant forwards to every reseeded slot.
-extern s16 gScriptedWalkBlendFrames;
-
 /// Reset argument the second variant forwards to every reseeded slot.
 extern s16 gFootstepWalkBlendFrames;
 
@@ -408,7 +405,13 @@ static AnimationSet _gActor461800Animation08110 = {
     { NULL, _gActor461800Animation08110Bank1, NULL, NULL, _gActor461800Animation08110Bank4, NULL, NULL, NULL },
 };
 
-s16 gScriptedWalkBlendFrames = 8;
+/// Latched duration of the first walker's next child-part blend, in whole normal-rate frames.
+///
+/// Play requests narrow `AnimationPlayRequest.blendFrames` to this signed
+/// halfword; walk completion replaces it with `SCRIPTED_WALK_IDLE_BLEND_FRAMES`.
+/// Plain resets leave it intact. Zero requests no transition time; 0..2047
+/// keeps the playback timer nonnegative. The range is not checked.
+static s16 _gScriptedWalkBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_461800_80139F5C[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_461800_80132D84 },
@@ -1205,8 +1208,8 @@ void func_actor_461800_80132B74(Task* task)
 #include "../../shared/scripted_walk_blend_anim.inc.c"
 
 /// Applies an animation preset: the id is copied into the work block, the reset
-/// mode is picked by the preset's blend flag and the reset argument is either
-/// taken from the preset or left at 2, then the whole slot array is re-seeded.
+/// mode is picked by the preset's blend flag and the blend duration is latched
+/// from the preset only for a blended reseed, then the child slots are re-seeded.
 /// Only the six known animation ids are accepted; anything else leaves the work
 /// block untouched and reports the failure.
 s32 func_actor_461800_80132D84(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
@@ -1215,7 +1218,7 @@ s32 func_actor_461800_80132D84(Task* task, s32 arg1, AnimationPlayRequest* prese
         _gScriptedWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            gScriptedWalkBlendFrames     = preset->blendFrames;
+            _gScriptedWalkBlendFrames    = preset->blendFrames;
         } else {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }

@@ -86,10 +86,6 @@ static _Actor146300Work* _gScriptedWalkWork;
 /// `extra`.
 extern Task* gActorSelfTask;
 
-/// Reset argument `scriptedWalkBlendAnim` forwards: the 0x7D3 handler
-/// latches the preset's `field_C` here.
-extern s16 gScriptedWalkBlendFrames;
-
 /// The companion task the spawn routine starts from
 /// `D_actor_146300_801427C8`; its `extra` is the model whose texture page and
 /// CLUT row come out of the area record, and the actor's own task is reparented
@@ -1252,7 +1248,13 @@ static AnimationSet _gActor146300Animation10954 = {
     { NULL, _gActor146300Animation10954Bank1, NULL, NULL, _gActor146300Animation10954Bank4, NULL, NULL, NULL },
 };
 
-s16 gScriptedWalkBlendFrames = 8;
+/// Latched duration of the next child-part blend, in whole normal-rate frames.
+///
+/// Play requests narrow `AnimationPlayRequest.blendFrames` to this signed
+/// halfword. Plain resets leave it intact; this walker has no walk-completion
+/// transition. Zero requests no transition time; 0..2047 keeps the playback
+/// timer nonnegative. The range is not checked.
+static s16 _gScriptedWalkBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_146300_801427A0[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_146300_8013299C },
@@ -1610,15 +1612,15 @@ static void func_actor_146300_801327A4(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-/// Per-frame update: reset mode 1 runs the reseed with the latched reset
-/// argument and mode 2 the plain reseed, each then switching to mode 3; mode 3
+/// Per-frame update: reset mode 1 runs the reseed with the latched blend
+/// duration and mode 2 the plain reseed, each then switching to mode 3; mode 3
 /// ticks the animation. Steps 1 and 2 each return through their own copy of the
 /// switch to mode 3; the two are identical, so jump.c cross-jumps them and only
 /// the second survives.
 static void func_actor_146300_801327CC(Task* task)
 {
     if (_gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
-        scriptedWalkBlendAnim();
+        _scriptedWalkBlendAnim();
         _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
@@ -1639,7 +1641,7 @@ static void func_actor_146300_801327CC(Task* task)
 #include "../../shared/scripted_walk_blend_anim.inc.c"
 
 /// Message 0x7D3 handler: adopts `preset`'s animation id when it is
-/// one of the first 0x11, latching the reset mode and the reset argument the
+/// one of the first 0x11, latching the reset mode and the blend duration the
 /// reseed forwards, then hands the published task to the per-frame update. Ids
 /// past the range are rejected with -1 and leave the work block untouched.
 s32 func_actor_146300_8013299C(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
@@ -1648,7 +1650,7 @@ s32 func_actor_146300_8013299C(Task* task, s32 arg1, AnimationPlayRequest* prese
         _gScriptedWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            gScriptedWalkBlendFrames     = preset->blendFrames;
+            _gScriptedWalkBlendFrames    = preset->blendFrames;
         } else {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }

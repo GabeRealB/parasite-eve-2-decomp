@@ -101,11 +101,6 @@ extern TaskMessageEntry D_actor_260400_80154BE8[6];
 extern TaskDesc         D_actor_260400_80154C18[];
 extern u8               D_actor_260400_80154C30[];
 
-/// Reset argument the blended reseed forwards: the play-animation handler
-/// latches the preset's `field_C` here, and the update sets it to 10 when a
-/// walk ends.
-extern s16 gScriptedWalkBlendFrames;
-
 /// Borrowed work block of the scripted walker and its revolver attachment.
 ///
 /// The spawn and dispatcher publish the allocation also held by `Task::work`.
@@ -894,7 +889,13 @@ static TmdSource _gActor260400RupertBroderickHurtBody = {
     _gActor260400RupertBroderickHurtBodyStream,
 };
 
-s16 gScriptedWalkBlendFrames = 8;
+/// Latched duration of the next child-part blend, in whole normal-rate frames.
+///
+/// Play requests narrow `AnimationPlayRequest.blendFrames` to this signed
+/// halfword; walk completion replaces it with `SCRIPTED_WALK_IDLE_BLEND_FRAMES`.
+/// Plain resets leave it intact. Zero requests no transition time; 0..2047
+/// keeps the playback timer nonnegative. The range is not checked.
+static s16 _gScriptedWalkBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_260400_80154BE8[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_260400_8014A908 },
@@ -1163,7 +1164,7 @@ void func_actor_260400_8014A6F8(Task* task)
 
 /// Message 0x7D3 (play animation): adopts the preset's animation id when it is
 /// one of the first 0x10, latching the reset mode -- 1 for the blended reseed,
-/// 2 for the plain one -- and the reset argument the blended reseed forwards,
+/// 2 for the plain one -- and the blend duration the blended reseed forwards,
 /// then runs the update on the actor's task. Ids past the range are rejected
 /// with -1 and leave the work block untouched.
 s32 func_actor_260400_8014A908(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
@@ -1172,7 +1173,7 @@ s32 func_actor_260400_8014A908(Task* task, s32 arg1, AnimationPlayRequest* prese
         _gScriptedWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            gScriptedWalkBlendFrames     = preset->blendFrames;
+            _gScriptedWalkBlendFrames    = preset->blendFrames;
         } else {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }

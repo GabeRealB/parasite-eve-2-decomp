@@ -4,7 +4,7 @@
 /// plain) and switch to mode 3. In mode 3 the walking animations 2, 0xE and 0xF
 /// step the model forward while `st.travel` counts down, by a distance the
 /// approach mode in `SCRIPTED_WALK_MODE` picks, and blend into animation
-/// 0xD with reset argument 10 when the walk ends; animation 3 turns the model
+/// 0xD with a ten-frame blend when the walk ends; animation 3 turns the model
 /// while `turnFrames` counts down. Mode 3 then ticks the animation.
 void scriptedWalkUpdate(Task* task)
 {
@@ -32,9 +32,9 @@ void scriptedWalkUpdate(Task* task)
                         break;
                 }
                 if (--work->st.travel == 0) {
-                    work->st.state           = ACTOR_ENEMY_ANIM_BLEND;
-                    gScriptedWalkBlendFrames = 10;
-                    work->st.animId          = 0xD;
+                    work->st.state             = ACTOR_ENEMY_ANIM_BLEND;
+                    SCRIPTED_WALK_BLEND_FRAMES = SCRIPTED_WALK_IDLE_BLEND_FRAMES;
+                    work->st.animId            = 0xD;
                 }
             }
         }

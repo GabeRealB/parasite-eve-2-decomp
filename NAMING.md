@@ -677,9 +677,14 @@ selects the private slot-tick instance and its update calls.
 `SCRIPTED_WALK_RESET_ANIM` selects the private track-restart instance and its
 update calls, with the same published work binding at both sites. A carrier with
 two walkers also selects its child-track blend definition and update call with
-`SCRIPTED_WALK_BLEND_ANIM`, alongside that walker's blend-frame value. It
-rebinds these around each additional fragment instance and
-restores its first walker's bindings afterwards.
+`SCRIPTED_WALK_BLEND_ANIM`, defaulting to the private `_scriptedWalkBlendAnim`.
+`SCRIPTED_WALK_BLEND_FRAMES` selects its writable signed-halfword duration
+latch, in whole normal-rate frames, defaulting to `_gScriptedWalkBlendFrames`.
+Each carrier keeps that storage private; a play request narrows the duration
+to its low signed halfword. A carrier rebinds both around each additional
+fragment instance and restores its first walker's bindings afterwards.
+`actor_420700` carries only the tick and reset fragments and selects its own
+private fixed-duration blend function for the shared header's declaration.
 
 `pacedWalk` owns the included twenty-part cutscene NPC walk whose work block
 is kept at `Task::work`, and the animation-slot tick, reset, blend and placement

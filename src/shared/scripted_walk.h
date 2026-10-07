@@ -13,9 +13,10 @@
  *
  *   SCRIPTED_WALK_WORK        the borrowed, published work pointer
  *   SCRIPTED_WALK_MODE        the signed halfword mode of the last walk
- *   gScriptedWalkBlendFrames  the blend the next reseed uses
+ *   SCRIPTED_WALK_BLEND_FRAMES the latched duration of the next blended reseed
  *
- * The defaults select `_gScriptedWalkWork` and `_gScriptedWalkMode`.
+ * The defaults select `_gScriptedWalkWork`, `_gScriptedWalkMode` and
+ * `_gScriptedWalkBlendFrames`.
  * actor_143900 and actor_461800 bind the mode to `gScriptedWalkModeValue`,
  * a scalar view of the first halfword in `_gScriptedWalkModeStorage`.
  * Nothing accesses the other halfword, whose role remains unproven.
@@ -80,6 +81,32 @@ enum {
 /// it as `SCRIPTED_WALK_MODE_*`. Rebind around both fragments for another walker
 /// and restore afterwards. No arguments or local identifiers are captured.
 #define SCRIPTED_WALK_MODE (_gScriptedWalkMode)
+#endif
+
+/// Transition durations in whole normal-rate frames.
+enum {
+    SCRIPTED_WALK_DEFAULT_BLEND_FRAMES = 8,
+    SCRIPTED_WALK_IDLE_BLEND_FRAMES    = 10,
+};
+
+#ifndef SCRIPTED_WALK_BLEND_FRAMES
+/// Selects the walker's latched transition duration in whole normal-rate frames.
+///
+/// Bind to a side-effect-free, writable `s16` lvalue before this header or
+/// rebind around both the update and blend fragments for another walker.
+/// The play-animation handler stores the low signed halfword of
+/// `AnimationPlayRequest.blendFrames`; walk completion stores
+/// `SCRIPTED_WALK_IDLE_BLEND_FRAMES`. Plain resets leave the latch intact.
+/// The blend fragment promotes it to `s32` for each child slot's seek: zero
+/// requests no transition time, and 0..2047 keeps the playback timer nonnegative.
+/// There is no range check. No arguments or local identifiers are captured;
+/// each access evaluates the binding again, including after animation calls.
+///
+/// The default selects the sole or first walker in the four blend carriers.
+/// actor_143900 binds `_gScriptedWalkSecondBlendFrames` around its second
+/// update and blend copies, then restores the default. The storage belongs
+/// to the carrier and remains live for that overlay's lifetime.
+#define SCRIPTED_WALK_BLEND_FRAMES (_gScriptedWalkBlendFrames)
 #endif
 
 /// Work block of a scripted walker that carries two attachments, allocated
@@ -158,18 +185,20 @@ STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 #ifndef SCRIPTED_WALK_BLEND_ANIM
 /// Selects the function that blends this walker's requested child-part tracks.
 ///
-/// Bind to a `void name(void)` function identifier before this header. The
+/// Bind to a TU-private `void name(void)` function identifier before this header. The
 /// blend fragment defines it; the update fragment calls it for
 /// `ACTOR_ENEMY_ANIM_BLEND`, then advances the state to `ACTOR_ENEMY_ANIM_TICK`.
 /// Both inclusions must select the same initialized, live `SCRIPTED_WALK_WORK`
-/// and whole-frame `gScriptedWalkBlendFrames` value. An additional private
+/// and signed-halfword `SCRIPTED_WALK_BLEND_FRAMES` latch. An additional private
 /// instance needs a static prototype in the carrier prologue before its caller.
 /// Rebind around both fragments and restore the first walker's binding afterwards.
 ///
 /// The default serves the sole or first walker in the four blend carriers;
 /// actor_143900 binds its second copy to `_scriptedWalkBlendSecondAnim`.
+/// actor_420700 carries only the tick and reset fragments and selects its
+/// own fixed-duration blend function for this declaration.
 /// This identifier alias takes no arguments and captures no local variables.
-#define SCRIPTED_WALK_BLEND_ANIM scriptedWalkBlendAnim
+#define SCRIPTED_WALK_BLEND_ANIM _scriptedWalkBlendAnim
 #endif
 
 void scriptedWalkUpdate(Task* task);
@@ -185,7 +214,7 @@ void scriptedWalkUpdate(Task* task);
 static void SCRIPTED_WALK_TICK_ANIM(void);
 
 static void SCRIPTED_WALK_RESET_ANIM(void);
-void        SCRIPTED_WALK_BLEND_ANIM(void);
+static void SCRIPTED_WALK_BLEND_ANIM(void);
 s32         scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
 
 s32 scriptedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
