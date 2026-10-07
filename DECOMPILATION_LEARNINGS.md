@@ -151053,6 +151053,11 @@ plain C that is a store into `r` computed from `offset`, and the target has
 none. No natural form found; the argument above says a single-block one would
 have to change which instruction first uses the offset.
 
+*Note 2026-10-07:* retried against the set-twice, deleted-boundary and
+store-order mechanisms; unchanged. The three orders `.lreg` needs and what each
+form gives are in the section at the end of this file with this function's
+name.
+
 **Use.**
 - A call argument that is an address (`&local`) is set by a register copy
   just before the call. Count the RTL sets of that argument register in the
@@ -153134,3 +153139,69 @@ which was written first.
 - When that leaves the constant global and a block-local pointer takes its
   register, make the pointer global the same way: one local set at each
   re-read. Check `.greg`'s `regs to allocate` line for the order of the two.
+
+## Unchanged: the strip offset's asm needs three orders at `.lreg`, and every plain single-block form gives at most two (func_actor_143000_80133CF0, 2026-10-07)
+
+Dated note on "One asm instead of two" (2026-10-06). The asm is still there.
+What was added is the list of what the registers need and what each of the
+newer mechanisms does to it. "Lines" below are differing lines of `cc1` text
+for the function (91 lines; no asm at all = 36).
+
+**What `.lreg` has to see** (block = `killCountdown = 6` to the final test;
+the call does not end it). Every miss below is one of these three:
+
+1. `a0 = &dest` above the count store, so the count cannot take `$a0`.
+2. `lh band.y` (the second one, for `bottom`) above the count store too. The
+   bottom chain's quantity then overlaps the count and takes `$v0` first; with
+   it below, the count is the best quantity in its span and takes `$v0` even
+   with `$a0` busy.
+3. The `%hi(Fs_ImgBuffers)` set above `lhu dest.y`, so that it overlaps the
+   `dest.y` quantity and gets `$v1`. It is a birth chained to the `$a1` add, so
+   this fails whenever the shifts are launched first at the bottom (they pull
+   the `lw` and the `lui` down with them, and the `lhu dest.y` stall then has
+   nothing but the `a0` copy to take).
+
+The count store is ready only after both stack reads of `r.y` (a store through
+`args` conflicts with them, which is also why cse reloads them). So 1 and 2
+together mean: both `r.y` reads scheduled (backward) before `bottom`'s add,
+which is a birth released by the `subu`. Only births with a higher LUID can
+hold it back, so the shifts must already be scheduled when the `subu` is, i.e.
+sit between the `r.h` store and the struct copy, with no instruction there to
+release them. That is the asm.
+
+**Measured.**
+
+| form | sched1 | lines |
+|---|---|---|
+| `offset = r.y * 320; offset *= 2;` (before `r.h`, or split around it) | the two shifts come out as one `sll 7` and the code is identical to no asm (which pass folds them was not traced) | 36 |
+| `offset = r.y * 5; offset <<= 7;` (either side of `r.h`) | `sll 7` is not a birth (priority 51): 3 holds, the bottom of the block matches. But it waits behind the whole bottom chain (births and 95), and the `lh r.y` queue cycle after the first shift is empty: the `a0` copy goes there, below the count store | 26 |
+| the same, and `bottom = args->band.y; bottom += ...` (also the permuter's best plain result, 350 from 470) | the `band.y` load is no birth either and fills that cycle; the `a0` copy reaches the `div` stall: 1 and 3 hold, 2 does not, count in `$v0` | 26 |
+| the same two-set offset with `r.x`/`r.w` assigned after `r.h` | the late copies' load stalls pull `sll 7` and the add up between `r.h` and the struct copy: 1, 2, 3 all hold (count in `$a1`, `%hi` in `$v1`) and everything above the copy matches. The copies and the `Fs_ImgBuffers` load end in the middle; the image has the copies first, with their load stalls unfilled | 22 |
+| `offset` also assigned in `case 0`, or reused for the countdown test | cse renames the other use; one set; identical to no asm | 36 |
+| `r.h` before `offset`, or `r.y * 640` as the helper's argument | cse shares the read: `lhu`, then `sll 16`/`sra 16` | 33 |
+| the six orders of the `r.x`, `r.w`, `r.y` stores | 36 to 44 (26 to 34 with the two-set offset) | - |
+| `if (bottom > r.y) store(); else store();` | the `a0` copy is confined to the arm | 38 |
+| equal arms around `r.h = ...` / around `args->stripsCaptured++` | the same; the count store and the call have to be one block, so no boundary fits between them, and the image has no stall or branch there | 39 / 41 |
+| `if (r.h > 0) store();` | a `blez` the image does not have | 40 |
+| `RECT` by value (copied in the helper, or the parameter used as `dest`) | 66 / 52 |
+| helper sweeps: six store orders, the offset or the row passed in, computed before or after the copy, in one or two steps, the destination in a local (2016 builds) | best is the known `w, x, y` order (top matches, stores do not) | 18 |
+
+The permuter's lowest score (310) wrote `r.h` twice and read `r.y` through a
+pointer local; not a match and not kept.
+
+**Where a fake loop would have to sit.** Nowhere: a loop note makes the next
+instruction a full fence, which also keeps the `a0` copy below it (condition
+1). The asm works because it has an output and so orders only the offset
+against the copy.
+
+**Use.**
+- A set-twice value is not launched, but it is then placed by priority, and
+  priority is depth from the top of the block. It is scheduled after every
+  deeper chain unless one of them has a load stall with nothing else ready;
+  such a stall pulls it in. Check for that stall before trying a second set.
+- `x = a * 320; x *= 2;` compiles exactly as `x = a * 640` here, launch
+  included. `x = a * 5; x <<= 7;` (an add between the shifts) keeps two sets.
+- When a block-local value must lose `$v0`, find which quantity holds `$v0`
+  across it in the matching build and which instruction starts that quantity;
+  a schedule that looks right and puts that instruction two lines lower is the
+  whole difference.
