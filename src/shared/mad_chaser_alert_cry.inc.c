@@ -1,25 +1,35 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Requests animation 9, clears the frame counter, advances the sub-state
-/// and, while the enemy has HP left, plays sound 2.
-void madChaserAlertCry(Task* arg0)
+/// Starts the alert cry animation and sounds it while the enemy is alive.
+///
+/// Starts clip 9 with a four-normal-frame blend, resets the state counter and
+/// advances to the wait step. The sound uses bank 0x402C, entry 2, tagged with
+/// this enemy's placement index (0..15), with signed-byte spatial pan and depth.
+/// Requires live work, an Enemy spawn argument and loaded model/animation data.
+static void _madChaserAlertCry(Task* task)
 {
+    enum {
+        MAD_CHASER_ALERT_CRY_ANIM  = 9,
+        MAD_CHASER_ALERT_CRY_SOUND = 0x402C0002,
+    };
     MadChaserWork* work;
     Enemy*         enemy;
+    Enemy*         soundEnemy;
     s32            soundId;
-    s32            pan;
+    s32            panOffset;
 
-    work                  = (MadChaserWork*)arg0->work;
-    enemy                 = (Enemy*)arg0->spawnArg2.pointer;
+    work                  = task->work;
+    enemy                 = task->spawnArg2.pointer;
     work->animBlendFrames = 4;
     work->animRate        = ANIMATION_RATE_ONE;
-    work->animId          = 9;
+    work->animId          = MAD_CHASER_ALERT_CRY_ANIM;
     work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
     work->stateFrames     = 0;
     work->subState++;
     if (enemy->hp > 0) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        soundEnemy = task->spawnArg2.pointer;
+        soundId    = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | MAD_CHASER_ALERT_CRY_SOUND;
+        panOffset  = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
 }

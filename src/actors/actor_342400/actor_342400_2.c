@@ -153,11 +153,11 @@ static const TaskFuncTable5 gMadChaserLeapSteps = { {
 
 /// Sub-state handlers `func_actor_342400_80169A98` dispatches by `subState`.
 static const TaskFuncTable5 D_actor_342400_80161F00 = { {
-    madChaserAlertCry,
-    madChaserAlertWait,
-    madChaserAlertRelease,
-    madChaserAlertCrouch,
-    madChaserAlertSidestep,
+    _madChaserAlertCry,
+    _madChaserAlertWait,
+    _madChaserAlertRelease,
+    _madChaserAlertStartSidestep,
+    _madChaserAlertSidestep,
 } };
 
 /// Sub-state handlers `madChaserDangleState` dispatches by `subState`.
@@ -674,8 +674,8 @@ u8 gMadChaserAnimBank[84] = {
 };
 
 TaskMessageEntry gMadChaserMsgTable[3] = {
-    { ACTOR_MESSAGE_PLACE, madChaserMsgPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, madChaserCommandMsg },
+    { ACTOR_MESSAGE_PLACE, _madChaserPlaceRoot },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _madChaserQueueCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -839,10 +839,10 @@ static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
 
 /// Sub-state handlers `func_actor_342400_8016B038` dispatches by `subState`.
 static const TaskFuncTable4 D_actor_342400_80161FD8 = { {
-    madChaserLurkShiftStart,
-    madChaserLurkShiftBrace,
-    madChaserLurkSidestepRight,
-    madChaserLurkSidestepLeft,
+    _madChaserLurkShiftStart,
+    _madChaserLurkShiftStartSidestep,
+    _madChaserLurkSidestepRight,
+    _madChaserLurkSidestepLeft,
 } };
 
 /// Ten state handlers, indexed by `MadChaserWork::state`; copied to the

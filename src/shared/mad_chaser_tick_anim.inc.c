@@ -1,9 +1,13 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Captures and blends all animated parts into the requested clip.
+/// Captures slots 1..8 and starts a blend into their requested clip.
 ///
-/// The work's nine-slot context and pose storage must be initialized; slot zero
-/// is excluded. The caller retains ownership of the loaded clips and work.
+/// Sets each slot's rate from animRate, narrowed to its signed low byte in
+/// sixteenths of a frame, then captures the slot's current ticked pose and seeks
+/// record zero of animId. animBlendFrames counts whole normal-rate frames;
+/// 0..2047 keeps the playback API's signed time nonnegative. Requires an
+/// initialized nine-slot context, live pose storage and valid loaded clip tracks.
+/// Slot zero and the request latches are retained; the caller owns all storage.
 static __inline__ void _madChaserBlendAnimSlots(MadChaserWork* requestWork)
 {
     s32 blendSlot;

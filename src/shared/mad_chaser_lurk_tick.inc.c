@@ -34,7 +34,7 @@ void madChaserLurkTick(Task* arg0)
                 _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DROP_DEATH);
             } else if (work->command == MAD_CHASER_COMMAND_SHRINK_DEATH && work->busy == 0) {
                 _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_SHRINK_DEATH);
-            } else if (madChaserTakeRequest(arg0)) {
+            } else if (_madChaserTakeHitReaction(arg0)) {
                 work->busy = 0;
                 _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_COMBAT);
             }

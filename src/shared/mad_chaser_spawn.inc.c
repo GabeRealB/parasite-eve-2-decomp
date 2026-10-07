@@ -31,7 +31,7 @@ void madChaserSpawn(Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    madChaserLoadSoundBank();
+    _madChaserQueueSoundBank();
     obj                     = task->extra.tmd;
     w                       = (MadChaserWork*)task->work;
     e                       = task->spawnArg2.pointer;
@@ -52,7 +52,7 @@ void madChaserSpawn(Task* task)
     w2->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
     _madChaserTickAnim(task);
     coord->parent = &gGfxViewCoord;
-    madChaserLinkBodies(task);
+    _madChaserLinkBodies(task);
     w->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     enemy          = task->spawnArg2.pointer;
     worldTargetLinkNode(&enemy->node);

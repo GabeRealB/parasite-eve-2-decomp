@@ -29,7 +29,7 @@ void madChaserSpawnHidden(Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    madChaserLoadSoundBank();
+    _madChaserQueueSoundBank();
     flags = task->spawnArg1.value;
     if ((flags >> 16) & 1) {
         enemyDestroy(enemy, task);
@@ -58,7 +58,7 @@ void madChaserSpawnHidden(Task* task)
     w2->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
     _madChaserTickAnim(task);
     coord->parent = &gGfxViewCoord;
-    madChaserLinkBodies(task);
+    _madChaserLinkBodies(task);
     w->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
     (sceneAcquireBattleRef)(0);
     e2 = task->spawnArg2.pointer;

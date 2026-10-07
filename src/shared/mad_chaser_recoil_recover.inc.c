@@ -17,7 +17,7 @@ void madChaserRecoilRecover(Task* arg0)
             work->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
             return;
         }
-        if (madChaserTakeRequest(arg0) == 0 && madChaserIsHit(arg0)) {
+        if (_madChaserTakeHitReaction(arg0) == 0 && madChaserIsHit(arg0)) {
             _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_WALK);
         }
     } else if (madChaserIsHit(arg0)) {

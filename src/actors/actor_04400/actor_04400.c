@@ -687,7 +687,7 @@ AnimationSet* gMadChaserAnimBank[21] = {
 };
 
 TaskMessageEntry gMadChaserMsgTable[3] = {
-    { ACTOR_MESSAGE_PLACE, madChaserMsgPlace },
+    { ACTOR_MESSAGE_PLACE, _madChaserPlaceRoot },
     { ACTOR_COMMAND_MESSAGE_APPLY, Actor04400_Fn0648C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -819,11 +819,11 @@ static const TaskFuncTable5 gMadChaserLeapSteps = { {
 
 /// Sub-state handlers `Actor04400_Fn06964` dispatches by `subState`.
 static const TaskFuncTable5 Actor04400_D0009C = { {
-    madChaserAlertCry,
-    madChaserAlertWait,
-    madChaserAlertRelease,
-    madChaserAlertCrouch,
-    madChaserAlertSidestep,
+    _madChaserAlertCry,
+    _madChaserAlertWait,
+    _madChaserAlertRelease,
+    _madChaserAlertStartSidestep,
+    _madChaserAlertSidestep,
 } };
 
 /// Sub-state handlers `madChaserDangleState` dispatches by `subState`.
@@ -1085,7 +1085,7 @@ static void Actor04400_Fn03390(Task* arg0)
             work->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
             return;
         }
-        if (madChaserTakeRequest(arg0) == 0 && madChaserIsHit(arg0)) {
+        if (_madChaserTakeHitReaction(arg0) == 0 && madChaserIsHit(arg0)) {
             _madChaserSetBehaviorStateS16(arg0, MAD_CHASER_COMBAT_STATE_WALK);
         }
     } else if (madChaserIsHit(arg0)) {
@@ -1139,7 +1139,7 @@ static void Actor04400_Fn03538(Task* arg0)
                 _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DROP_DEATH);
             } else if (work->command == MAD_CHASER_COMMAND_SHRINK_DEATH && work->busy == 0) {
                 _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_SHRINK_DEATH);
-            } else if (madChaserTakeRequest(arg0)) {
+            } else if (_madChaserTakeHitReaction(arg0)) {
                 work->busy = 0;
                 _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_COMBAT);
             }
@@ -1177,10 +1177,10 @@ static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
 
 /// Sub-state handlers `Actor04400_Fn07F04` dispatches by `subState`.
 static const TaskFuncTable4 Actor04400_D00174 = { {
-    madChaserLurkShiftStart,
-    madChaserLurkShiftBrace,
-    madChaserLurkSidestepRight,
-    madChaserLurkSidestepLeft,
+    _madChaserLurkShiftStart,
+    _madChaserLurkShiftStartSidestep,
+    _madChaserLurkSidestepRight,
+    _madChaserLurkSidestepLeft,
 } };
 
 /// State handlers `madChaserEmergeTick` dispatches by `state`.

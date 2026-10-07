@@ -1,20 +1,27 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once slot 1 reports a boundary, jump or hold, releases this enemy's `gSceneCombatState` hold,
-/// requests animation 0xF and advances the sub-state.
-void madChaserAlertRelease(Task* arg0)
+/// Releases this enemy's shared alert claim at an animation boundary.
+///
+/// Slot 1 reaching a boundary, control jump or settled pose releases only a
+/// claim with this enemy's placement index. Starts clip 15 with an eight-frame
+/// blend at normal rate and advances the alert sub-state; retains stateFrames.
+static void _madChaserAlertRelease(Task* task)
 {
+    enum {
+        MAD_CHASER_ALERT_RELEASE_ANIM = 15,
+    };
     MadChaserWork* work;
-    MadChaserWork* work2;
+    MadChaserWork* animationWork;
 
-    work = (MadChaserWork*)arg0->work;
-    if ((_madChaserAnimHasBoundaryStatus(arg0) << 0x10) != 0) {
-        _madChaserSetAlertHold(arg0, 0);
-        work2                  = (MadChaserWork*)arg0->work;
-        work2->animBlendFrames = 8;
-        work2->animRate        = ANIMATION_RATE_ONE;
-        work2->animId          = 0xF;
-        work2->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
-        work->subState         = work->subState + 1;
+    work = task->work;
+    if ((_madChaserAnimHasBoundaryStatus(task) << 0x10) != 0) {
+        _madChaserSetAlertHold(task, 0);
+
+        animationWork                  = task->work;
+        animationWork->animBlendFrames = 8;
+        animationWork->animRate        = ANIMATION_RATE_ONE;
+        animationWork->animId          = MAD_CHASER_ALERT_RELEASE_ANIM;
+        animationWork->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+        work->subState                 = work->subState + 1;
     }
 }

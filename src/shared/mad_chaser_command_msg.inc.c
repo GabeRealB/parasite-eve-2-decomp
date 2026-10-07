@@ -1,14 +1,19 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Message handler: on message 0x2C00 whose low nibble is 1..5, store the
-/// message halfword in `command`. The five identical case bodies are
-/// cross-jumped into one, but only separate bodies keep the jump table; a
-/// single `case 1 ... 5` becomes a range test.
-void madChaserCommandMsg(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
+/// Latches a supported room command for the Mad Chaser's state machine.
+///
+/// Accepts only context key 0x2C00 (synthetic stage 0, area 44) and kinds 1..5.
+/// Copies the whole command halfword, retaining its entry-move and spot bits;
+/// unsupported requests leave the pending command intact. Borrows request only
+/// through dispatch. messageId and unusedSecondArg are ignored; no result is returned.
+static void _madChaserQueueCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedSecondArg)
 {
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    enum {
+        MAD_CHASER_COMMAND_CONTEXT = 0x2C00,
+    };
+    MadChaserWork* work = task->work;
 
-    if (request->context.key == 0x2C00) {
+    if (request->context.key == MAD_CHASER_COMMAND_CONTEXT) {
         switch (request->command & MAD_CHASER_COMMAND_KIND_MASK) {
             case MAD_CHASER_COMMAND_EMERGE:
                 work->command = request->command;

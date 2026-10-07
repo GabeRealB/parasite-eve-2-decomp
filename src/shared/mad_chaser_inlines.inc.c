@@ -81,29 +81,32 @@ static __inline__ void _madChaserSetBehaviorState(Task* task, s32 behaviorState)
     work->subState = 0;
 }
 
-/// Inlined copy of `madChaserTakeHitRequest`: while `hitTaken` is 1,
-/// consumes the request in `hitReaction` (1..5 jump to states 6, 7, 8, 7, 9)
-/// and returns 1; otherwise returns 0.
-static __inline__ s32 madChaserTakeRequest(Task* arg0)
+/// Consumes the pending hit reaction when this frame's hit latch equals one.
+///
+/// Reactions 1..5 select light recoil, heavy recoil, status hold, heavy recoil
+/// and knockdown, resetting the behavior sub-state. Other values only clear the
+/// reaction. Returns 1 for hitTaken == 1, even for no/unsupported reaction, and
+/// 0 otherwise; the hit latch and task state are retained. Requires live work.
+static __inline__ s32 _madChaserTakeHitReaction(Task* task)
 {
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    MadChaserWork* work = task->work;
 
     if (work->hitTaken == 1) {
         switch ((s16)(work->hitReaction - 1)) {
             case MAD_CHASER_HIT_REACTION_LIGHT - 1:
-                _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_RECOIL_LIGHT);
+                _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_RECOIL_LIGHT);
                 break;
             case MAD_CHASER_HIT_REACTION_HEAVY - 1:
-                _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_RECOIL_HEAVY);
+                _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_RECOIL_HEAVY);
                 break;
             case MAD_CHASER_HIT_REACTION_STATUS - 1:
-                _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_STATUS_HOLD);
+                _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_STATUS_HOLD);
                 break;
             case MAD_CHASER_HIT_REACTION_BLAST - 1:
-                _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_RECOIL_HEAVY);
+                _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_RECOIL_HEAVY);
                 break;
             case MAD_CHASER_HIT_REACTION_KNOCKDOWN - 1:
-                _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_KNOCKDOWN);
+                _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_KNOCKDOWN);
                 break;
         }
         work->hitReaction = MAD_CHASER_HIT_REACTION_NONE;

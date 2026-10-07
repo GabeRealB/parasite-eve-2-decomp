@@ -1,40 +1,61 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Unless `_madChaserJoinAlert` takes over, side-steps to the left on
-/// frames 0x17..0x23 and, once the hit flags are set, returns the state
-/// machine to state 0.
-void madChaserLurkSidestepLeft(Task* arg0)
+/// Moves the root laterally in its parent frame, scaled by animation rate.
+///
+/// distanceAtNormalRate is a signed displacement in parent-coordinate units.
+/// Requires the task's live work and root. Scaling retains the signed low 20
+/// product bits before division by 16; the displacement then narrows to s16.
+static __inline__ void _madChaserLurkMoveLeft(Task* task, MadChaserWork* work, s32 distanceAtNormalRate)
 {
-    MadChaserWork* work;
-    MadChaserWork* work2;
-    MadChaserWork* next;
-    s32            cond;
-    s16            angle;
-    s16            speed;
-    s32            scale;
+    MadChaserWork* rateWork;
+    s16            sideHeading;
+    s16            stepDistance;
 
-    work = (MadChaserWork*)arg0->work;
-    if ((_madChaserJoinAlert(arg0) << 0x10) == 0) {
-        if ((u16)(work->stateFrames++ - 0x17) < 0xD) {
-            scale                                 = -0x1E;
-            angle                                 = work->rotation.vy + 0x400;
-            speed                                 = (((MadChaserWork*)arg0->work)->animRate * scale) << 0xC >> 0x10;
-            arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-            arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-            arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    sideHeading                           = work->rotation.vy + ACTOR_TRANSFORM_ANGLE_TURN / 4;
+    rateWork                              = task->work;
+    stepDistance                          = (rateWork->animRate * distanceAtNormalRate) << 0xC >> 0x10;
+    task->extra.tmd->coords->coord.t[0]  += ((rsin(sideHeading) << 4) * stepDistance) >> 0x10;
+    task->extra.tmd->coords->coord.t[2]  += ((rcos(sideHeading) << 4) * stepDistance) >> 0x10;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Steps left to finish the lurk shift and returns to lurk idle.
+///
+/// A claimed shared alert takes precedence. Otherwise moves on previous counter
+/// values 23..35 inclusive, at -30 parent-coordinate units per normal-rate frame
+/// along heading plus a quarter turn. A slot-1 boundary, jump or settled pose
+/// clears busy and resets the lurk behavior and sub-state to zero.
+/// Requires live work and root coordinates; the frame counter wraps as u16.
+static void _madChaserLurkSidestepLeft(Task* task)
+{
+    enum {
+        MAD_CHASER_LURK_LEFT_START_FRAME = 23,
+        MAD_CHASER_LURK_LEFT_FRAME_COUNT = 13,
+    };
+    MadChaserWork* work;
+    MadChaserWork* animationWork;
+    MadChaserWork* nextWork;
+    s32            animationBoundary;
+
+    work = task->work;
+    if ((_madChaserJoinAlert(task) << 0x10) == 0) {
+        if ((u16)(work->stateFrames++ - MAD_CHASER_LURK_LEFT_START_FRAME) < MAD_CHASER_LURK_LEFT_FRAME_COUNT) {
+            _madChaserLurkMoveLeft(task, work, -30);
         }
-        work2 = (MadChaserWork*)arg0->work;
-        if ((work2->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work2->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-            cond = 1;
+
+        animationWork = task->work;
+        if ((animationWork->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+            (animationWork->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+            animationBoundary = 1;
         } else {
-            cond = 0;
+            animationBoundary = 0;
         }
-        if (cond) {
-            work->busy     = 0;
-            next           = (MadChaserWork*)arg0->work;
-            next->state    = 0;
-            next->subState = 0;
+        if (animationBoundary) {
+            work->busy = 0;
+
+            nextWork           = task->work;
+            nextWork->state    = MAD_CHASER_LURK_STATE_IDLE;
+            nextWork->subState = 0;
         }
     }
 }

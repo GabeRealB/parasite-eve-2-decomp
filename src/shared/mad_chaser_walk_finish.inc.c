@@ -8,7 +8,7 @@ void madChaserWalkFinish(Task* arg0)
     s16            angle;
     s16            speed;
 
-    madChaserTurnToPlayer(arg0, 0x10);
+    _madChaserTurnToPlayer(arg0, 0x10);
     speed                                 = _madChaserScaleByAnimRate(arg0, -0x10);
     angle                                 = work->rotation.vy;
     arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
