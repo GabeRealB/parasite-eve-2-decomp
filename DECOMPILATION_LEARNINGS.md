@@ -393,7 +393,7 @@ Preprocessed inputs: `base_7.c`
 `9d0d7cddd6373e599287f453445c9735053ff441ff12026f572eee9315c359c4`;
 `base_8.c` `3f7d5a43174fee1fb389520f4b0ef3d7817d0c57798bbece7402ca2f5250b130`.
 
-## A store that sinks below loop-init constants was a `do { } while (0)` statement macro (func_actor_121300_PlayAll, 2026-09-27)
+## A store that sinks below loop-init constants was a `do { } while (0)` statement macro (_actor121300BlendAnimationSet, 2026-09-27)
 
 Target: `lw s2,0x1c(a0)` / `li v0,2` / `sh v0,0x4a0(s2)` / `li s0,1` / `li s3,0xa`, then the loop. Plain C puts both `li`s above the `lw`. sched1 gives the `sh` priority 2 (it depends on the `lw`, which has a load delay), and the loop-init `i = 1` and hoisted `10` only priority 1, so the store is scheduled last in the block. The tree held the order with `SCHED_BARRIER()`.
 
@@ -100623,7 +100623,7 @@ and no register-level rewrite can match.
 
 Inputs: `base.i` (m2c seed, 59.539%), `base_1.i` (100.000%).
 
-## A cross-overlay sibling body matches first try; m2c's nesting of the same code does not (func_actor_121300_8013400C, 2026-09-16)
+## A cross-overlay sibling body matches first try; m2c's nesting of the same code does not (_actor121300FadeOutTask, 2026-09-16)
 
 The BRIEF's "similar matched bodies" list is not restricted to this TU, and a
 candidate that tops `calls` *and* `fields` (here `func_actor_136100_80134588`,
@@ -124852,10 +124852,10 @@ Also seen in the same function (`func_actor_143000_801325F0`): the load order
 with `dx = p->x` written afterwards (CSE reuses the load). And a `u8 v = dy + 0x70`
 variable gave `v + 16` as `addiu 0x80` (SImode) where the direct macro argument
 gave `-0x80`.
-## The fade-task family: `memMalloc(8, 0)` + `switch (Task::state)` + `fadeDrawOverlay` repeats across actors and rooms, and its matched twins hand over the source shape (func_actor_121300_801326EC, 2026-09-17)
+## The fade-task family: `memMalloc(8, 0)` + `switch (Task::state)` + `fadeDrawOverlay` repeats across actors and rooms, and its matched twins hand over the source shape (_actor121300FadeInTask, 2026-09-17)
 
-`func_actor_121300_801326EC` is `func_actor_160900_801344D8`,
-`_actor560800FadeInTask` and its own TU sibling `func_actor_121300_8013400C`
+`_actor121300FadeInTask` is `func_actor_160900_801344D8`,
+`_actor560800FadeInTask` and its own TU sibling `_actor121300FadeOutTask`
 with the state numbers moved: an 8-byte RGB block allocated into `Task::work`
 (0x1C), three `s16` channels at 0x2/0x4/0x6, and a `switch (index->state)` in
 which one `case` seeds the channels and another holds `SetDispMask(1)` and
@@ -125007,9 +125007,9 @@ one block, and the survivor sits *where the last one was written* -- between cas
 increment rather than jumping to it; see the `func_mine_secret_passage_8017D60C`
 entry for when the inline form instead loses the merge to `sched1`.
 
-## Naming the sum before storing it drops a member from the arm's local-alloc quantity, and that is what lets the loop-carried seed take `$v1` (func_actor_121300_8013343C, 2026-09-17)
+## Naming the sum before storing it drops a member from the arm's local-alloc quantity, and that is what lets the loop-carried seed take `$v1` (_actor121300SpawnRingSprites, 2026-09-17)
 
-`func_actor_121300_8013343C` walks one of two arena-ring `SVECTOR` tables and
+`_actor121300SpawnRingSprites` walks one of two arena-ring `SVECTOR` tables and
 spawns effect 0x601B7 at each entry, jittering `vx` with two LCG draws.  Two C
 spellings compile to the same 81 instructions and differ only in `regs`; the
 sum named in a variable first is exact, storing the expression straight into the
@@ -125065,7 +125065,7 @@ setup with `fatal error: m2c_macros.h: No such file or directory` and the run
 reports `PERMUTER_MISS=search finished without a discovery` without searching
 anything -- drop the include first (it is inert when no `M2C_FIELD` is used) and
 the same seed scores identically.  Evidence under
-`tools/permuter_findings/func_actor_121300_8013343C/`, traces in its
+`tools/permuter_findings/_actor121300SpawnRingSprites/`, traces in its
 `analysis/{base_2-96.667pct,winner-100pct,port-100pct}/events.jsonl`.
 
 ## A store to a never-read local is deleted by cse, so a stack argument block must be one address-taken object
@@ -127226,7 +127226,7 @@ source `d9df6763…`, preprocessed `4d1e7dbd…`; target `4b1ee1b1…`, compiler
 `nonmatchings/func_actor_451100_80132A1C-vacuum/` (`.i.cse`, `.i.rtl`,
 `./insn.py 23`).
 
-## Source order of two field `+=` lines is not their store order: scheduling can emit the later line's store first (func_actor_121300_8013293C, 2026-09-17)
+## Source order of two field `+=` lines is not their store order: scheduling can emit the later line's store first (_actor121300LampDebrisTask, 2026-09-17)
 
 Three `rot += spin * dt / 100` updates. The target *stores* `rotY` (0x42), then
 `rotX` (0x40), then `rotZ`, but *loads and multiplies* `spinX` before `spinY`.
@@ -150326,7 +150326,7 @@ attempts; left as it was.
   back to `case 1`'s body). One attempt, with the two bodies as inlines called
   in both places: same length, but the merged body is kept in `case 4`'s
   position, so cases 3/4 are emitted ahead of case 1.
-- Not converted: `func_actor_136100_80131FBC` / `func_actor_121300_80132818`
+- Not converted: `func_actor_136100_80131FBC` / `_actor121300TickAnimations`
   (`goto fail` out of the settle scan, with `fail: done = 0; goto check;`
   written between the store and the seek loop). `done = 0; break;` is the
   same code, but loop.c moves that block to the first `BARRIER` after the

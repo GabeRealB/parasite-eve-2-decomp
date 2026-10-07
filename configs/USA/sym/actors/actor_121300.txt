@@ -85,3 +85,17 @@ dryfieldR08SelectLightingBank = 0x8017F438; // type:func absolute:True owner=dry
 screenWaveTask = 0x80131EB0; // type:func
 actorMsgPlaceYawPitchRoll = 0x8013411C; // type:func
 actorMsgSetDrawMode = 0x801341A8; // type:func
+_actor121300FadeInTask = 0x801326ec; // type:func
+_actor121300TickAnimations = 0x80132818; // type:func
+_actor121300LampDebrisTask = 0x8013293c; // type:func
+_actor121300UploadTexturesTask = 0x8013322c; // type:func
+_actor121300SpawnRingSprites = 0x8013343c; // type:func
+_actor121300SpawnUpperRowSprites = 0x80133580; // type:func
+_actor121300ShatterLamps = 0x80133730; // type:func
+_actor121300FadeOutTask = 0x8013400c; // type:func
+_actor121300BlackoutTask = 0x801340f0; // type:func
+_actor121300SelectSceneStep = 0x80134250; // type:func
+_actor121300RestoreStreamImageMode = 0x80134270; // type:func
+_actor121300SetDoubleDrawMode = 0x80134334; // type:func
+_actor121300StageSceneAudioStart = 0x80134364; // type:func
+_actor121300QueueScenePlayback = 0x80134384; // type:func
