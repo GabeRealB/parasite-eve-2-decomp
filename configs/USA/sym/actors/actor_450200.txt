@@ -192,3 +192,15 @@ D_actor_450200_80137B10 = 0x80137B10; // size:0x28 defined:True
 neoArkObservatorySetLightBeamIntensity = 0x80180DAC; // type:func absolute:True owner=neo_ark_observatory
 
 func_neo_ark_observatory_8017FA98 = 0x8017FA98; // type:func absolute:True owner=neo_ark_observatory
+_actor450200CompanionPuffTask = 0x80131e24; // type:func
+_actor450200HeadAimTask = 0x80131fa8; // type:func
+_actor450200ControlCompanionPuffs = 0x801320d4; // type:func
+_actor450200CancelRoomEffects = 0x8013215c; // type:func
+_actor450200SetHeadAimEnabled = 0x8013217c; // type:func
+_actor450200UpdateTalkFacing = 0x8013219c; // type:func
+actor450200StartCompanionTalk = 0x80132220; // type:func
+_actor450200DrawBackdropLayer = 0x80132368; // type:func
+_actor450200BackdropCrossFadeTask = 0x80132538; // type:func
+_actor450200StartBackdropCrossFade = 0x80132848; // type:func
+_actor450200SetLightBeamIntensity = 0x80132880; // type:func
+_actor450200SetRoomVariant = 0x801328a0; // type:func

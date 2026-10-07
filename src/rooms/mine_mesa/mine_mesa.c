@@ -2888,7 +2888,7 @@ void func_mine_mesa_8017E15C(Task* arg0)
 /// not, then hands the record to `animationAimHeadAt` between the
 /// `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)` task whose head turns and the slot-3 task it turns
 /// toward -- the reverse of `func_mine_mesa_8017E15C` and of
-/// `func_actor_450200_80131FA8`, which look from slot 3. Every other state
+/// `_actor450200HeadAimTask`, which look from slot 3. Every other state
 /// kills the task and clears `D_mine_mesa_80189B58`, and a state-0 NULL
 /// allocation falls out of its own `if` into that same kill.
 void func_mine_mesa_8017E2A4(Task* arg0)

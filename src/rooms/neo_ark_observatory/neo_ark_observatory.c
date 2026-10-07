@@ -9,6 +9,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/actor_450200.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
@@ -95,7 +96,6 @@ extern EvsCommand D_actor_450200_8013CAEC[];
 extern EvsCommand D_actor_450200_8013FC58[];
 extern EvsCommand D_actor_450200_80140078[];
 
-extern void func_actor_450200_80132220(void);
 extern void func_actor_450200_801322F8(void);
 
 /// Index of the mirrored player's coordinate part each held-object reflection
@@ -1701,7 +1701,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
         }
     }
     if (request->actionId == 3 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gGameSession->location.loc.view == 2) {
-        func_actor_450200_80132220();
+        actor450200StartCompanionTalk();
     }
     if (request->actionId == 4 && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0 && gameFlagGetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN) == 0) {
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN, 1);

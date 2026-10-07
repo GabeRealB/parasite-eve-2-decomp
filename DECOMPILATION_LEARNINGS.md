@@ -102118,9 +102118,9 @@ target SHA256 `9f8823a1e208a1a63dc0be03e83a2e344afb9a71a6dc5e87659535a227c26cdf`
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_actor113000Spawn-vacuum` (session `114148419da64b0fb843f683f2856ea1`).
 
-## A load the target places *after* a `jal` is proof of source order — m2c had hoisted it above the call (func_actor_450200_80131FA8, 2026-09-16)
+## A load the target places *after* a `jal` is proof of source order — m2c had hoisted it above the call (_actor450200HeadAimTask, 2026-09-16)
 
-**Problem.** `func_actor_450200_80131FA8` is a `switch (task->state)` state
+**Problem.** `_actor450200HeadAimTask` is a `switch (task->state)` state
 machine whose body first calls `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`. The target reads the
 selector *after* that call:
 
@@ -127712,7 +127712,7 @@ and the two overlays' data tables are overlay-local (each names its own
 to decline. Inputs: `base.c` 63.860% (`regs=50 reorder=3 insert=14 delete=80`);
 `base_1.c` 100.000% all-zero penalties on its first build.
 
-## A scalar an m2c temporary holds across a call costs a callee-saved register (func_actor_450200_80131E24, 2026-09-17)
+## A scalar an m2c temporary holds across a call costs a callee-saved register (_actor450200CompanionPuffTask, 2026-09-17)
 
 m2c emits each field read it needs as a named temporary assigned near the top of
 the body, so a value the ROM computes at the `switch` is born early enough to be
@@ -130842,9 +130842,9 @@ correction.
 Inputs: base_1.i (unsigned `srl`) vs base_2.i (100%),
 `nonmatchings/func_actor_102300_80131EA4-vacuum/`.
 
-## `setShadeTex` right after `setSprt` compiles to two plain constants, not to `lbu`/`ori` (func_actor_450200_80132368, 2026-09-18)
+## `setShadeTex` right after `setSprt` compiles to two plain constants, not to `lbu`/`ori` (_actor450200DrawBackdropLayer, 2026-09-18)
 
-`func_actor_450200_80132368` builds a full-screen `SPRT` and picks its code byte
+`_actor450200DrawBackdropLayer` builds a full-screen `SPRT` and picks its code byte
 from a flag:
 
 ```
@@ -130890,7 +130890,7 @@ explicit ternary if the target really does keep two stores. Constants in the
 branch arms are evidence *for* the macro, not against it.
 
 Inputs: base_1.c (ternary, 93.786%) vs base_3.c (100%),
-`nonmatchings/func_actor_450200_80132368-vacuum/`.
+`nonmatchings/_actor450200DrawBackdropLayer-vacuum/`.
 
 ## When porting a sibling body, do not feed its `one` local to statements the sibling did not have
 
@@ -138118,7 +138118,7 @@ preplanned match base_1:
 Bundled cc1 SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Reuse a dead channel temporary to remove a local scratch conflict with a global accumulator (func_actor_450200_80132538, 2026-09-20)
+## Reuse a dead channel temporary to remove a local scratch conflict with a global accumulator (_actor450200BackdropCrossFadeTask, 2026-09-20)
 
 The two CLUT loops reused `u32 r, g, b, col`. In `base_1`, the final
 `col |= (b >> 7) & 255; dst[i] = col;` generated a block-local shift/mask
@@ -138151,7 +138151,7 @@ pointer independently needed the existing post-call `SOFT_DEF_REG` recipe.
 No pins or tracer were needed.
 
 Evidence is retained under
-`tools/permuter_findings/func_actor_450200_80132538/`: session LEARNINGS.md,
+`tools/permuter_findings/_actor450200BackdropCrossFadeTask/`: session LEARNINGS.md,
 experiments.jsonl, and base_1/base_3/base_4 lreg/greg dumps. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Input hashes: base_1.i `06e372d135cc2a46481166e82ad44154772404a9f87106f4e1349d4838759432`;

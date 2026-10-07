@@ -1,3 +1,5 @@
+#include "actors/actor_450200.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -27,6 +29,32 @@
 #include "main/tmd_types.h"
 
 #include "rooms/neo_ark_observatory.h"
+
+/// Commands supplied by the companion scene and its skip script.
+enum {
+    ACTOR_450200_PUFF_COMMAND_STOP  = 0,
+    ACTOR_450200_PUFF_COMMAND_START = 1,
+    ACTOR_450200_PUFF_COMMAND_FADE  = 2,
+};
+
+/// Logical room selected by both completed paths of the backdrop scene.
+enum { ACTOR_450200_SCENE_ROOM_VARIANT = 2 };
+
+/// VRAM placement and Q7 weights of the scene's two 8-bit backdrop layers.
+enum {
+    ACTOR_450200_BACKDROP_COMMAND_START      = 1,
+    ACTOR_450200_BACKDROP_CLUT_COLORS        = 256,
+    ACTOR_450200_BACKDROP_SCALE_ONE          = 128,
+    ACTOR_450200_BACKDROP_TEXTURE_Y          = 256,
+    ACTOR_450200_BACKDROP_FROM_TEXTURE_X     = 320,
+    ACTOR_450200_BACKDROP_TO_TEXTURE_X       = 448,
+    ACTOR_450200_BACKDROP_FROM_SOURCE_CLUT_Y = 247,
+    ACTOR_450200_BACKDROP_TO_SOURCE_CLUT_Y   = 248,
+    ACTOR_450200_BACKDROP_FROM_SCALED_CLUT_Y = 249,
+    ACTOR_450200_BACKDROP_TO_SCALED_CLUT_Y   = 250,
+    ACTOR_450200_BACKDROP_END_VIEW           = 8,
+    ACTOR_450200_BEAM_FULL_INTENSITY         = 160,
+};
 
 /// The clips the observatory's room-variant scene adds to the player's
 /// animation bank, with the play requests stored after them.
@@ -154,7 +182,7 @@ extern TaskDesc   D_actor_450200_80137A60[];
 extern TaskDesc   D_actor_450200_8013FB40;
 
 /// Placement payload that four of the overlay's data records pair with message
-/// 0x3EE. Only its yaw changes, set by `func_actor_450200_8013219C`.
+/// 0x3EE. Only its yaw changes, set by `_actor450200UpdateTalkFacing`.
 extern ActorTransform D_actor_450200_80137DC4;
 extern Task*          D_actor_450200_801401E0;
 extern Task*          D_actor_450200_801401E4;
@@ -163,9 +191,9 @@ extern u16            D_actor_450200_801403E8[256];
 extern u16            D_actor_450200_801405E8[256];
 extern u16            D_actor_450200_801407E8[256];
 
-void func_actor_450200_80132848(s32);
-void func_actor_450200_80132880(s32);
-void func_actor_450200_801328A0(u8);
+static void _actor450200StartBackdropCrossFade(s32 command);
+static void _actor450200SetLightBeamIntensity(s32 intensity);
+static void _actor450200SetRoomVariant(u8 roomVariant);
 
 extern AnimationPlayRequest D_actor_450200_80137B38;
 extern AnimationPlayRequest D_actor_450200_80137B4C;
@@ -179,14 +207,14 @@ static AnimationSet         _gActor450200Animation03818;
 static AnimationSet         _gActor450200Animation039B8;
 static AnimationSet         _gActor450200Animation03C30;
 static AnimationSet         _gActor450200Animation03E04;
-void                        func_actor_450200_801320D4(s32);
-void                        func_actor_450200_8013215C(void);
-void                        func_actor_450200_8013217C(s32);
-void                        func_actor_450200_8013219C(void);
-void                        func_actor_450200_80132538(Task*);
+static void                 _actor450200ControlCompanionPuffs(s32 command);
+static void                 _actor450200CancelRoomEffects(void);
+static void                 _actor450200SetHeadAimEnabled(s32 enabled);
+static void                 _actor450200UpdateTalkFacing(void);
+static void                 _actor450200BackdropCrossFadeTask(Task* task);
 
-void func_actor_450200_80131E24(Task*);
-void func_actor_450200_80131FA8(Task*);
+static void _actor450200CompanionPuffTask(Task* task);
+static void _actor450200HeadAimTask(Task* task);
 
 static AnimationPackedPose _gActor450200Animation01A7CBank1[62] = {
 #include "assets/actor_450200_animation_01A7C_bank1.inc"
@@ -542,8 +570,8 @@ static AnimationSet _gActor450200Animation05C18 = {
 
 TaskDesc D_actor_450200_80137A60[3] = {
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_actor_450200_80131E24, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, func_actor_450200_80131FA8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _actor450200CompanionPuffTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, _actor450200HeadAimTask, { .value = 0 } },
 };
 
 _Actor450200CompanionScenePlayerAnimationBankExtensionStorage D_actor_450200_80137A84 = { .data = { { &_gActor450200Animation04168, &_gActor450200Animation043F0, &_gActor450200Animation04890, &_gActor450200Animation04DB0, &_gActor450200Animation05088, &_gActor450200Animation05350, &_gActor450200Animation05870, &_gActor450200Animation05C18 }, { { .words = D_actor_450200_80137A84.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, { { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE } } } };
@@ -647,7 +675,7 @@ EvsCommand D_actor_450200_80137EE4[82] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = D_actor_450200_80137BD8.data.playRequests }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1010 }, { .message = { .pointer = &D_actor_450200_80137D04 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_801320D4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200ControlCompanionPuffs }, { .value = ACTOR_450200_PUFF_COMMAND_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450200_80137BD8.data.playRequests[1] }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55070008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x4066000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -657,13 +685,13 @@ EvsCommand D_actor_450200_80137EE4[82] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55070007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450200_8013215C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450200CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450200_80137BD8.data.playRequests[2] }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450200_80137D1C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450200_80137B74 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450200_8013215C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_801320D4 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450200CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200ControlCompanionPuffs }, { .value = ACTOR_450200_PUFF_COMMAND_FADE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_actor_450200_80137DDC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -700,8 +728,8 @@ EvsCommand D_actor_450200_80137EE4[82] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_801320D4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450200_8013215C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200ControlCompanionPuffs }, { .value = ACTOR_450200_PUFF_COMMAND_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450200CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450200_80137D94 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450200_80137C78 }, { .value = 0 } },
@@ -720,8 +748,8 @@ EvsCommand D_actor_450200_80138694[19] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_801320D4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450200_8013215C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200ControlCompanionPuffs }, { .value = ACTOR_450200_PUFF_COMMAND_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450200CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450200_80137D94 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -757,11 +785,11 @@ SVECTOR D_actor_450200_80138868 = { 0, -128, 0, 0 };
 EvsCommand D_actor_450200_80138870[21] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450200_80137BD8.data.copy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450200_8013219C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450200UpdateTalkFacing }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_450200_80137DC4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_8013217C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200SetHeadAimEnabled }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450200_80137CB4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -774,18 +802,18 @@ EvsCommand D_actor_450200_80138870[21] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_8013217C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200SetHeadAimEnabled }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_450200_80138A68[21] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450200_80137BD8.data.copy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450200_8013219C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450200UpdateTalkFacing }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_450200_80137DC4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_8013217C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200SetHeadAimEnabled }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450200_80137CB4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -798,17 +826,17 @@ EvsCommand D_actor_450200_80138A68[21] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_8013217C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200SetHeadAimEnabled }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_450200_80138C60[23] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450200_8013219C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450200UpdateTalkFacing }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_450200_80137DC4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_8013217C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200SetHeadAimEnabled }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450200_80137CB4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -824,18 +852,18 @@ EvsCommand D_actor_450200_80138C60[23] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_8013217C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200SetHeadAimEnabled }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_450200_80138E88[22] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450200_80137BD8.data.copy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450200_8013219C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450200UpdateTalkFacing }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_450200_80137DC4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_8013217C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200SetHeadAimEnabled }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450200_80137CB4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -849,7 +877,7 @@ EvsCommand D_actor_450200_80138E88[22] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_8013217C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200SetHeadAimEnabled }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1128,7 +1156,7 @@ static AnimationSet _gActor450200Animation0DCF8 = {
     { NULL, _gActor450200Animation0DCF8Bank1, NULL, NULL, _gActor450200Animation0DCF8Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_450200_8013FB40 = { { { TASK_BODY_NONE, 32 } }, func_actor_450200_80132538, { .value = 0 } };
+TaskDesc D_actor_450200_8013FB40 = { { { TASK_BODY_NONE, 32 } }, _actor450200BackdropCrossFadeTask, { .value = 0 } };
 
 _Actor450200RoomVariantSceneAnimationBankExtensionStorage D_actor_450200_8013FB4C = { .data = { { &_gActor450200Animation0B190, &_gActor450200Animation0D678, &_gActor450200Animation0D9E0, &_gActor450200Animation0DCF8 }, { { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE } } } };
 
@@ -1180,7 +1208,7 @@ EvsCommand D_actor_450200_8013FC58[44] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55070003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_80132848 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200StartBackdropCrossFade }, { .value = ACTOR_450200_BACKDROP_COMMAND_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450200_8013FB4C.data.playRequests[4] }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 160 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1188,7 +1216,7 @@ EvsCommand D_actor_450200_8013FC58[44] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_actor_450200_801328A0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor450200SetRoomVariant }, { .value = ACTOR_450200_SCENE_ROOM_VARIANT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1197,8 +1225,8 @@ EvsCommand D_actor_450200_80140078[15] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_actor_450200_801328A0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450200_80132880 }, { .value = 160 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor450200SetRoomVariant }, { .value = ACTOR_450200_SCENE_ROOM_VARIANT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450200SetLightBeamIntensity }, { .value = ACTOR_450200_BEAM_FULL_INTENSITY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_450200_8013FC40 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450200_8013FB4C.data.playRequests[0] }, { .value = 0 } },
@@ -1223,173 +1251,212 @@ u16 D_actor_450200_801405E8[256];
 
 u16 D_actor_450200_801407E8[256];
 
-void               func_actor_450200_80132220(void);
 void               func_actor_450200_801322F8(void);
-static void        func_actor_450200_80132368(s32 x, s32 tpageX, s32 clutY, s32 semiTrans, s32 rgb, s32 shadeTex);
-static inline void _actor450200LoadScaledClut(u16* src, u16* dst, s32 scale, s32 y);
+static void        _actor450200DrawBackdropLayer(s32 screenX, s32 textureX, s32 paletteY, s32 semiTransparent, s32 brightness, s32 rawTexture);
+static inline void _actor450200LoadScaledClut(const u16* sourceColors, u16* scaledColors, s32 scale, s32 vramY);
 
-/// Effect state machine of this actor's first sub-task: state 0 arms the
-/// self-destruct countdown at 0x64 and state 2 re-arms it at 0x80, both then
-/// stepping the state on; state 1 throws effect 0x60080 on every other frame,
-/// state 3 splits into an odd branch that bursts 0x60080 with the countdown
-/// scaled into the spawn argument while it is still positive and an even
-/// branch that spawns a 0x60070 only every eighth frame -- the other two bits
-/// of the odd/even split the two effects see. The part the effects hang off is
-/// picked at random from the model's coordinate array: the 11-entry byte table
-/// holds indices into it, which is why the load is unsigned and the stride is
-/// `GfxCoord`.
-void func_actor_450200_80131E24(Task* task)
+/// Emits additive puffs and smoke from randomly chosen companion model parts.
+///
+/// States 0/1 initialize/run steady emission; 2/3 initialize/run the shrinking
+/// puffs and smoke tail. The scene owns teardown: the signed halfword counter
+/// wraps and never kills this task. Requires a live companion TMD with at least
+/// twenty coordinates throughout emission and while spawned effects borrow
+/// their anchors and the shared offset vector.
+static void _actor450200CompanionPuffTask(Task* task)
 {
-    Task*     slot;
-    GfxCoord* coord;
+    enum {
+        ACTOR_450200_PUFF_INIT            = 0,
+        ACTOR_450200_PUFF_STEADY          = 1,
+        ACTOR_450200_PUFF_FADE_INIT       = 2,
+        ACTOR_450200_PUFF_FADE            = 3,
+        ACTOR_450200_PUFF_ANCHOR_COUNT    = 11,
+        ACTOR_450200_PUFF_STEADY_SEED     = 100,
+        ACTOR_450200_PUFF_FADE_TICKS      = 128,
+        ACTOR_450200_PUFF_SMOKE_TAIL_MIN  = -31,
+        ACTOR_450200_PUFF_STEADY_SPAWN    = 0x80000300,
+        ACTOR_450200_PUFF_FADE_SPAWN_BASE = 0x80000080,
+        ACTOR_450200_PUFF_SMOKE_SPAWN     = 0xF0010100,
+    };
+    Task*     companion;
+    GfxCoord* anchor;
     s16       countdown;
 
-    slot  = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-    coord = &slot->extra.tmd->coords[D_actor_450200_8013885C[(rand() * 11) >> 15]];
+    // The twelfth table byte is excluded; every tick advances rand before dispatch.
+    companion = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    anchor    = &companion->extra.tmd->coords[D_actor_450200_8013885C[(rand() * ACTOR_450200_PUFF_ANCHOR_COUNT) >> 15]];
     switch (task->state) {
-        case 0:
-            task->killCountdown = 0x64;
+        case ACTOR_450200_PUFF_INIT:
+            task->killCountdown = ACTOR_450200_PUFF_STEADY_SEED;
             task->state++;
             return;
-        case 1:
+        case ACTOR_450200_PUFF_STEADY:
             countdown           = (u16)task->killCountdown - 1;
             task->killCountdown = countdown;
             if ((countdown & 1) == 0) {
-                effectSpawn(EFFECT_ADDITIVE_PUFF, coord, 0x80000300, NULL);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, anchor, ACTOR_450200_PUFF_STEADY_SPAWN, NULL);
             }
             return;
-        case 2:
-            task->killCountdown = 0x80;
+        case ACTOR_450200_PUFF_FADE_INIT:
+            task->killCountdown = ACTOR_450200_PUFF_FADE_TICKS;
             task->state++;
             return;
-        case 3:
+        case ACTOR_450200_PUFF_FADE:
             countdown           = (u16)task->killCountdown - 1;
             task->killCountdown = countdown;
             if (countdown & 1) {
                 if (countdown > 0) {
-                    effectSpawn(EFFECT_ADDITIVE_PUFF, coord, countdown * 2 + 0x80000080,
+                    effectSpawn(EFFECT_ADDITIVE_PUFF, anchor, countdown * 2 + ACTOR_450200_PUFF_FADE_SPAWN_BASE,
                                 &D_actor_450200_80138868);
                 }
-            } else if (countdown >= -0x1F && (countdown & 7) == 0) {
-                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xF0010100, &D_actor_450200_80138868);
+            } else if (countdown >= ACTOR_450200_PUFF_SMOKE_TAIL_MIN && (countdown & 7) == 0) {
+                effectSpawn(EFFECT_SMOKE_PUFF, anchor, ACTOR_450200_PUFF_SMOKE_SPAWN, &D_actor_450200_80138868);
             }
             return;
     }
 }
 
-/// Head-aim state of this actor's second sub-task: state 0 allocates the
-/// `AnimationHeadAim` record into `Task::work` and seeds both clamps to
-/// 0x100, state 1 ramps its `rate` up toward 0x1000 while `Task::spawnArg1` is
-/// set and back down toward 0 while it is not, then hands the record to
-/// `animationAimHeadAt` between the slot-3 task whose head turns and the
-/// `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)` task it turns toward. A failed allocation, and every
-/// state past 1, kill the task; only the latter clears
-/// `D_actor_450200_801401E0`, which is why the two `taskKill` calls are
-/// distinct.
-void func_actor_450200_80131FA8(Task* arg0)
+/// Fades a retained head-aim weight toward ONE when enabled, or zero otherwise.
+///
+/// `aim` is writable task-owned state. Normal weights need eight enabled ticks
+/// or sixteen disabled ticks for a full ramp. Preserve halfword wrapping before
+/// the signed clamp, including for weights outside the normal 0..ONE range.
+static inline void _actor450200RampHeadAimWeight(AnimationHeadAim* aim, s32 enabled)
 {
+    u16 nextRate;
+
+    if (enabled != 0) {
+        nextRate  = aim->rate + ONE / 8;
+        aim->rate = nextRate;
+        if ((s16)nextRate > ONE) {
+            aim->rate = ONE;
+        }
+    } else {
+        nextRate  = aim->rate - ONE / 16;
+        aim->rate = nextRate;
+        if ((s16)nextRate < 0) {
+            aim->rate = 0;
+        }
+    }
+}
+
+/// Fades the player's head turn toward the companion during talk scenes.
+///
+/// State 0 owns a zeroed `AnimationHeadAim` in `Task::work` and immediately runs
+/// state 1. `spawnArg1` enables aiming when nonzero. Both actors must retain live
+/// TMD models with at least five coordinates. Other states kill this task and
+/// clear its tracked handle; allocation failure kills without clearing it.
+static void _actor450200HeadAimTask(Task* task)
+{
+    enum {
+        ACTOR_450200_HEAD_AIM_INIT  = 0,
+        ACTOR_450200_HEAD_AIM_RUN   = 1,
+        ACTOR_450200_HEAD_AIM_LIMIT = ACTOR_TRANSFORM_ANGLE_TURN / 16,
+    };
     Task*             looker;
     AnimationHeadAim* aim;
-    u16               rate;
 
     looker = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case ACTOR_450200_HEAD_AIM_INIT:
             aim = memCalloc(sizeof(AnimationHeadAim), false);
             if (aim == NULL) {
-                taskKill(arg0);
+                taskKill(task);
                 return;
             }
-            arg0->work      = aim;
-            aim->yawLimit   = 0x100;
-            aim->pitchLimit = 0x100;
-            arg0->state++;
+            task->work      = aim;
+            aim->yawLimit   = ACTOR_450200_HEAD_AIM_LIMIT;
+            aim->pitchLimit = ACTOR_450200_HEAD_AIM_LIMIT;
+            task->state++;
             /* fallthrough */
-        case 1:
-            aim = arg0->work;
-            if (arg0->spawnArg1.value != 0) {
-                rate      = aim->rate + 0x200;
-                aim->rate = rate;
-                if ((s16)rate > ONE) {
-                    aim->rate = ONE;
-                }
-            } else {
-                rate      = aim->rate - 0x100;
-                aim->rate = rate;
-                if ((s16)rate < 0) {
-                    aim->rate = 0;
-                }
-            }
+        case ACTOR_450200_HEAD_AIM_RUN:
+            aim = task->work;
+            _actor450200RampHeadAimWeight(aim, task->spawnArg1.value);
             animationAimHeadAt(looker, gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), aim);
             return;
         default:
-            taskKill(arg0);
+            taskKill(task);
             D_actor_450200_801401E0 = NULL;
             return;
     }
 }
 
-/// Three-way control for the second spawned sub-task: 0 tears the live one
-/// down, 1 spawns it fresh, anything else is a state write the sub-task sees.
-/// Spawning is skipped when the sub-task is already running.
-void func_actor_450200_801320D4(s32 arg0)
+/// Controls the companion scene's tracked puff emitter.
+///
+/// Commands are 0 stop, 1 start and 2 begin fading. Start always creates a new
+/// task and replaces the tracked handle, even when one is already live; failed
+/// spawning stores NULL. Other values write the live task's state unchanged.
+static void _actor450200ControlCompanionPuffs(s32 command)
 {
-    if (arg0 == 0) {
+    enum { ACTOR_450200_PUFF_TASK_TABLE_INDEX = 1 };
+
+    if (command == ACTOR_450200_PUFF_COMMAND_STOP) {
         if (D_actor_450200_801401E4 != NULL) {
             taskKill(D_actor_450200_801401E4);
             D_actor_450200_801401E4 = NULL;
         }
-    } else if (arg0 == 1) {
-        D_actor_450200_801401E4 = taskSpawnFromTable(D_actor_450200_80137A60, 1, 0, 0);
+    } else if (command == ACTOR_450200_PUFF_COMMAND_START) {
+        D_actor_450200_801401E4 = taskSpawnFromTable(D_actor_450200_80137A60, ACTOR_450200_PUFF_TASK_TABLE_INDEX, 0, 0);
     } else if (D_actor_450200_801401E4 != NULL) {
-        D_actor_450200_801401E4->state = arg0;
+        D_actor_450200_801401E4->state = command;
     }
 }
 
-void func_actor_450200_8013215C(void)
+/// Requests cancellation of all room effects at the scene's cleanup points.
+static void _actor450200CancelRoomEffects(void)
 {
     roomEffectRequestCancelAll();
 }
 
-void func_actor_450200_8013217C(s32 arg0)
+/// Sets the live player head-aim task's enable value (zero off, nonzero on).
+///
+/// Stores the full event argument; a missing task makes this a no-op.
+static void _actor450200SetHeadAimEnabled(s32 enabled)
 {
     if (D_actor_450200_801401E0 != NULL) {
-        D_actor_450200_801401E0->spawnArg1.value = arg0;
+        D_actor_450200_801401E0->spawnArg1.value = enabled;
     }
 }
 
-/// Stores in the yaw of `D_actor_450200_80137DC4` the heading, as a 12-bit
-/// angle, from the slot-3 task's root coordinate to the `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)`
-/// task's, refreshing both coordinates first so the X/Z offset is current.
-void func_actor_450200_8013219C(void)
+/// Updates the talk placement's yaw so the player faces the companion.
+///
+/// Both tasks must own live root coordinates in the same parent frame. Stores
+/// a heading in 4096 units per turn; only yaw changes. The talk script applies
+/// this payload to the player after this callback returns.
+static void _actor450200UpdateTalkFacing(void)
 {
     GfxCoord* target;
     GfxCoord* looker;
 
-    target = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
-    looker = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    target = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->coords;
+    looker = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     actorRenderComposeCoord(target);
     actorRenderComposeCoord(looker);
     D_actor_450200_80137DC4.rot.vy =
-        ratan2(target->coord.t[0] - looker->coord.t[0], target->coord.t[2] - looker->coord.t[2]) & 0xFFF;
+        ratan2(target->coord.t[0] - looker->coord.t[0], target->coord.t[2] - looker->coord.t[2]) & ACTOR_TRANSFORM_ANGLE_MASK;
 }
 
-void func_actor_450200_80132220(void)
+void actor450200StartCompanionTalk(void)
 {
+    enum {
+        ACTOR_450200_TALK_FIRST  = 0,
+        ACTOR_450200_TALK_SECOND = 1,
+        ACTOR_450200_TALK_THIRD  = 2,
+        ACTOR_450200_TALK_REPEAT = 3,
+    };
     switch (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT)) {
-        case 0:
+        case ACTOR_450200_TALK_FIRST:
             evsStartScript(D_actor_450200_80138870, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 1);
+            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, ACTOR_450200_TALK_SECOND);
             break;
-        case 1:
+        case ACTOR_450200_TALK_SECOND:
             evsStartScript(D_actor_450200_80138A68, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 2);
+            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, ACTOR_450200_TALK_THIRD);
             break;
-        case 2:
+        case ACTOR_450200_TALK_THIRD:
             evsStartScript(D_actor_450200_80138C60, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, 3);
+            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT, ACTOR_450200_TALK_REPEAT);
             break;
-        case 3:
+        case ACTOR_450200_TALK_REPEAT:
             evsStartScript(D_actor_450200_80138E88, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
@@ -1407,129 +1474,184 @@ void func_actor_450200_801322F8(void)
     }
 }
 
-static void func_actor_450200_80132368(s32 x, s32 tpageX, s32 clutY, s32 semiTrans, s32 rgb, s32 shadeTex)
+/// Draws one backdrop layer as two adjacent 256-by-240 8-bit sprites.
+///
+/// `screenX` is the left edge in pixels before subtracting the 160-pixel screen
+/// centre. `textureX` is a VRAM word X and `paletteY` selects the CLUT row; the
+/// texture starts at row 256 and the 256-colour CLUT at X=0. Nonzero `rawTexture` ignores RGB
+/// modulation; otherwise `brightness` supplies its low byte to all channels.
+/// Nonzero `semiTransparent` enables additive blending of bit-15 texels.
+/// Requires space for two SPRT/DR_MODE pairs in the current frame's packet arena
+/// and at least 1023 ordering-table entries. Packets remain live through drawing.
+static void _actor450200DrawBackdropLayer(s32 screenX, s32 textureX, s32 paletteY, s32 semiTransparent, s32 brightness, s32 rawTexture)
 {
-    SPRT*    p;
-    DR_MODE* dr;
-    s32      i;
+    enum {
+        ACTOR_450200_BACKDROP_SPRITES       = 2,
+        ACTOR_450200_BACKDROP_SPRITE_WIDTH  = 256,
+        ACTOR_450200_BACKDROP_HEIGHT        = 240,
+        ACTOR_450200_BACKDROP_SCREEN_HALF_X = 160,
+        ACTOR_450200_BACKDROP_SCREEN_HALF_Y = 120,
+        ACTOR_450200_BACKDROP_PAGE_WORDS    = 128,
+        ACTOR_450200_BACKDROP_TEXTURE_8_BIT = 1,
+        ACTOR_450200_BACKDROP_SORTING_TAG   = 1022,
+    };
+    SPRT*    sprite;
+    DR_MODE* drawMode;
+    s32      tileIndex;
 
-    for (i = 0; i < 2; i++) {
-        p              = gGpuPrimCursor;
-        gGpuPrimCursor = p + 1;
-        setSprt(p);
-        setShadeTex(p, shadeTex);
-        setSemiTrans(p, semiTrans);
-        p->x0   = x - 0xA0;
-        p->y0   = -0x78;
-        p->w    = 0x100;
-        p->u0   = 0;
-        p->v0   = 0;
-        p->h    = 0xF0;
-        p->r0   = rgb;
-        p->g0   = rgb;
-        p->b0   = rgb;
-        p->clut = GetClut(0, clutY);
-        addPrim(&gGpuCurrentOt[0x3FE], p);
+    for (tileIndex = 0; tileIndex < ACTOR_450200_BACKDROP_SPRITES; tileIndex++) {
+        sprite         = gGpuPrimCursor;
+        gGpuPrimCursor = sprite + 1;
+        setSprt(sprite);
+        setShadeTex(sprite, rawTexture);
+        setSemiTrans(sprite, semiTransparent);
+        sprite->x0   = screenX - ACTOR_450200_BACKDROP_SCREEN_HALF_X;
+        sprite->y0   = -ACTOR_450200_BACKDROP_SCREEN_HALF_Y;
+        sprite->w    = ACTOR_450200_BACKDROP_SPRITE_WIDTH;
+        sprite->u0   = 0;
+        sprite->v0   = 0;
+        sprite->h    = ACTOR_450200_BACKDROP_HEIGHT;
+        sprite->r0   = brightness;
+        sprite->g0   = brightness;
+        sprite->b0   = brightness;
+        sprite->clut = GetClut(0, paletteY);
+        addPrim(&gGpuCurrentOt[ACTOR_450200_BACKDROP_SORTING_TAG], sprite);
 
-        dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
-        setDrawTPage(dr, 0, 1, getTPage(1, 1, tpageX, 0x100));
-        addPrim(&gGpuCurrentOt[0x3FE], dr);
+        // Prepending the draw mode makes it execute before its sprite.
+        drawMode       = gGpuPrimCursor;
+        gGpuPrimCursor = drawMode + 1;
+        setDrawTPage(drawMode, 0, 1, getTPage(ACTOR_450200_BACKDROP_TEXTURE_8_BIT, GPU_BLEND_ADD, textureX, ACTOR_450200_BACKDROP_TEXTURE_Y));
+        addPrim(&gGpuCurrentOt[ACTOR_450200_BACKDROP_SORTING_TAG], drawMode);
 
-        tpageX += 0x80;
-        x      += 0x100;
+        textureX += ACTOR_450200_BACKDROP_PAGE_WORDS;
+        screenX  += ACTOR_450200_BACKDROP_SPRITE_WIDTH;
     }
 }
 
-/// Scales the 256-entry 15-bit CLUT `src` by `scale`/0x80 per channel into
-/// `dst`, setting the semi-transparency bit on every entry, and uploads it to
-/// VRAM row `y`.
-static inline void _actor450200LoadScaledClut(u16* src, u16* dst, s32 scale, s32 y)
+/// Scales and uploads a 256-entry RGB555 backdrop palette with bit 15 set.
+///
+/// `scale` is a Q7 weight, normally 0..128. Both arrays contain 256 halfwords;
+/// they may be identical, but otherwise must not overlap. `scaledColors` must
+/// be word-aligned and remain live until the GPU transfer completes. Uploads
+/// one row at VRAM word coordinates (0, `vramY`); retains no source pointer.
+static inline void _actor450200LoadScaledClut(const u16* sourceColors, u16* scaledColors, s32 scale, s32 vramY)
 {
+    enum {
+        ACTOR_450200_CLUT_CHANNEL_MASK     = 31,
+        ACTOR_450200_CLUT_COLOR_MASK       = 0x7FFF,
+        ACTOR_450200_CLUT_SCALE_SHIFT      = 7,
+        ACTOR_450200_CLUT_SCALED_BYTE_MASK = 255,
+    };
     RECT rect;
-    s32  i;
-    u32  r;
-    u32  g;
-    u32  b;
-    u32  col;
+    s32  colorIndex;
+    u32  channelValue;
+    u32  green;
+    u32  red;
+    u32  packedColor;
 
-    for (i = 0; i < 0x100; i++) {
-        r      = ((src[i] >> 10) & 0x1F) * scale;
-        g      = ((src[i] >> 5) & 0x1F) * scale;
-        b      = ((u8)src[i] & 0x1F) * scale;
-        col    = r >> 7;
-        g    >>= 7;
-        col   &= 0xFF;
-        col  <<= 10;
-        col   |= ~0x7FFF;
-        g     &= 0xFF;
-        g    <<= 5;
-        col   |= g;
-        r      = b >> 7;
-        r     &= 0xFF;
-        r     |= col;
-        dst[i] = r;
+    for (colorIndex = 0; colorIndex < ACTOR_450200_BACKDROP_CLUT_COLORS; colorIndex++) {
+        channelValue             = ((sourceColors[colorIndex] >> 10) & ACTOR_450200_CLUT_CHANNEL_MASK) * scale;
+        green                    = ((sourceColors[colorIndex] >> 5) & ACTOR_450200_CLUT_CHANNEL_MASK) * scale;
+        red                      = ((u8)sourceColors[colorIndex] & ACTOR_450200_CLUT_CHANNEL_MASK) * scale;
+        packedColor              = channelValue >> ACTOR_450200_CLUT_SCALE_SHIFT;
+        green                  >>= ACTOR_450200_CLUT_SCALE_SHIFT;
+        packedColor             &= ACTOR_450200_CLUT_SCALED_BYTE_MASK;
+        packedColor            <<= 10;
+        packedColor             |= ~ACTOR_450200_CLUT_COLOR_MASK;
+        green                   &= ACTOR_450200_CLUT_SCALED_BYTE_MASK;
+        green                  <<= 5;
+        packedColor             |= green;
+        channelValue             = red >> ACTOR_450200_CLUT_SCALE_SHIFT;
+        channelValue            &= ACTOR_450200_CLUT_SCALED_BYTE_MASK;
+        channelValue            |= packedColor;
+        scaledColors[colorIndex] = channelValue;
     }
-    setRECT(&rect, 0, y, 0x100, 1);
-    LoadImage(&rect, (u_long*)dst);
+    setRECT(&rect, 0, vramY, ACTOR_450200_BACKDROP_CLUT_COLORS, 1);
+    LoadImage(&rect, (u_long*)scaledColors);
 }
 
-void func_actor_450200_80132538(Task* task)
+/// Cross-fades the scene's two backdrop layers while raising beam intensity.
+///
+/// State 0 captures two 256-colour source palettes; state 1 lowers the outgoing
+/// Q7 weight by four per tick and draws the destination opaquely after the fade.
+/// View 8 kills the task without restoring palettes. Requires the observatory
+/// overlay, backdrop textures and frame drawing resources. Palette buffers are
+/// shared, so the scene must run only one of these tasks at a time.
+static void _actor450200BackdropCrossFadeTask(Task* task)
 {
+    enum {
+        ACTOR_450200_BACKDROP_CAPTURE            = 0,
+        ACTOR_450200_BACKDROP_DRAW               = 1,
+        ACTOR_450200_BACKDROP_TO_SCREEN_X        = -64,
+        ACTOR_450200_BACKDROP_WEIGHT_STEP        = 4,
+        ACTOR_450200_BACKDROP_NEUTRAL_BRIGHTNESS = 128,
+    };
     RECT rect;
-    s32  state;
-    s32  level;
+    s32  beamIntensity;
 
-    if (gGameSession->location.loc.view == 8) {
+    if (gGameSession->location.loc.view == ACTOR_450200_BACKDROP_END_VIEW) {
         taskKill(task);
         return;
     }
 
-    state = task->state;
-    switch (state) {
-        case 0:
-            task->killCountdown = 0x80;
+    switch (task->state) {
+        case ACTOR_450200_BACKDROP_CAPTURE:
+            task->killCountdown = ACTOR_450200_BACKDROP_SCALE_ONE;
             task->state        += 1;
-            setRECT(&rect, 0, 0xF7, 0x100, 1);
+            setRECT(&rect, 0, ACTOR_450200_BACKDROP_FROM_SOURCE_CLUT_Y, ACTOR_450200_BACKDROP_CLUT_COLORS, 1);
             StoreImage(&rect, (u_long*)D_actor_450200_801401E8);
-            rect.y = 0xF8;
+            rect.y = ACTOR_450200_BACKDROP_TO_SOURCE_CLUT_Y;
             StoreImage(&rect, (u_long*)D_actor_450200_801403E8);
             break;
 
-        case 1:
+        case ACTOR_450200_BACKDROP_DRAW:
+            // Add the incoming palette over the outgoing one using complementary weights.
             if (task->killCountdown >= 0) {
-                func_actor_450200_80132368(-0x40, 0x1C0, 0xFA, 1, 0x80, state);
-                func_actor_450200_80132368(0, 0x140, 0xF9, 0, 0x80, state);
-                _actor450200LoadScaledClut(D_actor_450200_801401E8, D_actor_450200_801405E8, task->killCountdown, 0xF9);
-                _actor450200LoadScaledClut(D_actor_450200_801403E8, D_actor_450200_801407E8, 0x80 - task->killCountdown, 0xFA);
+                _actor450200DrawBackdropLayer(ACTOR_450200_BACKDROP_TO_SCREEN_X, ACTOR_450200_BACKDROP_TO_TEXTURE_X, ACTOR_450200_BACKDROP_TO_SCALED_CLUT_Y, true, ACTOR_450200_BACKDROP_NEUTRAL_BRIGHTNESS, true);
+                _actor450200DrawBackdropLayer(0, ACTOR_450200_BACKDROP_FROM_TEXTURE_X, ACTOR_450200_BACKDROP_FROM_SCALED_CLUT_Y, false, ACTOR_450200_BACKDROP_NEUTRAL_BRIGHTNESS, true);
+                _actor450200LoadScaledClut(D_actor_450200_801401E8, D_actor_450200_801405E8, task->killCountdown, ACTOR_450200_BACKDROP_FROM_SCALED_CLUT_Y);
+                _actor450200LoadScaledClut(D_actor_450200_801403E8, D_actor_450200_801407E8, ACTOR_450200_BACKDROP_SCALE_ONE - task->killCountdown, ACTOR_450200_BACKDROP_TO_SCALED_CLUT_Y);
             } else {
-                func_actor_450200_80132368(-0x40, 0x1C0, 0xFA, 0, 0x80, state);
+                _actor450200DrawBackdropLayer(ACTOR_450200_BACKDROP_TO_SCREEN_X, ACTOR_450200_BACKDROP_TO_TEXTURE_X, ACTOR_450200_BACKDROP_TO_SCALED_CLUT_Y, false, ACTOR_450200_BACKDROP_NEUTRAL_BRIGHTNESS, true);
             }
 
-            level = 0xA0 - (u16)task->killCountdown;
-            if ((u32)(level & 0xFFFF) >= 0xA0U) {
-                level = 0xA0;
+            // Clamp after low-halfword wrapping, before passing the beam level to the room.
+            beamIntensity = ACTOR_450200_BEAM_FULL_INTENSITY - (u16)task->killCountdown;
+            if ((u32)(beamIntensity & 0xFFFF) >= (u32)ACTOR_450200_BEAM_FULL_INTENSITY) {
+                beamIntensity = ACTOR_450200_BEAM_FULL_INTENSITY;
             }
-            neoArkObservatorySetLightBeamIntensity(level & 0xFFFF);
-            task->killCountdown = (u16)task->killCountdown - 4;
+            neoArkObservatorySetLightBeamIntensity(beamIntensity & 0xFFFF);
+            task->killCountdown = (u16)task->killCountdown - ACTOR_450200_BACKDROP_WEIGHT_STEP;
             break;
     }
 }
 
-void func_actor_450200_80132848(s32 arg0)
+/// Starts a backdrop cross-fade for command 1; other commands do nothing.
+///
+/// The scene must avoid overlapping starts; the task uses shared palette buffers.
+/// Spawn failure is ignored. View 8 terminates the task after the scene finishes.
+static void _actor450200StartBackdropCrossFade(s32 command)
 {
-    if (arg0 == 1) {
+    if (command == ACTOR_450200_BACKDROP_COMMAND_START) {
         taskSpawnFromTable(&D_actor_450200_8013FB40, 0, 0, 0);
     }
 }
 
-void func_actor_450200_80132880(s32 arg0)
+/// Supplies an event argument's low halfword to the observatory beam setter.
+///
+/// The room overlay must be loaded. This adapter zero-extends the argument;
+/// the setter stores it as a signed halfword without clamping. Scenes use 160.
+static void _actor450200SetLightBeamIntensity(s32 intensity)
 {
-    neoArkObservatorySetLightBeamIntensity(arg0 & 0xFFFF);
+    neoArkObservatorySetLightBeamIntensity(intensity & 0xFFFF);
 }
 
-void func_actor_450200_801328A0(u8 arg0)
+/// Updates the current area's room selector in the session and live save state.
+///
+/// The selector must be valid for the current area; both scene paths supply 2.
+/// Performs no room loading or view change and leaves the other save slots alone.
+static void _actor450200SetRoomVariant(u8 roomVariant)
 {
-    gGameSession->location.loc.room                            = arg0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
+    gGameSession->location.loc.room                            = roomVariant;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomVariant;
 }
