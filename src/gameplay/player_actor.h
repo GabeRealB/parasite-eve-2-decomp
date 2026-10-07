@@ -33,7 +33,7 @@ enum {
 enum { PLAYER_ACTOR_DIRECT_ANIMATION_BANK = 0x7FFF };
 
 /// u8 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant`. Non-zero selects
-/// `playerActorAimPitchToLock`; zero uses `D_actor_800100_80167218` with `Gp_AimPitchRec`.
+/// `playerActorAimPitchToLock`; zero uses `D_actor_800100_80167218` with `playerActorAimPart6PitchToLock`.
 extern u8 D_80113388[];
 
 extern TaskDesc D_80113340[2];
@@ -91,11 +91,28 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2);
 /// the message ID is unused.
 s32 playerActorMoveTo(Task* task, s32 unusedMessageId, const ActorTransform* transform, const GameActorMoveAnim* moveAnim);
 
-s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move, s32 unusedSecondArg);
+/// Applies a borrowed displacement and returns the actor's current wall-contact result.
+///
+/// Adds XYZ in the model root's parent frame, in game-coordinate units; the
+/// vector's fourth word is unread. Zero keepControl resets movement, aim and
+/// attack state, enters scripted state 1 and sets the pending-motion latch.
+/// Collision requests replace the pending byte, keeping their low eight bits.
+/// All-enable requests with nonzero X/Z also choose forward/backward movement
+/// from the displacement bearing. Does not recompute contacts: returns 1 for
+/// any stored non-floor grid contact, otherwise 0. Requires live actor/model,
+/// initialized contact storage, weapon effects and session state. Retains no
+/// request pointer; message ID and second argument are unused.
+s32 playerActorMoveBy(Task* task, s32 unusedMessageId, const GameActorMoveBy* move, s32 unusedSecondArg);
 
 Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, ActorSpawnOptions* options);
 
-void func_801061F0(void);
+/// Refreshes the live player's weapon collision identity from its equipment.
+///
+/// Replaces the whole key with attack category, weapon index in bits 8..15 and
+/// the current weapon-slot item byte. This also clears attack-selector bits.
+/// Requires an occupied player task with live GameActor work; does not relink
+/// the body or update existing contact keys.
+void playerActorUpdateWeaponCollisionKey(void);
 
 /// Installs a borrowed animation-set table and enters scripted playback.
 ///
@@ -117,7 +134,13 @@ s32 playerActorInstallScriptedAnimation(Task* task, s32 unusedMessageId, const A
 /// actor and native clip table must meet the child-slot playback contracts.
 void playerActorEnterAim(Task* task, s32 blendFrames);
 
-void func_80108874(Task* arg0);
+/// Starts normal-mode aim exit and releases the actor's borrowed lock target.
+///
+/// Stops displacement, resets phase, selects turn-rate row 2 and the controller
+/// returning to locomotion, then blends native clip 8 over six normal-rate
+/// frames. Clears the selected node's targeted mark and requests angle decay.
+/// Requires live actor/native playback and a live selected target if present.
+void playerActorExitAim(Task* task);
 
 void func_800FAA14(Task* arg0);
 
@@ -148,7 +171,17 @@ void playerActorAimYawToLock(Task* task, s32 minGroundDistance);
 /// contracts. No resource is allocated or pointer retained.
 void playerActorAimPitchToLock(Task* task);
 
-void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2);
+/// Eases the model's part-6 pitch toward a lock beyond a planar distance threshold.
+///
+/// Measures from the equipped model's root plus the weapon-indexed local aim
+/// offset. `weaponId` must index the 33-row offset table (0..32); the caller
+/// supplies the companion's weapon, independently of the player's live weapon.
+/// `minGroundDistance` narrows to s16 game units, and equality does not move.
+/// Angles use 4096 units per turn: deltas below 32 units are ignored, each step
+/// is limited to 48, and pitch must stay within +/-640. A missing lock is a
+/// no-op. Requires live actor, equipped model 1 and borrowed target resources
+/// plus the pitch-target helper's scratch/GTE and arithmetic contracts.
+void playerActorAimPart6PitchToLock(Task* task, s32 weaponId, s32 minGroundDistance);
 
 /// Releases the actor's selected lock target and starts aim-angle decay.
 ///

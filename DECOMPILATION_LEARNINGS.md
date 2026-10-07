@@ -2110,6 +2110,9 @@ This is the unpinned form of "Pin the wrap dest so `temp = delta` is
 `move v1, s0`" (`Gp_ApplyDirArg`), which needed a `$v1` pin because both
 temps were `s32`. Same shape as `_bossStrangerTurnToward`
 (a signed-halfword input to `_actorAngleNormalizeYaw`).
+`move v1, s0`" (`_playerActorSetMovementSignFromDisplacement`), which needed a `$v1` pin because both
+temps were `s32`. Same shape as `func_acropolis_bridge_80185104`
+(`s16 diff, t`).
 
 `_actor01900StateAlert` is the example. Controlled `base_9.c` reproduced the
 permuter a6 wrap object (98.75%). Inputs: `base_9.i`
@@ -6998,7 +7001,7 @@ The later `(s16)thresh < dist` compare must write the cast into `$v0`
 (`sll v0, s4, 16` / `sra` / `slt v0, v0, a1`). A dead `$s4` after the
 branch becomes `sll s4, s4, 16` in place. Pin `SquareRoot0`'s result
 through `$v0` then copy to `$a1` (`move a1, v0`) so the compare and
-`ratan2` share that register. `Gp_AimPitchRec` is the example.
+`ratan2` share that register. `playerActorAimPart6PitchToLock` is the example.
 
 ## Pin `three`/`packed`/`flag` so `flags = 3` interleaves with `arg << 8`
 
@@ -14219,7 +14222,7 @@ swapped registers.
 
 Pin width matters: `register u8 x asm("a1")` is ignored (QImode does not
 stick to a hard GPR), so `$a0`/`$a1` stay swapped. `register s32 x asm("a1")`
-with the same assignments matches. `func_801061F0` is the pure example
+with the same assignments matches. `playerActorUpdateWeaponCollisionKey` is the pure example
 (`f21` must live in `$a1` so `0x20000` can take `$a0` after `&D_80073B88`).
 
 Fix with hard-register pins (both need the `register` keyword):
@@ -23742,7 +23745,7 @@ Copy each field into a temp before the call: a volatile `if (inner->field)` /
 
 Declare the global as `T* volatile`, not `volatile T*`. The latter makes the
 *pointee* volatile; `g = NULL` is then a non-volatile pointer store and sinks
-into the following `beqz` delay slot. `Gp_TeardownSlot0` is the example.
+into the following `beqz` delay slot. `_playerActorTeardown` is the example.
 
 ## `if (ptr != NULL) { work; return 0; }` shares a leaf epilogue
 
@@ -27215,7 +27218,7 @@ p->field = 2;
 func(a);
 ```
 
-`Gp_UpdateLockTarget` is the example. The same function also needs the first-half
+`_playerActorUpdateLockTargetFromPad` is the example. The same function also needs the first-half
 actor pointer pinned to `$a1` (`register GameActor* inner asm("a1")`) so
 `index` stays in `$a0` for the earlier `jal` (`nop` delay, not `move a0, s0`).
 A later install block can reuse `$a1` for the new node if that pin is scoped
@@ -27393,7 +27396,7 @@ if (temp < 0) {
 }
 ```
 
-`Gp_PlayerMode2State2` is the example. `ABS(cur - tgt)` stuck at ~60% with only
+`playerActorMode2State2` is the example. `ABS(cur - tgt)` stuck at ~60% with only
 that subtract flipped.
 
 Assigning `temp = a - b` can still swap the two loads
@@ -27426,7 +27429,7 @@ if (temp < 0x41 || (wrap = tgt - 0x1000, temp = cur - wrap, temp = ABS(temp), te
 }
 ```
 
-`Gp_PlayerMode2State2` is the example. The reassociated add-then-sub stuck at
+`playerActorMode2State2` is the example. The reassociated add-then-sub stuck at
 91.8% with only those two instructions different.
 
 ## Pre-scale one switch arm with `<< 16 >> 15` so it skips the shared `sll 1`
@@ -29093,7 +29096,7 @@ val = temp << 16;
 val = val >> 16;
 ```
 
-`Gp_ApplyDirArg` is the example. Unpinned `temp` stuck at 96% with only
+`_playerActorSetMovementSignFromDisplacement` is the example. Unpinned `temp` stuck at 96% with only
 those wrap registers different.
 
 ## Load `field` into a temp before independent `param[i] = 0` stores
@@ -36282,7 +36285,7 @@ val += 0xC;
 
 The dummy `"r"(dep)` pins the `lui` after an earlier load (e.g. `lbu`)
 so it cannot hoist into a previous delay. Same `lui` / `ori 0x3FC` split
-as `Gp_AimPitchRec`'s prologue. This was an earlier `playerActorAimYawToLock`
+as `playerActorAimPart6PitchToLock`'s prologue. This was an earlier `playerActorAimYawToLock`
 implementation; its current inline shortest-turn helper uses the scratch-stack
 reservation and release macros without an assembly cursor load.
 
@@ -36721,7 +36724,7 @@ keeps the add in `$v1`: `addu v1, v1, v0`. Split
 `gPlayerStatus.weapon` / table / `equipmentTasks[1]` with `+r` barriers so
 the `lbu` fills the preceding `beqz` delay and `lw 0x91C` sits between
 `addiu table` and `sll`. A `u16` temp for the first `originOffset.vx` load lets
-`field_8` sit between `lhu` and `sh`. `Gp_AimPitchToLockAlt` is the example.
+`field_8` sit between `lhu` and `sh`. `_playerActorAimRollToLock` is the example.
 
 ## Copy the loop index before a call so a later `(u8)i` is not CSE'd into `$s0`
 
@@ -44905,8 +44908,9 @@ diff still shows a name mismatch against `%lo(gPlayerActorTasks+4)` — see
 "`%lo(sym+off)` and `%lo(D_<sym+off>)` are the same instruction"; the bytes are
 identical and the full build verifies.
 
-`func_actor_800100_80163C04` is the example. Unlike its `Gp_TeardownSlot0`
-sibling above it needs **no** `volatile GameActor*` for the field loads: with no
+`func_actor_800100_80163C04` is the example. Its `_playerActorTeardown`
+sibling above also now matches with a plain `GameActor*`; this example needed
+**no** `volatile GameActor*` for the field loads: with no
 non-volatile sibling store competing for the `lui` delay slot, the plain pointer
 already keeps the loads in source order.
 
@@ -106379,7 +106383,7 @@ That compiles to `slti v0,v0,0x31` / `bnez v0,<then>` / `addiu v0,a1,-0x1000` /
 `u16 raw = inner->scriptMotion.targetYaw;` next to the `s16 tgt = inner->scriptMotion.targetYaw;` on the same
 line group is what puts the early `lhu $v1,0x82($s0)` live across the whole test.
 
-Worked example: `func_actor_800200_80165FF0` is `Gp_PlayerMode2State2`
+Worked example: `func_actor_800200_80165FF0` is `playerActorMode2State2`
 (`src/gameplay/3FB8.c`) with 0x41/0x40 narrowed to 0x31/0x30 and two stores
 (`movementMode = 5`, `movementSign = 1`) added before the angle update. Transcribing
 the already-matched sibling's body and changing only those gave 100% on the

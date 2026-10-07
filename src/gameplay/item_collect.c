@@ -631,7 +631,7 @@ void Gp_SyncHeldRelated(void)
             p->weaponSlotItem = primaryItemId + 0x61;
         }
     }
-    func_801061F0();
+    playerActorUpdateWeaponCollisionKey();
 }
 
 /// Clears saved identification storage and identifies items without an unknown name.

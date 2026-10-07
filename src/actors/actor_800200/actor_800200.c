@@ -207,7 +207,7 @@ TaskMessageEntry D_actor_800200_80169EF0[20] = {
     { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, playerActorSetModelDraw },
     { ANIMATION_MESSAGE_INSTALL_AND_PLAY, companionInstallScriptedAnimation },
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, playerActorAttachToCoord },
-    { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
+    { GAME_ACTOR_MESSAGE_WALK_STEPS, playerActorWalkSteps },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, animationCopyCompanionBankExtension },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, companionPlayScriptedAnimation },

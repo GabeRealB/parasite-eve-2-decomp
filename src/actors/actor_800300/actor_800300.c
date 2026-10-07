@@ -120,7 +120,7 @@ TaskMessageEntry D_actor_800300_80168880[26] = {
     { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, playerActorSetModelDraw },
     { ANIMATION_MESSAGE_INSTALL_AND_PLAY, companionInstallScriptedAnimation },
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, playerActorAttachToCoord },
-    { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
+    { GAME_ACTOR_MESSAGE_WALK_STEPS, playerActorWalkSteps },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, animationCopyCompanionBankExtension },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_HurtAlly },
@@ -1155,7 +1155,7 @@ static void func_actor_800300_80162F24(Task* arg0)
 static const TaskFuncTable7 D_actor_800300_80161E64 = { {
     Gp_PlayerMode2State0,
     Gp_PlayerMode2State1,
-    Gp_PlayerMode2State2,
+    playerActorMode2State2,
     Gp_PlayerMode2State1,
     Gp_PlayerMode2State4,
     Gp_PlayerMode2State1,

@@ -1406,7 +1406,7 @@ static __inline__ void hudWaitEndAction(HudState* hud)
                 return;
             }
         }
-        func_80108874(w);
+        playerActorExitAim(w);
     } else {
         if (flags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
             taskMessageDispatch(w, GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);

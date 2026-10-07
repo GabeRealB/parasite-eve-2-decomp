@@ -170,7 +170,7 @@ void func_mp5a5_8011DDA4(Task* arg0)
             }
             break;
     }
-    Gp_TrackLockTarget(arg0);
+    playerActorTrackLockTarget(arg0);
     SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
 

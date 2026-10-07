@@ -350,7 +350,15 @@ void playerActorPlayChildSlots(Task* task, s32 setIndex, s32 unusedArgument);
 /// its playback contract. No resource is allocated or pointer retained.
 void playerActorTickAnimationState(Task* task);
 
-void Gp_TrackLockTarget(Task* arg0);
+/// Tracks the selected lock with body yaw and weapon-specific joint elevation.
+///
+/// Missing or no-longer-lockable targets request aim decay; the latter also
+/// clears the borrowed target's mark and pointer. Active tracking turns beyond
+/// 384 game units (512 for Gunblade), then adjusts torso pitch or Gunblade roll.
+/// Requires live actor, model, equipped weapon and target resources under the
+/// aim helpers' coordinate, scratch, GTE and arithmetic contracts. Allocates
+/// nothing and does not select a replacement target.
+void playerActorTrackLockTarget(Task* task);
 
 Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
@@ -373,8 +381,27 @@ s32 playerActorHasWallContact(Task* task);
 
 void Gp_PlayerMode2State4(Task* arg0);
 
-/// Message 1009; the fourth dispatch argument is unused.
-s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3);
+/// Resume choices for `playerActorEndScripted`.
+enum {
+    PLAYER_ACTOR_END_SCRIPTED_DEFAULT          = 0,
+    PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION  = 1,
+    PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET = 2,
+};
+
+/// Ends scripted control and restores the equipped weapon's native animation bank.
+///
+/// Returns 1 without changes unless the actor is in scripted mode; otherwise
+/// returns 0. Restores normal playback rate, requests collision enablement and
+/// enables view triggers. Choice 2 preserves model part 1's horizontal offset;
+/// other choices rotate it into the root translation and clear its X/Z.
+/// In battle, rebuilds playback and resumes aim locomotion for choice 2 or aim
+/// entry otherwise. Outside battle, choice 2 starts aim exit, choice 1 rebuilds
+/// playback and resets locomotion, and other values blend to locomotion over
+/// four whole normal-rate frames.
+/// Requires live actor/model, native bank and pose resources, equipped-weapon
+/// and save state. Positions use the root-parent frame; no pointer is retained.
+/// The message ID and second argument are unused.
+s32 playerActorEndScripted(Task* task, s32 unusedMessageId, s32 resumeMode, s32 unusedSecondArg);
 
 /// Replaces the player's queued XYZ displacement for the next movement update.
 ///
@@ -416,7 +443,15 @@ void Gp_PlayerMode2State0(Task* arg0);
 
 void Gp_PlayerMode2State1(Task* arg0);
 
-void Gp_PlayerMode2State2(Task* arg0);
+/// Advances the player or companion's scripted yaw turn, mode 2 state 2.
+///
+/// Angles use 4096 units per turn. Snaps within 64 units of the stored target
+/// or its one-turn lower image; otherwise steps the shortest turn by at most
+/// 64 units and wraps to 0..4095. Completion clears the motion latch, enters
+/// scripted idle state 1 and blends to native clip 1 over five normal-rate
+/// frames. Child slots tick on every call. Requires live actor/native playback
+/// and scratch resources; does not move the root or take ownership.
+void playerActorMode2State2(Task* task);
 
 /// Counts newly pressed direction/face-button ticks until a scripted hold completes.
 ///
@@ -456,7 +491,16 @@ s32 playerActorSetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 u
 /// `actorRenderComposeCoord` requirements. Reads no vector fourth components,
 /// retains no transform pointer and returns 0. Stored previous position is untouched.
 s32 playerActorPlace(Task* task, s32 unusedMessageId, const ActorTransform* transform, s32 unusedSecondArg);
-s32 func_801052B8(Task* arg0, s32 arg1, GameActorWalkSteps* walkSteps, s32 unusedSecondArg);
+/// Takes scripted control and starts a straight walk counted by sounded footsteps.
+///
+/// Resets movement, aim offsets and attack effects, selects scripted state 5
+/// and disables collision. Borrows the request only during this call, narrowing
+/// the count to s16 and retaining the complete second s32 word. Its role is unproven.
+/// The player counts audible footstep cues; companions using this handler have
+/// no walk state and remain pending until scripted control ends. Requires live
+/// actor work, weapon effects and session state; later walking needs native
+/// animation/model resources. Returns 0; message ID and second argument unused.
+s32 playerActorWalkSteps(Task* task, s32 unusedMessageId, const GameActorWalkSteps* walkSteps, s32 unusedSecondArg);
 /// Returns the live actor's signed scripted-motion latch (0 complete, 1 pending).
 ///
 /// No payload is used and no state is changed; the task must have `GameActor` work.

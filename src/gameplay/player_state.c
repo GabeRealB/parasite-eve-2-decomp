@@ -1633,7 +1633,7 @@ void Gp_TrackAllyLockTarget(Task* arg0, s32 arg1)
             if (D_80113388[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] != 0) {
                 playerActorAimPitchToLock(arg0);
             } else {
-                Gp_AimPitchRec(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0x380);
+                playerActorAimPart6PitchToLock(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0x380);
             }
         }
     }
@@ -1897,7 +1897,7 @@ s32 Gp_MoveActorByKeep(Task* arg0, s32 arg1, GameActorMoveBy* move, s32 unusedSe
 
     p                       = &gPlayerStatus;
     savedInteractionPressed = p->interactionPressed;
-    result                  = Gp_MoveActorBy(arg0, arg1, move, unusedSecondArg);
+    result                  = playerActorMoveBy(arg0, arg1, move, unusedSecondArg);
     p->interactionPressed   = savedInteractionPressed;
     return result;
 }

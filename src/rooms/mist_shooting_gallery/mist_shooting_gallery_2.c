@@ -2939,8 +2939,8 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
             actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_ALIAS, PAD_BUTTON_R1 | PAD_BUTTON_R2);
             if (actor->scriptedMotionPending == 0) {
-                Gp_EnterActorMode2(
-                    gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0, 2, 0);
+                playerActorEndScripted(
+                    gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0, PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET, 0);
                 work->phase++;
                 mode               = 0x10;
                 Gp_StateC08.flags |= ATTACHMENT_FLAG_OPEN_WHEEL;

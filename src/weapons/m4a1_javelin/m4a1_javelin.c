@@ -736,7 +736,7 @@ void m4a1JavelinContactFlashTask(Task* task)
 /// hands back to `playerActorFinishWeaponAttack` once `playerActorIsSlotAdvancingLinearly` is done or the timer has
 /// run out.
 ///
-/// `gPlayerStatus.weaponSlotItem` is the low byte `func_801061F0` packs into
+/// `gPlayerStatus.weaponSlotItem` is the low byte `playerActorUpdateWeaponCollisionKey` packs into
 /// `GameActor::collisionBodies[GAME_ACTOR_BODY_WEAPON].key`. Reading it through the struct rather than as a bare
 /// `extern u8` at 0x80073BAA is what keeps GCC from hoisting the `lbu` above
 /// the `actor->` stores: a scalar global and a struct field do not alias, so

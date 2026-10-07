@@ -49,9 +49,10 @@
 
 #include "main/task_types.h"
 
-/// Equipped weapon indices used by the persistent attack effects.
+/// Equipped weapon indices used by player actor control.
 enum {
     PLAYER_ACTOR_WEAPON_HYPERVELOCITY = 22,
+    PLAYER_ACTOR_WEAPON_GUNBLADE      = 23,
     PLAYER_ACTOR_WEAPON_HAMMER        = 25,
     PLAYER_ACTOR_WEAPON_PYKE          = 28,
 };
@@ -61,9 +62,13 @@ enum {
     PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE      = 1,
     PLAYER_ACTOR_SCRIPTED_TURN_STATE           = 2,
     PLAYER_ACTOR_SCRIPTED_MOVE_TO_STATE        = 4,
+    PLAYER_ACTOR_SCRIPTED_WALK_STEPS_STATE     = 5,
     PLAYER_ACTOR_SCRIPTED_ATTACK_STATE         = 10,
     PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_ATTACK = 1024,
 };
+
+/// Maximum per-call lock-elevation change, in 4096 angle units per turn.
+enum { PLAYER_ACTOR_LOCK_ELEVATION_STEP = 0x30 };
 
 /// Number of `PlayerStatus::weapon` indices. 0 is no weapon; 1..32 are the weapons.
 #define PLAYER_ACTOR_WEAPON_COUNT 33
@@ -358,7 +363,7 @@ extern u16 D_801132BC[33][2];
 static const TaskFuncTable3 Gp_EffTask07States;
 
 /// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `Gp_PlayerWorkState1`,
-/// `_playerActorWorkState2`, `Gp_TeardownSlot0`.
+/// `_playerActorWorkState2`, `_playerActorTeardown`.
 static const TaskFuncTable4 Gp_PlayerWorkStates;
 
 /// Per-weapon handlers, indexed by `PlayerStatus::weapon` and copied by
@@ -419,7 +424,7 @@ static void func_8010133C(void);
 
 static void _playerActorWorkState2(Task* task);
 
-static void Gp_TeardownSlot0(Task* arg0);
+static void _playerActorTeardown(Task* task);
 
 static inline void _playerActorCapturePad(Task* task);
 
@@ -433,7 +438,7 @@ static inline void _playerActorPlaceAimPitchOrigin(_PlayerActorAimPitchScratch* 
 
 static inline s32 _playerActorGetAimPitchTargetDelta(const GameActor* actor, _PlayerActorAimPitchScratch* scratch);
 
-static void Gp_AimPitchToLockAlt(Task* arg0);
+static void _playerActorAimRollToLock(Task* task);
 
 static void Gp_AimPitchDirect(Task* arg0);
 
@@ -451,7 +456,7 @@ static void Gp_BindActorAnim(Task* arg0);
 
 static s32 _playerActorGetIdleHealthBand(void);
 
-static s32 Gp_ApplyDirArg(Task* arg0, GameActorMoveBy* move);
+static s32 _playerActorSetMovementSignFromDisplacement(Task* task, const GameActorMoveBy* move);
 
 static void func_80103CB4(GfxCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3);
 
@@ -500,10 +505,7 @@ static void Gp_PlayerNormalState2(Task* arg0);
 
 static void Gp_PlayerNormalState5(Task* arg0);
 
-/// Switches the player to `Gp_TickPlayerMode2` state 2 and starts the entry
-/// animation `movementSign` selects: a `fade` of 0 resets the child slots to it,
-/// anything else is passed to `playerActorPlayChildSlotsWithBlend`.
-static inline void _gpEnterPlayerMode2(Task* task, s32 fade);
+static inline void _playerActorResumeAimLocomotion(Task* task, s32 blendFrames);
 
 static void Gp_PlayerNormalState6(Task* arg0);
 
@@ -559,9 +561,9 @@ static void func_80109250(Task* arg0);
 
 static s32 func_80109290(Task* arg0);
 
-static void func_80109374(Task* arg0);
+static void _playerActorUpdateAimRequest(Task* task);
 
-static void Gp_UpdateLockTarget(Task* arg0);
+static void _playerActorUpdateLockTargetFromPad(Task* task);
 
 static void Gp_PlayerMode2State5(Task* arg0);
 
@@ -987,12 +989,12 @@ TaskMessageEntry Gp_PlayerMsgTable[28] = {
     { GAME_ACTOR_MESSAGE_TURN_TO_YAW, playerActorTurnToYaw },
     { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, func_80104F5C },
     { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, playerActorIsScriptedMotionPending },
-    { GAME_ACTOR_MESSAGE_END_SCRIPTED, Gp_EnterActorMode2 },
+    { GAME_ACTOR_MESSAGE_END_SCRIPTED, playerActorEndScripted },
     { GAME_ACTOR_MESSAGE_MOVE_TO, playerActorMoveTo },
     { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, playerActorSetModelDraw },
     { ANIMATION_MESSAGE_INSTALL_AND_PLAY, playerActorInstallScriptedAnimation },
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, playerActorAttachToCoord },
-    { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
+    { GAME_ACTOR_MESSAGE_WALK_STEPS, playerActorWalkSteps },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, Gp_CopyPlayerAnim },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, func_801054D8 },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_ApplyPlayerDamage },
@@ -1000,7 +1002,7 @@ TaskMessageEntry Gp_PlayerMsgTable[28] = {
     { 1019, func_80105190 },
     { GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT, _playerActorSetRunMovement },
     { ANIMATION_MESSAGE_SET_RATE, playerActorSetAnimationRate },
-    { GAME_ACTOR_MESSAGE_MOVE_BY, Gp_MoveActorBy },
+    { GAME_ACTOR_MESSAGE_MOVE_BY, playerActorMoveBy },
     { ANIMATION_MESSAGE_REPLACE_AND_PLAY, func_80104CAC },
     { PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_ATTACK, _playerActorEnterScriptedAttack },
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, playerActorSetTextureSequence },
@@ -3747,12 +3749,12 @@ void effectSpawnHit(s32 effectKind, GfxCoord* coord, SVECTOR* localOffset, Effec
 }
 
 /// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `Gp_PlayerWorkState1`,
-/// `_playerActorWorkState2`, `Gp_TeardownSlot0`.
+/// `_playerActorWorkState2`, `_playerActorTeardown`.
 static const TaskFuncTable4 Gp_PlayerWorkStates = { {
     Gp_InitPlayerWork,
     Gp_PlayerWorkState1,
     _playerActorWorkState2,
-    Gp_TeardownSlot0,
+    _playerActorTeardown,
 } };
 
 void Gp_EffCtlTask7F(Task* arg0)
@@ -4778,7 +4780,7 @@ static void Gp_InitPlayerWork(Task* arg0)
     coord = extra->coords;
     arg0->state++;
     arg0->msgTable                              = Gp_PlayerMsgTable;
-    arg0->exitCallback                          = Gp_TeardownSlot0;
+    arg0->exitCallback                          = _playerActorTeardown;
     actor->animationSlotCount                   = GAME_ACTOR_NORMAL_ANIMATION_SLOTS;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] = arg0;
     gPlayerStatus.coordMtx                      = &coord->coord;
@@ -5007,40 +5009,45 @@ static void _playerActorWorkState2(Task* task)
     task->state = PLAYER_ACTOR_WORK_TEARDOWN_STATE;
 }
 
-static void Gp_TeardownSlot0(Task* arg0)
+/// Releases the player task's attached tasks and collision bodies before killing it.
+///
+/// Clears its exit callback and the player registry slot first. Each present
+/// child must be live; task teardown owns the work/model release after all five
+/// embedded collision bodies have been unlinked. Callers must not reuse the work.
+static void _playerActorTeardown(Task* task)
 {
-    volatile GameActor* inner;
-    Task*               task;
+    GameActor* actor;
+    Task*      childTask;
 
-    inner                                       = arg0->work;
-    arg0->exitCallback                          = NULL;
+    actor                                       = task->work;
+    task->exitCallback                          = NULL;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] = NULL;
-    task                                        = inner->weaponEffectTask;
-    if (task != NULL) {
-        taskKill(task);
+    childTask                                   = actor->weaponEffectTask;
+    if (childTask != NULL) {
+        taskKill(childTask);
     }
-    task = inner->equipmentTasks[0];
-    if (task != NULL) {
-        taskKill(task);
+    childTask = actor->equipmentTasks[0];
+    if (childTask != NULL) {
+        taskKill(childTask);
     }
-    task = inner->equipmentTasks[1];
-    if (task != NULL) {
-        taskKill(task);
+    childTask = actor->equipmentTasks[1];
+    if (childTask != NULL) {
+        taskKill(childTask);
     }
-    task = inner->attachmentTasks[0];
-    if (task != NULL) {
-        taskKill(task);
+    childTask = actor->attachmentTasks[0];
+    if (childTask != NULL) {
+        taskKill(childTask);
     }
-    task = inner->attachmentTasks[1];
-    if (task != NULL) {
-        taskKill(task);
+    childTask = actor->attachmentTasks[1];
+    if (childTask != NULL) {
+        taskKill(childTask);
     }
-    worldCollisionUnlinkBody((WorldCollisionBody*)&inner->collisionBodies[GAME_ACTOR_BODY_ROOT]);
-    worldCollisionUnlinkBody((WorldCollisionBody*)&inner->collisionBodies[GAME_ACTOR_BODY_PART4]);
-    worldCollisionUnlinkBody((WorldCollisionBody*)&inner->collisionBodies[GAME_ACTOR_BODY_PART1]);
-    worldCollisionUnlinkBody((WorldCollisionBody*)&inner->collisionBodies[GAME_ACTOR_BODY_WEAPON]);
-    worldCollisionUnlinkBody((WorldCollisionBody*)&inner->collisionBodies[GAME_ACTOR_BODY_AIM]);
-    taskKill(arg0);
+    worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_ROOT]);
+    worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_PART4]);
+    worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_PART1]);
+    worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_WEAPON]);
+    worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_AIM]);
+    taskKill(task);
 }
 
 void Gp_PlayerWorkTask(Task* arg0)
@@ -5139,6 +5146,13 @@ void Gp_UpdatePlayerMove(void)
 }
 
 /// Blends the active child slots into an aim-holding clip at the actor's playback rate.
+///
+/// `slotIndex` starts a suffix of the live child slots (at least 1); the active
+/// prefix must fit initialized slot and pose storage. The set must provide each
+/// slot's track; `setIndex` narrows to u16 for the lookup. `blendFrames` counts
+/// whole normal-rate frames, 0..2047. Capture
+/// uses each slot's previous rate before replacing it with the actor's rate.
+/// Model, pose and borrowed clip lifetimes follow `animationPlaySlotWithBlend`.
 static inline void _playerActorBlendAimHoldSlots(Task* task, s32 slotIndex, s32 setIndex, s32 blendFrames)
 {
     GameActor* actor;
@@ -5146,7 +5160,7 @@ static inline void _playerActorBlendAimHoldSlots(Task* task, s32 slotIndex, s32 
     actor = task->work;
     if (slotIndex < actor->animationSlotCount) {
         do {
-            animationPlaySlotWithBlend(&actor->animationContext, slotIndex, 0, setIndex, 0, 0, blendFrames, actor->animationSets);
+            animationPlaySlotWithBlend(&actor->animationContext, slotIndex, NULL, setIndex, 0, 0, blendFrames, actor->animationSets);
             actor->animationSlots[slotIndex].rate = actor->animationRate;
             slotIndex++;
         } while (slotIndex < actor->animationSlotCount);
@@ -5444,7 +5458,11 @@ static inline s32 _playerActorAimPlanarLength(s32 x, s32 z)
 /// Places the yaw aim origin from a borrowed local weapon offset.
 ///
 /// Copies XYZ to the caller's yaw scratch before placing its coordinate node.
-/// Coordinate, GTE and lifetime requirements follow `actorRenderPlaceCoordOffset`.
+/// XYZ are signed local game-coordinate units; the offset's fourth halfword is
+/// neither read nor copied. The caller owns a reserved scratch block and keeps
+/// both source pointers readable for this call. The source coordinate's cache
+/// is updated. Coordinate hierarchy and GTE requirements follow
+/// `actorRenderPlaceCoordOffset`; no source pointer is retained.
 static inline void _playerActorPlaceAimYawOrigin(_PlayerActorAimYawScratch* scratch, GfxCoord* weaponCoord, const SVECTOR* localOffset)
 {
     scratch->originOffset.vx = localOffset->vx;
@@ -5590,77 +5608,91 @@ void playerActorAimPitchToLock(Task* task)
 }
 #undef PLAYER_ACTOR_APPLY_LOCK_PITCH
 
-static void Gp_AimPitchToLockAlt(Task* arg0)
+/// Eases Gunblade lock elevation into the model's part-2 and part-3 roll angles.
+///
+/// Angles use 4096 units per turn, stepping by at most 48 and bounded to
+/// 288/256 units. Part 2 measures above its origin with vertical delta halved;
+/// part 3 measures from the equipped weapon offset. Both elevations use the
+/// truncated 4/7 response. A missing lock is a no-op.
+/// Requires live model part 2, equipped model 1 and target, a valid weapon row,
+/// scratch/GTE state and arithmetic meeting the pitch-target helper contract.
+static void _playerActorAimRollToLock(Task* task)
 {
+    enum {
+        PLAYER_ACTOR_LOCK_PART2_ROLL_LIMIT = 0x120,
+        PLAYER_ACTOR_LOCK_PART3_ROLL_LIMIT = 0x100,
+        PLAYER_ACTOR_LOCK_ROLL_ORIGIN_Y    = -0x400,
+    };
     GameActor*                   actor;
-    _PlayerActorAimPitchScratch* block;
-    GfxCoord*                    src;
+    _PlayerActorAimPitchScratch* scratch;
+    GfxCoord*                    modelCoords;
 
-    actor = arg0->work;
-    block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimPitchScratch);
+/// Clamps a lock-elevation delta and applies it within a joint's absolute limit.
+///
+/// Arguments must be stable, side-effect-free values/lvalues; scratch and
+/// jointAngle are evaluated repeatedly. The joint is a signed halfword,
+/// the delta is s32 and their sum must fit s32. Angles use 4096 units per turn;
+/// uses the source-local PLAYER_ACTOR_LOCK_ELEVATION_STEP constant.
+#define PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch, jointAngle, angleLimit) \
+    do {                                                                        \
+        if ((scratch)->pitch > PLAYER_ACTOR_LOCK_ELEVATION_STEP) {              \
+            (scratch)->pitch = PLAYER_ACTOR_LOCK_ELEVATION_STEP;                \
+        } else if ((scratch)->pitch < -PLAYER_ACTOR_LOCK_ELEVATION_STEP) {      \
+            (scratch)->pitch = -PLAYER_ACTOR_LOCK_ELEVATION_STEP;               \
+        }                                                                       \
+        if (ABS((jointAngle) + (scratch)->pitch) <= (angleLimit)) {             \
+            (jointAngle) += (scratch)->pitch;                                   \
+        }                                                                       \
+    } while (0)
+
+    actor   = task->work;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimPitchScratch);
     if (actor->targetNode != NULL) {
-        src                    = arg0->extra.tmd->coords;
-        block->originOffset.vx = 0;
-        block->originOffset.vy = -0x400;
-        block->originOffset.vz = 0;
-        actorRenderPlaceCoordOffset(&src[2], &block->originCoord, &block->originOffset);
-        block->groundDistance   = _playerActorGetAimPitchTargetDelta(actor, block);
-        block->targetDelta.vy >>= 1;
-        block->pitch            = ratan2(-block->targetDelta.vy, block->groundDistance) / 7 * 4;
-        block->pitch           -= actor->part2Roll;
-        if (block->pitch > 0x30) {
-            block->pitch = 0x30;
-        } else if (block->pitch < -0x30) {
-            block->pitch = -0x30;
-        }
-        if (ABS(actor->part2Roll + block->pitch) <= 0x120) {
-            actor->part2Roll += block->pitch;
-        }
+        modelCoords              = task->extra.tmd->coords;
+        scratch->originOffset.vx = 0;
+        scratch->originOffset.vy = PLAYER_ACTOR_LOCK_ROLL_ORIGIN_Y;
+        scratch->originOffset.vz = 0;
+        actorRenderPlaceCoordOffset(&modelCoords[2], &scratch->originCoord, &scratch->originOffset);
+        scratch->groundDistance   = _playerActorGetAimPitchTargetDelta(actor, scratch);
+        scratch->targetDelta.vy >>= 1;
+        scratch->pitch            = ratan2(-scratch->targetDelta.vy, scratch->groundDistance) / 7 * 4;
+        scratch->pitch           -= actor->part2Roll;
+        PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch, actor->part2Roll, PLAYER_ACTOR_LOCK_PART2_ROLL_LIMIT);
 
-        _playerActorPlaceAimPitchOrigin(block, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[gPlayerStatus.weapon]);
-        block->groundDistance = _playerActorGetAimPitchTargetDelta(actor, block);
-        block->pitch          = ratan2(-block->targetDelta.vy, block->groundDistance) / 7 * 4;
-        block->pitch         -= actor->part3Roll;
-        if (block->pitch > 0x30) {
-            block->pitch = 0x30;
-        } else if (block->pitch < -0x30) {
-            block->pitch = -0x30;
-        }
-        if (ABS(actor->part3Roll + block->pitch) <= 0x100) {
-            actor->part3Roll += block->pitch;
-        }
+        _playerActorPlaceAimPitchOrigin(scratch, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[gPlayerStatus.weapon]);
+        scratch->groundDistance = _playerActorGetAimPitchTargetDelta(actor, scratch);
+        scratch->pitch          = ratan2(-scratch->targetDelta.vy, scratch->groundDistance) / 7 * 4;
+        scratch->pitch         -= actor->part3Roll;
+        PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch, actor->part3Roll, PLAYER_ACTOR_LOCK_PART3_ROLL_LIMIT);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimPitchScratch);
 }
 
-void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2)
+void playerActorAimPart6PitchToLock(Task* task, s32 weaponId, s32 minGroundDistance)
 {
+    enum {
+        PLAYER_ACTOR_LOCK_PART6_PITCH_LIMIT = 0x280,
+        PLAYER_ACTOR_LOCK_PITCH_DEAD_ZONE   = 0x20,
+    };
     GameActor*                   actor;
-    _PlayerActorAimPitchScratch* block;
-    s32                          angle;
+    _PlayerActorAimPitchScratch* scratch;
 
-    actor = arg0->work;
-    block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimPitchScratch);
+    actor   = task->work;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimPitchScratch);
     if (actor->targetNode != NULL) {
-        _playerActorPlaceAimPitchOrigin(block, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[arg1]);
-        block->groundDistance = _playerActorGetAimPitchTargetDelta(actor, block);
-        if (block->groundDistance > (s16)arg2) {
-            block->pitch  = ratan2(-block->targetDelta.vy, block->groundDistance);
-            block->pitch -= actor->part6Pitch;
-            if (ABS(block->pitch) >= 0x20) {
-                if (block->pitch > 0x30) {
-                    block->pitch = 0x30;
-                } else if (block->pitch < -0x30) {
-                    block->pitch = -0x30;
-                }
-                if (ABS(actor->part6Pitch + block->pitch) <= 0x280) {
-                    actor->part6Pitch += block->pitch;
-                }
+        _playerActorPlaceAimPitchOrigin(scratch, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[weaponId]);
+        scratch->groundDistance = _playerActorGetAimPitchTargetDelta(actor, scratch);
+        if (scratch->groundDistance > (s16)minGroundDistance) {
+            scratch->pitch  = ratan2(-scratch->targetDelta.vy, scratch->groundDistance);
+            scratch->pitch -= actor->part6Pitch;
+            if (ABS(scratch->pitch) >= PLAYER_ACTOR_LOCK_PITCH_DEAD_ZONE) {
+                PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch, actor->part6Pitch, PLAYER_ACTOR_LOCK_PART6_PITCH_LIMIT);
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimPitchScratch);
 }
+#undef PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP
 
 static void Gp_AimPitchDirect(Task* arg0)
 {
@@ -6075,24 +6107,31 @@ void playerActorClearLockTarget(Task* task)
     actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
 }
 
-static s32 Gp_ApplyDirArg(Task* arg0, GameActorMoveBy* move)
+/// Selects forward/backward motion from an all-enable collision displacement.
+///
+/// Borrows a displacement in the model root's parent frame. Only request mask
+/// 7 with nonzero X/Z changes the sign: within a quarter-turn of facing is 1,
+/// otherwise -1. All other requests retain it. Returns the resulting sign.
+/// Requires live actor/model work; yaw differences narrow to signed halfwords.
+static s32 _playerActorSetMovementSignFromDisplacement(Task* task, const GameActorMoveBy* move)
 {
     GameActor* actor;
-    GfxCoord*  coord;
-    s16        delta;
+    GfxCoord*  rootCoord;
+    s16        headingDelta;
 
-    actor = arg0->work;
+    actor = task->work;
     if (move->collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK) {
         if ((move->displacement.vx != 0) || (move->displacement.vz != 0)) {
-            coord = arg0->extra.tmd->coords;
-            delta = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) - ratan2(move->displacement.vx, move->displacement.vz);
-            if (delta > 0x801) {
-                delta -= 0x1000;
+            rootCoord    = task->extra.tmd->coords;
+            headingDelta = ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]) - ratan2(move->displacement.vx, move->displacement.vz);
+            // Keep the asymmetric positive half-turn boundary used by this path.
+            if (headingDelta > ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {
+                headingDelta -= ACTOR_TRANSFORM_ANGLE_TURN;
             }
-            if (delta < -0x800) {
-                delta += 0x1000;
+            if (headingDelta < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+                headingDelta += ACTOR_TRANSFORM_ANGLE_TURN;
             }
-            if (ABS(delta) < 0x400) {
+            if (ABS(headingDelta) < ACTOR_TRANSFORM_ANGLE_TURN / 4) {
                 actor->movementSign = 1;
             } else {
                 actor->movementSign = -1;
@@ -6184,37 +6223,41 @@ s16 playerActorShortestTurn(s16 currentAngle, s16 targetAngle)
     return currentAngle;
 }
 
-void Gp_TrackLockTarget(Task* arg0)
+void playerActorTrackLockTarget(Task* task)
 {
+    enum {
+        PLAYER_ACTOR_LOCK_MIN_GROUND_DISTANCE          = 0x180,
+        PLAYER_ACTOR_GUNBLADE_LOCK_MIN_GROUND_DISTANCE = 0x200,
+    };
     GameActor*       actor;
-    WorldTargetNode* node;
-    PlayerStatus*    p;
-    s32              val;
+    WorldTargetNode* target;
+    PlayerStatus*    playerStatus;
+    s32              minGroundDistance;
 
-    actor = arg0->work;
-    node  = actor->targetNode;
-    if (node == NULL) {
+    actor  = task->work;
+    target = actor->targetNode;
+    if (target == NULL) {
         actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
         return;
     }
-    if (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
-        node->state.parts.targeted = 0;
-        actor->targetNode          = NULL;
-        actor->aimTrackingState    = GAME_ACTOR_AIM_TRACKING_DECAY;
+    if (target->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
+        target->state.parts.targeted = 0;
+        actor->targetNode            = NULL;
+        actor->aimTrackingState      = GAME_ACTOR_AIM_TRACKING_DECAY;
         return;
     }
-    if ((s8)actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
-        p = &gPlayerStatus;
-        if (p->weapon == 0x17) {
-            val = 0x200;
+    if (actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
+        playerStatus = &gPlayerStatus;
+        if (playerStatus->weapon == PLAYER_ACTOR_WEAPON_GUNBLADE) {
+            minGroundDistance = PLAYER_ACTOR_GUNBLADE_LOCK_MIN_GROUND_DISTANCE;
         } else {
-            val = 0x180;
+            minGroundDistance = PLAYER_ACTOR_LOCK_MIN_GROUND_DISTANCE;
         }
-        playerActorAimYawToLock(arg0, val);
-        if (p->weapon == 0x17) {
-            Gp_AimPitchToLockAlt(arg0);
+        playerActorAimYawToLock(task, minGroundDistance);
+        if (playerStatus->weapon == PLAYER_ACTOR_WEAPON_GUNBLADE) {
+            _playerActorAimRollToLock(task);
         } else {
-            playerActorAimPitchToLock(arg0);
+            playerActorAimPitchToLock(task);
         }
     }
 }
@@ -6523,64 +6566,77 @@ s32 playerActorSetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 u
     return 0;
 }
 
-s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
+s32 playerActorEndScripted(Task* task, s32 unusedMessageId, s32 resumeMode, s32 unusedSecondArg)
 {
-    TmdObject* extra;
+    TmdObject* model;
     GameActor* actor;
-    GfxCoord*  coord;
-    GfxCoord*  next;
-    u16        mode;
-    VECTOR     vec;
+    GfxCoord*  rootCoord;
+    GfxCoord*  part1Coord;
+    u16        actorMode;
+    VECTOR     part1Offset;
 
-    extra = arg0->extra.tmd;
-    actor = arg0->work;
-    coord = extra->coords;
-    mode  = actor->mode;
-    next  = coord + 1;
-    if (mode != 2) {
+/// Transfers part 1's animated offset into root X/Z, preserving both Y translations.
+///
+/// Borrows live nodes and a writable VECTOR lvalue for staging. Arguments must
+/// be stable and side-effect-free; each is evaluated repeatedly. All XYZ are
+/// transformed by the root's local basis, then only X/Z are transferred and
+/// cleared. Does not compose or invalidate coordinate caches. No configuration
+/// bindings or captured locals are required. Expand only as a standalone
+/// statement sequence inside a compound block.
+#define PLAYER_ACTOR_BAKE_PART1_OFFSET(rootCoord, part1Coord, part1Offset) \
+    (part1Offset).vx = (part1Coord)->coord.t[0];                           \
+    (part1Offset).vy = (part1Coord)->coord.t[1];                           \
+    (part1Offset).vz = (part1Coord)->coord.t[2];                           \
+    ApplyMatrixLV(&(rootCoord)->coord, &(part1Offset), &(part1Offset));    \
+    (rootCoord)->coord.t[0] += (part1Offset).vx;                           \
+    (rootCoord)->coord.t[2] += (part1Offset).vz;                           \
+    (part1Coord)->coord.t[0] = 0;                                          \
+    (part1Coord)->coord.t[2] = 0
+
+    model      = task->extra.tmd;
+    actor      = task->work;
+    rootCoord  = model->coords;
+    actorMode  = actor->mode;
+    part1Coord = rootCoord + 1;
+    if (actorMode != GAME_ACTOR_MODE_SCRIPTED) {
         return 1;
     }
-    if (arg2 != mode) {
-        vec.vx = next->coord.t[0];
-        vec.vy = next->coord.t[1];
-        vec.vz = next->coord.t[2];
-        ApplyMatrixLV(&coord->coord, &vec, &vec);
-        coord->coord.t[0] += vec.vx;
-        coord->coord.t[2] += vec.vz;
-        next->coord.t[0]   = 0;
-        next->coord.t[2]   = 0;
+    if (resumeMode != actorMode) {
+        // Bake part 1's animated horizontal offset into the root before changing banks.
+        PLAYER_ACTOR_BAKE_PART1_OFFSET(rootCoord, part1Coord, part1Offset);
     }
-    actor->previousPosition.vx                          = coord->coord.t[0];
-    actor->previousPosition.vy                          = coord->coord.t[1];
-    actor->previousPosition.vz                          = coord->coord.t[2];
+    actor->previousPosition.vx                          = rootCoord->coord.t[0];
+    actor->previousPosition.vy                          = rootCoord->coord.t[1];
+    actor->previousPosition.vz                          = rootCoord->coord.t[2];
     actor->animationBankIndex                           = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
     actor->animationSets                                = Gp_PlayerAnimBlkTbl[actor->animationBankIndex]->table.sets;
     actor->animationRate                                = ANIMATION_RATE_ONE;
     actor->pendingCollisionUpdates                      = GAME_ACTOR_COLLISION_REQUEST_MASK;
     actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-        animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+        animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                              actor->animationSlots);
-        if (arg2 == mode) {
-            _playerActorEnterAimLocomotion(arg0, 0);
+        if (resumeMode == actorMode) {
+            _playerActorEnterAimLocomotion(task, 0);
         } else {
-            playerActorEnterAim(arg0, 0);
+            playerActorEnterAim(task, 0);
         }
         return 0;
     }
-    if (arg2 == mode) {
-        func_80108874(arg0);
+    if (resumeMode == actorMode) {
+        playerActorExitAim(task);
         return 0;
     }
-    if (arg2 == 1) {
-        animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+    if (resumeMode == PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION) {
+        animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                              actor->animationSlots);
-        playerActorEnterLocomotion(arg0, 1);
+        playerActorEnterLocomotion(task, 1);
     } else {
-        playerActorEnterLocomotion(arg0, 0);
+        playerActorEnterLocomotion(task, 0);
     }
     return 0;
 }
+#undef PLAYER_ACTOR_BAKE_PART1_OFFSET
 
 static void func_80104A4C(Task* arg0)
 {
@@ -6885,78 +6941,38 @@ s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMove
     return 0;
 }
 
-s32 func_801052B8(Task* arg0, s32 arg1, GameActorWalkSteps* walkSteps, s32 unusedSecondArg)
+s32 playerActorWalkSteps(Task* task, s32 unusedMessageId, const GameActorWalkSteps* walkSteps, s32 unusedSecondArg)
 {
-    GameActor*    actor;
-    PlayerStatus* p;
+    GameActor* actor;
 
-    actor                                                 = arg0->work;
-    p                                                     = &gPlayerStatus;
-    actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
-    actor->statePhase                                     = 0;
-    actor->movementSign                                   = 0;
-    actor->turnSign                                       = 0;
-    p->interactionPressed                                 = 0;
-    actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_OFF;
-    actor->part3Pitch                                     = 0;
-    actor->part2Pitch                                     = 0;
-    actor->part3Roll                                      = 0;
-    actor->part2Roll                                      = 0;
-    actor->aimYaw                                         = 0;
-    actor->field_68                                       = 0;
-    actor->part6Pitch                                     = 0;
-    actor->hitRegion                                      = 0;
-    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    playerActorResetWeaponAttack(arg0, p->weapon, 0);
-    if (gGameSession->eventState != 0) {
-        actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
-    }
-    actor->state                   = 5;
+    actor = task->work;
+    _playerActorEnterScriptedMode(task);
+    actor->state                   = PLAYER_ACTOR_SCRIPTED_WALK_STEPS_STATE;
     actor->scriptedMotionPending   = 1;
-    actor->pendingCollisionUpdates = 0x38;
+    actor->pendingCollisionUpdates = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
     actor->actionValue             = walkSteps->stepCount;
     actor->stateTimer              = walkSteps->field_4;
     return 0;
 }
 
-s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move, s32 unusedSecondArg)
+s32 playerActorMoveBy(Task* task, s32 unusedMessageId, const GameActorMoveBy* move, s32 unusedSecondArg)
 {
-    GameActor*    actor;
-    GfxCoord*     coord;
-    PlayerStatus* p;
+    GameActor* actor;
+    GfxCoord*  rootCoord;
 
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
     if (move->keepControl == 0) {
-        p                                                     = &gPlayerStatus;
-        actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
-        actor->statePhase                                     = 0;
-        actor->movementSign                                   = 0;
-        actor->turnSign                                       = 0;
-        p->interactionPressed                                 = 0;
-        actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_OFF;
-        actor->part3Pitch                                     = 0;
-        actor->part2Pitch                                     = 0;
-        actor->part3Roll                                      = 0;
-        actor->part2Roll                                      = 0;
-        actor->aimYaw                                         = 0;
-        actor->field_68                                       = 0;
-        actor->part6Pitch                                     = 0;
-        actor->hitRegion                                      = 0;
-        actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        playerActorResetWeaponAttack(arg0, p->weapon, 0);
-        if (gGameSession->eventState != 0) {
-            actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
-        }
-        actor->state                 = 1;
+        _playerActorEnterScriptedMode(task);
+        actor->state                 = PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE;
         actor->scriptedMotionPending = 1;
     }
     actor->pendingCollisionUpdates = move->collisionRequests;
-    coord->coord.t[0]             += move->displacement.vx;
-    coord->coord.t[1]             += move->displacement.vy;
-    coord->coord.t[2]             += move->displacement.vz;
-    Gp_ApplyDirArg(arg0, move);
-    return playerActorHasWallContact(arg0);
+    rootCoord->coord.t[0]         += move->displacement.vx;
+    rootCoord->coord.t[1]         += move->displacement.vy;
+    rootCoord->coord.t[2]         += move->displacement.vz;
+    _playerActorSetMovementSignFromDisplacement(task, move);
+    return playerActorHasWallContact(task);
 }
 
 s32 func_801054D8(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2, s32 unusedSecondArg)
@@ -7496,11 +7512,12 @@ static void func_8010615C(Task* arg0)
     weaponAttacks.attacks[gPlayerStatus.weapon](arg0);
 }
 
-void func_801061F0(void)
+void playerActorUpdateWeaponCollisionKey(void)
 {
+    enum { PLAYER_ACTOR_COLLISION_WEAPON_SHIFT = 8 };
     GameActor* actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
 
-    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = 0x20000 | (gPlayerStatus.weapon << 8) | gPlayerStatus.weaponSlotItem;
+    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = WORLD_COLLISION_CONTACT_ATTACK | (gPlayerStatus.weapon << PLAYER_ACTOR_COLLISION_WEAPON_SHIFT) | gPlayerStatus.weaponSlotItem;
 }
 
 void playerActorSetWeaponAttackFlags(Task* task, s32 attachmentAttack, s32 alternateAttack)
@@ -7646,7 +7663,7 @@ static void func_801065A8(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    func_80109374(arg0);
+    _playerActorUpdateAimRequest(arg0);
     if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
         inner->aimTransitionPending = 1;
         playerActorEnterAim(arg0, 5);
@@ -7855,9 +7872,9 @@ static void Gp_PlayerNormalState2(Task* arg0)
     }
     if (func_80109290(arg0) == 0) {
         if ((actor->padHeld & 0xF000) == 0) {
-            Gp_TrackLockTarget(arg0);
+            playerActorTrackLockTarget(arg0);
         }
-        Gp_UpdateLockTarget(arg0);
+        _playerActorUpdateLockTargetFromPad(arg0);
         if (playerActorReadAttackButton(arg0) != 0 &&
             animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) != NULL &&
             actor->attackControl.cooldownTicks == 0) {
@@ -8168,55 +8185,72 @@ static void Gp_PlayerNormalState5(Task* arg0)
             equipmentReloadSelectedWeaponConsumable(gPlayerStatus.weapon + 0x7F, actor->stateAux);
         }
     }
-    Gp_UpdateLockTarget(arg0);
+    _playerActorUpdateLockTargetFromPad(arg0);
 }
 
-/// Switches the player to `Gp_TickPlayerMode2` state 2 and starts the entry
-/// animation `movementSign` selects: a `fade` of 0 resets the child slots to it,
-/// anything else is passed to `playerActorPlayChildSlotsWithBlend`.
-static inline void _gpEnterPlayerMode2(Task* task, s32 fade)
+/// Resumes normal-mode aim locomotion after a Parasite Energy action.
+///
+/// Stops displacement initially, resets phase/controller and chooses native
+/// clip 9 (idle), 12 (forward) or 13 (backward/turn). Forward movement uses
+/// speed mode 3 with aim decay, backward mode 2 with tracking. Darkness drops
+/// the lock and requests decay. Zero blendFrames resets child slots; 1..2047
+/// blends for whole normal-rate frames. Requires live native-bank playback.
+static inline void _playerActorResumeAimLocomotion(Task* task, s32 blendFrames)
 {
-    GameActor* inner;
-    s32        mode;
-    s32        temp;
+    enum {
+        PLAYER_ACTOR_AIM_LOCOMOTION_STATE      = 2,
+        PLAYER_ACTOR_AIM_LOCOMOTION_CONTROLLER = 0,
+        PLAYER_ACTOR_AIM_LOCOMOTION_STOPPED    = 0,
+        PLAYER_ACTOR_AIM_LOCOMOTION_BACKWARD   = 2,
+        PLAYER_ACTOR_AIM_LOCOMOTION_FORWARD    = 3,
+        PLAYER_ACTOR_AIM_TURN_MOVING           = 1,
+        PLAYER_ACTOR_AIM_TURN_IDLE             = 3,
+        PLAYER_ACTOR_AIM_SET_IDLE              = 9,
+        PLAYER_ACTOR_AIM_SET_FORWARD           = 12,
+        PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN  = 13,
+    };
+    GameActor* actor;
+    s32        setIndex;
+    s32        movementSign;
+    s32        turnRateIndex;
 
-    inner               = task->work;
-    inner->mode         = GAME_ACTOR_MODE_NORMAL;
-    inner->state        = 2;
-    inner->movementMode = 0;
-    if (inner->movementSign != 0) {
-        temp = 1;
+    actor               = task->work;
+    actor->mode         = GAME_ACTOR_MODE_NORMAL;
+    actor->state        = PLAYER_ACTOR_AIM_LOCOMOTION_STATE;
+    actor->movementMode = PLAYER_ACTOR_AIM_LOCOMOTION_STOPPED;
+    if (actor->movementSign != 0) {
+        turnRateIndex = PLAYER_ACTOR_AIM_TURN_MOVING;
     } else {
-        temp = 3;
+        turnRateIndex = PLAYER_ACTOR_AIM_TURN_IDLE;
     }
-    inner->turnRateIndex  = temp;
-    inner->animationState = 0;
-    inner->statePhase     = 0;
+    actor->turnRateIndex  = turnRateIndex;
+    actor->animationState = PLAYER_ACTOR_AIM_LOCOMOTION_CONTROLLER;
+    actor->statePhase     = 0;
     if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
         playerActorClearLockTarget(task);
-        inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
+        actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
     } else {
-        inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
+        actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
     }
-    temp = inner->movementSign;
-    if (temp == 0) {
-        if (inner->turnSign != 0) {
-            mode = 0xD;
+    movementSign = actor->movementSign;
+    if (movementSign == 0) {
+        if (actor->turnSign != 0) {
+            setIndex = PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN;
         } else {
-            mode = 9;
+            setIndex = PLAYER_ACTOR_AIM_SET_IDLE;
         }
-    } else if (temp == 1) {
-        mode                    = 0xC;
-        inner->movementMode     = 3;
-        inner->aimTrackingState = temp;
+    } else if (movementSign == 1) {
+        setIndex                = PLAYER_ACTOR_AIM_SET_FORWARD;
+        actor->movementMode     = PLAYER_ACTOR_AIM_LOCOMOTION_FORWARD;
+        actor->aimTrackingState = movementSign;
     } else {
-        inner->movementMode = 2;
-        mode                = 0xD;
+        actor->movementMode = PLAYER_ACTOR_AIM_LOCOMOTION_BACKWARD;
+        setIndex            = PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN;
     }
-    if (fade == 0) {
-        playerActorResetChildSlots(task, mode);
+    if (blendFrames == 0) {
+        playerActorResetChildSlots(task, setIndex);
     } else {
-        playerActorPlayChildSlotsWithBlend(task, mode, 0, fade);
+        playerActorPlayChildSlotsWithBlend(task, setIndex, 0, blendFrames);
     }
 }
 
@@ -8286,7 +8320,7 @@ static void Gp_PlayerNormalState6(Task* arg0)
                 playerActorEnterLocomotion(arg0, 0);
                 break;
             }
-            _gpEnterPlayerMode2(arg0, actor->stateAux == 1 ? 6 : 8);
+            _playerActorResumeAimLocomotion(arg0, actor->stateAux == 1 ? 6 : 8);
             break;
     }
 }
@@ -8690,12 +8724,12 @@ static void Gp_ArmLockOnState(Task* arg0)
             _playerActorEnterAimLocomotion(arg0, 3);
         }
     } else {
-        func_80109374(arg0);
+        _playerActorUpdateAimRequest(arg0);
         if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_EXIT) {
             inner->aimTransitionPending = 0;
             inner->aimTrackingState     = flag;
             playerActorClearLockTarget(arg0);
-            func_80108874(arg0);
+            playerActorExitAim(arg0);
         }
     }
 }
@@ -8720,7 +8754,7 @@ static void func_801085D0(Task* arg0)
 
     inner               = arg0->work;
     inner->movementSign = 0;
-    func_80109374(arg0);
+    _playerActorUpdateAimRequest(arg0);
     if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
         playerActorEnterAim(arg0, 4);
     }
@@ -8889,19 +8923,27 @@ static void _playerActorEnterAimLocomotion(Task* task, s32 blendFrames)
     }
 }
 
-void func_80108874(Task* arg0)
+void playerActorExitAim(Task* task)
 {
-    GameActor* inner;
+    enum {
+        PLAYER_ACTOR_AIM_EXIT_STATE        = 3,
+        PLAYER_ACTOR_AIM_EXIT_STOPPED      = 0,
+        PLAYER_ACTOR_AIM_EXIT_TURN_RATE    = 2,
+        PLAYER_ACTOR_AIM_EXIT_CONTROLLER   = 4,
+        PLAYER_ACTOR_AIM_EXIT_SET          = 8,
+        PLAYER_ACTOR_AIM_EXIT_BLEND_FRAMES = 6,
+    };
+    GameActor* actor;
 
-    inner                 = arg0->work;
-    inner->state          = 3;
-    inner->mode           = GAME_ACTOR_MODE_NORMAL;
-    inner->movementMode   = 0;
-    inner->turnRateIndex  = 2;
-    inner->animationState = 4;
-    inner->statePhase     = 0;
-    playerActorPlayChildSlotsWithBlend(arg0, 8, 0, 6);
-    playerActorClearLockTarget(arg0);
+    actor                 = task->work;
+    actor->state          = PLAYER_ACTOR_AIM_EXIT_STATE;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->movementMode   = PLAYER_ACTOR_AIM_EXIT_STOPPED;
+    actor->turnRateIndex  = PLAYER_ACTOR_AIM_EXIT_TURN_RATE;
+    actor->animationState = PLAYER_ACTOR_AIM_EXIT_CONTROLLER;
+    actor->statePhase     = 0;
+    playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_AIM_EXIT_SET, 0, PLAYER_ACTOR_AIM_EXIT_BLEND_FRAMES);
+    playerActorClearLockTarget(task);
 }
 
 void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
@@ -9011,41 +9053,47 @@ void Gp_PlayerMode2State1(Task* arg0)
     playerActorPlayFootstepCue(arg0);
 }
 
-void Gp_PlayerMode2State2(Task* arg0)
+void playerActorMode2State2(Task* task)
 {
-    GameActor* inner;
-    s16        cur;
-    s16        tgt;
-    u16        raw;
-    s32        temp;
-    s32        wrap;
-    s32        delta;
-    s32        flag;
+    enum {
+        PLAYER_ACTOR_SCRIPTED_TURN_STEP       = 0x40,
+        PLAYER_ACTOR_SCRIPTED_TURN_IDLE_SET   = 1,
+        PLAYER_ACTOR_SCRIPTED_TURN_IDLE_BLEND = 5,
+    };
+    GameActor* actor;
+    s16        currentYaw;
+    s16        targetYaw;
+    u16        storedTargetYaw;
+    s32        yawDistance;
+    s32        wrappedTargetYaw;
+    s32        turnDelta;
+    s32        idleStateAndSet;
 
-    inner = arg0->work;
-    cur   = inner->rotation.vy;
-    tgt   = inner->scriptMotion.targetYaw;
-    raw   = inner->scriptMotion.targetYaw;
-    temp  = cur - tgt;
-    if (temp < 0) {
-        temp = -temp;
+    actor           = task->work;
+    currentYaw      = actor->rotation.vy;
+    targetYaw       = actor->scriptMotion.targetYaw;
+    storedTargetYaw = actor->scriptMotion.targetYaw;
+    yawDistance     = currentYaw - targetYaw;
+    if (yawDistance < 0) {
+        yawDistance = -yawDistance;
     }
-    if (temp < 0x41 || (wrap = tgt - 0x1000, temp = cur - wrap, temp = ABS(temp), temp < 0x41)) {
-        flag                         = 1;
-        inner->rotation.vy           = raw;
-        inner->scriptedMotionPending = 0;
-        inner->state                 = flag;
-        playerActorPlayChildSlotsWithBlend(arg0, flag, 0, 5);
+    // Check the stored target and its lower one-turn image before stepping.
+    if (yawDistance < PLAYER_ACTOR_SCRIPTED_TURN_STEP + 1 || (wrappedTargetYaw = targetYaw - ACTOR_TRANSFORM_ANGLE_TURN, yawDistance = currentYaw - wrappedTargetYaw, yawDistance = ABS(yawDistance), yawDistance < PLAYER_ACTOR_SCRIPTED_TURN_STEP + 1)) {
+        idleStateAndSet              = PLAYER_ACTOR_SCRIPTED_TURN_IDLE_SET;
+        actor->rotation.vy           = storedTargetYaw;
+        actor->scriptedMotionPending = 0;
+        actor->state                 = idleStateAndSet;
+        playerActorPlayChildSlotsWithBlend(task, idleStateAndSet, 0, PLAYER_ACTOR_SCRIPTED_TURN_IDLE_BLEND);
     } else {
-        delta = playerActorShortestTurn(cur, tgt);
-        if (delta > 0x40) {
-            delta = 0x40;
-        } else if (delta < -0x40) {
-            delta = -0x40;
+        turnDelta = playerActorShortestTurn(currentYaw, targetYaw);
+        if (turnDelta > PLAYER_ACTOR_SCRIPTED_TURN_STEP) {
+            turnDelta = PLAYER_ACTOR_SCRIPTED_TURN_STEP;
+        } else if (turnDelta < -PLAYER_ACTOR_SCRIPTED_TURN_STEP) {
+            turnDelta = -PLAYER_ACTOR_SCRIPTED_TURN_STEP;
         }
-        inner->rotation.vy = ((u16)inner->rotation.vy + delta) & 0xFFF;
+        actor->rotation.vy = ((u16)actor->rotation.vy + turnDelta) & ACTOR_TRANSFORM_ANGLE_MASK;
     }
-    playerActorTickChildSlots(arg0);
+    playerActorTickChildSlots(task);
 }
 
 static void Gp_PlayerMode2State8(Task* arg0)
@@ -9147,7 +9195,7 @@ static void Gp_TickPlayerMode1(Task* arg0)
 static const TaskFuncTable12 Gp_PlayerMode2States = { {
     Gp_PlayerMode2State0,
     Gp_PlayerMode2State1,
-    Gp_PlayerMode2State2,
+    playerActorMode2State2,
     Gp_PlayerMode2State3,
     Gp_PlayerMode2State4,
     Gp_PlayerMode2State5,
@@ -9187,7 +9235,7 @@ static void Gp_PlayerNormalState1(Task* arg0)
     WorldTargetNode* node;
     s32              flag;
 
-    Gp_TrackLockTarget(arg0);
+    playerActorTrackLockTarget(arg0);
     inner               = arg0->work;
     node                = worldTargetFindLockNode(arg0);
     inner->movementSign = 0;
@@ -9204,12 +9252,12 @@ static void Gp_PlayerNormalState1(Task* arg0)
             _playerActorEnterAimLocomotion(arg0, 3);
         }
     } else {
-        func_80109374(arg0);
+        _playerActorUpdateAimRequest(arg0);
         if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_EXIT) {
             inner->aimTransitionPending = 0;
             inner->aimTrackingState     = flag;
             playerActorClearLockTarget(arg0);
-            func_80108874(arg0);
+            playerActorExitAim(arg0);
         }
     }
 }
@@ -9220,7 +9268,7 @@ static void func_801090E8(Task* arg0)
 
     inner               = arg0->work;
     inner->movementSign = 0;
-    func_80109374(arg0);
+    _playerActorUpdateAimRequest(arg0);
     if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
         playerActorEnterAim(arg0, 4);
     }
@@ -9230,7 +9278,7 @@ static void func_80109138(Task* arg0)
 {
     func_8010615C(arg0);
     func_801041FC(arg0, 0);
-    Gp_UpdateLockTarget(arg0);
+    _playerActorUpdateLockTargetFromPad(arg0);
 }
 
 static void Gp_PlayerMode1State0(Task* arg0)
@@ -9347,35 +9395,47 @@ static s32 func_80109290(Task* arg0)
     return ret;
 }
 
-static void func_80109374(Task* arg0)
+/// Replaces the aim request from held Square and the actor's action restrictions.
+///
+/// Requests entry only with idle attachment effects, an equipped weapon and
+/// unrestricted aim; every other combination requests exit. Reads logical
+/// actor input without consuming an edge or changing the selected target.
+static void _playerActorUpdateAimRequest(Task* task)
 {
-    GameActor* inner;
+    GameActor* actor;
 
-    inner = arg0->work;
-    if ((inner->padHeld & 0x80) && (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_IDLE) && (gPlayerStatus.weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
-        (inner->restrictRunAndAim == 0)) {
-        inner->aimControl = GAME_ACTOR_AIM_REQUEST_ENTER;
+    actor = task->work;
+    if ((actor->padHeld & PAD_BUTTON_SQUARE) && (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_IDLE) && (gPlayerStatus.weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
+        (actor->restrictRunAndAim == 0)) {
+        actor->aimControl = GAME_ACTOR_AIM_REQUEST_ENTER;
     } else {
-        inner->aimControl = GAME_ACTOR_AIM_REQUEST_EXIT;
+        actor->aimControl = GAME_ACTOR_AIM_REQUEST_EXIT;
     }
 }
 
-static void Gp_UpdateLockTarget(Task* arg0)
+/// Applies Cross release, Square acquisition and left/right target cycling.
+///
+/// Cross press has priority over selection. Existing locks cycle on Square
+/// press or held Square plus a direction edge; new locks require Square press
+/// without Darkness. Targets are borrowed, and old/new nodes must remain live.
+/// Selection retains the binary's unguarded target-mark store when a scan
+/// returns NULL; the runtime invariant preventing that case is unproven.
+static void _playerActorUpdateLockTargetFromPad(Task* task)
 {
-    GameActor* inner;
-    u16        flags;
+    GameActor* actor;
+    u16        pressedButtons;
 
-    inner = arg0->work;
-    if (inner->targetNode != NULL) {
-        flags = inner->padPressed;
-        if (flags & 0x40) {
-            playerActorClearLockTarget(arg0);
-        } else if (((inner->padHeld & 0x80) && (flags & 0xA000)) || (flags & 0x80)) {
-            _playerActorSetTargetNode(arg0, worldTargetFindLockNodeFromPad(arg0));
+    actor = task->work;
+    if (actor->targetNode != NULL) {
+        pressedButtons = actor->padPressed;
+        if (pressedButtons & PAD_BUTTON_CROSS) {
+            playerActorClearLockTarget(task);
+        } else if (((actor->padHeld & PAD_BUTTON_SQUARE) && (pressedButtons & (PAD_BUTTON_LEFT | PAD_BUTTON_RIGHT))) || (pressedButtons & PAD_BUTTON_SQUARE)) {
+            _playerActorSetTargetNode(task, worldTargetFindLockNodeFromPad(task));
         }
-    } else if ((inner->padPressed & 0x80) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS)) {
-        inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
-        _playerActorSetTargetNode(arg0, worldTargetFindLockNode(arg0));
+    } else if ((actor->padPressed & PAD_BUTTON_SQUARE) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS)) {
+        actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
+        _playerActorSetTargetNode(task, worldTargetFindLockNode(task));
     }
 }
 
