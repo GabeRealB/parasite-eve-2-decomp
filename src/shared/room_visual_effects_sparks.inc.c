@@ -109,20 +109,59 @@ static void _roomVisualEffectsDrawTwinTrail(const GfxCoord firstTrail[ROOM_VISUA
     SCRATCH_STACK_RELEASE_BLOCK(RoomFxTwinTrailScratch);
 }
 
-/// A spark burst. The first tick spawns its flash effect; then, for a non-zero
-/// spawn argument, it sprays randomly jittered sparks each tick, and for zero
-/// it draws a fixed ring and one widening by 0x30 a tick, both dimming by 0x20
-/// a tick. Either way it releases its work block after seven ticks. It pauses
-/// while the room's event state is set and releases the block when that state
-/// reaches 4.
-static inline void RoomFx_SparkBurstTask(Task* task)
+/// Chooses a smoke spawn offset, advancing the LCG separately for each axis.
+///
+/// Writes the three signed halfwords of `work->move` in -255..256 coordinate
+/// units. `work` is borrowed and writable; no other work field is changed.
+static inline void _roomVisualEffectsChooseSparkBurstOffset(EffectWork* work)
 {
-    GfxCoord*   objCoord;
-    EffectWork* work;
-    u8          rgb[4];
+    enum { BURST_OFFSET_CENTRE      = 0x100,
+           BURST_OFFSET_RANDOM_MASK = 0x1FF };
 
-    objCoord = task->extra.coordBody->coord;
-    work     = (EffectWork*)task->spawnArg2.pointer;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vx   = BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & BURST_OFFSET_RANDOM_MASK);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vy   = BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & BURST_OFFSET_RANDOM_MASK);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vz   = BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & BURST_OFFSET_RANDOM_MASK);
+}
+
+/// Runs an impact flash followed by smoke puffs or fading orange rings and bouncing sparks.
+///
+/// `task` owns a coordinate body and a zero-aged `EffectWork` in
+/// `spawnArg2.pointer`. A nonzero `spawnArg1.value` selects smoke: the first
+/// active tick emits one puff, then ages 2..7 emit a puff at an independently
+/// jittered XYZ offset in -255..256 coordinate units. Zero selects two bouncing
+/// sparks on the first tick, followed by a fixed ring and an expanding ring.
+/// Their brightness falls by 32 and the expanding radius grows by 48 per tick.
+/// Both variants enter the release state at age seven and free work on the
+/// next active tick. Spawned effects are independent tasks. Room control pauses
+/// at nonzero values below four and cancels at four or above.
+static inline void _roomVisualEffectsSparkBurstTask(Task* task)
+{
+    enum { SPARK_BURST_INITIALIZE,
+           SPARK_BURST_SMOKE,
+           SPARK_BURST_RINGS,
+           SPARK_BURST_RELEASE,
+           SPARK_BURST_RELEASE_AGE       = 7,
+           SPARK_BURST_FLASH_HALF_EXTENT = 0x400,
+           SPARK_BURST_SPARK_HALF_EXTENT = 0x100,
+           SPARK_BURST_FIXED_RADIUS      = 0x100,
+           SPARK_BURST_INITIAL_LEVEL     = 0xC0,
+           SPARK_BURST_FADE_STEP         = 0x20,
+           SPARK_BURST_RADIUS_STEP       = 0x30,
+           SPARK_BURST_RANDOM_MASK       = 0x1FF,
+           // Additive smoke, half-extent 0x600, four ticks per atlas frame, default rise.
+           SPARK_BURST_INITIAL_SMOKE_ARG = 0x80004600,
+           // Additive smoke, random direction mode 2, half-extent 0x400..0x5FF, three ticks/frame.
+           SPARK_BURST_JITTERED_SMOKE_ARG = 0x82003400 };
+
+    GfxCoord*   coord;
+    EffectWork* work;
+    u8          rgb[3];
+
+    coord = task->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -131,53 +170,48 @@ static inline void RoomFx_SparkBurstTask(Task* task)
         return;
     }
 
-    actorRenderComposeCoord(objCoord);
+    actorRenderComposeCoord(coord);
     work->age++;
 
     switch (task->state) {
-        case 0:
-            effectSpawn(EFFECT_IMPACT_FLASH, objCoord, 0x400, NULL);
+        case SPARK_BURST_INITIALIZE:
+            effectSpawn(EFFECT_IMPACT_FLASH, coord, SPARK_BURST_FLASH_HALF_EXTENT, NULL);
             if (task->spawnArg1.value != 0) {
-                effectSpawn(EFFECT_SMOKE_PUFF, objCoord, 0x80004600, NULL);
-                task->state = 1;
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, SPARK_BURST_INITIAL_SMOKE_ARG, NULL);
+                task->state = SPARK_BURST_SMOKE;
             } else {
-                effectSpawn(EFFECT_BOUNCING_SPARK, objCoord, 0x100, NULL);
-                effectSpawn(EFFECT_BOUNCING_SPARK, objCoord, 0x100, NULL);
-                work->scale = 0x100;
-                work->angle = 0xC0;
-                task->state = 2;
+                effectSpawn(EFFECT_BOUNCING_SPARK, coord, SPARK_BURST_SPARK_HALF_EXTENT, NULL);
+                effectSpawn(EFFECT_BOUNCING_SPARK, coord, SPARK_BURST_SPARK_HALF_EXTENT, NULL);
+                work->scale = SPARK_BURST_FIXED_RADIUS;
+                work->angle = SPARK_BURST_INITIAL_LEVEL;
+                task->state = SPARK_BURST_RINGS;
             }
             break;
 
-        case 1:
+        case SPARK_BURST_SMOKE:
+            // The vector is a spawn offset; the child chooses its own random motion.
+            _roomVisualEffectsChooseSparkBurstOffset(work);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_SMOKE_PUFF, objCoord, ((gRandomLcgState >> 16) & 0x1FF) | 0x82003400,
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, ((gRandomLcgState >> 16) & SPARK_BURST_RANDOM_MASK) | SPARK_BURST_JITTERED_SMOKE_ARG,
                         &work->move);
-            if (work->age >= 7) {
-                task->state = 3;
+            if (work->age >= SPARK_BURST_RELEASE_AGE) {
+                task->state = SPARK_BURST_RELEASE;
             }
             break;
 
-        case 2:
-            work->angle -= 0x20;
-            work->scale += 0x30;
-            rgb[0]       = work->angle;
-            rgb[1]       = work->angle >> 1;
-            rgb[2]       = work->angle >> 2;
-            _roomVisualEffectsDrawFlashRing(objCoord, 0x100, 0x100, rgb);
-            _roomVisualEffectsDrawFlashRing(objCoord, work->scale, work->scale, rgb);
-            if (work->age >= 7) {
-                task->state = 3;
+        case SPARK_BURST_RINGS:
+            // Reused work fields hold ring radius in scale and byte brightness in angle.
+            work->angle -= SPARK_BURST_FADE_STEP;
+            work->scale += SPARK_BURST_RADIUS_STEP;
+            ROOM_VISUAL_EFFECTS_SET_ORANGE_TINT(rgb, work->angle);
+            _roomVisualEffectsDrawFlashRing(coord, SPARK_BURST_FIXED_RADIUS, SPARK_BURST_FIXED_RADIUS, rgb);
+            _roomVisualEffectsDrawFlashRing(coord, work->scale, work->scale, rgb);
+            if (work->age >= SPARK_BURST_RELEASE_AGE) {
+                task->state = SPARK_BURST_RELEASE;
             }
             break;
 
-        case 3:
+        case SPARK_BURST_RELEASE:
             effectKillTask(work, task);
             break;
     }

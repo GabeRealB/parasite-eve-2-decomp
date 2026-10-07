@@ -608,7 +608,7 @@ static void _neoArkGardenDrawRotatingSquare(const SVECTOR* centre)
 
 void func_neo_ark_garden_8017F790(Task* arg0)
 {
-    RoomFx_GlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(arg0);
 }
 
 void neoArkGardenRoomVisualEffectsFlyingSparkTask(Task* task)

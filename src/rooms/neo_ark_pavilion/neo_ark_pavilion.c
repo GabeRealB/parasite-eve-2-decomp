@@ -1235,7 +1235,7 @@ void neoArkPavilionRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_neo_ark_pavilion_80180FFC(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"
@@ -1244,7 +1244,7 @@ void func_neo_ark_pavilion_80180FFC(Task* task)
 
 void func_neo_ark_pavilion_80181C44(Task* arg0)
 {
-    RoomFx_GlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(arg0);
 }
 
 void neoArkPavilionRoomVisualEffectsFlyingSparkTask(Task* task)

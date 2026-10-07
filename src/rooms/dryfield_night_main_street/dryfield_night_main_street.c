@@ -1789,5 +1789,5 @@ void dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 
 void func_dryfield_night_main_street_80181F58(Task* arg0)
 {
-    RoomFx_SparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(arg0);
 }

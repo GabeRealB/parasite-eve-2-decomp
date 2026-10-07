@@ -1366,7 +1366,7 @@ void shelterB4WaterSupplyWaterDriftTask(Task* task)
 
 void func_shelter_b4_water_supply_801809DC(Task* arg0)
 {
-    RoomFx_GlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(arg0);
 }
 
 void shelterB4WaterSupplyRoomVisualEffectsFlyingSparkTask(Task* task)

@@ -697,7 +697,7 @@ void shelterB2PodAccessTunnelRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 
 void func_shelter_b2_pod_access_tunnel_80181AF8(Task* arg0)
 {
-    RoomFx_SparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -718,7 +718,7 @@ void shelterB2PodAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_b2_pod_access_tunnel_80182F78(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

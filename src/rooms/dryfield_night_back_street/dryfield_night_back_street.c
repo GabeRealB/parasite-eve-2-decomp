@@ -573,7 +573,7 @@ void dryfieldNightBackStreetRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_dryfield_night_back_street_8017F6DC(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

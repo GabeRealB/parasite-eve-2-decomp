@@ -748,7 +748,7 @@ void shelterB1StoreroomRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 
 void func_shelter_b1_storeroom_80180C98(Task* arg0)
 {
-    RoomFx_SparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -769,7 +769,7 @@ void shelterB1StoreroomRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_b1_storeroom_80182118(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"
@@ -777,7 +777,7 @@ void func_shelter_b1_storeroom_80182118(Task* task)
 
 void func_shelter_b1_storeroom_80182D60(Task* arg0)
 {
-    RoomFx_GlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(arg0);
 }
 
 void shelterB1StoreroomRoomVisualEffectsFlyingSparkTask(Task* task)

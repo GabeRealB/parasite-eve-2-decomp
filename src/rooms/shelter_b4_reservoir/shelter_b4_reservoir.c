@@ -2056,7 +2056,7 @@ static void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2)
 
 void func_shelter_b4_reservoir_80182B1C(Task* arg0)
 {
-    RoomFx_GlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(arg0);
 }
 
 void shelterB4ReservoirRoomVisualEffectsFlyingSparkTask(Task* task)

@@ -656,7 +656,7 @@ void shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_1f_vehicular_airlock_80180008(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

@@ -746,7 +746,7 @@ void neoArkPyramidRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_neo_ark_pyramid_8017EF9C(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

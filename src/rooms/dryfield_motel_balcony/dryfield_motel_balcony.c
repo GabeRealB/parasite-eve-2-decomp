@@ -1232,7 +1232,7 @@ void dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 
 void func_dryfield_motel_balcony_801801A8(Task* arg0)
 {
-    RoomFx_SparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -1253,7 +1253,7 @@ void dryfieldMotelBalconyRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_dryfield_motel_balcony_80181628(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

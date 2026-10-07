@@ -1236,7 +1236,7 @@ void dryfieldMainStreetRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_dryfield_main_street_80180234(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

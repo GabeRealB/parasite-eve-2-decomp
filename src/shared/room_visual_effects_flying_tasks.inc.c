@@ -2,123 +2,142 @@
 
 /* Continue room_visual_effects.inc.c after the preceding overlay wrappers. */
 
-/// A glowing disc attached to its parent at the work block's position. In
-/// state 1 the disc grows, and every fourth tick the task spawns the effect
-/// `gRoomEffectFlyingSparkId` names at a random joint of the player's model and adopts it
-/// as a child task; state 2 adds a flickering half-bright second disc; state 3
-/// drifts the disc away while it fades inside an expanding ring, then releases
-/// the work block. The spawn argument picks the disc's colour shifts. It
-/// pauses while the room's event state is set and releases the block when that
-/// state reaches 4.
-static inline void RoomFx_GlowDiscTask(Task* arg0)
+/// Runs an attached charge disc with player-joint sparks, flicker and a fading release ring.
+///
+/// `task` owns a coordinate body and the zeroed `EffectWork` in
+/// `spawnArg2.pointer`. `spawnArg1.value` indexes the two `RoomFx_DiscShades`
+/// rows (0 or 1). The work's borrowed parent coordinate and its ancestors must
+/// remain live. ATTACH replaces the spawn placement with an identity rotation
+/// and the copied offset in that parent's axes; this first active tick does not draw.
+/// GROW emits a child flying spark every fourth age from player model parts
+/// 3..18, so that model and the installed flying-spark callback must be live.
+/// Each spark borrows this disc's composed coordinate as its initial target;
+/// adopting its task ensures it is torn down with the disc.
+/// FLICKER stops emission and adds a half-bright larger disc on odd ages.
+/// RELEASE draws the shrinking disc before offsetting its composed cache for
+/// an expanding orange ring, fading by 16 per active tick until teardown.
+/// The local attachment remains intact. Its owner requests these states using
+/// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`; room control pauses at nonzero values
+/// below four and cancels at four or above, releasing work and child tasks.
+static inline void _roomVisualEffectsGlowDiscTask(Task* task)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    EffectWork* spawned;
-    MATRIX*     mtx;
-    u8          col[4];
+    /// Brightens and enlarges the disc before applying its selected tint.
+    ///
+    /// Captures this task's `work`, `task` and three-byte `rgb` locals; the
+    /// tint index must be 0 or 1. Use as a standalone statement list in a block.
+#define ROOM_VISUAL_EFFECTS_GROW_AND_TINT_GLOW_DISC()                        \
+    if (work->scale < GLOW_DISC_FULL_BRIGHTNESS) {                           \
+        work->scale += GLOW_DISC_BRIGHTEN_STEP;                              \
+    }                                                                        \
+    if (work->angle < GLOW_DISC_FULL_RADIUS) {                               \
+        work->angle += GLOW_DISC_RADIUS_STEP;                                \
+    }                                                                        \
+    rgb[0] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].rShift; \
+    rgb[1] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].gShift; \
+    rgb[2] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].bShift
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    enum { GLOW_DISC_FULL_BRIGHTNESS      = 0xC0,
+           GLOW_DISC_BRIGHTEN_STEP        = 8,
+           GLOW_DISC_FULL_RADIUS          = 0x200,
+           GLOW_DISC_RADIUS_STEP          = 0x10,
+           GLOW_DISC_SPARK_INTERVAL_TICKS = 4,
+           GLOW_DISC_FIRST_PLAYER_PART    = 3,
+           GLOW_DISC_PLAYER_PART_COUNT    = 16,
+           GLOW_DISC_FLICKER_RADIUS_DELTA = 0x100,
+           GLOW_DISC_RELEASE_OFFSET       = 0x100,
+           GLOW_DISC_RING_RADIUS_STEP     = 8,
+           GLOW_DISC_RING_INITIAL_RADIUS  = 0x80,
+           GLOW_DISC_RING_TINT_DELTA      = 0x100,
+           GLOW_DISC_FADE_STEP            = 0x10 };
+
+    EffectWork* work;
+    GfxCoord*   coord;
+    EffectWork* sparkWork;
+    u8          rgb[3];
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
+    // scale is brightness, angle is disc radius, period is release-ring growth.
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
-    mem->age++;
-    switch (arg0->state) {
-        case 0:
-            coord->parent                    = mem->parent;
-            mtx                              = &coord->coord;
-            MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-            MATRIX_PAIR(mtx, 0, 2)           = 0;
-            MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
-            MATRIX_PAIR(mtx, 2, 0)           = 0;
-            mtx->m[2][2]                     = 0x1000;
-            coord->coord.t[0]                = mem->pos.vx;
-            coord->coord.t[1]                = mem->pos.vy;
-            coord->coord.t[2]                = mem->pos.vz;
-            coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+    work->age++;
+    switch (task->state) {
+        case ROOM_VISUAL_EFFECTS_GLOW_DISC_ATTACH:
+            // Attach in the borrowed anchor's axes rather than keeping the spawn placement.
+            coord->parent = work->parent;
+            gfxSetRotIdentity(&coord->coord);
+            coord->coord.t[0]   = work->pos.vx;
+            coord->coord.t[1]   = work->pos.vy;
+            coord->coord.t[2]   = work->pos.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            arg0->state = 1;
+            task->state = ROOM_VISUAL_EFFECTS_GLOW_DISC_GROW;
             break;
-        case 1:
+        case ROOM_VISUAL_EFFECTS_GLOW_DISC_GROW:
             actorRenderComposeCoord(coord);
-            if (!(mem->age & 3)) {
-                Task* player    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                spawned         = effectSpawn(gRoomEffectFlyingSparkId, &player->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3], coord, NULL);
-                if (spawned != NULL) {
-                    taskReparent(arg0, spawned->task);
+            if (!(work->age & (GLOW_DISC_SPARK_INTERVAL_TICKS - 1))) {
+                Task* playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                sparkWork        = effectSpawn(gRoomEffectFlyingSparkId, &playerTask->extra.tmd->coords[((gRandomLcgState >> 16) & (GLOW_DISC_PLAYER_PART_COUNT - 1)) + GLOW_DISC_FIRST_PLAYER_PART], coord, NULL);
+                if (sparkWork != NULL) {
+                    taskReparent(task, sparkWork->task);
                 }
             }
-            if (mem->scale < 0xC0) {
-                mem->scale += 8;
-            }
-            if (mem->angle < 0x200) {
-                mem->angle += 0x10;
-            }
-            col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].rShift;
-            col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].gShift;
-            col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].bShift;
-            _roomVisualEffectsDrawFlyingDisc(coord, mem->angle, col);
+            ROOM_VISUAL_EFFECTS_GROW_AND_TINT_GLOW_DISC();
+            _roomVisualEffectsDrawFlyingDisc(coord, work->angle, rgb);
             break;
-        case 2:
+        case ROOM_VISUAL_EFFECTS_GLOW_DISC_FLICKER:
             actorRenderComposeCoord(coord);
-            if (mem->scale < 0xC0) {
-                mem->scale += 8;
-            }
-            if (mem->angle < 0x200) {
-                mem->angle += 0x10;
-            }
-            col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].rShift;
-            col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].gShift;
-            col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].bShift;
-            _roomVisualEffectsDrawFlyingDisc(coord, mem->angle, col);
-            col[0] >>= 1;
-            col[1] >>= 1;
-            col[2] >>= 1;
-            if (mem->age & 1) {
-                _roomVisualEffectsDrawFlyingDisc(coord, (s16)(mem->angle + 0x100), col);
+            ROOM_VISUAL_EFFECTS_GROW_AND_TINT_GLOW_DISC();
+            _roomVisualEffectsDrawFlyingDisc(coord, work->angle, rgb);
+            rgb[0] >>= 1;
+            rgb[1] >>= 1;
+            rgb[2] >>= 1;
+            if (work->age & 1) {
+                _roomVisualEffectsDrawFlyingDisc(coord, (s16)(work->angle + GLOW_DISC_FLICKER_RADIUS_DELTA), rgb);
             }
             break;
-        case 3:
+        case ROOM_VISUAL_EFFECTS_GLOW_DISC_RELEASE:
             actorRenderComposeCoord(coord);
-            col[0] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].rShift;
-            col[1] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].gShift;
-            col[2] = mem->scale >> RoomFx_DiscShades[arg0->spawnArg1.value].bShift;
-            _roomVisualEffectsDrawFlyingDisc(coord, mem->angle, col);
-            col[0] = mem->scale;
-            col[1] = mem->scale >> 1;
-            col[2] = mem->scale >> 2;
-            if (mem->period == 0) {
-                mem->move.vy = -0x100;
-                mem->move.vz = 0x100;
-                mem->move.vx = 0;
+            rgb[0] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].rShift;
+            rgb[1] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].gShift;
+            rgb[2] = work->scale >> RoomFx_DiscShades[task->spawnArg1.value].bShift;
+            _roomVisualEffectsDrawFlyingDisc(coord, work->angle, rgb);
+            ROOM_VISUAL_EFFECTS_SET_ORANGE_TINT(rgb, work->scale);
+            // Freeze a local release offset in composed view axes on entering this phase.
+            if (work->period == 0) {
+                work->move.vy = -GLOW_DISC_RELEASE_OFFSET;
+                work->move.vz = GLOW_DISC_RELEASE_OFFSET;
+                work->move.vx = 0;
                 gte_SetRotMatrix(&coord->workm);
-                gte_ldv0(&mem->move);
+                gte_ldv0(&work->move);
                 gte_rtv0();
-                gte_stsv(&mem->move);
+                gte_stsv(&work->move);
             }
-            mem->period       += 8;
-            coord->workm.t[0] += mem->move.vx;
-            coord->workm.t[1] += mem->move.vy;
-            coord->workm.t[2] += mem->move.vz;
-            _roomVisualEffectsDrawFlyingRing(coord, (s16)(mem->period + 0x80), 0x100, col);
-            mem->angle -= 0x10;
-            if (mem->scale > 0x10) {
-                mem->scale -= 0x10;
+            // Only the ring uses this shifted cache; the disc above used the attached centre.
+            work->period      += GLOW_DISC_RING_RADIUS_STEP;
+            coord->workm.t[0] += work->move.vx;
+            coord->workm.t[1] += work->move.vy;
+            coord->workm.t[2] += work->move.vz;
+            _roomVisualEffectsDrawFlyingRing(coord, (s16)(work->period + GLOW_DISC_RING_INITIAL_RADIUS), GLOW_DISC_RING_TINT_DELTA, rgb);
+            work->angle -= GLOW_DISC_FADE_STEP;
+            if (work->scale > GLOW_DISC_FADE_STEP) {
+                work->scale -= GLOW_DISC_FADE_STEP;
                 break;
             }
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
             break;
-        case 4:
-            effectKillTask(mem, arg0);
+        case ROOM_VISUAL_EFFECTS_GLOW_DISC_CANCEL:
+            effectKillTask(work, task);
             break;
     }
 }
+#undef ROOM_VISUAL_EFFECTS_GROW_AND_TINT_GLOW_DISC
 
 /// Runs an animated spark along a fixed step derived from an initial target offset.
 ///

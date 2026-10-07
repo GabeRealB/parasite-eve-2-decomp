@@ -237,7 +237,7 @@ WorldCollisionSurfaceProperties* D_shelter_b1_control_room_access_tunnel_8018267
 
 void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
 {
-    RoomFx_GlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(arg0);
 }
 
 void shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingSparkTask(Task* task)

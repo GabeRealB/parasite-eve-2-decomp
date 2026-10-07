@@ -1626,7 +1626,7 @@ void acropolisForkedRoadRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_acropolis_forked_road_801802CC(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

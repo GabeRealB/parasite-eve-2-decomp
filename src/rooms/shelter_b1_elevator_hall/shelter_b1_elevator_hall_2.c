@@ -614,7 +614,7 @@ void shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 
 void func_shelter_b1_elevator_hall_80180BE4(Task* arg0)
 {
-    RoomFx_SparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -635,7 +635,7 @@ void shelterB1ElevatorHallRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_b1_elevator_hall_80182064(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

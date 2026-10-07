@@ -956,7 +956,7 @@ void neoArkPowerPlant2RoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_neo_ark_power_plant_2_8017F140(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

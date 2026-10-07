@@ -439,7 +439,7 @@ void neoArkSouthPromenadeRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_neo_ark_south_promenade_8017EA6C(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

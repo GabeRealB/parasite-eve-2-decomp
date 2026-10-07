@@ -1672,7 +1672,7 @@ void shelterB2SepticTankRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_b2_septic_tank_80181F2C(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

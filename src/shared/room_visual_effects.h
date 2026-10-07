@@ -38,6 +38,7 @@
 #include "main/task_types.h"
 
 #include "rooms/room.h"
+#include "rooms/room_visual_effects.h"
 
 /// Projection numerators: multiply a world-unit radius, then divide by SZ3 / 4.
 ///
@@ -79,6 +80,17 @@ enum {
     ROOM_VISUAL_EFFECTS_BURST_LIGHT_RANDOM_INTENSITY_MASK = 0x700
 };
 
+/// Writes an orange tint at full, half and quarter byte brightness.
+///
+/// `rgb` addresses three writable bytes. Both arguments are evaluated repeatedly
+/// and must be side-effect-free; `level` must not alias the destination. The
+/// level is shifted with its integer signedness, then narrowed to colour bytes.
+/// Expands to a standalone statement list; use inside a braced block.
+#define ROOM_VISUAL_EFFECTS_SET_ORANGE_TINT(rgb, level) \
+    (rgb)[0] = (level);                                 \
+    (rgb)[1] = (level) >> 1;                            \
+    (rgb)[2] = (level) >> 2
+
 /* Interface for the including source. */
 
 /// Selects the mote's second four-frame strip in packed half-extent/texture-row arguments.
@@ -106,13 +118,13 @@ static inline void _roomVisualEffectsHaloTask(Task* task);
 
 static inline void _roomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-static inline void RoomFx_SparkEmitterTask(Task* arg0);
+static inline void _roomVisualEffectsSparkEmitterTask(Task* task);
 
 static inline void _roomVisualEffectsFlashTask(Task* task);
 
-static inline void RoomFx_SparkBurstTask(Task* task);
+static inline void _roomVisualEffectsSparkBurstTask(Task* task);
 
-static inline void RoomFx_GlowDiscTask(Task* arg0);
+static inline void _roomVisualEffectsGlowDiscTask(Task* task);
 
 static inline void _roomVisualEffectsFlyingSparkTask(Task* task);
 

@@ -128,40 +128,56 @@ static void _roomVisualEffectsDrawHaloStar(const GfxCoord* coord, s16 radius, co
 #undef ROOM_VISUAL_EFFECTS_INIT_HALO_STAR_WEDGE
 }
 
-/// A spark emitter. For 0x14 ticks it turns its heading by a random
-/// 0x200..0x3FF and spawns the effect `gRoomEffectMoteId` names at its frame, moving
-/// outwards along that heading at 3/16 speed with a vertical velocity of -0x80
-/// per tick of age, then releases its work block. It pauses while the room's
-/// event state is set and releases the block when that state reaches 4.
-static inline void RoomFx_SparkEmitterTask(Task* arg0)
+/// Emits twenty motes at turning, successively higher offsets around its spawn coordinate.
+///
+/// `task` owns a coordinate body and a zero-aged `EffectWork` in
+/// `spawnArg2.pointer`; the emitter ignores `spawnArg1`. Each active age 1..20
+/// advances a signed halfword heading by 512..1023 (4096 units per turn) and
+/// emits at a local radial offset of approximately 768 coordinate units and
+/// Y = -128 * age. `effectSpawn` copies that offset; it is not a velocity.
+/// The mote argument selects steady downward motion at eight parent-axis
+/// units per active tick, a half-extent of 513, default palette and lifetime 48.
+/// The room must have installed `gRoomEffectMoteId` and keep its callback loaded.
+/// Age 21 releases the emitter's work; motes are independent tasks and outlive
+/// it. Room control pauses at nonzero values below four and cancels at four or above.
+static inline void _roomVisualEffectsSparkEmitterTask(Task* task)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s16         flag;
-    s16         ang;
+    enum { EMITTER_EMISSION_TICKS           = 20,
+           EMITTER_HEADING_STEP_MIN         = 0x200,
+           EMITTER_HEADING_STEP_RANDOM_MASK = 0x1FF,
+           EMITTER_OFFSET_HEIGHT_STEP       = 128,
+           // Steady down, half-extent 0x201, speed 8, lifetime 48, palette 0.
+           EMITTER_MOTE_ARGUMENT = 0x30080201 };
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
+    s16         heading;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     } else {
         actorRenderComposeCoord(coord);
-        mem->age++;
-        if (mem->age >= 0x15) {
-            effectKillTask(mem, arg0);
+        work->age++;
+        if (work->age >= EMITTER_EMISSION_TICKS + 1) {
+            effectKillTask(work, task);
             return;
         }
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        ang             = mem->scale + (((gRandomLcgState >> 16) & 0x1FF) + 0x200);
-        mem->scale      = ang;
-        mem->move.vx    = (u32)(rcos(ang) * 3) >> 4;
-        mem->move.vy    = -mem->age * 128;
-        mem->move.vz    = (u32)(rsin(mem->scale) * 3) >> 4;
-        effectSpawn(gRoomEffectMoteId, coord, 0x30080201, &mem->move);
+        // scale accumulates the halfword heading; move holds the next local spawn offset.
+        heading     = work->scale + (((gRandomLcgState >> 16) & EMITTER_HEADING_STEP_RANDOM_MASK) + EMITTER_HEADING_STEP_MIN);
+        work->scale = heading;
+        // Keep the unsigned shifts and signed-halfword narrowing of the radial offset.
+        work->move.vx = (u32)(rcos(heading) * 3) >> 4;
+        work->move.vy = -work->age * EMITTER_OFFSET_HEIGHT_STEP;
+        work->move.vz = (u32)(rsin(work->scale) * 3) >> 4;
+        effectSpawn(gRoomEffectMoteId, coord, EMITTER_MOTE_ARGUMENT, &work->move);
     }
 }

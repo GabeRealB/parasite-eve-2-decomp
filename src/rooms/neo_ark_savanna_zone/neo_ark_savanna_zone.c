@@ -563,7 +563,7 @@ void neoArkSavannaZoneRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_neo_ark_savanna_zone_8017ED58(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

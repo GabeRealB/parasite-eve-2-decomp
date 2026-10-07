@@ -212,7 +212,7 @@ void shelterB1ControlRoomAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_b1_control_room_access_tunnel_8017F624(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

@@ -3370,7 +3370,7 @@ void mineMesaRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_mine_mesa_8018057C(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

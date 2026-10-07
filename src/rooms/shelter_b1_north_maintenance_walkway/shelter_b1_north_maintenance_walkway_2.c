@@ -374,7 +374,7 @@ void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask(Task* 
 
 void func_shelter_b1_north_maintenance_walkway_80180DA8(Task* arg0)
 {
-    RoomFx_SparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -395,7 +395,7 @@ void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_b1_north_maintenance_walkway_80182228(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"
@@ -403,7 +403,7 @@ void func_shelter_b1_north_maintenance_walkway_80182228(Task* task)
 
 void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0)
 {
-    RoomFx_GlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(arg0);
 }
 
 void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task)

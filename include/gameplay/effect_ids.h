@@ -45,11 +45,12 @@ enum {
     /// recorded in rings of eight and drawn as a fading beam; stored in gRoomEffectTwinTrailId,
     /// which the beam-sword golems (actor_02000/02300) spawn at model part 7.
     EFFECT_DRYFIELD_NIGHT_GAS_STATION_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x008),
-    /// dryfield_night_gas_station's copy of the shared spark burst
-    /// (RoomFx_SparkBurstTask): spawns impact flash 0x60076, then sprays sparks/smoke
-    /// or draws expanding rings for seven ticks; the room stores it in gRoomEffectSparkBurstId
-    /// (spark-burst slot, spawned by golemPawnRookBulletFly when a golem bullet ends
-    /// its flight).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_DRYFIELD_NIGHT_GAS_STATION_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x009),
     /// dryfield_night_back_street's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring
     /// ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook
@@ -349,9 +350,12 @@ enum {
     /// gRoomEffectTwinTrailId, which the beam-sword Pawn/Rook golems spawn at body part 7
     /// (golemPawnRookDelayedEffectTick).
     EFFECT_DRYFIELD_MOTEL_BALCONY_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x073),
-    /// Spark burst (RoomFx_SparkBurstTask): a flash then a spray of jittered sparks, or
-    /// two widening rings, over seven ticks; stored in gRoomEffectSparkBurstId, which the grenade
-    /// golems (actor_05600/05700) spawn when a shot ends.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_DRYFIELD_MOTEL_BALCONY_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x074),
     /// Four-frame additive flash sprite from Gp_EffSprRecs at a point, released after
     /// four ticks; first effect of RoomFx spark bursts and gunblade/func_800F4308
@@ -368,7 +372,7 @@ enum {
     EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD = EFFECT_ID(EFFECT_TASK_BANK, 0x07A),
     /// Glowing spark particle that falls under gravity, bounces off the traced ground
     /// (halving its speed), draws a ground glow under itself and fades over 31 frames;
-    /// used by spark bursts (RoomFx_SparkBurstTask, func_800F4308, gunblade).
+    /// used by spark bursts (_roomVisualEffectsSparkBurstTask, func_800F4308, gunblade).
     EFFECT_BOUNCING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x07C),
     /// Drifting 10-frame sprite anchored at its base (extends 3/4 above), fading over
     /// its last ticks, emitted in bursts with smoke 0x60070 by the night Motel balcony
@@ -592,10 +596,12 @@ enum {
     /// (spawnArg high * 4) frames at an offset from its parent; spawned by the hit-
     /// effect dispatcher effectSpawnHit (case 10).
     EFFECT_0E3 = EFFECT_ID(EFFECT_TASK_BANK, 0x0E3),
-    /// dryfield_night_back_street's copy of the RoomFx spark burst: spawns a flash,
-    /// then sprays jittered sparks or draws widening rings for seven ticks; the room
-    /// stores it in slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn
-    /// where a grenade lands (golemPawnRookBulletFly).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_DRYFIELD_NIGHT_BACK_STREET_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x0E4),
     /// Flash (_roomVisualEffectsFlashTask): fans and an inward ring ramping up, a fade quad at the
     /// peak, then a star fade-out; stored in gRoomEffectFlashId, which golems
@@ -606,9 +612,12 @@ enum {
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
     /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
     EFFECT_DRYFIELD_NIGHT_JUNK_YARD_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x0E6),
-    /// dryfield_night_junk_yard's copy of RoomFx_SparkBurstTask (a flash then sprayed
-    /// sparks or a widening ring for seven ticks), stored in gRoomEffectSparkBurstId, which the
-    /// grenade-launcher GOLEM's bullet spawns where it hits.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_DRYFIELD_NIGHT_JUNK_YARD_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x0E7),
     /// Darkness status screen dim: a flickering full-screen fade quad (effectDrawScreenTint)
     /// held while the player has PLAYER_STATUS_DARKNESS, faded out when it clears.
@@ -627,9 +636,12 @@ enum {
     /// gRoomEffectTwinTrailId (twin-trail slot, spawned by the Pawn/Rook golem library at joint 7
     /// via golemPawnRookDelayedEffectTick).
     EFFECT_MINE_MESA_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x0EB),
-    /// mine_mesa's copy of RoomFx_SparkBurstTask (a flash then sprayed sparks or a
-    /// widening ring for seven ticks), stored in gRoomEffectSparkBurstId, which the grenade-launcher
-    /// GOLEM's bullet spawns where it hits.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_MINE_MESA_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x0EC),
     /// The shelter_b4_lower_sewer instance of the room-effect library's
     /// _roomVisualEffectsFlashTask: a flash: two fans and an inward-shrinking ring ramping up over
@@ -642,9 +654,12 @@ enum {
     /// gRoomEffectTwinTrailId, which the beam-sword Pawn/Rook golems spawn at body part 7
     /// (golemPawnRookDelayedEffectTick).
     EFFECT_SHELTER_B4_LOWER_SEWER_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x0EE),
-    /// Spark burst (RoomFx_SparkBurstTask): a flash then a spray of jittered sparks, or
-    /// two widening rings, over seven ticks; stored in gRoomEffectSparkBurstId, which the grenade
-    /// golems (actor_05600/05700) spawn when a shot ends.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B4_LOWER_SEWER_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x0EF),
     /// shelter_b4_upper_sewer's copy of the shared flash task (_roomVisualEffectsFlashTask): ramps
     /// up two fans and a shrinking ring, queues a full-screen fade quad at its peak,
@@ -655,11 +670,12 @@ enum {
     /// rings drawn as a beam), stored in gRoomEffectTwinTrailId, which the beam-sword GOLEM's sword
     /// child spawns at part 7 ten frames after it appears.
     EFFECT_SHELTER_B4_UPPER_SEWER_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x0F1),
-    /// The shelter_b4_upper_sewer instance of the room-effect library's
-    /// RoomFx_SparkBurstTask: a spark burst: a flash plus jittered sparks (non-zero
-    /// arg) or two dimming rings (zero arg) for seven ticks; the room stores it in slot
-    /// gRoomEffectSparkBurstId, read on impact by the Pawn/Rook GOLEM grenade
-    /// (golem_pawn_rook_bullet_fly.inc.c; grenade-launcher golems actor_05600/05700).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B4_UPPER_SEWER_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x0F2),
     /// Energy Shot aura controller on the player: sets ROOM_EFFECT_PE_ENERGY_SHOT_AURA,
     /// draws a triangle burst and two rings on request, and spawns 0x600F4 at the
@@ -1023,10 +1039,12 @@ enum {
     /// delayed-effect child at part 7 (golem_pawn_rook_delayed_effect_tick.inc.c; the
     /// beam-sword golems actor_02000/02300 reference this slot).
     EFFECT_SHELTER_1F_BULWARK_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1C3),
-    /// shelter_1f_bulwark's copy of the RoomFx spark burst: spawns a flash, then sprays
-    /// jittered sparks or draws widening rings for seven ticks; the room stores it in
-    /// slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn where a
-    /// grenade lands (golemPawnRookBulletFly).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_1F_BULWARK_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x1C4),
     /// Rising eight-cell effectDrawSpinningBillboard sprite with a random CLUT
     /// (`shelterB1PodServiceGantryEffectSpriteRiseTask`); spawned every 128 ticks from part 2 of actor_560800's
@@ -1306,210 +1324,293 @@ enum {
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
     /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
     EFFECT_NEO_ARK_PYRAMID_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1FE),
-    /// dryfield_night_r08's copy of RoomFx_SparkBurstTask (a flash then sprayed sparks
-    /// or a widening ring for seven ticks), stored in gRoomEffectSparkBurstId, which the grenade-
-    /// launcher GOLEM's bullet spawns where it hits.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_DRYFIELD_NIGHT_R08_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x1FF),
-    /// The shelter_b1_elevator_hall instance of the room-effect library's
-    /// RoomFx_SparkBurstTask: a spark burst: a flash plus jittered sparks (non-zero
-    /// arg) or two dimming rings (zero arg) for seven ticks; the room stores it in slot
-    /// gRoomEffectSparkBurstId, read on impact by the Pawn/Rook GOLEM grenade
-    /// (golem_pawn_rook_bullet_fly.inc.c; grenade-launcher golems actor_05600/05700).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_ELEVATOR_HALL_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x200),
-    /// shelter_b1_south_maintenance_walkway's copy of the RoomFx spark burst: spawns a
-    /// flash, then sprays jittered sparks or draws widening rings for seven ticks; the
-    /// room stores it in slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems
-    /// spawn where a grenade lands (golemPawnRookBulletFly).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x201),
-    /// Spark burst (RoomFx_SparkBurstTask): a flash then a spray of jittered sparks, or
-    /// two widening rings, over seven ticks; stored in gRoomEffectSparkBurstId, which the grenade
-    /// golems (actor_05600/05700) spawn when a shot ends.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_STOREROOM_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x202),
-    /// shelter_b1_north_maintenance_walkway's copy of the shared spark burst
-    /// (RoomFx_SparkBurstTask): spawns impact flash 0x60076, then sprays sparks/smoke
-    /// or draws expanding rings for seven ticks; the room stores it in gRoomEffectSparkBurstId
-    /// (spark-burst slot, spawned by golemPawnRookBulletFly when a golem bullet ends
-    /// its flight).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x203),
-    /// shelter_b1_main_corridor's copy of RoomFx_SparkBurstTask (a flash then sprayed
-    /// sparks or a widening ring for seven ticks), stored in gRoomEffectSparkBurstId, which the
-    /// grenade-launcher GOLEM's bullet spawns where it hits.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_MAIN_CORRIDOR_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x204),
-    /// The shelter_b1_pod_tunnel instance of the room-effect library's
-    /// RoomFx_SparkBurstTask: a spark burst: a flash plus jittered sparks (non-zero
-    /// arg) or two dimming rings (zero arg) for seven ticks; the room stores it in slot
-    /// gRoomEffectSparkBurstId, read on impact by the Pawn/Rook GOLEM grenade
-    /// (golem_pawn_rook_bullet_fly.inc.c; grenade-launcher golems actor_05600/05700).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x205),
-    /// shelter_b1_transfer_tunnel's copy of the RoomFx spark burst: spawns a flash,
-    /// then sprays jittered sparks or draws widening rings for seven ticks; the room
-    /// stores it in slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn
-    /// where a grenade lands (golemPawnRookBulletFly).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_TRANSFER_TUNNEL_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x206),
-    /// Spark burst (RoomFx_SparkBurstTask): a flash then a spray of jittered sparks, or
-    /// two widening rings, over seven ticks; stored in gRoomEffectSparkBurstId, which the grenade
-    /// golems (actor_05600/05700) spawn when a shot ends.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x207),
-    /// shelter_b2_elevator_hall's copy of the shared spark burst
-    /// (RoomFx_SparkBurstTask): spawns impact flash 0x60076, then sprays sparks/smoke
-    /// or draws expanding rings for seven ticks; the room stores it in gRoomEffectSparkBurstId
-    /// (spark-burst slot, spawned by golemPawnRookBulletFly when a golem bullet ends
-    /// its flight).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B2_ELEVATOR_HALL_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x208),
-    /// shelter_b2_south_maintenance_walkway's copy of RoomFx_SparkBurstTask (a flash
-    /// then sprayed sparks or a widening ring for seven ticks), stored in gRoomEffectSparkBurstId,
-    /// which the grenade-launcher GOLEM's bullet spawns where it hits.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x209),
-    /// The shelter_b2_n_walkway instance of the room-effect library's
-    /// RoomFx_SparkBurstTask: a spark burst: a flash plus jittered sparks (non-zero
-    /// arg) or two dimming rings (zero arg) for seven ticks; the room stores it in slot
-    /// gRoomEffectSparkBurstId, read on impact by the Pawn/Rook GOLEM grenade
-    /// (golem_pawn_rook_bullet_fly.inc.c; grenade-launcher golems actor_05600/05700).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x20A),
-    /// shelter_b2_main_corridor's copy of the RoomFx spark burst: spawns a flash, then
-    /// sprays jittered sparks or draws widening rings for seven ticks; the room stores
-    /// it in slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn where a
-    /// grenade lands (golemPawnRookBulletFly).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B2_MAIN_CORRIDOR_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x20B),
-    /// Spark burst (RoomFx_SparkBurstTask): a flash then a spray of jittered sparks, or
-    /// two widening rings, over seven ticks; stored in gRoomEffectSparkBurstId, which the grenade
-    /// golems (actor_05600/05700) spawn when a shot ends.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B2_SEPTIC_TANK_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x20C),
-    /// shelter_b2_pod_access_tunnel's copy of the shared spark burst
-    /// (RoomFx_SparkBurstTask): spawns impact flash 0x60076, then sprays sparks/smoke
-    /// or draws expanding rings for seven ticks; the room stores it in gRoomEffectSparkBurstId
-    /// (spark-burst slot, spawned by golemPawnRookBulletFly when a golem bullet ends
-    /// its flight).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x20D),
-    /// shelter_1f_parking_garage's copy of RoomFx_SparkBurstTask (a flash then sprayed
-    /// sparks or a widening ring for seven ticks), stored in gRoomEffectSparkBurstId, which the
-    /// grenade-launcher GOLEM's bullet spawns where it hits.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_1F_PARKING_GARAGE_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x20E),
-    /// The shelter_1f_airlock instance of the room-effect library's
-    /// RoomFx_SparkBurstTask: a spark burst: a flash plus jittered sparks (non-zero
-    /// arg) or two dimming rings (zero arg) for seven ticks; the room stores it in slot
-    /// gRoomEffectSparkBurstId, read on impact by the Pawn/Rook GOLEM grenade
-    /// (golem_pawn_rook_bullet_fly.inc.c; grenade-launcher golems actor_05600/05700).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_1F_VEHICULAR_AIRLOCK_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x20F),
-    /// neo_ark_north_promenade's copy of the RoomFx spark burst: spawns a flash, then
-    /// sprays jittered sparks or draws widening rings for seven ticks; the room stores
-    /// it in slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn where a
-    /// grenade lands (golemPawnRookBulletFly).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_NEO_ARK_NORTH_PROMENADE_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x210),
-    /// Spark burst (RoomFx_SparkBurstTask): a flash then a spray of jittered sparks, or
-    /// two widening rings, over seven ticks; stored in gRoomEffectSparkBurstId, which the grenade
-    /// golems (actor_05600/05700) spawn when a shot ends.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_NEO_ARK_FOREST_ZONE_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x211),
-    /// neo_ark_pavilion's copy of the shared spark burst (RoomFx_SparkBurstTask):
-    /// spawns impact flash 0x60076, then sprays sparks/smoke or draws expanding rings
-    /// for seven ticks; the room stores it in gRoomEffectSparkBurstId (spark-burst slot, spawned by
-    /// golemPawnRookBulletFly when a golem bullet ends its flight).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_NEO_ARK_PAVILION_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x212),
-    /// neo_ark_island's copy of RoomFx_SparkBurstTask (a flash then sprayed sparks or a
-    /// widening ring for seven ticks), stored in gRoomEffectSparkBurstId, which the grenade-launcher
-    /// GOLEM's bullet spawns where it hits.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_NEO_ARK_ISLAND_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x213),
-    /// The neo_ark_power_plant_2 instance of the room-effect library's
-    /// RoomFx_SparkBurstTask: a spark burst: a flash plus jittered sparks (non-zero
-    /// arg) or two dimming rings (zero arg) for seven ticks; the room stores it in slot
-    /// gRoomEffectSparkBurstId, read on impact by the Pawn/Rook GOLEM grenade
-    /// (golem_pawn_rook_bullet_fly.inc.c; grenade-launcher golems actor_05600/05700).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_NEO_ARK_POWER_PLANT_2_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x214),
-    /// neo_ark_savanna_zone's copy of the RoomFx spark burst: spawns a flash, then
-    /// sprays jittered sparks or draws widening rings for seven ticks; the room stores
-    /// it in slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn where a
-    /// grenade lands (golemPawnRookBulletFly).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_NEO_ARK_SAVANNA_ZONE_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x215),
-    /// Spark burst (RoomFx_SparkBurstTask): a flash then a spray of jittered sparks, or
-    /// two widening rings, over seven ticks; stored in gRoomEffectSparkBurstId, which the grenade
-    /// golems (actor_05600/05700) spawn when a shot ends.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_NEO_ARK_SOUTH_PROMENADE_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x216),
-    /// neo_ark_shrine's copy of the shared spark burst (RoomFx_SparkBurstTask): spawns
-    /// impact flash 0x60076, then sprays sparks/smoke or draws expanding rings for
-    /// seven ticks; the room stores it in gRoomEffectSparkBurstId (spark-burst slot, spawned by
-    /// golemPawnRookBulletFly when a golem bullet ends its flight).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_NEO_ARK_SHRINE_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x217),
-    /// shelter_b6_nursery's copy of RoomFx_SparkBurstTask (a flash then sprayed sparks
-    /// or a widening ring for seven ticks), stored in gRoomEffectSparkBurstId, which the grenade-
-    /// launcher GOLEM's bullet spawns where it hits.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B6_NURSERY_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x218),
-    /// The neo_ark_bridge instance of the room-effect library's RoomFx_SparkBurstTask:
-    /// a spark burst: a flash plus jittered sparks (non-zero arg) or two dimming rings
-    /// (zero arg) for seven ticks; the room stores it in slot gRoomEffectSparkBurstId, read on
-    /// impact by the Pawn/Rook GOLEM grenade (golem_pawn_rook_bullet_fly.inc.c;
-    /// grenade-launcher golems actor_05600/05700).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_NEO_ARK_BRIDGE_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x219),
-    /// neo_ark_pyramid's copy of the RoomFx spark burst: spawns a flash, then sprays
-    /// jittered sparks or draws widening rings for seven ticks; the room stores it in
-    /// slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn where a
-    /// grenade lands (golemPawnRookBulletFly).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_NEO_ARK_PYRAMID_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x21A),
     /// Flying spark (_roomVisualEffectsFlyingSparkTask): a textured square that moves each tick
     /// by 0xCC/0x1000 of its initial target displacement, with a 20-tick lifetime; stored in
     /// gRoomEffectFlyingSparkId, which the room's glow disc spawns at random player joints.
     EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x21B),
-    /// shelter_b1_south_maintenance_walkway's copy of the shared glowing disc
-    /// (RoomFx_GlowDiscTask) that grows, spawns the gRoomEffectFlyingSparkId flying sparks at the
-    /// player, then drifts away inside an expanding ring; the room stores it in
-    /// gRoomEffectGlowDiscId (glow-disc slot, spawned by actor_02400).
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x21C),
     /// shelter_b1_south_maintenance_walkway's copy of _roomVisualEffectsFlyingOrangeBurstTask (an
     /// orange disc/glow with an expanding ring), stored in gRoomEffectOrangeBurst2Id, which the
     /// Amoeba's projectile spawns when it expires or hits.
     EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x21D),
-    /// The shelter_b1_storeroom instance of the room-effect library's
-    /// RoomFx_GlowDiscTask: a growing glowing disc that every fourth tick spawns the
-    /// gRoomEffectFlyingSparkId flying spark at a random player joint, then drifts away fading inside
-    /// an expanding ring; the room stores it in slot gRoomEffectGlowDiscId, read by actor_02400
-    /// (fireball library), which keeps hold of the spawned task.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B1_STOREROOM_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x21E),
-    /// shelter_b1_north_maintenance_walkway's copy of the RoomFx glowing disc: grows,
-    /// sends flying sparks (slot gRoomEffectFlyingSparkId) to random joints of the player, then
-    /// drifts away inside an expanding ring; the room stores it in slot gRoomEffectGlowDiscId,
-    /// which actor_02400 spawns and holds when its second body is hit.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x21F),
-    /// Glowing disc (RoomFx_GlowDiscTask) that grows, emits gRoomEffectFlyingSparkId flying sparks at
-    /// the player, flickers and drifts away inside a ring; stored in gRoomEffectGlowDiscId, which
-    /// actor_02400 spawns.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B1_SLEEPING_QUARTERS_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x220),
-    /// shelter_b2_south_maintenance_walkway's copy of the shared glowing disc
-    /// (RoomFx_GlowDiscTask) that grows, spawns the gRoomEffectFlyingSparkId flying sparks at the
-    /// player, then drifts away inside an expanding ring; the room stores it in
-    /// gRoomEffectGlowDiscId (glow-disc slot, spawned by actor_02400).
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x221),
-    /// shelter_b2_operating_room's copy of RoomFx_GlowDiscTask (a growing glowing disc
-    /// that pulls gRoomEffectFlyingSparkId sparks from the player's joints), stored in gRoomEffectGlowDiscId,
-    /// which the Amoeba holds while it grows.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B2_OPERATING_ROOM_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x222),
-    /// The shelter_b3_elevator_hall instance of the room-effect library's
-    /// RoomFx_GlowDiscTask: a growing glowing disc that every fourth tick spawns the
-    /// gRoomEffectFlyingSparkId flying spark at a random player joint, then drifts away fading inside
-    /// an expanding ring; the room stores it in slot gRoomEffectGlowDiscId, read by actor_02400
-    /// (fireball library), which keeps hold of the spawned task.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B3_ELEVATOR_HALL_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x223),
-    /// shelter_b4_upper_sewer's copy of the RoomFx glowing disc: grows, sends flying
-    /// sparks (slot gRoomEffectFlyingSparkId) to random joints of the player, then drifts away inside
-    /// an expanding ring; the room stores it in slot gRoomEffectGlowDiscId, which actor_02400
-    /// spawns and holds when its second body is hit.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B4_UPPER_SEWER_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x224),
-    /// Glowing disc (RoomFx_GlowDiscTask) that grows, emits gRoomEffectFlyingSparkId flying sparks at
-    /// the player, flickers and drifts away inside a ring; stored in gRoomEffectGlowDiscId, which
-    /// actor_02400 spawns.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B4_RESERVOIR_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x225),
-    /// shelter_b4_water_supply's copy of the shared glowing disc (RoomFx_GlowDiscTask)
-    /// that grows, spawns the gRoomEffectFlyingSparkId flying sparks at the player, then drifts away
-    /// inside an expanding ring; the room stores it in gRoomEffectGlowDiscId (glow-disc slot,
-    /// spawned by actor_02400).
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B4_WATER_SUPPLY_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x226),
-    /// neo_ark_pavilion's copy of RoomFx_GlowDiscTask (a growing glowing disc that
-    /// pulls gRoomEffectFlyingSparkId sparks from the player's joints), stored in gRoomEffectGlowDiscId, which
-    /// the Amoeba holds while it grows.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_NEO_ARK_PAVILION_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x227),
-    /// The neo_ark_garden instance of the room-effect library's RoomFx_GlowDiscTask: a
-    /// growing glowing disc that every fourth tick spawns the gRoomEffectFlyingSparkId flying spark
-    /// at a random player joint, then drifts away fading inside an expanding ring; the
-    /// room stores it in slot gRoomEffectGlowDiscId, read by actor_02400 (fireball library), which
-    /// keeps hold of the spawned task.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_NEO_ARK_GARDEN_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x228),
     /// shelter_b1_storeroom's copy of the RoomFx flying spark: an animated textured square that
     /// takes a fixed step toward its initial target position during a 20-tick lifetime; the room
@@ -1630,9 +1731,12 @@ enum {
     /// The room selects this `_roomVisualEffectsMoteTask` instance through
     /// `gRoomEffectMoteId` for fireball embers and emitted sparks.
     EFFECT_MINE_SECRET_PASSAGE_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x242),
-    /// Spark emitter (RoomFx_SparkEmitterTask): for 0x14 ticks spawns gRoomEffectMoteId
-    /// particles outward along a turning heading; stored in gRoomEffectSparkEmitterId, which
-    /// actor_00300 spawns in its heal step.
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_MINE_SECRET_PASSAGE_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x243),
     /// mine_cavern's animated mote, rising and brightening or drifting steadily before fading.
     ///
@@ -1803,59 +1907,89 @@ enum {
     /// ring, then fading; stored in gRoomEffectOrangeBurstId, which actor_00300 spawns where its
     /// fireball ends.
     EFFECT_NEO_ARK_NORTH_PROMENADE_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x266),
-    /// mine_cavern's copy of the shared spark emitter (RoomFx_SparkEmitterTask): for
-    /// 0x14 ticks spawns the gRoomEffectMoteId mote effect outward along a turning heading;
-    /// the room stores it in gRoomEffectSparkEmitterId (spark emitter slot, read by actor_00300).
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_MINE_CAVERN_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x267),
-    /// shelter_b1_elevator_hall's copy of RoomFx_SparkEmitterTask (for 0x14 ticks
-    /// sprays the gRoomEffectMoteId mote outwards), stored in gRoomEffectSparkEmitterId, which the Brain
-    /// Stinger spawns when it restores 0x64 HP.
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_ELEVATOR_HALL_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x268),
-    /// The shelter_b1_storeroom instance of the room-effect library's
-    /// RoomFx_SparkEmitterTask: a spark emitter that for 0x14 ticks spins its heading
-    /// and throws the gRoomEffectMoteId ember outward; the room stores it in slot gRoomEffectSparkEmitterId,
-    /// read by actor_00300 when it heals itself (+100 HP).
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_STOREROOM_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x269),
-    /// shelter_b1_north_maintenance_walkway's copy of the RoomFx spark emitter: for
-    /// 0x14 ticks spawns slot-gRoomEffectMoteId motes flying outward on a turning heading; the
-    /// room stores it in slot gRoomEffectSparkEmitterId, which actor_00300 spawns when it heals itself
-    /// by 0x64 HP.
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x26A),
-    /// Spark emitter (RoomFx_SparkEmitterTask): for 0x14 ticks spawns gRoomEffectMoteId
-    /// particles outward along a turning heading; stored in gRoomEffectSparkEmitterId, which
-    /// actor_00300 spawns in its heal step.
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_MAIN_CORRIDOR_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x26B),
-    /// shelter_b1_transfer_tunnel's copy of the shared spark emitter
-    /// (RoomFx_SparkEmitterTask): for 0x14 ticks spawns the gRoomEffectMoteId mote effect
-    /// outward along a turning heading; the room stores it in gRoomEffectSparkEmitterId (spark emitter
-    /// slot, read by actor_00300).
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B1_TRANSFER_TUNNEL_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x26C),
-    /// shelter_b2_elevator_hall's copy of RoomFx_SparkEmitterTask (for 0x14 ticks
-    /// sprays the gRoomEffectMoteId mote outwards), stored in gRoomEffectSparkEmitterId, which the Brain
-    /// Stinger spawns when it restores 0x64 HP.
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B2_ELEVATOR_HALL_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x26D),
-    /// The shelter_b2_n_walkway instance of the room-effect library's
-    /// RoomFx_SparkEmitterTask: a spark emitter that for 0x14 ticks spins its heading
-    /// and throws the gRoomEffectMoteId ember outward; the room stores it in slot gRoomEffectSparkEmitterId,
-    /// read by actor_00300 when it heals itself (+100 HP).
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x26E),
-    /// shelter_b2_pod_access_tunnel's copy of the RoomFx spark emitter: for 0x14 ticks
-    /// spawns slot-gRoomEffectMoteId motes flying outward on a turning heading; the room
-    /// stores it in slot gRoomEffectSparkEmitterId, which actor_00300 spawns when it heals itself by
-    /// 0x64 HP.
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x26F),
-    /// Spark emitter (RoomFx_SparkEmitterTask): for 0x14 ticks spawns gRoomEffectMoteId
-    /// particles outward along a turning heading; stored in gRoomEffectSparkEmitterId, which
-    /// actor_00300 spawns in its heal step.
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B3_ELEVATOR_HALL_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x270),
-    /// shelter_b4_upper_sewer's copy of the shared spark emitter
-    /// (RoomFx_SparkEmitterTask): for 0x14 ticks spawns the gRoomEffectMoteId mote effect
-    /// outward along a turning heading; the room stores it in gRoomEffectSparkEmitterId (spark emitter
-    /// slot, read by actor_00300).
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_SHELTER_B4_UPPER_SEWER_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x271),
-    /// neo_ark_north_promenade's copy of RoomFx_SparkEmitterTask (for 0x14 ticks sprays
-    /// the gRoomEffectMoteId mote outwards), stored in gRoomEffectSparkEmitterId, which the Brain Stinger
-    /// spawns when it restores 0x64 HP.
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_NEO_ARK_NORTH_PROMENADE_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x272),
     /// Fire blast: orange fade quad, an orange point light, a flame disc and a ring of
     /// 0x60275 flames plus 0x60274; actor_521100 spawns it at the player's part 12
@@ -1869,10 +2003,12 @@ enum {
     /// gone; a ring of them is spawned and reparented by the room's flame burst
     /// 0x60273, which actor_521100 fires on the player.
     EFFECT_DILAPIDATED_HOUSE_FLAME_RING = EFFECT_ID(EFFECT_TASK_BANK, 0x275),
-    /// shelter_b1_control_room's copy of the shared glowing disc (RoomFx_GlowDiscTask)
-    /// that grows, spawns the gRoomEffectFlyingSparkId flying sparks at the player, then drifts away
-    /// inside an expanding ring; the room stores it in gRoomEffectGlowDiscId (glow-disc slot,
-    /// spawned by actor_02400).
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B1_CONTROL_ROOM_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x276),
     /// shelter_b1_control_room's copy of _roomVisualEffectsFlyingSparkTask (a textured spark
     /// taking a fixed step from a player joint toward its initial target position for a 20-tick
@@ -1884,10 +2020,12 @@ enum {
     /// gRoomEffectOrangeBurst2Id, read by actor_02400 (fireball library) when its projectile times out
     /// or hits.
     EFFECT_SHELTER_B1_CONTROL_ROOM_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x278),
-    /// shelter_b1_control_room_access_tunnel's copy of the RoomFx glowing disc: grows,
-    /// sends flying sparks (slot gRoomEffectFlyingSparkId) to random joints of the player, then
-    /// drifts away inside an expanding ring; the room stores it in slot gRoomEffectGlowDiscId,
-    /// which actor_02400 spawns and holds when its second body is hit.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x279),
     /// Flying spark (_roomVisualEffectsFlyingSparkTask): a textured square that moves each tick
     /// by 0xCC/0x1000 of its initial target displacement, with a 20-tick lifetime; stored in
@@ -1898,9 +2036,12 @@ enum {
     /// disc and glow with an expanding ring, then fades; the room stores it in
     /// gRoomEffectOrangeBurst2Id (orange-burst-2 slot, spawned by actor_02400).
     EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x27B),
-    /// shelter_b2_breeding_room's copy of RoomFx_GlowDiscTask (a growing glowing disc
-    /// that pulls gRoomEffectFlyingSparkId sparks from the player's joints), stored in gRoomEffectGlowDiscId,
-    /// which the Amoeba holds while it grows.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_SHELTER_B2_BREEDING_ROOM_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x27C),
     /// The shelter_b2_breeding_room instance of the room-effect library's
     /// _roomVisualEffectsFlyingSparkTask: a spark that flies along the initial displacement
@@ -1912,9 +2053,12 @@ enum {
     /// growing disc and glow with an expanding, fading ring; the room stores it in slot
     /// gRoomEffectOrangeBurst2Id, which actor_02400 spawns where its fireball ends.
     EFFECT_SHELTER_B2_BREEDING_ROOM_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x27E),
-    /// Glowing disc (RoomFx_GlowDiscTask) that grows, emits gRoomEffectFlyingSparkId flying sparks at
-    /// the player, flickers and drifts away inside a ring; stored in gRoomEffectGlowDiscId, which
-    /// actor_02400 spawns.
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_NEO_ARK_SUBMARINE_TUNNEL_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x27F),
     /// neo_ark_submarine_tunnel's copy of the shared spark (_roomVisualEffectsFlyingSparkTask)
     /// that flies from its frame toward a target frame as an animated textured square for 20
@@ -1939,10 +2083,12 @@ enum {
     /// ring, then fading; stored in gRoomEffectOrangeBurstId, which actor_00300 spawns where its
     /// fireball ends.
     EFFECT_DRYFIELD_MOTEL_BALCONY_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x284),
-    /// dryfield_motel_balcony's copy of the shared spark emitter
-    /// (RoomFx_SparkEmitterTask): for 0x14 ticks spawns the gRoomEffectMoteId mote effect
-    /// outward along a turning heading; the room stores it in gRoomEffectSparkEmitterId (spark emitter
-    /// slot, read by actor_00300).
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_DRYFIELD_MOTEL_BALCONY_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x285),
     /// dryfield_night_main_street's animated mote, rising and brightening or drifting steadily before fading.
     ///
@@ -1958,14 +2104,19 @@ enum {
     /// growing disc and glow with an expanding, fading ring; the room stores it in slot
     /// gRoomEffectOrangeBurstId, which actor_00300 spawns where its fireball ends.
     EFFECT_DRYFIELD_NIGHT_MAIN_STREET_ORANGE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x288),
-    /// Spark emitter (RoomFx_SparkEmitterTask): for 0x14 ticks spawns gRoomEffectMoteId
-    /// particles outward along a turning heading; stored in gRoomEffectSparkEmitterId, which
-    /// actor_00300 spawns in its heal step.
+    /// Turning emitter placing twenty independently drifting motes around its origin.
+    ///
+    /// `_roomVisualEffectsSparkEmitterTask`, selected through `gRoomEffectSparkEmitterId`.
+    /// Each local spawn offset has radius about 768 and Y = -128 * age; the
+    /// motes themselves descend by eight units per active tick. Age 21 releases
+    /// the emitter, leaving the motes independent. Room control can pause or cancel it.
     EFFECT_DRYFIELD_NIGHT_MAIN_STREET_SPARK_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x289),
-    /// dryfield_toilet's copy of the shared glowing disc (RoomFx_GlowDiscTask) that
-    /// grows, spawns the gRoomEffectFlyingSparkId flying sparks at the player, then drifts away
-    /// inside an expanding ring; the room stores it in gRoomEffectGlowDiscId (glow-disc slot,
-    /// spawned by actor_02400).
+    /// Attached charge disc that grows while sparks fly in from random player joints.
+    ///
+    /// `_roomVisualEffectsGlowDiscTask`, selected through `gRoomEffectGlowDiscId`.
+    /// Argument 0 or 1 selects the tint. Its owner can request flicker, release
+    /// (shrinking disc and expanding offset ring), or cancellation through
+    /// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Nonzero room control pauses; four or above cancels.
     EFFECT_DRYFIELD_TOILET_GLOW_DISC = EFFECT_ID(EFFECT_TASK_BANK, 0x28A),
     /// dryfield_toilet's copy of _roomVisualEffectsFlyingSparkTask (a textured spark flying from
     /// a player joint to the target frame over 20 ticks), stored in gRoomEffectFlyingSparkId and
@@ -1986,10 +2137,12 @@ enum {
     /// recorded in rings of eight and drawn as a fading beam; stored in gRoomEffectTwinTrailId,
     /// which the beam-sword golems (actor_02000/02300) spawn at model part 7.
     EFFECT_ACROPOLIS_CAFETERIA_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x28E),
-    /// acropolis_cafeteria's copy of the shared spark burst (RoomFx_SparkBurstTask):
-    /// spawns impact flash 0x60076, then sprays sparks/smoke or draws expanding rings
-    /// for seven ticks; the room stores it in gRoomEffectSparkBurstId (spark-burst slot, spawned by
-    /// golemPawnRookBulletFly when a golem bullet ends its flight).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_ACROPOLIS_CAFETERIA_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x28F),
     /// acropolis_forked_road's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring
     /// ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook
@@ -2002,10 +2155,12 @@ enum {
     /// delayed-effect child at part 7 (golem_pawn_rook_delayed_effect_tick.inc.c; the
     /// beam-sword golems actor_02000/02300 reference this slot).
     EFFECT_ACROPOLIS_FORKED_ROAD_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x291),
-    /// acropolis_forked_road's copy of the RoomFx spark burst: spawns a flash, then
-    /// sprays jittered sparks or draws widening rings for seven ticks; the room stores
-    /// it in slot gRoomEffectSparkBurstId, which the grenade-launcher Pawn/Rook golems spawn where a
-    /// grenade lands (golemPawnRookBulletFly).
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_ACROPOLIS_FORKED_ROAD_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x292),
     /// Flash (_roomVisualEffectsFlashTask): fans and an inward ring ramping up, a fade quad at the
     /// peak, then a star fade-out; stored in gRoomEffectFlashId, which golems
@@ -2016,9 +2171,12 @@ enum {
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
     /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
     EFFECT_DRYFIELD_MAIN_STREET_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x294),
-    /// dryfield_main_street's copy of RoomFx_SparkBurstTask (a flash then sprayed
-    /// sparks or a widening ring for seven ticks), stored in gRoomEffectSparkBurstId, which the
-    /// grenade-launcher GOLEM's bullet spawns where it hits.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_DRYFIELD_MAIN_STREET_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x295),
     /// The dryfield_back_street instance of the room-effect library's _roomVisualEffectsFlashTask:
     /// a flash: two fans and an inward-shrinking ring ramping up over spawnArg1 ticks,
@@ -2031,9 +2189,12 @@ enum {
     /// gRoomEffectTwinTrailId, which the beam-sword Pawn/Rook golems spawn at body part 7
     /// (golemPawnRookDelayedEffectTick).
     EFFECT_DRYFIELD_BACK_STREET_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x297),
-    /// Spark burst (RoomFx_SparkBurstTask): a flash then a spray of jittered sparks, or
-    /// two widening rings, over seven ticks; stored in gRoomEffectSparkBurstId, which the grenade
-    /// golems (actor_05600/05700) spawn when a shot ends.
+    /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
+    ///
+    /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
+    /// A nonzero argument selects jittered smoke; zero selects two bouncing
+    /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
+    /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_DRYFIELD_BACK_STREET_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x298),
     /// Yellow expanding arc and ring at the player that fades after nine ticks (only
     /// the newest instance survives); spawned by actor_205200 when its attack seizes

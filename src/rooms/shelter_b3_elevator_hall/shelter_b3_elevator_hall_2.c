@@ -476,7 +476,7 @@ RoomEventReq gRoomEventReq = { 0 }; /// A glowing disc anchored to its parent at
 
 void func_shelter_b3_elevator_hall_80180E18(Task* arg0)
 {
-    RoomFx_GlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(arg0);
 }
 
 void shelterB3ElevatorHallRoomVisualEffectsFlyingSparkTask(Task* task)

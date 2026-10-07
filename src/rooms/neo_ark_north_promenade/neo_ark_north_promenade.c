@@ -503,7 +503,7 @@ void neoArkNorthPromenadeRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 
 void func_neo_ark_north_promenade_8017FCA0(Task* arg0)
 {
-    RoomFx_SparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -524,7 +524,7 @@ void neoArkNorthPromenadeRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_neo_ark_north_promenade_80181120(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

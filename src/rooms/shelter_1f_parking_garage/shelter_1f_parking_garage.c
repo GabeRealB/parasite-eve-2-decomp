@@ -617,7 +617,7 @@ void shelter1fParkingGarageRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_1f_parking_garage_8017FF58(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

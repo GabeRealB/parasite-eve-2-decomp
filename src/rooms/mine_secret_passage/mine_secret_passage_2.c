@@ -774,5 +774,5 @@ void mineSecretPassageRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 
 void func_mine_secret_passage_80180D58(Task* arg0)
 {
-    RoomFx_SparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(arg0);
 }

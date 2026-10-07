@@ -3438,7 +3438,7 @@ void dryfieldNightGasStationRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_dryfield_night_gas_station_801830CC(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

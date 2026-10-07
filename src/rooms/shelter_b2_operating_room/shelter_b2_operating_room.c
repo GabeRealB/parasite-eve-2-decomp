@@ -1164,7 +1164,7 @@ void shelterB2OperatingRoomDrawGlowsTask(Task* task)
 
 void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
 {
-    RoomFx_GlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(arg0);
 }
 
 void shelterB2OperatingRoomRoomVisualEffectsFlyingSparkTask(Task* task)

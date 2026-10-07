@@ -651,7 +651,7 @@ void shelterB4LowerSewerRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_b4_lower_sewer_801811FC(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

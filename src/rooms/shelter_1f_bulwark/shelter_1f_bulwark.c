@@ -613,7 +613,7 @@ void shelter1fBulwarkRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_1f_bulwark_8017F6D8(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

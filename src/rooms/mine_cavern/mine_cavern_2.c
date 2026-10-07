@@ -2335,7 +2335,7 @@ void mineCavernRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 
 void func_mine_cavern_80181730(Task* arg0)
 {
-    RoomFx_SparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(arg0);
 }
 
 /// Draws a glow at each of the six points of `D_mine_cavern_8018E36C`, the

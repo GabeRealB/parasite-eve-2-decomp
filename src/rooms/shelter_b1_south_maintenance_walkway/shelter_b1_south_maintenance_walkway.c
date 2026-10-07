@@ -627,7 +627,7 @@ void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_b1_south_maintenance_walkway_8017FAAC(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"
@@ -636,7 +636,7 @@ void func_shelter_b1_south_maintenance_walkway_8017FAAC(Task* task)
 
 void func_shelter_b1_south_maintenance_walkway_801806F4(Task* arg0)
 {
-    RoomFx_GlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(arg0);
 }
 
 void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task)

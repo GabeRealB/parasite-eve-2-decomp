@@ -2721,7 +2721,7 @@ void dryfieldToiletConfigureEffectsTask(Task* task)
 
 void func_dryfield_toilet_8017E69C(Task* arg0)
 {
-    RoomFx_GlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(arg0);
 }
 
 void dryfieldToiletFlyingSparkTask(Task* task)

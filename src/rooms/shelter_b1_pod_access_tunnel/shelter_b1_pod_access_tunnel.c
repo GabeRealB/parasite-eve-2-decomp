@@ -1565,7 +1565,7 @@ void shelterB1PodAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_b1_pod_access_tunnel_80180484(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"

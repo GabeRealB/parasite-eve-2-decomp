@@ -52,6 +52,8 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
+#include "rooms/room_visual_effects.h"
+
 #include "overlay.h"
 #include "../../shared/fireball.h"
 
@@ -100,16 +102,6 @@ enum {
 enum {
     ACTOR_02400_SCALE_FLAT    = 0x600,  // Every axis while dormant; afterwards the height of the flattened body
     ACTOR_02400_SCALE_SWOLLEN = 0x1C00, // Height that ends a swell
-};
-
-/// States this package puts the charge effect's task in.
-///
-/// They are states of the glow disc the room stores in `gRoomEffectGlowDiscId`.
-/// Spawned, the disc grows while sparks fly to it from the player.
-enum {
-    ACTOR_02400_CHARGE_EFFECT_FLICKER = 2, // Full size with a flickering second disc and no more sparks
-    ACTOR_02400_CHARGE_EFFECT_RELEASE = 3, // Drifts away and fades inside a ring, then ends itself
-    ACTOR_02400_CHARGE_EFFECT_CANCEL  = 4, // Ends at once
 };
 
 /// Work block of the main body, the enemy drawn with `_gActor02400AmoebaBody`.
@@ -973,7 +965,7 @@ static void Actor02400_Fn01B90(Task* task)
                 work->phase   = ACTOR_02400_CAST_PHASE_AIM;
                 work->counter = 0;
                 if (work->chargeEffect != NULL) {
-                    work->chargeEffect->task->state = ACTOR_02400_CHARGE_EFFECT_FLICKER;
+                    work->chargeEffect->task->state = ROOM_VISUAL_EFFECTS_GLOW_DISC_FLICKER;
                 }
             }
             break;
@@ -1006,7 +998,7 @@ static void Actor02400_Fn01B90(Task* task)
             gSceneCombatState.actor02400Alert = 1;
             work->phase                       = ACTOR_02400_CAST_PHASE_SHRINK;
             if (work->chargeEffect != NULL) {
-                work->chargeEffect->task->state = ACTOR_02400_CHARGE_EFFECT_RELEASE;
+                work->chargeEffect->task->state = ROOM_VISUAL_EFFECTS_GLOW_DISC_RELEASE;
             }
             work->chargeEffect = NULL;
             sound              = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40180004;
@@ -1061,7 +1053,7 @@ static void Actor02400_Fn01F74(Task* task)
         work->scale.vz = ONE;
     }
     if (work->chargeEffect != NULL) {
-        work->chargeEffect->task->state = ACTOR_02400_CHARGE_EFFECT_CANCEL;
+        work->chargeEffect->task->state = ROOM_VISUAL_EFFECTS_GLOW_DISC_CANCEL;
         work->chargeEffect              = NULL;
     }
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1258,7 +1250,7 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
                     pos.vz      = cur->workm.t[2];
                     worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
                     if (work->chargeEffect != NULL) {
-                        work->chargeEffect->task->state = ACTOR_02400_CHARGE_EFFECT_CANCEL;
+                        work->chargeEffect->task->state = ROOM_VISUAL_EFFECTS_GLOW_DISC_CANCEL;
                     }
                     break;
                 case ACTOR_02400_DEATH_PHASE_SQUASH:
@@ -1542,7 +1534,7 @@ static void Actor02400_Fn02F94(Task* task)
         }
     }
     if (work->chargeEffect != NULL) {
-        work->chargeEffect->task->state = ACTOR_02400_CHARGE_EFFECT_CANCEL;
+        work->chargeEffect->task->state = ROOM_VISUAL_EFFECTS_GLOW_DISC_CANCEL;
         work->chargeEffect              = NULL;
     }
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

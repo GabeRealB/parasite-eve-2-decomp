@@ -995,7 +995,7 @@ void shelterB1MainCorridorRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 
 void func_shelter_b1_main_corridor_80180FC4(Task* arg0)
 {
-    RoomFx_SparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(arg0);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -1016,7 +1016,7 @@ void shelterB1MainCorridorRoomVisualEffectsTwinTrailTask(Task* task)
 
 void func_shelter_b1_main_corridor_80182444(Task* task)
 {
-    RoomFx_SparkBurstTask(task);
+    _roomVisualEffectsSparkBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"
