@@ -4013,11 +4013,7 @@ static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes)
         m = &nodes[i].coord;
         gfxExtractSmallestEuler(&ang, m);
         ang.vx                 = angles[i].vx;
-        *(s32*)&nodes[i].coord = ONE;
-        MATRIX_PAIR(m, 0, 2)   = 0;
-        MATRIX_PAIR(m, 1, 1)   = ONE;
-        MATRIX_PAIR(m, 2, 0)   = 0;
-        m->m[2][2]             = ONE;
+        gfxSetRotIdentity(&nodes[i].coord);
         RotMatrixZYX(&ang, m);
     }
 }
