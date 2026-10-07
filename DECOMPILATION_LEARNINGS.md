@@ -46971,7 +46971,7 @@ literal sizes *that family's* block and no other.
 
 "Struct-typing a body changes GCC 2.8.1's aliasing" says to try `SOFT_BARRIER()`
 before the aggregate declaration. Measured in
-`func_dryfield_dilapidated_house_8017E970` -- a `Task*` store beside a bare
+`_dryfieldDilapidatedHouseSetBlackoutDelay` -- a `Task*` store beside a bare
 `extern s16` -- the barrier is a partial fix and reads as one:
 
 ```c
@@ -70236,10 +70236,10 @@ the instructions but put the negation in `$a0` (the counter's home) instead of
 `$v0`.
 
 `field *= -1` gets the same `sll`/`sra`/`negu` with no temp at all
-(`func_dryfield_dilapidated_house_8017FAD4`, mirroring two `SVECTOR`s under
-`if (side == 1)`): the multiply is not shortened like a unary minus, and
+(`_dryfieldDilapidatedHouseBuildCappedBeamPoints`, mirroring two `SVECTOR`s under
+`if (mirrorX == 1)`): the multiply is not shortened like a unary minus, and
 combine turns `mult -1` into `neg` of the sign-extended value. Both
-`a.vx = -a.vx` and re-reading the table (`a.vx = -tbl[0].vx`) gave the bare
+`startPoint.vx = -startPoint.vx` and re-reading the table (`startPoint.vx = -tbl[0].vx`) gave the bare
 `negu`.
 
 ## Hoisted `move tN,tM` copies of a mask are `s16` locals; a borderline `%hi` hoist is fixed by an `s16` temp
@@ -78505,12 +78505,12 @@ element access and the loop gets an index, which compiles to the same three
 strength-reduced bivs the target has.
 
 ```c
-for (i = 0; i < 0x10; i++) {
-    work->step[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1) & 0x3FFF;
+for (vertexIndex = 0; vertexIndex < 0x10; vertexIndex++) {
+    work->rimPhase[vertexIndex] = (D_dryfield_dilapidated_house_80186804[vertexIndex] * task->spawnArg1.value) & 0x3FFF;
 }
 ```
 
-`func_dryfield_dilapidated_house_801814B4` went 99.808% → 100% on that edit and
+`_dryfieldDilapidatedHouseMorphConeInit` went 99.808% → 100% on that edit and
 stayed 100% through the struct rewrite. The general lesson is the diagnostic
 split: when the object still says `blocks=N/N instructions=N/N
 predicates_match=True` and the only penalty left is `regs`, read the two or
@@ -86693,7 +86693,7 @@ Inputs: parent `base.i`
 
 ## An `s16` local holding `field + K` loads `lhu`; the target's `lh` says `s32`
 
-`func_dryfield_dilapidated_house_80180FD8` steps a 0..0x1000 ramp held in an
+`_dryfieldDilapidatedHouseAdvanceMorph` steps a 0..0x1000 ramp held in an
 `s16` task field. m2c's `s16 var_s0` reproduces the clamp but not the load: the
 target's `lh $v0, 0x2A($a0)` comes out as `lhu`, followed by a promote pair at
 the compare.
@@ -120893,26 +120893,26 @@ the scheduler wants to change:
   `SOFT_USE_REG(angle)` between the store and the comparison pins the order the
   source already has; the angle then dies at the shift and ties to `$v0`.
 
-## Indexed or walked: the `.loop` giv list says which spelling the target's induction variables need (func_dryfield_dilapidated_house_80180738, 2026-09-17)
+## Indexed or walked: the `.loop` giv list says which spelling the target's induction variables need (_dryfieldDilapidatedHouseBuildMorphConeRings, 2026-09-17)
 
 The mirror image of "A walked pointer's second field becomes a second induction
-variable". `func_dryfield_dilapidated_house_80180738` fills two 16-entry vertex
+variable". `_dryfieldDilapidatedHouseBuildMorphConeRings` fills two 16-entry vertex
 rings per iteration and the target carries **four** induction variables, all
-incremented by 8 in the loop body - `$s3`/`$s1` (`verts`, `verts+4`) and
-`$s4`/`$s2` (`verts+16`, `verts+20`) - each increment placed just after its
+incremented by 8 in the loop body - `$s3`/`$s1` (`ringVertices`, `ringVertices+4`) and
+`$s4`/`$s2` (`ringVertices+16`, `ringVertices+20`) - each increment placed just after its
 register's last read. Each half is therefore a biv plus a giv at `+4`, and only
 the *walked* spelling produces that:
 
 ```c
-    v0 = verts;                       /* bivs: $s3 = verts, $s4 = verts + 16 */
-    v1 = &verts[16];
-        v0->vx = ...; v0->vy = ...; v0->vz = ...;      /* 0($s3), -2($s1), 0($s1) */
+    innerVertex = ringVertices;                       /* bivs: $s3 = ringVertices, $s4 = ringVertices + 16 */
+    outerVertex = &ringVertices[16];
+        innerVertex->vx = ...; innerVertex->vy = ...; innerVertex->vz = ...;      /* 0($s3), -2($s1), 0($s1) */
         ...
-        v0++;                                           /* emits $s1 = $s3 + 4 */
+        innerVertex++;                                           /* emits $s1 = $s3 + 4 */
 ```
 
-Indexed (`verts[i].vx` / `verts[16 + i].vz`) scores 76.514% here: every vertex
-address is a `DEST_ADDR` giv of the single biv `i`, and `combine_givs` merges
+Indexed (`ringVertices[vertexIndex].vx` / `ringVertices[16 + vertexIndex].vz`) scores 76.514% here: every vertex
+address is a `DEST_ADDR` giv of the single biv `vertexIndex`, and `combine_givs` merges
 them all into one per half, so the target's `$s1`/`$s2` never exist and the
 fields read `2($s2)`/`4($s2)` off one base:
 
@@ -120932,31 +120932,31 @@ means walked.
 Two smaller ordering findings from the same function, both about the preheader
 and the latch:
 
-* Setting the walking pointers up as the **first** statements (`v0 = verts;`
-  before `work = task->work;` and the frame-local copies) kills the argument
+* Setting the walking pointers up as the **first** statements (`innerVertex = ringVertices;`
+  before `coneWork = task->work;` and the frame-local copies) kills the argument
   pseudo at the top of the function, which is what frees `$a1` for the
   constant-pool `lui`/`lo_sum` of the vertex-offset table. The tell is retail's
   second and third instructions: `move $s3,$a1` right after the frame
   adjustment, then `lui $a1,%hi(D_..._80186844)`. With the pointers set up last
   the `$a1` pool register becomes `$v1` and the same move sinks behind the
   reverse-matrix `ctc2` block: 91.956% -> 96.680% for that one move alone.
-* `v0++` belongs immediately after the low half's last use, not with `v1++` at
+* `innerVertex++` belongs immediately after the low half's last use, not with `outerVertex++` at
   the bottom of the body. Both spellings are the same C after loop.c, but the
   position in the RTL is what the scheduler's ready list sees, and the target's
   `addiu $s3,$s3,8` (mid-body, between the `lw` of the `rsin` argument and the
   `jal`) and `addiu $s1,$s1,8` (after the step update) only appear when the
   source puts them there: 97.868% -> 99.083%.
 
-Reading the two-entry offset table through **two** pointers - `ofs = D844;
-ofs2 = D844 + 1; pos[1].vx = ofs2->vx;` - is what materialises the second base
+Reading the two-entry offset table through **two** pointers - `innerCentre = D844;
+outerCentre = D844 + 1; ringCentres[1].vx = outerCentre->vx;` - is what materialises the second base
 (`addiu $a2,$v0,8`) that the target has, and it is one instruction more than the
 six flat displacements off one base: 99.083% -> 100.000%. The first use of
-`ofs2` folds back onto the base (`lhu $v0,8($v0)`, the `find_best_addr` first-use
+`outerCentre` folds back onto the base (`lhu $v0,8($v0)`, the `find_best_addr` first-use
 fold documented under "A pointer local is what makes a *local* struct's stores
 register-relative"); the two after it stay on the register (`2($a2)`, `4($a2)`).
 The same rule in this function's shape is why the source task's matrix needs a
-`MATRIX* mtx = &src->mtx;` local: `src->mtx.t[0]` is `0x20($v1)` off the work
-pointer, `mtx->t[0]` is `0x14($v1)` off the materialised `$v1 = $v1 + 0xC` the
+`MATRIX* attachmentMtx = &parentWork->attachMtx;` local: `parentWork->attachMtx.t[0]` is `0x20($v1)` off the work
+pointer, `attachmentMtx->t[0]` is `0x14($v1)` off the materialised `$v1 = $v1 + 0xC` the
 `gte_SetRotMatrix` operand already needs (96.680% -> 97.868%).
 
 ## A shared `switch` tail's *source position* is its layout: 2.8.1 has no block-reordering pass, so m2c's `block_N` placement is a choice, not a constraint (func_neo_ark_eve_access_tunnel_8017DB18, 2026-09-17)
@@ -139522,7 +139522,7 @@ copies above the load, and `$a2` is free again.
 a trailing `DEF_REG(head)` (the `func_energyball_8013035C` form) fixed the
 remaining `lw head` / `lhu vx` order without blocking the sink.
 
-### A constant-address argument instead of a pointer variable spends LICM threshold and keeps a later mask in the loop (func_dryfield_dilapidated_house_8017EE58, 2026-09-23)
+### A constant-address argument instead of a pointer variable spends LICM threshold and keeps a later mask in the loop (_dryfieldDilapidatedHouseDrawCurveSamples, 2026-09-23)
 
 Two back-to-back loops with identical bodies, each calling
 `f(pts, pts + 3, ...)`. The first passed the array itself (`D`), the second a

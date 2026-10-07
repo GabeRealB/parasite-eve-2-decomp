@@ -181,12 +181,14 @@ extern SVECTOR          D_dryfield_dilapidated_house_80186794[2];
 extern SVECTOR          D_dryfield_dilapidated_house_801867A4[6];
 extern SVECTOR          D_dryfield_dilapidated_house_801867D4[6];
 
+enum {
+    DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT = 6,
+    DRYFIELD_DILAPIDATED_HOUSE_BEAM_POINT_COUNT     = 4 * DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT,
+};
+
 static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0);
-static void func_dryfield_dilapidated_house_8017EBB8(Task* task);
-static void func_dryfield_dilapidated_house_8017EE58(Task* task);
-static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3);
 static void _dryfieldDilapidatedHouseMorphExit(Task* task);
-static s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
+static s32  _dryfieldDilapidatedHouseAdvanceMorph(Task* task);
 static void _dryfieldDilapidatedHouseUpdateAttachmentTransform(Task* task);
 static void _dryfieldDilapidatedHouseCopyModelVisibility(TmdObject* model, const TmdObject* parentModel);
 
@@ -195,15 +197,14 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task);
 static void func_dryfield_dilapidated_house_80180B84(Task* task);
 static void func_dryfield_dilapidated_house_80180F5C(Task* arg0);
 static void _dryfieldDilapidatedHouseCurveDebugInit(Task* task);
-static void func_dryfield_dilapidated_house_80181264(Task* arg0);
+static void _dryfieldDilapidatedHouseCurveDebugUpdate(Task* task);
 static void _dryfieldDilapidatedHouseRingBeamInit(Task* task);
-static void func_dryfield_dilapidated_house_801813DC(Task* task);
+static void _dryfieldDilapidatedHouseCappedBeamUpdate(Task* task);
 static void _dryfieldDilapidatedHouseRingBeamExit(Task* task);
-static void func_dryfield_dilapidated_house_801814B4(Task* arg0);
-static void func_dryfield_dilapidated_house_80181584(Task* task);
+static void _dryfieldDilapidatedHouseMorphConeInit(Task* task);
+static void _dryfieldDilapidatedHouseMorphConeUpdate(Task* task);
 static void _dryfieldDilapidatedHouseMorphConeExit(Task* task);
 static void _dryfieldDilapidatedHouseDrawLightPrism(GfxCoord* coord, s16 firstVertex);
-static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts);
 static void _dryfieldDilapidatedHouseDrawMorphCone(Task* task, const SVECTOR* ringVertices);
 static void _dryfieldDilapidatedHouseDrawTwinTrail(s16 newestSlot, s16 colorMultipliers);
 
@@ -211,6 +212,13 @@ enum {
     DRYFIELD_DILAPIDATED_HOUSE_CONE_RING_VERTEX_COUNT = 16,
     DRYFIELD_DILAPIDATED_HOUSE_PRISM_RING_CORNERS     = 4,
     DRYFIELD_DILAPIDATED_HOUSE_PRISM_VERTEX_COUNT     = 8,
+};
+
+/// States accepted by the room's script-controlled player head tracker.
+enum {
+    DRYFIELD_DILAPIDATED_HOUSE_HEAD_TRACK_INIT   = 0,
+    DRYFIELD_DILAPIDATED_HOUSE_HEAD_TRACK_IDLE   = 1,
+    DRYFIELD_DILAPIDATED_HOUSE_HEAD_TRACK_ACTIVE = 2,
 };
 
 extern WorldCollisionGrid         D_dryfield_dilapidated_house_801872E4[1];
@@ -233,18 +241,18 @@ s32                               func_dryfield_dilapidated_house_8017E68C(Task*
 void                              func_dryfield_dilapidated_house_8017DE88(Task*);
 void                              func_dryfield_dilapidated_house_8017E144(Task*);
 void                              func_dryfield_dilapidated_house_8017E2B0(Task*);
-void                              func_dryfield_dilapidated_house_8017E6DC(Task*);
-void                              func_dryfield_dilapidated_house_8017E780(Task*);
+static void                       _dryfieldDilapidatedHouseHeadTrackTask(Task* task);
+static void                       _dryfieldDilapidatedHouseShakeYTask(Task* task);
 void                              func_dryfield_dilapidated_house_8017E858(Task*);
-void                              func_dryfield_dilapidated_house_8017E8A8(s32);
+static void                       _dryfieldDilapidatedHouseSetHeadTrackState(s32 state);
 void                              func_dryfield_dilapidated_house_8017E8C8(void);
 void                              func_dryfield_dilapidated_house_8017E8E8(s32);
-void                              func_dryfield_dilapidated_house_8017E970(s32);
+static void                       _dryfieldDilapidatedHouseSetBlackoutDelay(s32 delayFrames);
 void                              func_dryfield_dilapidated_house_8017EA10(s32);
 void                              func_dryfield_dilapidated_house_8017EA7C(void);
 void                              func_dryfield_dilapidated_house_80180F04(Task*);
-void                              func_dryfield_dilapidated_house_80181134(Task*);
-void                              func_dryfield_dilapidated_house_801812E8(Task*);
+static void                       _dryfieldDilapidatedHouseCurveDebugTask(Task* task);
+static void                       _dryfieldDilapidatedHouseCappedBeamTask(Task* task);
 void                              func_dryfield_dilapidated_house_8018145C(Task*);
 
 TaskDesc D_dryfield_dilapidated_house_80183E48[2] = {
@@ -274,8 +282,8 @@ TaskMessageEntry D_dryfield_dilapidated_house_80183E8C[5] = {
 };
 
 TaskDesc D_dryfield_dilapidated_house_80183EB4[4] = {
-    { { { TASK_BODY_NONE, 97 } }, func_dryfield_dilapidated_house_8017E6DC, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_dilapidated_house_8017E780, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, _dryfieldDilapidatedHouseHeadTrackTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldDilapidatedHouseShakeYTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_dilapidated_house_8017E144, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_dilapidated_house_8017E2B0, { .value = 0 } },
 };
@@ -467,7 +475,7 @@ EvsCommand D_dryfield_dilapidated_house_80184408[89] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_dilapidated_house_801842E8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_dilapidated_house_80184360 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8A8 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetHeadTrackState }, { .value = DRYFIELD_DILAPIDATED_HOUSE_HEAD_TRACK_ACTIVE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_dilapidated_house_801840B0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_dilapidated_house_801842A8 } }, { .value = 0 } },
@@ -476,7 +484,7 @@ EvsCommand D_dryfield_dilapidated_house_80184408[89] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_dilapidated_house_80183FE8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_dilapidated_house_801842B4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8A8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetHeadTrackState }, { .value = DRYFIELD_DILAPIDATED_HOUSE_HEAD_TRACK_INIT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_dilapidated_house_80183F98 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -533,7 +541,7 @@ EvsCommand D_dryfield_dilapidated_house_80184C60[24] = {
     { EVENT_SCRIPT_OPCODE_FINISH_SCENE_STREAM, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_dilapidated_house_801842B0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8A8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetHeadTrackState }, { .value = DRYFIELD_DILAPIDATED_HOUSE_HEAD_TRACK_INIT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -588,7 +596,7 @@ EvsCommand D_dryfield_dilapidated_house_80184EA0[78] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8E8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E970 }, { .value = 180 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 180 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8E8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -597,23 +605,23 @@ EvsCommand D_dryfield_dilapidated_house_80184EA0[78] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8E8 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E970 }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_dilapidated_house_80184038 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E970 }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_dilapidated_house_8018404C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E970 }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017EA10 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_dilapidated_house_801842A4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017EA10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_dilapidated_house_80184268 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E970 }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E970 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_dilapidated_house_80184240 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_dilapidated_house_80184060 }, { .value = 0 } },
@@ -621,7 +629,7 @@ EvsCommand D_dryfield_dilapidated_house_80184EA0[78] = {
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_dryfield_dilapidated_house_80189B5C }, { .vibrationSegments = D_dryfield_dilapidated_house_80189B64 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_dilapidated_house_801842A8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E970 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -640,7 +648,7 @@ EvsCommand D_dryfield_dilapidated_house_801855F0[17] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8E8 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E970 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017EA10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_EVENT_STATE, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -840,8 +848,8 @@ SVECTOR D_dryfield_dilapidated_house_80186844[2] = {
 
 TaskDesc D_dryfield_dilapidated_house_80186854[4] = {
     { { { TASK_BODY_TMD, 192 } }, func_dryfield_dilapidated_house_80180F04, { .model = &_gDryfieldDilapidatedHouseModel08794 } },
-    { { { TASK_BODY_TMD, 192 } }, func_dryfield_dilapidated_house_80181134, { .model = &_gDryfieldDilapidatedHouseModel08D0C } },
-    { { { TASK_BODY_COORD, 192 } }, func_dryfield_dilapidated_house_801812E8, { .value = 0 } },
+    { { { TASK_BODY_TMD, 192 } }, _dryfieldDilapidatedHouseCurveDebugTask, { .model = &_gDryfieldDilapidatedHouseModel08D0C } },
+    { { { TASK_BODY_COORD, 192 } }, _dryfieldDilapidatedHouseCappedBeamTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, func_dryfield_dilapidated_house_8018145C, { .value = 0 } },
 };
 
@@ -2587,7 +2595,7 @@ static void func_dryfield_dilapidated_house_8017E014(Task* task)
     }
 }
 
-/// Screen-blackout timer of task-table entry 2: `func_dryfield_dilapidated_house_8017E970`
+/// Screen-blackout timer of task-table entry 2: `_dryfieldDilapidatedHouseSetBlackoutDelay`
 /// arms it by writing state 2 and a frame count into `spawnArg1` (a 0 arg resets
 /// it to state 0 instead). State 2 copies that count into the shared countdown
 /// `D_dryfield_dilapidated_house_80189B70` and falls through to state 3, whose
@@ -2781,50 +2789,67 @@ s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, const void* 
     return 0;
 }
 
-void func_dryfield_dilapidated_house_8017E6DC(Task* arg0)
+/// Aims the player's head at placed actor 1 while the cutscene enables tracking.
+///
+/// State 0 clears the first payload and enters idle state 1; state 2 applies
+/// full-weight head aiming every frame. Both actors must have live head rigs.
+/// This task borrows their models and remains alive when tracking is disabled.
+static void _dryfieldDilapidatedHouseHeadTrackTask(Task* task)
 {
-    Task* temp_s1;
-    Task* temp_a1;
-    s32   temp_v1;
+    enum { HEAD_MAX_YAW   = 0x200,
+           HEAD_MAX_PITCH = 0x180 }; // 4096 angle units per turn
 
-    temp_s1 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    temp_a1 = sceneFindPlacedActor(1);
-    temp_v1 = arg0->state;
-    switch (temp_v1) { /* irregular */
-        case 0:
-            arg0->spawnArg1.value = 0;
-            arg0->state          += 1;
+    Task* playerTask;
+    Task* targetTask;
+    s32   state;
+
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    targetTask = sceneFindPlacedActor(1);
+    state      = task->state;
+    switch (state) {
+        case DRYFIELD_DILAPIDATED_HOUSE_HEAD_TRACK_INIT:
+            task->spawnArg1.value = 0;
+            task->state          += 1;
             return;
-        case 2:
-            animationAimHeadAtTask(temp_s1, temp_a1, 0x200, 0x180, 0x1000);
+        case DRYFIELD_DILAPIDATED_HOUSE_HEAD_TRACK_ACTIVE:
+            animationAimHeadAtTask(playerTask, targetTask, HEAD_MAX_YAW, HEAD_MAX_PITCH, ONE);
             /* fallthrough */
-        case 1:
+        case DRYFIELD_DILAPIDATED_HOUSE_HEAD_TRACK_IDLE:
             return;
     }
 }
 
-void func_dryfield_dilapidated_house_8017E780(Task* arg0)
+/// Alternates a decaying three-pixel vertical screen shake for a positive frame count.
+///
+/// `spawnArg1.value` is the duration, unchanged during playback. Initialization
+/// seeds a shared countdown and returns without shaking. Only one instance may
+/// run at a time; the task kills itself on the final shake frame.
+static void _dryfieldDilapidatedHouseShakeYTask(Task* task)
 {
-    s32 temp_v0;
-    s32 temp_v1;
-    s32 var_a0;
+    enum { SHAKE_INIT             = 0,
+           SHAKE_RUNNING          = 1,
+           SHAKE_AMPLITUDE_PIXELS = 3 };
 
-    temp_v1 = arg0->state;
-    switch (temp_v1) { /* irregular */
-        case 0:
-            D_dryfield_dilapidated_house_80189B6C = arg0->spawnArg1.value;
-            arg0->state                          += 1;
+    s32 framesLeft;
+    s32 state;
+    s32 shakePixels;
+
+    state = task->state;
+    switch (state) {
+        case SHAKE_INIT:
+            D_dryfield_dilapidated_house_80189B6C = task->spawnArg1.value;
+            task->state                          += 1;
             return;
-        case 1:
-            var_a0 = (s32)(D_dryfield_dilapidated_house_80189B6C * 3) / (s32)arg0->spawnArg1.value;
+        case SHAKE_RUNNING:
+            shakePixels = (D_dryfield_dilapidated_house_80189B6C * SHAKE_AMPLITUDE_PIXELS) / task->spawnArg1.value;
             if (D_dryfield_dilapidated_house_80189B6C & 1) {
-                var_a0 = -var_a0;
+                shakePixels = -shakePixels;
             }
-            displaySetShakeY(var_a0);
-            temp_v0                               = D_dryfield_dilapidated_house_80189B6C - 1;
-            D_dryfield_dilapidated_house_80189B6C = temp_v0;
-            if (temp_v0 == 0) {
-                taskKill(arg0);
+            displaySetShakeY(shakePixels);
+            framesLeft                            = D_dryfield_dilapidated_house_80189B6C - 1;
+            D_dryfield_dilapidated_house_80189B6C = framesLeft;
+            if (framesLeft == 0) {
+                taskKill(task);
             }
             return;
     }
@@ -2844,20 +2869,20 @@ void func_dryfield_dilapidated_house_8017E858(Task* arg0)
     arg0->spawnArg1.value = var_v0;
 }
 
-/// State handlers of the task `func_dryfield_dilapidated_house_80181134` dispatches.
+/// State handlers of the task `_dryfieldDilapidatedHouseCurveDebugTask` dispatches.
 static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D61C = {
-    { _dryfieldDilapidatedHouseCurveDebugInit, func_dryfield_dilapidated_house_80181264, taskKill },
+    { _dryfieldDilapidatedHouseCurveDebugInit, _dryfieldDilapidatedHouseCurveDebugUpdate, taskKill },
 };
 
-/// State handlers of the task `func_dryfield_dilapidated_house_801812E8` dispatches.
+/// State handlers of the task `_dryfieldDilapidatedHouseCappedBeamTask` dispatches.
 static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D628 = {
-    { _dryfieldDilapidatedHouseRingBeamInit, func_dryfield_dilapidated_house_801813DC,
+    { _dryfieldDilapidatedHouseRingBeamInit, _dryfieldDilapidatedHouseCappedBeamUpdate,
       _dryfieldDilapidatedHouseRingBeamExit },
 };
 
 /// State handlers of the task `func_dryfield_dilapidated_house_8018145C` dispatches.
 static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D634 = {
-    { func_dryfield_dilapidated_house_801814B4, func_dryfield_dilapidated_house_80181584,
+    { _dryfieldDilapidatedHouseMorphConeInit, _dryfieldDilapidatedHouseMorphConeUpdate,
       _dryfieldDilapidatedHouseMorphConeExit },
 };
 
@@ -2867,12 +2892,14 @@ static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D640 = {
     { func_dryfield_dilapidated_house_80180B84, func_dryfield_dilapidated_house_80180F5C, taskKill },
 };
 
-/// Script command that moves the cutscene task to the given state; does
-/// nothing when that task was never spawned.
-void func_dryfield_dilapidated_house_8017E8A8(s32 arg0)
+/// Sets the cutscene's head tracking state, if its task exists.
+///
+/// Scripts pass 2 to enable tracking or 0 to reset it to idle on the next tick.
+/// State 1 is already idle. Other values are stored unchanged and do no aiming.
+static void _dryfieldDilapidatedHouseSetHeadTrackState(s32 state)
 {
     if (D_dryfield_dilapidated_house_80189B78 != NULL) {
-        D_dryfield_dilapidated_house_80189B78->state = arg0;
+        D_dryfield_dilapidated_house_80189B78->state = state;
     }
 }
 
@@ -2916,15 +2943,23 @@ void func_dryfield_dilapidated_house_8017E8E8(s32 arg0)
     }
 }
 
-void func_dryfield_dilapidated_house_8017E970(s32 arg0)
+/// Arms the room's blackout countdown, or ends the frozen negative with zero.
+///
+/// A nonzero `delayFrames` enters timer state 2 with that signed frame count;
+/// scripts supply 40 or 180. Zero resets the timer to state 0 and requests
+/// capture completion. The room must have successfully spawned its timer task.
+static void _dryfieldDilapidatedHouseSetBlackoutDelay(s32 delayFrames)
 {
-    if (arg0 == 0) {
-        D_dryfield_dilapidated_house_80189B7C->state = 0;
-        D_dryfield_dilapidated_house_80189B80.done   = 1;
+    enum { BLACKOUT_RESET = 0,
+           BLACKOUT_ARM   = 2 };
+
+    if (delayFrames == 0) {
+        D_dryfield_dilapidated_house_80189B7C->state = BLACKOUT_RESET;
+        D_dryfield_dilapidated_house_80189B80.done   = true;
         return;
     }
-    D_dryfield_dilapidated_house_80189B7C->state           = 2;
-    D_dryfield_dilapidated_house_80189B7C->spawnArg1.value = arg0;
+    D_dryfield_dilapidated_house_80189B7C->state           = BLACKOUT_ARM;
+    D_dryfield_dilapidated_house_80189B7C->spawnArg1.value = delayFrames;
 }
 
 static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
@@ -2985,186 +3020,202 @@ void func_dryfield_dilapidated_house_8017EB60(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Projects the eight local-space markers at
-/// `D_dryfield_dilapidated_house_801866B4` through the parent task's
-/// `_DryfieldDilapidatedHouseMorphWork::attachMtx` and `gGfxViewCoord.workm`,
-/// then queues two red `LINE_F2`s as an X at each screen point in
-/// `gGpuCurrentOt[10]`.
-static void func_dryfield_dilapidated_house_8017EBB8(Task* task)
+/// Draws red crosses at the debug path's eight local control-point entries.
+///
+/// Borrows the spawning morph task's attachment transform, then view-projects
+/// signed-halfword world points. Queues two lines per entry at OT tag 10,
+/// including the repeated closing point, without depth or GTE-flag rejection.
+static void _dryfieldDilapidatedHouseDrawCurveControlPoints(Task* task)
 {
-    struct {
-        SVECTOR vec;
-        s32     sxy;
-        s32     dp;
-        s32     flag;
-        s32     otz;
-    } sc;
-    MATRIX*  mtx;
-    LINE_F2* line;
-    u16      sx;
-    s32      sy;
-    s16      x0;
-    s16      y0;
-    s16      x1;
-    s16      y1;
-    s32      i;
+    enum { CONTROL_POINT_HALF_SIZE_PIXELS = 5,
+           DEBUG_OT_OFFSET                = 10 };
 
-    i   = 0;
-    mtx = &((_DryfieldDilapidatedHouseMorphWork*)((Task*)task->spawnArg2.pointer)->work)->attachMtx;
+    struct {
+        SVECTOR point;
+        s32     screenWord;
+        s32     depthCue;
+        s32     projectionFlags;
+        s32     depth;
+    } projection;
+    MATRIX*                             attachmentMtx;
+    Task*                               parentTask;
+    _DryfieldDilapidatedHouseMorphWork* parentWork;
+    LINE_F2*                            line;
+    u16                                 screenX;
+    s32                                 screenY;
+    s16                                 leftX;
+    s16                                 topY;
+    s16                                 rightX;
+    s16                                 bottomY;
+    s32                                 pointIndex;
+
+    pointIndex    = 0;
+    parentTask    = task->spawnArg2.pointer;
+    parentWork    = parentTask->work;
+    attachmentMtx = &parentWork->attachMtx;
+    // Place markers in the attachment's frame, narrowing world XYZ to halfwords.
     do {
-        sc.vec.vx = D_dryfield_dilapidated_house_801866B4[i].vx;
-        sc.vec.vy = D_dryfield_dilapidated_house_801866B4[i].vy;
-        sc.vec.vz = D_dryfield_dilapidated_house_801866B4[i].vz;
-        gte_SetRotMatrix(mtx);
-        gte_ldv0(&sc.vec);
+        projection.point.vx = D_dryfield_dilapidated_house_801866B4[pointIndex].vx;
+        projection.point.vy = D_dryfield_dilapidated_house_801866B4[pointIndex].vy;
+        projection.point.vz = D_dryfield_dilapidated_house_801866B4[pointIndex].vz;
+        gte_SetRotMatrix(attachmentMtx);
+        gte_ldv0(&projection.point);
         gte_rtv0();
-        gte_stsv(&sc.vec);
-        sc.vec.vx = (u16)sc.vec.vx + (u16)mtx->t[0];
-        sc.vec.vy = (u16)sc.vec.vy + (u16)mtx->t[1];
-        sc.vec.vz = (u16)sc.vec.vz + (u16)mtx->t[2];
+        gte_stsv(&projection.point);
+        projection.point.vx = (u16)projection.point.vx + (u16)attachmentMtx->t[0];
+        projection.point.vy = (u16)projection.point.vy + (u16)attachmentMtx->t[1];
+        projection.point.vz = (u16)projection.point.vz + (u16)attachmentMtx->t[2];
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&sc.vec);
+        gte_ldv0(&projection.point);
         gte_rtps();
-        gte_stsxy(&sc.sxy);
-        gte_stdp(&sc.dp);
-        gte_stflg(&sc.flag);
-        gte_stszotz(&sc.otz);
+        gte_stsxy(&projection.screenWord);
+        gte_stdp(&projection.depthCue);
+        gte_stflg(&projection.projectionFlags);
+        gte_stszotz(&projection.depth);
         line           = gGpuPrimCursor;
-        sx             = sc.sxy;
-        sy             = sc.sxy >> 16;
+        screenX        = projection.screenWord;
+        screenY        = projection.screenWord >> 16;
         gGpuPrimCursor = line + 1;
-        x0             = sx - 5;
-        y0             = sy - 5;
-        x1             = sx + 5;
+        leftX          = screenX - CONTROL_POINT_HALF_SIZE_PIXELS;
+        topY           = screenY - CONTROL_POINT_HALF_SIZE_PIXELS;
+        rightX         = screenX + CONTROL_POINT_HALF_SIZE_PIXELS;
         setLineF2(line);
         setRGB0(line, 0xFF, 0, 0);
-        y1       = sy + 5;
-        line->x0 = x0;
-        line->y0 = y0;
-        line->x1 = x1;
-        line->y1 = y1;
-        addPrim(gGpuCurrentOt + 10, line);
+        bottomY  = screenY + CONTROL_POINT_HALF_SIZE_PIXELS;
+        line->x0 = leftX;
+        line->y0 = topY;
+        line->x1 = rightX;
+        line->y1 = bottomY;
+        addPrim(gGpuCurrentOt + DEBUG_OT_OFFSET, line);
 
         line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineF2(line);
         setRGB0(line, 0xFF, 0, 0);
-        i++;
-        line->x0 = x1;
-        line->y0 = y0;
-        line->x1 = x0;
-        line->y1 = y1;
-        addPrim(gGpuCurrentOt + 10, line);
-    } while (i < 8);
+        pointIndex++;
+        line->x0 = rightX;
+        line->y0 = topY;
+        line->x1 = leftX;
+        line->y1 = bottomY;
+        addPrim(gGpuCurrentOt + DEBUG_OT_OFFSET, line);
+    } while (pointIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_801866B4));
 }
 
-/// Debug view of the two cubic Bezier segments whose control points start at
-/// `D_dryfield_dilapidated_house_801866B4`: samples each at 21 positions,
-/// projects every point through the parent task's
-/// `_DryfieldDilapidatedHouseMorphWork::attachMtx` and `gGfxViewCoord.workm`,
-/// and queues a small `LINE_F2` X at it in `gGpuCurrentOt[10]` - green for the first segment, blue for the second.
-static void func_dryfield_dilapidated_house_8017EE58(Task* task)
+/// Marks each debug Bezier segment with 21 projected crosses, green then blue.
+///
+/// The segments share control point 3 and end at point 6. Samples run from
+/// t = 0 to just below t = 1 using the reverse sampler. The spawning morph task
+/// must stay live; world XYZ narrows to signed halfwords before view projection.
+/// Queues two lines per sample at OT tag 10 without projection rejection.
+static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
 {
-    SVECTOR  vec;
-    DVECTOR  sx;
-    DVECTOR  sy;
-    long     out[3];
-    s32      sxy;
-    s32      dp;
-    s32      flag;
-    s32      otz;
-    MATRIX*  mtx;
-    LINE_F2* line;
-    s32      i;
+    enum { CURVE_SUBDIVISIONS = 20,
+           DEBUG_OT_OFFSET    = 10 };
 
-    mtx = &((_DryfieldDilapidatedHouseMorphWork*)((Task*)task->spawnArg2.pointer)->work)->attachMtx;
-    for (i = 20; i >= 0; i--) {
-        _bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4, D_dryfield_dilapidated_house_801866B4 + 3, 20, i, out);
-        vec.vx = out[0];
-        vec.vy = out[1];
-        vec.vz = out[2];
-        gte_SetRotMatrix(mtx);
-        gte_ldv0(&vec);
-        gte_rtv0();
-        gte_stsv(&vec);
-        vec.vx = (u16)vec.vx + (u16)mtx->t[0];
-        vec.vy = (u16)vec.vy + (u16)mtx->t[1];
-        vec.vz = (u16)vec.vz + (u16)mtx->t[2];
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_SetTransMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&vec);
-        gte_rtps();
-        gte_stsxy(&sxy);
-        gte_stdp(&dp);
-        gte_stflg(&flag);
-        gte_stszotz(&otz);
-        sx.vx = sxy;
-        sy.vx = sxy >> 16;
+    SVECTOR                             point;
+    DVECTOR                             screenX; // Only vx is used as a signed pixel coordinate.
+    DVECTOR                             screenY; // Only vx is used; vy is never accessed.
+    long                                sampleXyz[3];
+    s32                                 screenWord;
+    s32                                 depthCue;
+    s32                                 projectionFlags;
+    s32                                 depth;
+    MATRIX*                             attachmentMtx;
+    Task*                               parentTask;
+    _DryfieldDilapidatedHouseMorphWork* parentWork;
+    LINE_F2*                            line;
+    s32                                 sampleIndex;
+
+    /// Transforms and projects this function's local-space sample in place.
+    ///
+    /// Captures `attachmentMtx` and the writable `point`, `screenWord`,
+    /// `depthCue`, `projectionFlags` and `depth` locals. XYZ narrows to signed
+    /// halfwords before view projection; depth is camera Z / 4. Leaves the view
+    /// transform in the GTE and does not reject flags. No arguments or hidden
+    /// evaluation; use as a standalone statement. Undefined at the body's end.
+#define DRYFIELD_DILAPIDATED_HOUSE_PROJECT_CURVE_SAMPLE()    \
+    {                                                        \
+        gte_SetRotMatrix(attachmentMtx);                     \
+        gte_ldv0(&point);                                    \
+        gte_rtv0();                                          \
+        gte_stsv(&point);                                    \
+        point.vx = (u16)point.vx + (u16)attachmentMtx->t[0]; \
+        point.vy = (u16)point.vy + (u16)attachmentMtx->t[1]; \
+        point.vz = (u16)point.vz + (u16)attachmentMtx->t[2]; \
+        gte_SetRotMatrix(&gGfxViewCoord.workm);              \
+        gte_SetTransMatrix(&gGfxViewCoord.workm);            \
+        gte_ldv0(&point);                                    \
+        gte_rtps();                                          \
+        gte_stsxy(&screenWord);                              \
+        gte_stdp(&depthCue);                                 \
+        gte_stflg(&projectionFlags);                         \
+        gte_stszotz(&depth);                                 \
+    }
+
+    parentTask    = task->spawnArg2.pointer;
+    parentWork    = parentTask->work;
+    attachmentMtx = &parentWork->attachMtx;
+    // Keep the two segments distinct so their markers carry different colours.
+    for (sampleIndex = CURVE_SUBDIVISIONS; sampleIndex >= 0; sampleIndex--) {
+        _bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4, D_dryfield_dilapidated_house_801866B4 + 3, CURVE_SUBDIVISIONS, sampleIndex, sampleXyz);
+        point.vx = sampleXyz[0];
+        point.vy = sampleXyz[1];
+        point.vz = sampleXyz[2];
+        DRYFIELD_DILAPIDATED_HOUSE_PROJECT_CURVE_SAMPLE();
+        screenX.vx = screenWord;
+        screenY.vx = screenWord >> 16;
 
         line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineF2(line);
         setRGB0(line, 0, 0xFF, 0);
-        line->x0 = sx.vx - 1;
-        line->y0 = sy.vx - 1;
-        line->x1 = sx.vx + 1;
-        line->y1 = sy.vx + 1;
-        addPrim(gGpuCurrentOt + 10, line);
+        line->x0 = screenX.vx - 1;
+        line->y0 = screenY.vx - 1;
+        line->x1 = screenX.vx + 1;
+        line->y1 = screenY.vx + 1;
+        addPrim(gGpuCurrentOt + DEBUG_OT_OFFSET, line);
 
         line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineF2(line);
         setRGB0(line, 0, 0xFF, 0);
-        line->x0 = sx.vx + 1;
-        line->y0 = sy.vx - 1;
-        line->x1 = sx.vx - 1;
-        line->y1 = sy.vx + 1;
-        addPrim(gGpuCurrentOt + 10, line);
+        line->x0 = screenX.vx + 1;
+        line->y0 = screenY.vx - 1;
+        line->x1 = screenX.vx - 1;
+        line->y1 = screenY.vx + 1;
+        addPrim(gGpuCurrentOt + DEBUG_OT_OFFSET, line);
     }
-    for (i = 20; i >= 0; i--) {
-        _bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4 + 3, D_dryfield_dilapidated_house_801866B4 + 6, 20, i, out);
-        vec.vx = out[0];
-        vec.vy = out[1];
-        vec.vz = out[2];
-        gte_SetRotMatrix(mtx);
-        gte_ldv0(&vec);
-        gte_rtv0();
-        gte_stsv(&vec);
-        vec.vx = (u16)vec.vx + (u16)mtx->t[0];
-        vec.vy = (u16)vec.vy + (u16)mtx->t[1];
-        vec.vz = (u16)vec.vz + (u16)mtx->t[2];
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_SetTransMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&vec);
-        gte_rtps();
-        gte_stsxy(&sxy);
-        gte_stdp(&dp);
-        gte_stflg(&flag);
-        gte_stszotz(&otz);
-        sx.vx = sxy;
-        sy.vx = sxy >> 16;
+    for (sampleIndex = CURVE_SUBDIVISIONS; sampleIndex >= 0; sampleIndex--) {
+        _bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4 + 3, D_dryfield_dilapidated_house_801866B4 + 6, CURVE_SUBDIVISIONS, sampleIndex, sampleXyz);
+        point.vx = sampleXyz[0];
+        point.vy = sampleXyz[1];
+        point.vz = sampleXyz[2];
+        DRYFIELD_DILAPIDATED_HOUSE_PROJECT_CURVE_SAMPLE();
+        screenX.vx = screenWord;
+        screenY.vx = screenWord >> 16;
 
         line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineF2(line);
         setRGB0(line, 0, 0, 0xFF);
-        line->x0 = sx.vx - 1;
-        line->y0 = sy.vx - 1;
-        line->x1 = sx.vx + 1;
-        line->y1 = sy.vx + 1;
-        addPrim(gGpuCurrentOt + 10, line);
+        line->x0 = screenX.vx - 1;
+        line->y0 = screenY.vx - 1;
+        line->x1 = screenX.vx + 1;
+        line->y1 = screenY.vx + 1;
+        addPrim(gGpuCurrentOt + DEBUG_OT_OFFSET, line);
 
         line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineF2(line);
         setRGB0(line, 0, 0, 0xFF);
-        line->x0 = sx.vx + 1;
-        line->y0 = sy.vx - 1;
-        line->x1 = sx.vx - 1;
-        line->y1 = sy.vx + 1;
-        addPrim(gGpuCurrentOt + 10, line);
+        line->x0 = screenX.vx + 1;
+        line->y0 = screenY.vx - 1;
+        line->x1 = screenX.vx - 1;
+        line->y1 = screenY.vx + 1;
+        addPrim(gGpuCurrentOt + DEBUG_OT_OFFSET, line);
     }
+#undef DRYFIELD_DILAPIDATED_HOUSE_PROJECT_CURVE_SAMPLE
 }
 
 #include "../../shared/bezier_curve_evaluate.inc.c"
@@ -3175,132 +3226,143 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
 #define GLOW_DRAW_RING_BEAM_HALO_TPAGE    0xE1000465
 #include "../../shared/glow_draw_ring_beam.inc.c"
 
-/// Lays out 24 screen-space points in `verts` as four rings of six around two
-/// ends of a segment. The ends come from `D_dryfield_dilapidated_house_80186794`,
-/// mirrored in x when the task's spawn arg 1 is 1, rotated by the parent task's
-/// `_DryfieldDilapidatedHouseMorphWork::attachMtx`. The far end sits a quarter
-/// of the way out at a parent `beamLevel` of 0 and reaches full length at
-/// `ONE`; both ends are then moved by the matrix translation and projected. Each ring's offsets are rotated to the segment's screen angle and
-/// scaled by the projection distance over the last projected depth, which is
-/// left in `*arg2` (`*arg3` gets the GTE flags). Rings 0 and 1 use the tables at
-/// their natural size, rings 2 and 3 scaled by a factor that pulses with
-/// `killCountdown`.
-static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts, s32* arg2, s32* arg3)
+/// Builds the morph attachment's projected core and halo beam caps.
+///
+/// Writes only X/Y of 24 caller-owned points: six-point core caps at each
+/// endpoint, then the corresponding halo caps. Each cap contains its centre
+/// followed by five rim points. Borrows the live spawning morph task's matrix
+/// and signed low-halfword Q12 beam level. Spawn argument 1 equal to 1 mirrors
+/// the local endpoints in X; the beam grows from quarter length to full length.
+///
+/// Both caps use the last endpoint's camera Z / 4 as their size divisor and
+/// return it in `endDepth`; it must be nonzero. `projectionFlags` receives only
+/// that endpoint's final FLAG, with no rejection. `killCountdown` supplies a
+/// 4096-unit-per-turn halo pulse angle; this builder does not advance it.
+static void _dryfieldDilapidatedHouseBuildCappedBeamPoints(Task* task, SVECTOR screenPoints[DRYFIELD_DILAPIDATED_HOUSE_BEAM_POINT_COUNT], s32* endDepth, s32* projectionFlags)
 {
-    SVECTOR                             a;
-    SVECTOR                             b;
-    MATRIX                              rot;
-    s32                                 sxy0;
+    SVECTOR                             startPoint;
+    SVECTOR                             endPoint;
+    MATRIX                              screenRotation;
+    s32                                 startScreenWord;
     s32                                 depthCue;
-    s32                                 sxy1;
+    s32                                 endScreenWord;
     _DryfieldDilapidatedHouseMorphWork* work;
-    MATRIX*                             mtx;
-    SVECTOR*                            src;
-    s16                                 t;
-    s16                                 r;
-    s32                                 scale;
-    s32                                 i;
-    u16                                 f;
-    s16                                 x0;
-    s32                                 y0;
-    s16                                 x1;
-    s32                                 y1;
-    s32                                 dx;
-    s32                                 dy;
-    s32                                 side;
+    MATRIX*                             attachmentMtx;
+    const SVECTOR*                      endTemplate;
+    s16                                 lengthQ12;
+    s16                                 haloScaleQ12;
+    s32                                 projectionDistance;
+    s32                                 pointIndex;
+    u16                                 brightnessQ12;
+    s16                                 startX;
+    s32                                 startY;
+    s16                                 endX;
+    s32                                 endY;
+    s32                                 deltaX;
+    s32                                 deltaY;
+    s32                                 mirrorX;
+    s32                                 screenAngle;
+    Task*                               parentTask;
 
-    side = task->spawnArg1.value;
-    work = ((Task*)task->spawnArg2.pointer)->work;
-    mtx  = &work->attachMtx;
-    f    = work->beamLevel;
-    a.vx = D_dryfield_dilapidated_house_80186794[0].vx;
-    a.vy = D_dryfield_dilapidated_house_80186794[0].vy;
-    a.vz = D_dryfield_dilapidated_house_80186794[0].vz;
-    src  = &D_dryfield_dilapidated_house_80186794[1];
-    b.vx = src->vx;
-    b.vy = src->vy;
-    b.vz = src->vz;
-    if (side == 1) {
-        a.vx *= -1;
-        b.vx *= -1;
+    mirrorX       = task->spawnArg1.value;
+    parentTask    = task->spawnArg2.pointer;
+    work          = parentTask->work;
+    attachmentMtx = &work->attachMtx;
+    brightnessQ12 = work->beamLevel;
+    startPoint.vx = D_dryfield_dilapidated_house_80186794[0].vx;
+    startPoint.vy = D_dryfield_dilapidated_house_80186794[0].vy;
+    startPoint.vz = D_dryfield_dilapidated_house_80186794[0].vz;
+    endTemplate   = &D_dryfield_dilapidated_house_80186794[1];
+    endPoint.vx   = endTemplate->vx;
+    endPoint.vy   = endTemplate->vy;
+    endPoint.vz   = endTemplate->vz;
+    if (mirrorX == 1) {
+        startPoint.vx *= -1;
+        endPoint.vx   *= -1;
     }
-    gte_SetRotMatrix(mtx);
-    gte_ldv0(&a);
+    gte_SetRotMatrix(attachmentMtx);
+    gte_ldv0(&startPoint);
     gte_rtv0();
-    gte_stsv(&a);
-    gte_ldv0(&b);
+    gte_stsv(&startPoint);
+    gte_ldv0(&endPoint);
     gte_rtv0();
-    gte_stsv(&b);
-    t     = (s16)f * 0.75 + 1024.0;
-    b.vx  = a.vx + (b.vx - a.vx) * t / 4096;
-    b.vy  = a.vy + (b.vy - a.vy) * t / 4096;
-    b.vz  = a.vz + (b.vz - a.vz) * t / 4096;
-    a.vx += mtx->t[0];
-    a.vy += mtx->t[1];
-    a.vz += mtx->t[2];
-    b.vx += mtx->t[0];
-    b.vy += mtx->t[1];
-    b.vz += mtx->t[2];
+    gte_stsv(&endPoint);
+    lengthQ12      = (s16)brightnessQ12 * 0.75 + ONE / 4;
+    endPoint.vx    = startPoint.vx + (endPoint.vx - startPoint.vx) * lengthQ12 / ONE;
+    endPoint.vy    = startPoint.vy + (endPoint.vy - startPoint.vy) * lengthQ12 / ONE;
+    endPoint.vz    = startPoint.vz + (endPoint.vz - startPoint.vz) * lengthQ12 / ONE;
+    startPoint.vx += attachmentMtx->t[0];
+    startPoint.vy += attachmentMtx->t[1];
+    startPoint.vz += attachmentMtx->t[2];
+    endPoint.vx   += attachmentMtx->t[0];
+    endPoint.vy   += attachmentMtx->t[1];
+    endPoint.vz   += attachmentMtx->t[2];
     // Project both ends. Each screen point comes back packed, x in the low
     // half and y in the high; the depth-cue coefficient is not used.
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_RotTransPers(&a, &sxy0, &depthCue, arg3, arg2);
-    gte_RotTransPers(&b, &sxy1, &depthCue, arg3, arg2);
-    dy    = (sxy0 >> 16) - (sxy1 >> 16);
-    x1    = sxy1;
-    x0    = sxy0;
-    dx    = x1 - x0;
-    y0    = sxy0 >> 16;
-    y1    = sxy1 >> 16;
-    i     = ratan2(dx, dy);
-    scale = gDisplayState.screenDistance;
-    gfxSetRotIdentity(&rot);
-    RotMatrixZ(i, &rot);
-    gte_SetRotMatrix(&rot);
-    for (i = 0; i < 6; i++) {
-        a.vx = D_dryfield_dilapidated_house_801867A4[i].vx * scale / *arg2;
-        a.vy = D_dryfield_dilapidated_house_801867A4[i].vy * scale / *arg2;
-        gte_ldv0(&a);
+    gte_RotTransPers(&startPoint, &startScreenWord, &depthCue, projectionFlags, endDepth);
+    gte_RotTransPers(&endPoint, &endScreenWord, &depthCue, projectionFlags, endDepth);
+    deltaY             = (startScreenWord >> 16) - (endScreenWord >> 16);
+    endX               = endScreenWord;
+    startX             = startScreenWord;
+    deltaX             = endX - startX;
+    startY             = startScreenWord >> 16;
+    endY               = endScreenWord >> 16;
+    screenAngle        = ratan2(deltaX, deltaY);
+    projectionDistance = gDisplayState.screenDistance;
+    gfxSetRotIdentity(&screenRotation);
+    RotMatrixZ(screenAngle, &screenRotation);
+    gte_SetRotMatrix(&screenRotation);
+    // Reuse the endpoint vectors for cap offsets, retaining the start point's world Z.
+    // Rotate their XY contours along the projected segment.
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_801867A4); pointIndex++) {
+        startPoint.vx = D_dryfield_dilapidated_house_801867A4[pointIndex].vx * projectionDistance / *endDepth;
+        startPoint.vy = D_dryfield_dilapidated_house_801867A4[pointIndex].vy * projectionDistance / *endDepth;
+        gte_ldv0(&startPoint);
         gte_rtv0();
-        gte_stsv(&b);
-        verts[i].vx = b.vx + x0;
-        verts[i].vy = b.vy + y0;
+        gte_stsv(&endPoint);
+        screenPoints[pointIndex].vx = endPoint.vx + startX;
+        screenPoints[pointIndex].vy = endPoint.vy + startY;
     }
-    for (i = 0; i < 6; i++) {
-        a.vx = D_dryfield_dilapidated_house_801867D4[i].vx * scale / *arg2;
-        a.vy = D_dryfield_dilapidated_house_801867D4[i].vy * scale / *arg2;
-        gte_ldv0(&a);
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_801867D4); pointIndex++) {
+        startPoint.vx = D_dryfield_dilapidated_house_801867D4[pointIndex].vx * projectionDistance / *endDepth;
+        startPoint.vy = D_dryfield_dilapidated_house_801867D4[pointIndex].vy * projectionDistance / *endDepth;
+        gte_ldv0(&startPoint);
         gte_rtv0();
-        gte_stsv(&b);
-        verts[i + 6].vx = b.vx + x1;
-        verts[i + 6].vy = b.vy + y1;
+        gte_stsv(&endPoint);
+        screenPoints[pointIndex + DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT].vx = endPoint.vx + endX;
+        screenPoints[pointIndex + DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT].vy = endPoint.vy + endY;
     }
-    r = 4096.0 - rsin(task->killCountdown) * 0.5 + 4096.0;
-    for (i = 0; i < 6; i++) {
-        a.vx = ((D_dryfield_dilapidated_house_801867A4[i].vx * r) >> 12) * scale / *arg2;
-        a.vy = ((D_dryfield_dilapidated_house_801867A4[i].vy * r) >> 12) * scale / *arg2;
-        gte_ldv0(&a);
+    // Pulse enlarged halo caps around the same endpoints and depth as the core.
+    haloScaleQ12 = ONE - rsin(task->killCountdown) * 0.5 + ONE;
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_801867A4); pointIndex++) {
+        startPoint.vx = ((D_dryfield_dilapidated_house_801867A4[pointIndex].vx * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
+        startPoint.vy = ((D_dryfield_dilapidated_house_801867A4[pointIndex].vy * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
+        gte_ldv0(&startPoint);
         gte_rtv0();
-        gte_stsv(&b);
-        verts[i + 12].vx = b.vx + x0;
-        verts[i + 12].vy = b.vy + y0;
+        gte_stsv(&endPoint);
+        screenPoints[pointIndex + 2 * DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT].vx = endPoint.vx + startX;
+        screenPoints[pointIndex + 2 * DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT].vy = endPoint.vy + startY;
     }
-    for (i = 0; i < 6; i++) {
-        a.vx = ((D_dryfield_dilapidated_house_801867D4[i].vx * r) >> 12) * scale / *arg2;
-        a.vy = ((D_dryfield_dilapidated_house_801867D4[i].vy * r) >> 12) * scale / *arg2;
-        gte_ldv0(&a);
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_801867D4); pointIndex++) {
+        startPoint.vx = ((D_dryfield_dilapidated_house_801867D4[pointIndex].vx * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
+        startPoint.vy = ((D_dryfield_dilapidated_house_801867D4[pointIndex].vy * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
+        gte_ldv0(&startPoint);
         gte_rtv0();
-        gte_stsv(&b);
-        verts[i + 18].vx = b.vx + x1;
-        verts[i + 18].vy = b.vy + y1;
+        gte_stsv(&endPoint);
+        screenPoints[pointIndex + 3 * DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT].vx = endPoint.vx + endX;
+        screenPoints[pointIndex + 3 * DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT].vy = endPoint.vy + endY;
     }
 }
 
-/// Projects the adjacent inner corners and current outer corner of a cone segment.
+/// Projects two consecutive cone vertices and the vertex one ring later.
 ///
 /// The GTE must hold the view transform. Store packed screen words and the
-/// final outer corner's SZ3 / 4; buffers supply the rest of both 16-entry rings.
+/// final outer corner's SZ3 / 4. `vertex` and `screen` each provide indices
+/// 0, 1 and 16 from the current cursor; `depth` provides one writable word.
+/// At the last inner vertex, index 1 is the first outer vertex rather than the
+/// closing inner vertex. The drawer closes that edge with its saved first point.
 static inline void _dryfieldDilapidatedHouseProjectConeSegment(const SVECTOR* vertex, s32* screen, s32* depth)
 {
     gte_ldv3(vertex, vertex + 1, vertex + DRYFIELD_DILAPIDATED_HOUSE_CONE_RING_VERTEX_COUNT);
@@ -3404,82 +3466,100 @@ static void _dryfieldDilapidatedHouseDrawMorphCone(Task* task, const SVECTOR* ri
     }
 }
 
-static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
+/// Rebuilds two sixteen-vertex world-space ellipses for the morph cone.
+///
+/// Writes XYZ of 32 borrowed output vectors: inner ring first, then outer.
+/// The spawning morph task supplies the attachment frame and must stay live.
+/// Each outer Z ripples by its per-vertex phase, advanced once per call in
+/// 16384 units per turn. Rotation, centre offsets and translation narrow to
+/// signed halfwords; each output's fourth halfword remains untouched.
+static void _dryfieldDilapidatedHouseBuildMorphConeRings(Task* task, SVECTOR* ringVertices)
 {
-    _DryfieldDilapidatedHouseConeWork*  work;
-    _DryfieldDilapidatedHouseMorphWork* src;
-    MATRIX*                             mtx;
-    SVECTOR*                            ofs;
-    SVECTOR*                            ofs2;
-    SVECTOR                             pos[2];
-    SVECTOR*                            v0;
-    SVECTOR*                            v1;
-    s16                                 tx;
-    s16                                 ty;
-    s16                                 tz;
-    s32                                 i;
-    s32                                 ang;
-    s32                                 c;
-    s32                                 s;
+    enum {
+        CONE_RING_VERTEX_COUNT = DRYFIELD_DILAPIDATED_HOUSE_CONE_RING_VERTEX_COUNT,
+        INNER_RADIUS_X         = 150,
+        INNER_RADIUS_Y         = 75,
+        OUTER_RADIUS_X         = 250,
+        OUTER_RADIUS_Y         = 125,
+        RIM_RIPPLE_AMPLITUDE   = 100,
+    }; // Radii and ripple amplitude are attachment-local coordinate units.
 
-    v0 = verts;
-    v1 = &verts[16];
+    _DryfieldDilapidatedHouseConeWork*  coneWork;
+    _DryfieldDilapidatedHouseMorphWork* parentWork;
+    MATRIX*                             attachmentMtx;
+    const SVECTOR*                      innerCentre;
+    const SVECTOR*                      outerCentre;
+    SVECTOR                             ringCentres[2];
+    SVECTOR*                            innerVertex;
+    SVECTOR*                            outerVertex;
+    s16                                 translationX;
+    s16                                 translationY;
+    s16                                 translationZ;
+    s32                                 vertexIndex;
+    s32                                 angle;
+    s32                                 cosineQ12;
+    s32                                 sineQ12;
+    Task*                               parentTask;
 
-    work = task->work;
-    src  = ((Task*)task->spawnArg2.pointer)->work;
+    innerVertex = ringVertices;
+    outerVertex = &ringVertices[CONE_RING_VERTEX_COUNT];
 
-    ofs       = D_dryfield_dilapidated_house_80186844;
-    ofs2      = D_dryfield_dilapidated_house_80186844 + 1;
-    pos[0].vx = ofs->vx;
-    pos[0].vy = ofs->vy;
-    pos[0].vz = ofs->vz;
-    pos[1].vx = ofs2->vx;
-    pos[1].vy = ofs2->vy;
-    pos[1].vz = ofs2->vz;
+    coneWork   = task->work;
+    parentTask = task->spawnArg2.pointer;
+    parentWork = parentTask->work;
 
-    mtx = &src->attachMtx;
+    innerCentre       = D_dryfield_dilapidated_house_80186844;
+    outerCentre       = D_dryfield_dilapidated_house_80186844 + 1;
+    ringCentres[0].vx = innerCentre->vx;
+    ringCentres[0].vy = innerCentre->vy;
+    ringCentres[0].vz = innerCentre->vz;
+    ringCentres[1].vx = outerCentre->vx;
+    ringCentres[1].vy = outerCentre->vy;
+    ringCentres[1].vz = outerCentre->vz;
 
-    tx = mtx->t[0];
-    ty = mtx->t[1];
-    tz = mtx->t[2];
+    attachmentMtx = &parentWork->attachMtx;
 
-    gte_SetRotMatrix(mtx);
+    translationX = attachmentMtx->t[0];
+    translationY = attachmentMtx->t[1];
+    translationZ = attachmentMtx->t[2];
 
-    for (i = 0; i < 16; i++) {
-        ang = (i << 12) >> 4;
-        c   = rcos(ang);
-        s   = rsin(ang);
+    gte_SetRotMatrix(attachmentMtx);
 
-        v0->vx = pos[0].vx + ((c * 0x96) >> 12);
-        v0->vy = pos[0].vy + ((s * 0x4B) >> 12);
-        v0->vz = pos[0].vz;
+    // Walk both rings together; only the outer ring's axial coordinate ripples.
+    for (vertexIndex = 0; vertexIndex < CONE_RING_VERTEX_COUNT; vertexIndex++) {
+        angle     = (vertexIndex << GLOW_TRIG_SHIFT) >> 4;
+        cosineQ12 = rcos(angle);
+        sineQ12   = rsin(angle);
 
-        gte_ldv0(v0);
+        innerVertex->vx = ringCentres[0].vx + ((cosineQ12 * INNER_RADIUS_X) >> GLOW_TRIG_SHIFT);
+        innerVertex->vy = ringCentres[0].vy + ((sineQ12 * INNER_RADIUS_Y) >> GLOW_TRIG_SHIFT);
+        innerVertex->vz = ringCentres[0].vz;
+
+        gte_ldv0(innerVertex);
         gte_rtv0();
-        gte_stsv(v0);
+        gte_stsv(innerVertex);
 
-        v0->vx += tx;
-        v0->vy += ty;
-        v0->vz += tz;
-        v0++;
+        innerVertex->vx += translationX;
+        innerVertex->vy += translationY;
+        innerVertex->vz += translationZ;
+        innerVertex++;
 
-        v1->vx = pos[1].vx + ((c * 0xFA) >> 12);
-        v1->vy = pos[1].vy + ((s * 0x7D) >> 12);
-        // The outer vertex rides a sine of its own phase along the cone's
-        // axis; the phase then moves on by this vertex's rate.
-        v1->vz = pos[1].vz + ((rsin(work->rimPhase[i] >> 2) * 0x64) >> 12);
+        outerVertex->vx = ringCentres[1].vx + ((cosineQ12 * OUTER_RADIUS_X) >> GLOW_TRIG_SHIFT);
+        outerVertex->vy = ringCentres[1].vy + ((sineQ12 * OUTER_RADIUS_Y) >> GLOW_TRIG_SHIFT);
+        // Ripple the outer ring along its axis, then advance that vertex's phase.
+        outerVertex->vz = ringCentres[1].vz + ((rsin(coneWork->rimPhase[vertexIndex] >> 2) * RIM_RIPPLE_AMPLITUDE) >> GLOW_TRIG_SHIFT);
 
-        work->rimPhase[i] = (work->rimPhase[i] + D_dryfield_dilapidated_house_80186804[i]) &
-                            (DRYFIELD_DILAPIDATED_HOUSE_CONE_RIM_PHASE_PERIOD - 1);
+        coneWork->rimPhase[vertexIndex] = (coneWork->rimPhase[vertexIndex] + D_dryfield_dilapidated_house_80186804[vertexIndex]) &
+                                          (DRYFIELD_DILAPIDATED_HOUSE_CONE_RIM_PHASE_PERIOD - 1);
 
-        gte_ldv0(v1);
+        gte_ldv0(outerVertex);
         gte_rtv0();
-        gte_stsv(v1);
+        gte_stsv(outerVertex);
 
-        v1->vx += tx;
-        v1->vy += ty;
-        v1->vz += tz;
-        v1++;
+        outerVertex->vx += translationX;
+        outerVertex->vy += translationY;
+        outerVertex->vz += translationZ;
+        outerVertex++;
     }
 }
 
@@ -3551,7 +3631,7 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
         }
     }
 
-    func_dryfield_dilapidated_house_80180FD8(task);
+    _dryfieldDilapidatedHouseAdvanceMorph(task);
 
     table   = D_dryfield_dilapidated_house_80186854;
     spawned = taskSpawnFromTable(table, 3, 9, task);
@@ -3599,7 +3679,7 @@ static void func_dryfield_dilapidated_house_80180F5C(Task* arg0)
     _dryfieldDilapidatedHouseCopyModelVisibility(arg0->extra.tmd,
                                                  ((Task*)arg0->spawnArg2.pointer)->extra.tmd);
     _dryfieldDilapidatedHouseUpdateAttachmentTransform(arg0);
-    temp_v0          = func_dryfield_dilapidated_house_80180FD8(arg0);
+    temp_v0          = _dryfieldDilapidatedHouseAdvanceMorph(arg0);
     work->morphLevel = temp_v0;
     work->coneLevel  = temp_v0;
     work->beamLevel  = temp_v0;
@@ -3611,20 +3691,24 @@ static void _dryfieldDilapidatedHouseMorphExit(Task* task)
     taskKill(task);
 }
 
-/// Steps the task's 0..0x1000 ramp by 0x44, saturating at 0x1000, and feeds the
-/// distance still to run (`0x1000 - ramp`) to the room's vertex morph.
-/// Returns the ramp value, which the caller stores into each level
-/// of its `_DryfieldDilapidatedHouseMorphWork`.
-static s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
+/// Advances morph progress toward `ONE` and applies the complementary deformation.
+///
+/// The task owns a live morph model with its rest vertices already saved.
+/// `killCountdown` holds signed Q12 progress, normally 0..`ONE`; each call
+/// adds 68 and saturates above `ONE`, without clamping negative input.
+/// Returns the full-width progress after storing its low signed halfword.
+static s32 _dryfieldDilapidatedHouseAdvanceMorph(Task* task)
 {
+    enum { MORPH_PROGRESS_STEP_Q12 = 68 };
+
     s32 ramp;
 
-    ramp = task->killCountdown + 0x44;
-    if (ramp >= 0x1001) {
-        ramp = 0x1000;
+    ramp = task->killCountdown + MORPH_PROGRESS_STEP_Q12;
+    if (ramp >= ONE + 1) {
+        ramp = ONE;
     }
     task->killCountdown = ramp;
-    _modelMorphBlend(task, &D_dryfield_dilapidated_house_8018669C, 0x1000 - ramp);
+    _modelMorphBlend(task, &D_dryfield_dilapidated_house_8018669C, ONE - ramp);
     return ramp;
 }
 
@@ -3672,15 +3756,17 @@ static void _dryfieldDilapidatedHouseCopyModelVisibility(TmdObject* model, const
     model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
-/// Runs the task's current state out of `D_dryfield_dilapidated_house_8017D61C`,
-/// copied onto the stack: `_dryfieldDilapidatedHouseCurveDebugInit`,
-/// `func_dryfield_dilapidated_house_80181264`, then `taskKill`.
-void func_dryfield_dilapidated_house_80181134(Task* task)
+/// Dispatches the hidden-model task that marks the attachment's debug Bezier path.
+///
+/// States 0, 1 and 2 initialize, draw markers and kill the task, respectively.
+/// The spawn payload borrows the live morph task. The room retains this
+/// descriptor but never spawns it; dispatch preserves the three-handler copy.
+static void _dryfieldDilapidatedHouseCurveDebugTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_dilapidated_house_8017D61C;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_dilapidated_house_8017D61C;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Initializes the hidden model task that marks the attachment's Bezier curve.
@@ -3709,22 +3795,26 @@ static void _dryfieldDilapidatedHouseCurveDebugInit(Task* task)
     task->state += 1;
 }
 
-static void func_dryfield_dilapidated_house_80181264(Task* arg0)
+/// Draws the debug path's control-point crosses and both sampled segments.
+static void _dryfieldDilapidatedHouseCurveDebugUpdate(Task* task)
 {
-    func_dryfield_dilapidated_house_8017EBB8(arg0);
-    func_dryfield_dilapidated_house_8017EE58(arg0);
+    _dryfieldDilapidatedHouseDrawCurveControlPoints(task);
+    _dryfieldDilapidatedHouseDrawCurveSamples(task);
 }
 
 #include "../../shared/bezier_curve_coefficients.inc.c"
 
-/// Runs the task's current state out of `D_dryfield_dilapidated_house_8017D628`,
-/// copied onto the stack.
-void func_dryfield_dilapidated_house_801812E8(Task* task)
+/// Dispatches a capped beam attached to the spawning morph model.
+///
+/// Requires a coordinate body and a live morph task in `spawnArg2.pointer`;
+/// argument 1 equal to 1 mirrors the endpoints. States 0, 1 and 2 initialize,
+/// build/draw and detach/kill. Retains the stack copy of the three handlers.
+static void _dryfieldDilapidatedHouseCappedBeamTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_dilapidated_house_8017D628;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_dilapidated_house_8017D628;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Attaches a ring-beam coordinate task beneath the spawning morph model.
@@ -3754,15 +3844,20 @@ static void _dryfieldDilapidatedHouseRingBeamInit(Task* task)
     task->state       += 1;
 }
 
-static void func_dryfield_dilapidated_house_801813DC(Task* task)
+/// Builds one capped beam and queues two draws of the same projected geometry.
+///
+/// The final endpoint depth sorts both draws; projection flags are unused.
+/// Each draw advances the next geometry phase by 64, wrapping at half a turn.
+static void _dryfieldDilapidatedHouseCappedBeamUpdate(Task* task)
 {
-    SVECTOR verts[24];
-    s32     sp0;
-    s32     sp1;
+    SVECTOR screenPoints[DRYFIELD_DILAPIDATED_HOUSE_BEAM_POINT_COUNT];
+    s32     endDepth;
+    s32     projectionFlags;
 
-    func_dryfield_dilapidated_house_8017FAD4(task, verts, &sp0, &sp1);
-    _glowDrawCappedBeam(task, verts, sp0);
-    _glowDrawCappedBeam(task, verts, sp0);
+    _dryfieldDilapidatedHouseBuildCappedBeamPoints(task, screenPoints, &endDepth, &projectionFlags);
+    // The repeated draw also repeats the pulse-phase advance for the next frame.
+    _glowDrawCappedBeam(task, screenPoints, endDepth);
+    _glowDrawCappedBeam(task, screenPoints, endDepth);
 }
 
 /// Detaches the ring beam from its parent model before releasing the task.
@@ -3785,40 +3880,44 @@ void func_dryfield_dilapidated_house_8018145C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// State 0 of the handler table at `D_dryfield_dilapidated_house_8017D634`,
-/// dispatched by `func_dryfield_dilapidated_house_8018145C`: allocates the
-/// cone's `_DryfieldDilapidatedHouseConeWork` and starts each rim phase at its
-/// per-vertex rate times this task's spawn argument, wrapped into one turn,
-/// links the model coordinate this task works on to the parent model's
-/// coordinate array, and re-parents the task under the task that spawned it.
-static void func_dryfield_dilapidated_house_801814B4(Task* arg0)
+/// Attaches the morph cone's coordinate and seeds its sixteen rim phases.
+///
+/// Requires a coordinate body and the live spawning morph task in argument 2.
+/// Argument 1 is the initial phase advance in frames (the two instances use
+/// 9 and 17). Owns a primary-heap phase block; allocation failure kills the
+/// task, while success attaches it to the parent's teardown tree and enters
+/// the per-frame build/draw state. Phase arithmetic wraps to 16384 units/turn.
+static void _dryfieldDilapidatedHouseMorphConeInit(Task* task)
 {
     _DryfieldDilapidatedHouseConeWork* work;
     GfxCoord*                          coord;
-    s32                                i;
+    s32                                vertexIndex;
+    Task*                              parentTask;
 
-    coord = arg0->extra.tmd->coords;
+    coord = task->extra.coordBody->coord;
     work  = memMalloc(sizeof(*work), false);
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
-    arg0->work = work;
-    for (i = 0; i < ARRAY_SIZE(work->rimPhase); i++) {
-        work->rimPhase[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1.value) &
-                            (DRYFIELD_DILAPIDATED_HOUSE_CONE_RIM_PHASE_PERIOD - 1);
+    task->work = work;
+    for (vertexIndex = 0; vertexIndex < ARRAY_SIZE(work->rimPhase); vertexIndex++) {
+        work->rimPhase[vertexIndex] = (D_dryfield_dilapidated_house_80186804[vertexIndex] * task->spawnArg1.value) &
+                                      (DRYFIELD_DILAPIDATED_HOUSE_CONE_RIM_PHASE_PERIOD - 1);
     }
-    coord->parent = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords;
-    taskReparent(arg0->spawnArg2.pointer, arg0);
-    arg0->state += 1;
+    parentTask    = task->spawnArg2.pointer;
+    coord->parent = parentTask->extra.tmd->coords;
+    taskReparent(task->spawnArg2.pointer, task);
+    task->state += 1;
 }
 
-static void func_dryfield_dilapidated_house_80181584(Task* task)
+/// Rebuilds the morph cone's two rings, advancing its ripple, then draws the cone.
+static void _dryfieldDilapidatedHouseMorphConeUpdate(Task* task)
 {
-    SVECTOR verts[32];
+    SVECTOR ringVertices[2 * DRYFIELD_DILAPIDATED_HOUSE_CONE_RING_VERTEX_COUNT];
 
-    func_dryfield_dilapidated_house_80180738(task, verts);
-    _dryfieldDilapidatedHouseDrawMorphCone(task, verts);
+    _dryfieldDilapidatedHouseBuildMorphConeRings(task, ringVertices);
+    _dryfieldDilapidatedHouseDrawMorphCone(task, ringVertices);
 }
 
 /// Detaches the morph cone's coordinate before releasing the task and rim phases.
