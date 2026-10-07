@@ -61,6 +61,8 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/follow_collision.h"
 
+static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
+
 /// The clip the room adds to the player's animation bank, with the event
 /// scene's records stored after it.
 ///
@@ -1658,7 +1660,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
                 desc.room     = temp;
                 desc.sndEvent = 0x55070005;
                 desc.facing   = 0x400;
-                resolve       = roomVariantResolveShelter;
+                resolve       = _roomVariantResolveShelter;
                 Gp_MsgPlayerWeapon(0);
                 _neoArkObservatoryStageMarker(&desc, resolve);
                 gRoomDeparture = desc;
@@ -1672,7 +1674,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
         desc.warp     = 4;
         desc.sndEvent = 0x55070005;
         desc.facing   = 0x400;
-        resolve       = roomVariantResolveShelter;
+        resolve       = _roomVariantResolveShelter;
         Gp_MsgPlayerWeapon(0);
         _neoArkObservatoryStageMarker(&desc, resolve);
         gRoomDeparture = desc;

@@ -496,9 +496,11 @@ a `RoomEventMsg` request and update the initialized reply's room selector;
 the same record may serve both roles. `ROOM_VARIANT_` configuration bindings
 select each carrier's function identifier. A map overlay exports its instance
 under its package prefix for other rooms; room-local copies keep the shared
-subsystem identity. `ROOM_VARIANT_RESOLVE_SHELTER` selects the Mine/Shelter
-definition and prototype together, with `map_shelter` supplying the public
-`mapShelterRoomVariantResolve` instance.
+subsystem identity and static linkage. `ROOM_VARIANT_RESOLVE_SHELTER` selects the
+Mine/Shelter definition's identifier, defaulting to `_roomVariantResolveShelter`.
+Each carrier declares that instance in its prologue to establish its linkage;
+`map_shelter` instead binds the public `mapShelterRoomVariantResolve` instance,
+declared in its public header.
 
 `effectSprite` owns the included animated sprite and debris tasks and their
 textured quad drawers. Its interface is `src/shared/effect_sprite.h`; its

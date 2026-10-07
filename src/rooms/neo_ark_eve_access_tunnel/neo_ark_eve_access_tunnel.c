@@ -40,6 +40,8 @@
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
+static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
+
 /// Scene id byte; the tunnel stamps 0x18 when it hands the save location off.
 
 /// Set when the tunnel's save is written to the memory card.
@@ -453,7 +455,7 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             RoomDeparture       work;
             RoomEventMsg        msg;
             RoomDeparture*      wp;
-            RoomVariantResolver resolve = roomVariantResolveShelter;
+            RoomVariantResolver resolve = _roomVariantResolveShelter;
 
             work.stage    = GAME_STAGE_MINE_SHELTER;
             work.area     = (u8)task->spawnArg1.value;

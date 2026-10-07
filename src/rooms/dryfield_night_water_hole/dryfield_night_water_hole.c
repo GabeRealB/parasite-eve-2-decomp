@@ -69,6 +69,8 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/water_hole.h"
 
+static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
+
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 
@@ -1116,7 +1118,7 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
     if (arg2 == 2) {
         if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) != 0) {
             RoomDeparture*      wp;
-            RoomVariantResolver resolve = roomVariantResolveShelter;
+            RoomVariantResolver resolve = _roomVariantResolveShelter;
 
             work.stage    = GAME_STAGE_MINE_SHELTER;
             work.area     = GAME_AREA_SHELTER_B4_WATER_SUPPLY;

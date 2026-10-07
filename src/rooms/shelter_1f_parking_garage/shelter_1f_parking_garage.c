@@ -56,6 +56,8 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
 
+static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
+
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_shelter_1f_parking_garage_80181984[4];
@@ -430,7 +432,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 if (gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 9) {
                     gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0xA);
                 }
-                handler      = roomVariantResolveShelter;
+                handler      = _roomVariantResolveShelter;
                 rec.stage    = GAME_STAGE_MINE_SHELTER;
                 rec.area     = GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING;
                 rec.room     = 1;

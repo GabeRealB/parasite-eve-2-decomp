@@ -53,5 +53,5 @@ D_neo_ark_eve_access_tunnel_8017EAC4 = 0x8017EAC4; // size:0x24 defined:True
 neoArkEveAccessTunnelDrawViewGlowsTask = 0x8017E15C; // type:func
 _glowDrawCapsule = 0x8017E244; // type:func
 roomDepartureTask = 0x8017D810; // type:func
-roomVariantResolveShelter = 0x8017D6D4; // type:func
+_roomVariantResolveShelter = 0x8017D6D4; // type:func
 neoArkEveAccessTunnelSetPartDestroyedSprites = 0x8017e090; // type:func

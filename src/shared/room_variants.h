@@ -9,7 +9,9 @@
  *
  * Include this header in the prologue and each fragment at its function's
  * position. A map overlay binds the corresponding resolver identifier before
- * including this header and keeps it defined through the fragment.
+ * including this header and keeps it defined through the fragment. Shelter
+ * carriers declare their instance in the prologue: static in each room, or
+ * externally linked in the map overlay's public header.
  */
 
 #ifndef SRC_SHARED_ROOM_VARIANTS_H
@@ -28,17 +30,18 @@
 /// Both may be the same record. It always returns 1.
 typedef s32 (*RoomVariantResolver)(RoomEventMsg* request, RoomEventMsg* reply);
 
-/// Selects the Mine/Shelter resolver's identifier for its declaration and body.
+/// Selects the Mine/Shelter resolver's function identifier in the shared body.
 ///
-/// Bind to an s32 (RoomEventMsg*, RoomEventMsg*) function before including this
-/// header, retain the binding through room_variants_shelter.inc.c, then undefine
-/// it. map_shelter supplies `mapShelterRoomVariantResolve`; room carriers use the
-/// default `roomVariantResolveShelter`. This object-like binding evaluates nothing.
+/// A carrier declares an s32 (RoomEventMsg*, RoomEventMsg*) function before the
+/// fragment; that declaration determines its linkage. map_shelter binds the
+/// public `mapShelterRoomVariantResolve` before this header. Room carriers use
+/// the default `_roomVariantResolveShelter` and declare it static in their
+/// prologues. Retain the binding through room_variants_shelter.inc.c, then
+/// undefine it. The replacement is one identifier, with no runtime evaluation,
+/// arguments, captured values, stringification or token pasting.
 #ifndef ROOM_VARIANT_RESOLVE_SHELTER
-#define ROOM_VARIANT_RESOLVE_SHELTER roomVariantResolveShelter
+#define ROOM_VARIANT_RESOLVE_SHELTER _roomVariantResolveShelter
 #endif
-
-s32 ROOM_VARIANT_RESOLVE_SHELTER(RoomEventMsg* request, RoomEventMsg* reply);
 
 /// Resolves Neo Ark destination rooms from game progress for a room-local departure.
 ///
