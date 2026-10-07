@@ -710,20 +710,9 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
     {
         _DryfieldBreezewayKeyItemEventWork* eventWork = arg0->work;
         TmdObject*                          eventObj  = arg0->extra.tmd;
-        GfxMatrix*                          light     = &eventWork->lightMatrix;
-        GfxMatrix*                          color     = &eventWork->colorMatrix;
 
-        light->rotationWords.m00M01 = ONE;
-        light->rotationWords.m02M10 = 0;
-        light->rotationWords.m11M12 = ONE;
-        light->rotationWords.m20M21 = 0;
-        light->rotationWords.m22    = ONE;
-
-        color->rotationWords.m00M01 = ONE;
-        color->rotationWords.m02M10 = 0;
-        color->rotationWords.m11M12 = ONE;
-        color->rotationWords.m20M21 = 0;
-        color->rotationWords.m22    = ONE;
+        gfxSetRotIdentity(&eventWork->lightMatrix.mat);
+        gfxSetRotIdentity(&eventWork->colorMatrix.mat);
 
         eventObj->lightMtx = &eventWork->lightMatrix.mat;
 
