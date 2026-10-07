@@ -19,8 +19,9 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
     ActorPartPositionScratch* head;
     s32                       state;
 #if ODD_STRANGER_VARIANT == 2
-    s32 stop;
-    s32 index;
+    s32      stop;
+    s32      index;
+    TaskFunc handler;
 #endif
 
     work   = actor->work;
@@ -97,13 +98,21 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
         work->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 #else
-    /* One local carries the state into `prevState` and then indexes the
-       table: set twice, it keeps the second read behind the store. */
-    index           = (u16)work->state;
-    work->prevState = index;
+    work->prevState = (u16)work->state;
     index           = work->state;
     stop            = ODD_STRANGER_STATE_DEATH_BURN;
-    states.handlers[index](actor);
+    /* Fitted. The image reads `state` again only after the `prevState` store and
+       loads the DEATH_BURN constant beside that read, before the call, in a
+       call-saved register. Both hold only if the table lookup was in a later
+       basic block than the read when the scheduler ran, so a branch stood
+       here and was deleted after scheduling. What it tested and what its arms
+       held is not known; equal arms on the index's sign leave no code. */
+    if (index >= 0) {
+        handler = states.handlers[index];
+    } else {
+        handler = states.handlers[index];
+    }
+    handler(actor);
     state = work->state;
     if ((state == ODD_STRANGER_STATE_AMBUSH) || (state == stop) || (state == ODD_STRANGER_STATE_HIDDEN) || (state == ODD_STRANGER_STATE_DEATH_BURST) || (state == ODD_STRANGER_STATE_DEATH_BURST_WALK)) {
         work->hitBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -144,7 +153,4 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
         enemy->bodyPos.vz = scratch->position.vz;
     }
     enemy->coord = &gGfxViewCoord;
-#if ODD_STRANGER_VARIANT == 2
-    TOUCH_REG(stop);
-#endif
 }
