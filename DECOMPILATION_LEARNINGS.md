@@ -8501,7 +8501,7 @@ reloads it into `$s0` only on the fallthrough path that *does* call, do not
 share one local pointer for both arms. Access the global by name (or return
 early) on the no-call arm, and introduce `p = &global` only after joining the
 call path. A single `p` live across both arms pins `$s0` for the whole function
-and mismatches prologue/early stores (`CdStream_Continue` / `CdStream_State`).
+and mismatches prologue/early stores (`_cdStreamCompleteOpeningRead` / `CdStream_State`).
 
 **Also: capture a dest address before a call that you assign after.** Writing
 `Fs_ChunkWritePtr = (u8*)&Fs_CdSector` after `CdSync` materialises the address
@@ -8579,7 +8579,7 @@ if (queue->callbackInstalled == 0) {
 CdReady_Queue.callbackInstalled = 1; /* reloads address into $v0 — not $s0 */
 ```
 
-`CdReady_InstallCallback` needs this plus `volatile` on the field (base+offset `sb`, not
+`_cdReadyInstallCallback` needs this plus `volatile` on the field (base+offset `sb`, not
 `%lo(sym+1)`); the qualifier works the same on the member as on the whole object.
 Writing `queue->callbackInstalled = 1` keeps `$s0` and mismatches.
 
@@ -11273,8 +11273,8 @@ every arithmetic read is spelled `(s8)x` is a signed byte, not an unsigned one
 with a habit. The uses that looked like evidence for `u8` are not: an equality
 test between two `volatile s8` values is still `lbu`, `lbu`, `beq` with no
 extension, and `x = x + 1` is still `lbu`, `addiu`, `sb`. `_CdReadyQueue`'s
-`readIdx` / `writeIdx` are the example - `CdReady_Enqueue`, `CdReady_Poll` and
-`CdStream_IsBusy` are identical with the fields declared `volatile s8` and the
+`readIdx` / `writeIdx` are the example - `_cdReadyEnqueue`, `CdReady_Poll` and
+`cdStreamIsBusy` are identical with the fields declared `volatile s8` and the
 seven casts removed.
 
 Halfword analogue: a plain `s16` load is usually `lh`, but the target may want
@@ -12670,7 +12670,7 @@ if (flag & 1) {
 return (a != b) ? 1 : (x != 0);
 ```
 
-`CdStream_IsBusy` is the pure example. An if/else that assigns into `ret` and
+`cdStreamIsBusy` is the pure example. An if/else that assigns into `ret` and
 returns once can also work, but the ternary is the minimal rewrite.
 
 ## Statement order of independent increments fills load-delay slots
@@ -13503,7 +13503,7 @@ p->unknown_0[2] = temp & 0xF7; /* separate andi — mask not CSE'd into $sN */
 Using the temp form on *both* sides also yields `andi`, but loads into `$a1`
 instead of reusing `$v0`.
 
-`CdStream_CleanupIrq` is the example.
+`_cdStreamResumePlayback` is the example.
 
 ## `0xFE` byte clear vs `~1` word mask: CSE to `li -2`
 
@@ -13534,7 +13534,7 @@ e->field_0 = (flags & ~1) | 4; /* still li -2; and */
 can put the `lbu` in `$a1`; the split `t = field; t = t & 0xFE; field = t`
 keeps `lbu`/`andi` on `$v0`.
 
-`CdStream_TeardownVoices` is the pure example (pairs with the `CdReady_Queue` entry flag
+`_cdStreamQueueRestartRead` is the pure example (pairs with the `CdReady_Queue` entry flag
 update used by `CdStream_Stop`).
 
 ## Non-volatile store reordered past volatile field stores
@@ -13558,7 +13558,7 @@ D_80082808 = 0; /* stays here when volatile */
 CdStream_State.unknown_0[0] = CdStream_State.unknown_0[0] | 1;
 ```
 
-`CdStream_CleanupIrq` / `D_80082808` is the example.
+`_cdStreamResumePlayback` / `D_80082808` is the example.
 
 ## Default return value belongs in the fall-through branch
 
@@ -17897,7 +17897,7 @@ entry = &CdReady_Queue.entries[queue->writeIdx];
 entry = &queue->entries[queue->writeIdx];
 ```
 
-`CdReady_Enqueue` is the pure example (CdReady_Queue.entries queue push).
+`_cdReadyEnqueue` is the pure example (CdReady_Queue.entries queue push).
 
 ## Dual `goto` return labels for `beqz` + `j`/`li` fallthrough layout
 
@@ -19915,7 +19915,7 @@ entry.field_8 = temp;
 
 Without the wrapper the store wins the schedule; with it, the compiler emits
 the independent loads first. `func_80058748` is the pure example (else-arm
-callback install next to `CdStream_Continue`).
+callback install next to `_cdStreamCompleteOpeningRead`).
 
 ## Reserve `$a0` with `register … asm("a0")` so address-hi keeps `$a2`
 
@@ -20771,7 +20771,7 @@ switch (b) {
 ```
 
 Without the pins, GCC still dual-loads but elides `andi` before `sb`. Without
-`volatile`, it collapses to one `lw` + `move`. `CdStream_InitDisc` (CD init state
+`volatile`, it collapses to one `lw` + `move`. `_cdStreamPollDiscInit` (CD init state
 machine, sibling of `Cd_InitStateMachine`) is the pure example — also needs
 `CdStreamState.settleCounter` as `u16` for the case-7 retry counter.
 
@@ -22921,7 +22921,7 @@ temp that lives in `$v0` (`color = 0xB0; t = color - val`) so you get
 First clamp only: after `t = 1` use `asm("" : "+r"(t)); c = t & 0xFF` so the
 second `andi` is not constant-folded to `li a0, 1`.
 
-## `CdStream_ReadyMts` (4A6E0 CD/SPU stream callback) notes
+## `_cdStreamSectorReadyCallback` (4A6E0 CD/SPU stream callback) notes
 
 Large (~0xA68) CD ready callback (`CdStream_*` / `CdReady_*` subsystem).
 Infrastructure landed; full match still open (~84% best). Key requirements for
@@ -22940,8 +22940,8 @@ the next attempt:
    `mtsPeriod`/`gapSectors`, `sectorsLeft`, `voiceL`/`voiceR`/`channelCount`, `sector` as
    `_MtsHeader*`.
 
-4. **Error counters** at `D_80068B5C+1` / `+3` and `D_80068B64+1` want
-   `%lo(sym+N)` form (`lbu`/`sb` with folded reloc). Separate byte symbols or
+4. **Error counters** at `CdStream_ShellOpenErrors`, `D_80068B5F` and
+   `*(volatile u8*)&D_80068B65` want `%lo(sym)` form (`lbu`/`sb` with folded reloc). Separate byte symbols or
    non-volatile struct fields; array index often emits `addiu` base + offset.
 
 
@@ -145432,7 +145432,7 @@ also lives in another block, so global-alloc places it after local-alloc has
 spent `$v1` on the `%hi`. Reusing a function-wide variable (`status`, `val`)
 does that, but the variable's other life must then also fit `$a0`. Check that
 before reaching for a pin; if no variable qualifies, the `$a0` pin is still open.
-## Two loads of one word around a byte store: a bitfield read and a `volatile` global (CdStream_InitDisc, 2026-09-26)
+## Two loads of one word around a byte store: a bitfield read and a `volatile` global (_cdStreamPollDiscInit, 2026-09-26)
 
 The target read the flags word twice, `lw v0; lw v1; srl/andi` on both, and
 only then `sb v0,g` - with the `andi 0xff` kept even though a byte store
@@ -146702,7 +146702,7 @@ the same block it hoists the constant argument sets ahead of the global load.
 comes out of the inverted test (`if (x >= 0x100) { ...; break; }` then the
 fade path) rather than from labels.
 
-## An empty-asm barrier holding a load in place can stand for the association of a nearby sum (CdStream_ReadyMts, 2026-09-27)
+## An empty-asm barrier holding a load in place can stand for the association of a nearby sum (_cdStreamSectorReadyCallback, 2026-09-27)
 
 **Symptom.** With `SOFT_BARRIER()` removed, a non-volatile `ch[0].attr` load is
 scheduled above two earlier stores it has no dependence on; the barrier kept it
@@ -147444,7 +147444,7 @@ simpler rule was isolated, and neither was the pass that regroups it.
 matched only because the member was signed, so an `s8` kept to preserve such a
 sum is the scaffold, not evidence about the member.
 
-## A bitfield shifted into an `|`: the store's own type as a cast keeps the three shifts (CdStream_PollMtsRead, 2026-10-04)
+## A bitfield shifted into an `|`: the store's own type as a cast keeps the three shifts (_cdStreamPollChunkRead, 2026-10-04)
 
 **Symptom.** A status word held as `(flags >> 5) & 0xFF` and
 `(flags & ~0x1FE0) | n` was redeclared as bitfields (`phase : 8` at bit 5).
@@ -150562,7 +150562,7 @@ attempts; left as it was.
     arms reuses the function's `$s2` base in the fall-through copy, the copies
     differ, and the surviving copy is the later one (1 insn longer, blocks in
     the other order).
-  - `CdStream_PollMtsRead`'s retry jumps into the end of an earlier case
+  - `_cdStreamPollChunkRead`'s retry jumps into the end of an earlier case
     (`retry_mode`, `start_read`, `pause_read`): an inline called at both
     sites is merged into the *later* site (the earlier `break` is processed
     first and its copy deleted), 23 insns longer. Its `wait_for_progress` and

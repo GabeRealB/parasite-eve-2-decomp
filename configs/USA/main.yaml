@@ -146,7 +146,7 @@ segments:
       # jtbl_800141C4 (CdAudio_DriveStream) + jtbl from CdAudio_DriveSeek +
       # jtbl from CdAudio_DriveRead + jtbl from CdAudio_DrivePhase1
       - [0x49c4, .rodata, "cdaudio"]
-      # jtbls from CdStream_PollMtsRead, CdStream_InitDisc and CdStream_AbortPhase
+      # jtbls from _cdStreamPollChunkRead, _cdStreamPollDiscInit and _cdStreamCancelChunkRead
       - [0x4a48, .rodata, "cdstream"]
       - [0x4ad0, o, libspu/s_si, .rdata]
 

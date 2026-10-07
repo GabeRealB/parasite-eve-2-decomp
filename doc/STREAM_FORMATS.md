@@ -167,9 +167,9 @@ Nominal body length: `chunk_count × channels × period` sectors (from first
 header). The descriptor's `data.scene.resumeSectorOffset` supplies a subsequent
 audio seek; derive the body length from the MTS headers.
 
-### 2.3 `CdStream_ReadyMts` write sizes (critical for decode)
+### 2.3 `_cdStreamSectorReadyCallback` write sizes (critical for decode)
 
-Per period window (`remaining % period` in `CdStream_ReadyMts`):
+Per period window (`sectorsLeft % mtsPeriod` in `_cdStreamSectorReadyCallback`):
 
 | Sector in window | What the game feeds SPU |
 |------------------|-------------------------|

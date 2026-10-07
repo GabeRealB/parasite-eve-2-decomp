@@ -434,7 +434,7 @@ static s32 CdAudio_DrivePhase0(void)
             progress->stopStep = CD_AUDIO_STOP_STEP_WAIT_IDLE;
             /* fallthrough */
         case CD_AUDIO_STOP_STEP_WAIT_IDLE:
-            if (CdStream_IsBusy() == 0) {
+            if (cdStreamIsBusy() == 0) {
                 CdAudio_Phase.stopStep = CD_AUDIO_STOP_STEP_DONE;
                 ret                    = CD_AUDIO_DRIVER_IDLE;
             }
@@ -738,7 +738,7 @@ static s32 CdAudio_DriveRead(void)
             // The voices the player asked for, not the stream's allocated pair.
             spuKeyOff(_gCdAudioState.streamParams.voiceL);
             spuKeyOff(_gCdAudioState.streamParams.voiceR);
-            if (CdStream_IsBusy() != 0) {
+            if (cdStreamIsBusy() != 0) {
                 break;
             }
         do_setmode:
@@ -1058,7 +1058,7 @@ static s32 CdAudio_PrepareNextEntry(void)
 
 s32 CdAudio_StartTrack(s32 sector, s32 volumeIndex)
 {
-    if (CdStream_IsBusy() != 0) {
+    if (cdStreamIsBusy() != 0) {
         return -1;
     }
     CdAudio_ResetKeepBuffer(sector);
@@ -1228,11 +1228,11 @@ static s32 CdAudio_DrivePhase1(void)
             break;
         case CD_AUDIO_PLAY_STEP_START:
         case 2: // nothing stores this step
-            CdStream_ArmSpuIrq();
+            cdStreamBeginPlayback();
             CdAudio_Phase.playStep = CD_AUDIO_PLAY_STEP_WAIT_END;
             break;
         case CD_AUDIO_PLAY_STEP_WAIT_END:
-            if (CdStream_IsBusy() == 0) {
+            if (cdStreamIsBusy() == 0) {
                 ret                    = CD_AUDIO_DRIVER_FADE_OUT;
                 CdAudio_Phase.playStep = CD_AUDIO_PLAY_STEP_DONE;
                 CdAudio_Phase.stopStep = CD_AUDIO_STOP_STEP_RELEASE_VOICES;

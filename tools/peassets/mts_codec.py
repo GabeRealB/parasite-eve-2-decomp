@@ -24,7 +24,7 @@ Every *period* sectors an **MTS header sector** appears::
 
 Intervening sectors are raw SPU-ADPCM continuation.
 
-``CdStream_ReadyMts`` write sizes per period window (``remaining % period``)::
+``_cdStreamSectorReadyCallback`` write sizes per period window (``sectorsLeft % mtsPeriod``)::
 
     header (rem % P == 0):  ``SpuWrite(sec+0x10, 0x800)`` but SPU ring
                             advances **0x7F0** → take ``sec[0x10:0x800]``
@@ -284,7 +284,7 @@ def demux_adpcm_channels(body: bytes, info: MtsStreamInfo) -> list[bytes]:
     """Demux MTS *body* (no preamble) into per-channel SPU-ADPCM byte streams.
 
     Scan for every MTS header. Each header owns the following ``period``
-    sectors. Write sizes match ``CdStream_ReadyMts``:
+    sectors. Write sizes match ``_cdStreamSectorReadyCallback``:
 
     * header: ``sec[0x10:0x800]`` (0x7F0)
     * middle: full 0x800

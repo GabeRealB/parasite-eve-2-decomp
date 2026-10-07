@@ -29,12 +29,21 @@ STATIC_ASSERT_SIZEOF(CdStreamParams, 0x20);
 // CD → SPU MTS stream
 void CdStream_Reset(void);
 
-void CdStream_ArmSpuIrq(void);
+/// Begins playback of an opened stream from playhead zero on the next driver ticks.
+///
+/// The opening read must have finished. Resets the initial chunk delay and
+/// registers the SPU ring-boundary callback while leaving the interrupt disabled;
+/// chunk reads arm it when needed. Voice allocation and key-on happen in the driver.
+void cdStreamBeginPlayback(void);
 
 /// Sets both streaming voices' gains, respecting mono/stereo output.
 void CdStream_SetVolume(s16 volume);
 
-s32 CdStream_IsBusy(void);
+/// Returns one while playback, a queued disc read or drive reinitialization is outstanding.
+///
+/// An opened stream waiting to begin playback is idle once its queues drain.
+/// Cancellation remains busy until the CD-ready queue has retired its job.
+s32 cdStreamIsBusy(void);
 
 /// Selects mono or stereo mixing for subsequent stream gain updates.
 ///

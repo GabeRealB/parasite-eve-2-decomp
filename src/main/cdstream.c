@@ -313,6 +313,35 @@ STATIC_ASSERT_SIZEOF(_CdReadyQueue, 0x58);
         }                                                 \
     }
 
+/// Stream-read failures produced by the polling and sector callbacks.
+///
+/// These share a diagnostic word with SDK `CdlDiskError` (also 5). A timed-out
+/// polling step uses its phase in the upper bits and `CD_STREAM_ERROR_PHASE_TIMEOUT` below it.
+enum {
+    CD_STREAM_ERROR_SECTOR_TRANSFER      = 2,
+    CD_STREAM_ERROR_SECTOR_POSITION      = 3,
+    CD_STREAM_ERROR_SPU_TRANSFER_TIMEOUT = 4,
+    CD_STREAM_ERROR_SHELL_OPEN           = 5,
+    CD_STREAM_ERROR_CD_INTERRUPT         = 7,
+    CD_STREAM_ERROR_MTS_SIGNATURE        = 8,
+    CD_STREAM_ERROR_CHUNK_READ           = 9,
+    CD_STREAM_ERROR_PHASE_TIMEOUT        = 0xA,
+    CD_STREAM_ERROR_SECTOR_READ          = 0xB,
+    CD_STREAM_ERROR_CALLBACK_REENTRY     = 0xC,
+};
+
+/// Opening-read result passed to the live stream's completion callback.
+enum {
+    CD_STREAM_OPEN_ABANDONED = 0,
+    CD_STREAM_OPEN_READY     = 1,
+};
+
+/// Per-step retry/progress threshold in stream-driver polls, not elapsed time.
+enum {
+    CD_STREAM_COMMAND_POLL_LIMIT = 600,
+    CD_STREAM_SYNC_POLL          = 1, // Nonblocking CdSync; zero blocks until a response.
+};
+
 static s32 CdStream_PhaseTimeout;
 
 /// Unreferenced.
@@ -361,7 +390,7 @@ static volatile u8 D_80068B64;
 /// Unreferenced.
 static u8 D_80068B65;
 
-/// Copy of CdStream_InitDisc's current step, refreshed on every poll; nothing
+/// Copy of _cdStreamPollDiscInit's current step, refreshed on every poll; nothing
 /// reads it back.
 static volatile u8 D_80068B66;
 
@@ -382,18 +411,17 @@ static u16 D_80068B78;
 
 void func_80725BB8(Task* arg0);
 
-static s32 CdReady_Enqueue(_CdReadyEntry* arg0);
+static s32 _cdReadyEnqueue(const _CdReadyEntry* jobTemplate);
 
 static void CdReady_Poll(void);
 
-static void CdStream_Continue(void);
+static void _cdStreamCompleteOpeningRead(void);
 
-static void CdStream_TeardownVoices(void);
+static void _cdStreamQueueRestartRead(void);
 
-/// Starts playback after the initial read, or queues another read while waiting.
-static void CdStream_CompleteInitialRead(void);
+static void _cdStreamCompleteRestartRead(void);
 
-static void CdStream_CleanupIrq(void);
+static void _cdStreamResumePlayback(void);
 
 /// Updates stream voices and queues the next chunk as playback advances.
 static void CdStream_TickPlayback(void);
@@ -401,30 +429,29 @@ static void CdStream_TickPlayback(void);
 /// Handles a completed chunk read, including underrun and end-of-stream state.
 static void CdStream_CompleteChunkRead(void);
 
-/// Advances the queued MTS read through mode, seek, read, pause and completion.
-static s32 CdStream_PollMtsRead(_CdReadyEntry* entry);
+static s32 _cdStreamPollChunkRead(_CdReadyEntry* entry);
 
-static void CdStream_ReadyMts(u8 interrupt, u8* result);
+static void _cdStreamSectorReadyCallback(u8 interrupt, u8* result);
 
-static s32 CdStream_InitDisc(AsyncCbEntry* entry);
+static s32 _cdStreamPollDiscInit(AsyncCbEntry* entry);
 
-static void CdReady_InstallCallback(CdlCB arg0);
+static void _cdReadyInstallCallback(CdlCB callback);
 
-static void CdReady_ClearCallback(void);
+static void _cdReadyClearCallback(void);
 
-static void CdStream_SpuIrqHandler(void);
+static void _cdStreamSpuIrqCallback(void);
 
 static void CdStream_SetFlag14(s32 playhead);
 
-static void CdStream_AbortPhase(_CdReadyEntry* entry);
+static void _cdStreamCancelChunkRead(_CdReadyEntry* entry);
 
-static void CdStream_FinishQueueEntry(_CdReadyEntry* entry);
+static void _cdStreamCancelReadAndNotify(_CdReadyEntry* entry);
 
 static void CdReady_Cancel(s16 arg0);
 
 static void _cdStreamClearReadySlot(void);
 
-static void CdStream_MarkEnding(AsyncCbEntry* unused);
+static void _cdStreamCompleteDiscInit(AsyncCbEntry* entry);
 
 static s32 _cdStreamCancelDiscInit(AsyncCbEntry* entry);
 
@@ -449,7 +476,7 @@ static volatile u8 D_80068B63               = 0;
 static volatile u8 D_80068B64               = 0;
 /// Unreferenced.
 static u8 D_80068B65 = 0;
-/// Copy of CdStream_InitDisc's current step, refreshed on every poll; nothing
+/// Copy of _cdStreamPollDiscInit's current step, refreshed on every poll; nothing
 /// reads it back.
 static volatile u8 D_80068B66 = 0;
 static volatile u8 D_80068B67 = 0;
@@ -956,45 +983,98 @@ u16 Snd_VelocityGainTable[] = {
     0x3FFF,
 };
 
-static s32 CdReady_Enqueue(_CdReadyEntry* arg0)
+/// Arms the ring-boundary interrupt after removing any previous stream IRQ.
+///
+/// `address` is a byte address in SPU RAM, selected from the streaming ring.
+static inline void _cdStreamArmChunkIrq(u32 address)
 {
-    u8             saved;
-    s32            field2;
-    s32            next;
-    _CdReadyEntry* entry;
+    if (D_80068B5C != 0) {
+        SpuSetIRQ(SPU_OFF);
+        SpuSetIRQCallback(NULL);
+    }
+    D_80068B5C = 1;
+    SpuSetIRQCallback(_cdStreamSpuIrqCallback);
+    SpuSetIRQAddr(address);
+    SpuSetIRQ(SPU_ON);
+}
+
+/// Cancels a one-based ready slot for a restart, leaving zero as no job.
+///
+/// Nonzero slots must be valid handles returned by the ready queue (1..4).
+/// The slot remains queued until its cancellation handler has finished.
+static inline void _cdReadyCancelRestartSlot(s16 slot)
+{
+    u8             savedLock;
+    _CdReadyEntry* queuedJob;
+
+    savedLock = CdReady_Queue.locked;
+    if (slot != 0) {
+        queuedJob = &CdReady_Queue.entries[(s16)(slot - 1)];
+        if (queuedJob->active) {
+            queuedJob->active    = 0;
+            queuedJob->cancelled = 1;
+        }
+        CdReady_Queue.locked = savedLock;
+    }
+}
+
+/// Transfers the tail of a channel period, rounding DMA bytes up but advancing only audio bytes.
+///
+/// `audioBytes` is the channel period's remaining audio extent (1..2048);
+/// the sector buffer must stay readable through the rounded transfer until DMA finishes.
+static inline void _cdStreamWriteSectorTail(s32 audioBytes)
+{
+    enum { CD_STREAM_TAIL_TRANSFER_ALIGNMENT = 64 };
+
+    SpuWrite((u8*)CdStream_Runtime.state.sector, (audioBytes + CD_STREAM_TAIL_TRANSFER_ALIGNMENT - 1) & ~(CD_STREAM_TAIL_TRANSFER_ALIGNMENT - 1));
+    *(void* volatile*)&CdStream_LastTransferBuffer = CdStream_Runtime.state.sector;
+    CdStream_Runtime.state.spuAddr                += audioBytes;
+}
+
+/// Copies a disc-job template into the CD-ready ring and returns its one-based slot.
+///
+/// The template supplies the sector and handlers; the queue initializes the
+/// status bits and keeps no pointer to the template. Zero means the ring is full.
+/// One of the four slots stays empty so equal indices mean an empty queue.
+static s32 _cdReadyEnqueue(const _CdReadyEntry* jobTemplate)
+{
+    u8             savedLock;
+    s32            slotIdx;
+    s32            nextWriteIdx;
+    _CdReadyEntry* queuedJob;
     _CdReadyQueue* queue;
 
     queue                = &CdReady_Queue;
-    saved                = CdReady_Queue.locked;
+    savedLock            = CdReady_Queue.locked;
     CdReady_Queue.locked = 1;
 
-    field2 = queue->readIdx;
-    next   = queue->writeIdx;
-    next   = next + 1;
-    if (next >= ARRAY_SIZE(queue->entries)) {
-        next = 0;
+    slotIdx      = queue->readIdx;
+    nextWriteIdx = queue->writeIdx;
+    nextWriteIdx = nextWriteIdx + 1;
+    if (nextWriteIdx >= ARRAY_SIZE(queue->entries)) {
+        nextWriteIdx = 0;
     }
 
-    if (next == field2) {
-        CdReady_Queue.locked = saved;
+    if (nextWriteIdx == slotIdx) {
+        CdReady_Queue.locked = savedLock;
         return 0;
     }
 
-    entry           = &CdReady_Queue.entries[queue->writeIdx];
-    entry->pollFn   = arg0->pollFn;
-    entry->sector   = arg0->sector;
-    entry->doneFn   = arg0->doneFn;
-    entry->cancelFn = arg0->cancelFn;
+    queuedJob           = &CdReady_Queue.entries[queue->writeIdx];
+    queuedJob->pollFn   = jobTemplate->pollFn;
+    queuedJob->sector   = jobTemplate->sector;
+    queuedJob->doneFn   = jobTemplate->doneFn;
+    queuedJob->cancelFn = jobTemplate->cancelFn;
     // The status bits are the queue's own: the caller supplies only the handlers and the sector.
-    entry->active        = 1;
-    entry->cancelled     = 0;
-    entry->cancelPending = 0;
-    entry->phase         = 0;
-    entry->firstPoll     = 1;
-    field2               = queue->writeIdx;
-    queue->writeIdx      = next;
-    CdReady_Queue.locked = saved;
-    return field2 + 1;
+    queuedJob->active        = 1;
+    queuedJob->cancelled     = 0;
+    queuedJob->cancelPending = 0;
+    queuedJob->phase         = 0;
+    queuedJob->firstPoll     = 1;
+    slotIdx                  = queue->writeIdx;
+    queue->writeIdx          = nextWriteIdx;
+    CdReady_Queue.locked     = savedLock;
+    return slotIdx + 1;
 }
 
 static void CdReady_Poll(void)
@@ -1191,20 +1271,25 @@ void CdStream_Start(CdStreamParams* params)
     }
 
     rem_tmp                          = &entry;
-    entry.pollFn                     = CdStream_PollMtsRead;
+    entry.pollFn                     = _cdStreamPollChunkRead;
     startSector                      = params->startSector;
-    entry.doneFn                     = CdStream_Continue;
-    entry.cancelFn                   = CdStream_FinishQueueEntry;
+    entry.doneFn                     = _cdStreamCompleteOpeningRead;
+    entry.cancelFn                   = _cdStreamCancelReadAndNotify;
     entry.sector                     = startSector;
-    CdStream_Runtime.state.readySlot = CdReady_Enqueue(rem_tmp);
+    CdStream_Runtime.state.readySlot = _cdReadyEnqueue(rem_tmp);
     CdStream_Runtime.state.phase     = CD_STREAM_PHASE_READING;
     D_80068B74                       = -1;
 }
 
-static void CdStream_Continue(void)
+/// Reports a received chunk-zero opening read, or queues another attempt at the stream origin.
+///
+/// A successful opening leaves playback inactive and calls the stream's
+/// completion callback with one. A completed job without chunk zero retries;
+/// a full ready queue returns no slot and is not retried here.
+static void _cdStreamCompleteOpeningRead(void)
 {
-    _CdReadyEntry           entry;
-    volatile CdStreamState* p;
+    _CdReadyEntry           readJob;
+    volatile CdStreamState* state;
 
     CdStream_Runtime.state.readySlot = 0;
 
@@ -1215,20 +1300,20 @@ static void CdStream_Continue(void)
             CdStream_Runtime.state.flags2 = CdStream_Runtime.state.flags2 & CD_STREAM_CLEAR_FAULT;
             CdStream_Runtime.state.flags2 = CdStream_Runtime.state.flags2 & CD_STREAM_CLEAR_CHUNK_ADVANCE;
             if (CdStream_Runtime.state.doneCb != NULL) {
-                CdStream_Runtime.state.doneCb(1);
+                CdStream_Runtime.state.doneCb(CD_STREAM_OPEN_READY);
             }
             return;
         }
     }
 
-    p              = &CdStream_Runtime.state;
-    entry.pollFn   = CdStream_PollMtsRead;
-    entry.doneFn   = CdStream_Continue;
-    p->flags2      = p->flags2 & CD_STREAM_CLEAR_FAULT;
-    entry.cancelFn = CdStream_FinishQueueEntry;
-    entry.sector   = p->startSector;
-    D_80068B63     = D_80068B63 + 1;
-    p->readySlot   = CdReady_Enqueue(&entry);
+    state            = &CdStream_Runtime.state;
+    readJob.pollFn   = _cdStreamPollChunkRead;
+    readJob.doneFn   = _cdStreamCompleteOpeningRead;
+    state->flags2    = state->flags2 & CD_STREAM_CLEAR_FAULT;
+    readJob.cancelFn = _cdStreamCancelReadAndNotify;
+    readJob.sector   = state->startSector;
+    D_80068B63       = D_80068B63 + 1;
+    state->readySlot = _cdReadyEnqueue(&readJob);
 }
 
 void CdStream_Stop(void)
@@ -1273,13 +1358,16 @@ void CdStream_Stop(void)
     CdReady_Queue.locked = saved;
 }
 
-static void CdStream_TeardownVoices(void)
+/// Stops the streaming voices and queues the requested restart chunk after a fault or underrun.
+///
+/// Runs only while the requeue flag is set. Cancels the previous ready slot,
+/// removes the SPU interrupt and queues `readSector`; completion resumes at the
+/// retained playhead. The CD-ready queue owns the copied job template.
+static void _cdStreamQueueRestartRead(void)
 {
-    _CdReadyEntry  entry;
-    s32            flag;
-    s16            slot;
-    _CdReadyEntry* e;
-    u8             saved;
+    _CdReadyEntry readJob;
+    s32           voicesOn;
+    s16           readySlot;
 
     if (CdStream_Runtime.state.flags2 & CD_STREAM_REQUEUE) {
         CdStream_Runtime.state.queuedChunk;
@@ -1287,91 +1375,88 @@ static void CdStream_TeardownVoices(void)
         CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_ACTIVE;
         CdStream_Runtime.state.flags2 &= CD_STREAM_CLEAR_FAULT;
         CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_KEY_ON;
-        flag                           = (CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1;
-        if (flag == 1) {
+        voicesOn                       = (CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1;
+        if (voicesOn == 1) {
             spuKeyOff((s8)CdStream_Runtime.state.voiceL);
             spuKeyOff((s8)CdStream_Runtime.state.voiceR);
             CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_VOICES_ON;
             if (CdStream_Runtime.state.voiceFreeCb != NULL) {
-                CdStream_Runtime.state.voiceFreeCb((flag << (s8)CdStream_Runtime.state.voiceL) | (flag << (s8)CdStream_Runtime.state.voiceR));
+                CdStream_Runtime.state.voiceFreeCb((voicesOn << (s8)CdStream_Runtime.state.voiceL) | (voicesOn << (s8)CdStream_Runtime.state.voiceR));
             }
         }
-        SpuSetIRQ(0);
-        SpuSetIRQCallback(0);
+        SpuSetIRQ(SPU_OFF);
+        SpuSetIRQCallback(NULL);
         if (CdStream_Runtime.state.readySlot != 0) {
-            slot  = CdStream_Runtime.state.readySlot;
-            saved = CdReady_Queue.locked;
-            if (slot != 0) {
-                e = &CdReady_Queue.entries[(s16)(slot - 1)];
-                if (e->active) {
-                    e->active    = 0;
-                    e->cancelled = 1;
-                }
-                CdReady_Queue.locked = saved;
-            }
+            readySlot = CdStream_Runtime.state.readySlot;
+            _cdReadyCancelRestartSlot(readySlot);
             CdStream_Runtime.state.readySlot = 0;
         }
-        entry.pollFn                     = CdStream_PollMtsRead;
-        entry.doneFn                     = CdStream_CompleteInitialRead;
-        entry.sector                     = CdStream_Runtime.state.readSector;
+        readJob.pollFn                   = _cdStreamPollChunkRead;
+        readJob.doneFn                   = _cdStreamCompleteRestartRead;
+        readJob.sector                   = CdStream_Runtime.state.readSector;
         CdStream_Runtime.state.flags0   &= CD_STREAM_CLEAR_CHUNK_READY;
-        entry.cancelFn                   = CdStream_FinishQueueEntry;
-        CdStream_Runtime.state.readySlot = CdReady_Enqueue(&entry);
+        readJob.cancelFn                 = _cdStreamCancelReadAndNotify;
+        CdStream_Runtime.state.readySlot = _cdReadyEnqueue(&readJob);
         CdStream_Runtime.state.phase     = CD_STREAM_PHASE_READING;
     }
 }
 
-static void CdStream_CompleteInitialRead(void)
+/// Resumes a received restart chunk at the saved playhead, or queues another read.
+///
+/// Playhead and delay are measured in vsyncs. An even chunk schedules key-on
+/// after the current chunk boundary; an odd chunk resumes without that delay.
+static void _cdStreamCompleteRestartRead(void)
 {
-    _CdReadyEntry           entry;
-    volatile CdStreamState* p;
-    s32                     pos;
-    s32                     chunk;
+    _CdReadyEntry           readJob;
+    volatile CdStreamState* state;
+    s32                     playhead;
+    s32                     nextChunk;
 
-    p            = &CdStream_Runtime.state;
-    pos          = p->playhead;
-    chunk        = pos / p->chunkVsyncs + 1;
-    p->readySlot = 0;
+    state            = &CdStream_Runtime.state;
+    playhead         = state->playhead;
+    nextChunk        = playhead / state->chunkVsyncs + 1;
+    state->readySlot = 0;
 
     if ((CdStream_Runtime.state.flags0 >> CD_STREAM_CHUNK_READY_BIT) & 1) {
-        p->phase  = CD_STREAM_PHASE_READY;
-        p->flags1 = p->flags1 | CD_STREAM_VOICE_COPY;
-        p->flags2 = p->flags2 & CD_STREAM_CLEAR_FAULT;
-        if (p->chunkIndex & 1) {
-            p->advanceDelay = 0;
+        state->phase  = CD_STREAM_PHASE_READY;
+        state->flags1 = state->flags1 | CD_STREAM_VOICE_COPY;
+        state->flags2 = state->flags2 & CD_STREAM_CLEAR_FAULT;
+        if (state->chunkIndex & 1) {
+            state->advanceDelay = 0;
         } else {
-            p->advanceDelay               = p->chunkVsyncs - pos % p->chunkVsyncs + 1;
+            state->advanceDelay           = state->chunkVsyncs - playhead % state->chunkVsyncs + 1;
             CdStream_Runtime.state.flags0 = CdStream_Runtime.state.flags0 | CD_STREAM_KEY_ON;
         }
-        CdStream_CleanupIrq();
+        _cdStreamResumePlayback();
     } else {
-        p->flags2      = p->flags2 & CD_STREAM_CLEAR_FAULT;
-        D_80068B63     = D_80068B63 + 1;
-        entry.pollFn   = CdStream_PollMtsRead;
-        entry.doneFn   = CdStream_CompleteInitialRead;
-        entry.cancelFn = CdStream_FinishQueueEntry;
-        entry.sector   = p->readSector;
-        p->queuedChunk = chunk;
-        p->readySlot   = CdReady_Enqueue(&entry);
+        state->flags2      = state->flags2 & CD_STREAM_CLEAR_FAULT;
+        D_80068B63         = D_80068B63 + 1;
+        readJob.pollFn     = _cdStreamPollChunkRead;
+        readJob.doneFn     = _cdStreamCompleteRestartRead;
+        readJob.cancelFn   = _cdStreamCancelReadAndNotify;
+        readJob.sector     = state->readSector;
+        state->queuedChunk = nextChunk;
+        state->readySlot   = _cdReadyEnqueue(&readJob);
     }
 }
 
-static void CdStream_CleanupIrq(void)
+/// Resumes stream-driver service after a restart read, clearing the interrupt and fault halt.
+static void _cdStreamResumePlayback(void)
 {
-    volatile CdStreamState* p;
-    u8                      temp;
+    volatile CdStreamState* state;
+    u8                      flags;
 
     if (D_80068B5C != 0) {
-        SpuSetIRQ(0);
-        SpuSetIRQCallback(0);
+        SpuSetIRQ(SPU_OFF);
+        SpuSetIRQCallback(NULL);
         D_80068B5C = 0;
     }
     CdStream_Runtime.state.flags0 = CdStream_Runtime.state.flags0 & CD_STREAM_CLEAR_SPU_IRQ;
     CdStream_Runtime.state.flags0 = CdStream_Runtime.state.flags0 & CD_STREAM_CLEAR_STOP;
     streamSetSceneError(0, 0);
-    p                             = &CdStream_Runtime.state;
-    temp                          = p->flags2;
-    p->flags2                     = temp & 0xF7;
+    state                         = &CdStream_Runtime.state;
+    flags                         = state->flags2;
+    state->flags2                 = flags & CD_STREAM_CLEAR_HALT;
     CdStream_ErrorCode            = 0;
     CdStream_Runtime.state.flags0 = CdStream_Runtime.state.flags0 | CD_STREAM_ACTIVE;
 }
@@ -1442,7 +1527,7 @@ static void CdStream_TickPlayback(void)
                 CdStream_Runtime.state.flags2 |= CD_STREAM_HALT;
                 CdStream_Runtime.state.flags2 |= CD_STREAM_REQUEUE;
                 CdStream_Runtime.state.flags2 |= CD_STREAM_CHUNK_ADVANCE;
-                CdStream_TeardownVoices();
+                _cdStreamQueueRestartRead();
             }
             CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_KEY_ON;
             CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_SPU_IRQ;
@@ -1463,9 +1548,9 @@ static void CdStream_TickPlayback(void)
             goto stopVoices;
         }
         if (nextChunk < CdStream_Runtime.state.chunkCount) {
-            entry.pollFn   = CdStream_PollMtsRead;
+            entry.pollFn   = _cdStreamPollChunkRead;
             entry.doneFn   = _cdStreamClearReadySlot;
-            entry.cancelFn = CdStream_AbortPhase;
+            entry.cancelFn = _cdStreamCancelChunkRead;
             if ((u16)CdStream_Runtime.state.readySlot != 0) {
                 slot  = CdStream_Runtime.state.readySlot;
                 saved = CdReady_Queue.locked;
@@ -1486,7 +1571,7 @@ static void CdStream_TickPlayback(void)
             entry.sector                       = CdStream_Runtime.state.readSector;
             CdStream_Runtime.state.queuedChunk = nextChunk;
             CdStream_Runtime.state.flags0     &= CD_STREAM_CLEAR_CHUNK_READY;
-            CdStream_Runtime.state.readySlot   = CdReady_Enqueue(&entry);
+            CdStream_Runtime.state.readySlot   = _cdReadyEnqueue(&entry);
             CdStream_Runtime.state.phase       = CD_STREAM_PHASE_READING;
         }
         CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_SPU_IRQ;
@@ -1538,7 +1623,7 @@ static void CdStream_CompleteChunkRead(void)
                 if (((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_SPU_IRQ_BIT) & 1) {
                     CdStream_Runtime.state.playhead = CdStream_Runtime.state.chunkIndex * (s16)(u16)CdStream_Runtime.state.chunkVsyncs;
                 }
-                CdStream_TeardownVoices();
+                _cdStreamQueueRestartRead();
             }
         } else {
             position                              = position / (s16)(u16)CdStream_Runtime.state.chunkVsyncs;
@@ -1556,9 +1641,9 @@ static void CdStream_CompleteChunkRead(void)
                 goto stopVoices;
             }
             if (position < CdStream_Runtime.state.chunkCount) {
-                entry.pollFn   = CdStream_PollMtsRead;
+                entry.pollFn   = _cdStreamPollChunkRead;
                 entry.doneFn   = _cdStreamClearReadySlot;
-                entry.cancelFn = CdStream_AbortPhase;
+                entry.cancelFn = _cdStreamCancelChunkRead;
                 if ((u16)CdStream_Runtime.state.readySlot != 0) {
                     slot  = (u16)CdStream_Runtime.state.readySlot;
                     saved = CdReady_Queue.locked;
@@ -1579,7 +1664,7 @@ static void CdStream_CompleteChunkRead(void)
                 entry.sector                       = CdStream_Runtime.state.readSector;
                 CdStream_Runtime.state.queuedChunk = position;
                 CdStream_Runtime.state.flags0     &= CD_STREAM_CLEAR_CHUNK_READY;
-                CdStream_Runtime.state.readySlot   = CdReady_Enqueue(&entry);
+                CdStream_Runtime.state.readySlot   = _cdReadyEnqueue(&entry);
                 CdStream_Runtime.state.phase       = CD_STREAM_PHASE_READING;
             }
         }
@@ -1607,7 +1692,7 @@ void CdStream_Drive(void)
                 CdStream_Runtime.state.flags2 |= CD_STREAM_HALT;
                 CdStream_ErrorCode             = 0;
                 CdStream_Runtime.state.flags2 |= CD_STREAM_REQUEUE;
-                CdStream_TeardownVoices();
+                _cdStreamQueueRestartRead();
             } else {
                 if (((u8)CdStream_Runtime.state.flags1 >> CD_STREAM_SEEK_BIT) & 1) {
                     if (((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1) {
@@ -1799,24 +1884,32 @@ void CdStream_Drive(void)
     }
 }
 
-static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
+/// Polls one queued MTS chunk read through drive setup, sector intake and transfer completion.
+///
+/// `entry` is queue-owned and supplies an absolute start sector. The CD-ready
+/// callback fills the shared sector buffer and SPU rings. Nonzero retires the
+/// job, including on error; `CD_STREAM_CHUNK_READY` distinguishes a received chunk.
+/// Progress/retry thresholds count stream-driver polls, not milliseconds.
+static s32 _cdStreamPollChunkRead(_CdReadyEntry* entry)
 {
-    struct {
-        CdlLOC       loc;
-        u8           pad[4];
-        s8           mode[8];
-        u8           result[8];
-        AsyncCbEntry entry;
-    } sp;
+    CdlLOC       location;
+    s8           readMode[8];
+    u8           commandResult[8];
+    AsyncCbEntry discInitJob;
+    enum {
+        CD_STREAM_SPEED_SETTLE_POLLS = 3,
+        CD_STREAM_SPU_IRQ_ALIGNMENT  = 64,
+    };
     s32 phase;
     s32 modeSync;
     s32 locationSync;
     s32 readSync;
     s32 pauseSync;
-    u32 irqAddr1;
-    u32 irqAddr2;
-    u32 irqOffset;
+    u32 oddChunkIrqAddress;
+    u32 evenChunkIrqAddress;
+    u32 halfAlignedBytes;
 
+    // Recovery owns a separate async slot; this read waits until that slot retires.
     if (entry->firstPoll) {
         entry->firstPoll      = 0;
         CdStream_PhaseTimeout = 0;
@@ -1837,10 +1930,10 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
             if (CdStream_Runtime.state.reinitSlot != 0) {
                 asyncCbCancel(CdStream_Runtime.state.reinitSlot);
             }
-            sp.entry.pollFn                   = CdStream_InitDisc;
-            sp.entry.doneFn                   = CdStream_MarkEnding;
-            sp.entry.cancelFn                 = _cdStreamCancelDiscInit;
-            CdStream_Runtime.state.reinitSlot = asyncCbEnqueue(&sp.entry);
+            discInitJob.pollFn                = _cdStreamPollDiscInit;
+            discInitJob.doneFn                = _cdStreamCompleteDiscInit;
+            discInitJob.cancelFn              = _cdStreamCancelDiscInit;
+            CdStream_Runtime.state.reinitSlot = asyncCbEnqueue(&discInitJob);
         }
     }
     CdStream_CurrentPhase = entry->phase;
@@ -1850,16 +1943,16 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
     phase = entry->phase;
     switch (phase) {
         case CD_STREAM_STEP_SETMODE:
-            sp.mode[0] = -0x60;
+            readMode[0] = (s8)(CdlModeSpeed | CdlModeSize1);
         retry_mode:
-            CdControlF(CdlSetmode, (u8*)&sp.mode[0]);
+            CdControlF(CdlSetmode, (u8*)readMode);
             entry->phase = CD_STREAM_STEP_SETMODE_SYNC;
             break;
         case CD_STREAM_STEP_SETMODE_SYNC:
-            modeSync = CdSync(1, &sp.result[0]);
+            modeSync = CdSync(CD_STREAM_SYNC_POLL, &commandResult[0]);
             if (modeSync == CdlDiskError) {
                 D_80068B64 += 1;
-                if (sp.result[0] & CdlStatShellOpen) {
+                if (commandResult[0] & CdlStatShellOpen) {
                     if (CdStream_ErrorCode == 0) {
                         CdStream_ErrorCode = (u16)modeSync;
                     }
@@ -1877,7 +1970,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
                     CdStream_ShellOpenErrors++;
                     goto stream_error;
                 }
-                if (CdStream_PhaseTimeout++ < 0x258) {
+                if (CdStream_PhaseTimeout++ < CD_STREAM_COMMAND_POLL_LIMIT) {
                     goto retry_mode;
                 }
                 goto stream_error;
@@ -1887,7 +1980,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
                 entry->phase = CD_STREAM_STEP_SETLOC;
             } else {
                 entry->phase          = CD_STREAM_STEP_SPEED_SETTLE;
-                CdStream_PhaseTimeout = 3;
+                CdStream_PhaseTimeout = CD_STREAM_SPEED_SETTLE_POLLS;
                 case CD_STREAM_STEP_SPEED_SETTLE:
                     if (--CdStream_PhaseTimeout != 0) {
                         break;
@@ -1900,15 +1993,15 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
             CdStream_Runtime.state.readPhase      = CD_STREAM_READ_SETLOC;
             CdStream_Runtime.state.expectedSector = entry->sector;
         set_location:
-            CdIntToPos(entry->sector, &sp.loc);
-            CdControlF(CdlSetloc, &sp.loc.minute);
+            CdIntToPos(entry->sector, &location);
+            CdControlF(CdlSetloc, &location.minute);
             CdStream_PhaseTimeout = 0;
             entry->phase          = CD_STREAM_STEP_SETLOC_SYNC;
         case CD_STREAM_STEP_SETLOC_SYNC:
-            locationSync = CdSync(1, &sp.result[0]);
+            locationSync = CdSync(CD_STREAM_SYNC_POLL, &commandResult[0]);
             if (locationSync == CdlDiskError) {
                 D_80068B64 += 1;
-                if (sp.result[0] & CdlStatShellOpen) {
+                if (commandResult[0] & CdlStatShellOpen) {
                     if (CdStream_ErrorCode == 0) {
                         CdStream_ErrorCode = (u16)locationSync;
                     }
@@ -1926,7 +2019,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
                     CdStream_ShellOpenErrors++;
                     goto stream_error;
                 }
-                if (CdStream_PhaseTimeout++ < 0x258) {
+                if (CdStream_PhaseTimeout++ < CD_STREAM_COMMAND_POLL_LIMIT) {
                     goto set_location;
                 }
                 goto stream_error;
@@ -1938,7 +2031,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
         case CD_STREAM_STEP_READ:
             CdStream_PhaseTimeout = 0;
         start_read:
-            CdReady_InstallCallback(CdStream_ReadyMts);
+            _cdReadyInstallCallback(_cdStreamSectorReadyCallback);
             CdStream_Runtime.state.sectorsLeft = 0;
             CdStream_Runtime.state.readPhase   = CD_STREAM_READ_AUDIO;
             CdControlF(CdlReadN, NULL);
@@ -1946,11 +2039,11 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
             break;
         case CD_STREAM_STEP_READ_SYNC:
             D_80068B54 = 0;
-            readSync   = CdSync(1, &sp.result[0]);
+            readSync   = CdSync(CD_STREAM_SYNC_POLL, &commandResult[0]);
             if (readSync == CdlDiskError) {
-                CdReady_ClearCallback();
+                _cdReadyClearCallback();
                 entry->phase = CD_STREAM_STEP_READ;
-                if (sp.result[0] & CdlStatShellOpen) {
+                if (commandResult[0] & CdlStatShellOpen) {
                     if (CdStream_ErrorCode == 0) {
                         CdStream_ErrorCode = (u16)readSync;
                     }
@@ -1968,7 +2061,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
                     CdStream_ShellOpenErrors++;
                     goto stream_error;
                 }
-                if (CdStream_PhaseTimeout++ < 0x258) {
+                if (CdStream_PhaseTimeout++ < CD_STREAM_COMMAND_POLL_LIMIT) {
                     goto start_read;
                 }
                 goto stream_error;
@@ -1983,35 +2076,21 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
             }
             if (CdStream_Runtime.state.readPhase == CD_STREAM_READ_COMPLETE) {
                 CdStream_Runtime.state.flags0 |= CD_STREAM_CHUNK_READY;
-                CdReady_ClearCallback();
+                _cdReadyClearCallback();
                 if (CdStream_Runtime.state.chunkIndex & 1) {
-                    irqOffset = ((CdStream_Runtime.state.ringHalf + 0x3F) & ~0x3F);
-                    irqAddr1  = CdStream_Runtime.state.spuBase + irqOffset;
-                    if (D_80068B5C != 0) {
-                        SpuSetIRQ(0);
-                        SpuSetIRQCallback(NULL);
-                    }
-                    D_80068B5C = 1;
-                    SpuSetIRQCallback(CdStream_SpuIrqHandler);
-                    SpuSetIRQAddr(irqAddr1);
-                    SpuSetIRQ(1);
+                    halfAlignedBytes   = ((CdStream_Runtime.state.ringHalf + CD_STREAM_SPU_IRQ_ALIGNMENT - 1) & ~(CD_STREAM_SPU_IRQ_ALIGNMENT - 1));
+                    oddChunkIrqAddress = CdStream_Runtime.state.spuBase + halfAlignedBytes;
+                    _cdStreamArmChunkIrq(oddChunkIrqAddress);
                 } else if (!((CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1)) {
                     CdStream_Runtime.state.flags0 |= CD_STREAM_KEY_ON;
                 } else if (CdStream_Runtime.state.chunkIndex != 0) {
-                    irqAddr2 = CdStream_Runtime.state.spuBase + 0x40;
-                    if (D_80068B5C != 0) {
-                        SpuSetIRQ(0);
-                        SpuSetIRQCallback(NULL);
-                    }
-                    D_80068B5C = 1;
-                    SpuSetIRQCallback(CdStream_SpuIrqHandler);
-                    SpuSetIRQAddr(irqAddr2);
-                    SpuSetIRQ(1);
+                    evenChunkIrqAddress = CdStream_Runtime.state.spuBase + CD_STREAM_SPU_IRQ_ALIGNMENT;
+                    _cdStreamArmChunkIrq(evenChunkIrqAddress);
                 }
             } else if (CdStream_Runtime.state.readPhase != CD_STREAM_READ_GAP) {
                 if (CdStatus() & CdlStatShellOpen) {
                     if (CdStream_ErrorCode == 0) {
-                        CdStream_ErrorCode = 5;
+                        CdStream_ErrorCode = CD_STREAM_ERROR_SHELL_OPEN;
                     }
                     CdStream_LastErrorCode        = CdStream_ErrorCode;
                     CdStream_Runtime.state.flags |= CD_STREAM_DISC_FAULT;
@@ -2019,7 +2098,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
                     goto stream_error;
                 }
                 if (CdStream_ErrorCode == 0) {
-                    CdStream_ErrorCode = 9;
+                    CdStream_ErrorCode = CD_STREAM_ERROR_CHUNK_READ;
                 }
                 CdStream_Runtime.state.flags2 |= CD_STREAM_FAULT;
                 CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_CHUNK_READY;
@@ -2028,7 +2107,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
             }
             CdStream_PhaseTimeout            = 0;
             CdStream_Runtime.state.readPhase = CD_STREAM_READ_IDLE;
-            CdReady_ClearCallback();
+            _cdReadyClearCallback();
             entry->phase = CD_STREAM_STEP_PAUSE;
         case CD_STREAM_STEP_PAUSE:
             CdStream_PhaseTimeout = 0;
@@ -2038,10 +2117,10 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
             break;
         case CD_STREAM_STEP_PAUSE_SYNC:
             D_80068B54 = 0;
-            pauseSync  = CdSync(1, &sp.result[0]);
+            pauseSync  = CdSync(CD_STREAM_SYNC_POLL, &commandResult[0]);
             if (pauseSync == CdlDiskError) {
                 D_80068B64 += 1;
-                if ((sp.result[0] & CdlStatShellOpen) || (CdStatus() & CdlStatShellOpen)) {
+                if ((commandResult[0] & CdlStatShellOpen) || (CdStatus() & CdlStatShellOpen)) {
                     CdStream_Runtime.state.flags |= CD_STREAM_DISC_FAULT;
                     CdStream_ShellOpenErrors++;
                     if (CdStream_ErrorCode == 0) {
@@ -2051,20 +2130,21 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
                     goto stream_error;
                 }
                 entry->phase = CD_STREAM_STEP_PAUSE;
-                if (CdStream_PhaseTimeout >= 0x258) {
+                if (CdStream_PhaseTimeout >= CD_STREAM_COMMAND_POLL_LIMIT) {
                     goto stream_error;
                 }
                 CdStream_PhaseTimeout += 1;
                 goto pause_read;
             }
             entry->phase = CD_STREAM_STEP_TRANSFER;
+        // Both the SPU transfer and the final CD command must finish before retirement.
         case CD_STREAM_STEP_TRANSFER:
-            if (SpuIsTransferCompleted(0) == 0) {
+            if (SpuIsTransferCompleted(SPU_TRANSFER_PEEK) == 0) {
                 goto wait_for_progress;
             }
             entry->phase = CD_STREAM_STEP_IDLE_SYNC;
         case CD_STREAM_STEP_IDLE_SYNC:
-            if (CdSync(1, &sp.result[0]) == 0) {
+            if (CdSync(CD_STREAM_SYNC_POLL, &commandResult[0]) == CdlNoIntr) {
                 goto wait_for_progress;
             }
             CdStream_CurrentPhase = 0;
@@ -2074,59 +2154,79 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
     return 0;
 wait_for_progress:
     CdStream_LastPhase = entry->phase;
-    if (++CdStream_PhaseTimeout < 0x259) {
+    if (++CdStream_PhaseTimeout < (CD_STREAM_COMMAND_POLL_LIMIT + 1)) {
         return 0;
     }
 stream_error:
     CdStream_Runtime.state.flags2 |= CD_STREAM_FAULT;
     if (CdStream_ErrorCode == 0) {
-        CdStream_ErrorCode = (u16)(entry->phase << 4) | 0xA;
+        CdStream_ErrorCode = (u16)(entry->phase << 4) | CD_STREAM_ERROR_PHASE_TIMEOUT;
     }
     CdStream_Runtime.state.readPhase = CD_STREAM_READ_IDLE;
-    CdReady_ClearCallback();
+    _cdReadyClearCallback();
     CdFlush();
     return 1;
 }
 
-static void CdStream_ReadyMts(u8 interrupt, u8* result)
+/// Receives MTS audio and gap sectors into the live stream's two SPU rings.
+///
+/// Called by the CD library with an interrupt code and a result buffer whose
+/// first byte is drive status. A matching sector advances the disc cursor;
+/// up to three immediately preceding sectors are ignored. Gap sectors may
+/// feed scene images. Periods must be positive signed bytes, and channel indices
+/// must select the configured one or two channels; those bounds are not checked.
+///
+/// A header-sector transfer reads 2048 bytes starting after the 16-byte MTS
+/// header, while advancing the SPU cursor by only 2032 bytes. The shared buffer
+/// must therefore supply 16 readable bytes beyond the sector payload.
+static void _cdStreamSectorReadyCallback(u8 interrupt, u8* result)
 {
+    enum {
+        CD_STREAM_SECTOR_BYTES              = 2048,
+        CD_STREAM_HEADER_SECTOR_AUDIO_BYTES = CD_STREAM_SECTOR_BYTES - (s32)sizeof(_MtsHeader),
+        CD_STREAM_SECTOR_HEADER_WORDS       = 3,
+        CD_STREAM_SPU_WAIT_LIMIT_TICKS      = 0x52B0,
+        CD_STREAM_SPU_WAIT_SAMPLE_MASK      = 0x7F,
+        CD_STREAM_ACCEPTED_SECTOR_LAG       = 3,
+    };
     volatile CdStreamState* state;
-    s16                     chunkSectors;
-    s32                     intr;
-    s32                     skipIndex;
-    s32                     skipStamp;
-    s32                     timer;
-    s32                     sectorPos;
-    s32                     writeSize;
+    s16                     chunkVsyncs;
+    s32                     interruptStatus;
+    s32                     gapSectorIndex;
+    s32                     gapSectorStamp;
+    s32                     timerTicks;
+    s32                     sectorPosition;
+    s32                     transferBytes;
     u32                     timerPhase;
     u32                     previousPhase;
     volatile CdStreamState* channelState;
-    volatile CdStreamState* regionState;
+    volatile CdStreamState* timingState;
     _CdStreamChannels*      channels;
     s32                     channelCount;
 
+    // A sector buffer cannot be reused until its previous SPU DMA has finished.
     if ((u16)CdStream_ReadyCallbackActive != 0) {
-        CdStream_ErrorCode             = 0xC;
+        CdStream_ErrorCode             = CD_STREAM_ERROR_CALLBACK_REENTRY;
         CdStream_LastErrorCode         = CdStream_ErrorCode;
         CdStream_Runtime.state.flags2 |= CD_STREAM_FAULT;
         return;
     }
     CdStream_ReadyCallbackActive = 1;
-    intr                         = interrupt & 0xFF;
-    if (intr == 1) {
-        if ((s16)(u16)CdStream_Runtime.state.readPhase != CD_STREAM_READ_GAP) {
-            if ((s16)(u16)CdStream_Runtime.state.readPhase == intr) {
-                if (SpuIsTransferCompleted(0) == 0) {
+    interruptStatus              = interrupt & 0xFF;
+    if (interruptStatus == CdlDataReady) {
+        if (CdStream_Runtime.state.readPhase != CD_STREAM_READ_GAP) {
+            if (CdStream_Runtime.state.readPhase == CD_STREAM_READ_AUDIO) {
+                if (SpuIsTransferCompleted(SPU_TRANSFER_PEEK) == 0) {
                     D_80068B62 += 1;
-                    ResetRCnt(0xF2000002U);
+                    ResetRCnt(RCntCNT2);
                     previousPhase = 0;
                     while (1) {
-                        timer = GetRCnt(0xF2000002U);
-                        if ((u32)(timer & 0xFFFF) < 0x52B0U) {
-                            timerPhase = timer & 0x7F;
+                        timerTicks = GetRCnt(RCntCNT2);
+                        if ((u32)(timerTicks & 0xFFFF) < CD_STREAM_SPU_WAIT_LIMIT_TICKS) {
+                            timerPhase = timerTicks & CD_STREAM_SPU_WAIT_SAMPLE_MASK;
                             if (timerPhase < previousPhase) {
                                 previousPhase = timerPhase;
-                                if (SpuIsTransferCompleted(0) != 0) {
+                                if (SpuIsTransferCompleted(SPU_TRANSFER_PEEK) != 0) {
                                     previousPhase = timerPhase;
                                     goto read_header;
                                 }
@@ -2136,7 +2236,7 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                             break;
                         }
                     }
-                    CdStream_ErrorCode     = 4;
+                    CdStream_ErrorCode     = CD_STREAM_ERROR_SPU_TRANSFER_TIMEOUT;
                     CdStream_LastErrorCode = CdStream_ErrorCode;
                     goto check_status;
                 }
@@ -2144,36 +2244,37 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
             }
         } else {
         read_header:
-            if (CdGetSector(&D_800827F8, 3) == 0) {
-                *(&D_80068B64 + 1) = (u8)(*(&D_80068B64 + 1) + 1);
+            if (CdGetSector(&D_800827F8, CD_STREAM_SECTOR_HEADER_WORDS) == 0) {
+                *(volatile u8*)&D_80068B65 = (u8)(*(volatile u8*)&D_80068B65 + 1);
                 if (CdStream_ErrorCode == 0) {
-                    CdStream_ErrorCode = 2;
+                    CdStream_ErrorCode = CD_STREAM_ERROR_SECTOR_TRANSFER;
                 }
                 CdStream_LastErrorCode = CdStream_ErrorCode;
                 goto check_status;
             }
-            sectorPos = CdPosToInt(&D_800827F8);
-            if (sectorPos != CdStream_Runtime.state.expectedSector) {
-                if (sectorPos >= CdStream_Runtime.state.expectedSector || CdStream_Runtime.state.expectedSector >= (sectorPos + 4)) {
+            sectorPosition = CdPosToInt(&D_800827F8);
+            if (sectorPosition != CdStream_Runtime.state.expectedSector) {
+                if (sectorPosition >= CdStream_Runtime.state.expectedSector || CdStream_Runtime.state.expectedSector >= (sectorPosition + CD_STREAM_ACCEPTED_SECTOR_LAG + 1)) {
                     D_80068B5F += 1;
                     if (CdStream_ErrorCode == 0) {
-                        CdStream_ErrorCode = 3;
+                        CdStream_ErrorCode = CD_STREAM_ERROR_SECTOR_POSITION;
                     }
                     CdStream_LastErrorCode = CdStream_ErrorCode;
                     goto check_status;
                 }
             } else {
                 CdStream_Runtime.state.expectedSector += 1;
-                if ((s16)(u16)CdStream_Runtime.state.readPhase == CD_STREAM_READ_GAP) {
-                    skipIndex = D_80068B78++ & 0xFF;
-                    skipStamp = skipIndex | ((CdStream_Runtime.state.chunkIndex << 8) & 0xFFFF00);
-                    if (D_80068B74 < skipStamp) {
+                if (CdStream_Runtime.state.readPhase == CD_STREAM_READ_GAP) {
+                    // Replay key: low 8 bits of the gap index and low 16 bits of the chunk index.
+                    gapSectorIndex = D_80068B78++ & 0xFF;
+                    gapSectorStamp = gapSectorIndex | ((CdStream_Runtime.state.chunkIndex << 8) & 0xFFFF00);
+                    if (D_80068B74 < gapSectorStamp) {
                         if ((streamReadSceneImageSector(0, 0) << 0x10) != 0) {
                             goto check_status;
                         }
-                        *(volatile s32*)&D_80068B74 = skipStamp;
+                        *(volatile s32*)&D_80068B74 = gapSectorStamp;
                     } else {
-                        CdGetSector(CdStream_Runtime.state.sector, 0x200);
+                        CdGetSector(CdStream_Runtime.state.sector, CD_STREAM_SECTOR_BYTES / sizeof(u32));
                     }
                     state                               = &CdStream_Runtime.state;
                     CdStream_Runtime.state.gapRemaining = (u16)CdStream_Runtime.state.gapRemaining - 1;
@@ -2181,23 +2282,23 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                         CdStream_Runtime.state.readPhase = CD_STREAM_READ_COMPLETE;
                     }
                 } else {
-                    if (CdGetSector(CdStream_Runtime.state.sector, 0x200) == 0) {
-                        *(&D_80068B64 + 1) = (u8)(*(&D_80068B64 + 1) + 1);
+                    if (CdGetSector(CdStream_Runtime.state.sector, CD_STREAM_SECTOR_BYTES / sizeof(u32)) == 0) {
+                        *(volatile u8*)&D_80068B65 = (u8)(*(volatile u8*)&D_80068B65 + 1);
                         if (CdStream_ErrorCode == 0) {
-                            CdStream_ErrorCode = 2;
+                            CdStream_ErrorCode = CD_STREAM_ERROR_SECTOR_TRANSFER;
                         }
                         CdStream_LastErrorCode = CdStream_ErrorCode;
                         goto check_status;
                     }
                     if ((u16)CdStream_Runtime.state.sectorsLeft == 0) {
                         if ((CdStream_Runtime.state.sector->magic & ~0xFF) != CD_STREAM_MTS_SIGNATURE) {
-                            CdStream_ErrorCode     = 8;
+                            CdStream_ErrorCode     = CD_STREAM_ERROR_MTS_SIGNATURE;
                             CdStream_LastErrorCode = CdStream_ErrorCode;
                             goto check_status;
                         }
                         if (CdStream_Runtime.state.sector->chunkIndex == 0) {
                             CdStream_Runtime.state.mtsPeriod   = (s8)CdStream_Runtime.state.sector->period;
-                            CdStream_Runtime.state.sectorsLeft = (s16)(s8)(u8)CdStream_Runtime.state.mtsPeriod;
+                            CdStream_Runtime.state.sectorsLeft = (s16)CdStream_Runtime.state.mtsPeriod;
                             CdStream_Runtime.state.gapSectors  = CdStream_Runtime.state.sector->gapSectors;
                             /* Header bit 7 records the disc gap. The count is sign-extended later, and a zero count still sets the apply-gap bit on this first header. */
                             if (CdStream_Runtime.state.sector->flags & CD_STREAM_MTS_FLAG_GAP) {
@@ -2205,21 +2306,21 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                             } else {
                                 CdStream_Runtime.state.flags1 &= CD_STREAM_CLEAR_APPLY_GAP;
                             }
-                            regionState  = &CdStream_Runtime.state;
-                            chunkSectors = CD_STREAM_CHUNK_VSYNCS_NTSC;
-                            if ((s8)(u8)regionState->mtsPeriod == CD_STREAM_SHORT_PERIOD) {
-                                chunkSectors          = CD_STREAM_CHUNK_VSYNCS_SHORT_NTSC;
-                                regionState->ringHalf = CD_STREAM_RING_HALF_SHORT;
+                            timingState = &CdStream_Runtime.state;
+                            chunkVsyncs = CD_STREAM_CHUNK_VSYNCS_NTSC;
+                            if (timingState->mtsPeriod == CD_STREAM_SHORT_PERIOD) {
+                                chunkVsyncs           = CD_STREAM_CHUNK_VSYNCS_SHORT_NTSC;
+                                timingState->ringHalf = CD_STREAM_RING_HALF_SHORT;
                                 if (gDisplayState.region == MODE_PAL) {
-                                    chunkSectors = CD_STREAM_CHUNK_VSYNCS_SHORT_PAL;
+                                    chunkVsyncs = CD_STREAM_CHUNK_VSYNCS_SHORT_PAL;
                                 }
                             } else {
-                                regionState->ringHalf = CD_STREAM_RING_HALF;
+                                timingState->ringHalf = CD_STREAM_RING_HALF;
                                 if (gDisplayState.region == MODE_PAL) {
-                                    chunkSectors = CD_STREAM_CHUNK_VSYNCS_PAL;
+                                    chunkVsyncs = CD_STREAM_CHUNK_VSYNCS_PAL;
                                 }
                             }
-                            regionState->chunkVsyncs = chunkSectors;
+                            timingState->chunkVsyncs = chunkVsyncs;
                             channels                 = &CdStream_Runtime.channels;
                             /* Recover the common allocation from its channel member. */
                             channelState                = &PARENT_OF(channels, CdStreamRuntime, channels)->state;
@@ -2227,7 +2328,7 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                             /* The channels' SPU buffers sit back to back, ringHalf * 2 + 0x40 bytes apart. */
                             channels->voiceAttr[1].addr  = channelState->spuBase + (channelState->ringHalf * 2 + 0x40);
                             channelState->flags1        |= CD_STREAM_VOICE_COPY;
-                            channels->voiceAttr[0].mask |= 0x80;
+                            channels->voiceAttr[0].mask |= SPU_VOICE_WDSA;
                             channels->voiceAttr[1].mask  = channels->voiceAttr[0].mask;
                             channelState->chunkIndex     = channelState->sector->chunkIndex;
                             channelState->chunkCount     = channelState->sector->chunkCount;
@@ -2252,54 +2353,50 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                             CdStream_Runtime.state.flags1    &= CD_STREAM_CLEAR_APPLY_GAP;
                             CdStream_Runtime.state.gapSectors = 0;
                         }
-                        CdStream_Runtime.state.sectorsLeft = (s16)(s8)(u8)CdStream_Runtime.state.mtsPeriod;
+                        CdStream_Runtime.state.sectorsLeft = (s16)CdStream_Runtime.state.mtsPeriod;
                     }
-                    if (((s16)(u16)CdStream_Runtime.state.sectorsLeft % (s8)(u8)CdStream_Runtime.state.mtsPeriod) == 0) {
+                    if ((CdStream_Runtime.state.sectorsLeft % CdStream_Runtime.state.mtsPeriod) == 0) {
                         CdStream_Runtime.state.chunkIndex = CdStream_Runtime.state.sector->chunkIndex;
                         if (CdStream_Runtime.state.chunkIndex == 0) {
                             CdStream_Runtime.state.chunkCount = CdStream_Runtime.state.sector->chunkCount;
                         }
                     start_chunk:
                         channelCount = (u8)CdStream_Runtime.state.sector->magic;
-                        /* Preserve the signed comparison of the channel count. */
+                        // Channel-zero headers specify the total number of channel periods in this chunk.
                         if ((channelCount >= 2) && (CdStream_Runtime.state.sector->channelIndex == 0)) {
                             CdStream_Runtime.state.channelCount = (s8)(u8)CdStream_Runtime.state.sector->magic;
-                            CdStream_Runtime.state.sectorsLeft  = (s8)(u8)CdStream_Runtime.state.mtsPeriod * (s8)(u8)CdStream_Runtime.state.channelCount;
+                            CdStream_Runtime.state.sectorsLeft  = CdStream_Runtime.state.mtsPeriod * CdStream_Runtime.state.channelCount;
                         }
                         if (CdStream_Runtime.state.chunkIndex & 1) {
-                            CdStream_Runtime.state.spuAddr = CdStream_Runtime.state.spuBase + (s16)(u16)CdStream_Runtime.state.ringHalf;
+                            CdStream_Runtime.state.spuAddr = CdStream_Runtime.state.spuBase + CdStream_Runtime.state.ringHalf;
                         } else {
                             CdStream_Runtime.state.spuAddr = CdStream_Runtime.state.spuBase;
                         }
                         CdStream_Runtime.state.spuAddr += CdStream_Runtime.state.sector->channelIndex * (CdStream_Runtime.state.ringHalf * 2 + 0x40);
                         SpuSetTransferStartAddr((u32)CdStream_Runtime.state.spuAddr);
                         *(volatile s32*)&CdStream_LastTransferSpuAddress = CdStream_Runtime.state.spuAddr;
-                        /* ADPCM in a header sector starts immediately after this header. */
-                        SpuWrite((u8*)(CdStream_Runtime.state.sector + 1), 0x800U);
+                        // Transfer one sector from after the header; only the payload bytes advance the ring.
+                        SpuWrite((u8*)(CdStream_Runtime.state.sector + 1), (u32)CD_STREAM_SECTOR_BYTES);
                         *(void* volatile*)&CdStream_LastTransferBuffer = CdStream_Runtime.state.sector + 1;
-                        CdStream_Runtime.state.spuAddr                += 0x7F0;
+                        CdStream_Runtime.state.spuAddr                += CD_STREAM_HEADER_SECTOR_AUDIO_BYTES;
                     } else {
                         SpuSetTransferStartAddr((u32)CdStream_Runtime.state.spuAddr);
                         *(volatile s32*)&CdStream_LastTransferSpuAddress = CdStream_Runtime.state.spuAddr;
-                        if (((s16)(u16)CdStream_Runtime.state.sectorsLeft % (s8)(u8)CdStream_Runtime.state.mtsPeriod) == 1) {
-                            writeSize = ((s16)(u16)CdStream_Runtime.state.ringHalf - 0x7F0) % 0x800;
-                            if (writeSize == 0) {
-                                writeSize = 0x800;
+                        if ((CdStream_Runtime.state.sectorsLeft % CdStream_Runtime.state.mtsPeriod) == 1) {
+                            transferBytes = (CdStream_Runtime.state.ringHalf - CD_STREAM_HEADER_SECTOR_AUDIO_BYTES) % CD_STREAM_SECTOR_BYTES;
+                            if (transferBytes == 0) {
+                                transferBytes = CD_STREAM_SECTOR_BYTES;
                             }
                             if (!(CdStream_Runtime.state.chunkIndex & 1)) {
                                 /* The two ring halves retain separate transfer paths. */
-                                SpuWrite((u8*)CdStream_Runtime.state.sector, (writeSize + 0x3F) & ~0x3F);
-                                *(void* volatile*)&CdStream_LastTransferBuffer = CdStream_Runtime.state.sector;
-                                CdStream_Runtime.state.spuAddr                += writeSize;
+                                _cdStreamWriteSectorTail(transferBytes);
                             } else {
-                                SpuWrite((u8*)CdStream_Runtime.state.sector, (writeSize + 0x3F) & ~0x3F);
-                                *(void* volatile*)&CdStream_LastTransferBuffer = CdStream_Runtime.state.sector;
-                                CdStream_Runtime.state.spuAddr                += writeSize;
+                                _cdStreamWriteSectorTail(transferBytes);
                             }
                         } else {
-                            SpuWrite((u8*)CdStream_Runtime.state.sector, 0x800U);
+                            SpuWrite((u8*)CdStream_Runtime.state.sector, (u32)CD_STREAM_SECTOR_BYTES);
                             *(void* volatile*)&CdStream_LastTransferBuffer = CdStream_Runtime.state.sector;
-                            CdStream_Runtime.state.spuAddr                += 0x800;
+                            CdStream_Runtime.state.spuAddr                += CD_STREAM_SECTOR_BYTES;
                         }
                     }
                     state                              = &CdStream_Runtime.state;
@@ -2321,23 +2418,23 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
             }
         }
     } else {
-        CdStream_ErrorCode     = 7;
+        CdStream_ErrorCode     = CD_STREAM_ERROR_CD_INTERRUPT;
         CdStream_LastErrorCode = CdStream_ErrorCode;
     check_status:
-        if (*result & 0x10) {
+        if (*result & CdlStatShellOpen) {
             if (CdStream_ErrorCode == 0) {
-                CdStream_ErrorCode = 5;
+                CdStream_ErrorCode = CD_STREAM_ERROR_SHELL_OPEN;
             }
             CdStream_LastErrorCode           = CdStream_ErrorCode;
             CdStream_Runtime.state.flags    |= CD_STREAM_DISC_FAULT;
             CdStream_Runtime.state.readPhase = CD_STREAM_READ_FAULT;
             CdStream_Runtime.state.flags2   |= CD_STREAM_FAULT;
-            *(&D_80068B5C + 1)               = (u8)(*(&D_80068B5C + 1) + 1);
+            CdStream_ShellOpenErrors         = (u8)(CdStream_ShellOpenErrors + 1);
         } else if ((u16)CdStream_Runtime.state.readPhase != CD_STREAM_READ_IDLE) {
-            if ((s16)(u16)CdStream_Runtime.state.readPhase != CD_STREAM_READ_COMPLETE) {
+            if (CdStream_Runtime.state.readPhase != CD_STREAM_READ_COMPLETE) {
                 CdStream_Runtime.state.readPhase = CD_STREAM_READ_FAULT;
                 if (CdStream_ErrorCode == 0) {
-                    CdStream_ErrorCode = 0xB;
+                    CdStream_ErrorCode = CD_STREAM_ERROR_SECTOR_READ;
                 }
                 CdStream_LastErrorCode         = CdStream_ErrorCode;
                 CdStream_Runtime.state.flags2 |= CD_STREAM_FAULT;
@@ -2347,56 +2444,72 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
     CdStream_ReadyCallbackActive = 0;
 }
 
-static s32 CdStream_InitDisc(AsyncCbEntry* entry)
+/// Polls drive recovery until double-speed reads with sector headers are configured.
+///
+/// `entry` is the asynchronous queue's job. Returns zero while waiting for a
+/// closed shell, standby, TOC/seek commands or the settling polls; one on completion.
+/// There is no timeout. The completion handler latches the mode and clears the handle.
+static s32 _cdStreamPollDiscInit(AsyncCbEntry* entry)
 {
     struct {
-        u8     result[8];
-        s8     mode;
-        u8     pad[7];
-        CdlLOC loc;
-    } sp;
+        u8     commandResult[8];
+        s8     readMode;
+        u8     unknownBytes[7]; // Unaccessed stack bytes; role unproven.
+        CdlLOC location;
+    } scratch;
+    enum {
+        CD_STREAM_DISC_INIT_WAIT_STANDBY      = 1,
+        CD_STREAM_DISC_INIT_GET_TRACKS        = 2,
+        CD_STREAM_DISC_INIT_TRACKS_SYNC       = 3,
+        CD_STREAM_DISC_INIT_SEEK_ORIGIN       = 4,
+        CD_STREAM_DISC_INIT_SEEK_SYNC         = 5,
+        CD_STREAM_DISC_INIT_SET_MODE          = 6,
+        CD_STREAM_DISC_INIT_SETTLE            = 7,
+        CD_STREAM_DISC_INIT_RESTART_ERROR_BIT = 0x40,
+    };
     s32 sync;
 
     if (entry->status.firstPoll) {
         entry->status.firstPoll = 0;
-        entry->status.pollState = 1;
+        entry->status.pollState = CD_STREAM_DISC_INIT_WAIT_STANDBY;
     }
 
     D_80068B66 = entry->status.pollState;
     switch (entry->status.pollState) {
-        case 1:
-            if (CdControlB(CdlNop, NULL, sp.result) == 0) {
+        case CD_STREAM_DISC_INIT_WAIT_STANDBY:
+            if (CdControlB(CdlNop, NULL, scratch.commandResult) == 0) {
                 return 0;
             }
-            if (sp.result[0] & CdlStatShellOpen) {
+            if (scratch.commandResult[0] & CdlStatShellOpen) {
                 return 0;
             }
-            if (sp.result[0] & CdlStatStandby) {
-                entry->status.pollState = 2;
-                case 2:
-                    if (CdControl(CdlGetTN, NULL, sp.result) != 0) {
-                        entry->status.pollState = 4;
-                        case 3:
-                            sync = CdSync(1, sp.result);
+            if (scratch.commandResult[0] & CdlStatStandby) {
+                entry->status.pollState = CD_STREAM_DISC_INIT_GET_TRACKS;
+                case CD_STREAM_DISC_INIT_GET_TRACKS:
+                    if (CdControl(CdlGetTN, NULL, scratch.commandResult) != 0) {
+                        // The stored resume state skips TRACKS_SYNC even when this immediate sync is pending.
+                        entry->status.pollState = CD_STREAM_DISC_INIT_SEEK_ORIGIN;
+                        case CD_STREAM_DISC_INIT_TRACKS_SYNC:
+                            sync = CdSync(CD_STREAM_SYNC_POLL, scratch.commandResult);
                             if (sync == CdlDiskError) {
-                                entry->status.pollState = 2;
+                                entry->status.pollState = CD_STREAM_DISC_INIT_GET_TRACKS;
                             } else if (sync == CdlComplete) {
-                                entry->status.pollState = 4;
-                                case 4:
-                                    CdIntToPos(0, &sp.loc);
-                                    if (CdControl(CdlSeekL, (u8*)&sp.loc, sp.result) != 0) {
-                                        entry->status.pollState = 5;
-                                        case 5:
-                                            sync = CdSync(1, sp.result);
-                                            if ((sync == CdlDiskError) && (sp.result[0] & CdlStatError) &&
-                                                (sp.result[1] & 0x40)) {
-                                                entry->status.pollState = 1;
+                                entry->status.pollState = CD_STREAM_DISC_INIT_SEEK_ORIGIN;
+                                case CD_STREAM_DISC_INIT_SEEK_ORIGIN:
+                                    CdIntToPos(0, &scratch.location);
+                                    if (CdControl(CdlSeekL, &scratch.location.minute, scratch.commandResult) != 0) {
+                                        entry->status.pollState = CD_STREAM_DISC_INIT_SEEK_SYNC;
+                                        case CD_STREAM_DISC_INIT_SEEK_SYNC:
+                                            sync = CdSync(CD_STREAM_SYNC_POLL, scratch.commandResult);
+                                            if ((sync == CdlDiskError) && (scratch.commandResult[0] & CdlStatError) &&
+                                                (scratch.commandResult[1] & CD_STREAM_DISC_INIT_RESTART_ERROR_BIT)) {
+                                                entry->status.pollState = CD_STREAM_DISC_INIT_WAIT_STANDBY;
                                             } else if (sync == CdlComplete) {
-                                                entry->status.pollState = 6;
-                                                case 6:
-                                                    sp.mode = -0x60;
-                                                    if (CdControl(CdlSetmode, (u8*)&sp.mode, NULL) != 0) {
-                                                        entry->status.pollState              = 7;
+                                                entry->status.pollState = CD_STREAM_DISC_INIT_SET_MODE;
+                                                case CD_STREAM_DISC_INIT_SET_MODE:
+                                                    scratch.readMode = (s8)(CdlModeSpeed | CdlModeSize1);
+                                                    if (CdControl(CdlSetmode, (u8*)&scratch.readMode, NULL) != 0) {
+                                                        entry->status.pollState              = CD_STREAM_DISC_INIT_SETTLE;
                                                         CdStream_Runtime.state.settleCounter = 0;
                                                     }
                                             }
@@ -2405,7 +2518,7 @@ static s32 CdStream_InitDisc(AsyncCbEntry* entry)
                     }
             }
             break;
-        case 7:
+        case CD_STREAM_DISC_INIT_SETTLE:
             CdStream_Runtime.state.settleCounter = CdStream_Runtime.state.settleCounter + 1;
             if (CdStream_Runtime.state.settleCounter >= CD_STREAM_SETTLE_POLLS) {
                 return 1;
@@ -2415,27 +2528,32 @@ static s32 CdStream_InitDisc(AsyncCbEntry* entry)
     return 0;
 }
 
-static void CdReady_InstallCallback(CdlCB arg0)
+/// Installs a job's CD data-ready handler, saving the displaced handler on the first install.
+///
+/// Replacing an installed handler keeps that first saved pointer. Clearing the
+/// handler discards the pointer; it does not restore the previous handler.
+static void _cdReadyInstallCallback(CdlCB callback)
 {
     _CdReadyQueue* queue;
 
     queue = &CdReady_Queue;
     if (queue->callbackInstalled == 0) {
-        queue->prevCallback = CdReadyCallback(arg0);
+        queue->prevCallback = CdReadyCallback(callback);
     } else {
-        CdReadyCallback(arg0);
+        CdReadyCallback(callback);
     }
     CdReady_Queue.callbackInstalled = 1;
 }
 
-static void CdReady_ClearCallback(void)
+/// Removes the job's CD data-ready handler and discards the saved handler.
+static void _cdReadyClearCallback(void)
 {
     _CdReadyQueue* queue;
 
     queue = &CdReady_Queue;
     if (queue->callbackInstalled != 0) {
-        CdReadyCallback(0);
-        queue->prevCallback      = 0;
+        CdReadyCallback(NULL);
+        queue->prevCallback      = NULL;
         queue->callbackInstalled = 0;
     }
 }
@@ -2454,23 +2572,28 @@ void CdStream_Reset(void)
     D_80068B5C                   = 0;
 }
 
-void CdStream_ArmSpuIrq(void)
+void cdStreamBeginPlayback(void)
 {
-    volatile CdStreamState* p;
+    enum {
+        CD_STREAM_SPU_IRQ_ALIGNMENT = 64,
+        CD_STREAM_ADPCM_BLOCK_BYTES = 16,
+    };
+    volatile CdStreamState* state;
 
     CdStream_Runtime.state.flags0 = CdStream_Runtime.state.flags0 & CD_STREAM_CLEAR_ENGAGED;
     CdStream_Runtime.state.flags0 = CdStream_Runtime.state.flags0 & CD_STREAM_CLEAR_SPU_IRQ;
-    p                             = &CdStream_Runtime.state;
-    p->advanceDelay               = 1;
-    p->playhead                   = 0;
-    SpuSetIRQ(0);
-    SpuSetIRQCallback(CdStream_SpuIrqHandler);
-    SpuSetIRQAddr((p->spuBase + p->ringHalf + 0x4F) & ~0x3F);
+    state                         = &CdStream_Runtime.state;
+    state->advanceDelay           = 1;
+    state->playhead               = 0;
+    SpuSetIRQ(SPU_OFF);
+    SpuSetIRQCallback(_cdStreamSpuIrqCallback);
+    SpuSetIRQAddr((state->spuBase + state->ringHalf + CD_STREAM_ADPCM_BLOCK_BYTES + CD_STREAM_SPU_IRQ_ALIGNMENT - 1) & ~(CD_STREAM_SPU_IRQ_ALIGNMENT - 1));
     CdStream_Runtime.state.flags0 = CdStream_Runtime.state.flags0 & CD_STREAM_CLEAR_STOP;
     CdStream_Runtime.state.flags0 = CdStream_Runtime.state.flags0 | CD_STREAM_ACTIVE;
 }
 
-static void CdStream_SpuIrqHandler(void)
+/// Latches an SPU ring-boundary interrupt for the next stream-driver poll.
+static void _cdStreamSpuIrqCallback(void)
 {
     CdStream_Runtime.state.flags0 = CdStream_Runtime.state.flags0 | CD_STREAM_SPU_IRQ;
 }
@@ -2534,7 +2657,12 @@ static void CdStream_SetFlag14(s32 playhead)
     }
 }
 
-static void CdStream_AbortPhase(_CdReadyEntry* entry)
+/// Winds down a cancelled chunk read before the CD-ready queue retires its entry.
+///
+/// `entry` is queue-owned. `cancelPending` keeps it queued while a pause must
+/// be flushed or the outstanding SPU transfer must finish. An unpolled entry
+/// needs no cleanup.
+static void _cdStreamCancelChunkRead(_CdReadyEntry* entry)
 {
     if (entry->firstPoll) {
         entry->cancelPending = 0;
@@ -2545,11 +2673,11 @@ static void CdStream_AbortPhase(_CdReadyEntry* entry)
     switch (entry->phase) {
         case CD_STREAM_STEP_READ:
         case CD_STREAM_STEP_READ_SYNC:
-            CdReady_ClearCallback();
+            _cdReadyClearCallback();
             CdFlush();
             break;
         case CD_STREAM_STEP_SECTORS:
-            CdReady_ClearCallback();
+            _cdReadyClearCallback();
             CdFlush();
             CdControlF(CdlPause, NULL);
             entry->cancelPending = 1;
@@ -2563,7 +2691,7 @@ static void CdStream_AbortPhase(_CdReadyEntry* entry)
             entry->phase = CD_STREAM_STEP_CANCEL_TRANSFER;
             /* fallthrough */
         case CD_STREAM_STEP_CANCEL_TRANSFER:
-            if (SpuIsTransferCompleted(0) == 0) {
+            if (SpuIsTransferCompleted(SPU_TRANSFER_PEEK) == 0) {
                 entry->cancelPending = 1;
             }
             break;
@@ -2578,11 +2706,15 @@ static void CdStream_AbortPhase(_CdReadyEntry* entry)
     }
 }
 
-static void CdStream_FinishQueueEntry(_CdReadyEntry* entry)
+/// Cancels an opening or restart read and reports abandonment once cleanup finishes.
+///
+/// The queue owns `entry` and repeats this handler while `cancelPending` is set.
+/// A non-null stream completion callback receives zero after cancellation finishes.
+static void _cdStreamCancelReadAndNotify(_CdReadyEntry* entry)
 {
-    CdStream_AbortPhase(entry);
+    _cdStreamCancelChunkRead(entry);
     if (!entry->cancelPending && (CdStream_Runtime.state.doneCb != NULL)) {
-        CdStream_Runtime.state.doneCb(0);
+        CdStream_Runtime.state.doneCb(CD_STREAM_OPEN_ABANDONED);
     }
 }
 
@@ -2604,7 +2736,7 @@ static void CdReady_Cancel(s16 arg0)
     }
 }
 
-s32 CdStream_IsBusy(void)
+s32 cdStreamIsBusy(void)
 {
     if (CdStream_Runtime.state.flags0 & CD_STREAM_ACTIVE) {
         return 1;
@@ -2632,7 +2764,10 @@ void cdStreamSetMono(s32 enabled)
     }
 }
 
-static void CdStream_MarkEnding(AsyncCbEntry* unused)
+/// Latches streaming drive mode and retires the completed disc-reinitialization handle.
+///
+/// `entry` is the asynchronous queue's completed job and is unused.
+static void _cdStreamCompleteDiscInit(AsyncCbEntry* entry)
 {
     CdStream_Runtime.state.flags      = CdStream_Runtime.state.flags & CD_STREAM_CLEAR_DISC_FAULT;
     CdStream_Runtime.state.flags1     = CdStream_Runtime.state.flags1 | CD_STREAM_MODE_SET;
@@ -2659,7 +2794,7 @@ static void CdStream_ConfigureSpuIrq(s32 arg0, u32 arg1)
             SpuSetIRQCallback(0);
         }
         D_80068B5C = arg0;
-        SpuSetIRQCallback(CdStream_SpuIrqHandler);
+        SpuSetIRQCallback(_cdStreamSpuIrqCallback);
         SpuSetIRQAddr(arg1);
         SpuSetIRQ(1);
     } else if (D_80068B5C != 0) {
