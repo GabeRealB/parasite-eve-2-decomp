@@ -1728,11 +1728,21 @@ static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
     return scratch->dx + scratch->dz >= scratch->radius;
 }
 
-/// Tells the player task that `ctx` touched it, packing attack entry `mode`.
-static __inline__ s32 actorPlayerContactMessage(Enemy* ctx, s32 mode)
+/// Applies an indexed enemy attack to the current player and returns its fatal-damage reply.
+///
+/// Requires a live player task and enemy with live parameters and an attack
+/// table containing the nonnegative element index `attackIndex`. Packs the
+/// entry with `damagePackEnemyAttackKey` and dispatches damage synchronously;
+/// the enemy and table are borrowed read-only. Callers decide when a hit lands.
+///
+/// For the player's damage handler, returns 1 when HP loss defeats the player,
+/// or 0 after survival or suppressed damage; equipment and event survival are
+/// handled by the player. An absent damage handler also returns 0. The signed
+/// message reply is forwarded unchanged.
+static __inline__ s32 _damageApplyEnemyAttackToPlayer(const Enemy* enemy, s32 attackIndex)
 {
-    Task* player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    return taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(ctx, mode), 0);
+    Task* playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    return taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, attackIndex), 0);
 }
 
 /// Updates an enemy model's lighting and colour from a coordinate's cached translation.

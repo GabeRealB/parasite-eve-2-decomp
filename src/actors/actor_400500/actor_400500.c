@@ -4269,20 +4269,21 @@ static inline void _actor400500PlayAnim(Task* task, s32 id)
 
 static void func_actor_400500_8013771C(Task* arg0)
 {
+    enum { ACTOR400500_ATTACK_GRAB = 1 };
     SVECTOR                      in;
     SVECTOR                      out;
     MATRIX                       rot;
     _Actor400500GrayStalkerWork* work;
     _Actor400500GrayStalkerWork* hit;
     GameActor*                   player;
-    void*                        spawn;
+    const Enemy*                 enemy;
     s16                          vz;
     s32                          r;
     s32                          cond;
 
     work              = (_Actor400500GrayStalkerWork*)arg0->work;
     player            = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work;
-    spawn             = arg0->spawnArg2.pointer;
+    enemy             = arg0->spawnArg2.pointer;
     work->stateFrames = work->stateFrames + 1;
     _actor400500TickAnim(arg0);
     if ((s16)work->stateFrames < 0xF) {
@@ -4341,7 +4342,7 @@ static void func_actor_400500_8013771C(Task* arg0)
     }
     if ((s16)work->stateFrames == 0x1F) {
         padScriptSpawnVariableMotorRamp(6, 0xFFU, 0x80U);
-        if (actorPlayerContactMessage(spawn, 1) != 0) {
+        if (_damageApplyEnemyAttackToPlayer(enemy, ACTOR400500_ATTACK_GRAB) != 0) {
             player->state    = 0xA;
             work->grabLanded = 1;
         }

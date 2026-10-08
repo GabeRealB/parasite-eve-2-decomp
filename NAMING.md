@@ -421,6 +421,11 @@ The inline model-colour update there also belongs to `actorRender`: it samples
 coordinate 1's cached translation for the resident `worldCoord` lighting and
 colour query, without composing or converting the coordinate itself.
 
+`damage` also owns the inline enemy-attack-to-player adapter in
+`include/actors/actor.h`. Each carrier keeps a static instance marked `_`;
+the adapter reads an enemy attack-table entry and sends its packed damage key
+to the live player, forwarding the player's fatal-damage reply.
+
 The coordinate fragments `src/shared/coord_math_local_to_world.inc.c` and
 `src/shared/coord_math_yaw_scale.inc.c` also belong to `actorRender`, with
 static per-carrier instances. The point transform walks local matrices up to

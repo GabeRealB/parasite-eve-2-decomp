@@ -3288,9 +3288,9 @@ static void _actor421600EntranceLungeState(Task* task)
                     closeCatchYawDifference = scratch->yawFromPlayer - scratch->playerYaw;
                     closeCatchYawDifference = abs(closeCatchYawDifference);
                     if (closeCatchYawDifference < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
-                        scratch->playerKilled = actorPlayerContactMessage(enemy, ACTOR421600_ATTACK_CLOSE_FRONT);
+                        scratch->playerKilled = _damageApplyEnemyAttackToPlayer(enemy, ACTOR421600_ATTACK_CLOSE_FRONT);
                     } else {
-                        scratch->playerKilled = actorPlayerContactMessage(enemy, ACTOR421600_ATTACK_CLOSE_REAR);
+                        scratch->playerKilled = _damageApplyEnemyAttackToPlayer(enemy, ACTOR421600_ATTACK_CLOSE_REAR);
                     }
                 }
                 if (scratch->playerKilled != 1) {
@@ -3302,9 +3302,9 @@ static void _actor421600EntranceLungeState(Task* task)
                     farCatchYawDifference = scratch->yawFromPlayer - scratch->playerYaw;
                     farCatchYawDifference = abs(farCatchYawDifference);
                     if (farCatchYawDifference < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
-                        scratch->playerKilled = actorPlayerContactMessage(enemy, ACTOR421600_ATTACK_THROW_FRONT);
+                        scratch->playerKilled = _damageApplyEnemyAttackToPlayer(enemy, ACTOR421600_ATTACK_THROW_FRONT);
                     } else {
-                        scratch->playerKilled = actorPlayerContactMessage(enemy, ACTOR421600_ATTACK_THROW_REAR);
+                        scratch->playerKilled = _damageApplyEnemyAttackToPlayer(enemy, ACTOR421600_ATTACK_THROW_REAR);
                     }
                 }
                 if (scratch->playerKilled == 1) {

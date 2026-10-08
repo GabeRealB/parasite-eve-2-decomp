@@ -18,6 +18,12 @@
 /// effect on its claw joints at the clip's frames 5, 8, 10 and 13.
 void desertChaserPursue(Task* arg0)
 {
+    enum {
+        DESERT_CHASER_ATTACK_THROW_FRONT = 0,
+        DESERT_CHASER_ATTACK_THROW_REAR  = 1,
+        DESERT_CHASER_ATTACK_CLOSE_FRONT = 2,
+        DESERT_CHASER_ATTACK_CLOSE_REAR  = 3,
+    };
     PlayerStatus* config = &gPlayerStatus;
     SVECTOR       initialDelta;
 #if DESERT_CHASER_RUN_SEQUENCE
@@ -153,9 +159,9 @@ void desertChaserPursue(Task* arg0)
 #endif
                     {
                         if (abs(scratch->playerTurn) < 0x400) {
-                            scratch->playerKilled = actorPlayerContactMessage(ctx, 2);
+                            scratch->playerKilled = _damageApplyEnemyAttackToPlayer(ctx, DESERT_CHASER_ATTACK_CLOSE_FRONT);
                         } else {
-                            scratch->playerKilled = actorPlayerContactMessage(ctx, 3);
+                            scratch->playerKilled = _damageApplyEnemyAttackToPlayer(ctx, DESERT_CHASER_ATTACK_CLOSE_REAR);
                         }
                     }
                     if (scratch->playerKilled != 1) {
@@ -183,9 +189,9 @@ void desertChaserPursue(Task* arg0)
 #endif
                     {
                         if (abs(scratch->playerTurn) < 0x400) {
-                            scratch->playerKilled = actorPlayerContactMessage(ctx, 0);
+                            scratch->playerKilled = _damageApplyEnemyAttackToPlayer(ctx, DESERT_CHASER_ATTACK_THROW_FRONT);
                         } else {
-                            scratch->playerKilled = actorPlayerContactMessage(ctx, 1);
+                            scratch->playerKilled = _damageApplyEnemyAttackToPlayer(ctx, DESERT_CHASER_ATTACK_THROW_REAR);
                         }
                     }
                     if (scratch->playerKilled == 1) {
