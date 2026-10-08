@@ -186,7 +186,7 @@ void GameFlow_StateByField34(Task* task)
             if (gDisplayState.spriteVariant == 0) {
                 gDisplayState.spriteVariant = 1;
             }
-            Title_RestoreDemoCard();
+            titleRestoreAttractDemoState();
             MEM_CLEAR(gGameSession, sizeof(*gGameSession));
             gDisplayState.control.flags.pendingPlayerPos = 0;
             gDisplayState.gameRunning                    = 0;

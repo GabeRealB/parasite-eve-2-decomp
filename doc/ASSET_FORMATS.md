@@ -471,7 +471,7 @@ the highest-scoring row recovers the real map. Meta JSON notes
 
 HED file order (`stages.json` TREE names): **gameplay** (file 0), **title**
 (file 1), **file2** (still + chrome). Boot brings in the title overlay from
-file 1; `Title_InitTask` then queues the category-2 display resource 20100 with
+file 1; `_titleInitializeScreenTask` then queues the category-2 display resource 20100 with
 `cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU)` and calls
 `textUploadPalettes`. Chrome/still are file 2.
 

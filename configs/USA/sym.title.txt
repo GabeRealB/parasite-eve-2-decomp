@@ -5,8 +5,8 @@
 // ordinary (non-overlay) symbols. Main-exe imports live in
 // sym.title.imports.txt (absolute:True).
 //
-// Title_RestoreDemoCard / titleEnqueueAttractDemoFile / Title_TaskDescs are also
-// named in sym.main.txt (main BSS stubs at the same VRAM).
+// titleRestoreAttractDemoState / titleEnqueueAttractDemoFile / Title_TaskDescs are also
+// imported by main through sym.main.imports.txt with owner=title.
 
 // ---------------------------------------------------------------------------
 // Read-only data (src/title/title.c, after the package id)
@@ -22,15 +22,15 @@ jtbl_8009387C = 0x8009387C; // type:jtbl size:0x20
 // ---------------------------------------------------------------------------
 // Code (src/title/title.c)
 // ---------------------------------------------------------------------------
-Title_InitTask = 0x8009389C; // type:func
+_titleInitializeScreenTask = 0x8009389C; // type:func
 _titleDrawChromeRow = 0x800939C4; // type:func
-Title_MenuTask = 0x80093ABC; // type:func
-Title_RestoreDemoCard = 0x8009407C; // type:func
+_titleUpdateScreenTask = 0x80093ABC; // type:func
+titleRestoreAttractDemoState = 0x8009407C; // type:func
 _titleShowBackgroundTask = 0x8009470C; // type:func
 titleScreenTask = 0x8009472C; // type:func
 titleExitTask = 0x800947A8; // type:func
 _titleIntroMovieTask = 0x800947C8; // type:func
-Title_BootTask = 0x80094A08; // type:func
+_titleStartupTask = 0x80094A08; // type:func
 titleEnqueueAttractDemoFile = 0x80094B90; // type:func
 
 // ---------------------------------------------------------------------------
@@ -47,6 +47,6 @@ Title_MenuLabels = 0x80094C5C; // size:0x18
 Title_MenuSpawnIds = 0x80094C74; // size:0x18
 Title_TaskDescs = 0x80094C8C; // size:0x18
 Title_LastRand = 0x80094CA4;
-// When set, Title_BootTask spawns with arg 0x80000000 (skip fade TILE).
+// When set, _titleStartupTask spawns with arg 0x80000000 (skip fade TILE).
 // C owns the final halfword, which splat's word scan does not emit.
 Title_SkipFadeFlag = 0x80094CA8; // type:u16 size:0x2 defined:True

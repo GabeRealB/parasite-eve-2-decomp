@@ -347,7 +347,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `26` | `F8` | `loadingRestoreViewGraphicsTask` | Restore model/sprite packets, kill self and resume game-loop presentation |
 
 `Title_MenuSpawnIds` (6 words) is `{6, 6, 3, 4, 5, 6}` — bank 0 types spawned
-from `Title_MenuTask` on confirm.
+from `_titleUpdateScreenTask` on confirm.
 
 Several `func_*` rows are already matched C and only lack a role name.
 
@@ -443,7 +443,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 
 | Table | Callback / role |
 |-------|-----------------|
-| `Title_TaskDescs[0]` | `Title_BootTask` |
+| `Title_TaskDescs[0]` | `_titleStartupTask` |
 | `Title_TaskDescs[1]` | `_titleIntroMovieTask` (`displaySpawnTaskFromTable`) |
 | `Display_ModeTaskDesc[0]` | `_stageModeControllerTask` — 6-phase queued mode entry, transition requests, resource reload and movie resumption; grey fade follows every dispatch |
 | `D_80062774[0]` | `_stageMusicTask` — bank-load spawn from gameplay |

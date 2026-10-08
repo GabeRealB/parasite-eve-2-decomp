@@ -19723,7 +19723,7 @@ as volatile (including earlier ones like `field_14` / `field_4`) lets the
 scheduler place `lui` after the last store that still uses `$v0` for a
 constant, while the later zero/flag stores fill the gap before `lb`. Leaving
 any of those stores non-volatile lets it slip into a delay slot and reorders
-the rest. `Title_InitTask` (title init) is the pure example.
+the rest. `_titleInitializeScreenTask` (title init) is the pure example.
 
 ## RECT field store order changes LoadImage arg scheduling
 
@@ -23547,8 +23547,9 @@ s32 save = p->field_s8; /* emits lb */
 p->field_s8 = save;     /* sb */
 ```
 
-`Title_RestoreDemoCard` (title demo-card restore) needs this for
-`gMcSaveData.vibration` / `demoScene`. The struct fields themselves must also be
+`titleRestoreAttractDemoState` (title attract-demo state restore) needs this for
+`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration` /
+`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene`. The struct fields themselves must also be
 `s8` (see also the `D_80072189` / `D_8007218B` aliases).
 
 ## Interleave `lui` into a `index * 0xE4` multiply (title `GameFlag_ShelterBanks`)
@@ -23572,15 +23573,16 @@ before the whole multiply or after it. Force the first `sll` then the symbol
 load by splitting:
 
 ```c
-s32 t    = bank * 8;
-u8* base = (u8*)GameFlag_ShelterBanks;
-memcpy(base + ((t - bank) * 8 + bank) * 4, src, 0xE4); /* == bank * 0xE4 */
+s32 bankTimesEight = bank * 8;
+u8* shelterBankBytes = (u8*)GameFlag_ShelterBanks;
+memcpy(shelterBankBytes + ((bankTimesEight - bank) * 8 + bank) * 4,
+       stateBytes, sizeof(GameFlag_ShelterBanks[bank])); /* == bank * 0xE4 */
 ```
 
 Same size, same ops, but the address load is scheduled one insn into the
-multiply. `Title_RestoreDemoCard` is the pure example.
+multiply. `titleRestoreAttractDemoState` is the pure example.
 
-## Split `0xE1000000 | tpage` so mask loads before tpage OR (`Title_MenuTask`)
+## Split `0xE1000000 | tpage` so mask loads before tpage OR (`_titleUpdateScreenTask`)
 
 When a TILE+`DR_TPAGE` block needs target order:
 
@@ -32744,7 +32746,7 @@ blendCommand->code[0] = 0xE1000000 | 0x240;
 addPrim(gGpuCurrentOt - 0x10, blendCommand);
 ```
 
-That is the same split as `Title_MenuTask`; here it is required even
+That is the same split as `_titleUpdateScreenTask`; here it is required even
 though the function is a leaf and both `addPrim`s already match.
 
 When the overlay is the first thing in the function and the only queue
@@ -142270,7 +142272,7 @@ element pointer directly. The counter swaps (`i` in `$s1` where the target has
 the loop's pointer there) were a loop in its own inline helper, whose counter
 is a separate, lower-priority pseudo.
 
-## A value in `$a1` before `printf` is not an argument unless the format string asks for one (Title_MenuTask)
+## A value in `$a1` before `printf` is not an argument unless the format string asks for one (_titleUpdateScreenTask)
 
 The target computed `demoScene % 3 + 1` into `$a1` and stored it in the delay
 slot of `jal printf`, so the seed passed it as printf's second argument - and

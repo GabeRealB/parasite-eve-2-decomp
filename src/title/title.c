@@ -45,6 +45,25 @@ enum {
     TITLE_MENU_DEBUG_OPTION,
 };
 
+/// Packed title-screen request: bit 31 suppresses fading on the setup tick;
+/// the remaining bits count ticks to wait before allocating screen work.
+#define TITLE_SCREEN_SKIP_FADE  0x80000000
+#define TITLE_SCREEN_DELAY_MASK 0x7FFFFFFF
+
+/// Prompt and menu slots in the title-screen state dispatcher.
+enum {
+    TITLE_SCREEN_STATE_PROMPT = 2,
+    TITLE_SCREEN_STATE_MENU   = 3,
+};
+
+/// Resident task-bank slots used by the title startup and idle transition.
+enum {
+    TITLE_RESIDENT_TASK_BANK      = 0,
+    TITLE_SCREEN_TASK_SLOT        = 2,
+    TITLE_START_SESSION_TASK_SLOT = 3,
+    TITLE_START_SESSION_DEMO_ARG  = 2,
+};
+
 /// Frames a black fade of the title screen lasts. The idle count starts this
 /// far below zero to fade in, and runs this far past the timeout to fade out.
 #define TITLE_SCREEN_FADE_FRAMES 16
@@ -110,18 +129,18 @@ extern s32 Title_MenuSpawnIds[];
 /// Last rand() from titleScreenTask.
 extern s32 Title_LastRand;
 
-/// When set, Title_BootTask spawns phase task with arg 0x80000000 (skip fade TILE).
+/// When set, _titleStartupTask spawns phase task with arg 0x80000000 (skip fade TILE).
 extern u16 Title_SkipFadeFlag;
 
 static void _titleIntroMovieTask(Task* task);
 
-void Title_BootTask(Task* task);
+static void _titleStartupTask(Task* startupTask);
 
 void func_807246B4(void);
 
 static void _titleShowBackgroundTask(Task* task);
-static void Title_InitTask(Task* arg0);
-static void Title_MenuTask(Task* task);
+static void _titleInitializeScreenTask(Task* task);
+static void _titleUpdateScreenTask(Task* task);
 
 char Title_StrNewGame[]       = "New Game";
 char Title_StrLoadGame[]      = "Load Game";
@@ -144,7 +163,7 @@ static char* Title_MenuLabels[] = {
 s32 Title_MenuSpawnIds[] = { 6, 6, 3, 4, 5, 6 };
 
 TaskDesc Title_TaskDescs[] = {
-    { { { TASK_BODY_NONE, 0xC0 } }, Title_BootTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, _titleStartupTask },
     { { { TASK_BODY_NONE, 0xC0 } }, _titleIntroMovieTask },
 };
 
@@ -156,10 +175,10 @@ u16 Title_SkipFadeFlag = 0;
 /// `Task::state`: set-up, the flag advance, the menu in two states and the kill.
 static const TaskFuncTable5 Title_PhaseTable = {
     .funcs = {
-        Title_InitTask,
+        _titleInitializeScreenTask,
         _titleShowBackgroundTask,
-        Title_MenuTask,
-        Title_MenuTask,
+        _titleUpdateScreenTask,
+        _titleUpdateScreenTask,
         taskKill,
     },
 };
@@ -174,29 +193,40 @@ static const char Title_DemoCardRestoreMsg[44] = "####DEMO_CARD_RESTORE STAGE %d
 
 static void _titleDrawChromeRow(s32 screenY, s32 atlasV, s32 brightness);
 
-static void Title_InitTask(Task* arg0)
+/// Initializes the title prompt after its packed spawn delay expires.
+///
+/// Requires state 0, a loaded title background and initialized primary heap.
+/// The high no-fade bit is consumed before counting down the low 31 bits; a
+/// delayed request therefore enables fades again on the next tick. Allocation
+/// failure leaves state 0 for retry. Success gives the task ownership of its
+/// cleared screen work and runs the first prompt update immediately.
+static void _titleInitializeScreenTask(Task* task)
 {
-    s32               flag;
-    DisplayState*     ds;
+    enum {
+        TITLE_SCREEN_MENU_RESOURCE_HUNDREDS = 1,
+        TITLE_SCREEN_MENU_RESOURCE_INDEX    = 0,
+    };
+    bool              screenFadeEnabled;
+    DisplayState*     display;
     _TitleScreenWork* work;
 
-    flag                          = 1;
-    ds                            = &gDisplayState;
-    ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
-    Wip_UiHolder                  = NULL;
-    if (arg0->spawnArg1.value < 0) {
-        flag                   = 0;
-        arg0->spawnArg1.value &= 0x7FFFFFFF;
+    screenFadeEnabled                  = true;
+    display                            = &gDisplayState;
+    display->control.flags.imageSource = DISPLAY_IMAGE_NONE;
+    Wip_UiHolder                       = NULL;
+    if (task->spawnArg1.value < 0) {
+        screenFadeEnabled      = false;
+        task->spawnArg1.value &= TITLE_SCREEN_DELAY_MASK;
     }
-    if (arg0->spawnArg1.value > 0) {
-        arg0->spawnArg1.value -= 1;
+    if (task->spawnArg1.value > 0) {
+        task->spawnArg1.value -= 1;
         return;
     }
-    work = memCalloc(sizeof(*work), 0);
+    work = memCalloc(sizeof(*work), false);
     if (work != NULL) {
-        arg0->work              = work;
-        work->screenFadeEnabled = flag;
-        work->menuCount         = 5;
+        task->work              = work;
+        work->screenFadeEnabled = screenFadeEnabled;
+        work->menuCount         = TITLE_MENU_DEBUG_OPTION;
         work->selection         = TITLE_MENU_NEW_GAME;
         work->idleFrames        = 0;
         if (Wip_SysFlags.gameOver != 0) {
@@ -204,15 +234,15 @@ static void Title_InitTask(Task* arg0)
         }
         textUploadPalettes();
         displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_KEEP_VIEW);
-        ds->holdState                 = DISPLAY_HOLD_INITIAL;
-        work->idleFrames              = -TITLE_SCREEN_FADE_FRAMES;
-        ds->control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-        if (ds->debugMode != 0) {
+        display->holdState                 = DISPLAY_HOLD_INITIAL;
+        work->idleFrames                   = -TITLE_SCREEN_FADE_FRAMES;
+        display->control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
+        if (display->debugMode != 0) {
             func_807246B4();
         }
-        cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU);
-        arg0->state += 2;
-        Title_MenuTask(arg0);
+        cdCmdEnqueueDisplayResource(TITLE_SCREEN_MENU_RESOURCE_HUNDREDS, TITLE_SCREEN_MENU_RESOURCE_INDEX, CD_COMMAND_DISPLAY_LOAD_MENU);
+        task->state += TITLE_SCREEN_STATE_PROMPT;
+        _titleUpdateScreenTask(task);
     }
 }
 
@@ -269,46 +299,75 @@ static void _titleDrawChromeRow(s32 screenY, s32 atlasV, s32 brightness)
     _titlePrependChromeDrawMode();
 }
 
-static void Title_MenuTask(Task* task)
+/// Prepends the subtractive draw mode for a title-screen fade tile.
+///
+/// Queue the tile at the current ordering tag first so this mode executes
+/// before it. Requires word-aligned packet space for one DR_TPAGE, retained
+/// until GPU consumption. The untextured tile ignores the texture page;
+/// dithering is enabled and drawing into the displayed area is disabled.
+static inline void _titlePrependScreenFadeDrawMode(void)
 {
+    DR_TPAGE* drawMode;
+
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0, 0));
+    addPrim(gGpuCurrentOt, drawMode);
+}
+
+/// Updates the title prompt or menu and hands an idle screen to the attract demo.
+///
+/// Requires state 2 (prompt) or 3 (menu), live initialized screen work, loaded
+/// chrome textures/palettes and a current GPU ordering tag with room for this
+/// tick's packets. The cursor ranges over New Game, Load Game and Configuration.
+/// Counters measure task ticks; fades pack brightness into unsigned bytes.
+/// Confirming a menu entry or starting a disc-1 demo invokes the task's exit
+/// handler, which may release it. Disc 2 requests a game restart after timeout.
+static void _titleUpdateScreenTask(Task* task)
+{
+    enum {
+        TITLE_SCREEN_WIDTH_PIXELS          = 320,
+        TITLE_SCREEN_HEIGHT_PIXELS         = 240,
+        TITLE_SCREEN_FADE_BRIGHTNESS_STEP  = 16,
+        TITLE_SCREEN_FADE_BRIGHTNESS_SHIFT = 4,
+        TITLE_SCREEN_BRIGHTNESS_PER_PIXEL  = 8,
+        TITLE_SCREEN_TILE_SEMITRANSPARENT  = 0x62,
+        TITLE_ATTRACT_DEMO_COUNT           = 3,
+        TITLE_MENU_BEFORE_FIRST            = -1,
+    };
     _TitleScreenWork* work = task->work;
     s32               idleFrames;
-    s32               i;
+    s32               menuRow;
 
+    // Let the idle fade finish before replacing the title presentation.
     idleFrames       = work->idleFrames + 1;
     work->idleFrames = idleFrames;
     if (idleFrames > TITLE_SCREEN_IDLE_TIMEOUT) {
         if (idleFrames < TITLE_SCREEN_IDLE_TIMEOUT + TITLE_SCREEN_FADE_FRAMES) {
             if (work->screenFadeEnabled != 0) {
-                TILE*     tile;
-                DR_TPAGE* tpage;
+                TILE* tile;
 
                 tile           = gGpuPrimCursor;
                 gGpuPrimCursor = tile + 1;
-                setlen(tile, 3);
-                setcode(tile, 0x60);
-                tile->r0 = tile->g0 = tile->b0 = (idleFrames - TITLE_SCREEN_IDLE_TIMEOUT) * 16 - 1;
-                tile->x0                       = -0xA0;
-                tile->y0                       = -0x78;
-                tile->w                        = 0x140;
-                tile->h                        = 0xF0;
+                setTile(tile);
+                tile->r0 = tile->g0 = tile->b0 = (idleFrames - TITLE_SCREEN_IDLE_TIMEOUT) * TITLE_SCREEN_FADE_BRIGHTNESS_STEP - 1;
+                tile->x0                       = -TITLE_SCREEN_WIDTH_PIXELS / 2;
+                tile->y0                       = -TITLE_SCREEN_HEIGHT_PIXELS / 2;
+                tile->w                        = TITLE_SCREEN_WIDTH_PIXELS;
+                tile->h                        = TITLE_SCREEN_HEIGHT_PIXELS;
                 setSemiTrans(tile, 1);
                 addPrim(gGpuCurrentOt, tile);
 
-                tpage          = gGpuPrimCursor;
-                gGpuPrimCursor = tpage + 1;
-                setlen(tpage, 1);
-                tpage->code[0] = 0xE1000240;
-                addPrim(gGpuCurrentOt, tpage);
+                _titlePrependScreenFadeDrawMode();
             }
         } else {
             Wip_SysFlags.skipTitleIntro = 0;
             if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_1) {
                 taskCallExit(task);
                 gDisplayState.demoScene = gameMainGetInitializationCount() + 2;
-                gDisplayState.demoScene = gDisplayState.demoScene % 3 + 1;
+                gDisplayState.demoScene = gDisplayState.demoScene % TITLE_ATTRACT_DEMO_COUNT + 1;
                 printf(Title_DemoStartMsg);
-                taskSpawn(0, 3, 2, 0);
+                taskSpawn(TITLE_RESIDENT_TASK_BANK, TITLE_START_SESSION_TASK_SLOT, TITLE_START_SESSION_DEMO_ARG, 0);
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             } else {
                 gDisplayState.gameMode = DISPLAY_GAME_RESTART;
@@ -317,43 +376,40 @@ static void Title_MenuTask(Task* task)
         return;
     }
 
+    // The negative idle count ramps the newly initialized screen in from black.
     if (work->screenFadeEnabled != 0 && idleFrames < 0) {
-        TILE*     tile;
-        DR_TPAGE* tpage;
-        s32       color;
+        TILE* tile;
+        s32   fadeBrightness;
 
         tile           = gGpuPrimCursor;
         gGpuPrimCursor = tile + 1;
-        setlen(tile, 3);
-        setcode(tile, 0x62);
-        color    = ~(work->idleFrames << 4);
-        tile->x0 = -0xA0;
-        tile->y0 = -0x78;
-        tile->w  = 0x140;
-        tile->h  = 0xF0;
-        tile->b0 = color;
-        tile->g0 = color;
-        tile->r0 = color;
+        setlen(tile, (sizeof(*tile) - sizeof(tile->tag)) / sizeof(u_long));
+        setcode(tile, TITLE_SCREEN_TILE_SEMITRANSPARENT);
+        fadeBrightness = ~(work->idleFrames << TITLE_SCREEN_FADE_BRIGHTNESS_SHIFT);
+        tile->x0       = -TITLE_SCREEN_WIDTH_PIXELS / 2;
+        tile->y0       = -TITLE_SCREEN_HEIGHT_PIXELS / 2;
+        tile->w        = TITLE_SCREEN_WIDTH_PIXELS;
+        tile->h        = TITLE_SCREEN_HEIGHT_PIXELS;
+        tile->b0       = fadeBrightness;
+        tile->g0       = fadeBrightness;
+        tile->r0       = fadeBrightness;
         addPrim(gGpuCurrentOt, tile);
 
-        tpage          = gGpuPrimCursor;
-        gGpuPrimCursor = tpage + 1;
-        setlen(tpage, 1);
-        tpage->code[0] = 0xE1000240;
-        addPrim(gGpuCurrentOt, tpage);
+        _titlePrependScreenFadeDrawMode();
     }
 
-    if (task->state == 3) {
+    // Fade the menu in over the prompt, then accept navigation and selection.
+    if (task->state == TITLE_SCREEN_STATE_MENU) {
         if (work->menuFade < TITLE_SCREEN_FADE_FULL) {
             work->menuFade += TITLE_SCREEN_FADE_STEP;
         }
-        for (i = 0; i < TITLE_CHROME_MENU_ROW_COUNT; i++) {
-            _titleDrawChromeRow(i * TITLE_CHROME_MENU_ROW_STEP + TITLE_CHROME_MENU_FIRST_Y,
-                                i * TITLE_CHROME_ROW_HEIGHT + TITLE_CHROME_ATLAS_V_NEW_GAME, work->menuFade);
+        for (menuRow = 0; menuRow < TITLE_CHROME_MENU_ROW_COUNT; menuRow++) {
+            _titleDrawChromeRow(menuRow * TITLE_CHROME_MENU_ROW_STEP + TITLE_CHROME_MENU_FIRST_Y,
+                                menuRow * TITLE_CHROME_ROW_HEIGHT + TITLE_CHROME_ATLAS_V_NEW_GAME, work->menuFade);
         }
         _titleDrawChromeRow((work->selection - TITLE_MENU_NEW_GAME) * TITLE_CHROME_MENU_ROW_STEP + TITLE_CHROME_MENU_FIRST_Y,
                             TITLE_CHROME_ATLAS_V_CURSOR, work->menuFade);
-        _titleDrawChromeRow(work->menuFade / 8 + TITLE_CHROME_PROMPT_Y, TITLE_CHROME_ATLAS_V_PROMPT,
+        _titleDrawChromeRow(work->menuFade / TITLE_SCREEN_BRIGHTNESS_PER_PIXEL + TITLE_CHROME_PROMPT_Y, TITLE_CHROME_ATLAS_V_PROMPT,
                             TITLE_SCREEN_FADE_FULL - work->menuFade);
         _titleDrawChromeRow(TITLE_CHROME_COPYRIGHT_Y, TITLE_CHROME_ATLAS_V_COPYRIGHT, TITLE_SCREEN_FADE_FULL - work->menuFade);
         if (work->menuFade < TITLE_SCREEN_FADE_FULL) {
@@ -381,22 +437,23 @@ static void Title_MenuTask(Task* task)
                 work->selection = TITLE_MENU_SURVIVAL;
             }
             if (work->selection == TITLE_MENU_SURVIVAL) {
-                work->selection = -1;
+                work->selection = TITLE_MENU_BEFORE_FIRST;
             }
             if (work->selection < 0) {
                 work->selection += work->menuCount;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | PAD_BUTTON_START) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            taskSpawn(0, Title_MenuSpawnIds[work->selection], 0, 0);
+            taskSpawn(TITLE_RESIDENT_TASK_BANK, Title_MenuSpawnIds[work->selection], 0, 0);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             taskCallExit(task);
         }
     } else {
+        // Slide the prompt into place; confirmation opens the menu immediately.
         if (work->promptFade < TITLE_SCREEN_FADE_FULL) {
             work->promptFade += TITLE_SCREEN_FADE_STEP;
         }
-        _titleDrawChromeRow(TITLE_CHROME_PROMPT_Y - (TITLE_SCREEN_FADE_FULL - work->promptFade) / 8,
+        _titleDrawChromeRow(TITLE_CHROME_PROMPT_Y - (TITLE_SCREEN_FADE_FULL - work->promptFade) / TITLE_SCREEN_BRIGHTNESS_PER_PIXEL,
                             TITLE_CHROME_ATLAS_V_PROMPT, work->promptFade);
         _titleDrawChromeRow(TITLE_CHROME_COPYRIGHT_Y, TITLE_CHROME_ATLAS_V_COPYRIGHT, TITLE_SCREEN_FADE_FULL);
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | PAD_BUTTON_START) != 0) {
@@ -407,57 +464,56 @@ static void Title_MenuTask(Task* task)
     }
 }
 
-/// Restore demo card / save banks from Fs_ActorLoadBase2 (or 0x80600100 when
-/// gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY).
-/// Preserves gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration / field_23 across the bulk copy.
-void Title_RestoreDemoCard(void)
+void titleRestoreAttractDemoState(void)
 {
-    u8* src;
-    s32 saveField23;
-    s32 saveField21;
-    s32 bank;
-    s32 t;
-    u8* base;
+    const u8* stateBytes;
+    s32       savedDemoScene;
+    s32       savedVibration;
+    s32       bank;
+    s32       bankTimesEight;
+    u8*       shelterBankBytes;
 
-    src         = (u8*)Fs_ActorLoadBase2;
-    bank        = GAME_FLAG_NIBBLE_BANK_LIVE;
-    saveField23 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
-    saveField21 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
+    stateBytes     = Fs_ActorLoadBase2;
+    bank           = GAME_FLAG_NIBBLE_BANK_LIVE;
+    savedDemoScene = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
+    savedVibration = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        src = FILE_SYSTEM_FIXED_REPLAY_BASE;
+        stateBytes = FILE_SYSTEM_FIXED_REPLAY_BASE;
     }
     printf(Title_DemoCardRestoreMsg, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
 
-    memcpy(&gMcSaveData[MEMORY_CARD_SAVE_LIVE], src, sizeof(McSaveData));
-    src += sizeof(McSaveData);
+    // Consume one live record of each kind in the demo file's serialized order.
+    memcpy(&gMcSaveData[MEMORY_CARD_SAVE_LIVE], stateBytes, sizeof(gMcSaveData[MEMORY_CARD_SAVE_LIVE]));
+    stateBytes += sizeof(gMcSaveData[MEMORY_CARD_SAVE_LIVE]);
 
     // Restore the live player image; the serialized backup stays intact.
-    memcpy((u8*)&gPlayerStatus + bank * PLAYER_STATUS_SAVE_RECORD_BYTES, src, PLAYER_STATUS_SAVE_RECORD_BYTES);
-    src += PLAYER_STATUS_SAVE_RECORD_BYTES;
+    memcpy(((u8(*)[PLAYER_STATUS_SAVE_RECORD_BYTES]) & gPlayerStatus)[bank], stateBytes, PLAYER_STATUS_SAVE_RECORD_BYTES);
+    stateBytes += PLAYER_STATUS_SAVE_RECORD_BYTES;
 
-    memcpy(&GameFlag_AcropolisBanks[bank], src, GAME_FLAG_ACROPOLIS_BANK_BYTES);
-    src += GAME_FLAG_ACROPOLIS_BANK_BYTES;
+    memcpy(&GameFlag_AcropolisBanks[bank], stateBytes, sizeof(GameFlag_AcropolisBanks[bank]));
+    stateBytes += sizeof(GameFlag_AcropolisBanks[bank]);
 
-    memcpy(GameFlag_DryfieldBanks, src, GAME_FLAG_DRYFIELD_BANK_BYTES);
-    src += GAME_FLAG_DRYFIELD_BANK_BYTES;
+    memcpy(GameFlag_DryfieldBanks, stateBytes, sizeof(GameFlag_DryfieldBanks[0]));
+    stateBytes += sizeof(GameFlag_DryfieldBanks[0]);
 
-    memcpy(GameFlag_DryfieldFullBanks, src, GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES);
-    src += GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES;
+    memcpy(GameFlag_DryfieldFullBanks, stateBytes, sizeof(GameFlag_DryfieldFullBanks[0]));
+    stateBytes += sizeof(GameFlag_DryfieldFullBanks[0]);
 
     // &GameFlag_ShelterBanks[bank], with bank * 0xE4 spelled out: the typed
     // index loads the array address before the first shift, the target after.
-    t    = bank * 8;
-    base = (u8*)GameFlag_ShelterBanks;
-    memcpy(base + ((t - bank) * 8 + bank) * 4, src, GAME_FLAG_MINE_SHELTER_BANK_BYTES);
-    src += GAME_FLAG_MINE_SHELTER_BANK_BYTES;
+    bankTimesEight   = bank * 8;
+    shelterBankBytes = (u8*)GameFlag_ShelterBanks;
+    memcpy(shelterBankBytes + ((bankTimesEight - bank) * 8 + bank) * 4, stateBytes, sizeof(GameFlag_ShelterBanks[bank]));
+    stateBytes += sizeof(GameFlag_ShelterBanks[bank]);
 
-    memcpy(GameFlag_NeoArkBanks, src, GAME_FLAG_NEO_ARK_BANK_BYTES);
-    src += GAME_FLAG_NEO_ARK_BANK_BYTES;
+    memcpy(GameFlag_NeoArkBanks, stateBytes, sizeof(GameFlag_NeoArkBanks[0]));
+    stateBytes += sizeof(GameFlag_NeoArkBanks[0]);
 
-    memcpy(&gGameFlagNibbleBanks[bank], src, sizeof(gGameFlagNibbleBanks[bank]));
+    memcpy(&gGameFlagNibbleBanks[bank], stateBytes, sizeof(gGameFlagNibbleBanks[bank]));
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene = saveField23;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = saveField21;
+    // Keep the active replay selection and the user's vibration setting.
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene = savedDemoScene;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = savedVibration;
     if (fsIsStageCdfAvailable(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage) != true) {
         gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
@@ -597,61 +653,73 @@ static void _titleIntroMovieTask(Task* task)
     }
 }
 
-void Title_BootTask(Task* arg0)
+/// Coordinates the title intro or direct background load, then starts the screen.
+///
+/// Starts at state 0 with the title overlay and stage-zero file table loaded.
+/// The movie uses the display-owned task list; this coordinator resumes after
+/// playback restores the game loop. Direct entry waits for its background load.
+/// The movie route waits two ticks before the screen spawn; both routes wait
+/// one tick after it, then enable display output, latch the subsequent intro-skip
+/// request and release this task.
+static void _titleStartupTask(Task* startupTask)
 {
-    u8    param1[4];
-    u8    param2[4];
-    s32   next;
+    enum {
+        TITLE_STARTUP_PREPARE,
+        TITLE_STARTUP_WAIT_FIRST_FRAME,
+        TITLE_STARTUP_WAIT_SECOND_FRAME,
+        TITLE_STARTUP_SPAWN_SCREEN,
+        TITLE_STARTUP_WAIT_SCREEN_FRAME,
+        TITLE_STARTUP_FINISH,
+        TITLE_STARTUP_QUEUE_BACKGROUND,
+        TITLE_STARTUP_WAIT_BACKGROUND,
+        TITLE_STARTUP_INTRO_TASK_INDEX = 1,
+    };
+    s32   nextState;
     Task* task;
 
-    task = arg0;
+    task = startupTask;
     switch (task->state) {
-        case 0:
+        case TITLE_STARTUP_PREPARE:
+            // Normal boot gives the movie exclusive presentation ownership.
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             Title_SkipFadeFlag                      = 1;
             if ((gDisplayState.debugMode < 0) || (Wip_SysFlags.skipTitleIntro != 0)) {
-                next               = 6;
+                nextState          = TITLE_STARTUP_QUEUE_BACKGROUND;
                 Title_SkipFadeFlag = 0;
             } else {
-                displaySpawnTaskFromTable(Title_TaskDescs, 1, 0, 0);
+                displaySpawnTaskFromTable(Title_TaskDescs, TITLE_STARTUP_INTRO_TASK_INDEX, 0, 0);
                 gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-                next                                 = task->state + 1;
+                nextState                            = task->state + 1;
             }
-            task->state = next;
+            task->state = nextState;
             return;
-        case 1:
-        case 2:
+        case TITLE_STARTUP_WAIT_FIRST_FRAME:
+        case TITLE_STARTUP_WAIT_SECOND_FRAME:
             task->state = task->state + 1;
             return;
-        case 3:
+        case TITLE_STARTUP_SPAWN_SCREEN:
             if (Title_SkipFadeFlag != 0) {
-                taskSpawn(0, 2, 0x80000000, 0);
+                taskSpawn(TITLE_RESIDENT_TASK_BANK, TITLE_SCREEN_TASK_SLOT, TITLE_SCREEN_SKIP_FADE, 0);
             } else {
-                taskSpawn(0, 2, 0, 0);
+                taskSpawn(TITLE_RESIDENT_TASK_BANK, TITLE_SCREEN_TASK_SLOT, 0, 0);
             }
             /* fallthrough */
-        case 4:
+        case TITLE_STARTUP_WAIT_SCREEN_FRAME:
             task->state = task->state + 1;
             return;
-        case 5:
+        case TITLE_STARTUP_FINISH:
             SetDispMask(1);
             Wip_SysFlags.skipTitleIntro = 1;
             taskKill(task);
             return;
-        case 6:
-            param1[3] = 0;
-            param1[2] = 0;
-            param1[0] = 2;
-            param2[0] = 0;
-            param2[1] = 0;
-            param2[2] = 0;
-            param2[3] = 0;
-            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        case TITLE_STARTUP_QUEUE_BACKGROUND:
+            // Skipping the movie still requires its background and chrome load.
+            _titleEnqueueBackgroundLoad();
             task->state = task->state + 1;
             /* fallthrough */
-        case 7:
-            if (cdCmdIsIdle() & 0xFFFF) {
-                task->state = 3;
+        case TITLE_STARTUP_WAIT_BACKGROUND:
+            if (cdCmdIsIdle()) {
+                task->state = TITLE_STARTUP_SPAWN_SCREEN;
             }
             return;
     }

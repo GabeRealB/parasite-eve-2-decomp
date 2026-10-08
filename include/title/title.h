@@ -5,10 +5,22 @@
 
 #include "main/task_types.h"
 
-/// TaskDesc table: [0]=Title_BootTask, [1]=_titleIntroMovieTask.
+/// TaskDesc table: [0]=_titleStartupTask, [1]=_titleIntroMovieTask.
 extern TaskDesc Title_TaskDescs[];
 
-void Title_RestoreDemoCard(void);
+/// Restores the live save, player image and flag banks for an attract demo.
+///
+/// Requires the title overlay and a fully loaded demo save prefix in actor
+/// buffer 2, or at `FILE_SYSTEM_FIXED_REPLAY_BASE` for fixed replay. The prefix
+/// contains, in order, one `McSaveData`, one `PLAYER_STATUS_SAVE_RECORD_BYTES`
+/// player image, the Akropolis, Dryfield day, Dryfield night, mine/Shelter and
+/// Neo Ark banks, and one `GameFlagNibbleBank` (0xD4C bytes total). The source
+/// must remain readable and disjoint from the resident destinations throughout.
+/// Only live images are replaced; their memory-card backups remain intact.
+/// Preserves the live save's vibration setting and demo selection. The loaded
+/// player matrix pointer must be rebound before gameplay uses it. An unavailable
+/// saved stage requests `DISPLAY_GAME_RESTART`; no checksum validation is done.
+void titleRestoreAttractDemoState(void);
 
 /// Queues the save/replay resources for a numbered attract demo.
 ///

@@ -2,7 +2,7 @@
 // They lie outside main's segment, so splat names them only when absolute.
 // Keep in sync with configs/USA/sym.gameplay.txt / sym.title.txt.
 
-Title_RestoreDemoCard = 0x8009407C; // type:func absolute:True owner=title
+titleRestoreAttractDemoState = 0x8009407C; // type:func absolute:True owner=title
 titleEnqueueAttractDemoFile = 0x80094B90; // type:func absolute:True owner=title
 Title_TaskDescs = 0x80094C8C; // absolute:True owner=title
 
