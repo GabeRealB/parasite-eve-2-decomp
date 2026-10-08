@@ -9,7 +9,16 @@ extern u16 D_8005ED8A;
 
 void GameFlow_StateByField34(Task* task);
 
-void GameFlow_DispatchTable5(Task* task);
+/// Runs one stage of the title's memory-card load flow.
+///
+/// Resident task bank 0, slot 4 starts with `task->state` zero. The unchecked
+/// state domain is 0..4: reset session progress, create the load dialog, wait
+/// for its closure, wait twelve callbacks, then return to the title or restart
+/// from a successfully loaded save. Requires initialized resident UI and save
+/// state. State 2 borrows the UI-owned dialog through `spawnArg2`;
+/// closure requests animated teardown without freeing it here. The last stage
+/// kills this task and, on successful load, resets task lists and heaps.
+void gameFlowLoadDialogTask(Task* task);
 
 /// Starts a session from the live save's location through resident task bank 0, slot 9.
 ///

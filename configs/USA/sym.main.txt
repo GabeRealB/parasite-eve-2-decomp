@@ -753,11 +753,11 @@ fadeDrawOverlay               = 0x8002BA9C; // type:func
 gameClearSession               = 0x8002BB9C; // type:func
 GameFlow_InitSystems               = 0x8002BBC8; // type:func
 _gameFlowResetNewSession               = 0x8002BC0C; // type:func
-GameFlow_SpawnMenu               = 0x8002BCA8; // type:func
+_gameFlowSpawnLoadDialog               = 0x8002BCA8; // type:func
 _gameFlowWaitForLoadDialog               = 0x8002BD24; // type:func
 _gameFlowWaitAfterLoadDialog               = 0x8002BDB8; // type:func
 GameFlow_SpawnMainWhenReady               = 0x8002BE0C; // type:func
-GameFlow_DispatchTable5               = 0x8002BEA8; // type:func
+gameFlowLoadDialogTask               = 0x8002BEA8; // type:func
 _gameFlowRestoreSavedLocation               = 0x8002BF10; // type:func
 GameFlow_EnqueueDefaultLoad               = 0x8002BF58; // type:func
 playClockResetMinuteTicks               = 0x8002BFD4; // type:func
@@ -765,7 +765,7 @@ GameFlow_SpawnWhenIdle               = 0x8002BFE0; // type:func
 gameFlowStartSessionTask               = 0x8002C028; // type:func
 _padTickVibrationRequests               = 0x8002C090; // type:func
 padPollPort0               = 0x8002C1D8; // type:func
-Pad_UpdatePort0               = 0x8002C5A4; // type:func
+padUpdatePort0               = 0x8002C5A4; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x1D068   VA: 0x8002C868   subsegment: c, padutil

@@ -182,7 +182,7 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskCountdownCallback },
     { { { TASK_BODY_NONE, 0xC0 } }, titleScreenTask },
     { { { TASK_BODY_NONE, 0xC0 } }, GameFlow_StateByField34 },
-    { { { TASK_BODY_NONE, 0xC0 } }, GameFlow_DispatchTable5 },
+    { { { TASK_BODY_NONE, 0xC0 } }, gameFlowLoadDialogTask },
     { { { TASK_BODY_NONE, 0xC0 } }, Text_UiTaskCallback },
     { { { TASK_BODY_NONE, 0xC0 } }, titleExitTask },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },

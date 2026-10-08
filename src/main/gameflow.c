@@ -110,7 +110,7 @@ static void GameFlow_InitSystems(void);
 
 static void _gameFlowResetNewSession(Task* task);
 
-static void GameFlow_SpawnMenu(Task* task);
+static void _gameFlowSpawnLoadDialog(Task* task);
 
 static void _gameFlowWaitForLoadDialog(Task* task);
 
@@ -127,12 +127,9 @@ static void GameFlow_SpawnWhenIdle(Task* task);
 static void _padTickVibrationRequests(PadState* pad);
 
 enum {
-    PAD_DIRECTION_REPEAT_DELAY_TICKS   = 30,
-    PAD_DIRECTION_REPEAT_RESTART_TICKS = 22,
-    PAD_DIRECTION_BUTTON_MASK          = 0xF000,
-    PAD_STICK_CENTER_WORD              = 0x80808080,
-    PAD_STICK_DEAD_ZONE_RAW            = 24,
-    PAD_LEGACY_VIBRATION_PREFIX        = 0x40,
+    PAD_STICK_CENTER_WORD       = 0x80808080,
+    PAD_STICK_DEAD_ZONE_RAW     = 24,
+    PAD_LEGACY_VIBRATION_PREFIX = 0x40,
 };
 
 GameSession* gGameSession = &_gGameSessionState;
@@ -151,7 +148,7 @@ u16        D_8005ED8A   = 0;
 
 static const TaskFuncTable5 GameFlow_States5 = { {
     _gameFlowResetNewSession,
-    GameFlow_SpawnMenu,
+    _gameFlowSpawnLoadDialog,
     _gameFlowWaitForLoadDialog,
     _gameFlowWaitAfterLoadDialog,
     GameFlow_SpawnMainWhenReady,
@@ -322,17 +319,23 @@ static void _gameFlowResetNewSession(Task* task)
     task->state                                        = task->state + 1;
 }
 
-static void GameFlow_SpawnMenu(Task* task)
+/// Creates the memory-card load dialog and enters modal input after allocation succeeds.
+///
+/// State 1 retries creation on failure, leaving modal flags and the state unchanged.
+/// `spawnArg2` borrows the returned `UiObject`; its UI task owns teardown.
+/// The initial countdown is replaced by the closing delay before it is read.
+static void _gameFlowSpawnLoadDialog(Task* task)
 {
-    void* temp_v0;
+    enum { GAME_FLOW_DIALOG_INITIAL_COUNTDOWN = 16 };
+    UiObject* loadDialog;
 
     displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-    temp_v0                 = uiSpawnObject(Mc_TaskDescriptors, 0, 1, 0, 0);
-    task->spawnArg2.pointer = temp_v0;
-    if (temp_v0 != 0) {
+    loadDialog              = uiSpawnObject(&Mc_TaskDescriptors[0], 0, USER_INTERFACE_PANEL_ACTIVE, 0, NULL);
+    task->spawnArg2.pointer = loadDialog;
+    if (loadDialog != NULL) {
         gDisplayState.gameMode = DISPLAY_GAME_MODAL;
         gGameSession->uiOpen   = 1;
-        task->killCountdown    = 0x10;
+        task->killCountdown    = GAME_FLOW_DIALOG_INITIAL_COUNTDOWN;
         task->state            = task->state + 1;
     }
 }
@@ -397,12 +400,12 @@ static void GameFlow_SpawnMainWhenReady(Task* task)
     taskSpawn(0, 9, 0, 0);
 }
 
-void GameFlow_DispatchTable5(Task* task)
+void gameFlowLoadDialogTask(Task* task)
 {
-    TaskFuncTable5 sp;
+    TaskFuncTable5 states;
 
-    sp = GameFlow_States5;
-    sp.funcs[task->state](task);
+    states = GameFlow_States5;
+    states.funcs[task->state](task);
 }
 
 /// Restores the full live-save location cell and restarts the required-disc check.
@@ -462,7 +465,10 @@ void gameFlowStartSessionTask(Task* task)
 /// Counts one serviced poll of an active vibration request and expires it at zero.
 ///
 /// The caller checks `active` before entering and mixes the final contribution
-/// even if expiry clears it here. The signed halfword countdown wraps on storage.
+/// even if expiry clears it here. `request` borrows a writable resident slot;
+/// only its countdown and, on expiry, its active byte change. The signed
+/// halfword countdown wraps on storage: an initial zero expires after 65536
+/// calls. There is no clamp, output write or intensity reset.
 static inline void _padAdvanceVibrationRequest(PadVibrationRequest* request)
 {
     if (--request->pollsRemaining == 0) {
@@ -688,47 +694,66 @@ void padPollPort0(void)
     } while (port < PAD_POLLED_PORT_COUNT);
 }
 
-void Pad_UpdatePort0(void)
+/// Samples the controller's active-low bytes into the update's active-high word.
+///
+/// Both borrowed objects must be live; the scratch word preserves Psy-Q bit order.
+static inline u16 _padSampleRawButtons(_PadScratch* scratch, const PadRawPort* rawPort)
 {
-    s32           i;
-    DisplayState* ds;
-    _PadScratch*  scratch;
-    PadState*     pad;
-    u16           buttons;
-    u16           prev;
-    void**        head;
+    u16 buttons;
 
-    head    = SCRATCH_HEAD_ADDR;
-    i       = 0;
-    ds      = &gDisplayState;
-    scratch = SCRATCH_PUSH_AT(head, _PadScratch);
+    scratch->rawButtons.bytes.high = rawPort->buttonsHigh;
+    scratch->rawButtons.bytes.low  = rawPort->buttonsLow;
+    buttons                        = ~scratch->rawButtons.word;
+    scratch->buttons               = buttons;
+    return buttons;
+}
+
+void padUpdatePort0(void)
+{
+    enum {
+        PAD_UPDATED_PORT_COUNT             = 1,
+        PAD_DIRECTION_REPEAT_DELAY_TICKS   = 30,
+        PAD_DIRECTION_REPEAT_RESTART_TICKS = 22,
+        PAD_DIRECTION_BUTTON_MASK          = PAD_BUTTON_LEFT | PAD_BUTTON_RIGHT | PAD_BUTTON_UP | PAD_BUTTON_DOWN,
+    };
+    s32                 port;
+    const DisplayState* display;
+    _PadScratch*        scratch;
+    PadState*           pad;
+    u16                 buttons;
+    u16                 previousButtons;
+    void**              scratchHead;
+
+    scratchHead = SCRATCH_HEAD_ADDR;
+    port        = 0;
+    display     = &gDisplayState;
+    scratch     = SCRATCH_PUSH_AT(scratchHead, _PadScratch);
 
     do {
-        pad = &gPadStates[i];
+        pad = &gPadStates[port];
         if (pad->inputBlockPolls == 0) {
-            scratch->rawButtons.bytes.high = Pad_RawPorts[i].buttonsHigh;
-            scratch->rawButtons.bytes.low  = Pad_RawPorts[i].buttonsLow;
-            buttons                        = ~scratch->rawButtons.word;
-            scratch->buttons               = buttons;
+            buttons = _padSampleRawButtons(scratch, &Pad_RawPorts[port]);
 
+            // Add left-stick directions only beyond half of normalized Q12 travel.
             if (pad->inputFormat == PAD_INPUT_FORMAT_ANALOG) {
                 if (pad->stickAxes[PAD_STICK_LEFT_X] < -PAD_STICK_DIRECTION_THRESHOLD) {
-                    scratch->buttons = buttons | 0x8000;
+                    scratch->buttons = buttons | PAD_BUTTON_LEFT;
                 }
                 if (pad->stickAxes[PAD_STICK_LEFT_X] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
-                    scratch->buttons = scratch->buttons | 0x2000;
+                    scratch->buttons = scratch->buttons | PAD_BUTTON_RIGHT;
                 }
                 if (pad->stickAxes[PAD_STICK_LEFT_Y] < -PAD_STICK_DIRECTION_THRESHOLD) {
-                    scratch->buttons = scratch->buttons | 0x1000;
+                    scratch->buttons = scratch->buttons | PAD_BUTTON_UP;
                 }
                 if (pad->stickAxes[PAD_STICK_LEFT_Y] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
-                    scratch->buttons = scratch->buttons | 0x4000;
+                    scratch->buttons = scratch->buttons | PAD_BUTTON_DOWN;
                 }
             }
 
-            if (i == 0) {
+            // Diagnostic playback replaces the sampled word only during game presentation.
+            if (port == 0) {
                 if (Pad_RemapState->inputOverrideMode != GAME_DEBUG_INPUT_OVERRIDE_NONE) {
-                    if (ds->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
+                    if (display->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
                         pad->stickAxes[PAD_STICK_RIGHT_Y] = 0;
                         pad->stickAxes[PAD_STICK_RIGHT_X] = 0;
                         pad->stickAxes[PAD_STICK_LEFT_Y]  = 0;
@@ -739,16 +764,18 @@ void Pad_UpdatePort0(void)
             }
 
             // Derive both edge masks before replacing the held-button sample.
-            prev                 = pad->buttons;
+            previousButtons      = pad->buttons;
             buttons              = scratch->buttons;
-            scratch->prevButtons = prev;
-            pad->pressedButtons  = buttons & (buttons ^ prev);
+            scratch->prevButtons = previousButtons;
+            pad->pressedButtons  = buttons & (buttons ^ previousButtons);
             pad->releasedButtons = scratch->prevButtons & (scratch->buttons ^ scratch->prevButtons);
             pad->buttons         = scratch->buttons;
 
+            // Compare D-pad bits alone; byte storage wraps before the repeat threshold test.
+            // Preserve the target's signed-byte load; the nonzero test is identical for every byte value.
             if ((s8)gGameSession->uiOpen != 0) {
                 if ((scratch->prevButtons & PAD_DIRECTION_BUTTON_MASK) == (scratch->buttons & PAD_DIRECTION_BUTTON_MASK)) {
-                    pad->directionRepeatTicks = pad->directionRepeatTicks + ds->frameTicks;
+                    pad->directionRepeatTicks = pad->directionRepeatTicks + display->frameTicks;
                 } else {
                     pad->directionRepeatTicks = 0;
                 }
@@ -758,20 +785,18 @@ void Pad_UpdatePort0(void)
                 }
             }
         } else {
+            // Expiry restores raw held buttons without generating edges or applying overrides.
             pad->inputBlockPolls--;
             pad->pressedButtons  = 0;
             pad->releasedButtons = 0;
             pad->buttons         = 0;
             if (pad->inputBlockPolls == 0) {
-                scratch->rawButtons.bytes.high = Pad_RawPorts[i].buttonsHigh;
-                scratch->rawButtons.bytes.low  = Pad_RawPorts[i].buttonsLow;
-                buttons                        = ~scratch->rawButtons.word;
-                scratch->buttons               = buttons;
-                pad->buttons                   = buttons;
+                buttons      = _padSampleRawButtons(scratch, &Pad_RawPorts[port]);
+                pad->buttons = buttons;
             }
         }
-        i++;
-    } while (i <= 0);
+        port++;
+    } while (port < PAD_UPDATED_PORT_COUNT);
 
     SCRATCH_STACK_RELEASE_BLOCK(_PadScratch);
 }

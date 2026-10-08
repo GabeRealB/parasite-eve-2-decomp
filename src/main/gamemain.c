@@ -394,7 +394,7 @@ static void GameMain_Loop(void)
             GameMain_HaltFlags = 0;
         }
         GameResetScratchHead();
-        Pad_UpdatePort0();
+        padUpdatePort0();
 
         if (gPadStates[0].inputFormat == PAD_INPUT_FORMAT_UNAVAILABLE && gPadStates[0].inputBlockPolls == 0 && gDisplayState.gameRunning != 0 &&
             gDisplayState.suppressDisconnectPause == 0 && gDisplayState.gameMode == DISPLAY_GAME_ACTIVE) {

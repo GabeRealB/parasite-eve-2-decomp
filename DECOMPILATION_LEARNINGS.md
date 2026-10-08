@@ -13076,7 +13076,7 @@ void dispatcher(Task* arg0)
 
 The index form then becomes `addiu v1,sp,0x10` / `sll` / `addu v1,v1,v0` /
 `lw v0,0(v1)`. `gameFlowStartSessionTask` is the pure example (3 entries). The same idea
-applies to `GameFlow_States5` (5 entries) for the sibling dispatcher `GameFlow_DispatchTable5`.
+applies to `GameFlow_States5` (5 entries) for the sibling dispatcher `gameFlowLoadDialogTask`.
 
 Two-arg handlers (e.g. `_UiPanelLifecycleFunc` / `Ui_ObjectStates` / `_uiDispatchPanelLifecycle`) use the same
 struct-assignment pattern. When the object that supplies the index is also the
@@ -22182,36 +22182,29 @@ the second SPRT alloc). One reused `page` matches the target's `$t7` reuse and
 `setDrawTPage` when the target stores the full GPU word as a constant (same
 pattern as `_stageAppendFadeOverlay` / `_textDrawGlyphOutlinedSingleEntry`).
 
-## Empty `asm volatile` after field reads blocks pointer strength-reduction
+## Indexed raw-controller samples preserve the receive-buffer base
 
-When a loop walks a struct pointer (`raw++` / `raw += sizeof`) but only touches
-fields at a fixed small offset (e.g. `raw->buttonsHigh` / `raw->buttonsLow`), GCC 2.8.1
-strength-reduces the induction variable to `base + offset` and emits
+An earlier reconstruction walked a struct pointer (`raw++`) but only touched
+fields at a fixed small offset (`raw->buttonsHigh` / `raw->buttonsLow`). GCC 2.8.1
+strength-reduced the induction variable to `base + offset` and emitted
 `lbu -1(s2)` / `lbu 0(s2)` with `addiu s2, base, 3` instead of the target's
-`lbu 2(s2)` / `lbu 3(s2)` from the true base. Pinning `register … asm("s2")`
-keeps the offsets but forces `lui s2; addiu s2,s2` instead of
+`lbu 2(s2)` / `lbu 3(s2)` from the true base. Pinning the walker to `s2`
+kept the offsets but forced `lui s2; addiu s2,s2` instead of
 `lui v0; addiu s2,v0`.
 
-Fix: after the field reads, insert an empty multi-output asm that claims the
-walker is modified. Place it **after** the loads (so SR of those loads is still
-blocked by the loop-wide `+r`) but **not** at the loop tail (that steals the
-`blez` delay slot from the offset increment):
+The current `padUpdatePort0` indexes `Pad_RawPorts[port]` and passes that
+entry to `_padSampleRawButtons`. The inline helper preserves both byte writes
+before reading the halfword and produces the target's true-base loads at
+offsets 2 and 3 in both the normal sample and input-block expiry path:
 
 ```c
-scratch->rawButtons.bytes.high = raw->buttonsHigh;
-scratch->rawButtons.bytes.low  = raw->buttonsLow;
-asm volatile("" : "+r"(raw)); /* keeps s2 as base; lbu 2(s2)/3(s2) */
-buttons = ~scratch->rawButtons.word;
-/* … */
-raw++;
-i++;
-offset += 0x5C;
-} while (i <= 0); /* blez delay: addiu offset */
+buttons = _padSampleRawButtons(scratch, &Pad_RawPorts[port]);
 ```
 
-`Pad_UpdatePort0` is the pure example. Pair with two-phase scratch alloc
-(`register void* tmp asm("v0")` then `register _PadScratch* scratch asm("s1")`)
-for `lw v0; addiu v0,-N; move s1,v0; sw s1`.
+Its scratch reservation is `scratch = SCRATCH_PUSH_AT(scratchHead, _PadScratch)`.
+This also produces `lw v0; addiu v0,-N; move s1,v0; sw s1` without register
+pins or an empty assembly barrier. The earlier two-phase scratch allocation
+and modified-walker assembly were reconstruction scaffolding.
 
 ## `volatile u8*` forces cooldown decrement reload (no delay-slot reuse)
 
@@ -22220,25 +22213,24 @@ When the target does `bnez field_A, else; nop` then inside else
 `pad->inputBlockPolls = pad->inputBlockPolls - 1` reuses the compare load in the branch delay
 slot (`bnez; addiu v0,v0,-1`) and skips the reload (`andi` instead of `lbu`).
 
-Fix: access the byte through a volatile pointer so the decrement and the
-follow-up test are real memory ops:
+Fix: make the countdown byte volatile so the decrement and the follow-up test
+are real memory operations. `PadState::inputBlockPolls` now carries that
+qualifier, and `padUpdatePort0` accesses it directly:
 
 ```c
 } else {
-    volatile u8* cooldown;
-    cooldown = &pad->inputBlockPolls;
-    *cooldown = *cooldown - 1;
+    pad->inputBlockPolls--;
     pad->pressedButtons = 0;
     pad->releasedButtons = 0;
     pad->buttons = 0;
-    if (*cooldown == 0) {
+    if (pad->inputBlockPolls == 0) {
         /* re-sample buttons into pad->buttons */
     }
 }
 ```
 
 Do **not** mark the whole `PadState*` volatile — that turns `lh stickAxes[PAD_STICK_LEFT_X]` into
-`lhu` + sign-extend. `Pad_UpdatePort0` is the pure example.
+`lhu` + sign-extend. `padUpdatePort0` is the pure example.
 
 ## Volatile store before `jal` (no delay-slot fill)
 

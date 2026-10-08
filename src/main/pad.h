@@ -32,6 +32,24 @@ void padPollPort0(void);
 /// history and forces 0. A continued hold keeps returning 1 until interrupted.
 s32 padCheckSoftResetCombo(void);
 
-void Pad_UpdatePort0(void);
+/// Updates controller port 0's held buttons, edges and modal UI direction repeat.
+///
+/// Uses the latest receive-buffer sample without polling libpad. Unblocked
+/// input adds left-stick D-pad bits beyond +/-2048 in Q12, then applies an
+/// active diagnostic override only during game-loop presentation, clearing all
+/// four axes first. The gameplay override entry must be loaded when selected.
+/// Pressed and released masks compare with the previously stored held word.
+///
+/// While a UI is open, an unchanged D-pad mask accumulates nominal 60-Hz
+/// `frameTicks`: at 30 ticks, held directions repeat as presses and the byte
+/// counter resets to 22. Byte addition wraps before the threshold test; repeat
+/// time is retained while UI input is closed or blocked.
+///
+/// Blocked updates clear all three masks and decrement the volatile byte
+/// countdown once. The expiry update restores only raw held buttons, without
+/// edges, stick directions, overrides or repeat. Requires an initialized,
+/// halfword-aligned scratch stack with six free bytes; the block is released
+/// before returning. Port 1 is untouched.
+void padUpdatePort0(void);
 
 #endif // MAIN_PRIVATE_PAD_H

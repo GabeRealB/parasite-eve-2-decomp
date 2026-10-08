@@ -310,7 +310,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `01` | `C0` | `taskCountdownCallback` | Decrement signed `killCountdown`; at zero, release the body and mark for collection |
 | `02` | `C0` | `titleScreenTask` | Title phase machine. `Text_BootTask` / gameflow / title spawn this; `spawnArg1` `0x80000000` skips the fade TILE |
 | `03` | `C0` | `GameFlow_StateByField34` | Title new-game / demo path. Also a `Title_MenuSpawnIds` entry |
-| `04` | `C0` | `GameFlow_DispatchTable5` | Title load-style gameflow. Also a `Title_MenuSpawnIds` entry |
+| `04` | `C0` | `gameFlowLoadDialogTask` | Memory-card load flow: reset, create/wait/close the dialog, then return to the title or start the loaded session. Also a `Title_MenuSpawnIds` entry |
 | `05` | `C0` | `Text_UiTaskCallback` | Text / UI. Also a `Title_MenuSpawnIds` entry |
 | `06` | `C0` | `titleExitTask` | Dispatches this task's installed exit handler (initially `taskKill`). Also a `Title_MenuSpawnIds` entry; requires the title overlay |
 | `07` | `C0` | `taskKill` | Unused slot |
