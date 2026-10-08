@@ -38,6 +38,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/random.h"
@@ -70,6 +71,35 @@ static void _gluttonSetShakeLevel(s8 level);
 /// the binding must remain a macro for the shared code's `#if` comparisons.
 #define GLUTTON_ROOM GLUTTON_DUMPING_HOLE
 #include "../../shared/glutton.h"
+
+/// Package-specific state indices used by these handlers and command messages.
+enum {
+    ACTOR_403200_STATE_HIDDEN        = 0,
+    ACTOR_403200_STATE_SHOWN         = 1,
+    ACTOR_403200_STATE_RAIN          = 2,
+    ACTOR_403200_STATE_SCRIPTED_POSE = 5,
+    ACTOR_403200_STATE_GLOBS         = 6,
+    ACTOR_403200_STATE_DEBRIS        = 7,
+    ACTOR_403200_STATE_CHOOSE_ATTACK = 10,
+    ACTOR_403200_STATE_COLLAPSE      = 12,
+};
+
+/// Reach in coordinate units at which the limb retracts, and units removed per tick.
+enum {
+    ACTOR_403200_LIMB_RETRACTION_MIN_REACH = 401,
+    ACTOR_403200_LIMB_RETRACTION_STEP      = 200,
+};
+
+/// Clips and reach-dependent limb curves selected by these host handlers.
+enum {
+    ACTOR_403200_CLIP_IDLE               = 1,
+    ACTOR_403200_CLIP_GLOB_LAUNCH        = 10,
+    ACTOR_403200_CLIP_RETRACT_LIMB       = 13,
+    ACTOR_403200_CLIP_COLLAPSE           = 18,
+    ACTOR_403200_CLIP_DEBRIS_POSE        = 20,
+    ACTOR_403200_LIMB_POSE_DOWNWARD      = 0,
+    ACTOR_403200_LIMB_POSE_SHALLOW_CURVE = 3,
+};
 
 extern s8 D_actor_403200_8015F8E0[8];
 
@@ -366,17 +396,17 @@ s32                 func_actor_403200_801344C4(Task*, s16);
 s32                 func_actor_403200_80134748(Task*, s16);
 s32                 func_actor_403200_80134900(Task*, s16);
 s32                 func_actor_403200_80134A14(Task*, s16);
-s32                 func_actor_403200_80141124(Task*, s16);
+static s32          _actor403200PickSwipeView(Task* task, s16 phase);
 s32                 func_actor_403200_80141180(Task*, s16);
 s32                 func_actor_403200_801411A8(Task*, s16);
 static void         _gluttonEscort6Task(Task* task);
 
-s32  func_actor_403200_80138468(Task*, s32, s32, s32);
-s32  func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-s32  func_actor_403200_80141A94(Task*, s32, s32, s32);
-s32  func_actor_403200_80141B30(Task*, s32, s32, s32);
-void func_actor_403200_80140E6C(Task*);
-s32  func_actor_403200_8014196C(Task*, s32, s32, s32);
+static s32  _actor403200SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedSecondArg);
+static s32  _actor403200ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* command, s32 unusedSecondArg);
+static s32  _actor403200HandleActorEvent(Task* task, s32 unusedMessageId, s32 event, s32 unusedSecondArg);
+static s32  _actor403200ReleaseGlobGrab(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
+void        func_actor_403200_80140E6C(Task*);
+static void _actor403200IgnoreMessage2015(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 extern DamageAttack D_actor_403200_80141BE8[6];
 
@@ -2648,7 +2678,7 @@ _Actor403200ViewFunc D_actor_403200_8015E6E8[9] = {
     func_actor_403200_801341E8,
     func_actor_403200_80134900,
     func_actor_403200_80134374,
-    func_actor_403200_80141124,
+    _actor403200PickSwipeView,
     func_actor_403200_801411A8,
     func_actor_403200_80134A14,
 };
@@ -2808,13 +2838,13 @@ AnimationSet gActor403200Animation2D928 = {
 };
 
 TaskMessageEntry D_actor_403200_8015F770[8] = {
-    { 2015, func_actor_403200_8014196C },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_403200_80138468 },
+    { 2015, _actor403200IgnoreMessage2015 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor403200SetModelDraw },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
     { ACTOR_MESSAGE_PLACE, actorMsgPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_403200_80138748 },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_actor_403200_80141A94 },
-    { 2014, func_actor_403200_80141B30 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor403200ApplyCommand },
+    { ROOM_MESSAGE_ACTOR_EVENT, _actor403200HandleActorEvent },
+    { 2014, _actor403200ReleaseGlobGrab },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2918,95 +2948,115 @@ STATIC_ASSERT_SIZEOF(_Actor403200StateTable, 0x64);
 
 static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1);
 
-static void func_actor_403200_80141B40(Task* arg0);
+static void _actor403200ShownState(Task* task);
 
-static void func_actor_403200_8014122C(Task* arg0);
+static void _actor403200NoopState16(Task* task);
 
-static void func_actor_403200_80141234(Task* arg0);
+static void _actor403200NoopState17(Task* task);
 
-static void func_actor_403200_8014123C(Task* arg0);
+static void _actor403200DeathHandoffState(Task* task);
 
-static __inline__ void Actor403200_StepForward(GfxCoord* coord);
-static __inline__ void Actor403200_SeedRootCoord(Task* task, GluttonWork* work);
-static void            func_actor_403200_80134D40(Task* arg0);
-static void            func_actor_403200_80138AFC(Enemy* enemy, Task* task);
-static void            func_actor_403200_8013A4A0(Task* arg0);
-static void            func_actor_403200_8013B23C(Task* arg0);
-static void            func_actor_403200_8013B3C8(Task* arg0);
-static void            func_actor_403200_8013B740(Task* arg0);
-static void            func_actor_403200_8013B8C4(Task* arg0);
-static void            func_actor_403200_8013C84C(Task* arg0);
-static void            func_actor_403200_8013D028(Task* arg0);
-static void            func_actor_403200_8013D78C(Task* arg0);
-static void            func_actor_403200_8013D9EC(Task* arg0);
-static void            func_actor_403200_8013DC3C(Task* arg0);
-static void            func_actor_403200_8013E2FC(Task* arg0);
-static void            func_actor_403200_8013E5A8(Task* arg0);
-static void            func_actor_403200_8013E9C0(Task* arg0);
-static void            func_actor_403200_8013EB64(Task* arg0);
-static void            func_actor_403200_8013EF6C(Task* arg0);
+static void func_actor_403200_80134D40(Task* arg0);
+static void func_actor_403200_80138AFC(Enemy* enemy, Task* task);
+static void func_actor_403200_8013A4A0(Task* arg0);
+static void func_actor_403200_8013B3C8(Task* arg0);
+static void func_actor_403200_8013B740(Task* arg0);
+static void func_actor_403200_8013B8C4(Task* arg0);
+static void func_actor_403200_8013C84C(Task* arg0);
+static void func_actor_403200_8013D028(Task* arg0);
+static void func_actor_403200_8013D9EC(Task* arg0);
+static void func_actor_403200_8013DC3C(Task* arg0);
+static void func_actor_403200_8013E2FC(Task* arg0);
+static void func_actor_403200_8013E5A8(Task* arg0);
+static void func_actor_403200_8013EF6C(Task* arg0);
 
-/// Walk `coord` 0x19/0x1000 of the way along its own forward axis (column 2 of
-/// its rotation, normalised and GPF-scaled) and flag it for rebuild. The
-/// direction vector lives in an `SVECTOR` carved off the scratch head and
-/// handed straight back.
-static __inline__ void Actor403200_StepForward(GfxCoord* coord)
+/// Allocates primitive buffers on the host and each live escort.
+///
+/// Requires live host work/models; the task pointer is borrowed for the call.
+static __inline__ void _actor403200AllocateModelBuffers(Task* task)
 {
-    u8*      head;
-    SVECTOR* dir;
+    GluttonWork* bufferWork;
+    s16          bufferIndex;
 
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
-    SCRATCH_STACK_CURSOR(void) = dir;
+    bufferWork = task->work;
+    tmdAllocPrimitiveBuffer(task->extra.tmd);
+    for (bufferIndex = 0; bufferIndex < ARRAY_SIZE(bufferWork->escorts); bufferIndex++) {
+        if (bufferWork->escorts[bufferIndex] != NULL) {
+            tmdAllocPrimitiveBuffer(bufferWork->escorts[bufferIndex]->task->extra.tmd);
+        }
+    }
+}
 
-    gfxReadMatrixZAxis(&coord->coord, dir);
-    VectorNormalSS(dir, dir);
-    gte_lddp(0x19);
-    gte_ldsv(dir);
-    gte_gpf12();
-    gte_stsv(dir);
+/// Releases primitive buffers on the host and each live escort.
+///
+/// Requires live host work/models; the task pointer is borrowed for the call.
+static __inline__ void _actor403200FreeModelBuffers(Task* task)
+{
+    GluttonWork* bufferWork;
+    s16          bufferIndex;
 
-    coord->coord.t[0]  += dir->vx;
-    coord->coord.t[1]  += dir->vy;
-    coord->coord.t[2]  += dir->vz;
+    bufferWork = task->work;
+    tmdFreePrimitiveBuffer(task->extra.tmd);
+    for (bufferIndex = 0; bufferIndex < ARRAY_SIZE(bufferWork->escorts); bufferIndex++) {
+        if (bufferWork->escorts[bufferIndex] != NULL) {
+            tmdFreePrimitiveBuffer(bufferWork->escorts[bufferIndex]->task->extra.tmd);
+        }
+    }
+}
+
+/// Copies the host model's flags to live escorts from escortIndex onward.
+///
+/// Invoke as a standalone statement in a braced block or switch case.
+/// hostTask and hostWork must be stable, borrowed Task*
+/// and GluttonWork* pointers with live models on every non-NULL escort. Both
+/// pointers are evaluated repeatedly. escortIndex must be a signed-halfword
+/// local initialized in 0..7; it is advanced to seven. No pointer is retained.
+#define ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(hostTask, hostWork, escortIndex)                              \
+    {                                                                                                      \
+        for (; (escortIndex) < ARRAY_SIZE((hostWork)->escorts); (escortIndex)++) {                         \
+            if ((hostWork)->escorts[(escortIndex)] != NULL) {                                              \
+                (hostWork)->escorts[(escortIndex)]->task->extra.tmd->flags = (hostTask)->extra.tmd->flags; \
+            }                                                                                              \
+        }                                                                                                  \
+    }
+
+/// Advances the boss root 25 coordinate units along its normalized local Z axis.
+///
+/// Requires a live coordinate and initialized scratch with one SVECTOR (8 bytes).
+/// The displacement narrows to signed halfwords and
+/// includes Y; GTE quantization may change its length. Marks composition dirty
+/// and releases scratch. The caller decides whether actors are frozen.
+static __inline__ void _actor403200AdvanceRoot(GfxCoord* coord)
+{
+    SVECTOR* displacement;
+
+    displacement = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+
+    gfxReadMatrixZAxis(&coord->coord, displacement);
+    _actorMovementBuildDisplacement(displacement, 25);
+
+    coord->coord.t[0]  += displacement->vx;
+    coord->coord.t[1]  += displacement->vy;
+    coord->coord.t[2]  += displacement->vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
 #include "../../shared/glutton_inlines.inc.c"
 
-static __inline__ void Actor403200_SeedRootCoord(Task* task, GluttonWork* work)
+/// Restores the boss root to its current yaw at unit scale and selects hidden state.
+///
+/// Discards pitch, roll and previous scale, preserving translation and parent.
+/// Clears model flags and dirties composition. Requires live host work/model
+/// and initialized scratch with ActorScaleRotScratch plus axis-rotation space.
+static __inline__ void _actor403200ResetHostPose(Task* task, GluttonWork* work)
 {
-    GfxCoord*             coord = task->extra.tmd->coords;
-    ActorScaleRotScratch* sc;
-    s16                   ang;
-
-    sc                                         = (ActorScaleRotScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
-
-    ang     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->yaw = ang;
-    gfxRotMatrixY(&sc->rotation, ang, 1);
-    sc->scale.vx = sc->scale.vy = sc->scale.vz = 0x1000;
-    ScaleMatrix(&sc->rotation, &sc->scale);
-
-    coord->coord.m[0][0] = sc->rotation.m[0][0];
-    coord->coord.m[0][1] = sc->rotation.m[0][1];
-    coord->coord.m[0][2] = sc->rotation.m[0][2];
-    coord->coord.m[1][0] = sc->rotation.m[1][0];
-    coord->coord.m[1][1] = sc->rotation.m[1][1];
-    coord->coord.m[1][2] = sc->rotation.m[1][2];
-    coord->coord.m[2][0] = sc->rotation.m[2][0];
-    coord->coord.m[2][1] = sc->rotation.m[2][1];
-    coord->coord.m[2][2] = sc->rotation.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-
-    work->state            = 0;
+    _actorRenderRescaleYaw(task->extra.tmd->coords, ONE);
+    work->state            = ACTOR_403200_STATE_HIDDEN;
     task->extra.tmd->flags = 0;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 #include "../../shared/actor_contacts_turn_joint.inc.c"
@@ -3543,7 +3593,7 @@ s32 func_actor_403200_80134A14(Task* arg0, s16 arg1)
 /// mask leaves is tested against 0x12 and 0x18 -- each one-shot cue spawning a
 /// script and a type-6 sound with the enemy's pan and half its depth, once per
 /// arrival -- before being latched into `clip.prevSlot2Cue`. Unless the game is frozen
-/// the model is then stepped 0x19/0x1000 forward along its own facing, its
+/// the model is then advanced 25 coordinate units along its normalized facing, its
 /// `composeStamp` cleared, and once it has run out to x 0x1CCA in state 0 or 0x2882 in
 /// state 1 the step advances and re-arms `state`.
 static void func_actor_403200_80134D40(Task* arg0)
@@ -3599,7 +3649,7 @@ static void func_actor_403200_80134D40(Task* arg0)
 
     model = arg0->extra.tmd->coords;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-        Actor403200_StepForward(model);
+        _actor403200AdvanceRoot(model);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
@@ -3712,186 +3762,173 @@ static const EnemyTaskFuncTable4 gGluttonSpinnerStates = {
 
 #include "../../shared/glutton_shake_tick.inc.c"
 
-/// The escort-group reset the enemy runs whenever its state changes: it turns
-/// the host model's flag word around and pushes it onto all seven escorts'
-/// models, differing in what the word becomes and whether the model buffers are
-/// (re)allocated first. `work->freeCountdown` is cleared on every path, and the two
-/// that end with the work block's state index reset are the ones that set the
-/// word to 0x80.
+/// Applies the boss's model visibility, state-reset and buffer-allocation mode.
 ///
-/// Same body as `_actor444000SetModelDraw` without that sibling's
-/// `TmdObject::buffer` buffer tests, so every escort is re-allocated
-/// unconditionally.
-s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Requires live host work/model and models on every non-NULL escort. Mode 0
+/// allocates then hides and selects hidden state; 1 shows then allocates; 2 hides
+/// and selects hidden state; 3 hides while retaining state. All handled modes
+/// cancel the buffer-free countdown and copy host flags to live escorts.
+/// Unknown modes do nothing. Returns 0; the other message arguments are ignored.
+static s32 _actor403200SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedSecondArg)
 {
+    enum {
+        ACTOR_403200_MODEL_DRAW_HIDE_RESET_ALLOCATE = 0,
+        ACTOR_403200_MODEL_DRAW_SHOW_ALLOCATE       = 1,
+        ACTOR_403200_MODEL_DRAW_HIDE_RESET          = 2,
+        ACTOR_403200_MODEL_DRAW_HIDE_KEEP_STATE     = 3,
+    };
     GluttonWork* work;
-    GluttonWork* buffers;
-    GluttonWork* escorts;
-    GluttonWork* rebuilt;
-    s16          i;
-    s16          j;
+    GluttonWork* flagWork;
+    s16          flagIndex;
 
     work = task->work;
-    switch (arg2) {
-        case 0:
-            buffers = task->work;
-            tmdAllocPrimitiveBuffer(task->extra.tmd);
-            for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
-                if (buffers->escorts[j] != NULL) {
-                    tmdAllocPrimitiveBuffer(buffers->escorts[j]->task->extra.tmd);
-                }
-            }
-            escorts                = task->work;
-            escorts->freeCountdown = 0;
-            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-                if (escorts->escorts[i] != NULL) {
-                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
-                }
-            }
-            work->state = 0;
+    switch (drawMode) {
+        case ACTOR_403200_MODEL_DRAW_HIDE_RESET_ALLOCATE:
+            _actor403200AllocateModelBuffers(task);
+            flagWork                = task->work;
+            flagWork->freeCountdown = 0;
+            task->extra.tmd->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            flagIndex               = 0;
+            ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(task, flagWork, flagIndex);
+            work->state = ACTOR_403200_STATE_HIDDEN;
             break;
-        case 1:
-            escorts                = task->work;
-            escorts->freeCountdown = 0;
-            task->extra.tmd->flags = 0;
-            for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-                if (escorts->escorts[i] != NULL) {
-                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
-                }
-            }
-            rebuilt = task->work;
-            tmdAllocPrimitiveBuffer(task->extra.tmd);
-            for (j = 0; j < ARRAY_SIZE(rebuilt->escorts); j++) {
-                if (rebuilt->escorts[j] != NULL) {
-                    tmdAllocPrimitiveBuffer(rebuilt->escorts[j]->task->extra.tmd);
-                }
-            }
+        case ACTOR_403200_MODEL_DRAW_SHOW_ALLOCATE:
+            flagWork                = task->work;
+            flagWork->freeCountdown = 0;
+            task->extra.tmd->flags  = 0;
+            flagIndex               = 0;
+            ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(task, flagWork, flagIndex);
+            _actor403200AllocateModelBuffers(task);
             break;
-        case 2:
+        case ACTOR_403200_MODEL_DRAW_HIDE_RESET:
             work->freeCountdown    = 0;
-            escorts                = work;
+            flagWork               = work;
             task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-                if (escorts->escorts[i] != NULL) {
-                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
-                }
-            }
-            work->state = 0;
+            flagIndex              = 0;
+            ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(task, flagWork, flagIndex);
+            work->state = ACTOR_403200_STATE_HIDDEN;
             break;
-        case 3:
-            i                      = 0;
-            escorts                = task->work;
-            escorts->freeCountdown = 0;
-            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            for (; i < ARRAY_SIZE(escorts->escorts); i++) {
-                if (escorts->escorts[i] != NULL) {
-                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
-                }
-            }
+        case ACTOR_403200_MODEL_DRAW_HIDE_KEEP_STATE:
+            flagIndex               = 0;
+            flagWork                = task->work;
+            flagWork->freeCountdown = 0;
+            task->extra.tmd->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(task, flagWork, flagIndex);
             break;
     }
     return 0;
 }
 
-/// Handles message 0x7DB: records the payload and dispatches the sender's
-/// action to reset the escorts, select an attack, or finish the return pose.
-s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+/// Applies a borrowed stage/area command to the boss and records its low command byte.
+///
+/// Requires initialized host work, enemy, rigs, models and scratch. Commands in
+/// the dumping-hole namespace hide, select scripted poses, resume combat or
+/// collapse; the incinerator namespace hides or prepares a glob attack.
+/// The complete signed command is dispatched; only lastCommand narrows to u8.
+/// Context bytes are copied even for an unsupported command. Returns 1 and
+/// retains no payload pointer. The ID and second message argument are ignored.
+static s32 _actor403200ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* command, s32 unusedSecondArg)
 {
+    enum {
+        ACTOR_403200_DUMPING_HOLE_CONTEXT              = GAME_STAGE_MINE_SHELTER | (GAME_AREA_SHELTER_B3_DUMPING_HOLE << 8),
+        ACTOR_403200_INCINERATOR_CONTEXT               = GAME_STAGE_MINE_SHELTER | (GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR << 8),
+        ACTOR_403200_COMMAND_HIDE                      = 0,
+        ACTOR_403200_COMMAND_PLAY_DEBRIS_POSE          = 2,
+        ACTOR_403200_COMMAND_RESTORE_POSE              = 3,
+        ACTOR_403200_COMMAND_RESUME_BATTLE             = 5,
+        ACTOR_403200_COMMAND_COLLAPSE                  = 10,
+        ACTOR_403200_COMMAND_COLLAPSE_SKIP_SHORT       = 11,
+        ACTOR_403200_COMMAND_COLLAPSE_RESET_VIEW       = 12,
+        ACTOR_403200_COMMAND_COLLAPSE_SKIP_LONG        = 19,
+        ACTOR_403200_INCINERATOR_COMMAND_HIDE          = 0,
+        ACTOR_403200_INCINERATOR_COMMAND_PREPARE_GLOBS = 1,
+        ACTOR_403200_COLLAPSE_SKIP_SHORT_TICKS         = 150,
+        ACTOR_403200_COLLAPSE_SKIP_LONG_TICKS          = 600,
+        ACTOR_403200_ANIM_RATE_FAST_FORWARD            = 127,
+    };
     GluttonWork* work;
-    GluttonWork* escorts;
-    GluttonWork* rebuilt;
-    Enemy*       temp_enemy;
-    s16          i;
-    s16          j;
-    s32          sound;
-    s32          pan;
-    s32          action;
+    GluttonWork* flagWork;
+    Enemy*       enemy;
+    s16          flagIndex;
+    s32          soundId;
+    s32          soundPan;
+    s32          commandId;
 
-    work       = task->work;
-    temp_enemy = (Enemy*)task->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
 
-    work->lastCommandStage = msg->context.loc.stage;
-    work->lastCommandArea  = msg->context.loc.area;
-    work->lastCommand      = (u8)msg->command;
+    work->lastCommandStage = command->context.loc.stage;
+    work->lastCommandArea  = command->context.loc.area;
+    work->lastCommand      = (u8)command->command;
 
-    if (msg->context.key == 0x2704) {
-        action = msg->command;
-        switch (action) {
-            case 0:
-                work->state              = 0;
+    if (command->context.key == ACTOR_403200_DUMPING_HOLE_CONTEXT) {
+        commandId = command->command;
+        switch (commandId) {
+            case ACTOR_403200_COMMAND_HIDE:
+                work->state              = ACTOR_403200_STATE_HIDDEN;
                 work->wallDistanceTarget = 0xFA0;
                 break;
 
-            case 2:
-                work->state    = 5;
-                work->animId   = 0x14;
+            case ACTOR_403200_COMMAND_PLAY_DEBRIS_POSE:
+                work->state    = ACTOR_403200_STATE_SCRIPTED_POSE;
+                work->animId   = ACTOR_403200_CLIP_DEBRIS_POSE;
                 work->animStep = GLUTTON_ANIM_STEP_RESTART;
-                sound          = ((temp_enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200002;
-                pan            = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-                sndEvtRequestScriptStart(sound, pan,
+                soundId        = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 2);
+                soundPan       = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+                sndEvtRequestScriptStart(soundId, soundPan,
                                          (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
                 break;
 
-            case 3:
-                work->state     = 5;
-                work->prevState = -1;
-                work->animId    = 0xD;
+            case ACTOR_403200_COMMAND_RESTORE_POSE:
+                work->state     = ACTOR_403200_STATE_SCRIPTED_POSE;
+                work->prevState = GLUTTON_STATE_REENTER;
+                work->animId    = ACTOR_403200_CLIP_RETRACT_LIMB;
                 work->animStep  = GLUTTON_ANIM_STEP_BLEND;
                 break;
 
-            case 5:
-                work->state            = 0xA;
-                escorts                = task->work;
-                escorts->freeCountdown = 0;
-                task->extra.tmd->flags = 0;
-                for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-                    if (escorts->escorts[i] != NULL) {
-                        escorts->escorts[i]->task->extra.tmd->flags =
-                            task->extra.tmd->flags;
-                    }
-                }
-                rebuilt = task->work;
-                tmdAllocPrimitiveBuffer(task->extra.tmd);
-                for (j = 0; j < ARRAY_SIZE(rebuilt->escorts); j++) {
-                    if (rebuilt->escorts[j] != NULL) {
-                        tmdAllocPrimitiveBuffer(rebuilt->escorts[j]->task->extra.tmd);
-                    }
-                }
+            case ACTOR_403200_COMMAND_RESUME_BATTLE:
+                work->state             = ACTOR_403200_STATE_CHOOSE_ATTACK;
+                flagWork                = task->work;
+                flagWork->freeCountdown = 0;
+                task->extra.tmd->flags  = 0;
+                flagIndex               = 0;
+                ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(task, flagWork, flagIndex);
+                _actor403200AllocateModelBuffers(task);
                 work->viewSelector = 0;
                 work->viewLocked   = 0;
                 break;
 
-            case 10:
-                work->state        = 0xC;
-                work->prevState    = -1;
-                work->animId       = 0x12;
+            case ACTOR_403200_COMMAND_COLLAPSE:
+                work->state        = ACTOR_403200_STATE_COLLAPSE;
+                work->prevState    = GLUTTON_STATE_REENTER;
+                work->animId       = ACTOR_403200_CLIP_COLLAPSE;
                 work->animStep     = GLUTTON_ANIM_STEP_RESTART;
                 work->viewSelector = 7;
                 work->collapseSkip = 0;
                 work->viewLocked   = 1;
                 break;
 
-            case 11:
-                work->state        = 0xC;
-                work->prevState    = -1;
-                work->animId       = 0x12;
-                work->collapseSkip = 0x96;
+            case ACTOR_403200_COMMAND_COLLAPSE_SKIP_SHORT:
+                work->state        = ACTOR_403200_STATE_COLLAPSE;
+                work->prevState    = GLUTTON_STATE_REENTER;
+                work->animId       = ACTOR_403200_CLIP_COLLAPSE;
+                work->collapseSkip = ACTOR_403200_COLLAPSE_SKIP_SHORT_TICKS;
                 work->animStep     = GLUTTON_ANIM_STEP_RESTART;
                 work->viewLocked   = 1;
                 break;
 
-            case 12:
+            case ACTOR_403200_COMMAND_COLLAPSE_RESET_VIEW:
                 work->viewSelector = 7;
                 work->viewLocked   = 0;
-                work->state        = 1;
+                work->state        = ACTOR_403200_STATE_SHOWN;
+                // The binary falls through into the long collapse skip.
 
-            case 19:
-                work->state        = 0xC;
+            case ACTOR_403200_COMMAND_COLLAPSE_SKIP_LONG:
+                work->state        = ACTOR_403200_STATE_COLLAPSE;
                 work->viewSelector = 4;
-                work->prevState    = -1;
-                work->animId       = 0x12;
-                work->collapseSkip = 0x258;
+                work->prevState    = GLUTTON_STATE_REENTER;
+                work->animId       = ACTOR_403200_CLIP_COLLAPSE;
+                work->collapseSkip = ACTOR_403200_COLLAPSE_SKIP_LONG_TICKS;
                 work->animStep     = GLUTTON_ANIM_STEP_RESTART;
                 work->viewLocked   = 0;
                 gGluttonLimbReach  = 0x640;
@@ -3899,26 +3936,26 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg, s32 arg
         }
     }
 
-    if (msg->context.key == 0x2804) {
-        switch (msg->command) {
-            case 0:
-                work->state = 0;
+    if (command->context.key == ACTOR_403200_INCINERATOR_CONTEXT) {
+        switch (command->command) {
+            case ACTOR_403200_INCINERATOR_COMMAND_HIDE:
+                work->state = ACTOR_403200_STATE_HIDDEN;
                 break;
 
-            case 1:
-                work->animId   = 0xA;
+            case ACTOR_403200_INCINERATOR_COMMAND_PREPARE_GLOBS:
+                work->animId   = ACTOR_403200_CLIP_GLOB_LAUNCH;
                 work->animStep = GLUTTON_ANIM_STEP_RESTART;
-                work->animRate = 0x7F;
+                work->animRate = ACTOR_403200_ANIM_RATE_FAST_FORWARD;
                 _gluttonTickAnim(task);
                 while (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
                     _gluttonTickAnim(task);
                 }
-                work->animRate                        = 0x10;
+                work->animRate                        = ANIMATION_RATE_ONE;
                 task->extra.tmd->coords->coord.t[0]   = -0xBB8;
                 task->extra.tmd->coords->coord.t[1]   = 0;
                 task->extra.tmd->coords->coord.t[2]   = -0x992;
                 task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                work->state                           = 6;
+                work->state                           = ACTOR_403200_STATE_GLOBS;
                 break;
         }
     }
@@ -4020,7 +4057,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
         }
     }
 
-    Actor403200_SeedRootCoord(task, work);
+    _actor403200ResetHostPose(task, work);
 
     esc                                                   = enemySpawnFromTable(D_actor_403200_8015E72C, 0, 0, task->spawnArg2.pointer);
     work->escorts[0]                                      = esc;
@@ -4341,66 +4378,47 @@ static void func_actor_403200_8013A4A0(Task* arg0)
 
 #include "../../shared/glutton_hit_groups6to8.inc.c"
 
-/// Reset handler: pushes the host model's `field_C` onto each of the seven
-/// escorts, and once the sub-state counter has reached 2 releases the host's and
-/// every escort's model buffers. Same shape as
-/// `func_actor_403200_80141B40` with a second arm keyed on `stateTicks`.
+/// Hides the host and live escorts, releasing their model buffers two ticks after entry.
 ///
-/// The `modelFlag` copy is not redundant: the second arm's `0x80` has to reach
-/// the store as a 32-bit value of its own, or the two arms merge it into the
-/// first arm's constant and the second `li $v0, 0x80` disappears.
-static void func_actor_403200_8013B23C(Task* arg0)
+/// Requires live host work and models. Entry resets the state timer; this state
+/// does not advance animation. The dispatcher supplies stateChanged/stateTicks.
+static void _actor403200HiddenState(Task* task)
 {
+    enum {
+        ACTOR_403200_HIDE_FREE_DELAY_TICKS = 2,
+    };
     GluttonWork* work;
-    GluttonWork* escorts;
-    GluttonWork* dying;
-    TmdObject*   tmd;
-    s32          flag;
-    s32          modelFlag;
-    s16          i;
-    s16          j;
+    GluttonWork* flagWork;
+    TmdObject*   hostModel;
+    s32          drawFlags;
+    s32          delayedDrawFlags;
+    s16          flagIndex;
 
-    work = arg0->work;
-    tmd  = arg0->extra.tmd;
+    work      = task->work;
+    hostModel = task->extra.tmd;
     if (work->stateChanged != 0) {
-        tmd->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        escorts                = arg0->work;
-        i                      = 0;
-        escorts->freeCountdown = 0;
-        arg0->extra.tmd->flags = (flag = TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        for (; i < ARRAY_SIZE(escorts->escorts); i++) {
-            if (escorts->escorts[i] != NULL) {
-                escorts->escorts[i]->task->extra.tmd->flags =
-                    arg0->extra.tmd->flags;
-            }
-        }
+        hostModel->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        flagWork                = task->work;
+        flagIndex               = 0;
+        flagWork->freeCountdown = 0;
+        task->extra.tmd->flags  = (drawFlags = TMD_OBJECT_SKIP_ACTIVE_DRAW);
+        ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(task, flagWork, flagIndex);
         work->stateTicks = 0;
         return;
     }
-    if (work->stateTicks == 2) {
-        tmd->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        escorts                = arg0->work;
-        modelFlag              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        i                      = 0;
-        escorts->freeCountdown = 0;
-        arg0->extra.tmd->flags = (flag = modelFlag);
-        for (; i < ARRAY_SIZE(escorts->escorts); i++) {
-            if (escorts->escorts[i] != NULL) {
-                escorts->escorts[i]->task->extra.tmd->flags =
-                    arg0->extra.tmd->flags;
-            }
-        }
-        dying = arg0->work;
-        tmdFreePrimitiveBuffer(arg0->extra.tmd);
-        for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
-            if (dying->escorts[j] != NULL) {
-                tmdFreePrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
-            }
-        }
+    if (work->stateTicks == ACTOR_403200_HIDE_FREE_DELAY_TICKS) {
+        hostModel->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        flagWork                = task->work;
+        delayedDrawFlags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        flagIndex               = 0;
+        flagWork->freeCountdown = 0;
+        task->extra.tmd->flags  = (drawFlags = delayedDrawFlags);
+        ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(task, flagWork, flagIndex);
+        _actor403200FreeModelBuffers(task);
     }
 }
 
-/// State-change reset for the enemy's launch state: `func_actor_403200_8013B23C`'s
+/// State-change reset for the enemy's launch state: `_actor403200HiddenState`'s
 /// reset half with a yaw servo in the middle. It arms the stand-up pair
 /// (`lastAttack` 2, `animId` 3), turns animation slot 2 on, clears the host
 /// model's flag word and walks the seven escorts pushing that word onto each of
@@ -4821,7 +4839,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
 /// State-change reset for the enemy's launch state, and the tick that walks it
 /// out of sub-state 0xF into 0xE.
 ///
-/// The reset half is `func_actor_403200_8013B23C`'s with a yaw servo in the
+/// The reset half is `_actor403200HiddenState`'s with a yaw servo in the
 /// middle: it tells the scene (message 0x7DA, action 0x2C), arms sub-state 0xF
 /// with animation 2, clears the host model's flag word and walks the seven
 /// escorts pushing that word onto each of their models, allocates the host's and
@@ -5018,7 +5036,7 @@ static inline s32 _gluttonHasPlayerContact(WorldCollisionContact* records, s16 c
 }
 
 /// State-change reset for the enemy's stand-up, plus the swipe tick that runs
-/// on every step afterwards. The reset half is `func_actor_403200_8013B23C`'s
+/// on every step afterwards. The reset half is `_actor403200HiddenState`'s
 /// with the buffer allocator on the second walk in place of the release: it
 /// clears the host model's flag word, walks the seven escorts pushing that word
 /// onto each of their models, allocates the host's and every escort's buffers,
@@ -5238,72 +5256,59 @@ static void func_actor_403200_8013D028(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
-/// State-change reset for the enemy's stand-up, and the height servo that runs
-/// on every tick afterwards. The reset half is `func_actor_403200_8013B23C`'s
-/// with the buffer allocator on the second walk in place of the release: it
-/// clears the host model's flag word, walks the seven escorts pushing that word
-/// onto each of their models, allocates the host's and every escort's buffers
-/// and then parks the root coordinate at x 0x1068, y 0x7D0, z -0x1770, arming
-/// `wallDistanceTarget` at 0xFA0.
+/// Shows the boss at its drop-in position and settles its root onto the floor.
 ///
-/// The servo steps that root y by +0x50 / -0x64 while `stateTicks` is at or past
-/// 0x3D, and by the gentler +0x14 / -0x1E while it is between 0x15 and 0x3D, so
-/// the enemy eases back to the ground as it finishes standing up; below 0x15 it
-/// stops moving. Which way each step goes is the frame's position inside its
-/// group of four -- `frame % 4 < 2` on the `s16` local, whose 16-bit
-/// truncation is what puts the `sll 16` / `sra 16` pair in front of the `slti`.
-static void func_actor_403200_8013D78C(Task* arg0)
+/// Entry restarts idle animation and allocates host/live-escort buffers. Height
+/// steps alternate within four-tick groups, starting gently at tick 21 and
+/// faster at tick 61; negative height clamps to zero. Animation completion
+/// selects shown state. Requires live models, rigs and initialized scratch.
+static void _actor403200DropInState(Task* task)
 {
+    enum {
+        ACTOR_403200_DROP_SLOW_START_TICK = 21,
+        ACTOR_403200_DROP_FAST_START_TICK = 61,
+        ACTOR_403200_DROP_ROOT_X          = 4200,
+        ACTOR_403200_DROP_ROOT_Y          = 2000,
+        ACTOR_403200_DROP_ROOT_Z          = -6000,
+    };
     GluttonWork* work;
-    GluttonWork* escorts;
-    GluttonWork* dying;
-    s16          i;
-    s16          j;
-    s16          frame;
+    GluttonWork* flagWork;
+    s16          flagIndex;
+    s16          stateFrame;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateChanged != 0) {
-        work->animId           = 1;
-        work->animStep         = GLUTTON_ANIM_STEP_RESTART;
-        escorts                = arg0->work;
-        escorts->freeCountdown = 0;
-        arg0->extra.tmd->flags = 0;
-        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-            if (escorts->escorts[i] != NULL) {
-                escorts->escorts[i]->task->extra.tmd->flags =
-                    arg0->extra.tmd->flags;
-            }
-        }
-        dying = arg0->work;
-        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
-        for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
-            if (dying->escorts[j] != NULL) {
-                tmdAllocPrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
-            }
-        }
-        arg0->extra.tmd->coords->coord.t[1] = 0x7D0;
-        arg0->extra.tmd->coords->coord.t[0] = 0x1068;
-        arg0->extra.tmd->coords->coord.t[2] = -0x1770;
+        work->animId            = ACTOR_403200_CLIP_IDLE;
+        work->animStep          = GLUTTON_ANIM_STEP_RESTART;
+        flagWork                = task->work;
+        flagWork->freeCountdown = 0;
+        task->extra.tmd->flags  = 0;
+        flagIndex               = 0;
+        ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(task, flagWork, flagIndex);
+        _actor403200AllocateModelBuffers(task);
+        task->extra.tmd->coords->coord.t[1] = ACTOR_403200_DROP_ROOT_Y;
+        task->extra.tmd->coords->coord.t[0] = ACTOR_403200_DROP_ROOT_X;
+        task->extra.tmd->coords->coord.t[2] = ACTOR_403200_DROP_ROOT_Z;
         work->wallDistanceTarget            = 0xFA0;
     }
-    _gluttonTickAnim(arg0);
+    _gluttonTickAnim(task);
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        work->state = 1;
+        work->state = ACTOR_403200_STATE_SHOWN;
     }
-    if (arg0->extra.tmd->coords->coord.t[1] > 0) {
-        frame = work->stateTicks;
-        if (frame >= 0x3D) {
-            arg0->extra.tmd->coords->coord.t[1] +=
-                ((frame % 4) < 2) ? 0x50 : -0x64;
-        } else if (frame >= 0x15) {
-            arg0->extra.tmd->coords->coord.t[1] +=
-                ((frame % 4) < 2) ? 0x14 : -0x1E;
+    if (task->extra.tmd->coords->coord.t[1] > 0) {
+        stateFrame = work->stateTicks;
+        if (stateFrame >= ACTOR_403200_DROP_FAST_START_TICK) {
+            task->extra.tmd->coords->coord.t[1] +=
+                ((stateFrame % 4) < 2) ? 0x50 : -0x64;
+        } else if (stateFrame >= ACTOR_403200_DROP_SLOW_START_TICK) {
+            task->extra.tmd->coords->coord.t[1] +=
+                ((stateFrame % 4) < 2) ? 0x14 : -0x1E;
         }
     }
-    if (arg0->extra.tmd->coords->coord.t[1] < 0) {
-        arg0->extra.tmd->coords->coord.t[1] = 0;
+    if (task->extra.tmd->coords->coord.t[1] < 0) {
+        task->extra.tmd->coords->coord.t[1] = 0;
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// State-change reset for the enemy's stand-up. It clears the host model's flag
@@ -5311,7 +5316,7 @@ static void func_actor_403200_8013D78C(Task* arg0)
 /// allocates every escort's model buffers and then arms the block -- `neckYawEnabled`
 /// and `neckPitchEnabled` at 1, `hostExposed` at 0, `wallDistanceTarget` at 0xC80 -- before
 /// playing the type-6 cue built from the spawn record's `field_8`. Same shape as
-/// `func_actor_403200_8013B23C`'s reset half, with the buffer allocator on the
+/// `_actor403200HiddenState`'s reset half, with the buffer allocator on the
 /// second walk in place of the release.
 ///
 /// The state then writes its two cue frames, and the three states at 0x39, 0x45
@@ -5733,96 +5738,92 @@ static void func_actor_403200_8013E5A8(Task* arg0)
     }
 }
 
-/// The enemy's attack-launch body: when the dispatcher has flagged the state
-/// change it re-arms the work block (`limbPose` at 3, `wallDistanceTarget` at 0xC80) and
-/// plays the two launch cues -- a type-6 with the object's pan and depth, then
-/// type-7s for ids 0x0D and 0x09 -- and otherwise runs the per-frame body,
-/// winding the shared `gGluttonLimbReach` counter down by 0xC8 once it has
-/// passed 0x190 and clearing `viewSelector` once `stateTicks` has passed 0x14.
-static void func_actor_403200_8013E9C0(Task* arg0)
+/// Plays the limb-retraction reaction and returns to attack selection when it ends.
+///
+/// Entry exposes the host, disables neck tracking and selects clip 13. Later
+/// ticks retract 200 coordinate units while reach is at least 401, and restore
+/// the default camera selector from tick 21. Requires live host work/enemy,
+/// models, rigs and initialized scratch, including the unused 12-byte block.
+static void _actor403200RetractLimbState(Task* task)
 {
+    enum {
+        ACTOR_403200_RETRACT_VIEW_RESET_TICK = 21,
+        ACTOR_403200_RETRACT_SCRATCH_BYTES   = 12,
+    };
     GluttonWork* work;
-    Enemy*       obj;
-    s32          state;
-    s32          id;
-    s32          pan;
+    Enemy*       enemy;
+    s32          previousAnimId;
+    s32          soundId;
+    s32          soundPan;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateChanged != 0) {
-        obj                    = arg0->spawnArg2.pointer;
-        state                  = work->animId;
+        enemy                  = task->spawnArg2.pointer;
+        previousAnimId         = work->animId;
         work->neckPitchEnabled = 0;
         work->neckYawEnabled   = 0;
         work->hostExposed      = 1;
-        if (state != 0xD) {
+        if (previousAnimId != ACTOR_403200_CLIP_RETRACT_LIMB) {
             work->animStep = GLUTTON_ANIM_STEP_BLEND;
-            work->animId   = 0xD;
+            work->animId   = ACTOR_403200_CLIP_RETRACT_LIMB;
         } else {
             work->animStep = GLUTTON_ANIM_STEP_RESTART;
-            work->animId   = state;
+            work->animId   = previousAnimId;
         }
-        id  = (((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200004;
-        pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(id, pan,
-                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        work->limbPose           = 3;
+        soundId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 4);
+        soundPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, soundPan,
+                                 (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        work->limbPose           = ACTOR_403200_LIMB_POSE_SHALLOW_CURVE;
         work->wallDistanceTarget = 0xC80;
-        sndEvtRequestScriptStop((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndEvtRequestScriptStop((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 9), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 9), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         return;
     }
-    SCRATCH_STACK_RESERVE_BYTES(0xC);
-    _gluttonTickAnim(arg0);
-    if (gGluttonLimbReach >= 0x191) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
-        work->limbPose    = 0;
+    // This twelve-byte reservation is unused by the recovered body.
+    SCRATCH_STACK_RESERVE_BYTES(ACTOR_403200_RETRACT_SCRATCH_BYTES);
+    _gluttonTickAnim(task);
+    if (gGluttonLimbReach >= ACTOR_403200_LIMB_RETRACTION_MIN_REACH) {
+        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
+        work->limbPose    = ACTOR_403200_LIMB_POSE_DOWNWARD;
     }
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        work->state = 0xA;
+        work->state = ACTOR_403200_STATE_CHOOSE_ATTACK;
     }
-    if (work->stateTicks >= 0x15) {
+    if (work->stateTicks >= ACTOR_403200_RETRACT_VIEW_RESET_TICK) {
         work->viewSelector = 0;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_403200_RETRACT_SCRATCH_BYTES);
 }
 
-/// State-selecting tick of the enemy's approach: on the tick the dispatcher has
-/// flagged a state change it re-arms the work block -- the two flags, the
-/// stagger countdown at 0x28, the yaw target at 0xE10 and the animation slot at
-/// 0x10 -- and winds the shared `gGluttonLimbReach` counter down by 0xC8
-/// once it has passed 0x190.
+/// Aims the neck at the player and selects the next attack, arena advance or heal.
 ///
-/// It then runs the per-frame body and aims the enemy at the player: the
-/// player's root coordinate minus the part's own translation gives the pair
-/// `ratan2` turns into a yaw, taken relative to the part's facing the same way
-/// the group-0 hit handler does it, and the result is wrapped to +/-0x800 into
-/// `neckYawTarget`. `gGluttonEnded` holding `stateTicks` at zero makes the
-/// per-frame body's animation re-arm win the next tick.
-///
-/// Once the `attackDelay` stagger countdown has run out it walks the three
-/// `phase` sub-states, in which the player-relative range and the enemy's
-/// remaining HP pick the next state, and a roll of `gRandomLcgState` breaks the tie
-/// between the two strafing states; the state already in `lastAttack` is never
-/// re-selected twice in a row. A positive heal counter in `pendingHeals` overrides
-/// all of it with the heal state 0xF.
-///
-/// The x range that sub-state 0 tests is the player-relative offset taken
-/// again from the two models, not `playerDistance`: the two share only the frame, and the y test
-/// carries the -0xFA the z one carries +0x25F, the offsets the hit handler puts
-/// on the same pair.
-static void func_actor_403200_8013EB64(Task* arg0)
+/// Entry blends to idle and arms a 40-tick attack delay only if none is pending.
+/// Phase 0/1 HP thresholds trigger advancement; otherwise phase, range and the
+/// previous attack choose the next attack. Positive signed pendingHeals wins.
+/// Range is measured in coordinate units from root + (0, 250, -607). Neck yaw
+/// uses 4096 units per turn and signed-halfword offsets in the roots' common
+/// parent frame. Requires live host/player work, models, rigs and scratch.
+static void _actor403200ChooseAttackState(Task* task)
 {
-    _Actor403200IdleScratch* sc;
+    enum {
+        ACTOR_403200_ATTACK_DELAY_TICKS             = 40,
+        ACTOR_403200_ATTACK_RANGE_ORIGIN_Y          = 250,
+        ACTOR_403200_ATTACK_RANGE_ORIGIN_NEGATIVE_Z = 607,
+        ACTOR_403200_PHASE0_ADVANCE_HP              = 1500,
+        ACTOR_403200_PHASE1_ADVANCE_HP              = 800,
+        ACTOR_403200_PHASE0_RAIN_MIN_X              = 10001,
+        ACTOR_403200_PHASE1_GLOB_MIN_RANGE          = 8401,
+        ACTOR_403200_PHASE1_DEBRIS_MIN_RANGE        = 6301,
+        ACTOR_403200_PHASE2_FAR_MIN_RANGE           = 9001,
+    };
+    _Actor403200IdleScratch* scratch;
     GluttonWork*             work;
     Enemy*                   enemy;
     Task*                    player;
-    GfxCoord*                coord;
-    GfxCoord*                facing;
-    SVECTOR*                 toPlayer;
-    s16                      angle;
 
-    work   = arg0->work;
-    enemy  = arg0->spawnArg2.pointer;
+    work   = task->work;
+    enemy  = task->spawnArg2.pointer;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 
     if (work->stateChanged != 0) {
@@ -5830,99 +5831,91 @@ static void func_actor_403200_8013EB64(Task* arg0)
         work->neckPitchEnabled = 1;
         work->neckPitchTarget  = 0;
         if (work->attackDelay == 0) {
-            work->attackDelay = 0x28;
+            work->attackDelay = ACTOR_403200_ATTACK_DELAY_TICKS;
         }
         work->wallDistanceTarget = 0xE10;
-        work->animId             = 1;
+        work->animId             = ACTOR_403200_CLIP_IDLE;
         work->animStep           = GLUTTON_ANIM_STEP_BLEND;
         work->hostExposed        = 0;
-        work->animRate           = 0x10;
+        work->animRate           = ANIMATION_RATE_ONE;
     }
-    if (gGluttonLimbReach >= 0x191) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
-        work->limbPose    = 0;
+    if (gGluttonLimbReach >= ACTOR_403200_LIMB_RETRACTION_MIN_REACH) {
+        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_403200_LIMB_RETRACTION_STEP;
+        work->limbPose    = ACTOR_403200_LIMB_POSE_DOWNWARD;
     }
-    sc = SCRATCH_STACK_RESERVE_BLOCK(_Actor403200IdleScratch);
-    _gluttonTickAnim(arg0);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403200IdleScratch);
+    _gluttonTickAnim(task);
 
-    coord        = arg0->extra.tmd->coords;
-    toPlayer     = &sc->toPlayer;
-    toPlayer->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    toPlayer->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    toPlayer->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    facing       = arg0->extra.tmd->coords;
-    angle        = ratan2(toPlayer->vx, toPlayer->vz) -
-            ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    angle               = _actorAngleNormalizeYaw(angle);
-    work->neckYawTarget = angle;
+    work->neckYawTarget = _actorAngleTurnToPlayer(task, &scratch->toPlayer, &gPlayerStatus);
     if (gGluttonEnded == 1) {
         work->stateTicks = 0;
     }
+    // Phase advancement precedes range-based attacks; healing overrides the choice.
     if (work->attackDelay <= work->stateTicks) {
-        sc->rangeOffset.vx = player->extra.tmd->coords->coord.t[0] -
-                             arg0->extra.tmd->coords->coord.t[0];
-        sc->rangeOffset.vy = (player->extra.tmd->coords->coord.t[1] -
-                              arg0->extra.tmd->coords->coord.t[1]) -
-                             0xFA;
-        sc->rangeOffset.vz = (player->extra.tmd->coords->coord.t[2] -
-                              arg0->extra.tmd->coords->coord.t[2]) +
-                             0x25F;
-        sc->playerDistance = SquareRoot0(sc->rangeOffset.vx * sc->rangeOffset.vx + sc->rangeOffset.vy * sc->rangeOffset.vy +
-                                         sc->rangeOffset.vz * sc->rangeOffset.vz);
+        scratch->rangeOffset.vx = player->extra.tmd->coords->coord.t[0] -
+                                  task->extra.tmd->coords->coord.t[0];
+        scratch->rangeOffset.vy = (player->extra.tmd->coords->coord.t[1] -
+                                   task->extra.tmd->coords->coord.t[1]) -
+                                  ACTOR_403200_ATTACK_RANGE_ORIGIN_Y;
+        scratch->rangeOffset.vz = (player->extra.tmd->coords->coord.t[2] -
+                                   task->extra.tmd->coords->coord.t[2]) +
+                                  ACTOR_403200_ATTACK_RANGE_ORIGIN_NEGATIVE_Z;
+        scratch->playerDistance = SquareRoot0(scratch->rangeOffset.vx * scratch->rangeOffset.vx + scratch->rangeOffset.vy * scratch->rangeOffset.vy +
+                                              scratch->rangeOffset.vz * scratch->rangeOffset.vz);
         switch (work->phase) {
             case 0:
-                if (enemy->hp < 0x5DC) {
-                    work->state = 9;
+                if (enemy->hp < ACTOR_403200_PHASE0_ADVANCE_HP) {
+                    work->state = GLUTTON_STATE_ADVANCE;
                 } else if (player->extra.tmd->coords->coord.t[0] -
-                               arg0->extra.tmd->coords->coord.t[0] >=
-                           0x2711) {
-                    work->state = 2;
-                } else if (work->lastAttack != 3) {
-                    work->state = 3;
+                               task->extra.tmd->coords->coord.t[0] >=
+                           ACTOR_403200_PHASE0_RAIN_MIN_X) {
+                    work->state = ACTOR_403200_STATE_RAIN;
+                } else if (work->lastAttack != GLUTTON_STATE_INHALE) {
+                    work->state = GLUTTON_STATE_INHALE;
                 } else {
-                    work->state = 2;
+                    work->state = ACTOR_403200_STATE_RAIN;
                 }
                 break;
             case 1:
-                if (enemy->hp < 0x320) {
-                    work->state = 9;
+                if (enemy->hp < ACTOR_403200_PHASE1_ADVANCE_HP) {
+                    work->state = GLUTTON_STATE_ADVANCE;
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 0xF) == 0) {
-                        work->state = 3;
-                    } else if (sc->playerDistance >= 0x20D1) {
-                        if (work->lastAttack == 6) {
-                            work->state = 2;
+                        work->state = GLUTTON_STATE_INHALE;
+                    } else if (scratch->playerDistance >= ACTOR_403200_PHASE1_GLOB_MIN_RANGE) {
+                        if (work->lastAttack == ACTOR_403200_STATE_GLOBS) {
+                            work->state = ACTOR_403200_STATE_RAIN;
                         } else {
-                            work->state = 6;
+                            work->state = ACTOR_403200_STATE_GLOBS;
                         }
-                    } else if (sc->playerDistance >= 0x189D) {
-                        if (work->lastAttack == 7) {
-                            work->state = 2;
+                    } else if (scratch->playerDistance >= ACTOR_403200_PHASE1_DEBRIS_MIN_RANGE) {
+                        if (work->lastAttack == ACTOR_403200_STATE_DEBRIS) {
+                            work->state = ACTOR_403200_STATE_RAIN;
                         } else {
-                            work->state = 7;
+                            work->state = ACTOR_403200_STATE_DEBRIS;
                         }
                     } else {
-                        work->state = 2;
+                        work->state = ACTOR_403200_STATE_RAIN;
                     }
                 }
                 break;
             case 2:
-                if (sc->playerDistance >= 0x2329) {
-                    if (work->lastAttack == 2) {
-                        work->state = 6;
+                if (scratch->playerDistance >= ACTOR_403200_PHASE2_FAR_MIN_RANGE) {
+                    if (work->lastAttack == ACTOR_403200_STATE_RAIN) {
+                        work->state = ACTOR_403200_STATE_GLOBS;
                     } else {
-                        work->state = 2;
+                        work->state = ACTOR_403200_STATE_RAIN;
                     }
-                } else if (work->lastAttack == 2) {
-                    work->state = 0xB;
+                } else if (work->lastAttack == ACTOR_403200_STATE_RAIN) {
+                    work->state = GLUTTON_STATE_SWIPE;
                 } else {
-                    work->state = 2;
+                    work->state = ACTOR_403200_STATE_RAIN;
                 }
                 break;
         }
         if ((s8)work->pendingHeals > 0) {
-            work->state = 0xF;
+            work->state = GLUTTON_STATE_HEAL;
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403200IdleScratch);
@@ -6124,29 +6117,28 @@ static void func_actor_403200_8013EF6C(Task* arg0)
 #include "../../shared/glutton_escort_state.inc.c"
 
 /// The host's state handlers, indexed by `state`; the last six slots are
-/// empty. Two of the handlers take no argument and are called through the
-/// table's type anyway.
+/// empty. Slots 16 and 17 have empty handlers; slot 18 hands death off to the room.
 static const _Actor403200StateTable D_actor_403200_80132154 = {
     {
-        func_actor_403200_8013B23C,
-        func_actor_403200_80141B40,
+        _actor403200HiddenState,
+        _actor403200ShownState,
         func_actor_403200_8013B3C8,
         func_actor_403200_8013B8C4,
-        func_actor_403200_8013D78C,
+        _actor403200DropInState,
         func_actor_403200_8013E2FC,
         func_actor_403200_8013D9EC,
         func_actor_403200_8013DC3C,
-        func_actor_403200_8013E9C0,
+        _actor403200RetractLimbState,
         func_actor_403200_80134D40,
-        func_actor_403200_8013EB64,
+        _actor403200ChooseAttackState,
         func_actor_403200_8013D028,
         func_actor_403200_8013E5A8,
         func_actor_403200_8013C84C,
         func_actor_403200_8013EF6C,
         gluttonEscortState,
-        func_actor_403200_8014122C,
-        func_actor_403200_80141234,
-        func_actor_403200_8014123C,
+        _actor403200NoopState16,
+        _actor403200NoopState17,
+        _actor403200DeathHandoffState,
     },
 };
 
@@ -6673,17 +6665,27 @@ void func_actor_403200_80140E6C(Task* arg0)
 
 #include "../../shared/glutton_get_spinners_released.inc.c"
 
-s32 func_actor_403200_80141124(Task* arg0, s16 arg1)
+/// Returns the limb-swipe camera view for a fight phase.
+///
+/// Phases 0, 1 and 2 select views 19, 7 and 37; other values return view 1.
+/// The host task is unused. This is selector 6 in the host's view table.
+static s32 _actor403200PickSwipeView(Task* task, s16 phase)
 {
-    switch (arg1) {
+    enum {
+        ACTOR_403200_SWIPE_PHASE0_VIEW   = 19,
+        ACTOR_403200_SWIPE_PHASE1_VIEW   = 7,
+        ACTOR_403200_SWIPE_PHASE2_VIEW   = 37,
+        ACTOR_403200_SWIPE_FALLBACK_VIEW = 1,
+    };
+    switch (phase) {
         case 0:
-            return 0x13;
+            return ACTOR_403200_SWIPE_PHASE0_VIEW;
         case 1:
-            return 7;
+            return ACTOR_403200_SWIPE_PHASE1_VIEW;
         case 2:
-            return 0x25;
+            return ACTOR_403200_SWIPE_PHASE2_VIEW;
     }
-    return 1;
+    return ACTOR_403200_SWIPE_FALLBACK_VIEW;
 }
 
 s32 func_actor_403200_80141180(Task* arg0, s16 arg1)
@@ -6718,30 +6720,40 @@ s32 func_actor_403200_801411A8(Task* arg0, s16 arg1)
     return value;
 }
 
-static void func_actor_403200_8014122C(Task* arg0)
+/// Empty handler for the host's state-table slot 16.
+///
+/// No transition into this slot is established; the task argument is unused.
+static void _actor403200NoopState16(Task* task)
 {
 }
 
-static void func_actor_403200_80141234(Task* arg0)
+/// Empty handler for the host's state-table slot 17.
+///
+/// No transition into this slot is established; the task argument is unused.
+static void _actor403200NoopState17(Task* task)
 {
 }
 
-/// The state handler `D_actor_403200_80132154` lists for state 8. Re-arms the
-/// sub-state counter if the dispatcher saw a state change this tick, runs the
-/// per-frame body, and on the tick the counter reaches 8 tells the player's
-/// task (message 0x13F4) and plays the actor's cue.
-static void func_actor_403200_8014123C(Task* arg0)
+/// Advances the death pose and notifies the room eight ticks after state entry.
+///
+/// State-table slot 18 resets its timer on entry, then ticks animation. At tick
+/// 8 it sends ROOM_MESSAGE_ACTOR_EVENT with zero payloads to the room task and
+/// stops the host's cue 10. Requires live work, enemy, rigs and room task.
+static void _actor403200DeathHandoffState(Task* task)
 {
+    enum {
+        ACTOR_403200_DEATH_HANDOFF_TICK = 8,
+    };
     GluttonWork* work;
     Enemy*       enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateChanged != 0) {
         work->stateTicks = 0;
     }
-    _gluttonTickAnim(arg0);
-    if (work->stateTicks == 8) {
+    _gluttonTickAnim(task);
+    if (work->stateTicks == ACTOR_403200_DEATH_HANDOFF_TICK) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
         sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
@@ -6776,7 +6788,11 @@ static void func_actor_403200_8014123C(Task* arg0)
 
 #include "../../shared/glutton_spinner_task.inc.c"
 
-s32 func_actor_403200_8014196C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Empty callback installed for the boss's message 2015.
+///
+/// The message's wider purpose is unproven. All arguments are ignored, and the
+/// binary supplies no defined return value; senders must discard the result.
+static void _actor403200IgnoreMessage2015(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
 }
 
@@ -6784,68 +6800,75 @@ s32 func_actor_403200_8014196C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 #include "../../shared/actor_messages_place.inc.c"
 
-/// Per-frame upkeep for the enemy, dispatched by `arg2`: state 0 bumps the
-/// heal counter, files a negative "damage" with `worldTargetAddReadoutAmount` so the HUD
-/// shows it as a heal, and tops the enemy's HP back up by 0x64; state 1 ticks
-/// `summonsAlive` down and, once it has run out, re-arms the enemy's
-/// `deathDelay`. Same body as `_actor444000HandleActorEvent` without its tracked
-/// `summons` slots.
-s32 func_actor_403200_80141A94(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Credits healing or records the end of a summoned enemy.
+///
+/// Event 0 increments pendingHeals, posts a -100 HP readout and adds 100 HP only
+/// while the host is alive, without clamping. Event 1 decrements a positive
+/// summonsAlive count and arms a two-tick death delay once none remain (also
+/// when already zero). Requires live host work/enemy. Other events do nothing.
+/// Returns 1; the message ID and second argument are ignored.
+static s32 _actor403200HandleActorEvent(Task* task, s32 unusedMessageId, s32 event, s32 unusedSecondArg)
 {
-    GluttonWork* work  = arg0->work;
-    Enemy*       enemy = arg0->spawnArg2.pointer;
+    enum {
+        ACTOR_403200_EVENT_HEAL                    = 0,
+        ACTOR_403200_EVENT_SUMMON_ENDED            = 1,
+        ACTOR_403200_HEAL_HP                       = 100,
+        ACTOR_403200_LAST_SUMMON_DEATH_DELAY_TICKS = 2,
+    };
+    GluttonWork* work  = task->work;
+    Enemy*       enemy = task->spawnArg2.pointer;
 
-    switch (arg2) {
-        case 0:
+    switch (event) {
+        case ACTOR_403200_EVENT_HEAL:
             work->pendingHeals++;
-            worldTargetAddReadoutAmount(&enemy->node, -0x64, 0);
+            worldTargetAddReadoutAmount(&enemy->node, -ACTOR_403200_HEAL_HP, 0);
             if (enemy->hp > 0) {
-                enemy->hp += 0x64;
+                enemy->hp += ACTOR_403200_HEAL_HP;
             }
             break;
-        case 1:
+        case ACTOR_403200_EVENT_SUMMON_ENDED:
             if (work->summonsAlive > 0) {
                 work->summonsAlive--;
                 if (work->summonsAlive > 0) {
                     break;
                 }
             }
-            work->deathDelay = 2;
+            work->deathDelay = ACTOR_403200_LAST_SUMMON_DEATH_DELAY_TICKS;
             break;
     }
     return 1;
 }
 
-s32 func_actor_403200_80141B30(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Clears the shared glob-grab latch so an engulfing glob can release the player.
+///
+/// Installed for message 2014. Returns 1 and ignores every message argument;
+/// the engulfing projectile performs its own subsequent release/teardown.
+static s32 _actor403200ReleaseGlobGrab(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     gGluttonGrabActive = 0;
     return 1;
 }
 
-/// State-change reset: once the dispatcher has flagged the change in
-/// `stateChanged`, drop the re-arm marker and push the host model's `field_C` onto
-/// every live escort's own model object. Same body as
-/// `func_actor_444000_80143F4C`.
-static void func_actor_403200_80141B40(Task* arg0)
+/// Shows the host and live escorts with neck tracking disabled, then ticks animation.
+///
+/// Entry clears model flags and the buffer-free countdown without allocating
+/// buffers. Requires live host work/models and initialized animation rigs.
+static void _actor403200ShownState(Task* task)
 {
     GluttonWork* work;
-    GluttonWork* escorts;
-    s16          i;
+    GluttonWork* flagWork;
+    s16          flagIndex;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateChanged != 0) {
-        escorts                = arg0->work;
+        flagWork               = task->work;
         work->freeCountdown    = 0;
-        arg0->extra.tmd->flags = 0;
-        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-            if (escorts->escorts[i] != NULL) {
-                escorts->escorts[i]->task->extra.tmd->flags =
-                    arg0->extra.tmd->flags;
-            }
-        }
+        task->extra.tmd->flags = 0;
+        flagIndex              = 0;
+        ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(task, flagWork, flagIndex);
         work->neckPitchEnabled = 0;
         work->neckYawEnabled   = 0;
     } else {
-        _gluttonTickAnim(arg0);
+        _gluttonTickAnim(task);
     }
 }

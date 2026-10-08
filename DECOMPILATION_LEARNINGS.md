@@ -12209,7 +12209,7 @@ s32 temp = (*(s8 *)((u8 *)p + 0x7B3));   /* lb  $v1,... */
 ```
 
 A one-token change of the temp's type took the raw m2c seed of
-`func_actor_403200_8013E9C0` from 91.07% to 95.06%, and the rest of the match was
+`_actor403200RetractLimbState` from 91.07% to 95.06%, and the rest of the match was
 matching the sibling body `_actor444000RetractLimbState`, which already uses `s32`
 for exactly this value. When an m2c seed emits `lbu` plus a `sll`/`sra` pair
 where the target has a bare `lb`, suspect the seed's `s8` locals before the field
@@ -83016,7 +83016,7 @@ Inputs `base_1.i`
 
 ## m2c nested-ifs lose a switch's shared-epilogue default
 
-`func_actor_403200_80141124` takes `(Task*, s16)` and returns `0x13`,
+`_actor403200PickSwipeView` takes `(Task*, s16)` and returns `0x13`,
 `7`, `0x25` for `value` 0/1/2 and `1` otherwise. m2c linearises this into nested
 `if`s and scores 35.9%: its "otherwise" paths emit `li v0,1` followed by a direct
 `jr ra`, and the argument arrives in `$a0`. The target instead routes both
@@ -83075,7 +83075,7 @@ Preprocessed SHA256:
 
 ## An `s8` field's signed compare loads `lb`, the `--` under it loads the same address again as `lbu`
 
-`func_actor_403200_80141A94`'s case 1 is
+`_actor403200HandleActorEvent`'s case 1 is
 
 ```c
 if (work->summonsAlive > 0) {
@@ -83116,7 +83116,7 @@ Preprocessed SHA256:
 
 ## Assign a re-read pointer before the stores that would kill its CSE, if the target copies it
 
-`func_actor_403200_80141B40` reads `index->work` twice — once for the work block
+`_actor403200ShownState` reads `index->work` twice — once for the work block
 the epilogue writes, once as the loop base — and the target keeps the second in
 its own register:
 
@@ -111945,7 +111945,7 @@ insert 15 -> 4). Which copy anchors the merge is still unexplained here: the sur
 case 1's last body in the target and at case 0's first branch in every candidate tried, including
 with case 1's tails duplicated as well.
 
-## Two `li` of the same constant in one basic block: the cse class is keyed on the *source* mode, and reload_cse eats the narrower one (func_actor_403200_8013B23C, 2026-09-16)
+## Two `li` of the same constant in one basic block: the cse class is keyed on the *source* mode, and reload_cse eats the narrower one (_actor403200HiddenState, 2026-09-16)
 
 The target materialises `0x80` **twice per arm** of an `if`:
 
@@ -111957,7 +111957,7 @@ li $v0,0x80          li $v0,0x80
 sh $v0,0xC($v1)      sh $v0,0xC($v1)
 ```
 
-while the natural source (`tmd->flags = 0x80;` ... `((TmdObject*)index->extra)->flags = 0x80;`)
+while the natural source (`hostModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;` ... `task->extra.hostModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;`)
 compiles to a single `li` reused by both stores. The `.rtl` dump shows why: the front end emits
 **one constant pseudo per store** (`(set (reg:HI 90) (const_int 128))` and
 `(set (reg:HI 92) (const_int 128))`), and cse1 merges them, because `cse.c` keys the equivalence
@@ -111972,10 +111972,10 @@ same class. **Give the later store a wider-typed value and the classes differ**,
 32-bit local:
 
 ```c
-    s32 flag;
+    s32 drawFlags;
     ...
-    flag = 0x80;
-    ((TmdObject*)arg0->extra)->flags = flag;     /* (set (reg:SI) (const_int 128)) + subreg store */
+    drawFlags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    task->extra.tmd->flags = drawFlags;     /* (set (reg:SI) (const_int 128)) + subreg store */
 ```
 
 which leaves both `li`s in place. The *order* matters as well, because `reload_cse_regno_equal_p`
@@ -111985,8 +111985,8 @@ when the recorded value is wider and `TRULY_NOOP_TRUNCATION (narrow, wide)`:
 * narrow constant first, wide second -> the wide `li` **survives**;
 * wide first, narrow second -> the narrow `li` is **deleted**.
 
-Per arm, use a *separate* copy of the value (`modelFlag = 0x80;` then `(flag = modelFlag)` in the
-second arm). One `s32 flag` shared by both arms is a single pseudo for the whole function, so its
+Per arm, use a *separate* copy of the value (`delayedDrawFlags = TMD_OBJECT_SKIP_ACTIVE_DRAW;` then `(drawFlags = delayedDrawFlags)` in the
+second arm). One `s32 drawFlags` shared by both arms is a single pseudo for the whole function, so its
 allocno is global, its live range conflicts with `$v0` (`;; 85 conflicts: ... 2 29` in the `.greg`
 allocno dump), global-alloc parks it in `$v1`, and the store's pointer then takes `$v0` — inverting
 the target's register pair (99.6%, one register swap, `regs=8`). A fresh single-block local materialises
@@ -111995,7 +111995,7 @@ the constant from a place with no `$v0` conflict, and the pair lands as the targ
 Two related notes from the same function:
 
 * A pointer both arms of the `if` need must be read **before** the branch in the C
-  (`tmd = (TmdObject*)index->extra;`): cse does not hoist a load across a branch, so writing the
+  (`hostModel = task->extra.tmd;`): cse does not hoist a load across a branch, so writing the
   expression inline at each store reloads it per arm (80.9% -> 88.5% -> 94.2%).
 * A constant set scheduler-hoisted within the block is a sched1 decision that follows the block's
   dependency graph, not the statement's position: with the loop init already placed early in the
@@ -112327,7 +112327,7 @@ re-reads the component off the stack (98.534%).
 Scratch `nonmatchings/gluttonEscortState-vacuum` (best `base_11.c`),
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## The long-lived clone owns the uses: move a store ahead of a per-case copy to flip two allocnos' registers (func_actor_403200_80138468, 2026-09-16)
+## The long-lived clone owns the uses: move a store ahead of a per-case copy to flip two allocnos' registers (_actor403200SetModelDraw, 2026-09-16)
 
 Symptom: 99.2%, `regs=29`, and the whole difference is two callee-saved
 registers swapped — `task` in `$s1` and its work-block pointer in `$s2` where the
@@ -112379,12 +112379,12 @@ ROM instruction that shows the two clones' uses going to the *other* register.
 `learn.py "register allocation"` #26 is the same lever applied through a live
 range instead of a reference count.
 
-Scratch `nonmatchings/func_actor_403200_80138468-vacuum` (best `base_6.c`),
+Scratch `nonmatchings/_actor403200SetModelDraw-vacuum` (best `base_6.c`),
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## An `s16` operand's `% 4` truncates on its own — the `sll 16` / `sra 16` before `slti` is not evidence of a cast (func_actor_403200_8013D78C, 2026-09-16)
+## An `s16` operand's `% 4` truncates on its own — the `sll 16` / `sra 16` before `slti` is not evidence of a cast (_actor403200DropInState, 2026-09-16)
 
-`func_actor_403200_8013D78C` steps a coordinate by a signed amount chosen per
+`_actor403200DropInState` steps a coordinate by a signed amount chosen per
 frame, and the ROM computes the frame's position inside its group of four like
 this:
 
@@ -112399,17 +112399,17 @@ this:
 
 The `sll`/`sra` pair is on the *result* of the modulo, immediately before the
 comparison, so it looks like an explicit `(s16)` cast on the expression. It is
-not. `frame` is an `s16` local (`frame = work->stateTicks;`), and GCC 2.8.1 already
-truncates `frame % 4` back to HImode because that is the operand's declared type.
+not. `stateFrame` is an `s16` local (`stateFrame = work->stateTicks;`), and GCC 2.8.1 already
+truncates `stateFrame % 4` back to HImode because that is the operand's declared type.
 Writing the plain
 
 ```c
-    if (frame >= 0x3D) {
-        coord->coord.t[1] += ((frame % 4) < 2) ? 0x50 : -0x64;
+    if (stateFrame >= ACTOR_403200_DROP_FAST_START_TICK) {
+        coord->coord.t[1] += ((stateFrame % 4) < 2) ? 0x50 : -0x64;
     }
 ```
 
-matches byte for byte, and adding `(s16)(frame % 4)` around it produces an
+matches byte for byte, and adding `(s16)(stateFrame % 4)` around it produces an
 *identical object* (checked both ways on this function — `base_1.c` with the cast
 and `base_2.c` without it, same 152 instructions, `build.sh` reports "Repeated
 assembly").
@@ -112430,7 +112430,7 @@ recovered every penalty at once, so a nonzero `insert`/`delete` under
 `Structure: match` can be pure control-flow shape rather than a scheduling or
 allocation artefact.
 
-Scratch `nonmatchings/func_actor_403200_8013D78C-vacuum` (`base_1.c` matched,
+Scratch `nonmatchings/_actor403200DropInState-vacuum` (`base_1.c` matched,
 `base_2.c` the no-cast control), compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
@@ -112453,7 +112453,7 @@ The `>=` spelling emits `lh v0, 6(s1)` / `lh v1, 0xf10(s1)` instead. sched1 does
 not swap the pair: two `lh` off the same base tie on priority and stay in the
 order the expander built them, so this survives to the object. Reach for the
 mirrored spelling when a two-load comparison is the last `regs` leftover on a
-function whose structure already matches — `func_actor_403200_8013EB64` went
+function whose structure already matches — `_actor403200ChooseAttackState` went
 99.92% -> 100% on nothing else.
 
 ## The arm that stores the compared value must be the `!=` one to cross-jump
@@ -112489,14 +112489,14 @@ byte-identical block graph, versus 97.95% with four duplicated tails and three
 extra instructions from the `==` form.
 
 A scratch frame can come out the same way: the target addressed the `SVECTOR`
-member of `func_actor_403200_8013EB64`'s 0x20-byte frame through the
+member of `_actor403200ChooseAttackState`'s 0x20-byte frame through the
 *pre-decrement* head (`sh v0, -0x10(s0)`, `a2 = s0 - 0x10`) and the rest through
-the frame pointer. Naming the member — `view = &sc->view;` with
-`sc = (T*)(SCRATCH_SP -= sizeof(T))` — is what produces it; addressing
-`sc->view` directly leaves both on the frame pointer. Same mechanism as the
+the frame pointer. Naming the member — passing `&scratch->toPlayer` to the
+player-turn helper, with `scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403200IdleScratch)` —
+is what produces it; addressing `scratch->toPlayer` directly leaves both on the frame pointer. Same mechanism as the
 head-rooted entry above, reached without writing `head - sizeof(T)` out.
 
-Scratch `nonmatchings/func_actor_403200_8013EB64-vacuum` (`base_4.c` matched;
+Scratch `nonmatchings/_actor403200ChooseAttackState-vacuum` (`base_4.c` matched;
 `base_3.c` the `==`-form control, `base_2.c` the fused member access), compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
@@ -129376,7 +129376,7 @@ sw    $s0,(0x1F8003FC & 0xFFFF)($at)
 The whole gap is that addressing: with it, 116/116 instructions and 100.000%.
 
 The fix is to mirror the already-matched sibling `func_actor_403200_80134D40` /
-`Actor403200_StepForward`, which has this exact shape and the exact split form:
+`_actor403200AdvanceRoot`, which has this exact shape and the exact split form:
 define the head as a *u32 lvalue at the numeric address* and put the carve in a
 `static __inline__` helper that loads the head and stores the carved pointer
 back.
@@ -137011,7 +137011,7 @@ Preprocessed SHA256s:
 - source-alias base_2: 4b94b39d906873cff6bbef5f0e054bf08021aa6c36085bdb15b3e983b23dc44c
 - direct-read base_3: add60566a4eeaa8b72492967e254e158c2b6a54ae5e5a81febaba112af36ffc3
 
-### Peeling a mandatory first call also fixes the message-handler loop (func_actor_403200_80138748, 2026-09-20)
+### Peeling a mandatory first call also fixes the message-handler loop (_actor403200ApplyCommand, 2026-09-20)
 
 The newer E2FC sibling finding closed this handler's archived 99.278% stall.
 First removing the permuter's spare task alias and updating the stale callee
