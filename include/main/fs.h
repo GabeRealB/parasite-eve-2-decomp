@@ -288,7 +288,13 @@ enum {
 /// or released here. A preceding seek at `startSector` is reused.
 void fsStartPayloadRead(s32 startSector, s32 endSector, void* destination, u8 payloadPhase);
 
-bool Fs_StageCdfIsAvailable(u32 stageIdx);
+/// Reports whether the scanned disc directory contains the selected stage CDF.
+///
+/// Uses only `stageIndex`'s low byte, which must be 0..5 (zero selects STAGE0).
+/// Reads the cached ISO directory result; no drive probe or file load occurs.
+/// Call after a directory scan for the inserted disc. Returns true for a
+/// nonzero absolute CDF sector, false when that CDF was absent from the scan.
+bool fsIsStageCdfAvailable(u32 stageIndex);
 
 /// Results of uploading a complete compressed image rectangle.
 enum {

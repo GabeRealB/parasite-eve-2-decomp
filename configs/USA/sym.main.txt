@@ -102,15 +102,15 @@ SetSp                       = 0x800144E8;
 //--------------------------------------------------------------------
 memConfigureImageMemory               = 0x800144F8; // type:func
 Boot_LoadInitialFile        = 0x80014650; // type:func
-Boot_WaitCdAudioReady             = 0x800148A0; // type:func
-Boot_InitCdAudio             = 0x800148EC; // type:func
+cdAudioCancelAndWait             = 0x800148A0; // type:func
+bootInitCdAudio             = 0x800148EC; // type:func
 gfxCaptureAreaFrame               = 0x8001490C; // type:func
 gfxRestoreAreaFrame               = 0x800149E8; // type:func
-Boot_InitCd             = 0x80014A50; // type:func
-Boot_ResetCd             = 0x80014A98; // type:func
+bootInitCd             = 0x80014A50; // type:func
+bootResetCd             = 0x80014A98; // type:func
 Boot_LoadTask               = 0x80014B38; // type:func
-Boot_DispatchCdCmd               = 0x80014C2C; // type:func
-Fs_StageCdfIsAvailable      = 0x80014C4C; // type:func
+cdCmdService               = 0x80014C2C; // type:func
+fsIsStageCdfAvailable      = 0x80014C4C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x0546C   VA: 0x80014C6C   subsegment: o, libetc/vsync

@@ -36955,7 +36955,7 @@ slots around the POLY_FT4 XY stores).
 function in C and `sym.*.txt` does not refresh those objects. objdiff then
 shows the old auto-name (`F179D4_ClearOTag`, `F16494_ResetSpuAttr`,
 `F04CF8_800148A0`, …) at 0% beside the compiled name (`gpuClearFrameOrderingTable`,
-`spuResetCommonOutput`, `Boot_WaitCdAudioReady`), even though the linked
+`spuResetCommonOutput`, `cdAudioCancelAndWait`), even though the linked
 binary still matches.
 
 Fix: `python3 ninja_config.py -obj` (re-splat + assemble `expected/`),

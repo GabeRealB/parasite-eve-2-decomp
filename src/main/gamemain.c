@@ -17,6 +17,7 @@
 #include "display_types.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
+#include "fs.h"
 #include "gfx.h"
 #include "gpuext.h"
 #include "mc.h"
@@ -131,9 +132,9 @@ static void GameMain_Init(void)
     s32 flag; // The indirection is required.
 
     SetDispMask(0);
-    Boot_WaitCdAudioReady();
+    cdAudioCancelAndWait();
     ResetCallback();
-    Boot_ResetCd(1);
+    bootResetCd(BOOT_CD_RESET_DRIVE_AND_VOLUME);
     VSync(10);
 
     GameResetScratchHead();
@@ -164,7 +165,7 @@ static void GameMain_Init(void)
     gpuClearFrameOrderingTable(1);
     spuResetSystem();
     sndVolumeSetReducedMode(0);
-    Boot_InitCdAudio();
+    bootInitCdAudio();
     VSyncCallback(_displayVSyncCallback);
 
     flag                     = 1;
@@ -427,7 +428,7 @@ static void GameMain_Loop(void)
         if (GameMain_HaltFlags != 0 && !_gameMainPauseBlocked()) {
             VSync(0);
             frameStart = VSync(1) & 0x7FFF;
-            Boot_DispatchCdCmd();
+            cdCmdService();
             continue;
         }
 
@@ -463,7 +464,7 @@ static void GameMain_Loop(void)
             continue;
         }
 
-        Boot_DispatchCdCmd();
+        cdCmdService();
 
         if (gDisplayState.height == 480) {
             Display_PendingFlip = -1;
@@ -700,7 +701,7 @@ void GameMain(void)
     spuInitSystem();
     mcInit();
     Pad_Init();
-    Boot_InitCd();
+    bootInitCd();
     memFillBytes(&Wip_SysFlags, 0, sizeof(Wip_SysFlags));
     D_8005EC64 = 0;
     GameMain_Init();

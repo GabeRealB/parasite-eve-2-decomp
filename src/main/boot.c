@@ -127,6 +127,17 @@ enum {
     GRAPHICS_AREA_FRAME_SECOND_Y = FILE_SYSTEM_IMAGE_HEIGHT + 32,
 };
 
+/// Resets the decoder and detaches the movie ring after CD delivery has paused.
+static __inline__ void _bootReleaseMovieRing(void)
+{
+    enum { BOOT_MOVIE_RESET_CALLBACKS_AND_DECODER = 0 };
+
+    DecDCTReset(BOOT_MOVIE_RESET_CALLBACKS_AND_DECODER);
+    StClearRing();
+    StUnSetRing();
+    Wip_SysFlags.movieStreamActive = false;
+}
+
 /// Clears the trailing ten bytes of the configured GPU primitive reservation.
 ///
 /// `Gpu_PrimHeapBase` must address `Gpu_PrimHeapSize` writable bytes, with
@@ -280,14 +291,15 @@ void Boot_LoadInitialFile(Task* task)
     }
 }
 
-void Boot_WaitCdAudioReady(void)
+void cdAudioCancelAndWait(void)
 {
     cdAudioCancel();
+    // The VBlank driver must finish the stop before callbacks are reset.
     while (CdAudio_Phase.stopStep != CD_AUDIO_STOP_STEP_DONE) {
     }
 }
 
-void Boot_InitCdAudio(void)
+void bootInitCdAudio(void)
 {
     cdAudioInit();
 }
@@ -330,33 +342,32 @@ void gfxRestoreAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex)
     LoadImage(&frameRect, (u_long*)areaSlots[areaId].regionBase);
 }
 
-void Boot_InitCd(void)
+void bootInitCd(void)
 {
-    u8 param[8];
+    u8 driveMode;
 
     CdInit();
-    param[0] = CdlModeSpeed;
-    CdControlB(CdlSetmode, param, NULL);
+    driveMode = CdlModeSpeed;
+    CdControlB(CdlSetmode, &driveMode, NULL);
     cdAudioInit();
     cdCmdResetState();
 }
 
-void Boot_ResetCd(s32 mode)
+void bootResetCd(s32 resetMode)
 {
-    u8 ctrlParam[8];
+    enum { BOOT_CD_RESET_SETTLE_VBLANKS = 3 };
+    u8 driveMode;
 
+    // Stop sector delivery before resetting the decoder or detaching its ring.
     CdFlush();
-    VSync(3);
+    VSync(BOOT_CD_RESET_SETTLE_VBLANKS);
     CdControlB(CdlPause, NULL, NULL);
     if (Wip_SysFlags.movieStreamActive != 0) {
-        DecDCTReset(0);
-        StClearRing();
-        StUnSetRing();
-        Wip_SysFlags.movieStreamActive = 0;
+        _bootReleaseMovieRing();
     }
-    CdReset(mode);
-    ctrlParam[0] = CdlModeSpeed;
-    CdControlB(CdlSetmode, ctrlParam, NULL);
+    CdReset(resetMode);
+    driveMode = CdlModeSpeed;
+    CdControlB(CdlSetmode, &driveMode, NULL);
     cdCmdResetState();
 }
 
@@ -395,12 +406,14 @@ void Boot_LoadTask(Task* task)
     }
 }
 
-void Boot_DispatchCdCmd(void)
+void cdCmdService(void)
 {
     cdCmdDispatch();
 }
 
-bool Fs_StageCdfIsAvailable(u32 stageIdx)
+bool fsIsStageCdfAvailable(u32 stageIndex)
 {
-    return Fs_StageCdfSectors[(u8)stageIdx] != 0;
+    enum { FILE_SYSTEM_STAGE_CDF_ABSENT = 0 };
+
+    return Fs_StageCdfSectors[(u8)stageIndex] != FILE_SYSTEM_STAGE_CDF_ABSENT;
 }

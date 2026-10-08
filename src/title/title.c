@@ -458,7 +458,7 @@ void Title_RestoreDemoCard(void)
 
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene = saveField23;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = saveField21;
-    if (Fs_StageCdfIsAvailable(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage) != 1) {
+    if (fsIsStageCdfAvailable(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage) != true) {
         gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
     printf(Title_DemoCardRestoreMsg, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);

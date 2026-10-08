@@ -9,7 +9,7 @@
 
 #include "common.h"
 
-#include "boot.h"
+#include "fs.h"
 #include "main/display_types.h"
 #include "display_types.h"
 #include "gamemain.h"
@@ -100,7 +100,7 @@ s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3)
     gGpuCurrentOt  = orderingTables[display->frameBuffer].org;
     gGpuPrimCursor = _gGpuDisplayPrimBufferBase + display->frameBuffer * halfBytes;
     taskExecList(&gTaskDisplayList);
-    Boot_DispatchCdCmd();
+    cdCmdService();
     if (display->mdecActive == 0) {
         DrawSync(0);
     }

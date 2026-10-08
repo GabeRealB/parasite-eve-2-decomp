@@ -70,6 +70,13 @@ void cdCmdEnqueueUnlessSceneAudioPending(s32 command, const void* fileKey, const
 /// Loading-screen presentation advances even when normal dispatch is suspended.
 void cdCmdDispatch(void);
 
+/// Services CD requests and loading presentation from either frame loop.
+///
+/// Uses `cdCmdDispatch`'s serialized request/resource contract. Call once per
+/// main-loop or task-presentation iteration, including paused-game iterations;
+/// a service call may block for drive recovery rather than retire a request.
+void cdCmdService(void);
+
 /// Requests suspension of a non-scene-audio ring head for a display transition.
 ///
 /// Returns 1 if cancellation/suspension is already selected. Otherwise an empty

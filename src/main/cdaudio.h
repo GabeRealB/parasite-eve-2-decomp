@@ -29,6 +29,13 @@ enum {
 /// `CdAudio_Phase.stopStep` for `CD_AUDIO_STOP_STEP_DONE` before reusing the stream.
 s32 cdAudioCancel(void);
 
+/// Requests CD-audio cancellation and blocks until its stop step is done.
+///
+/// Keep the VBlank audio driver running while cancellation is pending; this
+/// wait does not poll it and has no timeout. Call before resetting callbacks or
+/// reusing stream resources. The player's allocated buffers are not freed here.
+void cdAudioCancelAndWait(void);
+
 /// Initializes the CD-audio control word, streaming voice range and stereo output.
 ///
 /// Clears only the first four progress steps and the player's driver, start
