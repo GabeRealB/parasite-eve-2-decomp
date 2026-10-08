@@ -174,8 +174,6 @@ static void func_800CEE5C(UiObject* arg0);
 
 static s32 func_800CF204(CdCmdEntry* entry);
 
-static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2);
-
 static void _itemMenuOpenUsePanel(UiList* unusedList, UiObject* parent);
 
 static void _menuMapDrawPlayerCursor(const Task* mapTask);
@@ -196,8 +194,6 @@ static void _menuMapDrawPageArrows(const Task* mapTask);
 
 static void _menuMapPrepareClosing(Task* mapTask);
 
-static u8 Gp_GetMapRoomId(void);
-
 static void func_800D2020(u8 arg0);
 
 static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s32 comparePreviousLevel, s32 barX, s32 valueY, s32 column);
@@ -213,10 +209,6 @@ typedef enum {
 } _MenuMapAreaShapeFill;
 
 static void _menuMapDrawAreaShape(UiObject* mapObject, const TmdSource* areaModel, _MenuMapAreaShapeFill fillMode, s32 scaleQ12);
-
-static void Gp_DrawExamineCmd(UiObject* arg0, Task* arg1, u8* arg2, s32 arg3);
-
-static void Gp_DrawPushCmd(UiObject* arg0, Task* arg1);
 
 /// Bit fields of the packed PE menu id; higher catalogue bits do not select a row.
 enum {
@@ -251,6 +243,12 @@ enum {
     ITEM_MENU_PE_ROW_HEIGHT_PIXELS           = 15,
     ITEM_MENU_PE_PREVIEW_DESCRIPTION_LINE    = 4,
     ITEM_MENU_PE_COMMAND_ROW_COUNT           = 2
+};
+
+/// Countdown values shared by this translation unit's timed text dialogs.
+enum {
+    ITEM_MENU_TIMED_DIALOG_TIMEOUT_TICKS  = 188,
+    ITEM_MENU_TIMED_DIALOG_ACCEPTED_TICKS = 0x7FFF
 };
 
 /// Returns 1 when a row is neither attached to armor nor selected as equipment.
@@ -775,63 +773,83 @@ void equipmentEquipCarriedWeapon(s32 weaponItemId)
     }
 }
 
-static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2)
-{
-    s32       i;
-    s32       result;
-    s32       item;
-    s32       qty;
-    s32       mode;
-    s32       idx;
-    s32       temp;
-    const u8* table0;
-    const u8* table1;
+/// Stores the range's stack quantity minus its weapons' live-save loads.
+///
+/// Borrows a readable, in-bounds inventory range; invalid consumable ids yield
+/// zero. Quantities count rounds or supply units. Signed stack conversion and
+/// duplicate weapon-row counting are inherited from the inventory queries.
+/// Expands to a standalone block; quantity must be an s32 lvalue and all three
+/// arguments must be side-effect-free because each is evaluated twice.
+#define ITEM_MENU_GET_UNLOADED_CONSUMABLE_QUANTITY(quantity, range, consumableItemId)    \
+    {                                                                                    \
+        (quantity)  = inventoryGetConsumableStackQuantity((range), (consumableItemId));  \
+        (quantity) -= equipmentGetLoadedConsumableQuantity((range), (consumableItemId)); \
+    }
 
-    result = 0;
-    mode   = Gp_ReloadMode;
-    if (mode != 2) {
-        i = 0;
+/// Selects the nth accepted consumable with positive unloaded stock in a range.
+///
+/// `choiceOrdinal` is zero-based and nonnegative; `weaponItemId` is 0x80..0x9F.
+/// `Gp_ReloadMode` selects primary (1), secondary (2), or both for any other value.
+/// The borrowed range must fit its backing table; weapon loads come from the
+/// live save. Searches all three choices per selected load, primary first,
+/// retaining duplicate occurrences. Returns item id 0 if no choice remains.
+/// Does not add back this weapon's loaded stock or change inventory or loads.
+static s32 _itemMenuGetNthUnloadedConsumable(const InventoryItemRange* range, s32 choiceOrdinal, s32 weaponItemId)
+{
+    s32       choiceIndex;
+    s32       consumableItemId;
+    s32       unloadedQuantity;
+    s32       loadSelection;
+    s32       weaponIndex;
+    s32       choiceByteOffset;
+    s32       selectedItemId;
+    const u8* primaryOptionBytes;
+    const u8* secondaryOptionBytes;
+
+    selectedItemId = INVENTORY_ITEM_NONE;
+    loadSelection  = Gp_ReloadMode;
+    if (loadSelection != EQUIPMENT_CLEAR_LOAD_SECONDARY) {
+        choiceIndex = 0;
         // Keep the row byte offset separate from the consumable-choice index.
-        table0 = (const u8*)Gp_RelatedQty0.rows;
-        idx    = arg2 - EQUIPMENT_WEAPON_ITEM_FIRST;
+        primaryOptionBytes = (const u8*)Gp_RelatedQty0.rows;
+        weaponIndex        = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST;
         do {
-            temp = i + idx * (s32)sizeof(EquipmentWeaponLoadOptions);
-            item = table0[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)];
-            qty  = inventoryGetConsumableStackQuantity(arg0, item);
-            qty -= equipmentGetLoadedConsumableQuantity(arg0, item);
-            if (qty > 0) {
-                arg1--;
-                if (arg1 < 0) {
-                    result = item;
+            choiceByteOffset = choiceIndex + weaponIndex * (s32)sizeof(EquipmentWeaponLoadOptions);
+            consumableItemId = primaryOptionBytes[choiceByteOffset + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)];
+            ITEM_MENU_GET_UNLOADED_CONSUMABLE_QUANTITY(unloadedQuantity, range, consumableItemId);
+            if (unloadedQuantity > 0) {
+                choiceOrdinal--;
+                if (choiceOrdinal < 0) {
+                    selectedItemId = consumableItemId;
                     break;
                 }
             }
-            i++;
-        } while (i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
+            choiceIndex++;
+        } while (choiceIndex < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
     }
-    if (mode != 1) {
-        if (arg1 >= 0) {
-            i      = 0;
-            table1 = (const u8*)Gp_RelatedQty1.rows;
-            idx    = arg2 - EQUIPMENT_WEAPON_ITEM_FIRST;
+    if (loadSelection != EQUIPMENT_CLEAR_LOAD_PRIMARY) {
+        if (choiceOrdinal >= 0) {
+            choiceIndex          = 0;
+            secondaryOptionBytes = (const u8*)Gp_RelatedQty1.rows;
+            weaponIndex          = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST;
             do {
-                temp = i + idx * (s32)sizeof(EquipmentWeaponLoadOptions);
-                item = table1[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)];
-                qty  = inventoryGetConsumableStackQuantity(arg0, item);
-                qty -= equipmentGetLoadedConsumableQuantity(arg0, item);
-                if (qty > 0) {
-                    arg1--;
-                    if (arg1 < 0) {
-                        result = item;
+                choiceByteOffset = choiceIndex + weaponIndex * (s32)sizeof(EquipmentWeaponLoadOptions);
+                consumableItemId = secondaryOptionBytes[choiceByteOffset + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)];
+                ITEM_MENU_GET_UNLOADED_CONSUMABLE_QUANTITY(unloadedQuantity, range, consumableItemId);
+                if (unloadedQuantity > 0) {
+                    choiceOrdinal--;
+                    if (choiceOrdinal < 0) {
+                        selectedItemId = consumableItemId;
                         break;
                     }
                 }
-                i++;
-            } while (i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
+                choiceIndex++;
+            } while (choiceIndex < ARRAY_SIZE(Gp_RelatedQty1.rows[0].acceptedItemIds));
         }
     }
-    return result;
+    return selectedItemId;
 }
+#undef ITEM_MENU_GET_UNLOADED_CONSUMABLE_QUANTITY
 
 void itemMenuSizeEquippedNotice(UiPanel* panel, s32 itemId)
 {
@@ -2019,12 +2037,12 @@ void menuMapAreaNameTask(Task* task)
     }
 }
 
-void Gp_MapTask(Task* arg0)
+void menuMapTask(Task* mapTask)
 {
     TaskFuncTable4 handlers;
 
     handlers = Gp_MapTaskStates;
-    handlers.funcs[arg0->state](arg0);
+    handlers.funcs[mapTask->state](mapTask);
 }
 
 void Gp_MapPanelInit(Task* arg0)
@@ -2060,7 +2078,10 @@ void Gp_MapPanelInit(Task* arg0)
 
 /// Queues the ready map page's cursor, flags, picture, area shapes and arrows.
 ///
-/// Borrows the live map task, its object and the loaded current stage/page tables.
+/// Borrows the live task and its `UiObject` in `spawnArg2.pointer`. The current
+/// stage is 1..5 and the selected page and area must fit the loaded map tables;
+/// the map picture resources and drawing buffers must be ready. Queues all five
+/// passes in this order without advancing the task or taking input.
 static inline void _menuMapDrawLoadedPage(Task* mapTask)
 {
     _menuMapDrawPlayerCursor(mapTask);
@@ -2133,22 +2154,27 @@ static void _menuMapPrepareClosing(Task* mapTask)
     mapTask->spawnArg1.value        = MENU_MAP_RESTORE_PENDING;
 }
 
-static u8 Gp_GetMapRoomId(void)
+/// Selects and returns the low byte of the current area's map page.
+///
+/// Requires stage 1..5 and an area index within that stage's loaded area table.
+/// Stores the page in `Gp_MapRoomId`; no page picture is loaded. The narrowing
+/// also applies to the table's 16-bit no-page/end markers.
+static u8 _menuMapSelectCurrentAreaPage(void)
 {
-    GameSession*  session;
-    MenuMapArea** table;
-    s32           idx;
-    u8            f6;
-    MenuMapArea*  recs;
+    const GameSession*  session;
+    MenuMapArea* const* stageAreaTables;
+    s32                 stageIndex;
+    u8                  areaId;
+    const MenuMapArea*  areaRecord;
 
-    session = gGameSession;
-    table   = Gp_MapRecTables;
-    idx     = session->location.loc.stage - 1;
-    f6      = session->location.loc.area;
-    recs    = table[idx];
-    recs    = recs + f6;
+    session         = gGameSession;
+    stageAreaTables = Gp_MapRecTables;
+    stageIndex      = session->location.loc.stage - 1;
+    areaId          = session->location.loc.area;
+    areaRecord      = stageAreaTables[stageIndex];
+    areaRecord      = areaRecord + areaId;
 
-    Gp_MapRoomId = recs->page;
+    Gp_MapRoomId = areaRecord->page;
     return Gp_MapRoomId;
 }
 
@@ -2176,8 +2202,11 @@ static void func_800D2020(u8 arg0)
 /// Resolves dialog results into command-menu completion or resumed input.
 ///
 /// Borrows the live parent and its circular ring of task-owned `UiObject`s.
-/// CONFIRM must leave a nonempty ring: traversal compares the saved sibling
-/// with the current head after closing and has no empty-ring exit.
+/// CONFIRM reactivates the parent and detaches the child's closing tree;
+/// DISMISS completes the parent as CONFIRM, and CANCEL propagates unchanged.
+/// Other results leave the parent intact. CONFIRM must leave a nonempty ring:
+/// traversal compares the saved sibling with the current head after closing
+/// and has no empty-ring exit. Closing defers object release to later updates.
 static inline void _itemMenuResolveCommandChildResults(UiObject* object, Task* ownerTask)
 {
     Task*     child;
@@ -3131,46 +3160,62 @@ static void _itemMenuDrawPeSpecifications(UiObject* object, s32 abilityId, s32 n
     _itemMenuDrawAbilityParameterBar(object, abilityId, nextLevel, contentX, contentY, ATTACHMENT_LEVEL_ATP_LOSS);
 }
 
-void Gp_MapMenuListTask(Task* arg0)
+/// Fits the hotspot command panel and keeps its right/bottom edges on screen.
+///
+/// Borrows the list and writable object. Bounds are centred-screen pixels;
+/// each stored u16 component is interpreted as s16 before summing. Only excess
+/// beyond (150, 110) is shifted back, with the stored coordinates wrapping to u16.
+static inline void _itemMenuFitHotspotCommandPanel(UiList* list, UiObject* object)
 {
-    UiObject* obj;
-    UiList*   menu;
-    Task*     child;
-    UiObject* childObj;
-    s32       x;
-    s32       y;
-    s32       flag;
+    enum {
+        ITEM_MENU_HOTSPOT_RIGHT_LIMIT_PIXELS  = 150,
+        ITEM_MENU_HOTSPOT_BOTTOM_LIMIT_PIXELS = 110
+    };
+    s32 rightAdjustment;
+    s32 bottomAdjustment;
 
-    obj         = arg0->spawnArg2.pointer;
-    menu        = &D_8010F81C;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (arg0->state == 0) {
-        uiFitPanelToList(menu, &(obj)->panel);
-        x = 0x96 - ((s16)obj->panel.bounds.unsignedRect.x + (s16)obj->panel.bounds.unsignedRect.w);
-        y = 0x6E - ((s16)obj->panel.bounds.unsignedRect.y + (s16)obj->panel.bounds.unsignedRect.h);
-        if (x < 0) {
-            obj->panel.bounds.unsignedRect.x += x;
-        }
-        if (y < 0) {
-            obj->panel.bounds.unsignedRect.y += y;
-        }
-        arg0->state = arg0->state + 1;
+    uiFitPanelToList(list, &object->panel);
+    rightAdjustment  = ITEM_MENU_HOTSPOT_RIGHT_LIMIT_PIXELS - ((s16)object->panel.bounds.unsignedRect.x + (s16)object->panel.bounds.unsignedRect.w);
+    bottomAdjustment = ITEM_MENU_HOTSPOT_BOTTOM_LIMIT_PIXELS - ((s16)object->panel.bounds.unsignedRect.y + (s16)object->panel.bounds.unsignedRect.h);
+    if (rightAdjustment < 0) {
+        object->panel.bounds.unsignedRect.x += rightAdjustment;
     }
-    uiUpdateList(menu, &obj->panel);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    if (bottomAdjustment < 0) {
+        object->panel.bounds.unsignedRect.y += bottomAdjustment;
+    }
+}
+
+void itemMenuHotspotCommandTask(Task* task)
+{
+    UiObject* object;
+    UiList*   list;
+    Task*     child;
+    UiObject* childObject;
+    s32       childResult;
+
+    object         = task->spawnArg2.pointer;
+    list           = &D_8010F81C;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (task->state == ITEM_MENU_STATE_INITIAL) {
+        _itemMenuFitHotspotCommandPanel(list, object);
+        task->state = task->state + 1;
+    }
+    uiUpdateList(list, &object->panel);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
-    child = arg0->firstChild;
+    // The Item submenu's completion takes precedence over this frame's input.
+    child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        flag     = childObj->result;
-        if ((flag == USER_INTERFACE_RESULT_CANCEL) || (flag == USER_INTERFACE_RESULT_CONFIRM)) {
-            obj->result = childObj->result;
+        childObject = child->spawnArg2.pointer;
+        childResult = childObject->result;
+        if ((childResult == USER_INTERFACE_RESULT_CANCEL) || (childResult == USER_INTERFACE_RESULT_CONFIRM)) {
+            object->result = childObject->result;
         }
     }
 }
@@ -3672,65 +3717,64 @@ void itemMenuDrawDiscardRow(UiList* list, UiObject* object)
     }
 }
 
-static void Gp_DrawExamineCmd(UiObject* arg0, Task* arg1, u8* arg2, s32 arg3)
+/// Advances a text dialog's timer and reports active dismissal input.
+///
+/// Borrows the live dialog and owning task. Timeout/Confirm/Cancel wins over
+/// Menu and reports CONFIRM; Menu reports CANCEL. Acceptance rearms the timer.
+static inline void _itemMenuTickTimedDialogInput(UiObject* object, Task* task)
 {
-    s32 one;
-
-    if (arg1->state == 0) {
-        uiSizePanelForTextDefault(&(arg0)->panel, arg2);
-        arg1->killCountdown = 0xBC;
-        arg1->state         = arg1->state + 1;
-    }
-
-    one = 1;
-    {
-        s32 drawMode = one;
-
-        textDrawUiLines(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, arg2, arg3, drawMode, TEXT_ALIGNMENT_LEFT);
-    }
-
-    arg1->killCountdown--;
-    if (arg0->panel.control.word == one) {
-        if ((arg1->killCountdown <= 0) || (padCheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            arg0->result        = USER_INTERFACE_RESULT_CONFIRM;
-            arg1->killCountdown = 0x7FFF;
+    task->killCountdown--;
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
+            task->killCountdown = ITEM_MENU_TIMED_DIALOG_ACCEPTED_TICKS;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            arg0->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }
 
-static void Gp_DrawPushCmd(UiObject* arg0, Task* arg1)
+/// Fits, draws and advances a timed dialog for caller-selected text and colour.
+///
+/// Borrows a live object, its task, and terminated UI text; `colorRgb` packs
+/// 8-bit R/G/B in bits 0..23. State zero fits the panel and starts 188 updates.
+/// The timer ticks even while input is inactive. Active timeout/Confirm/Cancel
+/// reports CONFIRM and rearms to 0x7FFF ticks; Menu reports CANCEL. Existing
+/// results are otherwise preserved; no object is closed or resource retained.
+static void _itemMenuUpdateTimedTextDialog(UiObject* object, Task* task, const u8* text, s32 colorRgb)
 {
-    s32 one;
-    u8* text;
-    s32 color;
-
-    color = 0x606060;
-    text  = Gp_NoticeTexts[(u16)arg1->spawnArg1.value];
-
-    if (arg1->state == 0) {
-        uiSizePanelForTextDefault(&(arg0)->panel, text);
-        arg1->killCountdown = 0xBC;
-        arg1->state         = arg1->state + 1;
+    if (task->state == ITEM_MENU_STATE_INITIAL) {
+        uiSizePanelForTextDefault(&(object)->panel, text);
+        task->killCountdown = ITEM_MENU_TIMED_DIALOG_TIMEOUT_TICKS;
+        task->state         = task->state + 1;
     }
 
-    one = 1;
-    {
-        s32 drawMode = one;
+    textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, text, colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _itemMenuTickTimedDialogInput(object, task);
+}
 
-        textDrawUiLines(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, text, color, drawMode, TEXT_ALIGNMENT_LEFT);
+/// Fits, draws and advances a timed dialog for one item-menu notice.
+///
+/// Borrows the live dialog object and its task. The low 16 bits of spawnArg1
+/// must index `Gp_NoticeTexts` (0..15); higher bits are ignored. Draws in the
+/// menu's standard colour and uses the same timing/results as
+/// `_itemMenuUpdateTimedTextDialog`, preserving results when no input completes.
+static void _itemMenuUpdateTimedNoticeDialog(UiObject* object, Task* task)
+{
+    const u8* text;
+    s32       colorRgb;
+
+    colorRgb = ITEM_MENU_TEXT_COLOR_RGB;
+    text     = Gp_NoticeTexts[(u16)task->spawnArg1.value];
+
+    if (task->state == ITEM_MENU_STATE_INITIAL) {
+        uiSizePanelForTextDefault(&(object)->panel, text);
+        task->killCountdown = ITEM_MENU_TIMED_DIALOG_TIMEOUT_TICKS;
+        task->state         = task->state + 1;
     }
 
-    arg1->killCountdown--;
-    if (arg0->panel.control.word == one) {
-        if ((arg1->killCountdown <= 0) || (padCheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            arg0->result        = USER_INTERFACE_RESULT_CONFIRM;
-            arg1->killCountdown = 0x7FFF;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            arg0->result = USER_INTERFACE_RESULT_CANCEL;
-        }
-    }
+    textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, text, colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    _itemMenuTickTimedDialogInput(object, task);
 }
 
 void itemMenuPeNextLevelTask(Task* task)

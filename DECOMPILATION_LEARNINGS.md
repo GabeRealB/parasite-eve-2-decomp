@@ -25358,7 +25358,7 @@ pinning both drops to ~89%.
 
 ## Pin table `$v1` + session `$a0` so a two-level lookup hoists both `lui`s
 
-A leaf `table[session->field_7 - 1][session->field_6].byte` wants:
+A leaf byte-narrowing lookup `stageAreaTables[session->location.loc.stage - 1][session->location.loc.area].page` wants:
 
 ```
 lui   v0,%hi(gGameSession)
@@ -25366,9 +25366,9 @@ lui   v1,%hi(table)
 lw    a0,%lo(gGameSession)(v0)
 addiu v1,v1,%lo(table)
 lbu   v0,7(a0)
-lbu   a0,6(a0)          /* field_6 overwrites the session pointer */
-/* field_7-1 in $v0, lw table[i] into $v1, then *14 into $v0 */
-addu  v1,v1,v0          /* recs + offset, dest is the pointer */
+lbu   a0,6(a0)          /* areaId overwrites the session pointer */
+/* stageIndex in $v0, lw stageAreaTables[stageIndex] into $v1, then *14 into $v0 */
+addu  v1,v1,v0          /* areaRecord + offset, dest is the pointer */
 lbu   v1,0xC(v1)
 lui   v0,%hi(out)
 sb    v1,%lo(out)(v0)
@@ -25377,43 +25377,44 @@ andi  v0,v1,0xff
 ```
 
 Without pins GCC loads `gGameSession` first, reuses `$v0` for the table
-address, puts `field_7` in `$v1`, starts `*14` before the `lw`, and
+address, puts the stage in `$v1`, starts `*14` before the `lw`, and
 `addu`s `offset + base` into `$v0`. The store then uses `$v1` for `out`
 and `andi v0, v0, 0xff` — a large register-swap diff of an otherwise
 identical function.
 
 Pin the table to `$v1` and the session pointer to `$a0` so both `lui`s
-issue before the `lw`. Keep the record pointer in `$v1` (`recs = recs +
-f6`, not `recs[f6]`) so the `addu` dest is `$v1`. Load the byte in a
-nested block (`register u8 val asm("v1")`) — `table` / `recs` already
+issue before the `lw`. Keep the record pointer in `$v1` (`areaRecord = areaRecord +
+areaId`, not `areaRecord[areaId]`) so the `addu` dest is `$v1`. Load the byte in a
+nested block (`register u8 page asm("v1")`) — `stageAreaTables` / `areaRecord` already
 own `$v1` in the outer scope, and two `asm("v1")` names in one scope
 force the `lbu` into `$v0`:
 
 ```c
-register GameSession* session asm("a0");
-register MenuMapArea** table asm("v1");
-register s32          idx asm("v0");
-register u8           f6 asm("a0");
-register MenuMapArea* recs asm("v1");
+register const GameSession*  session asm("a0");
+register MenuMapArea* const* stageAreaTables asm("v1");
+register s32                 stageIndex asm("v0");
+register u8                  areaId asm("a0");
+register const MenuMapArea*  areaRecord asm("v1");
 
-session = gGameSession;
-table   = D_table;
-idx     = session->field_7 - 1;
-f6      = session->field_6;
-recs    = table[idx];
-recs    = recs + f6;
+session         = gGameSession;
+stageAreaTables = Gp_MapRecTables;
+stageIndex      = session->location.loc.stage - 1;
+areaId          = session->location.loc.area;
+areaRecord      = stageAreaTables[stageIndex];
+areaRecord      = areaRecord + areaId;
 {
-    register u8 val asm("v1");
+    register u8 page asm("v1");
 
-    val = recs->field_C;
-    out = val;
-    return val;
+    page = areaRecord->page;
+    Gp_MapRoomId = page;
+    return page;
 }
 ```
 
-`Gp_GetMapRoomId` is the example. `field_C` must be a `u8` (or the load is
-`lhu` + `andi`); neighbouring functions that `lhu` the same halfword can
-overlay it later.
+`_menuMapSelectCurrentAreaPage` is the example. `MenuMapArea.page` is a u16;
+narrowing it into the u8 selected-page global lets the compiler read only its
+low byte. The matching unpinned store/return form is recorded in "A pin on a
+value stored to a global and returned" below.
 
 ## Pin the loop index, not the switch-selected table
 
@@ -28352,35 +28353,33 @@ if (body != NULL) {
 stuck at 92.6% with only those registers (and the late `&gModelObjectCoordBodyList`)
 different.
 
-## Join timeout + confirm with `||` so `one` stays in `$s0`
+## Join timeout + confirm with `||` so the pressed-query constant stays in `$s0`
 
-`one = 1` is saved in `$s0` for `textDrawUiLines(..., drawMode, 0)`, where
-`drawMode` aliases `one`, and `status == one`. The first `padCheckButtons(0, one, mask)` should reuse
+The value 1 shared by `TEXT_DRAW_OUTLINED`, `USER_INTERFACE_PANEL_ACTIVE`
+and `PAD_BUTTON_QUERY_PRESSED` is saved in `$s0` for the text drawing and
+active-panel comparison. The first `padCheckButtons` should reuse
 that register (`move a1,s0`). Splitting the timeout and confirm into
 separate `if` / `else if` arms with the same body rematerializes the
 constant (`li a1,1`).
 
-Write them as one `||` so `one` stays live into the call:
+Write them as one `||` so the constant stays live into the call:
 
 ```c
-one = 1;
-{
-    s32 drawMode = one;
-    textDrawUiLines(obj, x, y, text, color, drawMode, 0);
-}
+textDrawUiLines(object, x, y, text, colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+// The following block is _itemMenuTickTimedDialogInput's inlined body.
 task->killCountdown--;
-if (obj->status == one) {
+if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
     if ((task->killCountdown <= 0) ||
-        (padCheckButtons(0, one, maskA | maskB) != 0)) {
-        obj->result      = 6;
-        task->killCountdown = 0x7FFF;
-    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, maskCancel) != 0) {
-        obj->result = -1;
+        (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        object->result      = USER_INTERFACE_RESULT_CONFIRM;
+        task->killCountdown = ITEM_MENU_TIMED_DIALOG_ACCEPTED_TICKS;
+    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        object->result = USER_INTERFACE_RESULT_CANCEL;
     }
 }
 ```
 
-`Gp_DrawExamineCmd` is the example. The duplicated-body `if` / `else if`
+`_itemMenuUpdateTimedTextDialog` is the example. The duplicated-body `if` / `else if`
 stuck at 97.1% with only that `move` vs `li`.
 
 ## Split `A*N + B*M + K + C` so `K` stays on `B*M`
@@ -29953,13 +29952,13 @@ beq   a0, v1, store
 Assign the compare to an `s32` local, then reload for the store:
 
 ```c
-flag = childObj->result;
-if ((flag == -1) || (flag == 6)) {
-    obj->result = childObj->result;
+childResult = childObject->result;
+if ((childResult == USER_INTERFACE_RESULT_CANCEL) || (childResult == USER_INTERFACE_RESULT_CONFIRM)) {
+    object->result = childObject->result;
 }
 ```
 
-`Gp_MapMenuListTask` is the example. The inlined compare stuck at 99.7%
+`itemMenuHotspotCommandTask` is the example. The inlined compare stuck at 99.7%
 with only those two registers swapped.
 
 ## `gte_rtps` is `0x4A180001`, not the DMPSX `.word 0x0000007f`
@@ -30414,16 +30413,16 @@ Naming `off = idx * 4` then `i + off` flips the operands but coalesces
 the subtract into `addiu s6` / `sll s6, s6, 2`. Split the addend:
 
 ```c
-idx  = arg2 - 0x80;
-temp = i + idx * 4;
-item = table[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)];
+weaponIndex = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST;
+choiceByteOffset = choiceIndex + weaponIndex * (s32)sizeof(EquipmentWeaponLoadOptions);
+consumableItemId = primaryOptionBytes[choiceByteOffset + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)];
 ```
 
 Assign the table pointer *before* the subtract so `lui`/`addiu` of the
 symbol precedes `addiu v0, a2, -K`. Use two table locals (one per loop)
-so the second table can reuse the mode register after `mode != 1`.
+so the second table can reuse the mode register after `loadSelection != EQUIPMENT_CLEAR_LOAD_PRIMARY`.
 
-`Gp_NthStockRelated` is the example.
+`_itemMenuGetNthUnloadedConsumable` is the example.
 
 ## Store then test `p->field` so the OR dest stays in `$v1`
 
@@ -146406,8 +146405,8 @@ The target read `lw v0,Gp_SelItemRec; nop; lbu v1,0(v0); lui v0,%hi(Gp_ItemDescs
 ## A pinned flag in a loop may be the inlined body of the function just before it, written as one `||` condition (func_800CECC0, 2026-09-27)
 A `register s32 ok asm("a2")` held a "row is usable" flag set by an `if / else if / else if` chain inside a search loop; the static function directly above, with no callers, computed exactly that flag. Inlining the same chain as a helper left the flag and the row pointer swapped (`a1`/`a2`, 99.339%): the chain's three `ret = 0` stores gave the flag 10 refs over 22 insns in `.lreg`, outranking the pointer. Writing the test as a single `if (a || (b && c) || (d && e)) ret = 0;` - the shape the file's other predicates already use - gives one store, lowers the flag's rank, and matches. The out-of-line neighbour matched with the same body, so it became `return helper(index);` rather than a second copy. When an uncalled static sits beside a pinned function, try it as the inline first, and try both the chained and the `||` spelling.
 
-## A pin on a value stored to a global and returned is `g = x; return g;` (Gp_GetMapRoomId, 2026-09-27)
-The target loads a record byte into `v1`, stores it to a `u8` global and returns `andi v0,v1,0xff`. Holding the byte in a `u8` local (`val = rec->f; g = val; return val;`, or `return g = rec->f;`) puts the load in `v0` and a `register u8 val asm("v1")` pin had been fixing that. Writing the natural `g = rec->f; return g;` matches: the return reads the global's value through CSE, which ties the return copy to the stored pseudo differently from a named local. When a pin sits on a "store then return it" local, try returning the global itself.
+## A pin on a value stored to a global and returned is `g = x; return g;` (_menuMapSelectCurrentAreaPage, 2026-09-27)
+The target loads a record byte into `v1`, stores it to a `u8` global and returns `andi v0,v1,0xff`. Holding the byte in a `u8` local (`page = areaRecord->page; Gp_MapRoomId = page; return page;`, or `return Gp_MapRoomId = areaRecord->page;`) puts the load in `v0` and a `register u8 val asm("v1")` pin had been fixing that. Writing the natural `Gp_MapRoomId = areaRecord->page; return Gp_MapRoomId;` matches: the return reads the global's value through CSE, which ties the return copy to the stored pseudo differently from a named local. When a pin sits on a "store then return it" local, try returning the global itself.
 ## A `move` from a register that was itself filled by a copy is a real RTL copy, never a `reload_cse` fold (itemMenuBuildConsumableChoiceList, 2026-09-27)
 
 **Shape.** `count = 0` before a call, then `move s3,s5` (`n = count`) and

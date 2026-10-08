@@ -96,7 +96,7 @@ extern UiObjectDesc D_8010F15C;
 /// Per-stage `MenuMapAreaShape` counts. Index is `GameSession.location.loc.stage - 1`.
 extern u8 Gp_MapMarkCounts[];
 
-/// Current room id copied from `MenuMapArea.page` by `Gp_GetMapRoomId`.
+/// Current room id copied from `MenuMapArea.page` by `_menuMapSelectCurrentAreaPage`.
 extern u8 Gp_MapRoomId;
 
 /// Room-id offset applied by `_menuMapLoadPage` (0, or 1 / 3 for two flagged rooms).
@@ -558,7 +558,12 @@ void menuMapHelpTask(Task* task);
 /// outlined text at the content origin; a NULL stage table suppresses the draw.
 void menuMapAreaNameTask(Task* task);
 
-void Gp_MapTask(Task* arg0);
+/// Dispatches the map panel's opening, page-load wait, input and closing updates.
+///
+/// `mapTask->state` must be 0..3 and `spawnArg2.pointer` its live owned UiObject.
+/// Opening/input borrow the current stage's loaded map tables. The handler table
+/// is copied locally before dispatch; handlers own state changes and closing timing.
+void menuMapTask(Task* mapTask);
 
 void Gp_MapPanelInit(Task* arg0);
 
@@ -627,7 +632,14 @@ void itemMenuDrawPeAbilityRow(UiList* list, UiObject* object);
 /// purchase returns DISMISS; the next-level preview is a child panel.
 void itemMenuPeUpgradeTask(Task* task);
 
-void Gp_MapMenuListTask(Task* arg0);
+/// Updates the hotspot's Examine/Push and Item command menu.
+///
+/// `spawnArg2.pointer` is the live owned object; spawnArg1 selects Examine (0)
+/// or Push (1). State zero fits the list and shifts only right/bottom overflow
+/// within centred-screen limits (150, 110). Menu reports CANCEL; active Cancel
+/// reports CONFIRM with the cancel sound. The first child's CANCEL or CONFIRM
+/// takes precedence; no child is closed here. The shared list is used serially.
+void itemMenuHotspotCommandTask(Task* task);
 
 void Gp_MapScreenTask(Task* arg0);
 

@@ -395,7 +395,7 @@ u8 Gp_MapMarkCounts[5] = {
 
 u8 D_8010F13D = 1;
 
-UiObjectDesc D_8010F140 = { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -145, -107, 290, 215 }, 56, 0, TASK_BODY_NONE, 192, Gp_MapTask, 0 };
+UiObjectDesc D_8010F140 = { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -145, -107, 290, 215 }, 56, 0, TASK_BODY_NONE, 192, menuMapTask, 0 };
 
 UiObjectDesc D_8010F15C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -140, 50, 280, 50 }, 20, 0, TASK_BODY_NONE, 192, menuMapHelpTask, 0 };
 
