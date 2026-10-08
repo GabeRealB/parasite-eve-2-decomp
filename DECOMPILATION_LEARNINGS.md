@@ -30370,7 +30370,7 @@ void (*fns[2])(s32, s32) = { D_8017DA78, D_8017EF60 };
 
 ## An oversized frame with dead stack slots is an unused local array
 
-`func_acropolis_west_elevator_hall_8017F354` opens with a 0x230 frame that only
+`_acropolisWestElevatorHallUpdateArrivalEvent` opens with a 0x230 frame that only
 ever touches `0x10` and `0x14` (`sw $zero`, `sw 4`) and `$ra` at `0x228`; the
 rest is never read or written. The two live slots are leftover dispatch
 arguments in the style of `s32 args[2]` elsewhere in `rooms`, and the 0x210
@@ -30381,8 +30381,8 @@ referenced, and it keeps stores to an array slot that is never read, so both
 halves are reproducible from C:
 
 ```c
-s32 args[2] = { 0, 4 };
-u8  scratch[0x210];      /* never referenced; only reserves the frame */
+s32 retainedWords[2] = { 0, 4 };
+u8  retainedStackSpace[0x210]; /* never referenced; only reserves the frame */
 ```
 
 Frame arithmetic: `args= 16` (outgoing) + `vars= 536` (0x218 of locals) + one

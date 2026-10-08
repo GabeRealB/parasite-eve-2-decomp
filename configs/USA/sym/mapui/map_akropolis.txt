@@ -165,7 +165,7 @@ D_acropolis_helicopter_landing_pad_80187824 = 0x80187824; // absolute:True owner
 D_acropolis_helicopter_landing_pad_80187968 = 0x80187968; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 D_acropolis_helicopter_landing_pad_80187DC8 = 0x80187DC8; // absolute:True owner=acropolis_helicopter_landing_pad
 gAcropolisHelicopterLandingPadModel0A8E8 = 0x80187F50; // absolute:True owner=acropolis_helicopter_landing_pad
-func_acropolis_west_elevator_hall_8017F5F4 = 0x8017F5F4; // type:func absolute:True owner=acropolis_west_elevator_hall
+acropolisWestElevatorHallRoomTask = 0x8017F5F4; // type:func absolute:True owner=acropolis_west_elevator_hall
 D_acropolis_west_elevator_hall_80185024 = 0x80185024; // absolute:True owner=acropolis_west_elevator_hall shared=rooms
 D_acropolis_west_elevator_hall_80185034 = 0x80185034; // absolute:True owner=acropolis_west_elevator_hall shared=rooms
 D_acropolis_west_elevator_hall_80185038 = 0x80185038; // absolute:True owner=acropolis_west_elevator_hall shared=rooms

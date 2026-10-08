@@ -86,6 +86,13 @@ void acropolisWestElevatorHallPlayerReflectionTask(Task* reflectionTask);
 
 void func_acropolis_west_elevator_hall_8017F7D4(Task* task);
 
-void func_acropolis_west_elevator_hall_8017F5F4(Task* task);
+/// Runs the west elevator hall's room messages, door leaves and arrival event.
+///
+/// Starts bodyless in state 0: installs the room message table, registers the
+/// room task and spawns two model-backed door leaves. State 1 maintains the
+/// one-shot warp-1 arrival event; state 2 kills the room task. The state index
+/// is unchecked and must be 0..2. Keep this overlay and its resources loaded
+/// while the room task and separately spawned leaves remain live.
+void acropolisWestElevatorHallRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_WEST_ELEVATOR_HALL_H
