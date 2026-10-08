@@ -417,27 +417,30 @@ static void _stageMusicFinishWhenCdIdle(Task* task)
     }
 }
 
-void Stage_RequestSpecialFlag(s32 unused)
+void stageMusicUpdateAreaAmbient(s32 unused)
 {
-    GameSession*     g;
-    s32              idx;
-    s32              product;
-    StageMusicEntry* base;
-    s32              one;
+    enum {
+        STAGE_MUSIC_AMBIENT_MUTED       = 1,
+        STAGE_MUSIC_AMBIENT_UNREQUESTED = 0,
+        STAGE_MUSIC_AMBIENT_REQUESTED   = 1
+    };
+    GameSession*     session;
+    s32              stageIndex;
+    s32              areaRowOffset;
+    StageMusicEntry* areaTable;
 
-    g       = gGameSession;
-    idx     = g->location.loc.stage - 1;
-    product = g->location.loc.area * Stage_MusicRowLengths[idx];
-    base    = Stage_MusicTables[idx];
-    if (base[product].sequenceId == STAGE_MUSIC_AMBIENT_AREA) {
-        if (gameFlagGetNibble(GAME_FLAG_STAGE_AMBIENT_MUTED) == 1) {
-            one = 1;
-            sndEvtRequestScriptStop(SOUND_ID(6, 1, 0) | one, 0x1E);
-            gStageAmbientOn = 0;
-        } else if (gStageAmbientOn == 0) {
-            one = 1;
+    session       = gGameSession;
+    stageIndex    = session->location.loc.stage - 1;
+    areaRowOffset = session->location.loc.area * Stage_MusicRowLengths[stageIndex];
+    areaTable     = Stage_MusicTables[stageIndex];
+    // Ambient eligibility belongs to the area's first column, independent of scene music.
+    if (areaTable[areaRowOffset].sequenceId == STAGE_MUSIC_AMBIENT_AREA) {
+        if (gameFlagGetNibble(GAME_FLAG_STAGE_AMBIENT_MUTED) == STAGE_MUSIC_AMBIENT_MUTED) {
+            sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, STAGE_MUSIC_AMBIENT_FADE_TICKS);
+            gStageAmbientOn = STAGE_MUSIC_AMBIENT_UNREQUESTED;
+        } else if (gStageAmbientOn == STAGE_MUSIC_AMBIENT_UNREQUESTED) {
             sndEvtRequestScriptStart(SOUND_STAGE_AMBIENT, 0, 0);
-            gStageAmbientOn = one;
+            gStageAmbientOn = STAGE_MUSIC_AMBIENT_REQUESTED;
         }
     }
 }

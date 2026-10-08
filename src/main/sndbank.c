@@ -599,21 +599,39 @@ void spuResetSystem(void)
     _spuInitSystem(SPU_INIT_WAIT_TRANSFER);
 }
 
-void Audio_IrqFrameWork(void)
+/// Arms an extra audio update after six events of the installed PAL root counter.
+static inline void _spuArmPalExtraAudioUpdate(void)
 {
+    enum {
+        SPU_PAL_EXTRA_UPDATE_TIMER_EVENTS = 6,
+        SPU_PAL_EXTRA_UPDATE_ARMED        = 1
+    };
+
+    D_8007E0CC = SPU_PAL_EXTRA_UPDATE_TIMER_EVENTS;
+    ResetRCnt(RCntCNT0);
+    D_800680A4 = SPU_PAL_EXTRA_UPDATE_ARMED;
+}
+
+void spuRunVBlankAudioUpdate(void)
+{
+    enum {
+        SPU_AUDIO_WORK_HELD      = 0,
+        SPU_AUDIO_WORK_AVAILABLE = 1
+    };
+
     if (D_800680C0 != 0) {
-        D_800680C0 = 0;
+        D_800680C0 = SPU_AUDIO_WORK_HELD;
+        // Requests are drained before polls so this update can advance new playback.
         spuTickVoices();
         sndEvtDrainQueue();
         _audioTickProcess();
         spuFlushVoiceUpdates();
         D_800680BC += 1;
         if (gDisplayState.region == MODE_PAL) {
-            D_8007E0CC = 6;
-            ResetRCnt(RCntCNT0);
-            D_800680A4 = 1;
+            // Schedule the extra PAL audio update from this VBlank's timer origin.
+            _spuArmPalExtraAudioUpdate();
         }
-        D_800680C0 = 1;
+        D_800680C0 = SPU_AUDIO_WORK_AVAILABLE;
     }
 }
 

@@ -141,7 +141,17 @@ s32 tmdAllocPrimitiveBuffer(TmdObject* model);
 /// flags and half selector remain unchanged, permitting later reallocation.
 void tmdFreePrimitiveBuffer(TmdObject* model);
 
-void Tmd_DrawFlaggedNodes(TmdObject* node);
+/// Draws buffered models selected for the flagged pass, starting at `model`.
+///
+/// NULL is a no-op; otherwise traverse a live NULL-terminated `TmdObject.link`
+/// chain. `TMD_OBJECT_FLAGGED_PASS` selects a model even when
+/// `TMD_OBJECT_SKIP_ACTIVE_DRAW` is set; a NULL primitive buffer skips it.
+/// Sources, composed view-space coordinates, lighting and resolved callbacks
+/// must remain live during the walk. Current OT, depth shift, GTE settings,
+/// constructed buffer halves and scratch capacity follow `tmdDrawActiveModels`'s
+/// draw contract. Each drawn model updates and links one buffer half, then
+/// toggles its selector. Keep packet and OT storage live until GPU use finishes.
+void tmdDrawFlaggedModels(TmdObject* model);
 
 /// Draws buffered models not excluded from the active pass, starting at `model`.
 ///

@@ -975,15 +975,14 @@ void tmdRestoreAttachedBuffersTask(Task* task)
     taskKill(task);
 }
 
-void Tmd_DrawFlaggedNodes(TmdObject* node)
+void tmdDrawFlaggedModels(TmdObject* model)
 {
-    while (node != NULL) {
-        if (node->flags & TMD_OBJECT_FLAGGED_PASS) {
-            if (node->buffer != NULL) {
-                _tmdDrawModel(node);
-            }
+    while (model != NULL) {
+        // Flagged drawing is independent of the active pass's exclusion bit.
+        if ((model->flags & TMD_OBJECT_FLAGGED_PASS) && model->buffer != NULL) {
+            _tmdDrawModel(model);
         }
-        node = PARENT_OF(node->link.next, TmdObject, link);
+        model = PARENT_OF(model->link.next, TmdObject, link);
     }
 }
 

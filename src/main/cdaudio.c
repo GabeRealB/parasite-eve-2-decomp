@@ -16,7 +16,7 @@
 #include "main/sound_types.h"
 #include "sound_types.h"
 
-/// `_CdAudioPlayback::driver` values: the `CdAudio_DriveFns` entry `CdAudio_Tick`
+/// `_CdAudioPlayback::driver` values: the `CdAudio_DriveFns` entry `cdAudioPollDriver`
 /// runs. Each driver returns the value to run on the next tick.
 enum {
     CD_AUDIO_DRIVER_IDLE        = 0, // nothing to do
@@ -1145,10 +1145,10 @@ static u8 _cdAudioGetDriver(void)
     return _gCdAudioState.playback.driver;
 }
 
-void CdAudio_Tick(void)
+void cdAudioPollDriver(void)
 {
     if ((_gCdAudioState.playback.baseSector != 0) && (_gCdAudioState.playback.driver != CD_AUDIO_DRIVER_IDLE)) {
-        _gCdAudioState.playback.driver = CdAudio_DriveFns[_gCdAudioState.playback.driver & 7]();
+        _gCdAudioState.playback.driver = CdAudio_DriveFns[_gCdAudioState.playback.driver & (ARRAY_SIZE(CdAudio_DriveFns) - 1)]();
         cdStreamPollPlayback();
     }
 }

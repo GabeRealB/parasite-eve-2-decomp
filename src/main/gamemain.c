@@ -249,8 +249,8 @@ static void Display_VSyncCallback(void)
         gDisplayState.frameCount += 1;
     }
     gDisplayState.vsyncCount += 1;
-    CdAudio_Tick();
-    Audio_IrqFrameWork();
+    cdAudioPollDriver();
+    spuRunVBlankAudioUpdate();
     padPollPort0();
     D_8005EC74 = VSync(1) - (start & 0xFFFF);
 }
@@ -435,7 +435,7 @@ static void GameMain_Loop(void)
             gDisplayState.gameTick += 1 + (D_8005EC68 >> 1);
         }
         gDisplayState.loopTicks += D_8005EC68 >> 1;
-        gpuBeginOt(gameBuffer);
+        _gpuBeginOt(gameBuffer);
 
         Gpu_SysPrimCursor = Gpu_PrimBufStatic + gDisplayState.otBuffer * (s32)(sizeof(Gpu_PrimBufStatic) / 2);
         gGpuPrimCursor    = Gpu_PrimHeapBase + gDisplayState.otBuffer * (Gpu_PrimHeapSize >> 1);

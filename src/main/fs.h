@@ -59,7 +59,16 @@ void cdCmdClearBusy(void);
 /// contract. A blocked request performs no source reads and reports no result.
 void cdCmdEnqueueUnlessSceneAudioPending(s32 command, const void* fileKey, const void* commandArgs);
 
-void CdCmd_Dispatch(void);
+/// Services the current CD request phase, then advances an active loading screen.
+///
+/// Normal dispatch selects the ring head's opcode family unless suspended;
+/// cancellation and suspension instead service the saved active request.
+/// The ring read index must be 0..7 and request resources must remain valid
+/// until their handler retires them. Empty or unsupported families do nothing.
+/// Call from the main-loop/task CD service, serialized with other dispatches;
+/// one call may start asynchronous work or wait for drive recovery.
+/// Loading-screen presentation advances even when normal dispatch is suspended.
+void cdCmdDispatch(void);
 
 /// Requests suspension of a non-scene-audio ring head for a display transition.
 ///

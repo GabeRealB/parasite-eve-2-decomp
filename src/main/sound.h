@@ -93,7 +93,15 @@ extern void* Snd_SequenceBankBuffer;
 /// queued silent-voice changes apply at the next SPU flush.
 void spuResetSystem(void);
 
-void Audio_IrqFrameWork(void);
+/// Advances resident sound playback and drains queued requests once per VBlank.
+///
+/// A held initialization/update gate skips all work. Otherwise advances voices,
+/// drains sound events before registered polls, then flushes SPU voice changes.
+/// Sound heap, banks and poll arguments must remain live through their callbacks.
+/// PAL additionally arms a timer audio update after six root-counter events;
+/// that extra update does not drain sound events. The gate suppresses reentry
+/// without waiting for another update to finish.
+void spuRunVBlankAudioUpdate(void);
 
 /// Reserves a bank descriptor's program, layer and first-layer tables for a load.
 ///

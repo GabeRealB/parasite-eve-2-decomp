@@ -33,8 +33,17 @@ s32 stageRequestModeTaskExit(void);
 /// GPU work. Call before repurposing the primitive heap, after its drawing ends.
 void stageReleaseTaskPrimitiveBuffer(void);
 
-/// Overlay callers pass 1; the argument is unused.
-void Stage_RequestSpecialFlag(s32 unused);
+/// Applies the ambient-mute flag to the current area's ambient-loop request.
+///
+/// Requires stage 1..5 and its loaded map music table, with the area selecting
+/// a valid row. Only rows whose first entry is `STAGE_MUSIC_AMBIENT_AREA` act.
+/// A mute nibble of exactly 1 requests a nominal 30-audio-update fade and clears
+/// the start latch, even if already clear. Otherwise a clear latch queues a
+/// start with zero pan offset and attenuation, then sets it. The latch records
+/// requests, not confirmed playback or queue admission. Other rows leave it
+/// unchanged. `unused` is retained and
+/// ignored; the load-completion caller passes 1.
+void stageMusicUpdateAreaAmbient(s32 unused);
 
 /// Requests a view change within the active mode task and returns the current view.
 ///

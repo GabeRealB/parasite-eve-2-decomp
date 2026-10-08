@@ -1447,30 +1447,39 @@ void cdCmdSaveHeadRequest(void)
     queue->activeRequest.entry.args.bytes[3] = queue->entries[queue->readIdx].args.bytes[3];
 }
 
-void CdCmd_Dispatch(void)
+void cdCmdDispatch(void)
 {
-    CdCmdQueue* state; // The indirection is required.
+    enum {
+        CD_COMMAND_FAMILY_EMPTY        = CD_COMMAND_EMPTY >> 4,
+        CD_COMMAND_FAMILY_FILE_LOAD    = CD_COMMAND_LOAD_FILE >> 4,
+        CD_COMMAND_FAMILY_STAGE_MOUNT  = CD_COMMAND_MOUNT_STAGE >> 4,
+        CD_COMMAND_FAMILY_MOVIE        = CD_COMMAND_CONTINUE_STREAM >> 4,
+        CD_COMMAND_FAMILY_MOVIE_OFFSET = CD_COMMAND_PLAY_STREAM_AT_OFFSET >> 4,
+        CD_COMMAND_FAMILY_SCENE_AUDIO  = CD_COMMAND_PLAY_SCENE_AUDIO >> 4
+    };
+    CdCmdQueue* queue;
 
-    state = &gCdCmdQueue;
-    switch (state->activeRequest.phase) {
+    queue = &gCdCmdQueue;
+    // Only normal dispatch reads the live ring; stop paths use its saved request.
+    switch (queue->activeRequest.phase) {
         case CD_COMMAND_PHASE_DISPATCH:
-            if (state->suspendNormalDispatch == 0) {
-                switch (state->entries[state->readIdx].cmd >> 4) {
-                    case CD_COMMAND_PHASE_DISPATCH:
+            if (queue->suspendNormalDispatch == 0) {
+                switch (queue->entries[queue->readIdx].cmd >> 4) {
+                    case CD_COMMAND_FAMILY_EMPTY:
                         break;
-                    case CD_COMMAND_PHASE_SUSPEND:
+                    case CD_COMMAND_FAMILY_FILE_LOAD:
                         _cdCmdHandleFileLoad();
                         break;
-                    case 6:
+                    case CD_COMMAND_FAMILY_MOVIE:
                         _cdCmdHandleMoviePlayback();
                         break;
-                    case 7:
+                    case CD_COMMAND_FAMILY_MOVIE_OFFSET:
                         acropolisPlazaPollStreamCommands();
                         break;
-                    case 5:
+                    case CD_COMMAND_FAMILY_STAGE_MOUNT:
                         _cdCmdHandleStageMount();
                         break;
-                    case 8:
+                    case CD_COMMAND_FAMILY_SCENE_AUDIO:
                         cdCmdHandleSceneAudio();
                         break;
                 }
@@ -1484,7 +1493,8 @@ void CdCmd_Dispatch(void)
             break;
     }
 
-    if (state->bootLoadActive != 0) {
+    // Presentation continues independently of which request phase ran above.
+    if (queue->bootLoadActive != 0) {
         gameFlowStepLoadScreen();
     }
 }

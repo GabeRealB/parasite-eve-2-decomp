@@ -897,8 +897,8 @@ enum {
     /// once, then 1; the step starts its CAP slot at entry flag+1, so the first run
     /// plays entry 1 and later runs entry 2.
     GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT = 0x107,
-    /// When 1, Stage_RequestSpecialFlag stops the stage ambient sound (0x60010001) in
-    /// areas whose music entry is 0x80 instead of starting it. Set to 1/0 by
+    /// When 1, `stageMusicUpdateAreaAmbient` fades the stage ambient loop in
+    /// areas selected for ambient sound. Set to 1/0 by
     /// actor_335800 event-script callbacks.
     GAME_FLAG_STAGE_AMBIENT_MUTED = 0x108,
     /// Set to 1 on the first entry to the Shelter 1F tent, which also refills HP/MP,

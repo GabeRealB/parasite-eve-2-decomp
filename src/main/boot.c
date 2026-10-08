@@ -397,7 +397,7 @@ void Boot_LoadTask(Task* task)
 
 void Boot_DispatchCdCmd(void)
 {
-    CdCmd_Dispatch();
+    cdCmdDispatch();
 }
 
 bool Fs_StageCdfIsAvailable(u32 stageIdx)

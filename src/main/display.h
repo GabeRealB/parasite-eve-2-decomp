@@ -94,23 +94,26 @@ void displayUseHeapTaskPrimitiveBuffer(void);
 /// current cursor is reset by the next frame. Allocates and releases no storage.
 void displayUseStaticTaskPrimitiveBuffer(void);
 
-/// Makes buffer `buf`'s ordering table the current one: clears it, terminates
-/// it, and leaves the current-table pointer past the entries reserved at its
-/// start. `buf` is the display-buffer index (0 or 1).
-static inline void gpuBeginOt(s32 buf)
+/// Clears and selects a resident frame ordering table for depth-sorted drawing.
+///
+/// `bufferIndex` selects buffer 0 or 1; prior GPU use of that table must have
+/// finished. Rebuilds all 1088 tags as a reverse DMA chain, terminates its first
+/// tag and selects the depth base 32 tags later. Relative tag indices -32..1055
+/// fit this buffer; ordinary depth sorting uses 0..1023. Primitive storage and
+/// its cursor are unchanged. Callers borrowing the current OT must restore it
+/// after their drawing when another frame owner still needs its table.
+static inline void _gpuBeginOt(s32 bufferIndex)
 {
-    // Declared here, not relied on from above, because the unit defining these
-    // hides the file-scope externs to keep its own definition order.
+    // Declare the OT pointer here so this header can precede display BSS definitions.
     extern u_long* gGpuCurrentOt;
-    extern u_long  Gpu_OtTags[];
-    u_long*        ot;
+    u_long*        firstTag;
 
     // Clear the reverse DMA chain before drawing tasks borrow its depth base.
-    gGpuCurrentOt = Gpu_OtTags + buf * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
+    gGpuCurrentOt = Gpu_OtTags + bufferIndex * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
     ClearOTagR(gGpuCurrentOt, GPU_ORDERING_TABLE_BUFFER_ENTRIES);
-    ot            = gGpuCurrentOt;
-    *ot           = GPU_OT_END_PRIM;
-    gGpuCurrentOt = ot + GPU_ORDERING_TABLE_RESERVED_ENTRIES;
+    firstTag      = gGpuCurrentOt;
+    *firstTag     = GPU_OT_END_PRIM;
+    gGpuCurrentOt = firstTag + GPU_ORDERING_TABLE_RESERVED_ENTRIES;
 }
 
 #endif // MAIN_PRIVATE_DISPLAY_H

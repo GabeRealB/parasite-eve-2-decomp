@@ -229,7 +229,7 @@ static void Display_FlipOt(void)
     saved          = gGpuCurrentOt;
     buf            = temp->otBuffer ^ 1;
     temp->otBuffer = buf;
-    gpuBeginOt(buf);
+    _gpuBeginOt(buf);
     spriteLinkViewCachedPackets();
     actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[temp->otBuffer]);
     gGpuCurrentOt                = saved;

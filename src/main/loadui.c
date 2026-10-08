@@ -240,15 +240,25 @@ s32 LoadUi_PollDiskSwap(void)
 
 /// Prepends the loaded disk-prompt texture page to its foreground ordering tag.
 ///
-/// Selects 4-bit VRAM (960, 0), with dithering and display-area drawing disabled.
-/// Requires one DR_TPAGE at the word-aligned cursor and the prompt's OT tag.
+/// Selects 4-bit VRAM (960, 0), average semitransparency, with dithering and
+/// display-area drawing disabled. Requires a word-aligned primitive cursor
+/// with sizeof(DR_TPAGE) free bytes and foreground OT tag -16. Advances the
+/// cursor by one complete packet; the packet stays live until GPU use finishes.
+/// Prepend after the prompt sprite so this command executes before that sprite.
 static inline void _loadUiPrependDiskSwapTexturePage(void)
 {
+    enum {
+        LOAD_UI_DISK_SWAP_TEXTURE_DEPTH_4BIT = 0,
+        LOAD_UI_DISK_SWAP_TEXTURE_PAGE_X     = 960,
+        LOAD_UI_DISK_SWAP_TEXTURE_PAGE_Y     = 0
+    };
     DR_TPAGE* drawMode;
 
     drawMode       = gGpuPrimCursor;
     gGpuPrimCursor = drawMode + 1;
-    setDrawTPage(drawMode, 0, 0, getTPage(0, 0, 960, 0));
+    setDrawTPage(drawMode, false, false,
+                 getTPage(LOAD_UI_DISK_SWAP_TEXTURE_DEPTH_4BIT, GPU_BLEND_AVERAGE,
+                          LOAD_UI_DISK_SWAP_TEXTURE_PAGE_X, LOAD_UI_DISK_SWAP_TEXTURE_PAGE_Y));
     addPrim(gGpuCurrentOt + LOAD_UI_DISK_SWAP_MESSAGE_OT_INDEX, drawMode);
 }
 

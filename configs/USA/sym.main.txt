@@ -414,7 +414,7 @@ cdCmdResetEntryIterator               = 0x8001D97C; // type:func
 cdCmdEnqueueUnlessSceneAudioPending               = 0x8001D990; // type:func
 cdCmdCompleteHeadRequest               = 0x8001DA48; // type:func
 cdCmdSaveHeadRequest               = 0x8001DAB8; // type:func
-CdCmd_Dispatch               = 0x8001DB84; // type:func
+cdCmdDispatch               = 0x8001DB84; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x0E4B4   VA: 0x8001DCB4   subsegment: o, libcd/s_002
@@ -1437,7 +1437,7 @@ tmdReleaseAttachedBuffersTask               = 0x80041DF4; // type:func
 gpuResetAndInvalidateModelBuffers               = 0x80041E4C; // type:func
 tmdResetAuxHeapAndRestoreBuffers               = 0x80041EB4; // type:func
 tmdRestoreAttachedBuffersTask               = 0x80041F58; // type:func
-Tmd_DrawFlaggedNodes               = 0x80041FF8; // type:func
+tmdDrawFlaggedModels               = 0x80041FF8; // type:func
 tmdDrawActiveModels               = 0x80042058; // type:func
 
 //--------------------------------------------------------------------
@@ -1498,7 +1498,7 @@ stageMusicRequestAreaStart               = 0x80043028; // type:func
 stageMusicRequestAreaStop               = 0x800430E4; // type:func
 _stageMusicTask               = 0x80043198; // type:func
 _stageMusicFinishWhenCdIdle               = 0x800431FC; // type:func
-Stage_RequestSpecialFlag               = 0x8004323C; // type:func
+stageMusicUpdateAreaAmbient               = 0x8004323C; // type:func
 textDrawStream               = 0x80043310; // type:func
 _primDrawCaptionSprite               = 0x800435F8; // type:func
 _primDrawTexturePage               = 0x80043718; // type:func
@@ -1878,7 +1878,7 @@ _spuInitSystem               = 0x8004CC58; // type:func
 sndBankAllocTables               = 0x8004CE28; // type:func
 spuInitSystem               = 0x8004CFC8; // type:func
 spuResetSystem               = 0x8004CFE8; // type:func
-Audio_IrqFrameWork               = 0x8004D008; // type:func
+spuRunVBlankAudioUpdate               = 0x8004D008; // type:func
 _sndBankResetDescriptors               = 0x8004D0A0; // type:func
 sndBankFree               = 0x8004D0F0; // type:func
 sndBankFind               = 0x8004D150; // type:func
@@ -2196,7 +2196,7 @@ _cdAudioLoadWavesDriver               = 0x80056E38; // type:func
 _cdAudioWaveSectorReadyCallback               = 0x800572FC; // type:func
 cdAudioInit               = 0x800574BC; // type:func
 _cdAudioGetDriver               = 0x80057554; // type:func
-CdAudio_Tick               = 0x80057564; // type:func
+cdAudioPollDriver               = 0x80057564; // type:func
 _cdAudioResetReadBase               = 0x800575D8; // type:func
 _cdAudioStartHeaderRead               = 0x80057618; // type:func
 _cdAudioOpenHeaderTrack               = 0x800576BC; // type:func

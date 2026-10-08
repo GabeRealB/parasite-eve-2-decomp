@@ -1691,14 +1691,17 @@ static void _cdStreamAdvanceOddChunk(void)
 
 /// Disables the stream's armed ring-boundary interrupt and withdraws its callback.
 ///
-/// The playback IRQ latch is cleared only after both SPU operations complete;
-/// an already disarmed stream leaves the hardware and callback untouched.
+/// Removes the IRQ only when the stream tracks it as armed, clearing that arm
+/// after disabling the hardware and withdrawing the callback. Does not clear
+/// the received-boundary bit in the playback state or change the IRQ address.
+/// Call with stream IRQ ownership serialized; a zero arm leaves both SDK
+/// operations untouched, even if some other path installed a callback.
 static inline void _cdStreamDisarmPlaybackIrq(void)
 {
     if (D_80068B5C != 0) {
         SpuSetIRQ(SPU_OFF);
         SpuSetIRQCallback(NULL);
-        D_80068B5C = 0;
+        D_80068B5C = SPU_OFF;
     }
 }
 

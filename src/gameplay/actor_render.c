@@ -108,7 +108,7 @@ static __inline__ void _actorRenderComposeListedCoords(void)
 void Gp_DrawActorTmdFlagged(GsOT* arg0)
 {
     _actorRenderComposeListedCoords();
-    Tmd_DrawFlaggedNodes(PARENT_OF(gTmdList.next, TmdObject, link));
+    tmdDrawFlaggedModels(PARENT_OF(gTmdList.next, TmdObject, link));
 }
 
 void actorRenderComposeAndDrawActiveModels(GsOT* unusedOt)

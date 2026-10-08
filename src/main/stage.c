@@ -582,7 +582,7 @@ static void Display_FlipOtAndDispatch(s32 unused)
     saved          = gGpuCurrentOt;
     buf            = temp->otBuffer ^ 1;
     temp->otBuffer = buf;
-    gpuBeginOt(buf);
+    _gpuBeginOt(buf);
     temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
     temp->drawBuffer             = temp->frameBuffer;
     mode                         = Stage_Ctx->transitionKind;

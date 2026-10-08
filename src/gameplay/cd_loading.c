@@ -860,7 +860,7 @@ void Gp_FinishLoadWait(Task* task)
 {
     padClearInputBlock(0);
     if (task->spawnArg1.value == 0) {
-        Stage_RequestSpecialFlag(1);
+        stageMusicUpdateAreaAmbient(1);
         gGameSession->viewDirty = 0;
         taskKill(task);
         displayResumeGameLoop();

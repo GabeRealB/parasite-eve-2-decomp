@@ -39,6 +39,13 @@ s32 cdAudioCancel(void);
 /// buffer pointer without freeing the allocation or clearing its table aliases.
 void cdAudioInit(void);
 
-void CdAudio_Tick(void);
+/// Advances the selected CD-audio driver and services stream playback once.
+///
+/// Called once per VBlank. A zero read base or idle driver suppresses both
+/// operations, including ready-queue polling. Otherwise the driver's low three
+/// bits select one of eight callbacks; its returned code is narrowed to a byte
+/// before the stream poll, even when it becomes idle. Playback and read buffers
+/// must remain live for the selected driver and its asynchronous callbacks.
+void cdAudioPollDriver(void);
 
 #endif // MAIN_PRIVATE_CDAUDIO_H
