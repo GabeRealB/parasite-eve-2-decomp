@@ -16,6 +16,15 @@
 /// event-specific overrides. A column outside that stage's row returns 0.
 s32 stageMusicSelectColumn(s32 stage, s32 sceneEvent, s32 sceneEventBase);
 
-void Stage_InitOtAndSpawn(void);
+/// Starts the resident controller for the queued stage mode.
+///
+/// Requires a context queued by `displayQueueModeTask`, initialized display
+/// environments with OT index 0 or 1, and finished GPU use of the task buffers.
+/// The old display list must be empty or its tasks already released. Binds small
+/// task buffers, takes transition ownership, holds flips and selects the
+/// framebuffer opposite the OT index before spawning the bodyless controller.
+/// Leaves the new display list selected for subsequent spawns. Allocation
+/// failure is ignored and still leaves ownership and the empty list changed.
+void stageStartModeController(void);
 
 #endif // MAIN_PRIVATE_STAGE_H

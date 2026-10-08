@@ -445,7 +445,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 |-------|-----------------|
 | `Title_TaskDescs[0]` | `Title_BootTask` |
 | `Title_TaskDescs[1]` | `_titleIntroMovieTask` (`displaySpawnTaskFromTable`) |
-| `D_8006269C[0]` | `Display_DispatchTaskTable` — 6-way stage load (`_stageSuspendCdAndSpawnModeTask` … `_stageResumeMovieAndFinishModeTask`) |
+| `Display_ModeTaskDesc[0]` | `_stageModeControllerTask` — 6-phase queued mode entry, transition requests, resource reload and movie resumption; grey fade follows every dispatch |
 | `D_80062774[0]` | `_stageMusicTask` — bank-load spawn from gameplay |
 | `D_8006268C[0]` | `0x800BF9FC` (gameplay) |
 | `Stage_Ctx->taskDesc` | Per-stage desc table; `_stageSpawnModeTask` spawns index 0 |

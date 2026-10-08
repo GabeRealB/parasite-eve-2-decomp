@@ -20917,20 +20917,20 @@ When a case compares two globals then branches on a field of the second, and the
 target puts an independent store in the `bnez` delay slot:
 
 ```
-lbu   v0, field_11(g)
+lbu   v0, transitionKind(stage)
 nop
 bnez  v0, else
- sb   zero, field_4D(ed)   /* delay: always runs for both arms */
+ sb   zero, viewReady(session)   /* delay: always runs for both arms */
 ```
 
 write the store *after* an explicit load of the branch condition into an `s32`
 temp (not `u8` — that inserts `andi v0,v0,0xff` before the branch):
 
 ```c
-f11 = g->field_11;          /* s32 */
-ed->field_4D = 0;
-if (f11 == 0) {
-    arg0->field_2a = flag;  /* flag also s32 from earlier lbu */
+transitionKind = stage->transitionKind; /* s32 */
+session->viewReady = STAGE_VIEW_NOT_READY;
+if (transitionKind == STAGE_TRANSITION_NONE) {
+    task->killCountdown = viewReady; /* viewReady also s32 from earlier lbu */
     ...
 }
 ```
@@ -20939,12 +20939,12 @@ Same case: to get `lui %hi(gDisplayState+0x118)` *before* `lui %hi(Stage_Ctx)`,
 preload the display field into a temp before materialising the other global:
 
 ```c
-disp = gDisplayState.frameBuffer;
-g    = Stage_Ctx;
-if (disp == g->field_24) { ... }
+frameBuffer = gDisplayState.frameBuffer;
+stage       = Stage_Ctx;
+if (frameBuffer == stage->heldFrameBuffer) { ... }
 ```
 
-`Display_TransitionTask` case 1 is the pure example.
+`_stageProcessTransitionRequests` case 1 is the pure example.
 
 ## Scratch jtbl normalize accepts single-address names
 

@@ -153,7 +153,7 @@ static s32 _stageStepFileLoadTransition(Task* unused);
 
 static Task* _stageSpawnModeTask(void);
 
-static void Display_TransitionTask(Task* task);
+static void _stageProcessTransitionRequests(Task* task);
 
 static void _stageFlipOtAndRedraw(s32 unused);
 
@@ -173,7 +173,7 @@ static void _stageWaitModeExitLoad(Task* task);
 
 static void _stageResumeMovieAndFinishModeTask(Task* task);
 
-static void Display_DispatchTaskTable(Task* task);
+static void _stageModeControllerTask(Task* task);
 
 static __inline__ void _mdecFinishImageDecode(void);
 
@@ -188,7 +188,7 @@ static void _mdecImageStripCallback(void);
 
 /// Active stage/flow context pointer.
 static StageCtx* Stage_Ctx            = &Stage_Context;
-static TaskDesc  Display_ModeTaskDesc = { { { TASK_BODY_NONE, 0 } }, Display_DispatchTaskTable };
+static TaskDesc  Display_ModeTaskDesc = { { { TASK_BODY_NONE, 0 } }, _stageModeControllerTask };
 GameDebugState*  Pad_RemapState       = &_gGameDebugStateStorage;
 TaskDesc         D_800626AC[]         = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -201,7 +201,7 @@ TaskDesc         D_800626AC[]         = {
 static const TaskFuncTable6 Display_TaskStates = { {
     _stageSuspendCdAndSpawnModeTask,
     _stageWaitCdAndSpawnModeTask,
-    Display_TransitionTask,
+    _stageProcessTransitionRequests,
     _stageBeginModeExitLoad,
     _stageWaitModeExitLoad,
     _stageResumeMovieAndFinishModeTask,
@@ -383,10 +383,14 @@ static s32 _stageStepFileLoadTransition(Task* unused)
 }
 #undef STAGE_CLEAR_LOAD_FRAMEBUFFERS
 
-/// Applies the mode-entry correction and retires the player's shared contacts.
+/// Applies pending grid correction before mode entry and empties the player's contacts.
 ///
-/// Requires the live player model and work. Correction reads only six entries;
-/// clearing follows the final-entry marker in the shared eighteen-entry table.
+/// Requires the live player task, GameActor work and model root. The root's
+/// motion context must point at the initialized shared eighteen-entry contact
+/// table. With root response enabled, reads only its first six entries, applies
+/// whole-unit XYZ correction in the root's parent frame and updates the surface
+/// class on a grid hit. Always clears occupied entries through the final marker
+/// and invalidates root composition. Contact storage remains owned by the player.
 static __inline__ void _stageResolvePlayerContacts(void)
 {
     enum { STAGE_PLAYER_RESPONSE_CONTACTS = 6 };
@@ -459,57 +463,99 @@ static Task* _stageSpawnModeTask(void)
     return modeTask;
 }
 
-static void Display_TransitionTask(Task* task)
+/// Queues the current view's resource load while retaining stage flip control.
+///
+/// Requires the live view gate, session/save and loaded view tables. Previous
+/// GPU work and users of auxiliary allocations must have ended; task/CD queues
+/// must have capacity. Commits the live view to the gate and save before loading.
+static __inline__ void _stageBeginViewResourceLoad(void)
 {
-    u32          flags;
-    s32          state;
-    GameSession* ed;
-    StageCtx*    stage;
-    s32          flag;
-    s32          kind;
-    s32          disp;
+    enum {
+        STAGE_VIEW_RESET_GPU_QUEUE       = 1,
+        STAGE_VIEW_LOAD_TASK_BANK        = 0,
+        STAGE_VIEW_LOAD_TASK_ID          = 0x1E,
+        STAGE_VIEW_LOAD_KEEP_STAGE_FLIPS = 2,
+        STAGE_VIEW_INPUT_PORT            = 0,
+        STAGE_VIEW_NOT_READY             = 0,
+    };
 
-    // View transition, then file load, the ending request, then a capture.
-    flags = Stage_Ctx->requestFlags;
-    if (flags & STAGE_REQUEST_TRANSITION) {
-        padStartInputBlock(0);
+    gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE)->spawnArg1.value = gGameSession->location.loc.view;
+    ResetGraph(STAGE_VIEW_RESET_GPU_QUEUE);
+    gpuClearFrameOrderingTable(0);
+    gpuClearFrameOrderingTable(1);
+    memInitAuxHeap();
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view;
+    padStartInputBlock(STAGE_VIEW_INPUT_PORT);
+    viewQueueCurrentCamera(VIEW_PACKET_LIST_NONE);
+    gGameSession->viewReady = STAGE_VIEW_NOT_READY;
+    taskSpawn(STAGE_VIEW_LOAD_TASK_BANK, STAGE_VIEW_LOAD_TASK_ID, STAGE_VIEW_LOAD_KEEP_STAGE_FLIPS, 0);
+}
+
+/// Processes pending view/file transitions, mode exit or framebuffer capture.
+///
+/// State 2 of the mode controller. Requests take that priority order; a view
+/// change blocks port 0 until its captured frame is ready for task presentation.
+/// View steps 0..5 begin loading, await readiness on the held framebuffer, draw
+/// an optional intermediate frame, wait and capture, select that capture, then
+/// unblock input. The task's signed countdown counts controller callbacks,
+/// not elapsed frame ticks. Exit processing advances the controller's state.
+/// Requires live session/save/view resources, GPU users finished before resets,
+/// disposable auxiliary allocations, and task/CD capacity for asynchronous loads.
+/// Actor entry mode also requires the resources of `_stageFlipOtAndRedraw`.
+static void _stageProcessTransitionRequests(Task* task)
+{
+    enum {
+        STAGE_VIEW_BEGIN                   = 0,
+        STAGE_VIEW_WAIT_READY              = 1,
+        STAGE_VIEW_DRAW_INTERMEDIATE       = 2,
+        STAGE_VIEW_WAIT_AND_CAPTURE        = 3,
+        STAGE_VIEW_SELECT_CAPTURE          = 4,
+        STAGE_VIEW_FINISH                  = 5,
+        STAGE_VIEW_NOT_READY               = 0,
+        STAGE_VIEW_READY                   = 1,
+        STAGE_VIEW_INPUT_PORT              = 0,
+        STAGE_VIEW_REDRAW_SETTLE_CALLBACKS = 3,
+    };
+    u32          requestFlags;
+    s32          transitionStep;
+    GameSession* session;
+    StageCtx*    stage;
+    s32          viewReady;
+    s32          transitionKind;
+    s32          frameBuffer;
+
+    // Finish higher-priority requests before handling mode exit or a standalone capture.
+    requestFlags = Stage_Ctx->requestFlags;
+    if (requestFlags & STAGE_REQUEST_TRANSITION) {
+        padStartInputBlock(STAGE_VIEW_INPUT_PORT);
         Stage_Ctx->otFlipArmed = 0;
-        state                  = Stage_Ctx->transitionStep;
-        switch (state) {
-            case 0:
+        transitionStep         = Stage_Ctx->transitionStep;
+        switch (transitionStep) {
+            case STAGE_VIEW_BEGIN:
                 Stage_Ctx->heldFrameBuffer           = gDisplayState.frameBuffer;
                 gGameSession->location.loc.view      = Stage_Ctx->pendingView;
                 Stage_Ctx->entryMode                 = STAGE_ENTRY_RELOAD;
                 gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
                 memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 if (!(Stage_Ctx->requestFlags & STAGE_REQUEST_KEEP_VIEW)) {
-                    (gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE))->spawnArg1.value = gGameSession->location.loc.view;
-                    ResetGraph(1);
-                    gpuClearFrameOrderingTable(0);
-                    gpuClearFrameOrderingTable(1);
-                    memInitAuxHeap();
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view;
-                    padStartInputBlock(0);
-                    viewQueueCurrentCamera(VIEW_PACKET_LIST_NONE);
-                    gGameSession->viewReady = 0;
-                    taskSpawn(0, 0x1E, 2, 0);
+                    _stageBeginViewResourceLoad();
                 } else {
                     tmdResetAuxHeapAndRestoreBuffers();
-                    gGameSession->viewReady = 1;
+                    gGameSession->viewReady = STAGE_VIEW_READY;
                 }
                 Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
                 break;
-            case 1:
-                ed   = gGameSession;
-                flag = ed->viewReady;
-                if (flag == 1) {
-                    disp  = gDisplayState.frameBuffer;
-                    stage = Stage_Ctx;
-                    if (disp == stage->heldFrameBuffer) {
-                        kind          = stage->transitionKind;
-                        ed->viewReady = 0;
-                        if (kind == STAGE_TRANSITION_NONE) {
-                            task->killCountdown       = flag;
+            case STAGE_VIEW_WAIT_READY:
+                session   = gGameSession;
+                viewReady = session->viewReady;
+                if (viewReady == STAGE_VIEW_READY) {
+                    frameBuffer = gDisplayState.frameBuffer;
+                    stage       = Stage_Ctx;
+                    if (frameBuffer == stage->heldFrameBuffer) {
+                        transitionKind     = stage->transitionKind;
+                        session->viewReady = STAGE_VIEW_NOT_READY;
+                        if (transitionKind == STAGE_TRANSITION_NONE) {
+                            task->killCountdown       = viewReady;
                             Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 2;
                         } else {
                             Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
@@ -518,15 +564,16 @@ static void Display_TransitionTask(Task* task)
                     cdCmdRequestSuspend();
                 }
                 break;
-            case 2:
+            case STAGE_VIEW_DRAW_INTERMEDIATE:
+                // Redraw once, then hold presentation while the controller counts down.
                 gDisplayState.otBuffer = gDisplayState.frameBuffer;
                 _stageFlipOtAndRedraw(0);
                 Stage_Ctx->fadeFlags                 = Stage_Ctx->fadeFlags | STAGE_FADE_SKIP;
                 gDisplayState.control.flags.flipMode = gDisplayState.control.flags.flipMode | DISPLAY_FLIP_SKIP_TASK_OT;
-                task->killCountdown                  = 3;
+                task->killCountdown                  = STAGE_VIEW_REDRAW_SETTLE_CALLBACKS;
                 Stage_Ctx->transitionStep            = Stage_Ctx->transitionStep + 1;
                 break;
-            case 3:
+            case STAGE_VIEW_WAIT_AND_CAPTURE:
                 gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
                 task->killCountdown                  = task->killCountdown - 1;
                 if (task->killCountdown == 0) {
@@ -535,9 +582,9 @@ static void Display_TransitionTask(Task* task)
                                         gDisplayState.frameBuffer, MEMORY_PRIMITIVE_HEAP_BYTES);
                     memInitAuxHeap();
                     Stage_Ctx->loadBuffersCleared = 0;
-                    // The ending request is the sign bit.
+                    // Capture completes before a simultaneous exit starts reloading resources.
                     if ((s32)Stage_Ctx->requestFlags < 0) {
-                        padClearInputBlock(0);
+                        padClearInputBlock(STAGE_VIEW_INPUT_PORT);
                         task->state = task->state + 1;
                         _stageBeginModeExitLoad(task);
                         return;
@@ -545,22 +592,22 @@ static void Display_TransitionTask(Task* task)
                     Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
                 }
                 break;
-            case 4:
+            case STAGE_VIEW_SELECT_CAPTURE:
                 gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
                 Stage_Ctx->transitionStep               = Stage_Ctx->transitionStep + 1;
                 break;
-            case 5:
-                padClearInputBlock(0);
+            case STAGE_VIEW_FINISH:
+                padClearInputBlock(STAGE_VIEW_INPUT_PORT);
                 Stage_Ctx->requestFlags = Stage_Ctx->requestFlags & ~STAGE_REQUEST_TRANSITION;
                 break;
         }
-    } else if (flags & STAGE_REQUEST_FILE_LOAD) {
+    } else if (requestFlags & STAGE_REQUEST_FILE_LOAD) {
         _stageStepFileLoadTransition(task);
-    } else if ((s32)flags < 0) {
+    } else if ((s32)requestFlags < 0) {
         task->state = task->state + 1;
         _stageBeginModeExitLoad(task);
-    } else if (flags & STAGE_REQUEST_CAPTURE) {
+    } else if (requestFlags & STAGE_REQUEST_CAPTURE) {
         gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer,
                             MEMORY_PRIMITIVE_HEAP_BYTES);
         Stage_Ctx->requestFlags = Stage_Ctx->requestFlags & ~STAGE_REQUEST_CAPTURE;
@@ -692,17 +739,18 @@ static void _gfxInvertCapturedFrameGray(void)
     }
 }
 
-void Stage_InitOtAndSpawn(void)
+void stageStartModeController(void)
 {
-    DisplayState* temp;
+    enum { STAGE_MODE_CONTROLLER_ENTRY = 0 };
+    DisplayState* display;
 
     displayInitTaskBuffers();
-    temp                         = &gDisplayState;
-    temp->displayOwner           = DISPLAY_OWNER_TRANSITION;
-    temp->control.flags.flipMode = DISPLAY_FLIP_HOLD;
-    temp->frameBuffer            = temp->otBuffer ^ 1;
+    display                         = &gDisplayState;
+    display->displayOwner           = DISPLAY_OWNER_TRANSITION;
+    display->control.flags.flipMode = DISPLAY_FLIP_HOLD;
+    display->frameBuffer            = display->otBuffer ^ 1;
     taskInitList(&gTaskDisplayList);
-    taskSpawnFromTable(&Display_ModeTaskDesc, 0, 0, 0);
+    taskSpawnFromTable(&Display_ModeTaskDesc, STAGE_MODE_CONTROLLER_ENTRY, 0, 0);
 }
 
 s32 stageRequestModeTaskExit(void)
@@ -1011,12 +1059,19 @@ static void _stageResumeMovieAndFinishModeTask(Task* task)
     }
 }
 
-static void Display_DispatchTaskTable(Task* task)
+/// Runs one mode-controller phase, then advances and draws its grey fade overlay.
+///
+/// Requires a live bodyless task with state 0..5: suspend CD/spawn the queued
+/// task, wait/spawn, process transition requests, begin exit reload, wait for
+/// reload, then resume the movie and exit. The selected handler may retire the
+/// task; the fade uses only resident stage state after dispatch. No bounds check
+/// is performed. Drawing requires initialized task OT and primitive storage.
+static void _stageModeControllerTask(Task* task)
 {
-    TaskFuncTable6 sp;
+    TaskFuncTable6 stateHandlers;
 
-    sp = Display_TaskStates;
-    sp.funcs[task->state](task);
+    stateHandlers = Display_TaskStates;
+    stateHandlers.funcs[task->state](task);
     _stageStepFadeOverlay();
 }
 

@@ -315,7 +315,7 @@ s32 Display_DispatchModeId(s32 arg0)
                 }
             }
         }
-        Stage_InitOtAndSpawn();
+        stageStartModeController();
     }
     return 0;
 }
