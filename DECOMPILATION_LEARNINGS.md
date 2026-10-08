@@ -2915,7 +2915,7 @@ The first else assignment (`0x1000`) fills the `bne` delay; each arm's last
 barrier is the existing "store out of the next delay slot" rule: without it
 `dbr` still steals `sh A2C` into the `jal` slot.
 
-Example: `func_actor_400500_80135414`. Inputs: `base_2.i`
+Example: `_actor400500InitTask`. Inputs: `base_2.i`
 `432c3463a92dbded850b096bf5f64ab24c3065db351eb175d46826f119b955f0`, `base_3.i`
 `876058f28b4d181b9d6f52e6e872d74235dea662415994a9a1a4bc13f3360bbb`.
 
@@ -2937,7 +2937,7 @@ function lands immediately before that function's `.text` and matches
 (`_actor223600Update`; see the `## A local array initialiser of *three
 or more* elements becomes a .rdata table plus a block move` section).
 
-Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
+Example: `_actor400500TickCeilingStrikeState` (`D_actor_400500_80131EF0` /
 `D_actor_400500_80131EFC`).
 
 ## Name `spawnArg2` before two stack table copies so `lw` of the enemy hoists
@@ -2954,7 +2954,7 @@ The anim tail is the same sibling `if / else if` on `animRequest` (with
 `appliedAnim` and `(u16)animFrames + 1`) and the `Actor400500AnimStride`
 loop; m2c's `i = 1` before the `== 3` arm turns `addiu + 1` into `addu $s0`.
 
-Example: `func_actor_400500_801385D0`. Inputs: `base.i`
+Example: `_actor400500TickCeilingStrikeState`. Inputs: `base.i`
 `128fa46c44f1af8dc5f495aaf31694e6bf72940c4e69bcb9e7ed9ceafd4efabc`, `base_1.i`
 `38b568359da4147b672dbcd693bf72b3daf881696b7cfe5a355bfd618bfdde0c`.
 
@@ -3072,7 +3072,7 @@ if (skip == 0) {
 ```
 
 `skip = 0` before the `if` keeps the flag live across the `lb` and forces
-`$v1`. Example: `func_actor_400500_8013899C`. Inputs: `base_1.i`
+`$v1`. Example: `_actor400500TickFloorStrikeState`. Inputs: `base_1.i`
 `02b994e9dd32f1764760e620575baa1621fe224bfac3129eb3c4f2b1ecbb1e2e`,
 `base_2.i`
 `5719ab41d072287600b1201bcfdf318b9db76f72b2c7a6e0d105a4c4cb3115c1`.
@@ -3724,7 +3724,7 @@ with `lb` for `>= 0` and `lbu` for `(u8)field & 0x7F`. Direct `field = 0x81`
 on `s8` is the QImode fold (`_actor400500StartFloorArmStrike` `base.c` 99.62%,
 `base_1.c` 100%; preprocessed
 `ced6e55d5c05bf83bbe86b1cd9a6e9ca9ea91ac63696d3c16a5ddc1bfa8783a4`).
-`func_actor_400500_8013C7A4` is the `0x80` case (`base.c` 99.83% `regs=1`,
+`_actor400500StartAmbush` is the `0x80` case (`base.c` 99.83% `regs=1`,
 `base_1.c` 100%; preprocessed
 `4bbec492afc737aa8864eef960f3cafad76558c5fee7cb24902ee6154b96e0f8`).
 
@@ -4111,11 +4111,11 @@ Assigning `-1` to a `u16` field converts the constant to 65535 and emits
 lets `sh` truncate needs the constant born as a signed `s32`:
 
 ```c
-s32 neg = -1;
-work->stateFrames = neg; /* addiu $v0, $zero, -1; sh */
+s32 pinSentinel = ACTOR_400500_TURN_OVER_PIN_TICK;
+work->stateFrames = pinSentinel; /* addiu $v0, $zero, -1; sh */
 ```
 
-`func_actor_400500_8013CA38` with `work->stateFrames = -1` was `ori`. The
+`_actor400500StartTurnOver` with `work->stateFrames = -1` was `ori`. The
 same store through an `s32` temp is exact. Do not change the field to `s16`
 to get this: other readers of `stateFrames` use `lhu`.
 
@@ -4126,20 +4126,17 @@ to get this: other readers of `stateFrames` use `lhu`.
 nop. The target fills that delay with `addiu $v0, $s1, 0x9A0` and stores Z
 as `sh $v1, 4($v0)`.
 
-Taking the address *before* the two jals into one pointer, then copying it
-to a second pointer after the calls, forces the address to be rematerialized
-there:
+Taking the address *before* the two jals and carrying it through an inline
+output-pointer argument lets the address be rematerialized after the calls.
+The current source expresses that transfer through the sampling helper:
 
 ```c
-pos2 = &work->anchorPos;
-actorRenderComposeCoord(&coords[0xE]);
-gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
-pos    = pos2;
-pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
-pos->z = local.t[2]; /* addiu $v0, $s1, 0x9A0; sh $v1, 4($v0) */
+_actor400500ReadPartWorldXZ(task, ACTOR_400500_TURN_OVER_PIVOT_PART, &work->anchorPos);
+/* The inline's worldPosition argument carries the pre-call address;
+ * partWorldTransform supplies world X/Z after the two calls. */
 ```
 
-A single `pos = &work->anchorPos` after the calls still folds. `func_actor_400500_8013CA38`
+A flat pointer initialized only after the calls still folds. `_actor400500StartTurnOver`
 is the example (permuter `de95fd9fa49844d3`, confirmed by `base_6.c`).
 
 ## Two dest pointers keep offset `addiu`s live across a following `jal`
@@ -71459,7 +71456,7 @@ The first else assignment (`0x1000`) fills the `bne` delay; each arm's last
 barrier is the existing "store out of the next delay slot" rule: without it
 `dbr` still steals `sh A2C` into the `jal` slot.
 
-Example: `func_actor_400500_80135414`. Inputs: `base_2.i`
+Example: `_actor400500InitTask`. Inputs: `base_2.i`
 `432c3463a92dbded850b096bf5f64ab24c3065db351eb175d46826f119b955f0`, `base_3.i`
 `876058f28b4d181b9d6f52e6e872d74235dea662415994a9a1a4bc13f3360bbb`.
 
@@ -71481,7 +71478,7 @@ function lands immediately before that function's `.text` and matches
 (`_actor223600Update`; see the `## A local array initialiser of *three
 or more* elements becomes a .rdata table plus a block move` section).
 
-Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
+Example: `_actor400500TickCeilingStrikeState` (`D_actor_400500_80131EF0` /
 `D_actor_400500_80131EFC`).
 
 ## Name `spawnArg2` before two stack table copies so `lw` of the enemy hoists
@@ -71498,7 +71495,7 @@ The anim tail is the same sibling `if / else if` on `animRequest` (with
 `appliedAnim` and `(u16)animFrames + 1`) and the `Actor400500AnimStride`
 loop; m2c's `i = 1` before the `== 3` arm turns `addiu + 1` into `addu $s0`.
 
-Example: `func_actor_400500_801385D0`. Inputs: `base.i`
+Example: `_actor400500TickCeilingStrikeState`. Inputs: `base.i`
 `128fa46c44f1af8dc5f495aaf31694e6bf72940c4e69bcb9e7ed9ceafd4efabc`, `base_1.i`
 `38b568359da4147b672dbcd693bf72b3daf881696b7cfe5a355bfd618bfdde0c`.
 
@@ -71561,7 +71558,7 @@ if (skip == 0) {
 ```
 
 `skip = 0` before the `if` keeps the flag live across the `lb` and forces
-`$v1`. Example: `func_actor_400500_8013899C`. Inputs: `base_1.i`
+`$v1`. Example: `_actor400500TickFloorStrikeState`. Inputs: `base_1.i`
 `02b994e9dd32f1764760e620575baa1621fe224bfac3129eb3c4f2b1ecbb1e2e`,
 `base_2.i`
 `5719ab41d072287600b1201bcfdf318b9db76f72b2c7a6e0d105a4c4cb3115c1`.
@@ -71937,7 +71934,7 @@ with `lb` for `>= 0` and `lbu` for `(u8)field & 0x7F`. Direct `field = 0x81`
 on `s8` is the QImode fold (`_actor400500StartFloorArmStrike` `base.c` 99.62%,
 `base_1.c` 100%; preprocessed
 `ced6e55d5c05bf83bbe86b1cd9a6e9ca9ea91ac63696d3c16a5ddc1bfa8783a4`).
-`func_actor_400500_8013C7A4` is the `0x80` case (`base.c` 99.83% `regs=1`,
+`_actor400500StartAmbush` is the `0x80` case (`base.c` 99.83% `regs=1`,
 `base_1.c` 100%; preprocessed
 `4bbec492afc737aa8864eef960f3cafad76558c5fee7cb24902ee6154b96e0f8`).
 
@@ -72016,11 +72013,11 @@ Assigning `-1` to a `u16` field converts the constant to 65535 and emits
 lets `sh` truncate needs the constant born as a signed `s32`:
 
 ```c
-s32 neg = -1;
-work->stateFrames = neg; /* addiu $v0, $zero, -1; sh */
+s32 pinSentinel = ACTOR_400500_TURN_OVER_PIN_TICK;
+work->stateFrames = pinSentinel; /* addiu $v0, $zero, -1; sh */
 ```
 
-`func_actor_400500_8013CA38` with `work->stateFrames = -1` was `ori`. The
+`_actor400500StartTurnOver` with `work->stateFrames = -1` was `ori`. The
 same store through an `s32` temp is exact. Do not change the field to `s16`
 to get this: other readers of `stateFrames` use `lhu`.
 
@@ -72031,20 +72028,17 @@ to get this: other readers of `stateFrames` use `lhu`.
 nop. The target fills that delay with `addiu $v0, $s1, 0x9A0` and stores Z
 as `sh $v1, 4($v0)`.
 
-Taking the address *before* the two jals into one pointer, then copying it
-to a second pointer after the calls, forces the address to be rematerialized
-there:
+Taking the address *before* the two jals and carrying it through an inline
+output-pointer argument lets the address be rematerialized after the calls.
+The current source expresses that transfer through the sampling helper:
 
 ```c
-pos2 = &work->anchorPos;
-actorRenderComposeCoord(&coords[0xE]);
-gfxMakeRelativeTransform(&Gfx_ViewWorldMtx, &coords[0xE].workm, &local);
-pos    = pos2;
-pos->x = local.t[0]; /* still sh …, 0x9A0($s1) */
-pos->z = local.t[2]; /* addiu $v0, $s1, 0x9A0; sh $v1, 4($v0) */
+_actor400500ReadPartWorldXZ(task, ACTOR_400500_TURN_OVER_PIVOT_PART, &work->anchorPos);
+/* The inline's worldPosition argument carries the pre-call address;
+ * partWorldTransform supplies world X/Z after the two calls. */
 ```
 
-A single `pos = &work->anchorPos` after the calls still folds. `func_actor_400500_8013CA38`
+A flat pointer initialized only after the calls still folds. `_actor400500StartTurnOver`
 is the example (permuter `de95fd9fa49844d3`, confirmed by `base_6.c`).
 
 ## Two dest pointers keep offset `addiu`s live across a following `jal`
@@ -133831,7 +133825,7 @@ base_1.i `faa1032d42587bb19cf9ca05f8584cab1048635d893d0c0bcfba3a397fcc0042`;
 base_2.i `4f1d00ee43514c8f43ea709cc11821d1536f55ddf346b8b911925c255b136d3b`.
 
 
-## Cross-call address hoisting needs the correct load/store boundary (func_actor_400500_8013A0B8, 2026-09-19)
+## Cross-call address hoisting needs the correct load/store boundary (_actor400500TickTurnOver, 2026-09-19)
 
 An archived 98.342% seed lacked an address addiu. The permuter hoisted an alias
 to a stack matrix array before two calls, changing distance 403 to 310. A planned
@@ -133845,16 +133839,16 @@ Transferring that construction to the actor position alone had failed in older
 retries. The Z load was still written after two flag stores and depended on them
 in sched1. Hoisting the position address before calls **and** reading Z before
 those stores reproduced the complete coordinate block while retaining the X
-register homes. Final input UID92 loads pos+4; flag stores102/105 depend on it,
+register homes. Final input UID92 loads the world-position Z at pointer+4; flag stores102/105 depend on it,
 rather than the load depending on the stores.
 
 The remaining angle issue needed the matched sibling's direct compound masks
 (948,94A,94C source order), avoiding artificial cross-arm pitch/roll locals. A
-separate nextWork pointer for the zero LCG arm removed a global v0 conflict.
+separate route pointer for the zero LCG arm removed a global v0 conflict.
 The final source matches exactly without pins or asm helpers. The mask ordering
 is an observed outcome for this function, not a general scheduler reversal rule.
 
-Evidence: tools/permuter_findings/func_actor_400500_8013A0B8/, session
+Evidence: tools/permuter_findings/_actor400500TickTurnOver/, session
 d0310d88f0914a738171e8b1d17ce8e3. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd. Controlled
 base_1 preprocessed SHA256
@@ -134016,7 +134010,7 @@ without the previous a0 conflict. `base_15.c` matched 100%, as did the cleaned
 port and unscoped integration build. This supports the eligibility/conflict
 mechanism, not a claim about the original source's spelling.
 
-Evidence is retained under `tools/permuter_findings/func_actor_400500_80138088/`
+Evidence is retained under `tools/permuter_findings/_actor400500FinishGrabRecovery/`
 and scratch `PERMUTER_EVIDENCE/manual-matching-analysis`. The router found no
 candidate; these were manual controlled experiments. Patched compiler SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
@@ -142278,7 +142272,7 @@ Same function: a prim-pointer local shared by two sibling `if` blocks is one
 pseudo live in both, hence global, and loses the `$a0` that each block's
 block-scoped pointer gets from local-alloc; the seed had pinned it back.
 
-## `li v0,0x80` stored with `sb` is a value that reached the byte through a pseudo (func_actor_400500_80138088)
+## `li v0,0x80` stored with `sb` is a value that reached the byte through a pseudo (_actor400500FinishGrabRecovery)
 
 A constant assigned to an `s8`/`u8` field is truncated at tree level and loads
 as `li v0,-0x80`; so is `field = mode | 0x80` with `mode` an inline parameter,
@@ -146178,7 +146172,7 @@ sibling needs the id built in a caller-scope local and passed to a pan-and-enque
 helper, while this copy needs the id built inside the helper
 (`_playSound(task, 0x40050001)`); the other choice swaps `$s0`/`$s1` around
 `worldCoordGetOriginAudioPan`. Try both before keeping a register hack.
-## A barrier after an if/else that picks a constant for one shared store is the store duplicated into both arms (func_actor_400500_80135414, 2026-09-27)
+## A barrier after an if/else that picks a constant for one shared store is the store duplicated into both arms (_actor400500InitTask, 2026-09-27)
 
 An if/else set three fields and loaded a fourth field's value into a `val`
 local, and a single `work->hideHoldFrames = val;` after the join matched only with
@@ -153489,14 +153483,14 @@ inlined callee's frame is addressed through). Presumably the callee's frame
 becomes a stack temporary whose address is such an equivalence at any offset;
 that step was inferred from the result, not read out of a dump.
 
-**Not converted (3 blocks).**
-- `func_actor_400500_8013A0B8` (2): the
-  run is clearly an inline (reload `task->work` and the root coordinate, mask
-  the three angles, identity, Z/X/Y, copy) but its matrix shares the caller's
-  `rot` slot with `gfxMakeRelativeTransform(..., &rot.mat)` in a sibling block.
-  A helper with its own `MATRIX` leaves `rot` undeclared; keeping both grows
-  the frame. The other use is probably an inline too (inlined frames in sibling
-  blocks can share a slot); find that one first.
+**Operation scopes (2 blocks).**
+- `_actor400500TickTurnOver` (2): `_actor400500RebuildTurnOverRotation` owns
+  each normalized Z/X/Y rotation build, and `_actor400500PinPartWorldXZ` owns
+  the sibling coordinate-conversion matrices. Removing the caller's matrix
+  lets the inline scopes share its stack slot and preserves the exact body.
+  Keeping both caller and helper matrices grows the frame.
+
+**Not converted (1 block).**
 - `_actor403100EmitFlame` (1): matrix at frame offset 8, so the plain call
   does produce the split, but the target keeps `&matrix` hoisted out of the
   loop in a callee-saved register and spills `mode`. Plain call and a
@@ -153554,10 +153548,10 @@ files - no function needed its union kept. The same held for the Glutton's
 The build compiles with `-w`, so the retype was also checked by running `cc1`
 without it on every rebuilt `.i` before and after: no new pointer-type warning.
 
-**What is left.** `GfxMatrix` remains for four locals that still store through
-`rotationWords` by hand: `worldTransform`/`identityTransform` in `_actor403100EmitFlame`
-and `rot`/`src` in `func_actor_400500_8013A0B8`. Do not
-declare a new matrix as `GfxMatrix` unless it needs that view.
+**What is left.** `GfxMatrix` remains for two locals that still store through
+`rotationWords` by hand: `worldTransform`/`identityTransform` in `_actor403100EmitFlame`.
+The turn-over rotation and world-position helpers use plain `MATRIX` temporaries.
+Do not declare a new matrix as `GfxMatrix` unless it needs that view.
 
 **Survey caveat.** A libclang member-access scan does not see designated
 initializers. `SpriteView::sources.empty` looked unused that way and is the
