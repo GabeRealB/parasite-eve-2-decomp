@@ -220,6 +220,18 @@ enum {
 /// Clip used for the entrance and aimed impact in the balcony scene.
 enum { ACTOR_403100_ANIMATION_SCENE_IMPACT = 3 };
 
+/// Recovery timing shared by the aimed and side flame attacks.
+///
+/// Blend durations count normal animation frames; the rate counts sixteenths
+/// of a frame per tick. The sound fade counts audio updates, including PAL extras.
+enum {
+    ACTOR_403100_FLAME_RECOVERY_FRAMES               = 14,
+    ACTOR_403100_BREATH_SOUND                        = SOUND_CHARACTER(SOUND_BANK_BURNER, 4),
+    ACTOR_403100_FLAME_CONTACT_RECOVERY_BLEND_FRAMES = 20,
+    ACTOR_403100_FLAME_CONTACT_RECOVERY_RATE         = ANIMATION_RATE_ONE * 7 / 4,
+    ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES     = 10,
+};
+
 /// Walking phases selected by the approach, stun and low-health scene steps.
 enum {
     ACTOR_403100_WALK_APPROACH      = 0,
@@ -1421,15 +1433,15 @@ static void func_actor_403100_8013DE0C(Task* arg0);
 
 static void func_actor_403100_8013DEA0(Task* arg0);
 
-static void func_actor_403100_8013DF0C(Task* task);
+static void _actor403100StepStagger(Task* unusedTask);
 
-static void func_actor_403100_8013DF64(Task* task);
+static void _actor403100DispatchLowHealthScene(Task* task);
 
-static void func_actor_403100_8013DFBC(Task* arg0);
+static void _actor403100StepBuildupStun(Task* task);
 
 static void func_actor_403100_8013E6A0(Task* arg0);
 
-static void func_actor_403100_8013E784(Task* arg0);
+static void _actor403100WaitAfterFloorPuffEmission(Task* task);
 
 static void func_actor_403100_8013E7C8(Task* arg0);
 
@@ -1467,27 +1479,27 @@ static void _actor403100FinishSceneDeparture(Task* task);
 
 static void _actor403100BeginAttackApproach(Task* task);
 
-static void func_actor_403100_8013F1D8(Task* task);
+static void _actor403100FinishArmSwingRecovery(Task* unusedTask);
 
-static void func_actor_403100_8013F230(Task* task);
+static void _actor403100WaitAfterAimedFlameAttack(Task* unusedTask);
 
-static void func_actor_403100_8013F270(Task* task);
+static void _actor403100BeginAimedFlameContactRecovery(Task* unusedTask);
 
-static void func_actor_403100_8013F2D8(Task* task);
+static void _actor403100PrepareJumpSlam(Task* unusedTask);
 
-static void func_actor_403100_8013F344(Task* task);
+static void _actor403100BeginJumpSlam(Task* unusedTask);
 
-static void func_actor_403100_8013F3AC(Task* task);
+static void _actor403100WaitAfterJumpSlam(Task* unusedTask);
 
-static void func_actor_403100_8013F3EC(Task* arg0);
+static void _actor403100BeginHeldPlayerLift(Task* task);
 
-static void func_actor_403100_8013F488(Task* task);
+static void _actor403100FinishGrabRewind(Task* unusedTask);
 
-static void func_actor_403100_8013F4E0(Task* task);
+static void _actor403100WaitAfterSideFlameAttack(Task* unusedTask);
 
-static void func_actor_403100_8013F520(Task* task);
+static void _actor403100BeginSideFlameContactRecovery(Task* unusedTask);
 
-static void func_actor_403100_8013F588(Task* task);
+static void _actor403100BeginGrabAndDrag(Task* unusedTask);
 
 static void _actor403100BeginBuildupStun(Task* task);
 
@@ -2825,7 +2837,7 @@ static const TaskFuncTable3 D_actor_403100_80131E70 = {
     {
         func_actor_403100_8013E6A0,
         func_actor_403100_8013E6F0,
-        func_actor_403100_8013E784,
+        _actor403100WaitAfterFloorPuffEmission,
     },
 };
 
@@ -3577,9 +3589,9 @@ static const TaskFuncTable11 D_actor_403100_80131F34 = {
         func_actor_403100_8013DD78,
         func_actor_403100_8013DE0C,
         func_actor_403100_8013DEA0,
-        func_actor_403100_8013DF0C,
-        func_actor_403100_8013DF64,
-        func_actor_403100_8013DFBC,
+        _actor403100StepStagger,
+        _actor403100DispatchLowHealthScene,
+        _actor403100StepBuildupStun,
     },
 };
 
@@ -4864,18 +4876,21 @@ static void func_actor_403100_8013922C(Task* arg0)
         D_actor_403100_80155808->subState                          = 8;
     }
 }
-/// Resets shoulder/forearm angles and the forearm translation for held playback.
+/// Restores the arm's unmodified angles and forearm X for held-player playback.
 ///
-/// Borrows the live forearm coordinate (model coordinate six) and singleton work.
-/// The rest translation is in the forearm's parent frame; no pose is ticked.
+/// Requires live singleton work and model coordinate six. Clears the shoulder
+/// and forearm angle offsets (4096 units per turn) and restores forearm X in
+/// parent-coordinate units. Retains Y/Z, rotation and the composition stamp;
+/// the caller's pose update applies the cleared offsets.
 static inline void _actor403100ResetHeldArmPose(GfxCoord* forearmCoord)
 {
+    enum { ACTOR_403100_HELD_FOREARM_REST_X = -2167 };
     D_actor_403100_80155808->armPitch       = 0;
     D_actor_403100_80155808->armYaw         = 0;
     D_actor_403100_80155808->forearmTurn.vx = 0;
     D_actor_403100_80155808->forearmTurn.vy = 0;
     D_actor_403100_80155808->forearmTurn.vz = 0;
-    forearmCoord->coord.t[0]                = -0x877;
+    forearmCoord->coord.t[0]                = ACTOR_403100_HELD_FOREARM_REST_X;
 }
 
 /// Poses the held player for thirty-one updates before starting flame breath.
@@ -5793,7 +5808,7 @@ static const TaskFuncTable6 D_actor_403100_80131F84 = {
         func_actor_403100_801379B4,
         _actor403100FinishArmSwingCombo,
         func_actor_403100_80137DC4,
-        func_actor_403100_8013F1D8,
+        _actor403100FinishArmSwingRecovery,
     },
 };
 
@@ -5802,8 +5817,8 @@ static const TaskFuncTable5 D_actor_403100_80131F9C = {
     {
         _actor403100BeginAimedFlameAttack,
         func_actor_403100_80138048,
-        func_actor_403100_8013F230,
-        func_actor_403100_8013F270,
+        _actor403100WaitAfterAimedFlameAttack,
+        _actor403100BeginAimedFlameContactRecovery,
         func_actor_403100_8013842C,
     },
 };
@@ -5811,15 +5826,15 @@ static const TaskFuncTable5 D_actor_403100_80131F9C = {
 /// Steps of the behaviour mode `func_actor_403100_8013DCAC`, indexed by `subState`.
 static const TaskFuncTable9 D_actor_403100_80131FB0 = {
     {
-        func_actor_403100_8013F2D8,
-        func_actor_403100_8013F344,
+        _actor403100PrepareJumpSlam,
+        _actor403100BeginJumpSlam,
         _actor403100CrouchForJumpSlam,
         _actor403100AccelerateJumpSlam,
         _actor403100DecelerateJumpSlam,
         func_actor_403100_80138844,
         _actor403100StepJumpSlamImpact,
         _actor403100FinishJumpSlamRecovery,
-        func_actor_403100_8013F3AC,
+        _actor403100WaitAfterJumpSlam,
     },
 };
 
@@ -5828,7 +5843,7 @@ static const TaskFuncTable11 D_actor_403100_80131FD4 = {
     {
         _actor403100BeginGrabAndSqueeze,
         _actor403100StepGrabAndSqueezeReach,
-        func_actor_403100_8013F3EC,
+        _actor403100BeginHeldPlayerLift,
         _actor403100BeginHeldPlayerSqueeze,
         func_actor_403100_8013922C,
         _actor403100PrepareHeldPlayerFlameBreath,
@@ -5836,7 +5851,7 @@ static const TaskFuncTable11 D_actor_403100_80131FD4 = {
         _actor403100RecoverHeldPlayerFromFlameBreath,
         _actor403100ThrowHeldPlayer,
         func_actor_403100_8013A254,
-        func_actor_403100_8013F488,
+        _actor403100FinishGrabRewind,
     },
 };
 
@@ -5845,8 +5860,8 @@ static const TaskFuncTable5 D_actor_403100_80132000 = {
     {
         _actor403100BeginSideFlameAttack,
         func_actor_403100_8013A5AC,
-        func_actor_403100_8013F4E0,
-        func_actor_403100_8013F520,
+        _actor403100WaitAfterSideFlameAttack,
+        _actor403100BeginSideFlameContactRecovery,
         func_actor_403100_8013A81C,
     },
 };
@@ -5854,14 +5869,14 @@ static const TaskFuncTable5 D_actor_403100_80132000 = {
 /// Steps of the behaviour mode `func_actor_403100_8013DEA0`, indexed by `subState`.
 static const TaskFuncTable4 D_actor_403100_80132014 = {
     {
-        func_actor_403100_8013F588,
+        _actor403100BeginGrabAndDrag,
         _actor403100StepGrabAndDragReach,
         func_actor_403100_8013AC04,
         func_actor_403100_8013AE28,
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DFBC`, indexed by `subState`.
+/// Steps of the behaviour mode `_actor403100StepBuildupStun`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80132024 = {
     {
         _actor403100BeginBuildupStun,
@@ -6933,25 +6948,44 @@ static void func_actor_403100_8013DEA0(Task* arg0)
     handlers = D_actor_403100_80132014;
     handlers.funcs[(s16)D_actor_403100_80155808->subState](arg0);
 }
-static void func_actor_403100_8013DF0C(Task* task)
+/// Dispatches the start or completion of a hit-induced stagger.
+///
+/// Requires live singleton work with subState 0..1. Both handlers take no
+/// argument and use that work directly; `unusedTask` supplies the enclosing
+/// TaskFunc signature. The fight update advances animation after dispatch.
+static void _actor403100StepStagger(Task* unusedTask)
 {
-    void (*fns[2])(void) = { _actor403100BeginStagger, _actor403100FinishStagger };
+    void (*handlers[])(void) = { _actor403100BeginStagger, _actor403100FinishStagger };
 
-    fns[(s16)D_actor_403100_80155808->subState]();
+    handlers[(s16)D_actor_403100_80155808->subState]();
 }
-static void func_actor_403100_8013DF64(Task* task)
-{
-    TaskFunc fns[2] = { _actor403100BeginLowHealthScene, _actor403100StepLowHealthScene };
 
-    fns[(s16)D_actor_403100_80155808->subState](task);
+/// Dispatches low-health scene setup or its timed continuation.
+///
+/// Requires the live Burner task/model and singleton work with subState 0..1.
+/// Setup saves the combat pose or hands off an expired fight to the event
+/// script; continuation restores combat when the previous clip update finishes.
+/// Animation advancement remains with the fight update.
+static void _actor403100DispatchLowHealthScene(Task* task)
+{
+    TaskFunc handlers[] = { _actor403100BeginLowHealthScene, _actor403100StepLowHealthScene };
+
+    handlers[(s16)D_actor_403100_80155808->subState](task);
 }
-static void func_actor_403100_8013DFBC(Task* arg0)
-{
-    TaskFuncTable3 sp;
 
-    sp = D_actor_403100_80132024;
+/// Steps the build-up stun while accepting the current frame's pitch kick.
+///
+/// Requires live singleton work and subState 0..2: start the half-speed
+/// stagger, blend into walking, then wait before resuming attack approach.
+/// The damage-latch pitch request precedes dispatch; animation advances later
+/// in the fight update. `task` is forwarded through the TaskFunc table.
+static void _actor403100StepBuildupStun(Task* task)
+{
+    TaskFuncTable3 handlers;
+
+    handlers = D_actor_403100_80132024;
     _actor403100RequestHitPitchKick();
-    sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
+    handlers.funcs[(s16)D_actor_403100_80155808->subState](task);
 }
 /// Queues the blended clip request used when sampling the player's held pose.
 ///
@@ -7160,14 +7194,20 @@ static void func_actor_403100_8013E6F0(Task* arg0)
     }
 }
 
-static void func_actor_403100_8013E784(Task* arg0)
+/// Counts terminal floor-puff updates and releases the coordinate task at thirty.
+///
+/// Uses killCountdown as elapsed ticks, incrementing with halfword wrapping
+/// and testing it as signed. Entry with zero takes thirty callbacks; this
+/// handler has no actor-pause gate. Releasing the task ends its coordinate's lifetime.
+static void _actor403100WaitAfterFloorPuffEmission(Task* task)
 {
-    u16 temp_v0;
+    enum { ACTOR_403100_FLOOR_PUFF_CLEANUP_TICKS = 30 };
+    u16 elapsedTicks;
 
-    temp_v0             = arg0->killCountdown + 1;
-    arg0->killCountdown = temp_v0;
-    if ((s16)temp_v0 >= 0x1E) {
-        taskKill(arg0);
+    elapsedTicks        = task->killCountdown + 1;
+    task->killCountdown = elapsedTicks;
+    if ((s16)elapsedTicks >= ACTOR_403100_FLOOR_PUFF_CLEANUP_TICKS) {
+        taskKill(task);
     }
 }
 
@@ -7574,132 +7614,190 @@ static void _actor403100BeginAttackApproach(Task* task)
     D_actor_403100_80155808->subState    = D_actor_403100_80155808->subState + 1;
 }
 
-static void func_actor_403100_8013F1D8(Task* task)
+/// Resumes attack approach when the combo's fast walking recovery reaches a transition.
+///
+/// Requires live singleton work and slot 1. A boundary, control jump or
+/// settled pose resets behaviour/substate to approach step zero.
+/// `unusedTask` is retained for dispatch.
+static void _actor403100FinishArmSwingRecovery(Task* unusedTask)
 {
     if (_actor403100AnimationAtBoundaryOrJump()) {
-        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
         D_actor_403100_80155808->subState = 0;
     }
 }
-static void func_actor_403100_8013F230(Task* task)
+/// Waits fourteen updates after an uninterrupted aimed breath before resuming approach.
+///
+/// Requires live singleton work with stateFrames initially zero. Tests the
+/// saved pre-increment value as signed; the unsigned halfword still wraps.
+/// The enclosing dispatcher handles hit interruptions. `unusedTask` is retained for dispatch.
+static void _actor403100WaitAfterAimedFlameAttack(Task* unusedTask)
 {
-    u16 frame;
+    u16 previousFrames;
 
-    frame                                = D_actor_403100_80155808->stateFrames;
-    D_actor_403100_80155808->stateFrames = frame + 1;
-    if ((s16)frame >= 0xD) {
-        D_actor_403100_80155808->state    = 1;
+    previousFrames                       = D_actor_403100_80155808->stateFrames;
+    D_actor_403100_80155808->stateFrames = previousFrames + 1;
+    if ((s16)previousFrames >= ACTOR_403100_FLAME_RECOVERY_FRAMES - 1) {
+        D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
         D_actor_403100_80155808->subState = 0;
     }
 }
 
-static void func_actor_403100_8013F270(Task* task)
+/// Starts the impact continuation after an aimed flame touches a player body.
+///
+/// Requires live singleton work. Resets its cue timer, fades the breath sound
+/// over ten audio updates and blends to the impact clip over twenty normal
+/// frames at 7/4 normal speed. The next substate supplies its timed cues;
+/// `unusedTask` is retained for dispatch.
+static void _actor403100BeginAimedFlameContactRecovery(Task* unusedTask)
 {
     D_actor_403100_80155808->stateFrames = 0;
-    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
-    D_actor_403100_80155808->animationBlendFrames = 0x14;
-    D_actor_403100_80155808->animationRate        = 0x1C;
-    D_actor_403100_80155808->animationId          = 3;
-    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
-    D_actor_403100_80155808->subState             = D_actor_403100_80155808->subState + 1;
+    sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
+    _actor403100RequestAnimationBlendInline(ACTOR_403100_ANIMATION_SCENE_IMPACT, ACTOR_403100_FLAME_CONTACT_RECOVERY_RATE, ACTOR_403100_FLAME_CONTACT_RECOVERY_BLEND_FRAMES);
+    D_actor_403100_80155808->subState = D_actor_403100_80155808->subState + 1;
 }
 
-static void func_actor_403100_8013F2D8(Task* task)
+/// Clears arm contact and pose offsets while asking the walk to finish before a jump slam.
+///
+/// Requires live singleton work. A hit reaction can divert the behaviour;
+/// otherwise fast yaw-only head tracking remains active while the stride
+/// finishes. The next substate waits for walking to stop. `unusedTask` is retained for dispatch.
+static void _actor403100PrepareJumpSlam(Task* unusedTask)
 {
     if (_actor403100HandleHitReaction() == 0) {
         D_actor_403100_80155808->handTouchedPlayer    = 0;
         D_actor_403100_80155808->forearmTouchedPlayer = 0;
         D_actor_403100_80155808->aimMode              = ACTOR_403100_AIM_YAW_ONLY_FAST;
-        D_actor_403100_80155808->walkStage            = 4;
+        D_actor_403100_80155808->walkStage            = ACTOR_403100_WALK_FINISH_STRIDE;
         D_actor_403100_80155808->armPitch             = 0;
         D_actor_403100_80155808->armYaw               = 0;
         D_actor_403100_80155808->subState             = D_actor_403100_80155808->subState + 1;
     }
 }
 
-static void func_actor_403100_8013F344(Task* task)
+/// Starts the jump-slam clip once walking has stopped and no hit diverts the attack.
+///
+/// Requires live singleton work. Restarts the arm-attack clip at normal speed,
+/// clears the crouch timer and advances to the root-lowering step.
+/// `unusedTask` is retained for dispatch.
+static void _actor403100BeginJumpSlam(Task* unusedTask)
 {
     if ((_actor403100HandleHitReaction() == 0) &&
-        (D_actor_403100_80155808->walkStage == 5)) {
+        (D_actor_403100_80155808->walkStage == ACTOR_403100_WALK_STOPPED)) {
         D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-        D_actor_403100_80155808->animationId      = 4;
+        D_actor_403100_80155808->animationId      = ACTOR_403100_ANIMATION_ARM_ATTACK;
         D_actor_403100_80155808->stateFrames      = 0;
         D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
         D_actor_403100_80155808->subState         = D_actor_403100_80155808->subState + 1;
     }
 }
 
-static void func_actor_403100_8013F3AC(Task* task)
+/// Waits ninety updates after jump-slam recovery before resuming attack approach.
+///
+/// Requires live singleton work with stateFrames initially zero. Increments
+/// with unsigned halfword wrapping, then compares the new value as signed.
+/// `unusedTask` is retained for dispatch.
+static void _actor403100WaitAfterJumpSlam(Task* unusedTask)
 {
-    u16 frame;
+    enum { ACTOR_403100_JUMP_RECOVERY_FRAMES = 90 };
+    u16 elapsedFrames;
 
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if ((s16)frame >= 0x5A) {
-        D_actor_403100_80155808->state    = 1;
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames >= ACTOR_403100_JUMP_RECOVERY_FRAMES) {
+        D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
         D_actor_403100_80155808->subState = 0;
     }
 }
 
-static void func_actor_403100_8013F3EC(Task* arg0)
+/// Moves the Burner to the held-player lift placement and starts its lift clip.
+///
+/// Requires the live Burner model, singleton work and a player already under
+/// scripted hold. Stops walking, places the root at (-1100, -5000, 10000)
+/// in parent coordinates with yaw of 5/8 turn, and samples the new grip
+/// before selecting view twenty-four and clearing foreground offsets.
+static void _actor403100BeginHeldPlayerLift(Task* task)
 {
-    GfxCoord* coord;
+    enum { ACTOR_403100_ANIMATION_HELD_LIFT = 11,
+           ACTOR_403100_HELD_LIFT_VIEW      = 24 };
+    GfxCoord* rootCoord;
 
-    coord                                     = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->walkStage        = 5;
-    coord->coord.t[0]                         = -0x44C;
-    coord->coord.t[1]                         = -0x1388;
-    coord->coord.t[2]                         = 0x2710;
-    D_actor_403100_80155808->rotation.vy      = 0xA00;
+    rootCoord                                 = task->extra.tmd->coords;
+    D_actor_403100_80155808->walkStage        = ACTOR_403100_WALK_STOPPED;
+    rootCoord->coord.t[0]                     = -1100;
+    rootCoord->coord.t[1]                     = -5000;
+    rootCoord->coord.t[2]                     = 10000;
+    D_actor_403100_80155808->rotation.vy      = ACTOR_TRANSFORM_ANGLE_TURN * 5 / 8;
     D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-    D_actor_403100_80155808->animationId      = 0xB;
+    D_actor_403100_80155808->animationId      = ACTOR_403100_ANIMATION_HELD_LIFT;
     D_actor_403100_80155808->rotation.vx      = 0;
     D_actor_403100_80155808->rotation.vz      = 0;
     D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    _actor403100PlaceHeldPlayer(arg0);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
+    // The grip must be sampled from the lift clip before changing the camera.
+    _actor403100PlaceHeldPlayer(task);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_HELD_LIFT_VIEW;
     D_actor_403100_80155808->overlayX                          = 0;
     D_actor_403100_80155808->overlayY                          = 0;
     D_actor_403100_80155808->subState                         += 1;
 }
-static void func_actor_403100_8013F488(Task* task)
+/// Resumes attack approach when the reversed grab clip reaches a transition.
+///
+/// Runs after a forearm-only grab contact. Requires live singleton work and
+/// tests slot 1's results saved by the previous animation update, including
+/// boundary, control jump and settled pose. `unusedTask` is retained for dispatch.
+static void _actor403100FinishGrabRewind(Task* unusedTask)
 {
     if (_actor403100PreviousAnimationAtBoundaryOrJump()) {
-        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
         D_actor_403100_80155808->subState = 0;
     }
 }
-static void func_actor_403100_8013F4E0(Task* task)
+/// Waits fourteen updates after an uninterrupted side breath before resuming approach.
+///
+/// Requires live singleton work with stateFrames initially zero. Tests the
+/// saved pre-increment value as signed; the unsigned halfword still wraps.
+/// The enclosing dispatcher handles hit interruptions. `unusedTask` is retained for dispatch.
+static void _actor403100WaitAfterSideFlameAttack(Task* unusedTask)
 {
-    u16 frame;
+    u16 previousFrames;
 
-    frame                                = D_actor_403100_80155808->stateFrames;
-    D_actor_403100_80155808->stateFrames = frame + 1;
-    if ((s16)frame >= 0xD) {
-        D_actor_403100_80155808->state    = 1;
+    previousFrames                       = D_actor_403100_80155808->stateFrames;
+    D_actor_403100_80155808->stateFrames = previousFrames + 1;
+    if ((s16)previousFrames >= ACTOR_403100_FLAME_RECOVERY_FRAMES - 1) {
+        D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
         D_actor_403100_80155808->subState = 0;
     }
 }
-static void func_actor_403100_8013F520(Task* task)
+/// Starts the impact continuation after a side flame touches a player body.
+///
+/// Requires live singleton work. Resets its cue timer, fades the breath sound
+/// over ten audio updates and blends to the impact clip over twenty normal
+/// frames at 7/4 normal speed. The next substate supplies its timed cues;
+/// `unusedTask` is retained for dispatch.
+static void _actor403100BeginSideFlameContactRecovery(Task* unusedTask)
 {
     D_actor_403100_80155808->stateFrames = 0;
-    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
-    D_actor_403100_80155808->animationBlendFrames = 0x14;
-    D_actor_403100_80155808->animationRate        = 0x1C;
-    D_actor_403100_80155808->animationId          = 3;
-    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
-    D_actor_403100_80155808->subState            += 1;
+    sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
+    _actor403100RequestAnimationBlendInline(ACTOR_403100_ANIMATION_SCENE_IMPACT, ACTOR_403100_FLAME_CONTACT_RECOVERY_RATE, ACTOR_403100_FLAME_CONTACT_RECOVERY_BLEND_FRAMES);
+    D_actor_403100_80155808->subState += 1;
 }
-static void func_actor_403100_8013F588(Task* task)
+/// Starts the grab-and-drag reach with fresh arm contact and normalized heading.
+///
+/// Requires live singleton work. A hit reaction can divert initialization;
+/// otherwise finishes the current stride, restarts the drag-reach clip at
+/// three-quarter speed and returns head aim to the animation. Heading is
+/// masked to 0..4095 before the reach step eases it. `unusedTask` is retained for dispatch.
+static void _actor403100BeginGrabAndDrag(Task* unusedTask)
 {
+    enum { ACTOR_403100_ANIMATION_DRAG_REACH = 8 };
     if (_actor403100HandleHitReaction() == 0) {
-        D_actor_403100_80155808->walkStage            = 4;
-        D_actor_403100_80155808->animationRate        = 0xC;
+        D_actor_403100_80155808->walkStage            = ACTOR_403100_WALK_FINISH_STRIDE;
+        D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE * 3 / 4;
         D_actor_403100_80155808->aimMode              = ACTOR_403100_AIM_ANIMATED;
-        D_actor_403100_80155808->animationId          = 8;
+        D_actor_403100_80155808->animationId          = ACTOR_403100_ANIMATION_DRAG_REACH;
         D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_RESET;
         D_actor_403100_80155808->stateFrames          = 0;
-        D_actor_403100_80155808->rotation.vy          = (u16)D_actor_403100_80155808->rotation.vy & 0xFFF;
+        D_actor_403100_80155808->rotation.vy          = (u16)D_actor_403100_80155808->rotation.vy & ACTOR_TRANSFORM_ANGLE_MASK;
         D_actor_403100_80155808->handTouchedPlayer    = 0;
         D_actor_403100_80155808->forearmTouchedPlayer = 0;
         D_actor_403100_80155808->subState            += 1;
