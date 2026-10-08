@@ -3,14 +3,18 @@
 /// Levels the landed backflip, reverses heading and launches the forward hop.
 ///
 /// Requires `work == task->work` and `root == task->extra.tmd->coords`. Borrows
-/// that live storage; the caller applies animation and rebuilds rotation after
-/// this phase change.
+/// that live storage at the Y > 0 crossing of emerge behavior 1. Restores limb
+/// shadows, clamps parent Y to -60, levels pitch/roll and adds a half turn to
+/// the s16 heading. Resets clip 17 at normal rate and launches at -110 Y units
+/// per update with zero acceleration. Clears the u16 frame counter and enters
+/// behavior 2; the caller applies animation and rebuilds rotation afterwards.
 static __inline__ void _madChaserEmergeBackflipLaunchHop(Task* task, MadChaserWork* work, GfxCoord* root)
 {
     enum {
-        MAD_CHASER_EMERGE_BACKFLIP_HOP_CLIP  = 17,
-        MAD_CHASER_EMERGE_LANDING_Y          = -60,
-        MAD_CHASER_EMERGE_BACKFLIP_HALF_TURN = ACTOR_TRANSFORM_ANGLE_TURN / 2
+        MAD_CHASER_EMERGE_BACKFLIP_HOP_CLIP    = 17,
+        MAD_CHASER_EMERGE_LANDING_Y            = -60,
+        MAD_CHASER_EMERGE_BACKFLIP_HALF_TURN   = ACTOR_TRANSFORM_ANGLE_TURN / 2,
+        MAD_CHASER_EMERGE_BACKFLIP_HOP_Y_SPEED = -110
     };
     MadChaserWork* requestWork;
 
@@ -25,7 +29,7 @@ static __inline__ void _madChaserEmergeBackflipLaunchHop(Task* task, MadChaserWo
     requestWork->animId      = MAD_CHASER_EMERGE_BACKFLIP_HOP_CLIP;
     requestWork->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
     work->moveAccel          = 0;
-    work->moveSpeed          = -0x6E;
+    work->moveSpeed          = MAD_CHASER_EMERGE_BACKFLIP_HOP_Y_SPEED;
     work->state++;
 }
 

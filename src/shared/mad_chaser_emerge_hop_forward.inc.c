@@ -2,8 +2,10 @@
 
 /// Starts the entry-hop cue at the root's already-composed origin.
 ///
-/// Tags the character-bank request with this live enemy's placement index.
-/// Requires the origin-audio projection scratch/GTE setup; retains no storage.
+/// Requires a live Enemy/model; tags character-bank entry 9 with placement
+/// index 0..15 in sound-id bits 8..15. The cached root-to-view transform supplies
+/// pan (-16..15) and attenuation depth (-128..127), both narrowed to s8 before
+/// the request. Requires projection scratch/GTE setup; retains no storage.
 static __inline__ void _madChaserEmergeHopForwardPlayEntrySound(Task* task)
 {
     enum {

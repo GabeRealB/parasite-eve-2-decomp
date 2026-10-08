@@ -14,8 +14,12 @@
 /// and ownership remain intact.
 static void MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER(Task* task)
 #else
-/// Sets the state machine to state 5, the alert, with `subState` cleared.
-void madChaserToAlertState(Task* task)
+/// Redirects combat behavior zero to the alert's first step.
+///
+/// Borrows live Mad Chaser work and selects `MAD_CHASER_COMBAT_STATE_ALERT` with
+/// sub-state zero. The next combat dispatch begins the cry/wait/release/sidestep
+/// sequence. Task state, animation requests, counters and ownership are retained.
+static void _madChaserCombatToAlertState0(Task* task)
 #endif
 {
     _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_ALERT);

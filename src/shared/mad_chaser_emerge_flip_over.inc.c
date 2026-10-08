@@ -3,8 +3,11 @@
 /// Levels the landed high flip and selects its final emerge clip.
 ///
 /// Requires `work == task->work` and `root == task->extra.tmd->coords`. Borrows
-/// that live storage; the caller applies animation and rebuilds rotation after
-/// this phase change.
+/// that live storage at the Y > 0 crossing of emerge behavior 8. Clamps parent
+/// Y to -60, levels pitch/roll and adds a half turn to the s16 heading. Resets
+/// clip 17 at normal rate, clears the u16 frame counter and enters behavior 9.
+/// Retains motion and shadow state; the caller applies animation and rebuilds
+/// rotation after this change.
 static __inline__ void _madChaserEmergeFlipOverFinishLanding(Task* task, MadChaserWork* work, GfxCoord* root)
 {
     enum {

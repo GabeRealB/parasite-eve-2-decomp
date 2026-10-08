@@ -3,13 +3,17 @@
 /// Launches the low backward hop from the landed entry arc.
 ///
 /// Requires `work == task->work` and `root == task->extra.tmd->coords`. Borrows
-/// that live storage; the caller applies animation and rebuilds rotation after
-/// this phase change.
+/// that live storage at the Y > 0 crossing of emerge behavior 4. Restores limb
+/// shadows, levels pitch/roll and clamps parent Y to -60; resets clip 12 at
+/// normal rate and launches at -110 Y units per update with zero acceleration.
+/// Clears the u16 frame counter and advances behavior to 5. Motion narrows to
+/// s16; the caller applies animation and rebuilds rotation after this change.
 static __inline__ void _madChaserEmergeArcBackLaunchHop(Task* task, MadChaserWork* work, GfxCoord* root)
 {
     enum {
-        MAD_CHASER_EMERGE_ARC_HOP_CLIP  = 12,
-        MAD_CHASER_EMERGE_ARC_LANDING_Y = -60
+        MAD_CHASER_EMERGE_ARC_HOP_CLIP    = 12,
+        MAD_CHASER_EMERGE_ARC_LANDING_Y   = -60,
+        MAD_CHASER_EMERGE_ARC_HOP_Y_SPEED = -110
     };
     MadChaserWork* requestWork;
 
@@ -23,7 +27,7 @@ static __inline__ void _madChaserEmergeArcBackLaunchHop(Task* task, MadChaserWor
     requestWork->animId      = MAD_CHASER_EMERGE_ARC_HOP_CLIP;
     requestWork->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
     work->moveAccel          = 0;
-    work->moveSpeed          = -0x6E;
+    work->moveSpeed          = MAD_CHASER_EMERGE_ARC_HOP_Y_SPEED;
     work->state++;
 }
 

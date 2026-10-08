@@ -1,10 +1,12 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 #ifndef MAD_CHASER_SHRINK_DEATH_START_HANDLER
-/// Releases the alert for this enemy even when the claim bit is already clear.
+/// Clears this enemy's shared alert ownership, including an inactive claim.
 ///
-/// Reloads the live payload after the sound request, compares only the owner
-/// nibble with the enemy's placement index and clears the complete latch.
+/// Requires a live Enemy in spawnArg2.pointer; its placement index is 0..15.
+/// Reads the current payload after the caller's sound-stop request. Compares
+/// only the latch's owner nibble, clearing the whole byte on a match regardless
+/// of the claim bit. Other owners are retained; no task storage is released.
 static __inline__ void _madChaserDropDeathReleaseAlert(Task* task)
 {
     Enemy* alertEnemy = task->spawnArg2.pointer;

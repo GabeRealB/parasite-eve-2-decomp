@@ -13,15 +13,14 @@ static void MAD_CHASER_SHRINK_DEATH_DESPAWN_HANDLER(Task* task)
     _madChaserEnterTaskState(task, MAD_CHASER_TASK_DESPAWN);
 }
 #else
-/// Puts the task in state 5, the despawn phase, with `state` and
-/// `subState` cleared.
-void madChaserStartDespawn(Task* arg0)
+/// Hands the ordinary-death body to timed despawn at behavior and sub-state zero.
+///
+/// Requires live task-owned work in ordinary-death behavior 6 after shrink has
+/// hidden the model. Enters `MAD_CHASER_TASK_DESPAWN`, whose first step resets
+/// the counter before the 36-update destruction delay. Animation requests and
+/// frame counters are retained here; enemy, work and model storage remain live.
+static void _madChaserStartDespawn(Task* task)
 {
-    MadChaserWork* work;
-
-    work           = (MadChaserWork*)arg0->work;
-    arg0->state    = 5;
-    work->state    = 0;
-    work->subState = 0;
+    _madChaserEnterTaskState(task, MAD_CHASER_TASK_DESPAWN);
 }
 #endif

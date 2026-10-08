@@ -1,71 +1,102 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Answers message 0x2C00 with low nibble 1 (latched in `command`): shows
-/// the model and arms its hit bodies, places the root at the spawn point
-/// bits 8..11 pick from the current map's table (0x427 or 0x428, playing
-/// sound 6 on 0x427), requests animation 7 with an upward launch, and starts
-/// state 1, 4 or 7 by bits 4..7.
-void madChaserEmergeAtSpot(Task* arg0)
+/// Places the emerging root at a room spot, facing opposite its entry heading.
+///
+/// Requires live work/root and a loaded spot table. Command bits 8..11 select
+/// an existing row; the nibble mask alone does not bound a shorter table. XYZ
+/// are parent-coordinate units and heading is wrapped to 4096 units per turn.
+/// Borrows every input; the caller composes the changed root after the request.
+static __inline__ void _madChaserPlaceEmergeRoot(MadChaserWork* work, GfxCoord* root, const OverlayEncounterSpot* spots)
 {
-    MadChaserWork* work  = (MadChaserWork*)arg0->work;
-    TmdObject*     obj   = arg0->extra.tmd;
-    Enemy*         enemy = arg0->spawnArg2.pointer;
-    GfxCoord*      coord = obj->coords;
-    MadChaserWork* w2;
-    s32            id;
-    s32            pan;
+    enum {
+        MAD_CHASER_EMERGE_SPOT_SHIFT = 8,
+        MAD_CHASER_EMERGE_SPOT_MASK  = 0xF
+    };
+
+    work->rotation.vx = 0;
+    work->rotation.vy = (spots[(work->command >> MAD_CHASER_EMERGE_SPOT_SHIFT) & MAD_CHASER_EMERGE_SPOT_MASK].heading + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
+    work->rotation.vz = 0;
+    root->coord.t[0]  = spots[(work->command >> MAD_CHASER_EMERGE_SPOT_SHIFT) & MAD_CHASER_EMERGE_SPOT_MASK].x;
+    root->coord.t[1]  = spots[(work->command >> MAD_CHASER_EMERGE_SPOT_SHIFT) & MAD_CHASER_EMERGE_SPOT_MASK].y;
+    root->coord.t[2]  = spots[(work->command >> MAD_CHASER_EMERGE_SPOT_SHIFT) & MAD_CHASER_EMERGE_SPOT_MASK].z;
+}
+
+/// Consumes an emerge command and launches the selected room-entry movement.
+///
+/// Requires live hidden-form work, enemy and model in emerge behavior zero.
+/// Command bits 8..11 must index the loaded room's spots (0..11 in Dumping Hole,
+/// 0..15 in Garbage Incinerator); other rooms retain the existing transform.
+/// Bits 4..7 select backflip (0), low backward arc (1), or high arc (all others).
+/// Enables pair collision and drawing, disables grid tests and limb shadows,
+/// resets clip 7 at normal rate and launches at +100 Y units per update. Spawn
+/// kind 2 retains its existing primitive buffer; other kinds allocate one.
+/// Clears the command after composing the root. The Dumping Hole sound samples
+/// the previously composed origin before that composition; audio projection
+/// scratch/GTE setup is required. All task-owned storage remains live.
+static void _madChaserEmergeAtSpot(Task* task)
+{
+    enum {
+        MAD_CHASER_EMERGE_SPAWN_KIND_MASK      = 0xF,
+        MAD_CHASER_EMERGE_RETAIN_BUFFER_KIND   = 2,
+        MAD_CHASER_EMERGE_MOVE_SHIFT           = 4,
+        MAD_CHASER_EMERGE_MOVE_MASK            = 0xF,
+        MAD_CHASER_EMERGE_MOVE_BACKFLIP        = 0,
+        MAD_CHASER_EMERGE_MOVE_ARC_BACK        = 1,
+        MAD_CHASER_EMERGE_INITIAL_CLIP         = 7,
+        MAD_CHASER_EMERGE_SOUND_INSTANCE_SHIFT = 8,
+        MAD_CHASER_EMERGE_DUMPING_HOLE_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 6)
+    };
+    MadChaserWork* work  = task->work;
+    TmdObject*     model = task->extra.tmd;
+    Enemy*         enemy = task->spawnArg2.pointer;
+    GfxCoord*      root  = model->coords;
+    MadChaserWork* requestWork;
+    Enemy*         soundEnemy;
+    s32            soundId;
+    s32            audioPan;
     u32            stageAreaKey;
 
     if ((work->command & MAD_CHASER_COMMAND_KIND_MASK) == MAD_CHASER_COMMAND_EMERGE) {
+        // Reveal the body while deferring grid collision until entry is complete.
         work->shadowHidden    = 1;
         work->pairBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        obj->flags           &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        if ((arg0->spawnArg1.value & 0xF) != 2) {
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        model->flags         &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        if ((task->spawnArg1.value & MAD_CHASER_EMERGE_SPAWN_KIND_MASK) != MAD_CHASER_EMERGE_RETAIN_BUFFER_KIND) {
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         }
         enemy->node.state.parts.flags = 0;
         stageAreaKey                  = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
-        if (stageAreaKey == GAME_LOCATION_KEY(4, 39, 0, 0)) {
-            // The 7C store follows 7A here; written first, it schedules
-            // ahead of the heading load.
-            work->rotation.vx = 0;
-            work->rotation.vy = (D_shelter_b3_dumping_hole_8018B74C[(work->command >> 8) & 0xF].heading + 0x800) & 0xFFF;
-            work->rotation.vz = 0;
-            coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[(work->command >> 8) & 0xF].x;
-            coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[(work->command >> 8) & 0xF].y;
-            coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[(work->command >> 8) & 0xF].z;
-            id                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54270006;
-            pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        } else if (stageAreaKey == GAME_LOCATION_KEY(4, 40, 0, 0)) {
-            work->rotation.vx = 0;
-            work->rotation.vy = (D_shelter_b3_garbage_incinerator_801874C4[(work->command >> 8) & 0xF].heading + 0x800) & 0xFFF;
-            work->rotation.vz = 0;
-            coord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[(work->command >> 8) & 0xF].x;
-            coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[(work->command >> 8) & 0xF].y;
-            coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[(work->command >> 8) & 0xF].z;
+        if (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 0, 0)) {
+            _madChaserPlaceEmergeRoot(work, root, D_shelter_b3_dumping_hole_8018B74C);
+            soundEnemy = task->spawnArg2.pointer;
+            soundId    = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << MAD_CHASER_EMERGE_SOUND_INSTANCE_SHIFT) | MAD_CHASER_EMERGE_DUMPING_HOLE_SOUND;
+            audioPan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+            sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        } else if (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 0, 0)) {
+            _madChaserPlaceEmergeRoot(work, root, D_shelter_b3_garbage_incinerator_801874C4);
         }
-        work->moveAccel = 0;
-        work->moveSpeed = 100;
-        w2              = (MadChaserWork*)arg0->work;
-        w2->animRate    = ANIMATION_RATE_ONE;
-        w2->animId      = 7;
-        w2->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
-        switch ((work->command >> 4) & 0xF) {
-            case 0:
-                _madChaserSetBehaviorStateS16(arg0, MAD_CHASER_EMERGE_STATE_BACKFLIP);
+        work->moveAccel          = 0;
+        work->moveSpeed          = 100;
+        requestWork              = task->work;
+        requestWork->animRate    = ANIMATION_RATE_ONE;
+        requestWork->animId      = MAD_CHASER_EMERGE_INITIAL_CLIP;
+        requestWork->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
+        // The following frame runs the selected entry path with its own counter.
+        switch ((work->command >> MAD_CHASER_EMERGE_MOVE_SHIFT) & MAD_CHASER_EMERGE_MOVE_MASK) {
+            case MAD_CHASER_EMERGE_MOVE_BACKFLIP:
+                _madChaserSetBehaviorStateS16(task, MAD_CHASER_EMERGE_STATE_BACKFLIP);
                 break;
-            case 1:
-                _madChaserSetBehaviorStateS16(arg0, MAD_CHASER_EMERGE_STATE_ARC_BACK);
+            case MAD_CHASER_EMERGE_MOVE_ARC_BACK:
+                _madChaserSetBehaviorStateS16(task, MAD_CHASER_EMERGE_STATE_ARC_BACK);
                 break;
             default:
-                _madChaserSetBehaviorStateS16(arg0, MAD_CHASER_EMERGE_STATE_HIGH_ARC);
+                _madChaserSetBehaviorStateS16(task, MAD_CHASER_EMERGE_STATE_HIGH_ARC);
                 break;
         }
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
+        root->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(root);
         work->command = 0;
     }
 }

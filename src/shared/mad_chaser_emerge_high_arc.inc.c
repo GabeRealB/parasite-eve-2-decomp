@@ -3,13 +3,17 @@
 /// Launches the high flip-over hop while retaining the landed arc rotation.
 ///
 /// Requires `work == task->work` and `root == task->extra.tmd->coords`. Borrows
-/// that live storage; the caller applies animation and rebuilds rotation after
-/// this phase change.
+/// that live storage at the Y > 0 crossing of emerge behavior 7. Restores limb
+/// shadows and clamps parent Y to -60 while retaining pitch/heading/roll.
+/// Resets clip 12 at normal rate and launches at -300 Y units per update with
+/// zero acceleration. Clears the u16 frame counter and enters behavior 8;
+/// the caller applies animation and rebuilds rotation after this change.
 static __inline__ void _madChaserEmergeHighArcLaunchFlip(Task* task, MadChaserWork* work, GfxCoord* root)
 {
     enum {
-        MAD_CHASER_EMERGE_HIGH_ARC_FLIP_CLIP = 12,
-        MAD_CHASER_EMERGE_LANDING_Y          = -60
+        MAD_CHASER_EMERGE_HIGH_ARC_FLIP_CLIP    = 12,
+        MAD_CHASER_EMERGE_LANDING_Y             = -60,
+        MAD_CHASER_EMERGE_HIGH_ARC_FLIP_Y_SPEED = -300
     };
     MadChaserWork* requestWork;
 
@@ -21,7 +25,7 @@ static __inline__ void _madChaserEmergeHighArcLaunchFlip(Task* task, MadChaserWo
     requestWork->animId      = MAD_CHASER_EMERGE_HIGH_ARC_FLIP_CLIP;
     requestWork->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
     work->moveAccel          = 0;
-    work->moveSpeed          = -0x12C;
+    work->moveSpeed          = MAD_CHASER_EMERGE_HIGH_ARC_FLIP_Y_SPEED;
     work->state++;
 }
 
