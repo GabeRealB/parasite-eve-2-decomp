@@ -487,14 +487,14 @@ TaskMessageEntry D_dryfield_water_tower_801803A0[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantWaterTowerMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldWaterTowerUseKeyItemMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldWaterTowerRoomActionMsg },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_water_tower_8017DD04 },
+    { ROOM_MESSAGE_COMMAND, dryfieldWaterTowerCommandMessage },
     { ROOM_MESSAGE_SOUND, waterTowerSoundMsg },
     { ROOM_MESSAGE_ACTOR_EVENT, dryfieldWaterTowerActorEventMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_water_tower_801803D8[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_water_tower_8017D948, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, dryfieldWaterTowerMechanismPromptTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

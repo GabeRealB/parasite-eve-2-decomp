@@ -2906,7 +2906,7 @@ objects = [
 ]
 
 [rooms.overlays.neo_ark_island]
-label = "the head hands the id word to _hdr so the first unit's .rodata starts at 0x4, which is what keeps func_neo_ark_island_8017E844's switch table at 0x64: its object offset is 0x60 only from that base, so GCC's .align 3 does not pad it - from 0x0 the pad lands it at 0x68 and the overlay builds 4 bytes long"
+label = "the head hands the id word to _hdr so the first unit's .rodata starts at 0x4, which is what keeps neoArkIslandGalleryDepartureTask's switch table at 0x64: its object offset is 0x60 only from that base, so GCC's .align 3 does not pad it - from 0x0 the pad lands it at 0x68 and the overlay builds 4 bytes long"
 id = 433
 objects = [
   { kind = "packageId" },

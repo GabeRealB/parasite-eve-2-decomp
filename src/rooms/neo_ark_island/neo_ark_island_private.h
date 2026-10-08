@@ -24,7 +24,16 @@ extern TaskDesc D_neo_ark_island_80181B78;
 
 // Callbacks referenced by the overlay's shared data tables.
 
-void func_neo_ark_island_8017E844(Task*);
+/// Prompts for departure to the Submarine Gallery and commits an accepted destination.
+///
+/// Start in state 0 after staging the resolved area/warp/room and holding player
+/// control. CAP reply key 10 resumes actors, waits one additional update, stops
+/// non-ambient sounds and requests a saved-state reload with frame capture.
+/// Other replies release the task and resume player control. Requires the room
+/// CAP resources and overlay throughout the sequence; commits only those three
+/// location bytes, preserving stage and view. Only one staged departure may
+/// be pending at a time.
+void neoArkIslandGalleryDepartureTask(Task* task);
 
 /// Refuses key-item use on the island without changing room state.
 ///
@@ -32,7 +41,16 @@ void func_neo_ark_island_8017E844(Task*);
 /// returns `ROOM_KEY_ITEM_USE_REFUSED` so the item menu shows its refusal.
 s32 neoArkIslandRejectKeyItemMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
 
-s32 func_neo_ark_island_8017E968(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+/// Resolves a destination and defers gallery departure to the island's CAP prompt.
+///
+/// Borrows complete eight-byte request and writable reply records, which may
+/// alias. Copies the request before consulting the loaded Neo Ark map overlay.
+/// For the Submarine Gallery, execution stages the resolved area/warp/room,
+/// holds player control and starts the departure task; queries do none of these.
+/// Both return zero to suppress immediate transition, even on spawn failure.
+/// Other destinations return 1. Retains no request/reply pointer. A later
+/// execution overwrites the shared staged destination of an earlier departure.
+s32 neoArkIslandResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 
 /// Ignores island CAP room commands and returns zero.
 ///

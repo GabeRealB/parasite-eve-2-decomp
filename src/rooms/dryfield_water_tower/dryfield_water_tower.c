@@ -45,7 +45,7 @@ extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
 extern u8           gRoomEventActive;
 
-static void func_dryfield_water_tower_8017DD6C(Task* arg0);
+static void _dryfieldWaterTowerInitializeRoomTask(Task* task);
 static void _dryfieldWaterTowerIdleRoomTask(Task* task);
 
 static void _dryfieldWaterTowerRestoreMechanismSpriteVisibility(void);
@@ -69,62 +69,76 @@ RoomEventReq gRoomEventReq;
 /// The room entry task's three states: install the room and spawn the cap
 /// script, idle, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_water_tower_8017D5DC = {
-    { func_dryfield_water_tower_8017DD6C, _dryfieldWaterTowerIdleRoomTask, taskKill },
+    { _dryfieldWaterTowerInitializeRoomTask, _dryfieldWaterTowerIdleRoomTask, taskKill },
 };
 
-/// The room's scene task, spawned on script event 7. Unless nibble 0x55 has
-/// reached 2 it hides the player's weapon, runs CAP command 7 and waits for it,
-/// saving the view byte; a key answer of 0xA then sets nibble 0x55 to 2, sends
-/// `DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN` to the cap script and plays 0x52140009, and any other answer restores
-/// the session and the view byte. With nibble 0x55 already at 2 it only runs
-/// CAP command 7. Every finished path kills the task.
-void func_dryfield_water_tower_8017D948(Task* arg0)
+/// Restores ordinary presentation after declining the tower mechanism prompt.
+static inline void _dryfieldWaterTowerCancelMechanismPrompt(void)
 {
-    switch (arg0->state) {
-        case 0:
-            if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) < 2) {
+    enum { DRYFIELD_WATER_TOWER_EVENT_IDLE = 0 };
+
+    gGameSession->eventState                                   = DRYFIELD_WATER_TOWER_EVENT_IDLE;
+    gGameSession->hideHud                                      = 0;
+    gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_water_tower_8018768C.view;
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+}
+
+void dryfieldWaterTowerMechanismPromptTask(Task* task)
+{
+    enum {
+        DRYFIELD_WATER_TOWER_PROMPT_START          = 0,
+        DRYFIELD_WATER_TOWER_PROMPT_WAIT           = 1,
+        DRYFIELD_WATER_TOWER_PROMPT_REPLY          = 2,
+        DRYFIELD_WATER_TOWER_CAP_MECHANISM_COMMAND = 7,
+        DRYFIELD_WATER_TOWER_PROMPT_ACCEPTED_KEY   = 10,
+        DRYFIELD_WATER_TOWER_EVENT_ACTIVE          = 1,
+    };
+
+    switch (task->state) {
+        case DRYFIELD_WATER_TOWER_PROMPT_START:
+            if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) < GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED) {
+                // Hold presentation until the prompt chooses a run or cancellation.
                 _dryfieldWaterTowerRestoreMechanismSpriteVisibility();
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
-                gGameSession->eventState = 1;
+                capRunCommand(DRYFIELD_WATER_TOWER_CAP_MECHANISM_COMMAND, CAP_PLAYBACK_IN_PLACE);
+                gGameSession->eventState = DRYFIELD_WATER_TOWER_EVENT_ACTIVE;
                 {
-                    u32 view                             = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-                    s32 state                            = arg0->state;
-                    D_dryfield_water_tower_8018768C.view = view;
-                    arg0->state                          = state + 1;
+                    u32 savedView                        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+                    s32 promptState                      = task->state;
+                    D_dryfield_water_tower_8018768C.view = savedView;
+                    task->state                          = promptState + 1;
                 }
                 return;
             }
-            capRunCommandWithTransition(7);
+            capRunCommandWithTransition(DRYFIELD_WATER_TOWER_CAP_MECHANISM_COMMAND);
             break;
-        case 1:
+        case DRYFIELD_WATER_TOWER_PROMPT_WAIT:
             if (capIsBusy() == 0) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
                 /* keeps the `lw state` behind the `sb` instead of filling its load delay */
-                arg0->state = arg0->state + 1;
+                task->state = task->state + 1;
             }
             return;
-        case 2:
-            if (capGetVariantKey() == 0xA) {
-                gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 2);
+        case DRYFIELD_WATER_TOWER_PROMPT_REPLY:
+            if (capGetVariantKey() == DRYFIELD_WATER_TOWER_PROMPT_ACCEPTED_KEY) {
+                // Hand the accepted run to the persistent prop-scene driver.
+                gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED);
                 _dryfieldWaterTowerRestoreMechanismSpriteVisibility();
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskMessageDispatch(D_dryfield_water_tower_801876A0, DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN, 0, 0);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 9), 0, 0);
             } else {
-                gGameSession->eventState                                   = 0;
-                gGameSession->hideHud                                      = 0;
-                gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_water_tower_8018768C.view;
-                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+                // Cancellation restores the saved view and ordinary player control.
+                _dryfieldWaterTowerCancelMechanismPrompt();
             }
             break;
         default:
             return;
     }
-    taskKill(arg0);
+    taskKill(task);
 }
 
 #include "../../shared/water_tower_event_msg.inc.c"
@@ -155,12 +169,15 @@ s32 dryfieldWaterTowerUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 s
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// The room's handler for message 0x13F0: script event 7 spawns the scene
-/// task; every event answers 0.
-s32 func_dryfield_water_tower_8017DD04(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 dryfieldWaterTowerCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    if (arg2 == 7) {
-        taskSpawnFromTable(D_dryfield_water_tower_801803D8, 0, 0, 0);
+    enum {
+        DRYFIELD_WATER_TOWER_COMMAND_MECHANISM           = 7,
+        DRYFIELD_WATER_TOWER_MECHANISM_PROMPT_DESCRIPTOR = 0,
+    };
+
+    if (commandId == DRYFIELD_WATER_TOWER_COMMAND_MECHANISM) {
+        taskSpawnFromTable(D_dryfield_water_tower_801803D8, DRYFIELD_WATER_TOWER_MECHANISM_PROMPT_DESCRIPTOR, 0, 0);
     }
     return 0;
 }
@@ -175,17 +192,20 @@ s32 dryfieldWaterTowerActorEventMsg(Task* task, s32 messageId, s32 eventId, s32 
     return taskMessageDispatch(D_dryfield_water_tower_801876A0, messageId, eventId, eventArg);
 }
 
-/// State 0 of the room entry task: installs the room's message table,
-/// registers the task in game pointer slot 7 and spawns the cap script.
-static void func_dryfield_water_tower_8017DD6C(Task* arg0)
+/// Registers the water-tower message receiver and starts its prop-scene driver.
+///
+/// Enter in state 0 with the room resources loaded. Publishes the room task
+/// and stores the spawned driver, including NULL on failure, before idling
+/// in state 1. The room and driver borrow the overlay throughout their lives.
+static void _dryfieldWaterTowerInitializeRoomTask(Task* task)
 {
-    Task* temp_v0;
+    Task* propSceneTask;
 
-    arg0->msgTable = D_dryfield_water_tower_801803A0;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    temp_v0                         = taskSpawnFromTable(D_dryfield_water_tower_80182384, 0, 0, 0);
-    arg0->state                     = (s32)(arg0->state + 1);
-    D_dryfield_water_tower_801876A0 = temp_v0;
+    task->msgTable = D_dryfield_water_tower_801803A0;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    propSceneTask                   = taskSpawnFromTable(D_dryfield_water_tower_80182384, 0, 0, 0);
+    task->state                     = task->state + 1;
+    D_dryfield_water_tower_801876A0 = propSceneTask;
 }
 
 /// Keeps the installed room task available for messages between entry and teardown.
@@ -193,12 +213,10 @@ static void _dryfieldWaterTowerIdleRoomTask(Task* task)
 {
 }
 
-/// Runs the room entry task's current state from its three-entry table, which
-/// it copies onto the stack before the call.
-void func_dryfield_water_tower_8017DDD8(Task* task)
+void dryfieldWaterTowerRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_water_tower_8017D5DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_water_tower_8017D5DC;
+    stateHandlers.funcs[task->state](task);
 }

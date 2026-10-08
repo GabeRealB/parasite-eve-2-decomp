@@ -125,7 +125,7 @@ extern WorldCollisionGrid D_dryfield_warehouse_801802A8[1];
 extern WorldCollisionGrid D_dryfield_warehouse_801809AC[1];
 extern WorldCollisionGrid D_dryfield_warehouse_80181038[1];
 
-void        func_dryfield_warehouse_8017E090(Task*);
+static void _dryfieldWarehouseCutsceneTask(Task* task);
 static void _dryfieldWarehouseFadeOutTask(Task* task);
 
 /// Phases called under the skip script's fade, separated by one script tick.
@@ -211,7 +211,7 @@ EvsCommand D_dryfield_warehouse_8017FA00[11] = {
 };
 
 TaskDesc D_dryfield_warehouse_8017FB08[3] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_warehouse_8017E090, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldWarehouseCutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _dryfieldWarehouseFadeOutTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
 };
@@ -753,65 +753,86 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
 #undef DRYFIELD_WAREHOUSE_RESTORE_COMMAND_PLAYER
 }
 
-/// Main loop of the warehouse's cutscene task, the owner of the
-/// `_DryfieldWarehouseCutsceneWork` block. State 0 arms the script once: it waits while the attachment wheel
-/// is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is live, so it does nothing.
-/// Otherwise it parks the zeroed work block in `Task::work` -- a failed
-/// `memMalloc` kills the task, but the record below is dispatched either way --
-/// fills `player` from pointer slot 3 and republishes this task as
-/// `D_dryfield_warehouse_801821BC` so the room's script helpers reach that block.
+/// Drives the warehouse cutscene's script-selected commands and owned work.
 ///
-/// The initial equipped-weapon request selects animation 1 without blending
-/// or world collision. It is sent synchronously to a freshly fetched slot 3.
-///
-/// State 0 then falls into state 1, which only steps the machine, so a task
-/// entering at 1 runs the step alone. State 2 kills the task once the session
-/// has torn down (`gGameSession->eventState`), otherwise runs the script.
-void func_dryfield_warehouse_8017E090(Task* arg0)
+/// State 0 waits for the attachment wheel and display transition to clear,
+/// allocates zeroed work and selects the player's equipped-bank idle clip.
+/// Allocation failure kills the task but retains the subsequent animation
+/// request, script start and state writes. State 1 starts the skippable script;
+/// state 2 executes its commands until `eventState` clears, then requests release
+/// with result zero. Normal teardown frees `Task::work`. Requires a live player,
+/// its selected animation bank, and the room overlay throughout the sequence.
+static void _dryfieldWarehouseCutsceneTask(Task* task)
 {
+    enum {
+        DRYFIELD_WAREHOUSE_SCENE_INITIALIZE           = 0,
+        DRYFIELD_WAREHOUSE_SCENE_START_SCRIPT         = 1,
+        DRYFIELD_WAREHOUSE_SCENE_EXECUTE              = 2,
+        DRYFIELD_WAREHOUSE_PRIMARY_CHARACTER          = 1,
+        DRYFIELD_WAREHOUSE_PRIMARY_WEAPON_BANK_BASE   = 1,
+        DRYFIELD_WAREHOUSE_ALTERNATE_WEAPON_BANK_BASE = 34,
+        DRYFIELD_WAREHOUSE_PLAYER_IDLE_ANIMATION      = 1,
+        DRYFIELD_WAREHOUSE_PLAYER_TICK_HOLD           = 1,
+    };
     _DryfieldWarehouseCutsceneWork* work;
-    AnimationPlayRequest            rec;
+    AnimationPlayRequest            animationRequest;
     s32                             weaponId;
-    s32                             anim;
+    s32                             bankIndex;
 
-    switch (arg0->state) {
-        case 0:
+/// Selects and plays the equipped weapon's idle clip for this cutscene.
+///
+/// Captures weaponId, bankIndex, animationRequest and this function's bank/clip
+/// constants. The stack request is borrowed only through synchronous dispatch.
+/// Takes no arguments; use inside a braced block with the player and bank live.
+#define DRYFIELD_WAREHOUSE_PLAY_CUTSCENE_IDLE_ANIMATION()                                                                                      \
+    {                                                                                                                                          \
+        weaponId = gPlayerStatus.weapon;                                                                                                       \
+        /* Dispatch borrows this request; playback borrows the selected bank. */                                                               \
+        bankIndex                             = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_WAREHOUSE_PRIMARY_CHARACTER) \
+                                                    ? weaponId + DRYFIELD_WAREHOUSE_PRIMARY_WEAPON_BANK_BASE                                   \
+                                                    : weaponId + DRYFIELD_WAREHOUSE_ALTERNATE_WEAPON_BANK_BASE;                                \
+        animationRequest.source.index         = bankIndex;                                                                                     \
+        animationRequest.animationId          = DRYFIELD_WAREHOUSE_PLAYER_IDLE_ANIMATION;                                                      \
+        animationRequest.blend                = ANIMATION_BLEND_RESET;                                                                         \
+        animationRequest.blendFrames          = 0;                                                                                             \
+        animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                             \
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &animationRequest, 0);                   \
+    }
+
+    switch (task->state) {
+        case DRYFIELD_WAREHOUSE_SCENE_INITIALIZE:
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 work       = memMalloc(sizeof(*work), false);
-                arg0->work = work;
+                task->work = work;
                 if (work == NULL) {
-                    taskKill(arg0);
+                    taskKill(task);
                 } else {
                     memFillBytes(work, 0, sizeof(*work));
                     work->player                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                    D_dryfield_warehouse_801821BC = arg0;
+                    D_dryfield_warehouse_801821BC = task;
                 }
-                weaponId                 = gPlayerStatus.weapon;
-                anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                rec.source.index         = anim;
-                rec.animationId          = 1;
-                rec.blend                = ANIMATION_BLEND_RESET;
-                rec.blendFrames          = 0;
-                rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+                DRYFIELD_WAREHOUSE_PLAY_CUTSCENE_IDLE_ANIMATION();
                 D_dryfield_warehouse_801821C0 = NULL;
-                D_80115768                    = 1;
-                arg0->state                   = arg0->state + 1;
-                case 1:
-                    evsStartScriptWithSkip(D_dryfield_warehouse_8017F880, EVENT_SCRIPT_HUD_HIDE_RESTORE,
-                                           D_dryfield_warehouse_8017FA00);
-                    arg0->state = arg0->state + 1;
-                    return;
-            }
-            return;
-        case 2:
-            if (gGameSession->eventState == 0) {
-                taskRequestKill(arg0, 0);
+                D_80115768                    = DRYFIELD_WAREHOUSE_PLAYER_TICK_HOLD;
+                task->state                   = task->state + 1;
+            } else {
                 return;
             }
-            _dryfieldWarehouseExecuteCutsceneCommand(arg0);
+            // Start the script in the same update as initialization.
+        case DRYFIELD_WAREHOUSE_SCENE_START_SCRIPT:
+            evsStartScriptWithSkip(D_dryfield_warehouse_8017F880, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                   D_dryfield_warehouse_8017FA00);
+            task->state = task->state + 1;
+            return;
+        case DRYFIELD_WAREHOUSE_SCENE_EXECUTE:
+            if (gGameSession->eventState == 0) {
+                taskRequestKill(task, 0);
+                return;
+            }
+            _dryfieldWarehouseExecuteCutsceneCommand(task);
             break;
     }
+#undef DRYFIELD_WAREHOUSE_PLAY_CUTSCENE_IDLE_ANIMATION
 }
 
 #include "../../shared/screen_fade_in.inc.c"

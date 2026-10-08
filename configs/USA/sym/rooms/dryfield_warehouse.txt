@@ -87,3 +87,4 @@ _dryfieldWarehouseInitializeRoomTask = 0x8017d99c; // type:func
 dryfieldWarehouseRoomTask = 0x8017da00; // type:func
 _dryfieldWarehouseSkipCutscene = 0x8017da58; // type:func
 _dryfieldWarehouseExecuteCutsceneCommand = 0x8017dbb0; // type:func
+_dryfieldWarehouseCutsceneTask = 0x8017e090; // type:func

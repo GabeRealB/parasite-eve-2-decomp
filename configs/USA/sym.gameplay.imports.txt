@@ -627,7 +627,7 @@ acropolisRoofGardenLeafFallTask = 0x8017F10C; // type:func absolute:True owner=a
 
 acropolisSanctuaryRoomEffectTask = 0x8017E00C; // type:func absolute:True owner=acropolis_sanctuary
 
-acropolisSanctuaryMosaicTask = 0x8017E134; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
+acropolisSanctuaryMosaicTask = 0x8017E134; // type:func absolute:True owner=acropolis_sanctuary
 
 acropolisSanctuaryMosaicTileTask = 0x8017E338; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
 
@@ -840,7 +840,7 @@ neoArkBridgeRoomVisualEffectsFlashTask = 0x8017FF84; // type:func absolute:True 
 
 neoArkBridgeRoomVisualEffectsTwinTrailTask = 0x801809E8; // type:func absolute:True owner=neo_ark_bridge
 
-func_neo_ark_bridge_801812D0 = 0x801812D0; // type:func absolute:True owner=neo_ark_bridge
+neoArkBridgeRoomVisualEffectsSparkBurstTask = 0x801812D0; // type:func absolute:True owner=neo_ark_bridge
 
 neoArkForestZoneConfigureEffectsTask = 0x8017E3C0; // type:func absolute:True owner=neo_ark_forest_zone
 
@@ -1799,7 +1799,7 @@ dryfieldMotelBalconyInitRoomEffectsTask = 0x8017DC28; // type:func absolute:True
 
 dryfieldMotelRoom6DrawGlowTask = 0x80182978; // type:func absolute:True owner=dryfield_motel_room_6
 
-func_dryfield_water_hole_8017E040 = 0x8017E040; // type:func absolute:True owner=dryfield_water_hole
+dryfieldWaterHoleRoomEffectsTask = 0x8017E040; // type:func absolute:True owner=dryfield_water_hole
 
 dryfieldNightGeneralStoreDrawLightShaftsTask = 0x8017E6C8; // type:func absolute:True owner=dryfield_night_general_store shared=rooms
 

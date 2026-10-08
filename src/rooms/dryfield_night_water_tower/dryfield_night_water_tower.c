@@ -61,12 +61,16 @@ s32 dryfieldNightWaterTowerRejectKeyItemUse(Task* unusedTask, s32 unusedMessageI
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// The room's handler for message 0x13F0: script event 7 starts CAP slot 7;
-/// every event answers 0.
-s32 func_dryfield_night_water_tower_8017DAA4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 dryfieldNightWaterTowerCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    if (arg2 == 7) {
-        capStartSequenceSlot(7, 1, 3);
+    enum {
+        DRYFIELD_NIGHT_WATER_TOWER_COMMAND_MECHANISM = 7,
+        DRYFIELD_NIGHT_WATER_TOWER_CAP_MECHANISM_KEY = 3,
+    };
+
+    if (commandId == DRYFIELD_NIGHT_WATER_TOWER_COMMAND_MECHANISM) {
+        capStartSequenceSlot(DRYFIELD_NIGHT_WATER_TOWER_COMMAND_MECHANISM, CAP_PLAYBACK_DISPLAY_TRANSITION,
+                             DRYFIELD_NIGHT_WATER_TOWER_CAP_MECHANISM_KEY);
     }
     return 0;
 }

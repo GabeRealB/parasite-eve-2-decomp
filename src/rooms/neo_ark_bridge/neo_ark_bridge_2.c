@@ -939,7 +939,7 @@ void neoArkBridgeRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_neo_ark_bridge_801812D0(Task* task)
+void neoArkBridgeRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

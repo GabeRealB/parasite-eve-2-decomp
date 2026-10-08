@@ -52,7 +52,7 @@ TaskDesc D_neo_ark_island_80181B30 = { { { TASK_BODY_NONE, 192 } }, waterRefract
 TaskDesc D_neo_ark_island_80181B3C = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
 TaskMessageEntry D_neo_ark_island_80181B48[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_island_8017E968 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, neoArkIslandResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, neoArkIslandRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, neoArkIslandIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, neoArkIslandIgnoreCommandMessage },
@@ -60,7 +60,7 @@ TaskMessageEntry D_neo_ark_island_80181B48[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_neo_ark_island_80181B78 = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_island_8017E844, { .value = 0 } };
+TaskDesc D_neo_ark_island_80181B78 = { { { TASK_BODY_NONE, 32 } }, neoArkIslandGalleryDepartureTask, { .value = 0 } };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 

@@ -44000,7 +44000,7 @@ scheduling win showed up as `regs=7` in the score.
 `SOFT_BARRIER()` between the two statements is the fix; the volatile
 `SCHED_BARRIER()` matches too, so prefer the soft one. Statement order does not
 help — writing the increment first emits the whole `lw`/`addiu`/`sw` block
-before the store. `func_dryfield_water_tower_8017D948` is the example.
+before the store. `dryfieldWaterTowerMechanismPromptTask` is the example.
 
 ## Descending clear loop: keep the start index a *variable* in the walker init
 
@@ -44349,7 +44349,7 @@ taskKill(promptTask);
 ```
 
 `dryfieldWaterTankMechanismPromptTask` is the example. The sibling
-`func_dryfield_water_tower_8017D948` does not need this: `field_1 = 1` sits
+`dryfieldWaterTowerMechanismPromptTask` does not need this: `field_1 = 1` sits
 after more calls, so the hoisted `1` is already the lower-priority allocno.
 
 ## Shared call tail: duplicate the call, don't hoist its args into locals
@@ -49415,9 +49415,9 @@ defect is the arity therefore reports as a two-instruction structural difference
 check `$a0` at the `jal` before reading the scheduler dumps. These room
 `INCLUDE_ASM` seeds are the same body copied across a family, so a matched
 sibling in another overlay usually already shows the right call — here
-`_dryfieldBackStreetInitializeRoomTask` / `func_dryfield_water_hole_8017D7DC` /
+`_dryfieldBackStreetInitializeRoomTask` / `_dryfieldWaterHoleInitializeRoomTask` /
 `_mistR21InitializeRoomTask` all carry `gameSetTaskSlot(index, 7)` verbatim. Compare
-`func_dryfield_back_street_8017D8B4` / `func_dryfield_water_hole_8017D7DC` /
+`func_dryfield_back_street_8017D8B4` / `_dryfieldWaterHoleInitializeRoomTask` /
 `_mistR21InitializeRoomTask` all carry `gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM)` verbatim. Compare
 against one of those before reading the dumps.
 
@@ -90110,7 +90110,7 @@ Inputs: `base.c` (m2c)
 `base_3.c` (subscript at the use site, 100.000%)
 `4a9708be907b33dca8e230c5d0b826a31227fb187ee4caa5122eb577cec1d1c3`.
 
-## A `regs`-only residue can be a sched1 decision, and the MEM flag on the stores is what flipped it (func_dryfield_water_tower_8017DD6C, 2026-09-15)
+## A `regs`-only residue can be a sched1 decision, and the MEM flag on the stores is what flipped it (_dryfieldWaterTowerInitializeRoomTask, 2026-09-15)
 
 `field_24 = &msgTable; gameSetTaskSlot(arg0, 7); temp = taskSpawnFromTable(&desc,
 0, 0, 0); arg0->state++; D_...876A0 = temp;` — 25 instructions in one basic block.
@@ -90334,6 +90334,8 @@ function. Write them from this template rather than from their m2c seeds.
 constant `-0x1A4`, the shelter rooms load their own `D_<room>_<addr>` u16 and
 store that. Four room functions read it back with `lh` — `func_dryfield_water_hole_8017E040`
 and `dryfieldNightWaterHoleSplashAndLightShaftsTask` feed it to `actorRenderComposeCoord` as a
+store that. Four room functions read it back with `lh` — `dryfieldWaterHoleRoomEffectsTask`
+and `func_dryfield_night_water_hole_8017E6D0` feed it to `actorRenderComposeCoord` as a
 world Y (`sw $v0, 0x2C($sp)` before `actorRenderComposeCoord(&coord)`), and the
 `dryfield_night_water_hole` one also gates a spawn loop on `slt` of it against a
 state block's `0x1C`.
@@ -91514,7 +91516,7 @@ plain `move` of the same register.
 So the rule is about which address constant is named first, not about the
 register: write the global's field through its own type and the object's address
 is the shared value. This is the same source-level choice the
-`func_dryfield_water_tower_8017DD6C` entry above turns on, and its mechanism is a
+`_dryfieldWaterTowerInitializeRoomTask` entry above turns on, and its mechanism is a
 separate one that still applies - the typed member also sets `MEM_IN_STRUCT_P`
 on the store (the `/s`), which sched1 consults. Here the two coincide and the
 typed form is right for both; a `regs`-only residue from a similar rewrite is
@@ -91624,7 +91626,7 @@ live switch value came out as the first parameter. Restoring the family's arity
 `$a2`. Both fixes together scored 100.00% with every penalty zero on the first
 build.
 
-## m2c cannot emit the unaligned 8-byte struct copy that opens a room handler (func_neo_ark_island_8017E968, 2026-09-16)
+## m2c cannot emit the unaligned 8-byte struct copy that opens a room handler (neoArkIslandResolveRoomTransition, 2026-09-16)
 
 Every room message handler in the `neo_ark` family opens by copying the incoming
 save location over the outgoing one, which GCC expands to `lwl`/`lwr` +
@@ -95054,7 +95056,7 @@ varies (island returns 0 for its message, `shelter_1f_bulwark` 2 for one branch,
 the observatory's event handler always 1) independently of the rest.
 
 `neoArkSubmarineGalleryResolveRoomEvent` was matched this way in one build off
-`func_neo_ark_island_8017E968`, at 100.000% / zero penalties, from an m2c seed at
+`neoArkIslandResolveRoomTransition`, at 100.000% / zero penalties, from an m2c seed at
 57.227%.
 
 Sizing the two data symbols is the one thing to check first: on this overlay the
@@ -119611,9 +119613,9 @@ permuter, no tracer. The record-payload and ternary halves of this function are
 sections 25 and 28 above, and were already documented. `overlay_dup_index.py
 find` reports the body as its own only copy.
 
-## The ternary's `j` over the else arm is also a cse1 EBB boundary: two `force_reg` constants stay in two registers (func_dryfield_warehouse_8017E090, 2026-09-17)
+## The ternary's `j` over the else arm is also a cse1 EBB boundary: two `force_reg` constants stay in two registers (_dryfieldWarehouseCutsceneTask, 2026-09-17)
 
-`func_dryfield_warehouse_8017E090` builds the same 0x3E8 `AnimationPlayRequest` payload as its
+`_dryfieldWarehouseCutsceneTask` builds the same 0x3E8 `AnimationPlayRequest` payload as its
 sibling `_dryfieldWarehouseSkipCutscene` (section 29 above), and retail keeps
 the conditional's `1` and the record's `1` in *different* registers:
 
@@ -119693,7 +119695,7 @@ Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 Inputs: base.i `5e171a2ccc85608489c20b6557c4bd419910cfe69266009827db53d97a6f5a6a`,
 base_1.i `12b78655e34e3e377a613db2e87314904e302db8023b5c1ded8f55369e3a2204`,
 base_2.i `373a8286f3d5d1b40fd4972ec7de16923990437ec38efb83a3696039a958e15f`.
-Evidence: scratch `nonmatchings/func_dryfield_warehouse_8017E090-vacuum/`,
+Evidence: scratch `nonmatchings/_dryfieldWarehouseCutsceneTask-vacuum/`,
 `base_1_diff` (the `li s0,1` / `bne v0,s0` / `addiu v0,v0,1` block),
 `base_2.score.json`, and the `(insn 94)` / `(insn 109)` pair in `base_2.i.cse`
 against `(insn 96)` / `(insn 112)` in `base_1.i.cse`. No pins, no permuter, no
@@ -140183,7 +140185,7 @@ cross-jumping (arms that `break` merge into the last copy, arms that store
 and `return` merge into the first), see "A `return` written per path
 cross-jumps away".
 
-## A symbol address built in `$t0` inside a call-heavy loop is a spilled constant pointer local, rematerialised by reload (func_dryfield_water_hole_8017E040, 2026-09-23)
+## A symbol address built in `$t0` inside a call-heavy loop is a spilled constant pointer local, rematerialised by reload (dryfieldWaterHoleRoomEffectsTask, 2026-09-23)
 
 **Symptom.** Inside a loop with several calls, the target builds
 `&gGfxViewCoord` as `lui t0` / `addiu t0,t0` right before its one store

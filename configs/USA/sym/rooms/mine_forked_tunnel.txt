@@ -131,3 +131,5 @@ _mineForkedTunnelRestoreAreaObjectSoundMix = 0x8017e2b4; // type:func
 _mineForkedTunnelResolveRoomVariant = 0x8017e0f0; // type:func
 _mineForkedTunnelInitRoomTask = 0x8017e1e8; // type:func
 _mineForkedTunnelOakBoardPromptTask = 0x8017e38c; // type:func
+_mineForkedTunnelBoardCommandMessage = 0x8017e134; // type:func
+_mineForkedTunnelSwitchInteractionTask = 0x8017e2e0; // type:func

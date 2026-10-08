@@ -85,3 +85,5 @@ neoArkIslandSoundMessage = 0x8017ea34; // type:func
 _neoArkIslandRoomIdleState = 0x8017eb08; // type:func
 _neoArkIslandInitializeRoom = 0x8017ea94; // type:func
 neoArkIslandRoomTask = 0x8017eb10; // type:func
+neoArkIslandGalleryDepartureTask = 0x8017e844; // type:func
+neoArkIslandResolveRoomTransition = 0x8017e968; // type:func

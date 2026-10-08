@@ -51,8 +51,8 @@ s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 /// Staging save location the island commits: area / warp / room
-/// hold what `func_neo_ark_island_8017E968` copies out of the incoming
-/// location, and `func_neo_ark_island_8017E844` moves those same three bytes
+/// hold what `neoArkIslandResolveRoomTransition` copies out of the resolved
+/// destination, and `neoArkIslandGalleryDepartureTask` moves those same three bytes
 /// into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area` / `warp` / `room`.
 extern RoomEventMsg D_neo_ark_island_80184008;
 
@@ -567,45 +567,51 @@ static const TaskFuncTable3 D_neo_ark_island_8017D614 = {
     { _neoArkIslandInitializeRoom, _neoArkIslandRoomIdleState, taskKill }
 };
 
-/// Island arrival sequence, advanced one step per call: step 0 asks for the
-/// caption, step 1 waits for the CAP system to go idle, step 2 clears the mode
-/// flag and waits for the event key it answers with - anything but 0xA kills
-/// the task and messages the player weapon - step 3 is the shared advance, and
-/// step 4 raises the outgoing sound, commits the staged save location to
-/// `gMcSaveData` and spawns the task's successor.
-void func_neo_ark_island_8017E844(Task* arg0)
+void neoArkIslandGalleryDepartureTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
-            capSpawnEventIfIdle(1, CAP_EVENT_NO_FLAGS);
-            arg0->state++;
+    enum {
+        NEO_ARK_ISLAND_DEPARTURE_START          = 0,
+        NEO_ARK_ISLAND_DEPARTURE_WAIT           = 1,
+        NEO_ARK_ISLAND_DEPARTURE_REPLY          = 2,
+        NEO_ARK_ISLAND_DEPARTURE_DELAY          = 3,
+        NEO_ARK_ISLAND_DEPARTURE_COMMIT         = 4,
+        NEO_ARK_ISLAND_DEPARTURE_CAP_COMMAND    = 1,
+        NEO_ARK_ISLAND_DEPARTURE_ACCEPTED_KEY   = 10,
+        NEO_ARK_ISLAND_DEPARTURE_SPRITE_VARIANT = 1,
+    };
+
+    switch (task->state) {
+        case NEO_ARK_ISLAND_DEPARTURE_START:
+            capSpawnEventIfIdle(NEO_ARK_ISLAND_DEPARTURE_CAP_COMMAND, CAP_EVENT_NO_FLAGS);
+            task->state++;
             return;
-        case 1:
+        case NEO_ARK_ISLAND_DEPARTURE_WAIT:
             if (capIsBusy() != 0) {
                 return;
             }
-            arg0->state++;
+            task->state++;
             return;
-        case 2:
-            if (capGetVariantKey() != 0xA) {
-                taskKill(arg0);
+        case NEO_ARK_ISLAND_DEPARTURE_REPLY:
+            if (capGetVariantKey() != NEO_ARK_ISLAND_DEPARTURE_ACCEPTED_KEY) {
+                taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 return;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            arg0->state++;
+            task->state++;
             return;
-        case 3:
-            arg0->state++;
+        case NEO_ARK_ISLAND_DEPARTURE_DELAY:
+            task->state++;
             return;
-        case 4:
+        case NEO_ARK_ISLAND_DEPARTURE_COMMIT:
+            // Commit the staged destination only after the prompt and delay tick.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gDisplayState.spriteVariant                                = 1;
+            gDisplayState.spriteVariant                                = NEO_ARK_ISLAND_DEPARTURE_SPRITE_VARIANT;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_island_80184008.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_island_80184008.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_island_80184008.areaId)[1];
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
@@ -615,25 +621,27 @@ s32 neoArkIslandRejectKeyItemMessage(Task* unusedTask, s32 unusedMessageId, s32 
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Island message handler. Message 0x1E, while the incoming location still
-/// reports no pending flag, latches the save location the outgoing message
-/// carries and starts the cutscene that leads to the island's arrival. Returns
-/// 1 for every other message and for a location that is already latched.
-s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+s32 neoArkIslandResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    mapNeoArkResolveRoomVariant(src, dst);
-    if (src->areaId == GAME_AREA_NEO_ARK_SUBMARINE_GALLERY) {
-        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_neo_ark_island_80184008.warp              = (u8)dst->areaId;
-            D_neo_ark_island_80184008.field_4           = dst->warp;
-            ((u8*)&D_neo_ark_island_80184008.areaId)[1] = dst->room;
+    enum {
+        NEO_ARK_ISLAND_TRANSITION_DEFERRED = 0,
+        NEO_ARK_ISLAND_TRANSITION_ALLOWED  = 1,
+    };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId == GAME_AREA_NEO_ARK_SUBMARINE_GALLERY) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            // Preserve the resolved destination while the departure prompt holds control.
+            D_neo_ark_island_80184008.warp              = (u8)reply->areaId;
+            D_neo_ark_island_80184008.field_4           = reply->warp;
+            ((u8*)&D_neo_ark_island_80184008.areaId)[1] = reply->room;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&D_neo_ark_island_80181B78, 0, 0, 0);
         }
-        return 0;
+        return NEO_ARK_ISLAND_TRANSITION_DEFERRED;
     }
-    return 1;
+    return NEO_ARK_ISLAND_TRANSITION_ALLOWED;
 }
 
 s32 neoArkIslandIgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedSecondArg)

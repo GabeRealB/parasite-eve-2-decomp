@@ -98,7 +98,7 @@ extern WorldCoordRoomLights       D_dryfield_water_hole_80182468[1];
 extern WorldCoordRoomLights       D_dryfield_water_hole_8018278C[1];
 
 static s32 _dryfieldWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
-s32        func_dryfield_water_hole_8017D73C(Task*, s32, s32, s32);
+static s32 _dryfieldWaterHoleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 static s32 _dryfieldWaterHoleIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32 _dryfieldWaterHolePlaySoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
@@ -113,7 +113,7 @@ TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveWaterHole },
     { DRYFIELD_WATER_HOLE_MESSAGE_USE_KEY_ITEM, _dryfieldWaterHoleRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldWaterHoleIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_water_hole_8017D73C },
+    { ROOM_MESSAGE_COMMAND, _dryfieldWaterHoleCommandMessage },
     { ROOM_MESSAGE_SOUND, _dryfieldWaterHolePlaySoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1309,8 +1309,6 @@ u8* gWaterHolePrimCursor = NULL;
 
 s16 gWaterHoleWaveScroll;
 
-static void func_dryfield_water_hole_8017D7DC(Task* arg0);
-
 /// Refuses every key-item use in this room without consuming the item.
 ///
 /// `itemId` is the inventory item ID carried by
@@ -1325,14 +1323,21 @@ static s32 _dryfieldWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 ite
 
 #include "../../shared/water_hole_door_msg.inc.c"
 
-/// Handler for message 0x13F0 in the room's message table. Only the command 2
-/// in `arg2` concerns this room: it arms cap command 2, records it in progress
-/// nibble 0x1BD and plays sound event 0x52200004. Always returns 0.
-s32 func_dryfield_water_hole_8017D73C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Examines the water hole in response to CAP room command 2.
+///
+/// Starts CAP playback with a display transition, shows the water map marker
+/// and queues the locked-route sound, even if CAP playback cannot start.
+/// Other commands do nothing. Requires the room CAP resources; returns zero.
+static s32 _dryfieldWaterHoleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    if (arg2 == 2) {
-        capRunCommandWithTransition(2);
-        gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
+    enum {
+        DRYFIELD_WATER_HOLE_COMMAND_EXAMINE = 2,
+        DRYFIELD_WATER_HOLE_MAP_MARK_SHOWN  = 2,
+    };
+
+    if (commandId == DRYFIELD_WATER_HOLE_COMMAND_EXAMINE) {
+        capRunCommandWithTransition(DRYFIELD_WATER_HOLE_COMMAND_EXAMINE);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, DRYFIELD_WATER_HOLE_MAP_MARK_SHOWN);
         sndEvtRequestScriptStart(SOUND_WATER_HOLE_LOCKED, 0, 0);
     }
     return 0;
@@ -1371,15 +1376,17 @@ static s32 _dryfieldWaterHolePlaySoundCue(Task* unusedTask, s32 unusedMessageId,
     return 0;
 }
 
-/// Room task entry tick: publishes the room's message table in
-/// `Task::msgTable`, claims game pointer slot 7, spawns the room's water task
-/// from `D_dryfield_water_hole_8017FC8C` and advances state.
-static void func_dryfield_water_hole_8017D7DC(Task* arg0)
+/// Registers the water-hole message receiver and starts its water-surface task.
+///
+/// Enter at state 0 with the room resources loaded. Publishes the live task in
+/// `GAME_TASK_SLOT_ROOM` and advances to idle state 1 even if the water-task
+/// spawn fails. The room overlay must remain loaded while either task lives.
+static void _dryfieldWaterHoleInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_dryfield_water_hole_8017FC5C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_dryfield_water_hole_8017FC5C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(D_dryfield_water_hole_8017FC8C, 0, 0, 0);
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the initialized room task idle without changing its state.
@@ -1391,21 +1398,18 @@ static void _dryfieldWaterHoleRoomIdle(Task* task)
 }
 
 /// The room task's three states, run from a stack copy by
-/// `func_dryfield_water_hole_8017D840`: the entry tick, the idle state, then
+/// `dryfieldWaterHoleRoomTask`: the entry tick, the idle state, then
 /// `taskKill`.
 static const TaskFuncTable3 D_dryfield_water_hole_8017D5C4 = {
-    { func_dryfield_water_hole_8017D7DC, _dryfieldWaterHoleRoomIdle, taskKill },
+    { _dryfieldWaterHoleInitializeRoomTask, _dryfieldWaterHoleRoomIdle, taskKill },
 };
 
-/// The room task: copies the three-state table
-/// `D_dryfield_water_hole_8017D5C4` onto the stack and runs the entry for the
-/// task's current state - the entry tick, the idle state, then `taskKill`.
-void func_dryfield_water_hole_8017D840(Task* task)
+void dryfieldWaterHoleRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_water_hole_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_water_hole_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/water_hole_draw_surfaces.inc.c"
@@ -1414,91 +1418,119 @@ void func_dryfield_water_hole_8017D840(Task* task)
 
 #include "../../shared/water_hole_water_start.inc.c"
 
-/// Room task. State 0 installs effect ids 0x600FD / 0x600FE in the two shared
-/// effect-id slots, records the world positions of parts 14 and 17 of the
-/// slot-3 task's model, and advances. State 1, while no event is running and
-/// `waterY` is below that model's root, spawns each effect at water level under
-/// each part with odds that grow with how far the part moved since last frame,
-/// then, once game-flag nibble 0x51 is 1, draws the glowing beams
-/// `_glowDrawTaperedBeam` renders between the point pairs the
-/// current view selects.
-void func_dryfield_water_hole_8017E040(Task* arg0)
+void dryfieldWaterHoleRoomEffectsTask(Task* task)
 {
-    Task*       ctl;
-    s32         mask;
+    enum {
+        DRYFIELD_WATER_HOLE_EFFECTS_INITIALIZE  = 0,
+        DRYFIELD_WATER_HOLE_EFFECTS_ACTIVE      = 1,
+        DRYFIELD_WATER_HOLE_SPLASH_SAMPLE_COUNT = ARRAY_SIZE(D_dryfield_water_hole_8017FD1C),
+        DRYFIELD_WATER_HOLE_SPLASH_FIRST_PART   = 14,
+        DRYFIELD_WATER_HOLE_SPLASH_PART_STRIDE  = 3,
+        DRYFIELD_WATER_HOLE_SPLASH_ROLL_MASK    = 0x1FF,
+        DRYFIELD_WATER_HOLE_RIPPLE_ODDS_BIAS    = 32,
+        DRYFIELD_WATER_HOLE_RIPPLE_HALF_SIDE    = 64,
+        DRYFIELD_WATER_HOLE_SPRAY_SIZE          = 384,
+        DRYFIELD_WATER_HOLE_SPRAY_CELL_UPDATES  = 2,
+        DRYFIELD_WATER_HOLE_SPRAY_LAUNCH_SPEED  = 32,
+        DRYFIELD_WATER_HOLE_SPRAY_UPWARD_BURST  = 1,
+        DRYFIELD_WATER_HOLE_SPRAY_SPAWN_ARG     = DRYFIELD_WATER_HOLE_SPRAY_SIZE |
+                                              (DRYFIELD_WATER_HOLE_SPRAY_CELL_UPDATES << 12) |
+                                              (DRYFIELD_WATER_HOLE_SPRAY_LAUNCH_SPEED << 16) |
+                                              (DRYFIELD_WATER_HOLE_SPRAY_UPWARD_BURST << 24),
+        DRYFIELD_WATER_HOLE_BEAMS_ENABLED     = 1,
+        DRYFIELD_WATER_HOLE_BEAM_VIEWS_3_4    = (1 << 3) | (1 << 4),
+        DRYFIELD_WATER_HOLE_BEAM_VIEWS_4_6    = (1 << 4) | (1 << 6),
+        DRYFIELD_WATER_HOLE_BEAM_VIEW_7       = 1 << 7,
+        DRYFIELD_WATER_HOLE_BEAM_RADIUS_SCALE = 256,
+    };
+    Task*       playerTask;
+    s32         viewMask;
     EffectWork* work;
-    GfxCoord*   coord;
-    GfxCoord*   ctlCoords;
-    GfxCoord*   part;
-    GfxCoord*   view;
-    GfxCoord    surface;
-    s32         i;
-    u32         rnd;
+    GfxCoord*   effectCoord;
+    GfxCoord*   playerRoot;
+    GfxCoord*   trackedPart;
+    GfxCoord*   viewCoord;
+    GfxCoord    surfaceCoord;
+    s32         sampleIndex;
+    u32         randomValue;
 
-    ctl       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    mask      = 1 << gGameSession->location.loc.view;
-    work      = arg0->spawnArg2.pointer;
-    coord     = arg0->extra.coordBody->coord;
-    ctlCoords = ctl->extra.tmd->coords;
-    switch (arg0->state) {
-        case 0:
+/// Emits one tracked part's ripple/spray pair and updates its position sample.
+///
+/// Captures work, trackedPart, viewCoord, surfaceCoord, randomValue and this
+/// function's effect constants. sampleIndex is a stable, side-effect-free 0..1
+/// index, evaluated repeatedly. The temporary coordinate is copied by spawn;
+/// two LCG draws occur in ripple/spray order. Use inside a braced loop body.
+#define DRYFIELD_WATER_HOLE_EMIT_PART_SPLASHES(sampleIndex)                                                                                   \
+    {                                                                                                                                         \
+        actorRenderComposeCoord(trackedPart);                                                                                                 \
+        /* Odds narrow to s16; sample history also retains only the low halfwords. */                                                         \
+        work->angle = ABS(D_dryfield_water_hole_8017FD1C[(sampleIndex)].vx - trackedPart->workm.t[0]) +                                       \
+                      ABS(D_dryfield_water_hole_8017FD1C[(sampleIndex)].vy - trackedPart->workm.t[1]) +                                       \
+                      ABS(D_dryfield_water_hole_8017FD1C[(sampleIndex)].vz - trackedPart->workm.t[2]) + DRYFIELD_WATER_HOLE_RIPPLE_ODDS_BIAS; \
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &trackedPart->workm, &surfaceCoord.coord);                                             \
+        surfaceCoord.parent       = viewCoord;                                                                                                \
+        surfaceCoord.coord.t[1]   = gGameSession->waterY;                                                                                     \
+        surfaceCoord.composeStamp = GRAPHICS_COORD_DIRTY;                                                                                     \
+        actorRenderComposeCoord(&surfaceCoord);                                                                                               \
+        randomValue = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                     \
+        if ((s32)((randomValue >> 16) & DRYFIELD_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                \
+            effectSpawn(gRoomEffectWaterRippleId, &surfaceCoord, DRYFIELD_WATER_HOLE_RIPPLE_HALF_SIDE, 0);                                    \
+        }                                                                                                                                     \
+        work->angle -= DRYFIELD_WATER_HOLE_RIPPLE_ODDS_BIAS;                                                                                  \
+        randomValue  = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                    \
+        if ((s32)((randomValue >> 16) & DRYFIELD_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                \
+            effectSpawn(gRoomEffectWaterSprayId, &surfaceCoord, DRYFIELD_WATER_HOLE_SPRAY_SPAWN_ARG, 0);                                      \
+        }                                                                                                                                     \
+        D_dryfield_water_hole_8017FD1C[(sampleIndex)].vx = trackedPart->workm.t[0];                                                           \
+        D_dryfield_water_hole_8017FD1C[(sampleIndex)].vy = trackedPart->workm.t[1];                                                           \
+        D_dryfield_water_hole_8017FD1C[(sampleIndex)].vz = trackedPart->workm.t[2];                                                           \
+    }
+
+    playerTask  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    viewMask    = 1 << gGameSession->location.loc.view;
+    work        = task->spawnArg2.pointer;
+    effectCoord = task->extra.coordBody->coord;
+    playerRoot  = playerTask->extra.tmd->coords;
+    switch (task->state) {
+        case DRYFIELD_WATER_HOLE_EFFECTS_INITIALIZE:
             gRoomEffectWaterRippleId = EFFECT_DRYFIELD_WATER_HOLE_WATER_RIPPLE;
             gRoomEffectWaterSprayId  = EFFECT_DRYFIELD_WATER_HOLE_WATER_SPRAY;
-            arg0->state              = 1;
-            for (i = 0; i < 2; i++) {
-                part                                 = &ctl->extra.tmd->coords[14 + i * 3];
-                D_dryfield_water_hole_8017FD1C[i].vx = part->workm.t[0];
-                D_dryfield_water_hole_8017FD1C[i].vy = part->workm.t[1];
-                D_dryfield_water_hole_8017FD1C[i].vz = part->workm.t[2];
+            task->state              = DRYFIELD_WATER_HOLE_EFFECTS_ACTIVE;
+            // Seed history from the current composed positions, without composing again.
+            for (sampleIndex = 0; sampleIndex < DRYFIELD_WATER_HOLE_SPLASH_SAMPLE_COUNT; sampleIndex++) {
+                trackedPart                                    = &playerTask->extra.tmd->coords[DRYFIELD_WATER_HOLE_SPLASH_FIRST_PART + sampleIndex * DRYFIELD_WATER_HOLE_SPLASH_PART_STRIDE];
+                D_dryfield_water_hole_8017FD1C[sampleIndex].vx = trackedPart->workm.t[0];
+                D_dryfield_water_hole_8017FD1C[sampleIndex].vy = trackedPart->workm.t[1];
+                D_dryfield_water_hole_8017FD1C[sampleIndex].vz = trackedPart->workm.t[2];
             }
             break;
-        case 1:
-            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gGameSession->waterY < ctlCoords->coord.t[1]) {
-                view = &gGfxViewCoord;
-                for (i = 0; i < 2; i++) {
-                    part = &ctl->extra.tmd->coords[14 + i * 3];
-                    actorRenderComposeCoord(part);
-                    // The work block's `angle` holds the splash strength, this task's spawn odds
-                    // out of 0x200: the part's movement since last frame, raised by 0x20 for the
-                    // ripple roll only.
-                    work->angle = ABS(D_dryfield_water_hole_8017FD1C[i].vx - part->workm.t[0]) +
-                                  ABS(D_dryfield_water_hole_8017FD1C[i].vy - part->workm.t[1]) +
-                                  ABS(D_dryfield_water_hole_8017FD1C[i].vz - part->workm.t[2]) + 0x20;
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &part->workm, &surface.coord);
-                    surface.parent       = view;
-                    surface.coord.t[1]   = gGameSession->waterY;
-                    surface.composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(&surface);
-                    rnd = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
-                    if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
-                        effectSpawn(gRoomEffectWaterRippleId, &surface, 0x40, 0);
-                    }
-                    work->angle -= 0x20;
-                    rnd          = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
-                    if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
-                        effectSpawn(gRoomEffectWaterSprayId, &surface, 0x1202180, 0);
-                    }
-                    D_dryfield_water_hole_8017FD1C[i].vx = part->workm.t[0];
-                    D_dryfield_water_hole_8017FD1C[i].vy = part->workm.t[1];
-                    D_dryfield_water_hole_8017FD1C[i].vz = part->workm.t[2];
+        case DRYFIELD_WATER_HOLE_EFFECTS_ACTIVE:
+            // Paused or out-of-water updates retain the last emitting positions.
+            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gGameSession->waterY < playerRoot->coord.t[1]) {
+                viewCoord = &gGfxViewCoord;
+                for (sampleIndex = 0; sampleIndex < DRYFIELD_WATER_HOLE_SPLASH_SAMPLE_COUNT; sampleIndex++) {
+                    trackedPart = &playerTask->extra.tmd->coords[DRYFIELD_WATER_HOLE_SPLASH_FIRST_PART + sampleIndex * DRYFIELD_WATER_HOLE_SPLASH_PART_STRIDE];
+                    DRYFIELD_WATER_HOLE_EMIT_PART_SPLASHES(sampleIndex);
                 }
             }
-            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 1) {
-                if (mask & 0x18) {
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[1], &D_dryfield_water_hole_8017FCBC[0], 0x100);
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[3], &D_dryfield_water_hole_8017FCBC[2], 0x100);
+            // Beam drawing is independent of the splash pause and water-height gates.
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == DRYFIELD_WATER_HOLE_BEAMS_ENABLED) {
+                if (viewMask & DRYFIELD_WATER_HOLE_BEAM_VIEWS_3_4) {
+                    _glowDrawTaperedBeam(effectCoord, &D_dryfield_water_hole_8017FCBC[1], &D_dryfield_water_hole_8017FCBC[0], DRYFIELD_WATER_HOLE_BEAM_RADIUS_SCALE);
+                    _glowDrawTaperedBeam(effectCoord, &D_dryfield_water_hole_8017FCBC[3], &D_dryfield_water_hole_8017FCBC[2], DRYFIELD_WATER_HOLE_BEAM_RADIUS_SCALE);
                 }
-                if (mask & 0x50) {
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[4], &D_dryfield_water_hole_8017FCBC[5], 0x100);
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[6], &D_dryfield_water_hole_8017FCBC[7], 0x100);
+                if (viewMask & DRYFIELD_WATER_HOLE_BEAM_VIEWS_4_6) {
+                    _glowDrawTaperedBeam(effectCoord, &D_dryfield_water_hole_8017FCBC[4], &D_dryfield_water_hole_8017FCBC[5], DRYFIELD_WATER_HOLE_BEAM_RADIUS_SCALE);
+                    _glowDrawTaperedBeam(effectCoord, &D_dryfield_water_hole_8017FCBC[6], &D_dryfield_water_hole_8017FCBC[7], DRYFIELD_WATER_HOLE_BEAM_RADIUS_SCALE);
                 }
-                if (mask & 0x80) {
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[9], &D_dryfield_water_hole_8017FCBC[8], 0x100);
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[11], &D_dryfield_water_hole_8017FCBC[10], 0x100);
+                if (viewMask & DRYFIELD_WATER_HOLE_BEAM_VIEW_7) {
+                    _glowDrawTaperedBeam(effectCoord, &D_dryfield_water_hole_8017FCBC[9], &D_dryfield_water_hole_8017FCBC[8], DRYFIELD_WATER_HOLE_BEAM_RADIUS_SCALE);
+                    _glowDrawTaperedBeam(effectCoord, &D_dryfield_water_hole_8017FCBC[11], &D_dryfield_water_hole_8017FCBC[10], DRYFIELD_WATER_HOLE_BEAM_RADIUS_SCALE);
                 }
             }
             break;
     }
+#undef DRYFIELD_WATER_HOLE_EMIT_PART_SPLASHES
 }
 
 #include "../../shared/glow_draw_tapered_beam.inc.c"

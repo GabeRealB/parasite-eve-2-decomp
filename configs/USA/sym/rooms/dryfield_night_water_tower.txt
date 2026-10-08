@@ -74,3 +74,4 @@ dryfieldNightWaterTowerIgnoreActionMessage = 0x8017dad4; // type:func
 _dryfieldNightWaterTowerInitializeRoomTask = 0x8017dadc; // type:func
 _dryfieldNightWaterTowerIdleRoomTask = 0x8017db20; // type:func
 dryfieldNightWaterTowerRoomTask = 0x8017db28; // type:func
+dryfieldNightWaterTowerCommandMessage = 0x8017daa4; // type:func

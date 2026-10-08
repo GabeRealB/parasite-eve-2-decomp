@@ -78,7 +78,7 @@ enum {
 };
 
 static s32 _dryfieldSaloonGRRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_dryfield_saloon_g_r_8017D99C(Task*, s32, s32, s32);
+static s32 _dryfieldSaloonGRCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 static s32 _dryfieldSaloonGRIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 extern WorldCollisionGrid     D_dryfield_saloon_g_r_8017F780[1];
@@ -99,7 +99,7 @@ TaskMessageEntry D_dryfield_saloon_g_r_8017ECBC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantSaloonMsg },
     { DRYFIELD_SALOON_G_R_MESSAGE_USE_KEY_ITEM, _dryfieldSaloonGRRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldSaloonGRIgnoreRoomActionMessage },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_saloon_g_r_8017D99C },
+    { ROOM_MESSAGE_COMMAND, _dryfieldSaloonGRCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -747,12 +747,17 @@ static s32 _dryfieldSaloonGRRejectKeyItemMessage(Task* task, s32 messageId, s32 
     return DRYFIELD_SALOON_G_R_KEY_ITEM_UNUSABLE;
 }
 
-/// Handler for message 0x13F0 in the room's message table: on action 4 it
-/// runs cap command 4. Always returns 0.
-s32 func_dryfield_saloon_g_r_8017D99C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Plays CAP command 4 when the saloon receives room command 4.
+///
+/// Requires loaded, relocated saloon CAP resources. Playback uses a display
+/// transition; other commands do nothing. Always returns zero, irrespective
+/// of playback starting, and retains no payload.
+static s32 _dryfieldSaloonGRCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    if (arg2 == 4) {
-        capRunCommandWithTransition(4);
+    enum { DRYFIELD_SALOON_G_R_CAP_COMMAND_4 = 4 };
+
+    if (commandId == DRYFIELD_SALOON_G_R_CAP_COMMAND_4) {
+        capRunCommandWithTransition(DRYFIELD_SALOON_G_R_CAP_COMMAND_4);
     }
     return 0;
 }

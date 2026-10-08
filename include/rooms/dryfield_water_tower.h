@@ -53,6 +53,11 @@ extern WorldCollisionSurfaceProperties* D_dryfield_water_tower_80187608[];
 /// The per-view table supplies 2 for enabled effects and 0 for disabled effects.
 void dryfieldWaterTowerUpdateViewEffectGateTask(Task* unused);
 
-void func_dryfield_water_tower_8017DDD8(Task* task);
+/// Runs the daytime water-tower room task for one update.
+///
+/// State 0 registers the message receiver and starts its prop-scene driver,
+/// 1 idles and 2 releases the task. The state index is unchecked. Requires a
+/// live task and the room overlay loaded throughout its lifetime.
+void dryfieldWaterTowerRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_WATER_TOWER_H

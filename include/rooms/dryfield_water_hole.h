@@ -76,8 +76,29 @@ void dryfieldWaterHoleWaterRippleTask(Task* task);
 /// pointers to these allocations expire at retirement.
 void dryfieldWaterHoleWaterDriftTaskU16(Task* task);
 
-void func_dryfield_water_hole_8017E040(Task* arg0);
+/// Emits player water splashes and draws the water hole's switch-enabled beams.
+///
+/// Start in state 0 with a live player model containing coordinates 14 and 17,
+/// a coordinate body and `EffectWork` in `spawnArg2.pointer`. Initialization selects
+/// this room's ripple/spray IDs and snapshots two composed part positions.
+/// State 1 emits only while effect control is running and session waterY is
+/// less than the player's local root Y. Each part rolls a ripple then a spray
+/// at waterY, using Manhattan movement as odds out of 512, plus 32 for ripples.
+/// Odds and position samples narrow to signed halfwords without clamping;
+/// paused or out-of-water updates leave history unchanged. Spawned children
+/// copy the temporary coordinate and live independently.
+///
+/// Underpass switch 1 also enables beam pairs in views 3/4, 4/6 and 7,
+/// independently of the splash gates. Requires a current view in 1..8, loaded
+/// room effect resources, composed coordinates, scratch and frame packet space.
+/// This controller does not release itself; room-effect teardown owns its lifetime.
+void dryfieldWaterHoleRoomEffectsTask(Task* task);
 
-void func_dryfield_water_hole_8017D840(Task* task);
+/// Runs the daytime water-hole room task for one update.
+///
+/// State 0 registers the message receiver and starts the water surface, 1
+/// idles and 2 releases the task. The state index is unchecked. Requires a
+/// live task and the room overlay loaded throughout its lifetime.
+void dryfieldWaterHoleRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_WATER_HOLE_H

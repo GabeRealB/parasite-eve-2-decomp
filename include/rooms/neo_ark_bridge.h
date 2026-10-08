@@ -118,7 +118,15 @@ void neoArkBridgeRoomVisualEffectsFlashTask(Task* task);
 /// Drawing requires initialized scratch storage and frame packet space.
 void neoArkBridgeRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_neo_ark_bridge_801812D0(Task* task);
+/// Runs the bridge's impact flash followed by smoke or rings and bouncing sparks.
+///
+/// Requires a counted effect with a coordinate body, owned zero-aged `EffectWork`
+/// in `spawnArg2.pointer` and initial state 0. Nonzero `spawnArg1.value` selects
+/// smoke; zero selects two sparks and fading orange rings. Running updates enter
+/// release at age 7 and retire at age 8, freeing work, body and task. Child effects
+/// live independently. Room control 1..3 pauses and 4 or above cancels immediately.
+/// Keep the room overlay, effect resources, scratch and frame packet space live.
+void neoArkBridgeRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs the Neo Ark bridge's room-message task for one update.
 ///

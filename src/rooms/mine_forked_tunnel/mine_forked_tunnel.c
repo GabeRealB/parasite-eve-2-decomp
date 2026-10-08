@@ -216,9 +216,9 @@ static u32     _gMineForkedTunnelModel03340Stream[104];
 
 static s32 _mineForkedTunnelRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unused);
 static s32 _mineForkedTunnelResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
-s32        func_mine_forked_tunnel_8017E134(Task*, s32, s32, s32);
+static s32 _mineForkedTunnelBoardCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 
-void        func_mine_forked_tunnel_8017E2E0(Task*);
+static void _mineForkedTunnelSwitchInteractionTask(Task* task);
 static void _mineForkedTunnelOakBoardPromptTask(Task* task);
 
 extern AnimationBankCopyRequest   D_mine_forked_tunnel_8018312C;
@@ -347,7 +347,7 @@ TaskMessageEntry D_mine_forked_tunnel_80181C80[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineForkedTunnelResolveRoomVariant },
     { MINE_FORKED_TUNNEL_MESSAGE_USE_KEY_ITEM, _mineForkedTunnelRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mineForkedTunnelHandleSwitchAction },
-    { ROOM_MESSAGE_COMMAND, func_mine_forked_tunnel_8017E134 },
+    { ROOM_MESSAGE_COMMAND, _mineForkedTunnelBoardCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -418,7 +418,7 @@ static AnimationSet _gMineForkedTunnelAnimation05B1C = {
 };
 
 TaskDesc D_mine_forked_tunnel_80183104[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_mine_forked_tunnel_8017E2E0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mineForkedTunnelSwitchInteractionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _mineForkedTunnelOakBoardPromptTask, { .value = 0 } },
 };
 
@@ -1364,13 +1364,28 @@ static s32 _mineForkedTunnelResolveRoomVariant(Task* unusedTask, s32 unusedMessa
     return MINE_FORKED_TUNNEL_TRANSITION_ALLOWED;
 }
 
-s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Chooses the oak-board response to CAP room command 2 while the board is present.
+///
+/// Saved object slot 1 must have state 1. A clear progress flag selects CAP 5;
+/// a nonzero flag starts the board pickup prompt. Other inputs do nothing.
+/// Requires current saved-area and room CAP data; always returns zero and
+/// retains no payload.
+static s32 _mineForkedTunnelBoardCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    if ((arg2 == 2) && (areaGetCurrentObjectState(1) == 1)) {
+    enum {
+        MINE_FORKED_TUNNEL_COMMAND_EXAMINE_BOARD      = 2,
+        MINE_FORKED_TUNNEL_BOARD_OBJECT_ID            = 1,
+        MINE_FORKED_TUNNEL_BOARD_PRESENT              = 1,
+        MINE_FORKED_TUNNEL_BOARD_FALLBACK_CAP_COMMAND = 5,
+        MINE_FORKED_TUNNEL_BOARD_PROMPT_DESCRIPTOR    = 1,
+    };
+
+    if ((commandId == MINE_FORKED_TUNNEL_COMMAND_EXAMINE_BOARD) &&
+        (areaGetCurrentObjectState(MINE_FORKED_TUNNEL_BOARD_OBJECT_ID) == MINE_FORKED_TUNNEL_BOARD_PRESENT)) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_152) == 0) {
-            capRunCommandWithTransition(5);
+            capRunCommandWithTransition(MINE_FORKED_TUNNEL_BOARD_FALLBACK_CAP_COMMAND);
         } else {
-            taskSpawnFromTable(D_mine_forked_tunnel_80183104, 1, 0, 0);
+            taskSpawnFromTable(D_mine_forked_tunnel_80183104, MINE_FORKED_TUNNEL_BOARD_PROMPT_DESCRIPTOR, 0, 0);
         }
     }
     return 0;
@@ -1441,23 +1456,35 @@ static void _mineForkedTunnelRestoreAreaObjectSoundMix(void)
     sndEvtRequestScriptMix(SOUND_MINE_FORKED_TUNNEL_OBJECT_MOVE, 0, 0);
 }
 
-void func_mine_forked_tunnel_8017E2E0(Task* arg0)
+/// Runs the switch prompt and starts the switch-motion scene after acceptance.
+///
+/// Enter in state 0 with the room CAP and event scripts loaded. State 1 waits
+/// for CAP completion; reply key 1 starts the skippable scene and sets the
+/// switch-used flag immediately. Every completed reply releases the task.
+static void _mineForkedTunnelSwitchInteractionTask(Task* task)
 {
-    s32 state;
+    enum {
+        MINE_FORKED_TUNNEL_SWITCH_PROMPT_START = 0,
+        MINE_FORKED_TUNNEL_SWITCH_PROMPT_WAIT  = 1,
+        MINE_FORKED_TUNNEL_SWITCH_CAP_COMMAND  = 1,
+        MINE_FORKED_TUNNEL_SWITCH_USED         = 1,
+    };
+    s32 promptState;
 
-    state = arg0->state;
-    switch (state) {
-        case 0:
-            capRunCommandWithTransition(1);
-            arg0->state = arg0->state + 1;
+    promptState = task->state;
+    switch (promptState) {
+        case MINE_FORKED_TUNNEL_SWITCH_PROMPT_START:
+            capRunCommandWithTransition(MINE_FORKED_TUNNEL_SWITCH_CAP_COMMAND);
+            task->state = task->state + 1;
             break;
-        case 1:
+        case MINE_FORKED_TUNNEL_SWITCH_PROMPT_WAIT:
             if (capIsBusy() == 0) {
-                if (capGetVariantKey() == state) {
+                // The wait state and accepted CAP key both have value 1.
+                if (capGetVariantKey() == promptState) {
                     evsStartScriptWithSkip(D_mine_forked_tunnel_801831AC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_forked_tunnel_801834F4);
-                    gameFlagSetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED, 1);
+                    gameFlagSetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED, MINE_FORKED_TUNNEL_SWITCH_USED);
                 }
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
     }

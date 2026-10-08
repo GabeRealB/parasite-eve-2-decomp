@@ -78,7 +78,7 @@ dryfieldWaterHoleWaterRippleTask = 0x8017EC90; // type:func
 
 dryfieldWaterHoleWaterDriftTaskU16 = 0x8017F118; // type:func
 
-func_dryfield_water_hole_8017E040 = 0x8017E040; // type:func
+dryfieldWaterHoleRoomEffectsTask = 0x8017E040; // type:func
 _waterDrawSplash = 0x8017EDE4; // type:func
 _glowDrawTaperedBeam = 0x8017E410; // type:func
 _waterDrawSpinU16 = 0x8017F5D4; // type:func
@@ -91,3 +91,6 @@ _dryfieldWaterHoleRejectKeyItemUse = 0x8017d5e8; // type:func
 _dryfieldWaterHoleIgnoreRoomAction = 0x8017d784; // type:func
 _dryfieldWaterHoleRoomIdle = 0x8017d838; // type:func
 _dryfieldWaterHolePlaySoundCue = 0x8017d78c; // type:func
+_dryfieldWaterHoleCommandMessage = 0x8017d73c; // type:func
+_dryfieldWaterHoleInitializeRoomTask = 0x8017d7dc; // type:func
+dryfieldWaterHoleRoomTask = 0x8017d840; // type:func

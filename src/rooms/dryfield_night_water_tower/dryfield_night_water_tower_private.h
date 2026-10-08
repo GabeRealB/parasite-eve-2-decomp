@@ -20,7 +20,12 @@ extern TaskMessageEntry D_dryfield_night_water_tower_8017E6EC[6];
 /// `ROOM_KEY_ITEM_USE_REFUSED` so the inventory menu displays its refusal notice.
 s32 dryfieldNightWaterTowerRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 
-s32 func_dryfield_night_water_tower_8017DAA4(Task*, s32, s32, s32);
+/// Plays CAP slot 7's variant 3 for night-tower room command 7.
+///
+/// Starts slot 7 with variant key 3 and display-transition playback. Other
+/// commands do nothing. Requires the room's relocated CAP resources; retains
+/// no payload and always returns zero, including when playback cannot start.
+s32 dryfieldNightWaterTowerCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 
 /// Ignores trigger requests for room-specific actions and returns zero.
 ///

@@ -59,7 +59,15 @@ enum { DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN = 5100 };
 void dryfieldWaterTowerSetMechanismSpriteVisible(u8 visible);
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_water_tower_8017D948(Task*);
+/// Prompts for a tower mechanism run and transfers an accepted run to its driver.
+///
+/// Start in state 0 with the player, prop-scene driver and room CAP resources
+/// live. Initial/restored mechanism states hold player presentation and save
+/// `DryfieldWaterTowerSavedView::view`; reply key 10 marks the tower operated,
+/// requests the timed run and plays its sound. Other replies restore the view,
+/// HUD and player control. Operated states only start transition CAP playback.
+/// Finished paths release the task; the accepted run owns subsequent restoration.
+void dryfieldWaterTowerMechanismPromptTask(Task* task);
 
 /// Refuses every collected key-item use at the water tower.
 ///
@@ -67,7 +75,11 @@ void func_dryfield_water_tower_8017D948(Task*);
 /// Returns `ROOM_KEY_ITEM_USE_REFUSED` without consuming the item.
 s32 dryfieldWaterTowerUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 
-s32 func_dryfield_water_tower_8017DD04(Task*, s32, s32, s32);
+/// Starts the mechanism prompt for CAP room command 7.
+///
+/// Other commands do nothing. Requires loaded room descriptors; always returns
+/// zero, including spawn failure, and retains no payload.
+s32 dryfieldWaterTowerCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 
 /// Ignores room direction-action requests and returns zero.
 ///

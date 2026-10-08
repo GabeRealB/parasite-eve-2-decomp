@@ -75,7 +75,7 @@ neoArkBridgeRoomVisualEffectsFlashTask = 0x8017FF84; // type:func
 
 neoArkBridgeRoomVisualEffectsTwinTrailTask = 0x801809E8; // type:func
 
-func_neo_ark_bridge_801812D0 = 0x801812D0; // type:func
+neoArkBridgeRoomVisualEffectsSparkBurstTask = 0x801812D0; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80180228; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x80180654; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x80180ED8; // type:func
