@@ -314,6 +314,7 @@ def triage(db, root: str, ledger: str) -> None:
                     landed.setdefault(report, n)
                 for name in f[1].split():
                     visit[bare(name)] = (n, f[2], report)
+    report_commit = {path: (sha or "")[:10] for path, sha in db.execute("SELECT path, landed_commit FROM reports")}
     shared = {(r[0], r[1]): r[2] for r in db.execute(
         "SELECT loc_file, loc_symbol, COUNT(*) FROM entries WHERE present = 1 GROUP BY 1, 2")}
     at, counts = now(), {}
@@ -340,7 +341,10 @@ def triage(db, root: str, ledger: str) -> None:
                     seen = hit
             # Only a visit after the step that wrote the entry says anything.
             if seen and seen[2] != row["path"] and seen[0] > landed.get(row["path"], -1):
-                v_report, v_commit = seen[2], seen[1]
+                # The ledger's hash is the step's commit in its worker tree,
+                # which the join replays under another one; the report carries
+                # the hash that landed.
+                v_report, v_commit = seen[2], report_commit.get(seen[2]) or seen[1]
         counts[state] = counts.get(state, 0) + 1
         db.execute("UPDATE entries SET sig_state = ?, sig_current = ?, sig_visit_report = ?, sig_visit_commit = ?, "
                    "sig_shared = ?, sig_at = ? WHERE id = ?",
