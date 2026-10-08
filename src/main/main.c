@@ -12,8 +12,6 @@
 // seem to be inserted by the linker.
 static u32 GStackBase;
 
-int main(void);
-
 // For some reason, the program starts by modifying its stack pointer and
 // calling the actual entry function of the game. This address does not
 // seem to be inserted by the linker.
@@ -26,11 +24,14 @@ void* gMemPrimaryHeapBase = MEM_PRIMARY_HEAP_ADDRESS;
 // split (asm/USA/main/data/main.bss.s) so layout matches the retail binary.
 // Defining the large gCdCmdQueue here makes GCC 2.8.1 reorder .comm symbols.
 
+/// C-runtime entry that installs the game stack and starts resident execution.
+///
+/// Called once by the startup assembly after BSS and runtime-heap setup.
+/// The `main` entry convention also invokes the compiler's runtime setup hook.
+/// Never returns: `SetSp` leaves the saved return address on the abandoned
+/// stack, and `gameMainRun` runs indefinitely on the replacement stack.
 int main(void)
 {
-    // Modify the stack pointer.
     SetSp(GStackBase);
-
-    // Call the entry function.
     gameMainRun();
 }
