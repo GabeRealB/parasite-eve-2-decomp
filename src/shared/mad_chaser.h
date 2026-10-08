@@ -77,7 +77,8 @@ enum {
     MAD_CHASER_COMBAT_STATE_RECOIL_LIGHT = 6,
     MAD_CHASER_COMBAT_STATE_RECOIL_HEAVY = 7,
     MAD_CHASER_COMBAT_STATE_STATUS_HOLD  = 8,
-    MAD_CHASER_COMBAT_STATE_KNOCKDOWN    = 9
+    MAD_CHASER_COMBAT_STATE_KNOCKDOWN    = 9,
+    MAD_CHASER_COMBAT_STATE_PULL         = 10
 };
 
 /// Entry moves selected within the emerge task's ten-entry behavior table.
@@ -225,20 +226,20 @@ typedef struct {
 } MadChaserLimbShadowScratch;
 STATIC_ASSERT_SIZEOF(MadChaserLimbShadowScratch, 0x90);
 
-void        madChaserTwistSpine(Task* arg0);
+static void _madChaserTwistSpine(Task* task);
 static void _madChaserLinkBodies(Task* task);
-void        madChaserPinPart(Task* arg0, s16 part, SVECTOR3* pos);
+static void _madChaserPinPart(Task* task, s16 partIndex, const SVECTOR* worldAnchor);
 static void _madChaserDeathStartShrink(Task* task);
 void        madChaserCreepUntilHit(Task* arg0);
 
 static void _madChaserStartLeap(Task* task);
 static void _madChaserLurkStartIdleHold(Task* task);
 static void _madChaserStartAlert(Task* task);
-void        madChaserBurst(Task* arg0);
+static void _madChaserBurst(Task* task);
 static void _madChaserDropBodies(Task* task);
 static void _madChaserBeginShrink(Task* task);
 
-void madChaserSpawnGibs(Task* arg0);
+static void _madChaserSpawnGibs(Task* task);
 
 static void _madChaserDrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 halfWidth, s32 worldY, u8 shade);
 void        madChaserSpawn(Task* task);
@@ -253,8 +254,8 @@ static void _madChaserDangleFall(Task* task);
 static void _madChaserDangleLand(Task* task);
 void        madChaserApplyContacts(Task* arg0, s16 arg1);
 static void _madChaserTickAnim(Task* task);
-void        madChaserShrinkWithDust(Task* arg0);
-void        madChaserTrackPlayer(Task* arg0);
+static void _madChaserShrinkWithBurn(Task* task);
+static void _madChaserTrackPlayer(Task* task);
 static void _madChaserLurkLookAround(Task* task);
 static void _madChaserLurkSidestepToCombat(Task* task);
 static void _madChaserLurkSidestepRight(Task* task);
@@ -304,7 +305,7 @@ void        madChaserShrink(Task* arg0);
 static s32  _madChaserTakeKnockdownRequest(Task* task);
 
 static inline void _madChaserEnterTaskState(Task* task, s32 taskState);
-static inline void madChaserUpdateColor(void* enemy, GfxCoord* coord);
+static inline void _madChaserUpdateColor(Enemy* enemy, const GfxCoord* sampleCoord);
 static inline void _madChaserCalcContactPushback(const Task* task, const GfxCoord* overlapCoord, const WorldCollisionContact* contact, SVECTOR* pushDelta);
 static inline void _madChaserSetBehaviorState(Task* task, s32 behaviorState);
 static inline s32  _madChaserTakeHitReaction(Task* task);
@@ -314,12 +315,12 @@ static inline void _madChaserSetBehaviorStateS16(Task* task, s16 behaviorState);
 void        madChaserLurkTick(Task* arg0);
 void        madChaserCombatTick(Task* arg0);
 void        madChaserEmergeTick(Task* arg0);
-void        madChaserShrinkDeathTick(Task* arg0);
-void        madChaserDropDeathTick(Task* arg0);
-void        madChaserDeathTick(Task* arg0);
+static void _madChaserShrinkDeathTick(Task* task);
+static void _madChaserDropDeathTick(Task* task);
+static void _madChaserDeathTick(Task* task);
 static void _madChaserLurkAlertState(Task* task);
 static void _madChaserHiddenTask(Task* task);
-void        madChaserTask(Task* arg0);
+static void _madChaserTask(Task* task);
 void        madChaserLeapState(Task* arg0);
 static void _madChaserDangleState(Task* task);
 static void _madChaserVanishState(Task* task);
@@ -337,8 +338,8 @@ static void _madChaserAdvanceBehaviorState(Task* task);
 void        madChaserStartDespawn(Task* arg0);
 void        madChaserToAlertState(Task* arg0);
 
-static __inline__ s16  madChaserTakeHit(Task* arg0);
-static __inline__ void madChaserUpdateRotation(Task* arg0);
-static __inline__ s16  madChaserTakeHitNibble3(Task* arg0);
+static __inline__ s16  _madChaserTakePullOrVanishCommand(Task* task);
+static __inline__ void _madChaserUpdateRotation(Task* task);
+static __inline__ s16  _madChaserTakeVanishCommand(Task* task);
 
 #endif /* SRC_SHARED_MAD_CHASER_H */

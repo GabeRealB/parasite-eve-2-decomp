@@ -14,19 +14,25 @@ static __inline__ void _madChaserEnterTaskState(Task* task, s32 taskState)
     work->subState = 0;
 }
 
-/// Colours `enemy` from `coord`'s world position through a 0x10-byte
-/// `VECTOR` taken off the scratch stack. Inlined so each scratch-head access
-/// keeps its own `lui` instead of sharing a CSE'd register.
-static __inline__ void madChaserUpdateColor(void* enemy, GfxCoord* coord)
+/// Updates the enemy's lighting and colour from a part's cached translation.
+///
+/// Requires a live enemy/model with writable lighting matrices and a readable
+/// sampleCoord. Copies cached signed 32-bit XYZ in game units directly to the
+/// lighting query, which interprets them as world coordinates; no composition
+/// or coordinate conversion occurs here. Borrows both inputs and reserves one
+/// VECTOR on an initialized, word-aligned scratch stack, in addition to the
+/// query's nested reservations. The fourth word is unused. Releases the sample
+/// before returning; the query changes GTE state.
+static __inline__ void _madChaserUpdateColor(Enemy* enemy, const GfxCoord* sampleCoord)
 {
-    VECTOR* block = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
+    VECTOR* samplePosition = SCRATCH_STACK_CURSOR(VECTOR) - 1;
 
-    block->vx                    = coord->workm.t[0];
-    block->vy                    = coord->workm.t[1];
-    SCRATCH_STACK_CURSOR(VECTOR) = block;
-    block->vz                    = coord->workm.t[2];
-    worldCoordUpdateActorColor(enemy, block, 0, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    samplePosition->vx           = sampleCoord->workm.t[0];
+    samplePosition->vy           = sampleCoord->workm.t[1];
+    SCRATCH_STACK_CURSOR(VECTOR) = samplePosition;
+    samplePosition->vz           = sampleCoord->workm.t[2];
+    worldCoordUpdateActorColor(enemy, samplePosition, 0, 0);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Computes the Mad Chaser's horizontal push from one sphere contact.
@@ -150,87 +156,95 @@ static __inline__ void _madChaserSetBehaviorStateS16(Task* task, s16 behaviorSta
     work->subState = 0;
 }
 
-/// Message 0x2C00 (see `command`) consumes the message and restarts the
-/// state machine: low nibble 2 enters state 3 at state index 10 unless
-/// `busy` is set, low nibble 3 enters state 7. Returns 1 when it did, so
-/// the caller skips this frame's state handler.
+/// Consumes a pending pull or vanish command before a lurk or combat frame.
 ///
-/// Each arm has to `return 1` on its own, with `return 0` after them: that
-/// leaves a `hit = 0` block between the second arm and the join, so jump2
-/// cannot cross-jump the first arm's `subState` store into the second's
-/// (dbr later steals the `hit = 0` into the branch delay slots and the block
-/// disappears). A flag set to 0 up front and to 1 in each arm cross-jumps.
-static __inline__ s16 madChaserTakeHit(Task* arg0)
+/// Requires live Mad Chaser work; vanish needs the extended task table. Pull
+/// waits until busy is zero, then enters combat's pull behavior with a fresh sub-state.
+/// Vanish enters its task state regardless of busy. Either transition clears
+/// the entire command halfword and returns s16 1 so the caller skips the old
+/// behavior handler. Otherwise returns 0 and leaves the command intact.
+static __inline__ s16 _madChaserTakePullOrVanishCommand(Task* task)
 {
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
-    MadChaserWork* w2;
+    MadChaserWork* work = task->work;
 
     if ((work->command & MAD_CHASER_COMMAND_KIND_MASK) == MAD_CHASER_COMMAND_PULL) {
         if (work->busy == 0) {
             work->command = 0;
-            _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_COMBAT);
-            w2           = (MadChaserWork*)arg0->work;
-            w2->state    = 10;
-            w2->subState = 0;
+            _madChaserEnterTaskState(task, MAD_CHASER_TASK_COMBAT);
+            _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_PULL);
             return 1;
         }
     } else if ((work->command & MAD_CHASER_COMMAND_KIND_MASK) == MAD_CHASER_COMMAND_VANISH) {
         work->command = 0;
-        _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_VANISH);
+        _madChaserEnterTaskState(task, MAD_CHASER_TASK_VANISH);
         return 1;
     }
     return 0;
 }
 
-/// Wraps the pitch / heading / roll in `rotation` to 12 bits and rebuilds the
-/// model root's rotation from them (Z, then X, then the heading) in a matrix
-/// taken off the scratch stack, copying the 3x3 into the root coordinate.
-static __inline__ void madChaserUpdateRotation(Task* arg0)
+/// Installs a scratch-built rotation and releases its MATRIX reservation.
+///
+/// rootMatrix is live, writable and disjoint from rotationMatrix, which must
+/// be the current scratch block. Copies only the nine basis halfwords, retaining
+/// translation and alignment bytes. Release precedes the last halfword load;
+/// there is no call or reservation between them. The caller dirties composition.
+static __inline__ void _madChaserApplyScratchRotation(MATRIX* rootMatrix, const MATRIX* rotationMatrix)
 {
-    MadChaserWork* work  = (MadChaserWork*)arg0->work;
-    MATRIX*        m     = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
-    GfxCoord*      coord = arg0->extra.tmd->coords;
-    MATRIX*        dst;
-
-    work->rotation.vx &= 0xFFF;
-    work->rotation.vy &= 0xFFF;
-    work->rotation.vz &= 0xFFF;
-    gfxSetRotIdentity(m);
-    SCRATCH_STACK_CURSOR(MATRIX) = m;
-    RotMatrixZ(work->rotation.vz, m);
-    RotMatrixX(work->rotation.vx, m);
-    RotMatrixY(work->rotation.vy, m);
-    dst          = &coord->coord;
-    dst->m[0][0] = m->m[0][0];
-    dst->m[0][1] = m->m[0][1];
-    dst->m[0][2] = m->m[0][2];
-    dst->m[1][0] = m->m[1][0];
-    dst->m[1][1] = m->m[1][1];
-    dst->m[1][2] = m->m[1][2];
-    dst->m[2][0] = m->m[2][0];
-    dst->m[2][1] = m->m[2][1];
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
-    dst->m[2][2] = m->m[2][2];
+    rootMatrix->m[0][0] = rotationMatrix->m[0][0];
+    rootMatrix->m[0][1] = rotationMatrix->m[0][1];
+    rootMatrix->m[0][2] = rotationMatrix->m[0][2];
+    rootMatrix->m[1][0] = rotationMatrix->m[1][0];
+    rootMatrix->m[1][1] = rotationMatrix->m[1][1];
+    rootMatrix->m[1][2] = rotationMatrix->m[1][2];
+    rootMatrix->m[2][0] = rotationMatrix->m[2][0];
+    rootMatrix->m[2][1] = rotationMatrix->m[2][1];
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
+    rootMatrix->m[2][2] = rotationMatrix->m[2][2];
 }
 
-/// Message 0x2C00 with low nibble 3 (see `command`) consumes the message and
-/// moves the task to state 7 with a fresh state machine; returns 1 when it did,
-/// so the caller skips this frame's state handler. The `s16` result is what
-/// keeps the `move` between the flag and its test, and the reload through a
-/// second local is what puts it in `$v1`.
-static __inline__ s16 madChaserTakeHitNibble3(Task* arg0)
+/// Rebuilds the root rotation from the work block's pitch, heading and roll.
+///
+/// Requires live work/model storage and one MATRIX of free aligned scratch
+/// space. Wraps each angle to 0..4095 units per turn and builds Z, then X, then
+/// Y rotation at Q12 unit scale. Copies only the nine basis halfwords, retaining
+/// translation and alignment bytes; the caller dirties the root composition.
+/// Releases scratch before the last coefficient load/store, with no intervening
+/// call or reservation, so that load still reads the just-built matrix.
+static __inline__ void _madChaserUpdateRotation(Task* task)
 {
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
-    s16            hit  = 0;
-    MadChaserWork* w2;
+    MadChaserWork* work           = task->work;
+    MATRIX*        rotationMatrix = SCRATCH_STACK_CURSOR(MATRIX) - 1;
+    GfxCoord*      root           = task->extra.tmd->coords;
+    MATRIX*        rootMatrix;
+
+    work->rotation.vx &= ACTOR_TRANSFORM_ANGLE_MASK;
+    work->rotation.vy &= ACTOR_TRANSFORM_ANGLE_MASK;
+    work->rotation.vz &= ACTOR_TRANSFORM_ANGLE_MASK;
+    gfxSetRotIdentity(rotationMatrix);
+    SCRATCH_STACK_CURSOR(MATRIX) = rotationMatrix;
+    RotMatrixZ(work->rotation.vz, rotationMatrix);
+    RotMatrixX(work->rotation.vx, rotationMatrix);
+    RotMatrixY(work->rotation.vy, rotationMatrix);
+    rootMatrix = &root->coord;
+    _madChaserApplyScratchRotation(rootMatrix, rotationMatrix);
+}
+
+/// Consumes a pending vanish command during emergence.
+///
+/// Requires live Mad Chaser work and the extended task table. Vanish clears
+/// the entire command halfword and enters its task state with behavior and
+/// sub-state zero, regardless of busy. Returns s16 1 for that transition so
+/// the caller skips the old behavior handler; returns 0 for every other command
+/// without consuming it. Animation requests and counters are retained.
+static __inline__ s16 _madChaserTakeVanishCommand(Task* task)
+{
+    MadChaserWork* work     = task->work;
+    s16            consumed = 0;
 
     if ((work->command & MAD_CHASER_COMMAND_KIND_MASK) == MAD_CHASER_COMMAND_VANISH) {
-        hit           = 1;
+        consumed      = 1;
         work->command = 0;
-        arg0->state   = 7;
-        w2            = (MadChaserWork*)arg0->work;
-        w2->state     = 0;
-        w2->subState  = 0;
+        _madChaserEnterTaskState(task, MAD_CHASER_TASK_VANISH);
     }
-    return hit;
+    return consumed;
 }

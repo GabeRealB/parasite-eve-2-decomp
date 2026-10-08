@@ -97,13 +97,13 @@ static void _madChaserShrinkDeathTurnTranslucent(Task* task);
 static void _madChaserShrinkDeathStartDespawn(Task* task);
 
 /// Six task-state handlers of the first enemy form, dispatched by
-/// `madChaserTask` on `Task::state`.
+/// `_madChaserTask` on `Task::state`.
 static const TaskFuncTable6 gMadChaserTaskStates = { {
     madChaserSpawn,
     madChaserLurkTick,
     madChaserDangleFrame,
     madChaserCombatTick,
-    madChaserDeathTick,
+    _madChaserDeathTick,
     _madChaserDespawnState,
 } };
 
@@ -114,12 +114,12 @@ static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     madChaserLurkTick,
     madChaserDangleFrame,
     madChaserCombatTick,
-    madChaserDeathTick,
+    _madChaserDeathTick,
     _madChaserDespawnState,
     madChaserEmergeTick,
     _madChaserVanishState,
-    madChaserDropDeathTick,
-    madChaserShrinkDeathTick,
+    _madChaserDropDeathTick,
+    _madChaserShrinkDeathTick,
 } };
 
 /// Eleven state handlers, indexed by `MadChaserWork::state`; copied to
@@ -766,7 +766,7 @@ TaskMessageEntry gMadChaserMsgTable[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_341700_80174D58 = { { { TASK_BODY_TMD, 96 } }, madChaserTask, { .model = &_gActor341700MadChaserBody } };
+TaskDesc D_actor_341700_80174D58 = { { { TASK_BODY_TMD, 96 } }, _madChaserTask, { .model = &_gActor341700MadChaserBody } };
 
 TaskDesc D_actor_341700_80174D64 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _madChaserHiddenTask, { .model = &_gActor341700MadChaserBody } };
 
@@ -902,10 +902,10 @@ static const TaskFuncTable9 gMadChaserDeathStates = { {
     _madChaserDeathWaitAnim,
     _madChaserDeathStartShrink,
     _madChaserDeathTurnTranslucent,
-    madChaserShrinkWithDust,
+    _madChaserShrinkWithBurn,
     madChaserStartDespawn,
     _madChaserDeathPause,
-    madChaserBurst,
+    _madChaserBurst,
 } };
 
 #include "../../shared/mad_chaser_death_tick.inc.c"

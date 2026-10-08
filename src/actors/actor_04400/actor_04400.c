@@ -700,7 +700,7 @@ TaskMessageEntry gMadChaserMsgTable[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor04400_D107E4 = { { { TASK_BODY_TMD, 96 } }, madChaserTask, { .model = &_gActor04400MadChaserBody } };
+TaskDesc Actor04400_D107E4 = { { { TASK_BODY_TMD, 96 } }, _madChaserTask, { .model = &_gActor04400MadChaserBody } };
 
 TaskDesc Actor04400_D107F0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _madChaserHiddenTask, { .model = &_gActor04400MadChaserBody } };
 
@@ -763,13 +763,13 @@ static __inline__ s16 _madChaserSelectPushbackStep(s16 gridStep, s16 actorStep)
 }
 
 /// Task-state handlers of the first enemy form, dispatched by
-/// `madChaserTask` on `Task::state`.
+/// `_madChaserTask` on `Task::state`.
 static const TaskFuncTable6 gMadChaserTaskStates = { {
     madChaserSpawn,
     Actor04400_Fn03538,
     madChaserDangleFrame,
     madChaserCombatTick,
-    madChaserDeathTick,
+    _madChaserDeathTick,
     _madChaserDespawnState,
 } };
 
@@ -780,12 +780,12 @@ static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     Actor04400_Fn03538,
     madChaserDangleFrame,
     madChaserCombatTick,
-    madChaserDeathTick,
+    _madChaserDeathTick,
     _madChaserDespawnState,
     madChaserEmergeTick,
     _madChaserVanishState,
-    madChaserDropDeathTick,
-    madChaserShrinkDeathTick,
+    _madChaserDropDeathTick,
+    _madChaserShrinkDeathTick,
 } };
 
 /// State handlers `madChaserCombatTick` dispatches by `state`.
@@ -1062,17 +1062,17 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
 
 #include "../../shared/mad_chaser_bodies.inc.c"
 
-/// State handlers `madChaserDeathTick` dispatches by `state`.
+/// State handlers `_madChaserDeathTick` dispatches by `state`.
 static const TaskFuncTable9 gMadChaserDeathStates = { {
     _madChaserDeathReleaseTarget,
     _madChaserDeathSettle,
     _madChaserDeathWaitAnim,
     _madChaserDeathStartShrink,
     _madChaserDeathTurnTranslucent,
-    madChaserShrinkWithDust,
+    _madChaserShrinkWithBurn,
     madChaserStartDespawn,
     _madChaserDeathPause,
-    madChaserBurst,
+    _madChaserBurst,
 } };
 
 #include "../../shared/mad_chaser_death_tick.inc.c"
@@ -1122,8 +1122,9 @@ static const TaskFuncTable5 Actor04400_D00128 = { {
 } };
 
 /// The five-state per-frame callback of the enemy's state machine, the
-/// counterpart of `madChaserDropDeathTick`. Mode 0 counts `frameCount` up, aims
-/// (`madChaserTrackPlayer`), lets `madChaserTakeHit` replace the handler
+/// counterpart of `_madChaserDropDeathTick`. Mode 0 counts `frameCount` up, aims
+/// (`_madChaserTrackPlayer`), lets a pull or vanish command
+/// (`_madChaserTakePullOrVanishCommand`) replace the handler
 /// `state` selects from `Actor04400_D00128`, rebuilds the model root
 /// rotation through part 0's coordinate, and picks the next state: 4 once the
 /// `field_40` hold is empty, 8 / 9 for messages 4 / 5, and 3 after a consumed
@@ -1143,13 +1144,13 @@ static void Actor04400_Fn03538(Task* arg0)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->frameCount++;
-            madChaserTrackPlayer(arg0);
-            if (madChaserTakeHit(arg0) == 0) {
+            _madChaserTrackPlayer(arg0);
+            if (_madChaserTakePullOrVanishCommand(arg0) == 0) {
                 sp.funcs[(s16)work->state](arg0);
             }
             _madChaserTickAnim(arg0);
-            madChaserTwistSpine(arg0);
-            madChaserUpdateRotation(arg0);
+            _madChaserTwistSpine(arg0);
+            _madChaserUpdateRotation(arg0);
             madChaserApplyContacts(arg0, 0);
             if (work->busy == 0 && enemy->hp <= 0) {
                 _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DEATH);
@@ -1163,7 +1164,7 @@ static void Actor04400_Fn03538(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            _madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             _madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
             _madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
             _madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
@@ -1229,7 +1230,7 @@ static const TaskFuncTable6 gMadChaserPullSteps = { {
     _madChaserPulledIn,
 } };
 
-/// State handlers `madChaserDropDeathTick` dispatches by `state`.
+/// State handlers `_madChaserDropDeathTick` dispatches by `state`.
 static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     _madChaserDropDeathStart,
     _madChaserDeathRequestSettle,
@@ -1238,7 +1239,7 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     _madChaserDropDeathHold,
 } };
 
-/// State handlers `madChaserShrinkDeathTick` dispatches by `state`.
+/// State handlers `_madChaserShrinkDeathTick` dispatches by `state`.
 static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     _madChaserShrinkDeathStart,
     _madChaserDeathRequestSettle,

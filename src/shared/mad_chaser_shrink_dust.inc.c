@@ -1,40 +1,53 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Death shrink: restores the root matrix saved in `savedRootMtx`, scales it
-/// on Y by `shrinkScaleY` (0x40 smaller each frame), spawns effect 0x600A5 on
-/// frame 4, sets the enemy's light mode 2 on frame 16, and after frame 32
-/// hides the model and advances the state.
-void madChaserShrinkWithDust(Task* arg0)
+/// Shrinks the ordinary corpse on Y while starting its burn effect.
+///
+/// Requires live enemy/model/work in ordinary-death behavior 5, with the saved
+/// root transform, Q12 Y scale and zeroed stateFrames prepared by death entry.
+/// Subtracts 1/64 from the u16 scale each updating frame and rescales a fresh
+/// copy of the saved matrix. At count 4 starts three burn bursts at the root;
+/// at 16 selects black colour, and after 32 hides the model and advances behavior.
+/// Frame comparisons interpret the wrapping u16 counter as s16. Storage stays
+/// live; the death dispatcher dirties the root and updates colour afterward.
+static void _madChaserShrinkWithBurn(Task* task)
 {
+    enum {
+        MAD_CHASER_DEATH_SHRINK_SCALE_STEP = ONE / 64,
+        MAD_CHASER_DEATH_BURN_START_FRAME  = 4,
+        MAD_CHASER_DEATH_BURN_BURSTS       = 3,
+        MAD_CHASER_DEATH_BLACK_FRAME       = 16,
+        MAD_CHASER_DEATH_HIDE_AFTER_FRAME  = 32
+    };
     MadChaserWork* work;
-    TmdObject*     obj;
-    GfxCoord*      coord;
+    TmdObject*     model;
+    GfxCoord*      root;
     VECTOR         scale;
-    MATRIX         m;
-    SVECTOR        ofs;
+    MATRIX         shrinkMatrix;
+    SVECTOR        originOffset;
 
-    work                = (MadChaserWork*)arg0->work;
-    obj                 = arg0->extra.tmd;
-    coord               = obj->coords;
-    work->shrinkScaleY -= 0x40;
-    scale.vx            = 0x1000;
+    work  = task->work;
+    model = task->extra.tmd;
+    root  = model->coords;
+    // Rescale the saved pose so rounding never accumulates across frames.
+    work->shrinkScaleY -= MAD_CHASER_DEATH_SHRINK_SCALE_STEP;
+    scale.vx            = ONE;
     scale.vy            = (s16)work->shrinkScaleY;
-    scale.vz            = 0x1000;
-    coord->coord        = work->savedRootMtx;
-    gfxSetRotIdentity(&m);
-    ScaleMatrix(&m, &scale);
-    MulMatrix(&coord->coord, &m);
-    if ((s16)++work->stateFrames == 4) {
-        ofs.vx = 0;
-        ofs.vy = 0;
-        ofs.vz = 0;
-        effectSpawn(EFFECT_CORPSE_BURN, coord, 3, &ofs);
+    scale.vz            = ONE;
+    root->coord         = work->savedRootMtx;
+    gfxSetRotIdentity(&shrinkMatrix);
+    ScaleMatrix(&shrinkMatrix, &scale);
+    MulMatrix(&root->coord, &shrinkMatrix);
+    if ((s16)++work->stateFrames == MAD_CHASER_DEATH_BURN_START_FRAME) {
+        originOffset.vx = 0;
+        originOffset.vy = 0;
+        originOffset.vz = 0;
+        effectSpawn(EFFECT_CORPSE_BURN, root, MAD_CHASER_DEATH_BURN_BURSTS, &originOffset);
     }
-    if ((s16)work->stateFrames == 0x10) {
-        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+    if ((s16)work->stateFrames == MAD_CHASER_DEATH_BLACK_FRAME) {
+        worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     }
-    if ((s16)work->stateFrames > 0x20) {
-        obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if ((s16)work->stateFrames > MAD_CHASER_DEATH_HIDE_AFTER_FRAME) {
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->state++;
     }
 }

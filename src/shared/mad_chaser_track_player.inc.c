@@ -1,54 +1,70 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Aims at the nearer of the two player actors: saves the root position in
-/// `prevRootPos`, stores the offset to that actor in `toPlayer` and
-/// its horizontal distance in `playerDist`, and its heading relative to
-/// `rotation.vy` in `playerBearing`. Nothing but the position is updated while
-/// player slot 0 is empty.
-void madChaserTrackPlayer(Task* arg0)
+/// Records the horizontal range and relative bearing of the nearer player actor.
+///
+/// Requires live Mad Chaser work/model and any present player models in the
+/// same root-parent frame. Always snapshots the full-width root XYZ for collision
+/// rollback. If the primary player exists, narrows each candidate XYZ offset to
+/// s16 game units before measuring X/Z distance; ties keep the primary player.
+/// Stores that offset and distance (narrowed to s16) and a 0..4095 bearing
+/// relative to the work heading. Uses SDK normalization/GTE state; horizontal
+/// squared sums must fit signed 32 bits. An absent primary leaves prior tracking
+/// values intact even when the companion exists. Does not turn or move the model.
+static void _madChaserTrackPlayer(Task* task)
 {
-    MadChaserWork* work;
-    GfxCoord*      coord;
-    GfxCoord*      other;
-    Task*          player;
-    SVECTOR        d0;
-    SVECTOR        d1;
-    s32            dist;
-    s32            dist2;
+    /// Saves signed-halfword XYZ and narrows a horizontal distance to s16.
+    ///
+    /// workBlock is a live MadChaserWork pointer, offsetVector is an SVECTOR
+    /// lvalue, and horizontalDistance is in game units. The first two arguments
+    /// are evaluated repeatedly and must be stable, disjoint and free of side
+    /// effects; the distance is evaluated once. Captures no caller identifiers.
+    /// Confined to this function, before normalization overwrites the offset.
+#define MAD_CHASER_SAVE_PLAYER_TRACKING(workBlock, offsetVector, horizontalDistance) \
+    do {                                                                             \
+        (workBlock)->toPlayer.vx = (offsetVector).vx;                                \
+        (workBlock)->toPlayer.vy = (offsetVector).vy;                                \
+        (workBlock)->toPlayer.vz = (offsetVector).vz;                                \
+        (workBlock)->playerDist  = (horizontalDistance);                             \
+    } while (0)
 
-    work                 = (MadChaserWork*)arg0->work;
-    coord                = arg0->extra.tmd->coords;
-    player               = gPlayerActorTasks[0];
-    work->prevRootPos.vx = coord->coord.t[0];
-    work->prevRootPos.vy = coord->coord.t[1];
-    work->prevRootPos.vz = coord->coord.t[2];
-    if (player != NULL) {
-        other = player->extra.tmd->coords;
-        d0.vx = other->coord.t[0] - coord->coord.t[0];
-        d0.vy = other->coord.t[1] - coord->coord.t[1];
-        d0.vz = other->coord.t[2] - coord->coord.t[2];
-        dist  = SquareRoot0(d0.vx * d0.vx + d0.vz * d0.vz);
-        if (gPlayerActorTasks[1] != NULL) {
-            other = gPlayerActorTasks[1]->extra.tmd->coords;
-            d1.vx = other->coord.t[0] - coord->coord.t[0];
-            d1.vy = other->coord.t[1] - coord->coord.t[1];
-            d1.vz = other->coord.t[2] - coord->coord.t[2];
-            dist2 = SquareRoot0(d1.vx * d1.vx + d1.vz * d1.vz);
-            if (dist2 < dist) {
-                dist  = dist2;
-                d0.vx = d1.vx;
-                d0.vy = d1.vy;
-                d0.vz = d1.vz;
+    MadChaserWork* work;
+    GfxCoord*      root;
+    GfxCoord*      playerRoot;
+    Task*          playerTask;
+    SVECTOR        nearestOffset;
+    SVECTOR        companionOffset;
+    s32            nearestDistance;
+    s32            companionDistance;
+
+    work                 = task->work;
+    root                 = task->extra.tmd->coords;
+    playerTask           = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
+    work->prevRootPos.vx = root->coord.t[0];
+    work->prevRootPos.vy = root->coord.t[1];
+    work->prevRootPos.vz = root->coord.t[2];
+    if (playerTask != NULL) {
+        playerRoot       = playerTask->extra.tmd->coords;
+        nearestOffset.vx = playerRoot->coord.t[0] - root->coord.t[0];
+        nearestOffset.vy = playerRoot->coord.t[1] - root->coord.t[1];
+        nearestOffset.vz = playerRoot->coord.t[2] - root->coord.t[2];
+        nearestDistance  = SquareRoot0(nearestOffset.vx * nearestOffset.vx + nearestOffset.vz * nearestOffset.vz);
+        if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] != NULL) {
+            playerRoot         = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]->extra.tmd->coords;
+            companionOffset.vx = playerRoot->coord.t[0] - root->coord.t[0];
+            companionOffset.vy = playerRoot->coord.t[1] - root->coord.t[1];
+            companionOffset.vz = playerRoot->coord.t[2] - root->coord.t[2];
+            companionDistance  = SquareRoot0(companionOffset.vx * companionOffset.vx + companionOffset.vz * companionOffset.vz);
+            if (companionDistance < nearestDistance) {
+                nearestDistance  = companionDistance;
+                nearestOffset.vx = companionOffset.vx;
+                nearestOffset.vy = companionOffset.vy;
+                nearestOffset.vz = companionOffset.vz;
             }
         }
-        // The loop notes keep VectorNormalSS's argument setup below these stores.
-        do {
-            work->toPlayer.vx = d0.vx;
-            work->toPlayer.vy = d0.vy;
-            work->toPlayer.vz = d0.vz;
-            work->playerDist  = dist;
-        } while (0);
-        VectorNormalSS(&d0, &d0);
-        work->playerBearing = (ratan2(d0.vx, d0.vz) - work->rotation.vy) & 0xFFF;
+        // Save the displacement before normalization changes it to a direction.
+        MAD_CHASER_SAVE_PLAYER_TRACKING(work, nearestOffset, nearestDistance);
+        VectorNormalSS(&nearestOffset, &nearestOffset);
+        work->playerBearing = (ratan2(nearestOffset.vx, nearestOffset.vz) - work->rotation.vy) & ACTOR_TRANSFORM_ANGLE_MASK;
     }
+#undef MAD_CHASER_SAVE_PLAYER_TRACKING
 }

@@ -2,35 +2,41 @@
 
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Per-frame callback, the five-state counterpart of
-/// `madChaserShrinkDeathTick`; unlike it, clears bit 0x80 of `field_C` on
-/// the way out of modes 0 and 1.
-void madChaserDropDeathTick(Task* arg0)
+/// Runs one room-command drop-death frame, including periodic blast effects.
+///
+/// Requires live enemy/model/work storage with at least nine coordinates and
+/// work->state in 0..4. Hidden actors skip drawing and all frame work. Running
+/// actors increment the s16 frame counter, dispatch one copied handler, spawn
+/// a blast at part 1 every 32 counts and dirty the root. Running and paused
+/// actors both update colour and optional limb shadows, then enable drawing.
+static void _madChaserDropDeathTick(Task* task)
 {
-    TmdObject*     obj   = arg0->extra.tmd;
-    MadChaserWork* work  = (MadChaserWork*)arg0->work;
-    GfxCoord*      coord = obj->coords;
-    TaskFuncTable5 sp    = gMadChaserDropDeathStates;
+    enum { MAD_CHASER_DROP_DEATH_BLAST_INTERVAL_FRAMES = 32 };
+    TmdObject*     model  = task->extra.tmd;
+    MadChaserWork* work   = task->work;
+    GfxCoord*      root   = model->coords;
+    TaskFuncTable5 states = gMadChaserDropDeathStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->frameCount++;
-            sp.funcs[(s16)work->state](arg0);
-            if (!(work->frameCount & 0x1F)) {
-                effectSpawnHit(EFFECT_HIT_KIND_BLAST, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
+            states.funcs[(s16)work->state](task);
+            if (!(work->frameCount & (MAD_CHASER_DROP_DEATH_BLAST_INTERVAL_FRAMES - 1))) {
+                effectSpawnHit(EFFECT_HIT_KIND_BLAST, &task->extra.tmd->coords[1], NULL, &work->effectArg);
             }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            root->composeStamp = GRAPHICS_COORD_DIRTY;
+            // Colour and shadows stay live while state progression is paused.
         case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            _madChaserUpdateColor(task->spawnArg2.pointer, &task->extra.tmd->coords[1]);
             if (work->shadowHidden == 0) {
-                _madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-                _madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-                _madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+                _madChaserDrawLimbShadow(task, 2, 6, 0xC8, 0, 0xFF);
+                _madChaserDrawLimbShadow(task, 1, 7, 0x80, 0, 0xFF);
+                _madChaserDrawLimbShadow(task, 7, 8, 0x80, 0, 0xFF);
             }
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 }

@@ -2,8 +2,9 @@
 
 /// Per-frame callback for the main enemy, the eleven-state counterpart of
 /// `madChaserEmergeTick`. In mode 0 it aims at the nearest actor
-/// (`madChaserTrackPlayer`), lets a pending hit (`madChaserTakeHit`) replace the state
-/// handler, eases `spineYaw` toward zero, rebuilds the root rotation, and
+/// (`_madChaserTrackPlayer`), lets a pending pull or vanish command
+/// (`_madChaserTakePullOrVanishCommand`) replace the state handler, eases
+/// `spineYaw` toward zero, rebuilds the root rotation, and
 /// then picks the next state: the `hitReaction` request once dead, state 4 when
 /// dead, 8 / 9 for messages 4 / 5 while `busy` is clear.
 void madChaserCombatTick(Task* arg0)
@@ -21,18 +22,18 @@ void madChaserCombatTick(Task* arg0)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->frameCount++;
-            madChaserTrackPlayer(arg0);
-            if (madChaserTakeHit(arg0) == 0) {
+            _madChaserTrackPlayer(arg0);
+            if (_madChaserTakePullOrVanishCommand(arg0) == 0) {
                 sp.funcs[(s16)work->state](arg0);
             }
             _madChaserTickAnim(arg0);
             cur            = (u16)work->spineYaw;
             work->spineYaw = cur + ((s16)(-(cur * 16)) >> 9);
-            madChaserTwistSpine(arg0);
+            _madChaserTwistSpine(arg0);
             if (work->anchored == 1) {
-                madChaserPinPart(arg0, 6, (SVECTOR3*)&work->leapAnchorPos);
+                _madChaserPinPart(arg0, 6, &work->leapAnchorPos);
             }
-            madChaserUpdateRotation(arg0);
+            _madChaserUpdateRotation(arg0);
             madChaserApplyContacts(arg0, 0);
             if (work->leapCooldown != 0) {
                 work->leapCooldown--;
@@ -49,7 +50,7 @@ void madChaserCombatTick(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            _madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             _madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
             _madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
             _madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);

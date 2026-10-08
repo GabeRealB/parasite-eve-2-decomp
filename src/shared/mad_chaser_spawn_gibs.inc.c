@@ -2,50 +2,58 @@
 
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Scatters the body when the enemy bursts: a chunk of model 0 from joint 6,
-/// then one of model 1 from joint 8 or model 2 from joint 2 at random (effect
-/// 0x20010, each taking the enemy's texture page and CLUT row), and effect
-/// 0x60030 at joints 1, 3 and 4.
-void madChaserSpawnGibs(Task* arg0)
+/// Gives a detached chunk the body's texture placement and rebuilds its buffer.
+///
+/// Both tasks must own live models; chunkEffect is a successful model-effect
+/// spawn. Copies only texture-page and CLUT-row offsets. An existing chunk
+/// buffer has both halves rebuilt; an absent buffer is retained as absent.
+static __inline__ void _madChaserBindGibTexture(Task* task, EffectWork* chunkEffect)
 {
-    EffectWork* eff;
-    EffectWork* eff2;
-    TmdObject*  dst;
-    TmdObject*  dst2;
-    TmdObject*  src;
-    TmdObject*  src2;
+    TmdObject* bodyModel  = task->extra.tmd;
+    TmdObject* chunkModel = chunkEffect->task->extra.tmd;
+
+    chunkModel->texturePageOffset = bodyModel->texturePageOffset;
+    chunkModel->clutRowOffset     = bodyModel->clutRowOffset;
+    if (chunkModel->buffer != NULL) {
+        tmdBuildBufferHalf(chunkModel);
+        tmdBuildBufferHalf(chunkModel);
+    }
+}
+
+/// Spawns two detached model chunks and three gravity particles from the body.
+///
+/// Requires a live model with at least nine coordinates and the carrier's
+/// three chunk sources loaded. Publishes the head source for a synchronous
+/// body-chunk spawn at part 6, then chooses the arm at part 8 or tail at part 2
+/// using one LCG advance. Successful chunk models inherit texture-page and
+/// CLUT-row offsets; both halves of an existing primitive buffer are rebuilt.
+/// Particles spawn at parts 1, 3 and 4 even if a chunk allocation fails. Effects
+/// own their new tasks and snapshot placement; the chunk sources must stay
+/// loaded until those models are released. The body is borrowed for this call.
+static void _madChaserSpawnGibs(Task* task)
+{
+    // Low spawn-argument bits size particles, including the chunks' trail puffs.
+    enum { MAD_CHASER_GIB_PARTICLE_SIZE = 0x200 };
+    EffectWork* headEffect;
+    EffectWork* secondaryEffect;
 
     D_800678F0[0] = &gMadChaserChunkModel0;
-    eff           = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[6], 0x200, NULL);
-    if (eff != NULL) {
-        src                    = arg0->extra.tmd;
-        dst                    = eff->task->extra.tmd;
-        dst->texturePageOffset = src->texturePageOffset;
-        dst->clutRowOffset     = src->clutRowOffset;
-        if (dst->buffer != NULL) {
-            tmdBuildBufferHalf(dst);
-            tmdBuildBufferHalf(dst);
-        }
+    headEffect    = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[6], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
+    if (headEffect != NULL) {
+        _madChaserBindGibTexture(task, headEffect);
     }
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16) & 1) {
-        D_800678F0[0] = &gMadChaserChunkModel1;
-        eff2          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[8], 0x200, NULL);
+        D_800678F0[0]   = &gMadChaserChunkModel1;
+        secondaryEffect = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[8], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
     } else {
-        D_800678F0[0] = &gMadChaserChunkModel2;
-        eff2          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[2], 0x200, NULL);
+        D_800678F0[0]   = &gMadChaserChunkModel2;
+        secondaryEffect = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[2], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
     }
-    if (eff2 != NULL) {
-        src2                    = arg0->extra.tmd;
-        dst2                    = eff2->task->extra.tmd;
-        dst2->texturePageOffset = src2->texturePageOffset;
-        dst2->clutRowOffset     = src2->clutRowOffset;
-        if (dst2->buffer != NULL) {
-            tmdBuildBufferHalf(dst2);
-            tmdBuildBufferHalf(dst2);
-        }
+    if (secondaryEffect != NULL) {
+        _madChaserBindGibTexture(task, secondaryEffect);
     }
-    effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[3], 0x200, NULL);
-    effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[4], 0x200, NULL);
+    effectSpawn(EFFECT_030, &task->extra.tmd->coords[1], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
+    effectSpawn(EFFECT_030, &task->extra.tmd->coords[3], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
+    effectSpawn(EFFECT_030, &task->extra.tmd->coords[4], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
 }

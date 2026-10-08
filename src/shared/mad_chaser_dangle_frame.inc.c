@@ -31,11 +31,11 @@ void madChaserDangleFrame(Task* arg0)
             }
             _madChaserTickAnim(arg0);
             if (work->anchored == 1) {
-                madChaserPinPart(arg0, 6, (SVECTOR3*)&work->anchorPos);
+                _madChaserPinPart(arg0, 6, &work->anchorPos);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            _madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             _madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
             _madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
             _madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);

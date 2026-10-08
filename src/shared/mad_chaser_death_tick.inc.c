@@ -1,30 +1,35 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Per-frame callback of the main enemy. `gSceneCombatState.actorControl` 2 hides the model,
-/// 0 runs the current state handler (then colours it), 1 only colours it.
-/// Unless `shadowHidden` is set, it then runs `_madChaserDrawLimbShadow` for
-/// three part pairs.
-void madChaserDeathTick(Task* arg0)
+/// Runs one ordinary-death frame and refreshes colour and visible limb shadows.
+///
+/// Requires live enemy/model/work storage with at least nine model coordinates
+/// and work->state in 0..8. Hidden actors skip drawing and all frame work.
+/// Running actors increment the wrapping s16 frame counter, dispatch one copied
+/// death handler and dirty the root. Running and paused actors both sample
+/// colour at part 1 and draw three shadows unless shadowHidden is set. Retains
+/// the model's draw-skip flag when actors resume.
+static void _madChaserDeathTick(Task* task)
 {
-    TmdObject*     obj   = arg0->extra.tmd;
-    MadChaserWork* work  = (MadChaserWork*)arg0->work;
-    GfxCoord*      coord = obj->coords;
-    TaskFuncTable9 sp    = gMadChaserDeathStates;
+    TmdObject*     model  = task->extra.tmd;
+    MadChaserWork* work   = task->work;
+    GfxCoord*      root   = model->coords;
+    TaskFuncTable9 states = gMadChaserDeathStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->frameCount++;
-            sp.funcs[(s16)work->state](arg0);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            states.funcs[(s16)work->state](task);
+            root->composeStamp = GRAPHICS_COORD_DIRTY;
+            // Paused frames retain presentation updates without advancing death.
         case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            _madChaserUpdateColor(task->spawnArg2.pointer, &task->extra.tmd->coords[1]);
             if (work->shadowHidden == 0) {
-                _madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-                _madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-                _madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+                _madChaserDrawLimbShadow(task, 2, 6, 0xC8, 0, 0xFF);
+                _madChaserDrawLimbShadow(task, 1, 7, 0x80, 0, 0xFF);
+                _madChaserDrawLimbShadow(task, 7, 8, 0x80, 0, 0xFF);
             }
             return;
     }

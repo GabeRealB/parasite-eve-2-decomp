@@ -23,7 +23,7 @@ enum {
     EFFECT_FLYING_BODY_PART = EFFECT_ID(1, 0x032),
     /// Bank-2 effect that flings one model chunk (the model put in D_800678F0[0], with
     /// the enemy texture page/CLUT) from an enemy joint when the body bursts; spawned
-    /// by madChaserSpawnGibs and the diver/actor_400500/400600/405800 burst code.
+    /// by _madChaserSpawnGibs and the diver/actor_400500/400600/405800 burst code.
     EFFECT_BODY_CHUNK = EFFECT_ID(2, 0x010),
     /// Bank-4 task that flings one detached enemy model part (the model is passed
     /// through D_80067704[0]); spawned when an enemy bursts apart (Scorpion

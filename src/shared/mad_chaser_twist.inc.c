@@ -1,66 +1,58 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Turns model parts 5, 4 and 3 about Y by a third of `spineYaw` each: reads
-/// each part's rotation back as Euler angles, adds to the yaw, rebuilds the
-/// 3x3 and marks the coordinate dirty.
-void madChaserTwistSpine(Task* arg0)
+/// Distributes the look-around yaw across the three spine parts.
+///
+/// Requires live work and a model with at least six coordinates. Visits parts
+/// 5, 4 and 3 in that order, extracts each local Euler rotation and adds one
+/// third of signed spineYaw (4096 angle units per turn, division toward zero).
+/// Narrows the added yaw back to a halfword and replaces the nine Q12 basis
+/// coefficients, retaining translations and alignment bytes. Dirties each part;
+/// SDK rotation routines change GTE state.
+static void _madChaserTwistSpine(Task* task)
 {
-    SVECTOR        rot;
-    MATRIX         mtx;
+    /// Adds one third of look yaw to one joint and replaces its local basis.
+    ///
+    /// jointCoord is a writable GfxCoord lvalue, jointMatrix a MATRIX pointer
+    /// lvalue, angles an SVECTOR lvalue, rotation a MATRIX lvalue and workBlock
+    /// a live MadChaserWork pointer. angles and rotation must be separate from
+    /// joint/work storage; jointMatrix receives the joint matrix address.
+    /// Arguments occur repeatedly and must be stable and free of side effects.
+    /// Expands to a compound statement, captures the local joint-count constant,
+    /// and is undefined after this function's three calls. Retains translation
+    /// and alignment bytes, narrows yaw to s16 and dirties joint composition.
+#define MAD_CHASER_TWIST_SPINE_JOINT(jointCoord, jointMatrix, angles, rotation, workBlock)     \
+    {                                                                                          \
+        gfxSetRotIdentity(&(rotation));                                                        \
+        (jointMatrix) = &(jointCoord).coord;                                                   \
+        gfxExtractEulerAngles((jointMatrix), &(angles));                                       \
+        (angles).vy = (u16)(angles).vy + (workBlock)->spineYaw / MAD_CHASER_SPINE_JOINT_COUNT; \
+        RotMatrix(&(angles), &(rotation));                                                     \
+        (jointMatrix)->m[0][0]    = (rotation).m[0][0];                                        \
+        (jointMatrix)->m[0][1]    = (rotation).m[0][1];                                        \
+        (jointMatrix)->m[0][2]    = (rotation).m[0][2];                                        \
+        (jointMatrix)->m[1][0]    = (rotation).m[1][0];                                        \
+        (jointMatrix)->m[1][1]    = (rotation).m[1][1];                                        \
+        (jointMatrix)->m[1][2]    = (rotation).m[1][2];                                        \
+        (jointMatrix)->m[2][0]    = (rotation).m[2][0];                                        \
+        (jointMatrix)->m[2][1]    = (rotation).m[2][1];                                        \
+        (jointMatrix)->m[2][2]    = (rotation).m[2][2];                                        \
+        (jointCoord).composeStamp = GRAPHICS_COORD_DIRTY;                                      \
+    }
+    enum { MAD_CHASER_SPINE_JOINT_COUNT = 3 };
+
+    SVECTOR        eulerAngles;
+    MATRIX         rotationMatrix;
     MadChaserWork* work;
     GfxCoord*      coords;
-    MATRIX*        m5;
-    MATRIX*        m4;
-    MATRIX*        m3;
+    MATRIX*        part5Matrix;
+    MATRIX*        part4Matrix;
+    MATRIX*        part3Matrix;
 
-    work   = (MadChaserWork*)arg0->work;
-    coords = arg0->extra.tmd->coords;
+    work   = task->work;
+    coords = task->extra.tmd->coords;
 
-    gfxSetRotIdentity(&mtx);
-    m5 = &coords[5].coord;
-    gfxExtractEulerAngles(m5, &rot);
-    rot.vy = (u16)rot.vy + work->spineYaw / 3;
-    RotMatrix(&rot, &mtx);
-    m5->m[0][0]            = (u16)mtx.m[0][0];
-    m5->m[0][1]            = (u16)mtx.m[0][1];
-    m5->m[0][2]            = (u16)mtx.m[0][2];
-    m5->m[1][0]            = (u16)mtx.m[1][0];
-    m5->m[1][1]            = (u16)mtx.m[1][1];
-    m5->m[1][2]            = (u16)mtx.m[1][2];
-    m5->m[2][0]            = (u16)mtx.m[2][0];
-    m5->m[2][1]            = (u16)mtx.m[2][1];
-    m5->m[2][2]            = (u16)mtx.m[2][2];
-    coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
-
-    gfxSetRotIdentity(&mtx);
-    m4 = &coords[4].coord;
-    gfxExtractEulerAngles(m4, &rot);
-    rot.vy = (u16)rot.vy + work->spineYaw / 3;
-    RotMatrix(&rot, &mtx);
-    m4->m[0][0]            = (u16)mtx.m[0][0];
-    m4->m[0][1]            = (u16)mtx.m[0][1];
-    m4->m[0][2]            = (u16)mtx.m[0][2];
-    m4->m[1][0]            = (u16)mtx.m[1][0];
-    m4->m[1][1]            = (u16)mtx.m[1][1];
-    m4->m[1][2]            = (u16)mtx.m[1][2];
-    m4->m[2][0]            = (u16)mtx.m[2][0];
-    m4->m[2][1]            = (u16)mtx.m[2][1];
-    m4->m[2][2]            = (u16)mtx.m[2][2];
-    coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-
-    gfxSetRotIdentity(&mtx);
-    m3 = &coords[3].coord;
-    gfxExtractEulerAngles(m3, &rot);
-    rot.vy = (u16)rot.vy + work->spineYaw / 3;
-    RotMatrix(&rot, &mtx);
-    m3->m[0][0]            = (u16)mtx.m[0][0];
-    m3->m[0][1]            = (u16)mtx.m[0][1];
-    m3->m[0][2]            = (u16)mtx.m[0][2];
-    m3->m[1][0]            = (u16)mtx.m[1][0];
-    m3->m[1][1]            = (u16)mtx.m[1][1];
-    m3->m[1][2]            = (u16)mtx.m[1][2];
-    m3->m[2][0]            = (u16)mtx.m[2][0];
-    m3->m[2][1]            = (u16)mtx.m[2][1];
-    m3->m[2][2]            = (u16)mtx.m[2][2];
-    coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+    MAD_CHASER_TWIST_SPINE_JOINT(coords[5], part5Matrix, eulerAngles, rotationMatrix, work);
+    MAD_CHASER_TWIST_SPINE_JOINT(coords[4], part4Matrix, eulerAngles, rotationMatrix, work);
+    MAD_CHASER_TWIST_SPINE_JOINT(coords[3], part3Matrix, eulerAngles, rotationMatrix, work);
+#undef MAD_CHASER_TWIST_SPINE_JOINT
 }

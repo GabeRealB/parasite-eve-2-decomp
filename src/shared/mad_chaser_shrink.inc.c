@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Death shrink without the effect of `madChaserShrinkWithDust`:
+/// Death shrink without the effect of `_madChaserShrinkWithBurn`:
 /// restores the saved root matrix, scales it on Y by `shrinkScaleY` (0x40
 /// smaller each frame), sets light mode 2 on frame 16, and after frame 32
 /// hides the model, clears the frame counter and advances the state.

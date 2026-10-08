@@ -1,8 +1,9 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 /// Per-frame callback for the second enemy form, the five-state counterpart
-/// of `madChaserCombatTick`: in mode 0 it aims (`madChaserTrackPlayer`),
-/// lets a pending hit replace the state handler, rebuilds the root rotation,
+/// of `madChaserCombatTick`: in mode 0 it aims (`_madChaserTrackPlayer`),
+/// lets a pending pull or vanish command replace the state handler, rebuilds
+/// the root rotation,
 /// then picks the next state - 4 when dead, 8 / 9 for messages 4 / 5, and
 /// state 3 after a consumed `hitReaction` request. Mode 1 only recolours; both
 /// clear bit 0x80 of the model's `field_C`, which mode 2 sets.
@@ -20,13 +21,13 @@ void madChaserLurkTick(Task* arg0)
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->frameCount++;
-            madChaserTrackPlayer(arg0);
-            if (madChaserTakeHit(arg0) == 0) {
+            _madChaserTrackPlayer(arg0);
+            if (_madChaserTakePullOrVanishCommand(arg0) == 0) {
                 sp.funcs[(s16)work->state](arg0);
             }
             _madChaserTickAnim(arg0);
-            madChaserTwistSpine(arg0);
-            madChaserUpdateRotation(arg0);
+            _madChaserTwistSpine(arg0);
+            _madChaserUpdateRotation(arg0);
             madChaserApplyContacts(arg0, 0);
             if (work->busy == 0 && enemy->hp <= 0) {
                 _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DEATH);
@@ -40,7 +41,7 @@ void madChaserLurkTick(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            _madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             _madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
             _madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
             _madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);

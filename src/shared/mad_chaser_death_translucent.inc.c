@@ -46,8 +46,8 @@ static __inline__ void _madChaserDeathEnterTranslucentPhase(MadChaserWork* work,
 /// with stateFrames reset on entry. Counts with u16 wrapping and compares as
 /// s16; the death dispatcher calls this only while actors run. At the threshold,
 /// enables semi-transparent drawing, suppresses limb shadows, clears the counter
-/// and enters behavior 5, whose shrink emits dust. Animation and all storage
-/// remain live until the later despawn steps.
+/// and enters behavior 5, whose shrink emits corpse-burn flames. Animation and
+/// all storage remain live until the later despawn steps.
 static void _madChaserDeathTurnTranslucent(Task* task)
 #endif
 {
