@@ -1900,8 +1900,11 @@ void itemMenuClearPreviewItems(void)
 
 /// Opens the selected item's information child and consumes the parent's input focus.
 ///
-/// Reads the selected row after requesting sound. Parent and selection must be
-/// live; allocation failure still consumes input. Copies only the item id.
+/// Borrows a live parent and nonempty `Gp_SelItemRec` with a valid item id.
+/// Requests confirmation sound before reading that row, then copies the id
+/// into a task-owned information child that opens after one nominal 60-Hz tick.
+/// Preview/caption loading must already have been requested. Parent input is
+/// deactivated even if child allocation fails; no row pointer is retained.
 static inline void _itemMenuOpenSelectedInfoChild(UiObject* parentObject)
 {
     enum { ITEM_MENU_INFO_PANEL_DESCRIPTOR = 45,

@@ -28,24 +28,26 @@ static __inline__ s32 isStateF0Active_(void)
     return 0;
 }
 
-/// Refreshes a signed combo byte's duration and adds a stack, retaining its cast level.
+/// Refreshes an antibody or energy-shot combo and records the latest cast's level.
 ///
-/// Inputs borrow live combo/timer storage and a readable duration row; duration
-/// narrows to the timer's signed halfword. The low nibble is preserved above the
-/// ordinary two-stack cap. level must be 1..3; its high nibble replaces the old one.
-static inline void _attachmentRefreshStackedCombo(s8* combo, s16* ticks, const AttachmentComboParam* comboParam, s32 level)
+/// Borrows distinct live combo/timer storage and a readable duration row.
+/// `castLevel` must be 1..3 and replaces the old high nibble, including when
+/// recasting at a lower level. The low nibble increments from 0 or 1 and retains
+/// values 2..15. Duration narrows to a signed halfword; positive values count
+/// eligible attachment updates, which pause while the wheel is open.
+static inline void _attachmentRefreshStackedCombo(s8* packedCombo, s16* remainingFrames, const AttachmentComboParam* durationRow, s32 castLevel)
 {
     s32 stackCount;
     s32 durationFrames;
 
-    stackCount     = *combo & ATTACHMENT_COMBO_STACK_MASK;
-    durationFrames = comboParam->ticks;
-    *combo         = stackCount;
-    *ticks         = durationFrames;
-    if (*combo < ATTACHMENT_COMBO_STACK_CAP) {
-        (*combo)++;
+    stackCount       = *packedCombo & ATTACHMENT_COMBO_STACK_MASK;
+    durationFrames   = durationRow->ticks;
+    *packedCombo     = stackCount;
+    *remainingFrames = durationFrames;
+    if (*packedCombo < ATTACHMENT_COMBO_STACK_CAP) {
+        (*packedCombo)++;
     }
-    *combo |= level << ATTACHMENT_COMBO_LEVEL_SHIFT;
+    *packedCombo |= castLevel << ATTACHMENT_COMBO_LEVEL_SHIFT;
 }
 
 void attachmentApplySelfEffect(s32 releaseEffects)

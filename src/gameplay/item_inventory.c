@@ -931,7 +931,9 @@ static inline void _itemInitializeNewGameIdentification(void)
 ///
 /// Removable primary loads start empty. Only M4A1 Grenade starts with an available
 /// removable secondary; every other secondary is unavailable before supplies
-/// are installed. Does not grant weapons or change inventory rows.
+/// are installed at capacity. Resets all 32 live-save records for weapon item
+/// IDs 0x80..0x9F, including each record's unexplained final word. Saved storage
+/// and the supply/capacity tables must be live. Inventory rows remain intact.
 static inline void _equipmentInitializeNewGameWeaponLoads(void)
 {
     enum { EQUIPMENT_ITEM_M4A1_GRENADE = 0x9A };

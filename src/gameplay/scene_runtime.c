@@ -420,7 +420,7 @@ static void _enemyWaitTick(Enemy* enemy, Task* task);
 
 static void _loadingRestartPresentationTask(Task* task);
 
-static void Gp_FinishStageLoad(Task* task);
+static void _loadingAwaitRestartResources(Task* task);
 
 static void _fadeTickPulse(Task* task);
 
@@ -1389,16 +1389,26 @@ static void _loadingStartRestartResources(Task* task)
     }
 }
 
-static void Gp_FinishStageLoad(Task* task)
+/// Waits for restart resources and launches game-over UI or ending replay bonus.
+///
+/// Requires restart-loader state 1 and the selected display package still loaded.
+/// The normal path borrows its spawned UI task in `spawnArg2.pointer`, starts
+/// restart MIDI and advances to the child-exit wait even if allocation failed.
+/// The ending path spawns replay bonus, kills this loader, then still increments
+/// its state. Immediate task freeing must be disabled for that post-kill access.
+static void _loadingAwaitRestartResources(Task* task)
 {
-    if (cdCmdIsIdle() & 0xFFFF) {
+    enum { LOADING_RESTART_MIDI_SEQUENCE = 0x62 };
+
+    if (cdCmdIsIdle()) {
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
         if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
+            // Replay bonus takes over without a child for this loader to poll.
             taskSpawnFromTable(D_replay_bonus_8011922C, 0, 0, 0);
             taskKill(task);
         } else {
             task->spawnArg2.pointer = taskSpawnFromTable(D_aya_20900_80115D9C, 0, 0, 0);
-            sndEvtRequestMidiStart(0x62, 0);
+            sndEvtRequestMidiStart(LOADING_RESTART_MIDI_SEQUENCE, 0);
         }
         task->state++;
     }
@@ -4572,7 +4582,7 @@ static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs = { {
 
 static const TaskFuncTable3 Gp_StageLoadStates = { {
     _loadingStartRestartResources,
-    Gp_FinishStageLoad,
+    _loadingAwaitRestartResources,
     _loadingFinishRestart,
 } };
 

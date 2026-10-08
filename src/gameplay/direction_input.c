@@ -67,6 +67,22 @@ s16 D_80114D08;
 
 #include "gameplay/direction_input.h"
 
+/// Outcomes recognized by the warp query phase after narrowing the room reply to s16.
+enum {
+    DIRECTION_WARP_QUERY_STAY        = 0, // Execute in this area, then release scripted control
+    DIRECTION_WARP_QUERY_DEPART      = 1, // Turn, execute, await sound and save the destination
+    DIRECTION_WARP_QUERY_ROOM_ACTION = 2  // Execute the room's replacement action immediately
+};
+
+/// Trigger byte packing and the fixed facing target used by Dryfield's driveway exits.
+enum {
+    DIRECTION_WARP_ENDPOINT_SHIFT       = 4,
+    DIRECTION_WARP_ARRIVAL_MASK         = 0xF,
+    DIRECTION_WARP_DEPARTURE_FADE_START = 30,
+    DIRECTION_WARP_DRIVEWAY_FACING_X    = -1473,
+    DIRECTION_WARP_DRIVEWAY_FACING_Z    = 2497
+};
+
 /// Five stage counts, followed by three unexplained nonzero bytes.
 /// The tail is retained for review, not interpreted as additional stages.
 s8 Gp_AreaIdCounts[8] = {
@@ -132,20 +148,6 @@ u8 gViewIdentityMap[VIEW_IDENTITY_MAP_LENGTH] = {
     49,
     50,
 };
-
-/// Discards both trigger parameter tuples after an inactive or cancelled update.
-///
-/// Retains activity, phase, control-change history and session busy state;
-/// the cancelling branch releases activity separately.
-static inline void _directionDiscardUpdateParameters(void)
-{
-    Gp_DirNibble    = 0;
-    Gp_DirByte      = 0;
-    Gp_DirAltNibble = 0;
-    Gp_DirAlt       = 0;
-    Gp_DirFlags     = 0;
-    D_80114CD4      = 0;
-}
 
 void directionUpdateAction(void)
 {
@@ -219,90 +221,97 @@ void directionUpdateAction(void)
         if (actionIndex != WORLD_COLLISION_TRIGGER_ACTION_CANCEL) {
             actions.handlers[actionIndex]();
         } else {
-            _directionDiscardUpdateParameters();
+            _directionClearTriggerParameters();
             D_80114CF8 = 0;
         }
     } else {
-        _directionDiscardUpdateParameters();
+        _directionClearTriggerParameters();
     }
     D_80114CDE = gSceneCombatState.signals.bytes.battlePhase;
 }
 
-void Gp_SetupDirWarp(void)
+void directionQueryWarp(void)
 {
-    Task*              slot7;
-    Task*              slot3;
-    PlayerStatus*      cfg;
-    GameActor*         actor;
-    GameLocationKey*   sess;
-    DirectionWarpEntry warpEntry;
-    ActorTransform     msg;
-    SVECTOR            pos;
-    SVECTOR            pos2;
-    s32                stage;
-    s32                room;
-    s16                ret;
+    Task*                  roomTask;
+    Task*                  playerTask;
+    PlayerStatus*          playerStatus;
+    const GameActor*       playerActor;
+    const GameLocationKey* location;
+    DirectionWarpEntry     warpEntry;
+    ActorTransform         turnRequest;
+    SVECTOR                departureFacingPoint;
+    SVECTOR                stayFacingPoint;
+    s32                    stageId;
+    s32                    areaId;
+    s16                    queryResult;
 
-    sess  = &gGameSession->location.loc;
-    stage = sess->stage;
-    room  = sess->area;
-    slot7 = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
-    slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    cfg   = &gPlayerStatus;
-    actor = slot3->work;
+    /// Prepares a rotation-only request, reversing arrival yaw or resolving its sentinel.
+    ///
+    /// Arguments must be side-effect-free lvalues or a live player pointer: each
+    /// is evaluated repeatedly. Borrows the registered player task for world-point
+    /// bearing. Caller-owned point storage keeps each branch's distinct temporary.
+#define DIRECTION_PREPARE_WARP_TURN(request, endpoint, playerActorPtr, point)                                           \
+    {                                                                                                                   \
+        (request).rot.vx = 0;                                                                                           \
+        (request).rot.vz = 0;                                                                                           \
+        (request).rot.vy = ((endpoint).player.yaw.word + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK; \
+        if ((endpoint).player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT_ALT ||                                  \
+            (endpoint).player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT) {                                      \
+            (point).vx       = DIRECTION_WARP_DRIVEWAY_FACING_X;                                                        \
+            (point).vy       = 0;                                                                                       \
+            (point).vz       = DIRECTION_WARP_DRIVEWAY_FACING_Z;                                                        \
+            (request).rot.vy = actorAngleTaskYawTowardPoint(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], &(point));     \
+        } else if ((endpoint).player.yaw.word == ACTOR_SPAWN_YAW_KEEP_FACING) {                                         \
+            (request).rot.vy = (playerActorPtr)->rotation.vy;                                                           \
+        }                                                                                                               \
+    }
+
+    location     = &gGameSession->location.loc;
+    stageId      = location->stage;
+    areaId       = location->area;
+    roomTask     = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
+    playerTask   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerStatus = &gPlayerStatus;
+    playerActor  = playerTask->work;
 
     if (gGameSession->eventState != 0) {
-        D_80114CF8      = 0;
-        Gp_DirNibble    = 0;
-        Gp_DirByte      = 0;
-        Gp_DirFlags     = 0;
-        Gp_DirAltNibble = 0;
-        Gp_DirAlt       = 0;
-        D_80114CD4      = 0;
+        D_80114CF8 = 0;
+        _directionClearTriggerParameters();
         return;
     }
 
     D_80114CF4      = 0;
     Gp_DirFadeLevel = 0;
     // The current endpoint supplies facing and sounds for this departure.
-    warpEntry = Gp_WarpTables[stage - 1][room - 1][(Gp_DirNibble >> 4) - 1];
+    warpEntry = Gp_WarpTables[stageId - 1][areaId - 1][(Gp_DirNibble >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
 
     Gp_WarpLoc.field_4   = 1;
     Gp_WarpLoc.room      = 1;
     Gp_WarpLoc.queryOnly = ROOM_EVENT_QUERY_ONLY;
     Gp_WarpLoc.areaId    = Gp_DirByte;
-    Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
+    Gp_WarpLoc.warp      = Gp_DirNibble & DIRECTION_WARP_ARRIVAL_MASK;
     Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
 
-    ret        = TASK_MESSAGE_DISPATCH_POINTERS(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
-    D_80114CF4 = ret;
+    // The room may resolve the reusable request in place while answering the query.
+    queryResult = TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
+    D_80114CF4  = queryResult;
 
-    switch (ret) {
-        case 1:
+    switch (queryResult) {
+        case DIRECTION_WARP_QUERY_DEPART:
             if (warpEntry.departureSound != DIRECTION_WARP_SOUND_NONE) {
                 D_80114CF0 = warpEntry.departureSound;
             } else {
                 D_80114CF0 = 0;
             }
-            msg.rot.vx = 0;
-            msg.rot.vz = 0;
-            msg.rot.vy = (warpEntry.player.yaw.word + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
-            if (warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT_ALT || warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT) {
-                pos.vx     = -0x5C1;
-                pos.vy     = 0;
-                pos.vz     = 0x9C1;
-                msg.rot.vy = actorAngleTaskYawTowardPoint(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], &pos);
-            } else if (warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_KEEP_FACING) {
-                msg.rot.vy = actor->rotation.vy;
-            }
-            TASK_MESSAGE_DISPATCH_POINTER(slot3, 0x3EE, &msg, 0);
+            DIRECTION_PREPARE_WARP_TURN(turnRequest, warpEntry, playerActor, departureFacingPoint);
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &turnRequest, 0);
             if (warpEntry.flags & DIRECTION_WARP_FLAG_FADE_DEPARTURE) {
-                Gp_DirFadeLevel = 0x1E;
+                Gp_DirFadeLevel = DIRECTION_WARP_DEPARTURE_FADE_START;
             }
             Gp_DirPhase++;
             break;
 
-        case 0:
+        case DIRECTION_WARP_QUERY_STAY:
             if (warpEntry.blockedSound != DIRECTION_WARP_SOUND_NONE) {
                 D_80114CF0 = warpEntry.blockedSound;
             } else {
@@ -313,49 +322,40 @@ void Gp_SetupDirWarp(void)
                 Gp_WarpLoc.room      = gSceneCombatState.signals.bytes.battlePhase;
                 Gp_WarpLoc.queryOnly = ROOM_EVENT_EXECUTE;
                 Gp_WarpLoc.areaId    = Gp_DirByte;
-                Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
+                Gp_WarpLoc.warp      = Gp_DirNibble & DIRECTION_WARP_ARRIVAL_MASK;
                 Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
-                TASK_MESSAGE_DISPATCH_POINTERS(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
-                D_80114CF8              = 0;
-                Gp_DirNibble            = 0;
-                Gp_DirByte              = 0;
-                Gp_DirFlags             = 0;
-                cfg->interactionPressed = 0;
-                if (D_80114CF0 != 0 && cfg->hp > 0) {
+                TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
+                D_80114CF8                       = 0;
+                Gp_DirNibble                     = 0;
+                Gp_DirByte                       = 0;
+                Gp_DirFlags                      = 0;
+                playerStatus->interactionPressed = 0;
+                if (D_80114CF0 != DIRECTION_WARP_SOUND_NONE && playerStatus->hp > 0) {
                     sndEvtRequestScriptStart(D_80114CF0, 0, 0);
                 }
                 return;
             }
-            msg.rot.vx = 0;
-            msg.rot.vz = 0;
-            msg.rot.vy = (warpEntry.player.yaw.word + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
-            if (warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT_ALT || warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_FACE_TRANSITION_POINT) {
-                pos2.vx    = -0x5C1;
-                pos2.vy    = 0;
-                pos2.vz    = 0x9C1;
-                msg.rot.vy = actorAngleTaskYawTowardPoint(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], &pos2);
-            } else if (warpEntry.player.yaw.word == ACTOR_SPAWN_YAW_KEEP_FACING) {
-                msg.rot.vy = actor->rotation.vy;
-            }
-            TASK_MESSAGE_DISPATCH_POINTER(slot3, 0x3EE, &msg, 0);
+            DIRECTION_PREPARE_WARP_TURN(turnRequest, warpEntry, playerActor, stayFacingPoint);
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &turnRequest, 0);
             Gp_DirPhase++;
             break;
 
-        case 2:
+        case DIRECTION_WARP_QUERY_ROOM_ACTION:
             Gp_WarpLoc.field_4   = 1;
             Gp_WarpLoc.room      = 1;
             Gp_WarpLoc.queryOnly = ROOM_EVENT_EXECUTE;
             Gp_WarpLoc.areaId    = Gp_DirByte;
-            Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
+            Gp_WarpLoc.warp      = Gp_DirNibble & DIRECTION_WARP_ARRIVAL_MASK;
             Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
-            TASK_MESSAGE_DISPATCH_POINTERS(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
-            D_80114CF8              = 0;
-            Gp_DirNibble            = 0;
-            Gp_DirByte              = 0;
-            Gp_DirFlags             = 0;
-            cfg->interactionPressed = 0;
+            TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
+            D_80114CF8                       = 0;
+            Gp_DirNibble                     = 0;
+            Gp_DirByte                       = 0;
+            Gp_DirFlags                      = 0;
+            playerStatus->interactionPressed = 0;
             break;
     }
+#undef DIRECTION_PREPARE_WARP_TURN
 }
 
 void directionAwaitWarpTurn(void)
@@ -372,54 +372,47 @@ void directionAwaitWarpTurn(void)
     }
 }
 
-void Gp_CommitWarp(void)
+void directionResolveWarp(void)
 {
-    Task*              slot3;
-    Task*              slot7;
-    PlayerStatus*      cfg;
-    GameLocationKey*   sess;
-    DirectionWarpEntry warpEntry;
-    RoomEventMsg*      loc;
-    u8                 fade;
+    Task*                  playerTask;
+    Task*                  roomTask;
+    PlayerStatus*          playerStatus;
+    const GameLocationKey* location;
+    DirectionWarpEntry     warpEntry;
+    RoomEventMsg*          request;
 
-    slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    cfg   = &gPlayerStatus;
-    slot7 = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
+    playerTask   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerStatus = &gPlayerStatus;
+    roomTask     = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
 
-    sess      = &gGameSession->location.loc;
-    warpEntry = Gp_WarpTables[sess->stage - 1][sess->area - 1][(Gp_DirNibble >> 4) - 1];
+    location  = &gGameSession->location.loc;
+    warpEntry = Gp_WarpTables[location->stage - 1][location->area - 1][(Gp_DirNibble >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
 
-    if (*(s16*)&Gp_DirFadeLevel != 0) {
-        fade = *(u8*)&Gp_DirFadeLevel;
-        fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
-        Gp_DirFadeLevel += 0x1E;
-        if ((s16)Gp_DirFadeLevel >= 0x100) {
-            Gp_DirFadeLevel = 0xFF;
-        }
-    }
+    _directionStepDepartureFade();
 
-    loc               = &Gp_WarpLoc;
-    loc->field_4      = 1;
-    loc->room         = 1;
-    loc->queryOnly    = ROOM_EVENT_EXECUTE;
-    Gp_WarpLoc.areaId = Gp_DirByte;
-    loc->warp         = Gp_DirNibble & 0xF;
-    loc->flagId       = warpEntry.mapFlagId;
-    TASK_MESSAGE_DISPATCH_POINTERS(slot7, ROOM_EVENT_MESSAGE_RESOLVE, loc, loc);
+    // Rebuild the request from the trigger; query-time selector edits do not survive.
+    request            = &Gp_WarpLoc;
+    request->field_4   = 1;
+    request->room      = 1;
+    request->queryOnly = ROOM_EVENT_EXECUTE;
+    Gp_WarpLoc.areaId  = Gp_DirByte;
+    request->warp      = Gp_DirNibble & DIRECTION_WARP_ARRIVAL_MASK;
+    request->flagId    = warpEntry.mapFlagId;
+    TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, request, request);
 
-    if (D_80114CF0 != 0) {
-        if (cfg->hp > 0) {
+    if (D_80114CF0 != DIRECTION_WARP_SOUND_NONE) {
+        if (playerStatus->hp > 0) {
             sndEvtRequestScriptStart(D_80114CF0, 0, 0);
         }
     }
 
-    if (D_80114CF4 == 0) {
-        taskMessageDispatch(slot3, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-        D_80114CF8              = 0;
-        Gp_DirNibble            = 0;
-        Gp_DirByte              = 0;
-        Gp_DirFlags             = 0;
-        cfg->interactionPressed = 0;
+    if (D_80114CF4 == DIRECTION_WARP_QUERY_STAY) {
+        taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+        D_80114CF8                       = 0;
+        Gp_DirNibble                     = 0;
+        Gp_DirByte                       = 0;
+        Gp_DirFlags                      = 0;
+        playerStatus->interactionPressed = 0;
     } else {
         Gp_DirPhase++;
     }

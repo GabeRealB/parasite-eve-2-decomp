@@ -330,10 +330,12 @@ _AreaMapMarkRec Gp_NewGameFlagsStg5[34] = {
     { AREA_MAP_MARK_END, 0 },
 };
 
-/// Applies one new-game list without clearing marks for zero entries.
+/// Sets the saved map marks selected by one stage's new-game list.
 ///
-/// Borrows an `AREA_MAP_MARK_END`-terminated list; the stage and live area IDs
-/// must fit their directories. Missing tables and saved state are skipped.
+/// `stageId` selects the stage directory directly (the callers use 1, 2, 4, 5).
+/// Borrows a readable `AREA_MAP_MARK_END`-terminated list of valid 1-based area
+/// IDs. Only nonzero list choices set `AREA_SAVED_MAP_MARK`; zero choices and
+/// other saved flags survive. Missing directories and saved states are skipped.
 static inline void _areaApplyNewGameMapMarksForStage(s16 stageId, const _AreaMapMarkRec* entry)
 {
     const AreaRecord* areaRecords;
@@ -433,10 +435,10 @@ const DirectionActionTable Gp_DirActionFns = { {
 } };
 
 static const _DirectionWarpPhaseTable Gp_WarpPhaseFns = { {
-    [DIRECTION_WARP_PHASE_QUERY]       = Gp_SetupDirWarp,
+    [DIRECTION_WARP_PHASE_QUERY]       = directionQueryWarp,
     [DIRECTION_WARP_PHASE_AWAIT_TURN]  = directionAwaitWarpTurn,
     [DIRECTION_WARP_PHASE_HOLD]        = _directionHoldWarpFrame,
-    [DIRECTION_WARP_PHASE_RESOLVE]     = Gp_CommitWarp,
+    [DIRECTION_WARP_PHASE_RESOLVE]     = directionResolveWarp,
     [DIRECTION_WARP_PHASE_AWAIT_SOUND] = directionAwaitWarpSound,
     [DIRECTION_WARP_PHASE_LEAVE]       = _directionLeaveWarp,
 } };

@@ -83,7 +83,19 @@ extern s32 Gp_AreaIdBits[2];
 /// `menuMapRebuildMarkedAreaBits` loops area ids `1..count` when the stage is 1–5.
 extern s8 Gp_AreaIdCounts[];
 
-void Gp_SetupDirWarp(void);
+/// Queries the room for a warp and starts the appropriate departure turn.
+///
+/// Requires live room/player tasks, stage 1..5, a populated current area and a
+/// valid departure endpoint in the trigger's high nibble (1..15). The low
+/// nibble requests the arrival slot; the first trigger byte requests the area.
+/// Room dispatch borrows and resolves the reusable request synchronously.
+/// Replies narrow to s16: 1 starts departure, 0 stays in the area, and 2 executes
+/// the room's replacement action immediately. A stay reply during combat also
+/// executes immediately; otherwise it turns before execution. Other replies
+/// retain the query phase. Active events discard both trigger tuples instead.
+/// Facing uses 4096 units per turn, reversing the endpoint's arrival yaw unless
+/// its sentinel retains the player's yaw or selects Dryfield's driveway target.
+void directionQueryWarp(void);
 
 /// Steps the departure fade while awaiting the player's scripted turn.
 ///
@@ -92,7 +104,16 @@ void Gp_SetupDirWarp(void);
 /// advances to its one-frame hold phase; a zero result also advances.
 void directionAwaitWarpTurn(void);
 
-void Gp_CommitWarp(void);
+/// Executes the queried warp at the room and starts its selected departure sound.
+///
+/// Requires the latched trigger, query result and live room/player tasks after
+/// the departure turn and hold. Rebuilds the request from the trigger and copies
+/// the current endpoint, with the same table bounds as `directionQueryWarp`.
+/// Dispatch resolves the request in place; its return value is ignored. A zero
+/// query result ends scripted control and clears primary action parameters.
+/// Otherwise advances to the sound wait, leaving the resolved destination for
+/// the final phase to save. Sound playback is suppressed for a dead player.
+void directionResolveWarp(void);
 
 /// Steps the departure fade until the selected warp sound is no longer active.
 ///

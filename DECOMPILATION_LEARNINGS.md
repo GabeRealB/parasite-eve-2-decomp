@@ -7628,7 +7628,7 @@ A 0x38-byte stack copy that the target does as three aligned 16-byte
 GCC emits `andi src, 3` plus an `lwl`/`lwr` fallback. A leading `s32`
 (or any 4-aligned member) is enough.
 
-`Gp_CommitWarp` is the example (`Gp_WarpTables` / `DirectionWarpEntry`).
+`directionResolveWarp` is the example (`Gp_WarpTables` / `DirectionWarpEntry`).
 
 ## Barrier after scratch alloc so GTE setup cannot fill load-delay nops
 
@@ -37417,7 +37417,7 @@ picks the register the compare uses.
 
 Two adjacent stores to different fields of the same object are order-free for
 the scheduler — both orders emit the same instruction sequence in that arm —
-but they are *not* free for the allocator. In `Gp_SetupDirWarp` the last case of
+but they are *not* free for the allocator. In `directionQueryWarp` the last case of
 the `switch` writes `RoomEventMsg.warp` and `flagId`; the asm shows `sh` of
 `flagId` first, so that is the order the reading suggests. Writing it that way
 left the whole function one `$s`/`$t` register off: `s2`/`s3` swapped between
