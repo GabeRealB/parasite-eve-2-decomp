@@ -100877,7 +100877,7 @@ scratch `nonmatchings/ActorsShared80131e24Sub0-vacuum` (session `22d03add1c07430
 
 A block reached by the *false* direction of a `!= 0` test has its register
 recorded as equal to zero, and every later arithmetic use of that register is
-folded. `func_actor_341300_80163A10` needs `state + 1` there to stay a
+folded. `_actor341300PairedDebrisEmitterTask` needs `state + 1` there to stay a
 computation — the target computes it as a copy plus an increment —
 
 ```
@@ -100918,11 +100918,11 @@ expressions: an `if/else if` chain that reads naturally (`if (state > 0) ... els
 if (state == 0) ...`) lays the `== 0` body out *after* the other one and misses
 by 20 points, because gcc emits the then-block inline.
 
-`func_actor_341300_80163A10`: 94.55% from the m2c seed, 100.00% (`base_4.c`,
+`_actor341300PairedDebrisEmitterTask`: 94.55% from the m2c seed, 100.00% (`base_4.c`,
 `base_6.c`) with the asm inserted, all penalties zero. Preprocessed SHA256
 `1d4d0d2820487b1621e40a0f69a5049ad90b260fb08c13801eaa717b54754a03`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Session: `nonmatchings/func_actor_341300_80163A10-vacuum` (`base_4_diff`).
+Session: `nonmatchings/_actor341300PairedDebrisEmitterTask-vacuum` (`base_4_diff`).
 ## Hoisting a `& 0x3FF` into a `u16` local folds the compare's zero-extension to a `move` (_actor202900LatchSoundCue, 2026-09-16)
 
 The slot's cue index is the low ten bits of `AnimationSlot.currentPose.indices.recordIndex`, and the
@@ -107458,7 +107458,7 @@ effectSpawn(0x60188, &var_s4[8], 0xC, NULL);
 ```
 
 This is not a hack invented for this function - it is the same shape the corpus
-already keeps as matched practice in `func_actor_341300_80163A10`
+already keeps as matched practice in `_actor341300PairedDebrisEmitterTask`
 (`tmp = index->state; SOFT_TOUCH_REG(tmp); state = tmp + 1;`) and `Room_Util01`
 (`decimals = len; SOFT_TOUCH_REG(decimals); decimals += 1;`). So when a target
 shows a register copy immediately followed by an `addiu` *on the same
@@ -121266,7 +121266,7 @@ Inputs: `base_4.i` SHA256 `f0b9e7eda1392817d7ec48d7a3644c15db0edb150b46e6b5bff00
 Scratch `nonmatchings/_mineForkedTunnelApplyAreaObjectCommand-vacuum`.
 ## A field re-read keeps `+ 1` a computation only when a store invalidates the tested load (dryfieldR08LampGlowTask, 2026-09-17)
 
-The `x == 0` jump-equivalence fold above (`func_actor_341300_80163A10`) has a
+The `x == 0` jump-equivalence fold above (`_actor341300PairedDebrisEmitterTask`) has a
 narrow escape that the task-init idiom lands on by accident. `if (task->state ==
 0) { D = 0; task->state = task->state + 1; }` is expected to fold to `li $v0,1`
 - and it does - *unless* the store to `D` sits between the test and the re-read.
@@ -126101,7 +126101,7 @@ Inputs: scratch `nonmatchings/_actor113100StartWalk-vacuum`, `base.c`
 100.000% (`a2f2e103a7145db75e3d764375540fa3b2355a161405358b92bc0ec617b8e644`,
 preprocessed `5414d536d8423c61ed8b862534f11243921512130c3b726931e8f60e80df47da`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## A shared tail m2c renders as `goto block_N` sits *inside the first arm*; repeat the statement in every arm and jump2 folds it behind the last one (func_actor_341300_80163028, 2026-09-17)
+## A shared tail m2c renders as `goto block_N` sits *inside the first arm*; repeat the statement in every arm and jump2 folds it behind the last one (_actor341300Emitter2Task, 2026-09-17)
 
 **Symptom:** 87.3%, `branch=4 regs=14 insert=5 delete=6`. All three arms store
 the same field, and retail shares the store — one `sw` reached by case 0's and
@@ -126133,7 +126133,7 @@ label retail has, here it *moves* it. Check for a shared-tail `block_N` label
 inside the first arm whenever the arms' branch offsets are all shifted but the
 instruction multiset matches.
 
-## `(s16)count % 3` on an incremented `u16` load: the cast belongs on the local, not on the sum m2c hands you (func_actor_341300_80163028, 2026-09-17)
+## `(s16)elapsedFrames % 3` on an incremented `u16` load: the cast belongs on the local, not on the sum m2c hands you (_actor341300Emitter2Task, 2026-09-17)
 
 m2c rendered the modulo test as `((temp_v0 + 1) % 3) << 0x10` — the operand is
 the zero-extended `u16` plus one, so the codegen is `andi a0,v0,0xffff;
@@ -126143,13 +126143,12 @@ the multiply — `sll v1,v0,0x10; sra a0,v1,0x10; mult a0,a1; sra v1,v1,0x1f` �
 with the magic in `$a1`. Spelling it as the matched twin in the same TU does,
 
 ```c
-    count               = (u16)arg0->killCountdown + 1;
-    arg0->killCountdown = count;
-    if ((s16)count % 3 == 0) {
+    elapsedFrames       = (u16)task->killCountdown + 1;
+    task->killCountdown = elapsedFrames;
+    if ((s16)elapsedFrames % ACTOR_341300_EMITTER_2_BURST_PERIOD == 0) {
 ```
 
-gives the retail sequence exactly (`func_actor_341300_80163A10` uses the same
-`u16 count` / `(s16)count` pair for its `>= 0x10` test). Note the two casts do
+gives the retail sequence exactly. Note the two casts do
 different jobs: `(u16)` on the `s16` field forces the zero-extending `lhu` (the
 field alone would load `lh`), and `(s16)` on the stored local emits the
 `sll`/`sra` that the signed `%` needs. When a twin in the same TU already
@@ -126159,7 +126158,7 @@ Inputs: `base_1.i` (100.000%) SHA256
 `3890a6b708eabc1a2928eaa1801f571d8e99b09ab6ea281b226db28747502ca0`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run (matched on the second build). Scratch
-`nonmatchings/func_actor_341300_80163028-vacuum`.
+`nonmatchings/_actor341300Emitter2Task-vacuum`.
 
 ## An m2c `extern` with a narrowed *return type* sign-extends every call result; the game's own callees have no prototype here (_actor341300TurnPlayerTowardScenePlacementTask, 2026-09-17)
 

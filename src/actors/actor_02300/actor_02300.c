@@ -1224,14 +1224,16 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor);
 
 #include "../../shared/golem_pawn_rook_silence_scream.inc.c"
 
-/// Links a collision body and initializes its caller-sized contact array.
+/// Links a Rook collision body and initializes the contact table it borrows.
 ///
-/// contacts must name a complete array and its count must fit s32. Arguments
-/// have no side effects; the pointer arguments are evaluated once. No storage
-/// is allocated. The caller sets grid/pair flags after linking.
-static __inline__ void _actor02300LinkBodyAndClearContacts(s32 list, WorldCollisionBody* body, WorldCollisionContact* contacts, s32 contactCount)
+/// The body's context must reference contacts directly or through its capsule,
+/// with contactCount positive and within their writable element extent. Links
+/// before clearing the table and marking its final entry; the caller configures
+/// grid/pair enables afterwards. No storage is allocated. The body and its
+/// contact storage must stay live until the body is unlinked.
+static __inline__ void _actor02300LinkBodyAndInitContacts(s32 listIndex, WorldCollisionBody* body, WorldCollisionContact* contacts, s32 contactCount)
 {
-    worldCollisionLinkBody(list, body);
+    worldCollisionLinkBody(listIndex, body);
     worldCollisionInitContacts(contacts, contactCount, 0);
 }
 
@@ -1377,7 +1379,7 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
             work->sightBody.radius          = 0;
             work->sightBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
             work->sightBody.coord           = &sightCoords[ACTOR_02300_SIGHT_PART];
-            _actor02300LinkBodyAndClearContacts(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sightBody, work->sightContacts, ARRAY_SIZE(work->sightContacts));
+            _actor02300LinkBodyAndInitContacts(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sightBody, work->sightContacts, ARRAY_SIZE(work->sightContacts));
             work->sightBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
             hurtCoords                      = actor->extra.tmd->coords;
@@ -1389,7 +1391,7 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
             work->hurtBody.radius           = ACTOR_02300_HURT_RADIUS;
             work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             work->hurtBody.coord            = &hurtCoords[ACTOR_02300_BODY_PART];
-            _actor02300LinkBodyAndClearContacts(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hurtBody, work->hurtContacts, ARRAY_SIZE(work->hurtContacts));
+            _actor02300LinkBodyAndInitContacts(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hurtBody, work->hurtContacts, ARRAY_SIZE(work->hurtContacts));
             work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
             groundCoords                      = actor->extra.tmd->coords;
@@ -1401,7 +1403,7 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
             work->groundBody.radius           = ACTOR_02300_GROUND_RADIUS;
             work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             work->groundBody.coord            = groundCoords;
-            _actor02300LinkBodyAndClearContacts(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->groundBody, work->groundContacts, ARRAY_SIZE(work->groundContacts));
+            _actor02300LinkBodyAndInitContacts(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->groundBody, work->groundContacts, ARRAY_SIZE(work->groundContacts));
             work->groundBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
 
             swordCoords                       = swordEnemy->task->extra.tmd->coords;
@@ -1413,7 +1415,7 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
             work->strikeBody.radius           = ACTOR_02300_STRIKE_RADIUS;
             work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             work->strikeBody.coord            = swordCoords;
-            _actor02300LinkBodyAndClearContacts(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody, work->strikeContacts, ARRAY_SIZE(work->strikeContacts));
+            _actor02300LinkBodyAndInitContacts(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody, work->strikeContacts, ARRAY_SIZE(work->strikeContacts));
             work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             actor->state            = GOLEM_PAWN_ROOK_TASK_RUNNING;
             break;

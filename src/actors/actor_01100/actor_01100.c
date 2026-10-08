@@ -3587,10 +3587,11 @@ static void _actor01100Death(
 
 /// Advances the signed-halfword fall counter and queues its delayed landing cue.
 ///
-/// cueFrame counts active handler calls. Increment wraps through u16; comparison
-/// uses s16. After the cue the negative counter delays any repeat past the fall.
-/// scratch supplies the tick's signed-byte pan/depth; no pointer is retained.
-static __inline__ void _actor01100TickFallSound(_Actor01100Work* work, _Actor01100Scratch* scratch, s32 cueFrame)
+/// cueFrame is a positive signed-halfword threshold (5 or 13 at the callers).
+/// Increment wraps through u16 before the signed comparison; after requesting
+/// sound the counter resets to -32767 even if admission fails. scratch supplies
+/// part 1's sampled pan/depth, narrowed to signed bytes. No pointer is retained.
+static __inline__ void _actor01100TickFallSound(_Actor01100Work* work, const _Actor01100Scratch* scratch, s32 cueFrame)
 {
     enum { ACTOR_01100_SOUND_FALL             = 0x400B0003,
            ACTOR_01100_FALL_CUE_COUNTER_RESET = -32767 };
@@ -4121,16 +4122,15 @@ static void _actor01100StepForward(GfxCoord* coord, _Actor01100Scratch* scratch,
     }
 }
 
-/// Refreshes the chest-local point published to lock-on and range queries.
+/// Publishes the Mossback's chest-relative target point for aiming and range tests.
 ///
-/// The point is 200 local units above and ahead of model part 3. Requires a
-/// live model and Enemy; the enemy borrows the coordinate until the next update.
-static __inline__ void _actor01100RefreshTargetAnchor(Enemy* enemy, Task* task)
+/// targetNode must be embedded in a live `Enemy`; the task must have model part 3.
+/// The enemy borrows that coordinate and publishes (0, -200, 200) in chest-local
+/// game units. No matrix is composed and no storage is allocated.
+static __inline__ void _actor01100RefreshTargetAnchor(WorldTargetNode* targetNode, Task* task)
 {
     enum { ACTOR_01100_TARGET_OFFSET = 200 };
-    WorldTargetNode* targetNode;
 
-    targetNode                                     = &enemy->node;
     PARENT_OF(targetNode, Enemy, node)->coord      = &task->extra.tmd->coords[ACTOR_01100_PART_CHEST];
     PARENT_OF(targetNode, Enemy, node)->bodyPos.vx = 0;
     PARENT_OF(targetNode, Enemy, node)->bodyPos.vy = -ACTOR_01100_TARGET_OFFSET;
@@ -4153,7 +4153,7 @@ static void _actor01100UpdateEngaged(Enemy* enemy, Task* task, _Actor01100Work* 
     u8 previousMode;
 
     enemy->node.state.parts.flags = 0;
-    _actor01100RefreshTargetAnchor(enemy, task);
+    _actor01100RefreshTargetAnchor(&enemy->node, task);
     if ((_actor01100ProcessHits(enemy, task, work, scratch) == 0) && (task->spawnArg1.value == 0)) {
         previousMode = work->prevMode;
         if ((previousMode == ACTOR_01100_MODE_ENGAGED) && (work->motionEnded == previousMode)) {
@@ -4218,7 +4218,7 @@ static void _actor01100UpdateReacting(Enemy* enemy, Task* task, _Actor01100Work*
             }
         }
     }
-    _actor01100RefreshTargetAnchor(enemy, task);
+    _actor01100RefreshTargetAnchor(&enemy->node, task);
     _actor01100ProcessHits(enemy, task, work, scratch);
 }
 

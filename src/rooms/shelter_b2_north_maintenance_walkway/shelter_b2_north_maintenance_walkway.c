@@ -7,6 +7,7 @@
 
 #include "shelter_b2_north_maintenance_walkway_private.h"
 
+#include "actors/actor_341300.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/area.h"
@@ -54,8 +55,6 @@
 /// The pair of cutscene blocks the walkway's scene hands to `evsStartScriptWithSkip`.
 extern EvsCommand D_actor_341300_80165354[];
 extern EvsCommand D_actor_341300_80165834[];
-
-extern void func_actor_341300_8016268C(void);
 
 /// Area records applied once the walkway's scene has started.
 extern AreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[];
@@ -812,7 +811,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task)
     task->msgTable = D_shelter_b2_north_maintenance_walkway_80183B60;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
-        func_actor_341300_8016268C();
+        actor341300ResetScriptTaskHandle();
     }
     task->state = task->state + 1;
 }

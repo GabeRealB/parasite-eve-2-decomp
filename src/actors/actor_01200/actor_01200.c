@@ -1682,7 +1682,10 @@ static const _Actor01200StateTable Actor01200_D000E4 = {
     }
 };
 
-/// Consumes this tick's grid, hit and burst-attack contacts without unlinking bodies.
+/// Empties the actor's grid, hit and burst-attack contact tables after a tick.
+///
+/// Requires three initialized tables ending in `WORLD_COLLISION_CONTACT_LAST`.
+/// Preserves those markers and all body links; only occupied records are cleared.
 static __inline__ void _actor01200ClearTickContacts(_Actor01200Work* work)
 {
     worldCollisionClearContacts(work->gridContacts);

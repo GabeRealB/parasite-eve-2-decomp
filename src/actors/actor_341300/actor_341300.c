@@ -1,3 +1,5 @@
+#include "actors/actor_341300.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -113,9 +115,18 @@ enum {
 static void _actor341300StartDebrisEmitter(s16 emitterIndex);
 static void _actor341300StopDebrisEmitter(s16 emitterIndex);
 
-void func_actor_341300_80162698(Task*);
+/// Descriptor indices, batch sizes and update delays of the debris emitters.
+enum {
+    ACTOR_341300_EMITTER_0_SHARD_TASK_INDEX = 1,
+    ACTOR_341300_EMITTER_2_SHARD_TASK_INDEX = 3,
+    ACTOR_341300_EMITTER_SHARD_BATCH_SIZE   = 10,
+    ACTOR_341300_EMITTER_FIRST_DELAY        = 31,
+    ACTOR_341300_EMITTER_LATER_DELAY        = 16
+};
 
-void func_actor_341300_80163A10(Task*);
+static void _actor341300Emitter0Task(Task* task);
+static void _actor341300Emitter2Task(Task* task);
+static void _actor341300PairedDebrisEmitterTask(Task* task);
 
 extern AnimationPlayRequest     D_actor_341300_80165260;
 extern AnimationPlayRequest     D_actor_341300_80165274;
@@ -392,23 +403,19 @@ SVECTOR D_actor_341300_80165A58[2] = {
     { 2450, -2300, 900, 0 },
 };
 
-void        func_actor_341300_80162698(Task*);
 static void _actor341300Emitter0ShardTask(Task* task);
-void        func_actor_341300_80163028(Task*);
 static void _actor341300Emitter2ShardTask(Task* task);
 
 TaskDesc D_actor_341300_80165A68[4] = {
-    { { { TASK_BODY_NONE, 192 } }, func_actor_341300_80162698, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor341300Emitter0Task, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, _actor341300Emitter0ShardTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_341300_80163028, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor341300Emitter2Task, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, _actor341300Emitter2ShardTask, { .value = 0 } },
 };
 
-TaskDesc D_actor_341300_80165A98 = { { { TASK_BODY_NONE, 192 } }, func_actor_341300_80163A10, { .value = 0 } };
+TaskDesc D_actor_341300_80165A98 = { { { TASK_BODY_NONE, 192 } }, _actor341300PairedDebrisEmitterTask, { .value = 0 } };
 
 Task* D_actor_341300_80165AA4 = NULL;
-
-void func_actor_341300_8016268C(void);
 
 /// Fills a three-corner POLY_G3 packet with the shard's dark-to-light grey ramp.
 ///
@@ -732,56 +739,89 @@ static void _actor341300SetSceneEvent(s8 sceneEvent)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }
 
-void func_actor_341300_8016268C(void)
+void actor341300ResetScriptTaskHandle(void)
 {
-    D_actor_341300_80165AA4 = 0;
+    D_actor_341300_80165AA4 = NULL;
 }
 
-void func_actor_341300_80162698(Task* arg0)
+/// Spawns ten slot-1 shards at one position, borrowing the live emitter as parent.
+///
+/// spawnIndex must fit the four-position table. Allocation failures are ignored;
+/// each successful shard attaches itself to the emitter on its first update.
+static inline void _actor341300SpawnShardBatch(Task* emitter, s32 spawnIndex)
 {
-    s16 i;
+    s16 shardIndex;
 
-    switch (arg0->state) {
-        case 0:
-            for (i = 0; i < 0xA; i++) {
-                taskSpawnFromTable(D_actor_341300_80165A68, 1, 0, arg0);
-            }
-            arg0->killCountdown = 0;
-            arg0->state         = arg0->state + 1;
+    for (shardIndex = 0; shardIndex < ACTOR_341300_EMITTER_SHARD_BATCH_SIZE; shardIndex++) {
+        taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_0_SHARD_TASK_INDEX, spawnIndex, emitter);
+    }
+}
+
+/// Spawns ten interleaved pairs of slot-1 shards, preserving position order.
+///
+/// Both position indices must fit the four-position table. The emitter must
+/// outlive each child's first update, which establishes its teardown parent.
+/// Allocation failures are ignored independently for each attempted shard.
+static inline void _actor341300SpawnShardPairs(Task* emitter, s32 firstSpawnIndex, s32 secondSpawnIndex)
+{
+    s16 pairIndex;
+
+    for (pairIndex = 0; pairIndex < ACTOR_341300_EMITTER_SHARD_BATCH_SIZE; pairIndex++) {
+        taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_0_SHARD_TASK_INDEX, firstSpawnIndex, emitter);
+        taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_0_SHARD_TASK_INDEX, secondSpawnIndex, emitter);
+    }
+}
+
+/// Emits the scripted debris sequence from descriptor slot 0, then stays idle.
+///
+/// Requires a live bodyless task, the loaded descriptor/position tables and an
+/// initial state of 0. Emits ten shards immediately at position 0, ten there
+/// after 31 updates, ten at position 1 after 16 more, then two twenty-shard
+/// bursts at positions 3/1 spaced 16 updates apart. State 5 waits for the script
+/// to tear down the emitter and its children. Failed spawns are ignored.
+static void _actor341300Emitter0Task(Task* task)
+{
+    enum {
+        ACTOR_341300_EMITTER_0_START        = 0,
+        ACTOR_341300_EMITTER_0_REPEAT_FIRST = 1,
+        ACTOR_341300_EMITTER_0_SECOND       = 2,
+        ACTOR_341300_EMITTER_0_FIRST_PAIR   = 3,
+        ACTOR_341300_EMITTER_0_SECOND_PAIR  = 4,
+        ACTOR_341300_EMITTER_0_DONE         = 5
+    };
+
+    switch (task->state) {
+        case ACTOR_341300_EMITTER_0_START:
+            _actor341300SpawnShardBatch(task, 0);
+            task->killCountdown = 0;
+            task->state         = task->state + 1;
             break;
-        case 1:
-            arg0->killCountdown++;
-            if (arg0->killCountdown >= 0x1F) {
-                for (i = 0; i < 0xA; i++) {
-                    taskSpawnFromTable(D_actor_341300_80165A68, 1, 0, arg0);
-                }
-                arg0->killCountdown = 0;
-                arg0->state         = arg0->state + 1;
+        case ACTOR_341300_EMITTER_0_REPEAT_FIRST:
+            task->killCountdown++;
+            if (task->killCountdown >= ACTOR_341300_EMITTER_FIRST_DELAY) {
+                _actor341300SpawnShardBatch(task, 0);
+                task->killCountdown = 0;
+                task->state         = task->state + 1;
             }
             break;
-        case 2:
-            arg0->killCountdown++;
-            if (arg0->killCountdown >= 0x10) {
-                for (i = 0; i < 0xA; i++) {
-                    taskSpawnFromTable(D_actor_341300_80165A68, 1, 1, arg0);
-                }
-                arg0->killCountdown = 0;
-                arg0->state         = arg0->state + 1;
+        case ACTOR_341300_EMITTER_0_SECOND:
+            task->killCountdown++;
+            if (task->killCountdown >= ACTOR_341300_EMITTER_LATER_DELAY) {
+                _actor341300SpawnShardBatch(task, 1);
+                task->killCountdown = 0;
+                task->state         = task->state + 1;
             }
             break;
-        case 3:
-        case 4:
-            arg0->killCountdown++;
-            if (arg0->killCountdown >= 0x10) {
-                for (i = 0; i < 0xA; i++) {
-                    taskSpawnFromTable(D_actor_341300_80165A68, 1, 3, arg0);
-                    taskSpawnFromTable(D_actor_341300_80165A68, 1, 1, arg0);
-                }
-                arg0->killCountdown = 0;
-                arg0->state         = arg0->state + 1;
+        case ACTOR_341300_EMITTER_0_FIRST_PAIR:
+        case ACTOR_341300_EMITTER_0_SECOND_PAIR:
+            task->killCountdown++;
+            if (task->killCountdown >= ACTOR_341300_EMITTER_LATER_DELAY) {
+                _actor341300SpawnShardPairs(task, 3, 1);
+                task->killCountdown = 0;
+                task->state         = task->state + 1;
             }
             break;
-        case 5:
+        case ACTOR_341300_EMITTER_0_DONE:
             break;
     }
 }
@@ -907,38 +947,61 @@ static void _actor341300Emitter0ShardTask(Task* task)
     }
 }
 
-void func_actor_341300_80163028(Task* arg0)
+/// Spawns one three-shard burst, alternating which of the two positions repeats.
+///
+/// middleSpawnIndex is 0 or 1. Failed spawns are ignored; successful children
+/// borrow the emitter until they attach themselves on their first update.
+static inline void _actor341300SpawnEmitter2Burst(Task* emitter, s32 middleSpawnIndex)
 {
-    u16 count;
+    taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_2_SHARD_TASK_INDEX, 0, emitter);
+    taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_2_SHARD_TASK_INDEX, middleSpawnIndex, emitter);
+    taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_2_SHARD_TASK_INDEX, 1, emitter);
+}
 
-    switch (arg0->state) {
-        case 0:
-            arg0->killCountdown = 0;
-            arg0->state         = arg0->state + 1;
+/// Emits alternating three-shard bursts from descriptor slot 2, then stays idle.
+///
+/// No package spawn path starts this task. Starting in state 0 clears the
+/// signed-halfword counter; updates 3, 6, ... 30 emit at positions 0/1/1 then
+/// 0/0/1 in alternation. Update 31 selects terminal state 3 without releasing
+/// the task. Counts wrap to 16 bits before signed modulo/comparison. Requires
+/// loaded slot-3 shard resources and a live task until its children attach.
+static void _actor341300Emitter2Task(Task* task)
+{
+    enum {
+        ACTOR_341300_EMITTER_2_START         = 0,
+        ACTOR_341300_EMITTER_2_REPEAT_SECOND = 1,
+        ACTOR_341300_EMITTER_2_REPEAT_FIRST  = 2,
+        ACTOR_341300_EMITTER_2_DONE          = 3,
+        ACTOR_341300_EMITTER_2_BURST_PERIOD  = 3,
+        ACTOR_341300_EMITTER_2_STOP_FRAME    = 31
+    };
+    u16 elapsedFrames;
+
+    switch (task->state) {
+        case ACTOR_341300_EMITTER_2_START:
+            task->killCountdown = 0;
+            task->state         = task->state + 1;
             break;
-        case 1:
-            count               = (u16)arg0->killCountdown + 1;
-            arg0->killCountdown = count;
-            if ((s16)count % 3 == 0) {
-                taskSpawnFromTable(D_actor_341300_80165A68, 3, 0, arg0);
-                taskSpawnFromTable(D_actor_341300_80165A68, 3, 1, arg0);
-                taskSpawnFromTable(D_actor_341300_80165A68, 3, 1, arg0);
-                arg0->state = arg0->state + 1;
+        case ACTOR_341300_EMITTER_2_REPEAT_SECOND:
+            elapsedFrames       = (u16)task->killCountdown + 1;
+            task->killCountdown = elapsedFrames;
+            if ((s16)elapsedFrames % ACTOR_341300_EMITTER_2_BURST_PERIOD == 0) {
+                _actor341300SpawnEmitter2Burst(task, 1);
+                task->state = task->state + 1;
             }
             break;
-        case 2:
-            count               = (u16)arg0->killCountdown + 1;
-            arg0->killCountdown = count;
-            if ((s16)count % 3 == 0) {
-                taskSpawnFromTable(D_actor_341300_80165A68, 3, 0, arg0);
-                taskSpawnFromTable(D_actor_341300_80165A68, 3, 0, arg0);
-                taskSpawnFromTable(D_actor_341300_80165A68, 3, 1, arg0);
-                arg0->state = arg0->state - 1;
+        case ACTOR_341300_EMITTER_2_REPEAT_FIRST:
+            elapsedFrames       = (u16)task->killCountdown + 1;
+            task->killCountdown = elapsedFrames;
+            if ((s16)elapsedFrames % ACTOR_341300_EMITTER_2_BURST_PERIOD == 0) {
+                _actor341300SpawnEmitter2Burst(task, 0);
+                task->state = task->state - 1;
             }
             break;
     }
-    if (arg0->killCountdown >= 0x1F) {
-        arg0->state = 3;
+    // Keep the terminal test after every state, including initialization and idle.
+    if (task->killCountdown >= ACTOR_341300_EMITTER_2_STOP_FRAME) {
+        task->state = ACTOR_341300_EMITTER_2_DONE;
     }
 }
 
@@ -1093,23 +1156,27 @@ static void _actor341300StopDebrisEmitter(s16 emitterIndex)
     }
 }
 
-void func_actor_341300_80163A10(Task* arg0)
+/// Emits two interleaved ten-pair bursts of slot-1 debris, then stays idle.
+///
+/// Its standalone descriptor has no package spawn path. Starting in state 0,
+/// clears the signed-halfword timer and emits at positions 0/1 after each of
+/// two 16-update waits. State 3 and negative states do nothing. Failed spawns
+/// are ignored; the emitter must stay live until successful children attach.
+static void _actor341300PairedDebrisEmitterTask(Task* task)
 {
-    s16 i;
+    enum { ACTOR_341300_PAIRED_EMITTER_START = 0,
+           ACTOR_341300_PAIRED_EMITTER_DONE  = 3 };
 
-    if (arg0->state < 3) {
-        if (arg0->state <= 0) {
-            if (arg0->state == 0) {
-                arg0->killCountdown = 0;
-                arg0->state++;
+    if (task->state < ACTOR_341300_PAIRED_EMITTER_DONE) {
+        if (task->state <= ACTOR_341300_PAIRED_EMITTER_START) {
+            if (task->state == ACTOR_341300_PAIRED_EMITTER_START) {
+                task->killCountdown = 0;
+                task->state++;
             }
-        } else if (++arg0->killCountdown >= 0x10) {
-            for (i = 0; i < 0xA; i++) {
-                taskSpawnFromTable(D_actor_341300_80165A68, 1, 0, arg0);
-                taskSpawnFromTable(D_actor_341300_80165A68, 1, 1, arg0);
-            }
-            arg0->killCountdown = 0;
-            arg0->state++;
+        } else if (++task->killCountdown >= ACTOR_341300_EMITTER_LATER_DELAY) {
+            _actor341300SpawnShardPairs(task, 0, 1);
+            task->killCountdown = 0;
+            task->state++;
         }
     }
 }

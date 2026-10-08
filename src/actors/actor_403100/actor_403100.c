@@ -3473,15 +3473,18 @@ static void _actor403100StepSceneTurn(Task* task)
 /// bytes. The caller owns cue timing and the later ten-update sound fade.
 static inline void _actor403100SpawnSceneFlameBurst(Task* task)
 {
-    s32 breathSound;
-    s32 audioPan;
-    s32 audioDepth;
+    enum { ACTOR_403100_SOUND_INSTANCE_SHIFT = 8 };
+    Enemy* enemy;
+    s32    breathSound;
+    s32    audioPan;
+    s32    audioDepth;
 
     dryfieldNightMotelBalconySpawnFlameBurst();
-    breathSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_BREATH_SOUND;
+    enemy       = task->spawnArg2.pointer;
+    breathSound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_403100_SOUND_INSTANCE_SHIFT) | ACTOR_403100_BREATH_SOUND;
     audioPan    = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
     audioDepth  = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
-    sndEvtRequestScriptStart(breathSound, (s32)audioPan, (s8)(audioDepth / 2));
+    sndEvtRequestScriptStart(breathSound, audioPan, (s8)(audioDepth / 2));
 }
 
 /// Plays the four timed room flame bursts before the scene retreat.

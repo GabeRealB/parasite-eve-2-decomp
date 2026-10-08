@@ -1150,33 +1150,38 @@ static void _actor207200CreepingStrangerActiveTick(Task* task)
 #undef ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND
 }
 
-/// Applies one sphere's grid correction or restores the last unblocked root.
+/// Applies a Creeping Stranger sphere's grid correction or rolls back its root.
 ///
-/// Borrows the live work/root and caller's scratch across the synchronous query.
-/// contactCount counts initialized records; delta uses signed 16.16 root-parent
-/// units. A conflict latches blocked only while the actor still has its head.
-static inline void _actor207200CreepingStrangerResolveGridContacts(
-    _Actor207200CreepingStrangerWork* work, GfxCoord* rootCoord,
-    _Actor207200ContactScratch* scratch, WorldCollisionContact* contacts, s32 contactCount)
-{
-    switch (worldCollisionResolvePushback(contacts, &scratch->delta, contactCount, NULL)) {
-        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
-            break;
-        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
-            rootCoord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
-            rootCoord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
-            rootCoord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
-            break;
-        case WORLD_COLLISION_PUSHBACK_OPPOSED:
-            rootCoord->coord.t[0] = work->prevRootPos.vx;
-            rootCoord->coord.t[1] = work->prevRootPos.vy;
-            rootCoord->coord.t[2] = work->prevRootPos.vz;
-            if (work->headLost == 0 && work->blocked == 0) {
-                work->blocked = 1;
-            }
-            break;
+/// Reads contactCount records (six at both callers) without clearing them.
+/// pushback receives signed 16.16 correction; only its integer halves are added
+/// in root-parent game units. Opposed normals restore the saved pre-movement
+/// root and latch blocked for a headed actor. After head loss the saved position
+/// stops updating, but rollback still uses it. Composition is left to the caller.
+/// Requires live work/root, a writable `WorldCollisionDelta` disjoint from the
+/// readable contacts, and an element count in 0..32768 within their extent. Pointer expressions
+/// must be stable and side-effect-free: work, rootCoord and pushback are evaluated
+/// repeatedly. Captures no caller locals. Invoke as a compound statement; the
+/// binding is undefined after its sole consumer.
+#define ACTOR_207200_CREEPING_STRANGER_RESOLVE_GRID_CONTACTS(work, rootCoord, pushback, contacts, contactCount) \
+    {                                                                                                           \
+        switch (worldCollisionResolvePushback((contacts), (pushback), (contactCount), NULL)) {                  \
+            case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:                                                          \
+                break;                                                                                          \
+            case WORLD_COLLISION_PUSHBACK_GRID_HIT:                                                             \
+                (rootCoord)->coord.t[0] += (pushback)->fixed.vx.halves.integer;                                 \
+                (rootCoord)->coord.t[1] += (pushback)->fixed.vy.halves.integer;                                 \
+                (rootCoord)->coord.t[2] += (pushback)->fixed.vz.halves.integer;                                 \
+                break;                                                                                          \
+            case WORLD_COLLISION_PUSHBACK_OPPOSED:                                                              \
+                (rootCoord)->coord.t[0] = (work)->prevRootPos.vx;                                               \
+                (rootCoord)->coord.t[1] = (work)->prevRootPos.vy;                                               \
+                (rootCoord)->coord.t[2] = (work)->prevRootPos.vz;                                               \
+                if ((work)->headLost == 0 && (work)->blocked == 0) {                                            \
+                    (work)->blocked = 1;                                                                        \
+                }                                                                                               \
+                break;                                                                                          \
+        }                                                                                                       \
     }
-}
 
 /// Resolves Creeping Stranger grid/pair contacts, hits and attack-contact latches.
 ///
@@ -1227,8 +1232,8 @@ static void _actor207200CreepingStrangerScanContacts(Task* task)
     enemy     = task->spawnArg2.pointer;
 
     // Resolve head and body grid corrections before consuming pair contacts.
-    _actor207200CreepingStrangerResolveGridContacts(work, rootCoord, scratch, work->headContacts, ARRAY_SIZE(work->headContacts));
-    _actor207200CreepingStrangerResolveGridContacts(work, rootCoord, scratch, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
+    ACTOR_207200_CREEPING_STRANGER_RESOLVE_GRID_CONTACTS(work, rootCoord, &scratch->delta, work->headContacts, ARRAY_SIZE(work->headContacts));
+    ACTOR_207200_CREEPING_STRANGER_RESOLVE_GRID_CONTACTS(work, rootCoord, &scratch->delta, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
     if (work->hitCooldown != 0 && --work->hitCooldown <= 0) {
         work->hitCooldown = 0;
     }
@@ -1386,6 +1391,8 @@ static void _actor207200CreepingStrangerScanContacts(Task* task)
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor207200ContactScratch);
 }
+
+#undef ACTOR_207200_CREEPING_STRANGER_RESOLVE_GRID_CONTACTS
 
 /// Applies a head hit, recoiling from idle or removing the head at zero HP.
 ///

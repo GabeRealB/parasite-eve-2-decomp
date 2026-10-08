@@ -2221,9 +2221,10 @@ static __inline__ s32 _actor421600FindAttackContact(const WorldCollisionContact*
 /// The script word's placement byte is ORed with the enemy index; pan and
 /// depth use the signed low byte of the root's audio queries. Inputs are
 /// borrowed for this call and queries retain their order.
-static inline void _actor421600PlayPlacedHitSound(Task* task, Enemy* enemy, s32 soundBase)
+static inline void _actor421600PlayPlacedHitSound(Task* task, const Enemy* enemy, s32 soundBase)
 {
-    s32 sound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
+    enum { ACTOR_421600_SOUND_INSTANCE_SHIFT = 8 };
+    s32 sound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_421600_SOUND_INSTANCE_SHIFT) | soundBase;
     s32 pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
     sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
@@ -4428,14 +4429,17 @@ static void _actor421600HideState(Task* task)
 
 #include "../../shared/desert_chaser_stunned.inc.c"
 
-/// Restores a live chaser's targeting and drawing and allocates primitive buffers.
+/// Restores the Water Tower chaser's targeting, drawing and primitive buffers.
 ///
-/// Borrows the task's enemy and model for this call; work and collision flags
-/// are configured separately by the state. Existing model buffers are reused.
+/// Requires the task's live enemy and its model. Clears all target and model
+/// flags before attempting allocation; an existing buffer is reused and failure
+/// is ignored. Collision flags and animation remain the caller's responsibility.
 static inline void _actor421600RearmPresentation(Task* task, TmdObject* model)
 {
-    ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = 0;
-    model->flags                                              = 0;
+    Enemy* enemy = task->spawnArg2.pointer;
+
+    enemy->node.state.parts.flags = 0;
+    model->flags                  = 0;
     tmdAllocPrimitiveBuffer(model);
 }
 

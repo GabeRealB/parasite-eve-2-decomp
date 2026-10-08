@@ -1809,7 +1809,7 @@ static void _actor01600LinkCollisionBodies(Task* actor)
 ///
 /// Requires a caller-packed script key and a live composed root coordinate.
 /// Borrows the coordinate for both queries and retains neither argument.
-static __inline__ void _actor01600PlayTickSoundAtRoot(s32 soundKey, GfxCoord* rootCoord)
+static __inline__ void _actor01600PlayTickSoundAtRoot(s32 soundKey, const GfxCoord* rootCoord)
 {
     s32 soundPan;
 

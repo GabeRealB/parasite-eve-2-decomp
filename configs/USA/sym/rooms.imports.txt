@@ -596,7 +596,7 @@ D_actor_207000_80151E60 = 0x80151E60; // absolute:True owner=actor_207000
 D_actor_215100_80153274 = 0x80153274; // absolute:True owner=actor_215100
 D_actor_215100_80153D6C = 0x80153D6C; // absolute:True owner=actor_215100 shared=actors
 D_actor_207000_801575F0 = 0x801575F0; // absolute:True owner=actor_207000
-func_actor_341300_8016268C = 0x8016268C; // type:func absolute:True owner=actor_341300
+actor341300ResetScriptTaskHandle = 0x8016268C; // type:func absolute:True owner=actor_341300
 actor361100ClearHeadAimTaskHandle = 0x80162B0C; // type:func absolute:True owner=actor_361100
 D_actor_341900_80164190 = 0x80164190; // absolute:True owner=actor_341900
 D_actor_342100_80164B78 = 0x80164B78; // absolute:True owner=actor_342100

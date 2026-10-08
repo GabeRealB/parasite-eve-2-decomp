@@ -68,3 +68,7 @@ _actor341300Emitter0ShardTask = 0x80162878; // type:func
 _actor341300Emitter2ShardTask = 0x801631d4; // type:func
 _actor341300CancelScene = 0x801623fc; // type:func
 _actor341300SpawnPlayerHitPuffs = 0x801625ac; // type:func
+actor341300ResetScriptTaskHandle = 0x8016268c; // type:func
+_actor341300Emitter0Task = 0x80162698; // type:func
+_actor341300Emitter2Task = 0x80163028; // type:func
+_actor341300PairedDebrisEmitterTask = 0x80163a10; // type:func
