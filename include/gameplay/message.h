@@ -299,6 +299,12 @@ enum {
     GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES = 0x3F8,
     /// Applies damage to the receiver (`Gp_ApplyPlayerDamage`, `companionApplyDamage`).
     GAME_ACTOR_MESSAGE_APPLY_DAMAGE = 0x3F9,
+    /// Takes scripted control and runs to borrowed destination XYZ, with optional
+    /// `GameActorMoveAnim` clips. The player reads a `VECTOR3` or the leading
+    /// position of an `ActorTransform`; implementing companions read the same
+    /// position prefix. Returns 0. A companion without running support reads
+    /// an `AnimationPlayRequest` through its generic animation handler instead.
+    GAME_ACTOR_MESSAGE_RUN_TO = 0x3FB,
     /// Player: selects walking speed for zero first argument, running speed for
     /// every nonzero value, without taking scripted control or changing the clip.
     /// Returns 0. Companions bind this ID to their generic animation handler.
@@ -538,9 +544,9 @@ STATIC_ASSERT_SIZEOF(GameActorStairClimb, 8);
 ///
 /// `GAME_ACTOR_MESSAGE_MOVE_TO` walks the receiver to a borrowed
 /// `ActorTransform` and reads this record when the sender supplies one.
-/// Message 0x3FB reads it the same way on the player and on a companion
-/// whose handler for that id takes this record. One companion answers
-/// 0x3FB as an animation request and does not read it.
+/// `GAME_ACTOR_MESSAGE_RUN_TO` reads it the same way on the player and on a
+/// companion whose handler for that id takes this record. One companion
+/// answers that id as an animation request and does not read it.
 /// A null pointer selects both default clips.
 ///
 /// `approachAnimId` is the clip played while moving, in the receiver's

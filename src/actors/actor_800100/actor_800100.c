@@ -244,7 +244,7 @@ TaskMessageEntry D_actor_800100_80167130[26] = {
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionAwaitButtonPresses },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, companionApplyDamage },
     { 1018, companionPlayScriptedAnimation },
-    { 1019, companionPlayScriptedAnimation },
+    { GAME_ACTOR_MESSAGE_RUN_TO, companionPlayScriptedAnimation },
     { 1020, companionPlayScriptedAnimation },
     { ANIMATION_MESSAGE_SET_RATE, playerActorSetAnimationRate },
     { GAME_ACTOR_MESSAGE_MOVE_BY, companionMoveBy },

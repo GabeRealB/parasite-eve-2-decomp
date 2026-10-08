@@ -1568,7 +1568,7 @@ static void func_actor_160900_80133238(Task* arg0)
                 message.destination.vx = -0x7D0;
                 message.destination.vy = 0;
                 message.destination.vz = 0xC80;
-                TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3FB, &message.destination, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_RUN_TO, &message.destination, 0);
                 work->playerCue.step++;
             }
             return;

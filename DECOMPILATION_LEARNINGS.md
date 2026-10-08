@@ -26760,16 +26760,16 @@ Load the field into that same `s32` first, then overwrite both arms. The
 predicate dies in the delay slot and the `li`s reuse `$v0`:
 
 ```c
-flag = arg2->field_10;
-if (flag == 0) {
-    flag = 0x38;
+collisionUpdateMask = request->enableWorldCollision;
+if (collisionUpdateMask == ANIMATION_WORLD_COLLISION_DISABLE) {
+    collisionUpdateMask = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
 } else {
-    flag = 7;
+    collisionUpdateMask = PLAYER_ACTOR_WORLD_COLLISION_ENABLE;
 }
-p->pendingCollisionUpdates = flag;
+actor->pendingCollisionUpdates = collisionUpdateMask;
 ```
 
-`func_80104CAC` is the example. `flag = 7; if (arg2->field_10 == 0) flag = 0x38;`
+`_playerActorReplaceAnimation` is the example. `collisionUpdateMask = 7; if (request->enableWorldCollision == 0) collisionUpdateMask = 0x38;`
 stuck at 99.7% with only the register different.
 
 ## `s32` temp for `s16` switch key + store

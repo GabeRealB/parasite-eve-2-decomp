@@ -232,7 +232,7 @@ TaskMessageEntry D_actor_800200_80169EF0[20] = {
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, companionPlayScriptedAnimation },
     { 1018, companionPlayScriptedAnimation },
-    { 1019, companionRunTo },
+    { GAME_ACTOR_MESSAGE_RUN_TO, companionRunTo },
 };
 
 u8 D_actor_800200_80169F90[16] = {
