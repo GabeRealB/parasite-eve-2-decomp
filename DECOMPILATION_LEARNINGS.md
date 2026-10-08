@@ -28947,7 +28947,7 @@ if (actor->mode != 2) {
 return ret;
 ```
 
-`func_80105754` is the example. `playerActorResetWeaponAttack(..., 0)` stuck with only
+`_playerActorEnterItemUse` is the example. `playerActorResetWeaponAttack(..., 0)` stuck with only
 that delay-slot source different.
 
 ## Put a `found:` label between switch cases so the load sits in the gap
@@ -29485,7 +29485,7 @@ if (id >= 0x259U) {
 case emits `bnez` back to the shared `sh v0`. `if (tens != 1)` first
 stuck at 93% with an extra `j` / `sh v0` and `beqz` to the zero store.
 
-`func_80109290` is the example. A plain `u16 tens = (id % 100U) / 10U`
+`_playerActorTryEnterPeAction` is the example. A plain `u16 tens = (id % 100U) / 10U`
 stuck at 85.7% with only that schedule and the last branch inverted.
 
 ## Overwrite `shifted` so the signed code lives in `$a1`
@@ -30179,7 +30179,7 @@ TU starting at the next function. Gameplay now uses `auto_link_sections: []`
 and explicit dotted subsegments to specify object section order; the old
 `fix_gameplay_linker_rodata_order` workaround has been removed. `effectSpriteTask46` is the
 example. The next 5-case switch (`Gp_EffSprTask81`) needs the same cut
-(`3FB8_7E28` at 0x3FD0 / 0x63FF8); keep the unmatched `Gp_DrawEffSprite81` /
+(`3FB8_7E28` at 0x3FD0 / 0x63FF8); keep the unmatched `_effectDrawProjectileSprite` /
 `_effectDrawGroundDecal` INCLUDE_ASMs in that TU so `.text` stays contiguous.
 Remaining unmatched jtbls then start at 0x3FE8.
 
@@ -31663,7 +31663,7 @@ order and add the second address to `sym.*.txt` so a later extract
 splits them.
 
 `func_80108A0C` / `func_80108AD4` is the example. The first function is
-the `state = 6` body of `func_80109290` (without the
+the `state = 6` body of `_playerActorTryEnterPeAction` (without the
 `field_3 == -2` guard); the second is the `state = 7` body inlined
 in `Gp_TickPlayerNormal`.
 
@@ -37108,7 +37108,7 @@ setlen(prim, len);
 setcode(prim, code);
 ```
 
-`Gp_DrawEffSprite81` is the example.
+`_effectDrawProjectileSprite` is the example.
 
 ## Compute scratch block into `$v0` then copy to `$t1`
 
@@ -37136,7 +37136,7 @@ block->worldPoint.vy = *(u16*)&coord->workm.t[1];
 ```
 
 Do not keep the `$v0` pin alive until `gte_ldv0` — that coalesces and
-loads from `$v0` instead of `$t1`. `Gp_DrawEffSprite81` is the example.
+loads from `$v0` instead of `$t1`. `_effectDrawProjectileSprite` is the example.
 
 ## Handwritten-asm callees: read the callee to type its arguments
 
@@ -39869,13 +39869,13 @@ Keep the variables, just move where they are assigned. Worth 99.8% → 100% on
 ## `u16` flag local so its `1` cannot be CSE'd into later `+ 1` / compares
 
 A `s32 flag = 1;` set early and used much later (here the GPU semi-transparency
-rate folded in as `prim->tpage = (abr << 5) | 8`) leaves an SImode `li t0, 1`
+rate folded in as `quad->tpage = (blendMode << 5) | 8`) leaves an SImode `li t0, 1`
 live across the whole body. cse then rewrites *every* later SImode use of the
 constant 1 as that register:
 
 ```
-addu  v0,v0,t0        /* block->depth + 1        */
-bne   t2,t0,...       /* if (arg1 == 1)        */
+addu  v0,v0,t0        /* scratch->depth + 1        */
+bne   t2,t0,...       /* if (particleVariant == 1)        */
 ```
 
 while the target rematerializes both (`addiu v0,v0,1`, `li v0,1` + `bne`).
@@ -39884,44 +39884,44 @@ Fix: declare the flag `u16` (or `u8`/`s16`). cse can take a lowpart of a wider
 register but cannot widen a narrower one, so the promoted-HImode `1` is no
 longer a candidate for the SImode `+ 1` and the SImode compare constant. This
 is the same mode rule as *Constant CSE across differently-sized stores*, used
-to *block* a unification instead of forcing one. `Gp_DrawEffSpark` went 92.7% →
+to *block* a unification instead of forcing one. `_effectDrawGravityParticle` went 92.7% →
 94.3% on this one-word change.
 
 ## Barriers to keep a `goto` join from being cross-jumped away
 
-`Gp_DrawEffSpark` colors a `POLY_FT4` from two `arg2 != NULL` arms that share a
+`_effectDrawGravityParticle` colors a `POLY_FT4` from two `tintRgb != NULL` arms that share a
 tail, which m2c renders as a `goto` into the middle of the second arm:
 
 ```c
-if (arg1 == 1) {
-    if (arg2 != NULL) { prim->r0 = arg2[0]; green = arg2[1]; abr = 2; goto rgb; }
+if (particleVariant == 1) {
+    if (tintRgb != NULL) { quad->r0 = tintRgb[0]; green = tintRgb[1]; blendMode = 2; goto rgb; }
     ...
-} else if (arg2 != NULL) {
-    prim->r0 = arg2[0];
-    green = arg2[1];
+} else if (tintRgb != NULL) {
+    quad->r0 = tintRgb[0];
+    green = tintRgb[1];
 rgb:
-    prim->g0 = green;
+    quad->g0 = green;
 ```
 
 Written plainly, GCC schedules the `li t0, 2` up into the `lbu` load-delay
 slot, which makes the arm's tail identical to the code in front of the label,
 and the final cross-jump pass then swallows the `sb r0` / `lbu` pair (the arm
 degenerates to `lbu; j; li t0,2`). A `__asm__ volatile("" ::: "memory")` right
-before `abr = 2` pins the constant load after the stores, the tails stop
+before `blendMode = 2` pins the constant load after the stores, the tails stop
 matching, and both arms keep their own copies — exactly what the target has.
 
 The same barrier trick fixes the join block: without it the `setSemiTrans`
-`lbu prim->code` hoists above the `prim->g0` store (different constant offsets
+`lbu quad->code` hoists above the `quad->g0` store (different constant offsets
 on the same base, so GCC disambiguates them). Put the barrier after the `g0`
 store, and read the blue byte into a local *before* `setSemiTrans` so the
 scheduler can drop that load into the `lbu code` delay slot:
 
 ```c
-prim->g0 = green;
+quad->g0 = green;
 __asm__ volatile("" ::: "memory");
-blue = arg2[2];
-setSemiTrans(prim, 1);
-prim->b0 = blue;
+blue = tintRgb[2];
+setSemiTrans(quad, 1);
+quad->b0 = blue;
 ```
 
 ## `setUV4` keeps the `+ 0x17` u-coordinate in its own register
@@ -39930,10 +39930,10 @@ Storing the eight UV bytes by hand in the order the target emits them
 (`u0, u2, v0, u1, v1, v2, u3, v3`) lets the second u-coordinate be computed
 after the last use of the first, so GCC reuses that register
 (`addiu v0,v0,0x17`) and reorders the `v1` store ahead of `u1`. Writing the
-same values through `setUV4(prim, uv, 0xB8, uv2, 0xB8, uv, 0xCF, uv2, 0xCF)`
-puts `uv2`'s first use third, so both stay live in separate registers
+same values through `setUV4(quad, textureU, 0xB8, textureUEnd, 0xB8, textureU, 0xCF, textureUEnd, 0xCF)`
+puts `textureUEnd`'s first use third, so both stay live in separate registers
 (`addiu a1,v0,0x17` before the stores) and the emitted store order still comes
-out as the target's. `Gp_DrawEffSpark` went 96.0% → 98.2% on that rewrite.
+out as the target's. `_effectDrawGravityParticle` went 96.0% → 98.2% on that rewrite.
 
 ## `base | (x | CONST)` reassociates — hold the constant in a local
 
@@ -106230,7 +106230,7 @@ Written as a literal the arm grows its own `li` (80 instructions against 79, `in
 reached by *following* the `beqz`, the path that skips `[const 1]`, so the narrow constant it stands up
 is the only one in its EBB (see the `switch` + `field = 1` entry above for the cse/EBB mechanics).
 
-**Fix:** borrow the idiom the already-matched `func_8010771C`, `Gp_PlayerMode2StateB` and
+**Fix:** borrow the idiom the already-matched `_playerActorUpdateParalysis`, `Gp_PlayerMode2StateB` and
 `_actor800300TickDamageMode` use for this shape - an `s32` local that the store subregs:
 
 ```c
@@ -143957,17 +143957,17 @@ set, which is not an equivalence with the `SImode` parameter: the mask keeps
 reading `titleAndFlags`, which ties to `a3` and dies there. The `& 0xFF` at every use
 disappears with it, since those were the `u8` zero-extensions.
 
-## `setSemiTrans(prim, cond)`, not `if (cond) setSemiTrans(prim, 1)`: the dead else-store's label keeps a scratch block in its own register (Gp_DrawEffSprite81, 2026-09-26)
+## `setSemiTrans(quad, cond)`, not `if (cond) setSemiTrans(quad, 1)`: the dead else-store's label keeps a scratch block in its own register (_effectDrawProjectileSprite, 2026-09-26)
 
 Target: `addiu v0,a3,-0x18; move t1,v0` after `SCRATCH_STACK_RESERVE_BLOCK`, with every later
 access (including `gte_ldv0`) through `t1`, and a code byte stored `0x2D` then
-conditionally `0x2F`. Written `if (mem->angle != 0) setSemiTrans(prim, 1);`,
+conditionally `0x2F`. Written `if (work->angle != 0) setSemiTrans(quad, 1);`,
 cse1's path follows the one-use label through the whole `if` body, so the push
 temp stays the class head (`make_regs_eqv`: the user variable only wins if it
 lives beyond the path) and `gte_ldv0` gets a stray `move v0,t1`; the tree pinned
-`block` to `t1` and the temp to `v0`. `setSemiTrans(prim, mem->angle)` expands
+`scratch` to `t1` and the temp to `v0`. `setSemiTrans(quad, work->angle)` expands
 to both arms; cse deletes the else-arm store (`0x2D & ~2` is the value already
-there) but its label splits the path, `block` outlives it, and becomes the head.
+there) but its label splits the path, `scratch` outlives it, and becomes the head.
 Same shape as the `effectDrawGouraudDisc` push, where a loop does the splitting.
 ## `addiu v0,a1,-0x1C; move s0,v0` scratch carve: read the first pointer in the `gte_ldv0` after the copy; a near-tie priority settled by one shared release call (effectSpriteTask7C, 2026-09-26)
 

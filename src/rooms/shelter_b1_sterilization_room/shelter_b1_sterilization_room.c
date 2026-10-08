@@ -709,7 +709,7 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
             Gp_CapFile = 0;
             capSelectLoadedFile(1);
             capSetTexturePage(0x2C0, 0x100);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 0, 0);
             task->state++;
             break;
         case 1:
@@ -730,7 +730,7 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
             }
             break;
         case 5:
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 1, 0);
             task->state++;
             break;
         case 6:

@@ -159,10 +159,9 @@ static inline void _menuApplyPendingConsumableReload(Task* playerTask)
 void menuApplyPendingItemUseTask(Task* task)
 {
     enum {
-        MENU_ITEM_USE_PRESENTATION_PENDING  = 1,
-        PLAYER_ACTOR_MESSAGE_ENTER_ITEM_USE = 0x402,
-        MENU_ITEM_EAU_DE_TOILETTE           = 0x3E,
-        MENU_ITEM_USE_APPLY_STATUS_EFFECTS  = 0
+        MENU_ITEM_USE_PRESENTATION_PENDING = 1,
+        MENU_ITEM_EAU_DE_TOILETTE          = 0x3E,
+        MENU_ITEM_USE_APPLY_STATUS_EFFECTS = 0
     };
     Task* playerTask;
 

@@ -412,11 +412,11 @@ enum {
 
 static s32 _playerActorEnterScriptedAttack(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-static void Gp_DrawEffSprite81(Task* arg0);
+static void _effectDrawProjectileSprite(const Task* task);
 
 static void _effectDrawGroundDecal(const GfxCoord* coord, s32 halfSize, s16 brightness, u16 palette);
 
-static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2);
+static void _effectDrawGravityParticle(const Task* task, s32 particleVariant, const u8 tintRgb[3]);
 
 static void _effectDrawAnimatedGroundQuad(const GfxCoord* coord, s32 halfSize, u16 frame, u16 palette);
 
@@ -499,9 +499,9 @@ static s32 _playerActorRunTo(Task* task, s32 unusedMessageId, const VECTOR3* des
 
 static s32 _playerActorAwaitButtonPresses(Task* task, s32 unusedMessageId, const GameActorButtonPressHold* request, s32 unusedSecondArg);
 
-s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+static s32 _playerActorEnterScriptedPresentation(Task* task, s32 unusedMessageId, s32 clipVariant, s32 unusedSecondArg);
 
-s32 func_80105754(Task* arg0, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
+static s32 _playerActorEnterItemUse(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 static s32 _animationCopyPlayerBankExtension(Task* unusedTask, s32 unusedMessageId, const AnimationBankCopyRequest* request, s32 unusedSecondArg);
 
@@ -529,7 +529,7 @@ static inline void _playerActorResumeAimLocomotion(Task* task, s32 blendFrames);
 
 static void _playerActorNormalState6(Task* task);
 
-static void func_8010771C(Task* arg0);
+static void _playerActorUpdateParalysis(Task* task);
 
 static void Gp_PlayerMode2State3(Task* arg0);
 
@@ -547,7 +547,7 @@ static void func_801085D0(Task* arg0);
 
 static void _playerActorUpdateIdleTurnAnimation(Task* task);
 
-static void func_80108684(Task* arg0);
+static void _playerActorUpdateAimTurnAnimation(Task* task);
 
 static void _playerActorEnterAimLocomotion(Task* task, s32 blendFrames);
 
@@ -567,7 +567,7 @@ static void func_80108FA0(Task* arg0);
 
 static void _playerActorNormalState1(Task* task);
 
-static void func_801090E8(Task* arg0);
+static void _playerActorUpdateAimExit(Task* task);
 
 static void func_80109138(Task* arg0);
 
@@ -579,7 +579,7 @@ static void func_80109210(Task* arg0);
 
 static void func_80109250(Task* arg0);
 
-static s32 func_80109290(Task* arg0);
+static s32 _playerActorTryEnterPeAction(Task* task);
 
 static void _playerActorUpdateAimRequest(Task* task);
 
@@ -992,7 +992,7 @@ TaskMessageEntry Gp_PlayerMsgTable[28] = {
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, _animationCopyPlayerBankExtension },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, _playerActorAwaitButtonPresses },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_ApplyPlayerDamage },
-    { 1018, func_80105690 },
+    { PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, _playerActorEnterScriptedPresentation },
     { GAME_ACTOR_MESSAGE_RUN_TO, _playerActorRunTo },
     { GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT, _playerActorSetRunMovement },
     { ANIMATION_MESSAGE_SET_RATE, playerActorSetAnimationRate },
@@ -1000,7 +1000,7 @@ TaskMessageEntry Gp_PlayerMsgTable[28] = {
     { ANIMATION_MESSAGE_REPLACE_AND_PLAY, _playerActorReplaceAnimation },
     { PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_ATTACK, _playerActorEnterScriptedAttack },
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, playerActorSetTextureSequence },
-    { 1026, func_80105754 },
+    { PLAYER_ACTOR_MESSAGE_ENTER_ITEM_USE, _playerActorEnterItemUse },
     { -1, NULL },
 };
 u16 Gp_WeaponIdBase[2] = {
@@ -1411,52 +1411,78 @@ void effectSpriteTask46(Task* task)
     }
 }
 
-static void Gp_DrawEffSprite81(Task* arg0)
+/// Projects effect 0x81's cached centre with the current world-to-screen matrix.
+///
+/// Borrows a writable aligned scratch block and composed coordinate. Narrows
+/// cached XYZ to s16, writes the screen centre and FLAG and changes GTE state.
+/// The caller supplies projection settings and reads depth only after acceptance.
+static inline void _effectProjectProjectileCentre(EffectCentreScratch* scratch, const GfxCoord* coord)
 {
-    EffectCentreScratch*  block;
-    ModelObjectCoordBody* body;
-    GfxCoord*             coord;
-    EffectWork*           mem;
-    POLY_FT4*             prim;
-
-    body                 = arg0->extra.coordBody;
-    coord                = body->coord;
-    mem                  = arg0->spawnArg2.pointer;
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
-    block->worldPoint.vx = coord->workm.t[0];
-    block->worldPoint.vy = coord->workm.t[1];
-    block->worldPoint.vz = coord->workm.t[2];
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        setShadeTex(prim, 1);
-        setSemiTrans(prim, mem->angle);
-        prim->tpage         = 0x29;
-        prim->clut          = ((D_80112964[1][mem->step] >> 4) & 0x3F) | 0x4280;
-        prim->u0            = ((mem->age >> 1) & 7) * 16;
-        prim->v0            = 0xB8;
-        prim->u1            = (((mem->age >> 1) & 7) * 16) + 0xF;
-        prim->v1            = 0xB8;
-        prim->u2            = ((mem->age >> 1) & 7) * 16;
-        prim->v2            = 0xC7;
-        prim->u3            = (((mem->age >> 1) & 7) * 16) + 0xF;
-        prim->v3            = 0xC7;
-        block->screenExtent = ((mem->scale * 0xF) / block->depth) >> 1;
-        prim->x0 = prim->x2 = block->screenX - (u16)block->screenExtent;
-        prim->x1 = prim->x3 = block->screenX + (u16)block->screenExtent;
-        prim->y0 = prim->y1 = block->screenY - (u16)block->screenExtent;
-        prim->y2 = prim->y3 = block->screenY + (u16)block->screenExtent;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+}
+
+/// Draws the projectile-following sprite of effect task 0x81 as an axis-aligned billboard.
+///
+/// Requires the task's live coordinate body and owned EffectWork, a composed
+/// cached translation, scratch/GTE projection state and a writable GPU arena.
+/// step indexes palette columns 0..1 (the task initializes it to 1); age selects
+/// one of eight 16-texel frames, advancing every two running ticks. scale supplies the
+/// perspective size; angle zero selects opaque raw texels, nonzero additive.
+/// Sizes and arithmetic must fit s32. Depth is SZ3 / 4 plus one; a negative
+/// projection FLAG skips drawing. Borrows all inputs and retains no pointers.
+static void _effectDrawProjectileSprite(const Task* task)
+{
+    enum {
+        EFFECT_PROJECTILE_SPRITE_DEPTH_BIAS   = 1,
+        EFFECT_PROJECTILE_SPRITE_FRAME_COUNT  = 8,
+        EFFECT_PROJECTILE_SPRITE_FRAME_SHIFT  = 1,
+        EFFECT_PROJECTILE_SPRITE_CELL_SIZE    = 16,
+        EFFECT_PROJECTILE_SPRITE_TEXTURE_V    = 184,
+        EFFECT_PROJECTILE_SPRITE_TEXTURE_PAGE = getTPage(0, GPU_BLEND_ADD, 576, 0),
+        EFFECT_PROJECTILE_SPRITE_CLUT_ROW     = 1,
+        EFFECT_PROJECTILE_SPRITE_CLUT_Y       = 266,
+    };
+    EffectCentreScratch*        scratch;
+    const ModelObjectCoordBody* body;
+    const GfxCoord*             coord;
+    const EffectWork*           work;
+    POLY_FT4*                   quad;
+
+    body    = task->extra.coordBody;
+    coord   = body->coord;
+    work    = task->spawnArg2.pointer;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    _effectProjectProjectileCentre(scratch, coord);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth += EFFECT_PROJECTILE_SPRITE_DEPTH_BIAS;
+        quad            = gGpuPrimCursor;
+        gGpuPrimCursor  = quad + 1;
+        setPolyFT4(quad);
+        setShadeTex(quad, 1);
+        setSemiTrans(quad, work->angle);
+        // Use raw texels; angle is the caller-controlled transparency toggle.
+        quad->tpage = EFFECT_PROJECTILE_SPRITE_TEXTURE_PAGE;
+        quad->clut  = getClut(D_80112964[EFFECT_PROJECTILE_SPRITE_CLUT_ROW][work->step], EFFECT_PROJECTILE_SPRITE_CLUT_Y);
+        setUV4(quad, ((work->age >> EFFECT_PROJECTILE_SPRITE_FRAME_SHIFT) & (EFFECT_PROJECTILE_SPRITE_FRAME_COUNT - 1)) * EFFECT_PROJECTILE_SPRITE_CELL_SIZE, EFFECT_PROJECTILE_SPRITE_TEXTURE_V,
+               (((work->age >> EFFECT_PROJECTILE_SPRITE_FRAME_SHIFT) & (EFFECT_PROJECTILE_SPRITE_FRAME_COUNT - 1)) * EFFECT_PROJECTILE_SPRITE_CELL_SIZE) + EFFECT_PROJECTILE_SPRITE_CELL_SIZE - 1, EFFECT_PROJECTILE_SPRITE_TEXTURE_V,
+               ((work->age >> EFFECT_PROJECTILE_SPRITE_FRAME_SHIFT) & (EFFECT_PROJECTILE_SPRITE_FRAME_COUNT - 1)) * EFFECT_PROJECTILE_SPRITE_CELL_SIZE, EFFECT_PROJECTILE_SPRITE_TEXTURE_V + EFFECT_PROJECTILE_SPRITE_CELL_SIZE - 1,
+               (((work->age >> EFFECT_PROJECTILE_SPRITE_FRAME_SHIFT) & (EFFECT_PROJECTILE_SPRITE_FRAME_COUNT - 1)) * EFFECT_PROJECTILE_SPRITE_CELL_SIZE) + EFFECT_PROJECTILE_SPRITE_CELL_SIZE - 1, EFFECT_PROJECTILE_SPRITE_TEXTURE_V + EFFECT_PROJECTILE_SPRITE_CELL_SIZE - 1);
+        scratch->screenExtent = ((work->scale * (EFFECT_PROJECTILE_SPRITE_CELL_SIZE - 1)) / scratch->depth) >> 1;
+        quad->x0 = quad->x2 = scratch->screenX - (u16)scratch->screenExtent;
+        quad->x1 = quad->x3 = scratch->screenX + (u16)scratch->screenExtent;
+        quad->y0 = quad->y1 = scratch->screenY - (u16)scratch->screenExtent;
+        quad->y2 = quad->y3 = scratch->screenY + (u16)scratch->screenExtent;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
@@ -1607,7 +1633,7 @@ void Gp_EffSprTask81(Task* arg0)
             effectSpawn(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200 + mem->scale, 0);
             break;
         case 1:
-            Gp_DrawEffSprite81(arg0);
+            _effectDrawProjectileSprite(arg0);
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 break;
             }
@@ -2189,9 +2215,9 @@ void Gp_EffSprTask30(Task* arg0)
             }
             if (arg0->spawnArg1.value == 2) {
                 color[0] = color[1] = color[2] = 0x80;
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, color);
+                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, color);
             } else {
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, NULL);
+                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, NULL);
             }
             return;
         case 2:
@@ -2208,7 +2234,7 @@ void Gp_EffSprTask30(Task* arg0)
                     u16 rnd;
 
                     color[0] = color[1] = color[2] = mem->angle;
-                    Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, color);
+                    _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, color);
                     mem->period    += mem->pos.vx >> 4;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     rnd             = (gRandomLcgState >> 16) % 3;
@@ -2219,7 +2245,7 @@ void Gp_EffSprTask30(Task* arg0)
                     mem->angle -= 0x10;
                 }
             } else {
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, NULL);
+                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, NULL);
             }
             return;
         case 3:
@@ -2230,10 +2256,10 @@ void Gp_EffSprTask30(Task* arg0)
                     return;
                 }
                 color[0] = color[1] = color[2] = mem->angle;
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, color);
+                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, color);
                 mem->angle -= 0x10;
             } else {
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, NULL);
+                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, NULL);
             }
             return;
         case 4:
@@ -2250,7 +2276,7 @@ void Gp_EffSprTask30(Task* arg0)
                     u16 rnd;
 
                     color[0] = color[1] = color[2] = mem->angle;
-                    Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, color);
+                    _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, color);
                     mem->period    += mem->pos.vx >> 4;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     rnd             = (gRandomLcgState >> 16) % 3;
@@ -2262,7 +2288,7 @@ void Gp_EffSprTask30(Task* arg0)
                 }
             } else {
                 color[0] = color[1] = color[2] = mem->angle;
-                Gp_DrawEffSpark(arg0, arg0->spawnArg1.value, color);
+                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, color);
             }
             return;
     }
@@ -2274,79 +2300,116 @@ static const TaskFuncTable3 Gp_EffTask07States = { {
     taskKill,
 } };
 
-static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
+/// Places the gravity particle's two opposite-corner pairs around its projected centre.
+///
+/// The live quad and aligned scratch block must be writable, with centre and
+/// positive depth initialized. Size and angle preserve their signed halfword
+/// interpretation; rotation uses 4096 units per turn and products must fit s32.
+/// Pixel stores retain their low halfwords. No pointer survives the call.
+static inline void _effectPlaceGravityParticleCorners(EffectShapeScratch* scratch, POLY_FT4* quad, u16 sizeBits, u16 spinAngleBits)
 {
-    EffectShapeScratch*   block;
-    EffectWork*           mem;
-    ModelObjectCoordBody* body;
-    GfxCoord*             coord;
-    POLY_FT4*             prim;
-    u16                   abr;
-    s32                   uv;
-    s32                   uv2;
-    s32                   ang;
-    u16                   size;
-    u16                   frame;
-    u16                   angle;
+    enum { EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE = 24 };
+    s32 perpendicularAngle;
 
-    body                 = arg0->extra.coordBody;
-    mem                  = arg0->spawnArg2.pointer;
-    abr                  = 1;
-    coord                = body->coord;
-    size                 = mem->pos.vx;
-    frame                = mem->index;
-    angle                = mem->pos.vz;
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-    block->worldPoint.vx = coord->workm.t[0];
-    block->worldPoint.vy = coord->workm.t[1];
-    block->worldPoint.vz = coord->workm.t[2];
+    // Rotate two opposite-corner pairs in screen space.
+    scratch->extent.corner.x = ((((s16)sizeBits * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rsin((s16)spinAngleBits)) >> EFFECT_DRAW_FRACTION_BITS;
+    scratch->extent.corner.y = ((((s16)sizeBits * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rcos((s16)spinAngleBits)) >> EFFECT_DRAW_FRACTION_BITS;
+    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;
+    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;
+    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;
+    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;
+    perpendicularAngle       = (s16)spinAngleBits + EFFECT_DRAW_QUARTER_TURN;
+    scratch->extent.corner.x = ((((s16)sizeBits * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rsin(perpendicularAngle)) >> EFFECT_DRAW_FRACTION_BITS;
+    scratch->extent.corner.y = ((((s16)sizeBits * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rcos(perpendicularAngle)) >> EFFECT_DRAW_FRACTION_BITS;
+    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;
+    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;
+    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;
+    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
+}
+
+/// Draws the gravity particle's animated texture as a rotated screen-space quad.
+///
+/// Requires a live coordinate body, owned EffectWork, composed cached translation,
+/// scratch/GTE state and a writable GPU arena. pos.vx supplies signed size bits,
+/// pos.vz signed angle bits (4096 units per turn), and index's low three bits the
+/// 24-texel frame. The scaled size is a centre-to-corner distance, not a half-side.
+/// tintRgb is NULL or three borrowed readable RGB bytes (128 neutral): variant 1
+/// subtracts a tint or draws opaque dark modulation without one; other variants
+/// add a tint or draw opaque raw texels. Only variant 1 is distinguished.
+/// Projection narrows XYZ to s16, uses SZ3 / 4 plus one for size and ordering,
+/// and skips a negative FLAG. Products must fit s32. Retains no pointers.
+static void _effectDrawGravityParticle(const Task* task, s32 particleVariant, const u8 tintRgb[3])
+{
+    enum {
+        EFFECT_GRAVITY_PARTICLE_DEPTH_BIAS       = 1,
+        EFFECT_GRAVITY_PARTICLE_SUBTRACT_VARIANT = 1,
+        EFFECT_GRAVITY_PARTICLE_DARK_BRIGHTNESS  = 32,
+        EFFECT_GRAVITY_PARTICLE_FRAME_COUNT      = 8,
+        EFFECT_GRAVITY_PARTICLE_CELL_SIZE        = 24,
+        EFFECT_GRAVITY_PARTICLE_TEXTURE_V        = 184,
+        EFFECT_GRAVITY_PARTICLE_TEXTURE_PAGE     = getTPage(0, GPU_BLEND_AVERAGE, 512, 0),
+        EFFECT_GRAVITY_PARTICLE_CLUT             = getClut(224, 266),
+        EFFECT_GRAVITY_PARTICLE_BLEND_SHIFT      = 5,
+    };
+    EffectShapeScratch*         scratch;
+    const EffectWork*           work;
+    const ModelObjectCoordBody* body;
+    const GfxCoord*             coord;
+    POLY_FT4*                   quad;
+    u16                         blendMode;
+    s32                         textureU;
+    s32                         textureUEnd;
+    u16                         sizeBits;
+    u16                         frameIndex;
+    u16                         spinAngleBits;
+
+    body                   = task->extra.coordBody;
+    work                   = task->spawnArg2.pointer;
+    blendMode              = GPU_BLEND_ADD;
+    coord                  = body->coord;
+    sizeBits               = work->pos.vx;
+    frameIndex             = work->index;
+    spinAngleBits          = work->pos.vz;
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth   = block->depth + 1;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        if (arg1 == 1) {
-            if (arg2 != NULL) {
-                abr = 2;
-                setRGB0(prim, arg2[0], arg2[1], arg2[2]);
-                setSemiTrans(prim, 1);
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth = scratch->depth + EFFECT_GRAVITY_PARTICLE_DEPTH_BIAS;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+        setcode(quad, EFFECT_DRAW_TEXTURED_QUAD);
+        // Tinted particles blend; an untinted subtract variant remains dark and opaque.
+        if (particleVariant == EFFECT_GRAVITY_PARTICLE_SUBTRACT_VARIANT) {
+            if (tintRgb != NULL) {
+                blendMode = GPU_BLEND_SUBTRACT;
+                setRGB0(quad, tintRgb[0], tintRgb[1], tintRgb[2]);
+                setSemiTrans(quad, 1);
             } else {
-                setRGB0(prim, 0x20, 0x20, 0x20);
+                setRGB0(quad, EFFECT_GRAVITY_PARTICLE_DARK_BRIGHTNESS, EFFECT_GRAVITY_PARTICLE_DARK_BRIGHTNESS, EFFECT_GRAVITY_PARTICLE_DARK_BRIGHTNESS);
             }
-        } else if (arg2 != NULL) {
-            setRGB0(prim, arg2[0], arg2[1], arg2[2]);
-            setSemiTrans(prim, 1);
+        } else if (tintRgb != NULL) {
+            setRGB0(quad, tintRgb[0], tintRgb[1], tintRgb[2]);
+            setSemiTrans(quad, 1);
         } else {
-            setcode(prim, 0x2D);
+            setcode(quad, EFFECT_DRAW_TEXTURED_QUAD | EFFECT_DRAW_RAW_TEXTURE);
         }
-        prim->tpage = (abr << 5) | 8;
-        prim->clut  = 0x428E;
-        uv          = (frame & 7) * 0x18;
-        uv2         = uv + 0x17;
-        setUV4(prim, uv, 0xB8, uv2, 0xB8, uv, 0xCF, uv2, 0xCF);
-        block->extent.corner.x = ((((s16)size * 23) / block->depth) * rsin((s16)angle)) >> 12;
-        block->extent.corner.y = ((((s16)size * 23) / block->depth) * rcos((s16)angle)) >> 12;
-        prim->x0               = block->screenX + (u16)block->extent.corner.x;
-        prim->x3               = block->screenX - (u16)block->extent.corner.x;
-        prim->y0               = block->screenY - (u16)block->extent.corner.y;
-        prim->y3               = block->screenY + (u16)block->extent.corner.y;
-        ang                    = (s16)angle + 0x400;
-        block->extent.corner.x = ((((s16)size * 23) / block->depth) * rsin(ang)) >> 12;
-        block->extent.corner.y = ((((s16)size * 23) / block->depth) * rcos(ang)) >> 12;
-        prim->x1               = block->screenX + (u16)block->extent.corner.x;
-        prim->x2               = block->screenX - (u16)block->extent.corner.x;
-        prim->y1               = block->screenY - (u16)block->extent.corner.y;
-        prim->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        quad->tpage = (blendMode << EFFECT_GRAVITY_PARTICLE_BLEND_SHIFT) | EFFECT_GRAVITY_PARTICLE_TEXTURE_PAGE;
+        quad->clut  = EFFECT_GRAVITY_PARTICLE_CLUT;
+        textureU    = (frameIndex & (EFFECT_GRAVITY_PARTICLE_FRAME_COUNT - 1)) * EFFECT_GRAVITY_PARTICLE_CELL_SIZE;
+        textureUEnd = textureU + EFFECT_GRAVITY_PARTICLE_CELL_SIZE - 1;
+        setUV4(quad, textureU, EFFECT_GRAVITY_PARTICLE_TEXTURE_V, textureUEnd, EFFECT_GRAVITY_PARTICLE_TEXTURE_V, textureU, EFFECT_GRAVITY_PARTICLE_TEXTURE_V + EFFECT_GRAVITY_PARTICLE_CELL_SIZE - 1, textureUEnd, EFFECT_GRAVITY_PARTICLE_TEXTURE_V + EFFECT_GRAVITY_PARTICLE_CELL_SIZE - 1);
+        _effectPlaceGravityParticleCorners(scratch, quad, sizeBits, spinAngleBits);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
@@ -7123,71 +7186,51 @@ static s32 _playerActorEnterScriptedAttack(Task* task, s32 unusedMessageId, s32 
     return 0;
 }
 
-s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Takes scripted control and selects the player's paired presentation clips (state 7).
+///
+/// Zero clipVariant selects the active bank's clip 32; any nonzero s32 selects clip 33.
+/// Playback starts on the next scripted tick. Clears movement signs, aim
+/// offsets and weapon attack effects; event entry disables root view triggers.
+/// Requires live actor, session and equipment resources and an active animation
+/// bank containing both clips. The message ID and second payload word are unused. Returns 0.
+static s32 _playerActorEnterScriptedPresentation(Task* task, s32 unusedMessageId, s32 clipVariant, s32 unusedSecondArg)
 {
-    GameActor*    actor;
-    PlayerStatus* p;
+    enum { PLAYER_ACTOR_SCRIPTED_PRESENTATION_STATE = 7 };
+    GameActor* actor;
 
-    actor                                                 = arg0->work;
-    p                                                     = &gPlayerStatus;
-    actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
-    actor->statePhase                                     = 0;
-    actor->movementSign                                   = 0;
-    actor->turnSign                                       = 0;
-    p->interactionPressed                                 = 0;
-    actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_OFF;
-    actor->part3Pitch                                     = 0;
-    actor->part2Pitch                                     = 0;
-    actor->part3Roll                                      = 0;
-    actor->part2Roll                                      = 0;
-    actor->aimYaw                                         = 0;
-    actor->field_68                                       = 0;
-    actor->part6Pitch                                     = 0;
-    actor->hitRegion                                      = 0;
-    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    playerActorResetWeaponAttack(arg0, p->weapon, 0);
-    if (gGameSession->eventState != 0) {
-        actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
-    }
-    actor->state      = 7;
-    actor->stateTimer = arg2;
+    actor = task->work;
+    _playerActorEnterScriptedMode(task);
+    actor->state      = PLAYER_ACTOR_SCRIPTED_PRESENTATION_STATE;
+    actor->stateTimer = clipVariant;
     return 0;
 }
 
-s32 func_80105754(Task* arg0, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
+/// Starts the deferred item-use presentation unless the player already has scripted control.
+///
+/// Accepting returns 0, clears movement/aim/weapon-attack state and enters
+/// scripted state 11, which plays active-bank clip 40. Event entry also disables
+/// root view triggers. Already-scripted control returns 1 without changing it.
+/// Requires live actor, session and equipment resources; later playback needs
+/// an active bank containing clip 40. The message ID and both payload words are unused.
+static s32 _playerActorEnterItemUse(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    GameActor*    actor;
-    PlayerStatus* p;
-    s32           ret;
+    enum {
+        PLAYER_ACTOR_ITEM_USE_STATE    = 11,
+        PLAYER_ACTOR_ITEM_USE_ACCEPTED = 0,
+        PLAYER_ACTOR_ITEM_USE_BUSY     = 1,
+    };
+    GameActor* actor;
+    s32        result;
 
-    actor = arg0->work;
-    ret   = 0;
+    actor  = task->work;
+    result = PLAYER_ACTOR_ITEM_USE_ACCEPTED;
     if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        p                                                     = &gPlayerStatus;
-        actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
-        actor->statePhase                                     = 0;
-        actor->movementSign                                   = 0;
-        actor->turnSign                                       = 0;
-        p->interactionPressed                                 = 0;
-        actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_OFF;
-        actor->part3Pitch                                     = 0;
-        actor->part2Pitch                                     = 0;
-        actor->part3Roll                                      = 0;
-        actor->part2Roll                                      = 0;
-        actor->aimYaw                                         = 0;
-        actor->field_68                                       = 0;
-        actor->part6Pitch                                     = 0;
-        actor->hitRegion                                      = 0;
-        actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        playerActorResetWeaponAttack(arg0, p->weapon, ret);
-        if (gGameSession->eventState != 0) {
-            actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
-        }
-        actor->state = 0xB;
+        _playerActorEnterScriptedMode(task);
+        actor->state = PLAYER_ACTOR_ITEM_USE_STATE;
     } else {
-        ret = 1;
+        result = PLAYER_ACTOR_ITEM_USE_BUSY;
     }
-    return ret;
+    return result;
 }
 
 s32 playerActorIsScriptedMotionPending(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
@@ -7900,11 +7943,11 @@ static const TaskFuncTable8 D_8009794C = { {
     func_80108FA0,
     _playerActorNormalState1,
     Gp_PlayerNormalState2,
-    func_801090E8,
+    _playerActorUpdateAimExit,
     func_80109138,
     Gp_PlayerNormalState5,
     _playerActorNormalState6,
-    func_8010771C,
+    _playerActorUpdateParalysis,
 } };
 
 static void Gp_TickPlayerNormal(Task* arg0)
@@ -7979,9 +8022,9 @@ static void Gp_PlayerNormalState2(Task* arg0)
     if (actor->movementSign != actor->previousMovementSign) {
         _playerActorEnterAimLocomotion(arg0, 4);
     } else if (actor->movementSign == 0 && actor->turnSign != actor->previousTurnSign) {
-        func_80108684(arg0);
+        _playerActorUpdateAimTurnAnimation(arg0);
     }
-    if (func_80109290(arg0) == 0) {
+    if (_playerActorTryEnterPeAction(arg0) == 0) {
         if ((actor->padHeld & 0xF000) == 0) {
             playerActorTrackLockTarget(arg0);
         }
@@ -8472,70 +8515,53 @@ static void _playerActorNormalState6(Task* task)
     }
 }
 
-static void func_8010771C(Task* arg0)
+/// Runs a paralysis episode and resumes the player's previous normal control (state 7).
+///
+/// Stops forward movement. Escape requires fifteen ticks with any newly pressed
+/// direction or face button; simultaneous buttons count once. Clearing Paralysis
+/// ends the episode immediately, including an unsigned counter wrap on that tick.
+/// A saved state 0 resumes locomotion; every other state resumes aim locomotion
+/// with a six-frame blend, retaining Darkness handling and the current turn input.
+/// Requires live actor, session/equipment and native animation resources.
+static void _playerActorUpdateParalysis(Task* task)
 {
+    enum {
+        PLAYER_ACTOR_PARALYSIS_PHASE_START         = 0,
+        PLAYER_ACTOR_PARALYSIS_PHASE_WAIT          = 1,
+        PLAYER_ACTOR_PARALYSIS_ESCAPE_PRESSES      = 15,
+        PLAYER_ACTOR_PARALYSIS_PREVIOUS_LOCOMOTION = 0,
+        PLAYER_ACTOR_PARALYSIS_RESUME_BLEND_FRAMES = 6,
+        PLAYER_ACTOR_PARALYSIS_ESCAPE_BUTTONS      = PAD_BUTTON_UP | PAD_BUTTON_RIGHT | PAD_BUTTON_DOWN | PAD_BUTTON_LEFT |
+                                                PAD_BUTTON_TRIANGLE | PAD_BUTTON_CIRCLE | PAD_BUTTON_CROSS | PAD_BUTTON_SQUARE,
+    };
     GameActor* actor;
-    GameActor* inner;
-    s32        mode;
-    s32        temp;
-    s32        flag;
+    s32        waitingPhase;
 
-    actor               = arg0->work;
+    actor               = task->work;
     actor->movementSign = 0;
     if (!(gPlayerStatus.statusFlags & PLAYER_STATUS_PARALYSIS)) {
-        actor->statePhase        = 1;
+        actor->statePhase        = PLAYER_ACTOR_PARALYSIS_PHASE_WAIT;
         actor->paralysisProgress = 0;
     }
     switch (actor->statePhase) {
-        case 0:
-            flag                     = 1;
-            actor->statePhase        = flag;
-            actor->paralysisProgress = 0xF;
-        case 1:
-            if (actor->padPressed & 0xF0F0) {
+        case PLAYER_ACTOR_PARALYSIS_PHASE_START:
+            waitingPhase             = PLAYER_ACTOR_PARALYSIS_PHASE_WAIT;
+            actor->statePhase        = waitingPhase;
+            actor->paralysisProgress = PLAYER_ACTOR_PARALYSIS_ESCAPE_PRESSES;
+            // Count at most one press per tick, including the entry tick.
+        case PLAYER_ACTOR_PARALYSIS_PHASE_WAIT:
+            if (actor->padPressed & PLAYER_ACTOR_PARALYSIS_ESCAPE_BUTTONS) {
                 actor->paralysisProgress--;
             }
             if ((s8)actor->paralysisProgress > 0) {
                 break;
             }
-            if (actor->stateAux == 0) {
-                playerActorEnterLocomotion(arg0, 0);
+            if (actor->stateAux == PLAYER_ACTOR_PARALYSIS_PREVIOUS_LOCOMOTION) {
+                playerActorEnterLocomotion(task, 0);
                 break;
             }
-            inner               = arg0->work;
-            inner->mode         = GAME_ACTOR_MODE_NORMAL;
-            inner->state        = 2;
-            inner->movementMode = 0;
-            if (inner->movementSign != 0) {
-                temp = 1;
-            } else {
-                temp = 3;
-            }
-            inner->turnRateIndex  = temp;
-            inner->animationState = 0;
-            inner->statePhase     = 0;
-            if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
-                playerActorClearLockTarget(arg0);
-                inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
-            } else {
-                inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
-            }
-            temp = inner->movementSign;
-            if (temp == 0) {
-                if (inner->turnSign != 0) {
-                    mode = 0xD;
-                } else {
-                    mode = 9;
-                }
-            } else if (temp == 1) {
-                mode                    = 0xC;
-                inner->movementMode     = 3;
-                inner->aimTrackingState = temp;
-            } else {
-                inner->movementMode = 2;
-                mode                = 0xD;
-            }
-            playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 6);
+            // Restore aim locomotion using the saved pre-paralysis state.
+            _playerActorResumeAimLocomotion(task, PLAYER_ACTOR_PARALYSIS_RESUME_BLEND_FRAMES);
             break;
     }
 }
@@ -8897,7 +8923,7 @@ static void func_80108568(Task* arg0)
         _playerActorEnterAimLocomotion(arg0, 4);
     } else if (actor->movementSign == 0) {
         if (actor->turnSign != actor->previousTurnSign) {
-            func_80108684(arg0);
+            _playerActorUpdateAimTurnAnimation(arg0);
         }
     }
 }
@@ -8950,37 +8976,56 @@ static void _playerActorUpdateIdleTurnAnimation(Task* task)
     playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_IDLE_TURN_BLEND_FRAMES);
 }
 
-static void func_80108684(Task* arg0)
+/// Blends aim locomotion's child tracks after a change in turn input.
+///
+/// Keeps the current state and aim tracking, enters normal mode and resets phase
+/// and controller. Movement input selects mode 3/clip 12 forward or mode 2/clip 13
+/// backward; without movement, turning uses clip 13 and rest uses clip 9.
+/// Requires live actor/native animation resources. Blends for five normal-rate
+/// frames and selects moving or stationary turn-rate row 1 or 3 respectively.
+static void _playerActorUpdateAimTurnAnimation(Task* task)
 {
-    GameActor* inner;
-    s32        mode;
-    s32        temp;
+    enum {
+        PLAYER_ACTOR_AIM_TURN_STOPPED      = 0,
+        PLAYER_ACTOR_AIM_TURN_BACKWARD     = 2,
+        PLAYER_ACTOR_AIM_TURN_FORWARD      = 3,
+        PLAYER_ACTOR_AIM_TURN_RATE_MOVING  = 1,
+        PLAYER_ACTOR_AIM_TURN_RATE_IDLE    = 3,
+        PLAYER_ACTOR_AIM_TURN_CONTROLLER   = 0,
+        PLAYER_ACTOR_AIM_TURN_SET_IDLE     = 9,
+        PLAYER_ACTOR_AIM_TURN_SET_FORWARD  = 12,
+        PLAYER_ACTOR_AIM_TURN_SET_OTHER    = 13,
+        PLAYER_ACTOR_AIM_TURN_BLEND_FRAMES = 5,
+    };
+    GameActor* actor;
+    s32        setIndex;
+    s32        movementMode;
 
-    inner                 = arg0->work;
-    inner->mode           = GAME_ACTOR_MODE_NORMAL;
-    inner->movementMode   = 0;
-    inner->animationState = 0;
-    inner->statePhase     = 0;
-    if (inner->movementSign != 0) {
-        if (inner->movementSign == 1) {
-            temp = 3;
+    actor                 = task->work;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->movementMode   = PLAYER_ACTOR_AIM_TURN_STOPPED;
+    actor->animationState = PLAYER_ACTOR_AIM_TURN_CONTROLLER;
+    actor->statePhase     = 0;
+    if (actor->movementSign != 0) {
+        if (actor->movementSign == 1) {
+            movementMode = PLAYER_ACTOR_AIM_TURN_FORWARD;
         } else {
-            temp = 2;
+            movementMode = PLAYER_ACTOR_AIM_TURN_BACKWARD;
         }
-        mode                 = 0xD;
-        inner->movementMode  = temp;
-        inner->turnRateIndex = 1;
-        if (inner->movementSign == 1) {
-            mode = 0xC;
+        setIndex             = PLAYER_ACTOR_AIM_TURN_SET_OTHER;
+        actor->movementMode  = movementMode;
+        actor->turnRateIndex = PLAYER_ACTOR_AIM_TURN_RATE_MOVING;
+        if (actor->movementSign == 1) {
+            setIndex = PLAYER_ACTOR_AIM_TURN_SET_FORWARD;
         }
     } else {
-        mode                 = 0xD;
-        inner->turnRateIndex = 3;
-        if (inner->turnSign == 0) {
-            mode = 9;
+        setIndex             = PLAYER_ACTOR_AIM_TURN_SET_OTHER;
+        actor->turnRateIndex = PLAYER_ACTOR_AIM_TURN_RATE_IDLE;
+        if (actor->turnSign == 0) {
+            setIndex = PLAYER_ACTOR_AIM_TURN_SET_IDLE;
         }
     }
-    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
+    playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_AIM_TURN_BLEND_FRAMES);
 }
 
 void playerActorEnterAim(Task* task, s32 blendFrames)
@@ -9390,7 +9435,7 @@ static void Gp_TickPlayerMode2(Task* arg0)
 static void func_80108FA0(Task* arg0)
 {
     func_801065A8(arg0);
-    func_80109290(arg0);
+    _playerActorTryEnterPeAction(arg0);
     playerActorPlayFootstepCue(arg0);
 }
 
@@ -9448,15 +9493,22 @@ static void _playerActorNormalState1(Task* task)
     }
 }
 
-static void func_801090E8(Task* arg0)
+/// Keeps aim exit stationary and permits a new aim request (normal state 3).
+///
+/// Replaces the aim request from held Square and current attachment/equipment
+/// restrictions. An entry request starts aim entry with a four-frame blend;
+/// otherwise the dispatcher continues the existing exit animation. Requires
+/// live actor, equipment/attachment state and native animation resources.
+static void _playerActorUpdateAimExit(Task* task)
 {
-    GameActor* inner;
+    enum { PLAYER_ACTOR_AIM_EXIT_REENTRY_BLEND_FRAMES = 4 };
+    GameActor* actor;
 
-    inner               = arg0->work;
-    inner->movementSign = 0;
-    _playerActorUpdateAimRequest(arg0);
-    if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
-        playerActorEnterAim(arg0, 4);
+    actor               = task->work;
+    actor->movementSign = 0;
+    _playerActorUpdateAimRequest(task);
+    if (actor->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
+        playerActorEnterAim(task, PLAYER_ACTOR_AIM_EXIT_REENTRY_BLEND_FRAMES);
     }
 }
 
@@ -9542,43 +9594,64 @@ static void func_80109250(Task* arg0)
     }
 }
 
-static s32 func_80109290(Task* arg0)
+/// Starts the normal-mode Parasite Energy action when an attachment is held.
+///
+/// Returns 0 and changes nothing unless effectPhase is HELD; accepting returns 1,
+/// saves the previous normal state and enters state 6 with displacement stopped,
+/// turn/controller/phase reset and aim decay requested. actionArgument selects
+/// native release/charge/cast clip family 0, 1 or 2: item IDs use 0 for tens digit
+/// 1 and 1 otherwise; spells use 2 for digit 3, otherwise 1 below 300 and 0 at or above it.
+/// Requires live GameActor work and attachment state; later playback requires
+/// the native bank. Does not release the target or change attachment ownership.
+static s32 _playerActorTryEnterPeAction(Task* task)
 {
-    GameActor* inner;
-    u16        prev;
-    s32        tens;
-    s32        ret;
+    enum {
+        PLAYER_ACTOR_PE_ENTRY_STATE              = 6,
+        PLAYER_ACTOR_PE_ENTRY_STOPPED            = 0,
+        PLAYER_ACTOR_PE_ENTRY_TURN_DISABLED      = 0,
+        PLAYER_ACTOR_PE_ENTRY_CONTROLLER         = 0,
+        PLAYER_ACTOR_PE_CLIP_FAMILY0             = 0,
+        PLAYER_ACTOR_PE_CLIP_FAMILY1             = 1,
+        PLAYER_ACTOR_PE_CLIP_FAMILY2             = 2,
+        PLAYER_ACTOR_PE_ITEM_FAMILY0_TENS_DIGIT  = 1,
+        PLAYER_ACTOR_PE_SPELL_FAMILY2_TENS_DIGIT = 3,
+    };
+    GameActor* actor;
+    u16        previousState;
+    s32        attachmentTensDigit;
+    s32        entered;
 
-    ret = 0;
+    entered = 0;
     if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
-        inner                   = arg0->work;
-        prev                    = inner->state;
-        inner->state            = 6;
-        inner->mode             = GAME_ACTOR_MODE_NORMAL;
-        inner->movementMode     = 0;
-        inner->turnRateIndex    = 0;
-        inner->animationState   = 0;
-        inner->statePhase       = 0;
-        inner->movementSign     = 0;
-        inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
-        inner->stateAux         = prev;
-        tens                    = (u16)(Gp_StateC08.attachId % 100 / 10);
+        actor = task->work;
+        // Save the interrupted normal state for the release/charge/cast return.
+        previousState           = actor->state;
+        actor->state            = PLAYER_ACTOR_PE_ENTRY_STATE;
+        actor->mode             = GAME_ACTOR_MODE_NORMAL;
+        actor->movementMode     = PLAYER_ACTOR_PE_ENTRY_STOPPED;
+        actor->turnRateIndex    = PLAYER_ACTOR_PE_ENTRY_TURN_DISABLED;
+        actor->animationState   = PLAYER_ACTOR_PE_ENTRY_CONTROLLER;
+        actor->statePhase       = 0;
+        actor->movementSign     = 0;
+        actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
+        actor->stateAux         = previousState;
+        attachmentTensDigit     = (u16)(Gp_StateC08.attachId % 100 / 10);
         if (Gp_StateC08.attachId >= ATTACHMENT_ID_ITEM) {
-            if (tens == 1) {
-                inner->actionArgument = 0;
+            if (attachmentTensDigit == PLAYER_ACTOR_PE_ITEM_FAMILY0_TENS_DIGIT) {
+                actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;
             } else {
-                inner->actionArgument = 1;
+                actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY1;
             }
-        } else if (tens == 3) {
-            inner->actionArgument = 2;
+        } else if (attachmentTensDigit == PLAYER_ACTOR_PE_SPELL_FAMILY2_TENS_DIGIT) {
+            actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY2;
         } else if (Gp_StateC08.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT_U) {
-            inner->actionArgument = 1;
+            actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY1;
         } else {
-            inner->actionArgument = 0;
+            actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;
         }
-        ret = 1;
+        entered = 1;
     }
-    return ret;
+    return entered;
 }
 
 /// Replaces the aim request from held Square and the actor's action restrictions.

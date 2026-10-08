@@ -318,6 +318,17 @@ enum {
     GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE = 0x401,
 };
 
+/// Presentation requests understood by the player message table.
+enum {
+    /// Takes scripted control in state 7. First payload word zero selects
+    /// active-bank clip 32, any nonzero s32 clip 33; the second word is unused.
+    /// Playback starts on the next tick. Returns 0.
+    PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION = 0x3FA,
+    /// Starts deferred item-use presentation in scripted state 11. Both payload
+    /// words are unused. Returns 0 when accepted, 1 without changes if already scripted.
+    PLAYER_ACTOR_MESSAGE_ENTER_ITEM_USE = 0x402,
+};
+
 /// Requests animation playback on a player, companion or scripted actor.
 ///
 /// The message id selects the interpretation of `source`: indexed playback

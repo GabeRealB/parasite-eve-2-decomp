@@ -204,7 +204,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             }
             recB              = D_8010FB10;
             recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 0, 0);
             arg0->state++;
             break;
         case 1:
@@ -251,7 +251,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             }
             recB              = D_8010FB24;
             recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 1, 0);
             arg0->state++;
             break;
         case 6:

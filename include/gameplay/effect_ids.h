@@ -130,7 +130,7 @@ enum {
     /// fired.
     EFFECT_JAVELIN_GUIDE_BEAM = EFFECT_ID(EFFECT_TASK_BANK, 0x02F),
     /// Unidentified. Shared gravity particle (Gp_EffSprTask30): an animated textured
-    /// sprite (Gp_DrawEffSpark) that flies with gravity, bounces off geometry spawning
+    /// sprite that flies with gravity, bounces off geometry spawning
     /// 0x60055/0x60070, then lies spreading an additive ground quad and shedding
     /// 0x600A7; spawned from enemy bodies on bursts and deaths (Mad Chaser gibs,
     /// Sucklerceph burst, many actors).

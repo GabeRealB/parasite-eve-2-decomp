@@ -1208,7 +1208,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
     switch (task->state) {
         case 0:
             if (areaGetCurrentObjectState(3) == 1) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 0, 0);
                 task->state = task->state + 1;
             } else {
                 taskKill(task);
@@ -1225,7 +1225,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
         case 2:
             if (capIsBusy() == 0) {
                 if (areaGetCurrentObjectState(3) == 1) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 1, 0);
                     task->state = task->state + 1;
                 } else {
                     task->state = 6;
