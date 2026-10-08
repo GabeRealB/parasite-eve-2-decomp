@@ -2155,7 +2155,7 @@ head = scratch_base;
 head = *(u8**)(head + 0x3FC);
 ```
 
-`_actor01900StateDeathBurn` is the worked example. `Actor00100_Fn04270` solved the
+`_actor01900StateDeathBurn` is the worked example. `_actor00100BurnAwayDeath` solved the
 same pair with `register … asm("s3")` / `asm("s4")` pins.
 
 Two C stores through `SCRATCH_STACK_CURSOR_SLOT` CSE `0x1F8003FC` into an extra `$s5`.
@@ -39144,7 +39144,7 @@ head = PLAYSTATION_SCRATCHPAD_BASE;
 head = *(u8**)(head + 0x3FC);
 ```
 
-In `Actor00100_Fn04270`, this replaced three instruction-emitting inline-asm
+In `_actor00100BurnAwayDeath`, this replaced three instruction-emitting inline-asm
 `lui` statements while reproducing the exact object. A single-expression
 `SCRATCH_STACK_CURSOR_SLOT` load scored 96.966% because the folded address also removed
 two independent scratch-head store-address materializations.
@@ -44561,7 +44561,7 @@ loop0:
 done0:
 ```
 
-`Actor00100_Fn04270` walks two `GfxCoord` chains this way; the hand-hoisted
+`_actor00100BurnAwayDeath` walks two `GfxCoord` chains this way; the hand-hoisted
 temps reproduce the target's `$t2` / `$t1` / `$t0` / `$a3` preheader exactly.
 
 ## Overlapping `register asm` pins are legal — order the source around them
@@ -80309,7 +80309,7 @@ Evidence and controlled plans: `tools/permuter_findings/Actor00100_Fn01D74/`,
 retained PERMUTER_ANALYSIS.md and conclusion dumps. No tracer used.
 
 
-## Nested scratch-head assignment retains a scheduling-relevant pointer copy (Actor00100_Fn070DC)
+## Nested scratch-head assignment retains a scheduling-relevant pointer copy (_actor00100WaitPlayerTurnsAway)
 
 A controlled normal-header build reproduced the permuter's gain from 96.177%
 to 98.974% with only this transformation:
@@ -80344,7 +80344,7 @@ Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 
 Preprocessed SHA256, base_1: `cab5f7bb187952fa6075febfe468ee1ec700ed3e13607486b77e0631363d8d2d`; base_2: `05ce57114c0f8e48c13a1680dfa908a033282cc8b05eb1ebc91469d2e43b4fa2`.
 
-Evidence: `tools/permuter_findings/Actor00100_Fn070DC/`, session `b3b97fe6865642ac9d991ae200474e68`; `PERMUTER_ANALYSIS.md`, controlled base_2 plan/build and `.rtl/.combine/.sched/.greg/.dbr` dumps.
+Evidence: `tools/permuter_findings/_actor00100WaitPlayerTurnsAway/`, session `b3b97fe6865642ac9d991ae200474e68`; `PERMUTER_ANALYSIS.md`, controlled base_2 plan/build and `.rtl/.combine/.sched/.greg/.dbr` dumps.
 
 
 ## Actor00100_Fn06398: preload scratch components before work flag stores
@@ -80370,7 +80370,7 @@ labels 47–51), `base_3_diff`, and matching `base_4.c`. Preprocessed SHA256:
 `94ba33b3effcb329a20074a0f470bad44a94ce927b1dc64dbc953f8110b07476`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Actor00100_Fn061FC: cross-block constant initialization sinks before local allocation
+## _actor00100EndLunge: cross-block constant initialization sinks before local allocation
 
 The literal radius argument in `Actor00100_OutsideRadius(&delta, 1000)` left
 its parameter in one basic block, with two references across eight instructions.
@@ -80396,7 +80396,7 @@ useful transformation here; actual local quantity rankings and reload-CSE
 choices were not traced and are not inferred from per-pseudo priority ratios.
 
 Evidence is retained under
-`tools/permuter_findings/Actor00100_Fn061FC/`; session
+`tools/permuter_findings/_actor00100EndLunge/`; session
 `33ed54d3792d4c088c7e37494c0e3076`, search run `42813954b43746c8`.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
@@ -80405,12 +80405,12 @@ base_perm_42813954b43746c8.i SHA256: `996e3396b578910ce04089708f8d4709b4b13667a8
 base_6.i SHA256: `a3c99af57dc06762d946df742867c8df18b8097702d162a5c438de9ad9c1a360`.
 
 
-## Nested abs expression can change unrelated saved-register homes (Actor00100_Fn09CCC)
+## Nested abs expression can change unrelated saved-register homes (_actor00100MesaFall)
 
 In GCC 2.8.1, replacing a separate conditional negation and depth update with
 `sndEvtRequestScriptStart(sound, (s8)pan, (s8)(depth + abs(worldCoordGetOriginAudioPan(coord)) / 2))`
 changed the sound temporaries from global ranges to block-local ranges.
-Actor00100_Fn09CCC base_6 -> base_7 improved 96.214% -> 99.673%;
+_actor00100MesaFall base_6 -> base_7 improved 96.214% -> 99.673%;
 the planned sound homes s0/s2/s1 and abs result v0 were observed.
 
 The .lreg headers identify sound r100/r102/r107 as block-local in base_7;
@@ -80423,7 +80423,7 @@ and builtin abs also produce different RTL control-flow shapes.
 
 Input SHA256: 644c97e8ed67d772123a78b86998f4718f4be4df0ca2987e73cd3d84643dfabe.
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
-Evidence: tools/permuter_findings/Actor00100_Fn09CCC/ immutable session snapshots,
+Evidence: tools/permuter_findings/_actor00100MesaFall/ immutable session snapshots,
 PERMUTER_ANALYSIS.md and base_6/base_7 dumps retained in scratch/evidence.
 The permuter's higher-scoring unconditional negation was rejected; this
 controlled expression change preserves the absolute value and was followed
@@ -80492,7 +80492,7 @@ Retained evidence: tools/permuter_findings/Actor00100_Fn04864/, run
 25dd15a72c314f18, PERMUTER_ANALYSIS.md and controlled dumps.
 
 
-## Early signed-byte promotion preserves pan across the depth call (Actor00100_Fn09724)
+## Early signed-byte promotion preserves pan across the depth call (_actor00100MesaLeapIn)
 
 The permuter widened an s8 pan into an s32 temporary before worldCoordGetOriginAudioDepth.
 A controlled normal-header variant reproduced the whole gain (distance
@@ -80514,7 +80514,7 @@ so it does not isolate every scale-tail scheduling effect.
 
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Inputs: base_1.i `9cdbb7e1a00be921e04c88f840c9a70cec28a5d5c155c4710b8446898315629e`; base_2.i `7f649767cfaa657fbe7446b1bee52effdf2c4484d203911c93739ff3f6e0bf97`.
-Evidence: `tools/permuter_findings/Actor00100_Fn09724/`, session
+Evidence: `tools/permuter_findings/_actor00100MesaLeapIn/`, session
 `7eaf305296e94245a8dfe921d38fa669`; controlled base_2 plan/build,
 `.rtl/.sched2/.dbr`, and `PERMUTER_ANALYSIS.md`.
 
@@ -113115,7 +113115,7 @@ matched 400100 callers are unaffected.
 the same block appears in another overlay's matched function and its register
 choice there is known to be correct. Reach for the sibling overlay's helper shape
 before reaching for a pin — this is the "unpin and rescore" move with the pin
-never written. Not evidence that one shape is *the* original: `Actor00100_Fn061FC`
+never written. Not evidence that one shape is *the* original: `_actor00100EndLunge`
 reached the same destination homes (`radius` `$v1`, `scratch` `$a0`) from the
 400100 helper by moving where the radius constant's definition lives, so the two
 routes agree and either can be the 100% move.
@@ -143205,7 +143205,7 @@ pins on `v`, `i` and the head matched as a plain indexed loop over
 `quadScratch->vertices[i]`. Loop strength reduction makes the one address giv the pins
 were imitating; the walk form gave an extra giv for `&v->vz` instead.
 
-## Hand-inlined world-point walks and Y-rescales are the `actor.h` helpers; pick the spelling by setup order (Actor00100_Fn04270, 2026-09-26)
+## Hand-inlined world-point walks and Y-rescales are the `actor.h` helpers; pick the spelling by setup order (_actor00100BurnAwayDeath, 2026-09-26)
 
 Symptom: a body with `goto` parent-chain loops pinned to `s0`/`s2` and two
 cross-jumped copies of the `ActorScaleRotScratch` rescale, each pinning the
@@ -149172,7 +149172,7 @@ for (;;) {
 ```
 
 compiles to the unrotated loop. The three in-line wraps of
-`Actor00100_Fn08E7C` use this form. The shared angle wrap now uses
+`_actor00100WaitInView` use this form. The shared angle wrap now uses
 `_actorAngleNormalizeYaw` (`include/actors/actor.h`), whose explicit
 top-tested exits also leave the whole project matching.
 
@@ -149878,7 +149878,7 @@ attempts; left as it was.
   function's two other hand-written copies (the ones followed by `state =
   0x14`), which stay separate in the image because they end differently.
 - **`==1; <2 -> L0; ==2; ==3; default` where `L0` and the default are the same
-  statements** (`Actor00100_Fn02C54`) is `case 1: case 2: case 3: case 0:
+  statements** (`_actor00100SpawnBattleState`) is `case 1: case 2: case 3: case 0:
   default:` with the shared body last. The two labels one insn apart
   (`L0: li v0,-1; sh` / `Ldefault: li v0,0x18`) are reorg having filled the
   default jump's delay slot with the store, not two blocks.
@@ -149967,7 +149967,7 @@ attempts; left as it was.
   call is that call and a `return`. The `one = 1` local goes each time.
   `_actor510900TickHelipadLightBreak` keeps `doneState = ACTOR_510900_HELIPAD_LIGHT_DONE`
   through the final state store: writing that state constant in place merges
-  more tails (1 insn shorter). `Actor00100_Fn0A288` keeps `excludedState = 21` (`$a1`
+  more tails (1 insn shorter). `_actor00100FrameState` keeps `excludedState = 21` (`$a1`
   becomes `$v0`).
 ### Goto forms from the caption task, the HUD task and the pod tunnel (batch 14, 2026-10-06)
 
