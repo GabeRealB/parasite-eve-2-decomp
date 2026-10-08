@@ -46,7 +46,7 @@ dryfieldNightR08RoomVisualEffectsFlashTask = 0x8017E5B0; // type:func
 
 dryfieldNightR08RoomVisualEffectsTwinTrailTask = 0x8017F014; // type:func
 
-func_dryfield_night_r08_8017F8FC = 0x8017F8FC; // type:func
+dryfieldNightR08RoomVisualEffectsSparkBurstTask = 0x8017F8FC; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017E854; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017EC80; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017F504; // type:func
@@ -59,3 +59,4 @@ _dryfieldNightR08IgnoreCommandMessage = 0x8017d620; // type:func
 _dryfieldNightR08IgnoreActionMessage = 0x8017d628; // type:func
 _dryfieldNightR08IdleState = 0x8017d6b0; // type:func
 dryfieldNightR08RoomTask = 0x8017d6c0; // type:func
+_dryfieldNightR08InitializeRoom = 0x8017d630; // type:func

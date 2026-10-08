@@ -180,7 +180,7 @@ D_dryfield_water_tank_80186900 = 0x80186900; // absolute:True owner=dryfield_wat
 D_dryfield_water_tank_80186EE0 = 0x80186EE0; // absolute:True owner=dryfield_water_tank
 D_dryfield_water_tank_80187F80 = 0x80187F80; // absolute:True owner=dryfield_water_tank shared=rooms
 D_dryfield_water_tank_80188CFC = 0x80188CFC; // absolute:True owner=dryfield_water_tank shared=rooms
-dryfieldBreezewayMessageTask = 0x8017DE68; // type:func absolute:True owner=dryfield_breezeway shared=rooms
+dryfieldBreezewayMessageTask = 0x8017DE68; // type:func absolute:True owner=dryfield_breezeway
 D_dryfield_breezeway_8018316C = 0x8018316C; // absolute:True owner=dryfield_breezeway shared=rooms
 D_dryfield_breezeway_8018317C = 0x8018317C; // absolute:True owner=dryfield_breezeway shared=rooms
 D_dryfield_breezeway_80183180 = 0x80183180; // absolute:True owner=dryfield_breezeway

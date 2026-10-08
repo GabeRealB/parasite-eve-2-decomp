@@ -73,12 +73,14 @@ s32 dryfieldNightParkingLotRejectKeyItemUse(Task* unusedTask, s32 unusedMessageI
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Handler for message 0x13F0 in the room's message table: point 4 runs CAP
-/// command 4. Always returns 0.
-s32 func_dryfield_night_parking_lot_8017DB0C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 dryfieldNightParkingLotCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedSecondArg)
 {
-    if (arg2 == 4) {
-        capRunCommandWithTransition(4);
+    enum {
+        DRYFIELD_NIGHT_PARKING_LOT_COMMAND_CAPTION = 4,
+    };
+
+    if (commandId == DRYFIELD_NIGHT_PARKING_LOT_COMMAND_CAPTION) {
+        capRunCommandWithTransition(DRYFIELD_NIGHT_PARKING_LOT_COMMAND_CAPTION);
     }
     return 0;
 }

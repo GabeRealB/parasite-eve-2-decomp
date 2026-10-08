@@ -259,3 +259,6 @@ _dryfieldNightSaloonGRJukeboxMenuTask = 0x8017e28c; // type:func
 _dryfieldNightSaloonGRInitializeRoom = 0x8017df90; // type:func
 dryfieldNightSaloonGRRoomTask = 0x8017e050; // type:func
 _dryfieldNightSaloonGRQueueJukebox = 0x8017e698; // type:func
+_dryfieldNightSaloonGRJukeboxSceneTask = 0x8017db74; // type:func
+_dryfieldNightSaloonGRCommandMessage = 0x8017dd84; // type:func
+_dryfieldNightSaloonGRRoomActionMessage = 0x8017de68; // type:func

@@ -29,7 +29,13 @@ s32 parkingLotSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 un
 /// `ROOM_KEY_ITEM_USE_REFUSED` so the inventory menu displays its refusal notice.
 s32 dryfieldNightParkingLotRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 
-s32 func_dryfield_night_parking_lot_8017DB0C(Task*, s32, s32, s32);
+/// Plays parking-lot CAP command 4 for room command 4.
+///
+/// Handles `ROOM_MESSAGE_COMMAND` with queued display-transition playback.
+/// Other commands are ignored; returns zero regardless of playback starting.
+/// Requires the loaded CAP command table. Receiver, ID and second payload
+/// are unused, and no payload is retained.
+s32 dryfieldNightParkingLotCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedSecondArg);
 
 /// Starts the scavengers' entrance and battle script once for room action 1.
 ///

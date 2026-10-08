@@ -767,13 +767,13 @@ dryfieldNightR08RoomVisualEffectsFlashTask = 0x8017E5B0; // type:func absolute:T
 
 dryfieldNightR08RoomVisualEffectsTwinTrailTask = 0x8017F014; // type:func absolute:True owner=dryfield_night_r08
 
-func_dryfield_night_r08_8017F8FC = 0x8017F8FC; // type:func absolute:True owner=dryfield_night_r08
+dryfieldNightR08RoomVisualEffectsSparkBurstTask = 0x8017F8FC; // type:func absolute:True owner=dryfield_night_r08
 
 dryfieldNightSaloonGRDrawGlowsTask = 0x8017E6C8; // type:func absolute:True owner=dryfield_night_saloon_g_r shared=rooms
 
 dryfieldNightSouvenirShopPrismLightTask = 0x8017DFF4; // type:func absolute:True owner=dryfield_night_souvenir_shop
 
-func_dryfield_night_water_hole_8017E6D0 = 0x8017E6D0; // type:func absolute:True owner=dryfield_night_water_hole
+dryfieldNightWaterHoleSplashAndLightShaftsTask = 0x8017E6D0; // type:func absolute:True owner=dryfield_night_water_hole
 
 dryfieldNightWaterHoleWaterRippleTask = 0x8017F254; // type:func absolute:True owner=dryfield_night_water_hole shared=rooms
 

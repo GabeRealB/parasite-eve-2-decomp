@@ -86,3 +86,5 @@ dryfieldNightMotelLoftSetCurrentRoom = 0x8017d7ec; // type:func
 _dryfieldNightMotelLoftInitializeRoom = 0x8017d808; // type:func
 _dryfieldNightMotelLoftUpdateRoom = 0x8017d8b0; // type:func
 dryfieldNightMotelLoftRoomTask = 0x8017d964; // type:func
+dryfieldNightMotelLoftCaptionSceneTask = 0x8017d6f8; // type:func
+dryfieldNightMotelLoftCommandMessage = 0x8017d67c; // type:func

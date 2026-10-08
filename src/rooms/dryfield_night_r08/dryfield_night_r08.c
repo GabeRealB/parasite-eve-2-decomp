@@ -34,7 +34,7 @@ TaskMessageEntry D_dryfield_night_r08_80180544[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static void func_dryfield_night_r08_8017D630(Task* arg0);
+static void _dryfieldNightR08InitializeRoom(Task* task);
 static void _dryfieldNightR08IdleState(Task* unusedTask);
 
 /// Refuses every key-item use without consuming the selected inventory item.
@@ -77,19 +77,27 @@ static s32 _dryfieldNightR08IgnoreActionMessage(Task* unusedTask, s32 unusedMess
     return 0;
 }
 
-/// The room task's set-up state: publishes the room's message table, claims
-/// pointer slot 7, publishes borrowed scene payload storage 0x20000 bytes past `Fs_ActorLoadBase1`
-/// and, unless `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` is 9, passes `D_actor_535700_80133898` and `D_actor_535700_801341E0` to
-/// `evsStartScriptWithSkip`. Then advances to the idle state.
-static void func_dryfield_night_r08_8017D630(Task* arg0)
+/// Registers the room receiver and starts its skippable entry scene.
+///
+/// State zero publishes borrowed scene-payload storage 131072 bytes after the
+/// second actor-load base and starts the entry script unless demo scene 9 is
+/// selected, then advances to idle state 1. The caller must keep that arena
+/// writable and free of overlapping occupants through scene loading/playback;
+/// its available capacity is not established here.
+static void _dryfieldNightR08InitializeRoom(Task* task)
 {
-    arg0->msgTable = D_dryfield_night_r08_80180544;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    streamSetExternalScenePayloadBuffer((u8*)Fs_ActorLoadBase1 + 0x20000);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+    enum {
+        DRYFIELD_NIGHT_R08_SCENE_PAYLOAD_BYTE_OFFSET = 0x20000,
+        DRYFIELD_NIGHT_R08_DEMO_SCENE                = 9,
+    };
+
+    task->msgTable = D_dryfield_night_r08_80180544;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    streamSetExternalScenePayloadBuffer((u8*)Fs_ActorLoadBase1 + DRYFIELD_NIGHT_R08_SCENE_PAYLOAD_BYTE_OFFSET);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != DRYFIELD_NIGHT_R08_DEMO_SCENE) {
         evsStartScriptWithSkip(D_actor_535700_80133898, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_535700_801341E0);
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the initialized room task alive to receive messages in state 1.
@@ -100,7 +108,7 @@ static void _dryfieldNightR08IdleState(Task* unusedTask)
 
 /// The room task's three states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_r08_8017D5C4 = {
-    { func_dryfield_night_r08_8017D630, _dryfieldNightR08IdleState, taskKill },
+    { _dryfieldNightR08InitializeRoom, _dryfieldNightR08IdleState, taskKill },
 };
 
 void dryfieldNightR08RoomTask(Task* task)

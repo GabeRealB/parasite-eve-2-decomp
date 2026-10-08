@@ -61,7 +61,7 @@ extern TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[];
 
 /// Task descriptor tables spawned by the room entry task, each one entry and
 /// the 0xFFFF terminator: `8017E010` runs the exit task
-/// `func_dryfield_night_water_tank_8017D5D0`, `8017EE28` the tank model's
+/// `_dryfieldNightWaterTankBattleAftermathTask`, `8017EE28` the tank model's
 /// update `waterTankSwayTask`.
 extern TaskDesc D_dryfield_night_water_tank_8017E010[];
 extern TaskDesc D_dryfield_night_water_tank_8017EE28[];
@@ -87,11 +87,11 @@ extern WorldCollisionTrigger  D_dryfield_night_water_tank_801804BC[8];
 extern WorldCoordRoomLights   D_dryfield_night_water_tank_80180374[1];
 static TmdSource              _gDryfieldNightWaterTankModel00FF8;
 
-static s32 _dryfieldNightWaterTankRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
-static s32 _dryfieldNightWaterTankResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
-s32        func_dryfield_night_water_tank_8017D73C(Task*, s32, s32, s32);
-s32        func_dryfield_night_water_tank_8017D76C(Task*, s32, RoomEventMsg*, s32);
-void       func_dryfield_night_water_tank_8017D5D0(Task*);
+static s32  _dryfieldNightWaterTankRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32  _dryfieldNightWaterTankResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _dryfieldNightWaterTankCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedSecondArg);
+static s32  _dryfieldNightWaterTankRoomActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void _dryfieldNightWaterTankBattleAftermathTask(Task* task);
 
 /// Inventory's request to use a collected key item in this room.
 enum { DRYFIELD_NIGHT_WATER_TANK_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -133,13 +133,13 @@ EvsCommand D_dryfield_night_water_tank_8017DEE0[11] = {
 TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightWaterTankResolveRoomEvent },
     { DRYFIELD_NIGHT_WATER_TANK_MESSAGE_USE_KEY_ITEM, _dryfieldNightWaterTankRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_tank_8017D76C },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_water_tank_8017D73C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightWaterTankRoomActionMessage },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightWaterTankCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_water_tank_8017E010[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_water_tank_8017D5D0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _dryfieldNightWaterTankBattleAftermathTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -603,43 +603,53 @@ AreaApplyRec D_dryfield_night_water_tank_801808B0[2] = {
     { 255, 0, 0, 0 },
 };
 
-static void func_dryfield_night_water_tank_8017D870(Task* task);
+static void _dryfieldNightWaterTankInitializeRoom(Task* task);
 static void _dryfieldNightWaterTankHoldIceBagTimerState(Task* unusedTask);
 
-/// Exit task of the night water-tank room, in the shape the other rooms' wait
-/// tasks have: three states on `Task::state`. State 0 raises bit 0x80 of
-/// `gGameSession::flowFlags` once `gSceneCombatState` has reached 1, then advances;
-/// state 1 advances to 2 as soon as the halfword at `gSceneCombatState.battleRefs` clears; state
-/// 2 runs the room's ending -- apply the area records, set flags 0x7B, 0x83,
-/// 0x155 and 3, spawn the script `evsStartScriptWithSkip` is handed -- and kills the
-/// task, or, while `gGameSession::battleResetPending` is still clear, just ticks
-/// `Task::killCountdown` down and waits for another frame.
-void func_dryfield_night_water_tank_8017D5D0(Task* task)
+/// Starts the water-tank follow-up scene after battle references and reset complete.
+///
+/// State zero requests weapon re-equipping once battle starts; state 1 waits for
+/// all battle references to clear. State 2 waits for the pending battle reset,
+/// decrementing the callback-owned kill countdown while waiting, then applies
+/// saved area updates, marks handover completion, sets follow-up dialogue and
+/// starts the skippable actor scene before killing itself. Requires live room
+/// and actor resources through states 0..2; spawn arguments are unused.
+static void _dryfieldNightWaterTankBattleAftermathTask(Task* task)
 {
-    SVECTOR3 unused; // never referenced; only reserves the frame slot the ROM has
+    enum {
+        DRYFIELD_NIGHT_WATER_TANK_WAIT_BATTLE_START = 0,
+        DRYFIELD_NIGHT_WATER_TANK_WAIT_BATTLE_REFS  = 1,
+        DRYFIELD_NIGHT_WATER_TANK_WAIT_BATTLE_RESET = 2,
+        DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE     = 2,
+        DRYFIELD_NIGHT_WATER_TANK_FOLLOW_UP_CLEAR   = 0,
+        DRYFIELD_NIGHT_WATER_TANK_STORY_DIALOGUE    = 14,
+    };
+
+    SVECTOR3 unusedFrame; // Retains the original unused eight-byte stack reservation.
 
     switch (task->state) {
-        case 0:
+        case DRYFIELD_NIGHT_WATER_TANK_WAIT_BATTLE_START:
             if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 gGameSession->flowFlags = gGameSession->flowFlags | GAME_SESSION_FLOW_REEQUIP_WEAPON;
                 task->state             = task->state + 1;
                 return;
             }
             return;
-        case 1:
+        case DRYFIELD_NIGHT_WATER_TANK_WAIT_BATTLE_REFS:
             if (gSceneCombatState.battleRefs == 0) {
-                task->state = 2;
+                task->state = DRYFIELD_NIGHT_WATER_TANK_WAIT_BATTLE_RESET;
                 return;
             }
             break;
-        case 2:
+        case DRYFIELD_NIGHT_WATER_TANK_WAIT_BATTLE_RESET:
+            // Publish the handover progress only after the battle reset is ready.
             if (gGameSession->battleResetPending != 0) {
                 areaApplySavedUpdates(D_dryfield_night_water_tank_801808B0);
-                gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 2);
+                gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE);
                 gameFlagSetNibble(GAME_FLAG_083, 1);
                 evsStartScriptWithSkip(D_actor_146300_80137C28, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_146300_80138570);
-                gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0xE);
+                gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, DRYFIELD_NIGHT_WATER_TANK_FOLLOW_UP_CLEAR);
+                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, DRYFIELD_NIGHT_WATER_TANK_STORY_DIALOGUE);
                 taskKill(task);
                 return;
             }
@@ -673,63 +683,93 @@ static s32 _dryfieldNightWaterTankResolveRoomEvent(Task* unusedTask, s32 unusedM
     return DRYFIELD_NIGHT_WATER_TANK_TRANSITION_ALLOWED;
 }
 
-s32 func_dryfield_night_water_tank_8017D73C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Starts water-tank CAP slot 14 with explicit variant key 1 for room command 14.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`; other commands do nothing. Uses queued
+/// display-transition playback and bypasses the CAP slot's command opcode.
+/// Returns zero regardless of playback starting. Requires the loaded CAP table;
+/// receiver, message ID and second payload are unused.
+static s32 _dryfieldNightWaterTankCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedSecondArg)
 {
-    if (arg2 == 0xE) {
-        capStartSequenceSlot(0xE, 1, 1);
+    enum {
+        DRYFIELD_NIGHT_WATER_TANK_COMMAND_SEQUENCE = 14,
+        DRYFIELD_NIGHT_WATER_TANK_SEQUENCE_VARIANT = 1,
+    };
+
+    if (commandId == DRYFIELD_NIGHT_WATER_TANK_COMMAND_SEQUENCE) {
+        capStartSequenceSlot(DRYFIELD_NIGHT_WATER_TANK_COMMAND_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, DRYFIELD_NIGHT_WATER_TANK_SEQUENCE_VARIANT);
     }
     return 0;
 }
 
-s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* in, s32 arg3)
+/// Selects the water-tank view scripts or its handover interaction from room triggers.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a four-byte request only for this call.
+/// Actions 3/4 start the view-4/view-3 scripts outside incomplete variant-10
+/// handover. Action 5 in variants 10/11 either plays CAP command 23 before the
+/// handover or holds player control and spawns its actor scene. Returns zero;
+/// receiver, message ID and zero second payload are unused. Request bytes are
+/// read unsigned and never retained; requires the loaded room/actor scripts.
+static s32 _dryfieldNightWaterTankRoomActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    u8 temp_v1;
+    enum {
+        DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT       = 10,
+        DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT_COUNT = 2,
+        DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE          = 2,
+        DRYFIELD_NIGHT_WATER_TANK_ACTION_VIEW_4          = 3,
+        DRYFIELD_NIGHT_WATER_TANK_ACTION_VIEW_3          = 4,
+        DRYFIELD_NIGHT_WATER_TANK_ACTION_HANDOVER        = 5,
+        DRYFIELD_NIGHT_WATER_TANK_CAP_BEFORE_HANDOVER    = 23,
+    };
 
-    if ((gGameSession->location.loc.variant != 0xA) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2)) {
-        if (in->warp == 3) {
+    u8 roomVariant;
+
+    if ((gGameSession->location.loc.variant != DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE)) {
+        if (request->actionId == DRYFIELD_NIGHT_WATER_TANK_ACTION_VIEW_4) {
             evsStartScript(D_dryfield_night_water_tank_8017DDD8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
-        if (in->warp == 4) {
+        if (request->actionId == DRYFIELD_NIGHT_WATER_TANK_ACTION_VIEW_3) {
             evsStartScript(D_dryfield_night_water_tank_8017DEE0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
     }
-    if (in->warp == 5) {
-        temp_v1 = gGameSession->location.loc.variant;
-        if ((u32)(temp_v1 - 0xA) < 2U) {
-            if ((temp_v1 != 0xA) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2)) {
+    if (request->actionId == DRYFIELD_NIGHT_WATER_TANK_ACTION_HANDOVER) {
+        roomVariant = gGameSession->location.loc.variant;
+        if ((u32)(roomVariant - DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) < (u32)DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT_COUNT) {
+            if ((roomVariant != DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE)) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(&D_actor_146300_8013788C, 0, 0, 0);
             } else {
-                capRunCommandWithTransition(0x17);
+                capRunCommandWithTransition(DRYFIELD_NIGHT_WATER_TANK_CAP_BEFORE_HANDOVER);
             }
         }
     }
     return 0;
 }
 
-/// Room entry task tick, the shape the other dryfield rooms' entry tasks have:
-/// publish the message table the room's handlers hang off (0x13EE..0x13F1) in
-/// `Task::msgTable`, claim game pointer slot 7, spawn the tank model's task
-/// from `8017EE28`, then branch on the visit sub-id
-/// (`gGameSession::location.loc.variant`).
+/// Registers the room receiver, spawns the tank model and restores the active visit.
 ///
-/// Sub-ids 0xA and 0xB -- the two visits that reach this room -- both run the
-/// collision restorer `_dryfieldNightWaterTankRestoreTankCollision` on its zero argument;
-/// 0xA additionally spawns the exit task from `8017E010`, and 0xB, the visit
-/// the room is announced into, hands over to `actor146300RestoreHandoverPose` instead. The state
-/// advances on every path.
-static void func_dryfield_night_water_tank_8017D870(Task* task)
+/// State zero restores tank collision in variants 10/11; variant 10 also starts
+/// the battle-aftermath controller, while variant 11 restores the handover pose.
+/// Advances to state 1 on every path. Requires loaded room/actor resources and
+/// a live scene receiver; the registered room task must outlive its slot use.
+static void _dryfieldNightWaterTankInitializeRoom(Task* task)
 {
+    enum {
+        DRYFIELD_NIGHT_WATER_TANK_BATTLE_VARIANT        = 10,
+        DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT      = 11,
+        DRYFIELD_NIGHT_WATER_TANK_RESTORE_VARIANT_COUNT = 2,
+    };
+
     task->msgTable = D_dryfield_night_water_tank_8017DFE8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(D_dryfield_night_water_tank_8017EE28, 0, 0, 0);
-    if ((u32)(gGameSession->location.loc.variant - 0xA) < 2U) {
+    if ((u32)(gGameSession->location.loc.variant - DRYFIELD_NIGHT_WATER_TANK_BATTLE_VARIANT) < (u32)DRYFIELD_NIGHT_WATER_TANK_RESTORE_VARIANT_COUNT) {
         _dryfieldNightWaterTankRestoreTankCollision(0);
     }
-    if (gGameSession->location.loc.variant == 0xA) {
+    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_TANK_BATTLE_VARIANT) {
         taskSpawnFromTable(D_dryfield_night_water_tank_8017E010, 0, 0, 0);
     }
-    if (gGameSession->location.loc.variant == 0xB) {
+    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) {
         actor146300RestoreHandoverPose();
     }
     task->state = task->state + 1;
@@ -752,7 +792,7 @@ static void _dryfieldNightWaterTankHoldIceBagTimerState(Task* unusedTask)
 /// `dryfieldNightWaterTankRoomTask`: the entry tick, the per-frame
 /// state, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_water_tank_8017D5C4 = {
-    { func_dryfield_night_water_tank_8017D870, _dryfieldNightWaterTankHoldIceBagTimerState, taskKill },
+    { _dryfieldNightWaterTankInitializeRoom, _dryfieldNightWaterTankHoldIceBagTimerState, taskKill },
 };
 
 void dryfieldNightWaterTankRoomTask(Task* task)

@@ -118,7 +118,7 @@ dryfieldNightWaterHoleWaterDriftTaskU16 = 0x8017F6DC; // type:func
 
 dryfieldNightWaterHoleWaterRippleTask = 0x8017F254; // type:func
 
-func_dryfield_night_water_hole_8017E6D0 = 0x8017E6D0; // type:func
+dryfieldNightWaterHoleSplashAndLightShaftsTask = 0x8017E6D0; // type:func
 _glowDrawShaft = 0x8017EA6C; // type:func
 _waterDrawSplash = 0x8017F3A8; // type:func
 roomDepartureTask = 0x8017D7E8; // type:func
@@ -133,3 +133,6 @@ _dryfieldNightWaterHoleRejectKeyItemUse = 0x8017dad4; // type:func
 _dryfieldNightWaterHoleRoomIdle = 0x8017de20; // type:func
 dryfieldNightWaterHoleRoomTask = 0x8017de30; // type:func
 _dryfieldNightWaterHoleApplySurfaceOverrides = 0x8017de88; // type:func
+_dryfieldNightWaterHoleInitializeRoom = 0x8017d958; // type:func
+_dryfieldNightWaterHoleCommandMessage = 0x8017dc28; // type:func
+_dryfieldNightWaterHoleRoomActionMessage = 0x8017dd5c; // type:func

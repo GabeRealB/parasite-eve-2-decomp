@@ -819,7 +819,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyAmbientEffectsTask, { NULL } },                            // 0x119
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelRoom6DrawGlowTask, { NULL } },                                    // 0x11A
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelLoftFlaresAndShardsTask, { NULL } },                              // 0x11B
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_water_hole_8017E6D0, { NULL } },                                // 0x11C
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterHoleSplashAndLightShaftsTask, { NULL } },                         // 0x11C
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightCellarDrawGlowsTask, { NULL } },                                       // 0x11D
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightUnderpassDrawFlaresTask, { NULL } },                                   // 0x11E
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterHoleWaterDriftTaskU16, { NULL } },                                // 0x11F
@@ -1046,7 +1046,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurseryRoomVisualEffectsTwinTrailTask, { NULL } },                         // 0x1FC
     { { { TASK_BODY_COORD, 0x70 } }, neoArkBridgeRoomVisualEffectsTwinTrailTask, { NULL } },                             // 0x1FD
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPyramidRoomVisualEffectsTwinTrailTask, { NULL } },                            // 0x1FE
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_r08_8017F8FC, { NULL } },                                       // 0x1FF
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightR08RoomVisualEffectsSparkBurstTask, { NULL } },                        // 0x1FF
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsSparkBurstTask, { NULL } },                   // 0x200
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1SouthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask, { NULL } },        // 0x201
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1StoreroomRoomVisualEffectsSparkBurstTask, { NULL } },                      // 0x202

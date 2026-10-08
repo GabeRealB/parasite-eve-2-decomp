@@ -417,7 +417,7 @@ void dryfieldNightR08RoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_dryfield_night_r08_8017F8FC(Task* task)
+void dryfieldNightR08RoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

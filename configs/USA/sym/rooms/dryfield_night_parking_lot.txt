@@ -101,3 +101,4 @@ _dryfieldNightParkingLotIdleState = 0x8017dc28; // type:func
 dryfieldNightParkingLotStartScavengerEncounterMessage = 0x8017db34; // type:func
 _dryfieldNightParkingLotInitializeRoom = 0x8017dbb0; // type:func
 dryfieldNightParkingLotRoomTask = 0x8017dc30; // type:func
+dryfieldNightParkingLotCommandMessage = 0x8017db0c; // type:func

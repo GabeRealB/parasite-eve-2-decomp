@@ -71,7 +71,20 @@ void dryfieldNightWaterHoleWaterDriftTaskU16(Task* task);
 /// decrementing the effect count; retained pointers expire.
 void dryfieldNightWaterHoleWaterRippleTask(Task* task);
 
-void func_dryfield_night_water_hole_8017E6D0(Task* arg0);
+/// Emits movement-driven player water splashes and draws the switched-on light shafts.
+///
+/// Requires state zero, counted `EffectWork` in `spawnArg2.pointer` and the live
+/// player's model coordinates 14 and 17. The room owns one two-position history;
+/// concurrent emitters would overwrite it. Initialization samples cached composed XYZ
+/// into signed halfwords. While the Shelter route is closed, room effects run
+/// and the player root is below the water surface (positive Y downward), each
+/// part's summed XYZ movement sets halfword odds out of 512. Ripple odds add 32;
+/// spray odds omit that bias. Two LCG draws occur per part even if spawning
+/// fails. Inactive frames retain the previous samples. Each child draws from
+/// its copied surface coordinate; this task does not retain the temporary.
+/// Underpass switch 1 also enables view-selected shafts. Requires view 0..31
+/// and loaded room resources throughout; external teardown owns retirement.
+void dryfieldNightWaterHoleSplashAndLightShaftsTask(Task* task);
 
 /// Runs the night water hole's room initialization, message wait and teardown.
 ///

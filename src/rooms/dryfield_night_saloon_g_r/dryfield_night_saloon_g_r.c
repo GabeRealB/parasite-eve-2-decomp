@@ -218,10 +218,10 @@ extern const char               D_dryfield_night_saloon_g_r_8017D84C[16];
 extern const char               D_dryfield_night_saloon_g_r_8017D85C[20];
 static void                     _dryfieldNightSaloonGRSetRoom(u8 roomId);
 
-static s32 _dryfieldNightSaloonGRRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
-s32        func_dryfield_night_saloon_g_r_8017DD84(Task*, s32, s32, s32);
-s32        func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-void       func_dryfield_night_saloon_g_r_8017DB74(Task*);
+static s32  _dryfieldNightSaloonGRRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
+static s32  _dryfieldNightSaloonGRCommandMessage(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg);
+static s32  _dryfieldNightSaloonGRRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void _dryfieldNightSaloonGRJukeboxSceneTask(Task* task);
 
 enum {
     DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM = 0x13F1,
@@ -233,13 +233,13 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskMessageEntry D_dryfield_night_saloon_g_r_8017F918[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantSaloonMsg },
     { DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM, _dryfieldNightSaloonGRRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_saloon_g_r_8017DE68 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_saloon_g_r_8017DD84 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightSaloonGRRoomActionMessage },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightSaloonGRCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_saloon_g_r_8017F940[1] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_saloon_g_r_8017DB74, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightSaloonGRJukeboxSceneTask, { .value = 0 } },
 };
 
 static AnimationPackedPose _gDryfieldNightSaloonGRAnimation02668Bank1[6] = {
@@ -1837,45 +1837,72 @@ static const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC = {
 };
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
-/// Room cutscene task: case 0 saves the view slot, forces `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`
-/// to 0xC, raises the script halt flags and starts cap command 0x13; the
-/// following states wait for the cap to go idle, then start the jukebox task,
-/// and case 4 restores the saved view slot and kills the task.
-void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
+/// Saves the live-save view and selects the jukebox's presentation view.
+///
+/// Requires the singleton saved-view slot free until the scene restores it.
+/// Only the live save's view byte changes; read, replace and store order is
+/// retained so the saved byte always describes the preceding room view.
+static inline void _dryfieldNightSaloonGRSelectJukeboxView(void)
 {
-    McSaveData* save;
-    u8          view;
+    enum { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_VIEW = 12 };
+    McSaveData* liveSave;
+    u8          savedView;
+
+    liveSave                                  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    savedView                                 = liveSave->state.location.loc.view;
+    liveSave->state.location.loc.view         = DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_VIEW;
+    D_dryfield_night_saloon_g_r_80188FA4.view = savedView;
+}
+
+/// Presents the jukebox caption and menu, then restores the room view and control.
+///
+/// Starts in state zero after scripted player control is held. The singleton
+/// saved-view slot must remain free until restoration: overlapping scenes would
+/// overwrite it. Selects live-save view 12, hides actors/player/HUD, waits for
+/// CAP command 19, queues the jukebox, then restores the view and visibility,
+/// rearms interaction for ten updates and kills itself. Requires the room and
+/// CAP resources through states 0..4.
+static void _dryfieldNightSaloonGRJukeboxSceneTask(Task* task)
+{
+    enum {
+        DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_PREPARE           = 0,
+        DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_WAIT_CAP          = 1,
+        DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_OPEN              = 2,
+        DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SETTLE            = 3,
+        DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_RESTORE           = 4,
+        DRYFIELD_NIGHT_SALOON_G_R_CAP_JUKEBOX               = 19,
+        DRYFIELD_NIGHT_SALOON_G_R_INTERACTION_REARM_UPDATES = 10,
+    };
 
     switch (task->state) {
-        case 0:
-            gGameSession->eventState                  = 1;
-            gGameSession->hideHud                     = 1;
-            gSceneCombatState.actorControl            = SCENE_COMBAT_ACTORS_HIDDEN;
-            save                                      = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-            view                                      = save->state.location.loc.view;
-            save->state.location.loc.view             = 0xC;
-            D_dryfield_night_saloon_g_r_80188FA4.view = view;
+        case DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_PREPARE:
+            gGameSession->eventState       = 1;
+            gGameSession->hideHud          = 1;
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
+            // Keep the saved view intact until the menu scene restores it.
+            _dryfieldNightSaloonGRSelectJukeboxView();
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-            capRunCommand(0x13, CAP_PLAYBACK_IN_PLACE);
+            capRunCommand(DRYFIELD_NIGHT_SALOON_G_R_CAP_JUKEBOX, CAP_PLAYBACK_IN_PLACE);
             task->state = task->state + 1;
             return;
-        case 1:
+        case DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_WAIT_CAP:
             if (capIsBusy() != 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
-        case 2:
+        case DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_OPEN:
             _dryfieldNightSaloonGRQueueJukebox(0);
             task->state = task->state + 1;
             return;
-        case 3:
+        case DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_SETTLE:
             task->state = task->state + 1;
             return;
-        case 4:
+        case DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_RESTORE:
+            // Return to the preceding room view before releasing scripted control.
             gGameSession->eventState                                   = 0;
             gGameSession->hideHud                                      = 0;
-            D_80114D08                                                 = 0xA;
+            D_80114D08                                                 = DRYFIELD_NIGHT_SALOON_G_R_INTERACTION_REARM_UPDATES;
             gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_night_saloon_g_r_80188FA4.view;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -1955,23 +1982,39 @@ static s32 _dryfieldNightSaloonGRRejectKeyItemUse(Task* task, s32 messageId, s32
     return DRYFIELD_NIGHT_SALOON_G_R_KEY_ITEM_REFUSED;
 }
 
-s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Handles the saloon's jukebox and progress-dependent conversation commands.
+///
+/// `ROOM_MESSAGE_COMMAND` supplies an integer command ID: 4 holds player
+/// control and spawns the jukebox scene, 8 selects the first or repeat talk
+/// script and latches the first talk, and 10 starts follow-up dialogue until
+/// talk progress reaches 2. Other commands do nothing. Returns zero; receiver,
+/// message ID and second payload are unused. Scripts borrow loaded room data.
+static s32 _dryfieldNightSaloonGRCommandMessage(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg)
 {
-    switch (arg2) {
-        case 4:
+    enum {
+        DRYFIELD_NIGHT_SALOON_G_R_COMMAND_JUKEBOX   = 4,
+        DRYFIELD_NIGHT_SALOON_G_R_COMMAND_TALK      = 8,
+        DRYFIELD_NIGHT_SALOON_G_R_COMMAND_FOLLOW_UP = 10,
+        DRYFIELD_NIGHT_SALOON_G_R_TALK_NEW          = 0,
+        DRYFIELD_NIGHT_SALOON_G_R_TALK_STARTED      = 1,
+        DRYFIELD_NIGHT_SALOON_G_R_TALK_FINISHED     = 2,
+    };
+
+    switch (commandId) {
+        case DRYFIELD_NIGHT_SALOON_G_R_COMMAND_JUKEBOX:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_dryfield_night_saloon_g_r_8017F940, 0, 0, 0);
             break;
-        case 8:
-            if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) == 0) {
+        case DRYFIELD_NIGHT_SALOON_G_R_COMMAND_TALK:
+            if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) == DRYFIELD_NIGHT_SALOON_G_R_TALK_NEW) {
                 evsStartScript(D_dryfield_night_saloon_g_r_801848DC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-                gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 1);
-            } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) == 1) {
+                gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, DRYFIELD_NIGHT_SALOON_G_R_TALK_STARTED);
+            } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) == DRYFIELD_NIGHT_SALOON_G_R_TALK_STARTED) {
                 evsStartScript(D_dryfield_night_saloon_g_r_80184B34, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
             break;
-        case 10:
-            if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) < 2) {
+        case DRYFIELD_NIGHT_SALOON_G_R_COMMAND_FOLLOW_UP:
+            if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) < DRYFIELD_NIGHT_SALOON_G_R_TALK_FINISHED) {
                 evsStartScript(D_dryfield_night_saloon_g_r_80184D2C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
             break;
@@ -1979,32 +2022,52 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
     return 0;
 }
 
-/// Handler for this room's script entry 0x13EF, whose `DirectionActionRequest` payload
-/// arrives as `request`. `actionId == 7` plays the room's first-visit cutscene
-/// once (nibble 0x59). Then, in session phase 2 with nibble 0xB0 still clear,
-/// `actionId == 1` unlinks the room's 4A object and queues sound 0x5312000C,
-/// while action 2 announces the visit to the
-/// slot-4 task with message 0x7DA carrying the session's two id bytes and a
-/// non-zero action halfword, and sets nibble 0xB0. Always returns 0.
-s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Starts the saloon encounter actors through the scene's synchronous broadcast.
+///
+/// Requires the current saloon context and live scene receiver. The complete
+/// stack command is borrowed only during dispatch, in stage/area namespace.
+static inline void _dryfieldNightSaloonGRStartEncounterActors(void)
 {
-    ActorCommand msg;
-    u8           temp_s0;
+    enum { DRYFIELD_NIGHT_SALOON_G_R_COMMAND_START_ENCOUNTER = 1 };
+    ActorCommand startCommand;
 
-    if (((const DirectionActionRequest*)firstArg)->actionId == 7 && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN) == 0) {
+    startCommand.context.loc.stage = gGameSession->location.loc.stage;
+    startCommand.context.loc.area  = gGameSession->location.loc.area;
+    startCommand.command           = DRYFIELD_NIGHT_SALOON_G_R_COMMAND_START_ENCOUNTER;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &startCommand, ACTOR_COMMAND_MESSAGE_APPLY);
+}
+
+/// Starts the saloon entry scene and releases its encounter from room triggers.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a four-byte request through this call;
+/// it is never retained. Action 7 starts the skippable entry scene once. In
+/// variant 2 before the encounter latch, action 1 removes the barrier and cues
+/// its sound; action 2 broadcasts actor command 1 in the current stage/area
+/// namespace and latches the encounter. The stack command is consumed during
+/// synchronous dispatch. Returns zero; the other parameters are unused.
+static s32 _dryfieldNightSaloonGRRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
+{
+    enum {
+        DRYFIELD_NIGHT_SALOON_G_R_ACTION_ENTRY                = 7,
+        DRYFIELD_NIGHT_SALOON_G_R_ACTION_RELEASE_BARRIER      = 1,
+        DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_VARIANT           = 2,
+        DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_BARRIER_TRIGGER   = 13,
+        DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_BARRIER_SOUND_CUE = 12,
+    };
+
+    u8 roomVariant;
+
+    if (request->actionId == DRYFIELD_NIGHT_SALOON_G_R_ACTION_ENTRY && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN) == 0) {
         evsStartScriptWithSkip(D_dryfield_night_saloon_g_r_80183C94, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_saloon_g_r_801847A4);
         gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
     }
-    temp_s0 = gGameSession->location.loc.variant;
-    if (temp_s0 == 2 && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
-        if (((const DirectionActionRequest*)firstArg)->actionId == 1) {
-            worldCollisionUnlinkTrigger(0, &D_dryfield_night_saloon_g_r_801887DC[13]);
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 0x0C), 0, 0);
-        } else if (((const DirectionActionRequest*)firstArg)->actionId == temp_s0) {
-            msg.context.loc.stage = gGameSession->location.loc.stage;
-            msg.context.loc.area  = gGameSession->location.loc.area;
-            msg.command           = 1;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    roomVariant = gGameSession->location.loc.variant;
+    if (roomVariant == DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_VARIANT && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
+        if (request->actionId == DRYFIELD_NIGHT_SALOON_G_R_ACTION_RELEASE_BARRIER) {
+            worldCollisionUnlinkTrigger(0, &D_dryfield_night_saloon_g_r_801887DC[DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_BARRIER_TRIGGER]);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_BARRIER_SOUND_CUE), 0, 0);
+        } else if (request->actionId == roomVariant) {
+            _dryfieldNightSaloonGRStartEncounterActors();
             gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE, 1);
         }
     }

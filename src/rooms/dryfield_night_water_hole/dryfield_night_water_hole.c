@@ -72,6 +72,24 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/water_hole.h"
 
+// Tracked model coordinates and packed water-spray recipe. Size uses perspective
+// units, launch speed uses game-coordinate units per running update.
+enum {
+    DRYFIELD_NIGHT_WATER_HOLE_SPLASH_FIRST_PART  = 14,
+    DRYFIELD_NIGHT_WATER_HOLE_SPLASH_PART_STRIDE = 3,
+    DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ROLL_MASK   = 0x1FF,
+    DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_ODDS_BIAS   = 32,
+    DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_HALF_SIDE   = 64,
+    DRYFIELD_NIGHT_WATER_HOLE_SPRAY_SIZE         = 384,
+    DRYFIELD_NIGHT_WATER_HOLE_SPRAY_CELL_UPDATES = 2,
+    DRYFIELD_NIGHT_WATER_HOLE_SPRAY_LAUNCH_SPEED = 32,
+    DRYFIELD_NIGHT_WATER_HOLE_SPRAY_UPWARD_BURST = 1,
+    DRYFIELD_NIGHT_WATER_HOLE_SPRAY_SPAWN_ARG    = DRYFIELD_NIGHT_WATER_HOLE_SPRAY_SIZE |
+                                                (DRYFIELD_NIGHT_WATER_HOLE_SPRAY_CELL_UPDATES << 12) |
+                                                (DRYFIELD_NIGHT_WATER_HOLE_SPRAY_LAUNCH_SPEED << 16) |
+                                                (DRYFIELD_NIGHT_WATER_HOLE_SPRAY_UPWARD_BURST << 24),
+};
+
 static s32  _roomVariantResolveWaterHole(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static void _waterHoleWaterTask(Task* task);
 
@@ -97,7 +115,7 @@ STATIC_ASSERT_SIZEOF(_DryfieldNightWaterHoleSurfaceOverride, 0x8);
 extern TaskDesc D_actor_146000_801351FC;
 
 /// Descriptor the room's event task is spawned from, index 0 of the table
-/// `func_dryfield_night_water_hole_8017DC28` hands `taskSpawnFromTable`. Its
+/// `_dryfieldNightWaterHoleCommandMessage` hands `taskSpawnFromTable`. Its
 /// callback is that same task, `roomDepartureTask`.
 extern TaskDesc D_dryfield_night_water_hole_801805EC;
 /// The room's message table, the `TaskMessageEntry` list the room task publishes in
@@ -155,8 +173,8 @@ extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835B8[1];
 extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835C0[1];
 
 static s32 _dryfieldNightWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
-s32        func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
-s32        func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _dryfieldNightWaterHoleCommandMessage(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg);
+static s32 _dryfieldNightWaterHoleRoomActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 enum {
     DRYFIELD_NIGHT_WATER_HOLE_MESSAGE_USE_KEY_ITEM = 0x13F1,
@@ -189,8 +207,8 @@ TaskDesc D_dryfield_night_water_hole_801805EC = { { { TASK_BODY_NONE, 32 } }, ro
 TaskMessageEntry D_dryfield_night_water_hole_801805F8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveWaterHole },
     { DRYFIELD_NIGHT_WATER_HOLE_MESSAGE_USE_KEY_ITEM, _dryfieldNightWaterHoleRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_hole_8017DD5C },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_water_hole_8017DC28 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightWaterHoleRoomActionMessage },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightWaterHoleCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1038,7 +1056,7 @@ s16 D_dryfield_night_water_hole_8018362E = -0x3000;
 
 RoomDeparture gRoomDeparture;
 
-static void func_dryfield_night_water_hole_8017D958(Task* arg0);
+static void _dryfieldNightWaterHoleInitializeRoom(Task* task);
 
 #include "../../shared/room_variants_shelter.inc.c"
 #undef ROOM_VARIANT_RESOLVE_SHELTER
@@ -1047,47 +1065,52 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0);
 
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 
-/// Room entry task tick: publish the room's message table in `Task::msgTable`
-/// and claim game pointer slot 7. Progress nibble 0xB8 then picks the opening
-/// move: while it is clear the room's water task is spawned from
-/// `D_dryfield_night_water_hole_80180964`, and once it is set the parameter
-/// overrides are applied instead.
+/// Registers the room receiver and restores its progress-dependent scenery and actors.
 ///
-/// On the visit whose sub-id (`gGameSession::location.loc.variant`) is 1 and that has
-/// already latched nibble 0x95, and with the slot-4 task present, the room
-/// announces itself to it with message 0x7DB, carrying the payload record
-/// `gGameSession::location.loc.warp` selects. On sub-id 0xA, with pointer slot 0xA
-/// filled and nibble 0xCF still clear, it latches 0xCF, arms
-/// `gameFlagSetPackedByte(0xA2, 0x25)` and spawns the ending task. Then advances state.
-static void func_dryfield_night_water_hole_8017D958(Task* arg0)
+/// State zero starts the water task while the Shelter route is closed, or
+/// installs surface overrides after it opens. Arrival variant 1 cues placement
+/// zero when its arrival event is already latched, selecting the command by
+/// arrival ID. Ending variant 10 with a companion present latches its ending,
+/// selects objective 37 and starts the ending controller once. Advances to idle
+/// state 1; requires loaded room/actor tables and the live scene receiver.
+static void _dryfieldNightWaterHoleInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_dryfield_night_water_hole_801805F8;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    enum {
+        DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_VARIANT   = 1,
+        DRYFIELD_NIGHT_WATER_HOLE_ALTERNATE_ARRIVAL = 2,
+        DRYFIELD_NIGHT_WATER_HOLE_ENDING_VARIANT    = 10,
+        DRYFIELD_NIGHT_WATER_HOLE_ENDING_STARTED    = 2,
+        DRYFIELD_NIGHT_WATER_HOLE_ENDING_OBJECTIVE  = 0x25,
+        DRYFIELD_NIGHT_WATER_HOLE_ENDING_TASK_INDEX = 1,
+    };
+
+    task->msgTable = D_dryfield_night_water_hole_801805F8;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
         taskSpawnFromTable(D_dryfield_night_water_hole_80180964, 0, 0, 0);
     } else {
         _dryfieldNightWaterHoleApplySurfaceOverrides(D_dryfield_night_water_hole_801835D8);
     }
-    if (gGameSession->location.loc.variant == 1 && sceneFindPlacedActor(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) != 0) {
-        if (gGameSession->location.loc.warp == 2) {
+    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_VARIANT && sceneFindPlacedActor(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) != 0) {
+        if (gGameSession->location.loc.warp == DRYFIELD_NIGHT_WATER_HOLE_ALTERNATE_ARRIVAL) {
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_water_hole_80180660, 0);
         } else {
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_water_hole_8018065C, 0);
         }
     }
-    if (gGameSession->location.loc.variant == 0xA && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
-        gameFlagSetNibble(GAME_FLAG_0CF, 2);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x25);
-        taskSpawnFromTable(&D_actor_146000_801351FC, 1, 0, 0);
+    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_HOLE_ENDING_VARIANT && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
+        gameFlagSetNibble(GAME_FLAG_0CF, DRYFIELD_NIGHT_WATER_HOLE_ENDING_STARTED);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_WATER_HOLE_ENDING_OBJECTIVE);
+        taskSpawnFromTable(&D_actor_146000_801351FC, DRYFIELD_NIGHT_WATER_HOLE_ENDING_TASK_INDEX, 0, 0);
     }
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// The room task's three states, run from a stack copy by
 /// `dryfieldNightWaterHoleRoomTask`: the entry tick, the idle state,
 /// then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_water_hole_8017D688 = {
-    { func_dryfield_night_water_hole_8017D958, _dryfieldNightWaterHoleRoomIdle, taskKill },
+    { _dryfieldNightWaterHoleInitializeRoom, _dryfieldNightWaterHoleRoomIdle, taskKill },
 };
 
 /// Refuses every key-item use in this room without consuming the item.
@@ -1104,71 +1127,95 @@ static s32 _dryfieldNightWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s3
 
 #include "../../shared/water_hole_door_msg.inc.c"
 
-/// Message 0x13F0 handler. Slot 7 dispatches it with the sender's command in
-/// `arg2`, and only 2 concerns this room.
+/// Resolves a departure's initialized destination selectors through a stage resolver.
 ///
-/// With progress nibble 0xB8 set the room's event task is spawned: this stages
-/// a `RoomDeparture` for it, hands the code in `area` to the room's resolver
-/// for one last say over `room`, publishes the descriptor to
-/// `gRoomDeparture` and spawns the task from
-/// `D_dryfield_night_water_hole_801805EC`. The code staged is 0x2E, past the end
-/// of the resolver's jump table, so the byte comes back as it went in.
-///
-/// Without it the event never ran: cap command 2 is armed, nibble 0x1BD records
-/// it, and the sound is enqueued here instead of by the spawned task.
-s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// The resolver must accept one aliased request/reply and read only area,
+/// arrival, room and execution choice. Other message bytes remain uninitialized.
+/// Borrows both pointers for this call and preserves stage, facing and sound.
+static inline void _roomVariantResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolveVariant)
 {
-    RoomDeparture work;
-    RoomEventMsg  msg;
+    RoomEventMsg request;
 
-    if (arg2 == 2) {
+    request.areaId    = departure->area;
+    request.warp      = departure->warp;
+    request.room      = departure->room;
+    request.queryOnly = ROOM_EVENT_EXECUTE;
+    resolveVariant(&request, &request);
+    departure->area = request.areaId;
+    departure->warp = request.warp;
+    departure->room = request.room;
+}
+
+/// Handles the Shelter-door command by staging a departure or reporting it locked.
+///
+/// `ROOM_MESSAGE_COMMAND` command 2 resolves the open route's initialized area,
+/// arrival and room selectors through the Shelter resolver, publishes the whole
+/// departure and spawns its controller after holding player control. The facing
+/// is 3072 units out of 4096 per turn. The singleton departure must remain intact
+/// until consumed. A closed route plays CAP command 2, marks water on the map
+/// and cues the locked-door sound. Other commands do nothing. Returns zero;
+/// receiver, message ID and second payload are unused.
+static s32 _dryfieldNightWaterHoleCommandMessage(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg)
+{
+    enum {
+        DRYFIELD_NIGHT_WATER_HOLE_COMMAND_SHELTER_DOOR = 2,
+        DRYFIELD_NIGHT_WATER_HOLE_SHELTER_ROOM         = 1,
+        DRYFIELD_NIGHT_WATER_HOLE_SHELTER_ARRIVAL      = 3,
+        DRYFIELD_NIGHT_WATER_HOLE_SHELTER_SOUND        = 0x53200007,
+        DRYFIELD_NIGHT_WATER_HOLE_SHELTER_FACING       = 0xC00,
+        DRYFIELD_NIGHT_WATER_HOLE_CAP_LOCKED_DOOR      = 2,
+        DRYFIELD_NIGHT_WATER_HOLE_MAP_WATER_MARK       = 2,
+    };
+
+    RoomDeparture departure;
+
+    if (commandId == DRYFIELD_NIGHT_WATER_HOLE_COMMAND_SHELTER_DOOR) {
         if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) != 0) {
-            RoomDeparture*      wp;
             RoomVariantResolver resolve = _roomVariantResolveShelter;
 
-            work.stage    = GAME_STAGE_MINE_SHELTER;
-            work.area     = GAME_AREA_SHELTER_B4_WATER_SUPPLY;
-            work.room     = 1;
-            work.warp     = 3;
-            work.sndEvent = 0x53200007;
-            work.facing   = 0xC00;
+            departure.stage    = GAME_STAGE_MINE_SHELTER;
+            departure.area     = GAME_AREA_SHELTER_B4_WATER_SUPPLY;
+            departure.room     = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_ROOM;
+            departure.warp     = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_ARRIVAL;
+            departure.sndEvent = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_SOUND;
+            departure.facing   = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_FACING;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            wp = &work;
-            // Let the stage's resolver replace the staged room with the variant game progress selects.
-            msg.areaId    = wp->area;
-            msg.warp      = wp->warp;
-            msg.room      = wp->room;
-            msg.queryOnly = ROOM_EVENT_EXECUTE;
-            resolve(&msg, &msg);
-            wp->area       = msg.areaId;
-            wp->warp       = msg.warp;
-            wp->room       = msg.room;
-            gRoomDeparture = work;
+            // Resolve only initialized destination selectors; the request aliases its reply.
+            _roomVariantResolveDeparture(&departure, resolve);
+            gRoomDeparture = departure;
             taskSpawnFromTable(&D_dryfield_night_water_hole_801805EC, 0, 0, 0);
         } else {
-            capRunCommandWithTransition(2);
-            gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
+            capRunCommandWithTransition(DRYFIELD_NIGHT_WATER_HOLE_CAP_LOCKED_DOOR);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, DRYFIELD_NIGHT_WATER_HOLE_MAP_WATER_MARK);
             sndEvtRequestScriptStart(SOUND_NIGHT_WATER_HOLE_LOCKED, 0, 0);
         }
     }
     return 0;
 }
 
-/// Message 0x13EF handler. On a visit through sub-id 1 with progress nibble
-/// 0x95 still clear, a record whose `field_2` is 2 or 1 latches the nibble and
-/// passes `D_dryfield_night_water_hole_8018067C` or
-/// `D_dryfield_night_water_hole_801807FC` respectively to `evsStartScript`.
-/// Always returns 0.
-s32 func_dryfield_night_water_hole_8017DD5C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Starts one of two arrival scripts once on the water hole's arrival variant.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a four-byte request through the call.
+/// In variant 1, action 2 or action 1 selects its arrival script if the arrival
+/// event is clear, latching the event before starting the script. No pointer is
+/// retained. Returns zero. Receiver,
+/// message ID and the zero second payload are unused.
+static s32 _dryfieldNightWaterHoleRoomActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    u8 temp_s0;
+    enum {
+        DRYFIELD_NIGHT_WATER_HOLE_ACTION_ARRIVAL_1 = 1,
+        DRYFIELD_NIGHT_WATER_HOLE_ACTION_ARRIVAL_2 = 2,
+        DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_VARIANT  = 1,
+    };
 
-    if ((in->warp == 2) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == 1)) {
+    u8 actionId;
+
+    if ((request->actionId == DRYFIELD_NIGHT_WATER_HOLE_ACTION_ARRIVAL_2) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_VARIANT)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
         evsStartScript(D_dryfield_night_water_hole_8018067C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
-    temp_s0 = in->warp;
-    if ((temp_s0 == 1) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == temp_s0)) {
+    actionId = request->actionId;
+    if ((actionId == DRYFIELD_NIGHT_WATER_HOLE_ACTION_ARRIVAL_1) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == actionId)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
         evsStartScript(D_dryfield_night_water_hole_801807FC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
@@ -1217,94 +1264,110 @@ static void _dryfieldNightWaterHoleApplySurfaceOverrides(const _DryfieldNightWat
 
 #include "../../shared/water_hole_water_start.inc.c"
 
-/// Room task. State 0 installs effect ids 0x600FF / 0x6011F in the two shared
-/// effect-id slots while progress nibble 0xB8 is clear, records the world
-/// positions of parts 14 and 17 of the slot-3 task's model, and advances.
-/// State 1, while nibble 0xB8 is clear, no event is running and `waterY` is
-/// below that model's root, spawns each effect at water level under each part
-/// with odds that grow with how far the part moved since last frame, then, once
-/// game-flag nibble 0x51 is 1, draws the glowing beams
-/// `_glowDrawShaft` renders between the point pairs
-/// the current view selects.
-void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
+void dryfieldNightWaterHoleSplashAndLightShaftsTask(Task* task)
 {
-    Task*       ctl;
-    s32         mask;
-    EffectWork* work;
-    GfxCoord*   ctlCoords;
-    GfxCoord*   part;
-    GfxCoord*   view;
-    GfxCoord    surface;
-    s32         i;
-    u32         rnd;
+    enum {
+        DRYFIELD_NIGHT_WATER_HOLE_SPLASH_INITIALIZE   = 0,
+        DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ACTIVE       = 1,
+        DRYFIELD_NIGHT_WATER_HOLE_SPLASH_SAMPLE_COUNT = ARRAY_SIZE(D_dryfield_night_water_hole_801809F4),
+        DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_1_VIEWS = (1 << 3) | (1 << 4),
+        DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_2_VIEWS = (1 << 4) | (1 << 6) | (1 << 9) | (1 << 11),
+        DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_3_VIEWS = 1 << 7,
+        DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE  = 0x100,
+    };
 
-    ctl       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    work      = arg0->spawnArg2.pointer;
-    mask      = 1 << gGameSession->location.loc.view;
-    ctlCoords = ctl->extra.tmd->coords;
-    switch (arg0->state) {
-        case 0:
+    Task*       playerTask;
+    s32         viewMask;
+    EffectWork* work;
+    GfxCoord*   playerRoot;
+    GfxCoord*   trackedPart;
+    GfxCoord*   surfaceParent;
+    GfxCoord    surfaceCoord;
+    s32         sampleIndex;
+    u32         randomRoll;
+
+/// Emits ripple then spray for one part and advances its signed-halfword history.
+///
+/// Captures playerTask, work, trackedPart, surfaceParent, surfaceCoord and
+/// randomRoll from this function. sampleIndex must be a side-effect-free index
+/// 0 or 1 and is evaluated repeatedly. The caller supplies a live view parent
+/// and a model containing coordinates 14/17. Consumes two ordered LCG draws,
+/// including on failed spawns, and leaves the resulting odds in work->angle.
+/// Expands to a braced statement block; the child uses its copied coordinate.
+#define DRYFIELD_NIGHT_WATER_HOLE_EMIT_PART_SPLASHES(sampleIndex)                                                                                                 \
+    {                                                                                                                                                             \
+        trackedPart = &playerTask->extra.tmd->coords[DRYFIELD_NIGHT_WATER_HOLE_SPLASH_FIRST_PART + (sampleIndex) * DRYFIELD_NIGHT_WATER_HOLE_SPLASH_PART_STRIDE]; \
+        actorRenderComposeCoord(trackedPart);                                                                                                                     \
+        /* Movement sets signed-halfword odds; ripple alone adds the bias. */                                                                                     \
+        work->angle = ABS(D_dryfield_night_water_hole_801809F4[(sampleIndex)].vx - trackedPart->workm.t[0]) +                                                     \
+                      ABS(D_dryfield_night_water_hole_801809F4[(sampleIndex)].vy - trackedPart->workm.t[1]) +                                                     \
+                      ABS(D_dryfield_night_water_hole_801809F4[(sampleIndex)].vz - trackedPart->workm.t[2]) + DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_ODDS_BIAS;         \
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &trackedPart->workm, &surfaceCoord.coord);                                                                 \
+        surfaceCoord.parent       = surfaceParent;                                                                                                                \
+        surfaceCoord.coord.t[1]   = gGameSession->waterY;                                                                                                         \
+        surfaceCoord.composeStamp = GRAPHICS_COORD_DIRTY;                                                                                                         \
+        actorRenderComposeCoord(&surfaceCoord);                                                                                                                   \
+        randomRoll = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                                          \
+        if ((s32)((randomRoll >> 16) & DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                               \
+            effectSpawn(gRoomEffectWaterRippleId, &surfaceCoord, DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_HALF_SIDE, 0);                                                  \
+        }                                                                                                                                                         \
+        work->angle -= DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_ODDS_BIAS;                                                                                                \
+        randomRoll   = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                                        \
+        if ((s32)((randomRoll >> 16) & DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                               \
+            effectSpawn(gRoomEffectWaterSprayId, &surfaceCoord, DRYFIELD_NIGHT_WATER_HOLE_SPRAY_SPAWN_ARG, 0);                                                    \
+        }                                                                                                                                                         \
+        D_dryfield_night_water_hole_801809F4[(sampleIndex)].vx = trackedPart->workm.t[0];                                                                         \
+        D_dryfield_night_water_hole_801809F4[(sampleIndex)].vy = trackedPart->workm.t[1];                                                                         \
+        D_dryfield_night_water_hole_801809F4[(sampleIndex)].vz = trackedPart->workm.t[2];                                                                         \
+    }
+
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work       = task->spawnArg2.pointer;
+    viewMask   = 1 << gGameSession->location.loc.view;
+    playerRoot = playerTask->extra.tmd->coords;
+    switch (task->state) {
+        case DRYFIELD_NIGHT_WATER_HOLE_SPLASH_INITIALIZE:
+            // Start history from cached part positions, without an initial movement impulse.
             if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
                 gRoomEffectWaterRippleId = EFFECT_DRYFIELD_NIGHT_WATER_HOLE_WATER_RIPPLE;
                 gRoomEffectWaterSprayId  = EFFECT_DRYFIELD_NIGHT_WATER_HOLE_WATER_SPRAY;
             }
-            arg0->state = 1;
-            for (i = 0; i < 2; i++) {
-                part                                       = &ctl->extra.tmd->coords[14 + i * 3];
-                D_dryfield_night_water_hole_801809F4[i].vx = part->workm.t[0];
-                D_dryfield_night_water_hole_801809F4[i].vy = part->workm.t[1];
-                D_dryfield_night_water_hole_801809F4[i].vz = part->workm.t[2];
+            task->state = DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ACTIVE;
+            for (sampleIndex = 0; sampleIndex < DRYFIELD_NIGHT_WATER_HOLE_SPLASH_SAMPLE_COUNT; sampleIndex++) {
+                trackedPart                                          = &playerTask->extra.tmd->coords[DRYFIELD_NIGHT_WATER_HOLE_SPLASH_FIRST_PART + sampleIndex * DRYFIELD_NIGHT_WATER_HOLE_SPLASH_PART_STRIDE];
+                D_dryfield_night_water_hole_801809F4[sampleIndex].vx = trackedPart->workm.t[0];
+                D_dryfield_night_water_hole_801809F4[sampleIndex].vy = trackedPart->workm.t[1];
+                D_dryfield_night_water_hole_801809F4[sampleIndex].vz = trackedPart->workm.t[2];
             }
             break;
-        case 1:
+        case DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ACTIVE:
+            // Paused or dry frames keep history frozen until wading resumes.
             if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING &&
-                gGameSession->waterY < ctlCoords->coord.t[1]) {
-                view = &gGfxViewCoord;
-                for (i = 0; i < 2; i++) {
-                    part = &ctl->extra.tmd->coords[14 + i * 3];
-                    actorRenderComposeCoord(part);
-                    // The work block's `angle` holds the splash strength, this task's spawn odds
-                    // out of 0x200: the part's movement since last frame, raised by 0x20 for the
-                    // ripple roll only.
-                    work->angle = ABS(D_dryfield_night_water_hole_801809F4[i].vx - part->workm.t[0]) +
-                                  ABS(D_dryfield_night_water_hole_801809F4[i].vy - part->workm.t[1]) +
-                                  ABS(D_dryfield_night_water_hole_801809F4[i].vz - part->workm.t[2]) + 0x20;
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &part->workm, &surface.coord);
-                    surface.parent       = view;
-                    surface.coord.t[1]   = gGameSession->waterY;
-                    surface.composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(&surface);
-                    rnd = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
-                    if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
-                        effectSpawn(gRoomEffectWaterRippleId, &surface, 0x40, 0);
-                    }
-                    work->angle -= 0x20;
-                    rnd          = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
-                    if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
-                        effectSpawn(gRoomEffectWaterSprayId, &surface, 0x1202180, 0);
-                    }
-                    D_dryfield_night_water_hole_801809F4[i].vx = part->workm.t[0];
-                    D_dryfield_night_water_hole_801809F4[i].vy = part->workm.t[1];
-                    D_dryfield_night_water_hole_801809F4[i].vz = part->workm.t[2];
+                gGameSession->waterY < playerRoot->coord.t[1]) {
+                surfaceParent = &gGfxViewCoord;
+                for (sampleIndex = 0; sampleIndex < DRYFIELD_NIGHT_WATER_HOLE_SPLASH_SAMPLE_COUNT; sampleIndex++) {
+                    DRYFIELD_NIGHT_WATER_HOLE_EMIT_PART_SPLASHES(sampleIndex);
                 }
             }
             if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 1) {
-                if (mask & 0x18) {
-                    _glowDrawShaft(&D_dryfield_night_water_hole_80180994[0], 0x100);
-                    _glowDrawShaft(&D_dryfield_night_water_hole_80180994[2], 0x100);
+                if (viewMask & DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_1_VIEWS) {
+                    _glowDrawShaft(&D_dryfield_night_water_hole_80180994[0], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
+                    _glowDrawShaft(&D_dryfield_night_water_hole_80180994[2], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
                 }
-                if (mask & 0xA50) {
-                    _glowDrawShaft(&D_dryfield_night_water_hole_801809B4[0], 0x100);
-                    _glowDrawShaft(&D_dryfield_night_water_hole_801809B4[2], 0x100);
+                if (viewMask & DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_2_VIEWS) {
+                    _glowDrawShaft(&D_dryfield_night_water_hole_801809B4[0], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
+                    _glowDrawShaft(&D_dryfield_night_water_hole_801809B4[2], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
                 }
-                if (mask & 0x80) {
-                    _glowDrawShaft(&D_dryfield_night_water_hole_801809D4[0], 0x100);
-                    _glowDrawShaft(&D_dryfield_night_water_hole_801809D4[2], 0x100);
+                if (viewMask & DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_3_VIEWS) {
+                    _glowDrawShaft(&D_dryfield_night_water_hole_801809D4[0], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
+                    _glowDrawShaft(&D_dryfield_night_water_hole_801809D4[2], DRYFIELD_NIGHT_WATER_HOLE_SHAFT_RADIUS_SCALE);
                 }
             }
             break;
     }
 }
+
+#undef DRYFIELD_NIGHT_WATER_HOLE_EMIT_PART_SPLASHES
 
 #include "../../shared/glow_draw_shaft.inc.c"
 

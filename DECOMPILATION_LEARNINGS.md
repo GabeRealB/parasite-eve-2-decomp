@@ -49164,9 +49164,9 @@ against a lone `VECTOR vec` is `16 + 8`: an unused `SVECTOR ang;` after it.
 **The penalty bucket for this is `regs`, not `stack`.** The frame difference is
 six lines — `addiu sp` at both ends, the two saved-register stores, the two
 loads — and every one of them differs only in its `$sp` displacement, which the
-scorer reports as `regs=6` with `stack=0`. `func_dryfield_night_water_tank_8017D5D0`
+scorer reports as `regs=6` with `stack=0`. `_dryfieldNightWaterTankBattleAftermathTask`
 sat at 99.620% that way, its only difference a `0x20` frame against the
-candidate's `0x18`; one unused `SVECTOR3 unused;` took it to 100.000% with no
+candidate's `0x18`; one unused `SVECTOR3 unusedFrame;` took it to 100.000% with no
 other edit. So before reading a small `regs` penalty as an allocation problem,
 check whether every differing line is `$sp`-relative: if they all are, size the
 local rather than reaching for a pin.
@@ -90333,7 +90333,7 @@ function. Write them from this template rather than from their m2c seeds.
 `sh`, so `s16`. Rooms differ only in the value: the two dryfield rooms store the
 constant `-0x1A4`, the shelter rooms load their own `D_<room>_<addr>` u16 and
 store that. Four room functions read it back with `lh` — `func_dryfield_water_hole_8017E040`
-and `func_dryfield_night_water_hole_8017E6D0` feed it to `actorRenderComposeCoord` as a
+and `dryfieldNightWaterHoleSplashAndLightShaftsTask` feed it to `actorRenderComposeCoord` as a
 world Y (`sw $v0, 0x2C($sp)` before `actorRenderComposeCoord(&coord)`), and the
 `dryfield_night_water_hole` one also gates a spawn loop on `slt` of it against a
 state block's `0x1C`.
@@ -91702,8 +91702,8 @@ Evidence: scratch `nonmatchings/_dryfieldUnderpassHandleRoomAction-vacuum/`,
 
 ## m2c emits only the parameters it sees used, so a single wrong `$aN` in a compare is an arity problem
 
-`func_dryfield_night_water_tank_8017D73C` is a 12-instruction room script
-callback: `if (arg2 == 0xE) capStartSequenceSlot(0xE, 1, 1); return 0;`. m2c ran
+`_dryfieldNightWaterTankCommandMessage` is a 12-instruction room script
+callback: `if (commandId == 0xE) capStartSequenceSlot(0xE, 1, 1); return 0;`. m2c ran
 liveness across the arguments and declared the one it saw used, so its output
 takes a *single* parameter - which lands in `$a0`, and the compare is one
 register off:
@@ -91813,13 +91813,13 @@ Inputs: `base_1.i`
 `3e9fc45f8f4fa4a93f47eeff62044adfdea72e9502c223c2b289336ca18532f6` (100%).
 ## The order of adjacent field stores decides whether the shared constant takes `$a0`
 
-Worked example `func_dryfield_night_saloon_g_r_8017DE68`, the twin of the
+Worked example `_dryfieldNightSaloonGRRoomActionMessage`, the twin of the
 `_dryfieldNightSaloonGRInitializeRoom` in "An `SVECTOR` local split into
 separate `s16`s" above; that entry's struct fix is what this one starts from.
 
 **Problem.** With the payload fixed, the whole remaining diff was the constant
-`1`, shared by `((const DirectionActionRequest*)firstArg.pointer)->actionId == 1`
-and `msg.command = 1`. The target had it in
+`1`, shared by `request->actionId == 1`
+and `startCommand.command = 1`. The target had it in
 `$a1`, we had it in `$a0` - and `reorder=5`, `insert=1`, `delete=1` and the
 other `regs=2` were all downstream: with `$a0` holding the constant, dbr cannot
 fill the branch delay slot with `addu $a0,$zero,$zero`, and `li $a0,4` cannot
@@ -91835,10 +91835,10 @@ constant, inside the same block, is decided by sched1, and sched1 is fed the
 source statement order.
 
 **Fix.** Write the field stores in the order the original did. m2c had emitted
-them sorted by *address* (`field_0`, `field_2`, `field_1`), and that alone was
+them sorted by *address* (`context.loc.stage`, `command`, `context.loc.area`), and that alone was
 enough to schedule the killing store to the front of the block. The matched
 sibling `_dryfieldNightSaloonGRInitializeRoom` fills the same struct in order
-`field_0`, `field_1`, `field_2`, and its machine code is the same
+`context.loc.stage`, `context.loc.area`, `command`, and its machine code is the same
 `sb 0x10 / sh 0x12 / sb 0x11` triple - which is the evidence that the order is
 the source's rather than m2c's. Copying it took the function from 93.1% to
 100.0%.
@@ -92764,7 +92764,7 @@ Evidence: scratch `nonmatchings/_dryfieldNightToiletInitializeRoom-vacuum/`,
 `overlay_dup_index.py find` reports this body as its own only copy.
 ## A `jal` that sets only `$a1` is a two-argument call m2c collapsed to one
 
-`func_dryfield_night_r08_8017D630` (USA/rooms/dryfield_night_r08) opens with a
+`_dryfieldNightR08InitializeRoom` (USA/rooms/dryfield_night_r08) opens with a
 call whose setup writes `$a1` and nothing else:
 
 ```
@@ -92780,12 +92780,12 @@ m2c saw no write to `$a0` and so emitted the one-argument form, `gameSetTaskSlot
 which compiles `addiu $a0,$zero,0x7` — a `regs` penalty. The target's `$a0` is
 the function's *incoming argument*: GCC emits no move for an argument already in
 its register, so `$a0` staying untouched from entry is exactly what a first
-parameter of `index` looks like. The fix is to give the call its leading argument
+parameter of `task` looks like. The fix is to give the call its leading argument
 back:
 
 ```c
-arg0->field_24 = &D_dryfield_night_r08_80180544;
-gameSetTaskSlot(arg0, 7);                        /* addiu $a1,$zero,0x7 */
+task->msgTable = D_dryfield_night_r08_80180544;
+gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);                        /* addiu $a1,$zero,0x7 */
 streamSetExternalScenePayloadBuffer((u8*)Fs_ActorLoadBase1 + 0x20000);
 ```
 
@@ -92801,7 +92801,7 @@ Scoring 97.97% (`regs=1 reorder=1`) → 100.000%. Two things are worth keeping:
   calls first. (Contrast the store-order entry above, where the swapped
   instructions are the source order and nothing else can explain the swap.)
 - **The family already had the answer.** Every room-entry task in the `rooms`
-  overlays calls `gameSetTaskSlot(task, 7)`; `func_shelter_r49_8017D648`
+  overlays calls `gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM)`; `func_shelter_r49_8017D648`
   (`src/rooms/shelter_r49/shelter_r49.c`) is the same body minus the
   `streamSetExternalScenePayloadBuffer` call, is already matched, and reproduces `addiu $a1,$zero,0x7`
   byte for byte. When a similar matched sibling exists, copy its argument list
@@ -92832,7 +92832,7 @@ static s32 _dryfieldNightBreezewayHandleRoomCommand(Task* task, s32 messageId, s
 
 `_dryfieldNightBreezewayHandleRoomCommand` scored 100.000% on the first build this
 way, all penalties zero; the already-matched siblings in the same family show the
-convention (`func_dryfield_night_water_tank_8017D73C` declares the same four positions).
+convention (`_dryfieldNightWaterTankCommandMessage` declares the same four positions).
 
 The same seed is also a reminder not to hand-materialize a shared constant. The
 three uses of `1` — the `bne` against `$a2` and both call arguments — unify under
@@ -95579,8 +95579,8 @@ for the field accesses while the copy stays `$sp`-relative, and the two only
 agree when the source reaches the fields through a pointer of its own:
 
 ```
-addiu  s0,sp,0x10       /* &work */
-lbu    v0,0x1(s0)       /* work.field_1, read through the pointer */
+addiu  s0,sp,0x10       /* departure */
+lbu    v0,0x1(s0)       /* departure.area, read through the pointer */
 sh     v0,0x20(sp)
 ...
 sb     v0,0x1(s0)       /* and written back through it */
@@ -95593,10 +95593,10 @@ sw     t1,0x4(t3)
 sw     t2,0x8(t3)
 ```
 
-Writing `work.field_1` on both sides of the call leaves all six accesses
+Writing `departure.area` on both sides of the call leaves all six accesses
 `$sp`-relative, one callee-saved register short, and the frame 8 bytes small
 (`stack=0 branch=2 regs=29 insert=6 delete=11`, 75.2%). Adding a pointer and
-switching those six uses to `wp->field_1` reproduces `addiu s0,sp,0x10` and is
+switching those six uses to `departure->area` reproduces `addiu s0,sp,0x10` and is
 exact. Where the pointer is assigned does not matter - at the top of the block
 or just before the accesses both match; what matters is that the fill's
 `field_N = CONST` stores keep the struct's own name, so they stay `$sp`-relative
@@ -95609,11 +95609,11 @@ look for, not a reason to doubt the pointer.
 The same body is staged in eight room overlays - `_neoArkObservatoryRoomActionMessage`
 and `func_shelter_b4_water_supply_8017DC28` carry it verbatim, the latter with
 every access `$sp`-relative because its function pointer already holds `$s0`.
-Example: `func_dryfield_night_water_hole_8017DC28`. Inputs: `base_6.i`
+Example: `_dryfieldNightWaterHoleCommandMessage`. Inputs: `base_6.i`
 `324fea05cdda758d428a948329cce0362ae15e230c3c92469af40dac72fb672a` (the winning
 `base_3.i`; `base_2.i` and `base_4.i` differ only in type and parameter names).
 
-## Landing a matched body: it has to go where its `INCLUDE_ASM` line was (func_dryfield_night_water_hole_8017D958, 2026-09-16)
+## Landing a matched body: it has to go where its `INCLUDE_ASM` line was (_dryfieldNightWaterHoleInitializeRoom, 2026-09-16)
 
 Replacing `INCLUDE_ASM(...)` with the function's C body is an **in-place** edit.
 A unit's functions are emitted in source order into one `.text` run, so a body

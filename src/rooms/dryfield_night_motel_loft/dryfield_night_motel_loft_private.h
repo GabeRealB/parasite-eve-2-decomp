@@ -77,7 +77,12 @@ s32 roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEventMsg* re
 /// All four arguments are unused; no item is consumed or event started.
 s32 dryfieldNightMotelLoftRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 
-s32 func_dryfield_night_motel_loft_8017D67C(Task*, s32, s32, s32);
+/// Starts the loft's caption scene for room command 3.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`; other commands are ignored. Holds scripted
+/// player control before spawning the scene task. Returns zero even if spawning
+/// fails. The receiver, message ID and second payload are unused.
+s32 dryfieldNightMotelLoftCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedSecondArg);
 
 /// Ignores direction-trigger room-action requests in the nighttime loft.
 ///
@@ -93,7 +98,14 @@ s32 dryfieldNightMotelLoftIgnoreRoomAction(Task* task, s32 messageId, const Dire
 /// Returns zero whether or not the sound queue accepts the request.
 s32 dryfieldNightMotelLoftPlaySoundCue(Task* task, s32 messageId, s32 cueKey, s32 unusedSecondArg);
 
-void func_dryfield_night_motel_loft_8017D6F8(Task*);
+/// Plays the loft's first or repeat caption scene and restores player control.
+///
+/// Starts in state zero after its caller holds scripted control. Pauses actors,
+/// plays CAP command 3 before completion or 18 afterward, and uses choice-row
+/// step 5. After CAP becomes idle, variant key 31 latches completion; other keys
+/// leave progress unchanged. Resumes actors and player control, then kills the
+/// task. Requires the loaded CAP resources throughout states 0..2.
+void dryfieldNightMotelLoftCaptionSceneTask(Task* task);
 
 /// Sets the current room selector in both the live session and live save.
 ///

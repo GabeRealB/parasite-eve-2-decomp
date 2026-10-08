@@ -348,12 +348,13 @@ s32 dryfieldNightMotelLoftRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s
 #define ROOM_VARIANT_MOTEL_BALCONY_MSG roomVariantMotelBalconyMsg
 #include "../../shared/room_variants_motel_balcony.inc.c"
 
-/// Message-table handler for id 0x13F0: on command 3 (`arg2`) silences the
-/// player's weapon and spawns the loft's cap-script task. Other commands do
-/// nothing.
-s32 func_dryfield_night_motel_loft_8017D67C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 dryfieldNightMotelLoftCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedSecondArg)
 {
-    if (arg2 == 3) {
+    enum {
+        DRYFIELD_NIGHT_MOTEL_LOFT_COMMAND_CAPTION_SCENE = 3,
+    };
+
+    if (commandId == DRYFIELD_NIGHT_MOTEL_LOFT_COMMAND_CAPTION_SCENE) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         taskSpawnFromTable(D_dryfield_night_motel_loft_8017EB4C, 0, 0, 0);
     }
@@ -375,32 +376,40 @@ s32 dryfieldNightMotelLoftPlaySoundCue(Task* task, s32 messageId, s32 cueKey, s3
     return 0;
 }
 
-/// The loft's cap-script task: runs cap command 0x12 once game nibble 0x170 is
-/// set and 3 before that, waits for it to finish, sets the nibble when the
-/// script ended on event key 0x1F, then gives the player's weapon back and
-/// kills itself.
-void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
+void dryfieldNightMotelLoftCaptionSceneTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum {
+        DRYFIELD_NIGHT_MOTEL_LOFT_SCENE_START         = 0,
+        DRYFIELD_NIGHT_MOTEL_LOFT_SCENE_WAIT_CAP      = 1,
+        DRYFIELD_NIGHT_MOTEL_LOFT_SCENE_RESTORE       = 2,
+        DRYFIELD_NIGHT_MOTEL_LOFT_CAP_FIRST_SCENE     = 3,
+        DRYFIELD_NIGHT_MOTEL_LOFT_CAP_REPEAT_SCENE    = 18,
+        DRYFIELD_NIGHT_MOTEL_LOFT_SCENE_COMPLETED_KEY = 31,
+        DRYFIELD_NIGHT_MOTEL_LOFT_CHOICE_ROW_STEP     = 5,
+    };
+
+    switch (task->state) {
+        case DRYFIELD_NIGHT_MOTEL_LOFT_SCENE_START:
+            // Keep actor updates paused while the caption scene owns player control.
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            capRunCommand(gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE) != 0 ? 0x12 : 3, CAP_PLAYBACK_IN_PLACE);
-            D_80115680  = 5;
-            arg0->state = arg0->state + 1;
+            capRunCommand(gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE) != 0 ? DRYFIELD_NIGHT_MOTEL_LOFT_CAP_REPEAT_SCENE : DRYFIELD_NIGHT_MOTEL_LOFT_CAP_FIRST_SCENE, CAP_PLAYBACK_IN_PLACE);
+            D_80115680  = DRYFIELD_NIGHT_MOTEL_LOFT_CHOICE_ROW_STEP;
+            task->state = task->state + 1;
             return;
-        case 1:
+        case DRYFIELD_NIGHT_MOTEL_LOFT_SCENE_WAIT_CAP:
             if (capIsBusy() == 0) {
-                arg0->state = arg0->state + 1;
+                task->state = task->state + 1;
                 return;
             }
             return;
-        case 2:
-            if (capGetVariantKey() == 0x1F) {
+        case DRYFIELD_NIGHT_MOTEL_LOFT_SCENE_RESTORE:
+            // Only the completion choice makes later visits use the repeat scene.
+            if (capGetVariantKey() == DRYFIELD_NIGHT_MOTEL_LOFT_SCENE_COMPLETED_KEY) {
                 gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE, 1);
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }

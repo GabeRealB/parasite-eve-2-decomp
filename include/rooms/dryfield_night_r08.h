@@ -60,7 +60,15 @@ void dryfieldNightR08RoomVisualEffectsFlashTask(Task* task);
 /// drawing without cancelling. Requires a live effect controller and room overlay.
 void dryfieldNightR08RoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_dryfield_night_r08_8017F8FC(Task* task);
+/// Runs room 8's impact flash with smoke or fading rings and bouncing sparks.
+///
+/// Requires a counted `EffectWork` in `spawnArg2.pointer`, a coordinate body
+/// and state/age zero from `effectSpawn`. Nonzero `spawnArg1.value` selects
+/// smoke; zero selects rings and sparks. Active age seven enters release and
+/// the next active tick frees work and tears down the task. Nonzero room effect
+/// control pauses below four and cancels at four or above. The room overlay and any
+/// borrowed parent coordinate must remain live through the effect.
+void dryfieldNightR08RoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs nighttime area 8's room initialization, message wait and teardown.
 ///
