@@ -723,10 +723,33 @@ void func_actor_503500_80143AC0(Task*);
 /// `messageId` and `unusedArg` are ignored. Returns 0.
 s32 actor503500HandlePlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 
-s32 func_actor_503500_80135B74(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+/// Applies a borrowed scene command to the boss, ignoring its context tags.
+///
+/// Commands 0/1/2 resume idle, hold the boss, or begin collapse; 3 advances the
+/// task toward exit. Command 4 saves the root coordinate and yaw and starts
+/// the fight's phase-transition sequence; 5 restores them and releases that
+/// sequence's wait. Command 5 requires a preceding command 4. The model and
+/// boss work must be live. Unsupported commands do nothing. `messageId` and
+/// `unusedArg` are ignored; returns 0 in every case.
+s32 actor503500HandleBossCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 
-s32 func_actor_503500_80137088(Task* task, s32 msgId, ActorTransform* args, s32 arg3);
+/// Places the live boss from a borrowed position and XYZ Euler rotation.
+///
+/// Position uses whole units in the root's parent frame; angles use 4096 per
+/// turn. Rebuilds the local root matrix, invalidates composition, and seeds
+/// the boss's yaw and signed 16.16 position for subsequent motion. Retains
+/// motion rates and the pending target yaw. Reads the payload only during the
+/// call. `messageId` and `unusedArg` are ignored; returns 0.
+s32 actor503500HandlePlaceBoss(Task* task, s32 messageId, const ActorTransform* transform, s32 unusedArg);
 
-s32 func_actor_503500_80137158(Task*, s32, s32, s32);
+/// Sets the live boss model's drawing and automatic-buffer policy.
+///
+/// Modes 0/1 hide with automatic buffers or show with immediate allocation;
+/// 2 hides, suppresses automatic buffers and schedules release on the third
+/// countdown update; 3 shows with automatic buffers suppressed. Other flags
+/// remain intact. Modes other than 2 retain any pending release countdown.
+/// Returns 0 for modes 0..3, 1 without changes otherwise. `messageId` and
+/// `unusedArg` are ignored.
+s32 actor503500HandleSetBossModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 
 #endif // SRC_ACTORS_ACTOR_503500_ACTOR_503500_PRIVATE_H

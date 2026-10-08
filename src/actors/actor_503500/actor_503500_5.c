@@ -311,9 +311,9 @@ static AnimationSet _gActor503500Animation3F61C;
 
 TaskMessageEntry D_actor_503500_8016EA2C[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, actor503500HandlePlayAnimation },
-    { ACTOR_MESSAGE_PLACE, func_actor_503500_80137088 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_503500_80137158 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_503500_80135B74 },
+    { ACTOR_MESSAGE_PLACE, actor503500HandlePlaceBoss },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, actor503500HandleSetBossModelDraw },
+    { ACTOR_COMMAND_MESSAGE_APPLY, actor503500HandleBossCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

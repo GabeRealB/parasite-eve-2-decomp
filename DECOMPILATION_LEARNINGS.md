@@ -68598,7 +68598,7 @@ void f(Actor503500* arg0, s32 arg1) {
 register it stored with `sb`/`sh` and no `sll`/`sra` pair precedes it, the
 formal is int-width. A bare `bnez arg` test shows the same thing and costs two
 instructions rather than one, because GCC keeps the untruncated value alive in
-a second register: `func_actor_503500_80137048` emitted `move a0,a1` plus
+a second register: `_actor503500SetBossTrackRates` emitted `move a0,a1` plus
 `sll a1,a1,0x18` around a `bnez`, and widening the formal to `s32` took it from
 82.3% to 100%. This is the parameter-side mirror of "Sign-extend a call
 result into `s32`, not `s8`" above. `_actor503500LargeOrbEmitterEnterState` went from
@@ -68789,7 +68789,7 @@ their own work block in the `Task::work` slot, and that block is not a
 `_StageMusicSelection`.
 
 **Fix:** read the immediate ratio as an element size and retype the pointer.
-Here the init that installs the exit callback (`func_actor_503500_801372C8`)
+Here the init that installs the exit callback (`_actor503500PinkFlashEmitterInit`)
 does `addiu $a1, $s0, 0x40` before `worldCollisionLinkBody`, which names the field
 directly: a `WorldCollisionBody` at byte 0x40 of the work block. Declaring it and writing
 `worldCollisionUnlinkBody(&index->field_1C->obj40)` matched on the next build.
@@ -69261,7 +69261,7 @@ call site. Note the local's declaration order also fixes the load order —
 
 ## A store to a neighbouring field kills CSE's memory equivalence, and the reload comes back as a stray reg-reg copy
 
-`func_actor_503500_801372C8` ends its `Enemy` setup with three stores and one
+`_actor503500PinkFlashEmitterInit` ends its `Enemy` setup with three stores and one
 read-back of the first of them:
 
 ```c
@@ -69860,26 +69860,27 @@ the `-dp` uid comment used to crash it (`could not convert string to float`);
 
 ## A cast store into a stack `MATRIX` is a "fixed scalar": it leaves the store chain and steals sched1 idle slots
 
-`func_actor_503500_8013852C` stalled at 80% with one callee-saved register too
-many: the target keeps the `D_8016F090[idx]` row pointer in `$v0` and the
+`_actor503500LargeChainInit` stalled at 80% with one callee-saved register too
+many: the target keeps the `D_actor_503500_8016F090[chainIndex]` row pointer in `$v0` and the
 identity-matrix pointer in `$s0`, the build put the row pointer in `$s0` and
 needed `$s7`. Every source-order and pointer-naming variant produced identical
 assembly.
 
-The cause was the first identity store, `*(s32*)&m.m[0][0] = 0x1000` on a stack
+The cause was the first identity store, `*(s32*)&rootRotation.rootRotation[0][0] = 0x1000` on a stack
 local. A cast indirection is a scalar MEM, and `fp+16` is a fixed address, so
 `fixed_scalar_and_varying_struct_p` (see "Struct-typing a body changes GCC
 2.8.1's aliasing") exempts it from the chain of `coord->coord.t[]` struct
 stores. It becomes an independent priority-2 store, and in sched1's backward
 pass it wins the load-latency idle slot on potential hazard (`.sched`: "insn N
 has a greater potential hazard"). That pushes the `a1` / `a0` argument moves
-into the next slots, so the `a0 = F0A0 + idx*8` add lands *before* the
-`F090 + idx*8` row add. `idx*8` then dies at the row add, local-alloc ties the
-row pointer into `idx`'s call-crossing `$s0` quantity, and the matrix pointer
+into the next slots, so the `a0 = F0A0 + chainIndex*8` add lands *before* the
+`F090 + chainIndex*8` row add. `chainIndex*8` then dies at the row add, local-alloc ties the
+row pointer into `chainIndex`'s call-crossing `$s0` quantity, and the matrix pointer
 needs a fresh saved register.
 
-Writing that one store as a struct member of a word-view union
-(`m.rotationWords.m00M01 = 0x1000`, the rest through `ident = &m.rotationWords`) makes it
+Writing that one store through the struct word view in
+`gfxSetRotIdentity(&rootRotation)` (`rotationWords->m00M01 = ONE`, the rest through
+`rotationWords`) makes it
 in-struct, so it conflicts with the `t[]` stores and stays in the chain; the
 argument moves fill the idle slots in the target's order and the function
 went from 80% to 100% (with three store-order fixes in later blocks).
@@ -69912,7 +69913,7 @@ its store, as in the target, and local-alloc still ties `part` into `coord`'s
 register because `coord` dies in that insn, so the allocation is unchanged
 (100%). Same function: the store order `field_50` then `field_54` then
 `field_40 = enemy->param->hpMax` (copied from the matched sibling
-`func_actor_503500_801372C8`) is what produces the target's
+`_actor503500PinkFlashEmitterInit`) is what produces the target's
 `move v0,v1; lhu v0,4(v0)` copy; with `field_54` first the copy is gone. That
 edit landed together with moving the `vz` load ahead of the `7D8`/`7CA` stores,
 and the pair took the function from 89.8% to 98.6% with every saved register
@@ -70132,7 +70133,7 @@ touching anything else; it costs one build.
 
 ### A repeated switch-case tail wants its own pseudo per case: write it as a `static inline` helper
 
-`func_actor_503500_80135B74` has four cases that each run the same "enter
+`actor503500HandleBossCommand` has four cases that each run the same "enter
 boss state N" tail (`work = index->field_1C; work->state = N; ...; call`),
 cross-jumped after allocation. Using one function-level `work` local for every
 tail (even one separate from the `work` the case bodies use) makes it a single
@@ -70266,7 +70267,7 @@ combine turns `mult -1` into `neg` of the sign-extended value. Both
 
 ## Hoisted `move tN,tM` copies of a mask are `s16` locals; a borderline `%hi` hoist is fixed by an `s16` temp
 
-`func_actor_503500_80135644` builds two small bit masks (`8/0x10/0x20/0x40`
+`_actor503500UpdateSlotTargetEligibility` builds two small bit masks (`8/0x10/0x20/0x40`
 and `1/2/4`) and tests them against a `u8` table entry in a 17-slot loop.
 The target preheader holds plain copies of both masks, and the loop compares
 against the copies while the `and` uses the original:
@@ -70289,8 +70290,8 @@ inside the loop. Its hoist is borderline: `move_movables` starts at threshold
 `2 * (1 + 28) = 58` (no call), loses 3 per moved insn, and tests
 `threshold * savings * lifetime >= insn_count`. After the table base and the
 first mask's pair it is 46, against 45 loop insns, so the `lui` moved (the
-loop dump says `moved to`). Declaring the table temp `s16 bits` instead of
-`u8 bits` adds HI-to-SI extension insns at loop time that combine removes
+loop dump says `moved to`). Declaring the table temp `s16 eligibilityMask` instead of
+`u8 eligibilityMask` adds HI-to-SI extension insns at loop time that combine removes
 later, raising the count to 48; the dump then says `not desirable` and the
 final code is otherwise unchanged. Input: `base_8.i` sha256 `4effad88c0fc…`.
 
@@ -70333,15 +70334,16 @@ it gives the `lui/addiu` pairs a callee-saved home across the call instead of
 rematerialising `%hi/%lo` at each use. `_actor503500UpdateBodyCollisionGrid`.
 
 ### `lh 2(aN)` off an `addiu aN, sN, off` with other uses at `off(sN)`: a pointer local
-**Problem.** `func_actor_503500_801353F0` clamps a 16.16 `VECTOR` field and then
-stores `pos.vx >> 16` into a coordinate. The target computes `addiu $a2, $s1, 0x6C4`
+**Problem.** `_actor503500WalkBoss` clamps a 16.16 `VECTOR` field and then
+stores `position.vx >> 16` into a coordinate. The target computes `addiu $a2, $s1, 0x6C4`
 and `addiu $a1, $s1, 0x6CC`, yet the X clamp reads and writes at `0x6C4($s1)`; only the
 final `lh 0x2($a2)` and the Z clamp's accesses go through the registers.
-**Cause.** With `s32 *px = &work->position.vx;`, CSE folds most `*px` addresses back to
-`$s1 + 0x6C4`. The `*px >> 16` is narrowed to a HImode load at `px + 2` by combine, which
+**Cause.** With `long *positionX = &work->position.vx;`, CSE folds most `*positionX` addresses back to
+`$s1 + 0x6C4`. The `*positionX >> 16` is narrowed to a HImode load at `positionX + 2` by combine, which
 runs after CSE, so that address keeps the pointer register.
 **Fix.** Plain `work->position.vx` everywhere gives `lh 0x6C6($s1)` and drops both
-`addiu`s. Declare `s32 *px, *pz` just before the clamps and use them for the clamps and
+`addiu`s. Declare `long *positionX, *positionZ` just before the clamps in
+`_actor503500ClampBossWalkPosition` and use them for the clamps and
 the `>> 16` reads. A `MATRIX *m = &mat;` local does the same for an identity init whose
 stores after the first go through `addiu $a1, $sp, 0x10`.
 
@@ -118100,7 +118102,7 @@ address.
 few insns later, instead of reusing the stored register, says the source wrote
 the store in each branch of the value's `if`/`else` — not that a value was
 computed and stored at the join. This is the third member of the
-`func_actor_503500_801372C8` family: there a *neighbouring* store killed the
+`_actor503500PinkFlashEmitterInit` family: there a *neighbouring* store killed the
 equivalence, here the two branches put the store on a different CSE path
 entirely. Reach for it before a pin: it costs one build and the score goes from
 96.83% to 100.00%.
