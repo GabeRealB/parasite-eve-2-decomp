@@ -3998,7 +3998,7 @@ Testing the same decremented halfword against *zero* is different: there is no
 constant to fold into, so the extension is materialised from the register and
 the type of the value tested decides what it becomes.
 
-`func_actor_403000_8013D910` reloads the tick `Actor403000Work::stateFrame`,
+`_actor403000DownState` reloads the tick `Actor403000Work::stateFrame`,
 decrements it and tests it, so the load stays `lhu` as above — but the test only
 comes out right when the decremented value is `s16`:
 
@@ -86081,7 +86081,7 @@ the lifetime. The same `WorldCollisionBody + WorldCollisionContact rec[5]` node 
 
 ## The `sra` immediate after `sll 16` is the record stride, and the symbol's type sets it
 
-`func_actor_403000_8013D564` copies three halfwords out of an 8-byte record
+`_actor403000CopyArenaWaypoint` copies three halfwords out of an 8-byte record
 table and scored 91.07% with `regs=1 reorder=2`. Two independent causes, both
 from the same expression.
 
@@ -86136,7 +86136,7 @@ matter how many lanes sweep its overlay: the parking and the refusal together
 are a permanent hole, and the remedy is the one the carried-twice case already
 prescribes - land the body as plain C in each carrier.
 
-`func_actor_403000_8013D564` / `_actor421600CopyArenaWaypoint` is the smallest
+`_actor403000CopyArenaWaypoint` / `_actor421600CopyArenaWaypoint` is the smallest
 instance of the shape: 14 instructions, identical modulo the `lui`/`addiu` pair
 naming `D_actor_403000_80158CE0` against `D_actor_421600_80151158`, both 8-byte
 `SVECTOR` runs in the overlay's trailing data. The second copy is a mechanical
@@ -97627,7 +97627,7 @@ work->animId = work->requestedAnimId;   /* lhu $v0, 0xAC6($s0); sh $v0, 0xAC4($s
 `Actor403000Work::requestedAnimId` was declared `u16` on exactly that evidence (two
 copies in `_actor403000UpdateAnimation`), but the same function also reads the
 field `lh` twice — a compare against the neighbouring `animId` and an
-argument passed on — and `func_actor_403000_8013D72C` needs `lh` for
+argument passed on — and `_actor403000ScriptedState` needs `lh` for
 `requestedAnimId == 0x1B`. Declaring it `s16` satisfies both `lh` readers and leaves
 both copies `lhu`, because a bare HImode move is still a bare HImode move: no
 cast, no signed temp, and no change to the two copy sites is needed. The
@@ -97646,15 +97646,15 @@ falls through to it), i.e. source order, so a descending run like that is a
 property of the source and has to be written descending — twelve assignments
 last element first, not a clear in natural order.
 
-`func_actor_403000_8013D72C` matched at 100% (73 insns, 2 builds). The struct
+`_actor403000ScriptedState` matched at 100% (73 insns, 2 builds). The struct
 version and the `M2C_FIELD` version compile to identical bytes: `base_1.i`
 `027be4dca73845d7719f1afb4410e702b75d7a589519e049a73197273b51dc6c`, `base_2.i`
 `3ea6fabb3a3da035f583fdacb2bd3aba8a58379bcebe7fe9ca0760f781ab58ca`.
 
-## A twin body's invented record struct is not evidence for which field the scan reads (func_actor_403000_8013D48C, 2026-09-16)
+## A twin body's invented record struct is not evidence for which field the scan reads (_actor403000WallProbeTouchesGrid, 2026-09-16)
 
 A body copied between families fixes the *addresses* it touches and nothing
-else. `func_actor_403000_8013D48C` is 26 instructions that differ from the
+else. `_actor403000WallProbeTouchesGrid` is 26 instructions that differ from the
 already-matched `_actor00100WallProbeTouchesGrid` in one displacement — `lw $v0, 0xDEC($v0)`
 against `lw $v0, 0xB0C($v0)` — and `overlay_dup_index.py` does not flag that,
 because its equality test is the disassembly *text* and a different displacement
@@ -97687,7 +97687,7 @@ take the *shape* from the twin and the *field* from this overlay's own
 `worldCollisionInitContacts` / `worldCollisionClearContacts` call site, which hands the table
 base over as a bare `addiu` the compiler cannot fold away.
 
-`func_actor_403000_8013D48C` matched at 100% (26 insns, 2 builds; `base_1.i`
+`_actor403000WallProbeTouchesGrid` matched at 100% (26 insns, 2 builds; `base_1.i`
 `f856884c7efe4d1ed91fca47e758638a65e150296eb27e11818dc915233b421e`). The m2c seed
 scored 49.19% with `regs=24 insert=6 delete=6` — a right-shape, wrong-addresses
 baseline, which is what an m2c pointer-arithmetic version of this idiom looks
@@ -146227,7 +146227,7 @@ Each arm's own `i = 1` is in the same label-free stretch as the `+ 1`, so
 `reload_cse_simplify_operands` rewrites the constant to `$s0`. reorg still
 hoists the shared `li $s0,1` into the branch's delay slot, and the entry test
 of each `for` folds away because `1 < 0x13`.
-## A barrier between a loop body's trailing copy and the latch is an early `continue` that repeats the copy (func_actor_403000_80132AE0, 2026-09-27)
+## A barrier between a loop body's trailing copy and the latch is an early `continue` that repeats the copy (_actor403000DrawFlareTrail, 2026-09-27)
 
 A trail loop ended `prevSxy = sxy; prevFlag = flag;` and matched only with
 `SCHED_BARRIER()` between the two stores. Without it the copy shares a block

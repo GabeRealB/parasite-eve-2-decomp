@@ -537,6 +537,37 @@ enum {
     ACTOR_403000_SOUND_CATCH             = 7,
 };
 
+/// Scripted command actions and the clips chained by the scripted state.
+enum {
+    ACTOR_403000_COMMAND_PLAY_CLIP27 = 4,
+    ACTOR_403000_COMMAND_PLAY_CLIP24 = 10,
+    ACTOR_403000_ANIM_COMMAND27      = 27,
+    ACTOR_403000_ANIM_COMMAND29      = 29,
+};
+
+/// Hit and death requests in the Blizzard Chaser's sound bank.
+enum {
+    ACTOR_403000_SOUND_HIT             = 0x401E0005,
+    ACTOR_403000_SOUND_DEATH_DEFAULT   = 0x401E0011,
+    ACTOR_403000_SOUND_DEATH_ALTERNATE = 0x401E0012,
+};
+
+/// Joint-local flare offset, fan geometry and projection constants.
+enum {
+    ACTOR_403000_FLARE_PART               = 4,
+    ACTOR_403000_FLARE_OFFSET_X           = -60,
+    ACTOR_403000_FLARE_OFFSET_Y           = -40,
+    ACTOR_403000_FLARE_OFFSET_Z           = 300,
+    ACTOR_403000_FLARE_TRIG_FRACTION_BITS = 12,
+    ACTOR_403000_FLARE_SECTOR_COUNT       = 8,
+    ACTOR_403000_FLARE_ANGLE_STEP         = ACTOR_TRANSFORM_ANGLE_TURN / ACTOR_403000_FLARE_SECTOR_COUNT,
+    ACTOR_403000_FLARE_RADIUS_MIN         = 30,
+    ACTOR_403000_FLARE_RADIUS_RANDOM_MASK = 15,
+    ACTOR_403000_FLARE_SCREEN_DISTANCE    = 352,
+    ACTOR_403000_FLARE_DEPTH_BIAS         = 6,
+    ACTOR_403000_FLARE_DRAW_PAGE          = getTPage(0, 1, 640, 0),
+};
+
 static void _actor403000UpdateAnimation(Task* task);
 
 static s32 _actor403000ChooseRingDirection(GfxCoord* rootCoord);
@@ -544,30 +575,17 @@ static s32 _actor403000ChooseRingDirection(GfxCoord* rootCoord);
 /// Step `coord` by the movement the first `count` records of `recs` resolve
 /// to; returns whether the actor moved on X or Z.
 
-/// Report whether the root capsule's contact table holds a live entry:
-/// the walk stops at the first empty `key` and answers 1 if any record it
-/// passed carried the 0x10 kind bits.
-static s16 func_actor_403000_8013D48C(Task* task);
+static s16 _actor403000WallProbeTouchesGrid(const Task* actorTask);
 
 static void _actor403000Exit(Task* task);
 
-/// Copy the `vx`/`vy`/`vz` of record `arg1` of the pose table into `arg0`.
-static void func_actor_403000_8013D564(SVECTOR* arg0, s32 arg1);
+static void _actor403000CopyArenaWaypoint(SVECTOR* position, s32 waypointIndex);
 
 static void _actor403000HiddenState(Task* actorTask);
 
-/// Per-frame update for the actor once its work block exists: on the frame
-/// `stateEntered` is set, reinstate the display object's buffers and restart the
-/// animation state machine on clip 0x10, then tick `stateFrame` and the playback
-/// state, and when slot 1 has `ANIMATION_SLOT_SETTLED`, raise
-/// `patrolRingDir`/`watchRingDir` and move the state machine to the patrol.
-static void func_actor_403000_8013D850(Task* arg0);
+static void _actor403000GetUpState(Task* actorTask);
 
-/// Per-frame countdown: on the frame `stateEntered` is set, reload the `stateFrame`
-/// tick from a fresh `gRandomLcgState` draw masked to 0xA..0x19, then decrement
-/// it. When the tick underflows and the enemy still has HP left
-/// (`Enemy::hp`), `state` becomes `ACTOR_403000_STATE_GET_UP`.
-static void func_actor_403000_8013D910(Task* arg0);
+static void _actor403000DownState(Task* actorTask);
 
 extern EnemyParams   D_actor_403000_8013DA00;
 extern EnemyParams   D_actor_403000_8013DA10;
@@ -584,7 +602,8 @@ extern _Actor403000MoveByStorage D_actor_403000_80158DB0;
 
 extern _Actor403000ButtonPressHoldStorage D_actor_403000_80158DD0;
 
-/// Trail history `func_actor_403000_801330D4` shifts down one slot per call,
+/// Trail history `_actor403000DrawFlareTrail` and `_actor403000RecordFlareTrail`
+/// shift down one slot per call,
 /// storing the newest position in slot 0.
 extern SVECTOR D_actor_403000_80158DF0[18];
 extern s8      D_actor_403000_80158364[45][45];
@@ -607,9 +626,9 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-static void func_actor_403000_80132AE0(GfxCoord* coord);
+static void _actor403000DrawFlareTrail(GfxCoord* flareCoord);
 static void func_actor_403000_80134F44(Task* arg0);
-static void func_actor_403000_8013D72C(Task* arg0);
+static void _actor403000ScriptedState(Task* actorTask);
 static void _actor403000DownHitState(Task* actorTask);
 static void _actor403000GrabState(Task* actorTask);
 static void _actor403000DropState(Task* actorTask);
@@ -1591,8 +1610,8 @@ _Actor403000ButtonPressHoldStorage D_actor_403000_80158DD0;
 
 SVECTOR D_actor_403000_80158DF0[18];
 
-static void                func_actor_403000_801327B0(GfxCoord* coord, SVECTOR* pos, s32 arg2);
-static void                func_actor_403000_801330D4(GfxCoord* parent);
+static void                _actor403000DrawFlare(GfxCoord* flareCoord, const SVECTOR* localPosition, s32 unusedArg);
+static void                _actor403000RecordFlareTrail(GfxCoord* flareCoord);
 static void                _actor403000UpdateTorsoSway(Task* task);
 static void                _actor403000UpdateHeadSway(Task* task);
 static void                _actor403000TickBlendedSlots(Task* task);
@@ -1601,9 +1620,8 @@ static s32                 _actor403000CanChasePlayer(Task* task, s16 actorCell,
 static void                _actor403000Spawn(Enemy* enemy, Task* task);
 static void                _actor403000SpawnHitEffects(Task* task, s16 hitYaw, s32 attackKey);
 static s32                 _actor403000CheckTargetBlast(Task* task);
-static inline s32          func_actor_403000_FindHit(SVECTOR* pos, WorldCollisionContact* records);
-static inline s16          func_actor_403000_WrapAngle(s16 angle);
-static inline void         func_actor_403000_PlaySound(Task* arg0, Enemy* enemy, s32 id);
+static inline s32          _actor403000FindAttackContact(SVECTOR* contactPosition, const WorldCollisionContact* contacts);
+static inline void         _actor403000PlaySound(const Task* actorTask, const Enemy* placementOwner, s32 soundId);
 static void                _actor403000StunnedState(Task* task);
 static void                func_actor_403000_8013603C(Task* arg0);
 static void                func_actor_403000_801365D0(Task* arg0);
@@ -1649,18 +1667,15 @@ static s32 _actor403000ApplyCommand(Task* task, s32 messageId, const ActorComman
         ACTOR_403000_COMMAND_RESET_CLIP24           = 1,
         ACTOR_403000_COMMAND_RESET_CLIP25           = 2,
         ACTOR_403000_COMMAND_RESET_CLIP26_ALTERNATE = 3,
-        ACTOR_403000_COMMAND_PLAY_CLIP27            = 4,
         ACTOR_403000_COMMAND_BURN                   = 5,
         ACTOR_403000_COMMAND_RESET_CLIP25_ALTERNATE = 6,
         ACTOR_403000_COMMAND_DISSOLVE               = 7,
-        ACTOR_403000_COMMAND_PLAY_CLIP24            = 10,
         ACTOR_403000_COMMAND_START_TURN             = 11,
         ACTOR_403000_COMMAND_SCRIPTED_DISSOLVE      = 12,
         ACTOR_403000_COMMAND_SMOLDER                = 13,
         ACTOR_403000_ANIM_COMMAND24                 = 0x18,
         ACTOR_403000_ANIM_COMMAND25                 = 0x19,
         ACTOR_403000_ANIM_COMMAND26                 = 0x1A,
-        ACTOR_403000_ANIM_COMMAND27                 = 0x1B,
         ACTOR_403000_TEXTURE_BURNED                 = 2,
         ACTOR_403000_CLUT_BURNED                    = 4,
     };
@@ -1771,172 +1786,187 @@ static s32 _actor403000ApplyCommand(Task* task, s32 messageId, const ActorComman
     return 0;
 }
 
-static void func_actor_403000_801327B0(GfxCoord* coord, SVECTOR* pos, s32 arg2)
+/// Fills one additive flare sector's packet from its screen centre and radius.
+///
+/// Borrows a writable POLY_G3 packet; sector index is 0..7 and radius uses pixels.
+/// Screen coordinates retain their low halfwords; trig values use Q12.
+static inline void _actor403000BuildFlareTriangle(POLY_G3* triangle, u16 screenX, u16 screenY, s32 sectorIndex, s32 screenRadius)
 {
-    s32       sxy;
-    s32       flag;
-    s32       otz;
-    POLY_G3*  prim;
-    DR_TPAGE* dr;
-    s32       radius;
-    s32       i;
-    u16       x;
-    u16       y;
+    setPolyG3(triangle);
+    setRGB0(triangle, 0xFF, 0x60, 0x60);
+    setRGB1(triangle, 0xF, 8, 8);
+    setRGB2(triangle, 0x2F, 8, 8);
+    triangle->x0 = screenX;
+    triangle->y0 = screenY;
+    setSemiTrans(triangle, 1);
+    triangle->x1 = screenX + ((rsin(sectorIndex * ACTOR_403000_FLARE_ANGLE_STEP) * screenRadius) >> ACTOR_403000_FLARE_TRIG_FRACTION_BITS);
+    triangle->y1 = screenY + ((rcos(sectorIndex * ACTOR_403000_FLARE_ANGLE_STEP) * screenRadius) >> ACTOR_403000_FLARE_TRIG_FRACTION_BITS);
+    triangle->x2 = screenX + ((rsin(sectorIndex * ACTOR_403000_FLARE_ANGLE_STEP + ACTOR_403000_FLARE_ANGLE_STEP) * screenRadius) >> ACTOR_403000_FLARE_TRIG_FRACTION_BITS);
+    triangle->y2 = screenY + ((rcos(sectorIndex * ACTOR_403000_FLARE_ANGLE_STEP + ACTOR_403000_FLARE_ANGLE_STEP) * screenRadius) >> ACTOR_403000_FLARE_TRIG_FRACTION_BITS);
+}
 
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    gte_SetRotMatrix(&coord->workm);
-    gte_SetTransMatrix(&coord->workm);
-    gte_ldv0(pos);
+/// Draws the neck flare as eight additive Gouraud triangles around a projected point.
+///
+/// Borrows a live coordinate chain and a local XYZ point in game units; composition
+/// is invalidated and refreshed. Accepted projections must have positive quarter
+/// depth and a valid ordering-table slot. The radius jitters over 30..45 game
+/// units and uses a fixed 352-pixel projection distance. Screen coordinates retain
+/// their low halfwords. Requires space for eight POLY_GT3/DR_MODE reservations;
+/// only POLY_G3/DR_TPAGE packets are written. `unusedArg` is ignored.
+static void _actor403000DrawFlare(GfxCoord* flareCoord, const SVECTOR* localPosition, s32 unusedArg)
+{
+    s32       screenPosition;
+    s32       projectionFlags;
+    s32       quarterDepth;
+    POLY_G3*  triangle;
+    DR_TPAGE* drawPage;
+    s32       screenRadius;
+    s32       sectorIndex;
+    u16       screenX;
+    u16       screenY;
+
+    // Project the local flare centre before consuming randomness or GPU storage.
+    flareCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(flareCoord);
+    gte_SetRotMatrix(&flareCoord->workm);
+    gte_SetTransMatrix(&flareCoord->workm);
+    gte_ldv0(localPosition);
     gte_rtps();
-    gte_stsxy(&sxy);
-    gte_stflg(&flag);
-    gte_stszotz(&otz);
-    if (flag >= 0) {
-        x               = sxy;
-        y               = sxy >> 16;
+    gte_stsxy(&screenPosition);
+    gte_stflg(&projectionFlags);
+    gte_stszotz(&quarterDepth);
+    if (projectionFlags >= 0) {
+        screenX         = screenPosition;
+        screenY         = screenPosition >> 16;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        radius          = (s32)(((gRandomLcgState >> 16) & 0xF) + 0x1E) * 0x160 / (otz * 4);
-        for (i = 0; i < 8; i++) {
-            prim = gGpuPrimCursor;
+        screenRadius    = (s32)(((gRandomLcgState >> 16) & ACTOR_403000_FLARE_RADIUS_RANDOM_MASK) + ACTOR_403000_FLARE_RADIUS_MIN) * ACTOR_403000_FLARE_SCREEN_DISTANCE / (quarterDepth * 4);
+        for (sectorIndex = 0; sectorIndex < ACTOR_403000_FLARE_SECTOR_COUNT; sectorIndex++) {
+            triangle = gGpuPrimCursor;
             // Preserve the textured-triangle-sized reservation for this gouraud packet.
-            gGpuPrimCursor = (u8*)prim + sizeof(POLY_GT3);
-            setPolyG3(prim);
-            setRGB0(prim, 0xFF, 0x60, 0x60);
-            setRGB1(prim, 0xF, 8, 8);
-            setRGB2(prim, 0x2F, 8, 8);
-            prim->x0 = x;
-            prim->y0 = y;
-            setSemiTrans(prim, 1);
-            prim->x1 = x + ((rsin(i << 9) * radius) >> 12);
-            prim->y1 = y + ((rcos(i << 9) * radius) >> 12);
-            prim->x2 = x + ((rsin(i * 0x200 + 0x200) * radius) >> 12);
-            prim->y2 = y + ((rcos(i * 0x200 + 0x200) * radius) >> 12);
-            addPrim(&gGpuCurrentOt[(otz - 6) >> 4], prim);
-            dr = gGpuPrimCursor;
+            gGpuPrimCursor = (u8*)triangle + sizeof(POLY_GT3);
+            _actor403000BuildFlareTriangle(triangle, screenX, screenY, sectorIndex, screenRadius);
+            addPrim(&gGpuCurrentOt[(quarterDepth - ACTOR_403000_FLARE_DEPTH_BIAS) >> 4], triangle);
+            drawPage = gGpuPrimCursor;
             // Preserve the draw-mode-sized reservation for this texture-page packet.
-            gGpuPrimCursor = (u8*)dr + sizeof(DR_MODE);
-            setDrawTPage(dr, 0, 0, 0x2A);
-            addPrim(&gGpuCurrentOt[(otz - 6) >> 4], dr);
+            gGpuPrimCursor = (u8*)drawPage + sizeof(DR_MODE);
+            setDrawTPage(drawPage, 0, 0, ACTOR_403000_FLARE_DRAW_PAGE);
+            addPrim(&gGpuCurrentOt[(quarterDepth - ACTOR_403000_FLARE_DEPTH_BIAS) >> 4], drawPage);
         }
     }
 }
 
-static void func_actor_403000_80132AE0(GfxCoord* parent)
+/// Shifts history and samples the joint-local flare offset using caller-owned scratch.
+///
+/// `trailScratch` is a stable pointer to writable trail scratch; `jointCoord` is
+/// a stable live flare-joint pointer. `sampleIndex` is a writable s16 lvalue used
+/// only as the loop counter. Arguments must have no side effects and are evaluated
+/// repeatedly except `jointCoord`, evaluated once. Captures no other caller locals,
+/// changes the emitter/cache and XYZ history, and reserves no scratch or GPU storage.
+/// Forms one compound statement; callers supply the semicolon.
+#define ACTOR_403000_SAMPLE_FLARE_TRAIL(trailScratch, jointCoord, sampleIndex)                                                                                                   \
+    {                                                                                                                                                                            \
+        for ((sampleIndex) = 0; (sampleIndex) < ARRAY_SIZE(D_actor_403000_80158DF0) - 1; (sampleIndex)++) {                                                                      \
+            D_actor_403000_80158DF0[ARRAY_SIZE(D_actor_403000_80158DF0) - 1 - (sampleIndex)] = D_actor_403000_80158DF0[ARRAY_SIZE(D_actor_403000_80158DF0) - 2 - (sampleIndex)]; \
+        }                                                                                                                                                                        \
+        gfxSetRotIdentity(&(trailScratch)->emitter.coord);                                                                                                                       \
+        (trailScratch)->emitter.coord.t[0]   = ACTOR_403000_FLARE_OFFSET_X;                                                                                                      \
+        (trailScratch)->emitter.coord.t[1]   = ACTOR_403000_FLARE_OFFSET_Y;                                                                                                      \
+        (trailScratch)->emitter.coord.t[2]   = ACTOR_403000_FLARE_OFFSET_Z;                                                                                                      \
+        (trailScratch)->emitter.parent       = (jointCoord);                                                                                                                     \
+        (trailScratch)->emitter.composeStamp = GRAPHICS_COORD_DIRTY;                                                                                                             \
+        actorRenderComposeCoord(&(trailScratch)->emitter);                                                                                                                       \
+        (trailScratch)->emitterPos.vz = 0;                                                                                                                                       \
+        (trailScratch)->emitterPos.vy = 0;                                                                                                                                       \
+        (trailScratch)->emitterPos.vx = 0;                                                                                                                                       \
+        _actorRenderTransformLocalPointToWorld(&(trailScratch)->emitter, &(trailScratch)->emitterPos);                                                                           \
+        D_actor_403000_80158DF0[0].vx = (trailScratch)->emitterPos.vx;                                                                                                           \
+        D_actor_403000_80158DF0[0].vy = (trailScratch)->emitterPos.vy;                                                                                                           \
+        D_actor_403000_80158DF0[0].vz = (trailScratch)->emitterPos.vz;                                                                                                           \
+    }
+
+/// Records the flare's world position and draws its fading additive ribbon.
+///
+/// Borrows the live flare joint and its acyclic chain through `gGfxViewCoord`.
+/// Shifts all 18 history points, sampling (-60, -40, 300) in joint coordinates;
+/// an incomplete chain records zero. Each parent step narrows XYZ to halfwords.
+/// Reserves one scratch block and 18 POLY_FT4 packets, including skipped points.
+/// Adjacent accepted projections make a strip with a 50-game-unit half width;
+/// its first sample seeds the previous point. Releases the scratch block.
+static void _actor403000DrawFlareTrail(GfxCoord* flareCoord)
 {
+    enum {
+        ACTOR_403000_TRAIL_HALF_WIDTH    = 50,
+        ACTOR_403000_TRAIL_DEPTH_BIAS    = 10,
+        ACTOR_403000_TRAIL_OT_INDEX_MASK = 0x3FF,
+        ACTOR_403000_TRAIL_TEXTURE_PAGE  = getTPage(0, 1, 960, 256),
+        ACTOR_403000_TRAIL_CLUT          = getClut(272, 241),
+    };
+
     _Actor403000TrailScratch* scratch;
-    GfxCoord*                 walker;
-    SVECTOR*                  pos;
-    s16                       i;
-    POLY_FT4*                 prim;
-    SVECTOR*                  n;
+    s16                       historyIndex;
+    POLY_FT4*                 quad;
+    SVECTOR*                  edgeOffset;
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000TrailScratch);
-    for (i = 0; i < 17; i++) {
-        D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
-    }
-    gfxSetRotIdentity(&scratch->emitter.coord);
-    scratch->emitter.coord.t[0]   = -0x3C;
-    scratch->emitter.coord.t[1]   = -0x28;
-    scratch->emitter.coord.t[2]   = 0x12C;
-    scratch->emitter.parent       = parent;
-    scratch->emitter.composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&scratch->emitter);
-    walker                 = &scratch->emitter;
-    pos                    = &scratch->emitterPos;
-    scratch->emitterPos.vz = 0;
-    scratch->emitterPos.vy = 0;
-    scratch->emitterPos.vx = 0;
-    {
-        SVECTOR local;
-        VECTOR  result;
-        s32     flag;
-
-        local.vx = 0;
-        local.vy = pos->vy;
-        local.vz = pos->vz;
-        while (1) {
-            if (walker->parent == NULL)
-                break;
-            if (walker != &gGfxViewCoord) {
-                gte_SetTransMatrix(&walker->coord);
-                gte_SetRotMatrix(&walker->coord);
-                gte_ldv0(&local);
-                gte_rtv0tr();
-                gte_stlvnl(&result);
-                gte_stflg(&flag);
-                local.vx = result.vx;
-                local.vy = result.vy;
-                local.vz = result.vz;
-                walker   = walker->parent;
-                continue;
-            }
-            pos->vx = local.vx;
-            pos->vy = local.vy;
-            pos->vz = local.vz;
-            break;
-        }
-    }
-    D_actor_403000_80158DF0[0].vx = scratch->emitterPos.vx;
-    D_actor_403000_80158DF0[0].vy = scratch->emitterPos.vy;
-    D_actor_403000_80158DF0[0].vz = scratch->emitterPos.vz;
-    for (i = 0; i < 18; i++) {
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
+    ACTOR_403000_SAMPLE_FLARE_TRAIL(scratch, flareCoord, historyIndex);
+    // Reserve every history slot; only adjacent accepted projections form quads.
+    for (historyIndex = 0; historyIndex < ARRAY_SIZE(D_actor_403000_80158DF0); historyIndex++) {
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(&D_actor_403000_80158DF0[i]);
+        gte_ldv0(&D_actor_403000_80158DF0[historyIndex]);
         gte_rtps();
         gte_stsxy(&scratch->screen.word);
         gte_stdp(&scratch->depthCue);
         gte_stflg(&scratch->projectionFlags);
         gte_stszotz(&scratch->otz);
-        if (i == 0 || scratch->projectionFlags < 0) {
+        if (historyIndex == 0 || scratch->projectionFlags < 0) {
             scratch->prevScreen.word     = scratch->screen.word;
             scratch->prevProjectionFlags = scratch->projectionFlags;
             continue;
         }
-        n                      = &scratch->edgeOffset;
+        edgeOffset             = &scratch->edgeOffset;
         scratch->edgeOffset.vz = 0;
         scratch->edgeOffset.vx = scratch->screen.xy.vy - scratch->prevScreen.xy.vy;
         scratch->edgeOffset.vy = scratch->prevScreen.xy.vx - scratch->screen.xy.vx;
-        VectorNormalSS(n, n);
+        VectorNormalSS(edgeOffset, edgeOffset);
         if (scratch->otz > 0) {
-            gte_lddp((gDisplayState.screenDistance * 50 / scratch->otz) >> 2);
-            gte_ldsv(n);
+            gte_lddp((gDisplayState.screenDistance * ACTOR_403000_TRAIL_HALF_WIDTH / scratch->otz) >> 2);
+            gte_ldsv(edgeOffset);
             gte_gpf12();
-            gte_stsv(n);
+            gte_stsv(edgeOffset);
         }
-        prim->x2 = scratch->screen.xy.vx + scratch->edgeOffset.vx;
-        prim->y2 = scratch->screen.xy.vy + scratch->edgeOffset.vy;
-        prim->x3 = scratch->screen.xy.vx - scratch->edgeOffset.vx;
-        prim->y3 = scratch->screen.xy.vy - scratch->edgeOffset.vy;
+        quad->x2 = scratch->screen.xy.vx + scratch->edgeOffset.vx;
+        quad->y2 = scratch->screen.xy.vy + scratch->edgeOffset.vy;
+        quad->x3 = scratch->screen.xy.vx - scratch->edgeOffset.vx;
+        quad->y3 = scratch->screen.xy.vy - scratch->edgeOffset.vy;
         if (scratch->prevProjectionFlags >= 0) {
-            if (i != 1) {
-                POLY_FT4* prev = prim - 1;
+            if (historyIndex != 1) {
+                POLY_FT4* previousQuad = quad - 1;
 
-                GPU_PRIMITIVE_XY_WORD(prim, 0) = GPU_PRIMITIVE_XY_WORD(prev, 2);
-                GPU_PRIMITIVE_XY_WORD(prim, 1) = GPU_PRIMITIVE_XY_WORD(prev, 3);
+                GPU_PRIMITIVE_XY_WORD(quad, 0) = GPU_PRIMITIVE_XY_WORD(previousQuad, 2);
+                GPU_PRIMITIVE_XY_WORD(quad, 1) = GPU_PRIMITIVE_XY_WORD(previousQuad, 3);
             } else {
-                prim->x0 = scratch->prevScreen.xy.vx + scratch->edgeOffset.vx;
-                prim->y0 = scratch->prevScreen.xy.vy + scratch->edgeOffset.vy;
-                prim->x1 = scratch->prevScreen.xy.vx - scratch->edgeOffset.vx;
-                prim->y1 = scratch->prevScreen.xy.vy - scratch->edgeOffset.vy;
+                quad->x0 = scratch->prevScreen.xy.vx + scratch->edgeOffset.vx;
+                quad->y0 = scratch->prevScreen.xy.vy + scratch->edgeOffset.vy;
+                quad->x1 = scratch->prevScreen.xy.vx - scratch->edgeOffset.vx;
+                quad->y1 = scratch->prevScreen.xy.vy - scratch->edgeOffset.vy;
             }
-            prim->u2                          = 4;
-            prim->u0                          = 4;
-            prim->u3                          = 5;
-            prim->u1                          = 5;
-            prim->v1                          = 7;
-            prim->v0                          = 7;
-            prim->v3                          = 8;
-            prim->v2                          = 8;
-            prim->tpage                       = 0x3F;
-            prim->clut                        = 0x3C51;
-            GPU_PRIMITIVE_COLOR_WORD(prim, 0) = ((17 - i) * 4) & 0xFF;
-            setlen(prim, 9);
-            prim->code = 0x2E;
-            addPrim(&gGpuCurrentOt[(((u32)(scratch->otz - 10) << gDisplayState.otDepthShift) >> 4) & 0x3FF], prim);
+            quad->u2                          = 4;
+            quad->u0                          = 4;
+            quad->u3                          = 5;
+            quad->u1                          = 5;
+            quad->v1                          = 7;
+            quad->v0                          = 7;
+            quad->v3                          = 8;
+            quad->v2                          = 8;
+            quad->tpage                       = ACTOR_403000_TRAIL_TEXTURE_PAGE;
+            quad->clut                        = ACTOR_403000_TRAIL_CLUT;
+            GPU_PRIMITIVE_COLOR_WORD(quad, 0) = ((ARRAY_SIZE(D_actor_403000_80158DF0) - 1 - historyIndex) * 4) & 0xFF;
+            setPolyFT4(quad);
+            setSemiTrans(quad, 1);
+            addPrim(&gGpuCurrentOt[(((u32)(scratch->otz - ACTOR_403000_TRAIL_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 4) & ACTOR_403000_TRAIL_OT_INDEX_MASK], quad);
         }
         scratch->prevScreen.word     = scratch->screen.word;
         scratch->prevProjectionFlags = scratch->projectionFlags;
@@ -1944,63 +1974,22 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000TrailScratch);
 }
 
-static void func_actor_403000_801330D4(GfxCoord* parent)
+/// Records the flare's world position while its flare and ribbon are hidden.
+///
+/// Borrows the live flare joint and its acyclic chain through `gGfxViewCoord`.
+/// Shifts the same 18-point history as the drawer and samples (-60, -40, 300)
+/// in joint coordinates; an incomplete chain records zero. Each parent step
+/// narrows XYZ to halfwords. This path retains its scratch reservation until
+/// the next frame's scratch-stack reset; it allocates no GPU packets.
+static void _actor403000RecordFlareTrail(GfxCoord* flareCoord)
 {
     _Actor403000TrailScratch* scratch;
-    GfxCoord*                 walker;
-    SVECTOR*                  pos;
-    s16                       i;
+    s16                       historyIndex;
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000TrailScratch);
-    for (i = 0; i < 17; i++) {
-        D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
-    }
-    gfxSetRotIdentity(&scratch->emitter.coord);
-    scratch->emitter.coord.t[0]   = -0x3C;
-    scratch->emitter.coord.t[1]   = -0x28;
-    scratch->emitter.parent       = parent;
-    scratch->emitter.coord.t[2]   = 0x12C;
-    scratch->emitter.composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&scratch->emitter);
-    walker                 = &scratch->emitter;
-    pos                    = &scratch->emitterPos;
-    scratch->emitterPos.vz = 0;
-    scratch->emitterPos.vy = 0;
-    scratch->emitterPos.vx = 0;
-    {
-        SVECTOR local;
-        VECTOR  result;
-        s32     flag;
-
-        local.vx = 0;
-        local.vy = pos->vy;
-        local.vz = pos->vz;
-        while (1) {
-            if (walker->parent == NULL)
-                break;
-            if (walker != &gGfxViewCoord) {
-                gte_SetTransMatrix(&walker->coord);
-                gte_SetRotMatrix(&walker->coord);
-                gte_ldv0(&local);
-                gte_rtv0tr();
-                gte_stlvnl(&result);
-                gte_stflg(&flag);
-                local.vx = result.vx;
-                local.vy = result.vy;
-                local.vz = result.vz;
-                walker   = walker->parent;
-                continue;
-            }
-            pos->vx = local.vx;
-            pos->vy = local.vy;
-            pos->vz = local.vz;
-            break;
-        }
-    }
-    D_actor_403000_80158DF0[0].vx = scratch->emitterPos.vx;
-    D_actor_403000_80158DF0[0].vy = scratch->emitterPos.vy;
-    D_actor_403000_80158DF0[0].vz = scratch->emitterPos.vz;
+    ACTOR_403000_SAMPLE_FLARE_TRAIL(scratch, flareCoord, historyIndex);
 }
+#undef ACTOR_403000_SAMPLE_FLARE_TRAIL
 
 /// Eases the torso roll and replaces the rotations of its two sway parts.
 ///
@@ -2584,10 +2573,13 @@ static s32 _actor403000ChooseRingDirection(GfxCoord* rootCoord)
     return scratch->ringDir;
 }
 
-/// Initializes and links one model-part sphere and its five contact slots.
+/// Initializes and links one model-part collision sphere and its contact table.
 ///
-/// Requires a live task-owned sphere and coordinate, in game-coordinate units.
-/// The key is an enemy-body identity; pair contacts are enabled after linking.
+/// Requires fresh task-owned storage and a live coordinate in game units; radius
+/// uses those units and `contactKey` is a packed enemy-body identity. The sphere,
+/// coordinate and embedded contacts stay live until the body is unlinked. Sets
+/// the centre to the part origin, enables pair tests after linking and initializes
+/// every contact slot. Grid tests remain disabled; `body.pos.pad` is untouched.
 static inline void _actor403000InitPartSphere(_Actor403000CollisionSphere* sphere, GfxCoord* partCoord, s32 contactKey, u16 radius)
 {
     WorldCollisionBody* body = &sphere->body;
@@ -2888,48 +2880,43 @@ static s32 _actor403000CheckTargetBlast(Task* task)
     return 0;
 }
 
-static inline s32 func_actor_403000_FindHit(SVECTOR* pos, WorldCollisionContact* records)
+/// Copies the first incoming attack's world contact point and returns its packed key.
+///
+/// Borrows a readable five-entry body contact table. Stops at the first zero key
+/// or after ACTOR_403000_BODY_CONTACT_COUNT entries. A match writes signed XYZ
+/// in game units and preserves `contactPosition->pad`; no match returns zero
+/// and leaves the output untouched. Neither pointer is retained.
+static inline s32 _actor403000FindAttackContact(SVECTOR* contactPosition, const WorldCollisionContact* contacts)
 {
-    s16 i;
-    for (i = 0; i < 5; i++) {
-        if (!records[i].key.value)
+    s16 contactIndex;
+    for (contactIndex = 0; contactIndex < ACTOR_403000_BODY_CONTACT_COUNT; contactIndex++) {
+        if (!contacts[contactIndex].key.value)
             break;
-        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].point.vx;
-            pos->vy = records[i].point.vy;
-            pos->vz = records[i].point.vz;
-            return records[i].key.value;
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            contactPosition->vx = contacts[contactIndex].point.vx;
+            contactPosition->vy = contacts[contactIndex].point.vy;
+            contactPosition->vz = contacts[contactIndex].point.vz;
+            return contacts[contactIndex].key.value;
         }
     }
     return 0;
 }
 
-static inline s16 func_actor_403000_WrapAngle(s16 angle)
+/// Queues a spatial sound with this enemy placement's sound-instance tag.
+///
+/// Borrows a live actor model and enemy; only the high placement nibble of
+/// `placeKey` is used, ORed into bits 8..15 of the packed bank/entry `soundId`.
+/// Callers supply a request with that byte clear. Pan and attenuation come
+/// from the root's audio position and narrow to signed bytes. Ignores admission
+/// failure and retains no object pointer; loaded sound resources must stay live.
+static inline void _actor403000PlaySound(const Task* actorTask, const Enemy* placementOwner, s32 soundId)
 {
-    if (angle < 0) {
-        while (1) {
-            if (angle >= -0x800)
-                break;
-            angle += 0x1000;
-        }
-    } else {
-        while (1) {
-            if (angle <= 0x800)
-                break;
-            angle -= 0x1000;
-        }
-    }
-    return angle;
-}
+    s32 requestId;
+    s32 panOffset;
 
-static inline void func_actor_403000_PlaySound(Task* arg0, Enemy* enemy, s32 id)
-{
-    s32 sound;
-    s32 pan;
-
-    sound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-    pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    requestId = ((placementOwner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundId;
+    panOffset = (s8)worldCoordGetOriginAudioPan(actorTask->extra.tmd->coords);
+    sndEvtRequestScriptStart(requestId, panOffset, (s8)worldCoordGetOriginAudioDepth(actorTask->extra.tmd->coords));
 }
 
 static void func_actor_403000_80134F44(Task* arg0)
@@ -2954,15 +2941,15 @@ static void func_actor_403000_80134F44(Task* arg0)
             return;
         }
         scratch         = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000DamageScratch);
-        scratch->hitKey = func_actor_403000_FindHit(&scratch->hitPos, work->torsoSphere.contacts);
+        scratch->hitKey = _actor403000FindAttackContact(&scratch->hitPos, work->torsoSphere.contacts);
         if (scratch->hitKey == 0) {
-            scratch->hitKey = func_actor_403000_FindHit(&scratch->hitPos, work->hindSphere.contacts);
+            scratch->hitKey = _actor403000FindAttackContact(&scratch->hitPos, work->hindSphere.contacts);
         }
         if (scratch->hitKey == 0) {
-            scratch->hitKey = func_actor_403000_FindHit(&scratch->hitPos, work->neckSphere.contacts);
+            scratch->hitKey = _actor403000FindAttackContact(&scratch->hitPos, work->neckSphere.contacts);
         }
         if (scratch->hitKey == 0) {
-            scratch->hitKey = func_actor_403000_FindHit(&scratch->hitPos, work->headCapsule.contacts);
+            scratch->hitKey = _actor403000FindAttackContact(&scratch->hitPos, work->headCapsule.contacts);
         }
         if (work->blastPuffFrames != 0) {
             work->blastPuffFrames--;
@@ -3009,12 +2996,12 @@ static void func_actor_403000_80134F44(Task* arg0)
                     work->state = ACTOR_403000_STATE_KNOCKDOWN;
                 }
                 if (arg0->extra.tmd->texturePageOffset == 0) {
-                    func_actor_403000_PlaySound(arg0, enemy, 0x401E0011);
+                    _actor403000PlaySound(arg0, enemy, ACTOR_403000_SOUND_DEATH_DEFAULT);
                 } else {
-                    func_actor_403000_PlaySound(arg0, enemy, 0x401E0012);
+                    _actor403000PlaySound(arg0, enemy, ACTOR_403000_SOUND_DEATH_ALTERNATE);
                 }
             } else {
-                func_actor_403000_PlaySound(arg0, enemy, 0x401E0005);
+                _actor403000PlaySound(arg0, enemy, ACTOR_403000_SOUND_HIT);
             }
         }
         if (scratch->hitKey != 0) {
@@ -3103,7 +3090,7 @@ static void func_actor_403000_80134F44(Task* arg0)
             scratch->hitOffset.vz = scratch->hitPos.vz - arg0->extra.tmd->coords->workm.t[2];
             yaw                   = ratan2(scratch->hitOffset.vx, scratch->hitOffset.vz);
             scratch->hitYaw       = yaw - ratan2(-arg0->extra.tmd->coords->workm.m[2][0], arg0->extra.tmd->coords->workm.m[2][2]);
-            scratch->hitYaw       = func_actor_403000_WrapAngle(scratch->hitYaw);
+            scratch->hitYaw       = _actorAngleNormalizeYaw(scratch->hitYaw);
             _actor403000SpawnHitEffects(arg0, scratch->hitYaw, scratch->hitKey);
             work->neckYaw       = 0;
             work->neckYawTarget = 0;
@@ -3127,12 +3114,12 @@ static void func_actor_403000_80134F44(Task* arg0)
                 D_actor_403000_80158D8C.command           = 3;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_403000_80158D8C, ACTOR_COMMAND_MESSAGE_APPLY);
                 if (arg0->extra.tmd->texturePageOffset == 0) {
-                    func_actor_403000_PlaySound(arg0, enemy, 0x401E0011);
+                    _actor403000PlaySound(arg0, enemy, ACTOR_403000_SOUND_DEATH_DEFAULT);
                 } else {
-                    func_actor_403000_PlaySound(arg0, enemy, 0x401E0012);
+                    _actor403000PlaySound(arg0, enemy, ACTOR_403000_SOUND_DEATH_ALTERNATE);
                 }
             } else {
-                func_actor_403000_PlaySound(arg0, enemy, 0x401E0005);
+                _actor403000PlaySound(arg0, enemy, ACTOR_403000_SOUND_HIT);
             }
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
@@ -3584,10 +3571,13 @@ static inline void _actor403000SelectRingNeighbor(_Actor403000WaypointScratch* w
     }
 }
 
-/// Advances a chase root along normalized local Z while actors are unfrozen.
+/// Advances the chase, grab or lunge root along its normalized local Z axis.
 ///
-/// `rootCoord` is live in the arena parent frame; distance is signed world
-/// units per tick. Reserves/releases one scratch SVECTOR even at distance zero.
+/// `rootCoord` is live in the arena parent frame; `distance` is signed game units
+/// per tick. Normalization uses Q12 and scaling saturates XYZ to signed halfwords.
+/// Moves only when the live save's freeze value differs from 1. An unfrozen call
+/// reserves/releases one scratch SVECTOR even at zero distance; a nonzero step
+/// invalidates composition after adding all three components.
 static inline void _actor403000AdvanceChaseRoot(GfxCoord* rootCoord, s16 distance)
 {
     SVECTOR* forwardStep;
@@ -3609,7 +3599,8 @@ static inline void _actor403000AdvanceChaseRoot(GfxCoord* rootCoord, s16 distanc
 
 /// Selects the settled downed reaction, leaving a lethal room report pending.
 ///
-/// Requires writable actor work and a live enemy. Positive health selects
+/// Requires writable actor work and a live enemy; changes only the next state
+/// and, for lethal health, the pending room-event flag. Positive health selects
 /// stunned while build-up is active, otherwise down; zero or negative health
 /// selects dissolve. The report is consumed by the later dissolve state.
 static inline void _actor403000FinishDownReaction(Actor403000Work* work, const Enemy* enemy)
@@ -3771,8 +3762,10 @@ static inline s32 _actor403000HasPlayerContact(const WorldCollisionContact* reco
 ///
 /// Requires live actor/player roots in the same parent frame and writable
 /// chase scratch. Places the actor 1350 units short of the player position
-/// along the actor's facing, then sends a borrowed placement synchronously. `playerYawOffset`
-/// uses 4096 units per turn relative to the actor; the shared record persists.
+/// along the actor's facing, then sends a borrowed placement synchronously.
+/// `playerYawOffset` uses 4096 units per turn relative to the actor; the static
+/// placement record persists and is overwritten by later catches. Reserves no
+/// scratch storage and leaves the caller's `offset` holding the alignment step.
 static inline void _actor403000AlignGrabCatch(Task* actorTask, Task* player, _Actor403000ChaseScratch* scratch, s16 playerYawOffset)
 {
     enum { ACTOR_403000_GRAB_ALIGNMENT_DISTANCE = 1350 };
@@ -5229,7 +5222,7 @@ static void _actor403000ProwlState(Task* actorTask)
 static const _Actor403000StateTable D_actor_403000_80131F44 = {
     {
         _actor403000HiddenState,
-        func_actor_403000_8013D72C,
+        _actor403000ScriptedState,
         _actor403000PatrolState,
         _actor403000WatchState,
         _actor403000TurnState,
@@ -5246,8 +5239,8 @@ static const _Actor403000StateTable D_actor_403000_80131F44 = {
         _actor403000AmbushState,
         _actor403000StunnedState,
         _actor403000KnockdownState,
-        func_actor_403000_8013D910,
-        func_actor_403000_8013D850,
+        _actor403000DownState,
+        _actor403000GetUpState,
         func_actor_403000_8013603C,
         func_actor_403000_80136B14,
         func_actor_403000_801365D0,
@@ -5454,14 +5447,14 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
             }
         }
     }
-    scratch->flareOffset.vx = -60;
-    scratch->flareOffset.vy = -40;
-    scratch->flareOffset.vz = 300;
+    scratch->flareOffset.vx = ACTOR_403000_FLARE_OFFSET_X;
+    scratch->flareOffset.vy = ACTOR_403000_FLARE_OFFSET_Y;
+    scratch->flareOffset.vz = ACTOR_403000_FLARE_OFFSET_Z;
     if (work->state != ACTOR_403000_STATE_SCRIPTED_DISSOLVE && work->state != ACTOR_403000_STATE_DISSOLVE && work->state != ACTOR_403000_STATE_SCRIPTED_BURN) {
-        func_actor_403000_801327B0(&arg1->extra.tmd->coords[4], &scratch->flareOffset, 0);
-        func_actor_403000_80132AE0(&arg1->extra.tmd->coords[4]);
+        _actor403000DrawFlare(&arg1->extra.tmd->coords[ACTOR_403000_FLARE_PART], &scratch->flareOffset, 0);
+        _actor403000DrawFlareTrail(&arg1->extra.tmd->coords[ACTOR_403000_FLARE_PART]);
     } else {
-        func_actor_403000_801330D4(&arg1->extra.tmd->coords[4]);
+        _actor403000RecordFlareTrail(&arg1->extra.tmd->coords[ACTOR_403000_FLARE_PART]);
     }
     worldCollisionClearContacts(work->rootSphere.contacts);
     worldCollisionClearContacts(work->torsoSphere.contacts);
@@ -5602,23 +5595,28 @@ static s32 _actor403000PlayAnimation(Task* task, s32 messageId, const AnimationP
     return 0;
 }
 
-static s16 func_actor_403000_8013D48C(Task* task)
+/// Returns whether the root's forward capsule has a room-grid contact.
+///
+/// Requires live actor work and an initialized contact table. Reads up to the
+/// entire capsule table, stopping at its first zero key; continues past a found
+/// grid contact. Returns 0 or 1 as a signed halfword and changes no storage.
+static s16 _actor403000WallProbeTouchesGrid(const Task* actorTask)
 {
-    Actor403000Work* work  = task->work;
-    s16              found = 0;
-    s16              i;
-    s32              value;
+    const Actor403000Work* work        = actorTask->work;
+    s16                    touchesGrid = 0;
+    s16                    contactIndex;
+    s32                    contactKey;
 
-    for (i = 0; i < ARRAY_SIZE(work->rootCapsule.contacts); i++) {
-        value = work->rootCapsule.contacts[i].key.value;
-        if (value == 0) {
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->rootCapsule.contacts); contactIndex++) {
+        contactKey = work->rootCapsule.contacts[contactIndex].key.value;
+        if (contactKey == 0) {
             break;
         }
-        if ((value & 0xFFFF0000) == 0x100000) {
-            found = 1;
+        if ((contactKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
+            touchesGrid = 1;
         }
     }
-    return found;
+    return touchesGrid;
 }
 
 /// Unlinks the four collision spheres and releases the enemy and its task.
@@ -5642,11 +5640,18 @@ static void _actor403000Exit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-static void func_actor_403000_8013D564(SVECTOR* arg0, s32 arg1)
+/// Copies XYZ from the arena waypoint storage, preserving the output's fourth halfword.
+///
+/// `waypointIndex` narrows to its low signed halfword before indexing the borrowed
+/// table, with no bounds check. The indexed record must be readable; 0..9 are
+/// established ring waypoints, and a broader logical index domain is unproven.
+/// Requires writable, halfword-aligned output separate from the table. No pointer
+/// is retained.
+static void _actor403000CopyArenaWaypoint(SVECTOR* position, s32 waypointIndex)
 {
-    arg0->vx = D_actor_403000_80158CE0[(s16)arg1].vx;
-    arg0->vy = D_actor_403000_80158CE0[(s16)arg1].vy;
-    arg0->vz = D_actor_403000_80158CE0[(s16)arg1].vz;
+    position->vx = D_actor_403000_80158CE0[(s16)waypointIndex].vx;
+    position->vy = D_actor_403000_80158CE0[(s16)waypointIndex].vy;
+    position->vz = D_actor_403000_80158CE0[(s16)waypointIndex].vz;
 }
 
 /// The enemy task's per-frame entry: runs the handler for the task's current
@@ -5717,71 +5722,99 @@ static void _actor403000DownHitState(Task* actorTask)
     }
 }
 
-static void func_actor_403000_8013D72C(Task* arg0)
+/// Clears a scripted color matrix's twelve values, preserving its alignment bytes.
+///
+/// `colorMatrix` must be a stable writable MATRIX lvalue without side effects;
+/// it is evaluated twelve times. Clears translation and coefficients in descending
+/// order, captures no caller identifiers, and forms one compound statement.
+#define ACTOR_403000_CLEAR_SCRIPTED_COLOR(colorMatrix) \
+    {                                                  \
+        (colorMatrix).t[2]    = 0;                     \
+        (colorMatrix).t[1]    = 0;                     \
+        (colorMatrix).t[0]    = 0;                     \
+        (colorMatrix).m[2][2] = 0;                     \
+        (colorMatrix).m[2][1] = 0;                     \
+        (colorMatrix).m[2][0] = 0;                     \
+        (colorMatrix).m[1][2] = 0;                     \
+        (colorMatrix).m[1][1] = 0;                     \
+        (colorMatrix).m[1][0] = 0;                     \
+        (colorMatrix).m[0][2] = 0;                     \
+        (colorMatrix).m[0][1] = 0;                     \
+        (colorMatrix).m[0][0] = 0;                     \
+    }
+
+/// Plays a requested scripted clip with command-specific darkening and clip chaining.
+///
+/// Requires live actor work/model/enemy and a populated requested clip. Entry
+/// suspends lock-on, restores model buffers, restarts at normal rate, zeroes the
+/// foreleg/neck yaw targets and enables root grid tests, then returns after one
+/// animation tick. Later ticks darken the color matrix for command 10 or chain
+/// command 4's settled clip 27 into 29. Owns no additional scratch storage.
+static void _actor403000ScriptedState(Task* actorTask)
 {
     Enemy*           enemy;
     Actor403000Work* work;
-    TmdObject*       obj;
+    TmdObject*       model;
 
-    work = arg0->work;
+    work = actorTask->work;
     if (work->stateEntered != 0) {
-        obj                   = arg0->extra.tmd;
-        enemy                 = arg0->spawnArg2.pointer;
+        model                 = actorTask->extra.tmd;
+        enemy                 = actorTask->spawnArg2.pointer;
         work->lockOnSuspended = 1;
         worldTargetDisableNodeLockOn(&enemy->node);
-        obj->flags = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->animRate               = 0x10;
+        model->flags = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->animRate               = ANIMATION_RATE_ONE;
         work->animStart              = ACTOR_403000_ANIM_RESTART;
         work->forelegYawTarget       = 0;
         work->neckYawTarget          = 0;
         work->rootSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actor403000UpdateAnimation(arg0);
+        _actor403000UpdateAnimation(actorTask);
         return;
     }
-    _actor403000UpdateAnimation(arg0);
-    if (work->lastCommandId == 0xA) {
-        work->color.t[2]    = 0;
-        work->color.t[1]    = 0;
-        work->color.t[0]    = 0;
-        work->color.m[2][2] = 0;
-        work->color.m[2][1] = 0;
-        work->color.m[2][0] = 0;
-        work->color.m[1][2] = 0;
-        work->color.m[1][1] = 0;
-        work->color.m[1][0] = 0;
-        work->color.m[0][2] = 0;
-        work->color.m[0][1] = 0;
-        work->color.m[0][0] = 0;
+    _actor403000UpdateAnimation(actorTask);
+    // Command effects start after entry; preserve the descending matrix stores.
+    if (work->lastCommandId == ACTOR_403000_COMMAND_PLAY_CLIP24) {
+        ACTOR_403000_CLEAR_SCRIPTED_COLOR(work->color);
     }
-    if (work->lastCommandId == 4 && work->requestedAnimId == 0x1B && (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
-        work->requestedAnimId = 0x1D;
+    if (work->lastCommandId == ACTOR_403000_COMMAND_PLAY_CLIP27 && work->requestedAnimId == ACTOR_403000_ANIM_COMMAND27 && (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+        work->requestedAnimId = ACTOR_403000_ANIM_COMMAND29;
         work->animStart       = ACTOR_403000_ANIM_RESTART;
     }
 }
+#undef ACTOR_403000_CLEAR_SCRIPTED_COLOR
 
-static void func_actor_403000_8013D850(Task* arg0)
+/// Plays the get-up clip and resumes patrol when it settles.
+///
+/// Requires live actor work/model. Entry restores drawing buffers, the 1000-unit
+/// torso sphere and root grid tests, enables automatic lock-on, blends into clip
+/// 16 at normal rate and removes the overlay flinch. Entry ticks animation twice;
+/// later frames tick once. Settling sets both watch and patrol directions to +1.
+static void _actor403000GetUpState(Task* actorTask)
 {
-    Actor403000Work* work;
-    TmdObject*       obj;
+    enum { ACTOR_403000_CLIP_GET_UP = 16 };
 
-    work = arg0->work;
+    Actor403000Work* work;
+    TmdObject*       model;
+
+    work = actorTask->work;
     if (work->stateEntered != 0) {
-        obj                   = arg0->extra.tmd;
+        model                 = actorTask->extra.tmd;
         work->lockOnSuspended = 0;
-        obj->flags            = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->torsoSphere.body.radius = 0x3E8;
+        model->flags          = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->torsoSphere.body.radius = ACTOR_403000_ACTIVE_TORSO_RADIUS;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->overlayActive           = 0;
-        work->requestedAnimId         = 0x10;
+        work->requestedAnimId         = ACTOR_403000_CLIP_GET_UP;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actor403000UpdateAnimation(arg0);
+        _actor403000UpdateAnimation(actorTask);
         work->stateFrame = 0;
     }
+    // Entry also reaches this tick, so playback advances twice on its first frame.
     work->stateFrame++;
-    _actor403000UpdateAnimation(arg0);
+    _actor403000UpdateAnimation(actorTask);
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         work->watchRingDir  = 1;
         work->patrolRingDir = 1;
@@ -5789,23 +5822,34 @@ static void func_actor_403000_8013D850(Task* arg0)
     }
 }
 
-static void func_actor_403000_8013D910(Task* arg0)
+/// Counts down the downed pause before a living actor starts getting up.
+///
+/// Requires live actor work and enemy. Entry consumes one random draw for a
+/// 10..25 tick countdown and decrements it immediately. The signed-halfword
+/// counter decrements on every call; only a negative result with positive HP
+/// selects GET_UP. A dead actor continues counting without changing state.
+static void _actor403000DownState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_DOWN_DELAY_MIN         = 10,
+        ACTOR_403000_DOWN_DELAY_RANDOM_MASK = 15,
+    };
+
     Actor403000Work* work;
     Enemy*           enemy;
-    u32              rng;
-    s16              timer;
+    u32              randomState;
+    s16              remainingTicks;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actorTask->work;
+    enemy = actorTask->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        rng              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState  = rng;
-        work->stateFrame = ((rng >> 16) & 0xF) + 0xA;
+        randomState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState  = randomState;
+        work->stateFrame = ((randomState >> 16) & ACTOR_403000_DOWN_DELAY_RANDOM_MASK) + ACTOR_403000_DOWN_DELAY_MIN;
     }
-    timer            = work->stateFrame - 1;
-    work->stateFrame = timer;
-    if (timer < 0 && enemy->hp > 0) {
+    remainingTicks   = work->stateFrame - 1;
+    work->stateFrame = remainingTicks;
+    if (remainingTicks < 0 && enemy->hp > 0) {
         work->state = ACTOR_403000_STATE_GET_UP;
     }
 }
