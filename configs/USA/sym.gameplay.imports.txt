@@ -647,7 +647,7 @@ func_acropolis_square_801823DC = 0x801823DC; // type:func absolute:True owner=ac
 
 acropolisSquareBeaconGlowTask = 0x801825DC; // type:func absolute:True owner=acropolis_square
 
-acropolisWestElevatorHallBayLightingTask = 0x8017F990; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
+acropolisWestElevatorHallBayLightingTask = 0x8017F990; // type:func absolute:True owner=acropolis_west_elevator_hall
 
 acropolisWestElevatorHallRedBeaconTask = 0x8017FAE8; // type:func absolute:True owner=acropolis_west_elevator_hall
 
@@ -715,13 +715,13 @@ dryfieldNightDilapidatedHouseDrawLightPrismsTask = 0x8017E670; // type:func abso
 func_dryfield_night_driveway_8017DD8C = 0x8017DD8C; // type:func absolute:True owner=dryfield_night_driveway shared=rooms
 
 
-func_dryfield_night_gas_station_80180E9C = 0x80180E9C; // type:func absolute:True owner=dryfield_night_gas_station
+dryfieldNightGasStationAmbientEffectsTask = 0x80180E9C; // type:func absolute:True owner=dryfield_night_gas_station
 
 dryfieldNightGasStationRoomVisualEffectsFlashTask = 0x80181D80; // type:func absolute:True owner=dryfield_night_gas_station
 
 dryfieldNightGasStationRoomVisualEffectsTwinTrailTask = 0x801827E4; // type:func absolute:True owner=dryfield_night_gas_station
 
-func_dryfield_night_gas_station_801830CC = 0x801830CC; // type:func absolute:True owner=dryfield_night_gas_station
+dryfieldNightGasStationRoomVisualEffectsSparkBurstTask = 0x801830CC; // type:func absolute:True owner=dryfield_night_gas_station
 
 dryfieldNightJunkYardDrawGlowsTask = 0x8017DA14; // type:func absolute:True owner=dryfield_night_junk_yard shared=rooms
 
@@ -1701,7 +1701,7 @@ func_dryfield_trailer_coach_80181364 = 0x80181364; // type:func absolute:True ow
 
 func_dryfield_motel_room_6_8017EA58 = 0x8017EA58; // type:func absolute:True owner=dryfield_motel_room_6
 
-func_dryfield_night_gas_station_8017E9F8 = 0x8017E9F8; // type:func absolute:True owner=dryfield_night_gas_station shared=rooms
+dryfieldNightGasStationTelephoneMenuTask = 0x8017E9F8; // type:func absolute:True owner=dryfield_night_gas_station shared=rooms
 
 func_dryfield_night_motel_lobby_8017EAE0 = 0x8017EAE0; // type:func absolute:True owner=dryfield_night_motel_lobby shared=rooms
 

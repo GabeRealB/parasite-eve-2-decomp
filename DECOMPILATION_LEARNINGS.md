@@ -4773,7 +4773,7 @@ above, extended to identical multi-instruction call blocks.
 
 ### The arm that differs caps how far jump2 walks back
 
-`func_dryfield_night_gas_station_80180604` is a three-case switch whose arms all
+`_dryfieldNightGasStationSetCutsceneFlash` is a three-case switch whose arms all
 end `effectSpawn(0x600E0, coord, arg2, &offset); <notify>(1);` with only `arg2`
 and the offset vector differing, and the target keeps **three** `jal
 effectSpawn` sites. Writing the notify value through a local -
@@ -87413,7 +87413,7 @@ transcription, 89.46%), `base_2.i`
 for-loop, 100%).
 ## Two stores of one constant: source order picks the delay slot *and* its register
 
-`func_dryfield_night_gas_station_8017FA6C` raises two globals to 1 and then
+`_dryfieldNightGasStationStartJerryCanCutsceneTask` raises two globals to 1 and then
 calls `SetDispMask(0)`. The m2c baseline is already the match:
 
 ```c
@@ -87486,7 +87486,7 @@ the increment has to be written as a fresh read of the field.
 
 ## A masked `s16` load is `lhu`: the stride and the width in an m2c array seed are independent guesses
 
-m2c seeded `func_dryfield_night_gas_station_80180A60` with the room's vector
+m2c seeded `_dryfieldNightGasStationSpriteFlickerTask` with the room's vector
 table read as
 
 ```c
@@ -119325,7 +119325,7 @@ dereference. Why sched1's tie-break works this way was not traced. Evidence:
 
 Integrating the match also needed `rodata_head = "0x4"`: the function's jump
 table sits at `0x14` in unit 1 (see "The prepended package id…").
-## m2c spells a loop with a label and `goto`, and that loop carries no `NOTE_INSN_LOOP_BEG` — so neither `jump.c`'s loop conversion nor `loop.c`'s optimizations touch it (func_dryfield_night_gas_station_8017F7E0, 2026-09-17)
+## m2c spells a loop with a label and `goto`, and that loop carries no `NOTE_INSN_LOOP_BEG` — so neither `jump.c`'s loop conversion nor `loop.c`'s optimizations touch it (_dryfieldNightGasStationUseJerryCanMsg, 2026-09-17)
 
 m2c renders a `while` as an `if` whose body holds a label and a `goto`:
 
@@ -119349,7 +119349,7 @@ notes — key on it. The goto form is therefore an ordinary branch graph to the
 optimizer: no rotation, no invariant hoisting, no strength reduction.
 
 The symptom is a block count and a register mix, with nothing pointing at a loop.
-`func_dryfield_night_gas_station_8017F7E0` scored 85.064% (`branch=7 regs=19
+`_dryfieldNightGasStationUseJerryCanMsg` scored 85.064% (`branch=7 regs=19
 insert=2 delete=4`) at 45 instructions in 10 blocks against the target's 47 in
 11: the two constants the loop compares against stayed in pseudos *inside* the
 body, each `li` at the head of its own block, so the constants' block became part

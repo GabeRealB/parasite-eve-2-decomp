@@ -142,7 +142,7 @@ static UiList Telephone_Data_80181C6C;
 static UiObjectDesc Telephone_Data_80181CAC;
 static UiObjectDesc Telephone_Data_80181CC8;
 
-/// The list shown by `func_dryfield_night_gas_station_8017E9F8`.
+/// The list shown by `dryfieldNightGasStationTelephoneMenuTask`.
 static UiList Telephone_Data_80181CF4;
 
 // Message-table callbacks use the argument views required by this TU.
@@ -198,7 +198,7 @@ extern Task* D_dryfield_night_gas_station_801907AC;
 static void _dryfieldNightGasStationResetCutsceneObstacleCollision(s32 displaceObstacle);
 static void _dryfieldNightGasStationDrawTrackRedStreak(s32 frameIndex);
 static void _dryfieldNightGasStationDrawCompanionRedStreak(s32 unusedFrame);
-static void func_dryfield_night_gas_station_80180C20(void);
+static void _dryfieldNightGasStationClearCutsceneTaskHandles(void);
 static void func_dryfield_night_gas_station_80180D1C(void);
 static void _dryfieldNightGasStationSetFlickerSpritesVisible(s16 visible);
 
@@ -245,6 +245,21 @@ enum {
 enum {
     DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_OFF,
     DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON
+};
+
+/// Progress values controlling the actor event and its deferred follow-up scene.
+enum {
+    DRYFIELD_NIGHT_GAS_STATION_PROGRESS_INITIAL,
+    DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_PENDING,
+    DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_STARTED
+};
+
+/// Script selectors for the three flashes around placed actor 2; other values hide them.
+enum {
+    DRYFIELD_NIGHT_GAS_STATION_FLASH_OFF = -1,
+    DRYFIELD_NIGHT_GAS_STATION_FLASH_FIRST,
+    DRYFIELD_NIGHT_GAS_STATION_FLASH_SECOND,
+    DRYFIELD_NIGHT_GAS_STATION_FLASH_THIRD
 };
 
 static void _dryfieldNightGasStationCompanionHeadAimTask(Task* task);
@@ -297,7 +312,7 @@ extern ActorTransform             D_dryfield_night_gas_station_801889C4;
 extern ActorTransform             D_dryfield_night_gas_station_80188AF4;
 extern ActorTransform             D_dryfield_night_gas_station_80188B0C;
 extern TaskDesc                   Actor00100_D1BA84;
-void                              func_dryfield_night_gas_station_80180604(s32);
+static void                       _dryfieldNightGasStationSetCutsceneFlash(s32 flashIndex);
 static void                       _dryfieldNightGasStationStageSceneAudioStart(void);
 static void                       _dryfieldNightGasStationEnqueueScenePlayback(void);
 static void                       _dryfieldNightGasStationFinishScenePlayback(void);
@@ -310,34 +325,34 @@ static void                       _dryfieldNightGasStationStopRedStreakTask(void
 void                              func_dryfield_night_gas_station_80180A00(void);
 static void                       _dryfieldNightGasStationStopSpriteFlicker(void);
 void                              func_dryfield_night_gas_station_80180B04(void);
-void                              func_dryfield_night_gas_station_80180B38(void);
+static void                       _dryfieldNightGasStationStopCompanionRedStreakTask(void);
 static void                       _dryfieldNightGasStationCancelCutsceneEffects(void);
 static void                       _dryfieldNightGasStationSetCutsceneSpritesHidden(s32 hiddenArgumentWord);
 
 extern AnimationPlayRequest D_dryfield_night_gas_station_80184084;
 static void                 _dryfieldNightGasStationSetPlayerUpdateHold(u8 holdPlayerUpdate);
 
-s32 func_dryfield_night_gas_station_8017F7E0(Task*, s32, s32, s32);
-s32 func_dryfield_night_gas_station_8017F89C(Task*, s32, s32, s32);
-s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3);
-s32 func_dryfield_night_gas_station_8017F9E8(Task*, s32, s32, s32);
+static s32 _dryfieldNightGasStationUseJerryCanMsg(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_dryfield_night_gas_station_8017F89C(Task*, s32, s32, s32);
+static s32 _dryfieldNightGasStationCompanionActionMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32 _dryfieldNightGasStationArmFollowupSceneMsg(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-void func_dryfield_night_gas_station_8017FA6C(Task*);
+static void _dryfieldNightGasStationStartJerryCanCutsceneTask(Task* task);
 
 #include "../../shared/telephone_data.inc.c"
 
 TaskMessageEntry D_dryfield_night_gas_station_80184034[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGasStationMsg },
-    { 5105, func_dryfield_night_gas_station_8017F7E0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_gas_station_8017F990 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightGasStationUseJerryCanMsg },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightGasStationCompanionActionMsg },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_gas_station_8017F89C },
     { ROOM_MESSAGE_SOUND, _gasStationCueSoundMsg },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_dryfield_night_gas_station_8017F9E8 },
+    { ROOM_MESSAGE_ACTOR_EVENT, _dryfieldNightGasStationArmFollowupSceneMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_gas_station_8018406C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_gas_station_8017FA6C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _dryfieldNightGasStationStartJerryCanCutsceneTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -735,13 +750,13 @@ SVECTOR D_dryfield_night_gas_station_80188580[100] = {
 };
 
 static void _dryfieldNightGasStationTrackRedStreakTask(Task* task);
-void        func_dryfield_night_gas_station_80180A60(Task*);
+static void _dryfieldNightGasStationSpriteFlickerTask(Task* task);
 static void _dryfieldNightGasStationCompanionRedStreakTask(Task* task);
 
 TaskDesc D_dryfield_night_gas_station_801888A0[4] = {
     { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGasStationCompanionHeadAimTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, _dryfieldNightGasStationTrackRedStreakTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_gas_station_80180A60, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGasStationSpriteFlickerTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, _dryfieldNightGasStationCompanionRedStreakTask, { .value = 0 } },
 };
 
@@ -966,21 +981,21 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationStopSpriteFlicker }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B40 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_gas_station_80180604 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneFlash }, { .value = DRYFIELD_NIGHT_GAS_STATION_FLASH_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_gas_station_80180604 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneFlash }, { .value = DRYFIELD_NIGHT_GAS_STATION_FLASH_OFF }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_gas_station_80180604 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneFlash }, { .value = DRYFIELD_NIGHT_GAS_STATION_FLASH_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_gas_station_80180604 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneFlash }, { .value = DRYFIELD_NIGHT_GAS_STATION_FLASH_OFF }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_gas_station_80180604 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneFlash }, { .value = DRYFIELD_NIGHT_GAS_STATION_FLASH_THIRD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_gas_station_80180604 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneFlash }, { .value = DRYFIELD_NIGHT_GAS_STATION_FLASH_OFF }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_gas_station_80180604 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneFlash }, { .value = DRYFIELD_NIGHT_GAS_STATION_FLASH_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_gas_station_80180604 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneFlash }, { .value = DRYFIELD_NIGHT_GAS_STATION_FLASH_OFF }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCompanionHeadAim }, { .value = DRYFIELD_NIGHT_GAS_STATION_HEAD_AIM_ON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -996,7 +1011,7 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCompanionHeadAim }, { .value = DRYFIELD_NIGHT_GAS_STATION_HEAD_AIM_OFF }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_gas_station_80180B38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationStopCompanionRedStreakTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B44 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
@@ -2462,15 +2477,15 @@ Task* D_dryfield_night_gas_station_801907A8;
 
 Task* D_dryfield_night_gas_station_801907AC;
 
-static void func_dryfield_night_gas_station_8017F41C(Task* arg0);
-static void func_dryfield_night_gas_station_8017FAEC(Task* task);
+static void _dryfieldNightGasStationInitializeRoomTask(Task* task);
+static void _dryfieldNightGasStationUpdateRoomTask(Task* task);
 
 #include "../../shared/telephone.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
-void func_dryfield_night_gas_station_8017E9F8(Task* task)
+void dryfieldNightGasStationTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }
@@ -2479,62 +2494,75 @@ void func_dryfield_night_gas_station_8017E9F8(Task* task)
 
 #undef TELEPHONE_TITLE_BYTES
 
-static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
+/// Registers the room's messages and prepares the companion and first-visit scene.
+///
+/// State zero advances to the room's update state. Recorded follow-up progress
+/// restores the companion's placement and collision-disabled pose on reentry.
+/// First entry records its objective and companion schedule even if the
+/// companion is absent; only a live companion enables the skippable intro.
+static void _dryfieldNightGasStationInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_dryfield_night_gas_station_80184034;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= 2) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
+    enum { DRYFIELD_NIGHT_GAS_STATION_INTRO_OBJECTIVE          = 0x12,
+           DRYFIELD_NIGHT_GAS_STATION_COMPANION_INTRO_SCHEDULE = 2 };
+
+    task->msgTable = D_dryfield_night_gas_station_80184034;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if ((gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_STARTED) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL)) {
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_night_gas_station_80188B0C, 0);
         companionWriteAnimationBankIndex(&D_dryfield_night_gas_station_80184098.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_gas_station_80184098, 0);
         _dryfieldNightGasStationResetCutsceneObstacleCollision(0);
     }
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_FIRST_VISIT) == 0) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_FIRST_VISIT, 1);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x12);
-        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 2);
-        func_dryfield_night_gas_station_80180C20();
-        if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_GAS_STATION_INTRO_OBJECTIVE);
+        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, DRYFIELD_NIGHT_GAS_STATION_COMPANION_INTRO_SCHEDULE);
+        _dryfieldNightGasStationClearCutsceneTaskHandles();
+        if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
             evsStartScriptWithSkip(D_dryfield_night_gas_station_801892E4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_gas_station_80189A7C);
         }
     }
-    arg0->state = (s32)(arg0->state + 1);
-    D_80115598  = 1;
+    task->state += 1;
+    // Route completed CAP room commands back through the room's sound handler.
+    D_80115598 = 1;
 }
 
 #include "../../shared/room_variants_gas_station.inc.c"
 
 #include "../../shared/gas_station_sounds_cue.inc.c"
 
-/// Message handler for msg 0x117: walks the `Gp_PendingObj4C` list looking for
-/// a room-action trigger whose `parameter0` is 0xFF and whose `hit` is set, and
-/// on a hit flips `gGameSession->eventState` / `field_68` and spawns the night gas
-/// station cutscene task. Answers 1 only when it found one.
-s32 func_dryfield_night_gas_station_8017F7E0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Tests whether the active trigger list contains a hit room-event action.
+static inline s32 _dryfieldNightGasStationHasRoomEventTriggerHit(void)
 {
-    WorldCollisionTrigger* node;
-    s32                    found;
+    const WorldCollisionTrigger* trigger;
 
-    if (arg2 == 0x117) {
-        found = 0;
-        node  = Gp_PendingObj4C;
-        while (node != NULL) {
-            if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
-                found = 1;
-                break;
-            }
-            node  = node->next;
-            found = 0;
+    trigger = Gp_PendingObj4C;
+    while (trigger != NULL) {
+        if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
+            return 1;
         }
+        trigger = trigger->next;
+    }
+    return 0;
+}
 
-        if (found != 0) {
+/// Accepts the jerry can at an active room-event trigger and starts its cutscene task.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; itemId is a collection ID, not an
+/// inventory-row index. Returns `ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE` on a hit
+/// and `ROOM_KEY_ITEM_USE_REFUSED` otherwise. Acceptance holds event handling
+/// and hides the HUD before spawning; it does not test spawn success.
+static s32 _dryfieldNightGasStationUseJerryCanMsg(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
+{
+    if (itemId == INVENTORY_COLLECTION_ID_JERRY_CAN) {
+        if (_dryfieldNightGasStationHasRoomEventTriggerHit()) {
             gGameSession->eventState = 1;
             gGameSession->hideHud    = 1;
             taskSpawnFromTableOnDefaultList(D_dryfield_night_gas_station_8018406C, 0, 0, 0);
-            return 1;
+            return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
         }
     }
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -2566,64 +2594,76 @@ s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32
     return 0;
 }
 
-/// Handler for slot-7 msg `0x13EF` in `D_dryfield_night_gas_station_80184034`:
-/// the directed action selected by `actionId` 0xE runs the room's cutscene script
-/// blob at `D_dryfield_night_gas_station_8018920C`, but only once nibble 0x63 has
-/// reached 2 and pointer slot 0xA is live.
-s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
+/// Starts the companion interaction after the follow-up scene has begun.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION`, borrowing a non-NULL request
+/// during dispatch. Only action 14 with a live companion is accepted; all
+/// paths return zero, and the other callback arguments are ignored.
+static s32 _dryfieldNightGasStationCompanionActionMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
-    if ((msg->actionId == 0xE) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= 2)) {
+    enum { DRYFIELD_NIGHT_GAS_STATION_COMPANION_ACTION = 14 };
+
+    if ((request->actionId == DRYFIELD_NIGHT_GAS_STATION_COMPANION_ACTION) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_STARTED)) {
         evsStartScript(D_dryfield_night_gas_station_8018920C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
 
-/// Arms the room's night sequence, once: while nibble 0x63 is still clear it
-/// sets that nibble, plays the script blob at
-/// `D_dryfield_night_gas_station_80188B64`, raises `gGameSession->flowFlags`
-/// bit 0x80, applies the room's area records, clears nibbles 0x62 and 0x45 and
-/// queues sound event 0x64.
-s32 func_dryfield_night_gas_station_8017F9E8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Arms the deferred follow-up scene on the room's first actor event.
+///
+/// Handles `ROOM_MESSAGE_ACTOR_EVENT`, ignoring both payload words and
+/// returning zero. Marks progress pending, restores actor animations, requests
+/// weapon re-equipping, opens the two blocked routes and fades MIDI sequence
+/// zero over 100 ticks. Further events leave that work untouched.
+static s32 _dryfieldNightGasStationArmFollowupSceneMsg(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
-        gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, 1);
+    enum { DRYFIELD_NIGHT_GAS_STATION_FOLLOWUP_MIDI_FADE_TICKS = 100 };
+
+    if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == DRYFIELD_NIGHT_GAS_STATION_PROGRESS_INITIAL) {
+        gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_PENDING);
         evsStartScript(D_dryfield_night_gas_station_80188B64, EVENT_SCRIPT_HUD_KEEP);
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         areaApplySavedUpdates(D_dryfield_night_gas_station_801907A0);
         gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED, 0);
         gameFlagSetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED, 0);
-        sndEvtRequestMidiStop(0, 0x64);
+        sndEvtRequestMidiStop(0, DRYFIELD_NIGHT_GAS_STATION_FOLLOWUP_MIDI_FADE_TICKS);
     }
     return 0;
 }
 
-/// Tears the room's scripted sequence down: raises `gGameSession->hideHud`
-/// and `D_80115768`, hides the display, clears collection bit 0x117, installs
-/// the room's two cap files, runs the 0xA2/0x16 event and kills its own task.
-void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
+/// Starts the jerry-can scene under a blank display and releases this one-shot task.
+///
+/// Holds the player's ordinary update, hides the HUD and clears the collected
+/// jerry can before starting the skippable script. Records the next objective
+/// and saved audio scene event. The script owns subsequent display and hold
+/// restoration; this bodyless task ends immediately.
+static void _dryfieldNightGasStationStartJerryCanCutsceneTask(Task* task)
 {
+    enum { DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_OBJECTIVE   = 0x16,
+           DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_AUDIO_EVENT = 4 };
+
     gGameSession->hideHud = 1;
     D_80115768            = 1;
     SetDispMask(0);
     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN);
     evsStartScriptWithSkip(D_dryfield_night_gas_station_801840AC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_gas_station_801841FC);
-    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x16);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
-    taskKill(arg0);
+    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_OBJECTIVE);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_AUDIO_EVENT;
+    taskKill(task);
 }
 
-/// Runs the room's one-shot post-sequence event: with the session still on its
-/// first mode and nibble 0x63 reading 1 — and the cutscene flag agreeing — it
-/// advances the nibble to 2 and plays the cap pair
-/// `D_dryfield_night_gas_station_80188BF4` / `_80189014`.
-static void func_dryfield_night_gas_station_8017FAEC(Task* task)
+/// Starts the pending follow-up scene once event handling and the attachment wheel are free.
+///
+/// Progress advances before starting the skippable script, preventing another
+/// room update from starting it again. The task argument is unused.
+static void _dryfieldNightGasStationUpdateRoomTask(Task* task)
 {
-    s32 temp_v0;
+    s32 progress;
 
     if (gGameSession->eventState == 0) {
-        temp_v0 = gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS);
-        if ((temp_v0 == 1) && (Gp_StateC08.mode != temp_v0)) {
-            gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, 2);
+        progress = gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS);
+        if ((progress == DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_PENDING) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL)) {
+            gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS, DRYFIELD_NIGHT_GAS_STATION_PROGRESS_FOLLOWUP_STARTED);
             evsStartScriptWithSkip(D_dryfield_night_gas_station_80188BF4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_gas_station_80189014);
         }
     }
@@ -2643,8 +2683,8 @@ static void _dryfieldNightGasStationSetPlayerUpdateHold(u8 holdPlayerUpdate)
 /// and the kill.
 static const TaskFuncTable3 D_dryfield_night_gas_station_8017D644 = {
     {
-        func_dryfield_night_gas_station_8017F41C,
-        func_dryfield_night_gas_station_8017FAEC,
+        _dryfieldNightGasStationInitializeRoomTask,
+        _dryfieldNightGasStationUpdateRoomTask,
         taskKill,
     },
 };
@@ -2891,41 +2931,46 @@ static void _dryfieldNightGasStationDrawCompanionRedStreak(s32 unusedFrame)
     }
 }
 
-/// Bursts the room's lamp effect: `arg0` picks one of three spawn-argument
-/// triples and the effect's `arg2`, the spark is spawned at the lamp task's own
-/// coordinate, and the lamp is then told to light up. Any other `arg0` only
-/// switches the lamp back to dark.
-void func_dryfield_night_gas_station_80180604(s32 arg0)
+/// Spawns a cutscene flash around placed actor 2 and shows its background flicker sprites.
+///
+/// Selectors 0..2 choose a local offset and flash size; any other selector
+/// hides the sprites. If the placed actor is absent, neither action occurs.
+/// A live actor must have a TMD root. Spawn offsets use its local coordinate
+/// units; the child snapshots placement during `effectSpawn`.
+static void _dryfieldNightGasStationSetCutsceneFlash(s32 flashIndex)
 {
-    Enemy*    enemy;
-    GfxCoord* coord;
-    SVECTOR   offset;
+    enum { DRYFIELD_NIGHT_GAS_STATION_FLASH_ANCHOR_INDEX = 2,
+           DRYFIELD_NIGHT_GAS_STATION_FIRST_FLASH_SIZE   = 0x300,
+           DRYFIELD_NIGHT_GAS_STATION_LATER_FLASH_SIZE   = 0x200 };
+    Enemy*    anchorEnemy;
+    GfxCoord* anchorCoord;
+    SVECTOR   spawnOffset;
 
-    enemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << 8) | 0x2000));
-    if (enemy != NULL) {
-        coord = enemy->task->extra.tmd->coords;
-        switch (arg0) {
-            case 0:
-                offset.vx = 0;
-                offset.vy = -0x64;
-                offset.vz = -0x12C;
-                effectSpawn(EFFECT_FLASH_BURST, coord, 0x300, &offset);
+    anchorEnemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_NIGHT_GAS_STATION_FLASH_ANCHOR_INDEX << ENEMY_PLACE_INDEX_SHIFT)));
+    if (anchorEnemy != NULL) {
+        anchorCoord = anchorEnemy->task->extra.tmd->coords;
+        switch (flashIndex) {
+            case DRYFIELD_NIGHT_GAS_STATION_FLASH_FIRST:
+                spawnOffset.vx = 0;
+                spawnOffset.vy = -0x64;
+                spawnOffset.vz = -0x12C;
+                effectSpawn(EFFECT_FLASH_BURST, anchorCoord, DRYFIELD_NIGHT_GAS_STATION_FIRST_FLASH_SIZE, &spawnOffset);
                 _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON);
                 break;
 
-            case 1:
-                offset.vx = 0xC8;
-                offset.vy = -0x64;
-                offset.vz = -0xC8;
-                effectSpawn(EFFECT_FLASH_BURST, coord, 0x200, &offset);
+            case DRYFIELD_NIGHT_GAS_STATION_FLASH_SECOND:
+                spawnOffset.vx = 0xC8;
+                spawnOffset.vy = -0x64;
+                spawnOffset.vz = -0xC8;
+                effectSpawn(EFFECT_FLASH_BURST, anchorCoord, DRYFIELD_NIGHT_GAS_STATION_LATER_FLASH_SIZE, &spawnOffset);
                 _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON);
                 break;
 
-            case 2:
-                offset.vx = -0x64;
-                offset.vy = -0x64;
-                offset.vz = -0xC8;
-                effectSpawn(EFFECT_FLASH_BURST, coord, 0x200, &offset);
+            case DRYFIELD_NIGHT_GAS_STATION_FLASH_THIRD:
+                spawnOffset.vx = -0x64;
+                spawnOffset.vy = -0x64;
+                spawnOffset.vz = -0xC8;
+                effectSpawn(EFFECT_FLASH_BURST, anchorCoord, DRYFIELD_NIGHT_GAS_STATION_LATER_FLASH_SIZE, &spawnOffset);
                 _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON);
                 break;
 
@@ -3109,30 +3154,32 @@ static void _dryfieldNightGasStationStopSpriteFlicker(void)
     }
 }
 
-/// Steps the room's blinking-light table: each tick it re-derives whether the
-/// current entry's `vx` is odd, and when that flag flips it republishes it to
-/// `_dryfieldNightGasStationSetFlickerSpritesVisible` (which switches the flicker
-/// batches between visible and hidden, hiding them when this task exits). The
-/// index runs to 100 and then wraps.
-void func_dryfield_night_gas_station_80180A60(Task* arg0)
+/// Loops the baked track's flicker flag, publishing only visibility changes.
+///
+/// Starts in state zero with killCountdown zero. The counter indexes the
+/// 100-frame track; spawnArg1.value caches inverse vx bit 0 (0 hide, 1 show).
+/// Increments narrow to signed halfwords before testing wrap. A nonzero state
+/// hides the sprites and tears down this bodyless task; its tracked room handle
+/// must already have been cleared by the stopping script callback.
+static void _dryfieldNightGasStationSpriteFlickerTask(Task* task)
 {
-    s16 temp_v0_2;
-    s32 temp_v0;
+    s16 nextFrameIndex;
+    s32 visible;
 
-    if (arg0->state == 0) {
-        temp_v0 = (D_dryfield_night_gas_station_80188580[arg0->killCountdown].vx & 1) ^ 1;
-        if (arg0->spawnArg1.value != temp_v0) {
-            arg0->spawnArg1.value = temp_v0;
-            _dryfieldNightGasStationSetFlickerSpritesVisible((s16)arg0->spawnArg1.value);
+    if (task->state == DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_TASK_RUNNING) {
+        visible = (D_dryfield_night_gas_station_80188580[task->killCountdown].vx & 1) ^ 1;
+        if (task->spawnArg1.value != visible) {
+            task->spawnArg1.value = visible;
+            _dryfieldNightGasStationSetFlickerSpritesVisible((s16)task->spawnArg1.value);
         }
-        temp_v0_2           = (u16)arg0->killCountdown + 1;
-        arg0->killCountdown = temp_v0_2;
-        if (temp_v0_2 >= 0x64) {
-            arg0->killCountdown = 0;
+        nextFrameIndex      = (u16)task->killCountdown + 1;
+        task->killCountdown = nextFrameIndex;
+        if (nextFrameIndex >= (s32)ARRAY_SIZE(D_dryfield_night_gas_station_80188580)) {
+            task->killCountdown = 0;
         }
     } else {
         _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_OFF);
-        taskKill(arg0);
+        taskKill(task);
     }
 }
 
@@ -3143,13 +3190,14 @@ void func_dryfield_night_gas_station_80180B04(void)
     D_dryfield_night_gas_station_801907A8 = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, 3, 0, 0);
 }
 
-/// Second teardown entry point for `D_dryfield_night_gas_station_801907A8`: requests the
-/// task's exit and drops the room's reference to it, exactly as
-/// `_dryfieldNightGasStationStopRedStreakTask` does.
-void func_dryfield_night_gas_station_80180B38(void)
+/// Requests deferred teardown of the cutscene's tracked companion red streak.
+///
+/// Clears the borrowed room handle immediately. The streak task releases its
+/// coordinate body on its next update; a missing handle is a no-op.
+static void _dryfieldNightGasStationStopCompanionRedStreakTask(void)
 {
     if (D_dryfield_night_gas_station_801907A8 != NULL) {
-        D_dryfield_night_gas_station_801907A8->state = -1;
+        D_dryfield_night_gas_station_801907A8->state = DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_TASK_EXIT;
         D_dryfield_night_gas_station_801907A8        = NULL;
     }
 }
@@ -3194,15 +3242,22 @@ static void _dryfieldNightGasStationCancelCutsceneEffects(void)
     roomEffectRequestCancelAll();
 }
 
-static void func_dryfield_night_gas_station_80180C20(void)
+/// Clears the three borrowed cutscene task handles before first-visit spawning.
+///
+/// Does not stop or free a task. Requires those tracked tasks to be absent.
+static void _dryfieldNightGasStationClearCutsceneTaskHandles(void)
 {
-    D_dryfield_night_gas_station_801907A4 = 0;
-    D_dryfield_night_gas_station_801907A8 = 0;
-    D_dryfield_night_gas_station_801907AC = 0;
+    D_dryfield_night_gas_station_801907A4 = NULL;
+    D_dryfield_night_gas_station_801907A8 = NULL;
+    D_dryfield_night_gas_station_801907AC = NULL;
 }
 
 /// Applies the hide flag to the background groups temporarily suppressed by the cutscene.
-static inline void _dryfieldNightGasStationWriteCutsceneSpriteVisibility(SpriteView* views, s32 hidden)
+///
+/// Borrows the night gas station's writable sprite-view table. Views 4, 12,
+/// 13, 14 and 16 must provide batches through indexes 6, 7, 7, 7 and 7.
+/// The byte flag is 0 to show or nonzero to hide; other batches stay intact.
+static inline void _dryfieldNightGasStationWriteCutsceneSpriteVisibility(SpriteView* views, u8 hidden)
 {
     SpriteBatch* batches;
 
@@ -3307,83 +3362,103 @@ static void _dryfieldNightGasStationSetFlickerSpritesVisible(s16 visible)
 #undef DRYFIELD_NIGHT_GAS_STATION_WRITE_FLICKER_SPRITE_VISIBILITY
 }
 
-/// Room effect task tick. The first tick installs the room's three effect ids
-/// and sets `roomEffectMode` to 2. Every tick it draws the anchors whose view
-/// mask includes the current view. While game flag nibble 0x63 is clear, and
-/// outside battles and events, each of the two scatter anchors rolls a jittered
-/// spawn position and one of three effects (0x60080, 0x6008D, or 0x60070 on a
-/// further 1-in-3). Once the nibble is set, and only if it was seen clear
-/// before, the anchors keep spawning 0x60070 alone on a 1-in-3.
-void func_dryfield_night_gas_station_80180E9C(Task* task)
+void dryfieldNightGasStationAmbientEffectsTask(Task* task)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
-    s32         mask;
-    s32         i;
+    // Writes move's XYZ around a room anchor using two consecutive LCG draws.
+    // Both arguments are evaluated repeatedly and must be stable, side-effect-free
+    // expressions. effectWork supplies writable EffectWork; pointIndex is 19 or 20.
+    // XYZ narrow to signed halfwords; move.pad is retained. Invoke in a braced block.
+#define DRYFIELD_NIGHT_GAS_STATION_CHOOSE_SCATTER_OFFSET(effectWork, pointIndex)                                                                                                                                     \
+    {                                                                                                                                                                                                                \
+        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                      \
+        (effectWork)->move.vx = D_dryfield_night_gas_station_80189C8C[(pointIndex)].vx - ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_GAS_STATION_SCATTER_RANDOM_MASK) + DRYFIELD_NIGHT_GAS_STATION_SCATTER_OFFSET_MAX; \
+        (effectWork)->move.vy = D_dryfield_night_gas_station_80189C8C[(pointIndex)].vy;                                                                                                                              \
+        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                      \
+        (effectWork)->move.vz = D_dryfield_night_gas_station_80189C8C[(pointIndex)].vz - ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_GAS_STATION_SCATTER_RANDOM_MASK) + DRYFIELD_NIGHT_GAS_STATION_SCATTER_OFFSET_MAX; \
+    }
 
-    // The room task animates nothing with its own effect block and reuses
-    // three members as storage: `move` is the scratch offset each spawn below
-    // is given, `scale` latches that the gas station sequence was seen not yet
-    // started, and `angle` holds the 0..2 roll choosing an anchor's effect.
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    mask  = 1 << viewGetMappedIndex();
-    if (task->state == 0) {
+    enum {
+        DRYFIELD_NIGHT_GAS_STATION_CAPSULE_ANCHOR_FIRST       = 0,
+        DRYFIELD_NIGHT_GAS_STATION_CAPSULE_ANCHOR_END         = 10,
+        DRYFIELD_NIGHT_GAS_STATION_FLARE_ANCHOR_FIRST         = 10,
+        DRYFIELD_NIGHT_GAS_STATION_SCATTER_ANCHOR_FIRST       = 19,
+        DRYFIELD_NIGHT_GAS_STATION_EXTRA_CAPSULE_VIEWS        = (1 << 2) | (1 << 3) | (1 << 13) | (1 << 14),
+        DRYFIELD_NIGHT_GAS_STATION_CAPSULE_RADIUS_SCALE       = 0x180,
+        DRYFIELD_NIGHT_GAS_STATION_CAPSULE_DIM_RGB_NIBBLES    = 0x222,
+        DRYFIELD_NIGHT_GAS_STATION_CAPSULE_BRIGHT_RGB_NIBBLES = 0x444,
+        DRYFIELD_NIGHT_GAS_STATION_FLARE_TEXTURE_INDEX        = 0,
+        DRYFIELD_NIGHT_GAS_STATION_FLARE_RADIUS_SCALE         = 0x380,
+        DRYFIELD_NIGHT_GAS_STATION_SCATTER_RANDOM_MASK        = 0x1FF,
+        DRYFIELD_NIGHT_GAS_STATION_SCATTER_OFFSET_MAX         = 0x100,
+        DRYFIELD_NIGHT_GAS_STATION_SCATTER_CHOICE_COUNT       = 3,
+        DRYFIELD_NIGHT_GAS_STATION_SCATTER_PUFF               = 0,
+        DRYFIELD_NIGHT_GAS_STATION_SCATTER_FIRE               = 1,
+        // Rising additive puff, size 0x300; fire uses the same size.
+        DRYFIELD_NIGHT_GAS_STATION_SCATTER_PUFF_ARG  = 0x10300,
+        DRYFIELD_NIGHT_GAS_STATION_SCATTER_FIRE_SIZE = 0x300,
+        // Subtractive smoke, size 0x500, three ticks/cell and default rise step 1.
+        DRYFIELD_NIGHT_GAS_STATION_SCATTER_SMOKE_ARG = 0xC0013500
+    };
+    EffectWork* work;
+    GfxCoord*   spawnCoord;
+    s32         viewMask;
+    s32         anchorIndex;
+
+    // Reuse scale as the initial-progress latch, angle as a choice and move as a spawn offset.
+    work       = task->spawnArg2.pointer;
+    spawnCoord = task->extra.coordBody->coord;
+    viewMask   = 1 << viewGetMappedIndex();
+    if (task->state == DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_TASK_RUNNING) {
         gRoomEffectFlashId               = EFFECT_DRYFIELD_NIGHT_GAS_STATION_FLASH;
         gRoomEffectTwinTrailId           = EFFECT_DRYFIELD_NIGHT_GAS_STATION_TWIN_TRAIL;
         gRoomEffectSparkBurstId          = EFFECT_DRYFIELD_NIGHT_GAS_STATION_SPARK_BURST;
         gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     }
-    for (i = 0; i < 10; i += 2) {
-        if (mask & D_dryfield_night_gas_station_80189D54[i]) {
-            _glowDrawCapsule(&D_dryfield_night_gas_station_80189C8C[i], 0x180, 0x222);
+    // Capsule pairs and individual flares use the current mapped view's bit.
+    for (anchorIndex = DRYFIELD_NIGHT_GAS_STATION_CAPSULE_ANCHOR_FIRST; anchorIndex < DRYFIELD_NIGHT_GAS_STATION_CAPSULE_ANCHOR_END; anchorIndex += 2) {
+        if (viewMask & D_dryfield_night_gas_station_80189D54[anchorIndex]) {
+            _glowDrawCapsule(&D_dryfield_night_gas_station_80189C8C[anchorIndex], DRYFIELD_NIGHT_GAS_STATION_CAPSULE_RADIUS_SCALE, DRYFIELD_NIGHT_GAS_STATION_CAPSULE_DIM_RGB_NIBBLES);
         }
     }
-    if (mask & 0x600C) {
-        _glowDrawCapsule(&D_dryfield_night_gas_station_80189D34[0], 0x180, 0x444);
-        _glowDrawCapsule(&D_dryfield_night_gas_station_80189D34[2], 0x180, 0x444);
+    if (viewMask & DRYFIELD_NIGHT_GAS_STATION_EXTRA_CAPSULE_VIEWS) {
+        _glowDrawCapsule(&D_dryfield_night_gas_station_80189D34[0], DRYFIELD_NIGHT_GAS_STATION_CAPSULE_RADIUS_SCALE, DRYFIELD_NIGHT_GAS_STATION_CAPSULE_BRIGHT_RGB_NIBBLES);
+        _glowDrawCapsule(&D_dryfield_night_gas_station_80189D34[2], DRYFIELD_NIGHT_GAS_STATION_CAPSULE_RADIUS_SCALE, DRYFIELD_NIGHT_GAS_STATION_CAPSULE_BRIGHT_RGB_NIBBLES);
     }
-    for (i = 10; i < 19; i++) {
-        if (mask & D_dryfield_night_gas_station_80189D54[i]) {
-            _glowDrawFlare(&D_dryfield_night_gas_station_80189C8C[i], 0, 0x380);
+    for (anchorIndex = DRYFIELD_NIGHT_GAS_STATION_FLARE_ANCHOR_FIRST; anchorIndex < (s32)ARRAY_SIZE(D_dryfield_night_gas_station_80189D54); anchorIndex++) {
+        if (viewMask & D_dryfield_night_gas_station_80189D54[anchorIndex]) {
+            _glowDrawFlare(&D_dryfield_night_gas_station_80189C8C[anchorIndex], DRYFIELD_NIGHT_GAS_STATION_FLARE_TEXTURE_INDEX, DRYFIELD_NIGHT_GAS_STATION_FLARE_RADIUS_SCALE);
         }
     }
-    if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
+    // Only initial progress allows fire; later visits need this task's earlier latch to emit smoke.
+    if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == DRYFIELD_NIGHT_GAS_STATION_PROGRESS_INITIAL) {
         work->scale = 1;
         if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-            for (i = 19; i < 21; i++) {
+            for (anchorIndex = DRYFIELD_NIGHT_GAS_STATION_SCATTER_ANCHOR_FIRST; anchorIndex < (s32)ARRAY_SIZE(D_dryfield_night_gas_station_80189C8C); anchorIndex++) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->angle     = (gRandomLcgState >> 16) % 3;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vx   = D_dryfield_night_gas_station_80189C8C[i].vx - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
-                work->move.vy   = D_dryfield_night_gas_station_80189C8C[i].vy;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vz   = D_dryfield_night_gas_station_80189C8C[i].vz - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
-                if (work->angle == 0) {
-                    effectSpawn(EFFECT_ADDITIVE_PUFF, coord, 0x10300, &work->move);
-                } else if (work->angle == 1) {
-                    effectSpawn(EFFECT_FIRE_BURST, coord, 0x300, &work->move);
+                work->angle     = (gRandomLcgState >> 16) % DRYFIELD_NIGHT_GAS_STATION_SCATTER_CHOICE_COUNT;
+                DRYFIELD_NIGHT_GAS_STATION_CHOOSE_SCATTER_OFFSET(work, anchorIndex);
+                if (work->angle == DRYFIELD_NIGHT_GAS_STATION_SCATTER_PUFF) {
+                    effectSpawn(EFFECT_ADDITIVE_PUFF, spawnCoord, DRYFIELD_NIGHT_GAS_STATION_SCATTER_PUFF_ARG, &work->move);
+                } else if (work->angle == DRYFIELD_NIGHT_GAS_STATION_SCATTER_FIRE) {
+                    effectSpawn(EFFECT_FIRE_BURST, spawnCoord, DRYFIELD_NIGHT_GAS_STATION_SCATTER_FIRE_SIZE, &work->move);
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                        effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xC0013500, &work->move);
+                    if ((u16)((gRandomLcgState >> 16) % DRYFIELD_NIGHT_GAS_STATION_SCATTER_CHOICE_COUNT) == 0) {
+                        effectSpawn(EFFECT_SMOKE_PUFF, spawnCoord, DRYFIELD_NIGHT_GAS_STATION_SCATTER_SMOKE_ARG, &work->move);
                     }
                 }
             }
         }
     } else if (work->scale != 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        for (i = 19; i < 21; i++) {
+        for (anchorIndex = DRYFIELD_NIGHT_GAS_STATION_SCATTER_ANCHOR_FIRST; anchorIndex < (s32)ARRAY_SIZE(D_dryfield_night_gas_station_80189C8C); anchorIndex++) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vx   = D_dryfield_night_gas_station_80189C8C[i].vx - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vy   = D_dryfield_night_gas_station_80189C8C[i].vy;
-                work->move.vz   = D_dryfield_night_gas_station_80189C8C[i].vz - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
-                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xC0013500, &work->move);
+            if ((u16)((gRandomLcgState >> 16) % DRYFIELD_NIGHT_GAS_STATION_SCATTER_CHOICE_COUNT) == 0) {
+                DRYFIELD_NIGHT_GAS_STATION_CHOOSE_SCATTER_OFFSET(work, anchorIndex);
+                effectSpawn(EFFECT_SMOKE_PUFF, spawnCoord, DRYFIELD_NIGHT_GAS_STATION_SCATTER_SMOKE_ARG, &work->move);
             }
         }
     }
+#undef DRYFIELD_NIGHT_GAS_STATION_CHOOSE_SCATTER_OFFSET
 }
 
 #include "../../shared/glow_draw_capsule.inc.c"
@@ -3408,7 +3483,7 @@ void dryfieldNightGasStationRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_dryfield_night_gas_station_801830CC(Task* task)
+void dryfieldNightGasStationRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

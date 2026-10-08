@@ -52,11 +52,41 @@ void dryfieldNightGasStationRoomVisualEffectsFlashTask(Task* task);
 /// drawing without cancelling. Requires a live effect controller and room overlay.
 void dryfieldNightGasStationRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_dryfield_night_gas_station_801830CC(Task* task);
+/// Runs the night gas station's impact flash with smoke or orange rings and bouncing sparks.
+///
+/// Starts in state zero with a coordinate body and zero-aged, counted
+/// `EffectWork` in `spawnArg2.pointer` from `effectSpawn`. Nonzero
+/// `spawnArg1.value` selects smoke; zero selects the rings and sparks.
+/// Ages 1..7 act, and age 8 releases the work and task. Room effect control
+/// pauses at nonzero values below four and cancels at four or above. Child
+/// effects own their lifetimes; the room overlay must remain loaded.
+void dryfieldNightGasStationRoomVisualEffectsSparkBurstTask(Task* task);
 
-void func_dryfield_night_gas_station_80180E9C(Task* task);
+/// Draws the room's view-selected light glows and scatters fire and smoke effects.
+///
+/// Requires a coordinate body and counted `EffectWork` in `spawnArg2.pointer`
+/// from `effectSpawn`, retained until normal task teardown. State zero installs
+/// the room's flash, twin-trail and spark-burst IDs and enables view effects;
+/// this task does not advance its own state. The mapped view must be 0..20.
+/// Capsule pairs and flares use world points; spawn offsets use the task's
+/// coordinate frame, with independent X/Z jitter in -255..256 units.
+///
+/// Initial gas-station progress latches `EffectWork::scale`. Outside battle
+/// and with running effect control, each scatter anchor chooses
+/// `EFFECT_ADDITIVE_PUFF`, `EFFECT_FIRE_BURST`, or a further one-in-three
+/// `EFFECT_SMOKE_PUFF`. Later progress emits smoke only, one-in-three per
+/// anchor, and only if this task previously latched initial progress. Lights
+/// continue drawing independently of these spawn gates.
+void dryfieldNightGasStationAmbientEffectsTask(Task* task);
 
-void func_dryfield_night_gas_station_8017E9F8(Task* task);
+/// Updates the night gas station's telephone save and statistics menu.
+///
+/// The task owns a live `UiObject` in `spawnArg2.pointer` and starts in state
+/// zero. A prior clear or attract-demo scene 1 enables statistics; otherwise
+/// it opens the save dialog directly. Child panels supply the save result and
+/// notices, while this callback publishes the menu result and UI-open state.
+/// The room overlay and UI task tree must remain live while the menu runs.
+void dryfieldNightGasStationTelephoneMenuTask(Task* task);
 
 /// Task entries the Dryfield-at-night map UI overlay's stage tables name, each
 /// room's entry task started for its location, and the models its enemy

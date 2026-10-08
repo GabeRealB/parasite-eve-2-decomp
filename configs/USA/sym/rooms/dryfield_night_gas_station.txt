@@ -266,11 +266,11 @@ dryfieldNightGasStationRoomVisualEffectsFlashTask = 0x80181D80; // type:func
 
 dryfieldNightGasStationRoomVisualEffectsTwinTrailTask = 0x801827E4; // type:func
 
-func_dryfield_night_gas_station_801830CC = 0x801830CC; // type:func
+dryfieldNightGasStationRoomVisualEffectsSparkBurstTask = 0x801830CC; // type:func
 
-func_dryfield_night_gas_station_80180E9C = 0x80180E9C; // type:func
+dryfieldNightGasStationAmbientEffectsTask = 0x80180E9C; // type:func
 
-func_dryfield_night_gas_station_8017E9F8 = 0x8017E9F8; // type:func
+dryfieldNightGasStationTelephoneMenuTask = 0x8017E9F8; // type:func
 _telephoneDrawPlayDataRow = 0x8017D660; // type:func
 Telephone_DrawUsageRow = 0x8017DE2C; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E228; // type:func
@@ -316,3 +316,13 @@ _dryfieldNightGasStationTrackRedStreakTask = 0x80180998; // type:func
 _dryfieldNightGasStationStopSpriteFlicker = 0x80180a34; // type:func
 _dryfieldNightGasStationCompanionRedStreakTask = 0x80180b5c; // type:func
 _dryfieldNightGasStationCancelCutsceneEffects = 0x80180bec; // type:func
+_dryfieldNightGasStationClearCutsceneTaskHandles = 0x80180c20; // type:func
+_dryfieldNightGasStationInitializeRoomTask = 0x8017f41c; // type:func
+_dryfieldNightGasStationUseJerryCanMsg = 0x8017f7e0; // type:func
+_dryfieldNightGasStationCompanionActionMsg = 0x8017f990; // type:func
+_dryfieldNightGasStationArmFollowupSceneMsg = 0x8017f9e8; // type:func
+_dryfieldNightGasStationStartJerryCanCutsceneTask = 0x8017fa6c; // type:func
+_dryfieldNightGasStationUpdateRoomTask = 0x8017faec; // type:func
+_dryfieldNightGasStationSetCutsceneFlash = 0x80180604; // type:func
+_dryfieldNightGasStationSpriteFlickerTask = 0x80180a60; // type:func
+_dryfieldNightGasStationStopCompanionRedStreakTask = 0x80180b38; // type:func
