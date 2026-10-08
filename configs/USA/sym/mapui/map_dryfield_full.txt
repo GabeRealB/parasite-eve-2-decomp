@@ -21,7 +21,7 @@ D_dryfield_night_main_street_80182310 = 0x80182310; // absolute:True owner=dryfi
 D_dryfield_night_main_street_80184564 = 0x80184564; // absolute:True owner=dryfield_night_main_street shared=rooms
 D_dryfield_night_main_street_801875E4 = 0x801875E4; // absolute:True owner=dryfield_night_main_street shared=rooms
 D_dryfield_night_main_street_80188B84 = 0x80188B84; // absolute:True owner=dryfield_night_main_street shared=rooms
-func_dryfield_night_general_store_8017DE88 = 0x8017DE88; // type:func absolute:True owner=dryfield_night_general_store shared=rooms
+func_dryfield_night_general_store_8017DE88 = 0x8017DE88; // type:func absolute:True owner=dryfield_night_general_store
 D_dryfield_night_general_store_8017E82C = 0x8017E82C; // absolute:True owner=dryfield_night_general_store
 D_dryfield_night_general_store_8017E834 = 0x8017E834; // absolute:True owner=dryfield_night_general_store shared=rooms
 D_dryfield_night_general_store_8017E844 = 0x8017E844; // absolute:True owner=dryfield_night_general_store

@@ -187,15 +187,15 @@ enum {
     DRYFIELD_DILAPIDATED_HOUSE_BEAM_POINT_COUNT     = 4 * DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT,
 };
 
-static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0);
+static void _dryfieldDilapidatedHouseSetNegativeCapture(s32 durationFrames);
 static void _dryfieldDilapidatedHouseMorphExit(Task* task);
 static s32  _dryfieldDilapidatedHouseAdvanceMorph(Task* task);
 static void _dryfieldDilapidatedHouseUpdateAttachmentTransform(Task* task);
 static void _dryfieldDilapidatedHouseCopyModelVisibility(TmdObject* model, const TmdObject* parentModel);
 
-static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0);
-static void func_dryfield_dilapidated_house_8017E014(Task* task);
-static void func_dryfield_dilapidated_house_80180B84(Task* task);
+static void _dryfieldDilapidatedHouseRoomInit(Task* task);
+static void _dryfieldDilapidatedHouseRoomUpdate(Task* task);
+static void _dryfieldDilapidatedHouseMorphAttachmentInit(Task* task);
 static void _dryfieldDilapidatedHouseMorphAttachmentUpdate(Task* task);
 static void _dryfieldDilapidatedHouseCurveDebugInit(Task* task);
 static void _dryfieldDilapidatedHouseCurveDebugUpdate(Task* task);
@@ -213,6 +213,13 @@ enum {
     DRYFIELD_DILAPIDATED_HOUSE_CONE_RING_VERTEX_COUNT = 16,
     DRYFIELD_DILAPIDATED_HOUSE_PRISM_RING_CORNERS     = 4,
     DRYFIELD_DILAPIDATED_HOUSE_PRISM_VERTEX_COUNT     = 8,
+};
+
+/// Nonpositive script requests accepted by the room's screen-wave command.
+enum {
+    DRYFIELD_DILAPIDATED_HOUSE_WAVE_PREPARE_DECODE = -2,
+    DRYFIELD_DILAPIDATED_HOUSE_WAVE_FAST_RISE      = -1,
+    DRYFIELD_DILAPIDATED_HOUSE_WAVE_SLOW_RISE      = 0,
 };
 
 /// States accepted by the room's script-controlled player head tracker.
@@ -239,17 +246,17 @@ static s32                        _dryfieldDilapidatedHouseRejectKeyItem(Task* t
 static s32                        _dryfieldDilapidatedHouseResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32                        _dryfieldDilapidatedHouseIgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 static s32                        _dryfieldDilapidatedHouseStartEncounterMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
-void                              func_dryfield_dilapidated_house_8017DE88(Task*);
-void                              func_dryfield_dilapidated_house_8017E144(Task*);
-void                              func_dryfield_dilapidated_house_8017E2B0(Task*);
+static void                       _dryfieldDilapidatedHouseNegativeCaptureTask(Task* task);
+static void                       _dryfieldDilapidatedHouseBlackoutTask(Task* task);
+static void                       _dryfieldDilapidatedHouseEncounterFinishTask(Task* task);
 static void                       _dryfieldDilapidatedHouseHeadTrackTask(Task* task);
 static void                       _dryfieldDilapidatedHouseShakeYTask(Task* task);
 static void                       _dryfieldDilapidatedHouseModeExitCountdownTask(Task* task);
 static void                       _dryfieldDilapidatedHouseSetHeadTrackState(s32 state);
 static void                       _dryfieldDilapidatedHouseCancelEffects(void);
-void                              func_dryfield_dilapidated_house_8017E8E8(s32);
+static void                       _dryfieldDilapidatedHouseControlScreenWave(s32 request);
 static void                       _dryfieldDilapidatedHouseSetBlackoutDelay(s32 delayFrames);
-void                              func_dryfield_dilapidated_house_8017EA10(s32);
+static void                       _dryfieldDilapidatedHouseSetMorphAttachment(s32 enabled);
 static void                       _dryfieldDilapidatedHouseLockAttachmentsForEvent(void);
 static void                       _dryfieldDilapidatedHouseMorphAttachmentTask(Task* task);
 static void                       _dryfieldDilapidatedHouseCurveDebugTask(Task* task);
@@ -264,7 +271,7 @@ TaskDesc D_dryfield_dilapidated_house_80183E48[2] = {
 s32 gScreenWaveRamp = 256;
 
 TaskDesc D_dryfield_dilapidated_house_80183E64[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_dilapidated_house_8017DE88, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _dryfieldDilapidatedHouseNegativeCaptureTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -285,8 +292,8 @@ TaskMessageEntry D_dryfield_dilapidated_house_80183E8C[5] = {
 TaskDesc D_dryfield_dilapidated_house_80183EB4[4] = {
     { { { TASK_BODY_NONE, 97 } }, _dryfieldDilapidatedHouseHeadTrackTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _dryfieldDilapidatedHouseShakeYTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_dilapidated_house_8017E144, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_dilapidated_house_8017E2B0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldDilapidatedHouseBlackoutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldDilapidatedHouseEncounterFinishTask, { .value = 0 } },
 };
 
 TaskDesc D_dryfield_dilapidated_house_80183EE4[2] = {
@@ -590,22 +597,22 @@ EvsCommand D_dryfield_dilapidated_house_80184EA0[78] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_dilapidated_house_80184204 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8E8 }, { .value = -2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseControlScreenWave }, { .value = DRYFIELD_DILAPIDATED_HOUSE_WAVE_PREPARE_DECODE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8E8 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseControlScreenWave }, { .value = DRYFIELD_DILAPIDATED_HOUSE_WAVE_FAST_RISE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_dryfield_dilapidated_house_80189B40 }, { .vibrationSegments = D_dryfield_dilapidated_house_80189B50 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8E8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseControlScreenWave }, { .value = SCREEN_WAVE_RAMP_FALLING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 180 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8E8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseControlScreenWave }, { .value = DRYFIELD_DILAPIDATED_HOUSE_WAVE_SLOW_RISE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_dilapidated_house_80184300 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8E8 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseControlScreenWave }, { .value = SCREEN_WAVE_RAMP_FINISHED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_dilapidated_house_80184038 }, { .value = 0 } },
@@ -614,11 +621,11 @@ EvsCommand D_dryfield_dilapidated_house_80184EA0[78] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_dilapidated_house_8018404C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017EA10 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetMorphAttachment }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_dilapidated_house_801842A4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017EA10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetMorphAttachment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_dilapidated_house_80184268 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -648,9 +655,9 @@ EvsCommand D_dryfield_dilapidated_house_801855F0[17] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017E8E8 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseControlScreenWave }, { .value = SCREEN_WAVE_RAMP_FINISHED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetBlackoutDelay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_dilapidated_house_8017EA10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDilapidatedHouseSetMorphAttachment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_EVENT_STATE, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_FINISH_SCENE_STREAM, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2556,8 +2563,14 @@ extern GfxCoord D_dryfield_dilapidated_house_8018A060[8];
 
 #include "../../shared/screen_negative_capture.inc.c"
 
-/// The scene's negative freeze-frame (see screen_negative.h).
-void func_dryfield_dilapidated_house_8017DE88(Task* task)
+/// Captures the room's frame as a grayscale negative and holds scene drawing.
+///
+/// Argument 2 borrows writable `ScreenNegativeCaptureArgs` through completion.
+/// Setup clears `done`; duration expiry or a later nonzero `done` releases it.
+/// Use 0..32767 frames for an ordinary signed task countdown. The script pause
+/// gate suspends every phase. Requires the loaded room overlay and exclusive
+/// use of the resident image workspace until filtering finishes.
+static void _dryfieldDilapidatedHouseNegativeCaptureTask(Task* task)
 {
     _screenNegativeCaptureTask(task);
 }
@@ -2565,155 +2578,211 @@ void func_dryfield_dilapidated_house_8017DE88(Task* task)
 /// State handlers of the room task, indexed by `Task::state`: set-up, the room
 /// gate, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D5C4 = {
-    { func_dryfield_dilapidated_house_8017EAB4, func_dryfield_dilapidated_house_8017E014, taskKill },
+    { _dryfieldDilapidatedHouseRoomInit, _dryfieldDilapidatedHouseRoomUpdate, taskKill },
 };
 
-/// Room gate task. While the session is in the room (`gGameSession->eventState`
-/// is 0) it walks `D_dryfield_dilapidated_house_80183EFC` from 1 to 2 and then
-/// to 3: the 1 -> 2 step is unconditional, the 2 -> 3 step waits for the room's
-/// message (0x7D6) to be dispatched and answered with 0 by the slot-0 object,
-/// and for no sound to be playing; reaching 3 spawns entry 3 of the room's task
-/// table. Independently, once the stream file is open it starts the named
-/// sequences `"AUNT"` and `"Player"` on the two slot objects.
-static void func_dryfield_dilapidated_house_8017E014(Task* task)
+/// Advances the room encounter after its introductory script releases control.
+///
+/// With event state zero, latch phase 1 becomes waiting phase 2. The later
+/// encounter task starts once placed actor 0 reports absent, the attachment
+/// wheel is closed and no display mode is pending. The receiver is unused.
+/// Nonzero display debug mode also forwards actor and player names to a
+/// development hook, independently of progression. Its numeric arguments'
+/// meanings are unproven.
+static void _dryfieldDilapidatedHouseRoomUpdate(Task* task)
 {
-    if (gGameSession->eventState == 0) {
-        if (D_dryfield_dilapidated_house_80183EFC == 1) {
-            D_dryfield_dilapidated_house_80183EFC = 2;
-        } else if ((D_dryfield_dilapidated_house_80183EFC == 2) &&
-                   (taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
+    enum {
+        EVENT_SCRIPT_IDLE       = 0,
+        ENCOUNTER_INTRO_LATCHED = 1,
+        ENCOUNTER_WAIT_RELEASE  = 2,
+        ENCOUNTER_FINISH_TASK   = 3,
+        ENCOUNTER_ACTOR_SLOT    = 0,
+        HEAD_TRACK_ACTOR_SLOT   = 1,
+    };
+
+    if (gGameSession->eventState == EVENT_SCRIPT_IDLE) {
+        if (D_dryfield_dilapidated_house_80183EFC == ENCOUNTER_INTRO_LATCHED) {
+            D_dryfield_dilapidated_house_80183EFC = ENCOUNTER_WAIT_RELEASE;
+        } else if ((D_dryfield_dilapidated_house_80183EFC == ENCOUNTER_WAIT_RELEASE) &&
+                   (taskMessageDispatch(sceneFindPlacedActor(ENCOUNTER_ACTOR_SLOT), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
             if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     D_dryfield_dilapidated_house_80183EFC += 1;
-                    taskSpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 3, 0, 0);
+                    taskSpawnFromTable(D_dryfield_dilapidated_house_80183EB4, ENCOUNTER_FINISH_TASK, 0, 0);
                 }
             }
         }
     }
-    if ((gDisplayState.debugMode != 0) && (sceneFindPlacedActor(1) != 0)) {
-        func_80724608(sceneFindPlacedActor(1), -0x8C, 0xA, "AUNT");
+    if ((gDisplayState.debugMode != 0) && (sceneFindPlacedActor(HEAD_TRACK_ACTOR_SLOT) != 0)) {
+        func_80724608(sceneFindPlacedActor(HEAD_TRACK_ACTOR_SLOT), -0x8C, 0xA, "AUNT");
         func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), -0x8C, 0x14, "Player");
     }
 }
 
-/// Screen-blackout timer of task-table entry 2: `_dryfieldDilapidatedHouseSetBlackoutDelay`
-/// arms it by writing state 2 and a frame count into `spawnArg1` (a 0 arg resets
-/// it to state 0 instead). State 2 copies that count into the shared countdown
-/// `D_dryfield_dilapidated_house_80189B70` and falls through to state 3, whose
-/// `var_s1` is the shared "paint the screen black" flag; state 4 runs the
-/// countdown and at 0 calls `func_dryfield_dilapidated_house_8017E9A4(0xF)`,
-/// which starts the room's captured-image scene, then raises the flag again once
-/// the count is 15 frames past that hand-off, keeping the screen black over it.
-/// The flag paints the whole frame with a zeroed `TILE` carved out of
-/// `gGpuPrimCursor` and links it into `gGpuCurrentOt`. When `D_801156F9` is set
-/// the task does nothing at all.
-void func_dryfield_dilapidated_house_8017E144(Task* task)
+/// Paints a black cover over the frame at the current ordering-table depth.
+static inline void _dryfieldDilapidatedHouseDrawBlackout(void)
 {
+    enum { COVER_LEFT_PIXELS   = -160,
+           COVER_TOP_PIXELS    = -128,
+           COVER_WIDTH_PIXELS  = 320,
+           COVER_HEIGHT_PIXELS = 256 };
     TILE* tile;
-    s32   var_s1;
-    s32   temp_v0;
-    s32   temp_v1;
 
-    var_s1 = 0;
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    SetTile(tile);
+    tile->x0 = COVER_LEFT_PIXELS;
+    tile->y0 = COVER_TOP_PIXELS;
+    tile->w  = COVER_WIDTH_PIXELS;
+    tile->h  = COVER_HEIGHT_PIXELS;
+    tile->r0 = 0;
+    tile->g0 = 0;
+    tile->b0 = 0;
+    addPrim(gGpuCurrentOt, tile);
+}
+
+/// Times a negative freeze-frame between the room's initial and final blackouts.
+///
+/// States are 0 reset, 1 idle, 2 arm from argument 1's signed frame count,
+/// 3 initial blackout and 4 countdown. Arming also draws the initial blackout.
+/// Countdown zero starts a 15-frame negative capture; counts below -15 draw
+/// black again. The shared countdown keeps decreasing. The event-script pause
+/// gate suspends both state changes and drawing; other states do nothing.
+static void _dryfieldDilapidatedHouseBlackoutTask(Task* task)
+{
+    enum { BLACKOUT_RESET          = 0,
+           BLACKOUT_IDLE           = 1,
+           BLACKOUT_ARM            = 2,
+           BLACKOUT_INITIAL_COVER  = 3,
+           BLACKOUT_COUNTDOWN      = 4,
+           NEGATIVE_CAPTURE_FRAMES = 15 };
+    s32 paintBlack;
+    s32 remainingFrames;
+
+    paintBlack = false;
     if (D_801156F9 == 0) {
-        temp_v1 = task->state;
-        switch (temp_v1) {
-            case 0:
-                task->state = task->state + 1;
+        switch (task->state) {
+            case BLACKOUT_RESET:
+                task->state += 1;
                 break;
-            case 1:
+            case BLACKOUT_IDLE:
                 break;
-            case 2:
+            case BLACKOUT_ARM:
                 D_dryfield_dilapidated_house_80189B70 = task->spawnArg1.value;
                 task->state                           = task->state + 1;
                 /* fallthrough */
-            case 3:
-                var_s1      = 1;
-                task->state = task->state + var_s1;
+            case BLACKOUT_INITIAL_COVER:
+                paintBlack   = true;
+                task->state += 1;
                 break;
-            case 4:
-                temp_v0                               = D_dryfield_dilapidated_house_80189B70 - 1;
-                D_dryfield_dilapidated_house_80189B70 = temp_v0;
-                if (temp_v0 == 0) {
-                    func_dryfield_dilapidated_house_8017E9A4(0xF);
+            case BLACKOUT_COUNTDOWN:
+                remainingFrames                       = D_dryfield_dilapidated_house_80189B70 - 1;
+                D_dryfield_dilapidated_house_80189B70 = remainingFrames;
+                if (remainingFrames == 0) {
+                    _dryfieldDilapidatedHouseSetNegativeCapture(NEGATIVE_CAPTURE_FRAMES);
                 }
-                if (D_dryfield_dilapidated_house_80189B70 < -0xF) {
-                    var_s1 = 1;
+                if (D_dryfield_dilapidated_house_80189B70 < -NEGATIVE_CAPTURE_FRAMES) {
+                    paintBlack = true;
                 }
                 break;
         }
-        if (var_s1 != 0) {
-            tile           = gGpuPrimCursor;
-            gGpuPrimCursor = tile + 1;
-            SetTile(tile);
-            tile->x0 = -0xA0;
-            tile->y0 = -0x80;
-            tile->w  = 0x140;
-            tile->h  = 0x100;
-            tile->r0 = 0;
-            tile->g0 = 0;
-            tile->b0 = 0;
-            addPrim(gGpuCurrentOt, tile);
+        if (paintBlack != false) {
+            _dryfieldDilapidatedHouseDrawBlackout();
         }
     }
 }
 
-/// Scene-clear task: the room's hand-off to the rest of the game. State 0
-/// starts the streamed scene named by the two blocks `evsStartScriptWithSkip` takes,
-/// state 1 fires when the session is back in play (`gGameSession->eventState`
-/// is 2) and hands slot 0 the release event 0x1B, state 6 waits for the room
-/// message (`gGameSession->battleResetPending`), and state 7 -- reached once the save
-/// has not already banked this clear (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene`) -- applies the
-/// room's two area records, raises the progression flags, refills the party
-/// and hands off to the results screen with `taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0)`.
-void func_dryfield_dilapidated_house_8017E2B0(Task* task)
+/// Commits the encounter's progression and requests the next Dryfield session.
+///
+/// Requires the live save, party state and loaded gameplay resources. Applies
+/// the alternate area updates only after Gray Stalker's defeat, restores the
+/// party and queues the captured-frame reload after recording its destination.
+static inline void _dryfieldDilapidatedHousePrepareNextSession(void)
 {
+    enum {
+        COMPANION_2_POST_ENCOUNTER_SCHEDULE = 6,
+        COMPANION_1_POST_ENCOUNTER_SCHEDULE = 1,
+        POST_ENCOUNTER_TALK_PROGRESS        = 2,
+        NEXT_SCENE_EVENT                    = 1,
+        NEXT_WARP                           = 1,
+        NEXT_ROOM                           = 1,
+        DEFAULT_SPRITE_VARIANT              = 1,
+    };
+    // Commit the encounter's saved progression before reloading resources.
+    areaApplySavedUpdates(D_dryfield_dilapidated_house_80189AA0);
+    if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
+        areaApplySavedUpdates(D_dryfield_dilapidated_house_80189B24);
+    }
+    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, COMPANION_2_POST_ENCOUNTER_SCHEDULE);
+    gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, COMPANION_1_POST_ENCOUNTER_SCHEDULE);
+    gameFlagSetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED, true);
+    gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED, true);
+    gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, true);
+    gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, POST_ENCOUNTER_TALK_PROGRESS);
+    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
+    playerStateRestoreFullHpMp();
+    companionRestoreFullHp();
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = NEXT_SCENE_EVENT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_DRYFIELD;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = NEXT_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = NEXT_ROOM;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_DRYFIELD_R08;
+    gDisplayState.spriteVariant                                 = DEFAULT_SPRITE_VARIANT;
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+}
+
+/// Runs the encounter's closing scene and prepares the next Dryfield session.
+///
+/// Starts the skippable event, waits for event state 2, credits placed actor 0's
+/// battle rewards, allows four update ticks, then waits for battle reset. The
+/// final state applies area and story progression, restores party HP/MP and
+/// requests a captured-frame session reload. Demo scene 9 skips those final
+/// changes. Every path through the final state releases this bodyless task.
+static void _dryfieldDilapidatedHouseEncounterFinishTask(Task* task)
+{
+    enum {
+        ENCOUNTER_START_SCENE       = 0,
+        ENCOUNTER_WAIT_SCENE        = 1,
+        ENCOUNTER_SETTLE_TICK_1     = 2,
+        ENCOUNTER_SETTLE_TICK_2     = 3,
+        ENCOUNTER_SETTLE_TICK_3     = 4,
+        ENCOUNTER_SETTLE_TICK_4     = 5,
+        ENCOUNTER_WAIT_BATTLE_RESET = 6,
+        ENCOUNTER_APPLY_PROGRESSION = 7,
+        EVENT_SCENE_RELEASED        = 2,
+        ENCOUNTER_ACTOR_SLOT        = 0,
+        UNUSED_BATTLE_RELEASE_ARG   = 0x1B,
+        BATTLE_END_DELAY_FRAMES     = 3,
+        DEMO_SCENE_SKIP_PROGRESSION = 9,
+    };
+
     switch (task->state) {
-        case 0:
+        case ENCOUNTER_START_SCENE:
             evsStartScriptWithSkip(D_dryfield_dilapidated_house_80184EA0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_dilapidated_house_801855F0);
             task->state += 1;
             return;
-        case 1:
-            if (gGameSession->eventState == 2) {
-                sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x1B);
-                gSceneCombatState.signals.bytes.endDelayFrames = 3;
+        case ENCOUNTER_WAIT_SCENE:
+            if (gGameSession->eventState == EVENT_SCENE_RELEASED) {
+                sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(ENCOUNTER_ACTOR_SLOT), UNUSED_BATTLE_RELEASE_ARG);
+                gSceneCombatState.signals.bytes.endDelayFrames = BATTLE_END_DELAY_FRAMES;
                 task->state                                   += 1;
             }
             return;
-        case 2:
-        case 3:
-        case 4:
-        case 5:
+        case ENCOUNTER_SETTLE_TICK_1:
+        case ENCOUNTER_SETTLE_TICK_2:
+        case ENCOUNTER_SETTLE_TICK_3:
+        case ENCOUNTER_SETTLE_TICK_4:
             task->state += 1;
             return;
-        case 6:
+        case ENCOUNTER_WAIT_BATTLE_RESET:
             if (gGameSession->battleResetPending != 0) {
                 task->state += 1;
             }
             return;
-        case 7:
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-                areaApplySavedUpdates(D_dryfield_dilapidated_house_80189AA0);
-                if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
-                    areaApplySavedUpdates(D_dryfield_dilapidated_house_80189B24);
-                }
-                gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 6);
-                gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 1);
-                gameFlagSetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED, 1);
-                gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED, 1);
-                gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
-                gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 2);
-                gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
-                playerStateRestoreFullHpMp();
-                companionRestoreFullHp();
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 1;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_DRYFIELD;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_DRYFIELD_R08;
-                gDisplayState.spriteVariant                                 = 1;
-                taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+        case ENCOUNTER_APPLY_PROGRESSION:
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != DEMO_SCENE_SKIP_PROGRESSION) {
+                _dryfieldDilapidatedHousePrepareNextSession();
             }
             taskKill(task);
             return;
@@ -2908,7 +2977,7 @@ static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D634 = {
 /// State handlers of the task `_dryfieldDilapidatedHouseMorphAttachmentTask`
 /// dispatches.
 static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D640 = {
-    { func_dryfield_dilapidated_house_80180B84, _dryfieldDilapidatedHouseMorphAttachmentUpdate, taskKill },
+    { _dryfieldDilapidatedHouseMorphAttachmentInit, _dryfieldDilapidatedHouseMorphAttachmentUpdate, taskKill },
 };
 
 /// Sets the cutscene's head tracking state, if its task exists.
@@ -2930,37 +2999,37 @@ static void _dryfieldDilapidatedHouseCancelEffects(void)
     roomEffectRequestCancelAll();
 }
 
-/// Message handler for the start-countdown cue; actor 136300 carries the same
-/// body. A positive argument is stored in `state`
-/// (`SCREEN_WAVE_RAMP_FALLING` counts the ramp down, `SCREEN_WAVE_RAMP_FINISHED`
-/// ends the task); otherwise the CD command queue is dropped into
-/// _mdecStepStandaloneImageDecode mode 2 and -- except for the -2 "already ran" message --
-/// the spawn block is filled and the `D_dryfield_dilapidated_house_80183E48` entry started.
+/// Prepares mask-bit image decoding, starts a screen wave, or changes its phase.
 ///
-/// Both halves of the block are written in *each* arm of the `span` test so
-/// that each arm is a complete two-store address session: jump optimization
-/// then merges the identical tails and the `span` collapses to one `li` per
-/// arm, which is what puts the block's `lui` in the delay slot of the entry
-/// test. Hoisting `scale` out of the arms compiles to a different allocation.
-void func_dryfield_dilapidated_house_8017E8E8(s32 arg0)
+/// Request -2 only prepares RGB16 decoding with pixel bit 15 set. Zero starts
+/// a 100-frame rise; other negative requests start a five-frame rise. Both
+/// peak at strength 256 (eight pixels of sine displacement). Positive requests
+/// narrow to the context's signed-halfword phase: 1 falling, 2 finished.
+/// Starting requires no other active wave and loaded room/wave resources;
+/// the room's shared context remains borrowed until the wave ends.
+static void _dryfieldDilapidatedHouseControlScreenWave(s32 request)
 {
+    enum { WAVE_SLOW_RISE_FRAMES = 100,
+           WAVE_FAST_RISE_FRAMES = 5,
+           WAVE_PEAK_STRENGTH    = 256 };
     CdCmdQueue* queue;
 
     queue = &gCdCmdQueue;
-    if (arg0 <= 0) {
+    if (request <= 0) {
         queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-        if (arg0 != -2) {
-            if (arg0 == 0) {
-                D_dryfield_dilapidated_house_80189C94.span  = 0x64;
-                D_dryfield_dilapidated_house_80189C94.scale = 0x100;
+        if (request != DRYFIELD_DILAPIDATED_HOUSE_WAVE_PREPARE_DECODE) {
+            // Retain each branch's complete span/scale pair for this compiler.
+            if (request == DRYFIELD_DILAPIDATED_HOUSE_WAVE_SLOW_RISE) {
+                D_dryfield_dilapidated_house_80189C94.span  = WAVE_SLOW_RISE_FRAMES;
+                D_dryfield_dilapidated_house_80189C94.scale = WAVE_PEAK_STRENGTH;
             } else {
-                D_dryfield_dilapidated_house_80189C94.span  = 5;
-                D_dryfield_dilapidated_house_80189C94.scale = 0x100;
+                D_dryfield_dilapidated_house_80189C94.span  = WAVE_FAST_RISE_FRAMES;
+                D_dryfield_dilapidated_house_80189C94.scale = WAVE_PEAK_STRENGTH;
             }
             taskSpawnFromTable(D_dryfield_dilapidated_house_80183E48, 0, 0, &D_dryfield_dilapidated_house_80189C94);
         }
     } else {
-        D_dryfield_dilapidated_house_80189C94.state = arg0;
+        D_dryfield_dilapidated_house_80189C94.state = request;
     }
 }
 
@@ -2983,22 +3052,36 @@ static void _dryfieldDilapidatedHouseSetBlackoutDelay(s32 delayFrames)
     D_dryfield_dilapidated_house_80189B7C->spawnArg1.value = delayFrames;
 }
 
-static void func_dryfield_dilapidated_house_8017E9A4(s32 arg0)
+/// Starts a negative freeze-frame with vibration, or requests its early release.
+///
+/// Nonzero durations store their low unsigned halfword before spawning the
+/// capture; use 1..32767 frames for a positive signed task countdown. Zero
+/// sets the shared completion flag. Starting requires no active capture;
+/// the room's argument block and overlay must outlive the capture task.
+static void _dryfieldDilapidatedHouseSetNegativeCapture(s32 durationFrames)
 {
-    if (arg0 != 0) {
+    if (durationFrames != 0) {
         padScriptSpawn(D_80114A24, D_80114A34);
-        D_dryfield_dilapidated_house_80189B80.duration = arg0;
+        D_dryfield_dilapidated_house_80189B80.duration = durationFrames;
         taskSpawnFromTable(D_dryfield_dilapidated_house_80183E64, 0, 0, &D_dryfield_dilapidated_house_80189B80);
         return;
     }
-    D_dryfield_dilapidated_house_80189B80.done = 1;
+    D_dryfield_dilapidated_house_80189B80.done = true;
 }
 
-void func_dryfield_dilapidated_house_8017EA10(s32 arg0)
+/// Starts or removes the player's morph attachment and its child light effects.
+///
+/// Nonzero starts a new model task on player coordinate 3; zero kills and
+/// clears the tracked task, if any. Callers start once before removing it:
+/// repeated starts overwrite the handle without releasing the earlier task.
+/// The live player's model needs coordinate 3 and must outlive the attachment.
+static void _dryfieldDilapidatedHouseSetMorphAttachment(s32 enabled)
 {
-    if (arg0 != 0) {
+    enum { MORPH_ATTACHMENT_TASK   = 0,
+           PLAYER_ATTACHMENT_COORD = 3 };
+    if (enabled != 0) {
         D_dryfield_dilapidated_house_801857E8 =
-            taskSpawnFromTable(D_dryfield_dilapidated_house_80186854, 0, 3, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
+            taskSpawnFromTable(D_dryfield_dilapidated_house_80186854, MORPH_ATTACHMENT_TASK, PLAYER_ATTACHMENT_COORD, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
         return;
     }
     if (D_dryfield_dilapidated_house_801857E8 != NULL) {
@@ -3017,19 +3100,28 @@ static void _dryfieldDilapidatedHouseLockAttachmentsForEvent(void)
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
-static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
+/// Registers the room controller and starts its persistent encounter helpers.
+///
+/// The bodyless task becomes the room message receiver. Spawn head tracking
+/// only when placed actor 1 exists; always attempt the blackout timer and mark
+/// the wave context finished. Music-suppression and weapon-reequip flow flags
+/// replace the previous flags. Enter the running state even if a spawn fails.
+static void _dryfieldDilapidatedHouseRoomInit(Task* task)
 {
-    arg0->msgTable = D_dryfield_dilapidated_house_80183E8C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (sceneFindPlacedActor(1) != 0) {
+    enum { HEAD_TRACK_ACTOR_SLOT = 1,
+           HEAD_TRACK_TASK       = 0,
+           BLACKOUT_TASK         = 2 };
+    task->msgTable = D_dryfield_dilapidated_house_80183E8C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (sceneFindPlacedActor(HEAD_TRACK_ACTOR_SLOT) != 0) {
         D_dryfield_dilapidated_house_80189B78 =
-            taskSpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 0, 0, 0);
+            taskSpawnFromTable(D_dryfield_dilapidated_house_80183EB4, HEAD_TRACK_TASK, 0, 0);
     }
     D_dryfield_dilapidated_house_80189C94.state = SCREEN_WAVE_RAMP_FINISHED;
     D_dryfield_dilapidated_house_80189B7C =
-        taskSpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 2, 0, 0);
+        taskSpawnFromTable(D_dryfield_dilapidated_house_80183EB4, BLACKOUT_TASK, 0, 0);
     gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_REEQUIP_WEAPON);
-    arg0->state            += 1;
+    task->state            += 1;
 }
 
 void dryfieldDilapidatedHouseRoomTask(Task* task)
@@ -3585,93 +3677,124 @@ static void _dryfieldDilapidatedHouseBuildMorphConeRings(Task* task, SVECTOR* ri
 
 #include "../../shared/model_morph_blend.inc.c"
 
-static void func_dryfield_dilapidated_house_80180B84(Task* task)
+/// Saves a model's rest XYZ components into a morph's borrowed snapshot buffers.
+///
+/// Requires a live TMD task and a readable morph record. `savedVertexCount`
+/// and `normalCount` are nonnegative element counts from index zero, independent
+/// of the delta range. The source and writable snapshot arrays must cover those
+/// counts and must not overlap. Normals are saved only when `targetNormals` is
+/// non-NULL; neither target array is read. Each vector's fourth halfword stays
+/// intact. All storage is borrowed during this call; the saved XYZ values must
+/// remain unchanged for subsequent blends using this rest shape.
+static inline void _modelMorphSaveRestShape(const Task* task, const ModelMorph* morph)
 {
-    Task*                               parent;
-    TmdObject*                          obj;
-    TmdObject*                          parentObj;
-    GfxCoord*                           coord;
-    GfxCoord*                           parentCoord;
-    _DryfieldDilapidatedHouseMorphWork* work;
-    ModelMorph*                         morph;
-    TmdSource*                          source;
-    SVECTOR*                            dst;
-    SVECTOR*                            dst2;
-    SVECTOR*                            src2;
-    SVECTOR*                            verts;
-    TaskDesc*                           table;
-    Task*                               spawned;
-    GfxCoord*                           childCoord;
-    u16                                 flags;
-    s32                                 i;
+    const TmdSource* source;
+    SVECTOR*         savedVertices;
+    SVECTOR*         savedNormals;
+    const SVECTOR*   vertices;
+    const SVECTOR*   normals;
+    s32              elementIndex;
 
-    parent      = (Task*)task->spawnArg2.pointer;
-    obj         = task->extra.tmd;
-    parentObj   = parent->extra.tmd;
-    coord       = obj->coords;
-    parentCoord = parentObj->coords;
-    work        = memMalloc(sizeof(*work), false);
+    source        = task->extra.tmd->source;
+    savedVertices = morph->savedVertices;
+    savedNormals  = morph->savedNormals;
+    vertices      = source->verts;
+    for (elementIndex = 0; elementIndex < morph->savedVertexCount; elementIndex++) {
+        savedVertices[elementIndex].vx = vertices[elementIndex].vx;
+        savedVertices[elementIndex].vy = vertices[elementIndex].vy;
+        savedVertices[elementIndex].vz = vertices[elementIndex].vz;
+    }
+    if (morph->targetNormals != NULL) {
+        normals = source->normals;
+        for (elementIndex = 0; elementIndex < morph->normalCount; elementIndex++) {
+            savedNormals[elementIndex].vx = normals[elementIndex].vx;
+            savedNormals[elementIndex].vy = normals[elementIndex].vy;
+            savedNormals[elementIndex].vz = normals[elementIndex].vz;
+        }
+    }
+}
+
+/// Initializes the player's morphing model and its two beams and two cones.
+///
+/// Argument 2 borrows a live TMD parent; argument 1 selects one of its model
+/// coordinates (the script uses 3). Owns a 0x6C-byte primary-heap work block and
+/// joins the parent's task tree. Allocation failure kills the task. The shared
+/// morph snapshots 40 XYZ vertices, leaves normals alone, then advances once.
+/// Children borrow this task/work until teardown; failed child spawns are skipped.
+/// Their initial matrix copies retain the original uninitialized work contents;
+/// the attachment matrix and remaining levels are first filled by the update.
+static void _dryfieldDilapidatedHouseMorphAttachmentInit(Task* task)
+{
+    enum { ATTACHMENT_OT_OFFSET     = 4,
+           CONE_TASK                = 3,
+           BEAM_TASK                = 2,
+           FIRST_CONE_PHASE_FRAMES  = 9,
+           SECOND_CONE_PHASE_FRAMES = 17,
+           BEAM_UNMIRRORED          = 0,
+           BEAM_MIRRORED            = 1 };
+    Task*                               parentTask;
+    TmdObject*                          model;
+    TmdObject*                          parentModel;
+    GfxCoord*                           modelCoord;
+    GfxCoord*                           attachmentCoord;
+    _DryfieldDilapidatedHouseMorphWork* work;
+    TaskDesc*                           effectTasks;
+    Task*                               childTask;
+    GfxCoord*                           childCoord;
+    u16                                 modelFlags;
+
+    parentTask      = task->spawnArg2.pointer;
+    model           = task->extra.tmd;
+    parentModel     = parentTask->extra.tmd;
+    modelCoord      = model->coords;
+    attachmentCoord = parentModel->coords;
+    work            = memMalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(task);
         return;
     }
+    // Borrow the selected player model part and its lighting, owning our work.
     task->work       = work;
     work->morphLevel = 0;
-    flags            = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    obj->flags       = flags;
-    if (!(parentObj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        obj->flags = flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    modelFlags       = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model->flags     = modelFlags;
+    if (!(parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        model->flags = modelFlags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    obj->otOffset       = 4;
-    obj->flags         |= TMD_OBJECT_SEMI_TRANS;
-    parentCoord        += task->spawnArg1.value;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = parentCoord;
-    obj->lightMtx       = parentObj->lightMtx;
-    obj->colorMtx       = parentObj->colorMtx;
-    taskReparent(parent, task);
+    model->otOffset          = ATTACHMENT_OT_OFFSET;
+    model->flags            |= TMD_OBJECT_SEMI_TRANS;
+    attachmentCoord         += task->spawnArg1.value;
+    modelCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    modelCoord->parent       = attachmentCoord;
+    model->lightMtx          = parentModel->lightMtx;
+    model->colorMtx          = parentModel->colorMtx;
+    taskReparent(parentTask, task);
 
-    // Snapshot the model's rest shape into the morph record.
-    morph  = &D_dryfield_dilapidated_house_8018669C;
-    source = task->extra.tmd->source;
-    dst    = morph->savedVertices;
-    dst2   = morph->savedNormals;
-    verts  = source->verts;
-    for (i = 0; i < morph->savedVertexCount; i++) {
-        dst[i].vx = verts[i].vx;
-        dst[i].vy = verts[i].vy;
-        dst[i].vz = verts[i].vz;
-    }
-    if (morph->targetNormals != NULL) {
-        src2 = source->normals;
-        for (i = 0; i < morph->normalCount; i++) {
-            dst2[i].vx = src2[i].vx;
-            dst2[i].vy = src2[i].vy;
-            dst2[i].vz = src2[i].vz;
-        }
-    }
+    // Preserve the shared rest geometry before applying the initial deformation.
+    _modelMorphSaveRestShape(task, &D_dryfield_dilapidated_house_8018669C);
 
     _dryfieldDilapidatedHouseAdvanceMorph(task);
 
-    table   = D_dryfield_dilapidated_house_80186854;
-    spawned = taskSpawnFromTable(table, 3, 9, task);
-    if (spawned != NULL) {
-        childCoord        = spawned->extra.tmd->coords;
+    // The child descriptors allocate coordinate bodies, not model bodies.
+    effectTasks = D_dryfield_dilapidated_house_80186854;
+    childTask   = taskSpawnFromTable(effectTasks, CONE_TASK, FIRST_CONE_PHASE_FRAMES, task);
+    if (childTask != NULL) {
+        childCoord        = childTask->extra.coordBody->coord;
         childCoord->coord = work->attachMtx;
     }
-    spawned = taskSpawnFromTable(table, 3, 0x11, task);
-    if (spawned != NULL) {
-        childCoord        = spawned->extra.tmd->coords;
+    childTask = taskSpawnFromTable(effectTasks, CONE_TASK, SECOND_CONE_PHASE_FRAMES, task);
+    if (childTask != NULL) {
+        childCoord        = childTask->extra.coordBody->coord;
         childCoord->coord = work->attachMtx;
     }
-    spawned = taskSpawnFromTable(table, 2, 0, task);
-    if (spawned != NULL) {
-        childCoord        = spawned->extra.tmd->coords;
+    childTask = taskSpawnFromTable(effectTasks, BEAM_TASK, BEAM_UNMIRRORED, task);
+    if (childTask != NULL) {
+        childCoord        = childTask->extra.coordBody->coord;
         childCoord->coord = work->attachMtx;
     }
-    spawned = taskSpawnFromTable(table, 2, 1, task);
-    if (spawned != NULL) {
-        childCoord        = spawned->extra.tmd->coords;
+    childTask = taskSpawnFromTable(effectTasks, BEAM_TASK, BEAM_MIRRORED, task);
+    if (childTask != NULL) {
+        childCoord        = childTask->extra.coordBody->coord;
         childCoord->coord = work->attachMtx;
     }
 

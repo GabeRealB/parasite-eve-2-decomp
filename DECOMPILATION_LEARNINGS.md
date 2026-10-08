@@ -620,38 +620,38 @@ store order, but they do not create the extra locals that push `0xFFFFFF` off
 `base_2.c` 95.000% named stores; `base_5.c` 100%. Input hash
 `1f5eb2e8da96de6e1b8088835d37d289b10756ca631aa527a5aee78b73a04d7b` (`base_2.i`).
 
-## Two SVECTOR copy loops need two source locals, or extra-reload joins the rec `%hi` `$v0` quantity
+## Two SVECTOR copy loops need two source locals, or extra-reload joins the morph `%hi` `$v0` quantity
 
-`func_dryfield_dilapidated_house_80180B84` copies vertices then normals from a
-`TmdSource` into a `DdhRoomRec`. Written with one `SVECTOR* verts` reused for
+`_dryfieldDilapidatedHouseMorphAttachmentInit` copies vertices then normals from a
+`TmdSource` into a `ModelMorph`. Written with one `SVECTOR* vertices` reused for
 both walks, the `task->extra` reload after `taskReparent` joins the local
-quantity of `rec = &D_...`'s `%hi` temp (`$v0`). sched1 then dumps the
-extra→source→verts chain at the start of the preheader, so extra is loaded
-*before* `lui` and needs a nop in its delay. Target has `lui`/`addiu rec` first
+quantity of `morph = &D_...`'s `%hi` temp (`$v0`). sched1 then dumps the
+extra→source→vertices chain at the start of the preheader, so extra is loaded
+*before* `lui` and needs a nop in its delay. Target has `lui`/`addiu morph` first
 and extra in `$v1`.
 
 A distinct pointer for the second walk splits the quantities:
 
 ```c
-verts = source->verts;
-for (i = 0; i < rec->field_10; i++) {
-    dst[i].vx = verts[i].vx;
-    dst[i].vy = verts[i].vy;
-    dst[i].vz = verts[i].vz;
+vertices = source->verts;
+for (elementIndex = 0; elementIndex < morph->savedVertexCount; elementIndex++) {
+    savedVertices[elementIndex].vx = vertices[elementIndex].vx;
+    savedVertices[elementIndex].vy = vertices[elementIndex].vy;
+    savedVertices[elementIndex].vz = vertices[elementIndex].vz;
 }
-if (rec->field_4 != 0) {
-    src2 = source->normals; /* not verts = ... */
-    for (i = 0; i < rec->field_12; i++) {
-        dst2[i].vx = src2[i].vx;
-        dst2[i].vy = src2[i].vy;
-        dst2[i].vz = src2[i].vz;
+if (morph->targetNormals != 0) {
+    normals = source->normals; /* not vertices = ... */
+    for (elementIndex = 0; elementIndex < morph->normalCount; elementIndex++) {
+        savedNormals[elementIndex].vx = normals[elementIndex].vx;
+        savedNormals[elementIndex].vy = normals[elementIndex].vy;
+        savedNormals[elementIndex].vz = normals[elementIndex].vz;
     }
 }
 ```
 
-Indexed `dst[i].vx` (not `dst++`) is required as well, or loop.c reduces `vy`/`vz`
+Indexed `savedVertices[elementIndex].vx` (not `savedVertices++`) is required as well, or loop.c reduces `vy`/`vz`
 into a +4 IV. Same family as "one counter per loop, not one shared".
-`base_2.c` 97.404% shared `verts`; permuter `new_var` alias and `base_6.c` both
+`base_2.c` 97.404% shared `vertices`; permuter `new_var` alias and `base_6.c` both
 100%. Input hash `d5b89d0bd4d800a2e90e0ee3313ba307b391806a04c089687affa2bad74169c4`
 (`base_2.i`).
 
@@ -46022,7 +46022,7 @@ moving. This is the same mechanism from the other side, where the *load* of a
 foreign global is what the target keeps below the stores and the scalar form is
 what moves it.
 
-`func_dryfield_dilapidated_house_8017DE88` is the actor family's
+`_dryfieldDilapidatedHouseNegativeCaptureTask` is the actor family's
 `func_actor_460200_80131E2C` under the room's symbols - same body, and the twin
 is already matched. Transcribed with the room's own bare `extern u8 D_80070F87;`
 it scores 92.990% with `branch=9 insert=1 delete=4`, and every one of those
@@ -46541,7 +46541,7 @@ task's block alone.
 
 ## A packet-typed cursor the seed inherited from its declaration sends the cursor bump out by 8x
 
-`func_dryfield_dilapidated_house_8017E144`'s seed reached 90.87% with exactly one
+`_dryfieldDilapidatedHouseBlackoutTask`'s seed reached 90.87% with exactly one
 structural line in the diff: `addiu v0,s0,0x80` where the target has
 `addiu v0,s0,0x10`. m2c had typed the packet `DR_TPAGE *temp_s0` and written
 `gGpuPrimCursor = temp_s0 + 0x10;`, scaling by `sizeof(DR_TPAGE)`. Whatever the
@@ -95409,7 +95409,7 @@ Example: `dryfieldR08SetLampSpritesHidden`, whose sibling `_dryfieldR08SetViewSp
 in the same unit establishes the stride with `views[1]` / `views[2]` reads.
 Input: `base_1.i`
 `3b9e12d4e068e1b36349f777ea5aaba2be5d2267460ab7294e24a6fa77ea6e4c`.
-## A matched function's `.s` is often the only carrier of its rodata, so matching it drops those bytes (func_dryfield_dilapidated_house_8017E014, 2026-09-16)
+## A matched function's `.s` is often the only carrier of its rodata, so matching it drops those bytes (_dryfieldDilapidatedHouseRoomUpdate, 2026-09-16)
 
 **Problem.** `migrate_rodata_to_functions: True` in a generated overlay config
 pairs a data run that follows a function with *that function's* `.s` file. Once
@@ -120669,7 +120669,7 @@ already use `ABS()` (`src/gameplay/1BC.c`, `src/rooms/acropolis_bridge/
 acropolis_bridge_12.c`, `src/rooms/acropolis_helicopter_landing_pad/*`) show
 `move` + self-`negu` in their `.s`. `grep -rn "ABS(" src/` plus the target's
 `negu` operand is the quickest way to tell which form a function wants.
-## A *duplicated* shared tail raises its allocno's refcount: flow runs before jump2's cross-jumping (func_dryfield_dilapidated_house_8017E2B0, 2026-09-17)
+## A *duplicated* shared tail raises its allocno's refcount: flow runs before jump2's cross-jumping (_dryfieldDilapidatedHouseEncounterFinishTask, 2026-09-17)
 
 The function is a state switch in which cases 0..6 all do `state += 1; return;`.
 Written the way the corpus recommends for a shared tail - one copy at the join
@@ -120716,12 +120716,12 @@ applies: a constant-false `do { } while (0)` around the shared increment adds 2
 weighted refs (see "`do{}while(0)` flips an allocno tie", `REG_N_REFS` is
 weighted by loop depth) without moving a byte of the instruction stream.
 
-## `rodata_head` is the lever for *any* `.align 3` inside the unit's `.rodata`, not only a table at offset 0 (func_dryfield_dilapidated_house_8017E2B0, 2026-09-17)
+## `rodata_head` is the lever for *any* `.align 3` inside the unit's `.rodata`, not only a table at offset 0 (_dryfieldDilapidatedHouseEncounterFinishTask, 2026-09-17)
 
 The `rodata_head` entry above covers a jump table that has to *start* its unit's
 `.rodata`. The same fix is right when the table sits in the middle of that run.
-`func_dryfield_dilapidated_house_8017E2B0`'s table follows the `AUNT`/`Player`
-words and `func_dryfield_dilapidated_house_8017E144`'s table at image offset
+`_dryfieldDilapidatedHouseEncounterFinishTask`'s table follows the `AUNT`/`Player`
+words and `_dryfieldDilapidatedHouseBlackoutTask`'s table at image offset
 0x3C, and the overlay had no `rodata_head`, so the unit's `.rodata` began at 0x0
 and GCC's `.align 3` padded the table out to 0x40. Every symptom points away from
 rodata: the function scores 100.000% with all penalties zero, `rodata_triage.py`
@@ -149226,7 +149226,7 @@ computes `pos` first).
 `goto shared;` into another arm is usually the tail written twice:
 cross-jumping (jump.c) merges two identical insn runs that end at the same
 label, and deletes the *earlier* copy. It matched in `effectThrownModelTask`,
-`acropolisCafeteriaPlayMovieTask`, `func_dryfield_dilapidated_house_8017E2B0`.
+`acropolisCafeteriaPlayMovieTask`, `_dryfieldDilapidatedHouseEncounterFinishTask`.
 It fails in two ways:
 
 - the image keeps the *earlier* copy and jumps backward to it
