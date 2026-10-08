@@ -48,21 +48,32 @@ static __inline__ void _factoryLiftFinishTurn(const Task* liftTask, const GfxCoo
     }
 }
 
-/// Reports vertical completion to the panel and replaces the motion loop with its stop cue.
+/// Notifies the operator panel of a finished raise or lower and queues the stop cue.
 ///
-/// The slot must be live; NULL contents mean no panel is open. Audio pan and
-/// depth are narrowed to signed bytes at the lift origin, as for the start cue.
-static __inline__ void _factoryLiftFinishVertical(Task* task, GfxCoord* coord)
+/// Used for both natural completion and an accepted skip. `liftTask` borrows
+/// a room-owned `Task*` slot in `spawnArg2.pointer`; the slot must be live and
+/// contain NULL or a live panel task. Notification is synchronous and precedes
+/// the sound requests; NULL suppresses only the notification.
+///
+/// Requires a live session and loaded factory sound bank. Stops the vertical
+/// motion script without a fade, retaining its release settings, then starts
+/// the stop cue: daytime IDs in `GAME_STAGE_DRYFIELD`, nighttime IDs otherwise.
+/// `liftCoord` is the model root with its local-to-view matrix already composed;
+/// projection and scratch requirements follow `worldCoordGetOriginAudioPan`.
+/// Pan (-16..15) and depth (-128..127, 256 world units per step) are passed as
+/// signed bytes. The caller commits the final position and movement phase.
+static __inline__ void _factoryLiftFinishVertical(const Task* liftTask, const GfxCoord* liftCoord)
 {
-    Task** panelSlot = task->spawnArg2.pointer;
+    Task* const* panelTaskSlot = liftTask->spawnArg2.pointer;
 
-    _factoryLiftNotifyPanel(*panelSlot);
+    _factoryLiftNotifyPanel(*panelTaskSlot);
+    // Sample the cached origin before the caller writes this frame's new local Y.
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_MOVE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_MOVE_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_MOVE_STOP, (s8)worldCoordGetOriginAudioPan(liftCoord), (s8)worldCoordGetOriginAudioDepth(liftCoord));
     } else {
         sndEvtRequestStageScriptStop(SOUND_NIGHT_FACTORY_LIFT_MOVE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_MOVE_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_MOVE_STOP, (s8)worldCoordGetOriginAudioPan(liftCoord), (s8)worldCoordGetOriginAudioDepth(liftCoord));
     }
 }
 
