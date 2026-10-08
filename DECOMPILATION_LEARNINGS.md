@@ -119298,7 +119298,7 @@ held a TMD-flag helper linked into `actor_110700` / `actor_511000`). Writing
 the new `.c`/`.h` over it builds, but those overlays then fail the checksum and
 the symbol resolves to the wrong object. Before writing, `ls
 src/actors/lib/<unit>.c`; on a clash use an overlay-scoped name
-(`actor_102400_fn0208c`, symbol `Actor02400_Fn0208C`). Also drop any existing
+(`actor_102400_fn0208c`, symbol `_actor02400ApplyBodyScale`). Also drop any existing
 caller-side alias at that address (`ActorsShared80134c2c_Fn33EAC`) from the
 sym files, or splat rejects the duplicate symbol.
 
@@ -145948,7 +145948,7 @@ constant `$a2`.
 **Fix.** Declare the variable with the width its values need (`s16 scale;`). When
 a value that crosses a join loses a register to a constant computed after
 the join, try narrowing the variable before forcing the constant global.
-## A `nop` after a load at the end of a two-way choice: the dependent store was in both arms, cross-jumped after sched2 (Actor02400_Fn0095C, 2026-09-27)
+## A `nop` after a load at the end of a two-way choice: the dependent store was in both arms, cross-jumped after sched2 (_actor02400InitBody, 2026-09-27)
 
 **Symptom.** `p = cond ? &A : &B; hp = p->max;` matched except that the
 `move a0,zero` of a later call filled the `lhu` delay slot, where the target has
@@ -149862,7 +149862,7 @@ attempts; left as it was.
 - **`if (d > 0) { if (s >= K - d) goto snap; else goto turn; } else if (s >= K
   + d) goto snap; else goto turn; snap: ...; goto done; turn: ...`** (the
   wrap-around arm of the actors' turn-to-yaw step, `Actor02500_Fn016FC`,
-  `Actor02400_Fn02264`, `_actor01500TurnTowardTarget`) is a conditional expression in
+  `_actor02400TurnTowardTarget`, `_actor01500TurnTowardTarget`) is a conditional expression in
   the test: `if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
   snap } else { turn }`. Each arm of the `?:` branches straight to the two
   bodies, so the image's two compares with opposite polarity (`beqz snap; j

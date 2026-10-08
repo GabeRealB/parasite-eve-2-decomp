@@ -16,6 +16,7 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
+#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
@@ -23,6 +24,7 @@
 #include "gameplay/player_state.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
+#include "gameplay/message.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
@@ -103,6 +105,9 @@ enum {
     ACTOR_02400_SCALE_FLAT    = 0x600,  // Every axis while dormant; afterwards the height of the flattened body
     ACTOR_02400_SCALE_SWOLLEN = 0x1C00, // Height that ends a swell
 };
+
+/// Fixed radius and compensated height of the hit sphere, in coordinate units.
+enum { ACTOR_02400_BODY_RADIUS = 200 };
 
 /// Work block of the main body, the enemy drawn with `_gActor02400AmoebaBody`.
 ///
@@ -210,23 +215,23 @@ extern s16      Actor02400_D045DC[];
 extern s16      Actor02400_D0463C[];
 extern TaskDesc Actor02400_D0465C[];
 
-static void Actor02400_Fn0095C(Enemy* enemy, Task* task);
+static void _actor02400InitBody(Enemy* enemy, Task* task);
 static void Actor02400_Fn024F8(Enemy* enemy, Task* task);
-static void Actor02400_Fn02790(Enemy* enemy, Task* task);
+static void _actor02400InitFireball(Enemy* enemy, Task* task);
 static void Actor02400_Fn02AF0(Enemy* enemy, Task* task);
 static void Actor02400_Fn02E0C(Enemy* enemy, Task* task);
-static void Actor02400_Fn033B4(Enemy* enemy, Task* task);
+static void _actor02400TeardownFireball(Enemy* enemy, Task* task);
 static void Actor02400_Fn02EDC(Task* task);
-static void Actor02400_Fn02F94(Task* task);
-static void Actor02400_Fn03098(Task* task);
-static void Actor02400_Fn03140(Task* task);
+static void _actor02400UpdateHurt(Task* task);
+static void _actor02400UpdateArm(Task* task);
+static void _actor02400StepForward(Task* task);
 static void Actor02400_Fn031D0(Task* task);
-static void Actor02400_Fn03228(Task* task);
-static void Actor02400_Fn03278(Task* task);
+static void _actor02400DrawShadow(Task* task);
+static void _actor02400ApplyDeathScale(Task* task);
 
 static TmdSource _gActor02400AmoebaBody;
-void             Actor02400_Fn02DB0(Task*);
-void             Actor02400_Fn03358(Task*);
+static void      _actor02400BodyTask(Task* task);
+static void      _actor02400FireballTask(Task* task);
 
 static TmdBone _gActor02400AmoebaBodySkeleton[4] = {
 #include "assets/amoeba_body_skeleton.inc"
@@ -352,63 +357,92 @@ s16 Actor02400_D0463C[16] = {
 };
 
 TaskDesc Actor02400_D0465C[2] = {
-    { { { TASK_BODY_TMD, 96 } }, Actor02400_Fn02DB0, { .model = &_gActor02400AmoebaBody } },
-    { { { TASK_BODY_COORD, 96 } }, Actor02400_Fn03358, { .value = 0 } },
+    { { { TASK_BODY_TMD, 96 } }, _actor02400BodyTask, { .model = &_gActor02400AmoebaBody } },
+    { { { TASK_BODY_COORD, 96 } }, _actor02400FireballTask, { .value = 0 } },
 };
 
 static void Actor02400_Fn00C08(Task* task);
-static void Actor02400_Fn01420(Task* task);
 static void Actor02400_Fn01590(Task* task);
-static void Actor02400_Fn01A10(Task* task);
 static void Actor02400_Fn01B90(Task* task);
-static void Actor02400_Fn01F74(Task* task);
-static void Actor02400_Fn0208C(Task* task);
-static void Actor02400_Fn02264(Task* task);
-static void Actor02400_Fn023B4(Task* task);
 
 #include "../../shared/fireball_glow.inc.c"
 
 #include "../../shared/fireball_ground_glow.inc.c"
 
-/// The main body's state handlers, run by `Actor02400_Fn02DB0` for the task's
+/// The main body's state handlers, run by `_actor02400BodyTask` for the task's
 /// state: spawn, per-frame tick and death.
 static const EnemyTaskFuncTable3 Actor02400_D00004 = {
-    { Actor02400_Fn0095C, Actor02400_Fn02E0C, Actor02400_Fn024F8 },
+    { _actor02400InitBody, Actor02400_Fn02E0C, Actor02400_Fn024F8 },
 };
 
-/// Spawn handler of the main body: allocates the work block, picks the model
-/// and parameter variant from the placement, links the enemy node and both
-/// collision bodies, starts dormant at `ACTOR_02400_SCALE_FLAT` with a random
-/// countdown, and moves the task to state 1.
-static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
+/// Links the amoeba's radius-200 hit sphere and initializes its four contacts.
+///
+/// Requires zeroed body work and a live root. Its centre is 200 local units
+/// above the root; per-frame scaling compensates that height afterwards.
+static __inline__ void _actor02400InitHitSphere(_Actor02400Work* work, GfxCoord* rootCoord)
 {
-    TmdObject*       obj;
-    GfxCoord*        coord;
+    enum {
+        ACTOR_02400_BODY_CONTACT_ID = 0x18,
+    };
+
+    work->body.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_02400_BODY_CONTACT_ID;
+    work->body.coord            = rootCoord;
+    work->body.context.contacts = work->bodyContacts;
+    work->body.pos.vy           = -ACTOR_02400_BODY_RADIUS;
+    work->body.pos.vx           = 0;
+    work->body.pos.vz           = 0;
+    work->body.radius           = ACTOR_02400_BODY_RADIUS;
+    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
+    worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
+    work->body.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+}
+
+/// Creates the amoeba body's collision, lighting and behaviour work.
+///
+/// Requires a four-part TMD task and its live enemy record. Placement bit 0
+/// selects parameters, attack entries and the palette row. The task owns the
+/// zeroed work; the model borrows its lighting matrices until teardown.
+/// Starts dormant at 1536/4096 scale and selects the active task handler.
+/// Allocation failure destroys the enemy and task before any links are added.
+static void _actor02400InitBody(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_02400_BODY_CONTACT_ID   = 0x18,
+        ACTOR_02400_BODY_RADIUS       = 200,
+        ACTOR_02400_TARGET_HEIGHT     = 150,
+        ACTOR_02400_ARM_STRIKE_RADIUS = 100,
+        ACTOR_02400_ARM_INITIAL_REACH = 500,
+        ACTOR_02400_BODY_TASK_ACTIVE  = 1,
+    };
+
+    TmdObject*       model;
+    GfxCoord*        rootCoord;
     _Actor02400Work* work;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(_Actor02400Work), false);
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    work      = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
-    task->work          = work;
-    obj->flags          = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->light;
-    obj->colorMtx       = &work->color;
-    work->variant       = enemy->place->mode & 1;
+    task->work              = work;
+    model->flags            = 0;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->lightMtx         = &work->light;
+    model->colorMtx         = &work->color;
+    work->variant           = enemy->place->mode & 1;
     if (work->variant != 0) {
-        obj->clutRowOffset += 1;
-        tmdBuildBufferHalf(obj);
-        tmdBuildBufferHalf(obj);
+        model->clutRowOffset += 1;
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
     }
-    enemy->field_4  = &coord->coord;
+    enemy->field_4  = &rootCoord->coord;
     enemy->field_48 = 0;
     worldTargetLinkNode(&enemy->node);
-    enemy->bodyPos.vy             = -0x96;
-    enemy->coord                  = coord;
+    enemy->bodyPos.vy             = -ACTOR_02400_TARGET_HEIGHT;
+    enemy->coord                  = rootCoord;
     enemy->node.state.parts.flags = 0;
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vz             = 0;
@@ -424,35 +458,25 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     work->effectArg.spawnArgLo = 0x200;
     work->effectArg.spawnArgHi = 1;
     sceneAcquireBattleRef(0);
-    work->scale.vx              = ACTOR_02400_SCALE_FLAT;
-    work->scale.vy              = ACTOR_02400_SCALE_FLAT;
-    work->scale.vz              = ACTOR_02400_SCALE_FLAT;
-    work->baseMatrix            = coord->coord;
-    gRandomLcgState             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->counter               = (gRandomLcgState >> 16) & 0xF;
-    work->body.key              = 0x30018;
-    work->body.coord            = coord;
-    work->body.context.contacts = work->bodyContacts;
-    work->body.pos.vy           = -0xC8;
-    work->body.pos.vx           = 0;
-    work->body.pos.vz           = 0;
-    work->body.radius           = 0xC8;
-    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
-    worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
-    work->body.flags                 |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->scale.vx   = ACTOR_02400_SCALE_FLAT;
+    work->scale.vy   = ACTOR_02400_SCALE_FLAT;
+    work->scale.vz   = ACTOR_02400_SCALE_FLAT;
+    work->baseMatrix = rootCoord->coord;
+    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->counter    = (gRandomLcgState >> 16) & 0xF;
+    _actor02400InitHitSphere(work, rootCoord);
     work->attackBody.coord            = &task->extra.tmd->coords[3];
     work->attackBody.context.contacts = work->attackContacts;
     work->attackBody.pos.vx           = 0;
     work->attackBody.pos.vy           = 0;
-    work->attackBody.pos.vz           = 0x1F4;
+    work->attackBody.pos.vz           = ACTOR_02400_ARM_INITIAL_REACH;
     work->attackBody.key              = damagePackAttackKey(Actor02400_BodyPairs, work->variant * 2);
-    work->attackBody.radius           = 0x64;
+    work->attackBody.radius           = ACTOR_02400_ARM_STRIKE_RADIUS;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    task->state             = 1;
+    task->state             = ACTOR_02400_BODY_TASK_ACTIVE;
 }
 
 /// Resolves this frame's contacts. The push-back from `worldCollisionResolvePushback` moves
@@ -668,53 +692,57 @@ static void Actor02400_Fn00C08(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactOverlapPushScratch);
 }
 
-/// The projectile's state handlers, run by `Actor02400_Fn03358` for the task's
+/// The projectile's state handlers, run by `_actor02400FireballTask` for the task's
 /// state: spawn, flight and teardown.
 static const EnemyTaskFuncTable3 Actor02400_D0003C = {
-    { Actor02400_Fn02790, Actor02400_Fn02AF0, Actor02400_Fn033B4 },
+    { _actor02400InitFireball, Actor02400_Fn02AF0, _actor02400TeardownFireball },
 };
 
-/// `ACTOR_02400_MODE_DORMANT`: counts `counter` down, re-arming it at random and
-/// checking the global wake flag each time it runs out, and wakes the body
-/// (`ACTOR_02400_CRAWL_PHASE_WAKE` at unit scale) when the player comes within
-/// 1500 units on the ground plane or once a projectile has been spawned.
-static void Actor02400_Fn01420(Task* task)
+/// Wakes a dormant amoeba when the player approaches or combat alerts it.
+///
+/// Requires live body work and a TMD root. Ground-plane distance below 1500
+/// units or the group's latched fireball alert wakes it immediately; the
+/// PE-active signal is sampled when the randomized countdown expires.
+/// Waking begins the crawl's swelling phase at unit scale and engages combat.
+/// Reserves and releases one `VECTOR` on the initialized scratch stack.
+static void _actor02400UpdateDormant(Task* task)
 {
+    enum {
+        ACTOR_02400_WAKE_DISTANCE = 1500,
+    };
+
     _Actor02400Work* work;
-    GfxCoord*        coord;
-    s32              flag;
+    GfxCoord*        rootCoord;
+    s32              shouldWake;
     s32              dx;
     s32              dz;
-    u32              random;
+    u32              randomState;
     VECTOR*          delta;
-    VECTOR*          scratchEnd;
 
-    scratchEnd                                                                = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
-    delta                                                                     = scratchEnd - 1;
-    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
-    work                                                                      = task->work;
-    coord                                                                     = task->extra.tmd->coords;
-    flag                                                                      = 0;
+    delta      = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+    work       = task->work;
+    rootCoord  = task->extra.tmd->coords;
+    shouldWake = 0;
     if (--work->counter < 0) {
-        random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        work->counter   = (random >> 0x10) & 0xF;
-        gRandomLcgState = random;
+        randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        work->counter   = (randomState >> 16) & 0xF;
+        gRandomLcgState = randomState;
         if (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE) {
-            flag = 1;
+            shouldWake = 1;
         }
     }
-    scratchEnd[-1].vx = (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
-    delta->vy         = 0;
-    dz                = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    delta->vz         = dz;
-    dx                = scratchEnd[-1].vx;
-    if (SquareRoot0((dx * dx) + (dz * dz)) < 0x5DC) {
-        flag = 1;
+    delta->vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+    delta->vy = 0;
+    dz        = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+    delta->vz = dz;
+    dx        = delta->vx;
+    if (SquareRoot0((dx * dx) + (dz * dz)) < ACTOR_02400_WAKE_DISTANCE) {
+        shouldWake = 1;
     }
     if (gSceneCombatState.actor02400Alert != 0) {
-        flag = 1;
+        shouldWake = 1;
     }
-    if (flag != 0) {
+    if (shouldWake != 0) {
         work->mode     = ACTOR_02400_MODE_CRAWL;
         work->phase    = ACTOR_02400_CRAWL_PHASE_WAKE;
         work->scale.vx = ONE;
@@ -723,7 +751,7 @@ static void Actor02400_Fn01420(Task* task)
         work->counter  = 0;
         sceneEngageBattle(1);
     }
-    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;
+    SCRATCH_STACK_CURSOR(VECTOR) += 1;
 }
 
 /// `ACTOR_02400_MODE_CRAWL`: `TURN` faces the player and `SURGE` moves straight
@@ -860,13 +888,19 @@ static void Actor02400_Fn01590(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-/// `ACTOR_02400_MODE_STRIKE`: `EXTEND` holds `armOut` for up to 7 frames, cut
-/// short while `attackLanded` is set; `RETRACT` clears it and after 7 frames
-/// either moves on to `ACTOR_02400_MODE_CAST`, when `attackLanded` is set, or
-/// returns to crawling with a random wait. Every frame the height swings
-/// between 0xF00 and 0x1100.
-static void Actor02400_Fn01A10(Task* task)
+/// Extends and retracts the amoeba's arm before returning to crawl or casting.
+///
+/// Each phase lasts seven ticks; a recorded player touch ends extension early.
+/// After retraction that touch is consumed and starts the cast's swelling
+/// phase. Without a touch, crawling and arm collision resume. The body height
+/// continues its 4096-centred oscillation while striking.
+static void _actor02400UpdateStrike(Task* task)
 {
+    enum {
+        ACTOR_02400_STRIKE_PHASE_FRAMES = 7,
+        ACTOR_02400_STRIKE_SCALE_SWING  = ONE / 16,
+    };
+
     _Actor02400Work* work;
     s32              phase;
 
@@ -876,7 +910,7 @@ static void Actor02400_Fn01A10(Task* task)
         case ACTOR_02400_STRIKE_PHASE_EXTEND:
             work->armOut = 1;
             work->counter++;
-            if (work->counter >= 7) {
+            if (work->counter >= ACTOR_02400_STRIKE_PHASE_FRAMES) {
                 work->phase   = ACTOR_02400_STRIKE_PHASE_RETRACT;
                 work->counter = 0;
             }
@@ -888,7 +922,7 @@ static void Actor02400_Fn01A10(Task* task)
         case ACTOR_02400_STRIKE_PHASE_RETRACT:
             work->armOut = 0;
             work->counter++;
-            if (work->counter >= 7) {
+            if (work->counter >= ACTOR_02400_STRIKE_PHASE_FRAMES) {
                 if (work->attackLanded != 0) {
                     work->attackLanded = 0;
                     work->mode         = ACTOR_02400_MODE_CAST;
@@ -909,12 +943,12 @@ static void Actor02400_Fn01A10(Task* task)
     }
     if (work->swingDown == 0) {
         work->scale.vy += 0x80;
-        if (work->scale.vy > ONE + 0x100) {
+        if (work->scale.vy > ONE + ACTOR_02400_STRIKE_SCALE_SWING) {
             work->swingDown = 1;
         }
     } else {
         work->scale.vy -= 0x80;
-        if (work->scale.vy < ONE - 0x100) {
+        if (work->scale.vy < ONE - ACTOR_02400_STRIKE_SCALE_SWING) {
             work->swingDown = 0;
         }
     }
@@ -1033,11 +1067,17 @@ static void Actor02400_Fn01B90(Task* task)
     *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;
 }
 
-/// `ACTOR_02400_MODE_STUNNED`: shrinks the scale toward the flat crawling
-/// shape, cancels the charge effect and keeps `attackBody` disabled; after 360
-/// frames returns to crawling with a random wait.
-static void Actor02400_Fn01F74(Task* task)
+/// Flattens the stunned amoeba, cancels its charge and disables arm collision.
+///
+/// Requires live body work with the counter reset on entry to the mode.
+/// Resumes crawling after the counter exceeds 360 ticks and re-enables the
+/// arm's pair tests. X/Z shrink toward unit scale and Y toward 1536/4096.
+static void _actor02400UpdateStunned(Task* task)
 {
+    enum {
+        ACTOR_02400_STUN_FRAMES = 360,
+    };
+
     _Actor02400Work* work = task->work;
 
     work->scale.vx -= 0x40;
@@ -1058,7 +1098,7 @@ static void Actor02400_Fn01F74(Task* task)
     }
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->counter++;
-    if (work->counter > 0x168) {
+    if (work->counter > ACTOR_02400_STUN_FRAMES) {
         work->mode              = ACTOR_02400_MODE_CRAWL;
         work->phase             = ACTOR_02400_CRAWL_PHASE_TURN;
         gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1067,134 +1107,146 @@ static void Actor02400_Fn01F74(Task* task)
     }
 }
 
-/// Saves the root coordinate's matrix in `baseMatrix` and scales it per axis by
-/// `scale`, keeping the coordinate's translation. The height of `body` and the
-/// reach of `attackBody` follow the Y and Z scale.
-static void Actor02400_Fn0208C(Task* task)
+/// Applies the amoeba's per-axis Q12 scale while preserving its local origin.
+///
+/// Requires a live TMD body, nonzero Y scale and 0x40 free scratch-stack bytes.
+/// Saves the current unscaled root matrix, keeps the body sphere 200 units
+/// above the scaled root and adjusts arm reach to Z scale. The root rotation
+/// is multiplied by the scale and marked dirty; translation is restored.
+static void _actor02400ApplyBodyScale(Task* task)
 {
-    GfxCoord*                coord;
+    GfxCoord*                rootCoord;
     _Actor02400Work*         work;
     _Actor02400ScaleScratch* scratch;
-    _Actor02400ScaleScratch* head;
 
-    coord                                         = task->extra.tmd->coords;
-    work                                          = task->work;
-    work->baseMatrix                              = coord->coord;
-    head                                          = SCRATCH_STACK_CURSOR(_Actor02400ScaleScratch);
-    scratch                                       = head - 1;
-    SCRATCH_STACK_CURSOR(_Actor02400ScaleScratch) = scratch;
-    work->body.pos.vy                             = -0xC8000 / work->scale.vy;
-    work->attackBody.pos.vz                       = (work->scale.vz * 250) / 4096;
-    scratch->rescale.scale.vx                     = work->scale.vx;
-    scratch->rescale.scale.vy                     = work->scale.vy;
-    scratch->rescale.scale.vz                     = work->scale.vz;
-    scratch->translation.vx                       = coord->coord.t[0];
-    scratch->translation.vy                       = coord->coord.t[1];
-    scratch->translation.vz                       = coord->coord.t[2];
-    coord->coord                                  = work->baseMatrix;
+    rootCoord        = task->extra.tmd->coords;
+    work             = task->work;
+    work->baseMatrix = rootCoord->coord;
+    scratch          = SCRATCH_STACK_RESERVE_BLOCK(_Actor02400ScaleScratch);
+    // Keep the hit sphere at a fixed height as the root changes shape.
+    work->body.pos.vy         = -(ACTOR_02400_BODY_RADIUS * ONE) / work->scale.vy;
+    work->attackBody.pos.vz   = (work->scale.vz * 250) / ONE;
+    scratch->rescale.scale.vx = work->scale.vx;
+    scratch->rescale.scale.vy = work->scale.vy;
+    scratch->rescale.scale.vz = work->scale.vz;
+    scratch->translation.vx   = rootCoord->coord.t[0];
+    scratch->translation.vy   = rootCoord->coord.t[1];
+    scratch->translation.vz   = rootCoord->coord.t[2];
+    rootCoord->coord          = work->baseMatrix;
     gfxSetRotIdentity(&scratch->rescale.matrix);
     ScaleMatrix(&scratch->rescale.matrix, &scratch->rescale.scale);
-    MulMatrix(&coord->coord, &scratch->rescale.matrix);
-    coord->coord.t[0] = scratch->translation.vx;
-    coord->coord.t[1] = scratch->translation.vy;
+    MulMatrix(&rootCoord->coord, &scratch->rescale.matrix);
+    rootCoord->coord.t[0] = scratch->translation.vx;
+    rootCoord->coord.t[1] = scratch->translation.vy;
+    rootCoord->coord.t[2] = scratch->translation.vz;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02400ScaleScratch);
-    coord->coord.t[2]   = scratch->translation.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Turns the body towards `targetYaw` by at most `turnRate` per frame and
-/// rebuilds the root coordinate's rotation from the resulting `yaw`. The yaw
-/// wraps at 0x1000: when the remaining turn would overshoot through the wrap the
-/// body snaps to the target instead.
-static void Actor02400_Fn02264(Task* task)
+/// Turns the amoeba toward its target heading and rebuilds its root rotation.
+///
+/// Current yaw comes from the root's Z axis. Target headings are in 0..4095
+/// and `turnRate` is a nonnegative limit in 4096 units per turn per tick.
+/// Chooses the shorter arc, snapping when the remaining turn fits the limit;
+/// the half-turn tie uses the wrapped arc. Replaces pitch, roll and scale.
+/// Reserves and releases one `ActorFaceScratch` on the initialized scratch stack.
+static void _actor02400TurnTowardTarget(Task* task)
 {
     _Actor02400Work*  work;
-    GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s32               ang;
-    u16               want;
-    s16               diff;
-    s32               adiff;
-    s32               step;
-    s32               cur;
-    s32               next;
-    s32               wrapStep;
+    GfxCoord*         rootCoord;
+    ActorFaceScratch* scratch;
+    s32               currentYaw;
+    u16               targetYaw;
+    s16               yawDelta;
+    s32               absoluteDelta;
+    s32               turnStep;
+    s32               previousYaw;
+    s32               nextYaw;
+    s32               wrappedTurnStep;
 
-    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
-    coord = task->extra.tmd->coords;
-    work  = task->work;
-    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    want  = work->targetYaw;
-    diff  = want - ang;
-    adiff = diff >= 0 ? diff : -diff;
+    scratch       = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    rootCoord     = task->extra.tmd->coords;
+    work          = task->work;
+    currentYaw    = ratan2(rootCoord->coord.m[0][2], rootCoord->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;
+    targetYaw     = work->targetYaw;
+    yawDelta      = targetYaw - currentYaw;
+    absoluteDelta = yawDelta >= 0 ? yawDelta : -yawDelta;
 
-    work->yaw = ang;
-    if (adiff < 0x800) {
-        step = work->turnRate;
-        if (step >= adiff) {
-            work->yaw = want;
+    work->yaw = currentYaw;
+    if (absoluteDelta < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        turnStep = work->turnRate;
+        if (turnStep >= absoluteDelta) {
+            work->yaw = targetYaw;
         } else {
-            next = work->yaw;
-            if (diff <= 0) {
-                next -= step;
+            nextYaw = work->yaw;
+            if (yawDelta <= 0) {
+                nextYaw -= turnStep;
             } else {
-                next += step;
+                nextYaw += turnStep;
             }
-            work->yaw = next;
+            work->yaw = nextYaw;
         }
     } else {
-        step = work->turnRate;
-        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+        turnStep = work->turnRate;
+        if (yawDelta > 0 ? turnStep >= ACTOR_TRANSFORM_ANGLE_TURN - yawDelta : turnStep >= ACTOR_TRANSFORM_ANGLE_TURN + yawDelta) {
             work->yaw = work->targetYaw;
         } else {
-            wrapStep = work->turnRate;
-            cur      = work->yaw;
-            if (diff > 0) {
-                work->yaw = cur - wrapStep;
+            wrappedTurnStep = work->turnRate;
+            previousYaw     = work->yaw;
+            if (yawDelta > 0) {
+                work->yaw = previousYaw - wrappedTurnStep;
             } else {
-                work->yaw = cur + wrapStep;
+                work->yaw = previousYaw + wrappedTurnStep;
             }
         }
     }
-    sc->rot.vx = 0;
-    sc->rot.vy = work->yaw;
-    sc->rot.vz = 0;
-    RotMatrix(&sc->rot, &coord->coord);
+    scratch->rot.vx = 0;
+    scratch->rot.vy = work->yaw;
+    scratch->rot.vz = 0;
+    RotMatrix(&scratch->rot, &rootCoord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-/// Counts `idleSoundTimer` and every 25 frames plays the body's idle sound,
-/// panned and placed from the root coordinate and made louder the taller the
-/// body has grown.
-static void Actor02400_Fn023B4(Task* task)
+/// Plays the amoeba's positional idle sound every 25 active behaviour ticks.
+///
+/// Requires live body work and an enemy in `spawnArg2`. Height maps the sound
+/// depth from 50 to 100 percent over the flat-to-swollen wobble range, clamped
+/// at both ends. Placement selects the script instance; the root supplies
+/// pan and distance depth. Dormant, hurt and stunned modes do not call it.
+static void _actor02400UpdateIdleSound(Task* task)
 {
-    GfxCoord*        object;
-    s16              scale;
-    s16              ramp;
+    enum {
+        ACTOR_02400_IDLE_SOUND_FRAMES = 25,
+        ACTOR_02400_IDLE_SOUND_SCRIPT = 0x40180001,
+    };
+
+    GfxCoord*        rootCoord;
+    s16              heightScale;
+    s16              heightAboveFlat;
     s32              soundId;
-    s32              volume;
+    s32              volumePercent;
     s8               depth;
     _Actor02400Work* work;
 
-    work   = task->work;
-    object = task->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     work->idleSoundTimer++;
-    if (work->idleSoundTimer >= 0x19) {
+    if (work->idleSoundTimer >= ACTOR_02400_IDLE_SOUND_FRAMES) {
         work->idleSoundTimer = 0;
-        scale                = work->scale.vy;
-        soundId              = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40180001;
-        // The volume ramps over the height's whole range, flat to the top of the cast's wobble.
-        if (scale > ACTOR_02400_SCALE_SWOLLEN + 0x100) {
-            ramp = ACTOR_02400_SCALE_SWOLLEN + 0x100 - ACTOR_02400_SCALE_FLAT;
+        heightScale          = work->scale.vy;
+        soundId              = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02400_IDLE_SOUND_SCRIPT;
+        // Clamp height before converting it to a percentage of the positional sound depth.
+        if (heightScale > ACTOR_02400_SCALE_SWOLLEN + 0x100) {
+            heightAboveFlat = ACTOR_02400_SCALE_SWOLLEN + 0x100 - ACTOR_02400_SCALE_FLAT;
         } else {
-            ramp = work->scale.vy - ACTOR_02400_SCALE_FLAT;
-            if (scale < ACTOR_02400_SCALE_FLAT) {
-                ramp = 0;
+            heightAboveFlat = work->scale.vy - ACTOR_02400_SCALE_FLAT;
+            if (heightScale < ACTOR_02400_SCALE_FLAT) {
+                heightAboveFlat = 0;
             }
         }
-        volume = (ramp * 0x32) / (ACTOR_02400_SCALE_SWOLLEN + 0x100 - ACTOR_02400_SCALE_FLAT) + 0x32;
-        depth  = 0x7F - (((0x7F - worldCoordGetOriginAudioDepth(object)) * (s16)volume) / 100);
-        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(object), depth);
+        volumePercent = (heightAboveFlat * 0x32) / (ACTOR_02400_SCALE_SWOLLEN + 0x100 - ACTOR_02400_SCALE_FLAT) + 0x32;
+        depth         = 0x7F - (((0x7F - worldCoordGetOriginAudioDepth(rootCoord)) * (s16)volumePercent) / 100);
+        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), depth);
     }
 }
 
@@ -1264,7 +1316,7 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
                     if (work->scale.vy > 0x200) {
                         work->scale.vy -= 0x50;
                     }
-                    Actor02400_Fn03278(arg1);
+                    _actor02400ApplyDeathScale(arg1);
                     cur    = arg1->extra.tmd->coords;
                     pos.vx = cur->workm.t[0];
                     pos.vy = cur->workm.t[1];
@@ -1279,86 +1331,54 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
     }
 }
 
-/// Spawn handler of the projectile: allocates its work block, places its model
-/// 0x15E units along the parent's Y axis with the parent's rotation, takes the
-/// parent's Z axis as its direction, links its three collision bodies (keys
-/// picked by the parent's variant), arms the 90-frame lifetime, detaches from
-/// the parent and moves the task to state 1.
-static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
+/// Links the fireball's two strike spheres and its trailing wall capsule.
+///
+/// Requires zeroed fireball work, a coordinate-body task and live parent work
+/// whose variant is 0 or 1. The spheres share one contact; the wall probe has
+/// its own. Coordinates are reloaded after collision calls. No scratch is used.
+static __inline__ void _actor02400InitFireballCollision(Task* task, _Actor02400FireballWork* work, _Actor02400Work* parentWork)
 {
-    _Actor02400Work*         parentWork;
-    Task*                    parent;
-    _Actor02400FireballWork* work;
-    ActorOffsetScratch*      scratch;
-    ActorOffsetScratch*      head;
-    GfxCoord*                objCoord;
-    GfxCoord*                objCoord2;
-    GfxCoord*                objCoord3;
-    SVECTOR*                 offset;
-    GfxCoord*                coord;
-    GfxCoord*                parentCoord;
+    enum {
+        ACTOR_02400_FIREBALL_RADIUS                 = 200,
+        ACTOR_02400_FIREBALL_WALL_TRAIL_LENGTH      = 210,
+        ACTOR_02400_FIREBALL_PROBE_RADIUS           = 1,
+        ACTOR_02400_FIREBALL_ENEMY_ATTACK_VARIANT_0 = 0x22D2D, // Weapon and distance-scale row 45, category 2.
+        ACTOR_02400_FIREBALL_ENEMY_ATTACK_VARIANT_1 = 0x22E2E, // Weapon and distance-scale row 46, category 2.
+    };
 
-    head                                     = SCRATCH_STACK_CURSOR(ActorOffsetScratch);
-    scratch                                  = head - 1;
-    SCRATCH_STACK_CURSOR(ActorOffsetScratch) = scratch;
-    offset                                   = &scratch->offset;
-    parent                                   = arg1->parent;
-    coord                                    = arg1->extra.tmd->coords;
-    parentCoord                              = parent->extra.tmd->coords;
-    parentWork                               = parent->work;
-    work                                     = memCalloc(sizeof(_Actor02400FireballWork), 0);
-    if (work == NULL) {
-        enemyDestroy(arg0, arg1);
-        return;
-    }
-    arg1->work         = work;
-    scratch->offset.vx = 0;
-    scratch->offset.vy = -0x15E;
-    scratch->offset.vz = 0;
-    gte_SetRotMatrix(&parentCoord->coord);
-    gte_ldv0(offset);
-    gte_rtv0();
-    gte_stlvnl(&scratch->rotated);
-    coord->parent       = &gGfxViewCoord;
-    coord->coord        = parentCoord->coord;
-    coord->coord.t[0]   = parentCoord->coord.t[0] + scratch->rotated.vx;
-    coord->coord.t[1]   = parentCoord->coord.t[1] + scratch->rotated.vy;
-    coord->coord.t[2]   = parentCoord->coord.t[2] + scratch->rotated.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->direction.vx  = parentCoord->coord.m[0][2];
-    work->direction.vy  = parentCoord->coord.m[1][2];
-    work->direction.vz  = parentCoord->coord.m[2][2];
+    GfxCoord* strikeCoord;
+    GfxCoord* wallProbeCoord;
 
-    objCoord                                = arg1->extra.tmd->coords;
+    strikeCoord                             = task->extra.coordBody->coord;
     work->playerStrikeBody.context.contacts = work->strikeContacts;
     work->playerStrikeBody.pos.vx           = 0;
     work->playerStrikeBody.pos.vy           = 0;
     work->playerStrikeBody.pos.vz           = 0;
-    work->playerStrikeBody.coord            = objCoord;
+    work->playerStrikeBody.coord            = strikeCoord;
     work->playerStrikeBody.key              = damagePackAttackKey(Actor02400_BodyPairs, (parentWork->variant * 2) | 1);
-    work->playerStrikeBody.radius           = 0xC8;
+    work->playerStrikeBody.radius           = ACTOR_02400_FIREBALL_RADIUS;
     work->playerStrikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->playerStrikeBody);
     worldCollisionInitContacts(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
     work->playerStrikeBody.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    objCoord2                              = arg1->extra.tmd->coords;
+    strikeCoord                            = task->extra.coordBody->coord;
     work->enemyStrikeBody.context.contacts = work->strikeContacts;
     work->enemyStrikeBody.pos.vx           = 0;
     work->enemyStrikeBody.pos.vy           = 0;
     work->enemyStrikeBody.pos.vz           = 0;
-    work->enemyStrikeBody.coord            = objCoord2;
+    work->enemyStrikeBody.coord            = strikeCoord;
     if (parentWork->variant == 0) {
-        work->enemyStrikeBody.key = 0x22D2D;
+        work->enemyStrikeBody.key = ACTOR_02400_FIREBALL_ENEMY_ATTACK_VARIANT_0;
     } else {
-        work->enemyStrikeBody.key = 0x22E2E;
+        work->enemyStrikeBody.key = ACTOR_02400_FIREBALL_ENEMY_ATTACK_VARIANT_1;
     }
-    work->enemyStrikeBody.radius = 0xC8;
+    work->enemyStrikeBody.radius = ACTOR_02400_FIREBALL_RADIUS;
     work->enemyStrikeBody.flags  = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->enemyStrikeBody);
 
-    work->wallCapsule.ends[1].vz   = -0xD2;
-    work->wallCapsule.end0Radius   = 1;
-    work->wallCapsule.end1Radius   = 1;
+    work->wallCapsule.ends[1].vz   = -ACTOR_02400_FIREBALL_WALL_TRAIL_LENGTH;
+    work->wallCapsule.end0Radius   = ACTOR_02400_FIREBALL_PROBE_RADIUS;
+    work->wallCapsule.end1Radius   = ACTOR_02400_FIREBALL_PROBE_RADIUS;
     work->wallCapsule.ends[0].vx   = 0;
     work->wallCapsule.ends[0].vy   = 0;
     work->wallCapsule.ends[0].vz   = 0;
@@ -1366,7 +1386,7 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     work->wallCapsule.ends[1].vy   = 0;
     work->wallCapsule.contacts     = work->wallContacts;
     work->enemyStrikeBody.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    objCoord3                      = arg1->extra.tmd->coords;
+    wallProbeCoord                 = task->extra.coordBody->coord;
     work->wallBody.context.capsule = &work->wallCapsule;
     work->wallBody.pos.vx          = 0;
     work->wallBody.pos.vy          = 0;
@@ -1374,13 +1394,72 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     work->wallBody.key             = 0;
     work->wallBody.radius          = 0;
     work->wallBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->wallBody.coord           = objCoord3;
+    work->wallBody.coord           = wallProbeCoord;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->wallBody);
     worldCollisionInitContacts(work->wallContacts, ARRAY_SIZE(work->wallContacts), 0);
-    work->timer           = 90;
+}
+
+/// Launches a coordinate-only fireball from its parent amoeba.
+///
+/// Requires a live parent with body work and a TMD root, a coordinate-body
+/// child task and 0x18 free initialized scratch-stack bytes. Copies the
+/// parent's local matrix, offsets the origin 350 units along negative Y,
+/// and saves its Q12 Z axis for flight. Two radius-200 strike spheres share
+/// one contact, and a trailing capsule probes the room. The child owns the
+/// zeroed work, detaches from its parent and enters its 90-tick flight.
+/// Allocation failure destroys it without releasing the scratch reservation.
+static void _actor02400InitFireball(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_02400_FIREBALL_LAUNCH_HEIGHT   = 350,
+        ACTOR_02400_FIREBALL_LIFETIME_FRAMES = 90,
+        ACTOR_02400_FIREBALL_TASK_FLIGHT     = 1,
+    };
+
+    _Actor02400Work*         parentWork;
+    Task*                    parent;
+    _Actor02400FireballWork* work;
+    ActorOffsetScratch*      scratch;
+    SVECTOR*                 offset;
+    GfxCoord*                fireballCoord;
+    GfxCoord*                parentCoord;
+
+    scratch       = SCRATCH_STACK_RESERVE_BLOCK(ActorOffsetScratch);
+    offset        = &scratch->offset;
+    parent        = task->parent;
+    fireballCoord = task->extra.coordBody->coord;
+    parentCoord   = parent->extra.tmd->coords;
+    parentWork    = parent->work;
+    work          = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        enemyDestroy(enemy, task);
+        return;
+    }
+    task->work = work;
+    // Rotate the launch offset through the parent basis before detaching the task.
+    scratch->offset.vx = 0;
+    scratch->offset.vy = -ACTOR_02400_FIREBALL_LAUNCH_HEIGHT;
+    scratch->offset.vz = 0;
+    gte_SetRotMatrix(&parentCoord->coord);
+    gte_ldv0(offset);
+    gte_rtv0();
+    gte_stlvnl(&scratch->rotated);
+    fireballCoord->parent       = &gGfxViewCoord;
+    fireballCoord->coord        = parentCoord->coord;
+    fireballCoord->coord.t[0]   = parentCoord->coord.t[0] + scratch->rotated.vx;
+    fireballCoord->coord.t[1]   = parentCoord->coord.t[1] + scratch->rotated.vy;
+    fireballCoord->coord.t[2]   = parentCoord->coord.t[2] + scratch->rotated.vz;
+    fireballCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->direction.vx          = parentCoord->coord.m[0][2];
+    work->direction.vy          = parentCoord->coord.m[1][2];
+    work->direction.vz          = parentCoord->coord.m[2][2];
+
+    _actor02400InitFireballCollision(task, work, parentWork);
+    work->timer           = ACTOR_02400_FIREBALL_LIFETIME_FRAMES;
     work->wallBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
-    taskDetachFromParent(arg1);
-    arg1->state = 1;
+    // Flight and delayed teardown no longer follow the parent's lifetime.
+    taskDetachFromParent(task);
+    task->state = ACTOR_02400_FIREBALL_TASK_FLIGHT;
     SCRATCH_STACK_RELEASE_BLOCK(ActorOffsetScratch);
 }
 
@@ -1431,14 +1510,17 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
 
 #include "../../shared/fireball_ember.inc.c"
 
-/// Task callback of the main body: runs the `Actor02400_D00004` handler for
-/// the task's state.
-void Actor02400_Fn02DB0(Task* arg0)
+/// Dispatches the amoeba body's spawn, active or death handler.
+///
+/// Requires a live enemy in `spawnArg2` and `Task::state` in 0..2; there is no bounds
+/// check. Copies the three callback pointers before dispatch. The selected
+/// handler may destroy the enemy and task, so neither is used afterwards.
+static void _actor02400BodyTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = Actor02400_D00004;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    handlers = Actor02400_D00004;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Per-frame handler of the main body. In global mode 2 it only hides the
@@ -1455,7 +1537,7 @@ static void Actor02400_Fn02E0C(Enemy* enemy, Task* task)
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             Actor02400_Fn031D0(task);
-            Actor02400_Fn03228(task);
+            _actor02400DrawShadow(task);
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             obj->flags                    = 0;
@@ -1468,14 +1550,14 @@ static void Actor02400_Fn02E0C(Enemy* enemy, Task* task)
     }
     Actor02400_Fn00C08(task);
     Actor02400_Fn02EDC(task);
-    Actor02400_Fn02264(task);
-    Actor02400_Fn03140(task);
-    Actor02400_Fn03098(task);
-    Actor02400_Fn0208C(task);
+    _actor02400TurnTowardTarget(task);
+    _actor02400StepForward(task);
+    _actor02400UpdateArm(task);
+    _actor02400ApplyBodyScale(task);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
     Actor02400_Fn031D0(task);
-    Actor02400_Fn03228(task);
+    _actor02400DrawShadow(task);
 }
 
 /// Runs the handler of the body's current `mode`. The crawling, striking and
@@ -1486,46 +1568,55 @@ static void Actor02400_Fn02EDC(Task* task)
 
     switch (work->mode) {
         case ACTOR_02400_MODE_DORMANT:
-            Actor02400_Fn01420(task);
+            _actor02400UpdateDormant(task);
             break;
         case ACTOR_02400_MODE_CRAWL:
             Actor02400_Fn01590(task);
-            Actor02400_Fn023B4(task);
+            _actor02400UpdateIdleSound(task);
             break;
         case ACTOR_02400_MODE_STRIKE:
-            Actor02400_Fn01A10(task);
-            Actor02400_Fn023B4(task);
+            _actor02400UpdateStrike(task);
+            _actor02400UpdateIdleSound(task);
             break;
         case ACTOR_02400_MODE_CAST:
             Actor02400_Fn01B90(task);
-            Actor02400_Fn023B4(task);
+            _actor02400UpdateIdleSound(task);
             break;
         case ACTOR_02400_MODE_HURT:
-            Actor02400_Fn02F94(task);
+            _actor02400UpdateHurt(task);
             break;
         case ACTOR_02400_MODE_STUNNED:
-            Actor02400_Fn01F74(task);
+            _actor02400UpdateStunned(task);
             break;
     }
 }
 
-/// `ACTOR_02400_MODE_HURT`: swings the height between 0x1400 and 0x1800 in
-/// steps of 0x200, cancels the charge effect and keeps `attackBody` disabled;
-/// after 16 frames returns to crawling with a random wait.
-static void Actor02400_Fn02F94(Task* task)
+/// Shakes the hit amoeba for 16 ticks before returning to crawl.
+///
+/// Requires live body work with counter reset on entry. Height oscillates
+/// through the 5120/4096 and 6144/4096 thresholds, charge is cancelled and
+/// arm pair tests stay disabled. Recovery resumes turning with a random wait
+/// and re-enables those tests.
+static void _actor02400UpdateHurt(Task* task)
 {
+    enum {
+        ACTOR_02400_HURT_FRAMES     = 16,
+        ACTOR_02400_HURT_SCALE_LOW  = 5 * ONE / 4,
+        ACTOR_02400_HURT_SCALE_HIGH = 3 * ONE / 2,
+    };
+
     _Actor02400Work* work;
-    u32              state;
+    u32              randomState;
 
     work = task->work;
     if (work->swingDown == 0) {
         work->scale.vy += 0x200;
-        if (work->scale.vy > 0x1800) {
+        if (work->scale.vy > ACTOR_02400_HURT_SCALE_HIGH) {
             work->swingDown = 1;
         }
     } else {
         work->scale.vy -= 0x200;
-        if (work->scale.vy < 0x1400) {
+        if (work->scale.vy < ACTOR_02400_HURT_SCALE_LOW) {
             work->swingDown = 0;
         }
     }
@@ -1535,71 +1626,83 @@ static void Actor02400_Fn02F94(Task* task)
     }
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->counter++;
-    if (work->counter >= 0x10) {
-        state                   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    if (work->counter >= ACTOR_02400_HURT_FRAMES) {
+        randomState             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         work->mode              = ACTOR_02400_MODE_CRAWL;
         work->phase             = ACTOR_02400_CRAWL_PHASE_TURN;
-        gRandomLcgState         = state;
-        work->counter           = ((state >> 0x10) & 0x1F) + 0x1E;
+        gRandomLcgState         = randomState;
+        work->counter           = ((randomState >> 16) & 0x1F) + 0x1E;
         work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 }
 
-/// Moves the model's arm: coordinates 2 and 3 slide out along their Z axis
-/// while `armOut` is set and back while it is clear, part 2 down to 0 and part 3
-/// down to 0x1E.
-static void Actor02400_Fn03098(Task* task)
+/// Slides the amoeba's two arm joints along their local Z axes.
+///
+/// Requires at least four TMD coordinates. `armOut` extends the base by 20
+/// and the tip by 80 coordinate units per tick; otherwise they retract by
+/// 40 and 160, clamping Z at 0 and 30 respectively. Fixes the base at Y=-95
+/// and the tip at Y=0, clears their X offsets and marks both matrices dirty.
+static void _actor02400UpdateArm(Task* task)
 {
+    enum {
+        ACTOR_02400_ARM_BASE_Y     = -95,
+        ACTOR_02400_ARM_TIP_REST_Z = 30,
+    };
+
     _Actor02400Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        c2;
-    GfxCoord*        c3;
+    GfxCoord*        coords;
+    GfxCoord*        armBase;
+    GfxCoord*        armTip;
 
-    work  = task->work;
-    coord = task->extra.tmd->coords;
-    c2    = coord + 2;
-    c3    = coord + 3;
+    work    = task->work;
+    coords  = task->extra.tmd->coords;
+    armBase = coords + 2;
+    armTip  = coords + 3;
 
-    c2->coord.t[0] = 0;
-    c2->coord.t[1] = -0x5F;
+    armBase->coord.t[0] = 0;
+    armBase->coord.t[1] = ACTOR_02400_ARM_BASE_Y;
     if (work->armOut != 0) {
-        c2->coord.t[2] += 0x14;
+        armBase->coord.t[2] += 0x14;
     } else {
-        c2->coord.t[2] -= 0x28;
-        if (c2->coord.t[2] < 0) {
-            c2->coord.t[2] = 0;
+        armBase->coord.t[2] -= 0x28;
+        if (armBase->coord.t[2] < 0) {
+            armBase->coord.t[2] = 0;
         }
     }
-    c2->composeStamp = GRAPHICS_COORD_DIRTY;
-    c3->coord.t[0]   = 0;
-    c3->coord.t[1]   = 0;
+    armBase->composeStamp = GRAPHICS_COORD_DIRTY;
+    armTip->coord.t[0]    = 0;
+    armTip->coord.t[1]    = 0;
     if (work->armOut != 0) {
-        c3->coord.t[2] += 0x50;
+        armTip->coord.t[2] += 0x50;
     } else {
-        c3->coord.t[2] -= 0xA0;
-        if (c3->coord.t[2] < 0x1E) {
-            c3->coord.t[2] = 0x1E;
+        armTip->coord.t[2] -= 0xA0;
+        if (armTip->coord.t[2] < ACTOR_02400_ARM_TIP_REST_Z) {
+            armTip->coord.t[2] = ACTOR_02400_ARM_TIP_REST_Z;
         }
     }
-    c3->composeStamp = GRAPHICS_COORD_DIRTY;
+    armTip->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Saves the root coordinate's position into `prevPos`, then steps it forward
-/// along its own Z axis by `speed` and drops it 0x80.
-static void Actor02400_Fn03140(Task* task)
+/// Saves the amoeba's local position and steps it along its root's Z axis.
+///
+/// `speed` is coordinate units per tick, multiplied by the Q12 X/Z basis;
+/// Y increases by 128 each tick before contact resolution on the next tick.
+/// `prevPos` narrows all three coordinates to signed halfwords for rollback.
+/// The caller scales the root and invalidates its composed matrix afterwards.
+static void _actor02400StepForward(Task* task)
 {
     _Actor02400Work* work;
-    GfxCoord*        coord;
+    GfxCoord*        rootCoord;
 
-    coord = task->extra.tmd->coords;
-    work  = task->work;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
 
-    work->prevPos.vx   = coord->coord.t[0];
-    work->prevPos.vy   = coord->coord.t[1];
-    work->prevPos.vz   = coord->coord.t[2];
-    coord->coord.t[0] += (coord->coord.m[0][2] * work->speed) >> 12;
-    coord->coord.t[1] += 0x80;
-    coord->coord.t[2] += (coord->coord.m[2][2] * work->speed) >> 12;
+    work->prevPos.vx       = rootCoord->coord.t[0];
+    work->prevPos.vy       = rootCoord->coord.t[1];
+    work->prevPos.vz       = rootCoord->coord.t[2];
+    rootCoord->coord.t[0] += (rootCoord->coord.m[0][2] * work->speed) >> 12;
+    rootCoord->coord.t[1] += 0x80;
+    rootCoord->coord.t[2] += (rootCoord->coord.m[2][2] * work->speed) >> 12;
 }
 
 /// Refreshes the body's colour from where its root coordinate stands.
@@ -1615,77 +1718,107 @@ static void Actor02400_Fn031D0(Task* task)
     worldCoordUpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
 }
 
-/// Draws the body's ground mark at its root coordinate's world position.
-static void Actor02400_Fn03228(Task* task)
+/// Draws a ground shadow at the amoeba root's composed world position.
+///
+/// Requires a live TMD task with an up-to-date root work matrix. The shadow
+/// has half-side 512 coordinate units and GPU modulation shade 48.
+static void _actor02400DrawShadow(Task* task)
 {
-    GfxCoord* coord;
-    VECTOR3   vec;
+    enum {
+        ACTOR_02400_SHADOW_HALF_SIDE = 512,
+        ACTOR_02400_SHADOW_SHADE     = 48,
+    };
 
-    coord  = task->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    effectDrawGroundShadow(&vec, 0x200, 0x30);
+    GfxCoord* rootCoord;
+    VECTOR3   worldPosition;
+
+    rootCoord        = task->extra.tmd->coords;
+    worldPosition.vx = rootCoord->workm.t[0];
+    worldPosition.vy = rootCoord->workm.t[1];
+    worldPosition.vz = rootCoord->workm.t[2];
+    effectDrawGroundShadow(&worldPosition, ACTOR_02400_SHADOW_HALF_SIDE, ACTOR_02400_SHADOW_SHADE);
 }
 
-/// Squashes the dying body: restores `baseMatrix` into the root coordinate and
-/// scales it on Y by `scale.vy`.
-static void Actor02400_Fn03278(Task* task)
+/// Multiplies a prepared local-axis scale into a saved root matrix.
+///
+/// Borrows a live root, a readable full saved matrix and a reserved
+/// `ActorScaleScratch` whose three Q12 scale factors are initialized.
+/// Scratch must be disjoint from both matrices. Its translation and vector
+/// pad are unused. Restores the saved translation and marks composition dirty;
+/// the caller owns scratch reservation and release.
+static __inline__ void _actor02400ApplySavedRootScale(GfxCoord* rootCoord, const MATRIX* savedMatrix,
+                                                      ActorScaleScratch* scaleScratch)
 {
-    void**             scratch;
-    ActorScaleScratch* head;
-    ActorScaleScratch* blk;
+    rootCoord->coord = *savedMatrix;
+    gfxSetRotIdentity(&scaleScratch->matrix);
+    ScaleMatrix(&scaleScratch->matrix, &scaleScratch->scale);
+    MulMatrix(&rootCoord->coord, &scaleScratch->matrix);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Applies the dying amoeba's Y scale to its saved root matrix.
+///
+/// Requires live TMD body work and 0x30 free initialized scratch-stack bytes.
+/// `baseMatrix` is captured on death entry; `scale.vy` is Q12. Restoring that
+/// matrix before scaling prevents successive death ticks compounding the
+/// scale. X/Z factors are unity; marks composition dirty and releases scratch.
+static void _actor02400ApplyDeathScale(Task* task)
+{
+    ActorScaleScratch* scaleScratch;
     _Actor02400Work*   work;
-    GfxCoord*          coord;
+    GfxCoord*          rootCoord;
 
-    scratch                                     = SCRATCH_HEAD_ADDR;
-    head                                        = SCRATCH_HEAD_AT(scratch, ActorScaleScratch);
-    blk                                         = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleScratch) = blk;
-    coord                                       = task->extra.tmd->coords;
-    work                                        = task->work;
+    scaleScratch = SCRATCH_STACK_RESERVE_BLOCK(ActorScaleScratch);
+    rootCoord    = task->extra.tmd->coords;
+    work         = task->work;
 
-    blk->scale.vx = ONE;
-    blk->scale.vy = work->scale.vy;
-    blk->scale.vz = ONE;
-    coord->coord  = work->baseMatrix;
-    gfxSetRotIdentity(&blk->matrix);
-    ScaleMatrix(&blk->matrix, &blk->scale);
-    MulMatrix(&coord->coord, &blk->matrix);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_AT(scratch, ActorScaleScratch);
+    scaleScratch->scale.vx = ONE;
+    scaleScratch->scale.vy = work->scale.vy;
+    scaleScratch->scale.vz = ONE;
+    _actor02400ApplySavedRootScale(rootCoord, &work->baseMatrix, scaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
-/// Task callback of the projectile: runs the `Actor02400_D0003C` handler for
-/// the task's state.
-void Actor02400_Fn03358(Task* arg0)
+/// Dispatches the fireball's spawn, flight or teardown handler.
+///
+/// Requires a live enemy in `spawnArg2` and `Task::state` in 0..2; there is no bounds
+/// check. Copies the three callback pointers before dispatch. The selected
+/// handler may destroy the enemy and task, so neither is used afterwards.
+static void _actor02400FireballTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = Actor02400_D0003C;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    handlers = Actor02400_D0003C;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Teardown handler of the projectile: `UNLINK` unlinks its three collision
-/// bodies and arms a 60-frame wait, then `WAIT` counts it down and destroys
-/// the enemy.
-static void Actor02400_Fn033B4(Enemy* arg0, Task* arg1)
+/// Unlinks the fireball's collision bodies, then releases it after 60 ticks.
+///
+/// Requires live fireball work with `teardownStep` initially `UNLINK`. The first
+/// call removes both strike spheres and the wall probe and arms the wait;
+/// subsequent calls decrement it. Destruction releases the task-owned work
+/// and coordinate body. Teardown continues while combat actors are paused.
+static void _actor02400TeardownFireball(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_02400_FIREBALL_TEARDOWN_FRAMES = 60,
+    };
+
     _Actor02400FireballWork* work;
 
-    work = arg1->work;
+    work = task->work;
     switch (work->teardownStep) {
         case ACTOR_02400_FIREBALL_TEARDOWN_UNLINK:
             worldCollisionUnlinkBody(&work->playerStrikeBody);
             worldCollisionUnlinkBody(&work->enemyStrikeBody);
             worldCollisionUnlinkBody(&work->wallBody);
             work->teardownStep = ACTOR_02400_FIREBALL_TEARDOWN_WAIT;
-            work->timer        = 60;
+            work->timer        = ACTOR_02400_FIREBALL_TEARDOWN_FRAMES;
             return;
         case ACTOR_02400_FIREBALL_TEARDOWN_WAIT:
             work->timer--;
             if (work->timer <= 0) {
-                enemyDestroy(arg0, arg1);
+                enemyDestroy(enemy, task);
             }
             return;
     }
