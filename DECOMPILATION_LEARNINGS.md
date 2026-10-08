@@ -1199,7 +1199,7 @@ field-for-field.
 questions, and the exact one is silent on twins that are real: equality there is
 splat's disassembly *text*, so one differing displacement drops the twin out of
 `find` altogether. `_actor342000TickGluttonAnimation` and
-`func_actor_341900_80161E58` are 94 instructions of identical text apart from
+`_actor341900TickGluttonAnimation` are 94 instructions of identical text apart from
 `lw v1, 0x288(s2)` against `lw v1, 0x218(s2)` — the anim-id field of each
 overlay's own work block — so `find` reported only the function itself, while
 `similar` scored the twin 1.00 in shape, calls and cflow. A candidate starred in
@@ -2597,10 +2597,10 @@ Inputs: `base_2.i`
 
 The mirror of "`reload_cse` rewrites a later `= 0` as a copy unless the
 destination is wider": there, a wider *source* was needed to break the match;
-here the fix is a **narrower** one. `func_actor_341900_80162EFC` was at 99.966%
+here the fix is a **narrower** one. `_actor341900EventTask` was at 99.966%
 with one instruction left — the target's `move a2,zero` for a `taskSpawnFromTable`
 third argument against the candidate's `move a2,s0`. The candidate's `$s0` held
-the loop counter, whose `var_s0 = 0` init is an SImode `(set (reg/v:SI 86)
+the loop counter, whose `partOffset = 0` init is an SImode `(set (reg/v:SI 86)
 (const_int 0))` (`base_5.i.sched` insn 154, before the argument set at insn 143),
 so `reload_cse_simplify_set` rewrote the argument's `(const_int 0)` into a copy
 of `$s0`.
@@ -2608,7 +2608,7 @@ of `$s0`.
 The target has an `andi $a2,$s0,0xFFFF` before *every* use of that counter,
 including inside the loop body — which is the zero-extension of a **16-bit
 variable**, not m2c's `s32` plus written-out `& 0xFFFF` masks. Declaring it
-`u16 var_s0` makes the init a `movhi_internal2` set recorded in HImode, and
+`u16 partOffset` makes the init a `movhi_internal2` set recorded in HImode, and
 `reload_cse_regno_equal_p` rejects it for an SImode use (`mode != GET_MODE (x)`,
 and `GET_MODE_SIZE (SImode) < GET_MODE_SIZE (HImode)` is false), so the literal
 constant survives. 100% on the first build of that change.
@@ -2625,7 +2625,7 @@ Inputs: `base_5.i` `3c0a92341d65b59510133bafeec8756af4cd364e14919d6d643a36e5d089
 
 ## One `reg/v` pseudo with two definitions blocks the register the target reuses
 
-`func_actor_341900_80162EFC` writes through `index->work` before and after the
+`_actor341900EventTask` writes through `task->work` before and after the
 `taskMessageDispatch` call, and the target keeps the two pointers in different
 registers (`$s0` before, `$s1` after); one C variable gave `$s1` for both
 (`regs=7`). `.greg` says why: a variable assigned twice is *one* pseudo
@@ -2634,7 +2634,7 @@ registers (`$s0` before, `$s1` after); one C variable gave `$s1` for both
 loop counter's `$s0` — the register the target's first half uses. `global.c`
 then has to place it elsewhere.
 
-Splitting it into two variables (`work` for the setup half, `seqWork` for the
+Splitting it into two variables (`work` for the setup half, `spawnWork` for the
 post-call half) gives two pseudos with disjoint ranges, the conflict disappears,
 and the first lands in `$s0` — `regs` 7 → 1, then 0. The same split applied to
 the `taskSpawnFromTable` results is what fixed the earlier `reorder` residue.
@@ -3783,7 +3783,7 @@ So when the target shows `lhu` on a flag that is only tested, the field is
 misread as a scheduling wobble: one instruction swapped, `insert=1 delete=1`,
 90% with the structure otherwise identical.
 
-`func_actor_341900_80163438` is the minimal case - an `s16 playerEquipmentRemoved` carried
+`_actor341900RestorePlayerEquipment` is the minimal case - an `s16 playerEquipmentRemoved` carried
 over from the m2c seed scored 90% against a target `lhu`, and changing the
 header field to `u16` was the whole match (`base_1.c`, preprocessed
 `230a21f0c6eceb3884c5cae489c6f82bb37265f524f2ede856da3308422464be`; the 90%
@@ -75696,8 +75696,8 @@ mentions the loaded register (`gcc/config/mips/mips.c:4518`), so a surviving
 instruction. A store written at the point the target stores it is usually the
 whole fix.
 
-Confirmed on `func_actor_341900_801625B4`, where the block has three loads in a
-row rather than one. m2c's order put `coord->composeStamp = 0;` between the `t[1]` and
+Confirmed on `_actor341900GluttonPartTask`, where the block has three loads in a
+row rather than one. m2c's order put `rootCoord->composeStamp = 0;` between the `t[1]` and
 `t[2]` field stores, and the zero store came out two instructions early
 (`reorder=2`, every other penalty zero: `lh 2(v0)` / `sw zero,0(a0)` /
 `sw v0,0x1c(a0)` against the target's delay slot below `lh 4(v0)`). The store
@@ -76191,9 +76191,9 @@ or a pin.
 
 ## A local reused in a later block keeps its first register; a second declaration gets the call's `$a0`
 
-**Problem.** `func_actor_341900_80162200` sat at 93.618% with the tail's three
-loads of `index->extra` correct but the register wrong: retail loads it into
-`$a0` and that one value serves both the first `pos.v` statement and the
+**Problem.** `_actor341900DoorHalfTask` sat at 93.618% with the tail's three
+loads of `task->extra.tmd` correct but the register wrong: retail loads it into
+`$a0` and that one value serves both the first `worldPosition.v` statement and the
 `worldCoordSetModelLighting` argument, while ours loaded into `$s1` and copied at the call
 (`move a0,s1`), with a stray `nop` and `li a3` out of place
 (`regs=5 insert=2 delete=2`).
@@ -76210,14 +76210,14 @@ block-local and local-alloc's copy suggestion can put it in the argument
 register:
 
 ```c
-    TmdObject* extra;   /* init block */
-    TmdObject* mdl;     /* tail */
+    TmdObject* initialModel;   /* init block */
+    TmdObject* model;     /* tail */
 
-    mdl    = (TmdObject*)arg0->extra;   /* lw a0,0x2c(s2) */
-    pos.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
-    pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-    pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
-    worldCoordSetModelLighting(mdl, &pos, 0, 3);     /* a0 already holds it: no copy */
+    model    = task->extra.tmd;   /* lw a0,0x2c(s2) */
+    worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+    worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(model, &worldPosition, 0, 3);     /* a0 already holds it: no copy */
 ```
 
 100%, all penalties zero.
@@ -76227,8 +76227,8 @@ before the registers. Assigned immediately before the first use of the same
 expression, the two memory reads are adjacent with no store between them, so
 CSE merges them: three loads of `0x2c($s2)`, the first shared by the first
 statement and the call. Writing the call argument as its own expression instead
-(`worldCoordSetModelLighting((TmdObject*)index->extra, &pos, 0, 3)`) puts the preceding
-`pos.vz` store in between, which invalidates the CSE entry for `index->extra`,
+(`worldCoordSetModelLighting((TmdObject*)task->extra.tmd, &worldPosition, 0, 3)`) puts the preceding
+`worldPosition.vz` store in between, which invalidates the CSE entry for `task->extra.tmd`,
 and the tail emits four loads — the shape that was stuck at 93.1%.
 
 This is "A missing `move` beside an `andi` is a second variable" one step
@@ -79973,10 +79973,10 @@ header, and each callback selects its work type with this cast
 `actor_341900` allocates three: `memMalloc(0x44, 0)`, `memCalloc(0x70, 0)` and
 `memMalloc(0x258, 0)`, each stored into a *different* task's `0x1C`. Only the
 0x70 one is published in `D_actor_341900_80164208`. The base unit's dispatchers
-`func_actor_341900_801628B8` / `func_actor_80162AD4` look like ordinary
+`_actor341900UpdatePlayerAction` / `_actor341900UpdateStaging` look like ordinary
 `task->work` users, but both are called from the publishing function with `$s2`
 as the argument, so they index the same 0x70 block -- while
-`func_actor_341900_80162330`'s `0x1C($a0)` and `0x258` offsets are a second,
+`_actor341900InitGluttonModel`'s `0x1C($a0)` and `0x258` offsets are a second,
 larger block that happens to share field offsets `0x5C`/`0x64`/`0x66`.
 
 So identify the block by the **single writer of the published global**, not by
@@ -80118,8 +80118,8 @@ the constant is a second, independent reason to prefer the ternary -- compare th
 
 ## A value used after a call needs a second definition *after* it to stay off the `s` registers
 
-`func_actor_341900_801625B4` reads `index->work` once at the top and uses it
-again after calling `func_actor_341900_80162330`. Written with a single
+`_actor341900GluttonPartTask` reads `task->work` once at the top and uses it
+again after calling `_actor341900InitGluttonModel`. Written with a single
 definition the local is live across the call, so `global.c` hands it a
 call-saved register and the prologue pays for it:
 
@@ -80142,11 +80142,11 @@ Give the same local a second definition from the same expression after the
 call:
 
 ```c
-_Actor341900GluttonModelWork* work = arg0->work;
+_Actor341900GluttonModelWork* work = task->work;
 
-if (arg0->state == 0) {
-    func_actor_341900_80162330(arg0);
-    work = arg0->work;   /* kills the first value */
+if (task->state == 0) {
+    _actor341900InitGluttonModel(task);
+    work = task->work;   /* kills the first value */
     ...
 }
 /* tail use of `work` */
@@ -80167,7 +80167,7 @@ the register choice falls out of.
 
 ## A duplicated load across a join moves the label the guard branch targets
 
-`func_actor_341900_80162708` reached 99.435% with `branch=1 reorder=1` and
+`_actor341900GluttonBodyTask` reached 99.435% with `branch=1 reorder=1` and
 nothing else: topology, predicates and calls all matched, and the only
 difference was the last four instructions of the shared tail.
 
@@ -80191,12 +80191,12 @@ case 1:
         ...
         work->lastCue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
-    work = arg0->work;   /* first definition */
+    work = task->work;   /* first definition */
     break;
 }
 
-work = arg0->work;       /* duplicate; CSE drops one */
-func_actor_341900_80161E58(arg0, 8);
+work = task->work;       /* duplicate; CSE drops one */
+_actor341900TickGluttonAnimation(task, ACTOR_341900_GLUTTON_BODY_SLOT_COUNT);
 ```
 
 The duplicate is not dead code in the RTL: `.jump2` shows the *first* load
@@ -118617,7 +118617,7 @@ them and keeps the stores ahead of the arguments.
 
 ### An empty `do { } while (0)` right before a `case` label makes the dispatch branch predict taken, so its delay slot comes from that case
 
-`func_actor_341900_80162330` switches on `spawnArg1`. The ROM fills the
+`_actor341900InitGluttonModel` switches on `spawnArg1`. The ROM fills the
 `beq v1,1,case1` slot with case 1's `lui a1,%hi(table)`, skipping past the
 `move a0,s2` in front of it; our build put the fall-through's `slti` there
 (99.60%). RTL was identical through `.sched2`; the first divergence is `.dbr`.
@@ -118647,11 +118647,11 @@ Inputs: `base_11.i` `741c10dd8b6c451ce19c4ec6d378fbaacb1231ba90442042463c7d62e0a
 (exact), `base_12.i` `440b56937eba4f1e7f4c832e129163e783a8ca5a1fb7bb6069423cca0f48dfbb`
 (control); archived with the function's permuter findings.
 
-## A loop-exit block sitting between an unconditional `j` and the next loop's init is loop.c's block move: give it a barrier there with `goto` (func_actor_341900_80161E58, 2026-09-17)
+## A loop-exit block sitting between an unconditional `j` and the next loop's init is loop.c's block move: give it a barrier there with `goto` (_actor341900TickGluttonAnimation, 2026-09-17)
 
-Target shape: `...sltiu v0; j L; [move a1,zero; j done_test]; L: move s0,v0; <loop 3>`.
-The middle block is loop 2's `done = 0; break;`. `find_and_verify_loops`
-(`loop.c`) moves a block that ends in a jump out of its loop to the first
+Target shape: `...sltiu v0; j L; [move a1,zero; j done_test]; L: move s0,v0; <blendFollowUp 3>`.
+The middle block is loop 2's `allSettled = 0; break;`. `find_and_verify_loops`
+(`blendFollowUp.c`) moves a block that ends in a jump out of its loop to the first
 BARRIER at the *jump target's* loop depth - searching backward from the target
 label, then forward. With a plain `for`/`break` the only forward barrier is the
 `return 1` jump after loop 3, so the block lands at the end of the function
@@ -118663,19 +118663,19 @@ Fix: write the block where retail placed it, computing the init before the jump
 and assigning it after the label, so the compare lands in the `j`'s delay slot:
 
 ```c
-            first = arg1 == 8;
-            goto loop;
-        fail:
-            done = 0;
-            goto check;
-        loop:
-            for (i = first; i < arg1; i++) { ... }
+            firstBlendSlot = slotCount == 8;
+            goto blendFollowUp;
+        unsettled:
+            allSettled = 0;
+            goto checkSettlement;
+        blendFollowUp:
+            for (slotIndex = firstBlendSlot; slotIndex < slotCount; slotIndex++) { ... }
 ```
 
 Loop 2 does `goto fail;` and `check:` labels the `if (done)`. Two register
 fixes followed: a `u16` parameter (not `s32` with `(u16)` casts) so one
-`andi` feeds both the `== 8` test and the loop bound, and a second pointer local
-for the reloaded `index->work` so the first one's shorter life swaps it with
+`andi` feeds both the `== 8` test and the blendFollowUp bound, and a second pointer local
+for the reloaded `task->work` so the first one's shorter life swaps it with
 the loop bound's callee-saved register.
 
 ## Hoist an LCG step above unrelated constant stores to load its constant first
@@ -124534,20 +124534,20 @@ re-loads it per statement; `delete` is about the instruction-count gap and the
 missing stores are not reported by any penalty of their own.
 
 Fix: write the three words as one object whose address is **taken**, exactly as
-the neighbouring matched body does (`func_actor_341900_80162200`):
+the neighbouring matched body does (`_actor341900DoorHalfTask`):
 
 ```c
-VECTOR pos;
-pos.vx = ((TmdObject*)arg0->extra)->coords->workm.t[0];
-pos.vy = ((TmdObject*)arg0->extra)->coords->workm.t[1];
-pos.vz = ((TmdObject*)arg0->extra)->coords->workm.t[2];
-worldCoordSetModelLighting(mdl, &pos, 0, 3);
+VECTOR worldPosition;
+worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+worldCoordSetModelLighting(model, &worldPosition, 0, 3);
 ```
 
 Every assignment is now a live store, nothing is dead, all three chains reach
 `.flow`, the stores land at 0x10/0x14/0x18 and the frame is 0x30 - 100.000% with
 no other change. `VECTOR` is 0x10 bytes (`long vx, vy, vz` plus a pad word), so
-`pos` occupies exactly the 0x10 the target reserves for the trio.
+`worldPosition` occupies exactly the 0x10 the target reserves for the trio.
 
 Note the two directions this cuts. cse1's memory table drops every entry whose
 address is `reg + offset` when *any* store is seen (`note_mem_written` sets
@@ -131100,7 +131100,7 @@ CSE's block now ends at the `else` label, the two constants stay distinct, and
 `addu`. Reusing *one* variable for both the load and the result
 (`anim = D_80073BA9; if (...) anim = anim + 1; else anim = anim + 0x22;`) does
 **not** work — that emits the `j`-over-`else` shape instead.
-`func_actor_160900_80133238` and `func_actor_341900_801628B8` are matched
+`func_actor_160900_80133238` and `_actor341900UpdatePlayerAction` are matched
 examples of the two-variable form; `func_actor_120500_8013241C` is a matched
 example of the one-variable form and does emit the `j`.
 
@@ -149688,13 +149688,13 @@ attempts; left as it was.
   branches from each arm straight to the `then`/`else` code.
 - **`if (a && b) goto handOff; if (c == 0) { handOff: ... }`** is
   `if ((a && b) || c == 0)` (`_acropolisSquareSirenSequenceTask`).
-- Not converted: `_actor342000TickGluttonAnimation` / `func_actor_341900_80161E58`
-  (the `done = 0` block of the settle scan sitting between `first = n == 8`
-  and `i = first`). The block is where loop.c found a `BARRIER`, so the
+- Not converted: `_actor342000TickGluttonAnimation` / `_actor341900TickGluttonAnimation`
+  (the `allSettled = 0` block of the settle scan sitting between `firstBlendSlot = slotCount == 8`
+  and `slotIndex = firstBlendSlot`). The block is where loop.c found a `BARRIER`, so the
   original had an unconditional jump there. Three more forms, none with one:
   the seek loop as an inline (block goes to the end, 2 insns shorter);
-  `if (!done) return 0; if (tbl < 0) return 1;` (block lands behind the
-  `return 0`); and `if (tbl >= 0) { anim; ctx; first; } else { return 1; }`
+  `if (!allSettled) return 0; if (tbl < 0) return 1;` (block lands behind the
+  `return 0`); and `if (tbl >= 0) { animationId; followUpWork; firstBlendSlot; } else { return 1; }`
   in front of the loop, which has the barrier in the right place in the raw
   RTL, but the first jump pass inverts the test and moves the `return 1`
   block up, so the block lands before `anim` (same length, 12 insns differ).
