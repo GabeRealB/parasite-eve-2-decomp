@@ -81,15 +81,20 @@ static void _antibodyDrawMoteStrip(const GfxCoord* coord, s16 textureFrame, s16 
 /// states 1 and 2 pass one yaw per frame to `glowDrawWedge`.
 static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-/// Moves the cast's local origin vertically and refreshes its composed transform.
+/// Sets the Antibody cast's parent-space Y for drawing or mote placement.
 ///
-/// Borrows a writable coordinate and its live parent chain. `localY` is in
-/// parent-coordinate units; rotation and local X/Z stay intact.
-static inline void _antibodySetCastHeight(GfxCoord* coord, s32 localY)
+/// `localY` is an absolute signed game-coordinate position in the parent's
+/// space. The cast draws at -1024 and restores 0 before spawning motes.
+/// Invalidates the coordinate's cache and composes through its full parent
+/// chain so the new origin is immediately available in `castCoord->workm`.
+///
+/// Borrows a non-NULL writable coordinate and its live, writable, acyclic
+/// parent chain for this call. Composition changes GTE working registers.
+static inline void _antibodySetCastHeight(GfxCoord* castCoord, s32 localY)
 {
-    coord->coord.t[1]   = localY;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
+    castCoord->coord.t[1]   = localY;
+    castCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(castCoord);
 }
 
 void antibodyCastTask(Task* task)

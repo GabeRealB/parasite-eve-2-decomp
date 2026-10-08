@@ -88,23 +88,36 @@ static s16 D_apobiosis_80130B80[16];
 /// can reparent itself onto the cast when it starts.
 static Task* D_apobiosis_80130BA0;
 
-/// Attempts a drifting shard at a random local X/Z offset from the cast origin.
+/// Attempts one drifting Apobiosis shard at a random local polar offset.
 ///
-/// Borrows writable cast work and the coordinate's live composition chain.
-/// `radiusMask` is 1023, 2047 or 4095 local units. Advances the shared random
-/// sequence for radius and then yaw (4096 units per turn), narrowing both into
-/// the work's signed halfwords before Q12 trigonometry. Leaves local Y intact.
-/// The spawn copies the offset; a shard joins the cast's teardown tree on its
-/// own first tick. Random draws are consumed even when the counted spawn fails.
-static inline void _apobiosisSpawnDriftingShard(EffectWork* work, GfxCoord* coord, s32 radiusMask)
+/// `castWork` and `castCoord` must be non-NULL and writable, with a live,
+/// writable, acyclic coordinate parent chain and an initialized effect controller.
+/// `radiusMask` is 1023, 2047 or 4095; it selects a radius in 0..radiusMask
+/// game-coordinate units. Overwrites `scale` with that radius and `angle` with
+/// yaw in 0..4095 (4096 units per turn), consuming two shared random draws in
+/// that order with unsigned 32-bit wraparound.
+///
+/// Replaces `move.vx/vz` with signed Q12-trigonometric offsets in the cast's
+/// local space, preserving `move.vy`. Placement applies the cast's orientation
+/// and snapshots the offset before return, so later bursts may reuse `move`;
+/// the shard never reads the retained offset pointer. Composition and placement
+/// change GTE working registers. The cast task must stay live through the shard's
+/// first tick, when it joins the cast's teardown tree; the Apobiosis overlay must
+/// stay loaded for the shard's lifetime. Spawn failure is ignored and still
+/// leaves the draws and work writes.
+static inline void _apobiosisSpawnDriftingShard(EffectWork* castWork, GfxCoord* castCoord, s32 radiusMask)
 {
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->scale     = (gRandomLcgState >> 16) & radiusMask;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->angle     = (gRandomLcgState >> 16) & (APOBIOSIS_FULL_TURN - 1);
-    work->move.vx   = work->scale * rsin(work->angle) >> APOBIOSIS_TRIG_SHIFT;
-    work->move.vz   = work->scale * rcos(work->angle) >> APOBIOSIS_TRIG_SHIFT;
-    effectSpawn(EFFECT_APOBIOSIS_SHARD, coord, 0, &work->move);
+    enum {
+        APOBIOSIS_SHARD_SPAWN_DRIFTING = 0 // Keeps the spawned coordinate parented to the view
+    };
+
+    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    castWork->scale   = (gRandomLcgState >> 16) & radiusMask;
+    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    castWork->angle   = (gRandomLcgState >> 16) & (APOBIOSIS_FULL_TURN - 1);
+    castWork->move.vx = castWork->scale * rsin(castWork->angle) >> APOBIOSIS_TRIG_SHIFT;
+    castWork->move.vz = castWork->scale * rcos(castWork->angle) >> APOBIOSIS_TRIG_SHIFT;
+    effectSpawn(EFFECT_APOBIOSIS_SHARD, castCoord, APOBIOSIS_SHARD_SPAWN_DRIFTING, &castWork->move);
 }
 
 void apobiosisCastTask(Task* task)
