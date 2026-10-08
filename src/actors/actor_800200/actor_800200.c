@@ -2846,7 +2846,7 @@ static const TaskFuncTable4 D_actor_800200_80161EB8 = { {
 /// Handlers `_actor800200TickScriptedMode` runs, indexed by `state`; the
 /// gameplay entries are the player's own mode-2 state handlers.
 static const TaskFuncTable9 D_actor_800200_80161EC8 = { {
-    Gp_PlayerMode2State0,
+    playerActorScriptedState0,
     Gp_PlayerMode2State1,
     _actor800200TickScriptedTurn,
     Gp_PlayerMode2State1,

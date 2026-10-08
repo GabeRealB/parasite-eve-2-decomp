@@ -664,7 +664,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyFlameTask, { NULL } },                                     // 0x07E
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTask7F, { NULL } },                                                    // 0x07F
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask80, { NULL } },                                                     // 0x080
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask81, { NULL } },                                                        // 0x081
+    { { { TASK_BODY_COORD, 0x70 } }, effectProjectileGlowTask, { NULL } },                                               // 0x081
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x082
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_patio_8017E100, { NULL } },                                          // 0x083
     { { { TASK_BODY_COORD, 0x70 } }, acropolisHallwayEffectControlTask84, { NULL } },                                    // 0x084

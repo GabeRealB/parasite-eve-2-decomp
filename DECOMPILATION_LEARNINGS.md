@@ -6627,7 +6627,7 @@ Give each `| packed` its own block-scope temp so it dies at the store:
 }
 ```
 
-`Gp_InitPlayerWork` is the example.
+`_playerActorInitWork` is the example.
 
 ## Give each sibling `if` its own temp so the whole chain lands in one `$sN`
 
@@ -6672,7 +6672,7 @@ obj->flags |= 0xF200;
 worldCollisionLinkBody(zero, obj);
 ```
 
-`Gp_InitPlayerWork` is the example.
+`_playerActorInitWork` is the example.
 
 ## Combine fade-done as `flag == 0 && count <= 0` so the miss jumps into `else if`
 
@@ -23694,7 +23694,7 @@ between the two C switches.
 Do **not** also emit a C `const s32 jtbl_XXXXXXXX[]` copy: the included
 `dlabel` and the C symbol collide (`symbol already defined`). Drop the
 absolute copy and let the migrated `.s` own the middle slot until that
-function is matched. `Gp_PlayerMode1State0` / `jtbl_80097A68` / `playerStateApplyReactionEffect` is
+function is matched. `_playerActorTickDamageReaction` / `jtbl_80097A68` / `playerStateApplyReactionEffect` is
 the example.
 
 ## Overlay imports use the same name as main
@@ -30187,7 +30187,7 @@ Give the function its own `c` / `.rodata` pair in the overlay yaml
 TU starting at the next function. Gameplay now uses `auto_link_sections: []`
 and explicit dotted subsegments to specify object section order; the old
 `fix_gameplay_linker_rodata_order` workaround has been removed. `effectSpriteTask46` is the
-example. The next 5-case switch (`Gp_EffSprTask81`) needs the same cut
+example. The next 5-case switch (`effectProjectileGlowTask`) needs the same cut
 (`3FB8_7E28` at 0x3FD0 / 0x63FF8); keep the unmatched `_effectDrawProjectileSprite` /
 `_effectDrawGroundDecal` INCLUDE_ASMs in that TU so `.text` stays contiguous.
 Remaining unmatched jtbls then start at 0x3FE8.
@@ -34935,14 +34935,14 @@ sll    v0, a3, 2       # start y = val % 10
 Two ways to keep that order:
 
 1. In a branch where a live local is already `-1`, add that local instead
-   of the literal (`... * 3 + kind + (u16)(val % 10U)` when `kind == -1`).
+   of the literal (`... * 3 + effectPhase + (u16)(val % 10U)` when `effectPhase == -1`).
    GCC folds it to `addiu -1` but will not slide it onto `y`.
 2. Split the add (`idx = a + b - 1; idx += (u16)y`). Needed when no such
    local exists, but it also stops `la table` from sinking into a multiply
    stall. Use (1) when the index is inlined as `table[expr]` so the `la`
    can fill `multu` delay (`lui t0` / `addiu t0, %lo` during `tens / 10`).
 
-`Gp_EffTask07State1` is the example (kind-add on the `D_80112A50` arm, split
+`_effectControlTask07State1` is the example (effectPhase-add on the `D_80112A50` arm, split
 add on the `D_80112978` arm).
 
 ## Empty `asm volatile("")` pins `if (x <= 0) return` as `bgtz` + `j; li -1`
@@ -145368,7 +145368,7 @@ operands already have before manufacturing a second set. `s16` did not work
 here: the shift then sets a fresh `SImode` temporary before the narrowing copy,
 and that single-set temporary is birthing and sinks just the same.
 
-## A byte-array member cast to a struct pointer is a pseudo CSE reuses; a typed member array is not (Gp_InitPlayerWork, 2026-09-26)
+## A byte-array member cast to a struct pointer is a pseudo CSE reuses; a typed member array is not (_playerActorInitWork, 2026-09-26)
 
 `GameActor` held three 12-byte records at 0x88 as separate byte-array and word
 fields. The player setup passed a byte-to-record pointer cast to
@@ -149257,7 +149257,7 @@ put the last copy where the image has the block:
   return; }` at the later site (`func_800F91AC`, `effectHitSplatterSprayTask`,
   `effectControlTask7F`, `effectDeathFlameTask`, `effectSpriteTaskF4`, first try each).
 - **A tail with its own branches merges too** when it is a `static inline`
-  called in both arms (`Gp_EffSprTask81`: guard, LCG step, conditional spawn).
+  called in both arms (`effectProjectileGlowTask`: guard, LCG step, conditional spawn).
 - **`if (a) goto body; <statements>; if (b) { body: ... }`** where the
   statements are asm macros (`gte_*`), so they cannot sit in a condition: a
   value-returning `static inline` holding them, `if (a || helper(...) < 0)`
@@ -153301,7 +153301,7 @@ on the first build, with the constant and the pointer locals deleted and the
 neighbouring statements untouched (`effectSpriteTaskE2` and
 `effectControlTask0E` through their init inlines, `effectControlTask7F`,
 `effectSpriteTaskA7`, `effectControlTaskAE`, `effectSpriteTask32`,
-`Gp_EffSprTask81`, `func_800F91AC`, `effectGravityParticleTask`; `func_800FF710` the day
+`effectProjectileGlowTask`, `func_800F91AC`, `effectGravityParticleTask`; `func_800FF710` the day
 before). The first store through the coordinate and the rest through
 `coord + 4`, the parent store landing after the first `ONE` store, and the
 `ONE, ONE, ONE, 0, 0` store order `effectGravityParticleTask` spelled by hand are all

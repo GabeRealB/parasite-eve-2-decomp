@@ -1883,7 +1883,7 @@ static void _actor07000SlouchProjectileLaunch(Task* task)
     capsule                 = &work->capsule;
     launchVector            = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     task->work              = work;
-    glowEffect              = effectSpawn(EFFECT_PROJECTILE_GLOW_SPRITE, rootCoord, 0, NULL);
+    glowEffect              = effectSpawn(EFFECT_PROJECTILE_GLOW_SPRITE, rootCoord, EFFECT_PROJECTILE_GLOW_NEW, NULL);
     task->spawnArg2.pointer = glowEffect->task;
     // The glow is the projectile's child in the teardown tree.
     taskReparent(task, glowEffect->task);
@@ -1958,8 +1958,6 @@ static void _actor07000SlouchProjectileFly(Task* task)
 {
     enum { ACTOR_07000_SLOUCH_PROJECTILE_GRAVITY           = 10,
            ACTOR_07000_SLOUCH_PROJECTILE_FLOOR_NORMAL_Y    = -3072,
-           ACTOR_07000_SLOUCH_GLOW_FLOOR_BURST             = 2,
-           ACTOR_07000_SLOUCH_GLOW_IMPACT_BURST            = 3,
            ACTOR_07000_SLOUCH_PROJECTILE_HIDDEN_BODY_VALUE = 0x80 };
     _Actor07000SlouchProjectileWork* work;
     ModelObjectCoordBody*            coordBody;
@@ -2005,7 +2003,7 @@ static void _actor07000SlouchProjectileFly(Task* task)
         sndEvtRequestScriptStart(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(rootCoord),
                                  (s8)worldCoordGetOriginAudioDepth(rootCoord));
         if (glowTask != NULL) {
-            glowTask->spawnArg1.value = ACTOR_07000_SLOUCH_GLOW_IMPACT_BURST;
+            glowTask->spawnArg1.value = EFFECT_PROJECTILE_GLOW_PARTICLE_BURST;
         }
         _actor07000SlouchProjectileStartExpiry(task, work);
     } else if (worldCollisionFindContactIndex(contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
@@ -2013,9 +2011,9 @@ static void _actor07000SlouchProjectileFly(Task* task)
                                  (s8)worldCoordGetOriginAudioDepth(rootCoord));
         if (glowTask != NULL) {
             if (impactContact->response.direction.vy >= ACTOR_07000_SLOUCH_PROJECTILE_FLOOR_NORMAL_Y) {
-                glowTask->spawnArg1.value = ACTOR_07000_SLOUCH_GLOW_IMPACT_BURST;
+                glowTask->spawnArg1.value = EFFECT_PROJECTILE_GLOW_PARTICLE_BURST;
             } else {
-                glowTask->spawnArg1.value = ACTOR_07000_SLOUCH_GLOW_FLOOR_BURST;
+                glowTask->spawnArg1.value = EFFECT_PROJECTILE_GLOW_QUAD_BURST;
             }
         }
         _actor07000SlouchProjectileStartExpiry(task, work);

@@ -15,6 +15,19 @@
 
 // Effect task entry points and shared drawing data.
 
+/// `Task::spawnArg1.value` modes of `EFFECT_PROJECTILE_GLOW_SPRITE`.
+///
+/// Spawn with NEW. Its projectile owner may request either burst on impact
+/// while the task is live; KILL releases it on the next update. Burst setup
+/// runs once, so a burst must not be restarted or switched to the other kind.
+enum {
+    EFFECT_PROJECTILE_GLOW_NEW            = 0,
+    EFFECT_PROJECTILE_GLOW_FLIGHT         = 1,
+    EFFECT_PROJECTILE_GLOW_QUAD_BURST     = 2,
+    EFFECT_PROJECTILE_GLOW_PARTICLE_BURST = 3,
+    EFFECT_PROJECTILE_GLOW_KILL           = 4,
+};
+
 /// Live task states of the bank-6 ground decal (`EFFECT_GROUND_DECAL`).
 ///
 /// A caller retaining the spawned EffectWork may request FADE through its task

@@ -20,6 +20,7 @@
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/display.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
@@ -3610,7 +3611,7 @@ static void _actor01100SpitGlobInit(Task* task)
         return;
     }
     task->work = work;
-    glow       = effectSpawn(EFFECT_PROJECTILE_GLOW_SPRITE, coord, 0, 0);
+    glow       = effectSpawn(EFFECT_PROJECTILE_GLOW_SPRITE, coord, EFFECT_PROJECTILE_GLOW_NEW, 0);
     if (glow == NULL) {
         taskCallExit(task);
         return;
@@ -3706,10 +3707,8 @@ static __inline__ void _actor01100SpitGlobImpact(Task* task, _Actor01100SpitWork
 /// Requires initialized glob work, a model root and a one-entry contact table.
 static void _actor01100SpitGlobFly(Task* task)
 {
-    enum { ACTOR_01100_SPIT_GRAVITY           = 10,
-           ACTOR_01100_SPIT_FLOOR_NORMAL_Y    = -0xC00,
-           ACTOR_01100_SPIT_GLOW_FLOOR_BURST  = 2,
-           ACTOR_01100_SPIT_GLOW_IMPACT_BURST = 3 };
+    enum { ACTOR_01100_SPIT_GRAVITY        = 10,
+           ACTOR_01100_SPIT_FLOOR_NORMAL_Y = -0xC00 };
     _Actor01100SpitWork*   work;
     WorldCollisionCapsule* capsule;
     WorldCollisionContact* contacts;
@@ -3740,16 +3739,16 @@ static void _actor01100SpitGlobFly(Task* task)
         if (worldCollisionCountContactsByKind(contacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
             glowTask = task->firstChild;
             if (glowTask != NULL) {
-                glowTask->spawnArg1.value = ACTOR_01100_SPIT_GLOW_IMPACT_BURST;
+                glowTask->spawnArg1.value = EFFECT_PROJECTILE_GLOW_PARTICLE_BURST;
             }
             _actor01100SpitGlobImpact(task, work, coord, waterRoom);
         } else if (worldCollisionFindContactIndex(contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
             glowTask = task->firstChild;
             if (glowTask != NULL) {
                 if (contacts->response.direction.vy >= ACTOR_01100_SPIT_FLOOR_NORMAL_Y) {
-                    glowTask->spawnArg1.value = ACTOR_01100_SPIT_GLOW_IMPACT_BURST;
+                    glowTask->spawnArg1.value = EFFECT_PROJECTILE_GLOW_PARTICLE_BURST;
                 } else {
-                    glowTask->spawnArg1.value = ACTOR_01100_SPIT_GLOW_FLOOR_BURST;
+                    glowTask->spawnArg1.value = EFFECT_PROJECTILE_GLOW_QUAD_BURST;
                 }
             }
             _actor01100SpitGlobImpact(task, work, coord, waterRoom);

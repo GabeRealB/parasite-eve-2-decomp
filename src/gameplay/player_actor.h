@@ -55,7 +55,17 @@ extern AnimationBank* Gp_AnimBlkTbl[8];
 /// rotations except for the Gunblade. Borrows one SVECTOR scratch block.
 void playerActorUpdateMove(void);
 
-void Gp_EffSprTask81(Task* arg0);
+/// Follows a projectile with an animated glow, then draws its requested impact burst.
+///
+/// Gameplay effect bank 6 slot 0x81 uses owned, initially zeroed `EffectWork`
+/// in spawnArg2 and a coordinate body. The borrowed work->parent must remain
+/// live until teardown. spawnArg1 uses EFFECT_PROJECTILE_GLOW_* modes; NEW
+/// sets size 640 and palette 1. Burst setup quarters the size. The quad burst
+/// uses eight texture frames over 16 age units, advancing on odd display frames
+/// only while effects run; the particle-only burst ages on every callback,
+/// including paused ticks. Random child emissions require running effects.
+/// Hidden or cancelled room effects immediately free the work and kill the task.
+void effectProjectileGlowTask(Task* task);
 
 void func_800F91AC(Task* arg0);
 

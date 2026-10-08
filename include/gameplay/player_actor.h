@@ -512,7 +512,14 @@ s32 playerActorPlanarDistance(const VECTOR3* firstPoint, const VECTOR3* secondPo
 /// do not change the consumed-record guard.
 s32 playerActorPlayFootstepCue(Task* task);
 
-void Gp_PlayerMode2State0(Task* arg0);
+/// Advances direct child-slot animation and footstep cues in scripted state 0.
+///
+/// Shared by player and companion mode-2 dispatchers. Requires live GameActor
+/// playback/model resources; slots 1..animationSlotCount-1 must form a valid
+/// prefix and each slot's trackIndex must equal its index. Slot 0 is untouched.
+/// Uses the footstep cue's surface, sound and effect resources. No mode, motion
+/// or completion transition is performed here; the enclosing dispatcher owns it.
+void playerActorScriptedState0(Task* task);
 
 void Gp_PlayerMode2State1(Task* arg0);
 

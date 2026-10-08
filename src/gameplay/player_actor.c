@@ -64,6 +64,7 @@
 #include "weapons/pa3.h"
 #include "weapons/tonfa_baton.h"
 
+#include "main/areas.h"
 #include "main/task_types.h"
 
 /// Equipped weapon indices used by player actor control.
@@ -309,8 +310,9 @@ extern s32 D_80112C7C[];
 extern u16 D_80112964[5][2];
 
 /// Spawn-id words indexed by the 3-digit packing of `Gp_StateC08.attachId`
-/// `(hundreds-1)*9 + (tens-1)*3 + ones - 1`. `Gp_EffTask07State1` uses this
-/// when `field_3 == 1`, and `D_80112A50` when `field_3 == -1`.
+/// `(hundreds-1)*9 + (tens-1)*3 + ones - 1`. `_effectControlTask07State1` uses this
+/// when `Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_RELEASED`, and
+/// `D_80112A50` when `Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CHARGE`.
 extern s32 D_80112978[];
 
 extern s32 D_80112A50[];
@@ -320,8 +322,8 @@ extern s32 D_80112A50[];
 /// `Task::spawnArg1` sound id.
 extern s32 D_80112B94[];
 
-/// `GfxCoord` index parallel to `D_80112978`. `Gp_EffTask07State1` adds
-/// it onto `TmdObject.coords` when `field_3 == 1`.
+/// `GfxCoord` index parallel to `D_80112978`. `_effectControlTask07State1` adds
+/// it onto `TmdObject.coords` when `Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_RELEASED`.
 extern u16 D_80112B28[];
 
 /// 4 packed RGB-nibble colors. `effectPolyTaskC1` indexes with
@@ -392,7 +394,7 @@ extern u16 D_801132BC[33][2];
 
 static const TaskFuncTable3 Gp_EffTask07States;
 
-/// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `_playerActorWorkState1`,
+/// Four-entry `Task::state` dispatcher: `_playerActorInitWork`, `_playerActorWorkState1`,
 /// `_playerActorWorkState2`, `_playerActorTeardown`.
 static const TaskFuncTable4 Gp_PlayerWorkStates;
 
@@ -407,7 +409,7 @@ static const TaskFuncTable3 Gp_PlayerModeFns;
 /// `state` dispatcher copied by `Gp_TickPlayerNormal`.
 static const TaskFuncTable8 D_8009794C;
 
-/// `hitRegion` dispatcher: three slots of `Gp_PlayerMode1State0`, then `_playerActorDamageHitRegion3`.
+/// `hitRegion` dispatcher: three slots of `_playerActorTickDamageReaction`, then `_playerActorDamageHitRegion3`.
 static const TaskFuncTable4 Gp_PlayerMode1States;
 
 /// `state` dispatcher copied by `Gp_TickPlayerMode2`.
@@ -432,7 +434,7 @@ static void _effectDrawGravityParticle(const Task* task, s32 particleVariant, co
 
 static void _effectDrawAnimatedGroundQuad(const GfxCoord* coord, s32 halfSize, u16 frame, u16 palette);
 
-static void Gp_EffTask07State1(Task* arg0);
+static void _effectControlTask07State1(Task* unusedTask);
 
 static void _effectDrawRadialTriangles(const GfxCoord* coord, s32 radius, s32 rayCount, const u8* rgb);
 
@@ -445,7 +447,7 @@ static void _effectDrawSparkBurstBillboard(const GfxCoord* coord, u16 frame, u32
 static inline void _playerActorLinkCollisionBody(GameActor* actor, s32 bodyIndex, WorldCollisionBody* body, GfxCoord* coord, WorldCollisionContact* contacts, s16 offsetX, s16 offsetY,
                                                  s16 offsetZ, u16 radius, u16 flags);
 
-static void Gp_InitPlayerWork(Task* arg0);
+static void _playerActorInitWork(Task* task);
 
 static void _playerActorWorkState1(Task* task);
 
@@ -575,7 +577,7 @@ static void _playerActorUpdateAimExit(Task* task);
 
 static void func_80109138(Task* arg0);
 
-static void Gp_PlayerMode1State0(Task* arg0);
+static void _playerActorTickDamageReaction(Task* task);
 
 static void _playerActorDamageHitRegion3(Task* unusedTask);
 
@@ -1602,91 +1604,117 @@ static inline void _effectSpawnProjectileBurstParticle(const EffectWork* work, G
     }
 }
 
-void Gp_EffSprTask81(Task* arg0)
+/// Copies a projectile's composed pose into the glow's view-parented coordinate.
+///
+/// Both coordinates and their parent chains must be writable, live and acyclic.
+/// The glow must be parented to `gGfxViewCoord`, with a current view cache in the
+/// same composition frame as the parent. Replaces its local matrix, then
+/// composes it. Borrows 48 scratch bytes, changes GTE matrices and retains no
+/// new pointer; view rotation must be orthonormal for the transpose to invert it.
+static inline void _effectSyncProjectileGlowCoord(GfxCoord* coord, GfxCoord* parent)
 {
-    EffectWork*           mem;
-    ModelObjectCoordBody* body;
-    GfxCoord*             coord;
-    GfxCoord*             parent;
-    MATRIX*               world;
-    s16                   flag;
-
-    body   = arg0->extra.coordBody;
-    mem    = arg0->spawnArg2.pointer;
-    flag   = gRoomEffectState->effectControl;
-    coord  = body->coord;
-    parent = mem->parent;
-    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        effectKillTask(mem, arg0);
-        return;
-    }
+    MATRIX* viewTransform;
 
     actorRenderComposeCoord(parent);
     coord->workm = parent->workm;
     gte_SetRotMatrix(&parent->workm);
     gte_SetTransMatrix(&parent->workm);
-    world = &gGfxViewCoord.workm;
-    gfxMakeRelativeTransform(world, &coord->workm, &coord->coord);
+    viewTransform = &gGfxViewCoord.workm;
+    gfxMakeRelativeTransform(viewTransform, &coord->workm, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
+}
 
-    switch (arg0->spawnArg1.value) {
-        case 0:
-            mem->scale            = 0x280;
-            mem->step             = 1;
-            mem->angle            = 0;
-            arg0->spawnArg1.value = 1;
+void effectProjectileGlowTask(Task* task)
+{
+    enum {
+        EFFECT_PROJECTILE_GLOW_INITIAL_SIZE      = 640,
+        EFFECT_PROJECTILE_GLOW_PALETTE           = 1,
+        EFFECT_PROJECTILE_GLOW_TRAIL_RANDOM_MASK = 3,
+        EFFECT_PROJECTILE_GLOW_BURST_AGE_LIMIT   = 16,
+        // Subtractive puff: size bias 512, two ticks per frame, blend mode 2.
+        EFFECT_PROJECTILE_GLOW_BURST_PUFF_BASE = 0x22200,
+        // Subtractive puff: one tick per frame, blend mode 2; size supplied separately.
+        EFFECT_PROJECTILE_GLOW_TRAIL_PUFF_BITS = 0x21000,
+    };
+    EffectWork*           work;
+    ModelObjectCoordBody* body;
+    GfxCoord*             coord;
+    GfxCoord*             parent;
+    s16                   effectControl;
+
+    body          = task->extra.coordBody;
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = body->coord;
+    parent        = work->parent;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        effectKillTask(work, task);
+        return;
+    }
+
+    // Follow the projectile even during a paused draw or either impact phase.
+    _effectSyncProjectileGlowCoord(coord, parent);
+
+    switch (task->spawnArg1.value) {
+        case EFFECT_PROJECTILE_GLOW_NEW:
+            work->scale           = EFFECT_PROJECTILE_GLOW_INITIAL_SIZE;
+            work->step            = EFFECT_PROJECTILE_GLOW_PALETTE;
+            work->angle           = 0; // Retained initialization; this controller never reads it.
+            task->spawnArg1.value = EFFECT_PROJECTILE_GLOW_FLIGHT;
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 break;
             }
-            effectSpawn(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200 + mem->scale, 0);
+            effectSpawn(EFFECT_TRAIL_PUFF, coord, work->scale + EFFECT_PROJECTILE_GLOW_BURST_PUFF_BASE + work->scale, NULL);
             break;
-        case 1:
-            _effectDrawProjectileSprite(arg0);
+        case EFFECT_PROJECTILE_GLOW_FLIGHT:
+            _effectDrawProjectileSprite(task);
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 break;
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 3) == 0) {
-                effectSpawn(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x21000, 0);
+            if (((gRandomLcgState >> 16) & EFFECT_PROJECTILE_GLOW_TRAIL_RANDOM_MASK) == 0) {
+                effectSpawn(EFFECT_TRAIL_PUFF, coord, work->scale + EFFECT_PROJECTILE_GLOW_TRAIL_PUFF_BITS, NULL);
             }
-            mem->age++;
+            work->age++;
             break;
-        case 2:
+        case EFFECT_PROJECTILE_GLOW_QUAD_BURST:
+            // Setup and quad age freeze on pause; the last accepted frame still draws.
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                if (mem->index == 0) {
-                    effectSpawn(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200, 0);
-                    mem->index   = 1;
-                    mem->age     = 0;
-                    mem->scale >>= 2;
+                if (work->index == 0) {
+                    effectSpawn(EFFECT_TRAIL_PUFF, coord, work->scale + EFFECT_PROJECTILE_GLOW_BURST_PUFF_BASE, NULL);
+                    work->index   = 1;
+                    work->age     = 0;
+                    work->scale >>= 2;
                     gfxSetRotIdentity(&coord->coord);
                 }
-                mem->age += (u16)gDisplayState.animFrame & 1;
+                work->age += (u16)gDisplayState.animFrame & 1;
             }
-            if (mem->age < 0x10) {
-                _effectDrawAnimatedGroundQuad(coord, mem->scale, mem->age >> 1, mem->step);
+            if (work->age < EFFECT_PROJECTILE_GLOW_BURST_AGE_LIMIT) {
+                _effectDrawAnimatedGroundQuad(coord, work->scale, work->age >> 1, work->step);
             } else {
-                arg0->spawnArg1.value = 4;
+                task->spawnArg1.value = EFFECT_PROJECTILE_GLOW_KILL;
                 break;
             }
-            _effectSpawnProjectileBurstParticle(mem, coord);
+            _effectSpawnProjectileBurstParticle(work, coord);
             break;
-        case 3:
-            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && mem->index == 0) {
-                effectSpawn(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200, 0);
-                mem->index   = 1;
-                mem->age     = 0;
-                mem->scale >>= 2;
+        case EFFECT_PROJECTILE_GLOW_PARTICLE_BURST:
+            if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && work->index == 0) {
+                effectSpawn(EFFECT_TRAIL_PUFF, coord, work->scale + EFFECT_PROJECTILE_GLOW_BURST_PUFF_BASE, NULL);
+                work->index   = 1;
+                work->age     = 0;
+                work->scale >>= 2;
             }
-            mem->age++;
-            if (mem->age >= 0x10) {
-                arg0->spawnArg1.value = 4;
+            // This burst expires during pause even though setup and emissions wait.
+            work->age++;
+            if (work->age >= EFFECT_PROJECTILE_GLOW_BURST_AGE_LIMIT) {
+                task->spawnArg1.value = EFFECT_PROJECTILE_GLOW_KILL;
                 break;
             }
-            _effectSpawnProjectileBurstParticle(mem, coord);
+            _effectSpawnProjectileBurstParticle(work, coord);
             break;
-        case 4:
-            effectKillTask(mem, arg0);
+        case EFFECT_PROJECTILE_GLOW_KILL:
+            effectKillTask(work, task);
             break;
     }
 }
@@ -2347,7 +2375,7 @@ void effectGravityParticleTask(Task* task)
 
 static const TaskFuncTable3 Gp_EffTask07States = { {
     _effectControlTask07State0,
-    Gp_EffTask07State1,
+    _effectControlTask07State1,
     taskKill,
 } };
 
@@ -2570,47 +2598,58 @@ static void _effectDrawAnimatedGroundQuad(const GfxCoord* coord, s32 halfSize, u
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
 }
 
-static void Gp_EffTask07State1(Task* arg0)
+/// Dispatches the current Parasite Energy charge or release effect, control-07 state 1.
+///
+/// The callback task is unused. A missing player, PE cancellation or cancelled
+/// attachment emits nothing. Outside engaged combat only Healing is accepted.
+/// Charge passes signed cast-duration frames at the player root; release uses
+/// the selected model part and argument zero. Zero table entries emit nothing;
+/// held and idle phases also do nothing. Each call may spawn again; no phase is
+/// consumed. Armed abilities 0..17 with effective levels 1..3 map to indices
+/// 0..53; no range check runs. Nonzero release entries select model parts 0,
+/// 1 or 12, which must exist. Requires initialized attachment/effect state.
+static void _effectControlTask07State1(Task* unusedTask)
 {
-    Task* slot;
-    s32   kind;
-    s32   spawnId;
-    s32   idx;
+    Task* playerTask;
+    s32   effectPhase;
+    s32   effectId;
+    s32   effectIndex;
 
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (slot == NULL) {
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (playerTask == NULL) {
         return;
     }
     if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
-    kind = Gp_StateC08.effectPhase;
-    if (kind == 2) {
+    effectPhase = Gp_StateC08.effectPhase;
+    if (effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
         return;
     }
     if ((gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) && ((Gp_StateC08.attachId / 10U) != ATTACHMENT_ID_HEALING_FAMILY)) {
         return;
     }
-    if (kind == -1) {
-        spawnId = D_80112A50[((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
-                             ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 + kind +
-                             (u16)(Gp_StateC08.attachId % 10U)];
-        if (spawnId == 0) {
+    // Charge and release share the decimal family/level index, with different placement.
+    if (effectPhase == ATTACHMENT_EFFECT_CHARGE) {
+        effectId = D_80112A50[((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
+                              ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 + effectPhase +
+                              (u16)(Gp_StateC08.attachId % 10U)];
+        if (effectId == 0) {
             return;
         }
-        effectSpawn(spawnId, slot->extra.tmd->coords,
-                    (s32)(Gp_StateC08.duration), 0);
-    } else if (kind == 1) {
-        idx = ((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
-              ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 - 1;
-        idx    += (u16)(Gp_StateC08.attachId % 10U);
-        spawnId = D_80112978[idx];
-        if (spawnId == 0) {
+        effectSpawn(effectId, playerTask->extra.tmd->coords,
+                    (s32)(Gp_StateC08.duration), NULL);
+    } else if (effectPhase == ATTACHMENT_EFFECT_RELEASED) {
+        effectIndex = ((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
+                      ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 - 1;
+        effectIndex += (u16)(Gp_StateC08.attachId % 10U);
+        effectId     = D_80112978[effectIndex];
+        if (effectId == 0) {
             return;
         }
-        effectSpawn(spawnId,
-                    &slot->extra.tmd->coords[D_80112B28[idx]], 0,
-                    0);
+        effectSpawn(effectId,
+                    &playerTask->extra.tmd->coords[D_80112B28[effectIndex]], 0,
+                    NULL);
     }
 }
 
@@ -2976,11 +3015,12 @@ void effectPolyTaskC1(Task* task)
     }
 }
 
-/// Parents an Energy Shot aura at player part 8, preserving its spawn rotation.
+/// Attaches an Energy Shot aura's local origin to player model part 8.
 ///
-/// Both pointers are borrowed; playerCoords must contain nine live coordinates
-/// and remain live while coord retains that parent. Clears local translation
-/// and requests recomposition. No rotation or cached world matrix is changed.
+/// coord must be writable and distinct from the player coordinates. playerCoords
+/// must provide at least nine live elements; part 8 stays borrowed until the
+/// aura is released. Clears translation in that part's frame and marks the aura
+/// dirty without composing it. Preserves local rotation and the cached matrix.
 static inline void _effectInitEnergyShotAuraCoord(GfxCoord* coord, GfxCoord* playerCoords)
 {
     enum { EFFECT_ENERGY_SHOT_PARENT_PART = 8 };
@@ -3215,11 +3255,12 @@ void effectSpriteTaskF4(Task* task)
     effectKillTask(work, task);
 }
 
-/// Parents an Antibody aura at player part 1, preserving its spawn rotation.
+/// Attaches an Antibody aura's local origin to player model part 1.
 ///
-/// Both pointers are borrowed; playerCoords must contain two live coordinates
-/// and remain live while coord retains that parent. Clears local translation
-/// and requests recomposition. No rotation or cached world matrix is changed.
+/// coord must be writable and distinct from the player coordinates. playerCoords
+/// must provide at least two live elements; part 1 stays borrowed until the
+/// aura is released. Clears translation in that part's frame and marks the aura
+/// dirty without composing it. Preserves local rotation and the cached matrix.
 static inline void _effectInitAntibodyAuraCoord(GfxCoord* coord, GfxCoord* playerCoords)
 {
     enum { EFFECT_ANTIBODY_PARENT_PART = 1 };
@@ -3512,12 +3553,16 @@ void effectCorpseBurnTask(Task* task)
     }
 }
 
-/// Steps a death flame's local creep into its coordinate's parent frame.
+/// Advances a death flame by its decelerating local velocity.
 ///
-/// Requires live writable coord/work. work->move is local velocity, age the
-/// controller tick; every fourth age loses one forward-speed unit. Rotates
-/// that velocity into work->pos with signed-halfword GTE stores, advances local
-/// translation and marks it dirty. The caller owns transform composition.
+/// Requires distinct live writable coord/work and initialized GTE state.
+/// work->move is velocity in local coordinate units per controller tick. Ages
+/// congruent to 3 modulo 4 subtract one from its signed-halfword Z component;
+/// the caller increments age first and skips this helper once Z reaches zero.
+/// Applies the local Q12 matrix to velocity, overwrites work->pos XYZ with
+/// signed-halfword displacement in the parent frame, adds it to translation
+/// and marks the coordinate dirty. Translation sums must fit s32. Changes GTE
+/// rotation state; neither composes the coordinate nor retains a pointer.
 static inline void _effectStepDeathFlameCreep(GfxCoord* coord, EffectWork* work)
 {
     enum { EFFECT_DEATH_FLAME_CREEP_INTERVAL_MASK = 3 };
@@ -4011,10 +4056,10 @@ void effectSpawnHit(s32 effectKind, GfxCoord* coord, SVECTOR* localOffset, Effec
     }
 }
 
-/// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `_playerActorWorkState1`,
+/// Four-entry `Task::state` dispatcher: `_playerActorInitWork`, `_playerActorWorkState1`,
 /// `_playerActorWorkState2`, `_playerActorTeardown`.
 static const TaskFuncTable4 Gp_PlayerWorkStates = { {
-    Gp_InitPlayerWork,
+    _playerActorInitWork,
     _playerActorWorkState1,
     _playerActorWorkState2,
     _playerActorTeardown,
@@ -5061,71 +5106,90 @@ static inline void _playerActorLinkCollisionBody(GameActor* actor, s32 bodyIndex
     worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, body);
 }
 
-static void Gp_InitPlayerWork(Task* arg0)
+/// Initializes the live player's model, collision bodies and attachment tasks.
+///
+/// Entry is player-work Task state 0 with allocated GameActor/model playback
+/// resources and root/parts 1 and 4 present. Advances to state 1 and installs
+/// message/teardown callbacks. Registers the borrowed root matrix in player
+/// status, links three motion spheres sharing the actor's contact array and
+/// creates two owned attachment tasks. A successful second attachment restores
+/// equipment. Preserves the initial mode/clip across those spawns; scripted
+/// mode resets that clip with collision disabled. Acropolis Plaza restricts
+/// running and aiming. The published root matrix is borrowed until model release;
+/// teardown unlinks the bodies and clears the player task registry slot.
+static void _playerActorInitWork(Task* task)
 {
+    enum {
+        PLAYER_ACTOR_ROOT_COLLISION_RADIUS = 300,
+        PLAYER_ACTOR_PART_COLLISION_RADIUS = 220,
+        PLAYER_ACTOR_COLLISION_PART4       = 4,
+        PLAYER_ACTOR_COLLISION_PART1       = 1,
+    };
     GameActor*             actor;
-    TmdObject*             extra;
-    GfxCoord*              coord;
-    WorldCollisionBody*    obj;
-    WorldCollisionContact* recs;
-    s32                    kind;
-    s32                    anim;
-    AnimationPlayRequest   sp;
-    Task*                  task;
+    TmdObject*             model;
+    GfxCoord*              rootCoord;
+    WorldCollisionBody*    collisionBody;
+    WorldCollisionContact* contacts;
+    s32                    initialMode;
+    s32                    initialAnimationId;
+    AnimationPlayRequest   animationRequest;
+    Task*                  attachmentTask;
 
-    actor = arg0->work;
-    extra = arg0->extra.tmd;
-    coord = extra->coords;
-    arg0->state++;
-    arg0->msgTable                              = Gp_PlayerMsgTable;
-    arg0->exitCallback                          = _playerActorTeardown;
+    actor     = task->work;
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    task->state++;
+    task->msgTable                              = Gp_PlayerMsgTable;
+    task->exitCallback                          = _playerActorTeardown;
     actor->animationSlotCount                   = GAME_ACTOR_NORMAL_ANIMATION_SLOTS;
-    gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] = arg0;
-    gPlayerStatus.coordMtx                      = &coord->coord;
-    coord->parent                               = &gGfxViewCoord;
-    coord->composeStamp                         = GRAPHICS_COORD_DIRTY;
-    extra->flags                                = 0;
-    RotMatrix(&actor->rotation, &coord->coord);
-    _animationBindPlayerWeaponBank(arg0);
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] = task;
+    gPlayerStatus.coordMtx                      = &rootCoord->coord;
+    rootCoord->parent                           = &gGfxViewCoord;
+    rootCoord->composeStamp                     = GRAPHICS_COORD_DIRTY;
+    model->flags                                = 0;
+    RotMatrix(&actor->rotation, &rootCoord->coord);
+    _animationBindPlayerWeaponBank(task);
 
     actor->animationRate       = ANIMATION_RATE_ONE;
-    actor->previousPosition.vx = coord->coord.t[0];
-    actor->previousPosition.vy = coord->coord.t[1];
-    actor->previousPosition.vz = coord->coord.t[2];
+    actor->previousPosition.vx = rootCoord->coord.t[0];
+    actor->previousPosition.vy = rootCoord->coord.t[1];
+    actor->previousPosition.vz = rootCoord->coord.t[2];
 
-    recs = actor->collisionContacts;
-    obj  = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
-    _playerActorLinkCollisionBody(actor, GAME_ACTOR_BODY_ROOT, obj, coord, recs, 0, -0x12C, 0, 0x12C, WORLD_COLLISION_BODY_MOTION_SPHERE);
-    worldCollisionInitContacts(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
-    obj->flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    // All motion spheres share the actor-owned contact table; only the root queries triggers.
+    contacts      = actor->collisionContacts;
+    collisionBody = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
+    _playerActorLinkCollisionBody(actor, GAME_ACTOR_BODY_ROOT, collisionBody, rootCoord, contacts, 0, -PLAYER_ACTOR_ROOT_COLLISION_RADIUS, 0, PLAYER_ACTOR_ROOT_COLLISION_RADIUS, WORLD_COLLISION_BODY_MOTION_SPHERE);
+    worldCollisionInitContacts(actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
+    collisionBody->flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    obj = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
-    _playerActorLinkCollisionBody(actor, GAME_ACTOR_BODY_PART4, obj, arg0->extra.tmd->coords + 4, recs, 0, 0x64, 0x28, 0xDC, WORLD_COLLISION_BODY_MOTION_SPHERE | (GAME_ACTOR_BODY_PART4 << WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT));
-    obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    collisionBody = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
+    _playerActorLinkCollisionBody(actor, GAME_ACTOR_BODY_PART4, collisionBody, task->extra.tmd->coords + PLAYER_ACTOR_COLLISION_PART4, contacts, 0, 100, 40, PLAYER_ACTOR_PART_COLLISION_RADIUS, WORLD_COLLISION_BODY_MOTION_SPHERE | (GAME_ACTOR_BODY_PART4 << WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT));
+    collisionBody->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-    obj = &actor->collisionBodies[GAME_ACTOR_BODY_PART1];
-    _playerActorLinkCollisionBody(actor, GAME_ACTOR_BODY_PART1, obj, arg0->extra.tmd->coords + 1, recs, 0, 0x52, 0, 0xDC, WORLD_COLLISION_BODY_MOTION_SPHERE | (GAME_ACTOR_BODY_PART1 << WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT));
-    obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    collisionBody = &actor->collisionBodies[GAME_ACTOR_BODY_PART1];
+    _playerActorLinkCollisionBody(actor, GAME_ACTOR_BODY_PART1, collisionBody, task->extra.tmd->coords + PLAYER_ACTOR_COLLISION_PART1, contacts, 0, 82, 0, PLAYER_ACTOR_PART_COLLISION_RADIUS, WORLD_COLLISION_BODY_MOTION_SPHERE | (GAME_ACTOR_BODY_PART1 << WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT));
+    collisionBody->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    kind                      = actor->mode;
-    anim                      = actor->actionArgument;
-    actor->attachmentTasks[0] = playerActorSpawnAttachment(arg0, 0, PLAYER_ACTOR_ATTACHMENT_PLAYER_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
-    task                      = playerActorSpawnAttachment(arg0, 1, PLAYER_ACTOR_ATTACHMENT_PLAYER_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
-    actor->attachmentTasks[1] = task;
-    if (task != NULL) {
+    // Attachment creation may update actor state, so retain the spawn's scripted request first.
+    initialMode               = actor->mode;
+    initialAnimationId        = actor->actionArgument;
+    actor->attachmentTasks[0] = playerActorSpawnAttachment(task, 0, PLAYER_ACTOR_ATTACHMENT_PLAYER_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
+    attachmentTask            = playerActorSpawnAttachment(task, 1, PLAYER_ACTOR_ATTACHMENT_PLAYER_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
+    actor->attachmentTasks[1] = attachmentTask;
+    if (attachmentTask != NULL) {
         equipmentSyncPrimaryAttackSelector();
         playerActorRestoreEquipment();
     }
-    if (kind == 2) {
-        sp.blendFrames          = 0;
-        sp.source.index         = actor->animationBankIndex;
-        sp.blend                = ANIMATION_BLEND_RESET;
-        sp.animationId          = anim;
-        sp.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        _playerActorPlayScriptedAnimation(arg0, 0, &sp, 0);
+    if (initialMode == GAME_ACTOR_MODE_SCRIPTED) {
+        animationRequest.blendFrames          = 0;
+        animationRequest.source.index         = actor->animationBankIndex;
+        animationRequest.blend                = ANIMATION_BLEND_RESET;
+        animationRequest.animationId          = initialAnimationId;
+        animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        _playerActorPlayScriptedAnimation(task, 0, &animationRequest, 0);
         actor->collisionEnableMask = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
     }
-    if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
         actor->restrictRunAndAim = 1;
     }
 }
@@ -9625,10 +9689,10 @@ static void func_80108AD4(Task* arg0)
     playerActorPlayChildSlotsWithBlend(arg0, 0x19, 3, 6);
 }
 
-void Gp_PlayerMode2State0(Task* arg0)
+void playerActorScriptedState0(Task* task)
 {
-    _playerActorTickDirectChildSlots(arg0);
-    playerActorPlayFootstepCue(arg0);
+    _playerActorTickDirectChildSlots(task);
+    playerActorPlayFootstepCue(task);
 }
 
 void Gp_PlayerMode2State1(Task* arg0)
@@ -9755,11 +9819,11 @@ void playerActorSetLockTarget(Task* task, WorldTargetNode* target)
     _playerActorSetTargetNode(task, target);
 }
 
-/// `hitRegion` dispatcher: three slots of `Gp_PlayerMode1State0`, then `_playerActorDamageHitRegion3`.
+/// `hitRegion` dispatcher: three slots of `_playerActorTickDamageReaction`, then `_playerActorDamageHitRegion3`.
 static const TaskFuncTable4 Gp_PlayerMode1States = { {
-    Gp_PlayerMode1State0,
-    Gp_PlayerMode1State0,
-    Gp_PlayerMode1State0,
+    _playerActorTickDamageReaction,
+    _playerActorTickDamageReaction,
+    _playerActorTickDamageReaction,
     _playerActorDamageHitRegion3,
 } };
 
@@ -9777,7 +9841,7 @@ static void Gp_TickPlayerMode1(Task* arg0)
 
 /// `state` dispatcher copied by `Gp_TickPlayerMode2`.
 static const TaskFuncTable12 Gp_PlayerMode2States = { {
-    Gp_PlayerMode2State0,
+    playerActorScriptedState0,
     Gp_PlayerMode2State1,
     playerActorMode2State2,
     Gp_PlayerMode2State3,
@@ -9893,34 +9957,47 @@ static void func_80109138(Task* arg0)
     _playerActorUpdateLockTargetFromPad(arg0);
 }
 
-static void Gp_PlayerMode1State0(Task* arg0)
+/// Dispatches damage presentation for player hit-region selectors 0, 1 and 2.
+///
+/// Requires live GameActor work and the selected reaction's playback/effect
+/// resources. Ordinary/status reactions await clip completion; poison, three
+/// descending-part flashes, body blasts and spark/puffs use their own handlers.
+/// Reaction 4 and other unhandled byte values do nothing here. Does not consume
+/// the reaction byte; animation, child-slot playback and movement tick afterward
+/// in the enclosing damage-mode dispatcher.
+static void _playerActorTickDamageReaction(Task* task)
 {
-    GameActor* inner;
-    u8         kind;
+    enum {
+        GAME_ACTOR_REACTION_HIT_FLASHES     = 5,
+        GAME_ACTOR_REACTION_BODY_BLAST      = 6,
+        GAME_ACTOR_REACTION_SPARK_AND_PUFFS = 7,
+    };
+    GameActor* actor;
+    u8         reaction;
 
-    inner = arg0->work;
-    kind  = inner->damageReaction;
-    switch (kind) {
-        case 0:
-        case 1:
-        case 2:
-        case 8:
-        case 9:
-        case 10:
-        case 11:
-            playerActorFinishDamageReaction(arg0);
+    actor    = task->work;
+    reaction = actor->damageReaction;
+    switch (reaction) {
+        case GAME_ACTOR_REACTION_ORDINARY:
+        case GAME_ACTOR_REACTION_DARKNESS:
+        case GAME_ACTOR_REACTION_PARALYSIS:
+        case GAME_ACTOR_REACTION_SILENCE:
+        case GAME_ACTOR_REACTION_STATUS20:
+        case GAME_ACTOR_REACTION_CONFUSION:
+        case GAME_ACTOR_REACTION_BERSERKER:
+            playerActorFinishDamageReaction(task);
             break;
-        case 5:
-            playerActorTickHitFlashes(arg0);
+        case GAME_ACTOR_REACTION_HIT_FLASHES:
+            playerActorTickHitFlashes(task);
             break;
-        case 6:
-            _playerActorTickBodyBlastHit(arg0);
+        case GAME_ACTOR_REACTION_BODY_BLAST:
+            _playerActorTickBodyBlastHit(task);
             break;
-        case 3:
-            playerActorTickPoisonHit(arg0);
+        case GAME_ACTOR_REACTION_POISON:
+            playerActorTickPoisonHit(task);
             break;
-        case 7:
-            _playerActorTickSparkPuffHit(arg0);
+        case GAME_ACTOR_REACTION_SPARK_AND_PUFFS:
+            _playerActorTickSparkPuffHit(task);
             break;
     }
 }
