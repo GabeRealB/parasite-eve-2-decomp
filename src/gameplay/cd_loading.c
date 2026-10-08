@@ -343,21 +343,6 @@ typedef struct {
 } _LoadingConfigFileHundreds;
 STATIC_ASSERT_SIZEOF(_LoadingConfigFileHundreds, 5);
 
-/// Four-byte file key read synchronously by `cdCmdEnqueue`.
-///
-/// Byte 1 is ignored; these fields select a global file or a stage-folder file.
-typedef struct {
-    u8 fileIndex;      // Low file-ID component or mapped view index
-    u8 ignoredByQueue; // Unread byte; not initialized by these producers
-    u8 fileGroup;      // Global category or area-folder hundreds component
-    u8 stage;          // CDF selector (0 global library, 1..5 stage folders)
-} _LoadingFileKey;
-STATIC_ASSERT_SIZEOF(_LoadingFileKey, 4);
-
-/// File-load options using `CdCmdEntry.args.file`'s types and four-byte layout.
-typedef __typeof__(gCdCmdQueue.entries[0].args.file) _LoadingFileArgs;
-STATIC_ASSERT_SIZEOF(_LoadingFileArgs, 4);
-
 /// Global-library selectors and the request to seek back to the current view.
 enum {
     LOADING_GLOBAL_CDF         = 0,
@@ -1149,12 +1134,12 @@ const TaskFuncTable3 Gp_SessionStates = { {
 } };
 const TaskFuncTable8 Gp_LoadStateFns  = { {
     Gp_LoadWaitBoot,
-    Gp_LoadWaitStage,
+    loadingEnqueueStageResourcesTask,
     Gp_LoadState2,
-    Gp_LoadWaitCompanion,
-    Gp_LoadWaitSave,
+    loadingEnqueueAreaAndCompanionResourcesTask,
+    loadingPrepareAreaStateTask,
     Gp_LoadWaitAreaCd,
-    Gp_FadeGrayHold,
+    loadingHoldFadeAndReleaseBootImageTask,
     Gp_LoadFinishTask,
 } };
 const TaskFuncTable3 Gp_RoomObjStates = { {

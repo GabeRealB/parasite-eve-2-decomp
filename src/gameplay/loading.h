@@ -11,9 +11,25 @@
 #include "gameplay/room.h"
 #include "gameplay/view.h"
 
+#include "main/fs_types.h"
 #include "main/task_types.h"
 
 // Room-resource loading, view setup and sprite-list construction.
+
+/// Four-byte file key read synchronously by `cdCmdEnqueue`.
+///
+/// Byte 1 is ignored; these fields select a global file or a stage-folder file.
+typedef struct {
+    u8 fileIndex;      // Low file-ID component or mapped view index
+    u8 ignoredByQueue; // Not read by the enqueue API
+    u8 fileGroup;      // Global category or area-folder hundreds component
+    u8 stage;          // CDF selector (0 global library, 1..5 stage folders)
+} _LoadingFileKey;
+STATIC_ASSERT_SIZEOF(_LoadingFileKey, 4);
+
+/// File-load options using `CdCmdEntry.args.file`'s types and four-byte layout.
+typedef __typeof__(((CdCmdEntry*)0)->args.file) _LoadingFileArgs;
+STATIC_ASSERT_SIZEOF(_LoadingFileArgs, 4);
 
 /// Phases shared by the base-resource and additional-file loading passes.
 enum {
@@ -32,7 +48,7 @@ extern s16 Gp_AreaCdPhase;
 extern u16 D_80114C70;
 
 /// Phase for `Gp_LoadWaitAreaCd` (0 init, 1 `func_800AA120`, 2 `Gp_PollAreaCdLoads`).
-/// `Gp_LoadWaitSave` clears it when advancing to this task state.
+/// `loadingPrepareAreaStateTask` clears it when advancing to this task state.
 extern u16 D_80114C74;
 
 /// Queues additional files selected by the layout's placements; returns 1 when finished.
@@ -125,17 +141,57 @@ void Gp_BeginSessionTask(Task* arg0);
 
 void Gp_LoadWaitBoot(Task* task);
 
-void Gp_LoadWaitStage(Task* task);
+/// Queues a changed stage's mount and map resources once pending CD work finishes.
+///
+/// State 1 of the gameplay loading task. Advances to state 2 even when the
+/// stage is already cached; `loadedStage` records a queued request, not its
+/// completion. Requires a live task/session with stage 1..5 and an initialized
+/// CD queue. While no boot image is active, links a subtractive overlay of
+/// darkness 8 into normal-frame foreground OT tag -16. The current packet
+/// buffer index must be 0 or 1, with previous GPU uses of that half finished.
+void loadingEnqueueStageResourcesTask(Task* task);
 
 void Gp_LoadState2(Task* task);
 
-void Gp_LoadWaitCompanion(Task* task);
+/// Queues the area's base file and any companion resources needing replacement.
+///
+/// State 3 of the gameplay loading task. Waits for CD idle, then queues file 0
+/// from folder area*100+1 in the session's stage CDF, using default policy and
+/// zero image displacement. Selects the destination companion from the live
+/// save and queues its resources only when replacement is needed. Advances
+/// immediately to state 4; request bytes are copied and loads finish later.
+/// Requires matching live save/session destinations, loaded area/schedule tables
+/// within `companionSelectForArea`'s bounds, and initialized CD/scratch state.
+/// Drawing has the same darkness-8 packet/OT contract as
+/// `loadingEnqueueStageResourcesTask` and is skipped while a boot image is active.
+void loadingEnqueueAreaAndCompanionResourcesTask(Task* task);
 
-void Gp_LoadWaitSave(Task* task);
+/// Reconciles saved area placements and prepares the destination view's movie.
+///
+/// State 4 of the gameplay loading task. After CD idle, restores the saved
+/// placement variant only for `applySaveVariant == 1`, clears that request,
+/// records the destination visit and synchronizes the save/session variant.
+/// Nighttime Gas Station rooms 4 and above also reset the area's sound context
+/// and queue its replacement sound banks from folder 101, file 22. Resets the
+/// area-resource loading phase and advances to state 5 without waiting for
+/// any newly queued work.
+/// Requires a live task, valid matching save/session destinations, loaded
+/// stage/area/variant and movie tables, and initialized CD state. Drawing has
+/// the darkness-8 packet/OT contract of `loadingEnqueueStageResourcesTask`.
+void loadingPrepareAreaStateTask(Task* task);
 
 void Gp_LoadWaitAreaCd(Task* task);
 
-void Gp_FadeGrayHold(Task* task);
+/// Holds the loading fade for seven callback ticks, then releases the boot image.
+///
+/// State 6 of the gameplay loading task, entered with `killCountdown == 0`.
+/// Counts every tick, including while a boot image suppresses this overlay.
+/// Draws with subtractive darkness 100 when no boot image is active; packet
+/// lifetime and OT requirements match `loadingEnqueueStageResourcesTask`.
+/// At count 7, clears `holdBootImage` and advances to state 7, which waits for
+/// the boot-image machine's closing fade. Requires a live task and CD queue;
+/// this callback neither kills the task nor clears `bootLoadActive` itself.
+void loadingHoldFadeAndReleaseBootImageTask(Task* task);
 
 /// Refreshes room collision/view state and queues the current view's clipping packets.
 ///

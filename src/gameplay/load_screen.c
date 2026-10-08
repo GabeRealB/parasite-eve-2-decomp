@@ -63,6 +63,16 @@ ActorSpawnTransform D_80114CB0;
 /// Map-marker state written on arrival after the initial session setup.
 enum { DIRECTION_WARP_MAP_FLAG_ARRIVED = 1 };
 
+/// Loading-screen darkness is subtracted from each 8-bit framebuffer channel.
+enum {
+    LOADING_FADE_WAIT_DARKNESS = 8,
+};
+
+/// Suffix selecting the area's base/view-resource folder.
+enum { LOADING_AREA_FOLDER_SUFFIX = 1 };
+
+static inline void _loadingDrawFadeOverlay(TILE* fadeTile, DR_TPAGE* blendCommand, DisplayState* displayState, s32 darkness);
+
 static inline u16 _gpAdvanceAreaCd(void);
 
 static void Gp_InitStageVisit(GameLocationKey* arg0);
@@ -303,39 +313,62 @@ void Gp_LoadWaitBoot(Task* task)
     }
 }
 
-void Gp_LoadWaitStage(Task* task)
+/// Links a subtractive 320-by-240 overlay into the reserved foreground tags.
+///
+/// Requires current-frame packets and a normal frame OT with tag -16 in bounds.
+/// Both packets belong to the current OT buffer and must survive GPU consumption.
+/// `darkness` is an 8-bit channel amount; the display supplies signed pixel shake.
+static inline void _loadingDrawFadeOverlay(TILE* fadeTile, DR_TPAGE* blendCommand, DisplayState* displayState, s32 darkness)
 {
-    TILE*         tile;
-    DR_TPAGE*     dr;
-    DisplayState* ds;
-    s32           color;
-    s32           queued;
-    s32           buf;
-    s8            yoff;
+    enum {
+        LOADING_FADE_TILE_WORDS           = 3,
+        LOADING_FADE_TILE_SEMITRANSPARENT = 0x62,
+        LOADING_FADE_WIDTH_PIXELS         = 320,
+        LOADING_FADE_HEIGHT_PIXELS        = 240,
+        LOADING_FADE_FOREGROUND_TAG       = -16,
+        LOADING_FADE_TPAGE_WORDS          = 1,
+        LOADING_FADE_TPAGE_OPCODE         = 0xE1000000,
+        LOADING_FADE_DRAW_TO_DISPLAY      = 0x200,
+    };
+    s8 screenShakeY;
 
-    color  = 8;
-    queued = gCdCmdQueue.bootLoadActive;
-    ds     = &gDisplayState;
-    buf    = ds->otBuffer;
-    tile   = &Gp_FadeTiles[buf];
-    dr     = &Gp_FadeTpages[buf];
-    if (queued == 0) {
-        setlen(tile, 3);
-        setcode(tile, 0x62);
-        tile->r0 = color;
-        tile->g0 = color;
-        tile->b0 = color;
-        tile->x0 = -0xA0;
-        yoff     = ds->vramYOffset;
-        tile->w  = 0x140;
-        tile->h  = 0xF0;
-        tile->y0 = -0x78 - yoff;
-        addPrim(gGpuCurrentOt - 0x10, tile);
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(gGpuCurrentOt - 0x10, dr);
+    setlen(fadeTile, LOADING_FADE_TILE_WORDS);
+    setcode(fadeTile, LOADING_FADE_TILE_SEMITRANSPARENT);
+    fadeTile->r0 = darkness;
+    fadeTile->g0 = darkness;
+    fadeTile->b0 = darkness;
+    fadeTile->x0 = -LOADING_FADE_WIDTH_PIXELS / 2;
+    screenShakeY = displayState->vramYOffset;
+    fadeTile->w  = LOADING_FADE_WIDTH_PIXELS;
+    fadeTile->h  = LOADING_FADE_HEIGHT_PIXELS;
+    fadeTile->y0 = -LOADING_FADE_HEIGHT_PIXELS / 2 - screenShakeY;
+    addPrim(gGpuCurrentOt + LOADING_FADE_FOREGROUND_TAG, fadeTile);
+    // OT insertion reverses these links, so the blend mode executes first.
+    setlen(blendCommand, LOADING_FADE_TPAGE_WORDS);
+    blendCommand->code[0] = LOADING_FADE_TPAGE_OPCODE | (LOADING_FADE_DRAW_TO_DISPLAY | (GPU_BLEND_SUBTRACT << 5));
+    addPrim(gGpuCurrentOt + LOADING_FADE_FOREGROUND_TAG, blendCommand);
+}
+
+void loadingEnqueueStageResourcesTask(Task* task)
+{
+    TILE*         fadeTile;
+    DR_TPAGE*     blendCommand;
+    DisplayState* displayState;
+    s32           darkness;
+    u16           bootLoadActive;
+    s32           packetBufferIndex;
+
+    darkness          = LOADING_FADE_WAIT_DARKNESS;
+    bootLoadActive    = gCdCmdQueue.bootLoadActive;
+    displayState      = &gDisplayState;
+    packetBufferIndex = displayState->otBuffer;
+    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
+    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    if (bootLoadActive == 0) {
+        _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
-    if (cdCmdIsIdle() & 0xFFFF) {
+    // Cache the requested stage immediately; the next phase waits for completion.
+    if (cdCmdIsIdle()) {
         if (gGameSession->location.loc.stage != gGameSession->loadedStage) {
             loadingEnqueueStageResources();
             gGameSession->loadedStage = gGameSession->location.loc.stage;
@@ -404,54 +437,46 @@ void Gp_LoadState2(Task* task)
     }
 }
 
-void Gp_LoadWaitCompanion(Task* task)
+void loadingEnqueueAreaAndCompanionResourcesTask(Task* task)
 {
-    TILE*         tile;
-    DR_TPAGE*     dr;
-    DisplayState* ds;
-    s32           color;
-    s32           queued;
-    s32           buf;
-    s8            yoff;
-    u8            param1[8];
-    u8            param2[8];
-    u8            companionTypeToLoad;
+    enum { LOADING_AREA_BASE_FILE_INDEX       = 0,
+           LOADING_COMPANION_NO_RESOURCE_LOAD = 0 };
+    TILE*         fadeTile;
+    DR_TPAGE*     blendCommand;
+    DisplayState* displayState;
+    s32           darkness;
+    u16           bootLoadActive;
+    s32           packetBufferIndex;
+    struct {
+        _LoadingFileKey key;
+        u8              field_4; // Written zero beyond the queued key; role unproven
+    } areaRequest;
+    _LoadingFileArgs loadArgs;
+    u8               companionTypeToLoad;
 
-    color  = 8;
-    queued = gCdCmdQueue.bootLoadActive;
-    ds     = &gDisplayState;
-    buf    = ds->otBuffer;
-    tile   = &Gp_FadeTiles[buf];
-    dr     = &Gp_FadeTpages[buf];
-    if (queued == 0) {
-        setlen(tile, 3);
-        setcode(tile, 0x62);
-        tile->r0 = color;
-        tile->g0 = color;
-        tile->b0 = color;
-        tile->x0 = -0xA0;
-        yoff     = ds->vramYOffset;
-        tile->w  = 0x140;
-        tile->h  = 0xF0;
-        tile->y0 = -0x78 - yoff;
-        addPrim(gGpuCurrentOt - 0x10, tile);
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(gGpuCurrentOt - 0x10, dr);
+    darkness          = LOADING_FADE_WAIT_DARKNESS;
+    bootLoadActive    = gCdCmdQueue.bootLoadActive;
+    displayState      = &gDisplayState;
+    packetBufferIndex = displayState->otBuffer;
+    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
+    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    if (bootLoadActive == 0) {
+        _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
-    if (cdCmdIsIdle() & 0xFFFF) {
-        param1[3] = gGameSession->location.loc.stage;
-        param1[2] = gGameSession->location.loc.area;
-        param1[1] = gGameSession->location.loc.room;
-        param1[0] = 0;
-        param1[4] = 0;
-        param2[0] = 1;
-        param2[1] = 0;
-        param2[2] = 0;
-        param2[3] = 0;
-        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+    // The area request is copied before companion selection can enqueue more loads.
+    if (cdCmdIsIdle()) {
+        areaRequest.key.stage          = gGameSession->location.loc.stage;
+        areaRequest.key.fileGroup      = gGameSession->location.loc.area;
+        areaRequest.key.ignoredByQueue = gGameSession->location.loc.room;
+        areaRequest.key.fileIndex      = LOADING_AREA_BASE_FILE_INDEX;
+        areaRequest.field_4            = 0;
+        loadArgs.fileIdHundreds        = LOADING_AREA_FOLDER_SUFFIX;
+        loadArgs.loadMode              = CD_COMMAND_LOAD_DEFAULT;
+        loadArgs.imageXPageOffset      = 0;
+        loadArgs.imageYOffset          = 0;
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &areaRequest.key, &loadArgs);
         companionTypeToLoad = companionSelectForArea();
-        if (companionTypeToLoad != 0) {
+        if (companionTypeToLoad != LOADING_COMPANION_NO_RESOURCE_LOAD) {
             gGameSession->companionType = companionTypeToLoad;
             companionEnqueueResources(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant);
         }
@@ -459,70 +484,61 @@ void Gp_LoadWaitCompanion(Task* task)
     }
 }
 
-void Gp_LoadWaitSave(Task* task)
+void loadingPrepareAreaStateTask(Task* task)
 {
-    TILE*            tile;
-    DR_TPAGE*        dr;
-    DisplayState*    ds;
-    s32              color;
-    s32              queued;
-    s32              buf;
-    s8               yoff;
-    u8               param1[8];
-    u8               param2[8];
-    GameLocationKey* saveKey;
-    GameSession*     sess;
+    enum {
+        LOADING_GAS_STATION_EXTRA_FILE_FIRST_ROOM = 4,
+        LOADING_GAS_STATION_SOUND_FILE_INDEX      = 22,
+    };
+    TILE*            fadeTile;
+    DR_TPAGE*        blendCommand;
+    DisplayState*    displayState;
+    s32              darkness;
+    u16              bootLoadActive;
+    s32              packetBufferIndex;
+    _LoadingFileKey  fileKey;
+    _LoadingFileArgs loadArgs;
+    GameLocationKey* savedLocation;
+    GameSession*     session;
 
-    color  = 8;
-    queued = gCdCmdQueue.bootLoadActive;
-    ds     = &gDisplayState;
-    buf    = ds->otBuffer;
-    tile   = &Gp_FadeTiles[buf];
-    dr     = &Gp_FadeTpages[buf];
-    if (queued == 0) {
-        setlen(tile, 3);
-        setcode(tile, 0x62);
-        tile->r0 = color;
-        tile->g0 = color;
-        tile->b0 = color;
-        tile->x0 = -0xA0;
-        yoff     = ds->vramYOffset;
-        tile->w  = 0x140;
-        tile->h  = 0xF0;
-        tile->y0 = -0x78 - yoff;
-        addPrim(gGpuCurrentOt - 0x10, tile);
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(gGpuCurrentOt - 0x10, dr);
+    darkness          = LOADING_FADE_WAIT_DARKNESS;
+    bootLoadActive    = gCdCmdQueue.bootLoadActive;
+    displayState      = &gDisplayState;
+    packetBufferIndex = displayState->otBuffer;
+    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
+    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    if (bootLoadActive == 0) {
+        _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
-    if (cdCmdIsIdle() & 0xFFFF) {
-        GameSession* session;
+    if (cdCmdIsIdle()) {
+        GameSession* soundSession;
 
-        session = gGameSession;
-        if ((GAME_LOCATION_WORD(session->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 1, 0, 0)) {
-            if (session->location.loc.room >= 4) {
-                sndScriptResetForArea(session->location.loc.stage, session->location.loc.area);
-                param1[3] = gGameSession->location.loc.stage;
-                param1[2] = gGameSession->location.loc.area;
-                param1[0] = 0x16;
-                param2[0] = 1;
-                param2[1] = 0;
-                param2[2] = 0;
-                param2[3] = 0;
-                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        soundSession = gGameSession;
+        if ((GAME_LOCATION_WORD(soundSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GAS_STATION, 0, 0)) {
+            if (soundSession->location.loc.room >= LOADING_GAS_STATION_EXTRA_FILE_FIRST_ROOM) {
+                sndScriptResetForArea(soundSession->location.loc.stage, soundSession->location.loc.area);
+                fileKey.stage             = gGameSession->location.loc.stage;
+                fileKey.fileGroup         = gGameSession->location.loc.area;
+                fileKey.fileIndex         = LOADING_GAS_STATION_SOUND_FILE_INDEX;
+                loadArgs.fileIdHundreds   = LOADING_AREA_FOLDER_SUFFIX;
+                loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
+                loadArgs.imageXPageOffset = 0;
+                loadArgs.imageYOffset     = 0;
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &loadArgs);
             }
         }
-        sess = gGameSession;
-        if (sess->applySaveVariant == 1) {
-            areaSetPlacementVariant(&sess->location.loc, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant, AREA_VARIANT_RESET_IF_CHANGED);
-            gGameSession->applySaveVariant = 0;
+        // Restore saved placements before the visit and variant reconciliation.
+        session = gGameSession;
+        if (session->applySaveVariant == true) {
+            areaSetPlacementVariant(&session->location.loc, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant, AREA_VARIANT_RESET_IF_CHANGED);
+            gGameSession->applySaveVariant = false;
         }
-        saveKey = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-        areaMarkVisited(saveKey);
-        areaSyncLocationVariant(saveKey);
-        gGameSession->location.loc.variant = saveKey->variant;
+        savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+        areaMarkVisited(savedLocation);
+        areaSyncLocationVariant(savedLocation);
+        gGameSession->location.loc.variant = savedLocation->variant;
         cdCmdPrepareViewMovie();
-        D_80114C74 = 0;
+        D_80114C74 = LOADING_AREA_INIT;
         task->state++;
     }
 }
@@ -574,41 +590,30 @@ void Gp_LoadWaitAreaCd(Task* task)
     }
 }
 
-void Gp_FadeGrayHold(Task* task)
+void loadingHoldFadeAndReleaseBootImageTask(Task* task)
 {
-    TILE*         tile;
-    DR_TPAGE*     dr;
-    DisplayState* ds;
-    CdCmdQueue*   queue;
-    s32           color;
-    s32           buf;
-    s8            yoff;
+    enum { LOADING_FADE_HOLD_DARKNESS = 100,
+           LOADING_FADE_HOLD_TICKS    = 7 };
+    TILE*         fadeTile;
+    DR_TPAGE*     blendCommand;
+    DisplayState* displayState;
+    CdCmdQueue*   cdQueue;
+    s32           darkness;
+    s32           packetBufferIndex;
 
-    queue = &gCdCmdQueue;
-    ds    = &gDisplayState;
-    color = 0x64;
-    buf   = ds->otBuffer;
-    tile  = &Gp_FadeTiles[buf];
-    dr    = &Gp_FadeTpages[buf];
-    if (queue->bootLoadActive == 0) {
-        setlen(tile, 3);
-        setcode(tile, 0x62);
-        tile->r0 = color;
-        tile->g0 = color;
-        tile->b0 = color;
-        tile->x0 = -0xA0;
-        yoff     = ds->vramYOffset;
-        tile->w  = 0x140;
-        tile->h  = 0xF0;
-        tile->y0 = -0x78 - yoff;
-        addPrim(gGpuCurrentOt - 0x10, tile);
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(gGpuCurrentOt - 0x10, dr);
+    cdQueue           = &gCdCmdQueue;
+    displayState      = &gDisplayState;
+    darkness          = LOADING_FADE_HOLD_DARKNESS;
+    packetBufferIndex = displayState->otBuffer;
+    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
+    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    if (cdQueue->bootLoadActive == 0) {
+        _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
+    // Count the hold even while the boot-image machine owns presentation.
     task->killCountdown++;
-    if (task->killCountdown >= 7) {
-        queue->holdBootImage = 0;
+    if (task->killCountdown >= LOADING_FADE_HOLD_TICKS) {
+        cdQueue->holdBootImage = 0;
         task->state++;
     }
 }

@@ -32714,25 +32714,25 @@ is the example.
 
 `Gp_FadeTiles` is `TILE[2]` and `Gp_FadeTpages` is `DR_TPAGE[2]`, indexed by
 `gDisplayState.otBuffer` (16-byte / 8-byte stride). Several neighboring
-D4 task states share this pair (`Gp_LoadWaitBoot` … `Gp_FadeGrayHold`).
+D4 task states share this pair (`Gp_LoadWaitBoot` … `loadingHoldFadeAndReleaseBootImageTask`).
 
-On the leaf overlay (`Gp_FadeGrayHold`) the target hoists `0x64` and both
+On the leaf overlay (`loadingHoldFadeAndReleaseBootImageTask`) the target hoists `0x64` and both
 prim pointers before the `gCdCmdQueue.bootLoadActive` check. Keep that order
-in C (`color = 0x64`, then `buf = ds->otBuffer`, then both `&arr[buf]`).
+in C (`darkness = 0x64`, then `packetBufferIndex = displayState->otBuffer`, then both `&arr[packetBufferIndex]`).
 
-An `s8 yoff = ds->vramYOffset` local after `x0` is what places
+An `s8 screenShakeY = displayState->vramYOffset` local after `x0` is what places
 `sb r/g/b` before `sh x0` and the `lbu 0x109` / `sll`/`sra` between `x0`
-and `w`/`h`. Folding `y0 = -0x78 - ds->vramYOffset` with no local sinks
+and `w`/`h`. Folding `y0 = -0x78 - displayState->vramYOffset` with no local sinks
 the RGB stores.
 
-`dr->code[0] = 0xE1000240` (or an early `mode = 0xE1000240`) either
+`blendCommand->code[0] = 0xE1000240` (or an early `mode = 0xE1000240`) either
 delays `lui t0,0xe100` into the TILE stores or emits it *before* the
 `0xFFFFFF` mask. Write the command as two operands at the store site:
 
 ```c
-setlen(dr, 1);
-dr->code[0] = 0xE1000000 | 0x240;
-addPrim(gGpuCurrentOt - 0x10, dr);
+setlen(blendCommand, 1);
+blendCommand->code[0] = 0xE1000000 | 0x240;
+addPrim(gGpuCurrentOt - 0x10, blendCommand);
 ```
 
 That is the same split as `Title_MenuTask`; here it is required even
@@ -32751,31 +32751,31 @@ bnez  a0, skip
 ```
 
 `if (gCdCmdQueue.bootLoadActive == 0)` rematerialises `%hi` at the use site
-and parks `buf` in `$a0`. Pin color to `$a2`, emit the hi with
+and parks `packetBufferIndex` in `$a0`. Pin darkness to `$a2`, emit the hi with
 non-volatile `asm("lui %0, %%hi(gCdCmdQueue)" : "=r"(qhi))`, then load
 through that register as a C halfword (not an `asm lhu`). An `asm lhu`
 is a scheduling barrier and leaves `addu t2` *before* the load. The C
 load participates in delay-slot filling:
 
 ```c
-register s32 color asm("a2");
+register s32 darkness asm("a2");
 register s32 qhi asm("a1");
-register s32 queued asm("a0");
+register s32 bootLoadActive asm("a0");
 
-color = 8;
-ds    = &gDisplayState;
+darkness          = 8;
+displayState      = &gDisplayState;
 asm("lui %0, %%hi(gCdCmdQueue)" : "=r"(qhi));
-buf    = ds->otBuffer;
-tile   = &Gp_FadeTiles[buf];
-dr     = &Gp_FadeTpages[buf];
-queued = *(u16*)((s32)qhi + (s16)0x91C4); /* %lo(gCdCmdQueue+0x224) */
-if (queued == 0) {
+packetBufferIndex = displayState->otBuffer;
+fadeTile          = &Gp_FadeTiles[packetBufferIndex];
+blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+bootLoadActive    = *(u16*)((s32)qhi + (s16)0x91C4); /* %lo(gCdCmdQueue+0x224) */
+if (bootLoadActive == 0) {
 ```
 
 `0x91C4` is the signed 16-bit `%lo` of `gCdCmdQueue.bootLoadActive`
 (`0x800691C4`). The object has an unpaired `R_MIPS_HI16` and a
 hardcoded `lhu` offset; GNU ld still produces the same linked
-instruction as `%hi/%lo`. `Gp_LoadWaitStage` is the example.
+instruction as `%hi/%lo`. `loadingEnqueueStageResourcesTask` is the example.
 `GameSession.loadedStage` is an `s16` cache of `location.loc.stage`; compare with
 `lbu`/`lh` and write back with `lbu`/`sh`.
 
@@ -33895,27 +33895,27 @@ instead of clobbering `$s3` in place. Split the last-block `0x606060`
 into a new `$v1` temp so `lui v1, 0x60` fills that `beqz` delay.
 `_itemPickupTitleTask` is the example.
 
-## D4 overlay: hold `lhu` until after `tile` when `$a1` is reused
+## D4 overlay: hold `lhu` until after `fadeTile` when `$a1` is reused
 
 The fade-overlay `lui a1, %hi(gCdCmdQueue)` / C `lhu` pair from
-`Gp_LoadWaitStage` hoists the load past the TILE / `DR_TPAGE` address math
+`loadingEnqueueStageResourcesTask` hoists the load past the TILE / `DR_TPAGE` address math
 when the next block also needs `$a1` (another `lui a1` for a BSS
 halfword). The C load then consumes `$a0` too early (`sll a1` instead
 of `sll a0`, and `addu t2` can no longer fill the `bnez` delay).
 
-Depend the load on the finished `tile` pointer with a non-volatile
+Depend the load on the finished `fadeTile` pointer with a non-volatile
 empty asm so `lhu` sits after `addiu %lo(Gp_FadeTpages)` and `addu t2`
 stays in the delay slot:
 
 ```c
-tile = &Gp_FadeTiles[buf];
-asm("" : : "r"(qhi), "r"(tile));
-dr     = &Gp_FadeTpages[buf];
-queued = *(u16*)((s32)qhi + (s16)0x91C4);
+fadeTile = &Gp_FadeTiles[packetBufferIndex];
+asm("" : : "r"(qhi), "r"(fadeTile));
+blendCommand   = &Gp_FadeTpages[packetBufferIndex];
+bootLoadActive = *(u16*)((s32)qhi + (s16)0x91C4);
 ```
 
-Depending on `dr` as well emits `addu t2` *before* the load. Input
-constraints on the `lui` (`"r"(color), "r"(ds)`) keep `li a2, 8` /
+Depending on `blendCommand` as well emits `addu t2` *before* the load. Input
+constraints on the `lui` (`"r"(darkness), "r"(displayState)`) keep `li a2, 8` /
 `la gDisplayState` ahead of that `lui`.
 
 A later 0/1 flag that is consumed as `if (x & 0xFFFF)` becomes `sltu`
@@ -33944,7 +33944,7 @@ if (done & 0xFFFF) {
 ## Fill cdCmdEnqueue arg `addiu`s between session-field `lbu`s
 
 A 0x21 enqueue that copies `GameSession.location.loc.stage/6/5` into a stack
-payload wants `&param1` / `&param2` in `$a1` / `$a2` *between* each
+payload wants `&areaRequest.key` / `&loadArgs` in `$a1` / `$a2` *between* each
 load and store:
 
 ```
@@ -33963,14 +33963,14 @@ jal    cdCmdEnqueue
  sb    v1, 0x11(sp)
 ```
 
-Assign the call args as named temps (`cmd = 0x21; p1 = param1;`)
+Assign the call args as named temps (`cmd = 0x21; p1 = &areaRequest.key;`)
 immediately after each field load so those `addiu`s fill the load
 delay. The last field must overwrite the session pointer in `$v1`
 (`lbu v1, 5(v1)`) and stay there until the `jal` delay: pin both the
 session pointer and that byte to `$v1`. Loading it into `$v0` instead
-stores `param1[2]` late and moves `&param2` after the zeroing stores.
+stores `areaRequest.key.fileGroup` late and moves `&loadArgs` after the zeroing stores.
 
-`Gp_LoadWaitCompanion` is the example.
+`loadingEnqueueAreaAndCompanionResourcesTask` is the example.
 
 ## `depthByteOffset + table` so GCC emits `addu dest, dest, base`
 
@@ -36975,7 +36975,7 @@ expected objects also have the raw immediate. Overlay `rom:` is
 C still emits as a real reloc (the D4 `gCdCmdQueue` `lhu` is only the
 `%lo`).
 
-`Gp_LoadWaitStage` / `Gp_AttachListTask` / `Gp_SelectArmorMenuTask` / `itemMenuCanMoveAllItems`
+`loadingEnqueueStageResourcesTask` / `Gp_AttachListTask` / `Gp_SelectArmorMenuTask` / `itemMenuCanMoveAllItems`
 are the examples.
 
 The entry is state that belongs to the faked address, so it has to come out
@@ -68356,7 +68356,7 @@ splat named the `lui` (`%hi(gCdCmdQueue + 0x224)`) but printed the load's
 displacement literally, so `target.o` has no `R_MIPS_LO16` for the scorer to
 compare against and the correct relocated form is charged as a register
 difference. This is not a property of the code: `Gp_LoadState2` and
-`Gp_LoadWaitStage` have byte-identical instruction windows here, and splat pairs
+`loadingEnqueueStageResourcesTask` have byte-identical instruction windows here, and splat pairs
 the load in the first and not the second. Six functions in `src/gameplay/D4.c`
 read `gCdCmdQueue.bootLoadActive` this way and exactly one gets the paired render.
 
@@ -68549,10 +68549,10 @@ lhu  $a0, -0x6E3C($a1)
 
 **Symptom:** `target.o` therefore carries `R_MIPS_HI16` and no `R_MIPS_LO16`,
 which is exactly what the hand-built pair reproduces. So in the scratch env the
-hack scores 100.000% and the correct `queued = gCdCmdQueue.bootLoadActive;` scores
+hack scores 100.000% and the correct `bootLoadActive = gCdCmdQueue.bootLoadActive;` scores
 99.950% with `regs: 1` - the scorer charges the `%lo(gCdCmdQueue+0x224)` operand
 against the constant. A loop that trusts the score alone will keep the hack.
-`Gp_LoadWaitStage` in `src/gameplay/D4.c` was the worked example.
+`loadingEnqueueStageResourcesTask` in `src/gameplay/load_screen.c` was the worked example.
 
 **Fix:** compare the objects word by word instead. The only field that differs
 is the load's immediate - `0x0224` (an addend the linker resolves) against the
