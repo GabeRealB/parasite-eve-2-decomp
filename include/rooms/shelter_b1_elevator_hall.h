@@ -30,7 +30,15 @@ extern SpriteView D_shelter_b1_elevator_hall_80183CC4[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_elevator_hall_801849D0[];
 
-void func_shelter_b1_elevator_hall_8017DC28(Task* task);
+/// Registers the hall's room-message receiver, idles, then releases the room task.
+///
+/// Requires a live task initially in state 0. State 0 records the first visit
+/// and updates the objective byte once; state 1 performs no frame work, leaving
+/// the task available for messages; state 2 kills it. State must stay in 0..2:
+/// dispatch copies all three handlers by value and does not check bounds.
+/// Body and spawn arguments are unused. The room overlay and gameplay message
+/// and game-flag services must remain loaded while the task is live.
+void shelterB1ElevatorHallRoomTask(Task* task);
 
 /// Runs a charging pink flash, peak screen tint and fading star.
 ///
@@ -79,7 +87,18 @@ void shelterB1ElevatorHallRoomVisualEffectsMoteTask(Task* task);
 /// effect controller and this room overlay must remain live.
 void shelterB1ElevatorHallRoomVisualEffectsHaloTask(Task* task);
 
-void func_shelter_b1_elevator_hall_80180BE4(Task* arg0);
+/// Emits twenty descending motes from rotating, successively higher offsets.
+///
+/// Requires a coordinate body and zeroed, counted `EffectWork` in
+/// `spawnArg2.pointer`, supplied by `effectSpawn`; `spawnArg1` is unused.
+/// Active ages 1..20 emit a mote around the spawn coordinate, with local Y
+/// offset -128 times age in coordinate units. Motes descend by eight units
+/// per motion tick and live independently after the emitter retires at age 21.
+/// Nonzero room effect control pauses it; four or above cancels it. Retirement
+/// or cancellation releases the counted work and task. The hall's mote effect
+/// ID must be installed; coordinate ancestors, the effect controller and this
+/// room overlay must remain live through the child effects' lifetimes.
+void shelterB1ElevatorHallRoomVisualEffectsSparkEmitterTask(Task* task);
 
 /// Installs the hall's actor-effect IDs and draws its visible capsule glows.
 ///
@@ -90,7 +109,17 @@ void func_shelter_b1_elevator_hall_80180BE4(Task* arg0);
 /// the task stays live independently of room effect control.
 void shelterB1ElevatorHallDrawGlowsTask(Task* task);
 
-void func_shelter_b1_elevator_hall_80182064(Task* task);
+/// Runs an impact flash followed by smoke or orange rings and bouncing sparks.
+///
+/// Requires a coordinate body and zeroed, counted `EffectWork` in
+/// `spawnArg2.pointer`, supplied by `effectSpawn`, and initial state 0.
+/// Nonzero `spawnArg1.value` selects smoke; zero selects two sparks and two
+/// fading rings. Active age seven enters state 3 for release; the next active
+/// tick frees the counted work and kills the task. Nonzero room effect control
+/// pauses it; four or above cancels it. Child effects live independently.
+/// Coordinate ancestors, the effect controller, this room overlay and current
+/// graphics workspace must remain live until teardown.
+void shelterB1ElevatorHallRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs an expanding orange disc and layered glow inside a fading ring.
 ///

@@ -71,9 +71,9 @@ TaskDesc D_shelter_b1_elevator_hall_80182CAC = { { { TASK_BODY_NONE, 32 } }, she
 TaskMessageEntry D_shelter_b1_elevator_hall_80182CB8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_elevator_hall_8017D810 },
     { 5105, func_shelter_b1_elevator_hall_8017DB54 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_elevator_hall_8017DB64 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_elevator_hall_8017DB5C },
-    { ROOM_MESSAGE_SOUND, func_shelter_b1_elevator_hall_8017DB6C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, shelterB1ElevatorHallIgnoreActionMessage },
+    { ROOM_MESSAGE_COMMAND, shelterB1ElevatorHallIgnoreCommandMessage },
+    { ROOM_MESSAGE_SOUND, shelterB1ElevatorHallPlaySoundCueMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -606,9 +606,9 @@ void shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_shelter_b1_elevator_hall_80180BE4(Task* arg0)
+void shelterB1ElevatorHallRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -627,7 +627,7 @@ void shelterB1ElevatorHallRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b1_elevator_hall_80182064(Task* task)
+void shelterB1ElevatorHallRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

@@ -31,8 +31,8 @@
 
 extern RoomEventMsg D_shelter_b1_elevator_hall_801849F8;
 
-static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0);
-static void func_shelter_b1_elevator_hall_8017DC20(Task* task);
+static void _shelterB1ElevatorHallInitRoomTask(Task* task);
+static void _shelterB1ElevatorHallIdleRoomTask(Task* task);
 
 RoomEventMsg D_shelter_b1_elevator_hall_801849F8;
 
@@ -77,11 +77,11 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* 
 }
 
 /// The room task's state table, dispatched by
-/// `func_shelter_b1_elevator_hall_8017DC28` from a stack copy.
+/// `shelterB1ElevatorHallRoomTask` from a stack copy.
 static const TaskFuncTable3 D_shelter_b1_elevator_hall_8017D5D8 = {
     {
-        func_shelter_b1_elevator_hall_8017DBB8,
-        func_shelter_b1_elevator_hall_8017DC20,
+        _shelterB1ElevatorHallInitRoomTask,
+        _shelterB1ElevatorHallIdleRoomTask,
         taskKill,
     },
 };
@@ -152,51 +152,63 @@ s32 func_shelter_b1_elevator_hall_8017DB54(Task* task, s32 msgId, s32 arg2, s32 
     return 0;
 }
 
-s32 func_shelter_b1_elevator_hall_8017DB5C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 shelterB1ElevatorHallIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandMode)
 {
     return 0;
 }
 
-s32 func_shelter_b1_elevator_hall_8017DB64(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 shelterB1ElevatorHallIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 secondArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_elevator_hall_8017DB6C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 shelterB1ElevatorHallPlaySoundCueMessage(Task* task, s32 messageId, s32 cueId, s32 secondArg)
 {
-    switch (arg2) {
-        case 6:
+    enum { SOUND_CUE_CONFIRM       = 6,
+           SOUND_CUE_ELEVATOR_RIDE = 8 };
+
+    switch (cueId) {
+        case SOUND_CUE_CONFIRM:
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
             break;
-        case 8:
+        case SOUND_CUE_ELEVATOR_RIDE:
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_ELEVATOR_RIDE, 0, 0);
             break;
     }
     return 0;
 }
 
-static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0)
+/// Registers the hall's room-message receiver and records its first visit.
+///
+/// State 0 installs the borrowed message table and publishes the live task in
+/// `GAME_TASK_SLOT_ROOM`. First entry sets the visited nibble and objective
+/// byte; later entries preserve the objective. Advances to the idle state.
+static void _shelterB1ElevatorHallInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_shelter_b1_elevator_hall_80182CB8;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED) == 0) {
-        gameFlagSetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED, 1);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x1D);
+    enum { ROOM_UNVISITED        = 0,
+           ROOM_VISITED          = 1,
+           FIRST_VISIT_OBJECTIVE = 0x1D };
+
+    task->msgTable = D_shelter_b1_elevator_hall_80182CB8;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED) == ROOM_UNVISITED) {
+        gameFlagSetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED, ROOM_VISITED);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, FIRST_VISIT_OBJECTIVE);
     }
-    arg0->state++;
+    task->state++;
 }
 
-/// Empty middle state of the room task's state table.
-static void func_shelter_b1_elevator_hall_8017DC20(Task* task)
+/// Keeps the initialized room task available for messages without frame work.
+///
+/// State 1 leaves the task and its state unchanged until external teardown.
+static void _shelterB1ElevatorHallIdleRoomTask(Task* task)
 {
 }
 
-/// Runs the room task through its state table, copied onto the stack first and
-/// indexed by the task's state.
-void func_shelter_b1_elevator_hall_8017DC28(Task* task)
+void shelterB1ElevatorHallRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b1_elevator_hall_8017D5D8;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b1_elevator_hall_8017D5D8;
+    stateHandlers.funcs[task->state](task);
 }

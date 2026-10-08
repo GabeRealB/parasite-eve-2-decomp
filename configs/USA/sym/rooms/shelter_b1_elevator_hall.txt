@@ -68,11 +68,11 @@ shelterB1ElevatorHallRoomVisualEffectsMoteTask = 0x8017E6F4; // type:func
 
 shelterB1ElevatorHallRoomVisualEffectsHaloTask = 0x8017F43C; // type:func
 
-func_shelter_b1_elevator_hall_80180BE4 = 0x80180BE4; // type:func
+shelterB1ElevatorHallRoomVisualEffectsSparkEmitterTask = 0x80180BE4; // type:func
 
 shelterB1ElevatorHallDrawGlowsTask = 0x8017DC80; // type:func
 
-func_shelter_b1_elevator_hall_80182064 = 0x80182064; // type:func
+shelterB1ElevatorHallRoomVisualEffectsSparkBurstTask = 0x80182064; // type:func
 
 shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask = 0x8017F7D4; // type:func
 _roomVisualEffectsDrawMote = 0x8017E9C0; // type:func
@@ -87,3 +87,9 @@ _roomVisualEffectsDrawTwinTrail = 0x80181C6C; // type:func
 _roomVisualEffectsDrawBurstStar = 0x801822EC; // type:func
 _glowDrawCapsule = 0x8017DEB0; // type:func
 shelterElevatorTask = 0x8017D620; // type:func
+shelterB1ElevatorHallIgnoreCommandMessage = 0x8017db5c; // type:func
+shelterB1ElevatorHallIgnoreActionMessage = 0x8017db64; // type:func
+shelterB1ElevatorHallPlaySoundCueMessage = 0x8017db6c; // type:func
+_shelterB1ElevatorHallInitRoomTask = 0x8017dbb8; // type:func
+_shelterB1ElevatorHallIdleRoomTask = 0x8017dc20; // type:func
+shelterB1ElevatorHallRoomTask = 0x8017dc28; // type:func

@@ -1047,7 +1047,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkBridgeRoomVisualEffectsTwinTrailTask, { NULL } },                             // 0x1FD
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPyramidRoomVisualEffectsTwinTrailTask, { NULL } },                            // 0x1FE
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_r08_8017F8FC, { NULL } },                                       // 0x1FF
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_80182064, { NULL } },                                 // 0x200
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsSparkBurstTask, { NULL } },                   // 0x200
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_8017FAAC, { NULL } },                     // 0x201
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80182118, { NULL } },                                     // 0x202
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_80182228, { NULL } },                     // 0x203
@@ -1151,7 +1151,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4UpperSewerRoomVisualEffectsHaloOrangeBurstTask, { NULL } },                // 0x265
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsHaloOrangeBurstTask, { NULL } },               // 0x266
     { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsSparkEmitterTask, { NULL } },                            // 0x267
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_80180BE4, { NULL } },                                 // 0x268
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsSparkEmitterTask, { NULL } },                 // 0x268
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80180C98, { NULL } },                                     // 0x269
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_80180DA8, { NULL } },                     // 0x26A
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_80180FC4, { NULL } },                                 // 0x26B

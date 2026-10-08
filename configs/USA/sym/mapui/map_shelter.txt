@@ -78,7 +78,7 @@ D_mine_secret_passage_80180FBC = 0x80180FBC; // absolute:True owner=mine_secret_
 D_mine_secret_passage_80181604 = 0x80181604; // absolute:True owner=mine_secret_passage shared=rooms
 D_mine_secret_passage_80182994 = 0x80182994; // absolute:True owner=mine_secret_passage
 D_mine_secret_passage_80183420 = 0x80183420; // absolute:True owner=mine_secret_passage shared=rooms
-func_shelter_b1_elevator_hall_8017DC28 = 0x8017DC28; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
+shelterB1ElevatorHallRoomTask = 0x8017DC28; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 D_shelter_b1_elevator_hall_80182DF8 = 0x80182DF8; // absolute:True owner=shelter_b1_elevator_hall shared=rooms
 D_shelter_b1_elevator_hall_80182E00 = 0x80182E00; // absolute:True owner=shelter_b1_elevator_hall shared=rooms
 D_shelter_b1_elevator_hall_80182E10 = 0x80182E10; // absolute:True owner=shelter_b1_elevator_hall shared=rooms
