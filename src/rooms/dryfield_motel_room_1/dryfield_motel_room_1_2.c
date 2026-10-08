@@ -139,7 +139,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
 /// in the base one, `field_4` 9, the rest of the frame zero), then copy the
 /// player matrix translation into `_DryfieldMotelRoom1EventWork::playerPlacement`, set its
 /// yaw to 0x500 and place the player there with `GAME_ACTOR_MESSAGE_PLACE`. Same slot-3 record the actors'
-/// `func_actor_341900_801635A4` builds.
+/// `_actor341900FinishSkippedScene` builds.
 void func_dryfield_motel_room_1_8017DFD0(void);
 
 /// Set the event task's pending `action`, resetting the `actionStep` that goes with

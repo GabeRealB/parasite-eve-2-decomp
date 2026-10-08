@@ -184,7 +184,7 @@ extern ActorTransform   D_actor_341900_80163A48;
 extern ActorTransform   D_actor_341900_80163A60;
 extern TaskMessageEntry D_actor_341900_80163A78[4];
 /// Slot-3 placements and payloads sent by `func_actor_341900_801628B8`;
-/// `func_actor_341900_801635A4` also warps slot 3 to the last one.
+/// `_actor341900FinishSkippedScene` also warps slot 3 to the last one.
 extern ActorTransform D_actor_341900_80163AC8;
 extern ActorTransform D_actor_341900_80163AE0;
 extern ActorTransform D_actor_341900_80163AF8;
@@ -201,24 +201,24 @@ void               func_actor_341900_80162200(Task*);
 void               func_actor_341900_801625B4(Task*);
 void               func_actor_341900_80162708(Task*);
 void               func_actor_341900_80162EFC(Task*);
-void               func_actor_341900_80163148(Task*);
-void               func_actor_341900_80163334(s16);
-void               func_actor_341900_80163388(s32);
-void               func_actor_341900_801633C0(s32);
-void               func_actor_341900_801633F8(void);
+static void        _actor341900FadeInTask(Task* task);
+static void        _actor341900BroadcastActorCommand(s16 commandId);
+static void        _actor341900SetGluttonDrawMode(s32 drawMode);
+static void        _actor341900SetPlayerDrawMode(s32 drawMode);
+static void        _actor341900RemovePlayerEquipment(void);
 void               func_actor_341900_80163438(void);
-void               func_actor_341900_80163488(void);
-void               func_actor_341900_801634D0(void);
+static void        _actor341900RemoveGlutton(void);
+static void        _actor341900RemoveDoors(void);
 void               func_actor_341900_80163534(void);
-void               func_actor_341900_80163564(s16);
-void               func_actor_341900_80163584(s16);
-void               func_actor_341900_801635A4(void);
-void               func_actor_341900_80163638(void);
-void               func_actor_341900_80163658(void);
-void               func_actor_341900_80163678(void);
+static void        _actor341900RequestPlayerAction(s16 playerAction);
+static void        _actor341900SetStagingMode(s16 stagingMode);
+static void        _actor341900FinishSkippedScene(void);
+static void        _actor341900StageSceneAudioStart(void);
+static void        _actor341900EnqueueScenePlayback(void);
+static void        _actor341900FinishScene(void);
 
-s32 func_actor_341900_80161FD0(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_341900_8016332C(Task*, s32, s32, s32);
+static void _actor341900PlayGluttonAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static void _actor341900IgnoreActorCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 
 static AnimationPackedPose _gActor341900Animation01B5CBank1[6] = {
 #include "assets/actor_341900_animation_01B5C_bank1.inc"
@@ -294,8 +294,8 @@ ActorTransform D_actor_341900_80163A60 = { { -3000, 0, -2450, 0 }, { 0, 1024, 0,
 TaskMessageEntry D_actor_341900_80163A78[4] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_341900_8016332C },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_341900_80161FD0 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor341900IgnoreActorCommand },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor341900PlayGluttonAnimation },
 };
 
 _Actor341900GluttonPartAttachment D_actor_341900_80163A98[6] = {
@@ -319,50 +319,53 @@ ActorTransform D_actor_341900_80163B28 = { { 4000, 0, -1900, 0 }, { 0, 3072, 0, 
 
 EvsSceneKey D_actor_341900_80163B40 = { 4, 19, 11 };
 
+/// Actor command broadcast by both paths that end this entrance event.
+enum { ACTOR_341900_ACTOR_COMMAND_END_ENTRANCE = 1 };
+
 EvsCommand D_actor_341900_80163B48[47] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_80163534 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163564 }, { .value = ACTOR_341900_PLAYER_ACTION_PLACE_AT_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163584 }, { .value = ACTOR_341900_STAGING_DOORS_SHUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900RequestPlayerAction }, { .value = ACTOR_341900_PLAYER_ACTION_PLACE_AT_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900SetStagingMode }, { .value = ACTOR_341900_STAGING_DOORS_SHUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_341900_80163B40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_80163638 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341900StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_80163658 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341900EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163564 }, { .value = ACTOR_341900_PLAYER_ACTION_WALK_TO_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900RequestPlayerAction }, { .value = ACTOR_341900_PLAYER_ACTION_WALK_TO_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163584 }, { .value = ACTOR_341900_STAGING_DOORS_OPEN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900SetStagingMode }, { .value = ACTOR_341900_STAGING_DOORS_OPEN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_801633F8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163564 }, { .value = ACTOR_341900_PLAYER_ACTION_EVENT_CLIP_0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341900RemovePlayerEquipment }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900RequestPlayerAction }, { .value = ACTOR_341900_PLAYER_ACTION_EVENT_CLIP_0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163584 }, { .value = ACTOR_341900_STAGING_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_801634D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163564 }, { .value = ACTOR_341900_PLAYER_ACTION_EVENT_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900SetStagingMode }, { .value = ACTOR_341900_STAGING_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341900RemoveDoors }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900RequestPlayerAction }, { .value = ACTOR_341900_PLAYER_ACTION_EVENT_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_341900_801633C0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_341900_80163388 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor341900SetPlayerDrawMode }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor341900SetGluttonDrawMode }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163584 }, { .value = ACTOR_341900_STAGING_GLUTTON_ADVANCES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900SetStagingMode }, { .value = ACTOR_341900_STAGING_GLUTTON_ADVANCES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_341900_801633C0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor341900SetPlayerDrawMode }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_80163438 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163584 }, { .value = ACTOR_341900_STAGING_GLUTTON_CLIP_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163564 }, { .value = ACTOR_341900_PLAYER_ACTION_WEAPON_CLIP_9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900SetStagingMode }, { .value = ACTOR_341900_STAGING_GLUTTON_CLIP_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900RequestPlayerAction }, { .value = ACTOR_341900_PLAYER_ACTION_WEAPON_CLIP_9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_80163488 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163564 }, { .value = ACTOR_341900_PLAYER_ACTION_PLACE_AT_END }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163334 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_80163678 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341900RemoveGlutton }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900RequestPlayerAction }, { .value = ACTOR_341900_PLAYER_ACTION_PLACE_AT_END }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900BroadcastActorCommand }, { .value = ACTOR_341900_ACTOR_COMMAND_END_ENTRANCE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341900FinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163564 }, { .value = ACTOR_341900_PLAYER_ACTION_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163584 }, { .value = ACTOR_341900_STAGING_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900RequestPlayerAction }, { .value = ACTOR_341900_PLAYER_ACTION_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900SetStagingMode }, { .value = ACTOR_341900_STAGING_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -372,13 +375,13 @@ EvsCommand D_actor_341900_80163B48[47] = {
 EvsCommand D_actor_341900_80163FB0[20] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163564 }, { .value = ACTOR_341900_PLAYER_ACTION_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163584 }, { .value = ACTOR_341900_STAGING_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_341900_80163334 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_80163488 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_801634D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900RequestPlayerAction }, { .value = ACTOR_341900_PLAYER_ACTION_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900SetStagingMode }, { .value = ACTOR_341900_STAGING_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341900BroadcastActorCommand }, { .value = ACTOR_341900_ACTOR_COMMAND_END_ENTRANCE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341900RemoveGlutton }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341900RemoveDoors }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_80163438 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341900_801635A4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341900FinishSkippedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -394,7 +397,7 @@ EvsCommand D_actor_341900_80163FB0[20] = {
 
 TaskDesc D_actor_341900_80164190[10] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_341900_80162EFC, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_341900_80163148, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor341900FadeInTask, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_341900_80162708, { .model = &gActor444000Actor403200Model10824 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &gActor444000GluttonLegRight } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_341900_801625B4, { .model = &gActor444000GluttonLegLeft } },
@@ -407,8 +410,14 @@ TaskDesc D_actor_341900_80164190[10] = {
 
 Task* D_actor_341900_80164208;
 
+/// Playback extents: the body leaves its root slot alone; each leg drives four slots.
+enum {
+    ACTOR_341900_GLUTTON_BODY_SLOT_COUNT = 8,
+    ACTOR_341900_GLUTTON_LEG_SLOT_COUNT  = 4,
+};
+
 static s32         func_actor_341900_80161E58(Task* arg0, u16 arg1);
-static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n);
+static inline void _actor341900SetGluttonPartAnimation(Task* task, u16 animationId, u16 blendFrames, u16 slotCount);
 static void        func_actor_341900_80162330(Task* arg0);
 static void        func_actor_341900_801628B8(Task* arg0);
 static void        func_actor_341900_80162AD4(Task* arg0);
@@ -460,46 +469,54 @@ check:
     return 0;
 }
 
-/// Points `n` slots of a task's animation context at `anim`, skipping slot 0
-/// on the eight-slot actor: a zero `blend` resets each slot, otherwise
-/// `animationSeekSlotWithBlend` blends into it.
-static inline void Actor341900_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
+/// Selects a clip on the Glutton body's or a leg's driven animation slots.
+///
+/// Requires live, initialized model work and a valid local clip id. `slotCount`
+/// is `ACTOR_341900_GLUTTON_BODY_SLOT_COUNT` (slots 1..7) or
+/// `ACTOR_341900_GLUTTON_LEG_SLOT_COUNT` (slots 0..3). Zero
+/// `blendFrames` restarts each slot at normal rate; a nonzero duration blends
+/// to frame zero over that many normal-rate frames, retaining the slot rate.
+static inline void _actor341900SetGluttonPartAnimation(Task* task, u16 animationId, u16 blendFrames, u16 slotCount)
 {
-    _Actor341900GluttonModelWork* ctx;
-    u16                           i;
+    _Actor341900GluttonModelWork* work;
+    u16                           slotIndex;
 
-    ctx = task->work;
-    if (blend == 0) {
-        for (i = n == 8; i < n; i++) {
-            ctx->rig.slots[i].rate = ANIMATION_RATE_ONE;
-            animationResetSlot(&ctx->rig.anim, i, anim);
+    work = task->work;
+    if (blendFrames == 0) {
+        for (slotIndex = slotCount == ACTOR_341900_GLUTTON_BODY_SLOT_COUNT; slotIndex < slotCount; slotIndex++) {
+            work->rig.slots[slotIndex].rate = ANIMATION_RATE_ONE;
+            animationResetSlot(&work->rig.anim, slotIndex, animationId);
         }
     } else {
-        for (i = n == 8; i < n; i++) {
-            animationSeekSlotWithBlend(&ctx->rig.anim, i, anim, 0, blend);
+        for (slotIndex = slotCount == ACTOR_341900_GLUTTON_BODY_SLOT_COUNT; slotIndex < slotCount; slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, animationId, 0, blendFrames);
         }
     }
 }
 
-/// Records a play request in the body's work block and applies it to the body
-/// and both of its legs.
+/// Plays a local Glutton clip on the body and both legs, retaining the request.
 ///
-/// `blendFrames` alone selects the transition: zero restarts the slots on the
-/// clip and anything else blends into it over that many frames. `blend` is
-/// stored and not consulted.
-s32 func_actor_341900_80161FD0(Task* arg0, s32 arg1, AnimationPlayRequest* cmd, s32 arg3)
+/// Requires a live body with both initialized leg tasks. All five request fields
+/// are read synchronously; the payload pointer is not retained. The cached
+/// clip id and playback clip id narrow to unsigned 16 bits, as does the playback
+/// blend duration; the other request words retain their complete values. Local
+/// clip ids 0..2 exist in all three part tables; the source selector, blend
+/// choice and collision choice are retained without affecting this playback.
+/// Zero duration restarts the slots, otherwise it blends over that many frames.
+/// The message id and second payload are ignored; no dispatch result is defined.
+static void _actor341900PlayGluttonAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     _Actor341900GluttonModelWork* work;
 
-    work                           = arg0->work;
-    work->playRequest.source.index = cmd->source.index;
-    work->playRequest.animationId = work->requestedClip = cmd->animationId;
-    work->playRequest.blend                             = cmd->blend;
-    work->playRequest.blendFrames                       = cmd->blendFrames;
-    work->playRequest.enableWorldCollision              = cmd->enableWorldCollision;
-    Actor341900_SetAnim(arg0, cmd->animationId, cmd->blendFrames, 8);
-    Actor341900_SetAnim(work->legRight, cmd->animationId, cmd->blendFrames, 4);
-    Actor341900_SetAnim(work->legLeft, cmd->animationId, cmd->blendFrames, 4);
+    work                           = task->work;
+    work->playRequest.source.index = request->source.index;
+    work->playRequest.animationId = work->requestedClip = (u16)request->animationId;
+    work->playRequest.blend                             = request->blend;
+    work->playRequest.blendFrames                       = request->blendFrames;
+    work->playRequest.enableWorldCollision              = request->enableWorldCollision;
+    _actor341900SetGluttonPartAnimation(task, request->animationId, request->blendFrames, ACTOR_341900_GLUTTON_BODY_SLOT_COUNT);
+    _actor341900SetGluttonPartAnimation(work->legRight, request->animationId, request->blendFrames, ACTOR_341900_GLUTTON_LEG_SLOT_COUNT);
+    _actor341900SetGluttonPartAnimation(work->legLeft, request->animationId, request->blendFrames, ACTOR_341900_GLUTTON_LEG_SLOT_COUNT);
 }
 
 /// Turns the model's world translation into the light/colour matrix pair the
@@ -957,37 +974,49 @@ void func_actor_341900_80162EFC(Task* arg0)
     }
 }
 
-/// Fade task, entry 1 of the overlay's task table: its first tick allocates
-/// the channel block and seeds every channel at 0xFF; each tick then draws the
-/// full-screen fade overlay and steps the channels down by `spawnArg1`,
-/// killing the task once `r` has gone negative.
-void func_actor_341900_80163148(Task* arg0)
-{
-    ScreenFadeWork* fade;
-    ScreenFadeWork* alloc;
+#include "../../shared/screen_fade_step_down.inc.c"
 
-    fade = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memCalloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+/// Reveals the scene by decreasing a subtractive full-screen overlay each tick.
+///
+/// State 0 allocates owned primary-heap work, seeds the channels to 255 and
+/// also runs the first fade tick. Allocation failure kills the task; task
+/// teardown releases the work. State 1 requires that live allocation.
+/// The unsigned low halfword of `spawnArg1` is intensity units removed per
+/// tick (zero holds indefinitely). Drawing uses the low red/green/red bytes
+/// before the subtraction; stored channels narrow to signed 16 bits without
+/// clamping. Negative stored red kills the task. Other states do nothing.
+/// Requires the frame packet space and foreground tag used by `fadeDrawOverlay`.
+static void _actor341900FadeInTask(Task* task)
+{
+    enum {
+        ACTOR_341900_FADE_STATE_INITIALIZE = 0,
+        ACTOR_341900_FADE_STATE_RAMP       = 1,
+        ACTOR_341900_FADE_MAX_INTENSITY    = 255,
+    };
+    ScreenFadeWork* fade;
+    ScreenFadeWork* allocatedFade;
+
+    fade = task->work;
+    switch (task->state) {
+        case ACTOR_341900_FADE_STATE_INITIALIZE:
+            allocatedFade = memCalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 return;
             }
-            fade         = alloc;
-            fade->b      = 0xFF;
-            fade->g      = 0xFF;
-            fade->r      = 0xFF;
-            arg0->state += 1;
+            fade         = allocatedFade;
+            fade->b      = ACTOR_341900_FADE_MAX_INTENSITY;
+            fade->g      = ACTOR_341900_FADE_MAX_INTENSITY;
+            fade->r      = ACTOR_341900_FADE_MAX_INTENSITY;
+            task->state += ACTOR_341900_FADE_STATE_RAMP - ACTOR_341900_FADE_STATE_INITIALIZE;
             /* fallthrough */
-        case 1:
+        case ACTOR_341900_FADE_STATE_RAMP:
+            // Draw before stepping so the final visible value stays nonnegative.
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-            fade->r -= (u16)arg0->spawnArg1.value;
-            fade->g -= (u16)arg0->spawnArg1.value;
-            fade->b -= (u16)arg0->spawnArg1.value;
+            _screenFadeStepDown(fade, task);
             if (fade->r < 0) {
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
     }
@@ -997,44 +1026,58 @@ void func_actor_341900_80163148(Task* arg0)
 
 #include "../../shared/actor_messages_place_ypr.inc.c"
 
-/// Message 0x7DB handler of the actor's second message table; ignores it.
-s32 func_actor_341900_8016332C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores actor commands sent to the Glutton's display-model tasks.
+///
+/// Reads neither the receiver nor either payload. No dispatch result is defined.
+static void _actor341900IgnoreActorCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
 }
 
-/// Script callback: sends message 0x7DA to the slot-4 task, tagged with the
-/// current session's two id bytes and the script's selector, asking for the
-/// 0x7DB reply.
-void func_actor_341900_80163334(s16 arg0)
+/// Broadcasts a stage/area-tagged actor command through the live scene manager.
+///
+/// `commandId` supplies the command's low 16 bits in the current location's
+/// namespace. Dispatch consumes the stack record synchronously and discards
+/// actor results; the script uses command 1 during normal and skipped teardown.
+static void _actor341900BroadcastActorCommand(s16 commandId)
 {
-    ActorCommand msg;
+    ActorCommand command;
 
-    msg.context.loc.stage = gGameSession->location.loc.stage;
-    msg.context.loc.area  = gGameSession->location.loc.area;
-    msg.command           = arg0;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    command.context.loc.stage = gGameSession->location.loc.stage;
+    command.context.loc.area  = gGameSession->location.loc.area;
+    command.command           = commandId;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &command, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
-void func_actor_341900_80163388(s32 arg0)
+/// Sets the live Glutton body's model drawing with an `ACTOR_MESSAGE_DRAW_*` mode.
+///
+/// Requires the published event work and its Glutton task to remain live.
+static void _actor341900SetGluttonDrawMode(s32 drawMode)
 {
     _Actor341900EventWork* work = D_actor_341900_80164208->work;
 
-    taskMessageDispatch(work->glutton, ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    taskMessageDispatch(work->glutton, ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
 
-void func_actor_341900_801633C0(s32 arg0)
+/// Sets the event player's drawing and buffers with a `PLAYER_ACTOR_MODEL_DRAW_*` mode.
+///
+/// Requires the published event work and its player task to remain live.
+static void _actor341900SetPlayerDrawMode(s32 drawMode)
 {
     _Actor341900EventWork* work = D_actor_341900_80164208->work;
 
-    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
 
-void func_actor_341900_801633F8(void)
+/// Removes the player's equipment once until the event restores it.
+///
+/// Requires live published event work and player equipment state. The latch is
+/// set before removing equipment, so repeated script calls do nothing.
+static void _actor341900RemovePlayerEquipment(void)
 {
     _Actor341900EventWork* work = D_actor_341900_80164208->work;
 
-    if (work->playerEquipmentRemoved == 0) {
-        work->playerEquipmentRemoved = 1;
+    if (work->playerEquipmentRemoved == false) {
+        work->playerEquipmentRemoved = true;
         playerActorRemoveEquipment();
     }
 }
@@ -1050,7 +1093,10 @@ void func_actor_341900_80163438(void)
     }
 }
 
-void func_actor_341900_80163488(void)
+/// Tears down the event's Glutton and its child parts, then clears the task reference.
+///
+/// Requires live published event work. A null Glutton reference does nothing.
+static void _actor341900RemoveGlutton(void)
 {
     _Actor341900EventWork* work = D_actor_341900_80164208->work;
 
@@ -1060,18 +1106,27 @@ void func_actor_341900_80163488(void)
     }
 }
 
-void func_actor_341900_801634D0(void)
+/// Tears down both event door halves in order and clears their task references.
+///
+/// Requires live published event work. Each null door reference is skipped.
+static void _actor341900RemoveDoors(void)
 {
     _Actor341900EventWork* work = D_actor_341900_80164208->work;
 
-    if (work->doors[0] != NULL) {
-        taskKill(work->doors[0]);
-        work->doors[0] = NULL;
+/// Tears down a live door and clears its reference; null entries do nothing.
+///
+/// `eventWork` must remain writable through teardown and `doorIndex` must be
+/// 0 or 1. Both arguments are evaluated repeatedly and must be stable, without
+/// side effects. Expand as a standalone statement; no configuration or captures.
+#define ACTOR_341900_REMOVE_DOOR(eventWork, doorIndex) \
+    if ((eventWork)->doors[(doorIndex)] != NULL) {     \
+        taskKill((eventWork)->doors[(doorIndex)]);     \
+        (eventWork)->doors[(doorIndex)] = NULL;        \
     }
-    if (work->doors[1] != NULL) {
-        taskKill(work->doors[1]);
-        work->doors[1] = NULL;
-    }
+
+    ACTOR_341900_REMOVE_DOOR(work, 0);
+    ACTOR_341900_REMOVE_DOOR(work, 1);
+#undef ACTOR_341900_REMOVE_DOOR
 }
 
 void func_actor_341900_80163534(void)
@@ -1079,62 +1134,101 @@ void func_actor_341900_80163534(void)
     taskSpawnFromTable(D_actor_341900_80164190, 1, 9, 0);
 }
 
-void func_actor_341900_80163564(s16 arg0)
+/// Posts an `ACTOR_341900_PLAYER_ACTION_*` request and restarts its step counter.
+///
+/// Requires live published event work. Replaces any pending request; the event
+/// task performs it on a later tick. The signed argument is stored as its low
+/// unsigned halfword, including values outside the script's action list.
+static void _actor341900RequestPlayerAction(s16 playerAction)
 {
+    enum { ACTOR_341900_PLAYER_ACTION_STEP_START = 0 };
     _Actor341900EventWork* work = D_actor_341900_80164208->work;
 
-    work->playerAction     = arg0;
-    work->playerActionStep = 0;
+    work->playerAction     = playerAction;
+    work->playerActionStep = ACTOR_341900_PLAYER_ACTION_STEP_START;
 }
 
-void func_actor_341900_80163584(s16 arg0)
+/// Selects an `ACTOR_341900_STAGING_*` mode and restarts its step counter.
+///
+/// Requires live published event work. Replaces the current mode; the event task
+/// runs it on later ticks. The signed argument is stored as its low unsigned
+/// halfword; the staging dispatcher clears values outside its mode list.
+static void _actor341900SetStagingMode(s16 stagingMode)
 {
+    enum { ACTOR_341900_STAGING_STEP_START = 0 };
     _Actor341900EventWork* work = D_actor_341900_80164208->work;
 
-    work->stagingMode = arg0;
-    work->stagingStep = 0;
+    work->stagingMode = stagingMode;
+    work->stagingStep = ACTOR_341900_STAGING_STEP_START;
 }
 
-/// Installs one animation set on slot 3 (message 0x3E8) and then warps it to
-/// the overlay's fixed placement (message 0x3E9), cancelling any pending CD
-/// command replacement on the way out. The set is `gPlayerStatus.weapon + 1` for the
-/// alternate weapon block and `gPlayerStatus.weapon + 0x22` for the base one; its
-/// `field_4` is 9, the rest of the frame is zero.
-void func_actor_341900_801635A4(void)
+/// Places the player at the scene's end with weapon clip 9, then cancels the scene.
+///
+/// Requires live published event/player work, a selected scene and the loaded
+/// animation bank for the equipped weapon. Playback resets and drops world
+/// collision. Both request and placement dispatches complete before cancellation.
+static void _actor341900FinishSkippedScene(void)
 {
+    enum {
+        ACTOR_341900_PRIMARY_CHARACTER_ID       = 1,
+        ACTOR_341900_PRIMARY_WEAPON_BANK_BASE   = 1,
+        ACTOR_341900_ALTERNATE_WEAPON_BANK_BASE = 0x22,
+        ACTOR_341900_END_WEAPON_CLIP            = 9,
+    };
     _Actor341900EventWork* work;
-    AnimationPlayRequest   msg;
-    s32                    weaponId;
-    s32                    anim;
+    AnimationPlayRequest   request;
 
-    work                     = D_actor_341900_80164208->work;
-    weaponId                 = gPlayerStatus.weapon;
-    anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.source.index         = anim;
-    msg.animationId          = 9;
-    msg.blend                = ANIMATION_BLEND_RESET;
-    msg.blendFrames          = 0;
-    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
+/// Builds the equipped-weapon clip-9 request used at the scene's end.
+///
+/// `playRequest` is a writable, stable lvalue and is evaluated repeatedly.
+/// Requires initialized live save/player status and the four function-local
+/// ACTOR_341900 constants above. Character 1 selects bank weapon+1, otherwise
+/// weapon+0x22; the complete request resets playback and disables collision.
+#define ACTOR_341900_BUILD_END_WEAPON_PLAY_REQUEST(playRequest)                                         \
+    {                                                                                                   \
+        s32 weaponId;                                                                                   \
+        s32 animationBankIndex;                                                                         \
+        weaponId = gPlayerStatus.weapon;                                                                \
+        animationBankIndex =                                                                            \
+            (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_341900_PRIMARY_CHARACTER_ID) \
+                ? weaponId + ACTOR_341900_PRIMARY_WEAPON_BANK_BASE                                      \
+                : weaponId + ACTOR_341900_ALTERNATE_WEAPON_BANK_BASE;                                   \
+        (playRequest).source.index         = animationBankIndex;                                        \
+        (playRequest).animationId          = ACTOR_341900_END_WEAPON_CLIP;                              \
+        (playRequest).blend                = ANIMATION_BLEND_RESET;                                     \
+        (playRequest).blendFrames          = 0;                                                         \
+        (playRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                         \
+    }
+
+    work = D_actor_341900_80164208->work;
+    ACTOR_341900_BUILD_END_WEAPON_PLAY_REQUEST(request);
+#undef ACTOR_341900_BUILD_END_WEAPON_PLAY_REQUEST
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_PLAY, &request, 0);
     TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_341900_80163B28, 0);
     cdCmdCancelScene();
 }
 
-/// Script callback: queues the replacement overlay load.
-void func_actor_341900_80163638(void)
+/// Stages deferred audio start for the scene selected by the event script.
+///
+/// Selection and playback buffers must survive the later replacement commit.
+static void _actor341900StageSceneAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-/// Script callback: queues the overlay load.
-void func_actor_341900_80163658(void)
+/// Enqueues playback of the event script's selected scene/audio session.
+///
+/// Requires valid selected-scene playback storage and free CD queue capacity.
+static void _actor341900EnqueueScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-/// Script callback: restores the stream random state, then cancels the
-/// pending overlay replacement and activates the loaded one.
-void func_actor_341900_80163678(void)
+/// Finishes the selected scene's stream state, then requests CD scene cancellation.
+///
+/// Requires a successfully selected scene. The cancellation also finishes the
+/// stream state; both calls and their order are retained.
+static void _actor341900FinishScene(void)
 {
     streamFinishScene();
     cdCmdCancelScene();

@@ -3787,12 +3787,12 @@ over from the m2c seed scored 90% against a target `lhu`, and changing the
 header field to `u16` was the whole match (`base_1.c`, preprocessed
 `230a21f0c6eceb3884c5cae489c6f82bb37265f524f2ede856da3308422464be`; the 90%
 `s16` input is `80023e4e86a4b1e23b2336d7a676b75a6b7db12ab87aaa77455e89394f797ff2`).
-The sibling `func_actor_341900_801633F8` reads the same field with `lhu` and
+The sibling `_actor341900RemovePlayerEquipment` reads the same field with `lhu` and
 `bnez`, which corroborates `u16` rather than being a second coincidence.
 
 The rule is not an actor-overlay artifact: the room script work blocks keep the
 same 0/1 latch, and `func_dryfield_gas_station_80180944` reads `_DryfieldGasStationCutsceneWork`'s flag
-at 0xC with `lhu` / `bnez` exactly as `func_actor_341900_801633F8` does. Run as a
+at 0xC with `lhu` / `bnez` exactly as `_actor341900RemovePlayerEquipment` does. Run as a
 controlled pair - the same body twice, differing only in the flag's declared
 type, the header untouched in one arm because the struct was copied locally -
 the `s16` arm emits `lh` and scores 87.5% (`insert=1 delete=1`, preprocessed
@@ -46232,7 +46232,7 @@ naming it that way saves a round trip:
 means that `.c` still asks for the old unit's directory. `actor_341900` is the
 worked example — the body promoted out of it was `0x1328..0x1404`, so
 `func_actor_341900_80163224` (at `0x1404`) and, past two more shared cuts,
-`func_actor_341900_8016332C` and the ten bodies in the old `actor_341900_3`
+`_actor341900IgnoreActorCommand` and the ten bodies in the old `actor_341900_3`
 all shifted one unit forward, in a carrier (`actor_342000`) that needed the
 same redistribution for the same promoted span.
 
@@ -46310,7 +46310,7 @@ if (work->playerEquipmentRemoved == 0) { work->playerEquipmentRemoved = 1; playe
 
 compile to the same object here, because the only global involved
 (`D_actor_341900_80164208`) is *loaded* and then dereferenced rather than being
-the destination of a store. `func_actor_341900_801633F8 1 attempt, base_1.c
+the destination of a store. `_actor341900RemovePlayerEquipment 1 attempt, base_1.c
 100.00%`, the seed having already reproduced the target.
 
 ## Model-body coordinates and graphics-node strides
@@ -79998,15 +79998,15 @@ request a state also reset the counter, so
 0". In `actor_341900` the pairs are `playerAction`/`playerActionStep` and
 `stagingMode`/`stagingStep`, each pair on an 8-byte stride.
 
-`func_actor_341900_80163584` is the smallest instance -- m2c's seed was already
+`_actor341900SetStagingMode` is the smallest instance -- m2c's seed was already
 exact, and the only work was typing it:
 
 ```c
-void func_actor_341900_80163584(s16 arg0)
+static void _actor341900SetStagingMode(s16 stagingMode)
 {
     _Actor341900EventWork* work = D_actor_341900_80164208->work;
 
-    work->stagingMode = arg0;
+    work->stagingMode = stagingMode;
     work->stagingStep = 0;
 }
 ```
@@ -80029,7 +80029,7 @@ one room copy has exactly one candidate pair no matter what `find` printed.
 `siblings` is the command that answers this -- it filters to the body's own
 family, and its docstring says so.
 
-`func_actor_341900_80163564` is that shape, and it is still refused: both actor
+`_actor341900RequestPlayerAction` is that shape, and it is still refused: both actor
 copies load their own overlay's `D_actor_<overlay>_80164208` -- the controller
 task the work block hangs off -- so the pair is one of the bodies section
 "Alias a shared body's overlay-local data before `promote`, and re-check the
@@ -80041,7 +80041,7 @@ making on its own.
 
 ## A ternary over a global needs its load bound to a local — and that is what frees the register and the delay slot
 
-**Problem.** `func_actor_341900_801635A4` sends an animation id that is
+**Problem.** `_actor341900FinishSkippedScene` sends an animation id that is
 `D_80073BA9 + 1` when `D_8007218A == 1` and `D_80073BA9 + 0x22` otherwise. The
 "default before the `if`" form matched retail's structure exactly -- 3/3 blocks,
 37/37 instructions, predicates and calls equal -- and still scored 82.703% with
@@ -80088,7 +80088,7 @@ One `lbu`, one `addiu` per arm, and with it the remaining distance closes:
 four-block form with a `j` over the else arm, which is what the matched sibling
 `_acropolisPlazaStreamSceneTask` has -- same payload shape, same
 `weaponId`/`id` pair, and retail keeps its `j` there. Retail's
-`func_actor_341900_801635A4` instead has the else arm in the `bne` delay slot and
+`_actor341900FinishSkippedScene` instead has the else arm in the `bne` delay slot and
 no `j` at all. That collapse is reorg's: `mostly_true_jump` reads the `ne`
 condition as "taken", so `fill_eager_delay_slots` tries the target thread first
 and `fill_slots_from_thread` takes the else arm's single `addiu` for the delay
@@ -90818,7 +90818,7 @@ Backing files: `base_7.i.dbr` (the winning fill), `base_3.i.dbr` (the copied one
 ## A shared record's block-0 schedule is the *conditional's shape*, not the scheduler
 
 The "ternary over a global needs its load bound to a local" section above is
-about `func_actor_341900_801635A4`; `func_dryfield_motel_room_1_8017DFD0` sends
+about `_actor341900FinishSkippedScene`; `func_dryfield_motel_room_1_8017DFD0` sends
 the same slot-3 msg 0x3E8 record, and it is the diagnostic that is worth
 generalising. Written the natural sequential way,
 
@@ -99801,7 +99801,7 @@ is taken to reach only the slot it names.
 
 Give the block a *type* and take the address of the whole thing. The sibling
 overlays' `AnimationPlayRequest` (0x14 bytes - five words) is exactly this shape, and
-`func_actor_341900_801635A4` is the worked example to copy:
+`_actor341900FinishSkippedScene` is the worked example to copy:
 
 ```c
 AnimationPlayRequest msg;
@@ -121364,7 +121364,7 @@ out->field_3 = v;                              /* v = 2; if (...) v = 1; */
 so the value is born in the block that the branch is in and stays live across
 it - `global_conflicts` marks it against `$v0`, which the call result still
 holds, and the allocator hands it `$v1`. The same thing that made the ternary
-win in the `func_actor_341900_801635A4` entry is what loses here.
+win in the `_actor341900FinishSkippedScene` entry is what loses here.
 
 Rewriting it as an `if`/`else` that assigns a local does *not* help, because
 if-conversion converts the diamond straight back into that shape:
@@ -121398,7 +121398,7 @@ value pseudos and are not identical, so only the post-reload run can merge
 them. And `out->field_3 += 2` in the sibling arm keeps its `lbu` result as well
 (`lbu $v0,3(s0)` / `addiu $v0,$v0,2`), for the same reason.
 
-Read this with the `func_actor_341900_801635A4` entry: the aim is the same
+Read this with the `_actor341900FinishSkippedScene` entry: the aim is the same
 (value born after the branch, where the condition's register is free), but the
 route differs - there the arms compute the value from a local loaded once
 before the branch, here the arms store to memory, and the deciding pass is
