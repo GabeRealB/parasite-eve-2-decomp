@@ -70309,7 +70309,7 @@ becomes `lw` + `sra 16` with shifted registers (95.7% to 92.6%). Either keep the
 reload behind an intervening store (`work->tipArrived = 0;` first), or declare
 the field `Fixed16` and compare `.halves.integer` / load `.word`: the HImode and SImode
 MEMs are distinct cse entries, so statement order stops mattering. Both match;
-the union is what the large-chain sibling `func_actor_503500_80139EFC` uses.
+the union is what the large-chain sibling `_actor503500LargeChainSteerTip` uses.
 
 ## Walking-pointer bumps in the `for` clause put the counter's `addiu` first
 

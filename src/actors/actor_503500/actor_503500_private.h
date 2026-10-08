@@ -702,11 +702,30 @@ s32 actor503500AttackLargeOrbPair(Task* task, Actor503500Work* work);
 /// when done, following `Actor503500AttackFn`.
 s32 actor503500AttackSmallOrbVolley(Task* task, Actor503500Work* work);
 
-void func_actor_503500_80137238(Task*);
+/// Dispatches the boss task's setup, frame update or teardown.
+///
+/// `task->state` must be 0 (setup), 1 (update) or 2 (exit). Requires the
+/// boss descriptor's model and its enemy in `spawnArg2.pointer`; setup binds
+/// the singleton work and spawns attached enemies. Copies the callback table
+/// by value before dispatch. The exit handler may destroy the task.
+void actor503500BossTask(Task* task);
 
-void func_actor_503500_801384D4(Task*);
+/// Dispatches the attached pink-flash emitter's setup, frame update or teardown.
+///
+/// `task->state` must be 0 (setup), 1 (update) or 2 (exit). Requires slot 1
+/// in `spawnArg1.value`, its enemy in `spawnArg2.pointer` and the boss parent.
+/// Setup borrows the singleton emitter work. Copies the callback table by
+/// value before dispatch. The exit handler may destroy the task.
+void actor503500PinkFlashEmitterTask(Task* task);
 
-void func_actor_503500_8013AD0C(Task*);
+/// Dispatches either large chain's setup, frame update or teardown.
+///
+/// `task->state` must be 0 (setup), 1 (update) or 2 (exit). Requires slot 2
+/// or 3 in `spawnArg1.value`, its enemy in `spawnArg2.pointer`, the matching
+/// nine-part model and the boss parent. Setup borrows that slot's static
+/// work. Copies the callback table by value before dispatch. The exit handler
+/// may destroy the task.
+void actor503500LargeChainTask(Task* task);
 
 void func_actor_503500_80143AC0(Task*);
 

@@ -1641,10 +1641,10 @@ u8 D_actor_503500_8016E910[20] = {
 };
 
 TaskDesc D_actor_503500_8016E924[17] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_503500_80137238, { .model = &_gActor503500BrahmanTorso } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_503500_801384D4, { .model = &_gActor503500Model22A30 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_503500_8013AD0C, { .model = &_gActor503500Model24C70 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_503500_8013AD0C, { .model = &_gActor503500Model23550 } },
+    { { { TASK_BODY_TMD, 96 } }, actor503500BossTask, { .model = &_gActor503500BrahmanTorso } },
+    { { { TASK_BODY_TMD, 96 } }, actor503500PinkFlashEmitterTask, { .model = &_gActor503500Model22A30 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, actor503500LargeChainTask, { .model = &_gActor503500Model24C70 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, actor503500LargeChainTask, { .model = &_gActor503500Model23550 } },
     { { { TASK_BODY_COORD, 96 } }, func_actor_503500_8013BE8C, { .value = 0 } },
     { { { TASK_BODY_COORD, 96 } }, func_actor_503500_8013BE8C, { .value = 0 } },
     { { { TASK_BODY_COORD, 96 } }, func_actor_503500_8013CA8C, { .value = 0 } },
