@@ -772,6 +772,11 @@ static s32 _acropolisEastElevatorHallRejectKeyItemMessage(Task* task, s32 messag
 }
 
 /// Records the opening event's start and enables its subsequent story interactions.
+///
+/// Requires the live hall visit and game-flag bank. Latches this visit, selects
+/// Acropolis progress 1 and objective 2, resets the follow-up dialogue state,
+/// selects dialogue index 3 and unlocks the patio's cafeteria door. Records
+/// progress at scene start, so skipping the scene retains the same story state.
 static inline void _acropolisEastElevatorHallRecordOpeningProgress(void)
 {
     enum {

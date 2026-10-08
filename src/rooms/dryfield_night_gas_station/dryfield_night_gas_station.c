@@ -2532,6 +2532,11 @@ static void _dryfieldNightGasStationInitializeRoomTask(Task* task)
 #include "../../shared/gas_station_sounds_cue.inc.c"
 
 /// Tests whether the active trigger list contains a hit room-event action.
+///
+/// Returns 1 for the first room action with event ID 255 and nonzero hit,
+/// otherwise 0, including an empty list. Traverses live, NULL-terminated
+/// collision records without consuming or clearing the hit. The jerry-can
+/// handler uses this latch independently of ordinary action-input dispatch.
 static inline s32 _dryfieldNightGasStationHasRoomEventTriggerHit(void)
 {
     const WorldCollisionTrigger* trigger;

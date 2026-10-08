@@ -115,7 +115,7 @@ static UiObjectDesc Telephone_Data_80181CC8;
 /// entry 1 the sound-event task it runs alongside.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
-/// The room's message table, which `func_dryfield_night_motel_lobby_8017FD9C`
+/// The room's message table, which `_dryfieldNightMotelLobbyInitializeRoomTask`
 /// installs on its task.
 extern TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6];
 
@@ -158,12 +158,12 @@ TaskDesc D_dryfield_night_motel_lobby_801827FC[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-static void func_dryfield_night_motel_lobby_8017FD9C(Task* task);
+static void _dryfieldNightMotelLobbyInitializeRoomTask(Task* task);
 static void _dryfieldNightMotelLobbyUpdateMasterkeyObjective(Task* unusedTask);
 
 #include "../../shared/telephone.inc.c"
 
-void func_dryfield_night_motel_lobby_8017EAE0(Task* task)
+void dryfieldNightMotelLobbyTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }
@@ -265,12 +265,19 @@ void func_dryfield_night_motel_lobby_8017FD10(Task* task)
     }
 }
 
-static void func_dryfield_night_motel_lobby_8017FD9C(Task* task)
+/// Registers the lobby's room receiver and initializes its masterkey monitor.
+///
+/// Requires the live room task in state 0. Seeds the previous collection result
+/// to one so a key collected before entry does not advance the objective, then
+/// enters monitoring state 1. The borrowed message table lives with the overlay.
+static void _dryfieldNightMotelLobbyInitializeRoomTask(Task* task)
 {
+    enum { DRYFIELD_NIGHT_MOTEL_LOBBY_MASTERKEY_COLLECTED = 1 };
+
     task->msgTable = D_dryfield_night_motel_lobby_801827CC;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    D_dryfield_night_motel_lobby_801844D4 = 1;
-    task->state                           = (s32)(task->state + 1);
+    D_dryfield_night_motel_lobby_801844D4 = DRYFIELD_NIGHT_MOTEL_LOBBY_MASTERKEY_COLLECTED;
+    task->state                           = task->state + 1;
 }
 
 /// Updates the objective when the Bronco masterkey collection bit turns on.
@@ -290,28 +297,30 @@ static void _dryfieldNightMotelLobbyUpdateMasterkeyObjective(Task* unusedTask)
     D_dryfield_night_motel_lobby_801844D4 = masterkeyCollected;
 }
 
-/// The three states of the task `func_dryfield_night_motel_lobby_8017FE38` runs:
+/// The three states of the task `dryfieldNightMotelLobbyRoomTask` runs:
 /// set-up, the per-frame check, and the kill.
 static const TaskFuncTable3 D_dryfield_night_motel_lobby_8017D6A4 = {
     {
-        func_dryfield_night_motel_lobby_8017FD9C,
+        _dryfieldNightMotelLobbyInitializeRoomTask,
         _dryfieldNightMotelLobbyUpdateMasterkeyObjective,
         taskKill,
     },
 };
 
-void func_dryfield_night_motel_lobby_8017FE38(Task* task)
+void dryfieldNightMotelLobbyRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_night_motel_lobby_8017D6A4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_night_motel_lobby_8017D6A4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Hides the cursor and records a confirmed key for the cash-register prompt.
 ///
-/// Borrows live task, work, cursor and non-terminator hotspot records. Copies
-/// the key ID and prompt kind; the following state opens the command menu.
+/// Borrows the cash-register task, its work, port 0's cursor and a confirmed
+/// hotspot. The hotspot ID is a key in 0..13; prompt kind selects the first
+/// menu row (0 Examine, 1 Push). Copies those selectors without retaining the
+/// hotspot and selects state 3, which opens the menu. Leaves input latches intact.
 static inline void _dryfieldNightMotelLobbyCashRegisterLatchHotspot(Task* task, DryfieldNightMotelLobbyCashRegisterWork* work, ActionPrompt* prompt, const ActionPromptHotspot* hotspot)
 {
     enum { CASH_REGISTER_STATE_OPEN_PROMPT = 3 };

@@ -1221,7 +1221,10 @@ static void _dryfieldMainStreetForgetPlayerHeadAimTask(s32 unusedArg)
 /// Samples one smoke position from three successive LCG draws in X/Y/Z order.
 ///
 /// Writes XYZ in -1185..-886, -1255..-656 and 9836..10535 game units, in the
-/// input space of `GsWSMATRIX`. Leaves the vector's fourth halfword untouched.
+/// input space of `GsWSMATRIX`. Borrows a writable vector for this call and
+/// leaves its fourth halfword untouched. Advances the shared random sequence
+/// exactly three times, using each unsigned state's upper halfword modulo
+/// 300, 600 and 700 respectively; no output storage is retained.
 static inline void _dryfieldMainStreetChooseSmokePosition(SVECTOR* position)
 {
     position->vx = DRYFIELD_MAIN_STREET_RAND() % 300 - 0x4A1;

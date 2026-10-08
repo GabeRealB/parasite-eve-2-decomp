@@ -200,17 +200,22 @@ TaskMessageEntry D_shelter_b1_control_room_80181B94[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out);
-static void        func_shelter_b1_control_room_8017EE2C(Task* arg0);
-static void        _shelterB1ControlRoomIdleState(Task* task);
+static void func_shelter_b1_control_room_8017EE2C(Task* arg0);
+static void _shelterB1ControlRoomIdleState(Task* task);
 
-/// Applies `m` to `v` through the GTE and stores the result in `out`.
-static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
+/// Rotates a signed short vector by the matrix's Q12 rotation coefficients.
+///
+/// Ignores matrix translation and writes only output XYZ, with the GTE's
+/// signed-halfword saturation. Input and output may alias; their fourth
+/// halfwords are unused and the output's is preserved. Requires readable,
+/// word-aligned matrix and input storage and a writable output vector.
+/// Borrows all storage for the call and changes GTE state.
+static inline void _gfxRotateShortVector(const MATRIX* rotation, const SVECTOR* input, SVECTOR* output)
 {
-    gte_SetRotMatrix(m);
-    gte_ldv0(v);
+    gte_SetRotMatrix(rotation);
+    gte_ldv0(input);
     gte_rtv0();
-    gte_stsv(out);
+    gte_stsv(output);
 }
 
 /// Fills in `cfg` for the current area key.
@@ -438,7 +443,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
                 work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + cfg->offset.vx;
                 work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + cfg->offset.vy;
                 work->coord.coord.t[2] = gGfxViewCoord.coord.t[2] + cfg->offset.vz;
-                _applyMatrixSV(&scratch->reflect, &cfg->offset, &scratch->offset);
+                _gfxRotateShortVector(&scratch->reflect, &cfg->offset, &scratch->offset);
                 work->coord.coord.t[0] -= scratch->offset.vx;
                 work->coord.coord.t[1] -= scratch->offset.vy;
                 work->coord.coord.t[2] -= scratch->offset.vz;

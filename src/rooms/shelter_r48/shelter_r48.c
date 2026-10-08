@@ -118,7 +118,7 @@ enum {
 };
 
 static s32 _shelterR48UseStaffCard(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_shelter_r48_8017E044(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterR48ResolveTransitionMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterR48IgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 s32        func_shelter_r48_8017E090(Task*, s32, RoomEventMsg*, s32);
 s32        func_shelter_r48_8017E0EC(Task*, s32, s32, s32);
@@ -139,7 +139,7 @@ TmdSource D_shelter_r48_80182F88[1] = {
 TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterR48WaterRefractionTask, { .model = D_shelter_r48_80182F88 } };
 
 TaskMessageEntry D_shelter_r48_80182FB8[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r48_8017E044 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR48ResolveTransitionMessage },
     { SHELTER_R48_MESSAGE_USE_KEY_ITEM, _shelterR48UseStaffCard },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r48_8017E090 },
     { ROOM_MESSAGE_COMMAND, _shelterR48IgnoreRoomCommand },
@@ -2224,13 +2224,20 @@ static const TaskFuncTable3 D_shelter_r48_8017D608 = {
     { func_shelter_r48_8017E1A4, _shelterR48RoomIdleState, taskKill }
 };
 
-/// Message-table handler for message 0x13EE: copies the incoming record onto
-/// the outgoing one and passes both on to `mapShelterRoomVariantResolve`. Always answers 1.
-s32 func_shelter_r48_8017E044(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Allows a room transition after resolving its Mine/Shelter destination room.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with a readable eight-byte request and
+/// writable reply, borrowed for this call; they may alias. Copies the complete
+/// record, then resolves its room from story progress only on execution.
+/// Queries preserve the requested destination. Receiver and message ID are
+/// unused, no payload is retained, and the result is always 1 (allowed).
+static s32 _shelterR48ResolveTransitionMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    enum { SHELTER_R48_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return SHELTER_R48_TRANSITION_ALLOWED;
 }
 
 /// Ignores the room-command message and returns zero.

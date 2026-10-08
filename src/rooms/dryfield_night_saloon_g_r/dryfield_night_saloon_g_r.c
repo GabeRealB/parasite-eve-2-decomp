@@ -2012,6 +2012,11 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, const void* f
 }
 
 /// Hides the saloon's pending encounter actors through the scene's synchronous broadcast.
+///
+/// Requires the live saloon session and scene receiver. Command 0 in this
+/// stage/area namespace selects the encounter actors' hidden state. The scene
+/// forwards the complete four-byte command to placed actors with an unused
+/// zero second payload; the stack record is borrowed only through dispatch.
 static inline void _dryfieldNightSaloonGRHideEncounterActors(void)
 {
     enum { DRYFIELD_NIGHT_SALOON_G_R_COMMAND_HIDE_ENCOUNTER_ACTORS = 0 };

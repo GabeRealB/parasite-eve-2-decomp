@@ -2149,7 +2149,11 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1);
 static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1);
 static void _mineCavernTargetRetireBody(Enemy* enemy, Task* task);
 
-/// Registers the four cavern implementations used by the resident room-effect spawners.
+/// Selects the cavern's mote, halo, orange-burst and spark-emitter effect tasks.
+///
+/// Installs complete bank-6 effect IDs for actor and effect spawners, without
+/// spawning any tasks. Called once when the cavern glow task initializes;
+/// the cavern overlay must stay loaded while these bindings are used.
 static inline void _mineCavernRegisterRoomEffects(void)
 {
     gRoomEffectMoteId         = EFFECT_MINE_CAVERN_MOTE;

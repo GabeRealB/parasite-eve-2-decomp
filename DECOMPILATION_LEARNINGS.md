@@ -88600,7 +88600,7 @@ reference count and no other spelling adds a use.
 
 ## A store of a small constant before an arithmetic use of it makes that use `addu`, not `addiu`
 
-`func_dryfield_night_motel_lobby_8017FD9C` is the room state-0 opener - park the
+`_dryfieldNightMotelLobbyInitializeRoomTask` is the room state-0 opener - park the
 message table in `Task::msgTable`, publish the task in slot 7, raise a flag,
 `state++` - and the m2c baseline scored 67.9% (`regs=2 insert=3 delete=3`) with
 only the increment and the flag store wrong:
@@ -88635,8 +88635,8 @@ that register into the add, `addsi3_internal` matches the register/register
 form, and `$v1` stays live into the flag store:
 
 ```c
-D_dryfield_night_motel_lobby_801844D4 = 1;
-task->state                           = (s32)(task->state + 1);
+D_dryfield_night_motel_lobby_801844D4 = DRYFIELD_NIGHT_MOTEL_LOBBY_MASTERKEY_COLLECTED;
+task->state                           = task->state + 1;
 ```
 
 Swapping those two statements alone took the seed to 100.0% with every penalty

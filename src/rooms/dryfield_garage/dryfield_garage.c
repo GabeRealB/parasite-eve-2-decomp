@@ -720,6 +720,10 @@ void func_dryfield_garage_8017DAA0(Task* arg0)
 }
 
 /// Selects the garage entry's follow-up dialogue after the preceding story beat.
+///
+/// Changes story-dialogue index 1 to 2 and clears its follow-up state. Every
+/// other index leaves both flags intact. Requires the live game-flag bank;
+/// it selects later dialogue without starting CAP playback itself.
 static inline void _dryfieldGarageAdvanceEntryDialogue(void)
 {
     enum {

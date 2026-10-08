@@ -105,8 +105,8 @@ static void func_dryfield_night_motel_lobby_801811E0(Task* arg0);
 static void _dryfieldNightMotelLobbyCashRegisterExitDelay(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterFinish(Task* task);
 
-/// The eleven states of the room's examine task, run by
-/// `func_dryfield_night_motel_lobby_80180D58`.
+/// The eleven states of the room's cash-register task, run by
+/// `_dryfieldNightMotelLobbyCashRegisterTask`.
 static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
     {
         func_dryfield_night_motel_lobby_80180E98,
@@ -131,7 +131,7 @@ extern WorldCoordRoomAmbientEntry D_dryfield_night_motel_lobby_8018441C[8];
 extern WorldCoordRoomLights       D_dryfield_night_motel_lobby_8018401C[1];
 
 static void _dryfieldNightMotelLobbyCashRegisterCursorTask(Task* task);
-void        func_dryfield_night_motel_lobby_80180D58(Task*);
+static void _dryfieldNightMotelLobbyCashRegisterTask(Task* task);
 
 TaskDesc D_dryfield_night_motel_lobby_80182814[1] = {
     { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelLobbyCashRegisterCursorTask, { .value = 0 } },
@@ -155,7 +155,7 @@ ActionPromptHotspot D_dryfield_night_motel_lobby_80182820[15] = {
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-TaskDesc D_dryfield_night_motel_lobby_801828D4 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_lobby_80180D58, { .value = 0 } };
+TaskDesc D_dryfield_night_motel_lobby_801828D4 = { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelLobbyCashRegisterTask, { .value = 0 } };
 
 SVECTOR D_dryfield_night_motel_lobby_801828E0[5] = {
     { 4430, -1130, 2380, 0 },
@@ -870,10 +870,15 @@ static void _dryfieldNightMotelLobbyCashRegisterCursorTask(Task* task)
     states[task->state](task);
 }
 
-/// Runs the examine task's current state: the eleven handlers of
-/// `D_dryfield_night_motel_lobby_8017D6B0` are copied onto the stack and the
-/// one `Task::state` names is called.
-void func_dryfield_night_motel_lobby_80180D58(Task* task)
+/// Runs one state of the lobby's cash-register interaction.
+///
+/// Requires the loaded lobby and a state in 0..10: allocate, arm cursor, scan,
+/// open prompt, answer prompt, cancel, accept code, accept sound, completion
+/// CAP, one-tick delay, restore play. State 0 allocates zeroed task-owned work
+/// and a cursor child; states 2..4 draw the digit display. Cancellation and
+/// completion release the interaction's holds and cursor, then suspend the
+/// event for its polling owner to release the task and work.
+static void _dryfieldNightMotelLobbyCashRegisterTask(Task* task)
 {
     TaskFuncTable11 states;
 

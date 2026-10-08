@@ -1505,9 +1505,12 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 }
 /// Positions and starts one siren blast, optionally restarting its repeat timer.
 ///
-/// The origin uses whole world-coordinate units; audio pan and depth narrow
-/// to signed bytes for the sound request. Requires the square's live coordinate
-/// storage and a composed view hierarchy.
+/// A nonzero `resetRepeatFrames` resets the elapsed callback-tick counter;
+/// zero preserves it for the first blast. Places the origin at (6570, -3990,
+/// 2270) in whole world-coordinate units, composes its view transform and
+/// requests the siren. Pan is -16..15 and depth -128..127, narrowed to signed
+/// bytes for audio. Requires live square coordinates and the current view;
+/// changes GTE state and retains no new borrowed storage.
 static inline void _acropolisSquareStartSiren(s32 resetRepeatFrames)
 {
     s32 soundPan;

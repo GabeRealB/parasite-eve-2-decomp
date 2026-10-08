@@ -30,7 +30,14 @@ extern SpriteView D_dryfield_night_motel_lobby_80183D1C[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_lobby_8018448C[];
 
-void func_dryfield_night_motel_lobby_8017EAE0(Task* task);
+/// Updates the night motel lobby's telephone save menu and statistics panels.
+///
+/// Requires the lobby overlay and a live telephone UI task whose
+/// `spawnArg2.pointer` owns its UI object. State 0 initializes the menu;
+/// states 1..3 process save, statistics and notice dismissal. Normal play
+/// before a clear opens saving directly; a clear or demo scene 1 enables
+/// the four-entry menu. Child UI objects supply results through this task.
+void dryfieldNightMotelLobbyTelephoneMenuTask(Task* task);
 
 /// Draws the night motel lobby's light glows for the current logical view.
 ///
@@ -44,6 +51,12 @@ void func_dryfield_night_motel_lobby_8017EAE0(Task* task);
 /// the frame reset, up to 48 bytes per update in view 2.
 void dryfieldNightMotelLobbyDrawGlowsTask(Task* unusedTask);
 
-void func_dryfield_night_motel_lobby_8017FE38(Task* task);
+/// Runs the night motel lobby's room receiver and masterkey objective monitor.
+///
+/// Requires the loaded lobby and state 0 (initialize), 1 (monitor), or 2 (kill).
+/// Initialization registers the room receiver and suppresses an objective
+/// update for an already collected Bronco masterkey. The monitor records
+/// objective 20 only when that persistent collection bit changes from 0 to 1.
+void dryfieldNightMotelLobbyRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_MOTEL_LOBBY_H

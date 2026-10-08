@@ -2968,10 +2968,13 @@ static void _dryfieldWaterTowerSkipRunEnding(void)
     }
 }
 
-/// Installs the fallen prop's collision patch in the second section of the live grid.
+/// Installs the fallen prop's ground collision in the live grid's reserved faces.
 ///
-/// Copies two normals, two faces and eight vertices without changing the cell
-/// lists. The overlay's live grid and template arrays must remain loaded.
+/// Copies the ground templates into normals 2..3, faces 2..3 and vertices 8..15
+/// of the live grid, in that order, without changing its cell lists. The two
+/// face records occupy 24 bytes, the two normals 16 and the eight vertices 64.
+/// Source and destination arrays are disjoint and word-aligned; the overlay's
+/// grid and template storage must remain loaded while collision uses the patch.
 static inline void _dryfieldWaterTowerInstallDroppedPropCollision(void)
 {
     enum {

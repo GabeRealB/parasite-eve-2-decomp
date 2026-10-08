@@ -107,3 +107,4 @@ _shelterR48IgnoreRoomCommand = 0x8017e088; // type:func
 _shelterR48RoomIdleState = 0x8017e214; // type:func
 _shelterR48UseStaffCard = 0x8017df50; // type:func
 shelterR48RoomTask = 0x8017e224; // type:func
+_shelterR48ResolveTransitionMessage = 0x8017e044; // type:func

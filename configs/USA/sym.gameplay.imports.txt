@@ -827,7 +827,7 @@ mineSecretPassageRoomVisualEffectsHaloTask = 0x8017F5B0; // type:func absolute:T
 
 mineSecretPassageRoomVisualEffectsHaloOrangeBurstTask = 0x8017F948; // type:func absolute:True owner=mine_secret_passage shared=rooms
 
-func_mine_secret_passage_80180D58 = 0x80180D58; // type:func absolute:True owner=mine_secret_passage shared=rooms
+func_mine_secret_passage_80180D58 = 0x80180D58; // type:func absolute:True owner=mine_secret_passage
 
 
 func_neo_ark_bridge_8017E954 = 0x8017E954; // type:func absolute:True owner=neo_ark_bridge
@@ -1703,7 +1703,7 @@ func_dryfield_motel_room_6_8017EA58 = 0x8017EA58; // type:func absolute:True own
 
 dryfieldNightGasStationTelephoneMenuTask = 0x8017E9F8; // type:func absolute:True owner=dryfield_night_gas_station shared=rooms
 
-func_dryfield_night_motel_lobby_8017EAE0 = 0x8017EAE0; // type:func absolute:True owner=dryfield_night_motel_lobby shared=rooms
+dryfieldNightMotelLobbyTelephoneMenuTask = 0x8017EAE0; // type:func absolute:True owner=dryfield_night_motel_lobby shared=rooms
 
 func_dryfield_night_trailer_coach_8018138C = 0x8018138C; // type:func absolute:True owner=dryfield_night_trailer_coach shared=rooms
 
