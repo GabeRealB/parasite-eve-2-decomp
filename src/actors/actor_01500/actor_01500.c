@@ -227,7 +227,7 @@ extern EnemyParams Actor01500_D09FB8;
 /// Animation bank handed to `animationInitContext`.
 extern AnimationSet* Actor01500_D0A014[15];
 
-/// The four model streams `Actor01500_Fn01AB0` spawns effects from.
+/// The four model streams `_actor01500SpawnBurstParts` spawns effects from.
 static TmdSource _gActor01500MindSucklerBurstHead;
 static TmdSource _gActor01500MindSucklerBurstWing;
 static TmdSource _gActor01500MindSucklerBurstStinger;
@@ -241,7 +241,7 @@ extern SVECTOR Actor01500_D0A090;
 extern SVECTOR Actor01500_D0A098;
 
 static void _actor01500Spawn(Enemy* enemy, Task* task);
-static void Actor01500_Fn004EC(Task* actor);
+static void _actor01500ProcessContacts(Task* actor);
 static void _actor01500ApplyDamage(Task* actor, s32 damage);
 static void _actor01500PerchAction(Task* actor);
 static void _actor01500TakeOffAction(Task* actor);
@@ -250,33 +250,31 @@ static void _actor01500GroundedAction(Task* actor);
 static void _actor01500HitAction(Task* actor);
 static void _actor01500TurnTowardTarget(Task* actor);
 static void _actor01500Move(Task* actor);
-static void Actor01500_Fn01AB0(Task* arg0);
-static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1);
+static void _actor01500SpawnBurstParts(Task* actor);
+static void _actor01500DeathState(Enemy* enemy, Task* actor);
 static void _actor01500ScriptedAction(Task* actor);
-static void Actor01500_Fn02428(Task* task);
-static void Actor01500_Fn02484(Enemy* enemy, Task* actor);
+static void _actor01500Task(Task* task);
+static void _actor01500ActiveState(Enemy* enemy, Task* actor);
 static void _actor01500ApplyReactions(Task* actor);
 static void _actor01500UpdateAction(Task* actor);
 static void _actor01500AlertAction(Task* actor);
 static void _actor01500FallAction(Task* actor);
 static void _actor01500WallRestAction(Task* actor);
 static void _actor01500UpdateAnimation(Task* actor);
-static void Actor01500_Fn02A1C(Task* actor);
-static void Actor01500_Fn02B14(Task* actor);
-static void Actor01500_Fn02B70(Task* actor);
-static void Actor01500_Fn02C34(Task* actor);
+static void _actor01500UpdateLoopSound(Task* actor);
+static void _actor01500UpdateColor(Task* actor);
+static void _actor01500DrawGroundShadow(Task* actor);
+static void _actor01500SquashCorpse(Task* actor);
 
 /// The actor's three task states - spawn, per-frame tick and teardown - run
-/// by `Actor01500_Fn02428`.
+/// by `_actor01500Task`.
 static const EnemyTaskFuncTable3 Actor01500_D00004 = {
     {
         _actor01500Spawn,
-        Actor01500_Fn02484,
-        Actor01500_Fn01DF0,
+        _actor01500ActiveState,
+        _actor01500DeathState,
     },
 };
-
-static void Actor01500_Fn02428(Task*);
 
 static TmdBone _gActor01500MindSucklerBodySkeleton[7] = {
 #include "assets/mind_suckler_body_skeleton.inc"
@@ -788,7 +786,7 @@ u16 Actor01500_D09FE8[16] = {
     1600,
 };
 
-TaskDesc Actor01500_D0A008 = { { { TASK_BODY_TMD, 96 } }, Actor01500_Fn02428, { .model = &_gActor01500MindSucklerBody } };
+TaskDesc Actor01500_D0A008 = { { { TASK_BODY_TMD, 96 } }, _actor01500Task, { .model = &_gActor01500MindSucklerBody } };
 
 AnimationSet* Actor01500_D0A014[15] = {
     NULL,
@@ -850,35 +848,52 @@ SVECTOR Actor01500_D0A090 = { 1110, -0x2EE0, -2500, 0 };
 
 SVECTOR Actor01500_D0A098 = { 1900, -0x2EE0, 1000, 0 };
 
-/// Links the part-2 hurt sphere and initializes the enemy's three contact slots.
-static __inline__ void _actor01500InitHurtBody(_Actor01500Work* work, GfxCoord* coord, s32 key)
+/// Initializes and links the actor's hurt sphere and its three contact entries.
+///
+/// The sphere is centred on `bodyCoord`, at radius 300 game units, and stores
+/// the packed category/identity `bodyKey`. The live work and coordinate are
+/// borrowed by the collision list until the body is unlinked. The body must
+/// start unlinked; pairing is enabled separately by the spawn handler.
+static __inline__ void _actor01500InitHurtBody(_Actor01500Work* work, GfxCoord* bodyCoord, s32 bodyKey)
 {
-    work->body.coord            = coord;
+    enum { ACTOR_01500_HURT_RADIUS = 300 };
+
+    work->body.coord            = bodyCoord;
     work->body.context.contacts = work->contacts;
     work->body.pos.vx           = 0;
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
-    work->body.key              = key;
-    work->body.radius           = 300;
+    work->body.key              = bodyKey;
+    work->body.radius           = ACTOR_01500_HURT_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
 }
 
-/// Aims chase flight at the player using the horizontal parent-frame offset.
+/// Selects the player's horizontal bearing and the chase turn limit.
 ///
-/// XYZ scratch storage is borrowed for this call; X/Z narrow to signed
-/// halfwords for the bearing, and the selected turn limit is 100 angle units.
+/// The actor root and player translation must share a parent frame. Writes
+/// their X/Z difference in game units to borrowed `playerOffset`, with Y zero
+/// and pad untouched. Bearing narrows X/Z to signed halfwords, uses +Z as zero
+/// and wraps to 0..4095 angle units; the turn limit is 100 units per tick.
+/// Does not rotate the root or reserve scratch storage.
 static __inline__ void _actor01500AimChaseAtPlayer(_Actor01500Work* work, GfxCoord* rootCoord, VECTOR* playerOffset)
 {
+    enum { ACTOR_01500_CHASE_TURN_RATE = 100 };
+
     playerOffset->vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
     playerOffset->vy = 0;
     playerOffset->vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
     work->targetYaw  = ratan2((s16)playerOffset->vx, (s16)playerOffset->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
-    work->turnRate   = 100;
+    work->turnRate   = ACTOR_01500_CHASE_TURN_RATE;
 }
 
-/// Selects a reaction flinch, preserving a crippled actor's current action.
+/// Requests the airborne reaction flinch and stops the current loop sound.
+///
+/// A non-crippled actor enters the fall action; a crippled actor keeps its
+/// current action, including grounded. Both reset the action timer and select
+/// the air flinch. A changed clip restarts in the animation phase; movement
+/// follows the selected action in a later tick phase.
 static __inline__ void _actor01500StartReactionFall(_Actor01500Work* work)
 {
     if (work->posture != ACTOR_01500_POSTURE_CRIPPLED) {
@@ -1019,178 +1034,206 @@ static void _actor01500Spawn(Enemy* enemy, Task* task)
     task->state             = ACTOR_01500_TASK_ACTIVE;
 }
 
-/// Per-frame contact pass. Applies the room's push-back from `roomContacts`,
-/// which also settles a chasing actor on a wall it flew into and grounds a
-/// falling one. Then walks `contacts`: a player's attack deals its damage,
-/// reaction and hit effect unless `hitCooldown` is running, and another
-/// enemy's body pushes the actor out along the deepest overlap. Last, a
-/// contact of `attackBody` disarms it and sets `attackLanded`.
-static void Actor01500_Fn004EC(Task* actor)
+/// Applies integer room correction or restores the previous root position.
+///
+/// GRID_HIT consumes the integer halves of the signed 16.16 correction;
+/// OPPOSED restores XYZ unless the actor is falling. All arguments are borrowed.
+static __inline__ void _actor01500ApplyRoomCorrection(GfxCoord* rootCoord, _Actor01500Work* work, ActorContactOverlapPushScratch* scratch, s32 pushbackResult)
 {
+    switch (pushbackResult) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
+            break;
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
+            rootCoord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+            rootCoord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            rootCoord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
+            break;
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
+            if (work->action != ACTOR_01500_ACTION_FALL) {
+                rootCoord->coord.t[0] = work->prevPos.vx;
+                rootCoord->coord.t[1] = work->prevPos.vy;
+                rootCoord->coord.t[2] = work->prevPos.vz;
+            }
+            break;
+    }
+}
+
+/// Consumes room, hurt-sphere and dive-attack contacts for one active tick.
+///
+/// Requires live work, a composed root and active room-grid transform, plus
+/// scratch space for `ActorContactOverlapPushScratch` and nested queries.
+/// Applies room correction or restores the previous position for opposed walls;
+/// eligible wall hits select rest, and sufficient upward correction ends a fall.
+/// Attacks apply damage, reactions, readouts and hit effects unless immunity is
+/// active. Enemy-body separation uses the deepest XYZ overlap and applies only
+/// its room-frame X/Z components. Any attack-sphere contact latches a landed
+/// dive. Room and hurt contacts are cleared every call; attack contacts only
+/// when occupied. No contact pointer is retained.
+static void _actor01500ProcessContacts(Task* actor)
+{
+    enum {
+        ACTOR_01500_GROUNDING_DELTA_Y_Q16      = -3546,
+        ACTOR_01500_CRITICAL_DAMAGE_MULTIPLIER = 4,
+        ACTOR_01500_CONTACT_KIND_SHIFT         = 16,
+        ACTOR_01500_ATTACKER_INDEX_SHIFT       = 7,
+        ACTOR_01500_HIT_ATTRIBUTE_MASK         = 0xFFFF,
+        // These extra attack attributes have only an actor-local response established.
+        ACTOR_01500_HIT_ATTRIBUTE_BURST     = 4,
+        ACTOR_01500_HIT_ATTRIBUTE_IGNORED   = 5,
+        ACTOR_01500_HIT_ATTRIBUTE_BUILDUP_A = 8,
+        ACTOR_01500_HIT_ATTRIBUTE_BUILDUP_B = 9
+    };
+
     _Actor01500Work*                work;
-    ActorContactOverlapPushScratch* frame;
-    s32                             push;
-    VECTOR*                         normal;
-    GfxCoord*                       coord;
-    GfxCoord*                       sourceCoord;
-    WorldCollisionContact*          effectRec;
+    ActorContactOverlapPushScratch* scratch;
+    s32                             deepestOverlap;
+    VECTOR*                         separationNormal;
+    GfxCoord*                       rootCoord;
+    GfxCoord*                       attackerCoord;
+    WorldCollisionContact*          attackContacts;
 
-    s32 result;
-    s32 i;
-    s32 depth;
-    s32 boundedDepth;
-    s32 dx;
-    s32 dy;
-    s32 dz;
-    s32 wallDx;
-    s32 wallDy;
-    s32 wallDz;
-    u32 lastId;
-    u32 id;
-    u32 hitId;
-    u32 damage;
+    s32 pushbackResult;
+    s32 contactIndex;
+    s32 overlapDepth;
+    s32 nonnegativeDepth;
+    s32 attackDeltaX;
+    s32 attackDeltaY;
+    s32 attackDeltaZ;
+    s32 separationX;
+    s32 separationY;
+    s32 separationZ;
+    u32 lastEffectKey;
+    u32 contactKey;
+    u32 hitKey;
+    u32 damage; // HP damage, then the attack's immunity duration in ticks
 
-    push   = 0;
-    lastId = 0;
-    work   = actor->work;
-    SCRATCH_STACK_RESERVE_BLOCK(ActorContactOverlapPushScratch);
-    frame  = SCRATCH_STACK_CURSOR(ActorContactOverlapPushScratch);
-    coord  = actor->extra.tmd->coords;
-    result = worldCollisionResolvePushback(work->roomContacts, &frame->delta, ARRAY_SIZE(work->roomContacts), NULL);
-    if (result != 0) {
-        // A push with no vertical part is a wall: rest on it, facing into the first grid contact.
-        if (work->noWallPerch == 0 && work->action == ACTOR_01500_ACTION_CHASE && frame->delta.fixed.vy.word == 0) {
+    deepestOverlap = 0;
+    lastEffectKey  = 0;
+    work           = actor->work;
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(ActorContactOverlapPushScratch);
+    rootCoord      = actor->extra.tmd->coords;
+    pushbackResult = worldCollisionResolvePushback(work->roomContacts, &scratch->delta, ARRAY_SIZE(work->roomContacts), NULL);
+    if (pushbackResult != 0) {
+        // A horizontal room correction permits wall rest, facing into the first grid contact.
+        if (work->noWallPerch == 0 && work->action == ACTOR_01500_ACTION_CHASE && scratch->delta.fixed.vy.word == 0) {
             work->action          = ACTOR_01500_ACTION_WALL_REST;
             work->posture         = ACTOR_01500_POSTURE_PERCHED;
             work->roomBody.pos.vy = 0;
             work->roomBody.pos.vz = -300;
             gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->timer           = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
-            for (i = 0; i < ARRAY_SIZE(work->roomContacts); i++) {
-                if ((work->roomContacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
-                    frame->gridNormalX = work->roomContacts[i].response.direction.vx;
-                    frame->gridNormalZ = work->roomContacts[i].response.direction.vz;
-                    work->targetYaw    = (ratan2(frame->gridNormalX, frame->gridNormalZ) + 0x800) & 0xFFF;
+            for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->roomContacts); contactIndex++) {
+                if ((work->roomContacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
+                    scratch->gridNormalX = work->roomContacts[contactIndex].response.direction.vx;
+                    scratch->gridNormalZ = work->roomContacts[contactIndex].response.direction.vz;
+                    work->targetYaw      = (ratan2(scratch->gridNormalX, scratch->gridNormalZ) + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
                     break;
                 }
             }
         }
-        // A fall ends once the floor pushes up this hard.
-        if (work->action == ACTOR_01500_ACTION_FALL && frame->delta.fixed.vy.word < -0xDDA) {
+        // The grounding cutoff uses the signed 16.16 room correction.
+        if (work->action == ACTOR_01500_ACTION_FALL && scratch->delta.fixed.vy.word < ACTOR_01500_GROUNDING_DELTA_Y_Q16) {
             work->action = ACTOR_01500_ACTION_GROUNDED;
             work->timer  = 0;
         }
-        switch (result) {
-            case 0:
-                break;
-            case 1:
-                coord->coord.t[0] += frame->delta.fixed.vx.halves.integer;
-                coord->coord.t[1] += frame->delta.fixed.vy.halves.integer;
-                coord->coord.t[2] += frame->delta.fixed.vz.halves.integer;
-                break;
-            case 2:
-                if (work->action != ACTOR_01500_ACTION_FALL) {
-                    coord->coord.t[0] = work->prevPos.vx;
-                    coord->coord.t[1] = work->prevPos.vy;
-                    coord->coord.t[2] = work->prevPos.vz;
-                }
-                break;
-        }
+        _actor01500ApplyRoomCorrection(rootCoord, work, scratch, pushbackResult);
     }
     worldCollisionClearContacts(work->roomContacts);
+    // Age hit immunity before consuming attacks; retain only the deepest body overlap.
     if (work->hitCooldown != 0) {
         if (--work->hitCooldown <= 0) {
             work->hitCooldown = 0;
         }
     }
-    normal = &frame->normal;
-    for (i = 0; i < ARRAY_SIZE(work->contacts); i++) {
-        id = work->contacts[i].key.value;
-        switch (id >> 0x10) {
+    separationNormal = &scratch->normal;
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->contacts); contactIndex++) {
+        contactKey = work->contacts[contactIndex].key.value;
+        switch (contactKey >> ACTOR_01500_CONTACT_KIND_SHIFT) {
             case 0:
-            case 1:
+            case WORLD_COLLISION_CONTACT_PLAYER_BODY >> ACTOR_01500_CONTACT_KIND_SHIFT:
                 break;
-            case 2: // a player's attack
+            case WORLD_COLLISION_CONTACT_ATTACK >> ACTOR_01500_CONTACT_KIND_SHIFT:
                 if (work->hitCooldown == 0) {
-                    sourceCoord            = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-                    dx                     = sourceCoord->coord.t[0] - coord->coord.t[0];
-                    frame->delta.vector.vx = dx;
-                    dy                     = sourceCoord->coord.t[1] - coord->coord.t[1];
-                    frame->delta.vector.vy = dy;
-                    dz                     = sourceCoord->coord.t[2] - coord->coord.t[2];
-                    frame->delta.vector.vz = dz;
-                    damage                 = damageComputePlayerAttack(work->contacts[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-                    if (damageRollCriticalHit(actor->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
-                        damage *= 4;
+                    attackerCoord            = gPlayerActorTasks[(contactKey >> ACTOR_01500_ATTACKER_INDEX_SHIFT) & (PLAYER_ACTOR_TASK_COUNT - 1)]->extra.tmd->coords;
+                    attackDeltaX             = attackerCoord->coord.t[0] - rootCoord->coord.t[0];
+                    scratch->delta.vector.vx = attackDeltaX;
+                    attackDeltaY             = attackerCoord->coord.t[1] - rootCoord->coord.t[1];
+                    scratch->delta.vector.vy = attackDeltaY;
+                    attackDeltaZ             = attackerCoord->coord.t[2] - rootCoord->coord.t[2];
+                    scratch->delta.vector.vz = attackDeltaZ;
+                    damage                   = damageComputePlayerAttack(work->contacts[contactIndex].key.value, SquareRoot0((attackDeltaX * attackDeltaX) + (attackDeltaY * attackDeltaY) + (attackDeltaZ * attackDeltaZ)), 0, 0);
+                    if (damageRollCriticalHit(actor->spawnArg2.pointer, work->contacts[contactIndex].key.value, 0) != 0) {
+                        damage *= ACTOR_01500_CRITICAL_DAMAGE_MULTIPLIER;
                         effectSpawn(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
                     }
                     worldTargetAddReadoutAmount(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
-                    damageAccumulateLifeDrainHp(actor->spawnArg2.pointer, work->contacts[i].key.value, damage, 0);
+                    damageAccumulateLifeDrainHp(actor->spawnArg2.pointer, work->contacts[contactIndex].key.value, damage, 0);
                     _actor01500ApplyDamage(actor, damage);
-                    switch (damageGetPlayerAttackReaction(work->contacts[i].key.value) & 0xFFFF) {
+                    switch (damageGetPlayerAttackReaction(work->contacts[contactIndex].key.value) & ACTOR_01500_HIT_ATTRIBUTE_MASK) {
                         case DAMAGE_PLAYER_REACTION_NONE:
-                        case 5:
+                        case ACTOR_01500_HIT_ATTRIBUTE_IGNORED:
                         case DAMAGE_PLAYER_REACTION_INCENDIARY:
                             break;
                         case DAMAGE_PLAYER_REACTION_STAGGER:
                             damageStartEnemyStagger(actor->spawnArg2.pointer);
                             break;
                         case DAMAGE_PLAYER_REACTION_POISON:
-                            damageTryStartEnemyDamageOverTime(actor->spawnArg2.pointer, work->contacts[i].key.value, 0);
+                            damageTryStartEnemyDamageOverTime(actor->spawnArg2.pointer, work->contacts[contactIndex].key.value, 0);
                             break;
-                        case 4:
+                        case ACTOR_01500_HIT_ATTRIBUTE_BURST:
                         case DAMAGE_PLAYER_REACTION_EXPLOSION:
                             if (((Enemy*)actor->spawnArg2.pointer)->hp <= 0) {
                                 work->burstPending = 1;
                             }
                             break;
                         case DAMAGE_PLAYER_REACTION_BUILDUP:
-                        case 8:
-                        case 9:
-                            damageStartEnemyBuildup(actor->spawnArg2.pointer, work->contacts[i].key.value, 0);
+                        case ACTOR_01500_HIT_ATTRIBUTE_BUILDUP_A:
+                        case ACTOR_01500_HIT_ATTRIBUTE_BUILDUP_B:
+                            damageStartEnemyBuildup(actor->spawnArg2.pointer, work->contacts[contactIndex].key.value, 0);
                             break;
                     }
-                    hitId = work->contacts[i].key.value;
-                    if (lastId != hitId) {
-                        lastId = hitId;
-                        effectSpawnHit(damageGetPlayerAttackEffectId(hitId), coord, NULL, &work->hitEffectArg);
+                    hitKey = work->contacts[contactIndex].key.value;
+                    if (lastEffectKey != hitKey) {
+                        lastEffectKey = hitKey;
+                        effectSpawnHit(damageGetPlayerAttackEffectId(hitKey), rootCoord, NULL, &work->hitEffectArg);
                     }
-                    damage = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
+                    damage = damageGetPlayerAttackHitCooldown(work->contacts[contactIndex].key.value);
                     if ((s32)damage > 0) {
                         work->hitCooldown = damage;
                     }
                 }
                 break;
-            case 3: // another enemy's body
-                wallDx                 = coord->workm.t[0] - work->contacts[i].point.vx;
-                frame->delta.vector.vx = wallDx;
-                wallDy                 = coord->workm.t[1] - work->contacts[i].point.vy;
-                frame->delta.vector.vy = wallDy;
-                wallDz                 = coord->workm.t[2] - work->contacts[i].point.vz;
-                frame->delta.vector.vz = wallDz;
-                depth                  = work->contacts[i].distance - SquareRoot0((wallDx * wallDx) + (wallDy * wallDy) + (wallDz * wallDz));
-                boundedDepth           = depth;
-                if (depth <= 0) {
-                    boundedDepth = 0;
+            case WORLD_COLLISION_CONTACT_ENEMY_BODY >> ACTOR_01500_CONTACT_KIND_SHIFT:
+                separationX              = rootCoord->workm.t[0] - work->contacts[contactIndex].point.vx;
+                scratch->delta.vector.vx = separationX;
+                separationY              = rootCoord->workm.t[1] - work->contacts[contactIndex].point.vy;
+                scratch->delta.vector.vy = separationY;
+                separationZ              = rootCoord->workm.t[2] - work->contacts[contactIndex].point.vz;
+                scratch->delta.vector.vz = separationZ;
+                overlapDepth             = work->contacts[contactIndex].distance - SquareRoot0((separationX * separationX) + (separationY * separationY) + (separationZ * separationZ));
+                nonnegativeDepth         = overlapDepth;
+                if (overlapDepth <= 0) {
+                    nonnegativeDepth = 0;
                 }
-                depth = boundedDepth;
-                if (push < depth) {
-                    push = depth;
-                    VectorNormal(&frame->delta.vector, normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, normal, &frame->pushDirection);
+                overlapDepth = nonnegativeDepth;
+                if (deepestOverlap < overlapDepth) {
+                    deepestOverlap = overlapDepth;
+                    VectorNormal(&scratch->delta.vector, separationNormal);
+                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, separationNormal, &scratch->pushDirection);
                 }
                 break;
         }
     }
-    if (push > 0) {
-        coord->coord.t[0] += (s32)(push * frame->pushDirection.vx) >> 0xC;
-        coord->coord.t[2] += (s32)(push * frame->pushDirection.vz) >> 0xC;
+    if (deepestOverlap > 0) {
+        rootCoord->coord.t[0] += (deepestOverlap * scratch->pushDirection.vx) >> ACTOR_01500_FACING_FRACTION_BITS;
+        rootCoord->coord.t[2] += (deepestOverlap * scratch->pushDirection.vz) >> ACTOR_01500_FACING_FRACTION_BITS;
     }
     worldCollisionClearContacts(work->contacts);
-    effectRec = work->attackContacts;
-    if (worldCollisionFindContactIndex(effectRec, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
+    // A dive lands on any occupied attack contact and disarms until the next dive.
+    attackContacts = work->attackContacts;
+    if (worldCollisionFindContactIndex(attackContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        worldCollisionClearContacts(effectRec);
+        worldCollisionClearContacts(attackContacts);
         work->attackLanded = 1;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactOverlapPushScratch);
@@ -1710,165 +1753,126 @@ static void _actor01500Move(Task* actor)
     }
 }
 
-static void Actor01500_Fn01AB0(Task* arg0)
+/// Spawns the four detached Mind Suckler parts with the actor's placement textures.
+///
+/// Uses model coordinate 1 as the common anchor. Each successful effect owns its
+/// model and buffers; failure of one part does not skip the others. The current
+/// session's loaded area variant supplies texture-page and CLUT-row offsets,
+/// indexed by the enemy's placement nibble (0..15), which must be a live record.
+/// Rebuilds both buffer halves after binding those offsets.
+static void _actor01500SpawnBurstParts(Task* actor)
 {
-    GameLocationKey  key;
-    u8               areaByte0;
-    u32              raw1, index1;
-    EffectWork*      effect1;
-    TmdObject*       model1;
-    AreaPlacement*   entry1;
-    GameLocationKey* sessionKey1;
-    u32              raw2, index2;
-    EffectWork*      effect2;
-    TmdObject*       model2;
-    AreaPlacement*   entry2;
-    GameLocationKey* sessionKey2;
-    u32              raw3, index3;
-    EffectWork*      effect3;
-    TmdObject*       model3;
-    AreaPlacement*   entry3;
-    GameLocationKey* sessionKey3;
-    u32              raw4, index4;
-    EffectWork*      effect4;
-    TmdObject*       model4;
-    AreaPlacement*   entry4;
-    GameLocationKey* sessionKey4;
+    enum { ACTOR_01500_BURST_PUFF_SIZE = 256 };
+    GameLocationKey location;
 
-    D_80067704[0] = &_gActor01500MindSucklerBurstHead;
-    effect1       = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x100, NULL);
-    if (effect1 != NULL) {
-        sessionKey1 = &gGameSession->location.loc;
-        raw1        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        model1      = effect1->task->extra.tmd;
-        key.stage   = sessionKey1->stage;
-        key.area    = sessionKey1->area;
-        key.room    = sessionKey1->room;
-        areaByte0   = gGameSession->location.loc.view;
-        index1      = raw1 >> 12;
-        key.view    = areaByte0;
-        areaSyncLocationVariant(&key);
-        entry1                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index1);
-        model1->texturePageOffset = entry1->texturePageOffset;
-        model1->clutRowOffset     = entry1->clutRowOffset;
-        if (model1->buffer != NULL) {
-            tmdBuildBufferHalf(model1);
-            tmdBuildBufferHalf(model1);
-        }
+    /// Spawns one bank-4 part and applies the owner's current placement textures.
+    ///
+    /// Actor/source arguments must be stable, side-effect-free expressions, and
+    /// locationKey a writable GameLocationKey lvalue; actor/key are used repeatedly.
+    /// Each invocation has private locals and rebinds the descriptor before spawn.
+    /// Uses ACTOR_01500_BURST_PUFF_SIZE from this function and the live session.
+    /// Expands to a standalone statement block; it retains no local pointers.
+#define ACTOR_01500_SPAWN_BURST_PART(actor, source, locationKey)                                                                      \
+    {                                                                                                                                 \
+        u8               viewIndex;                                                                                                   \
+        u32              placeKey, placementIndex;                                                                                    \
+        EffectWork*      effect;                                                                                                      \
+        TmdObject*       model;                                                                                                       \
+        AreaPlacement*   placement;                                                                                                   \
+        GameLocationKey* sessionLocation;                                                                                             \
+        D_80067704[0] = (source);                                                                                                     \
+        effect        = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &(actor)->extra.tmd->coords[1], ACTOR_01500_BURST_PUFF_SIZE, NULL); \
+        if (effect != NULL) {                                                                                                         \
+            sessionLocation     = &gGameSession->location.loc;                                                                        \
+            placeKey            = ((Enemy*)(actor)->spawnArg2.pointer)->placeKey;                                                     \
+            model               = effect->task->extra.tmd;                                                                            \
+            (locationKey).stage = sessionLocation->stage;                                                                             \
+            (locationKey).area  = sessionLocation->area;                                                                              \
+            (locationKey).room  = sessionLocation->room;                                                                              \
+            viewIndex           = gGameSession->location.loc.view;                                                                    \
+            placementIndex      = placeKey >> ENEMY_PLACE_INDEX_SHIFT;                                                                \
+            (locationKey).view  = viewIndex;                                                                                          \
+            areaSyncLocationVariant(&(locationKey));                                                                                  \
+            placement                = gpAreaPlaceAt(areaGetVariant(&(locationKey))->placements, placementIndex);                     \
+            model->texturePageOffset = placement->texturePageOffset;                                                                  \
+            model->clutRowOffset     = placement->clutRowOffset;                                                                      \
+            if (model->buffer != NULL) {                                                                                              \
+                tmdBuildBufferHalf(model);                                                                                            \
+                tmdBuildBufferHalf(model);                                                                                            \
+            }                                                                                                                         \
+        }                                                                                                                             \
     }
-
-    D_80067704[0] = &_gActor01500MindSucklerBurstWing;
-    effect2       = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x100, NULL);
-    if (effect2 != NULL) {
-        sessionKey2 = &gGameSession->location.loc;
-        raw2        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        model2      = effect2->task->extra.tmd;
-        key.stage   = sessionKey2->stage;
-        key.area    = sessionKey2->area;
-        key.room    = sessionKey2->room;
-        areaByte0   = gGameSession->location.loc.view;
-        index2      = raw2 >> 12;
-        key.view    = areaByte0;
-        areaSyncLocationVariant(&key);
-        entry2                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index2);
-        model2->texturePageOffset = entry2->texturePageOffset;
-        model2->clutRowOffset     = entry2->clutRowOffset;
-        if (model2->buffer != NULL) {
-            tmdBuildBufferHalf(model2);
-            tmdBuildBufferHalf(model2);
-        }
-    }
-
-    D_80067704[0] = &_gActor01500MindSucklerBurstStinger;
-    effect3       = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x100, NULL);
-    if (effect3 != NULL) {
-        sessionKey3 = &gGameSession->location.loc;
-        raw3        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        model3      = effect3->task->extra.tmd;
-        key.stage   = sessionKey3->stage;
-        key.area    = sessionKey3->area;
-        key.room    = sessionKey3->room;
-        areaByte0   = gGameSession->location.loc.view;
-        index3      = raw3 >> 12;
-        key.view    = areaByte0;
-        areaSyncLocationVariant(&key);
-        entry3                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index3);
-        model3->texturePageOffset = entry3->texturePageOffset;
-        model3->clutRowOffset     = entry3->clutRowOffset;
-        if (model3->buffer != NULL) {
-            tmdBuildBufferHalf(model3);
-            tmdBuildBufferHalf(model3);
-        }
-    }
-
-    D_80067704[0] = &_gActor01500MindSucklerBurstTail;
-    effect4       = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x100, NULL);
-    if (effect4 != NULL) {
-        sessionKey4 = &gGameSession->location.loc;
-        raw4        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        model4      = effect4->task->extra.tmd;
-        key.stage   = sessionKey4->stage;
-        key.area    = sessionKey4->area;
-        key.room    = sessionKey4->room;
-        areaByte0   = gGameSession->location.loc.view;
-        index4      = raw4 >> 12;
-        key.view    = areaByte0;
-        areaSyncLocationVariant(&key);
-        entry4                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index4);
-        model4->texturePageOffset = entry4->texturePageOffset;
-        model4->clutRowOffset     = entry4->clutRowOffset;
-        if (model4->buffer != NULL) {
-            tmdBuildBufferHalf(model4);
-            tmdBuildBufferHalf(model4);
-        }
-    }
+    ACTOR_01500_SPAWN_BURST_PART(actor, &_gActor01500MindSucklerBurstHead, location);
+    ACTOR_01500_SPAWN_BURST_PART(actor, &_gActor01500MindSucklerBurstWing, location);
+    ACTOR_01500_SPAWN_BURST_PART(actor, &_gActor01500MindSucklerBurstStinger, location);
+    ACTOR_01500_SPAWN_BURST_PART(actor, &_gActor01500MindSucklerBurstTail, location);
+#undef ACTOR_01500_SPAWN_BURST_PART
 }
 
-/// Per-frame handler for the death sequence. Scene mode 1 only refreshes the
-/// actor colour and mode 2 hides the model. Otherwise `actionStep` steps
-/// through `ACTOR_01500_DEATH_*`: `BEGIN` saves the root matrix and unlinks
-/// the actor, `SHRINK` runs `Actor01500_Fn02C34` and spawns an effect at tick
-/// 15, `BURST` frees the model's buffers and spawns the burst parts once
-/// `burstPending` reaches 2, and `LOST` unlinks on its first tick; those three
-/// move to `DESTROY` once `timer` has counted their ticks, which destroys the
-/// enemy.
-static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
+/// Withdraws a live enemy's target entry and all three collision spheres.
+///
+/// The caller keeps enemy/work storage alive through all four unlink calls;
+/// no storage is freed and the battle hold is released separately.
+static __inline__ void _actor01500WithdrawFromWorld(Enemy* enemy, _Actor01500Work* work)
 {
-    VECTOR           pos;
+    worldTargetUnlinkNode(&enemy->node);
+    worldCollisionUnlinkBody(&work->body);
+    worldCollisionUnlinkBody(&work->roomBody);
+    worldCollisionUnlinkBody(&work->attackBody);
+}
+
+/// Advances corpse squash, detached-part burst or lost-actor retirement.
+///
+/// Requires the enemy owned by `actor` and live model/work storage. Death entry
+/// withdraws targeting and collision and releases the battle hold with rewards.
+/// Squash and burst wait 60 active calls; lost actors withdraw on their first
+/// call and wait 61. Destruction happens on the next DESTROY call. Paused actors
+/// only refresh colour; hidden actors disable drawing and locking. The burst
+/// path frees the hidden body's primitive buffers before spawning its parts.
+static void _actor01500DeathState(Enemy* enemy, Task* actor)
+{
+    enum {
+        ACTOR_01500_DEATH_TRANSLUCENT_TICK = 10,
+        ACTOR_01500_DEATH_BURN_TICK        = 15,
+        ACTOR_01500_DEATH_WAIT_TICKS       = 60,
+        ACTOR_01500_LOST_WAIT_TICKS        = 61,
+        ACTOR_01500_CORPSE_BURN_BURSTS     = 2,
+        ACTOR_01500_BURST_READY            = 2
+    };
+
+    VECTOR3          samplePosition;
     _Actor01500Work* work;
     TmdObject*       model;
-    GfxCoord*        coord;
-    GfxCoord*        sub;
+    GfxCoord*        rootCoord;
+    GfxCoord*        sampleCoord;
 
-    model = arg1->extra.tmd;
-    work  = arg1->work;
-    coord = model->coords;
+    model     = actor->extra.tmd;
+    work      = actor->work;
+    rootCoord = model->coords;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            sub    = &coord[1];
-            pos.vx = sub->workm.t[0];
-            pos.vy = sub->workm.t[1];
-            pos.vz = sub->workm.t[2];
-            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+            sampleCoord       = &rootCoord[1];
+            samplePosition.vx = sampleCoord->workm.t[0];
+            samplePosition.vy = sampleCoord->workm.t[1];
+            samplePosition.vz = sampleCoord->workm.t[2];
+            worldCoordUpdateActorColor(actor->spawnArg2.pointer, &samplePosition, 0, 0);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            model->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
     switch (work->actionStep) {
+        // Withdraw collision and targeting before choosing squash or burst.
         case ACTOR_01500_DEATH_BEGIN:
             work->deathScaleY  = ONE;
-            work->deathBaseMtx = coord->coord;
-            arg0->recs         = 0;
-            worldTargetUnlinkNode(&arg0->node);
-            worldCollisionUnlinkBody(&work->body);
-            worldCollisionUnlinkBody(&work->roomBody);
-            worldCollisionUnlinkBody(&work->attackBody);
-            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
-            sceneReleaseBattleRefWithRewards(arg1, 0xF);
+            work->deathBaseMtx = rootCoord->coord;
+            enemy->recs        = NULL;
+            _actor01500WithdrawFromWorld(enemy, work);
+            worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
+            sceneReleaseBattleRefWithRewards(actor, 0xF);
             work->timer      = 0;
             work->actionStep = ACTOR_01500_DEATH_SHRINK;
             if (work->burstPending != 0) {
@@ -1877,57 +1881,55 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
             }
             break;
         case ACTOR_01500_DEATH_SHRINK:
-            Actor01500_Fn02C34(arg1);
+            _actor01500SquashCorpse(actor);
             work->timer++;
-            if (work->timer == 10) {
+            if (work->timer == ACTOR_01500_DEATH_TRANSLUCENT_TICK) {
                 model->flags = TMD_OBJECT_SEMI_TRANS;
             }
-            if (work->timer == 15) {
-                effectSpawn(EFFECT_CORPSE_BURN, coord, 2, NULL);
+            if (work->timer == ACTOR_01500_DEATH_BURN_TICK) {
+                effectSpawn(EFFECT_CORPSE_BURN, rootCoord, ACTOR_01500_CORPSE_BURN_BURSTS, NULL);
             }
-            if (work->timer >= 60) {
+            if (work->timer >= ACTOR_01500_DEATH_WAIT_TICKS) {
                 work->actionStep = ACTOR_01500_DEATH_DESTROY;
             }
             break;
         case ACTOR_01500_DEATH_DESTROY:
-            enemyDestroy(arg0, arg1);
+            enemyDestroy(enemy, actor);
             return;
         case ACTOR_01500_DEATH_BURST:
             if (work->burstPending != 0) {
-                if (work->burstPending >= 2) {
+                if (work->burstPending >= ACTOR_01500_BURST_READY) {
                     work->burstPending = 0;
+                    // Retire the hidden body buffer before allocating detached-part buffers.
                     tmdFreePrimitiveBuffer(model);
                     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                    Actor01500_Fn01AB0(arg1);
+                    _actor01500SpawnBurstParts(actor);
                 } else {
                     work->burstPending++;
                 }
             }
             work->timer++;
-            if (work->timer >= 60) {
+            if (work->timer >= ACTOR_01500_DEATH_WAIT_TICKS) {
                 work->actionStep = ACTOR_01500_DEATH_DESTROY;
             }
             break;
         case ACTOR_01500_DEATH_LOST:
             if (work->timer == 0) {
-                worldTargetUnlinkNode(&arg0->node);
-                worldCollisionUnlinkBody(&work->body);
-                worldCollisionUnlinkBody(&work->roomBody);
-                worldCollisionUnlinkBody(&work->attackBody);
-                sceneReleaseBattleRefWithRewards(arg1, 0xF);
+                _actor01500WithdrawFromWorld(enemy, work);
+                sceneReleaseBattleRefWithRewards(actor, 0xF);
             }
             work->timer++;
-            if (work->timer >= 61) {
+            if (work->timer >= ACTOR_01500_LOST_WAIT_TICKS) {
                 work->actionStep = ACTOR_01500_DEATH_DESTROY;
             }
             break;
     }
-    sub    = arg1->extra.tmd->coords;
-    sub    = &sub[1];
-    pos.vx = sub->workm.t[0];
-    pos.vy = sub->workm.t[1];
-    pos.vz = sub->workm.t[2];
-    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+    sampleCoord       = actor->extra.tmd->coords;
+    sampleCoord       = &sampleCoord[1];
+    samplePosition.vx = sampleCoord->workm.t[0];
+    samplePosition.vy = sampleCoord->workm.t[1];
+    samplePosition.vz = sampleCoord->workm.t[2];
+    worldCoordUpdateActorColor(actor->spawnArg2.pointer, &samplePosition, 0, 0);
 }
 
 /// Hovers and advances around a fixed room point until the player enters the trigger region.
@@ -2019,68 +2021,76 @@ static void _actor01500ScriptedAction(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// Runs the task's current state handler from `Actor01500_D00004`, copying
-/// the table onto the stack before the call.
-static void Actor01500_Fn02428(Task* task)
+/// Dispatches the enemy task's spawn, active or death state.
+///
+/// `task->state` must be 0..2 and `spawnArg2.pointer` must hold its live Enemy.
+/// Copies the three-entry callback table by value before dispatch; handlers own
+/// the task/work lifecycle and may destroy both the task and enemy.
+static void _actor01500Task(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 states;
 
-    sp = Actor01500_D00004;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    states = Actor01500_D00004;
+    states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Per-frame handler. Scene mode 1 only recolours and shadows the actor and
-/// mode 2 hides it; otherwise it applies pending hit reactions and contacts,
-/// hands off to the death state once `deathPending` is raised and the actor
-/// is grounded or about to burst, runs the action, turns, moves, animates
-/// and voices the actor and rebuilds its root coordinate.
-static void Actor01500_Fn02484(Enemy* arg0, Task* arg1)
+/// Runs one active Mind Suckler tick and refreshes its presentation.
+///
+/// Requires the live enemy owned by `actor` and initialized model/work storage.
+/// Paused control updates only colour and shadow; hidden control suppresses
+/// drawing and locking. Running ticks apply reactions and contacts, select death
+/// when grounded or bursting, then update action, turn, movement, animation and
+/// loop sound. Root composition precedes the final colour and shadow queries.
+/// Selecting death takes effect on the next task call.
+static void _actor01500ActiveState(Enemy* enemy, Task* actor)
 {
-    GfxCoord*        coord;
-    TmdObject*       obj;
+    GfxCoord*        rootCoord;
+    TmdObject*       model;
     _Actor01500Work* work;
-    s32              state;
+    s32              actorControl;
 
-    obj   = arg1->extra.tmd;
-    state = gSceneCombatState.actorControl;
-    work  = arg1->work;
-    coord = obj->coords;
-    switch (state) {
-        case 0:
-            obj->flags                   = 0;
-            arg0->node.state.parts.flags = 0;
+    model        = actor->extra.tmd;
+    actorControl = gSceneCombatState.actorControl;
+    work         = actor->work;
+    rootCoord    = model->coords;
+    switch (actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            model->flags                  = 0;
+            enemy->node.state.parts.flags = 0;
             break;
-        case 1:
-            Actor01500_Fn02B14(arg1);
-            Actor01500_Fn02B70(arg1);
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _actor01500UpdateColor(actor);
+            _actor01500DrawGroundShadow(actor);
             return;
-        case 2:
-            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = 1;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
-    if (arg0->reactionFlags != 0) {
-        _actor01500ApplyReactions(arg1);
+    // Reactions precede new contacts; death selection still finishes this tick.
+    if (enemy->reactionFlags != 0) {
+        _actor01500ApplyReactions(actor);
     }
-    Actor01500_Fn004EC(arg1);
+    _actor01500ProcessContacts(actor);
     if (work->deathPending != 0) {
         if ((work->action == ACTOR_01500_ACTION_GROUNDED) || (work->burstPending != 0)) {
             work->action     = ACTOR_01500_ACTION_DIE;
             work->actionStep = ACTOR_01500_DEATH_BEGIN;
-            arg1->state      = 2;
+            actor->state     = ACTOR_01500_TASK_DEATH;
         }
     }
-    _actor01500UpdateAction(arg1);
+    _actor01500UpdateAction(actor);
     if (work->turnRate != 0) {
-        _actor01500TurnTowardTarget(arg1);
+        _actor01500TurnTowardTarget(actor);
     }
-    _actor01500Move(arg1);
-    _actor01500UpdateAnimation(arg1);
-    Actor01500_Fn02A1C(arg1);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    Actor01500_Fn02B14(arg1);
-    Actor01500_Fn02B70(arg1);
+    _actor01500Move(actor);
+    _actor01500UpdateAnimation(actor);
+    _actor01500UpdateLoopSound(actor);
+    // Presentation reads the transform after movement and animation.
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    _actor01500UpdateColor(actor);
+    _actor01500DrawGroundShadow(actor);
 }
 
 /// Consumes stagger and buildup requests and applies active damage-over-time pulses.
@@ -2270,25 +2280,33 @@ static void _actor01500UpdateAnimation(Task* actor)
     }
 }
 
-/// Sound tick: while `loopSound` holds a request, queues it on every third
-/// tick of the animation, tagged with the placement index, and once
-/// `loopSoundTimer` runs out switches to `ACTOR_01500_SOUND_FLIGHT`.
-static void Actor01500_Fn02A1C(Task* arg0)
+/// Queues the active loop sound and advances the flight-start sound timer.
+///
+/// Requests occur when the signed animation-frame remainder modulo 3 is 1;
+/// the enemy's placement nibble (0..15) selects sound-instance bits 8..11.
+/// Pan and depth come from the live root and narrow to signed bytes. A positive
+/// timer decrements once per call while a loop is selected, switching to the
+/// flight sound at zero. A silent actor leaves the timer untouched.
+static void _actor01500UpdateLoopSound(Task* actor)
 {
-    s32              soundId;
-    s32              objectSoundId;
-    s32              pan;
-    GfxCoord*        object;
+    enum { ACTOR_01500_LOOP_SOUND_PERIOD    = 3,
+           ACTOR_01500_LOOP_SOUND_PHASE     = 1,
+           ACTOR_01500_SOUND_INSTANCE_SHIFT = 8 };
+
+    s32              soundRequest;
+    s32              loopRequest;
+    s32              audioPan;
+    GfxCoord*        rootCoord;
     _Actor01500Work* work;
 
-    work          = arg0->work;
-    objectSoundId = work->loopSound;
-    object        = arg0->extra.tmd->coords;
-    if (objectSoundId != 0) {
-        if ((s16)(work->animFrame % 3) == 1) {
-            soundId = objectSoundId | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-            pan     = (s8)worldCoordGetOriginAudioPan(object);
-            sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(object));
+    work        = actor->work;
+    loopRequest = work->loopSound;
+    rootCoord   = actor->extra.tmd->coords;
+    if (loopRequest != 0) {
+        if ((s16)(work->animFrame % ACTOR_01500_LOOP_SOUND_PERIOD) == ACTOR_01500_LOOP_SOUND_PHASE) {
+            soundRequest = loopRequest | ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_01500_SOUND_INSTANCE_SHIFT);
+            audioPan     = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(soundRequest, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
         }
         if (work->loopSoundTimer > 0) {
             if (--work->loopSoundTimer <= 0) {
@@ -2299,80 +2317,102 @@ static void Actor01500_Fn02A1C(Task* arg0)
     }
 }
 
-/// Hands `worldCoordUpdateActorColor` the world position of the model's second
-/// coordinate, with zero for the unused arguments.
-static void Actor01500_Fn02B14(Task* arg0)
+/// Refreshes model lighting and colour at coordinate 1's cached translation.
+///
+/// Requires a live model, initialized lighting matrices and current cached
+/// coordinates. Copies only XYZ game-unit components for the colour query;
+/// does not compose the coordinate or convert its frame.
+static void _actor01500UpdateColor(Task* actor)
 {
-    GfxCoord* coord;
-    VECTOR    vec;
+    GfxCoord* sampleCoord;
+    VECTOR3   samplePosition;
 
-    coord  = &arg0->extra.tmd->coords[1];
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    sampleCoord       = &actor->extra.tmd->coords[1];
+    samplePosition.vx = sampleCoord->workm.t[0];
+    samplePosition.vy = sampleCoord->workm.t[1];
+    samplePosition.vz = sampleCoord->workm.t[2];
+    worldCoordUpdateActorColor(actor->spawnArg2.pointer, &samplePosition, 0, 0);
 }
 
-/// Ground shadow for the actor: carves a `VECTOR3` off the scratchpad and fills
-/// it from the root coordinate's world translation - straight out of `workm.t`
-/// while grounded, otherwise from the hit point `worldCollisionProjectGroundPoint` finds casting a
-/// ray down. The shade passed to `effectDrawGroundShadow` is `0x80` while
-/// grounded, otherwise `effectGetGroundShadowShade`'s reading of the ray's drop.
-static void Actor01500_Fn02B70(Task* arg0)
+/// Draws a 512-game-unit half-side ground shadow from the cached root position.
+///
+/// Grounded actors use the root translation and shade 128. Others project along
+/// world +Y onto room geometry and attenuate by the signed view-Y displacement,
+/// narrowed to s16; a miss draws nothing. Requires one 16-byte scratch reservation
+/// and room for the nested query/drawer. Only the centre's XYZ words are used;
+/// the reservation is released before return.
+static void _actor01500DrawGroundShadow(Task* actor)
 {
-    _Actor01500Work* work;
-    GfxCoord*        coord;
-    VECTOR3*         vec;
-    VECTOR*          head;
-    s16              hit;
+    enum { ACTOR_01500_SHADOW_HALF_SIDE = 512,
+           ACTOR_01500_SHADOW_SHADE     = 128 };
 
-    head                         = SCRATCH_STACK_CURSOR(VECTOR);
-    work                         = arg0->work;
-    coord                        = arg0->extra.tmd->coords;
-    SCRATCH_STACK_CURSOR(VECTOR) = head - 1;
-    vec                          = (VECTOR3*)(head - 1);
+    _Actor01500Work* work;
+    GfxCoord*        rootCoord;
+    VECTOR3*         shadowCentre;
+    VECTOR*          scratchHead;
+    s16              probeDisplacementY;
+
+    scratchHead                  = SCRATCH_STACK_CURSOR(VECTOR);
+    work                         = actor->work;
+    rootCoord                    = actor->extra.tmd->coords;
+    SCRATCH_STACK_CURSOR(VECTOR) = scratchHead - 1;
+    shadowCentre                 = (VECTOR3*)(scratchHead - 1);
     if (work->action != ACTOR_01500_ACTION_GROUNDED) {
-        hit = worldCollisionProjectGroundPoint(MATRIX_TRANS(&coord->workm), vec);
-        if (hit != 0) {
-            effectDrawGroundShadow(vec, 0x200, effectGetGroundShadowShade(0x200, 0x80, hit));
+        probeDisplacementY = worldCollisionProjectGroundPoint(MATRIX_TRANS(&rootCoord->workm), shadowCentre);
+        if (probeDisplacementY != 0) {
+            effectDrawGroundShadow(shadowCentre, ACTOR_01500_SHADOW_HALF_SIDE, effectGetGroundShadowShade(ACTOR_01500_SHADOW_HALF_SIDE, ACTOR_01500_SHADOW_SHADE, probeDisplacementY));
         }
     } else {
-        vec->vx = coord->workm.t[0];
-        vec->vy = coord->workm.t[1];
-        vec->vz = coord->workm.t[2];
-        effectDrawGroundShadow(vec, 0x200, 0x80);
+        shadowCentre->vx = rootCoord->workm.t[0];
+        shadowCentre->vy = rootCoord->workm.t[1];
+        shadowCentre->vz = rootCoord->workm.t[2];
+        effectDrawGroundShadow(shadowCentre, ACTOR_01500_SHADOW_HALF_SIDE, ACTOR_01500_SHADOW_SHADE);
     }
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// Death shrink: restores the root coordinate from `deathBaseMtx`, saved
-/// when the death sequence began, and squashes it along Y by `deathScaleY`,
-/// which winds down by 80 a frame until it reaches 512. The
-/// scale is applied through an identity rotation carved off the scratchpad,
-/// `ScaleMatrix` and `MulMatrix`, and `composeStamp` is cleared so the coordinate's work
-/// matrix is rebuilt.
-static void Actor01500_Fn02C34(Task* arg0)
+/// Restores the corpse's unscaled matrix and applies its Q12 local Y scale.
+///
+/// Root, work and ActorScaleScratch storage are borrowed and disjoint. Restoring
+/// the complete matrix preserves translation and prevents compounded scaling.
+/// Invalidates composition; the caller owns scratch reservation and release.
+static __inline__ void _actor01500ApplyCorpseScale(GfxCoord* rootCoord, _Actor01500Work* work, ActorScaleScratch* scratch)
 {
-    GfxCoord*          coord;
-    ActorScaleScratch* head;
-    ActorScaleScratch* scratch;
-    _Actor01500Work*   work;
-
-    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-    work                                    = arg0->work;
-    scratch                                 = head - 1;
-    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
-    coord                                   = arg0->extra.tmd->coords;
-    if (work->deathScaleY > 512) {
-        work->deathScaleY -= 80;
-    }
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->deathScaleY;
     scratch->scale.vz = ONE;
-    coord->coord      = work->deathBaseMtx;
+    rootCoord->coord  = work->deathBaseMtx;
     gfxSetRotIdentity(&scratch->matrix);
     ScaleMatrix(&scratch->matrix, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    MulMatrix(&rootCoord->coord, &scratch->matrix);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Squashes the corpse's root along local Y using the saved death transform.
+///
+/// Requires live work/model storage and `deathBaseMtx` captured on death entry.
+/// Q12 scale decreases by 80 while above 512, without clamping; a start of ONE
+/// finishes at 496. X/Z stay at ONE. Restoring the saved matrix prevents scale
+/// from compounding and preserves its translation. Composition becomes dirty;
+/// the temporary `ActorScaleScratch` reservation is released before return.
+static void _actor01500SquashCorpse(Task* actor)
+{
+    enum { ACTOR_01500_CORPSE_SCALE_CUTOFF_Q12 = 512,
+           ACTOR_01500_CORPSE_SCALE_STEP_Q12   = 80 };
+
+    GfxCoord*          rootCoord;
+    ActorScaleScratch* scratchHead;
+    ActorScaleScratch* scratch;
+    _Actor01500Work*   work;
+
+    scratchHead                             = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                                    = actor->work;
+    scratch                                 = scratchHead - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    rootCoord                               = actor->extra.tmd->coords;
+    if (work->deathScaleY > ACTOR_01500_CORPSE_SCALE_CUTOFF_Q12) {
+        work->deathScaleY -= ACTOR_01500_CORPSE_SCALE_STEP_Q12;
+    }
+    _actor01500ApplyCorpseScale(rootCoord, work, scratch);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
