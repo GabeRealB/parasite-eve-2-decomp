@@ -88465,8 +88465,8 @@ copy insn. If an unrelated global store (here `gRandomLcgState`) lands on the wr
 side of the head store, move that statement ahead of the push rather than
 holding the carve in a local.
 
-The same reservation removes both pins inside the shared `overlayToWorld`
-inline: write `SCRATCH_STACK_CURSOR(OverlayCoordChainScratch)[-1].coord = coord`, then push
+The same reservation removes both pins inside the shared `_actorContactTransformPointToChainRoot`
+inline: write `(SCRATCH_STACK_CURSOR(OverlayCoordChainScratch))[-1].coord = startCoord`, then push
 and read the new head before copying the vector. In `Actor01900_Fn00FA4`,
 `.greg` naturally retains the carve in `$v0` and its copy into `$a2` (scratch
 `base_3`, UIDs 87 and 91). Substituting `overlayToWorld2` instead loses that

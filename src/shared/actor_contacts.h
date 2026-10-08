@@ -78,6 +78,53 @@ STATIC_ASSERT_SIZEOF(ActorContactBearingPushScratch, 0xE4);
 
 /* Interface for the including source. */
 
+/// Transforms a local point through the complete coordinate chain for contact bearings.
+///
+/// Applies `startCoord->coord` and each ancestor's local matrix through the
+/// parentless node, ending in the space above the topmost node. For ordinary
+/// actors this includes the view transform and root offset, as contact points
+/// do. A NULL `startCoord` leaves XYZ unchanged. The matrices use 12
+/// fractional bits; point components use signed integer game-coordinate units
+/// and narrow to signed halfwords after every node. `point->pad` is untouched.
+/// Uses the local matrices directly without reading or refreshing `workm`.
+///
+/// Requires a live, acyclic parent chain, separate writable point storage,
+/// and an initialized scratch-stack cursor with one free, word-aligned
+/// `OverlayCoordChainScratch` below it, disjoint from the inputs. Borrows the
+/// pointers only for this call and leaves the nodes unchanged. Restores the
+/// scratch cursor on return; a nonempty chain changes GTE rotation/translation and working
+/// registers; transform flags are stored but do not gate the result.
+static __inline__ void _actorContactTransformPointToChainRoot(GfxCoord* startCoord, SVECTOR* point)
+{
+    OverlayCoordChainScratch* scratch;
+
+    (SCRATCH_STACK_CURSOR(OverlayCoordChainScratch))[-1].coord = startCoord;
+    SCRATCH_STACK_RESERVE_BLOCK(OverlayCoordChainScratch);
+    scratch         = SCRATCH_STACK_CURSOR(OverlayCoordChainScratch);
+    scratch->vec.vx = point->vx;
+    scratch->vec.vy = point->vy;
+    scratch->vec.vz = point->vz;
+
+    // Include the topmost node; keep the per-node narrowing of the point.
+    while (scratch->coord != NULL) {
+        gte_SetTransMatrix(&scratch->coord->coord);
+        gte_SetRotMatrix(&scratch->coord->coord);
+        gte_ldv0(&scratch->vec);
+        gte_rtv0tr();
+        gte_stlvnl(&scratch->out);
+        gte_stflg(&scratch->flag);
+        scratch->vec.vx = scratch->out.vx;
+        scratch->vec.vy = scratch->out.vy;
+        scratch->vec.vz = scratch->out.vz;
+        scratch->coord  = scratch->coord->parent;
+    }
+    point->vx = scratch->vec.vx;
+    point->vy = scratch->vec.vy;
+    point->vz = scratch->vec.vz;
+
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayCoordChainScratch);
+}
+
 /// Returns the first attack key in a contact-table prefix and copies its point.
 ///
 /// `contactCount` counts readable elements, from 0 to 32767. A zero key ends

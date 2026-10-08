@@ -136,38 +136,6 @@ typedef struct {
 } OverlayCoordChainScratch;
 STATIC_ASSERT_SIZEOF(OverlayCoordChainScratch, 0x20);
 
-/// Carries `v` from the frame of `coord` up the parent chain into world
-/// space, walking in an `OverlayCoordChainScratch` taken from the scratch pad.
-static __inline__ void overlayToWorld(GfxCoord* coord, SVECTOR* v)
-{
-    OverlayCoordChainScratch* blk;
-
-    SCRATCH_STACK_CURSOR(OverlayCoordChainScratch)[-1].coord = coord;
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayCoordChainScratch);
-    blk         = SCRATCH_STACK_CURSOR(OverlayCoordChainScratch);
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr();
-        gte_stlvnl(&blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = blk->out.vx;
-        blk->vec.vy = blk->out.vy;
-        blk->vec.vz = blk->out.vz;
-        blk->coord  = blk->coord->parent;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayCoordChainScratch);
-}
-
 /// Carries `v` into world space, reserving the scratch block after copying
 /// its initial coordinate and vector.
 static __inline__ void overlayToWorld2(GfxCoord* coord, SVECTOR* v)

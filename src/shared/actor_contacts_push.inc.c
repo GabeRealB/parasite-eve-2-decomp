@@ -2,9 +2,9 @@
 
 /// Pushes `coord` `push` units away from each obstacle among the first
 /// `count` contact records (kind 0x10000 or 0x30000) whose bearing lies within
-/// 0x400 of every other obstacle's. Bearings are taken in world space from the
-/// frame's position, relative to the point one unit in front of it. Returns
-/// whether any push was applied; returns 0 at once when
+/// 0x400 of every other obstacle's. Bearings use the contacts' composition frame,
+/// measured from the frame's position relative to the point one unit in front
+/// of it. Returns whether any push was applied; returns 0 at once when
 /// `gGameSession->viewReady` is 1.
 static s32 ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
 {
@@ -21,7 +21,7 @@ static s32 ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 c
     st->origin.vy = (u16)coord->coord.t[1];
     st->origin.vz = (u16)coord->coord.t[2];
 
-    overlayToWorld(coord->parent, &st->origin);
+    _actorContactTransformPointToChainRoot(coord->parent, &st->origin);
 
     st->forward.vx = 0;
     st->forward.vy = 0;
