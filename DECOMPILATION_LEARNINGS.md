@@ -4200,8 +4200,8 @@ gives both ranges the same home — the one the first range needed (`$v1`,
 because `$v0` held the table address and call target). The target reloads
 into `$v0` after the call.
 
-Use a distinct local for the post-call stores. `func_actor_400500_8013BA24`
-scored 99.531% (`regs=3`) with `work` reused; introducing `work2` for the
+Use a distinct local for the post-call stores. `_actor400500TickGrabState`
+scored 99.531% (`regs=3`) with `work` reused; introducing `reactionWork` for the
 two `work` reloads after the dispatcher call is 100%. This is the same
 "dies in 2 places" rule as the switch-arm scratch pointers, but inside one
 block split by a call rather than two `case`s.
@@ -72104,8 +72104,8 @@ gives both ranges the same home — the one the first range needed (`$v1`,
 because `$v0` held the table address and call target). The target reloads
 into `$v0` after the call.
 
-Use a distinct local for the post-call stores. `func_actor_400500_8013BA24`
-scored 99.531% (`regs=3`) with `work` reused; introducing `work2` for the
+Use a distinct local for the post-call stores. `_actor400500TickGrabState`
+scored 99.531% (`regs=3`) with `work` reused; introducing `reactionWork` for the
 two `work` reloads after the dispatcher call is 100%. This is the same
 "dies in 2 places" rule as the switch-arm scratch pointers, but inside one
 block split by a call rather than two `case`s.
@@ -133731,7 +133731,7 @@ Evidence: scratch `nonmatchings/_actor403100EmitFlame-vacuum`, `PERMUTER_ANALYSI
 
 ## Conditional pointer touch preserves a C copy for a branch delay slot
 
-`func_actor_400500_8013A700` retried an unpinned 99.008% seed with two ordering differences. The first was an emitted `addu` asm used to keep two pointer locals separate. Patched GCC 2.8.1 `reorg.c:stop_search_p` (680–715) stops on every inline asm, including nonvolatile asm: moving that asm closer to the branch cannot make it an ordinary backward delay-fill candidate.
+`_actor400500TickDeathTask` retried an unpinned 99.008% seed with two ordering differences. The first was an emitted `addu` asm used to keep two pointer locals separate. Patched GCC 2.8.1 `reorg.c:stop_search_p` (680–715) stops on every inline asm, including nonvolatile asm: moving that asm closer to the branch cannot make it an ordinary backward delay-fill candidate.
 
 The successful construction uses a normal C copy and makes the copied value opaque only on the first comparison's fallthrough:
 
@@ -133755,7 +133755,7 @@ Allocation was a separate controlled prediction: global r83 (extra2) had 6 refer
 
 Full unscoped build verification passed. The ten-entry table also needed its normal `force_not_migration:True` symbol annotation for standalone INCLUDE_RODATA. No register pins or permuter discovery contributed.
 
-Evidence, source variants, plans, hashes and selected dump observations: `tools/compiler_evidence/2026-09-19-actor400500-a700.json`; complete session scratch `nonmatchings/func_actor_400500_8013A700-vacuum/LEARNINGS.md`. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; preprocessed base_2 `ffb2312bebfa504aaab5d193d15c6962f4d16af2b03a1a4d0ec3c6b203750f17`, base_3 `608d2b9cd82d808ad9bb79e810d400b3336dc5058949b596133c688279ea95e9`.
+Evidence, source variants, plans, hashes and selected dump observations: `tools/compiler_evidence/2026-09-19-actor400500-a700.json`; complete session scratch `nonmatchings/_actor400500TickDeathTask-vacuum/LEARNINGS.md`. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; preprocessed base_2 `ffb2312bebfa504aaab5d193d15c6962f4d16af2b03a1a4d0ec3c6b203750f17`, base_3 `608d2b9cd82d808ad9bb79e810d400b3336dc5058949b596133c688279ea95e9`.
 
 
 ## Constant lifetime and load-delay order need separate constraints (actor_400500 beam, 2026-09-19)
@@ -134028,7 +134028,7 @@ The retained base_9/base_11 observer reports also verify earlier scheduler and
 quantity decisions with unchanged traced assembly.
 
 
-## Literal loop sentinel can retain a preheader copy that a named invariant removes (actor_400500_80135770, 2026-09-19)
+## Literal loop sentinel can retain a preheader copy that a named invariant removes (_actor400500TickCombatTask, 2026-09-19)
 
 In this inline zone-table walk, the guard checks a signed halfword id and the
 back edge directly tests `zone->id != -1`. An explicit `neg = -1` used by the
@@ -134055,7 +134055,7 @@ changes. This improved 99.558% → 99.654% without pins or empty asm.
 
 The final function and helpers in `src/actors/actor_400500/actor_400500.c`
 match all 467 instructions and pass the unscoped build. Session evidence:
-`nonmatchings/func_actor_400500_80135770-vacuum/LEARNINGS.md`, experiments,
+`nonmatchings/_actor400500TickCombatTask-vacuum/LEARNINGS.md`, experiments,
 base_6/base_7/base_8/base_10 dumps. Preprocessed input SHA256 for base_7:
 `0dd51b60856c1e5cc7276896e84203111b1678ed6435ec877e1164efe6c38750`;
 base_10: `45416fc914f19849fb2c96b29088c21b745a46689bdfffddf2c51d47e9ea0ef0`.
@@ -142689,7 +142689,7 @@ two packets into one slot back to back, where the open-coded pair shares mask
 registers set up before the loop, and a handful whose operand order differs
 (`addu` of base and index swapped). Try `addPrim` first; keep the open-coded
 form only where it does not match.
-## `lhu; sll 16; beqz; srl 18` is `(u8)(s16field >> 2)`, and `move s1,s0` before a branch chain is an inline argument (func_actor_400500_8013A700, 2026-09-26)
+## `lhu; sll 16; beqz; srl 18` is `(u8)(s16field >> 2)`, and `move s1,s0` before a branch chain is an inline argument (_actor400500TickDeathTask, 2026-09-26)
 
 An `s16` field tested and then shifted - `if (f != 0) g((u8)(f >> 2))` - does
 not load `lh`. The sign extension of the field is shared by the test and the
@@ -142703,8 +142703,8 @@ forms (`(u16)f >> 2`, a `u16` local) give `lhu; beqz; srl 2` instead - see the
 The same function had `move $s1,$s0` in the delay slot of the first `beq` of
 an `a || b || c || d` chain, with one arm passing `$s1` and the other `$s0` to
 the same call - pinned as `extraCopy = extra2` plus `SOFT_TOUCH_REG`. It is an
-inline helper whose argument is an expression (`h(arg0, &arg0->extra.tmd->coords[1],
-arg0->extra.tmd)`) rather than a variable: `expand_inline_function` copies a
+inline helper whose argument is an expression (`h(task, &task->extra.tmd->coords[1],
+task->extra.tmd)`) rather than a variable: `expand_inline_function` copies a
 non-user-variable argument into the formal's own pseudo, cse folds the second
 `index->extra.tmd` load onto the first, and the copy survives only in the arm
 whose label has several predecessors - the single-predecessor arm is reached

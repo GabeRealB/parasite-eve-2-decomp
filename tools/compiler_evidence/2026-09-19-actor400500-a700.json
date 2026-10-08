@@ -1,5 +1,5 @@
 {
-  "function": "func_actor_400500_8013A700",
+  "function": "_actor400500TickDeathTask",
   "session": {
     "id": "5ca3bfdb523245518cfa2e1aa44f5c1a",
     "started_at": "2026-09-19T10:51:40.295965+00:00"

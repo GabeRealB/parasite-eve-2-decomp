@@ -410,7 +410,7 @@ static void _actor400500TickCrawl(Task* task);
 static void _actor400500TickScriptedCrawl(Task* task);
 static void _actor400500TickFallenCrawl(Task* task);
 static void _actor400500TakeDamage(Task* task);
-static void func_actor_400500_80135770(Task* arg0);
+static void _actor400500TickCombatTask(Task* task);
 static void _actor400500TickCrawlState(Task* task);
 static void _actor400500SelectCrawlRoute(Task* task);
 static void _actor400500TickCrawlPositiveX(Task* task);
@@ -443,17 +443,17 @@ static void _actor400500TickTurnOverState(Task* task);
 static void _actor400500TickTurnOver(Task* task);
 static void _actor400500TickStatusHoldState(Task* task);
 static void _actor400500StartStatusHoldRecoil(Task* task);
-static void func_actor_400500_8013A700(Task* arg0);
+static void _actor400500TickDeathTask(Task* task);
 static void _actor400500StartDeath(Task* task);
 static void _actor400500WaitDeathAnimation(Task* task);
-static void func_actor_400500_8013ABE4(Task* arg0);
+static void _actor400500TickDeathShrink(Task* task);
 static void _actor400500TickFallenCrawlState(Task* task);
 static void _actor400500SelectFallenCrawlRoute(Task* task);
 static void _actor400500TickFallenCrawlPositiveX(Task* task);
 static void _actor400500TickFallenCrawlCornerChoice(Task* task);
 static void _actor400500UpdateCloakTiming(Task* task);
 static void _actor400500TickRoomSequenceState(Task* task);
-static void func_actor_400500_8013BA24(Task* arg0);
+static void _actor400500TickGrabState(Task* task);
 static void _actor400500StartCrawlDeathFall(Task* task);
 static void _actor400500TickCrawlDeathFall(Task* task);
 static void _actor400500FinishCrawlDeathLanding(Task* task);
@@ -503,7 +503,7 @@ static void _actor400500WaitDeathShrinkDelay(Task* task);
 static void _actor400500BeginTeardown(Task* task);
 static void _actor400500HideBurstBody(Task* task);
 static void _actor400500WaitBurstBufferDelay(Task* task);
-static void func_actor_400500_8013DA68(Task* arg0);
+static void _actor400500ReleaseBurstBufferAndSpawnFragments(Task* task);
 static void _actor400500BeginBurstTeardown(Task* task);
 static void _actor400500EnterState(Task* task, s16 state);
 static s32  _actor400500TryTurnOverNearTarget(Task* task);
@@ -520,7 +520,7 @@ static void _actor400500KillArmModels(Task* task);
 static void _actor400500WaitDestroyDelay(Task* task);
 
 static TmdSource _gActor400500GrayStalkerBody;
-void             func_actor_400500_8013DE98(Task*);
+static void      _actor400500Task(Task* task);
 
 static TmdSource _gActor400500GrayStalkerBurstArmRight;
 static TmdSource _gActor400500GrayStalkerBurstArmLeft;
@@ -1655,7 +1655,7 @@ TaskDesc D_actor_400500_80153D48[2] = {
     { { { TASK_BODY_TMD, 96 } }, _actor400500RightArmTask, { .model = &_gActor400500GrayStalkerBurstArmRight } },
 };
 
-TaskDesc D_actor_400500_80153D60 = { { { TASK_BODY_TMD, 96 } }, func_actor_400500_8013DE98, { .model = &_gActor400500GrayStalkerBody } };
+TaskDesc D_actor_400500_80153D60 = { { { TASK_BODY_TMD, 96 } }, _actor400500Task, { .model = &_gActor400500GrayStalkerBody } };
 
 ActorZone D_actor_400500_80153D6C[7] = {
     { -1700, -10200, 1700, 3200, 4 },
@@ -1699,15 +1699,30 @@ static void           _actor400500InitTask(Task* task);
 static inline s32     _actor400500FindRouteZone(Task* task);
 static inline VECTOR* _actor400500PushCachedPosition(const GfxCoord* coord);
 static inline void    _scratchStackReleaseBytes(s32 byteCount);
-static __inline__ u8* push_proj(void);
 static void           _actor400500StartGrab(Task* task);
 static inline void    _actor400500RequestCloakFade(Task* task, s32 cloakRequest);
 static inline s32     _actor400500AccumulateWorldRotation(const GfxCoord* coord, MATRIX* worldRotation);
 static inline void    _actor400500TurnPartWorldYaw(GfxCoord* part, u16 yawDelta);
 static inline s16     _actor400500PlayerDistance(GfxCoord* part);
 static inline void    _actor400500RequestAnimBlend(Task* task, s32 setIndex);
-static void           func_actor_400500_8013771C(Task* arg0);
+static void           _actor400500TickGrab(Task* task);
 static inline void    _actor400500UpdateColor(Task* task, const GfxCoord* coord, const TmdObject* model);
+
+/// Player playback phases of a grab, independent of the Stalker's attack sub-state.
+enum {
+    ACTOR_400500_GRAB_STEP_NONE     = 0,
+    ACTOR_400500_GRAB_STEP_CAUGHT   = 1,
+    ACTOR_400500_GRAB_STEP_FOLLOWUP = 2,
+    ACTOR_400500_GRAB_STEP_RELEASE  = 3,
+    ACTOR_400500_GRAB_STEP_FATAL    = 4
+};
+
+/// Clips in the borrowed player grab-animation table, whose slot zero is unused.
+enum {
+    ACTOR_400500_PLAYER_ANIM_CAUGHT  = 1,
+    ACTOR_400500_PLAYER_ANIM_RELEASE = 2,
+    ACTOR_400500_PLAYER_ANIM_FATAL   = 3
+};
 
 /// Grab-release clip and positioning policies of the captured-player helpers.
 ///
@@ -3076,7 +3091,7 @@ static void _actor400500PositionGrabbedPlayer(Task* task, s32 easePosition)
 ///
 /// Both models and their loaded textures must remain live; the fragment's
 /// existing buffer must satisfy `tmdBuildBufferHalf`. Neither pointer is retained.
-static inline void _actor400500ApplyFragmentTexturePlacement(Task* task, EffectWork* fragment)
+static inline void _actor400500ApplyFragmentTexturePlacement(const Task* task, const EffectWork* fragment)
 {
     TmdObject* bodyModel     = task->extra.tmd;
     TmdObject* fragmentModel = fragment->task->extra.tmd;
@@ -3245,14 +3260,14 @@ static void _actor400500InitTask(Task* task)
     task->state = task->state + 1;
 }
 
-/// Handlers the task entry `func_actor_400500_8013DE98` runs by task state:
+/// Handlers the task entry `_actor400500Task` runs by task state:
 /// set-up, the per-frame state machine run by `state`, a second one run by
 /// `state` from task state 2, and the teardown that kills the child tasks
 /// and destroys the enemy 0x12D frames later.
 static const TaskFuncTable4 D_actor_400500_80131E4C = { {
     _actor400500InitTask,
-    func_actor_400500_80135770,
-    func_actor_400500_8013A700,
+    _actor400500TickCombatTask,
+    _actor400500TickDeathTask,
     _actor400500TickTeardown,
 } };
 
@@ -3306,21 +3321,56 @@ static inline void _scratchStackReleaseBytes(s32 byteCount)
     SCRATCH_STACK_RELEASE_BYTES(byteCount);
 }
 
-static __inline__ u8* push_proj(void)
+/// Reserves an origin-projection block and initializes its XYZ to the coordinate origin.
+///
+/// Requires an initialized word-aligned scratch stack with room for this block
+/// and nested capture storage. The pad and projection outputs remain unwritten.
+/// The caller must release the complete block in reverse reservation order.
+static inline ActorOriginDepthScratch* _actor400500PushOriginDepth(void)
 {
-    u8*                      head  = SCRATCH_STACK_CURSOR(u8);
-    ActorOriginDepthScratch* block = (ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch));
+    ActorOriginDepthScratch* block = SCRATCH_STACK_RESERVE_BLOCK(ActorOriginDepthScratch);
 
-    SCRATCH_STACK_CURSOR(ActorOriginDepthScratch)                                   = block;
-    ((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->origin.vx = 0;
-    block->origin.vy                                                                = 0;
-    block->origin.vz                                                                = 0;
-    return head;
+    block->origin.vx = 0;
+    block->origin.vy = 0;
+    block->origin.vz = 0;
+    return block;
+}
+
+/// Queues the captured scene behind a coordinate's projected origin.
+///
+/// Borrows and composes `coord`; `depthBias` counts ordering-table tags after
+/// projection quantization. Failed projections use zero depth before the bias.
+/// Requires initialized GTE/scratch facilities and an in-bounds biased slot.
+/// Releases all scratch storage before return and retains no pointer.
+static inline void _actor400500QueueCoordFrameCapture(GfxCoord* coord, s32 depthBias)
+{
+    ActorOriginDepthScratch* projection;
+    SVECTOR*                 origin;
+    MATRIX*                  composedMatrix;
+
+    projection = _actor400500PushOriginDepth();
+    actorRenderComposeCoord(coord);
+    origin         = &projection->origin;
+    composedMatrix = &coord->workm;
+    gte_SetRotMatrix(composedMatrix);
+    gte_SetTransMatrix(composedMatrix);
+    gte_ldv0(origin);
+    gte_rtps();
+    gte_stsxy(&projection->screenPos);
+    gte_stdp(&projection->depthCue);
+    gte_stflg(&projection->flag);
+    gte_stszotz(&projection->otz);
+    if (projection->flag < 0) {
+        projection->otz = 0;
+    }
+    projection->otz = (projection->otz >> FRAME_CAPTURE_DEPTH_TO_SLOT_SHIFT) + depthBias;
+    FRAME_CAPTURE_QUEUE(projection->otz);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorOriginDepthScratch);
 }
 
 static const _Actor400500StateTable D_actor_400500_80131E5C = { {
     _actor400500TickCrawlState,
-    func_actor_400500_8013BA24,
+    _actor400500TickGrabState,
     _actor400500TickCeilingStrikeState,
     _actor400500TickFloorStrikeState,
     _actor400500TickCeilingFallState,
@@ -3334,174 +3384,186 @@ static const _Actor400500StateTable D_actor_400500_80131E5C = { {
     _actor400500TickStatusHoldState,
 } };
 
-static void func_actor_400500_80135770(Task* arg0)
+/// Advances the living Stalker and maintains its player grab, cloak and scene capture.
+///
+/// Requires live work, enemy, body/arm models and animation resources. Living
+/// state indexes `ACTOR_400500_STATE_*`. Player grab playback advances even
+/// while combat is hidden or paused; running combat advances movement and
+/// damage, then falls through to lighting and shadows. Capture is suppressed
+/// by the session pause. Death waits for any held fall and surviving grab to
+/// finish. An active grab requires the live player and its borrowed clip table.
+/// The initialized scratch stack must support nested rendering calls. Capture
+/// uses normal ordering-table slots 30..1053, including failed projections at 30.
+static void _actor400500TickCombatTask(Task* task)
 {
+    enum { ACTOR_400500_TASK_DEATH             = 2,
+           ACTOR_400500_DEATH_STEP_START       = 0,
+           ACTOR_400500_PART_COLOR_SAMPLE      = 1,
+           ACTOR_400500_PART_CAPTURE_ORIGIN    = 2,
+           ACTOR_400500_AMBIENT_GREY           = ONE / 8,
+           ACTOR_400500_AMBIENT_GREEN_RED_BLUE = ONE / 4,
+           ACTOR_400500_CAPTURE_TAG_BIAS       = 30 };
     _Actor400500GrayStalkerWork* work;
     Enemy*                       enemy;
-    TmdObject*                   extra0;
-    TmdObject*                   obj;
-    Task*                        slot;
-    GfxCoord*                    part2;
-    PlayerStatus*                cfg;
-    AnimationPlayRequest         msg;
+    TmdObject*                   bodyModel;
+    TmdObject*                   drawModel;
+    Task*                        playerTask;
+    GfxCoord*                    captureCoord;
+    PlayerStatus*                playerStatus;
+    AnimationPlayRequest         playerAnimation;
     _Actor400500StateTable       states;
-    MATRIX                       rot;
-    s8                           handshake;
-    _Actor400500GrayStalkerWork* work_pos;
-    _Actor400500GrayStalkerWork* work_dead;
-    _Actor400500GrayStalkerWork* work_rot;
-    s16                          ang;
-    s16                          ang_z;
-    s16                          ang_y;
-    GfxCoord*                    rot_root;
-    GfxCoord*                    player;
-    TmdObject*                   extra;
-    TmdObject*                   extra2;
-    TmdObject*                   trans_obj;
-    VECTOR*                      color;
-    u8*                          head;
-    GfxCoord*                    color_part;
-    u8                           mode;
-    s16                          trans;
-    s16                          trans_y;
-    ActorOriginDepthScratch*     proj;
-    SVECTOR*                     vecp;
-    MATRIX*                      workm;
+    MATRIX                       rootRotation;
+    s8                           grabStep;
+    _Actor400500GrayStalkerWork* movementWork;
+    _Actor400500GrayStalkerWork* deathWork;
+    _Actor400500GrayStalkerWork* rotationWork;
+    s16                          pitch;
+    s16                          roll;
+    s16                          yaw;
+    GfxCoord*                    rootCoord;
+    GfxCoord*                    playerRoot;
 
-    cfg    = &gPlayerStatus;
-    work   = (_Actor400500GrayStalkerWork*)arg0->work;
-    enemy  = (Enemy*)arg0->spawnArg2.pointer;
-    extra0 = arg0->extra.tmd;
-    part2  = extra0->coords + 2;
-    obj    = extra0;
-    slot   = *gPlayerActorTasks;
-    states = D_actor_400500_80131E5C;
+    /// Refreshes cached-position lighting and the combat room's Q12 ambient tint.
+    ///
+    /// actorTask must be a side-effect-free live Task pointer; it is read repeatedly.
+    /// Borrows one VECTOR scratch block plus nested lighting storage and releases
+    /// it before leaving the block. Uses this function's coordinate and ambient constants.
+#define ACTOR_400500_UPDATE_COMBAT_COLOR(actorTask)                                                 \
+    {                                                                                               \
+        TmdObject* lightingModel;                                                                   \
+        TmdObject* roomModel;                                                                       \
+        TmdObject* ambientModel;                                                                    \
+        VECTOR*    samplePosition;                                                                  \
+        GfxCoord*  sampleCoord;                                                                     \
+        u8         room;                                                                            \
+        s16        ambientRedBlue;                                                                  \
+        s16        ambientGreen;                                                                    \
+        lightingModel  = (actorTask)->extra.tmd;                                                    \
+        roomModel      = lightingModel;                                                             \
+        sampleCoord    = lightingModel->coords + ACTOR_400500_PART_COLOR_SAMPLE;                    \
+        samplePosition = _actor400500PushCachedPosition(sampleCoord);                               \
+        worldCoordUpdateActorColor((actorTask)->spawnArg2.pointer, samplePosition, 0, 0);           \
+        room = gGameSession->location.loc.room;                                                     \
+        if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {                             \
+            ambientModel   = roomModel;                                                             \
+            ambientRedBlue = ACTOR_400500_AMBIENT_GREY;                                             \
+            ambientGreen   = ambientRedBlue;                                                        \
+        } else {                                                                                    \
+            ambientModel   = lightingModel;                                                         \
+            ambientRedBlue = ACTOR_400500_AMBIENT_GREEN_RED_BLUE;                                   \
+            ambientGreen   = ONE;                                                                   \
+        }                                                                                           \
+        worldCoordSetModelAmbientColor(ambientModel, ambientRedBlue, ambientGreen, ambientRedBlue); \
+        _scratchStackReleaseBytes(sizeof(VECTOR));                                                  \
+    }
 
-    handshake = work->grabStep;
-    switch (handshake) {
-        case 1:
+    playerStatus = &gPlayerStatus;
+    work         = task->work;
+    enemy        = task->spawnArg2.pointer;
+    bodyModel    = task->extra.tmd;
+    captureCoord = bodyModel->coords + ACTOR_400500_PART_CAPTURE_ORIGIN;
+    drawModel    = bodyModel;
+    playerTask   = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
+    states       = D_actor_400500_80131E5C;
+
+    // Finish the caught clip before releasing a survivor or retaining the fatal pose.
+    grabStep = work->grabStep;
+    switch (grabStep) {
+        case ACTOR_400500_GRAB_STEP_CAUGHT:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-                work->grabStep = 2;
+                work->grabStep = ACTOR_400500_GRAB_STEP_FOLLOWUP;
             }
             break;
-        case 2:
-            msg.source.sets          = _gActor400500PlayerAnimationSets;
-            msg.blend                = ANIMATION_BLEND_RESET;
-            msg.blendFrames          = 0;
-            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        case ACTOR_400500_GRAB_STEP_FOLLOWUP:
+            playerAnimation.source.sets          = _gActor400500PlayerAnimationSets;
+            playerAnimation.blend                = ANIMATION_BLEND_RESET;
+            playerAnimation.blendFrames          = 0;
+            playerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             if (work->grabLanded != 0) {
-                msg.animationId = 3;
-                work->grabStep  = 4;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
+                playerAnimation.animationId = ACTOR_400500_PLAYER_ANIM_FATAL;
+                work->grabStep              = ACTOR_400500_GRAB_STEP_FATAL;
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &playerAnimation, 0);
             } else {
-                msg.animationId = handshake;
-                work->grabStep  = 3;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+                // Followup step 2 also supplies player release clip 2.
+                playerAnimation.animationId = grabStep;
+                work->grabStep              = ACTOR_400500_GRAB_STEP_RELEASE;
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &playerAnimation, 0);
             }
             break;
-        case 3:
+        case ACTOR_400500_GRAB_STEP_RELEASE:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                work->grabStep = 0;
+                work->grabStep = ACTOR_400500_GRAB_STEP_NONE;
             }
             break;
     }
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            drawModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            _actor400500UpdateTargetMotion(arg0);
-            work->zone = _actor400500FindRouteZone(arg0);
-            if (slot == NULL) {
+            // State callbacks move the root; commit its wrapped Euler basis afterwards.
+            _actor400500UpdateTargetMotion(task);
+            work->zone = _actor400500FindRouteZone(task);
+            if (playerTask == NULL) {
                 work->playerZone = 0;
             } else {
-                work->playerZone = _actor400500FindRouteZone(slot);
+                work->playerZone = _actor400500FindRouteZone(playerTask);
             }
-            states.handlers[(s16)work->state](arg0);
-            work_pos = (_Actor400500GrayStalkerWork*)arg0->work;
-            if (*gPlayerActorTasks != NULL) {
-                player                     = (*gPlayerActorTasks)->extra.tmd->coords;
-                work_pos->playerPrevPos.vx = player->coord.t[0];
-                work_pos->playerPrevPos.vy = player->coord.t[1];
-                work_pos->playerPrevPos.vz = player->coord.t[2];
+            states.handlers[(s16)work->state](task);
+            movementWork = task->work;
+            if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] != NULL) {
+                playerRoot                     = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
+                movementWork->playerPrevPos.vx = playerRoot->coord.t[0];
+                movementWork->playerPrevPos.vy = playerRoot->coord.t[1];
+                movementWork->playerPrevPos.vz = playerRoot->coord.t[2];
             }
-            work_rot        = (_Actor400500GrayStalkerWork*)arg0->work;
-            rot_root        = arg0->extra.tmd->coords;
-            ang             = work_rot->pitch;
-            ang_y           = work_rot->yaw;
-            work_rot->pitch = ang & 0xFFF;
-            ang_z           = work_rot->roll;
-            work_rot->yaw   = ang_y & 0xFFF;
-            work_rot->roll  = ang_z & 0xFFF;
-            gfxSetRotIdentity(&rot);
-            RotMatrixZ(work_rot->roll, &rot);
-            RotMatrixX(work_rot->pitch, &rot);
-            RotMatrixY(work_rot->yaw, &rot);
-            _actor400500CopyRotation(&rot, &rot_root->coord);
-            _actor400500TickCloakFade(arg0);
+            rotationWork        = task->work;
+            rootCoord           = task->extra.tmd->coords;
+            pitch               = rotationWork->pitch;
+            yaw                 = rotationWork->yaw;
+            rotationWork->pitch = pitch & ACTOR_TRANSFORM_ANGLE_MASK;
+            roll                = rotationWork->roll;
+            rotationWork->yaw   = yaw & ACTOR_TRANSFORM_ANGLE_MASK;
+            rotationWork->roll  = roll & ACTOR_TRANSFORM_ANGLE_MASK;
+            gfxSetRotIdentity(&rootRotation);
+            RotMatrixZ(rotationWork->roll, &rootRotation);
+            RotMatrixX(rotationWork->pitch, &rootRotation);
+            RotMatrixY(rotationWork->yaw, &rootRotation);
+            _actor400500CopyRotation(&rootRotation, &rootCoord->coord);
+            _actor400500TickCloakFade(task);
             if (work->attackCooldown > 0) {
                 work->attackCooldown = (u16)work->attackCooldown - 1;
                 work->attackCooling  = 1;
             } else {
                 work->attackCooling = 0;
             }
-            obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            if ((enemy->hp > 0) || (cfg->hp <= 0)) {
-                _actor400500TakeDamage(arg0);
-            } else if ((work->deathHeld == 0) && (work->grabStep == 0)) {
-                work_dead           = (_Actor400500GrayStalkerWork*)arg0->work;
-                arg0->state         = 2;
-                work_dead->state    = 0;
-                work_dead->subState = 0;
+            // Cloaking keeps the environment layer drawing after the fade's hide store.
+            drawModel->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            if ((enemy->hp > 0) || (playerStatus->hp <= 0)) {
+                _actor400500TakeDamage(task);
+            } else if ((work->deathHeld == 0) && (work->grabStep == ACTOR_400500_GRAB_STEP_NONE)) {
+                deathWork           = task->work;
+                task->state         = ACTOR_400500_TASK_DEATH;
+                deathWork->state    = ACTOR_400500_DEATH_STEP_START;
+                deathWork->subState = 0;
             }
         case SCENE_COMBAT_ACTORS_PAUSED:
-            extra      = arg0->extra.tmd;
-            extra2     = extra;
-            color_part = extra->coords + 1;
-            color      = _actor400500PushCachedPosition(color_part);
-            worldCoordUpdateActorColor(arg0->spawnArg2.pointer, color, 0, 0);
-            mode = gGameSession->location.loc.room;
-            if ((mode == 1) || (mode == 3) || (mode == 5) || (mode == 6)) {
-                trans_obj = extra2;
-                trans     = 0x200;
-                trans_y   = trans;
-            } else {
-                trans_obj = extra;
-                trans     = 0x400;
-                trans_y   = 0x1000;
-            }
-            worldCoordSetModelAmbientColor(trans_obj, trans, trans_y, trans);
-            _scratchStackReleaseBytes(sizeof(VECTOR));
+            // Paused combat retains lighting and shadow drawing without advancing movement.
+            ACTOR_400500_UPDATE_COMBAT_COLOR(task);
             if (gGameSession->sceneUpdatesPaused != 0) {
-                _actor400500DrawLimbShadows(arg0, -0xFA0, (u8)work->shadowShade);
+                _actor400500DrawLimbShadows(task, ACTOR_400500_CRAWL_CEILING_Y, (u8)work->shadowShade);
                 return;
             }
-            _actor400500DrawLimbShadows(arg0, -0xFA0, ((u16)work->shadowShade >> 2) & 0xFF);
-            _actor400500DrawLimbShadows(arg0, -0x3E8, (u8)work->shadowShade);
-            head = push_proj();
-            proj = (ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch));
-            actorRenderComposeCoord(part2);
-            vecp  = &proj->origin;
-            workm = &part2->workm;
-            gte_SetRotMatrix(workm);
-            gte_SetTransMatrix(workm);
-            gte_ldv0(vecp);
-            gte_rtps();
-            gte_stsxy(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->screenPos);
-            gte_stdp(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->depthCue);
-            gte_stflg(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->flag);
-            gte_stszotz(&((ActorOriginDepthScratch*)(head - sizeof(ActorOriginDepthScratch)))->otz);
-            if (proj->flag < 0) {
-                proj->otz = 0;
-            }
-            proj->otz = (proj->otz >> 4) + 0x1E;
-            FRAME_CAPTURE_QUEUE(proj->otz);
-            _scratchStackReleaseBytes(sizeof(ActorOriginDepthScratch));
+            _actor400500DrawLimbShadows(task, ACTOR_400500_CRAWL_CEILING_Y, ((u16)work->shadowShade >> 2) & 0xFF);
+            _actor400500DrawLimbShadows(task, ACTOR_400500_FLOOR_Y, (u8)work->shadowShade);
+            _actor400500QueueCoordFrameCapture(captureCoord, ACTOR_400500_CAPTURE_TAG_BIAS);
             return;
     }
 }
+
+#undef ACTOR_400500_UPDATE_COMBAT_COLOR
 
 /// Sub-state handlers `_actor400500TickCrawlState` copies onto the stack and runs
 /// by `subState` every frame.
@@ -4419,97 +4481,122 @@ static inline void _actor400500RequestAnimBlend(Task* task, s32 setIndex)
     work->animRequest     = ACTOR_400500_ANIM_REQUEST_BLEND;
 }
 
-static void func_actor_400500_8013771C(Task* arg0)
+/// Aims the grab arms, captures a nearby player and applies the timed grab attack.
+///
+/// Requires a live player, Stalker work, rig and arm chains. State ticks are
+/// counted at the caller's update rate; angles use 4096 units per turn and
+/// target offsets use game coordinates. Tick 7 installs the player's caught
+/// clip, ticks 7..10 ease placement and 11..30 snap it to the arm. Tick 31
+/// applies damage; a fatal reply retains scripted state 10 for the fatal clip.
+/// Playback completion restores crawling, the body radius and its cooldown.
+static void _actor400500TickGrab(Task* task)
 {
-    enum { ACTOR400500_ATTACK_GRAB = 1 };
-    SVECTOR                      in;
-    SVECTOR                      out;
-    MATRIX                       rot;
+    enum { ACTOR_400500_ATTACK_GRAB                        = 1,
+           ACTOR_400500_PART_RIGHT_ARM_AIM                 = 6,
+           ACTOR_400500_PART_LEFT_ARM_AIM                  = 9,
+           ACTOR_400500_GRAB_CATCH_TICK                    = 7,
+           ACTOR_400500_GRAB_EASE_TICKS                    = 4,
+           ACTOR_400500_GRAB_SNAP_START_TICK               = 11,
+           ACTOR_400500_GRAB_SNAP_TICKS                    = 20,
+           ACTOR_400500_GRAB_MISS_TICK                     = 14,
+           ACTOR_400500_GRAB_AIM_END_TICK                  = 15,
+           ACTOR_400500_GRAB_TARGET_HEIGHT                 = 1696,
+           ACTOR_400500_GRAB_DAMAGE_TICK                   = 31,
+           ACTOR_400500_GRAB_FIRST_SOUND_TICK              = 12,
+           ACTOR_400500_GRAB_SECOND_SOUND_TICK             = 30,
+           ACTOR_400500_GRAB_LAST_SOUND_TICK               = 42,
+           ACTOR_400500_PLAYER_FATAL_PLAYBACK_STATE        = 10,
+           ACTOR_400500_GRAB_BODY_RADIUS                   = 608,
+           ACTOR_400500_GRAB_DAMAGE_RUMBLE_TICKS           = 6,
+           ACTOR_400500_GRAB_DAMAGE_RUMBLE_START_INTENSITY = 255,
+           ACTOR_400500_GRAB_DAMAGE_RUMBLE_END_INTENSITY   = 128,
+           ACTOR_400500_GRAB_END_RUMBLE_TICKS              = 8,
+           ACTOR_400500_GRAB_END_RUMBLE_START_INTENSITY    = 192,
+           ACTOR_400500_GRAB_END_RUMBLE_END_INTENSITY      = 8 };
+    SVECTOR                      targetOffset;
+    SVECTOR                      yawRotatedTarget;
+    MATRIX                       yawRotation;
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* hit;
     GameActor*                   player;
     const Enemy*                 enemy;
-    s16                          vz;
-    s32                          r;
-    s32                          cond;
+    s16                          targetZ;
+    s32                          reachBearing;
+    s32                          animationEnded;
 
-    work              = (_Actor400500GrayStalkerWork*)arg0->work;
+    work              = task->work;
     player            = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work;
-    enemy             = arg0->spawnArg2.pointer;
+    enemy             = task->spawnArg2.pointer;
     work->stateFrames = work->stateFrames + 1;
-    _actor400500TickAnim(arg0);
-    if ((s16)work->stateFrames < 0xF) {
-        in.vx = (u16)work->toTarget.vx;
-        in.vy = 0;
-        vz    = (u16)work->toTarget.vz;
-        in.vz = vz;
-        gfxSetRotIdentity(&rot);
-        RotMatrixY(work->yaw, &rot);
-        ApplyMatrixSV(&rot, &in, &out);
-        r                    = ratan2(out.vx, work->toTarget.vy - 0x6A0);
-        work->armReachAngle += ((-r - (u16)work->armReachAngle) << 20) >> 23;
+    _actor400500TickAnim(task);
+    // Aim with a wrapped 12-bit difference, then ease the reach back to zero.
+    if ((s16)work->stateFrames < ACTOR_400500_GRAB_AIM_END_TICK) {
+        targetOffset.vx = (u16)work->toTarget.vx;
+        targetOffset.vy = 0;
+        targetZ         = (u16)work->toTarget.vz;
+        targetOffset.vz = targetZ;
+        gfxSetRotIdentity(&yawRotation);
+        RotMatrixY(work->yaw, &yawRotation);
+        ApplyMatrixSV(&yawRotation, &targetOffset, &yawRotatedTarget);
+        reachBearing         = ratan2(yawRotatedTarget.vx, work->toTarget.vy - ACTOR_400500_GRAB_TARGET_HEIGHT);
+        work->armReachAngle += ((-reachBearing - (u16)work->armReachAngle) << 20) >> 23;
     } else {
         work->armReachAngle += -((u16)work->armReachAngle << 20) >> 23;
     }
-    if ((s16)work->stateFrames == 7) {
+    if ((s16)work->stateFrames == ACTOR_400500_GRAB_CATCH_TICK) {
         if (player->mode != GAME_ACTOR_MODE_SCRIPTED) {
-            if (_actor400500PlayerDistance(&arg0->extra.tmd->coords[ACTOR_400500_PART_RIGHT_ARM_TIP]) < ACTOR_400500_GRAB_RANGE) {
-                AnimationPlayRequest msg;
+            if (_actor400500PlayerDistance(&task->extra.tmd->coords[ACTOR_400500_PART_RIGHT_ARM_TIP]) < ACTOR_400500_GRAB_RANGE) {
+                AnimationPlayRequest playerAnimation;
 
-                msg.source.sets          = _gActor400500PlayerAnimationSets;
-                msg.animationId          = 1;
-                msg.blend                = ANIMATION_BLEND_RESET;
-                msg.blendFrames          = 0;
-                msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
-                work->grabStep     = 1;
+                playerAnimation.source.sets          = _gActor400500PlayerAnimationSets;
+                playerAnimation.animationId          = ACTOR_400500_PLAYER_ANIM_CAUGHT;
+                playerAnimation.blend                = ANIMATION_BLEND_RESET;
+                playerAnimation.blendFrames          = 0;
+                playerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &playerAnimation, 0);
+                work->grabStep     = ACTOR_400500_GRAB_STEP_CAUGHT;
                 Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
                 work->playerCaught = 1;
             }
         }
     }
-    if (((s16)work->stateFrames == 0xE) && (work->playerCaught == 0)) {
-        _actor400500RequestAnimBlend(arg0, ACTOR_400500_ANIM_GRAB_MISS);
+    if (((s16)work->stateFrames == ACTOR_400500_GRAB_MISS_TICK) && (work->playerCaught == 0)) {
+        _actor400500RequestAnimBlend(task, ACTOR_400500_ANIM_GRAB_MISS);
         work->stateFrames = 0;
-        _actor400500RequestCloakFade(arg0, ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_HIDE);
+        _actor400500RequestCloakFade(task, ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_HIDE);
         work->subState = work->subState + 1;
     }
-    _actor400500TurnPartWorldYaw(&arg0->extra.tmd->coords[6], work->armReachAngle);
-    _actor400500TurnPartWorldYaw(&arg0->extra.tmd->coords[9], work->armReachAngle);
-    if (((u32)(work->stateFrames - 7) < 4U) && (work->playerCaught == 1)) {
-        _actor400500PositionGrabbedPlayer(arg0, ACTOR_400500_GRAB_POSITION_EASE);
+    _actor400500TurnPartWorldYaw(&task->extra.tmd->coords[ACTOR_400500_PART_RIGHT_ARM_AIM], work->armReachAngle);
+    _actor400500TurnPartWorldYaw(&task->extra.tmd->coords[ACTOR_400500_PART_LEFT_ARM_AIM], work->armReachAngle);
+    // Unsigned subtraction keeps each placement window closed before its start.
+    if (((u32)(work->stateFrames - ACTOR_400500_GRAB_CATCH_TICK) < ACTOR_400500_GRAB_EASE_TICKS) && (work->playerCaught == 1)) {
+        _actor400500PositionGrabbedPlayer(task, ACTOR_400500_GRAB_POSITION_EASE);
     }
-    if (((u32)(work->stateFrames - 0xB) < 0x14U) && (work->playerCaught == 1)) {
-        _actor400500PositionGrabbedPlayer(arg0, ACTOR_400500_GRAB_POSITION_SNAP);
+    if (((u32)(work->stateFrames - ACTOR_400500_GRAB_SNAP_START_TICK) < ACTOR_400500_GRAB_SNAP_TICKS) && (work->playerCaught == 1)) {
+        _actor400500PositionGrabbedPlayer(task, ACTOR_400500_GRAB_POSITION_SNAP);
     }
-    if (((s16)work->stateFrames == 0xC) && (work->playerCaught != 0)) {
-        _actor400500PlayPlacedSound(arg0, ACTOR_400500_SOUND_GRAB_FRAME_12);
+    if (((s16)work->stateFrames == ACTOR_400500_GRAB_FIRST_SOUND_TICK) && (work->playerCaught != 0)) {
+        _actor400500PlayPlacedSound(task, ACTOR_400500_SOUND_GRAB_FRAME_12);
     }
-    if ((s16)work->stateFrames == 0x1E) {
-        _actor400500PlayPlacedSound(arg0, ACTOR_400500_SOUND_GRAB_FRAME_30);
+    if ((s16)work->stateFrames == ACTOR_400500_GRAB_SECOND_SOUND_TICK) {
+        _actor400500PlayPlacedSound(task, ACTOR_400500_SOUND_GRAB_FRAME_30);
     }
-    if ((s16)work->stateFrames == 0x2A) {
-        padScriptSpawnVariableMotorRamp(8, 0xC0U, 8U);
-        _actor400500PlayPlacedSound(arg0, ACTOR_400500_SOUND_GRAB_FRAME_42);
+    if ((s16)work->stateFrames == ACTOR_400500_GRAB_LAST_SOUND_TICK) {
+        padScriptSpawnVariableMotorRamp(ACTOR_400500_GRAB_END_RUMBLE_TICKS, ACTOR_400500_GRAB_END_RUMBLE_START_INTENSITY, ACTOR_400500_GRAB_END_RUMBLE_END_INTENSITY);
+        _actor400500PlayPlacedSound(task, ACTOR_400500_SOUND_GRAB_FRAME_42);
     }
-    if ((s16)work->stateFrames == 0x1F) {
-        padScriptSpawnVariableMotorRamp(6, 0xFFU, 0x80U);
-        if (_damageApplyEnemyAttackToPlayer(enemy, ACTOR400500_ATTACK_GRAB) != 0) {
-            player->state    = 0xA;
+    if ((s16)work->stateFrames == ACTOR_400500_GRAB_DAMAGE_TICK) {
+        padScriptSpawnVariableMotorRamp(ACTOR_400500_GRAB_DAMAGE_RUMBLE_TICKS, ACTOR_400500_GRAB_DAMAGE_RUMBLE_START_INTENSITY, ACTOR_400500_GRAB_DAMAGE_RUMBLE_END_INTENSITY);
+        if (_damageApplyEnemyAttackToPlayer(enemy, ACTOR_400500_ATTACK_GRAB) != 0) {
+            // Keep child playback active at zero HP without the ordinary death-pose reset.
+            player->state    = ACTOR_400500_PLAYER_FATAL_PLAYBACK_STATE;
             work->grabLanded = 1;
         }
     }
-    hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        _actor400500SetState(arg0, ACTOR_400500_STATE_CRAWL, 0);
-        work->attackCooldown = 0x3C;
-        work->body.radius    = 0x260;
+    animationEnded = _actor400500HasAnimBoundary(task);
+    if (animationEnded) {
+        _actor400500SetState(task, ACTOR_400500_STATE_CRAWL, ACTOR_400500_CRAWL_STEP_SELECT);
+        work->attackCooldown = ACTOR_400500_ATTACK_COOLDOWN_TICKS;
+        work->body.radius    = ACTOR_400500_GRAB_BODY_RADIUS;
     }
 }
 
@@ -4542,10 +4629,10 @@ static void _actor400500FinishGrabRecovery(Task* task)
     }
 }
 
-/// Sub-state handlers `func_actor_400500_8013BA24` copies onto the stack and runs by `subState`.
+/// Sub-state handlers `_actor400500TickGrabState` copies onto the stack and runs by `subState`.
 static const TaskFuncTable3 D_actor_400500_80131EE4 = { {
     _actor400500StartGrab,
-    func_actor_400500_8013771C,
+    _actor400500TickGrab,
     _actor400500FinishGrabRecovery,
 } };
 
@@ -5364,18 +5451,18 @@ static void _actor400500StartStatusHoldRecoil(Task* task)
     }
 }
 
-/// State handlers `func_actor_400500_8013A700` copies onto the stack and runs
+/// State handlers `_actor400500TickDeathTask` copies onto the stack and runs
 /// by `state`.
 static const TaskFuncTable10 D_actor_400500_80131F7C = { {
     _actor400500StartDeath,
     _actor400500WaitDeathAnimation,
     _actor400500PrepareDeathShrink,
     _actor400500WaitDeathShrinkDelay,
-    func_actor_400500_8013ABE4,
+    _actor400500TickDeathShrink,
     _actor400500BeginTeardown,
     _actor400500HideBurstBody,
     _actor400500WaitBurstBufferDelay,
-    func_actor_400500_8013DA68,
+    _actor400500ReleaseBurstBufferAndSpawnFragments,
     _actor400500BeginBurstTeardown,
 } };
 
@@ -5404,26 +5491,31 @@ static inline void _actor400500UpdateColor(Task* task, const GfxCoord* coord, co
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-static void func_actor_400500_8013A700(Task* arg0)
+/// Dispatches the Stalker's death sequence and keeps its lighting and shadows current.
+///
+/// Requires live work/model and a death-state index 0..9. Hidden combat hides
+/// the body and returns; paused combat refreshes presentation without advancing
+/// the death state. Death callbacks retain work/model ownership for teardown.
+static void _actor400500TickDeathTask(Task* task)
 {
-    TmdObject*                   extra;
+    TmdObject*                   model;
     _Actor400500GrayStalkerWork* work;
-    TaskFuncTable10              sp;
+    TaskFuncTable10              states;
 
-    extra = arg0->extra.tmd;
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    sp    = D_actor_400500_80131F7C;
+    model  = task->extra.tmd;
+    work   = task->work;
+    states = D_actor_400500_80131F7C;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            sp.funcs[(s16)work->state](arg0);
+            states.funcs[(s16)work->state](task);
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _actor400500UpdateColor(arg0, &arg0->extra.tmd->coords[1], arg0->extra.tmd);
+            _actor400500UpdateColor(task, &task->extra.tmd->coords[1], task->extra.tmd);
             if (work->shadowShade != 0) {
-                _actor400500DrawLimbShadows(arg0, -0xFA0, (u8)(work->shadowShade >> 2));
-                _actor400500DrawLimbShadows(arg0, -0x3E8, (u8)work->shadowShade);
+                _actor400500DrawLimbShadows(task, ACTOR_400500_CRAWL_CEILING_Y, (u8)(work->shadowShade >> 2));
+                _actor400500DrawLimbShadows(task, ACTOR_400500_FLOOR_Y, (u8)work->shadowShade);
             }
             return;
     }
@@ -5488,42 +5580,56 @@ static void _actor400500WaitDeathAnimation(Task* task)
     }
 }
 
-static void func_actor_400500_8013ABE4(Task* arg0)
+/// Shrinks the death pose vertically while fading it into the environment layer.
+///
+/// Requires the root matrix and Q12 scale saved by shrink preparation and its
+/// cleared tick counter. Each tick subtracts 48 from Y scale and reapplies the
+/// saved matrix; X/Z stay at Q12 unity. Tick 16 spawns corpse burn at the root,
+/// and tick 65 hides the body and advances to teardown. The burn controller
+/// uses placement copied at spawn; signed-halfword wrapping is retained.
+static void _actor400500TickDeathShrink(Task* task)
 {
+    enum { ACTOR_400500_DEATH_CLOAK_LEVEL = 255,
+           ACTOR_400500_DEATH_FADE_SHIFT  = 4,
+           ACTOR_400500_DEATH_SCALE_STEP  = 48,
+           ACTOR_400500_DEATH_BURN_TICK   = 16,
+           ACTOR_400500_DEATH_HIDE_TICK   = 65,
+           ACTOR_400500_DEATH_BURN_BURSTS = 5 };
     _Actor400500GrayStalkerWork* work;
     TmdObject*                   model;
-    GfxCoord*                    coord;
+    GfxCoord*                    rootCoord;
     VECTOR                       scale;
-    SVECTOR                      pos;
-    u16                          frame;
+    SVECTOR                      burnOffset;
+    u16                          elapsedTicks;
 
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    model = arg0->extra.tmd;
-    coord = model->coords;
+    work      = task->work;
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
 
-    work->cloakLevel          = (u16)work->cloakLevel + ((s16)(0xFF - (u16)work->cloakLevel) >> 4);
-    work->colorBlend          = (u16)work->colorBlend + ((s16) - (u16)work->colorBlend >> 4);
-    work->shadowShade         = (u16)work->shadowShade + (-work->shadowShade >> 4);
+    work->cloakLevel          = (u16)work->cloakLevel + ((s16)(ACTOR_400500_DEATH_CLOAK_LEVEL - (u16)work->cloakLevel) >> ACTOR_400500_DEATH_FADE_SHIFT);
+    work->colorBlend          = (u16)work->colorBlend + ((s16) - (u16)work->colorBlend >> ACTOR_400500_DEATH_FADE_SHIFT);
+    work->shadowShade         = (u16)work->shadowShade + (-work->shadowShade >> ACTOR_400500_DEATH_FADE_SHIFT);
     model->shading.colorBlend = work->colorBlend;
     modelLightingSetLayerMaterials(work->cloakLevel);
 
-    work->shrinkScaleY = (u16)work->shrinkScaleY - 0x30;
-    scale.vx           = 0x1000;
+    // Rescale the saved pose each tick so shrink never compounds on the prior frame.
+    work->shrinkScaleY = (u16)work->shrinkScaleY - ACTOR_400500_DEATH_SCALE_STEP;
+    scale.vx           = ONE;
     scale.vy           = work->shrinkScaleY;
-    scale.vz           = 0x1000;
-    coord->coord       = work->savedRootMtx;
-    ScaleMatrix(&coord->coord, &scale);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    scale.vz           = ONE;
+    rootCoord->coord   = work->savedRootMtx;
+    ScaleMatrix(&rootCoord->coord, &scale);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    frame             = work->stateFrames + 1;
-    work->stateFrames = frame;
-    if ((s16)frame == 0x10) {
-        pos.vx = 0;
-        pos.vy = 0;
-        pos.vz = 0;
-        effectSpawn(EFFECT_CORPSE_BURN, coord, 5, &pos);
+    elapsedTicks      = work->stateFrames + 1;
+    work->stateFrames = elapsedTicks;
+    if ((s16)elapsedTicks == ACTOR_400500_DEATH_BURN_TICK) {
+        burnOffset.vx = 0;
+        burnOffset.vy = 0;
+        burnOffset.vz = 0;
+        effectSpawn(EFFECT_CORPSE_BURN, rootCoord, ACTOR_400500_DEATH_BURN_BURSTS, &burnOffset);
     }
-    if ((s16)work->stateFrames >= 0x41) {
+    if ((s16)work->stateFrames >= ACTOR_400500_DEATH_HIDE_TICK) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->state   = work->state + 1;
     }
@@ -5904,20 +6010,25 @@ static s32 _actor400500LocalizeWorldRotation(const GfxCoord* joint, MATRIX* worl
 
 #include "../../shared/coord_math_local_to_world.inc.c"
 
-static void func_actor_400500_8013BA24(Task* arg0)
+/// Dispatches the grab's start, attack or missed-grab recovery and discards pending hit reactions.
+///
+/// Requires live work and a grab sub-state 0..2. The selected step owns animation
+/// ticking. Afterwards, clears hitTaken, its pending reaction and a ceiling-fall
+/// request; knockdown and the last hit's reaction remain available to later states.
+static void _actor400500TickGrabState(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    TaskFuncTable3               sp;
+    _Actor400500GrayStalkerWork* reactionWork;
+    TaskFuncTable3               steps;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
-    sp   = D_actor_400500_80131EE4;
-    sp.funcs[(s16)work->subState](arg0);
-    work2                     = (_Actor400500GrayStalkerWork*)arg0->work;
-    work2->hitTaken           = 0;
-    work2->hitReaction        = ACTOR_400500_HIT_REACTION_NONE;
-    work2                     = (_Actor400500GrayStalkerWork*)arg0->work;
-    work2->ceilingFallPending = 0;
+    work  = task->work;
+    steps = D_actor_400500_80131EE4;
+    steps.funcs[(s16)work->subState](task);
+    reactionWork                     = task->work;
+    reactionWork->hitTaken           = 0;
+    reactionWork->hitReaction        = ACTOR_400500_HIT_REACTION_NONE;
+    reactionWork                     = task->work;
+    reactionWork->ceilingFallPending = 0;
 }
 
 /// Holds a non-blast ceiling-crawl death until the body falls and lands.
@@ -7223,16 +7334,22 @@ static void _actor400500WaitBurstBufferDelay(Task* task)
     }
 }
 
-static void func_actor_400500_8013DA68(Task* arg0)
+/// Releases the burst body's primitive buffer and creates its independent death fragments.
+///
+/// Requires the hidden live body after the burst delay. Prevents automatic
+/// buffer reallocation before spawning effects, while retaining coordinates,
+/// texture placement and loaded resources for the fragments. Advances the
+/// death state only after all spawn attempts; work remains owned by the task.
+static void _actor400500ReleaseBurstBufferAndSpawnFragments(Task* task)
 {
     TmdObject*                   model;
     _Actor400500GrayStalkerWork* work;
 
-    model = arg0->extra.tmd;
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
+    model = task->extra.tmd;
+    work  = task->work;
     tmdFreePrimitiveBuffer(model);
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    _actor400500SpawnDeathFragments(arg0);
+    _actor400500SpawnDeathFragments(task);
     work->state = work->state + 1;
 }
 
@@ -7445,11 +7562,13 @@ static void _actor400500CopyRotation(const MATRIX* source, MATRIX* destination)
     destination->m[2][2] = source->m[2][2];
 }
 
-/// Per-frame entry point of the actor's task: runs the handler its state
-/// selects from `D_actor_400500_80131E4C` - set-up, the per-frame state
-/// machine, the death sequence and the post-death timeout. The table is a
-/// local, so GCC copies it from `.rodata` onto the stack every frame.
-void func_actor_400500_8013DE98(Task* task)
+/// Runs the Gray Stalker task's initialization, combat, death or teardown handler.
+///
+/// Task state must be 0..3. Initialization acquires work/model resources;
+/// subsequent states retain them until delayed teardown destroys the task.
+/// Dispatch copies the four callbacks by value and accesses nothing after
+/// the selected callback, which may end the task's lifetime.
+static void _actor400500Task(Task* task)
 {
     TaskFuncTable4 states;
 
