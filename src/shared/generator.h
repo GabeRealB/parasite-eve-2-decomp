@@ -163,8 +163,8 @@ typedef struct {
 } GeneratorViewSound;
 STATIC_ASSERT_SIZEOF(GeneratorViewSound, 0x4);
 
-void generatorDeathState(Enemy* arg0, Task* arg1);
-void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1);
-void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1);
+void        generatorDeathState(Enemy* arg0, Task* arg1);
+static void _generatorLifeSupportSpawn(Enemy* enemy, Task* task);
+static void _generatorLifeSupportTeardown(Enemy* enemy, Task* task);
 
 #endif /* SRC_SHARED_GENERATOR_H */

@@ -1,9 +1,13 @@
 /* Part of the water tank library; see water_tank.h. */
 
-/// Advances the room's yaw spring, retaining all random draws and signed arithmetic.
+/// Advances the water tank's randomly driven, damped yaw motion.
 ///
-/// The four room words are initialized by the room's storage. The target changes
-/// only on the first random test; yaw accumulates in 1/256 matrix-angle units.
+/// Requires the room's persistent yaw words and SDK random state. One draw
+/// selects a target change on the zero bucket of rand()*100/32768; a second
+/// chooses a random target below 80 or zero, and only the former takes a third
+/// draw. The step approaches the target by 256 even if it overshoots. Velocity
+/// uses signed 19/20 damping with truncation toward zero; yaw accumulates in
+/// 1/256 of a 4096th-turn angle. No angle wrapping or saturation is applied.
 static inline void _waterTankAdvanceSway(void)
 {
     enum { WATER_TANK_YAW_STEP               = 256,

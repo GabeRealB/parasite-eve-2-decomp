@@ -21,8 +21,10 @@ STATIC_ASSERT_SIZEOF(_GrenadeShellFlightScratch, 0x38);
 
 /// Integrates Q12 direction by the positive integer half of the flight divisor.
 ///
-/// Stores three whole-coordinate steps and adds them to local translation;
-/// integer division truncates toward zero. Borrows live work/root/scratch.
+/// The signed integer half must be nonzero and positive. Division truncates
+/// toward zero, stores three whole game-coordinate steps and adds them to the
+/// root's parent-frame translation. Requires live work/root and a reserved
+/// flight scratch block; the caller owns its release and cache invalidation.
 static inline void _grenadeShellIntegrateFlight(WeaponGrenadeWork* work, GfxCoord* coord, _GrenadeShellFlightScratch* scratch)
 {
     scratch->delta.vector.vx = work->dir.vx / work->flightTimer.halves.integer;

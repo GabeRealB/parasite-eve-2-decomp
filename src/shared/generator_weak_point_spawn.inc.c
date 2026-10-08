@@ -1,69 +1,78 @@
 /* Part of the Generator library; see generator.h. */
 
-/// Spawn state of the enemy: allocates its `GeneratorLifeSupportWork`, seeds its
-/// coordinate's translation from the kind's entry in
-/// `gGeneratorLifeSupportPos`, links it into `Gp_ObjLists[2]`, and raises one of
-/// the two per-enemy death flags. A failed allocation tears the enemy down
-/// instead and leaves the task on this handler; otherwise the task moves to the
-/// tick handler (`state` 1).
-void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
+/// Creates the Generator's targetable Life Support sphere and marks it intact.
+///
+/// Requires a coordinate-body child of a live Generator task whose kind is
+/// GENERATOR_BETA or GENERATOR_PROTO. Positions use world game units beneath
+/// the view. Owns zeroed part work and one contact slot until enemy teardown;
+/// the parent must outlive it. Hides the room's Life Support sprites, clears
+/// its part-down flag and enters the active state. Allocation failure destroys
+/// the child before linking any target or collision records.
+static void _generatorLifeSupportSpawn(Enemy* enemy, Task* task)
 {
-    TmdObject*                obj;
-    GeneratorWork*            work;
+    enum {
+        GENERATOR_LIFE_SUPPORT_RADIUS               = 200,
+        GENERATOR_LIFE_SUPPORT_HIT_EFFECT_MAGNITUDE = 1280,
+        GENERATOR_LIFE_SUPPORT_HIT_EFFECT_COUNT     = 2
+    };
+    GeneratorWork*            parentWork;
+    GeneratorWork*            reloadedParentWork;
     GeneratorLifeSupportWork* part;
     GfxCoord*                 coord;
     WorldCollisionContact*    contacts;
     s32                       flag;
-    u16                       type;
+    s16                       kind;
 
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
-    work  = arg1->parent->work;
-    part  = memCalloc(sizeof(GeneratorLifeSupportWork), 0);
+    coord      = task->extra.coordBody->coord;
+    parentWork = task->parent->work;
+    part       = memCalloc(sizeof(GeneratorLifeSupportWork), 0);
     if (part == NULL) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
-    arg1->work          = part;
+    task->work          = part;
     coord->parent       = &gGfxViewCoord;
-    coord->coord.t[0]   = gGeneratorLifeSupportPos[work->kind].x;
-    coord->coord.t[1]   = gGeneratorLifeSupportPos[work->kind].y;
-    coord->coord.t[2]   = gGeneratorLifeSupportPos[work->kind].z;
+    coord->coord.t[0]   = gGeneratorLifeSupportPos[parentWork->kind].x;
+    coord->coord.t[1]   = gGeneratorLifeSupportPos[parentWork->kind].y;
+    coord->coord.t[2]   = gGeneratorLifeSupportPos[parentWork->kind].z;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    arg0->field_4       = &coord->coord;
-    arg0->field_48      = 0;
-    worldTargetLinkNode(&arg0->node);
+    enemy->field_4      = &coord->coord;
+    enemy->field_48     = 0;
+    worldTargetLinkNode(&enemy->node);
     contacts                    = part->contacts;
-    arg0->coord                 = coord;
-    arg0->bodyPos.vx            = 0;
-    arg0->bodyPos.vy            = 0;
-    arg0->bodyPos.vz            = 0;
-    arg0->param                 = &gGeneratorLifeSupportParams;
-    arg0->recs                  = contacts;
-    arg0->hp                    = gGeneratorLifeSupportParams.hpMax;
-    part->effectArg.spawnArgLo  = 0x500;
+    enemy->coord                = coord;
+    enemy->bodyPos.vx           = 0;
+    enemy->bodyPos.vy           = 0;
+    enemy->bodyPos.vz           = 0;
+    enemy->param                = &gGeneratorLifeSupportParams;
+    enemy->recs                 = contacts;
+    enemy->hp                   = gGeneratorLifeSupportParams.hpMax;
+    part->effectArg.spawnArgLo  = GENERATOR_LIFE_SUPPORT_HIT_EFFECT_MAGNITUDE;
     part->effectArg.coord       = coord;
-    part->effectArg.spawnArgHi  = 2;
+    part->effectArg.spawnArgHi  = GENERATOR_LIFE_SUPPORT_HIT_EFFECT_COUNT;
     part->body.coord            = coord;
     part->body.context.contacts = contacts;
     part->body.pos.vx           = 0;
     part->body.pos.vy           = 0;
     part->body.pos.vz           = 0;
-    part->body.key              = ((GeneratorWork*)arg1->parent->work)->rootBody.key;
-    part->body.radius           = 0xC8;
-    part->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    // Inherit the parent's collision key for this independently linked sphere.
+    reloadedParentWork = task->parent->work;
+    part->body.key     = reloadedParentWork->rootBody.key;
+    part->body.radius  = GENERATOR_LIFE_SUPPORT_RADIUS;
+    part->body.flags   = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &part->body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(part->contacts), 0);
     part->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    type              = work->kind;
-    part->kind        = type;
-    if ((type << 0x10) == 0) {
+    kind              = parentWork->kind;
+    part->kind        = kind;
+    // Use the same variant for sprite visibility and the saved intact flag.
+    if (kind == GENERATOR_BETA) {
         neoArkPowerPlant2SetView6SpritesHidden(1);
-        flag = 0x147;
+        flag = GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN;
     } else {
         neoArkPowerPlant1SetLifeSupportSpritesHidden(1);
-        flag = 0x148;
+        flag = GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN;
     }
     gameFlagSetNibble(flag, 0);
-    arg1->state = 1;
+    task->state = GENERATOR_TASK_ACTIVE;
 }

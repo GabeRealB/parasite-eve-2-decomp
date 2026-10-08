@@ -2,7 +2,7 @@
 Actor02400_D00004 = 0x80131E24;
 Actor02400_Jt00014 = 0x80131E34;
 Actor02400_D0003C = 0x80131E5C;
-fireballDrawGlow = 0x80131E84;
+_fireballDrawGlow = 0x80131E84;
 _fireballDrawGroundGlow = 0x801323DC;
 _actor02400InitBody = 0x8013277C;
 _actor02400ResolveBodyContacts = 0x80132A28; // type:func
@@ -17,7 +17,7 @@ _actor02400UpdateIdleSound = 0x801341D4;
 _actor02400TeardownBody = 0x80134318;
 _actor02400InitFireball = 0x801345B0;
 Actor02400_Fn02AF0 = 0x80134910;
-fireballSpawnEmber = 0x80134AC4;
+_fireballSpawnEmber = 0x80134AC4;
 _actor02400BodyTask = 0x80134BD0;
 _actor02400UpdateBody = 0x80134C2C;
 _actor02400UpdateBehavior = 0x80134CFC;

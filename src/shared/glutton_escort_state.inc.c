@@ -21,8 +21,10 @@ static __inline__ void _gluttonApplyEscortTextureOffsets(TmdObject* model)
 
 /// Shows the healing host and live escorts and restores their primitive buffers.
 ///
-/// Incinerator allocation is guarded by a missing buffer; dumping-hole calls
-/// allocation unconditionally. Requires live host/work/escort models.
+/// Clears the host's deferred-free countdown and all host/live-escort draw flags.
+/// Visits every escort slot, skipping NULLs. Incinerator allocation is guarded
+/// by a missing buffer; dumping-hole calls allocation unconditionally. Requires
+/// live host/work/escort models; primitive-buffer ownership stays with each model.
 static inline void _gluttonPrepareHealModels(Task* task)
 {
     GluttonWork* drawWork;

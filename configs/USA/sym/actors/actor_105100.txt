@@ -92,9 +92,9 @@ D_actor_105100_801414E0 = 0x801414E0; // size:0x38 defined:True
 shelterB6TrainingRoomSpawnShieldArcs = 0x8018294C; // type:func absolute:True owner=shelter_b6_training_room
 
 shelterB6TrainingRoomDrawSummonBeam = 0x8017FC40; // type:func absolute:True owner=shelter_b6_training_room
-fireballDrawGlow = 0x80131EBC; // type:func
+_fireballDrawGlow = 0x80131EBC; // type:func
 _fireballDrawGroundGlow = 0x80132414; // type:func
-fireballSpawnEmber = 0x80135CEC; // type:func
+_fireballSpawnEmber = 0x80135CEC; // type:func
 _modelPlacementSetScaled = 0x80136574; // type:func
 _actor105100BeamMovePair = 0x80135674; // type:func
 _actor105100BeamMoveTriple = 0x801359b4; // type:func

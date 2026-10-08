@@ -2169,7 +2169,7 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
     parentWork = (arg1->parent)->work;
     switch (gSceneCombatState.actorControl) {
         case 1:
-            fireballDrawGlow(coord, work->glowSize);
+            _fireballDrawGlow(coord, work->glowSize);
             return;
         case 2:
             return;
@@ -2231,7 +2231,7 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            fireballDrawGlow(coord, work->glowSize);
+            _fireballDrawGlow(coord, work->glowSize);
             break;
         case ACTOR_105100_FIREBALL_LAUNCH:
             // Turn the coordinate about its own X: its rotation times the
@@ -2263,7 +2263,7 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            fireballDrawGlow(coord, work->glowSize);
+            _fireballDrawGlow(coord, work->glowSize);
             break;
         case ACTOR_105100_FIREBALL_AIM:
             if (++work->timer >= 3) {
@@ -2277,7 +2277,7 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            fireballDrawGlow(coord, work->glowSize);
+            _fireballDrawGlow(coord, work->glowSize);
             break;
         case ACTOR_105100_FIREBALL_FLY:
             if (++work->timer == 4) {
@@ -2297,7 +2297,7 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
             coord->coord.t[2]  += (coord->coord.m[2][2] * work->speed) >> 12;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            fireballDrawGlow(coord, work->glowSize);
+            _fireballDrawGlow(coord, work->glowSize);
             if (work->contacts[0].key.value != 0 || work->timer >= 0x1A) {
                 // Become the burst: stop sweeping the room and carry the burst's attack.
                 work->sweepBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);

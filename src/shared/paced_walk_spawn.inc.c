@@ -1,14 +1,16 @@
 /* Part of the paced walk library; see paced_walk.h. */
 
-/// Binds work-owned matrices and samples cached root XYZ with Y minus 800.
+/// Binds a paced walker's lighting matrices and samples its cached root position.
 ///
-/// Does not compose the root; the model borrows matrices through task teardown.
-/// Requires live model/work/root and initialized room-light and scratch/GTE state.
+/// The model borrows work-owned matrices until task teardown. Samples three
+/// lights at cached XYZ with 800 game units subtracted from Y, retaining that
+/// composition frame without refreshing it. Requires live model/work/root,
+/// initialized room-light and scratch/GTE state and storage outside scratch.
 static inline void _pacedWalkInitializeModelLighting(TmdObject* model, PacedWalkWork* work, const GfxCoord* rootCoord)
 {
     enum { PACED_WALK_SPAWN_LIGHT_SAMPLE_Y_OFFSET = 800,
            PACED_WALK_LIGHT_COUNT                 = 3 };
-    VECTOR lightingSample;
+    VECTOR3 lightingSample;
     model->lightMtx   = &work->light;
     model->colorMtx   = &work->color;
     lightingSample.vx = rootCoord->workm.t[0];

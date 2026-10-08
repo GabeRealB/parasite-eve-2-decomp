@@ -1,9 +1,12 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Tests the spinner's horizontal offset against its current movement radius.
+/// Tests whether a spinner's XZ target offset meets its pre-acceleration chase radius.
 ///
-/// Needs twelve free scratch bytes and a squared XZ sum that fits s32.
-/// Restores before the final comparison, with no call that could reuse the block.
+/// Ignores Y; offset and signed-halfword chaseSpeed share game-coordinate units.
+/// Returns 1 at or beyond the squared radius, including equality and zero radius.
+/// Requires live inputs, twelve free word-aligned scratch bytes and an XZ
+/// squared sum representable as s32. Restores the exact cursor snapshot before
+/// its final read, with no intervening reservation or call that can reuse it.
 static inline s32 _gluttonSpinnerOutsideArrivalRadius(const SVECTOR* offset, const GluttonSpinnerWork* work)
 {
     OverlayRangeScratch* rangeSquares;

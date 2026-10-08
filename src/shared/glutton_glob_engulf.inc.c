@@ -2,8 +2,12 @@
 
 /// Requests a forty-press player hold and installs the glob's caught animation on acceptance.
 ///
-/// Borrows live projectile work, player and animation sets. The request is
-/// consumed synchronously; acceptance is reply zero and latches playerCaught.
+/// player must be the current player task returned by the player slot. The
+/// hold copies its forty direction-pad/face-button presses during dispatch;
+/// recovery rejects it without changing grab state. Acceptance is reply zero.
+/// Acceptance sets grab-active, dispatches caught clip 1 with a three-frame
+/// reset blend, then latches playerCaught. The animation table must remain live
+/// through playback. Requires live projectile work and animation context.
 static inline void _gluttonGlobRequestPlayerHold(GluttonProjectileWork* work, Task* player)
 {
     enum {

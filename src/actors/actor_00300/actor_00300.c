@@ -3344,7 +3344,7 @@ static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
     expired = 0;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            fireballDrawGlow(coord, 0x200);
+            _fireballDrawGlow(coord, 0x200);
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
@@ -3352,7 +3352,7 @@ static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
             coord->coord.t[0]  += (coord->coord.m[0][2] * 0x19) >> 8;
             coord->coord.t[2]  += (coord->coord.m[2][2] * 0x19) >> 8;
             actorRenderComposeCoord(coord);
-            fireballDrawGlow(coord, 0x200);
+            _fireballDrawGlow(coord, 0x200);
             id = work->sweepContacts[0].key.value;
             if (id != 0 && Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
                                              [gGameSession->location.loc.area - 1][worldCollisionSurfaceClassFromKey(id)]

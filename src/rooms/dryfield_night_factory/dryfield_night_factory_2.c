@@ -860,7 +860,7 @@ static const TaskFuncTable3 _gFactoryEntryStates = {
 /// the message handler's trigger.
 static const TaskFuncTable7 _gFactoryPanelStates = {
     {
-        factoryPanelInit,
+        _factoryPanelInit,
         _factoryPanelArmPrompt,
         _factoryPanelIdle,
         _factoryPanelOpenPrompt,

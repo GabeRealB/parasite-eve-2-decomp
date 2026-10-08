@@ -8,14 +8,18 @@
 #error "Bind ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW before including this fragment"
 #endif
 
-/// Composes the root and samples three lights from its cached frame at Y minus 800.
+/// Samples a paced walker's three lights at its composed root, with Y lowered by 800.
 ///
-/// Borrows the model and root for this synchronous query; no frame conversion.
-static inline void _actorRenderLightPacedWalkerRoot(TmdObject* model, GfxCoord* rootCoord)
+/// Requires a live model with writable lighting matrices and an acyclic root
+/// hierarchy. The sample keeps the full composition frame, including the view
+/// when it is an ancestor. Reads twelve sample bytes synchronously and retains
+/// no pointer. Requires initialized room lights, composition and scratch/GTE
+/// state, with input and output storage disjoint from the scratch stack.
+static inline void _actorRenderLightPacedWalkerRoot(const TmdObject* model, GfxCoord* rootCoord)
 {
     enum { PACED_WALK_LIGHT_SAMPLE_Y_OFFSET = 800,
            PACED_WALK_LIGHT_COUNT           = 3 };
-    VECTOR lightingSample;
+    VECTOR3 lightingSample;
     actorRenderComposeCoord(rootCoord);
     lightingSample.vx = rootCoord->workm.t[0];
     lightingSample.vy = rootCoord->workm.t[1] - PACED_WALK_LIGHT_SAMPLE_Y_OFFSET;

@@ -299,9 +299,9 @@ AnimationSet* gGeneratorAnimSets[4] = {
 /// hit reaction and teardown.
 static const EnemyTaskFuncTable3 gGeneratorLifeSupportStates = {
     {
-        generatorLifeSupportSpawn,
+        _generatorLifeSupportSpawn,
         _generatorLifeSupportHit,
-        generatorLifeSupportTeardown,
+        _generatorLifeSupportTeardown,
     },
 };
 

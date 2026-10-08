@@ -1,9 +1,11 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Emits the initial encounter puff and requests the idle animation once.
+/// Emits a command's initial puff and advances the requested idle animation.
 ///
-/// Borrows live task/work/root storage; counters and the next state stay with
-/// the command handler so restart-only stores retain their order.
+/// task must own work and rootCoord; both command paths invoke this once per
+/// accepted command. The puff copies the model-local collapse offset and uses
+/// extent 1024. Animation may continue an already selected idle clip rather
+/// than reset it. Requires the live animation rig and room-effect task bank.
 static inline void _sucklercephStartCommandPuff(Task* task, SucklercephWork* work, GfxCoord* rootCoord)
 {
     enum { SUCKLERCEPH_COMMAND_PUFF_SIZE = 1024 };

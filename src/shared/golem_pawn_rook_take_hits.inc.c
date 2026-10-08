@@ -16,9 +16,10 @@
 #define GOLEM_PAWN_ROOK_SHIELD_PE_ROWS     gGolemPawnRookWeakSpotHitsFlagged
 #endif
 
-/// Ends a hit-interrupted scream effect and clears the body's borrowed handle.
+/// Requests release of a hit-interrupted Silence flash and drops its borrowed handle.
 ///
-/// work and its non-NULL screamEffect must be live; ownership stays with the effect task.
+/// Requires live work and a non-NULL flash effect/task. State 3 releases the
+/// flash on its next running tick; paused effects retain it until resumed.
 static inline void _golemPawnRookEndHitScream(GolemPawnRookWork* work)
 {
     enum { GOLEM_PAWN_ROOK_HIT_SCREAM_END_STATE = 3 };

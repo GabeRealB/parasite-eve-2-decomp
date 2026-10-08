@@ -72,7 +72,7 @@ static void _factoryPanelWaitMove(Task* task);
 /// lift movement to settle.
 static const TaskFuncTable7 _gFactoryPanelStates = {
     {
-        factoryPanelInit,
+        _factoryPanelInit,
         _factoryPanelArmPrompt,
         _factoryPanelIdle,
         _factoryPanelOpenPrompt,

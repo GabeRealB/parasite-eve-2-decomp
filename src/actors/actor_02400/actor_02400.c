@@ -1555,7 +1555,7 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
     spawn = 0;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            fireballDrawGlow(coord, 0x100);
+            _fireballDrawGlow(coord, 0x100);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             return;
@@ -1565,7 +1565,7 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
             coord->coord.t[2]  += (work->direction.vz * 25) >> 9;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            fireballDrawGlow(coord, 0x100);
+            _fireballDrawGlow(coord, 0x100);
             rec = work->wallContacts[0].key.value;
             if ((rec != 0) &&
                 (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
