@@ -1,20 +1,25 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Raised-lift turn from 0 to a quarter turn: accelerates the yaw, overshoots,
-/// settles on 0x400 with start/stop sounds and notifies the panel. A button
-/// press after 11 frames snaps it to the end. Answers non-zero when finished.
-s32 factoryLiftTurnOut(Task* task)
+/// Advances the raised lift's outward quarter-turn and settles at yaw 0x400.
+///
+/// Requires the live lift work, model and room-owned panel-task slot. Uses
+/// 16.16 angle and velocity, with 4096 angle units per turn; overshoots the
+/// endpoint, reverses and clamps on return. START after
+/// `FACTORY_LIFT_SKIP_FRAMES` snaps to the endpoint. Rebuilds local yaw each
+/// frame. Returns 1 when already at rest or skipped, and 0 on the natural
+/// completion frame.
+static s32 _factoryLiftTurnOut(Task* task)
 {
-    FactoryLiftWork* work  = task->work;
-    GfxCoord*        coord = task->extra.tmd->coords;
-    s32              done  = 0;
+    FactoryLiftWork* work             = task->work;
+    GfxCoord*        coord            = task->extra.tmd->coords;
+    s32              movementComplete = 0;
 
     switch (work->yawStep) {
-        case 0:
+        case FACTORY_LIFT_STEP_RESET:
             work->yawVelocity = 0;
             work->yawStep++;
             break;
-        case 1:
+        case FACTORY_LIFT_STEP_START_SOUND:
             if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                 sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
@@ -22,7 +27,7 @@ s32 factoryLiftTurnOut(Task* task)
             }
             work->yawStep++;
             break;
-        case 2:
+        case FACTORY_LIFT_STEP_OUTBOUND:
             work->yawVelocity += 0x18000;
             if (work->yawVelocity > 0x40000) {
                 work->yawVelocity = 0x40000;
@@ -32,45 +37,30 @@ s32 factoryLiftTurnOut(Task* task)
                 work->yawStep++;
             }
             break;
-        case 3:
+        case FACTORY_LIFT_STEP_SETTLE:
             work->yawVelocity += -0x8000;
             if (work->yawVelocity < -0x20000) {
                 work->yawVelocity = -0x20000;
             }
             work->yaw.word += work->yawVelocity;
             if (work->yaw.word <= FACTORY_LIFT_YAW_TURNED) {
-                _factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
-                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                    sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                    sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                } else {
-                    sndEvtRequestStageScriptStop(SOUND_NIGHT_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                    sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                }
+                _factoryLiftFinishTurn(task, coord);
                 work->yaw.word = FACTORY_LIFT_YAW_TURNED;
                 work->yawStep++;
             }
             break;
         default:
-            done = 1;
+            movementComplete = 1;
             break;
     }
 
-    if ((u8)(work->yawStep - 1) < 3 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0 && work->moveFrames >= FACTORY_LIFT_SKIP_FRAMES) {
-        _factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
-        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-            sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-            sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-        } else {
-            sndEvtRequestStageScriptStop(SOUND_NIGHT_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-            sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-        }
-        done           = 1;
-        work->yaw.word = FACTORY_LIFT_YAW_TURNED;
-        work->yawStep  = 4;
+    // Skipping is allowed only during a moving phase and after the input delay.
+    if ((u8)(work->yawStep - FACTORY_LIFT_STEP_START_SOUND) < FACTORY_LIFT_STEP_REST - FACTORY_LIFT_STEP_START_SOUND && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0 && work->moveFrames >= FACTORY_LIFT_SKIP_FRAMES) {
+        _factoryLiftFinishTurn(task, coord);
+        movementComplete = 1;
+        work->yaw.word   = FACTORY_LIFT_YAW_TURNED;
+        work->yawStep    = FACTORY_LIFT_STEP_REST;
     }
-    gfxSetRotIdentity(&coord->coord);
-    RotMatrixY(work->yaw.halves.integer, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return done;
+    _factoryLiftRebuildYaw(work, coord);
+    return movementComplete;
 }

@@ -30,22 +30,22 @@ void factoryLiftUpdate(Task* task)
         work->moveFrames = 0;
     }
     if (flag & FACTORY_LIFT_POSITION_RAISED) {
-        factoryLiftRaise(task);
+        _factoryLiftRaise(task);
         if (flag & FACTORY_LIFT_POSITION_TURNED) {
-            factoryLiftTurnOut(task);
+            _factoryLiftTurnOut(task);
         } else {
-            factoryLiftTurnBack(task);
+            _factoryLiftTurnBack(task);
         }
     } else {
-        factoryLiftLower(task);
+        _factoryLiftLower(task);
         if (flag & FACTORY_LIFT_POSITION_TURNED) {
-            factoryLiftJamTurnOut(task);
+            _factoryLiftJamTurnOut(task);
         } else {
-            factoryLiftJamTurnBack(task);
+            _factoryLiftJamTurnBack(task);
         }
     }
     work->moveFrames++;
-    factoryLiftSyncCollision(task, 0, flag & FACTORY_LIFT_POSITION_TURNED);
+    _factoryLiftSyncCollision(task, 0, flag & FACTORY_LIFT_POSITION_TURNED);
     actorRenderComposeCoord(coord);
     worldCoordSetModelLighting(obj, coord->workm.t, 0, 3);
 }

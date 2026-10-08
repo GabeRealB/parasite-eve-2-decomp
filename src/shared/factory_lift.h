@@ -276,13 +276,6 @@ void factoryNightShowView11Sprite(s32 show);
 #endif
 
 void factoryLiftInit(Task* task);
-void factoryLiftSyncCollision(Task* task, s32 remapFaces, s32 useAltTemplate);
-s32  factoryLiftTurnOut(Task* task);
-s32  factoryLiftTurnBack(Task* task);
-s32  factoryLiftRaise(Task* task);
-s32  factoryLiftLower(Task* task);
-s32  factoryLiftJamTurnOut(Task* task);
-s32  factoryLiftJamTurnBack(Task* task);
 void factoryPowerScene(Task* task);
 void factoryWhiteoutScene(Task* task);
 /// Restores and then moves the factory barrier's two reserved collision faces.
@@ -317,7 +310,13 @@ void factoryPanelInit(Task* task);
 void factoryPanelOpenPrompt(Task* task);
 void factoryPanelPrompt(Task* task);
 
-void factoryLiftExit(Task* task);
+/// Dispatches the factory lift task's setup, frame update or teardown state.
+///
+/// Requires a live task with `Task::state` in 0..2; the three callbacks are
+/// copied onto the stack and indexed without a bounds check. Setup owns a
+/// `FactoryLiftWork` and a TMD model; movement updates borrow the room-owned
+/// panel-task slot passed in `Task::spawnArg2.pointer`. That slot must outlive
+/// the lift, and may hold NULL while no panel session is open.
 void factoryLiftRun(Task* task);
 /// Dispatches the hatch task's setup, per-frame update or teardown state.
 ///

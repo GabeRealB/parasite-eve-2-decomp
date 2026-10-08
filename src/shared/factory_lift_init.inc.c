@@ -42,13 +42,13 @@ void factoryLiftInit(Task* task)
     coord->coord.t[1] = work->y.halves.integer;
     coord->coord.t[2] = 0x1AAE;
     factoryLiftBindLighting(task);
-    factoryLiftSyncCollision(task, 1, 0);
+    _factoryLiftSyncCollision(task, 1, 0);
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         taskSpawnFromTable(gFactoryDaySpawnTable, 7, 0, task);
     } else {
         taskSpawnFromTable(gFactoryNightSpawnTable, 7, 0, task);
     }
-    task->exitCallback  = factoryLiftExit;
+    task->exitCallback  = _factoryLiftExit;
     task->killCountdown = 0;
     task->state++;
 }

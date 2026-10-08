@@ -47,8 +47,6 @@ void func_dryfield_factory_8017FDDC(Task*);
 
 void func_dryfield_factory_8018001C(Task*);
 
-void factoryLiftRun(Task*);
-
 void func_dryfield_factory_801807DC(Task*);
 
 void factoryCapScene(Task*);

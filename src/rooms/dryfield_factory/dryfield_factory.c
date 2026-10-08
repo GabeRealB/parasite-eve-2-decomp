@@ -62,7 +62,17 @@ static void _factoryEntryIdle(Task* task);
 
 static void _factoryHatchInit(Task* task);
 static void _factoryHatchUpdate(Task* task);
+static void _factoryLiftExit(Task* task);
+static void _factoryLiftSyncCollision(Task* task, s32 remapFaces, s32 useTurnedTemplate);
+static s32  _factoryLiftTurnOut(Task* task);
+static s32  _factoryLiftTurnBack(Task* task);
+static s32  _factoryLiftRaise(Task* task);
+static s32  _factoryLiftLower(Task* task);
+static s32  _factoryLiftJamTurnOut(Task* task);
+static s32  _factoryLiftJamTurnBack(Task* task);
 static void _factoryLiftNotifyPanel(Task* panelTask);
+
+#include "../../shared/factory_lift_motion.inc.c"
 
 /// The pending event message and request the gate latched, the flag saying
 /// one was latched, and the descriptor of the task the gate spawns to play it.
