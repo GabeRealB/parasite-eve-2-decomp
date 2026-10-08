@@ -100266,7 +100266,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 Session: `nonmatchings/_actor143000AutoTypeKeypadCode-vacuum` (`base_3_diff`).
 ## A pre-loop guard written with a constant folds to `sltiu`; written with the loop variable it stays `li` + `sltu`
 
-`func_actor_560800_80134B14` opens its `do`/`while` with
+`_actor560800FireKyleGun`'s inlined `_actor560800RestartCastAnimationAtRate` opens its `do`/`while` with
 
 ```
 li    v0,1
@@ -100433,7 +100433,7 @@ move  a0, s1
 
 The natural source - three stores into the work block, then `i = 1;` and the
 `if (i < count) { do { ... } while (...) }` shape the matched
-`func_actor_560800_80134B14` uses one unit over - scores 87.7%: identical
+`_actor560800FireKyleGun` uses one unit over - scores 87.7%: identical
 instruction set, but `li s0,1` is scheduled at the head of the block and the
 `beqz` delay slot takes the `field_4BE` store instead. sched1 is the pass that
 moves it - its output has `i = 1` above the three stores, because a bare
@@ -105902,7 +105902,7 @@ restructuring the control flow.
 
 ## Inline helpers: constant arguments still become pseudos, and cross-jump partners follow `return` placement
 
-Seen in `func_actor_560800_80133970` (a 570-insn request switch built from inline helpers).
+Seen in `_actor560800HandlePlayerCue` (a 570-insn request switch built from inline helpers).
 
 - **Constant arguments are copied into a register.** `expand_inline_function`
   (integrate.c ~1575) runs `copy_to_mode_reg` for every parameter held in a register,
@@ -105914,7 +105914,7 @@ Seen in `func_actor_560800_80133970` (a 570-insn request switch built from inlin
   the body. `const` on the parameter changes nothing. An `s16` parameter also works,
   because an HImode pseudo is not merged with an SImode constant.
 - **Scalar symbol loads skip store dependencies.** In sched1, a store to
-  `work->field_2C` (in-struct MEM) does not conflict with a later load of a plain
+  `work->playerCue.counter` (in-struct MEM) does not conflict with a later load of a plain
   `extern MATRIX* D_80073B8C` (scalar MEM). The load was therefore moved ahead of the
   add and store. Declaring `extern MATRIX* D_80073B8C[1]` and reading `D_80073B8C[0]`
   makes the load in-struct, which keeps it after the store.
@@ -105923,12 +105923,12 @@ Seen in `func_actor_560800_80133970` (a 570-insn request switch built from inlin
   insn order, and takes the first candidate with at least 2 matching insns. Jumps
   redirected to a new label (uid >= max_uid) are not searched again. With identical
   anim tails in cases 16/19/28/33, the target merged only 16 into 33. The fix was
-  `work->field_28 = 0; return;` in cases 19, 28 and the last step of 35, in place of
+  `work->playerCue.id = 0; return;` in cases 19, 28 and the last step of 35, in place of
   `break`. This moves their jumps to the return label, so the chain offers different
   partners. The explicit clears are cross-jumped back into the shared clear. They also
   add refs to `work`, which moved `work` ahead of `index` in global allocation (s3/s4).
 
-## Builtin `abs()` can show up as swapped subtract operand registers alone (func_actor_560800_80136AA8)
+## Builtin `abs()` can show up as swapped subtract operand registers alone (_actor560800BendChainTowardTarget)
 
 Symptom: `d = a - b; if (d < 0) d = -d; if (d < 300)` produced the target's
 exact instructions and branches, but with `lh v1,a / lw v0,b / subu v0,v1,v0`
@@ -134542,7 +134542,7 @@ Evidence: tools/permuter_findings/func_actor_403000_8013B74C/,
 session `eab7eadfae0e48609c94162bc0c7d03d`, LEARNINGS.md and retained dumps.
 
 
-### A real loop's terminal return can prevent CSE following the next switch case (func_actor_560800_80134384, 2026-09-19)
+### A real loop's terminal return can prevent CSE following the next switch case (_actor560800HandleNo9Cue, 2026-09-19)
 
 The archived seed reproduced 99.248%. Reusing the matched sibling
 `_actor560800BlendCastAnimation` (u16 index, literal blend duration, existing
@@ -134582,7 +134582,7 @@ Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 
-### A loop-end boundary stops cse1 path equivalence, but cse2 can restore it (func_actor_560800_80134BFC, 2026-09-19)
+### A loop-end boundary stops cse1 path equivalence, but cse2 can restore it (_actor560800HandleKyleCue, 2026-09-19)
 
 Three blend-loop entry guards reused a sub-switch index known to equal 1. Two indices then crossed calls and took s3, whereas retail materializes a fresh `li v0,1` after `lhu v1,count`. The archived candidate rebuilt at 99.189%; guard UIDs 2390/2406/1975 show the substitution in `.cse`.
 
@@ -134593,7 +134593,7 @@ The matched workaround uses a literal HI input tied to an SI output:
 
 Two further constraints mattered. Initialize the separate u16 loop counter inside the successful guard: initializing it earlier lets reload reuse its s0=1 and adds a move. Read the count, then use `SOFT_BARRIER()` before the identity asm: merely reading count earlier (`base_8`) or adding it as an asm input (`base_9`) leaves the same li-before-load order and three extra nops. The explicit boundary (`base_10`) places reload's HI immediate after the count load, filling its delay slot. All 956 instructions then match. Existing `SOFT_TOUCH_REG(anim)` separately fixes case38 by preserving the sub0 pointer copy while sub1 retains the original pointer.
 
-Evidence: scratch `nonmatchings/func_actor_560800_80134BFC-vacuum/LEARNINGS.md`, dumps and experiment journal. `base_10.i` SHA256 `4600b357087d9360be29cb8d200baa10aff99a852e9364e638892d55984396cd`; normal-style port `base_11.i` SHA256 `f17afb7496261a9677c4d8e36332ee0cc5a57821ba674c7732963af82298e247`. Both score 100%, and the unscoped integration build passed. Original source spelling remains unresolved; no claim about scheduler hazard selection follows from the failed ordering variants.
+Evidence: scratch `nonmatchings/_actor560800HandleKyleCue-vacuum/LEARNINGS.md`, dumps and experiment journal. `base_10.i` SHA256 `4600b357087d9360be29cb8d200baa10aff99a852e9364e638892d55984396cd`; normal-style port `base_11.i` SHA256 `f17afb7496261a9677c4d8e36332ee0cc5a57821ba674c7732963af82298e247`. Both score 100%, and the unscoped integration build passed. Original source spelling remains unresolved; no claim about scheduler hazard selection follows from the failed ordering variants.
 
 **2026-10-07.** Superseded for the three blend guards: no asm. What the identity asm and the two barriers stood for is a basic-block boundary after the hold-counter store, see "A label that is gone from the image" at the end of this file. `SOFT_TOUCH_REG(anim)` is still there.
 
@@ -148679,7 +148679,7 @@ Not found: the natural second set. Tried: `s16 hp`, the difference
 Three open cases whose asm statements hide a small constant from cse. None was
 removed; what each one stands for is now known.
 
-**A literal in `case 1:` is replaced by the switch operand (func_actor_560800_80134BFC).**
+**A literal in `case 1:` is replaced by the switch operand (_actor560800HandleKyleCue).**
 `switch (step) { case 0: ...; step++; return; case 1: ... for (i = 1; i < n; i++)`
 compiles the loop's entry test as `sltu v0, <step reg>, n` instead of
 `li v0,1` / `sltu v0,v0,n`. cse follows the dispatch's taken `beq step, 1`
@@ -152825,7 +152825,7 @@ they fix the sched1 order, and that tells whether a statement order can reach
 it at all. Here the order needs a dependent of the address computation that
 leaves no instruction.
 
-## A label that is gone from the image: cse1, cse2 and sched1 all stopping at the same statement (func_actor_560800_80134BFC, `_actor560800ResetAnimHold`, 2026-10-07)
+## A label that is gone from the image: cse1, cse2 and sched1 all stopping at the same statement (_actor560800HandleKyleCue, `_actor560800ResetAnimHold`, 2026-10-07)
 
 **Was.** `Actor560800_BlendSlotsFirst` with `__asm__("" : "=r"(first) : "0"((u16)1))`
 for the loop pre-test `li v0,1` / `sltu v0,v0,count`, the same asm plus two

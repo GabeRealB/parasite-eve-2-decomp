@@ -16,6 +16,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
@@ -280,7 +281,7 @@ extern EvsCommand D_actor_560800_80171800[];
 /// Flag word whose bit 0 gates `_actor560800RaiseCarrier`'s sink step.
 extern s32 D_actor_560800_801752E8;
 
-/// Frame counter `func_actor_560800_80138FC8` raises by one per tick.
+/// Frame counter `_actor560800CarrierTask` raises by one per tick.
 extern s32 D_actor_560800_801752EC;
 
 extern Task* D_actor_560800_801757AC;
@@ -289,10 +290,10 @@ extern Task* D_actor_560800_801757AC;
 /// index.
 extern TaskDesc D_actor_560800_801718F0[];
 
-static void func_actor_560800_80133970(Task* arg0);
+static void _actor560800HandlePlayerCue(Task* task);
 static void _actor560800HandleEveCue(Task* task);
-static void func_actor_560800_80134384(Task* arg0);
-static void func_actor_560800_80134BFC(Task* arg0);
+static void _actor560800HandleNo9Cue(Task* task);
+static void _actor560800HandleKyleCue(Task* task);
 
 extern TaskDesc           D_actor_560800_8016EA28[];
 extern TaskDesc           D_actor_560800_8017575C[];
@@ -328,7 +329,7 @@ static void      _actor560800PlaceChainGroup(Task* task, s32 messageId, const Ac
 void             func_actor_560800_801384EC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void             func_actor_560800_801386D4(Task*);
 static void      _actor560800ApplyCarrierCommand(Task* task, s32 messageId, ActorCommand* command, s32 unusedArg);
-void             func_actor_560800_80138FC8(Task*);
+static void      _actor560800CarrierTask(Task* task);
 static void      _actor560800SetChainGroupDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 static void      _actor560800SetCarrierModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 static void      _actorMsgPlaceYawPitchRollCarrier(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArg);
@@ -431,7 +432,7 @@ void                func_actor_560800_80132F64(Task*);
 void                func_actor_560800_80133204(void);
 static void         _actor560800HideCastMember(u32 memberId);
 static void         _actor560800PlaceCastForCut(s32 cutId);
-void                func_actor_560800_80134B14(s32);
+static void         _actor560800FireKyleGun(s32 unusedArg);
 static void         _actor560800FinishScenePhase(s32 phaseId);
 void                func_actor_560800_80135D54(Task*);
 static void         _actor560800FadeOutTask(Task* task);
@@ -463,7 +464,7 @@ static void         _actor560800SelectThirdCapFile(void);
 static void         _actor560800DiscardTask(Task* task);
 
 static void _actor560800MovieTask(Task* task);
-void        func_actor_560800_80135F50(Task*);
+static void _actor560800StartMovieTask(Task* task);
 
 static TmdBone _gActor560800EveBreaMaskedBodySkeleton[19] = {
 #include "assets/eve_brea_masked_body_skeleton.inc"
@@ -2746,7 +2747,7 @@ static AnimationSet _gActor560800Animation3CBE0 = {
 };
 
 TaskDesc D_actor_560800_8016EA28[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_actor_560800_80135F50, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor560800StartMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor560800MovieTask, { .value = 0 } },
 };
 
@@ -3555,18 +3556,18 @@ EvsCommand D_actor_560800_8016F5E0[364] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800PostCastCue }, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80134B14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800FireKyleGun }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80134B14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800FireKyleGun }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendEveAnimation }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendCarrierCommand }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80134B14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800FireKyleGun }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80134B14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800FireKyleGun }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendCarrierCommand }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -4074,7 +4075,7 @@ TaskMessageEntry D_actor_560800_80175744[3] = {
 TaskDesc D_actor_560800_8017575C[4] = {
     { { { TASK_BODY_COORD, 192 } }, func_actor_560800_801386D4, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80137820, { .model = &_gActor560800Model40064 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80138FC8, { .model = &_gActor560800Model41AC4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800CarrierTask, { .model = &_gActor560800Model41AC4 } },
     { { { TASK_BODY_TMD, 192 } }, _actor560800FallingChainTask, { .model = &_gActor560800Model40E78 } },
 };
 
@@ -4129,6 +4130,12 @@ extern TaskMessageEntry D_actor_560800_80175744[3];
 /// Blend duration used by the scene's player requests and cast-chain changes.
 enum { ACTOR_560800_ANIMATION_BLEND_FRAMES = 10 };
 
+/// Pending cue sentinel and Kyle's handgun effect recipe (P229 flare/casing).
+enum {
+    ACTOR_560800_CUE_NONE        = 0,
+    ACTOR_560800_KYLE_GUN_EFFECT = 33,
+};
+
 /// The scripted shot removes this many HP without killing the player.
 enum { ACTOR_560800_SHOT_DAMAGE_HP = 50 };
 
@@ -4164,12 +4171,12 @@ static inline void _actor560800RestartPlayerAnimation(Task* task, u16 animationI
 static inline void _actor560800BlendPlayerAnimation(Task* task, u16 animationId, s32 blendFrames);
 static inline void _actor560800RestartPlayerWeaponAnimation(s16 animationId);
 static inline void _actor560800BlendPlayerWeaponAnimation(s32 animationId);
-static inline void Actor560800_SpawnSparksA(Task* task);
-static inline void Actor560800_SpawnSparksB(Task* task);
+static inline void _actor560800SpawnOuterPlayerDecals(Task* task);
+static inline void _actor560800SpawnInnerPlayerDecals(Task* task);
 static inline void _actor560800RestartCastAnimation(_Actor560800CastWork* work, u16 animationId);
 static inline void _actor560800RestartCastAnimationAtRate(Task* task, u16 animationId, u16 animationRate);
 static void        func_actor_560800_80135BD8(Task* arg0);
-static void        func_actor_560800_80136AA8(Task* arg0);
+static void        _actor560800BendChainTowardTarget(Task* task);
 static void        _actor560800InitChainModel(Task* task);
 static void        _actor560800RaiseCarrier(Task* task);
 static void        _actor560800CarryNo9Away(Task* task);
@@ -5093,68 +5100,81 @@ static inline void _actor560800BlendPlayerWeaponAnimation(s32 animationId)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
 }
 
-static inline void Actor560800_SpawnSparksA(Task* task)
-{
-    _Actor560800CutsceneWork* work;
-    SVECTOR                   vec;
-
-    work   = task->work;
-    vec.vx = 0x12C;
-    vec.vy = 0;
-    vec.vz = -0x1F4;
-    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000040, &vec);
-    vec.vx = 0x190;
-    vec.vy = 0;
-    vec.vz = -0x258;
-    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000030, &vec);
-    vec.vx = 0x12C;
-    vec.vy = 0;
-    vec.vz = -0x2BC;
-    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
-    vec.vx = 0x1C2;
-    vec.vy = 0;
-    vec.vz = -0x320;
-    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
-}
-
-static inline void Actor560800_SpawnSparksB(Task* task)
-{
-    _Actor560800CutsceneWork* work;
-    SVECTOR                   vec;
-
-    work   = task->work;
-    vec.vx = 0x12C;
-    vec.vy = 0;
-    vec.vz = -0xC8;
-    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000040, &vec);
-    vec.vx = 0x1F4;
-    vec.vy = 0;
-    vec.vz = -0x64;
-    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
-    vec.vx = 0x1C2;
-    vec.vy = 0;
-    vec.vz = 0;
-    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
-}
-
-/// Requests driven by `playerCue.id`, cleared once handled: the inline helpers play
-/// an animation on the task at `player` (0x3F4), post a sound through
-/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` (0x3E8) or spawn the 0x60046 spark effects on its part
-/// coordinates. 18 and 35 are two-step sequences on `playerCue.step` / `playerCue.counter`.
+/// Spawns four held ground decals farther from the player root.
 ///
-/// Shape notes, all needed for the match: helpers take only the arguments that
-/// vary, because an inlined parameter is copied to a pseudo even when constant
-/// and CSE would then share it; `gPlayerStatus.coordMtx` is read as a struct member so the load is
-/// in-struct and schedules after the `playerCue.counter` store; the explicit clears in 19,
-/// 28 and the last step of 35 decide which anim tails cross-jump together.
-static void func_actor_560800_80133970(Task* arg0)
+/// Requires live cutscene work and the player model root. Offsets use the root's
+/// local game-coordinate units: positive X and Z=-500..-800.
+/// The packed request selects CLUT 0, full brightness and a half-side of
+/// 64, 48, 32, 32 units. Placement snapshots the temporary offset; the decal
+/// task never follows its retained offset pointer. Effects live until cancelled.
+static inline void _actor560800SpawnOuterPlayerDecals(Task* task)
 {
     _Actor560800CutsceneWork* work;
+    SVECTOR                   offset;
 
-    work = arg0->work;
-    _actor560800AdvancePlayerAnimChain(arg0);
+    work      = task->work;
+    offset.vx = 0x12C;
+    offset.vy = 0;
+    offset.vz = -0x1F4;
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, (EFFECT_GROUND_DECAL_START_FULL_BRIGHT | 64), &offset);
+    offset.vx = 0x190;
+    offset.vy = 0;
+    offset.vz = -0x258;
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, (EFFECT_GROUND_DECAL_START_FULL_BRIGHT | 48), &offset);
+    offset.vx = 0x12C;
+    offset.vy = 0;
+    offset.vz = -0x2BC;
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, (EFFECT_GROUND_DECAL_START_FULL_BRIGHT | 32), &offset);
+    offset.vx = 0x1C2;
+    offset.vy = 0;
+    offset.vz = -0x320;
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, (EFFECT_GROUND_DECAL_START_FULL_BRIGHT | 32), &offset);
+}
+
+/// Spawns three held ground decals nearer the player root.
+///
+/// Requires live cutscene work and the player model root. Offsets use the root's
+/// local game-coordinate units: positive X and Z=-200..0.
+/// The packed request selects CLUT 0, full brightness and a half-side of
+/// 64, 32, 32 units. Placement snapshots the temporary offset; the decal
+/// task never follows its retained offset pointer. Effects live until cancelled.
+static inline void _actor560800SpawnInnerPlayerDecals(Task* task)
+{
+    _Actor560800CutsceneWork* work;
+    SVECTOR                   offset;
+
+    work      = task->work;
+    offset.vx = 0x12C;
+    offset.vy = 0;
+    offset.vz = -0xC8;
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, (EFFECT_GROUND_DECAL_START_FULL_BRIGHT | 64), &offset);
+    offset.vx = 0x1F4;
+    offset.vy = 0;
+    offset.vz = -0x64;
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, (EFFECT_GROUND_DECAL_START_FULL_BRIGHT | 32), &offset);
+    offset.vx = 0x1C2;
+    offset.vy = 0;
+    offset.vz = 0;
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, (EFFECT_GROUND_DECAL_START_FULL_BRIGHT | 32), &offset);
+}
+
+/// Advances Aya's animation chain and consumes her pending cutscene cue.
+///
+/// Requires initialized cutscene work and a live player. Cut cues 1..33 choose
+/// clips, move the player along X, or preserve/cancel the ground decals at later
+/// cuts. Cue 35 starts a half-rate weapon clip, waits eleven updates, then blends
+/// to scene clip 12 over thirty frames. Multi-step cues retain their id while
+/// waiting; every completed or unhandled cue clears it. Movement uses game units;
+/// cue counters measure distance in cut 18 and updates in cue 35.
+static void _actor560800HandlePlayerCue(Task* task)
+{
+    enum { ACTOR_560800_PLAYER_CUE_DELAYED_WEAPON_BLEND = 35 };
+    _Actor560800CutsceneWork* work;
+
+    work = task->work;
+    _actor560800AdvancePlayerAnimChain(task);
     switch (work->playerCue.id) {
-        case 0:
+        case ACTOR_560800_CUE_NONE:
         case 38:
             break;
         case 1:
@@ -5164,19 +5184,19 @@ static void func_actor_560800_80133970(Task* arg0)
             _actor560800BlendPlayerWeaponAnimation(7);
             break;
         case 9:
-            _actor560800BlendPlayerAnimation(arg0, 0, ACTOR_560800_ANIMATION_BLEND_FRAMES);
+            _actor560800BlendPlayerAnimation(task, 0, ACTOR_560800_ANIMATION_BLEND_FRAMES);
             break;
         case 12:
             _actor560800RestartPlayerWeaponAnimation(9);
             break;
         case 16:
-            _actor560800RestartPlayerAnimation(arg0, 0xC);
+            _actor560800RestartPlayerAnimation(task, 0xC);
             break;
         case 18:
             switch (work->playerCue.step) {
                 case 0:
                     _actor560800RestartPlayerWeaponAnimation(3);
-                    taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+                    taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
                     work->playerCue.counter = 0;
                     work->playerCue.step++;
                     return;
@@ -5186,45 +5206,45 @@ static void func_actor_560800_80133970(Task* arg0)
                         gPlayerStatus.coordMtx->t[0] -= 5;
                         return;
                     }
-                    _actor560800BlendPlayerAnimation(arg0, 0xC, ACTOR_560800_ANIMATION_BLEND_FRAMES);
+                    _actor560800BlendPlayerAnimation(task, 0xC, ACTOR_560800_ANIMATION_BLEND_FRAMES);
                     break;
                 default:
                     return;
             }
             break;
         case 19:
-            _actor560800RestartPlayerAnimation(arg0, 1);
-            work->playerCue.id = 0;
+            _actor560800RestartPlayerAnimation(task, 1);
+            work->playerCue.id = ACTOR_560800_CUE_NONE;
             return;
         case 21:
-            _actor560800RestartPlayerAnimation(arg0, 3);
-            Actor560800_SpawnSparksA(arg0);
-            work->keepEffects = 1;
+            _actor560800RestartPlayerAnimation(task, 3);
+            _actor560800SpawnOuterPlayerDecals(task);
+            work->keepEffects = true;
             break;
         case 28:
-            _actor560800RestartPlayerAnimation(arg0, 4);
-            work->playerCue.id = 0;
+            _actor560800RestartPlayerAnimation(task, 4);
+            work->playerCue.id = ACTOR_560800_CUE_NONE;
             return;
         case 29:
-            Actor560800_SpawnSparksA(arg0);
-            Actor560800_SpawnSparksB(arg0);
-            work->keepEffects = 1;
+            _actor560800SpawnOuterPlayerDecals(task);
+            _actor560800SpawnInnerPlayerDecals(task);
+            work->keepEffects = true;
             break;
         case 22:
         case 32:
-            work->keepEffects = 0;
+            work->keepEffects = false;
             break;
         case 33:
-            Actor560800_SpawnSparksA(arg0);
-            Actor560800_SpawnSparksB(arg0);
-            work->keepEffects = 1;
-            _actor560800RestartPlayerAnimation(arg0, 5);
+            _actor560800SpawnOuterPlayerDecals(task);
+            _actor560800SpawnInnerPlayerDecals(task);
+            work->keepEffects = true;
+            _actor560800RestartPlayerAnimation(task, 5);
             break;
-        case 35:
+        case ACTOR_560800_PLAYER_CUE_DELAYED_WEAPON_BLEND:
             switch (work->playerCue.step) {
                 case 0:
                     _actor560800BlendPlayerWeaponAnimation(8);
-                    taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+                    taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
                     work->playerCue.counter = 0;
                     work->playerCue.step++;
                     return;
@@ -5232,15 +5252,15 @@ static void func_actor_560800_80133970(Task* arg0)
                     if (++work->playerCue.counter < 11) {
                         return;
                     }
-                    _actor560800BlendPlayerAnimation(arg0, 0xC, 0x1E);
-                    work->playerCue.id = 0;
+                    _actor560800BlendPlayerAnimation(task, 0xC, 30);
+                    work->playerCue.id = ACTOR_560800_CUE_NONE;
                     return;
                 default:
                     return;
             }
             break;
     }
-    work->playerCue.id = 0;
+    work->playerCue.id = ACTOR_560800_CUE_NONE;
 }
 
 /// Restarts a cast body's non-root tracks in a clip at the requested rate.
@@ -5328,16 +5348,19 @@ static inline void _actor560800RestartCastAnimation(_Actor560800CastWork* work, 
     }
 }
 
-static void func_actor_560800_80134384(Task* task)
+/// Consumes No. 9's pending cutscene cue.
+///
+/// Requires initialized cutscene work and No. 9's live nineteen-slot rig.
+/// Cut cues restart non-root tracks at normal rate. Cut 24 holds its cue while
+/// waiting 181 updates before blending clip 45 to clip 29; cut 26 also hides the
+/// floor quad. Completed and unhandled cues clear the id; waiting cues retain it.
+static void _actor560800HandleNo9Cue(Task* task)
 {
     _Actor560800CutsceneWork* work;
-    _Actor560800CastWork*     anim;
-    u16                       i;
-    u16                       rate;
 
     work = task->work;
     switch (work->no9Cue.id) {
-        case 0:
+        case ACTOR_560800_CUE_NONE:
         case 38:
             break;
         case 2:
@@ -5376,30 +5399,12 @@ static void func_actor_560800_80134384(Task* task)
         case 24:
             switch (work->no9Cue.step) {
                 case 0:
-                    anim           = work->no9->work;
-                    anim->animId   = 0x2D;
-                    i              = 1;
-                    rate           = ANIMATION_RATE_ONE;
-                    anim->animRate = rate;
-                    anim->animHold = 0;
-                    if (i >= anim->slotCount) {
-                        work->no9Cue.counter = 0;
-                        work->no9Cue.step++;
-                        return;
-                    }
-                    for (;;) {
-                        anim->rig.slots[i].rate = rate;
-                        animationResetSlot(&anim->rig.anim, i, 0x2D);
-                        i++;
-                        if (i < anim->slotCount) {
-                            continue;
-                        }
-                        work->no9Cue.counter = 0;
-                        work->no9Cue.step++;
-                        return;
-                    }
+                    _actor560800RestartCastAnimationAtRate(work->no9, 0x2D, ANIMATION_RATE_ONE);
+                    work->no9Cue.counter = 0;
+                    work->no9Cue.step++;
+                    return;
                 case 1:
-                    if (++work->no9Cue.counter < 0xB5) {
+                    if (++work->no9Cue.counter < 181) {
                         return;
                     }
                     _actor560800BlendCastAnimation(work->no9, 0x1D, ANIMATION_RATE_ONE);
@@ -5410,71 +5415,82 @@ static void func_actor_560800_80134384(Task* task)
             break;
         case 26:
             _actor560800RestartCastAnimation(work->no9->work, 0x21);
-            ((_Actor560800CastWork*)work->no9->work)->floorQuadHidden = 1;
+            ((_Actor560800CastWork*)work->no9->work)->floorQuadHidden = true;
             break;
         case 27:
             _actor560800RestartCastAnimation(work->no9->work, 0x24);
             break;
     }
-    work->no9Cue.id = 0;
+    work->no9Cue.id = ACTOR_560800_CUE_NONE;
 }
 
-/// Restarts Kyle's animation slots in clip 0x20 -- writing `animRate` and every
-/// slot's `rate` with `ANIMATION_RATE_ONE` -- then spawns
-/// effect 0x6002B on the ninth per-part coordinate of the task at `kyle`
-/// and posts a brief full-strength pulse to port 0's variable vibration motor.
+/// Restarts Kyle's firing clip and emits his handgun flash, casing and vibration.
 ///
-/// The rate is held in a local rather than written as two literals: both uses
-/// have to reach the same register, and the rate is live across the loop's
-/// `animationResetSlot` call. `unused` is declared and never referenced - the
-/// ROM's frame is 0x30 and the local is what reserves its 8 bytes.
-void func_actor_560800_80134B14(s32 arg0)
+/// Requires the published cutscene task and Kyle's live twenty-slot rig. Restarts
+/// slots 1..19 in clip 32 at normal rate, leaving slot 0 intact; the effect attaches
+/// to model part 8. Pulses port 0's variable motor at full strength for two ticks.
+/// The event-script argument is ignored.
+static void _actor560800FireKyleGun(s32 unusedArg)
 {
     _Actor560800CutsceneWork* work;
-    _Actor560800CastWork*     anim;
-    SVECTOR                   unused;
-    u16                       i;
-    u16                       rate;
+    // The original stack allocation remains required for the matching frame.
+    SVECTOR unusedFrameStorage;
 
     work = D_actor_560800_8017578C->work;
-    anim = work->kyle->work;
-
-    anim->animId   = 0x20;
-    rate           = ANIMATION_RATE_ONE;
-    anim->animRate = rate;
-    anim->animHold = 0;
-    i              = 1;
-    if (i < anim->slotCount) {
-        do {
-            anim->rig.slots[i].rate = rate;
-            animationResetSlot(&anim->rig.anim, i, 0x20);
-            i++;
-        } while (i < anim->slotCount);
-    }
-    effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], 0x21, NULL);
+    _actor560800RestartCastAnimationAtRate(work->kyle, 0x20, ANIMATION_RATE_ONE);
+    effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], ACTOR_560800_KYLE_GUN_EFFECT, NULL);
     padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, PAD_VIBRATION_INTENSITY_MAX, 2);
 }
 
-static void func_actor_560800_80134BFC(Task* arg0)
+/// Records display ticks elapsed in the third scene phase.
+///
+/// Requires the phase timestamp to have been recorded. Retains the original
+/// signed subtraction and one-tick-short result after unsigned counter wrap.
+static inline void _actor560800RecordThirdPhaseElapsed(void)
 {
-    _Actor560800CutsceneWork* work;
-    _Actor560800CastWork*     ctx;
-    _Actor560800CastWork*     ctx2;
-    _Actor560800CastWork*     ctx3;
-    _Actor560800CastWork*     ctx4;
-    _Actor560800CastWork*     ctx5;
-    _Actor560800CastWork*     ctx6;
-    _Actor560800CastWork*     ctx7;
-    _Actor560800CastWork*     blend;
-    _Actor560800CastWork*     anim;
-    GfxCoord*                 coord;
+    if ((u32)D_actor_560800_801757A4 > (u32)gDisplayState.frameCount) {
+        D_actor_560800_80175798 = gDisplayState.frameCount - (D_actor_560800_801757A4 + 1);
+    } else {
+        D_actor_560800_80175798 = gDisplayState.frameCount - D_actor_560800_801757A4;
+    }
+}
 
-    work = arg0->work;
+/// Consumes Kyle's pending cutscene cue, including movement and both gunshots.
+///
+/// Requires initialized cutscene work and live bodies/attachments used by the
+/// selected cue; the handgun itself may be NULL. Cut cues 1..33 control clips,
+/// pose angles, lighting and visibility. Mid-cut cues 35..39 blend clips, shoot
+/// No. 9, decrease/restore part 4 yaw, or restart clip 34 at half rate. Angles
+/// use 4096 units per turn and translations use game units. Multi-step cues keep
+/// their id across updates; completed and unhandled cues clear it. Cut 20's
+/// counter measures slide distance first, then update ticks.
+static void _actor560800HandleKyleCue(Task* task)
+{
+    enum {
+        ACTOR_560800_KYLE_CUE_DELAYED_CLIP_BLEND = 35,
+        ACTOR_560800_KYLE_CUE_SHOOT_NO9          = 36,
+        ACTOR_560800_KYLE_CUE_DECREASE_PART4_YAW = 37,
+        ACTOR_560800_KYLE_CUE_RESTORE_PART4_YAW  = 38,
+        ACTOR_560800_KYLE_CUE_HALF_RATE_CLIP     = 39,
+    };
+    _Actor560800CutsceneWork* work;
+    _Actor560800CastWork*     releasedWork;
+    _Actor560800CastWork*     shownWork;
+    _Actor560800CastWork*     rolledWork;
+    _Actor560800CastWork*     restoredWork;
+    _Actor560800CastWork*     pitchWork;
+    _Actor560800CastWork*     turnWork;
+    _Actor560800CastWork*     returnTurnWork;
+    _Actor560800CastWork*     hitWork;
+    _Actor560800CastWork*     returnClipWork;
+    GfxCoord*                 kyleRoot;
+
+    work = task->work;
     switch (work->kyleCue.id) {
-        case 0:
+        case ACTOR_560800_CUE_NONE:
             break;
         case 1:
-            ((_Actor560800CastWork*)work->kyle->work)->animPaused = 1;
+            ((_Actor560800CastWork*)work->kyle->work)->animPaused = true;
             break;
         case 2:
             ((_Actor560800CastWork*)work->kyle->work)->part4Yaw = 0x155;
@@ -5482,21 +5498,21 @@ static void func_actor_560800_80134BFC(Task* arg0)
         case 4:
             switch (work->kyleCue.step) {
                 case 0: {
-                    _Actor560800CastWork* reseed;
+                    _Actor560800CastWork* blendWork;
 
-                    ctx              = work->kyle->work;
-                    ctx->part4Yaw    = 0;
-                    ctx->animPaused  = 0;
-                    reseed           = work->kyle->work;
-                    reseed->animId   = 1;
-                    reseed->animRate = ANIMATION_RATE_ONE;
-                    reseed->animHold = 0;
-                    _ACTOR560800_BLEND_SLOTS(reseed, 1, 10);
+                    releasedWork             = work->kyle->work;
+                    releasedWork->part4Yaw   = 0;
+                    releasedWork->animPaused = false;
+                    blendWork                = work->kyle->work;
+                    blendWork->animId        = 1;
+                    blendWork->animRate      = ANIMATION_RATE_ONE;
+                    blendWork->animHold      = 0;
+                    _ACTOR560800_BLEND_SLOTS(blendWork, 1, ACTOR_560800_ANIMATION_BLEND_FRAMES);
                     work->kyleCue.step++;
                     return;
                 }
                 case 1:
-                    ((_Actor560800CastWork*)work->kyle->work)->animPaused = 1;
+                    ((_Actor560800CastWork*)work->kyle->work)->animPaused = true;
                     break;
                 default:
                     return;
@@ -5509,12 +5525,12 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     work->kyleCue.step++;
                     return;
                 case 1:
-                    coord              = work->kyle->extra.tmd->coords;
-                    coord->coord.t[0] -= 0x1E;
+                    kyleRoot              = work->kyle->extra.tmd->coords;
+                    kyleRoot->coord.t[0] -= 0x1E;
                     if (work->kyle->extra.tmd->coords->coord.t[0] < D_actor_560800_8016F1CC[5].pos.vx) {
                         TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, &D_actor_560800_8016F1CC[5], 0);
                         _actor560800BlendCastAnimation(work->kyle, 0x1A, ANIMATION_RATE_ONE);
-                        work->kyleCue.id = 0;
+                        work->kyleCue.id = ACTOR_560800_CUE_NONE;
                     }
                     work->kyle->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                     return;
@@ -5528,12 +5544,13 @@ static void func_actor_560800_80134BFC(Task* arg0)
         case 18:
             _actor560800RestartCastAnimationAtRate(work->kyle, 0x1F, ANIMATION_RATE_ONE);
             break;
+        // The shot at Aya follows her slide, then a three-update impact delay.
         case 20:
             switch (work->kyleCue.step) {
                 case 0:
-                    ((_Actor560800CastWork*)work->kyle->work)->relit = 1;
+                    ((_Actor560800CastWork*)work->kyle->work)->relit = true;
                     _actor560800BlendPlayerWeaponAnimation(3);
-                    taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+                    taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
                     return;
@@ -5543,7 +5560,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                         gPlayerStatus.coordMtx->t[0] -= 5;
                         return;
                     }
-                    _actor560800BlendPlayerAnimation(arg0, 2, ACTOR_560800_ANIMATION_BLEND_FRAMES);
+                    _actor560800BlendPlayerAnimation(task, 2, ACTOR_560800_ANIMATION_BLEND_FRAMES);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
                     return;
@@ -5551,7 +5568,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     if (++work->kyleCue.counter < 11) {
                         return;
                     }
-                    func_actor_560800_80134B14(0);
+                    _actor560800FireKyleGun(0);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
                     return;
@@ -5567,50 +5584,50 @@ static void func_actor_560800_80134BFC(Task* arg0)
             }
             break;
         case 21:
-            ((_Actor560800CastWork*)work->kyle->work)->relit = 0;
+            ((_Actor560800CastWork*)work->kyle->work)->relit = false;
             _actor560800RestartCastAnimationAtRate(work->kyle, 0xA, ANIMATION_RATE_ONE);
             break;
         case 22:
             _actor560800RestartCastAnimationAtRate(work->kyle, 0xB, ANIMATION_RATE_ONE);
             break;
         case 23:
-            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-            taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-            taskMessageDispatch(work->kyleFreeHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
+            taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
+            taskMessageDispatch(work->kyleFreeHand, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             if (work->kyleGun != NULL) {
-                taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+                taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             }
             break;
         case 24:
-            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            taskMessageDispatch(work->kyleFreeHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+            taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+            taskMessageDispatch(work->kyleFreeHand, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             if (work->kyleGun != NULL) {
-                taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             }
-            ctx2           = work->kyle->work;
-            ctx2->part4Yaw = 0x155;
-            ctx2->relit    = 1;
+            shownWork           = work->kyle->work;
+            shownWork->part4Yaw = 0x155;
+            shownWork->relit    = true;
             break;
         case 25:
-            ctx3            = work->kyle->work;
-            ctx3->part4Yaw  = 0;
-            ctx3->part2Roll = -0x71;
+            rolledWork            = work->kyle->work;
+            rolledWork->part4Yaw  = 0;
+            rolledWork->part2Roll = -0x71;
             _actor560800RestartCastAnimationAtRate(work->kyle, 0x1F, ANIMATION_RATE_ONE);
             break;
         case 26:
-            ctx4            = work->kyle->work;
-            ctx4->part2Roll = 0;
-            ctx4->relit     = 0;
+            restoredWork            = work->kyle->work;
+            restoredWork->part2Roll = 0;
+            restoredWork->relit     = false;
             _actor560800RestartCastAnimationAtRate(work->kyle, 0xD, ANIMATION_RATE_ONE);
             break;
         case 28:
             _actor560800RestartCastAnimationAtRate(work->kyle, 0x1A, ANIMATION_RATE_ONE);
             break;
         case 30:
-            ctx5              = work->kyle->work;
-            ctx5->part4Pitch -= 0x1E;
-            if (ctx5->part4Pitch >= -0x155) {
+            pitchWork              = work->kyle->work;
+            pitchWork->part4Pitch -= 0x1E;
+            if (pitchWork->part4Pitch >= -0x155) {
                 return;
             }
             break;
@@ -5619,29 +5636,25 @@ static void func_actor_560800_80134BFC(Task* arg0)
             _actor560800RestartCastAnimationAtRate(work->kyle, 0xF, ANIMATION_RATE_ONE);
             break;
         case 33:
-            if ((u32)D_actor_560800_801757A4 > (u32)gDisplayState.frameCount) {
-                D_actor_560800_80175798 = gDisplayState.frameCount - (D_actor_560800_801757A4 + 1);
-            } else {
-                D_actor_560800_80175798 = gDisplayState.frameCount - D_actor_560800_801757A4;
-            }
+            _actor560800RecordThirdPhaseElapsed();
             _actor560800RestartCastAnimationAtRate(work->kyle, 0x10, ANIMATION_RATE_ONE);
             break;
-        case 35:
+        case ACTOR_560800_KYLE_CUE_DELAYED_CLIP_BLEND:
             switch (work->kyleCue.step) {
                 case 0: {
-                    _Actor560800CastWork* reseed;
+                    _Actor560800CastWork* blendWork;
 
-                    reseed           = work->kyle->work;
-                    reseed->animId   = 7;
-                    reseed->animRate = ANIMATION_RATE_ONE;
-                    reseed->animHold = 0;
-                    _ACTOR560800_BLEND_SLOTS(reseed, 7, 10);
+                    blendWork           = work->kyle->work;
+                    blendWork->animId   = 7;
+                    blendWork->animRate = ANIMATION_RATE_ONE;
+                    blendWork->animHold = 0;
+                    _ACTOR560800_BLEND_SLOTS(blendWork, 7, ACTOR_560800_ANIMATION_BLEND_FRAMES);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
                     return;
                 }
                 case 1:
-                    if (++work->kyleCue.counter < 0x5B) {
+                    if (++work->kyleCue.counter < 91) {
                         return;
                     }
                     _actor560800BlendCastAnimation(work->kyle, 0x14, ANIMATION_RATE_ONE);
@@ -5650,7 +5663,8 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     return;
             }
             break;
-        case 36:
+        // No. 9's recoil clip blends at half rate before the delayed hit puff.
+        case ACTOR_560800_KYLE_CUE_SHOOT_NO9:
             switch (work->kyleCue.step) {
                 case 0:
                     _actor560800RestartCastAnimationAtRate(work->kyle, 0xE, ANIMATION_RATE_ONE);
@@ -5658,16 +5672,16 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     work->kyleCue.step++;
                     return;
                 case 1:
-                    if (++work->kyleCue.counter < 0x1F) {
+                    if (++work->kyleCue.counter < 31) {
                         return;
                     }
                     padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, PAD_VIBRATION_INTENSITY_MAX, 2);
-                    effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], 0x21, NULL);
-                    blend           = work->no9->work;
-                    blend->animId   = 0x20;
-                    blend->animRate = ANIMATION_RATE_ONE / 2;
-                    _actor560800ResetAnimHold(blend);
-                    _ACTOR560800_BLEND_SLOTS(blend, 0x20, 5);
+                    effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], ACTOR_560800_KYLE_GUN_EFFECT, NULL);
+                    hitWork           = work->no9->work;
+                    hitWork->animId   = 0x20;
+                    hitWork->animRate = ANIMATION_RATE_ONE / 2;
+                    _actor560800ResetAnimHold(hitWork);
+                    _ACTOR560800_BLEND_SLOTS(hitWork, 0x20, 5);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
                     return;
@@ -5681,42 +5695,42 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     return;
             }
             break;
-        case 37:
-            ((_Actor560800CastWork*)work->kyle->work)->animPaused = 0;
-            ctx6                                                  = work->kyle->work;
-            ctx6->part4Yaw                                       -= 0x3C;
-            if (ctx6->part4Yaw >= -0x200) {
+        case ACTOR_560800_KYLE_CUE_DECREASE_PART4_YAW:
+            ((_Actor560800CastWork*)work->kyle->work)->animPaused = false;
+            turnWork                                              = work->kyle->work;
+            turnWork->part4Yaw                                   -= 0x3C;
+            if (turnWork->part4Yaw >= -0x200) {
                 return;
             }
             break;
-        case 38:
-            ctx7 = work->kyle->work;
+        case ACTOR_560800_KYLE_CUE_RESTORE_PART4_YAW:
+            returnTurnWork = work->kyle->work;
             switch (work->kyleCue.step) {
                 case 0:
-                    anim = work->kyle->work;
-                    SOFT_TOUCH_REG(anim);
-                    anim->animId   = 3;
-                    anim->animRate = ANIMATION_RATE_ONE;
-                    anim->animHold = 0;
-                    _ACTOR560800_BLEND_SLOTS(anim, 3, 10);
+                    returnClipWork = work->kyle->work;
+                    SOFT_TOUCH_REG(returnClipWork);
+                    returnClipWork->animId   = 3;
+                    returnClipWork->animRate = ANIMATION_RATE_ONE;
+                    returnClipWork->animHold = 0;
+                    _ACTOR560800_BLEND_SLOTS(returnClipWork, 3, ACTOR_560800_ANIMATION_BLEND_FRAMES);
                     work->kyleCue.step++;
                     return;
                 case 1:
-                    ctx7->part4Yaw += 0x3C;
-                    if (ctx7->part4Yaw < 0) {
+                    returnTurnWork->part4Yaw += 0x3C;
+                    if (returnTurnWork->part4Yaw < 0) {
                         return;
                     }
-                    ctx7->part4Yaw = 0;
+                    returnTurnWork->part4Yaw = 0;
                     break;
                 default:
                     return;
             }
             break;
-        case 39:
+        case ACTOR_560800_KYLE_CUE_HALF_RATE_CLIP:
             _actor560800RestartCastAnimationAtRate(work->kyle, 0x22, ANIMATION_RATE_ONE / 2);
             break;
     }
-    work->kyleCue.id = 0;
+    work->kyleCue.id = ACTOR_560800_CUE_NONE;
 }
 
 /// Records a phase's elapsed display ticks and finishes its streamed scene.
@@ -5828,10 +5842,10 @@ void func_actor_560800_80135D54(Task* arg0)
             }
             break;
     }
-    func_actor_560800_80133970(arg0);
+    _actor560800HandlePlayerCue(arg0);
     _actor560800HandleEveCue(arg0);
-    func_actor_560800_80134384(arg0);
-    func_actor_560800_80134BFC(arg0);
+    _actor560800HandleNo9Cue(arg0);
+    _actor560800HandleKyleCue(arg0);
     work = arg0->work;
     switch (work->sceneCue.id) {
         case 0:
@@ -5846,12 +5860,18 @@ void func_actor_560800_80135D54(Task* arg0)
     work->sceneCue.id = 0;
 }
 
-void func_actor_560800_80135F50(Task* arg0)
+/// Hands display control to the scene's movie task and releases this launcher.
+///
+/// Forwards spawnArg1 unchanged (zero selects movie 100, nonzero movie 101).
+/// Queues the current camera and packets after switching to task-only display.
+/// The spawned task owns playback and restoration; this launcher owns no work.
+/// The display handoff also occurs when the spawn fails.
+static void _actor560800StartMovieTask(Task* task)
 {
-    displaySpawnTaskFromTable(D_actor_560800_8016EA28, 1, arg0->spawnArg1.value, 0);
+    displaySpawnTaskFromTable(D_actor_560800_8016EA28, 1, task->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
-    taskKill(arg0);
+    taskKill(task);
 }
 
 /// Darkens the cutscene, then disables display when its subtractive ramp finishes.
@@ -6349,192 +6369,203 @@ static void _actor560800DiscardTask(Task* task)
     taskKill(task);
 }
 
-/// Bends a chain toward its group's target: while parts 1..5 are walked on the
-/// scratchpad stack, each part's X rotation steps by the local `speed` toward
-/// the bearing of the group's `targetWorld` translation seen from the part's
-/// joint, and the joint positions accumulate through the GTE.
-/// Part 0's X rotation oscillates on a `D_actor_560800_801752E8` phase. The
-/// closing switch drives `dipStep`: close enough in Y/Z starts the dip in
-/// `offset.vy`, which then returns to zero.
-static void func_actor_560800_80136AA8(Task* arg0)
+/// Sways the root and bends five chain joints toward the group's target.
+///
+/// Requires a live seven-coordinate chain and parent group with a valid target
+/// translation. Reserves one zeroed scratch-stack block and releases it before
+/// returning. Odd-numbered chains turn two angle units per update, even ones one;
+/// angles use 4096 units per turn. Copies all seven stored rotations into scratch
+/// and back, but rebuilds only parts 0..5, using part 6's translation as the tip.
+/// Proximity in Y/Z starts a three-phase root retraction, in game-coordinate units.
+static void _actor560800BendChainTowardTarget(Task* task)
 {
-    _Actor560800ChainScratch*   top;
+    enum {
+        ACTOR_560800_CHAIN_BEND_END_PART = 6,
+        ACTOR_560800_CHAIN_DIP_IDLE      = 0,
+        ACTOR_560800_CHAIN_DIP_RETRACT   = 1,
+        ACTOR_560800_CHAIN_DIP_RETURN    = 2,
+    };
+    _Actor560800ChainScratch*   savedScratch;
     _Actor560800PropWork*       work;
-    _Actor560800ChainScratch*   s;
+    _Actor560800ChainScratch*   scratch;
     _Actor560800ChainGroupWork* group;
-    s16                         i;
-    s16                         speed;
-    s32                         a;
+    s16                         partIndex;
+    s16                         angleStep;
+    s32                         targetPitch;
 
-    top  = SCRATCH_STACK_CURSOR(_Actor560800ChainScratch);
-    work = arg0->work;
-    s = SCRATCH_STACK_CURSOR(_Actor560800ChainScratch) = top - 1;
-    group                                              = work->parent->work;
-    memFillBytes(s, 0, sizeof(_Actor560800ChainScratch));
-    memCopyBytes(work->rot, s->rot, sizeof(s->rot));
+    /// Multiplies three joint basis columns by the current GTE chain rotation.
+    ///
+    /// Both matrix pointers must be side-effect-free; each is evaluated three
+    /// times. Writes only basis columns, leaving destination translation intact.
+#define ACTOR_560800_ROTATE_CHAIN_BASIS(result, joint) \
+    {                                                  \
+        gte_ldclmv((joint));                           \
+        gte_rtir();                                    \
+        gte_stclmv((result));                          \
+        gte_ldclmv(&(joint)->m[0][1]);                 \
+        gte_rtir();                                    \
+        gte_stclmv(&(result)->m[0][1]);                \
+        gte_ldclmv(&(joint)->m[0][2]);                 \
+        gte_rtir();                                    \
+        gte_stclmv(&(result)->m[0][2]);                \
+    }
+    savedScratch = SCRATCH_STACK_CURSOR(_Actor560800ChainScratch);
+    work         = task->work;
+    scratch = SCRATCH_STACK_CURSOR(_Actor560800ChainScratch) = savedScratch - 1;
+    group                                                    = work->parent->work;
+    memFillBytes(scratch, 0, sizeof(_Actor560800ChainScratch));
+    memCopyBytes(work->rot, scratch->rot, sizeof(scratch->rot));
     if (work->chainNumber & 1) {
-        speed = 2;
+        angleStep = 2;
         switch (((D_actor_560800_801752E8 + work->swayPhase) * 2) & 0x300) {
             case 0x0:
             case 0x300:
-                s->rot[0].vx += 4;
-                s->rot[0].vx %= 0x1000;
+                scratch->rot[0].vx += 4;
+                scratch->rot[0].vx %= ACTOR_TRANSFORM_ANGLE_TURN;
                 break;
             case 0x100:
             case 0x200:
-                s->rot[0].vx -= 4;
-                if (s->rot[0].vx < 0) {
-                    s->rot[0].vx += 0x1000;
+                scratch->rot[0].vx -= 4;
+                if (scratch->rot[0].vx < 0) {
+                    scratch->rot[0].vx += ACTOR_TRANSFORM_ANGLE_TURN;
                 }
                 break;
         }
     } else {
-        speed = 1;
+        angleStep = 1;
         switch (((D_actor_560800_801752E8 + work->swayPhase) * 2) & 0x700) {
             case 0x0:
             case 0x100:
             case 0x600:
             case 0x700:
-                s->rot[0].vx += 2;
-                s->rot[0].vx %= 0x1000;
+                scratch->rot[0].vx += 2;
+                scratch->rot[0].vx %= ACTOR_TRANSFORM_ANGLE_TURN;
                 break;
             case 0x200:
             case 0x300:
             case 0x400:
             case 0x500:
-                s->rot[0].vx -= 2;
-                if (s->rot[0].vx < 0) {
-                    s->rot[0].vx += 0x1000;
+                scratch->rot[0].vx -= 2;
+                if (scratch->rot[0].vx < 0) {
+                    scratch->rot[0].vx += ACTOR_TRANSFORM_ANGLE_TURN;
                 }
                 break;
         }
     }
-    s->pos.vx = arg0->extra.tmd->coords->parent->coord.t[0] + arg0->extra.tmd->coords->coord.t[0];
-    s->pos.vy = arg0->extra.tmd->coords->parent->coord.t[1] + arg0->extra.tmd->coords->coord.t[1];
-    s->pos.vz = arg0->extra.tmd->coords->parent->coord.t[2] + arg0->extra.tmd->coords->coord.t[2];
-    s->ang.vx = s->rot[0].vx;
-    s->ang.vy = s->rot[0].vy;
-    s->ang.vz = s->rot[0].vz;
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->rot[0].vy, 1);
-    gfxRotMatrixX(&arg0->extra.tmd->coords->coord, s->rot[0].vx + 0x400, GRAPHICS_ROTATION_COMPOSE);
-    gfxRotMatrixZ(&arg0->extra.tmd->coords->coord, s->rot[0].vz, GRAPHICS_ROTATION_COMPOSE);
-    s->link  = arg0->extra.tmd->coords->coord;
-    s->chain = s->link;
-    gte_SetRotMatrix(&s->chain);
-    for (i = 1; i < 6; i++) {
-        gte_ldclmv(&arg0->extra.tmd->coords[i].coord);
-        gte_rtir();
-        gte_stclmv(&s->link);
-        gte_ldclmv(&arg0->extra.tmd->coords[i].coord.m[0][1]);
-        gte_rtir();
-        gte_stclmv(&s->link.m[0][1]);
-        gte_ldclmv(&arg0->extra.tmd->coords[i].coord.m[0][2]);
-        gte_rtir();
-        gte_stclmv(&s->link.m[0][2]);
-        s->joint.vx = arg0->extra.tmd->coords[i + 1].coord.t[0];
-        s->joint.vy = arg0->extra.tmd->coords[i + 1].coord.t[1];
-        s->joint.vz = arg0->extra.tmd->coords[i + 1].coord.t[2];
-        gte_SetRotMatrix(&s->link);
-        gte_ldv0(&s->joint);
+    // Start at the root with its parent translation; sway the root independently.
+    scratch->pos.vx = task->extra.tmd->coords->parent->coord.t[0] + task->extra.tmd->coords->coord.t[0];
+    scratch->pos.vy = task->extra.tmd->coords->parent->coord.t[1] + task->extra.tmd->coords->coord.t[1];
+    scratch->pos.vz = task->extra.tmd->coords->parent->coord.t[2] + task->extra.tmd->coords->coord.t[2];
+    scratch->ang.vx = scratch->rot[0].vx;
+    scratch->ang.vy = scratch->rot[0].vy;
+    scratch->ang.vz = scratch->rot[0].vz;
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, scratch->rot[0].vy, GRAPHICS_ROTATION_REPLACE);
+    gfxRotMatrixX(&task->extra.tmd->coords->coord, scratch->rot[0].vx + ACTOR_TRANSFORM_ANGLE_TURN / 4, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixZ(&task->extra.tmd->coords->coord, scratch->rot[0].vz, GRAPHICS_ROTATION_COMPOSE);
+    scratch->link  = task->extra.tmd->coords->coord;
+    scratch->chain = scratch->link;
+    gte_SetRotMatrix(&scratch->chain);
+    // Walk five bending joints, measuring the next joint before and after each turn.
+    for (partIndex = 1; partIndex < ACTOR_560800_CHAIN_BEND_END_PART; partIndex++) {
+        ACTOR_560800_ROTATE_CHAIN_BASIS(&scratch->link, &task->extra.tmd->coords[partIndex].coord);
+        scratch->joint.vx = task->extra.tmd->coords[partIndex + 1].coord.t[0];
+        scratch->joint.vy = task->extra.tmd->coords[partIndex + 1].coord.t[1];
+        scratch->joint.vz = task->extra.tmd->coords[partIndex + 1].coord.t[2];
+        gte_SetRotMatrix(&scratch->link);
+        gte_ldv0(&scratch->joint);
         gte_rtv0();
-        gte_stsv(&s->joint);
-        s->joint.vx += s->pos.vx;
-        s->joint.vy += s->pos.vy;
-        s->joint.vz += s->pos.vz;
-        s->aim.vx    = (s->ang.vx + s->rot[i].vx) % 0x1000;
-        s->aim.vy    = (s->ang.vy + s->rot[i].vy) % 0x1000;
-        s->aim.vz    = (s->ang.vz + s->rot[i].vz) % 0x1000;
-        if (s->rot[0].vy == 0) {
-            a = ratan2(s->joint.vy - group->targetWorld.t[1], group->targetWorld.t[2] - s->joint.vz) % 0x1000;
-            if (a < 0) {
-                a += 0x1000;
+        gte_stsv(&scratch->joint);
+        scratch->joint.vx += scratch->pos.vx;
+        scratch->joint.vy += scratch->pos.vy;
+        scratch->joint.vz += scratch->pos.vz;
+        scratch->aim.vx    = (scratch->ang.vx + scratch->rot[partIndex].vx) % ACTOR_TRANSFORM_ANGLE_TURN;
+        scratch->aim.vy    = (scratch->ang.vy + scratch->rot[partIndex].vy) % ACTOR_TRANSFORM_ANGLE_TURN;
+        scratch->aim.vz    = (scratch->ang.vz + scratch->rot[partIndex].vz) % ACTOR_TRANSFORM_ANGLE_TURN;
+        if (scratch->rot[0].vy == 0) {
+            targetPitch = ratan2(scratch->joint.vy - group->targetWorld.t[1], group->targetWorld.t[2] - scratch->joint.vz) % ACTOR_TRANSFORM_ANGLE_TURN;
+            if (targetPitch < 0) {
+                targetPitch += ACTOR_TRANSFORM_ANGLE_TURN;
             }
-            s->aim.vx -= a;
-            if (s->aim.vx < 0) {
-                s->aim.vx += 0x1000;
+            scratch->aim.vx -= targetPitch;
+            if (scratch->aim.vx < 0) {
+                scratch->aim.vx += ACTOR_TRANSFORM_ANGLE_TURN;
             }
-            if (s->aim.vx < 0x800) {
-                s->rot[i].vx += speed;
-                s->rot[i].vx %= 0x1000;
+            if (scratch->aim.vx < (ACTOR_TRANSFORM_ANGLE_TURN / 2)) {
+                scratch->rot[partIndex].vx += angleStep;
+                scratch->rot[partIndex].vx %= ACTOR_TRANSFORM_ANGLE_TURN;
             } else {
-                s->rot[i].vx -= speed;
-                if (s->rot[i].vx < 0) {
-                    s->rot[i].vx += 0x1000;
+                scratch->rot[partIndex].vx -= angleStep;
+                if (scratch->rot[partIndex].vx < 0) {
+                    scratch->rot[partIndex].vx += ACTOR_TRANSFORM_ANGLE_TURN;
                 }
             }
         } else {
-            a = ratan2(group->targetWorld.t[1] - s->joint.vy, group->targetWorld.t[2] - s->joint.vz) % 0x1000;
-            if (a < 0) {
-                a += 0x1000;
+            targetPitch = ratan2(group->targetWorld.t[1] - scratch->joint.vy, group->targetWorld.t[2] - scratch->joint.vz) % ACTOR_TRANSFORM_ANGLE_TURN;
+            if (targetPitch < 0) {
+                targetPitch += ACTOR_TRANSFORM_ANGLE_TURN;
             }
-            s->aim.vx -= a;
-            if (s->aim.vx < 0) {
-                s->aim.vx += 0x1000;
+            scratch->aim.vx -= targetPitch;
+            if (scratch->aim.vx < 0) {
+                scratch->aim.vx += ACTOR_TRANSFORM_ANGLE_TURN;
             }
-            if (s->aim.vx > 0x800) {
-                s->rot[i].vx += speed;
-                s->rot[i].vx %= 0x1000;
+            if (scratch->aim.vx > (ACTOR_TRANSFORM_ANGLE_TURN / 2)) {
+                scratch->rot[partIndex].vx += angleStep;
+                scratch->rot[partIndex].vx %= ACTOR_TRANSFORM_ANGLE_TURN;
             } else {
-                s->rot[i].vx -= speed;
-                if (s->rot[i].vx < 0) {
-                    s->rot[i].vx += 0x1000;
+                scratch->rot[partIndex].vx -= angleStep;
+                if (scratch->rot[partIndex].vx < 0) {
+                    scratch->rot[partIndex].vx += ACTOR_TRANSFORM_ANGLE_TURN;
                 }
             }
         }
-        gfxRotMatrixY(&arg0->extra.tmd->coords[i].coord, s->rot[i].vy, 1);
-        gfxRotMatrixX(&arg0->extra.tmd->coords[i].coord, s->rot[i].vx, GRAPHICS_ROTATION_COMPOSE);
-        gfxRotMatrixZ(&arg0->extra.tmd->coords[i].coord, s->rot[i].vz, GRAPHICS_ROTATION_COMPOSE);
-        gte_SetRotMatrix(&s->chain);
-        gte_ldclmv(&arg0->extra.tmd->coords[i].coord);
-        gte_rtir();
-        gte_stclmv(&s->chain);
-        gte_ldclmv(&arg0->extra.tmd->coords[i].coord.m[0][1]);
-        gte_rtir();
-        gte_stclmv(&s->chain.m[0][1]);
-        gte_ldclmv(&arg0->extra.tmd->coords[i].coord.m[0][2]);
-        gte_rtir();
-        gte_stclmv(&s->chain.m[0][2]);
-        s->joint.vx = arg0->extra.tmd->coords[i + 1].coord.t[0];
-        s->joint.vy = arg0->extra.tmd->coords[i + 1].coord.t[1];
-        s->joint.vz = arg0->extra.tmd->coords[i + 1].coord.t[2];
-        gte_SetRotMatrix(&s->chain);
-        gte_ldv0(&s->joint);
+        gfxRotMatrixY(&task->extra.tmd->coords[partIndex].coord, scratch->rot[partIndex].vy, GRAPHICS_ROTATION_REPLACE);
+        gfxRotMatrixX(&task->extra.tmd->coords[partIndex].coord, scratch->rot[partIndex].vx, GRAPHICS_ROTATION_COMPOSE);
+        gfxRotMatrixZ(&task->extra.tmd->coords[partIndex].coord, scratch->rot[partIndex].vz, GRAPHICS_ROTATION_COMPOSE);
+        gte_SetRotMatrix(&scratch->chain);
+        ACTOR_560800_ROTATE_CHAIN_BASIS(&scratch->chain, &task->extra.tmd->coords[partIndex].coord);
+        scratch->joint.vx = task->extra.tmd->coords[partIndex + 1].coord.t[0];
+        scratch->joint.vy = task->extra.tmd->coords[partIndex + 1].coord.t[1];
+        scratch->joint.vz = task->extra.tmd->coords[partIndex + 1].coord.t[2];
+        gte_SetRotMatrix(&scratch->chain);
+        gte_ldv0(&scratch->joint);
         gte_rtv0();
-        gte_stsv(&s->joint);
-        s->ang.vx += s->rot[i].vx;
-        s->ang.vx %= 0x1000;
-        s->ang.vy += s->rot[i].vy;
-        s->ang.vy %= 0x1000;
-        s->ang.vz += s->rot[i].vz;
-        s->ang.vz %= 0x1000;
-        s->pos.vx += s->joint.vx;
-        s->pos.vy += s->joint.vy;
-        s->pos.vz += s->joint.vz;
+        gte_stsv(&scratch->joint);
+        scratch->ang.vx += scratch->rot[partIndex].vx;
+        scratch->ang.vx %= ACTOR_TRANSFORM_ANGLE_TURN;
+        scratch->ang.vy += scratch->rot[partIndex].vy;
+        scratch->ang.vy %= ACTOR_TRANSFORM_ANGLE_TURN;
+        scratch->ang.vz += scratch->rot[partIndex].vz;
+        scratch->ang.vz %= ACTOR_TRANSFORM_ANGLE_TURN;
+        scratch->pos.vx += scratch->joint.vx;
+        scratch->pos.vy += scratch->joint.vy;
+        scratch->pos.vz += scratch->joint.vz;
     }
-    memCopyBytes(s->rot, work->rot, sizeof(s->rot));
+    memCopyBytes(scratch->rot, work->rot, sizeof(scratch->rot));
+    // Near the target, retract the root briefly and ease its offset back to zero.
     switch (work->dipStep) {
-        case 0:
-            if (abs(s->pos.vy - group->targetWorld.t[1]) < 300) {
-                if (abs(s->pos.vz - group->targetWorld.t[2]) < 200) {
-                    work->dipStep = 1;
+        case ACTOR_560800_CHAIN_DIP_IDLE:
+            if (abs(scratch->pos.vy - group->targetWorld.t[1]) < 300) {
+                if (abs(scratch->pos.vz - group->targetWorld.t[2]) < 200) {
+                    work->dipStep = ACTOR_560800_CHAIN_DIP_RETRACT;
                 }
             }
             break;
-        case 1:
+        case ACTOR_560800_CHAIN_DIP_RETRACT:
             work->offset.vy -= 20;
             if (work->offset.vy < -100) {
-                work->dipStep = 2;
+                work->dipStep = ACTOR_560800_CHAIN_DIP_RETURN;
             }
             break;
-        case 2:
+        case ACTOR_560800_CHAIN_DIP_RETURN:
             work->offset.vy += 2;
             if (work->offset.vy > 0) {
                 work->offset.vy = 0;
-                work->dipStep   = 0;
+                work->dipStep   = ACTOR_560800_CHAIN_DIP_IDLE;
             }
             break;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor560800ChainScratch);
+#undef ACTOR_560800_ROTATE_CHAIN_BASIS
 }
 
 /// Allocates playback and transform storage for a chain or its falling copy.
@@ -6583,7 +6614,7 @@ static void _actor560800InitChainModel(Task* task)
 
 /// Per-frame handler of a chain `_actor560800InitChainModel` sets up. State 1
 /// hides the chain (`TmdObject::flags` bit 0x80) for the chain numbers the
-/// current view excludes and otherwise runs `func_actor_560800_80136AA8`;
+/// current view excludes and otherwise runs `_actor560800BendChainTowardTarget`;
 /// state 2 restarts the rig's slots 1 to 6 in the clip `chainNumber` names,
 /// state 3 ticks them, state 4 spawns the falling copy from
 /// `D_actor_560800_8017575C` and gives it this chain's part coordinates, and
@@ -6623,7 +6654,7 @@ void func_actor_560800_80137820(Task* arg0)
                     case 4 ... 0x7FFF:
                         break;
                     default:
-                        func_actor_560800_80136AA8(arg0);
+                        _actor560800BendChainTowardTarget(arg0);
                         goto done;
                 }
             }
@@ -6633,7 +6664,7 @@ void func_actor_560800_80137820(Task* arg0)
                     return;
                 }
             }
-            func_actor_560800_80136AA8(arg0);
+            _actor560800BendChainTowardTarget(arg0);
             break;
         case 2:
             if (work->chainNumber < 4) {
@@ -6805,24 +6836,23 @@ static void _actor560800FallingChainTask(Task* task)
     worldCoordSetModelLighting(model, &lightingPosition, 0, 3);
 }
 
-/// Straightens the six non-root joints of a live chain.
+/// Resets the six non-root chain rotations and their stored bends.
 ///
-/// group->chains[chainIndex & 0xFFFF] must stay live with all seven coordinates
-/// and matching prop work. Rebuilds each joint and clears its stored bend.
+/// The low sixteen bits of chainIndex must select a live group chain (0..7)
+/// whose seven coordinates correspond to chainWork->rot. Leaves the root, joint
+/// translations and stored root rotation intact; the caller dirties composition.
 static inline void _actor560800StraightenChainParts(const _Actor560800ChainGroupWork* group, s32 chainIndex, _Actor560800PropWork* chainWork)
 {
-    s32 partIndex;
+    u16 partIndex;
 
-    partIndex = 1;
-    do {
-        gfxRotMatrixY(&group->chains[chainIndex & 0xFFFF]->extra.tmd->coords[partIndex & 0xFFFF].coord, 0, GRAPHICS_ROTATION_REPLACE);
-        gfxRotMatrixX(&group->chains[chainIndex & 0xFFFF]->extra.tmd->coords[partIndex & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
-        gfxRotMatrixZ(&group->chains[chainIndex & 0xFFFF]->extra.tmd->coords[partIndex & 0xFFFF].coord, 0, GRAPHICS_ROTATION_COMPOSE);
-        chainWork->rot[partIndex & 0xFFFF].vx = 0;
-        chainWork->rot[partIndex & 0xFFFF].vy = 0;
-        chainWork->rot[partIndex & 0xFFFF].vz = 0;
-        partIndex++;
-    } while ((u32)(partIndex & 0xFFFF) < ARRAY_SIZE(chainWork->rot));
+    for (partIndex = 1; (u32)partIndex < ARRAY_SIZE(chainWork->rot); partIndex++) {
+        gfxRotMatrixY(&group->chains[chainIndex & 0xFFFF]->extra.tmd->coords[partIndex].coord, 0, GRAPHICS_ROTATION_REPLACE);
+        gfxRotMatrixX(&group->chains[chainIndex & 0xFFFF]->extra.tmd->coords[partIndex].coord, 0, GRAPHICS_ROTATION_COMPOSE);
+        gfxRotMatrixZ(&group->chains[chainIndex & 0xFFFF]->extra.tmd->coords[partIndex].coord, 0, GRAPHICS_ROTATION_COMPOSE);
+        chainWork->rot[partIndex].vx = 0;
+        chainWork->rot[partIndex].vy = 0;
+        chainWork->rot[partIndex].vz = 0;
+    }
 }
 
 /// Places the live chains in the group's selected arrangement.
@@ -7352,31 +7382,78 @@ static void _actor560800CarryNo9Away(Task* task)
     root->coord.t[1]  += 100;
 }
 
-void func_actor_560800_80138FC8(Task* task)
+/// Steps the carrier's second-part X/Z scale in its stored direction.
+///
+/// Requires live prop work and two model coordinates. scaleStep uses twelve
+/// fractional bits; resets only the second part's rotation before scaling.
+static inline void _actor560800StepCarrierScale(Task* task, s16 scaleStep)
 {
-    _Actor560800PropWork* work;
-    _Actor560800PropWork* w;
-    _Actor560800PropWork* mem;
-    TmdObject*            obj;
-    GfxCoord*             coord;
-    GfxCoord*             c;
+    GfxCoord*             pulseCoord;
+    _Actor560800PropWork* pulseWork;
     VECTOR                scale;
+    pulseCoord = task->extra.tmd->coords;
+    pulseWork  = task->work;
+    gfxSetRotIdentity(&pulseCoord[1].coord);
+    pulseCoord++;
+    if (pulseWork->pulseGrowing == ACTOR_560800_CARRIER_SCALE_SHRINK) {
+        pulseWork->pulseScale -= scaleStep;
+        if (pulseWork->pulseScale < ONE) {
+            pulseWork->pulseGrowing = ACTOR_560800_CARRIER_SCALE_GROW;
+        }
+    } else if (pulseWork->pulseGrowing == ACTOR_560800_CARRIER_SCALE_GROW) {
+        pulseWork->pulseScale += scaleStep;
+        if (pulseWork->pulseScale > ACTOR_560800_CARRIER_MAX_SCALE) {
+            pulseWork->pulseGrowing = ACTOR_560800_CARRIER_SCALE_SHRINK;
+        }
+    }
+    scale.vx = pulseWork->pulseScale;
+    scale.vy = ONE;
+    scale.vz = pulseWork->pulseScale;
+    ScaleMatrix(&pulseCoord->coord, &scale);
+}
+
+/// Runs the carrier model's descent, scale changes and removal of No. 9.
+///
+/// Starts at state 0 with a live two-part model and cutscene Task* in spawnArg2.
+/// Owns zeroed prop work and lends its lighting matrices to the model until
+/// cutscene teardown. Allocation failure kills the task. The message table
+/// selects hide, two descents, slow descent, accelerated ascent or the carry
+/// sequence. Positive Y descends and negative Y ascends in game units. Scale
+/// uses twelve fractional bits, with X/Z changing and Y fixed at ONE; each motion
+/// phase forces its scale direction anew. Every post-initialization update, even
+/// when hidden, advances the two scene counters by two and one respectively.
+static void _actor560800CarrierTask(Task* task)
+{
+    enum {
+        ACTOR_560800_CARRIER_STATE_INITIALIZE     = 0,
+        ACTOR_560800_CARRIER_STATE_HIDE           = 1,
+        ACTOR_560800_CARRIER_STATE_FIRST_DESCENT  = 2,
+        ACTOR_560800_CARRIER_STATE_SLOW_DESCENT   = 3,
+        ACTOR_560800_CARRIER_STATE_RISE           = 4,
+        ACTOR_560800_CARRIER_STATE_SECOND_DESCENT = 5,
+        ACTOR_560800_CARRIER_STATE_CARRY_NO9      = 6,
+    };
+    _Actor560800PropWork* work;
+    _Actor560800PropWork* allocatedWork;
+    TmdObject*            model;
+    GfxCoord*             motionRoot;
     GfxCoord*             root;
 
     switch (task->state) {
-        case 0:
-            obj        = task->extra.tmd;
-            root       = obj->coords;
+        // Attach lifetime to the cutscene; the rendered root stays in view space.
+        case ACTOR_560800_CARRIER_STATE_INITIALIZE:
+            model      = task->extra.tmd;
+            root       = model->coords;
             task->work = memMalloc(sizeof(_Actor560800PropWork), false);
             if (task->work == NULL) {
                 taskKill(task);
             } else {
-                memFillBytes(task->work, 0, sizeof(*mem));
-                mem           = task->work;
-                root->parent  = &gGfxViewCoord;
-                mem->parent   = task->spawnArg2.pointer;
-                obj->lightMtx = &mem->light;
-                obj->colorMtx = &mem->color;
+                memFillBytes(task->work, 0, sizeof(*allocatedWork));
+                allocatedWork         = task->work;
+                root->parent          = &gGfxViewCoord;
+                allocatedWork->parent = task->spawnArg2.pointer;
+                model->lightMtx       = &allocatedWork->light;
+                model->colorMtx       = &allocatedWork->color;
                 taskReparent(task->spawnArg2.pointer, task);
                 task->msgTable          = D_actor_560800_80175744;
                 D_actor_560800_801757AC = task;
@@ -7384,97 +7461,45 @@ void func_actor_560800_80138FC8(Task* task)
             }
             task->state++;
             return;
-        case 1:
+        case ACTOR_560800_CARRIER_STATE_HIDE:
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 2:
-            coord              = task->extra.tmd->coords;
-            work               = task->work;
-            coord->coord.t[1] += 5;
-            if (work->pulseScale <= 0x1800) {
-                work->pulseGrowing = 1;
-                c                  = task->extra.tmd->coords;
-                w                  = task->work;
-                gfxSetRotIdentity(&c[1].coord);
-                c++;
-                if (w->pulseGrowing == 0) {
-                    w->pulseScale -= 0x32;
-                    if (w->pulseScale < 0x1000) {
-                        w->pulseGrowing = 1;
-                    }
-                } else if (w->pulseGrowing == 1) {
-                    w->pulseScale += 0x32;
-                    if (w->pulseScale > 0x1800) {
-                        w->pulseGrowing = 0;
-                    }
-                }
-                scale.vx = w->pulseScale;
-                scale.vy = 0x1000;
-                scale.vz = w->pulseScale;
-                ScaleMatrix(&c->coord, &scale);
+        // Positive Y descends; every update forces growth rather than oscillation.
+        case ACTOR_560800_CARRIER_STATE_FIRST_DESCENT:
+            motionRoot              = task->extra.tmd->coords;
+            work                    = task->work;
+            motionRoot->coord.t[1] += 5;
+            if (work->pulseScale <= ACTOR_560800_CARRIER_MAX_SCALE) {
+                work->pulseGrowing = ACTOR_560800_CARRIER_SCALE_GROW;
+                _actor560800StepCarrierScale(task, 50);
             }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            motionRoot->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
-        case 3:
-            coord              = task->extra.tmd->coords;
-            work               = task->work;
-            coord->coord.t[1] += 1;
-            if (work->pulseScale >= 0x800) {
-                work->pulseGrowing = 0;
-                c                  = task->extra.tmd->coords;
-                w                  = task->work;
-                gfxSetRotIdentity(&c[1].coord);
-                c++;
-                if (w->pulseGrowing == 0) {
-                    w->pulseScale -= 0xA;
-                    if (w->pulseScale < 0x1000) {
-                        w->pulseGrowing = 1;
-                    }
-                } else if (w->pulseGrowing == 1) {
-                    w->pulseScale += 0xA;
-                    if (w->pulseScale > 0x1800) {
-                        w->pulseGrowing = 0;
-                    }
-                }
-                scale.vx = w->pulseScale;
-                scale.vy = 0x1000;
-                scale.vz = w->pulseScale;
-                ScaleMatrix(&c->coord, &scale);
+        // Continue downward slowly while forcing X/Z shrinkage to half size.
+        case ACTOR_560800_CARRIER_STATE_SLOW_DESCENT:
+            motionRoot              = task->extra.tmd->coords;
+            work                    = task->work;
+            motionRoot->coord.t[1] += 1;
+            if (work->pulseScale >= ACTOR_560800_CARRIER_HALF_SCALE) {
+                work->pulseGrowing = ACTOR_560800_CARRIER_SCALE_SHRINK;
+                _actor560800StepCarrierScale(task, 10);
             }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            motionRoot->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
-        case 4:
+        case ACTOR_560800_CARRIER_STATE_RISE:
             _actor560800RaiseCarrier(task);
             break;
-        case 5:
-            coord              = task->extra.tmd->coords;
-            work               = task->work;
-            coord->coord.t[1] += 5;
-            if (work->pulseScale <= 0x1800) {
-                work->pulseGrowing = 1;
-                c                  = task->extra.tmd->coords;
-                w                  = task->work;
-                gfxSetRotIdentity(&c[1].coord);
-                c++;
-                if (w->pulseGrowing == 0) {
-                    w->pulseScale -= 0x32;
-                    if (w->pulseScale < 0x1000) {
-                        w->pulseGrowing = 1;
-                    }
-                } else if (w->pulseGrowing == 1) {
-                    w->pulseScale += 0x32;
-                    if (w->pulseScale > 0x1800) {
-                        w->pulseGrowing = 0;
-                    }
-                }
-                scale.vx = w->pulseScale;
-                scale.vy = 0x1000;
-                scale.vz = w->pulseScale;
-                ScaleMatrix(&c->coord, &scale);
+        case ACTOR_560800_CARRIER_STATE_SECOND_DESCENT:
+            motionRoot              = task->extra.tmd->coords;
+            work                    = task->work;
+            motionRoot->coord.t[1] += 5;
+            if (work->pulseScale <= ACTOR_560800_CARRIER_MAX_SCALE) {
+                work->pulseGrowing = ACTOR_560800_CARRIER_SCALE_GROW;
+                _actor560800StepCarrierScale(task, 50);
             }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            motionRoot->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
-        case 6:
+        case ACTOR_560800_CARRIER_STATE_CARRY_NO9:
             _actor560800CarryNo9Away(task);
             break;
     }
