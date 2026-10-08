@@ -72,7 +72,6 @@ static s32  _strideWalkSetModelDraw(Task* task, s32 messageId, s32 drawFlags, s3
 static s32  _strideWalkSetWalkTarget(Task* task, s32 messageId, const ActorTransform* target, s32 secondArg);
 static void _strideWalkSubModelTask(Task* task);
 
-/* Defined by each package. */
-void strideWalkExit(Task* task);
+static void _strideWalkExit(Task* task);
 
 #endif /* SRC_SHARED_STRIDE_WALK_H */

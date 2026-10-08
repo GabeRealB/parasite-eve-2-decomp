@@ -2367,10 +2367,7 @@ void func_actor_460200_801330C8(Task* task)
 #include "../../shared/stride_walk_frame.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-void strideWalkExit(Task* task)
-{
-    enemyDestroy(task->spawnArg2.pointer, task);
-}
+#include "../../shared/stride_walk_exit.inc.c"
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"

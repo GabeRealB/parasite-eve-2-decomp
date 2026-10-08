@@ -7,6 +7,7 @@
 #include "gte.h"
 #include "common.h"
 
+#include "actors/actor_161500.h"
 #include "actors/actor_260400.h"
 #include "actors/actor_260500.h"
 #include "actors/task_tables.h"
@@ -64,12 +65,6 @@
 #include "../../shared/follow_collision.h"
 
 extern s8 D_shelter_1f_heliport_80182CB0;
-
-extern void func_actor_161500_80131FBC(void);
-extern void func_actor_161500_80132038(void);
-extern void func_actor_161500_80132110(void);
-extern void func_actor_161500_8013230C(void);
-extern void func_actor_161500_801322A0(void);
 
 extern TaskDesc D_actor_161500_80136CDC;
 
@@ -749,16 +744,16 @@ s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, s3
             }
             break;
         case 2:
-            func_actor_161500_80132038();
+            actor161500StartSoldierBTalkB();
             break;
         case 3:
-            func_actor_161500_80131FBC();
+            actor161500StartSoldierBTalkA();
             break;
         case 4:
-            func_actor_161500_80132110();
+            actor161500StartSoldierBShopConversation();
             break;
         case 5:
-            func_actor_161500_801322A0();
+            actor161500StartCompanionRequestReminder();
             break;
     }
     return 0;
@@ -777,7 +772,7 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
         actor260400RestoreHeliportPlacement();
     }
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        func_actor_161500_8013230C();
+        actor161500RestoreCompanionRequestScene();
     }
     shelter1fHeliportUpdateCompanionObstacle(0);
     _shelter1fHeliportUpdatePlacedActorVisibility();

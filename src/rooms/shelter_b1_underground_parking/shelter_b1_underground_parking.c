@@ -8,6 +8,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/actor_161500.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/action_prompt.h"
@@ -183,8 +184,6 @@ static s32 Shop_Data_801819EC;
 extern u16 D_shelter_b1_underground_parking_8018D78C;
 
 extern SVECTOR D_shelter_b1_underground_parking_8018771C[13];
-
-extern void func_actor_161500_80131E38(void);
 
 extern UiObjectDesc D_800611E4;
 
@@ -1784,13 +1783,13 @@ static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
     },
 };
 
-/// Room event handler keyed on `msg->field_2`: 1 calls `func_actor_161500_80131E38` in
+/// Room event handler keyed on `msg->field_2`: 1 calls `actor161500StartSoldierBRemark` in
 /// place 0x15, 0xA starts caption slot 0xA and sets nibble 0x1B4 to 2 while
 /// the room is below 7, and 0xB / 0xC pick a caption or spawn per room.
 s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg* msg, s32 arg3)
 {
     if (msg->warp == 1 && gGameSession->location.loc.variant == 0x15) {
-        func_actor_161500_80131E38();
+        actor161500StartSoldierBRemark();
     }
     if (msg->warp == 0xA) {
         if ((u8)msg->room == 1 && gGameSession->location.loc.room < 7) {

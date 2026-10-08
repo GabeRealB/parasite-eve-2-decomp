@@ -21,7 +21,7 @@ void strideWalkSpawn(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = strideWalkExit;
+    task->exitCallback               = _strideWalkExit;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;

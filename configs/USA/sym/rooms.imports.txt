@@ -485,21 +485,21 @@ gRoomEffectOrangeBurst2Id = 0x80115754; // absolute:True
 gRoomEffectFlashId = 0x80115758; // absolute:True
 actor160700RestoreMeetingAnimation = 0x80131E24; // type:func absolute:True owner=actor_160700 shared=actors
 func_actor_450800_80131E2C = 0x80131E2C; // type:func absolute:True owner=actor_450800
-func_actor_161500_80131E38 = 0x80131E38; // type:func absolute:True owner=actor_161500
+actor161500StartSoldierBRemark = 0x80131E38; // type:func absolute:True owner=actor_161500
 actor160700StartMeetingScript = 0x80131E70; // type:func absolute:True owner=actor_160700
 func_actor_150400_80131FB8 = 0x80131FB8; // type:func absolute:True owner=actor_150400
-func_actor_161500_80131FBC = 0x80131FBC; // type:func absolute:True owner=actor_161500
+actor161500StartSoldierBTalkA = 0x80131FBC; // type:func absolute:True owner=actor_161500
 actor450800StartNurseryCompanionDialogue = 0x80132000; // type:func absolute:True owner=actor_450800
 actor450800PrepareNurseryKyleMadigan = 0x80132028; // type:func absolute:True owner=actor_450800
-func_actor_161500_80132038 = 0x80132038; // type:func absolute:True owner=actor_161500
-func_actor_161500_80132110 = 0x80132110; // type:func absolute:True owner=actor_161500
-actor460200SetupTentSoldiers = 0x80132210; // type:func absolute:True owner=actor_460200 shared=actors
+actor161500StartSoldierBTalkB = 0x80132038; // type:func absolute:True owner=actor_161500
+actor161500StartSoldierBShopConversation = 0x80132110; // type:func absolute:True owner=actor_161500
+actor460200SetupTentSoldiers = 0x80132210; // type:func absolute:True owner=actor_460200
 actor450200StartCompanionTalk = 0x80132220; // type:func absolute:True owner=actor_450200
 actor146300RestoreHandoverPose = 0x8013224C; // type:func absolute:True owner=actor_146300
-func_actor_161500_801322A0 = 0x801322A0; // type:func absolute:True owner=actor_161500 shared=actors
+actor161500StartCompanionRequestReminder = 0x801322A0; // type:func absolute:True owner=actor_161500 shared=actors
 actor460200TalkToSoldierC = 0x801322B8; // type:func absolute:True owner=actor_460200
 func_actor_450200_801322F8 = 0x801322F8; // type:func absolute:True owner=actor_450200
-func_actor_161500_8013230C = 0x8013230C; // type:func absolute:True owner=actor_161500
+actor161500RestoreCompanionRequestScene = 0x8013230C; // type:func absolute:True owner=actor_161500
 actor460200TalkToSoldierA = 0x80132390; // type:func absolute:True owner=actor_460200
 func_actor_450900_801327A8 = 0x801327A8; // type:func absolute:True owner=actor_450900
 actor450900HandleDepartureTrigger = 0x80132834; // type:func absolute:True owner=actor_450900

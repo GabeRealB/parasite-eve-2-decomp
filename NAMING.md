@@ -1090,8 +1090,8 @@ interface is `src/shared/stride_walk.h`, one fragment per function.
 modes use `STRIDE_WALK_TURN_`. The walker borrows the paced walk's slot tick,
 reset, blended reseed and placement, so a carrier binds `PACED_WALK_WORK_T` to
 `StrideWalkWork` around those fragments.
-Its animation update, frame state, message handlers and carried-model callback
-have static per-carrier instances marked `_strideWalk`.
+Its animation update, frame state, exit callback, message handlers and
+carried-model callback have static per-carrier instances marked `_strideWalk`.
 
 `pairWalk` owns the included walk of the nineteen-part NPC that carries a
 second model on one of its parts, carried by `actor_150400`, `actor_450800`,

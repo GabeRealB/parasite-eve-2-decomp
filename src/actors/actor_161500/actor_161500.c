@@ -1,3 +1,5 @@
+#include "actors/actor_161500.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -37,6 +39,45 @@
 #include "../../shared/walker.h"
 #include "../../shared/stride_walk.h"
 
+/// CAP file selectors, post-shop command indices and each variant's dialogue extent.
+enum {
+    ACTOR_161500_ALTERNATE_VARIANT           = 1,
+    ACTOR_161500_TALKS_PER_VARIANT           = 4,
+    ACTOR_161500_LAST_TALK                   = ACTOR_161500_TALKS_PER_VARIANT - 1,
+    ACTOR_161500_CAPTION_RESET               = 0,
+    ACTOR_161500_CAPTION_BY_VARIANT          = -1,
+    ACTOR_161500_CAPTION_FILE_STANDARD       = 1,
+    ACTOR_161500_CAPTION_FILE_ALTERNATE      = 2,
+    ACTOR_161500_CAPTION_AFTER_PARKING_SHOP  = 29,
+    ACTOR_161500_CAPTION_AFTER_HELIPORT_SHOP = 52,
+};
+
+/// Saved stages of the companion's item request.
+enum {
+    ACTOR_161500_REQUEST_UNSEEN   = 0,
+    ACTOR_161500_REQUEST_PENDING  = 1,
+    ACTOR_161500_REQUEST_COMPLETE = 2,
+};
+
+/// Stock selectors passed to the room's shop, with the initial category zero.
+enum {
+    ACTOR_161500_SHOP_STOCK_STANDARD        = 0x30,
+    ACTOR_161500_SHOP_STOCK_ALTERNATE       = 0x31,
+    ACTOR_161500_SHOP_STOCK_EVENT           = 0x32,
+    ACTOR_161500_SHOP_STOCK_ALTERNATE_EVENT = 0x33,
+};
+
+/// Pending parking remarks and the visitor progress consumed by the departure remark.
+enum {
+    ACTOR_161500_REMARK_DEFAULT                      = 0,
+    ACTOR_161500_REMARK_STERILIZATION_WITH_COMPANION = 1,
+    ACTOR_161500_REMARK_STERILIZATION_ALONE          = 2,
+    ACTOR_161500_REMARK_STERILIZATION_FOLLOWUP       = 3,
+    ACTOR_161500_REMARK_VISITOR_DEPARTURE            = 4,
+    ACTOR_161500_VISITOR_DEPARTED                    = 4,
+    ACTOR_161500_VISITOR_REMARK_SEEN                 = 5,
+};
+
 extern TaskDesc      gStrideWalkTasks[];
 extern AnimationSet* gStrideWalkAnimParams[12];
 // Message-table callbacks use the argument views required by this TU.
@@ -68,12 +109,12 @@ extern AnimationPlayRequest     D_actor_161500_80134034;
 extern ActorCommand             D_actor_161500_80133F74;
 extern ActorCommand             D_actor_161500_80133F78;
 extern AnimationBankCopyRequest D_actor_161500_80134048;
-void                            func_actor_161500_80131F50(s32);
-void                            func_actor_161500_801320B4(void);
-void                            func_actor_161500_801320F0(s32);
-void                            func_actor_161500_80132150(void);
+static void                     _actor161500SelectCaptionFile(s32 captionFile);
+static void                     _actor161500OpenHeliportShop(void);
+static void                     _actor161500RunCaptionCommand(s32 commandId);
+static void                     _actor161500OpenParkingShop(void);
 
-void func_actor_161500_801321B4(Task*);
+static void _actor161500CompleteCompanionRequestTask(Task* task);
 
 static AnimationSet _gActor161500Animation04304;
 static AnimationSet _gActor161500Animation04518;
@@ -88,8 +129,6 @@ extern ActorTransform D_actor_161500_80136D18;
 extern ActorTransform D_actor_161500_80136D30;
 extern ActorTransform D_actor_161500_80136D48;
 
-void func_actor_161500_80131F50(s32);
-
 extern AnimationPlayRequest     D_actor_161500_80136D90;
 extern AnimationPlayRequest     D_actor_161500_80136DA4;
 extern AnimationPlayRequest     D_actor_161500_80136DB8;
@@ -97,9 +136,9 @@ extern AnimationPlayRequest     D_actor_161500_80136E38;
 extern AnimationPlayRequest     D_actor_161500_80136E60;
 extern AnimationPlayRequest     D_actor_161500_80136E74;
 extern AnimationBankCopyRequest D_actor_161500_80136E08;
-s32                             func_actor_161500_80132B88(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
-void                            func_actor_161500_80132210(void);
-void                            func_actor_161500_80132294(u8);
+static s32                      _strideWalkSetTurnMode(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
+static void                     _actor161500PreparePlayerFacingCompanion(void);
+static void                     _actor161500SetPlayerUpdateHold(u8 holdPlayerUpdate);
 void                            func_actor_161500_801326E8(Task*);
 
 static AnimationPackedPose _gActor161500Animation010D0Bank1[3] = {
@@ -275,7 +314,7 @@ AnimationPlayRequest D_actor_161500_80134034 = { { .index = 0 }, 11, ANIMATION_B
 AnimationBankCopyRequest D_actor_161500_80134048 = { { .sets = D_actor_161500_80133F90 }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 EvsCommand D_actor_161500_80134050[13] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_STANDARD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -285,13 +324,13 @@ EvsCommand D_actor_161500_80134050[13] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80134188[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_STANDARD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -299,13 +338,13 @@ EvsCommand D_actor_161500_80134188[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80134290[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_STANDARD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -313,13 +352,13 @@ EvsCommand D_actor_161500_80134290[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80134398[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_STANDARD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -327,13 +366,13 @@ EvsCommand D_actor_161500_80134398[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_801344A0[15] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_ALTERNATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 34 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -345,13 +384,13 @@ EvsCommand D_actor_161500_801344A0[15] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80134608[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_ALTERNATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 35 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -359,13 +398,13 @@ EvsCommand D_actor_161500_80134608[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80134710[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_ALTERNATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 36 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -373,13 +412,13 @@ EvsCommand D_actor_161500_80134710[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80134818[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_ALTERNATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 37 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -387,7 +426,7 @@ EvsCommand D_actor_161500_80134818[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -404,7 +443,7 @@ EvsCommand* D_actor_161500_80134920[8] = {
 };
 
 EvsCommand D_actor_161500_80134940[15] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_STANDARD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133FE4 }, { .value = 0 } },
@@ -416,13 +455,13 @@ EvsCommand D_actor_161500_80134940[15] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133FBC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80134AA8[12] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_STANDARD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 15 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133FE4 }, { .value = 0 } },
@@ -431,13 +470,13 @@ EvsCommand D_actor_161500_80134AA8[12] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80134BC8[13] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_STANDARD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 16 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -447,13 +486,13 @@ EvsCommand D_actor_161500_80134BC8[13] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80134D00[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_STANDARD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 17 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -461,13 +500,13 @@ EvsCommand D_actor_161500_80134D00[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80134E08[12] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_ALTERNATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 38 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133FE4 }, { .value = 0 } },
@@ -476,13 +515,13 @@ EvsCommand D_actor_161500_80134E08[12] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80134F28[12] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_ALTERNATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 39 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133FE4 }, { .value = 0 } },
@@ -491,13 +530,13 @@ EvsCommand D_actor_161500_80134F28[12] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80135048[13] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_ALTERNATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 40 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -507,13 +546,13 @@ EvsCommand D_actor_161500_80135048[13] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_80135180[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_FILE_ALTERNATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 41 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -521,7 +560,7 @@ EvsCommand D_actor_161500_80135180[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -538,7 +577,7 @@ EvsCommand* D_actor_161500_80135288[8] = {
 };
 
 EvsCommand D_actor_161500_801352A8[22] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_BY_VARIANT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 50 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -550,20 +589,20 @@ EvsCommand D_actor_161500_801352A8[22] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_161500_801320B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor161500OpenHeliportShop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_801320F0 }, { .value = 52 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500RunCaptionCommand }, { .value = ACTOR_161500_CAPTION_AFTER_HELIPORT_SHOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_161500_801354B8[18] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_BY_VARIANT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 51 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80134048 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133F7C }, { .value = 0 } },
@@ -571,14 +610,14 @@ EvsCommand D_actor_161500_801354B8[18] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_161500_801320B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor161500OpenHeliportShop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_801320F0 }, { .value = 52 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500RunCaptionCommand }, { .value = ACTOR_161500_CAPTION_AFTER_HELIPORT_SHOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_161500_80133F78 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_80131F50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500SelectCaptionFile }, { .value = ACTOR_161500_CAPTION_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -591,9 +630,9 @@ EvsCommand D_actor_161500_80135668[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_161500_80132150 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor161500OpenParkingShop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_801320F0 }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500RunCaptionCommand }, { .value = ACTOR_161500_CAPTION_AFTER_PARKING_SHOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -611,9 +650,9 @@ EvsCommand D_actor_161500_801357E8[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134034 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_161500_80132150 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor161500OpenParkingShop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_801320F0 }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500RunCaptionCommand }, { .value = ACTOR_161500_CAPTION_AFTER_PARKING_SHOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -630,9 +669,9 @@ EvsCommand D_actor_161500_80135968[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134034 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_161500_80132150 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor161500OpenParkingShop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_801320F0 }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500RunCaptionCommand }, { .value = ACTOR_161500_CAPTION_AFTER_PARKING_SHOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -648,9 +687,9 @@ EvsCommand D_actor_161500_80135AE8[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_161500_80132150 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor161500OpenParkingShop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_801320F0 }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500RunCaptionCommand }, { .value = ACTOR_161500_CAPTION_AFTER_PARKING_SHOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -668,9 +707,9 @@ EvsCommand D_actor_161500_80135C68[16] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_161500_80133FE4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_161500_80132150 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor161500OpenParkingShop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_161500_801320F0 }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor161500RunCaptionCommand }, { .value = ACTOR_161500_CAPTION_AFTER_PARKING_SHOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_161500_80134020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -810,7 +849,7 @@ static AnimationSet _gActor161500Animation04E94 = {
     { NULL, _gActor161500Animation04E94Bank1, NULL, NULL, _gActor161500Animation04E94Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_161500_80136CDC = { { { TASK_BODY_NONE, 32 } }, func_actor_161500_801321B4, { .value = 0 } };
+TaskDesc D_actor_161500_80136CDC = { { { TASK_BODY_NONE, 32 } }, _actor161500CompleteCompanionRequestTask, { .value = 0 } };
 
 ActorTransform D_actor_161500_80136CE8 = { { 850, 0, 4400, 0 }, { 0, 568, 0, 0 } };
 
@@ -970,7 +1009,7 @@ ActorTransform D_actor_161500_801376E0 = { { 0, 0, 0, 0 }, { 0, -1024, 0, 0 } };
 EvsCommand D_actor_161500_801376F8[20] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80136E08 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 27 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_161500_80132210 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor161500PreparePlayerFacingCompanion }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_161500_801376E0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -993,7 +1032,7 @@ EvsCommand D_actor_161500_801376F8[20] = {
 EvsCommand D_actor_161500_801378D8[20] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80136E08 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 29 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_161500_80132210 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor161500PreparePlayerFacingCompanion }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_161500_801376E0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1018,8 +1057,8 @@ EvsCommand D_actor_161500_80137AB8[29] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_161500_80136E08 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 28 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_actor_161500_80132294 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_161500_80132210 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor161500SetPlayerUpdateHold }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor161500PreparePlayerFacingCompanion }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_161500_801376E0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1355,7 +1394,7 @@ TaskMessageEntry gStrideWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _strideWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _strideWalkSetModelDraw },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_161500_80132B88 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _strideWalkSetTurnMode },
     { ACTOR_MESSAGE_WALK_TO, _strideWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1380,105 +1419,123 @@ AnimationSet* gStrideWalkAnimParams[12] = {
     &_gActor161500Animation0D544,
 };
 
-void func_actor_161500_80131E38(void);
-void func_actor_161500_80131FBC(void);
-void func_actor_161500_80132038(void);
-void func_actor_161500_80132110(void);
-void func_actor_161500_801322A0(void);
-void func_actor_161500_8013230C(void);
-
-void func_actor_161500_80131E38(void)
+/// Promotes the departed visitor's remark once no sterilization outcome is pending.
+static inline void _actor161500PrepareVisitorDepartureRemark(void)
 {
-    if ((gameFlagGetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE) != 1) && (gameFlagGetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE) != 2) && (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 4)) {
-        gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 5);
-        gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 4);
+    if ((gameFlagGetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE) != ACTOR_161500_REMARK_STERILIZATION_WITH_COMPANION) &&
+        (gameFlagGetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE) != ACTOR_161500_REMARK_STERILIZATION_ALONE) &&
+        (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == ACTOR_161500_VISITOR_DEPARTED)) {
+        gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, ACTOR_161500_VISITOR_REMARK_SEEN);
+        gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, ACTOR_161500_REMARK_VISITOR_DEPARTURE);
     }
+}
+
+void actor161500StartSoldierBRemark(void)
+{
+    _actor161500PrepareVisitorDepartureRemark();
 
     switch (gameFlagGetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE)) {
-        case 0:
+        case ACTOR_161500_REMARK_DEFAULT:
             evsStartScript(D_actor_161500_80135668, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
-        case 1:
+        case ACTOR_161500_REMARK_STERILIZATION_WITH_COMPANION:
             evsStartScript(D_actor_161500_801357E8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 3);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, ACTOR_161500_REMARK_STERILIZATION_FOLLOWUP);
             break;
-        case 2:
+        case ACTOR_161500_REMARK_STERILIZATION_ALONE:
             evsStartScript(D_actor_161500_80135968, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 3);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, ACTOR_161500_REMARK_STERILIZATION_FOLLOWUP);
             break;
-        case 3:
+        case ACTOR_161500_REMARK_STERILIZATION_FOLLOWUP:
             evsStartScript(D_actor_161500_80135AE8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, ACTOR_161500_REMARK_DEFAULT);
             break;
-        case 4:
+        case ACTOR_161500_REMARK_VISITOR_DEPARTURE:
             evsStartScript(D_actor_161500_80135C68, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 0);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, ACTOR_161500_REMARK_DEFAULT);
             break;
     }
 }
 
-void func_actor_161500_80131F50(s32 arg0)
+/// Selects the soldier's loaded CAP data and texture page, or restores the default.
+///
+/// Zero resets CAP; positive values are loaded data-resource ordinals. Any
+/// negative value selects ordinal 2 in variant 1, ordinal 1 otherwise. The
+/// selected writable CAP resource and texture page must remain loaded for playback.
+static void _actor161500SelectCaptionFile(s32 captionFile)
 {
-    s8 capFile;
+    enum { ACTOR_161500_CAPTION_VRAM_X = 832,
+           ACTOR_161500_CAPTION_VRAM_Y = 0 };
+    s8 variantCaptionFile;
 
-    if (arg0 != 0) {
-        Gp_CapFile = 0;
-        if (arg0 <= 0) {
-            capFile = 1;
-            if (gGameSession->location.loc.variant == 1) {
-                capFile = 2;
+    if (captionFile != ACTOR_161500_CAPTION_RESET) {
+        Gp_CapFile = NULL;
+        if (captionFile <= 0) {
+            variantCaptionFile = ACTOR_161500_CAPTION_FILE_STANDARD;
+            if (gGameSession->location.loc.variant == ACTOR_161500_ALTERNATE_VARIANT) {
+                variantCaptionFile = ACTOR_161500_CAPTION_FILE_ALTERNATE;
             }
-            arg0 = capFile;
+            captionFile = variantCaptionFile;
         }
-        capSelectLoadedFile(arg0);
-        capSetTexturePage(0x340, 0);
+        capSelectLoadedFile(captionFile);
+        capSetTexturePage(ACTOR_161500_CAPTION_VRAM_X, ACTOR_161500_CAPTION_VRAM_Y);
         return;
     }
     capReset();
 }
 
-void func_actor_161500_80131FBC(void)
+void actor161500StartSoldierBTalkA(void)
 {
-    s32 temp_s0;
-    s32 temp_v0;
+    s32 variantScriptOffset;
+    s32 talkIndex;
 
-    temp_s0 = (gGameSession->location.loc.variant == 1) * 4;
-    temp_v0 = gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_A);
-    evsStartScript(D_actor_161500_80134920[temp_v0 + temp_s0], EVENT_SCRIPT_HUD_HIDE_RESTORE);
-    if (temp_v0 < 3) {
-        gameFlagSetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_A, temp_v0 + 1);
+    variantScriptOffset = (gGameSession->location.loc.variant == ACTOR_161500_ALTERNATE_VARIANT) * ACTOR_161500_TALKS_PER_VARIANT;
+    talkIndex           = gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_A);
+    evsStartScript(D_actor_161500_80134920[talkIndex + variantScriptOffset], EVENT_SCRIPT_HUD_HIDE_RESTORE);
+    if (talkIndex < ACTOR_161500_LAST_TALK) {
+        gameFlagSetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_A, talkIndex + 1);
     }
 }
 
-void func_actor_161500_80132038(void)
+void actor161500StartSoldierBTalkB(void)
 {
-    s32 temp_s0;
-    s32 temp_v0;
+    s32 variantScriptOffset;
+    s32 talkIndex;
 
-    temp_s0 = (gGameSession->location.loc.variant == 1) * 4;
-    temp_v0 = gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B);
-    evsStartScript(D_actor_161500_80135288[temp_v0 + temp_s0], EVENT_SCRIPT_HUD_HIDE_RESTORE);
-    if (temp_v0 < 3) {
-        gameFlagSetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B, temp_v0 + 1);
+    variantScriptOffset = (gGameSession->location.loc.variant == ACTOR_161500_ALTERNATE_VARIANT) * ACTOR_161500_TALKS_PER_VARIANT;
+    talkIndex           = gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B);
+    evsStartScript(D_actor_161500_80135288[talkIndex + variantScriptOffset], EVENT_SCRIPT_HUD_HIDE_RESTORE);
+    if (talkIndex < ACTOR_161500_LAST_TALK) {
+        gameFlagSetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B, talkIndex + 1);
     }
 }
 
-void func_actor_161500_801320B4(void)
+/// Opens the heliport shop's standard or variant-1 alternate stock at category zero.
+static void _actor161500OpenHeliportShop(void)
 {
     GameSession* session;
 
     session = gGameSession;
-    do {
-        shopOpenSession((session->location.loc.variant == 1) ? 0x31 : 0x30);
-    } while (0);
+    switch (session->location.loc.variant) {
+        case ACTOR_161500_ALTERNATE_VARIANT:
+            shopOpenSession(ACTOR_161500_SHOP_STOCK_ALTERNATE);
+            break;
+        default:
+            shopOpenSession(ACTOR_161500_SHOP_STOCK_STANDARD);
+            break;
+    }
 }
 
-void func_actor_161500_801320F0(s32 arg0)
+/// Resumes the selected soldier CAP file with a command after the shop closes.
+///
+/// `commandId` is a CAP command-table index. Uses the current view in place;
+/// the selected CAP file and its texture page must still be loaded.
+static void _actor161500RunCaptionCommand(s32 commandId)
 {
-    capRunCommand(arg0, CAP_PLAYBACK_IN_PLACE);
+    capRunCommand(commandId, CAP_PLAYBACK_IN_PLACE);
 }
 
-void func_actor_161500_80132110(void)
+void actor161500StartSoldierBShopConversation(void)
 {
     if (gameFlagGetNibble(GAME_FLAG_105) == 0) {
         evsStartScript(D_actor_161500_801352A8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
@@ -1487,50 +1544,66 @@ void func_actor_161500_80132110(void)
     }
 }
 
-void func_actor_161500_80132150(void)
+/// Opens parking-shop stock selected by the memo follow-up and sterilization outcome.
+static void _actor161500OpenParkingShop(void)
 {
+    enum { ACTOR_161500_STERILIZATION_WITH_COMPANION = 2 };
     if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
-        shopOpenSession((gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) != 2) ? 0x31 : 0x33);
+        shopOpenSession((gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) != ACTOR_161500_STERILIZATION_WITH_COMPANION) ? ACTOR_161500_SHOP_STOCK_ALTERNATE : ACTOR_161500_SHOP_STOCK_ALTERNATE_EVENT);
     } else {
-        shopOpenSession((gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 2) ? 0x32 : 0x30);
+        shopOpenSession((gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == ACTOR_161500_STERILIZATION_WITH_COMPANION) ? ACTOR_161500_SHOP_STOCK_EVENT : ACTOR_161500_SHOP_STOCK_STANDARD);
     }
 }
 
-void func_actor_161500_801321B4(Task* arg0)
+/// Completes the accepted item request and starts its handover scene, then kills this task.
+///
+/// The room has checked item use and companion presence before spawning this
+/// one-shot task. Holds the player state tick until the script releases it.
+static void _actor161500CompleteCompanionRequestTask(Task* task)
 {
-    D_80115768 = 1;
-    itemSetIdentified(0x124, 1);
-    gameFlagSetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, 2);
+    enum { ACTOR_161500_REQUEST_ITEM = 0x124 };
+    D_80115768 = true;
+    itemSetIdentified(ACTOR_161500_REQUEST_ITEM, true);
+    gameFlagSetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, ACTOR_161500_REQUEST_COMPLETE);
     evsStartScript(D_actor_161500_80137AB8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-    taskKill(arg0);
+    taskKill(task);
 }
 
-void func_actor_161500_80132210(void)
+/// Sets the request scene's player-facing yaw toward the live companion.
+///
+/// Both task slots must contain TMD models whose roots share a parent frame.
+/// Stores a 0..4095 yaw, with +Z as zero and +X as the positive quarter turn.
+static void _actor161500PreparePlayerFacingCompanion(void)
 {
-    GfxCoord* target;
-    GfxCoord* player;
+    GfxCoord* companionCoord;
+    GfxCoord* playerCoord;
 
-    target = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
-    player = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    actorRenderComposeCoord(target);
-    actorRenderComposeCoord(player);
+    companionCoord = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->coords;
+    playerCoord    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+    actorRenderComposeCoord(companionCoord);
+    actorRenderComposeCoord(playerCoord);
     D_actor_161500_801376E0.rot.vy =
-        ratan2(target->coord.t[0] - player->coord.t[0], target->coord.t[2] - player->coord.t[2]) & 0xFFF;
+        ratan2(companionCoord->coord.t[0] - playerCoord->coord.t[0], companionCoord->coord.t[2] - playerCoord->coord.t[2]) & ACTOR_TRANSFORM_ANGLE_MASK;
 }
 
-void func_actor_161500_80132294(u8 arg0)
+/// Sets the player state-tick hold byte (zero runs the tick, nonzero holds it).
+///
+/// Input capture and collision preparation continue while held. The request
+/// handover script passes zero to release the hold; all eight bits are retained.
+static void _actor161500SetPlayerUpdateHold(u8 holdPlayerUpdate)
 {
-    D_80115768 = arg0;
+    D_80115768 = holdPlayerUpdate;
 }
 
-void func_actor_161500_801322A0(void)
+void actor161500StartCompanionRequestReminder(void)
 {
-    s32 temp_v0;
+    enum { ACTOR_161500_REQUEST_PLACEMENT = 3 };
+    s32 requestState;
 
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        temp_v0 = gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE);
-        if (temp_v0 == 1) {
-            if (areaGetCurrentObjectState(3) == temp_v0) {
+        requestState = gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE);
+        if (requestState == ACTOR_161500_REQUEST_PENDING) {
+            if (areaGetCurrentObjectState(ACTOR_161500_REQUEST_PLACEMENT) == requestState) {
                 evsStartScript(D_actor_161500_801378D8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else {
                 evsStartScript(D_actor_161500_801376F8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
@@ -1539,21 +1612,22 @@ void func_actor_161500_801322A0(void)
     }
 }
 
-void func_actor_161500_8013230C(void)
+void actor161500RestoreCompanionRequestScene(void)
 {
-    s32 temp_v0;
+    s32 requestState;
 
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        temp_v0 = gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE);
-        switch (temp_v0) {
-            case 0:
+        requestState = gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE);
+        switch (requestState) {
+            case ACTOR_161500_REQUEST_UNSEEN:
+                // The skip path establishes the same pending placement as the full scene.
                 evsStartScriptWithSkip(D_actor_161500_80137080, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_161500_80136E88);
-                gameFlagSetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, 1);
+                gameFlagSetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, ACTOR_161500_REQUEST_PENDING);
                 break;
-            case 1:
+            case ACTOR_161500_REQUEST_PENDING:
                 evsStartScript(D_actor_161500_80137650, EVENT_SCRIPT_HUD_KEEP);
                 break;
-            case 2:
+            case ACTOR_161500_REQUEST_COMPLETE:
                 break;
         }
     }
@@ -1580,12 +1654,7 @@ void func_actor_161500_801326E8(Task* task)
 #include "../../shared/stride_walk_frame.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// The actor's `Task::exitCallback`: hands the task's `Enemy`, parked in
-/// `Task::spawnArg2`, back to `enemyDestroy`.
-void strideWalkExit(Task* task)
-{
-    enemyDestroy(task->spawnArg2.pointer, task);
-}
+#include "../../shared/stride_walk_exit.inc.c"
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
@@ -1603,14 +1672,17 @@ void strideWalkExit(Task* task)
 
 #include "../../shared/paced_walk_place.inc.c"
 
-/// Turn command: sets the work block's `turnMode`, which selects whether the
-/// per-frame body turns the walker's head toward the player
-/// (`STRIDE_WALK_TURN_PLAYER`) or lets it settle back, to the command's value.
-s32 func_actor_161500_80132B88(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
+/// Applies a borrowed head-turn command to a live stride walker's work block.
+///
+/// Retains the command halfword in the signed turn mode: `STRIDE_WALK_TURN_PLAYER`
+/// aims toward the player; every other value releases toward the animated pose.
+/// The command is read synchronously and never retained. Other message arguments
+/// are ignored, and zero acknowledges the command.
+static s32 _strideWalkSetTurnMode(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument)
 {
     StrideWalkWork* work = task->work;
 
-    work->turnMode = args->command;
+    work->turnMode = command->command;
     return 0;
 }
 

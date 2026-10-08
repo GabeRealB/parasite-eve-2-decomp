@@ -4807,7 +4807,7 @@ close to the tail as the target shows it.
 
 ## A cross-jumped call block also decides the address's register: `lui $a0`, not `lui $v0`
 
-`func_actor_161500_80132110` picks one of two symbol addresses and passes it to
+`actor161500StartSoldierBShopConversation` picks one of two symbol addresses and passes it to
 one call. m2c wrote the natural single-call shape
 
 ```c
@@ -10577,7 +10577,7 @@ is.
 
 ## A three-arm `switch` whose last arm is empty is what emits `bnez CASE0`
 
-`func_actor_161500_8013230C` dispatches on a nibble with three tests:
+`actor161500RestoreCompanionRequestScene` dispatches on a nibble with three tests:
 `beq v1,v0(=1),CASE1` / `slti v0,v1,2; beqz v0,TAIL` / `bnez v1,TAIL`, with
 case 0's body falling through right after the last one. A two-arm `switch`
 cannot produce it: `balance_case_nodes` gates its whole split on `i > 2`, so
@@ -85342,7 +85342,7 @@ Inputs: `base.i` (m2c seed, 50.156%)
 
 ## A pre-branch constant reaches the branch delay slot only if its `li` is not tied with the stack store
 
-`func_actor_161500_801320B4` wants the frame setup *third*, not first:
+`_actor161500OpenHeliportShop` wants the frame setup *third*, not first:
 
 ```
 lui  v0,%hi(gGameSession)      li   a0,0x30        <- in the bne delay slot
@@ -85374,7 +85374,7 @@ Naming the global in a local pointer **and** wrapping the body in
 `do { ... } while (0)` moves it:
 
 ```c
-void func_actor_161500_801320B4(void)
+void _actor161500OpenHeliportShop(void)
 {
     GameSession* session;
 
@@ -85407,7 +85407,7 @@ Inputs: `base.i` (m2c, 96.000%)
 
 ## An `&SYM` chosen in an if/else must be passed by a call *in each arm*, or the `lui` scratch lands in `$v0`
 
-`func_actor_161500_801322A0` (27 insns, 7 blocks) baselined at 91.815% with
+`actor161500StartCompanionRequestReminder` (27 insns, 7 blocks) baselined at 91.815% with
 `branch=1 regs=4 insert=1 delete=1` and the topology already matching - the only
 difference was which register materializes the address:
 
@@ -85431,7 +85431,7 @@ copy in the join block: the `lo_sum` destination is a pseudo with no tie to the
 Writing the call in each arm instead:
 
 ```c
-if (areaGetCurrentObjectState(3) == temp_v0) {
+if (areaGetCurrentObjectState(3) == requestState) {
     evsStartScript((s32)&D_actor_161500_801378D8, 0);
 } else {
     evsStartScript((s32)&D_actor_161500_801376F8, 0);
@@ -85445,7 +85445,7 @@ two arms' identical `move a1,zero; jal` tails are then cross-jumped back into th
 single call the target has (the rule in "Cross-jumping merges duplicate *call*
 blocks too…", applied to `&SYM` addresses rather than literals). Note the
 prediction is checkable without a build: a matched sibling in the same TU,
-`func_actor_161500_80132110`, has exactly this object shape - two calls in an
+`actor161500StartSoldierBShopConversation`, has exactly this object shape - two calls in an
 `if/else` under the `(s32)&SYM, 0` idiom, one `jal` in the object.
 
 Generalization: the `high` scratch only shares a register with the `lo_sum`
@@ -85472,7 +85472,7 @@ Inputs: `base.i` (m2c shared variable, 91.815%)
 
 ## A 2D array access distributes the element-size multiply; a flat table with an explicit `* N` does not
 
-`func_actor_161500_80131FBC` indexes an 8-entry pointer table by
+`actor161500StartSoldierBTalkA` indexes an 8-entry pointer table by
 `(gGameSession->location.loc.variant == 1)` (row) and `gameFlagGetNibble(0x103)` (column),
 and the target scales the **sum**:
 
@@ -85528,7 +85528,7 @@ Inputs: `base.i` (flat table, 100.000%)
 
 ## A QI-mode constant store is invisible to an SImode compare; combine folds the narrow temp away again
 
-`func_actor_161500_80131F50` keeps a variable in `$a0` and the constant it is
+`_actor161500SelectCaptionFile` keeps a variable in `$a0` and the constant it is
 tested against in its own `$v0`:
 
 ```
@@ -85552,20 +85552,20 @@ QImode `(const_int 1)` cannot be unified with the SImode one, and the compare
 materializes `li v0,1` for itself:
 
 ```c
-void func_actor_161500_80131F50(s32 arg0)
+void _actor161500SelectCaptionFile(s32 captionFile)
 {
-    s8 capFile;
+    s8 variantCaptionFile;
 
-    if (arg0 != 0) {
+    if (captionFile != 0) {
         Gp_CapFile = 0;
-        if (arg0 <= 0) {
-            capFile = 1;
+        if (captionFile <= 0) {
+            variantCaptionFile = 1;
             if (gGameSession->location.loc.variant == 1) {
-                capFile = 2;
+                variantCaptionFile = 2;
             }
-            arg0 = capFile;   /* after the join — see below */
+            captionFile = variantCaptionFile;   /* after the join — see below */
         }
-        capSelectLoadedFile(arg0);
+        capSelectLoadedFile(captionFile);
         capSetTexturePage(0x340, 0);
         return;
     }
@@ -85573,7 +85573,7 @@ void func_actor_161500_80131F50(s32 arg0)
 }
 ```
 
-100.000% on the next build, with no pins. `index = capFile` needs a
+100.000% on the next build, with no pins. `index = variantCaptionFile` needs a
 sign-extension, and combine — which runs *after* cse and cse2 — folds it away,
 so the QI store still emits the plain `li a0,1` the target has. Writing the
 constant into the variable's own type with a cast (`index = (s32)1;`) does not
@@ -85584,11 +85584,11 @@ exists.
 that stores the constant.** This fails:
 
 ```c
-capFile = 1;
-arg0 = capFile;                 /* <- in the same arm */
+variantCaptionFile = 1;
+captionFile = variantCaptionFile;                 /* <- in the same arm */
 if (gGameSession->location.loc.variant == 1) {
-    capFile = 2;
-    arg0 = capFile;
+    variantCaptionFile = 2;
+    captionFile = variantCaptionFile;
 }
 ```
 
