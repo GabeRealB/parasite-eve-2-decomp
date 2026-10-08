@@ -249,7 +249,7 @@ enum {
     /// presumably set by CAP script or area records.
     GAME_FLAG_DRYFIELD_TRAILER_COACH_04F = 0x04F,
     /// Unidentified. Read only: on the day driveway (stage 2, variant 1, nibble 0x3A !=
-    /// 2), a transition request to the water hole spawns drivewayCutsceneTask instead
+    /// 2), a transition request to the water hole spawns _drivewayCutsceneTask instead
     /// while this nibble is clear. No C setter.
     GAME_FLAG_050 = 0x050,
     /// Toggle (0/1) flipped by the underpass's first switch (underpassSwitchMsg arg 1,

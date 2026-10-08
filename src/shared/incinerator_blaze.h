@@ -51,6 +51,6 @@ enum {
 extern TaskMessageEntry gBlazeFadeMessages[1];
 
 static void _blazeFadeTask(Task* task);
-void        blazeBodyFireTask(Task* arg0);
+static void _blazeBodyFireTask(Task* task);
 
 #endif /* SRC_SHARED_INCINERATOR_BLAZE_H */

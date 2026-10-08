@@ -84,7 +84,7 @@ static const EnemyTaskFuncTable4 gDesertChaserStates = {
 /// Task states `_desertChaserTask` runs by `Task::state`: the spawn
 /// handler, the per-frame driver, then `enemyDestroy`.
 static const DesertChaserTaskStates gDesertChaserTaskStates = {
-    desertChaserSpawn,
+    _desertChaserSpawn,
     _desertChaserFrameState,
     enemyDestroy,
 };

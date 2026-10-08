@@ -237,12 +237,19 @@ enum {
 #if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
     DESERT_CHASER_STATE_SHOW_ANIMATION = 2,
 #else
-    DESERT_CHASER_STATE_STUNNED   = 4,
-    DESERT_CHASER_STATE_DOWNED    = 0x11,
-    DESERT_CHASER_STATE_DEATH     = 0x15,
-    DESERT_CHASER_STATE_LEAP_BACK = 0x1F,
-    DESERT_CHASER_STATE_RISE      = 0x24,
-    DESERT_CHASER_STATE_ROAM      = 0x26,
+    DESERT_CHASER_STATE_STUNNED        = 4,
+    DESERT_CHASER_STATE_DOWNED         = 0x11,
+    DESERT_CHASER_STATE_DEATH          = 0x15,
+    DESERT_CHASER_STATE_PATROL         = 0x18,
+    DESERT_CHASER_STATE_END_LUNGE      = 0x1D,
+    DESERT_CHASER_STATE_THROW          = 0x1E,
+    DESERT_CHASER_STATE_LEAP_BACK      = 0x1F,
+    DESERT_CHASER_STATE_STEER          = 0x21,
+    DESERT_CHASER_STATE_RESUME_PURSUIT = 0x22,
+    DESERT_CHASER_STATE_WALL_KNOCKDOWN = 0x23,
+    DESERT_CHASER_STATE_CLOSE_CATCH    = 0x25,
+    DESERT_CHASER_STATE_RISE           = 0x24,
+    DESERT_CHASER_STATE_ROAM           = 0x26,
 #if DESERT_CHASER_BUILD == DESERT_CHASER_WATER_TOWER
     DESERT_CHASER_STATE_FLEE = 5,
 #endif
@@ -252,6 +259,27 @@ enum {
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
 /// Front collision sphere radius in its model part's coordinate units.
 enum { DESERT_CHASER_FRONT_RADIUS = 0x19C };
+
+/// Shared armed-state clips, distances in root-parent units and timing in ticks.
+///
+/// Clip indices select the carrier's animation bank; yaw limits elsewhere use
+/// 4096 units per turn. The front radius is reset on state entry even though
+/// every recovered writer uses the same value.
+enum {
+    DESERT_CHASER_CLIP_PATROL        = 0,
+    DESERT_CHASER_CLIP_WINDUP        = 2,
+    DESERT_CHASER_CLIP_LUNGE         = 3,
+    DESERT_CHASER_CLIP_CLOSE_CATCH   = 5,
+    DESERT_CHASER_CLIP_STEER         = 7,
+    DESERT_CHASER_WAYPOINT_RADIUS    = 160,
+    DESERT_CHASER_STUCK_TICKS        = 21,
+    DESERT_CHASER_PATROL_STEP        = 20,
+    DESERT_CHASER_PATROL_PROBE_REACH = 620,
+    DESERT_CHASER_LUNGE_PROBE_REACH  = 800,
+    DESERT_CHASER_LUNGE_GRID_STEP    = 85,
+    DESERT_CHASER_LUNGE_STEP         = 200,
+    DESERT_CHASER_SIGHT_FRAME_PERIOD = 15
+};
 #endif
 
 /// Work block of the Desert Chaser task, in all three builds.
@@ -628,7 +656,7 @@ static inline s32 _desertChaserPartSupportsDust(s32 modelPart)
 
 static void _desertChaserBlendTick(Task* task);
 static void _desertChaserAnimTick(Task* task);
-void        desertChaserSpawn(Enemy* enemy, Task* task);
+static void _desertChaserSpawn(Enemy* enemy, Task* task);
 #if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
 static s32 _desertChaserSetVisibility(Task* task, s32 msgId, s32 mode, s32 unusedArg);
 #endif
@@ -650,6 +678,15 @@ static void _desertChaserExit(Task* task);
 #endif
 
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
+/// Scratch reservation of the close catch: a player offset and one observed turn store.
+typedef struct {
+    SVECTOR toPlayer;     // Player offset, then the normalized 32-unit move direction
+    s16     unknown_8[2]; // Reserved but never accessed; role unproven
+    s16     playerTurn;   // Turn toward the player in 4096-unit angles; stored but not read
+    s16     unknown_E;    // Reserved but never accessed; role unproven
+} _DesertChaserCloseCatchScratch;
+STATIC_ASSERT_SIZEOF(_DesertChaserCloseCatchScratch, 16);
+
 /// Turn-state timing, alignment threshold and the state resumed on completion.
 ///
 /// Timing counts ticks and angles use 4096 units per turn.
@@ -661,15 +698,15 @@ enum {
 
 static s16 _desertChaserAvoidWalk(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, SVECTOR* displacement);
 
-void        desertChaserPursue(Task* arg0);
-void        desertChaserRoam(Task* arg0);
-void        desertChaserApproach(Task* arg0);
-void        desertChaserStrike(Task* arg0);
+static void _desertChaserPursue(Task* task);
+static void _desertChaserRoam(Task* task);
+static void _desertChaserPatrol(Task* task);
+static void _desertChaserCloseCatchState(Task* task);
 static void _desertChaserTurnRightState(Task* task);
 static void _desertChaserTurnLeftState(Task* task);
 static void _desertChaserHitEffect(Task* task, s16 hitYaw, s32 hitKey);
 static void _desertChaserThrowPlayer(Task* task);
-void        desertChaserSteer(Task* arg0);
+static void _desertChaserSteer(Task* task);
 static void _desertChaserStunned(Task* task);
 static void _desertChaserKnockDown(Task* task);
 static void _desertChaserStagger(Task* task);

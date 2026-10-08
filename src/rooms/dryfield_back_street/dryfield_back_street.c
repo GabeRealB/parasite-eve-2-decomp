@@ -75,7 +75,7 @@ extern WorldCoordRoomLights  D_dryfield_back_street_80180FF8[1];
 extern TaskDesc Actor00100_D1BA84;
 
 TaskMessageEntry D_dryfield_back_street_8017F964[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, backStreetEventMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveBackStreet },
     { DRYFIELD_BACK_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldBackStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldBackStreetIgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, _dryfieldBackStreetIgnoreCommandMessage },

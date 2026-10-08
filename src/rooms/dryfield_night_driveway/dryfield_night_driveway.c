@@ -67,8 +67,8 @@ extern u8 gDrivewayEventSpawned;
 /// Descriptor of the room's event task, which the event gate spawns.
 extern TaskDesc gRoomEventStagedTaskDesc;
 
-/// Descriptor table of two tasks (`drivewayBlackoutTask`,
-/// `drivewayCutsceneTask`), ended by a 0xFFFF entry; the
+/// Descriptor table of two tasks (`_drivewayBlackoutTask`,
+/// `_drivewayCutsceneTask`), ended by a 0xFFFF entry; the
 /// event gate spawns entry 1.
 extern TaskDesc gDrivewayCutsceneTasks[];
 
@@ -214,8 +214,8 @@ static AnimationSet _gDryfieldNightDrivewayAnimation01D64 = {
 };
 
 TaskDesc gDrivewayCutsceneTasks[3] = {
-    { { { TASK_BODY_NONE, 32 } }, drivewayBlackoutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, drivewayCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _drivewayBlackoutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _drivewayCutsceneTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -287,7 +287,7 @@ EvsCommand gDrivewayBlackoutTail[9] = {
 };
 
 TaskMessageEntry D_dryfield_night_driveway_8017F7A4[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, drivewayResolveEvent },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveDriveway },
     { DRYFIELD_NIGHT_DRIVEWAY_MESSAGE_USE_KEY_ITEM, _dryfieldNightDrivewayRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightDrivewayIgnoreDirectionAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightDrivewayIgnoreRoomCommand },

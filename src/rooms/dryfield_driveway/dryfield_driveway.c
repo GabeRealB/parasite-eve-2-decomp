@@ -115,8 +115,8 @@ static AnimationSet _gDryfieldDrivewayAnimation00D08 = {
 TaskDesc gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskDesc gDrivewayCutsceneTasks[3] = {
-    { { { TASK_BODY_NONE, 32 } }, drivewayBlackoutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, drivewayCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _drivewayBlackoutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _drivewayCutsceneTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -188,7 +188,7 @@ EvsCommand gDrivewayBlackoutTail[9] = {
 };
 
 TaskMessageEntry D_dryfield_driveway_8017E754[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, drivewayResolveEvent },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveDriveway },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldDrivewayUseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldDrivewayIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldDrivewayIgnoreRoomCommand },

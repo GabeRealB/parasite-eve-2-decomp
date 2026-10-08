@@ -13,7 +13,7 @@
 
 #include "main/task_types.h"
 
-s32        cellarCapMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+static s32 _cellarHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
 static s32 _roomVariantResolveCellar(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
 #endif /* SRC_SHARED_CELLAR_H */

@@ -1,32 +1,41 @@
 /* Part of the dryfield driveway library; see dryfield_driveway.h. */
 
-/// Task callback: a four-step script. State 0 queues the weapon message and the
-/// captioned command, state 1 waits one tick, state 2 starts the cutscene at
-/// `gDrivewayCutsceneScript`, and state 3 - reached by falling out of
-/// state 2 - clears the current area's saved map mark and kills the task once
-/// `eventState` is zero.
-void drivewayCutsceneTask(Task* arg0)
+/// Starts the driveway encounter script and clears its map mark when the event ends.
+///
+/// Entry holds scripted player control and starts CAP command 1. One intervening
+/// tick precedes the event script; its start tick also tests completion. The task
+/// waits for the global event state to clear, then clears the current area's map
+/// mark and kills itself. The carrier's script/resources must remain live; the
+/// script owns playback and control restoration.
+static void _drivewayCutsceneTask(Task* task)
 {
-    s32 temp_v1;
+    enum {
+        DRIVEWAY_CUTSCENE_START       = 0,
+        DRIVEWAY_CUTSCENE_DELAY       = 1,
+        DRIVEWAY_CUTSCENE_RUN_SCRIPT  = 2,
+        DRIVEWAY_CUTSCENE_WAIT_EVENT  = 3,
+        DRIVEWAY_CUTSCENE_CAP_COMMAND = 1,
+    };
+    s32 state;
 
-    temp_v1 = arg0->state;
-    switch (temp_v1) {
-        case 0:
+    state = task->state;
+    switch (state) {
+        case DRIVEWAY_CUTSCENE_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommandWithTransition(1);
-            arg0->state += 1;
+            capRunCommandWithTransition(DRIVEWAY_CUTSCENE_CAP_COMMAND);
+            task->state += 1;
             return;
-        case 1:
-            arg0->state = 2;
+        case DRIVEWAY_CUTSCENE_DELAY:
+            task->state = DRIVEWAY_CUTSCENE_RUN_SCRIPT;
             return;
-        case 2:
+        case DRIVEWAY_CUTSCENE_RUN_SCRIPT:
             evsStartScript(gDrivewayCutsceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            arg0->state += 1;
+            task->state += 1;
             /* fallthrough */
-        case 3:
+        case DRIVEWAY_CUTSCENE_WAIT_EVENT:
             if (gGameSession->eventState == 0) {
                 areaClearMapMark(&gGameSession->location.loc);
-                taskKill(arg0);
+                taskKill(task);
             }
             return;
     }

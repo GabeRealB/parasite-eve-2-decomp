@@ -168,23 +168,17 @@ extern SVECTOR D_actor_342100_80164980[];
 /// `evsStartScript` on the same arm; a byte address is all the installer sees.
 extern EvsCommand D_actor_342100_801649C8[];
 
-/// Effect record `blazeBodyFireTask` hands `effectSpawnHit` together
-/// with one part of the player's model: `field_0` is that part's coordinate
-/// and `field_4` the scale that goes with it (0x100 for the wide pick, 0x10
-/// for the narrow one). Ships as `{ NULL, 0, 1 }` in the data blob, directly
-/// before the part table below.
+/// Reusable hit-effect argument for fire on a selected player-model part.
+/// `coord` borrows that part's coordinate and `spawnArgLo` carries its fire size;
+/// `spawnArgHi` remains the initial repeat count 1.
 extern EffectSpawnArg gBlazeFireSpawn;
 
 /// The player-model parts the effect record above is aimed at, as indices into
 /// the player's coordinate array (`TmdObject::coords`): sixteen `u16`s
-/// running 1..0x12, of which `blazeBodyFireTask` takes the first four
+/// running 1..0x12, of which `_blazeBodyFireTask` takes the first four
 /// (2, 4, 6, 0xA) when it masks the LCG draw with 3 and all sixteen when it
 /// masks with 0xF.
 extern u16 gBlazePlayerParts[];
-
-/// Frame counter the narrow arm of `blazeBodyFireTask`'s state 1 is
-/// gated on: it aims the effect only on the frames where the low nibble (or,
-/// for the other arm, the low three bits) of this global is clear.
 
 /// Distortion amplitude of the screen wave, `frame * scale / span` of the
 /// running ramp, recomputed every frame.
@@ -377,7 +371,7 @@ TaskDesc D_actor_342100_80164B78[5] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_342100_801630A4, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _blazeFadeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, blazeBodyFireTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _blazeBodyFireTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, func_actor_342100_80162AB0, { .value = 0 } },
 };
 

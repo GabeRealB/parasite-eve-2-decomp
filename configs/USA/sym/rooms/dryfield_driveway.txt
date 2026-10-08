@@ -74,9 +74,9 @@ D_dryfield_driveway_8017E344 = 0x8017E344; // size:0x14 defined:True
 
 dryfieldDrivewayEnableAmbientEffectsTask = 0x8017DE6C; // type:func
 roomEventStagedTask = 0x8017D5E4; // type:func
-drivewayResolveEvent = 0x8017D77C; // type:func
-drivewayBlackoutTask = 0x8017DAD0; // type:func
-drivewayCutsceneTask = 0x8017DB68; // type:func
+_roomVariantResolveDriveway = 0x8017D77C; // type:func
+_drivewayBlackoutTask = 0x8017DAD0; // type:func
+_drivewayCutsceneTask = 0x8017DB68; // type:func
 _drivewayScriptSound = 0x8017DC70; // type:func
 _drivewaySetViewDirty = 0x8017DC54; // type:func
 _dryfieldDrivewaySetEncounterWave = 0x8017dc48; // type:func

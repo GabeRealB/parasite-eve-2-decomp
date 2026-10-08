@@ -528,7 +528,7 @@ TaskMessageEntry D_shelter_b1_underground_parking_80187230[6] = {
 };
 
 TaskDesc D_shelter_b1_underground_parking_80187260[1] = {
-    { { { TASK_BODY_NONE, 32 } }, capDialogueLoopTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _capDialogueLoopTask, { .value = 0 } },
 };
 
 TaskDesc D_shelter_b1_underground_parking_8018726C[7] = {

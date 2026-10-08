@@ -1,19 +1,26 @@
 /* Part of the dryfield driveway library; see dryfield_driveway.h. */
 
-/// Task callback: on its first tick it hides the display and hands control to
-/// the captioned cutscene; on every later tick it kills the task and clears the
-/// collected bit. Either way it advances its own state.
-void drivewayBlackoutTask(Task* arg0)
+/// Starts the driveway blackout script and clears wire-rope collection on its next tick.
+///
+/// Entry hides HUD/display output, holds player updates, stores objective byte
+/// 0x10 and starts the live blackout script with its skip tail. The next tick
+/// kills this controller and clears the wire-rope collection bit; the script owns
+/// its own continuation. The state increment is retained after taskKill.
+static void _drivewayBlackoutTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum {
+        DRIVEWAY_BLACKOUT_START          = 0,
+        DRIVEWAY_BLACKOUT_OBJECTIVE_BYTE = 0x10,
+    };
+    if (task->state == DRIVEWAY_BLACKOUT_START) {
         gGameSession->hideHud = 1;
         D_80115768            = 1;
         SetDispMask(0);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x10);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRIVEWAY_BLACKOUT_OBJECTIVE_BYTE);
         evsStartScriptWithSkip(gDrivewayBlackoutScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gDrivewayBlackoutTail);
     } else {
-        taskKill(arg0);
+        taskKill(task);
         inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_WIRE_ROPE);
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = (s32)(task->state + 1);
 }

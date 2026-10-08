@@ -17,11 +17,13 @@
 
 #include "types.h"
 
+#include "gameplay/message.h"
+
 #include "main/task_types.h"
 
-s32        drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
-void       drivewayBlackoutTask(Task* arg0);
-void       drivewayCutsceneTask(Task* arg0);
-static s32 _drivewayScriptSound(Task* task, s32 messageId, s32 cueKey, s32 unusedArg);
+static s32  _roomVariantResolveDriveway(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static void _drivewayBlackoutTask(Task* task);
+static void _drivewayCutsceneTask(Task* task);
+static s32  _drivewayScriptSound(Task* task, s32 messageId, s32 cueKey, s32 unusedArg);
 
 #endif /* SRC_SHARED_DRYFIELD_DRIVEWAY_H */

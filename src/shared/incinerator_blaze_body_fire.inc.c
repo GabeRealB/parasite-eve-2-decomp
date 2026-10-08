@@ -4,60 +4,69 @@
 
 /* Part of the incinerator blaze library; see incinerator_blaze.h. */
 
-/// Spawn task of the overlay's spawn table (`_blazeFadeTask`'s
-/// neighbour entry, started with the encounter): each tick rolls the LCG and
-/// aims the overlay's effect record at one part of the player's model, taken
-/// from the coordinate array `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`'s display object owns.
+/// Binds the shared fire argument to a selected player part and emits one blast.
 ///
-/// State 0 fires unconditionally -- the wide pick, scale 0x100 -- and steps to
-/// state 1. State 1 fires only on a frame the `gDisplayState.animFrame` gate lets through,
-/// and which pick that is depends on the task's `spawnArg1`: the zero arm
-/// takes the same four parts as state 0 at scale 0x10, the non-zero arm the
-/// whole table at scale 0x100.
+/// Requires the carrier's sixteen-entry gBlazePlayerParts and reusable
+/// gBlazeFireSpawn, plus a live player model containing the selected part.
+/// playerTask is evaluated twice; partIndex and fireSize once. Arguments must
+/// be stable, side-effect-free expressions. fireSize narrows to the signed low
+/// half of the spawn word. The stored coordinate is borrowed by the effect;
+/// the macro owns no storage and expands to one statement.
+#define BLAZE_SPAWN_PLAYER_FIRE(playerTask, partIndex, fireSize)                                        \
+    do {                                                                                                \
+        gBlazeFireSpawn.spawnArgLo = (fireSize);                                                        \
+        gBlazeFireSpawn.coord      = &(playerTask)->extra.tmd->coords[gBlazePlayerParts[(partIndex)]];  \
+        effectSpawnHit(EFFECT_HIT_KIND_BLAST, (playerTask)->extra.tmd->coords, NULL, &gBlazeFireSpawn); \
+    } while (0)
+
+/// Spawns incinerator fire on randomly selected parts of the live player model.
 ///
-/// The three arms each spell the aim-and-fire sequence out. That is what the
-/// target's shape is: the two state-1 arms are byte-for-byte equal from the
-/// table-base `lui` on, so `jump.c`'s cross-jumping (the `jump_optimize` that
-/// runs after reload) merges that suffix into one block and leaves each arm
-/// its own copy of the address and scale in front of the jump -- the address
-/// and scale cannot merge because the scale differs. Folding the arms into one
-/// `goto`-shared block instead compiles them into a single copy with a live
-/// scale value, which is a different object (95.02%).
-void blazeBodyFireTask(Task* arg0)
+/// The carrier supplies sixteen part indices and a reusable EffectSpawnArg;
+/// the player TMD must contain every selected coordinate. Each tick advances the
+/// LCG, including ticks that emit no fire. Entry emits on one of the first four
+/// parts; spawnArg1 zero then emits small fire every sixteen display frames on
+/// those parts, while nonzero emits large fire every eight frames on all sixteen.
+/// The scene owns the task's lifetime; this callback does not end it.
+static void _blazeBodyFireTask(Task* task)
 {
-    Task* slot;
-    s32   idx;
+    enum {
+        BLAZE_BODY_FIRE_INITIAL            = 0,
+        BLAZE_BODY_FIRE_EMIT               = 1,
+        BLAZE_BODY_FIRE_PRIMARY_PART_COUNT = 4,
+        BLAZE_BODY_FIRE_LARGE_SIZE         = 0x100,
+        BLAZE_BODY_FIRE_SMALL_SIZE         = 0x10,
+        BLAZE_BODY_FIRE_SMALL_FRAME_PERIOD = 16,
+        BLAZE_BODY_FIRE_LARGE_FRAME_PERIOD = 8,
+    };
+    Task* playerTask;
+    s32   partIndex;
 
-    slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    idx             = gRandomLcgState >> 16;
+    partIndex       = gRandomLcgState >> 16;
 
-    switch (arg0->state) {
-        case 0:
-            idx                       &= 3;
-            gBlazeFireSpawn.spawnArgLo = 0x100;
-            gBlazeFireSpawn.coord      = &slot->extra.tmd->coords[gBlazePlayerParts[idx]];
-            effectSpawnHit(EFFECT_HIT_KIND_BLAST, slot->extra.tmd->coords, NULL, &gBlazeFireSpawn);
-            arg0->state++;
+    switch (task->state) {
+        case BLAZE_BODY_FIRE_INITIAL:
+            partIndex &= BLAZE_BODY_FIRE_PRIMARY_PART_COUNT - 1;
+            BLAZE_SPAWN_PLAYER_FIRE(playerTask, partIndex, BLAZE_BODY_FIRE_LARGE_SIZE);
+            task->state++;
             return;
-        case 1:
-            if (arg0->spawnArg1.value == 0) {
-                if (gDisplayState.animFrame & 0xF) {
+        case BLAZE_BODY_FIRE_EMIT:
+            if (task->spawnArg1.value == 0) {
+                if (gDisplayState.animFrame & (BLAZE_BODY_FIRE_SMALL_FRAME_PERIOD - 1)) {
                     return;
                 }
-                idx                       &= 3;
-                gBlazeFireSpawn.spawnArgLo = 0x10;
-                gBlazeFireSpawn.coord      = &slot->extra.tmd->coords[gBlazePlayerParts[idx]];
-                effectSpawnHit(EFFECT_HIT_KIND_BLAST, slot->extra.tmd->coords, NULL, &gBlazeFireSpawn);
+                partIndex &= BLAZE_BODY_FIRE_PRIMARY_PART_COUNT - 1;
+                BLAZE_SPAWN_PLAYER_FIRE(playerTask, partIndex, BLAZE_BODY_FIRE_SMALL_SIZE);
                 return;
             }
-            if (gDisplayState.animFrame & 7) {
+            if (gDisplayState.animFrame & (BLAZE_BODY_FIRE_LARGE_FRAME_PERIOD - 1)) {
                 return;
             }
-            idx                       &= 0xF;
-            gBlazeFireSpawn.spawnArgLo = 0x100;
-            gBlazeFireSpawn.coord      = &slot->extra.tmd->coords[gBlazePlayerParts[idx]];
-            effectSpawnHit(EFFECT_HIT_KIND_BLAST, slot->extra.tmd->coords, NULL, &gBlazeFireSpawn);
+            partIndex &= ARRAY_SIZE(gBlazePlayerParts) - 1;
+            BLAZE_SPAWN_PLAYER_FIRE(playerTask, partIndex, BLAZE_BODY_FIRE_LARGE_SIZE);
             return;
     }
 }
+
+#undef BLAZE_SPAWN_PLAYER_FIRE

@@ -437,7 +437,7 @@ TaskDesc D_shelter_b3_garbage_incinerator_80187150[4] = {
     { { { TASK_BODY_NONE, 192 } }, _shelterB3GarbageIncineratorBlazeControllerTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _blazeFadeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, blazeBodyFireTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _blazeBodyFireTask, { .value = 0 } },
 };
 
 #include "../../shared/cap_captions_settings.inc.c"

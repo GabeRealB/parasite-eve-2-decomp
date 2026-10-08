@@ -312,13 +312,29 @@ void factoryWhiteoutScene(Task* task);
 /// Runtime stage selects the day grid for daytime Dryfield and the night grid
 /// otherwise. Cell lists are retained, so both positions must use their existing
 /// reserved memberships. No work block or collision records are owned here.
-void        factoryBarrierCollision(Task* task);
-void        factoryLiftUpdate(Task* task);
+void factoryBarrierCollision(Task* task);
+void factoryLiftUpdate(Task* task);
 static void _factoryLiftBindLighting(Task* task);
-void        factoryLampScene(Task* task);
-void        factoryHatchScene(Task* task);
-void        factoryRoomInit(Task* arg0);
-s32         factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+/// Runs the factory lamp scene and records CAP choice 3 before restoring the actors.
+///
+/// spawnArg1 selects an in-place CAP command in live room resources. Entry holds
+/// scripted control for player and companion. The next tick hides the player model
+/// unless lamp progress is already 2, then waits for CAP completion. Choice 3 records
+/// progress 2; every choice restores both controls, shows the player and kills the
+/// task. The task owns no work or playback data. The completion test retains the
+/// state local whose value is also the accepted CAP choice.
+void factoryLampScene(Task* task);
+/// Opens the factory hatch for a timed CAP scene, then restores scripted control.
+///
+/// spawnArg1 is a valid command in live CAP resources. Entry raises the transient
+/// hatch flag. The predecrement countdown advances only below zero, so initial
+/// values 60 and 30 produce 61 and 31 waiting ticks. The first wait precedes CAP
+/// start and flag clear; the second precedes restoring player/companion control
+/// and killing the task. Playback is not polled. The live saved flag stays raised
+/// through the first wait; hatch setup must not assume it is always clear.
+void factoryHatchScene(Task* task);
+void factoryRoomInit(Task* arg0);
+s32  factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 /// Spawns the selected factory panel script and waits for its exit request.
 ///
 /// The room entry must first publish a live `gFactoryPanelSlot` and a valid
@@ -363,7 +379,12 @@ void factoryLiftRun(Task* task);
 /// check. The update state separately dispatches `FactoryHatchWork::state`;
 /// this wrapper does not interpret its movement-handler completion result.
 void factoryHatchRun(Task* task);
-void factoryCapScene(Task* arg0);
+/// Runs the factory barrier dialogue once while the barrier remains closed.
+///
+/// spawnArg1 is a valid command index in the live room CAP resources. A cleared
+/// barrier skips playback; both paths kill the task immediately. The callback
+/// waits for no playback completion and owns no work allocation.
+void factoryCapScene(Task* task);
 /// Refuses the factory room's `ROOM_MESSAGE_USE_KEY_ITEM` requests.
 ///
 /// Ignores all arguments and returns `ROOM_KEY_ITEM_USE_REFUSED`; no item or

@@ -84,6 +84,4 @@ extern SpriteBatch D_dryfield_night_factory_801899E4[6];
 
 // Callbacks referenced by the overlay's shared data tables.
 
-void factoryCapScene(Task*);
-
 #endif // SRC_ROOMS_DRYFIELD_NIGHT_FACTORY_DRYFIELD_NIGHT_FACTORY_PRIVATE_H

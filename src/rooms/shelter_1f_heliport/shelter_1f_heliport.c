@@ -236,7 +236,7 @@ TaskMessageEntry D_shelter_1f_heliport_801811A0[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_1f_heliport_801811C8 = { { { TASK_BODY_NONE, 32 } }, capDialogueLoopTask, { .value = 0 } };
+TaskDesc D_shelter_1f_heliport_801811C8 = { { { TASK_BODY_NONE, 32 } }, _capDialogueLoopTask, { .value = 0 } };
 
 u8 D_shelter_1f_heliport_801811D4[12][4] = {
     { 2, 2, 2, 2 },

@@ -698,6 +698,17 @@ receive `ROOM_MESSAGE_SOUND` and pass stage-relative sound IDs to `sndEvt`;
 each carrier keeps its own static instance. Cue constants use `DRIVEWAY_`,
 `GARAGE_` and `GAS_STATION_`.
 
+`cellar` owns the paired Dryfield cellar rooms' included P08 command/dialogue
+selection in `src/shared/cellar.h`. Each carrier keeps a static room-message
+instance; its room-transition resolver separately belongs to `roomVariant`.
+`capDialogue` owns the reusable room dialogue loop in `src/shared/cap_dialogue.h`:
+a static task instance in each carrier repeats CAP playback until its exit
+choice, restoring the player control its spawner held.
+
+`driveway` also owns the paired rooms' blackout and encounter-script controller
+tasks in that interface, with static instances. Their transition-message
+resolver separately uses `roomVariant`.
+
 `driveway` also owns the paired rooms' included event-script callback that sets
 the session's deferred saved-view reload request. Its signed-halfword callback
 instances are private to each carrier.

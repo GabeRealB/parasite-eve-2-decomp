@@ -49,8 +49,6 @@ void func_dryfield_factory_8018001C(Task*);
 
 void func_dryfield_factory_801807DC(Task*);
 
-void factoryCapScene(Task*);
-
 void func_dryfield_factory_80180964(Task*);
 
 #endif // SRC_ROOMS_DRYFIELD_FACTORY_DRYFIELD_FACTORY_PRIVATE_H

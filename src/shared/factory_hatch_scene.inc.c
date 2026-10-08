@@ -1,25 +1,29 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Plays the cutscene sequence out: sets game flag 0x4E, waits 0x3C frames,
-/// runs the cap command in `Task::spawnArg1` and clears the flag again, waits
-/// 0x1E frames, then hands the player and the ally their weapons back and kills
-/// the task.
 void factoryHatchScene(Task* task)
 {
+    enum {
+        FACTORY_HATCH_SCENE_OPEN            = 0,
+        FACTORY_HATCH_SCENE_WAIT_OPEN       = 1,
+        FACTORY_HATCH_SCENE_RUN_CAP         = 2,
+        FACTORY_HATCH_SCENE_WAIT_CLOSE      = 3,
+        FACTORY_HATCH_SCENE_OPEN_COUNTDOWN  = 60,
+        FACTORY_HATCH_SCENE_CLOSE_COUNTDOWN = 30,
+    };
     switch (task->state) {
-        case 0:
+        case FACTORY_HATCH_SCENE_OPEN:
             gameFlagSetNibble(GAME_FLAG_FACTORY_HATCH_OPEN, 1);
-            task->killCountdown = 0x3C;
+            task->killCountdown = FACTORY_HATCH_SCENE_OPEN_COUNTDOWN;
             task->state         = task->state + 1;
             return;
-        case 2:
+        case FACTORY_HATCH_SCENE_RUN_CAP:
             capRunCommandWithTransition(task->spawnArg1.value);
             gameFlagSetNibble(GAME_FLAG_FACTORY_HATCH_OPEN, 0);
-            task->killCountdown = 0x1E;
+            task->killCountdown = FACTORY_HATCH_SCENE_CLOSE_COUNTDOWN;
             task->state         = task->state + 1;
             return;
-        case 1:
-        case 3:
+        case FACTORY_HATCH_SCENE_WAIT_OPEN:
+        case FACTORY_HATCH_SCENE_WAIT_CLOSE:
             if (--task->killCountdown < 0) {
                 task->state = task->state + 1;
             }

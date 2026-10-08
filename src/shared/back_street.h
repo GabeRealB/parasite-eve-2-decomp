@@ -9,8 +9,10 @@
 
 #include "types.h"
 
+#include "gameplay/message.h"
+
 #include "main/task_types.h"
 
-s32 backStreetEventMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+static s32 _roomVariantResolveBackStreet(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
 #endif /* SRC_SHARED_BACK_STREET_H */

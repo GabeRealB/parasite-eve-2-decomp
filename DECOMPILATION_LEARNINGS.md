@@ -147257,7 +147257,7 @@ one-argument call matches.
 
 ## A byte flag whose address is not held in a register is a scalar; bytes after it are more scalars (dryfield_driveway, 2026-09-30)
 
-`drivewayResolveEvent` stores to a one-byte flag inside and after a loop. The
+`_roomVariantResolveDriveway` stores to a one-byte flag inside and after a loop. The
 target forms its address with `lui`/`sb %lo` at each store. Declaring the flag
 as `u8 flag[4]` (indexed `[0]`) or as the first member of a 4-byte struct makes
 GCC treat the address as a loop invariant: it loads it once into `$s2`, and the
@@ -149710,7 +149710,7 @@ attempts; left as it was.
   find-hit inline, 13 gotos went on the first build.
 - The desert chaser's hand-expanded turns (`facing = coords; angle = ratan2;
   delta = angle - ratan2(...); wrapped = delta; <wrap loops>`) are
-  `_actorAngleTurnToOffset(coords, x, z)`; all seven sites of `desertChaserRoam`,
+  `_actorAngleTurnToOffset(coords, x, z)`; all seven sites of `_desertChaserRoam`,
   `_desertChaserTurnRightState` and `_desertChaserTurnLeftState` matched with the
   call, and 22 locals went.
 - Not converted: `_acropolisBridgeEnemyApplyCommand`. Its switch has

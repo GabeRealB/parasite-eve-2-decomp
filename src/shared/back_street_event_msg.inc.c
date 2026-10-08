@@ -1,48 +1,50 @@
 /* Part of the back street library; see back_street.h. */
 
-/// Message handler for the back street's two events. Copies the incoming
-/// record to the outgoing one and answers by editing `room` of the copy; a
-/// non-zero `queryOnly` suppresses the side effects.
+/// Resolves the back street's warehouse variant and locked-house departure.
 ///
-/// On stage 2 (`gGameSession->location.loc.stage`), message 7 answers 1 while event
-/// nibble 0x3C is clear and the stage byte, read once into a local, when it is
-/// set. Message 9 with nibble 0x3F clear runs CAP command 2 on stage 2 (9
-/// otherwise), sets nibble 2 of the record's flag index and returns 0. Any
-/// other case, on stage 2, enqueues the type-7 event the ambience task uses to
-/// stop sound 0x52050006, and returns 1.
-s32 backStreetEventMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Receives a borrowed request and writable reply for ROOM_EVENT_MESSAGE_RESOLVE;
+/// they may alias. Queries copy the record but preserve its destination and skip
+/// CAP, flag and ambience changes. Execution selects warehouse room 1 or 2 in
+/// daytime Dryfield. A locked house runs the stage's refusal command and returns
+/// 0 (stay); other departures return 1 and stop the daytime ambience. The task
+/// and message ID are ignored; the request and current room resources must be live.
+static s32 _roomVariantResolveBackStreet(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    u8 s1;
+    enum {
+        ROOM_VARIANT_BACK_STREET_STAY                = 0,
+        ROOM_VARIANT_BACK_STREET_DEPART              = 1,
+        ROOM_VARIANT_BACK_STREET_HOUSE_DAY_COMMAND   = 2,
+        ROOM_VARIANT_BACK_STREET_HOUSE_NIGHT_COMMAND = 9,
+        ROOM_VARIANT_BACK_STREET_EVENT_HANDLED       = 2,
+        ROOM_VARIANT_BACK_STREET_AMBIENCE_FADE       = 15,
+    };
+    u8 stageId;
 
-    *out = *in;
-    s1   = gGameSession->location.loc.stage;
-    if (s1 == 2) {
-        if (in->areaId == 7) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (gameFlagGetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) == 0) {
-                    out->room = 1;
-                } else {
-                    out->room = s1;
-                }
-            }
+    *reply  = *request;
+    stageId = gGameSession->location.loc.stage;
+    if (stageId == GAME_STAGE_DRYFIELD && request->areaId == GAME_AREA_DRYFIELD_WAREHOUSE && request->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (gameFlagGetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) == 0) {
+            reply->room = 1;
+        } else {
+            reply->room = stageId;
         }
     }
-    if ((in->areaId == 9) && (gameFlagGetNibble(GAME_FLAG_DILAPIDATED_HOUSE_DOOR_UNLOCKED) == 0)) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            s32 cmd = 9;
+    if ((request->areaId == GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE) && (gameFlagGetNibble(GAME_FLAG_DILAPIDATED_HOUSE_DOOR_UNLOCKED) == 0)) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            s32 commandIndex = ROOM_VARIANT_BACK_STREET_HOUSE_NIGHT_COMMAND;
 
             if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                cmd = 2;
+                commandIndex = ROOM_VARIANT_BACK_STREET_HOUSE_DAY_COMMAND;
             }
-            capRunCommandWithTransition(cmd);
-            gameFlagSetNibbleIfPresent(in->flagId, 2);
+            capRunCommandWithTransition(commandIndex);
+            gameFlagSetNibbleIfPresent(request->flagId, ROOM_VARIANT_BACK_STREET_EVENT_HANDLED);
         }
-        return 0;
+        return ROOM_VARIANT_BACK_STREET_STAY;
     }
-    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-            sndEvtRequestScriptStop(SOUND_BACK_STREET_AMBIENCE, 0xF);
+            sndEvtRequestScriptStop(SOUND_BACK_STREET_AMBIENCE, ROOM_VARIANT_BACK_STREET_AMBIENCE_FADE);
         }
     }
-    return 1;
+    return ROOM_VARIANT_BACK_STREET_DEPART;
 }
