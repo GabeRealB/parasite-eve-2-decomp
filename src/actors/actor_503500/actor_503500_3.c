@@ -300,7 +300,7 @@ static void _actor503500EnterCombatState(Task* task, s32 state);
 static void _actor503500PinkFlashEmitterStepAttack(Task* task);
 static void _actor503500LargeChainHandleReactions(Task* task);
 static void _actor503500LargeChainLayoutLinks(Task* task);
-static void func_actor_503500_8013A96C(Task* arg0);
+static void _actor503500LargeChainStepState(Task* task);
 static void _actor503500LargeChainProcessContacts(Task* task);
 static void _actor503500LargeChainUpdateColor(Task* task);
 static void _actor503500BossUpkeep(Task* task);
@@ -308,7 +308,7 @@ static void _actor503500TurnBoss(Task* task);
 static void _actor503500WalkBoss(Task* task);
 static void _actor503500UpdateSlotTargetEligibility(Task* task);
 static void _actor503500HandleBossReactions(Task* task);
-static void func_actor_503500_80136304(Task* arg0);
+static void _actor503500StepBossState(Task* task);
 static void _actor503500ProcessBossContacts(Task* task);
 static void _actor503500UpdateBossColor(Task* task);
 static void _actor503500TickBossAnimation(Task* task);
@@ -332,7 +332,7 @@ static void _actor503500PinkFlashEmitterExit(Task* task);
 static void _actor503500PinkFlashEmitterNoOp(Task* unusedTask);
 static void _actor503500PinkFlashEmitterProcessContacts(Task* task);
 static void _actor503500PinkFlashEmitterClearReactions(Task* task);
-static void func_actor_503500_801383D0(Task* arg0);
+static void _actor503500PinkFlashEmitterStepState(Task* task);
 static void _actor503500LargeChainEnterState(Task* task, s32 state);
 static void _actor503500LargeChainStepIdle(Task* task);
 static void _actor503500LargeChainStepShoot(Task* task);
@@ -341,11 +341,11 @@ static void _actor503500LargeChainPlaceLinks(const SVECTOR* points, GfxCoord* co
 static void _actor503500SetBossTrackRates(Task* task, s32 rate);
 
 static void _actor503500InitBoss(Task* task);
-static void func_actor_503500_80133270(Task* arg0);
+static void _actor503500UpdateBoss(Task* task);
 static void _actor503500PinkFlashEmitterInit(Task* task);
-static void func_actor_503500_8013815C(Task* arg0);
+static void _actor503500PinkFlashEmitterUpdate(Task* task);
 static void _actor503500LargeChainInit(Task* task);
-static void func_actor_503500_80138898(Task* arg0);
+static void _actor503500LargeChainUpdate(Task* task);
 
 static void _actor503500PinkFlashEmitterStepIdle(Task* task);
 static void _actor503500PinkFlashEmitterEnterState(Task* task, s32 state);
@@ -356,7 +356,7 @@ static void _actor503500LargeChainBlendPose(Task* task);
 static const TaskFuncTable3 D_actor_503500_80131E44 = {
     {
         _actor503500InitBoss,
-        func_actor_503500_80133270,
+        _actor503500UpdateBoss,
         _actor503500ExitBoss,
     },
 };
@@ -513,48 +513,63 @@ static void _actor503500InitBoss(Task* task)
     task->state       += 1;
 }
 
-/// Per-frame update. `gSceneCombatState.actorControl` 1 pauses the boss (buffers kept, only
-/// `_actor503500UpdateBossColor` runs), 2 hides it; anything else runs the
-/// normal chain. `bufferFreeCountdown` counts down to the frame the TMD buffers are freed.
-static void func_actor_503500_80133270(Task* arg0)
+/// Advances a pending boss-model buffer release, freeing on the call finding zero.
+///
+/// Borrows the live model and boss work. Negative countdowns are inactive;
+/// release leaves work allocated and decrements zero to the inactive value -1.
+static inline void _actor503500BossAdvanceBufferRelease(Actor503500Work* work, TmdObject* model)
 {
+    if (work->bufferFreeCountdown >= 0) {
+        if (work->bufferFreeCountdown == 0) {
+            tmdFreePrimitiveBuffer(model);
+        }
+        work->bufferFreeCountdown--;
+    }
+}
+
+/// Updates the boss's control policy, contacts, behavior, motion and animation.
+///
+/// Requires initialized boss work and a live enemy/model. Paused control
+/// allocates drawing buffers on entry and updates only colour; hidden control
+/// mutes sounds and requests release after two further countdown updates.
+/// Other values run the full update. Menu transitions mute character sounds.
+/// A pending release survives resume; its countdown pauses in paused control.
+static void _actor503500UpdateBoss(Task* task)
+{
+    enum { ACTOR_503500_BOSS_HIDDEN_BUFFER_RELEASE_FRAMES = 1 };
     Actor503500Work* work;
     Enemy*           enemy;
-    TmdObject*       tmd;
-    s32              mode;
+    TmdObject*       model;
+    s32              actorControl;
 
-    enemy = arg0->spawnArg2.pointer;
-    tmd   = arg0->extra.tmd;
-    mode  = gSceneCombatState.actorControl;
-    work  = arg0->work;
+    enemy        = task->spawnArg2.pointer;
+    model        = task->extra.tmd;
+    actorControl = gSceneCombatState.actorControl;
+    work         = task->work;
 
-    switch (mode) {
-        case 1:
+    switch (actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->controlPaused == 0) {
                 sndEvtRequestScriptMute(SOUND_BANK_TYPE_CHARACTER_ALL);
-                tmdAllocPrimitiveBuffer(tmd);
-                tmd->flags         &= (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-                work->controlPaused = mode;
+                tmdAllocPrimitiveBuffer(model);
+                model->flags       &= ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+                work->controlPaused = actorControl;
                 work->controlHidden = 0;
             }
-            _actor503500UpdateBossColor(arg0);
+            _actor503500UpdateBossColor(task);
             return;
-        case 2:
-            if (work->bufferFreeCountdown >= 0) {
-                if (work->bufferFreeCountdown == 0) {
-                    tmdFreePrimitiveBuffer(tmd);
-                }
-                work->bufferFreeCountdown--;
-            }
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            _actor503500BossAdvanceBufferRelease(work, model);
             if (work->controlHidden == 0) {
                 sndEvtRequestScriptMute(SOUND_BANK_TYPE_CHARACTER_ALL);
-                tmd->flags               |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-                work->bufferFreeCountdown = 1;
+                model->flags             |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+                work->bufferFreeCountdown = ACTOR_503500_BOSS_HIDDEN_BUFFER_RELEASE_FRAMES;
                 work->controlPaused       = 0;
                 work->controlHidden       = 1;
             }
             return;
         default:
+            // Restore character sounds before applying a pending menu's mute.
             if (work->controlPaused == 1 || work->controlHidden == 1 || work->mutedForMenu != 0) {
                 sndEvtRequestScriptUnmute(SOUND_BANK_TYPE_CHARACTER_ALL);
                 work->controlPaused = 0;
@@ -566,27 +581,23 @@ static void func_actor_503500_80133270(Task* arg0)
                 work->mutedForMenu = 1;
             }
             if (gGameSession->eventState == 0) {
-                tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            if (work->bufferFreeCountdown >= 0) {
-                if (work->bufferFreeCountdown == 0) {
-                    tmdFreePrimitiveBuffer(tmd);
-                }
-                work->bufferFreeCountdown--;
-            }
+            _actor503500BossAdvanceBufferRelease(work, model);
+            // Resolve hits and state changes before moving and posing the body.
             if (enemy->reactionFlags != 0) {
-                _actor503500HandleBossReactions(arg0);
+                _actor503500HandleBossReactions(task);
             }
-            _actor503500ProcessBossContacts(arg0);
-            _actor503500UpdateBossColor(arg0);
-            _actor503500UpdateBodyCollisionGrid(arg0, 0, 0);
-            _actor503500BossUpkeep(arg0);
-            func_actor_503500_80136304(arg0);
-            _actor503500TurnBoss(arg0);
-            _actor503500WalkBoss(arg0);
-            _actor503500TickBossAnimation(arg0);
-            _actor503500UpdateSlotTargetEligibility(arg0);
-            _actor503500UpdateBossPartScales(arg0);
+            _actor503500ProcessBossContacts(task);
+            _actor503500UpdateBossColor(task);
+            _actor503500UpdateBodyCollisionGrid(task, 0, 0);
+            _actor503500BossUpkeep(task);
+            _actor503500StepBossState(task);
+            _actor503500TurnBoss(task);
+            _actor503500WalkBoss(task);
+            _actor503500TickBossAnimation(task);
+            _actor503500UpdateSlotTargetEligibility(task);
+            _actor503500UpdateBossPartScales(task);
             break;
     }
 }
@@ -2326,50 +2337,61 @@ static void _actor503500HandleBossReactions(Task* task)
     }
 }
 
-static void func_actor_503500_80136304(Task* arg0)
+/// Steps the boss's combat state and any separately commanded orange-flash attack.
+///
+/// Requires initialized boss work and a live enemy. Idle checks part losses
+/// before its cooldown. Stun narrows the countdown to a signed halfword before
+/// testing expiry, then reloads 3 and replays the strike preset every four calls.
+/// Build-up expiry returns to idle with a 60-update attack delay. The body attack
+/// follows the state step whenever its command is nonzero, including transitions.
+static void _actor503500StepBossState(Task* task)
 {
-    Actor503500Work* work = arg0->work;
-    u16              timer;
+    enum {
+        ACTOR_503500_STUN_ANIMATION_RELOAD_FRAMES      = 3,
+        ACTOR_503500_STUN_RECOVERY_ATTACK_DELAY_FRAMES = 60,
+    };
+    Actor503500Work* work = task->work;
+    s16              stunFramesLeft;
 
     switch (work->state) {
         case ACTOR_503500_STATE_IDLE:
-            if (_actor503500CheckPartLossProgress(arg0) == 0) {
-                _actor503500StepIdleState(arg0);
+            if (_actor503500CheckPartLossProgress(task) == 0) {
+                _actor503500StepIdleState(task);
             }
             break;
         case ACTOR_503500_STATE_ATTACK:
-            _actor503500StepAttackState(arg0);
+            _actor503500StepAttackState(task);
             break;
         case ACTOR_503500_STATE_PART_LOST:
-            _actor503500StepPartLostState(arg0);
+            _actor503500StepPartLostState(task);
             break;
         case ACTOR_503500_STATE_STUNNED:
-            timer                    = work->stunAnimationTimer - 1;
-            work->stunAnimationTimer = timer;
-            if ((s16)timer < 0) {
-                actor503500PlayAnimationPreset(arg0, 6, 0x10);
-                work->stunAnimationTimer = 3;
+            stunFramesLeft           = work->stunAnimationTimer - 1;
+            work->stunAnimationTimer = stunFramesLeft;
+            if (stunFramesLeft < 0) {
+                actor503500PlayAnimationPreset(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_STRIKE, ANIMATION_RATE_ONE);
+                work->stunAnimationTimer = ACTOR_503500_STUN_ANIMATION_RELOAD_FRAMES;
             }
-            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
-                _actor503500EnterCombatState(arg0, ACTOR_503500_STATE_IDLE);
-                work->attackDelay = 0x3C;
+            if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
+                _actor503500EnterCombatState(task, ACTOR_503500_STATE_IDLE);
+                work->attackDelay = ACTOR_503500_STUN_RECOVERY_ATTACK_DELAY_FRAMES;
             }
             break;
         case ACTOR_503500_STATE_DEFEATED:
-            _actor503500StepDefeatedState(arg0);
+            _actor503500StepDefeatedState(task);
             break;
         case ACTOR_503500_STATE_HELD:
-            _actor503500StepHeldState(arg0);
+            _actor503500StepHeldState(task);
             break;
         case ACTOR_503500_STATE_SCRIPTED:
-            _actor503500StepPhaseTransitionState(arg0);
+            _actor503500StepPhaseTransitionState(task);
             break;
         case ACTOR_503500_STATE_COLLAPSE:
-            _actor503500StepCollapseState(arg0);
+            _actor503500StepCollapseState(task);
             break;
     }
     if (work->selfAttackCommand != 0) {
-        _actor503500StepOrangeFlashAttack(arg0);
+        _actor503500StepOrangeFlashAttack(task);
     }
 }
 
@@ -2975,7 +2997,7 @@ void actor503500ReleaseProjectileEffectCost(s32 effectCost)
 static const TaskFuncTable3 D_actor_503500_80131F4C = {
     {
         _actor503500PinkFlashEmitterInit,
-        func_actor_503500_8013815C,
+        _actor503500PinkFlashEmitterUpdate,
         _actor503500PinkFlashEmitterExit,
     },
 };
@@ -3411,44 +3433,53 @@ static void _actor503500PinkFlashEmitterApplyHits(Task* task, WorldCollisionBody
     }
 }
 
-static void func_actor_503500_8013815C(Task* arg0)
+/// Maintains the pink-flash emitter's model and steps active contacts and behavior.
+///
+/// Requires initialized singleton work, a live enemy/model and its boss parent.
+/// Buffer release runs before draw-policy inheritance, even when actors pause
+/// or hide; a call finding zero frees the buffer, then leaves -1. Dying bypasses
+/// inheritance. Hidden control also suppresses targeting; paused control only
+/// calls the empty hook when drawn. Other control values process reactions,
+/// contacts and state in that order.
+static void _actor503500PinkFlashEmitterUpdate(Task* task)
 {
     _Actor503500PinkFlashEmitterWork* work;
     Enemy*                            enemy;
-    TmdObject*                        tmd;
-    s8                                countdown;
+    TmdObject*                        model;
+    s8                                bufferFramesLeft;
 
-    work      = arg0->work;
-    enemy     = arg0->spawnArg2.pointer;
-    countdown = work->bufferFreeCountdown;
-    tmd       = arg0->extra.tmd;
-    if (countdown >= 0) {
-        if (countdown == 0) {
-            tmdFreePrimitiveBuffer(tmd);
+    work             = task->work;
+    enemy            = task->spawnArg2.pointer;
+    bufferFramesLeft = work->bufferFreeCountdown;
+    model            = task->extra.tmd;
+    if (bufferFramesLeft >= 0) {
+        if (bufferFramesLeft == 0) {
+            tmdFreePrimitiveBuffer(model);
         }
         work->bufferFreeCountdown--;
     }
+    // Dying maintains its own drawing policy.
     if (work->state != ACTOR_503500_PINK_FLASH_EMITTER_STATE_DYING) {
-        actor503500SyncAttachedModelDrawState(arg0, &work->bufferFreeCountdown);
+        actor503500SyncAttachedModelDrawState(task, &work->bufferFreeCountdown);
     }
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-                _actor503500PinkFlashEmitterNoOp(arg0);
+            if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+                _actor503500PinkFlashEmitterNoOp(task);
             }
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            tmd->flags                    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
             break;
         default:
             if (enemy->reactionFlags != 0) {
-                _actor503500PinkFlashEmitterClearReactions(arg0);
+                _actor503500PinkFlashEmitterClearReactions(task);
             }
-            _actor503500PinkFlashEmitterNoOp(arg0);
-            _actor503500PinkFlashEmitterProcessContacts(arg0);
-            func_actor_503500_801383D0(arg0);
+            _actor503500PinkFlashEmitterNoOp(task);
+            _actor503500PinkFlashEmitterProcessContacts(task);
+            _actor503500PinkFlashEmitterStepState(task);
             break;
     }
 }
@@ -3527,17 +3558,24 @@ static void _actor503500PinkFlashEmitterClearReactions(Task* task)
     }
 }
 
-static void func_actor_503500_801383D0(Task* arg0)
+/// Steps the pink-flash emitter's idle, attack or dying behavior.
+///
+/// Requires its initialized work and live enemy/model. Dispatches the state's
+/// value at entry once; a helper's state change takes effect on the next call.
+/// Values outside the three established states perform no work.
+static void _actor503500PinkFlashEmitterStepState(Task* task)
 {
-    switch (((_Actor503500PinkFlashEmitterWork*)arg0->work)->state) {
+    _Actor503500PinkFlashEmitterWork* work = task->work;
+
+    switch (work->state) {
         case ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE:
-            _actor503500PinkFlashEmitterStepIdle(arg0);
+            _actor503500PinkFlashEmitterStepIdle(task);
             break;
         case ACTOR_503500_PINK_FLASH_EMITTER_STATE_ATTACK:
-            _actor503500PinkFlashEmitterStepAttack(arg0);
+            _actor503500PinkFlashEmitterStepAttack(task);
             break;
         case ACTOR_503500_PINK_FLASH_EMITTER_STATE_DYING:
-            _actor503500PinkFlashEmitterStepDying(arg0);
+            _actor503500PinkFlashEmitterStepDying(task);
             break;
     }
 }
@@ -3583,7 +3621,7 @@ void actor503500PinkFlashEmitterTask(Task* task)
 static const TaskFuncTable3 D_actor_503500_80131F9C = {
     {
         _actor503500LargeChainInit,
-        func_actor_503500_80138898,
+        _actor503500LargeChainUpdate,
         _actor503500LargeChainExit,
     },
 };
@@ -3681,54 +3719,62 @@ static void _actor503500LargeChainInit(Task* task)
     task->state               += 1;
 }
 
-static void func_actor_503500_80138898(Task* arg0)
+/// Maintains a large chain's model and advances its tip, links and behavior.
+///
+/// Requires initialized slot-2/3 work, its nine-part model, live enemy and boss
+/// parent. Buffer release runs in every control mode. During events, an occupied
+/// matching arm suppresses automatic buffers instead of inheriting draw policy.
+/// Paused control updates only visible colour; hidden control also suppresses
+/// targeting. Other values process reactions, contacts and state, then steer and
+/// lay out attached links before colour and bind-pose blending. Detached chains
+/// retain state/colour/blending updates but stop tip steering and curve layout.
+static void _actor503500LargeChainUpdate(Task* task)
 {
     _Actor503500LargeChainWork* work;
     Enemy*                      enemy;
-    TmdObject*                  tmd;
-    s8                          countdown;
+    TmdObject*                  model;
+    s8                          bufferFramesLeft;
 
-    work      = arg0->work;
-    enemy     = arg0->spawnArg2.pointer;
-    countdown = work->bufferFreeCountdown;
-    /* `Task::extra` is a `TmdObject`: the model instance and the actor-ext
-     * record documented in `main/session.h` are the same object. */
-    tmd = arg0->extra.tmd;
-    if (countdown >= 0) {
-        if (countdown == 0) {
-            tmdFreePrimitiveBuffer(tmd);
+    work             = task->work;
+    enemy            = task->spawnArg2.pointer;
+    bufferFramesLeft = work->bufferFreeCountdown;
+    model            = task->extra.tmd;
+    if (bufferFramesLeft >= 0) {
+        if (bufferFramesLeft == 0) {
+            tmdFreePrimitiveBuffer(model);
         }
-        work->bufferFreeCountdown = (s8)((u8)work->bufferFreeCountdown - 1);
+        work->bufferFreeCountdown--;
     }
+    // An event's occupied arm controls this chain's automatic buffer policy.
     if (gGameSession->eventState != 0 &&
-        actor503500IsSlotEmpty(arg0->parent, arg0->spawnArg1.value < 3 ? 0xA : 0xB) == 0) {
-        tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        actor503500IsSlotEmpty(task->parent, task->spawnArg1.value < ACTOR_503500_SLOT_LARGE_CHAIN_1 ? ACTOR_503500_SLOT_ARM_0 : ACTOR_503500_SLOT_ARM_1) == 0) {
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
-        actor503500SyncAttachedModelDrawState(arg0, &work->bufferFreeCountdown);
+        actor503500SyncAttachedModelDrawState(task, &work->bufferFreeCountdown);
     }
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-                _actor503500LargeChainUpdateColor(arg0);
+            if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+                _actor503500LargeChainUpdateColor(task);
             }
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            tmd->flags                    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
             break;
         default:
             if (enemy->reactionFlags != 0) {
-                _actor503500LargeChainHandleReactions(arg0);
+                _actor503500LargeChainHandleReactions(task);
             }
-            _actor503500LargeChainProcessContacts(arg0);
-            func_actor_503500_8013A96C(arg0);
+            _actor503500LargeChainProcessContacts(task);
+            _actor503500LargeChainStepState(task);
             if (work->detached == 0) {
-                _actor503500LargeChainSteerTip(arg0);
-                _actor503500LargeChainLayoutLinks(arg0);
+                _actor503500LargeChainSteerTip(task);
+                _actor503500LargeChainLayoutLinks(task);
             }
-            _actor503500LargeChainUpdateColor(arg0);
-            _actor503500LargeChainBlendPose(arg0);
+            _actor503500LargeChainUpdateColor(task);
+            _actor503500LargeChainBlendPose(task);
             break;
     }
 }
@@ -4609,36 +4655,44 @@ static void _actor503500LargeChainExit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-static void func_actor_503500_8013A96C(Task* arg0)
+/// Steps a large chain's behavior and counts down its temporary slowing.
+///
+/// Requires initialized chain work and its live enemy/model. Hold decrements
+/// through zero and returns to idle on a negative signed-halfword result.
+/// Damage-over-time has no step here; reactions own it. Slowing decrements
+/// after the state helper and clamps a negative signed-halfword result to zero,
+/// so a value just set by a helper loses one tick in the same call.
+static void _actor503500LargeChainStepState(Task* task)
 {
     _Actor503500LargeChainWork* work;
-    s16                         timer;
+    s16                         holdFramesLeft;
+    s16                         slowFramesLeft;
 
-    work = arg0->work;
+    work = task->work;
     switch (work->state) {
         case ACTOR_503500_LARGE_CHAIN_STATE_IDLE:
-            _actor503500LargeChainStepIdle(arg0);
+            _actor503500LargeChainStepIdle(task);
             break;
         case ACTOR_503500_LARGE_CHAIN_STATE_SHOOT:
-            _actor503500LargeChainStepShoot(arg0);
+            _actor503500LargeChainStepShoot(task);
             break;
         case ACTOR_503500_LARGE_CHAIN_STATE_HOLD:
-            timer            = (u16)work->holdFrames - 1;
-            work->holdFrames = timer;
-            if (timer < 0) {
-                _actor503500LargeChainEnterState(arg0, ACTOR_503500_LARGE_CHAIN_STATE_IDLE);
+            holdFramesLeft   = work->holdFrames - 1;
+            work->holdFrames = holdFramesLeft;
+            if (holdFramesLeft < 0) {
+                _actor503500LargeChainEnterState(task, ACTOR_503500_LARGE_CHAIN_STATE_IDLE);
             }
             break;
         case ACTOR_503500_LARGE_CHAIN_STATE_DYING:
-            _actor503500LargeChainStepDying(arg0);
+            _actor503500LargeChainStepDying(task);
             break;
         case ACTOR_503500_LARGE_CHAIN_STATE_SPLITTING:
-            _actor503500LargeChainStepSplitting(arg0);
+            _actor503500LargeChainStepSplitting(task);
             break;
     }
-    timer            = (u16)work->slowFrames - 1;
-    work->slowFrames = timer;
-    if (timer < 0) {
+    slowFramesLeft   = work->slowFrames - 1;
+    work->slowFrames = slowFramesLeft;
+    if (slowFramesLeft < 0) {
         work->slowFrames = 0;
     }
 }

@@ -8,9 +8,13 @@ extern TmdSource gActor503500Model14DA0;
 
 extern TmdSource gActor503500Model15820;
 
-/// An enemy task and the models its descriptors attach, named by the enemy
-/// descriptor tables of the Shelter map UI overlay.
-void func_actor_503500_8013270C(Task* task);
+/// Dispatches an intro slab slider through initialization, update and exit.
+///
+/// Requires a live TMD model, its enemy in `spawnArg2.pointer`, and `state`
+/// 0..2. Only running scene actor control dispatches any state. Initialization
+/// owns allocated work; commands select either 360-update path or stationary
+/// shake. Copies the handler table before dispatch; exit may destroy the task.
+void actor503500SliderTask(Task* task);
 
 /// Clears the borrowed fade-from-black task handle when Shelter R48 initializes.
 ///

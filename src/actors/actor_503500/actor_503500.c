@@ -44,7 +44,7 @@ static void _actor503500SliderBindLighting(Task* task);
 /// Script pair handed to `padScriptSpawn` on every odd pulse frame.
 extern PadScriptCmd              D_actor_503500_801468A8[2];
 extern PadScriptVibrationSegment D_actor_503500_801468B0[2];
-/// Two 360-entry X/Z paths `func_actor_503500_8013223C` walks the model along,
+/// Two 360-entry X/Z paths `_actor503500SliderUpdate` walks the model along,
 /// selected by `_Actor503500SliderWork::path` (1 or 2).
 extern DVECTOR_XZ D_actor_503500_80147D90[];
 extern DVECTOR_XZ D_actor_503500_80148330[];
@@ -135,71 +135,92 @@ DVECTOR_XZ D_actor_503500_80148330[360] = {
 #include "assets/actor_503500_motion_16510.inc"
 };
 
-static void func_actor_503500_8013223C(Task* arg0);
 static void _actor503500SliderInit(Task* task);
 
-static void func_actor_503500_8013223C(Task* arg0)
+/// Pulses display shake and controller vibration for the first intro slider.
+///
+/// Borrows a live enemy/work pair. Only a zero low key nibble owns the shared
+/// shake. An odd timer emits vibration and a -1 vertical shake; even clears it.
+static inline void _actor503500SliderPulseShake(const Enemy* enemy, const _Actor503500SliderWork* work)
 {
-    TmdObject*              ext;
+    enum {
+        ACTOR_503500_SLIDER_SHAKE_KEY_MASK = 0xF,
+        ACTOR_503500_SLIDER_SHAKE_Y        = -1,
+    };
+
+    if (!(enemy->placeKey & ACTOR_503500_SLIDER_SHAKE_KEY_MASK)) {
+        if (work->timer & 1) {
+            padScriptSpawn(D_actor_503500_801468A8, D_actor_503500_801468B0);
+            displaySetShakeY(ACTOR_503500_SLIDER_SHAKE_Y);
+        } else {
+            displaySetShakeY(0);
+        }
+    }
+}
+
+/// Advances an intro slider's path or stationary shake and maintains its model.
+///
+/// Requires initialized work, a live enemy and model. Paths 1/2 consume one
+/// of 360 X/Z samples per call, with a nonnegative timer; path 0 counts down
+/// stationary shake. Only a zero low key nibble drives display/vibration.
+/// Visible models refresh lighting from the composed root's world translation.
+/// A nonnegative release countdown frees buffers on the call finding zero,
+/// then becomes negative. Work and model remain owned by the task.
+static void _actor503500SliderUpdate(Task* task)
+{
+    enum {
+        ACTOR_503500_SLIDER_PATH_NONE      = 0,
+        ACTOR_503500_SLIDER_PATH_FIRST     = 1,
+        ACTOR_503500_SLIDER_SHAKE_KEY_MASK = 0xF,
+        ACTOR_503500_SLIDER_LIGHT_COUNT    = 3,
+    };
+    TmdObject*              model;
     _Actor503500SliderWork* work;
     Enemy*                  enemy;
-    GfxCoord*               coord;
-    DVECTOR_XZ*             p;
-    VECTOR                  pos;
+    GfxCoord*               rootCoord;
+    const DVECTOR_XZ*       pathSample;
+    VECTOR                  unusedWorldPosition;
 
-    ext   = arg0->extra.tmd;
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    coord = ext->coords;
-    if (work->path != 0) {
+    model     = task->extra.tmd;
+    work      = task->work;
+    enemy     = task->spawnArg2.pointer;
+    rootCoord = model->coords;
+    // Motion and shake share the timer, with opposite counting directions.
+    if (work->path != ACTOR_503500_SLIDER_PATH_NONE) {
         if (work->timer < ARRAY_SIZE(D_actor_503500_80147D90)) {
-            if (work->path == 1) {
-                p = &D_actor_503500_80147D90[work->timer];
+            if (work->path == ACTOR_503500_SLIDER_PATH_FIRST) {
+                pathSample = &D_actor_503500_80147D90[work->timer];
             } else {
-                p = &D_actor_503500_80148330[work->timer];
+                pathSample = &D_actor_503500_80148330[work->timer];
             }
-            coord->coord.t[0] = p->vx;
-            coord->coord.t[2] = p->vz;
-            if (!(enemy->placeKey & 0xF)) {
-                if (work->timer & 1) {
-                    padScriptSpawn(D_actor_503500_801468A8, D_actor_503500_801468B0);
-                    displaySetShakeY(-1);
-                } else {
-                    displaySetShakeY(0);
-                }
-            }
+            rootCoord->coord.t[0] = pathSample->vx;
+            rootCoord->coord.t[2] = pathSample->vz;
+            _actor503500SliderPulseShake(enemy, work);
             work->timer++;
         } else {
             work->timer = 0;
-            work->path  = 0;
-            if (!(enemy->placeKey & 0xF)) {
+            work->path  = ACTOR_503500_SLIDER_PATH_NONE;
+            if (!(enemy->placeKey & ACTOR_503500_SLIDER_SHAKE_KEY_MASK)) {
                 displaySetShakeY(0);
             }
         }
     } else if (work->timer > 0) {
-        if (!(enemy->placeKey & 0xF)) {
-            if (work->timer & 1) {
-                padScriptSpawn(D_actor_503500_801468A8, D_actor_503500_801468B0);
-                displaySetShakeY(-1);
-            } else {
-                displaySetShakeY(0);
-            }
-        }
+        _actor503500SliderPulseShake(enemy, work);
         work->timer--;
     }
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(rootCoord);
         // Filled and never read: the original passes the matrix's own
         // translation instead, but the stores are still emitted.
-        pos.vx = coord->workm.t[0];
-        pos.vy = coord->workm.t[1];
-        pos.vz = coord->workm.t[2];
-        worldCoordSetModelLighting(ext, coord->workm.t, 0, 3);
+        unusedWorldPosition.vx = rootCoord->workm.t[0];
+        unusedWorldPosition.vy = rootCoord->workm.t[1];
+        unusedWorldPosition.vz = rootCoord->workm.t[2];
+        worldCoordSetModelLighting(model, rootCoord->workm.t, 0, ACTOR_503500_SLIDER_LIGHT_COUNT);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
@@ -359,21 +380,21 @@ static s32 _actor503500SliderApplyCommand(Task* task, s32 messageId, const Actor
     return 0;
 }
 
-/// `Task::state` handlers `func_actor_503500_8013270C` dispatches through.
+/// `Task::state` handlers `actor503500SliderTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80131E24 = {
     {
         _actor503500SliderInit,
-        func_actor_503500_8013223C,
+        _actor503500SliderUpdate,
         _actor503500SliderExit,
     },
 };
 
-void func_actor_503500_8013270C(Task* task)
+void actor503500SliderTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_actor_503500_80131E24;
+    handlers = D_actor_503500_80131E24;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        handlers.funcs[task->state](task);
     }
 }

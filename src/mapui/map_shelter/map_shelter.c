@@ -461,8 +461,8 @@ static AreaObjectSpawn D_map_shelter_8017A918[2] = {
 };
 
 static AreaObjectSpawn D_map_shelter_8017A938[3] = {
-    { 0x20B, { { { TASK_BODY_TMD, 0x62 } }, func_actor_503500_8013270C, { &gActor503500Model14DA0 } } },
-    { 0x20C, { { { TASK_BODY_TMD, 0x62 } }, func_actor_503500_8013270C, { &gActor503500Model15820 } } },
+    { 0x20B, { { { TASK_BODY_TMD, 0x62 } }, actor503500SliderTask, { &gActor503500Model14DA0 } } },
+    { 0x20C, { { { TASK_BODY_TMD, 0x62 } }, actor503500SliderTask, { &gActor503500Model15820 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 

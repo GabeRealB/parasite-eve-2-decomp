@@ -52638,7 +52638,7 @@ the struct-assignment shape plus padding is 100%.
 
 When the dead aggregate is the *first* local, it sits at `sp+0x10` - the
 outgoing-argument area - and m2c misreads the stores as stack arguments of
-the next call instead of dropping them: `func_actor_503500_8013223C` came out
+the next call instead of dropping them: `_actor503500SliderUpdate` came out
 as `worldCoordSetModelLighting(ext, &coord->workm.t, 0, 3, /* extra? */ t[0], t[1], t[2])`,
 which fails to compile against the 4-argument prototype. `/* extra? */`
 arguments to a known-arity callee mean a local struct filled right before the
@@ -69894,7 +69894,7 @@ a typing question, not an ordering one.
 
 ## `switch` on a byte global kept in `$s`: declare the local `s32`, not `u8`
 
-`func_actor_503500_80133270` loads `D_801153F4` (`u8`) with `lbu $s1` and
+`_actor503500UpdateBoss` loads `D_801153F4` (`u8`) with `lbu $s1` and
 compares `$s1` straight against `li v1,1` / `li v0,2`, later storing `$s1` as
 a byte and reusing `v1 = 1` in the default arm. m2c's `u8 mode` local adds
 `andi $3,$s1,0xff` before the compares (the switch index is converted to
