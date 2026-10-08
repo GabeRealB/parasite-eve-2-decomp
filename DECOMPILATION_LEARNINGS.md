@@ -48611,7 +48611,7 @@ scheduling one: do not reach for a scheduler barrier or a `do {} while (0)`
 wrapper. Both forms are in the tree, and the sibling whose disassembly has the
 load in the right place tells you which one to write - `enemyTeardownDelayTask`,
 `_actor00300EnemyTask` and `_actor310600TickWalk` take the inline form,
-`Actor00400_Fn0793C` and `_actor311900RupertTask` the local. Matching the
+`_actor00400Dive` and `_actor311900RupertTask` the local. Matching the
 wrong sibling costs exactly the reorder and the missing `nop` (90.8% with
 `reorder=2 delete=1`, `regs=0`).
 
@@ -52645,7 +52645,7 @@ task->extra.tmd;` local used for both accesses keeps the pointer in one register
 inline chained deref and the *second* is a named local:
 
 ```c
-GfxCoord* rootCoord = task->extra.tmd->coords;
+GfxCoord* rootCoord = task->extra.coordBody->coord;
 TmdObject* liftModel = task->extra.tmd;
 ```
 
@@ -82840,7 +82840,7 @@ Inputs: `base_1.i`
 
 A two-entry dispatch table built on the frame and indexed by a signed
 `short` is a common actor shape (`_actor206100DispatchRecoil`,
-`Actor00400_Fn0A468`, `_actor323300WomanDispatchTurn`). m2c has no model of
+`_actor00400WoundedFloatIdle`, `_actor323300WomanDispatchTurn`). m2c has no model of
 the frame, so it prints the table's *base* as a bare `sp` symbol, reads the
 slot through it, and then hands the two function addresses to the result as
 *call arguments*:
@@ -85320,7 +85320,7 @@ scalar stack locals for an address-taken struct lose their dead stores", which
 is worth recognising before spending attempts on the seed.
 
 ```c
-    rootCoord = task->extra.tmd->coords;
+    rootCoord = task->extra.coordBody->coord;
     work      = task->work;
 
     localVelocity = D_actor_310600_80161E54;
@@ -93666,17 +93666,17 @@ two-entry dispatch table in its own frame:
 lw    s2,0x1c(s3)
 lw    s5,0x20(s3)
 lw    s4,0x2c(s3)
-lui   v0,%hi(Actor00400_Fn08A88)
-addiu v0,v0,%lo(Actor00400_Fn08A88)
+lui   v0,%hi(_actor00400WoundedGroundIdle)
+addiu v0,v0,%lo(_actor00400WoundedGroundIdle)
 sw    v0,0x10(sp)
 ```
 
 Written as plain assignments after the pointer assignments,
 
 ```c
-work = arg0->field_1C; obj = arg0->field_20; ctx = arg0->field_2C;
-fns[0] = Actor00400_Fn08A88;
-fns[1] = Actor00400_Fn08B40;
+work = arg0->work; obj = arg0->spawnArg2.pointer; ctx = arg0->extra.tmd;
+fns[0] = _actor00400WoundedGroundIdle;
+fns[1] = _actor00400WoundedGroundFlinch;
 ```
 
 sched1 hoists the `lui` to the very top of the block, above all three loads
@@ -93687,10 +93687,10 @@ dependence then drags all three `lw` below them. Both must be declaration
 initializers, pointers first:
 
 ```c
-_Actor00400Work* work = arg0->field_1C;
-Actor100400Obj*  obj  = arg0->field_20;
-Actor100400Ctx*  ctx  = arg0->field_2C;
-void (*fns[2])(Actor100400*) = { Actor00400_Fn08A88, Actor00400_Fn08B40 };
+_Actor00400Work* work = arg0->work;
+Enemy*          obj  = arg0->spawnArg2.pointer;
+TmdObject*      ctx  = arg0->extra.tmd;
+TaskFunc fns[2] = { _actor00400WoundedGroundIdle, _actor00400WoundedGroundFlinch };
 ```
 
 The mechanism is visible in the `.rtl` dump. An aggregate initializer goes
@@ -93950,12 +93950,12 @@ cheapest place to see which form the original used: a delay slot holding
 Swapping the two declarations and chaining the init took 99.834% to 100% in
 one build.
 
-## One `hidden = 1` per `case` is a free allocno reweighting lever (Actor00400_Fn02D48, 2026-09-16)
+## One `burstRequested = 1` per `case` is a free allocno reweighting lever (_actor00400FlyShot, 2026-09-16)
 
 A third lever for "Two zero-cost levers on the allocno order", for the case
 where the pseudo that has to move is a **flag written inside a loop**.
 
-`Actor00400_Fn02D48` reached `Structure: match`, `blocks=35/35
+`_actor00400FlyShot` reached `Structure: match`, `blocks=35/35
 instructions=172/172`, every penalty zero except `regs=20`, and the whole diff
 was a flag and a `GfxCoord*` sitting in each other's homes. The `.lreg`
 head gave the arithmetic straight away:
@@ -93970,7 +93970,7 @@ as `= 0` (1) + the loop's `= 1` (2, `REG_N_REFS += loop_depth`) + four
 `= 1` sites in the `else if` chain (4) + the final test (1).
 
 Two obvious repairs do not work. **Passing the flag where a `0` is wanted adds
-nothing** - `worldCollisionFindContactIndex(work->recs, hidden)` left the count at 8, because cse
+nothing** - `worldCollisionFindContactIndex(work->contacts, burstRequested)` left the count at 8, because cse
 folds a read of a known-zero variable back to `const_int 0` long before `flow`
 counts anything. And the `move a1,s1` in the target that looks like such a use
 is not one: it is `reload_cse` substituting a register that already holds 0.
@@ -93979,10 +93979,10 @@ What does work is splitting the `switch` that sets the flag so each label gets
 its own assignment:
 
 ```c
-switch (work->recs[i].key.value & 0xFFFF0000) {
-    case 0x10000: hidden = 1; break;     /* not: case 0x10000: */
-    case 0x30000: hidden = 1; break;     /*      case 0x30000: */
-    case 0x50000: hidden = 1; break;     /*      case 0x50000: hidden = 1; break; */
+switch (work->contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) {
+    case 0x10000: burstRequested = 1; break;     /* not: case 0x10000: */
+    case 0x30000: burstRequested = 1; break;     /*      case 0x30000: */
+    case 0x50000: burstRequested = 1; break;     /*      case 0x50000: burstRequested = 1; break; */
 }
 ```
 
@@ -93996,7 +93996,7 @@ Reach for this whenever the diff is a pure `$sN` permutation and the pseudo that
 must climb is set from several `case` labels or several `if` arms that currently
 share one statement; the merge is what makes it free.
 
-Matched as `Actor00400_Fn02D48` (attempt 10). Compiler SHA256:
+Matched as `_actor00400FlyShot` (attempt 10). Compiler SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 Preprocessed SHA256:
@@ -94004,7 +94004,7 @@ Preprocessed SHA256:
 - `base_8.c` (99.419%, shared `case` body): `c5a7ac9de414cfcf225608f7819e5b24a47fba96125b885eca74054b0d2d85f0`
 - `base_10.c` (100.000%, one assignment per `case`): `8143ac85f2aae435cc7af44aa56125d598f69beb8c7b880b947418ed623b11ca`
 
-## Reading a MIPS compare chain back to C: `fold` merges only the leftmost adjacent pair (Actor00400_Fn02D48, 2026-09-16)
+## Reading a MIPS compare chain back to C: `fold` merges only the leftmost adjacent pair (_actor00400FlyShot, 2026-09-16)
 
 Three shapes in the same function that are easy to misread, and the rule that
 separates them.
@@ -94200,7 +94200,7 @@ Actor100400Ctx*  ctx    = arg0->field_2C;            /* CSE -> move s6, v0 */
 
 The later `->field_8` reference is rewritten onto the copy's destination, which
 is why the load reads `0x8($s6)` and not `0x8($v0)`. `_actor310100InitOfficerCulledBodyModel`
-(`rootCoord = task->extra.tmd->coords; model = task->extra.tmd;`)
+(`rootCoord = task->extra.coordBody->coord; model = task->extra.tmd;`)
 is the already-matched worked example of the same shape.
 
 **Finding these.** When an unexplained `addu $sN, $vM, $zero` follows a pointer
@@ -103470,9 +103470,9 @@ Inputs: `base_2.i` (100.000%) SHA256 `f2a31136eb4679f998623b10494d0ab27cce7c51a9
 target SHA256 `2e02638c67bd05c65c2a7de7761d1e07e1f6554d15d5bdb0dfcad1bad6e56fc9`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00700_Fn00060-vacuum`.
-### A parameter competes in local-alloc on its raw span, not its doubled `REG_LIVE_LENGTH` (Actor00400_Fn0A190, 2026-09-16)
+### A parameter competes in local-alloc on its raw span, not its doubled `REG_LIVE_LENGTH` (_actor00400LaunchShot, 2026-09-16)
 
-`Actor00400_Fn0A190` (63 insns, one block, 5 calls) sat at 98.73% with
+`_actor00400LaunchShot` (63 insns, one block, 5 calls) sat at 98.73% with
 `regs=16` and nothing else: the `Task*` parameter in `$s2` where the target has
 it in `$s1`, and the `GfxCoord*` coordinate in `$s1` where the target has
 `$s2`. Everything else — the whole instruction sequence, every delay slot,
@@ -103512,11 +103512,11 @@ which is pure descending priority. The coordinate's 1470 beats the task
 pointer's 1458 by twelve units and takes `$s1`; swap those two numbers and the
 `$s0`-`$s3` assignment is the target's.
 
-The fix is a statement reorder with no other edit: write `coord = ...` **before**
+The fix is a statement reorder with no other edit: write `rootCoord = ...` **before**
 `work = ...`.
 
 ```c
-    coord = ((Actor100400Ctx*)task->extra)->field_8;
+    rootCoord = task->extra.coordBody->coord;
     work  = task->work;
 ```
 
@@ -103544,7 +103544,7 @@ Inputs: `base_3.i` (100.000%) SHA256 `67c4b652460c2217c608fb61c79ecc2113439d9d21
 `base_1.i` (98.730%, the failing order) SHA256 `bef48d7edc1a130f24f8037e2319ed930b7199939053464d5bc757438f972d20`;
 target SHA256 `498a3a58f1992279eee8c22b98e6740d99370002ba58e746f99aa65f8d9b6791`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor00400_Fn0A190-vacuum`.
+Scratch `nonmatchings/_actor00400LaunchShot-vacuum`.
 ## A `similar` candidate that stars in both `calls` and `cflow` is instruction-identical outside one region, even across overlays (Actor00100_Fn03340, 2026-09-16)
 
 The brief's similar-body list for `Actor00100_Fn03340` named a single candidate,
@@ -104277,48 +104277,39 @@ target SHA256 `69d43542a055091f7aef7a7be3c4cd11469b044e0f3552fd1f1f4c5c25eee1e9`
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_actor00400StrandedState3-vacuum`.
 
-## A stack-copied dispatcher sizes the table by the copy, so its extern goes in the consuming TU
+## A stack-copied dispatcher sizes its table by the copy
 
-`Actor00400_Fn08948` (actors, `actor_100400_fn0805c`) is the per-frame entry shape
-above, but it copies from a *named* global rather than a per-unit anonymous one:
+`_actor00400BodyTask` (actors, `actor_100400_fn0805c`) is the per-frame entry
+shape above, copying a named table rather than a frame-local initializer:
 
 ```c
-extern const TaskFuncTable8 Actor00400_D00038;   /* 8 entries, see below */
-
-void Actor00400_Fn08948(Actor100400* arg0)
+static void _actor00400BodyTask(Task* task)
 {
-    TaskFuncTable8 fns;
+    TaskFuncTable8 handlers;
 
-    fns = Actor00400_D00038;
-    fns.funcs[arg0->field_30]((Task*)arg0);
+    handlers = Actor00400_D00038;
+    handlers.funcs[task->state](task);
 }
 ```
 
-The same symbol is *defined* in the sibling TU `src/actors/lib/actor_100400_text.c`
-as a `TaskFuncTable9`: eight states plus the NULL the resident dispatcher walks
-down to. The copy is eight `lw`/`sw` pairs, so the local can only be
-`TaskFuncTable8`, and the ninth entry exists to put that trailing zero word at
-`0x80149E58 + 0x20`, where the owning unit's `.rodata` needs it.
+The copy is eight `lw`/`sw` pairs, fixing both the local and the source table
+at `TaskFuncTable8`. The merged `src/actors/actor_00400/actor_00400.c` defines
+`Actor00400_D00038` once, as a `static const TaskFuncTable8` in the same TU.
+There is no ninth callback or terminator: the following zero word aligns the
+compiler-generated jump table of `Actor00400_Fn03920`. The source table must
+stay at its position among the functions because `.rodata` follows source order.
 
-Two widths for one symbol is therefore the correct reading, and it forces the
-extern into the *consuming* TU rather than the overlay's shared header: a
-`TaskFuncTable9` declaration there makes the initializer ill-typed, and a
-`TaskFuncTable8` one collides with the definition in `actor_100400_text.c`, which
-includes that header. `actor_100400_fn0805c.c` already carries its `D0002C` /
-`D00144` externs for exactly this reason.
-
-Sibling TUs in this overlay write the same dispatcher as
-`handlers.funcs[(s16)work->field_63A]((Task*)index);`. Here the index is `Task::state`
-at offset 0x30 reached through the overlay's `Actor100400.field_30` (a plain
-`s32`), so there is no cast on the index and the target emits `sll $v0,$v0,2`
-straight off the `lw`; `(s16)` here would add the sign-extension the target does
-not have.
+The index is the plain `s32` `Task::state`, so no cast belongs on it and the
+target emits `sll $v0,$v0,2` straight off the `lw`. A `(s16)` cast would add
+sign extension absent from the target. Other diver dispatchers index the
+signed-halfword `_Actor00400Work::state` or `subState`; those are different
+index widths, not different declarations of this table.
 
 Inputs: `base_2.i` (100.000%, first distinct build) SHA256
 `8da478fd390ae116241b4a3d34bd35311adb45d07532d0bc3d95f51d7863654a`; target SHA256
 `6e6c00873ac367f725938ddf5e4ca426b4a516f86cfee272f5418a888c13e59e`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor00400_Fn08948-vacuum`.
+Scratch `nonmatchings/_actor00400BodyTask-vacuum`.
 
 ## An `||` inside an `if` branches straight to the body; assigning it to a variable materializes 1/0 through a phi
 
@@ -104584,8 +104575,8 @@ Scratch `nonmatchings/_actor00400SwimPatrolWaitForClip-vacuum`.
 
 ## An m2c temp and the natural `+=` create a compound assignment's loads in opposite order, and that alone places the store's reload
 
-`Actor00400_Fn0962C` (actors, `actor_100400_fn0805c`) copies `surfaceSpot` into
-`emergePos`, then lerps two `coord.t[]` words a quarter of the way toward the
+`_actor00400SwimEmergeEnter` (actors, `actor_100400_fn0805c`) copies `surfaceSpot` into
+`emergePos`, then lerps two `rootCoord->coord.t[]` words a quarter of the way toward the
 copied values. Both the seed and the match are 37 instructions with the same
 histogram, and the seed scored 96.486% (`stack=0 branch=0 regs=2 reorder=2`):
 its whole diff was four lines - `sh zero,0x636($a1)` and the reload
@@ -104602,7 +104593,7 @@ M2C_FIELD(temp_a2, s32 *, 0x18) =
 Writing the same thing as one compound assignment is the match:
 
 ```c
-coord->coord.t[0] += ((s16)work->emergePos.vx - coord->coord.t[0]) >> 2;  /* 100% */
+rootCoord->coord.t[0] += (work->emergePos.vx - rootCoord->coord.t[0]) >> 2;  /* 100% */
 ```
 
 The two forms emit the same four arithmetic instructions, and the difference is
@@ -104638,7 +104629,7 @@ Inputs: `base_1.i` (100.000%, first distinct build) SHA256
 `d58012d49d9f1df6e2856e72d4bcb574412f2ea0afb3d11ef8d201ddbba842bf`; target SHA256
 `5231d75349e68d81b4a319e93ccb06cb5e0ae4b8d4c11967b347cf30ab60d1d1`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor00400_Fn0962C-vacuum`.
+Scratch `nonmatchings/_actor00400SwimEmergeEnter-vacuum`.
 
 ## Two nested arms with a store each versus one shared body: the live-length half of `pri` is a control-flow knob (_actor00400TurnTowardPointMaskedRange, 2026-09-16)
 
@@ -104821,8 +104812,8 @@ Scratch `nonmatchings/_actor00400TickAnimation-vacuum`.
 
 ## A block-local pointer can tie a load to its own base register; a global allocno never can
 
-`Actor00400_Fn097C8` tests `work->hitTaken` before a sound effect, then reloads
-`index->field_1C` for the `animStatus` test and again inside the store. Written as
+`_actor00400SwimHeavyRecoilWait` tests `work->hitTaken` before a sound effect, then reloads
+`task->work` for the `animStatus` test and again inside the store. Written as
 one `work` variable, that is one pseudo with three definitions and ranges in
 blocks 0, 2, 3 and 7 - a global allocno, `dies in 3 places`, single home `$v1`.
 The first load then came out `lw v1,0x1C(s2)` / `lh v0,0x642(v1)`, against the
@@ -104833,8 +104824,8 @@ The target's pointer dies in the `lh` and the *loaded value* reuses its
 register. That tie is local-alloc's, and local-alloc only considers quantities
 confined to a single block, so an allocno spanning four blocks can never get it
 - no amount of reordering the other ranges will produce `lh v0,0x642(v0)`.
-Giving the guard use its own variable (`work` for the `0x642` test, `state` for
-everything after) turns that pointer into a block-local quantity; local-alloc
+Giving the guard use its own variable (`work` for the `0x642` test, separate
+work pointers for the status test and state stores) turns that pointer into a block-local quantity; local-alloc
 colours it and the `lh` result into `$v0` together, the later ranges keep `$v1`,
 and the function matches. Same lever as "One `reg/v` pseudo with two definitions
 blocks the register the target reuses" above, with a different reason for
@@ -104848,7 +104839,7 @@ Inputs: `base_1.i` (99.804%) SHA256
 (100%) SHA256 `f71f32d78c8d3f6f7ba6383712b9f5432d6ee11fe7da261a0275a825b2c309ac`;
 target.o SHA256 `718984f6e9ee7d2bef28ae4e84a7b3690269e5f3f6919ea2ca1d4c63938cfc7a`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor00400_Fn097C8-vacuum`.
+Scratch `nonmatchings/_actor00400SwimHeavyRecoilWait-vacuum`.
 
 ## One pointer local reused across a spawn handler's sections goes global and drags the whole allocation (_actor403000Spawn, 2026-09-16)
 
@@ -127651,7 +127642,7 @@ identity splat, then the `RotMatrixY` call:
 	jal	RotMatrixY
 ```
 
-Writing `rootCoord = task->extra.tmd->coords;` *after* the identity
+Writing `rootCoord = task->extra.coordBody->coord;` *after* the identity
 splat and the call gave 97.972% -- instruction for instruction the same code,
 except the two loads sat after the `jal` (108 -> 109 instructions, `branch=1
 reorder=2 insert=1`). They are not merely mis-scheduled; sched2 cannot move
