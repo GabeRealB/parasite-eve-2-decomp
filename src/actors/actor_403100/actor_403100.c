@@ -107,6 +107,15 @@ enum {
     ACTOR_403100_PART_HAND         = 8,
 };
 
+/// Model-chain joints and room dimensions of the two arm-shadow strips.
+enum {
+    ACTOR_403100_ARM_SHADOW_BASE_PART   = 6,
+    ACTOR_403100_ARM_SHADOW_MIDDLE_PART = 7,
+    ACTOR_403100_ARM_SHADOW_TIP_PART    = 8,
+    ACTOR_403100_ARM_SHADOW_HALF_WIDTH  = 1024,
+    ACTOR_403100_ARM_SHADOW_FLOOR_Y     = -3200,
+};
+
 /// Head aim's inclusive pitch/yaw dead zone, in 4096 units per turn.
 enum { ACTOR_403100_AIM_DEAD_ZONE = 0x20 };
 
@@ -183,6 +192,22 @@ enum {
 enum {
     ACTOR_403100_ANIMATION_WALK    = 1,
     ACTOR_403100_ANIMATION_STAGGER = 10,
+};
+
+/// Fight clips shared by the arm combo, jump slam and grab initializers.
+enum {
+    ACTOR_403100_ANIMATION_ARM_ATTACK   = 4,
+    ACTOR_403100_ANIMATION_ARM_RECOVERY = 5,
+    ACTOR_403100_ANIMATION_AIMED_FLAME  = 7,
+    ACTOR_403100_ANIMATION_GRAB_REACH   = 9,
+};
+
+/// Shoulder yaw limits and signed 12-bit turn-angle easing used by arm attacks.
+enum {
+    ACTOR_403100_ARM_YAW_MIN            = -0x160,
+    ACTOR_403100_ARM_YAW_MAX            = 0xD0,
+    ACTOR_403100_ARM_SIGNED_ANGLE_SHIFT = 20,
+    ACTOR_403100_ARM_EASE_SHIFT         = 3,
 };
 
 /// Clip used for the entrance and aimed impact in the balcony scene.
@@ -344,7 +369,7 @@ static void func_actor_403100_80133E88(Task* arg0);
 static void func_actor_403100_8013E5FC(Task* task);
 static void func_actor_403100_8013E624(Task* arg0);
 
-static void func_actor_403100_80132C3C(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4);
+static void _actor403100DrawArmShadow(Task* task, s16 startPartIndex, s16 endPartIndex, s16 halfWidth, s16 floorY);
 
 static void _actor403100UpdateAnimation();
 static void _actor403100TurnUpperArm(Task* task);
@@ -358,8 +383,8 @@ static s32  _actor403100GetWorldRotation(const GfxCoord* joint, MATRIX* rotation
 static s32  func_actor_403100_8013E33C(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2);
 static void _actor403100TurnForearm(Task* task);
 static void _actor403100RequestAnimationBlend(s16 animationId, s16 rate, s16 blendFrames);
-static void func_actor_403100_8013F610(void);
-static void func_actor_403100_8013F658(void);
+static void _actor403100BeginStagger(void);
+static void _actor403100FinishStagger(void);
 
 extern DamageAttack D_actor_403100_80147614[6];
 static void         func_actor_403100_801342B4(Task* arg0);
@@ -1335,7 +1360,7 @@ static void func_actor_403100_801345E0(Task* arg0, Task* arg1);
 
 static void func_actor_403100_8013E6F0(Task* arg0);
 
-static void func_actor_403100_8013F12C(Task* task);
+static void _actor403100WaitForFightStart(Task* task);
 
 static void _actor403100PlayerReactionNone(void);
 
@@ -1520,22 +1545,22 @@ static void            func_actor_403100_80136610(Task* arg0);
 static inline void     _actor403100RunHook(void);
 static inline void     _actor403100TurnForearmInline(Task* task);
 static inline void     _actor403100PitchArms(Task* task);
-static void            func_actor_403100_801375B8(Task* task);
+static void            _actor403100BeginArmSwingCombo(Task* task);
 static void            func_actor_403100_801376D8(Task* arg0);
 static void            func_actor_403100_801379B4(Task* arg0);
-static void            func_actor_403100_80137CA8(Task* task);
+static void            _actor403100FinishArmSwingCombo(Task* task);
 static void            func_actor_403100_80137DC4(Task* arg0);
-static void            func_actor_403100_80137F4C(Task* task);
+static void            _actor403100BeginAimedFlameAttack(Task* task);
 static void            func_actor_403100_80138048(Task* arg0);
 static void            func_actor_403100_8013842C(Task* arg0);
-static void            func_actor_403100_80138610(Task* arg0);
-static void            func_actor_403100_801386DC(Task* arg0);
-static void            func_actor_403100_80138790(Task* arg0);
+static void            _actor403100CrouchForJumpSlam(Task* task);
+static void            _actor403100AccelerateJumpSlam(Task* task);
+static void            _actor403100DecelerateJumpSlam(Task* task);
 static void            func_actor_403100_80138844(Task* arg0);
-static void            func_actor_403100_80138AB4(Task* task);
-static void            func_actor_403100_80138C18(Task* task);
-static void            func_actor_403100_80138D08(Task* arg0);
-static void            func_actor_403100_80138DB0(Task* arg0);
+static void            _actor403100StepJumpSlamImpact(Task* task);
+static void            _actor403100FinishJumpSlamRecovery(Task* task);
+static void            _actor403100BeginGrabAndSqueeze(Task* task);
+static void            _actor403100StepGrabAndSqueezeReach(Task* task);
 static void            func_actor_403100_80138F88(Task* arg0);
 static void            func_actor_403100_8013922C(Task* arg0);
 static void            func_actor_403100_801395EC(Task* arg0);
@@ -1979,12 +2004,48 @@ static void _actor403100TurnUpperArm(Task* task)
     actorRenderComposeCoord(upperArm);
     SCRATCH_STACK_CURSOR(MATRIX) += 1;
 }
-static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height)
+/// Queues a subtractive arm-shadow quad from accepted packed XY/depth outputs.
+///
+/// Requires the current primitive arena (one POLY_FT4 free) and ordering table.
+/// Arguments are evaluated once; screen words and depth must be scalar values.
+/// Captures the current graphics globals, advances the arena and links the packet.
+/// Expands to a braced block, used as a standalone statement. Depth wraps at
+/// the ordering-table mask; the packet stays live until frame DMA completes.
+#define ACTOR_403100_QUEUE_ARM_SHADOW(screen0, screen1, screen2, screen3, depth)                                                                                      \
+    {                                                                                                                                                                 \
+        POLY_FT4* shadowQuad;                                                                                                                                         \
+        shadowQuad     = gGpuPrimCursor;                                                                                                                              \
+        gGpuPrimCursor = shadowQuad + 1;                                                                                                                              \
+        setPolyFT4(shadowQuad);                                                                                                                                       \
+        setSemiTrans(shadowQuad, true);                                                                                                                               \
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 0) = (screen0);                                                                                                             \
+        shadowQuad->tpage                    = getTPage(0, GPU_BLEND_SUBTRACT, 512, 0);                                                                               \
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 1) = (screen1);                                                                                                             \
+        shadowQuad->clut                     = getClut(48, 266);                                                                                                      \
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 2) = (screen2);                                                                                                             \
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 3) = (screen3);                                                                                                             \
+        setUV4(shadowQuad, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);                                                                                           \
+        setRGB0(shadowQuad, 0xFF, 0xFF, 0xFF);                                                                                                                        \
+        addPrim((&gGpuCurrentOt[((((u32)((depth) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), shadowQuad); \
+    }
+
+/// Draws one elongated ground-shadow strip under two arm joints on the balcony.
+///
+/// Requires the live fifteen-part model, part indices in 0..14 (callers
+/// use 6/7 and 7/8), the view transform, and room for one `POLY_FT4` in the
+/// current frame arena. Equal indices draw nothing. `halfWidth` and `floorY`
+/// use signed-halfword room game coordinates. The strip spans twice the
+/// joints' horizontal separation and is clamped to the balcony's inner edges.
+/// Its packet remains in the ordering table until the current frame is drawn.
+static void _actor403100DrawArmShadow(Task* task, s16 startPartIndex, s16 endPartIndex, s16 halfWidth, s16 floorY)
 {
-    MATRIX    firstMatrix;
-    MATRIX    secondMatrix;
-    SVECTOR   first;
-    SVECTOR   second;
+    enum { ACTOR_403100_BALCONY_INNER_X           = -5200,
+           ACTOR_403100_BALCONY_CORNER_Z          = 9200,
+           ACTOR_403100_SHADOW_TRIG_FRACTION_BITS = 12 };
+    MATRIX    startWorldTransform;
+    MATRIX    endWorldTransform;
+    SVECTOR   startPosition;
+    SVECTOR   endPosition;
     SVECTOR   corner0;
     SVECTOR   corner1;
     SVECTOR   corner2;
@@ -1993,105 +2054,98 @@ static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoi
     long      screen1;
     long      screen2;
     long      screen3;
-    long      perspective;
-    long      flags;
-    s16       lastZ;
-    s16       angle;
-    GfxCoord* secondCoord;
-    GfxCoord* firstCoord;
-    s32       offset0;
-    s32       offset1;
-    s32       offset2;
-    s32       offset3;
-    s32       halfX;
-    s32       halfZ;
+    long      perspectiveScale;
+    long      projectionFlags;
+    s16       lastCornerZ;
+    s16       segmentYaw;
+    GfxCoord* endCoord;
+    GfxCoord* startCoord;
+    s32       widthCos0;
+    s32       widthCos1;
+    s32       widthCos2;
+    s32       widthCos3;
+    s32       halfDeltaX;
+    s32       halfDeltaZ;
     s32       depth;
-    GfxCoord* coords;
-    POLY_FT4* poly;
+    GfxCoord* actorCoords;
 
-    coords      = task->extra.tmd->coords;
-    firstCoord  = coords + firstJoint;
-    secondCoord = coords + secondJoint;
-    if (firstJoint != secondJoint) {
-        actorRenderComposeCoord(firstCoord);
-        actorRenderComposeCoord(secondCoord);
-        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &firstMatrix);
-        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &secondMatrix);
-        first.vy   = (s16)height;
-        second.vy  = (s16)height;
-        first.vx   = firstMatrix.t[0];
-        first.vz   = firstMatrix.t[2];
-        second.vx  = secondMatrix.t[0];
-        second.vz  = secondMatrix.t[2];
-        angle      = ratan2((s16)secondMatrix.t[0] - (s16)firstMatrix.t[0], (s16)secondMatrix.t[2] - (s16)firstMatrix.t[2]);
-        halfX      = (first.vx - second.vx) / 2;
-        halfZ      = (first.vz - second.vz) / 2;
-        offset0    = rcos(angle) * width;
-        corner0.vy = (s16)height;
-        corner0.vx = halfX + (first.vx - (offset0 >> 0xC));
-        corner0.vz = halfZ + (first.vz + ((s32)(rsin(angle) * width) >> 0xC));
-        offset1    = rcos(angle) * width;
-        corner1.vy = (s16)height;
-        corner1.vx = halfX + (first.vx + (offset1 >> 0xC));
-        corner1.vz = halfZ + (first.vz - ((s32)(rsin(angle) * width) >> 0xC));
-        offset2    = rcos(angle) * width;
-        corner2.vy = (s16)height;
-        corner2.vx = (second.vx - (offset2 >> 0xC)) - halfX;
-        corner2.vz = (second.vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-        offset3    = rcos(angle) * width;
-        corner3.vy = (s16)height;
-        corner3.vx = (second.vx + (offset3 >> 0xC)) - halfX;
-        lastZ      = (second.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-        corner3.vz = lastZ;
-        if ((corner0.vz < 0x23F0) && (corner1.vz < 0x23F0) && (corner2.vz < 0x23F0) && (lastZ < 0x23F0)) {
-            if (corner0.vx >= -0x144F) {
-                corner0.vx = -0x1450;
+    actorCoords = task->extra.tmd->coords;
+    startCoord  = actorCoords + startPartIndex;
+    endCoord    = actorCoords + endPartIndex;
+    if (startPartIndex != endPartIndex) {
+        // Flatten the two joint origins, extending the strip by half its length at each end.
+        actorRenderComposeCoord(startCoord);
+        actorRenderComposeCoord(endCoord);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &startCoord->workm, &startWorldTransform);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &endCoord->workm, &endWorldTransform);
+        startPosition.vy = floorY;
+        endPosition.vy   = floorY;
+        startPosition.vx = startWorldTransform.t[0];
+        startPosition.vz = startWorldTransform.t[2];
+        endPosition.vx   = endWorldTransform.t[0];
+        endPosition.vz   = endWorldTransform.t[2];
+        segmentYaw       = ratan2((s16)endWorldTransform.t[0] - (s16)startWorldTransform.t[0], (s16)endWorldTransform.t[2] - (s16)startWorldTransform.t[2]);
+        halfDeltaX       = (startPosition.vx - endPosition.vx) / 2;
+        halfDeltaZ       = (startPosition.vz - endPosition.vz) / 2;
+        widthCos0        = rcos(segmentYaw) * halfWidth;
+        corner0.vy       = floorY;
+        corner0.vx       = halfDeltaX + (startPosition.vx - (widthCos0 >> ACTOR_403100_SHADOW_TRIG_FRACTION_BITS));
+        corner0.vz       = halfDeltaZ + (startPosition.vz + ((s32)(rsin(segmentYaw) * halfWidth) >> ACTOR_403100_SHADOW_TRIG_FRACTION_BITS));
+        widthCos1        = rcos(segmentYaw) * halfWidth;
+        corner1.vy       = floorY;
+        corner1.vx       = halfDeltaX + (startPosition.vx + (widthCos1 >> ACTOR_403100_SHADOW_TRIG_FRACTION_BITS));
+        corner1.vz       = halfDeltaZ + (startPosition.vz - ((s32)(rsin(segmentYaw) * halfWidth) >> ACTOR_403100_SHADOW_TRIG_FRACTION_BITS));
+        widthCos2        = rcos(segmentYaw) * halfWidth;
+        corner2.vy       = floorY;
+        corner2.vx       = (endPosition.vx - (widthCos2 >> ACTOR_403100_SHADOW_TRIG_FRACTION_BITS)) - halfDeltaX;
+        corner2.vz       = (endPosition.vz + ((s32)(rsin(segmentYaw) * halfWidth) >> ACTOR_403100_SHADOW_TRIG_FRACTION_BITS)) - halfDeltaZ;
+        widthCos3        = rcos(segmentYaw) * halfWidth;
+        corner3.vy       = floorY;
+        corner3.vx       = (endPosition.vx + (widthCos3 >> ACTOR_403100_SHADOW_TRIG_FRACTION_BITS)) - halfDeltaX;
+        lastCornerZ      = (endPosition.vz - ((s32)(rsin(segmentYaw) * halfWidth) >> ACTOR_403100_SHADOW_TRIG_FRACTION_BITS)) - halfDeltaZ;
+        corner3.vz       = lastCornerZ;
+        // Keep strips wholly beyond one inner edge on the balcony's L-shaped floor.
+        if ((corner0.vz < ACTOR_403100_BALCONY_CORNER_Z) && (corner1.vz < ACTOR_403100_BALCONY_CORNER_Z) && (corner2.vz < ACTOR_403100_BALCONY_CORNER_Z) && (lastCornerZ < ACTOR_403100_BALCONY_CORNER_Z)) {
+            if (corner0.vx >= (ACTOR_403100_BALCONY_INNER_X + 1)) {
+                corner0.vx = ACTOR_403100_BALCONY_INNER_X;
             }
-            if (corner1.vx >= -0x144F) {
-                corner1.vx = -0x1450;
+            if (corner1.vx >= (ACTOR_403100_BALCONY_INNER_X + 1)) {
+                corner1.vx = ACTOR_403100_BALCONY_INNER_X;
             }
-            if (corner2.vx >= -0x144F) {
-                corner2.vx = -0x1450;
+            if (corner2.vx >= (ACTOR_403100_BALCONY_INNER_X + 1)) {
+                corner2.vx = ACTOR_403100_BALCONY_INNER_X;
             }
-            if (corner3.vx >= -0x144F) {
-                corner3.vx = -0x1450;
+            if (corner3.vx >= (ACTOR_403100_BALCONY_INNER_X + 1)) {
+                corner3.vx = ACTOR_403100_BALCONY_INNER_X;
             }
-        } else if ((corner0.vx >= -0x144F) && (corner1.vx >= -0x144F) && (corner2.vx >= -0x144F) && (corner3.vx >= -0x144F)) {
-            if (corner0.vz < 0x23F0) {
-                corner0.vz = 0x23F0;
+        } else if ((corner0.vx >= (ACTOR_403100_BALCONY_INNER_X + 1)) && (corner1.vx >= (ACTOR_403100_BALCONY_INNER_X + 1)) && (corner2.vx >= (ACTOR_403100_BALCONY_INNER_X + 1)) && (corner3.vx >= (ACTOR_403100_BALCONY_INNER_X + 1))) {
+            if (corner0.vz < ACTOR_403100_BALCONY_CORNER_Z) {
+                corner0.vz = ACTOR_403100_BALCONY_CORNER_Z;
             }
-            if (corner1.vz < 0x23F0) {
-                corner1.vz = 0x23F0;
+            if (corner1.vz < ACTOR_403100_BALCONY_CORNER_Z) {
+                corner1.vz = ACTOR_403100_BALCONY_CORNER_Z;
             }
-            if (corner2.vz < 0x23F0) {
-                corner2.vz = 0x23F0;
+            if (corner2.vz < ACTOR_403100_BALCONY_CORNER_Z) {
+                corner2.vz = ACTOR_403100_BALCONY_CORNER_Z;
             }
-            if (corner3.vz < 0x23F0) {
-                corner3.vz = 0x23F0;
+            if (corner3.vz < ACTOR_403100_BALCONY_CORNER_Z) {
+                corner3.vz = ACTOR_403100_BALCONY_CORNER_Z;
             }
         }
+        // Project the room-space strip and queue a subtractive blob-texture packet.
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&gGfxViewCoord);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
-        depth = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screen0, &screen1, &screen2, &screen3, &perspective, &flags);
-        if (flags >= 0) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setlen(poly, 9);
-            poly->code                     = 0x2E;
-            GPU_PRIMITIVE_XY_WORD(poly, 0) = screen0;
-            poly->tpage                    = 0x48;
-            GPU_PRIMITIVE_XY_WORD(poly, 1) = screen1;
-            poly->clut                     = 0x4283;
-            GPU_PRIMITIVE_XY_WORD(poly, 2) = screen2;
-            GPU_PRIMITIVE_XY_WORD(poly, 3) = screen3;
-            setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
-            setRGB0(poly, 0xFF, 0xFF, 0xFF);
-            addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
+        depth = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screen0, &screen1, &screen2, &screen3, &perspectiveScale, &projectionFlags);
+        if (projectionFlags >= 0) {
+            ACTOR_403100_QUEUE_ARM_SHADOW(screen0, screen1, screen2, screen3, depth);
         }
     }
 }
+
+#undef ACTOR_403100_QUEUE_ARM_SHADOW
+
 static void func_actor_403100_801331D4(Task* arg0)
 {
     SVECTOR   pos;
@@ -3888,33 +3942,52 @@ static void _actor403100ChooseAttack(Task* task)
         D_actor_403100_80155808->subState = 0;
     }
 }
-static void func_actor_403100_801375B8(Task* task)
+/// Clamps the saved shoulder yaw target to the arm attack's reach.
+///
+/// Requires live singleton work. Target and inclusive limits use signed
+/// angles in 4096 units per turn; the accepted range is -352..208.
+static inline void _actor403100ClampArmYawTarget(void)
 {
-    u16 angle;
-    u32 random2;
-    u32 random1;
+    if (D_actor_403100_80155808->armYawTarget >= ACTOR_403100_ARM_YAW_MAX + 1) {
+        D_actor_403100_80155808->armYawTarget = ACTOR_403100_ARM_YAW_MAX;
+    }
+    if (D_actor_403100_80155808->armYawTarget < ACTOR_403100_ARM_YAW_MIN) {
+        D_actor_403100_80155808->armYawTarget = ACTOR_403100_ARM_YAW_MIN;
+    }
+}
 
-    random1                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    random2                               = (random1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    gRandomLcgState                       = random2;
-    D_actor_403100_80155808->stateCounter = ((random1 >> 0x10) & 1) + 1 + ((random2 >> 0x10) & 1);
+/// Initializes the arm-swing combo and its one-to-three repeat count.
+///
+/// Requires live singleton work. Captures head yaw as the shoulder target in
+/// 4096 units per turn, clears the prior contacts and pitch kicks, and starts
+/// the arm-attack clip at three-quarter speed while approaching at 32 units
+/// per update. The enclosing attack dispatcher consumes hit interruptions;
+/// `task` is retained for the `TaskFunc` signature.
+static void _actor403100BeginArmSwingCombo(Task* task)
+{
+    enum { ACTOR_403100_ARM_SWING_RATE = ANIMATION_RATE_ONE * 3 / 4 };
+    u16 headYawBits;
+    u32 secondSwingDraw;
+    u32 firstSwingDraw;
+
+    // Two independent bits choose one, two or three repeats with weights 1:2:1.
+    firstSwingDraw                        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    secondSwingDraw                       = (firstSwingDraw * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState                       = secondSwingDraw;
+    D_actor_403100_80155808->stateCounter = ((firstSwingDraw >> 0x10) & 1) + 1 + ((secondSwingDraw >> 0x10) & 1);
     D_actor_403100_80155808->walkSpeed    = 0x20;
-    angle                                 = (u16)D_actor_403100_80155808->headAim.vy;
-    D_actor_403100_80155808->walkStage    = 0;
+    headYawBits                           = (u16)D_actor_403100_80155808->headAim.vy;
+    D_actor_403100_80155808->walkStage    = ACTOR_403100_WALK_APPROACH;
     D_actor_403100_80155808->aimMode      = ACTOR_403100_AIM_YAW_ONLY_FAST;
     D_actor_403100_80155808->armPitch     = 0;
     D_actor_403100_80155808->armYaw       = 0;
-    D_actor_403100_80155808->armYawTarget = (s16)angle;
-    if ((s16)angle >= 0xD1) {
-        D_actor_403100_80155808->armYawTarget = 0xD0;
-    }
-    if (D_actor_403100_80155808->armYawTarget < -0x160) {
-        D_actor_403100_80155808->armYawTarget = -0x160;
-    }
-    D_actor_403100_80155808->animationId          = 4;
-    D_actor_403100_80155808->animationRate        = 0xC;
-    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    D_actor_403100_80155808->stateFrames          = 0;
+    D_actor_403100_80155808->armYawTarget = (s16)headYawBits;
+    _actor403100ClampArmYawTarget();
+    D_actor_403100_80155808->animationId      = ACTOR_403100_ANIMATION_ARM_ATTACK;
+    D_actor_403100_80155808->animationRate    = ACTOR_403100_ARM_SWING_RATE;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    D_actor_403100_80155808->stateFrames      = 0;
+    // Contacts are sampled from the animated arm; disable the two body-pair tests.
     D_actor_403100_80155808->handAttack.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     D_actor_403100_80155808->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     D_actor_403100_80155808->handTouchedPlayer    = 0;
@@ -4053,37 +4126,58 @@ static void func_actor_403100_801379B4(Task* arg0)
         }
     }
 }
-static void func_actor_403100_80137CA8(Task* task)
+/// Eases the shoulder pitch/yaw offsets toward zero by one eighth.
+///
+/// Requires live singleton work. Subtraction wraps as a signed 12-bit turn
+/// difference and each result is stored back in its signed halfword.
+static inline void _actor403100RelaxArmPose(void)
 {
-    u16 angleY;
-    u16 angleX;
-    u32 random;
+    u16 armYawBits;
+    u16 armPitchBits;
+    armPitchBits                      = (u16)D_actor_403100_80155808->armPitch;
+    armYawBits                        = (u16)D_actor_403100_80155808->armYaw;
+    D_actor_403100_80155808->armPitch = armPitchBits + ((s32) - (armPitchBits << ACTOR_403100_ARM_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_ARM_SIGNED_ANGLE_SHIFT + ACTOR_403100_ARM_EASE_SHIFT));
+    D_actor_403100_80155808->armYaw   = armYawBits + ((s32) - (armYawBits << ACTOR_403100_ARM_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_ARM_SIGNED_ANGLE_SHIFT + ACTOR_403100_ARM_EASE_SHIFT));
+}
 
-    angleX                            = (u16)D_actor_403100_80155808->armPitch;
-    angleY                            = (u16)D_actor_403100_80155808->armYaw;
-    D_actor_403100_80155808->armPitch = angleX + ((s32) - (angleX << 0x14) >> 0x17);
-    D_actor_403100_80155808->armYaw   = angleY + ((s32) - (angleY << 0x14) >> 0x17);
+/// Relaxes the shoulder after the combo and selects its recovery continuation.
+///
+/// Requires live work and animation slots. Pitch and yaw ease by one eighth
+/// of the signed 12-bit turn difference each update. At a clip boundary a
+/// connected swing blends into impact or a fast walk; a miss resumes attack
+/// approach immediately. `task` supplies the dispatch signature only.
+static void _actor403100FinishArmSwingCombo(Task* task)
+{
+    enum {
+        ACTOR_403100_COMBO_IMPACT_BLEND_FRAMES = 20,
+        ACTOR_403100_COMBO_IMPACT_RATE         = ANIMATION_RATE_ONE * 7 / 4,
+        ACTOR_403100_COMBO_WALK_BLEND_FRAMES   = 8,
+    };
+    u32 followupDraw;
+
+    _actor403100RelaxArmPose();
     if (_actor403100AnimationAtBoundaryOrJump()) {
+        // A connected combo gets an impact follow-up one quarter of the time.
         if (D_actor_403100_80155808->swingConnected != 0) {
             D_actor_403100_80155808->stateFrames = 0;
-            random                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                      = random;
-            if (!((random >> 0x10) & 3)) {
-                D_actor_403100_80155808->animationBlendFrames = 0x14;
-                D_actor_403100_80155808->animationRate        = 0x1C;
-                D_actor_403100_80155808->animationId          = 3;
+            followupDraw                         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                      = followupDraw;
+            if (!((followupDraw >> 0x10) & 3)) {
+                D_actor_403100_80155808->animationBlendFrames = ACTOR_403100_COMBO_IMPACT_BLEND_FRAMES;
+                D_actor_403100_80155808->animationRate        = ACTOR_403100_COMBO_IMPACT_RATE;
+                D_actor_403100_80155808->animationId          = ACTOR_403100_ANIMATION_SCENE_IMPACT;
                 D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
                 D_actor_403100_80155808->subState            += 1;
                 return;
             }
-            D_actor_403100_80155808->animationBlendFrames = 8;
-            D_actor_403100_80155808->animationRate        = 0x20;
-            D_actor_403100_80155808->animationId          = 1;
+            D_actor_403100_80155808->animationBlendFrames = ACTOR_403100_COMBO_WALK_BLEND_FRAMES;
+            D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE * 2;
+            D_actor_403100_80155808->animationId          = ACTOR_403100_ANIMATION_WALK;
             D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
             D_actor_403100_80155808->subState            += 2;
             return;
         }
-        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
         D_actor_403100_80155808->subState = 0;
     }
 }
@@ -4112,40 +4206,43 @@ static void func_actor_403100_80137DC4(Task* arg0)
         D_actor_403100_80155808->subState = 0;
     }
 }
-static void func_actor_403100_80137F4C(Task* task)
+/// Latches a normal-rate clip restart for the next animation update.
+///
+/// `animationId` must select a non-NULL loaded Burner clip (1..24) in the live
+/// singleton rig. Restarting cuts to that clip's first pose when the animation
+/// driver consumes the request; this helper does not tick a pose.
+static inline void _actor403100RequestAnimationReset(s16 animationId)
 {
-    _Actor403100Flame*  flame;
-    WorldCollisionBody* body;
-    _Actor403100Flame*  flames;
-    s32                 i;
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId      = animationId;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+}
 
-    D_actor_403100_80155808->walkStage = 0;
+/// Begins the aimed flame attack with a fresh twenty-update flame lifetime.
+///
+/// Requires initialized singleton work and flame pool. Clears the previous
+/// puffs and breath audio, restarts the aimed-flame clip at normal speed and
+/// approaches at 28 units per update, or 48 at low health. The enclosing
+/// dispatcher handles hit interruptions; `task` is unused here.
+static void _actor403100BeginAimedFlameAttack(Task* task)
+{
+    enum { ACTOR_403100_AIMED_FLAME_LIFETIME_FRAMES = 20 };
+
+    D_actor_403100_80155808->walkStage = ACTOR_403100_WALK_APPROACH;
     if (D_actor_403100_80155808->lowHealth == 0) {
         D_actor_403100_80155808->walkSpeed = 0x1C;
     } else {
         D_actor_403100_80155808->walkSpeed = 0x30;
     }
-    i                                      = 0;
-    flames                                 = D_actor_403100_80155814;
-    body                                   = &D_actor_403100_80155814->body;
-    flame                                  = flames;
     D_actor_403100_80155810                = 0;
-    D_actor_403100_80155808->flameLifetime = 0x14;
-    for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
-        if (flame->active != 0) {
-            flame->active = 0;
-            worldCollisionUnlinkBody(body);
-        }
-        body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
-        flame++;
-    }
+    D_actor_403100_80155808->flameLifetime = ACTOR_403100_AIMED_FLAME_LIFETIME_FRAMES;
+    // Clear the previous breath before restarting this attack's clip.
+    _actor403100ReleaseFlames();
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-    D_actor_403100_80155808->animationId      = 7;
-    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    D_actor_403100_80155808->aimMode          = ACTOR_403100_AIM_YAW_ONLY;
-    D_actor_403100_80155808->stateFrames      = 0;
-    D_actor_403100_80155808->subState        += 1;
+    _actor403100RequestAnimationReset(ACTOR_403100_ANIMATION_AIMED_FLAME);
+    D_actor_403100_80155808->aimMode     = ACTOR_403100_AIM_YAW_ONLY;
+    D_actor_403100_80155808->stateFrames = 0;
+    D_actor_403100_80155808->subState   += 1;
 }
 static void func_actor_403100_80138048(Task* arg0)
 {
@@ -4271,76 +4368,110 @@ static void func_actor_403100_8013842C(Task* arg0)
         D_actor_403100_80155808->subState = 0;
     }
 }
-static void func_actor_403100_80138610(Task* arg0)
+/// Lowers the root for eighteen updates before launching the jump slam.
+///
+/// Requires live task/model and singleton work with the crouch timer cleared.
+/// A stagger or build-up stun interrupts it. Positive room Y points down;
+/// the root drops 48 units per update. Completion resets vertical speed and
+/// captures the head yaw as the clamped shoulder target.
+static void _actor403100CrouchForJumpSlam(Task* task)
 {
-    u16       counter;
-    u16       timer;
-    u16       angle;
-    GfxCoord* coord;
+    enum { ACTOR_403100_JUMP_CROUCH_FRAMES        = 18,
+           ACTOR_403100_JUMP_INITIAL_ACCELERATION = 2 };
+    u16       subStateBits;
+    u16       elapsedFrames;
+    u16       headYawBits;
+    GfxCoord* rootCoord;
 
-    coord = arg0->extra.tmd->coords;
+    rootCoord = task->extra.tmd->coords;
     if (_actor403100HandleHitReaction() == 0) {
-        coord->coord.t[1]                   += 0x30;
-        timer                                = D_actor_403100_80155808->stateFrames;
-        D_actor_403100_80155808->stateFrames = timer + 1;
-        if ((s16)timer >= 0x11) {
-            counter                                                    = *(volatile u16*)&D_actor_403100_80155808->subState;
+        rootCoord->coord.t[1]               += 0x30;
+        elapsedFrames                        = D_actor_403100_80155808->stateFrames;
+        D_actor_403100_80155808->stateFrames = elapsedFrames + 1;
+        if ((s16)elapsedFrames >= ACTOR_403100_JUMP_CROUCH_FRAMES - 1) {
+            // Keep the launch writes ordered while capturing the next shoulder target.
+            subStateBits                                               = D_actor_403100_80155808->subState;
             *(volatile s16*)&D_actor_403100_80155808->jumpAcceleration = 0;
-            *(volatile s16*)&D_actor_403100_80155808->jumpAcceleration = 2;
-            angle                                                      = *(volatile u16*)&D_actor_403100_80155808->headAim.vy;
+            *(volatile s16*)&D_actor_403100_80155808->jumpAcceleration = ACTOR_403100_JUMP_INITIAL_ACCELERATION;
+            headYawBits                                                = (u16) * (volatile s16*)&D_actor_403100_80155808->headAim.vy;
             D_actor_403100_80155808->stateFrames                       = 0;
             D_actor_403100_80155808->jumpSpeed                         = 0;
-            D_actor_403100_80155808->armYawTarget                      = (s16)angle;
-            D_actor_403100_80155808->subState                          = counter + 1;
-            if ((s16)angle >= 0xD1) {
-                D_actor_403100_80155808->armYawTarget = 0xD0;
+            D_actor_403100_80155808->armYawTarget                      = (s16)headYawBits;
+            D_actor_403100_80155808->subState                          = subStateBits + 1;
+            if ((s16)headYawBits >= ACTOR_403100_ARM_YAW_MAX + 1) {
+                D_actor_403100_80155808->armYawTarget = ACTOR_403100_ARM_YAW_MAX;
             }
-            if (D_actor_403100_80155808->armYawTarget < -0x160) {
-                D_actor_403100_80155808->armYawTarget = -0x160;
+            if (D_actor_403100_80155808->armYawTarget < ACTOR_403100_ARM_YAW_MIN) {
+                D_actor_403100_80155808->armYawTarget = ACTOR_403100_ARM_YAW_MIN;
             }
         }
     }
 }
-static void func_actor_403100_801386DC(Task* arg0)
+/// Integrates one update of the jump's vertical motion in the root-parent frame.
+///
+/// Borrows the live root and singleton jump fields. Adds `accelerationStep`
+/// to acceleration, then acceleration to speed, wrapping each to 16 bits.
+/// Signed speed is subtracted from Y because negative Y points up.
+static inline void _actor403100IntegrateJumpHeight(GfxCoord* rootCoord, s16 accelerationStep)
 {
-    u16       velocity;
-    u16       accel;
-    GfxCoord* coord;
+    u16 jumpSpeedBits;
+    u16 jumpAccelerationBits;
 
-    coord = arg0->extra.tmd->coords;
+    jumpAccelerationBits                      = D_actor_403100_80155808->jumpAcceleration + accelerationStep;
+    jumpSpeedBits                             = D_actor_403100_80155808->jumpSpeed + jumpAccelerationBits;
+    D_actor_403100_80155808->jumpSpeed        = jumpSpeedBits;
+    D_actor_403100_80155808->jumpAcceleration = jumpAccelerationBits;
+    rootCoord->coord.t[1]                    -= (s16)jumpSpeedBits;
+}
+
+/// Accelerates the jump slam's ascent for six updates while turning the shoulder.
+///
+/// Requires live task/model and singleton work. Acceleration changes by +4
+/// game-coordinate units per update squared; speed and acceleration retain
+/// their low halfwords, and signed speed is subtracted from root Y. Shoulder
+/// yaw eases by one eighth of the signed 12-bit turn difference. The timer
+/// is reset on completion for the next ascent phase.
+static void _actor403100AccelerateJumpSlam(Task* task)
+{
+    enum { ACTOR_403100_JUMP_ACCELERATION_STEP = 4,
+           ACTOR_403100_JUMP_PHASE_FRAMES      = 6 };
+    GfxCoord* rootCoord;
+
+    rootCoord = task->extra.tmd->coords;
     _actor403100RequestHitPitchKick();
     D_actor_403100_80155808->armYaw =
         (u16)D_actor_403100_80155808->armYaw +
-        ((s32)(((u16)D_actor_403100_80155808->armYawTarget - (u16)D_actor_403100_80155808->armYaw) << 0x14) >> 0x17);
-    D_actor_403100_80155808->stateFrames     += 1;
-    accel                                     = D_actor_403100_80155808->jumpAcceleration + 4;
-    velocity                                  = D_actor_403100_80155808->jumpSpeed + accel;
-    D_actor_403100_80155808->jumpSpeed        = velocity;
-    D_actor_403100_80155808->jumpAcceleration = accel;
-    coord->coord.t[1]                        -= (s16)velocity;
-    if ((s16)D_actor_403100_80155808->stateFrames >= 6) {
+        ((s32)(((u16)D_actor_403100_80155808->armYawTarget - (u16)D_actor_403100_80155808->armYaw) << ACTOR_403100_ARM_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_ARM_SIGNED_ANGLE_SHIFT + ACTOR_403100_ARM_EASE_SHIFT));
+    // Integrate as wrapping halfwords; subtract signed speed because negative Y is up.
+    D_actor_403100_80155808->stateFrames += 1;
+    _actor403100IntegrateJumpHeight(rootCoord, ACTOR_403100_JUMP_ACCELERATION_STEP);
+    if ((s16)D_actor_403100_80155808->stateFrames >= ACTOR_403100_JUMP_PHASE_FRAMES) {
         D_actor_403100_80155808->stateFrames = 0;
         D_actor_403100_80155808->subState   += 1;
     }
 }
-static void func_actor_403100_80138790(Task* arg0)
+/// Decelerates the jump slam's ascent for six updates while turning the shoulder.
+///
+/// Requires live task/model and singleton work. Acceleration changes by -4
+/// game-coordinate units per update squared; speed and acceleration retain
+/// their low halfwords, and signed speed is subtracted from root Y. Shoulder
+/// yaw eases by one eighth of the signed 12-bit turn difference. The timer
+/// stays at six for the following descent/contact phase.
+static void _actor403100DecelerateJumpSlam(Task* task)
 {
-    u16       velocity;
-    u16       accel;
-    GfxCoord* coord;
+    enum { ACTOR_403100_JUMP_ACCELERATION_STEP = 4,
+           ACTOR_403100_JUMP_PHASE_FRAMES      = 6 };
+    GfxCoord* rootCoord;
 
-    coord = arg0->extra.tmd->coords;
+    rootCoord = task->extra.tmd->coords;
     _actor403100RequestHitPitchKick();
     D_actor_403100_80155808->armYaw =
         (u16)D_actor_403100_80155808->armYaw +
-        ((s32)(((u16)D_actor_403100_80155808->armYawTarget - (u16)D_actor_403100_80155808->armYaw) << 0x14) >> 0x17);
-    D_actor_403100_80155808->stateFrames     += 1;
-    accel                                     = D_actor_403100_80155808->jumpAcceleration - 4;
-    velocity                                  = D_actor_403100_80155808->jumpSpeed + accel;
-    D_actor_403100_80155808->jumpSpeed        = velocity;
-    D_actor_403100_80155808->jumpAcceleration = accel;
-    coord->coord.t[1]                        -= (s16)velocity;
-    if ((s16)D_actor_403100_80155808->stateFrames >= 6) {
+        ((s32)(((u16)D_actor_403100_80155808->armYawTarget - (u16)D_actor_403100_80155808->armYaw) << ACTOR_403100_ARM_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_ARM_SIGNED_ANGLE_SHIFT + ACTOR_403100_ARM_EASE_SHIFT));
+    // Integrate as wrapping halfwords; subtract signed speed because negative Y is up.
+    D_actor_403100_80155808->stateFrames += 1;
+    _actor403100IntegrateJumpHeight(rootCoord, -ACTOR_403100_JUMP_ACCELERATION_STEP);
+    if ((s16)D_actor_403100_80155808->stateFrames >= ACTOR_403100_JUMP_PHASE_FRAMES) {
         D_actor_403100_80155808->subState += 1;
     }
 }
@@ -4396,71 +4527,103 @@ static void func_actor_403100_80138844(Task* arg0)
         D_actor_403100_80155808->subState   += 1;
     }
 }
-static void func_actor_403100_80138AB4(Task* task)
+/// Starts the player's held arm-hit reaction and applies the Burner's contact attack.
+///
+/// Requires live singleton work, player and damage parameters. Acquires the
+/// scripted-action lock, installs the package's hit clip and holds the reaction
+/// for 23 updates. Attack entry zero supplies damage; a lethal result selects
+/// player state ten. This sequence retains no additional player task reference.
+static inline void _actor403100StartPlayerArmHitReaction(void)
 {
-    Task* player;
-    u16   frame;
+    enum { ACTOR_403100_PLAYER_ARM_HIT_CLIP     = 5,
+           ACTOR_403100_PLAYER_HIT_HOLD_FRAMES  = 23,
+           ACTOR_403100_PLAYER_LETHAL_HIT_STATE = 10 };
+    Task* playerTask;
+
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    _actor403100PlayPlayerAnimation(ACTOR_403100_PLAYER_ARM_HIT_CLIP, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
+    D_actor_403100_80155808->playerReactionFrames = ACTOR_403100_PLAYER_HIT_HOLD_FRAMES;
+    D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
+    playerTask                                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 0), 0) == 1) {
+        ((GameActor*)(*gPlayerActorTasks)->work)->state = ACTOR_403100_PLAYER_LETHAL_HIT_STATE;
+    }
+}
+
+/// Handles the jump slam's landed hit window and starts arm recovery at the clip boundary.
+///
+/// Requires live singleton work and the live player. A latched hand contact
+/// through frame 31 starts the player's 23-update held hit reaction and
+/// applies attack entry zero once while that reaction is idle. This callback
+/// does not sample new contacts; `task` is unused for its dispatch signature.
+static void _actor403100StepJumpSlamImpact(Task* task)
+{
+    enum { ACTOR_403100_SLAM_CONTACT_END_FRAME = 32 };
+    u16 elapsedFrames;
 
     _actor403100RequestHitPitchKick();
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if (((s16)frame < 0x20) && (D_actor_403100_80155808->handTouchedPlayer != 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
-        Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-        _actor403100PlayPlayerAnimation(5, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
-        D_actor_403100_80155808->playerReactionFrames = 0x17;
-        D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
-        player                                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        if (taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 0), 0) == 1) {
-            ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
-        }
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    // A latched hand contact can still damage the player during the early impact pose.
+    if (((s16)elapsedFrames < ACTOR_403100_SLAM_CONTACT_END_FRAME) && (D_actor_403100_80155808->handTouchedPlayer != 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
+        _actor403100StartPlayerArmHitReaction();
     }
     if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-        D_actor_403100_80155808->animationId      = 5;
-        D_actor_403100_80155808->walkStage        = 0;
+        D_actor_403100_80155808->animationId      = ACTOR_403100_ANIMATION_ARM_RECOVERY;
+        D_actor_403100_80155808->walkStage        = ACTOR_403100_WALK_APPROACH;
         D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
         D_actor_403100_80155808->subState        += 1;
     }
 }
-static void func_actor_403100_80138C18(Task* task)
+/// Relaxes the shoulder during jump-slam recovery and blends back to the walk clip.
+///
+/// Requires live singleton work and animation slots. Pitch/yaw ease by one
+/// eighth of their signed 12-bit turn offset. At the recovery boundary a
+/// single random bit optionally requests a voiced pitch kick, then an eight-
+/// frame normal-rate walk blend starts the timed recovery substate. `task`
+/// is retained for dispatch only.
+static void _actor403100FinishJumpSlamRecovery(Task* task)
 {
-    u16 velocityZ;
-    u16 velocityX;
-    u32 random;
+    enum { ACTOR_403100_JUMP_RECOVERY_BLEND_FRAMES = 8 };
+    u32 pitchKickDraw;
 
     _actor403100RequestHitPitchKick();
-    velocityX                         = (u16)D_actor_403100_80155808->armPitch;
-    velocityZ                         = (u16)D_actor_403100_80155808->armYaw;
-    D_actor_403100_80155808->armPitch = velocityX + ((s32) - (velocityX << 0x14) >> 0x17);
-    D_actor_403100_80155808->armYaw   = velocityZ + ((s32) - (velocityZ << 0x14) >> 0x17);
+    _actor403100RelaxArmPose();
     if (_actor403100AnimationAtBoundaryOrJump()) {
-        random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = random;
-        if ((random >> 0x10) & 1) {
+        pitchKickDraw   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = pitchKickDraw;
+        if ((pitchKickDraw >> 0x10) & 1) {
             _actor403100RequestPitchKick(ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND);
         }
-        D_actor_403100_80155808->animationBlendFrames = 8;
+        D_actor_403100_80155808->animationBlendFrames = ACTOR_403100_JUMP_RECOVERY_BLEND_FRAMES;
         D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
         D_actor_403100_80155808->stateFrames          = 0;
-        D_actor_403100_80155808->animationId          = 1;
+        D_actor_403100_80155808->animationId          = ACTOR_403100_ANIMATION_WALK;
         D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
         D_actor_403100_80155808->subState            += 1;
     }
 }
-static void func_actor_403100_80138D08(Task* arg0)
+/// Starts the grab-and-squeeze reach with clean arm/contact state.
+///
+/// Requires live task/model and singleton work. A stagger or build-up stun
+/// interrupts initialization. Otherwise restores normal ordering depth,
+/// selects the normal-rate reach clip, approaches at 64 units per update and
+/// gives head aim back to the animation. The next step samples the grab.
+static void _actor403100BeginGrabAndSqueeze(Task* task)
 {
-    TmdObject*       obj;
+    TmdObject*       model;
     Actor403100Work* work;
 
-    obj = arg0->extra.tmd;
+    model = task->extra.tmd;
     if (_actor403100HandleHitReaction() == 0) {
-        obj->otOffset                                 = 0;
+        model->otOffset                               = 0;
         work                                          = D_actor_403100_80155808;
         D_actor_403100_80155808->handTouchedPlayer    = 0;
         work->walkSpeed                               = 0x40;
         work->animationRate                           = ANIMATION_RATE_ONE;
-        work->animationId                             = 9;
-        work->walkStage                               = 0;
+        work->animationId                             = ACTOR_403100_ANIMATION_GRAB_REACH;
+        work->walkStage                               = ACTOR_403100_WALK_APPROACH;
         work->animationRequest                        = ACTOR_403100_ANIMATION_REQUEST_RESET;
         work->aimMode                                 = ACTOR_403100_AIM_ANIMATED;
         work->stateFrames                             = 0;
@@ -4472,44 +4635,56 @@ static void func_actor_403100_80138D08(Task* arg0)
         D_actor_403100_80155808->subState            += 1;
     }
 }
-static void func_actor_403100_80138DB0(Task* arg0)
+/// Samples the grab reach and chooses the held-player or reverse-playback continuation.
+///
+/// Requires live task/model, singleton work and player. Increments the wrapping
+/// halfword timer before processing hits. Through frame 256, hand contact
+/// acquires the scripted player hold, enables vulnerability and arms the
+/// button prompt; forearm-only contact reverses the clip into substate ten.
+/// Animation completion returns to approach even after a contact that update.
+static void _actor403100StepGrabAndSqueezeReach(Task* task)
 {
-    s32              sound;
-    s32              pan;
-    s32              depth;
-    Task*            player;
+    enum { ACTOR_403100_GRAB_AIM_END_FRAME   = 257,
+           ACTOR_403100_GRAB_REWIND_SUBSTATE = 10,
+           ACTOR_403100_PLAYER_HELD_CLIP     = 1,
+           ACTOR_403100_PLAYER_GRABBED_SOUND = SOUND_COMMON(7) };
+    s32              grabSoundId;
+    s32              audioPan;
+    s32              audioDepth;
+    Task*            playerTask;
     Actor403100Work* work;
 
-    player                               = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
+    playerTask                           = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     D_actor_403100_80155808->stateFrames = (u16)(D_actor_403100_80155808->stateFrames + 1);
     if (_actor403100HandleHitReaction() == 0) {
-        if ((s16)D_actor_403100_80155808->stateFrames < 0x101) {
-            _actor403100ProbeArmPlayerContact(arg0);
+        if ((s16)D_actor_403100_80155808->stateFrames < ACTOR_403100_GRAB_AIM_END_FRAME) {
+            _actor403100ProbeArmPlayerContact(task);
             work = D_actor_403100_80155808;
+            // Hand contact enters the hold; forearm-only contact rewinds the reach.
             if (work->handTouchedPlayer != 0) {
                 work->vulnerable                       = 1;
                 D_actor_403100_80155808->holdingPlayer = 1;
                 Gp_StateC08.flags                      = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
-                sound                                  = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
-                pan                                    = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
-                depth                                  = worldCoordGetOriginAudioDepth(&player->extra.tmd->coords[1]);
-                sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
+                grabSoundId                            = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_PLAYER_GRABBED_SOUND;
+                audioPan                               = (s8)worldCoordGetOriginAudioPan(&playerTask->extra.tmd->coords[1]);
+                audioDepth                             = worldCoordGetOriginAudioDepth(&playerTask->extra.tmd->coords[1]);
+                sndEvtRequestScriptStart(grabSoundId, audioPan, (s8)(audioDepth / 2));
                 D_actor_403100_80155808->releaseRequested = 0;
                 D_actor_403100_80155808->promptPending    = 1;
-                _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
+                _actor403100PlayPlayerAnimation(ACTOR_403100_PLAYER_HELD_CLIP, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
                 D_actor_403100_80155808->stateFrames  = 0U;
                 D_actor_403100_80155808->stateCounter = 0;
                 D_actor_403100_80155808->subState    += 1;
             } else if (work->forearmTouchedPlayer != 0) {
                 work->animationRate = -ANIMATION_RATE_ONE;
-                work->subState      = 0xA;
+                work->subState      = ACTOR_403100_GRAB_REWIND_SUBSTATE;
             }
             D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_TRACK;
         } else {
             D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_ANIMATED;
         }
         if (_actor403100AnimationAtBoundaryOrJump()) {
-            D_actor_403100_80155808->state    = 1;
+            D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
             D_actor_403100_80155808->subState = 0U;
         }
     }
@@ -5563,10 +5738,10 @@ static void _actor403100AimHead(Task* task, s16 aimMode)
 /// Steps of the behaviour mode `func_actor_403100_8013DB48`, indexed by `subState`.
 static const TaskFuncTable6 D_actor_403100_80131F84 = {
     {
-        func_actor_403100_801375B8,
+        _actor403100BeginArmSwingCombo,
         func_actor_403100_801376D8,
         func_actor_403100_801379B4,
-        func_actor_403100_80137CA8,
+        _actor403100FinishArmSwingCombo,
         func_actor_403100_80137DC4,
         func_actor_403100_8013F1D8,
     },
@@ -5575,7 +5750,7 @@ static const TaskFuncTable6 D_actor_403100_80131F84 = {
 /// Steps of the behaviour mode `func_actor_403100_8013DC18`, indexed by `subState`.
 static const TaskFuncTable5 D_actor_403100_80131F9C = {
     {
-        func_actor_403100_80137F4C,
+        _actor403100BeginAimedFlameAttack,
         func_actor_403100_80138048,
         func_actor_403100_8013F230,
         func_actor_403100_8013F270,
@@ -5588,12 +5763,12 @@ static const TaskFuncTable9 D_actor_403100_80131FB0 = {
     {
         func_actor_403100_8013F2D8,
         func_actor_403100_8013F344,
-        func_actor_403100_80138610,
-        func_actor_403100_801386DC,
-        func_actor_403100_80138790,
+        _actor403100CrouchForJumpSlam,
+        _actor403100AccelerateJumpSlam,
+        _actor403100DecelerateJumpSlam,
         func_actor_403100_80138844,
-        func_actor_403100_80138AB4,
-        func_actor_403100_80138C18,
+        _actor403100StepJumpSlamImpact,
+        _actor403100FinishJumpSlamRecovery,
         func_actor_403100_8013F3AC,
     },
 };
@@ -5601,8 +5776,8 @@ static const TaskFuncTable9 D_actor_403100_80131FB0 = {
 /// Steps of the behaviour mode `func_actor_403100_8013DD78`, indexed by `subState`.
 static const TaskFuncTable11 D_actor_403100_80131FD4 = {
     {
-        func_actor_403100_80138D08,
-        func_actor_403100_80138DB0,
+        _actor403100BeginGrabAndSqueeze,
+        _actor403100StepGrabAndSqueezeReach,
         func_actor_403100_8013F3EC,
         func_actor_403100_80138F88,
         func_actor_403100_8013922C,
@@ -6120,16 +6295,25 @@ static void _actor403100ProbeArmPlayerContact(Task* task)
 
 #undef ACTOR_403100_LATCH_ARM_CONTACT
 
-/// Starts a character-bank sound for this actor's place index at model
-/// coordinate 4, at that coordinate's pan and half its depth.
+/// Queues a sound positioned at the Burner's jaw with this enemy's instance id.
+///
+/// Requires a live task/model, its borrowed `Enemy` spawn argument and an
+/// already composed jaw coordinate. Pan projection borrows 24 scratch bytes.
+/// `soundId` is a packed sound-script bank/entry id with instance bits 8..15
+/// clear; callers use Burner entries 9, 2 and 5. The place-key high nibble
+/// supplies the instance (0..15). Uses jaw coordinate 4's pan
+/// narrowed to s8 and half its audio depth, truncated toward zero then to s8.
+/// Queueing copies the scalar request and retains no task/model pointer.
 static inline void _actor403100PlayJawSound(Task* task, s32 soundId)
 {
-    s32 sound;
-    s32 pan;
+    enum { ACTOR_403100_JAW_PART_INDEX       = 4,
+           ACTOR_403100_SOUND_INSTANCE_SHIFT = 8 };
+    s32 instanceSoundId;
+    s32 audioPan;
 
-    sound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundId;
-    pan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[4]);
-    sndEvtRequestScriptStart(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[4]) / 2));
+    instanceSoundId = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_403100_SOUND_INSTANCE_SHIFT) | soundId;
+    audioPan        = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_JAW_PART_INDEX]);
+    sndEvtRequestScriptStart(instanceSoundId, audioPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_JAW_PART_INDEX]) / 2));
 }
 
 static void func_actor_403100_8013CBE0(Task* task)
@@ -6146,14 +6330,14 @@ static void func_actor_403100_8013CBE0(Task* task)
         case ACTOR_403100_PITCH_PHASE_START:
             request = D_actor_403100_80155808->jawKickSound;
             if (request == 1) {
-                _actor403100PlayJawSound(task, 0x401F0009);
+                _actor403100PlayJawSound(task, SOUND_CHARACTER(SOUND_BANK_BURNER, 9));
             } else if (request == 2) {
                 random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = random;
                 if ((random >> 16) & 1) {
-                    _actor403100PlayJawSound(task, 0x401F0002);
+                    _actor403100PlayJawSound(task, SOUND_CHARACTER(SOUND_BANK_BURNER, 2));
                 } else {
-                    _actor403100PlayJawSound(task, 0x401F0005);
+                    _actor403100PlayJawSound(task, SOUND_CHARACTER(SOUND_BANK_BURNER, 5));
                 }
             }
             D_actor_403100_80155808->jawKickSound  = 0U;
@@ -6589,7 +6773,7 @@ static s32 func_actor_403100_8013D9C4(s16 x, s16 y, _Actor403100Zone* zone)
 }
 static void func_actor_403100_8013DA6C(Task* task)
 {
-    TaskFunc fns[2] = { _actor403100BeginFight, func_actor_403100_8013F12C };
+    TaskFunc fns[2] = { _actor403100BeginFight, _actor403100WaitForFightStart };
 
     fns[(s16)D_actor_403100_80155808->subState](task);
 }
@@ -6610,8 +6794,8 @@ static void func_actor_403100_8013DB48(Task* arg0)
     sp = D_actor_403100_80131F84;
     if (_actor403100HandleHitReaction() == 0) {
         sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
-        func_actor_403100_80132C3C(arg0, 6, 7, 0x400, -0xC80);
-        func_actor_403100_80132C3C(arg0, 7, 8, 0x400, -0xC80);
+        _actor403100DrawArmShadow(arg0, ACTOR_403100_ARM_SHADOW_BASE_PART, ACTOR_403100_ARM_SHADOW_MIDDLE_PART, ACTOR_403100_ARM_SHADOW_HALF_WIDTH, ACTOR_403100_ARM_SHADOW_FLOOR_Y);
+        _actor403100DrawArmShadow(arg0, ACTOR_403100_ARM_SHADOW_MIDDLE_PART, ACTOR_403100_ARM_SHADOW_TIP_PART, ACTOR_403100_ARM_SHADOW_HALF_WIDTH, ACTOR_403100_ARM_SHADOW_FLOOR_Y);
     }
 }
 static void func_actor_403100_8013DC18(Task* arg0)
@@ -6629,8 +6813,8 @@ static void func_actor_403100_8013DCAC(Task* arg0)
 
     sp = D_actor_403100_80131FB0;
     sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
-    func_actor_403100_80132C3C(arg0, 6, 7, 0x400, -0xC80);
-    func_actor_403100_80132C3C(arg0, 7, 8, 0x400, -0xC80);
+    _actor403100DrawArmShadow(arg0, ACTOR_403100_ARM_SHADOW_BASE_PART, ACTOR_403100_ARM_SHADOW_MIDDLE_PART, ACTOR_403100_ARM_SHADOW_HALF_WIDTH, ACTOR_403100_ARM_SHADOW_FLOOR_Y);
+    _actor403100DrawArmShadow(arg0, ACTOR_403100_ARM_SHADOW_MIDDLE_PART, ACTOR_403100_ARM_SHADOW_TIP_PART, ACTOR_403100_ARM_SHADOW_HALF_WIDTH, ACTOR_403100_ARM_SHADOW_FLOOR_Y);
 }
 static void func_actor_403100_8013DD78(Task* arg0)
 {
@@ -6657,7 +6841,7 @@ static void func_actor_403100_8013DEA0(Task* arg0)
 }
 static void func_actor_403100_8013DF0C(Task* task)
 {
-    void (*fns[2])(void) = { func_actor_403100_8013F610, func_actor_403100_8013F658 };
+    void (*fns[2])(void) = { _actor403100BeginStagger, _actor403100FinishStagger };
 
     fns[(s16)D_actor_403100_80155808->subState]();
 }
@@ -7038,17 +7222,6 @@ static void func_actor_403100_8013ED48(Task* task)
 {
 }
 
-/// Latches a normal-rate clip restart for the next scene animation update.
-///
-/// `animationId` selects a loaded Burner clip in the live singleton rig.
-/// No pose is ticked here; the scene step or its dispatcher applies the request.
-static inline void _actor403100RequestSceneAnimationReset(s16 animationId)
-{
-    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-    D_actor_403100_80155808->animationId      = animationId;
-    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-}
-
 /// Places the Burner for the entrance across the balcony's +X axis.
 ///
 /// Scene command 1 starts at (-10000, -600, -9000) in root-parent game
@@ -7062,7 +7235,7 @@ static void _actor403100BeginSceneEntrance(Task* task)
 
     rootCoord                           = task->extra.tmd->coords;
     D_actor_403100_80155808->sceneScale = ACTOR_403100_SCENE_ENTRANCE_SCALE_Q12;
-    _actor403100RequestSceneAnimationReset(ACTOR_403100_ANIMATION_SCENE_IMPACT);
+    _actor403100RequestAnimationReset(ACTOR_403100_ANIMATION_SCENE_IMPACT);
     _actor403100UpdateAnimation();
     D_actor_403100_80155808->rotation.vy = 0;
     rootCoord->coord.t[0]                = -0x2710;
@@ -7212,7 +7385,7 @@ static void _actor403100BeginSceneFlameRetreat(Task* task)
     rootCoord->coord.t[1] = 0;
 
     D_actor_403100_80155808->rotation.vy = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
-    _actor403100RequestSceneAnimationReset(ACTOR_403100_ANIMATION_SCENE_FLAME_RETREAT);
+    _actor403100RequestAnimationReset(ACTOR_403100_ANIMATION_SCENE_FLAME_RETREAT);
     D_actor_403100_80155808->sceneScale  = ACTOR_403100_SCENE_FLAME_RETREAT_SCALE_Q12;
     D_actor_403100_80155808->stateFrames = 0;
     D_actor_403100_80155808->subState    = D_actor_403100_80155808->subState + 1;
@@ -7238,7 +7411,7 @@ static void _actor403100BeginSceneDeparture(Task* task)
     rootCoord->coord.t[2] = -0xE74;
 
     D_actor_403100_80155808->rotation.vy = ACTOR_TRANSFORM_ANGLE_HALF_TURN;
-    _actor403100RequestSceneAnimationReset(ACTOR_403100_ANIMATION_SCENE_DEPARTURE);
+    _actor403100RequestAnimationReset(ACTOR_403100_ANIMATION_SCENE_DEPARTURE);
     D_actor_403100_80155808->sceneScale  = ACTOR_403100_SCENE_DEPARTURE_SCALE_Q12;
     D_actor_403100_80155808->stridePhase = 0;
     D_actor_403100_80155808->stateFrames = 0;
@@ -7271,15 +7444,21 @@ static void _actor403100FinishSceneDeparture(Task* task)
     D_actor_403100_80155808->state    = 0;
     D_actor_403100_80155808->subState = 0;
 }
-static void func_actor_403100_8013F12C(Task* task)
+/// Waits thirty-one uninterrupted updates after fight setup before starting attack approach.
+///
+/// Requires live singleton work with a cleared `stateFrames` counter. Stagger
+/// and build-up stun divert control without advancing this timer. The timer
+/// wraps as u16 and is compared as s16; `task` is retained for dispatch only.
+static void _actor403100WaitForFightStart(Task* task)
 {
-    u16 frame;
+    enum { ACTOR_403100_FIGHT_START_FRAMES = 31 };
+    u16 elapsedFrames;
 
     if (_actor403100HandleHitReaction() == 0) {
-        frame                                = D_actor_403100_80155808->stateFrames + 1;
-        D_actor_403100_80155808->stateFrames = frame;
-        if ((s16)frame >= 0x1F) {
-            D_actor_403100_80155808->state    = 1;
+        elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+        D_actor_403100_80155808->stateFrames = elapsedFrames;
+        if ((s16)elapsedFrames >= ACTOR_403100_FIGHT_START_FRAMES) {
+            D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
             D_actor_403100_80155808->subState = 0;
         }
     }
@@ -7432,21 +7611,28 @@ static void func_actor_403100_8013F588(Task* task)
         D_actor_403100_80155808->subState            += 1;
     }
 }
-static void func_actor_403100_8013F610(void)
+/// Begins the normal-speed stagger selected by hit reaction two.
+///
+/// Requires live singleton work. Returns head aim to the animated pose, finishes
+/// the walking stride and blends into the stagger clip over eight normal-rate
+/// frames. The behaviour dispatcher advances animation after this callback.
+static void _actor403100BeginStagger(void)
 {
-    D_actor_403100_80155808->aimMode              = ACTOR_403100_AIM_ANIMATED;
-    D_actor_403100_80155808->walkStage            = 4;
-    D_actor_403100_80155808->animationBlendFrames = 8;
-    D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
-    D_actor_403100_80155808->animationId          = 0xA;
-    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
-    D_actor_403100_80155808->subState             = D_actor_403100_80155808->subState + 1;
+    enum { ACTOR_403100_STAGGER_BLEND_FRAMES = 8 };
+    D_actor_403100_80155808->aimMode   = ACTOR_403100_AIM_ANIMATED;
+    D_actor_403100_80155808->walkStage = ACTOR_403100_WALK_FINISH_STRIDE;
+    _actor403100RequestAnimationBlendInline(ACTOR_403100_ANIMATION_STAGGER, ANIMATION_RATE_ONE, ACTOR_403100_STAGGER_BLEND_FRAMES);
+    D_actor_403100_80155808->subState = D_actor_403100_80155808->subState + 1;
 }
 
-static void func_actor_403100_8013F658(void)
+/// Returns from stagger to attack approach when the clip reaches a transition.
+///
+/// Requires live singleton work and animation slots. A boundary, jump or
+/// settled pose resets behaviour/substate to attack approach at step zero.
+static void _actor403100FinishStagger(void)
 {
     if (_actor403100AnimationAtBoundaryOrJump()) {
-        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
         D_actor_403100_80155808->subState = 0;
     }
 }

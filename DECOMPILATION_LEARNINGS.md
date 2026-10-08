@@ -69451,7 +69451,7 @@ local quantity ranking was not traced.
 
 ## Early array-base materialization steers CSE address reuse (actor_403100)
 
-For func_actor_403100_80137F4C, materializing `obj = &array->obj` before
+For _actor403100BeginAimedFlameAttack, materializing `obj = &array->obj` before
 `entry = array` made CSE derive entry as obj-112. Adding `entries = array`
 before obj initialization, then `entry = entries`, instead made CSE derive
 obj as entries+112 and retain a separate copy to entry. This restored the
@@ -69464,7 +69464,7 @@ removes UID 57 and rewrites UID 58 as r82+112, retaining UID 61 copy.
 base_2.greg places r82 in v0, entry r80 in s0, obj r81 in s1, i r83 in s2.
 This is an observed address-reuse instance, not a general scheduling rule.
 No pins or empty asm. Full evidence is retained under
-`tools/permuter_findings/func_actor_403100_80137F4C/`, run c3bd2bff13b848e4.
+`tools/permuter_findings/_actor403100BeginAimedFlameAttack/`, run c3bd2bff13b848e4.
 Preprocessed base_2 SHA256: `b563c73fafc2c5b47c4f90e2c68477a4be3d077d02274e09e70b2f1daaab1e96`.
 
 ## Capture a field address before a memory barrier to preserve its base
@@ -69487,11 +69487,11 @@ Evidence: tools/permuter_findings/_actor403100StepSceneFlameBreath/ session
 
 ## Actor403100 counter reset: store order controls pointer CSE (2026-09-10)
 
-`func_actor_403100_80138DB0`: swapping adjacent zero stores from byte-then-halfword to halfword-then-byte raised 97.420% to 100%, confirmed by controlled base_3 after the permuter discovery. In `.cse`, both stores now share r148; the byte store still invalidates the global pointer expression, so the following state increment reloads into r154. `.greg` has byte store through v0, fresh pointer load into v1, halfword store through old v0 (fills load delay), increment load. This is an instance of CODEGEN_MODEL §11's width-sensitive invalidation, not a general statement-order scheduling rule.
+`_actor403100StepGrabAndSqueezeReach`: swapping adjacent zero stores from byte-then-halfword to halfword-then-byte raised 97.420% to 100%, confirmed by controlled base_3 after the permuter discovery. In `.cse`, both stores now share r148; the byte store still invalidates the global pointer expression, so the following state increment reloads into r154. `.greg` has byte store through v0, fresh pointer load into v1, halfword store through old v0 (fills load delay), increment load. This is an instance of CODEGEN_MODEL §11's width-sensitive invalidation, not a general statement-order scheduling rule.
 
 Explicitly reusing the earlier work local for those stores (base_2) also shares the pointer but adds a v1 hard conflict to its global allocno, assigns a0 and disrupts tail merging: 94.608%. Preserve allocation and tail identity as well as pointer sharing.
 
-Input SHA256: base_1.i `7a688b1c0d9d02edd9b1a8c869576d6ece35be90fae327b9c89525fc028106de`; base_3.i `3c65fee1e0d708a4cd584dae4af367120345218acc079e883a1918eb1a965504`. Compiler fingerprints, plans, source and dumps retained under `tools/permuter_findings/func_actor_403100_80138DB0/`, session `e794d77243ae4573a798178a417105f2`.
+Input SHA256: base_1.i `7a688b1c0d9d02edd9b1a8c869576d6ece35be90fae327b9c89525fc028106de`; base_3.i `3c65fee1e0d708a4cd584dae4af367120345218acc079e883a1918eb1a965504`. Compiler fingerprints, plans, source and dumps retained under `tools/permuter_findings/_actor403100StepGrabAndSqueezeReach/`, session `e794d77243ae4573a798178a417105f2`.
 
 ## Byte Boolean conversion can retain a branch copy after combine (2026-09-10)
 
@@ -147462,7 +147462,7 @@ So a head-relative first member is not evidence of a second pointer in the
 source. Try the typed reserve and plain member accesses before keeping the
 casts; the release is then `SCRATCH_STACK_RELEASE_BLOCK` of the same type.
 
-## A sum stored to a `u8` member is regrouped: order the operands, do not parenthesise them (func_actor_403100_801375B8, 2026-10-04)
+## A sum stored to a `u8` member is regrouped: order the operands, do not parenthesise them (_actor403100BeginArmSwingCombo, 2026-10-04)
 
 **Symptom.** A byte member declared `s8` and read everywhere through `(u8)`
 casts was retyped `u8`. Every reader still matched; the one function storing a
