@@ -4978,7 +4978,7 @@ objects = [
 ]
 
 [actors.overlays.actor_342000]
-label = "the overlay id word is 0x0..0x4 and func_actor_342000_80162BBC's nine-entry jump table starts at 0x4, so the head must be its own object or the table's .align 3 pads it"
+label = "the overlay id word is 0x0..0x4 and _actor342000UpdatePlayerAction's nine-entry jump table starts at 0x4, so the head must be its own object or the table's .align 3 pads it"
 slot = 3
 id = 245
 objects = [

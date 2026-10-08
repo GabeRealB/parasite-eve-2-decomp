@@ -1198,7 +1198,7 @@ field-for-field.
 `overlay_dup_index.py find` and the brief's similar-body list answer different
 questions, and the exact one is silent on twins that are real: equality there is
 splat's disassembly *text*, so one differing displacement drops the twin out of
-`find` altogether. `func_actor_342000_80161EA4` and
+`find` altogether. `_actor342000TickGluttonAnimation` and
 `func_actor_341900_80161E58` are 94 instructions of identical text apart from
 `lw v1, 0x288(s2)` against `lw v1, 0x218(s2)` — the anim-id field of each
 overlay's own work block — so `find` reported only the function itself, while
@@ -129731,7 +129731,7 @@ stores (the `"+r"` output kills the equivalence); the first store keeps its
 had to be a named local (`one = 0x1000;` at the top of the case) so its load
 leads the block and fills the dispatch `beq`'s delay slot in `$a0`.
 
-### A block repeated verbatim in every `switch` arm may be a `static inline` helper: its address locals are born at first use, not hoisted (func_actor_342000_80162158, 2026-09-17)
+### A block repeated verbatim in every `switch` arm may be a `static inline` helper: its address locals are born at first use, not hoisted (_actor342000InitGluttonModel, 2026-09-17)
 
 The spawn tick repeats one coordinate-reset block (parent link, zero
 translation, identity matrix through a word-wise union) in all four arms. As a
@@ -149693,7 +149693,7 @@ attempts; left as it was.
   branches from each arm straight to the `then`/`else` code.
 - **`if (a && b) goto handOff; if (c == 0) { handOff: ... }`** is
   `if ((a && b) || c == 0)` (`_acropolisSquareSirenSequenceTask`).
-- Not converted: `func_actor_342000_80161EA4` / `func_actor_341900_80161E58`
+- Not converted: `_actor342000TickGluttonAnimation` / `func_actor_341900_80161E58`
   (the `done = 0` block of the settle scan sitting between `first = n == 8`
   and `i = first`). The block is where loop.c found a `BARRIER`, so the
   original had an unconditional jump there. Three more forms, none with one:
@@ -150397,7 +150397,7 @@ attempts; left as it was.
   (`_actor03800UpdateColorAtRoot`): with the caller's own `vec` still in use
   at one site the frame is 16 bytes larger.
 - Not converted: `_actor120300TickBodyAnimation`, the settle scan of
-  `func_actor_342000_80161EA4` (batch 09) again. The plain flag-and-`break`
+  `_actor342000TickGluttonAnimation` (batch 09) again. The plain flag-and-`break`
   form puts the `allSettled = 0` block behind the `return 1` jump; the image has it
   between the `bodyAnimation` store and the seek loop's `slotIndex = 1`, where no
   structured form leaves an unconditional jump.
