@@ -1267,7 +1267,7 @@ shelterB4ReservoirWaterDriftTask = 0x80180864; // type:func absolute:True owner=
 
 shelterB4ReservoirBurstSpriteTask = 0x801813F0; // type:func absolute:True owner=shelter_b4_reservoir
 
-func_shelter_b4_reservoir_80182B1C = 0x80182B1C; // type:func absolute:True owner=shelter_b4_reservoir
+shelterB4ReservoirRoomVisualEffectsGlowDiscTask = 0x80182B1C; // type:func absolute:True owner=shelter_b4_reservoir
 
 shelterB4ReservoirRoomVisualEffectsFlyingSparkTask = 0x80183074; // type:func absolute:True owner=shelter_b4_reservoir
 

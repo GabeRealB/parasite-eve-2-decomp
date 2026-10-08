@@ -110,7 +110,20 @@ void shelterB4ReservoirWaterRippleTask(Task* task);
 /// motion and redraws; cancellation releases the work and task without drawing.
 void shelterB4ReservoirWaterDriftTask(Task* task);
 
-void func_shelter_b4_reservoir_80182B1C(Task* arg0);
+/// Runs the reservoir's attached charge disc, player-joint sparks and release ring.
+///
+/// Requires a counted effect task with a coordinate body, owned zeroed
+/// `EffectWork` in `spawnArg2.pointer` and initial state
+/// `ROOM_VISUAL_EFFECTS_GLOW_DISC_ATTACH`. `spawnArg1.value` selects tint 0 or 1.
+/// The work's borrowed parent coordinate and ancestors must remain live; `pos`
+/// is the copied offset in that parent's coordinate units. Growing emits adopted
+/// flying sparks from player model parts 3..18 every fourth active age, requiring
+/// the live player model and installed flying-spark effect ID. The owner requests
+/// flicker, release or cancel through `ROOM_VISUAL_EFFECTS_GLOW_DISC_*` states.
+/// Nonzero room-effect control pauses; four or above cancels. Release completion
+/// or cancellation frees the work, task and adopted sparks. The reservoir overlay
+/// must stay loaded while the task runs.
+void shelterB4ReservoirRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Runs the reservoir's glowing-disc spark toward an initial target coordinate.
 ///

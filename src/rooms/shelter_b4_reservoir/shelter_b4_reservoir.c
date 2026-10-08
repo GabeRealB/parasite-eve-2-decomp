@@ -102,12 +102,26 @@ enum {
 enum {
     SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y = -2000,
     SHELTER_B4_RESERVOIR_MAIN_WATER_Y_TRAVEL  = 1500,
+    SHELTER_B4_RESERVOIR_MAIN_WATER_FINAL_Y   = SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y + SHELTER_B4_RESERVOIR_MAIN_WATER_Y_TRAVEL,
     SHELTER_B4_RESERVOIR_VIEW10_WATER_MIN_Y   = -1800,
     SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y   = 0,
     SHELTER_B4_RESERVOIR_WATER_SPRAY_VIEW     = 10,
     // Event callbacks select reset/stationary placement or restarted motion.
     SHELTER_B4_RESERVOIR_EVENT_MODEL_RESET          = 0,
     SHELTER_B4_RESERVOIR_EVENT_MODEL_RESTART_MOTION = 2,
+};
+
+// Suppress a repeated interaction immediately after returning control to play.
+enum {
+    SHELTER_B4_RESERVOIR_INTERACTION_REARM_UPDATES = 10,
+};
+
+// Event-script water commands; both ramps use callback updates, not seconds.
+enum {
+    SHELTER_B4_RESERVOIR_WATER_START_MAIN_RAMP   = 0,
+    SHELTER_B4_RESERVOIR_WATER_FINISH_MAIN_RAMP  = 1,
+    SHELTER_B4_RESERVOIR_WATER_START_VIEW10_RAMP = 2,
+    SHELTER_B4_RESERVOIR_WATER_RESET_VIEW10      = 3,
 };
 
 /// Configuration of the reservoir's per-frame burst-sprite emitter.
@@ -185,7 +199,7 @@ extern u8*                            D_shelter_b4_reservoir_80187630;
 extern SVECTOR                        D_shelter_b4_reservoir_80187634[];
 extern _ShelterB4ReservoirBurstConfig D_shelter_b4_reservoir_80187684;
 
-static void func_shelter_b4_reservoir_8017E7C8(Task* arg0);
+static void _shelterB4ReservoirInitializeRoomTask(Task* task);
 static void _shelterB4ReservoirUpdateRoomTask(Task* task);
 static void _shelterB4ReservoirNoopRoomTick(void);
 enum {
@@ -209,7 +223,7 @@ static void _shelterB4ReservoirSetBurstConfig(s16 pointCount, u16 spawnChancePer
 /// which copies the table to the stack and calls the entry for the task's
 /// state: the room's setup, the per-frame state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b4_reservoir_8017D5C4 = {
-    { func_shelter_b4_reservoir_8017E7C8, _shelterB4ReservoirUpdateRoomTask, taskKill }
+    { _shelterB4ReservoirInitializeRoomTask, _shelterB4ReservoirUpdateRoomTask, taskKill }
 };
 
 static void _shelterB4ReservoirWaterTask(Task* task);
@@ -225,16 +239,16 @@ extern TaskDesc               D_actor_100400_80147E48;
 extern TaskDesc               D_actor_207000_801575F0;
 
 static s32  _shelterB4ReservoirRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
-s32         func_shelter_b4_reservoir_8017E264(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32         func_shelter_b4_reservoir_8017E354(Task*, s32, s32, s32);
+static s32  _shelterB4ReservoirResolveTransitionMessage(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _shelterB4ReservoirCommandMessage(Task* task, s32 messageId, s32 command, s32 secondArg);
 static s32  _shelterB4ReservoirIgnoreRoomActionMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 static s32  _shelterB4ReservoirSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 secondArg);
-void        func_shelter_b4_reservoir_8017DE8C(Task*);
-void        func_shelter_b4_reservoir_8017E0AC(Task*);
+static void _shelterB4ReservoirWaterEventTask(Task* task);
+static void _shelterB4ReservoirExitTask(Task* task);
 static void _shelterB4ReservoirRampMainWaterHeightTask(Task* task);
 static void _shelterB4ReservoirRampView10WaterHeightTask(Task* task);
 static void _shelterB4ReservoirView8ModelTask(Task* task);
-void        func_shelter_b4_reservoir_8017E690(s32);
+static void _shelterB4ReservoirWaterCommand(s32 waterCommand);
 static void _shelterB4ReservoirSetEventModelState(s32 modelState);
 static void _shelterB4ReservoirSetBurstChance(s32 spawnChancePercent);
 static void _shelterB4ReservoirCancelEffects(void);
@@ -275,19 +289,19 @@ static TmdSource _gShelterB4ReservoirModel07220 = {
 };
 
 TaskMessageEntry D_shelter_b4_reservoir_801848BC[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_reservoir_8017E264 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB4ReservoirResolveTransitionMessage },
     { SHELTER_B4_RESERVOIR_MESSAGE_USE_KEY_ITEM, _shelterB4ReservoirRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB4ReservoirIgnoreRoomActionMessage },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b4_reservoir_8017E354 },
+    { ROOM_MESSAGE_COMMAND, _shelterB4ReservoirCommandMessage },
     { ROOM_MESSAGE_SOUND, _shelterB4ReservoirSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b4_reservoir_801848EC[4] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_reservoir_8017DE8C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB4ReservoirWaterEventTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _shelterB4ReservoirRampMainWaterHeightTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _shelterB4ReservoirRampView10WaterHeightTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_reservoir_8017E0AC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB4ReservoirExitTask, { .value = 0 } },
 };
 
 ActorCommand D_shelter_b4_reservoir_8018491C = { { .loc = { 4, 45 } }, 6 };
@@ -326,20 +340,20 @@ EvsCommand D_shelter_b4_reservoir_80184948[48] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB4ReservoirCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _screenWaveRun }, { .value = SCREEN_WAVE_RAMP_FINISHED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirWaterCommand }, { .value = SHELTER_B4_RESERVOIR_WATER_START_MAIN_RAMP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x542D0005 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x542D0006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB4ReservoirCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirWaterCommand }, { .value = SHELTER_B4_RESERVOIR_WATER_FINISH_MAIN_RAMP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirWaterCommand }, { .value = SHELTER_B4_RESERVOIR_WATER_START_VIEW10_RAMP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_FADE_SOUND_ATTENUATION, { .value = 0x542D0006 }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x542D0007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirWaterCommand }, { .value = SHELTER_B4_RESERVOIR_WATER_RESET_VIEW10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b4_reservoir_8018491C } }, { .value = 0 } },
@@ -360,7 +374,7 @@ EvsCommand D_shelter_b4_reservoir_80184DC8[18] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _screenWaveRun }, { .value = SCREEN_WAVE_RAMP_FINISHED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirWaterCommand }, { .value = SHELTER_B4_RESERVOIR_WATER_FINISH_MAIN_RAMP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b4_reservoir_8018491C } }, { .value = 0 } },
@@ -1019,54 +1033,90 @@ static void _shelterB4ReservoirDrawWaterTask(Task* task);
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-void func_shelter_b4_reservoir_8017DE8C(Task* task)
+/// Restores player and companion control and model drawing after a declined event.
+///
+/// Requires the live actor task slots; retains no task pointer.
+static inline void _shelterB4ReservoirRestoreEventActors(void)
 {
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+    companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+}
+
+/// Runs the reservoir water event's CAP choice, scripted sequence and progress commit.
+///
+/// Bodyless task; start at state zero with room, CAP and actor resources live.
+/// CAP key 12 cancels and restores play; other keys start the skippable event.
+/// Completion waits for the script to clear the session event gate, then selects
+/// room 2 and commits reservoir, map and control-room progress. No work is owned.
+static void _shelterB4ReservoirWaterEventTask(Task* task)
+{
+    enum {
+        SHELTER_B4_RESERVOIR_EVENT_INITIALIZE         = 0,
+        SHELTER_B4_RESERVOIR_EVENT_START_CHOICE       = 1,
+        SHELTER_B4_RESERVOIR_EVENT_WAIT_CHOICE        = 2,
+        SHELTER_B4_RESERVOIR_EVENT_RESOLVE_CHOICE     = 3,
+        SHELTER_B4_RESERVOIR_EVENT_WAIT_SCRIPT        = 4,
+        SHELTER_B4_RESERVOIR_EVENT_CAP_COMMAND        = 3,
+        SHELTER_B4_RESERVOIR_EVENT_CANCEL_KEY         = 12,
+        SHELTER_B4_RESERVOIR_EVENT_RETURN_VIEW        = 5,
+        SHELTER_B4_RESERVOIR_EVENT_COMPLETED_ROOM     = 2,
+        SHELTER_B4_RESERVOIR_EVENT_IDLE               = 0,
+        SHELTER_B4_RESERVOIR_EVENT_ACTIVE             = 1,
+        SHELTER_B4_RESERVOIR_CAP_RETAIN_ACTOR_CONTROL = 1,
+        SHELTER_B4_RESERVOIR_CAP_CHOICE_ROW_STRIDE    = 5,
+        SHELTER_B4_RESERVOIR_EVENT_PLACED_ACTOR       = 0,
+        SHELTER_B4_RESERVOIR_EVENT_ACTOR_HIDE         = 0,
+        SHELTER_B4_RESERVOIR_EVENT_DONE               = 1,
+        SHELTER_B4_RESERVOIR_EVENT_MAP_MARK           = 2,
+        SHELTER_B4_RESERVOIR_CONTROL_ROOM_AFTER_EVENT = 1,
+    };
+
     switch (task->state) {
-        case 0:
-            gGameSession->eventState = 1;
+        case SHELTER_B4_RESERVOIR_EVENT_INITIALIZE:
+            gGameSession->eventState = SHELTER_B4_RESERVOIR_EVENT_ACTIVE;
             gGameSession->hideHud    = 1;
             task->state++;
             break;
-        case 1:
-            capRunCommand(3, CAP_PLAYBACK_IN_PLACE);
-            D_80115690 = 1;
-            D_80115680 = 5;
+        case SHELTER_B4_RESERVOIR_EVENT_START_CHOICE:
+            capRunCommand(SHELTER_B4_RESERVOIR_EVENT_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE);
+            D_80115690 = SHELTER_B4_RESERVOIR_CAP_RETAIN_ACTOR_CONTROL;
+            D_80115680 = SHELTER_B4_RESERVOIR_CAP_CHOICE_ROW_STRIDE;
             task->state++;
             break;
-        case 2:
+        case SHELTER_B4_RESERVOIR_EVENT_WAIT_CHOICE:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 3:
+        case SHELTER_B4_RESERVOIR_EVENT_RESOLVE_CHOICE:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            if (capGetVariantKey() == 0xC) {
+            if (capGetVariantKey() == SHELTER_B4_RESERVOIR_EVENT_CANCEL_KEY) {
                 taskKill(task);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 5;
-                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-                companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-                gGameSession->eventState = 0;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_B4_RESERVOIR_EVENT_RETURN_VIEW;
+                _shelterB4ReservoirRestoreEventActors();
+                gGameSession->eventState = SHELTER_B4_RESERVOIR_EVENT_IDLE;
                 gGameSession->hideHud    = 0;
-                D_80114D08               = 0xA;
+                D_80114D08               = SHELTER_B4_RESERVOIR_INTERACTION_REARM_UPDATES;
                 break;
             }
-            sceneSetPlacedActorDrawMode(0, 0);
+            sceneSetPlacedActorDrawMode(SHELTER_B4_RESERVOIR_EVENT_PLACED_ACTOR, SHELTER_B4_RESERVOIR_EVENT_ACTOR_HIDE);
             evsStartScriptWithSkip(D_shelter_b4_reservoir_80184948, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b4_reservoir_80184DC8);
             task->state++;
             break;
-        case 4:
-            if (gGameSession->eventState == 0) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
-                gGameSession->location.loc.room                            = 2;
+        case SHELTER_B4_RESERVOIR_EVENT_WAIT_SCRIPT:
+            // The event script owns the gate until either normal completion or skip.
+            if (gGameSession->eventState == SHELTER_B4_RESERVOIR_EVENT_IDLE) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = SHELTER_B4_RESERVOIR_EVENT_COMPLETED_ROOM;
+                gGameSession->location.loc.room                            = SHELTER_B4_RESERVOIR_EVENT_COMPLETED_ROOM;
                 gGameSession->roomObjsDirty                                = 1;
-                gameFlagSetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE, 1);
-                gameFlagSetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BF, 2);
-                gameFlagSetNibble(GAME_FLAG_INCINERATOR_CONTROL_ROOM_STATE, 1);
-                gameFlagSetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BE, 2);
+                gameFlagSetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE, SHELTER_B4_RESERVOIR_EVENT_DONE);
+                gameFlagSetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BF, SHELTER_B4_RESERVOIR_EVENT_MAP_MARK);
+                gameFlagSetNibble(GAME_FLAG_INCINERATOR_CONTROL_ROOM_STATE, SHELTER_B4_RESERVOIR_CONTROL_ROOM_AFTER_EVENT);
+                gameFlagSetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BE, SHELTER_B4_RESERVOIR_EVENT_MAP_MARK);
                 areaApplySavedUpdates(D_shelter_b4_reservoir_801874A0);
-                D_80114D08 = 0xA;
+                D_80114D08 = SHELTER_B4_RESERVOIR_INTERACTION_REARM_UPDATES;
                 taskKill(task);
             }
             break;
@@ -1090,55 +1140,78 @@ static void _shelterB4ReservoirUpdateWaterDriftSpawnArgs(void)
     D_shelter_b4_reservoir_80187510 = (D_shelter_b4_reservoir_80184F78 << SHELTER_B4_RESERVOIR_DRIFT_KIND_AND_DRAW_SHIFT) | (D_shelter_b4_reservoir_80184F7A << SHELTER_B4_RESERVOIR_DRIFT_PERIOD_SHIFT) | (D_shelter_b4_reservoir_80184F79 << SHELTER_B4_RESERVOIR_DRIFT_SPEED_SHIFT) | D_shelter_b4_reservoir_80184F7C.halfExtent;
 }
 
-void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
+/// Confirms and performs the deferred exit from the reservoir to the upper sewer.
+///
+/// Bodyless task; start at state zero. `spawnArg1.value` selects a live CAP command.
+/// Key 10 accepts: start a 30-frame fade, wait 30 callback updates independently,
+/// then wait for the transit sound and load the retained area/room/warp within
+/// the current stage. Other keys restore
+/// player control and retire the task. The pending destination and fade record
+/// are shared room storage, so exits must not overlap or outlive this overlay.
+static void _shelterB4ReservoirExitTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum {
+        SHELTER_B4_RESERVOIR_EXIT_START_CHOICE   = 0,
+        SHELTER_B4_RESERVOIR_EXIT_WAIT_CHOICE    = 1,
+        SHELTER_B4_RESERVOIR_EXIT_RESOLVE_CHOICE = 2,
+        SHELTER_B4_RESERVOIR_EXIT_WAIT_FADE      = 3,
+        SHELTER_B4_RESERVOIR_EXIT_WAIT_SOUND     = 4,
+        SHELTER_B4_RESERVOIR_EXIT_RELOAD         = 5,
+        SHELTER_B4_RESERVOIR_EXIT_ACCEPT_KEY     = 10,
+        SHELTER_B4_RESERVOIR_EXIT_FADE_UPDATES   = 30,
+        SHELTER_B4_RESERVOIR_EXIT_FADE_TASK_BANK = 1,
+        SHELTER_B4_RESERVOIR_EXIT_FADE_TASK_TYPE = 0x31,
+        SHELTER_B4_RESERVOIR_EXIT_SPRITE_VARIANT = 1,
+    };
+
+    switch (task->state) {
+        case SHELTER_B4_RESERVOIR_EXIT_START_CHOICE:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommand(arg0->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
-            arg0->state++;
+            capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
+            task->state++;
             break;
-        case 1:
+        case SHELTER_B4_RESERVOIR_EXIT_WAIT_CHOICE:
             if (capIsBusy() == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 2:
-            if (capGetVariantKey() != 0xA) {
-                taskKill(arg0);
+        case SHELTER_B4_RESERVOIR_EXIT_RESOLVE_CHOICE:
+            if (capGetVariantKey() != SHELTER_B4_RESERVOIR_EXIT_ACCEPT_KEY) {
+                taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                D_80114D08                     = 0xA;
+                D_80114D08                     = SHELTER_B4_RESERVOIR_INTERACTION_REARM_UPDATES;
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             sceneQueueBattleEscapeResult();
             D_shelter_b4_reservoir_80187500.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b4_reservoir_80187500.phase      = SCREEN_FADE_RUNNING;
-            D_shelter_b4_reservoir_80187500.rampFrames = 0x1E;
-            taskSpawn(1, 0x31, 0, &D_shelter_b4_reservoir_80187500);
-            arg0->killCountdown = 0x1E;
-            arg0->state++;
+            D_shelter_b4_reservoir_80187500.rampFrames = SHELTER_B4_RESERVOIR_EXIT_FADE_UPDATES;
+            taskSpawn(SHELTER_B4_RESERVOIR_EXIT_FADE_TASK_BANK, SHELTER_B4_RESERVOIR_EXIT_FADE_TASK_TYPE, 0, &D_shelter_b4_reservoir_80187500);
+            task->killCountdown = SHELTER_B4_RESERVOIR_EXIT_FADE_UPDATES;
+            task->state++;
             break;
-        case 3:
-            if (--arg0->killCountdown == 0) {
+        case SHELTER_B4_RESERVOIR_EXIT_WAIT_FADE:
+            if (--task->killCountdown == 0) {
                 sndEvtRequestScriptStart(SOUND_SHELTER_B4_RESERVOIR_EXIT_TRANSIT, 0, 0);
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 4:
+        case SHELTER_B4_RESERVOIR_EXIT_WAIT_SOUND:
             if (sndScriptHasActiveId(SOUND_SHELTER_B4_RESERVOIR_EXIT_TRANSIT) == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 5:
-            gDisplayState.spriteVariant                                = 1;
+        case SHELTER_B4_RESERVOIR_EXIT_RELOAD:
+            // This retained storage uses location bytes: room, area and warp.
+            gDisplayState.spriteVariant                                = SHELTER_B4_RESERVOIR_EXIT_SPRITE_VARIANT;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b4_reservoir_80187508.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b4_reservoir_80187508.areaId)[1];
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
@@ -1151,39 +1224,70 @@ static s32 _shelterB4ReservoirRejectKeyItemMessage(Task* task, s32 messageId, s3
     return 0;
 }
 
-s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Resolves room transitions and intercepts departure to the upper sewer.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; request and writable reply borrow complete
+/// records for this call and may alias. Copies all eight bytes before the map
+/// resolver. Queries perform no effects. Upper-sewer requests return 0: execution
+/// plays CAP command 2 after progress exactly 1, otherwise snapshots the resolved
+/// destination and starts the exit confirmation. Other areas return 1 for normal
+/// departure. The receiving task and messageId are unused; neither pointer is retained.
+static s32 _shelterB4ReservoirResolveTransitionMessage(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    mapShelterRoomVariantResolve(src, dst);
-    if (src->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
-        if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
-            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                gameFlagSetNibbleIfPresent(src->flagId, 2);
-                capRunCommandWithTransition(2);
+    enum {
+        SHELTER_B4_RESERVOIR_TRANSITION_HANDLED      = 0,
+        SHELTER_B4_RESERVOIR_TRANSITION_DEFAULT      = 1,
+        SHELTER_B4_RESERVOIR_TRANSITION_EVENT_DONE   = 1,
+        SHELTER_B4_RESERVOIR_UPPER_SEWER_CAP_COMMAND = 2,
+        SHELTER_B4_RESERVOIR_DEPARTURE_FLAG_STATE    = 2,
+        SHELTER_B4_RESERVOIR_TASK_EXIT               = 3,
+        SHELTER_B4_RESERVOIR_EXIT_CAP_COMMAND        = 11,
+    };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
+        if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == SHELTER_B4_RESERVOIR_TRANSITION_EVENT_DONE) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                gameFlagSetNibbleIfPresent(request->flagId, SHELTER_B4_RESERVOIR_DEPARTURE_FLAG_STATE);
+                capRunCommandWithTransition(SHELTER_B4_RESERVOIR_UPPER_SEWER_CAP_COMMAND);
             }
         } else {
-            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_shelter_b4_reservoir_80187508.warp              = (u8)dst->areaId;
-                D_shelter_b4_reservoir_80187508.field_4           = dst->warp;
-                ((u8*)&D_shelter_b4_reservoir_80187508.areaId)[1] = dst->room;
-                taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, 3, 0xB, 0);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                // Snapshot the resolved selectors for the asynchronous exit task.
+                D_shelter_b4_reservoir_80187508.warp              = (u8)reply->areaId;
+                D_shelter_b4_reservoir_80187508.field_4           = reply->warp;
+                ((u8*)&D_shelter_b4_reservoir_80187508.areaId)[1] = reply->room;
+                taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, SHELTER_B4_RESERVOIR_TASK_EXIT, SHELTER_B4_RESERVOIR_EXIT_CAP_COMMAND, 0);
             }
         }
-        return 0;
+        return SHELTER_B4_RESERVOIR_TRANSITION_HANDLED;
     }
-    return 1;
+    return SHELTER_B4_RESERVOIR_TRANSITION_DEFAULT;
 }
 
-s32 func_shelter_b4_reservoir_8017E354(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Starts the reservoir water event when room command 3 arrives.
+///
+/// Handles `ROOM_MESSAGE_COMMAND` with an integer first payload. Hides and holds
+/// both actors, selects saved view 6 and starts the bodyless water-event task.
+/// Other commands are ignored. Always returns 0; task, messageId and secondArg
+/// are unused. Requires live actor slots and loaded reservoir/CAP resources.
+static s32 _shelterB4ReservoirCommandMessage(Task* task, s32 messageId, s32 command, s32 secondArg)
 {
-    if (arg2 == 3) {
+    enum {
+        SHELTER_B4_RESERVOIR_COMMAND_START_WATER_EVENT = 3,
+        SHELTER_B4_RESERVOIR_EVENT_START_VIEW          = 6,
+        SHELTER_B4_RESERVOIR_TASK_WATER_EVENT          = 0,
+    };
+
+    if (command == SHELTER_B4_RESERVOIR_COMMAND_START_WATER_EVENT) {
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
         companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_B4_RESERVOIR_EVENT_START_VIEW;
         gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
-        taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, 0, 0, 0);
+        taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, SHELTER_B4_RESERVOIR_TASK_WATER_EVENT, 0, 0);
     }
     return 0;
 }
@@ -1314,28 +1418,44 @@ static void _shelterB4ReservoirView8ModelTask(Task* task)
 
 #include "../../shared/screen_wave_run.inc.c"
 
-void func_shelter_b4_reservoir_8017E690(s32 arg0)
+/// Stops the retained water-ramp task, if live, and clears its shared handle.
+static inline void _shelterB4ReservoirStopWaterRamp(void)
 {
-    switch (arg0) {
-        case 0:
-            D_shelter_b4_reservoir_8018492C = taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, 1, 0x96, 0);
+    if (D_shelter_b4_reservoir_8018492C != NULL) {
+        taskKill(D_shelter_b4_reservoir_8018492C);
+        D_shelter_b4_reservoir_8018492C = NULL;
+    }
+}
+
+/// Starts or finishes the reservoir event's main and view-10 water ramps.
+///
+/// Commands 0/2 start 150-update main/view-10 ramps and retain the task handle.
+/// Commands 1/3 stop that task and set main Y to -500/view-10 Y to zero.
+/// Other values do nothing. Start commands overwrite the handle without stopping
+/// its old task: the event must finish one ramp before starting another.
+/// Requires the room overlay and its height/handle storage to remain loaded.
+static void _shelterB4ReservoirWaterCommand(s32 waterCommand)
+{
+    enum {
+        SHELTER_B4_RESERVOIR_TASK_MAIN_WATER_RAMP   = 1,
+        SHELTER_B4_RESERVOIR_TASK_VIEW10_WATER_RAMP = 2,
+        SHELTER_B4_RESERVOIR_WATER_RAMP_UPDATES     = 150,
+    };
+
+    switch (waterCommand) {
+        case SHELTER_B4_RESERVOIR_WATER_START_MAIN_RAMP:
+            D_shelter_b4_reservoir_8018492C = taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, SHELTER_B4_RESERVOIR_TASK_MAIN_WATER_RAMP, SHELTER_B4_RESERVOIR_WATER_RAMP_UPDATES, 0);
             break;
-        case 1:
-            if (D_shelter_b4_reservoir_8018492C != 0) {
-                taskKill(D_shelter_b4_reservoir_8018492C);
-                D_shelter_b4_reservoir_8018492C = 0;
-            }
-            D_shelter_b4_reservoir_80184F80 = -0x1F4;
+        case SHELTER_B4_RESERVOIR_WATER_FINISH_MAIN_RAMP:
+            _shelterB4ReservoirStopWaterRamp();
+            D_shelter_b4_reservoir_80184F80 = SHELTER_B4_RESERVOIR_MAIN_WATER_FINAL_Y;
             break;
-        case 2:
-            D_shelter_b4_reservoir_8018492C = taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, 2, 0x96, 0);
+        case SHELTER_B4_RESERVOIR_WATER_START_VIEW10_RAMP:
+            D_shelter_b4_reservoir_8018492C = taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, SHELTER_B4_RESERVOIR_TASK_VIEW10_WATER_RAMP, SHELTER_B4_RESERVOIR_WATER_RAMP_UPDATES, 0);
             break;
-        case 3:
-            if (D_shelter_b4_reservoir_8018492C != 0) {
-                taskKill(D_shelter_b4_reservoir_8018492C);
-                D_shelter_b4_reservoir_8018492C = 0;
-            }
-            D_shelter_b4_reservoir_80184F82 = 0;
+        case SHELTER_B4_RESERVOIR_WATER_RESET_VIEW10:
+            _shelterB4ReservoirStopWaterRamp();
+            D_shelter_b4_reservoir_80184F82 = SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y;
             break;
     }
 }
@@ -1372,18 +1492,24 @@ static void _shelterB4ReservoirCancelEffects(void)
     roomEffectRequestCancelAll();
 }
 
-static void func_shelter_b4_reservoir_8017E7C8(Task* arg0)
+/// Registers reservoir messages and starts water rendering and the event model.
+///
+/// Room-task state zero requires loaded room resources.
+/// Sets main water Y to -500 for any nonzero completed-event nibble, otherwise
+/// -2000. Publishes the model task for later event callbacks, then advances the
+/// room task to its next state. Child allocations are not checked for failure.
+static void _shelterB4ReservoirInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_shelter_b4_reservoir_801848BC;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_shelter_b4_reservoir_801848BC;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(D_shelter_b4_reservoir_80184F84, 0, 0, 0);
     if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
-        D_shelter_b4_reservoir_80184F80 = -0x1F4;
+        D_shelter_b4_reservoir_80184F80 = SHELTER_B4_RESERVOIR_MAIN_WATER_FINAL_Y;
     } else {
-        D_shelter_b4_reservoir_80184F80 = -0x7D0;
+        D_shelter_b4_reservoir_80184F80 = SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y;
     }
     D_shelter_b4_reservoir_80184930 = taskSpawnFromTable(D_shelter_b4_reservoir_80184920, 0, 0, 0);
-    arg0->state                     = (s32)(arg0->state + 1);
+    task->state++;
 }
 
 /// Updates the reservoir's retained spray configuration each room tick.
@@ -1847,9 +1973,13 @@ static void _shelterB4ReservoirInitializeWaterTask(Task* task)
 
 /// Places one burst point around the room anchor, consuming two random draws.
 ///
-/// pointIndex must address the ten-point table. Radius is a multiple of 64 in
-/// 0..448, angle is a 512-unit sector plus jitter in 4096 units per turn.
-/// work receives the radius and angle as signed halfwords; XYZ narrows likewise.
+/// pointIndex must be 0..9. In world units, X is anchor X +2048 and Y/Z
+/// scatter in a circle of radius 0..448 in steps of 64. The angle is
+/// pointIndex*512 plus jitter 0..511, in 4096 units per turn: points 8/9
+/// revisit the first two sectors without normalizing the stored angle.
+/// Borrows writable work for signed-halfword radius/angle scratch and writes
+/// only the selected point's XYZ, narrowing to signed halfwords. The anchor,
+/// ten-point table and work must stay live; neither allocation nor draw occurs.
 static inline void _shelterB4ReservoirScatterBurstPoint(EffectWork* work, s32 pointIndex)
 {
     enum {
@@ -2263,9 +2393,9 @@ static void _shelterB4ReservoirSetBurstConfig(s16 pointCount, u16 spawnChancePer
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_shelter_b4_reservoir_80182B1C(Task* arg0)
+void shelterB4ReservoirRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void shelterB4ReservoirRoomVisualEffectsFlyingSparkTask(Task* task)

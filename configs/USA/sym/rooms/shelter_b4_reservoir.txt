@@ -115,7 +115,7 @@ shelterB4ReservoirWaterRippleTask = 0x801803DC; // type:func
 
 shelterB4ReservoirWaterDriftTask = 0x80180864; // type:func
 
-func_shelter_b4_reservoir_80182B1C = 0x80182B1C; // type:func
+shelterB4ReservoirRoomVisualEffectsGlowDiscTask = 0x80182B1C; // type:func
 
 shelterB4ReservoirRoomVisualEffectsFlyingSparkTask = 0x80183074; // type:func
 
@@ -158,3 +158,9 @@ _shelterB4ReservoirDrawXWaterStrips = 0x8017f23c; // type:func
 _shelterB4ReservoirDrawView10WaterStrips = 0x8017f674; // type:func
 _shelterB4ReservoirDrawWaterTask = 0x8017e8ec; // type:func
 _shelterB4ReservoirWaterTask = 0x8017fadc; // type:func
+_shelterB4ReservoirExitTask = 0x8017e0ac; // type:func
+_shelterB4ReservoirWaterEventTask = 0x8017de8c; // type:func
+_shelterB4ReservoirResolveTransitionMessage = 0x8017e264; // type:func
+_shelterB4ReservoirCommandMessage = 0x8017e354; // type:func
+_shelterB4ReservoirWaterCommand = 0x8017e690; // type:func
+_shelterB4ReservoirInitializeRoomTask = 0x8017e7c8; // type:func
