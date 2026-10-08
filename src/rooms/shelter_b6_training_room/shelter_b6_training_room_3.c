@@ -121,7 +121,7 @@ TaskMessageEntry D_shelter_b6_training_room_80182AF4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, shelterB6TrainingRoomResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, shelterB6TrainingRoomRefuseKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, shelterB6TrainingRoomIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b6_training_room_8017D684 },
+    { ROOM_MESSAGE_COMMAND, shelterB6TrainingRoomHandlePartCommand },
     { ROOM_MESSAGE_ACTOR_EVENT, shelterB6TrainingRoomStartDefeatScene },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -359,15 +359,15 @@ EvsCommand D_shelter_b6_training_room_80184124[14] = {
 EvsCommand D_shelter_b6_training_room_80184274[7] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55190005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b6_training_room_8017DAC8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB6TrainingRoomStartMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b6_training_room_8017DB28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB6TrainingRoomReloadNursery }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 TaskDesc D_shelter_b6_training_room_8018431C[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b6_training_room_8017DD98, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, shelterB6TrainingRoomStartMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, streamedScenePlayThenHold, { .value = 0 } },
 };
 

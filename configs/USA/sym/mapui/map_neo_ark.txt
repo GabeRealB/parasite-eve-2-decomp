@@ -86,7 +86,7 @@ D_neo_ark_eve_elevator_8017D76C = 0x8017D76C; // absolute:True owner=neo_ark_eve
 D_neo_ark_eve_elevator_8017DA50 = 0x8017DA50; // absolute:True owner=neo_ark_eve_elevator
 D_neo_ark_eve_elevator_8017DB20 = 0x8017DB20; // absolute:True owner=neo_ark_eve_elevator shared=rooms
 D_neo_ark_eve_elevator_8017DC30 = 0x8017DC30; // absolute:True owner=neo_ark_eve_elevator
-neoArkNorthPromenadeRoomTask = 0x8017D6C8; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
+neoArkNorthPromenadeRoomTask = 0x8017D6C8; // type:func absolute:True owner=neo_ark_north_promenade
 D_neo_ark_north_promenade_80181DB4 = 0x80181DB4; // absolute:True owner=neo_ark_north_promenade
 D_neo_ark_north_promenade_80181DC4 = 0x80181DC4; // absolute:True owner=neo_ark_north_promenade shared=rooms
 D_neo_ark_north_promenade_80181DCC = 0x80181DCC; // absolute:True owner=neo_ark_north_promenade shared=rooms

@@ -22,13 +22,18 @@
 
 #include "../../shared/streamed_scene_play.inc.c"
 
-/// Entry 0 of `D_shelter_r36_8017E9A4`: spawns that table's entry 1, the
-/// stream task `streamedScenePlay`, with an ordering table, passing on
-/// this task's `spawnArg1`, sets `gDisplayState.control.flags.flipMode`, spawns the view tasks and ends.
-void func_shelter_r36_8017DBC0(Task* arg0)
+/// Hands frame presentation and the current view to R36's movie player.
+static inline void _shelterR36HandoffMovieDisplay(s32 spawnWord)
 {
-    displaySpawnTaskFromTable(D_shelter_r36_8017E9A4, 1, arg0->spawnArg1.value, 0);
+    enum { SHELTER_R36_MOVIE_PLAYER_TASK = 1 };
+
+    displaySpawnTaskFromTable(D_shelter_r36_8017E9A4, SHELTER_R36_MOVIE_PLAYER_TASK, spawnWord, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
-    taskKill(arg0);
+}
+
+void shelterR36StartMovieTask(Task* task)
+{
+    _shelterR36HandoffMovieDisplay(task->spawnArg1.value);
+    taskKill(task);
 }

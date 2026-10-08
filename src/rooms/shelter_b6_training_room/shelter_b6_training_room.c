@@ -391,34 +391,47 @@ s32 shelterB6TrainingRoomResolveRoomTransition(Task* unusedTask, s32 unusedMessa
     return SHELTER_B6_TRAINING_ROOM_TRANSITION_ALLOWED;
 }
 
-s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 shelterB6TrainingRoomHandlePartCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
-    switch (arg2) {
-        case 5:
+    enum {
+        SHELTER_B6_TRAINING_ROOM_COMMAND_PART_0        = 5,
+        SHELTER_B6_TRAINING_ROOM_COMMAND_PART_1        = 6,
+        SHELTER_B6_TRAINING_ROOM_COMMAND_CORRIDOR_PART = 4,
+        SHELTER_B6_TRAINING_ROOM_CAP_PART_0_BATTLE     = 5,
+        SHELTER_B6_TRAINING_ROOM_CAP_PART_1_BATTLE     = 6,
+        SHELTER_B6_TRAINING_ROOM_CAP_PART_0_INACTIVE   = 7,
+        SHELTER_B6_TRAINING_ROOM_CAP_PART_1_INACTIVE   = 8,
+        SHELTER_B6_TRAINING_ROOM_CAP_CORRIDOR_BATTLE   = 4,
+        SHELTER_B6_TRAINING_ROOM_CAP_CORRIDOR_DOWN     = 7,
+        SHELTER_B6_TRAINING_ROOM_CAP_CORRIDOR_IDLE     = 10
+    };
+
+    switch (command) {
+        case SHELTER_B6_TRAINING_ROOM_COMMAND_PART_0:
             if (gameFlagGetNibble(GAME_FLAG_153) != 0) {
-                capRunCommandWithTransition(7);
+                capRunCommandWithTransition(SHELTER_B6_TRAINING_ROOM_CAP_PART_0_INACTIVE);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                capRunCommandWithTransition(5);
+                capRunCommandWithTransition(SHELTER_B6_TRAINING_ROOM_CAP_PART_0_BATTLE);
             } else {
-                capRunCommandWithTransition(7);
+                capRunCommandWithTransition(SHELTER_B6_TRAINING_ROOM_CAP_PART_0_INACTIVE);
             }
             break;
-        case 6:
+        case SHELTER_B6_TRAINING_ROOM_COMMAND_PART_1:
             if (gameFlagGetNibble(GAME_FLAG_154) != 0) {
-                capRunCommandWithTransition(8);
+                capRunCommandWithTransition(SHELTER_B6_TRAINING_ROOM_CAP_PART_1_INACTIVE);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                capRunCommandWithTransition(6);
+                capRunCommandWithTransition(SHELTER_B6_TRAINING_ROOM_CAP_PART_1_BATTLE);
             } else {
-                capRunCommandWithTransition(8);
+                capRunCommandWithTransition(SHELTER_B6_TRAINING_ROOM_CAP_PART_1_INACTIVE);
             }
             break;
-        case 4:
+        case SHELTER_B6_TRAINING_ROOM_COMMAND_CORRIDOR_PART:
             if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_2_DOWN) != 0) {
-                capRunCommandWithTransition(7);
+                capRunCommandWithTransition(SHELTER_B6_TRAINING_ROOM_CAP_CORRIDOR_DOWN);
             } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
-                capRunCommandWithTransition(0xA);
+                capRunCommandWithTransition(SHELTER_B6_TRAINING_ROOM_CAP_CORRIDOR_IDLE);
             } else {
-                capRunCommandWithTransition(4);
+                capRunCommandWithTransition(SHELTER_B6_TRAINING_ROOM_CAP_CORRIDOR_BATTLE);
             }
             break;
     }
@@ -558,10 +571,11 @@ void shelterB6TrainingRoomPlayerHeadAimTask(Task* task)
     }
 }
 
-/// Spawns the task that starts the room's stream playback.
-void func_shelter_b6_training_room_8017DAC8(void)
+void shelterB6TrainingRoomStartMovie(void)
 {
-    taskSpawnFromTable(D_shelter_b6_training_room_8018431C, 0, 0, 0);
+    enum { SHELTER_B6_TRAINING_ROOM_MOVIE_LAUNCH_TASK = 0 };
+
+    taskSpawnFromTable(D_shelter_b6_training_room_8018431C, SHELTER_B6_TRAINING_ROOM_MOVIE_LAUNCH_TASK, 0, 0);
 }
 
 void shelterB6TrainingRoomPrepareDefeatScene(s32 endDelayFrames)
@@ -572,12 +586,16 @@ void shelterB6TrainingRoomPrepareDefeatScene(s32 endDelayFrames)
     }
 }
 
-/// Sets the saved location to area 0x16, warp 1, room 1 and spawns task 0x11.
-void func_shelter_b6_training_room_8017DB28(void)
+void shelterB6TrainingRoomReloadNursery(void)
 {
+    enum {
+        SHELTER_B6_TRAINING_ROOM_NURSERY_ARRIVAL = 1,
+        SHELTER_B6_TRAINING_ROOM_NURSERY_VARIANT = 1
+    };
+
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B6_NURSERY;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_B6_TRAINING_ROOM_NURSERY_ARRIVAL;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = SHELTER_B6_TRAINING_ROOM_NURSERY_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 

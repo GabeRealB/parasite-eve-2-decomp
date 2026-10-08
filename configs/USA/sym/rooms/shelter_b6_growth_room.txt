@@ -58,3 +58,6 @@ _shelterB6GrowthRoomRejectKeyItemUse = 0x8017d5e8; // type:func
 _shelterB6GrowthRoomResolveRoomVariant = 0x8017d5f0; // type:func
 _shelterB6GrowthRoomMessageIdle = 0x8017d7cc; // type:func
 shelterB6GrowthRoomTask = 0x8017d7d4; // type:func
+_shelterB6GrowthRoomHandleCompanionCommand = 0x8017d634; // type:func
+_shelterB6GrowthRoomHandleRoomAction = 0x8017d6c8; // type:func
+_shelterB6GrowthRoomInitializeTask = 0x8017d71c; // type:func

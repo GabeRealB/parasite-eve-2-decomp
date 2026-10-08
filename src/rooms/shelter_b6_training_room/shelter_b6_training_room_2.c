@@ -22,13 +22,18 @@
 
 #include "../../shared/streamed_scene_play_then_hold.inc.c"
 
-/// One-shot task: spawns the stream player, the second entry of the room's
-/// descriptor pair, as the display's owning task, sets `gDisplayState.control.flags.flipMode`, spawns
-/// the view tasks and kills itself.
-void func_shelter_b6_training_room_8017DD98(Task* arg0)
+/// Hands frame presentation and the current view to the room's movie player.
+static inline void _shelterB6TrainingRoomHandoffMovieDisplay(void)
 {
-    displaySpawnTaskFromTable(D_shelter_b6_training_room_8018431C, 1, 0, 0);
+    enum { SHELTER_B6_TRAINING_ROOM_MOVIE_PLAYER_TASK = 1 };
+
+    displaySpawnTaskFromTable(D_shelter_b6_training_room_8018431C, SHELTER_B6_TRAINING_ROOM_MOVIE_PLAYER_TASK, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
-    taskKill(arg0);
+}
+
+void shelterB6TrainingRoomStartMovieTask(Task* task)
+{
+    _shelterB6TrainingRoomHandoffMovieDisplay();
+    taskKill(task);
 }

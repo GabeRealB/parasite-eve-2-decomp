@@ -72,9 +72,10 @@ extern AnimationPlayRequest D_shelter_r36_8017DD94;
 extern AnimationPlayRequest D_shelter_r36_8017DDD0;
 extern ActorCommand         D_shelter_r36_8017DC24;
 extern ActorCommand         D_shelter_r36_8017DC28;
-void                        func_shelter_r36_8017D5E8(Task*);
-void                        func_shelter_r36_8017D738(void);
-void                        func_shelter_r36_8017D7B4(Task*);
+static void                 _shelterR36ArrivalSceneTask(Task* task);
+static void                 _shelterR36ReloadForMovie(void);
+static void                 _shelterR36MovieEndingTask(Task* task);
+static void                 _shelterR36InitializeTask(Task* task);
 static void                 _shelterR36SelectCapFile(s32 capFileId);
 
 AnimationPlayRequest D_shelter_r36_8017DC10 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -151,8 +152,8 @@ AnimationPlayRequest D_shelter_r36_8017DEE8 = { { .index = 1 }, 18, ANIMATION_BL
 ActorTransform D_shelter_r36_8017DEFC = { { 3270, -0x2710, -1630, 0 }, { 0, 0, 0, 0 } };
 
 TaskDesc D_shelter_r36_8017DF14[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_r36_8017D5E8, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_r36_8017D7B4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterR36ArrivalSceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterR36MovieEndingTask, { .value = 0 } },
 };
 
 EvsCommand D_shelter_r36_8017DF2C[69] = {
@@ -260,7 +261,7 @@ EvsCommand D_shelter_r36_8017E664[25] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_r36_8017D738 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterR36ReloadForMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -272,7 +273,7 @@ EvsCommand D_shelter_r36_8017E8BC[8] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_r36_8017D738 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterR36ReloadForMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -286,7 +287,7 @@ TaskMessageEntry D_shelter_r36_8017E97C[5] = {
 };
 
 TaskDesc D_shelter_r36_8017E9A4[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_r36_8017DBC0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, shelterR36StartMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, streamedScenePlay, { .value = 0 } },
 };
 
@@ -598,39 +599,51 @@ WorldCollisionSurfaceProperties* D_shelter_r36_8017FAE4[8] = {
     D_shelter_r36_8017FABC,
 };
 
-static void func_shelter_r36_8017D924(Task* task);
 static void _shelterR36MessageIdle(Task* task);
 
-/// Entry 0 of `D_shelter_r36_8017DF14`, spawned on arrival by warp 1. If
-/// event nibble 0x113 is clear it starts CAP slot 1; otherwise it loads CAP
-/// file 3 and starts slot 2, then passes the first pair of event blocks to
-/// `evsStartScriptWithSkip`. Once `eventState` is back to 0 it either sets restart mode
-/// 0xFF and session `deathFadeFrames` to 1 and ends (nibble still clear), or resets
-/// the CAP state and passes the second pair before ending.
-void func_shelter_r36_8017D5E8(Task* task)
+/// Runs the first-arrival scene, then requests the ending or its follow-up scene.
+///
+/// States 0..2 start the scene, wait for event-script completion and start
+/// the follow-up. Meeting progress selects the initial CAP sequence and is
+/// tested again at completion: no progress requests the ending with a one-tick
+/// fade; recorded progress resets CAP and advances to the follow-up scene.
+/// Borrows loaded room/actor scripts and CAP data through playback. Other
+/// state values do nothing. Each finishing path releases the zero-body task.
+static void _shelterR36ArrivalSceneTask(Task* task)
 {
+    enum {
+        SHELTER_R36_ARRIVAL_START           = 0,
+        SHELTER_R36_ARRIVAL_WAIT_SCENE      = 1,
+        SHELTER_R36_ARRIVAL_START_FOLLOW_UP = 2,
+        SHELTER_R36_CAP_INITIAL_SLOT        = 1,
+        SHELTER_R36_CAP_PROGRESS_SLOT       = 2,
+        SHELTER_R36_CAP_PROGRESS_FILE       = 3,
+        SHELTER_R36_CAP_PROGRESS_TEXTURE_X  = 320,
+        SHELTER_R36_CAP_PROGRESS_TEXTURE_Y  = 256
+    };
     s32 state;
-    s16 slot;
+    s16 sequenceSlot;
 
     state = task->state;
     switch (state) {
-        case 0:
+        case SHELTER_R36_ARRIVAL_START:
             if (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 0) {
-                slot = 1;
+                sequenceSlot = SHELTER_R36_CAP_INITIAL_SLOT;
             } else {
-                Gp_CapFile = 0;
-                capSelectLoadedFile(3);
-                capSetTexturePage(0x140, 0x100);
-                slot = 2;
+                Gp_CapFile = NULL;
+                capSelectLoadedFile(SHELTER_R36_CAP_PROGRESS_FILE);
+                capSetTexturePage(SHELTER_R36_CAP_PROGRESS_TEXTURE_X, SHELTER_R36_CAP_PROGRESS_TEXTURE_Y);
+                sequenceSlot = SHELTER_R36_CAP_PROGRESS_SLOT;
             }
-            capStartSequenceSlot(slot, 0, 0);
+            capStartSequenceSlot(sequenceSlot, CAP_PLAYBACK_IN_PLACE, 0);
             evsStartScriptWithSkip(D_shelter_r36_8017DF2C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_r36_8017E5A4);
             task->state++;
             break;
-        case 1:
+        case SHELTER_R36_ARRIVAL_WAIT_SCENE:
             if (gGameSession->eventState == 0) {
                 if (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 0) {
-                    gGameSession->restartMode     = GAME_SESSION_RESTART_ENDING;
+                    gGameSession->restartMode = GAME_SESSION_RESTART_ENDING;
+                    // This wait state's value also supplies the one-tick ending fade.
                     gGameSession->deathFadeFrames = state;
                     taskKill(task);
                 } else {
@@ -639,47 +652,68 @@ void func_shelter_r36_8017D5E8(Task* task)
                 }
             }
             break;
-        case 2:
+        case SHELTER_R36_ARRIVAL_START_FOLLOW_UP:
             evsStartScriptWithSkip(D_shelter_r36_8017E664, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_r36_8017E8BC);
             taskKill(task);
             break;
     }
 }
 
-/// Leaves for stage 4, area 0x24, warp 2, room 1 by spawning task 0x11 and
-/// starting the boot load, unless `demoScene` is 9. Reached from the room's
-/// event data.
-void func_shelter_r36_8017D738(void)
+/// Reloads R36 at its movie arrival after the follow-up scene.
+///
+/// Attract demo 9 suppresses the reload. Otherwise updates the live save to
+/// Mine/Shelter, R36, warp 2, variant 1, preserving the saved view. Selects
+/// sprite variant 1, queues a frame-capturing reload and begins its alternate
+/// loading caption. Used by both normal and skipped follow-up scripts.
+static void _shelterR36ReloadForMovie(void)
 {
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+    enum {
+        SHELTER_R36_ATTRACT_DEMO         = 9,
+        SHELTER_R36_MOVIE_ARRIVAL        = 2,
+        SHELTER_R36_MOVIE_ROOM_VARIANT   = 1,
+        SHELTER_R36_MOVIE_SPRITE_VARIANT = 1
+    };
+
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != SHELTER_R36_ATTRACT_DEMO) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_R36;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-        gDisplayState.spriteVariant                                 = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = SHELTER_R36_MOVIE_ARRIVAL;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = SHELTER_R36_MOVIE_ROOM_VARIANT;
+        gDisplayState.spriteVariant                                 = SHELTER_R36_MOVIE_SPRITE_VARIANT;
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_ALTERNATE);
     }
 }
 
-/// Entry 1 of `D_shelter_r36_8017DF14`, spawned on arrival by warp 2: spawns
-/// entry 0 of `D_shelter_r36_8017E9A4`, which starts the stream, and two frames
-/// later sets restart mode 0xFF and session `deathFadeFrames` to 1 and ends.
-void func_shelter_r36_8017D7B4(Task* task)
+/// Starts the second-arrival movie and schedules the ending two task calls later.
+///
+/// States 0 and 1 hold player control while the movie launcher takes over
+/// display presentation; state 2 requests the ending with a one-tick fade and
+/// releases this zero-body task. Other states do nothing. Requires the room's
+/// movie resources and live player/session; it does not wait for movie completion.
+static void _shelterR36MovieEndingTask(Task* task)
 {
+    enum {
+        SHELTER_R36_MOVIE_ENDING_START  = 0,
+        SHELTER_R36_MOVIE_ENDING_WAIT   = 1,
+        SHELTER_R36_MOVIE_ENDING_FINISH = 2,
+        SHELTER_R36_MOVIE_LAUNCH_TASK   = 0,
+        SHELTER_R36_ENDING_FADE_TICKS   = 1
+    };
+
     switch (task->state) {
-        case 0:
+        case SHELTER_R36_MOVIE_ENDING_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_r36_8017E9A4, 0, 0, 0);
+            taskSpawnFromTable(D_shelter_r36_8017E9A4, SHELTER_R36_MOVIE_LAUNCH_TASK, 0, 0);
             task->state++;
             break;
-        case 1:
+        case SHELTER_R36_MOVIE_ENDING_WAIT:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             task->state++;
             break;
-        case 2:
+        case SHELTER_R36_MOVIE_ENDING_FINISH:
             gGameSession->restartMode     = GAME_SESSION_RESTART_ENDING;
-            gGameSession->deathFadeFrames = 1;
+            gGameSession->deathFadeFrames = SHELTER_R36_ENDING_FADE_TICKS;
             taskKill(task);
             break;
     }
@@ -745,18 +779,28 @@ static s32 _shelterR36IgnoreRoomAction(Task* task, s32 messageId, DirectionActio
     return 0;
 }
 
-/// The room entry task's first state: installs the room's message table, takes
-/// pointer slot 7, and spawns the entry of `D_shelter_r36_8017DF14` that
-/// matches the arrival warp (1 or 2).
-static void func_shelter_r36_8017D924(Task* task)
+/// Registers the room controller and starts the scene selected by its arrival.
+///
+/// State 0 starts the arrival scene at warp 1 or the movie/ending sequence at
+/// warp 2, then advances to message service in state 1. Other warps start no
+/// event task. Descriptors and their room resources must be loaded; allocation
+/// failure is ignored. The registered room-task handle is borrowed.
+static void _shelterR36InitializeTask(Task* task)
 {
+    enum {
+        SHELTER_R36_SCENE_ARRIVAL      = 1,
+        SHELTER_R36_MOVIE_ARRIVAL      = 2,
+        SHELTER_R36_ARRIVAL_SCENE_TASK = 0,
+        SHELTER_R36_MOVIE_ENDING_TASK  = 1
+    };
+
     task->msgTable = D_shelter_r36_8017E97C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.warp == 1) {
-        taskSpawnFromTable(D_shelter_r36_8017DF14, 0, 0, 0);
+    if (gGameSession->location.loc.warp == SHELTER_R36_SCENE_ARRIVAL) {
+        taskSpawnFromTable(D_shelter_r36_8017DF14, SHELTER_R36_ARRIVAL_SCENE_TASK, 0, 0);
     }
-    if (gGameSession->location.loc.warp == 2) {
-        taskSpawnFromTable(D_shelter_r36_8017DF14, 1, 0, 0);
+    if (gGameSession->location.loc.warp == SHELTER_R36_MOVIE_ARRIVAL) {
+        taskSpawnFromTable(D_shelter_r36_8017DF14, SHELTER_R36_MOVIE_ENDING_TASK, 0, 0);
     }
     task->state++;
 }
@@ -770,15 +814,13 @@ static void _shelterR36MessageIdle(Task* task)
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_shelter_r36_8017D5C4 = {
-    { func_shelter_r36_8017D924, _shelterR36MessageIdle, taskKill },
+    { _shelterR36InitializeTask, _shelterR36MessageIdle, taskKill },
 };
 
-/// Runs the room entry task's current state from its three-entry table, which
-/// it copies onto the stack before the call.
-void func_shelter_r36_8017D9DC(Task* task)
+void shelterR36RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_r36_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_shelter_r36_8017D5C4;
+    states.funcs[task->state](task);
 }

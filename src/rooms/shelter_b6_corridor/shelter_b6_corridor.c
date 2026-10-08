@@ -125,10 +125,10 @@ enum {
 };
 
 static s32 _shelterB6CorridorRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedArg);
-s32        func_shelter_b6_corridor_8017DEB0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_shelter_b6_corridor_8017DF48(Task*, s32, s32, s32);
+static s32 _shelterB6CorridorResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _shelterB6CorridorHandlePartCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
 static s32 _shelterB6CorridorIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, DirectionActionRequest* unusedRequest, s32 unusedArg);
-s32        func_shelter_b6_corridor_8017E028(Task*, s32, s32, s32);
+static s32 _shelterB6CorridorStartBattleEndScene(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
     { { { TASK_BODY_NONE, 192 } }, _screenWaveGridTask, { .value = 0 } },
@@ -140,11 +140,11 @@ s32 gScreenWaveRamp = 256;
 enum { SHELTER_B6_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskMessageEntry D_shelter_b6_corridor_8017EF24[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_corridor_8017DEB0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB6CorridorResolveRoomTransition },
     { SHELTER_B6_CORRIDOR_MESSAGE_USE_KEY_ITEM, _shelterB6CorridorRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB6CorridorIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b6_corridor_8017DF48 },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_b6_corridor_8017E028 },
+    { ROOM_MESSAGE_COMMAND, _shelterB6CorridorHandlePartCommand },
+    { ROOM_MESSAGE_ACTOR_EVENT, _shelterB6CorridorStartBattleEndScene },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -545,56 +545,90 @@ static s32 _shelterB6CorridorRejectKeyItemUse(Task* unusedTask, s32 unusedMessag
     return 0;
 }
 
-s32 func_shelter_b6_corridor_8017DEB0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a transition and gates departure from the corridor during battle.
+///
+/// `ROOM_EVENT_MESSAGE_RESOLVE` borrows complete eight-byte, two-byte-aligned
+/// records; the reply is writable and may alias the request. Copies the request
+/// and resolves the destination variant before testing its original area ID.
+/// Eve Elevator requests return zero, running CAP command 1 only on execution.
+/// Training Room requests return one only outside an engaged battle; other
+/// destinations return one. Retains neither record. Queries never start CAP.
+static s32 _shelterB6CorridorResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    u16 id;
-    s32 k;
+    enum {
+        SHELTER_B6_CORRIDOR_CAP_BLOCKED_ELEVATOR = 1,
+        SHELTER_B6_CORRIDOR_TRANSITION_BLOCKED   = 0,
+        SHELTER_B6_CORRIDOR_TRANSITION_ALLOWED   = 1
+    };
+    u16 destinationArea;
+    s32 areaComparison;
 
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    k  = in->areaId;
-    id = k;
-    k  = 0x19;
-    if (id == 9) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            capRunCommandWithTransition(1);
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    // The matching code shares this temporary between the load and later comparison.
+    areaComparison  = request->areaId;
+    destinationArea = areaComparison;
+    areaComparison  = GAME_AREA_SHELTER_B6_TRAINING_ROOM;
+    if (destinationArea == GAME_AREA_NEO_ARK_EVE_ELEVATOR) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            capRunCommandWithTransition(SHELTER_B6_CORRIDOR_CAP_BLOCKED_ELEVATOR);
         }
-        return 0;
+        return SHELTER_B6_CORRIDOR_TRANSITION_BLOCKED;
     }
-    if (id == k) {
+    if (destinationArea == areaComparison) {
         return gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
     }
-    return 1;
+    return SHELTER_B6_CORRIDOR_TRANSITION_ALLOWED;
 }
 
-s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Chooses dialogue for the corridor's three Eve parts from destruction and battle state.
+///
+/// `ROOM_MESSAGE_COMMAND` selects part 0, 1 or 2 with commands 2, 3 or 4.
+/// Destroyed parts use CAP commands 5..7, live parts in battle use 2..4, and
+/// live parts outside battle use 8..10. Other commands do nothing. Returns zero;
+/// the receiver, message ID and second payload word are unused.
+static s32 _shelterB6CorridorHandlePartCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
-    switch (arg2) {
-        case 2:
+    enum {
+        SHELTER_B6_CORRIDOR_COMMAND_PART_0       = 2,
+        SHELTER_B6_CORRIDOR_COMMAND_PART_1       = 3,
+        SHELTER_B6_CORRIDOR_COMMAND_PART_2       = 4,
+        SHELTER_B6_CORRIDOR_CAP_PART_0_BATTLE    = 2,
+        SHELTER_B6_CORRIDOR_CAP_PART_1_BATTLE    = 3,
+        SHELTER_B6_CORRIDOR_CAP_PART_2_BATTLE    = 4,
+        SHELTER_B6_CORRIDOR_CAP_PART_0_DESTROYED = 5,
+        SHELTER_B6_CORRIDOR_CAP_PART_1_DESTROYED = 6,
+        SHELTER_B6_CORRIDOR_CAP_PART_2_DESTROYED = 7,
+        SHELTER_B6_CORRIDOR_CAP_PART_0_IDLE      = 8,
+        SHELTER_B6_CORRIDOR_CAP_PART_1_IDLE      = 9,
+        SHELTER_B6_CORRIDOR_CAP_PART_2_IDLE      = 10
+    };
+    switch (command) {
+        case SHELTER_B6_CORRIDOR_COMMAND_PART_0:
             if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN) != 0) {
-                capRunCommandWithTransition(5);
+                capRunCommandWithTransition(SHELTER_B6_CORRIDOR_CAP_PART_0_DESTROYED);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                capRunCommandWithTransition(2);
+                capRunCommandWithTransition(SHELTER_B6_CORRIDOR_CAP_PART_0_BATTLE);
             } else {
-                capRunCommandWithTransition(8);
+                capRunCommandWithTransition(SHELTER_B6_CORRIDOR_CAP_PART_0_IDLE);
             }
             break;
-        case 3:
+        case SHELTER_B6_CORRIDOR_COMMAND_PART_1:
             if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_1_DOWN) != 0) {
-                capRunCommandWithTransition(6);
+                capRunCommandWithTransition(SHELTER_B6_CORRIDOR_CAP_PART_1_DESTROYED);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                capRunCommandWithTransition(3);
+                capRunCommandWithTransition(SHELTER_B6_CORRIDOR_CAP_PART_1_BATTLE);
             } else {
-                capRunCommandWithTransition(9);
+                capRunCommandWithTransition(SHELTER_B6_CORRIDOR_CAP_PART_1_IDLE);
             }
             break;
-        case 4:
+        case SHELTER_B6_CORRIDOR_COMMAND_PART_2:
             if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_2_DOWN) != 0) {
-                capRunCommandWithTransition(7);
+                capRunCommandWithTransition(SHELTER_B6_CORRIDOR_CAP_PART_2_DESTROYED);
             } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
-                capRunCommandWithTransition(0xA);
+                capRunCommandWithTransition(SHELTER_B6_CORRIDOR_CAP_PART_2_IDLE);
             } else {
-                capRunCommandWithTransition(4);
+                capRunCommandWithTransition(SHELTER_B6_CORRIDOR_CAP_PART_2_BATTLE);
             }
             break;
     }
@@ -610,10 +644,17 @@ static s32 _shelterB6CorridorIgnoreRoomAction(Task* unusedTask, s32 unusedMessag
     return 0;
 }
 
-s32 func_shelter_b6_corridor_8017E028(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Starts the skippable battle-end scene and records its objective.
+///
+/// Handles every `ROOM_MESSAGE_ACTOR_EVENT` identically, ignoring both words
+/// and returning zero. The scene hides/restores the HUD and borrows room-owned
+/// normal and skip scripts, which must remain loaded through playback.
+static s32 _shelterB6CorridorStartBattleEndScene(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
+    enum { SHELTER_B6_CORRIDOR_OBJECTIVE_AFTER_BATTLE = 0x2F };
+
     evsStartScriptWithSkip(D_shelter_b6_corridor_8017F354, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b6_corridor_8017F684);
-    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2F);
+    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_CORRIDOR_OBJECTIVE_AFTER_BATTLE);
     return 0;
 }
 

@@ -153,3 +153,7 @@ shelterB6TrainingRoomRoomTask = 0x8017d8e8; // type:func
 shelterB6TrainingRoomPrepareDefeatScene = 0x8017daf8; // type:func
 shelterB6TrainingRoomStopBattlePresentation = 0x8017db70; // type:func
 shelterB6TrainingRoomStartPlayerHeadAim = 0x8017d940; // type:func
+shelterB6TrainingRoomHandlePartCommand = 0x8017d684; // type:func
+shelterB6TrainingRoomStartMovie = 0x8017dac8; // type:func
+shelterB6TrainingRoomReloadNursery = 0x8017db28; // type:func
+shelterB6TrainingRoomStartMovieTask = 0x8017dd98; // type:func

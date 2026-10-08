@@ -46,7 +46,14 @@ s32 shelterB6TrainingRoomRefuseKeyItemUse(Task* unusedTask, s32 unusedMessageId,
 /// The receiver and message ID are unused callback arguments.
 s32 shelterB6TrainingRoomResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 
-s32 func_shelter_b6_training_room_8017D684(Task*, s32, s32, s32);
+/// Chooses Eve-part dialogue from destruction flags and the current battle phase.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`. Commands 5 and 6 select training-room parts
+/// 0 and 1: destroyed or non-battle parts use CAP 7/8, live parts in battle use
+/// CAP 5/6. Command 4 checks corridor part 2 and uses CAP 7 when destroyed,
+/// CAP 10 outside battle, or CAP 4 in battle. Other commands have no effect.
+/// Returns zero and ignores the receiver, message ID and second payload word.
+s32 shelterB6TrainingRoomHandlePartCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
 
 /// Ignores trigger requests delivered through `DIRECTION_MESSAGE_ROOM_ACTION`.
 ///
@@ -99,7 +106,12 @@ void shelterB6TrainingRoomControlPlayerHeadAim(s32 command);
 /// kills the controller once that gate opens. Allocates no work or model body.
 void shelterB6TrainingRoomPlayerHeadAimTask(Task* task);
 
-void func_shelter_b6_training_room_8017DAC8(void);
+/// Queues the room's movie launcher on the current execution list.
+///
+/// The departure script calls this before requesting the nursery reload.
+/// The loaded room descriptors, movie and display resources must remain live
+/// through the handoff. Passes zero spawn words and ignores allocation failure.
+void shelterB6TrainingRoomStartMovie(void);
 
 /// Requests weapon re-equipping and optionally replaces the battle-end hold.
 ///
@@ -108,7 +120,12 @@ void func_shelter_b6_training_room_8017DAC8(void);
 /// use 100 normally and 8 when skipped. Does not change the battle phase.
 void shelterB6TrainingRoomPrepareDefeatScene(s32 endDelayFrames);
 
-void func_shelter_b6_training_room_8017DB28(void);
+/// Requests a session reload into the nursery's first arrival and room variant.
+///
+/// Updates area, warp and room in the live save, preserving stage and view.
+/// Queues the reload task with frame capture; the script calls it after starting
+/// the movie. Requires the active Neo Ark stage and the reload task bank.
+void shelterB6TrainingRoomReloadNursery(void);
 
 /// Locks attachment changes and stops battle effects and non-ambient sound scripts.
 ///
@@ -117,6 +134,12 @@ void func_shelter_b6_training_room_8017DB28(void);
 /// Ambient scripts and the other attachment flags are preserved.
 void shelterB6TrainingRoomStopBattlePresentation(void);
 
-void func_shelter_b6_training_room_8017DD98(Task*);
+/// Gives display presentation to the room's movie player, then releases the launcher.
+///
+/// Launches descriptor 1 with zero spawn words, selects task-only flipping and
+/// queues the current camera and sprite packets. Requires valid loaded session,
+/// camera, sprite and movie resources through playback/restoration. No task work
+/// is allocated here; launch failure is ignored and still releases `task`.
+void shelterB6TrainingRoomStartMovieTask(Task* task);
 
 #endif // SRC_ROOMS_SHELTER_B6_TRAINING_ROOM_SHELTER_B6_TRAINING_ROOM_PRIVATE_H

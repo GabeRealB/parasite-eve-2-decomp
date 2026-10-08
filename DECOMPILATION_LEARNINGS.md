@@ -44699,7 +44699,7 @@ the whole thing.
 
 ## Invert the `if`/`else` in the switch case that falls into the cross-jumped tail
 
-`func_shelter_b6_corridor_8017DF48` is `switch (arg2)` over cases 2/3/4, each
+`_shelterB6CorridorHandlePartCommand` is `switch (command)` over cases 2/3/4, each
 doing `gameFlagGetNibble(...)` and then one of three `capRunCommandWithTransition(N)` calls.
 Writing it with a `cmd` local and one call after the switch puts `cmd` in `$s0`
 (live across the `jal`) and fills the final `jal`'s delay slot — the ROM instead
@@ -77818,7 +77818,7 @@ register reuse.
 
 `D_8007218B` is `gMcSaveData.demoScene` (`gMcSaveData = 0x80072168`), so the
 guard in `_actor461800FinishScene` can be written either way, and a matched
-sibling in the same family (`func_shelter_r36_8017D738`) writes the field form.
+sibling in the same family (`_shelterR36ReloadForMovie`) writes the field form.
 Both assemble to the same immediate, but they do not compile the same:
 
 ```c
@@ -85125,7 +85125,7 @@ The function itself is the standard "story trigger unless the demo is running"
 shape: `if (gMcSaveData.demoScene != 9)` — 9 is the `taskSpawn` bank the
 `Gp_StrDemoWait` / `Gp_StrDemoPause` prompts key off — then arm the scene event
 byte `field_5C5` and spawn the table's task. `_actor450800EnterGrowthRoom` and
-`func_shelter_r36_8017D738` are the same shape with `taskSpawn` instead.
+`_shelterR36ReloadForMovie` are the same shape with `taskSpawn` instead.
 
 Inputs: `base.i` (seed retyped to `extern TaskDesc D_8017DA00;`, 100.000% with
 all-zero penalties on the first build)
@@ -87937,7 +87937,7 @@ So when the target's condition register feeds a *value* line rather than a
 branch, the source is a `? :`, and which register the value lands in is decided
 by evaluation order: a definition placed before a call in the RTL cannot become
 an argument register. The same shape is already in the matched
-`func_shelter_b6_growth_room_8017D634` -
+`_shelterB6GrowthRoomHandleCompanionCommand` -
 `capSpawnEventIfIdle(gameFlagGetNibble(0xD8) == 0 ? 0x10 : 0x11, 0)` - which is
 where the pattern was read off before the first rebuild.
 
@@ -141534,21 +141534,21 @@ and with `&&` the first two also merge into one masked `lw` (see the
 `gGameSession`. The separate address computation survives because `k` is a
 distinct pseudo that CSE does not fold back into the base.
 
-### Swapped registers between a value and a compare constant: reuse the constant's local for the load to raise its global-alloc priority (func_shelter_b6_corridor_8017DEB0, 2026-09-24)
+### Swapped registers between a value and a compare constant: reuse the constant's local for the load to raise its global-alloc priority (_shelterB6CorridorResolveRoomTransition, 2026-09-24)
 
 **Symptom.** A `u16` read after a call is compared with 9, and then with 0x19
 on the other path. The target holds the value in `a0` and 0x19 in `v1`. The
-natural `if (id == 9) ... if (id == 0x19)` gives `v1` for the value and `v0`
+natural `if (destinationArea == 9) ... if (destinationArea == 0x19)` gives `v1` for the value and `v0`
 for the constant; everything else matches (99.34%). Hoisting the constant into
-a local (`k = 0x19;` before the first test) makes it a global pseudo. Its
+a local (`areaComparison = 0x19;` before the first test) makes it a global pseudo. Its
 2 refs over 10 insns still rank below the value's 3 refs over 4, so the value
 still takes `v1` first and the constant gets `a0`.
 
 **Fix (permuter).** Load through the constant's local and reuse it:
-`k = in->msgId; id = k; k = 0x19;`. The one pseudo now has 4 refs over the
+`areaComparison = request->areaId; destinationArea = areaComparison; areaComparison = 0x19;`. The one pseudo now has 4 refs over the
 same 10 insns, so global.c's `floor_log2(refs) * refs / live_length` gives
-0.8 against `id`'s 0.75. `k` is allocated first and takes `v1`, since `v0`
-is held by the local 9 constant, and `id` falls to `a0`. The `.lreg`
+0.8 against `destinationArea`'s 0.75. `areaComparison` is allocated first and takes `v1`, since `v0`
+is held by the local 9 constant, and `destinationArea` falls to `a0`. The `.lreg`
 "used N times across M insns" lines are enough to check the ranking before
 building.
 

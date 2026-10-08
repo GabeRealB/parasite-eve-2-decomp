@@ -33,6 +33,11 @@ extern WorldCollisionTrigger D_shelter_r36_8017F6F4[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_r36_8017FAE4[];
 
-void func_shelter_r36_8017D9DC(Task* task);
+/// Runs the R36 room controller's initialization, message service or teardown.
+///
+/// `task->state` must be 0..2: arrival setup, idle service and release.
+/// The map overlay spawns this zero-body task for stage 4, area 36. Keep the
+/// room overlay and its resources loaded while the controller is live.
+void shelterR36RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_R36_H
