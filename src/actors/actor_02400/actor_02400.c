@@ -205,6 +205,37 @@ typedef struct {
 } _Actor02400ScaleScratch;
 STATIC_ASSERT_SIZEOF(_Actor02400ScaleScratch, 0x40);
 
+/// Advances the amoeba's signed Q12 growth pulse and applies it to all axes.
+///
+/// `bodyWork` is live body work with `counter` in -256..256 and `swingDown`
+/// selecting its direction. `bias` is the Q12 growth bias (64 for casting,
+/// 128 for waking). Each pulse changes by 64 and reverses at the limits;
+/// the signed increment and the axis stores retain halfword narrowing.
+/// Arguments are evaluated repeatedly; supply stable expressions without
+/// side effects. Expands to one block, captures no caller locals and uses
+/// block-local constants. The caller checks whether swelling has finished.
+#define ACTOR_02400_SWELL_BODY(bodyWork, bias)                                             \
+    {                                                                                      \
+        enum {                                                                             \
+            ACTOR_02400_SWELL_PULSE_STEP  = ONE / 64,                                      \
+            ACTOR_02400_SWELL_PULSE_LIMIT = ONE / 16,                                      \
+        };                                                                                 \
+        if ((bodyWork)->swingDown == 0) {                                                  \
+            (bodyWork)->counter += ACTOR_02400_SWELL_PULSE_STEP;                           \
+            if ((bodyWork)->counter >= ACTOR_02400_SWELL_PULSE_LIMIT) {                    \
+                (bodyWork)->swingDown = 1;                                                 \
+            }                                                                              \
+        } else {                                                                           \
+            (bodyWork)->counter -= ACTOR_02400_SWELL_PULSE_STEP;                           \
+            if ((bodyWork)->counter < 1 - ACTOR_02400_SWELL_PULSE_LIMIT) {                 \
+                (bodyWork)->swingDown = 0;                                                 \
+            }                                                                              \
+        }                                                                                  \
+        (bodyWork)->scale.vx = (s16)((bodyWork)->counter + (bias)) + (bodyWork)->scale.vx; \
+        (bodyWork)->scale.vy = (s16)((bodyWork)->counter + (bias)) + (bodyWork)->scale.vy; \
+        (bodyWork)->scale.vz = (s16)((bodyWork)->counter + (bias)) + (bodyWork)->scale.vz; \
+    }
+
 extern DamageAttack Actor02400_BodyPairs[4];
 extern EnemyParams  Actor02400_Params0;
 extern EnemyParams  Actor02400_Params1;
@@ -216,16 +247,16 @@ extern s16      Actor02400_D0463C[];
 extern TaskDesc Actor02400_D0465C[];
 
 static void _actor02400InitBody(Enemy* enemy, Task* task);
-static void Actor02400_Fn024F8(Enemy* enemy, Task* task);
+static void _actor02400TeardownBody(Enemy* enemy, Task* task);
 static void _actor02400InitFireball(Enemy* enemy, Task* task);
 static void Actor02400_Fn02AF0(Enemy* enemy, Task* task);
-static void Actor02400_Fn02E0C(Enemy* enemy, Task* task);
+static void _actor02400UpdateBody(Enemy* enemy, Task* task);
 static void _actor02400TeardownFireball(Enemy* enemy, Task* task);
-static void Actor02400_Fn02EDC(Task* task);
+static void _actor02400UpdateBehavior(Task* task);
 static void _actor02400UpdateHurt(Task* task);
 static void _actor02400UpdateArm(Task* task);
 static void _actor02400StepForward(Task* task);
-static void Actor02400_Fn031D0(Task* task);
+static void _actor02400UpdateColor(Task* task);
 static void _actor02400DrawShadow(Task* task);
 static void _actor02400ApplyDeathScale(Task* task);
 
@@ -361,9 +392,9 @@ TaskDesc Actor02400_D0465C[2] = {
     { { { TASK_BODY_COORD, 96 } }, _actor02400FireballTask, { .value = 0 } },
 };
 
-static void Actor02400_Fn00C08(Task* task);
-static void Actor02400_Fn01590(Task* task);
-static void Actor02400_Fn01B90(Task* task);
+static void _actor02400ResolveBodyContacts(Task* task);
+static void _actor02400UpdateCrawl(Task* task);
+static void _actor02400UpdateCast(Task* task);
 
 #include "../../shared/fireball_glow.inc.c"
 
@@ -372,13 +403,16 @@ static void Actor02400_Fn01B90(Task* task);
 /// The main body's state handlers, run by `_actor02400BodyTask` for the task's
 /// state: spawn, per-frame tick and death.
 static const EnemyTaskFuncTable3 Actor02400_D00004 = {
-    { _actor02400InitBody, Actor02400_Fn02E0C, Actor02400_Fn024F8 },
+    { _actor02400InitBody, _actor02400UpdateBody, _actor02400TeardownBody },
 };
 
-/// Links the amoeba's radius-200 hit sphere and initializes its four contacts.
+/// Registers the amoeba's damage-receiving sphere with floor and overlap tests.
 ///
-/// Requires zeroed body work and a live root. Its centre is 200 local units
-/// above the root; per-frame scaling compensates that height afterwards.
+/// Requires zeroed body work and a live root. The radius is 200 coordinate
+/// units and the initial centre is 200 along local negative Y; later scaling
+/// compensates that height. Links to the enemy-body list, initializes all four
+/// contacts and enables grid, floor and body-pair tests. The root and work
+/// remain borrowed by collision until the body is unlinked.
 static __inline__ void _actor02400InitHitSphere(_Actor02400Work* work, GfxCoord* rootCoord)
 {
     enum {
@@ -479,56 +513,85 @@ static void _actor02400InitBody(Enemy* enemy, Task* task)
     task->state             = ACTOR_02400_BODY_TASK_ACTIVE;
 }
 
-/// Resolves this frame's contacts. The push-back from `worldCollisionResolvePushback` moves
-/// the body, or puts it back at `prevPos`; then each of `bodyContacts` is
-/// handled by kind. A hit (kind 2) outside `hitCooldown` is classified by the
-/// attacker's parameters: it adds to `staggerDamage` without taking HP, deals
-/// its damage, deals five times that, or kills outright. It puts the body in
-/// `ACTOR_02400_MODE_HURT` or `ACTOR_02400_MODE_STUNNED`, may spawn sparks,
-/// plays the hurt sound, and a kill sets the task to state 2. A solid contact
-/// (kind 3) pushes the body out along the deepest overlap. A record in
-/// `attackContacts` is a touch: it sets `attackLanded` and costs the player the
-/// variant's MP.
-static void Actor02400_Fn00C08(Task* task)
+/// Applies the amoeba body's contacts, damage reactions and MP-draining touch.
+///
+/// Requires live body work, its four initialized contacts, a TMD root and an
+/// enemy in `spawnArg2`. Grid pushback is in signed 16.16 room units; opposed
+/// normals restore the previous signed-halfword position. Attack keys select
+/// a live player/companion root and a valid weapon (0..46) or attachment
+/// (0..54) row. Reactions stagger, damage, amplify or kill the body; HP loss
+/// remains word-sized while drain credit and readout narrow to signed 16 bits.
+/// Body overlap uses the composed root and room-view transform. Clears both
+/// consumed tables and balances one `ActorContactOverlapPushScratch` block.
+/// A kill selects death for the next task tick; this call keeps processing.
+static void _actor02400ResolveBodyContacts(Task* task)
 {
+    /// Writes the selected attack actor's local displacement for the damage roll.
+    ///
+    /// Captures work, contactIndex, attackerCoord, rootCoord and scratch; their
+    /// selected task and coordinates must be live in the same parent frame.
+#define ACTOR_02400_GET_ATTACK_DELTA()                                                                                                                       \
+    {                                                                                                                                                        \
+        attackerCoord            = gPlayerActorTasks[(work->bodyContacts[contactIndex].key.value >> ACTOR_02400_ATTACK_OWNER_SHIFT) & 1]->extra.tmd->coords; \
+        scratch->delta.vector.vx = attackerCoord->coord.t[0] - rootCoord->coord.t[0];                                                                        \
+        scratch->delta.vector.vy = attackerCoord->coord.t[1] - rootCoord->coord.t[1];                                                                        \
+        scratch->delta.vector.vz = attackerCoord->coord.t[2] - rootCoord->coord.t[2];                                                                        \
+    }
+
+    enum {
+        ACTOR_02400_HIT_STAGGER           = 0,
+        ACTOR_02400_HIT_NORMAL            = 1,
+        ACTOR_02400_HIT_AMPLIFIED         = 2,
+        ACTOR_02400_HIT_FATAL             = 3,
+        ACTOR_02400_STAGGER_LIMIT         = 20,
+        ACTOR_02400_STAGGER_WINDOW_FRAMES = 60,
+        ACTOR_02400_BODY_TASK_DEATH       = 2,
+        ACTOR_02400_HURT_SOUND_SCRIPT     = 0x40180003,
+        ACTOR_02400_HIT_BURST_STYLE       = 2,
+        ACTOR_02400_ATTACK_ATTACHMENT_BIT = 0x8000,
+        ACTOR_02400_ATTACK_ROW_MASK       = 0x7F,
+        ACTOR_02400_ATTACK_OWNER_SHIFT    = 7,
+    };
+
     ActorContactOverlapPushScratch* scratch;
-    GfxCoord*                       coord;
-    GfxCoord*                       src;
+    GfxCoord*                       rootCoord;
+    GfxCoord*                       attackerCoord;
     _Actor02400Work*                work;
     Enemy*                          enemy;
-    s32                             push;
-    s32                             reach;
-    s32                             val;
-    s32                             res;
-    s32                             i;
-    s32                             kind;
-    s32                             param;
+    Enemy*                          readoutEnemy;
+    s32                             deepestOverlap;
+    s32                             overlap;
+    s32                             pushbackResult;
+    s32                             contactIndex;
+    s32                             hitResponse;
+    s32                             hitEffectId;
     s32                             damage;
-    s32                             lastId;
-    s16                             dmg;
-    s32                             sndId;
-    s32                             pan;
-    s32                             stun;
+    s32                             lastEffectAttackKey;
+    s16                             readoutDamage;
+    s32                             soundId;
+    s32                             audioPan;
+    s32                             hitCooldownFrames;
 
-    push    = 0;
-    lastId  = 0;
-    work    = task->work;
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorContactOverlapPushScratch);
-    coord   = task->extra.tmd->coords;
-    enemy   = task->spawnArg2.pointer;
-    res     = worldCollisionResolvePushback(work->bodyContacts, &scratch->delta, ARRAY_SIZE(work->bodyContacts), NULL);
-    switch (res) {
-        case 1:
-            coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
-            coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
-            coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
+    deepestOverlap      = 0;
+    lastEffectAttackKey = 0;
+    work                = task->work;
+    scratch             = SCRATCH_STACK_RESERVE_BLOCK(ActorContactOverlapPushScratch);
+    rootCoord           = task->extra.tmd->coords;
+    enemy               = task->spawnArg2.pointer;
+    // Resolve room-grid contacts before processing attacks and body overlaps.
+    pushbackResult = worldCollisionResolvePushback(work->bodyContacts, &scratch->delta, ARRAY_SIZE(work->bodyContacts), NULL);
+    switch (pushbackResult) {
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
+            rootCoord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+            rootCoord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            rootCoord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
-        case 2:
-            coord->coord.t[0] = work->prevPos.vx;
-            coord->coord.t[1] = work->prevPos.vy;
-            coord->coord.t[2] = work->prevPos.vz;
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
+            rootCoord->coord.t[0] = work->prevPos.vx;
+            rootCoord->coord.t[1] = work->prevPos.vy;
+            rootCoord->coord.t[2] = work->prevPos.vz;
             break;
-        case 0:
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
         default:
             break;
     }
@@ -538,26 +601,26 @@ static void Actor02400_Fn00C08(Task* task)
             work->hitCooldown = 0;
         }
     }
-    i = 0;
+    contactIndex = 0;
     do {
-        switch ((u32)work->bodyContacts[i].key.value >> 16) {
-            case 2:
+        switch ((u32)work->bodyContacts[contactIndex].key.value >> 16) {
+            case WORLD_COLLISION_CONTACT_ATTACK >> 16:
                 if (work->hitCooldown != 0) {
                     break;
                 }
-                kind   = 0;
-                damage = 0;
-                if (!(work->bodyContacts[i].key.value & 0x8000)) {
-                    kind = Actor02400_D045DC[work->bodyContacts[i].key.value & 0x7F];
+                hitResponse = ACTOR_02400_HIT_STAGGER;
+                damage      = 0;
+                if (!(work->bodyContacts[contactIndex].key.value & ACTOR_02400_ATTACK_ATTACHMENT_BIT)) {
+                    hitResponse = Actor02400_D045DC[work->bodyContacts[contactIndex].key.value & ACTOR_02400_ATTACK_ROW_MASK];
                 }
-                switch (damageGetPlayerAttackReaction(work->bodyContacts[i].key.value) & 0xFFFF) {
+                switch (damageGetPlayerAttackReaction(work->bodyContacts[contactIndex].key.value) & 0xFFFF) {
                     case DAMAGE_PLAYER_REACTION_POISON:
                     case 4:
-                        kind = 3;
+                        hitResponse = ACTOR_02400_HIT_FATAL;
                         break;
                     case DAMAGE_PLAYER_REACTION_STAGGER:
                     case DAMAGE_PLAYER_REACTION_INCENDIARY:
-                        kind = 1;
+                        hitResponse = ACTOR_02400_HIT_NORMAL;
                         break;
                     case DAMAGE_PLAYER_REACTION_NONE:
                     case DAMAGE_PLAYER_REACTION_BUILDUP:
@@ -567,15 +630,12 @@ static void Actor02400_Fn00C08(Task* task)
                     case 9:
                         break;
                 }
-                switch (kind) {
-                    case 0:
+                switch (hitResponse) {
+                    case ACTOR_02400_HIT_STAGGER:
                         // Takes no HP: the roll adds to the stagger total, which stuns once it reaches 20.
-                        src                      = gPlayerActorTasks[(work->bodyContacts[i].key.value >> 7) & 1]->extra.tmd->coords;
-                        scratch->delta.vector.vx = src->coord.t[0] - coord->coord.t[0];
-                        scratch->delta.vector.vy = src->coord.t[1] - coord->coord.t[1];
-                        scratch->delta.vector.vz = src->coord.t[2] - coord->coord.t[2];
-                        work->staggerDamage     += damageComputePlayerAttack(work->bodyContacts[i].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0);
-                        if (work->staggerDamage >= 20 || work->mode == ACTOR_02400_MODE_STUNNED) {
+                        ACTOR_02400_GET_ATTACK_DELTA();
+                        work->staggerDamage += damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0);
+                        if (work->staggerDamage >= ACTOR_02400_STAGGER_LIMIT || work->mode == ACTOR_02400_MODE_STUNNED) {
                             work->mode          = ACTOR_02400_MODE_STUNNED;
                             work->phase         = 0;
                             work->staggerWindow = 0;
@@ -583,46 +643,40 @@ static void Actor02400_Fn00C08(Task* task)
                         } else {
                             work->mode          = ACTOR_02400_MODE_HURT;
                             work->phase         = 0;
-                            work->staggerWindow = 60;
+                            work->staggerWindow = ACTOR_02400_STAGGER_WINDOW_FRAMES;
                         }
                         work->counter  = 0;
                         work->speed    = 0;
                         work->turnRate = 0;
                         work->armOut   = 0;
                         break;
-                    case 1:
-                        src                      = gPlayerActorTasks[(work->bodyContacts[i].key.value >> 7) & 1]->extra.tmd->coords;
-                        scratch->delta.vector.vx = src->coord.t[0] - coord->coord.t[0];
-                        scratch->delta.vector.vy = src->coord.t[1] - coord->coord.t[1];
-                        scratch->delta.vector.vz = src->coord.t[2] - coord->coord.t[2];
-                        damage                   = damageComputePlayerAttack(work->bodyContacts[i].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0);
-                        work->mode               = ACTOR_02400_MODE_HURT;
-                        work->phase              = 0;
-                        work->counter            = 0;
-                        work->speed              = 0;
-                        work->turnRate           = 0;
-                        work->armOut             = 0;
-                        param                    = damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value);
-                        if (Actor02400_D0463C[param] == 0 && lastId != work->bodyContacts[i].key.value) {
-                            lastId = work->bodyContacts[i].key.value;
-                            effectSpawnHit(param, coord, NULL, &work->effectArg);
+                    case ACTOR_02400_HIT_NORMAL:
+                        ACTOR_02400_GET_ATTACK_DELTA();
+                        damage         = damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0);
+                        work->mode     = ACTOR_02400_MODE_HURT;
+                        work->phase    = 0;
+                        work->counter  = 0;
+                        work->speed    = 0;
+                        work->turnRate = 0;
+                        work->armOut   = 0;
+                        hitEffectId    = damageGetPlayerAttackEffectId(work->bodyContacts[contactIndex].key.value);
+                        if (Actor02400_D0463C[hitEffectId] == 0 && lastEffectAttackKey != work->bodyContacts[contactIndex].key.value) {
+                            lastEffectAttackKey = work->bodyContacts[contactIndex].key.value;
+                            effectSpawnHit(hitEffectId, rootCoord, NULL, &work->effectArg);
                         }
                         break;
-                    case 2:
-                        src                      = gPlayerActorTasks[(work->bodyContacts[i].key.value >> 7) & 1]->extra.tmd->coords;
-                        scratch->delta.vector.vx = src->coord.t[0] - coord->coord.t[0];
-                        scratch->delta.vector.vy = src->coord.t[1] - coord->coord.t[1];
-                        scratch->delta.vector.vz = src->coord.t[2] - coord->coord.t[2];
-                        damage                   = (s16)damageComputePlayerAttack(work->bodyContacts[i].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0) * 5;
-                        work->mode               = ACTOR_02400_MODE_HURT;
-                        work->phase              = 0;
-                        work->counter            = 0;
-                        work->speed              = 0;
-                        work->turnRate           = 0;
-                        work->armOut             = 0;
-                        effectSpawn(EFFECT_CRITICAL_HIT, coord, 2, NULL);
+                    case ACTOR_02400_HIT_AMPLIFIED:
+                        ACTOR_02400_GET_ATTACK_DELTA();
+                        damage         = (s16)damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0) * 5;
+                        work->mode     = ACTOR_02400_MODE_HURT;
+                        work->phase    = 0;
+                        work->counter  = 0;
+                        work->speed    = 0;
+                        work->turnRate = 0;
+                        work->armOut   = 0;
+                        effectSpawn(EFFECT_CRITICAL_HIT, rootCoord, ACTOR_02400_HIT_BURST_STYLE, NULL);
                         break;
-                    case 3:
+                    case ACTOR_02400_HIT_FATAL:
                         work->mode              = ACTOR_02400_MODE_HURT;
                         work->phase             = 0;
                         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -632,48 +686,46 @@ static void Actor02400_Fn00C08(Task* task)
                             damage = Actor02400_Params1.hpMax;
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        damage         += (s16)(((gRandomLcgState >> 16) & 0x7F) + 200);
-                        effectSpawn(EFFECT_CRITICAL_HIT, coord, 2, NULL);
+                        damage         += (s16)(((gRandomLcgState >> 16) & ACTOR_02400_ATTACK_ROW_MASK) + 200);
+                        effectSpawn(EFFECT_CRITICAL_HIT, rootCoord, ACTOR_02400_HIT_BURST_STYLE, NULL);
                         break;
                 }
-                dmg = damage;
-                damageAccumulateLifeDrainHp(task->spawnArg2.pointer, work->bodyContacts[i].key.value, dmg, 0);
-                worldTargetAddReadoutAmount(&((Enemy*)task->spawnArg2.pointer)->node, dmg, 0);
+                readoutDamage = damage;
+                damageAccumulateLifeDrainHp(task->spawnArg2.pointer, work->bodyContacts[contactIndex].key.value, readoutDamage, 0);
+                readoutEnemy = task->spawnArg2.pointer;
+                worldTargetAddReadoutAmount(&readoutEnemy->node, readoutDamage, 0);
                 if ((enemy->hp -= damage) <= 0) {
-                    task->state = 2;
+                    task->state = ACTOR_02400_BODY_TASK_DEATH;
                 }
-                stun = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
-                if (stun > 0) {
-                    work->hitCooldown = stun;
+                hitCooldownFrames = damageGetPlayerAttackHitCooldown(work->bodyContacts[contactIndex].key.value);
+                if (hitCooldownFrames > 0) {
+                    work->hitCooldown = hitCooldownFrames;
                 }
-                sndId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40180003;
-                pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(sndId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                soundId  = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02400_HURT_SOUND_SCRIPT;
+                audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+                sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
                 break;
             case 0:
-            case 1:
+            case WORLD_COLLISION_CONTACT_PLAYER_BODY >> 16:
                 break;
-            case 3:
-                scratch->delta.vector.vx = coord->workm.t[0] - work->bodyContacts[i].point.vx;
-                scratch->delta.vector.vy = coord->workm.t[1] - work->bodyContacts[i].point.vy;
-                scratch->delta.vector.vz = coord->workm.t[2] - work->bodyContacts[i].point.vz;
-                reach                    = work->bodyContacts[i].distance - SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz);
-                val                      = reach;
-                if (reach <= 0) {
-                    val = 0;
-                }
-                reach = val;
-                if (push < reach) {
-                    push = reach;
+            case WORLD_COLLISION_CONTACT_ENEMY_BODY >> 16:
+                scratch->delta.vector.vx = rootCoord->workm.t[0] - work->bodyContacts[contactIndex].point.vx;
+                scratch->delta.vector.vy = rootCoord->workm.t[1] - work->bodyContacts[contactIndex].point.vy;
+                scratch->delta.vector.vz = rootCoord->workm.t[2] - work->bodyContacts[contactIndex].point.vz;
+                overlap                  = work->bodyContacts[contactIndex].distance - SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz);
+                overlap                  = overlap <= 0 ? 0 : overlap;
+                if (deepestOverlap < overlap) {
+                    deepestOverlap = overlap;
                     VectorNormal(&scratch->delta.vector, &scratch->normal);
                     ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->pushDirection);
                 }
                 break;
         }
-    } while (++i < (s32)ARRAY_SIZE(work->bodyContacts));
-    if (push > 0) {
-        coord->coord.t[0] += (push * scratch->pushDirection.vx) >> 12;
-        coord->coord.t[2] += (push * scratch->pushDirection.vz) >> 12;
+    } while (++contactIndex < (s32)ARRAY_SIZE(work->bodyContacts));
+    // The deepest body overlap supplies one horizontal correction in room axes.
+    if (deepestOverlap > 0) {
+        rootCoord->coord.t[0] += (deepestOverlap * scratch->pushDirection.vx) >> 12;
+        rootCoord->coord.t[2] += (deepestOverlap * scratch->pushDirection.vz) >> 12;
     }
     worldCollisionClearContacts(work->bodyContacts);
     // The attack body touched the player: disable it until the body crawls again and take the MP.
@@ -690,6 +742,7 @@ static void Actor02400_Fn00C08(Task* task)
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactOverlapPushScratch);
+#undef ACTOR_02400_GET_ATTACK_DELTA
 }
 
 /// The projectile's state handlers, run by `_actor02400FireballTask` for the task's
@@ -754,112 +807,109 @@ static void _actor02400UpdateDormant(Task* task)
     SCRATCH_STACK_CURSOR(VECTOR) += 1;
 }
 
-/// `ACTOR_02400_MODE_CRAWL`: `TURN` faces the player and `SURGE` moves straight
-/// ahead, each for a random time before handing to the other; `WAKE` pulses the
-/// scale up until the height passes `ACTOR_02400_SCALE_SWOLLEN`. Outside `WAKE`
-/// X and Z relax to unit scale while the height bobs around unit scale in `TURN`
-/// and `ACTOR_02400_SCALE_FLAT` in `SURGE`, and `speed` eases toward
-/// `targetSpeed`. Once `attackLanded` is set the body stops, enters
-/// `ACTOR_02400_MODE_STRIKE`, pitches the arm at random, plays the sound and
-/// adopts the glow disc it spawns as `chargeEffect`.
-static void Actor02400_Fn01590(Task* task)
+/// Advances the amoeba's turning, surging and waking crawl phases.
+///
+/// Requires live body work in crawl mode, four TMD coordinates, an enemy in
+/// `spawnArg2` and the player position. Speeds are local units per tick and
+/// headings are 4096 per turn. Turn countdowns start at 30..61, surge at 30..93;
+/// transitions occur when the countdown becomes negative. Scale is Q12.
+/// A recorded arm touch starts the strike and adopts an optional charge-disc
+/// task. Balances one `ActorFaceScratch` block on the initialized stack.
+static void _actor02400UpdateCrawl(Task* task)
 {
-    _Actor02400Work*  work;
-    GfxCoord*         coord;
-    s16               limit;
-    s32               diff;
-    s32               step;
-    s32               sound;
-    s32               pan;
-    EffectWork*       effect;
-    ActorFaceScratch* scratch;
-    ActorFaceScratch* scratchEnd;
+    enum {
+        ACTOR_02400_CRAWL_TURN_RATE        = 25,
+        ACTOR_02400_CRAWL_TURN_SPEED       = 10,
+        ACTOR_02400_CRAWL_SURGE_SPEED      = 20,
+        ACTOR_02400_CRAWL_MIN_PHASE_FRAMES = 30,
+        ACTOR_02400_STRIKE_SOUND_SCRIPT    = 0x40180002,
+        ACTOR_02400_CRAWL_WAKE_SCALE_BIAS  = ONE / 32,
+        ACTOR_02400_CRAWL_SCALE_STEP       = ONE / 32,
+        ACTOR_02400_CRAWL_BOB_RADIUS       = ONE / 16,
+        ACTOR_02400_STRIKE_MIN_PITCH       = ACTOR_TRANSFORM_ANGLE_TURN / 16,
+    };
 
-    scratchEnd                             = SCRATCH_STACK_CURSOR(ActorFaceScratch);
-    SCRATCH_STACK_CURSOR(ActorFaceScratch) = scratchEnd - 1;
-    scratch                                = scratchEnd - 1;
-    work                                   = task->work;
-    coord                                  = task->extra.tmd->coords;
-    limit                                  = ONE;
+    _Actor02400Work*  work;
+    GfxCoord*         rootCoord;
+    s16               bobCenterScale;
+    s32               speedDelta;
+    s32               speedStep;
+    s32               soundId;
+    s32               audioPan;
+    EffectWork*       chargeEffect;
+    ActorFaceScratch* scratch;
+
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    work           = task->work;
+    rootCoord      = task->extra.tmd->coords;
+    bobCenterScale = ONE;
+    // Turning and straight surges use separate waits; waking swells in Q12 pulses.
     switch (work->phase) {
         case ACTOR_02400_CRAWL_PHASE_TURN:
-            scratchEnd[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            scratch->delta.vy       = 0;
-            scratch->delta.vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            work->targetYaw         = ratan2((s16)scratchEnd[-1].delta.vx, (s16)scratch->delta.vz) & 0xFFF;
-            work->turnRate          = 0x19;
-            work->targetSpeed       = 0xA;
+            scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+            scratch->delta.vy = 0;
+            scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+            work->targetYaw   = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+            work->turnRate    = ACTOR_02400_CRAWL_TURN_RATE;
+            work->targetSpeed = ACTOR_02400_CRAWL_TURN_SPEED;
             work->counter--;
             if (work->counter < 0) {
                 work->phase     = ACTOR_02400_CRAWL_PHASE_SURGE;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->counter   = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
+                work->counter   = ((gRandomLcgState >> 16) & 0x3F) + ACTOR_02400_CRAWL_MIN_PHASE_FRAMES;
             }
             break;
         case ACTOR_02400_CRAWL_PHASE_SURGE:
             work->turnRate    = 0;
-            work->targetSpeed = 0x14;
+            work->targetSpeed = ACTOR_02400_CRAWL_SURGE_SPEED;
             work->counter--;
-            limit = ACTOR_02400_SCALE_FLAT;
+            bobCenterScale = ACTOR_02400_SCALE_FLAT;
             if (work->counter < 0) {
                 work->phase     = ACTOR_02400_CRAWL_PHASE_TURN;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->counter   = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
+                work->counter   = ((gRandomLcgState >> 16) & 0x1F) + ACTOR_02400_CRAWL_MIN_PHASE_FRAMES;
             }
             break;
         case ACTOR_02400_CRAWL_PHASE_WAKE:
             work->turnRate = 0;
-            if (work->swingDown == 0) {
-                work->counter += 0x40;
-                if (work->counter >= 0x100) {
-                    work->swingDown = 1;
-                }
-            } else {
-                work->counter -= 0x40;
-                if (work->counter < -0xFF) {
-                    work->swingDown = 0;
-                }
-            }
-            work->scale.vx += (u16)work->counter + 0x80;
-            work->scale.vy += (u16)work->counter + 0x80;
-            work->scale.vz += (u16)work->counter + 0x80;
+            ACTOR_02400_SWELL_BODY(work, ACTOR_02400_CRAWL_WAKE_SCALE_BIAS);
             if (work->scale.vy > ACTOR_02400_SCALE_SWOLLEN) {
                 work->phase     = ACTOR_02400_CRAWL_PHASE_TURN;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->counter   = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
+                work->counter   = ((gRandomLcgState >> 16) & 0x1F) + ACTOR_02400_CRAWL_MIN_PHASE_FRAMES;
             }
             break;
     }
     if (work->phase < ACTOR_02400_CRAWL_PHASE_WAKE) {
-        work->scale.vx -= 0x80;
+        work->scale.vx -= ACTOR_02400_CRAWL_SCALE_STEP;
         if (work->scale.vx <= ONE) {
             work->scale.vx = ONE;
         }
         if (work->swingDown == 0) {
-            work->scale.vy += 0x80;
-            if (work->scale.vy > limit + 0x100) {
+            work->scale.vy += ACTOR_02400_CRAWL_SCALE_STEP;
+            if (work->scale.vy > bobCenterScale + ACTOR_02400_CRAWL_BOB_RADIUS) {
                 work->swingDown = 1;
             }
         } else {
-            work->scale.vy -= 0x80;
-            if (work->scale.vy < limit - 0x100) {
+            work->scale.vy -= ACTOR_02400_CRAWL_SCALE_STEP;
+            if (work->scale.vy < bobCenterScale - ACTOR_02400_CRAWL_BOB_RADIUS) {
                 work->swingDown = 0;
             }
         }
-        work->scale.vz -= 0x80;
+        work->scale.vz -= ACTOR_02400_CRAWL_SCALE_STEP;
         if (work->scale.vz <= ONE) {
             work->scale.vz = ONE;
         }
     }
-    diff = work->targetSpeed - work->speed;
-    step = -3;
-    if (diff > 0) {
-        step = 2;
+    speedDelta = work->targetSpeed - work->speed;
+    speedStep  = -3;
+    if (speedDelta > 0) {
+        speedStep = 2;
     }
-    if ((diff >= 0 ? diff : -diff) < (step >= 0 ? step : -step)) {
+    if ((speedDelta >= 0 ? speedDelta : -speedDelta) < (speedStep >= 0 ? speedStep : -speedStep)) {
         work->speed = work->targetSpeed;
     } else {
-        work->speed += step;
+        work->speed += speedStep;
     }
     if (work->attackLanded != 0) {
         // The touch took the player's MP: stop, strike, and start gathering the charge.
@@ -874,15 +924,15 @@ static void Actor02400_Fn01590(Task* task)
         scratch->rot.vy = 0;
         scratch->rot.vz = 0;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        scratch->rot.vx = ((gRandomLcgState >> 16) & 0xFF) + 0x100;
+        scratch->rot.vx = ((gRandomLcgState >> 16) & 0xFF) + ACTOR_02400_STRIKE_MIN_PITCH;
         RotMatrix(&scratch->rot, &task->extra.tmd->coords[2].coord);
-        sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40180002;
-        pan   = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-        effect             = effectSpawn(gRoomEffectGlowDiscId, coord, (s32)(work->variant), NULL);
-        work->chargeEffect = effect;
-        if (effect != NULL) {
-            taskReparent(task, effect->task);
+        soundId  = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02400_STRIKE_SOUND_SCRIPT;
+        audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+        sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
+        chargeEffect       = effectSpawn(gRoomEffectGlowDiscId, rootCoord, (s32)work->variant, NULL);
+        work->chargeEffect = chargeEffect;
+        if (chargeEffect != NULL) {
+            taskReparent(task, chargeEffect->task);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
@@ -954,47 +1004,46 @@ static void _actor02400UpdateStrike(Task* task)
     }
 }
 
-/// `ACTOR_02400_MODE_CAST`: `SWELL` pulses the scale up until the height passes
-/// `ACTOR_02400_SCALE_SWOLLEN` and sets the charge effect flickering, `AIM`
-/// faces the player while the height wobbles around that mark for the variant's
-/// wait, `RELEASE` spawns the projectile from `Actor02400_D0465C`, raises the
-/// wake flag, lets the charge effect go and plays the sound, and `SHRINK`
-/// brings the scale back to the crawling shape before returning to crawling
-/// with a random wait.
-static void Actor02400_Fn01B90(Task* task)
+/// Swells, aims and releases an amoeba fireball, then restores its crawl shape.
+///
+/// Requires live body work in cast mode, a TMD root, its enemy and the player
+/// position. Scale uses Q12 and heading 4096 per turn. Variant 0 or 1 selects
+/// a 90- or 30-tick aim threshold, exceeded before release on the next tick.
+/// The optional borrowed charge work must remain live until it is released;
+/// its task then fades independently. Shrinking enables arm collision only
+/// after all three axes reach their limits. Balances one `VECTOR` scratch block.
+static void _actor02400UpdateCast(Task* task)
 {
-    _Actor02400Work* work;
-    GfxCoord*        coord;
-    s32              flags;
-    s32              sound;
-    s32              pan;
-    VECTOR*          delta;
-    VECTOR*          scratchEnd;
+    enum {
+        ACTOR_02400_CAST_TURN_RATE           = 25,
+        ACTOR_02400_CAST_FIREBALL_SELECTOR   = 1,
+        ACTOR_02400_CAST_SOUND_SCRIPT        = 0x40180004,
+        ACTOR_02400_CAST_SCALE_X_READY       = 1,
+        ACTOR_02400_CAST_SCALE_Y_READY       = 2,
+        ACTOR_02400_CAST_SCALE_Z_READY       = 4,
+        ACTOR_02400_CAST_SCALE_ALL_READY     = 7,
+        ACTOR_02400_CAST_RECOVERY_MIN_FRAMES = 30,
+        ACTOR_02400_CAST_SWELL_SCALE_BIAS    = ONE / 64,
+        ACTOR_02400_CAST_SCALE_STEP          = ONE / 32,
+        ACTOR_02400_CAST_BOB_RADIUS          = ONE / 16,
+    };
 
-    scratchEnd                                                                = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
-    delta                                                                     = scratchEnd - 1;
-    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
-    work                                                                      = task->work;
-    coord                                                                     = task->extra.tmd->coords;
-    flags                                                                     = 0;
+    _Actor02400Work* work;
+    GfxCoord*        rootCoord;
+    s32              scaleReady;
+    s32              soundId;
+    s32              audioPan;
+    VECTOR*          playerDelta;
+
+    playerDelta = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+    work        = task->work;
+    rootCoord   = task->extra.tmd->coords;
+    scaleReady  = 0;
     switch (work->phase) {
         case ACTOR_02400_CAST_PHASE_SWELL:
             work->turnRate = 0;
             work->speed    = 0;
-            if (work->swingDown == 0) {
-                work->counter += 0x40;
-                if (work->counter >= 0x100) {
-                    work->swingDown = 1;
-                }
-            } else {
-                work->counter -= 0x40;
-                if (work->counter < -0xFF) {
-                    work->swingDown = 0;
-                }
-            }
-            work->scale.vx += (u16)work->counter + 0x40;
-            work->scale.vy += (u16)work->counter + 0x40;
-            work->scale.vz += (u16)work->counter + 0x40;
+            ACTOR_02400_SWELL_BODY(work, ACTOR_02400_CAST_SWELL_SCALE_BIAS);
             if (work->scale.vy > ACTOR_02400_SCALE_SWOLLEN) {
                 work->phase   = ACTOR_02400_CAST_PHASE_AIM;
                 work->counter = 0;
@@ -1004,19 +1053,19 @@ static void Actor02400_Fn01B90(Task* task)
             }
             break;
         case ACTOR_02400_CAST_PHASE_AIM:
-            work->turnRate    = 0x19;
-            scratchEnd[-1].vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            delta->vy         = 0;
-            delta->vz         = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            work->targetYaw   = ratan2((s16)scratchEnd[-1].vx, (s16)delta->vz) & 0xFFF;
+            work->turnRate  = ACTOR_02400_CAST_TURN_RATE;
+            playerDelta->vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+            playerDelta->vy = 0;
+            playerDelta->vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+            work->targetYaw = ratan2((s16)playerDelta->vx, (s16)playerDelta->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
             if (work->swingDown == 0) {
-                work->scale.vy += 0x80;
-                if (work->scale.vy > ACTOR_02400_SCALE_SWOLLEN + 0x100) {
+                work->scale.vy += ACTOR_02400_CAST_SCALE_STEP;
+                if (work->scale.vy > ACTOR_02400_SCALE_SWOLLEN + ACTOR_02400_CAST_BOB_RADIUS) {
                     work->swingDown = 1;
                 }
             } else {
-                work->scale.vy -= 0x80;
-                if (work->scale.vy < ACTOR_02400_SCALE_SWOLLEN - 0x100) {
+                work->scale.vy -= ACTOR_02400_CAST_SCALE_STEP;
+                if (work->scale.vy < ACTOR_02400_SCALE_SWOLLEN - ACTOR_02400_CAST_BOB_RADIUS) {
                     work->swingDown = 0;
                 }
             }
@@ -1028,43 +1077,44 @@ static void Actor02400_Fn01B90(Task* task)
             }
             break;
         case ACTOR_02400_CAST_PHASE_RELEASE:
-            enemySpawnFromTable(Actor02400_D0465C, 1, 0, task->spawnArg2.pointer);
+            // Release the borrowed charge work before its fading task frees it.
+            enemySpawnFromTable(Actor02400_D0465C, ACTOR_02400_CAST_FIREBALL_SELECTOR, 0, task->spawnArg2.pointer);
             gSceneCombatState.actor02400Alert = 1;
             work->phase                       = ACTOR_02400_CAST_PHASE_SHRINK;
             if (work->chargeEffect != NULL) {
                 work->chargeEffect->task->state = ROOM_VISUAL_EFFECTS_GLOW_DISC_RELEASE;
             }
             work->chargeEffect = NULL;
-            sound              = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40180004;
-            pan                = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            soundId            = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02400_CAST_SOUND_SCRIPT;
+            audioPan           = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             break;
         case ACTOR_02400_CAST_PHASE_SHRINK:
-            work->scale.vx -= 0x80;
+            work->scale.vx -= ACTOR_02400_CAST_SCALE_STEP;
             if (work->scale.vx <= ONE) {
                 work->scale.vx = ONE;
-                flags          = 1;
+                scaleReady     = ACTOR_02400_CAST_SCALE_X_READY;
             }
-            work->scale.vy -= 0x80;
+            work->scale.vy -= ACTOR_02400_CAST_SCALE_STEP;
             if (work->scale.vy <= ACTOR_02400_SCALE_FLAT) {
                 work->scale.vy = ACTOR_02400_SCALE_FLAT;
-                flags         |= 2;
+                scaleReady    |= ACTOR_02400_CAST_SCALE_Y_READY;
             }
-            work->scale.vz -= 0x80;
+            work->scale.vz -= ACTOR_02400_CAST_SCALE_STEP;
             if (work->scale.vz <= ONE) {
                 work->scale.vz = ONE;
-                flags         |= 4;
+                scaleReady    |= ACTOR_02400_CAST_SCALE_Z_READY;
             }
-            if (flags == 7) {
+            if (scaleReady == ACTOR_02400_CAST_SCALE_ALL_READY) {
                 work->mode              = ACTOR_02400_MODE_CRAWL;
                 work->phase             = ACTOR_02400_CRAWL_PHASE_TURN;
                 gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->counter           = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
+                work->counter           = ((gRandomLcgState >> 16) & 0x1F) + ACTOR_02400_CAST_RECOVERY_MIN_FRAMES;
                 work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             break;
     }
-    *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;
+    SCRATCH_STACK_CURSOR(VECTOR) += 1;
 }
 
 /// Flattens the stunned amoeba, cancels its charge and disables arm collision.
@@ -1250,93 +1300,128 @@ static void _actor02400UpdateIdleSound(Task* task)
     }
 }
 
-/// Death handler of the main body. While the room's actors are paused it only
-/// refreshes the colour, and while they are hidden it hides the model.
-/// Otherwise `ACTOR_02400_DEATH_PHASE_BEGIN` saves the model matrix, unlinks
-/// the enemy node and both bodies, starts the light fade and cancels the charge
-/// effect; `SQUASH` flattens the body, turning it semi-transparent at frame 10,
-/// spawning the death effect at frame 15 and hiding it at frame 60; `DESTROY`
-/// destroys the enemy.
-static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
+/// Retires the amoeba body and runs its flattening death presentation.
+///
+/// Requires live body work with death phase initially BEGIN. Paused actors
+/// refresh color only; hidden actors skip drawing without advancing death.
+/// BEGIN unlinks target and collision records, credits battle rewards and
+/// cancels a live charge disc. The saved root is rescaled in Q12 each tick:
+/// blending starts at 10, corpse burn at 15 and hiding at 60. Destruction
+/// occurs on the following active tick and frees the task-owned resources.
+static void _actor02400TeardownBody(Enemy* enemy, Task* task)
 {
-    VECTOR           pos;
-    _Actor02400Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    GfxCoord*        cur;
+    enum {
+        ACTOR_02400_DEATH_BLEND_FRAME  = 10,
+        ACTOR_02400_DEATH_EFFECT_FRAME = 15,
+        ACTOR_02400_DEATH_HIDE_FRAME   = 60,
+        ACTOR_02400_DEATH_MIN_Y_SCALE  = ONE / 8,
+        ACTOR_02400_DEATH_BURN_CYCLES  = 3,
+    };
 
-    obj   = arg1->extra.tmd;
-    work  = arg1->work;
-    coord = obj->coords;
+    VECTOR3          worldPosition;
+    _Actor02400Work* work;
+    TmdObject*       model;
+    GfxCoord*        rootCoord;
+    GfxCoord*        colorCoord;
+
+    model     = task->extra.tmd;
+    work      = task->work;
+    rootCoord = model->coords;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            pos.vx = coord->workm.t[0];
-            pos.vy = coord->workm.t[1];
-            pos.vz = coord->workm.t[2];
-            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+            worldPosition.vx = rootCoord->workm.t[0];
+            worldPosition.vy = rootCoord->workm.t[1];
+            worldPosition.vz = rootCoord->workm.t[2];
+            worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             switch (work->phase) {
                 case ACTOR_02400_DEATH_PHASE_BEGIN:
+                    // Retire collision and targeting before the model's death presentation.
                     work->counter    = 0;
                     work->scale.vy   = ONE;
-                    work->baseMatrix = coord->coord;
-                    arg0->recs       = 0;
-                    worldTargetUnlinkNode(&arg0->node);
+                    work->baseMatrix = rootCoord->coord;
+                    enemy->recs      = 0;
+                    worldTargetUnlinkNode(&enemy->node);
                     worldCollisionUnlinkBody(&work->body);
                     worldCollisionUnlinkBody(&work->attackBody);
-                    worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
-                    sceneReleaseBattleRefWithRewards(arg1, 0x18);
-                    work->phase = ACTOR_02400_DEATH_PHASE_SQUASH;
-                    cur         = arg1->extra.tmd->coords;
-                    pos.vx      = cur->workm.t[0];
-                    pos.vy      = cur->workm.t[1];
-                    pos.vz      = cur->workm.t[2];
-                    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
+                    sceneReleaseBattleRefWithRewards(task, 0x18);
+                    work->phase      = ACTOR_02400_DEATH_PHASE_SQUASH;
+                    colorCoord       = task->extra.tmd->coords;
+                    worldPosition.vx = colorCoord->workm.t[0];
+                    worldPosition.vy = colorCoord->workm.t[1];
+                    worldPosition.vz = colorCoord->workm.t[2];
+                    worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0);
+                    // No later death phase reads this borrowed work after cancellation.
                     if (work->chargeEffect != NULL) {
                         work->chargeEffect->task->state = ROOM_VISUAL_EFFECTS_GLOW_DISC_CANCEL;
                     }
                     break;
                 case ACTOR_02400_DEATH_PHASE_SQUASH:
                     work->counter++;
-                    if (work->counter == 10) {
-                        obj->flags = TMD_OBJECT_SEMI_TRANS;
+                    if (work->counter == ACTOR_02400_DEATH_BLEND_FRAME) {
+                        model->flags = TMD_OBJECT_SEMI_TRANS;
                     }
-                    if (work->counter == 15) {
-                        effectSpawn(EFFECT_CORPSE_BURN, coord, 3, NULL);
+                    if (work->counter == ACTOR_02400_DEATH_EFFECT_FRAME) {
+                        effectSpawn(EFFECT_CORPSE_BURN, rootCoord, ACTOR_02400_DEATH_BURN_CYCLES, NULL);
                     }
-                    if (work->counter >= 60) {
-                        work->phase = ACTOR_02400_DEATH_PHASE_DESTROY;
-                        obj->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                    if (work->counter >= ACTOR_02400_DEATH_HIDE_FRAME) {
+                        work->phase  = ACTOR_02400_DEATH_PHASE_DESTROY;
+                        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
-                    if (work->scale.vy > 0x200) {
+                    if (work->scale.vy > ACTOR_02400_DEATH_MIN_Y_SCALE) {
                         work->scale.vy -= 0x50;
                     }
-                    _actor02400ApplyDeathScale(arg1);
-                    cur    = arg1->extra.tmd->coords;
-                    pos.vx = cur->workm.t[0];
-                    pos.vy = cur->workm.t[1];
-                    pos.vz = cur->workm.t[2];
-                    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+                    _actor02400ApplyDeathScale(task);
+                    colorCoord       = task->extra.tmd->coords;
+                    worldPosition.vx = colorCoord->workm.t[0];
+                    worldPosition.vy = colorCoord->workm.t[1];
+                    worldPosition.vz = colorCoord->workm.t[2];
+                    worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0);
                     break;
                 case ACTOR_02400_DEATH_PHASE_DESTROY:
-                    enemyDestroy(arg0, arg1);
+                    enemyDestroy(enemy, task);
                     break;
             }
             break;
     }
 }
 
-/// Links the fireball's two strike spheres and its trailing wall capsule.
+/// Links the initialized fireball wall capsule to its live coordinate.
+///
+/// The caller supplies zeroed work with initialized capsule endpoints and
+/// contacts; its coordinate and work remain live until unlinking.
+static __inline__ void _actor02400LinkFireballWall(Task* task, _Actor02400FireballWork* work)
+{
+    GfxCoord* wallProbeCoord;
+    wallProbeCoord                 = task->extra.coordBody->coord;
+    work->wallBody.context.capsule = &work->wallCapsule;
+    work->wallBody.pos.vx          = 0;
+    work->wallBody.pos.vy          = 0;
+    work->wallBody.pos.vz          = 0;
+    work->wallBody.key             = 0;
+    work->wallBody.radius          = 0;
+    work->wallBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    work->wallBody.coord           = wallProbeCoord;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->wallBody);
+    worldCollisionInitContacts(work->wallContacts, ARRAY_SIZE(work->wallContacts), 0);
+}
+
+/// Registers the fireball's player/enemy strike spheres and trailing wall probe.
 ///
 /// Requires zeroed fireball work, a coordinate-body task and live parent work
-/// whose variant is 0 or 1. The spheres share one contact; the wall probe has
-/// its own. Coordinates are reloaded after collision calls. No scratch is used.
-static __inline__ void _actor02400InitFireballCollision(Task* task, _Actor02400FireballWork* work, _Actor02400Work* parentWork)
+/// with variant 0 or 1. Two radius-200 spheres share one contact; the variant
+/// selects the player's attack entry and enemy damage row 45 or 46. The wall
+/// capsule has radius 1, trails 210 local Z units and owns one separate contact.
+/// Reloads the live coordinate after collision calls and borrows it and work
+/// until unlinking. Enables sphere pair tests; the caller enables wall grid
+/// tests and clipping. Allocates no storage and uses no scratch stack.
+static __inline__ void _actor02400InitFireballCollision(Task* task, _Actor02400FireballWork* work, const _Actor02400Work* parentWork)
 {
     enum {
         ACTOR_02400_FIREBALL_RADIUS                 = 200,
@@ -1347,7 +1432,6 @@ static __inline__ void _actor02400InitFireballCollision(Task* task, _Actor02400F
     };
 
     GfxCoord* strikeCoord;
-    GfxCoord* wallProbeCoord;
 
     strikeCoord                             = task->extra.coordBody->coord;
     work->playerStrikeBody.context.contacts = work->strikeContacts;
@@ -1376,27 +1460,17 @@ static __inline__ void _actor02400InitFireballCollision(Task* task, _Actor02400F
     work->enemyStrikeBody.flags  = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->enemyStrikeBody);
 
-    work->wallCapsule.ends[1].vz   = -ACTOR_02400_FIREBALL_WALL_TRAIL_LENGTH;
-    work->wallCapsule.end0Radius   = ACTOR_02400_FIREBALL_PROBE_RADIUS;
-    work->wallCapsule.end1Radius   = ACTOR_02400_FIREBALL_PROBE_RADIUS;
-    work->wallCapsule.ends[0].vx   = 0;
-    work->wallCapsule.ends[0].vy   = 0;
-    work->wallCapsule.ends[0].vz   = 0;
-    work->wallCapsule.ends[1].vx   = 0;
-    work->wallCapsule.ends[1].vy   = 0;
-    work->wallCapsule.contacts     = work->wallContacts;
-    work->enemyStrikeBody.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    wallProbeCoord                 = task->extra.coordBody->coord;
-    work->wallBody.context.capsule = &work->wallCapsule;
-    work->wallBody.pos.vx          = 0;
-    work->wallBody.pos.vy          = 0;
-    work->wallBody.pos.vz          = 0;
-    work->wallBody.key             = 0;
-    work->wallBody.radius          = 0;
-    work->wallBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->wallBody.coord           = wallProbeCoord;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->wallBody);
-    worldCollisionInitContacts(work->wallContacts, ARRAY_SIZE(work->wallContacts), 0);
+    work->wallCapsule.ends[1].vz = -ACTOR_02400_FIREBALL_WALL_TRAIL_LENGTH;
+    work->wallCapsule.end0Radius = ACTOR_02400_FIREBALL_PROBE_RADIUS;
+    work->wallCapsule.end1Radius = ACTOR_02400_FIREBALL_PROBE_RADIUS;
+    work->wallCapsule.ends[0].vx = 0;
+    work->wallCapsule.ends[0].vy = 0;
+    work->wallCapsule.ends[0].vz = 0;
+    work->wallCapsule.ends[1].vx = 0;
+    work->wallCapsule.ends[1].vy = 0;
+    work->wallCapsule.contacts   = work->wallContacts;
+    work->enemyStrikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    _actor02400LinkFireballWall(task, work);
 }
 
 /// Launches a coordinate-only fireball from its parent amoeba.
@@ -1523,46 +1597,54 @@ static void _actor02400BodyTask(Task* task)
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Per-frame handler of the main body. In global mode 2 it only hides the
-/// model; in mode 1 it only refreshes the colour and the ground mark. Otherwise
-/// it resolves contacts, runs the current mode, turns, steps forward, moves
-/// the two front parts, rescales the model and updates its coordinate first.
-static void Actor02400_Fn02E0C(Enemy* enemy, Task* task)
+/// Updates the live amoeba's contacts, behavior, transform and presentation.
+///
+/// Requires body work, its enemy and a four-part TMD model. Paused actors
+/// refresh color and shadow without advancing; hidden actors become
+/// non-lockable and skip drawing. Running actors restore visibility and
+/// targeting, resolve contacts, advance behavior, turn, move and scale, then
+/// compose the root before querying color and drawing the shadow. A lethal
+/// contact schedules death but the rest of this active tick still runs.
+static void _actor02400UpdateBody(Enemy* enemy, Task* task)
 {
-    GfxCoord*  coord;
-    TmdObject* obj;
+    GfxCoord*  rootCoord;
+    TmdObject* model;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor02400_Fn031D0(task);
+            _actor02400UpdateColor(task);
             _actor02400DrawShadow(task);
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            obj->flags                    = 0;
+            model->flags                  = 0;
             enemy->node.state.parts.flags = 0;
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags                    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
-    Actor02400_Fn00C08(task);
-    Actor02400_Fn02EDC(task);
+    // Contacts select behavior before movement and scaling rebuild the root.
+    _actor02400ResolveBodyContacts(task);
+    _actor02400UpdateBehavior(task);
     _actor02400TurnTowardTarget(task);
     _actor02400StepForward(task);
     _actor02400UpdateArm(task);
     _actor02400ApplyBodyScale(task);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    Actor02400_Fn031D0(task);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    _actor02400UpdateColor(task);
     _actor02400DrawShadow(task);
 }
 
-/// Runs the handler of the body's current `mode`. The crawling, striking and
-/// casting modes also play the idle sound.
-static void Actor02400_Fn02EDC(Task* task)
+/// Dispatches the amoeba's current behavior and its active-mode idle sound.
+///
+/// Requires live body work with a mode in 0..5. Crawl, strike and cast each
+/// advance the idle-sound timer after their handler, even if that handler
+/// changes mode; dormant, hurt and stunned do not. Unrecognized modes do nothing.
+static void _actor02400UpdateBehavior(Task* task)
 {
     _Actor02400Work* work = task->work;
 
@@ -1571,7 +1653,7 @@ static void Actor02400_Fn02EDC(Task* task)
             _actor02400UpdateDormant(task);
             break;
         case ACTOR_02400_MODE_CRAWL:
-            Actor02400_Fn01590(task);
+            _actor02400UpdateCrawl(task);
             _actor02400UpdateIdleSound(task);
             break;
         case ACTOR_02400_MODE_STRIKE:
@@ -1579,7 +1661,7 @@ static void Actor02400_Fn02EDC(Task* task)
             _actor02400UpdateIdleSound(task);
             break;
         case ACTOR_02400_MODE_CAST:
-            Actor02400_Fn01B90(task);
+            _actor02400UpdateCast(task);
             _actor02400UpdateIdleSound(task);
             break;
         case ACTOR_02400_MODE_HURT:
@@ -1705,17 +1787,21 @@ static void _actor02400StepForward(Task* task)
     rootCoord->coord.t[2] += (rootCoord->coord.m[2][2] * work->speed) >> 12;
 }
 
-/// Refreshes the body's colour from where its root coordinate stands.
-static void Actor02400_Fn031D0(Task* task)
+/// Refreshes the amoeba's lighting color at its composed root position.
+///
+/// Requires a live TMD root with current `workm` and an enemy in `spawnArg2`.
+/// Copies exactly three signed XYZ words in composed coordinate units for
+/// a synchronous lighting query. No coordinate composition is performed.
+static void _actor02400UpdateColor(Task* task)
 {
-    GfxCoord* coord;
-    VECTOR    vec;
+    GfxCoord* rootCoord;
+    VECTOR3   worldPosition;
 
-    coord  = task->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
+    rootCoord        = task->extra.tmd->coords;
+    worldPosition.vx = rootCoord->workm.t[0];
+    worldPosition.vy = rootCoord->workm.t[1];
+    worldPosition.vz = rootCoord->workm.t[2];
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0);
 }
 
 /// Draws a ground shadow at the amoeba root's composed world position.
@@ -1739,13 +1825,14 @@ static void _actor02400DrawShadow(Task* task)
     effectDrawGroundShadow(&worldPosition, ACTOR_02400_SHADOW_HALF_SIDE, ACTOR_02400_SHADOW_SHADE);
 }
 
-/// Multiplies a prepared local-axis scale into a saved root matrix.
+/// Restores a root matrix and applies its prepared Q12 scale along local axes.
 ///
-/// Borrows a live root, a readable full saved matrix and a reserved
-/// `ActorScaleScratch` whose three Q12 scale factors are initialized.
-/// Scratch must be disjoint from both matrices. Its translation and vector
-/// pad are unused. Restores the saved translation and marks composition dirty;
-/// the caller owns scratch reservation and release.
+/// Requires a live writable root, a readable complete saved matrix and reserved
+/// `ActorScaleScratch` with XYZ scale factors initialized (4096 is unity).
+/// Copies all 32 saved bytes before multiplying rotation by the diagonal scale;
+/// translation remains the saved translation. Scratch is disjoint from both
+/// matrices; its matrix translation and vector pad are unused. Marks composition
+/// dirty and changes GTE state. The caller reserves and releases the scratch.
 static __inline__ void _actor02400ApplySavedRootScale(GfxCoord* rootCoord, const MATRIX* savedMatrix,
                                                       ActorScaleScratch* scaleScratch)
 {
