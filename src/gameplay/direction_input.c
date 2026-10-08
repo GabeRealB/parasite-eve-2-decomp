@@ -417,18 +417,9 @@ void Gp_CommitWarp(void)
     }
 }
 
-void Gp_WarpPhase4(void)
+void directionAwaitWarpSound(void)
 {
-    u8 fade;
-
-    if (*(s16*)&Gp_DirFadeLevel != 0) {
-        fade = *(u8*)&Gp_DirFadeLevel;
-        fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
-        Gp_DirFadeLevel += 0x1E;
-        if ((s16)Gp_DirFadeLevel >= 0x100) {
-            Gp_DirFadeLevel = 0xFF;
-        }
-    }
+    _directionStepDepartureFade();
     if (D_80114CF0 == 0 || sndScriptHasActiveId(D_80114CF0) == 0) {
         Gp_DirPhase++;
     }

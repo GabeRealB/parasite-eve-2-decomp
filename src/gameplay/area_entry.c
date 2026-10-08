@@ -44,7 +44,7 @@ static u16 D_8010CA30[] = { 0x3A, 0x2E, 0x3B, 0x31, 0x41, 0x34, 0, 0 };
 
 /// Area transition panel and item-title panel, selected by the spawn index.
 UiObjectDesc D_8010CA40[] = {
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -80, -48, 160, 64 }, 32, 0, TASK_BODY_NONE, 0xC0, func_800A087C, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -80, -48, 160, 64 }, 32, 0, TASK_BODY_NONE, 0xC0, itemMenuBattleResultTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -80, -96, 256, 192 }, 36, 0, TASK_BODY_NONE, 0xC0, itemPickupTitleTask, 0 },
 };
 UiObjectDesc D_8010CA78[] = {

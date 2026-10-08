@@ -94,7 +94,12 @@ void directionAwaitWarpTurn(void);
 
 void Gp_CommitWarp(void);
 
-void Gp_WarpPhase4(void);
+/// Steps the departure fade until the selected warp sound is no longer active.
+///
+/// Uses the latched sound id; zero skips the wait. Completion advances to the
+/// destination-save phase. The sound query follows script-instance lifetime,
+/// including release, rather than testing only currently sounding voices.
+void directionAwaitWarpSound(void);
 
 void func_800AD6BC(void);
 

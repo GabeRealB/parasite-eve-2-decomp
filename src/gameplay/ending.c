@@ -113,36 +113,68 @@ void Gp_EndingTask(Task* arg0)
     }
 }
 
-void func_800A087C(Task* arg0)
-{
-    u8            buf[0x20];
-    TextDrawReq   req1;
-    TextDrawReq   req2;
-    TextDrawReq   req3;
-    TextDrawReq   req4;
-    TextDrawReq   req5;
-    TextDrawReq   req6;
-    TextDrawReq   req7;
-    TextDrawReq   req8;
-    TextDrawReq   req9;
-    TextDrawReq   req10;
-    TextDrawReq   req11;
-    UiObject*     obj;
-    PlayerStatus* cfg;
-    s32           col;
-    s32           step;
-    s32           color;
-    s32           color2;
-    s32           y;
-    s32           top;
-    s32           h;
-    s32           tx;
-    u16           add;
+/// Sets a battle-result line's style, leaving its pixel position intact.
+///
+/// request is a side-effect-free writable TextDrawReq lvalue, evaluated five
+/// times; panel is a readable UiPanel pointer evaluated once. Other arguments
+/// are evaluated once. Captures no locals. Use as a standalone block statement
+/// without a trailing else. Undefined after the result task.
+#define ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(request, panel, rgb, glyphs, align, mode) \
+    {                                                                                    \
+        (request).otIndex    = (panel)->otIndex.signedValue + 1;                         \
+        (request).colorRgb   = (rgb);                                                    \
+        (request).glyphTable = (glyphs);                                                 \
+        (request).alignment  = (align);                                                  \
+        (request).drawMode   = (mode);                                                   \
+    }
 
-    cfg = &gPlayerStatus;
-    obj = arg0->spawnArg2.pointer;
-    if (arg0->state == 0) {
-        if (arg0->spawnArg1.value == 0) {
+void itemMenuBattleResultTask(Task* task)
+{
+    enum {
+        ITEM_MENU_BATTLE_INITIALIZE          = 0,
+        ITEM_MENU_BATTLE_WON                 = 0,
+        ITEM_MENU_BATTLE_ESCAPE_BP_PENALTY   = -10,
+        ITEM_MENU_BATTLE_ESCAPE_MP_GAIN      = 1,
+        ITEM_MENU_BATTLE_POINT_TOTAL_MAX     = 999999,
+        ITEM_MENU_BATTLE_MP_BONUS_MAX        = 99,
+        ITEM_MENU_BATTLE_ELAPSED_UPDATES_MAX = 500,
+        ITEM_MENU_BATTLE_EXP_TOTAL_UPDATE    = 51,
+        ITEM_MENU_BATTLE_BP_TOTAL_UPDATE     = 81,
+        ITEM_MENU_BATTLE_MP_TOTAL_UPDATE     = 111,
+        ITEM_MENU_BATTLE_HP_TOTAL_UPDATE     = 141,
+        ITEM_MENU_BATTLE_NUMBER_TEXT_BYTES   = 32,
+        ITEM_MENU_BATTLE_TEXT_COLOR_RGB      = 0x606060,
+        ITEM_MENU_BATTLE_PENALTY_COLOR_RGB   = 0x0D287F
+    };
+    u8            numberText[ITEM_MENU_BATTLE_NUMBER_TEXT_BYTES];
+    TextDrawReq   totalLabelRequest;
+    TextDrawReq   hpLabelRequest;
+    TextDrawReq   hpGainRequest;
+    TextDrawReq   mpLabelRequest;
+    TextDrawReq   mpGainRequest;
+    TextDrawReq   mpBonusOrBpLabelRequest;
+    TextDrawReq   bpGainOrExpLabelRequest;
+    TextDrawReq   expGainRequest;
+    TextDrawReq   hpOrMpTotalRequest;
+    TextDrawReq   bpTotalRequest;
+    TextDrawReq   expTotalRequest;
+    UiObject*     object;
+    PlayerStatus* player;
+    s32           columnX;
+    s32           rowHeight;
+    s32           gainColorRgb;
+    s32           totalColorRgb;
+    s32           rowY;
+    s32           contentTop;
+    s32           contentBottom;
+    s32           totalLabelX;
+    u16           hpRecovery;
+
+    player = &gPlayerStatus;
+    object = task->spawnArg2.pointer;
+    // Apply rewards once; preserve the halfword recovery and reward narrowing.
+    if (task->state == ITEM_MENU_BATTLE_INITIALIZE) {
+        if (task->spawnArg1.value == ITEM_MENU_BATTLE_WON) {
             D_80114BE2 = 0;
             D_80114BE4 = 0;
             D_80114BDC = gSceneCombatState.bpReward;
@@ -150,225 +182,168 @@ void func_800A087C(Task* arg0)
             D_80114BE0 = gSceneCombatState.mpReward;
             if (equipmentHasEffect(EQUIPMENT_EFFECT_MP_RECOVERY) != 0) {
                 D_80114BE4 = ((u32)(gSceneCombatState.mpReward - 1) >> 2) + 1;
-                if (D_80114BE4 >= 100) {
-                    D_80114BE4 = 99;
+                if (D_80114BE4 >= ITEM_MENU_BATTLE_MP_BONUS_MAX + 1) {
+                    D_80114BE4 = ITEM_MENU_BATTLE_MP_BONUS_MAX;
                 }
             }
             if (equipmentHasEffect(EQUIPMENT_EFFECT_HP_RECOVERY) != 0) {
-                add        = (u16)gSceneCombatState.mpReward;
-                D_80114BE2 = add;
-                cfg->hp   += add;
-                if (cfg->hp >= cfg->hpMax) {
-                    cfg->hp = cfg->hpMax;
+                hpRecovery  = (u16)gSceneCombatState.mpReward;
+                D_80114BE2  = hpRecovery;
+                player->hp += hpRecovery;
+                if (player->hp >= player->hpMax) {
+                    player->hp = player->hpMax;
                 }
             }
         } else {
             D_80114BDE = 0;
-            D_80114BDC = -10;
-            D_80114BE0 = 1;
+            D_80114BDC = ITEM_MENU_BATTLE_ESCAPE_BP_PENALTY;
+            D_80114BE0 = ITEM_MENU_BATTLE_ESCAPE_MP_GAIN;
             D_80114BE2 = 0;
             D_80114BE4 = 0;
         }
-        cfg->bp += D_80114BDC;
-        if (cfg->bp > 999999) {
-            cfg->bp = 999999;
+        player->bp += D_80114BDC;
+        if (player->bp > ITEM_MENU_BATTLE_POINT_TOTAL_MAX) {
+            player->bp = ITEM_MENU_BATTLE_POINT_TOTAL_MAX;
         }
-        if (cfg->bp < 0) {
-            cfg->bp = 0;
+        if (player->bp < 0) {
+            player->bp = 0;
         }
-        cfg->exp += D_80114BDE;
-        if (cfg->exp > 999999) {
-            cfg->exp = 999999;
+        player->exp += D_80114BDE;
+        if (player->exp > ITEM_MENU_BATTLE_POINT_TOTAL_MAX) {
+            player->exp = ITEM_MENU_BATTLE_POINT_TOTAL_MAX;
         }
-        cfg->mp += D_80114BE0 + D_80114BE4;
-        if (cfg->mp > cfg->mpMax) {
-            cfg->mp = cfg->mpMax;
+        player->mp += D_80114BE0 + D_80114BE4;
+        if (player->mp > player->mpMax) {
+            player->mp = player->mpMax;
         }
-        arg0->killCountdown = 0;
-        arg0->state++;
+        task->killCountdown = 0;
+        task->state++;
     }
 
-    uiDrawTitle(&(obj)->panel, Gp_StrBattleResult);
-    if (arg0->killCountdown < 500) {
-        arg0->killCountdown++;
+    // Draw gains immediately, then reveal the updated totals from EXP to HP.
+    uiDrawTitle(&object->panel, Gp_StrBattleResult);
+    if (task->killCountdown < ITEM_MENU_BATTLE_ELAPSED_UPDATES_MAX) {
+        task->killCountdown++;
     }
 
-    col   = 0;
-    step  = 0xE;
-    color = 0x606060;
+    columnX      = 0;
+    rowHeight    = 0xE;
+    gainColorRgb = ITEM_MENU_BATTLE_TEXT_COLOR_RGB;
 
-    top             = obj->panel.contentTop.signedValue;
-    tx              = obj->panel.contentOriginX.unsignedValue - 4;
-    req1.x          = obj->panel.contentRight.signedValue + tx;
-    req1.y          = obj->panel.contentOriginY.unsignedValue + top + 5;
-    req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req1.colorRgb   = color;
-    req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req1.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req1.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req1, Gp_StrTotal);
+    contentTop          = object->panel.contentTop.signedValue;
+    totalLabelX         = object->panel.contentOriginX.unsignedValue - 4;
+    totalLabelRequest.x = object->panel.contentRight.signedValue + totalLabelX;
+    totalLabelRequest.y = object->panel.contentOriginY.unsignedValue + contentTop + 5;
+    ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(totalLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+    textDrawString(&totalLabelRequest, Gp_StrTotal);
 
-    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, top + 9);
-    uiDrawVerticalSeparator(&(obj)->panel, top + 0xC, obj->panel.contentBottom.signedValue, 0x1C);
+    uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, contentTop + 9);
+    uiDrawVerticalSeparator(&object->panel, contentTop + 0xC, object->panel.contentBottom.signedValue, 0x1C);
 
-    h = obj->panel.contentBottom.signedValue;
-    y = h - 2;
+    contentBottom = object->panel.contentBottom.signedValue;
+    rowY          = contentBottom - 2;
     if (D_80114BE2 > 0) {
-        y               = h - 1;
-        req2.x          = obj->panel.contentLeft.signedValue + (obj->panel.contentOriginX.unsignedValue + 6);
-        req2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
-        req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req2.colorRgb   = color;
-        req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-        req2.alignment  = TEXT_ALIGNMENT_LEFT;
-        req2.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req2, Gp_StrHP);
-        step = 0xA;
+        rowY             = contentBottom - 1;
+        hpLabelRequest.x = object->panel.contentLeft.signedValue + (object->panel.contentOriginX.unsignedValue + 6);
+        hpLabelRequest.y = (s16)(object->panel.contentOriginY.unsignedValue - 2) + rowY;
+        ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(hpLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+        textDrawString(&hpLabelRequest, Gp_StrHP);
+        rowHeight = 0xA;
 
-        req3.x          = obj->panel.contentOriginX.unsignedValue + col;
-        req3.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req3.colorRgb   = color;
-        req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req3.alignment  = TEXT_ALIGNMENT_RIGHT;
-        req3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req3, textItoaUnsigned(buf, D_80114BE2));
-        y -= 0xA;
+        hpGainRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
+        hpGainRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
+        ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(hpGainRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        textDrawString(&hpGainRequest, textItoaUnsigned(numberText, D_80114BE2));
+        rowY -= 0xA;
     }
 
-    req4.x          = obj->panel.contentLeft.signedValue + (obj->panel.contentOriginX.unsignedValue + 6);
-    req4.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
-    req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req4.colorRgb   = color;
-    req4.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req4.alignment  = TEXT_ALIGNMENT_LEFT;
-    req4.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req4, Gp_StrMP);
+    mpLabelRequest.x = object->panel.contentLeft.signedValue + (object->panel.contentOriginX.unsignedValue + 6);
+    mpLabelRequest.y = (s16)(object->panel.contentOriginY.unsignedValue - 2) + rowY;
+    ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(mpLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    textDrawString(&mpLabelRequest, Gp_StrMP);
 
-    req5.x          = obj->panel.contentOriginX.unsignedValue + col;
-    req5.y          = obj->panel.contentOriginY.unsignedValue + y;
-    req5.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req5.colorRgb   = color;
-    req5.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req5.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req5.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req5, textItoaUnsigned(buf, D_80114BE0));
+    mpGainRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
+    mpGainRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
+    ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(mpGainRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    textDrawString(&mpGainRequest, textItoaUnsigned(numberText, D_80114BE0));
 
     if (D_80114BE4 > 0) {
-        buf[0] = '+';
-        textItoaUnsigned(&buf[1], D_80114BE4);
-        req6.x          = obj->panel.contentOriginX.unsignedValue + col;
-        req6.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req6.colorRgb   = color;
-        req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req6.alignment  = TEXT_ALIGNMENT_LEFT;
-        req6.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req6, buf);
+        numberText[0] = '+';
+        textItoaUnsigned(&numberText[1], D_80114BE4);
+        mpBonusOrBpLabelRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
+        mpBonusOrBpLabelRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
+        ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(mpBonusOrBpLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        textDrawString(&mpBonusOrBpLabelRequest, numberText);
     }
 
-    y              -= step;
-    req6.x          = obj->panel.contentLeft.signedValue + (obj->panel.contentOriginX.unsignedValue + 6);
-    req6.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
-    req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req6.colorRgb   = color;
-    req6.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req6.alignment  = TEXT_ALIGNMENT_LEFT;
-    req6.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req6, Gp_StrBP);
+    rowY                     -= rowHeight;
+    mpBonusOrBpLabelRequest.x = object->panel.contentLeft.signedValue + (object->panel.contentOriginX.unsignedValue + 6);
+    mpBonusOrBpLabelRequest.y = (s16)(object->panel.contentOriginY.unsignedValue - 2) + rowY;
+    ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(mpBonusOrBpLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    textDrawString(&mpBonusOrBpLabelRequest, Gp_StrBP);
 
     if (D_80114BDC < 0) {
-        req7.x          = obj->panel.contentOriginX.unsignedValue + col;
-        req7.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req7.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req7.colorRgb   = 0xD287F;
-        req7.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req7.alignment  = TEXT_ALIGNMENT_RIGHT;
-        req7.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req7, textItoaSigned(buf, D_80114BDC));
+        bpGainOrExpLabelRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
+        bpGainOrExpLabelRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
+        ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(bpGainOrExpLabelRequest, &object->panel, ITEM_MENU_BATTLE_PENALTY_COLOR_RGB, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        textDrawString(&bpGainOrExpLabelRequest, textItoaSigned(numberText, D_80114BDC));
     } else {
-        req7.x          = obj->panel.contentOriginX.unsignedValue + col;
-        req7.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req7.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req7.colorRgb   = color;
-        req7.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req7.alignment  = TEXT_ALIGNMENT_RIGHT;
-        req7.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req7, textItoaUnsigned(buf, D_80114BDC));
+        bpGainOrExpLabelRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
+        bpGainOrExpLabelRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
+        ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(bpGainOrExpLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        textDrawString(&bpGainOrExpLabelRequest, textItoaUnsigned(numberText, D_80114BDC));
     }
 
-    y              -= step;
-    color2          = 0x606060;
-    req7.x          = obj->panel.contentLeft.signedValue + (obj->panel.contentOriginX.unsignedValue + 6);
-    req7.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
-    req7.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req7.colorRgb   = color2;
-    req7.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req7.alignment  = TEXT_ALIGNMENT_LEFT;
-    req7.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req7, Gp_StrEXP);
+    rowY                     -= rowHeight;
+    totalColorRgb             = ITEM_MENU_BATTLE_TEXT_COLOR_RGB;
+    bpGainOrExpLabelRequest.x = object->panel.contentLeft.signedValue + (object->panel.contentOriginX.unsignedValue + 6);
+    bpGainOrExpLabelRequest.y = (s16)(object->panel.contentOriginY.unsignedValue - 2) + rowY;
+    ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(bpGainOrExpLabelRequest, &object->panel, totalColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    textDrawString(&bpGainOrExpLabelRequest, Gp_StrEXP);
 
-    req8.x          = obj->panel.contentOriginX.unsignedValue + col;
-    req8.y          = obj->panel.contentOriginY.unsignedValue + y;
-    req8.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req8.colorRgb   = color2;
-    req8.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req8.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req8.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req8, textItoaUnsigned(buf, D_80114BDE));
+    expGainRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
+    expGainRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
+    ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(expGainRequest, &object->panel, totalColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    textDrawString(&expGainRequest, textItoaUnsigned(numberText, D_80114BDE));
 
-    y   = obj->panel.contentBottom.signedValue - 2;
-    col = obj->panel.contentRight.signedValue - 2;
+    rowY    = object->panel.contentBottom.signedValue - 2;
+    columnX = object->panel.contentRight.signedValue - 2;
     if (D_80114BE2 > 0) {
-        y = obj->panel.contentBottom.signedValue - 1;
-        if (arg0->killCountdown >= 0x8D) {
-            req9.x          = obj->panel.contentOriginX.unsignedValue + col;
-            req9.y          = obj->panel.contentOriginY.unsignedValue + y;
-            req9.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req9.colorRgb   = color2;
-            req9.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            req9.alignment  = TEXT_ALIGNMENT_RIGHT;
-            req9.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&req9, textItoaUnsigned(buf, cfg->hp));
+        rowY = object->panel.contentBottom.signedValue - 1;
+        if (task->killCountdown >= ITEM_MENU_BATTLE_HP_TOTAL_UPDATE) {
+            hpOrMpTotalRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
+            hpOrMpTotalRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
+            ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(hpOrMpTotalRequest, &object->panel, totalColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+            textDrawString(&hpOrMpTotalRequest, textItoaUnsigned(numberText, player->hp));
         }
-        y -= step;
+        rowY -= rowHeight;
     }
-    if (arg0->killCountdown >= 0x6F) {
-        req9.x          = obj->panel.contentOriginX.unsignedValue + col;
-        req9.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req9.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req9.colorRgb   = 0x606060;
-        req9.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req9.alignment  = TEXT_ALIGNMENT_RIGHT;
-        req9.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req9, textItoaUnsigned(buf, cfg->mp));
+    if (task->killCountdown >= ITEM_MENU_BATTLE_MP_TOTAL_UPDATE) {
+        hpOrMpTotalRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
+        hpOrMpTotalRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
+        ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(hpOrMpTotalRequest, &object->panel, ITEM_MENU_BATTLE_TEXT_COLOR_RGB, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        textDrawString(&hpOrMpTotalRequest, textItoaUnsigned(numberText, player->mp));
     }
-    y -= step;
-    if (arg0->killCountdown >= 0x51) {
-        req10.x          = obj->panel.contentOriginX.unsignedValue + col;
-        req10.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req10.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req10.colorRgb   = 0x606060;
-        req10.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req10.alignment  = TEXT_ALIGNMENT_RIGHT;
-        req10.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req10, textItoaUnsigned(buf, cfg->bp));
+    rowY -= rowHeight;
+    if (task->killCountdown >= ITEM_MENU_BATTLE_BP_TOTAL_UPDATE) {
+        bpTotalRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
+        bpTotalRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
+        ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(bpTotalRequest, &object->panel, ITEM_MENU_BATTLE_TEXT_COLOR_RGB, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        textDrawString(&bpTotalRequest, textItoaUnsigned(numberText, player->bp));
     }
-    y -= step;
-    if (arg0->killCountdown >= 0x33) {
-        req11.x          = obj->panel.contentOriginX.unsignedValue + col;
-        req11.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req11.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req11.colorRgb   = 0x606060;
-        req11.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req11.alignment  = TEXT_ALIGNMENT_RIGHT;
-        req11.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&req11, textItoaUnsigned(buf, cfg->exp));
+    rowY -= rowHeight;
+    if (task->killCountdown >= ITEM_MENU_BATTLE_EXP_TOTAL_UPDATE) {
+        expTotalRequest.x = object->panel.contentOriginX.unsignedValue + columnX;
+        expTotalRequest.y = object->panel.contentOriginY.unsignedValue + rowY;
+        ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(expTotalRequest, &object->panel, ITEM_MENU_BATTLE_TEXT_COLOR_RGB, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        textDrawString(&expTotalRequest, textItoaUnsigned(numberText, player->exp));
     }
 
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
+
+#undef ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE

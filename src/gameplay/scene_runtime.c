@@ -784,10 +784,13 @@ s16 streamSelectScene(u16 group, u16 id, u16 subId, u16 subId2)
 
 /// Sets the script-sound request gates selected by a scene's sound-bank mask.
 ///
-/// Disabling also stops selected scripts without a fade. Bits 0..5 select
-/// decoded bank types; higher bits are ignored. The all-types stop spares
-/// ambient sounds while its gate covers every type. Requires initialized sound
-/// queues and the live zero-terminated decode table. No stopped script restarts.
+/// Disabling also requests stops without a fade. Bits 0..5 select
+/// common, weapon, type-1, area, character and all bank types respectively;
+/// higher bits are ignored. The all-types stop spares ambient sounds while
+/// its gate covers every type. Requires initialized sound
+/// queues and the live zero-terminated decode table. Disabling the character
+/// gate also queues its release stop. Enabling only reopens gates; no stopped
+/// script restarts. Neither the scene mask nor decode table is changed.
 static inline void _cdCmdSetSceneAudioSoundRequests(u16 soundBankMask, bool requestsEnabled)
 {
     u16                            maskIndex;

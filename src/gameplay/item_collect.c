@@ -159,7 +159,8 @@ static inline s32 _areaReadObjectState(const u32* objectStates, s32 objectId)
 /// Reads a placed model's saved state in the current stage.
 ///
 /// Borrows a live enemy task; its place-key low byte must be 0..63 and the
-/// current stage must be 1..5 with readable object-state words.
+/// current stage must be 1..5 with readable object-state words. Returns 0..3;
+/// stage 3 shares stage 2's saved bank. No saved state or task data is changed.
 static inline s32 _areaReadModelObjectState(const Task* task)
 {
     const AreaObjectStage* stages;

@@ -466,7 +466,7 @@ static const _DirectionWarpPhaseTable Gp_WarpPhaseFns = { {
     [DIRECTION_WARP_PHASE_AWAIT_TURN]  = directionAwaitWarpTurn,
     [DIRECTION_WARP_PHASE_HOLD]        = _directionHoldWarpFrame,
     [DIRECTION_WARP_PHASE_RESOLVE]     = Gp_CommitWarp,
-    [DIRECTION_WARP_PHASE_AWAIT_SOUND] = Gp_WarpPhase4,
+    [DIRECTION_WARP_PHASE_AWAIT_SOUND] = directionAwaitWarpSound,
     [DIRECTION_WARP_PHASE_LEAVE]       = Gp_CommitSaveLoc,
 } };
 

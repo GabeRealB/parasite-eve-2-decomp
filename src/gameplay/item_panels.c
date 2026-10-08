@@ -1971,11 +1971,11 @@ void itemPickupRestoreFrameTimingTask(Task* task)
     }
 }
 
-void Gp_PickupExitTask(Task* arg0)
+void itemPickupExitTask(Task* task)
 {
-    arg0->killCountdown--;
-    if (arg0->killCountdown <= 0) {
-        taskKill(arg0);
+    task->killCountdown--;
+    if (task->killCountdown <= 0) {
+        taskKill(task);
         stageReleaseTaskPrimitiveBuffer();
         stageRequestModeTaskExit();
     }

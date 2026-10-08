@@ -320,7 +320,12 @@ void itemPickupHandleResultTask(Task* task);
 /// with a one-update delay; the following state releases the UI primitive buffer.
 void itemPickupRestoreFrameTimingTask(Task* task);
 
-void Gp_PickupExitTask(Task* arg0);
+/// Ends the pickup task after its closing delay and releases stage UI resources.
+///
+/// Decrements once per dispatcher update. At zero, kills the task, releases the
+/// stage task primitive buffer and requests the stage mode task's exit, in that
+/// order. The pickup must have finished using that buffer before this state.
+void itemPickupExitTask(Task* task);
 
 /// 10-byte records selected by `damageGetPlayerAttackHitCooldown` when the id's 0x8000 bit is
 /// clear. Indexed by `id & 0x7F`.
@@ -815,7 +820,7 @@ void itemMenuWeaponPanelTask(Task* task);
 
 void Gp_ArmorMenuTask(Task* arg0);
 
-/// Three-entry dispatcher table: `Gp_ItemMenuInit`, `Gp_UiPromptUpdate`, `Gp_UiPromptDispatch`.
+/// Three-entry dispatcher table: `Gp_ItemMenuInit`, `_itemMenuUpdatePromptTask`, `Gp_UiPromptDispatch`.
 extern const UiObjectTaskFuncTable3 Gp_ItemMenuStates;
 
 extern char Gp_StrUsedDot[];

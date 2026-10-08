@@ -168,7 +168,7 @@ static const char Gp_StrDemoPause[];
 
 static void Gp_ScriptTaskState1(Task* arg0);
 
-static void Gp_ScriptInit(Task* arg0);
+static void _evsInitializeInterpreterTask(Task* task);
 
 Task* D_8010FBE0 = NULL;
 
@@ -177,7 +177,7 @@ Task* D_8010FBE4 = NULL;
 Task* D_8010FBE8 = NULL;
 
 static const TaskFuncTable3 Gp_ScriptTaskStates = { {
-    Gp_ScriptInit,
+    _evsInitializeInterpreterTask,
     Gp_ScriptTaskState1,
     taskKill,
 } };
@@ -754,27 +754,34 @@ Task* sceneFindPlacedActor(s32 placementIndex)
     return actorTask;
 }
 
-static void Gp_ScriptInit(Task* arg0)
+/// Allocates an event interpreter and acquires its display and optional HUD hold.
+///
+/// spawnArg2 borrows the entry command stream for the interpreter's lifetime;
+/// spawnArg1 selects EVENT_SCRIPT_HUD_HIDE_RESTORE or EVENT_SCRIPT_HUD_KEEP.
+/// Allocation failure kills the task without taking a hold. Success attaches
+/// zeroed work, resets per-script controls and advances to command execution.
+/// The interpreter's cleanup releases the hold and any HUD suppression.
+static void _evsInitializeInterpreterTask(Task* task)
 {
     _EvsInterpreterWork* work;
-    EvsCommand*          script;
+    EvsCommand*          entryCommand;
 
-    work = memCalloc(sizeof(*work), 0);
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
     D_801156F9          = 0;
-    D_801156F4.sceneKey = 0;
+    D_801156F4.sceneKey = NULL;
     displayAcquireMenuHold();
-    script           = arg0->spawnArg2.pointer;
+    entryCommand     = task->spawnArg2.pointer;
     D_801156A4       = 0;
-    arg0->work       = work;
+    task->work       = work;
     work->waitFrames = 0;
     D_801156C8       = 0;
-    work->command    = script;
+    work->command    = entryCommand;
     D_801156CA       = 0;
-    if (arg0->spawnArg1.value == 0) {
+    if (task->spawnArg1.value == EVENT_SCRIPT_HUD_HIDE_RESTORE) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
     }
     D_801156CB              = 1;
@@ -782,7 +789,7 @@ static void Gp_ScriptInit(Task* arg0)
     work->secondaryFadeTask = NULL;
     work->returnDepth       = 0;
     D_8011569C              = 0;
-    arg0->state++;
+    task->state++;
 }
 
 void func_800E8830(Task* arg0)

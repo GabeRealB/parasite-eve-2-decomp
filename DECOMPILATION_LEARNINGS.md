@@ -26875,7 +26875,7 @@ if (D_80114CF0 == 0 || sndScriptHasActiveId(D_80114CF0) == 0) {
 }
 ```
 
-`Gp_WarpPhase4` is the example. The void call stuck at 99.75% with only the
+`directionAwaitWarpSound` is the example. The void call stuck at 99.75% with only the
 load dest different.
 
 ## Assign `&global` in each arm so `%lo` rematerializes and `lui` fills `bnez`
@@ -31137,7 +31137,7 @@ if (childTask != NULL) {
     if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
 ```
 
-`_itemPickupInventoryFullTask` is the example. The former first-child cast, also seen in `Gp_UiPromptUpdate`, is now expressed with a `Task*`.
+`_itemPickupInventoryFullTask` is the example. The former first-child cast, also seen in `_itemMenuUpdatePromptTask`, is now expressed with a `Task*`.
 
 ## Pin two stack args and assign them in the desired `lw` order
 
@@ -66486,20 +66486,20 @@ are zero.
 
 ## A keep-live can lower allocation priority when the added lifetime outweighs its reference
 
-In `func_800A087C`, the unpinned task pointer and row spacing had the right
+In `itemMenuBattleResultTask`, the unpinned task pointer and row spacing had the right
 instructions but occupied each other's `$s7` / `$fp` registers. The patched
 GCC 2.8.1 `global.c:allocno_compare` ranks them by
 `floor_log2(n_refs) * n_refs / live_length`. The `.lreg` counts were task
 13/932 (0.04185), spacing 7/335 (0.04179), and column 7/329 (0.04255).
-A final `SOFT_USE_REG(index)` extended the task pointer to 14/1014 (0.04142):
+A final `SOFT_USE_REG(task)` extended the task pointer to 14/1014 (0.04142):
 despite adding a reference, it moved behind spacing and produced a 100% match
 without pins. Check both numerator and denominator before assuming a use
 always raises priority.
 
-For the same function's HP request, `USE_REG3(y, hpReq, hpText)` after setting
+For the same function's HP request, `USE_REG3(rowY, hpReq, hpText)` after setting
 its row and call arguments kept those computations before the request stores.
-Loading `by = obj->baseY`, then `SOFT_BARRIER(); step = 10;`, then computing
-`req2.y = (s16)(by - 2) + y` let the spacing constant fill the `lhu` delay slot.
+Loading `by = object->panel.contentOriginY.unsignedValue`, then `SOFT_BARRIER(); rowHeight = 10;`, then computing
+`hpLabelRequest.y = (s16)(by - 2) + rowY` let the spacing constant fill the `lhu` delay slot.
 A barrier only after the complete request also fixed allocation, but left six
 scheduling penalties because it delayed the call arguments too.
 
@@ -144850,11 +144850,11 @@ order the target's luis follow. The adjusted y went into its own
 single-set local (`top = -(off + 2) + y`), so the `y` load keeps sched1's
 birthing boost. `y - (off + 2)` is reassociated by fold into
 `(y - 2) - off`.
-## A USE_REG on a parameter at the end of a function can stand for a constant assigned too early (func_800A087C, 2026-09-26)
+## A USE_REG on a parameter at the end of a function can stand for a constant assigned too early (itemMenuBattleResultTask, 2026-09-26)
 
-**Symptom:** a parameter and a function-scope constant local (`step = 0xA` inside
+**Symptom:** a parameter and a function-scope constant local (`rowHeight = 0xA` inside
 an `if`) swap two callee-saved registers (`fp` and `s7`); the seed kept the
-parameter alive with `SOFT_USE_REG(index)` after its last use and forced the
+parameter alive with `SOFT_USE_REG(task)` after its last use and forced the
 constant's `li` into place with `USE_REG3`/`SOFT_BARRIER`.
 
 **Fix:** move the assignment later in its block - here, after the call it was

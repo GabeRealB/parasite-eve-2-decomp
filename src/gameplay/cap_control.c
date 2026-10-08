@@ -73,7 +73,9 @@ TaskMessageEntry D_8010FB90[10] = {
 /// Advances the armed scene-sync timer while CAP playback is selected.
 ///
 /// Publishes completion when the elapsed count reaches thirty active ticks,
-/// including a count primed by the request. Playback consumes and clears the bit.
+/// including a count primed by the request. Inactive playback pauses the count.
+/// Completion disarms the timer; playback consumes and clears the bit. If the
+/// bit was already set when armed, counting continues until playback clears it.
 static inline void _capTickSceneSync(void)
 {
     if (capIsBusy() != 0 && D_801156B0 != 0) {

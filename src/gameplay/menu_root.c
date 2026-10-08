@@ -126,7 +126,7 @@ extern UiListRowCallback D_8010E9F0[1];
 
 static s32 D_8010EA54[];
 
-static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1);
+static void _itemMenuUpdatePromptTask(UiObject* object, Task* task);
 
 char        Gp_StrUsedDot[]      = "used.";
 char        Gp_StrCreatedDot[]   = "created.";
@@ -616,54 +616,80 @@ void Gp_MenuRootTask(Task* arg0)
     arg0->state += 0xA;
 }
 
-static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
-{
-    Task*        childTask;
-    const u8*    text;
-    u32          textColorRgb;
-    s32          one;
-    TaskSpawnArg val;
-    UiObject*    child;
-    s32          flag;
-    u8*          map;
-
-    val = arg1->spawnArg1;
-    map = (u8*)arg1->work;
-    if (val.value != 0) {
-        if (val.unsignedValue > 0xFFFF) {
-            textColorRgb = uiGetTextColor(arg0, USER_INTERFACE_TEXT_COLOR_NORMAL);
-            one          = 1;
-            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, val.pointer, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-            text = textSkipLines(val.pointer, one);
-            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-        } else if ((u32)(val.value - 0x300) < 0x100U) {
-            itemMenuDrawAbilityDescription(arg0, val.value);
-        }
+/// Draws a borrowed caption payload under itemMenuDrawTaskPrompt's contracts.
+///
+/// object and promptPayload are side-effect-free values, evaluated repeatedly.
+/// Arguments must not name secondLine, textColorRgb or outlinedMode. Captures no
+/// caller locals. Use as a standalone block statement; no trailing else. Undefined
+/// after the caption updater.
+#define ITEM_MENU_DRAW_PROMPT_PAYLOAD(object, promptPayload)                                                                                                                                                                                                                   \
+    {                                                                                                                                                                                                                                                                          \
+        enum { ITEM_MENU_PROMPT_INLINE_VALUE_MAX  = 0xFFFF,                                                                                                                                                                                                                    \
+               ITEM_MENU_PROMPT_ABILITY_ID_COUNT  = 0x100,                                                                                                                                                                                                                     \
+               ITEM_MENU_PROMPT_ROW_HEIGHT_PIXELS = 15,                                                                                                                                                                                                                        \
+               ITEM_MENU_PROMPT_LEFT_INSET_PIXELS = 2 };                                                                                                                                                                                                                       \
+        const u8* secondLine;                                                                                                                                                                                                                                                  \
+        u32       textColorRgb;                                                                                                                                                                                                                                                \
+        s32       outlinedMode;                                                                                                                                                                                                                                                \
+        if ((promptPayload).value != 0) {                                                                                                                                                                                                                                      \
+            if ((promptPayload).unsignedValue > ITEM_MENU_PROMPT_INLINE_VALUE_MAX) {                                                                                                                                                                                           \
+                textColorRgb = uiGetTextColor((object), USER_INTERFACE_TEXT_COLOR_NORMAL);                                                                                                                                                                                     \
+                outlinedMode = TEXT_DRAW_OUTLINED;                                                                                                                                                                                                                             \
+                textDrawUiLine((object), (object)->panel.contentLeft.signedValue + ITEM_MENU_PROMPT_LEFT_INSET_PIXELS, (object)->panel.contentTop.signedValue + ITEM_MENU_PROMPT_ROW_HEIGHT_PIXELS, (promptPayload).pointer, textColorRgb, outlinedMode, TEXT_ALIGNMENT_LEFT); \
+                secondLine = textSkipLines((promptPayload).pointer, 1);                                                                                                                                                                                                        \
+                textDrawUiLine((object), (object)->panel.contentLeft.signedValue + ITEM_MENU_PROMPT_LEFT_INSET_PIXELS, (object)->panel.contentTop.signedValue + 2 * ITEM_MENU_PROMPT_ROW_HEIGHT_PIXELS, secondLine, textColorRgb, outlinedMode, TEXT_ALIGNMENT_LEFT);          \
+            } else if ((u32)((promptPayload).value - ITEM_TEXT_PACKED_ID_FIRST) < (u32)ITEM_MENU_PROMPT_ABILITY_ID_COUNT) {                                                                                                                                                    \
+                itemMenuDrawAbilityDescription((object), (promptPayload).value);                                                                                                                                                                                               \
+            }                                                                                                                                                                                                                                                                  \
+        }                                                                                                                                                                                                                                                                      \
     }
-    childTask = arg1->firstChild;
+
+/// Draws the menu caption and forwards the live child's cancel or selection result.
+///
+/// Uses itemMenuDrawTaskPrompt's borrowed payload and resource contract. The
+/// first child must be a live UI task. Cancellation releases the registered
+/// caption holder; confirmation closes the child, hides the caption and advances
+/// to delayed command dispatch at every-VBlank timing. Clears the work block's
+/// first byte before advancing; that byte's further role is unproven.
+static void _itemMenuUpdatePromptTask(UiObject* object, Task* task)
+{
+    enum { ITEM_MENU_COMMAND_DISPATCH_DELAY_UPDATES = 16,
+           ITEM_MENU_COMMAND_RETURN_FROM_MAP        = 0x101 };
+    Task*        childTask;
+    TaskSpawnArg promptPayload;
+    UiObject*    childObject;
+    s32          childResult;
+    u8*          workByte;
+
+    promptPayload = task->spawnArg1;
+    workByte      = task->work;
+    ITEM_MENU_DRAW_PROMPT_PAYLOAD(object, promptPayload);
+    childTask = task->firstChild;
     if (childTask != NULL) {
-        child = childTask->spawnArg2.pointer;
-        flag  = child->result;
-        if (flag == USER_INTERFACE_RESULT_CANCEL) {
-            arg0->result = flag;
-            Wip_UiHolder = NULL;
-        } else if (flag == USER_INTERFACE_RESULT_CONFIRM) {
-            arg0->resultValue = child->resultValue;
-            uiStartTreeClosing(child, child->owner);
-            uiStartPanelHiding(arg0, arg0->owner);
-            arg1->killCountdown = 0x10;
-            *map                = 0;
+        childObject = childTask->spawnArg2.pointer;
+        childResult = childObject->result;
+        if (childResult == USER_INTERFACE_RESULT_CANCEL) {
+            object->result = childResult;
+            Wip_UiHolder   = NULL;
+        } else if (childResult == USER_INTERFACE_RESULT_CONFIRM) {
+            object->resultValue = childObject->resultValue;
+            uiStartTreeClosing(childObject, childObject->owner);
+            uiStartPanelHiding(object, object->owner);
+            task->killCountdown = ITEM_MENU_COMMAND_DISPATCH_DELAY_UPDATES;
+            *workByte           = 0;
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-            arg1->state = arg1->state + 1;
-            if (arg0->resultValue == 0x101) {
+            task->state = task->state + 1;
+            if (object->resultValue == ITEM_MENU_COMMAND_RETURN_FROM_MAP) {
                 sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             }
         }
     }
 }
 
+#undef ITEM_MENU_DRAW_PROMPT_PAYLOAD
+
 /// Three-entry dispatcher table indexed by `Task::state` (`Gp_ItemMenuTask`).
-const UiObjectTaskFuncTable3 Gp_ItemMenuStates = { { Gp_ItemMenuInit, Gp_UiPromptUpdate, Gp_UiPromptDispatch } };
+const UiObjectTaskFuncTable3 Gp_ItemMenuStates = { { Gp_ItemMenuInit, _itemMenuUpdatePromptTask, Gp_UiPromptDispatch } };
 
 /// CLUT ids for the ten item-category icons drawn by `itemMenuDrawItemIcon`,
 /// indexed by the icon index that function derives from the item id.
