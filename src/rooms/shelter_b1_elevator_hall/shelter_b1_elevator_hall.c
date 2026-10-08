@@ -38,42 +38,51 @@ RoomEventMsg D_shelter_b1_elevator_hall_801849F8;
 
 #include "../../shared/shelter_elevator_task.inc.c"
 
-s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+s32 shelterB1ElevatorHallResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    mapShelterRoomVariantResolve(src, dst);
-    if (src->areaId == GAME_AREA_SHELTER_B1_MAIN_CORRIDOR && gameFlagGetNibble(GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED) == 0) {
-        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            gameFlagSetNibbleIfPresent(src->flagId, 2);
-            capRunCommandWithTransition(2);
+    enum { TRANSITION_REFUSED          = 0,
+           TRANSITION_DIRECT           = 1,
+           TRANSITION_DEFERRED         = 2,
+           TRANSITION_REFUSAL_FLAG     = 2,
+           CAP_COMMAND_CORRIDOR_LOCKED = 2,
+           CAP_COMMAND_ELEVATOR_LOCKED = 1,
+           CAP_COMMAND_ELEVATOR_RIDE   = 4 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B1_MAIN_CORRIDOR && gameFlagGetNibble(GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED) == 0) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            gameFlagSetNibbleIfPresent(request->flagId, TRANSITION_REFUSAL_FLAG);
+            capRunCommandWithTransition(CAP_COMMAND_CORRIDOR_LOCKED);
         }
-        return 0;
+        return TRANSITION_REFUSED;
     }
-    if (src->areaId == GAME_AREA_SHELTER_B2_ELEVATOR) {
+    if (request->areaId == GAME_AREA_SHELTER_B2_ELEVATOR) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
-            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                gameFlagSetNibbleIfPresent(src->flagId, 2);
-                capRunCommandWithTransition(1);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                gameFlagSetNibbleIfPresent(request->flagId, TRANSITION_REFUSAL_FLAG);
+                capRunCommandWithTransition(CAP_COMMAND_ELEVATOR_LOCKED);
             }
         } else {
-            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
-                taskSpawnFromTable(&D_shelter_b1_elevator_hall_80182CAC, 0, 0x54090008, 0);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capRunCommand(CAP_COMMAND_ELEVATOR_RIDE, CAP_PLAYBACK_IN_PLACE);
+                taskSpawnFromTable(&D_shelter_b1_elevator_hall_80182CAC, 0, SOUND_SHELTER_B1_ELEVATOR_RIDE, 0);
             }
         }
-        return 0;
+        return TRANSITION_REFUSED;
     }
-    if (src->areaId == GAME_AREA_MINE_SECRET_PASSAGE) {
-        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_b1_elevator_hall_801849F8.warp              = (u8)dst->areaId;
-            D_shelter_b1_elevator_hall_801849F8.field_4           = dst->warp;
-            ((u8*)&D_shelter_b1_elevator_hall_801849F8.areaId)[1] = dst->room;
+    if (request->areaId == GAME_AREA_MINE_SECRET_PASSAGE) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            // Keep the resolved destination until the passage choice and fade finish.
+            D_shelter_b1_elevator_hall_801849F8.warp              = (u8)reply->areaId;
+            D_shelter_b1_elevator_hall_801849F8.field_4           = reply->warp;
+            ((u8*)&D_shelter_b1_elevator_hall_801849F8.areaId)[1] = reply->room;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&D_shelter_b1_elevator_hall_80182CE8, 0, 0, 0);
         }
-        return 2;
+        return TRANSITION_DEFERRED;
     }
-    return 1;
+    return TRANSITION_DIRECT;
 }
 
 /// The room task's state table, dispatched by
@@ -86,63 +95,79 @@ static const TaskFuncTable3 D_shelter_b1_elevator_hall_8017D5D8 = {
     },
 };
 
-void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
+void shelterB1ElevatorHallMineTransitTask(Task* task)
 {
-    s16 temp_v0;
+    enum { MINE_TRANSIT_START_CAP,
+           MINE_TRANSIT_WAIT_CAP,
+           MINE_TRANSIT_CHECK_CHOICE,
+           MINE_TRANSIT_SETTLE_ACTORS,
+           MINE_TRANSIT_START_FADE,
+           MINE_TRANSIT_WAIT_SOUND,
+           MINE_TRANSIT_RELOAD,
+           CAP_COMMAND_MINE_PASSAGE           = 5,
+           CAP_VARIANT_MINE_PASSAGE_CONFIRMED = 0xA,
+           ACTOR_SETTLE_FRAMES                = 3,
+           FADE_RAMP_FRAMES                   = 30,
+           FADE_TASK_BANK                     = 1,
+           FADE_TASK_SLOT                     = 0x31,
+           SPRITE_RESOURCE_VARIANT            = 1 };
+    s16 remainingFrames;
 
-    switch (arg0->state) {
-        case 0:
-            capRunCommand(5, CAP_PLAYBACK_IN_PLACE);
-            arg0->state++;
+    switch (task->state) {
+        case MINE_TRANSIT_START_CAP:
+            capRunCommand(CAP_COMMAND_MINE_PASSAGE, CAP_PLAYBACK_IN_PLACE);
+            task->state++;
             break;
-        case 1:
+        case MINE_TRANSIT_WAIT_CAP:
             if (capIsBusy() != 0) {
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            arg0->state++;
+            task->state++;
             break;
-        case 2:
-            if (capGetVariantKey() != 0xA) {
-                taskKill(arg0);
+        case MINE_TRANSIT_CHECK_CHOICE:
+            if (capGetVariantKey() != CAP_VARIANT_MINE_PASSAGE_CONFIRMED) {
+                taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            arg0->killCountdown            = 3;
-            arg0->state++;
+            task->killCountdown            = ACTOR_SETTLE_FRAMES;
+            task->state++;
             break;
-        case 3:
-            temp_v0             = (u16)arg0->killCountdown - 1;
-            arg0->killCountdown = temp_v0;
-            if ((temp_v0 << 0x10) != 0) {
+        case MINE_TRANSIT_SETTLE_ACTORS:
+            // Delay escape accounting by three task ticks after pausing actors.
+            remainingFrames     = (u16)task->killCountdown - 1;
+            task->killCountdown = remainingFrames;
+            if (remainingFrames != 0) {
                 break;
             }
             sceneQueueBattleEscapeResult();
-            arg0->state++;
+            task->state++;
             break;
-        case 4:
+        case MINE_TRANSIT_START_FADE:
             D_shelter_b1_elevator_hall_801849F0.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b1_elevator_hall_801849F0.fade.phase      = SCREEN_FADE_RUNNING;
-            D_shelter_b1_elevator_hall_801849F0.fade.rampFrames = 0x1E;
-            taskSpawn(1, 0x31, 0, &D_shelter_b1_elevator_hall_801849F0.fade);
+            D_shelter_b1_elevator_hall_801849F0.fade.rampFrames = FADE_RAMP_FRAMES;
+            taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, 0, &D_shelter_b1_elevator_hall_801849F0.fade);
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT, 0, 0);
-            arg0->state++;
+            task->state++;
             break;
-        case 5:
+        case MINE_TRANSIT_WAIT_SOUND:
             if (sndScriptHasActiveId(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT) == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 6:
+        case MINE_TRANSIT_RELOAD:
+            // Commit the saved destination only after the transit sound has ended.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gDisplayState.spriteVariant                                = 1;
+            gDisplayState.spriteVariant                                = SPRITE_RESOURCE_VARIANT;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b1_elevator_hall_801849F8.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b1_elevator_hall_801849F8.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b1_elevator_hall_801849F8.areaId)[1];
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }

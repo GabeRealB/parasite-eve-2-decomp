@@ -76,7 +76,18 @@ void shelterB1ControlRoomAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_shelter_b1_control_room_access_tunnel_8017F624(Task* task);
 
-void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0);
+/// Runs the tunnel's attached charge disc, player-joint sparks and fading release ring.
+///
+/// Requires a coordinate body and zeroed, counted `EffectWork` from
+/// `effectSpawn` in `spawnArg2.pointer`; `spawnArg1.value` selects tint 0 or 1.
+/// Start in `ROOM_VISUAL_EFFECTS_GLOW_DISC_ATTACH`; its owner can request
+/// FLICKER, RELEASE or CANCEL through the corresponding state constants.
+/// Borrows the work's parent coordinate and saved local offset. Growth emits
+/// flying sparks from live player model parts 3..18 and adopts them for teardown;
+/// the flying-spark selector must be installed. Nonzero room effect control
+/// pauses updates; four or above cancels. Release/cancel frees work and child
+/// tasks. The anchor, player, effect controller and room overlay remain live.
+void shelterB1ControlRoomAccessTunnelRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Runs the tunnel's animated spark along a fixed step toward its initial target position.
 ///

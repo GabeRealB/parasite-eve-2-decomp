@@ -150005,8 +150005,8 @@ attempts; left as it was.
   / `drawCaret` in `func_800E44A0`) were one `(a && b && (c || d) && e && !f)
   || g` condition, the same one the function already had written out thirty
   lines below.
-- Not converted: `func_shelter_b1_north_maintenance_walkway_8017D7A4` and
-  `_neoArkSavannaZoneResolveRoomEvent`. Arm A sets `cmd`/`flag`, the shared
+- Not converted: `_shelterB1NorthMaintenanceWalkwayResolveRoomTransition` and
+  `_neoArkSavannaZoneResolveRoomEvent`. Arm A sets the command/flag locals, the shared
   stores and the inlined start follow it, and arm B jumps *backward* into
   them. The constants are held in two registers across the join, so the join
   is real (duplicated arms cannot merge the `capCmd` store, 1 insn longer);

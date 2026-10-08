@@ -35,7 +35,12 @@ extern WorldCollisionTrigger D_shelter_b1_main_corridor_801858B8[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_main_corridor_80185D04[];
 
-void func_shelter_b1_main_corridor_8017DD98(Task* task);
+/// Runs the corridor's room-message receiver through registration, idle and teardown.
+///
+/// Requires state 0..2 for its three-entry dispatch table. State 0 registers
+/// the receiver, state 1 waits for messages and state 2 kills it. Keep the room
+/// and Shelter map overlays loaded while the task and message table are live.
+void shelterB1MainCorridorRoomTask(Task* task);
 
 /// Installs the room's effect IDs once and draws the lights in the active view.
 ///
@@ -65,7 +70,16 @@ void shelterB1MainCorridorRoomVisualEffectsFlashTask(Task* task);
 /// the counted work and histories.
 void shelterB1MainCorridorRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b1_main_corridor_80182444(Task* task);
+/// Runs the corridor's impact flash with smoke puffs or fading rings and bouncing sparks.
+///
+/// Requires a coordinate body and zero-aged, counted `EffectWork` from
+/// `effectSpawn` in `spawnArg2.pointer`, starting in state 0. Nonzero
+/// `spawnArg1.value` selects smoke; zero selects rings and two sparks. Enters
+/// release at active age 7 and frees work and task on the next active tick.
+/// Spawned effects have independent lifetimes. Nonzero room effect control
+/// pauses updates; four or above cancels. Coordinate ancestors, the effect
+/// controller and this room overlay must remain live until teardown.
+void shelterB1MainCorridorRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs the room's vertically drifting animated mote until its brightness fades.
 ///
@@ -99,6 +113,15 @@ void shelterB1MainCorridorRoomVisualEffectsHaloTask(Task* task);
 /// work and task.
 void shelterB1MainCorridorRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_shelter_b1_main_corridor_80180FC4(Task* arg0);
+/// Emits twenty motes at rotating, successively higher offsets around its coordinate.
+///
+/// Requires a coordinate body and zero-aged, counted `EffectWork` from
+/// `effectSpawn` in `spawnArg2.pointer`; `spawnArg1` is unused. Each active
+/// age 1..20 emits an independent mote that descends eight parent-axis units
+/// per tick; age 21 releases the emitter's work and task. Requires the room's
+/// mote selector to be installed. Nonzero room effect control pauses updates;
+/// four or above cancels. Coordinate ancestors and the effect controller stay
+/// live through teardown; this room overlay stays loaded while emitted motes run.
+void shelterB1MainCorridorRoomVisualEffectsSparkEmitterTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_MAIN_CORRIDOR_H

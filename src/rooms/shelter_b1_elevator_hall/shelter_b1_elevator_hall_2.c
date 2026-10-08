@@ -69,7 +69,7 @@ extern WorldCoordRoomLights   D_shelter_b1_elevator_hall_80184270[1];
 TaskDesc D_shelter_b1_elevator_hall_80182CAC = { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b1_elevator_hall_80182CB8[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_elevator_hall_8017D810 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, shelterB1ElevatorHallResolveRoomTransition },
     { 5105, shelterB1ElevatorHallRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, shelterB1ElevatorHallIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, shelterB1ElevatorHallIgnoreCommandMessage },
@@ -77,7 +77,7 @@ TaskMessageEntry D_shelter_b1_elevator_hall_80182CB8[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b1_elevator_hall_80182CE8 = { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_elevator_hall_8017D99C, { .value = 0 } };
+TaskDesc D_shelter_b1_elevator_hall_80182CE8 = { { { TASK_BODY_NONE, 32 } }, shelterB1ElevatorHallMineTransitTask, { .value = 0 } };
 
 SVECTOR D_shelter_b1_elevator_hall_80182CF4[28] = {
     { -8833, -620, -1755, 0 },

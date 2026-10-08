@@ -51,7 +51,7 @@ shelterB1ControlRoomAccessTunnelRoomVisualEffectsTwinTrailTask = 0x8017ED3C; // 
 
 func_shelter_b1_control_room_access_tunnel_8017F624 = 0x8017F624; // type:func
 
-func_shelter_b1_control_room_access_tunnel_8018026C = 0x8018026C; // type:func
+shelterB1ControlRoomAccessTunnelRoomVisualEffectsGlowDiscTask = 0x8018026C; // type:func
 
 shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingSparkTask = 0x801807C4; // type:func
 

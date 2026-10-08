@@ -81,7 +81,7 @@ shelterB1MainCorridorRoomVisualEffectsFlashTask = 0x801810F8; // type:func
 
 shelterB1MainCorridorRoomVisualEffectsTwinTrailTask = 0x80181B5C; // type:func
 
-func_shelter_b1_main_corridor_80182444 = 0x80182444; // type:func
+shelterB1MainCorridorRoomVisualEffectsSparkBurstTask = 0x80182444; // type:func
 
 shelterB1MainCorridorRoomVisualEffectsMoteTask = 0x8017EAD4; // type:func
 
@@ -89,7 +89,7 @@ shelterB1MainCorridorRoomVisualEffectsHaloTask = 0x8017F81C; // type:func
 
 shelterB1MainCorridorRoomVisualEffectsHaloOrangeBurstTask = 0x8017FBB4; // type:func
 
-func_shelter_b1_main_corridor_80180FC4 = 0x80180FC4; // type:func
+shelterB1MainCorridorRoomVisualEffectsSparkEmitterTask = 0x80180FC4; // type:func
 _roomVisualEffectsDrawMote = 0x8017EDA0; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017F064; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017F488; // type:func
@@ -110,3 +110,6 @@ _shelterB1MainCorridorIgnoreCommand = 0x8017dcf4; // type:func
 _shelterB1MainCorridorIgnoreRoomAction = 0x8017dcfc; // type:func
 _shelterB1MainCorridorHandleSoundMessage = 0x8017dd04; // type:func
 _shelterB1MainCorridorMessageTaskIdle = 0x8017dd90; // type:func
+_shelterB1MainCorridorResolveRoomTransition = 0x8017da8c; // type:func
+_shelterB1MainCorridorInitRoomTask = 0x8017dd4c; // type:func
+shelterB1MainCorridorRoomTask = 0x8017dd98; // type:func

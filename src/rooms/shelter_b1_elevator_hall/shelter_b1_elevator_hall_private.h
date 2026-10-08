@@ -20,9 +20,26 @@ extern RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
 
 // Callbacks referenced by the overlay's shared data tables.
 
-s32 func_shelter_b1_elevator_hall_8017D810(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+/// Resolves a departure from the hall and handles locked doors, lifts and mine transit.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with complete borrowed request/reply
+/// records, which may alias. Copies the request before resolving the reply's
+/// room. Returns 1 for direct travel, 2 for the deferred mine passage, and 0
+/// for a refused door or the separately controlled elevator ride. Queries
+/// suppress CAP, flag and task changes. Requires the Shelter map overlay.
+/// Mine execution snapshots the destination and holds player control; do not
+/// start another passage while `shelterB1ElevatorHallMineTransitTask` is live.
+s32 shelterB1ElevatorHallResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 
-void func_shelter_b1_elevator_hall_8017D99C(Task*);
+/// Confirms passage to the mine, fades out and reloads the deferred destination.
+///
+/// Starts at state 0 with player control already held by the resolver. CAP
+/// variant 10 confirms travel; other choices kill the task and resume control.
+/// Confirmation pauses actors, waits three task ticks, records battle escape,
+/// starts a 30-frame fade and waits for the transit sound before reloading.
+/// Borrows the hall's singleton destination and fade storage until teardown;
+/// the room overlay and CAP/sound resources must remain loaded throughout.
+void shelterB1ElevatorHallMineTransitTask(Task* task);
 
 /// Refuses every key-item use in the hall with the item menu cannot-use reply.
 ///

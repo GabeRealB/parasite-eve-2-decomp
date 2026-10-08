@@ -70,12 +70,12 @@ extern TaskDesc D_actor_560800_801718F0[];
 /// The room's message table, published in `Task::msgTable`.
 extern TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[];
 
-static void func_shelter_b1_pod_service_gantry_8017D628(Task* task);
+static void _shelterB1PodServiceGantryRunSceneSequence(Task* task);
 static void _shelterB1PodServiceGantryInitRoomState(Task* task);
 
 /// The room task's three states: set-up, the step sequence below, and exit.
 static const TaskFuncTable3 D_shelter_b1_pod_service_gantry_8017D5C4 = {
-    { _shelterB1PodServiceGantryInitRoomState, func_shelter_b1_pod_service_gantry_8017D628, taskKill },
+    { _shelterB1PodServiceGantryInitRoomState, _shelterB1PodServiceGantryRunSceneSequence, taskKill },
 };
 
 static s32 _shelterB1PodServiceGantryRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
@@ -1524,11 +1524,52 @@ ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_801821
 
 WorldCoordRoomLights D_shelter_b1_pod_service_gantry_801824F4 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_pod_service_gantry_80181DC8), D_shelter_b1_pod_service_gantry_80181DC8, ARRAY_SIZE(D_shelter_b1_pod_service_gantry_80182128.coneLights), D_shelter_b1_pod_service_gantry_80182128.coneLights };
 
-static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
+/// Plays the gantry scene and movie, replaces the actor package and leaves after the next scene.
+///
+/// Requires the zeroed work owned by the initialized room task. Polling reaps
+/// each scene controller after its stop request; the returned scene result is
+/// ignored. The movie launcher transfers execution to the display list and
+/// kills itself, so its stored pointer is never polled. The room sequence
+/// resumes after movie restoration, before loading actor_160900 into actor
+/// slot 1 previously occupied by actor_560800. The final step commits the pod
+/// access tunnel destination and waits for the area reload to tear down the room.
+static void _shelterB1PodServiceGantryRunSceneSequence(Task* task)
 {
-    u8                              param1[4];
-    u8                              param2[4];
-    s32                             poll;
+    /// Queues stage-zero actor file 160900 using this sequence's byte blocks.
+    ///
+    /// Captures writable `fileKey` (four bytes) and `loadArgs` (the four-byte
+    /// CD argument extent). Key byte 1 is ignored; every argument byte is set.
+    /// Enqueue copies both blocks immediately. Expands to a standalone statement
+    /// list; use within a braced switch case or branch.
+#define SHELTER_B1_POD_SERVICE_GANTRY_QUEUE_SECOND_SCENE()       \
+    fileKey[CD_FILE_KEY_GROUP]     = SECOND_SCENE_FILE_GROUP;    \
+    fileKey[CD_FILE_KEY_STAGE]     = SECOND_SCENE_CDF_STAGE;     \
+    fileKey[CD_FILE_KEY_INDEX]     = SECOND_SCENE_FILE_INDEX;    \
+    loadArgs[CD_LOAD_ARG_HUNDREDS] = SECOND_SCENE_FILE_HUNDREDS; \
+    loadArgs[CD_LOAD_ARG_MODE]     = CD_COMMAND_LOAD_DEFAULT;    \
+    loadArgs[CD_LOAD_ARG_IMAGE_X]  = 0;                          \
+    loadArgs[CD_LOAD_ARG_IMAGE_Y]  = 0;                          \
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadArgs)
+
+    enum { CD_FILE_KEY_BYTES          = 4,
+           CD_FILE_KEY_INDEX          = 0,
+           CD_FILE_KEY_GROUP          = 2,
+           CD_FILE_KEY_STAGE          = 3,
+           CD_LOAD_ARG_HUNDREDS       = 0,
+           CD_LOAD_ARG_MODE           = 1,
+           CD_LOAD_ARG_IMAGE_X        = 2,
+           CD_LOAD_ARG_IMAGE_Y        = 3,
+           SECOND_SCENE_FILE_GROUP    = 16,
+           SECOND_SCENE_FILE_HUNDREDS = 9,
+           SECOND_SCENE_FILE_INDEX    = 0,
+           SECOND_SCENE_CDF_STAGE     = 0,
+           GANTRY_RETURN_PENDING      = 1,
+           EXIT_WARP                  = 2,
+           EXIT_ROOM                  = 1,
+           SPRITE_RESOURCE_VARIANT    = 1 };
+    u8                              fileKey[CD_FILE_KEY_BYTES];
+    u8                              loadArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    s32                             ignoredSceneResult;
     _ShelterB1PodServiceGantryWork* work = task->work;
 
     switch (work->step) {
@@ -1537,21 +1578,16 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_AWAIT_FIRST_SCENE:
-            if (taskPollKill(work->sceneTask, &poll) == 0) {
+            if (taskPollKill(work->sceneTask, &ignoredSceneResult) == 0) {
                 break;
             }
             work->sceneTask = taskSpawnFromTable(D_actor_560800_8016EA28, 0, 0, 0);
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_LOAD_SECOND_SCENE:
-            param1[2] = 0x10;
-            param1[3] = 0;
-            param1[0] = 0;
-            param2[0] = 9;
-            param2[1] = 0;
-            param2[2] = 0;
-            param2[3] = 0;
-            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            // Queue stage-zero file 160900 after movie playback restores the game loop.
+            // Enqueue ignores file-key byte 1 and copies all four load-argument bytes.
+            SHELTER_B1_POD_SERVICE_GANTRY_QUEUE_SECOND_SCENE();
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_SECOND_SCENE:
@@ -1560,20 +1596,22 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             }
             work->sceneTask = taskSpawnFromTable(D_actor_160900_8013FB50, 0, 0, 0);
             areaApplySavedUpdates(D_shelter_b1_pod_service_gantry_80182540);
-            gameFlagSetNibble(GAME_FLAG_118, 1);
+            gameFlagSetNibble(GAME_FLAG_118, GANTRY_RETURN_PENDING);
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_AWAIT_SECOND_SCENE:
-            if (taskPollKill(work->sceneTask, &poll) == 0) {
+            if (taskPollKill(work->sceneTask, &ignoredSceneResult) == 0) {
                 break;
             }
+            // Reload into the pod access tunnel after the second scene has been reaped.
             gGameSession->unknown_138                                   = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant                                 = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = EXIT_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = EXIT_ROOM;
+            gDisplayState.spriteVariant                                 = SPRITE_RESOURCE_VARIANT;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+            // Also advance the step when the transition request falls through here.
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_PAUSE:
             work->step++;
             break;
@@ -1581,6 +1619,8 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             break;
     }
 }
+
+#undef SHELTER_B1_POD_SERVICE_GANTRY_QUEUE_SECOND_SCENE
 
 /// Refuses key-item use at the gantry without consuming the selected item.
 ///

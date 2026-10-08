@@ -51,11 +51,12 @@ static void _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(u8 sceneSe
 
 extern TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78;
 
-s32        func_shelter_b1_north_maintenance_walkway_8017D7A4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-void       func_shelter_b1_north_maintenance_walkway_8017D918(Task*);
-static s32 _shelterB1NorthMaintenanceWalkwayRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
-static s32 _shelterB1NorthMaintenanceWalkwayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
-static s32 _shelterB1NorthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static s32  _shelterB1NorthMaintenanceWalkwayResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static void _shelterB1NorthMaintenanceWalkwayPostBattleSceneTask(Task* task);
+static void _shelterB1NorthMaintenanceWalkwayInitRoomTask(Task* task);
+static s32  _shelterB1NorthMaintenanceWalkwayRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32  _shelterB1NorthMaintenanceWalkwayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32  _shelterB1NorthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 /// Requests use of the key item in the first payload word.
 enum { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -63,7 +64,7 @@ enum { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_north_maintenance_walkway_8017D7A4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1NorthMaintenanceWalkwayResolveRoomTransition },
     { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM, _shelterB1NorthMaintenanceWalkwayRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1NorthMaintenanceWalkwayIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1NorthMaintenanceWalkwayIgnoreRoomCommand },
@@ -71,7 +72,7 @@ TaskMessageEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
 };
 
 TaskDesc D_shelter_b1_north_maintenance_walkway_80184AAC[1] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_north_maintenance_walkway_8017D918, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB1NorthMaintenanceWalkwayPostBattleSceneTask, { .value = 0 } },
 };
 
 SVECTOR D_shelter_b1_north_maintenance_walkway_80184AB8[10] = {
@@ -105,7 +106,6 @@ SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[1] = {
     { 749, -1283, 2310, 0 },
 };
 
-static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0);
 static void _shelterB1NorthMaintenanceWalkwayRoomIdle(Task* task);
 
 /// Binds the shared enemy-effect selectors to this room's implementations.
@@ -163,68 +163,93 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(const RoomEven
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-/// Message handler: copies the incoming message to `out` and forwards both to
-/// `mapShelterRoomVariantResolve`. Messages 0xB and 0xE start the room's event - command 3 /
-/// 2 on flag 0x14D / 0x14E; any other message answers 1.
-s32 func_shelter_b1_north_maintenance_walkway_8017D7A4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves walkway departures and starts one-shot storeroom or quarters scenes.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with complete borrowed request/reply
+/// records, which may alias. Copies the request before resolving the reply's
+/// room. Returns 2 for an eligible departure scene, including queries, and 1
+/// for ordinary travel or a scene already seen. Execution latches the resolved
+/// reply and event and marks its flag before requesting the staged task; spawn
+/// failure does not undo the flag. Queries suppress these changes. Requires
+/// the Shelter map overlay and this room's CAP/sound resources. Do not replace
+/// the singleton snapshots while a staged departure still uses them.
+static s32 _shelterB1NorthMaintenanceWalkwayResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
+    enum { CAP_COMMAND_DEPART_STOREROOM = 3,
+           CAP_COMMAND_DEPART_QUARTERS  = 2,
+           FLAG_DEPART_STOREROOM        = 0x14D,
+           FLAG_DEPART_QUARTERS         = 0x14E,
+           TRANSITION_DIRECT            = 1 };
     RoomLatchedEvent event;
-    s32              cmd;
-    s32              snd;
-    s16              flag;
+    s32              capCommand;
+    s32              transitSound;
+    s16              sceneFlag;
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId != GAME_AREA_SHELTER_B1_STOREROOM) {
-        goto message0E;
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId != GAME_AREA_SHELTER_B1_STOREROOM) {
+        goto sleepingQuarters;
     }
-    snd            = 0x540C0001;
-    cmd            = 3;
-    event.stageSnd = snd;
-    flag           = 0x14D;
-start_event:
-    event.capCmd = cmd;
-    event.flagId = flag;
+    transitSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 1);
+    capCommand     = CAP_COMMAND_DEPART_STOREROOM;
+    event.stageSnd = transitSound;
+    sceneFlag      = FLAG_DEPART_STOREROOM;
+startEvent:
+    event.capCmd = capCommand;
+    event.flagId = sceneFlag;
     event.fade   = 0;
-    return _shelterB1NorthMaintenanceWalkwayStartEvent(out, &event);
-message0E:
-    if (in->areaId == GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS) {
-        snd            = 0x540C0003;
-        cmd            = 2;
-        event.stageSnd = snd;
-        flag           = 0x14E;
-        goto start_event;
+    return _shelterB1NorthMaintenanceWalkwayStartEvent(reply, &event);
+sleepingQuarters:
+    if (request->areaId == GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS) {
+        transitSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 3);
+        capCommand     = CAP_COMMAND_DEPART_QUARTERS;
+        event.stageSnd = transitSound;
+        sceneFlag      = FLAG_DEPART_QUARTERS;
+        goto startEvent;
     }
-    return 1;
+    return TRANSITION_DIRECT;
 }
 
-void func_shelter_b1_north_maintenance_walkway_8017D918(Task* arg0)
+/// Waits for combat to finish, then requests the walkway's post-battle CAP scene.
+///
+/// Starts in state 0. Battle engagement requests a hidden weapon re-equip;
+/// zero battle references starts the end delay and a 62-tick countdown. Once
+/// no display mode is pending, requests CAP command 1 and kills this task,
+/// even if CAP is busy and the request is ignored. Requires live room resources.
+static void _shelterB1NorthMaintenanceWalkwayPostBattleSceneTask(Task* task)
 {
-    SVECTOR unused;
+    enum { POST_BATTLE_WAIT_ENGAGEMENT,
+           POST_BATTLE_WAIT_ACTORS,
+           POST_BATTLE_WAIT_PRESENTATION,
+           POST_BATTLE_DELAY_TICKS = 62,
+           CAP_COMMAND_POST_BATTLE = 1 };
+    // The unused vector retains the original 32-byte stack frame.
+    SVECTOR unusedVector;
 
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case POST_BATTLE_WAIT_ENGAGEMENT:
             if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
                 gGameSession->flowFlags |= GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON;
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 1:
+        case POST_BATTLE_WAIT_ACTORS:
             if (gSceneCombatState.battleRefs == 0) {
                 gSceneCombatState.signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
-                arg0->killCountdown                            = 0x3E;
-                arg0->state++;
+                task->killCountdown                            = POST_BATTLE_DELAY_TICKS;
+                task->state++;
             }
             break;
-        case 2:
-            if (arg0->killCountdown == 0) {
+        case POST_BATTLE_WAIT_PRESENTATION:
+            // The scene request waits for both the combat delay and presentation handoff.
+            if (task->killCountdown == 0) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                    capSpawnEventIfIdle(1, CAP_EVENT_NO_FLAGS);
-                    taskKill(arg0);
+                    capSpawnEventIfIdle(CAP_COMMAND_POST_BATTLE, CAP_EVENT_NO_FLAGS);
+                    taskKill(task);
                 }
             } else {
-                arg0->killCountdown--;
+                task->killCountdown--;
             }
             break;
     }
@@ -248,19 +273,29 @@ static s32 _shelterB1NorthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 mes
     return 0;
 }
 
-static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
+/// Registers the room receiver, starts variant 2's scenes and restores scene sprites.
+///
+/// Publishes the live task in `GAME_TASK_SLOT_ROOM` and borrows its message table.
+/// Variant 2 always starts the post-battle watcher; its entry CAP is requested
+/// once, with the flag set even if CAP is busy. Advances to the idle state.
+static void _shelterB1NorthMaintenanceWalkwayInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_shelter_b1_north_maintenance_walkway_80184A84;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 2) {
+    enum { SCENE_ROOM_VARIANT     = 2,
+           SCENE_NOT_STARTED      = 0,
+           SCENE_STARTED          = 1,
+           CAP_COMMAND_ROOM_ENTRY = 4 };
+
+    task->msgTable = D_shelter_b1_north_maintenance_walkway_80184A84;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gGameSession->location.loc.variant == SCENE_ROOM_VARIANT) {
         taskSpawnFromTable(D_shelter_b1_north_maintenance_walkway_80184AAC, 0, 0, 0);
-        if (gameFlagGetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE) == 0) {
-            gameFlagSetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE, 1);
-            capSpawnEventIfIdle(4, CAP_EVENT_NO_FLAGS);
+        if (gameFlagGetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE) == SCENE_NOT_STARTED) {
+            gameFlagSetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE, SCENE_STARTED);
+            capSpawnEventIfIdle(CAP_COMMAND_ROOM_ENTRY, CAP_EVENT_NO_FLAGS);
         }
     }
     _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN));
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized room task idle until another owner changes its state.
@@ -270,17 +305,15 @@ static void _shelterB1NorthMaintenanceWalkwayRoomIdle(Task* task)
 
 /// The room task's three states: set-up, idle and exit.
 static const TaskFuncTable3 D_shelter_b1_north_maintenance_walkway_8017D5D8 = {
-    { func_shelter_b1_north_maintenance_walkway_8017DA4C, _shelterB1NorthMaintenanceWalkwayRoomIdle, taskKill },
+    { _shelterB1NorthMaintenanceWalkwayInitRoomTask, _shelterB1NorthMaintenanceWalkwayRoomIdle, taskKill },
 };
 
-/// The room task. Runs the handler for its current state from the room's
-/// three-entry state table: set-up, an idle tick, and `taskKill`.
-void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task)
+void shelterB1NorthMaintenanceWalkwayRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b1_north_maintenance_walkway_8017D5D8;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b1_north_maintenance_walkway_8017D5D8;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Restores view 3's scene sprite visibility from the B2 north walkway scene flag.

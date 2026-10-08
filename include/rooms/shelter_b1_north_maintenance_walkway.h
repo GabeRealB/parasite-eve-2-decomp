@@ -37,7 +37,12 @@ extern WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_80185A98[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_north_maintenance_walkway_80185B4C[];
 
-void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task);
+/// Runs the walkway's room-message receiver and variant-dependent scene setup.
+///
+/// Requires state 0..2 for its three-entry dispatch table. State 0 registers
+/// the receiver and initializes scenes/sprites, state 1 idles and state 2 kills
+/// it. Keep the room and Shelter map overlays loaded while the task is live.
+void shelterB1NorthMaintenanceWalkwayRoomTask(Task* task);
 
 /// Runs a vertically drifting animated mote until it fades.
 ///
@@ -77,9 +82,29 @@ void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlashTask(Task* task);
 /// The parent, effect controller and this room overlay must remain live until teardown.
 void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b1_north_maintenance_walkway_80182228(Task* task);
+/// Runs the walkway's impact flash with smoke puffs or fading rings and bouncing sparks.
+///
+/// Requires a coordinate body and zero-aged, counted `EffectWork` from
+/// `effectSpawn` in `spawnArg2.pointer`, starting in state 0. Nonzero
+/// `spawnArg1.value` selects smoke; zero selects rings and two sparks. Enters
+/// release at active age 7 and frees work and task on the next active tick.
+/// Spawned effects have independent lifetimes. Nonzero room effect control
+/// pauses updates; four or above cancels. Coordinate ancestors, the effect
+/// controller and this room overlay must remain live until teardown.
+void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task* task);
 
-void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0);
+/// Runs the walkway's attached charge disc, player-joint sparks and fading release ring.
+///
+/// Requires a coordinate body and zeroed, counted `EffectWork` from
+/// `effectSpawn` in `spawnArg2.pointer`; `spawnArg1.value` selects tint 0 or 1.
+/// Start in `ROOM_VISUAL_EFFECTS_GLOW_DISC_ATTACH`; its owner can request
+/// FLICKER, RELEASE or CANCEL through the corresponding state constants.
+/// Borrows the work's parent coordinate and saved local offset. Growth emits
+/// flying sparks from live player model parts 3..18 and adopts them for teardown;
+/// the flying-spark selector must be installed. Nonzero room effect control
+/// pauses updates; four or above cancels. Release/cancel frees work and child
+/// tasks. The anchor, player, effect controller and room overlay remain live.
+void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Flies an animated spark along a fixed step toward its initial target position.
 ///
@@ -127,7 +152,16 @@ void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloTask(Task* task);
 /// controller and this room overlay must remain live.
 void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_shelter_b1_north_maintenance_walkway_80180DA8(Task* arg0);
+/// Emits twenty motes at rotating, successively higher offsets around its coordinate.
+///
+/// Requires a coordinate body and zero-aged, counted `EffectWork` from
+/// `effectSpawn` in `spawnArg2.pointer`; `spawnArg1` is unused. Each active
+/// age 1..20 emits an independent mote that descends eight parent-axis units
+/// per tick; age 21 releases the emitter's work and task. Requires the room's
+/// mote selector to be installed. Nonzero room effect control pauses updates;
+/// four or above cancels. Coordinate ancestors and the effect controller stay
+/// live through teardown; this room overlay stays loaded while emitted motes run.
+void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsSparkEmitterTask(Task* task);
 
 /// Binds the room's effect tasks once and draws the active view's lamp glows each frame.
 ///

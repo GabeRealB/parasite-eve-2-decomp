@@ -109,11 +109,12 @@ extern SVECTOR D_shelter_b1_main_corridor_80183144[];
 /// The two points the beam runs between, relative to its parent coordinate;
 /// the second is also declared on its own.
 
-s32        func_shelter_b1_main_corridor_8017DA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-static s32 _shelterB1MainCorridorRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-static s32 _shelterB1MainCorridorIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
-static s32 _shelterB1MainCorridorIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
-static s32 _shelterB1MainCorridorHandleSoundMessage(Task* task, s32 messageId, s32 soundId, s32 unusedArg);
+static s32  _shelterB1MainCorridorResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static void _shelterB1MainCorridorInitRoomTask(Task* task);
+static s32  _shelterB1MainCorridorRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _shelterB1MainCorridorIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32  _shelterB1MainCorridorIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32  _shelterB1MainCorridorHandleSoundMessage(Task* task, s32 messageId, s32 soundId, s32 unusedArg);
 
 enum { SHELTER_B1_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -122,7 +123,7 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskDesc D_shelter_b1_main_corridor_80183098 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b1_main_corridor_801830A4[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_main_corridor_8017DA8C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1MainCorridorResolveRoomTransition },
     { SHELTER_B1_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM, _shelterB1MainCorridorRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1MainCorridorIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1MainCorridorIgnoreCommand },
@@ -695,7 +696,6 @@ RoomEventReqStorage gRoomEventReq;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static void func_shelter_b1_main_corridor_8017DD4C(Task* task);
 static void _shelterB1MainCorridorMessageTaskIdle(Task* task);
 
 #include "../../shared/room_event_gate.inc.c"
@@ -738,78 +738,88 @@ static __inline__ s32 _shelterB1MainCorridorStartEvent(const RoomEventMsg* trans
     return ROOM_EVENT_ALREADY_SEEN;
 }
 
-/// Message handler: copies the incoming message to `out` and forwards both to
-/// `mapShelterRoomVariantResolve`. Messages 0xD, 0xE, 0x10 and 0x19 start the room's events on
-/// flags 0xEE, 0xEF, 0x12C and 0x12D; 0x18 does the same on flag 0x12E once
-/// nibble 0xAC is set, and before that runs CAP command 1. Message 9 runs CAP
-/// command 5 once nibble 0x7A reaches 6, and otherwise goes through the rooms'
-/// event gate on flag 0xA5. Any other message answers 1.
-s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves corridor departures and selects their one-shot scenes or locked-door captions.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with complete borrowed request/reply
+/// records, which may alias. Copies the request before resolving the reply's
+/// room. Returns 1 for direct travel, 2 for a staged event (including eligible
+/// queries), or 0 for the late-story elevator-hall caption. The locked transfer
+/// door also returns 2, but starts only a refusal caption. Queries suppress
+/// execution side effects. Deferred events copy the reply; their singleton
+/// snapshots, this room's CAP/sound resources and the map overlay must remain
+/// available. Do not start a second departure while its event task is live.
+static s32 _shelterB1MainCorridorResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq     req;
+    /// Prepares a one-shot departure with the corridor's transit sound and no fade.
+    ///
+    /// Captures the local `event` and borrowed `reply`. Each argument is evaluated
+    /// once; the command is stored as s32 and the flag narrows to s16. Expands to
+    /// a statement list ending in a return; use only inside a braced branch.
+#define SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(capCommand, sceneFlag)                    \
+    event.capCmd   = (capCommand);                                                               \
+    event.stageSnd = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, 1); \
+    event.flagId   = (sceneFlag);                                                                \
+    event.fade     = 0;                                                                          \
+    return _shelterB1MainCorridorStartEvent(reply, &event)
+
+    enum { TRANSITION_REFUSED                 = 0,
+           TRANSITION_DIRECT                  = 1,
+           TRANSITION_HANDLED                 = 2,
+           TRANSITION_REFUSAL_FLAG            = 2,
+           CAP_COMMAND_LOCKED_DOOR            = 1,
+           CAP_COMMAND_UNLOCK_ELEVATOR_HALL   = 2,
+           CAP_COMMAND_DEPART_ARMORY          = 3,
+           CAP_COMMAND_DEPART_QUARTERS        = 4,
+           CAP_COMMAND_LATE_ELEVATOR_HALL     = 5,
+           CAP_COMMAND_DEPART_STERILIZATION   = 6,
+           CAP_COMMAND_DEPART_CONTROL_TUNNEL  = 7,
+           CAP_COMMAND_DEPART_TRANSFER_TUNNEL = 8,
+           ELEVATOR_HALL_BLOCKED_CHAPTER      = 6 };
+    RoomEventReq     gateRequest;
     RoomLatchedEvent event;
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_B1_ARMORY) {
-        event.capCmd   = 3;
-        event.stageSnd = 0x540F0001;
-        event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_ARMORY_SCENE;
-        event.fade     = 0;
-        return _shelterB1MainCorridorStartEvent(out, &event);
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B1_ARMORY) {
+        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(CAP_COMMAND_DEPART_ARMORY, GAME_FLAG_B1_CORRIDOR_TO_ARMORY_SCENE);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS) {
-        event.capCmd   = 4;
-        event.stageSnd = 0x540F0001;
-        event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_QUARTERS_SCENE;
-        event.fade     = 0;
-        return _shelterB1MainCorridorStartEvent(out, &event);
+    if (request->areaId == GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS) {
+        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(CAP_COMMAND_DEPART_QUARTERS, GAME_FLAG_B1_CORRIDOR_TO_QUARTERS_SCENE);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B1_STERILIZATION_ROOM) {
-        event.capCmd   = 6;
-        event.stageSnd = 0x540F0001;
-        event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_STERILIZATION_SCENE;
-        event.fade     = 0;
-        return _shelterB1MainCorridorStartEvent(out, &event);
+    if (request->areaId == GAME_AREA_SHELTER_B1_STERILIZATION_ROOM) {
+        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(CAP_COMMAND_DEPART_STERILIZATION, GAME_FLAG_B1_CORRIDOR_TO_STERILIZATION_SCENE);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
-        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                capRunCommandWithTransition(5);
+    if (request->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
+        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= ELEVATOR_HALL_BLOCKED_CHAPTER) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capRunCommandWithTransition(CAP_COMMAND_LATE_ELEVATOR_HALL);
             }
-            return 0;
+            return TRANSITION_REFUSED;
         }
-        req.capCmd        = 2;
-        req.missingCapCmd = 1;
-        req.firstSnd      = 0;
-        req.secondSnd     = 0x540F0001;
-        req.flagId        = GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED;
-        req.collectedBit  = 0;
-        return _roomEventGate(&req, out);
+        gateRequest.capCmd        = CAP_COMMAND_UNLOCK_ELEVATOR_HALL;
+        gateRequest.missingCapCmd = CAP_COMMAND_LOCKED_DOOR;
+        gateRequest.firstSnd      = 0;
+        gateRequest.secondSnd     = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, 1);
+        gateRequest.flagId        = GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED;
+        gateRequest.collectedBit  = 0;
+        return _roomEventGate(&gateRequest, reply);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
+    if (request->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
         if (gameFlagGetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED) == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                gameFlagSetNibbleIfPresent(in->flagId, 2);
-                capRunCommandWithTransition(1);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                gameFlagSetNibbleIfPresent(request->flagId, TRANSITION_REFUSAL_FLAG);
+                capRunCommandWithTransition(CAP_COMMAND_LOCKED_DOOR);
             }
-            return 2;
+            return TRANSITION_HANDLED;
         }
-        event.capCmd   = 8;
-        event.stageSnd = 0x540F0001;
-        event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_TRANSFER_SCENE;
-        event.fade     = 0;
-        return _shelterB1MainCorridorStartEvent(out, &event);
+        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(CAP_COMMAND_DEPART_TRANSFER_TUNNEL, GAME_FLAG_B1_CORRIDOR_TO_TRANSFER_SCENE);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL) {
-        event.capCmd   = 7;
-        event.stageSnd = 0x540F0001;
-        event.flagId   = GAME_FLAG_B1_CORRIDOR_TO_CONTROL_TUNNEL_SCENE;
-        event.fade     = 0;
-        return _shelterB1MainCorridorStartEvent(out, &event);
+    if (request->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL) {
+        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(CAP_COMMAND_DEPART_CONTROL_TUNNEL, GAME_FLAG_B1_CORRIDOR_TO_CONTROL_TUNNEL_SCENE);
     }
-    return 1;
+    return TRANSITION_DIRECT;
 }
+#undef SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE
 
 /// Refuses every key-item-use request, returning zero to the inventory.
 ///
@@ -852,13 +862,14 @@ static s32 _shelterB1MainCorridorHandleSoundMessage(Task* task, s32 messageId, s
     return 0;
 }
 
-/// Installs the room's message table on `task`, registers the task in pointer
-/// slot 7 and steps it to its next state.
-static void func_shelter_b1_main_corridor_8017DD4C(Task* task)
+/// Registers the corridor's room-message receiver and advances it to idle.
+///
+/// Borrows the message table and publishes the live task in `GAME_TASK_SLOT_ROOM`.
+static void _shelterB1MainCorridorInitRoomTask(Task* task)
 {
     task->msgTable = D_shelter_b1_main_corridor_801830A4;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the room task available for messages without per-frame work or state changes.
@@ -868,17 +879,15 @@ static void _shelterB1MainCorridorMessageTaskIdle(Task* task)
 
 /// States of the room's message task: install the message table, idle, die.
 static const TaskFuncTable3 D_shelter_b1_main_corridor_8017D5F0 = {
-    { func_shelter_b1_main_corridor_8017DD4C, _shelterB1MainCorridorMessageTaskIdle, taskKill },
+    { _shelterB1MainCorridorInitRoomTask, _shelterB1MainCorridorMessageTaskIdle, taskKill },
 };
 
-/// Runs the room's message task: calls the state handler `task->state` selects
-/// from a stack copy of its three-entry table.
-void func_shelter_b1_main_corridor_8017DD98(Task* task)
+void shelterB1MainCorridorRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b1_main_corridor_8017D5F0;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b1_main_corridor_8017D5F0;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Draws two additive flickering beams with the same radius scale, screen angle and tint.
@@ -1007,9 +1016,9 @@ void shelterB1MainCorridorRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_shelter_b1_main_corridor_80180FC4(Task* arg0)
+void shelterB1MainCorridorRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -1028,7 +1037,7 @@ void shelterB1MainCorridorRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b1_main_corridor_80182444(Task* task)
+void shelterB1MainCorridorRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }
