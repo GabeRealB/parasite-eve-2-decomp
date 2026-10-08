@@ -1,21 +1,29 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Saves the root's translation in `prevRootPos` and steps it `forwardSpeed`
-/// along the root's facing (its matrix's third column), adding 0x80 to its y
-/// while `knockdownStage` is below 2.
-void golemKnightBishopStepForward(Task* arg0)
+/// Saves the root position and advances it along the GOLEM's horizontal facing.
+///
+/// `forwardSpeed` is a signed world distance per frame; the root basis has
+/// twelve fractional bits. While upright or starting to fall, a downward
+/// floor-query displacement is added. Collision rejection can restore
+/// `prevRootPos`.
+static void _golemKnightBishopStepForward(Task* task)
 {
+    enum {
+        GOLEM_KNIGHT_BISHOP_BASIS_FRACTION_BITS = 12,
+        GOLEM_KNIGHT_BISHOP_FLOOR_QUERY_STEP    = 128,
+        GOLEM_KNIGHT_BISHOP_KNOCKDOWN_FALLING   = 2,
+    };
     GolemKnightBishopWork* work;
-    GfxCoord*              coord;
+    GfxCoord*              root;
 
-    coord                = &arg0->extra.tmd->coords[0];
-    work                 = arg0->work;
-    work->prevRootPos.vx = coord->coord.t[0];
-    work->prevRootPos.vy = coord->coord.t[1];
-    work->prevRootPos.vz = coord->coord.t[2];
-    coord->coord.t[0]   += (coord->coord.m[0][2] * work->forwardSpeed) >> 12;
-    if (work->knockdownStage < 2) {
-        coord->coord.t[1] += 0x80;
+    root                 = &task->extra.tmd->coords[0];
+    work                 = task->work;
+    work->prevRootPos.vx = root->coord.t[0];
+    work->prevRootPos.vy = root->coord.t[1];
+    work->prevRootPos.vz = root->coord.t[2];
+    root->coord.t[0]    += (root->coord.m[0][2] * work->forwardSpeed) >> GOLEM_KNIGHT_BISHOP_BASIS_FRACTION_BITS;
+    if (work->knockdownStage < GOLEM_KNIGHT_BISHOP_KNOCKDOWN_FALLING) {
+        root->coord.t[1] += GOLEM_KNIGHT_BISHOP_FLOOR_QUERY_STEP;
     }
-    coord->coord.t[2] += (coord->coord.m[2][2] * work->forwardSpeed) >> 12;
+    root->coord.t[2] += (root->coord.m[2][2] * work->forwardSpeed) >> GOLEM_KNIGHT_BISHOP_BASIS_FRACTION_BITS;
 }

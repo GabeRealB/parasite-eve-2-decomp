@@ -399,6 +399,14 @@ Handlers reached only by each carrier's own dispatch tables keep static linkage
 and the `_` marker. The resident enemy, animation and collision APIs retain
 their own subsystem identities.
 
+`golemKnightBishop` owns the included Knight/Bishop GOLEM attack sequences,
+hit reactions, appearance and model updates. Its private implementation
+interface is `src/shared/golem_knight_bishop.h`; `actor_402200` and
+`actor_403900` select their kind before including it. Helpers used only inside
+each carrier keep static linkage and the `_` marker. Constants use
+`GOLEM_KNIGHT_BISHOP_`; resident collision, damage and rendering APIs retain
+their own identities.
+
 `actorRender` also owns the inline local-point transform, yaw rebuild and
 joint-rotation composition helpers in `include/actors/actor.h`. Each actor
 translation unit keeps its own static instance, with the `_` marker. The yaw

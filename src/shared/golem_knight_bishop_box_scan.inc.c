@@ -10,61 +10,60 @@ typedef struct {
 } _GolemKnightBishopRegionScanScratch;
 STATIC_ASSERT_SIZEOF(_GolemKnightBishopRegionScanScratch, 0x28);
 
-/// The region scan the golem starts in. Step 0 walks the `regionCount`
-/// entries at `regions`. A `GOLEM_KNIGHT_BISHOP_REGION_CIRCLE` holding the
-/// player places `targetPos` 0x5AA behind them, grid-enables both probe
-/// bodies and goes to step 1; a `GOLEM_KNIGHT_BISHOP_REGION_BOX` holding the
-/// player starts the box approach with its index in `boxRegion`. Step 1
-/// starts the grab unless `probeContacts` reports the spot blocked, switches
-/// the probes off again and returns to step 0.
-void golemKnightBishopBoxScanSeq(Task* arg0)
+/// Waits for the player to enter a room region and starts its attack.
+///
+/// `task` owns a live GOLEM work block and a borrowed `regionCount`-entry table.
+/// Circles propose a grab behind the player, then wait one collision pass to
+/// check the probes; boxes immediately select their post approach. Circle
+/// radii and box edges are exclusive, in world units. Reserves 40 scratch bytes.
+static void _golemKnightBishopRegionScanSeq(Task* task)
 {
-    u8*                                  head;
-    _GolemKnightBishopRegionScanScratch* sc;
+    enum {
+        GOLEM_KNIGHT_BISHOP_REGION_SCAN_SEARCH   = 0,
+        GOLEM_KNIGHT_BISHOP_REGION_SCAN_PROBE    = 1,
+        GOLEM_KNIGHT_BISHOP_REGION_SCAN_YAW_MASK = 0xFFF,
+    };
+    _GolemKnightBishopRegionScanScratch* scratch;
     GolemKnightBishopWork*               work;
-    GfxCoord*                            coord;
-    s32                                  i;
+    GfxCoord*                            playerRoot;
+    s32                                  regionIndex;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    work                     = arg0->work;
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(_GolemKnightBishopRegionScanScratch);
-    sc                       = (_GolemKnightBishopRegionScanScratch*)(head - sizeof(_GolemKnightBishopRegionScanScratch));
+    work    = task->work;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GolemKnightBishopRegionScanScratch);
     switch (work->step) {
-        case 0:
-            for (i = 0; i < work->regionCount; i++) {
-                switch (work->regions[i].kind) {
+        case GOLEM_KNIGHT_BISHOP_REGION_SCAN_SEARCH:
+            for (regionIndex = 0; regionIndex < work->regionCount; regionIndex++) {
+                switch (work->regions[regionIndex].kind) {
                     case GOLEM_KNIGHT_BISHOP_REGION_CIRCLE:
-                        sc->offset.vx = work->regions[i].x - gPlayerStatus.coordMtx->t[0];
-                        sc->offset.vz = work->regions[i].z - gPlayerStatus.coordMtx->t[2];
-                        if (SquareRoot0(sc->offset.vx * sc->offset.vx + sc->offset.vz * sc->offset.vz) < work->regions[i].param.radius) {
-                            work->step         = 1;
-                            coord              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-                            work->targetYaw    = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-                            sc->localOffset.vx = 0;
-                            sc->localOffset.vy = 0;
-                            sc->localOffset.vz = -0x5AA;
-                            gte_SetRotMatrix(&coord->coord);
-                            gte_ldv0(&sc->localOffset);
+                        scratch->offset.vx = work->regions[regionIndex].x - gPlayerStatus.coordMtx->t[0];
+                        scratch->offset.vz = work->regions[regionIndex].z - gPlayerStatus.coordMtx->t[2];
+                        if (SquareRoot0(scratch->offset.vx * scratch->offset.vx + scratch->offset.vz * scratch->offset.vz) < work->regions[regionIndex].param.radius) {
+                            work->step              = GOLEM_KNIGHT_BISHOP_REGION_SCAN_PROBE;
+                            playerRoot              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+                            work->targetYaw         = ratan2(playerRoot->coord.m[0][2], playerRoot->coord.m[2][2]) & GOLEM_KNIGHT_BISHOP_REGION_SCAN_YAW_MASK;
+                            scratch->localOffset.vx = 0;
+                            scratch->localOffset.vy = 0;
+                            scratch->localOffset.vz = -GOLEM_KNIGHT_BISHOP_GRAB_TARGET_DISTANCE;
+                            gte_SetRotMatrix(&playerRoot->coord);
+                            gte_ldv0(&scratch->localOffset);
                             gte_rtv0();
-                            gte_stlvnl(&sc->offset);
-                            work->targetPos.vx = gPlayerStatus.coordMtx->t[0] + sc->offset.vx;
+                            gte_stlvnl(&scratch->offset);
+                            work->targetPos.vx = gPlayerStatus.coordMtx->t[0] + scratch->offset.vx;
                             work->targetPos.vy = gPlayerStatus.coordMtx->t[1];
                             SCRATCH_STACK_RELEASE_BYTES(sizeof(_GolemKnightBishopRegionScanScratch));
-                            work->targetPos.vz         = gPlayerStatus.coordMtx->t[2] + sc->offset.vz;
+                            // The retained order reads Z after release, before any nested reservation.
+                            work->targetPos.vz         = gPlayerStatus.coordMtx->t[2] + scratch->offset.vz;
                             work->pathProbeBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
                             work->spotProbeBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
                             return;
                         }
                         break;
                     case GOLEM_KNIGHT_BISHOP_REGION_BOX:
-                        if (work->regions[i].minX < gPlayerStatus.coordMtx->t[0] &&
-                            gPlayerStatus.coordMtx->t[0] < work->regions[i].maxX &&
-                            gPlayerStatus.coordMtx->t[2] < work->regions[i].maxZ &&
-                            work->regions[i].minZ < gPlayerStatus.coordMtx->t[2]) {
+                        if (GOLEM_KNIGHT_BISHOP_PLAYER_INSIDE_BOX(&work->regions[regionIndex], gPlayerStatus.coordMtx)) {
                             work->sequence   = GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH;
                             work->step       = 0;
                             work->lastAttack = GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH;
-                            work->boxRegion  = i;
+                            work->boxRegion  = regionIndex;
                             SCRATCH_STACK_RELEASE_BYTES(sizeof(_GolemKnightBishopRegionScanScratch));
                             return;
                         }
@@ -72,7 +71,8 @@ void golemKnightBishopBoxScanSeq(Task* arg0)
                 }
             }
             break;
-        case 1:
+        case GOLEM_KNIGHT_BISHOP_REGION_SCAN_PROBE:
+            // The probes now contain the collision pass's answer for the proposed grab.
             if (work->probeContacts[0].key.value == 0) {
                 work->sequence   = GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB;
                 work->lastAttack = GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB;

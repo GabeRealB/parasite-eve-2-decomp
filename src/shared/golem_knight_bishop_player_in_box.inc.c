@@ -1,27 +1,23 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Reports whether the player stands inside one of the room's box regions:
-/// walks the `regionCount` entries at `regions` and, on the first
-/// `GOLEM_KNIGHT_BISHOP_REGION_BOX` entry whose area holds the player's world
-/// position (x between `minX` and `maxX`, z between `minZ` and `maxZ`), stores
-/// its index in `boxRegion` and answers 1. Otherwise it answers 0.
-s32 golemKnightBishopPlayerInBox(Task* arg0)
+/// Finds the first box region containing the player's world X/Z position.
+///
+/// `task` owns a live GOLEM work block and its borrowed room-region table.
+/// Returns 1 and saves the index in `boxRegion` on a strict interior hit;
+/// otherwise returns 0 and leaves the previous index unchanged.
+static s32 _golemKnightBishopPlayerInBox(Task* task)
 {
     GolemKnightBishopWork* work;
-    s16                    count;
-    s32                    i;
+    s16                    regionCount;
+    s32                    regionIndex;
 
-    work  = arg0->work;
-    count = work->regionCount;
-    for (i = 0; i < count; i++) {
-        if (work->regions[i].kind == GOLEM_KNIGHT_BISHOP_REGION_BOX) {
-            if ((work->regions[i].minX < gPlayerStatus.coordMtx->t[0]) &&
-                (gPlayerStatus.coordMtx->t[0] < work->regions[i].maxX)) {
-                if ((gPlayerStatus.coordMtx->t[2] < work->regions[i].maxZ) &&
-                    (work->regions[i].minZ < gPlayerStatus.coordMtx->t[2])) {
-                    work->boxRegion = i;
-                    return 1;
-                }
+    work        = task->work;
+    regionCount = work->regionCount;
+    for (regionIndex = 0; regionIndex < regionCount; regionIndex++) {
+        if (work->regions[regionIndex].kind == GOLEM_KNIGHT_BISHOP_REGION_BOX) {
+            if (GOLEM_KNIGHT_BISHOP_PLAYER_INSIDE_BOX(&work->regions[regionIndex], gPlayerStatus.coordMtx)) {
+                work->boxRegion = regionIndex;
+                return 1;
             }
         }
     }

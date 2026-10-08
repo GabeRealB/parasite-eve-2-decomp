@@ -198,7 +198,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                         sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     }
                 } else {
-                    golemKnightBishopPickHitReaction(arg0, work->interruptDamage);
+                    _golemKnightBishopPickHitReaction(arg0, work->interruptDamage);
                     work->grabReleaseTimer = 0;
                 }
                 work->grabStage                     = 2;

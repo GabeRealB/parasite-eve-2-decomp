@@ -11,8 +11,7 @@
  * standing. A dispatcher runs one of twelve sequences chosen by
  * `GolemKnightBishopWork::sequence`. A step-forward helper, per-animation
  * sound cues and a hold cue timer complete the frame. The dead state uses
- * inlined copies of the reseed, tint and shadow, which move into the shared
- * header.
+ * inline animation, tint and shadow helpers from the inline fragment.
  *
  * Each package builds the library for its own type: it defines
  * GOLEM_KNIGHT_BISHOP_KIND as GOLEM_KNIGHT (actor_402200) or GOLEM_BISHOP
@@ -254,80 +253,64 @@ typedef struct {
 } GolemKnightBishopChargeSpeedSpan;
 STATIC_ASSERT_SIZEOF(GolemKnightBishopChargeSpeedSpan, 4);
 
-void golemKnightBishopPickHitReaction(Task* arg0, s32 arg1);
-void golemKnightBishopBoxScanSeq(Task* arg0);
-s32  golemKnightBishopPlayerInBox(Task* arg0);
-void golemKnightBishopPlaceTarget(Task* arg0);
-void golemKnightBishopStrikeSeq(Task* arg0);
-void golemKnightBishopTranslucencyFade(Task* arg0);
-void golemKnightBishopLightFlinchSeq(Task* arg0);
-void golemKnightBishopHeavyFlinchSeq(Task* arg0);
-void golemKnightBishopKneelSeq(Task* arg0);
-void golemKnightBishopKneelHitSeq(Task* arg0);
-void golemKnightBishopCollapseDeathSeq(Task* arg0);
-void golemKnightBishopPlayAnimCues(Task* arg0);
-void golemKnightBishopDrawAimBeam(Task* arg0);
-void golemKnightBishopDeadState(Enemy* arg0, Task* arg1);
-void golemKnightBishopFrameState(Enemy* arg0, Task* arg1);
-void golemKnightBishopRunSequence(Task* arg0);
-void golemKnightBishopApplyScale(Task* arg0);
-void golemKnightBishopKneelDeathSeq(Task* arg0);
-void golemKnightBishopStepForward(Task* arg0);
-void golemKnightBishopDrawShadow(Task* arg0);
-void golemKnightBishopHoldCueTimer(Task* arg0);
-void golemKnightBishopQueueFrameCapture(GfxCoord* arg0, s32 arg1);
+/// Shared pose, clip, tint and placement values of the included GOLEM helpers.
+enum {
+    GOLEM_KNIGHT_BISHOP_DOWNED_BEHIND            = 1,
+    GOLEM_KNIGHT_BISHOP_ANIM_DOWNED_HIT_BEHIND   = 0xE,
+    GOLEM_KNIGHT_BISHOP_ANIM_DOWNED_HIT_FRONT    = 0x12,
+    GOLEM_KNIGHT_BISHOP_DOWNED_HIT_BEHIND_FRAMES = 16,
+    GOLEM_KNIGHT_BISHOP_DOWNED_HIT_FRONT_FRAMES  = 22,
+    GOLEM_KNIGHT_BISHOP_TINT_WHITE               = 2,
+    GOLEM_KNIGHT_BISHOP_GRAB_TARGET_DISTANCE     = 1450, // world units behind the player's root
+};
+
+/// Tests a player's world X/Z against a box region's four exclusive edges.
+///
+/// The caller checks the region kind. `region` is a GolemKnightBishopRegion
+/// pointer and `playerWorld` a MATRIX pointer, both live for this expression.
+/// Each argument may be evaluated up to four times in short-circuit order;
+/// neither may have side effects. No surrounding identifiers are captured.
+#define GOLEM_KNIGHT_BISHOP_PLAYER_INSIDE_BOX(region, playerWorld)                   \
+    ((region)->minX < (playerWorld)->t[0] && (playerWorld)->t[0] < (region)->maxX && \
+     (playerWorld)->t[2] < (region)->maxZ && (region)->minZ < (playerWorld)->t[2])
+
+static void _golemKnightBishopPickHitReaction(Task* task, s32 damage);
+static void _golemKnightBishopRegionScanSeq(Task* task);
+static s32  _golemKnightBishopPlayerInBox(Task* task);
+static void _golemKnightBishopPlaceTarget(Task* task);
+void        golemKnightBishopStrikeSeq(Task* arg0);
+void        golemKnightBishopTranslucencyFade(Task* arg0);
+void        golemKnightBishopLightFlinchSeq(Task* arg0);
+void        golemKnightBishopHeavyFlinchSeq(Task* arg0);
+void        golemKnightBishopKneelSeq(Task* arg0);
+static void _golemKnightBishopDownedHitSeq(Task* task);
+void        golemKnightBishopCollapseDeathSeq(Task* arg0);
+void        golemKnightBishopPlayAnimCues(Task* arg0);
+void        golemKnightBishopDrawAimBeam(Task* arg0);
+void        golemKnightBishopDeadState(Enemy* arg0, Task* arg1);
+void        golemKnightBishopFrameState(Enemy* arg0, Task* arg1);
+void        golemKnightBishopRunSequence(Task* arg0);
+static void _golemKnightBishopApplyScale(Task* task);
+static void _golemKnightBishopDownedDeathSeq(Task* task);
+static void _golemKnightBishopStepForward(Task* task);
+static void _golemKnightBishopDrawShadow(Task* task);
+void        golemKnightBishopHoldCueTimer(Task* arg0);
+void        golemKnightBishopQueueFrameCapture(GfxCoord* arg0, s32 arg1);
 
 /* Defined by each package. */
-void golemKnightBishopTakeHits(Task* arg0);
-void golemKnightBishopUpdateTint(Task* arg0);
-void golemKnightBishopTickAnim(Task* arg0);
-void golemKnightBishopSpawn(Enemy* arg0, Task* arg1);
-void golemKnightBishopAimFromPart(Task* arg0);
-void golemKnightBishopIdleSeq(Task* arg0);
-void golemKnightBishopGrabSeq(Task* arg0);
-void golemKnightBishopBoxApproachSeq(Task* arg0);
-void golemKnightBishopRecoverSeq(Task* arg0);
+static void _golemKnightBishopTakeHits(Task* task);
+static void _golemKnightBishopUpdateTint(Task* task);
+void        golemKnightBishopTickAnim(Task* arg0);
+void        golemKnightBishopSpawn(Enemy* arg0, Task* arg1);
+void        golemKnightBishopAimFromPart(Task* arg0);
+void        golemKnightBishopIdleSeq(Task* arg0);
+void        golemKnightBishopGrabSeq(Task* arg0);
+void        golemKnightBishopBoxApproachSeq(Task* arg0);
+void        golemKnightBishopRecoverSeq(Task* arg0);
 
 static inline void golemKnightBishopTickAnimInline(Task* arg0);
-static inline void golemKnightBishopDrawShadowInline(Task* arg0);
+static inline void _golemKnightBishopDrawShadowInline(Task* task);
 
-/// Relights the actor from its root coordinate, then applies and clears a
-/// pending request in `tintRequest`: 1 and 2 set the translation of the model's
-/// colour matrix to (0, 0, 0x400) and (0xFFF, 0xFFF, 0xFFF) respectively.
-static __inline__ void golemKnightBishopUpdateTintInline(Task* task)
-{
-    GolemKnightBishopWork* work;
-    GfxCoord*              obj;
-    VECTOR                 vec;
-    s16                    r;
-    s16                    g;
-    s16                    b;
-
-    obj    = task->extra.tmd->coords;
-    work   = task->work;
-    vec.vx = obj->workm.t[0];
-    vec.vy = obj->workm.t[1];
-    vec.vz = obj->workm.t[2];
-    worldCoordUpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
-    switch (work->tintRequest) {
-        case 1:
-            r = 0;
-            g = 0;
-            b = 0x400;
-            worldCoordSetModelAmbientColor(task->extra.tmd, r, g, b);
-            work->tintRequest = 0;
-            break;
-        case 2:
-            r = 0xFFF;
-            g = 0xFFF;
-            b = 0xFFF;
-            worldCoordSetModelAmbientColor(task->extra.tmd, r, g, b);
-            work->tintRequest = 0;
-            break;
-        case 0:
-        default:
-            return;
-    }
-}
+static inline void _golemKnightBishopUpdateTintInline(Task* task);
 
 #endif /* SRC_SHARED_GOLEM_KNIGHT_BISHOP_H */

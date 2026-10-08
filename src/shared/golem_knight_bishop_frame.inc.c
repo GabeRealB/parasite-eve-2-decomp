@@ -25,8 +25,8 @@ void golemKnightBishopFrameState(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = (temp_s1->hurtBody.flags >> 0xF) ^ WORLD_TARGET_NOT_LOCKABLE;
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            golemKnightBishopUpdateTint(arg1);
-            golemKnightBishopDrawShadow(arg1);
+            _golemKnightBishopUpdateTint(arg1);
+            _golemKnightBishopDrawShadow(arg1);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -34,16 +34,16 @@ void golemKnightBishopFrameState(Enemy* arg0, Task* arg1)
             return;
     }
     if (temp_s1->regions != 0) {
-        golemKnightBishopTakeHits(arg1);
+        _golemKnightBishopTakeHits(arg1);
         golemKnightBishopRunSequence(arg1);
-        golemKnightBishopStepForward(arg1);
+        _golemKnightBishopStepForward(arg1);
         golemKnightBishopTickAnim(arg1);
         golemKnightBishopPlayAnimCues(arg1);
         temp_s2->composeStamp                   = GRAPHICS_COORD_DIRTY;
         arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(temp_s2);
-        golemKnightBishopUpdateTint(arg1);
-        golemKnightBishopDrawShadow(arg1);
+        _golemKnightBishopUpdateTint(arg1);
+        _golemKnightBishopDrawShadow(arg1);
         golemKnightBishopQueueFrameCapture(&arg1->extra.tmd->coords[3], 0xC);
         golemKnightBishopTranslucencyFade(arg1);
         modelLightingSetLayerMaterials(temp_s1->translucency);

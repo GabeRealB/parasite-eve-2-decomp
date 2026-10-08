@@ -34,8 +34,8 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
             coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
             arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            golemKnightBishopUpdateTintInline(arg1);
-            golemKnightBishopDrawShadowInline(arg1);
+            _golemKnightBishopUpdateTintInline(arg1);
+            _golemKnightBishopDrawShadowInline(arg1);
             return;
         case 2:
             arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -80,7 +80,7 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
     coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    golemKnightBishopUpdateTintInline(arg1);
-    golemKnightBishopDrawShadowInline(arg1);
+    _golemKnightBishopUpdateTintInline(arg1);
+    _golemKnightBishopDrawShadowInline(arg1);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }

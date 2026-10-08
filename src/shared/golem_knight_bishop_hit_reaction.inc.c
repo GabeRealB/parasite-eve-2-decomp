@@ -1,26 +1,44 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Picks the reaction to the hit just taken, from the enemy's HP and the
-/// damage `arg1`: at or below zero HP it stops `appearSound` and
-/// `vanishSound` and enters a death sequence (the collapse, or the kneel
-/// death while `downedPose` is set); below a tenth of `hpMax` the kneel (or
-/// the kneel hit while `downedPose` is set); otherwise, when `reactionLock`
-/// is clear or `flickerStage` set, the light flinch for damage below 0x50 and
-/// the heavy one above. A sequence change restarts `step` and switches
-/// `strikeBody` off; the two `downedPose` variants are skipped while
-/// `reactionLock` holds the running sequence.
-void golemKnightBishopPickHitReaction(Task* arg0, s32 arg1)
+/// Starts an upright reaction and prevents the interrupted strike from hitting.
+static inline void _golemKnightBishopBeginHitReaction(GolemKnightBishopWork* work, s16 sequence)
 {
-    Enemy*                 enemy = arg0->spawnArg2.pointer;
-    s16                    hp    = enemy->hp;
-    GolemKnightBishopWork* work  = arg0->work;
-    u32                    state = 0;
-    s32                    max;
+    work->sequence          = sequence;
+    work->step              = 0;
+    work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+}
+
+/// Selects the GOLEM's reaction after HP loss or an interrupted grab.
+///
+/// `task` owns a live GOLEM work block and Enemy with valid parameters;
+/// `damage` is HP damage, possibly accumulated across a grab. Zero HP selects
+/// death and stops appearance sounds. Below one tenth maximum HP selects a
+/// knockdown or downed hit. Other unlocked or flickering hits flinch, with
+/// damage below 80 selecting the light reaction. A locked downed pose delays
+/// its hit/death sequence; upright reactions restart and disarm the strike.
+static void _golemKnightBishopPickHitReaction(Task* task, s32 damage)
+{
+    enum {
+        GOLEM_KNIGHT_BISHOP_REACTION_NONE           = 0,
+        GOLEM_KNIGHT_BISHOP_REACTION_LIGHT_FLINCH   = 1,
+        GOLEM_KNIGHT_BISHOP_REACTION_HEAVY_FLINCH   = 2,
+        GOLEM_KNIGHT_BISHOP_REACTION_KNOCKDOWN      = 3,
+        GOLEM_KNIGHT_BISHOP_REACTION_DOWNED_HIT     = 4,
+        GOLEM_KNIGHT_BISHOP_REACTION_COLLAPSE_DEATH = 5,
+        GOLEM_KNIGHT_BISHOP_REACTION_DOWNED_DEATH   = 6,
+        GOLEM_KNIGHT_BISHOP_HEAVY_FLINCH_DAMAGE     = 80,
+        GOLEM_KNIGHT_BISHOP_KNOCKDOWN_HP_DIVISOR    = 10,
+    };
+    Enemy*                 enemy    = task->spawnArg2.pointer;
+    s16                    hp       = enemy->hp;
+    GolemKnightBishopWork* work     = task->work;
+    u32                    reaction = GOLEM_KNIGHT_BISHOP_REACTION_NONE;
+    s32                    maxHp;
 
     if (hp <= 0) {
-        state = 6;
+        reaction = GOLEM_KNIGHT_BISHOP_REACTION_DOWNED_DEATH;
         if (work->downedPose == 0) {
-            state = 5;
+            reaction = GOLEM_KNIGHT_BISHOP_REACTION_COLLAPSE_DEATH;
         }
         if (work->appearSound != 0) {
             sndEvtRequestScriptStop(work->appearSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -30,49 +48,42 @@ void golemKnightBishopPickHitReaction(Task* arg0, s32 arg1)
             sndEvtRequestScriptStop(work->vanishSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             work->vanishSound = 0;
         }
-    } else if (max = enemy->param->hpMax, hp < max / 10) {
-        state = 4;
+    } else if (maxHp = enemy->param->hpMax, hp < maxHp / GOLEM_KNIGHT_BISHOP_KNOCKDOWN_HP_DIVISOR) {
+        reaction = GOLEM_KNIGHT_BISHOP_REACTION_DOWNED_HIT;
         if (work->downedPose == 0) {
-            state = 3;
+            reaction = GOLEM_KNIGHT_BISHOP_REACTION_KNOCKDOWN;
         }
     } else if (work->reactionLock == 0 || work->flickerStage != 0) {
         work->reactionLock = 0;
-        state              = 2;
-        if (arg1 < 0x50) {
-            state = 1;
+        reaction           = GOLEM_KNIGHT_BISHOP_REACTION_HEAVY_FLINCH;
+        if (damage < GOLEM_KNIGHT_BISHOP_HEAVY_FLINCH_DAMAGE) {
+            reaction = GOLEM_KNIGHT_BISHOP_REACTION_LIGHT_FLINCH;
         }
     }
 
-    switch (state) {
-        case 0:
+    // Downed reactions wait for the fall lock; upright reactions cancel the strike.
+    switch (reaction) {
+        case GOLEM_KNIGHT_BISHOP_REACTION_NONE:
             break;
-        case 1:
-            work->sequence          = GOLEM_KNIGHT_BISHOP_SEQUENCE_LIGHT_FLINCH;
-            work->step              = 0;
-            work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        case GOLEM_KNIGHT_BISHOP_REACTION_LIGHT_FLINCH:
+            _golemKnightBishopBeginHitReaction(work, GOLEM_KNIGHT_BISHOP_SEQUENCE_LIGHT_FLINCH);
             break;
-        case 2:
-            work->sequence          = GOLEM_KNIGHT_BISHOP_SEQUENCE_HEAVY_FLINCH;
-            work->step              = 0;
-            work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        case GOLEM_KNIGHT_BISHOP_REACTION_HEAVY_FLINCH:
+            _golemKnightBishopBeginHitReaction(work, GOLEM_KNIGHT_BISHOP_SEQUENCE_HEAVY_FLINCH);
             break;
-        case 3:
-            work->sequence          = GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL;
-            work->step              = 0;
-            work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        case GOLEM_KNIGHT_BISHOP_REACTION_KNOCKDOWN:
+            _golemKnightBishopBeginHitReaction(work, GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL);
             break;
-        case 4:
+        case GOLEM_KNIGHT_BISHOP_REACTION_DOWNED_HIT:
             if (work->reactionLock == 0) {
                 work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL_HIT;
                 work->step     = 0;
             }
             break;
-        case 5:
-            work->sequence          = GOLEM_KNIGHT_BISHOP_SEQUENCE_COLLAPSE_DEATH;
-            work->step              = 0;
-            work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        case GOLEM_KNIGHT_BISHOP_REACTION_COLLAPSE_DEATH:
+            _golemKnightBishopBeginHitReaction(work, GOLEM_KNIGHT_BISHOP_SEQUENCE_COLLAPSE_DEATH);
             break;
-        case 6:
+        case GOLEM_KNIGHT_BISHOP_REACTION_DOWNED_DEATH:
             if (work->reactionLock == 0) {
                 work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL_DEATH;
                 work->step     = 0;

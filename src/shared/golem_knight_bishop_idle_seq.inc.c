@@ -4,7 +4,7 @@
 /// shortened by `attackCount`, or skips it after a feint; a broken feint goes
 /// straight to testing a spot with `counterattacking` set. Step 1 counts the
 /// wait down. Step 2 picks the next attack: the box approach (step 5) when
-/// `golemKnightBishopPlayerInBox` finds the player in a box and the last
+/// `_golemKnightBishopPlayerInBox` finds the player in a box and the last
 /// attack was not one, otherwise a grab (step 3) or a strike (step 4) by an
 /// LCG draw weighted by `lastAttack` and `repeatCount`, placing the target
 /// and enabling the probes. Steps 3 and 4 start that attack when
@@ -24,7 +24,7 @@ void golemKnightBishopIdleSeq(Task* arg0)
                 gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->step             = gGolemKnightBishopIdleSteps[(gRandomLcgState >> 16) & 0xF] + 2;
                 work->counterattacking = 1;
-                golemKnightBishopPlaceTarget(arg0);
+                _golemKnightBishopPlaceTarget(arg0);
                 work->feinting = 0;
             } else if (work->feinting == 0) {
                 work->timer = (gGolemKnightBishopIdleWaits[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF] * (0x10 - work->attackCount)) / 16;
@@ -43,7 +43,7 @@ void golemKnightBishopIdleSeq(Task* arg0)
             }
             break;
         case 2:
-            if (work->lastAttack != GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH && golemKnightBishopPlayerInBox(arg0) != 0) {
+            if (work->lastAttack != GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH && _golemKnightBishopPlayerInBox(arg0) != 0) {
                 work->step        = 5;
                 work->repeatCount = 0;
                 break;
@@ -71,7 +71,7 @@ void golemKnightBishopIdleSeq(Task* arg0)
                 work->step        = ((gRandomLcgState >> 16) & 0xF) < 8 ? 3 : 4;
                 work->repeatCount = 0;
             }
-            golemKnightBishopPlaceTarget(arg0);
+            _golemKnightBishopPlaceTarget(arg0);
             break;
         case 3:
             if (work->probeContacts[0].key.value == 0) {

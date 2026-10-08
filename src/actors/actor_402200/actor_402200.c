@@ -62,20 +62,11 @@ extern s16 gGolemKnightBishopAnimBlend[];
 
 extern GolemKnightBishopChargeSpeedSpan gGolemKnightBishopFrameSteps[];
 
-/// Reacts to the damage just taken; see its definition.
-
 /// Runs the one-shot vocal cue armed by `grabStage`; see its definition.
 
 /// Aims the actor at the player; see its definition.
 
-/// Parks the actor's target position off the player; see its definition.
-
-/// Reports whether the player stands in one of the box regions; see its
-/// definition.
-
 /// Draws the red trail between the two projected points; see its definition.
-
-/// Rebuilds the root part's scaled rotation; see its definition.
 
 /// Projects a coordinate and queues the frame-buffer pass at its depth; see
 /// its definition.

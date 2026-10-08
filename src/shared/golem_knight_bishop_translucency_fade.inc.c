@@ -154,7 +154,7 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
                     }
                     break;
             }
-            golemKnightBishopApplyScale(arg0);
+            _golemKnightBishopApplyScale(arg0);
             t                  = work->translucency + 0xFF / work->translucencyFadeFrames;
             work->translucency = t;
             if (t >= 0xFF) {

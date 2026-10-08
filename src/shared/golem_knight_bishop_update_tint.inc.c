@@ -1,7 +1,10 @@
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Out-of-line `golemKnightBishopUpdateTintInline`, for the callers after the inline one.
-void golemKnightBishopUpdateTint(Task* arg0)
+/// Refreshes the GOLEM's room lighting and consumes its pending ambient tint.
+///
+/// `task` owns a live model, GOLEM work block and Enemy spawn argument. The root's
+/// composed world position must be current; no coordinates are composed here.
+static void _golemKnightBishopUpdateTint(Task* task)
 {
-    golemKnightBishopUpdateTintInline(arg0);
+    _golemKnightBishopUpdateTintInline(task);
 }

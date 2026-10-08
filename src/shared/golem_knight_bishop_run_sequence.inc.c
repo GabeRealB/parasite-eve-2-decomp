@@ -35,16 +35,16 @@ void golemKnightBishopRunSequence(Task* arg0)
             golemKnightBishopKneelSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL_HIT:
-            golemKnightBishopKneelHitSeq(arg0);
+            _golemKnightBishopDownedHitSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_COLLAPSE_DEATH:
             golemKnightBishopCollapseDeathSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL_DEATH:
-            golemKnightBishopKneelDeathSeq(arg0);
+            _golemKnightBishopDownedDeathSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_REGION_SCAN:
-            golemKnightBishopBoxScanSeq(arg0);
+            _golemKnightBishopRegionScanSeq(arg0);
             break;
     }
     if (temp_s1->sequence != GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB) {
