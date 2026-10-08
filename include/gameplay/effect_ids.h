@@ -347,7 +347,7 @@ enum {
     /// dryfield_motel_balcony's copy of the RoomFx twin trail: two eight-slot rings of
     /// frames drawn as a fading beam behind an anchor; the room stores it in slot
     /// gRoomEffectTwinTrailId, which the beam-sword Pawn/Rook golems spawn at body part 7
-    /// (golemPawnRookDelayedEffectTick).
+    /// (_golemPawnRookSwordTick).
     EFFECT_DRYFIELD_MOTEL_BALCONY_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x073),
     /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
     ///
@@ -454,7 +454,7 @@ enum {
     /// dryfield_night_back_street's copy of the shared twin trail
     /// (room_visual_effects_trail_task): two rings of eight frames drawn as a fading
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
-    /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
+    /// Pawn/Rook golem library at joint 7 via _golemPawnRookSwordTick).
     EFFECT_DRYFIELD_NIGHT_BACK_STREET_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x097),
     /// Akropolis plaza rotating flickering light (blue for slots 1-4, red for 5-6) with
     /// a transient point light and glow cone; six placed by the plaza ambient spawner.
@@ -609,7 +609,7 @@ enum {
     /// dryfield_night_junk_yard's copy of the shared twin trail
     /// (room_visual_effects_trail_task): two rings of eight frames drawn as a fading
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
-    /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
+    /// Pawn/Rook golem library at joint 7 via _golemPawnRookSwordTick).
     EFFECT_DRYFIELD_NIGHT_JUNK_YARD_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x0E6),
     /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
     ///
@@ -633,7 +633,7 @@ enum {
     /// mine_mesa's copy of the shared twin trail (room_visual_effects_trail_task): two
     /// rings of eight frames drawn as a fading gouraud beam; the room stores it in
     /// gRoomEffectTwinTrailId (twin-trail slot, spawned by the Pawn/Rook golem library at joint 7
-    /// via golemPawnRookDelayedEffectTick).
+    /// via _golemPawnRookSwordTick).
     EFFECT_MINE_MESA_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x0EB),
     /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
     ///
@@ -651,7 +651,7 @@ enum {
     /// shelter_b4_lower_sewer's copy of the RoomFx twin trail: two eight-slot rings of
     /// frames drawn as a fading beam behind an anchor; the room stores it in slot
     /// gRoomEffectTwinTrailId, which the beam-sword Pawn/Rook golems spawn at body part 7
-    /// (golemPawnRookDelayedEffectTick).
+    /// (_golemPawnRookSwordTick).
     EFFECT_SHELTER_B4_LOWER_SEWER_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x0EE),
     /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
     ///
@@ -663,7 +663,7 @@ enum {
     /// shelter_b4_upper_sewer's copy of the shared flash task (_roomVisualEffectsFlashTask): ramps
     /// up two fans and a shrinking ring, queues a full-screen fade quad at its peak,
     /// then fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
-    /// golemPawnRookSilenceScreamState).
+    /// _golemPawnRookSilenceScreamState).
     EFFECT_SHELTER_B4_UPPER_SEWER_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x0F0),
     /// shelter_b4_upper_sewer's copy of the RoomFx twin-trail task (two eight-point
     /// rings drawn as a beam), stored in gRoomEffectTwinTrailId, which the beam-sword GOLEM's sword
@@ -1034,9 +1034,8 @@ enum {
     /// The shelter_1f_bulwark instance of the room-effect library's
     /// room_visual_effects_trail_task.inc.c: a twin-trail beam: two rings of eight
     /// frames recording two points offset from the anchor, drawn as a beam between
-    /// them; the room stores it in slot gRoomEffectTwinTrailId, read by the Pawn/Rook GOLEM
-    /// delayed-effect child at part 7 (golem_pawn_rook_delayed_effect_tick.inc.c; the
-    /// beam-sword golems actor_02000/02300 reference this slot).
+    /// them; the room stores it in slot gRoomEffectTwinTrailId. The Pawn/Rook
+    /// Beam Sword tick (`_golemPawnRookSwordTick`) spawns it at body part 7.
     EFFECT_SHELTER_1F_BULWARK_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1C3),
     /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
     ///
@@ -1052,7 +1051,7 @@ enum {
     /// dryfield_night_r08's copy of the shared flash task (_roomVisualEffectsFlashTask): ramps up
     /// two fans and a shrinking ring, queues a full-screen fade quad at its peak, then
     /// fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
-    /// golemPawnRookSilenceScreamState).
+    /// _golemPawnRookSilenceScreamState).
     EFFECT_DRYFIELD_NIGHT_R08_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1C7),
     /// shelter_b1_elevator_hall's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring
     /// ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook
@@ -1076,7 +1075,7 @@ enum {
     /// shelter_b1_main_corridor's copy of the shared flash task (_roomVisualEffectsFlashTask):
     /// ramps up two fans and a shrinking ring, queues a full-screen fade quad at its
     /// peak, then fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
-    /// golemPawnRookSilenceScreamState).
+    /// _golemPawnRookSilenceScreamState).
     EFFECT_SHELTER_B1_MAIN_CORRIDOR_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1CC),
     /// shelter_b1_pod_access_tunnel's copy of _roomVisualEffectsFlashTask (fans and a shrinking
     /// ring ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the
@@ -1100,7 +1099,7 @@ enum {
     /// shelter_b2_south_maintenance_walkway's copy of the shared flash task
     /// (_roomVisualEffectsFlashTask): ramps up two fans and a shrinking ring, queues a full-screen
     /// fade quad at its peak, then fades out; the room stores it in gRoomEffectFlashId (flash
-    /// slot, spawned by golemPawnRookSilenceScreamState).
+    /// slot, spawned by _golemPawnRookSilenceScreamState).
     EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1D1),
     /// shelter_b2_north_maintenance_walkway's copy of _roomVisualEffectsFlashTask (fans and a
     /// shrinking ring ramping to a coloured screen fade), stored in gRoomEffectFlashId, which
@@ -1124,7 +1123,7 @@ enum {
     /// shelter_1f_parking_garage's copy of the shared flash task (_roomVisualEffectsFlashTask):
     /// ramps up two fans and a shrinking ring, queues a full-screen fade quad at its
     /// peak, then fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
-    /// golemPawnRookSilenceScreamState).
+    /// _golemPawnRookSilenceScreamState).
     EFFECT_SHELTER_1F_PARKING_GARAGE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1D6),
     /// shelter_1f_vehicular_airlock's copy of _roomVisualEffectsFlashTask (fans and a shrinking
     /// ring ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the
@@ -1148,7 +1147,7 @@ enum {
     /// neo_ark_island's copy of the shared flash task (_roomVisualEffectsFlashTask): ramps up two
     /// fans and a shrinking ring, queues a full-screen fade quad at its peak, then
     /// fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
-    /// golemPawnRookSilenceScreamState).
+    /// _golemPawnRookSilenceScreamState).
     EFFECT_NEO_ARK_ISLAND_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1DB),
     /// neo_ark_power_plant_2's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring
     /// ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook
@@ -1172,7 +1171,7 @@ enum {
     /// shelter_b6_nursery's copy of the shared flash task (_roomVisualEffectsFlashTask): ramps up
     /// two fans and a shrinking ring, queues a full-screen fade quad at its peak, then
     /// fades out; the room stores it in gRoomEffectFlashId (flash slot, spawned by
-    /// golemPawnRookSilenceScreamState).
+    /// _golemPawnRookSilenceScreamState).
     EFFECT_SHELTER_B6_NURSERY_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x1E0),
     /// neo_ark_bridge's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring ramping to
     /// a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook GOLEM's
@@ -1187,7 +1186,7 @@ enum {
     /// dryfield_night_r08's copy of the RoomFx twin trail: two eight-slot rings of
     /// frames drawn as a fading beam behind an anchor; the room stores it in slot
     /// gRoomEffectTwinTrailId, which the beam-sword Pawn/Rook golems spawn at body part 7
-    /// (golemPawnRookDelayedEffectTick).
+    /// (_golemPawnRookSwordTick).
     EFFECT_DRYFIELD_NIGHT_R08_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1E3),
     /// Twin trail (room_visual_effects_trail_task): two points offset from the anchor
     /// recorded in rings of eight and drawn as a fading beam; stored in gRoomEffectTwinTrailId,
@@ -1196,7 +1195,7 @@ enum {
     /// shelter_b1_south_maintenance_walkway's copy of the shared twin trail
     /// (room_visual_effects_trail_task): two rings of eight frames drawn as a fading
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
-    /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
+    /// Pawn/Rook golem library at joint 7 via _golemPawnRookSwordTick).
     EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1E5),
     /// shelter_b1_storeroom's copy of the RoomFx twin-trail task (two eight-point rings
     /// drawn as a beam), stored in gRoomEffectTwinTrailId, which the beam-sword GOLEM's sword child
@@ -1205,14 +1204,13 @@ enum {
     /// The shelter_b1_n_walkway instance of the room-effect library's
     /// room_visual_effects_trail_task.inc.c: a twin-trail beam: two rings of eight
     /// frames recording two points offset from the anchor, drawn as a beam between
-    /// them; the room stores it in slot gRoomEffectTwinTrailId, read by the Pawn/Rook GOLEM
-    /// delayed-effect child at part 7 (golem_pawn_rook_delayed_effect_tick.inc.c; the
-    /// beam-sword golems actor_02000/02300 reference this slot).
+    /// them; the room stores it in slot gRoomEffectTwinTrailId. The Pawn/Rook
+    /// Beam Sword tick (`_golemPawnRookSwordTick`) spawns it at body part 7.
     EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1E7),
     /// shelter_b1_main_corridor's copy of the RoomFx twin trail: two eight-slot rings
     /// of frames drawn as a fading beam behind an anchor; the room stores it in slot
     /// gRoomEffectTwinTrailId, which the beam-sword Pawn/Rook golems spawn at body part 7
-    /// (golemPawnRookDelayedEffectTick).
+    /// (_golemPawnRookSwordTick).
     EFFECT_SHELTER_B1_MAIN_CORRIDOR_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1E8),
     /// Twin trail (room_visual_effects_trail_task): two points offset from the anchor
     /// recorded in rings of eight and drawn as a fading beam; stored in gRoomEffectTwinTrailId,
@@ -1221,7 +1219,7 @@ enum {
     /// shelter_b1_transfer_tunnel's copy of the shared twin trail
     /// (room_visual_effects_trail_task): two rings of eight frames drawn as a fading
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
-    /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
+    /// Pawn/Rook golem library at joint 7 via _golemPawnRookSwordTick).
     EFFECT_SHELTER_B1_TRANSFER_TUNNEL_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1EA),
     /// shelter_b1_control_room_access_tunnel's copy of the RoomFx twin-trail task (two
     /// eight-point rings drawn as a beam), stored in gRoomEffectTwinTrailId, which the beam-sword
@@ -1230,14 +1228,13 @@ enum {
     /// The shelter_b2_elevator_hall instance of the room-effect library's
     /// room_visual_effects_trail_task.inc.c: a twin-trail beam: two rings of eight
     /// frames recording two points offset from the anchor, drawn as a beam between
-    /// them; the room stores it in slot gRoomEffectTwinTrailId, read by the Pawn/Rook GOLEM
-    /// delayed-effect child at part 7 (golem_pawn_rook_delayed_effect_tick.inc.c; the
-    /// beam-sword golems actor_02000/02300 reference this slot).
+    /// them; the room stores it in slot gRoomEffectTwinTrailId. The Pawn/Rook
+    /// Beam Sword tick (`_golemPawnRookSwordTick`) spawns it at body part 7.
     EFFECT_SHELTER_B2_ELEVATOR_HALL_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1EC),
     /// shelter_b2_south_maintenance_walkway's copy of the RoomFx twin trail: two eight-
     /// slot rings of frames drawn as a fading beam behind an anchor; the room stores it
     /// in slot gRoomEffectTwinTrailId, which the beam-sword Pawn/Rook golems spawn at body part 7
-    /// (golemPawnRookDelayedEffectTick).
+    /// (_golemPawnRookSwordTick).
     EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1ED),
     /// Twin trail (room_visual_effects_trail_task): two points offset from the anchor
     /// recorded in rings of eight and drawn as a fading beam; stored in gRoomEffectTwinTrailId,
@@ -1246,7 +1243,7 @@ enum {
     /// shelter_b2_main_corridor's copy of the shared twin trail
     /// (room_visual_effects_trail_task): two rings of eight frames drawn as a fading
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
-    /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
+    /// Pawn/Rook golem library at joint 7 via _golemPawnRookSwordTick).
     EFFECT_SHELTER_B2_MAIN_CORRIDOR_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1EF),
     /// shelter_b2_septic_tank's copy of the RoomFx twin-trail task (two eight-point
     /// rings drawn as a beam), stored in gRoomEffectTwinTrailId, which the beam-sword GOLEM's sword
@@ -1255,14 +1252,13 @@ enum {
     /// The shelter_b2_pod_tunnel instance of the room-effect library's
     /// room_visual_effects_trail_task.inc.c: a twin-trail beam: two rings of eight
     /// frames recording two points offset from the anchor, drawn as a beam between
-    /// them; the room stores it in slot gRoomEffectTwinTrailId, read by the Pawn/Rook GOLEM
-    /// delayed-effect child at part 7 (golem_pawn_rook_delayed_effect_tick.inc.c; the
-    /// beam-sword golems actor_02000/02300 reference this slot).
+    /// them; the room stores it in slot gRoomEffectTwinTrailId. The Pawn/Rook
+    /// Beam Sword tick (`_golemPawnRookSwordTick`) spawns it at body part 7.
     EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1F1),
     /// shelter_1f_parking_garage's copy of the RoomFx twin trail: two eight-slot rings
     /// of frames drawn as a fading beam behind an anchor; the room stores it in slot
     /// gRoomEffectTwinTrailId, which the beam-sword Pawn/Rook golems spawn at body part 7
-    /// (golemPawnRookDelayedEffectTick).
+    /// (_golemPawnRookSwordTick).
     EFFECT_SHELTER_1F_PARKING_GARAGE_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1F2),
     /// Twin trail (room_visual_effects_trail_task): two points offset from the anchor
     /// recorded in rings of eight and drawn as a fading beam; stored in gRoomEffectTwinTrailId,
@@ -1271,7 +1267,7 @@ enum {
     /// neo_ark_north_promenade's copy of the shared twin trail
     /// (room_visual_effects_trail_task): two rings of eight frames drawn as a fading
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
-    /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
+    /// Pawn/Rook golem library at joint 7 via _golemPawnRookSwordTick).
     EFFECT_NEO_ARK_NORTH_PROMENADE_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1F4),
     /// neo_ark_forest_zone's copy of the RoomFx twin-trail task (two eight-point rings
     /// drawn as a beam), stored in gRoomEffectTwinTrailId, which the beam-sword GOLEM's sword child
@@ -1280,14 +1276,13 @@ enum {
     /// The neo_ark_pavilion instance of the room-effect library's
     /// room_visual_effects_trail_task.inc.c: a twin-trail beam: two rings of eight
     /// frames recording two points offset from the anchor, drawn as a beam between
-    /// them; the room stores it in slot gRoomEffectTwinTrailId, read by the Pawn/Rook GOLEM
-    /// delayed-effect child at part 7 (golem_pawn_rook_delayed_effect_tick.inc.c; the
-    /// beam-sword golems actor_02000/02300 reference this slot).
+    /// them; the room stores it in slot gRoomEffectTwinTrailId. The Pawn/Rook
+    /// Beam Sword tick (`_golemPawnRookSwordTick`) spawns it at body part 7.
     EFFECT_NEO_ARK_PAVILION_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1F6),
     /// neo_ark_island's copy of the RoomFx twin trail: two eight-slot rings of frames
     /// drawn as a fading beam behind an anchor; the room stores it in slot gRoomEffectTwinTrailId,
     /// which the beam-sword Pawn/Rook golems spawn at body part 7
-    /// (golemPawnRookDelayedEffectTick).
+    /// (_golemPawnRookSwordTick).
     EFFECT_NEO_ARK_ISLAND_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1F7),
     /// Twin trail (room_visual_effects_trail_task): two points offset from the anchor
     /// recorded in rings of eight and drawn as a fading beam; stored in gRoomEffectTwinTrailId,
@@ -1296,7 +1291,7 @@ enum {
     /// neo_ark_savanna_zone's copy of the shared twin trail
     /// (room_visual_effects_trail_task): two rings of eight frames drawn as a fading
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
-    /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
+    /// Pawn/Rook golem library at joint 7 via _golemPawnRookSwordTick).
     EFFECT_NEO_ARK_SAVANNA_ZONE_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1F9),
     /// neo_ark_south_promenade's copy of the RoomFx twin-trail task (two eight-point
     /// rings drawn as a beam), stored in gRoomEffectTwinTrailId, which the beam-sword GOLEM's sword
@@ -1305,14 +1300,13 @@ enum {
     /// The neo_ark_shrine instance of the room-effect library's
     /// room_visual_effects_trail_task.inc.c: a twin-trail beam: two rings of eight
     /// frames recording two points offset from the anchor, drawn as a beam between
-    /// them; the room stores it in slot gRoomEffectTwinTrailId, read by the Pawn/Rook GOLEM
-    /// delayed-effect child at part 7 (golem_pawn_rook_delayed_effect_tick.inc.c; the
-    /// beam-sword golems actor_02000/02300 reference this slot).
+    /// them; the room stores it in slot gRoomEffectTwinTrailId. The Pawn/Rook
+    /// Beam Sword tick (`_golemPawnRookSwordTick`) spawns it at body part 7.
     EFFECT_NEO_ARK_SHRINE_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1FB),
     /// shelter_b6_nursery's copy of the RoomFx twin trail: two eight-slot rings of
     /// frames drawn as a fading beam behind an anchor; the room stores it in slot
     /// gRoomEffectTwinTrailId, which the beam-sword Pawn/Rook golems spawn at body part 7
-    /// (golemPawnRookDelayedEffectTick).
+    /// (_golemPawnRookSwordTick).
     EFFECT_SHELTER_B6_NURSERY_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1FC),
     /// Twin trail (room_visual_effects_trail_task): two points offset from the anchor
     /// recorded in rings of eight and drawn as a fading beam; stored in gRoomEffectTwinTrailId,
@@ -1321,7 +1315,7 @@ enum {
     /// neo_ark_pyramid's copy of the shared twin trail
     /// (room_visual_effects_trail_task): two rings of eight frames drawn as a fading
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
-    /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
+    /// Pawn/Rook golem library at joint 7 via _golemPawnRookSwordTick).
     EFFECT_NEO_ARK_PYRAMID_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x1FE),
     /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
     ///
@@ -2150,9 +2144,8 @@ enum {
     /// The acropolis_forked_road instance of the room-effect library's
     /// room_visual_effects_trail_task.inc.c: a twin-trail beam: two rings of eight
     /// frames recording two points offset from the anchor, drawn as a beam between
-    /// them; the room stores it in slot gRoomEffectTwinTrailId, read by the Pawn/Rook GOLEM
-    /// delayed-effect child at part 7 (golem_pawn_rook_delayed_effect_tick.inc.c; the
-    /// beam-sword golems actor_02000/02300 reference this slot).
+    /// them; the room stores it in slot gRoomEffectTwinTrailId. The Pawn/Rook
+    /// Beam Sword tick (`_golemPawnRookSwordTick`) spawns it at body part 7.
     EFFECT_ACROPOLIS_FORKED_ROAD_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x291),
     /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
     ///
@@ -2168,7 +2161,7 @@ enum {
     /// dryfield_main_street's copy of the shared twin trail
     /// (room_visual_effects_trail_task): two rings of eight frames drawn as a fading
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
-    /// Pawn/Rook golem library at joint 7 via golemPawnRookDelayedEffectTick).
+    /// Pawn/Rook golem library at joint 7 via _golemPawnRookSwordTick).
     EFFECT_DRYFIELD_MAIN_STREET_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x294),
     /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
     ///
@@ -2186,7 +2179,7 @@ enum {
     /// dryfield_back_street's copy of the RoomFx twin trail: two eight-slot rings of
     /// frames drawn as a fading beam behind an anchor; the room stores it in slot
     /// gRoomEffectTwinTrailId, which the beam-sword Pawn/Rook golems spawn at body part 7
-    /// (golemPawnRookDelayedEffectTick).
+    /// (_golemPawnRookSwordTick).
     EFFECT_DRYFIELD_BACK_STREET_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x297),
     /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
     ///

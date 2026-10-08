@@ -2,118 +2,144 @@
 
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Teardown state of the enemy (entry 2 of the package's task-state table).
-/// `gSceneCombatState.actorControl` gates it: 1 only redraws and 2 hides the model and its lock-on
-/// node, both returning; 0 shows them and runs the states. State 0 unlinks the enemy's lock-on
-/// node and collision bodies, releases its state-F0 slot, settles on the idle
-/// `downedPose` selects, files the pose with `areaSaveEnemyPose` so the enemy is
-/// restored in that pose, and raises `gSceneCombatState.golemPawnRookDeathAlert`. State 1 spawns a spark
-/// every fourth frame. Either way the animation slots advance or are reseeded
-/// and the model is drawn with its ground shadow.
-void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
+/// Advances or blends the corpse's part poses and marks its root dirty.
+///
+/// actor has a live nineteen-slot body rig; coord is its model root. The clip
+/// request indexes the carrier's blend table and slots 1..18 leave slot 0 alone.
+static inline void _golemPawnRookAdvanceCorpsePose(Task* actor, GfxCoord* coord)
 {
-    GolemPawnRookWork* work;
     GolemPawnRookWork* animWork;
-    GfxCoord*          coord;
-    GfxCoord*          root;
-    GfxCoord*          part;
-    SVECTOR*           scratch;
-    VECTOR3            pos;
-    s16                anim;
-    s16                duration;
-    s32                i;
-    u32                random;
+    s16                blendFrames;
+    s32                slotIndex;
 
-    work    = arg1->work;
-    coord   = arg1->extra.tmd->coords;
-    scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    switch (gSceneCombatState.actorControl) {
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            arg1->extra.tmd->flags       = 0;
-            arg0->node.state.parts.flags = 0;
-            break;
-        case SCENE_COMBAT_ACTORS_PAUSED:
-            coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
-            arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            root   = arg1->extra.tmd->coords;
-            pos.vx = root->workm.t[0];
-            pos.vy = root->workm.t[1];
-            pos.vz = root->workm.t[2];
-            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
-            root   = arg1->extra.tmd->coords;
-            part   = &root[3];
-            pos.vx = part->workm.t[0];
-            pos.vy = root->workm.t[1];
-            pos.vz = part->workm.t[2];
-            effectDrawGroundShadow(&pos, 0x300, 0x80);
-            return;
-        case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            return;
-    }
-    switch (work->step) {
-        case 0:
-            arg0->recs = 0;
-            worldTargetUnlinkNode(&arg0->node);
-            worldCollisionUnlinkBody(&work->sightBody);
-            worldCollisionUnlinkBody(&work->groundBody);
-            worldCollisionUnlinkBody(&work->hurtBody);
-            worldCollisionUnlinkBody(&work->strikeBody);
-            if ((u32)((u16)work->actorId - 0x38) < 2U) {
-                worldCollisionUnlinkBody(&work->laserBody);
-            }
-            sceneReleaseBattleRefWithRewards(arg1, work->actorId);
-            anim = 0x1D;
-            if (work->downedPose == 1) {
-                anim = 0x19;
-            }
-            work->anim       = anim;
-            work->step       = 1;
-            arg0->spawnState = (u8)work->downedPose;
-            areaSaveEnemyPose(arg0);
-            gSceneCombatState.golemPawnRookDeathAlert = 1;
-            break;
-        case 1:
-            if (!(work->animFrame & 3)) {
-                scratch->vx     = 0;
-                scratch->vz     = 0;
-                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                scratch->vy     = -((random >> 0x10) & 0x1FF);
-                gRandomLcgState = random;
-                effectSpawn(EFFECT_FLASH_BURST, &arg1->extra.tmd->coords[3], 0x400, scratch);
-            }
-            break;
-    }
-    animWork = arg1->work;
+    animWork = actor->work;
     if (animWork->anim != animWork->playingAnim) {
-        animWork->playingAnim = (s16)(u16)animWork->anim;
+        animWork->playingAnim = animWork->anim;
         animWork->animFrame   = 0U;
-        duration              = gGolemPawnRookAnimBlendFrames[animWork->anim];
-        for (i = 1; i < 0x13; i++) {
-            animationSeekSlotWithBlend(&animWork->rig.anim, i, animWork->anim, 0, duration);
+        blendFrames           = gGolemPawnRookAnimBlendFrames[animWork->anim];
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(animWork->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&animWork->rig.anim, slotIndex, animWork->anim, 0, blendFrames);
         }
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
         animWork->animFrame++;
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&animWork->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(animWork->rig.slots); slotIndex++) {
+            animationTickSlot(&animWork->rig.anim, slotIndex);
         }
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Saves a dead GOLEM's pose and keeps its corpse animated, lit and shadowed.
+///
+/// enemy and actor remain live throughout this persistent body state. Step 0
+/// unlinks combat bodies and lock-on, awards the battle reference, and saves
+/// the downed pose; step 1 emits a spark every fourth animation frame. Restored
+/// corpses start at step 2 and skip those effects. Actor control pauses updates
+/// or hides the corpse. Its eight scratch bytes are released on the running
+/// path; paused and hidden returns leave them reserved until the next main-loop
+/// frame resets the shared cursor.
+static void _golemPawnRookDeadState(Enemy* enemy, Task* actor)
+{
+    enum {
+        GOLEM_PAWN_ROOK_CORPSE_RELEASE_COMBAT   = 0,
+        GOLEM_PAWN_ROOK_CORPSE_SPARKS           = 1,
+        GOLEM_PAWN_ROOK_CORPSE_SPARK_FRAME_MASK = 3,
+        GOLEM_PAWN_ROOK_CORPSE_SPARK_Y_MASK     = 511,
+        GOLEM_PAWN_ROOK_CORPSE_BEHIND_ANIM      = 0x19,
+        GOLEM_PAWN_ROOK_CORPSE_FRONT_ANIM       = 0x1D,
+        GOLEM_PAWN_ROOK_FIRST_LAUNCHER_ID       = 0x38,
+        GOLEM_PAWN_ROOK_CORPSE_SPARK_SIZE       = 1024,
+        GOLEM_PAWN_ROOK_CORPSE_SHADOW_HALF_SIZE = 768,
+        GOLEM_PAWN_ROOK_CORPSE_SHADOW_SHADE     = 128,
+    };
+
+    GolemPawnRookWork* work;
+    GfxCoord*          coord;
+    GfxCoord*          root;
+    GfxCoord*          part;
+    SVECTOR*           sparkOffset;
+    VECTOR3            worldPos;
+    s16                corpseAnim;
+    u32                randomDraw;
+
+    work        = actor->work;
+    coord       = actor->extra.tmd->coords;
+    sparkOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    switch (gSceneCombatState.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            actor->extra.tmd->flags       = 0;
+            enemy->node.state.parts.flags = 0;
+            break;
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
+            actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(coord);
+            root        = actor->extra.tmd->coords;
+            worldPos.vx = root->workm.t[0];
+            worldPos.vy = root->workm.t[1];
+            worldPos.vz = root->workm.t[2];
+            worldCoordUpdateActorColor(actor->spawnArg2.pointer, &worldPos, 0, 0);
+            root        = actor->extra.tmd->coords;
+            part        = &root[3];
+            worldPos.vx = part->workm.t[0];
+            worldPos.vy = root->workm.t[1];
+            worldPos.vz = part->workm.t[2];
+            effectDrawGroundShadow(&worldPos, GOLEM_PAWN_ROOK_CORPSE_SHADOW_HALF_SIZE, GOLEM_PAWN_ROOK_CORPSE_SHADOW_SHADE);
+            return;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            actor->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            return;
+    }
+    // Release combat participation once, while retaining the corpse model and work.
+    switch (work->step) {
+        case GOLEM_PAWN_ROOK_CORPSE_RELEASE_COMBAT:
+            enemy->recs = NULL;
+            worldTargetUnlinkNode(&enemy->node);
+            worldCollisionUnlinkBody(&work->sightBody);
+            worldCollisionUnlinkBody(&work->groundBody);
+            worldCollisionUnlinkBody(&work->hurtBody);
+            worldCollisionUnlinkBody(&work->strikeBody);
+            if ((u32)((u16)work->actorId - GOLEM_PAWN_ROOK_FIRST_LAUNCHER_ID) < 2U) {
+                worldCollisionUnlinkBody(&work->laserBody);
+            }
+            sceneReleaseBattleRefWithRewards(actor, work->actorId);
+            corpseAnim = GOLEM_PAWN_ROOK_CORPSE_FRONT_ANIM;
+            if (work->downedPose == GOLEM_PAWN_ROOK_DOWNED_BEHIND) {
+                corpseAnim = GOLEM_PAWN_ROOK_CORPSE_BEHIND_ANIM;
+            }
+            work->anim        = corpseAnim;
+            work->step        = GOLEM_PAWN_ROOK_CORPSE_SPARKS;
+            enemy->spawnState = (u8)work->downedPose;
+            areaSaveEnemyPose(enemy);
+            gSceneCombatState.golemPawnRookDeathAlert = 1;
+            break;
+        case GOLEM_PAWN_ROOK_CORPSE_SPARKS:
+            if (!(work->animFrame & GOLEM_PAWN_ROOK_CORPSE_SPARK_FRAME_MASK)) {
+                sparkOffset->vx = 0;
+                sparkOffset->vz = 0;
+                randomDraw      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                sparkOffset->vy = -((randomDraw >> 0x10) & GOLEM_PAWN_ROOK_CORPSE_SPARK_Y_MASK);
+                gRandomLcgState = randomDraw;
+                effectSpawn(EFFECT_FLASH_BURST, &actor->extra.tmd->coords[3], GOLEM_PAWN_ROOK_CORPSE_SPARK_SIZE, sparkOffset);
+            }
+            break;
+    }
+    // Keep the saved downed pose animated and visible after combat has ended.
+    _golemPawnRookAdvanceCorpsePose(actor, coord);
+    actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    root   = arg1->extra.tmd->coords;
-    pos.vx = root->workm.t[0];
-    pos.vy = root->workm.t[1];
-    pos.vz = root->workm.t[2];
-    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
-    root   = arg1->extra.tmd->coords;
-    part   = &root[3];
-    pos.vx = part->workm.t[0];
-    pos.vy = root->workm.t[1];
-    pos.vz = part->workm.t[2];
-    effectDrawGroundShadow(&pos, 0x300, 0x80);
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    root        = actor->extra.tmd->coords;
+    worldPos.vx = root->workm.t[0];
+    worldPos.vy = root->workm.t[1];
+    worldPos.vz = root->workm.t[2];
+    worldCoordUpdateActorColor(actor->spawnArg2.pointer, &worldPos, 0, 0);
+    root        = actor->extra.tmd->coords;
+    part        = &root[3];
+    worldPos.vx = part->workm.t[0];
+    worldPos.vy = root->workm.t[1];
+    worldPos.vz = part->workm.t[2];
+    effectDrawGroundShadow(&worldPos, GOLEM_PAWN_ROOK_CORPSE_SHADOW_HALF_SIZE, GOLEM_PAWN_ROOK_CORPSE_SHADOW_SHADE);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }

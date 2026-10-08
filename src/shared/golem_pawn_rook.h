@@ -52,6 +52,7 @@
 #define GOLEM_PAWN_ROOK_LOW_HP(max) ((max) / 4)
 #endif
 #else
+#define GOLEM_PAWN_ROOK_LOW_HP(max)  ((max) * 15 / 100)
 #define GOLEM_PAWN_ROOK_WIND_UP_TURN 0x1E
 #define GOLEM_PAWN_ROOK_LUNGE_RANGE  0x7D0
 #define GOLEM_PAWN_ROOK_LUNGE_STATE  7
@@ -284,34 +285,34 @@ static void _golemPawnRookDownedDeathState(Task* actor);
 static void _golemPawnRookTurnTowardTarget(Task* actor);
 static void _golemPawnRookDecayHitTilt(Task* actor);
 static void _golemPawnRookPlayAnimCues(Task* actor);
-void        golemPawnRookDeadState(Enemy* arg0, Task* arg1);
+static void _golemPawnRookDeadState(Enemy* enemy, Task* actor);
 
 /* Implemented by each package's hit and push handler. */
-void        golemPawnRookTakeHits(Task* arg0);
+static void _golemPawnRookTakeHits(Task* actor);
 static void _golemPawnRookKnockdownState(Task* actor);
 static void _golemPawnRookEngageState(Task* actor);
-void        golemPawnRookCompanionCycle(Task* arg0);
-void        golemPawnRookSpawn(Enemy* ctx, Task* actor);
+static void _golemPawnRookGrenadeBurstState(Task* actor);
+static void _golemPawnRookSpawn(Enemy* enemy, Task* actor);
 static void _golemPawnRookLauncherStrikeState(Task* actor);
 static void _golemPawnRookAimLaserSight(Task* actor);
 static void _golemPawnRookDrawLaserBeam(Task* actor, const SVECTOR* farEnd, const SVECTOR* nearEnd);
-void        golemPawnRookBulletFly(Enemy* arg0, Task* arg1);
+static void _golemPawnRookGrenadeFly(Enemy* unusedEnemy, Task* grenade);
 
-void golemPawnRookSilenceScreamState(Task* arg0);
-void golemPawnRookFrameState(Enemy* ctx, Task* actor);
-void golemPawnRookBurstPartTick(Enemy* arg0, Task* arg1);
+static void _golemPawnRookSilenceScreamState(Task* actor);
+static void _golemPawnRookFrameState(Enemy* enemy, Task* actor);
+static void _golemPawnRookShieldTick(Enemy* unusedEnemy, Task* shield);
 
-static inline void golemPawnRookSpawnDust(Task* actor);
+static inline void _golemPawnRookSpawnDamageSparks(Task* actor);
 static inline void _golemPawnRookApplyBuildupReaction(Task* actor);
 static inline void _golemPawnRookStepRoot(Task* actor);
 static inline void _golemPawnRookTickAnim(Task* actor);
-static inline void golemPawnRookDraw(Task* actor, GfxCoord* coord);
+static inline void _golemPawnRookUpdateColorAndDrawShadow(Task* actor, GfxCoord* bodyRoot);
 
-void        golemPawnRookFrameStateNoDust(Enemy* ctx, Task* actor);
+static void _golemPawnRookFrameStateNoSparks(Enemy* enemy, Task* actor);
 static void _golemPawnRookStaggerState(Task* task);
 static void _golemPawnRookBuildupState(Task* task);
 static void _golemPawnRookNopState(Task* task);
-void        golemPawnRookDelayedEffectTick(Enemy* arg0, Task* task);
+static void _golemPawnRookSwordTick(Enemy* unusedEnemy, Task* sword);
 
 #if GOLEM_PAWN_ROOK_WEAPON == GOLEM_BEAM_SWORD
 static void _golemPawnRookSwordChargeState(Task* actor);

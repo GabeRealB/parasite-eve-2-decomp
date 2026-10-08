@@ -1315,9 +1315,7 @@ static void Actor02000_Fn0251C(Enemy* ctx, Task* actor)
 
 #include "../../shared/golem_pawn_rook_inlines.inc.c"
 
-/// Saves the root coordinate's translation in `prevRootPos`, then
-/// Updates the enemy's colour from `coord`'s world position and draws the
-#include "../../shared/golem_pawn_rook_frame_no_dust.inc.c"
+#include "../../shared/golem_pawn_rook_frame_no_sparks.inc.c"
 
 /// Faces and approaches the player, then selects a Beam Sword swing or charge.
 ///
@@ -1509,7 +1507,7 @@ void Actor02000_Fn035E8(Task* arg0)
 
 #include "../../shared/golem_pawn_rook_sword_spawn.inc.c"
 
-#include "../../shared/golem_pawn_rook_delayed_effect_tick.inc.c"
+#include "../../shared/golem_pawn_rook_sword_tick.inc.c"
 
 void Actor02000_Fn03728(Task* arg0)
 {
@@ -1521,12 +1519,12 @@ void Actor02000_Fn03728(Task* arg0)
 
 static const EnemyTaskFuncTable3 Actor02000_D00060 = { {
     _golemPawnRookSwordSpawn,
-    golemPawnRookDelayedEffectTick,
+    _golemPawnRookSwordTick,
     enemyDestroy,
 } };
 
 static const EnemyTaskFuncTable3 Actor02000_D0006C = { {
     Actor02000_Fn0251C,
-    golemPawnRookFrameStateNoDust,
-    golemPawnRookDeadState,
+    _golemPawnRookFrameStateNoSparks,
+    _golemPawnRookDeadState,
 } };

@@ -2,26 +2,31 @@
 
 /* Part of the library; see golem_pawn_rook.h. Inline helpers the fragments use. */
 
-/// Every third frame while `screamCharges` is clear, kicks a dust effect off the
-/// fourth body coordinate with a random upward velocity.
-static __inline__ void golemPawnRookSpawnDust(Task* actor)
+/// Emits one damaged-body spark every third call at a random local Y offset.
+///
+/// actor must have a live GOLEM body model and work. The caller selects when
+/// sparks are enabled; this helper only advances dustTimer. Its eight-byte
+/// offset is borrowed from the scratch stack and released before returning.
+static __inline__ void _golemPawnRookSpawnDamageSparks(Task* actor)
 {
+    enum {
+        GOLEM_PAWN_ROOK_DAMAGE_SPARK_FRAMES = 3,
+        GOLEM_PAWN_ROOK_DAMAGE_SPARK_SIZE   = 256,
+        GOLEM_PAWN_ROOK_DAMAGE_SPARK_Y_MASK = 511,
+    };
     GolemPawnRookWork* work;
-    SVECTOR*           head;
-    SVECTOR*           rot;
+    SVECTOR*           sparkOffset;
 
-    work                          = actor->work;
-    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-    rot                           = head - 1;
-    SCRATCH_STACK_CURSOR(SVECTOR) = rot;
-    if (++work->dustTimer >= 3) {
+    work        = actor->work;
+    sparkOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    if (++work->dustTimer >= GOLEM_PAWN_ROOK_DAMAGE_SPARK_FRAMES) {
         work->dustTimer = 0;
-        head[-1].vx     = 0;
-        rot->vz         = 0;
-        rot->vy         = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1FF);
-        effectSpawn(EFFECT_FLASH_BURST, &actor->extra.tmd->coords[3], 0x100, rot);
+        sparkOffset->vx = 0;
+        sparkOffset->vz = 0;
+        sparkOffset->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & GOLEM_PAWN_ROOK_DAMAGE_SPARK_Y_MASK);
+        effectSpawn(EFFECT_FLASH_BURST, &actor->extra.tmd->coords[3], GOLEM_PAWN_ROOK_DAMAGE_SPARK_SIZE, sparkOffset);
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// Consumes a standing GOLEM's pending buildup reaction and enters its hold.
@@ -102,22 +107,30 @@ static inline void _golemPawnRookTickAnim(Task* actor)
     }
 }
 
-/// Updates the enemy's colour from `coord`'s world position and draws the
-/// ground quad under part 3.
-static inline void golemPawnRookDraw(Task* actor, GfxCoord* coord)
+/// Samples the body's colour and draws its ground shadow under model part 3.
+///
+/// bodyRoot and part 3 must have composed matrices in the same frame. Uses
+/// bodyRoot's XYZ for colour, then part 3's X/Z with the model root's Y for
+/// the shadow. This helper draws the shadow only; the task renderer draws
+/// the TMD model. actor retains its model, lighting and enemy record.
+static inline void _golemPawnRookUpdateColorAndDrawShadow(Task* actor, GfxCoord* bodyRoot)
 {
-    VECTOR3   pos;
+    enum {
+        GOLEM_PAWN_ROOK_SHADOW_HALF_SIZE = 768,
+        GOLEM_PAWN_ROOK_SHADOW_SHADE     = 128,
+    };
+    VECTOR3   worldPos;
     GfxCoord* root;
     GfxCoord* part;
 
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(actor->spawnArg2.pointer, &pos, 0, 0);
-    root   = actor->extra.tmd->coords;
-    part   = root + 3;
-    pos.vx = part->workm.t[0];
-    pos.vy = root->workm.t[1];
-    pos.vz = part->workm.t[2];
-    effectDrawGroundShadow(&pos, 0x300, 0x80);
+    worldPos.vx = bodyRoot->workm.t[0];
+    worldPos.vy = bodyRoot->workm.t[1];
+    worldPos.vz = bodyRoot->workm.t[2];
+    worldCoordUpdateActorColor(actor->spawnArg2.pointer, &worldPos, 0, 0);
+    root        = actor->extra.tmd->coords;
+    part        = root + 3;
+    worldPos.vx = part->workm.t[0];
+    worldPos.vy = root->workm.t[1];
+    worldPos.vz = part->workm.t[2];
+    effectDrawGroundShadow(&worldPos, GOLEM_PAWN_ROOK_SHADOW_HALF_SIZE, GOLEM_PAWN_ROOK_SHADOW_SHADE);
 }

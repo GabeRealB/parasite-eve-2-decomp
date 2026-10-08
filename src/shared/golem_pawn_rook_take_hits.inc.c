@@ -1,63 +1,112 @@
+#include "main/random.h"
+
 #include "gameplay/room_effects.h"
 
 /* Part of the Pawn/Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Hit and push tick. Applies the `groundContacts` / `hurtContacts` collision deltas
-/// to the root coordinate, then walks the `hurtContacts` records: kind 2 is a
-/// weapon hit (damage, crit roll, the `shieldHp` shield budget, and the
-/// reaction animation picked into `behavior`), kind 3 a push-out whose
-/// deepest overlap is applied to the root after the loop. Finally raises
-/// `playerSpotted` when the player's segment test against `sightContacts` fails.
-void golemPawnRookTakeHits(Task* arg0)
+/// Carrier tables mark which attack rows a raised frontal shield absorbs.
+///
+/// Each binding is an s16 array indexed by the attack key's low seven bits;
+/// the PE table is selected by bit 15. The table spellings are carrier-owned.
+#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_GRENADE_LAUNCHER
+#define GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS gGolemPawnRookWeakPointWeapons
+#define GOLEM_PAWN_ROOK_SHIELD_PE_ROWS     gGolemPawnRookWeakPointPe
+#else
+#define GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS gGolemPawnRookWeakSpotHits
+#define GOLEM_PAWN_ROOK_SHIELD_PE_ROWS     gGolemPawnRookWeakSpotHitsFlagged
+#endif
+
+/// Ends a hit-interrupted scream effect and clears the body's borrowed handle.
+///
+/// work and its non-NULL screamEffect must be live; ownership stays with the effect task.
+static inline void _golemPawnRookEndHitScream(GolemPawnRookWork* work)
 {
-    s32                      result;
-    s32                      maxPush;
-    s32                      hit;
-    u32                      lastId;
+    enum { GOLEM_PAWN_ROOK_HIT_SCREAM_END_STATE = 3 };
+    work->screamEffect->task->state = GOLEM_PAWN_ROOK_HIT_SCREAM_END_STATE;
+    work->screamEffect              = NULL;
+}
+
+/// Resolves body contacts, shield and HP damage, hit reactions and player sight.
+///
+/// actor owns live GOLEM work, its Enemy record, and initialized contact tables.
+/// Attack keys select valid carrier shield-table rows and the attacker task via
+/// bit 7; no row checks run. Ground corrections include Y, hurt-body corrections
+/// use X/Z, and the deepest enemy-body overlap supplies the final room-axis push.
+/// The reaction and shield-absorption decisions are retained across the contact
+/// scan. Only a change from the last hit key spawns another hit effect. Contacts
+/// are consumed here, and scratch is released before returning. Sight uses the
+/// player's composed part 4 and the composed body root without retaining points.
+static void _golemPawnRookTakeHits(Task* actor)
+{
+    enum {
+        GOLEM_PAWN_ROOK_HIT_FLINCH                  = 0,
+        GOLEM_PAWN_ROOK_HIT_STAGGER                 = 1,
+        GOLEM_PAWN_ROOK_HIT_RECOIL                  = 2,
+        GOLEM_PAWN_ROOK_HIT_KNOCKDOWN               = 3,
+        GOLEM_PAWN_ROOK_HIT_DOWNED                  = 4,
+        GOLEM_PAWN_ROOK_HIT_COLLAPSE                = 5,
+        GOLEM_PAWN_ROOK_HIT_DOWNED_DEATH            = 6,
+        GOLEM_PAWN_ROOK_HIT_PE_BIT                  = 0x8000,
+        GOLEM_PAWN_ROOK_HIT_ATTACKER_SHIFT          = 7,
+        GOLEM_PAWN_ROOK_HIT_ROW_MASK                = 0x7F,
+        GOLEM_PAWN_ROOK_HIT_DOUBLE_DAMAGE_ATTRIBUTE = 5,
+        GOLEM_PAWN_ROOK_HIT_DOUBLE_DAMAGE_STYLE     = 2, // cyan spiked critical-hit burst
+        GOLEM_PAWN_ROOK_HIT_CRITICAL_STYLE          = 0, // yellow spiked critical-hit burst
+        GOLEM_PAWN_ROOK_HIT_FRONT_EFFECT_Z          = 300,
+        GOLEM_PAWN_ROOK_HIT_BEHIND_EFFECT_Z         = -150,
+        GOLEM_PAWN_ROOK_HIT_NORMAL_FRACTION_BITS    = 12,
+
+    };
+
+    s32                      hitReaction;
+    s32                      deepestPush;
+    s32                      shieldAbsorbed;
+    u32                      lastEffectKey;
     GolemPawnRookWork*       work;
-    GolemPawnRookHitScratch* head;
+    GolemPawnRookHitScratch* scratchEnd;
     GolemPawnRookHitScratch* scratch;
     Enemy*                   enemy;
-    GfxCoord*                self;
-    GfxCoord*                other;
-    GfxCoord*                part;
-    s32                      i;
-    s32                      x, y, z;
+    GfxCoord*                root;
+    GfxCoord*                attackerRoot;
+    GfxCoord*                bodyPart;
+    s32                      contactIndex;
+    s32                      offsetX, offsetY, offsetZ;
     s32                      damage;
-    s32                      kind;
-    s32                      dz;
-    s32                      clamped;
-    s32                      val;
-    s32                      push;
-    s16                      cooldown;
-    u32                      rng;
-    s32                      tilt;
-    s32                      byte1;
-    s32                      max;
+    s32                      attackReaction;
+    s32                      attackerOffsetZ;
+    s32                      positivePush;
+    s32                      reactionValue; // forward-axis dot, then signed random yaw tilt
+    s32                      overlapDepth;
+    s16                      hitCooldownFrames;
+    u32                      randomBits;
+    s32                      pitchTilt;
+    s32                      yawRandomBits;
+    s32                      hpMax;
 
-    result  = 0;
-    maxPush = 0;
-    hit     = 0;
-    lastId  = 0;
-    work    = arg0->work;
-    head    = SCRATCH_STACK_CURSOR(GolemPawnRookHitScratch);
-    self    = arg0->extra.tmd->coords;
+    hitReaction    = GOLEM_PAWN_ROOK_HIT_FLINCH;
+    deepestPush    = 0;
+    shieldAbsorbed = 0;
+    lastEffectKey  = 0;
+    work           = actor->work;
+    scratchEnd     = SCRATCH_STACK_CURSOR(GolemPawnRookHitScratch);
+    root           = actor->extra.tmd->coords;
     SCRATCH_STACK_RESERVE_BLOCK(GolemPawnRookHitScratch);
     scratch = SCRATCH_STACK_CURSOR(GolemPawnRookHitScratch);
-    enemy   = arg0->spawnArg2.pointer;
+    enemy   = actor->spawnArg2.pointer;
 
-    switch (worldCollisionResolvePushback(work->groundContacts, &head[-1].delta, ARRAY_SIZE(work->groundContacts), NULL)) {
+    // Resolve grid correction before consuming weapon hits and body overlaps.
+    switch (worldCollisionResolvePushback(work->groundContacts, &scratchEnd[-1].delta, ARRAY_SIZE(work->groundContacts), NULL)) {
         case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
         case WORLD_COLLISION_PUSHBACK_GRID_HIT:
-            self->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
-            self->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
-            self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
+            root->coord.t[0] += scratchEnd[-1].delta.fixed.vx.halves.integer;
+            root->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            root->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
         case WORLD_COLLISION_PUSHBACK_OPPOSED:
-            self->coord.t[0] = work->prevRootPos.vx;
-            self->coord.t[1] = work->prevRootPos.vy;
-            self->coord.t[2] = work->prevRootPos.vz;
+            root->coord.t[0] = work->prevRootPos.vx;
+            root->coord.t[1] = work->prevRootPos.vy;
+            root->coord.t[2] = work->prevRootPos.vz;
             break;
     }
     worldCollisionClearContacts(work->groundContacts);
@@ -67,12 +116,12 @@ void golemPawnRookTakeHits(Task* arg0)
             case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
                 break;
             case WORLD_COLLISION_PUSHBACK_GRID_HIT:
-                self->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
-                self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
+                root->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+                root->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
                 break;
             case WORLD_COLLISION_PUSHBACK_OPPOSED:
-                self->coord.t[0] = work->prevRootPos.vx;
-                self->coord.t[2] = work->prevRootPos.vz;
+                root->coord.t[0] = work->prevRootPos.vx;
+                root->coord.t[2] = work->prevRootPos.vz;
                 break;
         }
     }
@@ -83,203 +132,201 @@ void golemPawnRookTakeHits(Task* arg0)
         }
     }
 
-    for (i = 0; i < ARRAY_SIZE(work->hurtContacts); i++) {
-        switch ((u32)work->hurtContacts[i].key.value >> 16) {
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->hurtContacts); contactIndex++) {
+        switch ((u32)work->hurtContacts[contactIndex].key.value >> 16) {
             case 0:
-            case 1:
+            case WORLD_COLLISION_CONTACT_PLAYER_BODY >> 16:
                 break;
-            case 2:
+            case WORLD_COLLISION_CONTACT_ATTACK >> 16:
                 if (work->hitCooldown != 0) {
                     break;
                 }
-                other                    = gPlayerActorTasks[((u32)work->hurtContacts[i].key.value >> 7) & 1]->extra.tmd->coords;
-                scratch->delta.vector.vx = other->coord.t[0] - self->coord.t[0];
-                scratch->delta.vector.vy = other->coord.t[1] - self->coord.t[1];
-                dz                       = other->coord.t[2] - self->coord.t[2];
-                scratch->delta.vector.vz = dz;
-                val                      = (scratch->delta.vector.vx * self->coord.m[0][2]) + (scratch->delta.vector.vy * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
-                work->hitFromFront       = val >= 0;
-                damage                   = damageComputePlayerAttack(work->hurtContacts[i].key.value,
+                attackerRoot             = gPlayerActorTasks[((u32)work->hurtContacts[contactIndex].key.value >> GOLEM_PAWN_ROOK_HIT_ATTACKER_SHIFT) & 1]->extra.tmd->coords;
+                scratch->delta.vector.vx = attackerRoot->coord.t[0] - root->coord.t[0];
+                scratch->delta.vector.vy = attackerRoot->coord.t[1] - root->coord.t[1];
+                attackerOffsetZ          = attackerRoot->coord.t[2] - root->coord.t[2];
+                scratch->delta.vector.vz = attackerOffsetZ;
+                reactionValue            = (scratch->delta.vector.vx * root->coord.m[0][2]) + (scratch->delta.vector.vy * root->coord.m[1][2]) + (attackerOffsetZ * root->coord.m[2][2]);
+                work->hitFromFront       = reactionValue >= 0;
+                damage                   = damageComputePlayerAttack(work->hurtContacts[contactIndex].key.value,
                                                                      SquareRoot0((scratch->delta.vector.vx * scratch->delta.vector.vx) + (scratch->delta.vector.vy * scratch->delta.vector.vy) + (scratch->delta.vector.vz * scratch->delta.vector.vz)),
                                                                      0, 0);
-                kind                     = damageGetPlayerAttackReaction(work->hurtContacts[i].key.value);
+                attackReaction           = damageGetPlayerAttackReaction(work->hurtContacts[contactIndex].key.value);
                 if (work->shieldRaised != 0 && work->hitFromFront == 1 && work->downedPose == 0) {
-                    if (work->hurtContacts[i].key.value & 0x8000) {
-                        if (gGolemPawnRookWeakSpotHitsFlagged[work->hurtContacts[i].key.value & 0x7F] != 0) {
-                            hit             = 1;
+                    if (work->hurtContacts[contactIndex].key.value & GOLEM_PAWN_ROOK_HIT_PE_BIT) {
+                        if (GOLEM_PAWN_ROOK_SHIELD_PE_ROWS[work->hurtContacts[contactIndex].key.value & GOLEM_PAWN_ROOK_HIT_ROW_MASK] != 0) {
+                            shieldAbsorbed  = 1;
                             work->shieldHp -= damage;
                         }
-                    } else if (gGolemPawnRookWeakSpotHits[work->hurtContacts[i].key.value & 0x7F] != 0) {
-                        hit             = 1;
+                    } else if (GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS[work->hurtContacts[contactIndex].key.value & GOLEM_PAWN_ROOK_HIT_ROW_MASK] != 0) {
+                        shieldAbsorbed  = 1;
                         work->shieldHp -= damage;
                     }
-                    if (hit == 1) {
+                    if (shieldAbsorbed == 1) {
                         if (work->shieldHp <= 0) {
                             work->behavior          = GOLEM_PAWN_ROOK_BEHAVIOR_RECOIL;
                             work->shieldRaised      = 0;
                             work->shieldBreakStep   = 1;
-                            work->step              = 0;
+                            work->step              = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                             work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                             if (work->screamEffect != NULL) {
-                                work->screamEffect->task->state = 3;
-                                work->screamEffect              = NULL;
+                                _golemPawnRookEndHitScream(work);
                             }
                         }
                         worldTargetAddReadoutAmount(&enemy->node, 0, 0);
-                        cooldown = damageGetPlayerAttackHitCooldown(work->hurtContacts[i].key.value);
-                        if (cooldown > 0) {
-                            work->hitCooldown = cooldown;
+                        hitCooldownFrames = damageGetPlayerAttackHitCooldown(work->hurtContacts[contactIndex].key.value);
+                        if (hitCooldownFrames > 0) {
+                            work->hitCooldown = hitCooldownFrames;
                         }
                         break;
                     }
                 } else {
                     work->shieldRaised = 0;
-                    if ((kind & 0xFFFF) == 5) {
+                    if ((attackReaction & 0xFFFF) == GOLEM_PAWN_ROOK_HIT_DOUBLE_DAMAGE_ATTRIBUTE) {
                         damage *= 2;
-                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
+                        effectSpawn(EFFECT_CRITICAL_HIT, &actor->extra.tmd->coords[3], GOLEM_PAWN_ROOK_HIT_DOUBLE_DAMAGE_STYLE, NULL);
                     }
                 }
-                if (damageRollCriticalHit(enemy, work->hurtContacts[i].key.value, 0) != 0) {
+                if (damageRollCriticalHit(enemy, work->hurtContacts[contactIndex].key.value, 0) != 0) {
                     damage *= 4;
-                    if ((kind & 0xFFFF) != 5) {
-                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+                    if ((attackReaction & 0xFFFF) != GOLEM_PAWN_ROOK_HIT_DOUBLE_DAMAGE_ATTRIBUTE) {
+                        effectSpawn(EFFECT_CRITICAL_HIT, &actor->extra.tmd->coords[3], GOLEM_PAWN_ROOK_HIT_CRITICAL_STYLE, NULL);
                     }
                     if (work->buildupActive == 0) {
-                        result = 1;
+                        hitReaction = GOLEM_PAWN_ROOK_HIT_STAGGER;
                     }
                 }
-                if (work->screamCharges != 0 && (work->hurtContacts[i].key.value & 0x8000)) {
+                if (work->screamCharges != 0 && (work->hurtContacts[contactIndex].key.value & GOLEM_PAWN_ROOK_HIT_PE_BIT)) {
                     damage >>= 2;
                 }
                 worldTargetAddReadoutAmount(&enemy->node, damage, 0);
-                damageAccumulateLifeDrainHp(enemy, work->hurtContacts[i].key.value, damage, 0);
+                damageAccumulateLifeDrainHp(enemy, work->hurtContacts[contactIndex].key.value, damage, 0);
                 enemy->hp -= damage;
                 if (enemy->hp <= 0) {
                     if (work->downedPose == 0) {
-                        result = 5;
+                        hitReaction = GOLEM_PAWN_ROOK_HIT_COLLAPSE;
                     } else {
-                        result = 6;
+                        hitReaction = GOLEM_PAWN_ROOK_HIT_DOWNED_DEATH;
                     }
-                } else if (max = enemy->param->hpMax, enemy->hp < GOLEM_PAWN_ROOK_LOW_HP(max)) {
+                } else if (hpMax = enemy->param->hpMax, enemy->hp < GOLEM_PAWN_ROOK_LOW_HP(hpMax)) {
                     if (work->downedPose == 0) {
-                        result = 3;
+                        hitReaction = GOLEM_PAWN_ROOK_HIT_KNOCKDOWN;
                     } else {
-                        result = 4;
+                        hitReaction = GOLEM_PAWN_ROOK_HIT_DOWNED;
                     }
                 }
                 if (work->attackActive != 0 || work->screamActive != 0) {
                     work->interruptDamage += damage;
                 }
-                switch (kind & 0xFFFF) {
-                    case 1:
-                        if (work->screamCharges == 0 && work->downedPose == 0 && result < 3 && work->buildupActive == 0) {
-                            result = 2;
+                switch (attackReaction & 0xFFFF) {
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
+                        if (work->screamCharges == 0 && work->downedPose == 0 && hitReaction < GOLEM_PAWN_ROOK_HIT_KNOCKDOWN && work->buildupActive == 0) {
+                            hitReaction = GOLEM_PAWN_ROOK_HIT_RECOIL;
                         }
                         break;
-                    case 2:
-                        if (work->screamCharges == 0 && work->downedPose == 0 && result < 3) {
-                            damageStartEnemyBuildup(enemy, work->hurtContacts[i].key.value, 0);
-                            result = 1;
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
+                        if (work->screamCharges == 0 && work->downedPose == 0 && hitReaction < GOLEM_PAWN_ROOK_HIT_KNOCKDOWN) {
+                            damageStartEnemyBuildup(enemy, work->hurtContacts[contactIndex].key.value, 0);
+                            hitReaction = GOLEM_PAWN_ROOK_HIT_STAGGER;
                         }
                         break;
-                    case 0:
-                    case 3:
+                    case DAMAGE_PLAYER_REACTION_NONE:
+                    case DAMAGE_PLAYER_REACTION_POISON:
                     case 4:
-                    case 5:
-                    case 6:
-                    case 7:
+                    case GOLEM_PAWN_ROOK_HIT_DOUBLE_DAMAGE_ATTRIBUTE:
+                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
                     case 8:
                     case 9:
                         break;
                 }
-                if (lastId != work->hurtContacts[i].key.value) {
-                    lastId                   = work->hurtContacts[i].key.value;
+                if (lastEffectKey != work->hurtContacts[contactIndex].key.value) {
+                    lastEffectKey            = work->hurtContacts[contactIndex].key.value;
                     scratch->effectOffset.vx = 0;
                     scratch->effectOffset.vy = 0;
-                    scratch->effectOffset.vz = (work->hitFromFront == 1) ? 0x12C : -0x96;
-                    effectSpawnHit(damageGetPlayerAttackEffectId(work->hurtContacts[i].key.value), &arg0->extra.tmd->coords[3],
+                    scratch->effectOffset.vz = (work->hitFromFront == 1) ? GOLEM_PAWN_ROOK_HIT_FRONT_EFFECT_Z : GOLEM_PAWN_ROOK_HIT_BEHIND_EFFECT_Z;
+                    effectSpawnHit(damageGetPlayerAttackEffectId(work->hurtContacts[contactIndex].key.value), &actor->extra.tmd->coords[3],
                                    &scratch->effectOffset, &work->hitEffectArg);
                 }
-                cooldown = damageGetPlayerAttackHitCooldown(work->hurtContacts[i].key.value);
-                if (cooldown > 0) {
-                    work->hitCooldown = cooldown;
+                hitCooldownFrames = damageGetPlayerAttackHitCooldown(work->hurtContacts[contactIndex].key.value);
+                if (hitCooldownFrames > 0) {
+                    work->hitCooldown = hitCooldownFrames;
                 }
-                switch (result) {
-                    case 0:
+                switch (hitReaction) {
+                    case GOLEM_PAWN_ROOK_HIT_FLINCH:
                         if (work->behavior < GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE) {
-                            work->anim     = 2;
+                            work->anim     = GOLEM_PAWN_ROOK_ANIM_WALK;
                             work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE;
-                            work->step     = 0;
+                            work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        rng             = gRandomLcgState >> 16;
-                        tilt            = (rng & 0x7F) + 0x40;
-                        if (!(rng & 1)) {
-                            tilt = -tilt;
+                        randomBits      = gRandomLcgState >> 16;
+                        pitchTilt       = (randomBits & 0x7F) + 0x40;
+                        if (!(randomBits & 1)) {
+                            pitchTilt = -pitchTilt;
                         }
-                        work->hitTilt.vx = tilt;
-                        byte1            = (s16)rng >> 8;
-                        val              = (byte1 & 0x7F) + 0x40;
-                        if (!(byte1 & 1)) {
-                            val = -val;
+                        work->hitTilt.vx = pitchTilt;
+                        yawRandomBits    = (s16)randomBits >> 8;
+                        reactionValue    = (yawRandomBits & 0x7F) + 0x40;
+                        if (!(yawRandomBits & 1)) {
+                            reactionValue = -reactionValue;
                         }
-                        work->hitTilt.vy    = val;
+                        work->hitTilt.vy    = reactionValue;
                         work->hitTiltActive = 1;
                         break;
-                    case 1:
+                    case GOLEM_PAWN_ROOK_HIT_STAGGER:
                         work->behavior          = GOLEM_PAWN_ROOK_BEHAVIOR_STAGGER;
-                        work->step              = 0;
+                        work->step              = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                         work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
-                    case 2:
+                    case GOLEM_PAWN_ROOK_HIT_RECOIL:
                         work->behavior          = GOLEM_PAWN_ROOK_BEHAVIOR_RECOIL;
-                        work->step              = 0;
+                        work->step              = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                         work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
-                    case 3:
+                    case GOLEM_PAWN_ROOK_HIT_KNOCKDOWN:
                         work->behavior          = GOLEM_PAWN_ROOK_BEHAVIOR_KNOCKDOWN;
-                        work->step              = 0;
+                        work->step              = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                         work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
-                    case 4:
+                    case GOLEM_PAWN_ROOK_HIT_DOWNED:
                         if (work->fallingDown == 0) {
                             work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_HIT;
-                            work->step     = 0;
+                            work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                         }
                         break;
-                    case 5:
+                    case GOLEM_PAWN_ROOK_HIT_COLLAPSE:
                         work->behavior          = GOLEM_PAWN_ROOK_BEHAVIOR_COLLAPSE;
-                        work->step              = 0;
+                        work->step              = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                         work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
-                    case 6:
+                    case GOLEM_PAWN_ROOK_HIT_DOWNED_DEATH:
                         if (work->fallingDown == 0) {
                             work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_DEATH;
-                            work->step     = 0;
+                            work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                         }
                         break;
                 }
-                if (result != 0 && work->screamEffect != NULL) {
-                    work->screamEffect->task->state = 3;
-                    work->screamEffect              = NULL;
+                if (hitReaction != GOLEM_PAWN_ROOK_HIT_FLINCH && work->screamEffect != NULL) {
+                    _golemPawnRookEndHitScream(work);
                 }
                 break;
-            case 3:
-                part                     = &arg0->extra.tmd->coords[3];
-                x                        = part->workm.t[0] - work->hurtContacts[i].point.vx;
-                scratch->delta.vector.vx = x;
-                y                        = part->workm.t[1] - work->hurtContacts[i].point.vy;
-                scratch->delta.vector.vy = y;
-                z                        = part->workm.t[2] - work->hurtContacts[i].point.vz;
-                scratch->delta.vector.vz = z;
-                push                     = work->hurtContacts[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
-                clamped                  = push;
-                if (push <= 0) {
-                    clamped = 0;
+            case WORLD_COLLISION_CONTACT_ENEMY_BODY >> 16:
+                bodyPart                 = &actor->extra.tmd->coords[3];
+                offsetX                  = bodyPart->workm.t[0] - work->hurtContacts[contactIndex].point.vx;
+                scratch->delta.vector.vx = offsetX;
+                offsetY                  = bodyPart->workm.t[1] - work->hurtContacts[contactIndex].point.vy;
+                scratch->delta.vector.vy = offsetY;
+                offsetZ                  = bodyPart->workm.t[2] - work->hurtContacts[contactIndex].point.vz;
+                scratch->delta.vector.vz = offsetZ;
+                overlapDepth             = work->hurtContacts[contactIndex].distance - SquareRoot0((offsetX * offsetX) + (offsetY * offsetY) + (offsetZ * offsetZ));
+                positivePush             = overlapDepth;
+                if (overlapDepth <= 0) {
+                    positivePush = 0;
                 }
-                push = clamped;
-                if (maxPush < push) {
-                    maxPush = push;
+                overlapDepth = positivePush;
+                if (deepestPush < overlapDepth) {
+                    deepestPush = overlapDepth;
                     VectorNormal(&scratch->delta.vector, &scratch->normal);
                     ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->pushDirection);
                 }
@@ -287,24 +334,25 @@ void golemPawnRookTakeHits(Task* arg0)
         }
     }
 
-    if (maxPush > 0) {
-        self->coord.t[0] += (maxPush * scratch->pushDirection.vx) >> 12;
-        self->coord.t[2] += (maxPush * scratch->pushDirection.vz) >> 12;
+    // Apply the deepest body overlap, then refresh player visibility.
+    if (deepestPush > 0) {
+        root->coord.t[0] += (deepestPush * scratch->pushDirection.vx) >> GOLEM_PAWN_ROOK_HIT_NORMAL_FRACTION_BITS;
+        root->coord.t[2] += (deepestPush * scratch->pushDirection.vz) >> GOLEM_PAWN_ROOK_HIT_NORMAL_FRACTION_BITS;
     }
     worldCollisionClearContacts(work->hurtContacts);
-    if (work->strikeContacts[0].flags & 1) {
+    if (work->strikeContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
         work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         worldCollisionClearContacts(work->strikeContacts);
     }
     work->playerSpotted = 0;
     if (worldCollisionCountContactsByKind(work->sightContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
-        part                     = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4];
-        scratch->effectOffset.vx = part->workm.t[0];
-        scratch->effectOffset.vy = part->workm.t[1];
-        scratch->effectOffset.vz = part->workm.t[2];
-        scratch->rootPos.vx      = self->workm.t[0];
-        scratch->rootPos.vy      = self->workm.t[1];
-        scratch->rootPos.vz      = self->workm.t[2];
+        bodyPart                 = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4];
+        scratch->effectOffset.vx = bodyPart->workm.t[0];
+        scratch->effectOffset.vy = bodyPart->workm.t[1];
+        scratch->effectOffset.vz = bodyPart->workm.t[2];
+        scratch->rootPos.vx      = root->workm.t[0];
+        scratch->rootPos.vy      = root->workm.t[1];
+        scratch->rootPos.vz      = root->workm.t[2];
         if (_playerDetectionSegmentOccluded(&scratch->effectOffset, &scratch->rootPos) == 0) {
             work->playerSpotted = 1;
         }
@@ -312,3 +360,6 @@ void golemPawnRookTakeHits(Task* arg0)
     worldCollisionClearContacts(work->sightContacts);
     SCRATCH_STACK_RELEASE_BLOCK(GolemPawnRookHitScratch);
 }
+
+#undef GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS
+#undef GOLEM_PAWN_ROOK_SHIELD_PE_ROWS

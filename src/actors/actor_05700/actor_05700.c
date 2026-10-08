@@ -1235,8 +1235,8 @@ TaskFunc gGolemPawnRookStates[15] = {
     _golemPawnRookEngageState,
     _golemPawnRookNopState,
     _golemPawnRookNopState,
-    golemPawnRookSilenceScreamState,
-    golemPawnRookCompanionCycle,
+    _golemPawnRookSilenceScreamState,
+    _golemPawnRookGrenadeBurstState,
     _golemPawnRookLauncherStrikeState,
     _golemPawnRookStaggerState,
     _golemPawnRookRecoilState,
@@ -1276,7 +1276,7 @@ extern TaskFunc gGolemPawnRookStates[];
 /// context block's room/channel bits.
 extern s32 gGolemPawnRookBurstCue;
 
-#include "../../shared/golem_pawn_rook_hit_tick.inc.c"
+#include "../../shared/golem_pawn_rook_take_hits.inc.c"
 
 #include "../../shared/golem_pawn_rook_patrol.inc.c"
 
@@ -1296,7 +1296,7 @@ extern s32 gGolemPawnRookBurstCue;
 
 #include "../../shared/golem_pawn_rook_dead.inc.c"
 
-#include "../../shared/golem_pawn_rook_companion_cycle.inc.c"
+#include "../../shared/golem_pawn_rook_grenade_burst.inc.c"
 
 /// State handlers of the model child hung off the actor's part 7 - spawn,
 /// per-frame tick and teardown - dispatched through by `_actor05700GrenadeLauncherTask`.
@@ -1314,11 +1314,10 @@ static const EnemyTaskFuncTable3 Actor05700_D00080 = {
 
 #include "../../shared/golem_pawn_rook_grenade_spawn.inc.c"
 
-#include "../../shared/golem_pawn_rook_bullet_fly.inc.c"
+#include "../../shared/golem_pawn_rook_grenade_fly.inc.c"
 
 #include "../../shared/golem_pawn_rook_silence_scream.inc.c"
 
-/// `_actorRenderApplyPlacementTextureOffsets` for a spawned enemy's model.
 #include "../../shared/golem_pawn_rook_spawn.inc.c"
 
 #include "../../shared/golem_pawn_rook_inlines.inc.c"
@@ -1363,7 +1362,7 @@ static void _actor05700GrenadeLauncherTask(Task* launcher)
 /// teardown - dispatched through by `_actor05700GrenadeTask`.
 static const EnemyTaskFuncTable3 Actor05700_D0008C = {
     _golemPawnRookGrenadeSpawn,
-    golemPawnRookBulletFly,
+    _golemPawnRookGrenadeFly,
     _golemPawnRookGrenadeDestroy,
 };
 
@@ -1387,7 +1386,7 @@ static void _actor05700GrenadeTask(Task* grenade)
 /// per-frame tick and teardown - dispatched through by `_actor05700ShieldTask`.
 static const EnemyTaskFuncTable3 Actor05700_D00098 = {
     _golemPawnRookShieldSpawn,
-    golemPawnRookBurstPartTick,
+    _golemPawnRookShieldTick,
     enemyDestroy,
 };
 
@@ -1411,12 +1410,12 @@ static void _actor05700ShieldTask(Task* shield)
 /// teardown - dispatched through by `_actor05700RookGolemTask`. The tick and
 /// teardown take the task as the actor view it is.
 static const EnemyTaskFuncTable3 Actor05700_D000A4 = {
-    golemPawnRookSpawn,
-    golemPawnRookFrameState,
-    golemPawnRookDeadState,
+    _golemPawnRookSpawn,
+    _golemPawnRookFrameState,
+    _golemPawnRookDeadState,
 };
 
-#include "../../shared/golem_pawn_rook_burst_part.inc.c"
+#include "../../shared/golem_pawn_rook_shield_tick.inc.c"
 
 /// Dispatches the grenade-launcher Rook GOLEM's body task.
 ///

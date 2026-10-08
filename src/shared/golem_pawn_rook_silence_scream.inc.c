@@ -2,91 +2,128 @@
 
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Four-step burst sequence driven by `step`: 0 spawns the effect and cue
-/// on entry, rumbles every tenth frame and either ends after `interruptDamage` passes
-/// 0x28 or times out at 0x96 frames; 1 counts `timer` down into 2; 2
-/// triggers the PE state and plays the second cue; 3 spawns random-offset
-/// sparks every fourth frame until `timer` runs out.
-void golemPawnRookSilenceScreamState(Task* arg0)
+/// Charges the Rook's Silence scream, applies the status, or recovers from a break.
+///
+/// actor must have a live GOLEM body and Enemy record. Step 0 charges for 150
+/// calls with shield cover, a room flash and periodic rumble. Taking at least
+/// 41 HP of interrupt damage consumes one scream charge, ending the flash and
+/// entering recoil or 79 calls of recovery sparks. A completed charge waits
+/// eight calls, applies Silence to the player, and resumes engagement. Its
+/// eight-byte local effect offset is released before every return.
+static void _golemPawnRookSilenceScreamState(Task* actor)
 {
-    GolemPawnRookWork* work;
-    GfxCoord*          self;
-    SVECTOR*           scratch;
-    s32                sound;
-    u32                random;
 
-    scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    work    = arg0->work;
-    self    = arg0->extra.tmd->coords;
+    enum {
+        GOLEM_PAWN_ROOK_SCREAM_CHARGE                = 0,
+        GOLEM_PAWN_ROOK_SCREAM_RELEASE_DELAY         = 1,
+        GOLEM_PAWN_ROOK_SCREAM_APPLY_SILENCE         = 2,
+        GOLEM_PAWN_ROOK_SCREAM_RECOVER               = 3,
+        GOLEM_PAWN_ROOK_SCREAM_CHARGE_FRAMES         = 150,
+        GOLEM_PAWN_ROOK_SCREAM_RELEASE_FRAMES        = 8,
+        GOLEM_PAWN_ROOK_SCREAM_RECOVERY_FRAMES       = 79,
+        GOLEM_PAWN_ROOK_SCREAM_INTERRUPT_HP          = 41,
+        GOLEM_PAWN_ROOK_SCREAM_RELEASE_ANIM          = 11,
+        GOLEM_PAWN_ROOK_SCREAM_RECOVERY_ANIM         = 21,
+        GOLEM_PAWN_ROOK_SCREAM_RUMBLE_INTERVAL       = 10,
+        GOLEM_PAWN_ROOK_SCREAM_CHARGE_RUMBLE_FRAMES  = 5,
+        GOLEM_PAWN_ROOK_SCREAM_RELEASE_RUMBLE_FRAMES = 15,
+        GOLEM_PAWN_ROOK_SCREAM_CHARGE_RUMBLE_POWER   = 128,
+        GOLEM_PAWN_ROOK_SCREAM_RELEASE_RUMBLE_POWER  = 255,
+        GOLEM_PAWN_ROOK_SCREAM_RUMBLE_END_INTENSITY  = 8,
+        GOLEM_PAWN_ROOK_SCREAM_EFFECT_END_STATE      = 3,
+        GOLEM_PAWN_ROOK_SCREAM_SPARK_FRAME_MASK      = 3,
+        GOLEM_PAWN_ROOK_SCREAM_SPARK_Y_MASK          = 511,
+        GOLEM_PAWN_ROOK_SCREAM_SPARK_SIZE            = 256,
+    };
+
+    GolemPawnRookWork* work;
+    GfxCoord*          root;
+    SVECTOR*           effectOffset;
+    s32                soundId;
+    u32                randomDraw;
+
+/// Plays one scream-phase cue with the placement tag and sampled pan/depth.
+///
+/// actor and root are side-effect-free live pointers, cue is a bank script ID,
+/// and soundId is a caller-provided s32 local lvalue. root is composed. Repeats
+/// root while preserving the call argument evaluation and signed-byte narrowing.
+/// Expands to two statements; use only at a standalone braced call site.
+#define GOLEM_PAWN_ROOK_PLAY_SCREAM_CUE(actor, root, cue, soundId)                                                                             \
+    (soundId) = (cue) | ((((Enemy*)(actor)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT); \
+    sndEvtRequestScriptStart((soundId), (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
+
+    effectOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    work         = actor->work;
+    root         = actor->extra.tmd->coords;
     switch (work->step) {
-        case 0:
+        case GOLEM_PAWN_ROOK_SCREAM_CHARGE:
             if (work->timer == 0) {
-                scratch->vx        = 0;
-                scratch->vy        = 0;
-                scratch->vz        = 0;
-                work->screamEffect = effectSpawn(gRoomEffectFlashId, &arg0->extra.tmd->coords[4], 0x96, scratch);
-                sound              = gGolemPawnRookScreamCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
+                effectOffset->vx   = 0;
+                effectOffset->vy   = 0;
+                effectOffset->vz   = 0;
+                work->screamEffect = effectSpawn(gRoomEffectFlashId, &actor->extra.tmd->coords[4], GOLEM_PAWN_ROOK_SCREAM_CHARGE_FRAMES, effectOffset);
+                GOLEM_PAWN_ROOK_PLAY_SCREAM_CUE(actor, root, gGolemPawnRookScreamCue, soundId);
             }
             work->shieldRaised = work->shieldHp > 0;
-            if ((s16)(work->timer % 10) == 0) {
-                padScriptSpawnVariableMotorRamp(5, 0x80, 8);
+            if ((s16)(work->timer % GOLEM_PAWN_ROOK_SCREAM_RUMBLE_INTERVAL) == 0) {
+                padScriptSpawnVariableMotorRamp(GOLEM_PAWN_ROOK_SCREAM_CHARGE_RUMBLE_FRAMES, GOLEM_PAWN_ROOK_SCREAM_CHARGE_RUMBLE_POWER, GOLEM_PAWN_ROOK_SCREAM_RUMBLE_END_INTENSITY);
             }
-            if (work->interruptDamage >= 0x29) {
+            if (work->interruptDamage >= GOLEM_PAWN_ROOK_SCREAM_INTERRUPT_HP) {
                 work->screamActive = 0;
                 if (--work->screamCharges <= 0) {
                     work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_RECOIL;
-                    work->step     = 0;
+                    work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                 } else {
                     work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_SCREAM;
-                    work->step     = 3;
-                    work->anim     = 0x15;
-                    work->timer    = 0x4F;
+                    work->step     = GOLEM_PAWN_ROOK_SCREAM_RECOVER;
+                    work->anim     = GOLEM_PAWN_ROOK_SCREAM_RECOVERY_ANIM;
+                    work->timer    = GOLEM_PAWN_ROOK_SCREAM_RECOVERY_FRAMES;
                 }
                 work->shieldRaised = 0;
                 if (work->screamEffect != NULL) {
-                    work->screamEffect->task->state = 3;
+                    work->screamEffect->task->state = GOLEM_PAWN_ROOK_SCREAM_EFFECT_END_STATE;
                 }
                 work->screamEffect = NULL;
-            } else if (++work->timer >= 0x96) {
-                work->timer        = 8;
-                work->step         = 1;
-                work->anim         = 0xB;
+            } else if (++work->timer >= GOLEM_PAWN_ROOK_SCREAM_CHARGE_FRAMES) {
+                work->timer        = GOLEM_PAWN_ROOK_SCREAM_RELEASE_FRAMES;
+                work->step         = GOLEM_PAWN_ROOK_SCREAM_RELEASE_DELAY;
+                work->anim         = GOLEM_PAWN_ROOK_SCREAM_RELEASE_ANIM;
                 work->screamActive = 0;
                 work->shieldRaised = 0;
                 work->screamEffect = NULL;
-                padScriptSpawnVariableMotorRamp(0xF, 0xFF, 8);
+                padScriptSpawnVariableMotorRamp(GOLEM_PAWN_ROOK_SCREAM_RELEASE_RUMBLE_FRAMES, GOLEM_PAWN_ROOK_SCREAM_RELEASE_RUMBLE_POWER, GOLEM_PAWN_ROOK_SCREAM_RUMBLE_END_INTENSITY);
             }
             break;
-        case 1:
+        case GOLEM_PAWN_ROOK_SCREAM_RELEASE_DELAY:
             if (--work->timer <= 0) {
-                work->step  = 2;
+                work->step  = GOLEM_PAWN_ROOK_SCREAM_APPLY_SILENCE;
                 work->timer = 0;
             }
             break;
-        case 2:
+        case GOLEM_PAWN_ROOK_SCREAM_APPLY_SILENCE:
             playerStateSetStatusEffects(0, PLAYER_STATUS_SILENCE);
             work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE;
-            work->step     = 0;
-            work->anim     = 2;
-            sound          = gGolemPawnRookSilenceCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-            sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
+            work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
+            work->anim     = GOLEM_PAWN_ROOK_ANIM_WALK;
+            GOLEM_PAWN_ROOK_PLAY_SCREAM_CUE(actor, root, gGolemPawnRookSilenceCue, soundId);
             break;
-        case 3:
-            if (!(work->animFrame & 3)) {
-                scratch->vx     = 0;
-                scratch->vz     = 0;
-                random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                scratch->vy     = -((random >> 16) & 0x1FF);
-                gRandomLcgState = random;
-                effectSpawn(EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[3], 0x100, scratch);
+        case GOLEM_PAWN_ROOK_SCREAM_RECOVER:
+            if (!(work->animFrame & GOLEM_PAWN_ROOK_SCREAM_SPARK_FRAME_MASK)) {
+                effectOffset->vx = 0;
+                effectOffset->vz = 0;
+                randomDraw       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                effectOffset->vy = -((randomDraw >> 16) & GOLEM_PAWN_ROOK_SCREAM_SPARK_Y_MASK);
+                gRandomLcgState  = randomDraw;
+                effectSpawn(EFFECT_FLASH_BURST, &actor->extra.tmd->coords[3], GOLEM_PAWN_ROOK_SCREAM_SPARK_SIZE, effectOffset);
             }
             if (--work->timer <= 0) {
                 work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE;
-                work->step     = 0;
-                work->anim     = 2;
+                work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
+                work->anim     = GOLEM_PAWN_ROOK_ANIM_WALK;
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
+
+#undef GOLEM_PAWN_ROOK_PLAY_SCREAM_CUE

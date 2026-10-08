@@ -1182,7 +1182,7 @@ TaskFunc gGolemPawnRookStates[15] = {
     _golemPawnRookEngageState,
     _golemPawnRookSwordChargeState,
     _golemPawnRookSwordSwingState,
-    golemPawnRookSilenceScreamState,
+    _golemPawnRookSilenceScreamState,
     _golemPawnRookNopState,
     _golemPawnRookNopState,
     _golemPawnRookStaggerState,
@@ -1425,7 +1425,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
 /// `Actor02300_Fn03BA8`.
 static const EnemyTaskFuncTable3 Actor02300_D00060 = {
     _golemPawnRookSwordSpawn,
-    golemPawnRookDelayedEffectTick,
+    _golemPawnRookSwordTick,
     enemyDestroy,
 };
 
@@ -1439,14 +1439,14 @@ void Actor02300_Fn03BA8(Task* arg0)
 
 #include "../../shared/golem_pawn_rook_sword_spawn.inc.c"
 
-#include "../../shared/golem_pawn_rook_delayed_effect_tick.inc.c"
+#include "../../shared/golem_pawn_rook_sword_tick.inc.c"
 
 /// State handlers of the child task hung off part 11 of the enemy's model -
 /// spawn/setup, per-frame tick and teardown - dispatched through by
 /// `Actor02300_Fn03CE8`.
 static const EnemyTaskFuncTable3 Actor02300_D0006C = {
     _golemPawnRookShieldSpawn,
-    golemPawnRookBurstPartTick,
+    _golemPawnRookShieldTick,
     enemyDestroy,
 };
 
@@ -1465,11 +1465,11 @@ void Actor02300_Fn03CE8(Task* arg0)
 /// as the enemy view it is.
 static const EnemyTaskFuncTable3 Actor02300_D00078 = {
     Actor02300_Fn028AC,
-    golemPawnRookFrameState,
-    golemPawnRookDeadState,
+    _golemPawnRookFrameState,
+    _golemPawnRookDeadState,
 };
 
-#include "../../shared/golem_pawn_rook_burst_part.inc.c"
+#include "../../shared/golem_pawn_rook_shield_tick.inc.c"
 
 void Actor02300_Fn03EE8(Task* arg0)
 {

@@ -1175,7 +1175,7 @@ TaskFunc gGolemPawnRookStates[15] = {
     _golemPawnRookNopState,
     _golemPawnRookNopState,
     _golemPawnRookNopState,
-    golemPawnRookCompanionCycle,
+    _golemPawnRookGrenadeBurstState,
     _golemPawnRookLauncherStrikeState,
     _golemPawnRookStaggerState,
     _golemPawnRookRecoilState,
@@ -1190,7 +1190,7 @@ TaskFunc gGolemPawnRookStates[15] = {
 /// projected-point arrays.
 extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
-#include "../../shared/golem_pawn_rook_hit_tick.inc.c"
+#include "../../shared/golem_pawn_rook_take_hits.inc.c"
 
 #include "../../shared/golem_pawn_rook_patrol.inc.c"
 
@@ -1210,7 +1210,7 @@ extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
 #include "../../shared/golem_pawn_rook_dead.inc.c"
 
-#include "../../shared/golem_pawn_rook_companion_cycle.inc.c"
+#include "../../shared/golem_pawn_rook_grenade_burst.inc.c"
 
 #include "../../shared/golem_pawn_rook_lunge_strike.inc.c"
 
@@ -1220,15 +1220,13 @@ extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
 #include "../../shared/golem_pawn_rook_grenade_spawn.inc.c"
 
-#include "../../shared/golem_pawn_rook_bullet_fly.inc.c"
+#include "../../shared/golem_pawn_rook_grenade_fly.inc.c"
 
 #include "../../shared/golem_pawn_rook_spawn.inc.c"
 
 #include "../../shared/golem_pawn_rook_inlines.inc.c"
 
-/// Saves the root coordinate's translation in `prevRootPos`, then
-/// Updates the enemy's colour from `coord`'s world position and draws the
-#include "../../shared/golem_pawn_rook_frame_no_dust.inc.c"
+#include "../../shared/golem_pawn_rook_frame_no_sparks.inc.c"
 
 #include "../../shared/golem_pawn_rook_lunge_cycle.inc.c"
 
@@ -1276,7 +1274,7 @@ static void _actor05600GrenadeLauncherTask(Task* launcher)
 /// and teardown - dispatched through by state.
 static const EnemyTaskFuncTable3 Actor05600_D0008C = {
     _golemPawnRookGrenadeSpawn,
-    golemPawnRookBulletFly,
+    _golemPawnRookGrenadeFly,
     _golemPawnRookGrenadeDestroy,
 };
 
@@ -1293,9 +1291,9 @@ void Actor05600_Fn04BAC(Task* arg0)
 /// The enemy's three state handlers - spawn/setup, per-frame tick
 /// and teardown - dispatched through by state.
 static const EnemyTaskFuncTable3 Actor05600_D00098 = {
-    golemPawnRookSpawn,
-    golemPawnRookFrameStateNoDust,
-    golemPawnRookDeadState,
+    _golemPawnRookSpawn,
+    _golemPawnRookFrameStateNoSparks,
+    _golemPawnRookDeadState,
 };
 
 /// Runs the grenade-launcher Pawn GOLEM's body task.

@@ -1,6 +1,6 @@
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Runs a Rook GOLEM combat frame and emits sparks after its scream charges break.
+/// Runs a Pawn GOLEM combat frame without the Rook's damaged-body sparks.
 ///
 /// enemy and actor must be the live body pair with initialized GOLEM work.
 /// Running frames consume reactions and contacts before dispatching behavior,
@@ -8,7 +8,7 @@
 /// colour and draw the shadow from cached coordinates; hidden frames suppress
 /// the model and lock-on. The behavior index must select a non-NULL carrier
 /// handler. Work and collision storage remain owned by the body task.
-static void _golemPawnRookFrameState(Enemy* enemy, Task* actor)
+static void _golemPawnRookFrameStateNoSparks(Enemy* enemy, Task* actor)
 {
     TmdObject*         model;
     GolemPawnRookWork* work;
@@ -46,12 +46,9 @@ static void _golemPawnRookFrameState(Enemy* enemy, Task* actor)
         _golemPawnRookDecayHitTilt(actor);
     }
     _golemPawnRookPlayAnimCues(actor);
-    // Compose the updated pose before lighting, shadow and damaged-body sparks.
+    // Compose the updated pose before sampling colour and drawing its shadow.
     coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
     actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    if (work->screamCharges == 0) {
-        _golemPawnRookSpawnDamageSparks(actor);
-    }
     _golemPawnRookUpdateColorAndDrawShadow(actor, coord);
 }
