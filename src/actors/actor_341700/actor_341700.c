@@ -89,7 +89,7 @@ static void func_actor_341700_80168874(Task* arg0);
 static void func_actor_341700_801688C8(Task* arg0);
 static void _madChaserLurkIdleState(Task* task);
 static void _madChaserLurkLookState(Task* task);
-static void func_actor_341700_80169D54(Task* arg0);
+static void _madChaserLurkShiftState(Task* task);
 static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
 static void func_actor_341700_8016A8EC(Task* arg0);
 static void _madChaserShrinkDeathStart(Task* task);
@@ -920,7 +920,7 @@ static const TaskFuncTable5 gMadChaserLurkStates = { {
     _madChaserLurkLookState,
     _madChaserLurkRiseState,
     _madChaserLurkAlertState,
-    func_actor_341700_80169D54,
+    _madChaserLurkShiftState,
 } };
 
 #include "../../shared/mad_chaser_lurk_tick.inc.c"
@@ -946,7 +946,7 @@ static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
     _madChaserLurkSidestepToCombat,
 } };
 
-/// Sub-state handlers `func_actor_341700_80169D54` dispatches by `subState`.
+/// Sub-state handlers `_madChaserLurkShiftState` dispatches by `subState`.
 static const TaskFuncTable4 gMadChaserLurkShiftSteps = { {
     _madChaserLurkShiftStart,
     _madChaserLurkShiftStartSidestep,
@@ -1228,11 +1228,14 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 #include "../../shared/mad_chaser_lurk_alert_state.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserDangleState  func_actor_341700_80169D54
-#define gMadChaserDangleSteps gMadChaserLurkShiftSteps
+/// Selects the private lurk-shift dispatcher for the next four-step fragment.
+///
+/// Names a declared static void(Task*) callback; the fragment consumes and
+/// undefines this identifier binding. The accompanying table supplies the
+/// opening clip, right-step start, right move and left return in that order.
+#define MAD_CHASER_FOUR_STEP_STATE _madChaserLurkShiftState
+#define gMadChaserDangleSteps      gMadChaserLurkShiftSteps
 #include "../../shared/mad_chaser_dangle_state.inc.c"
-#undef madChaserDangleState
 #undef gMadChaserDangleSteps
 
 #include "../../shared/mad_chaser_start_hold.inc.c"

@@ -286,3 +286,4 @@ _actor342400WaveWatchSlouch = 0x80162f1c; // type:func
 _actor342400WaveBeginPairReveal = 0x80162ffc; // type:func
 _madChaserShrinkDeathStart = 0x8016bbd8; // type:func
 _madChaserShrinkDeathTurnTranslucent = 0x8016BD3C; // type:func
+_madChaserLurkShiftState = 0x8016B038; // type:func

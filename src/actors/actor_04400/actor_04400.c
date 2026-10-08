@@ -65,7 +65,7 @@ static const TaskFuncTable5 gMadChaserLeapSteps;      // dispatcher table madCha
 static const TaskFuncTable5 Actor04400_D0009C;        // dispatcher table Actor04400_Fn06964 copies onto its stack
 static const TaskFuncTable3 Actor04400_D00150;        // dispatcher table _madChaserLurkIdleState copies onto its stack
 static const TaskFuncTable3 Actor04400_D0015C;        // dispatcher table _madChaserLurkLookState copies onto its stack
-static const TaskFuncTable4 Actor04400_D00174;        // dispatcher table Actor04400_Fn07F04 copies onto its stack
+static const TaskFuncTable4 Actor04400_D00174;        // dispatcher table _madChaserLurkShiftState copies onto its stack
 static const TaskFuncTable6 gMadChaserPullSteps;      // dispatcher table _madChaserPullState copies onto its stack
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
@@ -93,7 +93,7 @@ static void Actor04400_Fn06A24(Task* arg0);
 static void Actor04400_Fn06A78(Task* arg0);
 static void _madChaserLurkIdleState(Task* task);
 static void _madChaserLurkLookState(Task* task);
-static void Actor04400_Fn07F04(Task* arg0);
+static void _madChaserLurkShiftState(Task* task);
 static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
 static void _madChaserDropDeathHold(Task* task);
 static void _madChaserShrinkDeathStart(Task* task);
@@ -1116,7 +1116,7 @@ static const TaskFuncTable5 Actor04400_D00128 = { {
     _madChaserLurkLookState,
     _madChaserLurkRiseState,
     _madChaserLurkAlertState,
-    Actor04400_Fn07F04,
+    _madChaserLurkShiftState,
 } };
 
 /// The five-state per-frame callback of the enemy's state machine, the
@@ -1191,7 +1191,7 @@ static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
     _madChaserLurkSidestepToCombat,
 } };
 
-/// Sub-state handlers `Actor04400_Fn07F04` dispatches by `subState`.
+/// Sub-state handlers `_madChaserLurkShiftState` dispatches by `subState`.
 static const TaskFuncTable4 Actor04400_D00174 = { {
     _madChaserLurkShiftStart,
     _madChaserLurkShiftStartSidestep,
@@ -1461,11 +1461,14 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 #include "../../shared/mad_chaser_lurk_alert_state.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserDangleState  Actor04400_Fn07F04
-#define gMadChaserDangleSteps Actor04400_D00174
+/// Selects the private lurk-shift dispatcher for the next four-step fragment.
+///
+/// Names a declared static void(Task*) callback; the fragment consumes and
+/// undefines this identifier binding. The accompanying table supplies the
+/// opening clip, right-step start, right move and left return in that order.
+#define MAD_CHASER_FOUR_STEP_STATE _madChaserLurkShiftState
+#define gMadChaserDangleSteps      Actor04400_D00174
 #include "../../shared/mad_chaser_dangle_state.inc.c"
-#undef madChaserDangleState
 #undef gMadChaserDangleSteps
 
 #include "../../shared/mad_chaser_start_hold.inc.c"
