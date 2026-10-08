@@ -35,9 +35,6 @@ Task* D_dryfield_water_tower_801876A4;
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
 
-/* The room calls the dispatcher with only the task, leaving a1-a3 holding
-   whatever the caller had, so the declaration must stay unprototyped. */
-
 /// The event the room's gate `_roomEventGate` latched:
 /// the incoming message and the request, kept for the event task it spawns
 /// from `gRoomEventTaskDesc`, and the flag the gate sets once it
@@ -47,7 +44,7 @@ extern RoomEventReq gRoomEventReq;
 extern u8           gRoomEventActive;
 
 static void func_dryfield_water_tower_8017DD6C(Task* arg0);
-static void func_dryfield_water_tower_8017DDD0(Task* task);
+static void _dryfieldWaterTowerIdleRoomTask(Task* task);
 
 static void func_dryfield_water_tower_8017DCB4(void);
 
@@ -70,7 +67,7 @@ RoomEventReq gRoomEventReq;
 /// The room entry task's three states: install the room and spawn the cap
 /// script, idle, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_water_tower_8017D5DC = {
-    { func_dryfield_water_tower_8017DD6C, func_dryfield_water_tower_8017DDD0, taskKill },
+    { func_dryfield_water_tower_8017DD6C, _dryfieldWaterTowerIdleRoomTask, taskKill },
 };
 
 /// The room's scene task, spawned on script event 7. Unless nibble 0x55 has
@@ -148,10 +145,9 @@ static void func_dryfield_water_tower_8017DCB4(void)
     }
 }
 
-/// The room's handler for message 0x13F1: answers 0.
-s32 func_dryfield_water_tower_8017DCFC(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
+s32 dryfieldWaterTowerUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// The room's handler for message 0x13F0: script event 7 spawns the scene
@@ -164,17 +160,14 @@ s32 func_dryfield_water_tower_8017DD04(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// The room's handler for message 0x13EF: answers 0.
-s32 func_dryfield_water_tower_8017DD3C(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
+s32 dryfieldWaterTowerRoomActionMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg)
 {
     return 0;
 }
 
-/// The room's handler for message 0x13F4: passes the message on to the cap
-/// script task with the arguments it arrived with.
-s32 func_dryfield_water_tower_8017DD44(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 dryfieldWaterTowerActorEventMsg(Task* task, s32 messageId, s32 eventId, s32 eventArg)
 {
-    return taskMessageDispatch(D_dryfield_water_tower_801876A0, msgId, arg2, arg3);
+    return taskMessageDispatch(D_dryfield_water_tower_801876A0, messageId, eventId, eventArg);
 }
 
 /// State 0 of the room entry task: installs the room's message table,
@@ -190,8 +183,8 @@ static void func_dryfield_water_tower_8017DD6C(Task* arg0)
     D_dryfield_water_tower_801876A0 = temp_v0;
 }
 
-/// State 1 of the room entry task: idles.
-static void func_dryfield_water_tower_8017DDD0(Task* task)
+/// Keeps the installed room task available for messages between entry and teardown.
+static void _dryfieldWaterTowerIdleRoomTask(Task* task)
 {
 }
 

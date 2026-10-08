@@ -46,22 +46,22 @@ extern EvsCommand D_mine_gorge_8017E500[];
 extern EvsCommand D_mine_gorge_8017E610[];
 
 static void func_mine_gorge_8017D8D4(Task* arg0);
-static void func_mine_gorge_8017D998(Task* task);
+static void _mineGorgeIdleRoomTask(Task* task);
 
-s32 func_mine_gorge_8017D5F8(Task*, s32, s32, s32);
-s32 func_mine_gorge_8017D6E8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_mine_gorge_8017D77C(Task*, s32, s32, s32);
-s32 func_mine_gorge_8017D784(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-s32 func_mine_gorge_8017D7F4(Task*, s32, s32, s32);
+s32        func_mine_gorge_8017D5F8(Task*, s32, s32, s32);
+s32        func_mine_gorge_8017D6E8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _mineGorgeCommandMsg(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+s32        func_mine_gorge_8017D784(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32 _mineGorgeSoundMsg(Task* task, s32 messageId, s32 cueId, s32 secondArg);
 
-void func_mine_gorge_8017D8BC(u8);
+static void _mineGorgeSetPlayerStatePaused(u8 paused);
 
 static AnimationSet _gMineGorgeAnimation00C98;
 
 extern AnimationPlayRequest     D_mine_gorge_8017E2DC;
 extern AnimationPlayRequest     D_mine_gorge_8017E5E8;
 extern AnimationBankCopyRequest D_mine_gorge_8017E5E0;
-void                            func_mine_gorge_8017D8C8(s32);
+static void                     _mineGorgeSetEnemyWave(s32 wave);
 
 static AnimationPackedPose _gMineGorgeAnimation00C98Bank1[10] = {
 #include "assets/mine_gorge_animation_00C98_bank1.inc"
@@ -90,8 +90,8 @@ TaskMessageEntry D_mine_gorge_8017E280[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_gorge_8017D6E8 },
     { 5105, func_mine_gorge_8017D5F8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_gorge_8017D784 },
-    { ROOM_MESSAGE_COMMAND, func_mine_gorge_8017D77C },
-    { ROOM_MESSAGE_SOUND, func_mine_gorge_8017D7F4 },
+    { ROOM_MESSAGE_COMMAND, _mineGorgeCommandMsg },
+    { ROOM_MESSAGE_SOUND, _mineGorgeSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -109,7 +109,7 @@ EvsCommand D_mine_gorge_8017E2F0[22] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_mine_gorge_8017D8BC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineGorgeSetPlayerStatePaused }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E2DC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -159,7 +159,7 @@ EvsCommand D_mine_gorge_8017E610[14] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E2DC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54050007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_gorge_8017D8C8 }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineGorgeSetEnemyWave }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E5E8 }, { .value = 0 } },
@@ -229,8 +229,8 @@ s32 func_mine_gorge_8017D6E8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMs
     return 0;
 }
 
-/// Answers message `0x13F0` by doing nothing.
-s32 func_mine_gorge_8017D77C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores every `ROOM_MESSAGE_COMMAND` request and returns zero.
+static s32 _mineGorgeCommandMsg(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
@@ -252,11 +252,16 @@ s32 func_mine_gorge_8017D784(Task* task, s32 msgId, const void* firstArg, s32 ar
     return 0;
 }
 
-/// Answers message `0x13F2`: argument `0xA` queues event sound `0x5405000A`.
-s32 func_mine_gorge_8017D7F4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Maps room sound cue 10 to Mine Gorge sound script 10 and returns zero.
+///
+/// Handles `ROOM_MESSAGE_SOUND`; all other cues and the second payload are
+/// ignored. Queues the script with no pan offset or attenuation and retains no arguments.
+static s32 _mineGorgeSoundMsg(Task* task, s32 messageId, s32 cueId, s32 secondArg)
 {
-    if (arg2 == 0xA) {
-        sndEvtRequestScriptStart(0x54050000 | arg2, 0, 0);
+    enum { MINE_GORGE_SOUND_CUE_SCRIPT_0A = 0xA };
+
+    if (cueId == MINE_GORGE_SOUND_CUE_SCRIPT_0A) {
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 0) | cueId, 0, 0);
     }
     return 0;
 }
@@ -279,16 +284,25 @@ void func_mine_gorge_8017D828(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// Script callback: stores its argument in `D_80115768`.
-void func_mine_gorge_8017D8BC(u8 arg0)
+/// Sets the player control-mode/timer hold used during the room's scripted scene.
+///
+/// Event-script byte callback: zero resumes the state tick and every nonzero
+/// value pauses it. Movement, collision and rendering outside that tick still
+/// run. Stores the byte unchanged; the room's opening script supplies zero.
+static void _mineGorgeSetPlayerStatePaused(u8 paused)
 {
-    D_80115768 = arg0;
+    D_80115768 = paused;
 }
 
-/// Script callback: stores its argument in `gSceneCombatState.actor03700Wave`.
-void func_mine_gorge_8017D8C8(s32 arg0)
+/// Sets the entrance-wave threshold for the room's actor-03700 enemy group.
+///
+/// Event-script word callback: keeps only the low signed byte in the scene's
+/// wave counter. Waiting enemies enter when this counter meets their placement
+/// threshold. The encounter script supplies 20; this does not acquire battle
+/// references or engage the battle itself.
+static void _mineGorgeSetEnemyWave(s32 wave)
 {
-    gSceneCombatState.actor03700Wave = arg0;
+    gSceneCombatState.actor03700Wave = wave;
 }
 
 /// Room task setup state: installs the message table and pointer slot 7, sets
@@ -312,15 +326,15 @@ static void func_mine_gorge_8017D8D4(Task* arg0)
     gStageSceneMusicEntry = 1;
 }
 
-/// The room task's idle state.
-static void func_mine_gorge_8017D998(Task* task)
+/// Keeps the installed room task available for messages between entry and teardown.
+static void _mineGorgeIdleRoomTask(Task* task)
 {
 }
 
 /// State handlers of the room task `func_mine_gorge_8017D9A0` runs: the room's
 /// setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_mine_gorge_8017D5C4 = {
-    { func_mine_gorge_8017D8D4, func_mine_gorge_8017D998, taskKill }
+    { func_mine_gorge_8017D8D4, _mineGorgeIdleRoomTask, taskKill }
 };
 
 /// Runs one tick of the room task through the three-state table

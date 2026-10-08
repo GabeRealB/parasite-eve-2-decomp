@@ -259,3 +259,7 @@ dryfieldWaterTankSetPropModelDraw = 0x8017e0b4; // type:func
 dryfieldWaterTankRestartPropSlide = 0x8017e174; // type:func
 dryfieldWaterTankPostPropSceneRequest = 0x8017e194; // type:func
 dryfieldWaterTankSkipPropScene = 0x8017e1b4; // type:func
+_dryfieldWaterTankMovieTask = 0x8017e568; // type:func
+_dryfieldWaterTankRestorePlayerAfterSkip = 0x8017eba0; // type:func
+dryfieldWaterTankMovePlayerFirstLegTask = 0x8017ec6c; // type:func
+dryfieldWaterTankMovePlayerSecondLegTask = 0x8017ed30; // type:func

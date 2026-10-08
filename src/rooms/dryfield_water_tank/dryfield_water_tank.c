@@ -240,8 +240,8 @@ ActorTransform D_dryfield_water_tank_80184DC4 = { { 2530, -0x2EE0, -640, 0 }, { 
 ActorTransform D_dryfield_water_tank_80184DDC = { { 2530, -0x2EE0, 0x2710, 0 }, { 0, 0, 0, 0 } };
 
 TaskDesc D_dryfield_water_tank_80184DF4[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017EC6C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017ED30, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, dryfieldWaterTankMovePlayerFirstLegTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, dryfieldWaterTankMovePlayerSecondLegTask, { .value = 0 } },
 };
 
 EvsCommand D_dryfield_water_tank_80184E0C[126] = {

@@ -1896,7 +1896,7 @@ if (D == NULL) {
 return ret;                                 /* 100% */
 ```
 
-`func_mine_refuge_8017FBB4` (rooms/mine_refuge). A control keeping the same
+`_mineRefugeUseKeyItemMsg` (rooms/mine_refuge). A control keeping the same
 `Task*`/`NULL` typing but the early-return shape reproduced `base.c`
 byte-for-byte, so the statement shape, not the types, decides the layout.
 `func_neo_ark_woodland_path_8017E8DC` is the identical body with `ret = -1` and
@@ -9590,7 +9590,7 @@ belonging to `mineGorgeDrawViewFlaresTask` in unit `_4`; the fix was `_3` -> `_4
 in the manifest plus dropping that one `INCLUDE_RODATA` line from
 `mine_gorge_3.c`. Hand-editing was the safe option here precisely because the
 destructive path is the one that loses matched bodies — its own file's remaining
-bodies (`func_mine_gorge_8017D8D4`, `func_mine_gorge_8017D998`) came through
+bodies (`func_mine_gorge_8017D8D4`, `_mineGorgeIdleRoomTask`) came through
 untouched, and the unscoped build verified with the compiler's table at 0x10.
 
 **A `units` `.text` cut is only needed when the table would land mid-object.**
@@ -22274,13 +22274,12 @@ the argument as a full word and the load stays `lhu`.
 Do not change a matched `s16` definition just to fix a caller — drop or avoid the
 early prototype instead. `sndLoadProcessSector` → `_sndLoadPrepareBankSlot` is the pure example.
 
-## A room's dispatch wrapper forwards the caller's `$a1`-`$a3`, so the callee must stay unprototyped
+## A room's dispatch wrapper can forward incoming `$a1`-`$a3` without moving them
 
-`taskMessageDispatch` is declared `(Task*, s32, s32, s32)` in `include/gameplay/D4.h`,
-but the room wrappers that only re-dispatch a task call it with the task alone and
-depend on `$a1`-`$a3` still holding whatever the *caller* passed. With the 4-arg
-prototype in scope, GCC materialises the outgoing arguments from the wrapper's own
-parameters instead:
+`taskMessageDispatch` is declared `(Task*, s32, s32, s32)` in
+`include/gameplay/message.h`. A room wrapper can forward all four incoming
+arguments explicitly, replacing only the task. A historical attempt instead
+materialised the outgoing words from incorrectly shifted wrapper parameters:
 
 ```
 move v1,a0 ; move t0,a1 ; move a3,a2 ; lui v0,%hi(D_) ; move a1,v1 ;
@@ -22288,17 +22287,17 @@ lw a0,%lo(D_)(v0) ; sw ra,0x10(sp) ; jal taskMessageDispatch ; move a2,t0   ← 
 ```
 
 against a target of 10 that loads `$a0` and leaves `$a1`-`$a3` alone. The five
-extra moves are the whole difference; no amount of statement reordering removes
-them, because the prototype is what makes the other three arguments exist.
+extra moves are the whole difference; statement reordering does not repair
+argument positions that disagree with the incoming message ABI.
 
-With the callee declared unprototyped — `s32 taskMessageDispatch();`, and `D4.h` *not*
-included by that file — the call sets `$a0` and passes nothing else, which is the
-target exactly. `func_dryfield_water_tower_8017DD44` is the pure example;
-`src/rooms/neo_ark_woodland_path/neo_ark_woodland_path_2.c` already carried that
-declaration with an explanatory comment. Dropping the include is safe when the
-file's other `Gp_*` calls come from `gameplay/3CD8.h`, but the prototype's
-disappearance also reaches the 4-arg `taskMessageDispatch` calls in the same file, so
-re-verify the whole overlay rather than the one function.
+An unprototyped call with only `$a0` reproduced that target historically, but
+the instruction sequence does not establish a one-argument C call.
+`dryfieldWaterTowerActorEventMsg` matches with the complete four-word signature
+and a prototyped `taskMessageDispatch`: the message ID and two payload words
+already occupy `$a1`-`$a3`, so only `$a0` needs loading. The historical
+`src/rooms/neo_ark_woodland_path/neo_ark_woodland_path_2.c` example carried the
+unprototyped declaration. Re-verify the whole overlay when changing a dispatch
+declaration, since every call in the file uses it.
 
 ## Non-volatile `lui` + volatile `lbu` for early gDisplayState prologue slot
 
@@ -89662,16 +89661,16 @@ branches *into* a body, reach for `switch` next.
 
 ## A store to a *stack slot* kills CSE's memory equivalence too, so a re-read field stays re-read
 
-`func_dryfield_water_tank_8017EC6C` steps the water tank one entry along its
+`dryfieldWaterTankMovePlayerFirstLegTask` steps the player one entry along the
 path: it fills an `ActorTransform` local from an `SVECTOR` table indexed by the
 task's own `killCountdown`, sends it with msg 0x3E9, and bumps the counter. The
 target loads `0x2A($a1)` four times - once for the `slti 0x34` guard, then once
 per table field, with the payload stores in between:
 
 ```c
-rec.pos.vx = D_dryfield_water_tank_80184530[arg0->killCountdown].vx;
-rec.pos.vy = D_dryfield_water_tank_80184530[arg0->killCountdown].vy;
-rec.pos.vz = D_dryfield_water_tank_80184530[arg0->killCountdown].vz;
+placement.pos.vx = D_dryfield_water_tank_80184530[task->killCountdown].vx;
+placement.pos.vy = D_dryfield_water_tank_80184530[task->killCountdown].vy;
+placement.pos.vz = D_dryfield_water_tank_80184530[task->killCountdown].vz;
 ```
 
 Only the first lookup reuses the guard's value (`sll $v0, $a0, 3` off the `$a0`
@@ -89709,7 +89708,7 @@ m2c seed's 54.59% (`base.i`
 modelled the payload as six scalars reading a 32-byte-stride table, which the
 `ActorTransform` local plus `SVECTOR` array fixes.
 
-## A twin of a matched sibling is provable before you write any C (func_dryfield_water_tank_8017ED30, 2026-09-15)
+## A twin of a matched sibling is provable before you write any C (dryfieldWaterTankMovePlayerSecondLegTask, 2026-09-15)
 
 BRIEF's "similar matched bodies" list marks a sibling as `1.00` in *all four*
 classes (`shape`, `fields`, `calls`, `cflow`) with an asterisk. When the twin is
@@ -89723,12 +89722,13 @@ diff <(sed 's/FUNC_OLD/FUNC_NEW/g;s/D_old/D_new/g;s/\.Lold/\.Lnew/g' \
         asm/USA/rooms/matchings/<overlay>/<unit>/FUNC_OLD.s) target.s
 ```
 
-`func_dryfield_water_tank_8017ED30` and the matched
-`func_dryfield_water_tank_8017EC6C` came out identical that way - 49
+`dryfieldWaterTankMovePlayerSecondLegTask` and the matched
+`dryfieldWaterTankMovePlayerFirstLegTask` came out identical that way - 49
 instructions, same block/edge structure, same delay slots - with exactly two
 differing immediates between them: the `%lo` half of the data symbol, and
-`addiu $v0, $zero, 0x400` where the sibling has `-0x7FF`. Both are the second
-leg of the tank's run, so the body is the sibling's, one constant changed:
+`addiu $v0, $zero, 0x400` where the sibling has `-0x7FF`. They place the player
+along the two legs of the room's scripted path, so the body is the sibling's,
+one constant changed:
 100.000% on the first build (`base_1.i` `50d84b2d...`) against the m2c seed's
 54.59% (`base.i` `c58e4ace...`, penalty jump.c had already matched topology -
 `topology: match` at 31/49 instructions - so the missing 18 instructions were
@@ -92246,7 +92246,7 @@ handed its answer.
 against `func_shelter_b3_incinerator_control_room_8017FA8C` - a different
 overlay, a different link address, sharing no data symbol. Only two constants
 differ (`msgId != 2` vs `!= 0x2A`, nibble `0xB5` vs `0xA7`); `capRunCommandWithTransition(3)`
-is identical in both. The `.s` diff that made `func_dryfield_water_tank_8017ED30`
+is identical in both. The `.s` diff that made `dryfieldWaterTankMovePlayerSecondLegTask`
 provable does not transfer, because two overlays' disassembly texts differ in
 every address; what transfers is the sibling's *C source shape*. Porting it
 verbatim - `RoomEventMsg*` params, `*out = *in;` first, then the `func_80179A04`

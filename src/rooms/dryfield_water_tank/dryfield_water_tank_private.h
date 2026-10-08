@@ -118,9 +118,24 @@ void dryfieldWaterTankSkipPropScene(void);
 
 void func_dryfield_water_tank_8017EC38(u32);
 
-void func_dryfield_water_tank_8017EC6C(Task*);
+/// Places the player at one entry of the first scripted path per callback tick.
+///
+/// A fresh bodyless task starts `killCountdown` at zero; entries 0..51 are
+/// consumed, then the task kills itself. The loaded room table has 82 entries,
+/// but its final 30 are not part of this leg. Positions use world-coordinate
+/// units and yaw is -2047 in 4096 units per turn. Requires the live registered
+/// player; placement is consumed synchronously and animation is controlled by
+/// the scene script. Negative counters are outside this callback's domain.
+void dryfieldWaterTankMovePlayerFirstLegTask(Task* task);
 
-void func_dryfield_water_tank_8017ED30(Task*);
+/// Places the player along the second scripted path, one entry per callback tick.
+///
+/// Follows `dryfieldWaterTankMovePlayerFirstLegTask` with a separate fresh
+/// bodyless task and zero `killCountdown`. Consumes all 52 entries, then kills
+/// itself. Positions use world-coordinate units and yaw is 1024 in 4096 units
+/// per turn. Requires the live registered player; dispatch consumes placement
+/// synchronously. Negative counters are outside this callback's domain.
+void dryfieldWaterTankMovePlayerSecondLegTask(Task* task);
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_water_tank_8017D618(Task*);

@@ -156,3 +156,7 @@ _dryfieldWaterTowerFinishActorScenePlayback = 0x80180154; // type:func
 _dryfieldWaterTowerPostActorSceneRequest = 0x80180174; // type:func
 _dryfieldWaterTowerStartChaserBattleOnce = 0x80180194; // type:func
 _dryfieldWaterTowerSkipActorScene = 0x80180220; // type:func
+dryfieldWaterTowerUseKeyItemMsg = 0x8017dcfc; // type:func
+dryfieldWaterTowerRoomActionMsg = 0x8017dd3c; // type:func
+dryfieldWaterTowerActorEventMsg = 0x8017dd44; // type:func
+_dryfieldWaterTowerIdleRoomTask = 0x8017ddd0; // type:func

@@ -118,9 +118,9 @@ void func_dryfield_water_tank_8017E9F8(Task*);
 
 static TmdSource _gDryfieldWaterTankModel020D4;
 static void      _dryfieldWaterTankFadeOutTileTask(Task* task);
-void             func_dryfield_water_tank_8017E568(Task*);
+static void      _dryfieldWaterTankMovieTask(Task* task);
 void             func_dryfield_water_tank_8017EB80(s16);
-void             func_dryfield_water_tank_8017EBA0(void);
+static void      _dryfieldWaterTankRestorePlayerAfterSkip(void);
 
 ActorTransform D_dryfield_water_tank_8017F0D0 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
 
@@ -326,7 +326,7 @@ EvsCommand D_dryfield_water_tank_8018050C[16] = {
 EvsCommand D_dryfield_water_tank_8018068C[9] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_water_tank_8017EBA0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldWaterTankRestorePlayerAfterSkip }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -337,7 +337,7 @@ EvsCommand D_dryfield_water_tank_8018068C[9] = {
 
 TaskDesc D_dryfield_water_tank_80180764[4] = {
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E568, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldWaterTankMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, screenFadeInTileTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _dryfieldWaterTankFadeOutTileTask, { .value = 0 } },
 };
@@ -750,6 +750,46 @@ SVECTOR D_dryfield_water_tank_801847C0[52] = {
 
 static void func_dryfield_water_tank_8017E78C(Task* task);
 
+/// Resumes room presentation after movie resources have been restored.
+static inline void _dryfieldWaterTankResumeAfterMovie(Task* task)
+{
+    enum {
+        DRYFIELD_WATER_TANK_FADE_IN_TASK_INDEX = 2,
+        DRYFIELD_WATER_TANK_FADE_IN_RATE       = 8,
+    };
+
+    sndEvtRequestScriptStart(SOUND_WATER_TANK_AMBIENCE, 0, 0);
+    memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+    SetDispMask(1);
+    taskKill(task);
+    taskSpawnFromTableOnDefaultList(D_dryfield_water_tank_80180764, DRYFIELD_WATER_TANK_FADE_IN_TASK_INDEX, DRYFIELD_WATER_TANK_FADE_IN_RATE, 0);
+    displayResumeGameLoop();
+}
+
+/// Restarts the equipped weapon's standing clip without enabling grid collision.
+static inline void _dryfieldWaterTankRestoreWeaponStance(void)
+{
+    enum {
+        DRYFIELD_WATER_TANK_PRIMARY_CHARACTER_ID       = 1,
+        DRYFIELD_WATER_TANK_PRIMARY_WEAPON_BANK_BASE   = 1,
+        DRYFIELD_WATER_TANK_ALTERNATE_WEAPON_BANK_BASE = 0x22,
+        DRYFIELD_WATER_TANK_WEAPON_STANCE_CLIP         = 1,
+    };
+
+    AnimationPlayRequest stance;
+    s32                  weaponId;
+    s32                  animationBank;
+
+    weaponId                    = gPlayerStatus.weapon;
+    animationBank               = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_WATER_TANK_PRIMARY_CHARACTER_ID) ? weaponId + DRYFIELD_WATER_TANK_PRIMARY_WEAPON_BANK_BASE : weaponId + DRYFIELD_WATER_TANK_ALTERNATE_WEAPON_BANK_BASE;
+    stance.source.index         = animationBank;
+    stance.animationId          = DRYFIELD_WATER_TANK_WEAPON_STANCE_CLIP;
+    stance.blend                = ANIMATION_BLEND_RESET;
+    stance.blendFrames          = 0;
+    stance.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &stance, 0);
+}
+
 /// Queues a 320x240 subtractive fade tile at the current draw origin.
 ///
 /// Borrows readable ramp channels and uses their low red/green/red bytes without
@@ -846,33 +886,51 @@ static void _dryfieldWaterTankFadeOutTileTask(Task* task)
     }
 }
 
-/// Water-tank intro cutscene driver: fades out, streams the room's movie via
-/// CdCmd, and on completion clears the image buffers and hands off to the
-/// follow-up task.
-void func_dryfield_water_tank_8017E568(Task* task)
+/// Plays the room's stream 100, handles a Start skip and restores game presentation.
+///
+/// Requires the room's movie descriptor and image-memory configuration to be
+/// loaded, and a new bodyless task in state 0. Saves displaced VRAM images
+/// before playback and waits for CD cancellation/completion before restoring
+/// game resources. Completion restarts ambience, clears the resident image
+/// workspace, starts a fade-in at eight colour units per tick and kills this task.
+static void _dryfieldWaterTankMovieTask(Task* task)
 {
-    u8          slotParam[4];
-    GameLoc     key;
+    enum {
+        DRYFIELD_WATER_TANK_MOVIE_PREPARE       = 0,
+        DRYFIELD_WATER_TANK_MOVIE_ENQUEUE       = 1,
+        DRYFIELD_WATER_TANK_MOVIE_WAIT_READY    = 2,
+        DRYFIELD_WATER_TANK_MOVIE_PLAY          = 3,
+        DRYFIELD_WATER_TANK_MOVIE_WAIT_STOP     = 4,
+        DRYFIELD_WATER_TANK_MOVIE_RESTORE       = 5,
+        DRYFIELD_WATER_TANK_MOVIE_STREAM_ID     = 100,
+        DRYFIELD_WATER_TANK_AMBIENCE_FADE_TICKS = 60,
+        DRYFIELD_WATER_TANK_SKIP_FADE_TICKS     = 30,
+    };
+
+    u8          streamArgs[4];
+    GameLoc     movieKey;
     CdCmdQueue* queue;
-    s16         slot;
+    s16         movieSlot;
 
     queue = &gCdCmdQueue;
     switch (task->state) {
-        case 0:
+        case DRYFIELD_WATER_TANK_MOVIE_PREPARE:
+            // Preserve displaced VRAM images while playback owns the workspace.
             SetDispMask(0);
-            streamPrepareMovieWorkspace(1);
-            sndEvtRequestScriptStop(SOUND_WATER_TANK_AMBIENCE, 0x3C);
+            streamPrepareMovieWorkspace(true);
+            sndEvtRequestScriptStop(SOUND_WATER_TANK_AMBIENCE, DRYFIELD_WATER_TANK_AMBIENCE_FADE_TICKS);
             task->state = task->state + 1;
             return;
-        case 1:
-            key          = gGameSession->location;
-            key.loc.view = 0x64;
-            slot         = streamFindMovieSlot(&key.loc, 0, 0);
-            slotParam[0] = slot;
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+        case DRYFIELD_WATER_TANK_MOVIE_ENQUEUE:
+            movieKey          = gGameSession->location;
+            movieKey.loc.view = DRYFIELD_WATER_TANK_MOVIE_STREAM_ID;
+            movieSlot         = streamFindMovieSlot(&movieKey.loc, 0, 0);
+            // The queue copies four bytes; this opcode consumes only the slot byte.
+            streamArgs[0] = movieSlot;
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state = task->state + 1;
             return;
-        case 2:
+        case DRYFIELD_WATER_TANK_MOVIE_WAIT_READY:
             if (queue->movieReady == 0) {
                 return;
             }
@@ -881,8 +939,8 @@ void func_dryfield_water_tank_8017E568(Task* task)
             SetDispMask(1);
             task->state = task->state + 1;
             return;
-        case 3:
-            if (cdCmdIsIdle() & 0xFFFF) {
+        case DRYFIELD_WATER_TANK_MOVIE_PLAY:
+            if (cdCmdIsIdle()) {
                 SetDispMask(0);
                 task->state = task->state + 1;
                 return;
@@ -890,29 +948,25 @@ void func_dryfield_water_tank_8017E568(Task* task)
             if (padIsStartPressed() == 0) {
                 return;
             }
-            sndEvtRequestScriptStop(SOUND_WATER_TANK_MOVIE_SFX_A, 0x1E);
-            sndEvtRequestScriptStop(SOUND_WATER_TANK_MOVIE_SFX_B, 0x1E);
+            sndEvtRequestScriptStop(SOUND_WATER_TANK_MOVIE_SFX_A, DRYFIELD_WATER_TANK_SKIP_FADE_TICKS);
+            sndEvtRequestScriptStop(SOUND_WATER_TANK_MOVIE_SFX_B, DRYFIELD_WATER_TANK_SKIP_FADE_TICKS);
             SetDispMask(0);
             cdCmdRequestCancel();
             task->state = task->state + 1;
             return;
-        case 4:
-            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
+        case DRYFIELD_WATER_TANK_MOVIE_WAIT_STOP:
+            // Cancellation must finish before movie storage becomes game storage.
+            if (cdCmdIsIdle() == 0) {
                 return;
             }
             streamResetGameRestore();
             task->state = task->state + 1;
             return;
-        case 5:
-            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
+        case DRYFIELD_WATER_TANK_MOVIE_RESTORE:
+            if (streamPollGameRestore(false, true) == 0) {
                 return;
             }
-            sndEvtRequestScriptStart(SOUND_WATER_TANK_AMBIENCE, 0, 0);
-            memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
-            SetDispMask(1);
-            taskKill(task);
-            taskSpawnFromTableOnDefaultList(D_dryfield_water_tank_80180764, 2, 8, 0);
-            displayResumeGameLoop();
+            _dryfieldWaterTankResumeAfterMovie(task);
             return;
     }
 }
@@ -1083,23 +1137,19 @@ void func_dryfield_water_tank_8017EB80(s16 arg0)
     work->commandStep = 0;
 }
 
-void func_dryfield_water_tank_8017EBA0(void)
+/// Places the player at the event's exit and restores the weapon stance on skip.
+///
+/// The event task and its published work, cached player task and registered
+/// player task must still be live. Dispatch borrows the placement and animation
+/// request synchronously. Grid collision remains disabled until script cleanup;
+/// the display is made visible after the requests.
+static void _dryfieldWaterTankRestorePlayerAfterSkip(void)
 {
     _DryfieldWaterTankEventWork* work;
-    AnimationPlayRequest         rec;
-    s32                          weaponId;
-    s32                          anim;
 
     work = D_dryfield_water_tank_80188D50->work;
     TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tank_801804F4, 0);
-    weaponId                 = gPlayerStatus.weapon;
-    anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.source.index         = anim;
-    rec.animationId          = 1;
-    rec.blend                = ANIMATION_BLEND_RESET;
-    rec.blendFrames          = 0;
-    rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+    _dryfieldWaterTankRestoreWeaponStance();
     SetDispMask(1);
 }
 
@@ -1108,49 +1158,45 @@ void func_dryfield_water_tank_8017EC38(u32 arg0)
     taskSpawnFromTable(D_dryfield_water_tank_80184DF4, arg0 & 0xFFFF, (s32)(arg0 >> 0x10), 0);
 }
 
-/// Walks the water tank one step along `D_dryfield_water_tank_80184530` per
-/// frame: sends slot 3 that entry as an `ActorTransform` -- the spline position
-/// with the tank's fixed half-turn about `y` -- and advances `killCountdown`.
-/// At 0x34 the tank has finished its run, and the task kills itself.
-void func_dryfield_water_tank_8017EC6C(Task* arg0)
+void dryfieldWaterTankMovePlayerFirstLegTask(Task* task)
 {
-    ActorTransform rec;
+    // This leg consumes only the first 52 entries of the longer position table.
+    enum { DRYFIELD_WATER_TANK_PLAYER_PATH_LEG_FRAMES = 52 };
 
-    if (arg0->killCountdown >= 0x34) {
-        taskKill(arg0);
+    ActorTransform placement;
+
+    if (task->killCountdown >= DRYFIELD_WATER_TANK_PLAYER_PATH_LEG_FRAMES) {
+        taskKill(task);
         return;
     }
-    rec.pos.vx = D_dryfield_water_tank_80184530[arg0->killCountdown].vx;
-    rec.pos.vy = D_dryfield_water_tank_80184530[arg0->killCountdown].vy;
-    rec.pos.vz = D_dryfield_water_tank_80184530[arg0->killCountdown].vz;
-    rec.rot.vx = 0;
-    rec.rot.vy = -0x7FF;
-    rec.rot.vz = 0;
-    arg0->killCountdown++;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
+    placement.pos.vx = D_dryfield_water_tank_80184530[task->killCountdown].vx;
+    placement.pos.vy = D_dryfield_water_tank_80184530[task->killCountdown].vy;
+    placement.pos.vz = D_dryfield_water_tank_80184530[task->killCountdown].vz;
+    placement.rot.vx = 0;
+    placement.rot.vy = 1 - ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+    placement.rot.vz = 0;
+    task->killCountdown++;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &placement, 0);
 }
 
-/// The tank's second run leg, the continuation of `func_dryfield_water_tank_8017EC6C`:
-/// walks it one step along `D_dryfield_water_tank_801847C0` per frame and sends
-/// slot 3 that entry as an `ActorTransform`, this time with a quarter-turn about
-/// `y` (0x400) instead of the first leg's half-turn. At 0x34 the tank has
-/// finished its run a second time and the task kills itself.
-void func_dryfield_water_tank_8017ED30(Task* arg0)
+void dryfieldWaterTankMovePlayerSecondLegTask(Task* task)
 {
-    ActorTransform rec;
+    enum { DRYFIELD_WATER_TANK_SECOND_LEG_FRAMES = ARRAY_SIZE(D_dryfield_water_tank_801847C0) };
 
-    if (arg0->killCountdown >= 0x34) {
-        taskKill(arg0);
+    ActorTransform placement;
+
+    if (task->killCountdown >= DRYFIELD_WATER_TANK_SECOND_LEG_FRAMES) {
+        taskKill(task);
         return;
     }
-    rec.pos.vx = D_dryfield_water_tank_801847C0[arg0->killCountdown].vx;
-    rec.pos.vy = D_dryfield_water_tank_801847C0[arg0->killCountdown].vy;
-    rec.pos.vz = D_dryfield_water_tank_801847C0[arg0->killCountdown].vz;
-    rec.rot.vx = 0;
-    rec.rot.vy = 0x400;
-    rec.rot.vz = 0;
-    arg0->killCountdown++;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &rec, 0);
+    placement.pos.vx = D_dryfield_water_tank_801847C0[task->killCountdown].vx;
+    placement.pos.vy = D_dryfield_water_tank_801847C0[task->killCountdown].vy;
+    placement.pos.vz = D_dryfield_water_tank_801847C0[task->killCountdown].vz;
+    placement.rot.vx = 0;
+    placement.rot.vy = ACTOR_TRANSFORM_ANGLE_TURN / 4;
+    placement.rot.vz = 0;
+    task->killCountdown++;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &placement, 0);
 }
 
 #include "../../shared/water_tank_sway_task.inc.c"

@@ -1014,7 +1014,7 @@ shelterB1MainCorridorRoomVisualEffectsMoteTask = 0x8017EAD4; // type:func absolu
 
 shelterB1MainCorridorRoomVisualEffectsHaloTask = 0x8017F81C; // type:func absolute:True owner=shelter_b1_main_corridor
 
-shelterB1MainCorridorRoomVisualEffectsHaloOrangeBurstTask = 0x8017FBB4; // type:func absolute:True owner=shelter_b1_main_corridor shared=rooms
+shelterB1MainCorridorRoomVisualEffectsHaloOrangeBurstTask = 0x8017FBB4; // type:func absolute:True owner=shelter_b1_main_corridor
 
 func_shelter_b1_main_corridor_80180FC4 = 0x80180FC4; // type:func absolute:True owner=shelter_b1_main_corridor
 

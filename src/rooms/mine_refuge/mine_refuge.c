@@ -168,11 +168,11 @@ extern WorldCollisionTrigger      D_mine_refuge_80182778[2];
 extern WorldCollisionTrigger      D_mine_refuge_80182810[6];
 extern WorldCoordRoomAmbientEntry D_mine_refuge_80182A58[8];
 extern WorldCoordRoomLights       D_mine_refuge_80182760[1];
-s32                               func_mine_refuge_8017FBB4(Task*, s32, s32, s32);
-s32                               func_mine_refuge_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32                        _mineRefugeUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+static s32                        _mineRefugeResolveRoomEventMsg(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 s32                               func_mine_refuge_8017FC2C(Task*, s32, s32, s32);
 s32                               func_mine_refuge_8017FCD0(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-s32                               func_mine_refuge_8017FD48(Task*, s32, s32, s32);
+static s32                        _mineRefugeSoundMsg(Task* task, s32 messageId, s32 cueId, s32 secondArg);
 void                              func_mine_refuge_8017FA08(Task*);
 void                              func_mine_refuge_8017FDBC(Task*);
 
@@ -185,11 +185,11 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 TaskMessageEntry D_mine_refuge_80181884[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_refuge_8017FBE8 },
-    { 5105, func_mine_refuge_8017FBB4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _mineRefugeResolveRoomEventMsg },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _mineRefugeUseKeyItemMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_refuge_8017FCD0 },
     { ROOM_MESSAGE_COMMAND, func_mine_refuge_8017FC2C },
-    { ROOM_MESSAGE_SOUND, func_mine_refuge_8017FD48 },
+    { ROOM_MESSAGE_SOUND, _mineRefugeSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -594,27 +594,33 @@ void func_mine_refuge_8017FA08(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-/// The `0x13F1` message handler of `D_mine_refuge_80181884`: relays the
-/// message unchanged to `D_mine_refuge_80182AD8` and returns its answer, or 0
-/// while that task does not exist.
-s32 func_mine_refuge_8017FBB4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Relays collected key-item use to the active circuit-panel task.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`, forwarding the item ID, second word
+/// and panel's item-menu reply unchanged. Refuses the use while no panel task
+/// is published. The scene owns that task and clears its handle after teardown.
+static s32 _mineRefugeUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    s32 ret;
+    s32 itemUseReply;
 
     if (D_mine_refuge_80182AD8 == NULL) {
-        ret = 0;
+        itemUseReply = ROOM_KEY_ITEM_USE_REFUSED;
     } else {
-        ret = taskMessageDispatch(D_mine_refuge_80182AD8, msgId, arg2, arg3);
+        itemUseReply = taskMessageDispatch(D_mine_refuge_80182AD8, messageId, itemId, secondArg);
     }
-    return ret;
+    return itemUseReply;
 }
 
-/// A handler of the room's message table: copies the incoming record onto the
-/// outgoing one, hands both to `mapShelterRoomVariantResolve` and returns 1.
-s32 func_mine_refuge_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Accepts a room transition after resolving its Mine/Shelter destination variant.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; borrows a complete request and writable
+/// reply through dispatch, allowing both pointers to address the same record.
+/// Copies all eight bytes before resolving the reply's room. Queries preserve
+/// the copied destination. Requires the loaded map overlay and always returns 1.
+static s32 _mineRefugeResolveRoomEventMsg(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
     return 1;
 }
 
@@ -657,19 +663,26 @@ s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, const void* firstArg, s32 a
     return 0;
 }
 
-/// The `0x13F2` message handler of `D_mine_refuge_80181884`: arguments 0xC, 0x63
-/// and 0x67 each cue a sound (ids 0x5406000C, 0x5406000F and 0x5406000D),
-/// centred and at zero depth. Any other argument is ignored.
-s32 func_mine_refuge_8017FD48(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Maps room sound cues 12, 99 and 103 to Mine Refuge scripts 12, 15 and 13.
+///
+/// Handles `ROOM_MESSAGE_SOUND`; other cues and the second payload are ignored.
+/// Queues each script with no pan offset or attenuation and returns zero.
+static s32 _mineRefugeSoundMsg(Task* task, s32 messageId, s32 cueId, s32 secondArg)
 {
-    switch (arg2) {
-        case 0xC:
+    enum {
+        MINE_REFUGE_SOUND_CUE_SCRIPT_0C = 0x0C,
+        MINE_REFUGE_SOUND_CUE_SCRIPT_0F = 0x63,
+        MINE_REFUGE_SOUND_CUE_SCRIPT_0D = 0x67,
+    };
+
+    switch (cueId) {
+        case MINE_REFUGE_SOUND_CUE_SCRIPT_0C:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0C), 0, 0);
             break;
-        case 0x63:
+        case MINE_REFUGE_SOUND_CUE_SCRIPT_0F:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0F), 0, 0);
             break;
-        case 0x67:
+        case MINE_REFUGE_SOUND_CUE_SCRIPT_0D:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 0x0D), 0, 0);
             break;
     }

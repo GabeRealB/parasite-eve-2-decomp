@@ -467,11 +467,11 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskMessageEntry D_dryfield_water_tower_801803A0[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, waterTowerEventMsg },
-    { 5105, func_dryfield_water_tower_8017DCFC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_tower_8017DD3C },
+    { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldWaterTowerUseKeyItemMsg },
+    { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldWaterTowerRoomActionMsg },
     { ROOM_MESSAGE_COMMAND, func_dryfield_water_tower_8017DD04 },
     { ROOM_MESSAGE_SOUND, waterTowerSoundMsg },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_dryfield_water_tower_8017DD44 },
+    { ROOM_MESSAGE_ACTOR_EVENT, dryfieldWaterTowerActorEventMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

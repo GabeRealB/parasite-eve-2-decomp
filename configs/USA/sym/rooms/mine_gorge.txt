@@ -91,3 +91,8 @@ func_mine_gorge_8017D828 = 0x8017D828; // type:func
 
 mineGorgeDrawViewFlaresTask = 0x8017D9F8; // type:func
 _glowDrawFlare = 0x8017DB88; // type:func
+_mineGorgeCommandMsg = 0x8017d77c; // type:func
+_mineGorgeSoundMsg = 0x8017d7f4; // type:func
+_mineGorgeSetPlayerStatePaused = 0x8017d8bc; // type:func
+_mineGorgeSetEnemyWave = 0x8017d8c8; // type:func
+_mineGorgeIdleRoomTask = 0x8017d998; // type:func

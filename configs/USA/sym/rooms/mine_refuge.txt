@@ -109,3 +109,6 @@ _mineRefugeIdleRoomTask = 0x8017ffac; // type:func
 _mineRefugeDrawPulsingCyanStar = 0x8018029c; // type:func
 _mineRefugeDrawPulsingCyanBurst = 0x80180710; // type:func
 _mineRefugeDrawLayeredGlow = 0x80181094; // type:func
+_mineRefugeUseKeyItemMsg = 0x8017fbb4; // type:func
+_mineRefugeResolveRoomEventMsg = 0x8017fbe8; // type:func
+_mineRefugeSoundMsg = 0x8017fd48; // type:func

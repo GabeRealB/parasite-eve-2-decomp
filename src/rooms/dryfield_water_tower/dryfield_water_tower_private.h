@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/message.h"
 
 #include "main/task_types.h"
@@ -60,12 +61,26 @@ void dryfieldWaterTowerSetMechanismSpriteVisible(u8 visible);
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_water_tower_8017D948(Task*);
 
-s32 func_dryfield_water_tower_8017DCFC(Task*, s32, s32, s32);
+/// Refuses every collected key-item use at the water tower.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; no payload or task storage is read.
+/// Returns `ROOM_KEY_ITEM_USE_REFUSED` without consuming the item.
+s32 dryfieldWaterTowerUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 
 s32 func_dryfield_water_tower_8017DD04(Task*, s32, s32, s32);
 
-s32 func_dryfield_water_tower_8017DD3C(Task*, s32, s32, s32);
+/// Ignores room direction-action requests and returns zero.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION`. The request is borrowed through
+/// dispatch, but this handler does not dereference it or read either other word.
+s32 dryfieldWaterTowerRoomActionMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
 
-s32 func_dryfield_water_tower_8017DD44(Task*, s32, s32, s32);
+/// Forwards room actor events to the mechanism's scene driver.
+///
+/// Handles `ROOM_MESSAGE_ACTOR_EVENT`, preserving its ID and both integer
+/// payload words, and forwards the driver's reply word. The sender must discard
+/// that word: the driver's handler defines no return value. Requires the room's
+/// published driver task to be live; no absent-task guard is provided here.
+s32 dryfieldWaterTowerActorEventMsg(Task* task, s32 messageId, s32 eventId, s32 eventArg);
 
 #endif // SRC_ROOMS_DRYFIELD_WATER_TOWER_DRYFIELD_WATER_TOWER_PRIVATE_H
