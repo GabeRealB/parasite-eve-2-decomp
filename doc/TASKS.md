@@ -335,7 +335,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `1A` | `E0` | `modelObjectDrawTemporaryListsTask` | Compose the temporary live model/coordinate-body lists and draw active models into the selected `gGpuCurrentOt`; task argument is ignored. Spawned as `_gModelObjectTemporaryDrawTask` while the previous lists are stashed |
 | `1B` | `D0` | `spriteViewTask` | Select the view background, then link cached sprites each frame; frozen with room-object dispatch. Parents the room-object task |
 | `1C` | `2F` | `Gp_LoadStateTask` | 8-way dispatcher (pause / menu-ish) |
-| `1D` | `18` | `func_800A77B4` | 6-way dispatcher |
+| `1D` | `18` | `playClockTask` | Play-time/HUD updates, death presentation and session restart; six states |
 | `1E` | `F8` | `Gp_LoadWaitDispatch` | Load-wait. `D4.c` / stage fade spawn this |
 | `1F` | `10` | `Boot_LoadInitialFile` | Cold boot (`D_8005EC64 == 1`) |
 | `20` | `10` | `Boot_LoadTask` | Cold boot (otherwise). `GameMain_SpawnBootTask` |
@@ -358,8 +358,8 @@ Several `func_*` rows are already matched C and only lack a role name.
 | Type | Pri | Callback | Notes |
 |------|-----|----------|-------|
 | `00`–`05`, `09`–`0A`, `0F`–`10` | `C0`/`20` | `taskKill` or NULL | Unused |
-| `06` | `80` | `func_800E7570` | Unnamed |
-| `07` | `20` | `func_800E8830` | Spawned from fade setup (`taskSpawn(9, 7, …)`) |
+| `06` | `80` | `capControlTask` | Persistent CAP controller: initialize, relocate/update and exit |
+| `07` | `20` | `evsInterpreterTask` | Event-script interpreter; borrows the command stream in spawnArg2 and takes a display hold |
 | `08` | `80` | `capHudSlideTask` | CAP demo-scene HP/MP slide; `spawnArg1.value` is -1 to hide, +1 to return; live handle `D_801156B8` |
 | `0B` | `80` | `Gp_EndWaitTask` | `spawnArg2` is `CapActionRequest*`; non-zero `done` sets the ending flag and kills |
 | `0C` | `20` | `evsScreenShakeTask` | Vertical display shake; packed `spawnArg2.value` holds signed amplitude above bit 7 and half-duration (1..255) in the low byte |
@@ -506,8 +506,8 @@ releasing tasks; session reset does this before discarding the list and heap.
 - **Enemy / room `TaskDesc` tables** (`enemySpawnFromTable`, `func_800B25B0`
   save-slot switch). Overlay-local, mostly unnamed.
 - **UI** tasks built from `UiObjectDesc` rather than a bank index.
-- Several bank-0 `func_*` that are matched C but not renamed
-  (`func_800A77B4`, …).
+- Bank-0 play monitoring is named `playClockTask`; remaining unnamed matched
+  callbacks still need their own role review.
 
 Adding a bank-6/7 row to this file without a proven role is just publishing an
 address. Prefer renaming the callback (or its overlay) first.

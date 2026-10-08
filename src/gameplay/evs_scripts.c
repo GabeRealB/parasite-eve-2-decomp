@@ -792,12 +792,12 @@ static void _evsInitializeInterpreterTask(Task* task)
     task->state++;
 }
 
-void func_800E8830(Task* arg0)
+void evsInterpreterTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = Gp_ScriptTaskStates;
-    sp.funcs[arg0->state](arg0);
+    states = Gp_ScriptTaskStates;
+    states.funcs[task->state](task);
 }
 
 void capHudSlideTask(Task* task)

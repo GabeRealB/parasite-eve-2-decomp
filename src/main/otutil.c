@@ -54,7 +54,7 @@ static void _displayResumeGameLoop(void);
 
 static void Display_FlipOtAlt(void);
 
-static TaskDesc Display_MenuTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, Gp_MenuRootTask };
+static TaskDesc Display_MenuTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, menuRootTask };
 
 /// Selects the resident small ordering tables and primitive arena for task presentation.
 ///

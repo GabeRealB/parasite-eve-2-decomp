@@ -92,7 +92,7 @@ segments:
       - [0x364C, .rodata, attachment_menu]
       - [0x3670, .rodata, pickup_dispatch]
       - [0x3684, pad] # end of pickup dispatcher before the menu TU
-      - [0x3688, .rodata, menu_root] # jtbl from Gp_MenuRootTask, the menu labels, then the jtbl from Gp_BuildItemCmdList
+      - [0x3688, .rodata, menu_root] # jtbl from menuRootTask, the menu labels, then the jtbl from Gp_BuildItemCmdList
       - [0x37A0, .rodata, menu_prompt] # itemMenuDrawItemIcon jump tables
       - [0x37D8, .rodata, menu_armor] # menu labels
       - [0x3964, pad] # original 8-byte jump-table alignment
@@ -132,7 +132,7 @@ segments:
       - [0x1AFAC, c, area_transitions] # area flags and transition tasks
       - [0x1BD90, c, scene_runtime] # streamReadSceneImageSector
       - [0x22BB8, c, item_publish] # itemPickupPublishPlacedObject
-      - [0x22DB0, c, item_notice] # func_800B65B0
+      - [0x22DB0, c, item_notice] # itemPickupActionPromptTask
       - [0x23150, c, item_placement] # Gp_SpawnPlaceById
       - [0x234F0, c, equipment] # related item quantities and equipment changes
       - [0x24518, c, starter_inventory] # inventoryInitializeStarterLoadout
@@ -142,9 +142,9 @@ segments:
       - [0x27E68, c, item_collect] # inventoryGetCollectedItemId
       - [0x28D0C, c, item_move_check] # itemMenuCanMoveAllItems
       - [0x28E34, c, item_menu] # Gp_ItemMoveChild
-      - [0x2C1FC, c, menu_root] # Gp_MenuRootTask
+      - [0x2C1FC, c, menu_root] # menuRootTask
       - [0x2CAA0, c, menu_prompt] # itemMenuDispatchCommand
-      - [0x31B28, c, menu_armor] # Gp_DrawRemoveArmorRow
+      - [0x31B28, c, menu_armor] # itemMenuDrawAttachmentCandidateRow
       - [0x32770, c, item_stats] # itemMenuInfoTask
       - [0x345A8, c, weapon_stats] # itemMenuDrawEquipmentStats
       - [0x35E54, c, attachment_menu] # itemMenuConsumableChoiceListTask

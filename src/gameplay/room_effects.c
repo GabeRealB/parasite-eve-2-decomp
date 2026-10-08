@@ -512,7 +512,7 @@ static void _effectDarknessScreenDimTaskE8(Task* task);
 
 static void _roomEffectInitController(Task* task);
 
-static void Gp_TickState1C(Task* unused);
+static void _roomEffectTickController(Task* unusedTask);
 
 static void _worldCoordTickTransientPointLights(void);
 
@@ -1394,7 +1394,7 @@ s32 D_80111DB4[33] = {
 
 static const TaskFuncTable3 D_80097678 = { {
     _roomEffectInitController,
-    Gp_TickState1C,
+    _roomEffectTickController,
     taskKill,
 } };
 
@@ -1484,11 +1484,37 @@ static void _roomEffectInitController(Task* task)
     taskSpawn(EFFECT_TASK_BANK, ROOM_EFFECT_PE_DISPATCH_SELECTOR, 0, 0);
 }
 
-static void Gp_TickState1C(Task* unused)
+/// Clears temporary PE attachment effects and the player's Berserker status.
+static inline void _roomEffectClearCancelledPeStatus(void)
 {
+    AttachmentState* attachment;
+
+    attachment                  = &Gp_StateC08;
+    attachment->antibodyTicks   = 0;
+    attachment->antibodyCombo   = 0;
+    attachment->energyShotTicks = 0;
+    attachment->energyShotCombo = 0;
+    attachment->metabolismTicks = 0;
+    attachment->metabolismCombo = 0;
+    attachment->mindWard        = 0;
+    attachment->bodyWard        = 0;
+    playerStateSetStatusEffects(true, PLAYER_STATUS_BERSERKER);
+}
+
+/// Publishes scene control and one-update cancellation, and ages transient lights.
+///
+/// Requires the controller's live `gRoomEffectState`. Clamps effect/rumble counts
+/// at zero and stops the shared death-flame sound when leaving the engaged phase.
+/// Pending ALL cancellation reaches both control words; PE cancellation reaches only PE.
+/// Consuming the flags clears them for the next update. Paused control freezes
+/// transient-light aging; PE cancellation clears temporary attachment wards and
+/// timers plus the player's Berserker status. The task argument is ignored.
+static void _roomEffectTickController(Task* unusedTask)
+{
+    enum { ROOM_EFFECT_DEATH_FLAME_SOUND = SOUND_COMMON(0x0D) };
+
     RoomEffectState*  effectState;
     SceneCombatState* combat;
-    AttachmentState*  attachment;
     s16               previousBattleState;
 
     if (gRoomEffectState->effectCount <= 0) {
@@ -1499,7 +1525,7 @@ static void Gp_TickState1C(Task* unused)
     }
     previousBattleState = gRoomEffectState->battleState;
     if ((previousBattleState == ROOM_EFFECT_BATTLE_ENGAGED) && (gSceneCombatState.signals.bytes.battlePhase != previousBattleState)) {
-        sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestScriptStop(ROOM_EFFECT_DEATH_FLAME_SOUND | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         gRoomEffectState->rumbleCount = 0;
     }
     // Publish cancellation for one update alongside the scene actor mode.
@@ -1513,16 +1539,7 @@ static void Gp_TickState1C(Task* unused)
         _worldCoordTickTransientPointLights();
     }
     if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        attachment                  = &Gp_StateC08;
-        attachment->antibodyTicks   = 0;
-        attachment->antibodyCombo   = 0;
-        attachment->energyShotTicks = 0;
-        attachment->energyShotCombo = 0;
-        attachment->metabolismTicks = 0;
-        attachment->metabolismCombo = 0;
-        attachment->mindWard        = 0;
-        attachment->bodyWard        = 0;
-        playerStateSetStatusEffects(1, PLAYER_STATUS_BERSERKER);
+        _roomEffectClearCancelledPeStatus();
     }
 }
 

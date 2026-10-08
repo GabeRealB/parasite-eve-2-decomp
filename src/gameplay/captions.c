@@ -11,6 +11,7 @@
 #include "gameplay/evs_scripts.h"
 #include "evs_scripts.h"
 #include "gameplay/items.h"
+#include "gameplay/item_menu.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/view.h"
@@ -199,7 +200,7 @@ void func_800E44A0(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xBB8, 0, 0);
         stageRequestFrameCapture();
-        taskSpawn(1, 0x2C, 0, &D_801155A0);
+        taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &D_801155A0);
     }
     eventIndex = capFindVariantRecord((s32)(s16)D_801155AE);
     D_801155AE = (u16)eventIndex;
@@ -346,7 +347,7 @@ void func_800E44A0(Task* task)
                     if (D_80115666 == 1) {
                         D_8011566D                                                 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
-                        taskSpawn(1, 0x2C, 0, &D_801155A0);
+                        taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &D_801155A0);
                     } else if (D_80115666 == 2) {
                         D_801155BA = 4;
                     } else {

@@ -178,117 +178,133 @@ static inline s32 _gpIsEquippedItem(s32 id)
     return ret;
 }
 
-void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
+/// Draws the carried consumable quantity remaining after weapon loads.
+///
+/// Borrows the candidate/range and live UI row; non-consumables draw nothing.
+static inline void _itemMenuDrawAvailableAttachmentQuantity(const UiList* list, const UiObject* object,
+                                                            const InventoryItemRow*   candidateRow,
+                                                            const InventoryItemRange* carriedItems, s32 itemId)
 {
-    InventoryItemRange* scan;
-    InventoryItemRow*   rec;
-    s32                 item;
+    u8          quantityText[0x20];
+    TextDrawReq textRequest;
+    s32         x;
+    s32         y;
+    s32         colorRgb;
+    s32         availableQuantity;
 
-    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    rec  = inventoryFindNthAttachmentCandidate(scan, prompt->currentItemIndex, 0);
-    if (rec != NULL) {
-        item = rec->itemId;
-        {
-            u8          buf[0x20];
-            TextDrawReq req;
-            s32         x;
-            s32         y;
-            s32         color;
-            s32         qty;
+    x        = list->rowTextX.signedValue;
+    y        = list->rowTextY.signedValue;
+    colorRgb = list->colorRgb;
+    if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
+        availableQuantity      = candidateRow->qty - equipmentGetLoadedConsumableQuantity(carriedItems, itemId);
+        textRequest.x          = object->panel.contentOriginX.unsignedValue + 0x84 + x;
+        textRequest.y          = object->panel.contentOriginY.unsignedValue + (y - 3);
+        textRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+        textRequest.colorRgb   = colorRgb;
+        textRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+        textRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
+        textRequest.drawMode   = TEXT_DRAW_FILL_ONLY;
+        textDrawString(&textRequest, textItoaSigned(quantityText, availableQuantity));
+        uiDrawRecessedRect(&object->panel, x + 0x69, y - 8, 0x1B, 7, 0x102010);
+    }
+}
 
-            x     = prompt->rowTextX.signedValue;
-            y     = prompt->rowTextY.signedValue;
-            color = prompt->colorRgb;
-            if ((u32)(item - 0xA0) < 0x20U) {
-                qty            = rec->qty - equipmentGetLoadedConsumableQuantity(scan, item);
-                req.x          = obj->panel.contentOriginX.unsignedValue + 0x84 + x;
-                req.y          = obj->panel.contentOriginY.unsignedValue + (y - 3);
-                req.otIndex    = obj->panel.otIndex.signedValue + 1;
-                req.colorRgb   = color;
-                req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-                req.alignment  = TEXT_ALIGNMENT_RIGHT;
-                req.drawMode   = TEXT_DRAW_FILL_ONLY;
-                textDrawString(&req, textItoaSigned(buf, qty));
-                uiDrawRecessedRect(&obj->panel, x + 0x69, y - 8, 0x1B, 7, 0x102010);
-            }
-        }
+void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object)
+{
+    enum {
+        ITEM_MENU_ATTACHMENT_MARK_EQUIPPED_ONLY    = 1,
+        ITEM_MENU_ATTACHMENT_MARK_INCLUDE_ATTACHED = 2,
+        ITEM_MENU_ATTACHMENT_INFO_DESCRIPTOR       = 45,
+        ITEM_MENU_ATTACHMENT_INFO_OPEN_DELAY_TICKS = 1
+    };
 
-        if (rec->attachSlot > INVENTORY_ATTACHMENT_NONE) {
-            _gpDrawItemName(prompt, obj, item, 2);
+    const InventoryItemRange* carriedItems;
+    InventoryItemRow*         carriedRow;
+    s32                       itemId;
+
+    carriedItems = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    carriedRow   = inventoryFindNthAttachmentCandidate(carriedItems, list->currentItemIndex, 0);
+    if (carriedRow != NULL) {
+        itemId = carriedRow->itemId;
+        _itemMenuDrawAvailableAttachmentQuantity(list, object, carriedRow, carriedItems, itemId);
+
+        if (carriedRow->attachSlot > INVENTORY_ATTACHMENT_NONE) {
+            _gpDrawItemName(list, object, itemId, ITEM_MENU_ATTACHMENT_MARK_INCLUDE_ATTACHED);
         } else {
-            _gpDrawItemName(prompt, obj, item, 1);
+            _gpDrawItemName(list, object, itemId, ITEM_MENU_ATTACHMENT_MARK_EQUIPPED_ONLY);
         }
 
-        if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && prompt->selectedItemIndex == prompt->currentItemIndex) {
-            if (item == 0) {
+        if (((object->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && list->selectedItemIndex == list->currentItemIndex) {
+            if (itemId == INVENTORY_ITEM_NONE) {
                 uiSetPromptText(Gp_StrEmpty, 0, 0);
             } else {
-                uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+                uiSetPromptText(itemGetText(itemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
         }
 
-        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-                UiList*           menu;
-                InventoryItemRow* table;
-                s32               i;
-                s32               count;
+                UiList*           armorSlots;
+                InventoryItemRow* rows;
+                s32               rowIndex;
+                s32               rowCount;
 
-                menu = &D_8010E8AC;
+                // Replace the occupant of the selected one-based armor slot.
+                armorSlots = &D_8010E8AC;
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                table = inventoryGetRangeTable(scan);
-                count = scan->rowCount;
-                table = &table[scan->firstRow];
-                for (i = 0; i < count; i++) {
-                    if (table[i].attachSlot == menu->selectedItemIndex + 1) {
-                        inventoryDetachItem(&table[i]);
+                rows     = inventoryGetRangeTable(carriedItems);
+                rowCount = carriedItems->rowCount;
+                rows     = &rows[carriedItems->firstRow];
+                for (rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+                    if (rows[rowIndex].attachSlot == armorSlots->selectedItemIndex + 1) {
+                        inventoryDetachItem(&rows[rowIndex]);
                         break;
                     }
                 }
-                rec->attachSlot = menu->selectedItemIndex + 1;
-                obj->result     = USER_INTERFACE_RESULT_DISMISS;
+                carriedRow->attachSlot = armorSlots->selectedItemIndex + 1;
+                object->result         = USER_INTERFACE_RESULT_DISMISS;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                uiSpawnObject(&D_8010EAB4[45], item | 0x10000, 1, 1, obj);
-                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                uiSpawnObject(&D_8010EAB4[ITEM_MENU_ATTACHMENT_INFO_DESCRIPTOR], itemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ATTACHMENT_INFO_OPEN_DELAY_TICKS, object);
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         }
     } else {
-        if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && prompt->selectedItemIndex == prompt->currentItemIndex) {
+        if (((object->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && list->selectedItemIndex == list->currentItemIndex) {
             uiSetPromptText(Gp_StrDetachArmorHelp, 0, 0);
         }
         {
-            TextDrawReq req;
-            s32         off;
+            TextDrawReq textRequest;
+            s32         textOriginY;
 
-            req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.signedValue;
-            off            = obj->panel.contentOriginY.unsignedValue - 6;
-            req.y          = prompt->rowTextY.signedValue + off;
-            req.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req.colorRgb   = prompt->colorRgb;
-            req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            req.alignment  = TEXT_ALIGNMENT_LEFT;
-            req.drawMode   = TEXT_DRAW_OUTLINED;
-            textDrawString(&req, Gp_StrRemoveArmor);
+            textRequest.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.signedValue;
+            textOriginY            = object->panel.contentOriginY.unsignedValue - 6;
+            textRequest.y          = list->rowTextY.signedValue + textOriginY;
+            textRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+            textRequest.colorRgb   = list->colorRgb;
+            textRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            textRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+            textRequest.drawMode   = TEXT_DRAW_OUTLINED;
+            textDrawString(&textRequest, Gp_StrRemoveArmor);
         }
-        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-                s32 slot;
-                s32 i;
-                s32 count;
+                s32 attachmentSlot;
+                s32 rowIndex;
+                s32 rowCount;
 
-                slot = D_8010E8AC.selectedItemIndex + 1;
+                attachmentSlot = D_8010E8AC.selectedItemIndex + 1;
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                rec   = inventoryGetRangeTable(scan);
-                count = scan->rowCount;
-                rec   = &rec[scan->firstRow];
-                for (i = 0; i < count; i++, rec++) {
-                    if (rec->attachSlot == slot) {
-                        inventoryDetachItem(rec);
+                carriedRow = inventoryGetRangeTable(carriedItems);
+                rowCount   = carriedItems->rowCount;
+                carriedRow = &carriedRow[carriedItems->firstRow];
+                for (rowIndex = 0; rowIndex < rowCount; rowIndex++, carriedRow++) {
+                    if (carriedRow->attachSlot == attachmentSlot) {
+                        inventoryDetachItem(carriedRow);
                         break;
                     }
                 }
-                obj->result = USER_INTERFACE_RESULT_DISMISS;
+                object->result = USER_INTERFACE_RESULT_DISMISS;
             }
         }
     }

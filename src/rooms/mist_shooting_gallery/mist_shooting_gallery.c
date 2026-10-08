@@ -675,7 +675,7 @@ UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1,
 
 UiObjectDesc D_mist_shooting_gallery_80184F70 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 64 }, 32, 0, TASK_BODY_NONE, 192, _mistShootingGalleryWeaponSelectPanelTask, 0 };
 
-TaskDesc D_mist_shooting_gallery_80184F8C = { { { TASK_BODY_NONE, 192 } }, Gp_MenuRootTask, { .value = 0 } };
+TaskDesc D_mist_shooting_gallery_80184F8C = { { { TASK_BODY_NONE, 192 } }, menuRootTask, { .value = 0 } };
 
 _MistShootingGalleryTargetScore D_mist_shooting_gallery_80184F98[MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT] = {
     { 600, D_mist_shooting_gallery_8017D650 },

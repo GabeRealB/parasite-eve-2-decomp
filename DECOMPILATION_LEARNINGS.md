@@ -30464,7 +30464,7 @@ if (!(p->field_4 & 1)) {
 }
 ```
 
-`Gp_TickState1C` is the example.
+`_roomEffectTickController` is the example.
 
 ## `s32` dest forces `lh`; duplicate the shared call for kill-before-alt
 
@@ -31449,12 +31449,12 @@ slot the target uses for `sh killCountdown`. A TU-local `s32` prototype
 register s32 fade asm("a0");
 fade = 0xFF;
 asm("" : "+r"(fade));
-arg0->killCountdown = 0xC;
+task->killCountdown = 0xC;
 Display_SetFadeMax(fade);
 ```
 
 emit `li a0, 0xff` / `li v0, 0xc` / `jal` / `sh v0, 0x2a(s5)`. Do not
-change the main header. `Gp_MenuRootTask` is the example.
+change the main header. `menuRootTask` is the example.
 
 ## Per-arm 5-arg calls so `sw zero, 0x10(sp)` sinks and stays before `jal`
 
@@ -31479,7 +31479,7 @@ if (arg == 0x45) {
 
 GCC 2.8.1 merges the identical `jal`s and sinks the 5th-arg home.
 A `parent` local instead homes to a register (`move v0, zero`) or a
-new stack slot and grows the frame. `Gp_MenuRootTask` is the example.
+new stack slot and grows the frame. `menuRootTask` is the example.
 
 ## Keep scratch `head` and `vec` both live so `$v1` is not coalesced into `$a2`
 
@@ -35063,7 +35063,7 @@ coalesce and can recover `shift` in `$a1` / `mask` in `$a2` / delayed
 `UiObject*` from `spawnArg2`, swapping `$t0`/`$a3` (obj vs off) and
 `$v0`/`$v1` (gGameSession vs `Gp_Bit2Banks`). Nested
 `register ... asm("a0")` (etc.) is function-wide in 2.8.1 and breaks
-the earlier `uiSpawnObject` `xori a1, 1`. `func_800B65B0` is the
+the earlier `uiSpawnObject` `xori a1, 1`. `itemPickupActionPromptTask` is the
 example; not fully matched.
 
 ## `i << 2` so the IV init is `move t3, t4` after the hoists
@@ -36837,7 +36837,7 @@ addiu  s7, v0, %lo(gMcSaveData+0x5BC)
 
 A `volatile` empty `"+r"(obj)` barrier also stops the `$s1` staging but
 emits `sw s5` first and postpones the `la` until after the remaining `$s`
-saves. `Gp_DrawRemoveArmorRow` is the example.
+saves. `itemMenuDrawAttachmentCandidateRow` is the example.
 
 ## Clobber a known-NULL saved pointer so it is not a zero source
 
@@ -36860,7 +36860,7 @@ Clobber the register on the empty path before those uses:
 The empty body still matches `move a1, zero` / `lbu v1, 0(scan)` /
 `addu s0, v0, v1`. Reuse the same `rec` variable as the walker so `$s0`
 is the dest of that `addu` (a new local lands in `$a0` and the following
-`jal inventoryDetachItem` loses `move a0, s0`). `Gp_DrawRemoveArmorRow` is the example.
+`jal inventoryDetachItem` loses `move a0, s0`). `itemMenuDrawAttachmentCandidateRow` is the example.
 
 ## Reassign `coord` onto `&coord->coord` so the MATRIX* reuses `$s0`
 
@@ -39333,7 +39333,7 @@ The fix is the reverse of "give the function its own C file": move the
 `.rodata` and not `.data`, positioned in the source between the function that
 owns the earlier jtbl and the new one. GCC 2.8.1 assembles file-scope
 definitions in source order, so `.rodata` comes out
-`jtbl(Gp_MenuRootTask) | Gp_ItemMenuStates | D_80096F88 | jtbl(itemMenuDrawItemIcon)`.
+`jtbl(menuRootTask) | Gp_ItemMenuStates | D_80096F88 | jtbl(itemMenuDrawItemIcon)`.
 Then trim the leading entries out of `asm/.../rodata_3688.rodata.s` and bump
 that segment's yaml address to the first surviving symbol. Existing `extern`
 declarations must gain `const` too; assigning a `const` struct to a plain local
@@ -51025,7 +51025,7 @@ restored the boost and matched 100% with identical instructions and the same
 leftover survives every statement permutation, look for a local assigned twice
 and split it; the diff is in the tie-break, not in the source order.
 
-The same rule sank `func_800B65B0`, a give-up seed stuck at 98.2% with the
+The same rule sank `itemPickupActionPromptTask`, a give-up seed stuck at 98.2% with the
 Bit2-flag read `p = Gp_Bit2Banks[i].objectStates; p += id >> 4;` scheduled before
 the `id` shifts instead of after. `sched.c`'s `birthing_insn_p` grants the
 boost only when `REG_N_SETS (pseudo) == 1`, so the `lw` *and* the `addu` both
@@ -142478,7 +142478,7 @@ related-value lookup, with the order the target has; `&Gp_RelatedQty0.rows[item 
 0x80]` for the row folds to the virtual base. Writing `item - 0x80` inline in
 both places instead lets `fold` merge the two addresses into one.
 
-## A `1` held in a saved register and reused for every `+1` in one arm is an inlined helper's constant parameter (Gp_DrawRemoveArmorRow)
+## A `1` held in a saved register and reused for every `+1` in one arm is an inlined helper's constant parameter (itemMenuDrawAttachmentCandidateRow)
 
 Target: two copies of the same draw sequence; one uses immediates, the other
 does `li fp,1` up front and then `sb fp`, `addu v0,v0,fp`, `sllv a3,v0,fp`,

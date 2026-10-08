@@ -332,7 +332,25 @@ void itemPickupPanelTask(Task* task);
 /// result contract, with the initial selection on Yes instead.
 UiObject* itemMenuSpawnYesNoMenu(UiObject* parent);
 
-void Gp_SpawnPickupUiTask(Task* arg0);
+/// Published place-kind banks and the shared pickup-panel descriptor index.
+enum {
+    ITEM_PICKUP_PLACE_BANK_ITEM       = 0,
+    ITEM_PICKUP_PLACE_BANK_KEY_ITEM   = 1,
+    ITEM_PICKUP_PLACE_BANK_SAVE_POINT = 8,
+    ITEM_PICKUP_PANEL_DESCRIPTOR      = 49
+};
+
+/// Opens the published place's pickup, save-point or item-box root after a delay.
+///
+/// Pickup dispatcher state 1 decrements `killCountdown` in task updates and tries
+/// allocation once it is nonpositive. Failure retries without resetting the
+/// counter, repeating any save capture or primitive-buffer preparation.
+/// The published kind/id/quantity must remain stable with their resources loaded.
+/// Banks 0/1 use the pickup panel, bank 8 captures player save state, and other
+/// banks prepare stage UI primitive storage for an item-box panel. Success
+/// borrows the root in `spawnArg1`, sets `uiOpen` and advances to result handling;
+/// the UI task owns that root through animated closing.
+void itemPickupOpenPromptTask(Task* task);
 
 /// Finishes a placed-object prompt, records an accepted pickup and closes its UI.
 ///
@@ -1186,7 +1204,17 @@ extern char Gp_StrChangeOrderHelp[36];
 /// Saved requests are copied locally; no queue-entry pointer is retained.
 void itemMenuEnqueuePreviewLoad(s32 itemId, s32 loadProfile);
 
-void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj);
+/// Draws and handles one armor-attachment candidate or the trailing detach row.
+///
+/// The shared list's `currentItemIndex` selects a carried candidate, excluding
+/// empty/forbidden items and the equipped weapon; the final row detaches.
+/// `D_8010E8AC.selectedItemIndex` selects the destination armor slot (zero-based).
+/// Confirm detaches its existing occupant, assigns the candidate if present and
+/// dismisses the picker. Triangle opens item information with relocated preview.
+/// Consumables display only quantity not loaded into weapons. Requires a valid
+/// carried range, valid slot selection and loaded menu/text/primitive resources.
+/// Both arguments borrow live UI storage; only rows with active input mutate it.
+void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object);
 
 void Gp_EquipSelectMenuTask(Task* arg0);
 

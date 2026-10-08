@@ -255,10 +255,10 @@ static s32 _capBeginSceneSync(Task* unusedTask, s32 unusedMessageId, s32 viewCha
     return 0;
 }
 
-void func_800E7570(Task* arg0)
+void capControlTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = Gp_CapTaskStates;
-    sp.funcs[arg0->state](arg0);
+    states = Gp_CapTaskStates;
+    states.funcs[task->state](task);
 }

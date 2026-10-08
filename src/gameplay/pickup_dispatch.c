@@ -21,7 +21,7 @@
 #include "main/ui.h"
 #include "main/wipsys_types.h"
 
-/// Five-entry dispatcher table: `itemPickupPublishPlacedObjectTask`, `Gp_SpawnPickupUiTask`, `itemPickupHandleResultTask`,
+/// Five-entry dispatcher table: `itemPickupPublishPlacedObjectTask`, `itemPickupOpenPromptTask`, `itemPickupHandleResultTask`,
 /// `itemPickupRestoreFrameTimingTask`, `itemPickupExitTask`. Copied onto the stack by `itemPickupTask`.
 extern const TaskFuncTable5 D_80096E70;
 
@@ -124,7 +124,7 @@ UiObjectTaskFunc D_8010D3A0[96] = {
     NULL,
 };
 
-const TaskFuncTable5 D_80096E70 = { { itemPickupPublishPlacedObjectTask, Gp_SpawnPickupUiTask, itemPickupHandleResultTask, itemPickupRestoreFrameTimingTask, itemPickupExitTask } };
+const TaskFuncTable5 D_80096E70 = { { itemPickupPublishPlacedObjectTask, itemPickupOpenPromptTask, itemPickupHandleResultTask, itemPickupRestoreFrameTimingTask, itemPickupExitTask } };
 
 // "EXP"
 // "MP"

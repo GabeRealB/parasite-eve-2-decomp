@@ -74,7 +74,15 @@ void evsSoundAttenuationFadeTask(Task* task);
 /// interpreter cancels the previous fade before replacing its single request.
 void evsMusicVolumeFadeTask(Task* task);
 
-void func_800E8830(Task* arg0);
+/// Dispatches event-script interpreter initialization, execution and teardown.
+///
+/// Bank 9 type 7 requires `state` 0..2; no bounds check is made. `spawnArg2` borrows
+/// an `EvsCommand` stream and its referenced resources until interpreter cleanup.
+/// `spawnArg1` selects `EVENT_SCRIPT_HUD_HIDE_RESTORE` or `EVENT_SCRIPT_HUD_KEEP`.
+/// Initialization owns interpreter work and takes a display hold; execution
+/// releases the hold and optional HUD suppression before the final kill state.
+/// A handler may release the task; dispatch makes no subsequent access.
+void evsInterpreterTask(Task* task);
 
 /// Slides the HP/MP display upward and back for CAP's demo-scene HUD controls.
 ///

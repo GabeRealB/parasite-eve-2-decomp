@@ -257,7 +257,7 @@ UiListRowCallback D_8010E8A8[1] = { func_800C41A4 };
 
 UiList D_8010E8AC = { D_8010E8A8, 1, { 1 }, 0, 16, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListRowCallback D_8010E8D0[1] = { Gp_DrawRemoveArmorRow };
+UiListRowCallback D_8010E8D0[1] = { itemMenuDrawAttachmentCandidateRow };
 
 UiList D_8010E8D4 = { D_8010E8D0, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
@@ -385,146 +385,190 @@ UiObjectDesc D_8010EAB4[50] = {
     { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -150, -80, 120, 70 }, 60, 0, TASK_BODY_NONE, 192, itemPickupPanelTask, 0 },
 };
 
-void Gp_MenuRootTask(Task* arg0)
+/// Clears and synchronizes the framebuffer opposite the currently presented image.
+///
+/// Requires a stable display-buffer index 0/1 and no pending draw into that image.
+static inline void _menuClearUnpresentedFrameBuffer(const DisplayState* display)
 {
-    switch (arg0->state) {
-        case 0: {
-            PlayerStatus* cfg;
+    enum {
+        ITEM_MENU_ROOT_CLEAR_WIDTH_PIXELS         = 320,
+        ITEM_MENU_ROOT_CLEAR_HEIGHT_PIXELS        = 240,
+        ITEM_MENU_ROOT_FRAME_BUFFER_STRIDE_PIXELS = 272
+    };
+    RECT clearRect;
+
+    clearRect.y = (display->frameBuffer ^ 1) * ITEM_MENU_ROOT_FRAME_BUFFER_STRIDE_PIXELS;
+    clearRect.w = ITEM_MENU_ROOT_CLEAR_WIDTH_PIXELS;
+    clearRect.x = 0;
+    clearRect.h = ITEM_MENU_ROOT_CLEAR_HEIGHT_PIXELS;
+    ClearImage(&clearRect, 0, 0, 0);
+    DrawSync(0);
+}
+
+void menuRootTask(Task* task)
+{
+    enum {
+        ITEM_MENU_ROOT_INITIAL                    = 0,
+        ITEM_MENU_ROOT_WAIT_CAPTURE_FADE          = 10,
+        ITEM_MENU_ROOT_WAIT_CAPTURE_DELAY         = 15,
+        ITEM_MENU_ROOT_OPEN_PANEL                 = 20,
+        ITEM_MENU_ROOT_ACTIVATE_PANEL             = 30,
+        ITEM_MENU_ROOT_WAIT_PANEL_RESULT          = 40,
+        ITEM_MENU_ROOT_RESTORE_RESOURCES          = 50,
+        ITEM_MENU_ROOT_REBUILD_EQUIPMENT          = 60,
+        ITEM_MENU_ROOT_PHASE_STEP                 = 10,
+        ITEM_MENU_ROOT_CAPTURE_PHASE_STEP         = 5,
+        ITEM_MENU_ROOT_REQUEST_ATTACHMENTS        = 0x42,
+        ITEM_MENU_ROOT_REQUEST_GALLERY_WEAPON     = 0x44,
+        ITEM_MENU_ROOT_REQUEST_OPTIONS            = 0x45,
+        ITEM_MENU_ROOT_OPTIONS_DESCRIPTOR         = 36,
+        ITEM_MENU_ROOT_CAPTURE_DELAY_UPDATES      = 2,
+        ITEM_MENU_ROOT_OPEN_DELAY_TICKS           = 1,
+        ITEM_MENU_ROOT_OPTIONS_OPEN_DELAY_TICKS   = 2,
+        ITEM_MENU_ROOT_INVENTORY_OPEN_DELAY_TICKS = 2,
+        ITEM_MENU_ROOT_MAP_OPEN_DELAY_TICKS       = 8,
+        ITEM_MENU_ROOT_CLOSE_DELAY_UPDATES        = 12,
+        ITEM_MENU_ROOT_INPUT_DELAY_UPDATES        = 8,
+        ITEM_MENU_ROOT_SECONDARY_ITEM_ABSENT      = -1,
+        ITEM_MENU_ROOT_WEAPON_EFFECT_PRIORITY     = 0x52,
+        ITEM_MENU_ROOT_FADE_MAX                   = 255,
+        ITEM_MENU_ROOT_FADE_STEP                  = 1,
+        ITEM_MENU_ROOT_WEAPON_AIM_BLEND_FRAMES    = 5
+    };
+
+    switch (task->state) {
+        case ITEM_MENU_ROOT_INITIAL: {
+            PlayerStatus* player;
 
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             D_80114D88 = 0;
             sndEvtRequestScriptDuckAcquire();
             itemMenuClearPreviewItems();
             D_80067634 = NULL;
-            D_80114DE0 = -1;
-            cfg        = &gPlayerStatus;
-            D_80114DE8 = cfg->weapon;
-            D_80114DE4 = cfg->weaponSlotItem;
-            if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
-                D_80114DE0 = equipmentGetWeaponLoad(cfg->weapon + 0x7F)->secondaryItemId;
+            D_80114DE0 = ITEM_MENU_ROOT_SECONDARY_ITEM_ABSENT;
+            player     = &gPlayerStatus;
+            D_80114DE8 = player->weapon;
+            D_80114DE4 = player->weaponSlotItem;
+            if (player->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
+                D_80114DE0 = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId;
             }
             inventoryUpdateIceBag();
-            arg0->killCountdown = 1;
-            arg0->state         = 0xA;
-            if ((arg0->spawnArg1.value == 0x42) || (arg0->spawnArg1.value == 0x44)) {
-                arg0->killCountdown = 2;
-                arg0->state         = 0xF;
+            task->killCountdown = 1;
+            task->state         = ITEM_MENU_ROOT_WAIT_CAPTURE_FADE;
+            if ((task->spawnArg1.value == ITEM_MENU_ROOT_REQUEST_ATTACHMENTS) || (task->spawnArg1.value == ITEM_MENU_ROOT_REQUEST_GALLERY_WEAPON)) {
+                task->killCountdown = ITEM_MENU_ROOT_CAPTURE_DELAY_UPDATES;
+                task->state         = ITEM_MENU_ROOT_WAIT_CAPTURE_DELAY;
             }
             return;
         }
-        case 0xA:
+        case ITEM_MENU_ROOT_WAIT_CAPTURE_FADE:
             if (stageGetFadeStatus() != STAGE_FADE_AT_MAX) {
                 return;
             }
             stageRequestFrameCapture();
             stageResetFadeLevel();
-            arg0->killCountdown = 2;
-            arg0->state        += 5;
+            task->killCountdown = ITEM_MENU_ROOT_CAPTURE_DELAY_UPDATES;
+            task->state        += ITEM_MENU_ROOT_CAPTURE_PHASE_STEP;
             return;
-        case 0xF:
-            arg0->killCountdown--;
-            if (arg0->killCountdown > 0) {
+        case ITEM_MENU_ROOT_WAIT_CAPTURE_DELAY:
+            task->killCountdown--;
+            if (task->killCountdown > 0) {
                 return;
             }
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
             stageEnsureTaskOrderingTables();
             stageEnsureHeapTaskPrimitiveBuffer();
-            arg0->state += 5;
+            task->state += ITEM_MENU_ROOT_CAPTURE_PHASE_STEP;
             return;
-        case 0x14: {
-            RECT          rect;
-            DisplayState* disp;
-            UiObject*     obj;
-            s32           arg;
+        case ITEM_MENU_ROOT_OPEN_PANEL: {
+            DisplayState* display;
+            UiObject*     rootObject;
+            s32           menuRequest;
 
-            disp                         = &gDisplayState;
-            disp->control.flags.flipMode = DISPLAY_FLIP_HOLD;
+            display                         = &gDisplayState;
+            display->control.flags.flipMode = DISPLAY_FLIP_HOLD;
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            if (disp->frameBuffer != disp->drawBuffer) {
+            if (display->frameBuffer != display->drawBuffer) {
                 return;
             }
-            rect.y = (disp->frameBuffer ^ 1) * 0x110;
-            rect.w = 0x140;
-            rect.x = 0;
-            rect.h = 0xF0;
-            ClearImage(&rect, 0, 0, 0);
-            DrawSync(0);
+            // Clear the non-presented image before reusing the auxiliary heap.
+            _menuClearUnpresentedFrameBuffer(display);
             memInitAuxHeap();
-            if (disp->demoScene != DISPLAY_DEMO_NONE) {
-                disp->gameMode = DISPLAY_GAME_RESTART;
+            if (display->demoScene != DISPLAY_DEMO_NONE) {
+                display->gameMode = DISPLAY_GAME_RESTART;
                 break;
             }
-            arg = arg0->spawnArg1.value;
-            if (arg == 0x45) {
+            menuRequest = task->spawnArg1.value;
+            if (menuRequest == ITEM_MENU_ROOT_REQUEST_OPTIONS) {
                 Wip_UiHolder = NULL;
                 cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU);
-                obj = uiSpawnObject(&D_8010EAB4[36], 1, 1, 2, 0);
-            } else if (arg == 0x44) {
-                obj = uiSpawnObject(&D_mist_shooting_gallery_80184F70, 0, 1, 1, 0);
-            } else if (arg == 0x43) {
-                obj = uiSpawnObject(&D_8010F140, 0, 1, 8, 0);
-            } else if (arg == 0x42) {
-                disp->keepGraphics = 1;
-                obj                = uiSpawnObject(&D_8010F898, 0, 1, 1, 0);
+                rootObject = uiSpawnObject(&D_8010EAB4[ITEM_MENU_ROOT_OPTIONS_DESCRIPTOR], 1, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPTIONS_OPEN_DELAY_TICKS, NULL);
+            } else if (menuRequest == ITEM_MENU_ROOT_REQUEST_GALLERY_WEAPON) {
+                rootObject = uiSpawnObject(&D_mist_shooting_gallery_80184F70, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPEN_DELAY_TICKS, NULL);
+            } else if (menuRequest == DISPLAY_MODE_MAP) {
+                rootObject = uiSpawnObject(&D_8010F140, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_MAP_OPEN_DELAY_TICKS, NULL);
+            } else if (menuRequest == ITEM_MENU_ROOT_REQUEST_ATTACHMENTS) {
+                display->keepGraphics = 1;
+                rootObject            = uiSpawnObject(&D_8010F898, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPEN_DELAY_TICKS, NULL);
             } else {
-                disp->keepGraphics = 1;
-                obj                = uiSpawnObject(D_8010EAB4, 0, 0, 2, 0);
+                display->keepGraphics = 1;
+                rootObject            = uiSpawnObject(D_8010EAB4, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_ROOT_INVENTORY_OPEN_DELAY_TICKS, NULL);
             }
-            if (obj == NULL) {
+            if (rootObject == NULL) {
                 break;
             }
-            arg0->spawnArg2.pointer = obj;
+            task->spawnArg2.pointer = rootObject;
             gGameSession->uiOpen    = 1;
-            if (arg0->spawnArg1.value != 0x44) {
+            if (task->spawnArg1.value != ITEM_MENU_ROOT_REQUEST_GALLERY_WEAPON) {
                 sndEvtRequestScriptStart(SOUND_MENU_OPEN, 0, 0);
             }
             break;
         }
-        case 0x1E:
+        case ITEM_MENU_ROOT_ACTIVATE_PANEL:
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-            arg0->state                         += 0xA;
-        case 0x28: {
-            UiObject* obj;
+            task->state                         += ITEM_MENU_ROOT_PHASE_STEP;
+        case ITEM_MENU_ROOT_WAIT_PANEL_RESULT: {
+            UiObject* rootObject;
 
-            obj = arg0->spawnArg2.pointer;
-            if ((obj->result != USER_INTERFACE_RESULT_CONFIRM) && (obj->result != USER_INTERFACE_RESULT_CANCEL)) {
+            rootObject = task->spawnArg2.pointer;
+            if ((rootObject->result != USER_INTERFACE_RESULT_CONFIRM) && (rootObject->result != USER_INTERFACE_RESULT_CANCEL)) {
                 return;
             }
-            uiStartTreeClosing(obj, obj->owner);
-            if ((arg0->spawnArg1.value != 0x44) && (arg0->spawnArg1.value != 0x42)) {
+            uiStartTreeClosing(rootObject, rootObject->owner);
+            if ((task->spawnArg1.value != ITEM_MENU_ROOT_REQUEST_GALLERY_WEAPON) && (task->spawnArg1.value != ITEM_MENU_ROOT_REQUEST_ATTACHMENTS)) {
                 sndEvtRequestScriptStart(SOUND_MENU_CLOSE, 0, 0);
             }
-            arg0->killCountdown = 0xC;
-            stageSetFadeMax(0xFF);
-            stageConfigureFade(0, 0, 0, 1);
-            arg0->state += 0xA;
+            task->killCountdown = ITEM_MENU_ROOT_CLOSE_DELAY_UPDATES;
+            stageSetFadeMax(ITEM_MENU_ROOT_FADE_MAX);
+            stageConfigureFade(0, 0, 0, ITEM_MENU_ROOT_FADE_STEP);
+            task->state += ITEM_MENU_ROOT_PHASE_STEP;
             return;
         }
-        case 0x32: {
-            DisplayState* disp;
-            PlayerStatus* cfg;
+        case ITEM_MENU_ROOT_RESTORE_RESOURCES: {
+            DisplayState* display;
+            PlayerStatus* player;
             s32           secondaryItemId;
-            s32           old;
-            TaskNode*     list;
+            s32           previousWeapon;
+            TaskNode*     defaultList;
             TaskNode*     previousList;
-            s32           saved;
+            s32           selectedWeapon;
 
-            arg0->killCountdown--;
-            if (arg0->killCountdown > 0) {
+            task->killCountdown--;
+            if (task->killCountdown > 0) {
                 return;
             }
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
             {
-                DisplayState* d;
-                d = &gDisplayState;
-                if (d->frameBuffer != d->otBuffer) {
+                DisplayState* closingDisplay;
+                closingDisplay = &gDisplayState;
+                if (closingDisplay->frameBuffer != closingDisplay->otBuffer) {
                     return;
                 }
-                d->control.flags.flipMode = DISPLAY_FLIP_HOLD;
+                closingDisplay->control.flags.flipMode = DISPLAY_FLIP_HOLD;
                 stageReleaseTaskPrimitiveBuffer();
             }
             memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
@@ -534,47 +578,48 @@ void Gp_MenuRootTask(Task* arg0)
             if (D_80114D88 == 1) {
                 loadingRestoreViewImageAndEnqueueResources(1);
             }
-            secondaryItemId = -1;
+            secondaryItemId = ITEM_MENU_ROOT_SECONDARY_ITEM_ABSENT;
             memInitAuxHeap();
-            cfg = &gPlayerStatus;
+            player = &gPlayerStatus;
             equipmentSyncPrimaryAttackSelector();
-            if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
-                secondaryItemId = equipmentGetWeaponLoad(cfg->weapon + 0x7F)->secondaryItemId;
+            if (player->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
+                secondaryItemId = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId;
             }
-            if ((D_80114DE8 == cfg->weapon) && (D_80114DE4 == cfg->weaponSlotItem) &&
+            if ((D_80114DE8 == player->weapon) && (D_80114DE4 == player->weaponSlotItem) &&
                 (D_80114DE0 == secondaryItemId)) {
                 break;
             }
+            // Remove old weapon effects before admitting the replacement resources.
             previousList = taskGetActiveList();
-            list         = &gTaskDefaultList;
-            taskSetActiveList(list);
-            saved                   = cfg->weapon;
-            old                     = (u8)D_80114DE8;
-            disp                    = &gDisplayState;
-            disp->immediateTaskFree = 1;
-            cfg->weapon             = old;
+            defaultList  = &gTaskDefaultList;
+            taskSetActiveList(defaultList);
+            selectedWeapon             = player->weapon;
+            previousWeapon             = (u8)D_80114DE8;
+            display                    = &gDisplayState;
+            display->immediateTaskFree = 1;
+            player->weapon             = previousWeapon;
             playerActorRemoveEquipment();
-            taskCallExitForPriority(list, 0x52);
-            disp->immediateTaskFree = 0;
-            cfg->weapon             = saved;
+            taskCallExitForPriority(defaultList, ITEM_MENU_ROOT_WEAPON_EFFECT_PRIORITY);
+            display->immediateTaskFree = 0;
+            player->weapon             = selectedWeapon;
             taskSetActiveList(previousList);
             loadingEnqueueEquippedWeaponResources();
             break;
         }
-        case 0x3C: {
-            PlayerStatus* cfg;
+        case ITEM_MENU_ROOT_REBUILD_EQUIPMENT: {
+            PlayerStatus* player;
             s32           secondaryItemId;
             TaskNode*     previousList;
 
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            cfg             = &gPlayerStatus;
-            secondaryItemId = -1;
-            if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
-                secondaryItemId = equipmentGetWeaponLoad(cfg->weapon + 0x7F)->secondaryItemId;
+            player          = &gPlayerStatus;
+            secondaryItemId = ITEM_MENU_ROOT_SECONDARY_ITEM_ABSENT;
+            if (player->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
+                secondaryItemId = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId;
             }
-            if ((D_80114DE8 != cfg->weapon) || (D_80114DE4 != cfg->weaponSlotItem) ||
+            if ((D_80114DE8 != player->weapon) || (D_80114DE4 != player->weaponSlotItem) ||
                 (D_80114DE0 != secondaryItemId)) {
                 previousList = taskGetActiveList();
                 taskSetActiveList(&gTaskDefaultList);
@@ -582,15 +627,16 @@ void Gp_MenuRootTask(Task* arg0)
                 gTaskDeferModelBufferAllocation = true;
                 playerActorRestoreEquipment();
                 if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                    playerActorEnterAim(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 5);
+                    playerActorEnterAim(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ITEM_MENU_ROOT_WEAPON_AIM_BLEND_FRAMES);
                 }
-                if (arg0->spawnArg1.value == 0x44) {
+                if (task->spawnArg1.value == ITEM_MENU_ROOT_REQUEST_GALLERY_WEAPON) {
                     playerActorWriteWeaponAnimationBankIndex(&D_8010E7F4.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_8010E7F4, 0);
                 }
                 gTaskDeferModelBufferAllocation = false;
                 taskSetActiveList(previousList);
             }
+            // Return presentation and input to the restored room.
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gDisplayState.keepGraphics = 0;
             gGameSession->uiOpen       = 0;
@@ -604,16 +650,16 @@ void Gp_MenuRootTask(Task* arg0)
             if (taskSpawnFromTableOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {
                 displayAcquireMenuHold();
             }
-            Gp_MenuLockDelay = 8;
+            Gp_MenuLockDelay = ITEM_MENU_ROOT_INPUT_DELAY_UPDATES;
             hudDelayInputAfterMenu();
-            taskCallExit(arg0);
+            taskCallExit(task);
             sndEvtRequestScriptDuckRelease();
             break;
         }
         default:
             return;
     }
-    arg0->state += 0xA;
+    task->state += ITEM_MENU_ROOT_PHASE_STEP;
 }
 
 /// Draws a borrowed caption payload under itemMenuDrawTaskPrompt's contracts.

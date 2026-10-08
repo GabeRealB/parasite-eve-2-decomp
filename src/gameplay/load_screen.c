@@ -9,11 +9,13 @@
 #include "actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
+#include "gameplay/captions.h"
 #include "area_transitions.h"
 #include "gameflag.h"
 #include "gameplay/companion_load.h"
 #include "companion_load.h"
 #include "gameplay/direction.h"
+#include "gameplay/hud_sprites.h"
 #include "hud_sprites.h"
 #include "item_placement.h"
 #include "items.h"
@@ -140,7 +142,7 @@ void func_800AA548(s32 arg0)
     gGameSession->cutsceneHold = 0;
     padInputResetSuppression();
     displaySetShakeY(0);
-    taskSpawn(0, 0x1D, 0, 0);
+    taskSpawn(PLAY_CLOCK_TASK_BANK, PLAY_CLOCK_TASK_TYPE, 0, 0);
     taskSpawn(0, 0x1A, 0, 0);
     gameSetTaskSlot(taskSpawn(4, 5, 0, 0), 9);
     taskSpawn(0, 0x14, 0, 0);
@@ -189,7 +191,7 @@ void func_800AA548(s32 arg0)
     viewApplyCurrentCamera();
     gameSetTaskSlot(taskSpawn(1, 0x23, 0, 0), GAME_TASK_SLOT_SCENE);
     gameSetTaskSlot(taskSpawn(6, 4, 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);
-    taskSpawn(9, 6, 0, 0);
+    taskSpawn(CAP_CONTROL_TASK_BANK, CAP_CONTROL_TASK_TYPE, 0, 0);
     taskSpawn(9, 0x11, 0, 0);
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xB)) {
         taskSpawn((s32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene, 1, 0, 0);

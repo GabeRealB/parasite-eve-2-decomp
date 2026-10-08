@@ -4,6 +4,7 @@
 
 #include "captions.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/item_menu.h"
 #include "gameplay/message.h"
 
 #include "main/session.h"
@@ -32,7 +33,7 @@ void Gp_EndWaitTask(Task* task)
     request = task->spawnArg2.pointer;
     switch (task->state) {
         case 0:
-            taskSpawn(1, 0x2C, 0, request);
+            taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, request);
             task->state++;
             break;
         case 1:

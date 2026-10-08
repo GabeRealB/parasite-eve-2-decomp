@@ -23,7 +23,26 @@ extern UiObjectDesc D_8010D6F4[];
 /// Named as a task entry by the enemy descriptor tables in the map UI overlays.
 void Gp_ItemPickupTilt(Task* arg0);
 
-void func_800B65B0(Task* task);
+/// Task-bank selectors for the CAP-requested placed-object prompt.
+enum {
+    ITEM_PICKUP_ACTION_TASK_BANK = 1,
+    ITEM_PICKUP_ACTION_TASK_TYPE = 0x2C
+};
+
+/// Runs a CAP-requested placed-object prompt and publishes its completion.
+///
+/// Bank 1 type 0x2C borrows a `CapActionRequest` through `spawnArg2` until `done` is
+/// set. `actionId` is a placed-object flag index 0..63 valid for the selected stage.
+/// Gameplay, placement, menu and room-specific panel resources must stay loaded.
+/// State 0 looks up the place and retries root allocation; state 1 waits for
+/// its result, then states 16/17 delay closing by twelve task updates. Panel
+/// opening is delayed by one nominal 60-Hz tick. Pickup banks 0/1 and save-point
+/// bank 8 accept a Yes answer; other banks decline.
+/// Pickups store state 2 in the live save's stage bank unless the session's
+/// corresponding state is replenishable (3). A missing place completes declined
+/// immediately. Normal completion restores frame timing and releases stage UI
+/// primitive storage. The request remains caller-owned throughout.
+void itemPickupActionPromptTask(Task* task);
 
 /// Draws a menu prompt from the task's first spawn payload.
 ///
@@ -250,6 +269,21 @@ void itemMenuDrawMeter(const UiPanel* panel, s32 left, s32 right, s32 centerY, s
 /// Command-indexed menu descriptors. Zero rows reserve unused command IDs.
 extern UiObjectDesc D_8010EAB4[50];
 
-void Gp_MenuRootTask(Task* arg0);
+/// Runs a modal menu from display capture through room and equipment restoration.
+///
+/// `spawnArg1` selects the root: 0x42 armor attachments, 0x43 map, 0x44 shooting-gallery
+/// weapon menu, 0x45 options, or the inventory menu for other requests. Those
+/// roots require their owning overlays and menu resources to stay loaded.
+/// `spawnArg2` receives the task-owned root `UiObject` after successful allocation.
+/// The task holds presentation while clearing/reusing graphics storage, waits
+/// for confirmation or cancellation and closing, then reloads changed equipment
+/// and requests a return to the current view. Panel opening delays use nominal
+/// 60-Hz ticks; capture/close waits count task updates. Equipment exits run with immediate
+/// task freeing on the default list and must obey the task teardown contracts.
+/// Normal panel allocation must succeed: a failed spawn still advances toward
+/// result polling. Demo playback instead requests restart before spawning a root.
+/// Its normal exit requires deferred collection: the final state advances the
+/// task state after calling its exit handler.
+void menuRootTask(Task* task);
 
 #endif // GAMEPLAY_ITEM_MENU_H

@@ -100,7 +100,20 @@ void capSpawnEventIfIdle(s32 commandIndex, s32 eventFlags);
 /// `CAP_PLAYBACK_DISPLAY_TRANSITION`; it does not wait for playback or report success.
 void capRunCommandWithTransition(s32 commandIndex);
 
-void func_800E7570(Task* arg0);
+/// Task-bank selectors for the persistent CAP controller.
+enum {
+    CAP_CONTROL_TASK_BANK = 9,
+    CAP_CONTROL_TASK_TYPE = 6
+};
+
+/// Dispatches the persistent CAP controller's initialization, update and exit.
+///
+/// Bank 9 type 6 requires `state` 0..2; no bounds check is made. Initialization
+/// owns a small work allocation and publishes the CAP-control task slot/message
+/// interface. Updates relocate loaded CAP data and advance the scene-sync gate;
+/// state 2 tears down the task. Requires the gameplay/CAP resources to remain
+/// loaded. A handler may release the task; dispatch makes no subsequent access.
+void capControlTask(Task* task);
 
 extern u8 D_80115680;
 

@@ -1888,33 +1888,33 @@ void Gp_CheckItemInfoButton(UiObject* arg0)
     }
 }
 
-void Gp_SpawnPickupUiTask(Task* arg0)
+void itemPickupOpenPromptTask(Task* task)
 {
-    UiObjectDesc* desc;
-    UiObject*     obj;
+    const UiObjectDesc* descriptor;
+    UiObject*           rootObject;
 
-    arg0->killCountdown--;
-    if (arg0->killCountdown <= 0) {
+    task->killCountdown--;
+    if (task->killCountdown <= 0) {
         switch (Gp_PubItemLoc >> 8) {
-            case 0:
-            case 1:
-                desc = &D_8010EAB4[49];
+            case ITEM_PICKUP_PLACE_BANK_ITEM:
+            case ITEM_PICKUP_PLACE_BANK_KEY_ITEM:
+                descriptor = &D_8010EAB4[ITEM_PICKUP_PANEL_DESCRIPTOR];
                 break;
-            case 8:
+            case ITEM_PICKUP_PLACE_BANK_SAVE_POINT:
                 playerCaptureSaveState();
-                desc                                               = &D_8010D348;
+                descriptor                                         = &D_8010D348;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint = Gp_PubItemLoc;
                 break;
             default:
                 stageEnsureHeapTaskPrimitiveBuffer();
-                desc = &D_8010D6D8;
+                descriptor = &D_8010D6D8;
                 break;
         }
-        obj = uiSpawnObject(desc, 0, 0, 0, NULL);
-        if (obj != NULL) {
-            arg0->spawnArg1.pointer = obj;
+        rootObject = uiSpawnObject(descriptor, 0, USER_INTERFACE_PANEL_INACTIVE, 0, NULL);
+        if (rootObject != NULL) {
+            task->spawnArg1.pointer = rootObject;
             gGameSession->uiOpen    = 1;
-            arg0->state             = arg0->state + 1;
+            task->state             = task->state + 1;
         }
     }
 }

@@ -105,6 +105,19 @@ void viewQueueCurrentCamera(s32 packetListMode);
 /// The loader owns input unblock, viewDirty clearing and presentation handoff.
 void viewTransitionGateTask(Task* task);
 
-void func_800A77B4(Task* arg0);
+/// Task-bank selectors for play-time/HUD monitoring and the death sequence.
+enum {
+    PLAY_CLOCK_TASK_BANK = 0,
+    PLAY_CLOCK_TASK_TYPE = 0x1D
+};
+
+/// Dispatches play-time/HUD updates and the death-to-session-restart sequence.
+///
+/// Bank 0 type 0x1D requires `state` 0..5; no bounds check is made. States
+/// initialize task-owned clock/HUD work, update play, start and wait for death
+/// presentation, restart the session, then kill the task. Gameplay and the live
+/// session/player must remain available through the corresponding states.
+/// A handler can release the task, which is not accessed after dispatch.
+void playClockTask(Task* task);
 
 #endif // GAMEPLAY_HUD_SPRITES_H

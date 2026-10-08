@@ -1054,12 +1054,12 @@ void playClockWaitDeathFade(Task* task)
     }
 }
 
-void func_800A77B4(Task* arg0)
+void playClockTask(Task* task)
 {
-    TaskFuncTable6 sp;
+    TaskFuncTable6 states;
 
-    sp = Gp_PlayClockStates;
-    sp.funcs[arg0->state](arg0);
+    states = Gp_PlayClockStates;
+    states.funcs[task->state](task);
 }
 
 void attachmentPreviewProjectile(s32 release, s32 radius, s32 extent)

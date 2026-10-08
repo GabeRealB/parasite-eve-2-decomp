@@ -572,7 +572,7 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, func_807127A8 },
     { { { TASK_BODY_NONE, 0x0 } }, NULL },
     { { { TASK_BODY_NONE, 0x70 } }, taskKill },
-    { { { TASK_BODY_NONE, 0xC0 } }, func_800B65B0 },
+    { { { TASK_BODY_NONE, 0xC0 } }, itemPickupActionPromptTask },
     { { { TASK_BODY_NONE, 0xC0 } }, displayBlendPreviousFrameTask },
     { { { TASK_BODY_NONE, 0xC0 } }, taskRunExitCallbackTask },
     { { { TASK_BODY_NONE, 0xC0 } }, func_8070A6E8 },
