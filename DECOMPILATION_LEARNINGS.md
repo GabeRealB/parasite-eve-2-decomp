@@ -76018,7 +76018,7 @@ case, applied to the payload of a message send.
 
 ## Wrap the store whose pointer must win a callee-saved pair in `do { } while (0)`
 
-**Symptom.** `func_actor_560800_80136818` matched all 24 instructions with the
+**Symptom.** `_actor560800ApplyShotDamage` matched all 24 instructions with the
 same topology, predicates and order but `regs=10` (97.92%): retail puts the
 `&gPlayerStatus` address in `$s0` and the `work` work pointer in `$s1`, and
 the build had them the other way round (`.diff` shows only the two register
@@ -76067,7 +76067,7 @@ controlled form is to wrap only that one —
 
 ```c
 do {
-    cfg->field_18 = hp;
+    playerStatus->hp = hp;
 } while (0);
 
 work->shotDamageApplied = 1;
@@ -76094,7 +76094,7 @@ over-weighting a pseudo.
 
 ## m2c's `switch` is not neutral: three dense cases compile as a bisection tree
 
-**Problem.** `func_actor_560800_80136930` dispatches on its argument with cases
+**Problem.** `_actor560800StartScenePhasePlayback` dispatches on its argument with cases
 1, 2 and 3, each storing `gDisplayState.frameCount` into its own global before a
 shared call. The m2c seed kept m2c's `switch` verbatim and scored 33.2%
 (`insert=13 delete=7`), 34 instructions against the target's 28.
@@ -76115,9 +76115,9 @@ if-ladder and rewrite before reshaping the switch any further.
 
 ## A `T* p = &global;` local's `%hi/%lo` pair is expanded at the declaration point
 
-**Problem.** `func_actor_560800_80136878` is the sibling of the function above —
+**Problem.** `_actor560800SkipScene` is the sibling of the function above —
 same overlay, same `$s0`/`$s1` pair, and the `do { } while (0)` wrapper already
-in the seed. Declaring the `PlayerStatus* cfg` local at the top of the function
+in the seed. Declaring the `PlayerStatus* playerStatus` local at the top of the function
 (as its four neighbours in the unit all do) scored 75.36% with `regs=0`: the
 register choice was already right and *every* remaining difference was schedule.
 
@@ -76150,7 +76150,7 @@ took the address `addiu`.
 
 ```c
     if (work->shotDamageApplied == 0) {
-        PlayerStatus* cfg = &gPlayerStatus;
+        PlayerStatus* playerStatus = &gPlayerStatus;
 ```
 
 100% on the next build with `regs=0` unchanged. Same lever as "Nested scopes so a
@@ -100459,7 +100459,7 @@ moving the statement around the source changes nothing here (`i = 1;` as a
 declaration initializer, as a statement before or after the stores, and a `u16`
 local copied from the argument all compile to the same object).
 
-## m2c fuses a masked index with its counter; the source indexes `arr[i & 0xFFFF]` and counts `i` unmodified (func_actor_560800_80139360, 2026-09-16)
+## m2c fuses a masked index with its counter; the source indexes `arr[i & 0xFFFF]` and counts `i` unmodified (_actor560800SetChainGroupDraw, 2026-09-16)
 
 The seed scored 61.353% (`branch=4 regs=14 reorder=4 insert=4 delete=6`) because
 m2c read the u16 mask as a second variable recomputed at the loop bottom:
@@ -100480,7 +100480,7 @@ The target instead keeps one counter and masks it at each use:
 0x14: andi v0,a0,0xffff     # index mask, at the loop head
 0x18: sll  v0,v0,0x2
 0x1c: addu v0,a3,v0
-0x20: lw   v0,32(v0)        # -> work->parts[i & 0xFFFF]
+0x20: lw   v0,32(v0)        # -> work->chains[i & 0xFFFF]
 ...
 0x74: andi v0,a0,0xffff     # a *second* mask, for the compare
 0x78: sltiu v0,v0,8
@@ -100494,7 +100494,7 @@ the counter does not:
 ```c
 i = 0;
 do {
-    part = work->parts[i & 0xFFFF];
+    part = work->chains[i & 0xFFFF];
     ...
     i += 1;
 } while ((u32)(i & 0xFFFF) < 8U);
@@ -105806,7 +105806,7 @@ the target's `$a0`/`$v1`/`$a2` choice for the step, the hold counter and the id.
 
 ### Switch case: `j` to the epilogue with the shared tail store in its delay slot means `break`, not `store; return`
 
-Symptom (`func_actor_560800_80134258`): a case ends `jal f` / `j epilogue` with
+Symptom (`_actor560800HandleEveCue`): a case ends `jal f` / `j epilogue` with
 `sh zero,0x38($s2)` in the delay slot, and every other case falls into that same
 `sh` just before the epilogue. Writing the case as `f(...); work->eveCue.id = 0;
 return;` produces the same instructions but schedules the call's memory-loaded
@@ -105882,11 +105882,11 @@ pseudo's ref count enough for global alloc to rank it above a hoisted loop
 constant, giving 100%. The obj pseudo also had to be a copy of the loaded
 `extra` (`coord = extra->coords; obj = extra;`) to keep the `move s5,v0`.
 
-### An unwanted cross-jump into another path's tail: the shared store is last in source (func_actor_560800_80137F58)
+### An unwanted cross-jump into another path's tail: the shared store is last in source (_actor560800PlaceChainGroup)
 
-**Symptom.** A switch case returns with `D_E8 = 1; work->field_46 = 0; D_EC = 1;`
-and the fall-through path after the switch ends `work->field_48 = 0;
-work->field_46 = 0;`. The build came out 4 bytes short: the case's `j` targeted
+**Symptom.** A switch case returns with `D_E8 = 1; work->placeMode = 0; D_EC = 1;`
+and the fall-through path after the switch ends `work->placeResetsBend = 0;
+work->placeMode = 0;`. The build came out 4 bytes short: the case's `j` targeted
 the default path's final `sh zero,0x46(t0)` and its own copy was gone, while the
 target keeps `sh zero,0x46(t0)` in the case and puts `sw D_EC` in the delay slot.
 
@@ -105895,7 +105895,7 @@ global store, so the two paths ended in the same insn and jump2 merged them.
 Every other instruction was identical; the fix is only which store the source
 writes first.
 
-**Fix.** Put the shared store first: `work->field_46 = 0; D_E8 = 1; D_EC = 1;`.
+**Fix.** Put the shared store first: `work->placeMode = 0; D_E8 = 1; D_EC = 1;`.
 The halfword store still comes out between the two global stores, but no longer
 last, so nothing cross-jumps (99.54% -> 100%). When a tail `j` lands 4 bytes
 early on another path's last store, reorder that store earlier in source before
@@ -105909,8 +105909,9 @@ Seen in `func_actor_560800_80133970` (a 570-insn request switch built from inlin
   (integrate.c ~1575) runs `copy_to_mode_reg` for every parameter held in a register,
   constants included. CSE then reuses that pseudo for equal constants in the body. The
   sign was `li a1,1` loaded before the `D_8007218A == 1` compare and reused later for
-  `msg[2] = 1`, where the target loaded 1 again. Fix: helpers should take only the
-  arguments that vary (`PlaySe(kind)` / `PlaySeB(kind)`) and write the fixed values in
+  `request.blend = ANIMATION_BLEND_INTERPOLATE`, where the target loaded 1 again. Fix: helpers should take only the
+  arguments that vary (`_actor560800RestartPlayerWeaponAnimation(animationId)` /
+  `_actor560800BlendPlayerWeaponAnimation(animationId)`) and write the fixed values in
   the body. `const` on the parameter changes nothing. An `s16` parameter also works,
   because an HImode pseudo is not merged with an SImode constant.
 - **Scalar symbol loads skip store dependencies.** In sched1, a store to
