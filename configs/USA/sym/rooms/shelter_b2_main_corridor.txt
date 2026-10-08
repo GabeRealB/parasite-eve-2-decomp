@@ -112,7 +112,7 @@ shelterB2MainCorridorRoomVisualEffectsFlashTask = 0x8018094C; // type:func
 
 shelterB2MainCorridorRoomVisualEffectsTwinTrailTask = 0x801813B0; // type:func
 
-func_shelter_b2_main_corridor_80181C98 = 0x80181C98; // type:func
+shelterB2MainCorridorRoomVisualEffectsSparkBurstTask = 0x80181C98; // type:func
 
 shelterB2MainCorridorDrawViewGlowsTask = 0x8017EC34; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80180BF0; // type:func
@@ -138,3 +138,6 @@ _shelterB2MainCorridorInitializeWaterTask = 0x8017ebf4; // type:func
 _shelterB2MainCorridorWaterTask = 0x8017eb8c; // type:func
 _shelterB2MainCorridorRecordCapCompletionTask = 0x8017e210; // type:func
 _shelterB2MainCorridorResetCompanionScheduleOnDeparture = 0x8017e264; // type:func
+_shelterB2MainCorridorResolveRoomEvent = 0x8017d9c4; // type:func
+_shelterB2MainCorridorHandleRoomAction = 0x8017dc88; // type:func
+_shelterB2MainCorridorStagedDepartureTask = 0x8017deb0; // type:func

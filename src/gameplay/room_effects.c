@@ -1058,11 +1058,11 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2ElevatorHallRoomVisualEffectsSparkBurstTask, { NULL } },                   // 0x208
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SouthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask, { NULL } },        // 0x209
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2NorthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask, { NULL } },        // 0x20A
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_main_corridor_80181C98, { NULL } },                                 // 0x20B
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2MainCorridorRoomVisualEffectsSparkBurstTask, { NULL } },                   // 0x20B
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankRoomVisualEffectsSparkBurstTask, { NULL } },                     // 0x20C
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelRoomVisualEffectsSparkBurstTask, { NULL } },                // 0x20D
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fParkingGarageRoomVisualEffectsSparkBurstTask, { NULL } },                  // 0x20E
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_vehicular_airlock_80180008, { NULL } },                             // 0x20F
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockRoomVisualEffectsSparkBurstTask, { NULL } },               // 0x20F
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsSparkBurstTask, { NULL } },                    // 0x210
     { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneRoomVisualEffectsSparkBurstTask, { NULL } },                        // 0x211
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPavilionRoomVisualEffectsSparkBurstTask, { NULL } },                          // 0x212

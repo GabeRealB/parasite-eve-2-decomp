@@ -109,7 +109,7 @@ extern WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17];
 extern WorldCoordRoomLights       D_dryfield_general_store_801854E8[1];
 
 static s32  _dryfieldGeneralStoreRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
-s32         func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, s32);
+static s32  _dryfieldGeneralStoreHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _dryfieldGeneralStorePlaySceneCueTask(Task* task);
 static void _dryfieldGeneralStoreDropInActorsTask(Task* task);
 
@@ -132,7 +132,7 @@ TaskMessageEntry D_dryfield_general_store_8017E188[6] = {
     { DRYFIELD_GENERAL_STORE_MESSAGE_USE_KEY_ITEM, _dryfieldGeneralStoreRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, _generalStoreCommandMsg },
     { ROOM_MESSAGE_SOUND, _generalStoreSoundMsg },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_general_store_8017DDFC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldGeneralStoreHandleRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1604,23 +1604,33 @@ static s32 _dryfieldGeneralStoreRejectKeyItemUse(Task* task, s32 messageId, s32 
     return DRYFIELD_GENERAL_STORE_KEY_ITEM_USE_REJECTED;
 }
 
-/// Message handler on the slot-4 table that owns the store's story flag 0x5E:
-/// message 1 spawns the cutscene task once the flag is still clear, message 2
-/// arms the cutscene object and then both paths advance the flag.
-s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* arg2, s32 arg3)
+/// Advances the store's cutscene from borrowed direction actions.
+///
+/// Action 1 starts it once; action 2 starts the actor script when the scene is
+/// pending and battle is inactive, then marks it complete regardless. Other
+/// actions do nothing. The second payload is ignored; always returns zero.
+static s32 _dryfieldGeneralStoreHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    switch (arg2->warp) {
-        case 1:
-            if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 0) {
+    enum {
+        DRYFIELD_GENERAL_STORE_ACTION_START_SCENE    = 1,
+        DRYFIELD_GENERAL_STORE_ACTION_COMPLETE_SCENE = 2,
+        DRYFIELD_GENERAL_STORE_SCENE_NOT_STARTED     = 0,
+        DRYFIELD_GENERAL_STORE_SCENE_STARTED         = 1,
+        DRYFIELD_GENERAL_STORE_SCENE_COMPLETE        = 2,
+    };
+
+    switch (request->actionId) {
+        case DRYFIELD_GENERAL_STORE_ACTION_START_SCENE:
+            if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == DRYFIELD_GENERAL_STORE_SCENE_NOT_STARTED) {
                 taskSpawnFromTable(&D_dryfield_general_store_8017E4C0, 0, 0, 0);
-                gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 1);
+                gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, DRYFIELD_GENERAL_STORE_SCENE_STARTED);
             }
             break;
-        case 2:
-            if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED && gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 1) {
+        case DRYFIELD_GENERAL_STORE_ACTION_COMPLETE_SCENE:
+            if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED && gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == DRYFIELD_GENERAL_STORE_SCENE_STARTED) {
                 evsStartScript(D_dryfield_general_store_8017E568, EVENT_SCRIPT_HUD_KEEP);
             }
-            gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 2);
+            gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, DRYFIELD_GENERAL_STORE_SCENE_COMPLETE);
             break;
     }
     return 0;

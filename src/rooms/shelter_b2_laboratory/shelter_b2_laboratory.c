@@ -189,7 +189,7 @@ extern RoomEventReq gRoomEventReq;
 extern u8 gRoomEventActive;
 
 /// Non-zero while the looping sound of `_shelterB2LaboratoryAmbienceTask`
-/// should keep playing; set by `func_shelter_b2_laboratory_801804FC`.
+/// should keep playing; set by `shelterB2LaboratoryStartAmbience`.
 extern s32 D_shelter_b2_laboratory_801864B8;
 
 /// Parameters of the cutscene `_shelterB2LaboratoryCommandMessage` starts.
@@ -1489,12 +1489,17 @@ void shelterB2LaboratoryTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-void func_shelter_b2_laboratory_801804FC(void)
+void shelterB2LaboratoryStartAmbience(void)
 {
+    enum {
+        SHELTER_B2_LABORATORY_AMBIENCE_ENABLED = 1,
+        SHELTER_B2_LABORATORY_TASK_AMBIENCE    = 1,
+    };
+
     if (D_shelter_b2_laboratory_801864B8 == 0) {
-        D_shelter_b2_laboratory_801864B8 = 1;
+        D_shelter_b2_laboratory_801864B8 = SHELTER_B2_LABORATORY_AMBIENCE_ENABLED;
         _shelterB2LaboratorySetFastGlowPulse(SHELTER_B2_LABORATORY_GLOW_PULSE_FAST);
-        taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, 1, 0, 0);
+        taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, SHELTER_B2_LABORATORY_TASK_AMBIENCE, 0, 0);
     }
 }
 

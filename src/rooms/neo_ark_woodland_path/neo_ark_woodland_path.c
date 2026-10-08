@@ -45,7 +45,7 @@ s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 /// The room's message table, parked in the entry task by
-/// `func_neo_ark_woodland_path_8017E944`.
+/// `_neoArkWoodlandPathInitRoomTask`.
 extern TaskMessageEntry D_neo_ark_woodland_path_80181650[];
 
 extern Task* D_neo_ark_woodland_path_80181680;
@@ -761,7 +761,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_woodland_path_80184910[8] = {
     D_neo_ark_woodland_path_801848E8,
 };
 
-static void func_neo_ark_woodland_path_8017E944(Task* arg0);
+static void _neoArkWoodlandPathInitRoomTask(Task* task);
 static void _neoArkWoodlandPathRoomIdleState(Task* task);
 
 #include "../../shared/water_refraction_task.inc.c"
@@ -837,12 +837,19 @@ static s32 _neoArkWoodlandPathForwardActorEvent(Task* task, s32 messageId, s32 h
     return result;
 }
 
-static void func_neo_ark_woodland_path_8017E944(Task* arg0)
+/// Registers the woodland receiver and starts its pool-A controller.
+///
+/// Start in state 0 with this overlay loaded. Publishes the borrowed room task
+/// and the spawned controller, which may be null on allocation failure, then
+/// advances to idle state 1. The controller services forwarded room actions.
+static void _neoArkWoodlandPathInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_neo_ark_woodland_path_80181650;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    D_neo_ark_woodland_path_80181680 = taskSpawnFromTable(D_neo_ark_woodland_path_80184A44, 1, 0, 0);
-    arg0->state                      = (s32)(arg0->state + 1);
+    enum { NEO_ARK_WOODLAND_PATH_POOL_A_CONTROLLER_TASK = 1 };
+
+    task->msgTable = D_neo_ark_woodland_path_80181650;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    D_neo_ark_woodland_path_80181680 = taskSpawnFromTable(D_neo_ark_woodland_path_80184A44, NEO_ARK_WOODLAND_PATH_POOL_A_CONTROLLER_TASK, 0, 0);
+    task->state                      = task->state + 1;
 }
 
 /// Keeps the woodland path room task available for messages in state 1.
@@ -854,7 +861,7 @@ static void _neoArkWoodlandPathRoomIdleState(Task* task)
 
 /// State handlers of the room's entry task: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_woodland_path_8017D614 = {
-    { func_neo_ark_woodland_path_8017E944, _neoArkWoodlandPathRoomIdleState, taskKill }
+    { _neoArkWoodlandPathInitRoomTask, _neoArkWoodlandPathRoomIdleState, taskKill }
 };
 
 void neoArkWoodlandPathRoomTask(Task* task)

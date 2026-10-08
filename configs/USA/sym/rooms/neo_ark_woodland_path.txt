@@ -113,3 +113,4 @@ neoArkWoodlandPathRoomTask = 0x8017e9b0; // type:func
 _roamerTickPoolB = 0x80180ddc; // type:func
 _neoArkWoodlandPathRoamerPoolATask = 0x801814e8; // type:func
 _neoArkWoodlandPathRoamerPoolBTask = 0x801815d4; // type:func
+_neoArkWoodlandPathInitRoomTask = 0x8017e944; // type:func

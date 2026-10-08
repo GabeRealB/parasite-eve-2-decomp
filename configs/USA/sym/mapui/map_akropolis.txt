@@ -75,7 +75,7 @@ D_acropolis_hallway_8017EC2C = 0x8017EC2C; // absolute:True owner=acropolis_hall
 D_acropolis_hallway_8017EC68 = 0x8017EC68; // absolute:True owner=acropolis_hallway
 D_acropolis_hallway_8017ED40 = 0x8017ED40; // absolute:True owner=acropolis_hallway
 gAcropolisHallwayModel01AE0 = 0x8017F85C; // absolute:True owner=acropolis_hallway
-acropolisFountainRoomTask = 0x8017D9C4; // type:func absolute:True owner=acropolis_fountain shared=rooms
+acropolisFountainRoomTask = 0x8017D9C4; // type:func absolute:True owner=acropolis_fountain
 D_acropolis_fountain_8017E814 = 0x8017E814; // absolute:True owner=acropolis_fountain
 D_acropolis_fountain_8017E84C = 0x8017E84C; // absolute:True owner=acropolis_fountain shared=rooms
 D_acropolis_fountain_8017E854 = 0x8017E854; // absolute:True owner=acropolis_fountain

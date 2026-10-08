@@ -87576,7 +87576,7 @@ first when the dup index rates it 1.00.
 
 ## m2c drops a leading call argument that is already in `$a0` on entry
 
-`func_neo_ark_woodland_path_8017E944` opens the way every room's state 0 does -
+`_neoArkWoodlandPathInitRoomTask` opens the way every room's state 0 does -
 park the room's message table in `Task::msgTable`, publish the task in pointer
 slot 7 - and m2c seeded it as `gameSetTaskSlot(7)`, one argument. The real call
 takes two, `gameSetTaskSlot(index, 7)` (`include/main/session.h`), and the seed
@@ -141484,7 +141484,7 @@ shape. A matched jump table in a later unit still needs the manifest `rodata`
 cut, and its `INCLUDE_RODATA` line must come out of the first unit's `.c` by
 hand.
 
-## An independent `li` between a constant's `ori` and its store needs the constant in a local assigned first (func_shelter_b2_main_corridor_8017D9C4, 2026-09-24)
+## An independent `li` between a constant's `ori` and its store needs the constant in a local assigned first (_shelterB2MainCorridorResolveRoomEvent, 2026-09-24)
 
 **Symptom.** Each branch of an if-chain sets two locals that a join block stores
 into a stack struct, plus one field it stores itself:

@@ -43,7 +43,13 @@ extern WorldCollisionSurfaceProperties* D_shelter_1f_vehicular_airlock_80182A80[
 /// task state are preserved. Both the body and session flag bank must remain live.
 void shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask(Task* task);
 
-void func_shelter_1f_vehicular_airlock_8017DA48(Task* task);
+/// Runs the vehicular airlock's room-message receiver.
+///
+/// Start the bodyless task in state 0 to install the table and register
+/// `GAME_TASK_SLOT_ROOM`; states 1 and 2 idle and release it. The state must
+/// be 0..2: dispatch uses an unchecked stack copy of the three-entry table.
+/// Keep this overlay and the borrowed registered task live through dispatch.
+void shelter1fVehicularAirlockRoomTask(Task* task);
 
 /// Runs the vehicular airlock's charging pink flash, peak screen tint and fading star.
 ///
@@ -65,7 +71,14 @@ void shelter1fVehicularAirlockRoomVisualEffectsFlashTask(Task* task);
 /// age for retry. Teardown releases both the histories and the effect work.
 void shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_1f_vehicular_airlock_80180008(Task* task);
+/// Runs an impact flash followed by smoke puffs or orange rings and bouncing sparks.
+///
+/// Requires a coordinate body and owned, zero-aged `EffectWork` in
+/// `spawnArg2.pointer`, supplied by `effectSpawn`. Nonzero `spawnArg1.value`
+/// selects smoke; zero selects rings. Active age seven enters release and the
+/// next active tick frees the work and task. Room effect control 1..3 pauses
+/// the task and 4 or above cancels it. Children have independent lifetimes.
+void shelter1fVehicularAirlockRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Draws the vehicular airlock's fixed light glows in mapped views 2 and 3.
 ///

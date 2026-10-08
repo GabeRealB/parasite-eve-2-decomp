@@ -118,7 +118,14 @@ void shelterB2MainCorridorRoomVisualEffectsFlashTask(Task* task);
 /// values at least 2 freeze it. Keep this overlay and effect controller live.
 void shelterB2MainCorridorRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b2_main_corridor_80181C98(Task* task);
+/// Runs an impact flash followed by smoke puffs or orange rings and bouncing sparks.
+///
+/// Requires a coordinate body and owned, zero-aged `EffectWork` in
+/// `spawnArg2.pointer`, supplied by `effectSpawn`. Nonzero `spawnArg1.value`
+/// selects smoke; zero selects rings. Active age seven enters release and the
+/// next active tick frees the work and task. Room effect control 1..3 pauses
+/// the task and 4 or above cancels it. Children have independent lifetimes.
+void shelterB2MainCorridorRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Selects the corridor's effects and draws beams and flares for the mapped view.
 ///

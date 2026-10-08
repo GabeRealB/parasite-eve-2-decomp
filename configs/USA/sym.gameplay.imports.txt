@@ -972,7 +972,7 @@ shelter1fVehicularAirlockRoomVisualEffectsFlashTask = 0x8017ECBC; // type:func a
 
 shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask = 0x8017F720; // type:func absolute:True owner=shelter_1f_vehicular_airlock
 
-func_shelter_1f_vehicular_airlock_80180008 = 0x80180008; // type:func absolute:True owner=shelter_1f_vehicular_airlock
+shelter1fVehicularAirlockRoomVisualEffectsSparkBurstTask = 0x80180008; // type:func absolute:True owner=shelter_1f_vehicular_airlock
 
 shelterB1ControlRoomDrawGlowsTask = 0x8017F150; // type:func absolute:True owner=shelter_b1_control_room
 
@@ -1143,7 +1143,7 @@ shelterB2MainCorridorRoomVisualEffectsFlashTask = 0x8018094C; // type:func absol
 
 shelterB2MainCorridorRoomVisualEffectsTwinTrailTask = 0x801813B0; // type:func absolute:True owner=shelter_b2_main_corridor
 
-func_shelter_b2_main_corridor_80181C98 = 0x80181C98; // type:func absolute:True owner=shelter_b2_main_corridor
+shelterB2MainCorridorRoomVisualEffectsSparkBurstTask = 0x80181C98; // type:func absolute:True owner=shelter_b2_main_corridor
 
 shelterB2NorthMaintenanceWalkwayRoomVisualEffectsMoteTask = 0x8017F590; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 

@@ -59,6 +59,7 @@
 // The request symbol carries twelve unproven bytes after the request.
 #define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -101,7 +102,7 @@ extern RoomLatchedEvent gRoomEventLatched;
 static void _shelterB1AccessTunnelInitializeRoom(Task* task);
 static void _shelterB1AccessTunnelIdle(Task* task);
 
-s32        func_shelter_b1_access_tunnel_8017DA68(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1AccessTunnelResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB1AccessTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _shelterB1AccessTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 command, s32 unusedArg);
 static s32 _shelterB1AccessTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
@@ -113,7 +114,7 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskDesc D_shelter_b1_access_tunnel_8017E710 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b1_access_tunnel_8017E71C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_access_tunnel_8017DA68 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1AccessTunnelResolveRoomEvent },
     { SHELTER_B1_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1AccessTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1AccessTunnelIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1AccessTunnelIgnoreRoomCommand },
@@ -567,51 +568,61 @@ static __inline__ s32 _shelterB1AccessTunnelStartEvent(const RoomEventMsg* trans
     return ROOM_EVENT_ALREADY_SEEN;
 }
 
-/// Message handler: copies the incoming message to `out` and forwards both to
-/// `mapShelterRoomVariantResolve`. Messages 0x12 and 0x18, while nibble 0x113 is between 1
-/// and 3 and this is not a dry run, apply the room's area records and set the
-/// nibble to 4. Message 0x15, while nibble 0xE5 is clear, answers 0 and -
-/// unless `in->queryOnly` asks for a dry run - passes `in->flagId` to
-/// `gameFlagSetNibbleIfPresent` and runs cap command 1. Otherwise message 0x12 goes through
-/// the rooms' event gate on flag 0xAD, message 0x14 starts the room event on
-/// flag 0x13F, and any other message answers 1.
-s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves access-tunnel exits and gates the control-room and parking scenes.
+///
+/// Borrows complete eight-byte request/reply records, which may alias. Copies
+/// the request before resolving its room; returns 0 for a locked freezer,
+/// 1 for an ordinary exit, or 2 when a deferred door event is eligible.
+/// Queries suppress scenes and meeting-progress updates. Executing departures
+/// to the control room or transfer tunnel finish meeting progress 1..3.
+static s32 _shelterB1AccessTunnelResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq     req;
+    enum {
+        SHELTER_B1_ACCESS_TUNNEL_MEETING_FINISHED   = 4,
+        SHELTER_B1_ACCESS_TUNNEL_CAP_DOOR_BLOCKED   = 1,
+        SHELTER_B1_ACCESS_TUNNEL_CAP_CONTROL_ROOM   = 3,
+        SHELTER_B1_ACCESS_TUNNEL_CAP_PARKING        = 4,
+        SHELTER_B1_ACCESS_TUNNEL_MAP_MARK_BLOCKED   = 2,
+        SHELTER_B1_ACCESS_TUNNEL_NO_FADE            = 0,
+        SHELTER_B1_ACCESS_TUNNEL_SOUND_CONTROL_ROOM = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 9),
+        SHELTER_B1_ACCESS_TUNNEL_SOUND_DOOR_OPEN    = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 1),
+        SHELTER_B1_ACCESS_TUNNEL_SOUND_PARKING      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 5),
+    };
+    RoomEventReq     gateRequest;
     RoomLatchedEvent event;
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM || in->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) > 0 && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) < 4) {
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM || request->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) > 0 && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) < SHELTER_B1_ACCESS_TUNNEL_MEETING_FINISHED) {
             areaApplySavedUpdates(D_shelter_b1_access_tunnel_8017FF44);
-            gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 4);
+            gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, SHELTER_B1_ACCESS_TUNNEL_MEETING_FINISHED);
         }
     }
-    if (in->areaId == GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 && gameFlagGetNibble(GAME_FLAG_GOLEM_FREEZER_UNLOCKED) == 0) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            gameFlagSetNibbleIfPresent(in->flagId, 2);
-            capRunCommandWithTransition(1);
+    if (request->areaId == GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 && gameFlagGetNibble(GAME_FLAG_GOLEM_FREEZER_UNLOCKED) == 0) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            gameFlagSetNibbleIfPresent(request->flagId, SHELTER_B1_ACCESS_TUNNEL_MAP_MARK_BLOCKED);
+            capRunCommandWithTransition(SHELTER_B1_ACCESS_TUNNEL_CAP_DOOR_BLOCKED);
         }
-        return 0;
+        return ROOM_VARIANT_TRANSITION_REFUSED;
     }
-    if (in->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM) {
-        req.capCmd        = 3;
-        req.missingCapCmd = 1;
-        req.firstSnd      = 0x54130009;
-        req.secondSnd     = 0x54130001;
-        req.flagId        = GAME_FLAG_B1_CONTROL_ROOM_TUNNEL_DOOR_UNLOCKED;
-        req.collectedBit  = 0;
-        return _roomEventGate(&req, out);
+    if (request->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM) {
+        gateRequest.capCmd        = SHELTER_B1_ACCESS_TUNNEL_CAP_CONTROL_ROOM;
+        gateRequest.missingCapCmd = SHELTER_B1_ACCESS_TUNNEL_CAP_DOOR_BLOCKED;
+        gateRequest.firstSnd      = SHELTER_B1_ACCESS_TUNNEL_SOUND_CONTROL_ROOM;
+        gateRequest.secondSnd     = SHELTER_B1_ACCESS_TUNNEL_SOUND_DOOR_OPEN;
+        gateRequest.flagId        = GAME_FLAG_B1_CONTROL_ROOM_TUNNEL_DOOR_UNLOCKED;
+        gateRequest.collectedBit  = ROOM_EVENT_GATE_NO_COLLECTION_REQUIRED;
+        return _roomEventGate(&gateRequest, reply);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING) {
-        event.capCmd   = 4;
-        event.stageSnd = 0x54130005;
+    if (request->areaId == GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING) {
+        event.capCmd   = SHELTER_B1_ACCESS_TUNNEL_CAP_PARKING;
+        event.stageSnd = SHELTER_B1_ACCESS_TUNNEL_SOUND_PARKING;
         event.flagId   = GAME_FLAG_B1_ACCESS_TUNNEL_TO_PARKING_SCENE;
-        event.fade     = 0;
-        return _shelterB1AccessTunnelStartEvent(out, &event);
+        event.fade     = SHELTER_B1_ACCESS_TUNNEL_NO_FADE;
+        return _shelterB1AccessTunnelStartEvent(reply, &event);
     }
-    return 1;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
 /// Refuses key-item use in this room, selecting the inventory's cannot-use notice.

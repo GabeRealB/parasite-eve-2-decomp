@@ -107,3 +107,6 @@ shelterB2NorthMaintenanceWalkwayRejectKeyItemMessage = 0x8017dc44; // type:func
 shelterB2NorthMaintenanceWalkwayIgnoreCommandMessage = 0x8017dc4c; // type:func
 shelterB2NorthMaintenanceWalkwayHandleSoundMessage = 0x8017dce4; // type:func
 _shelterB2NorthMaintenanceWalkwayIdleRoomTask = 0x8017dd80; // type:func
+shelterB2NorthMaintenanceWalkwayResolveRoomEvent = 0x8017da88; // type:func
+shelterB2NorthMaintenanceWalkwayHandleRoomAction = 0x8017dc54; // type:func
+_shelterB2NorthMaintenanceWalkwayInitRoomTask = 0x8017dd18; // type:func

@@ -503,17 +503,12 @@ static const TaskFuncTable3 D_shelter_1f_vehicular_airlock_8017D5D8 = {
     { _shelter1fVehicularAirlockInitializeRoom, _shelter1fVehicularAirlockIdleMessageTask, taskKill },
 };
 
-/// Runs the room's message task through its three states: publishing the
-/// room's message table (`_shelter1fVehicularAirlockInitializeRoom`), idling
-/// (`_shelter1fVehicularAirlockIdleMessageTask`) and `taskKill`. The table is
-/// copied onto the stack first, so the call goes through a local copy rather
-/// than the rodata.
-void func_shelter_1f_vehicular_airlock_8017DA48(Task* task)
+void shelter1fVehicularAirlockRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_1f_vehicular_airlock_8017D5D8;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_1f_vehicular_airlock_8017D5D8;
+    stateHandlers.funcs[task->state](task);
 }
 
 void shelter1fVehicularAirlockDrawLightsTask(Task* task)
@@ -703,7 +698,7 @@ void shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_1f_vehicular_airlock_80180008(Task* task)
+void shelter1fVehicularAirlockRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

@@ -62,6 +62,7 @@
 // This room's fade symbol is the ScreenFade itself, with no following word.
 #define ROOM_EVENT_FADE gRoomEventFade
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/streamed_scene.h"
 
@@ -87,11 +88,11 @@ extern WorldCollisionTrigger  D_shelter_1f_bulwark_80180A8C[2];
 extern WorldCollisionTrigger  D_shelter_1f_bulwark_80180B24[8];
 extern WorldCoordRoomLights   D_shelter_1f_bulwark_80180A74[1];
 
-s32         func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32  _shelter1fBulwarkResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _shelter1fBulwarkRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32  _shelter1fBulwarkIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 mode);
 static s32  _shelter1fBulwarkIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 unused);
-void        func_shelter_1f_bulwark_8017DA60(Task*);
+static void _shelter1fBulwarkHeliportDepartureTask(Task* task);
 static void _shelter1fBulwarkPlayDepartureMovieTask(Task* movieTask);
 static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task);
 
@@ -101,14 +102,14 @@ TaskDesc D_shelter_1f_bulwark_80180320 = { { { TASK_BODY_NONE, 32 } }, roomEvent
 enum { SHELTER_1F_BULWARK_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskMessageEntry D_shelter_1f_bulwark_8018032C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_bulwark_8017D7B4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fBulwarkResolveRoomEvent },
     { SHELTER_1F_BULWARK_MESSAGE_USE_KEY_ITEM, _shelter1fBulwarkRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fBulwarkIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelter1fBulwarkIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_1f_bulwark_80180354 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_bulwark_8017DA60, { .value = 0 } };
+TaskDesc D_shelter_1f_bulwark_80180354 = { { { TASK_BODY_NONE, 32 } }, _shelter1fBulwarkHeliportDepartureTask, { .value = 0 } };
 
 TaskDesc D_shelter_1f_bulwark_80180360[2] = {
     { { { TASK_BODY_NONE, 192 } }, _shelter1fBulwarkReloadAfterDepartureMovieTask, { .value = 0 } },
@@ -346,39 +347,55 @@ static __inline__ s32 _shelter1fBulwarkStartEvent(const RoomEventMsg* transition
     return ROOM_EVENT_ALREADY_SEEN;
 }
 
-s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Resolves Bulwark exits and starts their chapter or door scenes.
+///
+/// Borrows eight-byte request/reply records, which may alias, and copies the
+/// whole request before resolving the room. Returns 0 for the first heliport
+/// chapter departure, 1 for an ordinary exit, or 2 for a room-managed scene.
+/// A blocked heliport starts its CAP prompt even on a query; other scene
+/// starts require execute mode and retain copies through the deferred tasks.
+static s32 _shelter1fBulwarkResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
+    enum {
+        SHELTER_1F_BULWARK_HELIPORT_CHAPTER      = 6,
+        SHELTER_1F_BULWARK_CAP_HELIPORT          = 1,
+        SHELTER_1F_BULWARK_CAP_VEHICULAR_AIRLOCK = 6,
+        SHELTER_1F_BULWARK_SOUND_TO_AIRLOCK      = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_BULWARK, 1),
+        SHELTER_1F_BULWARK_FADE_REQUIRED         = 1,
+        SHELTER_1F_BULWARK_NO_FADE               = 0,
+        SHELTER_1F_BULWARK_NO_EVENT_FLAG         = 0,
+    };
     RoomLatchedEvent event;
 
-    *dst = *src;
-    mapNeoArkResolveRoomVariant(src, dst);
-    if (src->areaId == GAME_AREA_SHELTER_1F_HELIPORT) {
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_1F_HELIPORT) {
         if (gameFlagGetNibble(GAME_FLAG_BULWARK_HELIPORT_UNBLOCKED) == 0) {
-            capSpawnEventIfIdle(1, CAP_EVENT_NO_FLAGS);
-            return 2;
+            capSpawnEventIfIdle(SHELTER_1F_BULWARK_CAP_HELIPORT, CAP_EVENT_NO_FLAGS);
+            return ROOM_VARIANT_TRANSITION_HANDLED;
         }
-        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
-            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 6);
+        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < SHELTER_1F_BULWARK_HELIPORT_CHAPTER) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, SHELTER_1F_BULWARK_HELIPORT_CHAPTER);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(&D_shelter_1f_bulwark_80180354, 0, 0, 0);
             }
-            return 0;
+            return ROOM_VARIANT_TRANSITION_REFUSED;
         }
-        event.capCmd   = 1;
-        event.stageSnd = 0x55030003;
-        event.flagId   = 0;
-        event.fade     = 1;
-        return _shelter1fBulwarkStartEvent(dst, &event);
+        event.capCmd   = SHELTER_1F_BULWARK_CAP_HELIPORT;
+        event.stageSnd = SOUND_SHELTER_1F_BULWARK_TO_HELIPORT;
+        event.flagId   = SHELTER_1F_BULWARK_NO_EVENT_FLAG;
+        event.fade     = SHELTER_1F_BULWARK_FADE_REQUIRED;
+        return _shelter1fBulwarkStartEvent(reply, &event);
     }
-    if (src->areaId == GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK) {
-        event.capCmd   = 6;
-        event.stageSnd = 0x55030001;
+    if (request->areaId == GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK) {
+        event.capCmd   = SHELTER_1F_BULWARK_CAP_VEHICULAR_AIRLOCK;
+        event.stageSnd = SHELTER_1F_BULWARK_SOUND_TO_AIRLOCK;
         event.flagId   = GAME_FLAG_BULWARK_TO_VEHICULAR_AIRLOCK_SCENE;
-        event.fade     = 0;
-        return _shelter1fBulwarkStartEvent(dst, &event);
+        event.fade     = SHELTER_1F_BULWARK_NO_FADE;
+        return _shelter1fBulwarkStartEvent(reply, &event);
     }
-    return 1;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
 /// The controller task's states: set up, idle, and kill.
@@ -390,48 +407,86 @@ static const TaskFuncTable3 D_shelter_1f_bulwark_8017D5D8 = {
     },
 };
 
-void func_shelter_1f_bulwark_8017DA60(Task* arg0)
+/// Starts the heliport departure's 30-frame fade and sound, resetting elapsed ticks.
+///
+/// The room-owned fade must remain live through the spawned fade task.
+static inline void _shelter1fBulwarkStartHeliportFade(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum {
+        SHELTER_1F_BULWARK_FADE_FRAMES    = 30,
+        SHELTER_1F_BULWARK_FADE_TASK_BANK = 1,
+        SHELTER_1F_BULWARK_FADE_TASK_SLOT = 0x31,
+    };
+
+    D_shelter_1f_bulwark_80180EC0.blend      = SCREEN_FADE_SUBTRACT;
+    D_shelter_1f_bulwark_80180EC0.phase      = SCREEN_FADE_RUNNING;
+    D_shelter_1f_bulwark_80180EC0.rampFrames = SHELTER_1F_BULWARK_FADE_FRAMES;
+    taskSpawn(SHELTER_1F_BULWARK_FADE_TASK_BANK, SHELTER_1F_BULWARK_FADE_TASK_SLOT, 0, &D_shelter_1f_bulwark_80180EC0);
+    task->killCountdown = 0;
+    sndEvtRequestScriptStart(SOUND_SHELTER_1F_BULWARK_TO_HELIPORT, 0, 0);
+}
+
+/// Runs the first heliport departure's CAP scene, fade and movie handoff.
+///
+/// Start bodyless in state 0 after taking player control. Waits for CAP,
+/// queues battle escape, fades for 30 ticks and waits 31 callbacks, then
+/// commits chapter 6 and spawns the movie/reload coordinator. States 4 and 6
+/// are one-tick delays; state 7 destroys this task. Room resources must remain
+/// live throughout; the task's signed countdown is reused as elapsed ticks.
+static void _shelter1fBulwarkHeliportDepartureTask(Task* task)
+{
+    enum {
+        SHELTER_1F_BULWARK_DEPARTURE_START_CAP         = 0,
+        SHELTER_1F_BULWARK_DEPARTURE_WAIT_CAP          = 1,
+        SHELTER_1F_BULWARK_DEPARTURE_START_FADE        = 2,
+        SHELTER_1F_BULWARK_DEPARTURE_WAIT_FADE         = 3,
+        SHELTER_1F_BULWARK_DEPARTURE_BEFORE_MOVIE      = 4,
+        SHELTER_1F_BULWARK_DEPARTURE_START_MOVIE       = 5,
+        SHELTER_1F_BULWARK_DEPARTURE_AFTER_MOVIE_START = 6,
+        SHELTER_1F_BULWARK_DEPARTURE_RELEASE           = 7,
+        SHELTER_1F_BULWARK_DEPARTURE_CAP               = 1,
+        SHELTER_1F_BULWARK_CAP_KEEP_ACTORS_PAUSED      = 1,
+        SHELTER_1F_BULWARK_DEPARTURE_CHAPTER           = 6,
+        SHELTER_1F_BULWARK_FADE_WAIT_TICKS             = 31,
+    };
+
+    switch (task->state) {
+        case SHELTER_1F_BULWARK_DEPARTURE_START_CAP:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
-            D_80115690 = 1;
-            arg0->state++;
+            capRunCommand(SHELTER_1F_BULWARK_DEPARTURE_CAP, CAP_PLAYBACK_IN_PLACE);
+            D_80115690 = SHELTER_1F_BULWARK_CAP_KEEP_ACTORS_PAUSED;
+            task->state++;
             break;
-        case 1:
+        case SHELTER_1F_BULWARK_DEPARTURE_WAIT_CAP:
             if (capIsBusy() != 0) {
                 break;
             }
             sceneQueueBattleEscapeResult();
-            arg0->state++;
+            task->state++;
             break;
-        case 2:
-            D_shelter_1f_bulwark_80180EC0.blend      = SCREEN_FADE_SUBTRACT;
-            D_shelter_1f_bulwark_80180EC0.phase      = SCREEN_FADE_RUNNING;
-            D_shelter_1f_bulwark_80180EC0.rampFrames = 0x1E;
-            taskSpawn(1, 0x31, 0, &D_shelter_1f_bulwark_80180EC0);
-            arg0->killCountdown = 0;
-            sndEvtRequestScriptStart(SOUND_SHELTER_1F_BULWARK_TO_HELIPORT, 0, 0);
-            arg0->state++;
+        case SHELTER_1F_BULWARK_DEPARTURE_START_FADE:
+            _shelter1fBulwarkStartHeliportFade(task);
+            task->state++;
             break;
-        case 3:
-            arg0->killCountdown++;
-            if (arg0->killCountdown < 0x1F) {
+        case SHELTER_1F_BULWARK_DEPARTURE_WAIT_FADE:
+            task->killCountdown++;
+            if (task->killCountdown < SHELTER_1F_BULWARK_FADE_WAIT_TICKS) {
                 break;
             }
-            arg0->state++;
+            task->state++;
             break;
-        case 5:
-            gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 6);
+        case SHELTER_1F_BULWARK_DEPARTURE_START_MOVIE:
+            // The coordinator owns the movie and the eventual saved-location reload.
+            gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, SHELTER_1F_BULWARK_DEPARTURE_CHAPTER);
             taskSpawnFromTable(D_shelter_1f_bulwark_80180360, 0, 0, 0);
-        case 4:
-        case 6:
-            arg0->state++;
+            /* fallthrough */
+        case SHELTER_1F_BULWARK_DEPARTURE_BEFORE_MOVIE:
+        case SHELTER_1F_BULWARK_DEPARTURE_AFTER_MOVIE_START:
+            task->state++;
             break;
-        case 7:
-            taskKill(arg0);
+        case SHELTER_1F_BULWARK_DEPARTURE_RELEASE:
+            taskKill(task);
             break;
     }
 }

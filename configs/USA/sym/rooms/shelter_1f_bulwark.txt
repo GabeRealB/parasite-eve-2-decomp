@@ -67,3 +67,5 @@ _shelter1fBulwarkPlayDepartureMovieTask = 0x8017dc78; // type:func
 _shelter1fBulwarkInitializeRoom = 0x8017dbd4; // type:func
 shelter1fBulwarkRoomTask = 0x8017dc20; // type:func
 _shelter1fBulwarkReloadAfterDepartureMovieTask = 0x8017de04; // type:func
+_shelter1fBulwarkResolveRoomEvent = 0x8017d7b4; // type:func
+_shelter1fBulwarkHeliportDepartureTask = 0x8017da60; // type:func

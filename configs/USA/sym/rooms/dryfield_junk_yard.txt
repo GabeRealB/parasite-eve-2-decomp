@@ -83,3 +83,4 @@ dryfieldJunkYardRoomTask = 0x8017dcb4; // type:func
 _dryfieldJunkYardHandleRoomAction = 0x8017db78; // type:func
 _dryfieldJunkYardCompanionSequenceTask = 0x8017d848; // type:func
 _dryfieldJunkYardResolveRoomTransition = 0x8017da4c; // type:func
+_dryfieldJunkYardInitRoomTask = 0x8017d708; // type:func

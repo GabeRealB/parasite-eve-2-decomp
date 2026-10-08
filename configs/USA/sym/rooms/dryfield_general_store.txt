@@ -106,3 +106,4 @@ _dryfieldGeneralStoreEngageBattle = 0x8017e130; // type:func
 _dryfieldGeneralStoreInitRoomTask = 0x8017deac; // type:func
 dryfieldGeneralStoreRoomTask = 0x8017df5c; // type:func
 _dryfieldGeneralStoreDropInActorsTask = 0x8017e064; // type:func
+_dryfieldGeneralStoreHandleRoomAction = 0x8017ddfc; // type:func

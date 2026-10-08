@@ -51,7 +51,7 @@ shelter1fVehicularAirlockRoomVisualEffectsFlashTask = 0x8017ECBC; // type:func
 
 shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask = 0x8017F720; // type:func
 
-func_shelter_1f_vehicular_airlock_80180008 = 0x80180008; // type:func
+shelter1fVehicularAirlockRoomVisualEffectsSparkBurstTask = 0x80180008; // type:func
 
 shelter1fVehicularAirlockDrawLightsTask = 0x8017DAA0; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017EF60; // type:func
@@ -69,3 +69,4 @@ shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask = 0x8017d5e4; // type:f
 _shelter1fVehicularAirlockResolveRoomEvent = 0x8017d7dc; // type:func
 _shelter1fVehicularAirlockHandleRoomCommand = 0x8017d990; // type:func
 _shelter1fVehicularAirlockInitializeRoom = 0x8017d9fc; // type:func
+shelter1fVehicularAirlockRoomTask = 0x8017da48; // type:func

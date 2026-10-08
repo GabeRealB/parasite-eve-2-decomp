@@ -65,9 +65,9 @@ TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { { { TASK_BODY_NONE,
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b2_north_maintenance_walkway_80183B60[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_north_maintenance_walkway_8017DA88 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, shelterB2NorthMaintenanceWalkwayResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, shelterB2NorthMaintenanceWalkwayRejectKeyItemMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_north_maintenance_walkway_8017DC54 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, shelterB2NorthMaintenanceWalkwayHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, shelterB2NorthMaintenanceWalkwayIgnoreCommandMessage },
     { ROOM_MESSAGE_SOUND, shelterB2NorthMaintenanceWalkwayHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },

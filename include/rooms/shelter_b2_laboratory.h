@@ -54,8 +54,13 @@ extern WorldCollisionSurfaceProperties* D_shelter_b2_laboratory_80186468[];
 /// the task pointer and does not clear the slot on teardown.
 void shelterB2LaboratoryTask(Task* task);
 
-// Called by the actor overlay's event scripts while this room is loaded.
-void func_shelter_b2_laboratory_801804FC(void);
+/// Starts laboratory ambience once and selects the glows' fast pulse.
+///
+/// Called by the console scene's normal and skip scripts with this room loaded.
+/// Sets the ambience latch before spawning, so repeated calls are inert even
+/// after allocation failure. Room command 4 clears the latch and permits a
+/// later start. Keep this overlay loaded while its ambience task runs.
+void shelterB2LaboratoryStartAmbience(void);
 
 /// Draws the laboratory's light glows for the current mapped camera view.
 ///

@@ -173,12 +173,12 @@ static void _shelterB2MainCorridorInitializeWaterTask(Task* task);
 
 extern TaskDesc D_actor_100400_80147E48;
 
-s32         func_shelter_b2_main_corridor_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32         func_shelter_b2_main_corridor_8017DC88(Task* task, s32 msgId, const void* firstArg, s32);
+static s32  _shelterB2MainCorridorResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _shelterB2MainCorridorHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32  _shelterB2MainCorridorRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32  _shelterB2MainCorridorIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32  _shelterB2MainCorridorHandleSoundMessage(Task* task, s32 messageId, s32 soundCommandId, s32 unusedArg);
-void        func_shelter_b2_main_corridor_8017DEB0(Task*);
+static void _shelterB2MainCorridorStagedDepartureTask(Task* task);
 static void _shelterB2MainCorridorRecordCapCompletionTask(Task* task);
 static void _shelterB2MainCorridorWaterTask(Task* task);
 
@@ -221,16 +221,16 @@ static AnimationSet _gShelterB2MainCorridorAnimation05620 = {
 TaskDesc D_shelter_b2_main_corridor_80182C08 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b2_main_corridor_80182C14[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_main_corridor_8017D9C4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2MainCorridorResolveRoomEvent },
     { SHELTER_B2_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM, _shelterB2MainCorridorRejectKeyItemMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_main_corridor_8017DC88 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2MainCorridorHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB2MainCorridorIgnoreCommandMessage },
     { ROOM_MESSAGE_SOUND, _shelterB2MainCorridorHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b2_main_corridor_80182C44[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_main_corridor_8017DEB0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB2MainCorridorStagedDepartureTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _shelterB2MainCorridorRecordCapCompletionTask, { .value = 0 } },
 };
 
@@ -1625,141 +1625,208 @@ RoomDeparture D_shelter_b2_main_corridor_80189684 = { 0, 0, 0, 0, 0, { 0, 0 }, 0
 
 static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 
-s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Latches an eligible departure scene and starts its deferred event task.
+///
+/// Borrows both complete records, copying them only in execute mode. A zero
+/// event flag is unconditional; other flags run once while clear. Returns 2
+/// when eligible, including queries, or 1 when already seen. Allocation failure
+/// leaves the snapshots, flag and start indication committed.
+static inline s32 _shelterB2MainCorridorStartEvent(RoomEventMsg* reply, const RoomLatchedEvent* eventPtr)
 {
-    RoomLatchedEvent  staged;
-    RoomLatchedEvent* p;
-    s32               capCmd;
-    s16               flag;
-    s32               sndId;
-
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_B2_ELEVATOR_HALL && gameFlagGetNibble(GAME_FLAG_B2_CORRIDOR_ELEVATOR_HALL_UNLOCKED) == 0) {
-        if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-            return 0;
+    enum {
+        SHELTER_B2_MAIN_CORRIDOR_EVENT_STARTED     = 1,
+        SHELTER_B2_MAIN_CORRIDOR_EVENT_NOT_STARTED = 0,
+        SHELTER_B2_MAIN_CORRIDOR_NO_EVENT_FLAG     = 0,
+    };
+    D_shelter_b2_main_corridor_8018965C = SHELTER_B2_MAIN_CORRIDOR_EVENT_NOT_STARTED;
+    if (gameFlagGetNibble(eventPtr->flagId) == 0 || eventPtr->flagId == SHELTER_B2_MAIN_CORRIDOR_NO_EVENT_FLAG) {
+        if (reply->queryOnly != ROOM_EVENT_EXECUTE) {
+            return ROOM_VARIANT_TRANSITION_HANDLED;
         }
-        gameFlagSetNibbleIfPresent(in->flagId, 2);
-        capRunCommandWithTransition(1);
-        return 0;
-    }
-    if (in->areaId == GAME_AREA_SHELTER_B2_LABORATORY && gameFlagGetNibble(GAME_FLAG_B2_LABORATORY_DOOR_UNLOCKED) == 0) {
-        if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-            return 0;
-        }
-        gameFlagSetNibbleIfPresent(in->flagId, 2);
-        capRunCommandWithTransition(2);
-        return 0;
-    }
-    if ((in->areaId == GAME_AREA_SHELTER_B2_LABORATORY || in->areaId == GAME_AREA_SHELTER_B2_BREEDING_ROOM || in->areaId == GAME_AREA_SHELTER_B2_ELEVATOR_HALL) && gameFlagGetNibble(GAME_FLAG_0D1) == 2) {
-        if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-            return 2;
-        }
-        capRunCommandWithTransition(4);
-        return 2;
-    }
-    if (in->areaId == GAME_AREA_SHELTER_B2_SEPTIC_TANK) {
-        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(out);
-        sndId           = 0x54210001;
-        capCmd          = 0xA;
-        staged.stageSnd = sndId;
-        flag            = 0x133;
-    } else if (in->areaId == GAME_AREA_SHELTER_B2_BREEDING_ROOM) {
-        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(out);
-        sndId           = 0x54210001;
-        capCmd          = 9;
-        staged.stageSnd = sndId;
-        flag            = 0x134;
-    } else if (in->areaId == GAME_AREA_SHELTER_B2_ELEVATOR_HALL) {
-        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(out);
-        sndId           = 0x54210001;
-        capCmd          = 0xB;
-        staged.stageSnd = sndId;
-        flag            = 0x135;
-    } else if (in->areaId == GAME_AREA_SHELTER_B2_LABORATORY) {
-        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(out);
-        sndId           = 0x54210001;
-        capCmd          = 0xC;
-        staged.stageSnd = sndId;
-        flag            = 0x136;
-    } else {
-        return 1;
-    }
-    p                                   = &staged;
-    staged.capCmd                       = capCmd;
-    staged.flagId                       = flag;
-    staged.fade                         = 0;
-    D_shelter_b2_main_corridor_8018965C = 0;
-    if (gameFlagGetNibble(p->flagId) == 0 || p->flagId == 0) {
-        if (out->queryOnly != ROOM_EVENT_EXECUTE) {
-            return 2;
-        }
-        gRoomEventStagedMsg     = *out;
-        gRoomEventLatched.event = staged;
-        if (p->flagId != 0) {
-            gameFlagSetNibble(p->flagId, 1);
+        gRoomEventStagedMsg     = *reply;
+        gRoomEventLatched.event = *eventPtr;
+        if (eventPtr->flagId != SHELTER_B2_MAIN_CORRIDOR_NO_EVENT_FLAG) {
+            gameFlagSetNibble(eventPtr->flagId, SHELTER_B2_MAIN_CORRIDOR_EVENT_STARTED);
         }
         taskSpawnFromTable(&D_shelter_b2_main_corridor_80182C08, 0, 0, 0);
-        D_shelter_b2_main_corridor_8018965C = 1;
-        return 2;
+        D_shelter_b2_main_corridor_8018965C = SHELTER_B2_MAIN_CORRIDOR_EVENT_STARTED;
+        return ROOM_VARIANT_TRANSITION_HANDLED;
     }
-    return 1;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
-s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, const void* firstArg, s32 arg3)
+/// Resolves corridor exits and starts the required door or departure scene.
+///
+/// Borrows eight-byte request/reply records, which may alias. Copies the whole
+/// request before resolving its room. Returns 0 for locked doors, 1 for ordinary
+/// departure, or 2 for room-managed scenes. Execute mode updates the companion
+/// schedule and starts or latches scenes. Scene-path queries clear the start
+/// indication without starting work. Keep this overlay loaded until staged work ends.
+static s32 _shelterB2MainCorridorResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    s32 id;
+    enum {
+        SHELTER_B2_MAIN_CORRIDOR_CAP_ELEVATOR_LOCKED         = 1,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_LABORATORY_LOCKED       = 2,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_DEPARTURE_BLOCKED       = 4,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_TO_SEPTIC_TANK          = 10,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_TO_BREEDING_ROOM        = 9,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_TO_ELEVATOR_HALL        = 11,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_TO_LABORATORY           = 12,
+        SHELTER_B2_MAIN_CORRIDOR_TO_SEPTIC_TANK_SCENE_FLAG   = 0x133,
+        SHELTER_B2_MAIN_CORRIDOR_TO_BREEDING_ROOM_SCENE_FLAG = 0x134,
+        SHELTER_B2_MAIN_CORRIDOR_TO_ELEVATOR_HALL_SCENE_FLAG = 0x135,
+        SHELTER_B2_MAIN_CORRIDOR_TO_LABORATORY_SCENE_FLAG    = 0x136,
+        SHELTER_B2_MAIN_CORRIDOR_BLOCKED_PROGRESS            = 2,
+        SHELTER_B2_MAIN_CORRIDOR_MAP_MARK_BLOCKED            = 2,
+        SHELTER_B2_MAIN_CORRIDOR_NO_FADE                     = 0,
+        SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_SOUND             = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, 1),
+    };
+    RoomLatchedEvent  event;
+    RoomLatchedEvent* eventPtr;
+    s32               capCmd;
+    s16               eventFlagId;
+    s32               soundScriptId;
 
-    if (((const DirectionActionRequest*)firstArg)->actionId == 0xA) {
-        if (((const DirectionActionRequest*)firstArg)->argument == 7) {
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B2_ELEVATOR_HALL && gameFlagGetNibble(GAME_FLAG_B2_CORRIDOR_ELEVATOR_HALL_UNLOCKED) == 0) {
+        if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+            return ROOM_VARIANT_TRANSITION_REFUSED;
+        }
+        gameFlagSetNibbleIfPresent(request->flagId, SHELTER_B2_MAIN_CORRIDOR_MAP_MARK_BLOCKED);
+        capRunCommandWithTransition(SHELTER_B2_MAIN_CORRIDOR_CAP_ELEVATOR_LOCKED);
+        return ROOM_VARIANT_TRANSITION_REFUSED;
+    }
+    if (request->areaId == GAME_AREA_SHELTER_B2_LABORATORY && gameFlagGetNibble(GAME_FLAG_B2_LABORATORY_DOOR_UNLOCKED) == 0) {
+        if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+            return ROOM_VARIANT_TRANSITION_REFUSED;
+        }
+        gameFlagSetNibbleIfPresent(request->flagId, SHELTER_B2_MAIN_CORRIDOR_MAP_MARK_BLOCKED);
+        capRunCommandWithTransition(SHELTER_B2_MAIN_CORRIDOR_CAP_LABORATORY_LOCKED);
+        return ROOM_VARIANT_TRANSITION_REFUSED;
+    }
+    if ((request->areaId == GAME_AREA_SHELTER_B2_LABORATORY || request->areaId == GAME_AREA_SHELTER_B2_BREEDING_ROOM || request->areaId == GAME_AREA_SHELTER_B2_ELEVATOR_HALL) && gameFlagGetNibble(GAME_FLAG_0D1) == SHELTER_B2_MAIN_CORRIDOR_BLOCKED_PROGRESS) {
+        if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+            return ROOM_VARIANT_TRANSITION_HANDLED;
+        }
+        capRunCommandWithTransition(SHELTER_B2_MAIN_CORRIDOR_CAP_DEPARTURE_BLOCKED);
+        return ROOM_VARIANT_TRANSITION_HANDLED;
+    }
+    if (request->areaId == GAME_AREA_SHELTER_B2_SEPTIC_TANK) {
+        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(reply);
+        soundScriptId  = SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_SOUND;
+        capCmd         = SHELTER_B2_MAIN_CORRIDOR_CAP_TO_SEPTIC_TANK;
+        event.stageSnd = soundScriptId;
+        eventFlagId    = SHELTER_B2_MAIN_CORRIDOR_TO_SEPTIC_TANK_SCENE_FLAG;
+    } else if (request->areaId == GAME_AREA_SHELTER_B2_BREEDING_ROOM) {
+        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(reply);
+        soundScriptId  = SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_SOUND;
+        capCmd         = SHELTER_B2_MAIN_CORRIDOR_CAP_TO_BREEDING_ROOM;
+        event.stageSnd = soundScriptId;
+        eventFlagId    = SHELTER_B2_MAIN_CORRIDOR_TO_BREEDING_ROOM_SCENE_FLAG;
+    } else if (request->areaId == GAME_AREA_SHELTER_B2_ELEVATOR_HALL) {
+        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(reply);
+        soundScriptId  = SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_SOUND;
+        capCmd         = SHELTER_B2_MAIN_CORRIDOR_CAP_TO_ELEVATOR_HALL;
+        event.stageSnd = soundScriptId;
+        eventFlagId    = SHELTER_B2_MAIN_CORRIDOR_TO_ELEVATOR_HALL_SCENE_FLAG;
+    } else if (request->areaId == GAME_AREA_SHELTER_B2_LABORATORY) {
+        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(reply);
+        soundScriptId  = SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_SOUND;
+        capCmd         = SHELTER_B2_MAIN_CORRIDOR_CAP_TO_LABORATORY;
+        event.stageSnd = soundScriptId;
+        eventFlagId    = SHELTER_B2_MAIN_CORRIDOR_TO_LABORATORY_SCENE_FLAG;
+    } else {
+        return ROOM_VARIANT_TRANSITION_DIRECT;
+    }
+    eventPtr     = &event;
+    event.capCmd = capCmd;
+    event.flagId = eventFlagId;
+    event.fade   = SHELTER_B2_MAIN_CORRIDOR_NO_FADE;
+    return _shelterB2MainCorridorStartEvent(reply, eventPtr);
+}
+
+/// Handles corridor story actions and stages travel to the observatory or EVE tunnel.
+///
+/// Borrows a four-byte direction request only during dispatch; action 10's
+/// argument selects area 7 or 8, and action 1 starts the one-time access scene.
+/// Copies destination selectors into room-owned departure storage before
+/// spawning; another action may overwrite a pending departure. Ignores the zero
+/// second payload and always returns zero. Room resources must outlive its tasks.
+static s32 _shelterB2MainCorridorHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
+{
+    enum {
+        SHELTER_B2_MAIN_CORRIDOR_ACTION_DEPARTURE          = 10,
+        SHELTER_B2_MAIN_CORRIDOR_ACTION_ACCESS_SCENE       = 1,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_OBSERVATORY_BLOCKED   = 3,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_STORY_BLOCKED         = 4,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_OBSERVATORY_DEPARTURE = 6,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_EVE_DEPARTURE         = 7,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_EVE_BLOCKED           = 8,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_EVE_POWER_CLEARED     = 13,
+        SHELTER_B2_MAIN_CORRIDOR_TASK_DEPARTURE            = 0,
+        SHELTER_B2_MAIN_CORRIDOR_TASK_CAP_COMPLETION       = 1,
+        SHELTER_B2_MAIN_CORRIDOR_EVE_TUNNEL_MAP_FLAG       = 0x1AF,
+        SHELTER_B2_MAIN_CORRIDOR_DEFAULT_ROOM              = 1,
+        SHELTER_B2_MAIN_CORRIDOR_ARRIVAL                   = 1,
+        SHELTER_B2_MAIN_CORRIDOR_NO_DEPARTURE_SOUND        = 0,
+        SHELTER_B2_MAIN_CORRIDOR_FLAG_SET                  = 1,
+        SHELTER_B2_MAIN_CORRIDOR_MAP_MARK_CLEAR            = 0,
+        SHELTER_B2_MAIN_CORRIDOR_R47_ACCESS_READY          = 2,
+        SHELTER_B2_MAIN_CORRIDOR_STORY_BLOCKED             = 2,
+    };
+    s32 capCommandId;
+
+    if (request->actionId == SHELTER_B2_MAIN_CORRIDOR_ACTION_DEPARTURE) {
+        if (request->argument == GAME_AREA_NEO_ARK_OBSERVATORY) {
             if (gameFlagGetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS) != 0) {
                 if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0DA) != 0) {
                     D_shelter_b2_main_corridor_80189684.stage = GAME_STAGE_SHELTER_NEO_ARK;
-                    D_shelter_b2_main_corridor_80189684.area  = ((const DirectionActionRequest*)firstArg)->argument;
+                    D_shelter_b2_main_corridor_80189684.area  = request->argument;
                 } else {
                     D_shelter_b2_main_corridor_80189684.stage = GAME_STAGE_MINE_SHELTER;
-                    D_shelter_b2_main_corridor_80189684.area  = 0x31;
+                    D_shelter_b2_main_corridor_80189684.area  = GAME_AREA_SHELTER_R49;
                 }
-                D_shelter_b2_main_corridor_80189684.room     = 1;
-                D_shelter_b2_main_corridor_80189684.warp     = 1;
-                D_shelter_b2_main_corridor_80189684.sndEvent = 0;
+                D_shelter_b2_main_corridor_80189684.room     = SHELTER_B2_MAIN_CORRIDOR_DEFAULT_ROOM;
+                D_shelter_b2_main_corridor_80189684.warp     = SHELTER_B2_MAIN_CORRIDOR_ARRIVAL;
+                D_shelter_b2_main_corridor_80189684.sndEvent = SHELTER_B2_MAIN_CORRIDOR_NO_DEPARTURE_SOUND;
                 D_shelter_b2_main_corridor_80189684.facing   = ROOM_DEPARTURE_SKIP_FACING;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, 6, 0);
+                taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, SHELTER_B2_MAIN_CORRIDOR_TASK_DEPARTURE, SHELTER_B2_MAIN_CORRIDOR_CAP_OBSERVATORY_DEPARTURE, 0);
             } else {
-                capRunCommandWithTransition(3);
-                taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 1, 0x1C4, 0);
+                capRunCommandWithTransition(SHELTER_B2_MAIN_CORRIDOR_CAP_OBSERVATORY_BLOCKED);
+                taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, SHELTER_B2_MAIN_CORRIDOR_TASK_CAP_COMPLETION, GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 0);
             }
         }
-        if (((const DirectionActionRequest*)firstArg)->argument == 8) {
-            if (gameFlagGetNibble(GAME_FLAG_0D1) == 2) {
-                capRunCommandWithTransition(4);
+        if (request->argument == GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL) {
+            if (gameFlagGetNibble(GAME_FLAG_0D1) == SHELTER_B2_MAIN_CORRIDOR_STORY_BLOCKED) {
+                capRunCommandWithTransition(SHELTER_B2_MAIN_CORRIDOR_CAP_STORY_BLOCKED);
                 return 0;
             }
             if (gameFlagGetNibble(GAME_FLAG_0F8) != 0) {
-                capRunCommandWithTransition(8);
-                taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 1, 0x1AF, 0);
+                capRunCommandWithTransition(SHELTER_B2_MAIN_CORRIDOR_CAP_EVE_BLOCKED);
+                taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, SHELTER_B2_MAIN_CORRIDOR_TASK_CAP_COMPLETION, SHELTER_B2_MAIN_CORRIDOR_EVE_TUNNEL_MAP_FLAG, 0);
                 return 0;
             }
             if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) != 0) {
-                id = 0xD;
+                capCommandId = SHELTER_B2_MAIN_CORRIDOR_CAP_EVE_POWER_CLEARED;
             } else {
-                id = 7;
+                capCommandId = SHELTER_B2_MAIN_CORRIDOR_CAP_EVE_DEPARTURE;
             }
             D_shelter_b2_main_corridor_80189684.stage    = GAME_STAGE_SHELTER_NEO_ARK;
-            D_shelter_b2_main_corridor_80189684.area     = ((const DirectionActionRequest*)firstArg)->argument;
-            D_shelter_b2_main_corridor_80189684.room     = 1;
-            D_shelter_b2_main_corridor_80189684.warp     = 1;
-            D_shelter_b2_main_corridor_80189684.sndEvent = 0;
+            D_shelter_b2_main_corridor_80189684.area     = request->argument;
+            D_shelter_b2_main_corridor_80189684.room     = SHELTER_B2_MAIN_CORRIDOR_DEFAULT_ROOM;
+            D_shelter_b2_main_corridor_80189684.warp     = SHELTER_B2_MAIN_CORRIDOR_ARRIVAL;
+            D_shelter_b2_main_corridor_80189684.sndEvent = SHELTER_B2_MAIN_CORRIDOR_NO_DEPARTURE_SOUND;
             D_shelter_b2_main_corridor_80189684.facing   = ROOM_DEPARTURE_SKIP_FACING;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, id, 0);
+            taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, SHELTER_B2_MAIN_CORRIDOR_TASK_DEPARTURE, capCommandId, 0);
         }
     }
-    if (((const DirectionActionRequest*)firstArg)->actionId == 1 && gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) >= 2 && gameFlagGetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0D3) == 0) {
-        gameFlagSetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0D3, 1);
-        gameFlagSetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, 1);
-        gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 0);
+    if (request->actionId == SHELTER_B2_MAIN_CORRIDOR_ACTION_ACCESS_SCENE && gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) >= SHELTER_B2_MAIN_CORRIDOR_R47_ACCESS_READY && gameFlagGetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0D3) == 0) {
+        gameFlagSetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0D3, SHELTER_B2_MAIN_CORRIDOR_FLAG_SET);
+        gameFlagSetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, SHELTER_B2_MAIN_CORRIDOR_FLAG_SET);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, SHELTER_B2_MAIN_CORRIDOR_MAP_MARK_CLEAR);
         evsStartScript(D_shelter_b2_main_corridor_80182CA8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
@@ -1772,67 +1839,99 @@ static const TaskFuncTable3 D_shelter_b2_main_corridor_8017D5F0 = {
     { _shelterB2MainCorridorInitializeRoomTask, _shelterB2MainCorridorIdleRoomTask, taskKill }
 };
 
-void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
+/// Resolves only a departure's destination selectors through an aliased execute request.
+///
+/// The resolver must read only area, warp, room and queryOnly; other message
+/// fields are uninitialized. Borrows both inputs and preserves stage, sound
+/// and facing. The resolved area narrows from a halfword back to a byte.
+static inline void _shelterB2MainCorridorResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolveVariant)
 {
-    RoomEventMsg        param;
+    RoomEventMsg request;
+
+    request.areaId    = departure->area;
+    request.warp      = departure->warp;
+    request.room      = departure->room;
+    request.queryOnly = ROOM_EVENT_EXECUTE;
+    resolveVariant(&request, &request);
+    departure->area = request.areaId;
+    departure->warp = request.warp;
+    departure->room = request.room;
+}
+
+/// Waits for a corridor travel CAP choice, resolves the staged destination and departs.
+///
+/// Start bodyless in state 0 with a CAP command ID in `spawnArg1.value` and
+/// initialized room-owned departure storage. Choice 12 restores actor/player
+/// control and destroys the task; other choices pass through a one-tick delay,
+/// update progression and publish the resolved departure for the travel task.
+/// Keep the staged storage and this overlay live and stable until publication.
+static void _shelterB2MainCorridorStagedDepartureTask(Task* task)
+{
+    enum {
+        SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_START_CAP          = 0,
+        SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_WAIT_CAP           = 1,
+        SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_CHECK_CHOICE       = 2,
+        SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_DELAY              = 3,
+        SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_COMMIT             = 4,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_DECLINED_KEY             = 12,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_KEEP_ACTORS_PAUSED       = 1,
+        SHELTER_B2_MAIN_CORRIDOR_COMPANION_DEPARTURE_SCHEDULE = 9,
+        SHELTER_B2_MAIN_CORRIDOR_BLOCKED_PROGRESS             = 2,
+        SHELTER_B2_MAIN_CORRIDOR_NEO_ARK_CHAPTER              = 5,
+        SHELTER_B2_MAIN_CORRIDOR_FLAG_SET                     = 1,
+    };
     RoomVariantResolver resolve;
 
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_START_CAP:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            capRunCommandWithTransition(arg0->spawnArg1.value);
-            D_80115690 = 1;
-            arg0->state++;
+            capRunCommandWithTransition(task->spawnArg1.value);
+            D_80115690 = SHELTER_B2_MAIN_CORRIDOR_CAP_KEEP_ACTORS_PAUSED;
+            task->state++;
             break;
-        case 1:
+        case SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_WAIT_CAP:
             if (capIsBusy() != 0) {
                 break;
             }
-            arg0->state++;
+            task->state++;
             break;
-        case 2:
-            if (capGetVariantKey() == 0xC) {
+        case SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_CHECK_CHOICE:
+            if (capGetVariantKey() == SHELTER_B2_MAIN_CORRIDOR_CAP_DECLINED_KEY) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                taskKill(arg0);
+                taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 break;
             }
-            arg0->state++;
+            task->state++;
             break;
-        case 3:
-            arg0->state++;
+        case SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_DELAY:
+            task->state++;
             break;
-        case 4:
-            if (D_shelter_b2_main_corridor_80189684.area == 7 && gameFlagGetNibble(GAME_FLAG_0D1) == 2) {
-                gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 9);
+        case SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_COMMIT:
+            // Commit progression before resolving and publishing the deferred destination.
+            if (D_shelter_b2_main_corridor_80189684.area == GAME_AREA_NEO_ARK_OBSERVATORY && gameFlagGetNibble(GAME_FLAG_0D1) == SHELTER_B2_MAIN_CORRIDOR_BLOCKED_PROGRESS) {
+                gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, SHELTER_B2_MAIN_CORRIDOR_COMPANION_DEPARTURE_SCHEDULE);
             }
-            if (D_shelter_b2_main_corridor_80189684.area == 0x31) {
-                if (gameFlagGetNibble(GAME_FLAG_0D1) == 2) {
-                    gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 9);
+            if (D_shelter_b2_main_corridor_80189684.area == GAME_AREA_SHELTER_R49) {
+                if (gameFlagGetNibble(GAME_FLAG_0D1) == SHELTER_B2_MAIN_CORRIDOR_BLOCKED_PROGRESS) {
+                    gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, SHELTER_B2_MAIN_CORRIDOR_COMPANION_DEPARTURE_SCHEDULE);
                 }
                 if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0DA) == 0) {
-                    gameFlagSetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0DA, 1);
-                    gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 5);
+                    gameFlagSetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0DA, SHELTER_B2_MAIN_CORRIDOR_FLAG_SET);
+                    gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, SHELTER_B2_MAIN_CORRIDOR_NEO_ARK_CHAPTER);
                 }
             }
-            if (D_shelter_b2_main_corridor_80189684.area == 8) {
-                if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
-                    gameFlagSetNibble(GAME_FLAG_0F8, 1);
+            if (D_shelter_b2_main_corridor_80189684.area == GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL) {
+                if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == SHELTER_B2_MAIN_CORRIDOR_FLAG_SET) {
+                    gameFlagSetNibble(GAME_FLAG_0F8, SHELTER_B2_MAIN_CORRIDOR_FLAG_SET);
                 }
             }
             resolve = _roomVariantResolveNeoArk;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            param.areaId    = D_shelter_b2_main_corridor_80189684.area;
-            param.warp      = D_shelter_b2_main_corridor_80189684.warp;
-            param.room      = D_shelter_b2_main_corridor_80189684.room;
-            param.queryOnly = ROOM_EVENT_EXECUTE;
-            resolve(&param, &param);
-            D_shelter_b2_main_corridor_80189684.area = param.areaId;
-            D_shelter_b2_main_corridor_80189684.warp = param.warp;
-            D_shelter_b2_main_corridor_80189684.room = param.room;
-            gRoomDeparture.departure                 = D_shelter_b2_main_corridor_80189684;
+            _shelterB2MainCorridorResolveDeparture(&D_shelter_b2_main_corridor_80189684, resolve);
+            gRoomDeparture.departure = D_shelter_b2_main_corridor_80189684;
             taskSpawnFromTable(&D_shelter_b2_main_corridor_801828E0.desc, 0, 0, 0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
@@ -2138,7 +2237,7 @@ void shelterB2MainCorridorRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b2_main_corridor_80181C98(Task* task)
+void shelterB2MainCorridorRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

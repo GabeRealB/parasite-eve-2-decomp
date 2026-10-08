@@ -151,3 +151,4 @@ _shelterB2LaboratoryFinishConsoleSceneTask = 0x80180350; // type:func
 _shelterB2LaboratoryCommandMessage = 0x8017fd18; // type:func
 _shelterB2LaboratoryResolveRoomTransition = 0x801800fc; // type:func
 _shelterB2LaboratoryConsoleActionMessage = 0x801801d0; // type:func
+shelterB2LaboratoryStartAmbience = 0x801804fc; // type:func

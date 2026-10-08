@@ -480,7 +480,7 @@ AreaObjectRoom D_map_neo_ark_8017A6EC[35] = {
 
 TaskDesc D_map_neo_ark_8017A804[] = {
     { { { TASK_BODY_NONE, 0x20 } }, shelter1fParkingGarageRoomTask, { .value = GP_TASK_LOC_KEY(5, 1, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_vehicular_airlock_8017DA48, { .value = GP_TASK_LOC_KEY(5, 2, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, shelter1fVehicularAirlockRoomTask, { .value = GP_TASK_LOC_KEY(5, 2, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelter1fBulwarkRoomTask, { .value = GP_TASK_LOC_KEY(5, 3, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelter1fAirlockRoomTask, { .value = GP_TASK_LOC_KEY(5, 5, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelter1fGuardroomRoomTask, { .value = GP_TASK_LOC_KEY(5, 6, 0) } },

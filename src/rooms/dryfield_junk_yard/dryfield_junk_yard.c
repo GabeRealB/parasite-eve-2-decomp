@@ -71,13 +71,13 @@ extern EvsCommand           D_dryfield_junk_yard_8017E490[];
 extern EvsCommand           D_dryfield_junk_yard_8017E658[];
 
 static void _dryfieldJunkYardDrawModelGroundShadow(Task* task);
-static void func_dryfield_junk_yard_8017D708(Task* arg0);
+static void _dryfieldJunkYardInitRoomTask(Task* task);
 static void _dryfieldJunkYardIdleRoomTask(Task* unusedTask);
 
 /// The room task's states: set up, idle with a conditional companion
 /// debug hook, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_junk_yard_8017D5C4 = {
-    { func_dryfield_junk_yard_8017D708, _dryfieldJunkYardIdleRoomTask, taskKill },
+    { _dryfieldJunkYardInitRoomTask, _dryfieldJunkYardIdleRoomTask, taskKill },
 };
 
 /// Name the room task's second state hands to `func_80724608`.
@@ -1687,30 +1687,36 @@ static void _dryfieldJunkYardDrawModelGroundShadow(Task* task)
     }
 }
 
-/// State 0 of the room task: publishes the message table and claims game
-/// pointer slot 7. With a slot-0xA task present, it sends that task its
-/// opening messages while nibble 0x38 is clear, then either latches nibble
-/// 0x39 and starts the `evsStartScriptWithSkip` sequence (once nibble 0x28 has reached
-/// 2) or, on a visit whose `warp` is 2, sends it message 0x3E9. Advances the
-/// state either way.
-static void func_dryfield_junk_yard_8017D708(Task* arg0)
+/// Registers the junk-yard receiver and prepares the companion's entry scene.
+///
+/// Start in state 0 with the room loaded. If the companion is present, place
+/// and animate it before junk-yard progress, then start the unseen return
+/// scene after trailer-coach progress reaches 2, or place it for arrival 2.
+/// Repeated slot lookups borrow the current companion; advances to idle state 1.
+static void _dryfieldJunkYardInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_dryfield_junk_yard_8017DD20;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    enum {
+        DRYFIELD_JUNK_YARD_TRAILER_RETURN_READY = 2,
+        DRYFIELD_JUNK_YARD_COMPANION_ARRIVAL    = 2,
+        DRYFIELD_JUNK_YARD_RETURN_SCENE_SEEN    = 1,
+    };
+
+    task->msgTable = D_dryfield_junk_yard_8017DD20;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
         if (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 0) {
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE00, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_junk_yard_8017DE00, 0);
             companionWriteAnimationBankIndex(&D_dryfield_junk_yard_8017DD88.source.index);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DD88, 0);
         }
-        if ((gameFlagGetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN) == 0) && (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) >= 2)) {
-            gameFlagSetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN, 1);
+        if ((gameFlagGetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN) == 0) && (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) >= DRYFIELD_JUNK_YARD_TRAILER_RETURN_READY)) {
+            gameFlagSetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN, DRYFIELD_JUNK_YARD_RETURN_SCENE_SEEN);
             evsStartScriptWithSkip(D_dryfield_junk_yard_8017E490, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E658);
-        } else if (gGameSession->location.loc.warp == 2) {
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE30, 0);
+        } else if (gGameSession->location.loc.warp == DRYFIELD_JUNK_YARD_COMPANION_ARRIVAL) {
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_junk_yard_8017DE30, 0);
         }
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Runs the junk-yard companion scene or its turn-and-animation sequence.
