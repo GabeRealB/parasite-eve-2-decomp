@@ -19,6 +19,7 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
@@ -163,7 +164,7 @@ extern Task* D_actor_342000_80165070;
 /// spawn tick. The same record the handler takes.
 extern ActorTransform D_actor_342000_801648B8;
 
-/// Fixed placement `func_actor_342000_8016439C` warps slot 3 to, sent as
+/// Fixed placement `_actor342000RestorePlayerAfterSkip` warps the player to, sent as
 /// message 0x3E9 and again as 0x3F2 by `func_actor_342000_80162BBC`.
 extern ActorTransform D_actor_342000_80164948;
 
@@ -178,25 +179,25 @@ extern s16 D_actor_342000_80164810[];
 /// Per-`spawnArg1` translation seeds for the child model's part coordinate.
 extern SVECTOR D_actor_342000_80164900[];
 
-void func_actor_342000_8016201C(Task*);
-void func_actor_342000_801625D8(Task*);
-void func_actor_342000_801628C8(Task*);
-void func_actor_342000_8016382C(Task*);
-void func_actor_342000_80163EAC(Task*);
-s32  func_actor_342000_801640C0(Task* task, s32 msgId, ActorTransform* transform, s32 arg3);
-s32  func_actor_342000_80164110(Task* task, s32 msgId, ActorCommand* request, ActorTransform* transform);
-void func_actor_342000_80164154(void);
-void func_actor_342000_801641B4(void);
-void func_actor_342000_801641FC(void);
-void func_actor_342000_80164260(void);
-void func_actor_342000_801642B4(s16);
-void func_actor_342000_801642D4(s16);
-void func_actor_342000_801642F4(void);
-void func_actor_342000_80164364(s32);
-void func_actor_342000_8016439C(void);
-void func_actor_342000_8016447C(void);
-void func_actor_342000_8016449C(void);
-void func_actor_342000_801644BC(void);
+void        func_actor_342000_8016201C(Task*);
+void        func_actor_342000_801625D8(Task*);
+void        func_actor_342000_801628C8(Task*);
+void        func_actor_342000_8016382C(Task*);
+static void _actor342000FadeInTask(Task* task);
+static void _actor342000PlaceGluttonModel(Task* task, s32 messageId, const ActorTransform* transform, s32 unusedArgument);
+static void _actor342000ApplyGluttonModelCommand(Task* task, s32 messageId, const ActorCommand* request, const VECTOR* scaleFactors);
+void        func_actor_342000_80164154(void);
+static void _actor342000RemoveGluttonModel(void);
+static void _actor342000KillDoors(void);
+static void _actor342000PlayAlertOnce(void);
+static void _actor342000RequestPlayerAction(s16 playerAction);
+static void _actor342000SetStagingMode(s16 stagingMode);
+static void _actor342000EndBattleOnce(void);
+static void _actor342000SetPlayerDrawMode(s32 drawMode);
+static void _actor342000RestorePlayerAfterSkip(void);
+static void _actor342000StageSceneAudioStart(void);
+static void _actor342000EnqueueScenePlayback(void);
+static void _actor342000FinishScene(void);
 
 static AnimationPackedPose _gActor342000Animation029A0Bank1[6] = {
 #include "assets/actor_342000_animation_029A0_bank1.inc"
@@ -275,8 +276,8 @@ ActorTransform D_actor_342000_801648D0 = { { 0x36B0, 2000, -0x3E80, 0 }, { 0, 20
 
 TaskMessageEntry D_actor_342000_801648E8[3] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
-    { ACTOR_MESSAGE_PLACE, func_actor_342000_801640C0 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_342000_80164110 },
+    { ACTOR_MESSAGE_PLACE, _actor342000PlaceGluttonModel },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor342000ApplyGluttonModelCommand },
 };
 
 SVECTOR D_actor_342000_80164900[6] = {
@@ -298,50 +299,50 @@ EvsCommand D_actor_342000_80164968[51] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642B4 }, { .value = ACTOR_342000_PLAYER_ACTION_PLACE_AT_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642D4 }, { .value = ACTOR_342000_STAGING_GLUTTON_SINKS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000RequestPlayerAction }, { .value = ACTOR_342000_PLAYER_ACTION_PLACE_AT_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000SetStagingMode }, { .value = ACTOR_342000_STAGING_GLUTTON_SINKS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_342000_80164960 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_8016447C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342000StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_8016449C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342000EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642B4 }, { .value = ACTOR_342000_PLAYER_ACTION_WALK_TO_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000RequestPlayerAction }, { .value = ACTOR_342000_PLAYER_ACTION_WALK_TO_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642D4 }, { .value = ACTOR_342000_STAGING_GLUTTON_ALONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642B4 }, { .value = ACTOR_342000_PLAYER_ACTION_PLACE_AT_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000SetStagingMode }, { .value = ACTOR_342000_STAGING_GLUTTON_ALONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000RequestPlayerAction }, { .value = ACTOR_342000_PLAYER_ACTION_PLACE_AT_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642D4 }, { .value = ACTOR_342000_STAGING_DOORS_SHAKE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000SetStagingMode }, { .value = ACTOR_342000_STAGING_DOORS_SHAKE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642B4 }, { .value = ACTOR_342000_PLAYER_ACTION_EVENT_CLIP_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000RequestPlayerAction }, { .value = ACTOR_342000_PLAYER_ACTION_EVENT_CLIP_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642B4 }, { .value = ACTOR_342000_PLAYER_ACTION_EVENT_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000RequestPlayerAction }, { .value = ACTOR_342000_PLAYER_ACTION_EVENT_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_801641B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642D4 }, { .value = ACTOR_342000_STAGING_DOORS_MEET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342000RemoveGluttonModel }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000SetStagingMode }, { .value = ACTOR_342000_STAGING_DOORS_MEET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 240 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642B4 }, { .value = ACTOR_342000_PLAYER_ACTION_WEAPON_CLIP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_801644BC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642D4 }, { .value = ACTOR_342000_STAGING_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_801641FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000RequestPlayerAction }, { .value = ACTOR_342000_PLAYER_ACTION_WEAPON_CLIP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342000FinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000SetStagingMode }, { .value = ACTOR_342000_STAGING_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342000KillDoors }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_801642F4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342000EndBattleOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642B4 }, { .value = ACTOR_342000_PLAYER_ACTION_EVENT_CLIP_3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000RequestPlayerAction }, { .value = ACTOR_342000_PLAYER_ACTION_EVENT_CLIP_3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342000_80164364 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342000SetPlayerDrawMode }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342000_80164364 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642B4 }, { .value = ACTOR_342000_PLAYER_ACTION_WEAPON_CLIP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342000SetPlayerDrawMode }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000RequestPlayerAction }, { .value = ACTOR_342000_PLAYER_ACTION_WEAPON_CLIP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_80164154 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642D4 }, { .value = ACTOR_342000_STAGING_BLEND_ON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000SetStagingMode }, { .value = ACTOR_342000_STAGING_BLEND_ON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642D4 }, { .value = ACTOR_342000_STAGING_BLEND_OFF }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000SetStagingMode }, { .value = ACTOR_342000_STAGING_BLEND_OFF }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642B4 }, { .value = ACTOR_342000_PLAYER_ACTION_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000RequestPlayerAction }, { .value = ACTOR_342000_PLAYER_ACTION_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB3GarbageIncineratorSetExitCollisionWalls }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -352,19 +353,19 @@ EvsCommand D_actor_342000_80164E30[19] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_80164154 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642B4 }, { .value = ACTOR_342000_PLAYER_ACTION_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_342000_801642D4 }, { .value = ACTOR_342000_STAGING_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_801641B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_801641FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_8016439C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000RequestPlayerAction }, { .value = ACTOR_342000_PLAYER_ACTION_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor342000SetStagingMode }, { .value = ACTOR_342000_STAGING_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342000RemoveGluttonModel }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342000KillDoors }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342000RestorePlayerAfterSkip }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_801642F4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342000EndBattleOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342000_80164260 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342000PlayAlertOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -372,7 +373,7 @@ EvsCommand D_actor_342000_80164E30[19] = {
 
 TaskDesc D_actor_342000_80164FF8[10] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_342000_8016382C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_342000_80163EAC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor342000FadeInTask, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801628C8, { .model = &gActor444000Actor403200Model10824 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &gActor444000GluttonLegRight } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_342000_801625D8, { .model = &gActor444000GluttonLegLeft } },
@@ -425,10 +426,9 @@ static s32         func_actor_342000_80161EA4(Task* arg0, u16 arg1);
 static inline void Actor342000_InitCoord(Task* arg0, _Actor342000GluttonModelWork* w);
 static void        func_actor_342000_80162158(Task* arg0);
 static void        func_actor_342000_80162BBC(Task* arg0);
-static inline void Actor342000_CopyMove(ActorTransform* dst, ActorTransform* src);
+static inline void _actor342000CopyPlacementComponents(ActorTransform* destination, const ActorTransform* source);
 static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n);
 static inline s32  Actor342000_Sway(s32 x, s32 d);
-static inline void Actor342000_Add(long* value, s32 delta);
 static inline void Actor342000_Store(long* dst, s32 value);
 static void        func_actor_342000_80162F28(Task* arg0);
 static inline void Actor342000_KillFx(void);
@@ -837,14 +837,18 @@ static void func_actor_342000_80162BBC(Task* arg0)
     work->playerAction = ACTOR_342000_PLAYER_ACTION_NONE;
 }
 
-static inline void Actor342000_CopyMove(ActorTransform* dst, ActorTransform* src)
+/// Copies the six placement components, leaving both vectors' fourth components intact.
+///
+/// Both records must be live and aligned. Positions use world-coordinate units;
+/// rotations use 4096 units per turn. The source is borrowed only for this call.
+static inline void _actor342000CopyPlacementComponents(ActorTransform* destination, const ActorTransform* source)
 {
-    dst->pos.vx = src->pos.vx;
-    dst->pos.vy = src->pos.vy;
-    dst->pos.vz = src->pos.vz;
-    dst->rot.vx = src->rot.vx;
-    dst->rot.vy = src->rot.vy;
-    dst->rot.vz = src->rot.vz;
+    destination->pos.vx = source->pos.vx;
+    destination->pos.vy = source->pos.vy;
+    destination->pos.vz = source->pos.vz;
+    destination->rot.vx = source->rot.vx;
+    destination->rot.vy = source->rot.vy;
+    destination->rot.vz = source->rot.vz;
 }
 
 static inline void Actor342000_SetAnim(Task* task, u16 anim, u16 blend, u16 n)
@@ -875,11 +879,6 @@ static inline s32 Actor342000_Sway(s32 x, s32 d)
     return x - d;
 }
 
-static inline void Actor342000_Add(long* value, s32 delta)
-{
-    *value += delta;
-}
-
 static inline void Actor342000_Store(long* dst, s32 value)
 {
     *dst = value;
@@ -901,8 +900,8 @@ static void func_actor_342000_80162F28(Task* arg0)
                     taskMessageDispatch(work->glutton, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     taskMessageDispatch(work->doors[0], ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     taskMessageDispatch(work->doors[1], ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                    Actor342000_CopyMove(&work->doorPlacements[0], &D_actor_342000_80164818[0]);
-                    Actor342000_CopyMove(&work->doorPlacements[1], &D_actor_342000_80164818[1]);
+                    _actor342000CopyPlacementComponents(&work->doorPlacements[0], &D_actor_342000_80164818[0]);
+                    _actor342000CopyPlacementComponents(&work->doorPlacements[1], &D_actor_342000_80164818[1]);
                     gluttonWork->scale.vx         = ONE;
                     gluttonWork->scale.vy         = ONE;
                     gluttonWork->scale.vz         = ONE;
@@ -952,14 +951,14 @@ static void func_actor_342000_80162F28(Task* arg0)
                     taskMessageDispatch(work->doors[0], ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     taskMessageDispatch(work->doors[1], ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(work->glutton, ACTOR_MESSAGE_PLACE, &D_actor_342000_801648B8, 0);
-                    Actor342000_CopyMove(&work->doorPlacements[0], &D_actor_342000_80164848[0]);
-                    Actor342000_CopyMove(&work->doorPlacements[1], &D_actor_342000_80164848[1]);
+                    _actor342000CopyPlacementComponents(&work->doorPlacements[0], &D_actor_342000_80164848[0]);
+                    _actor342000CopyPlacementComponents(&work->doorPlacements[1], &D_actor_342000_80164848[1]);
                     work->stagingStep++;
                 case 1:
-                    gluttonWork->scale.vx -= 4;
-                    Actor342000_Add(&work->doorPlacements[0].pos.vx, 5);
-                    Actor342000_Add(&work->doorPlacements[1].pos.vx, -5);
-                    v = Actor342000_Sway(work->doorPlacements[0].pos.vz, -20);
+                    gluttonWork->scale.vx          -= 4;
+                    work->doorPlacements[0].pos.vx += 5;
+                    work->doorPlacements[1].pos.vx += -5;
+                    v                               = Actor342000_Sway(work->doorPlacements[0].pos.vz, -20);
                     Actor342000_Store(&work->doorPlacements[0].pos.vz, v);
                     v = Actor342000_Sway(work->doorPlacements[1].pos.vz, 20);
                     Actor342000_Store(&work->doorPlacements[1].pos.vz, v);
@@ -1005,8 +1004,8 @@ static void func_actor_342000_80162F28(Task* arg0)
                 case 0:
                     taskMessageDispatch(work->doors[0], ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                     taskMessageDispatch(work->doors[1], ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                    Actor342000_CopyMove(&work->doorPlacements[0], &D_actor_342000_80164878[0]);
-                    Actor342000_CopyMove(&work->doorPlacements[1], &D_actor_342000_80164878[1]);
+                    _actor342000CopyPlacementComponents(&work->doorPlacements[0], &D_actor_342000_80164878[0]);
+                    _actor342000CopyPlacementComponents(&work->doorPlacements[1], &D_actor_342000_80164878[1]);
                     work->stagingStep++;
                 case 1:
                     work->doorPlacements[0].pos.vx += 5;
@@ -1035,9 +1034,8 @@ static void func_actor_342000_80162F28(Task* arg0)
     work->stagingMode = ACTOR_342000_STAGING_NONE;
 }
 
-/// The event task's leaf steps, inlined here; `actor_342000_3.c` carries the
-/// same bodies as out-of-line functions (`func_actor_342000_801641FC`,
-/// `801642B4`, `801642D4`, `80164154`).
+/// Inline forms of `_actor342000KillDoors`, `_actor342000RequestPlayerAction`,
+/// `_actor342000SetStagingMode` and `func_actor_342000_80164154`, defined below.
 static inline void Actor342000_KillFx(void)
 {
     _Actor342000EventWork* work;
@@ -1166,8 +1164,8 @@ void func_actor_342000_8016382C(Task* arg0)
             func_actor_342000_80162F28(arg0);
             break;
         case 4:
-            Actor342000_CopyMove(&work->doorPlacements[0], &D_actor_342000_80164818[0]);
-            Actor342000_CopyMove(&work->doorPlacements[1], &D_actor_342000_80164818[1]);
+            _actor342000CopyPlacementComponents(&work->doorPlacements[0], &D_actor_342000_80164818[0]);
+            _actor342000CopyPlacementComponents(&work->doorPlacements[1], &D_actor_342000_80164818[1]);
             work->stagingMode   = ACTOR_342000_STAGING_DOORS_CLOSING;
             arg0->killCountdown = 0;
             arg0->state++;
@@ -1239,37 +1237,49 @@ void func_actor_342000_8016382C(Task* arg0)
     }
 }
 
-/// Fade task of the overlay's task table: its first tick allocates the
-/// channel block and seeds every channel at 0xFF; each tick then draws the
-/// full-screen fade overlay and steps the channels down by `spawnArg1`, killing
-/// the task once `r` has gone negative.
-void func_actor_342000_80163EAC(Task* arg0)
-{
-    ScreenFadeWork* fade;
-    ScreenFadeWork* alloc;
+#include "../../shared/screen_fade_step_down.inc.c"
 
-    fade = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memCalloc(8, 0);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+/// Reveals the screen by reducing a subtractive full-screen overlay each tick.
+///
+/// State 0 allocates owned primary-heap work, seeds all channels to 255 and runs
+/// the first ramp tick. Allocation failure kills the task; teardown frees the
+/// work. State 1 requires that live allocation; other states do nothing.
+/// The unsigned low halfword of `spawnArg1` is intensity removed per tick
+/// (zero holds indefinitely). Drawing uses the low red/green/red bytes before
+/// subtraction. Channels narrow to signed 16 bits without clamping; negative
+/// stored red ends the task, so large rates may wrap rather than end at once.
+/// Requires the frame packet arena and foreground tag used by `fadeDrawOverlay`.
+static void _actor342000FadeInTask(Task* task)
+{
+    enum {
+        ACTOR_342000_FADE_STATE_INITIALIZE = 0,
+        ACTOR_342000_FADE_STATE_RAMP       = 1,
+        ACTOR_342000_FADE_MAX_INTENSITY    = 255,
+    };
+    ScreenFadeWork* fade;
+    ScreenFadeWork* allocatedFade;
+
+    fade = task->work;
+    switch (task->state) {
+        case ACTOR_342000_FADE_STATE_INITIALIZE:
+            allocatedFade = memCalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 return;
             }
-            fade         = alloc;
-            fade->b      = 0xFF;
-            fade->g      = 0xFF;
-            fade->r      = 0xFF;
-            arg0->state += 1;
+            fade         = allocatedFade;
+            fade->b      = ACTOR_342000_FADE_MAX_INTENSITY;
+            fade->g      = ACTOR_342000_FADE_MAX_INTENSITY;
+            fade->r      = ACTOR_342000_FADE_MAX_INTENSITY;
+            task->state += ACTOR_342000_FADE_STATE_RAMP - ACTOR_342000_FADE_STATE_INITIALIZE;
             /* fallthrough */
-        case 1:
+        case ACTOR_342000_FADE_STATE_RAMP:
+            // Draw before stepping so the final visible intensity stays nonnegative.
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-            fade->r -= (u16)arg0->spawnArg1.value;
-            fade->g -= (u16)arg0->spawnArg1.value;
-            fade->b -= (u16)arg0->spawnArg1.value;
+            _screenFadeStepDown(fade, task);
             if (fade->r < 0) {
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
     }
@@ -1291,12 +1301,18 @@ static void func_actor_342000_80163F88(Task* task)
 
 #include "../../shared/actor_messages_place_ypr.inc.c"
 
-s32 func_actor_342000_801640C0(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3)
+/// Places the Glutton model's coordinate and records its XYZ Euler rotation.
+///
+/// Handles `ACTOR_MESSAGE_PLACE` on initialized Glutton model work. The borrowed
+/// transform supplies parent-frame position in world-coordinate units and angles
+/// in 4096 units per turn; the body composes those angles on its next tick.
+/// The message ID and second payload are ignored. Dispatch has no defined result.
+static void _actor342000PlaceGluttonModel(Task* task, s32 messageId, const ActorTransform* transform, s32 unusedArgument)
 {
     _Actor342000GluttonModelWork* work;
     GfxCoord*                     coord;
 
-    work                     = arg0->work;
+    work                     = task->work;
     coord                    = &work->coord;
     coord->coord.t[0]        = transform->pos.vx;
     coord->coord.t[1]        = transform->pos.vy;
@@ -1307,15 +1323,25 @@ s32 func_actor_342000_801640C0(Task* arg0, s32 arg1, ActorTransform* transform, 
     work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-s32 func_actor_342000_80164110(Task* arg0, s32 arg1, ActorCommand* request, ActorTransform* transform)
+/// Latches a Glutton model command and applies an optional per-axis scale.
+///
+/// Handles `ACTOR_COMMAND_MESSAGE_APPLY` on initialized Glutton model work.
+/// Command `ACTOR_342000_GLUTTON_COMMAND_SET_SCALE` borrows three readable,
+/// word-aligned XYZ scale words from its second payload; the fourth vector word
+/// is ignored. Copies each full word; coordinate composition uses its low signed
+/// halfword as a Q12 factor (`ONE` is 1.0). Other commands do not read that payload.
+/// Every command's complete halfword is retained in `lastCommand`; the context
+/// and message ID are ignored. Dispatch has no defined result.
+static void _actor342000ApplyGluttonModelCommand(Task* task, s32 messageId, const ActorCommand* request, const VECTOR* scaleFactors)
 {
+    enum { ACTOR_342000_GLUTTON_COMMAND_SET_SCALE = 10 };
     _Actor342000GluttonModelWork* work;
 
-    work = arg0->work;
-    if (request->command == 0xA) {
-        work->scale.vx = transform->pos.vx;
-        work->scale.vy = transform->pos.vy;
-        work->scale.vz = transform->pos.vz;
+    work = task->work;
+    if (request->command == ACTOR_342000_GLUTTON_COMMAND_SET_SCALE) {
+        work->scale.vx = scaleFactors->vx;
+        work->scale.vy = scaleFactors->vy;
+        work->scale.vz = scaleFactors->vz;
     }
     work->lastCommand = request->command;
 }
@@ -1330,7 +1356,12 @@ void func_actor_342000_80164154(void)
     areaApplySavedUpdates(D_shelter_b3_garbage_incinerator_8018FB6C);
 }
 
-void func_actor_342000_801641B4(void)
+/// Removes the event's Glutton display model through its exit callback.
+///
+/// Requires the published event task and initialized work. A live body restores
+/// its coordinate parent and tears down its children before its handle is cleared;
+/// a null handle makes repeated normal/skip requests harmless.
+static void _actor342000RemoveGluttonModel(void)
 {
     _Actor342000EventWork* work;
 
@@ -1341,7 +1372,11 @@ void func_actor_342000_801641B4(void)
     work->glutton = NULL;
 }
 
-void func_actor_342000_801641FC(void)
+/// Kills both event door halves and clears their handles.
+///
+/// Requires the published event task and initialized work. Each non-null handle
+/// must name a live task. Cleared handles allow normal and skip paths to repeat it.
+static void _actor342000KillDoors(void)
 {
     _Actor342000EventWork* work;
 
@@ -1356,7 +1391,12 @@ void func_actor_342000_801641FC(void)
     work->doors[1] = NULL;
 }
 
-void func_actor_342000_80164260(void)
+/// Requests the incinerator alert once across the event's normal and skip paths.
+///
+/// Requires the published event task, initialized work and loaded alert sound.
+/// Shares `alertPlayed` with the player's event-clip action; the latch records
+/// the request, without waiting for playback or checking whether it was accepted.
+static void _actor342000PlayAlertOnce(void)
 {
     _Actor342000EventWork* work;
 
@@ -1367,73 +1407,119 @@ void func_actor_342000_80164260(void)
     }
 }
 
-void func_actor_342000_801642B4(s16 arg0)
+/// Replaces the event's pending player action and resets its first step.
+///
+/// Requires the published event task and initialized work. `playerAction` uses
+/// `ACTOR_342000_PLAYER_ACTION_*`; its signed input bits are stored in the unsigned
+/// halfword. The event task consumes the request on a subsequent update.
+static void _actor342000RequestPlayerAction(s16 playerAction)
 {
     _Actor342000EventWork* work;
 
     work                   = D_actor_342000_80165070->work;
-    work->playerAction     = arg0;
+    work->playerAction     = playerAction;
     work->playerActionStep = 0;
 }
 
-void func_actor_342000_801642D4(s16 arg0)
+/// Replaces the event's staging mode and resets its first step.
+///
+/// Requires the published event task and initialized work. `stagingMode` uses
+/// `ACTOR_342000_STAGING_*`; its signed input bits are stored in the unsigned
+/// halfword. The event task then drives the Glutton, doors and view in that mode.
+static void _actor342000SetStagingMode(s16 stagingMode)
 {
     _Actor342000EventWork* work;
 
     work              = D_actor_342000_80165070->work;
-    work->stagingMode = arg0;
+    work->stagingMode = stagingMode;
     work->stagingStep = 0;
 }
 
-void func_actor_342000_801642F4(void)
+/// Ends the event's battle once and selects its post-battle scene music.
+///
+/// Requires the published event task, session and live save. Clears battle holds
+/// and stimuli, leaves a 15-frame end delay in the idle phase, requests weapon
+/// re-equipping and latches completion across the normal and skip scripts.
+static void _actor342000EndBattleOnce(void)
 {
+    enum {
+        ACTOR_342000_BATTLE_END_DELAY_FRAMES = 15,
+        ACTOR_342000_POST_BATTLE_SCENE_MUSIC = 13,
+    };
     _Actor342000EventWork* work;
 
     work = D_actor_342000_80165070->work;
     if (work->combatReset == 0) {
         gSceneCombatState.battleRefs                        = 0;
-        gSceneCombatState.signals.bytes.endDelayFrames      = 0xF;
+        gSceneCombatState.signals.bytes.endDelayFrames      = ACTOR_342000_BATTLE_END_DELAY_FRAMES;
         gSceneCombatState.signals.bytes.battlePhase         = SCENE_COMBAT_BATTLE_IDLE;
         gSceneCombatState.signals.bytes.actionFlags         = 0;
         gSceneCombatState.signals.bytes.enemyAlert          = 0;
         gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xD;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACTOR_342000_POST_BATTLE_SCENE_MUSIC;
         work->combatReset                                   = 1;
     }
 }
 
-void func_actor_342000_80164364(s32 arg0)
+/// Reloads the published event's player and forwards its model draw mode.
+///
+/// Requires initialized event work and its live player. Reloading the block
+/// retains the dispatch's ordering after earlier message handlers have run.
+static inline void _actor342000ApplyPlayerDrawMode(s32 drawMode)
 {
     _Actor342000EventWork* work;
 
     work = D_actor_342000_80165070->work;
-    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
 
-/// Warps the slot-3 task to the overlay's fixed placement (0x3E9), installs
-/// the animation set the current weapon selects (`gPlayerStatus.weapon + 1` for the
-/// alternate block, `+ 0x22` for the base one, sent as 0x3E8 to the slot
-/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` returns), raises 0x3F3, kills the child in
-/// `framebufferBlend`, and cancels any pending CD command replacement.
-void func_actor_342000_8016439C(void)
+/// Forwards a model draw mode to the event's player and attached equipment.
+///
+/// Requires the published event task and its live player. `drawMode` uses
+/// `PLAYER_ACTOR_MODEL_DRAW_*`; the script hides with allocation (0) and resumes
+/// automatic drawing (1). The player's dispatch result is discarded.
+static void _actor342000SetPlayerDrawMode(s32 drawMode)
 {
+    _actor342000ApplyPlayerDrawMode(drawMode);
+}
+
+/// Restores the player, exit walls and scene playback state when the event is skipped.
+///
+/// Requires the published event task, live player/session/save, loaded weapon
+/// animation banks and a previously selected scene. Places the player at the
+/// exit mark, starts weapon clip 1 with world collision disabled and restores
+/// automatic model drawing. Stops the framebuffer blend, then discards deferred
+/// scene requests and requests CD cancellation. Animation dispatch borrows the
+/// stack request synchronously; its selected resources must outlive playback.
+static void _actor342000RestorePlayerAfterSkip(void)
+{
+    enum {
+        ACTOR_342000_PRIMARY_CHARACTER          = 1,
+        ACTOR_342000_PRIMARY_WEAPON_BANK_BASE   = 1,
+        ACTOR_342000_ALTERNATE_WEAPON_BANK_BASE = 34,
+        ACTOR_342000_WEAPON_CLIP                = 1,
+    };
     _Actor342000EventWork* work;
-    AnimationPlayRequest   msg;
+    AnimationPlayRequest   animationRequest;
     s32                    weaponId;
-    s32                    anim;
+    s32                    animationBankIndex;
 
     work = D_actor_342000_80165070->work;
     TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_342000_80164948, 0);
     shelterB3GarbageIncineratorSetExitCollisionWalls();
-    weaponId                 = gPlayerStatus.weapon;
-    anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.source.index         = anim;
-    msg.animationId          = 1;
-    msg.blend                = ANIMATION_BLEND_RESET;
-    msg.blendFrames          = 0;
-    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
-    taskMessageDispatch(((_Actor342000EventWork*)D_actor_342000_80165070->work)->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    // Resume clip 1 in the current character's equipped-weapon bank.
+    weaponId                              = gPlayerStatus.weapon;
+    animationBankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_342000_PRIMARY_CHARACTER)
+                                                ? weaponId + ACTOR_342000_PRIMARY_WEAPON_BANK_BASE
+                                                : weaponId + ACTOR_342000_ALTERNATE_WEAPON_BANK_BASE;
+    animationRequest.source.index         = animationBankIndex;
+    animationRequest.animationId          = ACTOR_342000_WEAPON_CLIP;
+    animationRequest.blend                = ANIMATION_BLEND_RESET;
+    animationRequest.blendFrames          = 0;
+    animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &animationRequest, 0);
+    _actor342000ApplyPlayerDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+    // Release the transient blend before finishing the selected scene session.
     if (work->framebufferBlend != NULL) {
         taskKill(work->framebufferBlend);
         work->framebufferBlend = NULL;
@@ -1441,21 +1527,30 @@ void func_actor_342000_8016439C(void)
     cdCmdCancelScene();
 }
 
-/// Script callback: queues the replacement overlay load.
-void func_actor_342000_8016447C(void)
+/// Stages the selected scene's deferred audio-start request from the event script.
+///
+/// Requires a selected scene with prepared playback buffers that remain live
+/// through consumption. A later commit enqueues the staged request.
+static void _actor342000StageSceneAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-/// Script callback: queues the overlay load.
-void func_actor_342000_8016449C(void)
+/// Enqueues playback of the event script's selected scene/audio session.
+///
+/// Requires prepared playback buffers and room in the resident CD command ring;
+/// the selected descriptor and buffers must remain live through consumption.
+static void _actor342000EnqueueScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-/// Script callback: restores the stream random state, then cancels the
-/// pending overlay replacement and activates the loaded one.
-void func_actor_342000_801644BC(void)
+/// Finishes the event's scene stream, then discards deferred requests and cancels CD playback.
+///
+/// Requires a prior successful scene selection. The explicit stream finish and
+/// the finish inside `cdCmdCancelScene` both restore the saved random values;
+/// their order is retained. Buffers and tasks remain their owners' responsibility.
+static void _actor342000FinishScene(void)
 {
     streamFinishScene();
     cdCmdCancelScene();

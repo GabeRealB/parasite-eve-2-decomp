@@ -46122,9 +46122,9 @@ object that carried those functions *before* the promotion, which is now
 `<overlay>_3`. Left alone it silently hands the block to a different object.
 
 Renumbering also runs *downwards*, and the second promotion of two adjacent
-bodies is where it bites. Promoting `func_actor_342000_8016447C` cut a one-
+bodies is where it bites. Promoting `_actor342000StageSceneAudioStart` cut a one-
 function unit out of the middle of several actors; promoting its neighbour
-`func_actor_342000_8016449C` made the two shared spans adjacent, so that middle
+`_actor342000EnqueueScenePlayback` made the two shared spans adjacent, so that middle
 unit had nothing left in it and the generated yaml stopped emitting it. Every
 later unit then shifts *down* one - `actor_303600_3` became `actor_303600_2` -
 and the `.c` that splat wrote for the vanished unit stays behind holding only
@@ -84967,7 +84967,7 @@ Inputs: `base.i` (m2c seed, 99.737% `regs=1`)
 `450b995a14c8c4926b463735dd1af44ee06dae34e925624ba39b325ae7fcfe3d`.
 ## The store written *after* a load is what fills its delay slot; a last-statement store fills the last load's
 
-`func_actor_342000_801640C0` is a pose setter: three word loads copied into
+`_actor342000PlaceGluttonModel` is a pose setter: three word loads copied into
 `coord.t`, three `lh` angles sign-extended into `s32` slots, and one
 `composeStamp = 0`. The target spends a `nop` in the *second* load's delay slot and puts
 the flag clear in the *third* load's:
@@ -99802,7 +99802,7 @@ msg.animationId = 1;
 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&msg, 0);
 ```
 
-100% with no `delete` penalty (`func_actor_342000_8016439C`). Any aggregate
+100% with no `delete` penalty (`_actor342000RestorePlayerAfterSkip`). Any aggregate
 whose address is taken as a unit keeps every field store; the `delete` count
 equalling the number of dropped stores, with the frame short by the slots they
 needed, is the signature to sight-read. Note this is the mirror of the two

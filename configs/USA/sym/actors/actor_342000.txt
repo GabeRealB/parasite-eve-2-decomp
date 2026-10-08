@@ -60,3 +60,17 @@ D_shelter_b3_garbage_incinerator_8018FB6C = 0x8018FB6C; // absolute:True owner=s
 D_shelter_b3_garbage_incinerator_8018FBC8 = 0x8018FBC8; // absolute:True owner=shelter_b3_garbage_incinerator
 actorMsgPlaceYawPitchRoll = 0x80164034; // type:func
 actorMsgSetDrawMode = 0x80163FB8; // type:func
+_actor342000FadeInTask = 0x80163eac; // type:func
+_actor342000PlaceGluttonModel = 0x801640c0; // type:func
+_actor342000ApplyGluttonModelCommand = 0x80164110; // type:func
+_actor342000RemoveGluttonModel = 0x801641b4; // type:func
+_actor342000KillDoors = 0x801641fc; // type:func
+_actor342000PlayAlertOnce = 0x80164260; // type:func
+_actor342000RequestPlayerAction = 0x801642b4; // type:func
+_actor342000SetStagingMode = 0x801642d4; // type:func
+_actor342000EndBattleOnce = 0x801642f4; // type:func
+_actor342000SetPlayerDrawMode = 0x80164364; // type:func
+_actor342000RestorePlayerAfterSkip = 0x8016439c; // type:func
+_actor342000StageSceneAudioStart = 0x8016447c; // type:func
+_actor342000EnqueueScenePlayback = 0x8016449c; // type:func
+_actor342000FinishScene = 0x801644bc; // type:func
