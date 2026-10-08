@@ -426,16 +426,12 @@ static void _effectDrawRadialTriangles(const GfxCoord* coord, s32 radius, s32 ra
 
 static void _effectControlTask07State0(Task* task);
 
-static void func_800FCD00(Task* arg0);
+static void _effectDrawDeathFlame(Task* task);
 
 static void _effectDrawSparkBurstBillboard(const GfxCoord* coord, u16 frame, u32 packedSizePalette, s16 angle);
 
-/// Puts `obj`, one of the player's bodies, on the object list: a sphere of
-/// `radius` at `(x, y, z)` under `coord`, using the actor's `i`th motion context
-/// with contacts stored in `recs`, and keyed by the saved
-/// game's character.
-static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, WorldCollisionBody* obj, GfxCoord* coord, WorldCollisionContact* recs, s16 x, s16 y,
-                                    s16 z, u16 radius, u16 flags);
+static inline void _playerActorLinkCollisionBody(GameActor* actor, s32 bodyIndex, WorldCollisionBody* body, GfxCoord* coord, WorldCollisionContact* contacts, s16 offsetX, s16 offsetY,
+                                                 s16 offsetZ, u16 radius, u16 flags);
 
 static void Gp_InitPlayerWork(Task* arg0);
 
@@ -483,7 +479,7 @@ static void func_80103CB4(GfxCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3
 
 static GfxCoord* func_8010403C(s32 arg0);
 
-static void func_801041FC(Task* arg0, s32 arg1);
+static void _playerActorPostVibrationPreset(Task* task, s32 presetIndex);
 
 static void _playerActorCaptureInteractionPress(Task* task);
 
@@ -509,11 +505,11 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg);
 
 static s32 _playerActorSetRunMovement(Task* task, s32 unusedMessageId, s32 runEnabled, s32 unusedSecondArg);
 
-static void func_80105B0C(Task* arg0);
+static void _playerActorTickDirectChildSlots(Task* task);
 
 static void _playerActorDispatchWeaponAttack(Task* task);
 
-static s32 func_801062DC(Task* arg0, s32 arg1);
+static s32 _playerActorTryStartAutomaticReload(Task* task, s32 attackButton);
 
 static void _playerActorNoWeaponAttack(Task* unusedTask);
 
@@ -1411,11 +1407,13 @@ void effectSpriteTask46(Task* task)
     }
 }
 
-/// Projects effect 0x81's cached centre with the current world-to-screen matrix.
+/// Projects the projectile sprite's cached world position into its screen centre.
 ///
-/// Borrows a writable aligned scratch block and composed coordinate. Narrows
-/// cached XYZ to s16, writes the screen centre and FLAG and changes GTE state.
-/// The caller supplies projection settings and reads depth only after acceptance.
+/// Requires a live, word-aligned scratch block and a composed coordinate in
+/// the current world-to-screen matrix's frame. XYZ narrow to signed halfwords
+/// before RTPS; the paired screen halfwords and FLAG are written, while depth
+/// stays in the GTE for the caller to read after rejecting negative FLAG.
+/// Borrows both arguments and changes GTE matrix/projection state.
 static inline void _effectProjectProjectileCentre(EffectCentreScratch* scratch, const GfxCoord* coord)
 {
     scratch->worldPoint.vx = coord->workm.t[0];
@@ -2302,25 +2300,26 @@ static const TaskFuncTable3 Gp_EffTask07States = { {
 
 /// Places the gravity particle's two opposite-corner pairs around its projected centre.
 ///
-/// The live quad and aligned scratch block must be writable, with centre and
-/// positive depth initialized. Size and angle preserve their signed halfword
-/// interpretation; rotation uses 4096 units per turn and products must fit s32.
-/// Pixel stores retain their low halfwords. No pointer survives the call.
-static inline void _effectPlaceGravityParticleCorners(EffectShapeScratch* scratch, POLY_FT4* quad, u16 sizeBits, u16 spinAngleBits)
+/// Requires a live writable quad and aligned scratch block with projected
+/// centre and positive depth initialized. Signed halfword size scales the
+/// 23-texel centre-to-corner span before depth division; spin angle uses 4096
+/// units per turn. Products must fit s32. Reuses the two corner offsets in
+/// scratch and writes all four pixel pairs modulo 65536. Retains no pointers.
+static inline void _effectPlaceGravityParticleCorners(EffectShapeScratch* scratch, POLY_FT4* quad, s16 size, s16 spinAngle)
 {
     enum { EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE = 24 };
     s32 perpendicularAngle;
 
     // Rotate two opposite-corner pairs in screen space.
-    scratch->extent.corner.x = ((((s16)sizeBits * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rsin((s16)spinAngleBits)) >> EFFECT_DRAW_FRACTION_BITS;
-    scratch->extent.corner.y = ((((s16)sizeBits * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rcos((s16)spinAngleBits)) >> EFFECT_DRAW_FRACTION_BITS;
+    scratch->extent.corner.x = (((size * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rsin(spinAngle)) >> EFFECT_DRAW_FRACTION_BITS;
+    scratch->extent.corner.y = (((size * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rcos(spinAngle)) >> EFFECT_DRAW_FRACTION_BITS;
     quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;
     quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;
     quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;
     quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;
-    perpendicularAngle       = (s16)spinAngleBits + EFFECT_DRAW_QUARTER_TURN;
-    scratch->extent.corner.x = ((((s16)sizeBits * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rsin(perpendicularAngle)) >> EFFECT_DRAW_FRACTION_BITS;
-    scratch->extent.corner.y = ((((s16)sizeBits * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rcos(perpendicularAngle)) >> EFFECT_DRAW_FRACTION_BITS;
+    perpendicularAngle       = spinAngle + EFFECT_DRAW_QUARTER_TURN;
+    scratch->extent.corner.x = (((size * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rsin(perpendicularAngle)) >> EFFECT_DRAW_FRACTION_BITS;
+    scratch->extent.corner.y = (((size * (EFFECT_GRAVITY_PARTICLE_CORNER_CELL_SIZE - 1)) / scratch->depth) * rcos(perpendicularAngle)) >> EFFECT_DRAW_FRACTION_BITS;
     quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;
     quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;
     quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;
@@ -2330,8 +2329,8 @@ static inline void _effectPlaceGravityParticleCorners(EffectShapeScratch* scratc
 /// Draws the gravity particle's animated texture as a rotated screen-space quad.
 ///
 /// Requires a live coordinate body, owned EffectWork, composed cached translation,
-/// scratch/GTE state and a writable GPU arena. pos.vx supplies signed size bits,
-/// pos.vz signed angle bits (4096 units per turn), and index's low three bits the
+/// scratch/GTE state and a writable GPU arena. pos.vx supplies signed size,
+/// pos.vz signed spin angle (4096 units per turn), and index's low three bits the
 /// 24-texel frame. The scaled size is a centre-to-corner distance, not a half-side.
 /// tintRgb is NULL or three borrowed readable RGB bytes (128 neutral): variant 1
 /// subtracts a tint or draws opaque dark modulation without one; other variants
@@ -2359,17 +2358,17 @@ static void _effectDrawGravityParticle(const Task* task, s32 particleVariant, co
     u16                         blendMode;
     s32                         textureU;
     s32                         textureUEnd;
-    u16                         sizeBits;
+    s16                         size;
     u16                         frameIndex;
-    u16                         spinAngleBits;
+    s16                         spinAngle;
 
     body                   = task->extra.coordBody;
     work                   = task->spawnArg2.pointer;
     blendMode              = GPU_BLEND_ADD;
     coord                  = body->coord;
-    sizeBits               = work->pos.vx;
+    size                   = work->pos.vx;
     frameIndex             = work->index;
-    spinAngleBits          = work->pos.vz;
+    spinAngle              = work->pos.vz;
     scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
     scratch->worldPoint.vx = coord->workm.t[0];
     scratch->worldPoint.vy = coord->workm.t[1];
@@ -2407,7 +2406,7 @@ static void _effectDrawGravityParticle(const Task* task, s32 particleVariant, co
         textureU    = (frameIndex & (EFFECT_GRAVITY_PARTICLE_FRAME_COUNT - 1)) * EFFECT_GRAVITY_PARTICLE_CELL_SIZE;
         textureUEnd = textureU + EFFECT_GRAVITY_PARTICLE_CELL_SIZE - 1;
         setUV4(quad, textureU, EFFECT_GRAVITY_PARTICLE_TEXTURE_V, textureUEnd, EFFECT_GRAVITY_PARTICLE_TEXTURE_V, textureU, EFFECT_GRAVITY_PARTICLE_TEXTURE_V + EFFECT_GRAVITY_PARTICLE_CELL_SIZE - 1, textureUEnd, EFFECT_GRAVITY_PARTICLE_TEXTURE_V + EFFECT_GRAVITY_PARTICLE_CELL_SIZE - 1);
-        _effectPlaceGravityParticleCorners(scratch, quad, sizeBits, spinAngleBits);
+        _effectPlaceGravityParticleCorners(scratch, quad, size, spinAngle);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
@@ -3421,7 +3420,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
             arg0->state = 1;
             mem->move.vz =
                 (mem->scale & 0x1F) % (arg0->spawnArg1.value * 3) + 7;
-            func_800FCD00(arg0);
+            _effectDrawDeathFlame(arg0);
             effectSpawn(EFFECT_RISING_WISP, coord, mem->step * 3 + 0x3000, 0);
             return;
         case 1:
@@ -3462,156 +3461,162 @@ void Gp_EffCtlTaskA6(Task* arg0)
         default:
             return;
     }
-    func_800FCD00(arg0);
+    _effectDrawDeathFlame(arg0);
 }
 
-static void func_800FCD00(Task* arg0)
+/// Draws the death flame as six additive side quads and two top quads.
+///
+/// Requires the task's live EffectWork and coordinate body with a composed
+/// world matrix, current world-to-screen/GTE state and a writable GPU arena.
+/// step gives the base radius; period plus a sine of age gives local top Y,
+/// with the top ring 64 game units narrower. angle and a 32-frame triangle wave
+/// of display frame plus scale give red brightness, green/blue half/quarter red.
+/// Local/world vertex stores retain low signed halfwords; colour narrows to u8.
+/// Negative projection FLAG skips a quad; accepted depth is SZ3 / 4 plus one.
+/// Reserves and releases one scratch block and retains no task/work pointers.
+static void _effectDrawDeathFlame(Task* task)
 {
-    EffectWork*               mem;
-    GfxCoord*                 coord;
-    _EffectDeathFlameScratch* block;
-    POLY_F4*                  prim;
-    u16                       y;
-    u8                        r;
-    u8                        g;
-    u8                        b;
-    u16                       rad;
-    s16                       outer;
-    s16                       inner;
-    s16                       bright;
-    s32                       heightSum;
-    s32                       rawBright;
-    s32                       sum;
-    s32                       i;
-    s32                       a;
-    s32                       c;
+    enum {
+        EFFECT_DEATH_FLAME_ANGLE_STEP          = EFFECT_DRAW_FULL_TURN / EFFECT_DEATH_FLAME_VERTEX_COUNT,
+        EFFECT_DEATH_FLAME_TOP_INSET           = 64,
+        EFFECT_DEATH_FLAME_HEIGHT_ANGLE_SHIFT  = 6,
+        EFFECT_DEATH_FLAME_HEIGHT_WAVE_SHIFT   = 8,
+        EFFECT_DEATH_FLAME_FLICKER_HALF_PERIOD = 16,
+        EFFECT_DEATH_FLAME_FLICKER_MASK        = EFFECT_DEATH_FLAME_FLICKER_HALF_PERIOD - 1,
+        EFFECT_DEATH_FLAME_DEPTH_BIAS          = 1,
+    };
+    const EffectWork*         work;
+    const GfxCoord*           coord;
+    _EffectDeathFlameScratch* scratch;
+    POLY_F4*                  quad;
+    u16                       heightBits;
+    u8                        red;
+    u8                        green;
+    u8                        blue;
+    u16                       radiusBits;
+    s16                       baseRadius;
+    s16                       topRadius;
+    s16                       brightness;
+    s32                       animatedHeight;
+    s32                       baseBrightness;
+    s32                       flickerPhase;
+    s32                       vertexIndex;
+    s32                       angle;
+    s32                       cosine;
+    s32                       screenY;
 
-    mem       = arg0->spawnArg2.pointer;
-    coord     = arg0->extra.coordBody->coord;
-    heightSum = (u16)mem->period + (rsin(mem->age << 6) >> 8);
-    y         = heightSum;
-    rad       = mem->step;
-    sum       = (u8)gDisplayState.animFrame + (u8)mem->scale;
-    rawBright = mem->angle;
-    bright    = rawBright;
-    inner     = rad - 0x40;
-    if (sum & 0x10) {
-        bright += 0xF;
-        bright -= sum & 0xF;
-    } else {
-        bright += sum & 0xF;
+/// Queues the current death-flame quad only when its projection FLAG is accepted.
+///
+/// Use as a standalone statement inside a braced block. Captures initialized
+/// scratch, RGB bytes, writable quad/screenY locals and the depth-bias constant;
+/// reads current GTE depth and consumes the GPU cursor, retaining load/store order.
+#define EFFECT_DEATH_FLAME_QUEUE_QUAD()                                                                                                                     \
+    if (scratch->projectionFlags >= 0) {                                                                                                                    \
+        gte_stszotz(&scratch->depth);                                                                                                                       \
+        scratch->depth = scratch->depth + EFFECT_DEATH_FLAME_DEPTH_BIAS;                                                                                    \
+        quad           = gGpuPrimCursor;                                                                                                                    \
+        gGpuPrimCursor = quad + 1;                                                                                                                          \
+        setPolyF4(quad);                                                                                                                                    \
+        quad->r0 = red;                                                                                                                                     \
+        quad->g0 = green;                                                                                                                                   \
+        quad->b0 = blue;                                                                                                                                    \
+        quad->x0 = (u16)scratch->screenCorners[0].vx;                                                                                                       \
+        screenY  = scratch->screenCorners[0].vy;                                                                                                            \
+        quad->y0 = screenY;                                                                                                                                 \
+        quad->x1 = (u16)scratch->screenCorners[1].vx;                                                                                                       \
+        screenY  = scratch->screenCorners[1].vy;                                                                                                            \
+        quad->y1 = screenY;                                                                                                                                 \
+        quad->x2 = (u16)scratch->screenCorners[2].vx;                                                                                                       \
+        screenY  = scratch->screenCorners[2].vy;                                                                                                            \
+        quad->y2 = screenY;                                                                                                                                 \
+        quad->x3 = (u16)scratch->screenCorners[3].vx;                                                                                                       \
+        screenY  = scratch->screenCorners[3].vy;                                                                                                            \
+        quad->y3 = screenY;                                                                                                                                 \
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+                quad);                                                                                                                                      \
+        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->depth);                                                                                      \
     }
-    r     = bright;
-    g     = r >> 1;
-    b     = r >> 2;
-    outer = rad;
-    block = SCRATCH_STACK_RESERVE_BLOCK(_EffectDeathFlameScratch);
+
+    // Pulse the height and red-dominant brightness from independent phases.
+    work           = task->spawnArg2.pointer;
+    coord          = task->extra.coordBody->coord;
+    animatedHeight = (u16)work->period + (rsin(work->age << EFFECT_DEATH_FLAME_HEIGHT_ANGLE_SHIFT) >> EFFECT_DEATH_FLAME_HEIGHT_WAVE_SHIFT);
+    heightBits     = animatedHeight;
+    radiusBits     = work->step;
+    flickerPhase   = (u8)gDisplayState.animFrame + (u8)work->scale;
+    baseBrightness = work->angle;
+    brightness     = baseBrightness;
+    topRadius      = radiusBits - EFFECT_DEATH_FLAME_TOP_INSET;
+    if (flickerPhase & EFFECT_DEATH_FLAME_FLICKER_HALF_PERIOD) {
+        brightness += EFFECT_DEATH_FLAME_FLICKER_MASK;
+        brightness -= flickerPhase & EFFECT_DEATH_FLAME_FLICKER_MASK;
+    } else {
+        brightness += flickerPhase & EFFECT_DEATH_FLAME_FLICKER_MASK;
+    }
+    red        = brightness;
+    green      = red >> 1;
+    blue       = red >> 2;
+    baseRadius = radiusBits;
+    scratch    = SCRATCH_STACK_RESERVE_BLOCK(_EffectDeathFlameScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
 
-    i = 0;
+    // Build alternating base/top vertices, retaining low halfwords after translation.
+    vertexIndex = 0;
     do {
-        a                     = i * 0x155;
-        c                     = rcos(a);
-        block->vertices[i].vy = 0;
-        block->vertices[i].vx = (c * outer) >> 12;
-        block->vertices[i].vz = (rsin(a) * outer) >> 12;
+        angle                             = vertexIndex * EFFECT_DEATH_FLAME_ANGLE_STEP;
+        cosine                            = rcos(angle);
+        scratch->vertices[vertexIndex].vy = 0;
+        scratch->vertices[vertexIndex].vx = (cosine * baseRadius) >> EFFECT_DRAW_FRACTION_BITS;
+        scratch->vertices[vertexIndex].vz = (rsin(angle) * baseRadius) >> EFFECT_DRAW_FRACTION_BITS;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->vertices[i]);
+        gte_ldv0(&scratch->vertices[vertexIndex]);
         gte_rtv0();
-        gte_stsv(&block->vertices[i]);
-        (u16) block->vertices[i].vx = (u16)block->vertices[i].vx + (u16)coord->workm.t[0];
-        a                          += 0x155;
-        (u16) block->vertices[i].vy = (u16)block->vertices[i].vy + (u16)coord->workm.t[1];
-        (u16) block->vertices[i].vz = (u16)block->vertices[i].vz + (u16)coord->workm.t[2];
-        c                           = rcos(a);
-        i++;
-        block->vertices[i].vy = y;
-        block->vertices[i].vx = (c * inner) >> 12;
-        block->vertices[i].vz = (rsin(a) * inner) >> 12;
+        gte_stsv(&scratch->vertices[vertexIndex]);
+        scratch->vertices[vertexIndex].vx = (u16)scratch->vertices[vertexIndex].vx + (u16)coord->workm.t[0];
+        angle                            += EFFECT_DEATH_FLAME_ANGLE_STEP;
+        scratch->vertices[vertexIndex].vy = (u16)scratch->vertices[vertexIndex].vy + (u16)coord->workm.t[1];
+        scratch->vertices[vertexIndex].vz = (u16)scratch->vertices[vertexIndex].vz + (u16)coord->workm.t[2];
+        cosine                            = rcos(angle);
+        vertexIndex++;
+        scratch->vertices[vertexIndex].vy = heightBits;
+        scratch->vertices[vertexIndex].vx = (cosine * topRadius) >> EFFECT_DRAW_FRACTION_BITS;
+        scratch->vertices[vertexIndex].vz = (rsin(angle) * topRadius) >> EFFECT_DRAW_FRACTION_BITS;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->vertices[i]);
+        gte_ldv0(&scratch->vertices[vertexIndex]);
         gte_rtv0();
-        gte_stsv(&block->vertices[i]);
-        (u16) block->vertices[i].vx = (u16)block->vertices[i].vx + (u16)coord->workm.t[0];
-        (u16) block->vertices[i].vy = (u16)block->vertices[i].vy + (u16)coord->workm.t[1];
-        (u16) block->vertices[i].vz = (u16)block->vertices[i].vz + (u16)coord->workm.t[2];
-        i++;
-    } while (i < EFFECT_DEATH_FLAME_VERTEX_COUNT);
+        gte_stsv(&scratch->vertices[vertexIndex]);
+        scratch->vertices[vertexIndex].vx = (u16)scratch->vertices[vertexIndex].vx + (u16)coord->workm.t[0];
+        scratch->vertices[vertexIndex].vy = (u16)scratch->vertices[vertexIndex].vy + (u16)coord->workm.t[1];
+        scratch->vertices[vertexIndex].vz = (u16)scratch->vertices[vertexIndex].vz + (u16)coord->workm.t[2];
+        vertexIndex++;
+    } while (vertexIndex < EFFECT_DEATH_FLAME_VERTEX_COUNT);
 
+    // Project the six side quads, then the two quads that close the top.
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_DEATH_FLAME_VERTEX_COUNT; i += 2) {
-        gte_ldv0(&block->vertices[i]);
+    for (vertexIndex = 0; vertexIndex < EFFECT_DEATH_FLAME_VERTEX_COUNT; vertexIndex += 2) {
+        gte_ldv0(&scratch->vertices[vertexIndex]);
         gte_rtps();
-        gte_stsxy(&block->screenCorners[0]);
-        gte_ldv3(&block->vertices[i + 1], &block->vertices[(i + 2) % EFFECT_DEATH_FLAME_VERTEX_COUNT], &block->vertices[(i + 3) % EFFECT_DEATH_FLAME_VERTEX_COUNT]);
+        gte_stsxy(&scratch->screenCorners[0]);
+        gte_ldv3(&scratch->vertices[vertexIndex + 1], &scratch->vertices[(vertexIndex + 2) % EFFECT_DEATH_FLAME_VERTEX_COUNT], &scratch->vertices[(vertexIndex + 3) % EFFECT_DEATH_FLAME_VERTEX_COUNT]);
         gte_rtpt();
-        gte_stsxy3(&block->screenCorners[1], &block->screenCorners[2], &block->screenCorners[3]);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->depth);
-            block->depth   = block->depth + 1;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 5);
-            setcode(prim, 0x28);
-            prim->r0 = r;
-            prim->g0 = g;
-            prim->b0 = b;
-            prim->x0 = (u16)block->screenCorners[0].vx;
-            c        = block->screenCorners[0].vy;
-            prim->y0 = c;
-            prim->x1 = (u16)block->screenCorners[1].vx;
-            c        = block->screenCorners[1].vy;
-            prim->y1 = c;
-            prim->x2 = (u16)block->screenCorners[2].vx;
-            c        = block->screenCorners[2].vy;
-            prim->y2 = c;
-            prim->x3 = (u16)block->screenCorners[3].vx;
-            c        = block->screenCorners[3].vy;
-            prim->y3 = c;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
-        }
+        gte_stsxy3(&scratch->screenCorners[1], &scratch->screenCorners[2], &scratch->screenCorners[3]);
+        gte_stflg(&scratch->projectionFlags);
+        EFFECT_DEATH_FLAME_QUEUE_QUAD();
     }
 
-    for (i = 1; i < EFFECT_DEATH_FLAME_VERTEX_COUNT; i += 6) {
-        gte_ldv0(&block->vertices[i]);
+    for (vertexIndex = 1; vertexIndex < EFFECT_DEATH_FLAME_VERTEX_COUNT; vertexIndex += 6) {
+        gte_ldv0(&scratch->vertices[vertexIndex]);
         gte_rtps();
-        gte_stsxy(&block->screenCorners[0]);
-        gte_ldv3(&block->vertices[i + 2], &block->vertices[(i + 6) % EFFECT_DEATH_FLAME_VERTEX_COUNT], &block->vertices[i + 4]);
+        gte_stsxy(&scratch->screenCorners[0]);
+        gte_ldv3(&scratch->vertices[vertexIndex + 2], &scratch->vertices[(vertexIndex + 6) % EFFECT_DEATH_FLAME_VERTEX_COUNT], &scratch->vertices[vertexIndex + 4]);
         gte_rtpt();
-        gte_stsxy3(&block->screenCorners[1], &block->screenCorners[2], &block->screenCorners[3]);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->depth);
-            block->depth   = block->depth + 1;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 5);
-            setcode(prim, 0x28);
-            prim->r0 = r;
-            prim->g0 = g;
-            prim->b0 = b;
-            prim->x0 = (u16)block->screenCorners[0].vx;
-            c        = block->screenCorners[0].vy;
-            prim->y0 = c;
-            prim->x1 = (u16)block->screenCorners[1].vx;
-            c        = block->screenCorners[1].vy;
-            prim->y1 = c;
-            prim->x2 = (u16)block->screenCorners[2].vx;
-            c        = block->screenCorners[2].vy;
-            prim->y2 = c;
-            prim->x3 = (u16)block->screenCorners[3].vx;
-            c        = block->screenCorners[3].vy;
-            prim->y3 = c;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
-        }
+        gte_stsxy3(&scratch->screenCorners[1], &scratch->screenCorners[2], &scratch->screenCorners[3]);
+        gte_stflg(&scratch->projectionFlags);
+        EFFECT_DEATH_FLAME_QUEUE_QUAD();
     }
 
     SCRATCH_STACK_RELEASE_BLOCK(_EffectDeathFlameScratch);
+#undef EFFECT_DEATH_FLAME_QUEUE_QUAD
 }
 
 void effectSpriteTaskA7(Task* task)
@@ -4845,23 +4850,28 @@ static void _effectDrawSparkBurstBillboard(const GfxCoord* coord, u16 frame, u32
 #undef EFFECT_SPARK_BURST_BILLBOARD_SET_CORNERS
 }
 
-/// Puts `obj`, one of the player's bodies, on the object list: a sphere of
-/// `radius` at `(x, y, z)` under `coord`, taking its direction from the actor's
-/// `i`th direction record, whose contacts go to `recs`, and keyed by the saved
-/// game's character.
-static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, WorldCollisionBody* obj, GfxCoord* coord, WorldCollisionContact* recs, s16 x, s16 y,
-                                    s16 z, u16 radius, u16 flags)
+/// Initializes and links one of the player's three motion-sphere collision bodies.
+///
+/// `bodyIndex` is ROOT, PART4 or PART1 and selects the matching motion context.
+/// The signed local XYZ offset and unsigned radius use game-coordinate units;
+/// `flags` must select MOTION_SPHERE and may encode the receiving body index.
+/// Publishes the live save's character identity as a player-body contact key.
+/// The body must be unlinked; actor, coordinate and contact storage are borrowed
+/// until unlinking. Initialize contacts before collision passes; all three
+/// callers share collisionContacts. Does not initialize the motion direction.
+static inline void _playerActorLinkCollisionBody(GameActor* actor, s32 bodyIndex, WorldCollisionBody* body, GfxCoord* coord, WorldCollisionContact* contacts, s16 offsetX, s16 offsetY,
+                                                 s16 offsetZ, u16 radius, u16 flags)
 {
-    obj->context.motion                        = &actor->collisionMotionContexts[i];
-    obj->coord                                 = coord;
-    actor->collisionMotionContexts[i].contacts = recs;
-    obj->pos.vx                                = x;
-    obj->pos.vy                                = y;
-    obj->pos.vz                                = z;
-    obj->key                                   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId | 0x10000;
-    obj->radius                                = radius;
-    obj->flags                                 = flags;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
+    body->context.motion                               = &actor->collisionMotionContexts[bodyIndex];
+    body->coord                                        = coord;
+    actor->collisionMotionContexts[bodyIndex].contacts = contacts;
+    body->pos.vx                                       = offsetX;
+    body->pos.vy                                       = offsetY;
+    body->pos.vz                                       = offsetZ;
+    body->key                                          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId | WORLD_COLLISION_CONTACT_PLAYER_BODY;
+    body->radius                                       = radius;
+    body->flags                                        = flags;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, body);
 }
 
 static void Gp_InitPlayerWork(Task* arg0)
@@ -4898,16 +4908,16 @@ static void Gp_InitPlayerWork(Task* arg0)
 
     recs = actor->collisionContacts;
     obj  = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
-    _gpLinkPlayerObj(actor, GAME_ACTOR_BODY_ROOT, obj, coord, recs, 0, -0x12C, 0, 0x12C, WORLD_COLLISION_BODY_MOTION_SPHERE);
+    _playerActorLinkCollisionBody(actor, GAME_ACTOR_BODY_ROOT, obj, coord, recs, 0, -0x12C, 0, 0x12C, WORLD_COLLISION_BODY_MOTION_SPHERE);
     worldCollisionInitContacts(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
     obj->flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     obj = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
-    _gpLinkPlayerObj(actor, GAME_ACTOR_BODY_PART4, obj, arg0->extra.tmd->coords + 4, recs, 0, 0x64, 0x28, 0xDC, WORLD_COLLISION_BODY_MOTION_SPHERE | (GAME_ACTOR_BODY_PART4 << WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT));
+    _playerActorLinkCollisionBody(actor, GAME_ACTOR_BODY_PART4, obj, arg0->extra.tmd->coords + 4, recs, 0, 0x64, 0x28, 0xDC, WORLD_COLLISION_BODY_MOTION_SPHERE | (GAME_ACTOR_BODY_PART4 << WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT));
     obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     obj = &actor->collisionBodies[GAME_ACTOR_BODY_PART1];
-    _gpLinkPlayerObj(actor, GAME_ACTOR_BODY_PART1, obj, arg0->extra.tmd->coords + 1, recs, 0, 0x52, 0, 0xDC, WORLD_COLLISION_BODY_MOTION_SPHERE | (GAME_ACTOR_BODY_PART1 << WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT));
+    _playerActorLinkCollisionBody(actor, GAME_ACTOR_BODY_PART1, obj, arg0->extra.tmd->coords + 1, recs, 0, 0x52, 0, 0xDC, WORLD_COLLISION_BODY_MOTION_SPHERE | (GAME_ACTOR_BODY_PART1 << WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT));
     obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     kind                      = actor->mode;
@@ -5207,23 +5217,64 @@ static inline void _playerActorCapturePad(Task* task)
     actor->runButtonHeld         = (actor->padHeld >> PLAYER_ACTOR_RUN_BUTTON_SHIFT) & 1;
 }
 
-void Gp_UpdatePlayerMove(void)
+/// Stages the three spheres' Q12 heading from push-back or the composed forward axis.
+///
+/// Borrows initialized actor/root state and writable SVECTOR scratch; writes XYZ
+/// only, narrowing each result to its low signed halfword. The composed root
+/// and push-back direction must use the same frame.
+static inline void _playerActorStageCollisionHeading(SVECTOR* motionDirection, const GameActor* actor, const GfxCoord* coord)
 {
-    Task*      work;
+    if (actor->usesPushbackDirection != 0) {
+        motionDirection->vx = actor->pushbackDirection.vx;
+        motionDirection->vy = actor->pushbackDirection.vy;
+        motionDirection->vz = actor->pushbackDirection.vz;
+    } else {
+        motionDirection->vx = coord->workm.m[0][2] * actor->movementSign;
+        motionDirection->vy = coord->workm.m[1][2] * actor->movementSign;
+        motionDirection->vz = coord->workm.m[2][2] * actor->movementSign;
+    }
+}
+
+/// Publishes the staged Q12 XYZ heading to the player's three motion contexts.
+///
+/// Borrows readable XYZ and live actor work; each SVECTOR pad is untouched.
+static inline void _playerActorPublishCollisionHeading(GameActor* actor, const SVECTOR* motionDirection)
+{
+    actor->collisionMotionContexts[0].motionDirection.vx = motionDirection->vx;
+    actor->collisionMotionContexts[0].motionDirection.vy = motionDirection->vy;
+    actor->collisionMotionContexts[0].motionDirection.vz = motionDirection->vz;
+    actor->collisionMotionContexts[1].motionDirection.vx = motionDirection->vx;
+    actor->collisionMotionContexts[1].motionDirection.vy = motionDirection->vy;
+    actor->collisionMotionContexts[1].motionDirection.vz = motionDirection->vz;
+    actor->collisionMotionContexts[2].motionDirection.vx = motionDirection->vx;
+    actor->collisionMotionContexts[2].motionDirection.vy = motionDirection->vy;
+    actor->collisionMotionContexts[2].motionDirection.vz = motionDirection->vz;
+}
+
+void playerActorUpdateMove(void)
+{
+    enum {
+        PLAYER_ACTOR_MOVE_ROOT_GRID_ENABLED = 1 << GAME_ACTOR_BODY_ROOT,
+        PLAYER_ACTOR_MOVE_COLLISION_Y_BIAS  = 128,
+        PLAYER_ACTOR_WEAPON_COLLISION_PITCH = -ACTOR_TRANSFORM_ANGLE_TURN / 4,
+        PLAYER_ACTOR_WEAPON_COLLISION_YAW   = -32,
+    };
+    Task*      playerTask;
     GameActor* actor;
     GfxCoord*  coord;
-    SVECTOR*   vec;
-    Task*      task;
-    MATRIX*    mat;
+    SVECTOR*   motionDirection;
+    Task*      weaponTask;
+    MATRIX*    weaponMatrix;
 
-    work  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    actor = work->work;
-    vec   = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    coord = work->extra.tmd->coords;
-    _playerActorCapturePad(work);
+    playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    actor           = playerTask->work;
+    motionDirection = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    coord           = playerTask->extra.tmd->coords;
+    _playerActorCapturePad(playerTask);
     gSceneCombatState.signals.bytes.actionFlags = 0;
+    // Holding the state tick leaves input capture and collision preparation active.
     if (D_80115768 == 0) {
-        _playerActorTick(work);
+        _playerActorTick(playerTask);
     }
     coord->coord.t[0]            += actor->pendingDisplacement.vx;
     coord->coord.t[1]            += actor->pendingDisplacement.vy;
@@ -5235,37 +5286,22 @@ void Gp_UpdatePlayerMove(void)
     if (actor->equipmentTasks[1] != NULL) {
         worldCollisionClearContacts(actor->weaponContacts);
     }
-    if (actor->collisionEnableMask & 1) {
-        coord->coord.t[1] += 0x80;
+    if (actor->collisionEnableMask & PLAYER_ACTOR_MOVE_ROOT_GRID_ENABLED) {
+        coord->coord.t[1] += PLAYER_ACTOR_MOVE_COLLISION_Y_BIAS;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    if (actor->usesPushbackDirection != 0) {
-        vec->vx = actor->pushbackDirection.vx;
-        vec->vy = actor->pushbackDirection.vy;
-        vec->vz = actor->pushbackDirection.vz;
-    } else {
-        vec->vx = coord->workm.m[0][2] * actor->movementSign;
-        vec->vy = coord->workm.m[1][2] * actor->movementSign;
-        vec->vz = coord->workm.m[2][2] * actor->movementSign;
-    }
-    task                                                 = actor->equipmentTasks[1];
-    actor->collisionMotionContexts[0].motionDirection.vx = vec->vx;
-    actor->collisionMotionContexts[0].motionDirection.vy = vec->vy;
-    actor->collisionMotionContexts[0].motionDirection.vz = vec->vz;
-    actor->collisionMotionContexts[1].motionDirection.vx = vec->vx;
-    actor->collisionMotionContexts[1].motionDirection.vy = vec->vy;
-    actor->collisionMotionContexts[1].motionDirection.vz = vec->vz;
-    actor->collisionMotionContexts[2].motionDirection.vx = vec->vx;
-    actor->collisionMotionContexts[2].motionDirection.vy = vec->vy;
-    actor->collisionMotionContexts[2].motionDirection.vz = vec->vz;
-    if (task != NULL) {
-        coord                       = task->extra.tmd->coords;
+    // All three motion spheres use one Q12 heading in the composition frame.
+    _playerActorStageCollisionHeading(motionDirection, actor, coord);
+    weaponTask = actor->equipmentTasks[1];
+    _playerActorPublishCollisionHeading(actor, motionDirection);
+    if (weaponTask != NULL) {
+        coord                       = weaponTask->extra.tmd->coords;
         actor->weaponCollisionCoord = *coord;
-        mat                         = &actor->weaponCollisionCoord.workm;
-        if (gPlayerStatus.weapon != 0x17) {
-            gfxRotMatrixX(mat, -0x400, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixY(mat, -0x20, 0);
+        weaponMatrix                = &actor->weaponCollisionCoord.workm;
+        if (gPlayerStatus.weapon != PLAYER_ACTOR_WEAPON_GUNBLADE) {
+            gfxRotMatrixX(weaponMatrix, PLAYER_ACTOR_WEAPON_COLLISION_PITCH, GRAPHICS_ROTATION_COMPOSE);
+            gfxRotMatrixY(weaponMatrix, PLAYER_ACTOR_WEAPON_COLLISION_YAW, GRAPHICS_ROTATION_COMPOSE);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
@@ -6476,18 +6512,24 @@ s32 playerActorHasWallContact(Task* task)
     return 0;
 }
 
-static void func_801041FC(Task* arg0, s32 arg1)
+/// Posts the selected attack vibration once while the actor's rumble latch is clear.
+///
+/// Requires live GameActor work. The selector narrows to its low 16 bits;
+/// only index 0 is supported by the one-entry preset table and current caller.
+/// Posts port 0's variable motor using duration units converted by the pad API
+/// to twice as many serviced polls. The latch is incremented only from zero.
+static void _playerActorPostVibrationPreset(Task* task, s32 presetIndex)
 {
-    GameActor*                   actor;
-    _PlayerActorVibrationPreset* preset;
-    s32                          idx;
+    GameActor*                         actor;
+    const _PlayerActorVibrationPreset* preset;
+    s32                                selectedPresetIndex;
 
-    actor = arg0->work;
-    idx   = arg1 & 0xFFFF;
+    actor               = task->work;
+    selectedPresetIndex = (u16)presetIndex;
     // Normal-mode state 4 calls this every tick; the latch allows one post.
     if (actor->rumblePosted == 0) {
         actor->rumblePosted++;
-        preset = &D_80112E28[idx];
+        preset = &D_80112E28[selectedPresetIndex];
         padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, preset->intensity, preset->durationUnits);
     }
 }
@@ -7401,18 +7443,26 @@ s32 playerActorSetTextureSequence(Task* task, s32 unusedMessageId, s32 sequence,
     return 0;
 }
 
-static void func_80105B0C(Task* arg0)
+/// Advances each child animation slot directly into its model coordinate.
+///
+/// Visits slots 1 through animationSlotCount - 1, leaving slot 0 intact.
+/// Requires live GameActor animation resources and an initialized active prefix
+/// within animationSlots. Each slot's trackIndex must equal its array index:
+/// the direct tick reconstructs and retains that array base in the context.
+/// Playback, scratch and GTE requirements follow `animationTickPlayerSlot`.
+static void _playerActorTickDirectChildSlots(Task* task)
 {
-    GameActor* inner;
-    s32        i;
+    enum { PLAYER_ACTOR_DIRECT_FIRST_CHILD_SLOT = 1 };
+    GameActor* actor;
+    s32        slotIndex;
 
-    inner = arg0->work;
-    i     = 1;
-    if (i < inner->animationSlotCount) {
+    actor     = task->work;
+    slotIndex = PLAYER_ACTOR_DIRECT_FIRST_CHILD_SLOT;
+    if (slotIndex < actor->animationSlotCount) {
         do {
-            animationTickPlayerSlot(&inner->animationContext, inner->animationSlots + i);
-            i++;
-        } while (i < inner->animationSlotCount);
+            animationTickPlayerSlot(&actor->animationContext, actor->animationSlots + slotIndex);
+            slotIndex++;
+        } while (slotIndex < actor->animationSlotCount);
     }
 }
 
@@ -7702,20 +7752,27 @@ s32 playerActorQueryWeaponLoads(s32 loadMask)
     return loads;
 }
 
-static s32 func_801062DC(Task* arg0, s32 arg1)
+/// Starts an automatic reload when the selected weapon consumable can be loaded.
+///
+/// Fire selector 1 chooses primary, all other values secondary; the caller uses
+/// 1 or 2 after an empty-load query. Returns 1 when it enters reload, otherwise 0.
+/// Requires a live player task and weapon index 1..32 for the unchecked saved
+/// load lookup, plus the animation/equipment resources of `playerActorEnterReload`.
+/// Eligibility tests compatible positive stock; it does not require an empty load.
+static s32 _playerActorTryStartAutomaticReload(Task* task, s32 attackButton)
 {
-    s32 ret;
-    s32 flag;
-    s32 item;
+    s32 reloadStarted;
+    s32 loadSelection;
+    s32 weaponId;
 
-    ret  = 0;
-    item = gPlayerStatus.weapon;
-    flag = arg1 != 1;
-    if (equipmentCanReloadSelectedWeaponConsumable(item + 0x7F, flag) == 1) {
-        playerActorEnterReload(arg0, flag, ret);
-        ret = 1;
+    reloadStarted = 0;
+    weaponId      = gPlayerStatus.weapon;
+    loadSelection = attackButton != PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY;
+    if (equipmentCanReloadSelectedWeaponConsumable(weaponId + EQUIPMENT_WEAPON_ITEM_FIRST - 1, loadSelection) == 1) {
+        playerActorEnterReload(task, loadSelection, PLAYER_ACTOR_RELOAD_AUTOMATIC);
+        reloadStarted = 1;
     }
-    return ret;
+    return reloadStarted;
 }
 
 void playerActorResetWeaponAttack(Task* task, s32 weaponId, s32 unusedArgument)
@@ -8049,7 +8106,7 @@ static void Gp_PlayerNormalState2(Task* arg0)
                 pad = actor->padPressed;
                 if ((s8)item == 1 ? (pad & 8) : (pad & 2)) {
                     actor->attackControl.cooldownTicks = 0xA;
-                    if (func_801062DC(arg0, dir) == 0) {
+                    if (_playerActorTryStartAutomaticReload(arg0, dir) == 0) {
                         _playerActorWriteWeaponSoundVariant(&variant);
                         base = gPlayerStatus.weapon << 16;
                         val  = variant | 0x20000001;
@@ -9253,7 +9310,7 @@ static void func_80108AD4(Task* arg0)
 
 void Gp_PlayerMode2State0(Task* arg0)
 {
-    func_80105B0C(arg0);
+    _playerActorTickDirectChildSlots(arg0);
     playerActorPlayFootstepCue(arg0);
 }
 
@@ -9515,7 +9572,7 @@ static void _playerActorUpdateAimExit(Task* task)
 static void func_80109138(Task* arg0)
 {
     _playerActorDispatchWeaponAttack(arg0);
-    func_801041FC(arg0, 0);
+    _playerActorPostVibrationPreset(arg0, 0);
     _playerActorUpdateLockTargetFromPad(arg0);
 }
 

@@ -363,7 +363,7 @@ static __inline__ void _worldCollisionBuildGridEdgePlaneNormal(_WorldCollisionGr
 void Gp_TickWorldCollision(Task* unused)
 {
     if (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) != NULL) {
-        Gp_UpdatePlayerMove();
+        playerActorUpdateMove();
         Gp_CollideListGrid(Gp_ObjList0);
         Gp_CollideListGrid(Gp_ObjList1);
         Gp_CollideListGrid(Gp_ObjList2);

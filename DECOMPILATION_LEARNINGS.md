@@ -25228,7 +25228,7 @@ if ((s8)p->field == 0) {
 
 `idx` must be `s32` (`value & 0xFFFF`) so the `andi` is emitted at the
 assignment, not later at the array use (`u16 idx = value` is only a
-subreg trunc). `func_801041FC` is the example.
+subreg trunc). `_playerActorPostVibrationPreset` is the example.
 
 ## `if (p == NULL) return 0` so the break block stays after the load
 
@@ -25313,7 +25313,7 @@ if (func(item + K, flag) == 1) {
 ```
 
 A bare `func(cfg.field + K, value != 1)` leaves `lui`/`lbu` glued together
-after `sltu` (~98%). `func_801062DC` is the example.
+after `sltu` (~98%). `_playerActorTryStartAutomaticReload` is the example.
 
 ## Pin only the result so `v1`/`a1` swap without unsharing the load tail
 
@@ -25706,7 +25706,7 @@ if (i < obj->count) {
 ```
 
 GCC strength-reduces `i * sizeof(Slot) + 0x438` to a single offset IV
-starting at `0x460`. `func_80105B0C` is the example; sibling `playerActorTickChildSlots`
+starting at `0x460`. `_playerActorTickDirectChildSlots` is the example; sibling `playerActorTickChildSlots`
 is the same loop with only the index passed through.
 
 ## Unsigned range-fail early return keeps `sltiu; beqz` fall-through
@@ -35797,7 +35797,7 @@ jal    effectKillTask
 j      epilogue
 nop
 cont:
-jal    func_800FCD00
+jal    _effectDrawDeathFlame
 ```
 
 `if (a <= 0 || b >= 0) goto kill` inverts the second test (`bgez kill`)
@@ -36389,7 +36389,7 @@ p->previousTurnSign = f975;      /* sb ..., (v1) */
 Pin `extra` to `$v0` so the actor load is `lw v1, 0x1C` (not `$v0`).
 Assign scratch `newhead` first (`$a2`) and `vec = newhead` only just
 before the next call so `move s2, a2` fills that `bnez` delay.
-`Gp_UpdatePlayerMove` is the example.
+`playerActorUpdateMove` is the example.
 
 An `s8` multiplied as `lbu` / `sll 24` / `sra 24` is `(s8)` of a `u8`
 overlay at the same offset, not `lb` of the `s8` field. A `volatile`
@@ -66584,7 +66584,7 @@ unused fourth argument preserves its instruction stream as well.
 
 ## Increment scratch depth before loading the primitive cursor to avoid LICM of its high address
 
-In `func_800FCD00`, loading `gGpuPrimCursor`, incrementing `block->depth`,
+In `_effectDrawDeathFlame`, loading `gGpuPrimCursor`, incrementing `scratch->depth`,
 then storing the advanced cursor gave `%hi(gGpuPrimCursor)` a life of six
 RTL insns. `.loop` hoisted it into a saved register in both drawing loops.
 Incrementing depth first shortened that life to three; `.loop` reported
@@ -66596,14 +66596,14 @@ The final scratch allocation copy needed only statement order:
 ```c
 head = (u8*)*SCRATCH_STACK_CURSOR_SLOT - sizeof(_EffectDeathFlameScratch);
 *SCRATCH_STACK_CURSOR_SLOT = head;
-block = (_EffectDeathFlameScratch*)head;
+scratch = (_EffectDeathFlameScratch*)head;
 ```
 
-Naming `block` before the store let CSE retarget both the add and store to
-`block`, deleting the target's `move s2,v0`. Storing first preserved
+Naming `scratch` before the store let CSE retarget both the add and store to
+`scratch`, deleting the target's `move s2,v0`. Storing first preserved
 `addiu v0,v0,-0x78; move s2,v0; sw v0,0(a0)` without pins or empty asm.
 `SCRATCH_STACK_RESERVE_BLOCK(_EffectDeathFlameScratch)` stores first as well:
-`block` takes the value of the store, so the source now reserves with it and
+`scratch` takes the value of the store, so the source now reserves with it and
 needs no `head` local.
 The archived seed improved from 89.919% to 100% with indexed vertices,
 counter-derived angles, signed-load temporaries, and these ordering changes.
@@ -74236,7 +74236,7 @@ is the worked example; getting this one instruction right also re-seated the
 temporaries in three later blocks, because the extra pseudo shifts local-alloc's
 quantity order for the whole function.
 
-## The scratch-head store separates two reads for cse but not for the scheduler, and the `move` stays where the load was (Gp_UpdatePlayerMove, 2026-09-26)
+## The scratch-head store separates two reads for cse but not for the scheduler, and the `move` stays where the load was (playerActorUpdateMove, 2026-09-26)
 
 **Target.** `lw v1,0x1c(a3)` feeds a run of loads and stores through `v1`, and a
 `move s0,v1` sits *among* them, right before the first store - not at the end
@@ -148523,7 +148523,7 @@ pin stands in for that integer sum, not for an allocation accident.
 Recorded so the next attempt starts from the measurement instead of the
 source.
 
-- **Gp_UpdatePlayerMove**, `coord` pinned to `$s1`. Global priorities:
+- **playerActorUpdateMove**, `coord` pinned to `$s1`. Global priorities:
   `coord` 14 refs / 80 insns = 5250, `vec` 14 / 78 = 5384; `vec` allocates
   first and takes `$s1`. The `GP_REFRESH_COORD` macro this function had until
   the 2026-09-30 naming commit matched without a pin only because its
@@ -151518,10 +151518,10 @@ D->animationRate     = ANIMATION_RATE_ONE;
 - Applies to the siblings only as a caution: they store `t[0], t[2], t[1]`
   after the pointer is already loaded, where the order is not observable.
 
-## A local reused for a second pointer keeps the references combine deleted (Gp_UpdatePlayerMove, 2026-10-06)
+## A local reused for a second pointer keeps the references combine deleted (playerActorUpdateMove, 2026-10-06)
 
-**Problem.** Two call-crossing pointers, `coord` and `vec`, each with 14
-references; global priority `floor_log2(refs) * refs / length` put `vec`
+**Problem.** Two call-crossing pointers, `coord` and `motionDirection`, each with 14
+references; global priority `floor_log2(refs) * refs / length` put `motionDirection`
 (78 insns, 5384) ahead of `coord` (80 insns, 5250), so they took `$s1`/`$s2`
 the wrong way round. The only sources known to match wrapped some `coord`
 references in a `do { } while (0)` (loop depth doubles them) or pinned `coord`.
@@ -151530,10 +151530,10 @@ The permuter, run once on the pin-free body, found the same thing: a
 
 **What was ruled out, with the pass that rules it out.**
 - *Lengths.* sched1 gives every single-set register birth the maximum priority
-  (`adjust_priority` / `birthing_insn_p`), so `vec`'s copy is the last insn of
+  (`adjust_priority` / `birthing_insn_p`), so `motionDirection`'s copy is the last insn of
   its block and `coord`'s load sits as late as its luid allows among the other
   births. The only length levers found move one insn each (a non-birthing
-  `task`, i.e. a `task` assigned twice, hoists its load above `vec`'s last
+  `weaponTask`, i.e. a `weaponTask` assigned twice, hoists its load above `motionDirection`'s last
   read), and a tie needs two.
 - *A second pseudo sharing the register.* An inline parameter is mapped
   straight onto a user-variable argument (`integrate.c`: a copy is made only
@@ -151541,7 +151541,7 @@ The permuter, run once on the pin-free body, found the same thing: a
   plain `c2 = coord` survives cse1 but not cse2, whose path skips simple
   `if` blocks (`flag_cse_skip_blocks`, after-loop pass only) and so reaches
   every use.
-- *An address parameter* (`_fwd(vec, &coord->workm, actor)`) does flip the
+- *An address parameter* (`_fwd(motionDirection, &coord->workm, actor)`) does flip the
   allocation (`coord` dies at the `addiu`), but the parameter survives as its
   own base register: 9 lines.
 
@@ -151550,7 +151550,7 @@ model's, which was written as one expression. Assign it to the same local:
 
 ```c
 if (task != NULL) {
-    coord                       = task->extra.tmd->coords;
+    coord                       = weaponTask->extra.tmd->coords;
     actor->weaponCollisionCoord = *coord;
 ```
 
@@ -151572,9 +151572,9 @@ No instruction changes; only the order of allocation does.
 - A `do { } while (0)` that fixes an allocation is telling you which register
   is short of references, not that there was a loop. Count what it doubled
   and look for a real source of the same number.
-- `vec = SCRATCH_STACK_RESERVE_BLOCK(T)` in one statement compiles the same as
-  the reserve followed by `vec = SCRATCH_STACK_CURSOR(T)`: the new cursor is a
-  temporary, `vec` a copy of it, and cse writes the first field through the
+- `motionDirection = SCRATCH_STACK_RESERVE_BLOCK(T)` in one statement compiles the same as
+  the reserve followed by `motionDirection = SCRATCH_STACK_CURSOR(T)`: the new cursor is a
+  temporary, `motionDirection` a copy of it, and cse writes the first field through the
   old cursor (`sh ...,-8(old)`) because the bare address has the older
   equivalent. `_actorMovementTranslateForwardNonzero` (`include/actors/actor.h`)
   reserves one `SVECTOR` and reads `displacement->vx`; an explicit cursor-relative
@@ -151640,7 +151640,7 @@ a build:
   field reads) never come closer than the same 20-line difference: these
   insns do not depend on each other, so sched1 places them by priority.
 - *More references on the old state* (a local reused for a value whose set and
-  use combine merges, the `Gp_UpdatePlayerMove` mechanism): 5 references give
+  use combine merges, the `playerActorUpdateMove` mechanism): 5 references give
   12500, which outranks the `1` and takes `$v0`.
 - *One local for `ONE` and the old state.* The schedule becomes the target's,
   but the register has two deaths, so `local_alloc` skips it
@@ -151838,7 +151838,7 @@ plus a larger constant (`base + 15`, then `base + 30`), the later one was
 probably written as an update of the first variable. Check `used N times`
 in `.lreg` against the insns that mention the pseudo: a surplus is a set/use
 pair combine merged. The same stale count is why a local reused for a second
-value (Gp_UpdatePlayerMove) outranks two separate locals.
+value (playerActorUpdateMove) outranks two separate locals.
 
 ### A call's result that must stay above the next call's arguments: a result variable shared with another `case` (_actor01600SearchClearHeading, 2026-10-07)
 

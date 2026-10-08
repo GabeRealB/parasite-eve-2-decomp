@@ -44,7 +44,16 @@ extern u16 Gp_AllyIdBase[4];
 
 extern AnimationBank* Gp_AnimBlkTbl[8];
 
-void Gp_UpdatePlayerMove(void);
+/// Advances the live player's input/state and prepares its bodies for collision.
+///
+/// Requires an occupied player task slot with live GameActor/model resources.
+/// The state-update hold suppresses only the ordinary state tick; input capture,
+/// pending displacement, contact clearing and collision-heading publication
+/// still run. Adds 128 Y units when root grid collision is enabled, composes the
+/// root and publishes its Q12 forward/push-back heading to all three spheres.
+/// An equipped weapon supplies a copied root transform, with fixed collision
+/// rotations except for the Gunblade. Borrows one SVECTOR scratch block.
+void playerActorUpdateMove(void);
 
 void Gp_EffSprTask81(Task* arg0);
 
