@@ -153,6 +153,32 @@ enum {
     ACTOR_00300_EVENT_DRAW_SKIP_AUTO_BUFFER = 1 << 1
 };
 
+/// Indices in the enemy task's three-entry state table.
+enum {
+    ACTOR_00300_TASK_INITIALIZE = 0,
+    ACTOR_00300_TASK_ACTIVE     = 1,
+    ACTOR_00300_TASK_DEATH      = 2
+};
+
+/// Model parts used by the enemy's sensing and hit bodies.
+enum {
+    ACTOR_00300_SIGHT_PART = 2,
+    ACTOR_00300_HIT_PART   = 3
+};
+
+/// Drain-contact centre and its touch halo offset in drain-local coordinates.
+enum {
+    ACTOR_00300_DRAIN_OFFSET_X = -500,
+    ACTOR_00300_DRAIN_OFFSET_Y = 500
+};
+
+/// Delayed stages of a requested body burst.
+enum {
+    ACTOR_00300_BURST_NONE      = 0,
+    ACTOR_00300_BURST_REQUESTED = 1,
+    ACTOR_00300_BURST_READY     = 2
+};
+
 /// Work block of the package's enemy task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
@@ -263,11 +289,11 @@ extern s16 Actor00300_D16000[];
 extern s16 Actor00300_D15FF8[];
 
 static void _actor00300TickEvent(Enemy* enemy, Task* task);
-static void Actor00300_Fn04958(Enemy* arg0, Task* arg1);
+static void _actor00300TickCombat(Enemy* enemy, Task* task);
 
-static void Actor00300_Fn00970(Enemy* enemy, Task* task);
+static void _actor00300InitEnemy(Enemy* enemy, Task* task);
 static void _actor00300TurnFireballTowardPlayer(Task* task);
-static void Actor00300_Fn00E54(Task* arg0);
+static void _actor00300ResolveContacts(Task* task);
 static void _actor00300TickPatrol(Task* task);
 static void _actor00300TickPursuit(Task* task);
 static void _actor00300SelectAttack(Task* task);
@@ -279,8 +305,8 @@ static void _actor00300TickRecharge(Task* task);
 static void _actor00300TurnTowardTargetYaw(Task* task);
 static void _actor00300ApplyHitTwist(Task* task);
 static void _actor00300PlayAnimationCueSounds(Task* task);
-static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1);
-static void Actor00300_Fn047CC(Enemy* arg0, Task* arg1);
+static void _actor00300TickDeath(Enemy* enemy, Task* task);
+static void _actor00300TickActive(Enemy* enemy, Task* task);
 static void _actor00300TickStatusReactions(Task* task);
 static void _actor00300TickAction(Task* task);
 static void _actor00300TickBuildup(Task* task);
@@ -288,7 +314,7 @@ static void _actor00300Move(Task* task);
 static void _actor00300UpdateAnimation(Task* task);
 static void _actor00300UpdateLighting(Task* task);
 static void _actor00300DrawShadow(Task* task);
-static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2);
+static void _actor00300SetRootScaleY(Task* task, const MATRIX* unscaledMatrix, s16 scaleY);
 static void _actor00300InitDrainModel(Enemy* enemy, Task* task);
 static void _actor00300TeardownFireball(Enemy* enemy, Task* task);
 
@@ -301,13 +327,13 @@ extern TaskDesc              Actor00300_D162F0[];
 extern TaskMessageEntry Actor00300_D16314[5];
 extern AnimationSet*    Actor00300_D1633C[22];
 
-/// State handlers of the task `Actor00300_Fn04770` dispatches, indexed by
+/// State handlers of the task `_actor00300EnemyTask` dispatches, indexed by
 /// `Task::state`. The first sets the task up and moves it to state 1.
 static const EnemyTaskFuncTable3 Actor00300_D00004 = {
     {
-        Actor00300_Fn00970,
-        Actor00300_Fn047CC,
-        Actor00300_Fn03B70,
+        _actor00300InitEnemy,
+        _actor00300TickActive,
+        _actor00300TickDeath,
     },
 };
 
@@ -337,9 +363,9 @@ static TmdSource    _gActor00300Actor100300Model09FA0;
 static s32          _actor00300MsgPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
 static s32          _actor00300MsgSetModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedSecondArg);
 static s32          _actor00300MsgApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedSecondArg);
-void                Actor00300_Fn04770(Task*);
+static void         _actor00300EnemyTask(Task* task);
 static void         _actor00300DrainModelTask(Task* task);
-void                Actor00300_Fn0521C(Task*);
+static void         _actor00300FireballTask(Task* task);
 
 static TmdBone _gActor00300StingerBodySkeleton[19] = {
 #include "assets/stinger_body_skeleton.inc"
@@ -1231,9 +1257,9 @@ SVECTOR* Actor00300_D16278[15][2] = {
 };
 
 TaskDesc Actor00300_D162F0[3] = {
-    { { { TASK_BODY_TMD, 96 } }, Actor00300_Fn04770, { .model = &_gActor00300StingerBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor00300EnemyTask, { .model = &_gActor00300StingerBody } },
     { { { TASK_BODY_TMD, 96 } }, _actor00300DrainModelTask, { .model = &_gActor00300Actor100300Model09FA0 } },
-    { { { TASK_BODY_COORD, 96 } }, Actor00300_Fn0521C, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, _actor00300FireballTask, { .value = 0 } },
 };
 
 TaskMessageEntry Actor00300_D16314[5] = {
@@ -1313,7 +1339,7 @@ static TmdSource _gActor00300Actor100300Model0BFC0;
 extern void* D_80067704[1];
 
 static inline s16      _actor00300TiltMagnitude(s8 randomByte);
-static void            Actor00300_Fn03618(Task* arg0);
+static void            _actor00300SpawnBurstFragments(Task* task);
 static __inline__ void _actor00300UpdateDrainModel(Task* task);
 static void            _actor00300DrainModelActive(Enemy* enemy, Task* task);
 static void            _actor00300InitFireball(Enemy* enemy, Task* task);
@@ -1323,31 +1349,79 @@ static void            Actor00300_Fn04370(Enemy* arg0, Task* arg1);
 
 #include "../../shared/fireball_ground_glow.inc.c"
 
-static void Actor00300_Fn00970(Enemy* enemy, Task* task)
+/// Binds the drain model's texture offsets from the current area's enemy placement.
+///
+/// Scoped to `_actor00300InitEnemy`: captures live enemy/drainEnemy pointers and
+/// the caller's drainModel, locationKey, sessionLocation, placementKey,
+/// placementIndex, currentView and placement temporaries. Uses the placement
+/// index in 0..15, and rebuilds both buffer halves if a buffer is present.
+/// Invoke as a standalone statement; no argument evaluation or early exit.
+#define ACTOR_00300_BIND_DRAIN_TEXTURE()                                         \
+    placementKey      = enemy->placeKey;                                         \
+    drainModel        = drainEnemy->task->extra.tmd;                             \
+    sessionLocation   = &gGameSession->location.loc;                             \
+    locationKey.stage = sessionLocation->stage;                                  \
+    locationKey.area  = sessionLocation->area;                                   \
+    locationKey.room  = sessionLocation->room;                                   \
+    currentView       = gGameSession->location.loc.view;                         \
+    placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                 \
+    locationKey.view  = currentView;                                             \
+    areaSyncLocationVariant(&locationKey);                                       \
+    placement =                                                                  \
+        gpAreaPlaceAt(areaGetVariant(&locationKey)->placements, placementIndex); \
+    drainModel->texturePageOffset = placement->texturePageOffset;                \
+    drainModel->clutRowOffset     = placement->clutRowOffset;                    \
+    if (drainModel->buffer != NULL) {                                            \
+        tmdBuildBufferHalf(drainModel);                                          \
+        tmdBuildBufferHalf(drainModel);                                          \
+    }
+
+/// Allocates the enemy's rig and collision work, spawns its drain attachment and enters active state.
+///
+/// Requires a nineteen-part TMD enemy and a live placement. A listed room uses
+/// placement mode 0..1 to select its patrol route; other rooms leave the route
+/// NULL. Work and the four contact tables live until enemy destruction, and the
+/// drain child borrows the work's matrices. Allocation failure destroys the
+/// enemy; the retained path assumes the drain-child spawn succeeds.
+static void _actor00300InitEnemy(Enemy* enemy, Task* task)
 {
-    GameLocationKey        key;
-    Enemy*                 child;
+    enum { ACTOR_00300_SPAWN_WAIT_TICKS    = 10,
+           ACTOR_00300_DRAIN_DESCRIPTOR    = 1,
+           ACTOR_00300_HIT_EFFECT_ARG_LOW  = 768,
+           ACTOR_00300_HIT_EFFECT_ARG_HIGH = 2,
+           ACTOR_00300_SIGHT_LENGTH        = 9000,
+           ACTOR_00300_SIGHT_FAR_RADIUS    = 4000,
+           ACTOR_00300_SIGHT_NEAR_RADIUS   = 1000,
+           ACTOR_00300_BODY_KEY            = WORLD_COLLISION_CONTACT_ENEMY_BODY | 3,
+           ACTOR_00300_HIT_RADIUS          = 350,
+           ACTOR_00300_GRID_RADIUS         = 500,
+           ACTOR_00300_DRAIN_RADIUS        = 700,
+           ACTOR_00300_SCENE_MUSIC_ENTRY   = 10 };
+
+    GameLocationKey        locationKey;
+    Enemy*                 drainEnemy;
     WorldCollisionContact* sightContacts;
     WorldCollisionContact* hitContacts;
     WorldCollisionContact* gridContacts;
     WorldCollisionContact* drainContacts;
     _Actor00300Work*       work;
+    TmdObject*             drainModel;
+    s32                    patrolRoomIndex;
+    Task*                  drainTask;
+    s32                    slotIndex;
+    u32                    placementIndex;
+    u32                    placementKey;
+    u8                     currentView;
+    GameLocationKey*       sessionLocation;
+    AreaPlacement*         placement;
     TmdObject*             model;
-    s32                    areaIndex;
-    Task*                  childTask;
-    s32                    slot;
-    u32                    index;
-    u32                    rawId;
-    u8                     areaByte0;
-    GameLocationKey*       sessionKey;
-    AreaPlacement*         entry;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    GfxCoord*              parts;
+    GfxCoord*              rootCoord;
+    GfxCoord*              bodyCoords;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(_Actor00300Work), 0);
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    // Own the zeroed work; an absent room route leaves combat updates inactive.
+    work = memCalloc(sizeof(_Actor00300Work), 0);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -1355,128 +1429,114 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     task->work             = work;
     work->patrolPoints     = NULL;
     work->patrolPointCount = 0;
-    for (areaIndex = 0; Actor00300_D16020[areaIndex].routeRow != 0; areaIndex++) {
-        if ((gGameSession->location.loc.stage == Actor00300_D16020[areaIndex].stage) &&
-            (gGameSession->location.loc.area == Actor00300_D16020[areaIndex].area)) {
+    for (patrolRoomIndex = 0; Actor00300_D16020[patrolRoomIndex].routeRow != 0; patrolRoomIndex++) {
+        if ((gGameSession->location.loc.stage == Actor00300_D16020[patrolRoomIndex].stage) &&
+            (gGameSession->location.loc.area == Actor00300_D16020[patrolRoomIndex].area)) {
             work->patrolPoints =
-                Actor00300_D16278[Actor00300_D16020[areaIndex].routeRow]
+                Actor00300_D16278[Actor00300_D16020[patrolRoomIndex].routeRow]
                                  [enemy->place->mode];
-            work->patrolPointCount = Actor00300_D16020[areaIndex].pointCount;
+            work->patrolPointCount = Actor00300_D16020[patrolRoomIndex].pointCount;
         }
     }
-    work->notLockable   = enemy->place->variant;
-    obj->flags          = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->lightMtx;
-    obj->colorMtx       = &work->colorMtx;
-    enemy->field_4      = &coord->coord;
-    enemy->field_48     = 0;
+    work->notLockable       = enemy->place->variant;
+    model->flags            = 0;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->lightMtx         = &work->lightMtx;
+    model->colorMtx         = &work->colorMtx;
+    enemy->field_4          = &rootCoord->coord;
+    enemy->field_48         = 0;
     worldTargetLinkNode(&enemy->node);
-    slot                          = 1;
-    parts                         = task->extra.tmd->coords;
+    slotIndex                     = 1;
+    bodyCoords                    = task->extra.tmd->coords;
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
     enemy->param                  = &Actor00300_D15FE8;
     enemy->recs                   = work->hitContacts;
-    enemy->coord                  = parts + 3;
+    enemy->coord                  = bodyCoords + ACTOR_00300_HIT_PART;
     enemy->hp                     = (s16)Actor00300_D15FE8.hpMax;
-    work->hitEffectArg.coord      = task->extra.tmd->coords + 3;
-    work->hitEffectArg.spawnArgLo = 0x300;
-    work->hitEffectArg.spawnArgHi = 2;
-    animationInitContext(&work->rig.anim, Actor00300_D1633C, obj,
+    work->hitEffectArg.coord      = task->extra.tmd->coords + ACTOR_00300_HIT_PART;
+    work->hitEffectArg.spawnArgLo = ACTOR_00300_HIT_EFFECT_ARG_LOW;
+    work->hitEffectArg.spawnArgHi = ACTOR_00300_HIT_EFFECT_ARG_HIGH;
+    animationInitContext(&work->rig.anim, Actor00300_D1633C, model,
                          work->rig.poses, work->rig.slots);
     do {
-        animationResetSlot(&work->rig.anim, slot, 1);
-        slot += 1;
-    } while (slot < ARRAY_SIZE(work->rig.slots));
-    (sceneAcquireBattleRef)(0);
-    work->savedRootMtx = coord->coord;
-    work->timer        = 0xA;
+        animationResetSlot(&work->rig.anim, slotIndex, ACTOR_00300_ANIM_STAND);
+        slotIndex += 1;
+    } while (slotIndex < ARRAY_SIZE(work->rig.slots));
+    sceneAcquireBattleRef(0);
+    work->savedRootMtx = rootCoord->coord;
+    work->timer        = ACTOR_00300_SPAWN_WAIT_TICKS;
     work->mp           = ACTOR_00300_MP_AT_SPAWN;
-    child              = enemySpawnFromTable(Actor00300_D162F0, 1, 0, enemy);
-    rawId              = enemy->placeKey;
-    model              = child->task->extra.tmd;
-    sessionKey         = &gGameSession->location.loc;
-    key.stage          = sessionKey->stage;
-    key.area           = sessionKey->area;
-    key.room           = sessionKey->room;
-    areaByte0          = gGameSession->location.loc.view;
-    index              = rawId >> 12;
-    key.view           = areaByte0;
-    areaSyncLocationVariant(&key);
-    entry =
-        gpAreaPlaceAt(areaGetVariant(&key)->placements, index);
-    model->texturePageOffset = entry->texturePageOffset;
-    model->clutRowOffset     = entry->clutRowOffset;
-    if (model->buffer != NULL) {
-        tmdBuildBufferHalf(model);
-        tmdBuildBufferHalf(model);
-    }
-    childTask                     = child->task;
-    work->sightCapsule.ends[0].vz = 0x2328;
-    work->sightCapsule.end0Radius = 0xFA0;
+    // The drain child borrows this work and the placement texture offsets.
+    drainEnemy = enemySpawnFromTable(Actor00300_D162F0, ACTOR_00300_DRAIN_DESCRIPTOR, 0, enemy);
+    ACTOR_00300_BIND_DRAIN_TEXTURE();
+    // Register sensing, hit, floor and drain bodies before enabling their passes.
+    drainTask                     = drainEnemy->task;
+    work->sightCapsule.ends[0].vz = ACTOR_00300_SIGHT_LENGTH;
+    work->sightCapsule.end0Radius = ACTOR_00300_SIGHT_FAR_RADIUS;
     sightContacts                 = work->sightContacts;
     work->sightCapsule.ends[0].vx = 0;
     work->sightCapsule.ends[0].vy = 0;
     work->sightCapsule.ends[1].vx = 0;
     work->sightCapsule.ends[1].vy = 0;
     work->sightCapsule.ends[1].vz = 0;
-    work->sightCapsule.end1Radius = 0x3E8;
+    work->sightCapsule.end1Radius = ACTOR_00300_SIGHT_NEAR_RADIUS;
     work->sightCapsule.contacts   = sightContacts;
-    work->drainModelTask          = childTask;
+    work->drainModelTask          = drainTask;
     work->sightBody.coord =
-        task->extra.tmd->coords + 2;
+        task->extra.tmd->coords + ACTOR_00300_SIGHT_PART;
     work->sightBody.context.capsule = &work->sightCapsule;
     work->sightBody.pos.vx          = 0;
     work->sightBody.pos.vy          = 0;
     work->sightBody.pos.vz          = 0;
     work->sightBody.key             = 0;
     work->sightBody.radius          = 0;
-    work->sightBody.flags           = (u32)WORLD_COLLISION_BODY_CAPSULE;
+    work->sightBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sightBody);
     worldCollisionInitContacts(sightContacts, ARRAY_SIZE(work->sightContacts), 0);
     hitContacts                    = work->hitContacts;
-    work->sightBody.flags          = (u16)(work->sightBody.flags | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    work->hitBody.coord            = task->extra.tmd->coords + 3;
+    work->sightBody.flags          = work->sightBody.flags | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->hitBody.coord            = task->extra.tmd->coords + ACTOR_00300_HIT_PART;
     work->hitBody.context.contacts = hitContacts;
     work->hitBody.pos.vx           = 0;
     work->hitBody.pos.vy           = 0;
     work->hitBody.pos.vz           = 0;
-    work->hitBody.key              = 0x30003;
-    work->hitBody.radius           = 0x15E;
-    work->hitBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    work->hitBody.key              = ACTOR_00300_BODY_KEY;
+    work->hitBody.radius           = ACTOR_00300_HIT_RADIUS;
+    work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
     worldCollisionInitContacts(hitContacts, ARRAY_SIZE(work->hitContacts), 0);
-    work->hitBody.flags             = (u16)(work->hitBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->hitBody.flags             = work->hitBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->gridBody.coord            = task->extra.tmd->coords;
     gridContacts                    = work->gridContacts;
-    work->gridBody.key              = 0x30003;
+    work->gridBody.key              = ACTOR_00300_BODY_KEY;
     work->gridBody.context.contacts = gridContacts;
     work->gridBody.pos.vx           = 0;
-    work->gridBody.pos.vy           = -0x1F4;
+    work->gridBody.pos.vy           = -ACTOR_00300_GRID_RADIUS;
     work->gridBody.pos.vz           = 0;
-    work->gridBody.radius           = 0x1F4;
-    work->gridBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    work->gridBody.radius           = ACTOR_00300_GRID_RADIUS;
+    work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     worldCollisionInitContacts(gridContacts, ARRAY_SIZE(work->gridContacts), 0);
-    work->gridBody.flags             = (u16)(work->gridBody.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED));
-    work->drainBody.coord            = child->task->extra.tmd->coords;
+    work->gridBody.flags             = work->gridBody.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
+    work->drainBody.coord            = drainEnemy->task->extra.tmd->coords;
     drainContacts                    = work->drainContacts;
     work->drainBody.context.contacts = drainContacts;
-    work->drainBody.pos.vx           = -0x1F4;
-    work->drainBody.pos.vy           = 0x1F4;
+    work->drainBody.pos.vx           = ACTOR_00300_DRAIN_OFFSET_X;
+    work->drainBody.pos.vy           = ACTOR_00300_DRAIN_OFFSET_Y;
     work->drainBody.pos.vz           = 0;
     work->drainBody.key              = damagePackAttackKey(Actor00300_D15FD8, 0);
-    work->drainBody.radius           = 0x2BC;
-    work->drainBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    work->drainBody.radius           = ACTOR_00300_DRAIN_RADIUS;
+    work->drainBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->drainBody);
     worldCollisionInitContacts(drainContacts, ARRAY_SIZE(work->drainContacts), 0);
-    gStageSceneMusicEntry = 0xA;
-    work->drainBody.flags = (u16)(work->drainBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+    gStageSceneMusicEntry = ACTOR_00300_SCENE_MUSIC_ENTRY;
+    work->drainBody.flags = work->drainBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->msgTable        = Actor00300_D16314;
-    task->state           = 1;
+    task->state           = ACTOR_00300_TASK_ACTIVE;
 }
+#undef ACTOR_00300_BIND_DRAIN_TEXTURE
 
 /// Copies the world positions of two coordinates into the scratch block and
 /// runs `_playerDetectionSegmentOccluded` on the segment between them. When it reports no
@@ -1510,54 +1570,98 @@ static inline s16 _actor00300TiltMagnitude(s8 randomByte)
     return (randomByte & ACTOR_00300_HIT_TWIST_RANDOM_MASK) + ACTOR_00300_HIT_TWIST_MIN;
 }
 
-static void Actor00300_Fn00E54(Task* arg0)
+/// Chooses signed pitch and yaw recoil from one LCG draw.
+///
+/// enemyWork is a side-effect-free live `_Actor00300Work*`, read repeatedly.
+/// yawResult is a repeatedly read/written s32 lvalue, disjoint from enemyWork
+/// and the LCG state. Use as a standalone statement. Changes the work's
+/// hit-twist fields, yawResult and the shared LCG.
+#define ACTOR_00300_CHOOSE_HIT_TWIST(enemyWork, yawResult)                                \
+    {                                                                                     \
+        s16 randomHalfword;                                                               \
+        s32 pitchSignBit;                                                                 \
+        u32 randomState;                                                                  \
+        s32 pitchTwist;                                                                   \
+        s32 yawRandomByte;                                                                \
+                                                                                          \
+        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
+        randomHalfword  = randomState >> 16;                                              \
+        pitchTwist      = _actor00300TiltMagnitude(randomHalfword);                       \
+        pitchSignBit    = randomHalfword & 1;                                             \
+        gRandomLcgState = randomState;                                                    \
+        if (!pitchSignBit) {                                                              \
+            pitchTwist = -pitchTwist;                                                     \
+        }                                                                                 \
+        (enemyWork)->hitTwist.vx = pitchTwist;                                            \
+        yawRandomByte            = randomHalfword >> 8;                                   \
+        (yawResult)              = _actor00300TiltMagnitude(yawRandomByte);               \
+        if (!(yawRandomByte & 1)) {                                                       \
+            (yawResult) = -(yawResult);                                                   \
+        }                                                                                 \
+        (enemyWork)->hitTwist.vy    = (yawResult);                                        \
+        (enemyWork)->hitTwistActive = 1;                                                  \
+    }
+
+/// Resolves grid correction, attack damage, enemy overlaps, MP drain and player sight for one combat tick.
+///
+/// Requires initialized work and composed body coordinates from the previous
+/// tick. Clears consumed contact tables. Grid correction
+/// uses Q16 integer halves; enemy separation uses Q12 normals in the root frame.
+/// Attack-key bit 7 selects player or companion; valid attack rows are required.
+/// Hit direction selects front/back reactions, and a fatal burst enters death.
+/// Borrows one `_Actor00300HitScratch` block, releasing it before return.
+static void _actor00300ResolveContacts(Task* task)
 {
+    enum { ACTOR_00300_HURT_DAMAGE_THRESHOLD = 80,
+           ACTOR_00300_REACTION_BURST        = 4,
+           ACTOR_00300_CONTACT_FRACTION_BITS = 12,
+           ACTOR_00300_DRAIN_HALO_ARG        = 0x20001, // one expansion tick, tint row 2
+           ACTOR_00300_HURT_KNOCK_DOWN_STEP  = 2,
+           ACTOR_00300_CRITICAL_MULTIPLIER   = 4,
+           ACTOR_00300_KNOCK_DOWN_ANIM_COUNT = ACTOR_00300_ANIM_KNOCK_DOWN_FRONT - ACTOR_00300_ANIM_KNOCK_DOWN_BACK + 1 };
+
     _Actor00300Work*       work;
-    _Actor00300HitScratch* head;
+    _Actor00300HitScratch* stackTop;
     _Actor00300HitScratch* scratch;
     Enemy*                 enemy;
-    GfxCoord*              self;
-    GfxCoord*              other;
-    s32                    maxPush;
-    s32                    critical;
-    u32                    lastId;
-    s32                    i;
-    s32                    dz;
-    s32                    val;
-    s32                    x;
-    s32                    y;
-    s32                    z;
-    s32                    push;
-    s32                    clamped;
-    s16                    cooldown;
-    s16                    rng;
-    s32                    bit;
-    u32                    random;
-    s32                    tilt;
-    s32                    byte1;
+    GfxCoord*              rootCoord;
+    GfxCoord*              contactCoord;
+    s32                    maxEnemyOverlap;
+    s32                    incendiarySeen;
+    u32                    lastEffectKey;
+    s32                    contactIndex;
+    s32                    attackerDeltaZ;
+    s32                    facingDotOrYawTwist;
+    s32                    contactDeltaX;
+    s32                    contactDeltaY;
+    s32                    contactDeltaZ;
+    s32                    penetration;
+    s32                    positivePenetration;
+    s16                    hitCooldown;
 
-    maxPush  = 0;
-    critical = 0;
-    lastId   = 0;
-    work     = arg0->work;
-    head     = SCRATCH_STACK_CURSOR(_Actor00300HitScratch);
-    self     = arg0->extra.tmd->coords;
+    maxEnemyOverlap = 0;
+    incendiarySeen  = 0;
+    lastEffectKey   = 0;
+    work            = task->work;
+    stackTop        = SCRATCH_STACK_CURSOR(_Actor00300HitScratch);
+    rootCoord       = task->extra.tmd->coords;
     SCRATCH_STACK_RESERVE_BLOCK(_Actor00300HitScratch);
     scratch = SCRATCH_STACK_CURSOR(_Actor00300HitScratch);
-    enemy   = arg0->spawnArg2.pointer;
+    enemy   = task->spawnArg2.pointer;
 
+    // Resolve the last movement against the grid before consuming pair contacts.
     switch (worldCollisionResolvePushback(work->gridContacts, &scratch->delta, ARRAY_SIZE(work->gridContacts), NULL)) {
         case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
         case WORLD_COLLISION_PUSHBACK_GRID_HIT:
-            self->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
-            self->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
-            self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
+            rootCoord->coord.t[0] += stackTop[-1].delta.fixed.vx.halves.integer;
+            rootCoord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            rootCoord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
         case WORLD_COLLISION_PUSHBACK_OPPOSED:
-            self->coord.t[0] = work->prevPos.vx;
-            self->coord.t[1] = work->prevPos.vy;
-            self->coord.t[2] = work->prevPos.vz;
+            rootCoord->coord.t[0] = work->prevPos.vx;
+            rootCoord->coord.t[1] = work->prevPos.vy;
+            rootCoord->coord.t[2] = work->prevPos.vz;
             break;
     }
     worldCollisionClearContacts(work->gridContacts);
@@ -1567,12 +1671,12 @@ static void Actor00300_Fn00E54(Task* arg0)
             case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
                 break;
             case WORLD_COLLISION_PUSHBACK_GRID_HIT:
-                self->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
-                self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
+                rootCoord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+                rootCoord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
                 break;
             case WORLD_COLLISION_PUSHBACK_OPPOSED:
-                self->coord.t[0] = work->prevPos.vx;
-                self->coord.t[2] = work->prevPos.vz;
+                rootCoord->coord.t[0] = work->prevPos.vx;
+                rootCoord->coord.t[2] = work->prevPos.vz;
                 break;
         }
     }
@@ -1583,123 +1687,110 @@ static void Actor00300_Fn00E54(Task* arg0)
         }
     }
 
-    for (i = 0; i < ARRAY_SIZE(work->hitContacts); i++) {
-        switch ((u32)work->hitContacts[i].key.value >> 16) {
+    // Incendiary damage reduction stays latched for the rest of this contact batch.
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->hitContacts); contactIndex++) {
+        switch ((u32)work->hitContacts[contactIndex].key.value >> 16) {
             case 0:
-            case 1:
+            case WORLD_COLLISION_CONTACT_PLAYER_BODY >> 16:
                 break;
-            case 2:
+            case WORLD_COLLISION_CONTACT_ATTACK >> 16:
                 if (work->hitCooldown != 0) {
                     break;
                 }
-                switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                switch (damageGetPlayerAttackReaction(work->hitContacts[contactIndex].key.value) & 0xFFFF) {
                     case DAMAGE_PLAYER_REACTION_STAGGER:
                         if (work->knockDown == 0) {
                             work->knockDown = 1;
                         }
                         break;
                     case DAMAGE_PLAYER_REACTION_BUILDUP:
-                        damageStartEnemyBuildup(enemy, work->hitContacts[i].key.value, 0);
+                        damageStartEnemyBuildup(enemy, work->hitContacts[contactIndex].key.value, 0);
                         break;
                     case DAMAGE_PLAYER_REACTION_POISON:
-                        damageTryStartEnemyDamageOverTime(enemy, work->hitContacts[i].key.value, 0);
+                        damageTryStartEnemyDamageOverTime(enemy, work->hitContacts[contactIndex].key.value, 0);
                         break;
-                    case 4:
-                        work->burstStage = 1;
+                    case ACTOR_00300_REACTION_BURST:
+                        work->burstStage = ACTOR_00300_BURST_REQUESTED;
                         break;
                     case DAMAGE_PLAYER_REACTION_EXPLOSION:
-                        work->burstStage = 1;
+                        work->burstStage = ACTOR_00300_BURST_REQUESTED;
                         break;
                     case DAMAGE_PLAYER_REACTION_INCENDIARY:
-                        critical = 1;
+                        incendiarySeen = 1;
                         break;
+                    // These attributes add no actor-specific reaction.
                     case DAMAGE_PLAYER_REACTION_NONE:
                     case 5:
                     case 8:
                     case 9:
                         break;
                 }
-                other                    = gPlayerActorTasks[(u8)work->hitContacts[i].key.value >> 7]->extra.tmd->coords;
-                scratch->delta.vector.vx = other->coord.t[0] - self->coord.t[0];
-                scratch->delta.vector.vy = other->coord.t[1] - self->coord.t[1];
-                dz                       = other->coord.t[2] - self->coord.t[2];
-                scratch->delta.vector.vz = dz;
-                val                      = (scratch->delta.vector.vx * self->coord.m[0][2]) + (scratch->delta.vector.vy * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
-                work->hitFromFront       = val >= 0;
-                work->hitDamage          = damageComputePlayerAttack(work->hitContacts[i].key.value,
+                contactCoord             = gPlayerActorTasks[(u8)work->hitContacts[contactIndex].key.value >> 7]->extra.tmd->coords;
+                scratch->delta.vector.vx = contactCoord->coord.t[0] - rootCoord->coord.t[0];
+                scratch->delta.vector.vy = contactCoord->coord.t[1] - rootCoord->coord.t[1];
+                attackerDeltaZ           = contactCoord->coord.t[2] - rootCoord->coord.t[2];
+                scratch->delta.vector.vz = attackerDeltaZ;
+                facingDotOrYawTwist      = (scratch->delta.vector.vx * rootCoord->coord.m[0][2]) + (scratch->delta.vector.vy * rootCoord->coord.m[1][2]) + (attackerDeltaZ * rootCoord->coord.m[2][2]);
+                work->hitFromFront       = facingDotOrYawTwist >= 0;
+                work->hitDamage          = damageComputePlayerAttack(work->hitContacts[contactIndex].key.value,
                                                                      SquareRoot0((scratch->delta.vector.vx * scratch->delta.vector.vx) + (scratch->delta.vector.vy * scratch->delta.vector.vy) + (scratch->delta.vector.vz * scratch->delta.vector.vz)),
                                                                      0, 0);
-                if (critical != 0) {
+                if (incendiarySeen != 0) {
                     work->hitDamage >>= 1;
-                } else if (damageRollCriticalHit(enemy, work->hitContacts[i].key.value, 0) != 0) {
-                    work->hitDamage *= 4;
-                    effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+                } else if (damageRollCriticalHit(enemy, work->hitContacts[contactIndex].key.value, 0) != 0) {
+                    work->hitDamage *= ACTOR_00300_CRITICAL_MULTIPLIER;
+                    effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[ACTOR_00300_HIT_PART], 0, NULL);
                 }
-                damageAccumulateLifeDrainHp(enemy, work->hitContacts[i].key.value, work->hitDamage, 0);
+                damageAccumulateLifeDrainHp(enemy, work->hitContacts[contactIndex].key.value, work->hitDamage, 0);
                 worldTargetAddReadoutAmount(&enemy->node, work->hitDamage, 0);
                 enemy->hp -= work->hitDamage;
                 if (enemy->hp <= 0) {
-                    if (work->burstStage == 0) {
+                    if (work->burstStage == ACTOR_00300_BURST_NONE) {
                         work->action = ACTOR_00300_ACTION_HURT;
-                        if ((u16)(work->anim - ACTOR_00300_ANIM_KNOCK_DOWN_BACK) < 2) {
-                            work->actionStep = 2;
+                        if ((u16)(work->anim - ACTOR_00300_ANIM_KNOCK_DOWN_BACK) < ACTOR_00300_KNOCK_DOWN_ANIM_COUNT) {
+                            work->actionStep = ACTOR_00300_HURT_KNOCK_DOWN_STEP;
                         } else {
-                            work->actionStep = 0;
+                            work->actionStep = ACTOR_00300_ACTION_BEGIN;
                         }
                     } else {
                         work->action     = ACTOR_00300_ACTION_DEAD;
-                        work->actionStep = 0;
-                        arg0->state      = 2;
+                        work->actionStep = ACTOR_00300_ACTION_BEGIN;
+                        task->state      = ACTOR_00300_TASK_DEATH;
                     }
                 } else {
-                    work->burstStage = 0;
-                    if ((work->hitDamage >= 0x50 || work->knockDown != 0) && work->action != ACTOR_00300_ACTION_HURT) {
+                    work->burstStage = ACTOR_00300_BURST_NONE;
+                    if ((work->hitDamage >= ACTOR_00300_HURT_DAMAGE_THRESHOLD || work->knockDown != 0) && work->action != ACTOR_00300_ACTION_HURT) {
                         work->action     = ACTOR_00300_ACTION_HURT;
-                        work->actionStep = 0;
+                        work->actionStep = ACTOR_00300_ACTION_BEGIN;
                     } else {
-                        random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        rng             = random >> 16;
-                        tilt            = _actor00300TiltMagnitude(rng);
-                        bit             = rng & 1;
-                        gRandomLcgState = random;
-                        if (!bit) {
-                            tilt = -tilt;
-                        }
-                        work->hitTwist.vx = tilt;
-                        byte1             = rng >> 8;
-                        val               = _actor00300TiltMagnitude(byte1);
-                        if (!(byte1 & 1)) {
-                            val = -val;
-                        }
-                        work->hitTwist.vy    = val;
-                        work->hitTwistActive = 1;
+                        ACTOR_00300_CHOOSE_HIT_TWIST(work, facingDotOrYawTwist);
                     }
                 }
-                if (lastId != work->hitContacts[i].key.value) {
-                    lastId = work->hitContacts[i].key.value;
-                    effectSpawnHit(damageGetPlayerAttackEffectId(lastId), &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
+                if (lastEffectKey != work->hitContacts[contactIndex].key.value) {
+                    lastEffectKey = work->hitContacts[contactIndex].key.value;
+                    effectSpawnHit(damageGetPlayerAttackEffectId(lastEffectKey), &task->extra.tmd->coords[ACTOR_00300_HIT_PART], NULL, &work->hitEffectArg);
                 }
-                cooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
-                if (cooldown > 0) {
-                    work->hitCooldown = cooldown;
+                hitCooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[contactIndex].key.value);
+                if (hitCooldown > 0) {
+                    work->hitCooldown = hitCooldown;
                 }
                 break;
-            case 3:
-                other                    = &arg0->extra.tmd->coords[3];
-                x                        = other->workm.t[0] - work->hitContacts[i].point.vx;
-                scratch->delta.vector.vx = x;
-                y                        = other->workm.t[1] - work->hitContacts[i].point.vy;
-                scratch->delta.vector.vy = y;
-                z                        = other->workm.t[2] - work->hitContacts[i].point.vz;
-                scratch->delta.vector.vz = z;
-                push                     = work->hitContacts[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
-                clamped                  = push;
-                if (push <= 0) {
-                    clamped = 0;
+            case WORLD_COLLISION_CONTACT_ENEMY_BODY >> 16:
+                contactCoord             = &task->extra.tmd->coords[ACTOR_00300_HIT_PART];
+                contactDeltaX            = contactCoord->workm.t[0] - work->hitContacts[contactIndex].point.vx;
+                scratch->delta.vector.vx = contactDeltaX;
+                contactDeltaY            = contactCoord->workm.t[1] - work->hitContacts[contactIndex].point.vy;
+                scratch->delta.vector.vy = contactDeltaY;
+                contactDeltaZ            = contactCoord->workm.t[2] - work->hitContacts[contactIndex].point.vz;
+                scratch->delta.vector.vz = contactDeltaZ;
+                penetration              = work->hitContacts[contactIndex].distance - SquareRoot0((contactDeltaX * contactDeltaX) + (contactDeltaY * contactDeltaY) + (contactDeltaZ * contactDeltaZ));
+                positivePenetration      = penetration;
+                if (penetration <= 0) {
+                    positivePenetration = 0;
                 }
-                push = clamped;
-                if (maxPush < push) {
-                    maxPush = push;
+                penetration = positivePenetration;
+                if (maxEnemyOverlap < penetration) {
+                    maxEnemyOverlap = penetration;
                     VectorNormal(&scratch->delta.vector, &scratch->normal);
                     ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->push);
                 }
@@ -1707,9 +1798,10 @@ static void Actor00300_Fn00E54(Task* arg0)
         }
     }
 
-    if (maxPush > 0) {
-        self->coord.t[0] += (maxPush * scratch->push.vx) >> 12;
-        self->coord.t[2] += (maxPush * scratch->push.vz) >> 12;
+    // Apply only the deepest enemy overlap, with its normal in the root frame.
+    if (maxEnemyOverlap > 0) {
+        rootCoord->coord.t[0] += (maxEnemyOverlap * scratch->push.vx) >> ACTOR_00300_CONTACT_FRACTION_BITS;
+        rootCoord->coord.t[2] += (maxEnemyOverlap * scratch->push.vz) >> ACTOR_00300_CONTACT_FRACTION_BITS;
     }
     worldCollisionClearContacts(work->hitContacts);
     if (work->drainContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
@@ -1717,21 +1809,23 @@ static void Actor00300_Fn00E54(Task* arg0)
         worldCollisionClearContacts(work->drainContacts);
         playerStateSpendMp(ACTOR_00300_MP_DRAINED);
         work->mp        += ACTOR_00300_MP_DRAINED;
-        scratch->from.vx = -0x1F4;
-        scratch->from.vy = 0x1F4;
+        scratch->from.vx = ACTOR_00300_DRAIN_OFFSET_X;
+        scratch->from.vy = ACTOR_00300_DRAIN_OFFSET_Y;
         scratch->from.vz = 0;
-        effectSpawn(gRoomEffectHaloId, work->drainModelTask->extra.tmd->coords, 0x20001, &scratch->from);
+        effectSpawn(gRoomEffectHaloId, work->drainModelTask->extra.tmd->coords, ACTOR_00300_DRAIN_HALO_ARG, &scratch->from);
     }
+    // Test the sight contact against room occluders before refreshing pursuit memory.
     work->playerSeen = 0;
-    if ((work->sightContacts[0].key.value & 0xFFFF0000) == 0x10000) {
-        other = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[3];
-        _ACTOR00300_TEST_SIGHT_LINE(work, scratch, other, self);
+    if ((work->sightContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
+        contactCoord = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[ACTOR_00300_HIT_PART];
+        _ACTOR00300_TEST_SIGHT_LINE(work, scratch, contactCoord, rootCoord);
     } else if (work->alertTimer > 0) {
         work->alertTimer--;
     }
     worldCollisionClearContacts(work->sightContacts);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor00300HitScratch);
 }
+#undef ACTOR_00300_CHOOSE_HIT_TWIST
 
 /// Advances the room patrol and switches to pursuit when the actor is alerted.
 ///
@@ -2818,146 +2912,75 @@ static void _actor00300ApplyHitTwist(Task* task)
 }
 #undef ACTOR_00300_EASE_HIT_TWIST
 
-static void Actor00300_Fn03618(Task* arg0)
+/// Binds a successfully spawned fragment to the current placement's texture offsets.
+///
+/// Scoped to `_actor00300SpawnBurstFragments`: captures task, locationKey and
+/// currentView, all live locals. fragment must be a side-effect-free EffectWork*
+/// expression; it is read repeatedly. A NULL fragment performs no lookup.
+/// The loaded placement and model resources must outlive both buffer rebuilds.
+#define ACTOR_00300_BIND_BURST_TEXTURE(fragment)                                                                    \
+    if ((fragment) != NULL) {                                                                                       \
+        u32              placementKey, placementIndex;                                                              \
+        TmdObject*       fragmentModel;                                                                             \
+        AreaPlacement*   placement;                                                                                 \
+        GameLocationKey* sessionLocation;                                                                           \
+        sessionLocation   = &gGameSession->location.loc;                                                            \
+        placementKey      = ((Enemy*)task->spawnArg2.pointer)->placeKey;                                            \
+        fragmentModel     = (fragment)->task->extra.tmd;                                                            \
+        locationKey.stage = sessionLocation->stage;                                                                 \
+        locationKey.area  = sessionLocation->area;                                                                  \
+        locationKey.room  = sessionLocation->room;                                                                  \
+        currentView       = gGameSession->location.loc.view;                                                        \
+        placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                \
+        locationKey.view  = currentView;                                                                            \
+        areaSyncLocationVariant(&locationKey);                                                                      \
+        placement                        = gpAreaPlaceAt(areaGetVariant(&locationKey)->placements, placementIndex); \
+        fragmentModel->texturePageOffset = placement->texturePageOffset;                                            \
+        fragmentModel->clutRowOffset     = placement->clutRowOffset;                                                \
+        if (fragmentModel->buffer != NULL) {                                                                        \
+            tmdBuildBufferHalf(fragmentModel);                                                                      \
+            tmdBuildBufferHalf(fragmentModel);                                                                      \
+        }                                                                                                           \
+    }
+
+/// Spawns the five detached models of a bursting enemy with its placement texture offsets.
+///
+/// Requires the enemy task, model coordinate 1 and a live current-area placement
+/// selected by the enemy's 0..15 placement index. Each successful effect owns
+/// its new model; both primitive-buffer halves are rebuilt with the borrowed
+/// area's texture offsets. Failed effect spawns are skipped independently.
+/// The overlay's fragment sources must remain loaded until the effects finish.
+static void _actor00300SpawnBurstFragments(Task* task)
 {
-    GameLocationKey  key;
-    u8               areaByte0;
-    u32              raw1, index1;
-    EffectWork*      effect1;
-    TmdObject*       model1;
-    AreaPlacement*   entry1;
-    GameLocationKey* sessionKey1;
-    u32              raw2, index2;
-    EffectWork*      effect2;
-    TmdObject*       model2;
-    AreaPlacement*   entry2;
-    GameLocationKey* sessionKey2;
-    u32              raw3, index3;
-    EffectWork*      effect3;
-    TmdObject*       model3;
-    AreaPlacement*   entry3;
-    GameLocationKey* sessionKey3;
-    u32              raw4, index4;
-    EffectWork*      effect4;
-    TmdObject*       model4;
-    AreaPlacement*   entry4;
-    GameLocationKey* sessionKey4;
-    u32              raw5, index5;
-    EffectWork*      effect5;
-    TmdObject*       model5;
-    AreaPlacement*   entry5;
-    GameLocationKey* sessionKey5;
+    enum { ACTOR_00300_BURST_ANCHOR_PART = 1,
+           ACTOR_00300_BURST_EFFECT_ARG  = 512 }; // puff-size addend passed to the flying-part task
 
-    D_80067704[0] = &_gActor00300BrainStingerBurstHead;
-    effect1       = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    if (effect1 != NULL) {
-        sessionKey1 = &gGameSession->location.loc;
-        raw1        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        model1      = effect1->task->extra.tmd;
-        key.stage   = sessionKey1->stage;
-        key.area    = sessionKey1->area;
-        key.room    = sessionKey1->room;
-        areaByte0   = gGameSession->location.loc.view;
-        index1      = raw1 >> 12;
-        key.view    = areaByte0;
-        areaSyncLocationVariant(&key);
-        entry1                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index1);
-        model1->texturePageOffset = entry1->texturePageOffset;
-        model1->clutRowOffset     = entry1->clutRowOffset;
-        if (model1->buffer != NULL) {
-            tmdBuildBufferHalf(model1);
-            tmdBuildBufferHalf(model1);
-        }
-    }
+    GameLocationKey locationKey;
+    u8              currentView;
+    EffectWork*     fragmentEffect;
 
-    D_80067704[0] = &_gActor00300Actor100300Model0ABC4;
-    effect2       = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    if (effect2 != NULL) {
-        sessionKey2 = &gGameSession->location.loc;
-        raw2        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        model2      = effect2->task->extra.tmd;
-        key.stage   = sessionKey2->stage;
-        key.area    = sessionKey2->area;
-        key.room    = sessionKey2->room;
-        areaByte0   = gGameSession->location.loc.view;
-        index2      = raw2 >> 12;
-        key.view    = areaByte0;
-        areaSyncLocationVariant(&key);
-        entry2                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index2);
-        model2->texturePageOffset = entry2->texturePageOffset;
-        model2->clutRowOffset     = entry2->clutRowOffset;
-        if (model2->buffer != NULL) {
-            tmdBuildBufferHalf(model2);
-            tmdBuildBufferHalf(model2);
-        }
-    }
+    // The descriptor model must be selected immediately before each spawn.
+    D_80067704[0]  = &_gActor00300BrainStingerBurstHead;
+    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 
-    D_80067704[0] = &_gActor00300Actor100300Model0B128;
-    effect3       = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    if (effect3 != NULL) {
-        sessionKey3 = &gGameSession->location.loc;
-        raw3        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        model3      = effect3->task->extra.tmd;
-        key.stage   = sessionKey3->stage;
-        key.area    = sessionKey3->area;
-        key.room    = sessionKey3->room;
-        areaByte0   = gGameSession->location.loc.view;
-        index3      = raw3 >> 12;
-        key.view    = areaByte0;
-        areaSyncLocationVariant(&key);
-        entry3                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index3);
-        model3->texturePageOffset = entry3->texturePageOffset;
-        model3->clutRowOffset     = entry3->clutRowOffset;
-        if (model3->buffer != NULL) {
-            tmdBuildBufferHalf(model3);
-            tmdBuildBufferHalf(model3);
-        }
-    }
+    D_80067704[0]  = &_gActor00300Actor100300Model0ABC4;
+    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 
-    D_80067704[0] = &_gActor00300Actor100300Model0B8AC;
-    effect4       = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    if (effect4 != NULL) {
-        sessionKey4 = &gGameSession->location.loc;
-        raw4        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        model4      = effect4->task->extra.tmd;
-        key.stage   = sessionKey4->stage;
-        key.area    = sessionKey4->area;
-        key.room    = sessionKey4->room;
-        areaByte0   = gGameSession->location.loc.view;
-        index4      = raw4 >> 12;
-        key.view    = areaByte0;
-        areaSyncLocationVariant(&key);
-        entry4                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index4);
-        model4->texturePageOffset = entry4->texturePageOffset;
-        model4->clutRowOffset     = entry4->clutRowOffset;
-        if (model4->buffer != NULL) {
-            tmdBuildBufferHalf(model4);
-            tmdBuildBufferHalf(model4);
-        }
-    }
+    D_80067704[0]  = &_gActor00300Actor100300Model0B128;
+    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 
-    D_80067704[0] = &_gActor00300Actor100300Model0BFC0;
-    effect5       = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    if (effect5 != NULL) {
-        sessionKey5 = &gGameSession->location.loc;
-        raw5        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        model5      = effect5->task->extra.tmd;
-        key.stage   = sessionKey5->stage;
-        key.area    = sessionKey5->area;
-        key.room    = sessionKey5->room;
-        areaByte0   = gGameSession->location.loc.view;
-        index5      = raw5 >> 12;
-        key.view    = areaByte0;
-        areaSyncLocationVariant(&key);
-        entry5                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index5);
-        model5->texturePageOffset = entry5->texturePageOffset;
-        model5->clutRowOffset     = entry5->clutRowOffset;
-        if (model5->buffer != NULL) {
-            tmdBuildBufferHalf(model5);
-            tmdBuildBufferHalf(model5);
-        }
-    }
+    D_80067704[0]  = &_gActor00300Actor100300Model0B8AC;
+    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
+
+    D_80067704[0]  = &_gActor00300Actor100300Model0BFC0;
+    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 }
+#undef ACTOR_00300_BIND_BURST_TEXTURE
 
 /// Plays the actor's two cue sounds when their slot-1 record bits fall.
 ///
@@ -2995,108 +3018,128 @@ static void _actor00300PlayAnimationCueSounds(Task* task)
     }
 }
 
-static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
-{
-    _Actor00300Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    GfxCoord*        c;
-    VECTOR           vec;
-    s32              mode;
-    s32              sound;
-    s32              pan;
-    s16              phase;
+/// Samples a composed coordinate for the dying enemy's lighting and colour.
+///
+/// Scoped to `_actor00300TickDeath`: captures live task and writable VECTOR3
+/// worldPosition locals. coord is a side-effect-free composed GfxCoord* read
+/// three times. The query reads XYZ only and retains no pointer. Invoke as a
+/// standalone statement; no early exit occurs.
+#define ACTOR_00300_UPDATE_DEATH_COLOR(coord) \
+    worldPosition.vx = (coord)->workm.t[0];   \
+    worldPosition.vy = (coord)->workm.t[1];   \
+    worldPosition.vz = (coord)->workm.t[2];   \
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0)
 
-    obj   = arg1->extra.tmd;
-    work  = arg1->work;
-    mode  = gSceneCombatState.actorControl;
-    coord = obj->coords;
-    switch (mode) {
-        case 1:
-            vec.vx = coord->workm.t[0];
-            vec.vy = coord->workm.t[1];
-            vec.vz = coord->workm.t[2];
-            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+/// Retires the enemy from combat and advances its collapse or fragment-burst death.
+///
+/// Requires initialized enemy work and a live drain child. Paused control only
+/// updates colour; hidden control suppresses both models. The running path
+/// releases the battle hold and collision links once, then schedules destruction
+/// after sixty ticks. Collapse rebuilds local Y from the saved matrix with a Q12 scale;
+/// burst frees body packets before spawning independently owned fragment tasks.
+static void _actor00300TickDeath(Enemy* enemy, Task* task)
+{
+    enum { ACTOR_00300_DEATH_BEGIN           = 0,
+           ACTOR_00300_DEATH_COLLAPSE        = 1,
+           ACTOR_00300_DEATH_DESTROY         = 2,
+           ACTOR_00300_DEATH_BURST           = 3,
+           ACTOR_00300_DEATH_SCALE_THRESHOLD = ONE / 8,
+           ACTOR_00300_DEATH_SCALE_STEP      = 80,
+           ACTOR_00300_DEATH_FADE_TICK       = 10,
+           ACTOR_00300_DEATH_BURN_TICK       = 15,
+           ACTOR_00300_DEATH_BURN_CYCLES     = 3,
+           ACTOR_00300_DEATH_LINGER_TICKS    = 60,
+           ACTOR_00300_SOUND_DEATH           = 0x40030008 };
+
+    _Actor00300Work* work;
+    TmdObject*       model;
+    GfxCoord*        rootCoord;
+    GfxCoord*        sampledCoord;
+    VECTOR3          worldPosition;
+    s32              actorControl;
+    s32              soundId;
+    s32              audioPan;
+    s16              deathTicks;
+
+    model        = task->extra.tmd;
+    work         = task->work;
+    actorControl = gSceneCombatState.actorControl;
+    rootCoord    = model->coords;
+    switch (actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            ACTOR_00300_UPDATE_DEATH_COLOR(rootCoord);
             return;
-        case 2:
-            obj->flags                             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            model->flags                           = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->drainModelTask->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             break;
     }
     switch (work->actionStep) {
-        case 0:
-            work->deathScaleY  = 0x1000;
-            work->savedRootMtx = coord->coord;
-            arg0->recs         = NULL;
-            worldTargetUnlinkNode(&arg0->node);
+        case ACTOR_00300_DEATH_BEGIN:
+            work->deathScaleY  = ONE;
+            work->savedRootMtx = rootCoord->coord;
+            // Retire target and collision links before the timed corpse phases.
+            enemy->recs = NULL;
+            worldTargetUnlinkNode(&enemy->node);
             worldCollisionUnlinkBody(&work->sightBody);
             worldCollisionUnlinkBody(&work->gridBody);
             worldCollisionUnlinkBody(&work->hitBody);
             worldCollisionUnlinkBody(&work->drainBody);
-            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
-            sceneReleaseBattleRefWithRewards(arg1, 3);
+            worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
+            sceneReleaseBattleRefWithRewards(task, 3);
             work->timer      = 0;
-            work->actionStep = 1;
-            if (work->burstStage != 0) {
-                obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                work->actionStep = 3;
+            work->actionStep = ACTOR_00300_DEATH_COLLAPSE;
+            if (work->burstStage != ACTOR_00300_BURST_NONE) {
+                model->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                work->actionStep = ACTOR_00300_DEATH_BURST;
             }
-            c      = arg1->extra.tmd->coords;
-            vec.vx = c->workm.t[0];
-            vec.vy = c->workm.t[1];
-            vec.vz = c->workm.t[2];
-            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-            if (work->chargeEffect != NULL) {
-                work->chargeEffect->task->state = 3;
-                work->chargeEffect              = NULL;
-                work->chargeEffectTimer         = 0;
-                sndEvtRequestScriptStop(work->chargeSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-            }
-            sound = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030008;
-            pan   = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            sampledCoord = task->extra.tmd->coords;
+            ACTOR_00300_UPDATE_DEATH_COLOR(sampledCoord);
+            _actor00300StopCharge(work, work->chargeEffect);
+            soundId  = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_DEATH;
+            audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             return;
-        case 1:
-            if (work->deathScaleY >= 0x201)
-                work->deathScaleY -= 0x50;
-            Actor00300_Fn0505C(arg1, &work->savedRootMtx, work->deathScaleY);
-            phase       = work->timer + 1;
-            work->timer = phase;
-            if (phase == 10)
-                obj->flags |= TMD_OBJECT_SEMI_TRANS;
-            if (work->timer == 15)
-                effectSpawn(EFFECT_CORPSE_BURN, &arg1->extra.tmd->coords[3], 3, NULL);
-            if (work->timer >= 0x3C)
-                work->actionStep = 2;
-            c      = arg1->extra.tmd->coords;
-            vec.vx = c->workm.t[0];
-            vec.vy = c->workm.t[1];
-            vec.vz = c->workm.t[2];
-            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+        case ACTOR_00300_DEATH_COLLAPSE:
+            if (work->deathScaleY >= ACTOR_00300_DEATH_SCALE_THRESHOLD + 1)
+                work->deathScaleY -= ACTOR_00300_DEATH_SCALE_STEP;
+            _actor00300SetRootScaleY(task, &work->savedRootMtx, work->deathScaleY);
+            deathTicks  = work->timer + 1;
+            work->timer = deathTicks;
+            if (deathTicks == ACTOR_00300_DEATH_FADE_TICK)
+                model->flags |= TMD_OBJECT_SEMI_TRANS;
+            if (work->timer == ACTOR_00300_DEATH_BURN_TICK)
+                effectSpawn(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[ACTOR_00300_HIT_PART], ACTOR_00300_DEATH_BURN_CYCLES, NULL);
+            if (work->timer >= ACTOR_00300_DEATH_LINGER_TICKS)
+                work->actionStep = ACTOR_00300_DEATH_DESTROY;
+            sampledCoord = task->extra.tmd->coords;
+            ACTOR_00300_UPDATE_DEATH_COLOR(sampledCoord);
             return;
-        case 2:
-            enemyDestroy(arg0, arg1);
+        case ACTOR_00300_DEATH_DESTROY:
+            enemyDestroy(enemy, task);
             return;
-        case 3:
-            if (work->burstStage != 0) {
-                if (work->burstStage >= 2) {
-                    work->burstStage = 0;
-                    tmdFreePrimitiveBuffer(obj);
-                    obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                    Actor00300_Fn03618(arg1);
+        case ACTOR_00300_DEATH_BURST:
+            if (work->burstStage != ACTOR_00300_BURST_NONE) {
+                if (work->burstStage >= ACTOR_00300_BURST_READY) {
+                    work->burstStage = ACTOR_00300_BURST_NONE;
+                    // Give up the body packets before spawning independent fragments.
+                    tmdFreePrimitiveBuffer(model);
+                    model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+                    _actor00300SpawnBurstFragments(task);
                 } else
                     work->burstStage++;
             }
-            phase       = work->timer + 1;
-            work->timer = phase;
-            if (phase >= 0x3C)
-                work->actionStep = 2;
+            deathTicks  = work->timer + 1;
+            work->timer = deathTicks;
+            if (deathTicks >= ACTOR_00300_DEATH_LINGER_TICKS)
+                work->actionStep = ACTOR_00300_DEATH_DESTROY;
             return;
     }
 }
+#undef ACTOR_00300_UPDATE_DEATH_COLOR
 
 /// Rebuilds the drain coordinate with a prepared local-axis Q12 scale from its rest matrix.
 ///
@@ -3388,40 +3431,51 @@ static void _actor00300TurnFireballTowardPlayer(Task* task)
 
 #include "../../shared/fireball_ember.inc.c"
 
-void Actor00300_Fn04770(Task* arg0)
+/// Dispatches the enemy's initialization, active update and death state.
+///
+/// The descriptor supplies a nineteen-part TMD body and `spawnArg2.pointer`
+/// supplies its live enemy. `Task::state` must stay within 0..2: initialize,
+/// active or death. The task owns its allocated work and the drain child.
+static void _actor00300EnemyTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = Actor00300_D00004;
-    sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
+    handlers = Actor00300_D00004;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-static void Actor00300_Fn047CC(Enemy* arg0, Task* arg1)
+/// Applies scene actor control and runs either event presentation or enemy combat.
+///
+/// Requires initialized enemy work and a live drain attachment. Running control
+/// restores model drawing and the placement's lock-on policy; paused control
+/// updates lighting and shadow only; hidden control suppresses both models and
+/// lock-on. An active event selects the event presentation path.
+static void _actor00300TickActive(Enemy* enemy, Task* task)
 {
     _Actor00300Work* work;
 
-    work = arg1->work;
+    work = task->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            arg1->extra.tmd->flags                 = 0;
+            task->extra.tmd->flags                 = 0;
             work->drainModelTask->extra.tmd->flags = 0;
-            arg0->node.state.parts.flags           = work->notLockable != 0;
+            enemy->node.state.parts.flags          = work->notLockable != 0;
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _actor00300UpdateLighting(arg1);
-            _actor00300DrawShadow(arg1);
+            _actor00300UpdateLighting(task);
+            _actor00300DrawShadow(task);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg1->extra.tmd->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            task->extra.tmd->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->drainModelTask->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags           = WORLD_TARGET_NOT_LOCKABLE;
+            enemy->node.state.parts.flags          = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
     if (gGameSession->eventState != 0) {
-        _actor00300TickEvent(arg0, arg1);
+        _actor00300TickEvent(enemy, task);
         return;
     }
-    Actor00300_Fn04958(arg0, arg1);
+    _actor00300TickCombat(enemy, task);
 }
 
 /// Updates event-controlled model drawing, animation, lighting and shadow.
@@ -3449,32 +3503,40 @@ static void _actor00300TickEvent(Enemy* enemy, Task* task)
     _actor00300DrawShadow(task);
 }
 
-static void Actor00300_Fn04958(Enemy* arg0, Task* arg1)
+/// Advances the routed enemy's contacts, actions, movement, animation and presentation in order.
+///
+/// Requires initialized work and a live model. A NULL patrol route suppresses
+/// the entire update. Status pulses precede contact damage; movement follows
+/// action and turn selection. The new root is composed before lighting and
+/// shadow sampling, and coordinate 3 receives any active hit twist.
+static void _actor00300TickCombat(Enemy* enemy, Task* task)
 {
-    GfxCoord*        coord;
+    GfxCoord*        rootCoord;
     _Actor00300Work* work;
 
-    work  = arg1->work;
-    coord = arg1->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     if (work->patrolPoints != NULL) {
-        if (arg0->reactionFlags != 0) {
-            _actor00300TickStatusReactions(arg1);
+        if (enemy->reactionFlags != 0) {
+            _actor00300TickStatusReactions(task);
         }
-        Actor00300_Fn00E54(arg1);
-        _actor00300TickAction(arg1);
+        // Consume last tick's contacts, then advance the action and animated pose.
+        _actor00300ResolveContacts(task);
+        _actor00300TickAction(task);
         if (work->turnRate != 0) {
-            _actor00300TurnTowardTargetYaw(arg1);
+            _actor00300TurnTowardTargetYaw(task);
         }
-        _actor00300Move(arg1);
-        _actor00300UpdateAnimation(arg1);
+        _actor00300Move(task);
+        _actor00300UpdateAnimation(task);
         if (work->hitTwistActive != 0) {
-            _actor00300ApplyHitTwist(arg1);
+            _actor00300ApplyHitTwist(task);
         }
-        _actor00300PlayAnimationCueSounds(arg1);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
-        _actor00300UpdateLighting(arg1);
-        _actor00300DrawShadow(arg1);
+        _actor00300PlayAnimationCueSounds(task);
+        // Compose the new root before sampling lighting and drawing its shadow.
+        rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(rootCoord);
+        _actor00300UpdateLighting(task);
+        _actor00300DrawShadow(task);
     }
 }
 
@@ -3529,7 +3591,7 @@ static const EnemyTaskFuncTable3 Actor00300_D0003C = {
     },
 };
 
-/// State handlers of the task `Actor00300_Fn0521C` dispatches, indexed by
+/// State handlers of the task `_actor00300FireballTask` dispatches, indexed by
 /// `Task::state`. The first sets the task up and moves it to state 1, the
 /// second moves it on to state 2, and the third destroys it once its timer
 /// has run out.
@@ -3737,24 +3799,26 @@ static void _actor00300DrawShadow(Task* task)
     effectDrawGroundShadow(&shadowCentre, ACTOR_00300_SHADOW_HALF_SIZE, ACTOR_00300_SHADOW_SHADE);
 }
 
-static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2)
+/// Rebuilds the enemy root from a saved transform with a signed Q12 local-Y scale.
+///
+/// Requires a live TMD task, a readable full saved matrix and one free
+/// `ActorScaleScratch` block. `ONE` means full height; X/Z and saved translation
+/// remain unchanged. Repeated calls do not compound the scale. Invalidates root
+/// composition, changes GTE state and releases its borrowed scratch block.
+static void _actor00300SetRootScaleY(Task* task, const MATRIX* unscaledMatrix, s16 scaleY)
 {
-    GfxCoord*          coord;
-    ActorScaleScratch* head;
+    GfxCoord*          rootCoord;
+    ActorScaleScratch* stackTop;
     ActorScaleScratch* scratch;
 
-    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-    scratch                                 = head - 1;
+    stackTop                                = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    scratch                                 = stackTop - 1;
     SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
-    coord                                   = arg0->extra.tmd->coords;
+    rootCoord                               = task->extra.tmd->coords;
     scratch->scale.vx                       = ONE;
-    scratch->scale.vy                       = arg2;
+    scratch->scale.vy                       = scaleY;
     scratch->scale.vz                       = ONE;
-    coord->coord                            = *arg1;
-    gfxSetRotIdentity(&scratch->matrix);
-    ScaleMatrix(&scratch->matrix, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor00300ApplyDrainScale(rootCoord, unscaledMatrix, scratch);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
@@ -3803,12 +3867,18 @@ static void _actor00300InitDrainModel(Enemy* enemy, Task* task)
     task->state               = ACTOR_00300_DRAIN_MODEL_ACTIVE;
 }
 
-void Actor00300_Fn0521C(Task* arg0)
+/// Dispatches the fireball's initialization, flight and delayed teardown.
+///
+/// The descriptor supplies a coordinate body and `spawnArg2.pointer` supplies
+/// its live enemy. `Task::state` must stay within 0..2. Initialization requires
+/// the launching enemy as parent and detaches before flight. Teardown retains work
+/// and coordinate storage until the fireball's linger countdown ends.
+static void _actor00300FireballTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = Actor00300_D00048;
-    sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
+    handlers = Actor00300_D00048;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Unlinks a burst fireball's bodies, waits sixty task ticks and destroys it.

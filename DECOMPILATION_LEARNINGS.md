@@ -44330,7 +44330,7 @@ reach them with a plain `.word Actor00300_L010EC`.
 and both properties break at once:
 
     actor_200300_header.rodata.s.o:(.rodata+0x14): undefined reference to `Actor00300_L010EC'
-    actor_100300_text.c.o: in function `Actor00300_Fn00E54':
+    actor_100300_text.c.o: in function `_actor00300ResolveContacts':
       undefined reference to `.Lactor_200300_8014B2BC'
 
 The first is the cross-object table losing its target. The second is subtler:
@@ -48617,7 +48617,7 @@ same-priority insns in that order. So this is a source question, not a
 scheduling one: do not reach for a scheduler barrier or a `do {} while (0)`
 wrapper. Both forms are in the tree, and the sibling whose disassembly has the
 load in the right place tells you which one to write - `enemyTeardownDelayTask`,
-`Actor00300_Fn04770` and `_actor310600TickWalk` take the inline form,
+`_actor00300EnemyTask` and `_actor310600TickWalk` take the inline form,
 `Actor00400_Fn0793C` and `_actor311900RupertTask` the local. Matching the
 wrong sibling costs exactly the reorder and the missing `nop` (90.8% with
 `reorder=2 delete=1`, `regs=0`).
@@ -131607,7 +131607,7 @@ without touching a single statement - moved two allocnos and cost 100% ->
 99.93%. Rename identifiers in place and leave the order alone; clean up the
 declarations only if you are willing to re-verify.
 
-## `move_movables`' threshold decays by 3 per hoist, and a `%hi` that misses it keeps a register (Actor00300_Fn00E54, 2026-09-18)
+## `move_movables`' threshold decays by 3 per hoist, and a `%hi` that misses it keeps a register (_actor00300ResolveContacts, 2026-09-18)
 
 `threshold = (loop_has_call ? 1 : 2) * (1 + n_non_fixed_regs)` is only the value
 the **first** movable is judged against. Every movable that is actually moved
