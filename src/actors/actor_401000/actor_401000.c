@@ -1085,7 +1085,7 @@ enum {
 };
 
 static __inline__ void _actor401000BindLightingMatrices(Task* actor);
-static __inline__ void Actor401000_InitPose(GfxCoord* coord, OddStrangerWork* work);
+static __inline__ void _actor401000InitRootPose(GfxCoord* rootCoord, OddStrangerWork* work);
 static void            func_actor_401000_80133274(Enemy* enemy, Task* actor);
 static void            _actor401000ClampRootHeight(const GameLocationKey* location, GfxCoord* root);
 static __inline__ s32  _actor401000HasRoomHeightClamp(const GameLocationKey* location);
@@ -1129,11 +1129,15 @@ static __inline__ void _actor401000BindLightingMatrices(Task* actor)
     model->colorMtx = &work->colorMtx;
 }
 
-/// Rebuilds the root coordinate's Y rotation at the actor's 0x1194 scale and
-/// drops both obstacle tables.
-static __inline__ void Actor401000_InitPose(GfxCoord* coord, OddStrangerWork* work)
+/// Initializes root yaw/scale, the position-history cursor and collision contacts.
+///
+/// Requires live root and initialized work/contact tables. Replaces the root's
+/// rotation at ODD_STRANGER_ROOT_SCALE (signed Q12) and marks it dirty, retaining
+/// translation. Resets the history cursor without clearing its samples; clears
+/// occupied grid/hit contacts while retaining their end markers and body links.
+static __inline__ void _actor401000InitRootPose(GfxCoord* rootCoord, OddStrangerWork* work)
 {
-    _actorRenderRescaleYaw(coord, ODD_STRANGER_ROOT_SCALE);
+    _actorRenderRescaleYaw(rootCoord, ODD_STRANGER_ROOT_SCALE);
     work->bodyPosCursor = 0;
     worldCollisionClearContacts(work->gridContacts);
     worldCollisionClearContacts(work->hitContacts);
@@ -1143,7 +1147,7 @@ static __inline__ void Actor401000_InitPose(GfxCoord* coord, OddStrangerWork* wo
 /// and colour matrices to its copies, seeds both animation contexts and the
 /// three `WorldCollisionBody` nodes, then picks the opening clip from the low bits of
 /// `Enemy::placeKey` and the `downFramesBase` parameter run from the spawn flags.
-/// The tail rebuilds the root coordinate through `Actor401000_InitPose`.
+/// The tail rebuilds the root coordinate through `_actor401000InitRootPose`.
 static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
 {
     SVECTOR             dir;
@@ -1316,7 +1320,7 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
             break;
     }
 
-    Actor401000_InitPose(actor->extra.tmd->coords, work);
+    _actor401000InitRootPose(actor->extra.tmd->coords, work);
 
     actor->state++;
 }

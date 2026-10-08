@@ -3599,10 +3599,12 @@ static void _actor01600DrawGroundShadow(Task* actor)
 
 /// Saves the corpse root's position and applies forward and vertical collapse motion.
 ///
-/// Distances are world units; the facing basis is Q12. Suspension suppresses
+/// Distances use the root's parent frame; the facing basis is Q12. Suspension suppresses
 /// vertical motion, and a grounded corpse steps down by 128 units for floor correction.
 static __inline__ void _actor01600MoveCollapsingBody(Task* actor)
 {
+    enum { ACTOR_01600_COLLAPSE_GROUND_STEP = 128,
+           ACTOR_01600_COLLAPSE_BASIS_SHIFT = 12 };
     GfxCoord*        motionCoord;
     _Actor01600Work* motionWork;
     motionCoord = actor->extra.tmd->coords;
@@ -3612,13 +3614,13 @@ static __inline__ void _actor01600MoveCollapsingBody(Task* actor)
     motionWork->previousPosition.vy = motionCoord->coord.t[1];
     motionWork->previousPosition.vz = motionCoord->coord.t[2];
 
-    motionCoord->coord.t[0] += (motionCoord->coord.m[0][2] * motionWork->forwardSpeed) >> 12;
-    motionCoord->coord.t[2] += (motionCoord->coord.m[2][2] * motionWork->forwardSpeed) >> 12;
+    motionCoord->coord.t[0] += (motionCoord->coord.m[0][2] * motionWork->forwardSpeed) >> ACTOR_01600_COLLAPSE_BASIS_SHIFT;
+    motionCoord->coord.t[2] += (motionCoord->coord.m[2][2] * motionWork->forwardSpeed) >> ACTOR_01600_COLLAPSE_BASIS_SHIFT;
     if (motionWork->suspended == 0) {
         if (motionWork->airborne != 0) {
             motionCoord->coord.t[1] += motionWork->verticalSpeed;
         } else {
-            motionCoord->coord.t[1] += 0x80;
+            motionCoord->coord.t[1] += ACTOR_01600_COLLAPSE_GROUND_STEP;
         }
     }
 }

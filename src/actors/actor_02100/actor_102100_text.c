@@ -527,7 +527,7 @@ static void Actor02100_Fn03488(Task* arg0);
 
 static void _actor02100TickPatrol(Task* task);
 
-static void Actor02100_Fn016EC(Task* arg0);
+static void _actor02100TickBeamAttack(Task* task);
 
 static void Actor02100_Fn01FF0(Task* arg0);
 
@@ -1407,39 +1407,56 @@ static __inline__ void _actor02100BuildLockedBeamAndStrikePoints(Task* task, _Ac
     _actor02100BuildStrikeEndpoints(task);
 }
 
-/// Four-state sweep with a charge-up, a strike and a recovery wait. State 0 aims
-/// at the target every frame until `_actor02100UpdateTargetPosition` loses it - which drops
-/// straight to the recovery state - starts the loop sound on the first frame and
-/// draws the beam from the second, and advances to state 1 once the frame count
-/// reaches the per-variant limit in `Actor02100_D03D88`. State 1 stops the loop
-/// sound on its first frame, rebuilds the vectors without re-aiming and draws
-/// for fifteen frames, then fires the impact sound and enters state 2. State 2
-/// shows the two hit objects for one frame, picks the impact sound from the
-/// variant index, hides them again after four frames and recovers. State 3 waits
-/// out the per-variant recovery count, restores the actor's stored position and
-/// returns to state 0.
-static void Actor02100_Fn016EC(Task* arg0)
+/// Disables the beam's player/enemy pair and room-grid collision passes.
+///
+/// Work and both linked strike bodies remain live; keys and links are retained.
+static __inline__ void _actor02100DisableBeamCollision(_Actor02100Work* work)
 {
+    work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+    work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+}
+
+/// Advances the Watcher's tracked charge, locked aim, beam strike and recovery.
+///
+/// Requires live work/model/enemy, beam weapon index 0..3 and initialized scratch/GTE
+/// state. The weapon table supplies aim/recovery ticks; locked aim lasts 15 active
+/// calls and the firing beam lasts four. Strike keys arm at firing tick 1 and
+/// clear at tick 2.
+/// Recovery restores the saved velocity and resumes watching or patrolling.
+/// The outer 72-byte scratch reservation is untouched; nested aim/projection
+/// operations reserve below it; no value is read or written in the outer block.
+static void _actor02100TickBeamAttack(Task* task)
+{
+    enum { ACTOR_02100_BEAM_SCRATCH_BYTES     = 0x48,
+           ACTOR_02100_BEAM_LOCK_TICKS        = 15,
+           ACTOR_02100_BEAM_FIRE_TICKS        = 4,
+           ACTOR_02100_BEAM_ENEMY_ATTACK_BASE = 0x26,
+           ACTOR_02100_BEAM_CHARGE_SOUND      = SOUND_CHARACTER(0x15, 1),
+           ACTOR_02100_BEAM_LOCK_SOUND        = SOUND_CHARACTER(0x15, 2) };
+
     _Actor02100Work* work;
-    GfxCoord*        coord;
-    s32              sound;
-    s32              soundId;
-    s32              packed;
-    s32              flagBit;
-    s16              state;
-    s16              frame;
+    GfxCoord*        rootCoord;
+    s32              weaponSound;
+    s32              instanceSound;
+    s32              enemyAttackId;
+    s32              attackKind;
+    s16              beamStep;
+    s16              stepTick;
 
-    SCRATCH_STACK_RESERVE_BYTES(0x48);
-    work    = arg0->work;
-    state   = work->step;
-    coord   = arg0->extra.tmd->coords;
-    flagBit = 0x20000;
-    sound   = 0;
+    SCRATCH_STACK_RESERVE_BYTES(ACTOR_02100_BEAM_SCRATCH_BYTES);
+    work        = task->work;
+    beamStep    = work->step;
+    rootCoord   = task->extra.tmd->coords;
+    attackKind  = WORLD_COLLISION_CONTACT_ATTACK;
+    weaponSound = 0;
 
-    switch (state) {
+    switch (beamStep) {
+        // Follow the target during charge; a lost target skips to recovery.
         case ACTOR_02100_BEAM_STEP_AIM:
             if (work->stepFrames != 0) {
-                if (_actor02100UpdateTargetPosition(arg0) == 0) {
+                if (_actor02100UpdateTargetPosition(task) == 0) {
                     work->step       = ACTOR_02100_BEAM_STEP_RECOVER;
                     work->stepFrames = 0;
                     if (work->loopSoundKind == ACTOR_02100_LOOP_SOUND_CHARGE) {
@@ -1449,96 +1466,95 @@ static void Actor02100_Fn016EC(Task* arg0)
                     break;
                 }
 
-                _actor02100AimBeamAndStrikePoints(arg0);
+                _actor02100AimBeamAndStrikePoints(task);
             }
 
             if (work->stepFrames == 1) {
-                work->loopSound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150001;
-                sndEvtRequestScriptStart(work->loopSound, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                work->loopSound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02100_BEAM_CHARGE_SOUND;
+                sndEvtRequestScriptStart(work->loopSound, (s8)worldCoordGetOriginAudioPan(rootCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(rootCoord));
                 work->loopSoundKind = ACTOR_02100_LOOP_SOUND_CHARGE;
             }
             if (work->stepFrames >= 2) {
-                _actor02100ProjectBeamPoints(arg0);
-                _actor02100DrawBeam(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
+                _actor02100ProjectBeamPoints(task);
+                _actor02100DrawBeam(task, ACTOR_02100_BEAM_STYLE_SIGHT);
             }
             work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            frame                         = (u16)work->stepFrames + 1;
-            work->stepFrames              = frame;
+            stepTick                      = (u16)work->stepFrames + 1;
+            work->stepFrames              = stepTick;
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            if (frame >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_AIM_TICKS]) {
+            if (stepTick >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_AIM_TICKS]) {
                 work->stepFrames = 0;
                 work->step       = ACTOR_02100_BEAM_STEP_LOCK;
             }
             break;
 
+        // Hold the aim fixed before the short firing window.
         case ACTOR_02100_BEAM_STEP_LOCK:
-            if (work->stepFrames == state) {
+            if (work->stepFrames == beamStep) {
                 sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;
             }
-            _actor02100BuildLockedBeamAndStrikePoints(arg0, work);
-            _actor02100ProjectBeamPoints(arg0);
-            _actor02100DrawBeam(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
-            frame            = (u16)work->stepFrames + 1;
-            work->stepFrames = frame;
-            if (frame >= 0xF) {
+            _actor02100BuildLockedBeamAndStrikePoints(task, work);
+            _actor02100ProjectBeamPoints(task);
+            _actor02100DrawBeam(task, ACTOR_02100_BEAM_STYLE_SIGHT);
+            stepTick         = (u16)work->stepFrames + 1;
+            work->stepFrames = stepTick;
+            if (stepTick >= ACTOR_02100_BEAM_LOCK_TICKS) {
                 work->stepFrames = 0;
                 work->step       = ACTOR_02100_BEAM_STEP_FIRE;
-                soundId          = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150002;
-                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                instanceSound    = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02100_BEAM_LOCK_SOUND;
+                sndEvtRequestScriptStart(instanceSound, (s8)worldCoordGetOriginAudioPan(rootCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(rootCoord));
             }
             break;
 
         case ACTOR_02100_BEAM_STEP_FIRE:
-            _actor02100ProjectBeamPoints(arg0);
-            _actor02100DrawBeam(arg0, ACTOR_02100_BEAM_STYLE_FIRE);
-            frame = work->stepFrames;
-            if (frame == 1) {
+            _actor02100ProjectBeamPoints(task);
+            _actor02100DrawBeam(task, ACTOR_02100_BEAM_STYLE_FIRE);
+            stepTick = work->stepFrames;
+            if (stepTick == 1) {
                 work->playerStrikeBody.key = damagePackAttackKey(Actor02100_D03D64, work->weapon);
-                packed                     = work->weapon + 0x26;
-                work->enemyStrikeBody.key  = flagBit;
-                work->enemyStrikeBody.key  = (packed << 8) | (packed | work->enemyStrikeBody.key);
+                enemyAttackId              = work->weapon + ACTOR_02100_BEAM_ENEMY_ATTACK_BASE;
+                // Publish the attack kind before reading it back into the packed key.
+                work->enemyStrikeBody.key = attackKind;
+                work->enemyStrikeBody.key = (enemyAttackId << 8) | (enemyAttackId | work->enemyStrikeBody.key);
                 switch (work->weapon) {
                     case 0:
-                        sound = 0x40150003;
+                        weaponSound = SOUND_CHARACTER(0x15, 3);
                         break;
                     case 1:
-                        sound = 0x40150004;
+                        weaponSound = SOUND_CHARACTER(0x15, 4);
                         break;
                     case 2:
-                        sound = 0x40150005;
+                        weaponSound = SOUND_CHARACTER(0x15, 5);
                         break;
                     case 3:
-                        sound = 0x40150006;
+                        weaponSound = SOUND_CHARACTER(0x15, 6);
                         break;
                 }
-                soundId = sound | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
-            } else if (frame == state) {
+                instanceSound = weaponSound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                sndEvtRequestScriptStart(instanceSound, (s8)worldCoordGetOriginAudioPan(rootCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(rootCoord));
+            } else if (stepTick == beamStep) {
                 work->playerStrikeBody.key = 0;
                 work->enemyStrikeBody.key  = 0;
             }
-            frame            = (u16)work->stepFrames + 1;
-            work->stepFrames = frame;
-            if (frame >= 4) {
-                work->step                    = ACTOR_02100_BEAM_STEP_RECOVER;
-                work->stepFrames              = 0;
-                work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-                work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+            stepTick         = (u16)work->stepFrames + 1;
+            work->stepFrames = stepTick;
+            if (stepTick >= ACTOR_02100_BEAM_FIRE_TICKS) {
+                work->step       = ACTOR_02100_BEAM_STEP_RECOVER;
+                work->stepFrames = 0;
+                _actor02100DisableBeamCollision(work);
             }
             break;
 
         case ACTOR_02100_BEAM_STEP_RECOVER:
-            frame            = (u16)work->stepFrames + 1;
-            work->stepFrames = frame;
-            if (frame >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_RECOVER_TICKS]) {
+            stepTick         = (u16)work->stepFrames + 1;
+            work->stepFrames = stepTick;
+            if (stepTick >= Actor02100_D03D88[work->weapon].values[ACTOR_02100_WEAPON_PARAM_RECOVER_TICKS]) {
                 work->stepFrames  = 0;
                 work->step        = ACTOR_02100_BEAM_STEP_AIM;
                 work->mode        = work->patrolRange != 0;
@@ -1549,7 +1565,7 @@ static void Actor02100_Fn016EC(Task* arg0)
             break;
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(0x48);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_02100_BEAM_SCRATCH_BYTES);
 }
 
 /// Seven-state attack cycle, run from `Actor02100_Fn031C4`. State 0 holds the
@@ -1941,7 +1957,7 @@ static void Actor02100_Fn032E4(Task* arg0)
             }
             break;
         case ACTOR_02100_MODE_BEAM:
-            Actor02100_Fn016EC(arg0);
+            _actor02100TickBeamAttack(arg0);
             break;
         case ACTOR_02100_MODE_GUN:
             Actor02100_Fn01FF0(arg0);

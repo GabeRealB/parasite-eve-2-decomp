@@ -248,11 +248,10 @@ AnimationSet* D_actor_111800_8013A448[8] = {
 
 TaskDesc D_actor_111800_8013A468 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_111800_8013251C, { .model = &_gActor111800GrinningStrangerBody } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 
-static inline void    _actor111800TickAnim(Task* task);
-static inline void    _actor111800BlendBodyAnimation(Task* task, u16 animationId, u16 blendFrames);
-static void           func_actor_111800_8013214C(Task* task);
-static void           func_actor_111800_80132390(Task* task);
-static __inline__ s32 Actor111800_Accumulate(GfxCoord* arg0, MATRIX* arg1, MATRIX* src);
+static inline void _actor111800TickAnim(Task* task);
+static inline void _actor111800BlendBodyAnimation(Task* task, u16 animationId, u16 blendFrames);
+static void        func_actor_111800_8013214C(Task* task);
+static void        func_actor_111800_80132390(Task* task);
 
 #include "../../shared/actor_contacts_turn_joint.inc.c"
 
@@ -426,35 +425,6 @@ static void func_actor_111800_80132390(Task* task)
     tmdSetTextureOffsets(obj, place->texturePageOffset, place->clutRowOffset);
 }
 
-/// Builds `arg0`'s absolute rotation in `arg1`, seeded from `src` rather than
-/// from `arg0->coord`: each ancestor is pre-multiplied in turn (renormalised
-/// after every step) up to but not including the view coordinate. Returns
-/// whether the walk reached the view coordinate. The caller passes the part's
-/// own rotation as `src`, addressed through the coordinate array.
-static __inline__ s32 Actor111800_Accumulate(GfxCoord* arg0, MATRIX* arg1, MATRIX* src)
-{
-    MATRIX    matrix;
-    GfxCoord* coord;
-    GfxCoord* view;
-
-    coord = arg0->parent;
-    view  = &gGfxViewCoord;
-    *arg1 = *src;
-    while (1) {
-        if (coord == NULL) {
-            return 0;
-        }
-        if (coord == view) {
-            return 1;
-        }
-        gte_SetRotMatrix(&coord->coord);
-        MulRotMatrix(arg1);
-        MatrixNormal(arg1, &matrix);
-        *arg1 = matrix;
-        coord = coord->parent;
-    }
-}
-
 /// Per-frame state machine. State 0 waits until no cutscene is up, then runs
 /// the spawn handler and advances. State 1 ticks slots 1..0x12, latches
 /// `slot1RecordIndex`, and advances after `func_acropolis_square_80182360` when the player is in
@@ -515,7 +485,7 @@ void func_actor_111800_8013251C(Task* task)
     angle  = (u16)work->part5Pitch;
     coords = extra->coords;
     part   = coords + 5;
-    Actor111800_Accumulate(part, &mtx, &coords[5].coord);
+    _actorRenderAccumulateRotation(part, &mtx, &gGfxViewCoord);
     RotMatrixX((s32)(s16)angle, &mtx);
     _actorRenderLocalizeRotation(part, &mtx);
     memCopyBytes(mtx.m, part->coord.m, sizeof(mtx.m));

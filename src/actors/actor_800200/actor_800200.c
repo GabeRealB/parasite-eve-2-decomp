@@ -153,11 +153,11 @@ static void func_actor_800200_80165B84(Task* arg0);
 static void _actor800200TickScheduleIdle(Task* task);
 static void _actor800200TickRest(Task* task);
 static void _actor800200TickRouteAnimation(Task* task);
-static void func_actor_800200_80165E90(Task* arg0);
+static void _actor800200TickDamageMode(Task* task);
 static void _actor800200TickDamageRecovery(Task* task);
 static void _actor800200HoldStoppedPose(Task* unusedTask);
-static void func_actor_800200_80165F50(Task* arg0);
-static void func_actor_800200_80165FF0(Task* arg0);
+static void _actor800200TickScriptedMode(Task* task);
+static void _actor800200TickScriptedTurn(Task* task);
 static s32  _actor800200GetContactDistance(const GfxCoord* coord, const WorldCollisionContact* contact, u16* contactZY);
 
 static AnimationSet _gActor800200Animation08644;
@@ -939,7 +939,7 @@ static void _actor800200TickActionBurst(Task* task);
 static void _actor800200TickApproach(Task* task);
 static void _actor800200TickTimedWait(Task* task);
 static void _actor800200TickClearanceEscape(Task* task);
-static void func_actor_800200_80164C54(Task* arg0);
+static void _actor800200TickScriptedWalkToDestination(Task* task);
 static void _actor800200TickScriptedRunToDestination(Task* task);
 static s32  func_actor_800200_80165104(Task* arg0);
 
@@ -1206,14 +1206,11 @@ static const TaskFuncTable4 D_actor_800200_80161E24 = { {
 /// Handlers `func_actor_800200_801652EC` runs, indexed by `mode`.
 static const TaskFuncTable3 D_actor_800200_80161E34 = { {
     func_actor_800200_80165B84,
-    func_actor_800200_80165E90,
-    func_actor_800200_80165F50,
+    _actor800200TickDamageMode,
+    _actor800200TickScriptedMode,
 } };
 
-/// Per-frame entry point of the actor's main task: runs the handler its state
-/// selects. The table is a local, so it is copied from `.rodata` onto the
-/// stack on every call.
-void func_actor_800200_801626EC(Task* task)
+void actor800200Task(Task* task)
 {
     TaskFuncTable4 states;
 
@@ -2669,73 +2666,74 @@ static void _actor800200TickClearanceEscape(Task* task)
     }
 }
 
-static void func_actor_800200_80164C54(Task* arg0)
+/// Turns and walks to a scripted parent-frame destination, then acknowledges arrival.
+///
+/// Scripted state 4 requires live native actor/model/child slots and approach
+/// scratch. Turns by at most 64 angle units (4096 per turn), then selects walk
+/// speed row 5. Default clip is 2 with an equipped weapon or 19 without one;
+/// actionArgument overrides it. Both X/Z gaps must be below 105 game units to
+/// clear pending motion, select state 1 and blend actionValue or idle clip 1.
+/// Travel ticks footsteps; every call ticks child slots and releases scratch.
+static void _actor800200TickScriptedWalkToDestination(Task* task)
 {
-    PlayerActorApproachScratch* block;
-    GfxCoord*                   coord;
-    GameActor*                  actor;
-    s32                         val;
-    s32                         mode;
+    enum { ACTOR_800200_SCRIPT_WALK_TURN_STEP          = 64,
+           ACTOR_800200_SCRIPT_WALK_AXIS_ARRIVAL_LIMIT = 105,
+           ACTOR_800200_SCRIPT_WALK_FINISHED_STATE     = 1,
+           ACTOR_800200_SCRIPT_WALK_NO_WEAPON_CLIP     = 19 };
 
-    actor                         = arg0->work;
-    coord                         = arg0->extra.tmd->coords;
-    block                         = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorApproachScratch);
-    block->targetDelta.vx         = actor->destination.vx - coord->coord.t[0];
-    block->targetDelta.vy         = actor->destination.vy - coord->coord.t[1];
-    block->targetDelta.vz         = actor->destination.vz - coord->coord.t[2];
-    actor->scriptMotion.targetYaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
-    val                           = playerActorShortestTurn(actor->rotation.vy, actor->scriptMotion.targetYaw);
-    block->turnStep               = val;
-    if (val > 0x40) {
-        block->turnStep = 0x40;
-    } else if (val < -0x40) {
-        block->turnStep = -0x40;
-    } else if (actor->statePhase == 0) {
-        actor->statePhase = 1;
-    }
-    actor->rotation.vy = (actor->rotation.vy + block->turnStep) & 0xFFF;
+    PlayerActorApproachScratch* scratch;
+    GfxCoord*                   rootCoord;
+    GameActor*                  actor;
+    s32                         turnDelta;
+    s32                         animationId;
+
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorApproachScratch);
+    ACTOR_800200_STEP_DESTINATION_TURN(actor, rootCoord, scratch, turnDelta, ACTOR_800200_SCRIPT_WALK_TURN_STEP);
+    // Turn first; only the travel phase advances translation and footsteps.
     switch (actor->statePhase) {
-        case 0:
-            actor->statePhase = 1;
-            mode              = 6;
-            if (block->turnStep < 0) {
-                mode = 5;
+        case ACTOR_800200_DESTINATION_START_PHASE:
+            actor->statePhase = ACTOR_800200_DESTINATION_TURN_PHASE;
+            animationId       = ACTOR_800200_ANIMATION_TURN_POSITIVE;
+            if (scratch->turnStep < 0) {
+                animationId = ACTOR_800200_ANIMATION_TURN_NEGATIVE;
             }
-            playerActorPlayChildSlots(arg0, mode, 1);
-        case 1:
-            if (block->turnStep == 0) {
-                actor->movementMode = 5;
+            playerActorPlayChildSlots(task, animationId, 1);
+        case ACTOR_800200_DESTINATION_TURN_PHASE:
+            if (scratch->turnStep == 0) {
+                actor->movementMode = ACTOR_800200_MOVEMENT_WALK;
                 actor->statePhase++;
                 if (actor->actionArgument == 0) {
-                    mode = 2;
+                    animationId = ACTOR_800200_ANIMATION_WALK;
                     if (actor->equipmentTasks[1] == NULL) {
-                        mode = 0x13;
+                        animationId = ACTOR_800200_SCRIPT_WALK_NO_WEAPON_CLIP;
                     }
                 } else {
-                    mode = actor->actionArgument;
+                    animationId = actor->actionArgument;
                 }
-                playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
+                playerActorPlayChildSlotsWithBlend(task, animationId, 0, ACTOR_800200_MOVEMENT_BLEND_FRAMES);
             }
             break;
-        case 2:
-            if (abs(coord->coord.t[0] - actor->destination.vx) < 0x69) {
-                if (abs(coord->coord.t[2] - actor->destination.vz) < 0x69) {
+        case ACTOR_800200_DESTINATION_TRAVEL_PHASE:
+            if (abs(rootCoord->coord.t[0] - actor->destination.vx) < ACTOR_800200_SCRIPT_WALK_AXIS_ARRIVAL_LIMIT) {
+                if (abs(rootCoord->coord.t[2] - actor->destination.vz) < ACTOR_800200_SCRIPT_WALK_AXIS_ARRIVAL_LIMIT) {
                     actor->scriptedMotionPending = 0;
-                    actor->state                 = 1;
-                    mode                         = 1;
+                    actor->state                 = ACTOR_800200_SCRIPT_WALK_FINISHED_STATE;
+                    animationId                  = ACTOR_800200_ANIMATION_IDLE;
                     if (actor->actionValue != 0) {
-                        mode = actor->actionValue;
+                        animationId = actor->actionValue;
                     }
-                    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
+                    playerActorPlayChildSlotsWithBlend(task, animationId, 0, ACTOR_800200_MOVEMENT_BLEND_FRAMES);
                     break;
                 }
             }
             actor->movementSign = 1;
-            playerActorStepMovement(arg0);
-            playerActorPlayFootstepCue(arg0);
+            playerActorStepMovement(task);
+            playerActorPlayFootstepCue(task);
             break;
     }
-    playerActorTickChildSlots(arg0);
+    playerActorTickChildSlots(task);
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
@@ -2837,7 +2835,7 @@ static const TaskFuncTable11 D_actor_800200_80161E8C = { {
     _actor800200TickSchedules8To10Route,
 } };
 
-/// Handlers `func_actor_800200_80165E90` runs, indexed by `hitRegion`.
+/// Handlers `_actor800200TickDamageMode` runs, indexed by `hitRegion`.
 static const TaskFuncTable4 D_actor_800200_80161EB8 = { {
     _actor800200TickDamageRecovery,
     _actor800200TickDamageRecovery,
@@ -2845,14 +2843,14 @@ static const TaskFuncTable4 D_actor_800200_80161EB8 = { {
     _actor800200HoldStoppedPose,
 } };
 
-/// Handlers `func_actor_800200_80165F50` runs, indexed by `state`; the
+/// Handlers `_actor800200TickScriptedMode` runs, indexed by `state`; the
 /// gameplay entries are the player's own mode-2 state handlers.
 static const TaskFuncTable9 D_actor_800200_80161EC8 = { {
     Gp_PlayerMode2State0,
     Gp_PlayerMode2State1,
-    func_actor_800200_80165FF0,
+    _actor800200TickScriptedTurn,
     Gp_PlayerMode2State1,
-    func_actor_800200_80164C54,
+    _actor800200TickScriptedWalkToDestination,
     Gp_PlayerMode2State1,
     Gp_PlayerMode2State1,
     Gp_PlayerMode2State1,
@@ -3447,18 +3445,23 @@ static void _actor800200TickRouteAnimation(Task* task)
     }
 }
 
-static void func_actor_800200_80165E90(Task* arg0)
+/// Advances Flint's animation, damage response, facing and movement in that order.
+///
+/// Requires live GameActor/model/native child slots and damage selector 0..3.
+/// Selectors 0..2 finish damage recovery; selector 3 holds the stopped pose.
+/// Animation can advance the response phase before the selected callback runs.
+static void _actor800200TickDamageMode(Task* task)
 {
     TaskFuncTable4 handlers;
     GameActor*     actor;
 
     handlers = D_actor_800200_80161EB8;
-    actor    = arg0->work;
-    playerActorTickAnimationState(arg0);
-    playerActorTickChildSlots(arg0);
-    handlers.funcs[(u16)actor->hitRegion](arg0);
-    playerActorUpdateFacing(arg0);
-    playerActorStepMovement(arg0);
+    actor    = task->work;
+    playerActorTickAnimationState(task);
+    playerActorTickChildSlots(task);
+    handlers.funcs[(u16)actor->hitRegion](task);
+    playerActorUpdateFacing(task);
+    playerActorStepMovement(task);
 }
 
 /// Finishes ordinary damage reactions through the shared player-side recovery handler.
@@ -3481,56 +3484,73 @@ static void _actor800200HoldStoppedPose(Task* unusedTask)
 {
 }
 
-static void func_actor_800200_80165F50(Task* arg0)
+/// Dispatches Flint's scripted state and rebuilds the root from its Euler angles.
+///
+/// Requires live actor/model state and a valid scripted state index 0..8.
+/// States 2, 4 and 8 handle turn, walk and run commands; other slots use resident
+/// player handlers. Rotation uses 4096 units per turn. The outer frame update
+/// invalidates/composes the root after dispatch; translation stays intact here.
+static void _actor800200TickScriptedMode(Task* task)
 {
-    TaskFuncTable9 sp;
+    TaskFuncTable9 states;
     GameActor*     actor;
-    GfxCoord*      coord;
+    GfxCoord*      rootCoord;
 
-    sp    = D_actor_800200_80161EC8;
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    sp.funcs[actor->state](arg0);
-    RotMatrix(&actor->rotation, &coord->coord);
+    states    = D_actor_800200_80161EC8;
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
+    states.funcs[actor->state](task);
+    RotMatrix(&actor->rotation, &rootCoord->coord);
 }
 
-static void func_actor_800200_80165FF0(Task* arg0)
+/// Turns Flint toward a scripted yaw by up to 48 angle units per active call.
+///
+/// Scripted state 2 requires live actor/model/native child slots. Angles use
+/// 4096 units per turn. Within 48 units of the stored target or its lower
+/// one-turn image, snaps to the stored halfword, clears pending motion and
+/// selects idle state/clip 1 with a five-frame blend. Otherwise enables forward
+/// walk-speed movement while stepping wrapped yaw. Always ticks child slots;
+/// this handler itself does not advance translation.
+static void _actor800200TickScriptedTurn(Task* task)
 {
-    GameActor* actor;
-    s16        cur;
-    s16        tgt;
-    u16        raw;
-    s32        temp;
-    s32        wrap;
-    s32        delta;
-    s32        flag;
+    enum { ACTOR_800200_SCRIPTED_TURN_STEP = 48 };
 
-    actor = arg0->work;
-    cur   = actor->rotation.vy;
-    tgt   = actor->scriptMotion.targetYaw;
-    raw   = actor->scriptMotion.targetYaw;
-    temp  = cur - tgt;
-    if (temp < 0) {
-        temp = -temp;
+    GameActor* actor;
+    s16        currentYaw;
+    s16        targetYaw;
+    u16        storedTargetYaw;
+    s32        yawDistance;
+    s32        wrappedTargetYaw;
+    s32        turnDelta;
+    s32        idleStateAndClip;
+
+    actor           = task->work;
+    currentYaw      = actor->rotation.vy;
+    targetYaw       = actor->scriptMotion.targetYaw;
+    storedTargetYaw = actor->scriptMotion.targetYaw;
+    yawDistance     = currentYaw - targetYaw;
+    if (yawDistance < 0) {
+        yawDistance = -yawDistance;
     }
-    if (temp < 0x31 || (wrap = tgt - 0x1000, temp = cur - wrap, temp = ABS(temp), temp < 0x31)) {
-        flag                         = 1;
-        actor->rotation.vy           = raw;
+    // Compare the stored target and its lower one-turn image before stepping.
+    if (yawDistance < ACTOR_800200_SCRIPTED_TURN_STEP + 1 || (wrappedTargetYaw = targetYaw - ACTOR_TRANSFORM_ANGLE_TURN, yawDistance = currentYaw - wrappedTargetYaw, yawDistance = ABS(yawDistance), yawDistance < ACTOR_800200_SCRIPTED_TURN_STEP + 1)) {
+        idleStateAndClip             = ACTOR_800200_ANIMATION_IDLE;
+        actor->rotation.vy           = storedTargetYaw;
         actor->scriptedMotionPending = 0;
-        actor->state                 = flag;
-        playerActorPlayChildSlotsWithBlend(arg0, flag, 0, 5);
+        actor->state                 = idleStateAndClip;
+        playerActorPlayChildSlotsWithBlend(task, idleStateAndClip, 0, ACTOR_800200_MOVEMENT_BLEND_FRAMES);
     } else {
-        delta = playerActorShortestTurn(cur, tgt);
-        if (delta > 0x30) {
-            delta = 0x30;
-        } else if (delta < -0x30) {
-            delta = -0x30;
+        turnDelta = playerActorShortestTurn(currentYaw, targetYaw);
+        if (turnDelta > ACTOR_800200_SCRIPTED_TURN_STEP) {
+            turnDelta = ACTOR_800200_SCRIPTED_TURN_STEP;
+        } else if (turnDelta < -ACTOR_800200_SCRIPTED_TURN_STEP) {
+            turnDelta = -ACTOR_800200_SCRIPTED_TURN_STEP;
         }
-        actor->movementMode = 5;
+        actor->movementMode = ACTOR_800200_MOVEMENT_WALK;
         actor->movementSign = 1;
-        actor->rotation.vy  = ((u16)actor->rotation.vy + delta) & 0xFFF;
+        actor->rotation.vy  = ((u16)actor->rotation.vy + turnDelta) & ACTOR_TRANSFORM_ANGLE_MASK;
     }
-    playerActorTickChildSlots(arg0);
+    playerActorTickChildSlots(task);
 }
 
 /// Measures a recorded probe contact from an already composed coordinate origin.

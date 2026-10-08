@@ -374,10 +374,9 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-static void            _actor210600DriveAnimation(Task* task);
-static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale);
-static void            func_actor_210600_8014B434(Enemy* enemy, Task* task);
-static void            func_actor_210600_8014B8C8(Enemy* enemy, Task* task);
+static void _actor210600DriveAnimation(Task* task);
+static void func_actor_210600_8014B434(Enemy* enemy, Task* task);
+static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts.inc.c"
 
@@ -444,46 +443,6 @@ static void _actor210600DriveAnimation(Task* task)
     }
 }
 
-/// Rebuilds the model's root part rotation around the yaw it already faces and
-/// rescales it uniformly through an `ActorScaleRotScratch` block borrowed from
-/// the scratch stack, which is handed back once the rotation has been copied
-/// onto the coordinate. The same yaw rebuild as `_actorRenderSetYawScale`,
-/// expanded in place where the update body calls it.
-static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
-{
-    ActorScaleRotScratch* blk;
-    GfxCoord*             coord;
-    u8*                   head;
-    s16                   ang;
-    u16                   m22;
-
-    head                                       = SCRATCH_STACK_CURSOR(u8);
-    coord                                      = task->extra.tmd->coords;
-    blk                                        = (ActorScaleRotScratch*)(head - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
-
-    ang      = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->yaw = ang;
-    gfxRotMatrixY(&blk->rotation, ang, 1);
-    blk->scale.vz = scale;
-    blk->scale.vy = scale;
-    blk->scale.vx = scale;
-    ScaleMatrix(&blk->rotation, &blk->scale);
-
-    coord->coord.m[0][0] = (u16)((ActorScaleRotScratch*)(head - sizeof(ActorScaleRotScratch)))->rotation.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->rotation.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->rotation.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->rotation.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->rotation.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->rotation.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->rotation.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->rotation.m[2][1];
-    m22                  = (u16)blk->rotation.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2] = m22;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
-}
-
 /// Update state of the actor. While `_Actor210600Work::suspended` is clear it
 /// runs the animation driver, rebuilds the model root's rotation around its
 /// yaw at 0.75 scale, and when the current pose of animation slot 1 is at cue
@@ -500,7 +459,7 @@ static void func_actor_210600_8014B434(Enemy* enemy, Task* task)
     work = task->work;
     if (work->suspended == 0) {
         _actor210600DriveAnimation(task);
-        Actor210600_ScaleRotation(task, 0xC00);
+        _actorRenderRescaleYaw(task->extra.tmd->coords, ONE * 3 / 4);
 
         id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (id == 7 && work->lastCueIndex != id) {

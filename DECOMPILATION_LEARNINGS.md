@@ -11330,18 +11330,18 @@ target reads a preserved register).
 
 Fix: assign the field to an explicit local *before* the calls. The pseudo's
 live range then necessarily spans them, so global alloc must home it in `$sN`.
-`func_actor_800200_80165E90` dispatches through a copied `TaskFuncTable4`;
-writing the index inline as `handlers.funcs[(u16)index->actor->hitRegion](index)`
+`_actor800200TickDamageMode` dispatches through a copied `TaskFuncTable4`;
+writing the index inline as `handlers.funcs[(u16)((GameActor*)task->work)->hitRegion](task)`
 scores 76%, while hoisting the pointer matches at 100%:
 
 ```c
     GameActor* actor;
 
     handlers = D_actor_800200_80161EB8;
-    actor = arg0->actor;          /* must precede the two ticks */
-    playerActorTickAnimationState(arg0);
-    playerActorTickChildSlots(arg0);
-    handlers.funcs[(u16)actor->hitRegion](arg0);
+    actor = task->work;          /* must precede the two ticks */
+    playerActorTickAnimationState(task);
+    playerActorTickChildSlots(task);
+    handlers.funcs[(u16)actor->hitRegion](task);
 ```
 
 This is the mirror of "skip the local pointer when all accesses are pre-call":
@@ -64562,10 +64562,10 @@ So a `+0x20` bound with a one-word tail is a 0x24-byte copy, and the count is
 read off the code rather than guessed. m2c renders this as a `s32*` walk with
 `+= 0x10`, which advances 0x40 a step and skips 0x30 bytes between groups; the
 loop then copies from the wrong addresses and nothing downstream can match.
-`func_actor_800200_80165F50` is the worked example - the 0x24 bytes are a
-9-entry `TaskFuncTable9`, and `sp = D_actor_800200_80161EC8;` with
-`sp.funcs[actor->state](index)` and a `RotMatrix(&actor->rotation,
-&coord->coord)` matches at 100% on the first rewrite, against 67% for m2c's
+`_actor800200TickScriptedMode` is the worked example - the 0x24 bytes are a
+9-entry `TaskFuncTable9`, and `states = D_actor_800200_80161EC8;` with
+`states.funcs[actor->state](task)` and a `RotMatrix(&actor->rotation,
+&rootCoord->coord)` matches at 100% on the first rewrite, against 67% for m2c's
 element-wise `M2C_FIELD` version. Sizes at or below 32 bytes never reach this
 loop (see the section above); they are batched into one or two groups of four.
 
@@ -106402,19 +106402,19 @@ to sit inside the `||` as a comma expression — which is also what keeps the pa
 in the branch's delay slot:
 
 ```c
-    temp = cur - tgt;
-    if (temp < 0) {
-        temp = -temp;
+    yawDistance = currentYaw - targetYaw;
+    if (yawDistance < 0) {
+        yawDistance = -yawDistance;
     }
-    if (temp < 0x31 || (wrap = tgt - 0x1000, temp = cur - wrap, temp = ABS(temp), temp < 0x31)) {
+    if (yawDistance < 0x31 || (wrappedTargetYaw = targetYaw - 0x1000, yawDistance = currentYaw - wrappedTargetYaw, yawDistance = ABS(yawDistance), yawDistance < 0x31)) {
 ```
 
 That compiles to `slti v0,v0,0x31` / `bnez v0,<then>` / `addiu v0,a1,-0x1000` /
 `subu v0,a0,v0` / `bgez v0` / `negu v0,v0`, the target's shape. The sibling read
-`u16 raw = inner->scriptMotion.targetYaw;` next to the `s16 tgt = inner->scriptMotion.targetYaw;` on the same
+`u16 storedTargetYaw = actor->scriptMotion.targetYaw;` next to the `s16 targetYaw = actor->scriptMotion.targetYaw;` on the same
 line group is what puts the early `lhu $v1,0x82($s0)` live across the whole test.
 
-Worked example: `func_actor_800200_80165FF0` is `playerActorMode2State2`
+Worked example: `_actor800200TickScriptedTurn` is `playerActorMode2State2`
 (`src/gameplay/3FB8.c`) with 0x41/0x40 narrowed to 0x31/0x30 and two stores
 (`movementMode = 5`, `movementSign = 1`) added before the angle update. Transcribing
 the already-matched sibling's body and changing only those gave 100% on the
@@ -106918,12 +106918,12 @@ legitimate: the same function's `dx` and `tmp` both came out correct by copying
 the sibling's pins only after 95.49% had demonstrated that the prologue, switch
 and control flow were already exact and the register was the sole leftover.
 
-The next copy of the family in the same unit, `func_actor_800200_80164C54`,
+The next copy of the family in the same unit, `_actor800200TickScriptedWalkToDestination`,
 confirms both halves. Its target is an instruction-for-instruction twin of
 `Gp_PlayerMode2State4` -- 154 instructions, every register the same, 153 of them
 identical -- differing only in `addiu $v0,$zero,0x5` against `0x1`
 (`actor->movementMode = 5` against `= 1`). The copies are variants of one body that
-differ in *data constants*: State4 stores 1, `80164C54` stores 5, the already
+differ in *data constants*: State4 stores 1, `_actor800200TickScriptedWalkToDestination` stores 5, the already
 matched `_actor800200TickScriptedRunToDestination` stores 6 and differs further only in its
 `case 1` mode selection. Porting State4's source with that one constant changed
 scored 93.597% unpinned and 100.000% once its same two `register asm()`
@@ -132084,7 +132084,7 @@ facing or rescale computation, a clamp — grep the TU and its header for
 functions already call reproduces the original translation unit's structure,
 which is what the register allocator and the scheduler actually saw.
 
-## A repeated store to the same address survives because a memory reference sits between the two, not because of a barrier (Actor02100_Fn016EC, 2026-09-18)
+## A repeated store to the same address survives because a memory reference sits between the two, not because of a barrier (_actor02100TickBeamAttack, 2026-09-18)
 
 A scratch-arena stanza that frees one block and allocates another writes the same
 global slot twice in a row. Write those two stores adjacently in C and GCC deletes
@@ -132106,7 +132106,7 @@ it costs nothing:
 
 /* kept, no barrier: the read between them clears last_mem_set */
 *(u8**)SCRATCH_STACK_CURSOR_SLOT = head + 0x28;
-work = arg0->field_1C;
+work = task->work;
 *(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)block;
 ```
 
@@ -132115,7 +132115,7 @@ stanza with the pointer reload between the stores (as the ROM has it) instead of
 field store made a whole phase match — registers, order and all — where the
 barrier version had the same instructions in the wrong homes.
 
-## A C variable reused for two phases is excluded from local allocation (Actor02100_Fn016EC, 2026-09-18)
+## A C variable reused for two phases is excluded from local allocation (_actor02100TickBeamAttack, 2026-09-18)
 
 `local_alloc` skips a pseudo that dies in more than one place, and the `.lreg` header
 says so in as many words: `used 14 times across 40 insns in block 11; dies in 2
@@ -132136,7 +132136,7 @@ register to whichever quantity is block-local. In the same function the two arms
 needed their work pointer shared and their per-phase pointers split — opposite
 changes, both read off the `.lreg`/`.greg` dumps.
 
-## A store through a struct pointer forces a reload of every other struct field (Actor02100_Fn016EC, 2026-09-18)
+## A store through a struct pointer forces a reload of every other struct field (_actor02100TickBeamAttack, 2026-09-18)
 
 Two identical `lh` loads of the same field, adjacent in the ROM, look like a compiler
 whim; they are `cse.c` doing exactly what it documents. `note_mem_written` marks a
@@ -132146,10 +132146,10 @@ base pointer. So a field read *after* a store to any other field of any struct i
 fresh load, and the decompiled C has to read it there:
 
 ```c
-frame = work->weapon;             /* pre-read: CSE merges it with the later read */
+stepTick = work->weapon;             /* pre-read: CSE merges it with the later read */
 work->enemyStrikeBody.key = 0x20000;
 ...
-switch (frame)
+switch (stepTick)
 
 work->enemyStrikeBody.key = 0x20000; /* the store invalidates in_struct entries */
 ...
@@ -132163,7 +132163,7 @@ reference at a fixed address — which is what lets a scratch-head load at an ab
 address move across struct stores. Expressing such a head as a struct member to gain
 the CSE invalidation loses that freedom and reschedules the block.
 
-## One register holding two values is one C variable doing two jobs (Actor02100_Fn016EC, 2026-09-18)
+## One register holding two values is one C variable doing two jobs (_actor02100TickBeamAttack, 2026-09-18)
 
 When a callee-saved register in the attempt carries a value on two different paths
 while the ROM uses two registers — here `s2` for both the accumulator initialised at
