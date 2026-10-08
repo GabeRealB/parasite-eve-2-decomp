@@ -9520,7 +9520,7 @@ the `rodata` remainder segment (and its `asm/<ver>/<overlay>/data/<name>.rodata.
 and let the single `.rodata` subsegment span both tables. The pad word comes back
 on its own, because GCC emits `.align 3` before the second table inside the same
 object. `[0x3E9C, .rodata, 3E9C]` / `[0x3F20, rodata, rodata_3E9C]` collapsed to
-just `[0x3E9C, .rodata, 3E9C]` when `effectThrownModelTask` joined `Gp_EffCtlTask2B`
+just `[0x3E9C, .rodata, 3E9C]` when `effectThrownModelTask` joined `effectControlTask2B`
 (0x84-byte table at +0, `.align 3` pad at +0x84, second table at +0x88). Leaving
 the `rodata` remainder in place instead makes splat's scan complain that
 "the rodata segment ... has jumptables that are not aligned properly file-wise".
@@ -34629,7 +34629,7 @@ slt    v1, v1, x
 beqz   v1, skip
 ```
 
-Write the compare as `if (x > y - 1)` after the increment. `Gp_EffCtlTask6E` is
+Write the compare as `if (x > y - 1)` after the increment. `effectControlTask6E` is
 the example.
 
 ## Dummy `case 0` plus a `u16` temp so switch is `lhu v0` / `andi v1`
@@ -34687,7 +34687,7 @@ if (x & 0xF0000) {
 
 with a signed `s32` `>>` is `sra` *before* the branch. Put `(u32)x >> 16` in
 the taken arm so GCC fills the `bnez` delay with `srl v0, v1, 0x10` and only
-emits `li v0, K` on the fall-through. `Gp_EffCtlTask6E` is the example.
+emits `li v0, K` on the fall-through. `effectControlTask6E` is the example.
 
 ## Pinned `== 1` locals steal `li`, 1 from `$v0`
 
@@ -35709,8 +35709,8 @@ match; prefer `index + bestIdx` otherwise.
 
 ## Non-volatile block-scoped `+r` pin so `(s16)x >> 1` is `sll 16; sra 17`
 
-`mem->field_24 = ((u32)gRandomLcgState >> 16) & 0x1FF; mem->field_14 =
--(mem->field_24 >> 1)` lets combine see the `andi 0x1FF` range and emit
+`work->scale = ((u32)gRandomLcgState >> 16) & 0x1FF; work->move.vz =
+-(work->scale >> 1)` lets combine see the `andi 0x1FF` range and emit
 `srl 1`. The target is `sll 16; sra 17` (`(s16)x >> 1` of an unknown
 32-bit value). A `volatile` `+r` pin after the store also works, but is
 a scheduling barrier and sinks the next `jal`'s independent `a0`/`a1`/`a3`
@@ -35721,18 +35721,18 @@ call setup can still sit above the LCG, while the range is forgotten:
 
 ```c
 gRandomLcgState    = gRandomLcgState * 5 + 0x71357911;
-mem->field_24 = ((u32)gRandomLcgState >> 16) & 0x1FF;
+work->scale = ((u32)gRandomLcgState >> 16) & 0x1FF;
 {
     s32 sh;
-    sh = mem->field_24;
+    sh = work->scale;
     __asm__("" : "+r"(sh));
-    mem->field_14 = -((s16)sh >> 1);
+    work->move.vz = -((s16)sh >> 1);
 }
-effectSpawn(0x60034, coord, mem->field_24 + 0x380, (s32)&mem->field_10);
+effectSpawn(0x60034, muzzleCoord, work->scale + 0x380, (s32)&work->move);
 ```
 
 Reuse of a function-level `temp` for the pin shuffles the LCG into `v1`
-and delays `sw gRandomLcgState`. `Gp_EffCtlTask6B` is the example.
+and delays `sw gRandomLcgState`. `effectControlTask6B` is the example.
 
 Write `gRandomLcgState = gRandomLcgState * 5 + K` (no extra `rng` local) so the
 LCG `addu` dest stays `v0` and the store sits immediately after it.
@@ -35741,28 +35741,28 @@ LCG `addu` dest stays `v0` and the store sits immediately after it.
 
 `gWorldCoordTransientPointLights` is an array of `WorldCoordTransientPointLight` whose embedded point lights' colour and radius fields start at `+0x54`.
 Accessing them as `gWorldCoordTransientPointLights->light.head.color.r` uses the slot's address (`sw 0x54(a0)`).
-The target computes `s5 = a0+4` (`&lightSlot->light`) and stores at `0x50(s5)`.
+The target computes `s5 = a0+4` (`&transientLight->light`) and stores at `0x50(s5)`.
 Hold the embedded point light as a `WorldCoordPointLight*` and assign it **before** the `if` so `addiu s5, a0, 4` fills the
 entry `beqz` delay:
 
 ```c
-lightSlot = gWorldCoordTransientPointLights;
-slot = &lightSlot->light;
-st   = gRoomEffectState;
-if (st->effectControl < 2) {
-    slot->head.color.r = 0xC00;
+transientLight = gWorldCoordTransientPointLights;
+pointLight = &transientLight->light;
+effectState = gRoomEffectState;
+if (effectState->effectControl < 2) {
+    pointLight->head.color.r = 0xC00;
     ...
-    if (slot->inner >= 0x191) {
-        slot->inner -= 0x190;
+    if (pointLight->inner >= 0x191) {
+        pointLight->inner -= 0x190;
     }
 }
 ```
 
-A local `RoomEffectState* st = gRoomEffectState` interleaves `lui s6, %hi(gWorldCoordTransientPointLights)`
+A local `RoomEffectState* effectState = gRoomEffectState` interleaves `lui s6, %hi(gWorldCoordTransientPointLights)`
 with the `gRoomEffectState` load so `addiu a0, s6, %lo(gWorldCoordTransientPointLights)` stays in
-the prologue. `Gp_EffCtlTask6B` is the example.
+the prologue. `effectControlTask6B` is the example.
 
-Zero `coord->composeStamp` **after** the three `coord.t[]` stores so `sw zero, 0(s3)`
+Zero `muzzleCoord->composeStamp` **after** the three `muzzleCoord->coord.t[]` stores so `sw zero, 0(s3)`
 sits next to `jal actorRenderComposeCoord` with `t[2]` in the delay. Putting `composeStamp = 0`
 between `t[1]` and `t[2]` lets it sink into the `lh vy` delay.
 
@@ -36151,7 +36151,7 @@ nop
 
 Write `switch (state) { case 0: ... case 1: ... }`. GCC still uses the
 `beqz`/`beq` cascade (no jump table) but includes the default `j`.
-`Gp_EffCtlTask6A` is the example.
+`effectControlTask6A` is the example.
 
 ## Load through `$v0` so `lh v0` / `mflo dest` rather than `lh dest`
 
@@ -37827,7 +37827,7 @@ Adding **one** dummy case *below* the lower case value, sharing the default
 body, produces the target exactly:
 
 ```c
-switch (arg0->spawnArg1) {
+switch (task->spawnArg1.value) {
     case 1:
     default:  /* … */ break;
     case 12:  /* … */ break;
@@ -37847,8 +37847,8 @@ dummy case survives.
 Requirements: exactly one extra value, strictly below the real lower case (so
 the real lower case becomes the root), and its body must be the default's.
 The concrete value is unrecoverable — any of them emit identical code — so
-pick one that fits the neighbouring functions (`Gp_EffCtlTask2B` in the same TU
-already uses `case 1: default:`). `Gp_EffCtlTask6C` went 98.8% → 100% with this.
+pick one that fits the neighbouring functions (`effectControlTask2B` in the same TU
+already uses `case 1: default:`). `effectControlTask6C` went 98.8% → 100% with this.
 
 ## `a + C - b` folds to `a - (b - C)`; split it into two statements
 
@@ -41482,28 +41482,28 @@ the copy. See the section at the end of this file with this function's name.
 
 ## Put the `div`-derived `u` before the constant `v` so the constant fills the `mflo` slot
 
-In a `POLY_FT4` fill where each UV pair is `prim->uN = (a / b) << 5;` and
-`prim->vN = <constant>;`, the source order of the two stores decides which
+In a `POLY_FT4` fill where each UV pair is `quad->uN = (a / b) << 5;` and
+`quad->vN = <constant>;`, the source order of the two stores decides which
 load-delay slot the constant store lands in. Writing the constant first
 (`v0`, then `u0`) makes it ready too early: the scheduler hoists `li a0,0x18;
-sb a0,0xd(prim)` into the delay slot of the preceding `lbu` from
-`setSemiTrans`, which in turn pushes the `prim->clut` store above that `lbu`
+sb a0,0xd(quad)` into the delay slot of the preceding `lbu` from
+`setSemiTrans`, which in turn pushes the `quad->clut` store above that `lbu`
 (and gives it `$v0` instead of `$v1`). Every later constant store then lands
 one slot early, and the tail of the function shifts by one instruction.
 
 ```c
 /* BAD — constant store fills the setSemiTrans lbu delay slot */
-prim->v0 = 0x18;
-prim->u0 = (mem->field_22 / mem->field_28) << 5;
+quad->v0 = 0x18;
+quad->u0 = (work->age / work->period) << 5;
 
 /* GOOD — constant store fills the mflo latency slot after the div */
-prim->u0 = (mem->field_22 / mem->field_28) << 5;
-prim->v0 = 0x18;
+quad->u0 = (work->age / work->period) << 5;
+quad->v0 = 0x18;
 ```
 
 With the `u` store first, the constant is only ready after the `div`, so
-`prim->clut` stays in the `lbu` slot and each `li/sb` pair sits between `mflo`
-and the `sll`. This took `Gp_EffSprTask54` from 92.4% to 100%.
+`quad->clut` stays in the `lbu` slot and each `li/sb` pair sits between `mflo`
+and the `sll`. This took `effectSpriteTask54` from 92.4% to 100%.
 
 ## `s32 tmp = s8_byte` keeps `lb`; masking an `s8` local becomes `lbu`
 
@@ -52682,7 +52682,7 @@ include when the body is ported.
 so it is `&gWorldCoordTransientPointLights[4]`, and the sibling imports `D_80115124` /
 `D_80115188` are slots 5 and 6. Writing it as `lightSlot = &gWorldCoordTransientPointLights[4];
 light = &lightSlot->light;` — the shape gameplay's matched
-`Gp_EffCtlTask6B` uses for slot 0 — reproduces the `lui/addiu` pair, the
+`effectControlTask6B` uses for slot 0 — reproduces the `lui/addiu` pair, the
 `%lo(sym)($s5)` store for `framesLeft` and the `4($s6)` store for `light.head.transform.coord.composeStamp`.
 
 Two consequences. When an import label is undeclared, check the sized symbols
@@ -146519,9 +146519,9 @@ leaving the shifts on the stored register.
 **Fix.** Put the neighbouring field stores between: `w->scale = ...;
 w->move.vx = 0; w->move.vy = 0; w->move.vz = -(w->scale >> 1);` - the natural
 order anyway, assigning the vector's three components together.
-## A masked value re-read as `s16` keeps its `sll 16`/`sra` when a sibling field is stored in between (Gp_EffCtlTask6B, 2026-09-27)
+## A masked value re-read as `s16` keeps its `sll 16`/`sra` when a sibling field is stored in between (effectControlTask6B, 2026-09-27)
 
-**Symptom.** `mem->scale = (rand >> 16) & 0x1FF; mem->move.vz = -(mem->scale >> 1);`
+**Symptom.** `work->scale = (rand >> 16) & 0x1FF; work->move.vz = -(work->scale >> 1);`
 should compile to `sh v0; sll v0,16; sra v0,17; negu`, but every hack-free
 spelling gave `srl v0,1`. The seed hid the value behind `SOFT_TOUCH_REG`.
 
@@ -153366,7 +153366,7 @@ and `effect_tasks.c` looked as if they needed two spellings of one matrix: five
 wrote cells 00, 02 and 20 through `&subjectRotation` and cells 11 and 22
 through a `subjectRotationStorage = &subjectRotation` pointer local; three
 wrote cell 00 through `&part->coord` and the rest through `headRotation`; one
-(`gfxComposeNodeWorldTransform`) and `Gp_EffCtlTask6D` held `ONE` in a
+(`gfxComposeNodeWorldTransform`) and `effectControlTask6D` held `ONE` in a
 `unitScale`/`one` local.
 
 **Finding.** None of that is in the image. Each block is

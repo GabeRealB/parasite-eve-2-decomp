@@ -503,7 +503,7 @@ enum {
     /// four frames; twelve are spawned per shot by the shotgun firing controller.
     EFFECT_SHOTGUN_SPARK_LINE = EFFECT_ID(EFFECT_TASK_BANK, 0x0A3),
     /// A one-or-two-pixel orange TILE spark that flies on a random velocity and fades;
-    /// spawned in batches by explosions and flashes (func_800ED42C, Gp_EffCtlTask3B,
+    /// spawned in batches by explosions and flashes (func_800ED42C, effectControlTask3B,
     /// No.9 muzzle flash).
     EFFECT_PIXEL_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x0A4),
     /// Corpse-burn controller: starts a shared looping sound (SOUND_COMMON 0x0D,

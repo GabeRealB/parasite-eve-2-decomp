@@ -38,15 +38,67 @@ extern TmdSource D_801124B8;
 /// effect cancellation releases the counted work and coordinate task.
 void effectPolyTask9C(Task* task);
 
-void Gp_EffCtlTask2B(Task* arg0);
+/// Attaches a handgun or SMG muzzle burst and ejects its cartridge model.
+///
+/// Requires the counted `EffectWork` and coordinate body supplied by `effectSpawn`,
+/// and a live borrowed spawn parent. `spawnArg1`'s low byte is an unchecked
+/// weapon-profile index 0..33; a nonzero signed high half suppresses `burstRequest`.
+/// The NPC-pistol profile always suppresses it. `work->index` retains that flag;
+/// `work->scale` becomes the last active age (2 for MP5A5, 4 otherwise).
+/// The first update lights the spawn position, then attaches at the profile's
+/// muzzle offset. P229 omits that flare; P229 and NPC pistol disable light slot
+/// zero. Other profiles light it for two or four unpaused light updates.
+/// A second-update spark is omitted for MP5A5. Every visible call, including
+/// pause, advances age and shrinks the full-strength light radius by 400 world
+/// units while it exceeds 400; the outer radius stays 4800. The next age after
+/// the limit releases the work and task. Hidden and cancelled effects wait.
+void effectControlTask2B(Task* task);
 
-void Gp_EffCtlTask6A(Task* arg0);
+/// Emits an actor gun's muzzle flare and three drifting sparks.
+///
+/// Requires `effectSpawn`'s counted work, coordinate body and live borrowed parent.
+/// `spawnArg1` is an unchecked profile index 0..33 into the muzzle-offset table.
+/// The first visible update lights the original spawn position in transient
+/// slot zero, then attaches at the muzzle and raises `burstRequest`. `work->scale`
+/// retains a 0..511 size jitter and `work->move` a local negative-Z offset of
+/// half that jitter. The following update emits sparks with one, two and three
+/// ticks per frame. Five visible calls release the work and task; paused calls
+/// still advance. Hidden and cancelled effects wait. The light's four unpaused
+/// updates are independent; its inner radius shrinks by 400 per visible call
+/// while above 400, with its 4800-world-unit outer radius fixed.
+void effectControlTask6A(Task* task);
 
-void Gp_EffCtlTask6B(Task* arg0);
+/// Emits a rifle muzzle burst with a flare model and transient point light.
+///
+/// Requires `effectSpawn`'s counted work, coordinate body and live borrowed parent.
+/// `spawnArg1`'s low byte is an unchecked weapon-profile index 0..33; a nonzero
+/// signed high half suppresses `burstRequest`, retained in `work->index`.
+/// The first visible call lights the spawn position in shared slot zero, then
+/// attaches at the profile's muzzle offset and emits two sprites and a model.
+/// `work->move` retains the jittered local negative-Z flare offset; `work->scale`
+/// then becomes the last active age: 1 for M249, 4 otherwise. The following
+/// age releases the work and task. Paused calls still age and shrink the inner
+/// light radius by 400 world units while above 400; its outer radius stays
+/// 4800. Hidden and cancelled effects wait. The light expires separately.
+void effectControlTask6B(Task* task);
 
 void func_800ED42C(Task* arg0);
 
-void Gp_EffCtlTask6C(Task* arg0);
+/// Emits a grenade-launcher flash, sparks and an optional delayed model piece.
+///
+/// Requires `effectSpawn`'s counted work, coordinate body and live borrowed parent.
+/// `spawnArg1`'s low byte is an unchecked profile index 0..33; its signed high
+/// half suppresses `burstRequest` when nonzero, retained in `work->index`.
+/// The first visible call lights the spawn position, attaches at the grenade
+/// muzzle offset, draws one randomly rotated flash and emits four spark pairs.
+/// `work->scale` then holds the delayed ejection age: 16 normally, 24 for M4A1
+/// with grenade launcher. That profile sets `work->angle` to the model-profile
+/// bias 10. MM1 sets a four-update limit and skips delayed ejection. The delay
+/// age emits three more sparks and model slot 0x91 at the ejection offset;
+/// the next age releases the work and task. Paused visible calls still advance;
+/// hidden and cancelled effects wait. Light slot zero expires separately and
+/// its inner radius shrinks while the 4800-world-unit outer radius stays fixed.
+void effectControlTask6C(Task* task);
 
 /// Draws the two-frame muzzle flare with a random screen-space rotation.
 ///
@@ -103,9 +155,26 @@ void effectSpriteTask6F(Task* task);
 /// hidden effects wait; cancellation releases the work and model task.
 void effectThrownModelTask(Task* task);
 
-void Gp_EffCtlTask6E(Task* arg0);
+/// Emits reload sparks once and one model piece per update at a weapon offset.
+///
+/// Requires `effectSpawn`'s counted work, coordinate body and live borrowed parent.
+/// `spawnArg1`'s low half is an unchecked profile index 0..33. If any bit 16..19
+/// is set, the entire unsigned high half becomes the signed s16 duration in
+/// `work->scale`; otherwise duration is 12. Ordinary callers use positive small
+/// durations. The first call attaches at the profile's ejection offset plus
+/// `work->pos`, in parent-local coordinate units, then emits three drifting sparks.
+/// Every call emits model slot 0x91 and increments age; age greater than duration
+/// minus one releases the work and task. Runs independently of `effectControl`.
+void effectControlTask6E(Task* task);
 
-void Gp_EffCtlTask6D(Task* arg0);
+/// Drops six falling cartridge models and releases the controller immediately.
+///
+/// Requires `effectSpawn`'s counted work and coordinate body. Keeps the body's
+/// spawn translation and parent, replaces its rotation with Q12 identity and
+/// composes before spawning six bullet-casing tasks with the Mongoose falling
+/// profile. `spawnArg1` is ignored. Runs independently of `effectControl`, releases
+/// its work and task in the same call, and leaves child lifetimes independent.
+void effectControlTask6D(Task* task);
 
 /// Moves and fades a pixel spark for eight ticks, independently of effectControl.
 ///
@@ -116,7 +185,16 @@ void Gp_EffCtlTask6D(Task* arg0);
 /// updates the next tick's composition; drawing uses the current world matrix.
 void effectTileTaskA4(Task* task);
 
-void Gp_EffCtlTask3B(Task* arg0);
+/// Draws a four-frame impact flash and starts six pixel-spark tasks.
+///
+/// Requires `effectSpawn`'s counted work and coordinate body. `spawnArg1` bits 0..11
+/// supply size (zero selects 512). `work->angle` retains size and `work->scale` a
+/// random rotation in 4096 units per turn. Its first visible call emits six
+/// pixel sparks in nonzero drift mode; that mode retains zeroed tile size.
+/// The flash's half-diagonal is size * 23 / (SZ3 / 4 + 1) pixels. Paused effects
+/// draw without aging; hidden effects wait; age four or cancellation releases
+/// the counted work and task. The borrowed spawn parent and offset are not read.
+void effectControlTask3B(Task* task);
 
 void Gp_EffSprTask5C(Task* arg0);
 
@@ -164,7 +242,20 @@ void effectLineTask92(Task* task);
 /// use a quarter of that wrapped byte. This task ignores effectControl.
 void effectSpriteTask9E(Task* task);
 
-void Gp_EffSprTask54(Task* arg0);
+/// Draws an eight-frame sand-tinted puff with a random rotation and slow drift.
+///
+/// Requires `effectSpawn`'s counted work and coordinate body. `spawnArg1` bits 0..11
+/// supply size, bits 12..15 ticks per frame (zero selects one), and bit 31 enables
+/// one smaller child puff for three of the four rotation residues modulo four.
+/// Children have three ticks per frame and size floor(3 * size / 4), and do not
+/// inherit bit 31. `work->scale` retains size, `work->angle` the random 4096-unit
+/// rotation, `work->period` ticks per frame and `work->move` the displacement in
+/// the body's view-parent frame. X/Z drift is -15..16 and Y is -15..0 coordinate
+/// units per running tick. The half-diagonal is size * 31 / (SZ3 / 4) pixels;
+/// depth has no added bias. Paused effects draw without motion or aging; hidden
+/// effects wait. Eight frames or cancellation release the work and task.
+/// The borrowed spawn parent and offset pointers are not read.
+void effectSpriteTask54(Task* task);
 
 /// Keeps the player's subtractive ground shadow beneath model part 1.
 ///
