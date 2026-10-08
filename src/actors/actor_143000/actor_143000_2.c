@@ -65,7 +65,7 @@ TaskDesc D_actor_143000_801350B0[2] = {
     { { { TASK_BODY_NONE, 32 } }, func_actor_143000_80133EE4, { .value = 0 } },
 };
 
-TaskDesc D_actor_143000_801350C8 = { { { TASK_BODY_NONE, 32 } }, func_actor_143000_80133CF0, { .value = 0 } };
+TaskDesc D_actor_143000_801350C8 = { { { TASK_BODY_NONE, 32 } }, actor143000CaptureStripTask, { .value = 0 } };
 
 /// Player clips for extended ids 47-51.
 ///

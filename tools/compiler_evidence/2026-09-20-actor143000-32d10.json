@@ -1,5 +1,5 @@
 {
-  "function": "func_actor_143000_80132D10",
+  "function": "_actor143000DrawKeypad",
   "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
   "inputs": {
     "base": "6f7378f48d26f2cb3c3dea0ac4d141586e86c4e3e352c0cb007400812ea0fd24",

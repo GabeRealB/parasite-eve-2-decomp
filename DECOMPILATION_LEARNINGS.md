@@ -78367,6 +78367,7 @@ the `ninja_config.py` re-split, or just reading the generated yaml, is what tell
 you which of the two cases you are in.
 
 `_actor548100OpenHotspotCommands` / `func_actor_143000_80133698` → 100% with the
+`func_actor_548100_80134DBC` / `_actor143000OpenKeypadCommands` → 100% with the
 carrier diffs at two and twenty-one lines.
 
 ## A data symbol's `dlabel` extent is not the array's length
@@ -84777,7 +84778,7 @@ constant (0x9C4 vs 0x180), and `overlay_dup_index.py find` does *not* report it
 ## A signed field loaded as `lhu`: cast at the read, do not retype the shared field
 
 `Actor143000` declares `s16 field_2A`, yet the target opens
-`func_actor_143000_80133AC0` with `lhu $v0, 0x2A($a0)`. A plain read emits `lh`,
+`_actor143000WaitForKeypadFade` with `lhu $v0, 0x2A($a0)`. A plain read emits `lh`,
 so the m2c seed's unsigned read (`M2C_FIELD(index, u16 *, 0x2A)`) had to survive
 translation into struct syntax without changing the header.
 
@@ -100126,9 +100127,9 @@ assembly sha256); `include/actors/actor_107000.h` gained the work's `state`/`sta
 The `overlay_dup_index.py promote` for this body is refused - its callee
 `func_actor_107000_80136094` is overlay-local, so the `actor_207000` copy cannot
 share the object.
-## m2c walks a sentinel-terminated struct array as `M2C_UNK`, so the `p++` stride comes out 4x and the pointer splits in two (func_actor_143000_80133C2C, 2026-09-16)
+## m2c walks a sentinel-terminated struct array as `M2C_UNK`, so the `p++` stride comes out 4x and the pointer splits in two (_actor143000OutlineKeypadHotspots, 2026-09-16)
 
-`func_actor_143000_80133C2C` is a `do`/`while` over a list of 12-byte rects,
+`_actor143000OutlineKeypadHotspots` is a `do`/`while` over a list of 12-byte rects,
 ending at the first entry whose `s16` at +8 is -1, calling a draw helper on each:
 
 ```
@@ -100179,7 +100180,7 @@ Preprocessed SHA256 `base_1.i`
 `3a02d06476c65adacc690374594d4f0dee40c9198644450a7819d211fee6eec8`, `base_2.i`
 `4a1f47d597c5da90f1b5eb2ca56d709775a68ad87e136b952c95f2be1f66628b`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Session: `nonmatchings/func_actor_143000_80133C2C-vacuum` (`base_1_diff`,
+Session: `nonmatchings/_actor143000OutlineKeypadHotspots-vacuum` (`base_1_diff`,
 `base_2_diff`).
 
 ## The phantom argument can be a live global-address base, not just an inlined macro's leftover
@@ -100257,12 +100258,12 @@ range check and do not match. Note the *same* field is read `lhu` for its
 increment: `field_10++` on an `s16` field only needs the low 16 bits, so GCC
 zero-extends the load there even though the field is signed.
 
-`func_actor_143000_801339CC`: 96.72% (`insert=1 delete=1`) with the inline
+`_actor143000AutoTypeKeypadCode`: 96.72% (`insert=1 delete=1`) with the inline
 `(u32)` cast, 100.00% with the 32-bit variable, every penalty zero. Preprocessed
 SHA256 `base_1.i` `6e361f563828da9a9fa358f3ebc2937ca4810f3f54a07b258ea1784e734dcd70`,
 `base_3.i` `b6795aa5b383b9663b37665d5d41a7be4d4cbbeb9c5e00a7340686359c93728d`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Session: `nonmatchings/func_actor_143000_801339CC-vacuum` (`base_3_diff`).
+Session: `nonmatchings/_actor143000AutoTypeKeypadCode-vacuum` (`base_3_diff`).
 ## A pre-loop guard written with a constant folds to `sltiu`; written with the loop variable it stays `li` + `sltu`
 
 `func_actor_560800_80134B14` opens its `do`/`while` with
@@ -124930,7 +124931,7 @@ setXYWH(prim, x, y, 16, 16);
 setUVWH(prim, u, v, 16, 16);
 ```
 
-Also seen in the same function (`func_actor_143000_801325F0`): the load order
+Also seen in the same function (`_actor143000HandleKeypadInput`): the load order
 `lhu screen.x` before `lhu p->x` needed `p->x` read *inside* the subtraction,
 with `dx = p->x` written afterwards (CSE reuses the load). And a `u8 v = dy + 0x70`
 variable gave `v + 16` as `addiu 0x80` (SImode) where the direct macro argument
@@ -138009,7 +138010,7 @@ However, putting the conditional inside `SwayInPlace(s32 *value, s32 delta)` ret
 This supports the documented memory-flag mechanism and the observed competition for a branch delay slot, not a universal helper-order rule. The router's best output changed coordinate values and was rejected; its next valid retained output rebuilt worse. The exact result came from independent dump-guided follow-up. Full unscoped verification passed, including the lost-match check.
 
 Inputs: base_3.i SHA-256 `fb7ba71d67cdd2d11e35a1155f95025e77d52ad1d8c38e5da390551ef01b0dba`; exact base_4.i `ed20edd6e8f45480080b80452665c86143277bea32865713d65d90ea464d49a1`. Selected RTL, predictions/build fingerprints and verification: `tools/compiler_evidence/2026-09-20-actor342000-62f28.json`. Full sources, compressed inputs and session notes are retained under `tools/permuter_findings/func_actor_342000_80162F28/`.
-## Reusing disjoint coordinates removes single-definition equivalences and fixes a global register permutation (func_actor_143000_80132D10, 2026-09-20)
+## Reusing disjoint coordinates removes single-definition equivalences and fixes a global register permutation (_actor143000DrawKeypad, 2026-09-20)
 
 After fixing the loop preheader, this renderer had only register differences
 (distance355). The block-4 right and bottom constants each had three references
@@ -138041,7 +138042,7 @@ and is not asserted as a general rule.
 Compiler/input hashes, measured inputs and selected observations:
 [2026-09-20-actor143000-32d10.json](tools/compiler_evidence/2026-09-20-actor143000-32d10.json).
 Full controlled sources, dumps, predictions and rejected return-type mutations
-are retained under tools/permuter_findings/func_actor_143000_80132D10/.
+are retained under tools/permuter_findings/_actor143000DrawKeypad/.
 
 
 ### A narrow ra dependency preserves entry scheduling without fencing a branch delay slot (_actor121300SpawnLampDebrisTask, 2026-09-20)
@@ -144340,7 +144341,7 @@ Two side effects worth knowing:
 - A macro that takes `&arr[i]` and uses `(rec)->f` is **not** `arr[i].f`: the
   address form compiled differently (98.1% vs 100%). Pass the element as an
   lvalue and write `(rec).f` inside the macro.
-## A field of a stack struct stored through the call's argument register means the struct was an inline helper's first local (func_actor_143000_80133CF0, 2026-09-26)
+## A field of a stack struct stored through the call's argument register means the struct was an inline helper's first local (actor143000CaptureStripTask, 2026-09-26)
 
 **Symptom.** `addiu a0,sp,0x18` for `StoreImage(&r2, ...)`, and one of `r2`'s
 fields stored as `sh v0,4(a0)` while its neighbours use `0x18(sp)` / `0x1a(sp)`.
@@ -144358,11 +144359,11 @@ all.
 **Fix.** `static inline void h(RECT* src, u32* buf) { RECT r2 = *src; r2.x = ...;
 r2.w = ...; r2.y += ...; StoreImage(&r2, buf); }` reproduces the `4(a0)` store
 with no pin. Here it was not enough on its own: the target also has the
-address live across an earlier `args->stripsCaptured` store (it takes `a0`, pushing the
+address live across an earlier `capture->stripsCaptured` store (it takes `a0`, pushing the
 count to `a1`) and the offset multiply finished before the struct copy, which
 the seed gets from a no-output `asm` (implicitly volatile, so a full sched
 barrier). No barrier-free spelling found gets past 89.4%, and a `do {} while (0)`
-barrier around `r.h` (loop notes block sched) only reaches 98%.
+barrier around `strip.h` (loop notes block sched) only reaches 98%.
 
 *Note 2026-10-06:* the helper is now in the source and one of the two asms is
 gone; the `$a1` count needs no asm at all. See "One asm instead of two: a
@@ -148836,7 +148837,7 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   real range: the merged set leaves `glowBrightness` at 5 references, which
   outranks `task`. See the section at the end of this file with this
   function's name.
-- `func_actor_143000_80133CF0` (two). The strip count is in `$a1` because the
+- `actor143000CaptureStripTask` (two). The strip count is in `$a1` because the
   helper's frame base is already in `$a0` when the count is stored, and the
   `*640` shifts stay above the struct copy. Both are births that must not sink
   to their users. Reusing one local for the count and the offset does not tie
@@ -151076,29 +151077,29 @@ not match (built: 96 instructions, `count` ranked first at 14736).
 
 **2026-10-06, later the same day.** The vanishing block was a stand-in. The read of `count` that the 2026-10-05 entry asked for is real and comes from `s32 i = 0;` followed by `for (i = 0; ...)`; with it the `visibleRows` local, the third `idx++` and the `if`/`else if` hit tests are not needed. See "A register zeroed twice" at the end of this file.
 
-## One asm instead of two: a call's argument copy is a leftover or a birth by how often its register is set (func_actor_143000_80133CF0, 2026-10-06)
+## One asm instead of two: a call's argument copy is a leftover or a birth by how often its register is set (actor143000CaptureStripTask, 2026-10-06)
 
 **Was.** `rp = &r2; SOFT_TOUCH_REG_USE(rp, n);` to put the strip count in
 `$a1`, and an input-only `SOFT_USE_REG(offset)` (a full barrier) to keep the
 `* 640` shifts above the struct copy. **Is.** The inline helper of the entry
 "A field of a stack struct stored through the call's argument register", with
-`args->stripsCaptured++` and no `rp`, and one asm:
+`capture->stripsCaptured++` and no `rp`, and one asm:
 
 ```c
-offset = r.y * FILE_SYSTEM_IMAGE_ROW_BYTES;
-r.h    = bottom - r.y;
-__asm__("" : "+m"(r) : "r"(offset));
-_actor143000StoreStrip(&r, offset);     /* RECT dest = *strip; x, w, y += ; StoreImage(&dest, buf + offset) */
+imageByteOffset = strip.y * FILE_SYSTEM_IMAGE_ROW_BYTES;
+strip.h    = bottom - strip.y;
+__asm__("" : "+m"(strip) : "r"(imageByteOffset));
+_actor143000StoreStrip(&strip, imageByteOffset);     /* RECT dest = *strip; x, w, y += ; StoreImage(&sourceRect, buf + offset) */
 ```
 
-**1. The count's register is decided by the `a0 = &dest` copy, and that needs
+**1. The count's register is decided by the `a0 = &sourceRect` copy, and that needs
 no asm.** `birthing_insn_p` (sched.c) asks `REG_N_SETS == 1` of hard registers
 too, and flow counts every RTL set of a hard register in the function. Here
 `$a0` is set three times (two `taskKill`, one `StoreImage`) and `$a1` once. So
 `(set a1 (plus Fs offset))` is a birth, launched the cycle after the call, and
 `(set a0 fb)` is a priority-1 leftover: it is taken at the first cycle where
 nothing else is ready, and the helper's frame-base pseudo (a real birth) lands
-directly above it. `optimize_reg_copy_1` then rewrites the later `dest.w` store
+directly above it. `optimize_reg_copy_1` then rewrites the later `sourceRect.w` store
 to `4($a0)` and the two tie into `addiu a0,sp,0x18`.
 
 - A cycle with nothing ready is a load still queued for its cost of 2 (or
@@ -151122,26 +151123,26 @@ Each is a single-set pseudo, so it is scheduled directly above its first
 scheduled user. The only user is the `$a1` add, itself a birth scheduled first.
 So shifts and the `Fs_ImgBuffers` load pile up above the call, the load's
 `%hi` gets `$v0` (nothing else is live), and sched2 does not lift the shifts
-back: in its trace the `dest.y` store is not ready when the last shift is, so
+back: in its trace the `sourceRect.y` store is not ready when the last shift is, so
 the shift is taken first (with the `%hi` in `$v1`, as in the probe row below,
 it does lift them). What was built to make the last shift wait (all with the
 plain helper):
 
 | form | what happens | result |
 |---|---|---|
-| second live set of its pseudo, reusing the count (`n = y * 320; ...; n <<= 1`; a plain `n = y * 640` is renamed away by cse) | not a birth, but priority 51 under the helper's 95: scheduled after the `bottom` chain, and the `lh r.y` queue gap takes the `a0` copy *after* the count store | 95.9% |
-| the same reusing `bottom`, final shift after `r.h` | priority 95 by anti-dependence on the `subu`; schedule right, but one pseudo now has two ranges and is global | 93.7% |
-| `SOFT_TOUCH_REG_USE(bottom, offset)` before `r.h` | `bottom`'s add stops being a birth and is scheduled before `lh r.y`, so `lh band.y` lands below the count store | 97.7% |
-| `SOFT_TOUCH_REG_USE2(args, offset, bottom)` after `r.h` | priority 95 ties with the `r.h` store, and a store wins a tie on `potential_hazard` | 93.5% |
+| second live set of its pseudo, reusing the count (`n = y * 320; ...; n <<= 1`; a plain `n = y * 640` is renamed away by cse) | not a birth, but priority 51 under the helper's 95: scheduled after the `bottom` chain, and the `lh strip.y` queue gap takes the `a0` copy *after* the count store | 95.9% |
+| the same reusing `bottom`, final shift after `strip.h` | priority 95 by anti-dependence on the `subu`; schedule right, but one pseudo now has two ranges and is global | 93.7% |
+| `SOFT_TOUCH_REG_USE(bottom, offset)` before `strip.h` | `bottom`'s add stops being a birth and is scheduled before `lh strip.y`, so `lh band.y` lands below the count store | 97.7% |
+| `SOFT_TOUCH_REG_USE2(args, offset, bottom)` after `strip.h` | priority 95 ties with the `strip.h` store, and a store wins a tie on `potential_hazard` | 93.5% |
 | probe: a second 2-argument call elsewhere in the function | the `$a1` add becomes a leftover, fills the gap itself; count, shifts and stores all match; `lui v0; lw v1,0(v0)` for `lui v1; lw v1,0(v1)`, placed two lines later | 1 register, 1 reorder |
 | `RECT` passed by value to the helper | same instructions, frame 8 bytes larger | - |
-| asm that reads `offset` and writes `r` | the copy depends on it, it depends on the `r.h` store: scheduled exactly between them, shifts launched above it; not a barrier, so the `a0` copy still floats | **match** |
+| asm that reads `offset` and writes `r` | the copy depends on it, it depends on the `strip.h` store: scheduled exactly between them, shifts launched above it; not a barrier, so the `a0` copy still floats | **match** |
 
-The asm must sit after `r.h = ...`; before it, the `r.h` store is no longer
+The asm must sit after `strip.h = ...`; before it, the `strip.h` store is no longer
 its predecessor (96.2%). `"=m"(r)` and the same asm on `*strip` at the top of
 the helper match too.
 
-**What the remaining asm stands for.** An instruction between the `r.h` store
+**What the remaining asm stands for.** An instruction between the `strip.h` store
 and the copy that the copy depends on and that reads the finished offset. In
 plain C that is a store into `r` computed from `offset`, and the target has
 none. No natural form found; the argument above says a single-block one would
@@ -153234,7 +153235,7 @@ which was written first.
   register, make the pointer global the same way: one local set at each
   re-read. Check `.greg`'s `regs to allocate` line for the order of the two.
 
-## Unchanged: the strip offset's asm needs three orders at `.lreg`, and every plain single-block form gives at most two (func_actor_143000_80133CF0, 2026-10-07)
+## Unchanged: the strip offset's asm needs three orders at `.lreg`, and every plain single-block form gives at most two (actor143000CaptureStripTask, 2026-10-07)
 
 Dated note on "One asm instead of two" (2026-10-06). The asm is still there.
 What was added is the list of what the registers need and what each of the
@@ -153244,43 +153245,43 @@ for the function (91 lines; no asm at all = 36).
 **What `.lreg` has to see** (block = `killCountdown = 6` to the final test;
 the call does not end it). Every miss below is one of these three:
 
-1. `a0 = &dest` above the count store, so the count cannot take `$a0`.
-2. `lh band.y` (the second one, for `bottom`) above the count store too. The
+1. `a0 = &sourceRect` above the count store, so the count cannot take `$a0`.
+2. `lh band.y` (the second one, for `stripBottom`) above the count store too. The
    bottom chain's quantity then overlaps the count and takes `$v0` first; with
    it below, the count is the best quantity in its span and takes `$v0` even
    with `$a0` busy.
-3. The `%hi(Fs_ImgBuffers)` set above `lhu dest.y`, so that it overlaps the
-   `dest.y` quantity and gets `$v1`. It is a birth chained to the `$a1` add, so
+3. The `%hi(Fs_ImgBuffers)` set above `lhu sourceRect.y`, so that it overlaps the
+   `sourceRect.y` quantity and gets `$v1`. It is a birth chained to the `$a1` add, so
    this fails whenever the shifts are launched first at the bottom (they pull
-   the `lw` and the `lui` down with them, and the `lhu dest.y` stall then has
+   the `lw` and the `lui` down with them, and the `lhu sourceRect.y` stall then has
    nothing but the `a0` copy to take).
 
-The count store is ready only after both stack reads of `r.y` (a store through
-`args` conflicts with them, which is also why cse reloads them). So 1 and 2
-together mean: both `r.y` reads scheduled (backward) before `bottom`'s add,
+The count store is ready only after both stack reads of `strip.y` (a store through
+`capture` conflicts with them, which is also why cse reloads them). So 1 and 2
+together mean: both `strip.y` reads scheduled (backward) before `stripBottom`'s add,
 which is a birth released by the `subu`. Only births with a higher LUID can
 hold it back, so the shifts must already be scheduled when the `subu` is, i.e.
-sit between the `r.h` store and the struct copy, with no instruction there to
+sit between the `strip.h` store and the struct copy, with no instruction there to
 release them. That is the asm.
 
 **Measured.**
 
 | form | sched1 | lines |
 |---|---|---|
-| `offset = r.y * 320; offset *= 2;` (before `r.h`, or split around it) | the two shifts come out as one `sll 7` and the code is identical to no asm (which pass folds them was not traced) | 36 |
-| `offset = r.y * 5; offset <<= 7;` (either side of `r.h`) | `sll 7` is not a birth (priority 51): 3 holds, the bottom of the block matches. But it waits behind the whole bottom chain (births and 95), and the `lh r.y` queue cycle after the first shift is empty: the `a0` copy goes there, below the count store | 26 |
-| the same, and `bottom = args->band.y; bottom += ...` (also the permuter's best plain result, 350 from 470) | the `band.y` load is no birth either and fills that cycle; the `a0` copy reaches the `div` stall: 1 and 3 hold, 2 does not, count in `$v0` | 26 |
-| the same two-set offset with `r.x`/`r.w` assigned after `r.h` | the late copies' load stalls pull `sll 7` and the add up between `r.h` and the struct copy: 1, 2, 3 all hold (count in `$a1`, `%hi` in `$v1`) and everything above the copy matches. The copies and the `Fs_ImgBuffers` load end in the middle; the image has the copies first, with their load stalls unfilled | 22 |
-| `offset` also assigned in `case 0`, or reused for the countdown test | cse renames the other use; one set; identical to no asm | 36 |
-| `r.h` before `offset`, or `r.y * 640` as the helper's argument | cse shares the read: `lhu`, then `sll 16`/`sra 16` | 33 |
-| the six orders of the `r.x`, `r.w`, `r.y` stores | 36 to 44 (26 to 34 with the two-set offset) | - |
-| `if (bottom > r.y) store(); else store();` | the `a0` copy is confined to the arm | 38 |
-| equal arms around `r.h = ...` / around `args->stripsCaptured++` | the same; the count store and the call have to be one block, so no boundary fits between them, and the image has no stall or branch there | 39 / 41 |
-| `if (r.h > 0) store();` | a `blez` the image does not have | 40 |
-| `RECT` by value (copied in the helper, or the parameter used as `dest`) | 66 / 52 |
+| `imageByteOffset = strip.y * 320; imageByteOffset *= 2;` (before `strip.h`, or split around it) | the two shifts come out as one `sll 7` and the code is identical to no asm (which pass folds them was not traced) | 36 |
+| `imageByteOffset = strip.y * 5; imageByteOffset <<= 7;` (either side of `strip.h`) | `sll 7` is not a birth (priority 51): 3 holds, the bottom of the block matches. But it waits behind the whole bottom chain (births and 95), and the `lh strip.y` queue cycle after the first shift is empty: the `a0` copy goes there, below the count store | 26 |
+| the same, and `stripBottom = capture->band.y; stripBottom += ...` (also the permuter's best plain result, 350 from 470) | the `band.y` load is no birth either and fills that cycle; the `a0` copy reaches the `div` stall: 1 and 3 hold, 2 does not, count in `$v0` | 26 |
+| the same two-set offset with `strip.x`/`strip.w` assigned after `strip.h` | the late copies' load stalls pull `sll 7` and the add up between `strip.h` and the struct copy: 1, 2, 3 all hold (count in `$a1`, `%hi` in `$v1`) and everything above the copy matches. The copies and the `Fs_ImgBuffers` load end in the middle; the image has the copies first, with their load stalls unfilled | 22 |
+| `imageByteOffset` also assigned in `case 0`, or reused for the countdown test | cse renames the other use; one set; identical to no asm | 36 |
+| `strip.h` before `imageByteOffset`, or `strip.y * 640` as the helper's argument | cse shares the read: `lhu`, then `sll 16`/`sra 16` | 33 |
+| the six orders of the `strip.x`, `strip.w`, `strip.y` stores | 36 to 44 (26 to 34 with the two-set offset) | - |
+| `if (stripBottom > strip.y) store(); else store();` | the `a0` copy is confined to the arm | 38 |
+| equal arms around `strip.h = ...` / around `capture->stripsCaptured++` | the same; the count store and the call have to be one block, so no boundary fits between them, and the image has no stall or branch there | 39 / 41 |
+| `if (strip.h > 0) store();` | a `blez` the image does not have | 40 |
+| `RECT` by value (copied in the helper, or the parameter used as `sourceRect`) | 66 / 52 |
 | helper sweeps: six store orders, the offset or the row passed in, computed before or after the copy, in one or two steps, the destination in a local (2016 builds) | best is the known `w, x, y` order (top matches, stores do not) | 18 |
 
-The permuter's lowest score (310) wrote `r.h` twice and read `r.y` through a
+The permuter's lowest score (310) wrote `strip.h` twice and read `strip.y` through a
 pointer local; not a match and not kept.
 
 **Where a fake loop would have to sit.** Nowhere: a loop note makes the next

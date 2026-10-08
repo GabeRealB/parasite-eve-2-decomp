@@ -61,7 +61,14 @@ extern Actor143000CaptureArgs D_actor_143000_80135090;
 
 extern Actor143000CaptureArgs D_actor_143000_801350A0;
 
-// Callbacks referenced by the overlay's shared data tables.
-void func_actor_143000_80133CF0(Task*);
+/// Captures a background band into the resident image workspace, one strip per six ticks.
+///
+/// spawnArg2 must point to a writable Actor143000CaptureArgs for the task's
+/// lifetime. stripCount must be positive and band rows must stay within the
+/// 240-row image. The task resets stripsCaptured, kills itself on completion
+/// or outside view 14, and borrows the workspace without allocating it.
+/// The caller must keep the background loaded at VRAM (448,256), avoid workspace
+/// reuse until capture finishes and synchronize GPU access to the stored image.
+void actor143000CaptureStripTask(Task* task);
 
 #endif // SRC_ACTORS_ACTOR_143000_ACTOR_143000_PRIVATE_H
