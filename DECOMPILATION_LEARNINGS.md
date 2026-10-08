@@ -65245,7 +65245,7 @@ object through that function's `INCLUDE_ASM`. Putting the line next to the
 neighbouring `INCLUDE_RODATA` therefore writes the block at the wrong offset
 and shifts everything after it, failing the checksum with nothing pointing at
 rodata. `actor_403000`'s table is at `0x1E4` with six migrated `jtbl_`s below
-it, so its line belongs after `INCLUDE_ASM(..., func_actor_403000_8013C864)`,
+it, so its line belongs after `INCLUDE_ASM(..., _actor403000Update)`,
 not after the leading `D_actor_403000_80131E20`.
 
 List the unit's real rodata order before placing the line - every `.s` in the
@@ -65257,11 +65257,11 @@ it - and insert after whichever entity carries the block below:
 0x00004 jtbl_actor_403000_80131E24   _actor403000ApplyCommand.s
 ...
 0x001E4 ActorsShared80135df4Table    ActorsShared80135df4Table.s   <- new line here
-0x001F4 jtbl_actor_403000_80132014   func_actor_403000_8013D98C.s
+0x001F4 jtbl_actor_403000_80132014   _actor403000GetPatrolGoalCell.s
 ```
 
 That last row is the other half of the lesson. A promotion had just cut this
-unit in two, and `func_actor_403000_8013D98C` landed in the tail while the
+unit in two, and `_actor403000GetPatrolGoalCell` landed in the tail while the
 overlay had no `rodata` cut at all, so its jump table stayed behind in the head
 object and the link failed on the *table* rather than on its `.L` labels. A
 compiler-generated table cannot be re-homed with an `INCLUDE_RODATA` in another
@@ -97669,7 +97669,7 @@ here would place the scan's own word at 0xDEC and call it `field_0` of a record
 based at 0xDEC. The overlay's other callers say it is not:
 
 ```
-func_actor_403000_8013C864:  jal worldCollisionClearContacts ; a0 = work + 0xDE8
+_actor403000Update:  jal worldCollisionClearContacts ; a0 = work + 0xDE8
 _actor403000Spawn:  sw  $v0, 0xDE4($s6)       ; v0 = work + 0xDE8
 ```
 
@@ -104990,14 +104990,14 @@ reproduces `lb`, and the other caller still matches.
 
 ### `lb a0` then `sll/sra 24` of the same register: an `s16` local holding the `s8` result
 
-`func_actor_403000_80138DB0` stores `_actor403000GetRingCell(index's coord)` into
-`scratch->cell` and computes `diff = cell - scratch->playerCell` from the same
+`_actor403000LungeCatchState` stores `_actor403000GetRingCell(index's coord)` into
+`scratch->cell` and computes `cellDifference = actorCell - scratch->playerCell` from the same
 value. The ROM loads with `lb a0`, sign-extends `a0` *again* (`sll v0,a0,24;
 sra v0,v0,24`) for the subtraction, and does the `sb a0` in the first branch's
 delay slot. Every `s8`/`s32` local form lets cse fold the second extension (and
 the `sign = ±1` chain then lays out differently, `li v0,-1` preloaded instead of
-a `j` over it). What matched: `s16 cell = _actor403000GetRingCell(...); scratch->cell = cell;
-diff = (s8)cell - scratch->playerCell;` with the inline written as
+a `j` over it). What matched: `s16 actorCell = _actor403000GetRingCell(...); scratch->cell = actorCell;
+cellDifference = (s8)actorCell - scratch->playerCell;` with the inline written as
 `s8 _actor403000GetRingCell(...) { s32 cell; ... cell = (s8)table[i]; return cell; }`. The
 previous entry's `s32`-returning form gave `lb` but folded the re-extension;
 returning `s8` directly (`return (s8)table[i];`) gave `lbu`. The `s32`
@@ -105005,7 +105005,7 @@ intermediate inside an `s8` inline keeps `lb`, and `80137084` still matches.
 
 ### A store scheduled past an absolute-byte load: read the byte through its struct
 
-`func_actor_403000_8013C864` clears `work->catchFrame` and then indexes
+`_actor403000Update` clears `work->catchFrame` and then indexes
 `Gp_WeaponIdBase[D_8007218A - 1]`. The ROM keeps `sh zero,0xFCC(s2)` between
 `lui v0,%hi(D_8007218A)` and the `lb`; with `extern s8 D_8007218A` sched2
 moved the store after the `lb` (reorder=1, everything else zero). `D_8007218A`
@@ -105059,7 +105059,7 @@ value, so the store and `subu` share `$v0` and the store is forced early. An
 CSE'd reread `sign_extend:SI (subreg:QI (reg:HI))`, which stays as sll/sra and
 leaves the stored value in its own register.
 
-## A load duplicated in front of a jump into the middle of a tail means duplicated source, not a `goto` (func_actor_403000_80134F44, 2026-09-16)
+## A load duplicated in front of a jump into the middle of a tail means duplicated source, not a `goto` (_actor403000ApplyDamage, 2026-09-16)
 
 **Symptom:** two paths share a tail, but the jumping path carries its own copy of the tail's first load
 (`lbu a0,0xFD3(s2); li v0,2; j X; sh v0,0(s2)`), and `X` is *after* that same `lbu` in the fall-through
@@ -111931,6 +111931,8 @@ discriminator between the two spellings when the dump is ambiguous.
 **Duplicate every tail, do not share it after the `if/else`.** Two cases that both end
 `if (!viewChoice) { nextView = 4; } return nextView;` are cross-jumped by jump2 *after reload* (matching backwards
 from each jump, as the `func_actor_403000_80134F44` entry describes). Writing the tail once per case
+`if (!flag) { value = 4; } return value;` are cross-jumped by jump2 *after reload* (matching backwards
+from each jump, as the `_actor403000ApplyDamage` entry describes). Writing the tail once per case
 branch instead of once after the `if/else` took this function from 78.9% to 92.0% (regs 10 -> 1,
 insert 15 -> 4). Which copy anchors the merge is still unexplained here: the surviving copy sits at
 case 1's last body in the target and at case 0's first branch in every candidate tried, including
@@ -112097,7 +112099,7 @@ this target.
 carried the head, the 32-byte `SVBLOCK`-style rodata copy and the per-view tails to a 103/203
 insn match. `m2c`'s `goto block_25` / `goto block_36` in this function are real gotos.
 
-**Not to be confused with** the `func_actor_403000_80134F44` entry above: there, a duplicated
+**Not to be confused with** the `_actor403000ApplyDamage` entry above: there, a duplicated
 load in front of a jump into a tail meant duplicated source. Here the discriminator is the
 branch sense (`beq` vs `bne`), which duplicated source cannot produce.
 
