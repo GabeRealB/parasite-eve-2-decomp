@@ -2586,7 +2586,7 @@ if (gameFlagGetNibble(work->step + 0xBE) != 0 || gameFlagGetNibble(0xC3) != 0) {
 return 1;
 ```
 
-Example: `func_actor_548100_80134778` — two separate `if (...) return 2;`
+Example: `_actor548100UseBattery` — two separate `if (...) return 2;`
 statements scored 85.5%, the `||` form 100% with a zero penalty mix.
 Inputs: `base_2.i`
 `c10cb4f9d64d0c0ee1022b7511b3332347ce2956074845a27e47f4fffa5d9223` (separate
@@ -15987,10 +15987,10 @@ lineText = lineBuffer;
 
 The lever is the *defining statement's* position, not pointers specifically: a
 group of independent loads read into locals is the same knob. In
-`func_actor_548100_8013461C` four `s16` fields are read into four `s32` locals
+`_actor548100DrawPanelPiece` four `s16` fields are read into four `s32` locals
 that all stay live across the one `jal`, so all four land in `$s1`-`$s4`;
-reading them `u0, v0, u1, v1` gives the target's `$s2, $s1, $s3, $s4`, and
-reading them `u0, u1, v0, v1` gives `$s2, $s4, $s1, $s3` -- the target. The
+reading them `left, top, right, bottom` gives the target's `$s2, $s1, $s3, $s4`, and
+reading them `left, right, top, bottom` gives `$s2, $s4, $s1, $s3` -- the target. The
 loads and every store downstream are byte-identical either way, so this shows
 up as a pure `regs=` penalty with no `insert`/`delete` beside it.
 
@@ -78394,14 +78394,15 @@ and ending exactly where the next symbol begins.
 **Fix.** Take both numbers from the code, never from the symbol: the stride from
 the multiply the code materialises (`id * 7 * 2` reads as three shifts and two
 adds), and the bound from whatever the loop tests — a record whose first byte is
-zero here, a `0xFF` byte in the sibling route strings at `D_actor_548100_80135B24`.
+zero here and in the sibling route strings at `D_actor_548100_80135B24`, whose
+`0xFF` bytes jump to another node without a connecting wire.
 Declare such a table unsized (`extern _Actor548100Edge D_actor_548100_801351D0[]`),
 as the sibling overlay headers do; a size copied from the symbol is a latent
 mismatch, and the sentinel record is not part of the array's data anyway.
 
 The same table also shows why the record's *field* names want evidence from every
-reader: `func_actor_548100_80134AE0`, `..80134BF0`, `..80134CB8` and
-`func_actor_548100_80133684` between them touch offsets 0, 1, 2, 3, 8, 0xA and
+reader: `_actor548100SetLegComplete`, `func_actor_548100_80134BF0`, `_actor548100MeasureLeg` and
+`_actor548100DrawEdge` between them touch offsets 0, 1, 2, 3, 8, 0xA and
 0xC, and only 0, 1 and 2 are seeded in the ROM — the rest is runtime state, which
 is what tells you a "field that is always zero" is written by code you have not
 read yet.
@@ -78599,7 +78600,7 @@ noted above: same untyped-offset cause, different opcode.
 
 ## Write a struct store *before* the loads it shares a base with, or it inherits their priority
 
-**Problem.** `func_actor_548100_80132808` seeds a ramp: two halfword stores to
+**Problem.** `_actor548100WaitSwitchCaption` seeds a ramp: two halfword stores to
 `work->longLength` / `shortLength`, then four byte reads of one global pointer that
 each feed a byte store. The target interleaves them — `lw %lo(D)(s2)`, the two
 `sh`, then `lbu` / `sb` pairs. Writing the stores last (the natural C order, the
@@ -107001,16 +107002,16 @@ written *before* `*scratch = head - 0x18;`, CSE gives the store `sc`'s register
 and there is no copy; with the store first, CSE has to materialise a temporary
 for the store and the later `sc` becomes a copy. Which of the two uses is
 written first is a real codegen decision, not style.
-## A byte read twice at a join: assign it in both branches and let cross-jumping merge the tail (func_actor_548100_80134AE0)
+## A byte read twice at a join: assign it in both branches and let cross-jumping merge the tail (_actor548100SetLegComplete)
 
 **Symptom.** The target loads the same byte twice in a row at a branch join
-(`lbu a3,0(a0); lbu v0,0(a0); beq v0,a1,...`), but `prev = *route; if (*route++ == stop)`
+(`lbu a3,0(a0); lbu v0,0(a0); beq v0,a1,...`), but `previousNode = *cursor; if (*cursor++ == stopNode)`
 after the `if/else` compiles to one load - CSE merges the reads in one block.
 
-**Fix.** Write `prev = *route;` at the end of *both* arms. Jump optimization
+**Fix.** Write `previousNode = *cursor;` at the end of *both* arms. Jump optimization
 cross-jumps the identical tails into one load at the join, but only after CSE, so the
 comparison's own read in the next block survives. The same function also needed
-`edge = B5C[cur + prev * 100]; D_1D0[edge].state = s;` instead of the nested
+`edgeIndex = B5C[currentNode + previousNode * 100]; D_1D0[edgeIndex].state = wireState;` instead of the nested
 `D_1D0[B5C[...]]` to hoist `B5C`'s address ahead of `D_1D0`'s in the loop preheader.
 
 ### Load the tested field into the result variable when both share `$v0` (func_actor_548100_80132684, 2026-09-16)
@@ -107029,7 +107030,7 @@ Same function: the `rodata_head` entry above applied — its jump table at 0x7C 
 
 ## `if (*p++ == (x & 0xFF)) break;` hoists the mask; split the increment out to keep it in the loop
 
-`func_actor_548100_801342D8` ends its route walk with `lbu v1,0(a3); andi v0,a1,0xFF; beq v1,v0,exit; addiu a3,a3,1` (the increment in the delay slot), then `while (*p != 0)`. Written `if (*p++ == (stop & 0xFF)) break;`, the post-increment insn lands between the `and` and the jump, giving the mask a lifetime of 2 in `.loop` (`savings 1 moved`) and `move_movables` hoists it (`andi a1,a1,0xFF` before the loop). Writing `if (*p == (stop & 0xFF)) break; p++;` makes the lifetime 1 (`not desirable`), the mask stays in the loop, and reorg still pulls `p++` into the delay slot because `p` is dead at the exit. Same function: dropping a `u8 cur = *p;` local for direct `*p` reads fixed the last register (`cur + prev*100` summed into `cur`'s register).
+`_actor548100SetLegFlowProgress` ends its route walk with `lbu v1,0(a3); andi v0,a1,0xFF; beq v1,v0,exit; addiu a3,a3,1` (the increment in the delay slot), then `while (*cursor != 0)`. Written `if (*cursor++ == (stopNode & 0xFF)) break;`, the post-increment insn lands between the `and` and the jump, giving the mask a lifetime of 2 in `.loop` (`savings 1 moved`) and `move_movables` hoists it (`andi a1,a1,0xFF` before the loop). Writing `if (*cursor == (stopNode & 0xFF)) break; cursor++;` makes the lifetime 1 (`not desirable`), the mask stays in the loop, and reorg still pulls `cursor++` into the delay slot because `cursor` is dead at the exit. Same function: dropping a `u8 currentNode = *cursor;` local for direct `*cursor` reads fixed the last register (`currentNode + previousNode*100` summed into `currentNode`'s register).
 
 ## An unindexed table base splits `lui %hi` from `addiu %lo` only as a pointer local
 

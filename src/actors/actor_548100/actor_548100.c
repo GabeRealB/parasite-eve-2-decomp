@@ -33,6 +33,73 @@
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
 
+/// Panel dispatch states used by hotspot selection and the switch caption.
+enum {
+    ACTOR_548100_STATE_SCAN_HOTSPOTS = 2,
+    ACTOR_548100_STATE_OPEN_COMMANDS = 3,
+    ACTOR_548100_STATE_EXIT          = 5,
+    ACTOR_548100_STATE_ANIMATE_FLOW  = 9,
+};
+
+/// Battery item ids and the switch caption's completion keys.
+enum {
+    ACTOR_548100_BATTERY_FIRST_ITEM  = 0x120,
+    ACTOR_548100_BATTERY_SECOND_ITEM = 0x12C,
+    ACTOR_548100_CAPTION_SWITCH_ON   = 0xB,
+    ACTOR_548100_CAPTION_SWITCH_OFF  = 0x15,
+};
+
+/// Authored socket, wiring and route domains of the panel's diagram.
+enum {
+    ACTOR_548100_SOCKET_COUNT    = 4,
+    ACTOR_548100_WIRING_FIRST    = 1,
+    ACTOR_548100_CIRCUIT_END     = -1,
+    ACTOR_548100_ROUTE_UNUSED    = 0,
+    ACTOR_548100_ROUTE_END       = 0,
+    ACTOR_548100_ROUTE_GAP       = 0xFF,
+    ACTOR_548100_NODE_ID_MASK    = 0xFF,
+    ACTOR_548100_NODE_KEY_STRIDE = 100,
+};
+
+/// Output choices and the changed-picture rectangle after the four socket pieces.
+enum {
+    ACTOR_548100_OUTPUT_DOOR    = 1,
+    ACTOR_548100_OUTPUT_PASSAGE = 2,
+    ACTOR_548100_PIECE_SWITCH   = 4,
+};
+
+/// Panel packet depths and pixel coordinates; wires use a two-pixel origin bias.
+enum {
+    ACTOR_548100_OT_WIRES             = 0x3FC,
+    ACTOR_548100_OT_PANEL_PIECES      = 0x3FE,
+    ACTOR_548100_WIRE_ORIGIN_X        = 158,
+    ACTOR_548100_WIRE_ORIGIN_Y        = 118,
+    ACTOR_548100_SCREEN_CENTER_X      = 160,
+    ACTOR_548100_SCREEN_CENTER_Y      = 120,
+    ACTOR_548100_SCREEN_WIDTH         = 320,
+    ACTOR_548100_SCREEN_HEIGHT        = 240,
+    ACTOR_548100_DRAW_BUFFER_STRIDE_Y = 272,
+    ACTOR_548100_PANEL_TEXTURE_PAGE   = 0x116, // 15-bit texels at VRAM (384, 256)
+};
+
+/// Pulse level at which a wire colour equals its authored RGB bytes.
+enum { ACTOR_548100_COLOR_PULSE_ONE = 32 };
+
+/// Publishes a route node, skipping a gap marker when the caller already selected that branch.
+///
+/// `cursor` must be a `const u8*` local and `previousNode` a distinct `u8` local;
+/// `isGap` is a side-effect-free flag (0 node, nonzero gap). Use this compound
+/// statement inside a braced branch. The cursor is evaluated again
+/// after a gap increment; the node is reread after preceding wire-state stores.
+/// The escaped byte must exist. No identifiers are captured.
+#define ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, isGap) \
+    {                                                             \
+        if ((isGap) != 0) {                                       \
+            (cursor)++;                                           \
+        }                                                         \
+        (previousNode) = *(cursor);                               \
+    }
+
 /// Distance the current advances along a route on each frame of the panel's
 /// switch-on animation, in the units of `_Actor548100Edge::length`.
 #define ACTOR_548100_FLOW_SPEED 4
@@ -219,13 +286,13 @@ extern _Actor548100ColorRow D_actor_548100_801358A8[3];
 
 static void _actionPromptResetDefault(Task* task);
 static void func_actor_548100_80132420(Task* task);
-static void func_actor_548100_80132550(Task* task);
+static void _actor548100ScanHotspots(Task* task);
 static void func_actor_548100_80132684(Task* task);
-static void func_actor_548100_80132808(Task* arg0);
-static void func_actor_548100_801330EC(void);
+static void _actor548100WaitSwitchCaption(Task* task);
+static void _actor548100SelectCircuit(void);
 static void func_actor_548100_80134400(ActionPromptHotspot* unused);
-static s32  func_actor_548100_801348A4(ActionPromptHotspot* table, s16 x, s16 y);
-static s32  func_actor_548100_80134CB8(s32 nodeA, u8 nodeB);
+static s32  _actionPromptHitTestFirstChoice(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
+static s32  _actor548100MeasureLeg(s32 routeId, u8 stopNode);
 static void func_actor_548100_80134D88(Task* task);
 static void func_actor_548100_80134DBC(Task* task);
 static void func_actor_548100_80134E0C(Task* arg0);
@@ -233,14 +300,14 @@ static void func_actor_548100_80134E94(Task* arg0);
 static void func_actor_548100_80134F64(Task* arg0);
 static void func_actor_548100_80134FEC(Task* arg0);
 static void func_actor_548100_80135124(Task* arg0);
-static void func_actor_548100_8013461C(_Actor548100TexRect* rect);
-static void func_actor_548100_80133BBC(s32 arg0);
-static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b);
-static void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos);
-static void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
-static void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
-static void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3);
-static void func_actor_548100_80134AE0(s32 id, u8 stop);
+static void _actor548100DrawPanelPiece(const _Actor548100TexRect* rect);
+static void _actor548100DrawOutputIndicator(s32 output);
+static void _actor548100DrawWire(s32 nodeA, s32 nodeB, u8 red, u8 green, u8 blue);
+static void _actor548100SetLegFlowProgress(s32 routeId, s32 stopNode, s16 progress);
+static void _actor548100ScaleFlowColor(s16 pulse, s8* red, s8* green, s8* blue);
+static void _actor548100ScaleStopColor(s16 pulse, s8* red, s8* green, s8* blue);
+static void _actor548100ScaleShortColor(s16 pulse, s8* red, s8* green, s8* blue);
+static void _actor548100SetLegComplete(s32 routeId, u8 stopNode);
 static void func_actor_548100_80134BA8(void);
 static void func_actor_548100_80134BF0(void);
 
@@ -272,18 +339,18 @@ extern u8                  D_actor_548100_8013588A;
 extern u8                  D_actor_548100_8013588B;
 extern u8                  D_actor_548100_8013588C[28];
 
-s32  func_actor_548100_80134778(Task*, s32, s32, s32);
-void func_actor_548100_80134728(Task*);
+static s32  _actor548100UseBattery(Task* task, s32 messageId, s32 itemId, s32 unused);
+static void _actor548100PromptTask(Task* task);
 
 static const char D_actor_548100_80131E54[6];
 static const char D_actor_548100_80131E5C[5];
 static const char D_actor_548100_80131E64[5];
 static void       func_actor_548100_801347F8(Task*);
 
-TaskDesc D_actor_548100_801351B4 = { { { TASK_BODY_NONE, 192 } }, func_actor_548100_80134728, { .value = 0 } };
+TaskDesc D_actor_548100_801351B4 = { { { TASK_BODY_NONE, 192 } }, _actor548100PromptTask, { .value = 0 } };
 
 TaskMessageEntry D_actor_548100_801351C0[2] = {
-    { 5105, func_actor_548100_80134778 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _actor548100UseBattery },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -885,7 +952,7 @@ u8 D_actor_548100_80135B5C[10000] = { 0 };
 
 static void func_actor_548100_80132A14(Task* task);
 static void func_actor_548100_80132EA0(Task* task);
-static void func_actor_548100_80133684(_Actor548100Edge* edge);
+static void _actor548100DrawEdge(const _Actor548100Edge* edge);
 static void func_actor_548100_80133F88(void);
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
@@ -902,13 +969,13 @@ static const char D_actor_548100_80131E64[] = "Flow";
 static const TaskFuncTable11 D_actor_548100_80131E6C = { {
     func_actor_548100_80132420,
     func_actor_548100_80134D88,
-    func_actor_548100_80132550,
+    _actor548100ScanHotspots,
     func_actor_548100_80134DBC,
     func_actor_548100_80132684,
     func_actor_548100_80134E0C,
     func_actor_548100_80134E94,
     func_actor_548100_80134F64,
-    func_actor_548100_80132808,
+    _actor548100WaitSwitchCaption,
     func_actor_548100_80134FEC,
     func_actor_548100_80135124,
 } };
@@ -952,11 +1019,16 @@ static void func_actor_548100_80132420(Task* task)
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
 }
 
-static void func_actor_548100_80132550(Task* task)
+/// Lets the player select a panel hotspot or cancel while no caption is playing.
+///
+/// State 2 of the panel task. Uses the first action cursor; confirm latches
+/// the first hit entry's choice and prompt kind before opening its commands.
+/// Cancel enters panel exit. Captions hide and stop the cursor without scanning.
+static void _actor548100ScanHotspots(Task* task)
 {
-    ActionPrompt*        prompt = D_80114D28;
-    ActionPromptHotspot* hs     = D_actor_548100_801357E8;
-    _Actor548100Work*    work   = task->work;
+    ActionPrompt*        prompt  = D_80114D28;
+    ActionPromptHotspot* hotspot = D_actor_548100_801357E8;
+    _Actor548100Work*    work    = task->work;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -967,16 +1039,16 @@ static void func_actor_548100_80132550(Task* task)
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     work->choice        = 0;
-    if (func_actor_548100_801348A4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (_actionPromptHitTestFirstChoice(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            for (; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
-                if (hs->hit != 0) {
+            for (; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+                if (hotspot->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    work->choice        = hs->id;
-                    work->promptKind    = hs->promptKind;
-                    task->state         = 3;
+                    work->choice        = hotspot->id;
+                    work->promptKind    = hotspot->promptKind;
+                    task->state         = ACTOR_548100_STATE_OPEN_COMMANDS;
                     return;
                 }
             }
@@ -985,7 +1057,7 @@ static void func_actor_548100_80132550(Task* task)
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
-        task->state = 5;
+        task->state = ACTOR_548100_STATE_EXIT;
     }
 }
 
@@ -1045,39 +1117,43 @@ static void func_actor_548100_80132684(Task* task)
     }
 }
 
-/// Player pressed the action button on this actor's map marker with the marker
-/// route done: measure the route legs the current will run along and hand the
-/// actor on to state 9.
-static void func_actor_548100_80132808(Task* arg0)
+/// Waits for the switch caption, then turns the panel on or off from its completion key.
+///
+/// State 8 follows the switch command. Turning on selects and measures the
+/// circuit, orders its battery legs by length, clears all three distances and
+/// enters the flow animation. Turning off clears the switch flag; other keys
+/// simply return to hotspot scanning. The live task must have panel work.
+static void _actor548100WaitSwitchCaption(Task* task)
 {
-    _Actor548100Work* work = arg0->work;
-    s32               distA;
-    s32               distB;
+    _Actor548100Work* work = task->work;
+    s32               firstLegLength;
+    s32               secondLegLength;
 
     if (capIsBusy() == 0) {
-        if (capGetVariantKey() == 0xB) {
+        if (capGetVariantKey() == ACTOR_548100_CAPTION_SWITCH_ON) {
             if (gameFlagGetNibble(GAME_FLAG_110) != 0) {
-                itemSetIdentified(0x120, 1);
-                itemSetIdentified(0x12C, 1);
+                itemSetIdentified(ACTOR_548100_BATTERY_FIRST_ITEM, 1);
+                itemSetIdentified(ACTOR_548100_BATTERY_SECOND_ITEM, 1);
             }
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, 0, 0);
             gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 1);
-            arg0->state = 9;
-            func_actor_548100_801330EC();
-            work->thirdLength = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[2].route, D_actor_548100_80135B4C->leg[2].stopNode);
-            distA             = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[0].route, D_actor_548100_80135B4C->leg[0].stopNode);
-            distB             = func_actor_548100_80134CB8(D_actor_548100_80135B4C->leg[1].route, D_actor_548100_80135B4C->leg[1].stopNode);
-            if (distB < distA) {
-                work->longLength        = distA;
-                work->shortLength       = distB;
+            task->state = ACTOR_548100_STATE_ANIMATE_FLOW;
+            _actor548100SelectCircuit();
+            work->thirdLength = _actor548100MeasureLeg(D_actor_548100_80135B4C->leg[2].route, D_actor_548100_80135B4C->leg[2].stopNode);
+            firstLegLength    = _actor548100MeasureLeg(D_actor_548100_80135B4C->leg[0].route, D_actor_548100_80135B4C->leg[0].stopNode);
+            secondLegLength   = _actor548100MeasureLeg(D_actor_548100_80135B4C->leg[1].route, D_actor_548100_80135B4C->leg[1].stopNode);
+            // Keep the two battery legs in length order so their fronts arrive together.
+            if (secondLegLength < firstLegLength) {
+                work->longLength        = firstLegLength;
+                work->shortLength       = secondLegLength;
                 work->longLeg.route     = D_actor_548100_80135B4C->leg[0].route;
                 work->shortLeg.route    = D_actor_548100_80135B4C->leg[1].route;
                 work->longLeg.stopNode  = D_actor_548100_80135B4C->leg[0].stopNode;
                 work->shortLeg.stopNode = D_actor_548100_80135B4C->leg[1].stopNode;
             } else {
-                work->longLength        = distB;
-                work->shortLength       = distA;
+                work->longLength        = secondLegLength;
+                work->shortLength       = firstLegLength;
                 work->longLeg.route     = D_actor_548100_80135B4C->leg[1].route;
                 work->shortLeg.route    = D_actor_548100_80135B4C->leg[0].route;
                 work->longLeg.stopNode  = D_actor_548100_80135B4C->leg[1].stopNode;
@@ -1088,11 +1164,11 @@ static void func_actor_548100_80132808(Task* arg0)
             work->thirdProgress = 0;
             return;
         }
-        if (capGetVariantKey() == 0x15) {
+        if (capGetVariantKey() == ACTOR_548100_CAPTION_SWITCH_OFF) {
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
             gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 0);
         }
-        arg0->state = 2;
+        task->state = ACTOR_548100_STATE_SCAN_HOTSPOTS;
     }
 }
 
@@ -1111,7 +1187,7 @@ static void func_actor_548100_80132A14(Task* task)
     work = task->work;
     for (; i < 4; i++, rect++) {
         if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(i + 1)) != 0) {
-            func_actor_548100_8013461C(rect);
+            _actor548100DrawPanelPiece(rect);
         }
     }
 
@@ -1121,9 +1197,9 @@ static void func_actor_548100_80132A14(Task* task)
     prim->code[0] = 0xE100022A;
     addPrim(&gGpuCurrentOt[0x3FD], prim);
 
-    func_actor_548100_80134960(D_actor_548100_80135B50, &D_actor_548100_80135B53, &D_actor_548100_80135B54, &D_actor_548100_80135B55);
-    func_actor_548100_801349E0(D_actor_548100_80135B50, &D_actor_548100_80135B56, &D_actor_548100_80135B57, &D_actor_548100_80135B58);
-    func_actor_548100_80134A60(D_actor_548100_80135B50, &D_actor_548100_80135B59, &D_actor_548100_80135B5A, &D_actor_548100_80135B5B);
+    _actor548100ScaleFlowColor(D_actor_548100_80135B50, &D_actor_548100_80135B53, &D_actor_548100_80135B54, &D_actor_548100_80135B55);
+    _actor548100ScaleStopColor(D_actor_548100_80135B50, &D_actor_548100_80135B56, &D_actor_548100_80135B57, &D_actor_548100_80135B58);
+    _actor548100ScaleShortColor(D_actor_548100_80135B50, &D_actor_548100_80135B59, &D_actor_548100_80135B5A, &D_actor_548100_80135B5B);
     func_actor_548100_80134BF0();
     gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 0);
     gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
@@ -1132,22 +1208,22 @@ static void func_actor_548100_80132A14(Task* task)
         if (task->state != 9) {
             circuit = D_actor_548100_80135B4C;
             if (circuit->leg[0].route != 0) {
-                func_actor_548100_80134AE0(circuit->leg[0].route, circuit->leg[0].stopNode);
+                _actor548100SetLegComplete(circuit->leg[0].route, circuit->leg[0].stopNode);
                 circuit = D_actor_548100_80135B4C;
             }
             if (circuit->leg[1].route != 0) {
-                func_actor_548100_80134AE0(circuit->leg[1].route, circuit->leg[1].stopNode);
+                _actor548100SetLegComplete(circuit->leg[1].route, circuit->leg[1].stopNode);
             }
             circuit = D_actor_548100_80135B4C;
             if (circuit->leg[2].route != 0) {
-                func_actor_548100_80134AE0(circuit->leg[2].route, circuit->leg[2].stopNode);
+                _actor548100SetLegComplete(circuit->leg[2].route, circuit->leg[2].stopNode);
             }
             if (D_actor_548100_80135B4C->powersDoor != 0) {
-                func_actor_548100_80133BBC(1);
+                _actor548100DrawOutputIndicator(ACTOR_548100_OUTPUT_DOOR);
                 gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 1);
             }
             if (D_actor_548100_80135B4C->powersPassage != 0) {
-                func_actor_548100_80133BBC(2);
+                _actor548100DrawOutputIndicator(ACTOR_548100_OUTPUT_PASSAGE);
                 if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) {
                     gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 3);
                 } else {
@@ -1159,21 +1235,21 @@ static void func_actor_548100_80132A14(Task* task)
             doorLit    = 0;
             passageLit = 0;
             if (circuit->leg[2].route != 0) {
-                func_actor_548100_801342D8(circuit->leg[2].route, circuit->leg[2].stopNode, work->thirdProgress);
+                _actor548100SetLegFlowProgress(circuit->leg[2].route, circuit->leg[2].stopNode, work->thirdProgress);
                 passageLit = work->thirdProgress == work->thirdLength;
             }
             if (work->longLeg.route != 0) {
                 if (work->longProgress != work->longLength) {
-                    func_actor_548100_801342D8(work->longLeg.route, work->longLeg.stopNode, work->longProgress);
+                    _actor548100SetLegFlowProgress(work->longLeg.route, work->longLeg.stopNode, work->longProgress);
                 } else {
-                    func_actor_548100_80134AE0(work->longLeg.route, work->longLeg.stopNode);
+                    _actor548100SetLegComplete(work->longLeg.route, work->longLeg.stopNode);
                 }
             }
             if (work->shortLeg.route != 0) {
                 if (work->shortProgress != work->shortLength) {
-                    func_actor_548100_801342D8(work->shortLeg.route, work->shortLeg.stopNode, work->shortProgress);
+                    _actor548100SetLegFlowProgress(work->shortLeg.route, work->shortLeg.stopNode, work->shortProgress);
                 } else {
-                    func_actor_548100_80134AE0(work->shortLeg.route, work->shortLeg.stopNode);
+                    _actor548100SetLegComplete(work->shortLeg.route, work->shortLeg.stopNode);
                 }
             }
             if (work->longProgress == work->longLength && work->longLeg.stopNode == 0 && work->longLeg.route != 0) {
@@ -1181,10 +1257,10 @@ static void func_actor_548100_80132A14(Task* task)
                 passageLit = passageLit || D_actor_548100_80135B4C->powersPassage;
             }
             if (doorLit != 0) {
-                func_actor_548100_80133BBC(1);
+                _actor548100DrawOutputIndicator(ACTOR_548100_OUTPUT_DOOR);
             }
             if (passageLit != 0) {
-                func_actor_548100_80133BBC(2);
+                _actor548100DrawOutputIndicator(ACTOR_548100_OUTPUT_PASSAGE);
             }
         }
     }
@@ -1194,7 +1270,7 @@ static void func_actor_548100_80132A14(Task* task)
         gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
     } else {
-        func_actor_548100_8013461C(&D_actor_548100_801357C0[4]);
+        _actor548100DrawPanelPiece(&D_actor_548100_801357C0[ACTOR_548100_PIECE_SWITCH]);
     }
 
     if (D_actor_548100_80135B52 == 0) {
@@ -1218,55 +1294,81 @@ static void func_actor_548100_80132EA0(Task* task)
 
 #include "../../shared/action_prompt_outline_rect.inc.c"
 
-static void func_actor_548100_801330EC(void)
+/// Selects the current wiring's circuit with exactly the filled battery sockets.
+///
+/// The result borrows a record from the authored circuit table. Normal input
+/// must have at most two filled sockets: the second wiring has no terminator
+/// beyond its eleven empty, single-socket and socket-pair arrangements.
+static void _actor548100SelectCircuit(void)
 {
-    s32 want;
-    s32 have;
-    s32 i;
+    s32 circuitSocketMask;
+    s32 filledSocketMask;
+    s32 socketIndex;
 
-    if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 1) {
+    if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == ACTOR_548100_WIRING_FIRST) {
         D_actor_548100_80135B4C = D_actor_548100_801356D8;
     } else {
         D_actor_548100_80135B4C = D_actor_548100_80135750;
     }
-    while (D_actor_548100_80135B4C->socketA != -1) {
-        want = 0;
+    while (D_actor_548100_80135B4C->socketA != ACTOR_548100_CIRCUIT_END) {
+        circuitSocketMask = 0;
         if (D_actor_548100_80135B4C->socketA != 0) {
-            want = 1 << (D_actor_548100_80135B4C->socketA - 1);
+            circuitSocketMask = 1 << (D_actor_548100_80135B4C->socketA - 1);
         }
         if (D_actor_548100_80135B4C->socketB != 0) {
-            want |= 1 << (D_actor_548100_80135B4C->socketB - 1);
+            circuitSocketMask |= 1 << (D_actor_548100_80135B4C->socketB - 1);
         }
-        have = 0;
-        for (i = 0; i < 4; i++) {
-            if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(i + 1)) != 0) {
-                have |= 1 << i;
+        filledSocketMask = 0;
+        for (socketIndex = 0; socketIndex < ACTOR_548100_SOCKET_COUNT; socketIndex++) {
+            if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(socketIndex + 1)) != 0) {
+                filledSocketMask |= 1 << socketIndex;
             }
         }
-        if (want == have) {
+        if (circuitSocketMask == filledSocketMask) {
             break;
         }
         D_actor_548100_80135B4C++;
     }
 }
 
-/// Draws a line between nodes `nodeA` and `nodeB` as a flat `r`/`g`/`b` quad
-/// two pixels wide, framed on each side by `POLY_G4` edges fading from black
-/// into that colour. The quad lies along whichever axis the line spans further,
-/// with the nodes ordered so the lower coordinate comes first.
-static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
+/// Initializes a translucent glow quad fading from black at vertices 0/1 to RGB at 2/3.
+static inline void _actor548100InitGlowQuad(POLY_G4* glow, u8 red, u8 green, u8 blue)
+{
+    setPolyG4(glow);
+    setSemiTrans(glow, 1);
+    glow->r0 = 0;
+    glow->g0 = 0;
+    glow->b0 = 0;
+    glow->r1 = 0;
+    glow->g1 = 0;
+    glow->b1 = 0;
+    glow->r2 = red;
+    glow->g2 = green;
+    glow->b2 = blue;
+    glow->r3 = red;
+    glow->g3 = green;
+    glow->b3 = blue;
+}
+
+/// Draws a panel wire with a two-pixel colour core and a three-pixel glow fringe.
+///
+/// Node ids index the authored diagram points; RGB channels are unsigned bytes.
+/// Geometry uses the dominant screen axis and the diagram's (158, 118) origin.
+/// Appends one flat and four Gouraud quads to the current primitive buffer;
+/// the caller supplies the draw area and semitransparency mode.
+static void _actor548100DrawWire(s32 nodeA, s32 nodeB, u8 red, u8 green, u8 blue)
 {
     POLY_F4* quad;
     POLY_G4* top;
     POLY_G4* left;
     POLY_G4* right;
     POLY_G4* bottom;
-    s32      ax;
-    s32      ay;
-    s32      bx;
-    s32      by;
-    s32      dx;
-    s32      tmp;
+    s32      startX;
+    s32      startY;
+    s32      endX;
+    s32      endY;
+    s32      horizontalSpan;
+    s32      swapCoord;
     s32      x0;
     s32      y0;
     s32      x1;
@@ -1280,50 +1382,50 @@ static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     gGpuPrimCursor = quad + 1;
     setPolyF4(quad);
     setSemiTrans(quad, 1);
-    quad->r0 = r;
-    quad->g0 = g;
-    quad->b0 = b;
-    ax       = D_actor_548100_801358E4[nodeA].vx - 0x9E;
-    ay       = D_actor_548100_801358E4[nodeA].vy - 0x76;
-    bx       = D_actor_548100_801358E4[nodeB].vx - 0x9E;
-    by       = D_actor_548100_801358E4[nodeB].vy - 0x76;
-    dx       = ax - bx;
-    if (dx < 0) {
-        dx = bx - ax;
+    quad->r0       = red;
+    quad->g0       = green;
+    quad->b0       = blue;
+    startX         = D_actor_548100_801358E4[nodeA].vx - ACTOR_548100_WIRE_ORIGIN_X;
+    startY         = D_actor_548100_801358E4[nodeA].vy - ACTOR_548100_WIRE_ORIGIN_Y;
+    endX           = D_actor_548100_801358E4[nodeB].vx - ACTOR_548100_WIRE_ORIGIN_X;
+    endY           = D_actor_548100_801358E4[nodeB].vy - ACTOR_548100_WIRE_ORIGIN_Y;
+    horizontalSpan = startX - endX;
+    if (horizontalSpan < 0) {
+        horizontalSpan = endX - startX;
     }
-    if (ABS(ay - by) < dx) {
-        if (bx < ax) {
-            tmp = ax;
-            ax  = bx;
-            bx  = tmp;
-            tmp = ay;
-            ay  = by;
-            by  = tmp;
+    if (ABS(startY - endY) < horizontalSpan) {
+        if (endX < startX) {
+            swapCoord = startX;
+            startX    = endX;
+            endX      = swapCoord;
+            swapCoord = startY;
+            startY    = endY;
+            endY      = swapCoord;
         }
-        x0 = ax + 1;
-        y0 = ay - 1;
-        x1 = bx - 1;
-        y1 = by - 1;
+        x0 = startX + 1;
+        y0 = startY - 1;
+        x1 = endX - 1;
+        y1 = endY - 1;
         x2 = x0;
-        y2 = ay + 1;
+        y2 = startY + 1;
         x3 = x1;
-        y3 = by + 1;
+        y3 = endY + 1;
     } else {
-        if (by < ay) {
-            tmp = ax;
-            ax  = bx;
-            bx  = tmp;
-            tmp = ay;
-            ay  = by;
-            by  = tmp;
+        if (endY < startY) {
+            swapCoord = startX;
+            startX    = endX;
+            endX      = swapCoord;
+            swapCoord = startY;
+            startY    = endY;
+            endY      = swapCoord;
         }
-        x0 = ax - 1;
-        y0 = ay + 1;
-        x1 = ax + 1;
+        x0 = startX - 1;
+        y0 = startY + 1;
+        x1 = startX + 1;
         y1 = y0;
-        x2 = bx - 1;
-        y2 = by - 1;
-        x3 = bx + 1;
+        x2 = endX - 1;
+        y2 = endY - 1;
+        x3 = endX + 1;
         y3 = y2;
     }
     quad->x0 = x0;
@@ -1334,24 +1436,11 @@ static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     quad->y2 = y2;
     quad->x3 = x3;
     quad->y3 = y3;
-    addPrim(&gGpuCurrentOt[0x3FC], quad);
+    addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], quad);
 
     top            = gGpuPrimCursor;
     gGpuPrimCursor = top + 1;
-    setPolyG4(top);
-    setSemiTrans(top, 1);
-    top->r0 = 0;
-    top->g0 = 0;
-    top->b0 = 0;
-    top->r1 = 0;
-    top->g1 = 0;
-    top->b1 = 0;
-    top->r2 = r;
-    top->g2 = g;
-    top->b2 = b;
-    top->r3 = r;
-    top->g3 = g;
-    top->b3 = b;
+    _actor548100InitGlowQuad(top, red, green, blue);
     top->x0 = x0 - 3;
     top->y0 = y0 - 3;
     top->x1 = x1 + 3;
@@ -1360,24 +1449,11 @@ static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     top->y2 = y0;
     top->x3 = x1;
     top->y3 = y1;
-    addPrim(&gGpuCurrentOt[0x3FC], top);
+    addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], top);
 
     left           = gGpuPrimCursor;
     gGpuPrimCursor = left + 1;
-    setPolyG4(left);
-    setSemiTrans(left, 1);
-    left->r0 = 0;
-    left->g0 = 0;
-    left->b0 = 0;
-    left->r1 = 0;
-    left->g1 = 0;
-    left->b1 = 0;
-    left->r2 = r;
-    left->g2 = g;
-    left->b2 = b;
-    left->r3 = r;
-    left->g3 = g;
-    left->b3 = b;
+    _actor548100InitGlowQuad(left, red, green, blue);
     left->x0 = x0 - 3;
     left->y0 = y0 - 3;
     left->x1 = x2 - 3;
@@ -1386,24 +1462,11 @@ static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     left->y2 = y0;
     left->x3 = x2;
     left->y3 = y2;
-    addPrim(&gGpuCurrentOt[0x3FC], left);
+    addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], left);
 
     right          = gGpuPrimCursor;
     gGpuPrimCursor = right + 1;
-    setPolyG4(right);
-    setSemiTrans(right, 1);
-    right->r0 = 0;
-    right->g0 = 0;
-    right->b0 = 0;
-    right->r1 = 0;
-    right->g1 = 0;
-    right->b1 = 0;
-    right->r2 = r;
-    right->g2 = g;
-    right->b2 = b;
-    right->r3 = r;
-    right->g3 = g;
-    right->b3 = b;
+    _actor548100InitGlowQuad(right, red, green, blue);
     right->x0 = x1 + 3;
     right->y0 = y1 - 3;
     right->x1 = x3 + 3;
@@ -1412,24 +1475,11 @@ static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     right->y2 = y1;
     right->x3 = x3;
     right->y3 = y3;
-    addPrim(&gGpuCurrentOt[0x3FC], right);
+    addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], right);
 
     bottom         = gGpuPrimCursor;
     gGpuPrimCursor = bottom + 1;
-    setPolyG4(bottom);
-    setSemiTrans(bottom, 1);
-    bottom->r0 = 0;
-    bottom->g0 = 0;
-    bottom->b0 = 0;
-    bottom->r1 = 0;
-    bottom->g1 = 0;
-    bottom->b1 = 0;
-    bottom->r2 = r;
-    bottom->g2 = g;
-    bottom->b2 = b;
-    bottom->r3 = r;
-    bottom->g3 = g;
-    bottom->b3 = b;
+    _actor548100InitGlowQuad(bottom, red, green, blue);
     bottom->x0 = x2 - 3;
     bottom->y0 = y2 + 3;
     bottom->x1 = x3 + 3;
@@ -1438,139 +1488,141 @@ static void func_actor_548100_80133200(s32 nodeA, s32 nodeB, u8 r, u8 g, u8 b)
     bottom->y2 = y2;
     bottom->x3 = x3;
     bottom->y3 = y3;
-    addPrim(&gGpuCurrentOt[0x3FC], bottom);
+    addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], bottom);
 }
 
-/// Draws `edge` between its two nodes in the colour its `state` selects
-/// (`STOP`, `FLOW` or `SHORT`). The two `FLOW_FROM_*` states (`FLOW_FROM_B`
-/// swaps the nodes) split the line `flowLength` along x from the node the
-/// current entered at, or along y when `vertical` is set, clipping each half
-/// with a `DR_AREA` linked into `gGpuCurrentOt[0x3FC]` and drawing one half
-/// per colour.
-static void func_actor_548100_80133684(_Actor548100Edge* edge)
+/// Draws a wire in its current flow, stopped or short-circuit colour.
+///
+/// Partial flow clips two copies at `flowLength` dominant-axis pixels from
+/// the entry node. Drawing executes in reverse packet-link order and restores
+/// the full draw area afterwards. Absent and unrecognized states draw nothing;
+/// the borrowed edge and authored node points are not changed.
+static void _actor548100DrawEdge(const _Actor548100Edge* edge)
 {
     RECT     rect;
     DR_AREA* area;
-    s32      ax;
-    s32      ay;
-    s32      bx;
-    s32      by;
-    s32      pos;
-    s32      sign;
-    s32      a;
-    s32      b;
+    s32      fromX;
+    s32      fromY;
+    s32      toX;
+    s32      toY;
+    s32      splitCoord;
+    s32      direction;
+    s32      fromNode;
+    s32      toNode;
 
-    a = edge->nodeA;
-    b = edge->nodeB;
+    fromNode = edge->nodeA;
+    toNode   = edge->nodeB;
     switch (edge->state) {
         case ACTOR_548100_EDGE_STATE_SHORT:
-            func_actor_548100_80133200(a, b, D_actor_548100_80135B59, D_actor_548100_80135B5A, D_actor_548100_80135B5B);
+            _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B59, D_actor_548100_80135B5A, D_actor_548100_80135B5B);
             break;
         case ACTOR_548100_EDGE_STATE_FLOW:
-            func_actor_548100_80133200(a, b, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
+            _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
             break;
         case ACTOR_548100_EDGE_STATE_STOP:
-            func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
+            _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
             break;
         case ACTOR_548100_EDGE_STATE_FLOW_FROM_B:
-            a = edge->nodeB;
-            b = edge->nodeA;
+            fromNode = edge->nodeB;
+            toNode   = edge->nodeA;
         case ACTOR_548100_EDGE_STATE_FLOW_FROM_A:
+            // Prepending packets reverses execution: clip STOP, then FLOW, then restore.
             area           = gGpuPrimCursor;
             gGpuPrimCursor = area + 1;
-            ax             = D_actor_548100_801358E4[a].vx - 0x9E;
-            ay             = D_actor_548100_801358E4[a].vy - 0x76;
-            bx             = D_actor_548100_801358E4[b].vx - 0x9E;
-            by             = D_actor_548100_801358E4[b].vy - 0x76;
-            setRECT(&rect, 0, 0, 0x140, 0xF0);
-            rect.y += gDisplayState.drawBuffer * 0x110;
+            fromX          = D_actor_548100_801358E4[fromNode].vx - ACTOR_548100_WIRE_ORIGIN_X;
+            fromY          = D_actor_548100_801358E4[fromNode].vy - ACTOR_548100_WIRE_ORIGIN_Y;
+            toX            = D_actor_548100_801358E4[toNode].vx - ACTOR_548100_WIRE_ORIGIN_X;
+            toY            = D_actor_548100_801358E4[toNode].vy - ACTOR_548100_WIRE_ORIGIN_Y;
+            setRECT(&rect, 0, 0, ACTOR_548100_SCREEN_WIDTH, ACTOR_548100_SCREEN_HEIGHT);
+            rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
             SetDrawArea(area, &rect);
-            addPrim(&gGpuCurrentOt[0x3FC], area);
+            addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], area);
             if (edge->vertical == 0) {
-                sign = 1;
-                if (bx < ax) {
-                    sign = -1;
+                direction = 1;
+                if (toX < fromX) {
+                    direction = -1;
                 }
-                pos = ax + sign * edge->flowLength;
-                func_actor_548100_80133200(a, b, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
+                splitCoord = fromX + direction * edge->flowLength;
+                _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
-                if (ax < bx) {
-                    setRECT(&rect, 0, 0, pos + 0xA0, 0xF0);
+                if (fromX < toX) {
+                    setRECT(&rect, 0, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_X, ACTOR_548100_SCREEN_HEIGHT);
                 } else {
-                    setRECT(&rect, pos + 0xA0, 0, 0xA0 - pos, 0xF0);
+                    setRECT(&rect, splitCoord + ACTOR_548100_SCREEN_CENTER_X, 0, ACTOR_548100_SCREEN_CENTER_X - splitCoord, ACTOR_548100_SCREEN_HEIGHT);
                 }
-                rect.y += gDisplayState.drawBuffer * 0x110;
+                rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
                 SetDrawArea(area, &rect);
-                addPrim(&gGpuCurrentOt[0x3FC], area);
-                func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
+                addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], area);
+                _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
-                if (ax < bx) {
-                    setRECT(&rect, pos + 0xA0, 0, 0xA0 - pos, 0xF0);
+                if (fromX < toX) {
+                    setRECT(&rect, splitCoord + ACTOR_548100_SCREEN_CENTER_X, 0, ACTOR_548100_SCREEN_CENTER_X - splitCoord, ACTOR_548100_SCREEN_HEIGHT);
                 } else {
-                    setRECT(&rect, 0, 0, pos + 0xA0, 0xF0);
+                    setRECT(&rect, 0, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_X, ACTOR_548100_SCREEN_HEIGHT);
                 }
             } else {
-                sign = 1;
-                if (by < ay) {
-                    sign = -1;
+                direction = 1;
+                if (toY < fromY) {
+                    direction = -1;
                 }
-                pos = ay + sign * edge->flowLength;
-                func_actor_548100_80133200(a, b, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
+                splitCoord = fromY + direction * edge->flowLength;
+                _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
-                if (ay < by) {
-                    setRECT(&rect, 0, 0, 0x140, pos + 0x78);
+                if (fromY < toY) {
+                    setRECT(&rect, 0, 0, ACTOR_548100_SCREEN_WIDTH, splitCoord + ACTOR_548100_SCREEN_CENTER_Y);
                 } else {
-                    setRECT(&rect, 0, pos + 0x78, 0x140, 0x78 - pos);
+                    setRECT(&rect, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_Y, ACTOR_548100_SCREEN_WIDTH, ACTOR_548100_SCREEN_CENTER_Y - splitCoord);
                 }
-                rect.y += gDisplayState.drawBuffer * 0x110;
+                rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
                 SetDrawArea(area, &rect);
-                addPrim(&gGpuCurrentOt[0x3FC], area);
-                func_actor_548100_80133200(a, b, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
+                addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], area);
+                _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
-                if (ay < by) {
-                    setRECT(&rect, 0, pos + 0x78, 0x140, 0x78 - pos);
+                if (fromY < toY) {
+                    setRECT(&rect, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_Y, ACTOR_548100_SCREEN_WIDTH, ACTOR_548100_SCREEN_CENTER_Y - splitCoord);
                 } else {
-                    setRECT(&rect, 0, 0, 0x140, pos + 0x78);
+                    setRECT(&rect, 0, 0, ACTOR_548100_SCREEN_WIDTH, splitCoord + ACTOR_548100_SCREEN_CENTER_Y);
                 }
             }
-            rect.y += gDisplayState.drawBuffer * 0x110;
+            rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
             SetDrawArea(area, &rect);
-            addPrim(&gGpuCurrentOt[0x3FC], area);
+            addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], area);
             break;
     }
 }
 
-/// Draws a translucent flat quad in the (`D_..._80135B53`..`55`) colour at
-/// x 0x43..0x68, on row 1 (`arg0 == 1`) or row 2, framed by four `POLY_G4`
-/// edges fading from black into that colour, all linked into
-/// `gGpuCurrentOt[0x3FC]`.
-static void func_actor_548100_80133BBC(s32 arg0)
+/// Lights the panel's door or secret-passage output indicator in the flow colour.
+///
+/// `output` is `ACTOR_548100_OUTPUT_DOOR` or `ACTOR_548100_OUTPUT_PASSAGE`.
+/// Appends a translucent rectangular core and four fading border quads to
+/// the current primitive buffer.
+static void _actor548100DrawOutputIndicator(s32 output)
 {
     POLY_F4* quad;
     POLY_G4* top;
     POLY_G4* left;
     POLY_G4* right;
     POLY_G4* bottom;
-    s16      x0;
-    s16      x1;
-    s16      y0;
-    s16      y1;
-    u8       r1;
-    u8       g1;
-    u8       b1;
-    u8       r2;
-    u8       g2;
-    u8       b2;
-    u8       r3;
-    u8       g3;
-    u8       b3;
-    u8       r4;
-    u8       g4;
-    u8       b4;
+    s16      leftX;
+    s16      rightX;
+    s16      topY;
+    s16      bottomY;
+    u8       topRed;
+    u8       topGreen;
+    u8       topBlue;
+    u8       leftRed;
+    u8       leftGreen;
+    u8       leftBlue;
+    u8       rightRed;
+    u8       rightGreen;
+    u8       rightBlue;
+    u8       bottomRed;
+    u8       bottomGreen;
+    u8       bottomBlue;
 
     quad           = gGpuPrimCursor;
     gGpuPrimCursor = quad + 1;
@@ -1579,141 +1631,89 @@ static void func_actor_548100_80133BBC(s32 arg0)
     quad->r0 = D_actor_548100_80135B53;
     quad->g0 = D_actor_548100_80135B54;
     quad->b0 = D_actor_548100_80135B55;
-    x0       = 0x43;
-    if (arg0 == 1) {
-        y0 = 0x2E;
-        x1 = 0x68;
-        y1 = 0x39;
+    leftX    = 0x43;
+    if (output == ACTOR_548100_OUTPUT_DOOR) {
+        topY    = 0x2E;
+        rightX  = 0x68;
+        bottomY = 0x39;
     } else {
-        y0 = 0x42;
-        x1 = 0x68;
-        y1 = 0x4D;
+        topY    = 0x42;
+        rightX  = 0x68;
+        bottomY = 0x4D;
     }
-    quad->x0 = x0;
-    quad->y0 = y0;
-    quad->x1 = x1;
-    quad->y1 = y0;
-    quad->x2 = x0;
-    quad->y2 = y1;
-    quad->x3 = x1;
-    quad->y3 = y1;
-    addPrim(&gGpuCurrentOt[0x3FC], quad);
+    quad->x0 = leftX;
+    quad->y0 = topY;
+    quad->x1 = rightX;
+    quad->y1 = topY;
+    quad->x2 = leftX;
+    quad->y2 = bottomY;
+    quad->x3 = rightX;
+    quad->y3 = bottomY;
+    addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], quad);
 
-    r1             = D_actor_548100_80135B53;
-    g1             = D_actor_548100_80135B54;
-    b1             = D_actor_548100_80135B55;
+    topRed         = D_actor_548100_80135B53;
+    topGreen       = D_actor_548100_80135B54;
+    topBlue        = D_actor_548100_80135B55;
     top            = gGpuPrimCursor;
     gGpuPrimCursor = top + 1;
-    setPolyG4(top);
-    setSemiTrans(top, 1);
-    top->r0 = 0;
-    top->g0 = 0;
-    top->b0 = 0;
-    top->r1 = 0;
-    top->g1 = 0;
-    top->b1 = 0;
-    top->r2 = r1;
-    top->g2 = g1;
-    top->b2 = b1;
-    top->r3 = r1;
-    top->g3 = g1;
-    top->b3 = b1;
-    top->x0 = x0 - 3;
-    top->y0 = y0 - 3;
-    top->x1 = x1 + 3;
-    top->y1 = y0 - 3;
-    top->x2 = x0;
-    top->y2 = y0;
-    top->x3 = x1;
-    top->y3 = y0;
-    addPrim(&gGpuCurrentOt[0x3FC], top);
+    _actor548100InitGlowQuad(top, topRed, topGreen, topBlue);
+    top->x0 = leftX - 3;
+    top->y0 = topY - 3;
+    top->x1 = rightX + 3;
+    top->y1 = topY - 3;
+    top->x2 = leftX;
+    top->y2 = topY;
+    top->x3 = rightX;
+    top->y3 = topY;
+    addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], top);
 
-    r2             = D_actor_548100_80135B53;
-    g2             = D_actor_548100_80135B54;
-    b2             = D_actor_548100_80135B55;
+    leftRed        = D_actor_548100_80135B53;
+    leftGreen      = D_actor_548100_80135B54;
+    leftBlue       = D_actor_548100_80135B55;
     left           = gGpuPrimCursor;
     gGpuPrimCursor = left + 1;
-    setPolyG4(left);
-    setSemiTrans(left, 1);
-    left->r0 = 0;
-    left->g0 = 0;
-    left->b0 = 0;
-    left->r1 = 0;
-    left->g1 = 0;
-    left->b1 = 0;
-    left->r2 = r2;
-    left->g2 = g2;
-    left->b2 = b2;
-    left->r3 = r2;
-    left->g3 = g2;
-    left->b3 = b2;
-    left->x0 = x0 - 3;
-    left->y0 = y0 - 3;
-    left->x1 = x0 - 3;
-    left->y1 = y1 + 3;
-    left->x2 = x0;
-    left->y2 = y0;
-    left->x3 = x0;
-    left->y3 = y1;
-    addPrim(&gGpuCurrentOt[0x3FC], left);
+    _actor548100InitGlowQuad(left, leftRed, leftGreen, leftBlue);
+    left->x0 = leftX - 3;
+    left->y0 = topY - 3;
+    left->x1 = leftX - 3;
+    left->y1 = bottomY + 3;
+    left->x2 = leftX;
+    left->y2 = topY;
+    left->x3 = leftX;
+    left->y3 = bottomY;
+    addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], left);
 
-    r3             = D_actor_548100_80135B53;
-    g3             = D_actor_548100_80135B54;
-    b3             = D_actor_548100_80135B55;
+    rightRed       = D_actor_548100_80135B53;
+    rightGreen     = D_actor_548100_80135B54;
+    rightBlue      = D_actor_548100_80135B55;
     right          = gGpuPrimCursor;
     gGpuPrimCursor = right + 1;
-    setPolyG4(right);
-    setSemiTrans(right, 1);
-    right->r0 = 0;
-    right->g0 = 0;
-    right->b0 = 0;
-    right->r1 = 0;
-    right->g1 = 0;
-    right->b1 = 0;
-    right->r2 = r3;
-    right->g2 = g3;
-    right->b2 = b3;
-    right->r3 = r3;
-    right->g3 = g3;
-    right->b3 = b3;
-    right->x0 = x1 + 3;
-    right->y0 = y0 - 3;
-    right->x1 = x1 + 3;
-    right->y1 = y1 + 3;
-    right->x2 = x1;
-    right->y2 = y0;
-    right->x3 = x1;
-    right->y3 = y1;
-    addPrim(&gGpuCurrentOt[0x3FC], right);
+    _actor548100InitGlowQuad(right, rightRed, rightGreen, rightBlue);
+    right->x0 = rightX + 3;
+    right->y0 = topY - 3;
+    right->x1 = rightX + 3;
+    right->y1 = bottomY + 3;
+    right->x2 = rightX;
+    right->y2 = topY;
+    right->x3 = rightX;
+    right->y3 = bottomY;
+    addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], right);
 
-    r4             = D_actor_548100_80135B53;
-    g4             = D_actor_548100_80135B54;
-    b4             = D_actor_548100_80135B55;
+    bottomRed      = D_actor_548100_80135B53;
+    bottomGreen    = D_actor_548100_80135B54;
+    bottomBlue     = D_actor_548100_80135B55;
     bottom         = gGpuPrimCursor;
     gGpuPrimCursor = bottom + 1;
-    setPolyG4(bottom);
-    setSemiTrans(bottom, 1);
-    bottom->r0 = 0;
-    bottom->g0 = 0;
-    bottom->b0 = 0;
-    bottom->r1 = 0;
-    bottom->g1 = 0;
-    bottom->b1 = 0;
-    bottom->r2 = r4;
-    bottom->g2 = g4;
-    bottom->b2 = b4;
-    bottom->r3 = r4;
-    bottom->g3 = g4;
-    bottom->b3 = b4;
-    bottom->x0 = x0 - 3;
-    bottom->y0 = y1 + 3;
-    bottom->x1 = x1 + 3;
-    bottom->y1 = y1 + 3;
-    bottom->x2 = x0;
-    bottom->y2 = y1;
-    bottom->x3 = x1;
-    bottom->y3 = y1;
-    addPrim(&gGpuCurrentOt[0x3FC], bottom);
+    _actor548100InitGlowQuad(bottom, bottomRed, bottomGreen, bottomBlue);
+    bottom->x0 = leftX - 3;
+    bottom->y0 = bottomY + 3;
+    bottom->x1 = rightX + 3;
+    bottom->y1 = bottomY + 3;
+    bottom->x2 = leftX;
+    bottom->y2 = bottomY;
+    bottom->x3 = rightX;
+    bottom->y3 = bottomY;
+    addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], bottom);
 }
 
 /// Draws a translucent flat quad in half the (`D_..._80135B53`..`55`) colour
@@ -1856,47 +1856,53 @@ static void func_actor_548100_80133F88(void)
     addPrim(&gGpuCurrentOt[0x3FC], bottom);
 }
 
-static void func_actor_548100_801342D8(s32 id, s32 stop, s16 pos)
+/// Sets wire states for the distance current has travelled along a panel leg.
+///
+/// `routeId` is 1..9; `progress` is 0..the leg's measured dominant-axis pixel
+/// length. Wires behind the front carry FLOW, the crossing wire stores partial
+/// flow from its entry node, and later wires remain STOP. `stopNode`'s low byte
+/// ends the walk at that node, or zero walks the whole route. Gaps add no wire.
+/// Requires initialized graph geometry and a frame's initial wire-state reset.
+static void _actor548100SetLegFlowProgress(s32 routeId, s32 stopNode, s16 progress)
 {
-    u8* route;
-    u8* head;
-    u8  prev;
-    s32 edge;
-    s32 total;
-    s32 start;
+    const u8* cursor;
+    const u8* routeStart;
+    u8        previousNode;
+    s32       edgeIndex;
+    s32       wireEnd;
+    s32       wireStart;
 
-    total = 0;
-    head  = D_actor_548100_80135B24[id];
-    start = total;
-    prev  = head[0];
-    route = head + 1;
-    while (*route != 0) {
+    wireEnd      = 0;
+    routeStart   = D_actor_548100_80135B24[routeId];
+    wireStart    = wireEnd;
+    previousNode = routeStart[0];
+    cursor       = routeStart + 1;
+    while (*cursor != ACTOR_548100_ROUTE_END) {
 
-        if (*route != 0xFF) {
-            edge   = D_actor_548100_80135B5C[*route + prev * 100];
-            total += D_actor_548100_801351D0[edge].length;
-            if (pos >= total) {
-                D_actor_548100_801351D0[edge].state = ACTOR_548100_EDGE_STATE_FLOW;
-            } else if (start < pos) {
-                if (D_actor_548100_801351D0[edge].nodeA == prev) {
-                    D_actor_548100_801351D0[edge].state = ACTOR_548100_EDGE_STATE_FLOW_FROM_A;
+        if (*cursor != ACTOR_548100_ROUTE_GAP) {
+            edgeIndex = D_actor_548100_80135B5C[*cursor + previousNode * ACTOR_548100_NODE_KEY_STRIDE];
+            wireEnd  += D_actor_548100_801351D0[edgeIndex].length;
+            if (progress >= wireEnd) {
+                D_actor_548100_801351D0[edgeIndex].state = ACTOR_548100_EDGE_STATE_FLOW;
+            } else if (wireStart < progress) {
+                if (D_actor_548100_801351D0[edgeIndex].nodeA == previousNode) {
+                    D_actor_548100_801351D0[edgeIndex].state = ACTOR_548100_EDGE_STATE_FLOW_FROM_A;
                 } else {
-                    D_actor_548100_801351D0[edge].state = ACTOR_548100_EDGE_STATE_FLOW_FROM_B;
+                    D_actor_548100_801351D0[edgeIndex].state = ACTOR_548100_EDGE_STATE_FLOW_FROM_B;
                 }
-                D_actor_548100_801351D0[edge].flowLength = pos - start;
+                D_actor_548100_801351D0[edgeIndex].flowLength = progress - wireStart;
             } else {
-                D_actor_548100_801351D0[edge].state = ACTOR_548100_EDGE_STATE_STOP;
+                D_actor_548100_801351D0[edgeIndex].state = ACTOR_548100_EDGE_STATE_STOP;
             }
-            start = total;
-            prev  = *route;
+            wireStart = wireEnd;
+            ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, 0);
         } else {
-            route++;
-            prev = *route;
+            ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, 1);
         }
-        if (*route == (stop & 0xFF)) {
+        if (*cursor == (stopNode & ACTOR_548100_NODE_ID_MASK)) {
             break;
         }
-        route++;
+        cursor++;
     }
 }
 
@@ -1964,81 +1970,82 @@ static void func_actor_548100_80134400(ActionPromptHotspot* unused)
     }
 }
 
-/// Link `rect` into the ordering table as a textured quad, taking the
-/// primitive off the `gGpuPrimCursor` bump allocator. The same four numbers are
-/// the texture window and, shifted by the screen centre, the quad's screen
-/// rectangle -- `u`/`v` are the table's own values and `x`/`y` those values
-/// minus 160 and 120, so a record drawn from the origin-centred screen space
-/// `_Actor548100TexRect` is authored in lands on the matching part of the
-/// texture page. Corner 0 and 2 share the left edge, 1 and 3 the right; the
-/// upper corners share the top, the lower pair the bottom.
+/// Overlays a filled socket or thrown-switch picture on the panel at matching pixels.
 ///
-/// `x1`/`x3` are read before `v0`/`v1` -- that order is what puts the four
-/// loads in the register file the target uses, and reordering them changes
-/// the code without changing the meaning.
-static void func_actor_548100_8013461C(_Actor548100TexRect* rect)
+/// The borrowed rectangle uses top-left-origin screen pixels for both the
+/// source texels and destination corners. Appends one unmodulated 15-bit
+/// textured quad using the panel's changed-picture page at VRAM (384, 256).
+static void _actor548100DrawPanelPiece(const _Actor548100TexRect* rect)
 {
-    POLY_FT4* prim;
-    s32       u0;
-    s32       v0;
-    s32       u1;
-    s32       v1;
+    POLY_FT4* quad;
+    s32       left;
+    s32       top;
+    s32       right;
+    s32       bottom;
 
-    u0             = rect->left;
-    u1             = rect->right;
-    v0             = rect->top;
-    v1             = rect->bottom;
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    SetPolyFT4(prim);
-    prim->x0    = u0 - 0xA0;
-    prim->y0    = v0 - 0x78;
-    prim->x1    = u1 - 0xA0;
-    prim->y1    = v0 - 0x78;
-    prim->x2    = u0 - 0xA0;
-    prim->y2    = v1 - 0x78;
-    prim->x3    = u1 - 0xA0;
-    prim->y3    = v1 - 0x78;
-    prim->u0    = u0;
-    prim->v0    = v0;
-    prim->u1    = u1;
-    prim->v1    = v0;
-    prim->u2    = u0;
-    prim->v2    = v1;
-    prim->u3    = u1;
-    prim->v3    = v1;
-    prim->tpage = 0x116;
-    setShadeTex(prim, 1);
-    addPrim(&gGpuCurrentOt[0x3FE], prim);
+    left           = rect->left;
+    right          = rect->right;
+    top            = rect->top;
+    bottom         = rect->bottom;
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    SetPolyFT4(quad);
+    quad->x0    = left - ACTOR_548100_SCREEN_CENTER_X;
+    quad->y0    = top - ACTOR_548100_SCREEN_CENTER_Y;
+    quad->x1    = right - ACTOR_548100_SCREEN_CENTER_X;
+    quad->y1    = top - ACTOR_548100_SCREEN_CENTER_Y;
+    quad->x2    = left - ACTOR_548100_SCREEN_CENTER_X;
+    quad->y2    = bottom - ACTOR_548100_SCREEN_CENTER_Y;
+    quad->x3    = right - ACTOR_548100_SCREEN_CENTER_X;
+    quad->y3    = bottom - ACTOR_548100_SCREEN_CENTER_Y;
+    quad->u0    = left;
+    quad->v0    = top;
+    quad->u1    = right;
+    quad->v1    = top;
+    quad->u2    = left;
+    quad->v2    = bottom;
+    quad->u3    = right;
+    quad->v3    = bottom;
+    quad->tpage = ACTOR_548100_PANEL_TEXTURE_PAGE;
+    setShadeTex(quad, 1);
+    addPrim(&gGpuCurrentOt[ACTOR_548100_OT_PANEL_PIECES], quad);
 }
 
-/// Callback of the action-prompt task: a two-state dispatcher whose handler
-/// table is built on the stack. State 0, `_actionPromptResetDefault`, resets
-/// both prompt slots; state 1, `_actionPromptMoveCursorsDefault`, drives the cursor
-/// every frame from then on.
-void func_actor_548100_80134728(Task* task)
+/// Runs the panel's action cursor task: reset both prompt slots, then update them.
+///
+/// The task's state must be 0 or 1. The reset handler advances state once;
+/// subsequent frames use the shared cursor movement and drawing implementation.
+static void _actor548100PromptTask(Task* task)
 {
-    TaskFunc funcs[2] = {
+    TaskFunc states[] = {
         _actionPromptResetDefault,
         _actionPromptMoveCursorsDefault,
     };
 
-    funcs[task->state](task);
+    states[task->state](task);
 }
 
-s32 func_actor_548100_80134778(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Queues a battery item for the selected socket after the item menu closes.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; `messageId` and the zero second payload
+/// are unused. The live task must have initialized panel work. A battery on
+/// socket 1..4 is latched even when occupied or switched on: those cases close
+/// the menu without a notice so the panel can explain the refusal by caption.
+/// An empty, switched-off socket requests the menu's used-item notice. Other
+/// items or choices clear the latch and return refusal. Inventory changes later.
+static s32 _actor548100UseBattery(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    _Actor548100Work* work = arg0->work;
+    _Actor548100Work* work = task->work;
 
-    if ((arg2 == 0x120 || arg2 == 0x12C) && ((u16)work->choice - 1) < 4U) {
-        work->usedItem = arg2;
+    if ((itemId == ACTOR_548100_BATTERY_FIRST_ITEM || itemId == ACTOR_548100_BATTERY_SECOND_ITEM) && ((u16)work->choice - 1) < (u32)ACTOR_548100_SOCKET_COUNT) {
+        work->usedItem = itemId;
         if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) != 0 || gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
-            return 2;
+            return ROOM_KEY_ITEM_USE_NO_NOTICE;
         }
-        return 1;
+        return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
     }
     work->usedItem = 0;
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 static void func_actor_548100_801347F8(Task* arg0)
@@ -2047,128 +2054,113 @@ static void func_actor_548100_801347F8(Task* arg0)
 
     fns = D_actor_548100_80131E6C;
     fns.funcs[arg0->state](arg0);
-    func_actor_548100_801330EC();
+    _actor548100SelectCircuit();
     func_actor_548100_80132EA0(arg0);
     func_actor_548100_80132A14(arg0);
 }
 
-/// Hit-tests (`x`, `y`) against `table`, raising `hit` on every containing entry
-/// and clearing it on the rest. Returns the `id` of the first entry hit, or 0.
-static s32 func_actor_548100_801348A4(ActionPromptHotspot* table, s16 x, s16 y)
+/// Marks every hotspot containing the cursor and returns the first choice, or zero.
+///
+/// Coordinates are signed pixels from the screen centre. All four rectangle
+/// edges are inclusive, and overlapping entries are all marked. `hotspots`
+/// borrows a writable table ending at `ACTION_PROMPT_HOTSPOT_END`; the sentinel
+/// is not modified. A hit whose choice is zero leaves later choices eligible.
+static s32 _actionPromptHitTestFirstChoice(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY)
 {
-    s32 hit;
+    s32 firstChoice;
 
-    hit = 0;
-    while (table->id != ACTION_PROMPT_HOTSPOT_END) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
-            table->hit = 1;
-            if (hit == 0) {
-                hit = table->id;
+    firstChoice = 0;
+    while (hotspots->id != ACTION_PROMPT_HOTSPOT_END) {
+        if ((cursorX >= hotspots->x) && ((hotspots->x + hotspots->w) >= cursorX) && (cursorY >= hotspots->y) && ((hotspots->y + hotspots->h) >= cursorY)) {
+            hotspots->hit = 1;
+            if (firstChoice == 0) {
+                firstChoice = hotspots->id;
             }
         } else {
-            table->hit = 0;
+            hotspots->hit = 0;
         }
-        table++;
+        hotspots++;
     }
-    return hit;
+    return firstChoice;
 }
 
-static void func_actor_548100_80134960(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
+/// Scales three authored colour bytes into borrowed output bytes, in RGB order.
+///
+/// The base components are reread after each preceding output store, preserving
+/// aliasing. Division by the pulse's unity level truncates toward zero; stores
+/// retain the low eight bits.
+static inline void _actor548100ScaleWireColor(s16 pulse, const u8* baseRed, const u8* baseGreen, const u8* baseBlue,
+                                              s8* red, s8* green, s8* blue)
 {
-    s32 var_v0;
-    s32 var_v0_2;
-    s32 var_v0_3;
-
-    var_v0 = D_actor_548100_80135884 * arg0;
-    if (var_v0 < 0) {
-        var_v0 += 0x1F;
-    }
-    *arg1    = (s8)(var_v0 >> 5);
-    var_v0_2 = D_actor_548100_80135885 * arg0;
-    if (var_v0_2 < 0) {
-        var_v0_2 += 0x1F;
-    }
-    *arg2    = (s8)(var_v0_2 >> 5);
-    var_v0_3 = D_actor_548100_80135886 * arg0;
-    if (var_v0_3 < 0) {
-        var_v0_3 += 0x1F;
-    }
-    *arg3 = (s8)(var_v0_3 >> 5);
+    *red   = *baseRed * pulse / ACTOR_548100_COLOR_PULSE_ONE;
+    *green = *baseGreen * pulse / ACTOR_548100_COLOR_PULSE_ONE;
+    *blue  = *baseBlue * pulse / ACTOR_548100_COLOR_PULSE_ONE;
 }
 
-static void func_actor_548100_801349E0(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
+/// Scales the panel's flow colour by its current pulse level.
+///
+/// `pulse` uses 32 for authored brightness; the panel cycles through 16..32.
+/// Each borrowed output points to a writable signed byte holding the low eight
+/// RGB bits. Signed division truncates toward zero even for negative pulses;
+/// outputs are written red, green, blue, rereading each base component in turn.
+static void _actor548100ScaleFlowColor(s16 pulse, s8* red, s8* green, s8* blue)
 {
-    s32 var_v0;
-    s32 var_v0_2;
-    s32 var_v0_3;
-
-    var_v0 = D_actor_548100_80135887 * arg0;
-    if (var_v0 < 0) {
-        var_v0 += 0x1F;
-    }
-    *arg1    = (s8)(var_v0 >> 5);
-    var_v0_2 = D_actor_548100_80135888 * arg0;
-    if (var_v0_2 < 0) {
-        var_v0_2 += 0x1F;
-    }
-    *arg2    = (s8)(var_v0_2 >> 5);
-    var_v0_3 = D_actor_548100_80135889 * arg0;
-    if (var_v0_3 < 0) {
-        var_v0_3 += 0x1F;
-    }
-    *arg3 = (s8)(var_v0_3 >> 5);
+    _actor548100ScaleWireColor(pulse, &D_actor_548100_80135884, &D_actor_548100_80135885, &D_actor_548100_80135886, red, green, blue);
 }
 
-static void func_actor_548100_80134A60(s16 arg0, s8* arg1, s8* arg2, s8* arg3)
+/// Scales the panel's stopped colour by its current pulse level.
+///
+/// `pulse` uses 32 for authored brightness; the panel cycles through 16..32.
+/// Each borrowed output points to a writable signed byte holding the low eight
+/// RGB bits. Signed division truncates toward zero even for negative pulses;
+/// outputs are written red, green, blue, rereading each base component in turn.
+static void _actor548100ScaleStopColor(s16 pulse, s8* red, s8* green, s8* blue)
 {
-    s32 var_v0;
-    s32 var_v0_2;
-    s32 var_v0_3;
-
-    var_v0 = D_actor_548100_8013588A * arg0;
-    if (var_v0 < 0) {
-        var_v0 += 0x1F;
-    }
-    *arg1    = (s8)(var_v0 >> 5);
-    var_v0_2 = D_actor_548100_8013588B * arg0;
-    if (var_v0_2 < 0) {
-        var_v0_2 += 0x1F;
-    }
-    *arg2    = (s8)(var_v0_2 >> 5);
-    var_v0_3 = D_actor_548100_8013588C[0] * arg0;
-    if (var_v0_3 < 0) {
-        var_v0_3 += 0x1F;
-    }
-    *arg3 = (s8)(var_v0_3 >> 5);
+    _actor548100ScaleWireColor(pulse, &D_actor_548100_80135887, &D_actor_548100_80135888, &D_actor_548100_80135889, red, green, blue);
 }
 
-static void func_actor_548100_80134AE0(s32 id, u8 stop)
+/// Scales the panel's short-circuit colour by its current pulse level.
+///
+/// `pulse` uses 32 for authored brightness; the panel cycles through 16..32.
+/// Each borrowed output points to a writable signed byte holding the low eight
+/// RGB bits. Signed division truncates toward zero even for negative pulses;
+/// outputs are written red, green, blue, rereading each base component in turn.
+static void _actor548100ScaleShortColor(s16 pulse, s8* red, s8* green, s8* blue)
 {
-    u8* route;
-    u8* head;
-    u8  prev;
-    u8  cur;
-    u8  edge;
-    u8  state;
+    _actor548100ScaleWireColor(pulse, &D_actor_548100_8013588A, &D_actor_548100_8013588B, &D_actor_548100_8013588C[0], red, green, blue);
+}
 
-    state = ACTOR_548100_EDGE_STATE_FLOW;
-    if (stop != 0) {
-        state = ACTOR_548100_EDGE_STATE_SHORT;
+/// Marks a completed panel leg FLOW, or SHORT when it stops at another battery's route.
+///
+/// `routeId` is 1..9; `stopNode` is a node on that route, or zero for the whole
+/// route. Gaps move the previous node without touching a wire. Requires an
+/// initialized node-pair matrix and the frame's initial wire-state reset.
+static void _actor548100SetLegComplete(s32 routeId, u8 stopNode)
+{
+    const u8* cursor;
+    const u8* routeStart;
+    u8        previousNode;
+    u8        currentNode;
+    u8        edgeIndex;
+    u8        wireState;
+
+    wireState = ACTOR_548100_EDGE_STATE_FLOW;
+    if (stopNode != 0) {
+        wireState = ACTOR_548100_EDGE_STATE_SHORT;
     }
-    head  = D_actor_548100_80135B24[id];
-    prev  = head[0];
-    route = head + 1;
-    while (*route != 0) {
-        cur = *route;
-        if (cur != 0xFF) {
-            edge                                = D_actor_548100_80135B5C[cur + prev * 100];
-            D_actor_548100_801351D0[edge].state = state;
-            prev                                = *route;
+    routeStart   = D_actor_548100_80135B24[routeId];
+    previousNode = routeStart[0];
+    cursor       = routeStart + 1;
+    while (*cursor != ACTOR_548100_ROUTE_END) {
+        currentNode = *cursor;
+        if (currentNode != ACTOR_548100_ROUTE_GAP) {
+            edgeIndex                                = D_actor_548100_80135B5C[currentNode + previousNode * ACTOR_548100_NODE_KEY_STRIDE];
+            D_actor_548100_801351D0[edgeIndex].state = wireState;
+            ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, 0);
         } else {
-            route++;
-            prev = *route;
+            ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, 1);
         }
-        if (*route++ == stop) {
+        if (*cursor++ == stopNode) {
             break;
         }
     }
@@ -2179,7 +2171,7 @@ static void func_actor_548100_80134BA8(void)
     _Actor548100Edge* edge;
 
     for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
-        func_actor_548100_80133684(edge);
+        _actor548100DrawEdge(edge);
     }
 }
 
@@ -2206,34 +2198,41 @@ static void func_actor_548100_80134BF0(void)
     }
 }
 
-static s32 func_actor_548100_80134CB8(s32 nodeA, u8 nodeB)
+/// Measures a current leg in dominant-axis pixels, excluding each wire's end margins.
+///
+/// `routeId` is 1..9, or zero for an unused leg, which returns 1 so downstream
+/// progress scaling has a nonzero divisor. `stopNode` is a node on that route,
+/// or zero to measure the whole route. Gaps move to another node without adding
+/// a wire. The node-pair matrix and wire lengths must already be initialized.
+static s32 _actor548100MeasureLeg(s32 routeId, u8 stopNode)
 {
-    u8* route;
-    u8* head;
-    u8  prev;
-    s32 dist;
+    const u8* cursor;
+    const u8* routeStart;
+    u8        previousNode;
+    s32       length;
 
-    if (nodeA == 0) {
+    if (routeId == ACTOR_548100_ROUTE_UNUSED) {
         return 1;
     }
-    head  = D_actor_548100_80135B24[nodeA];
-    dist  = 0;
-    prev  = head[0];
-    route = head + 1;
-    while (*route != 0) {
-        if (*route != 0xFF) {
-            dist += D_actor_548100_801351D0[D_actor_548100_80135B5C[*route + prev * 100]].length;
-            prev  = *route;
+    routeStart   = D_actor_548100_80135B24[routeId];
+    length       = 0;
+    previousNode = routeStart[0];
+    cursor       = routeStart + 1;
+    while (*cursor != ACTOR_548100_ROUTE_END) {
+        if (*cursor != ACTOR_548100_ROUTE_GAP) {
+            length += D_actor_548100_801351D0[D_actor_548100_80135B5C[*cursor + previousNode * ACTOR_548100_NODE_KEY_STRIDE]].length;
+            ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, 0);
         } else {
-            route++;
-            prev = *route;
+            ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, 1);
         }
-        if (*route++ == nodeB) {
+        if (*cursor++ == stopNode) {
             break;
         }
     }
-    return dist;
+    return length;
 }
+
+#undef ACTOR_548100_READ_ROUTE_NODE
 
 /// State 1 of the actor's callback: arms the first action-prompt slot at
 /// `ACTION_PROMPT_SPEED_AIM` with the idle cursor, clears its screen position
