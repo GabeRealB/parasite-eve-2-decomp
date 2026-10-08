@@ -162,6 +162,9 @@ enum {
     ODD_STRANGER_LAST_BLENDED_SLOT   = 10
 };
 
+/// Stop distance in parent-coordinate units; player detection adds its 150-unit margin.
+enum { ODD_STRANGER_MOVE_STOP_DISTANCE = 300 };
+
 /// Pose and hit-effect settings shared by the pull and strike of a held player.
 enum {
     ODD_STRANGER_GRAB_PITCH            = -ACTOR_TRANSFORM_ANGLE_TURN / 32, // 4096 units per turn
@@ -311,18 +314,18 @@ static s32 _oddStrangerTakeAnimationSound(OddStrangerWork* work);
 
 static void _oddStrangerExit(Task* task);
 static s32  _oddStrangerApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unused);
-void        oddStrangerGrabRelease(Task* arg0);
-void        oddStrangerBackOff(Task* arg0);
-void        oddStrangerSidestep(Task* arg0);
-void        oddStrangerAdvance(Task* arg0);
-void        oddStrangerFacePlayer(Task* arg0);
+static void _oddStrangerGrabRelease(Task* task);
+static void _oddStrangerBackOff(Task* task);
+static void _oddStrangerSidestep(Task* task);
+static void _oddStrangerSlide(Task* task);
+static void _oddStrangerAlert(Task* task);
 static void _oddStrangerRiseBack(Task* task);
 static void _oddStrangerFlinch(Task* task);
 static void _oddStrangerPlayRun(Task* task);
 static void _oddStrangerPlayDown(Task* task);
 static void _oddStrangerPlayWalk(Task* task);
-void        oddStrangerDie(Task* arg0);
-void        oddStrangerHoldAim(Task* arg0);
+static void _oddStrangerDeathBurn(Task* task);
+static void _oddStrangerWatch(Task* task);
 
 static void _oddStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey);
 static void _oddStrangerDown(Task* task);
@@ -330,10 +333,10 @@ static void _oddStrangerDormantScripted(Task* task);
 static void _oddStrangerGrabPull(Task* task);
 static void _oddStrangerGrabStrike(Task* task);
 static void _oddStrangerStatusHold(Task* task);
-void        oddStrangerTurnAround(Task* arg0);
+static void _oddStrangerTurnAround(Task* task);
 
-void oddStrangerChase(Task* arg0);
-void oddStrangerPatrol(Task* arg0);
+static void _oddStrangerCircleDash(Task* task);
+static void _oddStrangerPatrol(Task* task);
 
 /// Returns whether the XZ offset reaches or exceeds the radius from its origin.
 ///
@@ -362,8 +365,8 @@ static __inline__ s32 _oddStrangerOutOfRange(const SVECTOR* offset, s16 radius)
     return outside;
 }
 
-void oddStrangerStalk(Task* arg0);
-void oddStrangerTick(Enemy* enemy, Task* actor);
+static void _oddStrangerStalk(Task* task);
+void        oddStrangerTick(Enemy* enemy, Task* actor);
 
 void oddStrangerWalkingDeath(Task* arg0);
 

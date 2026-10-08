@@ -96,7 +96,7 @@ extern TaskMessageEntry D_actor_401800_80155A80[8];
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 
-/// Frame counter the chase body of `func_actor_80136EAC` accumulates its step
+/// Frame counter the chase body of `_oddStrangerCircleDash` accumulates its step
 /// `slideStep` into and the init body clears; the aim-and-rescale body reads it
 /// back as the phase of the step it walks. Same role `Actor01900_D172FC` plays
 /// for actor 01900.
@@ -2165,31 +2165,31 @@ static const OddStrangerStateTable gOddStrangerStates = { {
     _oddStrangerPlayDown,
     _oddStrangerStatusHold,
     _oddStrangerFlinch,
-    oddStrangerFacePlayer,
+    _oddStrangerAlert,
     _actor401800Chase,
-    oddStrangerChase,
-    oddStrangerTurnAround,
-    oddStrangerSidestep,
+    _oddStrangerCircleDash,
+    _oddStrangerTurnAround,
+    _oddStrangerSidestep,
     _actor401800Grab,
     _oddStrangerGrabPull,
     _oddStrangerGrabStrike,
-    oddStrangerGrabRelease,
+    _oddStrangerGrabRelease,
     _oddStrangerRiseBack,
     _actor401800RiseFront,
     _oddStrangerDown,
     NULL,
     _actor401800FallBack,
     _actor401800FallFront,
-    oddStrangerDie,
+    _oddStrangerDeathBurn,
     _actor401800Dormant,
     _oddStrangerDormantScripted,
-    oddStrangerPatrol,
-    oddStrangerBackOff,
-    oddStrangerAdvance,
-    oddStrangerHoldAim,
+    _oddStrangerPatrol,
+    _oddStrangerBackOff,
+    _oddStrangerSlide,
+    _oddStrangerWatch,
     _actor401800Ambush,
     _actor401800BurstDeath,
-    oddStrangerStalk,
+    _oddStrangerStalk,
     _actor401800RefallBack,
     _actor401800RefallFront,
     oddStrangerWalkingDeath,

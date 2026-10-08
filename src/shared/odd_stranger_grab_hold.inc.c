@@ -1,6 +1,11 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
 /// Applies the strike's joint pitch with its retained cross-joint compose order.
+///
+/// Borrows the live task's model coordinates, including parts 2..5, after
+/// animation has written their local pose. The rotations compose a -128 pitch
+/// (4096 units per turn) and invalidate parts 4 and 5. Part 3 is composed
+/// after part 2's rotation; part 2 is composed after part 3's rotation.
 static __inline__ void _oddStrangerApplyGrabStrikePitch(Task* task)
 {
     gfxRotMatrixX(&task->extra.tmd->coords[2].coord, ODD_STRANGER_GRAB_PITCH, GRAPHICS_ROTATION_COMPOSE);

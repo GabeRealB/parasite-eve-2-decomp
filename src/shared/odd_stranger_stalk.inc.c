@@ -1,38 +1,89 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// State-2 aim body, as in the Horned Stranger's `func_actor_401300_8013CBAC` and
-/// `_actor01900StateChase`: on the live-actor flag it resets the effect node, forks
-/// the first clip and seeds the animation slots, then walks both obstacle tables
-/// and aims the actor at the player with `gfxRotMatrixY` / `_actorRenderRescaleYaw`.
-/// `stateTimer` and `exitCounter` then count up under the `_playerDetectionSightBlocked`
-/// clip test: the still-aiming arm re-wraps the turn, drops the actor to state
-/// 0xB once the 0x44C range check fails inside 0x200 and re-arms at 0x1B past
-/// 0x5B frames, while the settled arm draws a turn direction from `gRandomLcgState`
-/// and flips it every 0xF1 frames. The tail takes one forward step off the
-/// 0x12C probe, or re-arms the clip on the `rig.slots[1].status` bit. `grabCooldown` counts
-/// down once per entry.
-void oddStrangerStalk(Task* arg0)
+/// Limits the stalking turn, replaces root yaw and restores normal model scale.
+///
+/// Requires a live `Task*` and reserved `ActorChaseScratch*` as side-effect-free
+/// pointer expressions, and a positive limit in 4096ths of a turn. Arguments
+/// occur repeatedly; the scratch angle becomes the absolute root heading.
+/// Translation stays intact. Expands to a block; invoke inside a braced block.
+#define ODD_STRANGER_TURN_STALK_ROOT(task, chase, turnLimit)                                        \
+    {                                                                                               \
+        GfxCoord* headingRoot;                                                                      \
+                                                                                                    \
+        if ((chase)->turn > (turnLimit)) {                                                          \
+            (chase)->turn = (turnLimit);                                                            \
+        }                                                                                           \
+        if ((chase)->turn < -(turnLimit)) {                                                         \
+            (chase)->turn = -(turnLimit);                                                           \
+        }                                                                                           \
+        headingRoot    = (task)->extra.tmd->coords;                                                 \
+        (chase)->turn += ratan2(-headingRoot->coord.m[2][0], headingRoot->coord.m[2][2]);           \
+        gfxRotMatrixY(&(task)->extra.tmd->coords->coord, (chase)->turn, GRAPHICS_ROTATION_REPLACE); \
+        _actorRenderRescaleYaw((task)->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);                 \
+    }
+
+/// Reads the player heading and the wrapped bearing back to this enemy.
+///
+/// Roots share a parent space; bearings use 4096 units per turn and narrow
+/// to signed halfwords. Scratch belongs to the caller and remains reserved.
+static __inline__ void _oddStrangerReadStalkPlayerBearings(Task* task, ActorChaseScratch* chase)
 {
-    OddStrangerWork*   work;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    GfxCoord*          facing;
-    ActorChaseScratch* head;
-    ActorChaseScratch* chase;
 #if ODD_STRANGER_VARIANT == 1
-    s16 yaw;
+    s16 reverseBearing;
 #endif
 
-    work = arg0->work;
+    chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                              (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, task->extra.tmd->coords, &chase->delta);
+#if ODD_STRANGER_VARIANT == 1
+    reverseBearing       = ratan2(chase->delta.vx, chase->delta.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+    chase->yawFromPlayer = reverseBearing;
+    chase->yawFromPlayer = _actorAngleNormalizeYaw(reverseBearing);
+#else
+    chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+    chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
+#endif
+}
+
+/// Walks toward the player, veers while sight is blocked and grabs within reach.
+///
+/// Handles `ODD_STRANGER_STATE_STALK` on a live Odd Stranger task with bound
+/// rigs and a live player in the same root-parent space. With clear sight, a
+/// signed turn below 512 angle units and a range inside 1100 coordinate units
+/// permit `GRAB`; 91 visible ticks select `WATCH` and override that request.
+/// Blocked sight picks a random veer side and reverses it after the counter
+/// reaches 241 (variant 2 increments that counter twice per blocked tick).
+/// Root turning is limited to 32 angle units per tick, with 4096 per turn.
+/// Movement uses the variant's step, or five units during blending; the grab
+/// cooldown counts down once per call. Borrows one chase scratch block plus
+/// nested contact, movement and range-test workspace.
+static void _oddStrangerStalk(Task* task)
+{
+    enum {
+        ODD_STRANGER_STALK_SPAWN           = 0x10,
+        ODD_STRANGER_STALK_GRAB_TURN_LIMIT = ACTOR_TRANSFORM_ANGLE_TURN / 8,
+        ODD_STRANGER_STALK_GRAB_RADIUS     = 1100,
+        ODD_STRANGER_STALK_WATCH_TICKS     = 91,
+        ODD_STRANGER_STALK_VEER_TICKS      = 241,
+        ODD_STRANGER_STALK_TURN_LIMIT      = 32,
+        ODD_STRANGER_STALK_BLEND_STEP      = 5
+    };
+    OddStrangerWork*   work;
+    TmdObject*         model;
+    GfxCoord*          headingRoot;
+    ActorChaseScratch* savedCursor;
+    ActorChaseScratch* chase;
+
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
+        model                                                     = task->extra.tmd;
+        ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = 0;
+        model->flags                                              = 0;
+        tmdAllocPrimitiveBuffer(model);
         work->hitBody.radius    = ODD_STRANGER_BODY_RADIUS;
         work->animRequest       = ODD_STRANGER_ANIM_REQUEST_BLEND;
         work->animRate          = ODD_STRANGER_STALK_RATE;
-        work->animId            = 2;
+        work->animId            = ODD_STRANGER_ANIM_WALK;
         work->blendActive       = 0;
         work->dashCount         = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -40,48 +91,42 @@ void oddStrangerStalk(Task* arg0)
         sceneEngageBattle(1);
         work->stateTimer  = 0;
         work->exitCounter = 0;
-        if ((arg0->spawnArg1.value >> 16) == 0x10) {
+        if ((task->spawnArg1.value >> 16) == ODD_STRANGER_STALK_SPAWN) {
             work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         }
     }
     work->stateTimer++;
     work->exitCounter++;
-    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
-    chase                                   = head - 1;
-    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 1) {
-            _oddStrangerApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    savedCursor                             = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = savedCursor - 1;
+    chase                                   = savedCursor - 1;
+    if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+        if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 1) {
+            _oddStrangerApplyBodyPushback(task, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
-    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _oddStrangerDriveAnimation(arg0);
-    chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
-                              (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, task->extra.tmd->coords, &chase->delta);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _oddStrangerDriveAnimation(task);
+    // Animation/contact updates precede the final player-offset snapshot.
+    _oddStrangerReadStalkPlayerBearings(task, chase);
 #if ODD_STRANGER_VARIANT == 1
-    yaw                  = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-    chase->yawFromPlayer = yaw;
-    chase->yawFromPlayer = _actorAngleNormalizeYaw(yaw);
-    coord                = arg0->extra.tmd->coords;
-    chase->turn          = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    work->lookYawTarget  = chase->turn;
-#else
-    chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-    chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
+    headingRoot         = task->extra.tmd->coords;
+    chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-headingRoot->coord.m[2][0], headingRoot->coord.m[2][2]));
+    work->lookYawTarget = chase->turn;
 #endif
-    if (_playerDetectionSightBlocked(arg0) != 1) {
+    if (_playerDetectionSightBlocked(task) != 1) {
         work->stateTimer    = 0;
-        coord               = arg0->extra.tmd->coords;
-        chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        headingRoot         = task->extra.tmd->coords;
+        chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-headingRoot->coord.m[2][0], headingRoot->coord.m[2][2]));
         work->lookYawTarget = chase->turn;
-        if (chase->turn < 0x200) {
-            if (!_oddStrangerOutOfRange(&chase->delta, 0x44C) && work->grabCooldown == 0) {
+        // The grab gate is signed, so all negative turns pass the angle test.
+        if (chase->turn < ODD_STRANGER_STALK_GRAB_TURN_LIMIT) {
+            if (!_oddStrangerOutOfRange(&chase->delta, ODD_STRANGER_STALK_GRAB_RADIUS) && work->grabCooldown == 0) {
                 work->state = ODD_STRANGER_STATE_GRAB;
             }
         }
-        if (work->exitCounter >= 0x5B) {
+        if (work->exitCounter >= ODD_STRANGER_STALK_WATCH_TICKS) {
             work->state = ODD_STRANGER_STATE_WATCH;
         }
     } else {
@@ -89,8 +134,8 @@ void oddStrangerStalk(Task* arg0)
 #if ODD_STRANGER_VARIANT == 2
         work->stateTimer++;
 #endif
-        coord               = arg0->extra.tmd->coords;
-        chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        headingRoot         = task->extra.tmd->coords;
+        chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-headingRoot->coord.m[2][0], headingRoot->coord.m[2][2]));
         work->lookYawTarget = chase->turn;
         if (work->sidestepSide == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -105,34 +150,25 @@ void oddStrangerStalk(Task* arg0)
         } else {
             chase->turn -= ODD_STRANGER_STALK_TURN_BIAS;
         }
-        if (work->stateTimer >= 0xF1) {
+        if (work->stateTimer >= ODD_STRANGER_STALK_VEER_TICKS) {
             work->stateTimer   = 0;
             work->sidestepSide = -work->sidestepSide;
         }
     }
-    if (chase->turn > 0x20) {
-        chase->turn = 0x20;
-    }
-    if (chase->turn < -0x20) {
-        chase->turn = -0x20;
-    }
-    facing       = arg0->extra.tmd->coords;
-    chase->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->turn, 1);
-    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->animId == 2) {
+    ODD_STRANGER_TURN_STALK_ROOT(task, chase, ODD_STRANGER_STALK_TURN_LIMIT);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->animId == ODD_STRANGER_ANIM_WALK) {
         if (work->blendActive == 0) {
-            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_STALK_STEP) != 0) {
-                _actorMovementStepForward(arg0->extra.tmd->coords, ODD_STRANGER_STALK_STEP);
+            if ((s16)_playerDetectionOutOfReach(task->extra.tmd->coords, ODD_STRANGER_MOVE_STOP_DISTANCE, ODD_STRANGER_STALK_STEP) != 0) {
+                _actorMovementStepForward(task->extra.tmd->coords, ODD_STRANGER_STALK_STEP);
             }
         } else {
-            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, 5) != 0) {
-                _actorMovementStepForward(arg0->extra.tmd->coords, 5);
+            if ((s16)_playerDetectionOutOfReach(task->extra.tmd->coords, ODD_STRANGER_MOVE_STOP_DISTANCE, ODD_STRANGER_STALK_BLEND_STEP) != 0) {
+                _actorMovementStepForward(task->extra.tmd->coords, ODD_STRANGER_STALK_BLEND_STEP);
             }
         }
     } else if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        work->animId      = 2;
+        work->animId      = ODD_STRANGER_ANIM_WALK;
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
     }
     if (work->grabCooldown != 0) {
@@ -140,3 +176,5 @@ void oddStrangerStalk(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
+
+#undef ODD_STRANGER_TURN_STALK_ROOT

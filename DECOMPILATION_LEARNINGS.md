@@ -10416,7 +10416,7 @@ read off the object: `rodata_head` alone suffices whenever the bytes unit 1's
 `.align 3` then pads nothing. `actor_401800` is that shape - `rodata_head =
 "0x4"` moves the id word into `actor_401800_hdr`, unit 1's `.rodata` starts at
 `0x4` with the 30-word table (`0x78` bytes) of the still-asm function ahead of
-`oddStrangerDie`, and `jtbl_actor_401800_80131E9C` lands at `0x7C`
+`_oddStrangerDeathBurn`, and `jtbl_actor_401800_80131E9C` lands at `0x7C`
 with no pad - so no `units`/`rodata` pair is needed even though four more
 tables follow it.
 
@@ -44069,7 +44069,7 @@ with no other edit. `func_actor_143000_80133EE4` is the example.
 
 The same split is needed even when the shared local itself is coloured
 correctly, so the diagnostic above (a `$a0` where the target has `$v1`) does
-not fire. `oddStrangerChase` clamps a turn by 1000 on each side:
+not fire. `_oddStrangerCircleDash` clamps a turn by 1000 on each side:
 
 ```c
 if (turn >= 0) {
@@ -68167,7 +68167,7 @@ stores out. Duplicating the store in the source is what keeps the value local
 long enough for `local-alloc` to see the free register; cross-jumping puts the
 single store back.
 
-The lever is not specific to `?:`. `oddStrangerGrabRelease` picks the same
+The lever is not specific to `?:`. `_oddStrangerGrabRelease` picks the same
 kind of value from a *three*-arm chain (`if (kind == 1) { if (f(arg0) == kind)
 ... } else ...`) and hit the identical `regs=4`: one shared `state` temp spanning
 three blocks collected `;; 84 conflicts: 81 83 84 178 2 29` and lost `$v0` to
@@ -108274,9 +108274,9 @@ block instruction-for-instruction - same registers, same memory offsets, even th
 scheduler-placed `nop` padding. Removing or "improving" it is where an exact template turns back
 into a search.
 
-## One `s16` field loads `lh` at one use and `lhu` at the next, and both are right (oddStrangerGrabRelease, 2026-09-16)
+## One `s16` field loads `lh` at one use and `lhu` at the next, and both are right (_oddStrangerGrabRelease, 2026-09-16)
 
-`oddStrangerGrabRelease` reads `OddStrangerWork.releaseStep` three times; the target loads it
+`_oddStrangerGrabRelease` reads `OddStrangerWork.releaseStep` three times; the target loads it
 two different ways:
 
 ```asm
@@ -108385,16 +108385,16 @@ loads it `lh` for the comparison and `lhu` for the `+-0x28`. One `s16` declarati
 both if the step is written `(u16)work->lookYawTarget + 0x28` (same splitting as the
 `releaseStep` entry above), which is why the arm's two loads differ in signedness.
 
-## The BRIEF's `INCLUDE_ASM site` block quotes the *next* function's doc comment (oddStrangerHoldAim, 2026-09-16)
+## The BRIEF's `INCLUDE_ASM site` block quotes the *next* function's doc comment (_oddStrangerWatch, 2026-09-16)
 
 `BRIEF.md` prints seven lines either side of the `INCLUDE_ASM` line, and in this
 tree the line after it is always blank and the one after that is the `///` block
 of the *following* function. Reading it as a description of your own target is
 easy to do and expensive to believe.
 
-`oddStrangerHoldAim`'s brief carried "turning the stored yaw toward the
+`_oddStrangerWatch`'s brief carried "turning the stored yaw toward the
 target by at most 0x28 a frame instead of the hard clamp
-`oddStrangerFacePlayer` uses" - which is `_actor401800Ambush`, the
+`_oddStrangerAlert` uses" - which is `_actor401800Ambush`, the
 function that begins at the line below the snippet. The target itself does the
 opposite of what that sentence implies: both of its yaw tests write zero
 (`lh`/`blez`/`sh $zero`/`lh`/`bgez`/`sh $zero`), so the turn is dropped, not
@@ -108510,7 +108510,7 @@ polarity" is this same rule for `== 0`, where the test is a simple branch and no
 
 ## A `shape` 0.99 sibling in another overlay is a source *template*, not a near-miss
 
-`overlay_dup_index.py find oddStrangerBackOff` reported one copy — the
+`overlay_dup_index.py find _oddStrangerBackOff` reported one copy — the
 function itself — but the brief's similar tier ranked `func_actor_401300_8013A5C0`
 0.99 on shape and 0.97 on cflow. That sibling is matched, and its C is the whole
 answer: the `ABS()` ternary (which compiles to `bgez` / `negu` / `slti`, so an
@@ -108566,7 +108566,7 @@ and the `andi` reads a zero-extended register, which is the same value only
 while the mask holds. Read the receiver's declaration before concluding anything
 from the mask.
 
-Evidence, `oddStrangerSidestep` (preprocessed sha256 `8feb6a24f5f8be27…`
+Evidence, `_oddStrangerSidestep` (preprocessed sha256 `8feb6a24f5f8be27…`
 / `113607fbc247e89e…` for the two below, one token apart):
 
 | receiver | score | penalties | difference |
@@ -108600,7 +108600,7 @@ HImode, and on the little-endian R3000 a HImode load at the field's own address
 *is* the low half of the `long`. Do not go hunting for an `s16 t[3]` struct to
 justify the load — write the plain `long` arithmetic and it comes out. Three
 overlays reproduce it from the same helper with no cast anywhere:
-`oddStrangerTurnAround` (100.000%, all-zero penalties),
+`_oddStrangerTurnAround` (100.000%, all-zero penalties),
 `func_actor_401300_801376E4` and `_actor01900StateTurnAround`.
 
 The narrowing is also why the same field shows up as a signed `lh` elsewhere in
@@ -108608,9 +108608,9 @@ the same function: the scratch block's `delta.vx` is an `s16` that a later
 `ratan2` argument sign-extends, so the reload is `lh` there — the load width
 tracks the destination, not the field.
 
-## A reused pointer local: give the last short-lived use its own name (`oddStrangerStalk`, 2026-09-16)
+## A reused pointer local: give the last short-lived use its own name (`_oddStrangerStalk`, 2026-09-16)
 
-`oddStrangerStalk`, the walk body of actor 401800 and the twin of
+`_oddStrangerStalk`, the walk body of actor 401800 and the twin of
 `_actor01900StateChase`, stalled at 98.339% with `blocks=58/58`,
 `instructions=557/557`, `predicates_match=True`, `calls_match=True` and every
 penalty but `regs` at zero: one `coord = index->field_2C->field_8` sat in `$s0`
@@ -108640,9 +108640,9 @@ That alone took the function to 100.000%. A callee-saved register holding a
 value that is dead at the call is the tell — before touching the allocator,
 check whether the twin used a second name for that use.
 
-## A `static __inline__` helper defined *after* its call site is not inlined, so the scratch matches and the overlay does not (`oddStrangerChase`, 2026-09-16)
+## A `static __inline__` helper defined *after* its call site is not inlined, so the scratch matches and the overlay does not (`_oddStrangerCircleDash`, 2026-09-16)
 
-`oddStrangerChase` reached 100.000% in the scratch env with all
+`_oddStrangerCircleDash` reached 100.000% in the scratch env with all
 penalties at zero, and the overlay still failed its checksum: the built function
 started `addiu sp,sp,-0x30` where the target has `-0x38`, and held `index` in
 `$s5` instead of `$s7`. Disassembling `build/USA/out/actor_401800` and comparing
@@ -108662,8 +108662,8 @@ Fix by moving the **helper** up, not the function down — a unit's function ord
 is the overlay's `.text` layout, and reordering functions breaks the checksum in
 a way that looks nothing like the original symptom. Moving the helper is
 layout-neutral as long as every call inlines: a `static` function that is never
-called out-of-line is not emitted. Both call sites (`oddStrangerChase`
-and `oddStrangerGrabRelease`) inlined after the move, and the checksum passed
+called out-of-line is not emitted. Both call sites (`_oddStrangerCircleDash`
+and `_oddStrangerGrabRelease`) inlined after the move, and the checksum passed
 with the function order untouched.
 
 The tell is the same as any scratch-versus-overlay divergence: the scratch env
@@ -108734,9 +108734,9 @@ own instructions are identical either way. `insn.py <uid>` printing `rtl` and
 `cse` with different registers is the tell that the difference is a substitution
 and not an allocation.
 
-## A duplicated store triplet survives CSE: the ROM has two, so the source wrote two (`oddStrangerPatrol`, 2026-09-16)
+## A duplicated store triplet survives CSE: the ROM has two, so the source wrote two (`_oddStrangerPatrol`, 2026-09-16)
 
-`oddStrangerPatrol` is the patrol body its twins `_actor01900StatePatrol`
+`_oddStrangerPatrol` is the patrol body its twins `_actor01900StatePatrol`
 and `func_actor_401300_80139AB0` are, with the helpers inlined. Written the same
 way — the waypoint delta into `s->delta`, then
 `if (!_actorRangeOutsideRadiusXZ(&s->delta, 0xA0) || work->stateTimer >= 0x15)` — it
@@ -108767,7 +108767,7 @@ before the scheduler is suspected. The deltas here were not identical either:
 the duplicated triplet accounts for three stores plus the five instructions that
 re-materialise the two expressions feeding them.
 
-## An inlined helper's statement order is a scheduling lever (`oddStrangerPatrol`, 2026-09-16)
+## An inlined helper's statement order is a scheduling lever (`_oddStrangerPatrol`, 2026-09-16)
 
 With the triplet duplicated the score was 99.779%: two instructions left, both
 the same store. The sibling's `_actorRangeOutsideRadiusXZ` helper writes
@@ -109219,7 +109219,7 @@ Inputs: `base_2.i` SHA256
 `2a9fde3deef65509c1a4e1d9d51c801f77ddc2517d0c52be4f085d12c21443e4`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Jump.c rewrites `if (c) x = a; else x = b;` into `x = b; if (c) x = a;` — the second def lands in the *call* block, so `x` conflicts with `$v0` (oddStrangerGrabRelease, 2026-09-16)
+## Jump.c rewrites `if (c) x = a; else x = b;` into `x = b; if (c) x = a;` — the second def lands in the *call* block, so `x` conflicts with `$v0` (_oddStrangerGrabRelease, 2026-09-16)
 
 The seed reached 99.880% with `regs=5`; the only differing operands were the state value's register,
 `$v1` in the build against `$v0` in the target, on four lines of the tail:
@@ -109270,14 +109270,14 @@ else if (f(arg0) == kind) { ... }`), and the outer test inverted (`if (kind != 1
 GCC canonicalises all four into the same blocks, so only the store form reaches the target.
 
 Confirmed alongside, same function: `(u32)((work->field_5A & 0x3FF) - 0x10) < 7U` is the exact
-range-test idiom (`oddStrangerGrabRelease`'s `sltiu`), matching `_actor01900StateStepBack`.
+range-test idiom (`_oddStrangerGrabRelease`'s `sltiu`), matching `_actor01900StateStepBack`.
 
 Inputs: `base_9.i` SHA256
 `3640a55079bd08537a312231a0c0b1e10df334a846aba76517f5ff6831035931`; target SHA256
 `0d17afd01ddd9ca2f2e0d3b05f1ff1642bf6ba27e7d82eaa1212943d7d057cc8`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A repeated `gPlayerStatus.hp` read needs a `PlayerStatus*` local, and a signed halfword widened through `(u16)` gives `lhu` for free (oddStrangerGrabRelease, 2026-09-16)
+## A repeated `gPlayerStatus.hp` read needs a `PlayerStatus*` local, and a signed halfword widened through `(u16)` gives `lhu` for free (_oddStrangerGrabRelease, 2026-09-16)
 
 Two independent source forms, both worth about 20 points on this function.
 
@@ -109295,9 +109295,9 @@ The idiom is the one `src/gameplay/268.c` and `src/gameplay/4CC.c` already use �
 local assigned from `&gPlayerStatus` at the top of the function:
 
 ```c
-PlayerStatus* cfg = &gPlayerStatus;
+PlayerStatus* playerStatus = &gPlayerStatus;
 ...
-if (cfg->hp > 0) { ... }
+if (playerStatus->hp > 0) { ... }
 ```
 
 The address becomes one pseudo live to the last use, so it takes a callee-saved register of its own
@@ -109383,7 +109383,7 @@ static __inline__ void _actorMovementTranslateForwardNonzero(GfxCoord* coord, s1
 ```
 
 The `Nonzero` variant (the only one 401000 had, added when
-`oddStrangerGrabRelease` landed) wraps the same block in an `if (stepDistance != 0)`
+`_oddStrangerGrabRelease` landed) wraps the same block in an `if (stepDistance != 0)`
 and passes its scratch `displacement` to `_actorMovementBuildDisplacement`.
 Writing this body with `Nonzero` and the constant `-0x57` folds the `stepDistance != 0`
 test away but **keeps the copy**, so it scores 96.000% with `regs=81 insert=3`:
@@ -109417,7 +109417,7 @@ Inputs: `base_3.c` `71caf188b2f58c827c2ef36378dffe664905f9e19252691150080782bf6b
 `ba33c338c559e51596a909d1b4b276c2692b58b8952f0c37ef995b6e3ad3aedc`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Flattening the twin's helpers into one body inflates the allocno set, not just the addressing (oddStrangerFacePlayer, 2026-09-16)
+## Flattening the twin's helpers into one body inflates the allocno set, not just the addressing (_oddStrangerAlert, 2026-09-16)
 
 The 401300 twin of this turn-toward-the-player body (`func_actor_401300_80136238`,
 0.93 shape) is built out of four `static __inline__` helpers — `PositionYaw`,
@@ -109472,10 +109472,10 @@ Inputs: `base_4.i` SHA256
 `cbad33dbd533ce6c57fe1fdc3c7eab85c920518f6fbd9ad4aef5a993fabeefda`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A 0.95 twin with different constants still lends its helper boundary — port the shape first, the values second (oddStrangerHoldAim, 2026-09-16)
+## A 0.95 twin with different constants still lends its helper boundary — port the shape first, the values second (_oddStrangerWatch, 2026-09-16)
 
-The next function along from the entry above, `oddStrangerHoldAim`, is
-the same turn-toward-the-player body as `oddStrangerFacePlayer` (0.95
+The next function along from the entry above, `_oddStrangerWatch`, is
+the same turn-toward-the-player body as `_oddStrangerAlert` (0.95
 shape / 0.97 fields / 0.95 calls). The m2c seed scored 80.62 with `regs=41
 insert=17 delete=17 branch=6`, and `.diagnosis.json` showed the candidate at 17
 blocks against the ROM's 16 — the flattened-helper symptom again. Writing the
@@ -109758,7 +109758,7 @@ Inputs: base_14.i SHA256
 `b9d7dca55f8e146e91190e59d0d42dd303a8f1c274cb1c856290d793579ae0cb`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A helper defined *below* its caller is implicitly declared, so GCC emits a real call instead of inlining it (oddStrangerTurnAround, 2026-09-16)
+## A helper defined *below* its caller is implicitly declared, so GCC emits a real call instead of inlining it (_oddStrangerTurnAround, 2026-09-16)
 
 A `static __inline__` helper only inlines where its definition has already been
 seen. Called from above the definition, the name is an implicit `extern int
@@ -109774,8 +109774,8 @@ image does not:
 
 ```
 build/USA/src/.../actor_401000.c.s   jal   _actorRangeOutsideRadiusXZ   <- should be the 31-insn inline
-.map  pristine  oddStrangerSidestep  0x801374d4
-.map  rebuilt   oddStrangerSidestep  0x80137458   (-0x7C, the missing inline)
+.map  pristine  _oddStrangerSidestep  0x801374d4
+.map  rebuilt   _oddStrangerSidestep  0x80137458   (-0x7C, the missing inline)
 ```
 
 Everything after the function then links 0x7C early and the overlay's sha256
@@ -109881,7 +109881,7 @@ address pseudo's allocno.
 So when the only leftover is *which* register one block's locals got -- `regs=N`
 with everything else zero and the instructions already identical -- retype and
 re-split that block's locals before reaching for pins. Copying the matched
-twin's declaration shape verbatim (`oddStrangerDie` here: `void*
+twin's declaration shape verbatim (`_oddStrangerDeathBurn` here: `void*
 scratch_base; u8* head; u8* tail; s16 cur; s32 k; s32 sy;`) is the cheapest way
 to land on it, because the twin's object *is* the target's allocation.
 
@@ -109890,9 +109890,9 @@ Inputs: base_5.i SHA256
 `d16801539777963daac3e52e8465ae00edcb55847dce0c8e2caad49072360709`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## For the actor_401000 state bodies, port the cross-overlay twin's *declaration block* verbatim; it lands 100% first try (oddStrangerStalk, 2026-09-16)
+## For the actor_401000 state bodies, port the cross-overlay twin's *declaration block* verbatim; it lands 100% first try (_oddStrangerStalk, 2026-09-16)
 
-`oddStrangerStalk` matched on the first real attempt (m2c baseline
+`_oddStrangerStalk` matched on the first real attempt (m2c baseline
 69.9%, then `base_1.c` score 100.000% with all penalties zero). Nothing about it
 needed a scheduling or allocation experiment, and the thing that made it cheap is
 worth copying: the function is the 401000 twin of `func_actor_401300_8013CBAC`
@@ -109910,7 +109910,7 @@ Three things made it one-shot:
    *and* `ActorChaseScratch* s;` (the same value, `head - 1`) rather than one
    pointer is what produced the target's `lw v0,0(a0); addiu v0,v0,-0x10; sw v0,0(a0)`
    followed by `addu s2,v0,$zero` in the `jal` delay slot. As the entry on
-   `oddStrangerDie` says from the other direction: the twin's object
+   `_oddStrangerDeathBurn` says from the other direction: the twin's object
    *is* the target's allocation, so its declarations are the cheapest oracle.
 
 2. **Use the *host* overlay's inline helpers, not the twin's.** The 401300 side
@@ -109967,11 +109967,11 @@ Two corollaries the same function showed:
   `cse`/`fold_rtx` folds the address back through the pointer's known value;
   do not read the mixed bases as two C expressions.
 - The push's own `sw` is a store like any other and sinks: in
-  `oddStrangerAdvance` it lands after all three delta stores, here
+  `_oddStrangerSlide` it lands after all three delta stores, here
   between `vy` and `vz`. Position of the `sw` is not where the `-= 1` sits in
   the source.
 
-Worked example: `oddStrangerPatrol`, matched at `base_7.c` after
+Worked example: `_oddStrangerPatrol`, matched at `base_7.c` after
 `base_4`–`base_6` (99.253%) each spelled the pointer directly. Inputs: base_7.i
 SHA256 `3c6e5416b9428507050f03e919cc4d0ec7bf2aebe0f0f0c6a12fb72cc23a09cd`;
 target.o SHA256 `011697edbdc0d7ec7feb062aaebfadb649fb782d14c37d76cfffe087b448ed12`;
@@ -130219,7 +130219,7 @@ call-saved register and the arithmetic cannot be hoisted --
 ```
 
 -- while the sibling's idiom (`sy = k - (cur - 0x14) * 0xB;` in
-`oddStrangerDie`, then `blk->scale.vy = (s32)(s16)sy;`) splits it:
+`_oddStrangerDeathBurn`, then `blk->scale.vy = (s32)(s16)sy;`) splits it:
 
 ```c
             verticalScale    = 0x1000 - (frame - 0x14) * 0xA;   /* before the calls */

@@ -77,7 +77,7 @@ extern TaskMessageEntry D_actor_401000_80154F90[8];
 extern AnimationSet gOddStrangerDormantAnimSet;
 
 /// Message 0x3FF payload of `_oddStrangerGrabStrike` and
-/// `oddStrangerGrabRelease`: the animation argument the player task reads
+/// `_oddStrangerGrabRelease`: the animation argument the player task reads
 /// when the actor's live-actor flag goes up.
 extern AnimationPlayRequest gOddStrangerPlayerAnim;
 
@@ -85,7 +85,7 @@ extern AnimationPlayRequest gOddStrangerPlayerAnim;
 extern AnimationSet* D_actor_401000_80154F00[7];
 
 /// Free-running scroll the actor's forward draw accumulates into:
-/// `oddStrangerChase` adds `slideStep` to it every frame, and the
+/// `_oddStrangerCircleDash` adds `slideStep` to it every frame, and the
 /// walk state zeroes it on entry. The same slot `Actor01900` keeps in
 /// `Actor01900_D172FC`.
 extern u16 gOddStrangerChaseDistance;
@@ -2205,31 +2205,31 @@ static const OddStrangerStateTable gOddStrangerStates = { {
     _oddStrangerPlayDown,
     _oddStrangerStatusHold,
     _oddStrangerFlinch,
-    oddStrangerFacePlayer,
+    _oddStrangerAlert,
     _actor401000Chase,
-    oddStrangerChase,
-    oddStrangerTurnAround,
-    oddStrangerSidestep,
+    _oddStrangerCircleDash,
+    _oddStrangerTurnAround,
+    _oddStrangerSidestep,
     func_actor_401000_801378DC,
     _oddStrangerGrabPull,
     _oddStrangerGrabStrike,
-    oddStrangerGrabRelease,
+    _oddStrangerGrabRelease,
     _oddStrangerRiseBack,
     _actor401000RiseFront,
     _oddStrangerDown,
     NULL,
     _actor401000FallBack,
     _actor401000FallFront,
-    oddStrangerDie,
+    _oddStrangerDeathBurn,
     _actor401000Dormant,
     _oddStrangerDormantScripted,
-    oddStrangerPatrol,
-    oddStrangerBackOff,
-    oddStrangerAdvance,
-    oddStrangerHoldAim,
+    _oddStrangerPatrol,
+    _oddStrangerBackOff,
+    _oddStrangerSlide,
+    _oddStrangerWatch,
     _actor401000Ambush,
     func_actor_401000_8013B1E4,
-    oddStrangerStalk,
+    _oddStrangerStalk,
     _actor401000RefallBack,
     _actor401000RefallFront,
     oddStrangerWalkingDeath,

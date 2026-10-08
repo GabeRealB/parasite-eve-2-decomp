@@ -1,67 +1,85 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Walk the actor at the player: on the live-actor flag it restarts the
-/// 0x12 clip and clears the spawn pose, then takes a 0xC-byte scratch stack
-/// turn block, aims it at `gPlayerStatus.coordMtx` through
-/// `_actorAngleTurnToPlayer`, clamps the turn to +-0x40 and adds the facing
-/// yaw back in before rebuilding the root coordinate. After
-/// `_actorContactApplyGridPushback` resolves `gridContacts`, `hitContacts`
-/// go to `_oddStrangerApplyBodyPushback` if no horizontal grid correction resulted. The
-/// `_playerDetectionOutOfReach` probe gates the forward step taken from
-/// `slideStep`, and that same countdown then runs down by 0xA a frame. The
-/// tail drops the actor to state 9 on the `rig.slots[1].status` bit or once the
-/// countdown is spent.
-void oddStrangerAdvance(Task* arg0)
+/// Limits the slide turn and replaces the root yaw without rescaling it.
+///
+/// Requires a live `Task*` and reserved `ActorTurnScratch*` as side-effect-free
+/// pointer expressions, and a positive limit in 4096ths of a turn. Arguments
+/// occur repeatedly; the scratch angle becomes the absolute root heading.
+/// Translation stays intact. Expands to a block; invoke inside a braced block.
+#define ODD_STRANGER_TURN_SLIDE_ROOT(task, turn, turnLimit)                                         \
+    {                                                                                               \
+        GfxCoord* headingRoot;                                                                      \
+                                                                                                    \
+        if ((turn)->angle > (turnLimit)) {                                                          \
+            (turn)->angle = (turnLimit);                                                            \
+        }                                                                                           \
+        if ((turn)->angle < -(turnLimit)) {                                                         \
+            (turn)->angle = -(turnLimit);                                                           \
+        }                                                                                           \
+        headingRoot    = (task)->extra.tmd->coords;                                                 \
+        (turn)->angle += ratan2(-headingRoot->coord.m[2][0], headingRoot->coord.m[2][2]);           \
+        gfxRotMatrixY(&(task)->extra.tmd->coords->coord, (turn)->angle, GRAPHICS_ROTATION_REPLACE); \
+    }
+
+/// Coasts toward the player with the circle dash's remaining forward step.
+///
+/// Handles `ODD_STRANGER_STATE_SLIDE` on a live Odd Stranger task with bound
+/// animation rigs and a live player in the same root-parent coordinate space.
+/// Turns at most 64 angle units per tick (4096 per turn), preserves the full
+/// turn as the look target, and reduces the inherited step by 10 coordinate
+/// units per tick. The clip boundary or a spent step selects `TURN_AROUND`.
+/// Borrows one turn scratch block plus the nested movement/contact workspace.
+static void _oddStrangerSlide(Task* task)
 {
+    enum {
+        ODD_STRANGER_SLIDE_ANIM         = 18,
+        ODD_STRANGER_SLIDE_RATE         = 30, // Sixteenths of a frame per tick
+        ODD_STRANGER_SLIDE_TURN_LIMIT   = 64, // 4096 units per turn
+        ODD_STRANGER_SLIDE_DECELERATION = 10
+    };
     OddStrangerWork*  work;
     Enemy*            enemy;
-    TmdObject*        obj;
-    GfxCoord*         coord;
+    TmdObject*        model;
     ActorTurnScratch* turn;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        enemy             = arg0->spawnArg2.pointer;
-        obj               = arg0->extra.tmd;
-        work->animId      = 0x12;
+        enemy             = task->spawnArg2.pointer;
+        model             = task->extra.tmd;
+        work->animId      = ODD_STRANGER_SLIDE_ANIM;
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
-        obj->flags        = 0;
-        tmdAllocPrimitiveBuffer(obj);
+        model->flags      = 0;
+        tmdAllocPrimitiveBuffer(model);
         work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
         work->lookYaw                 = 0;
-        work->animRate                = 0x1E;
+        work->animRate                = ODD_STRANGER_SLIDE_RATE;
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    turn                = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    turn->angle         = _actorAngleTurnToPlayer(arg0, &turn->delta, &gPlayerStatus);
+    turn = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    // The look keeps the full player bearing; only the root turn is limited.
+    turn->angle         = _actorAngleTurnToPlayer(task, &turn->delta, &gPlayerStatus);
     work->lookYawTarget = turn->angle;
-    if (turn->angle > 0x40) {
-        turn->angle = 0x40;
+    ODD_STRANGER_TURN_SLIDE_ROOT(task, turn, ODD_STRANGER_SLIDE_TURN_LIMIT);
+    if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+        _oddStrangerApplyBodyPushback(task, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
-    if (turn->angle < -0x40) {
-        turn->angle = -0x40;
-    }
-    coord        = arg0->extra.tmd->coords;
-    turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
-    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-        _oddStrangerApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    }
-    if ((_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, work->slideStep) << 0x10) != 0) {
-        _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, (u16)work->slideStep);
+    if ((_playerDetectionOutOfReach(task->extra.tmd->coords, ODD_STRANGER_MOVE_STOP_DISTANCE, work->slideStep) << 0x10) != 0) {
+        _actorMovementTranslateForwardNonzero(task->extra.tmd->coords, (u16)work->slideStep);
     }
     if (work->slideStep > 0) {
-        work->slideStep = (u16)work->slideStep - 0xA;
+        work->slideStep = (u16)work->slideStep - ODD_STRANGER_SLIDE_DECELERATION;
         if (work->slideStep < 0) {
             work->slideStep = 0;
         }
     }
-    _oddStrangerDriveAnimation(arg0);
+    _oddStrangerDriveAnimation(task);
     if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || work->slideStep == 0) {
         work->state = ODD_STRANGER_STATE_TURN_AROUND;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
+
+#undef ODD_STRANGER_TURN_SLIDE_ROOT

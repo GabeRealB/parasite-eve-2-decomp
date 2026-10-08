@@ -4,7 +4,8 @@
 ///
 /// `separation` borrows writable signed-halfword XYZ components with Y zero;
 /// normalization produces Q12 components before scaling to parent-space units.
-/// Its unused fourth halfword stays intact.
+/// Requires a nonzero XZ offset whose squared length fits a positive s32.
+/// Its unused fourth halfword stays intact; normalization and scaling clobber GTE state.
 static __inline__ void _oddStrangerScaleGrabSeparation(SVECTOR* separation)
 {
     enum { ODD_STRANGER_GRAB_DISTANCE = 1000 };
@@ -17,6 +18,11 @@ static __inline__ void _oddStrangerScaleGrabSeparation(SVECTOR* separation)
 }
 
 /// Applies the pull's joint pitch and composes each changed joint in order.
+///
+/// Borrows the live task's model coordinates, including parts 2..5, after
+/// animation has written their local pose. The two rotations compose a -128
+/// pitch (4096 units per turn); dirty stamps on parts 4 and 5 make later
+/// descendant composition consume that pose. Parts 2 then 3 are composed now.
 static __inline__ void _oddStrangerApplyGrabPullPitch(Task* task)
 {
     gfxRotMatrixX(&task->extra.tmd->coords[2].coord, ODD_STRANGER_GRAB_PITCH, GRAPHICS_ROTATION_COMPOSE);

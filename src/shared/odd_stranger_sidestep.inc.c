@@ -1,47 +1,57 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Turn-entry body, as in the Horned Stranger's `func_actor_401300_80137D78`: carve the
-/// aim scratch off the scratch stack, and while the live-actor flag is up reset
-/// the display nodes and rebuild the actor's facing. The turn direction
-/// (`sidestepSide`) is drawn from `gRandomLcgState` on the first entry, and each entry
-/// swings the facing toward the player by `sidestepAngle` plus a 0x171 bias until
-/// `sidestepCount` has been counted once. The forward direction `sidestepDir` comes
-/// out of the turn angle through `gfxRotMatrixY`, and the `sidestepStep` draw
-/// scales it onto the scratch vector; the actor is then slid along its obstacle
-/// table, halving that draw while it overlaps. Counts the entry in `stateTimer`
-/// and keys state 7 once 0x1E of them have run.
-void oddStrangerSidestep(Task* arg0)
+/// Hops to alternating sides of the player bearing, then resumes the chase.
+///
+/// Handles `ODD_STRANGER_STATE_SIDESTEP` on a live Odd Stranger task with
+/// bound rigs and a live player in the same root-parent space. Stalking spawns
+/// select `STALK` immediately. Other spawns choose the first side randomly,
+/// then alternate; the first hop adds 369 angle units to the configured
+/// sidestep angle (4096 per turn). A Q12 unit direction scales to a 222-unit
+/// step, halved during blending and on grid pushback. Movement runs on ticks
+/// 12..21; the 30th tick selects `CHASE`.
+/// Borrows one chase scratch block plus nested contact workspace.
+static void _oddStrangerSidestep(Task* task)
 {
+    enum {
+        ODD_STRANGER_SIDESTEP_SPAWN_MODE_MASK  = 0xF0,
+        ODD_STRANGER_SIDESTEP_STALK_SPAWN      = 0x10,
+        ODD_STRANGER_SIDESTEP_FIRST_ANGLE_BIAS = 369,
+        ODD_STRANGER_SIDESTEP_RATE             = 12, // Sixteenths of a frame per tick
+        ODD_STRANGER_SIDESTEP_INITIAL_STEP     = 222,
+        ODD_STRANGER_SIDESTEP_FIRST_MOVE_TICK  = 12,
+        ODD_STRANGER_SIDESTEP_MOVE_TICKS       = 10,
+        ODD_STRANGER_SIDESTEP_END_TICK         = 30
+    };
     OddStrangerWork*   work;
-    ActorChaseScratch* aim;
-    ActorChaseScratch* head;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    SVECTOR*           dir;
-    MATRIX             mat;
-    u16                angle;
-    s32                kind;
+    ActorChaseScratch* sidestep;
+    ActorChaseScratch* savedCursor;
+    TmdObject*         model;
+    GfxCoord*          root;
+    SVECTOR*           direction;
+    MATRIX             directionRotation;
+    u16                biasedBearing;
+    s32                spawnMode;
 
-    kind = (arg0->spawnArg1.value >> 16);
-    work = arg0->work;
-    if ((kind & 0xF0) == 0x10) {
+    spawnMode = (task->spawnArg1.value >> 16);
+    work      = task->work;
+    if ((spawnMode & ODD_STRANGER_SIDESTEP_SPAWN_MODE_MASK) == ODD_STRANGER_SIDESTEP_STALK_SPAWN) {
         work->state = ODD_STRANGER_STATE_STALK;
         return;
     }
-    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
-    aim                                     = head - 1;
+    savedCursor                             = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = savedCursor - 1;
+    sidestep                                = savedCursor - 1;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
+        model                                                     = task->extra.tmd;
+        ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = 0;
+        model->flags                                              = 0;
+        tmdAllocPrimitiveBuffer(model);
         work->hitBody.radius    = ODD_STRANGER_SWING_RADIUS;
         work->stateTimer        = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
-        aim->turn = ratan2(head[-1].delta.vx, aim->delta.vz);
+        _actorPositionDeltaToPlayer(&gPlayerStatus, task->extra.tmd->coords, &sidestep->delta);
+        sidestep->turn = ratan2(sidestep->delta.vx, sidestep->delta.vz);
         if (work->sidestepSide == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 16) & 1) {
@@ -51,59 +61,60 @@ void oddStrangerSidestep(Task* arg0)
             }
         }
         if (work->sidestepSide == 1) {
-            work->animId = 0x15;
+            work->animId = ODD_STRANGER_ANIM_SIDESTEP_POSITIVE;
             if (work->sidestepCount == 0) {
-                angle     = aim->turn + 0x171;
-                aim->turn = work->sidestepAngle + angle;
+                biasedBearing  = sidestep->turn + ODD_STRANGER_SIDESTEP_FIRST_ANGLE_BIAS;
+                sidestep->turn = work->sidestepAngle + biasedBearing;
             } else {
-                aim->turn += work->sidestepAngle;
+                sidestep->turn += work->sidestepAngle;
             }
             work->sidestepSide = -1;
         } else {
-            work->animId = 0x14;
+            work->animId = ODD_STRANGER_ANIM_SIDESTEP_NEGATIVE;
             if (work->sidestepCount == 0) {
-                angle     = aim->turn - 0x171;
-                aim->turn = angle - work->sidestepAngle;
+                biasedBearing  = sidestep->turn - ODD_STRANGER_SIDESTEP_FIRST_ANGLE_BIAS;
+                sidestep->turn = biasedBearing - work->sidestepAngle;
             } else {
-                aim->turn -= work->sidestepAngle;
+                sidestep->turn -= work->sidestepAngle;
             }
             work->sidestepSide = 1;
         }
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
-        work->animRate    = 0xC;
+        work->animRate    = ODD_STRANGER_SIDESTEP_RATE;
         work->blendActive = 0;
-        _oddStrangerDriveAnimation(arg0);
-        gfxRotMatrixY(&mat, aim->turn, 1);
-        dir = &work->sidestepDir;
-        gfxReadMatrixZAxis(&mat, dir);
-        VectorNormalSS(dir, dir);
-        work->sidestepStep = 0xDE;
+        _oddStrangerDriveAnimation(task);
+        gfxRotMatrixY(&directionRotation, sidestep->turn, GRAPHICS_ROTATION_REPLACE);
+        direction = &work->sidestepDir;
+        gfxReadMatrixZAxis(&directionRotation, direction);
+        VectorNormalSS(direction, direction);
+        work->sidestepStep = ODD_STRANGER_SIDESTEP_INITIAL_STEP;
         work->sidestepCount++;
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _oddStrangerDriveAnimation(arg0);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _oddStrangerDriveAnimation(task);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
         gte_lddp(work->sidestepStep);
         gte_ldsv(&work->sidestepDir);
         gte_gpf12();
-        gte_stsv(&aim->delta);
+        gte_stsv(&sidestep->delta);
     } else {
         gte_lddp(work->sidestepStep >> 1);
         gte_ldsv(&work->sidestepDir);
         gte_gpf12();
-        gte_stsv(&aim->delta);
+        gte_stsv(&sidestep->delta);
     }
-    if ((u32)((u16)work->stateTimer - 0xC) < 0xAU) {
-        coord              = arg0->extra.tmd->coords;
-        coord->coord.t[0] += aim->delta.vx;
-        coord              = arg0->extra.tmd->coords;
-        coord->coord.t[2] += aim->delta.vz;
-        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
+    // Translate only during the hop window; grid pushback damps later steps.
+    if ((u32)((u16)work->stateTimer - ODD_STRANGER_SIDESTEP_FIRST_MOVE_TICK) < (u32)ODD_STRANGER_SIDESTEP_MOVE_TICKS) {
+        root              = task->extra.tmd->coords;
+        root->coord.t[0] += sidestep->delta.vx;
+        root              = task->extra.tmd->coords;
+        root->coord.t[2] += sidestep->delta.vz;
+        if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
             work->sidestepStep = (u16)(work->sidestepStep >> 1);
         }
     }
-    if (++work->stateTimer >= 0x1E) {
+    if (++work->stateTimer >= ODD_STRANGER_SIDESTEP_END_TICK) {
         work->state = ODD_STRANGER_STATE_CHASE;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
