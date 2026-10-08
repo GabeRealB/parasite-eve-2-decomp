@@ -913,16 +913,25 @@ static void _hypervelocityUpdateModelPose(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(HYPERVELOCITY_MODEL_SCRATCH_BYTES);
 }
 
-/// Attaches a newly spawned model component under the weapon root and shares its lighting.
+/// Attaches a Hypervelocity slide or hinge to the weapon's transform and teardown tree.
+///
+/// Both tasks must be live TMD tasks with a root coordinate. `weaponCoord`
+/// is the weapon's root captured before spawning; `weaponModel` supplies its
+/// lighting. The newly spawned component's cache must still be dirty, and
+/// its local pose stays intact. It borrows the parent coordinate and lighting
+/// matrices, which must outlive their use.
+/// Reparenting makes the weapon task responsible for the component's teardown.
 static inline void _hypervelocityAttachModelComponent(Task* weaponTask, Task* componentTask,
                                                       GfxCoord* weaponCoord, const TmdObject* weaponModel)
 {
     TmdObject* componentModel;
+    GfxCoord*  componentCoord;
 
-    componentTask->extra.tmd->coords->parent = weaponCoord;
-    componentModel                           = componentTask->extra.tmd;
-    componentModel->colorMtx                 = weaponModel->colorMtx;
-    componentModel->lightMtx                 = weaponModel->lightMtx;
+    componentCoord           = componentTask->extra.tmd->coords;
+    componentCoord->parent   = weaponCoord;
+    componentModel           = componentTask->extra.tmd;
+    componentModel->colorMtx = weaponModel->colorMtx;
+    componentModel->lightMtx = weaponModel->lightMtx;
     taskReparent(weaponTask, componentTask);
 }
 

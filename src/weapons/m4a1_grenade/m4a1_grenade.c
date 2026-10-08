@@ -73,14 +73,29 @@ STATIC_ASSERT_SIZEOF(_M4a1GrenadeFlightScratch, 0x34);
 static void _m4a1GrenadeInitProjectile(Task* task);
 static void _m4a1GrenadeFlyProjectile(Task* task);
 
-/// Spawns the selected room impact and plays its sound at the returned position.
+/// Requests the M4A1's room-impact effect, sound and combat-noise signal.
 ///
-/// The query initializes only the temporary coordinate's cached translation.
-static inline void _m4a1GrenadePlayWeaponImpact(const WorldCollisionContact* contacts,
-                                                const GfxCoord* playerCoord, GfxCoord* impactCoord)
+/// `weaponContacts` must contain all six initialized player weapon-contact
+/// entries, including the LAST marker. `playerCoord`'s cached origin and the
+/// contact points must share the composed frame. Enemy-body contacts suppress
+/// room impacts; otherwise the nearest eligible grid contact is selected.
+///
+/// `impactCoordOut` must be writable and non-NULL. A selected contact writes
+/// only `workm.t`, in game-coordinate units with 0..7 jitter per axis, then
+/// requests spatial sound and signals noise even if effect allocation fails.
+/// If no contact is selected, the output is unchanged and no sound is requested.
+/// The remaining coordinate state is left intact; the caller owns its storage.
+/// Requires the live player, room surface tables and initialized scratch/GTE state.
+static inline void _m4a1GrenadePlayWeaponImpact(const WorldCollisionContact* weaponContacts,
+                                                const GfxCoord* playerCoord, GfxCoord* impactCoordOut)
 {
-    if (playerActorSpawnWeaponImpact(contacts, playerCoord, impactCoord) != 0) {
-        worldCoordPlaySound(impactCoord, SOUND_COMMON(0x17), 1);
+    enum {
+        M4A1_GRENADE_ROOM_IMPACT_SOUND   = SOUND_COMMON(0x17),
+        M4A1_GRENADE_IMPACT_SIGNAL_NOISE = 1,
+    };
+
+    if (playerActorSpawnWeaponImpact(weaponContacts, playerCoord, impactCoordOut) != 0) {
+        worldCoordPlaySound(impactCoordOut, M4A1_GRENADE_ROOM_IMPACT_SOUND, M4A1_GRENADE_IMPACT_SIGNAL_NOISE);
     }
 }
 
