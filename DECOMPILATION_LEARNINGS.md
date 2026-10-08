@@ -102540,7 +102540,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 No pins, no empty asm, no permuter run. Session:
 `nonmatchings/_actor450900HeadAimTask-vacuum`.
 
-### Two back-to-back `sw …, 0x3FC($at)` after three `mult`s is the scratch range-test inline (func_actor_401300_801397F8, 2026-09-16)
+### Two back-to-back `sw …, 0x3FC($at)` after three `mult`s is the scratch range-test inline (_actor401300StateDormantScripted, 2026-09-16)
 
 **Symptom.** A delta `SVECTOR` is squared through a 0xC-byte `SCRATCH_STACK_CURSOR_SLOT`
 block: `lw a1,0x3fc(a1)`, `sw dx,-0xc(a1)`, `addiu a0,a1,-0xc`, three
@@ -102640,7 +102640,7 @@ which also pushed `slti` into the next delay slot instead of `lui %hi(global)`.
 `(u32)` LCG draw switched as `switch ((s32)(x >> 16) & 3)` gets the balanced
 `beq 1 / slti 2` case tree; unsigned gave a linear chain.
 
-### `(s16field & 0xF0) == 0x10` loads `lhu`; target `lh` needs an `s32` local (func_actor_401300_80137D78, 2026-09-16)
+### `(s16field & 0xF0) == 0x10` loads `lhu`; target `lh` needs an `s32` local (_actor401300StateSidestep, 2026-09-16)
 
 **Symptom.** 99.2%, `insert=1 delete=1`: the only difference is `lhu v0,0x36(s3)`
 where the target has `lh`, followed by `andi v0,v0,0xf0` / `bne`.
@@ -102655,9 +102655,9 @@ narrowing, the load becomes `sign_extend:SI (mem:HI)` = `lh`, and combine still
 fuses the rest:
 
 ```c
-kind = arg0->field_36;
-work = arg0->field_1C;
-if ((kind & 0xF0) == 0x10) {
+spawnKind = actor->spawnArg1.value >> 16;
+work = actor->work;
+if ((spawnKind & 0xF0) == 0x10) {
 ```
 
 ### `lui t0; addiu t0,t0,%lo(G); lbu off(t0)` right before a use is a spilled `p = &G` from the prologue (func_actor_401300_8013E930, 2026-09-16)
@@ -108190,7 +108190,7 @@ Both fixes were applied at once: 100.000% on the first build, all penalties zero
 ## A halfword field's signedness is pinned by the read nothing can narrow (_oddStrangerDormantScripted, 2026-09-16)
 
 The twin transcription above was again worth six attempts' worth of progress: the m2c seed
-scored 74.948% and a straight transcription of `func_actor_401300_801397F8` (the brief's
+scored 74.948% and a straight transcription of `_actor401300StateDormantScripted` (the brief's
 `similar matched bodies` hit, 0.95/0.97/0.84) reached 98.844% on the first build. One
 instruction was left:
 
@@ -108503,7 +108503,7 @@ polarity" is this same rule for `== 0`, where the test is a simple branch and no
 ## A `shape` 0.99 sibling in another overlay is a source *template*, not a near-miss
 
 `overlay_dup_index.py find _oddStrangerBackOff` reported one copy — the
-function itself — but the brief's similar tier ranked `func_actor_401300_8013A5C0`
+function itself — but the brief's similar tier ranked `_actor401300StateBackOff`
 0.99 on shape and 0.97 on cflow. That sibling is matched, and its C is the whole
 answer: the `ABS()` ternary (which compiles to `bgez` / `negu` / `slti`, so an
 `if (x < 0) x = -x;` spelling is not the same source), the
@@ -108566,7 +108566,7 @@ Evidence, `_oddStrangerSidestep` (preprocessed sha256 `8feb6a24f5f8be27…`
 | `s32 kind` | 100.000% | all zero | — |
 | `s16 kind` | 99.225% | insert=1 delete=1 | the `lh`/`lhu` line only |
 
-`func_actor_401300_80137D78`, the same swing body in the neighbouring overlay,
+`_actor401300StateSidestep`, the same swing body in the neighbouring overlay,
 declares it `s32` for the same reason.
 
 ## The position-delta inline reads a `long t[i]` with `lhu`: the store is what narrows it
@@ -108593,7 +108593,7 @@ HImode, and on the little-endian R3000 a HImode load at the field's own address
 justify the load — write the plain `long` arithmetic and it comes out. Three
 overlays reproduce it from the same helper with no cast anywhere:
 `_oddStrangerTurnAround` (100.000%, all-zero penalties),
-`func_actor_401300_801376E4` and `_actor01900StateTurnAround`.
+`_actor401300StateTurnAround` and `_actor01900StateTurnAround`.
 
 The narrowing is also why the same field shows up as a signed `lh` elsewhere in
 the same function: the scratch block's `delta.vx` is an `s16` that a later
@@ -108729,7 +108729,7 @@ and not an allocation.
 ## A duplicated store triplet survives CSE: the ROM has two, so the source wrote two (`_oddStrangerPatrol`, 2026-09-16)
 
 `_oddStrangerPatrol` is the patrol body its twins `_actor01900StatePatrol`
-and `func_actor_401300_80139AB0` are, with the helpers inlined. Written the same
+and `_actor401300StatePatrol` are, with the helpers inlined. Written the same
 way — the waypoint delta into `s->delta`, then
 `if (!_actorRangeOutsideRadiusXZ(&s->delta, 0xA0) || work->stateTimer >= 0x15)` — it
 scored 95.168% with 22 instructions too few, all of the loss inside one block:
@@ -109050,7 +109050,7 @@ way from the start needed no adjustment: 100.000% with all six penalties zero on
 the first build. A global that exists only in the generated package data is not
 evidence the original kept the payload in a work block.
 
-The twin here does. This body is `func_actor_401300_80138800` of
+The twin here does. This body is `_actor401300StateGrabPull` of
 `USA/actors/actor_401300` with the work-block offsets renamed, and the twin keeps
 the payload *inline* at `_Actor401300Work.playerPlacement` — the only
 structural divergence between the two. Since the offsets differ,
@@ -109365,7 +109365,7 @@ Inputs: `base_3.c` `09994bd5ea83966bbc12bfc85b0b848128705e2f840d0791363d99cb209c
 ## A TU's two near-identical inline helpers differ by one register: the residual `addu $sN,$sM,$zero` names which was inlined (_actor401000FallBack, 2026-09-16)
 
 `_actor401000FallBack` is the actor's `FALL_BACK` body, the 401000 twin of
-`func_actor_401300_80138CF8`. Both take one forward step through `-0x57` while a
+`_actor401300StateFallBack`. Both take one forward step through `-0x57` while a
 `0x12C` probe is still in range, and the step block is an inlined helper. The
 catch is that the family carries **two** helpers with that body:
 
@@ -113090,7 +113090,7 @@ constant in `$v1`. That block was the *only* difference in the whole function.
 in the functions they were written for — `Actor00100_OutsideRadius`
 (`include/actors/actor_400100_motion.h`) in the 400100 shared bodies, and
 `_actorRangeOutsideRadiusXZ` (`include/overlay.h`) in
-`func_actor_401300_80139520`. An inlined body cannot be recovered from its own
+`_actor401300StateDormant`. An inlined body cannot be recovered from its own
 output, so the two are interchangeable *as assembly* and not interchangeable *as
 RTL*: they differ in how many intermediate pseudos they create and in what order.
 `local-alloc.c` breaks an equal-priority tie with `return q1 - q2`
@@ -113349,7 +113349,7 @@ m2c renders a 0x20-byte struct copy as eight per-word `M2C_FIELD` assignments,
 and the two forms schedule differently: the target interleaves `4 lw` / `4 sw`
 twice, while the eight-statement form emits all eight loads before all eight
 stores. `_actor356100Dormant`'s init block and its matched sibling
-`func_actor_401300_80139520` both save a `MATRIX`, and `work->savedColorMtx =
+`_actor401300StateDormant` both save a `MATRIX`, and `work->savedColorMtx =
 work->colorMtx;` - one assignment - reproduces the 4+4 shape exactly.
 
 Fix: give the run its own type (`MATRIX` here, after splitting the `byte pad[]`

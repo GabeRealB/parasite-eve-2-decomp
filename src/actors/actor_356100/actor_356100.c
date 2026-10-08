@@ -717,7 +717,7 @@ static void _actor356100GrabPull(Task* actor);
 /// `lastCueFrame`, and the frame that first lands on clip 4 spawns the
 /// `D_actor_356100_801732A8` effect at model coordinate 5. Once the player is
 /// further than 3000 away it plays 0x51030008 as a type-7 event and enters
-/// state 6. Same shape as `func_actor_401300_801397F8`.
+/// state 6. Same shape as `_actor401300StateDormantScripted`.
 static void func_actor_356100_80167818(Task* arg0);
 
 static void _actor356100Exit(Task* task);
