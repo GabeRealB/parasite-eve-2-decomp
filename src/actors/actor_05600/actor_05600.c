@@ -117,7 +117,7 @@ static TmdSource    _gActor05600PawnGolemBody;
 static TmdSource    _gActor05600GolemGrenadeLauncher;
 static TmdSource    _gActor05600GolemGrenade;
 static void         _actor05600GrenadeLauncherTask(Task* launcher);
-void                Actor05600_Fn04BAC(Task*);
+static void         _actor05600GrenadeTask(Task* grenade);
 static void         _actor05600BodyTask(Task* actor);
 
 s16 gGolemPawnRookAnimBlendFrames[32] = {
@@ -1132,7 +1132,7 @@ TaskDesc gGolemPawnRookTasks[2] = {
     { { { TASK_BODY_TMD, 96 } }, _actor05600GrenadeLauncherTask, { .model = &_gActor05600GolemGrenadeLauncher } },
 };
 
-TaskDesc Actor05600_D164B8 = { { { TASK_BODY_TMD, 96 } }, Actor05600_Fn04BAC, { .model = &_gActor05600GolemGrenade } };
+TaskDesc Actor05600_D164B8 = { { { TASK_BODY_TMD, 96 } }, _actor05600GrenadeTask, { .model = &_gActor05600GolemGrenade } };
 
 AnimationSet* gGolemPawnRookAnimSets[31] = {
     NULL,
@@ -1278,12 +1278,18 @@ static const EnemyTaskFuncTable3 Actor05600_D0008C = {
     _golemPawnRookGrenadeDestroy,
 };
 
-void Actor05600_Fn04BAC(Task* arg0)
+/// Runs a Pawn GOLEM launcher's independent grenade lifecycle.
+///
+/// Requires a live grenade Enemy in `spawnArg2.pointer` and its TMD model.
+/// The unchecked state is 0 launch/setup, 1 flight/impact, or 2 delayed teardown.
+/// Setup allocates grenade-owned work and detaches it from launcher teardown.
+/// After impact the hidden model survives collision unlinking and a 61-tick
+/// delay. A handler may destroy the Enemy/task pair; nothing is read afterwards.
+static void _actor05600GrenadeTask(Task* grenade)
 {
-    EnemyTaskFuncTable3 sp;
+    const EnemyTaskFuncTable3 stateHandlers = Actor05600_D0008C;
 
-    sp = Actor05600_D0008C;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers.funcs[grenade->state](grenade->spawnArg2.pointer, grenade);
 }
 
 #include "../../shared/golem_pawn_rook_grenade_destroy.inc.c"

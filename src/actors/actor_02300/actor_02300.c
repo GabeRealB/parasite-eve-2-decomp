@@ -112,8 +112,8 @@ static AnimationSet _gActor02300Actor102300Animation1599C;
 static TmdSource    _gActor02300RookGolemBody;
 static TmdSource    _gActor02300GolemBeamSword;
 static TmdSource    _gActor02300RookGolemShield;
-void                Actor02300_Fn03BA8(Task*);
-void                Actor02300_Fn03CE8(Task*);
+static void         _actor02300SwordTask(Task* sword);
+static void         _actor02300ShieldTask(Task* shield);
 void                Actor02300_Fn03EE8(Task*);
 
 s16 gGolemPawnRookAnimBlendFrames[32] = {
@@ -1138,8 +1138,8 @@ u16* Actor02300_D15C80[6] = {
 
 TaskDesc Actor02300_D15C98[3] = {
     { { { TASK_BODY_TMD, 96 } }, Actor02300_Fn03EE8, { .model = &_gActor02300RookGolemBody } },
-    { { { TASK_BODY_TMD, 96 } }, Actor02300_Fn03BA8, { .model = &_gActor02300GolemBeamSword } },
-    { { { TASK_BODY_TMD, 96 } }, Actor02300_Fn03CE8, { .model = &_gActor02300RookGolemShield } },
+    { { { TASK_BODY_TMD, 96 } }, _actor02300SwordTask, { .model = &_gActor02300GolemBeamSword } },
+    { { { TASK_BODY_TMD, 96 } }, _actor02300ShieldTask, { .model = &_gActor02300RookGolemShield } },
 };
 
 AnimationSet* Actor02300_D15CBC[31] = {
@@ -1422,19 +1422,24 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
 
 /// State handlers of the child task hung off part 7 of the enemy's model -
 /// spawn/setup, per-frame tick and teardown - dispatched through by
-/// `Actor02300_Fn03BA8`.
+/// `_actor02300SwordTask`.
 static const EnemyTaskFuncTable3 Actor02300_D00060 = {
     _golemPawnRookSwordSpawn,
     _golemPawnRookSwordTick,
     enemyDestroy,
 };
 
-void Actor02300_Fn03BA8(Task* arg0)
+/// Runs the Rook GOLEM's attached Beam Sword lifecycle.
+///
+/// Requires a live sword Enemy in `spawnArg2.pointer`, its TMD model and parent
+/// body work. The unchecked state is 0 attachment at body part 7, 1 visibility
+/// mirroring and delayed trail spawn, or 2 destruction. Lighting is borrowed
+/// from the body; sword teardown also releases its successfully spawned trail.
+static void _actor02300SwordTask(Task* sword)
 {
-    EnemyTaskFuncTable3 sp;
+    const EnemyTaskFuncTable3 stateHandlers = Actor02300_D00060;
 
-    sp = Actor02300_D00060;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers.funcs[sword->state](sword->spawnArg2.pointer, sword);
 }
 
 #include "../../shared/golem_pawn_rook_sword_spawn.inc.c"
@@ -1443,19 +1448,24 @@ void Actor02300_Fn03BA8(Task* arg0)
 
 /// State handlers of the child task hung off part 11 of the enemy's model -
 /// spawn/setup, per-frame tick and teardown - dispatched through by
-/// `Actor02300_Fn03CE8`.
+/// `_actor02300ShieldTask`.
 static const EnemyTaskFuncTable3 Actor02300_D0006C = {
     _golemPawnRookShieldSpawn,
     _golemPawnRookShieldTick,
     enemyDestroy,
 };
 
-void Actor02300_Fn03CE8(Task* arg0)
+/// Runs the Beam Sword Rook GOLEM's attached shield lifecycle.
+///
+/// Requires a live shield Enemy in `spawnArg2.pointer`, its model and parent
+/// body work. The unchecked state is 0 attachment at body part 11, 1 visibility
+/// mirroring and shield-break processing, or 2 destruction. Lighting is borrowed
+/// from the body; the break tick requests teardown after spawning its effects.
+static void _actor02300ShieldTask(Task* shield)
 {
-    EnemyTaskFuncTable3 sp;
+    const EnemyTaskFuncTable3 stateHandlers = Actor02300_D0006C;
 
-    sp = Actor02300_D0006C;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers.funcs[shield->state](shield->spawnArg2.pointer, shield);
 }
 
 #include "../../shared/golem_pawn_rook_shield_spawn.inc.c"

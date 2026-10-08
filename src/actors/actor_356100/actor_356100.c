@@ -1991,16 +1991,19 @@ static void _actor356100Sidestep(Task* actor)
 
 /// Starts the player's struggle hold and enters pull only when it is accepted.
 ///
-/// Requires live actor work and the player animation request's bank already
-/// selected. Dispatch borrows both global requests synchronously; acceptance
-/// is reply 0. Stores the held state before starting player animation 1.
+/// Requires live actor work, the player task and the selected grab animation bank.
+/// Requests eight direction/face-button presses. Recovery rejects the hold with
+/// reply 1, leaving actor state and animation untouched; reply 0 enters pull and
+/// sets the held flag before replacing the player's bank and playing clip 1.
+/// Requests are consumed synchronously; the installed animation data stays borrowed.
 static __inline__ void _actor356100TryStartPlayerHold(_Actor356100Work* work)
 {
     enum { ACTOR_356100_GRAB_HOLD_PRESS_COUNT = 8,
-           ACTOR_356100_GRAB_PLAYER_HOLD_ANIM = 1 };
+           ACTOR_356100_GRAB_PLAYER_HOLD_ANIM = 1,
+           ACTOR_356100_GRAB_HOLD_ACCEPTED    = 0 };
 
     D_actor_356100_801732D0.pressCount = ACTOR_356100_GRAB_HOLD_PRESS_COUNT;
-    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_356100_801732D0, 0) == 0) {
+    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_356100_801732D0, 0) == ACTOR_356100_GRAB_HOLD_ACCEPTED) {
         work->state                         = ACTOR_356100_STATE_GRAB_PULL;
         work->playerHeld                    = 1;
         D_actor_356100_80173244.animationId = ACTOR_356100_GRAB_PLAYER_HOLD_ANIM;

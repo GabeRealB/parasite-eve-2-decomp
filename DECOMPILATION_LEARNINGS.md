@@ -48065,12 +48065,12 @@ Each piece is load-bearing: `SOFT_TOUCH_REG` (non-volatile) leaves the pointer
 in `$v0` plus a `move a0, v0`; `SCHED_BARRIER` in place of `SOFT_BARRIER`
 works too, but a volatile touch *after* the last store blocks the delay slot;
 and without the barrier the `addiu` floats up into an earlier load delay and
-the function comes out one insn short. `Actor02000_Fn0251C` is the example
+the function comes out one insn short. `_actor02000SpawnBody` is the example
 (99.19% / 99.62% / 99.82% for the three near misses).
 
 ## One `GfxCoord*` base local per `worldCollisionLinkBody` block
 
-Repeated `obj.coord = &actor->field_2C->field_8[N]` blocks want the two loads
+Repeated `body.coord = &actor->extra.tmd->coords[N]` blocks want the two loads
 hoisted to the top of the block and the `+N*0x50` left next to the store
 (`lw v1, 8(v0)` … `addiu v1, v1, 0x140` / `sw v1`). Writing the expression
 inline emits all three at the end; a single reused base local emits the add
@@ -48078,14 +48078,14 @@ into a *third* register (`addiu a2, v1, 0x140`). Give each block its own base
 local so the pseudo dies at the add and ties to the loaded register:
 
 ```c
-partsA                  = actor->field_2C->field_8;
-work->sightBody.field_C = &work->sightCapsule;
+sightCoords                  = actor->extra.tmd->coords;
+work->sightBody.context.capsule = &work->sightCapsule;
 /* … */
-work->sightBody.field_8 = &partsA[4];
-worldCollisionLinkBody(3, &work->sightBody);
+work->sightBody.coord = &sightCoords[4];
+worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sightBody);
 ```
 
-`Actor02000_Fn0251C` links four objects this way; sharing one local across all
+`_actor02000SpawnBody` links four objects this way; sharing one local across all
 four cost 20 register penalties.
 
 ## `<psyq/libgs.h>` needs `<psyq/libgte.h>` ahead of it in a scratch env
@@ -65219,7 +65219,7 @@ materialise the truncation and an extra `andi raw,raw,0xffff` appears in the
 delay slot (88%, insert=3 delete=3). A `u32` fed by a `u16` field needs no
 truncation because `lhu` already zero-extends.
 
-Related warning: this function is a near-copy of `Actor02000_Fn0251C` in
+Related warning: this function is a near-copy of `_actor02000SpawnBody` in
 `actors/lib/actor_102000_text.c`, which needs `SOFT_BARRIER()` plus
 `TOUCH_REG(keyPtr)` to stop GCC CSE-ing the two `&key` call arguments into one
 long-lived pseudo. Copying those hacks over cost three attempts here: with the
@@ -75976,7 +75976,7 @@ This contradicts the `s8`-globals entry above only in scope: a global's
 declared type decides its load and a use-site cast is too late, but a member
 cast does select the load, because the member's type is fixed by the struct and
 the cast is what sets the access mode. Verified against the bundled cc1 on
-minimal functions; `func_actor_800200_80165B84` is the worked example (both
+minimal functions; `_actor800200TickNormalMode` is the worked example (both
 casts, exact on the first attempt after the m2c seed scored 60.9%).
 ## A leading stack store is scheduled early: give the callee pointer its own statement
 
@@ -98390,9 +98390,9 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/func_actor_521100_80135DDC-vacuum` (`base_1.i.greg`,
 `base_3.i.greg`, `base_1_diff`, `base_3_diff`).
 
-## A zero-init's position is part of the match: it picks the branch delay slot and the prologue save order (func_actor_521100_80135C14, 2026-09-16)
+## A zero-init's position is part of the match: it picks the branch delay slot and the prologue save order (_actor521100PlayEventAnimation, 2026-09-16)
 
-The seed's `frames = 0` sat first, where m2c rendered it; rewriting the body to
+The seed's `blendFrames = 0` sat first, where m2c rendered it; rewriting the body to
 the family's style — `_actor00300MsgPlayAnimation` and `func_actor_503500_80135950` write
 the family's style — `Actor00300_Fn05304` and `actor503500HandlePlayAnimation` write
 that init *after* the work-block field stores — moved it down and cost two hunks
@@ -98429,7 +98429,7 @@ Preprocessed SHA256 `base_1.i`
 `36db3812f018c085663308dcbbac0f40f57a0caf48f31422fdf74ea75ef4f3de`, `base_2.i`
 `d3d14816b044d6d1623236f9b7b7dcd17f7223382018c67fcfc150eb638285b2`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Session: `nonmatchings/func_actor_521100_80135C14-vacuum` (`base_1_diff`,
+Session: `nonmatchings/_actor521100PlayEventAnimation-vacuum` (`base_1_diff`,
 `base_2_diff`).
 
 ## A shared span carved off the *head* of a carrier's last code unit renumbers nothing - but every carrier needs the line dropped (func_actor_101500_80134990, 2026-09-16)
@@ -130541,7 +130541,7 @@ live across the first call, and it costs a whole extra callee-saved register -
 which then renumbers every other `$sN` and adds a save/restore pair and 8 bytes
 of frame. The ROM instead rematerializes `addiu a0, sp, off` at each call.
 
-**Fix.** The same shape `Actor02000_Fn0251C` already carries: split the last
+**Fix.** The same shape `_actor02000SpawnBody` already carries: split the last
 field store off into a temporary so the barrier can sit before it, then break
 the value with a `"+r"` touch.
 
@@ -130795,7 +130795,7 @@ pushing `coord` out of `$s7`.
 target has `addiu $a0, $sp, X`.
 
 **The usual fix does not scale to two blocks.** `keyPtr = &key; TOUCH_REG(keyPtr);`
-before the first call (the `Actor02000_Fn0251C` recipe) breaks the pair *inside*
+before the first call (the `_actor02000SpawnBody` recipe) breaks the pair *inside*
 one block, but the second block's plain `&key` still CSEs with the first
 block's. Touching again between the calls fixes that and costs a delay slot: the
 `asm` insn sits between the `addiu` and the `jal`, so `dbr` cannot fill the slot
@@ -130972,7 +130972,7 @@ Inputs: base_1.c (ternary, 93.786%) vs base_3.c (100%),
 
 ## When porting a sibling body, do not feed its `one` local to statements the sibling did not have
 
-`func_actor_105600_80135744` is `Actor02000_Fn0251C` of `actor_102000` with one
+`func_actor_105600_80135744` is `_actor02000SpawnBody` of `actor_102000` with one
 extra `worldCollisionLinkBody` block. That sibling opens its switch with the familiar
 `one = 1; kind = ctx->field_4B; if (kind == one) …` idiom, which puts 1 in a
 callee-saved register so the compare and the two `anim` / `behavior`

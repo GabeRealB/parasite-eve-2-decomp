@@ -107,7 +107,7 @@ extern TaskMessageEntry D_actor_521100_8015F6FC[8];
 
 static s32 _actor521100ReleasePlayerHold(Task* task, s32 unusedMessageId, s32 unusedArg, s32 unusedSecondArg);
 
-s32 func_actor_521100_80135C14(Task*, s32, AnimationPlayRequest*, s32);
+static s32 _actor521100PlayEventAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
 
 /// Scratch-stack block of the grab, reserved for one tick of that state.
 ///
@@ -1644,7 +1644,7 @@ TaskDesc D_actor_521100_8015F6E4[2] = {
 
 TaskMessageEntry D_actor_521100_8015F6FC[8] = {
     { ACTOR_MESSAGE_RELEASE_HOLD, _actor521100ReleasePlayerHold },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_521100_80135C14 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor521100PlayEventAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actor521100SetModelDrawFlags },
     { ACTOR_COMMAND_MESSAGE_APPLY, actor521100ApplyCommand },
@@ -3675,28 +3675,41 @@ static s32 _actor521100ReleasePlayerHold(Task* task, s32 unusedMessageId, s32 un
     return 0;
 }
 
-s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Restarts No. 9's body tracks from an indexed event-animation request.
+///
+/// Requires live body work and its initialized nineteen-slot rig. Bank selector
+/// zero adds 20 to the requested clip; every nonzero selector adds 29. The sum
+/// narrows to s16 and must select a loaded entry in the 36-set body bank.
+/// Restarts slots 1..18 at pose zero even for a repeated clip. Nonzero blend uses
+/// the requested frame duration; reset uses zero. The request is borrowed only
+/// during dispatch. Leaves the animation-frame counter and collision state
+/// intact, ignores message ID/second argument, and returns 0.
+static s32 _actor521100PlayEventAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
 {
+    enum {
+        ACTOR_521100_EVENT_BANK_ZERO_OFFSET    = 20,
+        ACTOR_521100_EVENT_BANK_NONZERO_OFFSET = 29,
+    };
     Actor521100Work* work;
-    s32              i;
-    s32              frames;
-    s16              clip;
-    s16              base;
+    s32              slotIndex;
+    s32              blendFrames;
+    s16              clipId;
+    s16              bankClipOffset;
 
-    frames = 0;
-    work   = arg0->work;
-    base   = 0x1D;
-    if (args->source.index == 0) {
-        base = 0x14;
+    blendFrames    = 0;
+    work           = task->work;
+    bankClipOffset = ACTOR_521100_EVENT_BANK_NONZERO_OFFSET;
+    if (request->source.index == 0) {
+        bankClipOffset = ACTOR_521100_EVENT_BANK_ZERO_OFFSET;
     }
-    clip                    = args->animationId + base;
-    work->animationId       = clip;
-    work->seededAnimationId = clip;
-    if (args->blend != ANIMATION_BLEND_RESET) {
-        frames = args->blendFrames;
+    clipId                  = request->animationId + bankClipOffset;
+    work->animationId       = clipId;
+    work->seededAnimationId = clipId;
+    if (request->blend != ANIMATION_BLEND_RESET) {
+        blendFrames = request->blendFrames;
     }
-    for (i = 1; i < 0x13; i++) {
-        animationSeekSlotWithBlend(&work->rig.anim, i, work->animationId, 0, frames);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animationId, 0, blendFrames);
     }
     return 0;
 }

@@ -1654,16 +1654,19 @@ static void _actor401000Chase(Task* task)
 
 /// Starts the player's struggle hold and enters pull only when it is accepted.
 ///
-/// Requires live actor work and the player animation request's bank already
-/// selected. Dispatch borrows both global requests synchronously; acceptance
-/// is reply 0. Stores the held state before starting player animation 1.
+/// Requires live actor work, the player task and the selected grab animation bank.
+/// Requests eight direction/face-button presses. Recovery rejects the hold with
+/// reply 1, leaving actor state and animation untouched; reply 0 enters pull and
+/// sets the held flag before replacing the player's bank and playing clip 1.
+/// Requests are consumed synchronously; the installed animation data stays borrowed.
 static __inline__ void _oddStrangerTryStartPlayerHold(OddStrangerWork* work)
 {
     enum { ODD_STRANGER_GRAB_HOLD_PRESS_COUNT = 8,
-           ODD_STRANGER_GRAB_PLAYER_HOLD_ANIM = 1 };
+           ODD_STRANGER_GRAB_PLAYER_HOLD_ANIM = 1,
+           ODD_STRANGER_GRAB_HOLD_ACCEPTED    = 0 };
 
     D_actor_401000_80155038.pressCount = ODD_STRANGER_GRAB_HOLD_PRESS_COUNT;
-    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_401000_80155038, 0) == 0) {
+    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_401000_80155038, 0) == ODD_STRANGER_GRAB_HOLD_ACCEPTED) {
         work->state                        = ODD_STRANGER_STATE_GRAB_PULL;
         work->playerHeld                   = 1;
         gOddStrangerPlayerAnim.animationId = ODD_STRANGER_GRAB_PLAYER_HOLD_ANIM;

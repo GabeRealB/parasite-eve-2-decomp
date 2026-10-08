@@ -1110,10 +1110,11 @@ static __inline__ void _actor510900ComposeHitRotation(MATRIX* chestRotation, con
     gte_MulMatrix0(chestRotation, hitRotation, chestRotation);
 }
 
-/// Starts a random two-axis chest twist for a hit without a full-body reaction.
+/// Seeds the chest's residual pitch and yaw for a hit twist.
 ///
 /// Requires live body work. One LCG draw chooses signed pitch and yaw magnitudes
 /// of 64..191 angle units (4096 per turn); the yaw uses the draw's signed upper byte.
+/// Replaces any preceding residuals and marks the twist active; roll is unchanged.
 static __inline__ void _actor510900StartHitTwist(Actor510900Work* work)
 {
     enum {

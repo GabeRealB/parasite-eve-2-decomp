@@ -379,3 +379,4 @@ _actor521100AnmcWomanSetModelDrawFlags = 0x80136a1c; // type:func
 _footstepWalkPlace = 0x80136a64; // type:func
 _actor521100AnmcWomanWalkTo = 0x80136be8; // type:func
 _actor521100ReleasePlayerHold = 0x80135bec; // type:func
+_actor521100PlayEventAnimation = 0x80135c14; // type:func

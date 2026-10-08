@@ -107,9 +107,9 @@ static TmdSource _gActor02000GolemBeamSword;
 
 static void _golemPawnRookEngageState(Task* task);
 
-void Actor02000_Fn035E8(Task*);
+static void _actor02000SwordTask(Task* sword);
 
-void Actor02000_Fn03728(Task*);
+static void _actor02000BodyTask(Task* body);
 
 extern AnimationSet* Actor02000_D15FE8[31];
 
@@ -121,7 +121,7 @@ extern EnemyParams Actor02000_D15D10;
 
 extern TaskFunc gGolemPawnRookStates[];
 
-static void Actor02000_Fn0251C(Enemy* ctx, Task* actor);
+static void _actor02000SpawnBody(Enemy* enemy, Task* actor);
 
 #include "../../shared/golem_pawn_rook_take_hits.inc.c"
 
@@ -1071,8 +1071,8 @@ u16* Actor02000_D15FB8[6] = {
 };
 
 TaskDesc Actor02000_D15FD0[2] = {
-    { { { TASK_BODY_TMD, 96 } }, Actor02000_Fn03728, { .model = &_gActor02000PawnGolemBody } },
-    { { { TASK_BODY_TMD, 96 } }, Actor02000_Fn035E8, { .model = &_gActor02000GolemBeamSword } },
+    { { { TASK_BODY_TMD, 96 } }, _actor02000BodyTask, { .model = &_gActor02000PawnGolemBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor02000SwordTask, { .model = &_gActor02000GolemBeamSword } },
 };
 
 AnimationSet* Actor02000_D15FE8[31] = {
@@ -1149,105 +1149,144 @@ TaskFunc gGolemPawnRookStates[15] = {
 
 #include "../../shared/golem_pawn_rook_sword_swing.inc.c"
 
-/// Enemy init. Allocates the `GolemPawnRookWork` block, points the model object at
-/// the light / color matrices inside it, runs the animation context over its
-/// nineteen slots, and spawns the companion enemy from `Actor02000_D15FD0`,
-/// copying that model's texture page and CLUT row out of the current area
-/// record. `Enemy.spawnState` then selects the variant: 0 builds the
-/// full object set (list node, the four `worldCollisionLinkBody` nodes and their
-/// `WorldCollisionContact` tables, and the optional CD prefetch of `soundSet`),
-/// while 1 and 2 only prime the animation state and hand the task to state 2.
-static void Actor02000_Fn0251C(Enemy* ctx, Task* actor)
+/// Initializes the Beam Sword Pawn GOLEM body and its attached sword.
+///
+/// Requires a live nineteen-part model, placement and valid stage/area sound
+/// indices. Allocates body-owned work and lighting and initializes slots 1..18.
+/// Sword spawning must succeed; its texture placement is applied immediately.
+/// A fresh placement links targeting and four combat bodies and acquires a
+/// battle reference. Saved behind/front downed poses enter the persistent corpse
+/// state without relinking combat. Work allocation failure destroys the pair.
+static void _actor02000SpawnBody(Enemy* enemy, Task* actor)
 {
+    /// Links an initialized body, clears its contacts and enables collision tests.
+    ///
+    /// body is a side-effect-free pointer expression evaluated twice; other
+    /// arguments are evaluated once. contactCount counts writable contact elements.
+    /// The body already borrows this table, directly or through its capsule;
+    /// all storage stays live until unlinking. Expands to a braced statement block.
+#define ACTOR_02000_LINK_BODY_CONTACTS(listIndex, body, contacts, contactCount, enabledTests) \
+    {                                                                                         \
+        worldCollisionLinkBody((listIndex), (body));                                          \
+        worldCollisionInitContacts((contacts), (contactCount), 0);                            \
+        (body)->flags |= (enabledTests);                                                      \
+    }
+    enum {
+        ACTOR_02000_ID                       = 20,
+        ACTOR_02000_BODY_PART                = 3,
+        ACTOR_02000_SIGHT_PART               = 4,
+        ACTOR_02000_SWORD_TASK               = 1,
+        ACTOR_02000_HIT_EFFECT_SIZE          = 1280,
+        ACTOR_02000_HIT_EFFECT_HIGH_ARGUMENT = 2,
+        ACTOR_02000_PATROL_UNITS_PER_VARIANT = 1000,
+        ACTOR_02000_SOUND_FILE_GROUP         = 10,
+        ACTOR_02000_SIGHT_LENGTH             = 8000,
+        ACTOR_02000_SIGHT_FAR_RADIUS         = 1000,
+        ACTOR_02000_SIGHT_NEAR_RADIUS        = 1500,
+        ACTOR_02000_HURT_RADIUS              = 400,
+        ACTOR_02000_GROUND_RADIUS            = 550,
+        ACTOR_02000_STRIKE_OFFSET_Y          = 500,
+        ACTOR_02000_STRIKE_RADIUS            = 500,
+        ACTOR_02000_RESTORED_CORPSE_STEP     = 2,
+        ACTOR_02000_CORPSE_BEHIND_ANIM       = 25,
+        ACTOR_02000_CORPSE_FRONT_ANIM        = 29,
+        ACTOR_02000_IDLE_ANIM                = 1,
+        ACTOR_02000_FRESH_PLACEMENT          = 0,
+        ACTOR_02000_PLACEMENT_PATROLS        = 1,
+    };
     GolemPawnRookWork* work;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    GfxCoord*          parts;
-    GfxCoord*          partsA;
-    GfxCoord*          partsB;
-    GfxCoord*          partsC;
-    GfxCoord*          effParts;
-    Enemy*             eff;
-    u16*               tbl;
-    u8                 param1[8];
-    u8                 param2[8];
-    s32                i;
-    s32                param;
+    TmdObject*         model;
+    GfxCoord*          root;
+    GfxCoord*          bodyCoords;
+    GfxCoord*          sightCoords;
+    GfxCoord*          hurtCoords;
+    GfxCoord*          groundCoords;
+    GfxCoord*          swordCoords;
+    Enemy*             swordEnemy;
+    u16*               areaSoundSets;
+    u8                 soundFileKey[8];
+    u8                 soundFileArgs[8];
+    s32                slotIndex;
+    s32                patrolLengthThousands;
 
-    obj   = actor->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(GolemPawnRookWork), 0);
+    // Body-owned work supplies lighting and animation storage to the attached sword.
+    model = actor->extra.tmd;
+    root  = model->coords;
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        enemyDestroy(ctx, actor);
+        enemyDestroy(enemy, actor);
         return;
     }
     actor->work                   = work;
-    obj->flags                    = 0;
-    coord->composeStamp           = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx                 = &work->lightMtx;
-    obj->colorMtx                 = &work->colorMtx;
-    work->actorId                 = 0x14;
+    model->flags                  = 0;
+    root->composeStamp            = GRAPHICS_COORD_DIRTY;
+    model->lightMtx               = &work->lightMtx;
+    model->colorMtx               = &work->colorMtx;
+    work->actorId                 = ACTOR_02000_ID;
     work->taskTable               = Actor02000_D15FD0;
-    work->hitEffectArg.coord      = &actor->extra.tmd->coords[3];
-    work->hitEffectArg.spawnArgLo = 0x500;
-    work->hitEffectArg.spawnArgHi = 2;
-    animationInitContext(&work->rig.anim, Actor02000_D15FE8, obj, work->rig.poses, work->rig.slots);
-    for (i = 1; i < 0x13; i++) {
-        animationResetSlot(&work->rig.anim, i, 1);
+    work->hitEffectArg.coord      = &actor->extra.tmd->coords[ACTOR_02000_BODY_PART];
+    work->hitEffectArg.spawnArgLo = ACTOR_02000_HIT_EFFECT_SIZE;
+    work->hitEffectArg.spawnArgHi = ACTOR_02000_HIT_EFFECT_HIGH_ARGUMENT;
+    animationInitContext(&work->rig.anim, Actor02000_D15FE8, model, work->rig.poses, work->rig.slots);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationResetSlot(&work->rig.anim, slotIndex, ACTOR_02000_IDLE_ANIM);
     }
-    eff = enemySpawnFromTable(Actor02000_D15FD0, 1, 0, ctx);
-    _actorRenderApplyTaskPlacementTextureOffsets(eff->task, ctx);
+    swordEnemy = enemySpawnFromTable(Actor02000_D15FD0, ACTOR_02000_SWORD_TASK, 0, enemy);
+    _actorRenderApplyTaskPlacementTextureOffsets(swordEnemy->task, enemy);
 
-    switch (ctx->spawnState) {
-        case 0:
-            ctx->field_4  = &coord->coord;
-            ctx->field_48 = 0;
-            worldTargetLinkNode(&ctx->node);
-            parts           = actor->extra.tmd->coords;
-            ctx->bodyPos.vx = 0;
-            ctx->bodyPos.vy = 0;
-            ctx->bodyPos.vz = 0;
-            ctx->param      = &Actor02000_D15D10;
-            ctx->recs       = work->hurtContacts;
-            ctx->coord      = &parts[3];
-            ctx->hp         = Actor02000_D15D10.hpMax;
+    // Restored corpses retain the sword but do not rejoin combat.
+    switch (enemy->spawnState) {
+        case ACTOR_02000_FRESH_PLACEMENT:
+            enemy->field_4  = &root->coord;
+            enemy->field_48 = 0;
+            worldTargetLinkNode(&enemy->node);
+            bodyCoords        = actor->extra.tmd->coords;
+            enemy->bodyPos.vx = 0;
+            enemy->bodyPos.vy = 0;
+            enemy->bodyPos.vz = 0;
+            enemy->param      = &Actor02000_D15D10;
+            enemy->recs       = work->hurtContacts;
+            enemy->coord      = &bodyCoords[ACTOR_02000_BODY_PART];
+            enemy->hp         = Actor02000_D15D10.hpMax;
             sceneAcquireBattleRef(0);
-            work->patrols = ctx->place->mode & 1;
+            work->patrols = enemy->place->mode & ACTOR_02000_PLACEMENT_PATROLS;
             if (work->patrols == 0) {
-                work->anim     = 1;
+                work->anim     = ACTOR_02000_IDLE_ANIM;
                 work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_IDLE;
             } else {
-                work->anim               = 2;
+                work->anim               = GOLEM_PAWN_ROOK_ANIM_WALK;
                 work->behavior           = GOLEM_PAWN_ROOK_BEHAVIOR_PATROL;
-                param                    = ctx->place->variant;
-                work->patrolDistanceLeft = param * 1000;
+                patrolLengthThousands    = enemy->place->variant;
+                work->patrolDistanceLeft = patrolLengthThousands * ACTOR_02000_PATROL_UNITS_PER_VARIANT;
             }
 
-            tbl = Actor02000_D15FB8[gGameSession->location.loc.stage];
-            if (tbl != NULL) {
-                work->soundSet = tbl[gGameSession->location.loc.area];
+            // The CD request reads key bytes 3/2/0 and only four argument bytes.
+            areaSoundSets = Actor02000_D15FB8[gGameSession->location.loc.stage];
+            if (areaSoundSets != NULL) {
+                work->soundSet = areaSoundSets[gGameSession->location.loc.area];
             }
             if (work->soundSet != 0) {
-                param1[3] = 0;
-                param1[2] = 0xA;
-                param1[0] = work->soundSet;
-                param2[0] = 0x14;
-                param2[3] = 0;
-                param2[2] = 0;
-                param2[1] = 0;
-                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+                soundFileKey[3]  = 0;
+                soundFileKey[2]  = ACTOR_02000_SOUND_FILE_GROUP;
+                soundFileKey[0]  = work->soundSet;
+                soundFileArgs[0] = ACTOR_02000_ID;
+                soundFileArgs[3] = 0;
+                soundFileArgs[2] = 0;
+                soundFileArgs[1] = 0;
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, soundFileKey, soundFileArgs);
             }
 
-            work->sightCapsule.ends[0].vz   = 0x1F40;
-            work->sightCapsule.end0Radius   = 0x3E8;
+            // Four collision bodies borrow contact storage from this work block.
+            work->sightCapsule.ends[0].vz   = ACTOR_02000_SIGHT_LENGTH;
+            work->sightCapsule.end0Radius   = ACTOR_02000_SIGHT_FAR_RADIUS;
             work->sightCapsule.ends[0].vx   = 0;
             work->sightCapsule.ends[0].vy   = 0;
             work->sightCapsule.ends[1].vx   = 0;
             work->sightCapsule.ends[1].vy   = 0;
             work->sightCapsule.ends[1].vz   = 0;
-            work->sightCapsule.end1Radius   = 0x5DC;
+            work->sightCapsule.end1Radius   = ACTOR_02000_SIGHT_NEAR_RADIUS;
             work->sightCapsule.contacts     = work->sightContacts;
-            partsA                          = actor->extra.tmd->coords;
+            sightCoords                     = actor->extra.tmd->coords;
             work->sightBody.context.capsule = &work->sightCapsule;
             work->sightBody.pos.vx          = 0;
             work->sightBody.pos.vy          = 0;
@@ -1255,64 +1294,61 @@ static void Actor02000_Fn0251C(Enemy* ctx, Task* actor)
             work->sightBody.key             = 0;
             work->sightBody.radius          = 0;
             work->sightBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
-            work->sightBody.coord           = &partsA[4];
-            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sightBody);
-            worldCollisionInitContacts(work->sightContacts, ARRAY_SIZE(work->sightContacts), 0);
-            work->sightBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->sightBody.coord           = &sightCoords[ACTOR_02000_SIGHT_PART];
+            ACTOR_02000_LINK_BODY_CONTACTS(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sightBody, work->sightContacts,
+                                           ARRAY_SIZE(work->sightContacts), (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
 
-            partsB                          = actor->extra.tmd->coords;
+            hurtCoords                      = actor->extra.tmd->coords;
             work->hurtBody.context.contacts = work->hurtContacts;
             work->hurtBody.pos.vx           = 0;
             work->hurtBody.pos.vy           = 0;
             work->hurtBody.pos.vz           = 0;
-            work->hurtBody.key              = 0x30014;
-            work->hurtBody.radius           = 0x190;
+            work->hurtBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_02000_ID;
+            work->hurtBody.radius           = ACTOR_02000_HURT_RADIUS;
             work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-            work->hurtBody.coord            = &partsB[3];
-            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hurtBody);
-            worldCollisionInitContacts(work->hurtContacts, ARRAY_SIZE(work->hurtContacts), 0);
-            work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            work->hurtBody.coord            = &hurtCoords[ACTOR_02000_BODY_PART];
+            ACTOR_02000_LINK_BODY_CONTACTS(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hurtBody, work->hurtContacts,
+                                           ARRAY_SIZE(work->hurtContacts), WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-            partsC                            = actor->extra.tmd->coords;
-            work->groundBody.pos.vy           = -0x226;
+            groundCoords                      = actor->extra.tmd->coords;
+            work->groundBody.pos.vy           = -ACTOR_02000_GROUND_RADIUS;
             work->groundBody.context.contacts = work->groundContacts;
             work->groundBody.pos.vx           = 0;
             work->groundBody.pos.vz           = 0;
             work->groundBody.key              = 0;
-            work->groundBody.radius           = 0x226;
+            work->groundBody.radius           = ACTOR_02000_GROUND_RADIUS;
             work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-            work->groundBody.coord            = partsC;
-            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->groundBody);
-            worldCollisionInitContacts(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
-            work->groundBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
+            work->groundBody.coord            = groundCoords;
+            ACTOR_02000_LINK_BODY_CONTACTS(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->groundBody, work->groundContacts,
+                                           ARRAY_SIZE(work->groundContacts), (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED));
 
-            effParts                          = eff->task->extra.tmd->coords;
+            swordCoords                       = swordEnemy->task->extra.tmd->coords;
             work->strikeBody.context.contacts = work->strikeContacts;
             work->strikeBody.pos.vx           = 0;
-            work->strikeBody.pos.vy           = 0x1F4;
+            work->strikeBody.pos.vy           = ACTOR_02000_STRIKE_OFFSET_Y;
             work->strikeBody.pos.vz           = 0;
             work->strikeBody.key              = 0;
-            work->strikeBody.radius           = 0x1F4;
+            work->strikeBody.radius           = ACTOR_02000_STRIKE_RADIUS;
             work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-            work->strikeBody.coord            = effParts;
+            work->strikeBody.coord            = swordCoords;
             worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody);
             worldCollisionInitContacts(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
             work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            actor->state            = 1;
+            actor->state            = GOLEM_PAWN_ROOK_TASK_RUNNING;
             break;
-        case 1:
-            work->anim   = 0x19;
-            work->step   = 2;
-            actor->state = 2;
+        case GOLEM_PAWN_ROOK_DOWNED_BEHIND:
+            work->anim   = ACTOR_02000_CORPSE_BEHIND_ANIM;
+            work->step   = ACTOR_02000_RESTORED_CORPSE_STEP;
+            actor->state = GOLEM_PAWN_ROOK_TASK_TEARDOWN;
             break;
-        case 2:
-            work->anim   = 0x1D;
-            work->step   = 2;
-            actor->state = 2;
+        case GOLEM_PAWN_ROOK_DOWNED_FRONT:
+            work->anim   = ACTOR_02000_CORPSE_FRONT_ANIM;
+            work->step   = ACTOR_02000_RESTORED_CORPSE_STEP;
+            actor->state = GOLEM_PAWN_ROOK_TASK_TEARDOWN;
             break;
     }
+#undef ACTOR_02000_LINK_BODY_CONTACTS
 }
-
 #include "../../shared/golem_pawn_rook_inlines.inc.c"
 
 #include "../../shared/golem_pawn_rook_frame_no_sparks.inc.c"
@@ -1497,24 +1533,34 @@ static void _golemPawnRookEngageState(Task* task)
 
 #include "../../shared/golem_pawn_rook_nop.inc.c"
 
-void Actor02000_Fn035E8(Task* arg0)
+/// Runs the Pawn GOLEM's attached Beam Sword lifecycle.
+///
+/// Requires a live sword Enemy in `spawnArg2.pointer`, its TMD model and parent
+/// body work. The unchecked state is 0 attachment at body part 7, 1 visibility
+/// mirroring and delayed trail spawn, or 2 destruction. Lighting is borrowed
+/// from the body; sword teardown also releases its successfully spawned trail.
+static void _actor02000SwordTask(Task* sword)
 {
-    EnemyTaskFuncTable3 sp;
+    const EnemyTaskFuncTable3 stateHandlers = Actor02000_D00060;
 
-    sp = Actor02000_D00060;
-    sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
+    stateHandlers.funcs[sword->state](sword->spawnArg2.pointer, sword);
 }
 
 #include "../../shared/golem_pawn_rook_sword_spawn.inc.c"
 
 #include "../../shared/golem_pawn_rook_sword_tick.inc.c"
 
-void Actor02000_Fn03728(Task* arg0)
+/// Runs the Beam Sword Pawn GOLEM body's lifecycle.
+///
+/// Requires a live body Enemy in `spawnArg2.pointer` and a nineteen-part model.
+/// The unchecked state is 0 allocation/setup, 1 combat update, or 2 corpse and
+/// teardown handling. Spawn owns the work shared by attached children; a handler
+/// may destroy the Enemy/task pair, so nothing is read after dispatch.
+static void _actor02000BodyTask(Task* body)
 {
-    EnemyTaskFuncTable3 sp;
+    const EnemyTaskFuncTable3 stateHandlers = Actor02000_D0006C;
 
-    sp = Actor02000_D0006C;
-    sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
+    stateHandlers.funcs[body->state](body->spawnArg2.pointer, body);
 }
 
 static const EnemyTaskFuncTable3 Actor02000_D00060 = { {
@@ -1524,7 +1570,7 @@ static const EnemyTaskFuncTable3 Actor02000_D00060 = { {
 } };
 
 static const EnemyTaskFuncTable3 Actor02000_D0006C = { {
-    Actor02000_Fn0251C,
+    _actor02000SpawnBody,
     _golemPawnRookFrameStateNoSparks,
     _golemPawnRookDeadState,
 } };

@@ -149,7 +149,7 @@ static void _actor800200TickArea25Route1(Task* task);
 static void _actor800200CompleteArea25Route7(Task* task);
 static void _actor800200TickArea3Route(Task* task);
 static void _actor800200TickArea24Route10(Task* task);
-static void func_actor_800200_80165B84(Task* arg0);
+static void _actor800200TickNormalMode(Task* task);
 static void _actor800200TickScheduleIdle(Task* task);
 static void _actor800200TickRest(Task* task);
 static void _actor800200TickRouteAnimation(Task* task);
@@ -1205,7 +1205,7 @@ static const TaskFuncTable4 D_actor_800200_80161E24 = { {
 
 /// Handlers `func_actor_800200_801652EC` runs, indexed by `mode`.
 static const TaskFuncTable3 D_actor_800200_80161E34 = { {
-    func_actor_800200_80165B84,
+    _actor800200TickNormalMode,
     _actor800200TickDamageMode,
     _actor800200TickScriptedMode,
 } };
@@ -2803,7 +2803,7 @@ static void _actor800200TickScriptedRunToDestination(Task* task)
 
 #undef ACTOR_800200_STEP_DESTINATION_TURN
 
-/// Handlers `func_actor_800200_80165B84` runs, indexed by `state`.
+/// Handlers `_actor800200TickNormalMode` runs, indexed by `state`.
 static const TaskFuncTable12 D_actor_800200_80161E5C = { {
     _actor800200TickScheduleIdle,
     _actor800200TickPlayerFollow,
@@ -3339,34 +3339,42 @@ static void _actor800200TickArea24Route10(Task* task)
 
 #undef ACTOR_800200_SET_ROUTE_DESTINATION
 
-static void func_actor_800200_80165B84(Task* arg0)
+/// Advances the companion's normal behavior, contact reaction and movement.
+///
+/// Requires live actor/companion work, model root and loaded state handlers;
+/// `GameActor.state` is an unchecked index in 0..11. Counts down a positive
+/// decision timer before dispatch. A zero signed recovery byte permits body
+/// contacts; a nonzero unsigned hit-region halfword enters damage mode and
+/// requests the spatial hurt cue. Animation, child tracks, facing and movement
+/// then update even if that reaction changed mode.
+static void _actor800200TickNormalMode(Task* task)
 {
-    GameActor*      actor;
-    CompanionWork*  companion;
-    GfxCoord*       coord;
-    TaskFuncTable12 sp;
-    s32             pan;
+    GameActor*            actor;
+    CompanionWork*        companion;
+    GfxCoord*             rootCoord;
+    const TaskFuncTable12 stateHandlers = D_actor_800200_80161E5C;
+    s32                   audioPan;
 
-    sp        = D_actor_800200_80161E5C;
-    actor     = arg0->work;
+    actor     = task->work;
     companion = actor->companionWork;
-    coord     = arg0->extra.tmd->coords;
+    rootCoord = task->extra.tmd->coords;
     if (companion->decisionTimer > 0) {
         companion->decisionTimer--;
     }
-    sp.funcs[actor->state](arg0);
+    // State selection precedes contact reactions and the common movement update.
+    stateHandlers.funcs[actor->state](task);
     if ((s8)actor->recoveryTicks == 0) {
-        playerActorResolveBodyContacts(arg0, actor->collisionContacts);
+        playerActorResolveBodyContacts(task, actor->collisionContacts);
         if ((u16)actor->hitRegion != 0) {
-            companionEnterDamageReaction(arg0);
-            pan = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(SOUND_ACTOR_800200_HURT, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            companionEnterDamageReaction(task);
+            audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(SOUND_ACTOR_800200_HURT, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
         }
     }
-    playerActorTickAnimationState(arg0);
-    playerActorTickChildSlots(arg0);
-    playerActorUpdateFacing(arg0);
-    playerActorStepMovement(arg0);
+    playerActorTickAnimationState(task);
+    playerActorTickChildSlots(task);
+    playerActorUpdateFacing(task);
+    playerActorStepMovement(task);
 }
 
 /// Dispatches idle behavior for the companion-2 schedule captured when the task spawned.

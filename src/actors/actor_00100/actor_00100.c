@@ -3022,25 +3022,28 @@ static const DesertChaserStateTable Actor00100_D000F0 = { {
     desertChaserRoam,
 } };
 
-/// Snaps a collision-enabled caught player's height when the roots separate by over 800 units.
+/// Snaps the held player's root height when separation exceeds 800 game units.
 ///
-/// The caller tests the hold and state exclusions. Roots share parent-coordinate
-/// units; the live player slot is reloaded and a missing slot is ignored.
+/// Requires live chaser work/model; the caller checks the hold and excluded states.
+/// Acts only when the move request enables all collision classes and disables none.
+/// Both roots use the same parent frame, and their Y difference must fit the signed
+/// absolute-value calculation. A missing player slot is ignored. Marks only a
+/// changed player root dirty, leaving composition to its update.
 static inline void _actor00100SnapHeldPlayerHeight(Task* actor)
 {
     enum { ACTOR00100_PLAYER_HEIGHT_FIRST_SNAP = 801 };
-    DesertChaserWork* alignmentWork;
-    Task*             alignmentPlayer;
-    GfxCoord*         alignmentPlayerRoot;
+    DesertChaserWork* work;
+    Task*             player;
+    GfxCoord*         playerRoot;
     GfxCoord*         actorRoot;
-    alignmentWork   = actor->work;
-    alignmentPlayer = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if ((alignmentPlayer != NULL) && (alignmentWork->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
-        alignmentPlayerRoot = alignmentPlayer->extra.tmd->coords;
-        actorRoot           = actor->extra.tmd->coords;
-        if (abs(alignmentPlayerRoot->coord.t[1] - actorRoot->coord.t[1]) >= ACTOR00100_PLAYER_HEIGHT_FIRST_SNAP) {
-            alignmentPlayerRoot->coord.t[1]                  = actorRoot->coord.t[1];
-            alignmentPlayer->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    work   = actor->work;
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if ((player != NULL) && (work->playerMove.collisionRequests == GAME_ACTOR_COLLISION_REQUEST_MASK)) {
+        playerRoot = player->extra.tmd->coords;
+        actorRoot  = actor->extra.tmd->coords;
+        if (abs(playerRoot->coord.t[1] - actorRoot->coord.t[1]) >= ACTOR00100_PLAYER_HEIGHT_FIRST_SNAP) {
+            playerRoot->coord.t[1]                  = actorRoot->coord.t[1];
+            player->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
 }

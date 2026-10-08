@@ -1849,7 +1849,9 @@ static void _actor00400InitCollisionBodies(Task* task)
 /// below that floor; addition must fit the word. No pointer is retained.
 static inline void _actor00400ApplyRootFractionalPush(s32 correctionWord, long* translation)
 {
-    if ((correctionWord & 0xFFFF) != 0) {
+    enum { ACTOR_00400_PUSH_FRACTION_MASK = 0xFFFF };
+
+    if ((correctionWord & ACTOR_00400_PUSH_FRACTION_MASK) != 0) {
         if (correctionWord > 0) {
             (*translation)++;
         } else {
@@ -1865,7 +1867,9 @@ static inline void _actor00400ApplyRootFractionalPush(s32 correctionWord, long* 
 /// floor, and the update narrows to the low signed halfword. No pointer is retained.
 static inline void _actor00400ApplyAnchorFractionalPush(s32 correctionWord, short* translation)
 {
-    if ((correctionWord & 0xFFFF) != 0) {
+    enum { ACTOR_00400_PUSH_FRACTION_MASK = 0xFFFF };
+
+    if ((correctionWord & ACTOR_00400_PUSH_FRACTION_MASK) != 0) {
         if (correctionWord > 0) {
             (*translation)++;
         } else {
@@ -2145,14 +2149,17 @@ static s32 _actor00400SwimToNextWaypoint(Task* task)
     }
 }
 
-/// Gives a detached chunk the body's texture placement and rebuilds both buffers.
+/// Gives a detached chunk the body's texture placement and rebuilds both buffer halves.
 ///
-/// Requires a successful model-effect spawn. Models borrow their chunk sources;
-/// this copies only texture-page and CLUT-row offsets. An absent buffer stays absent.
-static inline void _actor00400BindChunkTexture(Task* task, EffectWork* chunkEffect)
+/// Requires live body/chunk models and a successful model-effect spawn. Copies
+/// texture-page and CLUT-row offsets without changing either model's source.
+/// A present chunk buffer must satisfy the source and scratch requirements of
+/// `tmdBuildBufferHalf`; paired builds preserve its half selector. No buffer is
+/// allocated, and the task/effect records are borrowed only during this call.
+static inline void _actor00400BindChunkTexture(const Task* task, const EffectWork* chunkEffect)
 {
-    TmdObject* bodyModel  = task->extra.tmd;
-    TmdObject* chunkModel = chunkEffect->task->extra.tmd;
+    const TmdObject* bodyModel  = task->extra.tmd;
+    TmdObject*       chunkModel = chunkEffect->task->extra.tmd;
 
     chunkModel->texturePageOffset = bodyModel->texturePageOffset;
     chunkModel->clutRowOffset     = bodyModel->clutRowOffset;
