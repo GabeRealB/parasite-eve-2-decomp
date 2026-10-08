@@ -1931,7 +1931,7 @@ mistShootingGalleryDrawLightGlowsTask = 0x801811EC; // type:func absolute:True o
 
 dryfieldR08LampGlowTask = 0x8017D5F8; // type:func absolute:True owner=dryfield_r08 shared=rooms
 
-neoArkPyramidConfigureEffectsTask = 0x8017DBF0; // type:func absolute:True owner=neo_ark_pyramid shared=rooms
+neoArkPyramidConfigureEffectsTask = 0x8017DBF0; // type:func absolute:True owner=neo_ark_pyramid
 
 neoArkSouthPromenadeRoomVisualEffectsFlashTask = 0x8017D720; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
 

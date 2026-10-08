@@ -27103,7 +27103,7 @@ function that *references* it, and writes that function's whole entry -
 `.rodata` included - as one `.s`. So a room's dispatch table is owned by the
 unit whose code reads it, not by the unit whose `.rodata` subsegment holds it:
 `D_neo_ark_altar_8017D648` sits in `neo_ark_altar_5`'s rodata subsegment but
-was written into `func_neo_ark_altar_8017ECE0.s` because that function loads
+was written into `_neoArkAltarTileSequenceTask.s` because that function loads
 it. Match that function and the file moves to
 `asm/<ver>/<family>/matchings/<overlay>/<unit>/`, which nothing assembles: the
 table is simply gone and the link fails with `undefined reference to D_...`.
@@ -27126,7 +27126,7 @@ its declaration, an uninitialized `Table x;` is collected at the TU's end.
 MIPS emits the const into `.rdata`, which maspsx folds into `.rodata`, so
 there is still one input section for the linker script to match.
 
-`func_neo_ark_altar_8017ECE0` (32 words, 8 entries) is the example: with the
+`_neoArkAltarTileSequenceTask` (32 words, 8 entries) is the example: with the
 table declared between the last `INCLUDE_ASM` and the function bodies, the
 unit's object is `.rodata` = jtbl `0x18` + jtbl `0x18` + table `0x30`, and the
 overlay's sha1 (`81bee87394eeb2dce334c3d32a910da99acae524`) matches byte for
@@ -43402,8 +43402,8 @@ is `if (x == 0) A; else if (x == 1) B; else C` with one store after the chain.
 Nesting the nonzero tests (`if (x != 0) { if (x == 1) B; else C; } else A;`)
 inverts the outer branch to `beqz` and keeps a `j` after B — the shape that
 "Nest `if (x != 0)` so the zero case is a real else" documents as the *other*
-target. `func_neo_ark_altar_8017DA40` is the example. An `s32 id` temp for A/B/C
-also pulled `spawnArg1` out of `$v1` into `$a0`; store through `key.loc.view` in
+target. `_neoArkAltarPlayMovieTask` is the example. An `s32 id` temp for A/B/C
+also pulled `spawnArg1` out of `$v1` into `$a0`; store through `movieLocation.loc.view` in
 each arm and let GCC merge onto `$v0`.
 
 ## Room task state machines: plain `switch` + `break`, not `goto advance` / `goto kill`
@@ -120116,7 +120116,7 @@ reads and write-backs, and `handler = func_...;` assigned before that call.
 Without the function-pointer local the call is a direct `jal` (93%); whether
 `p` is needed was not tested separately. The last sched1 tie, `sb zero,0x25($sp)` one slot early, moved
 by storing `msg.field_5 = 0` after `msg.field_3` rather than before it.
-## A symbol address rematerialized after a call cannot be hoisted above it, so `&table[i]` written after the call lands in a caller-saved scratch (func_neo_ark_altar_8017E92C, 2026-09-17)
+## A symbol address rematerialized after a call cannot be hoisted above it, so `&table[i]` written after the call lands in a caller-saved scratch (_neoArkAltarDrawTileWalls, 2026-09-17)
 
 Target: `lui s2,%hi(D_table)` / `addiu s2,s2,%lo(D_table)` sit *before* the
 `jal actorRenderComposeCoord`, while the index math that consumes them
@@ -120156,18 +120156,18 @@ Fix - split the address in the source, not with casts or barriers: take the
 array base before the call, index it after.
 
 ```c
-    base = D_neo_ark_altar_8017F014;   /* before the call: base is live across it */
-    y0   = -0x1086;
+    footprints = D_neo_ark_altar_8017F014;   /* before the call: base is live across it */
+    floorY     = NEO_ARK_ALTAR_TILE_FLOOR_Y;
 
     gGfxViewCoord.composeStamp = 0;
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_SetTransMatrix(&Gfx_ViewWorldMtx);
 
-    tile = &base[arg0];                /* after: only the scaled index is */
+    tile = &footprints[tileIndex];                /* after: only the scaled index is */
 ```
 
-`base` now crosses the call, so it must take a callee-saved home (`$s2` here,
+`footprints` now crosses the call, so it must take a callee-saved home (`$s2` here,
 reused for a stack-vector address once it dies) and its `lui`/`addiu` are
 emitted where they were written. 96.989% -> 100%, all penalties zero.
 
@@ -120183,7 +120183,7 @@ Inputs: `base_2.i` (95.902%) SHA256
 `42fc71a198bb50cc37755760c8ea7e9502fcf743cf93a3a7eb149c06e7906a89`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
-`nonmatchings/func_neo_ark_altar_8017E92C-vacuum`.
+`nonmatchings/_neoArkAltarDrawTileWalls-vacuum`.
 
 ## One variable read into the same pointer is what keeps a repeated load off `$v0` (func_neo_ark_altar_8017E148, 2026-09-17)
 

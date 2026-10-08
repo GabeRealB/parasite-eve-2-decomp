@@ -7,8 +7,8 @@
 
 #include "main/task_types.h"
 
-/// Two-entry spawn table: entry 0 is `func_neo_ark_altar_8017DBF0`, which
-/// starts entry 1, the streaming task `func_neo_ark_altar_8017DA40`, on the
+/// Two-entry spawn table: entry 0 is `_neoArkAltarLaunchMovieTask`, which
+/// starts entry 1, the streaming task `_neoArkAltarPlayMovieTask`, on the
 /// display list. The altar's cutscene driver and its task both spawn entry 0.
 extern TaskDesc D_neo_ark_altar_8017EFC0[];
 

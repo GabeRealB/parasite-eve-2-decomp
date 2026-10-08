@@ -105,21 +105,21 @@ extern _NeoArkAltarTile D_neo_ark_altar_8017EFD8[];
 extern AreaApplyRec     D_neo_ark_altar_8018007C[];
 
 static void _neoArkAltarDrawTileWallSide(const SVECTOR* floorStart, const SVECTOR* floorEnd, const SVECTOR* raisedStart, const SVECTOR* unusedRaisedEnd);
-static s16  func_neo_ark_altar_8017EC34(_NeoArkAltarTile* table, s16 x, s16 z);
+static s16  _neoArkAltarFindTile(const _NeoArkAltarTile* table, s16 x, s16 z);
 static s16  func_neo_ark_altar_8017E260(Task* task);
-static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1);
+static void _neoArkAltarDrawTileWalls(s16 tileIndex, s32 height);
 
 extern WorldCollisionGrid    D_neo_ark_altar_8017F57C[1];
 extern WorldCollisionTrigger D_neo_ark_altar_8017FF08[4];
 extern WorldCoordRoomLights  D_neo_ark_altar_8017FEF0[1];
-void                         func_neo_ark_altar_8017ECE0(Task*);
+static void                  _neoArkAltarTileSequenceTask(Task* task);
 
-void func_neo_ark_altar_8017DA40(Task*);
-void func_neo_ark_altar_8017DBF0(Task*);
+static void _neoArkAltarPlayMovieTask(Task* task);
+static void _neoArkAltarLaunchMovieTask(Task* task);
 
 TaskDesc D_neo_ark_altar_8017EFC0[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_neo_ark_altar_8017DBF0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_neo_ark_altar_8017DA40, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _neoArkAltarLaunchMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _neoArkAltarPlayMovieTask, { .value = 0 } },
 };
 
 _NeoArkAltarTile D_neo_ark_altar_8017EFD8[5] = {
@@ -173,7 +173,7 @@ s16 D_neo_ark_altar_8017F068[16] = {
 };
 
 TaskDesc D_neo_ark_altar_8017F088[1] = {
-    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_altar_8017ECE0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _neoArkAltarTileSequenceTask, { .value = 0 } },
 };
 
 WorldCollisionRoomResources D_neo_ark_altar_8017F094[3] = {
@@ -489,7 +489,7 @@ static void func_neo_ark_altar_8017ED60(Task* task);
 
 static void _neoArkAltarWaitForTileSequence(Task* task);
 
-static void func_neo_ark_altar_8017EDF8(Task* task);
+static void _neoArkAltarBeginSequenceMovieFade(Task* task);
 
 static void _neoArkAltarFadeToBlack(Task* task);
 
@@ -497,43 +497,76 @@ static void func_neo_ark_altar_8017EE90(Task* task);
 
 static void _neoArkAltarSelectPostSequenceRoom(Task* task);
 
-static void func_neo_ark_altar_8017EF34(Task* task);
+static void _neoArkAltarResumeTileSequence(Task* task);
 
 static void func_neo_ark_altar_8017DF0C(Task* task);
 static void func_neo_ark_altar_8017E148(void);
 
-void func_neo_ark_altar_8017DA40(Task* task)
+/// Queues the selected altar movie in the current room without retaining local scratch.
+static inline void _neoArkAltarQueueMovie(Task* task)
 {
-    u8          slotParam[4];
-    GameLoc     key;
+    enum {
+        NEO_ARK_ALTAR_MOVIE_SWITCH_SET      = 0,
+        NEO_ARK_ALTAR_MOVIE_SWITCH_CLEAR    = 1,
+        NEO_ARK_ALTAR_MOVIE_SWITCH_SET_ID   = 100,
+        NEO_ARK_ALTAR_MOVIE_SWITCH_CLEAR_ID = 101,
+        NEO_ARK_ALTAR_MOVIE_SEQUENCE_ID     = 102,
+    };
+    u8      commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLoc movieLocation;
+
+    movieLocation = gGameSession->location;
+    if (task->spawnArg1.value == NEO_ARK_ALTAR_MOVIE_SWITCH_SET) {
+        movieLocation.loc.view = NEO_ARK_ALTAR_MOVIE_SWITCH_SET_ID;
+    } else if (task->spawnArg1.value == NEO_ARK_ALTAR_MOVIE_SWITCH_CLEAR) {
+        movieLocation.loc.view = NEO_ARK_ALTAR_MOVIE_SWITCH_CLEAR_ID;
+    } else {
+        movieLocation.loc.view = NEO_ARK_ALTAR_MOVIE_SEQUENCE_ID;
+    }
+    // Enqueue copies four bytes; this opcode interprets only the slot byte.
+    commandArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
+}
+
+/// Plays an altar movie, then restores game resources and frame presentation.
+///
+/// `spawnArg1.value` selects stream ID 100 for 0 (switch flag set), 101 for 1
+/// (switch flag clear), or 102 otherwise (second tile sequence solved), using
+/// the current room. The selected movie slot must be loaded. The task must own
+/// display presentation, and the session, movie resources and saved VRAM images
+/// must remain available through restoration. Start requests cancellation;
+/// completion and cancellation both wait for CD idle before restoring model
+/// buffers and sprite images. The task ends after restoration, with no work
+/// block allocated, and returns presentation to the game loop.
+static void _neoArkAltarPlayMovieTask(Task* task)
+{
+    enum {
+        NEO_ARK_ALTAR_MOVIE_PREPARE,
+        NEO_ARK_ALTAR_MOVIE_QUEUE,
+        NEO_ARK_ALTAR_MOVIE_WAIT_READY,
+        NEO_ARK_ALTAR_MOVIE_PLAY,
+        NEO_ARK_ALTAR_MOVIE_WAIT_IDLE,
+        NEO_ARK_ALTAR_MOVIE_RESTORE_GAME,
+    };
     CdCmdQueue* queue = &gCdCmdQueue;
 
     switch (task->state) {
-        case 0:
+        case NEO_ARK_ALTAR_MOVIE_PREPARE:
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
             task->state++;
             break;
-        case 1:
-            key = gGameSession->location;
-            if (task->spawnArg1.value == 0) {
-                key.loc.view = 0x64;
-            } else if (task->spawnArg1.value == 1) {
-                key.loc.view = 0x65;
-            } else {
-                key.loc.view = 0x66;
-            }
-            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+        case NEO_ARK_ALTAR_MOVIE_QUEUE:
+            _neoArkAltarQueueMovie(task);
             task->state++;
             break;
-        case 2:
+        case NEO_ARK_ALTAR_MOVIE_WAIT_READY:
             if (queue->movieReady != 0) {
                 SetDispMask(1);
                 task->state++;
             }
             break;
-        case 3:
+        case NEO_ARK_ALTAR_MOVIE_PLAY:
             if (cdCmdIsIdle()) {
                 SetDispMask(0);
                 task->state++;
@@ -543,13 +576,14 @@ void func_neo_ark_altar_8017DA40(Task* task)
                 task->state++;
             }
             break;
-        case 4:
+        // Playback and cancellation must drain before game memory is reused.
+        case NEO_ARK_ALTAR_MOVIE_WAIT_IDLE:
             if (cdCmdIsIdle()) {
                 streamResetGameRestore();
                 task->state++;
             }
             break;
-        case 5:
+        case NEO_ARK_ALTAR_MOVIE_RESTORE_GAME:
             if (streamPollGameRestore(0, 1)) {
                 taskKill(task);
                 displayResumeGameLoop();
@@ -558,16 +592,21 @@ void func_neo_ark_altar_8017DA40(Task* task)
     }
 }
 
-/// Entry 0 of `D_neo_ark_altar_8017EFC0`: spawns that table's entry 1 (the
-/// streaming task `func_neo_ark_altar_8017DA40`) with an ordering table,
-/// passing on this task's `spawnArg1`, sets `gDisplayState.control.flags.flipMode`, calls
-/// `viewQueueCurrentCameraAndPackets` and ends.
-void func_neo_ark_altar_8017DBF0(Task* arg0)
+/// Hands frame presentation to an altar movie task and releases the launcher.
+///
+/// Forwards `spawnArg1` to `_neoArkAltarPlayMovieTask`. Requires game-loop
+/// presentation ownership and an available display-task list; captures the
+/// current camera and room packets before the movie task starts on that list.
+/// The movie task owns restoration and the eventual return to game presentation.
+/// Display-task spawn failure is not handled here.
+static void _neoArkAltarLaunchMovieTask(Task* task)
 {
-    displaySpawnTaskFromTable(D_neo_ark_altar_8017EFC0, 1, arg0->spawnArg1.value, 0);
+    enum { NEO_ARK_ALTAR_MOVIE_PLAYBACK_ENTRY = 1 };
+
+    displaySpawnTaskFromTable(D_neo_ark_altar_8017EFC0, NEO_ARK_ALTAR_MOVIE_PLAYBACK_ENTRY, task->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
-    taskKill(arg0);
+    taskKill(task);
 }
 
 /// Steps the altar's switch state `D_neo_ark_altar_801800AE` by one per call,
@@ -725,7 +764,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
 
 /// Altar state 2: records the tile the player walks onto and, while
 /// `func_neo_ark_altar_8017E260` reports the altar sequence has matched, raises
-/// the wall of the tile the player stands on. `func_neo_ark_altar_8017EC34`
+/// the wall of the tile the player stands on. `_neoArkAltarFindTile`
 /// resolves the player coordinate to a tile id, which is pushed onto
 /// `D_neo_ark_altar_801800B0` whenever it changes; the returned sequence state
 /// picks the sound and area record set for the frame and, at 3, arms
@@ -750,7 +789,7 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
     work->previousTile = work->currentTile;
     grow               = 0;
     coord              = actor->extra.tmd->coords;
-    cur                = func_neo_ark_altar_8017EC34(D_neo_ark_altar_8017EFD8, (s16)coord->coord.t[0], (s16)coord->coord.t[2]);
+    cur                = _neoArkAltarFindTile(D_neo_ark_altar_8017EFD8, (s16)coord->coord.t[0], (s16)coord->coord.t[2]);
     prev               = work->previousTile;
     work->currentTile  = cur;
     if (cur != prev && prev == 0) {
@@ -790,7 +829,7 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
             level             = 1;
             work->wallHeight += (NEO_ARK_ALTAR_WALL_HEIGHT_FULL - work->wallHeight) >> 1;
             level             = work->wallHeight;
-            func_neo_ark_altar_8017E92C((s16)i, level);
+            _neoArkAltarDrawTileWalls((s16)i, level);
             found = 1;
         }
     }
@@ -798,7 +837,7 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
         work->wallHeight += (-work->wallHeight) >> 2;
         level             = work->wallHeight;
         if (level >= 0xB) {
-            func_neo_ark_altar_8017E92C(work->wallTileIndex, level);
+            _neoArkAltarDrawTileWalls(work->wallTileIndex, level);
         }
     }
 }
@@ -957,6 +996,10 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
 }
 
 /// Sets a wall strip's grayscale gradient from its lower edge to its upper edge.
+///
+/// Vertices 0 and 1 form the lower edge, and 2 and 3 the upper edge. Both
+/// shades are unsigned eight-bit RGB intensities; the packet's tag, command
+/// byte and projected coordinates are preserved.
 static inline void _neoArkAltarShadeWallStrip(POLY_G4* strip, u8 lowerShade, u8 upperShade)
 {
     strip->r0 = lowerShade;
@@ -1049,108 +1092,96 @@ static void _neoArkAltarDrawTileWallSide(const SVECTOR* floorStart, const SVECTO
     }
 }
 
-/// Walls in one altar tile. The view matrix is re-derived from
-/// `gGfxViewCoord` and `gGfxViewCoord.workm` pushed into the GTE first, then each
-/// of the tile's four sides goes to `_neoArkAltarDrawTileWallSide` as its two
-/// corners at the floor height `y0` and at `y0 - arg1`, so `arg1` is how far a
-/// side drops below the tile. The sides walk the tile rectangle
-/// `(x, z) -> (x + width, z) -> (x + width, z + depth) -> (x, z + depth)` as
-/// `arg0` selects the tile in the table.
-static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
+/// Builds a wall's four endpoints using the drawer's local vectors and Y levels.
+///
+/// Arguments are side-effect-free world X/Z expressions, each evaluated twice.
+/// Captures `floorStart`, `floorEnd`, `raisedStart`, `raisedEnd`, `floorY` and
+/// `raisedY`; the four vectors must be distinct writable SVECTOR values, and
+/// argument expressions must not depend on those vectors' contents. Narrows
+/// each coordinate to a signed halfword without changing the vectors' pad fields.
+#define NEO_ARK_ALTAR_SET_WALL_SIDE_CORNERS(startX, startZ, endX, endZ) \
+    {                                                                   \
+        floorStart.vx  = (startX);                                      \
+        floorStart.vy  = floorY;                                        \
+        floorStart.vz  = (startZ);                                      \
+        floorEnd.vx    = (endX);                                        \
+        floorEnd.vy    = floorY;                                        \
+        floorEnd.vz    = (endZ);                                        \
+        raisedStart.vx = (startX);                                      \
+        raisedStart.vy = raisedY;                                       \
+        raisedStart.vz = (startZ);                                      \
+        raisedEnd.vx   = (endX);                                        \
+        raisedEnd.vy   = raisedY;                                       \
+        raisedEnd.vz   = (endZ);                                        \
+    }
+
+/// Draws the four additive light walls rising around an altar tile.
+///
+/// `tileIndex` is 0..3 in the wall-footprint table; `height` is a nonnegative
+/// height in world units, up to `NEO_ARK_ALTAR_WALL_HEIGHT_FULL`. The floor
+/// lies at Y = -4230 and the raised edge at floor Y minus height. Composes and
+/// installs the current world-to-view GTE transform. Requires a live ordering
+/// table and word-aligned packet arena with space for up to 128 pairs of
+/// `POLY_G4` and `DR_MODE`; packets must survive until GPU drawing completes.
+static void _neoArkAltarDrawTileWalls(s16 tileIndex, s32 height)
 {
-    _NeoArkAltarTile* tile;
-    _NeoArkAltarTile* base;
-    SVECTOR           p0;
-    SVECTOR           p1;
-    SVECTOR           p2;
-    SVECTOR           p3;
-    s16               y0;
-    s16               y1;
+    enum { NEO_ARK_ALTAR_TILE_FLOOR_Y = -4230 };
+    const _NeoArkAltarTile* tile;
+    const _NeoArkAltarTile* footprints;
+    SVECTOR                 floorStart;
+    SVECTOR                 floorEnd;
+    SVECTOR                 raisedStart;
+    SVECTOR                 raisedEnd;
+    s16                     floorY;
+    s16                     raisedY;
 
-    base = D_neo_ark_altar_8017F014;
-    y0   = -0x1086;
+    footprints = D_neo_ark_altar_8017F014;
+    floorY     = NEO_ARK_ALTAR_TILE_FLOOR_Y;
 
+    // All four walls share the composed world-to-view transform.
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&gGfxViewCoord);
 
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
 
-    tile = &base[arg0];
-    y1   = y0 - arg1;
+    tile    = &footprints[tileIndex];
+    raisedY = floorY - height;
 
-    p0.vx = tile->x;
-    p0.vy = y0;
-    p0.vz = tile->z;
-    p1.vx = tile->x + tile->width;
-    p1.vy = y0;
-    p1.vz = tile->z;
-    p2.vx = tile->x;
-    p2.vy = y1;
-    p2.vz = tile->z;
-    p3.vx = tile->x + tile->width;
-    p3.vy = y1;
-    p3.vz = tile->z;
-    _neoArkAltarDrawTileWallSide(&p0, &p1, &p2, &p3);
+    NEO_ARK_ALTAR_SET_WALL_SIDE_CORNERS(tile->x, tile->z, tile->x + tile->width, tile->z);
+    _neoArkAltarDrawTileWallSide(&floorStart, &floorEnd, &raisedStart, &raisedEnd);
 
-    p0.vx = tile->x + tile->width;
-    p0.vy = y0;
-    p0.vz = tile->z;
-    p1.vx = tile->x + tile->width;
-    p1.vy = y0;
-    p1.vz = tile->z + tile->depth;
-    p2.vx = tile->x + tile->width;
-    p2.vy = y1;
-    p2.vz = tile->z;
-    p3.vx = tile->x + tile->width;
-    p3.vy = y1;
-    p3.vz = tile->z + tile->depth;
-    _neoArkAltarDrawTileWallSide(&p0, &p1, &p2, &p3);
+    NEO_ARK_ALTAR_SET_WALL_SIDE_CORNERS(tile->x + tile->width, tile->z, tile->x + tile->width, tile->z + tile->depth);
+    _neoArkAltarDrawTileWallSide(&floorStart, &floorEnd, &raisedStart, &raisedEnd);
 
-    p0.vx = tile->x;
-    p0.vy = y0;
-    p0.vz = tile->z + tile->depth;
-    p1.vx = tile->x + tile->width;
-    p1.vy = y0;
-    p1.vz = tile->z + tile->depth;
-    p2.vx = tile->x;
-    p2.vy = y1;
-    p2.vz = tile->z + tile->depth;
-    p3.vx = tile->x + tile->width;
-    p3.vy = y1;
-    p3.vz = tile->z + tile->depth;
-    _neoArkAltarDrawTileWallSide(&p0, &p1, &p2, &p3);
+    NEO_ARK_ALTAR_SET_WALL_SIDE_CORNERS(tile->x, tile->z + tile->depth, tile->x + tile->width, tile->z + tile->depth);
+    _neoArkAltarDrawTileWallSide(&floorStart, &floorEnd, &raisedStart, &raisedEnd);
 
-    p0.vx = tile->x;
-    p0.vy = y0;
-    p0.vz = tile->z;
-    p1.vx = tile->x;
-    p1.vy = y0;
-    p1.vz = tile->z + tile->depth;
-    p2.vx = tile->x;
-    p2.vy = y1;
-    p2.vz = tile->z;
-    p3.vx = tile->x;
-    p3.vy = y1;
-    p3.vz = tile->z + tile->depth;
-    _neoArkAltarDrawTileWallSide(&p0, &p1, &p2, &p3);
+    NEO_ARK_ALTAR_SET_WALL_SIDE_CORNERS(tile->x, tile->z, tile->x, tile->z + tile->depth);
+    _neoArkAltarDrawTileWallSide(&floorStart, &floorEnd, &raisedStart, &raisedEnd);
 }
 
-/// Returns the `id` of the first tile in `table` whose rectangle contains
-/// `(x, z)`, edges inclusive, or 0 when none does. The scan ends at the entry
-/// whose `id` is `NEO_ARK_ALTAR_TILE_END`.
-static s16 func_neo_ark_altar_8017EC34(_NeoArkAltarTile* table, s16 x, s16 z)
+#undef NEO_ARK_ALTAR_SET_WALL_SIDE_CORNERS
+
+/// Returns the first altar pad containing a world X/Z point, or 0 on a miss.
+///
+/// `table` is borrowed read-only storage ending at `NEO_ARK_ALTAR_TILE_END`.
+/// Both rectangle edges are included. Live entries carry pad IDs 1..4; the
+/// sentinel's rectangle is not tested. X and Z are signed halfword world units.
+static s16 _neoArkAltarFindTile(const _NeoArkAltarTile* table, s16 x, s16 z)
 {
+    enum { NEO_ARK_ALTAR_TILE_NONE = 0 };
+
     for (; table->id != NEO_ARK_ALTAR_TILE_END; table++) {
         if (table->x <= x && x <= table->x + table->width && table->z <= z && z <= table->z + table->depth) {
             return table->id;
         }
     }
-    return 0;
+    return NEO_ARK_ALTAR_TILE_NONE;
 }
 
 /// State handlers of the altar task, dispatched by
-/// `func_neo_ark_altar_8017ECE0` off `Task::state`: allocation and set-up,
+/// `_neoArkAltarTileSequenceTask` off `Task::state`: allocation and set-up,
 /// a short wait, the tile sequence (`func_neo_ark_altar_8017DF0C`), then, once
 /// the sequence completes, a fade-out, a spawn from `D_neo_ark_altar_8017EFC0`
 /// and a view change before control returns to the tile sequence.
@@ -1158,18 +1189,25 @@ static const TaskFuncTable8 D_neo_ark_altar_8017D648 = {
     func_neo_ark_altar_8017ED60,
     _neoArkAltarWaitForTileSequence,
     func_neo_ark_altar_8017DF0C,
-    func_neo_ark_altar_8017EDF8,
+    _neoArkAltarBeginSequenceMovieFade,
     _neoArkAltarFadeToBlack,
     func_neo_ark_altar_8017EE90,
     _neoArkAltarSelectPostSequenceRoom,
-    func_neo_ark_altar_8017EF34,
+    _neoArkAltarResumeTileSequence,
 };
 
-void func_neo_ark_altar_8017ECE0(Task* arg0)
+/// Runs the altar's tile puzzle and its second-sequence movie transition.
+///
+/// `state` must be 0..7: initialize, wait, track the tile sequence, hold the
+/// player, fade to black, launch the movie, select the post-movie room, and
+/// restore player presentation and control. The last state returns to state 2.
+/// Initialization owns a zeroed work allocation in `Task::work`, released by
+/// normal task teardown; an allocation failure may kill the task during dispatch.
+static void _neoArkAltarTileSequenceTask(Task* task)
 {
-    TaskFuncTable8 sp = D_neo_ark_altar_8017D648;
+    TaskFuncTable8 stateHandlers = D_neo_ark_altar_8017D648;
 
-    sp.funcs[arg0->state](arg0);
+    stateHandlers.funcs[task->state](task);
 }
 
 static void func_neo_ark_altar_8017ED60(Task* arg0)
@@ -1201,11 +1239,15 @@ static void _neoArkAltarWaitForTileSequence(Task* task)
     }
 }
 
-static void func_neo_ark_altar_8017EDF8(Task* arg0)
+/// Holds the player and begins the fade for the second solved tile sequence.
+///
+/// Runs in state 3; clears the signed halfword fade accumulator reused from
+/// `killCountdown`, then advances to the fade state.
+static void _neoArkAltarBeginSequenceMovieFade(Task* task)
 {
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-    arg0->killCountdown = 0;
-    arg0->state         = (s32)(arg0->state + 1);
+    task->killCountdown = 0;
+    task->state         = task->state + 1;
 }
 
 /// Fades the scene to black before the movie for the second solved tile sequence.
@@ -1259,13 +1301,19 @@ static void _neoArkAltarSelectPostSequenceRoom(Task* task)
     task->state                                                = task->state + 1;
 }
 
-static void func_neo_ark_altar_8017EF34(Task* arg0)
+/// Restores the player, HUD and display and resumes the altar's tile puzzle.
+///
+/// Runs after selecting the post-sequence room. Returns to tile tracking in
+/// state 2, keeping the task's existing work and puzzle progress alive.
+static void _neoArkAltarResumeTileSequence(Task* task)
 {
+    enum { NEO_ARK_ALTAR_STATE_TILE_SEQUENCE = 2 };
+
     SetDispMask(1);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     gGameSession->hideHud = 0;
-    arg0->state           = 2;
+    task->state           = NEO_ARK_ALTAR_STATE_TILE_SEQUENCE;
 }
 
 void neoArkAltarEffectNoopTask(Task* unusedTask)
