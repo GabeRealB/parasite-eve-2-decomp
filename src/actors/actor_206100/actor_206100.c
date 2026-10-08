@@ -1756,10 +1756,11 @@ static inline void _actor206100UpdateLockable(Task* task, u8 partIndex)
 
 /// Advances the attack discharge's sound, spark cues and signed-frame countdown.
 ///
-/// Requires live task work, Enemy and trunk coordinate 1. A nonzero countdown
-/// voices each multiple of eight ticks and requests sparks at 24 or 48 ticks
-/// remaining, then decrements once. Effect allocation does not gate that decrement.
-/// Sound pan/depth narrow to signed bytes; the Enemy placement selects the voice.
+/// Requires live task work, its Enemy and trunk coordinate 1. While the signed
+/// countdown is nonzero, each multiple of eight voices the enemy's placement
+/// instance and values 24 or 48 request a spark burst. The count decrements after
+/// both cues even if effect allocation fails. The current attack seeds 24 ticks;
+/// a zero count is idle. Audio pan/depth narrow to signed bytes.
 static inline void _actor206100TickDischargeEffects(Task* task)
 {
     enum {

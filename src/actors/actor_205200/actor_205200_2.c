@@ -156,7 +156,7 @@ static void _actor205200ScanContacts(Task* task);
 static void _actor205200TickIdle(Task* task);
 static void _actor205200TickPlayerKnockback(Task* task);
 static void func_actor_205200_8014C59C(Enemy* arg0, Task* arg1);
-static void func_actor_205200_8014C67C(Task* arg0);
+static void _actor205200TickBodyAction(Task* task);
 static void _actor205200TickHitReaction(Task* task);
 static void _actor205200UpdateAnimation(Task* task);
 static void _actor205200UpdateLighting(Task* task);
@@ -820,25 +820,26 @@ static void func_actor_205200_8014C59C(Enemy* arg0, Task* arg1)
             return;
     }
     _actor205200ScanContacts(arg1);
-    func_actor_205200_8014C67C(arg1);
+    _actor205200TickBodyAction(arg1);
     _actor205200UpdateAnimation(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
     _actor205200UpdateLighting(arg1);
     _actor205200DrawShadow(arg1);
 }
-/// Per-frame tick of the live state, run from `func_actor_205200_8014C59C`'s
-/// shared body. Bit 0 of `gSceneCombatState.pairedEnemySignals` is a one-shot
-/// request: it is cleared here and starts `ACTOR_205200_ACTION_HIT_REACTION`
-/// from its first step, as a hit does. `action` then picks the idle or the
-/// hit-reaction handler, `room` which of the two rooms' own ticks follows, and
-/// `knockbackActive` keeps the knockback running until that body clears it
-/// itself.
-static void func_actor_205200_8014C67C(Task* arg0)
+/// Advances the paired body's idle or hit reaction, room glow and player knockback.
+///
+/// Requires initialized live body work and its room resources. Consumes bit 0 of
+/// pairedEnemySignals to restart the hit reaction before dispatching action.
+/// The room glow runs after that action; active player knockback advances last.
+/// The signal's current shared name is `SCENE_COMBAT_PAIRED_CHARGE_REQUEST`, but
+/// this reader responds by starting a hit reaction.
+static void _actor205200TickBodyAction(Task* task)
 {
     _Actor205200Work* work;
 
-    work = arg0->work;
+    work = task->work;
+    // A destroyed controller part can restart the body reaction before its tick.
     if (gSceneCombatState.pairedEnemySignals & SCENE_COMBAT_PAIRED_CHARGE_REQUEST) {
         gSceneCombatState.pairedEnemySignals &= (0xFF ^ SCENE_COMBAT_PAIRED_CHARGE_REQUEST);
         work->action                          = ACTOR_205200_ACTION_HIT_REACTION;
@@ -846,19 +847,19 @@ static void func_actor_205200_8014C67C(Task* arg0)
     }
     switch (work->action) {
         case ACTOR_205200_ACTION_IDLE:
-            _actor205200TickIdle(arg0);
+            _actor205200TickIdle(task);
             break;
         case ACTOR_205200_ACTION_HIT_REACTION:
-            _actor205200TickHitReaction(arg0);
+            _actor205200TickHitReaction(task);
             break;
     }
     if (work->room == ACTOR_205200_ROOM_CORRIDOR) {
-        shelterB6CorridorDrawBodyGlow(arg0);
+        shelterB6CorridorDrawBodyGlow(task);
     } else {
-        shelterB6TrainingRoomDrawBodyGlow(arg0);
+        shelterB6TrainingRoomDrawBodyGlow(task);
     }
     if (work->knockbackActive != 0) {
-        _actor205200TickPlayerKnockback(arg0);
+        _actor205200TickPlayerKnockback(task);
     }
 }
 

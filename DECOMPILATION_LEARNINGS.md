@@ -62716,7 +62716,7 @@ BRIEF.md's "Similar matched bodies" block ranks *already-matched* bodies by
 `shape` (opcode order, operands dropped); a `shape` score of 1.00 is an
 invitation to diff immediately, before writing anything. `_actor107600UpdateMountColor`
 came back from `overlay_dup_index.py find` as its own only copy, while the block
-listed `func_actor_107600_801349E0` at `shape` 1.00 and `fields` 1.00 — the two
+listed `_actor107600UpdateTargetRootColor` at `shape` 1.00 and `fields` 1.00 — the two
 disassemblies are identical instruction for instruction except the `jal`
 target. The matched body ported verbatim with the callee substituted scored 100%
 on the first attempt against an m2c baseline of 68.4% (`regs=19 insert=4
@@ -76643,7 +76643,7 @@ dead trailing parameter tells you nothing about how many arguments its callers
 pass, because the caller's source decides that.
 ## A load-delay filler decides a `QTY_CMP_PRI` race, swapping `$v0` and `$v1`
 
-**Symptom.** `func_actor_107600_801349E0` had the right instructions in the
+**Symptom.** `_actor107600UpdateTargetRootColor` had the right instructions in the
 right order but two registers mirrored: the coordinate pointer in `$v1` and the
 three `workm.t[]` temps in `$v0`, where the target has the pointer in `$v0` and
 the temps in `$v1`. The `lui`/`ori` scratch-address pair also sat after
@@ -76675,7 +76675,7 @@ sequence*, not its header lines - those are flow.c's `REG_N_REFS` /
 `REG_LIVE_LENGTH` (§10.1), and `REG_LIVE_LENGTH` is not the local-alloc span.
 Neither is fixed by the source: both change with the schedule, which is why the
 edit that wins is one that moves an unrelated insn's LUID.
-`func_actor_107600_801349E0` (74.48% -> 100%).
+`_actor107600UpdateTargetRootColor` (74.48% -> 100%).
 
 ## m2c scales pointer arithmetic by the type it guessed - check the immediate's units
 
@@ -98574,7 +98574,7 @@ comment and leave each field a short trailing `//` - and re-read a file after a
 build before quoting it back, since the format pass can move lines you did not
 touch.
 
-## Naming a field inside a header's pad run is layout-neutral; m2c's own typedef of the same type is not (func_actor_205200_8014C67C, 2026-09-16)
+## Naming a field inside a header's pad run is layout-neutral; m2c's own typedef of the same type is not (_actor205200TickBodyAction, 2026-09-16)
 
 An overlay header that has only been reached by some of its functions carries
 its work block as a chain of `pad_XXX[n]` runs, and the next function to match
@@ -106125,7 +106125,7 @@ through `model` after a call needed a second pointer (`visibleModel = model;`) t
 target's `move $s3,$a0` in the switch's first delay slot while case 2 kept
 using `$a0`.
 
-## One pan/obj local per sound call site, and `(v << 16) >> 13` keeps a sign-extend a truncating store drops (func_actor_107600_801332D4, 2026-09-16)
+## One pan/obj local per sound call site, and `(v << 16) >> 13` keeps a sign-extend a truncating store drops (_actor107600UpdateActiveTarget, 2026-09-16)
 
 Four `pan = (s8)worldCoordGetOriginAudioPan(o); sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(o));`
 sites sharing one `obj`/`pan` pair of function-scope locals cost an extra
@@ -118285,7 +118285,7 @@ arms. The remaining stack-store order of spilled constants (`sw zero,0x14(sp)`
 before `sw t0,0x1c(sp)`) followed from writing `i = 0;` ahead of the two
 constant assignments with a `do/while`.
 
-### `((T*)s->bytes)[i].f` does not strength-reduce where `((View*)s)->arr[i].f` does (`func_actor_207200_8014BEF4`)
+### `((T*)s->bytes)[i].f` does not strength-reduce where `((View*)s)->arr[i].f` does (`_actor207200CreepingStrangerScanContacts`)
 
 **Symptom.** Target walks `$s6 = work` by 0x18 and reads `lhu 0x23A($s6)`,
 `lw 0x238($s6)`; the build recomputes `i*24 + work + 0x234` every iteration.
@@ -124242,14 +124242,14 @@ Inputs: scratch `nonmatchings/_actor303600InitShaft-vacuum`, `base_2.c`
 
 The fourth variant of the "m2c invents callee arguments" family, and the one
 whose diff does not look like a call-site problem at all. In
-`func_actor_303600_8016216C` the callee `func_actor_303600_80161F40` is
+`func_actor_303600_8016216C` the callee `_actor303600DispatchCutsceneCue` is
 `INCLUDE_ASM` in the same overlay and its own `.s` never reads `$a1` — all six
 mentions are `addiu $a1, $zero, <call argument>`, none a source operand. m2c
 typed it `(Task *, ?)` and passed a second argument anyway:
 
 ```c
-func_actor_303600_80161F40(arg0, 1);   /* m2c */
-func_actor_303600_80161F40(arg0);      /* real */
+_actor303600DispatchCutsceneCue(arg0, 1);   /* m2c */
+_actor303600DispatchCutsceneCue(arg0);      /* real */
 ```
 
 The seed scored 95.705% with `branch=3 insert=2 delete=2` and a diff that reads
@@ -124265,7 +124265,7 @@ nop                                 li     a0,0x10      ; slot filled from fall-
 bnez   v0,160                       bnez   v0,160
 move   a0,zero                      move   a0,s1       ; threaded from $L9 instead
 ...
-jal    func_actor_303600_80161F40   jal    func_actor_303600_80161F40
+jal    _actor303600DispatchCutsceneCue   jal    _actor303600DispatchCutsceneCue
 move   a0,s1                        li     a1,1         ; the phantom argument
 ```
 

@@ -244,7 +244,7 @@ static void            _actor207200CreepingStrangerConsumeReactions(Task* task);
 static void            _actor207200CreepingStrangerUpdateBehavior(Task* task);
 static void            _actor207200CreepingStrangerStepForward(Task* task);
 static void            _actor207200CreepingStrangerAnimate(Task* task);
-static void            func_actor_207200_8014D70C(Enemy* arg0, Task* task);
+static void            _actor207200CreepingStrangerUpdateLiveColor(Enemy* enemy, Task* task);
 static void            _actor207200CreepingStrangerDrawGroundShadow(Task* task);
 static void            _actor207200CreepingStrangerFlatten(Task* task);
 static void            _actor207200CreepingStrangerUpdateTarget(Task* task);
@@ -701,7 +701,7 @@ s16 D_actor_207200_80153F20[20] = {
     0,
 };
 
-static void            func_actor_207200_8014BEF4(Task* arg0);
+static void            _actor207200CreepingStrangerScanContacts(Task* task);
 static __inline__ void _actor207200CreepingStrangerUpdateColor(Enemy* enemy, Task* task);
 
 /// Creates the Creeping Stranger's seven-part rig and five collision spheres.
@@ -1150,107 +1150,124 @@ static void _actor207200CreepingStrangerActiveTick(Task* task)
 #undef ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND
 }
 
-/// Per-frame collision handling. Each six-record table's `worldCollisionResolvePushback`
-/// result pushes the model back (1) or snaps it to `prevRootPos` (2). Records of
-/// `bodyContacts` then dispatch on their kind: 1 starts the side attack when the
-/// player is off-angle and near, 2 is a hit, which only deals damage once
-/// `headLost` is set and then starts the death state, 3 pushes the model out of
-/// the record's radius. Unless `headLost` is set, each 0x20000 record of
-/// `headContacts` applies damage too, and some ids end the tick through
-/// `_actor207200CreepingStrangerBurstRandomPart` / `_actor207200CreepingStrangerBurstHead`. The tables and, past the delay
-/// stage of `activeStage`, the two attack contacts are cleared last.
-static void func_actor_207200_8014BEF4(Task* arg0)
+/// Applies one sphere's grid correction or restores the last unblocked root.
+///
+/// Borrows the live work/root and caller's scratch across the synchronous query.
+/// contactCount counts initialized records; delta uses signed 16.16 root-parent
+/// units. A conflict latches blocked only while the actor still has its head.
+static inline void _actor207200CreepingStrangerResolveGridContacts(
+    _Actor207200CreepingStrangerWork* work, GfxCoord* rootCoord,
+    _Actor207200ContactScratch* scratch, WorldCollisionContact* contacts, s32 contactCount)
 {
+    switch (worldCollisionResolvePushback(contacts, &scratch->delta, contactCount, NULL)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
+            break;
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
+            rootCoord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+            rootCoord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            rootCoord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
+            break;
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
+            rootCoord->coord.t[0] = work->prevRootPos.vx;
+            rootCoord->coord.t[1] = work->prevRootPos.vy;
+            rootCoord->coord.t[2] = work->prevRootPos.vz;
+            if (work->headLost == 0 && work->blocked == 0) {
+                work->blocked = 1;
+            }
+            break;
+    }
+}
+
+/// Resolves Creeping Stranger grid/pair contacts, hits and attack-contact latches.
+///
+/// Requires matching live task/Enemy/work, composed model/grid frames, valid
+/// attack keys and player resources. Scans all six body and head records: grid
+/// conflicts restore the saved root; a nearby off-axis player touch starts a
+/// side attack, and crawling bodies push out of other enemy spheres. Only head
+/// hits hurt a headed actor; damaging a headless body after its kill delay starts
+/// death. Shatter and critical-head paths return before clearing contacts or
+/// releasing the 72-byte scratch block. The main loop resets that reservation
+/// next iteration; later borrowers in the same iteration use the lowered cursor.
+/// A headless-body death releases the block without clearing contacts. Normal
+/// completion clears contact tables and releases the block. Separation uses
+/// signed Q12; cooldowns count frames and hit magnitudes use HP.
+static void _actor207200CreepingStrangerScanContacts(Task* task)
+{
+    enum {
+        ACTOR_207200_CREEPING_STRANGER_SIDE_TOUCH_MIN_YAW  = 512,
+        ACTOR_207200_CREEPING_STRANGER_SIDE_TOUCH_RANGE    = 2000,
+        ACTOR_207200_CREEPING_STRANGER_SOUND_BODY_RECOIL   = 0x40480006,
+        ACTOR_207200_CREEPING_STRANGER_SHATTER_ATTRIBUTE_4 = 4,
+        ACTOR_207200_CREEPING_STRANGER_SHATTER_ATTRIBUTE_5 = 5,
+        ACTOR_207200_CREEPING_STRANGER_BUILDUP_ATTRIBUTE_8 = 8,
+        ACTOR_207200_CREEPING_STRANGER_BUILDUP_ATTRIBUTE_9 = 9,
+        ACTOR_207200_CREEPING_STRANGER_SHATTER_BURST_STYLE = 2,
+        ACTOR_207200_CREEPING_STRANGER_BASIS_FRACTION_BITS = 12,
+        ACTOR_207200_CREEPING_STRANGER_HEAD_HIT_PART       = 3,
+        ACTOR_207200_CREEPING_STRANGER_BODY_HIT_PART       = 1
+    };
+
     _Actor207200CreepingStrangerWork* work;
     _Actor207200ContactScratch*       scratch;
-    GfxCoord*                         coord;
-    u32                               dist;
+    GfxCoord*                         rootCoord;
+    u32                               playerDistanceXZ;
     Enemy*                            enemy;
-    s32                               i;
-    s32                               angle;
-    s32                               damage;
-    s32                               push;
-    s32                               param;
-    s32                               n;
-    s32                               snd;
+    s32                               contactIndex;
+    s32                               playerYaw;
+    s32                               contactMagnitude;
+    s32                               clampedOverlap;
+    s32                               hitReaction;
+    s32                               contactValue;
+    s32                               soundId;
+    Enemy*                            soundEnemy;
 
-    work    = arg0->work;
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor207200ContactScratch);
-    coord   = arg0->extra.tmd->coords;
-    enemy   = arg0->spawnArg2.pointer;
+    work      = task->work;
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(_Actor207200ContactScratch);
+    rootCoord = task->extra.tmd->coords;
+    enemy     = task->spawnArg2.pointer;
 
-    switch (worldCollisionResolvePushback(work->headContacts, &scratch->delta, ARRAY_SIZE(work->headContacts), NULL)) {
-        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
-            break;
-        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
-            coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
-            coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
-            coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
-            break;
-        case WORLD_COLLISION_PUSHBACK_OPPOSED:
-            coord->coord.t[0] = work->prevRootPos.vx;
-            coord->coord.t[1] = work->prevRootPos.vy;
-            coord->coord.t[2] = work->prevRootPos.vz;
-            if (work->headLost == 0 && work->blocked == 0) {
-                work->blocked = 1;
-            }
-            break;
-    }
-    switch (worldCollisionResolvePushback(work->bodyContacts, &scratch->delta, ARRAY_SIZE(work->bodyContacts), NULL)) {
-        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
-            break;
-        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
-            coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
-            coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
-            coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
-            break;
-        case WORLD_COLLISION_PUSHBACK_OPPOSED:
-            coord->coord.t[0] = work->prevRootPos.vx;
-            coord->coord.t[1] = work->prevRootPos.vy;
-            coord->coord.t[2] = work->prevRootPos.vz;
-            if (work->headLost == 0 && work->blocked == 0) {
-                work->blocked = 1;
-            }
-            break;
-    }
+    // Resolve head and body grid corrections before consuming pair contacts.
+    _actor207200CreepingStrangerResolveGridContacts(work, rootCoord, scratch, work->headContacts, ARRAY_SIZE(work->headContacts));
+    _actor207200CreepingStrangerResolveGridContacts(work, rootCoord, scratch, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
     if (work->hitCooldown != 0 && --work->hitCooldown <= 0) {
         work->hitCooldown = 0;
     }
 
-    for (i = 0; i < ARRAY_SIZE(work->bodyContacts); i++) {
-        switch ((u32)work->bodyContacts[i].key.parts.kind) {
-            case 1:
-                if (work->headLost == 0 && (u16)work->activeStage - ACTOR_207200_ACTIVE_STAGE_CRAWL < 3U) {
-                    angle = _actor207200CreepingStrangerMeasurePlayer(arg0->extra.tmd->coords, &dist);
-                    if (abs(angle) > 0x200 && dist < 2000) {
-                        work->animId      = angle < 0 ? ACTOR_207200_ANIM_SIDE_ATTACK_YAW_DOWN : ACTOR_207200_ANIM_SIDE_ATTACK_YAW_UP;
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->bodyContacts); contactIndex++) {
+        switch ((u32)work->bodyContacts[contactIndex].key.parts.kind) {
+            case (WORLD_COLLISION_CONTACT_PLAYER_BODY >> 16):
+                if (work->headLost == 0 && (u16)work->activeStage - ACTOR_207200_ACTIVE_STAGE_CRAWL <
+                                               (u32)(ACTOR_207200_ACTIVE_STAGE_FRONT_ATTACK - ACTOR_207200_ACTIVE_STAGE_CRAWL)) {
+                    playerYaw = _actor207200CreepingStrangerMeasurePlayer(task->extra.tmd->coords, &playerDistanceXZ);
+                    if (abs(playerYaw) > ACTOR_207200_CREEPING_STRANGER_SIDE_TOUCH_MIN_YAW && playerDistanceXZ < ACTOR_207200_CREEPING_STRANGER_SIDE_TOUCH_RANGE) {
+                        work->animId      = playerYaw < 0 ? ACTOR_207200_ANIM_SIDE_ATTACK_YAW_DOWN : ACTOR_207200_ANIM_SIDE_ATTACK_YAW_UP;
                         work->animFrames  = 0;
                         work->activeStage = ACTOR_207200_ACTIVE_STAGE_SIDE_ATTACK;
                     }
                 }
                 break;
-            case 2:
+            case (WORLD_COLLISION_CONTACT_ATTACK >> 16):
                 if (work->hitCooldown != 0) {
                     break;
                 }
-                scratch->delta.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                scratch->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-                scratch->delta.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                damage                   = SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx +
+                scratch->delta.vector.vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+                scratch->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - rootCoord->coord.t[1];
+                scratch->delta.vector.vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+                contactMagnitude         = SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx +
                                                        scratch->delta.vector.vy * scratch->delta.vector.vy +
                                                        scratch->delta.vector.vz * scratch->delta.vector.vz);
-                damageGetPlayerAttackReaction(work->bodyContacts[i].key.value);
-                damage = damageComputePlayerAttack(work->bodyContacts[i].key.value, damage, 0, 0);
-                effectSpawnHit(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value),
-                               arg0->extra.tmd->coords + 1, &D_actor_207200_80153F10, &work->bodyHitEffectArg);
-                n = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
-                if ((s16)n > 0) {
-                    work->hitCooldown = n;
+                damageGetPlayerAttackReaction(work->bodyContacts[contactIndex].key.value);
+                contactMagnitude = damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, contactMagnitude, 0, 0);
+                effectSpawnHit(damageGetPlayerAttackEffectId(work->bodyContacts[contactIndex].key.value),
+                               task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_BODY_HIT_PART, &D_actor_207200_80153F10, &work->bodyHitEffectArg);
+                contactValue = damageGetPlayerAttackHitCooldown(work->bodyContacts[contactIndex].key.value);
+                if ((s16)contactValue > 0) {
+                    work->hitCooldown = contactValue;
                 }
-                if (work->headLost != 0 && arg0->killCountdown == 0) {
-                    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
-                    if (damage != 0) {
-                        arg0->state++;
+                if (work->headLost != 0 && task->killCountdown == 0) {
+                    worldTargetAddReadoutAmount(&enemy->node, contactMagnitude, 0);
+                    if (contactMagnitude != 0) {
+                        task->state++;
                         work->animId = ACTOR_207200_ANIM_DEATH;
                         SCRATCH_STACK_RELEASE_BLOCK(_Actor207200ContactScratch);
                         return;
@@ -1259,8 +1276,9 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                     worldTargetAddReadoutAmount(&enemy->node, 0, 0);
                 }
                 if (work->state == ACTOR_207200_STATE_DORMANT) {
-                    snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480006;
-                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    soundEnemy = task->spawnArg2.pointer;
+                    soundId    = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_207200_CREEPING_STRANGER_SOUND_INSTANCE_SHIFT) | ACTOR_207200_CREEPING_STRANGER_SOUND_BODY_RECOIL;
+                    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
                     work->animId        = ACTOR_207200_ANIM_RECOIL;
                     work->animFrames    = 0;
                     work->state         = ACTOR_207200_STATE_RECOIL;
@@ -1268,81 +1286,83 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                     work->wakeRequested = 0;
                 }
                 break;
-            case 3:
-                scratch->delta.vector.vx = coord->workm.t[0] - work->bodyContacts[i].point.vx;
+            case (WORLD_COLLISION_CONTACT_ENEMY_BODY >> 16):
+                scratch->delta.vector.vx = rootCoord->workm.t[0] - work->bodyContacts[contactIndex].point.vx;
                 scratch->delta.vector.vy = 0;
-                scratch->delta.vector.vz = coord->workm.t[2] - work->bodyContacts[i].point.vz;
-                damage                   = work->bodyContacts[i].distance -
-                         SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vz * scratch->delta.vector.vz);
-                // Clamped through a second variable: clamping `damage` in
-                // place drops the copy the original makes.
-                push = damage;
-                if (damage <= 0) {
-                    push = 0;
+                scratch->delta.vector.vz = rootCoord->workm.t[2] - work->bodyContacts[contactIndex].point.vz;
+                contactMagnitude         = work->bodyContacts[contactIndex].distance -
+                                   SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vz * scratch->delta.vector.vz);
+                clampedOverlap = contactMagnitude;
+                if (contactMagnitude <= 0) {
+                    clampedOverlap = 0;
                 }
-                damage                   = push;
-                scratch->delta.vector.vx = coord->workm.t[0] - work->bodyContacts[i].point.vx;
-                scratch->delta.vector.vy = coord->workm.t[1] - work->bodyContacts[i].point.vy;
-                scratch->delta.vector.vz = coord->workm.t[2] - work->bodyContacts[i].point.vz;
+                contactMagnitude         = clampedOverlap;
+                scratch->delta.vector.vx = rootCoord->workm.t[0] - work->bodyContacts[contactIndex].point.vx;
+                scratch->delta.vector.vy = rootCoord->workm.t[1] - work->bodyContacts[contactIndex].point.vy;
+                scratch->delta.vector.vz = rootCoord->workm.t[2] - work->bodyContacts[contactIndex].point.vz;
+                // Rotate the normalized separation into the grid's room-axis frame.
                 VectorNormal(&scratch->delta.vector, &scratch->normal);
                 ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->delta.vector);
                 if (work->animId == ACTOR_207200_ANIM_CRAWL) {
-                    coord->coord.t[0] += (damage * scratch->delta.vector.vx) >> 12;
-                    n                  = damage * scratch->delta.vector.vy;
-                    if (n < 0) {
-                        coord->coord.t[1] += n >> 12;
+                    rootCoord->coord.t[0] += (contactMagnitude * scratch->delta.vector.vx) >> ACTOR_207200_CREEPING_STRANGER_BASIS_FRACTION_BITS;
+                    contactValue           = contactMagnitude * scratch->delta.vector.vy;
+                    if (contactValue < 0) {
+                        rootCoord->coord.t[1] += contactValue >> ACTOR_207200_CREEPING_STRANGER_BASIS_FRACTION_BITS;
                     }
-                    coord->coord.t[2] += (damage * scratch->delta.vector.vz) >> 12;
+                    rootCoord->coord.t[2] += (contactMagnitude * scratch->delta.vector.vz) >> ACTOR_207200_CREEPING_STRANGER_BASIS_FRACTION_BITS;
                 }
                 break;
         }
     }
 
+    // Head hits can remove the head or shatter the whole body.
     if (work->headLost == 0) {
-        for (i = 0; i < ARRAY_SIZE(work->headContacts); i++) {
-            if ((work->headContacts[i].key.value & 0xFFFF0000) != 0x20000) {
+        for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->headContacts); contactIndex++) {
+            if ((work->headContacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
                 continue;
             }
             if (work->hitCooldown != 0) {
                 break;
             }
-            scratch->delta.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            scratch->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-            scratch->delta.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            damage                   = SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy +
+            scratch->delta.vector.vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+            scratch->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - rootCoord->coord.t[1];
+            scratch->delta.vector.vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+            contactMagnitude         = SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy +
                                                    scratch->delta.vector.vz * scratch->delta.vector.vz);
-            param                    = damageGetPlayerAttackReaction(work->headContacts[i].key.value);
-            damage                   = damageComputePlayerAttack(work->headContacts[i].key.value, damage, 0, 0);
-            switch ((u16)param) {
+            hitReaction              = damageGetPlayerAttackReaction(work->headContacts[contactIndex].key.value);
+            contactMagnitude         = damageComputePlayerAttack(work->headContacts[contactIndex].key.value, contactMagnitude, 0, 0);
+            switch ((u16)hitReaction) {
                 case DAMAGE_PLAYER_REACTION_STAGGER:
-                case 4:
-                case 5:
+                case ACTOR_207200_CREEPING_STRANGER_SHATTER_ATTRIBUTE_4:
+                case ACTOR_207200_CREEPING_STRANGER_SHATTER_ATTRIBUTE_5:
                 case DAMAGE_PLAYER_REACTION_EXPLOSION:
-                    effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 2, NULL);
+                    effectSpawn(EFFECT_CRITICAL_HIT, task->extra.tmd->coords, ACTOR_207200_CREEPING_STRANGER_SHATTER_BURST_STYLE, NULL);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     worldTargetAddReadoutAmount(&enemy->node, D_actor_207200_8014E7D4.hpMax * 2 + (u16)((gRandomLcgState >> 16) % 100), 0);
-                    _actor207200CreepingStrangerBurstRandomPart(arg0);
+                    _actor207200CreepingStrangerBurstRandomPart(task);
                     work->hasBurst = 1;
-                    arg0->state++;
+                    task->state++;
+                    // Retained reservation ends at the next main-loop scratch reset.
                     return;
-                case 8:
-                case 9:
-                    damageStartEnemyBuildup(enemy, work->headContacts[i].key.value, 0);
+                case ACTOR_207200_CREEPING_STRANGER_BUILDUP_ATTRIBUTE_8:
+                case ACTOR_207200_CREEPING_STRANGER_BUILDUP_ATTRIBUTE_9:
+                    damageStartEnemyBuildup(enemy, work->headContacts[contactIndex].key.value, 0);
                 default:
-                    if ((damageRollCriticalHit(arg0->spawnArg2.pointer, work->headContacts[i].key.value, 0) != 0 ||
+                    if ((damageRollCriticalHit(task->spawnArg2.pointer, work->headContacts[contactIndex].key.value, 0) != 0 ||
                          work->state == ACTOR_207200_STATE_STATUS_HOLD) &&
-                        damage != 0) {
-                        damageAccumulateLifeDrainHp(enemy, work->headContacts[i].key.value, damage, 0);
-                        _actor207200CreepingStrangerBurstHead(arg0);
+                        contactMagnitude != 0) {
+                        damageAccumulateLifeDrainHp(enemy, work->headContacts[contactIndex].key.value, contactMagnitude, 0);
+                        _actor207200CreepingStrangerBurstHead(task);
+                        // This head-burst path also retains the scratch reservation.
                         return;
                     }
-                    damageAccumulateLifeDrainHp(enemy, work->headContacts[i].key.value, damage, 0);
-                    _actor207200CreepingStrangerApplyHeadDamage(arg0, damage);
-                    effectSpawnHit(damageGetPlayerAttackEffectId(work->headContacts[i].key.value),
-                                   arg0->extra.tmd->coords + 3, &D_actor_207200_80153F08, &work->headHitEffectArg);
-                    n = damageGetPlayerAttackHitCooldown(work->headContacts[i].key.value);
-                    if ((s16)n > 0) {
-                        work->hitCooldown = n;
+                    damageAccumulateLifeDrainHp(enemy, work->headContacts[contactIndex].key.value, contactMagnitude, 0);
+                    _actor207200CreepingStrangerApplyHeadDamage(task, contactMagnitude);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(work->headContacts[contactIndex].key.value),
+                                   task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_HIT_PART, &D_actor_207200_80153F08, &work->headHitEffectArg);
+                    contactValue = damageGetPlayerAttackHitCooldown(work->headContacts[contactIndex].key.value);
+                    if ((s16)contactValue > 0) {
+                        work->hitCooldown = contactValue;
                     }
                     break;
             }
@@ -1711,7 +1731,7 @@ static void func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1)
 {
     switch (gSceneCombatState.actorControl) {
         case 1:
-            func_actor_207200_8014D70C(arg0, arg1);
+            _actor207200CreepingStrangerUpdateLiveColor(arg0, arg1);
             _actor207200CreepingStrangerDrawGroundShadow(arg1);
             return;
         case 0:
@@ -1725,7 +1745,7 @@ static void func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1)
     }
     _actor207200CreepingStrangerConsumeReactions(arg1);
     _actor207200CreepingStrangerUpdateTarget(arg1);
-    func_actor_207200_8014BEF4(arg1);
+    _actor207200CreepingStrangerScanContacts(arg1);
     _actor207200CreepingStrangerUpdateBehavior(arg1);
     _actor207200CreepingStrangerStepForward(arg1);
     _actor207200CreepingStrangerAnimate(arg1);
@@ -1734,7 +1754,7 @@ static void func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1)
     arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
-    func_actor_207200_8014D70C(arg0, arg1);
+    _actor207200CreepingStrangerUpdateLiveColor(arg0, arg1);
     _actor207200CreepingStrangerDrawGroundShadow(arg1);
 }
 
@@ -1858,27 +1878,28 @@ static void _actor207200CreepingStrangerAnimate(Task* task)
     _actor207200CreepingStrangerTickAnimation(task);
 }
 
-/// Colours the actor from the *second* attach coordinate of its model: takes a
-/// 0x10-byte `VECTOR` off the scratch stack, fills it with that coordinate's
-/// world position and hands it to `worldCoordUpdateActorColor` with zero for the unused
-/// arguments. `arg0` is the colour target, passed straight through.
-static void func_actor_207200_8014D70C(Enemy* arg0, Task* task)
+/// Refreshes the live Creeping Stranger's colour from composed model part 1.
+///
+/// Requires matching live Enemy/model and an up-to-date part-1 matrix.
+/// The out-of-line live-state entry shares the death tick's colour operation;
+/// its temporary VECTOR is consumed synchronously and released before return.
+static void _actor207200CreepingStrangerUpdateLiveColor(Enemy* enemy, Task* task)
 {
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
+    GfxCoord* bodyCoord;
+    void**    cursorSlot;
+    VECTOR*   savedCursor;
+    VECTOR*   worldPosition;
 
-    coord                          = &task->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    worldCoordUpdateActorColor(arg0, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    bodyCoord                         = &task->extra.tmd->coords[1];
+    cursorSlot                        = SCRATCH_HEAD_ADDR;
+    savedCursor                       = SCRATCH_HEAD_AT(cursorSlot, VECTOR);
+    worldPosition                     = savedCursor - 1;
+    worldPosition->vx                 = bodyCoord->workm.t[0];
+    worldPosition->vy                 = bodyCoord->workm.t[1];
+    worldPosition->vz                 = bodyCoord->workm.t[2];
+    SCRATCH_HEAD_AT(cursorSlot, void) = worldPosition;
+    worldCoordUpdateActorColor(enemy, worldPosition, 0, 0);
+    SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*worldPosition));
 }
 
 /// Draws the raw-texture ground shadow at the composed model root.

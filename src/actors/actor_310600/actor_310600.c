@@ -487,7 +487,10 @@ static void _actor310600InitBody(Task* task)
 
 /// Applies signed 16.16 root-parent velocity, retaining unsigned XYZ fractions.
 ///
-/// Requires initialized work and a live root; marks composition dirty even at rest.
+/// Requires initialized walk work and a live writable root. Applies signed high
+/// halfwords in X/Y/Z order and retains each zero-extended low halfword for the
+/// next tick. Velocity is already in the root parent's coordinate frame; this
+/// step performs no rotation or collision correction. Dirties composition at rest.
 static inline void _actor310600IntegrateWalkVelocity(_Actor310600RupertBroderickWork* work, GfxCoord* rootCoord)
 {
     work->walkCarry[0].word += work->walkVelocity.vx;

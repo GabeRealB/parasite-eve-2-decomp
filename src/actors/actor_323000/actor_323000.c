@@ -1349,8 +1349,11 @@ static void _actor323000PlaySceneAnimation(Enemy* enemy, Task* task)
 
 /// Emits the scene clip's counter-driven dust and placement-channel sound cues.
 ///
-/// Requires matching live enemy/model/work; increments the wrapping s16 timer
-/// before emitting. Effect offsets are sampled synchronously in part-local units.
+/// Requires matching live enemy/work and model coordinates 0..17. Increments the
+/// wrapping s16 timer before sampling part-local dust offsets at 29/32/33 ticks;
+/// tick 32 also voices the placement-tagged script. Audio pan/depth narrow to
+/// signed bytes. Dust options pack twelve-bit sizes and four-bit frame periods;
+/// effectSpawn copies offsets synchronously for the dust task's later drawing.
 static inline void _actor323000EmitClip14TimedCues(Enemy* enemy, Task* task, DesertChaserWork* work)
 {
     enum {

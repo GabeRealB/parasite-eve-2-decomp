@@ -1387,11 +1387,14 @@ static void _actor335800SceneScreenShakeTask(Task* task)
     taskKill(task);
 }
 
-/// Applies an attached model's placement texture offsets and rebuilds both buffer halves.
+/// Applies a placement's texture-page and CLUT offsets to an attached part model.
 ///
-/// Borrows a live model and placement for the call; offsets are stored even
-/// without a primitive buffer. Existing buffer ownership and active half are retained.
-static inline void _actor335800GaryDouglasApplyPartTextures(TmdObject* partModel, const AreaPlacement* placement)
+/// Borrows the live model and placement for the call. Signed page offsets count
+/// 64-word VRAM columns; CLUT offsets count rows. Stores them even without a
+/// primitive buffer. With a buffer, rebuilds both writable halves and preserves
+/// nextBufferHalf; scratch space and GPU lifetime must satisfy `tmdBuildBufferHalf`.
+/// Allocates nothing and retains no placement pointer.
+static inline void _actorRenderApplyPartPlacementTextures(TmdObject* partModel, const AreaPlacement* placement)
 {
     partModel->texturePageOffset = placement->texturePageOffset;
     partModel->clutRowOffset     = placement->clutRowOffset;
@@ -1456,7 +1459,7 @@ static void _actor335800GaryDouglasInit(Task* task)
         areaSyncLocationVariant(&location);
         areaVariant = areaGetVariant(&location);
         placement   = gpAreaPlaceAt(areaVariant->placements, placementIndex);
-        _actor335800GaryDouglasApplyPartTextures(partModel, placement);
+        _actorRenderApplyPartPlacementTextures(partModel, placement);
     }
     partTask = taskSpawnFromTable(D_actor_335800_8016EADC, ACTOR_335800_DOUGLAS_GUN_TASK, ACTOR_335800_DOUGLAS_GUN_PART, task);
     if (partTask != NULL) {
@@ -1476,7 +1479,7 @@ static void _actor335800GaryDouglasInit(Task* task)
         areaSyncLocationVariant(&location);
         areaVariant = areaGetVariant(&location);
         placement   = gpAreaPlaceAt(areaVariant->placements, placementIndex);
-        _actor335800GaryDouglasApplyPartTextures(partModel, placement);
+        _actorRenderApplyPartPlacementTextures(partModel, placement);
     }
     _actor335800GaryDouglasBindLighting(task);
     task->msgTable     = D_actor_335800_8016EB00;
@@ -1484,22 +1487,24 @@ static void _actor335800GaryDouglasInit(Task* task)
     task->state       += 1;
 }
 
-/// Applies signed 16.16 root-parent velocity, retaining unsigned XYZ fractions.
+/// Applies signed 16.16 root-parent velocity and retains unsigned XYZ fractions.
 ///
-/// Requires initialized work and a live root; marks composition dirty even at rest.
-static inline void _actor335800GaryDouglasIntegrateVelocity(_Actor335800GaryDouglasWork* work, GfxCoord* rootCoord)
-{
-    work->walk.carry[0].word += work->walk.velocity.vx;
-    work->walk.carry[1].word += work->walk.velocity.vy;
-    work->walk.carry[2].word += work->walk.velocity.vz;
-    rootCoord->coord.t[0]    += work->walk.carry[0].halves.integer;
-    rootCoord->coord.t[1]    += work->walk.carry[1].halves.integer;
-    rootCoord->coord.t[2]    += work->walk.carry[2].halves.integer;
-    rootCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
-    work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
-    work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
-    work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
-}
+/// Scoped to Douglas's update. motion is a live ActorWalkState* and rootCoord
+/// a writable GfxCoord*. Both arguments are evaluated repeatedly and must have
+/// no side effects. Applies signed high halves in X/Y/Z order, keeps each
+/// zero-extended low half and dirties composition even at rest. Velocity must
+/// already use the root parent's frame; no rotation or collision correction runs.
+#define ACTOR_MOTION_INTEGRATE_WALK_VELOCITY(motion, rootCoord)     \
+    (motion)->carry[0].word  += (motion)->velocity.vx;              \
+    (motion)->carry[1].word  += (motion)->velocity.vy;              \
+    (motion)->carry[2].word  += (motion)->velocity.vz;              \
+    (rootCoord)->coord.t[0]  += (motion)->carry[0].halves.integer;  \
+    (rootCoord)->coord.t[1]  += (motion)->carry[1].halves.integer;  \
+    (rootCoord)->coord.t[2]  += (motion)->carry[2].halves.integer;  \
+    (rootCoord)->composeStamp = GRAPHICS_COORD_DIRTY;               \
+    (motion)->carry[0].word   = (motion)->carry[0].halves.fraction; \
+    (motion)->carry[1].word   = (motion)->carry[1].halves.fraction; \
+    (motion)->carry[2].word   = (motion)->carry[2].halves.fraction;
 
 /// Halves both Douglas lighting matrices and records the completed dim request.
 ///
@@ -1545,7 +1550,7 @@ static void _actor335800GaryDouglasUpdate(Task* task)
 
     motionHandlers[work->walk.motion](task);
     rootCoord = task->extra.tmd->coords;
-    _actor335800GaryDouglasIntegrateVelocity(work, rootCoord);
+    ACTOR_MOTION_INTEGRATE_WALK_VELOCITY(&work->walk, rootCoord);
     // Hidden bodies still move; visible bodies tick poses and detect cue-2's falling edge.
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (work->model.ticking != 0) {
@@ -1582,6 +1587,8 @@ static void _actor335800GaryDouglasUpdate(Task* task)
         work->freeCountdown--;
     }
 }
+
+#undef ACTOR_MOTION_INTEGRATE_WALK_VELOCITY
 
 #undef ACTOR_335800_DOUGLAS_DIM_LIGHTING
 

@@ -105,3 +105,5 @@ _actor205200RequestControllerStopMsg = 0x8014b94c; // type:func
 _actor205200SpawnController = 0x8014a72c; // type:func
 _actor205200PartTask = 0x8014b978; // type:func
 _actor205200TickPulse = 0x8014ab98; // type:func
+_actor205200TickController = 0x8014a958; // type:func
+_actor205200TickBodyAction = 0x8014c67c; // type:func

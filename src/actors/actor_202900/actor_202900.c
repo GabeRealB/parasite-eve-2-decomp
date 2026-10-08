@@ -236,62 +236,79 @@ Task* gActorSelfTask;
 
 Task* gActorHelperTask;
 
-static void func_actor_202900_80149E24(Enemy* enemy, Task* task);
+static void _actor202900SpawnBody(Enemy* enemy, Task* task);
 
-/// Setup handler, state 0 of the actor's update: allocates and publishes the
-/// work block, starts the second task and textures its model from the area
-/// record the actor was placed from, then seeds the animation context and runs
-/// the first step body.
-static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
+/// Initializes the cafeteria woman's view-parented body and carried model.
+///
+/// State 0 owns a zeroed work block until the exit callback; allocation failure
+/// destroys the enemy. The body borrows work-owned lighting and animation storage.
+/// Requires a loaded placement and successful carried-model spawn: the returned
+/// child is used without a NULL check. Starts clip 4 before advancing task state.
+static void _actor202900SpawnBody(Enemy* enemy, Task* task)
 {
-    VECTOR     vec;
-    GfxCoord*  coord;
-    TmdObject* obj;
+    enum { ACTOR_202900_CARRIED_MODEL_TASK        = 1,
+           ACTOR_202900_INITIAL_CLIP              = 4,
+           ACTOR_202900_BODY_OT_OFFSET            = 1,
+           ACTOR_202900_SPAWN_LIGHT_SAMPLE_HEIGHT = 800 };
+    VECTOR     lightPosition;
+    GfxCoord*  rootCoord;
+    TmdObject* model;
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
+    /// Samples all three lights 800 world units above the composed root.
+    ///
+    /// Scoped to spawn; captures model, rootCoord and writable lightPosition.
+    /// The model borrows writable matrices. Only XYZ are consumed; no pointer
+    /// survives the synchronous lighting query. Evaluates no macro arguments.
+#define ACTOR_202900_RELIGHT_SPAWN_MODEL()                                             \
+    lightPosition.vx = rootCoord->workm.t[0];                                          \
+    lightPosition.vy = rootCoord->workm.t[1] - ACTOR_202900_SPAWN_LIGHT_SAMPLE_HEIGHT; \
+    lightPosition.vz = rootCoord->workm.t[2];                                          \
+    worldCoordSetModelLighting(model, &lightPosition, 0, ARRAY_SIZE(model->lightMtx->m));
+
+    model      = task->extra.tmd;
+    rootCoord  = model->coords;
     task->work = (D_actor_202900_80156E54 = memCalloc(sizeof(_Actor202900Work), false));
     if (D_actor_202900_80156E54 == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = _viewFigureExit;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->flags                       = 0;
+    model->otOffset                  = ACTOR_202900_BODY_OT_OFFSET;
+    model->flags                     = 0;
     gActorSelfTask                   = task;
-    gActorHelperTask                 = taskSpawnFromTable(D_actor_202900_80156E24, 1, 0, 0);
+    gActorHelperTask                 = taskSpawnFromTable(D_actor_202900_80156E24, ACTOR_202900_CARRIED_MODEL_TASK, 0, 0);
     _actorRenderApplyTaskPlacementTextureOffsets(gActorHelperTask, enemy);
-    obj->lightMtx = &D_actor_202900_80156E54->light;
-    obj->colorMtx = &D_actor_202900_80156E54->color;
-    vec.vx        = coord->workm.t[0];
-    vec.vy        = coord->workm.t[1] - 0x320;
-    vec.vz        = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationBindModelContext(&D_actor_202900_80156E54->rig.anim, D_actor_202900_80156E3C, obj,
+    model->lightMtx = &D_actor_202900_80156E54->light;
+    model->colorMtx = &D_actor_202900_80156E54->color;
+    // Bind work-owned lighting before sampling it and starting the body tracks.
+    ACTOR_202900_RELIGHT_SPAWN_MODEL();
+    animationBindModelContext(&D_actor_202900_80156E54->rig.anim, D_actor_202900_80156E3C, model,
                               D_actor_202900_80156E54->rig.poses);
-    D_actor_202900_80156E54->st.animId    = 4;
+    D_actor_202900_80156E54->st.animId    = ACTOR_202900_INITIAL_CLIP;
     D_actor_202900_80156E54->st.state     = ACTOR_ENEMY_ANIM_RESET;
     D_actor_202900_80156E54->st.cueRecord = 0;
     task->msgTable                        = D_actor_202900_80156E0C;
     _actor202900StepAnim(task);
     task->state++;
+
+#undef ACTOR_202900_RELIGHT_SPAWN_MODEL
 }
 
 /// Update of the actor's task: publishes the task's work block in
 /// `D_actor_202900_80156E54`, so the overlay's other functions can reach it
 /// without the task in hand, then dispatches on the task's state to the setup
-/// handler `func_actor_202900_80149E24` (state 0) or the per-frame handler
+/// handler `_actor202900SpawnBody` (state 0) or the per-frame handler
 /// `_actor202900UpdateState` (state 1), passing the task's enemy record
 /// along with the task.
 void func_actor_202900_8014A02C(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        func_actor_202900_80149E24,
+        _actor202900SpawnBody,
         _actor202900UpdateState,
     };
 

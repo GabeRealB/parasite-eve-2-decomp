@@ -299,8 +299,8 @@ static void _actor107600UpdateMountBehaviour(Task* task);
 static void _actor107600UpdateFixedMount(Task* task);
 static void _actor107600SpawnTarget(Enemy* mountEnemy, s32 targetKind, s32 targetFlags);
 static void _actor107600InitTarget(Task* task);
-static void func_actor_107600_80133024(Task* arg0);
-static void func_actor_107600_801332D4(Task* arg0);
+static void _actor107600UpdateTarget(Task* task);
+static void _actor107600UpdateActiveTarget(Task* task);
 static void _actor107600UpdateTargetFlinch(Task* task);
 static void _actor107600FoldTarget(Task* task);
 static void _actor107600TumbleDestroyedTarget(Task* task);
@@ -311,7 +311,7 @@ static void _actor107600TargetTask(Task* task);
 static void _actor107600HideTarget(Task* task);
 static void _actor107600DestroyTarget(Task* task);
 static void _actor107600InitTargetCollision(Task* task);
-static void func_actor_107600_801349E0(Task* arg0);
+static void _actor107600UpdateTargetRootColor(Task* task);
 static void _actor107600UpdateTargetRotation(Task* task);
 static void _actor107600CopyTargetRotation(const MATRIX* source, MATRIX* destination);
 static void _actor107600SetTargetState(Task* task, s16 state);
@@ -329,7 +329,7 @@ static void _actor107600ApplyTargetScale(Task* task);
  * `_Actor107600MountWork::path`; trailing-blob data. */
 extern _Actor107600Waypoint* D_actor_107600_80135624[];
 
-/* Eight effect offsets `func_actor_107600_80133024` cycles through from
+/* Eight effect offsets `_actor107600UpdateTarget` cycles through from
  * `_Actor107600TargetWork::hitMarkFirst`. */
 extern DVECTOR D_actor_107600_80135730[];
 
@@ -1139,16 +1139,16 @@ static void _actor107600UpdateHangingMountPath(Task* task)
 /// `Task::state`.
 static const TaskFuncTable4 D_actor_107600_80131E74 = { {
     _actor107600InitTarget,
-    func_actor_107600_80133024,
+    _actor107600UpdateTarget,
     _actor107600HideTarget,
     _actor107600DestroyTarget,
 } };
 
 /// Behaviour states indexed by `_Actor107600TargetWork::state`, run by
-/// `func_actor_107600_80133024`.
+/// `_actor107600UpdateTarget`.
 static const TaskFuncTable10 D_actor_107600_80131E84 = { {
     _actor107600BeginTargetBehaviour,
-    func_actor_107600_801332D4,
+    _actor107600UpdateActiveTarget,
     _actor107600UpdateTargetFlinch,
     _actor107600UpdateTargetFlinch,
     _actor107600ResumeTargetState4,
@@ -1464,184 +1464,212 @@ static void _actor107600InitTarget(Task* task)
     task->state += 1;
 }
 
-/// Per-frame update switched on the scene mode `gSceneCombatState.actorControl`, like
-/// `_actor107600UpdateMount`. Mode 0 runs the `state` entry of
-/// `D_actor_107600_80131E84`, then (before `ACTOR_107600_TARGET_STATE_LEAVE`)
-/// takes hits unless `hitCooldown` is still running, clears the contacts and
-/// enters `ACTOR_107600_TARGET_STATE_DESTROYED` once the enemy's HP is gone.
-/// Afterwards publishes the enemy's slot mask to the gallery and draws one hit
-/// mark per `hitMarkCount`, the last one a larger burst when dead.
-static void func_actor_107600_80133024(Task* arg0)
+/// Advances a gallery target's behaviour, hit handling and face effects.
+///
+/// Requires live target work/Enemy/model and a state-table index in 0..9.
+/// Running combat dispatches behaviour and accepts hits before the leave state;
+/// paused combat still refreshes colour, while hidden combat suppresses drawing.
+/// Every mode updates rotation/scale and face effects. Non-fixed targets publish
+/// their lock mask to the live gallery controller. Hit offsets cycle through
+/// eight entries; a dead target replaces its last mark with a death burst.
+/// Borrows one scratch SVECTOR across state dispatch and releases it on return.
+static void _actor107600UpdateTarget(Task* task)
 {
-    TaskFuncTable10         sp;
-    Enemy*                  enemy;
-    TmdObject*              ext;
-    TmdObject*              obj;
-    _Actor107600TargetWork* work;
-    GfxCoord*               coord;
-    SVECTOR*                v;
-    s32                     i;
+    TaskFuncTable10 states;
+    Enemy*          enemy;
+    TmdObject*      model;
+    TmdObject*      drawModel;
 
-    enemy = arg0->spawnArg2.pointer;
-    ext   = arg0->extra.tmd;
-    work  = arg0->work;
-    coord = ext->coords;
-    obj   = ext;
-    sp    = D_actor_107600_80131E84;
-    SCRATCH_STACK_RESERVE_BYTES(8);
-    v = SCRATCH_STACK_CURSOR(SVECTOR);
+    _Actor107600TargetWork* work;
+    GfxCoord*               rootCoord;
+    SVECTOR*                hitMarkOffset;
+    s32                     hitMarkIndex;
+
+    enemy     = task->spawnArg2.pointer;
+    model     = task->extra.tmd;
+    work      = task->work;
+    rootCoord = model->coords;
+    drawModel = model;
+    states    = D_actor_107600_80131E84;
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(*hitMarkOffset));
+    hitMarkOffset = SCRATCH_STACK_CURSOR(SVECTOR);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            sp.funcs[work->state](arg0);
+            states.funcs[work->state](task);
             if (work->state < ACTOR_107600_TARGET_STATE_LEAVE) {
                 if (work->hitCooldown == 0) {
-                    _actor107600ApplyTargetHits(arg0);
+                    _actor107600ApplyTargetHits(task);
                 } else {
                     work->hitCooldown--;
                 }
                 worldCollisionClearContacts(work->contacts);
                 if (enemy->hp <= 0) {
-                    _actor107600SetTargetState(arg0, ACTOR_107600_TARGET_STATE_DESTROYED);
+                    _actor107600SetTargetState(task, ACTOR_107600_TARGET_STATE_DESTROYED);
                 }
             }
+            // Running targets also use the paused mode's colour/draw refresh.
+            /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
-            func_actor_107600_801349E0(arg0);
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            _actor107600UpdateTargetRootColor(task);
+            drawModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            drawModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
     if (work->mountBehaviour != ACTOR_107600_MOUNT_FIXED) {
         ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->targetLockMask = worldTargetGetActorLockMask(&enemy->node);
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actor107600UpdateTargetRotation(arg0);
-    _actor107600ApplyTargetScale(arg0);
-    for (i = 0; i < work->hitMarkCount; i++) {
-        if (i == work->hitMarkCount - 1 && enemy->hp <= 0) {
-            v->vx = 0;
-            v->vy = -0xE0;
-            v->vz = 0;
-            _actor107600DrawTargetDeathBurst(coord, v);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor107600UpdateTargetRotation(task);
+    _actor107600ApplyTargetScale(task);
+    for (hitMarkIndex = 0; hitMarkIndex < work->hitMarkCount; hitMarkIndex++) {
+        if (hitMarkIndex == work->hitMarkCount - 1 && enemy->hp <= 0) {
+            hitMarkOffset->vx = 0;
+            hitMarkOffset->vy = -0xE0;
+            hitMarkOffset->vz = 0;
+            _actor107600DrawTargetDeathBurst(rootCoord, hitMarkOffset);
         } else {
-            v->vx = D_actor_107600_80135730[(work->hitMarkFirst + i) & 7].vx;
-            v->vy = D_actor_107600_80135730[(work->hitMarkFirst + i) & 7].vy;
-            v->vz = 0;
-            _actor107600DrawTargetHitMark(coord, v);
+            hitMarkOffset->vx = D_actor_107600_80135730[(work->hitMarkFirst + hitMarkIndex) & (ACTOR_107600_TARGET_HIT_MARK_COUNT - 1)].vx;
+            hitMarkOffset->vy = D_actor_107600_80135730[(work->hitMarkFirst + hitMarkIndex) & (ACTOR_107600_TARGET_HIT_MARK_COUNT - 1)].vy;
+            hitMarkOffset->vz = 0;
+            _actor107600DrawTargetHitMark(rootCoord, hitMarkOffset);
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(*hitMarkOffset));
 }
 
-/// `ACTOR_107600_TARGET_STATE_ACTIVE`, stepped through `step`: once
-/// `Task::spawnArg1` bit 0x10 is set, grows `widthPercent` then `heightPercent`
-/// by 0x20 up to 100, plays a cue and eases `pitch` down to stand the target
-/// up, alternates `pitch` for four frames and raises bit 0x20. From then on,
-/// while bit 0x20000000 is set, `attackTimer` counts frames:
-/// at 120 it switches the light mode, at 210 it spawns an effect on the
-/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` actor's fifth coordinate and updates that actor.
-static void func_actor_107600_801332D4(Task* arg0)
+/// Unfolds a gallery target and runs its optional repeating player attack.
+///
+/// Requires initialized active-target work and the mount/target handshake in
+/// spawnArg1. Width grows before height by 32 percentage points while below 100,
+/// so the final step can overshoot; pitch uses 4096 units per turn. Four bob ticks
+/// enable locking/pair collision and signal STANDING. STOP requests folding.
+/// Attack-enabled ticks charge at 120 and fire at 210, then restart the timer.
+/// Requires a live player model through part 4. A hit outside damage mode requests
+/// ten HP and descending-part hit flashes; at ten HP or less the gallery instead
+/// receives a lethal-hit latch and pending damage is zero. Hit reactions preempt
+/// these phases, and disabled attacks retain their elapsed timer.
+static void _actor107600UpdateActiveTarget(Task* task)
 {
-    _Actor107600TargetWork* work  = arg0->work;
-    Enemy*                  enemy = arg0->spawnArg2.pointer;
-    Task*                   player;
-    GameActor*              actor;
-    s32                     pan;
-    s32                     flags;
-    s16                     v;
+    enum {
+        ACTOR_107600_TARGET_ACTIVE_STEP_WAIT_MOUNT        = 0,
+        ACTOR_107600_TARGET_ACTIVE_STEP_GROW_WIDTH        = 1,
+        ACTOR_107600_TARGET_ACTIVE_STEP_GROW_HEIGHT       = 2,
+        ACTOR_107600_TARGET_ACTIVE_STEP_BOB               = 4,
+        ACTOR_107600_TARGET_ACTIVE_STEP_ATTACK            = 5,
+        ACTOR_107600_TARGET_ATTACK_ENABLED                = 0x20000000,
+        ACTOR_107600_TARGET_FULL_PERCENT                  = 100,
+        ACTOR_107600_TARGET_GROWTH_STEP                   = 32,
+        ACTOR_107600_TARGET_STAND_EASE_BIAS               = 32,
+        ACTOR_107600_TARGET_CHARGE_TICK                   = 120,
+        ACTOR_107600_TARGET_FIRE_TICK                     = 210,
+        ACTOR_107600_TARGET_PLAYER_DAMAGE                 = 10,
+        ACTOR_107600_TARGET_PLAYER_HIT_PART               = 4,
+        ACTOR_107600_TARGET_PLAYER_BODY_HIT               = 1,
+        ACTOR_107600_TARGET_PLAYER_DESCENDING_HIT_FLASHES = 5
+    };
 
-    if (_actor107600ConsumeTargetHitReaction(arg0) != 0) {
+    _Actor107600TargetWork* work  = task->work;
+    Enemy*                  enemy = task->spawnArg2.pointer;
+    Task*                   player;
+    GameActor*              playerActor;
+    s32                     hitPan;
+    s32                     spawnFlags;
+    s16                     bobTick;
+
+    if (_actor107600ConsumeTargetHitReaction(task) != 0) {
         return;
     }
+    // Entry phases fall through until a growth or settling tick must wait.
     switch (work->step) {
-        case 0:
-            if (!(arg0->spawnArg1.value & 0x10)) {
+        case ACTOR_107600_TARGET_ACTIVE_STEP_WAIT_MOUNT:
+            if (!(task->spawnArg1.value & ACTOR_107600_TARGET_SIGNAL_MOUNT_READY)) {
                 return;
             }
             work->step++;
-        case 1:
-            if (work->widthPercent < 100) {
-                work->widthPercent += 0x20;
+        case ACTOR_107600_TARGET_ACTIVE_STEP_GROW_WIDTH:
+            if (work->widthPercent < ACTOR_107600_TARGET_FULL_PERCENT) {
+                work->widthPercent += ACTOR_107600_TARGET_GROWTH_STEP;
                 return;
             }
             work->step++;
-        case 2:
-            if (work->heightPercent < 100) {
-                work->heightPercent += 0x20;
+        case ACTOR_107600_TARGET_ACTIVE_STEP_GROW_HEIGHT:
+            if (work->heightPercent < ACTOR_107600_TARGET_FULL_PERCENT) {
+                work->heightPercent += ACTOR_107600_TARGET_GROWTH_STEP;
                 return;
             }
             {
-                GfxCoord* o = arg0->extra.tmd->coords;
-                s32       p;
+                GfxCoord* soundCoord = task->extra.tmd->coords;
+                s32       soundPan;
                 work->step++;
-                p = (s8)worldCoordGetOriginAudioPan(o);
-                sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_APPEAR, p, (s8)worldCoordGetOriginAudioDepth(o));
+                soundPan = (s8)worldCoordGetOriginAudioPan(soundCoord);
+                sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_APPEAR, soundPan, (s8)worldCoordGetOriginAudioDepth(soundCoord));
             }
-        case 3: {
-            u16 w = work->pitch;
-            if ((u16)(w - 1) < 0x400) {
-                work->pitch = w - ((0x420 - (s16)w) >> 2);
+        case ACTOR_107600_TARGET_ACTIVE_STEP_STAND: {
+            s16 pitch = work->pitch;
+            if ((u16)(pitch - 1) < ACTOR_107600_ANGLE_QUARTER_TURN) {
+                work->pitch = pitch - ((ACTOR_107600_ANGLE_QUARTER_TURN + ACTOR_107600_TARGET_STAND_EASE_BIAS - pitch) >> 2);
                 return;
             }
         }
             work->timer = 0;
             work->step++;
             return;
-        case 4:
-            v           = work->timer + 1;
-            work->timer = v;
-            if (v & 1) {
-                work->pitch = ((v << 16) >> 13) - 0x38;
+        case ACTOR_107600_TARGET_ACTIVE_STEP_BOB:
+            bobTick     = work->timer + 1;
+            work->timer = bobTick;
+            if (bobTick & 1) {
+                work->pitch = ((bobTick << 16) >> 13) - 0x38;
             } else {
                 work->pitch = 0;
                 if (work->timer >= 4) {
                     work->step++;
-                    arg0->spawnArg1.value |= 0x20;
+                    task->spawnArg1.value |= ACTOR_107600_TARGET_SIGNAL_STANDING;
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                     enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
                     work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
             }
-        case 5:
-            flags = arg0->spawnArg1.value;
-            if (flags & 0x40) {
-                _actor107600SetTargetState(arg0, ACTOR_107600_TARGET_STATE_LEAVE);
+        case ACTOR_107600_TARGET_ACTIVE_STEP_ATTACK:
+            spawnFlags = task->spawnArg1.value;
+            if (spawnFlags & ACTOR_107600_TARGET_SIGNAL_STOP) {
+                _actor107600SetTargetState(task, ACTOR_107600_TARGET_STATE_LEAVE);
                 return;
             }
-            if (!(flags & 0x20000000)) {
+            if (!(spawnFlags & ACTOR_107600_TARGET_ATTACK_ENABLED)) {
                 return;
             }
             work->attackTimer++;
-            if (work->attackTimer == 120) {
-                GfxCoord* o = arg0->extra.tmd->coords;
-                s32       p;
+            if (work->attackTimer == ACTOR_107600_TARGET_CHARGE_TICK) {
+                GfxCoord* soundCoord = task->extra.tmd->coords;
+                s32       soundPan;
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
-                p = (s8)worldCoordGetOriginAudioPan(o);
-                sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_CHARGE, p, (s8)worldCoordGetOriginAudioDepth(o));
-            } else if (work->attackTimer == 210) {
-                GfxCoord* c;
-                s32       p;
+                soundPan = (s8)worldCoordGetOriginAudioPan(soundCoord);
+                sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_CHARGE, soundPan, (s8)worldCoordGetOriginAudioDepth(soundCoord));
+            } else if (work->attackTimer == ACTOR_107600_TARGET_FIRE_TICK) {
+                GfxCoord* playerHitCoord;
+                s32       soundPan;
                 player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                c                 = &player->extra.tmd->coords[4];
-                actor             = player->work;
+                playerHitCoord    = &player->extra.tmd->coords[ACTOR_107600_TARGET_PLAYER_HIT_PART];
+                playerActor       = player->work;
                 work->attackTimer = 0;
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
-                effectSpawn(EFFECT_MIST_GALLERY_TRACER, c, 0, NULL);
-                p = (s8)worldCoordGetOriginAudioPan(c);
-                sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_ATTACK, p, (s8)worldCoordGetOriginAudioDepth(c));
-                if (actor->mode != GAME_ACTOR_MODE_DAMAGE) {
-                    if (gPlayerStatus.hp < 11) {
+                effectSpawn(EFFECT_MIST_GALLERY_TRACER, playerHitCoord, 0, NULL);
+                soundPan = (s8)worldCoordGetOriginAudioPan(playerHitCoord);
+                sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_ATTACK, soundPan, (s8)worldCoordGetOriginAudioDepth(playerHitCoord));
+                if (playerActor->mode != GAME_ACTOR_MODE_DAMAGE) {
+                    if (gPlayerStatus.hp <= ACTOR_107600_TARGET_PLAYER_DAMAGE) {
                         ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->lethalHit = 1;
-                        actor->pendingDamage                                                          = 0;
+                        playerActor->pendingDamage                                                    = 0;
                     } else {
-                        actor->pendingDamage = 10;
+                        playerActor->pendingDamage = ACTOR_107600_TARGET_PLAYER_DAMAGE;
                     }
-                    actor->hitRegion      = 1;
-                    actor->damageReaction = 5;
+                    playerActor->hitRegion      = ACTOR_107600_TARGET_PLAYER_BODY_HIT;
+                    playerActor->damageReaction = ACTOR_107600_TARGET_PLAYER_DESCENDING_HIT_FLASHES;
                     playerActorEnterPendingHit(player);
-                    pan = (s8)worldCoordGetOriginAudioPan(c);
-                    sndEvtRequestScriptStart(SOUND_PLAYER_STRUCK, pan, (s8)worldCoordGetOriginAudioDepth(c));
+                    hitPan = (s8)worldCoordGetOriginAudioPan(playerHitCoord);
+                    sndEvtRequestScriptStart(SOUND_PLAYER_STRUCK, hitPan, (s8)worldCoordGetOriginAudioDepth(playerHitCoord));
                 }
             }
             break;
@@ -2285,29 +2313,30 @@ static void _actor107600InitTargetCollision(Task* task)
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
 }
 
-/// Samples the cached root translation for the gallery target colour update.
+/// Refreshes a gallery target's lighting and hit tint from its composed root.
 ///
-/// Borrows a scratch VECTOR through `_actor107600UpdateTargetColor`; only its
-/// three signed world-coordinate components are initialized and consumed.
-static void func_actor_107600_801349E0(Task* arg0)
+/// Requires live target work, Enemy and model with a current root matrix.
+/// Borrows one scratch VECTOR across the colour query; only XYZ are initialized,
+/// in the query's world-coordinate units, and no pointer is retained.
+static void _actor107600UpdateTargetRootColor(Task* task)
 {
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
-    void*     obj;
+    GfxCoord* rootCoord;
+    void**    cursorSlot;
+    VECTOR*   savedCursor;
+    VECTOR*   worldPosition;
+    Enemy*    enemy;
 
-    obj                            = arg0->spawnArg2.pointer;
-    coord                          = arg0->extra.tmd->coords;
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    _actor107600UpdateTargetColor(obj, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    enemy                             = task->spawnArg2.pointer;
+    rootCoord                         = task->extra.tmd->coords;
+    cursorSlot                        = SCRATCH_HEAD_ADDR;
+    savedCursor                       = SCRATCH_HEAD_AT(cursorSlot, VECTOR);
+    worldPosition                     = savedCursor - 1;
+    worldPosition->vx                 = rootCoord->workm.t[0];
+    worldPosition->vy                 = rootCoord->workm.t[1];
+    worldPosition->vz                 = rootCoord->workm.t[2];
+    SCRATCH_HEAD_AT(cursorSlot, void) = worldPosition;
+    _actor107600UpdateTargetColor(enemy, worldPosition, 0, 0);
+    SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*worldPosition));
 }
 
 /// Rebuilds a gallery target's local rotation from its wrapped Euler angles.

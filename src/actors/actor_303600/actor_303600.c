@@ -411,7 +411,7 @@ Task* D_actor_303600_8016E4C0;
 
 Task* D_actor_303600_8016E4C4;
 
-static void func_actor_303600_80161F40(Task* arg0);
+static void _actor303600DispatchCutsceneCue(Task* task);
 static void _actor303600InitShaft(Task* task);
 static void _actor303600ScrollShaft(Task* task);
 
@@ -449,82 +449,82 @@ static void _actor303600DrawBlackCoverTask(Task* task)
     addPrim(gGpuCurrentOt - ACTOR_303600_BLACK_COVER_OT_OFFSET, drawMode);
 }
 
-/// Command dispatcher the cutscene controller steps while the cutscene is up.
-/// Commands 1-5 send the slot-4 task message 0x7DA carrying the session's two id
-/// bytes and the command as selector, latching it in the published work block's
-/// `lastActorCommand`; 4 then kills the fade in `D_actor_303600_8016E4C4` and spawns
-/// `D_actor_303600_80162E98` entry 1. 6 and 7 spawn entry 2, and 8 kills the fade
-/// and spawns entries 3 and 1. The command is cleared on the way out.
-static void func_actor_303600_80161F40(Task* arg0)
+/// Consumes the pending cutscene cue, broadcasting actor commands or starting fades.
+///
+/// Requires live controller work, its published singleton and loaded scene tasks.
+/// Actor cues 1..5 broadcast the current stage/area and record the cue after
+/// synchronous dispatch. Showing the shaft also replaces the current white flash.
+/// White fades advance by eight or four intensity units per tick; the black-cover
+/// cue replaces the flash and starts an opaque cover beneath it. The command is
+/// cleared even for unrecognized values. Recipients retain no request pointer;
+/// only its stage, area and command fields are initialized for these receivers.
+static void _actor303600DispatchCutsceneCue(Task* task)
 {
-    _Actor303600CutsceneWork* work = arg0->work;
-    _Actor303600CutsceneWork* w;
-    ActorCommand              msg;
+    enum { ACTOR_303600_FLASH_TASK       = 1,
+           ACTOR_303600_WHITE_FADE_TASK  = 2,
+           ACTOR_303600_BLACK_COVER_TASK = 3,
+           ACTOR_303600_FADE_SLOW_STEP   = 4,
+           ACTOR_303600_FADE_FAST_STEP   = 8 };
+
+    _Actor303600CutsceneWork* work = task->work;
+    _Actor303600CutsceneWork* publishedWork;
+    ActorCommand              request;
+
+    /// Broadcasts an actor cue and latches it after synchronous message dispatch.
+    ///
+    /// Scoped to this dispatcher. cue must be a side-effect-free cue constant
+    /// (1..5), evaluated twice. Captures writable request/publishedWork locals,
+    /// the current stage/area and the live published controller. Only stage,
+    /// area and command are initialized because the actor receivers read those.
+#define ACTOR_303600_BROADCAST_ACTOR_CUE(cue)                                                                                                       \
+    publishedWork             = D_actor_303600_8016E4C0->work;                                                                                      \
+    request.context.loc.stage = gGameSession->location.loc.stage;                                                                                   \
+    request.context.loc.area  = gGameSession->location.loc.area;                                                                                    \
+    request.command           = (cue);                                                                                                              \
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY); \
+    publishedWork->lastActorCommand = (cue);
 
     switch (work->command) {
-        case 0:
+        case ACTOR_303600_CUTSCENE_CUE_NONE:
             break;
-        case 1:
-            w                     = D_actor_303600_8016E4C0->work;
-            msg.context.loc.stage = gGameSession->location.loc.stage;
-            msg.context.loc.area  = gGameSession->location.loc.area;
-            msg.command           = 1;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            w->lastActorCommand = 1;
+        case ACTOR_303600_CUTSCENE_CUE_PREPARE_POSE:
+            ACTOR_303600_BROADCAST_ACTOR_CUE(ACTOR_303600_CUTSCENE_CUE_PREPARE_POSE);
             break;
-        case 2:
-            w                     = D_actor_303600_8016E4C0->work;
-            msg.context.loc.stage = gGameSession->location.loc.stage;
-            msg.context.loc.area  = gGameSession->location.loc.area;
-            msg.command           = 2;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            w->lastActorCommand = 2;
+        case ACTOR_303600_CUTSCENE_CUE_PLAY_ANIMATION:
+            ACTOR_303600_BROADCAST_ACTOR_CUE(ACTOR_303600_CUTSCENE_CUE_PLAY_ANIMATION);
             break;
-        case 3:
-            w                     = D_actor_303600_8016E4C0->work;
-            msg.context.loc.stage = gGameSession->location.loc.stage;
-            msg.context.loc.area  = gGameSession->location.loc.area;
-            msg.command           = 3;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            w->lastActorCommand = 3;
+        case ACTOR_303600_CUTSCENE_CUE_BRIGHTEN_ACTOR:
+            ACTOR_303600_BROADCAST_ACTOR_CUE(ACTOR_303600_CUTSCENE_CUE_BRIGHTEN_ACTOR);
             break;
-        case 4:
-            w                     = D_actor_303600_8016E4C0->work;
-            msg.context.loc.stage = gGameSession->location.loc.stage;
-            msg.context.loc.area  = gGameSession->location.loc.area;
-            msg.command           = 4;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            w->lastActorCommand = 4;
+        case ACTOR_303600_CUTSCENE_CUE_SHOW_SHAFT_AND_FLASH:
+            ACTOR_303600_BROADCAST_ACTOR_CUE(ACTOR_303600_CUTSCENE_CUE_SHOW_SHAFT_AND_FLASH);
             if (D_actor_303600_8016E4C4 != NULL) {
                 taskKill(D_actor_303600_8016E4C4);
                 D_actor_303600_8016E4C4 = NULL;
             }
-            taskSpawnFromTable(D_actor_303600_80162E98, 1, 4, 0);
+            taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_FLASH_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
             break;
-        case 5:
-            w                     = D_actor_303600_8016E4C0->work;
-            msg.context.loc.stage = gGameSession->location.loc.stage;
-            msg.context.loc.area  = gGameSession->location.loc.area;
-            msg.command           = 5;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            w->lastActorCommand = 5;
+        case ACTOR_303600_CUTSCENE_CUE_FADE_FIGURE:
+            ACTOR_303600_BROADCAST_ACTOR_CUE(ACTOR_303600_CUTSCENE_CUE_FADE_FIGURE);
             break;
-        case 6:
-            taskSpawnFromTable(D_actor_303600_80162E98, 2, 8, 0);
+        case ACTOR_303600_CUTSCENE_CUE_FADE_TO_WHITE_FAST:
+            taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_WHITE_FADE_TASK, ACTOR_303600_FADE_FAST_STEP, 0);
             break;
-        case 7:
-            taskSpawnFromTable(D_actor_303600_80162E98, 2, 4, 0);
+        case ACTOR_303600_CUTSCENE_CUE_FADE_TO_WHITE_SLOW:
+            taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_WHITE_FADE_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
             break;
-        case 8:
+        case ACTOR_303600_CUTSCENE_CUE_BLACK_COVER_AND_FLASH:
             if (D_actor_303600_8016E4C4 != NULL) {
                 taskKill(D_actor_303600_8016E4C4);
                 D_actor_303600_8016E4C4 = NULL;
             }
-            taskSpawnFromTable(D_actor_303600_80162E98, 3, 0, 0);
-            taskSpawnFromTable(D_actor_303600_80162E98, 1, 4, 0);
+            taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_BLACK_COVER_TASK, 0, 0);
+            taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_FLASH_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
             break;
     }
-    work->command = 0;
+    work->command = ACTOR_303600_CUTSCENE_CUE_NONE;
+
+#undef ACTOR_303600_BROADCAST_ACTOR_CUE
 }
 
 /// Cutscene controller for the overlay. State 0 arms it once: it waits while the
@@ -575,7 +575,7 @@ void func_actor_303600_8016216C(Task* arg0)
                 taskKill(arg0);
                 break;
             }
-            func_actor_303600_80161F40(arg0);
+            _actor303600DispatchCutsceneCue(arg0);
             break;
     }
 }

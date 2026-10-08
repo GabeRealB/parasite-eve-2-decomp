@@ -313,7 +313,7 @@ TmdSource gActor205200EveBreaMaskedBody = {
 };
 
 static void _actor205200SpawnController(Enemy* enemy, Task* task);
-static void func_actor_205200_8014A958(Enemy* enemy, Task* task);
+static void _actor205200TickController(Enemy* enemy, Task* task);
 static void _actor205200SpawnPart(Enemy* enemy, Task* task);
 static void _actor205200ScanPartHits(Task* task, s32 unusedArg);
 static void _actor205200TickDownPart(Enemy* enemy, Task* task);
@@ -387,10 +387,22 @@ static void _actor205200SpawnController(Enemy* enemy, Task* task)
     task->state    = ACTOR_205200_CONTROLLER_TASK_RUNNING;
 }
 
-static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
+/// Advances the destructible-part controller's sound and screen-wave cycle.
+///
+/// Requires live controller work, its matching Enemy and a coordinate-body task.
+/// Running combat starts the placement-tagged sustained sound after the delay,
+/// remeasures its nearest-part attenuation on view/part changes and ticks pulses.
+/// Events suspend pulses and finish a pending wave fall; a stop request also
+/// stops the sound. Losing every part enters stopping, including a 60-tick MIDI
+/// fade in the corridor. Wave phase and controller state copies retain their
+/// numeric identity when passed to the wave and compared with session/site flags.
+static void _actor205200TickController(Enemy* enemy, Task* task)
 {
+    enum { ACTOR_205200_SUSTAINED_SOUND      = 0x40340001,
+           ACTOR_205200_STOP_MIDI_FADE_TICKS = 60 };
+
     _Actor205200CtrlWork* work = task->work;
-    s16                   state;
+    s16                   controllerState;
     s32                   wavePhase;
 
     if (gGameSession->eventState != 0 || work->stopRequested != 0) {
@@ -409,13 +421,13 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
             }
         }
     } else if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        state = work->state;
-        switch (state) {
+        controllerState = work->state;
+        switch (controllerState) {
             case ACTOR_205200_CTRL_STARTING:
                 if (--work->startDelay == 0) {
                     _actor205200MeasureNearestPart(task);
                     if (work->nearestCoord != NULL) {
-                        work->sustainedSoundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340001;
+                        work->sustainedSoundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_205200_SOUND_INSTANCE_SHIFT) | ACTOR_205200_SUSTAINED_SOUND;
                         sndEvtRequestScriptStart(
                             work->sustainedSoundId, 0, (s8)_actor205200GetDistanceAttenuation(work->nearestDistance));
                         work->state = ACTOR_205200_CTRL_PULSING;
@@ -423,9 +435,9 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
                 }
                 break;
             case ACTOR_205200_CTRL_PULSING:
-                // `state` is 1 here: the view has just become ready, or a part
+                // `controllerState` is 1 here: the view has just become ready, or a part
                 // was destroyed, so the sound follows the nearest live part.
-                if (gGameSession->viewReady == state || work->nearestStale == state) {
+                if (gGameSession->viewReady == controllerState || work->nearestStale == controllerState) {
                     work->nearestStale = 0;
                     _actor205200MeasureNearestPart(task);
                     if (work->nearestCoord != NULL) {
@@ -446,13 +458,13 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
                 }
                 sndEvtRequestScriptStop(work->sustainedSoundId, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->state = ACTOR_205200_CTRL_STOPPED;
-                // `state` is 2 here, which is also the B6 corridor's site.
-                if (work->site == state) {
-                    sndEvtRequestMidiStop(0, 0x3C);
+                // `controllerState` is 2 here, which is also the B6 corridor's site.
+                if (work->site == controllerState) {
+                    sndEvtRequestMidiStop(0, ACTOR_205200_STOP_MIDI_FADE_TICKS);
                 }
                 break;
         }
-        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.coordBody->coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }
 
@@ -844,13 +856,13 @@ static void _actor205200TickDownPart(Enemy* enemy, Task* task)
 
 /// Update of the actor's controller task: dispatches on its state to the
 /// setup handler `_actor205200SpawnController` (state 0) or the per-frame
-/// handler `func_actor_205200_8014A958` (state 1), passing the task's enemy
+/// handler `_actor205200TickController` (state 1), passing the task's enemy
 /// record along with the task.
 void func_actor_205200_8014B8C0(Task* task)
 {
     EnemyTaskFunc fns[2] = {
         _actor205200SpawnController,
-        func_actor_205200_8014A958,
+        _actor205200TickController,
     };
 
     fns[task->state](task->spawnArg2.pointer, task);

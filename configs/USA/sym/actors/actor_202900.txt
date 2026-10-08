@@ -42,3 +42,4 @@ _actor202900CarriedModelTask = 0x8014a088; // type:func
 _actor202900UpdateState = 0x8014a0b4; // type:func
 _viewFigureExit = 0x8014a158; // type:func
 _actor202900PlayAnimation = 0x8014a3e0; // type:func
+_actor202900SpawnBody = 0x80149e24; // type:func

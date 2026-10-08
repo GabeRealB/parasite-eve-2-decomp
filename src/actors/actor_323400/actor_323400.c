@@ -1291,8 +1291,11 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
 
 /// Emits the scene clip's counter-driven dust and placement-channel sound cues.
 ///
-/// Requires matching live enemy/model/work; increments the wrapping s16 timer
-/// before emitting. Effect offsets are sampled synchronously in part-local units.
+/// Requires matching live enemy/work and model coordinates 0..17. Increments the
+/// wrapping s16 timer before cues at 9/10/12/13 ticks. Limb dust requires enabled
+/// room effects; tick 13's body dust and tick 10's placement-tagged sound always
+/// run. Audio pan/depth narrow to signed bytes. Dust options pack twelve-bit size
+/// and four-bit frame period; the dust task draws from copied part-local offsets.
 static inline void _actor323400EmitClip13TimedCues(Enemy* enemy, Task* task, DesertChaserWork* work)
 {
     enum {

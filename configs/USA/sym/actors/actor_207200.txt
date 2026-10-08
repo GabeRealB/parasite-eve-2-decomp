@@ -144,3 +144,5 @@ _actor207200CreepingStrangerTask = 0x8014d280; // type:func
 _actor207200CreepingStrangerApplyHeadDamage = 0x8014c870; // type:func
 _actor207200CreepingStrangerBurstHead = 0x8014cfec; // type:func
 _actor207200CreepingStrangerBurstRandomPart = 0x8014d128; // type:func
+_actor207200CreepingStrangerScanContacts = 0x8014bef4; // type:func
+_actor207200CreepingStrangerUpdateLiveColor = 0x8014d70c; // type:func

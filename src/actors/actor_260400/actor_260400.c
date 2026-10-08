@@ -981,7 +981,7 @@ u8 D_actor_260400_80154C30[64] = {
 
 Task* D_actor_260400_80154C74;
 
-static void func_actor_260400_80149FE0(Enemy* enemy, Task* task);
+static void _actor260400SpawnScriptedWalker(Enemy* enemy, Task* task);
 
 void actor260400StartHeliportConversation(void)
 {
@@ -1060,25 +1060,34 @@ void actor260400RestoreHeliportPlacement(void)
     }
 }
 
-/// Spawn routine (state 0 of `func_actor_260400_8014A550`): allocates the work
-/// block and publishes it in `_gScriptedWalkWork` and the task's `work`
-/// slot, binds the model to the view and hands it the block's light and colour
-/// matrices, publishes the task in `D_actor_260400_80154C74`, relights the
-/// model from a point 0x320 above its translation and binds the animation
-/// stream. It then starts the revolver task and textures the revolver's model from
-/// the area placement record the spawning enemy names, before running the
-/// first update with the reset mode 2 / id 1 it seeds.
-static void func_actor_260400_80149FE0(Enemy* enemy, Task* task)
+/// Initializes wounded Rupert Broderick's scripted walker and Mongoose attachment.
+///
+/// State 0 owns zeroed work until teardown and publishes borrowed work/task
+/// pointers for the package's singleton handlers. Allocation failure destroys
+/// the enemy. The view-parented twenty-part model borrows work-owned matrices
+/// and animation storage; lighting samples 800 world units above its cached root.
+/// Starts clip 1 and optionally attaches the Mongoose at part 8 with placement
+/// textures, then applies the first animation update before advancing state.
+/// Failed attachment spawning leaves a NULL handle used unchecked by later
+/// handlers. Teardown does not clear the published pointers.
+static void _actor260400SpawnScriptedWalker(Enemy* enemy, Task* task)
 {
-    VECTOR     vec;
-    GfxCoord*  coord;
-    TmdObject* obj;
-    Task*      spawned;
-    void*      work;
+    enum { ACTOR_260400_MONGOOSE_TASK        = 1,
+           ACTOR_260400_MONGOOSE_ATTACH_PART = 8,
+           ACTOR_260400_INITIAL_CLIP         = 1,
+           ACTOR_260400_LIGHT_SAMPLE_HEIGHT  = 800,
+           ACTOR_260400_LIGHT_COUNT          = 3,
+           ACTOR_260400_BODY_OT_OFFSET       = 1 };
 
-    obj                = task->extra.tmd;
-    coord              = obj->coords;
-    work               = memCalloc(sizeof(_Actor260400Work), 0);
+    VECTOR            lightPosition;
+    GfxCoord*         rootCoord;
+    TmdObject*        model;
+    Task*             mongooseTask;
+    _Actor260400Work* work;
+
+    model              = task->extra.tmd;
+    rootCoord          = model->coords;
+    work               = memCalloc(sizeof(*work), false);
     _gScriptedWalkWork = work;
     task->work         = work;
     if (work == NULL) {
@@ -1086,28 +1095,28 @@ static void func_actor_260400_80149FE0(Enemy* enemy, Task* task)
         return;
     }
     task->exitCallback               = _actor260400ExitScriptedWalker;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->flags                       = 0;
-    obj->lightMtx                    = &_gScriptedWalkWork->light;
-    obj->colorMtx                    = &_gScriptedWalkWork->color;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
+    model->otOffset                  = ACTOR_260400_BODY_OT_OFFSET;
+    model->flags                     = 0;
+    model->lightMtx                  = &_gScriptedWalkWork->light;
+    model->colorMtx                  = &_gScriptedWalkWork->color;
+    lightPosition.vx                 = rootCoord->workm.t[0];
+    lightPosition.vy                 = rootCoord->workm.t[1] - ACTOR_260400_LIGHT_SAMPLE_HEIGHT;
     D_actor_260400_80154C74          = task;
-    vec.vz                           = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&_gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_260400_80154C30, obj,
+    lightPosition.vz                 = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightPosition, 0, ACTOR_260400_LIGHT_COUNT);
+    animationInitContext(&_gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_260400_80154C30, model,
                          _gScriptedWalkWork->rig.poses, _gScriptedWalkWork->rig.slots);
-    _gScriptedWalkWork->st.animId = 1;
+    _gScriptedWalkWork->st.animId = ACTOR_260400_INITIAL_CLIP;
     _gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    spawned                       = taskSpawnFromTable(D_actor_260400_80154C18, 1, 8, 0);
-    if (spawned != NULL) {
-        _gScriptedWalkWork->mongoose = spawned;
-        _actorRenderApplyTaskPlacementTextureOffsets(spawned, task->spawnArg2.pointer);
+    mongooseTask                  = taskSpawnFromTable(D_actor_260400_80154C18, ACTOR_260400_MONGOOSE_TASK, ACTOR_260400_MONGOOSE_ATTACH_PART, 0);
+    if (mongooseTask != NULL) {
+        _gScriptedWalkWork->mongoose = mongooseTask;
+        _actorRenderApplyTaskPlacementTextureOffsets(mongooseTask, task->spawnArg2.pointer);
     }
     _gScriptedWalkWork->st.travel     = 0;
     _gScriptedWalkWork->turnFrames    = 0;
@@ -1126,7 +1135,7 @@ static void func_actor_260400_80149FE0(Enemy* enemy, Task* task)
 void func_actor_260400_8014A550(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        func_actor_260400_80149FE0,
+        _actor260400SpawnScriptedWalker,
         _actorRenderWalkerFrame,
     };
 
