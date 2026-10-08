@@ -1012,15 +1012,26 @@ static __inline__ s32 _actorAngleBearingInFrame(ActorBearingScratch* scratch, co
     return angle;
 }
 
-/// Pre-multiplies a rotation by a parent's basis and normalizes the product.
+/// Pre-multiplies an accumulated joint rotation by a parent basis and orthonormalizes it.
 ///
-/// Inputs use 12-fractional-bit coefficients. Only the resulting 3x3 is valid;
-/// the whole-matrix copy also overwrites translation and alignment bytes.
-static __inline__ void _actorRenderPreMultiplyNormalizedRotation(const MATRIX* parentRotation, MATRIX* rotation)
+/// Replaces `rotation->m` with the normalized `parentBasis * rotation` product
+/// so ancestor scale does not accumulate. Coefficients are signed halfwords
+/// with 12 fractional bits (`ONE` is 1.0); `parentBasis` may include scale.
+/// SDK normalization uses the product's first two rows to rebuild a right-handed
+/// basis, preserving the second row's direction. Those rows and their fixed-point
+/// cross products must be nonzero and within the SDK normalization range.
+///
+/// Both arguments must be live, separate, word-aligned `MATRIX` objects;
+/// `parentBasis` is borrowed read-only and `rotation` has an initialized 3x3
+/// in the parent's local frame. The result is in the parent's parent frame.
+/// Only the nine rotation coefficients are a result: the whole-matrix copy
+/// also replaces translation and alignment bytes with unspecified stack data.
+/// Storage remains caller-owned; GTE rotation and working registers change.
+static __inline__ void _actorRenderPreMultiplyNormalizedRotation(const MATRIX* parentBasis, MATRIX* rotation)
 {
     MATRIX normalizedRotation;
 
-    gte_SetRotMatrix(parentRotation);
+    gte_SetRotMatrix(parentBasis);
     MulRotMatrix(rotation);
     MatrixNormal(rotation, &normalizedRotation);
     *rotation = normalizedRotation;
