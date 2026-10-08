@@ -125,7 +125,7 @@ static void _actor342100PlayBlazeAnimation(s32 clipIndex);
 
 static void _actor342100SetBlazeFadeState(s32 fadeState);
 
-void func_actor_342100_80163408(void);
+static void _actor342100StartBlazeHeatHaze(void);
 
 void func_actor_342100_80163454(s32 arg0);
 
@@ -134,7 +134,7 @@ static void _actor342100TriggerBlazeDeath(void);
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
 /// Single-entry spawn table of the screen-wave task
-/// `_screenWaveGridTask`: `func_actor_342100_80163408` starts entry 0
+/// `_screenWaveGridTask`: `_actor342100StartBlazeHeatHaze` starts entry 0
 /// and hands it the address of the work block's `blaze.wave` as its ramp.
 extern TaskDesc D_actor_342100_801648DC[];
 
@@ -361,7 +361,7 @@ EvsCommand D_actor_342100_801649C8[18] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342100_80162C88 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342100_80163408 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342100StartBlazeHeatHaze }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_80163454 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -531,7 +531,7 @@ void func_actor_342100_80162AB0(Task* arg0)
 /// Referenced from the `0x0D` entry of the command table in
 /// `D_actor_342100_801649C8` (+0x90), next to the same-shaped entries naming
 /// `_actor342100PlayBlazeAnimation` / `_actor342100SetBlazeFadeState` /
-/// `func_actor_342100_80163408` / `func_actor_342100_80163454`. That entry
+/// `_actor342100StartBlazeHeatHaze` / `func_actor_342100_80163454`. That entry
 /// passes it no arguments, which is why the declaration is `(void)`.
 void func_actor_342100_80162C88(void)
 {
@@ -754,14 +754,21 @@ static void _actor342100SetBlazeFadeState(s32 fadeState)
     taskMessageDispatch(work->fadeTask, BLAZE_FADE_MESSAGE_SET_STATE, fadeState, 0);
 }
 
-/// Seed the spawn entry's two parameters and start the task that consumes
-/// them, passing the block itself as `Task::spawnArg2`.
-void func_actor_342100_80163408(void)
+/// Starts the burn scene's captured-frame heat haze with a 600-frame strength ramp.
+///
+/// Requires a live published blaze controller, loaded grid-wave resources and no
+/// other active wave. The task borrows the controller's embedded context through
+/// its final draw; peak strength is 256 and existing texture modulation is kept.
+/// The later blaze fade finishes the ramp before controller teardown. No wave
+/// handle is retained and the spawn result is ignored.
+static void _actor342100StartBlazeHeatHaze(void)
 {
+    enum { ACTOR_342100_HEAT_HAZE_RISE_FRAMES   = 600,
+           ACTOR_342100_HEAT_HAZE_PEAK_STRENGTH = 256 };
     _Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
 
-    work->blaze.wave.span  = 0x258;
-    work->blaze.wave.scale = 0x100;
+    work->blaze.wave.span  = ACTOR_342100_HEAT_HAZE_RISE_FRAMES;
+    work->blaze.wave.scale = ACTOR_342100_HEAT_HAZE_PEAK_STRENGTH;
     taskSpawnFromTable(D_actor_342100_801648DC, 0, 0, &work->blaze.wave);
 }
 

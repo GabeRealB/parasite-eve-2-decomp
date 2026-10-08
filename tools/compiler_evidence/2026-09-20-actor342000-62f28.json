@@ -1,5 +1,5 @@
 {
-  "function": "func_actor_342000_80162F28",
+  "function": "_actor342000UpdateSceneStaging",
   "date": "2026-09-20",
   "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
   "target_sha256": "40408272741b9cdd48368f9b781e42b1b5c24f3785b67009139faae1ddf018cc",
@@ -121,5 +121,5 @@
   },
   "scope": "Preplanned manual experiments; no accepted permuter source transformation. Dumps show scalar store/load dependencies and destination lifetime/dbr differences. Internal reorg path was not traced.",
   "verification": "OK: all 7430 matched functions are still C (or legitimately shared)\n\u2705 BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors\n",
-  "archive": "tools/permuter_findings/func_actor_342000_80162F28/sessions/e7cdd65976fe44af8cdd228eb95cf554/a2b2173105bc8f8c2c1a"
+  "archive": "tools/permuter_findings/_actor342000UpdateSceneStaging/sessions/e7cdd65976fe44af8cdd228eb95cf554/a2b2173105bc8f8c2c1a"
 }

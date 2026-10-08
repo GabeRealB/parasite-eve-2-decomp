@@ -117,9 +117,6 @@ extern AnimationSet** D_actor_113100_801442E0[1];
 /// `AnimationPlayRequest::animationId`.
 extern u8 D_actor_113100_801442E4[];
 
-/// Gameplay import, called with 1 by the setup handler and with 0 by
-/// `func_actor_113100_80132F40`.
-
 static void func_actor_113100_80131E58(Task* task);
 static void func_actor_113100_80132104(Task* task);
 static void _actor113100TurnAndBeginWalk(Task* task);
@@ -129,7 +126,7 @@ static void _actor113100AttachBillboard(Task* task);
 static void _actor113100FaceBillboardToCamera(Task* task);
 static void _actor113100Exit(Task* task);
 static void _actor113100BindLighting(Task* task);
-static void func_actor_113100_80132F40(Task* task);
+static void _actor113100CheckPierceAppearance(Task* task);
 static void _actor113100StepWalk(Task* task);
 static void _actor113100QueueWalkHeading(Task* task);
 static void _actor113100TurnToArrivalYaw(Task* task);
@@ -1285,7 +1282,7 @@ static void func_actor_113100_80131E58(Task* task)
 /// Per-frame tick of the actor's live state. While the model is not deferred
 /// (bit 0x80 of `TmdObject::flags`) it rebuilds part 1's world matrix and
 /// draws the ground shadow under that part. `gSceneCombatState.actorControl` gates the rest: a
-/// nonzero value skips it. The live path dispatches `func_actor_113100_80132F40`
+/// nonzero value skips it. The live path dispatches `_actor113100CheckPierceAppearance`
 /// or `_actor113100StepWalk` from a two-entry stack table indexed by
 /// `walk.motion`, integrates the 16.16 step at `walk.velocity` into `walk.carry[0].word` /
 /// `walk.carry[1].word` / `walk.carry[2].word` and the root translation, ticks slots 1..0x13
@@ -1299,7 +1296,7 @@ static void func_actor_113100_80132104(Task* task)
 {
     TmdObject*                       extra    = task->extra.tmd;
     _Actor113100PierceCarradineWork* work     = task->work;
-    TaskFunc                         funcs[2] = { func_actor_113100_80132F40, _actor113100StepWalk };
+    TaskFunc                         funcs[2] = { _actor113100CheckPierceAppearance, _actor113100StepWalk };
     VECTOR3                          pos;
     GfxCoord*                        coord;
     const AnimationRecord*           rec;
@@ -1787,18 +1784,23 @@ static void _actor113100BindLighting(Task* task)
     model->colorMtx = &work->model.color;
 }
 
-static void func_actor_113100_80132F40(Task* arg0)
+/// Reveals Pierce when his appearance flag first becomes positive while he is idle.
+///
+/// Requires live body work. A positive flag after a recorded zero enables model
+/// drawing and restores the parking collision patch. Every idle update records
+/// the flag in its signed-byte latch, including updates that do not reveal him.
+static void _actor113100CheckPierceAppearance(Task* task)
 {
     _Actor113100PierceCarradineWork* work;
-    s32                              flag;
+    s32                              appearFlag;
 
-    work = arg0->work;
-    flag = gameFlagGetNibble(GAME_FLAG_0ED);
-    if (flag > 0 && work->lastAppearFlag == 0) {
-        _actor113100SetModelDraw(arg0, 0, ACTOR_113100_DRAW_SHOW, 0);
+    work       = task->work;
+    appearFlag = gameFlagGetNibble(GAME_FLAG_0ED);
+    if (appearFlag > 0 && work->lastAppearFlag == 0) {
+        _actor113100SetModelDraw(task, 0, ACTOR_113100_DRAW_SHOW, 0);
         mistParkingSetPierceCollisionPatchLowered(MIST_PARKING_PIERCE_PATCH_RESTORED);
     }
-    work->lastAppearFlag = flag;
+    work->lastAppearFlag = appearFlag;
 }
 
 /// Dispatches Pierce's heading, opening turn, arrival or closing-turn step.

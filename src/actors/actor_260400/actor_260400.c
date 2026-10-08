@@ -104,7 +104,7 @@ static void      _actor260400MongooseTask(Task* task);
 
 static s32 _actor260400PlayScriptedWalkerAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
 static s32 _actor260400SetScriptedWalkerModelDraw(Task* unusedTask, s32 messageId, s32 drawFlags, s32 unusedArgument);
-s32        func_actor_260400_8014AAA4(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+static s32 _actor260400ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* request, s32 unusedArgument);
 
 extern AnimationPlayRequest D_actor_260400_8014C4D8;
 extern AnimationPlayRequest D_actor_260400_8014C4EC;
@@ -904,7 +904,7 @@ TaskMessageEntry D_actor_260400_80154BE8[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor260400PlayScriptedWalkerAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor260400SetScriptedWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, _scriptedWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_260400_8014AAA4 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor260400ApplyScriptedWalkerCommand },
     { ACTOR_MESSAGE_WALK_TO, _scriptedWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1302,31 +1302,43 @@ static s32 _actor260400SetScriptedWalkerModelDraw(Task* unusedTask, s32 messageI
 
 #include "../../shared/scripted_walk_place.inc.c"
 
-/// Message 0x7DB: the payload's halfword at 0x2 selects the action. Case 0
-/// starts a turn of 0x14 steps; case 1 enables and shows the revolver's model,
-/// but only while `inventoryIsItemLimitReached(0x88)` returns 0; case 2 disables it and
-/// hides the model again (flags 0x84).
-s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Applies the scripted walker's turn or Mongoose-permission command.
+///
+/// Requires live published walker work and its successfully spawned revolver.
+/// Command zero schedules twenty turn updates; one permits model-draw messages
+/// and clears the revolver's draw flags only if the Mongoose inventory test is zero;
+/// two clears that permission and hides the revolver with auto buffering disabled.
+/// An already-owned Mongoose makes command one a complete no-op. The permission
+/// latch does not mirror actual drawing or buffer availability. Unknown commands
+/// are ignored. Borrows the read-only command until return; returns 0.
+static s32 _actor260400ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* request, s32 unusedArgument)
 {
-    TmdObject* obj;
-    s32        mode;
+    enum {
+        ACTOR_260400_COMMAND_TURN             = 0,
+        ACTOR_260400_COMMAND_ENABLE_MONGOOSE  = 1,
+        ACTOR_260400_COMMAND_DISABLE_MONGOOSE = 2,
+        ACTOR_260400_TURN_TICKS               = 20,
+        ACTOR_260400_MONGOOSE_ITEM            = 0x88,
+    };
+    TmdObject* mongooseModel;
+    s32        command;
 
-    obj  = _gScriptedWalkWork->mongoose->extra.tmd;
-    mode = msg->command;
+    mongooseModel = _gScriptedWalkWork->mongoose->extra.tmd;
+    command       = request->command;
 
-    switch (mode) {
-        case 0:
-            _gScriptedWalkWork->turnFrames = 0x14;
+    switch (command) {
+        case ACTOR_260400_COMMAND_TURN:
+            _gScriptedWalkWork->turnFrames = ACTOR_260400_TURN_TICKS;
             break;
-        case 1:
-            if (inventoryIsItemLimitReached(0x88) == 0) {
-                _gScriptedWalkWork->mongooseShown = mode;
-                obj->flags                        = 0;
+        case ACTOR_260400_COMMAND_ENABLE_MONGOOSE:
+            if (inventoryIsItemLimitReached(ACTOR_260400_MONGOOSE_ITEM) == 0) {
+                _gScriptedWalkWork->mongooseShown = command;
+                mongooseModel->flags              = 0;
             }
             break;
-        case 2:
+        case ACTOR_260400_COMMAND_DISABLE_MONGOOSE:
             _gScriptedWalkWork->mongooseShown = 0;
-            obj->flags                        = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            mongooseModel->flags              = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
     }
     return 0;

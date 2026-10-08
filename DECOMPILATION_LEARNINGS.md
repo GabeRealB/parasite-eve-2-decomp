@@ -2409,12 +2409,12 @@ own `extern` (take `main/gameflag.h` instead — if the extern still returns
 directly and 100.000% with every penalty zero:
 
 ```c
-s32 flag = gameFlagGetNibble(0xED);
-if (flag > 0 && work->field_53E == 0) { ... }
-work->field_53E = flag;   /* sb: the store truncates, no cast needed */
+s32 appearFlag = gameFlagGetNibble(GAME_FLAG_0ED);
+if (appearFlag > 0 && work->lastAppearFlag == 0) { ... }
+work->lastAppearFlag = appearFlag;   /* sb: the store truncates, no cast needed */
 ```
 
-`func_actor_113100_80132F40` (`base_1.c` 100%, one build after the 96.43%
+`_actor113100CheckPierceAppearance` (`base_1.c` 100%, one build after the 96.43%
 baseline; `base.c` is the raw m2c seed). General rule: when an m2c seed picks an
 `s8`/`s16`/`u16` local because of a truncating store, check what the *other* use
 of that value wants — the declared width, not the store, decides the compare.
@@ -2422,7 +2422,7 @@ of that value wants — the declared width, not the store, decides the compare.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Inputs: base.i `38c5b32303e08e99ce0c8264ee0871caaab40861f74b05be3e2c7cf9b92a2884`,
 base_1.i `b3998257ca8d945da974c1c3846649ac2488078deafb4ad264eda281efda0ffd`.
-Evidence: scratch `nonmatchings/func_actor_113100_80132F40-vacuum/`, the
+Evidence: scratch `nonmatchings/_actor113100CheckPierceAppearance-vacuum/`, the
 `.rtl` insns 20/21/23 above; no pins, no permuter, no tracer.
 `overlay_dup_index.py find` reports this body as its own only copy.
 ## A `u16` field tested for "0 or 1" is a two-case `switch`; `&&` folds to one `sltiu`
@@ -84927,7 +84927,7 @@ before writing it into a header.
 
 ## m2c scales a `(s32)(ptr + N)` argument by the pointee; the store beside it stays a byte offset
 
-`func_actor_342100_80163408` seeds two fields and hands their address to
+`_actor342100StartBlazeHeatHaze` seeds two fields and hands their address to
 `taskSpawnFromTable` as its fourth argument. m2c rendered both from the same
 offset, but only one of them means bytes:
 
@@ -102040,17 +102040,17 @@ The target loads the work block once at the top and then, on the far side of the
 call, loads the *same global* again instead of keeping the value:
 
 ```
-lw     a0,%lo(ActorsShared80131f9cWork)(s2)   # work, at the top
+lw     a0,%lo(_gScriptedWalkWork)(s2)   # work, at the top
 lw     v0,0x4F0(a0)
 ...
 jal    inventoryIsItemLimitReached
 ...
-lw     v0,%lo(ActorsShared80131f9cWork)(s2)   # re-loaded, not kept
+lw     v0,%lo(_gScriptedWalkWork)(s2)   # re-loaded, not kept
 sb     s0,0x4F4(v0)
 ```
 
-Writing that arm through a local — `work = ActorsShared80131f9cWork;` at the top
-and `work->field_4F4 = mode;` inside the call-containing case — reads as the same
+Writing that arm through a local — `work = _gScriptedWalkWork;` at the top
+and `work->mongooseShown = command;` inside the call-containing case — reads as the same
 value, and it is, but it is a *different live range*. Liveness is per block: the
 pseudo is live-in to the case block and nothing kills it before the `jal`, so it
 is live across the call, and global.c must hand it a callee-saved home. The
@@ -102059,35 +102059,35 @@ a second load in the arm that CSE cannot fold across the call.
 
 The two forms differ in nothing else, and the controlled pair measures it:
 holding it in the local scores 89.256%, `regs=12`, instructions 41/43; re-reading
-the global scores 100.000%. In the local form `work` sits in `$s1`, `obj` is
+the global scores 100.000%. In the local form `work` sits in `$s1`, `mongooseModel` is
 pushed out to `$s2`, and the target's post-call `lw $v0,%lo(...)($s2)` is gone —
 two instructions' difference and the whole `regs` penalty, from one identifier.
 
 ```c
     /* 100%: the arm re-reads the global, so the top load dies at the dispatch */
-    obj  = (TmdObject*)ActorsShared80131f9cWork->field_4F0->extra;
-    mode = msg->field_2;
+    mongooseModel = _gScriptedWalkWork->mongoose->extra.tmd;
+    command = request->command;
 
-    switch (mode) {
+    switch (command) {
         case 1:
             if (inventoryIsItemLimitReached(0x88) == 0) {
-                ActorsShared80131f9cWork->field_4F4 = mode;
-                obj->field_C                        = 0;
+                _gScriptedWalkWork->mongooseShown = command;
+                mongooseModel->flags                        = 0;
             }
 ```
 
-`obj` in the same function is the control: it is live across the call in *both*
+`mongooseModel` in the same function is the control: it is live across the call in *both*
 forms — the arm uses it after the `jal` and no re-read can replace it — and it
 takes `$s1` either way. So the rule is not "avoid locals"; it is that a load the
 target repeats after a `jal` is evidence the source did not hoist it, and
 reproducing the repeat is what fixes the register.
 
 The index is the SI-local rule from the section above, hit the same way in the
-same function: `u16 mode` gave `andi v0,a0,0xffff` beside the `lhu`, and reading
-`msg->field_2` straight into the byte store gave `lbu` — `s32 mode = msg->field_2;`
+same function: `u16 command` gave `andi v0,a0,0xffff` beside the `lhu`, and reading
+`request->command` straight into the byte store gave `lbu` — `s32 command = request->command;`
 removes both.
 
-`func_actor_260400_8014AAA4` (actors). Inputs: `base_3.i`
+`_actor260400ApplyScriptedWalkerCommand` (actors). Inputs: `base_3.i`
 `36d48206e4da739ec62a231fe0a6c2bdd8996577091791d06d356bd48161b47a` (100.000%),
 `base_4.i` `6b30e4ec9b10c261d81b15d3c850723e12087d27b1ef3635ce78c108844a4b52`
 (89.256%). One identifier apart.
@@ -103315,7 +103315,7 @@ Inputs: `base_1.c`
 `6d6fe685646ba494094f0463f1c92323ba76120cd3a2ccb414306088ad68d0df` (both
 100.000%); the m2c seed `base.i`
 `b06d49d45bc335e0c169bc1f9853026df4114bbc043712808e0f7443fb07c8f2` (77.600%).
-## A duplicated store block inside each arm keeps the address session, so the arms collapse to one `li` (func_actor_136300_80132910, 2026-09-16)
+## A duplicated store block inside each arm keeps the address session, so the arms collapse to one `li` (_actor136300ControlScreenWave, 2026-09-16)
 
 An if/else that fills a two-halfword struct collapses, in the target, to one
 `li` per arm and a shared address register:
@@ -103378,7 +103378,7 @@ the arms rather than moving it out.
 Inputs: `base_9.i` (100.000%) SHA256 `b92cc4ec81705d0f084be818ff5908897eac80a842d7074516796fb94aedf493`;
 target SHA256 `126ce3ad3a12bf3bac8b159f359ce023e25287584a1599e8d6d6a14958ddca20`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_136300_80132910-vacuum`.
+Scratch `nonmatchings/_actor136300ControlScreenWave-vacuum`.
 
 ## An actor dispatcher's frame-copied jump table reaches m2c as an eight-argument indirect call based on an undeclared `sp` (_actor01900Task, 2026-09-16)
 
@@ -124508,7 +124508,7 @@ Inputs: scratch `nonmatchings/_actor120300TickBodyAnimation-vacuum`, `base.c`
 72.918% (`branch=2 regs=51 reorder=2 insert=8 delete=8`), `base_1.c` 89.338%,
 `base_2.c` 92.041%, `base_3.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## A never-read m2c scalar is not a dead store you can ignore: its assignment is a register write, so the whole redundant pointer chain is deleted (func_actor_342000_8016201C, 2026-09-17)
+## A never-read m2c scalar is not a dead store you can ignore: its assignment is a register write, so the whole redundant pointer chain is deleted (_actor342000IncineratorDoorTask, 2026-09-17)
 
 m2c splits a three-word stack slot into separate scalars, and only the first
 one's address escapes:
@@ -124561,9 +124561,9 @@ that has a dead store *fix* cse canonicalisation (section 28): there the store
 had to stay live long enough to be seen by `reg_scan`; here the store exists
 only if its destination is a real object.
 
-## The scratchpad pointer must be spelled `lui` + `0x3FC`, and CSE folds its first access onto the head unless a touch keeps it out of the address table (func_actor_342000_801628C8, 2026-09-17)
+## The scratchpad pointer must be spelled `lui` + `0x3FC`, and CSE folds its first access onto the head unless a touch keeps it out of the address table (_actor342000GluttonBodyTask, 2026-09-17)
 
-`func_actor_342000_801628C8` scales a rotation matrix by a per-axis vector
+`_actor342000GluttonBodyTask` scales a rotation matrix by a per-axis vector
 through a scratchpad `SVECTOR`, and the ROM reaches `SCRATCH_STACK_CURSOR_SLOT` four times
 as a `lui` plus a `0x3FC` displacement:
 
@@ -124614,20 +124614,20 @@ Three smaller ones from the same function:
   across basic blocks keeps its global home, while a fresh variable is
   local-alloc's to place (99.92% -> 100.00%). The converse of the entry at the
   top of this file;
-* `ang` (`s32*` over `field_274`) and `sc` (`VECTOR*` over `field_264`) are what
+* `rotation` (`s32*` over `rotation`) and `sc` (`VECTOR*` over `scale`) are what
   materialise those bases in `$s1`/`$v1` instead of folding them onto the work
-  pointer, and `sc = &work->field_264;` has to sit between the scratch load and
+  pointer, and `sc = &work->scale;` has to sit between the scratch load and
   its `-8` adjust for `addiu v1,s2,0x264` to land in the load-delay slot.
 
-**Superseded for the same idiom in `func_actor_342000_801625D8`:** moving the
+**Superseded for the same idiom in `_actor342000GluttonPartTask`:** moving the
 push, the three gather/`gpf 12`/scatter columns and the pop into one
 `static __inline__` helper (`_gfxScaleMatrixColumns(MATRIX*, const VECTOR*)` in `include/main/gfxgte.h`,
 written with `SCRATCH_STACK_RESERVE_BLOCK`/`SCRATCH_STACK_RELEASE_BLOCK`) matched with no `lui` asm, no
 `TOUCH_REG` and no column barriers. The inlined RTL keeps each head access
 absolute and the helper's own `column` stops the `-8(head)` fold. So try the helper
 before reaching for the pins above. The same helper later removed every pin
-from `func_actor_342000_801628C8` itself, unchanged, with the `ang` local
-still needed: calling the three `Gfx_RotMatrix*` on `work->field_27x` directly
+from `_actor342000GluttonBodyTask` itself, unchanged, with the `rotation` pointer local
+(now scoped inside `_actor342000RebuildGluttonBodyTransform`) still needed: calling the three `Gfx_RotMatrix*` on `work->rotation[0..2]` directly
 drops to 97.5%.
 ## A two-case `switch`'s decision tree is a linear list, so the emitted branch order is fixed by *case count*, not by source order - give the switch a third label (_actor341700PropCommandMessage, 2026-09-17)
 
@@ -129713,12 +129713,12 @@ base_6 SHA256 `670b9af66d93e4f4177384c571156b8b2b52702b2055ff39b6c79f650857b82a`
 base_7 SHA256 `30218c0461cb7a61657f42b23f7129e3d3ec78fccb174ab568a67295aebc7c1e`.
 The permuter's retained output for this function is what removed the first cast
 (`PERMUTER_EVIDENCE/2ada3b86d3a54916`); the cc1 probe is in the session notes.
-### `TOUCH_REG(ptr)` stops cse re-addressing `0(ptr)` as `off(base)` after stores through it (func_actor_342000_801625D8, 2026-09-17)
+### `TOUCH_REG(ptr)` stops cse re-addressing `0(ptr)` as `off(base)` after stores through it (_actor342000GluttonPartTask, 2026-09-17)
 
 **Symptom.** `mtx = &work->coord.coord` (0x218), five identity stores through
 `mtx`, then GTE column reads: target reads `lhu $t4, 0($v1)`, ours reads
 `lhu $t4, 0x218($a2)` - only the offset-0 reads, `+6`/`+0xC` stay on `$v1`.
-The matched sibling `func_actor_342000_801628C8` never showed it because calls
+The matched sibling `_actor342000GluttonBodyTask` never showed it because calls
 sat between the stores and the reads.
 
 **Cause.** cse still holds `mtx == (plus work 0x218)` and folds the zero-offset
@@ -137998,7 +137998,7 @@ Allocation survived independently: table quantity {88,196}, refs=4/span=18/prior
 
 Scope: this supports the documented hazard-selection mechanism, not a universal rule for ordering field stores. A lower-ranked alternate also improved by hoisting 15 so local allocation rematerializes it after sched1; that variation was retained but not independently isolated, so its full causal explanation remains unclaimed.
 
-## Scalar update helpers restore memory dependencies, but a destination spanning the branch occupies its delay slot (func_actor_342000_80162F28, 2026-09-20)
+## Scalar update helpers restore memory dependencies, but a destination spanning the branch occupies its delay slot (_actor342000UpdateSceneStaging, 2026-09-20)
 
 The repaired retry seed matched 97.965%. In case 3 its fixed scalar `D_80070F70` load moved ahead of struct coordinate stores, changed v0/v1 allocation, and filled a target load-delay nop. `.sched` UID 1129 depended only on its high-address producer 1127. The preceding stores were `mem/s:SI`, so `sched.c:true_dependence`'s fixed-scalar/varying-struct exemption removed those memory edges.
 
@@ -138008,7 +138008,7 @@ However, putting the conditional inside `SwayInPlace(s32 *value, s32 delta)` ret
 
 This supports the documented memory-flag mechanism and the observed competition for a branch delay slot, not a universal helper-order rule. The router's best output changed coordinate values and was rejected; its next valid retained output rebuilt worse. The exact result came from independent dump-guided follow-up. Full unscoped verification passed, including the lost-match check.
 
-Inputs: base_3.i SHA-256 `fb7ba71d67cdd2d11e35a1155f95025e77d52ad1d8c38e5da390551ef01b0dba`; exact base_4.i `ed20edd6e8f45480080b80452665c86143277bea32865713d65d90ea464d49a1`. Selected RTL, predictions/build fingerprints and verification: `tools/compiler_evidence/2026-09-20-actor342000-62f28.json`. Full sources, compressed inputs and session notes are retained under `tools/permuter_findings/func_actor_342000_80162F28/`.
+Inputs: base_3.i SHA-256 `fb7ba71d67cdd2d11e35a1155f95025e77d52ad1d8c38e5da390551ef01b0dba`; exact base_4.i `ed20edd6e8f45480080b80452665c86143277bea32865713d65d90ea464d49a1`. Selected RTL, predictions/build fingerprints and verification: `tools/compiler_evidence/2026-09-20-actor342000-62f28.json`. Full sources, compressed inputs and session notes are retained under `tools/permuter_findings/_actor342000UpdateSceneStaging/`.
 ## Reusing disjoint coordinates removes single-definition equivalences and fixes a global register permutation (_actor143000DrawKeypad, 2026-09-20)
 
 After fixing the loop preheader, this renderer had only register differences

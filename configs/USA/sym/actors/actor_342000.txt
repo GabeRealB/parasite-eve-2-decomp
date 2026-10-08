@@ -79,3 +79,7 @@ _actor342000InitGluttonModel = 0x80162158; // type:func
 _actor342000UpdatePlayerAction = 0x80162bbc; // type:func
 _actor342000ExitGluttonModel = 0x80163f88; // type:func
 _actor342000EnterIncineratorRoom = 0x80164154; // type:func
+_actor342000IncineratorDoorTask = 0x8016201c; // type:func
+_actor342000GluttonPartTask = 0x801625d8; // type:func
+_actor342000GluttonBodyTask = 0x801628c8; // type:func
+_actor342000UpdateSceneStaging = 0x80162f28; // type:func

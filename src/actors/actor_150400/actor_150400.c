@@ -62,8 +62,8 @@ static TmdSource _gActor150400No9GolemDryfieldBody;
 static TmdSource _gActor150400GolemBeamSword;
 void             func_actor_150400_801323E0(Task*);
 
-s32 func_actor_150400_801327EC(Task*, s32, s32, s32);
-s32 func_actor_150400_801327F4(Task* task, s32 msgId, ActorTransform* target, s32 arg3);
+static s32 _actor150400IgnorePairWalkCommand(Task* unusedTask, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument);
+static s32 _actor150400PairWalkSetWalkTarget(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument);
 
 void func_actor_150400_80131ECC(void);
 void func_actor_150400_80131F6C(void);
@@ -71,10 +71,10 @@ void func_actor_150400_80131F6C(void);
 void func_actor_150400_80131ECC(void);
 void func_actor_150400_80131F6C(void);
 
-void func_actor_150400_80131E24(Task*);
-void func_actor_150400_80131ECC(void);
-void func_actor_150400_80131F6C(void);
-void func_actor_150400_80131F9C(s32);
+static void _actor150400SlidingModelTask(Task* task);
+void        func_actor_150400_80131ECC(void);
+void        func_actor_150400_80131F6C(void);
+void        func_actor_150400_80131F9C(s32);
 
 static TmdBone _gActor150400Model00C44Skeleton[1] = {
 #include "assets/actor_150400_model_00C44_skeleton.inc"
@@ -104,7 +104,7 @@ static TmdSource _gActor150400Model00C44 = {
     _gActor150400Model00C44Stream,
 };
 
-TaskDesc D_actor_150400_80132CF0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 32 } }, func_actor_150400_80131E24, { .model = &_gActor150400Model00C44 } };
+TaskDesc D_actor_150400_80132CF0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 32 } }, _actor150400SlidingModelTask, { .model = &_gActor150400Model00C44 } };
 
 AnimationPlayRequest D_actor_150400_80132CFC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -327,8 +327,8 @@ TaskMessageEntry D_actor_150400_8013C8C4[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pairWalkPlay },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pairWalkSetVisibility },
     { ACTOR_MESSAGE_PLACE, _pairWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_150400_801327EC },
-    { ACTOR_MESSAGE_WALK_TO, func_actor_150400_801327F4 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor150400IgnorePairWalkCommand },
+    { ACTOR_MESSAGE_WALK_TO, _actor150400PairWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -371,41 +371,55 @@ Task* D_actor_150400_8013C928;
 void        func_actor_150400_80131FB8(void);
 static void func_actor_150400_80132014(Enemy* enemy, Task* task);
 
-/// Per-frame callback of the model task `D_actor_150400_80132CF0` describes,
-/// spawned twice by `func_actor_150400_80131FB8` with `spawnArg1` 1 and 2.
-/// State 0 places the model's coordinate (the two copies differ only in z) and
-/// moves on to 1; `func_actor_150400_80131F9C` puts both copies into state 2,
-/// which slides them along x by 4 a frame up to 0x406. The model is drawn only
-/// while the save's view byte is 5; otherwise its flags are set to 0x84, which
-/// hides it.
-void func_actor_150400_80131E24(Task* task)
+/// Places and slides one of the freezer scene's paired models along X.
+///
+/// Requires a live TMD root. State zero places the first copy for spawn argument
+/// one and the second for every other value, then enters hold state one.
+/// State two slides four parent-coordinate units per update and clamps X at 1030.
+/// Only saved view five draws either copy; every update replaces all draw flags.
+/// Each transform change marks composition dirty. The scene sets both task states
+/// together; this callback retains no work allocation.
+static void _actor150400SlidingModelTask(Task* task)
 {
-    TmdObject* obj   = task->extra.tmd;
-    GfxCoord*  coord = obj->coords;
+    enum {
+        ACTOR_150400_SLIDER_INITIALIZE = 0,
+        ACTOR_150400_SLIDER_HOLD       = 1,
+        ACTOR_150400_SLIDER_MOVE       = 2,
+        ACTOR_150400_SLIDER_VIEW       = 5,
+        ACTOR_150400_SLIDER_FIRST_COPY = 1,
+        ACTOR_150400_SLIDER_START_X    = 730,
+        ACTOR_150400_SLIDER_END_X      = 1030,
+        ACTOR_150400_SLIDER_Y          = -1380,
+        ACTOR_150400_SLIDER_FIRST_Z    = -4460,
+        ACTOR_150400_SLIDER_SECOND_Z   = -4120,
+        ACTOR_150400_SLIDER_STEP_UNITS = 4,
+    };
+    TmdObject* model     = task->extra.tmd;
+    GfxCoord*  rootCoord = model->coords;
 
-    if (task->state == 0) {
-        coord->coord.t[0] = 0x2DA;
-        coord->coord.t[1] = -0x564;
-        if (task->spawnArg1.value == 1) {
-            coord->coord.t[2] = -0x116C;
+    if (task->state == ACTOR_150400_SLIDER_INITIALIZE) {
+        rootCoord->coord.t[0] = ACTOR_150400_SLIDER_START_X;
+        rootCoord->coord.t[1] = ACTOR_150400_SLIDER_Y;
+        if (task->spawnArg1.value == ACTOR_150400_SLIDER_FIRST_COPY) {
+            rootCoord->coord.t[2] = ACTOR_150400_SLIDER_FIRST_Z;
         } else {
-            coord->coord.t[2] = -0x1018;
+            rootCoord->coord.t[2] = ACTOR_150400_SLIDER_SECOND_Z;
         }
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        task->state++;
+        rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        task->state            += ACTOR_150400_SLIDER_HOLD - ACTOR_150400_SLIDER_INITIALIZE;
     }
-    if (task->state == 2) {
-        coord->coord.t[0] += 4;
-        if (coord->coord.t[0] > 0x406) {
-            coord->coord.t[0] = 0x406;
+    if (task->state == ACTOR_150400_SLIDER_MOVE) {
+        rootCoord->coord.t[0] += ACTOR_150400_SLIDER_STEP_UNITS;
+        if (rootCoord->coord.t[0] > ACTOR_150400_SLIDER_END_X) {
+            rootCoord->coord.t[0] = ACTOR_150400_SLIDER_END_X;
         }
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != 5) {
-        obj->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != ACTOR_150400_SLIDER_VIEW) {
+        model->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     } else {
-        obj->flags    = 0;
-        obj->otOffset = 0;
+        model->flags    = 0;
+        model->otOffset = 0;
     }
 }
 
@@ -551,31 +565,40 @@ static void func_actor_150400_801324B8(Task* task)
 
 #include "../../shared/pair_walk_place.inc.c"
 
-s32 func_actor_150400_801327EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Accepts this pair walker's actor-command message without changing anything.
+///
+/// All arguments, including the borrowed command payload, are ignored. Returns 0.
+static s32 _actor150400IgnorePairWalkCommand(Task* unusedTask, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument)
 {
     return 0;
 }
 
-/// Script opcode: walk to `target`. Aims the actor's root coordinate at it by
-/// the yaw of the horizontal offset from the coordinate's own translation,
-/// caches that yaw in `yaw` and rebuilds the local matrix from it, then sets
-/// `travel` to the distance divided by 17, the step body's per-frame stride.
-s32 func_actor_150400_801327F4(Task* task, s32 arg1, ActorTransform* target, s32 arg3)
+/// Aims the pair walker at a destination and records its remaining 17-unit travel ticks.
+///
+/// Requires live PairWalkWork and a TMD root. Borrows only target X/Z in the root
+/// parent's frame; Y and rotation are ignored. Stores yaw in 4096 units per turn
+/// and floor(horizontal distance / 17) in signed-halfword travel without clamping.
+/// The signed square sum must be representable and travel must fit 0..32767.
+/// Replaces rotation without invalidating composition or starting animation;
+/// a separate walk-clip request starts motion. Other message arguments are ignored.
+/// The destination is retained only as yaw and travel; returns 0.
+static s32 _actor150400PairWalkSetWalkTarget(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument)
 {
-    GfxCoord*     coord;
+    enum { ACTOR_150400_PAIR_WALK_STEP_UNITS = 17 };
+    GfxCoord*     rootCoord;
     PairWalkWork* work;
-    s32           dx;
-    s32           dz;
+    s32           deltaX;
+    s32           deltaZ;
     u16           yaw;
 
-    coord        = task->extra.tmd->coords;
+    rootCoord    = task->extra.tmd->coords;
     work         = task->work;
-    dx           = target->pos.vx - coord->coord.t[0];
-    dz           = target->pos.vz - coord->coord.t[2];
-    yaw          = ratan2(dx, dz);
+    deltaX       = target->pos.vx - rootCoord->coord.t[0];
+    deltaZ       = target->pos.vz - rootCoord->coord.t[2];
+    yaw          = ratan2(deltaX, deltaZ);
     work->st.yaw = yaw;
-    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
-    work->st.travel = SquareRoot0(dx * dx + dz * dz) / 17;
+    gfxRotMatrixY(&rootCoord->coord, (s16)yaw, GRAPHICS_ROTATION_REPLACE);
+    work->st.travel = SquareRoot0(deltaX * deltaX + deltaZ * deltaZ) / ACTOR_150400_PAIR_WALK_STEP_UNITS;
     return 0;
 }
 

@@ -45,3 +45,4 @@ _actor342100HandleBlazeFadeState = 0x80163344; // type:func
 _actor342100PlayBlazeAnimation = 0x8016334c; // type:func
 _actor342100SetBlazeFadeState = 0x801633d0; // type:func
 _actor342100TriggerBlazeDeath = 0x80163518; // type:func
+_actor342100StartBlazeHeatHaze = 0x80163408; // type:func

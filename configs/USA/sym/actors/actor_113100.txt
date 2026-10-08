@@ -223,3 +223,4 @@ _actor113100StepWalk = 0x80132fb4; // type:func
 _actor113100StartWalk = 0x801328ec; // type:func
 _actor113100ApplyCommand = 0x801333b8; // type:func
 _actor113100PierceCarradineTask = 0x80132e98; // type:func
+_actor113100CheckPierceAppearance = 0x80132f40; // type:func

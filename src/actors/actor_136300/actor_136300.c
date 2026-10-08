@@ -124,16 +124,16 @@ static AnimationSet         _gActor136300Animation08A84;
 static AnimationSet         _gActor136300Animation08D9C;
 static AnimationSet         _gActor136300Animation08F98;
 static AnimationSet         _gActor136300Animation092D4;
-static void                 _actor136300SetSceneEvent(s8 sceneEvent);
-void                        func_actor_136300_801328E0(s32);
-void                        func_actor_136300_80132910(s32);
-void                        func_actor_136300_80132998(void);
-void                        func_actor_136300_801329EC(void);
-void                        func_actor_136300_80132A4C(s32);
-static void                 _actor136300SelectSceneCaptions(s32 restoreDefaults);
+/// Scene callback request that prepares mask-bit RGB16 decoding without starting a wave.
+enum { ACTOR_136300_WAVE_PREPARE_DECODE = -2 };
 
-void func_actor_136300_801328E0(s32);
-void func_actor_136300_80132910(s32);
+static void _actor136300SetSceneEvent(s8 sceneEvent);
+static void _actor136300StartGarageMovie(s32 alternateMovie);
+static void _actor136300ControlScreenWave(s32 request);
+static void _actor136300StartGarageDialogue(void);
+static void _actor136300PlayCompanionDialogueAnimation(void);
+void        func_actor_136300_80132A4C(s32);
+static void _actor136300SelectSceneCaptions(s32 restoreDefaults);
 
 TaskDesc D_actor_136300_80132AC4[2] = {
     { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
@@ -1191,7 +1191,7 @@ EvsCommand D_actor_136300_8013B590[149] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B17C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136300_80132910 }, { .value = -2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300ControlScreenWave }, { .value = ACTOR_136300_WAVE_PREPARE_DECODE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136300_8013B528 } }, { .value = 0 } },
@@ -1254,7 +1254,7 @@ EvsCommand D_actor_136300_8013B590[149] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136300_801328E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300StartGarageMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_136300_8013B518 } }, { .value = 0 } },
@@ -1367,11 +1367,11 @@ EvsCommand D_actor_136300_8013C508[8] = {
 EvsCommand D_actor_136300_8013C5C8[10] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_136300_8013B518 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_136300_8013B520 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136300_80132998 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136300StartGarageDialogue }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B3C4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136300_801329EC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136300PlayCompanionDialogueAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1382,7 +1382,7 @@ EvsSceneKey D_actor_136300_8013C6B8 = { 3, 65, 11 };
 EvsCommand D_actor_136300_8013C6C0[8] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136300_801328E0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300StartGarageMovie }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_EVENT_STATE, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1397,7 +1397,7 @@ EvsCommand D_actor_136300_8013C780[11] = {
     { EVENT_SCRIPT_OPCODE_SET_EVENT_STATE, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136300_80132910 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300ControlScreenWave }, { .value = SCREEN_WAVE_RAMP_FINISHED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -1510,68 +1510,91 @@ static void _actor136300SetSceneEvent(s8 sceneEvent)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }
 
-void func_actor_136300_801328E0(s32 arg0)
+/// Starts the loaded garage overlay's movie launcher from this scene.
+///
+/// Zero selects the primary movie and nonzero the alternate; the garage chooses
+/// the disc-specific stream. The launcher hands presentation to movie playback.
+/// The spawn result is ignored and no task handle is retained.
+static void _actor136300StartGarageMovie(s32 alternateMovie)
 {
-    taskSpawnFromTable(D_dryfield_night_garage_80183380, 0, arg0, 0);
+    taskSpawnFromTable(D_dryfield_night_garage_80183380, 0, alternateMovie, 0);
 }
 
-/// Message handler driving the screen wave. A positive argument is stored in
-/// `state`: `SCREEN_WAVE_RAMP_FALLING` counts the ramp back down, and
-/// `SCREEN_WAVE_RAMP_FINISHED` ends the task. Otherwise `imageMdecMode` is set
-/// to `MDEC_IMAGE_MODE_RGB16_MASK_BIT` and, except for the -2 message, the ramp
-/// context is seeded (`span` 0x64 for 0, 5 otherwise, `scale` 0x100) and the
-/// screen-wave task `D_actor_136300_80132AC4` is spawned with it.
+/// Prepares mask-bit image decoding, starts a screen wave, or changes its ramp phase.
 ///
-/// Both halves of the context are written in *each* arm of the span test so
-/// that each arm is a complete two-store address session: jump optimization
-/// then merges the identical tails and the span collapses to one `li` per
-/// arm, which is what puts the block's `lui` in the delay slot of the entry
-/// test. Hoisting the scale store out of the arms compiles to a different
-/// allocation.
-void func_actor_136300_80132910(s32 arg0)
+/// Request -2 only selects mask-bit RGB16 decoding. Zero starts a 100-frame rise;
+/// other negative requests start a five-frame rise, both peaking at strength 256.
+/// Positive requests narrow to the context's signed-halfword phase (1 falling,
+/// 2 finished). Starting requires no other active wave and loaded wave resources;
+/// the package's static context remains borrowed through the wave's final tick.
+/// Both span-test arms retain their complete span/scale store pairs for matching.
+static void _actor136300ControlScreenWave(s32 request)
 {
+    enum {
+        ACTOR_136300_WAVE_SLOW_RISE        = 0,
+        ACTOR_136300_WAVE_SLOW_RISE_FRAMES = 100,
+        ACTOR_136300_WAVE_FAST_RISE_FRAMES = 5,
+        ACTOR_136300_WAVE_PEAK_STRENGTH    = 256,
+    };
     CdCmdQueue* queue;
 
     queue = &gCdCmdQueue;
-    if (arg0 <= 0) {
+    if (request <= 0) {
         queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-        if (arg0 != -2) {
-            if (arg0 == 0) {
-                D_actor_136300_8013C99C.span  = 0x64;
-                D_actor_136300_8013C99C.scale = 0x100;
+        // Prepare RGB16 mask-bit decoding before optionally starting distortion.
+        if (request != ACTOR_136300_WAVE_PREPARE_DECODE) {
+            if (request == ACTOR_136300_WAVE_SLOW_RISE) {
+                D_actor_136300_8013C99C.span  = ACTOR_136300_WAVE_SLOW_RISE_FRAMES;
+                D_actor_136300_8013C99C.scale = ACTOR_136300_WAVE_PEAK_STRENGTH;
             } else {
-                D_actor_136300_8013C99C.span  = 5;
-                D_actor_136300_8013C99C.scale = 0x100;
+                D_actor_136300_8013C99C.span  = ACTOR_136300_WAVE_FAST_RISE_FRAMES;
+                D_actor_136300_8013C99C.scale = ACTOR_136300_WAVE_PEAK_STRENGTH;
             }
             taskSpawnFromTable(D_actor_136300_80132AC4, 0, 0, &D_actor_136300_8013C99C);
         }
     } else {
-        D_actor_136300_8013C99C.state = arg0;
+        D_actor_136300_8013C99C.state = request;
     }
 }
 
-void func_actor_136300_80132998(void)
+/// Selects the next garage dialogue slot and advances its saved progression to two.
+///
+/// The flag supplies a nonnegative nibble: slots 16, 17 and then 18 in normal
+/// progression, using current-display CAP playback and variant key zero. Values
+/// above two remain unchanged and still select slot 16 plus the stored nibble.
+/// Requires this scene's live CAP resources. Progress advances even if CAP fails
+/// to start or is busy; the playback result is discarded.
+static void _actor136300StartGarageDialogue(void)
 {
-    s32 temp_v0;
+    enum { ACTOR_136300_GARAGE_DIALOGUE_FIRST_SLOT = 16,
+           ACTOR_136300_GARAGE_DIALOGUE_LAST_INDEX = 2 };
+    s32 dialogueIndex;
 
-    temp_v0 = gameFlagGetNibble(GAME_FLAG_072);
-    capStartSequenceSlot((s16)(temp_v0 + 0x10), 0, 0);
-    if (temp_v0 < 2) {
-        gameFlagSetNibble(GAME_FLAG_072, temp_v0 + 1);
+    dialogueIndex = gameFlagGetNibble(GAME_FLAG_072);
+    capStartSequenceSlot((s16)(dialogueIndex + ACTOR_136300_GARAGE_DIALOGUE_FIRST_SLOT), 0, 0);
+    if (dialogueIndex < ACTOR_136300_GARAGE_DIALOGUE_LAST_INDEX) {
+        gameFlagSetNibble(GAME_FLAG_072, dialogueIndex + 1);
     }
 }
 
-void func_actor_136300_801329EC(void)
+/// Plays the companion's garage-dialogue response selected by the live CAP variant.
+///
+/// Variant key one selects clip 54; every other key selects clip 56. Requires a
+/// live companion and its loaded animation bank. Updates the selected static
+/// request's bank index for the current companion, then dispatches synchronously;
+/// the request pointer is borrowed only through dispatch.
+static void _actor136300PlayCompanionDialogueAnimation(void)
 {
-    AnimationPlayRequest* var_s0;
+    enum { ACTOR_136300_DIALOGUE_VARIANT_FIRST = 1 };
+    AnimationPlayRequest* request;
 
-    if (capGetVariantKey() == 1) {
-        var_s0 = &D_actor_136300_8013B208;
+    if (capGetVariantKey() == ACTOR_136300_DIALOGUE_VARIANT_FIRST) {
+        request = &D_actor_136300_8013B208;
     } else {
-        var_s0 = &D_actor_136300_8013B230;
+        request = &D_actor_136300_8013B230;
     }
-    companionWriteAnimationBankIndex(&var_s0->source.index);
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, var_s0, 0);
+    companionWriteAnimationBankIndex(&request->source.index);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, request, 0);
 }
 
 void func_actor_136300_80132A4C(s32 arg0)
