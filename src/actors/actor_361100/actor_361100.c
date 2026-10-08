@@ -124,7 +124,6 @@ extern AnimationSet**   D_actor_361100_80171BA8[1];
 extern TaskMessageEntry D_actor_361100_80171BB8[5];
 
 void func_actor_403600_80138C9C(Actor403600Ripple* state);
-void func_actor_403600_801353D0(Actor403600Ripple* state, GfxCoord* coord);
 
 static void _actor361100DrawStreamRefraction(Task* task);
 
@@ -1017,7 +1016,7 @@ void func_actor_361100_80161E3C(Task* arg0)
         } else if (mode == 12) {
             D_actor_403600_8016069C = writePtr + (gDisplayState.otBuffer * ((s32)(streamLeft + (streamLeft >> 0x1F)) >> 1));
             func_actor_403600_80138C9C(state);
-            func_actor_403600_801353D0(state, coord);
+            actor403600DrawRipple(state, coord);
             return;
         } else if (mode == 10) {
             taskCallExit(arg0);

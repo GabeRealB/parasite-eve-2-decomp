@@ -34,7 +34,7 @@ void madChaserCombatTick(Task* arg0)
                 _madChaserPinPart(arg0, 6, &work->leapAnchorPos);
             }
             _madChaserUpdateRotation(arg0);
-            madChaserApplyContacts(arg0, 0);
+            _madChaserApplyContacts(arg0, 0);
             if (work->leapCooldown != 0) {
                 work->leapCooldown--;
             }

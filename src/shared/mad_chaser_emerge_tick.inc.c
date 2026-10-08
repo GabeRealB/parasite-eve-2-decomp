@@ -4,7 +4,7 @@
 /// `_madChaserDeathTick`: in mode 0 a pending vanish command
 /// (`_madChaserTakeVanishCommand`) replaces the state handler, and the root
 /// rotation is rebuilt from `rotation` before
-/// `madChaserApplyContacts`.
+/// `_madChaserApplyContacts`.
 void madChaserEmergeTick(Task* arg0)
 {
     TmdObject*      obj   = arg0->extra.tmd;
@@ -23,7 +23,7 @@ void madChaserEmergeTick(Task* arg0)
             }
             _madChaserTickAnim(arg0);
             _madChaserUpdateRotation(arg0);
-            madChaserApplyContacts(arg0, 0);
+            _madChaserApplyContacts(arg0, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
             _madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);

@@ -128,7 +128,7 @@ extern s16 gGolemKnightBishopBeamQuadCorners[2][4];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-s32 func_actor_403900_801381E4(Task*, s32, s32, s32);
+static s32 _actor403900RecordGrabEscape(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 static AnimationSet _gActor403900Animation0C44C;
 static AnimationSet _gActor403900Animation0C904;
@@ -160,7 +160,7 @@ static TmdSource    _gActor403900GolemBody;
 static void         func_actor_403900_80138344(Task*);
 
 TaskMessageEntry gGolemKnightBishopMessages[2] = {
-    { 2014, func_actor_403900_801381E4 },
+    { ACTOR_MESSAGE_RELEASE_HOLD, _actor403900RecordGrabEscape },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1299,12 +1299,15 @@ static const EnemyTaskFuncTable3 D_actor_403900_80131F18 = {
 
 #include "../../shared/golem_knight_bishop_hold_cue.inc.c"
 
-/// Records that the player has struggled free of the hold (`grabBreak` 1),
-/// provided they are still alive.
-s32 func_actor_403900_801381E4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Records the living player's completed struggle as a GOLEM grab escape.
+///
+/// The release-hold message has no payload; messageId and both arguments are
+/// ignored. Requires initialized Knight/Bishop work. A dead player leaves the
+/// grab latch intact. Returns zero; the grab sequence performs the release.
+static s32 _actor403900RecordGrabEscape(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     if (gPlayerStatus.hp > 0) {
-        ((GolemKnightBishopWork*)task->work)->grabBreak = 1;
+        ((GolemKnightBishopWork*)task->work)->grabBreak = GOLEM_KNIGHT_BISHOP_GRAB_BREAK_STRUGGLE;
     }
     return 0;
 }

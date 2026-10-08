@@ -198,3 +198,4 @@ _golemKnightBishopBoxApproachSeq = 0x80134194; // type:func
 _golemKnightBishopRecoverSeq = 0x801347F4; // type:func
 _golemKnightBishopAimFromPart = 0x80135D5C; // type:func
 _golemKnightBishopSpawn = 0x80137444; // type:func
+_actor403900RecordGrabEscape = 0x801381e4; // type:func

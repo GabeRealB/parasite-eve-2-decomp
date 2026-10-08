@@ -1146,8 +1146,11 @@ static __inline__ void _actor510900StartHitTwist(Actor510900Work* work)
 
 /// Selects the lethal strike's forward and retreat movement from its frame windows.
 ///
-/// `frame` uses the caller's signed word temporary; the second window wraps its
-/// subtraction to sixteen bits. Speeds are lap units per update.
+/// Requires live boss work. Callers pass the unsigned low half of the animation
+/// frame: 75..90 advances at 60, 143..157 uses `retreatSpeed`, and other frames
+/// stop. Positive speed follows the lap and negative speed retreats, in game
+/// coordinate units per running update. The first subtraction is compared as
+/// an unsigned word; the retreat-window subtraction wraps to sixteen bits.
 static __inline__ void _actor510900SetLethalLapSpeed(Actor510900Work* work, s32 frame, s32 retreatSpeed)
 {
     enum {

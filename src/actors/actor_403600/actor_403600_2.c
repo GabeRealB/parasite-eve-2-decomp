@@ -399,7 +399,7 @@ void func_actor_403600_80138C34(Task* arg0)
     Task* parent;
 
     parent = arg0->parent;
-    func_actor_403600_80132E40(parent, parent->parent->work, parent->work);
+    actor403600SwingLooseParts(parent, parent->parent->work, parent->work);
 }
 
 void func_actor_403600_80138C68(Task* arg0)

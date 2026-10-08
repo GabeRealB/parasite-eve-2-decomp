@@ -252,7 +252,7 @@ static void _madChaserLeapRebound(Task* task);
 void        madChaserDangleFrame(Task* arg0);
 static void _madChaserDangleFall(Task* task);
 static void _madChaserDangleLand(Task* task);
-void        madChaserApplyContacts(Task* arg0, s16 arg1);
+static void _madChaserApplyContacts(Task* task, s16 ignorePlayerBody);
 static void _madChaserTickAnim(Task* task);
 static void _madChaserShrinkWithBurn(Task* task);
 static void _madChaserTrackPlayer(Task* task);

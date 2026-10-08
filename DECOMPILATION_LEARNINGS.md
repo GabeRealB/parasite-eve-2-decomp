@@ -43057,7 +43057,7 @@ case where the cut names the unit the table's function lives in. The table can
 equally belong to a unit that already *has* a rodata run of its own elsewhere,
 and then the cut has to be paired with a `.text` cut, not just moved.
 
-`actor_104400`'s `Actor04400_Fn03538` matched its assembly 100% with all-zero
+`actor_104400`'s `_madChaserLurkTick` matched its assembly 100% with all-zero
 penalties and the overlay still failed its checksum. `build/USA/out/actor_104400`
 was exactly 24 bytes longer than the package and the link map showed the tail
 unit's `.rodata` as `0x80132014 0x44` where the package has 44 bytes there: the
@@ -64298,7 +64298,7 @@ its new home), and expect the regenerated file to come back as `common.h` plus
 `INCLUDE_ASM` lines, without the overlay headers the old one included.
 
 `actor_402200` and `actor_403900` promoted the byte-identical
-`func_actor_402200_801381E0` / `func_actor_403900_801381E4` this way. Both
+`_actor402200RecordGrabEscape` / `_actor403900RecordGrabEscape` this way. Both
 carriers renumbered: `_2.c`'s nine entries came back as seven plus a fresh `_3`
 holding the tail function, the scoped `--only actors` build passed on the first
 run, and the only source the promotion deleted was the body it moved into
@@ -134364,7 +134364,7 @@ base_6.i c1532b40ae6c55c22205f08010597772795886f8bbfd47b725472d1809df71a0.
 Retained source, plans/conclusions and compressed dumps: tools/permuter_findings/func_actor_403600_801396F8/, session 6bc02bb7568c41a5ac3cb6c4d2db9cf1, PERMUTER_EVIDENCE/0ffbdfd9ab0345f5/analysis/manual_match/. The router found no discovery; these gains came from independent manual experiments.
 
 
-## A mask dependency can lower a local quantity priority despite adding references (func_actor_403600_801353D0)
+## A mask dependency can lower a local quantity priority despite adding references (actor403600DrawRipple)
 
 At 99.785%, base_20 differed only in OT insertion register homes and a lookahead addition. The earlier base_18 has the same OT code; its trace shows block30 depth/shift/address quantity q2 [279,278,273] and polygon-tag/mask/merge q4 [282,272,271] both at 18 refs over 10 half-instructions, priority 72000. q2 was born first, so it gets v0 and tag gets v1. Per-pseudo rankings would miss this tie.
 
@@ -134374,9 +134374,9 @@ Two earlier controlled fixes in this function are useful instances of the existi
 
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Inputs: base_18.i 5bf2b43167995b99146b0c7b9cf424e108b56600439f4b1dfc23e7d86ed479a8; controlled base_25.i b25baf46d951804628ca509581066fbf281bfc7f9b542c4a92dde49ad5134769; exact base_26.i 1dfddbdccc9835783430fa554721adc72b1cad2bdc35e66f222c4ddb8a71ff12.
-Evidence: tools/permuter_findings/func_actor_403600_801353D0/, session 7e5b0e5b1efc4d79ae6a941746a140c8, PERMUTER_EVIDENCE/530fa5ab835846bd/analysis/manual_match/. The router failed normalization and produced no discovery; these were manual changes. Header port base_27 stayed exact and the unscoped build passed.
+Evidence: tools/permuter_findings/actor403600DrawRipple/, session 7e5b0e5b1efc4d79ae6a941746a140c8, PERMUTER_EVIDENCE/530fa5ab835846bd/analysis/manual_match/. The router failed normalization and produced no discovery; these were manual changes. Header port base_27 stayed exact and the unscoped build passed.
 
-## A dependent GTE load permits a frame-address calculation to cross the matrix load (func_actor_403600_80132E40)
+## A dependent GTE load permits a frame-address calculation to cross the matrix load (actor403600SwingLooseParts)
 
 CSE reused the address pseudo created by an SVECTOR struct-copy expansion for subsequent `gte_ldv0(&local)` inputs. The address was therefore born before the copy, and the input-only `gte_SetRotMatrix` asm was implicitly volatile: sched1/sched2 kept the address before that matrix load. The target computes it afterward. Naming another pointer added a copy; an inline by-value helper kept the early address and enlarged the frame.
 
@@ -134386,7 +134386,7 @@ This is a demonstrated dependency transformation for these paired GTE transfers,
 
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Inputs: base_29.i 6bd152160d825bffa3e64fce99bb39ea82db0d2a4f13619a6e4178d81641f5ab; base_30.i 57a1d123f1ca6bec2d790c02fc9b354404cf91a7f9cddf17e53f98f0f707609e; base_31.i 4dfbb29f68ed4af7ef629da4867ca28bdcb8bdaeed4e9e9e3112a3a60ff0a0f5; port base_32.i cf40abdd56bbc7a8a3e88cdae27eff8b5d4255f69398113318a3052a376c1924.
-Evidence: tools/permuter_findings/func_actor_403600_80132E40/, session80eca9187dc049c6b722d7be32850d97, PERMUTER_EVIDENCE/e3b7c513460b4b2b/analysis/manual_match/. The router failed parsing and produced no discovery; these were manual experiments.
+Evidence: tools/permuter_findings/actor403600SwingLooseParts/, session80eca9187dc049c6b722d7be32850d97, PERMUTER_EVIDENCE/e3b7c513460b4b2b/analysis/manual_match/. The router failed parsing and produced no discovery; these were manual experiments.
 
 
 ## A real scratch-pointer copy plus a local reference threshold fixes a load-delay slot (actor510900FlameSpriteTask45, 2026-09-19)
@@ -139433,7 +139433,7 @@ shift counts, `slti`/`addiu` operands. A constant that feeds an `and`/`or`
 with another constant, or a store, is reloaded into a spill register instead
 and shows up in the output.
 
-### `addPrim`'s `0xFF000000` hoisted out of a loop: block-scoped limit constants spend the threshold (func_actor_403600_801353D0, 2026-09-27)
+### `addPrim`'s `0xFF000000` hoisted out of a loop: block-scoped limit constants spend the threshold (actor403600DrawRipple, 2026-09-27)
 
 A projection loop linked each quad with a hand-written tag mask pinned by
 `SOFT_TOUCH_REG_USE(maskHi, otz)`. Without the pin, `.loop` showed the
@@ -142566,9 +142566,9 @@ pointer chain enough that the `lui` stays after it. The old body pinned the
 same order with `USE_REG(puffCoord)` / `USE_REG(x)`; check whether a sibling in
 the TU already calls the helper through a local before steering.
 
-## An inline helper's pointer argument keeps `base + i*size + off` in the target's order (func_actor_403600_80132E40, 2026-09-26)
+## An inline helper's pointer argument keeps `base + i*size + off` in the target's order (actor403600SwingLooseParts, 2026-09-26)
 
-Passing `&scratch->dirs[i]` to a `static inline` helper expands the argument
+Passing `&scratch->dirs[partIndex]` to a `static inline` helper expands the argument
 as `(i*8 + scratch) + 96` - `sll`, `addu` with the base, then `addiu 0x60` -
 and computes it early, which is the retail order. Every direct spelling at the
 use site (`&x[i]`, `x + i`, `&x[i].vx`) folds to `(i*8 + 96) + scratch`

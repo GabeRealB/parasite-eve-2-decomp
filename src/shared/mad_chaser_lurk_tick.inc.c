@@ -28,7 +28,7 @@ void madChaserLurkTick(Task* arg0)
             _madChaserTickAnim(arg0);
             _madChaserTwistSpine(arg0);
             _madChaserUpdateRotation(arg0);
-            madChaserApplyContacts(arg0, 0);
+            _madChaserApplyContacts(arg0, 0);
             if (work->busy == 0 && enemy->hp <= 0) {
                 _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DEATH);
             } else if (work->command == MAD_CHASER_COMMAND_DROP_DEATH && work->busy == 0) {

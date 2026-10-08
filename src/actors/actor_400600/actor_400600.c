@@ -2459,10 +2459,10 @@ static const TaskFuncTable9 D_actor_400600_80131EAC = { {
     _actor400600UpdateGroupEntrance,
 } };
 
-/// Starts a selected task-state table with both work cursors reset.
+/// Enters a Zebra Stalker task phase at its first behavior and sub-state.
 ///
-/// Requires live Zebra Stalker work and a task-table index in 1..8. Reloads
-/// work before writing Task::state; only the task state and s16 cursors change.
+/// Requires live Zebra Stalker work and a task-table index in 1..8. Resets
+/// both signed-halfword work cursors to zero; animation and timers are retained.
 static inline void _actor400600EnterTaskState(Task* task, s32 taskState)
 {
     _Actor400600ZebraStalkerWork* stateWork = task->work;

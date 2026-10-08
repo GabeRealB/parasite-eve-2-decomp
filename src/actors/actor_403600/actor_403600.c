@@ -163,7 +163,6 @@ void func_actor_403600_80134398(Task* arg0);
 static const SVECTOR D_actor_403600_80131E2C;
 static const CVECTOR _gActor403600NeutralLightColor;
 
-void        func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1);
 static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx);
 
 void func_actor_403600_80134288(Task*);
@@ -231,15 +230,15 @@ s32 D_actor_403600_80142120[32] = {
     0x100000,
 };
 
-void func_actor_403600_80134288(Task*);
-void func_actor_403600_80134398(Task*);
-void func_actor_403600_80135C28(Task*);
+void        func_actor_403600_80134288(Task*);
+void        func_actor_403600_80134398(Task*);
+static void _actor403600RippleTask(Task* task);
 
 TaskDesc D_actor_403600_801421A0[4] = {
     { { { TASK_BODY_NONE, 95 } }, func_actor_403600_80134288, { .value = 0 } },
     { { { TASK_BODY_COORD, 96 } }, func_actor_403600_80134398, { .value = 0 } },
     { { { TASK_BODY_NONE, 97 } }, func_actor_403600_80138C34, { .value = 0 } },
-    { { { TASK_BODY_COORD, 112 } }, func_actor_403600_80135C28, { .value = 0 } },
+    { { { TASK_BODY_COORD, 112 } }, _actor403600RippleTask, { .value = 0 } },
 };
 
 static TmdBone _gActor403600EveBodySkeleton[20] = {
@@ -941,8 +940,8 @@ enum {
 static void        _actor403600UnifyGridQuadTexturePage(_Actor403600GridQuad* quad);
 static void        _actor403600PlaceDistortionVertex(_Actor403600GridQuad* quad, s32 corner, SVECTOR* unusedVector, s32 distortion);
 static inline void _actor403600RotateSv(const MATRIX* rotationMatrix, const SVECTOR* input, SVECTOR* output);
-static inline void _actor403600TrailTick(Actor403600Ripple* state);
-static inline s32  _actor403600TrailEmpty(Actor403600Ripple* state);
+static inline void _actor403600TickRipple(Actor403600Ripple* state);
+static inline s32  _actor403600RippleHasDiedOut(const Actor403600Ripple* state);
 
 /// Lights GT3 corner normals using a common screen-fade RGB weight.
 ///
@@ -1384,78 +1383,91 @@ static inline void _actor403600RotateSv(const MATRIX* rotationMatrix, const SVEC
     gte_stsv(output);
 }
 
-void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx)
+/// Converts a composed loose-part origin to the saved room-axis scratch frame.
+///
+/// Requires the inverse view rotation already in scratch->basis. Subtracts the
+/// view translation before signed-halfword narrowing and Q12 rotation; borrows
+/// both pointers and overwrites scratch->aux and GTE rotation/vector state.
+static inline void _actor403600GetLoosePartRoomOrigin(const GfxCoord* part, _Actor403600ChainScratch* scratch)
 {
-    Task*                     actor;
-    GfxCoord*                 center;
-    u8*                       head;
-    _Actor403600ChainScratch* scratch;
-    s32                       i;
+    scratch->aux.vx = part->workm.t[0] - gGfxViewCoord.workm.t[0];
+    scratch->aux.vy = part->workm.t[1] - gGfxViewCoord.workm.t[1];
+    scratch->aux.vz = part->workm.t[2] - gGfxViewCoord.workm.t[2];
+    _gfxRotateSv(&scratch->basis, &scratch->aux);
+}
 
-    actor  = arg0->parent;
-    center = &actor->extra.tmd->coords[8];
+void actor403600SwingLooseParts(Task* fxTask, const Actor403600Work* work, Actor403600FxWork* fx)
+{
+    enum {
+        ACTOR_403600_CHAIN_SEGMENT_LENGTH = 1157,
+        ACTOR_403600_LIMB_SEGMENT_LENGTH  = 2200,
+        ACTOR_403600_LOOSE_PART_BASE_PULL = 512,
+        ACTOR_403600_CHAIN_ROOT_PART      = 8,
+        ACTOR_403600_CHAIN_FIRST_PART     = 9,
+        ACTOR_403600_LIMB_FIRST_PART      = 15,
+        ACTOR_403600_LIMB_PART_STRIDE     = 4
+    };
+    Task*                     bossTask;
+    GfxCoord*                 chainRoot;
+    u8*                       scratchHead;
+    _Actor403600ChainScratch* scratch;
+    s32                       partIndex;
+
+    bossTask  = fxTask->parent;
+    chainRoot = &bossTask->extra.tmd->coords[ACTOR_403600_CHAIN_ROOT_PART];
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        head    = SCRATCH_STACK_CURSOR(u8);
-        scratch = (_Actor403600ChainScratch*)(SCRATCH_STACK_CURSOR(u8) = head - sizeof(_Actor403600ChainScratch));
-        actorRenderComposeCoord(&actor->extra.tmd->coords[11]);
+        scratchHead = SCRATCH_STACK_CURSOR(u8);
+        scratch     = (_Actor403600ChainScratch*)(SCRATCH_STACK_CURSOR(u8) = scratchHead - sizeof(_Actor403600ChainScratch));
+        actorRenderComposeCoord(&bossTask->extra.tmd->coords[11]);
+        // Store the loose endpoints in room axes before any dynamic pulling.
         if (fx->chainsPlaced == 0) {
             TransposeMatrix(&gGfxViewCoord.workm, &scratch->basis);
-            scratch->aux.vx = center->workm.t[0] - gGfxViewCoord.workm.t[0];
-            scratch->aux.vy = center->workm.t[1] - gGfxViewCoord.workm.t[1];
-            scratch->aux.vz = center->workm.t[2] - gGfxViewCoord.workm.t[2];
-
-            _gfxRotateSv(&scratch->basis, &scratch->aux);
+            _actor403600GetLoosePartRoomOrigin(chainRoot, scratch);
 
             scratch->segment.vx = 0;
             scratch->segment.vy = 0;
-            scratch->segment.vz = -0x485;
-            _gfxRotateSv(&center->workm, &scratch->segment);
+            scratch->segment.vz = -ACTOR_403600_CHAIN_SEGMENT_LENGTH;
+            _gfxRotateSv(&chainRoot->workm, &scratch->segment);
 
             _gfxRotateSv(&scratch->basis, &scratch->segment);
 
-            i = 0;
+            partIndex = 0;
             do {
-                fx->chain[i]     = scratch->aux;
-                fx->chain[i].vx += scratch->segment.vx * i;
-                fx->chain[i].vy += scratch->segment.vy * i;
-                fx->chain[i].vz += scratch->segment.vz * i;
-                i++;
-            } while (i < 4);
+                fx->chain[partIndex]     = scratch->aux;
+                fx->chain[partIndex].vx += scratch->segment.vx * partIndex;
+                fx->chain[partIndex].vy += scratch->segment.vy * partIndex;
+                fx->chain[partIndex].vz += scratch->segment.vz * partIndex;
+                partIndex++;
+            } while (partIndex < ARRAY_SIZE(fx->chain));
 
-            i = 0;
+            partIndex = 0;
             do {
-                GfxCoord* limb = &actor->extra.tmd->coords[i * 4 + 15];
+                GfxCoord* limb = &bossTask->extra.tmd->coords[partIndex * ACTOR_403600_LIMB_PART_STRIDE + ACTOR_403600_LIMB_FIRST_PART];
                 actorRenderComposeCoord(limb);
-                scratch->aux.vx = limb->workm.t[0] - gGfxViewCoord.workm.t[0];
-                scratch->aux.vy = limb->workm.t[1] - gGfxViewCoord.workm.t[1];
-                scratch->aux.vz = limb->workm.t[2] - gGfxViewCoord.workm.t[2];
-                _gfxRotateSv(&scratch->basis, &scratch->aux);
+                _actor403600GetLoosePartRoomOrigin(limb, scratch);
 
                 scratch->segment.vx = 0;
-                scratch->segment.vy = 0x898;
+                scratch->segment.vy = ACTOR_403600_LIMB_SEGMENT_LENGTH;
                 scratch->segment.vz = 0;
-                _gfxRotateSv(&center->workm, &scratch->segment);
+                _gfxRotateSv(&chainRoot->workm, &scratch->segment);
 
                 _gfxRotateSv(&scratch->basis, &scratch->segment);
-                fx->limbTips[i].vx = scratch->aux.vx + scratch->segment.vx;
-                fx->limbTips[i].vy = scratch->aux.vy + scratch->segment.vy;
-                fx->limbTips[i].vz = scratch->aux.vz + scratch->segment.vz;
-                i++;
-            } while (i < 2);
+                fx->limbTips[partIndex].vx = scratch->aux.vx + scratch->segment.vx;
+                fx->limbTips[partIndex].vy = scratch->aux.vy + scratch->segment.vy;
+                fx->limbTips[partIndex].vz = scratch->aux.vz + scratch->segment.vz;
+                partIndex++;
+            } while (partIndex < ARRAY_SIZE(fx->limbTips));
             fx->chainsPlaced += 1;
         } else {
+            // Constrain lengths, then turn the model parts toward the saved endpoints.
             TransposeMatrix(&gGfxViewCoord.workm, &scratch->basis);
-            scratch->aux.vx = center->workm.t[0] - gGfxViewCoord.workm.t[0];
-            scratch->aux.vy = center->workm.t[1] - gGfxViewCoord.workm.t[1];
-            scratch->aux.vz = center->workm.t[2] - gGfxViewCoord.workm.t[2];
-
-            _gfxRotateSv(&scratch->basis, &scratch->aux);
+            _actor403600GetLoosePartRoomOrigin(chainRoot, scratch);
             fx->chain[0] = scratch->aux;
 
             scratch->aux.vx = 0;
             scratch->aux.vy = 0;
-            scratch->aux.vz = -(work->chainPullExtra + 0x200);
-            _gfxRotateSv(&center->workm, &scratch->aux);
+            scratch->aux.vz = -(work->chainPullExtra + ACTOR_403600_LOOSE_PART_BASE_PULL);
+            _gfxRotateSv(&chainRoot->workm, &scratch->aux);
             _gfxRotateSv(&scratch->basis, &scratch->aux);
 
             if (work->chainSweep != 0) {
@@ -1465,11 +1477,11 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 gte_stsv(&scratch->sweepPull);
             }
 
-            i = 0;
+            partIndex = 0;
             do {
-                scratch->segment.vx  = fx->chain[i + 1].vx - fx->chain[i].vx;
-                scratch->segment.vy  = fx->chain[i + 1].vy - fx->chain[i].vy;
-                scratch->segment.vz  = fx->chain[i + 1].vz - fx->chain[i].vz;
+                scratch->segment.vx  = fx->chain[partIndex + 1].vx - fx->chain[partIndex].vx;
+                scratch->segment.vy  = fx->chain[partIndex + 1].vy - fx->chain[partIndex].vy;
+                scratch->segment.vz  = fx->chain[partIndex + 1].vz - fx->chain[partIndex].vz;
                 scratch->segment.vx += scratch->aux.vx;
                 scratch->segment.vy += scratch->aux.vy;
                 scratch->segment.vz += scratch->aux.vz;
@@ -1477,25 +1489,25 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 scratch->aux.vy    >>= 1;
                 scratch->aux.vz    >>= 1;
                 VectorNormalSS(&scratch->segment, &scratch->segment);
-                scratch->dirs[i] = scratch->segment;
-                gte_lddp(0x485);
+                scratch->dirs[partIndex] = scratch->segment;
+                gte_lddp(ACTOR_403600_CHAIN_SEGMENT_LENGTH);
                 gte_ldsv(&scratch->segment);
                 gte_gpf12();
                 gte_stsv(&scratch->segment);
-                fx->chain[i + 1].vx = fx->chain[i].vx + scratch->segment.vx;
-                fx->chain[i + 1].vy = fx->chain[i].vy + scratch->segment.vy;
-                fx->chain[i + 1].vz = fx->chain[i].vz + scratch->segment.vz;
-                i++;
-            } while (i < 3);
+                fx->chain[partIndex + 1].vx = fx->chain[partIndex].vx + scratch->segment.vx;
+                fx->chain[partIndex + 1].vy = fx->chain[partIndex].vy + scratch->segment.vy;
+                fx->chain[partIndex + 1].vz = fx->chain[partIndex].vz + scratch->segment.vz;
+                partIndex++;
+            } while (partIndex < ARRAY_SIZE(scratch->dirs));
 
-            i = 0;
+            partIndex = 0;
             do {
-                GfxCoord* segment = &actor->extra.tmd->coords[i + 9];
-                _actor403600RotateSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->segment);
-                TransposeMatrix(&center->workm, &scratch->rot);
+                GfxCoord* segment = &bossTask->extra.tmd->coords[partIndex + ACTOR_403600_CHAIN_FIRST_PART];
+                _actor403600RotateSv(&gGfxViewCoord.workm, &scratch->dirs[partIndex], &scratch->segment);
+                TransposeMatrix(&chainRoot->workm, &scratch->rot);
                 _gfxRotateSv(&scratch->rot, &scratch->segment);
                 scratch->aux.vx     = 0;
-                scratch->aux.vy     = 0x1000;
+                scratch->aux.vy     = ONE;
                 scratch->aux.vz     = 0;
                 scratch->segment.vx = -scratch->segment.vx;
                 scratch->segment.vy = -scratch->segment.vy;
@@ -1503,54 +1515,51 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 gfxBuildOrthonormalBasis(&scratch->basis, &scratch->segment, &scratch->aux);
                 gte_MulMatrix0(&scratch->rot, &segment->workm, &scratch->rot);
                 gte_MulMatrix0(&scratch->basis, &scratch->rot, &scratch->rot);
-                gte_MulMatrix0(&center->workm, &scratch->rot, &scratch->rot);
+                gte_MulMatrix0(&chainRoot->workm, &scratch->rot, &scratch->rot);
                 TransposeMatrix(&segment->parent->workm, &scratch->basis);
                 gte_MulMatrix0(&scratch->basis, &scratch->rot, &segment->coord);
                 segment->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(segment);
-                i++;
-            } while (i < 3);
+                partIndex++;
+            } while (partIndex < ARRAY_SIZE(scratch->dirs));
 
-            i = 0;
+            partIndex = 0;
             do {
-                GfxCoord* limb = &actor->extra.tmd->coords[i * 4 + 15];
+                GfxCoord* limb = &bossTask->extra.tmd->coords[partIndex * ACTOR_403600_LIMB_PART_STRIDE + ACTOR_403600_LIMB_FIRST_PART];
                 TransposeMatrix(&gGfxViewCoord.workm, &scratch->basis);
                 actorRenderComposeCoord(limb);
-                scratch->aux.vx = limb->workm.t[0] - gGfxViewCoord.workm.t[0];
-                scratch->aux.vy = limb->workm.t[1] - gGfxViewCoord.workm.t[1];
-                scratch->aux.vz = limb->workm.t[2] - gGfxViewCoord.workm.t[2];
-                _gfxRotateSv(&scratch->basis, &scratch->aux);
+                _actor403600GetLoosePartRoomOrigin(limb, scratch);
 
                 scratch->segment.vx = 0;
-                scratch->segment.vy = work->limbPullExtra + 0x200;
+                scratch->segment.vy = work->limbPullExtra + ACTOR_403600_LOOSE_PART_BASE_PULL;
                 scratch->segment.vz = 0;
                 _gfxRotateSv(&limb->workm, &scratch->segment);
                 _gfxRotateSv(&scratch->basis, &scratch->segment);
 
-                scratch->segment.vx += fx->limbTips[i].vx - scratch->aux.vx;
-                scratch->segment.vy += fx->limbTips[i].vy - scratch->aux.vy;
-                scratch->segment.vz += fx->limbTips[i].vz - scratch->aux.vz;
+                scratch->segment.vx += fx->limbTips[partIndex].vx - scratch->aux.vx;
+                scratch->segment.vy += fx->limbTips[partIndex].vy - scratch->aux.vy;
+                scratch->segment.vz += fx->limbTips[partIndex].vz - scratch->aux.vz;
                 if (work->chainSweep != 0) {
                     scratch->segment.vx += scratch->sweepPull.vx;
                     scratch->segment.vy += scratch->sweepPull.vy;
                     scratch->segment.vz += scratch->sweepPull.vz;
                 }
                 VectorNormalSS(&scratch->segment, &scratch->segment);
-                scratch->dirs[i] = scratch->segment;
-                gte_lddp(0x898);
+                scratch->dirs[partIndex] = scratch->segment;
+                gte_lddp(ACTOR_403600_LIMB_SEGMENT_LENGTH);
                 gte_ldsv(&scratch->segment);
                 gte_gpf12();
                 gte_stsv(&scratch->segment);
-                fx->limbTips[i].vx = scratch->aux.vx + scratch->segment.vx;
-                fx->limbTips[i].vy = scratch->aux.vy + scratch->segment.vy;
-                fx->limbTips[i].vz = scratch->aux.vz + scratch->segment.vz;
+                fx->limbTips[partIndex].vx = scratch->aux.vx + scratch->segment.vx;
+                fx->limbTips[partIndex].vy = scratch->aux.vy + scratch->segment.vy;
+                fx->limbTips[partIndex].vz = scratch->aux.vz + scratch->segment.vz;
 
-                _actor403600RotateSv(&gGfxViewCoord.workm, &scratch->dirs[i], &scratch->segment);
+                _actor403600RotateSv(&gGfxViewCoord.workm, &scratch->dirs[partIndex], &scratch->segment);
                 TransposeMatrix(&limb->workm, &scratch->rot);
                 _gfxRotateSv(&scratch->rot, &scratch->segment);
                 scratch->aux.vx = 0;
                 scratch->aux.vy = 0;
-                scratch->aux.vz = 0x1000;
+                scratch->aux.vz = ONE;
                 gfxBuildOrthonormalBasis(&scratch->basis, &scratch->segment, &scratch->aux);
                 gte_ReadMatrixColumn(&scratch->basis, 2, &scratch->aux);
 
@@ -1567,8 +1576,8 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600Fx
                 gte_MulMatrix0(&scratch->basis, &limb->coord, &limb->coord);
                 limb->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(limb);
-                i++;
-            } while (i < 2);
+                partIndex++;
+            } while (partIndex < ARRAY_SIZE(fx->limbTips));
         }
         SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600ChainScratch));
     }
@@ -2061,54 +2070,109 @@ void func_actor_403600_80134398(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
 }
 
-void func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1)
+/// Clamps one radial-grid vertex's geometry and assigns its capture page/UV.
+///
+/// Borrows a writable quad and displaced screen pixels. Vertical edges clamp
+/// both geometry and V; the left edge clamps geometry and U. At the right edge
+/// geometry is clamped but U retains the displaced X, narrowed to a byte after
+/// subtracting page shift 64. Width/height are 320/240; geometry stores retain
+/// halfword wrap. Uses no GTE or scratch storage.
+static inline void _actor403600ClampRippleVertex(_Actor403600GridQuad* quad, s32 screenW, s32 screenH, u16 unclampedY, s32 screenX, s32 screenY)
 {
-    s32                            radii[16];
-    s32                            heights[16];
-    s32                            corner[4];
-    s32                            i;
-    s32                            j;
-    s32                            firstAngle;
-    s32                            angle;
-    s32                            index;
-    s32                            value;
-    s32                            firstRadius;
-    s32                            rotation;
-    s32                            mirrorXY;
-    s32                            projectedX;
-    s32                            projectedY;
+    enum { ACTOR_403600_RIPPLE_PAGE_PIXELS = 256,
+           ACTOR_403600_RIPPLE_PAGE_SHIFT  = 64 };
+    if (screenY >= screenH) {
+        quad->vertex0.y = unclampedY + (screenH - 1) - screenY;
+        screenY         = screenH - 1;
+    } else if (screenY < 0) {
+        quad->vertex0.y = unclampedY - screenY;
+        screenY         = 0;
+    }
+    if (screenX >= screenW) {
+        quad->vertex0.x = (u16)quad->vertex0.x + (screenW - 1) - screenX;
+    } else if (screenX < 0) {
+        quad->vertex0.x = (u16)quad->vertex0.x - screenX;
+        screenX         = 0;
+    }
+    quad->page0 = 0;
+    if (screenX >= ACTOR_403600_RIPPLE_PAGE_PIXELS) {
+        quad->page0 = ACTOR_403600_RIPPLE_PAGE_SHIFT;
+    }
+    quad->vertex0.v = screenY;
+    quad->vertex0.u = screenX - quad->page0;
+}
+
+void actor403600DrawRipple(const Actor403600Ripple* ripple, GfxCoord* discCoord)
+{
+    enum {
+        ACTOR_403600_RIPPLE_RADIAL_SAMPLE_COUNT   = ACTOR_403600_RIPPLE_SAMPLE_COUNT / 2,
+        ACTOR_403600_RIPPLE_SECTOR_COUNT          = 12,
+        ACTOR_403600_RIPPLE_FIRST_RADIUS          = 20,
+        ACTOR_403600_RIPPLE_RADIUS_STEP           = 155,
+        ACTOR_403600_RIPPLE_LIFT_SHIFT            = 3,
+        ACTOR_403600_RIPPLE_SHALLOW_LIFT_SHIFT    = 8,
+        ACTOR_403600_RIPPLE_DISPLACEMENT_SHIFT    = 10,
+        ACTOR_403600_RIPPLE_WAVE_FRACTION_BITS    = 12,
+        ACTOR_403600_RIPPLE_TURN_SHIFT            = 12,
+        ACTOR_403600_RIPPLE_TEXEL_DIRECTION_SHIFT = 3,
+        ACTOR_403600_RIPPLE_PAGE_X_SHIFT          = 6,
+        ACTOR_403600_RIPPLE_CAPTURE_CENTER_X      = 160,
+        ACTOR_403600_RIPPLE_CAPTURE_CENTER_Y      = 120,
+        ACTOR_403600_RIPPLE_PAGE_PIXELS           = 256,
+        ACTOR_403600_RIPPLE_PAGE_SHIFT            = 64,
+        ACTOR_403600_RIPPLE_CAPTURE_X             = 448,
+        ACTOR_403600_RIPPLE_CAPTURE_TPAGE_FLAGS   = 0x110,
+        ACTOR_403600_RIPPLE_PACKET_WORD_COUNT     = 9,
+        ACTOR_403600_RIPPLE_PACKET_CODE           = 0x2D,
+        ACTOR_403600_RIPPLE_OT_DEPTH_MASK         = 0x3FFF,
+        ACTOR_403600_RIPPLE_OT_QUANTIZATION_SHIFT = 4
+    };
+    s32                            ringLift[ACTOR_403600_RIPPLE_RADIAL_SAMPLE_COUNT];
+    s32                            texelDisplacementScale[ACTOR_403600_RIPPLE_RADIAL_SAMPLE_COUNT];
+    s32                            cornerU[4];
+    s32                            ringIndex;
+    s32                            sectorIndex;
+    s32                            sampleOffset;
+    s32                            sampleIndex;
+    s32                            lookupIndex;
+    s32                            weightedSample;
+    s32                            sampleLift;
+    s32                            texelDirection;
+    s32                            sharedVertexXY;
+    s32                            texelCenterX;
+    s32                            texelCenterY;
     s32                            screenX;
     s32                            screenY;
-    s32                            min;
-    s32                            max;
-    s32                            adjust;
-    s32                            radiusOffset;
-    s32                            scale;
-    s32                            scanCount;
-    s32*                           height;
-    MATRIX*                        matrix;
-    s32*                           heightBase;
-    s32*                           nextHeight;
-    u16                            oldY;
-    u8*                            head;
-    u8*                            newHead;
-    _Actor403600GridQuad*          after;
-    _Actor403600GridQuad*          previous;
-    _Actor403600GridQuad*          mirror;
-    _Actor403600GridQuad*          poly;
-    SVECTOR*                       vec;
+    s32                            minU;
+    s32                            maxU;
+    s32                            pageShift;
+    s32                            liftOffsetBytes;
+    s32                            ringDistance;
+    s32                            cornerIndex;
+    s32*                           displacementScale;
+    MATRIX*                        sectorMatrix;
+    s32*                           displacementScaleBase;
+    s32*                           nextDisplacementScale;
+    u16                            unclampedY;
+    u8*                            scratchHead;
+    u8*                            scratchBlock;
+    _Actor403600GridQuad*          afterQuad;
+    _Actor403600GridQuad*          previousQuad;
+    _Actor403600GridQuad*          neighborQuad;
+    _Actor403600GridQuad*          quad;
+    SVECTOR*                       texelOffset;
     _Actor403600RadialGridScratch* scratch;
 
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    newHead                    = head - sizeof(_Actor403600RadialGridScratch);
-    SCRATCH_STACK_CURSOR(void) = newHead;
-    scratch                    = (_Actor403600RadialGridScratch*)newHead;
-    actorRenderComposeCoord(arg1);
-    gte_SetRotMatrix(&arg1->workm);
-    gte_SetTransMatrix(&arg1->workm);
+    scratchHead                = SCRATCH_STACK_CURSOR(u8);
+    scratchBlock               = scratchHead - sizeof(_Actor403600RadialGridScratch);
+    SCRATCH_STACK_CURSOR(void) = scratchBlock;
+    scratch                    = (_Actor403600RadialGridScratch*)scratchBlock;
+    actorRenderComposeCoord(discCoord);
+    gte_SetRotMatrix(&discCoord->workm);
+    gte_SetTransMatrix(&discCoord->workm);
 
-    scratch->probePoints[1].vz = 0x1000;
-    scratch->probePoints[2].vx = 0x1000;
+    scratch->probePoints[1].vz = ONE;
+    scratch->probePoints[2].vx = ONE;
     scratch->probePoints[0].vx = 0;
     scratch->probePoints[0].vy = 0;
     scratch->probePoints[0].vz = 0;
@@ -2125,190 +2189,193 @@ void func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1)
     gte_nclip();
     gte_stopz(&scratch->nclip);
 
-    i = 0;
+    // Sample wave lift and texture displacement independently at each radius.
+    ringIndex = 0;
     do {
-        firstAngle  = arg0->head + i * 2;
-        index       = firstAngle % 32;
-        firstRadius = (rsin(arg0->phase[index]) * arg0->strength[index]) >> 12;
-        value       = (firstRadius * (16 - i)) / 16;
-        firstRadius = value >> 3;
-        if (arg0->shallow == 1) {
-            firstRadius = value >> 8;
+        sampleOffset   = ripple->head + ringIndex * 2;
+        lookupIndex    = sampleOffset % ACTOR_403600_RIPPLE_SAMPLE_COUNT;
+        sampleLift     = (rsin(ripple->phase[lookupIndex]) * ripple->strength[lookupIndex]) >> ACTOR_403600_RIPPLE_WAVE_FRACTION_BITS;
+        weightedSample = (sampleLift * (ACTOR_403600_RIPPLE_RADIAL_SAMPLE_COUNT - ringIndex)) / ACTOR_403600_RIPPLE_RADIAL_SAMPLE_COUNT;
+        sampleLift     = weightedSample >> ACTOR_403600_RIPPLE_LIFT_SHIFT;
+        if (ripple->shallow == 1) {
+            sampleLift = weightedSample >> ACTOR_403600_RIPPLE_SHALLOW_LIFT_SHIFT;
         }
-        radii[i]   = firstRadius;
-        value      = (arg0->strength[index] * (15 - i)) >> 10;
-        heights[i] = value;
+        ringLift[ringIndex]               = sampleLift;
+        weightedSample                    = (ripple->strength[lookupIndex] * (ACTOR_403600_RIPPLE_RADIAL_SAMPLE_COUNT - 1 - ringIndex)) >> ACTOR_403600_RIPPLE_DISPLACEMENT_SHIFT;
+        texelDisplacementScale[ringIndex] = weightedSample;
         if (scratch->nclip > 0) {
-            heights[i] = -value;
+            texelDisplacementScale[ringIndex] = -weightedSample;
         }
-        i++;
-        j = 0;
-    } while (i < 16);
+        ringIndex++;
+        sectorIndex = 0;
+    } while (ringIndex < ARRAY_SIZE(ringLift));
 
-    scratch->maxOtz = 0;
-    matrix          = &scratch->sectorMatrix;
-    vec             = &scratch->texelOffset;
-    heightBase      = heights;
+    // Project one radial edge per sector and share it with adjacent sectors.
+    scratch->maxOtz       = 0;
+    sectorMatrix          = &scratch->sectorMatrix;
+    texelOffset           = &scratch->texelOffset;
+    displacementScaleBase = texelDisplacementScale;
     do {
-        scratch->sectorMatrix = arg1->workm;
-        gfxRotMatrixY(matrix, (j << 12) / 12, 0);
-        gte_SetTransMatrix(&arg1->workm);
-        gte_SetRotMatrix(matrix);
-        scale        = 0x14;
-        i            = 0;
-        height       = heightBase;
-        radiusOffset = 0;
-        angle        = arg0->head;
+        scratch->sectorMatrix = discCoord->workm;
+        gfxRotMatrixY(sectorMatrix, (sectorIndex << ACTOR_403600_RIPPLE_TURN_SHIFT) / ACTOR_403600_RIPPLE_SECTOR_COUNT, 0);
+        gte_SetTransMatrix(&discCoord->workm);
+        gte_SetRotMatrix(sectorMatrix);
+        ringDistance      = ACTOR_403600_RIPPLE_FIRST_RADIUS;
+        ringIndex         = 0;
+        displacementScale = displacementScaleBase;
+        liftOffsetBytes   = 0;
+        sampleIndex       = ripple->head;
         do {
-            /* The screen the quad corners are clamped to. */
+            // Clamp geometry to the displayed 320 by 240 pixel region.
             s32 screenW = 320;
             s32 screenH = 240;
 
-            angle                   %= 32;
-            poly                     = (_Actor403600GridQuad*)D_actor_403600_8016069C;
+            sampleIndex             %= ACTOR_403600_RIPPLE_SAMPLE_COUNT;
+            quad                     = (_Actor403600GridQuad*)D_actor_403600_8016069C;
             D_actor_403600_8016069C += sizeof(_Actor403600GridQuad);
-            rotation                 = -rcos(arg0->phase[angle]) >> 3;
-            scratch->texelOffset.vx  = rsin(rotation);
-            scratch->texelOffset.vy  = rcos(rotation);
+            texelDirection           = -rcos(ripple->phase[sampleIndex]) >> ACTOR_403600_RIPPLE_TEXEL_DIRECTION_SHIFT;
+            scratch->texelOffset.vx  = rsin(texelDirection);
+            scratch->texelOffset.vy  = rcos(texelDirection);
             scratch->texelOffset.vz  = 0;
-            gte_ldv0(vec);
+            gte_ldv0(texelOffset);
             gte_rtv0();
-            scratch->localVertex.vx = scale;
+            scratch->localVertex.vx = ringDistance;
             scratch->localVertex.vz = 0;
-            /* A byte offset stepped beside `i`: indexing `radii` by `i` frees
-             * that register and moves the allocation of the whole loop. */
-            scratch->localVertex.vy = *(s32*)((u8*)radii + radiusOffset);
-            gte_stsv(vec);
+            // Advance an independent byte cursor through the 16 lift samples.
+            scratch->localVertex.vy = *(s32*)((u8*)ringLift + liftOffsetBytes);
+            gte_stsv(texelOffset);
             gte_ldv0(&scratch->localVertex);
             gte_rtps();
             gte_stsxy(&scratch->sxy);
             gte_stdp(&scratch->dp);
             gte_stflg(&scratch->flag);
             gte_stszotz(&scratch->otz);
-            gte_lddp(*height);
-            gte_ldsv(vec);
+            gte_lddp(*displacementScale);
+            gte_ldsv(texelOffset);
             gte_gpf12();
-            gte_stsv(vec);
+            gte_stsv(texelOffset);
 
-            ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0) = scratch->sxy;
-            oldY                                            = poly->vertex0.y;
-            projectedX                                      = scratch->texelOffset.vx + 0xA0;
-            screenX                                         = (s16)poly->vertex0.x + projectedX;
-            projectedY                                      = scratch->texelOffset.vy + 0x78;
-            screenY                                         = (s16)poly->vertex0.y + projectedY;
-            if (screenY >= screenH) {
-                poly->vertex0.y = oldY + (screenH - 1) - screenY;
-                screenY         = screenH - 1;
-            } else if (screenY < 0) {
-                poly->vertex0.y = oldY - screenY;
-                screenY         = 0;
-            }
-            if (screenX >= screenW) {
-                poly->vertex0.x = (u16)poly->vertex0.x + (screenW - 1) - screenX;
-            } else if (screenX < 0) {
-                poly->vertex0.x = (u16)poly->vertex0.x - screenX;
-                screenX         = 0;
-            }
-            poly->page0 = 0;
-            if (screenX >= 0x100) {
-                poly->page0 = 0x40;
-            }
-            poly->vertex0.v = screenY;
-            poly->vertex0.u = screenX - poly->page0;
-            /* The next height is reached through its own index and pointer:
-             * `heightBase[i + 1]` folds the +1 into the load's displacement,
-             * and an inline `heightBase[index]` adds the base second. */
-            if (scratch->flag >= 0 && i != 15 && (*height != 0 || (index = i + 1, nextHeight = &heightBase[index], *nextHeight != 0))) {
-                setlen(poly, 9);
-                poly->code   = 0x2D;
-                scratch->otz = (scratch->otz << gDisplayState.otDepthShift & 0x3FFF) >> 4;
+            ACTOR_403600_GRID_VERTEX_XY_WORD(quad->vertex0) = scratch->sxy;
+            unclampedY                                      = quad->vertex0.y;
+            texelCenterX                                    = scratch->texelOffset.vx + ACTOR_403600_RIPPLE_CAPTURE_CENTER_X;
+            screenX                                         = (s16)quad->vertex0.x + texelCenterX;
+            texelCenterY                                    = scratch->texelOffset.vy + ACTOR_403600_RIPPLE_CAPTURE_CENTER_Y;
+            screenY                                         = (s16)quad->vertex0.y + texelCenterY;
+            _actor403600ClampRippleVertex(quad, screenW, screenH, unclampedY, screenX, screenY);
+            // The terminal sample supplies vertices but has no quad beyond it.
+            if (scratch->flag >= 0 && ringIndex != ARRAY_SIZE(ringLift) - 1 && (*displacementScale != 0 || (lookupIndex = ringIndex + 1, nextDisplacementScale = &displacementScaleBase[lookupIndex], *nextDisplacementScale != 0))) {
+                setlen(quad, ACTOR_403600_RIPPLE_PACKET_WORD_COUNT);
+                quad->code   = ACTOR_403600_RIPPLE_PACKET_CODE;
+                scratch->otz = (scratch->otz << gDisplayState.otDepthShift & ACTOR_403600_RIPPLE_OT_DEPTH_MASK) >> ACTOR_403600_RIPPLE_OT_QUANTIZATION_SHIFT;
                 if (scratch->maxOtz < scratch->otz) {
                     scratch->maxOtz = scratch->otz;
                 }
-                addPrim(&gGpuCurrentOt[scratch->otz], poly);
+                addPrim(&gGpuCurrentOt[scratch->otz], quad);
             }
-            previous = poly - 1;
-            if (i != 0) {
-                ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex1) = ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0);
-                previous->vertex1.u                                 = poly->vertex0.u;
+            previousQuad = quad - 1;
+            if (ringIndex != 0) {
+                ACTOR_403600_GRID_VERTEX_XY_WORD(previousQuad->vertex1) = ACTOR_403600_GRID_VERTEX_XY_WORD(quad->vertex0);
+                previousQuad->vertex1.u                                 = quad->vertex0.u;
                 do {
-                    previous->vertex1.v = poly->vertex0.v;
-                    previous->page1     = poly->page0;
-                    if (j != 0) {
-                        mirrorXY = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex0);
-                        mirror   = poly - 17;
+                    previousQuad->vertex1.v = quad->vertex0.v;
+                    previousQuad->page1     = quad->page0;
+                    if (sectorIndex != 0) {
+                        sharedVertexXY = ACTOR_403600_GRID_VERTEX_XY_WORD(previousQuad->vertex0);
+                        neighborQuad   = quad - (ACTOR_403600_RIPPLE_RADIAL_SAMPLE_COUNT + 1);
                     } else {
-                        mirrorXY = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex0);
-                        mirror   = poly + 175;
+                        sharedVertexXY = ACTOR_403600_GRID_VERTEX_XY_WORD(previousQuad->vertex0);
+                        neighborQuad   = quad + ((ACTOR_403600_RIPPLE_SECTOR_COUNT - 1) * ACTOR_403600_RIPPLE_RADIAL_SAMPLE_COUNT - 1);
                     }
-                    ACTOR_403600_GRID_VERTEX_XY_WORD(mirror->vertex2) = mirrorXY;
-                    mirror->vertex2.u                                 = previous->vertex0.u;
+                    ACTOR_403600_GRID_VERTEX_XY_WORD(neighborQuad->vertex2) = sharedVertexXY;
+                    neighborQuad->vertex2.u                                 = previousQuad->vertex0.u;
                 } while (0);
-                mirror->vertex2.v                                 = previous->vertex0.v;
-                mirror->page2                                     = previous->page0;
-                ACTOR_403600_GRID_VERTEX_XY_WORD(mirror->vertex3) = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex1);
-                mirror->vertex3.u                                 = previous->vertex1.u;
-                mirror->vertex3.v                                 = previous->vertex1.v;
-                mirror->page3                                     = previous->page1;
+                neighborQuad->vertex2.v                                 = previousQuad->vertex0.v;
+                neighborQuad->page2                                     = previousQuad->page0;
+                ACTOR_403600_GRID_VERTEX_XY_WORD(neighborQuad->vertex3) = ACTOR_403600_GRID_VERTEX_XY_WORD(previousQuad->vertex1);
+                neighborQuad->vertex3.u                                 = previousQuad->vertex1.u;
+                neighborQuad->vertex3.v                                 = previousQuad->vertex1.v;
+                neighborQuad->page3                                     = previousQuad->page1;
             }
-            height++;
-            radiusOffset += 4;
-            i++;
-            angle += 2;
-            scale += 0x9B;
-        } while (i < 16);
-        j++;
-    } while (j < 12);
+            displacementScale++;
+            liftOffsetBytes += sizeof(ringLift[0]);
+            ringIndex++;
+            sampleIndex  += 2;
+            ringDistance += ACTOR_403600_RIPPLE_RADIUS_STEP;
+        } while (ringIndex < ARRAY_SIZE(ringLift));
+        sectorIndex++;
+    } while (sectorIndex < ACTOR_403600_RIPPLE_SECTOR_COUNT);
 
-    j = 0;
+    /// Rebases the current ripple quad and retreats the reverse traversal.
+    ///
+    /// Captures live one-past afterQuad and quad pointers, ringIndex, cornerU[4],
+    /// minU/maxU/pageShift and cornerIndex (signed words). Reads corner page
+    /// bytes without changing them; writes tpage/U, then decreases both cursors
+    /// and advances ringIndex. The interleaved cursor updates preserve traversal.
+    /// Uses this function's ACTOR_403600_RIPPLE_ constants; no arguments or calls.
+#define ACTOR_403600_REBASE_AND_RETREAT_RIPPLE_QUAD()                                                                                                               \
+    {                                                                                                                                                               \
+        cornerU[0] = afterQuad[-1].vertex0.u + afterQuad[-1].page0;                                                                                                 \
+        cornerU[1] = afterQuad[-1].vertex1.u + afterQuad[-1].page1;                                                                                                 \
+        cornerU[2] = afterQuad[-1].vertex2.u + afterQuad[-1].page2;                                                                                                 \
+        cornerU[3] = afterQuad[-1].vertex3.u + afterQuad[-1].page3;                                                                                                 \
+        minU       = cornerU[0];                                                                                                                                    \
+        maxU       = cornerU[0];                                                                                                                                    \
+        for (cornerIndex = 1; cornerIndex < ARRAY_SIZE(cornerU); cornerIndex++) {                                                                                   \
+            if (cornerU[cornerIndex] < minU) {                                                                                                                      \
+                minU = cornerU[cornerIndex];                                                                                                                        \
+            } else if (maxU < cornerU[cornerIndex]) {                                                                                                               \
+                maxU = cornerU[cornerIndex];                                                                                                                        \
+            }                                                                                                                                                       \
+        }                                                                                                                                                           \
+        if (maxU >= ACTOR_403600_RIPPLE_PAGE_PIXELS || minU >= ACTOR_403600_RIPPLE_PAGE_SHIFT) {                                                                    \
+            pageShift = ACTOR_403600_RIPPLE_PAGE_SHIFT;                                                                                                             \
+        } else {                                                                                                                                                    \
+            pageShift = 0;                                                                                                                                          \
+        }                                                                                                                                                           \
+        afterQuad[-1].tpage     = ((u32)(pageShift + ACTOR_403600_RIPPLE_CAPTURE_X) >> ACTOR_403600_RIPPLE_PAGE_X_SHIFT) | ACTOR_403600_RIPPLE_CAPTURE_TPAGE_FLAGS; \
+        afterQuad[-1].vertex0.u = cornerU[0] - pageShift;                                                                                                           \
+        afterQuad[-1].vertex1.u = cornerU[1] - pageShift;                                                                                                           \
+        quad--;                                                                                                                                                     \
+        afterQuad[-1].vertex2.u = cornerU[2] - pageShift;                                                                                                           \
+        ringIndex++;                                                                                                                                                \
+        afterQuad[-1].vertex3.u = cornerU[3] - pageShift;                                                                                                           \
+        afterQuad--;                                                                                                                                                \
+    }
+
+    // Rebase each completed quad onto one captured-frame texture page.
+    sectorIndex = 0;
     do {
-        i = 0;
-        /* Walked one quad ahead of the quad it adjusts, so every field is
-         * reached at a negative displacement, as the build requires. */
-        after = poly + 1;
+        ringIndex = 0;
+        // Retreat from one-past the last quad through this sector's records.
+        afterQuad = quad + 1;
         do {
-            corner[0] = after[-1].vertex0.u + after[-1].page0;
-            corner[1] = after[-1].vertex1.u + after[-1].page1;
-            corner[2] = after[-1].vertex2.u + after[-1].page2;
-            corner[3] = after[-1].vertex3.u + after[-1].page3;
-            min       = corner[0];
-            max       = corner[0];
-            for (scanCount = 1; scanCount < 4; scanCount++) {
-                if (corner[scanCount] < min) {
-                    min = corner[scanCount];
-                } else if (max < corner[scanCount]) {
-                    max = corner[scanCount];
-                }
-            }
-            if (max >= 0x100 || min >= 0x40) {
-                adjust = 0x40;
-            } else {
-                adjust = 0;
-            }
-            after[-1].tpage     = ((u32)(adjust + 0x1C0) >> 6) | 0x110;
-            after[-1].vertex0.u = corner[0] - adjust;
-            after[-1].vertex1.u = corner[1] - adjust;
-            poly--;
-            after[-1].vertex2.u = corner[2] - adjust;
-            i++;
-            after[-1].vertex3.u = corner[3] - adjust;
-            after--;
-        } while (i < 16);
-        j++;
-    } while (j < 12);
+            ACTOR_403600_REBASE_AND_RETREAT_RIPPLE_QUAD();
+        } while (ringIndex < ARRAY_SIZE(ringLift));
+        sectorIndex++;
+    } while (sectorIndex < ACTOR_403600_RIPPLE_SECTOR_COUNT);
+#undef ACTOR_403600_REBASE_AND_RETREAT_RIPPLE_QUAD
     frameCaptureQueue(scratch->maxOtz + 1);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600RadialGridScratch));
 }
 
 static const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
 
-/// Advances the ripple by one step: moves `head` back one slot in the two
-/// sample rings, clears it, ramps the source's strength up while `emitting` is
-/// set (restarting its phase on a rising edge) or down otherwise, and records
-/// the source's phase and strength in the new head while the strength is
-/// non-zero.
-static inline void _actor403600TrailTick(Actor403600Ripple* state)
+/// Records one ripple-source sample and advances its outward history.
+///
+/// Requires a live initialized ripple and head in 0..31. Source strength uses
+/// 4096 as unity: emission adds 512 while below unity, release subtracts 128
+/// while positive, and an emission edge restarts phase. The new sample is cleared
+/// first, then recorded only at nonzero strength. Source phase is in 4096 units
+/// per turn; stored samples retain its signed low halfword. Owns no storage.
+static inline void _actor403600TickRipple(Actor403600Ripple* state)
 {
+    enum {
+        ACTOR_403600_RIPPLE_FULL_STRENGTH      = ONE,
+        ACTOR_403600_RIPPLE_STRENGTH_RISE      = 512,
+        ACTOR_403600_RIPPLE_STRENGTH_FALL      = 128,
+        ACTOR_403600_RIPPLE_PHASE_STEP         = 384,
+        ACTOR_403600_RIPPLE_SHALLOW_PHASE_STEP = 256
+    };
     s32 head;
 
     state->head          += ACTOR_403600_RIPPLE_SAMPLE_COUNT - 1;
@@ -2320,153 +2387,181 @@ static inline void _actor403600TrailTick(Actor403600Ripple* state)
         if (state->wasEmitting == 0) {
             state->sourcePhase = 0;
         }
-        if (state->sourceStrength < 0x1000) {
-            state->sourceStrength += 0x200;
+        if (state->sourceStrength < ACTOR_403600_RIPPLE_FULL_STRENGTH) {
+            state->sourceStrength += ACTOR_403600_RIPPLE_STRENGTH_RISE;
         }
     } else if (state->sourceStrength > 0) {
-        state->sourceStrength -= 0x80;
+        state->sourceStrength -= ACTOR_403600_RIPPLE_STRENGTH_FALL;
     }
     state->wasEmitting = state->emitting;
     if (state->sourceStrength != 0) {
         state->phase[head]    = state->sourcePhase;
         state->strength[head] = state->sourceStrength;
         if (state->shallow == 0) {
-            state->sourcePhase += 0x180;
+            state->sourcePhase += ACTOR_403600_RIPPLE_PHASE_STEP;
         } else {
-            state->sourcePhase += 0x100;
+            state->sourcePhase += ACTOR_403600_RIPPLE_SHALLOW_PHASE_STEP;
         }
     }
 }
 
-/// Whether every sample of the ripple has phase zero.
-static inline s32 _actor403600TrailEmpty(Actor403600Ripple* state)
+/// Tests whether all stored ripple phases are zero.
+///
+/// Returns 1 only when all 32 phases are zero, otherwise 0. Strength and
+/// emission are ignored; task expiry also requires its emission timer to end.
+/// Borrows a live ripple and changes no state.
+static inline s32 _actor403600RippleHasDiedOut(const Actor403600Ripple* state)
 {
-    s32 i;
+    s32 sampleIndex;
 
-    for (i = 0; i < ACTOR_403600_RIPPLE_SAMPLE_COUNT; i++) {
-        if (state->phase[i] != 0) {
+    for (sampleIndex = 0; sampleIndex < ARRAY_SIZE(state->phase); sampleIndex++) {
+        if (state->phase[sampleIndex] != 0) {
             return 0;
         }
     }
     return 1;
 }
 
-void func_actor_403600_80135C28(Task* arg0)
+/// Runs a boss ripple and the model's timed crossing of its clipping plane.
+///
+/// Start in state zero with the live boss task in spawnArg2.pointer and its
+/// initialized effect task. Spawn mode 1 sinks then hides the model; 2 waits,
+/// shows it and clips its rise through the reversed plane; other modes emit
+/// a ripple without clipping. Owns its zeroed ripple work, borrowing the boss
+/// and coordinate parents. Running updates advance timers/history; every update
+/// draws. Exit follows boss defeat or ended emission plus zero sample phases.
+/// The package-global plane borrows this work until the crossing interval ends,
+/// including the rising model's hidden wait; it is cleared before work release.
+static void _actor403600RippleTask(Task* task)
 {
-    SVECTOR            sp10;
-    Actor403600Ripple* temp_s0;
-    Actor403600Ripple* temp_v0_2;
-    GfxCoord*          temp_s4;
-    s32                temp_v1_2;
-    s32                temp_v0_9;
-    s32                temp_v1_10;
-    s32                var_a1;
-    Task*              temp_a0;
-    TmdObject*         temp_a0_5;
-    TmdObject*         temp_a1;
-    Task*              temp_s2;
-    TmdObject*         temp_v0;
+    enum {
+        ACTOR_403600_RIPPLE_SINK_MODEL          = 1,
+        ACTOR_403600_RIPPLE_RISE_MODEL          = 2,
+        ACTOR_403600_RIPPLE_EMISSION_TICKS      = 16,
+        ACTOR_403600_RIPPLE_WARMUP_TICKS        = 16,
+        ACTOR_403600_RIPPLE_SINK_CLIP_TICKS     = 8,
+        ACTOR_403600_RIPPLE_RISE_EMISSION_TICKS = 46,
+        ACTOR_403600_RIPPLE_RISE_WAIT_TICKS     = 31,
+        ACTOR_403600_RIPPLE_RISE_CLIP_LAST_TICK = -7,
+        ACTOR_403600_RIPPLE_RISE_CLIP_END_TICK  = -8,
+        ACTOR_403600_RIPPLE_REVERSE_PLANE_ANGLE = ONE / 2
+    };
+    SVECTOR            discOffset;
+    Actor403600Ripple* ripple;
+    Actor403600Ripple* newRipple;
+    GfxCoord*          discCoord;
+    s32                spawnMode;
+    s32                sinkClipTicks;
+    s32                riseClipTicks;
+    s32                warmupTick;
+    Task*              bossTask;
+    TmdObject*         sinkingModel;
+    TmdObject*         risingModel;
+    Task*              fxTask;
+    TmdObject*         defeatedModel;
     Actor403600Work*   ownerWork;
 
-    temp_a0   = arg0->spawnArg2.pointer;
-    ownerWork = temp_a0->work;
-    temp_s4   = arg0->extra.coordBody->coord;
-    temp_s2   = ownerWork->fxTask;
+    bossTask  = task->spawnArg2.pointer;
+    ownerWork = bossTask->work;
+    discCoord = task->extra.coordBody->coord;
+    fxTask    = ownerWork->fxTask;
     if (ownerWork->defeated == 1) {
-        temp_v0                      = temp_a0->extra.tmd;
+        defeatedModel                = bossTask->extra.tmd;
         gActor403600RipplePlaneCoord = NULL;
-        temp_v0->flags               = (u16)(temp_v0->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        taskCallExit(arg0);
+        defeatedModel->flags         = (u16)(defeatedModel->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
+        taskCallExit(task);
         return;
     }
-    if (arg0->state == 0) {
-        temp_v0_2 = memCalloc(sizeof(Actor403600Ripple), false);
-        if (temp_v0_2 != NULL) {
-            arg0->work         = temp_v0_2;
-            temp_v0_2->shallow = 0;
-            sp10               = D_actor_403600_80131E2C;
-            actorRenderCopyCoordBodyTransform(arg0, &temp_s2->parent->extra.tmd->coords[1], &sp10);
-            gfxSetRotIdentity(&temp_v0_2->clipCoord.coord);
-            temp_v0_2->clipCoord.coord.t[0]   = 0;
-            temp_v0_2->clipCoord.coord.t[1]   = 0;
-            temp_v0_2->clipCoord.coord.t[2]   = 0;
-            temp_v0_2->clipCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-            temp_v0_2->clipCoord.parent       = temp_s4;
-            temp_v1_2                         = arg0->spawnArg1.value;
-            arg0->killCountdown               = 0x10;
-            switch (temp_v1_2) {
-                case 1:
-                    temp_v0_2->emitting = temp_v1_2;
-                    var_a1              = 0;
+    // Allocate history and attach the disc and its clipping plane to the boss.
+    if (task->state == 0) {
+        newRipple = memCalloc(sizeof(Actor403600Ripple), false);
+        if (newRipple != NULL) {
+            task->work         = newRipple;
+            newRipple->shallow = 0;
+            discOffset         = D_actor_403600_80131E2C;
+            actorRenderCopyCoordBodyTransform(task, &fxTask->parent->extra.tmd->coords[1], &discOffset);
+            gfxSetRotIdentity(&newRipple->clipCoord.coord);
+            newRipple->clipCoord.coord.t[0]   = 0;
+            newRipple->clipCoord.coord.t[1]   = 0;
+            newRipple->clipCoord.coord.t[2]   = 0;
+            newRipple->clipCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+            newRipple->clipCoord.parent       = discCoord;
+            spawnMode                         = task->spawnArg1.value;
+            task->killCountdown               = ACTOR_403600_RIPPLE_EMISSION_TICKS;
+            switch (spawnMode) {
+                case ACTOR_403600_RIPPLE_SINK_MODEL:
+                    newRipple->emitting = spawnMode;
+                    warmupTick          = 0;
                     do {
-                        _actor403600TrailTick(temp_v0_2);
-                        var_a1 += 1;
-                    } while (var_a1 < 0x10);
-                    temp_v0_2->clipCountdown = 8;
+                        _actor403600TickRipple(newRipple);
+                        warmupTick += 1;
+                    } while (warmupTick < ACTOR_403600_RIPPLE_WARMUP_TICKS);
+                    newRipple->clipCountdown = ACTOR_403600_RIPPLE_SINK_CLIP_TICKS;
                     break;
-                case 2:
-                    arg0->killCountdown      = 0x2E;
-                    temp_v0_2->clipCountdown = 0x1F;
-                    gfxRotMatrixZ(&temp_v0_2->clipCoord.coord, 0x800, GRAPHICS_ROTATION_COMPOSE);
-                    temp_s4->composeStamp = GRAPHICS_COORD_DIRTY;
+                case ACTOR_403600_RIPPLE_RISE_MODEL:
+                    task->killCountdown      = ACTOR_403600_RIPPLE_RISE_EMISSION_TICKS;
+                    newRipple->clipCountdown = ACTOR_403600_RIPPLE_RISE_WAIT_TICKS;
+                    gfxRotMatrixZ(&newRipple->clipCoord.coord, ACTOR_403600_RIPPLE_REVERSE_PLANE_ANGLE, GRAPHICS_ROTATION_COMPOSE);
+                    discCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                     break;
                 default:
-                    temp_v0_2->emitting = 1;
-                    var_a1              = 0;
+                    newRipple->emitting = 1;
+                    warmupTick          = 0;
                     do {
-                        _actor403600TrailTick(temp_v0_2);
-                        var_a1 += 1;
-                    } while (var_a1 < 0x10);
+                        _actor403600TickRipple(newRipple);
+                        warmupTick += 1;
+                    } while (warmupTick < ACTOR_403600_RIPPLE_WARMUP_TICKS);
                     break;
             }
-            arg0->state = (s32)(arg0->state + 1);
+            task->state = task->state + 1;
         } else {
-            taskCallExit(arg0);
+            taskCallExit(task);
             return;
         }
     }
-    temp_s0 = arg0->work;
+    ripple = task->work;
+    // Select the crossing plane; the wave keeps spreading after emission ends.
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        switch (arg0->spawnArg1.value) {
-            case 1:
-                temp_v0_9              = temp_s0->clipCountdown - 1;
-                temp_s0->clipCountdown = temp_v0_9;
-                if (temp_v0_9 == 0) {
-                    temp_a0_5                    = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
+        switch (task->spawnArg1.value) {
+            case ACTOR_403600_RIPPLE_SINK_MODEL:
+                sinkClipTicks         = ripple->clipCountdown - 1;
+                ripple->clipCountdown = sinkClipTicks;
+                if (sinkClipTicks == 0) {
+                    sinkingModel                 = ((Task*)task->spawnArg2.pointer)->extra.tmd;
                     gActor403600RipplePlaneCoord = NULL;
-                    temp_a0_5->flags             = (u16)(temp_a0_5->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
-                } else if (temp_v0_9 > 0) {
-                    gActor403600RipplePlaneCoord = &temp_s0->clipCoord;
-                    actorRenderComposeCoord(&temp_s0->clipCoord);
+                    sinkingModel->flags          = (u16)(sinkingModel->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
+                } else if (sinkClipTicks > 0) {
+                    gActor403600RipplePlaneCoord = &ripple->clipCoord;
+                    actorRenderComposeCoord(&ripple->clipCoord);
                 }
                 break;
-            case 2:
-                temp_v1_10             = temp_s0->clipCountdown - 1;
-                temp_s0->clipCountdown = temp_v1_10;
-                if (temp_v1_10 == 0) {
-                    temp_a1                      = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
-                    gActor403600RipplePlaneCoord = &temp_s0->clipCoord;
-                    temp_a1->flags               = (u16)(temp_a1->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
-                    actorRenderComposeCoord(&temp_s0->clipCoord);
-                } else if (temp_v1_10 >= -7) {
-                    gActor403600RipplePlaneCoord = &temp_s0->clipCoord;
-                    actorRenderComposeCoord(&temp_s0->clipCoord);
-                } else if (temp_v1_10 == -8) {
+            case ACTOR_403600_RIPPLE_RISE_MODEL:
+                riseClipTicks         = ripple->clipCountdown - 1;
+                ripple->clipCountdown = riseClipTicks;
+                if (riseClipTicks == 0) {
+                    risingModel                  = ((Task*)task->spawnArg2.pointer)->extra.tmd;
+                    gActor403600RipplePlaneCoord = &ripple->clipCoord;
+                    risingModel->flags           = (u16)(risingModel->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
+                    actorRenderComposeCoord(&ripple->clipCoord);
+                } else if (riseClipTicks >= ACTOR_403600_RIPPLE_RISE_CLIP_LAST_TICK) {
+                    gActor403600RipplePlaneCoord = &ripple->clipCoord;
+                    actorRenderComposeCoord(&ripple->clipCoord);
+                } else if (riseClipTicks == ACTOR_403600_RIPPLE_RISE_CLIP_END_TICK) {
                     gActor403600RipplePlaneCoord = NULL;
                 }
                 break;
         }
-        if (arg0->killCountdown > 0) {
-            temp_s0->emitting = 1;
+        if (task->killCountdown > 0) {
+            ripple->emitting = 1;
         } else {
-            temp_s0->emitting = 0;
+            ripple->emitting = 0;
         }
-        arg0->killCountdown = (s16)((u16)arg0->killCountdown - 1);
-        _actor403600TrailTick(temp_s0);
+        task->killCountdown = (s16)((u16)task->killCountdown - 1);
+        _actor403600TickRipple(ripple);
     }
-    func_actor_403600_801353D0(temp_s0, temp_s4);
-    if (arg0->killCountdown <= 0 && _actor403600TrailEmpty(temp_s0)) {
-        taskCallExit(arg0);
+    actor403600DrawRipple(ripple, discCoord);
+    if (task->killCountdown <= 0 && _actor403600RippleHasDiedOut(ripple)) {
+        taskCallExit(task);
     }
 }
 

@@ -224,3 +224,6 @@ actor403600DrawStreamGt4PlaneClamp = 0x80138004; // type:func
 actor403600XformStreamVertsPlaneClamp = 0x801386ec; // type:func
 _gActor403600NeutralLightColor = 0x80131e34;
 _actor403600PlaceDistortionVertex = 0x8013289c; // type:func
+actor403600SwingLooseParts = 0x80132e40; // type:func
+actor403600DrawRipple = 0x801353d0; // type:func
+_actor403600RippleTask = 0x80135c28; // type:func

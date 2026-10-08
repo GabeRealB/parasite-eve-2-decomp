@@ -21,7 +21,7 @@ void madChaserDangleFrame(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->frameCount++;
             sp[(s16)work->state](arg0);
-            madChaserApplyContacts(arg0, 1);
+            _madChaserApplyContacts(arg0, 1);
             if (work->hitTaken != 0 && work->hitReaction == MAD_CHASER_HIT_REACTION_BLAST && enemy->hp <= 0) {
                 MadChaserWork* w = (MadChaserWork*)arg0->work;
 

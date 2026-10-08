@@ -542,10 +542,13 @@ static void _actor341900PlayGluttonAnimation(Task* task, s32 messageId, const An
     _actor341900SetGluttonPartAnimation(work->legLeft, request->animationId, request->blendFrames, ACTOR_341900_GLUTTON_LEG_SLOT_COUNT);
 }
 
-/// Updates a scene model's lighting from a coordinate's cached translation.
+/// Samples a scene model's cached position for its three model lights.
 ///
-/// Requires a live model and writable light/colour matrices, and a valid
-/// coordinate index. XYZ use game units; this does not compose the cache.
+/// Requires a live model, writable light/colour matrices and a valid
+/// coordinate index (0 for a door half, 1 for a Glutton part). The cached XYZ
+/// are passed unchanged to the world lighting query, in game units; no
+/// coordinate is composed or converted here. Borrows model storage and retains
+/// no position pointer.
 static inline void _actor341900UpdateModelLighting(Task* task, s32 coordinateIndex)
 {
     TmdObject* model;

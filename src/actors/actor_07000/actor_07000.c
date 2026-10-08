@@ -27,6 +27,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/random.h"
 #include "main/gfx.h"
@@ -76,7 +77,7 @@ static AnimationSet _gActor07000Actor107000Animation07D1C;
 static AnimationSet _gActor07000Actor107000Animation07E64;
 static AnimationSet _gActor07000Actor107000Animation08008;
 static TmdSource    _gActor07000SucklercephBody;
-s32                 Actor07000_Fn05AB8(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
+static s32          _actor07000SlouchApplyCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg);
 static void         _actor07000SlouchTask(Task* task);
 static void         _actor07000SlouchProjectileTask(Task* task);
 void                Actor07000_Fn067B4(Task*);
@@ -635,7 +636,7 @@ SVECTOR Actor07000_D0D7B0 = { 0, 0, -120, 0 };
 SVECTOR Actor07000_D0D7B8 = { 0, -300, 0, 0 };
 
 TaskMessageEntry Actor07000_D0D7C0[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, Actor07000_Fn05AB8 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor07000SlouchApplyCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -840,7 +841,7 @@ static void _actor07000SlouchFlatten(Task* task);
 
 static void _actor07000SlouchStretch(Task* task);
 
-static void Actor07000_Fn062A8(Task* arg0);
+static void _actor07000SlouchSpawnProjectile(Task* slouchTask);
 
 static void _actor07000SlouchApplyTwist(Task* task);
 
@@ -1320,7 +1321,7 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
             sceneEngageBattle(1);
             work->animId = ACTOR_07000_SLOUCH_ANIM_SPIT;
             if (work->animFrames == 48) {
-                Actor07000_Fn062A8(arg0);
+                _actor07000SlouchSpawnProjectile(arg0);
                 if (enemy->hp <= 0) {
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     arg0->state             = 2;
@@ -1389,7 +1390,7 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
                 work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             if (work->animFrames == 2) {
-                Actor07000_Fn062A8(arg0);
+                _actor07000SlouchSpawnProjectile(arg0);
                 if (enemy->hp <= 0) {
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     arg0->state             = 2;
@@ -2318,106 +2319,117 @@ static void _actor07000SlouchDropCollide(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactDeltaScratch);
 }
 
-/// Message 0x7DB handler of the second form's table (`Actor07000_D0D7C0`,
-/// parked in `Task::msgTable` by `Actor07000_Fn05068`). The payload's
-/// halfword at 0x2 is a command word.
+/// Restarts the Slouch's puff animation and emits its additive root puff.
 ///
-/// 4 and 5 are the puffing arms: both spawn the 0x60080 effect on the model's
-/// root coordinate, restart the puff count in `idleFrames` and set `state` to
-/// puffing; 5 clears `watchFrames` as well.
-///
-/// Low byte 1 is the reveal. Unless the task already runs one of the two live
-/// states, the model is placed at the spawn point bits 8..11 select from the
-/// current map's table - `D_shelter_b3_dumping_hole_8018B74C` on map 0x27, where the appearance sound
-/// is cued through `sndEvtRequestScriptStart` as well, `D_shelter_b3_garbage_incinerator_801874C4` on 0x28 - the
-/// buffers are re-armed, the 0x80 and 4 bits are cleared from the model's flag
-/// word, the enemy's `node.state.parts.flags` is zeroed, both render nodes are revealed, and
-/// the model is turned to the spawn point's heading. Low byte 3 is the hide:
-/// the two bits and the pose flag go the other way, both nodes are hidden, the
-/// model's translation and rotation are zeroed, and the task moves to state 4.
-s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
+/// Borrows live work/root storage and optionally resets the watch time.
+static inline void _actor07000SlouchStartPuffing(_Actor07000SlouchWork* work, GfxCoord* rootCoord, s32 resetWatch)
 {
+    enum { ACTOR_07000_SLOUCH_PUFF_SIZE = 1024 };
+    effectSpawn(EFFECT_ADDITIVE_PUFF, rootCoord, ACTOR_07000_SLOUCH_PUFF_SIZE, &Actor07000_D0D7B8);
+    work->idleFrames = 0;
+    if (resetWatch) {
+        work->watchFrames = 0;
+    }
+    work->state = ACTOR_07000_SLOUCH_STATE_PUFFING;
+}
+
+/// Applies a room encounter command to the Slouch's visibility or puffing state.
+///
+/// Borrows a live command synchronously and always returns zero; messageId and
+/// unusedArg are ignored. Full words 4/5 start puffing (5 also resets watch time).
+/// Low byte 1 places a hidden Slouch; 3 disables collision/drawing and resets
+/// its root transform. Appearance uses the entire high byte as a spot index:
+/// callers must supply 0..11 in the dumping hole or 0..15 in the incinerator,
+/// with the corresponding room overlay loaded. Other areas supply no placement
+/// rotation, so appearance is valid only in these two rooms.
+static s32 _actor07000SlouchApplyCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg)
+{
+    enum {
+        ACTOR_07000_SLOUCH_COMMAND_HIDE            = 3,
+        ACTOR_07000_SLOUCH_COMMAND_RESTART_PUFFING = 5,
+        ACTOR_07000_SLOUCH_APPEAR_FORWARD_SPEED    = 200,
+        ACTOR_07000_SLOUCH_APPEAR_FALL_SPEED       = 100,
+        ACTOR_07000_SLOUCH_TASK_ACTIVE_FIRST       = 1,
+        ACTOR_07000_SLOUCH_TASK_ACTIVE_COUNT       = 2,
+        ACTOR_07000_SLOUCH_TASK_HIDDEN             = 4,
+        ACTOR_07000_SLOUCH_SOUND_APPEAR            = 0x54270006
+    };
     _Actor07000SlouchWork* work;
     Enemy*                 enemy;
-    TmdObject*             obj;
+    TmdObject*             model;
     GfxCoord*              coord;
-    SVECTOR                rot;
-    u16                    word;
-    s32                    mode;
-    s32                    sound;
-    s32                    pan;
+    SVECTOR                placementRotation;
+    u16                    commandWord;
+    s32                    commandValue;
+    s32                    soundKey;
+    s32                    soundPan;
 
-    word  = request->command;
-    obj   = arg0->extra.tmd;
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    mode  = word & 0xFFFF;
-    coord = obj->coords;
-    if (mode == 4) {
-        effectSpawn(EFFECT_ADDITIVE_PUFF, coord, 0x400, &Actor07000_D0D7B8);
-        work->idleFrames = 0;
-        work->state      = ACTOR_07000_SLOUCH_STATE_PUFFING;
+    commandWord  = request->command;
+    model        = task->extra.tmd;
+    enemy        = task->spawnArg2.pointer;
+    work         = task->work;
+    commandValue = commandWord & 0xFFFF;
+    coord        = model->coords;
+    if (commandValue == OVERLAY_ENCOUNTER_COMMAND_STOP) {
+        _actor07000SlouchStartPuffing(work, coord, false);
         return 0;
     }
-    if (mode == 5) {
-        effectSpawn(EFFECT_ADDITIVE_PUFF, coord, 0x400, &Actor07000_D0D7B8);
-        work->idleFrames  = 0;
-        work->watchFrames = 0;
-        work->state       = ACTOR_07000_SLOUCH_STATE_PUFFING;
+    if (commandValue == ACTOR_07000_SLOUCH_COMMAND_RESTART_PUFFING) {
+        _actor07000SlouchStartPuffing(work, coord, true);
         return 0;
     }
-    if ((word & 0xFF) == 1) {
-        if ((u32)(arg0->state - 1) >= 2U) {
-            if (gGameSession->location.loc.area == 0x27) {
-                rot.vx            = 0;
-                rot.vy            = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].heading;
-                rot.vz            = 0;
-                coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].x;
-                coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].y;
-                coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].z;
-                sound             = (((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54270006);
-                pan               = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-            } else if (gGameSession->location.loc.area == 0x28) {
-                rot.vx            = 0;
-                rot.vy            = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].heading;
-                rot.vz            = 0;
-                coord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].x;
-                coord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].y;
-                coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].z;
+    if ((commandWord & 0xFF) == OVERLAY_ENCOUNTER_COMMAND_APPEAR) {
+        if ((u32)(task->state - ACTOR_07000_SLOUCH_TASK_ACTIVE_FIRST) >= (u32)ACTOR_07000_SLOUCH_TASK_ACTIVE_COUNT) {
+            if (gGameSession->location.loc.area == GAME_AREA_SHELTER_B3_DUMPING_HOLE) {
+                placementRotation.vx = 0;
+                placementRotation.vy = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].heading;
+                placementRotation.vz = 0;
+                coord->coord.t[0]    = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].x;
+                coord->coord.t[1]    = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].y;
+                coord->coord.t[2]    = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].z;
+                soundKey             = (((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_07000_SLOUCH_SOUND_APPEAR);
+                soundPan             = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(soundKey, soundPan, (s8)worldCoordGetOriginAudioDepth(coord));
+            } else if (gGameSession->location.loc.area == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
+                placementRotation.vx = 0;
+                placementRotation.vy = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].heading;
+                placementRotation.vz = 0;
+                coord->coord.t[0]    = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].x;
+                coord->coord.t[1]    = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].y;
+                coord->coord.t[2]    = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].z;
             }
-            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
-            arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            tmdAllocPrimitiveBuffer(task->extra.tmd);
+            task->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            task->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.parts.flags = 0;
             work->senseBody.flags        |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->body.flags             |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            RotMatrix(&rot, &coord->coord);
-            work->forwardSpeed                    = 0xC8;
+            RotMatrix(&placementRotation, &coord->coord);
+            work->forwardSpeed                    = ACTOR_07000_SLOUCH_APPEAR_FORWARD_SPEED;
             work->dropArmed                       = 1;
-            work->fallSpeed                       = 0x64;
+            work->fallSpeed                       = ACTOR_07000_SLOUCH_APPEAR_FALL_SPEED;
             work->dropCollided                    = 0;
-            arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(arg0->extra.tmd->coords);
+            task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(task->extra.tmd->coords);
         }
         return 0;
     }
-    if ((word & 0xFF) == 3) {
-        arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if ((commandWord & 0xFF) == ACTOR_07000_SLOUCH_COMMAND_HIDE) {
+        task->extra.tmd->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        task->extra.tmd->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->senseBody.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        rot.vz                        = 0;
-        rot.vy                        = 0;
-        rot.vx                        = 0;
-        RotMatrix(&rot, &coord->coord);
+        placementRotation.vz          = 0;
+        placementRotation.vy          = 0;
+        placementRotation.vx          = 0;
+        RotMatrix(&placementRotation, &coord->coord);
         coord->coord.t[2]                     = 0;
         coord->coord.t[1]                     = 0;
         coord->coord.t[0]                     = 0;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(arg0->extra.tmd->coords);
-        arg0->state     = 4;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(task->extra.tmd->coords);
+        task->state     = ACTOR_07000_SLOUCH_TASK_HIDDEN;
         work->dropArmed = 0;
     }
     return 0;
@@ -2566,25 +2578,33 @@ static void _actor07000SlouchStretch(Task* task)
 #undef ACTOR_07000_SLOUCH_SCALE_PART_COLUMN
 }
 
-static void Actor07000_Fn062A8(Task* arg0)
+/// Spits a Slouch projectile from model part 1 toward the player's bearing.
+///
+/// Requires a live Slouch model and the projectile descriptor/resources. The
+/// bearing uses 4096 units per turn and becomes the new task's spawnArg1.
+/// Copies the muzzle's transform with zero offset, then links successful spawns
+/// into the Slouch's teardown tree. Spawn failure leaves no child to attach.
+static void _actor07000SlouchSpawnProjectile(Task* slouchTask)
 {
+    enum { ACTOR_07000_SLOUCH_PROJECTILE_DESCRIPTOR  = 1,
+           ACTOR_07000_SLOUCH_PROJECTILE_MUZZLE_PART = 1 };
     SVECTOR   offset;
-    u32       dist;
-    GfxCoord* coords;
-    GfxCoord* child;
-    Task*     task;
-    s32       angle;
+    u32       playerRange;
+    GfxCoord* modelCoords;
+    GfxCoord* muzzleCoord;
+    Task*     projectileTask;
+    s32       playerBearing;
 
-    coords    = arg0->extra.tmd->coords;
-    child     = &coords[1];
-    angle     = _actor07000SlouchMeasurePlayer(coords, &dist);
-    offset.vz = 0;
-    offset.vy = 0;
-    offset.vx = 0;
-    task      = taskSpawnFromTable(Actor07000_D0D7D0, 1, angle, 0);
-    if (task != NULL) {
-        actorRenderCopyCoordBodyTransform(task, child, &offset);
-        taskReparent(arg0, task);
+    modelCoords    = slouchTask->extra.tmd->coords;
+    muzzleCoord    = &modelCoords[ACTOR_07000_SLOUCH_PROJECTILE_MUZZLE_PART];
+    playerBearing  = _actor07000SlouchMeasurePlayer(modelCoords, &playerRange);
+    offset.vz      = 0;
+    offset.vy      = 0;
+    offset.vx      = 0;
+    projectileTask = taskSpawnFromTable(Actor07000_D0D7D0, ACTOR_07000_SLOUCH_PROJECTILE_DESCRIPTOR, playerBearing, 0);
+    if (projectileTask != NULL) {
+        actorRenderCopyCoordBodyTransform(projectileTask, muzzleCoord, &offset);
+        taskReparent(slouchTask, projectileTask);
     }
 }
 

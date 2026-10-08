@@ -309,7 +309,14 @@ extern GfxCoord* gActor403600RipplePlaneCoord;
 
 void func_actor_403600_80138C68(Task* arg0);
 
-void func_actor_403600_80132E40(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx);
+/// Updates the boss's three trailing chain parts and two loose limb tips.
+///
+/// fxTask is the effect task parented to the live boss; work is that boss's
+/// block and fx is the effect task's block. Requires model parts through 19,
+/// composed view/root transforms and initialized scratch storage. Endpoints
+/// retain signed-halfword room coordinates; direction/rotation uses Q12 GTE
+/// arithmetic. Only running updates change them. Borrows work for the call.
+void actor403600SwingLooseParts(Task* fxTask, const Actor403600Work* work, Actor403600FxWork* fx);
 
 void func_actor_403600_80138C34(Task* task);
 

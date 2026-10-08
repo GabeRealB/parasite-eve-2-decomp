@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_361100.
 
 // Referenced in another actor load slot, resident beside this one.
-func_actor_403600_801353D0 = 0x801353D0; // type:func absolute:True owner=actor_403600
+actor403600DrawRipple = 0x801353D0; // type:func absolute:True owner=actor_403600
 func_actor_403600_80138C9C = 0x80138C9C; // type:func absolute:True owner=actor_403600
 D_actor_403600_8016069C = 0x8016069C; // absolute:True owner=actor_403600
 D_actor_361100_80166AD8 = 0x80166AD8; // size:0x4 defined:True

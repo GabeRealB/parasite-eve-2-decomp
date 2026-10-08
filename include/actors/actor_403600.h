@@ -41,6 +41,20 @@ typedef struct {
 } Actor403600Ripple;
 STATIC_ASSERT_SIZEOF(Actor403600Ripple, 0xE8);
 
+/// Draws a spreading ripple with the captured frame as its texture.
+///
+/// Requires this overlay loaded, a live ripple with head in 0..31, a live disc
+/// coordinate and initialized GTE/scratch/frame-packet state. Composes discCoord;
+/// sixteen radial samples form fifteen drawable bands in each of twelve sectors.
+/// Consumes 192 complete POLY_FT4-sized records from D_actor_403600_8016069C,
+/// including each sector's terminal record. The caller supplies that writable
+/// capacity, a captured frame at VRAM (448,256), and a valid depth ordering table.
+/// Ring distances and lifts use game units; UV displacement uses screen pixels
+/// scaled by the sample strength. Queues a new frame capture beyond the greatest
+/// drawn depth. Retains packet storage until GPU consumption; no ripple pointer
+/// is retained. actor_361100 calls this export while actor_403600 remains loaded.
+void actor403600DrawRipple(const Actor403600Ripple* ripple, GfxCoord* discCoord);
+
 extern u8* D_actor_403600_8016069C;
 
 /// Projects, lights and draws GT3 packets with the package's bottom screen fade.
