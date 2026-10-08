@@ -178,34 +178,41 @@ static inline s32 _gpIsEquippedItem(s32 id)
     return ret;
 }
 
-/// Draws the carried consumable quantity remaining after weapon loads.
+/// Draws an attachment candidate's consumable stock remaining outside weapon loads.
 ///
-/// Borrows the candidate/range and live UI row; non-consumables draw nothing.
+/// Requires live list/object, font textures and available UI primitives.
+/// `candidateRow` must be non-NULL, belong to `carriedItems` and contain `itemId`.
+/// That range must fit its backing table; its weapon loads come from the live
+/// save. Subtracts both loads of every weapon row without clamping and formats
+/// signed decimal stock; non-consumables draw nothing. Borrows all inputs and
+/// consumes the 32-byte text buffer synchronously. Row coordinates are pixels
+/// relative to the panel's content origin.
 static inline void _itemMenuDrawAvailableAttachmentQuantity(const UiList* list, const UiObject* object,
                                                             const InventoryItemRow*   candidateRow,
                                                             const InventoryItemRange* carriedItems, s32 itemId)
 {
-    u8          quantityText[0x20];
-    TextDrawReq textRequest;
-    s32         x;
-    s32         y;
-    s32         colorRgb;
-    s32         availableQuantity;
+    enum { ITEM_MENU_ATTACHMENT_QUANTITY_RECESSED_COLOR_RGB = 0x102010 };
+    u8          quantityText[32];
+    TextDrawReq quantityRequest;
+    s32         rowX;
+    s32         rowY;
+    s32         textColorRgb;
+    s32         unloadedQuantity;
 
-    x        = list->rowTextX.signedValue;
-    y        = list->rowTextY.signedValue;
-    colorRgb = list->colorRgb;
+    rowX         = list->rowTextX.signedValue;
+    rowY         = list->rowTextY.signedValue;
+    textColorRgb = list->colorRgb;
     if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
-        availableQuantity      = candidateRow->qty - equipmentGetLoadedConsumableQuantity(carriedItems, itemId);
-        textRequest.x          = object->panel.contentOriginX.unsignedValue + 0x84 + x;
-        textRequest.y          = object->panel.contentOriginY.unsignedValue + (y - 3);
-        textRequest.otIndex    = object->panel.otIndex.signedValue + 1;
-        textRequest.colorRgb   = colorRgb;
-        textRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-        textRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
-        textRequest.drawMode   = TEXT_DRAW_FILL_ONLY;
-        textDrawString(&textRequest, textItoaSigned(quantityText, availableQuantity));
-        uiDrawRecessedRect(&object->panel, x + 0x69, y - 8, 0x1B, 7, 0x102010);
+        unloadedQuantity           = candidateRow->qty - equipmentGetLoadedConsumableQuantity(carriedItems, itemId);
+        quantityRequest.x          = object->panel.contentOriginX.unsignedValue + 132 + rowX;
+        quantityRequest.y          = object->panel.contentOriginY.unsignedValue + (rowY - 3);
+        quantityRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+        quantityRequest.colorRgb   = textColorRgb;
+        quantityRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+        quantityRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
+        quantityRequest.drawMode   = TEXT_DRAW_FILL_ONLY;
+        textDrawString(&quantityRequest, textItoaSigned(quantityText, unloadedQuantity));
+        uiDrawRecessedRect(&object->panel, rowX + 105, rowY - 8, 27, 7, ITEM_MENU_ATTACHMENT_QUANTITY_RECESSED_COLOR_RGB);
     }
 }
 

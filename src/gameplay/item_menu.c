@@ -1438,13 +1438,20 @@ static void _itemMenuTransferExitRow(UiList* list, UiObject* object)
     }
 }
 
-/// Starts a lid sound at the model origin with signed-byte pan and depth.
-static inline void _itemPickupPlayLidSound(Task* task, s32 soundId)
+/// Requests a container lid's sound event at its model's composed origin.
+///
+/// Borrows a live lid task with a TMD body and composed root coordinate.
+/// `soundEventId` is a packed stage-relative sound-script event id. Pan is
+/// -16..15 (three SPU pan steps per unit); depth is -128..127 (256 game units
+/// per unit). Both are passed through signed bytes, and pan projection runs
+/// before the depth query. Requires current projection settings and 24 bytes
+/// of free scratch-stack space; releases it and changes GTE state.
+static inline void _itemPickupPlayLidSound(const Task* task, s32 soundEventId)
 {
     s32 audioPan;
 
     audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    sndEvtRequestScriptStart(soundId, audioPan,
+    sndEvtRequestScriptStart(soundEventId, audioPan,
                              (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 

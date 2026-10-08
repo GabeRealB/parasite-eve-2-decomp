@@ -1294,17 +1294,20 @@ static inline InventoryItemRow* _inventoryFindNthReorderableRow(const InventoryI
 
 /// Draws a carried consumable's unloaded stock at the current row baseline.
 ///
-/// Borrows the current list/object and a carried row; NULL draws nothing. Total saved
-/// stock includes weapon loads, which are subtracted without clamping. Other
-/// item kinds submit no quantity text. Coordinates are content-relative pixels.
+/// Requires live list/object, save, font textures and available UI primitives.
+/// A NULL row or a non-consumable submits no drawing. Subtracts both loads of
+/// every weapon in the live carried range from the row's total without clamping,
+/// and formats the result as signed decimal.
+/// Borrows all inputs; the 32-byte text buffer is consumed synchronously.
+/// Row coordinates are pixels relative to the panel's content origin.
 static inline void _itemMenuDrawUnloadedRowQuantity(const UiList* list, const UiObject* object, const InventoryItemRow* carriedRow)
 {
     s32         rowX;
     s32         rowY;
     s32         textColorRgb;
-    u8          numberText[0x20];
+    u8          quantityText[32];
     TextDrawReq quantityRequest;
-    s32         availableQuantity;
+    s32         unloadedQuantity;
     s32         screenBaselineY;
 
     rowX         = list->rowTextX.signedValue;
@@ -1312,8 +1315,8 @@ static inline void _itemMenuDrawUnloadedRowQuantity(const UiList* list, const Ui
     textColorRgb = list->colorRgb;
     if (carriedRow != NULL) {
         if ((u32)(carriedRow->itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
-            availableQuantity          = carriedRow->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, carriedRow->itemId);
-            quantityRequest.x          = object->panel.contentOriginX.unsignedValue + 0x84 + rowX;
+            unloadedQuantity           = carriedRow->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, carriedRow->itemId);
+            quantityRequest.x          = object->panel.contentOriginX.unsignedValue + 132 + rowX;
             screenBaselineY            = object->panel.contentOriginY.unsignedValue - 3;
             quantityRequest.y          = screenBaselineY + rowY;
             quantityRequest.otIndex    = object->panel.otIndex.signedValue + 1;
@@ -1321,8 +1324,8 @@ static inline void _itemMenuDrawUnloadedRowQuantity(const UiList* list, const Ui
             quantityRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
             quantityRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
             quantityRequest.drawMode   = TEXT_DRAW_FILL_ONLY;
-            textDrawString(&quantityRequest, textItoaSigned(numberText, availableQuantity));
-            uiDrawRecessedRect(&object->panel, (rowX + 0x69), (rowY - 8), 0x1B, 7,
+            textDrawString(&quantityRequest, textItoaSigned(quantityText, unloadedQuantity));
+            uiDrawRecessedRect(&object->panel, rowX + 105, rowY - 8, 27, 7,
                                ITEM_MENU_ROW_RECESSED_COLOR_RGB);
         }
     }
@@ -2316,10 +2319,13 @@ void itemMenuDrawArmorAttachmentRow(UiList* list, UiObject* object)
     }
 }
 
-/// Keeps the armor attachment viewport inside its current row count.
+/// Resets an overrun armor attachment viewport and caps an idle selection.
 ///
-/// Resets an overrun first row to zero and clamps selection at the visible end
-/// only while scrolling is idle. A zero count can retain selection -1.
+/// Borrows a writable list after its item/visible-row counts have been updated.
+/// Counts and indices are rows; the visible count and first index use signed
+/// byte views. Resets the first index to zero if the viewport exceeds the item
+/// count, even during scrolling. Only when scrolling is idle, caps selection
+/// at the last visible row. There is no lower clamp; zero rows can select -1.
 static inline void _itemMenuClampArmorAttachmentViewport(UiList* list)
 {
     s32 visibleEndIndex;

@@ -22,6 +22,7 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/damage.h"
 #include "gameplay/display.h"
+#include "gameplay/ending.h"
 #include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/inventory.h"
@@ -2269,7 +2270,7 @@ void fadePulseTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-Task* func_800B2968(void)
+Task* endingSpawnReplayAwardScreen(void)
 {
     return taskSpawnFromTable(&D_replay_bonus_80119218, 0, 0, 0);
 }

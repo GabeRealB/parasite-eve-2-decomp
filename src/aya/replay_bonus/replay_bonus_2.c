@@ -7,6 +7,7 @@
 
 #include "replay_bonus_private.h"
 
+#include "gameplay/ending.h"
 #include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
@@ -519,7 +520,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             arg0->state += 1;
             return;
         case 24:
-            func_800B2968();
+            endingSpawnReplayAwardScreen();
         case 22:
         case 23:
             arg0->state += 1;

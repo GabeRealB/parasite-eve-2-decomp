@@ -299,7 +299,18 @@ void worldCollisionCollideBodyLists(WorldCollisionBody* firstList, WorldCollisio
 /// Contacts are accumulated without clearing existing entries or relinking bodies.
 void worldCollisionCollideBodyListGrid(const WorldCollisionBody* body);
 
-void func_800E0608(WorldCollisionBody* node, s32 mask, s32 match);
+/// Tests enabled action triggers against the first body matching a flags filter.
+///
+/// Compares `(body->flags & flagsMask)` with the low halfword of `flagsMatch`;
+/// the mask retains all 32 bits. NULL or an unmatched body list does nothing.
+/// Matching bodies supply a sphere centre/radius and composed transform in the
+/// triggers' query frame. Both borrowed lists must be live, acyclic and remain
+/// structurally unchanged. Each enabled action trigger receives a sphere test
+/// under `worldCollisionTestActionTriggerSphere`'s geometry/scratch contract.
+/// Hits are latched without clearing prior hits or changing bodies. The trigger
+/// cursor is exhausted by the first matching body; later bodies receive no tests.
+/// Releases all scratch storage, changes GTE state and retains no pointers.
+void worldCollisionScanActionTriggers(const WorldCollisionBody* body, s32 flagsMask, s32 flagsMatch);
 
 /// Tests enabled view boundaries against the first body matching a flags filter.
 ///

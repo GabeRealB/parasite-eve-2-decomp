@@ -27397,7 +27397,7 @@ for (; body != NULL; body = body->next) {
     if ((body->flags & bodyFlagsMask) == bodyFlagsMatch) {
 ```
 
-`worldCollisionScanViewBoundaries` (sibling of matched `func_800E0608`) is the example.
+`worldCollisionScanViewBoundaries` (sibling of matched `worldCollisionScanActionTriggers`) is the example.
 Natural C is 88.75% (saves too early). Explicit `s32` locals with a
 `(u16)` cast at the compare are 99.167% (only those two pairs swapped);
 `u16 bodyFlagsMatch` matches.

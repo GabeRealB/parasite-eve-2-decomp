@@ -1484,7 +1484,12 @@ static void _roomEffectInitController(Task* task)
     taskSpawn(EFFECT_TASK_BANK, ROOM_EFFECT_PE_DISPATCH_SELECTOR, 0, 0);
 }
 
-/// Clears temporary PE attachment effects and the player's Berserker status.
+/// Clears Parasite Energy buffs when the room controller cancels PE.
+///
+/// Requires writable live attachment/player state. Clears antibody, energy-shot
+/// and metabolism timers and combos, both immunity wards and the Berserker
+/// status flag. Cast selection/phase and the player's status timers survive;
+/// the effect tasks consume the controller's cancellation separately.
 static inline void _roomEffectClearCancelledPeStatus(void)
 {
     AttachmentState* attachment;

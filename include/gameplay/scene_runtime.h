@@ -464,8 +464,6 @@ void actorRenderDrawGroundShadow(GfxCoord* frame, u32 side, const SVECTOR* centr
 /// No pointer is retained; input storage is not modified.
 void worldCollisionCalcContactWorldOffset(const SVECTOR* position, const WorldCollisionContact* contact, SVECTOR* offset);
 
-Task* func_800B2968(void);
-
 /// Publishes caller-owned byte storage for external scene-image payloads.
 ///
 /// Scene headers with `STREAM_SCENE_BUFFER_EXTERNAL` load their payload here,

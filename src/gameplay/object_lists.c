@@ -364,16 +364,17 @@ void worldCollisionCollideBodyListGrid(const WorldCollisionBody* body)
     }
 }
 
-void func_800E0608(WorldCollisionBody* node, s32 mask, s32 match)
+void worldCollisionScanActionTriggers(const WorldCollisionBody* body, s32 flagsMask, s32 flagsMatch)
 {
-    WorldCollisionTrigger* other;
+    WorldCollisionTrigger* trigger;
 
-    other = Gp_PendingObj4C;
-    for (; node != NULL; node = node->next) {
-        if ((node->flags & mask) == (u16)match) {
-            for (; other != NULL; other = other->next) {
-                if (other->flags & WORLD_COLLISION_TRIGGER_ENABLED) {
-                    worldCollisionTestActionTriggerSphere(node, other);
+    // This cursor is shared across the body walk, so only the first match tests it.
+    trigger = Gp_PendingObj4C;
+    for (; body != NULL; body = body->next) {
+        if ((body->flags & flagsMask) == (u16)flagsMatch) {
+            for (; trigger != NULL; trigger = trigger->next) {
+                if (trigger->flags & WORLD_COLLISION_TRIGGER_ENABLED) {
+                    worldCollisionTestActionTriggerSphere(body, trigger);
                 }
             }
         }

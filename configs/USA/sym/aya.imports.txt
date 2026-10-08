@@ -72,7 +72,7 @@ gPlayerStatus = 0x80073B88; // absolute:True
 
 // --- from gameplay (12 symbols)
 streamFinishScene = 0x800B00C4; // type:func absolute:True
-func_800B2968 = 0x800B2968; // type:func absolute:True
+endingSpawnReplayAwardScreen = 0x800B2968; // type:func absolute:True
 inventoryHasCollectedBit = 0x800BB4BC; // type:func absolute:True
 itemSetIdentified = 0x800BB7C0; // type:func absolute:True
 itemMenuInfoTask = 0x800C5F70; // type:func absolute:True

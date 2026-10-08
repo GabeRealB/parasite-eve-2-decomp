@@ -366,7 +366,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | `padInput`, `padScript` | Gameplay input mapping, and scripted on/off and variable-intensity controller vibration | `pad_input.c`, `pad_scripts.c` | `include/gameplay/pad_input.h`, `include/gameplay/pad_script.h`, `src/gameplay/pad_input.h`, `src/gameplay/pad_script.h` |
 | `playerActor`, `playerState` | Player actor dispatch, movement and action states | `player_actor.c`, `player_state.c` | `include/gameplay/player_actor.h`, `include/gameplay/player_state.h`, `include/gameplay/actor_spawn_types.h` (player/companion spawn transforms), `src/gameplay/actor.h` (player/companion spawn options), `src/gameplay/player_actor.h`, `src/gameplay/player_state.h` |
 | `scene` | Scene tasks, actor-command routing, combat state and runtime coordination | `scene_runtime.c`, `world_targets.c` (combat state) | `include/gameplay/scene_runtime.h`, `include/gameplay/scene_combat.h`, `include/gameplay/world_state.h` (combat type), `include/gameplay/message.h` (`ActorCommand`), `src/gameplay/scene_runtime.h` |
-| `ending` | Ending sequence control | `ending.c` | `include/gameplay/ending.h`, `src/gameplay/ending.h` |
+| `ending` | Ending sequence control and the post-credits replay-award spawn bridge | `ending.c`, `scene_runtime.c` (award bridge) | `include/gameplay/ending.h`, `src/gameplay/ending.h` |
 
 This is not a blanket assignment of every symbol in those files. For example,
 inventory state, effects and player state are different owners even when their

@@ -925,7 +925,9 @@ void loadingViewLoadTask(Task* viewLoadTask)
 /// Resets queued GPU drawing and discards both resident frame ordering tables.
 ///
 /// Prior GPU users of both tables must have finished. No heap or model storage
-/// is released; subsequent view setup supplies new packets.
+/// is released; subsequent view setup supplies new packets. Resets the GPU
+/// command queue before clearing frame buffer 0's table, then frame buffer 1's.
+/// Leaves the selected ordering table and primitive allocation cursor intact.
 static __inline__ void _loadingResetViewDrawing(void)
 {
     enum { LOADING_VIEW_GPU_RESET_QUEUE = 1 };
