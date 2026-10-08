@@ -31,8 +31,9 @@ typedef struct {
 } WaterHoleSurface;
 STATIC_ASSERT_SIZEOF(WaterHoleSurface, 0xC);
 
-s32         waterHoleDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
-void        waterHoleWaterTask(Task* task);
+/// Undisplaced water surface height shared by the drawer and session, in world units.
+enum { WATER_HOLE_SURFACE_HEIGHT = -420 };
+
 static void _waterHoleWaterStart(Task* task);
 static void _waterHoleDrawSurfaces(Task* task);
 

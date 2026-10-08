@@ -36,7 +36,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
-#include "../../shared/toilet.h"
+static s32 _toiletSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_dryfield_night_toilet_8017DA70[];
@@ -68,7 +68,7 @@ TaskMessageEntry D_dryfield_night_toilet_8017DA70[6] = {
     { DRYFIELD_NIGHT_TOILET_MESSAGE_USE_KEY_ITEM, _dryfieldNightToiletRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightToiletIgnoreActionRequest },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightToiletIgnoreCommandMessage },
-    { ROOM_MESSAGE_SOUND, toiletSoundMsg },
+    { ROOM_MESSAGE_SOUND, _toiletSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

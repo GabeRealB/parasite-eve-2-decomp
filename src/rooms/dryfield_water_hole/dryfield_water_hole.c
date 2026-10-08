@@ -53,6 +53,10 @@
 #include "../../shared/water_effects.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_hole.h"
+#include "../../shared/room_variants.h"
+
+static s32  _roomVariantResolveWaterHole(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static void _waterHoleWaterTask(Task* task);
 
 /// The water-hole room's single cone light and adjacent uninterpreted image bytes.
 ///
@@ -71,7 +75,7 @@ STATIC_ASSERT_SIZEOF(_DryfieldWaterHoleSpotLightStorage, 648);
 /// and 0x13F2.
 extern TaskMessageEntry D_dryfield_water_hole_8017FC5C[];
 /// Descriptor of the room's water task, spawned by the room task's entry tick.
-/// Its callback is `waterHoleWaterTask`.
+/// Its callback is `_waterHoleWaterTask`.
 extern TaskDesc D_dryfield_water_hole_8017FC8C[];
 /// Point pairs of the glowing beams the splash task draws, one table per group
 /// of views.
@@ -106,7 +110,7 @@ extern _DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
 extern WorldCoordPointLight               D_dryfield_water_hole_80181FA0[6];
 
 TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, waterHoleDoorMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveWaterHole },
     { DRYFIELD_WATER_HOLE_MESSAGE_USE_KEY_ITEM, _dryfieldWaterHoleRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldWaterHoleIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_dryfield_water_hole_8017D73C },
@@ -115,12 +119,12 @@ TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
 };
 
 TaskDesc D_dryfield_water_hole_8017FC8C[1] = {
-    { { { TASK_BODY_NONE, 192 } }, waterHoleWaterTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _waterHoleWaterTask, { .value = 0 } },
 };
 
 WaterHoleSurface gWaterHoleSurfaces[3] = {
-    { 4000, -2000, 8000, 2000, -420 },
-    { 10000, -4000, 13000, 2000, -420 },
+    { 4000, -2000, 8000, 2000, WATER_HOLE_SURFACE_HEIGHT },
+    { 10000, -4000, 13000, 2000, WATER_HOLE_SURFACE_HEIGHT },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 

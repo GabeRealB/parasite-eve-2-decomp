@@ -24,7 +24,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "../../shared/room_variants.h"
-#include "../../shared/toilet.h"
+static s32 _toiletSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
 /// The room's message table, installed in `Task::msgTable` by the room task's
 /// entry state.
@@ -55,7 +55,7 @@ TaskMessageEntry D_dryfield_toilet_801802A4[6] = {
     { 5105, func_dryfield_toilet_8017D8B8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_toilet_8017D8C8 },
     { ROOM_MESSAGE_COMMAND, func_dryfield_toilet_8017D8C0 },
-    { ROOM_MESSAGE_SOUND, toiletSoundMsg },
+    { ROOM_MESSAGE_SOUND, _toiletSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

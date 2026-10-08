@@ -48,6 +48,8 @@
 #include "../../shared/room_events.h"
 #include "../../shared/parking_lot.h"
 
+static s32 _parkingLotSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
+
 extern RoomEventActiveBytes gRoomEventActive;
 
 /// Descriptor of the event task the event gate spawns.
@@ -87,7 +89,7 @@ TaskMessageEntry D_dryfield_parking_lot_8017DC04[6] = {
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldParkingLotRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldParkingLotIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _dryfieldParkingLotIgnoreCommandMessage },
-    { ROOM_MESSAGE_SOUND, parkingLotSoundMsg },
+    { ROOM_MESSAGE_SOUND, _parkingLotSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

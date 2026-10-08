@@ -1,11 +1,14 @@
 /* Part of the general store library; see general_store.h. */
 
-/// Message handler that plays stage sound 0x52030007 on action 7. Always
-/// returns 0.
-s32 storeSoundMsg(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Queues general-store bank entry 7 for room sound cue 7.
+///
+/// The current stage selects the bank. Other cue keys do nothing; always
+/// returns zero to `ROOM_MESSAGE_SOUND`. Requires the room's loaded sound bank.
+static s32 _generalStoreSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg)
 {
-    if (arg2 == 7) {
-        sndEvtRequestStageScriptStart(0x52030000 | 7, 0, 0);
+    enum { GENERAL_STORE_SOUND_CUE_7 = 7 };
+    if (cueKey == GENERAL_STORE_SOUND_CUE_7) {
+        sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, GENERAL_STORE_SOUND_CUE_7), 0, 0);
     }
     return 0;
 }

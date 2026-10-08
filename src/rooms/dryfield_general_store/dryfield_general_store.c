@@ -48,6 +48,8 @@
 #include "../../shared/room_events.h"
 #include "../../shared/general_store.h"
 
+static s32 _generalStoreSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
+
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
 extern RoomEventMsg gRoomEventMsg;
@@ -123,7 +125,7 @@ TaskMessageEntry D_dryfield_general_store_8017E188[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
     { DRYFIELD_GENERAL_STORE_MESSAGE_USE_KEY_ITEM, _dryfieldGeneralStoreRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, storeActionMsg },
-    { ROOM_MESSAGE_SOUND, storeSoundMsg },
+    { ROOM_MESSAGE_SOUND, _generalStoreSoundMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_general_store_8017DDFC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

@@ -1,11 +1,14 @@
 /* Part of the underpass switches library; see underpass_switches.h. */
 
-/// Handler for message 0x13F2: when `arg2` is 2, queues stage sound 0x52260002.
-/// Always returns 0.
-s32 underpassSoundMsg(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Queues underpass-bank entry 2 for room sound cue 2.
+///
+/// The current stage selects the bank. Other cue keys do nothing; always
+/// returns zero to `ROOM_MESSAGE_SOUND`. Requires the room's loaded sound bank.
+static s32 _underpassSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg)
 {
-    if (arg2 == 2) {
-        sndEvtRequestStageScriptStart(0x52260000 | 2, 0, 0);
+    enum { UNDERPASS_SOUND_CUE_2 = 2 };
+    if (cueKey == UNDERPASS_SOUND_CUE_2) {
+        sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_UNDERPASS, UNDERPASS_SOUND_CUE_2), 0, 0);
     }
     return 0;
 }

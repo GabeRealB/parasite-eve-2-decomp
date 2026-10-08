@@ -1,51 +1,61 @@
 /* Part of the water hole library; see water_hole.h. */
 
-/// Handler for message 0x13EE in the room's message table. It copies the
-/// incoming record to `out` and, unless `in->queryOnly` is set, answers two
-/// queries in `out->room`:
+/// Resolves the water hole's driveway and underpass exits from game progress.
 ///
-/// - 0x19: while the session's stage is 2, 2 once progress nibble 0x3A has
-///   reached 2 and 1 before; in any other stage, nibble 0x61 plus one.
-/// - 0x26: with nibble 0xC9 set, 2 or 1 by nibble 0x53, plus 2 while nibble
-///   0x51 is clear; with 0xC9 clear, 5 or 6 by whether nibble 0x51 is set.
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` using a borrowed eight-byte request and
+/// writable reply, which may be the same record. Copies the request first;
+/// queries and other destinations preserve it. By day the driveway selects
+/// room 1 or 2 at progress 2; otherwise it selects the balcony-scene nibble + 1.
+/// After the underpass event, flag 0x53 selects room 1/2 and a clear switch 1
+/// adds 2. Before that event, switch 1 selects room 5 (set) or 6 (clear).
 ///
-/// Always returns 1.
-s32 waterHoleDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Always permits the ordinary departure. Only the copied reply's room changes.
+static s32 _roomVariantResolveWaterHole(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    u8 temp;
+    enum {
+        ROOM_VARIANT_WATER_HOLE_DRIVEWAY_PROGRESS_READY             = 2,
+        ROOM_VARIANT_WATER_HOLE_DEFAULT_ROOM                        = 1,
+        ROOM_VARIANT_WATER_HOLE_DRIVEWAY_OPEN_ROOM                  = 2,
+        ROOM_VARIANT_WATER_HOLE_UNDERPASS_EVENT_ROOM                = 1,
+        ROOM_VARIANT_WATER_HOLE_UNDERPASS_FLAG_053_ROOM             = 2,
+        ROOM_VARIANT_WATER_HOLE_UNDERPASS_SWITCH_OFF_ROOM_OFFSET    = 2,
+        ROOM_VARIANT_WATER_HOLE_UNDERPASS_PRE_EVENT_SWITCH_ON_ROOM  = 5,
+        ROOM_VARIANT_WATER_HOLE_UNDERPASS_PRE_EVENT_SWITCH_OFF_ROOM = 6,
+    };
+    u8 currentStage;
 
-    *out = *in;
-    if (in->areaId == 0x19) {
-        temp = gGameSession->location.loc.stage;
-        if (temp == 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= 2) {
-                    out->room = temp;
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_DRIVEWAY) {
+        currentStage = gGameSession->location.loc.stage;
+        if (currentStage == GAME_STAGE_DRYFIELD) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= ROOM_VARIANT_WATER_HOLE_DRIVEWAY_PROGRESS_READY) {
+                    reply->room = ROOM_VARIANT_WATER_HOLE_DRIVEWAY_OPEN_ROOM;
                 } else {
-                    out->room = 1;
+                    reply->room = ROOM_VARIANT_WATER_HOLE_DEFAULT_ROOM;
                 }
             }
-        } else if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+        } else if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + ROOM_VARIANT_WATER_HOLE_DEFAULT_ROOM;
         }
     }
-    if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (request->areaId == GAME_AREA_DRYFIELD_UNDERPASS && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
             if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
-                out->room = 2;
+                reply->room = ROOM_VARIANT_WATER_HOLE_UNDERPASS_FLAG_053_ROOM;
             } else {
-                out->room = 1;
+                reply->room = ROOM_VARIANT_WATER_HOLE_UNDERPASS_EVENT_ROOM;
             }
             if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
-                out->room += 2;
+                reply->room += ROOM_VARIANT_WATER_HOLE_UNDERPASS_SWITCH_OFF_ROOM_OFFSET;
             }
         } else {
             if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {
-                out->room = 5;
+                reply->room = ROOM_VARIANT_WATER_HOLE_UNDERPASS_PRE_EVENT_SWITCH_ON_ROOM;
             } else {
-                out->room = 6;
+                reply->room = ROOM_VARIANT_WATER_HOLE_UNDERPASS_PRE_EVENT_SWITCH_OFF_ROOM;
             }
         }
     }
-    return 1;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }

@@ -25,6 +25,4 @@ void storeCutsceneTask(Task* arg0);
 void storeToggleTask(Task* task);
 s32  storeActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-s32 storeSoundMsg(Task* task, s32 msgId, s32 arg2, s32 arg3);
-
 #endif /* SRC_SHARED_GENERAL_STORE_H */

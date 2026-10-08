@@ -1,18 +1,24 @@
 /* Part of the view figure library; see view_figure.h. */
 
-/// Starts the actor's scripted animation selected by the request.
+/// Restarts the singleton view figure's body animation from a message request.
 ///
-/// Rejects ids 6 and above before changing playback state.
-s32 viewFigurePlayMessage(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Requires live published figure work, its initialized rig and a request
+/// whose `animationId` selects a loaded body set (1..5 in both carriers).
+/// Reads only `animationId`; bank, blend and collision options are ignored.
+/// The signed test rejects IDs >= 6 with -1, while negative IDs and zero still
+/// enter the restart path. Accepted requests return zero after resetting slots
+/// 1..19. Borrows the request only during dispatch; the receiver is unused.
+static s32 _viewFigurePlayMessage(Task* unusedTask, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
 {
-    Task* actor;
+    enum { VIEW_FIGURE_ANIMATION_ID_LIMIT = 6 };
+    Task* figureTask;
 
-    if (args->animationId < 6) {
-        gViewFigureWork->st.animId  = args->animationId;
-        actor                       = gActorSelfTask;
+    if (request->animationId < VIEW_FIGURE_ANIMATION_ID_LIMIT) {
+        gViewFigureWork->st.animId  = request->animationId;
+        figureTask                  = gActorSelfTask;
         gViewFigureWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
         gViewFigureWork->st.field_6 = 0;
-        _viewFigureStepAnim(actor);
+        _viewFigureStepAnim(figureTask);
         return 0;
     }
     return -1;

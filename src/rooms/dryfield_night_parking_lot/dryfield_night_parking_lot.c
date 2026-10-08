@@ -62,6 +62,7 @@ static void func_dryfield_night_parking_lot_8017DC28(Task* task);
 
 #include "../../shared/parking_lot_event_msg.inc.c"
 
+#define PARKING_LOT_SOUND_MSG parkingLotSoundMsg
 #include "../../shared/parking_lot_sound_msg.inc.c"
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and

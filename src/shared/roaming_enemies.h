@@ -57,6 +57,5 @@ STATIC_ASSERT_SIZEOF(RoamerSpawnPoint, 8);
 
 void roamerArmPoolA(Task* task);
 void roamerTickPoolA(Task* task);
-void roamerArmPoolB(Task* task);
 
 #endif /* SRC_SHARED_ROAMING_ENEMIES_H */

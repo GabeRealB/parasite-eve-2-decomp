@@ -24,6 +24,8 @@
 #define gViewFigureTasks gActor110800ViewFigureTasks
 #include "../../shared/view_figure.h"
 
+static s32 _viewFigurePlayMessage(Task* unusedTask, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
+
 static void _viewFigureStepAnim(Task* task);
 
 /// The block above, published by `func_actor_110800_801322A0` from the task's
@@ -234,7 +236,7 @@ static AnimationSet _gActor110800Animation0807C = {
 };
 
 TaskMessageEntry gViewFigureMessages[3] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, viewFigurePlayMessage },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _viewFigurePlayMessage },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetPairVisibility },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

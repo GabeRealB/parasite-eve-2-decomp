@@ -1,10 +1,12 @@
 /* Part of the fireball library; see fireball.h. */
 
-/// Builds a flat ground quad in the composed view frame.
+/// Builds four view-space corners around the fireball's ground point.
 ///
-/// Borrows writable scratch corners and the composed point. The view rotation
-/// converts world-ground axes before each halfword corner receives translation;
-/// halfExtent uses world units and all corner stores retain halfword narrowing.
+/// `coord->workm.t` must already contain the centre in the view frame;
+/// `halfExtent` is a signed-halfword extent in world units, promoted to s32.
+/// Borrows all four scratch vertices and overwrites GTE rotation/translation.
+/// Each corner narrows before rotation and again after adding the centre.
+/// The scratch block must remain live until its caller finishes projection.
 static inline void _fireballBuildGroundQuad(EffectGroundQuadScratch* quadScratch, const GfxCoord* coord, s32 halfExtent)
 {
     s32 cornerIndex;

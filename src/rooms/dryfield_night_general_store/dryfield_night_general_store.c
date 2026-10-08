@@ -31,6 +31,8 @@
 #include "../../shared/room_events.h"
 #include "../../shared/general_store.h"
 
+static s32 _generalStoreSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
+
 /// Descriptor of the event task `roomEventTask`.
 extern TaskDesc gRoomEventTaskDesc;
 
@@ -61,7 +63,7 @@ TaskMessageEntry D_dryfield_night_general_store_8017E7BC[6] = {
     { 5105, func_dryfield_night_general_store_8017DE24 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_general_store_8017DE2C },
     { ROOM_MESSAGE_COMMAND, storeActionMsg },
-    { ROOM_MESSAGE_SOUND, storeSoundMsg },
+    { ROOM_MESSAGE_SOUND, _generalStoreSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

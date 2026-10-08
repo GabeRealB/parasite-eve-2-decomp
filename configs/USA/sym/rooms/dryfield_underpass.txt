@@ -102,6 +102,6 @@ _glowDrawFlareLocal = 0x8017DB20; // type:func
 _roomVariantUnderpassMsg = 0x8017D788; // type:func
 underpassSwitchTask = 0x8017D5D0; // type:func
 underpassSwitchMsg = 0x8017D868; // type:func
-underpassSoundMsg = 0x8017D8CC; // type:func
+_underpassSoundMsg = 0x8017D8CC; // type:func
 _dryfieldUnderpassRejectKeyItemUse = 0x8017d900; // type:func
 _dryfieldUnderpassIdleTask = 0x8017da00; // type:func

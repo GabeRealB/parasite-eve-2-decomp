@@ -61,6 +61,8 @@
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/trailer_coach.h"
 
+static void _trailerCoachSetDepthShift(Task* unusedTask);
+
 static void _roomCutsceneSoundTask(Task* task);
 
 /// The "%" suffix the room's percentage formatters append.
@@ -878,7 +880,7 @@ void func_dryfield_night_trailer_coach_8018138C(Task* task)
 static const TaskFuncTable3 D_dryfield_night_trailer_coach_8017D7DC = {
     {
         func_dryfield_night_trailer_coach_8018231C,
-        trailerCoachSetDepthShift,
+        _trailerCoachSetDepthShift,
         taskKill,
     },
 };

@@ -653,6 +653,8 @@ Dryfield's room-transition message handlers also use `roomVariant`. Their
 request is borrowed and their reply writable; both may be the same record.
 The paired cellar rooms' underpass resolver follows this interface as well;
 its implementation declaration is in `src/shared/cellar.h`.
+The paired water-hole rooms' driveway/underpass resolver also uses this
+identity, with static instances declared in each carrier's prologue.
 Queries preserve the copied room and suppress departure effects. Local copies
 are static. `ROOM_VARIANT_MOTEL_BALCONY_MSG` and
 `ROOM_VARIANT_MOTEL_BALCONY_DOORS_MSG` select a carrier-declared instance in
@@ -683,8 +685,10 @@ the rooms carrying the plane; its further visual role remains unproven.
 around a composed view-space point and uses an additive two-cell texture;
 its instances are static. Rendering constants use `FIREBALL_`.
 
-`waterHole` owns the paired Dryfield water-hole rooms' included water surface
-drawer in `src/shared/water_hole.h`. It draws two subtractive strips per
+`waterHole` owns the paired Dryfield water-hole rooms' included water task and
+surface drawer in `src/shared/water_hole.h`. The task prepares the actor arena,
+dispatches drawing and publishes the same undisplaced world height as the
+surface tables. The drawer draws two subtractive strips per
 rectangle, with 64 columns and a waving seam along X, in a reserved actor-load
 arena. Drawer instances are static; geometry and arena constants use
 `WATER_HOLE_`. The general refraction and distortion helpers keep `water`.
@@ -1096,6 +1100,28 @@ effect shared by the day and night Dryfield main street packages. Its interface
 is `src/shared/main_street.h`. Each carrier exports its own puff task to the
 gameplay effect table and keeps the puff drawer private; rendering constants
 use `MAIN_STREET_PUFF_`.
+
+`parkingLot`, `generalStore`, `toilet` and `underpass` own the paired Dryfield
+rooms' included sound-cue mappings. They translate `ROOM_MESSAGE_SOUND` integer
+cue keys into their room bank's scripts for the current stage. Constants use
+`PARKING_LOT_`, `GENERAL_STORE_`, `TOILET_` and `UNDERPASS_`. Callbacks reached
+only by a carrier's own table are static and declared in its prologue.
+`PARKING_LOT_SOUND_MSG` selects the parking-lot definition: the day copy is
+static, while the night copy is shared between that overlay's translation
+units and declared in its private header. The main-street sound-cue mapping
+likewise keeps static `mainStreet` instances and uses `MAIN_STREET_` constants.
+
+`trailerCoach` owns the paired rooms' included ordering-table depth-scale
+callback. It selects the scale from the live save's view; each carrier declares
+its static instance in the prologue. `src/shared/trailer_coach.h` supplies the
+day/night view configuration, separate from the room task's state dispatch.
+
+`viewFigure` owns the included camera-parented scripted figure and its body
+animation request/playback, carried by actor_110300 and actor_110800. Its work
+and rig interface is `src/shared/view_figure.h`. The message handler uses the
+live published singleton work and resets its body tracks from a borrowed
+animation request. Carrier-local handlers are static; constants use
+`VIEW_FIGURE_`.
 
 `factory` owns the included Dryfield factory room implementation, with
 `src/shared/factory_lift.h` as its private interface. Its view- and

@@ -1,13 +1,15 @@
 /* Part of the water hole library; see water_hole.h. */
 
-/// The room's water task: runs its current state -
-/// `_waterHoleWaterStart` once, then
-/// `_waterHoleDrawSurfaces`, which draws the surfaces - and each
-/// tick sets the session's water height to -0x1A4.
-void waterHoleWaterTask(Task* task)
+/// Initializes then draws the water hole's surfaces and publishes their height.
+///
+/// Task state must be 0 (prepare the borrowed actor arena) or 1 (draw).
+/// Initialization advances to state 1; every callback publishes the undisplaced
+/// water height in world units after dispatch. The arena and water resources
+/// must remain live through drawing and GPU consumption.
+static void _waterHoleWaterTask(Task* task)
 {
-    TaskFunc states[2] = { _waterHoleWaterStart, _waterHoleDrawSurfaces };
+    TaskFunc states[] = { _waterHoleWaterStart, _waterHoleDrawSurfaces };
 
     states[task->state](task);
-    gGameSession->waterY = -0x1A4;
+    gGameSession->waterY = WATER_HOLE_SURFACE_HEIGHT;
 }

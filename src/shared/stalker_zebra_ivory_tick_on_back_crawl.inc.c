@@ -1,9 +1,11 @@
 /* Part of the Ivory/Zebra Stalker library; see stalker_zebra_ivory.h. */
 
-/// Converts a normal-rate crawl bound to byte-truncated update ticks.
+/// Converts a crawl window's normal-rate frame to an eight-bit update count.
 ///
-/// Zero playback rate returns zero. Signed division precedes unsigned shifting;
-/// the caller supplies nonnegative frames whose eight-bit shift fits s32.
+/// Reads the live work block's rate in sixteenths of a frame per update.
+/// Zero rate returns zero. Signed division precedes the unsigned right shift
+/// and u8 truncation; this also preserves the result for negative rates.
+/// Callers supply nonnegative frames whose eight-bit left shift fits s32.
 static __inline__ u8 _stalkerZebraIvoryCrawlFrameToTicks(Task* task, s32 normalFrame)
 {
     enum { STALKER_ZEBRA_IVORY_CRAWL_FRAME_FRACTION_BITS = 8,
@@ -16,10 +18,12 @@ static __inline__ u8 _stalkerZebraIvoryCrawlFrameToTicks(Task* task, s32 normalF
     return (u32)((normalFrame << STALKER_ZEBRA_IVORY_CRAWL_FRAME_FRACTION_BITS) / frameWork->animStep) >> STALKER_ZEBRA_IVORY_CRAWL_RATE_FRACTION_BITS;
 }
 
-/// Starts one crawl step sound using the enemy's placement voice and root position.
+/// Queues a hand-contact sound for the Stalker's crawl on its back.
 ///
 /// Water-entrance spawns select `waterScriptId`; others use `baseScriptId`.
-/// Pan and depth retain only the signed low byte of the origin-audio queries.
+/// Both are packed script IDs with bits 8..11 free for the 0..15 placement
+/// voice. Requires a live `Enemy` in `Task::spawnArg2` and initialized model coordinates.
+/// The root supplies pan and attenuation, each narrowed to its signed low byte.
 static __inline__ void _stalkerZebraIvoryPlayCrawlStep(Task* task, s32 baseScriptId, s32 waterScriptId)
 {
     enum { STALKER_ZEBRA_IVORY_CRAWL_SPAWN_KIND_MASK = 0xF0,
@@ -32,12 +36,11 @@ static __inline__ void _stalkerZebraIvoryPlayCrawlStep(Task* task, s32 baseScrip
     if ((task->spawnArg1.value & STALKER_ZEBRA_IVORY_CRAWL_SPAWN_KIND_MASK) == STALKER_ZEBRA_IVORY_CRAWL_SPAWN_WATER) {
         baseScriptId = waterScriptId;
     }
-    soundId        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
-    soundId      >>= ENEMY_PLACE_INDEX_SHIFT;
-    soundId      <<= STALKER_ZEBRA_IVORY_CRAWL_VOICE_SHIFT;
-    placementVoice = soundId;
-    soundId        = baseScriptId | placementVoice;
-    soundPan       = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    placementVoice   = ((Enemy*)task->spawnArg2.pointer)->placeKey;
+    placementVoice >>= ENEMY_PLACE_INDEX_SHIFT;
+    placementVoice <<= STALKER_ZEBRA_IVORY_CRAWL_VOICE_SHIFT;
+    soundId          = baseScriptId | placementVoice;
+    soundPan         = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
     sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 

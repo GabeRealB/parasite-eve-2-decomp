@@ -108,4 +108,4 @@ _roomVisualEffectsDrawFlyingDisc = 0x8017F4C0; // type:func
 _roomVisualEffectsDrawFlyingBurstGlow = 0x8017FA00; // type:func
 _roomVisualEffectsDrawFlyingBurstGroundQuad = 0x8017FF2C; // type:func
 _roomVariantParkingLotMsg = 0x8017D810; // type:func
-toiletSoundMsg = 0x8017D884; // type:func
+_toiletSoundMsg = 0x8017D884; // type:func

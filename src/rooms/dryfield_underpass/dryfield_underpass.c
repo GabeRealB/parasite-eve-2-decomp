@@ -48,6 +48,8 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/underpass_switches.h"
 
+static s32 _underpassSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
+
 extern TaskDesc         gUnderpassSwitchTaskDesc[];
 extern TaskMessageEntry D_dryfield_underpass_8017E830[];
 extern s32              D_dryfield_underpass_8017E89C;
@@ -132,7 +134,7 @@ TaskMessageEntry D_dryfield_underpass_8017E830[6] = {
     { DRYFIELD_UNDERPASS_MESSAGE_USE_KEY_ITEM, _dryfieldUnderpassRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_underpass_8017D908 },
     { ROOM_MESSAGE_COMMAND, underpassSwitchMsg },
-    { ROOM_MESSAGE_SOUND, underpassSoundMsg },
+    { ROOM_MESSAGE_SOUND, _underpassSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

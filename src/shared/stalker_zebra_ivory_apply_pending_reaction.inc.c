@@ -8,15 +8,6 @@ enum {
     STALKER_ZEBRA_IVORY_STATE_KNOCKDOWN    = 0xF
 };
 
-/// Starts a hit-reaction behavior at its first sub-state.
-static __inline__ void _stalkerZebraIvorySelectReactionState(Task* task, s16 state)
-{
-    StalkerZebraIvoryWork* stateWork = (StalkerZebraIvoryWork*)task->work;
-
-    stateWork->state    = state;
-    stateWork->subState = 0;
-}
-
 /// Applies a pending hit reaction to the running behavior, returning 1 for a transition.
 ///
 /// Chooses light recoil, heavy recoil, status hold or knockdown on the floor;
@@ -31,23 +22,23 @@ static s32 _stalkerZebraIvoryApplyPendingReaction(Task* task)
     if (work->onCeiling == 0) {
         switch (work->pendingAction) {
             case STALKER_ZEBRA_IVORY_PENDING_LIGHT:
-                _stalkerZebraIvorySelectReactionState(task, STALKER_ZEBRA_IVORY_STATE_LIGHT_RECOIL);
+                _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_LIGHT_RECOIL);
                 work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                 return 1;
             case STALKER_ZEBRA_IVORY_PENDING_HEAVY:
-                _stalkerZebraIvorySelectReactionState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
+                _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
                 work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                 return 1;
             case STALKER_ZEBRA_IVORY_PENDING_STATUS:
-                _stalkerZebraIvorySelectReactionState(task, STALKER_ZEBRA_IVORY_STATE_STATUS_HOLD);
+                _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_STATUS_HOLD);
                 work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                 return 1;
             case STALKER_ZEBRA_IVORY_PENDING_BLAST:
-                _stalkerZebraIvorySelectReactionState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
+                _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
                 work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                 return 1;
             case STALKER_ZEBRA_IVORY_PENDING_KNOCKDOWN:
-                _stalkerZebraIvorySelectReactionState(task, STALKER_ZEBRA_IVORY_STATE_KNOCKDOWN);
+                _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_KNOCKDOWN);
                 work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                 return 1;
         }
@@ -56,23 +47,23 @@ static s32 _stalkerZebraIvoryApplyPendingReaction(Task* task)
     } else {
         switch (work->pendingAction) {
             case STALKER_ZEBRA_IVORY_PENDING_LIGHT:
-                _stalkerZebraIvorySelectReactionState(task, STALKER_ZEBRA_IVORY_STATE_LIGHT_RECOIL);
+                _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_LIGHT_RECOIL);
                 work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                 return 1;
             case STALKER_ZEBRA_IVORY_PENDING_HEAVY:
-                _stalkerZebraIvorySelectReactionState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
+                _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
                 work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                 return 1;
             case STALKER_ZEBRA_IVORY_PENDING_STATUS:
                 // Keep status pending for the falling behavior to finish handling it.
-                _stalkerZebraIvorySelectReactionState(task, STALKER_ZEBRA_IVORY_STATE_CEILING_FALL);
+                _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_CEILING_FALL);
                 return 1;
             case STALKER_ZEBRA_IVORY_PENDING_BLAST:
-                _stalkerZebraIvorySelectReactionState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
+                _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
                 work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                 return 1;
             case STALKER_ZEBRA_IVORY_PENDING_KNOCKDOWN:
-                _stalkerZebraIvorySelectReactionState(task, STALKER_ZEBRA_IVORY_STATE_CEILING_FALL);
+                _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_CEILING_FALL);
                 work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                 return 1;
         }

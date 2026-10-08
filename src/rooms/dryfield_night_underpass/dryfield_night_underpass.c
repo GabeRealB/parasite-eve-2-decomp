@@ -41,6 +41,8 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/underpass_switches.h"
 
+static s32 _underpassSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
+
 extern TaskDesc         gUnderpassSwitchTaskDesc[];
 extern TaskMessageEntry D_dryfield_night_underpass_8017DCF0[];
 extern SVECTOR          D_dryfield_night_underpass_8017DD20[8];
@@ -69,7 +71,7 @@ TaskMessageEntry D_dryfield_night_underpass_8017DCF0[6] = {
     { DRYFIELD_NIGHT_UNDERPASS_MESSAGE_USE_KEY_ITEM, _dryfieldNightUnderpassRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightUnderpassIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, underpassSwitchMsg },
-    { ROOM_MESSAGE_SOUND, underpassSoundMsg },
+    { ROOM_MESSAGE_SOUND, _underpassSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

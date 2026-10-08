@@ -183,7 +183,7 @@ D_mist_r18_8018662C = 0x8018662C; // absolute:True owner=mist_r18 shared=rooms
 D_mist_r18_8018671C = 0x8018671C; // absolute:True owner=mist_r18 shared=rooms
 D_mist_r18_80186B60 = 0x80186B60; // absolute:True owner=mist_r18
 D_mist_r18_80186E70 = 0x80186E70; // absolute:True owner=mist_r18 shared=rooms
-mistParkingRoomTask = 0x80182898; // type:func absolute:True owner=mist_parking shared=rooms
+mistParkingRoomTask = 0x80182898; // type:func absolute:True owner=mist_parking
 D_mist_parking_8019155C = 0x8019155C; // absolute:True owner=mist_parking
 D_mist_parking_801915B0 = 0x801915B0; // absolute:True owner=mist_parking
 D_mist_parking_801915C0 = 0x801915C0; // absolute:True owner=mist_parking

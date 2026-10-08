@@ -22,6 +22,4 @@
 #define TRAILER_COACH_FINE_DEPTH_VIEW 5
 #endif
 
-void trailerCoachSetDepthShift(Task* task);
-
 #endif /* SRC_SHARED_TRAILER_COACH_H */

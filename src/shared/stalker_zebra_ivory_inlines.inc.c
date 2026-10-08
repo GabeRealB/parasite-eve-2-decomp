@@ -89,10 +89,12 @@ enum {
     STALKER_ZEBRA_IVORY_STATE_CEILING_DROP  = 13
 };
 
-/// Selects a running behavior and resets its sub-state cursor.
+/// Starts a selected Stalker behavior at its first sub-state.
 ///
-/// `state` must index the carrier's running-behavior table. Reacquires the
-/// live work block after any preceding animation, collision or message calls.
+/// `state` must index the carrier's running-behavior table. Reads the live
+/// task work pointer at selection time, including after calls that can change
+/// it. Preserves animation, timers and pending reactions; only the signed
+/// halfword state and sub-state cursor change.
 static __inline__ void _stalkerZebraIvorySelectState(Task* task, s16 state)
 {
     StalkerZebraIvoryWork* stateWork = task->work;

@@ -17,6 +17,5 @@
 extern AreaApplyRec gParkingLotAreaRecs[];
 
 s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out);
-s32 parkingLotSoundMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #endif /* SRC_SHARED_PARKING_LOT_H */

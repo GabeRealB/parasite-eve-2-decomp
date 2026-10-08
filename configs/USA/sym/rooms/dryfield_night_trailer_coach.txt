@@ -340,5 +340,5 @@ _glowDrawPulsingDisc = 0x80182F2C; // type:func
 _glowDrawDiamond = 0x80182AB8; // type:func
 roomCutsceneTask = 0x80181DB0; // type:func
 _roomCutsceneSoundTask = 0x80182610; // type:func
-trailerCoachSetDepthShift = 0x80182898; // type:func
+_trailerCoachSetDepthShift = 0x80182898; // type:func
 _dryfieldNightTrailerCoachDrawGlowCapsule = 0x801838b4; // type:func

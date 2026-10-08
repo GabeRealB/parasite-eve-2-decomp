@@ -72,6 +72,9 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/water_hole.h"
 
+static s32  _roomVariantResolveWaterHole(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static void _waterHoleWaterTask(Task* task);
+
 static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
 
 // Preserve the following nonzero bytes with this scalar's storage.
@@ -111,7 +114,7 @@ extern s32 D_dryfield_night_water_hole_80180660;
 extern EvsCommand D_dryfield_night_water_hole_8018067C[];
 extern EvsCommand D_dryfield_night_water_hole_801807FC[];
 /// Descriptor of the room's water task, spawned while progress nibble 0xB8 is
-/// still clear. Its callback is `waterHoleWaterTask`.
+/// still clear. Its callback is `_waterHoleWaterTask`.
 extern TaskDesc D_dryfield_night_water_hole_80180964[];
 /// Point pairs of the glowing beams the splash task draws, one table per group
 /// of views.
@@ -184,7 +187,7 @@ static AnimationSet _gDryfieldNightWaterHoleAnimation03004 = {
 TaskDesc D_dryfield_night_water_hole_801805EC = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_water_hole_801805F8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, waterHoleDoorMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveWaterHole },
     { DRYFIELD_NIGHT_WATER_HOLE_MESSAGE_USE_KEY_ITEM, _dryfieldNightWaterHoleRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_hole_8017DD5C },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_water_hole_8017DC28 },
@@ -249,12 +252,12 @@ EvsCommand D_dryfield_night_water_hole_801807FC[15] = {
 };
 
 TaskDesc D_dryfield_night_water_hole_80180964[1] = {
-    { { { TASK_BODY_NONE, 192 } }, waterHoleWaterTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _waterHoleWaterTask, { .value = 0 } },
 };
 
 WaterHoleSurface gWaterHoleSurfaces[3] = {
-    { 4000, -2000, 8000, 2000, -420 },
-    { 10000, -4000, 13000, 2000, -420 },
+    { 4000, -2000, 8000, 2000, WATER_HOLE_SURFACE_HEIGHT },
+    { 10000, -4000, 13000, 2000, WATER_HOLE_SURFACE_HEIGHT },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 

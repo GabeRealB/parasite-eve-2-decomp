@@ -75,6 +75,8 @@
 #define MAIN_STREET_PUFF_TASK dryfieldMainStreetPuffTask
 #include "../../shared/main_street.h"
 
+static s32 _mainStreetCapSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
+
 #define DRYFIELD_MAIN_STREET_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
 /// Advances the gameplay LCG and yields the high half of the new state.
@@ -173,7 +175,7 @@ TaskMessageEntry D_dryfield_main_street_80180EA0[6] = {
     { DRYFIELD_MAIN_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldMainStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_main_street_8017E05C },
     { ROOM_MESSAGE_COMMAND, mainStreetTalkMsg },
-    { ROOM_MESSAGE_SOUND, mainStreetCapSoundCue },
+    { ROOM_MESSAGE_SOUND, _mainStreetCapSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

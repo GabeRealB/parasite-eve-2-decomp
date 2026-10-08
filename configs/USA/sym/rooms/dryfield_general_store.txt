@@ -98,6 +98,6 @@ storeDoorMsg = 0x8017D8D4; // type:func
 storeCutsceneTask = 0x8017DAC0; // type:func
 storeToggleTask = 0x8017DC78; // type:func
 storeActionMsg = 0x8017DD58; // type:func
-storeSoundMsg = 0x8017DDC0; // type:func
+_generalStoreSoundMsg = 0x8017DDC0; // type:func
 _dryfieldGeneralStoreRejectKeyItemUse = 0x8017ddf4; // type:func
 _dryfieldGeneralStoreIdleRoomTask = 0x8017df4c; // type:func

@@ -47,6 +47,8 @@
 #include "../../shared/falling_leaves.h"
 #include "../../shared/roaming_enemies.h"
 
+static void _roamerArmPoolB(Task* task);
+
 static s32  _roamerAmbushMsg(Task* task, s32 messageId, struct ActorCommand* msg, s32 unusedArg);
 static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg);
 
@@ -68,7 +70,7 @@ extern u16 gRoamerReserveHp[5];
 /// continues into the room's parameter block, so the extent is splat's.
 
 /// The same run reached through its leading label, which is how
-/// `roamerArmPoolB` reads the ceiling: element 2 is
+/// `_roamerArmPoolB` reads the ceiling: element 2 is
 /// `D_...8494C[0]`, 420 frames. splat names both addresses because the compiled
 /// code names both, and the two are different code - an index keeps this
 /// symbol in a register and takes the offset as the load's displacement, while
@@ -77,7 +79,7 @@ extern EnemyParams  gRoamerParams;
 extern DamageAttack D_neo_ark_woodland_path_80184930[6];
 
 /// The room's arming count, packed into game flag 0x10A as a nibble:
-/// `roamerArmPoolB` adds the slot's spawn count to it and
+/// `_roamerArmPoolB` adds the slot's spawn count to it and
 /// then caps it at 5, the number of slots `D_...84A60` has. Signed, though the
 /// add reads it as `lhu` - the result is truncated by the following `sh`, so
 /// only the low half matters and GCC picks the unsigned load by itself.
@@ -88,7 +90,7 @@ extern s16 gRoamerReserveCount;
 /// `D_...80184990`, and the gate `func_...80180DDC` tests against zero.
 extern u8 gRoamerArmCountsB[];
 
-/// The message-handler table `roamerArmPoolB` parks in
+/// The message-handler table `_roamerArmPoolB` parks in
 /// `Task::msgTable`: a placement request (0x13EF,
 /// `_roamerLatchSpawnRequestPoolB`), a countdown bump (0x13F4) and the
 /// 0x7DB command handler `_roamerAmbushMsg`.
@@ -512,7 +514,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
 /// State handlers of the second arming sequence's entry task
 /// `func_neo_ark_woodland_path_801815D4`: arm, run, advance, then kill.
 static const TaskFuncTable4 D_neo_ark_woodland_path_8017D684 = {
-    { roamerArmPoolB, func_neo_ark_woodland_path_80180DDC,
+    { _roamerArmPoolB, func_neo_ark_woodland_path_80180DDC,
       _neoArkWoodlandPathAdvanceRoamerPoolBState, taskKill }
 };
 

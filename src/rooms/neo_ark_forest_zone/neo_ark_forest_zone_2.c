@@ -41,6 +41,8 @@
 #include "../../shared/room_events.h"
 #include "../../shared/roaming_enemies.h"
 
+static void _roamerArmPoolB(Task* task);
+
 static s32  _roamerAmbushMsg(Task* task, s32 messageId, struct ActorCommand* msg, s32 unusedArg);
 static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg);
 
@@ -760,7 +762,7 @@ static void func_neo_ark_forest_zone_80181508(Task* arg0)
 
 /// State table of the second arming task, indexed by `Task::state`.
 static const TaskFuncTable4 D_neo_ark_forest_zone_8017D634 = { {
-    roamerArmPoolB,
+    _roamerArmPoolB,
     func_neo_ark_forest_zone_80180D24,
     func_neo_ark_forest_zone_80181508,
     taskKill,
