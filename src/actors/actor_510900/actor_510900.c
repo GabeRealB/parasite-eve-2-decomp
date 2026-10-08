@@ -1156,293 +1156,259 @@ AnimationSet gActor510900Animation35B20 = {
 
 DamageAttack D_actor_510900_80167968 = { 14, 7 };
 
-void func_actor_510900_80131F24(Task* arg0)
-{
-    EffectWork*                    mem;
-    GfxCoord*                      coord;
-    WorldCoordPointLight*          slot;
-    WorldCoordTransientPointLight* lightSlot;
-    EffectWork*                    eff;
-    s32                            i;
-    s32                            bits;
-    s32                            z;
+/// Chooses a flame-particle velocity and advances the draw used for its size.
+///
+/// Standalone block; effect must be a stable pointer lvalue and the numeric
+/// arguments side-effect-free: horizontalRange is positive, verticalStep fits
+/// s16. Velocity is in parent-coordinate units, X lies in [-range-127,-128].
+/// Captures/updates the resident LCG state twice and retains no pointer.
+#define ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, horizontalRange, verticalStep) \
+    {                                                                                           \
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;     \
+        (effect)->move.vx = -((gRandomLcgState >> 16) % (horizontalRange)) - 0x80;              \
+        (effect)->move.vy = (verticalStep);                                                     \
+        (effect)->move.vz = 0;                                                                  \
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;     \
+    }
 
-    mem       = arg0->spawnArg2.pointer;
-    coord     = arg0->extra.coordBody->coord;
-    lightSlot = &gWorldCoordTransientPointLights[2];
-    slot      = &lightSlot->light;
+void actor510900FlameJetTask(Task* task)
+{
+    enum {
+        ACTOR_510900_FLAME_JET_LIGHT_SLOT            = 2,
+        ACTOR_510900_FLAME_JET_ACTIVE                = 1,
+        ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK      = 0xF0,
+        ACTOR_510900_FLAME_JET_LIGHT_RED             = ONE,
+        ACTOR_510900_FLAME_JET_LIGHT_GREEN           = ONE / 2,
+        ACTOR_510900_FLAME_JET_LIGHT_BLUE            = ONE / 4,
+        ACTOR_510900_FLAME_JET_LIGHT_CONTRACTION     = 400,
+        ACTOR_510900_FLAME_JET_LIGHT_FRAMES          = 16,
+        ACTOR_510900_FLAME_JET_INNER_RADIUS          = 8000,
+        ACTOR_510900_FLAME_JET_OUTER_RADIUS          = 10000,
+        ACTOR_510900_FLAME_JET_FULL_SCALE            = 256,
+        ACTOR_510900_FLAME_JET_SCALE_STEP            = 16,
+        ACTOR_510900_FLAME_JET_DYING_FLAME_FRAMES    = 30,
+        ACTOR_510900_FLAME_JET_DYING_PARTICLE_FRAMES = 60,
+    };
+
+    EffectWork*                    effect;
+    GfxCoord*                      coord;
+    WorldCoordPointLight*          pointLight;
+    WorldCoordTransientPointLight* lightSlot;
+    EffectWork*                    particle;
+    s32                            particleIndex;
+    s32                            randomBits;
+    s32                            localZ;
+
+    effect     = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
+    lightSlot  = &gWorldCoordTransientPointLights[ACTOR_510900_FLAME_JET_LIGHT_SLOT];
+    pointLight = &lightSlot->light;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
         }
-        if (arg0->spawnArg1.value == 4) {
-            effectKillTask(mem, arg0);
+        if (task->spawnArg1.value == ACTOR_510900_FLAME_RELEASED) {
+            effectKillTask(effect, task);
         }
         return;
     }
-    if (arg0->state == 0) {
-        coord->parent = mem->parent;
+    if (task->state == ACTOR_510900_PARTICLE_INITIAL) {
+        coord->parent = effect->parent;
         gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[0]   = mem->pos.vx;
-        coord->coord.t[1]   = mem->pos.vy;
-        z                   = mem->pos.vz;
+        coord->coord.t[0]   = effect->pos.vx;
+        coord->coord.t[1]   = effect->pos.vy;
+        localZ              = effect->pos.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        coord->coord.t[2]   = z;
-        arg0->state         = 1;
+        coord->coord.t[2]   = localZ;
+        task->state         = ACTOR_510900_FLAME_JET_ACTIVE;
     }
     actorRenderComposeCoord(coord);
+    // The emitter also counts down slot 2 and contracts its full-strength radius.
     if (lightSlot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
-        slot->head.color.r = 0x1000;
-        slot->head.color.g = 0x800;
-        slot->head.color.b = 0x400;
-        if (slot->inner >= 0x191) {
-            slot->inner -= 0x190;
+        pointLight->head.color.r = ACTOR_510900_FLAME_JET_LIGHT_RED;
+        pointLight->head.color.g = ACTOR_510900_FLAME_JET_LIGHT_GREEN;
+        pointLight->head.color.b = ACTOR_510900_FLAME_JET_LIGHT_BLUE;
+        if (pointLight->inner > ACTOR_510900_FLAME_JET_LIGHT_CONTRACTION) {
+            pointLight->inner -= ACTOR_510900_FLAME_JET_LIGHT_CONTRACTION;
         }
         lightSlot->framesLeft--;
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
         lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
         if (lightSlot->framesLeft == WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
-            arg0->spawnArg1.value = 0;
-            mem->age              = 0;
-            mem->scale            = 0;
+            task->spawnArg1.value = ACTOR_510900_FLAME_OFF;
+            effect->age           = 0;
+            effect->scale         = 0;
         }
     }
-    switch (arg0->spawnArg1.value) {
-        case 0:
+    // The actor supplies intensity; each adopted particle follows this task's lifetime.
+    switch (task->spawnArg1.value) {
+        case ACTOR_510900_FLAME_OFF:
             break;
-        case 1:
-            mem->scale = (mem->scale < 0x100) ? mem->scale + 0x10 : 0x100;
-            for (i = 0; i < 2; i++) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) % 0x2C0) - 0x80;
-                mem->move.vy    = 0x40;
-                mem->move.vz    = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & 0xF0) + mem->scale, &mem->move);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+        case ACTOR_510900_FLAME_BURNING:
+            effect->scale = (effect->scale < ACTOR_510900_FLAME_JET_FULL_SCALE) ? effect->scale + ACTOR_510900_FLAME_JET_SCALE_STEP : ACTOR_510900_FLAME_JET_FULL_SCALE;
+            for (particleIndex = 0; particleIndex < 2; particleIndex++) {
+                ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x2C0, 0x40);
+                particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + effect->scale, &effect->move);
+                if (particle != NULL) {
+                    taskReparent(task, particle->task);
                 }
             }
-            lightSlot->framesLeft = 0x10;
-            slot->inner           = 0x1F40;
-            slot->outer           = 0x2710;
+            lightSlot->framesLeft = ACTOR_510900_FLAME_JET_LIGHT_FRAMES;
+            pointLight->inner     = ACTOR_510900_FLAME_JET_INNER_RADIUS;
+            pointLight->outer     = ACTOR_510900_FLAME_JET_OUTER_RADIUS;
             gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            bits                  = gRandomLcgState >> 16;
-            /* The `field_24 + 0x10000` sums below are evaluated as their own
-             * operand. Written plainly, `fold` reassociates the constant onto
-             * the draw; held in a local, sched1 moves the load ahead of it. */
-            if (!(bits & 3)) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy    = 0x40;
-                mem->move.vz    = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
-                                              &mem->move);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+            randomBits            = gRandomLcgState >> 16;
+            // Keep scale plus the motion flag grouped before adding random size.
+            if (!(randomBits & 3)) {
+                ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x40);
+                particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + ({ effect->scale + ACTOR_510900_FLAME_RANDOM_MOTION; }),
+                                       &effect->move);
+                if (particle != NULL) {
+                    taskReparent(task, particle->task);
                 }
             }
-            bits >>= 1;
-            if (!(bits & 3)) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy    = 0;
-                mem->move.vz    = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = effectSpawn(EFFECT_04C, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
-                                              &mem->move);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+            randomBits >>= 1;
+            if (!(randomBits & 3)) {
+                ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
+                particle = effectSpawn(EFFECT_04C, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + ({ effect->scale + ACTOR_510900_FLAME_RANDOM_MOTION; }),
+                                       &effect->move);
+                if (particle != NULL) {
+                    taskReparent(task, particle->task);
                 }
             }
-            bits >>= 1;
-            if (!(bits & 3)) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy    = 0;
-                mem->move.vz    = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) + mem->scale, &mem->move);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+            randomBits >>= 1;
+            if (!(randomBits & 3)) {
+                ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
+                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + effect->scale, &effect->move);
+                if (particle != NULL) {
+                    taskReparent(task, particle->task);
                 }
             }
-            bits >>= 1;
-            if (bits % 3 == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy    = 0x80;
-                mem->move.vz    = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+            randomBits >>= 1;
+            if (randomBits % 3 == 0) {
+                ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
+                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + (ACTOR_510900_FLAME_RANDOM_MOTION | 0x80), &effect->move);
+                if (particle != NULL) {
+                    taskReparent(task, particle->task);
                 }
             }
-            bits >>= 1;
-            if (!(bits & 3)) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy    = -0x80;
-                mem->move.vz    = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+            randomBits >>= 1;
+            if (!(randomBits & 3)) {
+                ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, -0x80);
+                particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + 0x180, &effect->move);
+                if (particle != NULL) {
+                    taskReparent(task, particle->task);
                 }
             }
             break;
-        case 2:
-            lightSlot->framesLeft = 0x10;
-            slot->inner           = 0x1F40;
-            slot->outer           = 0x2710;
-            for (i = 0; i < 3; i++) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy    = 0x40;
-                mem->move.vz    = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x10100, &mem->move);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+        case ACTOR_510900_FLAME_BLAST:
+            lightSlot->framesLeft = ACTOR_510900_FLAME_JET_LIGHT_FRAMES;
+            pointLight->inner     = ACTOR_510900_FLAME_JET_INNER_RADIUS;
+            pointLight->outer     = ACTOR_510900_FLAME_JET_OUTER_RADIUS;
+            for (particleIndex = 0; particleIndex < 3; particleIndex++) {
+                ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x40);
+                particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) | (ACTOR_510900_FLAME_RANDOM_MOTION | 0x100), &effect->move);
+                if (particle != NULL) {
+                    taskReparent(task, particle->task);
                 }
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            bits            = gRandomLcgState >> 16;
-            if (!(bits & 7)) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy    = 0;
-                mem->move.vz    = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+            randomBits      = gRandomLcgState >> 16;
+            if (!(randomBits & 7)) {
+                ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
+                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) | 0x100, &effect->move);
+                if (particle != NULL) {
+                    taskReparent(task, particle->task);
                 }
             }
-            bits >>= 1;
-            if (!(bits & 3)) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy    = 0x80;
-                mem->move.vz    = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+            randomBits >>= 1;
+            if (!(randomBits & 3)) {
+                ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
+                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + (ACTOR_510900_FLAME_RANDOM_MOTION | 0x80), &effect->move);
+                if (particle != NULL) {
+                    taskReparent(task, particle->task);
                 }
             }
-            bits >>= 1;
-            if (!(bits & 7)) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy    = -0x80;
-                mem->move.vz    = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff             = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+            randomBits >>= 1;
+            if (!(randomBits & 7)) {
+                ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, -0x80);
+                particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + 0x180, &effect->move);
+                if (particle != NULL) {
+                    taskReparent(task, particle->task);
                 }
             }
             break;
-        case 3:
+        case ACTOR_510900_FLAME_DYING:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            bits            = gRandomLcgState >> 16;
-            mem->age++;
-            if (mem->age < 0x1E) {
-                if (!(bits & 7)) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x2C0) - 0x80;
-                    mem->move.vy    = 0x40;
-                    mem->move.vz    = 0;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x80, &mem->move);
-                    if (eff != NULL) {
-                        taskReparent(arg0, eff->task);
+            randomBits      = gRandomLcgState >> 16;
+            effect->age++;
+            if (effect->age < ACTOR_510900_FLAME_JET_DYING_FLAME_FRAMES) {
+                if (!(randomBits & 7)) {
+                    ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x2C0, 0x40);
+                    particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + 0x80, &effect->move);
+                    if (particle != NULL) {
+                        taskReparent(task, particle->task);
                     }
                 }
-                bits >>= 1;
-                if (!(bits & 3)) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                    mem->move.vy    = 0x40;
-                    mem->move.vz    = 0;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
-                    if (eff != NULL) {
-                        taskReparent(arg0, eff->task);
+                randomBits >>= 1;
+                if (!(randomBits & 3)) {
+                    ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x40);
+                    particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + (ACTOR_510900_FLAME_RANDOM_MOTION | 0x80), &effect->move);
+                    if (particle != NULL) {
+                        taskReparent(task, particle->task);
                     }
                 }
-                for (i = 0; i < 2; i++) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                    mem->move.vy    = 0;
-                    mem->move.vz    = 0;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = effectSpawn(EFFECT_04C, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x10100, &mem->move);
-                    if (eff != NULL) {
-                        taskReparent(arg0, eff->task);
+                for (particleIndex = 0; particleIndex < 2; particleIndex++) {
+                    ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
+                    particle = effectSpawn(EFFECT_04C, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) | (ACTOR_510900_FLAME_RANDOM_MOTION | 0x100), &effect->move);
+                    if (particle != NULL) {
+                        taskReparent(task, particle->task);
                     }
                 }
-                bits >>= 1;
-                if (!(bits & 7)) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                    mem->move.vy    = 0;
-                    mem->move.vz    = 0;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
-                    if (eff != NULL) {
-                        taskReparent(arg0, eff->task);
+                randomBits >>= 1;
+                if (!(randomBits & 7)) {
+                    ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
+                    particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) | 0x100, &effect->move);
+                    if (particle != NULL) {
+                        taskReparent(task, particle->task);
                     }
                 }
-                bits >>= 1;
-                if (!(bits & 7)) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                    mem->move.vy    = 0x80;
-                    mem->move.vz    = 0;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
-                    if (eff != NULL) {
-                        taskReparent(arg0, eff->task);
+                randomBits >>= 1;
+                if (!(randomBits & 7)) {
+                    ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
+                    particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + (ACTOR_510900_FLAME_RANDOM_MOTION | 0x80), &effect->move);
+                    if (particle != NULL) {
+                        taskReparent(task, particle->task);
                     }
                 }
-                for (i = 0; i < 2; i++) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                    mem->move.vy    = -0x80;
-                    mem->move.vz    = 0;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    eff             = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
-                    if (eff != NULL) {
-                        taskReparent(arg0, eff->task);
+                for (particleIndex = 0; particleIndex < 2; particleIndex++) {
+                    ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, -0x80);
+                    particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) + 0x180, &effect->move);
+                    if (particle != NULL) {
+                        taskReparent(task, particle->task);
                     }
                 }
-                lightSlot->framesLeft = 0x10;
-                slot->inner           = 0x1F40;
-                slot->outer           = 0x2710;
-            } else if (mem->age < 0x3C) {
+                lightSlot->framesLeft = ACTOR_510900_FLAME_JET_LIGHT_FRAMES;
+                pointLight->inner     = ACTOR_510900_FLAME_JET_INNER_RADIUS;
+                pointLight->outer     = ACTOR_510900_FLAME_JET_OUTER_RADIUS;
+            } else if (effect->age < ACTOR_510900_FLAME_JET_DYING_PARTICLE_FRAMES) {
                 lightSlot->framesLeft = 2;
-                slot->inner           = 0x190;
-                slot->outer           = 0x190;
-                gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx          = -((gRandomLcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy          = 0x80;
-                mem->move.vz          = 0;
-                gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                eff                   = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+                pointLight->inner     = ACTOR_510900_FLAME_JET_LIGHT_CONTRACTION;
+                pointLight->outer     = ACTOR_510900_FLAME_JET_LIGHT_CONTRACTION;
+                ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
+                particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, ((gRandomLcgState >> 16) & ACTOR_510900_FLAME_JET_RANDOM_SIZE_MASK) | 0x100, &effect->move);
+                if (particle != NULL) {
+                    taskReparent(task, particle->task);
                 }
             }
             break;
-        case 4:
-            effectKillTask(mem, arg0);
+        case ACTOR_510900_FLAME_RELEASED:
+            effectKillTask(effect, task);
             break;
     }
 }
+
+#undef ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY
 
 void actor510900FlameSpriteTask45(Task* task)
 {
@@ -1891,48 +1857,60 @@ void actor510900FlameSpriteTask59(Task* task)
     effectKillTask(effect, task);
 }
 
-void func_actor_510900_801340E8(Task* arg0)
+void actor510900MuzzleFlashTask44(Task* task)
 {
+    enum {
+        ACTOR_510900_MUZZLE_LIGHT_SLOT         = 3,
+        ACTOR_510900_MUZZLE_LIGHT_RED          = 3 * ONE / 4,
+        ACTOR_510900_MUZZLE_LIGHT_GREEN        = ONE / 2,
+        ACTOR_510900_MUZZLE_LIGHT_BLUE         = ONE / 4,
+        ACTOR_510900_MUZZLE_PARTICLE_PAIRS     = 6,
+        ACTOR_510900_MUZZLE_LIGHT_FRAMES       = 4,
+        ACTOR_510900_MUZZLE_LIGHT_INNER_RADIUS = 4000,
+        ACTOR_510900_MUZZLE_LIGHT_OUTER_RADIUS = 4800,
+    };
+
     WorldCoordTransientPointLight* lightSlot;
     GfxCoord*                      lightCoord;
     WorldCoordPointLight*          pointLight;
-    EffectWork*                    eff;
+    EffectWork*                    effect;
     GfxCoord*                      coord;
-    s32                            i;
+    s32                            particleIndex;
 
-    lightSlot  = &gWorldCoordTransientPointLights[3];
+    lightSlot  = &gWorldCoordTransientPointLights[ACTOR_510900_MUZZLE_LIGHT_SLOT];
     lightCoord = &lightSlot->light.head.transform.coord;
-    eff        = arg0->spawnArg2.pointer;
-    coord      = arg0->extra.coordBody->coord;
+    effect     = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
     pointLight = &lightSlot->light;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        effectKillTask(eff, arg0);
+        effectKillTask(effect, task);
         return;
     }
-    coord->parent = eff->parent;
+    coord->parent = effect->parent;
     gfxSetRotIdentity(&coord->coord);
-    coord->coord.t[0]   = eff->pos.vx;
-    coord->coord.t[1]   = eff->pos.vy;
-    coord->coord.t[2]   = eff->pos.vz;
+    coord->coord.t[0]   = effect->pos.vx;
+    coord->coord.t[1]   = effect->pos.vy;
+    coord->coord.t[2]   = effect->pos.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    // Finish placement before spawning the burst and placing its view-relative light.
     actorRenderComposeCoord(coord);
-    eff->move.vx = -0x200;
-    eff->move.vy = 0x40;
-    eff->move.vz = 0;
-    effectSpawn(EFFECT_IMPACT_SPARK, coord, 0x180, &eff->move);
-    for (i = 0; i < 6; i++) {
-        effectSpawn(EFFECT_NO9_GOLEM_DEBRIS_STREAK, coord, 0, &eff->move);
+    effect->move.vx = -0x200;
+    effect->move.vy = 0x40;
+    effect->move.vz = 0;
+    effectSpawn(EFFECT_IMPACT_SPARK, coord, 0x180, &effect->move);
+    for (particleIndex = 0; particleIndex < 6; particleIndex++) {
+        effectSpawn(EFFECT_NO9_GOLEM_DEBRIS_STREAK, coord, 0, &effect->move);
         effectSpawn(EFFECT_PIXEL_SPARK, coord, 1, NULL);
     }
-    lightSlot->framesLeft    = 4;
-    pointLight->inner        = 0xFA0;
-    pointLight->outer        = 0x12C0;
-    pointLight->head.color.r = 0xC00;
-    pointLight->head.color.g = 0x800;
-    pointLight->head.color.b = 0x400;
+    lightSlot->framesLeft    = ACTOR_510900_MUZZLE_LIGHT_FRAMES;
+    pointLight->inner        = ACTOR_510900_MUZZLE_LIGHT_INNER_RADIUS;
+    pointLight->outer        = ACTOR_510900_MUZZLE_LIGHT_OUTER_RADIUS;
+    pointLight->head.color.r = ACTOR_510900_MUZZLE_LIGHT_RED;
+    pointLight->head.color.g = ACTOR_510900_MUZZLE_LIGHT_GREEN;
+    pointLight->head.color.b = ACTOR_510900_MUZZLE_LIGHT_BLUE;
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightCoord->coord);
     lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    effectKillTask(eff, arg0);
+    effectKillTask(effect, task);
 }
 
 void actor510900DebrisStreakTask(Task* task)
@@ -2028,148 +2006,193 @@ void actor510900DebrisStreakTask(Task* task)
     }
 }
 
-void func_actor_510900_801346D4(Task* arg0)
+void actor510900ExplosionTask185(Task* task)
 {
-    EffectWork* eff;
-    GfxCoord*   coord;
-    s16         mode;
+    enum {
+        ACTOR_510900_EXPLOSION_FIREBALL           = 0,
+        ACTOR_510900_EXPLOSION_WAIT_SMOKE         = 1,
+        ACTOR_510900_EXPLOSION_SMOKE              = 2,
+        ACTOR_510900_EXPLOSION_TAIL_SMOKE         = 3,
+        ACTOR_510900_EXPLOSION_FINISHED           = 4,
+        ACTOR_510900_EXPLOSION_SMOKE_START        = 9,
+        ACTOR_510900_EXPLOSION_TAIL_START         = 51,
+        ACTOR_510900_EXPLOSION_END                = 61,
+        ACTOR_510900_EXPLOSION_MAIN_SMOKE_OPTIONS = 0x82004400,
+        ACTOR_510900_EXPLOSION_TAIL_SMOKE_OPTIONS = 0xD2004400,
+    };
 
-    eff   = arg0->spawnArg2.pointer;
-    mode  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (mode != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (mode >= ROOM_EFFECT_CONTROL_CANCEL_MIN || arg0->state == 4) {
-            effectKillTask(eff, arg0);
+    EffectWork* effect;
+    GfxCoord*   coord;
+    s16         effectControl;
+
+    effect        = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || task->state == ACTOR_510900_EXPLOSION_FINISHED) {
+            effectKillTask(effect, task);
         }
         return;
     }
-    eff->age++;
-    switch (arg0->state) {
-        case 0:
-            eff = effectSpawn(EFFECT_NO9_EXPLOSION_FIREBALL, coord, 0x480, NULL);
-            if (eff != NULL) {
-                taskReparent(arg0, eff->task);
+    effect->age++;
+    switch (task->state) {
+        case ACTOR_510900_EXPLOSION_FIREBALL:
+            // Adopt the fireball; later calls reload the controller work.
+            effect = effectSpawn(EFFECT_NO9_EXPLOSION_FIREBALL, coord, 0x480, NULL);
+            if (effect != NULL) {
+                taskReparent(task, effect->task);
             }
-            arg0->state++;
+            task->state++;
             break;
-        case 1:
-            if (eff->age >= 9) {
-                arg0->state++;
-            }
-            break;
-        case 2:
-            effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x82004400, NULL);
-            if (eff->age >= 0x33) {
-                arg0->state++;
+        case ACTOR_510900_EXPLOSION_WAIT_SMOKE:
+            if (effect->age >= ACTOR_510900_EXPLOSION_SMOKE_START) {
+                task->state++;
             }
             break;
-        case 3:
-            effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xD2004400, NULL);
-            if (eff->age >= 0x3D) {
-                arg0->state++;
+        case ACTOR_510900_EXPLOSION_SMOKE:
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, ACTOR_510900_EXPLOSION_MAIN_SMOKE_OPTIONS, NULL);
+            if (effect->age >= ACTOR_510900_EXPLOSION_TAIL_START) {
+                task->state++;
             }
             break;
-        case 4:
-            effectKillTask(eff, arg0);
+        case ACTOR_510900_EXPLOSION_TAIL_SMOKE:
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, ACTOR_510900_EXPLOSION_TAIL_SMOKE_OPTIONS, NULL);
+            if (effect->age >= ACTOR_510900_EXPLOSION_END) {
+                task->state++;
+            }
+            break;
+        case ACTOR_510900_EXPLOSION_FINISHED:
+            effectKillTask(effect, task);
             break;
     }
 }
 
-void func_actor_510900_8013482C(Task* arg0)
+/// Builds the fireball's random drift, scaled by size and motion in its parent basis.
+///
+/// Standalone block; effect must be a stable pointer lvalue. Captures the LCG
+/// state, GTE and the enclosing task's two FIREBALL_*SHIFT/FRACTION_BITS
+/// constants. The borrowed parent matrix must remain live; each GTE scale
+/// saturates to signed halfwords before the parent rotation.
+#define ACTOR_510900_MAKE_FIREBALL_DRIFT(effect)                                            \
+    {                                                                                       \
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
+        (effect)->move.vx = 0x10 - ((gRandomLcgState >> 16) & 0x1F);                        \
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
+        (effect)->move.vy = 0x10 - ((gRandomLcgState >> 16) & 0x1F);                        \
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
+        (effect)->move.vz = 0x10 - ((gRandomLcgState >> 16) & 0x1F);                        \
+        gte_lddp((effect)->scale << ACTOR_510900_FIREBALL_DRIFT_SCALE_SHIFT);               \
+        gte_ldsv(&(effect)->move);                                                          \
+        gte_gpf12();                                                                        \
+        gte_stsv(&(effect)->move);                                                          \
+        gte_lddp((effect)->index << ACTOR_510900_FIREBALL_ROTATION_FRACTION_BITS);          \
+        gte_ldsv(&(effect)->move);                                                          \
+        gte_gpf12();                                                                        \
+        gte_stsv(&(effect)->move);                                                          \
+        gte_SetRotMatrix(&(effect)->parent->coord);                                         \
+        gte_ldv0(&(effect)->move);                                                          \
+        gte_rtv0();                                                                         \
+        gte_stsv(&(effect)->move);                                                          \
+    }
+
+void actor510900ExplosionFireballTask184(Task* task)
 {
-    EffectWork* eff;
-    EffectWork* spawned;
+    enum {
+        ACTOR_510900_FIREBALL_DEFAULT_SCALE          = 768,
+        ACTOR_510900_FIREBALL_SIZE_MASK              = 0xFFF,
+        ACTOR_510900_FIREBALL_ACTIVE                 = 1,
+        ACTOR_510900_FIREBALL_DEFAULT_PERIOD         = 2,
+        ACTOR_510900_FIREBALL_PERIOD_MASK            = 0xF000,
+        ACTOR_510900_FIREBALL_PERIOD_SHIFT           = 12,
+        ACTOR_510900_FIREBALL_MAX_PERIOD             = 15,
+        ACTOR_510900_FIREBALL_MOTION_MASK            = 15,
+        ACTOR_510900_FIREBALL_SUPPRESS_CHILDREN      = 0xF0000000,
+        ACTOR_510900_FIREBALL_FAST_CHILD_OPTIONS     = (2 << 24) | (1 << 12),
+        ACTOR_510900_FIREBALL_SLOW_CHILD_OPTIONS     = (1 << 24) | (2 << 12),
+        ACTOR_510900_FIREBALL_ROTATION_FRACTION_BITS = 12,
+        ACTOR_510900_FIREBALL_DRIFT_SCALE_SHIFT      = 3,
+    };
+
+    EffectWork* effect;
+    EffectWork* childEffect;
     GfxCoord*   coord;
-    s16         mode;
+    s16         effectControl;
     s16         scale;
-    s16         step;
-    s32         tmp;
-    s32         i;
-    s32         n;
+    s16         framePeriod;
+    s32         optionsByte;
+    s32         childIndex;
+    s32         childCount;
 
-    eff   = arg0->spawnArg2.pointer;
-    mode  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (mode != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (mode >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(eff, arg0);
+    effect        = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            effectKillTask(effect, task);
         }
         return;
     }
-    eff->age++;
-    if (arg0->state == 0) {
-        scale = 0x300;
-        if (arg0->spawnArg1.value & 0xFFF) {
-            scale = arg0->spawnArg1.halves.low & 0xFFF;
+    effect->age++;
+    if (task->state == ACTOR_510900_PARTICLE_INITIAL) {
+        scale = ACTOR_510900_FIREBALL_DEFAULT_SCALE;
+        if (task->spawnArg1.value & ACTOR_510900_FIREBALL_SIZE_MASK) {
+            scale = task->spawnArg1.halves.low & ACTOR_510900_FIREBALL_SIZE_MASK;
         }
-        eff->scale      = scale;
+        effect->scale   = scale;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        eff->angle      = (gRandomLcgState >> 16) & 0xFFF;
-        if (arg0->spawnArg1.value & 0xF000) {
-            step = (arg0->spawnArg1.value >> 12) & 0xF;
+        effect->angle   = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+        if (task->spawnArg1.value & ACTOR_510900_FIREBALL_PERIOD_MASK) {
+            framePeriod = (task->spawnArg1.value >> ACTOR_510900_FIREBALL_PERIOD_SHIFT) & ACTOR_510900_FIREBALL_MAX_PERIOD;
         } else {
-            step = 2;
+            framePeriod = ACTOR_510900_FIREBALL_DEFAULT_PERIOD;
         }
-        eff->period = step;
-        eff->step   = (s32)((u16)eff->scale << 16) >> 23;
-        tmp         = arg0->spawnArg1.signedBytes[3];
-        eff->index  = tmp & 0xF;
-        if (eff->index != 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            eff->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            eff->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            eff->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-            gte_lddp(eff->scale << 3);
-            gte_ldsv(&eff->move);
-            gte_gpf12();
-            gte_stsv(&eff->move);
-            gte_lddp(eff->index << 12);
-            gte_ldsv(&eff->move);
-            gte_gpf12();
-            gte_stsv(&eff->move);
-            gte_SetRotMatrix(&eff->parent->coord);
-            gte_ldv0(&eff->move);
-            gte_rtv0();
-            gte_stsv(&eff->move);
-        } else if (!(arg0->spawnArg1.value & 0xF0000000)) {
-            n = gDisplayState.animFrame & 3;
-            i = 0;
-            if (n != 0) {
+        effect->period = framePeriod;
+        effect->step   = (s32)((u16)effect->scale << 16) >> 23;
+        optionsByte    = task->spawnArg1.signedBytes[3];
+        effect->index  = optionsByte & ACTOR_510900_FIREBALL_MOTION_MASK;
+        // Nonzero motion selects drift in the borrowed parent's local basis.
+        if (effect->index != 0) {
+            ACTOR_510900_MAKE_FIREBALL_DRIFT(effect);
+        } else if (!(task->spawnArg1.value & ACTOR_510900_FIREBALL_SUPPRESS_CHILDREN)) {
+            childCount = gDisplayState.animFrame & 3;
+            childIndex = 0;
+            if (childCount != 0) {
                 do {
-                    spawned = effectSpawn(EFFECT_NO9_EXPLOSION_FIREBALL, coord, ((s32)((u16)eff->scale << 16) >> 17) | 0x02001000, NULL);
-                    if (spawned != NULL) {
-                        taskReparent(arg0, spawned->task);
+                    childEffect = effectSpawn(EFFECT_NO9_EXPLOSION_FIREBALL, coord, ((s32)((u16)effect->scale << 16) >> 17) | ACTOR_510900_FIREBALL_FAST_CHILD_OPTIONS, NULL);
+                    if (childEffect != NULL) {
+                        taskReparent(task, childEffect->task);
                     }
-                    i += 1;
-                } while (i < n);
+                    childIndex += 1;
+                } while (childIndex < childCount);
             }
-            n = gDisplayState.animFrame & 1;
-            i = 0;
-            if (i < n) {
+            childCount = gDisplayState.animFrame & 1;
+            childIndex = 0;
+            if (childIndex < childCount) {
                 do {
-                    spawned = effectSpawn(EFFECT_NO9_EXPLOSION_FIREBALL, coord, ((s32)((u16)eff->scale << 16) >> 17) | 0x01002000, NULL);
-                    if (spawned != NULL) {
-                        taskReparent(arg0, spawned->task);
+                    childEffect = effectSpawn(EFFECT_NO9_EXPLOSION_FIREBALL, coord, ((s32)((u16)effect->scale << 16) >> 17) | ACTOR_510900_FIREBALL_SLOW_CHILD_OPTIONS, NULL);
+                    if (childEffect != NULL) {
+                        taskReparent(task, childEffect->task);
                     }
-                    i += 1;
-                } while (i < n);
+                    childIndex += 1;
+                } while (childIndex < childCount);
             }
         }
-        eff->age--;
-        arg0->state = 1;
+        effect->age--;
+        task->state = ACTOR_510900_FIREBALL_ACTIVE;
     }
-    spriteQuadDraw(coord, eff->age / eff->period, eff->scale, eff->angle);
-    coord->coord.t[0]  += eff->move.vx;
-    coord->coord.t[1]  += eff->move.vy;
-    coord->coord.t[2]  += eff->move.vz;
+    // Draw before advancing translation and the signed-halfword size.
+    spriteQuadDraw(coord, effect->age / effect->period, effect->scale, effect->angle);
+    coord->coord.t[0]  += effect->move.vx;
+    coord->coord.t[1]  += effect->move.vy;
+    coord->coord.t[2]  += effect->move.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    eff->scale         += eff->step;
-    if (eff->age > eff->period * (ARRAY_SIZE(gEffectSpriteAtlasFrames) - 1) - 1) {
-        effectKillTask(eff, arg0);
+    effect->scale      += effect->step;
+    if (effect->age > effect->period * (ARRAY_SIZE(gEffectSpriteAtlasFrames) - 1) - 1) {
+        effectKillTask(effect, task);
     }
 }
+
+#undef ACTOR_510900_MAKE_FIREBALL_DRIFT
 
 /// Packed additive texture page for the shared effect atlas, with this actor's palettes.
 #define SPRITE_QUAD_TEXTURE_PAGE EFFECT_SPRITE_ATLAS_TEXTURE_PAGE

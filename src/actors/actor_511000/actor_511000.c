@@ -150,10 +150,10 @@ STATIC_ASSERT_SIZEOF(_Actor511000RupertBroderickWork, 0x4D4);
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
-static void func_actor_511000_80131E78(Task* arg0);
+static void _actor511000TickRupert(Task* task);
 static void _actor511000TickRupertBlink(Task* task);
 static void _actor511000IdleRupertRevolver(Task* task);
-static void func_actor_511000_80132480(Task* task);
+static void _actor511000InitRupert(Task* task);
 static void _actor511000BindRupertLighting(Task* task);
 static void _actor511000TickHelicopterSearchlight(Task* task);
 static void _actor511000DrawHelicopterSearchlightGlow(Task* task, const CVECTOR* centerColor, const u8* rimRgb);
@@ -197,8 +197,8 @@ static const TaskFuncTable3 D_actor_511000_80131E30 = {
 /// State table of the task that owns the `_Actor511000RupertBroderickWork` block: its spawn
 /// state, the per-frame tick and the enemy task exit.
 static const TaskFuncTable3 D_actor_511000_80131E3C = {
-    func_actor_511000_80132480,
-    func_actor_511000_80131E78,
+    _actor511000InitRupert,
+    _actor511000TickRupert,
     enemyTaskExit,
 };
 
@@ -249,7 +249,7 @@ extern ViewCamera D_actor_511000_80147EE4[];
 extern AnimationSet*  D_actor_511000_801472D4[4];
 extern AnimationSet** D_actor_511000_801472E4[1];
 
-/// Spawn table `func_actor_511000_80132480` starts its two child tasks from,
+/// Spawn table `_actor511000InitRupert` starts its two child tasks from,
 /// and the message table it parks in `Task::msgTable`.
 extern TaskDesc D_actor_511000_801472E8[];
 // Message-table callbacks use the argument views required by this TU.
@@ -1122,52 +1122,60 @@ AnimationSet* D_actor_511000_801550C0[4] = {
 
 static void _actor511000TickHelicopterPaletteFlash(_Actor511000HelicopterWork* work);
 
-/// Tick state: while `ticking` is set, steps animation slots 1..19; while
-/// clip 1 plays it counts `shotTicks` up and, on the sixteenth tick, plays the
-/// sound and spawns the muzzle flash at the revolver's model. Then draws the
-/// ground shadow under model part 1, refreshes that part's coordinate and
-/// colour when the session asks, runs the blink, and ticks the
-/// `freeCountdown` that frees the model's buffers when it reaches zero.
-static void func_actor_511000_80131E78(Task* arg0)
+/// Advances Rupert's animation, shot cues, lighting, blink and buffer-release delay.
+///
+/// Requires initialized twenty-part model/work and live held-model tasks. Slots
+/// 1..19 advance once playback starts; clip 1 fires its sound and revolver-root
+/// muzzle flash on tick 16. Visible models receive a ground shadow; ready views
+/// refresh part-1 lighting. Buffer countdown -1 is inactive; a call finding zero
+/// frees the primitive buffer before decrementing the countdown.
+static void _actor511000TickRupert(Task* task)
 {
-    _Actor511000RupertBroderickWork* work;
-    TmdObject*                       extra;
-    GfxCoord*                        coord;
-    GfxCoord*                        obj;
-    VECTOR3                          groundPoint;
-    s32                              i;
-    s32                              pan;
+    enum {
+        ACTOR_511000_RUPERT_SHOT_CLIP  = 1,
+        ACTOR_511000_RUPERT_SHOT_TICK  = 16,
+        ACTOR_511000_SOUND_RUPERT_SHOT = 0x313A0003,
+        ACTOR_511000_RUPERT_LIGHT_PART = 1,
+    };
 
-    extra = arg0->extra.tmd;
-    work  = arg0->work;
-    coord = &extra->coords[1];
+    _Actor511000RupertBroderickWork* work;
+    TmdObject*                       model;
+    GfxCoord*                        coord;
+    GfxCoord*                        gunCoord;
+    VECTOR3                          groundPoint;
+    s32                              slotIndex;
+    s32                              audioPan;
+
+    model = task->extra.tmd;
+    work  = task->work;
+    coord = &model->coords[ACTOR_511000_RUPERT_LIGHT_PART];
     if (work->ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
-        if (work->animId == 1) {
-            if (++work->shotTicks == 0x10) {
-                obj = work->gunTask->extra.tmd->coords;
-                pan = (s8)worldCoordGetOriginAudioPan(obj);
-                sndEvtRequestScriptStart(0x313A0003, pan, (s8)worldCoordGetOriginAudioDepth(obj));
-                effectSpawn(EFFECT_ACTOR_MUZZLE_FLASH, obj, 0, &D_actor_511000_8014733C);
+        if (work->animId == ACTOR_511000_RUPERT_SHOT_CLIP) {
+            if (++work->shotTicks == ACTOR_511000_RUPERT_SHOT_TICK) {
+                gunCoord = work->gunTask->extra.tmd->coords;
+                audioPan = (s8)worldCoordGetOriginAudioPan(gunCoord);
+                sndEvtRequestScriptStart(ACTOR_511000_SOUND_RUPERT_SHOT, audioPan, (s8)worldCoordGetOriginAudioDepth(gunCoord));
+                effectSpawn(EFFECT_ACTOR_MUZZLE_FLASH, gunCoord, 0, &D_actor_511000_8014733C);
             }
         }
     }
-    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint((VECTOR3*)(arg0->extra.tmd)->coords[1].workm.t, &groundPoint) != 0) {
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[ACTOR_511000_RUPERT_LIGHT_PART].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, 0x300, gRoomEffectState->groundShadowShade);
         }
     }
     if (gGameSession->viewReady != 0) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
-        worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
+        worldCoordSetModelLighting(model, coord->workm.t, 0, 3);
     }
-    _actor511000TickRupertBlink(arg0);
+    _actor511000TickRupertBlink(task);
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(extra);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
@@ -1294,19 +1302,30 @@ static void _actor511000RupertBodyTask(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Spawn handler: allocates the work block, seeds its head, excludes the model
-/// from active drawing, starts the actor's two child tasks and
-/// hands the model's matrices to the light/color rebuilder, then advances to the
-/// tick handler. The retained shadow branch cannot run with this bit set.
-static void func_actor_511000_80132480(Task* task)
+/// Initializes Rupert's hidden body and its revolver and prop attachments.
+///
+/// Requires the descriptor-created twenty-part body. Allocates zeroed primary
+/// work owned by the task and exits the enemy on failure. Child descriptors 1/2
+/// attach to parts 8/12; their model roots and borrowed lighting must stay live
+/// until teardown. Initializes animation sentinels, disables drawing, installs
+/// messages/exit handling and advances to frame state 1.
+static void _actor511000InitRupert(Task* task)
 {
+    enum {
+        ACTOR_511000_RUPERT_NO_BUFFER_RELEASE = -1,
+        ACTOR_511000_RUPERT_GUN_DESCRIPTOR    = 1,
+        ACTOR_511000_RUPERT_GUN_PART          = 8,
+        ACTOR_511000_RUPERT_PROP_DESCRIPTOR   = 2,
+        ACTOR_511000_RUPERT_PROP_PART         = 12,
+    };
+
     _Actor511000RupertBroderickWork* work;
-    TmdObject*                       extra;
-    VECTOR3                          pos;
+    TmdObject*                       model;
+    VECTOR3                          groundPoint;
     u16                              flags;
 
-    extra = task->extra.tmd;
-    work  = memCalloc(sizeof(*work), 0);
+    model = task->extra.tmd;
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
@@ -1315,16 +1334,17 @@ static void func_actor_511000_80132480(Task* task)
     work->animId        = ACTOR_MODEL_STATE_NONE;
     work->bank          = ACTOR_MODEL_STATE_NONE;
     work->shotTicks     = 0;
-    work->freeCountdown = -1;
-    flags               = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    extra->flags        = flags;
+    work->freeCountdown = ACTOR_511000_RUPERT_NO_BUFFER_RELEASE;
+    flags               = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model->flags        = flags;
+    // The target retains this shadow branch after setting the hidden flag.
     if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            effectDrawGroundShadow(&pos, 0x200, gRoomEffectState->groundShadowShade);
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
-    work->gunTask  = taskSpawnFromTable(D_actor_511000_801472E8, 1, 8, task);
-    work->propTask = taskSpawnFromTable(D_actor_511000_801472E8, 2, 0xC, task);
+    work->gunTask  = taskSpawnFromTable(D_actor_511000_801472E8, ACTOR_511000_RUPERT_GUN_DESCRIPTOR, ACTOR_511000_RUPERT_GUN_PART, task);
+    work->propTask = taskSpawnFromTable(D_actor_511000_801472E8, ACTOR_511000_RUPERT_PROP_DESCRIPTOR, ACTOR_511000_RUPERT_PROP_PART, task);
     _actor511000BindRupertLighting(task);
     task->msgTable     = D_actor_511000_8014730C;
     task->exitCallback = enemyTaskExit;

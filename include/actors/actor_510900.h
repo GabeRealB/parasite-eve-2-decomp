@@ -3,9 +3,30 @@
 
 #include "main/task_types.h"
 
-void func_actor_510900_80131F24(Task* arg0);
+/// Emits the GOLEM's mode-controlled flame jet and orange transient light.
+///
+/// Bank-6 slot 0x43 borrows its parent's coordinate and owns the EffectWork in
+/// spawnArg2.pointer. The actor supplies modes 0 off, 1 burning, 2 blast,
+/// 3 dying or 4 released in spawnArg1.value; its current controllers never
+/// request blast. Burning grows the size numerator to 256; dying emits flame
+/// while age is below 30 and residual particles while below 60. Adopted particles
+/// share the emitter's task lifetime. Slot 2 is shared light storage: this task
+/// also decrements its lifetime and contracts the inner radius by 400 game
+/// units while above 400, retaining the outer radius. Pausing stops emission;
+/// cancellation disables the light, while released mode frees work and task
+/// even during non-running control. Parent and coordinate body must stay live.
+void actor510900FlameJetTask(Task* task);
 
-void func_actor_510900_801340E8(Task* arg0);
+/// Emits No. 9's muzzle flash, debris streaks, pixel sparks and orange light.
+///
+/// Bank-6 slot 0x44 runs once at the EffectWork's parent-relative position.
+/// Running control emits one impact spark and six pairs of debris/pixel
+/// particles, then places shared transient light slot 3 for four ticks with
+/// inner/outer radii 4000/4800 game units. Every control mode frees the owned
+/// work in spawnArg2.pointer and kills the task on this call. Spawned particles
+/// are independent; the borrowed parent and coordinate body must remain live
+/// through placement and spawning.
+void actor510900MuzzleFlashTask44(Task* task);
 
 /// Draws No. 9's six-cell flame sprite with a fading tail and alternate-frame ground glow.
 ///
@@ -72,8 +93,30 @@ void actor510900FlameSpriteTask59(Task* task);
 /// bytes; non-running calls retain that reservation until the frame resets it.
 void actor510900DebrisStreakTask(Task* task);
 
-void func_actor_510900_8013482C(Task* arg0);
+/// Draws an expanding twelve-frame explosion fireball and optional child copies.
+///
+/// Bank-6 slot 0x184: spawnArg1 bits 0..11 give the size numerator (0 selects
+/// 768), bits 12..15 the ticks per frame (0 selects 2), and bits 24..27 the
+/// parent-basis drift multiplier. With zero drift and a zero high nibble,
+/// initialization adopts animFrame modulo 4 fast children and modulo 2 slow
+/// children at half size. Angles use 4096 units per turn; size grows by its
+/// initial signed-halfword value divided by 128 with an arithmetic shift.
+/// Atlas frames 0..10 last a full period; frame 11 is drawn on the terminating
+/// call. Pausing suppresses
+/// drawing and motion; cancellation or the final frame frees owned work in
+/// spawnArg2.pointer and kills the task. Parent and coordinate body must live
+/// through teardown, and the shared sprite drawer needs its scratch/GTE state.
+void actor510900ExplosionFireballTask184(Task* task);
 
-void func_actor_510900_801346D4(Task* arg0);
+/// Sequences the GOLEM grenade's fireball, main smoke and trailing smoke.
+///
+/// Bank-6 slot 0x185 requires task state 0..4 and a live coordinate body.
+/// Running calls advance the owned EffectWork's age: state 0 adopts a size-1152
+/// fireball, state 1 waits through age 9, state 2 emits main smoke through age
+/// 51, state 3 emits trailing smoke through age 61, and state 4 frees the work
+/// in spawnArg2.pointer and kills the task. State changes emit on the following
+/// call. Smoke tasks are independent; pausing holds the sequence, cancellation
+/// ends it, and finished state also ends while paused.
+void actor510900ExplosionTask185(Task* task);
 
 #endif // INCLUDE_ACTORS_ACTOR_510900_H

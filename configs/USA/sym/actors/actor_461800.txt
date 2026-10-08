@@ -194,3 +194,4 @@ _actorRenderWalkerFrame = 0x80132a0c; // type:func
 _actorRenderWalkerFrameSecond = 0x801335b0; // type:func
 _actor461800FootstepWalkerTask = 0x80133554; // type:func
 _actor461800InitScriptedWalker = 0x80132390; // type:func
+_actor461800ScriptedWalkerTask = 0x801329b0; // type:func

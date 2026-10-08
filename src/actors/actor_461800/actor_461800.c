@@ -97,7 +97,7 @@ static s32  _actor461800SetScriptedWalkerModelDraw(Task* unusedTask, s32 message
 static s32  _actor461800ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* request, s32 unusedArgument);
 static s32  _actor461800SetFootstepWalkerModelDraw(Task* unusedTask, s32 messageId, s32 drawFlags, s32 unusedArgument);
 static s32  _actor461800ApplyFootstepWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* request, s32 unusedArgument);
-void        func_actor_461800_801329B0(Task*);
+static void _actor461800ScriptedWalkerTask(Task* task);
 static void _actor461800ScriptedWalkerAttachmentTask(Task* task);
 static void _actor461800FootstepWalkerTask(Task* task);
 
@@ -448,7 +448,7 @@ TaskMessageEntry D_actor_461800_80139F5C[6] = {
 };
 
 TaskDesc D_actor_461800_80139F8C[3] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_461800_801329B0, { .model = &_gActor461800KyleMadiganBody } },
+    { { { TASK_BODY_TMD, 192 } }, _actor461800ScriptedWalkerTask, { .model = &_gActor461800KyleMadiganBody } },
     { { { TASK_BODY_TMD, 192 } }, _actor461800ScriptedWalkerAttachmentTask, { .model = &_gActor461800HandLeft } },
     { { { TASK_BODY_TMD, 192 } }, _actor461800ScriptedWalkerAttachmentTask, { .model = &_gActor461800HandRight } },
 };
@@ -1256,18 +1256,22 @@ static void _actor461800InitScriptedWalker(Enemy* enemy, Task* task)
 
 #include "../../shared/scripted_walk_update.inc.c"
 
-/// Two-state dispatcher: publishes the task's work block in
-/// `_gScriptedWalkWork` on the way through, then calls the handler its
-/// state selects.
-void func_actor_461800_801329B0(Task* task)
+/// Publishes and dispatches the scripted Kyle walker with two held models.
+///
+/// Task state must be 0 (initialize) or 1 (frame update), with the live enemy in
+/// spawnArg2.pointer and the twenty-part model. Publication precedes dispatch
+/// so singleton animation/message handlers use this task's work. Initialization
+/// replaces the initially NULL publication after allocating owned work; held
+/// models and their borrowed lighting remain live until teardown.
+static void _actor461800ScriptedWalkerTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc handlers[2] = {
         _actor461800InitScriptedWalker,
         _actorRenderWalkerFrame,
     };
 
     _gScriptedWalkWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    handlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.

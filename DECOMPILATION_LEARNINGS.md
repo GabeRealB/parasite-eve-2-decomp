@@ -68272,7 +68272,7 @@ one still has to be written out locally.
 
 A `~` copy can also sit *inside a single overlay*, in a different unit, and then
 it is the overlay's second actor variant rather than a cross-overlay duplicate.
-`func_actor_461800_801329B0` (`actor_461800.c`) and
+`_actor461800ScriptedWalkerTask` (`actor_461800.c`) and
 `_actor461800FootstepWalkerTask` (`actor_461800_2.c`) are the same body differing
 only in the two handler symbols and the global they publish
 (`_gScriptedWalkWork` / `_gFootstepWalkWork`, the two work blocks).
@@ -72307,7 +72307,7 @@ build and only shows up as a wrong `STATIC_ASSERT_SIZEOF` and wrong padding.
 
 **Fix.** Anchor each block to its own allocation before adding a field to it. The
 allocation site names both the size and the owning global:
-`func_actor_444000_80132358` does `memCalloc(0x34, 0)`, stores it in
+`_actor444000IncineratorEventTask` does `memCalloc(0x34, 0)`, stores it in
 `task->work` and publishes that task in `80161860`, while
 `_actor444000Spawn` does `memCalloc(0xF24, 0)` for `80161878`. Those are
 two structs. The family convention for the smaller one is a separate
@@ -77771,7 +77771,7 @@ compiles to. Read the target's table setup before picking between them.
 
 Two-state dispatchers of this exact shape repeat across the actor family, and
 the family's `src/actors/lib/` unit is usually the body already matched -- here
-`ActorsShared80131f9c` and `func_actor_461800_801329B0` both score 1.00 on
+`ActorsShared80131f9c` and `_actor461800ScriptedWalkerTask` both score 1.00 on
 `shape` and `fields`, and the target is byte-identical to them bar the symbol
 names. Reading the sibling rather than the seed took it from a 55% baseline to
 100% in one build. When the dispatcher is *not* already in the lib unit, this is
@@ -96715,7 +96715,7 @@ the store and merges them again.
 
 ## Two back-to-back counted loops: where the second `i = 0` sits decides `slt` vs `beqz`
 
-`func_actor_510900_8013482C` spawns `D_80070F70 & 3` of one effect and then
+`actor510900ExplosionFireballTask184` spawns `D_80070F70 & 3` of one effect and then
 `D_80070F70 & 1` of another. The target guards the two loops differently:
 
 ```
@@ -96804,14 +96804,14 @@ to `_3..10`.
 
 ## `A + (B + CONST)` that must stay grouped: a statement expression, when a local reorders it
 
-`func_actor_510900_80131F24` passes `((rng >> 16) & 0xF0) + (field_24 + 0x10000)`
+`actor510900FlameJetTask` passes `((rng >> 16) & 0xF0) + (scale + ACTOR_510900_FLAME_RANDOM_MOTION)`
 to `effectSpawn`, and the ROM keeps that grouping: the draw is computed first, then
-`lh field_24; lui 1; addu; addu a2,a2,v0`. Neither plain form survives `fold`:
+`lh scale; lui 1; addu; addu a2,a2,v0`. Neither plain form survives `fold`:
 `A + (B + C)` becomes `(A + C) + B` (the value split at `fold-const.c:4349`) and
 `(B + C) + A` becomes `B + (A + C)`.
 
 The two known workarounds both reorder this one. A local holding the sum
-(`p = field_24 + 0x10000;`, or as an assignment inside the argument) is a
+(`p = scale + ACTOR_510900_FLAME_RANDOM_MOTION;`, or as an assignment inside the argument) is a
 `REG_USERVAR_P` pseudo, and sched1 moves the `lh`/`lui` ahead of the draw
 (98.75%). A local holding only the constant (learnings entry "`base | (x | CONST)`")
 left the `lui` early too (98.84%), and assigned once at the top it lives in `$s1`.
@@ -96820,7 +96820,7 @@ A statement expression is opaque to `fold` and expands into ordinary temporaries
 which gave the exact schedule (100%):
 
 ```c
-eff = effectSpawn(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->field_24 + 0x10000; }), ...);
+particle = effectSpawn(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ effect->scale + ACTOR_510900_FLAME_RANDOM_MOTION; }), ...);
 ```
 
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
@@ -98977,7 +98977,7 @@ Input `base_1.c`
 `2241b4184527219a2fc7a2f0fafcecd37048352277f5713805e068a6c58ce8a9` (100.000%,
 zero penalties).
 
-## A scalar stack temp whose address escapes becomes an `addressof` pseudo the allocator pins to `$s0`; an aggregate local rematerialises its address per use instead (func_actor_511000_80132480, 2026-09-16)
+## A scalar stack temp whose address escapes becomes an `addressof` pseudo the allocator pins to `$s0`; an aggregate local rematerialises its address per use instead (_actor511000InitRupert, 2026-09-16)
 
 m2c's `M2C_UNK sp10;` for a local whose address goes to two calls scored 92.945%
 (`regs=11 reorder=1 insert=2 delete=2`). The frame named the local's size before
@@ -102127,7 +102127,7 @@ between the two is the parameter list: `(void* arg2)` in the m2c seed versus
 ## An address-taken local reused across a call ranks above the task pointer and takes `$s0`; reloading it in the source fixes both the reload and the swap
 
 `_actor113000Spawn` is a spawn handler whose shape is the matched
-`func_actor_511000_80132480`. The m2c seed scored 93.912% with the two callee-
+`_actor511000InitRupert`. The m2c seed scored 93.912% with the two callee-
 saved homes swapped (`s0` = `task`, `s1` = `task->extra.tmd` in the target; ours had
 `s1` = `task`, `s0` = the model pointer) and the pointer held across the
 `worldCollisionProjectGroundPoint` call, where the target reloads it:
@@ -102805,12 +102805,13 @@ Inputs: `base.i`
 `base_1.i` `890037663697c5df7b8a5d7d98813212e8453845f3e197d1932469e3e69fd2f3`
 (100.000%).
 
-## An actor spawn-handler seed: retype from a matched sibling before forcing `&local` rematerialization (func_actor_443500_80132078, 2026-09-16)
+## An actor spawn-handler seed: retype from a matched sibling before forcing `&local` rematerialization (_actor443500InitPierce, 2026-09-16)
 
 Every enemy actor's spawn handler is the same shape — `memCalloc` a work block,
-seed its head, `taskSpawnFromTable` a child, copy the location out of the
-session area key onto the child's `TmdObject`, install `Task::msgTable` (the
-`(anim id, handler)` table), `Task::exitCallback` and `Task::state++`. Because
+seed its head, `taskSpawnFromTable` a child, use the session area variant and
+enemy placement index to apply texture offsets to the child's `TmdObject`,
+install `Task::msgTable` (the `(message id, handler)` table), `Task::exitCallback`
+and `Task::state++`. Because
 the shape repeats, a *matched* sibling of your function usually already exists
 in the family, and typing the m2c seed the way that sibling is written is worth
 trying before any register pin or scheduling barrier.
@@ -122064,7 +122065,7 @@ is gone from the build, which the checksum cannot see.
 
 Here `actor_450800`'s `func_actor_450800_801330AC` occupies file 0x128C..0x1444
 and the next unit began at 0x1544, so 0x1444..0x1544 became new unit `_4` (over
-`func_actor_450800_80133264`, a matched C body still sitting in `_3`) and the old
+`_actor450800PawnGolemWalkerTask`, a matched C body still sitting in `_3`) and the old
 `_4`/`_5`/`_6` became `_5`/`_6`/`_7`. `_7` did not exist, so splat created it
 holding `INCLUDE_ASM(_actor450800IgnorePawnGolemCommand)` - a function already matched in
 the file that had just been renumbered away from it.
@@ -127580,7 +127581,7 @@ void f(void) { int key; g(&key); h(&key); }
 
 The ROM shape for the same source is two direct materialisations --
 `addiu $a0,$sp,0x68` at each call and no `move` -- as `func_actor_302600_80165A6C`
-and `func_actor_443500_80132078` show. What buys it back is making the pointer
+and `_actor443500InitPierce` show. What buys it back is making the pointer
 both a use and a definition:
 
 ```c
@@ -139075,7 +139076,7 @@ The spawn-handler entry above found that writing the body in a matched
 sibling's typed form made the CSE'd `&key` pseudo disappear on its own. Here it
 did not: the fully typed body (real `GameLocationKey key`, typed work struct,
 `model = spawned->extra`, the `sessionKey`/`raw`/`areaByte0` ordering of
-`func_actor_443500_80132078`) still scored 91.9% with `move a0, s1` in both
+`_actor443500InitPierce`) still scored 91.9% with `move a0, s1` in both
 argument slots and every other callee-saved register shifted up one. The
 pseudo is formed in CSE regardless of typing; whether it survives depends on
 local-alloc finding a free callee-saved register over the block, and here one
@@ -149948,7 +149949,7 @@ attempts; left as it was.
   round); every `j L; li v0,K` is reorg taking the constant from in front of
   the merged store.
 - **`if (state != 0) { ...; if (work->state != 0) goto skip; } <reset>; skip:`**
-  (`func_actor_444000_80142F28`) is the reset written in both arms,
+  (`_actor444000GluttonTask`) is the reset written in both arms,
   `if (state != 0) { ...; if (work->state == 0) reset(); } else { reset(); }`,
   with the reset a `static inline void`. The first copy is merged into the
   `else` one and the jumps collapse to the image's `bnez skip` falling into

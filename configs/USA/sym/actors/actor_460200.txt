@@ -430,3 +430,5 @@ actor460200SetupTentSoldiers = 0x80132210; // type:func
 actor460200TalkToSoldierC = 0x801322b8; // type:func
 actor460200TalkToSoldierA = 0x80132390; // type:func
 _actor460200NegativeCaptureTask = 0x80131e24; // type:func
+_actor460200SoldierATask = 0x801327b4; // type:func
+_actor460200SoldierBTask = 0x801330c8; // type:func

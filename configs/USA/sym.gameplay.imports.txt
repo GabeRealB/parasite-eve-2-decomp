@@ -2003,9 +2003,9 @@ p229MuzzleFlashTask = 0x8011D1DC; // type:func absolute:True owner=p229 shared=w
 
 mp5a5MuzzleFlashTask = 0x8011D1E0; // type:func absolute:True owner=mp5a5 shared=weapons
 
-func_actor_510900_80131F24 = 0x80131F24; // type:func absolute:True owner=actor_510900
+actor510900FlameJetTask = 0x80131F24; // type:func absolute:True owner=actor_510900
 
-func_actor_510900_801340E8 = 0x801340E8; // type:func absolute:True owner=actor_510900
+actor510900MuzzleFlashTask44 = 0x801340E8; // type:func absolute:True owner=actor_510900
 
 actor510900FlameSpriteTask45 = 0x80132D4C; // type:func absolute:True owner=actor_510900
 
@@ -2055,9 +2055,9 @@ m4a1HammerImpactFlashTask = 0x8011DD08; // type:func absolute:True owner=m4a1_ha
 
 m4a1JavelinContactFlashTask = 0x8011F4E8; // type:func absolute:True owner=m4a1_javelin
 
-func_actor_510900_8013482C = 0x8013482C; // type:func absolute:True owner=actor_510900
+actor510900ExplosionFireballTask184 = 0x8013482C; // type:func absolute:True owner=actor_510900
 
-func_actor_510900_801346D4 = 0x801346D4; // type:func absolute:True owner=actor_510900
+actor510900ExplosionTask185 = 0x801346D4; // type:func absolute:True owner=actor_510900
 
 gunbladeTrailTask = 0x8011D1E4; // type:func absolute:True owner=gunblade shared=weapons
 

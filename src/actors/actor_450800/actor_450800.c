@@ -161,7 +161,7 @@ static s32 _actor450800SetKyleMadiganWalkTarget(Task* task, s32 messageId, const
 static TmdSource _gActor450800PawnGolemBody;
 static TmdSource _gActor450800GolemBeamSword;
 static s32       _actor450800IgnorePawnGolemCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
-void             func_actor_450800_80133264(Task*);
+static void      _actor450800PawnGolemWalkerTask(Task* task);
 
 extern AnimationPlayRequest D_actor_450800_80139560;
 extern AnimationPlayRequest D_actor_450800_80139628;
@@ -2624,7 +2624,7 @@ TaskMessageEntry gPairWalkMessages[6] = {
 };
 
 TaskDesc gPairWalkTasks[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_450800_80133264, { .model = &_gActor450800PawnGolemBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor450800PawnGolemWalkerTask, { .model = &_gActor450800PawnGolemBody } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _pairWalkSubModelTask, { .model = &_gActor450800GolemBeamSword } },
 };
 
@@ -3310,11 +3310,17 @@ static s32 _actor450800SetKyleMadiganWalkTarget(Task* task, s32 messageId, const
 
 #include "../../shared/pair_walk_update_model.inc.c"
 
-void func_actor_450800_80133264(Task* task)
+/// Dispatches the scripted Pawn GOLEM walker and its carried Beam Sword.
+///
+/// Task state must be 0 (initialize) or 1 (frame update), with a live enemy in
+/// spawnArg2.pointer and the nineteen-part descriptor model. Initialization
+/// owns the walker work and child task; frame updates use the pair-walk motion
+/// and animation state with this carrier's lighting and ground shadow.
+static void _actor450800PawnGolemWalkerTask(Task* task)
 {
-    EnemyTaskFunc fns[2] = { _pairWalkSpawn, _actorRenderWalkerFrameSecond };
+    EnemyTaskFunc handlers[2] = { _pairWalkSpawn, _actorRenderWalkerFrameSecond };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    handlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.

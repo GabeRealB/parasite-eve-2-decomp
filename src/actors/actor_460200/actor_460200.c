@@ -100,7 +100,7 @@ static void _pacedWalkBlendSoldierCAnim(Task* task);
 
 static TmdSource _gActor460200SoldierBRifle;
 static TmdSource _gActor460200SoldierBBody;
-void             func_actor_460200_801330C8(Task*);
+static void      _actor460200SoldierBTask(Task* task);
 
 static s32 _pacedWalkPlaceSoldierB(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 static s32 _strideWalkSetTurnMode(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
@@ -121,7 +121,7 @@ extern AnimationPlayRequest D_actor_460200_801360A4;
 extern AnimationPlayRequest D_actor_460200_801360B8;
 extern AnimationPlayRequest D_actor_460200_801360CC;
 static s32                  _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
-void                        func_actor_460200_801327B4(Task*);
+static void                 _actor460200SoldierATask(Task* task);
 
 extern AnimationPlayRequest D_actor_460200_80135EB0;
 extern AnimationPlayRequest D_actor_460200_80135EC4;
@@ -1305,7 +1305,7 @@ TaskMessageEntry gPacedWalkMsgTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_460200_8013FC80 = { { { TASK_BODY_TMD, 96 } }, func_actor_460200_801327B4, { .model = &_gActor460200SoldierABody } };
+TaskDesc D_actor_460200_8013FC80 = { { { TASK_BODY_TMD, 96 } }, _actor460200SoldierATask, { .model = &_gActor460200SoldierABody } };
 
 AnimationSet* gPacedWalkAnimBank[16] = {
     NULL,
@@ -1657,7 +1657,7 @@ TaskMessageEntry gStrideWalkMessages[6] = {
 };
 
 TaskDesc gStrideWalkTasks[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_460200_801330C8, { .model = &_gActor460200SoldierBBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor460200SoldierBTask, { .model = &_gActor460200SoldierBBody } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _strideWalkSubModelTask, { .model = &_gActor460200SoldierBRifle } },
 };
 
@@ -2296,11 +2296,16 @@ void actor460200TalkToSoldierA(void)
 
 #include "../../shared/paced_walk_update.inc.c"
 
-void func_actor_460200_801327B4(Task* task)
+/// Dispatches Soldier A's paced scripted walk.
+///
+/// Task state must be 0 (initialize) or 1 (frame update), with the live enemy in
+/// spawnArg2.pointer and the twenty-part descriptor model. The paced-walk
+/// handlers own work allocation, motion, animation and teardown.
+static void _actor460200SoldierATask(Task* task)
 {
-    EnemyTaskFunc fns[2] = { _pacedWalkSpawn, _pacedWalkFrame };
+    EnemyTaskFunc handlers[2] = { _pacedWalkSpawn, _pacedWalkFrame };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    handlers[task->state](task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/paced_walk_spawn.inc.c"
@@ -2367,11 +2372,17 @@ static s32 _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand*
 #undef PACED_WALK_RESET_ANIM
 #undef PACED_WALK_TICK_ANIM
 
-void func_actor_460200_801330C8(Task* task)
+/// Dispatches Soldier B's stride walk with an optional carried rifle.
+///
+/// Task state must be 0 (initialize) or 1 (frame update), with the live enemy in
+/// spawnArg2.pointer and the twenty-part descriptor model. Nonzero spawnArg1
+/// requests the rifle child and armed animation; the stride handlers own work
+/// and child lifetimes.
+static void _actor460200SoldierBTask(Task* task)
 {
-    EnemyTaskFunc fns[2] = { _strideWalkSpawn, _strideWalkFrame };
+    EnemyTaskFunc handlers[2] = { _strideWalkSpawn, _strideWalkFrame };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    handlers[task->state](task->spawnArg2.pointer, task);
 }
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondFixedWalkerGroundShadow

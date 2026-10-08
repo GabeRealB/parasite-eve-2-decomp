@@ -602,8 +602,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, p229MuzzleFlashTask, { NULL } },                                                    // 0x040
     { { { TASK_BODY_COORD, 0x70 } }, mp5a5MuzzleFlashTask, { NULL } },                                                   // 0x041
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask42, { NULL } },                                                     // 0x042
-    { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_80131F24, { NULL } },                                             // 0x043
-    { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801340E8, { NULL } },                                             // 0x044
+    { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameJetTask, { NULL } },                                                // 0x043
+    { { { TASK_BODY_COORD, 0x70 } }, actor510900MuzzleFlashTask44, { NULL } },                                           // 0x044
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask45, { NULL } },                                           // 0x045
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask46, { NULL } },                                                     // 0x046
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSquareBeaconGlowTask, { NULL } },                                          // 0x047
@@ -923,8 +923,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, actor800100PykeFlameTask, { NULL } },                                               // 0x181
     { { { TASK_BODY_COORD, 0x70 } }, m4a1HammerImpactFlashTask, { NULL } },                                              // 0x182
     { { { TASK_BODY_COORD, 0x70 } }, m4a1JavelinContactFlashTask, { NULL } },                                            // 0x183
-    { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_8013482C, { NULL } },                                             // 0x184
-    { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801346D4, { NULL } },                                             // 0x185
+    { { { TASK_BODY_COORD, 0x70 } }, actor510900ExplosionFireballTask184, { NULL } },                                    // 0x184
+    { { { TASK_BODY_COORD, 0x70 } }, actor510900ExplosionTask185, { NULL } },                                            // 0x185
     { { { TASK_BODY_COORD, 0x70 } }, gunbladeTrailTask, { NULL } },                                                      // 0x186
     { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathWaterDriftTaskU16, { NULL } },                                    // 0x187
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseTwinTrailTask, { NULL } },                                  // 0x188

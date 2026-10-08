@@ -532,12 +532,12 @@ static void _actor510900ExitBlastSource(Task* task);
 extern s16 D_actor_510900_80167990[];
 extern s16 D_actor_510900_801679B0[];
 
-void        func_actor_510900_8013B3D0(Task*);
+static void _actor510900BodyTask(Task* task);
 static void _actor510900PropTask(Task* task);
 static void _actor510900WeaponTask(Task* task);
 static void _actor510900ChestModelTask(Task* task);
 static void _actor510900GrenadeTask(Task* task);
-void        func_actor_510900_8013C1EC(Task*);
+static void _actor510900HelipadLightTask(Task* task);
 static void _actor510900BlastSourceTask(Task* task);
 
 DamageAttack D_actor_510900_8016796C[5] = {
@@ -634,12 +634,12 @@ s16 D_actor_510900_80167A10[4] = {
 };
 
 TaskDesc D_actor_510900_80167A18[7] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013B3D0, { .model = &gActor510900No9GolemAkropolisBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor510900BodyTask, { .model = &gActor510900No9GolemAkropolisBody } },
     { { { TASK_BODY_TMD, 96 } }, _actor510900PropTask, { .model = &gActor510900No9GolemAkropolisProp } },
     { { { TASK_BODY_TMD, 96 } }, _actor510900WeaponTask, { .model = &gActor510900Model0FE60 } },
     { { { TASK_BODY_TMD, 96 } }, _actor510900ChestModelTask, { .model = &gActor510900Model10468 } },
     { { { TASK_BODY_TMD, 96 } }, _actor510900GrenadeTask, { .model = &gActor510900GolemGrenade } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C1EC, { .model = &gActor510900Model10C8C } },
+    { { { TASK_BODY_TMD, 96 } }, _actor510900HelipadLightTask, { .model = &gActor510900Model10C8C } },
     { { { TASK_BODY_COORD, 96 } }, _actor510900BlastSourceTask, { .value = 0 } },
 };
 
@@ -3949,11 +3949,16 @@ static void _actor510900TickBlastSourcePhases(Task* task)
     }
 }
 
-void func_actor_510900_8013B3D0(Task* task)
+/// Dispatches the Akropolis No. 9 GOLEM body's initialization and frame update.
+///
+/// Task state must be 0 (initialize) or 1 (update), with a live enemy in
+/// spawnArg2.pointer and the nineteen-part descriptor model. The handlers
+/// own body work, collision registrations, attachments and adopted effects.
+static void _actor510900BodyTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = { actor510900InitBody, _actor510900TickBody };
+    EnemyTaskFunc handlers[2] = { actor510900InitBody, _actor510900TickBody };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    handlers[task->state](task->spawnArg2.pointer, task);
 }
 
 void actor510900SetExtraGridFace(s32 enabled)
@@ -4513,14 +4518,20 @@ static void _actor510900GrenadeTask(Task* task)
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-void func_actor_510900_8013C1EC(Task* task)
+/// Dispatches a destructible helipad light's initialization and frame update.
+///
+/// Task state must be 0 (initialize) or 1 (update), with a live light enemy in
+/// spawnArg2.pointer, its descriptor model and the parent GOLEM task. The first
+/// spawn argument is the light index 0..2. Work, collision bodies and adopted
+/// sparks remain owned by the light task until teardown.
+static void _actor510900HelipadLightTask(Task* task)
 {
-    EnemyTaskFunc fns[2] = {
+    EnemyTaskFunc handlers[2] = {
         _actor510900InitHelipadLight,
         _actor510900TickHelipadLight,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    handlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Returns one when a helipad light runs in the current mapped camera view.

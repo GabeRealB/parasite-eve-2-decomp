@@ -527,3 +527,5 @@ _actor444000ResumeLimbAnimationState = 0x80140e28; // type:func
 _actor444000SummonState = 0x80141618; // type:func
 _actor444000IdleState = 0x80143f4c; // type:func
 _actor444000Tick = 0x801423c4; // type:func
+_actor444000IncineratorEventTask = 0x80132358; // type:func
+_actor444000GluttonTask = 0x80142f28; // type:func

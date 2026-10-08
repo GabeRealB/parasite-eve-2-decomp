@@ -75,7 +75,7 @@ typedef struct {
 } _Actor443500PierceCarradineWork;
 STATIC_ASSERT_SIZEOF(_Actor443500PierceCarradineWork, 0x4C4);
 
-static void func_actor_443500_80132078(Task* task);
+static void _actor443500InitPierce(Task* task);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void _actor443500TickPierce(Task* task);
 static void _actor443500ExitPierce(Task* task);
@@ -94,7 +94,7 @@ static const TaskFuncTable3 D_actor_443500_80131E24 = {
 /// State table of the actor's main task (`TaskDesc` entry 0): the spawn
 /// handler, the per-frame tick and the exit callback.
 static const TaskFuncTable3 D_actor_443500_80131E30 = {
-    { func_actor_443500_80132078, _actor443500TickPierce, _actor443500ExitPierce }
+    { _actor443500InitPierce, _actor443500TickPierce, _actor443500ExitPierce }
 };
 
 extern TaskDesc D_actor_443500_80140E38;
@@ -171,7 +171,7 @@ static void                     _actor443500RunPowerPlantProgressCap(void);
 static void                     _actor443500OpenTimedMapTerminal(void);
 static void                     _actor443500StartFadeFromBlack(void);
 static void                     _actor443500StartCapCommand5(s16 variantKey);
-void                            func_actor_443500_80132048(void);
+static void                     _actor443500ApplyShelterAreaUpdates(void);
 static void                     _actor443500SetSceneEvent(s8 sceneEvent);
 
 static AnimationSet _gActor443500Animation010D0;
@@ -1459,7 +1459,7 @@ EvsCommand D_actor_443500_80142C24[73] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_443500_80141444 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_443500_80132048 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor443500ApplyShelterAreaUpdates }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1480,7 +1480,7 @@ EvsCommand D_actor_443500_801432FC[17] = {
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_443500_80132048 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor443500ApplyShelterAreaUpdates }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -2519,10 +2519,12 @@ static void _actor443500StartCapCommand5(s16 variantKey)
     capStartSequenceSlot(ACTOR_443500_CAP_VARIANT_COMMAND, CAP_PLAYBACK_DISPLAY_TRANSITION, variantKey);
 }
 
-/// Applies the 0xFF-terminated area record list at `D_shelter_r47_8018A638` through
-/// `areaApplySavedUpdates`. It is reached only through the function pointers in
-/// the actor's data.
-void func_actor_443500_80132048(void)
+/// Applies the Shelter saved-area layouts and map marks after the Pierce event.
+///
+/// Requires the loaded room-47 record list, live save and saved-area tables.
+/// Accepted records also discard saved enemy poses; save-mode policies select
+/// the appropriate layouts. Used by both normal and skip event scripts.
+static void _actor443500ApplyShelterAreaUpdates(void)
 {
     areaApplySavedUpdates(D_shelter_r47_8018A638);
 }
@@ -2536,24 +2538,48 @@ static void _actor443500SetSceneEvent(s8 sceneEvent)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }
 
-/// Spawn handler: allocates the work block, seeds its head from the parent
-/// model, starts the actor's child task and copies the location it spawns over
-/// from the session key onto that child's model, then installs the animation
-/// table, the exit callback and the tick handler.
-static void func_actor_443500_80132078(Task* task)
+/// Applies a held model's placement texture offsets to both primitive-buffer halves.
+///
+/// Both borrowed pointers, model source and existing buffer capacities must
+/// stay live through this call; a NULL buffer changes only the stored offsets.
+static inline void _actor443500ApplyPiercePlacementTextures(TmdObject* model, const AreaPlacement* placement)
 {
-    _Actor443500PierceCarradineWork* work;
-    GameLocationKey                  key;
-    GameLocationKey*                 sessionKey;
-    u8                               areaByte0;
-    AreaVariant*                     layout;
-    AreaPlacement*                   entry;
-    TmdObject*                       model;
-    Task*                            spawned;
-    s32                              idx;
-    u32                              raw;
+    model->texturePageOffset = placement->texturePageOffset;
+    model->clutRowOffset     = placement->clutRowOffset;
+    if (model->buffer != NULL) {
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
+    }
+}
 
-    work = memCalloc(sizeof(_Actor443500PierceCarradineWork), 0);
+/// Initializes Pierce's hidden body, held model and animation messages.
+///
+/// Requires the twenty-part body and live owning enemy in spawnArg2.pointer.
+/// Allocates primary-heap work owned by the task; allocation failure tears down
+/// the enemy. An optional held-model child at part 4 inherits texture offsets
+/// from the enemy's area placement. Work-owned lighting survives until teardown;
+/// initial animation, messages and exit handling are installed before state 1.
+static void _actor443500InitPierce(Task* task)
+{
+    enum {
+        ACTOR_443500_PIERCE_CHILD_DESCRIPTOR  = 1,
+        ACTOR_443500_PIERCE_CHILD_PART        = 4,
+        ACTOR_443500_PIERCE_NO_BUFFER_RELEASE = -1,
+    };
+
+    _Actor443500PierceCarradineWork* work;
+    GameLocationKey                  locationKey;
+    const GameLocationKey*           sessionLocation;
+    u8                               viewIndex;
+    AreaVariant*                     areaVariant;
+    AreaPlacement*                   placement;
+    TmdObject*                       heldModel;
+    Task*                            childTask;
+    s32                              placementIndex;
+    u32                              placementKey;
+    Enemy*                           enemy;
+
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
@@ -2561,30 +2587,25 @@ static void func_actor_443500_80132078(Task* task)
     task->work            = work;
     work->model.animId    = ACTOR_MODEL_STATE_NONE;
     work->model.bank      = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown   = -1;
+    work->freeCountdown   = ACTOR_443500_PIERCE_NO_BUFFER_RELEASE;
     work->savedModelFlags = task->extra.tmd->flags;
-    spawned               = taskSpawnFromTable(D_actor_443500_8015873C, 1, 4, task);
-    if (spawned != NULL) {
-        sessionKey = &gGameSession->location.loc;
-        raw        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
-        model      = spawned->extra.tmd;
-        key.stage  = sessionKey->stage;
-        key.area   = sessionKey->area;
-        key.room   = sessionKey->room;
-        areaByte0  = sessionKey->view;
-        idx        = raw >> 12;
-        key.view   = areaByte0;
-        areaSyncLocationVariant(&key);
-        layout = areaGetVariant(&key);
-        /* offset + base, not `&layout->placements[idx]`: the ROM adds the scaled
-           index onto the table (`addu s0, s0, v0`). */
-        entry                    = gpAreaPlaceAt(layout->placements, idx);
-        model->texturePageOffset = entry->texturePageOffset;
-        model->clutRowOffset     = entry->clutRowOffset;
-        if (model->buffer != NULL) {
-            tmdBuildBufferHalf(model);
-            tmdBuildBufferHalf(model);
-        }
+    childTask             = taskSpawnFromTable(D_actor_443500_8015873C, ACTOR_443500_PIERCE_CHILD_DESCRIPTOR, ACTOR_443500_PIERCE_CHILD_PART, task);
+    if (childTask != NULL) {
+        sessionLocation   = &gGameSession->location.loc;
+        enemy             = task->spawnArg2.pointer;
+        placementKey      = enemy->placeKey;
+        heldModel         = childTask->extra.tmd;
+        locationKey.stage = sessionLocation->stage;
+        locationKey.area  = sessionLocation->area;
+        locationKey.room  = sessionLocation->room;
+        viewIndex         = sessionLocation->view;
+        placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;
+        locationKey.view  = viewIndex;
+        areaSyncLocationVariant(&locationKey);
+        areaVariant = areaGetVariant(&locationKey);
+        // The held model inherits its owner's area-placement texture offsets.
+        placement = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+        _actor443500ApplyPiercePlacementTextures(heldModel, placement);
     }
     _actor443500SetModelDraw(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);
     _actor443500PlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_443500_80158728, 0);

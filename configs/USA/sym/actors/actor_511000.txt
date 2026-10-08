@@ -177,3 +177,5 @@ _actor511000PlayNo9GolemAnimation = 0x80133dec; // type:func
 _actor511000SetNo9GolemModelDraw = 0x80133eac; // type:func
 _actor511000BindRupertLighting = 0x801325a4; // type:func
 _actor511000BindHelicopterLighting = 0x801337f0; // type:func
+_actor511000TickRupert = 0x80131e78; // type:func
+_actor511000InitRupert = 0x80132480; // type:func

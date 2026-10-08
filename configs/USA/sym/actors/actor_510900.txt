@@ -264,9 +264,9 @@ D_acropolis_helicopter_landing_pad_80187D34 = 0x80187D34; // absolute:True owner
 
 D_acropolis_helicopter_landing_pad_80187D3C = 0x80187D3C; // absolute:True owner=acropolis_helicopter_landing_pad
 
-func_actor_510900_80131F24 = 0x80131F24; // type:func
+actor510900FlameJetTask = 0x80131F24; // type:func
 
-func_actor_510900_801340E8 = 0x801340E8; // type:func
+actor510900MuzzleFlashTask44 = 0x801340E8; // type:func
 
 actor510900FlameSpriteTask45 = 0x80132D4C; // type:func
 
@@ -278,9 +278,9 @@ actor510900FlameSpriteTask59 = 0x80133C84; // type:func
 
 actor510900DebrisStreakTask = 0x80134284; // type:func
 
-func_actor_510900_8013482C = 0x8013482C; // type:func
+actor510900ExplosionFireballTask184 = 0x8013482C; // type:func
 
-func_actor_510900_801346D4 = 0x801346D4; // type:func
+actor510900ExplosionTask185 = 0x801346D4; // type:func
 actorMsgPlaceRotMatrix = 0x8013BE00; // type:func
 _no9GolemAimHead = 0x80138BF0; // type:func
 _no9GolemDrawShadow = 0x8013BBE4; // type:func
@@ -348,3 +348,5 @@ _actor510900UpdateHelipadLightLighting = 0x8013c338; // type:func
 actor510900InitBody = 0x801350f8; // type:func
 _actor510900TickHelipadLight = 0x8013a85c; // type:func
 _actor510900TickBody = 0x8013b658; // type:func
+_actor510900BodyTask = 0x8013b3d0; // type:func
+_actor510900HelipadLightTask = 0x8013c1ec; // type:func

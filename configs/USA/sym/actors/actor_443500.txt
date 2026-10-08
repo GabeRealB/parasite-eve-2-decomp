@@ -478,3 +478,5 @@ _actor443500InstallPierceCollision = 0x80132a68; // type:func
 _actor443500TickPierce = 0x801321f0; // type:func
 _actor443500ChildModelTask = 0x8013253c; // type:func
 _actor443500PierceTask = 0x80132738; // type:func
+_actor443500ApplyShelterAreaUpdates = 0x80132048; // type:func
+_actor443500InitPierce = 0x80132078; // type:func

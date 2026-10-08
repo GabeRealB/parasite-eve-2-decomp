@@ -513,3 +513,4 @@ _actor450800SetNurseryEffectCues = 0x80131f70; // type:func
 _actor450800SpawnKyleMadigan = 0x80132160; // type:func
 _actor450800KyleMadiganTask = 0x80132790; // type:func
 _actor450800ApplyKyleMadiganGunCommand = 0x80132ce0; // type:func
+_actor450800PawnGolemWalkerTask = 0x80133264; // type:func

@@ -539,10 +539,10 @@ static void _actor444000EventBroadcastCommand(s16 command);
 static void _actor444000EventEndBattleOnce(void);
 static void _actor444000EventRequestPlayerAction(s16 action);
 
-void func_actor_444000_80142F28(Task*);
+static void _actor444000GluttonTask(Task* task);
 
 static void _actor444000EventUpdateDescentRoom(s32 updateMode);
-void        func_actor_444000_80132358(Task*);
+static void _actor444000IncineratorEventTask(Task* task);
 
 static AnimationPackedPose _gActor444000Animation124C4Bank1[6] = {
 #include "assets/actor_444000_animation_124C4_bank1.inc"
@@ -658,7 +658,7 @@ EvsCommand D_actor_444000_8014488C[15] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_actor_444000_801449F4 = { { { TASK_BODY_NONE, 192 } }, func_actor_444000_80132358, { .value = 0 } };
+TaskDesc D_actor_444000_801449F4 = { { { TASK_BODY_NONE, 192 } }, _actor444000IncineratorEventTask, { .value = 0 } };
 
 DamageAttack D_actor_444000_80144A00[6] = {
     { 0, 0 },
@@ -2746,7 +2746,7 @@ TaskMessageEntry D_actor_444000_80161818[7] = {
 
 s16 D_actor_444000_80161850 = 0;
 
-TaskDesc D_actor_444000_80161854 = { { { TASK_BODY_TMD, 96 } }, func_actor_444000_80142F28, { .model = &gActor444000Actor403200Model10824 } };
+TaskDesc D_actor_444000_80161854 = { { { TASK_BODY_TMD, 96 } }, _actor444000GluttonTask, { .model = &gActor444000Actor403200Model10824 } };
 
 Task* D_actor_444000_80161860 = NULL;
 
@@ -2951,25 +2951,51 @@ static void _actor444000EventUpdateDescentRoom(s32 updateMode)
     }
 }
 
-/// Task body of the overlay's event/controller task, run once per frame while
-/// the session is not paused (`GameSession::sceneUpdatesPaused`), the attachment wheel is closed
-/// (`Gp_StateC08.menuOpen`) and the battle state is not frozen
-/// (`gSceneCombatState.actorControl`).
+/// Ends combat and selects event music once, retaining the supplied latch value.
 ///
-/// State 0 allocates the `_Actor444000EventWork` block and publishes the task in
-/// `D_actor_444000_80161860`; a task spawned with `spawnArg1` set jumps
-/// straight to state 3, otherwise it advances one state at a time. State 1
-/// counts 0x2BD frames and then arms the death/ending sequence once. State 2
-/// counts 0x15 frames and hands off to the follow-up task table. State 3 waits
-/// for the room to settle, spawns the successor from `D_shelter_b3_garbage_incinerator_80187150` and kills
-/// this task.
-void func_actor_444000_80132358(Task* task)
+/// Requires live work, session and save; the caller supplies its state latch.
+static inline void _actor444000EndEventCombat(_Actor444000EventWork* work, s32 completionLatch)
 {
+    enum {
+        ACTOR_444000_EVENT_BATTLE_END_DELAY_FRAMES = 15,
+        ACTOR_444000_EVENT_SCENE_MUSIC             = 13,
+    };
+    if (work->combatReset == 0) {
+        gSceneCombatState.battleRefs                        = 0;
+        gSceneCombatState.signals.bytes.endDelayFrames      = ACTOR_444000_EVENT_BATTLE_END_DELAY_FRAMES;
+        gSceneCombatState.signals.bytes.battlePhase         = SCENE_COMBAT_BATTLE_IDLE;
+        gSceneCombatState.signals.bytes.actionFlags         = 0;
+        gSceneCombatState.signals.bytes.enemyAlert          = 0;
+        gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACTOR_444000_EVENT_SCENE_MUSIC;
+        work->combatReset                                   = completionLatch;
+    }
+}
+
+/// Runs the incinerator post-boss event and hands control back to the room.
+///
+/// Updates stop while scene, menu or actor control is paused. Task states 0..3
+/// allocate/publish work, wait 701 active ticks to end combat, wait another
+/// 21 ticks to start the ending script, then await script completion. A nonzero
+/// first spawn argument instead starts the descent script directly. Requires
+/// loaded incinerator resources and successful event-work allocation; the
+/// retained failure path kills the task but still reaches the callback tail.
+static void _actor444000IncineratorEventTask(Task* task)
+{
+    enum {
+        ACTOR_444000_EVENT_INITIALIZE         = 0,
+        ACTOR_444000_EVENT_WAIT_BATTLE_END    = 1,
+        ACTOR_444000_EVENT_WAIT_ENDING        = 2,
+        ACTOR_444000_EVENT_WAIT_SCRIPT        = 3,
+        ACTOR_444000_EVENT_BATTLE_WAIT_FRAMES = 0x2BD,
+        ACTOR_444000_EVENT_ENDING_WAIT_FRAMES = 21,
+    };
+
     _Actor444000EventWork* work = task->work;
-    _Actor444000EventWork* alloc;
-    _Actor444000EventWork* published;
-    s32                    state;
-    s16                    timer;
+    _Actor444000EventWork* allocatedWork;
+    _Actor444000EventWork* eventWork;
+    s32                    eventState;
+    s16                    nextTick;
 
     if (gGameSession->sceneUpdatesPaused != 0) {
         return;
@@ -2981,22 +3007,22 @@ void func_actor_444000_80132358(Task* task)
         return;
     }
 
-    state = task->state;
-    switch (state) {
-        case 0:
+    eventState = task->state;
+    switch (eventState) {
+        case ACTOR_444000_EVENT_INITIALIZE:
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
                 return;
             }
             if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            alloc      = memCalloc(sizeof(*alloc), false);
-            task->work = alloc;
-            if (alloc == NULL) {
+            allocatedWork = memCalloc(sizeof(*allocatedWork), false);
+            task->work    = allocatedWork;
+            if (allocatedWork == NULL) {
                 taskKill(task);
             } else {
-                memFillBytes(alloc, 0, sizeof(*alloc));
-                alloc->player           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));
+                allocatedWork->player   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_actor_444000_80161860 = task;
             }
             if (task->spawnArg1.value != 0) {
@@ -3004,41 +3030,34 @@ void func_actor_444000_80132358(Task* task)
                 work->savedView = gGameSession->location.loc.view;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 evsStartScriptWithSkip(D_actor_444000_80144634, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_444000_8014488C);
-                task->state = 3;
+                task->state = ACTOR_444000_EVENT_WAIT_SCRIPT;
             } else {
                 task->state += 1;
             }
             break;
-        case 1:
-            timer               = (u16)task->killCountdown + 1;
-            task->killCountdown = timer;
-            if (timer >= 0x2BD) {
+        case ACTOR_444000_EVENT_WAIT_BATTLE_END:
+            // End combat once before beginning the post-boss script.
+            nextTick            = (u16)task->killCountdown + 1;
+            task->killCountdown = nextTick;
+            if (nextTick >= ACTOR_444000_EVENT_BATTLE_WAIT_FRAMES) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                published = D_actor_444000_80161860->work;
-                if (published->combatReset == 0) {
-                    gSceneCombatState.battleRefs                        = 0;
-                    gSceneCombatState.signals.bytes.endDelayFrames      = 0xF;
-                    gSceneCombatState.signals.bytes.battlePhase         = SCENE_COMBAT_BATTLE_IDLE;
-                    gSceneCombatState.signals.bytes.actionFlags         = 0;
-                    gSceneCombatState.signals.bytes.enemyAlert          = 0;
-                    gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xD;
-                    published->combatReset                              = state;
-                }
+                eventWork = D_actor_444000_80161860->work;
+                _actor444000EndEventCombat(eventWork, eventState);
                 task->killCountdown = 0;
                 task->state        += 1;
             }
             break;
-        case 2:
-            timer               = (u16)task->killCountdown + 1;
-            task->killCountdown = timer;
-            if (timer >= 0x15) {
+        case ACTOR_444000_EVENT_WAIT_ENDING:
+            nextTick            = (u16)task->killCountdown + 1;
+            task->killCountdown = nextTick;
+            if (nextTick >= ACTOR_444000_EVENT_ENDING_WAIT_FRAMES) {
                 work->savedView = gGameSession->location.loc.view;
                 evsStartScriptWithSkip(D_actor_444000_8014431C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_444000_801444E4);
                 task->state += 1;
             }
             break;
-        case 3:
+        case ACTOR_444000_EVENT_WAIT_SCRIPT:
+            // Hand the settled room back to its incinerator controller.
             if (gGameSession->eventState == 0) {
                 D_shelter_b3_garbage_incinerator_801855DE = 0;
                 gGameSession->sceneClock                  = D_shelter_b3_garbage_incinerator_8018FBC8[0];
@@ -6707,48 +6726,45 @@ static inline void _actor444000ResetWallHeights(void)
     vertices[31].vy = ACTOR_444000_RESET_WALL_BOTTOM_Y;
 }
 
-/// Per-frame tail of the arena fight: keeps the camera pulled back far enough
-/// to hold both the boss and the player, then runs the state the task is in.
+/// Maintains Glutton's moving collision walls and player bounds before task dispatch.
 ///
-/// `wallDistance` is the camera distance actually in use and `wallDistanceTarget` the one
-/// the current state asks for -- 0xBB8 while the boss is grappling (state 3),
-/// 0xD48 for the close patterns and 0x1388 otherwise -- walked 0x32 per frame
-/// until the two are within 0x33 of each other. `wallDrop` is the companion
-/// height the floor-marker helpers take.
-///
-/// Most states hand that pair to `_gluttonBuildWall`, which rebuilds
-/// grid quad 6 as a wall in front of the boss. The exception is pattern 1 in state 9: it uses
-/// `_actor444000BuildCornerWalls` instead, floors the player's own x at 0x2CEC,
-/// and pushes the player back by the boss part's world-space Z less 0x7D0 --
-/// part 4 of the boss model carried up the coordinate chain by
-/// `_actorRenderTransformLocalPointToWorld`. Whether the camera distance is
-/// then added to x or subtracted from z is the same split: patterns other than
-/// 1-in-state-9 widen x, the rest pull z in, and pattern 2 additionally floors z at 0x251C.
-///
-/// States 0, 5, 0xC, 0x12 and 0x13 skip all of that. State 0 -- and any state
-/// the calls above dropped back to 0 -- also resets the two floor quads
-/// `Gp_GridParams` keeps at vertices 24..31 to their default heights, and
-/// state 5 still wants the marker.
-///
-/// The dispatch table is a local: `Task::state` picks the spawn state, this
-/// tick, or `enemyDestroy`.
-void func_actor_444000_80142F28(Task* arg0)
+/// Requires the live enemy, player and writable incinerator collision grid;
+/// task states 0..2 select initialization, frame update or destruction.
+/// Existing work chooses a wall lead in game-coordinate units and approaches
+/// it by 50 per call. Active fight phases rebuild wall X/Z and constrain the
+/// player; dormant state restores only vertices 24..31's wall endpoint heights.
+/// Phase 2 retains the original X-tested assignment to the player's Z.
+static void _actor444000GluttonTask(Task* task)
 {
-    void (*handlers[3])(Enemy*, Task*) = {
+    enum {
+        ACTOR_444000_WALL_INHALE_DISTANCE  = 3000,
+        ACTOR_444000_WALL_CLOSE_DISTANCE   = 3400,
+        ACTOR_444000_WALL_FAR_DISTANCE     = 5000,
+        ACTOR_444000_WALL_DROP             = 400,
+        ACTOR_444000_WALL_DISTANCE_STEP    = 50,
+        ACTOR_444000_WALL_SNAP_DISTANCE    = 51,
+        ACTOR_444000_CORNER_MIN_PLAYER_X   = 11500,
+        ACTOR_444000_CORNER_PLAYER_Z_LEAD  = 2000,
+        ACTOR_444000_PHASE2_PLAYER_Z_LIMIT = 0x251C,
+        ACTOR_444000_DYNAMIC_WALL_FACE     = 6,
+        ACTOR_444000_WALL_REFERENCE_PART   = 4,
+    };
+
+    EnemyTaskFunc handlers[3] = {
         _actor444000Spawn,
         _actor444000Tick,
         enemyDestroy,
     };
-    SVECTOR      result;
+    SVECTOR      bossPartPosition;
     GluttonWork* work;
     Enemy*       enemy;
     Task*        player;
-    s32          diff;
-    s16          state;
+    s32          distanceError;
+    s16          fightState;
 
-    enemy  = arg0->spawnArg2.pointer;
+    enemy  = task->spawnArg2.pointer;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    work   = arg0->work;
+    work   = task->work;
     if (work != NULL) {
         if (work->summons[0] != NULL && work->summons[0]->hp <= 0) {
             work->summons[0] = NULL;
@@ -6757,110 +6773,108 @@ void func_actor_444000_80142F28(Task* arg0)
             work->summons[1] = NULL;
         }
 
-        state = work->state;
-        if (state == 3) {
-            work->wallDistanceTarget = 0xBB8;
-            work->wallDrop           = 0x190;
-        } else if (state == 9) {
-            work->wallDistanceTarget = 0x1388;
-            work->wallDrop           = 0x190;
-        } else if (state == 0x11) {
-            work->wallDistanceTarget = 0x1388;
-            work->wallDrop           = 0x190;
+        fightState = work->state;
+        if (fightState == GLUTTON_STATE_INHALE) {
+            work->wallDistanceTarget = ACTOR_444000_WALL_INHALE_DISTANCE;
+            work->wallDrop           = ACTOR_444000_WALL_DROP;
+        } else if (fightState == GLUTTON_STATE_ADVANCE) {
+            work->wallDistanceTarget = ACTOR_444000_WALL_FAR_DISTANCE;
+            work->wallDrop           = ACTOR_444000_WALL_DROP;
+        } else if (fightState == ACTOR_444000_STATE_RETURN_TO_ADVANCE) {
+            work->wallDistanceTarget = ACTOR_444000_WALL_FAR_DISTANCE;
+            work->wallDrop           = ACTOR_444000_WALL_DROP;
         } else if (work->phase != 0) {
-            work->wallDistanceTarget = 0xD48;
-            work->wallDrop           = 0x190;
+            work->wallDistanceTarget = ACTOR_444000_WALL_CLOSE_DISTANCE;
+            work->wallDrop           = ACTOR_444000_WALL_DROP;
         } else {
-            work->wallDistanceTarget = 0x1388;
-            work->wallDrop           = 0x190;
+            work->wallDistanceTarget = ACTOR_444000_WALL_FAR_DISTANCE;
+            work->wallDrop           = ACTOR_444000_WALL_DROP;
         }
 
-        diff = work->wallDistanceTarget - work->wallDistance;
-        if (diff < 0) {
-            diff = -diff;
+        distanceError = work->wallDistanceTarget - work->wallDistance;
+        if (distanceError < 0) {
+            distanceError = -distanceError;
         }
-        if (diff >= 0x33) {
+        if (distanceError >= ACTOR_444000_WALL_SNAP_DISTANCE) {
             if (work->wallDistance < work->wallDistanceTarget) {
-                work->wallDistance = (u16)work->wallDistance + 0x32;
+                work->wallDistance = (u16)work->wallDistance + ACTOR_444000_WALL_DISTANCE_STEP;
             } else {
-                work->wallDistance = (u16)work->wallDistance - 0x32;
+                work->wallDistance = (u16)work->wallDistance - ACTOR_444000_WALL_DISTANCE_STEP;
             }
         } else {
             work->wallDistance = (u16)work->wallDistanceTarget;
         }
 
-        state = work->state;
-        if (state != 0) {
-            /* Split so that `0x12` and `0x13` are not the innermost `&&` pair:
-               `fold_range_test` would turn two adjacent constants into one
-               `sltiu` range check. */
-            if (state != 0x12) {
-                if (state != 0x13 && state != 5 && state != 0xC) {
-                    if (work->phase == 1 && state == 9) {
-                        _actor444000BuildCornerWalls(arg0, work->wallDistance, 6);
+        fightState = work->state;
+        if (fightState != ACTOR_444000_STATE_DORMANT) {
+            // Keep collapse and inactive phases outside the wall rebuild.
+            if (fightState != ACTOR_444000_STATE_COLLAPSE) {
+                if (fightState != ACTOR_444000_STATE_COLLAPSED && fightState != ACTOR_444000_STATE_LIMB_ANIMATION && fightState != ACTOR_444000_STATE_RESUME_LIMB_ANIMATION) {
+                    if (work->phase == 1 && fightState == GLUTTON_STATE_ADVANCE) {
+                        _actor444000BuildCornerWalls(task, work->wallDistance, ACTOR_444000_DYNAMIC_WALL_FACE);
                         {
                             GfxCoord* playerCoord = player->extra.tmd->coords;
 
-                            if (playerCoord->coord.t[0] < 0x2CEC) {
-                                playerCoord->coord.t[0] = 0x2CEC;
+                            if (playerCoord->coord.t[0] < ACTOR_444000_CORNER_MIN_PLAYER_X) {
+                                playerCoord->coord.t[0] = ACTOR_444000_CORNER_MIN_PLAYER_X;
                             }
                         }
-                        result.vx = result.vy = result.vz = 0;
-                        _actorRenderTransformLocalPointToWorld(arg0->extra.tmd->coords + 4, &result);
+                        bossPartPosition.vx = bossPartPosition.vy = bossPartPosition.vz = 0;
+                        _actorRenderTransformLocalPointToWorld(task->extra.tmd->coords + ACTOR_444000_WALL_REFERENCE_PART, &bossPartPosition);
                         {
-                            GfxCoord* playerCoord = player->extra.tmd->coords;
-                            s32       z           = result.vz - 0x7D0;
+                            GfxCoord* playerCoord    = player->extra.tmd->coords;
+                            s32       maximumPlayerZ = bossPartPosition.vz - ACTOR_444000_CORNER_PLAYER_Z_LEAD;
 
-                            if (z < playerCoord->coord.t[2]) {
-                                playerCoord->coord.t[2] = z;
+                            if (maximumPlayerZ < playerCoord->coord.t[2]) {
+                                playerCoord->coord.t[2] = maximumPlayerZ;
                             }
                         }
                     } else {
-                        _gluttonBuildWall(arg0, work->wallDistance, work->wallDrop, 6);
+                        _gluttonBuildWall(task, work->wallDistance, work->wallDrop, ACTOR_444000_DYNAMIC_WALL_FACE);
                     }
 
-                    if (work->phase == 0 || (work->phase == 1 && work->state != 9)) {
-                        GfxCoord* playerCoord = player->extra.tmd->coords;
-                        GfxCoord* selfCoord   = arg0->extra.tmd->coords;
-                        s32       x           = work->wallDistance + selfCoord->coord.t[0];
+                    if (work->phase == 0 || (work->phase == 1 && work->state != GLUTTON_STATE_ADVANCE)) {
+                        GfxCoord* playerCoord    = player->extra.tmd->coords;
+                        GfxCoord* selfCoord      = task->extra.tmd->coords;
+                        s32       minimumPlayerX = work->wallDistance + selfCoord->coord.t[0];
 
-                        if (playerCoord->coord.t[0] < x) {
-                            playerCoord->coord.t[0] = x;
+                        if (playerCoord->coord.t[0] < minimumPlayerX) {
+                            playerCoord->coord.t[0] = minimumPlayerX;
                         }
                     } else {
-                        GfxCoord* playerCoord = player->extra.tmd->coords;
-                        GfxCoord* selfCoord   = arg0->extra.tmd->coords;
-                        s32       z           = selfCoord->coord.t[2] - work->wallDistance;
+                        GfxCoord* playerCoord    = player->extra.tmd->coords;
+                        GfxCoord* selfCoord      = task->extra.tmd->coords;
+                        s32       maximumPlayerZ = selfCoord->coord.t[2] - work->wallDistance;
 
-                        if (z < playerCoord->coord.t[2]) {
-                            playerCoord->coord.t[2] = z;
+                        if (maximumPlayerZ < playerCoord->coord.t[2]) {
+                            playerCoord->coord.t[2] = maximumPlayerZ;
                         }
                     }
 
                     if (work->phase == 2) {
                         GfxCoord* playerCoord = player->extra.tmd->coords;
 
-                        if (playerCoord->coord.t[0] < 0x251C) {
-                            playerCoord->coord.t[2] = 0x251C;
+                        if (playerCoord->coord.t[0] < ACTOR_444000_PHASE2_PLAYER_Z_LIMIT) {
+                            playerCoord->coord.t[2] = ACTOR_444000_PHASE2_PLAYER_Z_LIMIT;
                         }
                     }
                 }
             }
-            /* Re-read: the calls above can drop the fight back to state 0. */
-            if (work->state == 0) {
+            // Wall rebuilding can return the fight to its dormant state.
+            if (work->state == ACTOR_444000_STATE_DORMANT) {
                 _actor444000ResetWallHeights();
             }
         } else {
             _actor444000ResetWallHeights();
         }
 
-        state = work->state;
-        if (state == 5) {
-            _gluttonBuildWall(arg0, work->wallDistance, work->wallDrop, 6);
+        fightState = work->state;
+        if (fightState == ACTOR_444000_STATE_LIMB_ANIMATION) {
+            _gluttonBuildWall(task, work->wallDistance, work->wallDrop, ACTOR_444000_DYNAMIC_WALL_FACE);
         }
     }
 
-    handlers[arg0->state](enemy, arg0);
+    handlers[task->state](enemy, task);
 }
 
 #include "../../shared/glutton_quad_heights.inc.c"
