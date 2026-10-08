@@ -37,7 +37,7 @@ TaskMessageEntry D_acropolis_observatory_8017E7B8[4] = {
 
 s32 D_acropolis_observatory_8017E7D8;
 
-static void func_acropolis_observatory_8017D834(Task* task);
+static void _acropolisObservatoryInitializeRoomTask(Task* task);
 static void func_acropolis_observatory_8017D8AC(Task* task);
 
 /// Resolves the observatory's exits from route progress and movie availability.
@@ -127,18 +127,26 @@ s32 func_acropolis_observatory_8017D7C4(Task* arg0, s32 arg1, RoomEventMsg* in, 
     return 0;
 }
 
-/// Observatory task entry: parks the overlay's message table in the task and
-/// registers it as the room's slot-7 pointer. On the phase-2 visit that has not
-/// yet latched nibble 0xCA it also arms the shared field-actor byte, then steps
-/// the task on to its next state.
-static void func_acropolis_observatory_8017D834(Task* task)
+/// Registers the observatory's room-message receiver and activates its unseen encounter.
+///
+/// Requires a live task in state 0 and loaded room resources. Publishes the task
+/// in `GAME_TASK_SLOT_ROOM`, borrowing the message table. Room 2 activates the
+/// enemy wave controller while the observatory event is unseen; enters state 1.
+static void _acropolisObservatoryInitializeRoomTask(Task* task)
 {
+    enum {
+        ACROPOLIS_OBSERVATORY_ENCOUNTER_ROOM  = 2,
+        ACROPOLIS_OBSERVATORY_EVENT_UNSEEN    = 0,
+        ACROPOLIS_OBSERVATORY_WAVES_ACTIVATED = 1
+    };
+
     task->msgTable = D_acropolis_observatory_8017E7B8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.room == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == 0)) {
-        gSceneCombatState.actor03700Wave = 1;
+    if ((gGameSession->location.loc.room == ACROPOLIS_OBSERVATORY_ENCOUNTER_ROOM) &&
+        (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
+        gSceneCombatState.actor03700Wave = ACROPOLIS_OBSERVATORY_WAVES_ACTIVATED;
     }
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Second state of the room task: on a visit that arrived by warp 3 or 4 it
@@ -158,15 +166,11 @@ static void func_acropolis_observatory_8017D8AC(Task* task)
 
 /// The room task's three states.
 static const TaskFuncTable3 D_acropolis_observatory_8017D5C4 = {
-    { func_acropolis_observatory_8017D834, func_acropolis_observatory_8017D8AC, taskKill },
+    { _acropolisObservatoryInitializeRoomTask, func_acropolis_observatory_8017D8AC, taskKill },
 };
 
-/// The room task's callback: runs the state `Task::state` selects from a
-/// stack copy of `D_acropolis_observatory_8017D5C4`.
-void func_acropolis_observatory_8017D950(Task* task)
+void acropolisObservatoryRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_acropolis_observatory_8017D5C4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_acropolis_observatory_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

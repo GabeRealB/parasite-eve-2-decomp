@@ -117,3 +117,5 @@ _acropolisPromenadeUpdateBridgeVisibility = 0x8017db48; // type:func
 _acropolisPromenadeSceneFadeInTask = 0x8017dfd4; // type:func
 _acropolisPromenadeMovieSkipFadeOutTask = 0x8017df74; // type:func
 _acropolisPromenadeHandleSoundCue = 0x8017d938; // type:func
+_acropolisPromenadeTranslucentPlaneTask = 0x8017d988; // type:func
+acropolisPromenadeRoomTask = 0x8017da4c; // type:func

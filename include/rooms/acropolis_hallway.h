@@ -39,7 +39,14 @@ extern WorldCollisionSurfaceProperties* D_acropolis_hallway_8017ED40[];
 /// and lifetime. Keep the hallway overlay loaded while this callback can run.
 void acropolisHallwayEffectControlTask84(Task* unusedTask);
 
-void func_acropolis_hallway_8017D7D0(Task* task);
+/// Runs the hallway's room-message receiver.
+///
+/// State 0 registers the receiver; state 1 idles with messages available;
+/// state 2 releases the task.
+/// Start with a live bodyless task in state 0. The state must remain in 0..2;
+/// dispatch performs no bounds check. Keep the room overlay and gameplay
+/// resources loaded through the selected handler, which may release the task.
+void acropolisHallwayRoomTask(Task* task);
 
 void func_acropolis_hallway_8017E120(Task* task);
 

@@ -56,7 +56,7 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-static void func_acropolis_hallway_8017D784(Task* task);
+static void _acropolisHallwayInitializeRoomTask(Task* task);
 static void _acropolisHallwayIdleRoomTask(Task* unusedTask);
 
 /// Room message carrying the selected inventory item ID in its first argument.
@@ -64,7 +64,7 @@ enum { ACROPOLIS_HALLWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 /// State handlers of the room task: set-up, an idle tick and `taskKill`.
 static const TaskFuncTable3 D_acropolis_hallway_8017D5C4 = {
-    { func_acropolis_hallway_8017D784, _acropolisHallwayIdleRoomTask, taskKill },
+    { _acropolisHallwayInitializeRoomTask, _acropolisHallwayIdleRoomTask, taskKill },
 };
 
 static u32     _gAcropolisHallwayModel023C0PartVerts[1];
@@ -450,13 +450,15 @@ static s32 _acropolisHallwayHandleSoundCue(Task* unusedTask, s32 messageId, s32 
     return 0;
 }
 
-/// State 0 of the room task: installs the room's message table, publishes the
-/// task in pointer slot 7 and advances to the next state.
-static void func_acropolis_hallway_8017D784(Task* task)
+/// Registers the hallway's room-message receiver and enters its idle state.
+///
+/// Requires a live task in state 0 and loaded room resources. Borrows the message
+/// table, publishes the task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
+static void _acropolisHallwayInitializeRoomTask(Task* task)
 {
     task->msgTable = D_acropolis_hallway_8017E238;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Leaves the hallway room task untouched in its idle state (state 1).
@@ -464,14 +466,10 @@ static void _acropolisHallwayIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// Runs the room task's current state through a stack copy of the room's
-/// three-entry state table.
-void func_acropolis_hallway_8017D7D0(Task* task)
+void acropolisHallwayRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_acropolis_hallway_8017D5C4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_acropolis_hallway_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 void acropolisHallwayEffectControlTask84(Task* unusedTask)

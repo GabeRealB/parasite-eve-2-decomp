@@ -107,7 +107,7 @@ enum {
 };
 
 /// State table of the room's three-state task dispatcher
-/// (`func_acropolis_patio_8017DF8C`): the entry tick, an idle state, then
+/// (`acropolisPatioRoomTask`): the entry tick, an idle state, then
 /// `taskKill`.
 static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
     { func_acropolis_patio_8017D5EC, _acropolisPatioRoomIdleState, taskKill },
@@ -2063,12 +2063,10 @@ static void _acropolisPatioRoomIdleState(Task* task)
     byte unused[0x10]; // Untouched local storage retained for the original stack frame; its role is unproven
 }
 
-void func_acropolis_patio_8017DF8C(Task* task)
+void acropolisPatioRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_acropolis_patio_8017D5C4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_acropolis_patio_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Pauses the patio's actors or resumes them and engages battle.

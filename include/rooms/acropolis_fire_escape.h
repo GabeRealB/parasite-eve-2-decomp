@@ -94,6 +94,13 @@ void func_acropolis_fire_escape_8017EA68(Task* task);
 
 void func_acropolis_fire_escape_8017FF7C(Task* task);
 
-void func_acropolis_fire_escape_8017FF24(Task* task);
+/// Runs the fire escape's room messages and actor interaction check.
+///
+/// State 0 registers the receiver and starts the ambience task; state 1
+/// disables interaction with an absent placed actor; state 2 releases the task.
+/// Start with a live bodyless task in state 0. The state must remain in 0..2;
+/// dispatch performs no bounds check. Keep the room overlay and gameplay
+/// resources loaded through the selected handler, which may release the task.
+void acropolisFireEscapeRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_FIRE_ESCAPE_H

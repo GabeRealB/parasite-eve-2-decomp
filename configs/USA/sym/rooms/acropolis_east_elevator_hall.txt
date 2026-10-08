@@ -93,3 +93,6 @@ _acropolisEastElevatorHallResolveTransitionMessage = 0x8017f348; // type:func
 _acropolisEastElevatorHallRejectKeyItemMessage = 0x8017f370; // type:func
 acropolisEastElevatorHallPointTileTask = 0x8017faac; // type:func
 _acropolisEastElevatorHallUpdatePlayerDebugDisplay = 0x8017f4e8; // type:func
+_acropolisEastElevatorHallStartOpeningEvent = 0x8017f378; // type:func
+_acropolisEastElevatorHallHandleCommandMessage = 0x8017f420; // type:func
+acropolisEastElevatorHallRoomTask = 0x8017f55c; // type:func

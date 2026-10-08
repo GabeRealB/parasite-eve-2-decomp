@@ -97,3 +97,5 @@ _acropolisObservatorySkipFadeInTask = 0x8017e134; // type:func
 _acropolisObservatoryResolveRoomTransition = 0x8017d618; // type:func
 _acropolisObservatoryRejectKeyItemUse = 0x8017d7bc; // type:func
 _acropolisObservatoryScriptedBattleTask = 0x8017e19c; // type:func
+_acropolisObservatoryInitializeRoomTask = 0x8017d834; // type:func
+acropolisObservatoryRoomTask = 0x8017d950; // type:func

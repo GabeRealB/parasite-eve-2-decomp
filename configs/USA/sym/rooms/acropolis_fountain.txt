@@ -94,3 +94,5 @@ _acropolisFountainHandleSoundCue = 0x8017d7f4; // type:func
 _acropolisFountainIdleRoomTask = 0x8017d9bc; // type:func
 acropolisFountainEnableClimbTrigger = 0x8017da1c; // type:func
 _acropolisFountainStopWaterMovieTask = 0x8017e72c; // type:func
+_acropolisFountainInitializeRoomTask = 0x8017d960; // type:func
+acropolisFountainRoomTask = 0x8017d9c4; // type:func

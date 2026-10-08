@@ -46,12 +46,12 @@ STATIC_ASSERT_SIZEOF(_AcropolisForkedRoadReturnRideLatch, 8);
 
 extern _AcropolisForkedRoadReturnRideLatch D_acropolis_forked_road_80180F3C;
 
-static void func_acropolis_forked_road_8017D92C(Task* task);
+static void _acropolisForkedRoadInitializeRoomTask(Task* task);
 static void func_acropolis_forked_road_8017D970(Task* task);
 
 /// State handlers of the room's own task.
 static const TaskFuncTable3 D_acropolis_forked_road_8017D5C4 = {
-    { func_acropolis_forked_road_8017D92C, func_acropolis_forked_road_8017D970, taskKill }
+    { _acropolisForkedRoadInitializeRoomTask, func_acropolis_forked_road_8017D970, taskKill }
 };
 
 s32        func_acropolis_forked_road_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -187,13 +187,15 @@ s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, const void* first
     return 1;
 }
 
-/// First state of the room's own task: installs the room's message table,
-/// publishes the task in pointer slot 7 and advances the state.
-static void func_acropolis_forked_road_8017D92C(Task* task)
+/// Registers the forked road's room-message receiver and enters its active state.
+///
+/// Requires a live task in state 0 and loaded room resources. Borrows the message
+/// table, publishes the task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
+static void _acropolisForkedRoadInitializeRoomTask(Task* task)
 {
     task->msgTable = D_acropolis_forked_road_80180F14;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Per-frame state of the room's own task: the first frame the session's warp
@@ -207,13 +209,8 @@ static void func_acropolis_forked_road_8017D970(Task* task)
     }
 }
 
-/// Runs the room task's current state out of its three-entry handler table:
-/// the setup state, the per-frame warp check, then `taskKill`. The table is
-/// copied onto the stack before the call.
-void func_acropolis_forked_road_8017D9CC(Task* task)
+void acropolisForkedRoadRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_acropolis_forked_road_8017D5C4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_acropolis_forked_road_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

@@ -60,3 +60,4 @@ _dryfieldBackStreetRejectKeyItemUse = 0x8017d89c; // type:func
 _dryfieldBackStreetIgnoreCommandMessage = 0x8017d8a4; // type:func
 _dryfieldBackStreetIgnoreRoomActionMessage = 0x8017d8ac; // type:func
 _dryfieldBackStreetIdleState = 0x8017d910; // type:func
+dryfieldBackStreetRoomTask = 0x8017d918; // type:func

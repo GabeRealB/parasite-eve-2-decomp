@@ -121,8 +121,8 @@ extern EvsSceneKey           D_acropolis_east_elevator_hall_80185CB4;
 extern WorldCoordRoomLights  D_acropolis_east_elevator_hall_80187A44[1];
 static s32                   _acropolisEastElevatorHallResolveTransitionMessage(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32                   _acropolisEastElevatorHallRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32                          func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, const void* firstArg, s32);
-s32                          func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, s32);
+static s32                   _acropolisEastElevatorHallStartOpeningEvent(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedSecondArg);
+static s32                   _acropolisEastElevatorHallHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedExecutionMode);
 void                         func_acropolis_east_elevator_hall_8017F450(void);
 
 /// Key-item use request sent to the room task by the inventory menu.
@@ -331,9 +331,9 @@ EvsCommand D_acropolis_east_elevator_hall_8018621C[9] = {
 
 TaskMessageEntry D_acropolis_east_elevator_hall_801862F4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisEastElevatorHallResolveTransitionMessage },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_east_elevator_hall_8017F420 },
+    { ROOM_MESSAGE_COMMAND, _acropolisEastElevatorHallHandleCommandMessage },
     { ACROPOLIS_EAST_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM, _acropolisEastElevatorHallRejectKeyItemMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_east_elevator_hall_8017F378 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisEastElevatorHallStartOpeningEvent },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -771,25 +771,56 @@ static s32 _acropolisEastElevatorHallRejectKeyItemMessage(Task* task, s32 messag
     return ROOM_KEY_ITEM_RESULT_REFUSED;
 }
 
-s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Records the opening event's start and enables its subsequent story interactions.
+static inline void _acropolisEastElevatorHallRecordOpeningProgress(void)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum {
+        ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_STARTED         = 1,
+        ACROPOLIS_EAST_ELEVATOR_HALL_FOLLOW_UP_RESET         = 0,
+        ACROPOLIS_EAST_ELEVATOR_HALL_NEXT_DIALOGUE_INDEX     = 3,
+        ACROPOLIS_EAST_ELEVATOR_HALL_CAFETERIA_DOOR_UNLOCKED = 2,
+        ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_OBJECTIVE       = 2
+    };
 
-    if (request->actionId == 0 && gameFlagGetNibble(0) == 0 && D_acropolis_east_elevator_hall_8018631C == 0) {
+    D_acropolis_east_elevator_hall_8018631C = ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_STARTED;
+    gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PROGRESS, ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_STARTED);
+    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACROPOLIS_EAST_ELEVATOR_HALL_FOLLOW_UP_RESET);
+    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_EAST_ELEVATOR_HALL_NEXT_DIALOGUE_INDEX);
+    gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, ACROPOLIS_EAST_ELEVATOR_HALL_CAFETERIA_DOOR_UNLOCKED);
+    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_OBJECTIVE);
+}
+
+/// Starts the east elevator hall's opening scene once from room action zero.
+///
+/// Borrows a readable four-byte action request only during dispatch. Starts the
+/// skippable scene and records story progress only while Acropolis progress and
+/// the visit latch are both zero. Receiver, message ID and second word are unused;
+/// no request storage is retained. Always returns zero; the sender ignores it.
+static s32 _acropolisEastElevatorHallStartOpeningEvent(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedSecondArg)
+{
+    enum {
+        ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_ACTION_ID   = 0,
+        ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_NOT_STARTED = 0
+    };
+
+    if (actionRequest->actionId == ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_ACTION_ID &&
+        gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_NOT_STARTED &&
+        D_acropolis_east_elevator_hall_8018631C == ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_NOT_STARTED) {
         evsStartScriptWithSkip(D_acropolis_east_elevator_hall_80185D54, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_east_elevator_hall_801860B4);
-        D_acropolis_east_elevator_hall_8018631C = 1;
-        gameFlagSetNibble(0, 1);
-        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
-        gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 2);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 2);
+        _acropolisEastElevatorHallRecordOpeningProgress();
     }
     return 0;
 }
 
-s32 func_acropolis_east_elevator_hall_8017F420(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Runs CAP sequence 2 with the room's scripted actor animation for command 2.
+///
+/// Other commands do nothing. Receiver, message ID and execution mode are unused;
+/// always returns zero. The room and its script resources must remain loaded.
+static s32 _acropolisEastElevatorHallHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedExecutionMode)
 {
-    if (arg2 == 2) {
+    enum { ACROPOLIS_EAST_ELEVATOR_HALL_COMMAND_CAP_SEQUENCE_2 = 2 };
+
+    if (commandId == ACROPOLIS_EAST_ELEVATOR_HALL_COMMAND_CAP_SEQUENCE_2) {
         evsStartScript(D_acropolis_east_elevator_hall_8018621C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
@@ -833,14 +864,10 @@ static void _acropolisEastElevatorHallUpdatePlayerDebugDisplay(Task* unusedTask)
     }
 }
 
-/// Runs the room task's current state through a stack copy of the room's
-/// three-entry state table.
-void func_acropolis_east_elevator_hall_8017F55C(Task* task)
+void acropolisEastElevatorHallRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_acropolis_east_elevator_hall_8017D5D4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_acropolis_east_elevator_hall_8017D5D4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Position of the first of the six effects

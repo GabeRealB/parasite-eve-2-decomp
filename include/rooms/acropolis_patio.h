@@ -57,6 +57,13 @@ void acropolisPatioFountainJetTask(Task* task);
 /// and gameplay overlays, scratch space and the frame's GPU packet arena.
 void acropolisPatioFountainMistTask(Task* task);
 
-void func_acropolis_patio_8017DF8C(Task* task);
+/// Runs the patio's room-message receiver and initializes its story interactions.
+///
+/// State 0 registers the receiver and configures actors and scenes for the
+/// current story progress; state 1 idles; state 2 releases the task.
+/// Start with a live bodyless task in state 0. The state must remain in 0..2;
+/// dispatch performs no bounds check. Keep the room overlay and gameplay
+/// resources loaded through the selected handler, which may release the task.
+void acropolisPatioRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_PATIO_H

@@ -141,7 +141,7 @@ static s32          _acropolisPromenadeRefuseKeyItem(Task* task, s32 messageId, 
 s32                 func_acropolis_promenade_8017D8E0(Task*, s32, s32, s32);
 static s32          _acropolisPromenadeHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
 static s32          _acropolisPromenadeIgnoreRoomAction(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
-void                func_acropolis_promenade_8017D988(Task*);
+static void         _acropolisPromenadeTranslucentPlaneTask(Task* task);
 
 /// Room-local binding of the key-item-use request; the first payload is an item ID.
 enum { ACROPOLIS_PROMENADE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -184,7 +184,7 @@ TaskMessageEntry D_acropolis_promenade_80180E74[6] = {
 };
 
 TaskDesc D_acropolis_promenade_80180EA4[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_acropolis_promenade_8017D988, { .model = &_gAcropolisPromenadeAcropolisBridgeModel0AD9C } },
+    { { { TASK_BODY_TMD, 192 } }, _acropolisPromenadeTranslucentPlaneTask, { .model = &_gAcropolisPromenadeAcropolisBridgeModel0AD9C } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1654,25 +1654,27 @@ static s32 _acropolisPromenadeHandleSoundCue(Task* unusedTask, s32 messageId, s3
     return 0;
 }
 
-/// State table of the room task, run by `func_acropolis_promenade_8017DA4C`.
+/// State table of the room task, run by `acropolisPromenadeRoomTask`.
 static const TaskFuncTable3 D_acropolis_promenade_8017D5C4 = {
     { func_acropolis_promenade_8017D9E0, func_acropolis_promenade_8017D5E4, taskKill },
 };
 
-/// State table of the prop task, run by `func_acropolis_promenade_8017D988`.
+/// State table of the prop task, run by `_acropolisPromenadeTranslucentPlaneTask`.
 static const TaskFuncTable3 D_acropolis_promenade_8017D5D0 = {
     { _bridgeModelSetup, _acropolisPromenadeUpdateBridgeVisibility, taskKill },
 };
 
-/// Runs the prop task's current state (`_bridgeModelSetup`,
-/// `_acropolisPromenadeUpdateBridgeVisibility`, then `taskKill`) through a copy of its
-/// handler table on the stack.
-void func_acropolis_promenade_8017D988(Task* task)
+/// Runs the promenade's translucent plane model task.
+///
+/// Requires a live TMD task with state 0 (allocate work and place the model),
+/// 1 (hide in mapped view 5, show in other views), or 2 (release the task and its work).
+/// The state is an unchecked table index. Keep the room and model resources
+/// loaded until teardown; allocation failure also tears down the task.
+/// The plane's visual purpose is unproven.
+static void _acropolisPromenadeTranslucentPlaneTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_acropolis_promenade_8017D5D0;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_acropolis_promenade_8017D5D0;
+    stateHandlers.funcs[task->state](task);
 }
 
 static void func_acropolis_promenade_8017D9E0(Task* arg0)
@@ -1684,15 +1686,10 @@ static void func_acropolis_promenade_8017D9E0(Task* arg0)
     D_80115598                     = 1;
 }
 
-/// Runs the room task's current state (`func_acropolis_promenade_8017D9E0`,
-/// `func_acropolis_promenade_8017D5E4`, then `taskKill`) through a copy of its
-/// handler table on the stack.
-void func_acropolis_promenade_8017DA4C(Task* task)
+void acropolisPromenadeRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_acropolis_promenade_8017D5C4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_acropolis_promenade_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/bridge_model_setup.inc.c"

@@ -46,6 +46,13 @@ void func_acropolis_observatory_8017E6F8(Task* task);
 /// is suppressed. A queued packet remains live through GPU drawing.
 void acropolisObservatoryAmbientGlowTask(Task* task);
 
-void func_acropolis_observatory_8017D950(Task* task);
+/// Runs the observatory's room messages and arrival scene gates.
+///
+/// State 0 registers the receiver and activates the unseen room-2 encounter;
+/// state 1 starts an arrival scene once for warp 3 or 4; state 2 releases the task.
+/// Start with a live bodyless task in state 0. The state must remain in 0..2;
+/// dispatch performs no bounds check. Keep the room overlay and gameplay
+/// resources loaded through the selected handler, which may release the task.
+void acropolisObservatoryRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_OBSERVATORY_H

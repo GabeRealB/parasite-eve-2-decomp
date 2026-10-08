@@ -91732,7 +91732,7 @@ move   a2,a1                           move   a2,a1
 `Penalties: regs=1`, structure match, 0 of 12 instructions differing otherwise.
 Spelling out the two leading parameters the body never reads -
 `s32 f(s32 index, s32 value, s32 arg2)`, the shape the sibling
-`func_acropolis_east_elevator_hall_8017F420` already uses, whose asm is
+`_acropolisEastElevatorHallHandleCommandMessage` already uses, whose asm is
 instruction-for-instruction the same modulo the callee - moves the compare to
 `$a2` and scores 100.000% with no other change. The `move a0,v0` / `move a2,a1`
 argument setup is not a hint that the source reuses a variable: cse is reusing

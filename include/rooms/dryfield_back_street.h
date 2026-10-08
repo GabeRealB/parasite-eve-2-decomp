@@ -63,6 +63,13 @@ void func_dryfield_back_street_8017ED1C(Task* task);
 /// its selected effects can be spawned or run.
 void dryfieldBackStreetConfigureEffectsTask(Task* task);
 
-void func_dryfield_back_street_8017D918(Task* task);
+/// Runs Back Street's room-message receiver and starts its ambience.
+///
+/// State 0 registers the receiver and spawns the ambience task; state 1
+/// idles with messages available; state 2 releases the task.
+/// Start with a live bodyless task in state 0. The state must remain in 0..2;
+/// dispatch performs no bounds check. Keep the room overlay and gameplay
+/// resources loaded through the selected handler, which may release the task.
+void dryfieldBackStreetRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_BACK_STREET_H

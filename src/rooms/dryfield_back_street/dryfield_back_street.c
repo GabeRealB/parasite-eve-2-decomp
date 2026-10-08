@@ -643,14 +643,10 @@ static const TaskFuncTable3 D_dryfield_back_street_8017D5C4 = {
     { func_dryfield_back_street_8017D8B4, _dryfieldBackStreetIdleState, taskKill },
 };
 
-/// Runs the room entry task's current state from its three-entry table, which
-/// it copies onto the stack before the call.
-void func_dryfield_back_street_8017D918(Task* task)
+void dryfieldBackStreetRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_dryfield_back_street_8017D5C4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_dryfield_back_street_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 void dryfieldBackStreetConfigureEffectsTask(Task* task)

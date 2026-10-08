@@ -50,6 +50,13 @@ void func_acropolis_fountain_8017E014(Task* task);
 /// task. Its state is an unchecked index maintained only by these callbacks.
 void acropolisFountainClimbTask(Task* task);
 
-void func_acropolis_fountain_8017D9C4(Task* task);
+/// Runs the fountain's room-message receiver and restores its climb interaction.
+///
+/// State 0 registers the receiver and restores the saved climb trigger;
+/// state 1 idles with messages available; state 2 releases the task.
+/// Start with a live bodyless task in state 0. The state must remain in 0..2;
+/// dispatch performs no bounds check. Keep the room overlay and gameplay
+/// resources loaded through the selected handler, which may release the task.
+void acropolisFountainRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_FOUNTAIN_H

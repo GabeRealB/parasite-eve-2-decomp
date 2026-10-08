@@ -74,6 +74,13 @@ void func_acropolis_forked_road_801802CC(Task* task);
 /// coordinate units; its final fade releases the counted work and task.
 void acropolisForkedRoadLeafFallTask(Task* task);
 
-void func_acropolis_forked_road_8017D9CC(Task* task);
+/// Runs the forked road's room messages and return-arrival scene gate.
+///
+/// State 0 registers the receiver; state 1 starts the return scene once for
+/// arrival warp 2; state 2 releases the task.
+/// Start with a live bodyless task in state 0. The state must remain in 0..2;
+/// dispatch performs no bounds check. Keep the room overlay and gameplay
+/// resources loaded through the selected handler, which may release the task.
+void acropolisForkedRoadRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_FORKED_ROAD_H

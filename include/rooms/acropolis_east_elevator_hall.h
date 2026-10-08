@@ -75,6 +75,13 @@ void acropolisEastElevatorHallPlayerReflectionTask(Task* reflectionTask);
 /// Keep this overlay loaded through the callback.
 void acropolisEastElevatorHallPointTileTask(Task* task);
 
-void func_acropolis_east_elevator_hall_8017F55C(Task* task);
+/// Runs the east elevator hall's room messages and player debug display.
+///
+/// State 0 registers the receiver and initializes the placed actor; state 1
+/// updates the player debug display; state 2 releases the task.
+/// Start with a live bodyless task in state 0. The state must remain in 0..2;
+/// dispatch performs no bounds check. Keep the room overlay and gameplay
+/// resources loaded through the selected handler, which may release the task.
+void acropolisEastElevatorHallRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_EAST_ELEVATOR_HALL_H

@@ -85,6 +85,13 @@ void acropolisPromenadeGroundGlowTask(Task* task);
 /// scratch, work and task; queued packets remain live until GPU completion.
 void acropolisPromenadeGlowLampTask(Task* task);
 
-void func_acropolis_promenade_8017DA4C(Task* task);
+/// Runs the promenade's room messages, arrival scene and battle follow-up.
+///
+/// State 0 registers the receiver and spawns the bridge-plane model; state 1
+/// checks arrival and battle progress; state 2 releases the task.
+/// Start with a live bodyless task in state 0. The state must remain in 0..2;
+/// dispatch performs no bounds check. Keep the room overlay and gameplay
+/// resources loaded through the selected handler, which may release the task.
+void acropolisPromenadeRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_PROMENADE_H

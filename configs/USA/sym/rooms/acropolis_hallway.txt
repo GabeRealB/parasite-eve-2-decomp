@@ -58,3 +58,5 @@ ActorContact_Push = 0x8017D9D4; // type:func
 _acropolisHallwayRejectKeyItemUse = 0x8017d72c; // type:func
 _acropolisHallwayIdleRoomTask = 0x8017d7c8; // type:func
 _acropolisHallwayHandleSoundCue = 0x8017d734; // type:func
+_acropolisHallwayInitializeRoomTask = 0x8017d784; // type:func
+acropolisHallwayRoomTask = 0x8017d7d0; // type:func

@@ -122,3 +122,4 @@ _acropolisFireEscapeRejectKeyItemUse = 0x8017fe40; // type:func
 _acropolisFireEscapeIgnoreSoundMessage = 0x8017fe48; // type:func
 _acropolisFireEscapeResolveRoomTransition = 0x8017fd98; // type:func
 _acropolisFireEscapeDisableAbsentActorInteraction = 0x8017fecc; // type:func
+acropolisFireEscapeRoomTask = 0x8017ff24; // type:func

@@ -617,7 +617,7 @@ void func_acropolis_fire_escape_8017EA68(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// States of the room's message task, run by `func_acropolis_fire_escape_8017FF24`:
+/// States of the room's message task, run by `acropolisFireEscapeRoomTask`:
 /// install the message table and spawn the ambient-sound task, run the
 /// per-frame check, die.
 static const TaskFuncTable3 D_acropolis_fire_escape_8017D6A4 = {
@@ -817,14 +817,10 @@ static void _acropolisFireEscapeDisableAbsentActorInteraction(Task* unusedTask)
     }
 }
 
-/// Runs the room's message task: copies the state table onto the stack and
-/// calls the entry for the task's current state.
-void func_acropolis_fire_escape_8017FF24(Task* task)
+void acropolisFireEscapeRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_acropolis_fire_escape_8017D6A4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_acropolis_fire_escape_8017D6A4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Task body of the room's effect emitter. On its first frame it spawns effect

@@ -22,13 +22,13 @@
 extern TaskMessageEntry D_acropolis_fountain_8017E764[];
 extern TaskDesc         D_acropolis_fountain_8017E78C[];
 
-static void func_acropolis_fountain_8017D960(Task* arg0);
+static void _acropolisFountainInitializeRoomTask(Task* task);
 static void _acropolisFountainIdleRoomTask(Task* unusedTask);
 
 /// State handlers of the room task: set-up, an empty per-frame tick and
 /// `taskKill`.
 static const TaskFuncTable3 D_acropolis_fountain_8017D5C4 = {
-    { func_acropolis_fountain_8017D960, _acropolisFountainIdleRoomTask, taskKill },
+    { _acropolisFountainInitializeRoomTask, _acropolisFountainIdleRoomTask, taskKill },
 };
 
 s32        func_acropolis_fountain_8017D604(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -170,14 +170,19 @@ void func_acropolis_fountain_8017D868(Task* task)
     }
 }
 
-static void func_acropolis_fountain_8017D960(Task* arg0)
+/// Registers the fountain's room-message receiver and restores its climb interaction.
+///
+/// Requires a live task in state 0 and initialized room triggers. Borrows the
+/// message table, publishes the task in `GAME_TASK_SLOT_ROOM` and restores the
+/// climb trigger when its saved progress flag is nonzero, then enters state 1.
+static void _acropolisFountainInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_acropolis_fountain_8017E764;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_acropolis_fountain_8017E764;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_FOUNTAIN_012) != 0) {
         acropolisFountainEnableClimbTrigger();
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the fountain's room task idle after initialization, without changing it.
@@ -185,12 +190,8 @@ static void _acropolisFountainIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// Runs the room task's current state through a stack copy of its three-entry
-/// state table.
-void func_acropolis_fountain_8017D9C4(Task* task)
+void acropolisFountainRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_acropolis_fountain_8017D5C4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_acropolis_fountain_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
