@@ -3,8 +3,8 @@ lifedrainRisingSparkTask = 0x8012F9A8; // type:func
 
 lifedrainExpandingGlowBandTask = 0x801308C0; // type:func
 
-func_lifedrain_8012EF48 = 0x8012EF48; // type:func
+lifedrainCastTask = 0x8012EF48; // type:func
 
-func_lifedrain_8012FAF8 = 0x8012FAF8; // type:func
+lifedrainMoteTask = 0x8012FAF8; // type:func
 glowDrawWedge = 0x801305C0; // type:func
 _lifedrainDrawMoteBillboards = 0x801301ac; // type:func

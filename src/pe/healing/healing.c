@@ -103,105 +103,111 @@ static inline void _healingDrawGlow(const GfxCoord* coord, const EffectWork* wor
     }
 }
 
-/// Healing PE ring. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD` or
-/// `gRoomEffectState->peEffectControl >= 4`) releases the work block, and if the effect has
-/// not started yet also sets `field_6` bit 3. State 0 parents the coordinate
-/// to the player, plays the combo-indexed cue from `D_healing_8012FC34`, and
-/// falls into state 1, which grows brightness / radius, randomizes a spawn
-/// offset and parents a `0x60017` spark. State 2 shrinks brightness. Both
-/// draw two rings plus one or two arcs. State 3 holds for 0x1F frames then
-/// releases.
-void func_healing_8012EF34(Task* arg0)
+void healingAuraTask(Task* task)
 {
-    EffectWork*      mem;
+    enum {
+        HEALING_AURA_STATE_INITIALIZE    = 0,
+        HEALING_AURA_STATE_GROWING       = 1,
+        HEALING_AURA_STATE_FADING        = 2,
+        HEALING_AURA_STATE_HOLDING       = 3,
+        HEALING_AURA_LOCAL_Y             = -0x400,
+        HEALING_AURA_INITIAL_RADIUS      = 0x80,
+        HEALING_AURA_BRIGHTNESS_STEP     = 16,
+        HEALING_AURA_FADE_END_BRIGHTNESS = 17,
+        HEALING_AURA_HOLD_FRAMES         = 31,
+        HEALING_AURA_ANGLE_MASK          = 0xFFF,
+        HEALING_AURA_TRIG_FRACTION_BITS  = 12,
+    };
+    EffectWork*      work;
     GfxCoord*        coord;
-    AttachmentState* state;
+    AttachmentState* attachment;
     EffectWork*      spawned;
     s32              pan;
-    s32              bright;
-    s16              ang;
-    s32              rng;
-    s32              temp_lo;
+    s32              brightness;
+    s16              spawnAngle;
+    s32              randomState;
+    s32              verticalProduct;
 
-    state = &Gp_StateC08;
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    if ((state->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-        if (arg0->state == 0) {
-            state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
+    attachment = &Gp_StateC08;
+    work       = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
+    if ((attachment->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+        if (task->state == HEALING_AURA_STATE_INITIALIZE) {
+            attachment->flags |= ATTACHMENT_FLAG_APPLY_STATS;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
 
-    mem->age = mem->age + 1;
-    switch (arg0->state) {
-        case 0:
+    work->age = work->age + 1;
+    switch (task->state) {
+        case HEALING_AURA_STATE_INITIALIZE:
             coord->parent = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]   = 0;
-            coord->coord.t[1]   = -0x400;
+            coord->coord.t[1]   = HEALING_AURA_LOCAL_Y;
             coord->coord.t[2]   = 0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            arg0->state   = 1;
-            mem->index    = (Gp_StateC08.attachId % 10) - 1;
-            mem->angle    = 0x80;
-            state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
-            pan           = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_healing_8012FC34[mem->index], pan,
+            task->state        = HEALING_AURA_STATE_GROWING;
+            work->index        = (Gp_StateC08.attachId % 10) - 1;
+            work->angle        = HEALING_AURA_INITIAL_RADIUS;
+            attachment->flags |= ATTACHMENT_FLAG_APPLY_STATS;
+            pan                = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(D_healing_8012FC34[work->index], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             /* fallthrough */
-        case 1:
-            bright = mem->scale;
-            if (bright < D_healing_8012FC1C[mem->index].brightness) {
-                bright += 0x10;
+        case HEALING_AURA_STATE_GROWING:
+            brightness = work->scale;
+            if (brightness < D_healing_8012FC1C[work->index].brightness) {
+                brightness += HEALING_AURA_BRIGHTNESS_STEP;
             }
-            mem->scale = bright;
-            mem->angle = mem->angle + D_healing_8012FC1C[mem->index].radiusStep;
-            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].radiusStep * 2), 0);
+            work->scale = brightness;
+            work->angle = work->angle + D_healing_8012FC1C[work->index].radiusStep;
+            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[work->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            ang             = ((u32)rng >> 16) & 0xFFF;
-            gRandomLcgState = rng;
-            mem->step       = ang;
-            mem->move.vx    = (rcos(ang) * (mem->angle * 3 / 2)) >> 12;
-            temp_lo         = rsin(mem->step) * (mem->angle * 3 / 2);
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng;
-            mem->move.vy    = temp_lo >> 12;
-            mem->move.vz    = (rsin(((u32)rng >> 16) & 0xFFF) * mem->move.vx) >> 12;
-            spawned         = effectSpawn(EFFECT_HEALING_SPARKLE, coord, (s32)D_healing_8012FC1C[mem->index].radiusLimit,
-                                          &mem->move);
+            // Scatter the next child in the spinning aura's local frame.
+            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            spawnAngle      = ((u32)randomState >> 16) & HEALING_AURA_ANGLE_MASK;
+            gRandomLcgState = randomState;
+            work->step      = spawnAngle;
+            work->move.vx   = (rcos(spawnAngle) * (work->angle * 3 / 2)) >> HEALING_AURA_TRIG_FRACTION_BITS;
+            verticalProduct = rsin(work->step) * (work->angle * 3 / 2);
+            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = randomState;
+            work->move.vy   = verticalProduct >> HEALING_AURA_TRIG_FRACTION_BITS;
+            work->move.vz   = (rsin(((u32)randomState >> 16) & HEALING_AURA_ANGLE_MASK) * work->move.vx) >> HEALING_AURA_TRIG_FRACTION_BITS;
+            spawned         = effectSpawn(EFFECT_HEALING_SPARKLE, coord, (s32)D_healing_8012FC1C[work->index].radiusLimit,
+                                          &work->move);
             if (spawned != NULL) {
-                taskReparent(arg0, spawned->task);
+                taskReparent(task, spawned->task);
             }
-            if (mem->angle >= D_healing_8012FC1C[mem->index].radiusLimit) {
-                arg0->state = 2;
+            if (work->angle >= D_healing_8012FC1C[work->index].radiusLimit) {
+                task->state = HEALING_AURA_STATE_FADING;
             }
-            _healingDrawGlow(coord, mem);
+            _healingDrawGlow(coord, work);
             return;
-        case 2:
-            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].radiusStep * 2), 0);
+        case HEALING_AURA_STATE_FADING:
+            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[work->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            mem->scale = mem->scale - 0x10;
-            mem->angle = mem->angle + D_healing_8012FC1C[mem->index].radiusStep;
-            if (mem->scale < 0x11) {
-                arg0->state = 3;
+            work->scale = work->scale - HEALING_AURA_BRIGHTNESS_STEP;
+            work->angle = work->angle + D_healing_8012FC1C[work->index].radiusStep;
+            if (work->scale < HEALING_AURA_FADE_END_BRIGHTNESS) {
+                task->state = HEALING_AURA_STATE_HOLDING;
             }
-            _healingDrawGlow(coord, mem);
+            _healingDrawGlow(coord, work);
             return;
-        case 3:
-            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].radiusStep * 2), 0);
+        case HEALING_AURA_STATE_HOLDING:
+            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[work->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            mem->period = mem->period + 1;
-            if (mem->period < 0x1F) {
+            work->period = work->period + 1;
+            if (work->period < HEALING_AURA_HOLD_FRAMES) {
                 return;
             }
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
             return;
         default:
             return;
@@ -215,60 +221,80 @@ void healingRisingSparkTask(Task* task)
     _risingSparkTask(task);
 }
 
-void func_healing_8012F5E4(Task* arg0)
+/// Applies a sparkle's signed local Y step and refreshes its composed position.
+///
+/// Borrows writable `coord` and read-only `work`; the signed 16-bit displacement
+/// is in parent-coordinate units and the sum must fit s32. Invalidates composition
+/// before storing the new translation. The live parent chain is borrowed.
+static inline void _healingAdvanceSparkleCoord(GfxCoord* coord, const EffectWork* work)
 {
-    EffectWork* mem;
+    s32 nextY;
+
+    nextY               = coord->coord.t[1] + work->move.vy;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]   = nextY;
+    actorRenderComposeCoord(coord);
+}
+
+void healingSparkleTask(Task* task)
+{
+    enum {
+        HEALING_SPARKLE_STATE_INITIALIZE = 0,
+        HEALING_SPARKLE_STATE_RISING     = 1,
+        HEALING_SPARKLE_Y_STEP           = 4,
+        HEALING_SPARKLE_RELEASE_AGE      = 30,
+        HEALING_SPARKLE_FADE_START_AGE   = 16,
+        HEALING_SPARKLE_SIZE_MASK        = 0xFFF,
+        HEALING_SPARKLE_GLOW_LEVEL_INDEX = 2,
+        HEALING_SPARKLE_SPARK_PERIOD     = 8,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s32         y;
-    s16         step;
-    s16         kind;
+    s16         levelIndex;
     EffectWork* spawned;
 
-    mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.coordBody->coord;
-    mem->age = mem->age + 1;
-    if (arg0->state == 0) {
-        coord->parent       = mem->parent;
-        coord->coord.t[0]   = mem->pos.vx;
-        coord->coord.t[1]   = mem->pos.vy;
-        coord->coord.t[2]   = mem->pos.vz;
+    work      = task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
+    work->age = work->age + 1;
+    if (task->state == HEALING_SPARKLE_STATE_INITIALIZE) {
+        coord->parent       = work->parent;
+        coord->coord.t[0]   = work->pos.vx;
+        coord->coord.t[1]   = work->pos.vy;
+        coord->coord.t[2]   = work->pos.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
-        mem->move.vy = 4;
-        mem->move.vx = 0;
-        mem->move.vz = 0;
-        arg0->state  = 1;
-        kind         = (Gp_StateC08.attachId % 10U) - 1;
-        mem->step    = kind;
-        mem->scale   = D_healing_8012FC1C[kind].brightness;
-        mem->angle   = (u16)arg0->spawnArg1.value & 0xFFF;
+        work->move.vy = HEALING_SPARKLE_Y_STEP;
+        work->move.vx = 0;
+        work->move.vz = 0;
+        task->state   = HEALING_SPARKLE_STATE_RISING;
+        levelIndex    = (Gp_StateC08.attachId % 10U) - 1;
+        work->step    = levelIndex;
+        work->scale   = D_healing_8012FC1C[levelIndex].brightness;
+        work->angle   = (u16)task->spawnArg1.value & HEALING_SPARKLE_SIZE_MASK;
     }
-    step                = mem->move.vy;
-    y                   = coord->coord.t[1] + step;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]   = y;
-    actorRenderComposeCoord(coord);
-    if (mem->age < 0x1E) {
-        if (mem->age & 1) {
-            mem->index = mem->index + 1;
-            if (mem->age >= 0x10) {
-                mem->scale = mem->scale - (D_healing_8012FC1C[mem->step].brightness >> 4);
+    // Initialization moves too; fading and child emission occur only on draw ticks.
+    _healingAdvanceSparkleCoord(coord, work);
+    if (work->age < HEALING_SPARKLE_RELEASE_AGE) {
+        if (work->age & 1) {
+            work->index = work->index + 1;
+            if (work->age >= HEALING_SPARKLE_FADE_START_AGE) {
+                work->scale = work->scale - (D_healing_8012FC1C[work->step].brightness >> 4);
             }
-            if (mem->step < 2) {
-                effectDrawModulatedBillboard(coord, mem->index, mem->angle,
-                                             mem->scale);
+            if (work->step < HEALING_SPARKLE_GLOW_LEVEL_INDEX) {
+                effectDrawModulatedBillboard(coord, work->index, work->angle,
+                                             work->scale);
             } else {
-                _healingDrawSparkle(coord, mem->index, mem->angle, mem->scale);
+                _healingDrawSparkle(coord, work->index, work->angle, work->scale);
             }
-            if ((mem->age & 7) == 1) {
-                spawned = effectSpawn(EFFECT_HEALING_SPARK, coord, (s32)(mem->angle), 0);
+            if ((work->age & (HEALING_SPARKLE_SPARK_PERIOD - 1)) == 1) {
+                spawned = effectSpawn(EFFECT_HEALING_SPARK, coord, (s32)(work->angle), 0);
                 if (spawned != NULL) {
-                    taskReparent(arg0, spawned->task);
+                    taskReparent(task, spawned->task);
                 }
             }
         }
     } else {
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
     }
 }
 

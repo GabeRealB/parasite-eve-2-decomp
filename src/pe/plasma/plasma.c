@@ -53,8 +53,11 @@ static s16 D_plasma_8012FF54[3][16] = { 0 };
 
 /// Seeds the three Plasma texture-phase columns in per-segment LCG order.
 ///
-/// Advances the shared generator in column order 0, 1, 2 for all sixteen
-/// segments; the cast's phase table is the only output.
+/// Takes 48 draws from the shared generator, interleaving columns 0, 1, 2
+/// at each of the sixteen segment indices. Stores bits 16..23 in each signed
+/// halfword phase slot, yielding 0..255. Replaces the complete package table;
+/// a later cast therefore replaces an earlier cast's phases. No pointers are
+/// retained and GTE state is untouched.
 static inline void _plasmaSeedBandPhases(void)
 {
     s32 segmentIndex;

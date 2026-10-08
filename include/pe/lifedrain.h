@@ -31,8 +31,39 @@ void lifedrainRisingSparkTask(Task* task);
 /// 15, 21 or 27 running ticks respectively. GPU packets live for the frame.
 void lifedrainExpandingGlowBandTask(Task* task);
 
-void func_lifedrain_8012EF48(Task* arg0);
+/// Collects drained health and sequences Life Drain's flash and blue funnel.
+///
+/// Requires a counted coordinate-body effect with cleared, owned `EffectWork`
+/// in `spawnArg2.pointer`, a live borrowed parent and active PE level 1..3.
+/// Publishes itself as the collector for hit motes, which join its teardown
+/// tree and add their `spawnArg1.value` to its own. Seeds 8/12/16 wedge yaws
+/// and spawns three child expanding glow bands at Z angles 0, 682 and 1364
+/// (4096 units per turn). The package permits one live collector at a time.
+///
+/// Age 3 plays the level's empty/success cue. At age 30, a nonzero collected
+/// count grants `gSceneCombatState.lifeDrainHp`, capped at maximum HP, then
+/// grows and fades the funnel, shedding child sparks. With no count, skips
+/// the funnel. Cancellation in either opening state also grants banked HP
+/// only when the count is nonzero. A held attachment or PE cancellation
+/// releases the task; its published handle is not cleared on teardown.
+void lifedrainCastTask(Task* task);
 
-void func_lifedrain_8012FAF8(Task* arg0);
+/// Drifts from a Life Drain hit, then steers toward the player's part-one origin.
+///
+/// Requires a counted coordinate-body effect with cleared `EffectWork` in
+/// `spawnArg2.pointer`, a live published `lifedrainCastTask`, and live player
+/// coordinates. Initialization joins the collector's teardown tree and adds
+/// `spawnArg1.value` to its collected count. Three random draws seed signed
+/// parent-frame velocity; the mote moves on the initialization tick.
+///
+/// The PE level index is stored in `scale` but does not select sizing: the
+/// unwritten, cleared `step` selects row zero, giving spark size 1024 and mote
+/// size 768 at every level. Odd ages draw two billboards and may shed a child
+/// spark. At age 15, the player displacement is transformed and scaled by
+/// `(4608 / (30 - age)) / 4096` into `pos`, without normalization. Later ticks
+/// move each velocity component by +/-16 toward that target and recompute it.
+/// Age 30 moves once more before release. A held attachment or PE cancellation
+/// releases it immediately; the collector and Life Drain overlay stay live.
+void lifedrainMoteTask(Task* task);
 
 #endif // INCLUDE_PE_LIFEDRAIN_H

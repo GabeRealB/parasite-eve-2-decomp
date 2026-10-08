@@ -43186,7 +43186,7 @@ pad already exists in the package, splat has simply swallowed it.
 string at `0x8012EF30`, then `jtbl_inferno_8012EF34` (13 entries, ending at
 `0x8012EF68`), a zero word, then `jtbl_inferno_8012EF6C`. With no symbol at
 `0x8012EF68` splat folds that zero word into the *first* table's `dlabel`, so
-the moment `func_inferno_8012EF88` becomes C the pad disappears with the
+the moment `infernoCastTask` becomes C the pad disappears with the
 `INCLUDE_ASM` that carried it, and `jtbl_inferno_8012EF6C` lands 4 bytes early.
 In the original object the pad is GCC's `.align 3` ahead of the second table,
 which the compiler no longer emits because that table is assembly now.
@@ -62052,7 +62052,7 @@ chain collides and one file is silently overwritten by another.
 
 ## An `s8` local truncates at the *use*; an `s32` local truncates at the assignment
 
-`func_combustion_8012EF34` reads a pan value that is live across the next call:
+`combustionFlameEmitterTask` reads a pan value that is live across the next call:
 
 ```c
 pan = (s8)worldCoordGetOriginAudioPan(coord);
@@ -62292,7 +62292,7 @@ store to a local is.
 
 ## `lw` narrowed to `lhu`: write the scale as `* 32`, not `<< 5`
 
-`func_combustion_8012F2BC` stores a scaled `s32` task field into an `s16` field:
+`combustionFlameTask` stores a scaled `s32` task field into an `s16` field:
 
 ```
 lw    v0,0x34(s2)       <- target
@@ -62302,7 +62302,7 @@ addiu v0,v0,0x200
 sh    v0,0x24(s0)
 ```
 
-Writing the obvious `mem->field_24 = (index->spawnArg1 << 5) + 0x200;` produces
+Writing the obvious `work->scale = (task->spawnArg1.value << 5) + 0x200;` produces
 the same four instructions with `lhu` in place of the `lw`. Only the low 16 bits
 of the sum survive the `sh`, so combine walks the truncation back through the
 `addiu` and the `sll` and finally rewrites `(subreg:HI (mem:SI))` as a `mem:HI`
@@ -62311,15 +62311,15 @@ of the sum survive the `sh`, so combine walks the truncation back through the
 `* 32` stops it:
 
 ```c
-mem->field_24 = arg0->spawnArg1 * 32 + 512;   /* lw */
-mem->field_24 = (arg0->spawnArg1 << 5) + 0x200;  /* lhu */
+work->scale = task->spawnArg1.value * 32 + 512;   /* lw */
+work->scale = (task->spawnArg1.value << 5) + 0x200;  /* lhu */
 ```
 
 The two expressions are identical after `expand`, but the multiply reaches
 combine as a `mult` that `expand_mult` has already turned into a shift *plus*
 its own insn boundary, so the truncation chain runs out of insns before it gets
 back to the load. Assigning the field through an explicit `s32` local
-(`amt = index->spawnArg1; mem->field_24 = (amt << 5) + 0x200;`) works for the
+(`amt = task->spawnArg1.value; work->scale = (amt << 5) + 0x200;`) works for the
 same reason, and is the fallback when the constant is not a power of two.
 
 The rule is worth remembering in reverse too: an `lhu`/`lbu` where the target
@@ -62328,7 +62328,7 @@ that only feeds a narrow store.
 
 ## Split a local that is reused by more than one `switch` case
 
-`func_combustion_8012F2BC` runs the same LCG step in two of its three cases:
+`combustionFlameTask` runs the same LCG step in two of its three cases:
 
 ```c
 rng         = gRandomLcgState * 5 + 0x71357911;
@@ -62544,7 +62544,7 @@ GCC keep two of them in `$s5` / `$s1` across the loop and spill only the
 
 `metabolismCastTask` touches `Gp_StateC08` three times: `effectPhase` in the
 cancel test, `attachId` in `case 0`, and `flags` a few statements later.
-Copying its sibling `func_healing_8012EF34` and opening with
+Copying its sibling `healingAuraTask` and opening with
 
 ```c
 AttachmentState* state = &Gp_StateC08;
@@ -62561,7 +62561,7 @@ Writing `Gp_StateC08.effectPhase` / `Gp_StateC08.flags` directly took it to
 `attachId` — and rematerialises `lui` + `addiu` at the `flags` read, which is
 exactly the ROM's two "extra" instructions.
 
-The trap is that the sibling is not wrong: `func_healing_8012EF34` matches
+The trap is that the sibling is not wrong: `healingAuraTask` matches
 *with* the pointer local, because there the `flags` use sits close enough
 that keeping the address costs nothing. So when a copied state-machine body
 leaves `regs` spread over the prologue plus a couple of stray `lui`/`addiu`
@@ -62571,7 +62571,7 @@ before looking anywhere else.
 
 ## Repeated stores to a fixed-address global survive only if a struct store sits between them
 
-`func_lifedrain_8012FAF8` seeds three drift components from three LCG steps and
+`lifedrainMoteTask` seeds three drift components from three LCG steps and
 the ROM keeps *all three* `sw $aN, %lo(gRandomLcgState)($t1)` back to back, right
 before the `sh` of the next field. Writing that literally,
 
@@ -62579,9 +62579,9 @@ before the `sh` of the next field. Writing that literally,
 rng1 = gRandomLcgState * 5 + 0x71357911;
 rng2 = rng1 * 5 + 0x71357911;
 rng3 = rng2 * 5 + 0x71357911;
-mem->field_10 = 0x40   - (((u32)rng1 >> 16) & 0x7F);
-mem->field_12 = 0xFFE0 - (((u32)rng2 >> 16) & 0x3F);
-mem->field_14 = 0x40   - (((u32)rng3 >> 16) & 0x7F);
+work->move.vx = 0x40   - (((u32)rng1 >> 16) & 0x7F);
+work->move.vy = 0xFFE0 - (((u32)rng2 >> 16) & 0x3F);
+work->move.vz = 0x40   - (((u32)rng3 >> 16) & 0x7F);
 gRandomLcgState = rng1;
 gRandomLcgState = rng2;
 gRandomLcgState = rng3;
@@ -62595,11 +62595,11 @@ Interleaving them the way the source must have read keeps all three:
 
 ```c
 gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
-mem->field_10 = 0x40 - (((u32)gRandomLcgState >> 16) & 0x7F);
+work->move.vx = 0x40 - (((u32)gRandomLcgState >> 16) & 0x7F);
 gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
-mem->field_12 = 0xFFE0 - (((u32)gRandomLcgState >> 16) & 0x3F);
+work->move.vy = 0xFFE0 - (((u32)gRandomLcgState >> 16) & 0x3F);
 gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
-mem->field_14 = 0x40 - (((u32)gRandomLcgState >> 16) & 0x7F);
+work->move.vz = 0x40 - (((u32)gRandomLcgState >> 16) & 0x7F);
 ```
 
 The `sh` between each pair blocks the deletion, CSE still folds each reload
@@ -63113,8 +63113,8 @@ state-0 loop took a dozen attempts.
 
 ## Re-reading `mem->field` in a loop beats a `count` / `level` pair when the target reloads it
 
-**Problem.** The sibling `func_energyshot_8012EF34` carries `count` and
-`level` locals across its seeding loop, so m2c-style code with the same pair
+**Problem.** The sibling `energyshotCastTask` carries `wedgeCount` and
+`levelIndex` locals across its seeding loop, so m2c-style code with the same pair
 looked obviously right. It scored 98.7% with a stubborn extra `move` and a
 `sll`/`sra` in the preheader.
 
@@ -63560,7 +63560,7 @@ rD, rS` that copies an address already live before the loop can come from either
 of the outer two bands, and picking the wrong one is a three-instruction reorder
 that no amount of statement shuffling fixes.
 
-`func_lifedrain_8012EF48` has the same table-walking loop three times. In state
+`lifedrainCastTask` has the same table-walking loop three times. In state
 0 the target preheader is
 
 ```
@@ -63582,17 +63582,17 @@ do {
     rng                     = gRandomLcgState * 5 + 0x71357911;
     D_lifedrain_80130AEC[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
     gRandomLcgState             = rng;
-} while (++i < D_lifedrain_80130AB4[mem->field_20].wedgeCount);
+} while (++i < D_lifedrain_80130AB4[work->index].wedgeCount);
 ```
 
-Writing the idiomatic `tuning = D_lifedrain_80130AB4; p = D_lifedrain_80130AEC;`
+Writing the idiomatic `tuning = D_lifedrain_80130AB4; wedgeYaw = D_lifedrain_80130AEC;`
 pair instead puts both in the first band, ahead of the movables — 99.7% with
 `reorder=3` and every register already correct.
 
 States 2 and 3 run the same walk with a call in the body, and there the target's
 preheader is `move s5, a1` *then* the `lui`/`addiu` for the array, with no
 movables at all (the body hoists nothing). Both bands are the first one, so both
-*are* source locals and the explicit `tuning` / `p` pair is what matches. Same loop,
+*are* source locals and the explicit `tuning` / `wedgeYaw` pair is what matches. Same loop,
 opposite answer: read the band, not the loop.
 
 
@@ -116407,7 +116407,7 @@ sw    v0, 0x20(a0)
 With the store written in the middle, sched2 places it in the *first* load's
 slot and the second one gets the `nop` - 96.9%, `reorder=2`, the only
 difference left. Writing it after both accumulations - `t[0] += vx; t[2] += vz;
-composeStamp = 0;`, the order the sibling `func_lifedrain_8012FAF8` uses for the same
+composeStamp = 0;`, the order the sibling `lifedrainMoteTask` uses for the same
 coordinate update - makes its anti-dependence cover both loads, so it cannot be
 scheduled before the second one and reorg fills that slot with it instead.
 100.000%.
@@ -149525,13 +149525,13 @@ attempts; left as it was.
 
 - **`goto draw` from one switch case into the next case's draw tail, where
   the tail owns a stack array** (`rgb[3]` in `metabolismCastTask`,
-  `func_healing_8012EF34`) is a `static inline` with the array as *its* local,
+  `healingAuraTask`) is a `static inline` with the array as *its* local,
   called in both cases. The two inlined copies share one stack slot
   (`sp+16`), so cross-jumping still merges them into the later case; the frame
   does not grow. First try both times.
 - **`if (cancel) goto release;` at the top, `release:` after a switch whose
-  cases all return** (`func_inferno_8012EF88`, `infernoFlameFanTask`,
-  `energyballProjectileTask`, `func_combustion_8012EF34`) is
+  cases all return** (`infernoCastTask`, `infernoFlameFanTask`,
+  `energyballProjectileTask`, `combustionFlameEmitterTask`) is
   `effectKillTask(mem, arg0); return;` written at the site. The copy merges
   into the last identical call before the epilogue, wherever that is (the
   `break` path after the switch, or the last case's own kill).

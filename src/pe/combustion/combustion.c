@@ -79,179 +79,203 @@ static _CombustionLevelTuning D_combustion_80130980[] = {
 static s32 D_combustion_80130998[] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };
 
 /// The effect coordinate's world Y at ignition, saved by
-/// `func_combustion_8012EF34` before it re-bases the coordinate on the player.
+/// `combustionFlameEmitterTask` before it re-bases the coordinate on the player.
 static s32 D_combustion_801309A4 = 0;
 
-/// Burns the player: parents an effect coordinate to the player model, plays
-/// the ignition sound and fades the screen, then spawns a flame every frame
-/// while drifting the flame overlay by the `D_combustion_80130980` row for the
-/// current intensity. State 1 spawns, state 2 (past `narrowFlameFrames`) only
-/// unwinds the yaw the ignition applied, and either state ends as soon as the
-/// player is dying (`Gp_StateC08.effectPhase`), parasite-energy effects are
-/// cancelled (`gRoomEffectState->peEffectControl`) or the row's
-/// `emitterFrames` tick is reached.
-void func_combustion_8012EF34(Task* arg0)
+/// Places one Combustion emitter above the player and yaws it toward its side.
+///
+/// Borrows writable `coord` and the live player root. The read-only task supplies
+/// the signed spawn side, normally +/-1. Local Y is -1024 coordinate units and yaw is
+/// 512 angle units per side, with 4096 per turn. Composition invalidation and
+/// refresh follow rotation; the parent chain and GTE state are borrowed.
+static inline void _combustionPlaceEmitterCoord(GfxCoord* coord, const Task* task)
 {
-    EffectWork* mem;
+    enum {
+        COMBUSTION_EMITTER_LOCAL_Y        = -0x400,
+        COMBUSTION_EMITTER_SIDE_YAW_SHIFT = 9,
+    };
+    coord->parent = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    gfxSetRotIdentity(&coord->coord);
+    coord->coord.t[0] = 0;
+    coord->coord.t[1] = COMBUSTION_EMITTER_LOCAL_Y;
+    coord->coord.t[2] = 0;
+    gfxRotMatrixY(&coord->coord, task->spawnArg1.value << COMBUSTION_EMITTER_SIDE_YAW_SHIFT, 0);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
+
+void combustionFlameEmitterTask(Task* task)
+{
+    enum {
+        COMBUSTION_EMITTER_STATE_INITIALIZE = 0,
+        COMBUSTION_EMITTER_STATE_EMITTING   = 1,
+        COMBUSTION_EMITTER_STATE_UNWINDING  = 2,
+        COMBUSTION_EMITTER_INITIAL_REACH    = 0x200,
+        COMBUSTION_EMITTER_UNWIND_YAW_STEP  = 80,
+        COMBUSTION_IGNITION_RED             = 0xFF,
+        COMBUSTION_IGNITION_GREEN           = 0x7F,
+        COMBUSTION_IGNITION_BLUE            = 0x3F,
+        COMBUSTION_EMITTER_MOTOR_START      = 0xFF,
+        COMBUSTION_EMITTER_MOTOR_END        = 8,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
     EffectWork* spawned;
     s32         pan;
     u8          rgb[3];
 
-    mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.coordBody->coord;
-    mem->age = mem->age + 1;
-    switch (arg0->state) {
-        case 0:
-            if (arg0->spawnArg1.value == 0) {
-                arg0->spawnArg1.value = 1;
+    work      = task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
+    work->age = work->age + 1;
+    switch (task->state) {
+        case COMBUSTION_EMITTER_STATE_INITIALIZE:
+            if (task->spawnArg1.value == 0) {
+                task->spawnArg1.value = 1;
             }
+            // Save the spawn height before placing the line in the player's frame.
             D_combustion_801309A4 = coord->workm.t[1];
-            coord->parent         = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            gfxSetRotIdentity(&coord->coord);
-            coord->coord.t[0] = 0;
-            coord->coord.t[1] = -0x400;
-            coord->coord.t[2] = 0;
-            gfxRotMatrixY(&coord->coord, arg0->spawnArg1.value << 9, 0);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            mem->move.vz = 0x200;
-            pan          = (s8)worldCoordGetOriginAudioPan(coord);
+            _combustionPlaceEmitterCoord(coord, task);
+            work->move.vz = COMBUSTION_EMITTER_INITIAL_REACH;
+            pan           = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(D_combustion_80130998[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
-            rgb[0] = 0xFF;
-            rgb[1] = 0x7F;
-            rgb[2] = 0x3F;
+            rgb[0] = COMBUSTION_IGNITION_RED;
+            rgb[1] = COMBUSTION_IGNITION_GREEN;
+            rgb[2] = COMBUSTION_IGNITION_BLUE;
             effectDrawScreenTint(rgb, GPU_BLEND_ADD);
-            arg0->state = 1;
-            mem->index  = Gp_StateC08.attachId % 10 - 1;
-            padScriptSpawnVariableMotorRamp(D_combustion_80130980[mem->index].emitterFrames, 0xFF, 8);
+            task->state = COMBUSTION_EMITTER_STATE_EMITTING;
+            work->index = Gp_StateC08.attachId % 10 - 1;
+            padScriptSpawnVariableMotorRamp(D_combustion_80130980[work->index].emitterFrames, COMBUSTION_EMITTER_MOTOR_START, COMBUSTION_EMITTER_MOTOR_END);
             /* fallthrough */
-        case 1:
+        case COMBUSTION_EMITTER_STATE_EMITTING:
             actorRenderComposeCoord(coord);
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                effectKillTask(mem, arg0);
+                effectKillTask(work, task);
                 return;
             }
-            mem->move.vy = mem->move.vy + D_combustion_80130980[mem->index].flameDropStep;
-            mem->move.vz = mem->move.vz + D_combustion_80130980[mem->index].flameReachStep;
-            spawned      = effectSpawn((EFFECT_COMBUSTION_FLAME | EFFECT_SPAWN_UNLIMITED), coord, (s32)(mem->age), &mem->move);
+            // move is the next flame's local placement, rather than this task's velocity.
+            work->move.vy = work->move.vy + D_combustion_80130980[work->index].flameDropStep;
+            work->move.vz = work->move.vz + D_combustion_80130980[work->index].flameReachStep;
+            spawned       = effectSpawn((EFFECT_COMBUSTION_FLAME | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &work->move);
             if (spawned != NULL) {
-                taskReparent(arg0, spawned->task);
+                taskReparent(task, spawned->task);
             }
-            if (D_combustion_80130980[mem->index].narrowFlameFrames < mem->age) {
+            if (D_combustion_80130980[work->index].narrowFlameFrames < work->age) {
                 Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
-                arg0->state        = 2;
+                task->state        = COMBUSTION_EMITTER_STATE_UNWINDING;
                 return;
             }
             return;
-        case 2:
+        case COMBUSTION_EMITTER_STATE_UNWINDING:
             actorRenderComposeCoord(coord);
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
-                (mem->age > D_combustion_80130980[mem->index].emitterFrames)) {
-                effectKillTask(mem, arg0);
+                (work->age > D_combustion_80130980[work->index].emitterFrames)) {
+                effectKillTask(work, task);
                 return;
             }
-            gfxRotMatrixY(&coord->coord, -(arg0->spawnArg1.value * 80), 0);
+            // Compose first; the next tick observes this unwinding rotation.
+            gfxRotMatrixY(&coord->coord, -(task->spawnArg1.value * COMBUSTION_EMITTER_UNWIND_YAW_STEP), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }
 }
 
-/// One flame of the combustion burn. State 0 re-bases the effect coordinate on
-/// the `EffectWork.parent` parent with an identity rotation and the work
-/// block's `pos` offset, seeds the phase `age` from
-/// `gRandomLcgState`, the radius `scale` from `spawnArg1` and the intensity
-/// `index` from `Gp_StateC08.attachId % 10 - 1`, then splits: `spawnArg1`
-/// past the `D_combustion_80130980` row's `narrowFlameFrames` runs the wide
-/// state 2, anything smaller the narrow state 1. Both states redraw every frame -
-/// `index < 2` picks the small draw helper, otherwise the large one - and
-/// one frame in four spawn a trailing ember that adopts this task as its
-/// parent. Either state releases the effect once the player is dying
-/// (`Gp_StateC08.effectPhase`), parasite-energy effects are cancelled
-/// (`gRoomEffectState->peEffectControl`) or the flame has lived
-/// 0x21 frames.
-void func_combustion_8012F2BC(Task* arg0)
+/// Gives an active Combustion flame a one-in-four chance to shed a child ember.
+///
+/// Borrows a live parent task and composed coordinate. Consumes one shared
+/// random draw for the chance, and a second for the 0/1 ember variant on success.
+/// A successful spawn joins the flame's teardown tree; allocation failure is ignored.
+static inline void _combustionTrySpawnEmber(Task* task, GfxCoord* coord)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
+    enum {
+        COMBUSTION_FLAME_EMBER_CHANCE_MASK  = 3,
+        COMBUSTION_FLAME_EMBER_VARIANT_MASK = 1,
+    };
+    s32         emissionRng;
+    s32         variantRng;
     EffectWork* spawned;
-    s32         rng;
-    s32         spawnRng1;
-    s32         spawnRng1b;
-    s32         spawnRng2;
-    s32         spawnRng2b;
-    s32         last;
 
-    mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.coordBody->coord;
-    mem->age = mem->age + 1;
-    switch (arg0->state) {
-        case 0:
-            coord->parent = mem->parent;
+    emissionRng     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = emissionRng;
+    if ((((u32)emissionRng >> 16) & COMBUSTION_FLAME_EMBER_CHANCE_MASK) == 0) {
+        variantRng      = emissionRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = variantRng;
+        spawned         = effectSpawn(EFFECT_COMBUSTION_EMBER, coord, ((u32)variantRng >> 16) & COMBUSTION_FLAME_EMBER_VARIANT_MASK, 0);
+        if (spawned != NULL) {
+            taskReparent(task, spawned->task);
+        }
+    }
+}
+
+void combustionFlameTask(Task* task)
+{
+    enum {
+        COMBUSTION_FLAME_STATE_INITIALIZE  = 0,
+        COMBUSTION_FLAME_STATE_NARROW      = 1,
+        COMBUSTION_FLAME_STATE_WIDE        = 2,
+        COMBUSTION_FLAME_INITIAL_AGE_MASK  = 0xF,
+        COMBUSTION_FLAME_END_AGE           = 33,
+        COMBUSTION_FLAME_SIZE_STEP         = 32,
+        COMBUSTION_FLAME_SIZE_BASE         = 512,
+        COMBUSTION_FLAME_LARGE_LEVEL_INDEX = 2,
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         phaseRng;
+    s32         narrowFlameFrames;
+
+    work      = task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
+    work->age = work->age + 1;
+    switch (task->state) {
+        case COMBUSTION_FLAME_STATE_INITIALIZE:
+            coord->parent = work->parent;
             gfxSetRotIdentity(&coord->coord);
 
-            coord->coord.t[0]   = mem->pos.vx;
-            coord->coord.t[1]   = mem->pos.vy;
-            coord->coord.t[2]   = mem->pos.vz;
+            coord->coord.t[0]   = work->pos.vx;
+            coord->coord.t[1]   = work->pos.vy;
+            coord->coord.t[2]   = work->pos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
 
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->age        = ((u32)rng >> 16) & 0xF;
-            mem->scale      = arg0->spawnArg1.value * 32 + 512;
-            mem->index      = Gp_StateC08.attachId % 10 - 1;
-            last            = D_combustion_80130980[mem->index].narrowFlameFrames;
-            gRandomLcgState = rng;
-            if (last < arg0->spawnArg1.value) {
-                arg0->state = 2;
+            // Animation starts at a random phase; the emission age determines size.
+            phaseRng          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->age         = ((u32)phaseRng >> 16) & COMBUSTION_FLAME_INITIAL_AGE_MASK;
+            work->scale       = task->spawnArg1.value * COMBUSTION_FLAME_SIZE_STEP + COMBUSTION_FLAME_SIZE_BASE;
+            work->index       = Gp_StateC08.attachId % 10 - 1;
+            narrowFlameFrames = D_combustion_80130980[work->index].narrowFlameFrames;
+            gRandomLcgState   = phaseRng;
+            if (narrowFlameFrames < task->spawnArg1.value) {
+                task->state = COMBUSTION_FLAME_STATE_WIDE;
                 return;
             }
-            arg0->state = 1;
+            task->state = COMBUSTION_FLAME_STATE_NARROW;
             return;
-        case 1:
+        case COMBUSTION_FLAME_STATE_NARROW:
             actorRenderComposeCoord(coord);
-            if (mem->index < 2) {
-                _combustionDrawSmallFlame(coord, mem->age, mem->scale);
+            if (work->index < COMBUSTION_FLAME_LARGE_LEVEL_INDEX) {
+                _combustionDrawSmallFlame(coord, work->age, work->scale);
             } else {
-                _combustionDrawLargeFlame(coord, mem->age, mem->scale);
+                _combustionDrawLargeFlame(coord, work->age, work->scale);
             }
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
-                effectKillTask(mem, arg0);
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (work->age >= COMBUSTION_FLAME_END_AGE)) {
+                effectKillTask(work, task);
                 return;
             }
-            spawnRng1       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = spawnRng1;
-            if ((((u32)spawnRng1 >> 16) & 3) == 0) {
-                spawnRng1b      = spawnRng1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = spawnRng1b;
-                spawned         = effectSpawn(EFFECT_COMBUSTION_EMBER, coord, ((u32)spawnRng1b >> 16) & 1, 0);
-                if (spawned != NULL) {
-                    taskReparent(arg0, spawned->task);
-                }
-            }
+            _combustionTrySpawnEmber(task, coord);
             return;
-        case 2:
+        case COMBUSTION_FLAME_STATE_WIDE:
             actorRenderComposeCoord(coord);
-            if (mem->index < 2) {
-                _spriteQuadDrawFlicker(coord, mem->age, mem->scale * 3 / 2, 0);
+            if (work->index < COMBUSTION_FLAME_LARGE_LEVEL_INDEX) {
+                _spriteQuadDrawFlicker(coord, work->age, work->scale * 3 / 2, 0);
             } else {
-                _spriteQuadDrawFlicker(coord, mem->age, mem->scale * 4, 0);
+                _spriteQuadDrawFlicker(coord, work->age, work->scale * 4, 0);
             }
-            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
-                effectKillTask(mem, arg0);
+            if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (work->age >= COMBUSTION_FLAME_END_AGE)) {
+                effectKillTask(work, task);
                 return;
             }
-            spawnRng2       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = spawnRng2;
-            if ((((u32)spawnRng2 >> 16) & 3) == 0) {
-                spawnRng2b      = spawnRng2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = spawnRng2b;
-                spawned         = effectSpawn(EFFECT_COMBUSTION_EMBER, coord, ((u32)spawnRng2b >> 16) & 1, 0);
-                if (spawned != NULL) {
-                    taskReparent(arg0, spawned->task);
-                }
-            }
+            _combustionTrySpawnEmber(task, coord);
             return;
     }
 }
@@ -622,17 +646,21 @@ static void _combustionDrawLargeFlame(const GfxCoord* coord, s16 animationFrame,
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-void func_combustion_801308E0(Task* arg0)
+void combustionCastTask(Task* task)
 {
+    enum {
+        COMBUSTION_CAST_STATE_INITIALIZE = 0,
+    };
     GfxCoord* coord;
 
-    if (arg0->state != 0) {
-        effectKillTask(arg0->spawnArg2.pointer, arg0);
+    if (task->state != COMBUSTION_CAST_STATE_INITIALIZE) {
+        effectKillTask(task->spawnArg2.pointer, task);
         return;
     }
-    coord = arg0->extra.coordBody->coord;
+    coord = task->extra.coordBody->coord;
     actorRenderComposeCoord(coord);
+    // Independent emitters outlive this two-tick controller.
     effectSpawn((EFFECT_COMBUSTION_FLAME_EMITTER | EFFECT_SPAWN_UNLIMITED), coord, 1, 0);
     effectSpawn((EFFECT_COMBUSTION_FLAME_EMITTER | EFFECT_SPAWN_UNLIMITED), coord, -1, 0);
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }

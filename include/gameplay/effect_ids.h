@@ -100,12 +100,11 @@ enum {
     /// One drifting necrosis mist puff or spore-cloud sprite, flung outward on a random
     /// bearing; spawned every third tick by the Necrosis cast.
     EFFECT_NECROSIS_MIST_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x01A),
-    /// Combustion PE controller: parents to the player model, plays the ignition sound,
-    /// fades the screen and spawns a flame every frame while drifting the flame
-    /// overlay; Combustion spawns two (arg +1/-1).
+    /// One descending flame line of Combustion, laid in the player's local frame
+    /// by `combustionFlameEmitterTask`; the cast starts opposite sides (+1/-1).
     EFFECT_COMBUSTION_FLAME_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x01B),
-    /// One flame of the Combustion PE burn, parented to the player, drawn every frame
-    /// and trailing embers; spawned each frame by func_combustion_8012EF34.
+    /// One flame at a Combustion line's emission position, drawn every active tick
+    /// and shedding child embers; spawned by `combustionFlameEmitterTask`.
     EFFECT_COMBUSTION_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x01C),
     /// Pulsing red gradient-quad beacon glow (red_beacon_task) placed at fixed points
     /// in view 2 of the Akropolis west elevator hall by its room task.

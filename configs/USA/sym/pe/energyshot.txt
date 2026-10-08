@@ -3,6 +3,6 @@ D_energyshot_801300E4 = 0x801300E4; // size:0x18
 
 energyshotRisingBillboardTask = 0x8012FFB8; // type:func
 
-func_energyshot_8012EF34 = 0x8012EF34; // type:func
+energyshotCastTask = 0x8012EF34; // type:func
 glowDrawWedge = 0x8012F750; // type:func
 _energyshotDrawBeamBand = 0x8012fa50; // type:func

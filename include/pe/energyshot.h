@@ -19,6 +19,21 @@
 /// and room-effect pause/cancel gates.
 void energyshotRisingBillboardTask(Task* task);
 
-void func_energyshot_8012EF34(Task* arg0);
+/// Grows and fades Energy Shot's cast discs, wedges and vertical beam bands.
+///
+/// Requires a counted coordinate-body effect with cleared, owned `EffectWork`
+/// in `spawnArg2.pointer`, a live borrowed parent and active PE level 1..3.
+/// Initialization requests stats, resets the previous shot-aura flags, seeds
+/// all sixteen beam texture phases and 8/12/16 wedge yaws, and plays the
+/// level's cue. The package tables are shared by casts, so a later cast
+/// replaces their phases. Angles use 4096 units per turn.
+///
+/// Brightness also controls radius. Growth draws three discs above the origin,
+/// wedges and one to three beam bands, and emits rising energy sparks with
+/// randomized palettes. Passing the level's brightness cap starts the shot
+/// aura and fading: discs keep their capped radius, while level-three wedges
+/// and beams continue expanding. A held attachment, PE cancellation or the
+/// fade floor releases the task. The parent and Energy Shot overlay stay live.
+void energyshotCastTask(Task* task);
 
 #endif // INCLUDE_PE_ENERGYSHOT_H

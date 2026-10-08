@@ -103,7 +103,7 @@ static EffectBandShape D_inferno_801304E4[] = {
 
 /// The `sndEvtRequestScriptStart` id the inferno cast plays, indexed by
 /// the cast's level, `Gp_StateC08.attachId % 10 - 1`.
-/// The same index also picks the state `func_inferno_8012EF88` advances to,
+/// The same index also picks the state `infernoCastTask` advances to,
 /// which is why the three ids and the three state chains run in step.
 static s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 
@@ -160,119 +160,155 @@ static void _infernoDrawConstantLiftFanBand(const EffectWork* work, const GfxCoo
         bottomVertex->vz                       = (u16)bottomVertex->vz + (u16)(coord)->workm.t[2];                                  \
     }
 
-/// Runs one frame of the inferno cast: a state machine driven by
-/// `Task::state`, with the chain it takes chosen in state 0 from
-/// `Gp_StateC08.attachId % 10 - 1` (the combo counter), which also picks the
-/// roar from `D_inferno_801304F0` and lands the task on state 1, 5 or 9.
-/// State 1 spawns the two ignition effects, state 5 fans six flames around a
-/// 0x400 step, state 9 the ground burst; states 10 and 11 fade the effect
-/// brightness scalar (`EffectWork::angle`) down and back up and each fire one ring of
-/// flames on their own tick, and state 12 fades out and releases. Every state
-/// updates the effect coordinate first, and any state releases immediately if
-/// the player is dying (`Gp_StateC08.effectPhase`) or parasite-energy effects are
-/// cancelled (`gRoomEffectState->peEffectControl`).
-void func_inferno_8012EF88(Task* arg0)
+/// Spawns the cast's offset fan ring, retaining move.vy and its final yaw.
+///
+/// Arguments are side-effect-free live pointers/values used repeatedly; yaw is
+/// a writable s32 lvalue in 4096-per-turn units and yawStep is positive. Requires
+/// yaw < yawEnd and nonoverflowing additions. Radius is work->scale in coordinate
+/// units; Q12 trig products narrow to the signed-halfword offset. fanVariant is
+/// 0..5. Uses the cast's INFERNO_CAST_TRIG_FRACTION_BITS constant. Unlimited fans
+/// are independent tasks; their spawn failures are ignored.
+#define INFERNO_SPAWN_OFFSET_FANS(coord, work, yaw, yawStep, yawEnd, fanVariant)                                \
+    {                                                                                                           \
+        do {                                                                                                    \
+            (work)->move.vx = (rsin((yaw)) * (work)->scale) >> INFERNO_CAST_TRIG_FRACTION_BITS;                 \
+            (work)->move.vz = (rcos((yaw)) * (work)->scale) >> INFERNO_CAST_TRIG_FRACTION_BITS;                 \
+            (yaw)          += (yawStep);                                                                        \
+            effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), (coord), (fanVariant), &(work)->move); \
+        } while ((yaw) < (yawEnd));                                                                             \
+    }
+
+void infernoCastTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        INFERNO_CAST_STATE_INITIALIZE         = 0,
+        INFERNO_CAST_STATE_LEVEL_ONE          = 1,
+        INFERNO_CAST_STATE_LEVEL_TWO          = 5,
+        INFERNO_CAST_STATE_LEVEL_THREE        = 9,
+        INFERNO_CAST_STATE_INNER_BURST        = 10,
+        INFERNO_CAST_STATE_OUTER_BURST        = 11,
+        INFERNO_CAST_STATE_FADING             = 12,
+        INFERNO_CAST_LEVEL_STATE_STRIDE       = 4,
+        INFERNO_CAST_INITIAL_RADIUS           = 0x200,
+        INFERNO_CAST_INNER_RADIUS             = 0x600,
+        INFERNO_CAST_OUTER_RADIUS             = 0x900,
+        INFERNO_CAST_MAX_BRIGHTNESS           = 0xFF,
+        INFERNO_CAST_PULSE_STEP               = 0x10,
+        INFERNO_CAST_PULSE_CEILING            = 0xF0,
+        INFERNO_CAST_FADE_STEP                = 8,
+        INFERNO_CAST_FADE_END_BRIGHTNESS      = 9,
+        INFERNO_CAST_INNER_BURST_AGE          = 12,
+        INFERNO_CAST_OUTER_BURST_AGE          = 24,
+        INFERNO_CAST_LEVEL_TWO_YAW_START      = 0x200,
+        INFERNO_CAST_LEVEL_TWO_YAW_STEP       = 0x400,
+        INFERNO_CAST_LEVEL_TWO_YAW_END        = 0x1200,
+        INFERNO_CAST_INNER_YAW_START          = 0x155,
+        INFERNO_CAST_FAN_YAW_STEP             = 0x2AA,
+        INFERNO_CAST_INNER_YAW_END            = 0x1151,
+        INFERNO_CAST_OUTER_YAW_END            = 0xFFC,
+        INFERNO_CAST_TRIG_FRACTION_BITS       = 12,
+        INFERNO_CAST_FAN_GROW_THEN_FADE       = 0,
+        INFERNO_CAST_FAN_STATIONARY_BURST     = 1,
+        INFERNO_CAST_FAN_DRIFTING_BURST       = 2,
+        INFERNO_CAST_FAN_WIDE_IGNITION        = 3,
+        INFERNO_CAST_FAN_SHALLOW_RING         = 4,
+        INFERNO_CAST_FAN_FAST_IGNITION        = 5,
+        INFERNO_CAST_LEVEL_ONE_MOTOR_FRAMES   = 16,
+        INFERNO_CAST_LEVEL_TWO_MOTOR_FRAMES   = 20,
+        INFERNO_CAST_LEVEL_THREE_MOTOR_FRAMES = 12,
+        INFERNO_CAST_FINAL_MOTOR_FRAMES       = 24,
+        INFERNO_CAST_MOTOR_START              = 0xFF,
+        INFERNO_CAST_MOTOR_END                = 8,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s32         i;
+    s32         yaw;
     s32         pan;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    mem->age = mem->age + 1;
-    switch (arg0->state) {
-        case 0:
-            mem->scale = 0x200;
-            mem->angle = 0xFF;
-            pan        = (s8)worldCoordGetOriginAudioPan(coord);
+    work->age = work->age + 1;
+    switch (task->state) {
+        case INFERNO_CAST_STATE_INITIALIZE:
+            work->scale = INFERNO_CAST_INITIAL_RADIUS;
+            work->angle = INFERNO_CAST_MAX_BRIGHTNESS;
+            pan         = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(D_inferno_801304F0[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
-            arg0->state = ((u16)(Gp_StateC08.attachId % 10) - 1) * 4 + 1;
+            // The PE level chooses one of three state chains, starting at 1, 5 or 9.
+            task->state = ((u16)(Gp_StateC08.attachId % 10) - 1) * INFERNO_CAST_LEVEL_STATE_STRIDE + INFERNO_CAST_STATE_LEVEL_ONE;
             return;
-        case 1:
-            effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 3, NULL);
-            effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 5, NULL);
+        case INFERNO_CAST_STATE_LEVEL_ONE:
+            effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, INFERNO_CAST_FAN_WIDE_IGNITION, NULL);
+            effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, INFERNO_CAST_FAN_FAST_IGNITION, NULL);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
-            padScriptSpawnVariableMotorRamp(0x10, 0xFF, 8);
-            arg0->state = 0xC;
+            padScriptSpawnVariableMotorRamp(INFERNO_CAST_LEVEL_ONE_MOTOR_FRAMES, INFERNO_CAST_MOTOR_START, INFERNO_CAST_MOTOR_END);
+            task->state = INFERNO_CAST_STATE_FADING;
             return;
-        case 5:
-            i = 0x200;
-            _infernoDrawScreenWash(mem->angle);
-            effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 3, NULL);
-            mem->scale = 0x600;
-            do {
-                mem->move.vx = (rsin(i) * mem->scale) >> 12;
-                mem->move.vz = (rcos(i) * mem->scale) >> 12;
-                i           += 0x400;
-                effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 4, &mem->move);
-            } while (i < 0x1200);
+        case INFERNO_CAST_STATE_LEVEL_TWO:
+            yaw = INFERNO_CAST_LEVEL_TWO_YAW_START;
+            _infernoDrawScreenWash(work->angle);
+            effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, INFERNO_CAST_FAN_WIDE_IGNITION, NULL);
+            work->scale = INFERNO_CAST_INNER_RADIUS;
+            INFERNO_SPAWN_OFFSET_FANS(coord, work, yaw, INFERNO_CAST_LEVEL_TWO_YAW_STEP, INFERNO_CAST_LEVEL_TWO_YAW_END, INFERNO_CAST_FAN_SHALLOW_RING);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
-            padScriptSpawnVariableMotorRamp(0x14, 0xFF, 8);
-            arg0->state = 0xC;
+            padScriptSpawnVariableMotorRamp(INFERNO_CAST_LEVEL_TWO_MOTOR_FRAMES, INFERNO_CAST_MOTOR_START, INFERNO_CAST_MOTOR_END);
+            task->state = INFERNO_CAST_STATE_FADING;
             return;
-        case 9:
-            effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 0, NULL);
-            padScriptSpawnVariableMotorRamp(0xC, 0xFF, 8);
-            arg0->state = 0xA;
+        case INFERNO_CAST_STATE_LEVEL_THREE:
+            effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, INFERNO_CAST_FAN_GROW_THEN_FADE, NULL);
+            padScriptSpawnVariableMotorRamp(INFERNO_CAST_LEVEL_THREE_MOTOR_FRAMES, INFERNO_CAST_MOTOR_START, INFERNO_CAST_MOTOR_END);
+            task->state = INFERNO_CAST_STATE_INNER_BURST;
             return;
-        case 10:
-            _infernoDrawScreenWash(mem->angle);
-            mem->angle = mem->angle - 0x10;
-            if (mem->age != 0xC) {
+        case INFERNO_CAST_STATE_INNER_BURST:
+            _infernoDrawScreenWash(work->angle);
+            work->angle = work->angle - INFERNO_CAST_PULSE_STEP;
+            if (work->age != INFERNO_CAST_INNER_BURST_AGE) {
                 return;
             }
-            mem->scale = 0x600;
-            i          = 0x155;
-            do {
-                mem->move.vx = (rsin(i) * mem->scale) >> 12;
-                mem->move.vz = (rcos(i) * mem->scale) >> 12;
-                i           += 0x2AA;
-                effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 1, &mem->move);
-            } while (i < 0x1151);
-            padScriptSpawnVariableMotorRamp(0xC, 0xFF, 8);
-            arg0->state = 0xB;
+            // The level-three bursts share the cast's absolute age counter.
+            work->scale = INFERNO_CAST_INNER_RADIUS;
+            yaw         = INFERNO_CAST_INNER_YAW_START;
+            INFERNO_SPAWN_OFFSET_FANS(coord, work, yaw, INFERNO_CAST_FAN_YAW_STEP, INFERNO_CAST_INNER_YAW_END, INFERNO_CAST_FAN_STATIONARY_BURST);
+            padScriptSpawnVariableMotorRamp(INFERNO_CAST_LEVEL_THREE_MOTOR_FRAMES, INFERNO_CAST_MOTOR_START, INFERNO_CAST_MOTOR_END);
+            task->state = INFERNO_CAST_STATE_OUTER_BURST;
             return;
-        case 11:
-            _infernoDrawScreenWash(mem->angle);
-            if (mem->angle < 0xF0) {
-                mem->angle = mem->angle + 0x10;
+        case INFERNO_CAST_STATE_OUTER_BURST:
+            _infernoDrawScreenWash(work->angle);
+            if (work->angle < INFERNO_CAST_PULSE_CEILING) {
+                work->angle = work->angle + INFERNO_CAST_PULSE_STEP;
             }
-            if (mem->age != 0x18) {
+            if (work->age != INFERNO_CAST_OUTER_BURST_AGE) {
                 return;
             }
-            mem->scale = 0x900;
-            i          = 0;
-            do {
-                mem->move.vx = (rsin(i) * mem->scale) >> 12;
-                mem->move.vz = (rcos(i) * mem->scale) >> 12;
-                i           += 0x2AA;
-                effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 2, &mem->move);
-            } while (i < 0xFFC);
+            work->scale = INFERNO_CAST_OUTER_RADIUS;
+            yaw         = 0;
+            INFERNO_SPAWN_OFFSET_FANS(coord, work, yaw, INFERNO_CAST_FAN_YAW_STEP, INFERNO_CAST_OUTER_YAW_END, INFERNO_CAST_FAN_DRIFTING_BURST);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
-            padScriptSpawnVariableMotorRamp(0x18, 0xFF, 8);
-            arg0->state = 0xC;
-            mem->angle  = 0xFF;
+            padScriptSpawnVariableMotorRamp(INFERNO_CAST_FINAL_MOTOR_FRAMES, INFERNO_CAST_MOTOR_START, INFERNO_CAST_MOTOR_END);
+            task->state = INFERNO_CAST_STATE_FADING;
+            work->angle = INFERNO_CAST_MAX_BRIGHTNESS;
             return;
-        case 12:
-            _infernoDrawScreenWash(mem->angle);
-            if (mem->angle >= 9) {
-                mem->angle = mem->angle - 8;
+        case INFERNO_CAST_STATE_FADING:
+            _infernoDrawScreenWash(work->angle);
+            if (work->angle >= INFERNO_CAST_FADE_END_BRIGHTNESS) {
+                work->angle = work->angle - INFERNO_CAST_FADE_STEP;
                 return;
             }
             break;
         default:
             return;
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
+
+#undef INFERNO_SPAWN_OFFSET_FANS
 
 /// Draws the Inferno cast's additive red-amber wash over the 320-by-240 view.
 ///

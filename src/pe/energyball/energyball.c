@@ -174,8 +174,11 @@ void energyballCastTask(Task* task)
 
 /// Applies one velocity step in the parent frame and refreshes the composed coordinate.
 ///
-/// Borrows live writable coord and read-only effect; additions must fit s32.
-/// Parent coordinates must stay live through composition. Clobbers GTE state.
+/// `effect->move` supplies signed 16-bit XYZ distances per tick in the parent
+/// coordinate's units; no rotation or fixed-point scaling occurs here. Borrows
+/// writable `coord` and read-only `effect`; each translation sum must fit s32.
+/// Marks the composition dirty before refreshing it. The parent chain stays
+/// live through composition, which clobbers GTE state. Retains no pointers.
 static inline void _energyballAdvanceProjectileCoord(GfxCoord* coord, const EffectWork* effect)
 {
     coord->coord.t[0]  += effect->move.vx;

@@ -3,7 +3,20 @@
 
 #include "main/task_types.h"
 
-void func_inferno_8012EF88(Task* arg0);
+/// Sequences Inferno's level-specific flame fans and red-amber screen wash.
+///
+/// Requires a counted coordinate-body effect with cleared, owned `EffectWork`
+/// in `spawnArg2.pointer`, a live placement and active PE level 1..3. The level
+/// selects the sound and initial state: level one starts two central fans;
+/// level two adds four offset fans; level three starts a central fan followed
+/// by six offset fans at age 12 and six drifting fans at age 24. Fan spawns
+/// are unlimited and run independently of this task's teardown tree.
+///
+/// Requests stat application at the level's final burst and fades the screen
+/// wash by eight channel units per tick before retiring. A held attachment or
+/// PE cancellation ends it immediately. Inferno must remain loaded until its
+/// cast and independent fan tasks have finished.
+void infernoCastTask(Task* task);
 
 /// Animates and draws Inferno's two concentric flame bands.
 ///

@@ -19,6 +19,17 @@
 /// The Flare overlay must remain loaded while this callback can run.
 void flareSparkTask(Task* task);
 
-void flareEffectTask(Task* arg0);
+/// Runs the Flare item's sound cue and shower of child sparks.
+///
+/// Requires a counted coordinate-body effect with cleared, owned `EffectWork`
+/// in `spawnArg2.pointer`. Ages 1..19 each attempt one spark with random size
+/// 1664..2175, and age 8 requests attachment stat application. Each successful
+/// spark becomes a child of this task. Age 36 retires the task; the normal
+/// completion path leaves the sound script playing out.
+///
+/// A held attachment or any nonzero PE effect control stops the cue and
+/// retires the task immediately. Its coordinate chain, player and Flare overlay
+/// must remain live until teardown.
+void flareEffectTask(Task* task);
 
 #endif // INCLUDE_PE_FLARE_H

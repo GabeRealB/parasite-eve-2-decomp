@@ -50,57 +50,55 @@ static inline void _flareCopySparkRotation(MATRIX* sparkMatrix, const MATRIX* pl
     sparkRotation->m22    = playerRotation->m22;
 }
 
-/// This overlay's id, the `u16` every package opens with.
-
-/// PROVISIONAL: written before `Task` was processed, so the statements
-/// about `Task` fields rest on unverified names. Rewrite once `Task` is done.
-/// Emits the flare's shower of sparks.
-///
-/// Starts the sound cue panned to the object, then spawns one spark a frame for
-/// the first 20 frames, each in a random direction, reparenting itself to the
-/// last one spawned. Releases at frame 36, by which time the sparks it created
-/// are running on their own.
-///
-/// A cancelled or interrupted cast stops the cue and releases immediately.
-void flareEffectTask(Task* arg0)
+void flareEffectTask(Task* task)
 {
-    EffectWork*      mem;
+    enum {
+        FLARE_CAST_STATE_INITIALIZE       = 0,
+        FLARE_CAST_STATE_EMITTING         = 1,
+        FLARE_CAST_EMISSION_END_AGE       = 20,
+        FLARE_CAST_APPLY_STATS_AGE        = 8,
+        FLARE_CAST_RELEASE_AGE            = 36,
+        FLARE_CAST_SPARK_SIZE_BASE        = 0x680,
+        FLARE_CAST_SPARK_SIZE_JITTER_MASK = 0x1FF,
+    };
+    EffectWork*      work;
     GfxCoord*        coord;
-    AttachmentState* state;
+    AttachmentState* attachment;
     s32              pan;
-    s16              tick;
+    s16              age;
     EffectWork*      spawned;
-    s32              rng;
+    s32              sizeRng;
 
-    state = &Gp_StateC08;
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    if ((state->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
+    attachment = &Gp_StateC08;
+    work       = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
+    if ((attachment->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
         sndEvtRequestScriptStop(SOUND_FLARE_USE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
-    mem->age = mem->age + 1;
-    if (arg0->state == 0) {
+    work->age = work->age + 1;
+    if (task->state == FLARE_CAST_STATE_INITIALIZE) {
         pan = (s8)worldCoordGetOriginAudioPan(coord);
         sndEvtRequestScriptStart(SOUND_FLARE_USE, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-        arg0->state = 1;
+        task->state = FLARE_CAST_STATE_EMITTING;
     }
-    tick = mem->age;
-    if (tick < 0x14) {
-        if (tick == 8) {
-            state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
+    age = work->age;
+    if (age < FLARE_CAST_EMISSION_END_AGE) {
+        if (age == FLARE_CAST_APPLY_STATS_AGE) {
+            attachment->flags |= ATTACHMENT_FLAG_APPLY_STATS;
         }
-        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rng;
-        spawned         = effectSpawn(EFFECT_FLARE_SPARK, coord, (((u32)rng >> 16) & 0x1FF) + 0x680, 0);
+        sizeRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = sizeRng;
+        spawned         = effectSpawn(EFFECT_FLARE_SPARK, coord, (((u32)sizeRng >> 16) & FLARE_CAST_SPARK_SIZE_JITTER_MASK) + FLARE_CAST_SPARK_SIZE_BASE, 0);
         if (spawned != NULL) {
-            taskReparent(arg0, spawned->task);
+            taskReparent(task, spawned->task);
         }
         return;
     }
-    if (tick == 0x24) {
-        effectKillTask(mem, arg0);
+    // Normal completion lets the cue finish; only cancellation stops it explicitly.
+    if (age == FLARE_CAST_RELEASE_AGE) {
+        effectKillTask(work, task);
     }
 }
 

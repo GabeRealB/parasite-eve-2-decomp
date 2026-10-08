@@ -65,220 +65,236 @@ static s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
 static void _energyshotDrawBeamBand(const GfxCoord* coord, s16 radiusGrowth, s16 height, const u8* rgb);
 
 /// Sixteen per-vertex texture-frame offsets, refilled once per cast by
-/// `func_energyshot_8012EF34` and consumed by the GTE pass in
+/// `energyshotCastTask` and consumed by the GTE pass in
 /// `_energyshotDrawBeamBand`, where each is added to `gDisplayState.animFrame`
 /// and reduced mod 6 to pick one of the six 0x28-wide frames of the beam
 /// texture.
 static s16 D_energyshot_80130108[16];
-/// Sixteen wedge yaws, refilled once per cast by `func_energyshot_8012EF34`
+/// Sixteen wedge yaws, refilled once per cast by `energyshotCastTask`
 /// from `gRandomLcgState`. Entry `i` is `i * (0x1000 / wedgeCount)` plus a 9-bit LCG
 /// draw. States 1 and 2 pass one yaw per frame to `glowDrawWedge`.
 static s16 D_energyshot_80130128[16];
 
-/// Energy shot PE. `Task::spawnArg2` is the `EffectWork` block; `Task::extra`
-/// reaches the coordinate. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD` or
-/// `gRoomEffectState->peEffectControl >= 4`) releases the work block.
+/// Draws the cast's 8/12/16 wedges at the current composed height.
 ///
-/// State 0 parents the coordinate, seeds 16 texture-frame offsets and 16 wedge
-/// yaws from `gRandomLcgState`, and plays the combo-indexed cue. State 1 grows
-/// brightness / radius, draws three rings plus `wedgeCount` wedges and the beam,
-/// and parents a `0x600F4` spark; once brightness exceeds the row cap it
-/// advances to state 2, which shrinks brightness until it drops below 0x11.
-void func_energyshot_8012EF34(Task* arg0)
+/// Arguments must be side-effect-free live pointers/values and are used repeatedly.
+/// radiusGrowth is reread for each wedge and multiplied by six before s16 narrowing.
+/// Work/tuning and three RGB bytes are borrowed read-only; work index is PE level
+/// 0..2. Captures the cast's s32 segmentIndex and the package yaw table; scoped
+/// count/tuning/yaw locals belong to each expansion. Requires a composed coordinate.
+#define ENERGYSHOT_DRAW_CAST_WEDGES(coord, work, radiusGrowth, levelTuning, rgb)     \
+    {                                                                                \
+        const _EnergyshotLevelTuning* wedgeTuning;                                   \
+        const s16*                    wedgeYaw;                                      \
+        s16                           wedgeCount;                                    \
+        segmentIndex = 0;                                                            \
+        wedgeCount   = (levelTuning)[(work)->index].wedgeCount;                      \
+        if (wedgeCount > 0) {                                                        \
+            wedgeTuning = (levelTuning);                                             \
+            wedgeYaw    = D_energyshot_80130128;                                     \
+            do {                                                                     \
+                glowDrawWedge((coord), (s16)((radiusGrowth) * 6), *wedgeYaw, (rgb)); \
+                wedgeYaw += 1;                                                       \
+            } while (++segmentIndex < wedgeTuning[(work)->index].wedgeCount);        \
+        }                                                                            \
+    }
+
+void energyshotCastTask(Task* task)
 {
-    EffectWork*      mem;
+    enum {
+        ENERGYSHOT_CAST_STATE_INITIALIZE      = 0,
+        ENERGYSHOT_CAST_STATE_GROWING         = 1,
+        ENERGYSHOT_CAST_STATE_FADING          = 2,
+        ENERGYSHOT_CAST_ANGLE_TURN            = 0x1000,
+        ENERGYSHOT_CAST_YAW_JITTER_MASK       = 0x1FF,
+        ENERGYSHOT_CAST_TEXTURE_PHASE_MASK    = 0xFF,
+        ENERGYSHOT_CAST_SPARK_ANGLE_MASK      = 0xFFF,
+        ENERGYSHOT_CAST_SPARK_RANDOM_PALETTE  = 0x8000,
+        ENERGYSHOT_CAST_BEAM_HEIGHT_SHORTFALL = 0x100,
+        ENERGYSHOT_CAST_BRIGHTNESS_DECAY      = 16,
+        ENERGYSHOT_CAST_FADE_END_BRIGHTNESS   = 17,
+        ENERGYSHOT_CAST_LEVEL_THREE_INDEX     = 2,
+        ENERGYSHOT_CAST_SPARK_RADIUS_SHIFT    = 11,
+    };
+    EffectWork*      work;
     GfxCoord*        coord;
-    AttachmentState* state;
-    s32              i;
+    AttachmentState* attachment;
+    s32              segmentIndex;
     u8               rgb[3];
 
-    state = &Gp_StateC08;
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    if ((state->effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-        mem->age = mem->age + 1;
-        switch (arg0->state) {
-            case 0: {
+    attachment = &Gp_StateC08;
+    work       = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
+    if ((attachment->effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+        work->age = work->age + 1;
+        switch (task->state) {
+            case ENERGYSHOT_CAST_STATE_INITIALIZE: {
                 RoomEffectState* effectState;
-                s16              count;
-                u16              level;
+                s16              wedgeCount;
+                u16              levelIndex;
 
-                coord->parent = mem->parent;
+                coord->parent = work->parent;
                 gfxSetRotIdentity(&coord->coord);
                 coord->coord.t[2]   = 0;
                 coord->coord.t[1]   = 0;
                 coord->coord.t[0]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                state->flags             |= ATTACHMENT_FLAG_APPLY_STATS;
+                attachment->flags        |= ATTACHMENT_FLAG_APPLY_STATS;
                 effectState               = gRoomEffectState;
                 effectState->burstRequest = false;
                 effectState->peFxFlags   &= (u16)~ROOM_EFFECT_PE_ENERGY_SHOT_AURA;
-                arg0->state               = 1;
-                mem->index                = (Gp_StateC08.attachId % 10) - 1;
-                i                         = 0;
+                task->state               = ENERGYSHOT_CAST_STATE_GROWING;
+                work->index               = (Gp_StateC08.attachId % 10) - 1;
+                // Replace the complete beam phase table, then seed the active wedge prefix.
+                segmentIndex = 0;
                 {
-                    s16* frames;
+                    s16* texturePhase;
 
-                    frames = D_energyshot_80130108;
+                    texturePhase = D_energyshot_80130108;
                     do {
-                        s32 rng;
+                        s32 randomState;
 
-                        i              += 1;
-                        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        *frames         = ((u32)rng >> 16) & 0xFF;
-                        frames         += 1;
-                        gRandomLcgState = rng;
-                    } while (i < 0x10);
+                        segmentIndex   += 1;
+                        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        *texturePhase   = ((u32)randomState >> 16) & ENERGYSHOT_CAST_TEXTURE_PHASE_MASK;
+                        texturePhase   += 1;
+                        gRandomLcgState = randomState;
+                    } while (segmentIndex < ARRAY_SIZE(D_energyshot_80130108));
                 }
-                i = 0;
+                segmentIndex = 0;
                 {
-                    _EnergyshotLevelTuning* tbl;
+                    _EnergyshotLevelTuning* levelTuning;
 
-                    tbl   = D_energyshot_801300E4;
-                    count = tbl[mem->index].wedgeCount;
-                    level = mem->index;
-                    if (count > 0) {
+                    levelTuning = D_energyshot_801300E4;
+                    wedgeCount  = levelTuning[work->index].wedgeCount;
+                    levelIndex  = work->index;
+                    if (wedgeCount > 0) {
                         do {
-                            s32 lo;
-                            s32 rng;
+                            s32 baseYaw;
+                            s32 randomState;
 
-                            lo                       = i * (0x1000 / D_energyshot_801300E4[(s16)level].wedgeCount);
-                            rng                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            D_energyshot_80130128[i] = lo + (((u32)rng >> 16) & 0x1FF);
-                            i                       += 1;
-                            gRandomLcgState          = rng;
-                            count                    = D_energyshot_801300E4[mem->index].wedgeCount;
-                            level                    = mem->index;
-                        } while (i < count);
+                            baseYaw                             = segmentIndex * (ENERGYSHOT_CAST_ANGLE_TURN / D_energyshot_801300E4[(s16)levelIndex].wedgeCount);
+                            randomState                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            D_energyshot_80130128[segmentIndex] = baseYaw + (((u32)randomState >> 16) & ENERGYSHOT_CAST_YAW_JITTER_MASK);
+                            segmentIndex                       += 1;
+                            gRandomLcgState                     = randomState;
+                            wedgeCount                          = D_energyshot_801300E4[work->index].wedgeCount;
+                            levelIndex                          = work->index;
+                        } while (segmentIndex < wedgeCount);
                     }
                 }
                 {
                     s32 pan;
 
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(D_energyshot_801300FC[mem->index], pan,
+                    sndEvtRequestScriptStart(D_energyshot_801300FC[work->index], pan,
                                              (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 return;
             }
-            case 1: {
-                _EnergyshotLevelTuning* table;
-                _EnergyshotLevelTuning* t2;
-                s32                     rng;
-                s16                     ang;
-                s16*                    p;
-                s16                     count;
+            case ENERGYSHOT_CAST_STATE_GROWING: {
+                _EnergyshotLevelTuning* levelTuning;
+                s16                     ringHeight;
+                s32                     randomState;
+                s16                     spawnYaw;
 
-                table               = D_energyshot_801300E4;
-                mem->scale          = mem->scale + table[mem->index].scaleStep;
-                rgb[0]              = (u8)mem->scale;
-                rgb[1]              = mem->scale >> 1;
-                rgb[2]              = (u8)mem->scale;
-                coord->coord.t[1]   = -(s16)table[mem->index].ringHeight;
+                levelTuning = D_energyshot_801300E4;
+                work->scale = work->scale + levelTuning[work->index].scaleStep;
+                rgb[0]      = (u8)work->scale;
+                rgb[1]      = work->scale >> 1;
+                rgb[2]      = (u8)work->scale;
+                // Lift the discs and wedges; beams and sparks use the origin below.
+                ringHeight          = levelTuning[work->index].ringHeight;
+                coord->coord.t[1]   = -ringHeight;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                effectDrawGouraudDisc(coord, (s16)(mem->scale * 4), rgb);
-                effectDrawGouraudDisc(coord, (s16)(mem->scale * 8), rgb);
-                effectDrawGouraudDisc(coord, (s16)(mem->scale * 0xC), rgb);
-                i     = 0;
-                count = table[mem->index].wedgeCount;
-                if (count > 0) {
-                    t2 = table;
-                    p  = D_energyshot_80130128;
-                    do {
-                        glowDrawWedge(coord, (s16)(mem->scale * 6), *p, rgb);
-                        p += 1;
-                    } while (++i < t2[mem->index].wedgeCount);
-                }
+                effectDrawGouraudDisc(coord, (s16)(work->scale * 4), rgb);
+                effectDrawGouraudDisc(coord, (s16)(work->scale * 8), rgb);
+                effectDrawGouraudDisc(coord, (s16)(work->scale * 0xC), rgb);
+                ENERGYSHOT_DRAW_CAST_WEDGES(coord, work, work->scale, levelTuning, rgb);
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                if (mem->index != 0) {
-                    if (mem->index == 2) {
-                        _energyshotDrawBeamBand(coord, (s16)(mem->scale * 8),
-                                                (s16)D_energyshot_801300E4[2].ringHeight >> 1, rgb);
+                if (work->index != 0) {
+                    if (work->index == ENERGYSHOT_CAST_LEVEL_THREE_INDEX) {
+                        ringHeight = D_energyshot_801300E4[2].ringHeight;
+                        _energyshotDrawBeamBand(coord, (s16)(work->scale * 8), ringHeight >> 1, rgb);
                     }
                     _energyshotDrawBeamBand(
-                        coord, (s16)(mem->scale * 4),
-                        D_energyshot_801300E4[mem->index].ringHeight * 2, rgb);
+                        coord, (s16)(work->scale * 4),
+                        D_energyshot_801300E4[work->index].ringHeight * 2, rgb);
                 }
                 _energyshotDrawBeamBand(
-                    coord, (s16)(mem->scale * 6),
-                    D_energyshot_801300E4[mem->index].ringHeight - 0x100, rgb);
-                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                ang             = ((u32)rng >> 16) & 0xFFF;
-                gRandomLcgState = rng;
-                mem->angle      = ang;
-                mem->move.vx    = (u32)(rsin(ang) * mem->scale * 3) >> 11;
-                mem->move.vz    = (u32)(rcos(mem->angle) * mem->scale * 3) >> 11;
+                    coord, (s16)(work->scale * 6),
+                    D_energyshot_801300E4[work->index].ringHeight - ENERGYSHOT_CAST_BEAM_HEIGHT_SHORTFALL, rgb);
+                randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                spawnYaw        = ((u32)randomState >> 16) & ENERGYSHOT_CAST_SPARK_ANGLE_MASK;
+                gRandomLcgState = randomState;
+                work->angle     = spawnYaw;
+                work->move.vx   = (u32)(rsin(spawnYaw) * work->scale * 3) >> ENERGYSHOT_CAST_SPARK_RADIUS_SHIFT;
+                work->move.vz   = (u32)(rcos(work->angle) * work->scale * 3) >> ENERGYSHOT_CAST_SPARK_RADIUS_SHIFT;
+                ringHeight      = D_energyshot_801300E4[work->index].ringHeight;
                 effectSpawn(EFFECT_RISING_ENERGY_SPARK, coord,
-                            (s16)D_energyshot_801300E4[mem->index].ringHeight | 0x8000,
-                            &mem->move);
-                if (D_energyshot_801300E4[mem->index].scaleLimit < mem->scale) {
+                            ringHeight | ENERGYSHOT_CAST_SPARK_RANDOM_PALETTE,
+                            &work->move);
+                if (D_energyshot_801300E4[work->index].scaleLimit < work->scale) {
                     effectSpawn((EFFECT_ENERGY_SHOT_AURA | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
-                    mem->period = mem->scale;
-                    arg0->state = 2;
+                    work->period = work->scale;
+                    task->state  = ENERGYSHOT_CAST_STATE_FADING;
                 }
                 return;
             }
-            case 2: {
-                _EnergyshotLevelTuning* table;
-                _EnergyshotLevelTuning* t2;
-                s16*                    p;
-                s16                     count;
+            case ENERGYSHOT_CAST_STATE_FADING: {
+                _EnergyshotLevelTuning* levelTuning;
+                s16                     ringHeight;
 
-                if (mem->scale < 0x11) {
-                    effectKillTask(mem, arg0);
+                if (work->scale < ENERGYSHOT_CAST_FADE_END_BRIGHTNESS) {
+                    effectKillTask(work, task);
                     return;
                 }
-                mem->scale          = mem->scale - 0x10;
-                rgb[0]              = (u8)mem->scale;
-                rgb[1]              = mem->scale >> 1;
-                rgb[2]              = (u8)mem->scale;
-                table               = D_energyshot_801300E4;
-                coord->coord.t[1]   = -(s16)table[mem->index].ringHeight;
+                work->scale         = work->scale - ENERGYSHOT_CAST_BRIGHTNESS_DECAY;
+                rgb[0]              = (u8)work->scale;
+                rgb[1]              = work->scale >> 1;
+                rgb[2]              = (u8)work->scale;
+                levelTuning         = D_energyshot_801300E4;
+                ringHeight          = levelTuning[work->index].ringHeight;
+                coord->coord.t[1]   = -ringHeight;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 4), rgb);
-                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 8), rgb);
-                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 0xC), rgb);
-                i     = 0;
-                count = table[mem->index].wedgeCount;
-                if (count > 0) {
-                    t2 = table;
-                    p  = D_energyshot_80130128;
-                    do {
-                        glowDrawWedge(coord, (s16)(mem->period * 6), *p, rgb);
-                        p += 1;
-                    } while (++i < t2[mem->index].wedgeCount);
-                }
+                // Discs hold their capped radius; level-three wedges and beams keep growing.
+                effectDrawGouraudDisc(coord, (s16)(levelTuning[work->index].scaleLimit * 4), rgb);
+                effectDrawGouraudDisc(coord, (s16)(levelTuning[work->index].scaleLimit * 8), rgb);
+                effectDrawGouraudDisc(coord, (s16)(levelTuning[work->index].scaleLimit * 0xC), rgb);
+                ENERGYSHOT_DRAW_CAST_WEDGES(coord, work, work->period, levelTuning, rgb);
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                if (mem->index != 0) {
-                    if (mem->index == 2) {
-                        mem->period =
-                            mem->period + D_energyshot_801300E4[2].scaleStep;
+                if (work->index != 0) {
+                    if (work->index == ENERGYSHOT_CAST_LEVEL_THREE_INDEX) {
+                        work->period =
+                            work->period + D_energyshot_801300E4[2].scaleStep;
                         _energyshotDrawBeamBand(
-                            coord, (s16)(mem->period * 8),
-                            (s16)D_energyshot_801300E4[mem->index].ringHeight >> 1,
+                            coord, (s16)(work->period * 8),
+                            (s16)D_energyshot_801300E4[work->index].ringHeight >> 1,
                             rgb);
                     }
                     _energyshotDrawBeamBand(
-                        coord, (s16)(mem->period * 4),
-                        D_energyshot_801300E4[mem->index].ringHeight * 2, rgb);
+                        coord, (s16)(work->period * 4),
+                        D_energyshot_801300E4[work->index].ringHeight * 2, rgb);
                 }
                 _energyshotDrawBeamBand(
-                    coord, (s16)(mem->period * 6),
-                    D_energyshot_801300E4[mem->index].ringHeight - 0x100, rgb);
+                    coord, (s16)(work->period * 6),
+                    D_energyshot_801300E4[work->index].ringHeight - ENERGYSHOT_CAST_BEAM_HEIGHT_SHORTFALL, rgb);
                 return;
             }
         }
         return;
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
+
+#undef ENERGYSHOT_DRAW_CAST_WEDGES
 
 #include "../../shared/glow_draw_wedge.inc.c"
 
