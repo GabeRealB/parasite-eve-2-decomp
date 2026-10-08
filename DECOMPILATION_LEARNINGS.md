@@ -3119,34 +3119,34 @@ Example: `func_actor_400500_80132438`. Inputs: `base_9.i`
 `base_11.i`
 `b0a93e02146704145b19a5af8d6d670e0a3a88491dd968c3450b32ccb93c378b`.
 
-## Name view/`&parent` before a `MATRIX` copy so sched1 emits `move`/`addiu` first
+## Name viewCoord/`&parentRotation` before a `MATRIX` copy so sched1 emits `move`/`addiu` first
 
-A rotation walk that copies `coord->coord` into a stack `MATRIX`, then later
-takes `&parent` and keeps `&gGfxViewCoord` in a saved register, wants those
+A rotation walk that copies `ancestor->ancestor` into a stack `MATRIX`, then later
+takes `&parentRotation` and keeps `&gGfxViewCoord` in a saved register, wants those
 two defs *before* the copy:
 
 ```
-move    s2, v0          /* view = &gGfxViewCoord (CSE of the early compare) */
-addiu   s1, sp, 0x30    /* parentp = &parent */
-lw      a2, 4(s0)       /* matrix = coord->coord */
+move    s2, v0          /* viewCoord = &gGfxViewCoord (CSE of the early compare) */
+addiu   s1, sp, 0x30    /* parentRotationPtr = &parentRotation */
+lw      a2, 4(s0)       /* parentWorldRotation = ancestor->ancestor */
 ```
 
 `movstrsi` and the two pointer defs are independent, all priority 1. Sched1
 runs backward and picks the last original insn first, so C order
-`matrix = coord->coord;` then loop uses of `&parent` / `&gGfxViewCoord`
+`parentWorldRotation = ancestor->ancestor;` then loop uses of `&parentRotation` / `&gGfxViewCoord`
 hoists the copies *after* the block move (`reorder=2`). Write the names first:
 
 ```c
-view    = &gGfxViewCoord;
-parentp = &parent;
-matrix  = coord->coord;
+viewCoord    = &gGfxViewCoord;
+parentRotationPtr = &parentRotation;
+parentWorldRotation  = ancestor->ancestor;
 ```
 
-Keep the in-loop copy as `parent = coord->coord` (stack `sw a2, 0x30(sp)`).
-`*parentp = coord->coord` stores through `$s1` (`sw a2, 0(s1)`) and scores
-`regs` even though the schedule is right. Use `parentp` only for
+Keep the in-loop copy as `parentRotation = ancestor->ancestor` (stack `sw a2, 0x30(sp)`).
+`*parentRotationPtr = ancestor->ancestor` stores through `$s1` (`sw a2, 0(s1)`) and scores
+`regs` even though the schedule is right. Use `parentRotationPtr` only for
 `MatrixNormal` / `gte_SetRotMatrix`. Example:
-`func_actor_400500_8013B720`. Inputs: `base_1.i`
+`_actor400500LocalizeWorldRotation`. Inputs: `base_1.i`
 `f55fdcfdc394d92bc5954b6294f0552a7b511253caff6353cc040735f9c3fcb9`,
 `base_3.i`
 `8c8d1b7517d1949508867aea95dfa7c59eb6742571e6b1bed2e0ef539219b8bf`.
@@ -3233,7 +3233,7 @@ Splitting `pan` / `pan2` per arm also gets the saved-reg ashl dest (the
 existing "Don't reuse a for-loop counter as the (s8) dest" entry) but
 here local-alloc then took `$s0`/`$s1` for those block-local values and
 bumped the whole-function `work` pointer to `$s2`. Keep one `pan` and
-spell the sign-extend on it. `func_actor_400500_80133160`. Inputs:
+spell the sign-extend on it. `_actor400500TickTurn`. Inputs:
 `base_5.i`
 `afb429fd39d2ebced6e6d762ce780d5b6b01d676700f78f79836de7263ccab0e`,
 `base_6.i`
@@ -71616,34 +71616,34 @@ Example: `func_actor_400500_80132438`. Inputs: `base_9.i`
 `base_11.i`
 `b0a93e02146704145b19a5af8d6d670e0a3a88491dd968c3450b32ccb93c378b`.
 
-## Name view/`&parent` before a `MATRIX` copy so sched1 emits `move`/`addiu` first
+## Name viewCoord/`&parentRotation` before a `MATRIX` copy so sched1 emits `move`/`addiu` first
 
-A rotation walk that copies `coord->coord` into a stack `MATRIX`, then later
-takes `&parent` and keeps `&gGfxViewCoord` in a saved register, wants those
+A rotation walk that copies `ancestor->ancestor` into a stack `MATRIX`, then later
+takes `&parentRotation` and keeps `&gGfxViewCoord` in a saved register, wants those
 two defs *before* the copy:
 
 ```
-move    s2, v0          /* view = &gGfxViewCoord (CSE of the early compare) */
-addiu   s1, sp, 0x30    /* parentp = &parent */
-lw      a2, 4(s0)       /* matrix = coord->coord */
+move    s2, v0          /* viewCoord = &gGfxViewCoord (CSE of the early compare) */
+addiu   s1, sp, 0x30    /* parentRotationPtr = &parentRotation */
+lw      a2, 4(s0)       /* parentWorldRotation = ancestor->ancestor */
 ```
 
 `movstrsi` and the two pointer defs are independent, all priority 1. Sched1
 runs backward and picks the last original insn first, so C order
-`matrix = coord->coord;` then loop uses of `&parent` / `&gGfxViewCoord`
+`parentWorldRotation = ancestor->ancestor;` then loop uses of `&parentRotation` / `&gGfxViewCoord`
 hoists the copies *after* the block move (`reorder=2`). Write the names first:
 
 ```c
-view    = &gGfxViewCoord;
-parentp = &parent;
-matrix  = coord->coord;
+viewCoord    = &gGfxViewCoord;
+parentRotationPtr = &parentRotation;
+parentWorldRotation  = ancestor->ancestor;
 ```
 
-Keep the in-loop copy as `parent = coord->coord` (stack `sw a2, 0x30(sp)`).
-`*parentp = coord->coord` stores through `$s1` (`sw a2, 0(s1)`) and scores
-`regs` even though the schedule is right. Use `parentp` only for
+Keep the in-loop copy as `parentRotation = ancestor->ancestor` (stack `sw a2, 0x30(sp)`).
+`*parentRotationPtr = ancestor->ancestor` stores through `$s1` (`sw a2, 0(s1)`) and scores
+`regs` even though the schedule is right. Use `parentRotationPtr` only for
 `MatrixNormal` / `gte_SetRotMatrix`. Example:
-`func_actor_400500_8013B720`. Inputs: `base_1.i`
+`_actor400500LocalizeWorldRotation`. Inputs: `base_1.i`
 `f55fdcfdc394d92bc5954b6294f0552a7b511253caff6353cc040735f9c3fcb9`,
 `base_3.i`
 `8c8d1b7517d1949508867aea95dfa7c59eb6742571e6b1bed2e0ef539219b8bf`.
@@ -71711,7 +71711,7 @@ Splitting `pan` / `pan2` per arm also gets the saved-reg ashl dest (the
 existing "Don't reuse a for-loop counter as the (s8) dest" entry) but
 here local-alloc then took `$s0`/`$s1` for those block-local values and
 bumped the whole-function `work` pointer to `$s2`. Keep one `pan` and
-spell the sign-extend on it. `func_actor_400500_80133160`. Inputs:
+spell the sign-extend on it. `_actor400500TickTurn`. Inputs:
 `base_5.i`
 `afb429fd39d2ebced6e6d762ce780d5b6b01d676700f78f79836de7263ccab0e`,
 `base_6.i`
@@ -79171,7 +79171,7 @@ result, not the surrounding temporaries, is the difference.
 
 This is a shape rule, not a preference for `(s8)` on calls: the
 `(s8)worldCoordGetOriginAudioPan()` entry above is the same expression form allocating the other
-way in `func_actor_400500_80133160`, where `sll $v0` / `sra $s0` came out of it
+way in `_actor400500TickTurn`, where `sll $v0` / `sra $s0` came out of it
 and the in-place `pan <<= 24; pan >>= 24` was the fix. Read the local's
 `.lreg`/`.greg` home and the destination of the `sll`/`sra` pair before choosing
 between the two spellings.
@@ -133912,7 +133912,7 @@ When per-arm stores fix register allocation but fail to merge, inspect the final
 
 Evidence: `nonmatchings/func_actor_400500_801361EC-vacuum/{LEARNINGS.md,experiments.jsonl,base_1.i.lreg,base_1.i.greg,base_1.i.jump2,base_1.i.dbr}`. Bundled compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; baseline input `1a9e00acf3c4f419befb0a0f60793afab3c01a3a862929e36db4c95ee250a2eb`; matching base_1 input `7562dc7dcad0f7246cb53606c7a330bf41b86931b255a6b815a6855b9c86d4ec`. The integrated base_2 passed the unscoped build-and-verify check.
 
-## A call-separated subobject pointer survives combine, then sched1 can sink it (func_actor_400500_80133B14, 2026-09-19)
+## A call-separated subobject pointer survives combine, then sched1 can sink it (_actor400500TickScriptedCrawl, 2026-09-19)
 
 The target uses `sh x,0x9a0(work)` followed by `addiu p,work,0x9a0; sh z,4(p)`, and an analogous z load in movement blocks. Defining the pointer immediately before the stores lets combine fold its last use into `work+0x9a4`. Keeping it alive with empty asm prevents folding but changes its schedule, lifetime and home.
 
@@ -133922,9 +133922,9 @@ Applying independent pointer locals to all four blocks and splitting the reused 
 
 The permuter's preceding gain has a separate controlled explanation. Its do-once loop around the second movement x calculation introduces a scheduling boundary that prevents the subobject address from hoisting above the x store. Paired scratch distance1376 ->1181 (search claimed1175). Planned base_12 replaced that wrapper with only SCHED_BARRIER after the x store in the normal-header seed and reproduced distance1181 and identical normalized instructions; `.sched` address UID713 depends on barrier UID710 after store UID708. Saved and arithmetic register homes remained unchanged. The final sibling-shaped source removes that barrier and the pointer touches entirely.
 
-Evidence: `tools/permuter_findings/func_actor_400500_80133B14/` retained run `9795dcbbac6740ae`, PERMUTER_ANALYSIS.md and controlled dumps. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Input hashes: baseline base_11 `3e449c49f7ccbc883fc7c50e35055b9c477d69354706459eda2e4cac1d837903`; controlled base_12 `6b5bef972e5a668a63b740dcdf8a36c5f7a81d5adfd6d51df2309b78ad4f66ab`; base_13 `936edcfd0c39b7b240a1efa05ab2d7e86a2dd46c49ed3015ac3f3b5489483452`; final base_15 `59e7f0659ec25331a70ba77d8fe7d6b82580a7e71a3f45990bcf5575fb20e642`. No pins or tracer required.
+Evidence: `tools/permuter_findings/_actor400500TickScriptedCrawl/` retained run `9795dcbbac6740ae`, PERMUTER_ANALYSIS.md and controlled dumps. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Input hashes: baseline base_11 `3e449c49f7ccbc883fc7c50e35055b9c477d69354706459eda2e4cac1d837903`; controlled base_12 `6b5bef972e5a668a63b740dcdf8a36c5f7a81d5adfd6d51df2309b78ad4f66ab`; base_13 `936edcfd0c39b7b240a1efa05ab2d7e86a2dd46c49ed3015ac3f3b5489483452`; final base_15 `59e7f0659ec25331a70ba77d8fe7d6b82580a7e71a3f45990bcf5575fb20e642`. No pins or tracer required.
 
-## Reusing a sound ID excludes its arithmetic chain from local allocation (func_actor_400500_801335E8, 2026-09-19)
+## Reusing a sound ID excludes its arithmetic chain from local allocation (_actor400500TickCrawl, 2026-09-19)
 
 The matched sibling 80133B14 transferred to this function at 99.637%, with
 only 24 register differences in two sound blocks. Separate `soundId` locals
@@ -133946,7 +133946,7 @@ local pans r102/r103 got s0 and the ID chains stayed in v0. Exact match,
 full unscoped verification passed. This is an eligibility/conflict change,
 not evidence for a per-pseudo priority ranking of local quantities.
 
-Evidence: `tools/permuter_findings/func_actor_400500_801335E8/`, session
+Evidence: `tools/permuter_findings/_actor400500TickCrawl/`, session
 `3e536964d1e8407eada4d7cfda8d71fe`, primary run `bf9e48833d134373`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Inputs: base_1 `fe8c1f265ff1719113684262a1da77741f9928a2943f094d12125e1c6968112e`;
@@ -133955,7 +133955,7 @@ base_3 `f761bda786eb3f085236580205a80d8d74141869b6b1c40bb3ba3d8e323270cf`.
 
 ## Shared sound-ID destination prevents local tying of its input shifts
 
-`func_actor_400500_8013403C` reached 99.639% after adapting its matched sibling.
+`_actor400500TickFallenCrawl` reached 99.639% after adapting its matched sibling.
 Only the two sound blocks differed: with separate soundId/soundId2 locals,
 GCC tied each dying load/shift chain to its call-crossing result in s0, and
 put pan in s1. Target uses v0 for the input chain, s1 for the result, s0 for pan.
@@ -133974,7 +133974,7 @@ local pans r102/r103=s0, input shifts=v0. This fulfilled the recorded prediction
 and scored 100%, all penalties zero. This supports the existing local-eligibility
 model; exact quantity priorities were not traced. No register pins were used.
 
-Retained evidence: `tools/permuter_findings/func_actor_400500_8013403C/`,
+Retained evidence: `tools/permuter_findings/_actor400500TickFallenCrawl/`,
 run 07820552e7c34075; `PERMUTER_ANALYSIS.md`, planned base_2 counterfactual,
 base_3 final port, sources/dumps/journals. Compiler SHA256:
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
@@ -142284,8 +142284,8 @@ inlining ever substitutes `mode`. The target's `li v0,0x80` needs the value to
 be an SImode pseudo stored through a `subreg`, which is what the seed's
 `flag = 0x80;` local and a repeated `if (...) { flag = 0x81; field = flag; }`
 idiom across the file were imitating. The source was an inline helper taking
-the whole byte, `_actor400500RequestMode(task, 0x80)`, that stores the
-parameter as is and compares `(field & 0x7F) != (mode & 0x7F)`.
+the whole byte, `_actor400500RequestCloakFade(task, 0x80)`, that stores the
+parameter as is and compares `(work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != (cloakRequest & ACTOR_400500_CLOAK_KIND_MASK)`.
 
 Same function: the scratch-pad `lui 0x1F80` / `sw 0x1F8003FC` asm, a second
 `&gGfxViewCoord` built by hand and a pop-then-push pair of head stores were
@@ -146132,7 +146132,7 @@ pseudo; the swap disappears and nothing else changes. Same-width pairs
 (`u8`/`u8`, `s32`/`s32`) coalesce and keep the swap, and a `u8` local into an
 `s32` parameter adds an `andi`.
 
-## A barrier that re-reads a divisor stands for the u8 bound temporaries and the inline helpers around them (func_actor_400500_801335E8, 2026-09-27)
+## A barrier that re-reads a divisor stands for the u8 bound temporaries and the inline helpers around them (_actor400500TickCrawl, 2026-09-27)
 
 The walk handler computes three frame bounds as `rate == 0 ? 0 : (u32)(n / rate) >> 4`
 and then runs four frame windows that sample, sound and re-anchor two nodes. The seed
@@ -146148,7 +146148,7 @@ passing the expression directly, gives each call its own short pseudo and swaps
 `SOFT_MOVE_ZERO`; every literal, width and position tried either folded it into
 `$zero` or placed the `move` before the hit-test join.
 
-## Where a register-held zero window start lands when it is not an asm (func_actor_400500_8013403C, 2026-09-27)
+## Where a register-held zero window start lands when it is not an asm (_actor400500TickFallenCrawl, 2026-09-27)
 
 The frame-0 window start that `SOFT_MOVE_ZERO` supplies in the `actor_400500` /
 `actor_400600` walk handlers sits in the hit-test join block, between the frame
@@ -146163,7 +146163,7 @@ sits ahead of the `lh`, and reorg then hoists it into the `beqz` delay slot
 `0 / rate` bound fold or add code.
 **2026-10-06.** A third plain-C way does land it: keep the zero in a `u8` set in an earlier block and copy it once into the `s32` the tests read. The copy is in the join block, cse cannot see through it, and local-alloc replaces it by the constant. Matched in `_actor400600TickWallWalk`; the three `actor_400500` handlers have the same shape and were not retried. See "A zero that local-alloc materialises" at the end of this file.
 
-## A dead load of a field just after two stores is an inline setter handed that field's own value (func_actor_400500_80133B14, 2026-09-27)
+## A dead load of a field just after two stores is an inline setter handed that field's own value (_actor400500TickScriptedCrawl, 2026-09-27)
 
 A seed kept `(void)*(volatile u16*)&work->rate;` to reproduce an `lhu` of the rate
 whose value is never used, right after the id and state stores. The body is a copy
@@ -152098,7 +152098,7 @@ range do not help. Print `;; N regs to allocate` and the three
 `used/across` lines first; the pin's comment had the cause right but the pin
 worked through a conflict, not through the order.
 
-### The widening copy is cse's: a `u8` zero bound read directly by two tests in different blocks (func_actor_400500_801335E8 / 80133B14 / 8013403C, 2026-10-07)
+### The widening copy is cse's: a `u8` zero bound read directly by two tests in different blocks (_actor400500TickCrawl / _actor400500TickScriptedCrawl / _actor400500TickFallenCrawl, 2026-10-07)
 
 **Was.** `SOFT_MOVE_ZERO(start0);` in the join after `if (hit) frame = 0;`,
 for `lh v0,frame` / `move s2,zero` / `bne v0,s2` and a later `slt v0,v1,s2`.

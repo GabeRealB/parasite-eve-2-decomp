@@ -145,6 +145,21 @@ enum {
     ACTOR_400500_TARGET_MOVE_RANGE_SCALE = 8
 };
 
+/// Sound-script entries for step contacts and grab cues, before adding a placement tag.
+enum {
+    ACTOR_400500_SOUND_STEP_1        = 0x40050001,
+    ACTOR_400500_SOUND_STEP_2        = 0x40050002,
+    ACTOR_400500_SOUND_GRAB_FRAME_12 = 6, // Uses bank zero for this cue
+    ACTOR_400500_SOUND_GRAB_FRAME_30 = 0x40050007,
+    ACTOR_400500_SOUND_GRAB_FRAME_42 = 0x40050008
+};
+
+/// Model coordinates at the ends of the two arm chains.
+enum {
+    ACTOR_400500_PART_RIGHT_ARM_TIP = 8,
+    ACTOR_400500_PART_LEFT_ARM_TIP  = 11
+};
+
 /// Work block of the Gray Stalker task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`. It holds
@@ -246,7 +261,7 @@ extern ActorZone D_actor_400500_80153D6C[];
 
 static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, s32 shade);
 static void func_actor_400500_80138088(Task* task);
-static s32  func_actor_400500_8013B720(GfxCoord* coord, MATRIX* matrix);
+static s32  _actor400500LocalizeWorldRotation(const GfxCoord* joint, MATRIX* worldRotation);
 
 /* `D_800678F0` selects the model stream a following `effectSpawn` uses as the
  * source for the effect's own `TmdObject`.
@@ -278,12 +293,12 @@ static void func_actor_400500_80132438(Task* arg0);
 static void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2);
 static s32  _actor400500TryStartAttack(Task* task);
 static void func_actor_400500_80132E94(Task* arg0);
-static s32  func_actor_400500_80133160(Task* arg0);
+static s32  _actor400500TickTurn(Task* task);
 static s32  _actor400500HandleHeavyHitReaction(Task* task);
-static s32  func_actor_400500_80133460(Task* arg0);
-static void func_actor_400500_801335E8(Task* arg0);
-static void func_actor_400500_80133B14(Task* arg0);
-static void func_actor_400500_8013403C(Task* arg0);
+static s32  _actor400500HandleFallenHitReaction(Task* task);
+static void _actor400500TickCrawl(Task* task);
+static void _actor400500TickScriptedCrawl(Task* task);
+static void _actor400500TickFallenCrawl(Task* task);
 static void func_actor_400500_8013456C(Task* arg0);
 static void func_actor_400500_80135770(Task* arg0);
 static void func_actor_400500_80135EBC(Task* arg0);
@@ -390,7 +405,7 @@ static s16  _actor400500RescaleAnimFrames(Task* task, s16 frames);
 static s32  _actor400500CheckAnimBoundary(Task* task);
 static void _actor400500CopyRotation(const MATRIX* source, MATRIX* destination);
 static void func_actor_400500_8013DEFC(Task* arg0);
-static void func_actor_400500_8013DF50(Task* arg0);
+static void _actor400500ClearHitReaction(Task* task);
 static void func_actor_400500_8013DF74(Task* arg0);
 static void func_actor_400500_8013DFE4(Task* arg0);
 
@@ -400,8 +415,8 @@ void             func_actor_400500_8013DE98(Task*);
 static TmdSource _gActor400500GrayStalkerBurstArmRight;
 static TmdSource _gActor400500GrayStalkerBurstArmLeft;
 s32              func_actor_400500_8013DAE4(Task*, s32, u16*, s32);
-void             func_actor_400500_8013DF64(Task*);
-void             func_actor_400500_8013DF6C(Task*);
+static void      _actor400500LeftArmTask(Task* task);
+static void      _actor400500RightArmTask(Task* task);
 
 static TmdBone _gActor400500GrayStalkerBodySkeleton[18] = {
 #include "assets/gray_stalker_body_skeleton.inc"
@@ -1526,8 +1541,8 @@ u8 D_actor_400500_80153CC0[136] = {
 };
 
 TaskDesc D_actor_400500_80153D48[2] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_400500_8013DF64, { .model = &_gActor400500GrayStalkerBurstArmLeft } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_400500_8013DF6C, { .model = &_gActor400500GrayStalkerBurstArmRight } },
+    { { { TASK_BODY_TMD, 96 } }, _actor400500LeftArmTask, { .model = &_gActor400500GrayStalkerBurstArmLeft } },
+    { { { TASK_BODY_TMD, 96 } }, _actor400500RightArmTask, { .model = &_gActor400500GrayStalkerBurstArmRight } },
 };
 
 TaskDesc D_actor_400500_80153D60 = { { { TASK_BODY_TMD, 96 } }, func_actor_400500_8013DE98, { .model = &_gActor400500GrayStalkerBody } };
@@ -1567,7 +1582,7 @@ static void               func_actor_400500_80132000(Task* arg0);
 static void               func_actor_400500_8013226C(Task* arg0);
 static void               func_actor_400500_80132C54(Task* arg0);
 static inline void        _actor400500SetState(Task* task, s32 state, s32 subState);
-static inline void        _actor400500PlaySound(Task* task, s32 id);
+static inline void        _actor400500PlayPlacedSound(Task* task, s32 baseSoundId);
 static void               func_actor_400500_801348D8(Task* arg0, s32 arg1);
 static void               func_actor_400500_80134B88(Task* arg0);
 static void               func_actor_400500_80135414(Task* arg0);
@@ -1576,9 +1591,9 @@ static __inline__ VECTOR* push_color(GfxCoord* coord);
 static __inline__ void    pop_scratch(s32 n);
 static __inline__ u8*     push_proj(void);
 static void               func_actor_400500_801375B8(Task* arg0);
-static inline void        _actor400500RequestMode(Task* task, s32 mode);
-static inline s32         _actor400500CoordToView(GfxCoord* coord, MATRIX* matrix);
-static inline void        _actor400500TurnPart(GfxCoord* part, u16 heading);
+static inline void        _actor400500RequestCloakFade(Task* task, s32 cloakRequest);
+static inline s32         _actor400500AccumulateWorldRotation(const GfxCoord* coord, MATRIX* worldRotation);
+static inline void        _actor400500TurnPartWorldYaw(GfxCoord* part, u16 yawDelta);
 static inline s16         _actor400500PlayerDistance(GfxCoord* part);
 static inline void        _actor400500PlayAnim(Task* task, s32 id);
 static void               func_actor_400500_8013771C(Task* arg0);
@@ -2072,60 +2087,83 @@ static void func_actor_400500_80132E94(Task* arg0)
     }
 }
 
-static s32 func_actor_400500_80133160(Task* arg0)
+/// Queues a packed sound-script id at the composed model root.
+///
+/// Requires a live TMD task and a current root cache for origin-audio projection.
+/// The supplied bank, instance and entry bytes stay intact. Pan and attenuation
+/// narrow to signed bytes; admission failure is ignored. Sound resources remain
+/// loaded until queued playback finishes; no task pointer is retained.
+static inline void _actor400500EnqueueRootSound(Task* task, s32 soundId)
 {
+    s32 panOffset;
+
+    panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+}
+
+/// Advances a requested turn in place and consumes hits while it runs.
+///
+/// Requires the live work block and this frame's animation-slot results.
+/// Returns 1 for either yaw direction, including the completion tick, and 0
+/// without a turn. Requests the matching clip once at normal speed; yaw uses
+/// 4096 units per turn and the 16-frame profile repeats until a boundary.
+/// Completion snaps yaw to a 512-unit grid. Sound uses the composed root and
+/// placement tag. Animation playback and the root's rotation update happen elsewhere.
+static s32 _actor400500TickTurn(Task* task)
+{
+    enum {
+        ACTOR_400500_ANIM_TURN_YAW_DOWN = 0x17,
+        ACTOR_400500_ANIM_TURN_YAW_UP   = 0x18,
+        ACTOR_400500_TURN_PROFILE_MASK  = ARRAY_SIZE(D_actor_400500_80153DB4) - 1,
+        ACTOR_400500_TURN_SOUND_PHASE   = 8,
+        ACTOR_400500_TURN_GRID_MASK     = 0xE00
+    };
     _Actor400500GrayStalkerWork* work;
     s32                          soundId;
-    s32                          pan;
-    u16                          heading;
+    u16                          nextYaw;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
+    work = (_Actor400500GrayStalkerWork*)task->work;
+    // Consume the requested turn before ordinary crawling resumes.
     if (work->turnRequest == ACTOR_400500_TURN_YAW_DOWN) {
         if (work->turnStarted == 0) {
-            _actor400500RequestAnimReset(arg0, 0x17, 0x10);
+            _actor400500RequestAnimReset(task, ACTOR_400500_ANIM_TURN_YAW_DOWN, ANIMATION_RATE_ONE);
             work->stateFrames = 0;
             work->turnStarted = 1;
         }
         work->stateFrames = work->stateFrames + 1;
-        if ((work->stateFrames & 0xF) == 8) {
-            soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050001;
-            pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            pan   <<= 24;
-            pan   >>= 24;
-            sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        if ((work->stateFrames & ACTOR_400500_TURN_PROFILE_MASK) == ACTOR_400500_TURN_SOUND_PHASE) {
+            soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_STEP_1;
+            _actor400500EnqueueRootSound(task, soundId);
         }
-        heading   = (u16)work->yaw - D_actor_400500_80153DB4[work->stateFrames & 0xF];
-        work->yaw = heading;
-        if ((_actor400500CheckAnimBoundary(arg0) << 0x10) != 0) {
+        nextYaw   = (u16)work->yaw - D_actor_400500_80153DB4[work->stateFrames & ACTOR_400500_TURN_PROFILE_MASK];
+        work->yaw = nextYaw;
+        if ((_actor400500CheckAnimBoundary(task) << 0x10) != 0) {
             work->stateFrames = 0;
             work->turnRequest = ACTOR_400500_TURN_NONE;
-            work->yaw         = (u16)work->yaw & 0xE00;
+            work->yaw         = (u16)work->yaw & ACTOR_400500_TURN_GRID_MASK;
         }
-        func_actor_400500_8013DF50(arg0);
+        _actor400500ClearHitReaction(task);
         return 1;
     }
     if (work->turnRequest == ACTOR_400500_TURN_YAW_UP) {
         if (work->turnStarted == 0) {
-            _actor400500RequestAnimReset(arg0, 0x18, 0x10);
+            _actor400500RequestAnimReset(task, ACTOR_400500_ANIM_TURN_YAW_UP, ANIMATION_RATE_ONE);
             work->stateFrames = 0;
             work->turnStarted = 1;
         }
         work->stateFrames = work->stateFrames + 1;
-        if ((work->stateFrames & 0xF) == 8) {
-            soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050002;
-            pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            pan   <<= 24;
-            pan   >>= 24;
-            sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        if ((work->stateFrames & ACTOR_400500_TURN_PROFILE_MASK) == ACTOR_400500_TURN_SOUND_PHASE) {
+            soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_STEP_2;
+            _actor400500EnqueueRootSound(task, soundId);
         }
-        heading   = (u16)work->yaw + D_actor_400500_80153DB4[work->stateFrames & 0xF];
-        work->yaw = heading;
-        if ((_actor400500CheckAnimBoundary(arg0) << 0x10) != 0) {
+        nextYaw   = (u16)work->yaw + D_actor_400500_80153DB4[work->stateFrames & ACTOR_400500_TURN_PROFILE_MASK];
+        work->yaw = nextYaw;
+        if ((_actor400500CheckAnimBoundary(task) << 0x10) != 0) {
             work->stateFrames = 0;
             work->turnRequest = ACTOR_400500_TURN_NONE;
-            work->yaw         = (u16)work->yaw & 0xE00;
+            work->yaw         = (u16)work->yaw & ACTOR_400500_TURN_GRID_MASK;
         }
-        func_actor_400500_8013DF50(arg0);
+        _actor400500ClearHitReaction(task);
         return 1;
     }
     return 0;
@@ -2199,73 +2237,78 @@ static s32 _actor400500HandleHeavyHitReaction(Task* task)
     return 0;
 }
 
-static s32 func_actor_400500_80133460(Task* arg0)
+/// Handles light, heavy, blast and status recoil during fallen crawling.
+///
+/// Requires the live Stalker's work and current slot results; the caller supplies
+/// the fallen posture context. Returns 0 unless `hitTaken` is exactly 1.
+/// An identified reaction requests a show without the hide cooldown gate and
+/// requests a cut to its recoil clip, consuming the reaction code. Heavy and blast share
+/// a clip; status uses a separate clip. Returns 1 even on the animation boundary
+/// that clears the active hit. Playback advances in the calling state handler.
+static s32 _actor400500HandleFallenHitReaction(Task* task)
 {
+    enum {
+        ACTOR_400500_ANIM_FALLEN_LIGHT_RECOIL  = 0xB,
+        ACTOR_400500_ANIM_FALLEN_HEAVY_RECOIL  = 0xC,
+        ACTOR_400500_ANIM_FALLEN_STATUS_RECOIL = 0xE,
+        ACTOR_400500_FALLEN_LIGHT_RECOIL_RATE  = 0x1C
+    };
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    _Actor400500GrayStalkerWork* hit;
-    s16                          mode;
-    s16                          sub;
-    s32                          flag;
-    s32                          cond;
+    _Actor400500GrayStalkerWork* animationWork;
+    s16                          hitActive;
+    s16                          reaction;
+    s32                          cloakRequest;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
-    mode = work->hitTaken;
-    if (mode == 1) {
-        sub = work->hitReaction;
-        if (sub == mode) {
-            if ((work->cloakRequest >= 0) || (((u8)work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != mode)) {
-                flag               = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
-                work->cloakRequest = flag;
+    work      = (_Actor400500GrayStalkerWork*)task->work;
+    hitActive = work->hitTaken;
+    if (hitActive == 1) {
+        reaction = work->hitReaction;
+        if (reaction == ACTOR_400500_HIT_REACTION_LIGHT) {
+            if ((work->cloakRequest >= 0) || (((u8)work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != ACTOR_400500_CLOAK_SHOW)) {
+                cloakRequest       = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
+                work->cloakRequest = cloakRequest;
                 work->cloakPhase   = 0;
             }
-            work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->animRate    = 0x1C;
-            work2->animId      = 0xB;
-            work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-            work->hitReaction  = ACTOR_400500_HIT_REACTION_NONE;
-        } else if (sub == ACTOR_400500_HIT_REACTION_HEAVY) {
-            if ((work->cloakRequest >= 0) || (((u8)work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != mode)) {
-                flag               = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
-                work->cloakRequest = flag;
+            animationWork              = (_Actor400500GrayStalkerWork*)task->work;
+            animationWork->animRate    = ACTOR_400500_FALLEN_LIGHT_RECOIL_RATE;
+            animationWork->animId      = ACTOR_400500_ANIM_FALLEN_LIGHT_RECOIL;
+            animationWork->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
+            work->hitReaction          = ACTOR_400500_HIT_REACTION_NONE;
+        } else if (reaction == ACTOR_400500_HIT_REACTION_HEAVY) {
+            if ((work->cloakRequest >= 0) || (((u8)work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != ACTOR_400500_CLOAK_SHOW)) {
+                cloakRequest       = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
+                work->cloakRequest = cloakRequest;
                 work->cloakPhase   = 0;
             }
-            work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->animRate    = ANIMATION_RATE_ONE;
-            work2->animId      = 0xC;
-            work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-            work->hitReaction  = ACTOR_400500_HIT_REACTION_NONE;
-        } else if (sub == ACTOR_400500_HIT_REACTION_BLAST) {
-            if ((work->cloakRequest >= 0) || (((u8)work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != mode)) {
-                flag               = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
-                work->cloakRequest = flag;
+            animationWork              = (_Actor400500GrayStalkerWork*)task->work;
+            animationWork->animRate    = ANIMATION_RATE_ONE;
+            animationWork->animId      = ACTOR_400500_ANIM_FALLEN_HEAVY_RECOIL;
+            animationWork->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
+            work->hitReaction          = ACTOR_400500_HIT_REACTION_NONE;
+        } else if (reaction == ACTOR_400500_HIT_REACTION_BLAST) {
+            if ((work->cloakRequest >= 0) || (((u8)work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != ACTOR_400500_CLOAK_SHOW)) {
+                cloakRequest       = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
+                work->cloakRequest = cloakRequest;
                 work->cloakPhase   = 0;
             }
-            work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->animRate    = ANIMATION_RATE_ONE;
-            work2->animId      = 0xC;
-            work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-            work->hitReaction  = ACTOR_400500_HIT_REACTION_NONE;
-        } else if (sub == ACTOR_400500_HIT_REACTION_STATUS) {
-            if ((work->cloakRequest >= 0) || (((u8)work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != mode)) {
-                flag               = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
-                work->cloakRequest = flag;
+            animationWork              = (_Actor400500GrayStalkerWork*)task->work;
+            animationWork->animRate    = ANIMATION_RATE_ONE;
+            animationWork->animId      = ACTOR_400500_ANIM_FALLEN_HEAVY_RECOIL;
+            animationWork->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
+            work->hitReaction          = ACTOR_400500_HIT_REACTION_NONE;
+        } else if (reaction == ACTOR_400500_HIT_REACTION_STATUS) {
+            if ((work->cloakRequest >= 0) || (((u8)work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != ACTOR_400500_CLOAK_SHOW)) {
+                cloakRequest       = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
+                work->cloakRequest = cloakRequest;
                 work->cloakPhase   = 0;
             }
-            work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->animRate    = ANIMATION_RATE_ONE;
-            work2->animId      = 0xE;
-            work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-            work->hitReaction  = ACTOR_400500_HIT_REACTION_NONE;
+            animationWork              = (_Actor400500GrayStalkerWork*)task->work;
+            animationWork->animRate    = ANIMATION_RATE_ONE;
+            animationWork->animId      = ACTOR_400500_ANIM_FALLEN_STATUS_RECOIL;
+            animationWork->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
+            work->hitReaction          = ACTOR_400500_HIT_REACTION_NONE;
         }
-        hit = (_Actor400500GrayStalkerWork*)arg0->work;
-        if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
+        if (_actor400500HasAnimBoundary(task)) {
             work->hitTaken = 0;
         }
         return 1;
@@ -2289,7 +2332,11 @@ static inline void _actor400500SetAnim(Task* task, s16 setIndex, s16 rateSixteen
     work->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
 }
 
-/// Writes `state` and `subState` into the enemy's state and sub-state indices.
+/// Selects a living Stalker state and its sub-state without resetting frame counters.
+///
+/// Requires a live Stalker work block. `state` is an `ACTOR_400500_STATE_*`
+/// and `subState` must index that state's step table; both stores keep the low
+/// 16 bits. Current callers enter crawl or ambush at sub-state zero.
 static inline void _actor400500SetState(Task* task, s32 state, s32 subState)
 {
     _Actor400500GrayStalkerWork* work;
@@ -2336,8 +2383,11 @@ static inline void _actor400500TickAnim(Task* task)
     } while (slotIndex < ARRAY_SIZE(work->rig.slots));
 }
 
-/// Consumes a pending knockdown: clears the request, enters the knockdown
-/// state and returns 1; returns 0 when none is pending.
+/// Consumes a pending knockdown and enters its first state-machine step.
+///
+/// Requires a live Stalker work block. Clears any nonzero `knockdownPending`
+/// and enters `ACTOR_400500_STATE_KNOCKDOWN` at sub-state zero, returning 1.
+/// Returns 0 with no change when no request is pending; frame counters stay intact.
 static inline s32 _actor400500TakeKnockdown(Task* task)
 {
     _Actor400500GrayStalkerWork* work = (_Actor400500GrayStalkerWork*)task->work;
@@ -2415,223 +2465,214 @@ static inline void _actor400500EnqueueSound(Task* task, s32 soundId)
     sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 
-/// Queues sound `id` from the enemy's position, in its placement's sound bank.
-static inline void _actor400500PlaySound(Task* task, s32 id)
+/// Queues a sound-script entry with this enemy placement's instance tag.
+///
+/// Requires a live enemy in `spawnArg2.pointer` and a composed TMD root.
+/// `baseSoundId` supplies the bank and entry bytes, normally with an empty
+/// instance byte; the placement index is ORed into that byte. The bank stays
+/// as supplied, including bank zero. Pan and attenuation use signed low bytes.
+/// Admission failure is ignored; sound resources must stay loaded for playback.
+/// Neither the task nor the enemy pointer is retained.
+static inline void _actor400500PlayPlacedSound(Task* task, s32 baseSoundId)
 {
-    s32 sound;
-    s32 pan;
+    s32 placedSoundId;
 
-    sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
-    pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+    placedSoundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | baseSoundId;
+    _actor400500EnqueueRootSound(task, placedSoundId);
 }
 
-/// Replaces the rotation of `coord` with a rotation about Y by `yaw`.
-static inline void _actor400500SetCoordYaw(GfxCoord* coord, s16 yaw)
+/// Replaces a coordinate's rotation with a unit-scale yaw in its parent's frame.
+///
+/// `yawAngle` uses 4096 units per turn. The live writable coordinate keeps its
+/// translation, matrix alignment bytes, stored Euler state and parent link.
+/// Only the nine Q12 rotation coefficients are replaced; pitch, roll and scale
+/// are discarded. Leaves the cache stamp untouched; callers arrange recomposition.
+static inline void _actor400500SetCoordYaw(GfxCoord* coord, s16 yawAngle)
 {
-    MATRIX rot;
+    MATRIX yawRotation;
 
-    gfxSetRotIdentity(&rot);
-    RotMatrixY(yaw, &rot);
-    _actor400500CopyRotation(&rot, &coord->coord);
+    gfxSetRotIdentity(&yawRotation);
+    RotMatrixY(yawAngle, &yawRotation);
+    _actor400500CopyRotation(&yawRotation, &coord->coord);
 }
 
-/// Plays animation 2 at rate 0x18, moving the root so that node 0xB holds its
-/// world-space position from frame 0 to 0xB00 / rate / 16 and node 8 from
-/// 0xC00 / rate / 16 to 0x1500 / rate / 16, each with a sound on its first
-/// frame. The cycle restarts at frame 0 on a slot-1 animation boundary, jump or hold.
-static void func_actor_400500_801335E8(Task* arg0)
+/// Converts a clip frame to a rate-scaled whole tick, retaining the low byte.
+///
+/// Requires live Stalker work and a nonnegative clip frame no greater than 27.
+/// Rates use signed sixteenths of a frame; zero yields zero. Signed division
+/// occurs before unsigned division by 16 and byte narrowing, including at a
+/// negative rate. This only reads the rate and retains no pointer.
+static inline u8 _actor400500GaitFrameTick(Task* task, s32 clipFrame)
 {
+    u8 frameTick;
+
+    if (((_Actor400500GrayStalkerWork*)task->work)->animRate == 0) {
+        frameTick = 0;
+    } else {
+        frameTick = (u32)((clipFrame * ANIMATION_RATE_ONE * ANIMATION_RATE_ONE) /
+                          ((_Actor400500GrayStalkerWork*)task->work)->animRate) /
+                    ANIMATION_RATE_ONE;
+    }
+    return frameTick;
+}
+
+/// Moves a crawl cycle by alternately anchoring the two arm tips in world X/Z.
+///
+/// Starts clip 2 at 1.5 normal speed only when another clip is selected; the
+/// existing clip's rate is retained. Left contact spans clip frames 0..11 and
+/// right contact 12..21, inclusive, with a placement-tagged sound at each start.
+/// Requires a live 18-part rig beneath the view coordinate and current slot
+/// results. A boundary restarts elapsed frames; ordinary playback advances in
+/// the calling state. Rate-scaled whole-tick bounds narrow to u8, zero at rate
+/// zero; anchor coordinates retain signed low halfwords. Root Y stays intact.
+static void _actor400500TickCrawl(Task* task)
+{
+    enum { ACTOR_400500_GAIT_CLIP = 2 };
     _Actor400500GrayStalkerWork* work;
-    GfxCoord*                    coord;
-    u8                           tmp0;
-    u8                           tmp1;
-    u8                           tmp2;
-    u8                           end0;
-    u8                           start1;
-    u8                           end1;
-    /* The first window starts at frame 0: `start0` is a `u8` bound like the
-     * other three, assigned first. Its two tests then compare against a
-     * register the image zeroes at the first of them; a literal 0 folds. */
-    u8  start0;
-    s32 sound;
+    GfxCoord*                    rootCoord;
+    u8                           firstContactEnd;
+    u8                           secondContactStart;
+    u8                           secondContactEnd;
+    // Byte bounds preserve the clip-to-tick conversion and its wrapping.
+    u8  firstContactStart;
+    s32 placedSoundId;
 
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->animId != 2) {
-        _actor400500SetAnim(arg0, 2, 0x18);
-        _actor400500TickAnim(arg0);
+    work      = (_Actor400500GrayStalkerWork*)task->work;
+    rootCoord = task->extra.tmd->coords;
+    if (work->animId != ACTOR_400500_GAIT_CLIP) {
+        _actor400500SetAnim(task, ACTOR_400500_GAIT_CLIP, ANIMATION_RATE_ONE * 3 / 2);
+        _actor400500TickAnim(task);
     }
-    start0 = 0;
-    if (((_Actor400500GrayStalkerWork*)arg0->work)->animRate == 0) {
-        tmp0 = 0;
-    } else {
-        tmp0 = (u32)(0xB00 / ((_Actor400500GrayStalkerWork*)arg0->work)->animRate) >> 4;
-    }
-    end0 = tmp0;
-    if (((_Actor400500GrayStalkerWork*)arg0->work)->animRate == 0) {
-        tmp1 = 0;
-    } else {
-        tmp1 = (u32)(0xC00 / ((_Actor400500GrayStalkerWork*)arg0->work)->animRate) >> 4;
-    }
-    start1 = tmp1;
-    if (((_Actor400500GrayStalkerWork*)arg0->work)->animRate == 0) {
-        tmp2 = 0;
-    } else {
-        tmp2 = (u32)(0x1500 / ((_Actor400500GrayStalkerWork*)arg0->work)->animRate) >> 4;
-    }
-    end1 = tmp2;
-    if (_actor400500HasAnimBoundary(arg0)) {
+    firstContactStart  = 0;
+    firstContactEnd    = _actor400500GaitFrameTick(task, 11);
+    secondContactStart = _actor400500GaitFrameTick(task, 12);
+    secondContactEnd   = _actor400500GaitFrameTick(task, 21);
+    if (_actor400500HasAnimBoundary(task)) {
         work->animFrames = 0;
     }
-    if (work->animFrames == start0) {
-        _actor400500ReadPartWorldXZ(arg0, 0xB, &work->anchorPos);
-        sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050001;
-        _actor400500EnqueueSound(arg0, sound);
+    // Sample each planted tip before moving the root around its saved position.
+    if (work->animFrames == firstContactStart) {
+        _actor400500ReadPartWorldXZ(task, ACTOR_400500_PART_LEFT_ARM_TIP, &work->anchorPos);
+        placedSoundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_STEP_1;
+        _actor400500EnqueueSound(task, placedSoundId);
     }
-    if (work->animFrames == start1) {
-        _actor400500ReadPartWorldXZ(arg0, 8, &work->anchorPos);
-        sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050002;
-        _actor400500EnqueueSound(arg0, sound);
+    if (work->animFrames == secondContactStart) {
+        _actor400500ReadPartWorldXZ(task, ACTOR_400500_PART_RIGHT_ARM_TIP, &work->anchorPos);
+        placedSoundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_STEP_2;
+        _actor400500EnqueueSound(task, placedSoundId);
     }
-    if (work->animFrames >= start0 && work->animFrames <= end0) {
-        _actor400500PinPartWorldXZ(arg0, 0xB, &work->anchorPos);
+    if (work->animFrames >= firstContactStart && work->animFrames <= firstContactEnd) {
+        _actor400500PinPartWorldXZ(task, ACTOR_400500_PART_LEFT_ARM_TIP, &work->anchorPos);
     }
-    if (work->animFrames >= start1 && work->animFrames <= end1) {
-        _actor400500PinPartWorldXZ(arg0, 8, &work->anchorPos);
+    if (work->animFrames >= secondContactStart && work->animFrames <= secondContactEnd) {
+        _actor400500PinPartWorldXZ(task, ACTOR_400500_PART_RIGHT_ARM_TIP, &work->anchorPos);
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Plays animation 2 at the current rate, moving the root so that node 0xB
-/// holds its world-space position from frame 0 to 0xB00 / rate / 16 and node 8
-/// from 0xC00 / rate / 16 to 0x1500 / rate / 16, each with a sound on its
-/// first frame. The cycle restarts at frame 0 on a slot-1 animation boundary, jump or hold.
-static void func_actor_400500_80133B14(Task* arg0)
+/// Moves the room-command crawl cycle at its currently selected animation rate.
+///
+/// Cuts to clip 2 at the existing rate only when a different clip is selected.
+/// Left-arm contact spans clip frames 0..11 and right contact 12..21, inclusive,
+/// with a placement-tagged sound at each start. Requires a live 18-part rig
+/// beneath the view coordinate and current slot results. A boundary restarts
+/// elapsed frames; ordinary playback advances in the calling state. Rate-scaled
+/// whole-tick bounds narrow to u8, zero at rate zero; world X/Z anchors retain
+/// signed low halfwords and moving the root preserves Y.
+static void _actor400500TickScriptedCrawl(Task* task)
 {
+    enum { ACTOR_400500_GAIT_CLIP = 2 };
     _Actor400500GrayStalkerWork* work;
-    GfxCoord*                    coord;
-    u8                           tmp0;
-    u8                           tmp1;
-    u8                           tmp2;
-    u8                           end0;
-    u8                           start1;
-    u8                           end1;
-    /* The first window starts at frame 0: `start0` is a `u8` bound like the
-     * other three, assigned first. Its two tests then compare against a
-     * register the image zeroes at the first of them; a literal 0 folds. */
-    u8 start0;
+    GfxCoord*                    rootCoord;
+    u8                           firstContactEnd;
+    u8                           secondContactStart;
+    u8                           secondContactEnd;
+    // Byte bounds preserve the clip-to-tick conversion and its wrapping.
+    u8 firstContactStart;
 
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->animId != 2) {
-        _actor400500SetAnim(arg0, 2, work->animRate);
-        _actor400500TickAnim(arg0);
+    work      = (_Actor400500GrayStalkerWork*)task->work;
+    rootCoord = task->extra.tmd->coords;
+    if (work->animId != ACTOR_400500_GAIT_CLIP) {
+        _actor400500SetAnim(task, ACTOR_400500_GAIT_CLIP, work->animRate);
+        _actor400500TickAnim(task);
     }
-    start0 = 0;
-    if (((_Actor400500GrayStalkerWork*)arg0->work)->animRate == 0) {
-        tmp0 = 0;
-    } else {
-        tmp0 = (u32)(0xB00 / ((_Actor400500GrayStalkerWork*)arg0->work)->animRate) >> 4;
-    }
-    end0 = tmp0;
-    if (((_Actor400500GrayStalkerWork*)arg0->work)->animRate == 0) {
-        tmp1 = 0;
-    } else {
-        tmp1 = (u32)(0xC00 / ((_Actor400500GrayStalkerWork*)arg0->work)->animRate) >> 4;
-    }
-    start1 = tmp1;
-    if (((_Actor400500GrayStalkerWork*)arg0->work)->animRate == 0) {
-        tmp2 = 0;
-    } else {
-        tmp2 = (u32)(0x1500 / ((_Actor400500GrayStalkerWork*)arg0->work)->animRate) >> 4;
-    }
-    end1 = tmp2;
-    if (_actor400500HasAnimBoundary(arg0)) {
+    firstContactStart  = 0;
+    firstContactEnd    = _actor400500GaitFrameTick(task, 11);
+    secondContactStart = _actor400500GaitFrameTick(task, 12);
+    secondContactEnd   = _actor400500GaitFrameTick(task, 21);
+    if (_actor400500HasAnimBoundary(task)) {
         work->animFrames = 0;
     }
-    if (work->animFrames == start0) {
-        _actor400500ReadPartWorldXZ(arg0, 0xB, &work->anchorPos);
-        _actor400500PlaySound(arg0, 0x40050001);
+    // Sample each planted tip before moving the root around its saved position.
+    if (work->animFrames == firstContactStart) {
+        _actor400500ReadPartWorldXZ(task, ACTOR_400500_PART_LEFT_ARM_TIP, &work->anchorPos);
+        _actor400500PlayPlacedSound(task, ACTOR_400500_SOUND_STEP_1);
     }
-    if (work->animFrames == start1) {
-        _actor400500ReadPartWorldXZ(arg0, 8, &work->anchorPos);
-        _actor400500PlaySound(arg0, 0x40050002);
+    if (work->animFrames == secondContactStart) {
+        _actor400500ReadPartWorldXZ(task, ACTOR_400500_PART_RIGHT_ARM_TIP, &work->anchorPos);
+        _actor400500PlayPlacedSound(task, ACTOR_400500_SOUND_STEP_2);
     }
-    if (work->animFrames >= start0 && work->animFrames <= end0) {
-        _actor400500PinPartWorldXZ(arg0, 0xB, &work->anchorPos);
+    if (work->animFrames >= firstContactStart && work->animFrames <= firstContactEnd) {
+        _actor400500PinPartWorldXZ(task, ACTOR_400500_PART_LEFT_ARM_TIP, &work->anchorPos);
     }
-    if (work->animFrames >= start1 && work->animFrames <= end1) {
-        _actor400500PinPartWorldXZ(arg0, 8, &work->anchorPos);
+    if (work->animFrames >= secondContactStart && work->animFrames <= secondContactEnd) {
+        _actor400500PinPartWorldXZ(task, ACTOR_400500_PART_RIGHT_ARM_TIP, &work->anchorPos);
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Plays animation 4 at rate 0x10, moving the root so that node 8 holds its
-/// world-space position from frame 0 to 0xD00 / rate / 16 and node 0xB from
-/// 0xE00 / rate / 16 to 0x1B00 / rate / 16, each with a sound on its first
-/// frame. The cycle restarts at frame 0 on a slot-1 animation boundary, jump or hold.
-static void func_actor_400500_8013403C(Task* arg0)
+/// Moves a fallen crawl cycle by anchoring the right arm, then the left arm.
+///
+/// Starts clip 4 at normal speed only when another clip is selected; the
+/// existing clip's rate is retained. Right contact spans clip frames 0..13 and
+/// left contact 14..27, inclusive, with a placement-tagged sound at each start.
+/// Requires a live 18-part rig beneath the view coordinate and current slot
+/// results. A boundary restarts elapsed frames; ordinary playback advances in
+/// the calling state. Rate-scaled whole-tick bounds narrow to u8, zero at rate
+/// zero; anchor coordinates retain signed low halfwords. Root Y stays intact.
+static void _actor400500TickFallenCrawl(Task* task)
 {
+    enum { ACTOR_400500_GAIT_CLIP = 4 };
     _Actor400500GrayStalkerWork* work;
-    GfxCoord*                    coord;
-    u8                           tmp0;
-    u8                           tmp1;
-    u8                           tmp2;
-    u8                           end0;
-    u8                           start1;
-    u8                           end1;
-    /* The first window starts at frame 0: `start0` is a `u8` bound like the
-     * other three, assigned first. Its two tests then compare against a
-     * register the image zeroes at the first of them; a literal 0 folds. */
-    u8  start0;
-    s32 sound;
+    GfxCoord*                    rootCoord;
+    u8                           firstContactEnd;
+    u8                           secondContactStart;
+    u8                           secondContactEnd;
+    // Byte bounds preserve the clip-to-tick conversion and its wrapping.
+    u8  firstContactStart;
+    s32 placedSoundId;
 
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->animId != 4) {
-        _actor400500SetAnim(arg0, 4, ANIMATION_RATE_ONE);
-        _actor400500TickAnim(arg0);
+    work      = (_Actor400500GrayStalkerWork*)task->work;
+    rootCoord = task->extra.tmd->coords;
+    if (work->animId != ACTOR_400500_GAIT_CLIP) {
+        _actor400500SetAnim(task, ACTOR_400500_GAIT_CLIP, ANIMATION_RATE_ONE);
+        _actor400500TickAnim(task);
     }
-    start0 = 0;
-    if (((_Actor400500GrayStalkerWork*)arg0->work)->animRate == 0) {
-        tmp0 = 0;
-    } else {
-        tmp0 = (u32)(0xD00 / ((_Actor400500GrayStalkerWork*)arg0->work)->animRate) >> 4;
-    }
-    end0 = tmp0;
-    if (((_Actor400500GrayStalkerWork*)arg0->work)->animRate == 0) {
-        tmp1 = 0;
-    } else {
-        tmp1 = (u32)(0xE00 / ((_Actor400500GrayStalkerWork*)arg0->work)->animRate) >> 4;
-    }
-    start1 = tmp1;
-    if (((_Actor400500GrayStalkerWork*)arg0->work)->animRate == 0) {
-        tmp2 = 0;
-    } else {
-        tmp2 = (u32)(0x1B00 / ((_Actor400500GrayStalkerWork*)arg0->work)->animRate) >> 4;
-    }
-    end1 = tmp2;
-    if (_actor400500HasAnimBoundary(arg0)) {
+    firstContactStart  = 0;
+    firstContactEnd    = _actor400500GaitFrameTick(task, 13);
+    secondContactStart = _actor400500GaitFrameTick(task, 14);
+    secondContactEnd   = _actor400500GaitFrameTick(task, 27);
+    if (_actor400500HasAnimBoundary(task)) {
         work->animFrames = 0;
     }
-    if (work->animFrames == start0) {
-        _actor400500ReadPartWorldXZ(arg0, 8, &work->anchorPos);
-        sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050001;
-        _actor400500EnqueueSound(arg0, sound);
+    // Sample each planted tip before moving the root around its saved position.
+    if (work->animFrames == firstContactStart) {
+        _actor400500ReadPartWorldXZ(task, ACTOR_400500_PART_RIGHT_ARM_TIP, &work->anchorPos);
+        placedSoundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_STEP_1;
+        _actor400500EnqueueSound(task, placedSoundId);
     }
-    if (work->animFrames == start1) {
-        _actor400500ReadPartWorldXZ(arg0, 0xB, &work->anchorPos);
-        sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050002;
-        _actor400500EnqueueSound(arg0, sound);
+    if (work->animFrames == secondContactStart) {
+        _actor400500ReadPartWorldXZ(task, ACTOR_400500_PART_LEFT_ARM_TIP, &work->anchorPos);
+        placedSoundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_STEP_2;
+        _actor400500EnqueueSound(task, placedSoundId);
     }
-    if (work->animFrames >= start0 && work->animFrames <= end0) {
-        _actor400500PinPartWorldXZ(arg0, 8, &work->anchorPos);
+    if (work->animFrames >= firstContactStart && work->animFrames <= firstContactEnd) {
+        _actor400500PinPartWorldXZ(task, ACTOR_400500_PART_RIGHT_ARM_TIP, &work->anchorPos);
     }
-    if (work->animFrames >= start1 && work->animFrames <= end1) {
-        _actor400500PinPartWorldXZ(arg0, 0xB, &work->anchorPos);
+    if (work->animFrames >= secondContactStart && work->animFrames <= secondContactEnd) {
+        _actor400500PinPartWorldXZ(task, ACTOR_400500_PART_LEFT_ARM_TIP, &work->anchorPos);
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 static void func_actor_400500_8013456C(Task* arg0)
@@ -3507,7 +3548,7 @@ static void func_actor_400500_8013662C(Task* arg0)
         }
         if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
             ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
             heading = (u16)work->yaw;
             if ((heading & 0xFFF) != 0x400) {
                 if (((0x400 - heading) << 0x14) > 0) {
@@ -3529,7 +3570,7 @@ static void func_actor_400500_8013662C(Task* arg0)
                             work->subState = zone;
                         }
                     } else {
-                        func_actor_400500_801335E8(arg0);
+                        _actor400500TickCrawl(arg0);
                     }
                 } else {
                     if (work->attackCooling == 0) {
@@ -3551,7 +3592,7 @@ static void func_actor_400500_8013662C(Task* arg0)
                             work2->subState = 0;
                         }
                     }
-                    func_actor_400500_801335E8(arg0);
+                    _actor400500TickCrawl(arg0);
                 }
             }
             coord->coord.t[2] = -0x209E;
@@ -3592,7 +3633,7 @@ static void func_actor_400500_80136864(Task* arg0)
         }
         if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
             ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
             heading = (u16)work->yaw;
             if ((heading & 0xFFF) == 0xC00) {
                 work2              = (_Actor400500GrayStalkerWork*)arg0->work;
@@ -3651,7 +3692,7 @@ static void func_actor_400500_801369A4(Task* arg0)
         }
         if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
             ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
             heading = (u16)work->yaw;
             if ((heading & 0xFFF) != 0xC00) {
                 if (((0xC00 - heading) << 0x14) > 0) {
@@ -3687,7 +3728,7 @@ static void func_actor_400500_801369A4(Task* arg0)
                         work2->subState = 0;
                     }
                 }
-                func_actor_400500_801335E8(arg0);
+                _actor400500TickCrawl(arg0);
             }
             coord->coord.t[2] = -0x209E;
         }
@@ -3725,7 +3766,7 @@ static void func_actor_400500_80136B94(Task* arg0)
         }
         if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
             ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
             heading = (u16)work->yaw;
             if ((heading & 0xFFF) == 0x400) {
                 work2              = (_Actor400500GrayStalkerWork*)arg0->work;
@@ -3786,7 +3827,7 @@ static void func_actor_400500_80136D00(Task* arg0)
         }
         if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
             ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
             if (((u32)(work->playerZone - 2) < 2U) || ((s16)work->playerZone == 6)) {
                 heading = (u16)work->yaw;
                 if ((heading & 0xFFF) == 0) {
@@ -3860,7 +3901,7 @@ static void func_actor_400500_80136EB8(Task* arg0)
         }
         if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
             ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
             heading = (u16)work->yaw;
             if (heading & 0xFFF) {
                 if (((0 - heading) << 0x14) > 0) {
@@ -3879,7 +3920,7 @@ static void func_actor_400500_80136EB8(Task* arg0)
                 } else if ((work->attackCooling == 0) && (work->toTarget.vz < 0)) {
                     work->subState = 7;
                 }
-                func_actor_400500_801335E8(arg0);
+                _actor400500TickCrawl(arg0);
             }
             coord->coord.t[0] = 0x4074;
         }
@@ -3917,7 +3958,7 @@ static void func_actor_400500_80137034(Task* arg0)
         }
         if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
             ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
             heading = (u16)work->yaw;
             if ((heading & 0xFFF) == 0x800) {
                 work2              = (_Actor400500GrayStalkerWork*)arg0->work;
@@ -3980,7 +4021,7 @@ static void func_actor_400500_801371A0(Task* arg0)
         }
         if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
             ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
             heading = (u16)work->yaw;
             if ((heading & 0xFFF) != 0x800) {
                 if (((0x800 - heading) << 0x14) > 0) {
@@ -4004,7 +4045,7 @@ static void func_actor_400500_801371A0(Task* arg0)
                         }
                         break;
                 }
-                func_actor_400500_801335E8(arg0);
+                _actor400500TickCrawl(arg0);
             }
             coord->coord.t[0] = 0x4074;
         }
@@ -4044,7 +4085,7 @@ static void func_actor_400500_80137338(Task* arg0)
         }
         if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
             ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
             heading = (u16)work->yaw;
             if ((heading & 0xFFF) == 0xC00) {
                 work2              = (_Actor400500GrayStalkerWork*)arg0->work;
@@ -4100,7 +4141,7 @@ static void func_actor_400500_80137478(Task* arg0)
         }
         if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
             ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((func_actor_400500_80133160(arg0) << 0x10) == 0)) {
+            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
             heading = (u16)work->yaw;
             if ((heading & 0xFFF) == 0) {
                 work2              = (_Actor400500GrayStalkerWork*)arg0->work;
@@ -4172,62 +4213,84 @@ static void func_actor_400500_801375B8(Task* arg0)
     work->subState      = work->subState + 1;
 }
 
-/// Requests the cloak fade `mode` (`ACTOR_400500_CLOAK_*`) and restarts its
-/// phases, unless a fade of that kind is already running or `hideCooldown` is
-/// nonzero.
-static inline void _actor400500RequestMode(Task* task, s32 mode)
+/// Requests a cloak fade when no matching fade is running and its cooldown is zero.
+///
+/// Requires a live Stalker work block. `cloakRequest` combines
+/// `ACTOR_400500_CLOAK_RUNNING` with `HIDE` or `SHOW`; the signed low byte is
+/// stored and the phase resets to zero. A matching running request keeps its
+/// progress. The cooldown gates both kinds of request; a blocked request is lost.
+static inline void _actor400500RequestCloakFade(Task* task, s32 cloakRequest)
 {
     _Actor400500GrayStalkerWork* work;
 
     work = (_Actor400500GrayStalkerWork*)task->work;
-    if (((work->cloakRequest >= 0) || ((work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != (mode & ACTOR_400500_CLOAK_KIND_MASK))) && (work->hideCooldown == 0)) {
-        work->cloakRequest = mode;
+    if (((work->cloakRequest >= 0) || ((work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != (cloakRequest & ACTOR_400500_CLOAK_KIND_MASK))) && (work->hideCooldown == 0)) {
+        work->cloakRequest = cloakRequest;
         work->cloakPhase   = 0;
     }
 }
 
-/// Composes `coord`'s matrix with each ancestor's normalised matrix up the
-/// `parent` chain, leaving the product in `matrix`. Returns 1 when the chain
-/// reaches the view coordinate and 0 when it ends before it.
-static inline s32 _actor400500CoordToView(GfxCoord* coord, MATRIX* matrix)
+/// Pre-multiplies and normalizes a Q12 rotation using caller-owned matrix storage.
+///
+/// All matrices must be live, word-aligned and separate for this call. Only the normalized
+/// 3x3 is valid; copying the whole temporary leaves other bytes unspecified.
+static inline void _actor400500PreMultiplyNormalizedRotation(const MATRIX* parentRotation, MATRIX* rotation, MATRIX* normalizedRotation)
 {
-    MATRIX    result;
-    MATRIX    parent;
-    GfxCoord* current;
+    gte_SetRotMatrix(parentRotation);
+    MulRotMatrix(rotation);
+    MatrixNormal(rotation, normalizedRotation);
+    *rotation = *normalizedRotation;
+}
 
-    current = coord->parent;
-    *matrix = coord->coord;
+/// Accumulates a coordinate's rotation into world space, excluding the view matrix.
+///
+/// Requires a live acyclic chain and a separate writable, word-aligned matrix.
+/// The local basis seeds the result unchanged; each intervening parent is
+/// normalized before multiplication, then the product is normalized as well.
+/// Coefficients are Q12. Returns 1 on reaching `gGfxViewCoord`, 0 at NULL,
+/// leaving the accumulated basis on either exit. Only the 3x3 is valid: a
+/// normalized whole-matrix copy leaves other bytes unspecified. Coordinates
+/// and cache stamps stay intact; GTE working registers change.
+static inline s32 _actor400500AccumulateWorldRotation(const GfxCoord* coord, MATRIX* worldRotation)
+{
+    MATRIX          normalizedRotation;
+    MATRIX          parentRotation;
+    const GfxCoord* ancestor;
+
+    ancestor       = coord->parent;
+    *worldRotation = coord->coord;
     while (1) {
-        if (current == NULL) {
+        if (ancestor == NULL) {
             return 0;
         }
-        if (current == &gGfxViewCoord) {
+        if (ancestor == &gGfxViewCoord) {
             return 1;
         }
-        parent = current->coord;
-        MatrixNormal(&parent, &parent);
-        gte_SetRotMatrix(&parent);
-        MulRotMatrix(matrix);
-        MatrixNormal(matrix, &result);
-        *matrix = result;
-        current = current->parent;
+        parentRotation = ancestor->coord;
+        MatrixNormal(&parentRotation, &parentRotation);
+        _actor400500PreMultiplyNormalizedRotation(&parentRotation, worldRotation, &normalizedRotation);
+        ancestor = ancestor->parent;
     }
 }
 
-/// Turns `part` by `heading` in view space: builds the part's view-space
-/// matrix in a scratch-pad block, applies `heading` with `RotMatrixY`,
-/// takes it back into the part's own space with `func_actor_400500_8013B720`,
-/// and copies the resulting rotation (not the translation) into the part
-/// before refreshing it.
-static inline void _actor400500TurnPart(GfxCoord* part, u16 heading)
+/// Adds a world-space yaw to a model part and refreshes its composed transform.
+///
+/// `yawDelta` is narrowed to a signed angle in 4096 units per turn. Requires a
+/// writable part with a non-NULL parent and a live acyclic chain reaching the
+/// excluded view coordinate. Ancestor bases and products are normalized; the
+/// result replaces only the nine Q12 rotation coefficients, preserving local
+/// translation and Euler state. Requires the composed view and an initialized,
+/// word-aligned scratch stack with room for one MATRIX, released before return.
+/// Composition may update ancestor caches and clobbers GTE working registers.
+static inline void _actor400500TurnPartWorldYaw(GfxCoord* part, u16 yawDelta)
 {
-    MATRIX* matrix;
+    MATRIX* worldRotation;
 
-    matrix = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    _actor400500CoordToView(part, matrix);
-    RotMatrixY((s16)(heading), matrix);
-    func_actor_400500_8013B720(part, matrix);
-    memcpy(part->coord.m, matrix->m, sizeof(part->coord.m));
+    worldRotation = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
+    _actor400500AccumulateWorldRotation(part, worldRotation);
+    RotMatrixY((s16)(yawDelta), worldRotation);
+    _actor400500LocalizeWorldRotation(part, worldRotation);
+    memcpy(part->coord.m, worldRotation->m, sizeof(part->coord.m));
     part->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(part);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
@@ -4319,11 +4382,11 @@ static void func_actor_400500_8013771C(Task* arg0)
     if (((s16)work->stateFrames == 0xE) && (work->playerCaught == 0)) {
         _actor400500PlayAnim(arg0, 6);
         work->stateFrames = 0;
-        _actor400500RequestMode(arg0, ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_HIDE);
+        _actor400500RequestCloakFade(arg0, ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_HIDE);
         work->subState = work->subState + 1;
     }
-    _actor400500TurnPart(&arg0->extra.tmd->coords[6], work->armReachAngle);
-    _actor400500TurnPart(&arg0->extra.tmd->coords[9], work->armReachAngle);
+    _actor400500TurnPartWorldYaw(&arg0->extra.tmd->coords[6], work->armReachAngle);
+    _actor400500TurnPartWorldYaw(&arg0->extra.tmd->coords[9], work->armReachAngle);
     if (((u32)(work->stateFrames - 7) < 4U) && (work->playerCaught == 1)) {
         func_actor_400500_801348D8(arg0, 1);
     }
@@ -4331,14 +4394,14 @@ static void func_actor_400500_8013771C(Task* arg0)
         func_actor_400500_801348D8(arg0, 0);
     }
     if (((s16)work->stateFrames == 0xC) && (work->playerCaught != 0)) {
-        _actor400500PlaySound(arg0, 6);
+        _actor400500PlayPlacedSound(arg0, ACTOR_400500_SOUND_GRAB_FRAME_12);
     }
     if ((s16)work->stateFrames == 0x1E) {
-        _actor400500PlaySound(arg0, 0x40050007);
+        _actor400500PlayPlacedSound(arg0, ACTOR_400500_SOUND_GRAB_FRAME_30);
     }
     if ((s16)work->stateFrames == 0x2A) {
         padScriptSpawnVariableMotorRamp(8, 0xC0U, 8U);
-        _actor400500PlaySound(arg0, 0x40050008);
+        _actor400500PlayPlacedSound(arg0, ACTOR_400500_SOUND_GRAB_FRAME_42);
     }
     if ((s16)work->stateFrames == 0x1F) {
         padScriptSpawnVariableMotorRamp(6, 0xFFU, 0x80U);
@@ -4395,8 +4458,8 @@ static void func_actor_400500_80138088(Task* arg0)
     } while (i < ARRAY_SIZE(work2->rig.slots));
 
     work->armReachAngle += -(work->armReachAngle * 16) >> 7;
-    _actor400500TurnPart(&arg0->extra.tmd->coords[6], work->armReachAngle);
-    _actor400500TurnPart(&arg0->extra.tmd->coords[9], work->armReachAngle);
+    _actor400500TurnPartWorldYaw(&arg0->extra.tmd->coords[6], work->armReachAngle);
+    _actor400500TurnPartWorldYaw(&arg0->extra.tmd->coords[9], work->armReachAngle);
 
     hit = (_Actor400500GrayStalkerWork*)arg0->work;
     if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
@@ -4408,7 +4471,7 @@ static void func_actor_400500_80138088(Task* arg0)
     if (cond) {
         work->body.radius = 0x260;
         _actor400500SetState(arg0, ACTOR_400500_STATE_CRAWL, 0);
-        _actor400500RequestMode(arg0, ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_HIDE);
+        _actor400500RequestCloakFade(arg0, ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_HIDE);
         work->attackCooldown = 0x3C;
     }
 }
@@ -5919,7 +5982,7 @@ static void func_actor_400500_8013B228(Task* arg0)
         flag = 0;
     }
     if ((flag == 0) && ((_actor400500TryTurnOverNearTarget(arg0) << 0x10) == 0) &&
-        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        ((_actor400500HandleFallenHitReaction(arg0) << 0x10) == 0)) {
         if (((u16)work->yaw & 0xFFF) != 0x400) {
             work2           = (_Actor400500GrayStalkerWork*)arg0->work;
             work2->state    = ACTOR_400500_STATE_TURN_OVER;
@@ -5935,7 +5998,7 @@ static void func_actor_400500_8013B228(Task* arg0)
                         work->subState = zone;
                     }
                 } else {
-                    func_actor_400500_8013403C(arg0);
+                    _actor400500TickFallenCrawl(arg0);
                 }
             } else {
                 if (work->toTarget.vx < -0xF9F) {
@@ -5943,7 +6006,7 @@ static void func_actor_400500_8013B228(Task* arg0)
                     work3->state    = ACTOR_400500_STATE_TURN_OVER;
                     work3->subState = 0;
                 }
-                func_actor_400500_8013403C(arg0);
+                _actor400500TickFallenCrawl(arg0);
             }
         }
         coord->coord.t[2] = -0x209E;
@@ -5968,7 +6031,7 @@ static void func_actor_400500_8013B374(Task* arg0)
         flag = 0;
     }
     if ((flag == 0) && ((_actor400500TryTurnOverNearTarget(arg0) << 0x10) == 0) &&
-        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        ((_actor400500HandleFallenHitReaction(arg0) << 0x10) == 0)) {
         playerZone = work->playerZone;
         if (((u32)(playerZone - 2) < 2U) || ((s16)playerZone == 6)) {
             if (!((u16)work->yaw & 0xFFF)) {
@@ -6109,43 +6172,64 @@ static void func_actor_400500_8013B5E0(Task* arg0)
     } while (i < ARRAY_SIZE(work2->rig.slots));
 }
 
-static s32 func_actor_400500_8013B720(GfxCoord* arg0, MATRIX* arg1)
+/// Converts a world rotation in place to the frame of a coordinate's parent.
+///
+/// Requires a non-NULL parent and a live acyclic chain, with a separate writable
+/// word-aligned Q12 rotation matrix. The immediate parent's basis is used as
+/// stored; each further ancestor and its product are normalized. Transposing
+/// the resulting basis gives the inverse when that basis is orthonormal.
+/// Returns 1 after the inverse multiply, 0 unchanged when the parent is the
+/// view or the chain ends before the view. Translation stays intact; the SDK
+/// multiply also writes matrix alignment bytes. GTE working registers change.
+static s32 _actor400500LocalizeWorldRotation(const GfxCoord* joint, MATRIX* worldRotation)
 {
-    MATRIX    matrix;
-    MATRIX    parent;
-    MATRIX    normal;
-    MATRIX    transposed;
-    GfxCoord* coord;
-    GfxCoord* view;
-    MATRIX*   parentp;
+    /// Pre-multiplies and normalizes a Q12 basis using this function's matrix storage.
+    ///
+    /// Arguments must be side-effect-free, disjoint pointers to live word-aligned
+    /// matrices. Rotation is evaluated three times, normalized storage twice.
+    /// Only the 3x3 result is valid; the complete copy leaves other bytes unspecified.
+    /// No caller identifiers are captured; the macro is undefined after this function.
+#define ACTOR_400500_PREMULTIPLY_NORMALIZED_ROTATION(parentBasis, rotation, normalized) \
+    do {                                                                                \
+        gte_SetRotMatrix(parentBasis);                                                  \
+        MulRotMatrix(rotation);                                                         \
+        MatrixNormal(rotation, normalized);                                             \
+        *(rotation) = *(normalized);                                                    \
+    } while (0)
+    MATRIX          parentWorldRotation;
+    MATRIX          parentRotation;
+    MATRIX          normalizedRotation;
+    MATRIX          inverseParentRotation;
+    const GfxCoord* ancestor;
+    const GfxCoord* viewCoord;
+    MATRIX*         parentRotationPtr;
 
-    coord = arg0->parent;
-    if (coord == &gGfxViewCoord) {
+    ancestor = joint->parent;
+    if (ancestor == &gGfxViewCoord) {
         return 0;
     }
-    view    = &gGfxViewCoord;
-    parentp = &parent;
-    matrix  = coord->coord;
+    viewCoord           = &gGfxViewCoord;
+    parentRotationPtr   = &parentRotation;
+    parentWorldRotation = ancestor->coord;
     while (1) {
-        coord = coord->parent;
-        if (coord == NULL) {
+        ancestor = ancestor->parent;
+        if (ancestor == NULL) {
             return 0;
         }
-        if (coord == view) {
+        if (ancestor == viewCoord) {
             break;
         }
-        parent = coord->coord;
-        MatrixNormal(parentp, parentp);
-        gte_SetRotMatrix(parentp);
-        MulRotMatrix(&matrix);
-        MatrixNormal(&matrix, &normal);
-        matrix = normal;
+        parentRotation = ancestor->coord;
+        MatrixNormal(parentRotationPtr, parentRotationPtr);
+        ACTOR_400500_PREMULTIPLY_NORMALIZED_ROTATION(parentRotationPtr, &parentWorldRotation, &normalizedRotation);
     }
-    gte_TransposeMatrix(&matrix, &transposed);
-    gte_SetRotMatrix(&transposed);
-    MulRotMatrix(arg1);
+    // The inverse basis removes all ancestors below the excluded view node.
+    gte_TransposeMatrix(&parentWorldRotation, &inverseParentRotation);
+    gte_SetRotMatrix(&inverseParentRotation);
+    MulRotMatrix(worldRotation);
     return 1;
 }
+#undef ACTOR_400500_PREMULTIPLY_NORMALIZED_ROTATION
 
 #include "../../shared/coord_math_local_to_world.inc.c"
 
@@ -6822,7 +6906,7 @@ static void func_actor_400500_8013CB0C(Task* arg0)
         flag = 0;
     }
     if ((flag == 0) && ((_actor400500TryTurnOverNearTarget(arg0) << 0x10) == 0) &&
-        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        ((_actor400500HandleFallenHitReaction(arg0) << 0x10) == 0)) {
         if (((u16)work->yaw & 0xFFF) == 0xC00) {
             work2              = (_Actor400500GrayStalkerWork*)arg0->work;
             work2->animRate    = ANIMATION_RATE_ONE;
@@ -6856,7 +6940,7 @@ static void func_actor_400500_8013CBD8(Task* arg0)
         flag = 0;
     }
     if ((flag == 0) && ((_actor400500TryTurnOverNearTarget(arg0) << 0x10) == 0) &&
-        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        ((_actor400500HandleFallenHitReaction(arg0) << 0x10) == 0)) {
         if (((u16)work->yaw & 0xFFF) != 0xC00) {
             work2           = (_Actor400500GrayStalkerWork*)arg0->work;
             work2->state    = ACTOR_400500_STATE_TURN_OVER;
@@ -6872,7 +6956,7 @@ static void func_actor_400500_8013CBD8(Task* arg0)
                 work3->state    = ACTOR_400500_STATE_TURN_OVER;
                 work3->subState = 0;
             }
-            func_actor_400500_8013403C(arg0);
+            _actor400500TickFallenCrawl(arg0);
         }
         coord->coord.t[2] = -0x209E;
     }
@@ -6894,7 +6978,7 @@ static void func_actor_400500_8013CCDC(Task* arg0)
         flag = 0;
     }
     if ((flag == 0) && ((_actor400500TryTurnOverNearTarget(arg0) << 0x10) == 0) &&
-        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        ((_actor400500HandleFallenHitReaction(arg0) << 0x10) == 0)) {
         if (((u16)work->yaw & 0xFFF) == 0x400) {
             work2              = (_Actor400500GrayStalkerWork*)arg0->work;
             work2->animRate    = ANIMATION_RATE_ONE;
@@ -6926,7 +7010,7 @@ static void func_actor_400500_8013CDA8(Task* arg0)
         flag = 0;
     }
     if ((flag == 0) && ((_actor400500TryTurnOverNearTarget(arg0) << 0x10) == 0) &&
-        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        ((_actor400500HandleFallenHitReaction(arg0) << 0x10) == 0)) {
         if ((u16)work->yaw & 0xFFF) {
             work2           = (_Actor400500GrayStalkerWork*)arg0->work;
             work2->state    = ACTOR_400500_STATE_TURN_OVER;
@@ -6939,7 +7023,7 @@ static void func_actor_400500_8013CDA8(Task* arg0)
             } else if (work->toTarget.vz > 0) {
                 work->subState = 7;
             }
-            func_actor_400500_8013403C(arg0);
+            _actor400500TickFallenCrawl(arg0);
         }
         coord->coord.t[0] = 0x4074;
     }
@@ -6961,7 +7045,7 @@ static void func_actor_400500_8013CE9C(Task* arg0)
         flag = 0;
     }
     if ((flag == 0) && ((_actor400500TryTurnOverNearTarget(arg0) << 0x10) == 0) &&
-        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        ((_actor400500HandleFallenHitReaction(arg0) << 0x10) == 0)) {
         if (((u16)work->yaw & 0xFFF) == 0x800) {
             work2              = (_Actor400500GrayStalkerWork*)arg0->work;
             work2->animRate    = ANIMATION_RATE_ONE;
@@ -6993,7 +7077,7 @@ static void func_actor_400500_8013CF68(Task* arg0)
         flag = 0;
     }
     if ((flag == 0) && ((_actor400500TryTurnOverNearTarget(arg0) << 0x10) == 0) &&
-        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        ((_actor400500HandleFallenHitReaction(arg0) << 0x10) == 0)) {
         if (((u16)work->yaw & 0xFFF) != 0x800) {
             work2           = (_Actor400500GrayStalkerWork*)arg0->work;
             work2->state    = ACTOR_400500_STATE_TURN_OVER;
@@ -7011,7 +7095,7 @@ static void func_actor_400500_8013CF68(Task* arg0)
                     }
                     break;
             }
-            func_actor_400500_8013403C(arg0);
+            _actor400500TickFallenCrawl(arg0);
         }
         coord->coord.t[0] = 0x4074;
     }
@@ -7033,7 +7117,7 @@ static void func_actor_400500_8013D078(Task* arg0)
         flag = 0;
     }
     if ((flag == 0) && ((_actor400500TryTurnOverNearTarget(arg0) << 0x10) == 0) &&
-        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        ((_actor400500HandleFallenHitReaction(arg0) << 0x10) == 0)) {
         if (((u16)work->yaw & 0xFFF) == 0xC00) {
             work2              = (_Actor400500GrayStalkerWork*)arg0->work;
             work2->animRate    = ANIMATION_RATE_ONE;
@@ -7064,7 +7148,7 @@ static void func_actor_400500_8013D144(Task* arg0)
         flag = 0;
     }
     if ((flag == 0) && ((_actor400500TryTurnOverNearTarget(arg0) << 0x10) == 0) &&
-        ((func_actor_400500_80133460(arg0) << 0x10) == 0)) {
+        ((_actor400500HandleFallenHitReaction(arg0) << 0x10) == 0)) {
         if (((u16)work->yaw & 0xFFF) == 0) {
             work2              = (_Actor400500GrayStalkerWork*)arg0->work;
             work2->animRate    = ANIMATION_RATE_ONE;
@@ -7138,7 +7222,7 @@ static void func_actor_400500_8013D2D8(Task* arg0)
             work2->cloakPhase   = 0;
         }
     }
-    func_actor_400500_80133B14(arg0);
+    _actor400500TickScriptedCrawl(arg0);
     if (coord->coord.t[2] >= -0x225F) {
         work3                  = (_Actor400500GrayStalkerWork*)arg0->work;
         work3->animBlendFrames = 0xA;
@@ -7657,19 +7741,30 @@ static void func_actor_400500_8013DEFC(Task* arg0)
     states[(s16)work->state](arg0);
 }
 
-static void func_actor_400500_8013DF50(Task* arg0)
+/// Clears the active hit and its pending recoil code in a live Stalker work block.
+///
+/// The last hit's reaction remains available to death handling.
+static void _actor400500ClearHitReaction(Task* task)
 {
-    _Actor400500GrayStalkerWork* work = (_Actor400500GrayStalkerWork*)arg0->work;
+    _Actor400500GrayStalkerWork* work = (_Actor400500GrayStalkerWork*)task->work;
 
     work->hitTaken    = 0;
     work->hitReaction = ACTOR_400500_HIT_REACTION_NONE;
 }
 
-void func_actor_400500_8013DF64(Task* task)
+/// Idle per-frame callback of the left arm's attached model task.
+///
+/// The parent Stalker drives rotation and visibility beneath body part 10,
+/// then kills this child during teardown. The task parameter is unused.
+static void _actor400500LeftArmTask(Task* task)
 {
 }
 
-void func_actor_400500_8013DF6C(Task* task)
+/// Idle per-frame callback of the right arm's attached model task.
+///
+/// The parent Stalker drives rotation and visibility beneath body part 7,
+/// then kills this child during teardown. The task parameter is unused.
+static void _actor400500RightArmTask(Task* task)
 {
 }
 
