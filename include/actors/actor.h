@@ -964,11 +964,26 @@ typedef struct {
 } KyleMadiganWalkerWork;
 STATIC_ASSERT_SIZEOF(KyleMadiganWalkerWork, 0x50C);
 
-/// Measures the cached-frame yaw before the caller applies angle wrapping.
+/// Measures the target's yaw about the reference coordinate's cached axes.
 ///
-/// Shares `_actorAngleBearingInFrame`'s coordinate and scratch requirements.
-/// Leaves the transformed offset in `scratch->delta` and returns `ratan2`'s
-/// signed 32-bit result without narrowing it or storing it through an output.
+/// Both coordinates must be live with initialized `workm` caches in the same
+/// composition frame. Translation differences must fit signed 32 bits; XYZ
+/// narrows to signed halfwords before rotation by the reference's transposed
+/// Q12 basis. The rotated components saturate to signed halfwords and remain
+/// in `scratch->delta`. Scale and shear are retained: the transpose is an
+/// inverse only for an orthonormal basis. Neither coordinate is composed here.
+///
+/// Returns the signed 32-bit `ratan2` result in [-2048, 2048], with 4096 units
+/// per turn, zero along +Z and positive toward +X. Zero X/Z returns zero.
+/// Callers apply any wrapping, narrowing or output stores they require.
+///
+/// The caller supplies a live, word-aligned `ActorBearingScratch`, separate
+/// from both coordinates. Only XYZ and the nine matrix coefficients are
+/// overwritten; the vector's fourth halfword and matrix alignment bytes are
+/// read but do not affect the result. Other bytes stay intact. Borrows storage
+/// until return without reserving or releasing it, and leaves coordinates
+/// unchanged. Overwrites GTE RT, V0, MAC1..3, IR1..3 and FLAG; translation
+/// registers are unchanged.
 static __inline__ s32 _actorAngleMeasureBearingInFrame(ActorBearingScratch* scratch, const GfxCoord* referenceCoord,
                                                        const GfxCoord* targetCoord)
 {
