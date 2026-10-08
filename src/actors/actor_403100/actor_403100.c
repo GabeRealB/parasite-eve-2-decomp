@@ -67,6 +67,27 @@
 #include "rooms/dryfield_night_motel_balcony.h"
 #include "../../shared/coord_math.h"
 
+/// Stride and impact cues used by the combat walk and its follow-up clips.
+///
+/// Stride phase is a half-turn in 4096 angle units per turn.
+/// Rumble counts eligible pad-script updates, shake counts running actor updates,
+/// and intensity endpoints are bytes (0..255).
+enum {
+    ACTOR_403100_STRIDE_STEP                = 32,
+    ACTOR_403100_STRIDE_MASK                = ACTOR_TRANSFORM_ANGLE_HALF_TURN - 1,
+    ACTOR_403100_FOOTFALL_SOUND             = SOUND_CHARACTER(SOUND_BANK_BURNER, 1),
+    ACTOR_403100_JAW_IMPACT_SOUND           = SOUND_CHARACTER(SOUND_BANK_BURNER, 2),
+    ACTOR_403100_PART_JAW                   = 4,
+    ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES   = 30,
+    ACTOR_403100_IMPACT_FEEDBACK_FRAMES     = 18,
+    ACTOR_403100_FEEDBACK_START_INTENSITY   = 255,
+    ACTOR_403100_FEEDBACK_END_INTENSITY     = 8,
+    ACTOR_403100_IMPACT_CUE_FRAME           = 49,
+    ACTOR_403100_RECOVERY_SMOKE_START_FRAME = 50,
+    ACTOR_403100_RECOVERY_SMOKE_FRAMES      = 11,
+    ACTOR_403100_RECOVERY_SMOKE_ARG         = -0x3FFCB400,
+};
+
 /// Timing and packed room-effect arguments shared by the two puff emitters.
 ///
 /// The low twelve bits are the sizing numerator, bits 16..17 choose palette
@@ -1402,7 +1423,7 @@ static void _actor403100BeginPlayerHitRecovery(void);
 
 static void _actor403100FinishPlayerHitRecovery(void);
 
-static void func_actor_403100_8013BA64(Task* arg0);
+static void _actor403100UpdateWalk(Task* task);
 
 static void func_actor_403100_8013C214(Task* arg0);
 
@@ -1422,15 +1443,15 @@ static void _actor403100WaitForPlayerInAttackRange(Task* task);
 
 static void _actor403100ChooseAttack(Task* task);
 
-static void func_actor_403100_8013BB8C(Task* arg0);
+static void _actor403100WalkApproach(Task* task);
 
-static void func_actor_403100_8013BDE4(Task* arg0);
+static void _actor403100FinishApproachStride(Task* task);
 
-static void func_actor_403100_8013BEF0(Task* arg0);
+static void _actor403100FinishStoppingStride(Task* task);
 
 static void _actor403100Destroy(Task* task);
 
-static void func_actor_403100_8013D8F4(Task* arg0);
+static void _actor403100BeginTimeoutEvent(Task* task);
 
 static void _actor403100StepFightInitialization(Task* task);
 
@@ -1552,10 +1573,8 @@ static __inline__ s16  _actor403100Slot2AnimationSettled(void);
 static void            _actor403100InitCombatBodies(Task* task);
 static void            _actor403100PlaceHeldPlayer(Task* task);
 static void            _actor403100SamplePlayerTarget(Task* task);
-static void            func_actor_403100_8013335C(Task* arg0);
 static inline void     _actor403100SetRootYaw(Task* task);
 static inline void     _actor403100ScaleRoot(Task* task, s16 scaleQ12);
-static inline void     _actor403100UpdateColor(Task* task, GfxCoord* coord);
 static void            func_actor_403100_801339EC(Task* arg0);
 static __inline__ void _actor403100PlaceSpawned(GfxCoord* coord, s32 spawnPointIndex);
 static __inline__ void _actor403100MaskCollisionFlags(WorldCollisionBody* body, s32 keepMask, s32 setBits);
@@ -1571,8 +1590,6 @@ static void            func_actor_403100_801359DC(Task* arg0);
 static void            _actor403100StepSceneTurn(Task* task);
 static void            func_actor_403100_80135C00(Task* arg0);
 static void            func_actor_403100_80135F30(Task* arg0);
-static void            func_actor_403100_80136100(Task* arg0);
-static void            func_actor_403100_8013631C(Task* arg0);
 static void            func_actor_403100_80136610(Task* arg0);
 static inline void     _actor403100StepPlayerReaction(void);
 static inline void     _actor403100TurnForearmInline(Task* task);
@@ -1581,10 +1598,8 @@ static void            _actor403100BeginArmSwingCombo(Task* task);
 static void            func_actor_403100_801376D8(Task* arg0);
 static void            func_actor_403100_801379B4(Task* arg0);
 static void            _actor403100FinishArmSwingCombo(Task* task);
-static void            func_actor_403100_80137DC4(Task* arg0);
 static void            _actor403100BeginAimedFlameAttack(Task* task);
 static void            func_actor_403100_80138048(Task* arg0);
-static void            func_actor_403100_8013842C(Task* arg0);
 static void            _actor403100CrouchForJumpSlam(Task* task);
 static void            _actor403100AccelerateJumpSlam(Task* task);
 static void            _actor403100DecelerateJumpSlam(Task* task);
@@ -1601,10 +1616,7 @@ static void            _actor403100RecoverHeldPlayerFromFlameBreath(Task* task);
 static void            _actor403100ThrowHeldPlayer(Task* task);
 static void            func_actor_403100_8013A254(Task* task);
 static void            _actor403100BeginSideFlameAttack(Task* task);
-static void            func_actor_403100_8013A5AC(Task* arg0);
-static void            func_actor_403100_8013A81C(Task* arg0);
 static void            _actor403100StepGrabAndDragReach(Task* task);
-static void            func_actor_403100_8013AC04(Task* task);
 static void            func_actor_403100_8013AE28(Task* task);
 static inline void     _actor403100StepApproachRoot(TmdObject* model, GfxCoord* rootCoord);
 static inline s32      _actor403100PointToWorld(const GfxCoord* coord, SVECTOR* point);
@@ -2241,135 +2253,14 @@ static void _actor403100SamplePlayerTarget(Task* task)
         D_actor_403100_80155808->hitDistance = SquareRoot0((damageDeltaX * damageDeltaX) + (damageDeltaZ * damageDeltaZ));
     }
 }
-static void func_actor_403100_8013335C(Task* arg0)
+/// Consumes the frame's body contacts and advances the received-hit cooldown.
+///
+/// Requires initialized singleton contact arrays. Their owned storage and body
+/// bindings are retained. Positive cooldowns decrement with halfword wrapping;
+/// nonpositive cooldowns are clamped to zero for the next contact update.
+static inline void _actor403100FinishContactUpdate(void)
 {
-    s16 damage;
-    s16 scaledDamage;
-    s32 hitId;
-    s16 effectKind;
-    s32 i;
-    u16 hp;
-    u32 tickDamage;
-    s32 expired;
-
-    effectKind                        = 0;
-    D_actor_403100_80155808->hitTaken = 0;
-    i                                 = 0;
-    for (; i < ARRAY_SIZE(D_actor_403100_80155808->hitContacts); i++) {
-        hitId = D_actor_403100_80155808->hitContacts[i].key.value;
-        if ((hitId & 0xFFFF0000) == 0x20000) {
-            if (D_actor_403100_80155808->hitCooldown == 0) {
-                D_actor_403100_80155808->hitTaken    = 1;
-                damage                               = damageComputePlayerAttack(D_actor_403100_80155808->hitContacts[i].key.value, D_actor_403100_80155808->hitDistance / 2, 0, 0);
-                scaledDamage                         = damage;
-                D_actor_403100_80155808->hitCooldown = damageGetPlayerAttackHitCooldown(D_actor_403100_80155808->hitContacts[i].key.value);
-                if (damageRollCriticalHit(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0) != 0) {
-                    scaledDamage = damage * 4;
-                    effectKind   = 1;
-                }
-                if (D_actor_403100_80155808->vulnerable != 0) {
-                    effectKind   = 2;
-                    scaledDamage = scaledDamage * 2;
-                }
-                switch (effectKind) {
-                    case 1:
-                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[4], 0, 0);
-                        break;
-                    case 2:
-                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[4], 3, 0);
-                        break;
-                }
-                damageAccumulateLifeDrainHp(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, scaledDamage, 0);
-                worldTargetAddReadoutAmount(&D_actor_403100_8015580C->node, scaledDamage, 0);
-                hp                          = (u16)D_actor_403100_8015580C->hp - scaledDamage;
-                D_actor_403100_8015580C->hp = hp;
-                if ((s16)hp < 0) {
-                    D_actor_403100_8015580C->hp = 0U;
-                }
-                effectSpawnHit(damageGetPlayerAttackEffectId(D_actor_403100_80155808->hitContacts[i].key.value), &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
-                D_actor_403100_80155808->hitReaction = 1;
-                switch (damageGetPlayerAttackReaction(D_actor_403100_80155808->hitContacts[i].key.value) & 0xFFFF) {
-                    case DAMAGE_PLAYER_REACTION_NONE:
-                        break;
-                    case DAMAGE_PLAYER_REACTION_STAGGER:
-                        damageStartEnemyStagger(D_actor_403100_8015580C);
-                        break;
-                    case DAMAGE_PLAYER_REACTION_BUILDUP:
-                        damageStartEnemyBuildup(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0);
-                        break;
-                    case DAMAGE_PLAYER_REACTION_POISON:
-                        damageTryStartEnemyDamageOverTime(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0);
-                        break;
-                    case 4:
-                        D_actor_403100_80155808->hitReaction = 1;
-                        break;
-                    case 5:
-                        D_actor_403100_80155808->hitReaction = 1;
-                        break;
-                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
-                        D_actor_403100_80155808->hitReaction = 1;
-                        break;
-                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
-                        D_actor_403100_80155808->hitReaction = 1;
-                        break;
-                    case 8:
-                        D_actor_403100_80155808->hitReaction = 0;
-                        D_actor_403100_80155808->hitTaken    = 0;
-                        break;
-                    case 9:
-                        D_actor_403100_80155808->hitReaction = 2;
-                        break;
-                }
-                if (D_actor_403100_80155808->hitReaction != 0) {
-                    D_actor_403100_80155808->hitColorFrames = 0x10;
-                    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
-                }
-            } else if ((damageGetPlayerAttackEffectId(hitId)) == 0xD) {
-                effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
-            }
-        }
-        if (D_actor_403100_80155808->hitTaken != 0)
-            break;
-    }
-    if (D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_STAGGER) {
-        D_actor_403100_8015580C->reactionFlags &= ~ENEMY_REACTION_STAGGER;
-        D_actor_403100_80155808->hitReaction    = 2;
-    }
-    if (D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_BUILDUP) {
-        D_actor_403100_8015580C->reactionFlags &= ~ENEMY_REACTION_BUILDUP;
-        D_actor_403100_80155808->hitColorFrames = 0x5A;
-        D_actor_403100_80155808->hitReaction    = 3;
-    }
-    if (D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        tickDamage = (u32)damageTickEnemyDamageOverTime(D_actor_403100_8015580C) >> 2;
-        if ((s16)tickDamage != 0) {
-            D_actor_403100_8015580C->hp = (u16)((u16)D_actor_403100_8015580C->hp - tickDamage);
-            worldTargetAddReadoutAmount(&D_actor_403100_8015580C->node, (s16)tickDamage, 0);
-            if ((s16)D_actor_403100_8015580C->hp < 0) {
-                D_actor_403100_8015580C->hp = 0U;
-            }
-            D_actor_403100_80155808->hitTaken    = 1;
-            D_actor_403100_80155808->hitReaction = 2;
-        }
-        expired = damageIsEnemyDamageOverTimeExpired(D_actor_403100_8015580C);
-        if (expired != 0) {
-            D_actor_403100_8015580C->reactionFlags = (u8)(D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR);
-        }
-    }
-    if (worldCollisionFindContactIndex(D_actor_403100_80155808->handAttack.context.contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
-        for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155808->handContacts); i++) {
-            if ((D_actor_403100_80155808->handContacts[i].key.value & 0xFFFF0000) == 0x10000) {
-                D_actor_403100_80155808->handTouchedPlayer = 1;
-            }
-        }
-    }
-    if (worldCollisionFindContactIndex(D_actor_403100_80155808->forearmAttack.context.contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
-        for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155808->forearmContacts); i++) {
-            if ((D_actor_403100_80155808->forearmContacts[i].key.value & 0xFFFF0000) == 0x10000) {
-                D_actor_403100_80155808->forearmTouchedPlayer = 1;
-            }
-        }
-    }
+    // Contact ownership stays with the bodies; only this frame's entries are consumed.
     worldCollisionClearContacts(D_actor_403100_80155808->handContacts);
     worldCollisionClearContacts(D_actor_403100_80155808->forearmContacts);
     worldCollisionClearContacts(D_actor_403100_80155808->hitContacts);
@@ -2378,6 +2269,164 @@ static void func_actor_403100_8013335C(Task* arg0)
         return;
     }
     D_actor_403100_80155808->hitCooldown = 0;
+}
+
+/// Applies received attacks and ongoing damage, then consumes the Burner's contact tables.
+///
+/// Requires live singleton work/enemy and model coordinates through the jaw.
+/// Accepted attacks use half the sampled XZ hit distance, with fourfold critical
+/// and doubled vulnerable damage. HP subtraction narrows to a halfword before
+/// signed clamping; ongoing damage is quartered with the original unsigned shift.
+/// A damage latch ends the attack scan, except attributes that clear that latch.
+/// Arm-player contacts are latched for the next behaviour update. All three
+/// contact tables are cleared and a positive hit cooldown loses one update.
+static void _actor403100ProcessCombatContacts(Task* task)
+{
+    enum {
+        ACTOR_403100_HIT_EFFECT_NONE                 = 0,
+        ACTOR_403100_HIT_EFFECT_CRITICAL             = 1,
+        ACTOR_403100_HIT_EFFECT_VULNERABLE           = 2,
+        ACTOR_403100_CRITICAL_BURST_STYLE            = 0,
+        ACTOR_403100_VULNERABLE_BURST_STYLE          = 3,
+        ACTOR_403100_HIT_REACTION_NONE               = 0,
+        ACTOR_403100_HIT_REACTION_FLINCH             = 1,
+        ACTOR_403100_HIT_REACTION_STAGGER            = 2,
+        ACTOR_403100_HIT_REACTION_BUILDUP_STUN       = 3,
+        ACTOR_403100_ATTACK_REACTION_SUPPRESS_FLINCH = 8,
+        ACTOR_403100_ATTACK_REACTION_FORCE_STAGGER   = 9,
+        ACTOR_403100_HIT_COLOR_FRAMES                = 16,
+        ACTOR_403100_STUN_COLOR_FRAMES               = 90,
+    };
+    s16 baseDamage;
+    s16 appliedDamage;
+    s32 attackKey;
+    s16 hitEffectKind;
+    s32 contactIndex;
+    u16 hpBits;
+    u32 dotDamage;
+    s32 dotExpired;
+
+    hitEffectKind                     = ACTOR_403100_HIT_EFFECT_NONE;
+    D_actor_403100_80155808->hitTaken = 0;
+    contactIndex                      = 0;
+    // Preserve the selected hit effect across any attacks that suppress the latch.
+    for (; contactIndex < ARRAY_SIZE(D_actor_403100_80155808->hitContacts); contactIndex++) {
+        attackKey = D_actor_403100_80155808->hitContacts[contactIndex].key.value;
+        if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            if (D_actor_403100_80155808->hitCooldown == 0) {
+                D_actor_403100_80155808->hitTaken    = ACTOR_403100_HIT_TAKEN;
+                baseDamage                           = damageComputePlayerAttack(D_actor_403100_80155808->hitContacts[contactIndex].key.value, D_actor_403100_80155808->hitDistance / 2, 0, 0);
+                appliedDamage                        = baseDamage;
+                D_actor_403100_80155808->hitCooldown = damageGetPlayerAttackHitCooldown(D_actor_403100_80155808->hitContacts[contactIndex].key.value);
+                if (damageRollCriticalHit(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[contactIndex].key.value, 0) != 0) {
+                    appliedDamage = baseDamage * 4;
+                    hitEffectKind = ACTOR_403100_HIT_EFFECT_CRITICAL;
+                }
+                if (D_actor_403100_80155808->vulnerable != 0) {
+                    hitEffectKind = ACTOR_403100_HIT_EFFECT_VULNERABLE;
+                    appliedDamage = appliedDamage * 2;
+                }
+                switch (hitEffectKind) {
+                    case ACTOR_403100_HIT_EFFECT_CRITICAL:
+                        effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[ACTOR_403100_PART_JAW], ACTOR_403100_CRITICAL_BURST_STYLE, 0);
+                        break;
+                    case ACTOR_403100_HIT_EFFECT_VULNERABLE:
+                        effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[ACTOR_403100_PART_JAW], ACTOR_403100_VULNERABLE_BURST_STYLE, 0);
+                        break;
+                }
+                damageAccumulateLifeDrainHp(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[contactIndex].key.value, appliedDamage, 0);
+                worldTargetAddReadoutAmount(&D_actor_403100_8015580C->node, appliedDamage, 0);
+                hpBits                      = (u16)D_actor_403100_8015580C->hp - appliedDamage;
+                D_actor_403100_8015580C->hp = hpBits;
+                if ((s16)hpBits < 0) {
+                    D_actor_403100_8015580C->hp = 0U;
+                }
+                effectSpawnHit(damageGetPlayerAttackEffectId(D_actor_403100_80155808->hitContacts[contactIndex].key.value), &task->extra.tmd->coords[ACTOR_403100_PART_JAW], 0, &D_actor_403100_80155630);
+                D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_FLINCH;
+                switch (damageGetPlayerAttackReaction(D_actor_403100_80155808->hitContacts[contactIndex].key.value) & 0xFFFF) {
+                    case DAMAGE_PLAYER_REACTION_NONE:
+                        break;
+                    case DAMAGE_PLAYER_REACTION_STAGGER:
+                        damageStartEnemyStagger(D_actor_403100_8015580C);
+                        break;
+                    case DAMAGE_PLAYER_REACTION_BUILDUP:
+                        damageStartEnemyBuildup(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[contactIndex].key.value, 0);
+                        break;
+                    case DAMAGE_PLAYER_REACTION_POISON:
+                        damageTryStartEnemyDamageOverTime(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[contactIndex].key.value, 0);
+                        break;
+                    case 4:
+                        D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_FLINCH;
+                        break;
+                    case 5:
+                        D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_FLINCH;
+                        break;
+                    case DAMAGE_PLAYER_REACTION_EXPLOSION:
+                        D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_FLINCH;
+                        break;
+                    case DAMAGE_PLAYER_REACTION_INCENDIARY:
+                        D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_FLINCH;
+                        break;
+                    case ACTOR_403100_ATTACK_REACTION_SUPPRESS_FLINCH:
+                        D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_NONE;
+                        D_actor_403100_80155808->hitTaken    = 0;
+                        break;
+                    case ACTOR_403100_ATTACK_REACTION_FORCE_STAGGER:
+                        D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_STAGGER;
+                        break;
+                }
+                if (D_actor_403100_80155808->hitReaction != 0) {
+                    D_actor_403100_80155808->hitColorFrames = ACTOR_403100_HIT_COLOR_FRAMES;
+                    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
+                }
+            } else if ((damageGetPlayerAttackEffectId(attackKey)) == EFFECT_HIT_KIND_LIFE_DRAIN_MOTES) {
+                effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &task->extra.tmd->coords[ACTOR_403100_PART_JAW], 0, &D_actor_403100_80155630);
+            }
+        }
+        if (D_actor_403100_80155808->hitTaken != 0)
+            break;
+    }
+    // Enemy reaction flags can override the direct attack response.
+    if (D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_STAGGER) {
+        D_actor_403100_8015580C->reactionFlags &= ~ENEMY_REACTION_STAGGER;
+        D_actor_403100_80155808->hitReaction    = ACTOR_403100_HIT_REACTION_STAGGER;
+    }
+    if (D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_BUILDUP) {
+        D_actor_403100_8015580C->reactionFlags &= ~ENEMY_REACTION_BUILDUP;
+        D_actor_403100_80155808->hitColorFrames = ACTOR_403100_STUN_COLOR_FRAMES;
+        D_actor_403100_80155808->hitReaction    = ACTOR_403100_HIT_REACTION_BUILDUP_STUN;
+    }
+    if (D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+        dotDamage = (u32)damageTickEnemyDamageOverTime(D_actor_403100_8015580C) >> 2;
+        if ((s16)dotDamage != 0) {
+            D_actor_403100_8015580C->hp = (u16)((u16)D_actor_403100_8015580C->hp - dotDamage);
+            worldTargetAddReadoutAmount(&D_actor_403100_8015580C->node, (s16)dotDamage, 0);
+            if ((s16)D_actor_403100_8015580C->hp < 0) {
+                D_actor_403100_8015580C->hp = 0U;
+            }
+            D_actor_403100_80155808->hitTaken    = ACTOR_403100_HIT_TAKEN;
+            D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_STAGGER;
+        }
+        dotExpired = damageIsEnemyDamageOverTimeExpired(D_actor_403100_8015580C);
+        if (dotExpired != 0) {
+            D_actor_403100_8015580C->reactionFlags = (u8)(D_actor_403100_8015580C->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR);
+        }
+    }
+    if (worldCollisionFindContactIndex(D_actor_403100_80155808->handAttack.context.contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
+        for (contactIndex = 0; contactIndex < ARRAY_SIZE(D_actor_403100_80155808->handContacts); contactIndex++) {
+            if ((D_actor_403100_80155808->handContacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
+                D_actor_403100_80155808->handTouchedPlayer = 1;
+            }
+        }
+    }
+    if (worldCollisionFindContactIndex(D_actor_403100_80155808->forearmAttack.context.contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
+        for (contactIndex = 0; contactIndex < ARRAY_SIZE(D_actor_403100_80155808->forearmContacts); contactIndex++) {
+            if ((D_actor_403100_80155808->forearmContacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
+                D_actor_403100_80155808->forearmTouchedPlayer = 1;
+            }
+        }
+    }
+    _actor403100FinishContactUpdate();
 }
 
 /// Consumes a damaged frame's hit reaction and reports whether it interrupts the behaviour.
@@ -2469,18 +2518,22 @@ static inline void _actor403100ScaleRoot(Task* task, s16 scaleQ12)
     MulMatrix(&rootCoord->coord, &scaleMatrix);
 }
 
-/// Hands the world position of `coord` to `worldCoordUpdateActorColor`, staged in a
-/// `VECTOR` taken off the scratch stack.
-static inline void _actor403100UpdateColor(Task* task, GfxCoord* coord)
+/// Samples model lighting and applies the Burner's colour mode at a composed joint origin.
+///
+/// Requires a live enemy/model in `task->spawnArg2.pointer` and a current world
+/// transform in `coord->workm`. Copies its three world-unit translations into a
+/// 16-byte scratch VECTOR before nested lighting queries; neither input pointer
+/// is retained. Restores the scratch cursor and leaves the coordinate unchanged.
+static inline void _actor403100UpdateColor(Task* task, const GfxCoord* coord)
 {
-    VECTOR* pos;
+    VECTOR* worldPosition;
 
-    pos                          = SCRATCH_STACK_CURSOR(VECTOR) - 1;
-    pos->vx                      = coord->workm.t[0];
-    pos->vy                      = coord->workm.t[1];
-    pos->vz                      = coord->workm.t[2];
-    SCRATCH_STACK_CURSOR(VECTOR) = pos;
-    worldCoordUpdateActorColor(task->spawnArg2.pointer, pos, 0, 0);
+    worldPosition                = SCRATCH_STACK_CURSOR(VECTOR) - 1;
+    worldPosition->vx            = coord->workm.t[0];
+    worldPosition->vy            = coord->workm.t[1];
+    worldPosition->vz            = coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(VECTOR) = worldPosition;
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, worldPosition, 0, 0);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR));
 }
 
@@ -3368,120 +3421,160 @@ static void func_actor_403100_80135F30(Task* arg0)
         obj->otOffset                                 = 0;
     }
 }
-static void func_actor_403100_80136100(Task* arg0)
+/// Walks the scene's flame retreat toward negative room Z while turning and bobbing.
+///
+/// Requires live singleton work/model with cleared stateFrames and stridePhase.
+/// Translation uses root-parent game units, yaw uses 4096 units per turn, and the
+/// half-turn stride produces a 512-unit upward bob. Timed ten-update bands alter
+/// turning and forward speed; the first sixteen updates also offset X and Z.
+/// This terminal substate continues until a scene command changes the behaviour.
+static void _actor403100StepSceneRetreatWalk(Task* task)
 {
-    s16       angle;
-    s32       sound;
-    s32       y;
-    s32       z;
-    s32       pan;
-    u16       frame;
-    s32       depth;
-    GfxCoord* coord;
+    enum {
+        ACTOR_403100_RETREAT_TURN_FIRST_FRAME  = 17,
+        ACTOR_403100_RETREAT_TURN_SECOND_FRAME = 27,
+        ACTOR_403100_RETREAT_TURN_THIRD_FRAME  = 37,
+        ACTOR_403100_RETREAT_TURN_FOURTH_FRAME = 47,
+        ACTOR_403100_RETREAT_TURN_FIFTH_FRAME  = 57,
+        ACTOR_403100_RETREAT_TURN_BAND_FRAMES  = 10,
+    };
+    s16       stridePhase;
+    s32       footfallSound;
+    s32       rootHeight;
+    s32       rootZ;
+    s32       audioPan;
+    u16       elapsedFrames;
+    s32       audioDepth;
+    GfxCoord* rootCoord;
 
-    coord                                 = arg0->extra.tmd->coords;
-    angle                                 = ((u16)D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
+    rootCoord                             = task->extra.tmd->coords;
+    stridePhase                           = ((u16)D_actor_403100_80155808->stridePhase + ACTOR_403100_STRIDE_STEP) & ACTOR_403100_STRIDE_MASK;
     D_actor_403100_80155808->stateFrames += 1;
-    D_actor_403100_80155808->stridePhase  = angle;
-    y                                     = -((s32)(rsin((s32)angle) << 0xD) >> 0x10);
-    coord->coord.t[1]                     = y;
-    if (y == 0) {
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(sound, (s32)pan, (s8)(depth / 2));
-        padScriptSpawnVariableMotorRamp(0x1E, 0xFFU, 8U);
-        D_actor_403100_80155808->shakeFrames = 0x1E;
+    D_actor_403100_80155808->stridePhase  = stridePhase;
+    rootHeight                            = -((s32)(rsin((s32)stridePhase) << 0xD) >> 0x10);
+    rootCoord->coord.t[1]                 = rootHeight;
+    if (rootHeight == 0) {
+        footfallSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_FOOTFALL_SOUND;
+        audioPan      = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+        audioDepth    = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+        sndEvtRequestScriptStart(footfallSound, (s32)audioPan, (s8)(audioDepth / 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+        D_actor_403100_80155808->shakeFrames = ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames < 0x11) {
+    // The initial diagonal offset precedes the independent speed/turn bands.
+    if ((s16)D_actor_403100_80155808->stateFrames < ACTOR_403100_RETREAT_TURN_FIRST_FRAME) {
         D_actor_403100_80155808->rotation.vy = (u16)D_actor_403100_80155808->rotation.vy - 0x34;
-        coord->coord.t[2]                    = (s32)(coord->coord.t[2] - 0x10);
-        coord->coord.t[0]                    = (s32)(coord->coord.t[0] - 8);
+        rootCoord->coord.t[2]                = (s32)(rootCoord->coord.t[2] - 0x10);
+        rootCoord->coord.t[0]                = (s32)(rootCoord->coord.t[0] - 8);
     }
-    frame = D_actor_403100_80155808->stateFrames;
-    if ((u32)(frame - 0x11) < 0xAU) {
+    elapsedFrames = D_actor_403100_80155808->stateFrames;
+    if ((u32)(elapsedFrames - ACTOR_403100_RETREAT_TURN_FIRST_FRAME) < (u32)ACTOR_403100_RETREAT_TURN_BAND_FRAMES) {
         D_actor_403100_80155808->rotation.vy = (u16)D_actor_403100_80155808->rotation.vy - 0x10;
-        z                                    = coord->coord.t[2] - 0x14;
-    } else if ((u16)(frame - 0x1B) < 0xAU) {
+        rootZ                                = rootCoord->coord.t[2] - 0x14;
+    } else if ((u16)(elapsedFrames - ACTOR_403100_RETREAT_TURN_SECOND_FRAME) < (u32)ACTOR_403100_RETREAT_TURN_BAND_FRAMES) {
         D_actor_403100_80155808->rotation.vy = (u16)D_actor_403100_80155808->rotation.vy - 0x10;
-        z                                    = coord->coord.t[2] - 0x20;
+        rootZ                                = rootCoord->coord.t[2] - 0x20;
     } else {
-        if ((u16)(frame - 0x25) < 0xAU) {
+        if ((u16)(elapsedFrames - ACTOR_403100_RETREAT_TURN_THIRD_FRAME) < (u32)ACTOR_403100_RETREAT_TURN_BAND_FRAMES) {
             D_actor_403100_80155808->rotation.vy -= 0x10;
-        } else if ((u16)(frame - 0x2F) < 0xAU) {
+        } else if ((u16)(elapsedFrames - ACTOR_403100_RETREAT_TURN_FOURTH_FRAME) < (u32)ACTOR_403100_RETREAT_TURN_BAND_FRAMES) {
             D_actor_403100_80155808->rotation.vy -= 0xC;
-        } else if ((u16)(frame - 0x39) < 0xAU) {
+        } else if ((u16)(elapsedFrames - ACTOR_403100_RETREAT_TURN_FIFTH_FRAME) < (u32)ACTOR_403100_RETREAT_TURN_BAND_FRAMES) {
             D_actor_403100_80155808->rotation.vy -= 8;
         }
-        z = coord->coord.t[2] - 0x40;
+        rootZ = rootCoord->coord.t[2] - 0x40;
     }
-    coord->coord.t[2] = z;
+    rootCoord->coord.t[2] = rootZ;
 }
-static void func_actor_403100_8013631C(Task* arg0)
+/// Latches a normal-rate clip restart for the next animation update.
+///
+/// `animationId` must select a non-NULL loaded Burner clip (1..24) in the live
+/// singleton rig. Restarting cuts to that clip's first pose when the animation
+/// driver consumes the request; this helper does not tick a pose.
+static inline void _actor403100RequestAnimationReset(s16 animationId)
 {
-    s16       frame;
-    s16       step;
-    s32       sound;
-    s32       pan;
-    s32       depth;
-    GfxCoord* coord;
+    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+    D_actor_403100_80155808->animationId      = animationId;
+    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+}
 
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    coord                                = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->stateFrames = (u16)frame;
+/// Moves the scripted departure through its clip's timed Z steps and footfall cues.
+///
+/// Requires live singleton work/model, with both counters cleared at entry.
+/// Root-parent Z displacement is in game units. auxFrames counts within each
+/// clip restart; stateFrames counts the whole departure, with halfword wrapping.
+/// A settled slot-2 clip restarts clip 24 and resets only auxFrames. At update
+/// 280 the substate advances to the reward-and-teardown callback.
+static void _actor403100StepSceneDeparture(Task* task)
+{
+    enum { ACTOR_403100_DEPARTURE_CLIP                  = 24,
+           ACTOR_403100_DEPARTURE_FRAMES                = 280,
+           ACTOR_403100_DEPARTURE_FOOTFALL_FIRST_FRAME  = 45,
+           ACTOR_403100_DEPARTURE_FOOTFALL_SECOND_FRAME = 87,
+           ACTOR_403100_DEPARTURE_FOOTFALL_THIRD_FRAME  = 180,
+           ACTOR_403100_DEPARTURE_FOOTFALL_FOURTH_FRAME = 230 };
+    s16       elapsedFrames;
+    s16       clipFrames;
+    s32       footfallSound;
+    s32       audioPan;
+    s32       audioDepth;
+    GfxCoord* rootCoord;
+
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    rootCoord                            = task->extra.tmd->coords;
+    D_actor_403100_80155808->stateFrames = (u16)elapsedFrames;
     D_actor_403100_80155808->auxFrames  += 1;
-    D_actor_403100_80155808->stridePhase = (u16)((D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF);
+    D_actor_403100_80155808->stridePhase = (u16)((D_actor_403100_80155808->stridePhase + ACTOR_403100_STRIDE_STEP) & ACTOR_403100_STRIDE_MASK);
+    // Movement and sound cues follow the clip timer, not the overall departure timer.
     if (D_actor_403100_80155808->auxFrames < 0xA) {
-        coord->coord.t[2] -= 0x6;
+        rootCoord->coord.t[2] -= 0x6;
     } else if (D_actor_403100_80155808->auxFrames < 0x14) {
-        coord->coord.t[2] -= 0xA;
+        rootCoord->coord.t[2] -= 0xA;
     } else if (D_actor_403100_80155808->auxFrames < 0x1E) {
-        coord->coord.t[2] -= 0x12;
+        rootCoord->coord.t[2] -= 0x12;
     } else if (D_actor_403100_80155808->auxFrames < 0x28) {
-        coord->coord.t[2] -= 0x6;
+        rootCoord->coord.t[2] -= 0x6;
     } else if (D_actor_403100_80155808->auxFrames < 0x32) {
-        coord->coord.t[2] -= 0x6;
+        rootCoord->coord.t[2] -= 0x6;
     } else if (D_actor_403100_80155808->auxFrames < 0x3C) {
-        coord->coord.t[2] -= 0xA;
+        rootCoord->coord.t[2] -= 0xA;
     } else if (D_actor_403100_80155808->auxFrames < 0x46) {
-        coord->coord.t[2] -= 0x12;
+        rootCoord->coord.t[2] -= 0x12;
     } else if (D_actor_403100_80155808->auxFrames < 0x5D) {
-        coord->coord.t[2] -= 0x4;
+        rootCoord->coord.t[2] -= 0x4;
     } else if (D_actor_403100_80155808->auxFrames < 0x69) {
-        coord->coord.t[2] -= 0x8;
+        rootCoord->coord.t[2] -= 0x8;
     } else if (D_actor_403100_80155808->auxFrames < 0x75) {
-        coord->coord.t[2] -= 0x10;
+        rootCoord->coord.t[2] -= 0x10;
     } else if (D_actor_403100_80155808->auxFrames < 0x81) {
-        coord->coord.t[2] -= 0x28;
+        rootCoord->coord.t[2] -= 0x28;
     } else if (D_actor_403100_80155808->auxFrames < 0x92) {
-        coord->coord.t[2] -= 0x18;
+        rootCoord->coord.t[2] -= 0x18;
     } else if (D_actor_403100_80155808->auxFrames < 0x9C) {
-        coord->coord.t[2] -= 0x6;
+        rootCoord->coord.t[2] -= 0x6;
     } else if (D_actor_403100_80155808->auxFrames < 0xA6) {
-        coord->coord.t[2] -= 0xA;
+        rootCoord->coord.t[2] -= 0xA;
     } else if (D_actor_403100_80155808->auxFrames < 0xB0) {
-        coord->coord.t[2] -= 0x12;
+        rootCoord->coord.t[2] -= 0x12;
     } else if (D_actor_403100_80155808->auxFrames < 0xBA) {
-        coord->coord.t[2] -= 0x6;
+        rootCoord->coord.t[2] -= 0x6;
     } else if (D_actor_403100_80155808->auxFrames < 0xC4) {
-        coord->coord.t[2] -= 0x6;
+        rootCoord->coord.t[2] -= 0x6;
     }
-    step = (s16)D_actor_403100_80155808->auxFrames;
-    if ((step == 0x2D) || (step == 0xE6) || (step == 0xB4) || (step == 0x57)) {
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
-        padScriptSpawnVariableMotorRamp(0x1E, 0xFF, 8);
-        D_actor_403100_80155808->shakeFrames = 0x1E;
+    clipFrames = (s16)D_actor_403100_80155808->auxFrames;
+    if ((clipFrames == ACTOR_403100_DEPARTURE_FOOTFALL_FIRST_FRAME) || (clipFrames == ACTOR_403100_DEPARTURE_FOOTFALL_FOURTH_FRAME) || (clipFrames == ACTOR_403100_DEPARTURE_FOOTFALL_THIRD_FRAME) || (clipFrames == ACTOR_403100_DEPARTURE_FOOTFALL_SECOND_FRAME)) {
+        footfallSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_FOOTFALL_SOUND;
+        audioPan      = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+        audioDepth    = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+        sndEvtRequestScriptStart(footfallSound, audioPan, (s8)(audioDepth / 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+        D_actor_403100_80155808->shakeFrames = ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES;
     }
     if (_actor403100Slot2AnimationSettled()) {
-        D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-        D_actor_403100_80155808->animationId      = 0x18;
-        D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-        D_actor_403100_80155808->auxFrames        = 0U;
+        _actor403100RequestAnimationReset(ACTOR_403100_DEPARTURE_CLIP);
+        D_actor_403100_80155808->auxFrames = 0U;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x118) {
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_DEPARTURE_FRAMES) {
         D_actor_403100_80155808->subState = (u16)(D_actor_403100_80155808->subState + 1);
     }
 }
@@ -3618,7 +3711,7 @@ static const TaskFuncTable4 D_actor_403100_80131F00 = {
         _actor403100BeginSceneFlameRetreat,
         func_actor_403100_80135C00,
         func_actor_403100_80135F30,
-        func_actor_403100_80136100,
+        _actor403100StepSceneRetreatWalk,
     },
 };
 
@@ -3626,7 +3719,7 @@ static const TaskFuncTable4 D_actor_403100_80131F00 = {
 static const TaskFuncTable3 D_actor_403100_80131F10 = {
     {
         _actor403100BeginSceneDeparture,
-        func_actor_403100_8013631C,
+        _actor403100StepSceneDeparture,
         _actor403100FinishSceneDeparture,
     },
 };
@@ -3639,7 +3732,7 @@ static const TaskFuncTable6 D_actor_403100_80131F1C = {
         func_actor_403100_80134D50,
         func_actor_403100_80136830,
         func_actor_403100_801339EC,
-        func_actor_403100_8013D8F4,
+        _actor403100BeginTimeoutEvent,
         _actor403100Destroy,
     },
 };
@@ -3787,7 +3880,7 @@ static void func_actor_403100_80136830(Task* arg0)
             }
             _actor403100StepJawPitchKick(arg0);
             _actor403100StepHeadPitchKick();
-            func_actor_403100_8013BA64(arg0);
+            _actor403100UpdateWalk(arg0);
             _actor403100UpdateAnimation(arg0);
             flashTimer                                      = D_actor_403100_80155808->shakeFrames;
             D_actor_403100_80155808->previousAnimationFlags = D_actor_403100_80155808->rig.slots[1].status.fields.flags;
@@ -3809,7 +3902,7 @@ static void func_actor_403100_80136830(Task* arg0)
             _actor403100TurnUpperArm(arg0);
             _actor403100TurnForearmInline(arg0);
             _actor403100ApplyJawAndHeadPitch(arg0);
-            func_actor_403100_8013335C(arg0);
+            _actor403100ProcessCombatContacts(arg0);
             if (D_actor_403100_80155808->hitColorFrames != 0) {
                 lightTimer = --D_actor_403100_80155808->hitColorFrames;
                 if ((s16)lightTimer == 0) {
@@ -4258,41 +4351,36 @@ static void _actor403100FinishArmSwingCombo(Task* task)
         D_actor_403100_80155808->subState = 0;
     }
 }
-static void func_actor_403100_80137DC4(Task* arg0)
+/// Runs the impact follow-up selected after a connected arm combo.
+///
+/// Requires the live model and singleton work with stateFrames cleared. Update
+/// 49 plays jaw and trunk cues and starts eighteen updates of rumble/shake.
+/// A clip boundary or jump resumes attack approach. Sound ids include the
+/// enemy placement index; audio pan/depth are narrowed to signed bytes.
+static void _actor403100StepArmComboImpact(Task* task)
 {
-    s32 sound;
-    s32 sound2;
-    s32 pan;
-    s32 pan2;
-    u16 frame;
+    s32 jawSound;
+    s32 footfallSound;
+    s32 jawPan;
+    s32 footfallPan;
+    u16 elapsedFrames;
 
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if ((s16)frame == 0x31) {
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
-        sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-        pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
-        padScriptSpawnVariableMotorRamp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->shakeFrames = 0x12;
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames == ACTOR_403100_IMPACT_CUE_FRAME) {
+        jawSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_JAW_IMPACT_SOUND;
+        jawPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
+        sndEvtRequestScriptStart(jawSound, jawPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]) / 2));
+        footfallSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_FOOTFALL_SOUND;
+        footfallPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+        sndEvtRequestScriptStart(footfallSound, footfallPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]) / 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_IMPACT_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+        D_actor_403100_80155808->shakeFrames = ACTOR_403100_IMPACT_FEEDBACK_FRAMES;
     }
     if (_actor403100AnimationAtBoundaryOrJump()) {
-        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
         D_actor_403100_80155808->subState = 0;
     }
-}
-/// Latches a normal-rate clip restart for the next animation update.
-///
-/// `animationId` must select a non-NULL loaded Burner clip (1..24) in the live
-/// singleton rig. Restarting cuts to that clip's first pose when the animation
-/// driver consumes the request; this helper does not tick a pose.
-static inline void _actor403100RequestAnimationReset(s16 animationId)
-{
-    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-    D_actor_403100_80155808->animationId      = animationId;
-    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
 }
 
 /// Begins the aimed flame attack with a fresh twenty-update flame lifetime.
@@ -4410,38 +4498,45 @@ static void func_actor_403100_80138048(Task* arg0)
         D_actor_403100_80155808->subState   += 1;
     }
 }
-static void func_actor_403100_8013842C(Task* arg0)
+/// Runs the impact and smoke recovery after an aimed flame touched the player.
+///
+/// Requires the live model and singleton work with stateFrames cleared. Update
+/// 49 plays jaw and trunk cues and starts eighteen updates of rumble/shake.
+/// Recovery also kicks the head pitch and emits head smoke at updates 50..60.
+/// A clip boundary or jump resumes attack approach. Sound ids include the
+/// enemy placement index; audio pan/depth are narrowed to signed bytes.
+static void _actor403100StepAimedFlameContactRecovery(Task* task)
 {
-    SVECTOR   offset;
-    s32       sound;
-    s32       sound2;
-    s32       pan;
-    GfxCoord* effectCoord;
-    s32       pan2;
-    u16       frame;
+    SVECTOR   smokeOffset;
+    s32       jawSound;
+    s32       footfallSound;
+    s32       jawPan;
+    GfxCoord* smokeCoord;
+    s32       footfallPan;
+    u16       elapsedFrames;
 
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if ((s16)frame == 0x31) {
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
-        sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-        pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
-        padScriptSpawnVariableMotorRamp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->shakeFrames    = 0x12;
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames == ACTOR_403100_IMPACT_CUE_FRAME) {
+        jawSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_JAW_IMPACT_SOUND;
+        jawPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
+        sndEvtRequestScriptStart(jawSound, jawPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]) / 2));
+        footfallSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_FOOTFALL_SOUND;
+        footfallPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+        sndEvtRequestScriptStart(footfallSound, footfallPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]) / 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_IMPACT_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+        D_actor_403100_80155808->shakeFrames    = ACTOR_403100_IMPACT_FEEDBACK_FRAMES;
         D_actor_403100_80155808->headPitchPhase = ACTOR_403100_PITCH_PHASE_START;
     }
-    if ((u32)(D_actor_403100_80155808->stateFrames - 0x32) < 0xBU) {
-        effectCoord = &arg0->extra.tmd->coords[3];
-        offset.vy   = -0x140;
-        offset.vx   = 0;
-        offset.vz   = 0x400;
-        effectSpawn(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
+    if ((u32)(D_actor_403100_80155808->stateFrames - ACTOR_403100_RECOVERY_SMOKE_START_FRAME) < (u32)ACTOR_403100_RECOVERY_SMOKE_FRAMES) {
+        smokeCoord     = &task->extra.tmd->coords[ACTOR_403100_PART_HEAD];
+        smokeOffset.vy = -0x140;
+        smokeOffset.vx = 0;
+        smokeOffset.vz = 0x400;
+        effectSpawn(EFFECT_SMOKE_PUFF, smokeCoord, ACTOR_403100_RECOVERY_SMOKE_ARG, &smokeOffset);
     }
     if (_actor403100AnimationAtBoundaryOrJump()) {
-        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
         D_actor_403100_80155808->subState = 0;
     }
 }
@@ -5369,15 +5464,31 @@ static void _actor403100BeginSideFlameAttack(Task* task)
     D_actor_403100_80155808->stateFrames = 0;
     D_actor_403100_80155808->subState   += 1;
 }
-static void func_actor_403100_8013A5AC(Task* arg0)
+/// Sweeps a damaging flame breath along the side of the balcony.
+///
+/// Requires live singleton work/flame pool and the aimed-flame clip, with the
+/// step timer cleared. The world-space aim oscillates along Z at fixed X/Y;
+/// emission offsets and velocity are head-local game units and units per update.
+/// Updates 52..123 emit flame, and 125..135 emit smoke. A detected flame touch
+/// selects contact recovery when its cooldown reaches 1; otherwise a clip boundary
+/// advances to the normal recovery wait. The frame counter wraps as a halfword.
+static void _actor403100StepSideFlameBreath(Task* task)
 {
-    SVECTOR   offset;
-    SVECTOR   velocity;
-    s32       sound;
-    s32       pan;
-    s32       depth;
-    GfxCoord* effectCoord;
+    enum {
+        ACTOR_403100_SIDE_BREATH_AIM_FRAME   = 51,
+        ACTOR_403100_SIDE_BREATH_STOP_FRAME  = 124,
+        ACTOR_403100_SIDE_BREATH_EMIT_START  = 52,
+        ACTOR_403100_SIDE_BREATH_EMIT_FRAMES = 72,
+        ACTOR_403100_SIDE_BREATH_SMOKE_START = 125,
+    };
+    SVECTOR   emissionOffset;
+    SVECTOR   flameVelocity;
+    s32       breathSound;
+    s32       audioPan;
+    s32       audioDepth;
+    GfxCoord* smokeCoord;
 
+    // A puff touched the player; wait until the final cooldown update to recover.
     if (D_actor_403100_80155810 == 1) {
         D_actor_403100_80155808->subState = 3;
         return;
@@ -5386,74 +5497,81 @@ static void func_actor_403100_8013A5AC(Task* arg0)
     D_actor_403100_80155808->stateFrames += 1;
     D_actor_403100_80155808->aimTarget.vy = -0xC80;
     D_actor_403100_80155808->aimTarget.vz = ((s32)(rsin((s16)D_actor_403100_80155808->stateFrames << 5) * 0x10) >> 6) + 0x6DB;
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x33) {
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_SIDE_BREATH_AIM_FRAME) {
         D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_TRACK;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_SIDE_BREATH_STOP_FRAME) {
         D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_YAW_ONLY;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x33) {
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_SIDE_BREATH_AIM_FRAME) {
+        breathSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_BREATH_SOUND;
+        audioPan    = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
+        audioDepth  = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
+        sndEvtRequestScriptStart(breathSound, audioPan, (s8)(audioDepth / 2));
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
-        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_SIDE_BREATH_STOP_FRAME) {
+        sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
     }
-    if ((u32)(D_actor_403100_80155808->stateFrames - 0x34) < 0x48U) {
-        offset.vy   = -0x1F0;
-        offset.vz   = 0x620;
-        velocity.vy = -0x20;
-        offset.vx   = 0;
-        velocity.vx = 0;
-        velocity.vz = 0xE0;
-        _actor403100EmitFlame(arg0, &offset, &velocity, ACTOR_403100_FLAME_COLLISION_ENABLED);
+    if ((u32)(D_actor_403100_80155808->stateFrames - ACTOR_403100_SIDE_BREATH_EMIT_START) < (u32)ACTOR_403100_SIDE_BREATH_EMIT_FRAMES) {
+        emissionOffset.vy = -0x1F0;
+        emissionOffset.vz = 0x620;
+        flameVelocity.vy  = -0x20;
+        emissionOffset.vx = 0;
+        flameVelocity.vx  = 0;
+        flameVelocity.vz  = 0xE0;
+        _actor403100EmitFlame(task, &emissionOffset, &flameVelocity, ACTOR_403100_FLAME_COLLISION_ENABLED);
     }
-    if ((u32)(D_actor_403100_80155808->stateFrames - 0x7D) < 0xBU) {
-        effectCoord = &arg0->extra.tmd->coords[3];
-        offset.vy   = -0x140;
-        offset.vx   = 0;
-        offset.vz   = 0x400;
-        effectSpawn(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
+    if ((u32)(D_actor_403100_80155808->stateFrames - ACTOR_403100_SIDE_BREATH_SMOKE_START) < (u32)ACTOR_403100_RECOVERY_SMOKE_FRAMES) {
+        smokeCoord        = &task->extra.tmd->coords[ACTOR_403100_PART_HEAD];
+        emissionOffset.vy = -0x140;
+        emissionOffset.vx = 0;
+        emissionOffset.vz = 0x400;
+        effectSpawn(EFFECT_SMOKE_PUFF, smokeCoord, ACTOR_403100_RECOVERY_SMOKE_ARG, &emissionOffset);
     }
     if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->stateFrames = 0;
         D_actor_403100_80155808->subState   += 1;
     }
 }
-static void func_actor_403100_8013A81C(Task* arg0)
+/// Runs the impact and smoke recovery after the side flame touched the player.
+///
+/// Requires the live model and singleton work with stateFrames cleared. Update
+/// 49 plays jaw and trunk cues and starts eighteen updates of rumble/shake.
+/// Recovery also kicks the head pitch and emits head smoke at updates 50..60.
+/// A clip boundary or jump resumes attack approach. Sound ids include the
+/// enemy placement index; audio pan/depth are narrowed to signed bytes.
+static void _actor403100StepSideFlameContactRecovery(Task* task)
 {
-    SVECTOR   offset;
-    s32       sound;
-    s32       sound2;
-    s32       pan;
-    GfxCoord* effectCoord;
-    s32       pan2;
-    u16       frame;
+    SVECTOR   smokeOffset;
+    s32       jawSound;
+    s32       footfallSound;
+    s32       jawPan;
+    GfxCoord* smokeCoord;
+    s32       footfallPan;
+    u16       elapsedFrames;
 
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if ((s16)frame == 0x31) {
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
-        sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-        pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames == ACTOR_403100_IMPACT_CUE_FRAME) {
+        jawSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_JAW_IMPACT_SOUND;
+        jawPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
+        sndEvtRequestScriptStart(jawSound, jawPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]) / 2));
+        footfallSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_FOOTFALL_SOUND;
+        footfallPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+        sndEvtRequestScriptStart(footfallSound, footfallPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]) / 2));
         D_actor_403100_80155808->headPitchPhase = ACTOR_403100_PITCH_PHASE_START;
-        padScriptSpawnVariableMotorRamp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->shakeFrames = 0x12;
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_IMPACT_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+        D_actor_403100_80155808->shakeFrames = ACTOR_403100_IMPACT_FEEDBACK_FRAMES;
     }
-    if ((u32)(D_actor_403100_80155808->stateFrames - 0x32) < 0xBU) {
-        effectCoord = &arg0->extra.tmd->coords[3];
-        offset.vy   = -0x140;
-        offset.vx   = 0;
-        offset.vz   = 0x400;
-        effectSpawn(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
+    if ((u32)(D_actor_403100_80155808->stateFrames - ACTOR_403100_RECOVERY_SMOKE_START_FRAME) < (u32)ACTOR_403100_RECOVERY_SMOKE_FRAMES) {
+        smokeCoord     = &task->extra.tmd->coords[ACTOR_403100_PART_HEAD];
+        smokeOffset.vy = -0x140;
+        smokeOffset.vx = 0;
+        smokeOffset.vz = 0x400;
+        effectSpawn(EFFECT_SMOKE_PUFF, smokeCoord, ACTOR_403100_RECOVERY_SMOKE_ARG, &smokeOffset);
     }
     if (_actor403100AnimationAtBoundaryOrJump()) {
-        D_actor_403100_80155808->state    = 1;
+        D_actor_403100_80155808->state    = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
         D_actor_403100_80155808->subState = 0;
     }
 }
@@ -5515,56 +5633,79 @@ static void _actor403100StepGrabAndDragReach(Task* task)
         D_actor_403100_80155808->subState          = 0;
     }
 }
-static void func_actor_403100_8013AC04(Task* task)
+/// Drags the held player forward and hands off to the impact reaction.
+///
+/// Requires a live player task/GameActor, singleton Burner work, and a cleared
+/// step timer. The first five updates add 1000 world Z units to the sampled player
+/// placement. At the seventh callback, or once sampled Z reaches 7000, applies
+/// the actor's drag attack and places the player at the fixed impact position.
+/// A lethal hit suppresses normal death handling and selects scripted death
+/// playback; a survivor gets the recovery clip. The callback task is unused.
+static void _actor403100StepPlayerDrag(Task* unusedTask)
 {
-    s32              state;
-    s32              message;
-    s32              sound;
-    Task*            task;
-    s32              finished;
-    s32              pan;
-    s32              depth;
-    Task*            player;
-    GameActor*       actor;
-    u8               completed;
-    Actor403100Work* work;
+    enum {
+        ACTOR_403100_PLAYER_SCRIPTED_ATTACK_STATE = 10,
+        ACTOR_403100_DRAG_RESULT_VIEW             = 20,
+        ACTOR_403100_PLAYER_DRAG_DEATH_CLIP       = 7,
+        ACTOR_403100_PLAYER_DRAG_RECOVERY_CLIP    = 2,
+        ACTOR_403100_DRAG_RUMBLE_FRAMES           = 12,
+        ACTOR_403100_DRAG_RUMBLE_END_INTENSITY    = 128,
+        ACTOR_403100_DRAG_PLACEMENT_FRAMES        = 5,
+        ACTOR_403100_DRAG_LAST_UPDATE             = 6,
+        ACTOR_403100_DRAG_FINISH_Z                = 7000,
+        ACTOR_403100_DRAG_STEP_DISTANCE           = 1000,
+        ACTOR_403100_PLAYER_DRAG_SOUND            = 7,
+        ACTOR_403100_DRAG_ATTACK_ROW              = 2,
+    };
+    s32              playerClip;
+    s32              animationMessage;
+    s32              dragSound;
+    Task*            damageRecipientTask;
+    s32              dragFinished;
+    s32              audioPan;
+    s32              audioDepth;
+    Task*            playerTask;
+    GameActor*       playerWork;
+    u8               finishedByte;
+    Actor403100Work* burnerWork;
 
-    player   = *gPlayerActorTasks;
-    actor    = (GameActor*)player->work;
-    finished = 0;
+    playerTask   = *gPlayerActorTasks;
+    playerWork   = playerTask->work;
+    dragFinished = 0;
     if ((s16)D_actor_403100_80155808->stateFrames == 0) {
-        padScriptSpawnVariableMotorRamp(0xC, 0xFF, 0x80);
-        sound = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
-        pan   = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
-        depth = worldCoordGetOriginAudioDepth(&player->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_DRAG_RUMBLE_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_DRAG_RUMBLE_END_INTENSITY);
+        dragSound  = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_PLAYER_DRAG_SOUND;
+        audioPan   = (s8)worldCoordGetOriginAudioPan(&playerTask->extra.tmd->coords[1]);
+        audioDepth = worldCoordGetOriginAudioDepth(&playerTask->extra.tmd->coords[1]);
+        sndEvtRequestScriptStart(dragSound, audioPan, (s8)(audioDepth / 2));
     }
-    work = D_actor_403100_80155808;
-    if ((s16)work->stateFrames < 5) {
-        _actor403100PlacePlayer(work->playerPosition.vx, work->playerPosition.vy, (s16)(work->playerPosition.vz + 0x3E8), 0x800);
+    burnerWork = D_actor_403100_80155808;
+    if ((s16)burnerWork->stateFrames < ACTOR_403100_DRAG_PLACEMENT_FRAMES) {
+        _actor403100PlacePlayer(burnerWork->playerPosition.vx, burnerWork->playerPosition.vy, (s16)(burnerWork->playerPosition.vz + ACTOR_403100_DRAG_STEP_DISTANCE), ACTOR_TRANSFORM_ANGLE_HALF_TURN);
     }
-    if (((s16)D_actor_403100_80155808->stateFrames >= 6) || (D_actor_403100_80155808->playerPosition.vz >= 0x1B58)) {
-        finished = 1;
+    if (((s16)D_actor_403100_80155808->stateFrames >= ACTOR_403100_DRAG_LAST_UPDATE) || (D_actor_403100_80155808->playerPosition.vz >= ACTOR_403100_DRAG_FINISH_Z)) {
+        dragFinished = 1;
     }
     D_actor_403100_80155808->stateFrames = (s16)((u16)D_actor_403100_80155808->stateFrames + 1);
-    if ((completed = finished != 0)) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x14;
-        task                                                       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 2), 0) != 0) {
+    // Keep the byte-valued completion copy used across the damage/animation handoff.
+    if ((finishedByte = dragFinished != 0)) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_DRAG_RESULT_VIEW;
+        damageRecipientTask                                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        if (taskMessageDispatch(damageRecipientTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, ACTOR_403100_DRAG_ATTACK_ROW), 0) != 0) {
             gGameSession->suppressDeathChecks     = 1;
             gGameSession->deathSoundCountdown     = GAME_SESSION_DEATH_SOUND_HOLD;
             D_actor_403100_80155808->playerKilled = 1U;
         }
-        _actor403100PlacePlayer(-0x1928, -0xC7C, 0x29D6, 0x800);
+        _actor403100PlacePlayer(-0x1928, -0xC7C, 0x29D6, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
         if (D_actor_403100_80155808->playerKilled != 0) {
-            actor->state = 0xA;
-            state        = 7;
-            message      = 0x3FF;
+            playerWork->state = ACTOR_403100_PLAYER_SCRIPTED_ATTACK_STATE;
+            playerClip        = ACTOR_403100_PLAYER_DRAG_DEATH_CLIP;
+            animationMessage  = ANIMATION_MESSAGE_REPLACE_AND_PLAY;
         } else {
-            state   = 2;
-            message = 0x3F4;
+            playerClip       = ACTOR_403100_PLAYER_DRAG_RECOVERY_CLIP;
+            animationMessage = ANIMATION_MESSAGE_INSTALL_AND_PLAY;
         }
-        _actor403100PlayPlayerAnimation(state, message);
+        _actor403100PlayPlayerAnimation(playerClip, animationMessage);
         D_actor_403100_80155808->stateFrames = 0;
         D_actor_403100_80155808->subState    = (u16)(D_actor_403100_80155808->subState + 1);
     }
@@ -5867,7 +6008,7 @@ static const TaskFuncTable6 D_actor_403100_80131F84 = {
         func_actor_403100_801376D8,
         func_actor_403100_801379B4,
         _actor403100FinishArmSwingCombo,
-        func_actor_403100_80137DC4,
+        _actor403100StepArmComboImpact,
         _actor403100FinishArmSwingRecovery,
     },
 };
@@ -5879,7 +6020,7 @@ static const TaskFuncTable5 D_actor_403100_80131F9C = {
         func_actor_403100_80138048,
         _actor403100WaitAfterAimedFlameAttack,
         _actor403100BeginAimedFlameContactRecovery,
-        func_actor_403100_8013842C,
+        _actor403100StepAimedFlameContactRecovery,
     },
 };
 
@@ -5919,10 +6060,10 @@ static const TaskFuncTable11 D_actor_403100_80131FD4 = {
 static const TaskFuncTable5 D_actor_403100_80132000 = {
     {
         _actor403100BeginSideFlameAttack,
-        func_actor_403100_8013A5AC,
+        _actor403100StepSideFlameBreath,
         _actor403100WaitAfterSideFlameAttack,
         _actor403100BeginSideFlameContactRecovery,
-        func_actor_403100_8013A81C,
+        _actor403100StepSideFlameContactRecovery,
     },
 };
 
@@ -5931,7 +6072,7 @@ static const TaskFuncTable4 D_actor_403100_80132014 = {
     {
         _actor403100BeginGrabAndDrag,
         _actor403100StepGrabAndDragReach,
-        func_actor_403100_8013AC04,
+        _actor403100StepPlayerDrag,
         func_actor_403100_8013AE28,
     },
 };
@@ -5945,35 +6086,47 @@ static const TaskFuncTable3 D_actor_403100_80132024 = {
     },
 };
 
-/// Handlers `func_actor_403100_8013BA64` dispatches on `walkStage`.
+/// Handlers `_actor403100UpdateWalk` dispatches on `walkStage`.
 static const TaskFuncTable6 D_actor_403100_80132030 = {
     {
-        func_actor_403100_8013BB8C,
-        func_actor_403100_8013BDE4,
+        _actor403100WalkApproach,
+        _actor403100FinishApproachStride,
         _actor403100WalkIdleState2,
         _actor403100WalkIdleState3,
-        func_actor_403100_8013BEF0,
+        _actor403100FinishStoppingStride,
         _actor403100WalkStopped,
     },
 };
 
-static void func_actor_403100_8013BA64(Task* arg0)
+/// Dispatches the current walk phase, then eases the root's lateral balcony position.
+///
+/// Requires live singleton work/model and walkStage in 0..5; dispatch is unchecked.
+/// Captures the previous half-turn stride phase for footfall detection. In mapped
+/// views 7/8 the grab-and-drag behaviour seeks one of two region-dependent X lanes;
+/// other views ease toward X=-1100. Coordinates are root-parent game units.
+static void _actor403100UpdateWalk(Task* task)
 {
-    GfxCoord*      coords   = arg0->extra.tmd->coords;
-    TaskFuncTable6 handlers = D_actor_403100_80132030;
+    enum {
+        ACTOR_403100_BEHAVIOUR_GRAB_AND_DRAG = 6,
+        ACTOR_403100_MAPPED_VIEW_BYTE_MASK   = 0xFF,
+        ACTOR_403100_DRAG_LANE_FIRST_VIEW    = 7,
+        ACTOR_403100_DRAG_LANE_SECOND_VIEW   = 8,
+    };
+    GfxCoord*      rootCoord    = task->extra.tmd->coords;
+    TaskFuncTable6 walkHandlers = D_actor_403100_80132030;
 
     D_actor_403100_80155808->previousStridePhase = (u16)D_actor_403100_80155808->stridePhase;
-    handlers.funcs[D_actor_403100_80155808->walkStage](arg0);
-    if (((viewGetMappedIndex() & 0xFF) == 7) || ((viewGetMappedIndex() & 0xFF) == 8)) {
-        if ((s16)D_actor_403100_80155808->state == 6) {
-            if (D_actor_403100_80155808->playerRegion == 2) {
-                coords->coord.t[0] += (-4000 - coords->coord.t[0]) >> 4;
+    walkHandlers.funcs[D_actor_403100_80155808->walkStage](task);
+    if (((viewGetMappedIndex() & ACTOR_403100_MAPPED_VIEW_BYTE_MASK) == ACTOR_403100_DRAG_LANE_FIRST_VIEW) || ((viewGetMappedIndex() & ACTOR_403100_MAPPED_VIEW_BYTE_MASK) == ACTOR_403100_DRAG_LANE_SECOND_VIEW)) {
+        if ((s16)D_actor_403100_80155808->state == ACTOR_403100_BEHAVIOUR_GRAB_AND_DRAG) {
+            if (D_actor_403100_80155808->playerRegion == ACTOR_403100_PLAYER_REGION_2) {
+                rootCoord->coord.t[0] += (-4000 - rootCoord->coord.t[0]) >> 4;
             } else {
-                coords->coord.t[0] += (-2700 - coords->coord.t[0]) >> 4;
+                rootCoord->coord.t[0] += (-2700 - rootCoord->coord.t[0]) >> 4;
             }
         }
     } else {
-        coords->coord.t[0] += (-1100 - coords->coord.t[0]) >> 3;
+        rootCoord->coord.t[0] += (-1100 - rootCoord->coord.t[0]) >> 3;
     }
 }
 /// Moves one approach update along parent-frame Z and advances the stride phase.
@@ -6052,76 +6205,89 @@ static inline void _actor403100StepApproachRoot(TmdObject* model, GfxCoord* root
     }
 }
 
-static void func_actor_403100_8013BB8C(Task* arg0)
+/// Plays the walking footfall cue with thirty updates of rumble and root shake.
+///
+/// Requires the live Burner model and enemy record in the task's spawn argument.
+/// Samples lower-trunk audio pan/depth, narrowed to signed bytes; the placement
+/// index is encoded in the sound id. The callback retains no borrowed pointers.
+static inline void _actor403100PlayWalkFootfall(Task* task)
 {
-    s32       sound;
-    s32       pan;
-    s32       depth;
-    GfxCoord* coords;
+    s32 footfallSound;
+    s32 audioPan;
+    s32 audioDepth;
 
-    coords = arg0->extra.tmd->coords;
-    _actor403100StepApproachRoot(arg0->extra.tmd, coords);
+    padScriptSpawnVariableMotorRamp(ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+    D_actor_403100_80155808->shakeFrames = ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES;
+    footfallSound                        = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_FOOTFALL_SOUND;
+    audioPan                             = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+    audioDepth                           = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+    sndEvtRequestScriptStart(footfallSound, audioPan, (s8)(audioDepth / 2));
+}
+
+/// Moves toward the current player-region target and bobs with the stride.
+///
+/// Requires live singleton work/model. Stride phase is 0..2047 in 4096 units
+/// per turn; its Q12 sine produces a 512-game-unit upward root-parent Y bob.
+/// Reaching the target selects the finish-stride phase. A newly wrapped phase
+/// plays a footfall cue; an already stationary phase does not.
+static void _actor403100WalkApproach(Task* task)
+{
+    GfxCoord* rootCoord;
+
+    rootCoord = task->extra.tmd->coords;
+    _actor403100StepApproachRoot(task->extra.tmd, rootCoord);
     if (D_actor_403100_80155808->stridePhase == 0) {
         if (D_actor_403100_80155808->previousStridePhase != 0) {
-            padScriptSpawnVariableMotorRamp(0x1E, 0xFF, 8);
-            D_actor_403100_80155808->shakeFrames = 0x1E;
-            sound                                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-            pan                                  = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 1);
-            depth                                = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 1);
-            sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
+            _actor403100PlayWalkFootfall(task);
         }
     }
-    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->stridePhase) << 13) >> 16);
+    rootCoord->coord.t[1] = -((rsin(D_actor_403100_80155808->stridePhase) << 13) >> 16);
 }
-static void func_actor_403100_8013BDE4(Task* arg0)
+/// Finishes the current bobbing stride before sampling the approach target again.
+///
+/// Requires live singleton work/model. Stride phase is 0..2047 in 4096 units
+/// per turn; its Q12 sine produces a 512-game-unit upward root-parent Y bob.
+/// A nonzero phase advances by 32 and plays feedback on wrapping. The following
+/// callback returns to walk approach; root Z does not change in this phase.
+static void _actor403100FinishApproachStride(Task* task)
 {
-    s16       angle;
-    s32       sound;
-    s32       pan;
-    s32       depth;
-    GfxCoord* coords;
+    s16       stridePhase;
+    GfxCoord* rootCoord;
 
-    coords = arg0->extra.tmd->coords;
+    rootCoord = task->extra.tmd->coords;
     if (D_actor_403100_80155808->stridePhase != 0) {
-        angle                                = ((u16)D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
-        D_actor_403100_80155808->stridePhase = angle;
-        if (angle == 0) {
-            padScriptSpawnVariableMotorRamp(0x1E, 0xFF, 8);
-            D_actor_403100_80155808->shakeFrames = 0x1E;
-            sound                                = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-            pan                                  = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 1);
-            depth                                = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 1);
-            sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
+        stridePhase                          = ((u16)D_actor_403100_80155808->stridePhase + ACTOR_403100_STRIDE_STEP) & ACTOR_403100_STRIDE_MASK;
+        D_actor_403100_80155808->stridePhase = stridePhase;
+        if (stridePhase == 0) {
+            _actor403100PlayWalkFootfall(task);
         }
     } else {
-        D_actor_403100_80155808->walkStage = 0;
+        D_actor_403100_80155808->walkStage = ACTOR_403100_WALK_APPROACH;
     }
-    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->stridePhase) << 13) >> 16);
+    rootCoord->coord.t[1] = -((rsin(D_actor_403100_80155808->stridePhase) << 13) >> 16);
 }
-static void func_actor_403100_8013BEF0(Task* arg0)
+/// Finishes the current bobbing stride before entering the stopped walk phase.
+///
+/// Requires live singleton work/model. Stride phase is 0..2047 in 4096 units
+/// per turn; its Q12 sine produces a 512-game-unit upward root-parent Y bob.
+/// A nonzero phase advances by 32 and plays feedback on wrapping. The following
+/// callback advances from walk phase 4 to stopped phase 5; root Z is retained.
+static void _actor403100FinishStoppingStride(Task* task)
 {
-    s16       angle;
-    s32       sound;
-    s32       pan;
-    s32       depth;
-    GfxCoord* coords;
+    s16       stridePhase;
+    GfxCoord* rootCoord;
 
-    coords = arg0->extra.tmd->coords;
+    rootCoord = task->extra.tmd->coords;
     if (D_actor_403100_80155808->stridePhase != 0) {
-        angle                                = ((u16)D_actor_403100_80155808->stridePhase + 0x20) & 0x7FF;
-        D_actor_403100_80155808->stridePhase = angle;
-        if (angle == 0) {
-            padScriptSpawnVariableMotorRamp(0x1E, 0xFF, 8);
-            D_actor_403100_80155808->shakeFrames = 0x1E;
-            sound                                = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-            pan                                  = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 1);
-            depth                                = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 1);
-            sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
+        stridePhase                          = ((u16)D_actor_403100_80155808->stridePhase + ACTOR_403100_STRIDE_STEP) & ACTOR_403100_STRIDE_MASK;
+        D_actor_403100_80155808->stridePhase = stridePhase;
+        if (stridePhase == 0) {
+            _actor403100PlayWalkFootfall(task);
         }
     } else {
         D_actor_403100_80155808->walkStage++;
     }
-    coords->coord.t[1] = -((rsin(D_actor_403100_80155808->stridePhase) << 13) >> 16);
+    rootCoord->coord.t[1] = -((rsin(D_actor_403100_80155808->stridePhase) << 13) >> 16);
 }
 /// Fills the textured quad for one piece of the held player's foreground.
 ///
@@ -6975,21 +7141,33 @@ static void _actor403100Destroy(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-static void func_actor_403100_8013D8F4(Task* arg0)
+/// Hands an expired fight to the balcony event script and returns to scene dispatch.
+///
+/// Requires live singleton enemy/work and task/model. Restores Q12 scale 1.25,
+/// disables pending draw-buffer release, locks player attachment control and
+/// clears enemy reactions/colour. Unlinks the target and fades breath audio before
+/// starting the HUD-managed event; scene dispatch remains idle until commands arrive.
+static void _actor403100BeginTimeoutEvent(Task* task)
 {
-    D_actor_403100_80155808->bufferReleaseDelay = -1;
-    D_actor_403100_80155808->sceneScale         = 0x1400;
+    enum {
+        ACTOR_403100_TIMEOUT_SCALE_Q12   = ONE * 5 / 4,
+        ACTOR_403100_BUFFER_RELEASE_IDLE = -1,
+        ACTOR_403100_TASK_SCENE          = 1,
+        ACTOR_403100_SCENE_IDLE          = 9,
+    };
+    D_actor_403100_80155808->bufferReleaseDelay = ACTOR_403100_BUFFER_RELEASE_IDLE;
+    D_actor_403100_80155808->sceneScale         = ACTOR_403100_TIMEOUT_SCALE_Q12;
     Gp_StateC08.flags                           = Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK;
     gGameSession->suppressViewTriggers          = 0;
     D_actor_403100_8015580C->reactionFlags      = 0;
-    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
-    sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+    sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
     worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
     evsStartScript(D_actor_335800_80165FC0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-    arg0->state                       = 1;
+    task->state                       = ACTOR_403100_TASK_SCENE;
     D_actor_403100_80155808->state    = 0;
     D_actor_403100_80155808->subState = 0;
-    D_actor_403100_80155808->state    = 9;
+    D_actor_403100_80155808->state    = ACTOR_403100_SCENE_IDLE;
     D_actor_403100_80155808->subState = 0;
 }
 /// Finds the first rectangle in a supplied zone table containing world X/Z.
@@ -7359,10 +7537,11 @@ static void _actor403100StepDefeatRewardWait(Task* task)
         D_actor_403100_80155808->subState = 0;
     }
 }
-/// Parents the emitter's owned coordinate to the view and starts its emission lifetime.
+/// Starts the placed puff emitter's ninety-update lifetime in the world/view frame.
 ///
-/// Requires a live coordinate-body task in its initial state. Retains its
-/// placed local matrix, dirties composition and advances to the emission state.
+/// Requires task state 0 and an owned coordinate body with its local placement
+/// initialized. Parents it to the view, marks composition dirty and advances to
+/// state 1 even while actors are paused. No puff is emitted here.
 static inline void _actor403100InitializePuffEmitter(Task* task)
 {
     GfxCoord* emissionCoord;
@@ -7374,11 +7553,14 @@ static inline void _actor403100InitializePuffEmitter(Task* task)
     task->state                += 1;
 }
 
-/// Emits at eight-tick intervals while actors run and releases an expired emitter.
+/// Emits room puffs on the countdown's eight-update cadence and releases an expired emitter.
 ///
-/// Requires the live coordinate-body task. The countdown wraps as a halfword
-/// and is tested as signed after decrement; its prior value selects emission.
-/// Room effects snapshot placement before the task releases its coordinate.
+/// Requires a live coordinate-body task in emission state 1. puffArg is the room
+/// puff's packed size/palette/drift word, passed unchanged. Running actors dirty
+/// the placement and emit when the pre-decrement halfword countdown is divisible
+/// by eight. A fresh ninety-update lifetime emits first on update 3; pause freezes
+/// it. Signed expiry clamps the countdown to zero, advances state and immediately
+/// kills the task; spawned effects have captured the coordinate placement.
 static inline void _actor403100StepPuffEmission(Task* task, u32 puffArg)
 {
     GfxCoord* emissionCoord;

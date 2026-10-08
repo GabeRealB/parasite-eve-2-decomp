@@ -69486,13 +69486,13 @@ Input SHA256: base_1.i `7a688b1c0d9d02edd9b1a8c869576d6ece35be90fae327b9c89525fc
 
 ## Byte Boolean conversion can retain a branch copy after combine (2026-09-10)
 
-In `func_actor_403100_8013AC04`, a 0/1 s32 flag lives in s3 across five calls. Direct `if (finished != 0)` branches on s3; assigning that comparison to a u8 temporary in the condition preserves a separate final copy to v0. The permuter discovery raised 97.569% to 100%; controlled base_2 isolated the assignment on the original source and reproduced the exact object without normalization changes.
+In `_actor403100StepPlayerDrag`, a 0/1 s32 flag lives in s3 across five calls. Direct `if (dragFinished != 0)` branches on s3; assigning that comparison to a u8 temporary in the condition preserves a separate final copy to v0. The permuter discovery raised 97.569% to 100%; controlled base_2 isolated the assignment on the original source and reproduced the exact object without normalization changes.
 
 Expand creates gtu r84, QI narrowing, and zero-extension into r158. The extension remains through cse2; combine deletes the preceding Boolean/conversion nodes and changes UID 191 to `r158 = r84`. lreg retains this copy, and greg assigns r84=s3, r158=v0. The counter pointer/value also change from v1/v0 to target v0/v1. Both predicted properties (separate branch copy and saved flag home) survived. This is a supported conversion/combination observation, not a guarantee about arbitrary narrow temporaries or their register homes; exact quantity ranking was not traced.
 
 The real-header port requires `(s16)` at the initial unsigned counter read to retain lh. No field type change, pins or asm helpers are needed.
 
-Controlled input SHA256 `c7f5fa55b19995d55a5fdefc133aa143b42bf3a205b44ba7438a3a7550525417`, compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Plans, dumps and paired sources: `tools/permuter_findings/func_actor_403100_8013AC04/`, session `dbcd055a3a414cbfade3883d5929e406`.
+Controlled input SHA256 `c7f5fa55b19995d55a5fdefc133aa143b42bf3a205b44ba7438a3a7550525417`, compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Plans, dumps and paired sources: `tools/permuter_findings/_actor403100StepPlayerDrag/`, session `dbcd055a3a414cbfade3883d5929e406`.
 
 ## An earlier call argument can change sched1 birth promotion without adding an instruction
 
@@ -69525,7 +69525,7 @@ had failed to fix this copy: the missing earlier hard-register use was decisive.
 
 ## A neighboring halfword store can restore a signed counter reload without a barrier
 
-In `func_actor_403100_8013631C`, base_2 (97.884%) increments `auxFrames`
+In `_actor403100StepSceneDeparture`, base_2 (97.884%) increments `auxFrames`
 and immediately compares it. CSE forwards the stored value: UID71 reads
 `subreg:HI(r116)`, and the final code uses `sll/sra` instead of `lh/nop`.
 Moving the independent `stridePhase` angle update after the counter increment
@@ -69544,7 +69544,7 @@ not post-reload CSE's dependence rules.
 Bundled compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Preprocessed inputs: base_2 `5a762abeca08cfb11df21d2c621677babf549a35cce251672f1b903cdcbcea53`;
 base_4 `5d296757e0785647092c10298d69d3d360da578b4089cebf4c6c29e53392dfdb`.
-Retained evidence: `tools/permuter_findings/func_actor_403100_8013631C/`,
+Retained evidence: `tools/permuter_findings/_actor403100StepSceneDeparture/`,
 session `b594e4870b9246739c7b05be49303fae`; `PERMUTER_ANALYSIS.md` documents
 the preceding permuter entry-order gain, whose full local quantity mechanism
 remains unresolved.
@@ -118821,8 +118821,8 @@ variable disappears. Writing the test next to the loop instead of next to the
 assignment gives `andi` and no copy - one instruction short of the target.
 
 Finding the idiom: a scan of the matched tree for `addu $v0,$sN,$zero` followed
-by `beqz $v0` turned up `func_actor_403100_8013AC04`, whose C is
-`if ((completed = finished != 0))`. That function's dumps show the three-insn
+by `beqz $v0` turned up `_actor403100StepPlayerDrag`, whose C is
+`if ((finishedByte = dragFinished != 0))`. That function's dumps show the three-insn
 RTL the fold eats, and name the mechanism. Reach for the matched corpus before
 guessing at a one-instruction shape like this.
 
@@ -134592,9 +134592,9 @@ Evidence: scratch `nonmatchings/_actor560800HandleKyleCue-vacuum/LEARNINGS.md`, 
 **2026-10-07.** Superseded for the three blend guards: no asm. What the identity asm and the two barriers stood for is a basic-block boundary after the hold-counter store, see "A label that is gone from the image" at the end of this file. `SOFT_TOUCH_REG(anim)` is still there.
 
 The search router skipped this function because target.o's interior `alabel func_801353D0` is typed FUNC at offset2004. Removing that symbol from a separate diagnostic copy (never from the scored target) confirms matching blocks/predicates/calls. This is metadata ambiguity, not evidence of a second callable body.
-## A prologue constant register can be compiler-made from literal uses, not a source variable (func_actor_403100_8013335C, 2026-09-19)
+## A prologue constant register can be compiler-made from literal uses, not a source variable (_actor403100ProcessCombatContacts, 2026-09-19)
 
-`func_actor_403100_8013335C` looked like a function that keeps the value 1 in a
+`_actor403100ProcessCombatContacts` looked like a function that keeps the value 1 in a
 callee-saved register: `addiu s6,zero,1` in the prologue, read by a compare and
 two halfword stores. Three sessions modelled that register as a C variable
 (`s32 one = 1;` before the loop) and could not reproduce one detail: the target
@@ -134641,7 +134641,7 @@ register-requiring uses in the loop — `combine_movables` needs the summed
 `savings * lifetime` to clear the loop's own threshold. Read `.loop`: it prints
 every movable with its savings, lifetime and `not desirable` verdict.
 
-Evidence: scratch `nonmatchings/func_actor_403100_8013335C-vacuum`, base_3
+Evidence: scratch `nonmatchings/_actor403100ProcessCombatContacts-vacuum`, base_3
 (literals, 3 members, `not desirable`) and base_5 (split case arms, hoisted,
 99.892% with `regs=8`), plus base_4's `.loop`. base_5.i SHA256
 `73d6317a1bfab849435e80de7a4dceff6b6251beeb6edcc981bff00e1a4d5c87`; base_4.i
@@ -134655,7 +134655,7 @@ matched with literals: its prologue hoists `addiu s6,zero,1`,
 stores. It is worth reading before treating a prologue constant register as a
 source variable.
 
-## A relocated load in a jump-table arm reads as `%lo(sym)` to the scorer, not as its offset (func_actor_403100_8013335C, 2026-09-19)
+## A relocated load in a jump-table arm reads as `%lo(sym)` to the scorer, not as its offset (_actor403100ProcessCombatContacts, 2026-09-19)
 
 Splat renders an address as `%lo(sym)(reg)` when it can prove the register's
 value, and as a bare offset when it cannot — which is the case in the arms of a
