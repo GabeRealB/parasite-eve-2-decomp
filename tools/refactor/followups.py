@@ -7,6 +7,7 @@ edited here; this keeps a working table over them in local/followups.sqlite:
 one row per entry, with a status that a later check or a person sets.
 
     followups.py ingest                    read new and changed reports
+    followups.py triage                    record what the tree and the ledger say
     followups.py stats
     followups.py list [--status open] [--kind K] [--file F] [--symbol S]
                       [--item NAME] [--run RUN] [--format tsv|md|json]
@@ -24,6 +25,15 @@ has one - otherwise its kind and location, numbered among equals - so a report
 whose wording was reconciled after landing updates the row instead of
 orphaning it.
 
+`triage` decides nothing that needs reading code. For each entry whose location
+names one symbol it records what became of that symbol - `renamed` (and to
+what, from the rename log or, for a name that carries its address, from the
+symbol maps), still a `placeholder`, `named` and unchanged, `stale` (no longer
+in the code but still in the document or tool the entry points at), or `gone` -
+which later step visited it, and how many other entries share its location.
+Those are signals a reviewer starts from, and it sets no status. `gone` in
+particular is not "resolved": it also covers a rename nothing logged.
+
 `--symbol` follows local/renames.tsv in both directions, so an entry written
 against `func_800A1234` is found under the name that function has now.
 """
@@ -39,7 +49,7 @@ import re
 import sqlite3
 import sys
 
-SCHEMA = 1
+SCHEMA = 2
 STATUSES = ("open", "resolved", "duplicate", "wontfix")
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 REPORT = re.compile(r"^(?P<run>.+?)-r(?P<round>\d+)-step(?P<step>\d+)\.json$")
@@ -88,6 +98,15 @@ def connect(path: str) -> sqlite3.Connection:
         sys.exit(f"{path} has schema {have[0]}, newer than this tool's {SCHEMA}")
     # A later schema adds its columns here, by ALTER TABLE on the stored
     # version, so a table is carried forward and never rebuilt.
+    stored = int(db.execute("SELECT value FROM meta WHERE key = 'schema'").fetchone()[0])
+    if stored < 2:
+        for column in ("sig_state TEXT", "sig_current TEXT", "sig_visit_report TEXT", "sig_visit_commit TEXT",
+                       "sig_shared INTEGER", "sig_at TEXT"):
+            db.execute(f"ALTER TABLE entries ADD COLUMN {column}")
+        db.execute("CREATE INDEX IF NOT EXISTS entries_signal ON entries(sig_state)")
+    if stored != SCHEMA:
+        db.execute("UPDATE meta SET value = ? WHERE key = 'schema'", (str(SCHEMA),))
+        db.commit()
     return db
 
 
@@ -204,6 +223,127 @@ def spellings(db, name: str) -> set:
     return out
 
 
+PLACEHOLDER = re.compile(r"^(D_|func_|sub_|field_|unk|arg\d|var_|temp_|Actor\d+_Fn|[A-Za-z]+_Fn[0-9A-F]{4,}$)")
+
+
+ADDRESSED = re.compile(r"^(?:D|func)_(?:(?P<image>[A-Za-z0-9_]+?)_)?(?P<addr>8[0-9A-Fa-f]{7})$")
+
+
+def map_names(root: str):
+    """Address -> names, per symbol map, for names that carry their address."""
+    maps, base = {}, os.path.join(root, "configs", "USA")
+    for folder, _, files in os.walk(base):
+        for name in files:
+            if not name.endswith(".txt") or ".imports" in name:
+                continue
+            table = maps.setdefault(name[:-4], {})
+            with open(os.path.join(folder, name), errors="replace") as fh:
+                for line in fh:
+                    m = re.match(r"\s*(\w+)\s*=\s*0x([0-9A-Fa-f]{8})\s*;", line)
+                    if m:
+                        table.setdefault(m[2].upper(), []).append(m[1])
+    return maps
+
+
+def triage(db, root: str, ledger: str) -> None:
+    import subprocess
+    listed = subprocess.run(["git", "-C", root, "grep", "-ohE", r"\b[A-Za-z_][A-Za-z0-9_]{3,}\b", "--",
+                             "src", "include", "configs"], capture_output=True, text=True).stdout
+    in_tree = set(listed.split())
+    if not in_tree:
+        sys.exit("could not list the tree's identifiers")
+    bare = lambda s: s.rsplit("/", 1)[-1]
+    maps = map_names(root)
+    resident = [t for key, t in maps.items() if key.startswith(("symbol_addrs", "sym."))]
+
+    def by_address(name):
+        """What the maps call the address a placeholder name carries, if one thing."""
+        m = ADDRESSED.match(name)
+        if not m:
+            return None
+        tables = [maps[m["image"]]] if m["image"] in maps else ([] if m["image"] else resident)
+        found = {n for t in tables for n in t.get(m["addr"].upper(), ()) if n != name and n in in_tree}
+        return next(iter(found)) if len(found) == 1 else None
+
+    texts = {}
+
+    def in_file(path, name):
+        if path not in texts:
+            try:
+                texts[path] = set(SYMBOL.findall(open(os.path.join(root, path), errors="replace").read()))
+            except OSError:
+                texts[path] = set()
+        return name in texts[path]
+
+    later = {}
+    for old, new in db.execute("SELECT old, new FROM renames"):
+        later.setdefault(bare(old), set()).add(bare(new))
+
+    def current(name):
+        """The spelling of `name` the tree has now, following renames forward."""
+        seen, todo = {name}, [name]
+        while todo:
+            cur = todo.pop()
+            if cur in in_tree:
+                return cur
+            for nxt in later.get(cur, ()):
+                if nxt not in seen:
+                    seen.add(nxt)
+                    todo.append(nxt)
+        return None
+
+    # The ledger in order: which step visited each name, and when each report landed.
+    visit, landed = {}, {}
+    if os.path.exists(ledger):
+        with open(ledger) as fh:
+            for n, line in enumerate(fh):
+                f = line.rstrip("\n").split("\t")
+                if len(f) < 4 or f[3] not in ("ok", "followup"):
+                    continue
+                report = os.path.basename(f[4]) if len(f) > 4 else ""
+                if report:
+                    landed.setdefault(report, n)
+                for name in f[1].split():
+                    visit[bare(name)] = (n, f[2], report)
+    shared = {(r[0], r[1]): r[2] for r in db.execute(
+        "SELECT loc_file, loc_symbol, COUNT(*) FROM entries WHERE present = 1 GROUP BY 1, 2")}
+    at, counts = now(), {}
+    rows = db.execute("SELECT e.id, e.loc_file, e.loc_symbol, e.status, r.path FROM entries e "
+                      "JOIN reports r ON r.id = e.report WHERE e.present = 1").fetchall()
+    for row in rows:
+        symbol = row["loc_symbol"] or ""
+        state = cur = v_report = v_commit = None
+        if re.fullmatch(r"[A-Za-z_]\w*", symbol):
+            cur = current(symbol) or by_address(symbol)
+            if cur is None:
+                # A document or a tool can still spell a name the code dropped,
+                # and that is usually the entry's very point.
+                code = (row["loc_file"] or "").startswith(("src/", "include/", "configs/"))
+                state = "stale" if not code and row["loc_file"] and in_file(row["loc_file"], symbol) else "gone"
+            elif cur != symbol:
+                state = "renamed"
+            else:
+                state = "placeholder" if PLACEHOLDER.match(symbol) else "named"
+            seen = None
+            for name in spellings(db, symbol):
+                hit = visit.get(name)
+                if hit and (seen is None or hit[0] > seen[0]):
+                    seen = hit
+            # Only a visit after the step that wrote the entry says anything.
+            if seen and seen[2] != row["path"] and seen[0] > landed.get(row["path"], -1):
+                v_report, v_commit = seen[2], seen[1]
+        counts[state] = counts.get(state, 0) + 1
+        db.execute("UPDATE entries SET sig_state = ?, sig_current = ?, sig_visit_report = ?, sig_visit_commit = ?, "
+                   "sig_shared = ?, sig_at = ? WHERE id = ?",
+                   (state, cur, v_report, v_commit, shared.get((row["loc_file"], row["loc_symbol"]), 1) - 1, at, row["id"]))
+    db.commit()
+    for state, n in sorted(counts.items(), key=lambda kv: -kv[1]):
+        print(f"  {state or 'no single symbol':<18} {n}")
+    one = lambda q: db.execute(q).fetchone()[0]
+    print(f"  visited by a later step: {one('SELECT COUNT(*) FROM entries WHERE present = 1 AND sig_visit_report IS NOT NULL')}")
+    print(f"  sharing a location:      {one('SELECT COUNT(*) FROM entries WHERE present = 1 AND sig_shared > 0')}")
+
+
 def select(db, args):
     where, params = [], []
     if args.status != "all":
@@ -212,6 +352,12 @@ def select(db, args):
         where.append("e.present = 1")
     if args.kind:
         where.append("e.kind = ?"); params.append(args.kind)
+    if args.signal:
+        where.append("e.sig_state IS NULL" if args.signal == "none" else "e.sig_state = ?")
+        if args.signal != "none":
+            params.append(args.signal)
+    if args.visited:
+        where.append("e.sig_visit_report IS NOT NULL")
     if args.file:
         where.append("e.loc_file LIKE ?"); params.append("%" + args.file + "%")
     if args.item:
@@ -233,7 +379,8 @@ def select(db, args):
 
 
 COLUMNS = ("id", "status", "kind", "location", "item_current", "reason", "next_step", "report_path",
-           "landed_commit", "status_reason", "status_commit", "duplicate_of")
+           "landed_commit", "sig_state", "sig_current", "sig_visit_report", "sig_visit_commit", "sig_shared",
+           "status_reason", "status_commit", "duplicate_of")
 
 
 def emit(rows, fmt: str, out) -> None:
@@ -246,6 +393,14 @@ def emit(rows, fmt: str, out) -> None:
             out.write(f"### {r['id']} [{r['status']}] {r['kind']} - {r['location']}\n\n"
                       f"From `{r['item_current']}` ({r['report_path']}).\n\n{r['reason']}\n\n"
                       f"Next: {r['next_step']}\n\n")
+            signals = [f"symbol {r['sig_state']}" + (f", now `{r['sig_current']}`" if r["sig_state"] == "renamed" else "")
+                       ] if r["sig_state"] else []
+            if r["sig_visit_report"]:
+                signals.append(f"visited later by {r['sig_visit_report']} ({r['sig_visit_commit']})")
+            if r["sig_shared"]:
+                signals.append(f"{r['sig_shared']} other entries at this location")
+            if signals:
+                out.write("Signals: " + "; ".join(signals) + ".\n\n")
     else:
         out.write("\t".join(COLUMNS) + "\n")
         for r in rows:
@@ -280,10 +435,15 @@ def main() -> int:
     p.add_argument("--reviews", default=os.path.join(ROOT, "local", "name-pass", "reviews"))
     p.add_argument("--renames", default=os.path.join(ROOT, "local", "renames.tsv"))
     sub.add_parser("stats")
+    p = sub.add_parser("triage")
+    p.add_argument("--ledger", default=os.path.join(ROOT, "local", "name_pass_done.tsv"))
+    p.add_argument("--root", default=ROOT)
     for name in ("list", "export"):
         p = sub.add_parser(name)
         p.add_argument("--status", default="all" if name == "export" else "open", choices=STATUSES + ("all",))
         p.add_argument("--kind"); p.add_argument("--file"); p.add_argument("--symbol")
+        p.add_argument("--signal", choices=("gone", "stale", "renamed", "placeholder", "named", "none"))
+        p.add_argument("--visited", action="store_true", help="only entries a later step visited")
         p.add_argument("--item"); p.add_argument("--run"); p.add_argument("--limit", type=int)
         p.add_argument("--absent", action="store_true", help="include entries their report no longer lists")
         p.add_argument("--format", default="tsv", choices=("tsv", "md", "json"))
@@ -299,6 +459,8 @@ def main() -> int:
 
     if args.command == "ingest":
         ingest(db, args.reviews, args.renames)
+    elif args.command == "triage":
+        triage(db, args.root, args.ledger)
     elif args.command == "stats":
         one = lambda q: db.execute(q).fetchone()[0]
         print(f"{one('SELECT COUNT(*) FROM reports')} reports, {one('SELECT COUNT(*) FROM entries')} entries "
