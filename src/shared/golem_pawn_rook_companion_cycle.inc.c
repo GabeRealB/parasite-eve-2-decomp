@@ -41,7 +41,7 @@ void golemPawnRookCompanionCycle(Task* arg0)
             delta->vx          = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             delta->vz          = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->targetYaw    = ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF;
-            golemPawnRookAimLaserSight(arg0);
+            _golemPawnRookAimLaserSight(arg0);
             work->timer++;
             if (work->timer >= GOLEM_PAWN_ROOK_BACKOFF_FRAMES) {
                 work->step             = 2;

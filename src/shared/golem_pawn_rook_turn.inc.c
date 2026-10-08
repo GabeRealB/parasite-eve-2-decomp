@@ -1,72 +1,76 @@
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Steps `yaw` from the root coordinate's own heading toward the
-/// target `targetYaw` by `turnRate` per frame: within half a turn it closes on
-/// the target directly (or, on animation 3, turns the other way by the step),
-/// past that it goes round the long way, snapping onto the target once the
-/// step would overshoot. The result rebuilds the root coordinate's matrix.
-void golemPawnRookTurnTowardTarget(Task* arg0)
+/// Rebuilds the body root's yaw while turning toward its requested heading.
+///
+/// Headings use 4096 units per turn; targetYaw is 0..4095 and turnRate is a
+/// nonnegative angular step per call. The shorter arc crosses zero when needed;
+/// the turn-about animation always steps in the negative direction unless already
+/// close enough to snap. Replaces pitch, roll and scale but preserves translation.
+/// The stored yaw can cross outside 0..4095 until the next call remeasures it.
+/// The enclosing frame handler owns the root's composition-dirty mark.
+static void _golemPawnRookTurnTowardTarget(Task* actor)
 {
+    enum { GOLEM_PAWN_ROOK_TURN_ANIM_ABOUT = 3 };
     GolemPawnRookWork* work;
-    GfxCoord*          coord;
-    SVECTOR*           rot;
-    s32                ang;
-    u16                want;
-    s16                diff;
-    s32                adiff;
-    s32                step;
-    s32                ustep;
-    s32                wstep;
-    s32                cur;
-    s32                next;
-    s32                wrapStep;
+    GfxCoord*          root;
+    SVECTOR*           rotation;
+    s32                currentYaw;
+    u16                targetYaw;
+    s16                yawDifference;
+    s32                absoluteDifference;
+    s32                turnRate;
+    s32                unsignedTurnRate;
+    s32                wrapTurnRate;
+    s32                previousYaw;
+    s32                nextYaw;
+    s32                wrappedTurnRate;
 
-    rot   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    want  = work->targetYaw;
-    diff  = want - ang;
-    adiff = diff >= 0 ? diff : -diff;
+    rotation           = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    root               = actor->extra.tmd->coords;
+    work               = actor->work;
+    currentYaw         = ratan2(root->coord.m[0][2], root->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;
+    targetYaw          = work->targetYaw;
+    yawDifference      = targetYaw - currentYaw;
+    absoluteDifference = yawDifference >= 0 ? yawDifference : -yawDifference;
 
-    work->yaw = ang;
-    if (adiff < 0x800) {
-        step  = work->turnRate;
-        ustep = (u16)work->turnRate;
-        if (step >= adiff) {
-            work->yaw = want;
+    work->yaw = currentYaw;
+    if (absoluteDifference < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        turnRate         = work->turnRate;
+        unsignedTurnRate = (u16)work->turnRate;
+        if (turnRate >= absoluteDifference) {
+            work->yaw = targetYaw;
         } else {
-            if (work->anim == 3) {
-                next = ang - ustep;
+            if (work->anim == GOLEM_PAWN_ROOK_TURN_ANIM_ABOUT) {
+                nextYaw = currentYaw - unsignedTurnRate;
             } else {
-                next = work->yaw;
-                if (diff <= 0) {
-                    next -= step;
+                nextYaw = work->yaw;
+                if (yawDifference <= 0) {
+                    nextYaw -= turnRate;
                 } else {
-                    next += step;
+                    nextYaw += turnRate;
                 }
             }
-            work->yaw = next;
+            work->yaw = nextYaw;
         }
     } else {
-        wstep = work->turnRate;
-        if (diff > 0 ? wstep >= 0x1000 - diff : wstep >= 0x1000 + diff) {
+        wrapTurnRate = work->turnRate;
+        if (yawDifference > 0 ? wrapTurnRate >= ACTOR_TRANSFORM_ANGLE_TURN - yawDifference : wrapTurnRate >= ACTOR_TRANSFORM_ANGLE_TURN + yawDifference) {
             work->yaw = work->targetYaw;
-        } else if (work->anim == 3) {
+        } else if (work->anim == GOLEM_PAWN_ROOK_TURN_ANIM_ABOUT) {
             work->yaw = (u16)work->yaw - (u16)work->turnRate;
         } else {
-            wrapStep = work->turnRate;
-            cur      = work->yaw;
-            if (diff > 0) {
-                work->yaw = cur - wrapStep;
+            wrappedTurnRate = work->turnRate;
+            previousYaw     = work->yaw;
+            if (yawDifference > 0) {
+                work->yaw = previousYaw - wrappedTurnRate;
             } else {
-                work->yaw = cur + wrapStep;
+                work->yaw = previousYaw + wrappedTurnRate;
             }
         }
     }
-    rot->vx = 0;
-    rot->vy = work->yaw;
-    rot->vz = 0;
-    RotMatrix(rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    rotation->vx = 0;
+    rotation->vy = work->yaw;
+    rotation->vz = 0;
+    RotMatrix(rotation, &root->coord);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }

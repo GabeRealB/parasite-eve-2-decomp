@@ -1,8 +1,10 @@
 /* Part of the Pawn/Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Ends an interrupted charge and disables its weapon contact.
+/// Cancels a Beam Sword charge into stagger and disarms its strike contact.
 ///
-/// Only the run and slash phases lower the shield; wind-up retains its marker.
+/// Stops movement and damage accumulation without selecting the stagger clip.
+/// A nonzero lowerShield clears its protection marker: run and slash use it,
+/// while an interrupted wind-up retains that marker. work stays body-owned.
 static inline void _golemPawnRookInterruptCharge(GolemPawnRookWork* work, s32 lowerShield)
 {
     work->behavior     = GOLEM_PAWN_ROOK_BEHAVIOR_STAGGER;

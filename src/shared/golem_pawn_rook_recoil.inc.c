@@ -1,42 +1,52 @@
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Entry 9 of the `behavior` table: step 0 starts animation 0x12 when
-/// `hitFromFront` is 1 (step 1, waits for frame 0x50) and animation 0x13
-/// otherwise (step 2, waits for frame 0x3B); either way the dwell counters are
-/// cleared and the enemy parks on animation 2 (entry 2) when done.
-void golemPawnRookRecoilState(Task* arg0)
+/// Stops the body for a heavy hit recoil, then resumes player engagement.
+///
+/// The last hit's side chooses the clip: front recovers after 80 frames and behind
+/// after 59. The actor must have live GOLEM work; movement and animation are
+/// requests executed by the enclosing frame handler.
+static void _golemPawnRookRecoilState(Task* actor)
 {
+    enum {
+        GOLEM_PAWN_ROOK_RECOIL_START         = 0,
+        GOLEM_PAWN_ROOK_RECOIL_FRONT         = 1,
+        GOLEM_PAWN_ROOK_RECOIL_BEHIND        = 2,
+        GOLEM_PAWN_ROOK_RECOIL_ANIM_FRONT    = 0x12,
+        GOLEM_PAWN_ROOK_RECOIL_ANIM_BEHIND   = 0x13,
+        GOLEM_PAWN_ROOK_RECOIL_FRONT_FRAMES  = 80,
+        GOLEM_PAWN_ROOK_RECOIL_BEHIND_FRAMES = 59,
+    };
     GolemPawnRookWork* work;
-    s32                state;
-    s32                next;
+    s32                step;
+    s32                hitFromFront;
 
-    work  = arg0->work;
-    state = work->step;
-    switch (state) {
-        case 0:
-            next = work->hitFromFront;
-            if (next == 1) {
-                work->anim = 0x12;
-                work->step = next;
+    work = actor->work;
+    step = work->step;
+    switch (step) {
+        case GOLEM_PAWN_ROOK_RECOIL_START:
+            hitFromFront = work->hitFromFront;
+            if (hitFromFront == 1) {
+                work->anim = GOLEM_PAWN_ROOK_RECOIL_ANIM_FRONT;
+                work->step = hitFromFront;
             } else {
-                work->anim = 0x13;
-                work->step = 2;
+                work->anim = GOLEM_PAWN_ROOK_RECOIL_ANIM_BEHIND;
+                work->step = GOLEM_PAWN_ROOK_RECOIL_BEHIND;
             }
             work->forwardSpeed = 0;
             work->turnRate     = 0;
             break;
-        case 1:
-            if (work->animFrame >= 0x50) {
-                work->anim     = 2;
+        case GOLEM_PAWN_ROOK_RECOIL_FRONT:
+            if (work->animFrame >= GOLEM_PAWN_ROOK_RECOIL_FRONT_FRAMES) {
+                work->anim     = GOLEM_PAWN_ROOK_ANIM_WALK;
                 work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE;
-                work->step     = 0;
+                work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
             }
             break;
-        case 2:
-            if (work->animFrame >= 0x3B) {
-                work->anim     = state;
-                work->behavior = state;
-                work->step     = 0;
+        case GOLEM_PAWN_ROOK_RECOIL_BEHIND:
+            if (work->animFrame >= GOLEM_PAWN_ROOK_RECOIL_BEHIND_FRAMES) {
+                work->anim     = GOLEM_PAWN_ROOK_ANIM_WALK;
+                work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE;
+                work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
             }
             break;
     }

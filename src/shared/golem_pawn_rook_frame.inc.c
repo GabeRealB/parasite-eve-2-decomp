@@ -27,19 +27,19 @@ void golemPawnRookFrameState(Enemy* ctx, Task* actor)
     }
 
     if (ctx->reactionFlags != 0) {
-        golemPawnRookApplyReaction(actor);
+        _golemPawnRookApplyBuildupReaction(actor);
     }
     golemPawnRookTakeHits(actor);
     gGolemPawnRookStates[work->behavior](actor);
     if (work->turnRate != 0) {
-        golemPawnRookTurnTowardTarget(actor);
+        _golemPawnRookTurnTowardTarget(actor);
     }
-    golemPawnRookStepRoot(actor);
-    golemPawnRookTickAnim(actor);
+    _golemPawnRookStepRoot(actor);
+    _golemPawnRookTickAnim(actor);
     if (work->hitTiltActive != 0) {
-        golemPawnRookDecayHitTilt(actor);
+        _golemPawnRookDecayHitTilt(actor);
     }
-    golemPawnRookPlayAnimCues(actor);
+    _golemPawnRookPlayAnimCues(actor);
     coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
     actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);

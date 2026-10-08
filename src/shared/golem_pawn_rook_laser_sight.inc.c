@@ -13,48 +13,53 @@ typedef struct {
 } _GolemPawnRookLaserSightScratch;
 STATIC_ASSERT_SIZEOF(_GolemPawnRookLaserSightScratch, 0x40);
 
-/// Converts the root coordinate's world matrix into the frame of part 7 and
-/// parks the (0, 100, -100) offset rotated through it, plus its translation,
-/// in `laserCapsule.ends[1]`; then stores the (0, -0x514, 10000) vector rotated by
-/// the (-5, -5, 0) matrix in `laserCapsule.ends[0]` and raises the fifth body
-/// object's 0xC000 flags. While `timer` is non-zero, the parked point is
-/// taken back to world space, the distance to the first `laserContacts` hit (10000
-/// with none, plus 1000 for a kind-0x1 hit) replaces the vector's depth, and
-/// the rotated result and the parked point go to `golemPawnRookDrawLaserBeam`.
-void golemPawnRookAimLaserSight(Task* arg0)
+/// Updates the launcher's root-space laser probe and draws its contact-limited sight.
+///
+/// actor is a live Grenade Launcher GOLEM body task. Part 7 supplies the muzzle;
+/// the probe's far end uses a fixed aim with angles in 4096 units per turn.
+/// A zero burst timer arms the probe without drawing or consuming contacts.
+/// Otherwise the previous probe contact limits the drawn reach, with 1000 game
+/// units of overshoot for a player or companion body, and its contact is cleared.
+/// Borrows scratch storage for the call and leaves the collision body enabled.
+static void _golemPawnRookAimLaserSight(Task* actor)
 {
+    enum {
+        GOLEM_PAWN_ROOK_LASER_MUZZLE_PART      = 7,
+        GOLEM_PAWN_ROOK_LASER_MUZZLE_Y         = 100,
+        GOLEM_PAWN_ROOK_LASER_MUZZLE_Z         = -100,
+        GOLEM_PAWN_ROOK_LASER_AIM_PITCH        = -5,
+        GOLEM_PAWN_ROOK_LASER_AIM_YAW          = -5,
+        GOLEM_PAWN_ROOK_LASER_FAR_Y            = -1300,
+        GOLEM_PAWN_ROOK_LASER_REACH            = 10000,
+        GOLEM_PAWN_ROOK_LASER_PLAYER_OVERSHOOT = 1000,
+    };
     _GolemPawnRookLaserSightScratch* scratch;
     GolemPawnRookWork*               work;
-    GfxCoord*                        self;
+    GfxCoord*                        bodyCoords;
 
-    scratch              = SCRATCH_STACK_RESERVE_BLOCK(_GolemPawnRookLaserSightScratch);
-    self                 = arg0->extra.tmd->coords;
-    work                 = arg0->work;
-    self[0].composeStamp = GRAPHICS_COORD_DIRTY;
-    self[7].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&self[7]);
-    gfxMakeRelativeTransform(&self->workm, &self[7].workm, &scratch->matrix);
-    scratch->muzzle.vy = 100;
+    scratch                                                    = SCRATCH_STACK_RESERVE_BLOCK(_GolemPawnRookLaserSightScratch);
+    bodyCoords                                                 = actor->extra.tmd->coords;
+    work                                                       = actor->work;
+    bodyCoords[0].composeStamp                                 = GRAPHICS_COORD_DIRTY;
+    bodyCoords[GOLEM_PAWN_ROOK_LASER_MUZZLE_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&bodyCoords[GOLEM_PAWN_ROOK_LASER_MUZZLE_PART]);
+    // Carry the animated launcher muzzle from part 7 into body-root space.
+    gfxMakeRelativeTransform(&bodyCoords->workm, &bodyCoords[GOLEM_PAWN_ROOK_LASER_MUZZLE_PART].workm, &scratch->matrix);
+    scratch->muzzle.vy = GOLEM_PAWN_ROOK_LASER_MUZZLE_Y;
     scratch->muzzle.vx = 0;
-    scratch->muzzle.vz = -100;
-    gte_SetRotMatrix(&scratch->matrix);
-    gte_ldv0(&scratch->muzzle);
-    gte_rtv0();
-    gte_stlvnl(&scratch->offset);
+    scratch->muzzle.vz = GOLEM_PAWN_ROOK_LASER_MUZZLE_Z;
+    gte_ApplyMatrix(&scratch->matrix, &scratch->muzzle, &scratch->offset);
     work->laserCapsule.ends[1].vx = scratch->matrix.t[0] + scratch->offset.vx;
     work->laserCapsule.ends[1].vy = scratch->matrix.t[1] + scratch->offset.vy;
     work->laserCapsule.ends[1].vz = scratch->matrix.t[2] + scratch->offset.vz;
-    scratch->aim.vx               = -5;
-    scratch->aim.vy               = -5;
+    scratch->aim.vx               = GOLEM_PAWN_ROOK_LASER_AIM_PITCH;
+    scratch->aim.vy               = GOLEM_PAWN_ROOK_LASER_AIM_YAW;
     scratch->aim.vz               = 0;
     RotMatrix(&scratch->aim, &scratch->matrix);
     scratch->aim.vx = 0;
-    scratch->aim.vy = -0x514;
-    scratch->aim.vz = 10000;
-    gte_SetRotMatrix(&scratch->matrix);
-    gte_ldv0(&scratch->aim);
-    gte_rtv0();
-    gte_stlvnl(&scratch->offset);
+    scratch->aim.vy = GOLEM_PAWN_ROOK_LASER_FAR_Y;
+    scratch->aim.vz = GOLEM_PAWN_ROOK_LASER_REACH;
+    gte_ApplyMatrix(&scratch->matrix, &scratch->aim, &scratch->offset);
     work->laserCapsule.ends[0].vx = scratch->offset.vx;
     work->laserCapsule.ends[0].vy = scratch->offset.vy;
     work->laserCapsule.ends[0].vz = scratch->offset.vz;
@@ -63,16 +68,17 @@ void golemPawnRookAimLaserSight(Task* arg0)
         SCRATCH_STACK_RELEASE_BLOCK(_GolemPawnRookLaserSightScratch);
         return;
     }
-    gte_SetRotMatrix(&self->workm);
+    // Measure the previous probe contact in the root matrix's composition frame.
+    gte_SetRotMatrix(&bodyCoords->workm);
     scratch->muzzle.vx = work->laserCapsule.ends[1].vx;
     scratch->muzzle.vy = work->laserCapsule.ends[1].vy;
     scratch->muzzle.vz = work->laserCapsule.ends[1].vz;
     gte_ldv0(&scratch->muzzle);
     gte_rtv0();
     gte_stlvnl(&scratch->offset);
-    scratch->muzzle.vx = scratch->offset.vx + self->workm.t[0];
-    scratch->muzzle.vy = scratch->offset.vy + self->workm.t[1];
-    scratch->muzzle.vz = scratch->offset.vz + self->workm.t[2];
+    scratch->muzzle.vx = scratch->offset.vx + bodyCoords->workm.t[0];
+    scratch->muzzle.vy = scratch->offset.vy + bodyCoords->workm.t[1];
+    scratch->muzzle.vz = scratch->offset.vz + bodyCoords->workm.t[2];
     scratch->aim.vx    = work->laserCapsule.ends[0].vx;
     scratch->aim.vy    = work->laserCapsule.ends[0].vy;
     if (worldCollisionFindContactIndex(work->laserContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
@@ -81,23 +87,21 @@ void golemPawnRookAimLaserSight(Task* arg0)
         scratch->offset.vz = work->laserContacts[0].point.vz - scratch->muzzle.vz;
         scratch->aim.vz    = SquareRoot0(scratch->offset.vx * scratch->offset.vx + scratch->offset.vy * scratch->offset.vy +
                                          scratch->offset.vz * scratch->offset.vz);
-        if ((work->laserContacts[0].key.value & 0xFFFF0000) == 0x10000) {
-            scratch->aim.vz += 1000;
+        if ((work->laserContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
+            scratch->aim.vz += GOLEM_PAWN_ROOK_LASER_PLAYER_OVERSHOOT;
         }
     } else {
-        scratch->aim.vz = 10000;
+        scratch->aim.vz = GOLEM_PAWN_ROOK_LASER_REACH;
     }
+    // Retain the probe's rotated X/Y, replace Z with reach, then rotate again for drawing.
     worldCollisionClearContacts(work->laserContacts);
-    gte_SetRotMatrix(&scratch->matrix);
-    gte_ldv0(&scratch->aim);
-    gte_rtv0();
-    gte_stlvnl(&scratch->offset);
+    gte_ApplyMatrix(&scratch->matrix, &scratch->aim, &scratch->offset);
     scratch->aim.vx    = scratch->offset.vx;
     scratch->aim.vy    = scratch->offset.vy;
     scratch->aim.vz    = scratch->offset.vz;
     scratch->muzzle.vx = work->laserCapsule.ends[1].vx;
     scratch->muzzle.vy = work->laserCapsule.ends[1].vy;
     scratch->muzzle.vz = work->laserCapsule.ends[1].vz;
-    golemPawnRookDrawLaserBeam(arg0, &scratch->aim, &scratch->muzzle);
+    _golemPawnRookDrawLaserBeam(actor, &scratch->aim, &scratch->muzzle);
     SCRATCH_STACK_RELEASE_BLOCK(_GolemPawnRookLaserSightScratch);
 }

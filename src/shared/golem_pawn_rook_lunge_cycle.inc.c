@@ -1,175 +1,190 @@
 /* Part of the Pawn/Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// The lunge cycle, a state handler run out of a 0x10-byte scratch stack
-/// block. State 0 is the wind-up: it holds `forwardSpeed` at 0 until the
-/// animation reaches its start frame, aims `targetYaw` at the player and
-/// compares it with the enemy's own facing `yaw` - past 0x581 apart it
-/// gives up and turns (animation 3, or animation 4 when `turnedAround` says it has
-/// already turned once), within 0x80 it raises `sightBody`'s 0xC000 flags
-/// and commits as soon as `playerSpotted` reports contact. State 1 picks what to do
-/// next: inside `GOLEM_PAWN_ROOK_LUNGE_RANGE` of the player it lunges;
-/// otherwise the Rook draws from `gRandomLcgState` through a mask that widens
-/// by a bit each cycle and either circles (animation 0xA) or walks in, and the
-/// Pawn always walks in. State 2 waits out the recovery and state 3 the turn.
-void golemPawnRookLungeCycle(Task* arg0)
+/// Faces and approaches the player, then selects a close attack, weapon approach or scream.
+///
+/// The Beam Sword approaches by charging; the Grenade Launcher starts a burst.
+/// Only a Rook with scream charges can choose Silence; successive screams widen
+/// the random mask against the generator's upper sixteen bits. Requires live
+/// body work and the player's matrix in the root's parent frame. Bearing narrows
+/// X/Z offsets to signed halfwords; distance uses
+/// full-word offsets whose squared sum must fit a signed word. Headings use
+/// 4096 units per turn. Borrows a VECTOR block
+/// without using its Y, and leaves movement and animation to the frame handler.
+static void _golemPawnRookEngageState(Task* actor)
 {
-    s16 yaw;
-    s16 yaw2;
-    s16 state;
-    s16 deltaYaw;
-    s16 deltaYaw2;
-    s16 speed;
-    s32 magnitude;
-    s32 magnitude2;
-    s16 wrapped;
-    s16 wrapped2;
-    s16 angle;
-    s32 dx;
-    s32 dz;
+    enum {
+        GOLEM_PAWN_ROOK_ENGAGE_TRACK           = 0,
+        GOLEM_PAWN_ROOK_ENGAGE_PICK_ATTACK     = 1,
+        GOLEM_PAWN_ROOK_ENGAGE_LISTEN          = GOLEM_PAWN_ROOK_ENGAGE_LISTEN_STEP,
+        GOLEM_PAWN_ROOK_ENGAGE_TURN            = 3,
+        GOLEM_PAWN_ROOK_ENGAGE_ANIM_TURN       = 3,
+        GOLEM_PAWN_ROOK_ENGAGE_ANIM_SCREAM     = 10,
+        GOLEM_PAWN_ROOK_ENGAGE_SPEED           = 20,
+        GOLEM_PAWN_ROOK_ENGAGE_TURN_THRESHOLD  = 1409,
+        GOLEM_PAWN_ROOK_ENGAGE_SIGHT_YAW_LIMIT = 128,
+        GOLEM_PAWN_ROOK_ENGAGE_LISTEN_FRAMES   = 96,
+        GOLEM_PAWN_ROOK_ENGAGE_TURN_FRAMES     = 35,
+        GOLEM_PAWN_ROOK_ENGAGE_TURN_RATE       = 59,
+    };
+    s16 currentYaw;
+    s16 listenYaw;
+    s16 step;
+    s16 yawDifference;
+    s16 listenYawDifference;
+    s16 forwardSpeed;
+    s32 absoluteDifference;
+    s32 absoluteListenDifference;
+    s16 wrappedDifference;
+    s16 wrappedListenDifference;
+    s16 yawError;
+    s32 playerOffsetX;
+    s32 playerOffsetZ;
 #if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
-    u32 random;
+    u32 screamRandom;
 #endif
-    u16                flags;
-    u16                flags2;
-    u8*                head;
-    VECTOR*            delta;
+    u16                sightFlags;
+    u16                listenSightFlags;
+    VECTOR*            scratchTop;
+    VECTOR*            toPlayer;
     GolemPawnRookWork* work;
-    GfxCoord*          coord;
+    GfxCoord*          root;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    delta                    = (VECTOR*)(head - 0x10);
-    SCRATCH_STACK_CURSOR(u8) = (u8*)delta;
-    work                     = arg0->work;
-    state                    = work->step;
-    coord                    = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            speed = 0;
+    /// Updates player/current yaw and measures their shortest 4096-unit gap.
+    ///
+    /// Arguments must be side-effect-free pointers or lvalues, evaluated repeatedly.
+    /// yawValue, differenceValue, wrappedValue and errorValue are signed halfwords;
+    /// magnitudeValue is s32. Captures no locals and expands to a compound statement.
+    /// Kept local to this handler and undefined below.
+#define GOLEM_PAWN_ROOK_MEASURE_PLAYER_YAW_GAP(work, root, toPlayer, yawValue, differenceValue, magnitudeValue, wrappedValue, errorValue) \
+    {                                                                                                                                     \
+        (work)->targetYaw = (u16)(ratan2((s16)(toPlayer)->vx, (s16)(toPlayer)->vz) & ACTOR_TRANSFORM_ANGLE_MASK);                         \
+        (yawValue)        = ratan2((root)->coord.m[0][2], (root)->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;                            \
+        (work)->yaw       = (yawValue);                                                                                                   \
+        (differenceValue) = (work)->targetYaw - (yawValue);                                                                               \
+        (magnitudeValue)  = __builtin_abs((differenceValue));                                                                             \
+        if ((magnitudeValue) < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {                                                                         \
+            (errorValue) = (magnitudeValue);                                                                                              \
+        } else {                                                                                                                          \
+            if ((differenceValue) > 0) {                                                                                                  \
+                (wrappedValue) = ACTOR_TRANSFORM_ANGLE_TURN - (differenceValue);                                                          \
+            } else {                                                                                                                      \
+                (wrappedValue) = (differenceValue) + ACTOR_TRANSFORM_ANGLE_TURN;                                                          \
+            }                                                                                                                             \
+            (errorValue) = (wrappedValue);                                                                                                \
+        }                                                                                                                                 \
+    }
+
+    scratchTop                   = SCRATCH_STACK_CURSOR(VECTOR);
+    toPlayer                     = scratchTop - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = toPlayer;
+    work                         = actor->work;
+    step                         = work->step;
+    root                         = actor->extra.tmd->coords;
+    switch (step) {
+        // Approach after the blend, opening sight inside the narrow yaw cone.
+        case GOLEM_PAWN_ROOK_ENGAGE_TRACK:
+            forwardSpeed = 0;
             if (work->animFrame >= gGolemPawnRookAnimBlendFrames[work->anim]) {
-                speed = 0x14;
+                forwardSpeed = GOLEM_PAWN_ROOK_ENGAGE_SPEED;
             }
-            work->forwardSpeed = speed;
+            work->forwardSpeed = forwardSpeed;
             work->turnRate     = GOLEM_PAWN_ROOK_WIND_UP_TURN;
-            delta->vx          = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            delta->vz          = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            work->targetYaw    = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
-            yaw                = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-            work->yaw          = yaw;
-            deltaYaw           = work->targetYaw - yaw;
-            magnitude          = __builtin_abs(deltaYaw);
-            if (magnitude < 0x800) {
-                angle = magnitude;
-            } else {
-                if (deltaYaw > 0) {
-                    wrapped = 0x1000 - deltaYaw;
-                } else {
-                    wrapped = deltaYaw + 0x1000;
-                }
-                angle = wrapped;
-            }
-            if (angle >= 0x581) {
+            toPlayer->vx       = gPlayerStatus.coordMtx->t[0] - root->coord.t[0];
+            toPlayer->vz       = gPlayerStatus.coordMtx->t[2] - root->coord.t[2];
+            GOLEM_PAWN_ROOK_MEASURE_PLAYER_YAW_GAP(work, root, toPlayer, currentYaw, yawDifference, absoluteDifference, wrappedDifference, yawError);
+            if (yawError >= GOLEM_PAWN_ROOK_ENGAGE_TURN_THRESHOLD) {
                 if (work->turnedAround == 0) {
-                    work->anim = 3;
-                    work->step = 3;
+                    work->anim = GOLEM_PAWN_ROOK_ENGAGE_ANIM_TURN;
+                    work->step = GOLEM_PAWN_ROOK_ENGAGE_TURN;
                 } else {
-                    work->anim         = 4;
-                    work->step         = 1;
+                    work->anim         = GOLEM_PAWN_ROOK_ANIM_LISTEN;
+                    work->step         = GOLEM_PAWN_ROOK_ENGAGE_PICK_ATTACK;
                     work->turnedAround = 0;
                 }
             }
-            if (angle < 0x80) {
-                flags                 = work->sightBody.flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->sightBody.flags = flags;
+            if (yawError < GOLEM_PAWN_ROOK_ENGAGE_SIGHT_YAW_LIMIT) {
+                sightFlags            = work->sightBody.flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+                work->sightBody.flags = sightFlags;
                 if (work->playerSpotted != 0) {
-                    work->sightBody.flags = (u16)(flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)));
-                    work->step            = 1;
+                    work->sightBody.flags = (u16)(sightFlags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)));
+                    work->step            = GOLEM_PAWN_ROOK_ENGAGE_PICK_ATTACK;
                     work->turnedAround    = 0;
                 }
             }
             break;
-        case 1:
+        // Prefer the close strike; otherwise the Rook can scream before its weapon approach.
+        case GOLEM_PAWN_ROOK_ENGAGE_PICK_ATTACK:
             work->forwardSpeed = 0;
             work->turnRate     = 0;
-            delta->vx          = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            dz                 = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            delta->vz          = dz;
-            dx                 = delta->vx;
-            if (SquareRoot0((dx * dx) + (dz * dz)) < GOLEM_PAWN_ROOK_LUNGE_RANGE) {
+            toPlayer->vx       = gPlayerStatus.coordMtx->t[0] - root->coord.t[0];
+            playerOffsetZ      = gPlayerStatus.coordMtx->t[2] - root->coord.t[2];
+            toPlayer->vz       = playerOffsetZ;
+            playerOffsetX      = toPlayer->vx;
+            if (SquareRoot0((playerOffsetX * playerOffsetX) + (playerOffsetZ * playerOffsetZ)) < GOLEM_PAWN_ROOK_LUNGE_RANGE) {
                 work->behavior = GOLEM_PAWN_ROOK_LUNGE_STATE;
-                work->step     = 0;
+                work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                 work->anim     = GOLEM_PAWN_ROOK_LUNGE_ANIM;
             } else {
 #if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
-                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = random;
-                if (!((random >> 0x10) & ((1 << (work->screamCount + 1)) - 1)) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_SILENCE) &&
+                screamRandom    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = screamRandom;
+                if (!((screamRandom >> 0x10) & ((1 << (work->screamCount + 1)) - 1)) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_SILENCE) &&
                     work->screamCharges != 0) {
                     work->behavior        = GOLEM_PAWN_ROOK_BEHAVIOR_SCREAM;
-                    work->step            = 0;
-                    work->anim            = 0xA;
+                    work->step            = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
+                    work->anim            = GOLEM_PAWN_ROOK_ENGAGE_ANIM_SCREAM;
                     work->timer           = 0;
                     work->screamActive    = 1;
                     work->interruptDamage = 0;
                     work->screamCount++;
                 } else {
                     work->behavior = GOLEM_PAWN_ROOK_WALK_STATE;
-                    work->step     = 0;
+                    work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                     work->anim     = GOLEM_PAWN_ROOK_WALK_ANIM;
                     work->timer    = 0;
                 }
 #else
                 work->behavior = GOLEM_PAWN_ROOK_WALK_STATE;
-                work->step     = 0;
+                work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                 work->anim     = GOLEM_PAWN_ROOK_WALK_ANIM;
                 work->timer    = 0;
 #endif
             }
             break;
-        case 2:
+        // Listen after an attack, then retry facing once the hold expires.
+        case GOLEM_PAWN_ROOK_ENGAGE_LISTEN:
             work->forwardSpeed    = 0;
             work->turnRate        = 0;
-            flags2                = work->sightBody.flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            work->sightBody.flags = flags2;
+            listenSightFlags      = work->sightBody.flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->sightBody.flags = listenSightFlags;
             if (work->playerSpotted != 0) {
-                work->sightBody.flags = (u16)(flags2 & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)));
-                work->anim            = 2;
-                work->step            = 0;
-            } else if (work->animFrame >= 0x60) {
-                delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                delta->vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                work->targetYaw = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
-                yaw2            = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-                work->yaw       = yaw2;
-                deltaYaw2       = work->targetYaw - yaw2;
-                magnitude2      = __builtin_abs(deltaYaw2);
-                if (magnitude2 < 0x800) {
-                    angle = magnitude2;
+                work->sightBody.flags = (u16)(listenSightFlags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)));
+                work->anim            = GOLEM_PAWN_ROOK_ANIM_WALK;
+                work->step            = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
+            } else if (work->animFrame >= GOLEM_PAWN_ROOK_ENGAGE_LISTEN_FRAMES) {
+                toPlayer->vx = gPlayerStatus.coordMtx->t[0] - root->coord.t[0];
+                toPlayer->vz = gPlayerStatus.coordMtx->t[2] - root->coord.t[2];
+                GOLEM_PAWN_ROOK_MEASURE_PLAYER_YAW_GAP(work, root, toPlayer, listenYaw, listenYawDifference, absoluteListenDifference, wrappedListenDifference, yawError);
+                if (yawError >= GOLEM_PAWN_ROOK_ENGAGE_TURN_THRESHOLD) {
+                    work->anim = GOLEM_PAWN_ROOK_ENGAGE_ANIM_TURN;
+                    work->step = GOLEM_PAWN_ROOK_ENGAGE_TURN;
                 } else {
-                    if (deltaYaw2 > 0) {
-                        wrapped2 = 0x1000 - deltaYaw2;
-                    } else {
-                        wrapped2 = deltaYaw2 + 0x1000;
-                    }
-                    angle = wrapped2;
-                }
-                if (angle >= 0x581) {
-                    work->anim = 3;
-                    work->step = 3;
-                } else {
-                    work->anim = 2;
-                    work->step = 0;
+                    work->anim = GOLEM_PAWN_ROOK_ANIM_WALK;
+                    work->step = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                 }
             }
             break;
-        case 3:
+        case GOLEM_PAWN_ROOK_ENGAGE_TURN:
             work->forwardSpeed = 0;
-            work->turnRate     = 0x3B;
-            if (work->animFrame >= 0x23) {
-                work->anim         = 2;
-                work->step         = 0;
+            work->turnRate     = GOLEM_PAWN_ROOK_ENGAGE_TURN_RATE;
+            if (work->animFrame >= GOLEM_PAWN_ROOK_ENGAGE_TURN_FRAMES) {
+                work->anim         = GOLEM_PAWN_ROOK_ANIM_WALK;
+                work->step         = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                 work->turnedAround = 1;
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
+
+#undef GOLEM_PAWN_ROOK_MEASURE_PLAYER_YAW_GAP
 }

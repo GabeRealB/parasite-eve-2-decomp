@@ -1,7 +1,9 @@
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Empty state handler, filling the unused entries 3-5 (6-7 in the Beam Sword
-/// packages) of `gGolemPawnRookStates`.
-void golemPawnRookNopState(Task* task)
+/// Leaves the body unchanged for behavior slots unavailable in this carrier.
+///
+/// Used for sword or launcher handlers the other weapon lacks and for the Pawn's
+/// absent Silence scream. The callback argument is unused.
+static void _golemPawnRookNopState(Task* task)
 {
 }

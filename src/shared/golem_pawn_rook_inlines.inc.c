@@ -24,68 +24,80 @@ static __inline__ void golemPawnRookSpawnDust(Task* actor)
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
-/// Takes a pending reaction: while `downedPose` is 0, bit 1 of the spawn
-/// context's `reactionFlags` is cleared and the enemy switches to entry 0xA of
-/// the `behavior` table with animation 0x14.
-static inline void golemPawnRookApplyReaction(Task* actor)
+/// Consumes a standing GOLEM's pending buildup reaction and enters its hold.
+///
+/// Leaves downed bodies and other reaction bits alone. The body task must have
+/// live GOLEM work and its Enemy spawn record; the buildup handler owns recovery.
+static inline void _golemPawnRookApplyBuildupReaction(Task* actor)
 {
-    Enemy*             spawn;
+    enum { GOLEM_PAWN_ROOK_ANIM_BUILDUP = 0x14 };
+    Enemy*             enemy;
     GolemPawnRookWork* work;
-    u8                 flags;
+    u8                 reactionFlags;
 
-    spawn = actor->spawnArg2.pointer;
-    flags = spawn->reactionFlags;
-    work  = actor->work;
-    if ((flags & ENEMY_REACTION_BUILDUP) && (work->downedPose == 0)) {
-        spawn->reactionFlags = flags & ENEMY_REACTION_BUILDUP_CLEAR;
+    enemy         = actor->spawnArg2.pointer;
+    reactionFlags = enemy->reactionFlags;
+    work          = actor->work;
+    if ((reactionFlags & ENEMY_REACTION_BUILDUP) && (work->downedPose == 0)) {
+        enemy->reactionFlags = reactionFlags & ENEMY_REACTION_BUILDUP_CLEAR;
         work->behavior       = GOLEM_PAWN_ROOK_BEHAVIOR_BUILDUP;
-        work->anim           = 0x14;
-        work->step           = 0;
+        work->anim           = GOLEM_PAWN_ROOK_ANIM_BUILDUP;
+        work->step           = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
         work->buildupActive  = 1;
     }
 }
 
-/// Saves the root coordinate's translation in `prevRootPos`, then
-/// moves it `forwardSpeed` along its facing, raising it by 0x80 while `knockdownStage`
-/// is below 2.
-static inline void golemPawnRookStepRoot(Task* actor)
+/// Saves the body root's position, then applies its horizontal movement and floor step.
+///
+/// forwardSpeed is in parent-coordinate units per frame, multiplied by the root's
+/// 12-fractional-bit forward axis. Positive Y presses a standing or newly falling
+/// body toward the floor; that step ends at knockdownStage 2. Collision resolution
+/// uses the saved position to undo a rejected move on the next frame.
+static inline void _golemPawnRookStepRoot(Task* actor)
 {
-    GfxCoord*          coord;
+    enum {
+        GOLEM_PAWN_ROOK_ROOT_ROTATION_FRACTION_BITS = 12,
+        GOLEM_PAWN_ROOK_ROOT_FLOOR_STEP             = 128,
+        GOLEM_PAWN_ROOK_ROOT_FALLEN_STAGE           = 2,
+    };
+    GfxCoord*          root;
     GolemPawnRookWork* work;
 
-    coord                = actor->extra.tmd->coords;
+    root                 = actor->extra.tmd->coords;
     work                 = actor->work;
-    work->prevRootPos.vx = coord->coord.t[0];
-    work->prevRootPos.vy = coord->coord.t[1];
-    work->prevRootPos.vz = coord->coord.t[2];
-    coord->coord.t[0]   += (s32)(coord->coord.m[0][2] * work->forwardSpeed) >> 0xC;
-    if (work->knockdownStage < 2) {
-        coord->coord.t[1] += 0x80;
+    work->prevRootPos.vx = root->coord.t[0];
+    work->prevRootPos.vy = root->coord.t[1];
+    work->prevRootPos.vz = root->coord.t[2];
+    root->coord.t[0]    += (s32)(root->coord.m[0][2] * work->forwardSpeed) >> GOLEM_PAWN_ROOK_ROOT_ROTATION_FRACTION_BITS;
+    if (work->knockdownStage < GOLEM_PAWN_ROOK_ROOT_FALLEN_STAGE) {
+        root->coord.t[1] += GOLEM_PAWN_ROOK_ROOT_FLOOR_STEP;
     }
-    coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->forwardSpeed) >> 0xC;
+    root->coord.t[2] += (s32)(root->coord.m[2][2] * work->forwardSpeed) >> GOLEM_PAWN_ROOK_ROOT_ROTATION_FRACTION_BITS;
 }
 
-/// Advances animation slots 1..0x12 by one frame, or, when `anim` names a
-/// new animation, restarts the frame count and cross-fades every slot to it
-/// over the animation's `gGolemPawnRookAnimBlendFrames` duration.
-static inline void golemPawnRookTickAnim(Task* actor)
+/// Advances the body's part animations or blends them into a newly requested clip.
+///
+/// The initialized nineteen-slot rig drives slots 1..18, leaving root slot 0 alone.
+/// anim must index the carrier's animation and blend tables. A changed request
+/// resets animFrame; an unchanged request increments it once per call.
+static inline void _golemPawnRookTickAnim(Task* actor)
 {
     GolemPawnRookWork* work;
-    s16                duration;
-    s32                i;
+    s16                blendFrames;
+    s32                slotIndex;
 
     work = actor->work;
     if (work->anim != work->playingAnim) {
         work->playingAnim = work->anim;
         work->animFrame   = 0;
-        duration          = gGolemPawnRookAnimBlendFrames[work->anim];
-        for (i = 1; i < 0x13; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->anim, 0, duration);
+        blendFrames       = gGolemPawnRookAnimBlendFrames[work->anim];
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
         }
     } else {
         work->animFrame++;
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
 }

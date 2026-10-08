@@ -7,12 +7,15 @@ enum {
     GOLEM_PAWN_ROOK_GRENADE_LAUNCH_ROLL  = 16,
 };
 
-/// Places a grenade's launch offset and Euler turn in view-coordinate space.
+/// Detaches a grenade root from the launcher with its launch offset and rotation.
 ///
-/// The roots are live coordinates and placement is call-owned scratch. This
-/// composes both parents before building the relative matrix; its GTE column
-/// products keep the root translation while applying the launch rotation.
-static inline void _golemPawnRookPlaceGrenade(GfxCoord* root, GfxCoord* launcherRoot,
+/// Both roots must be live, distinct coordinates; placement is caller-owned
+/// scratch. Carries the launcher's composed pose into gGfxViewCoord's local
+/// frame and parents the grenade there. The offset is (0, 500, 100) along the
+/// launcher's axes; the additional pitch 128 and roll 16 use 4096 units per turn.
+/// Preserves the translated origin while applying that local rotation. The
+/// spawn handler composes the grenade and manages its task-tree detachment.
+static inline void _golemPawnRookPlaceGrenade(GfxCoord* grenadeRoot, GfxCoord* launcherRoot,
                                               ActorChildPlaceScratch* placement)
 {
     // Place the launch offset and Euler turn relative to the view coordinate.
@@ -20,34 +23,26 @@ static inline void _golemPawnRookPlaceGrenade(GfxCoord* root, GfxCoord* launcher
     actorRenderComposeCoord(&gGfxViewCoord);
     launcherRoot->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(launcherRoot);
-    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &launcherRoot->workm, &root->coord);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &launcherRoot->workm, &grenadeRoot->coord);
 
     placement->operand.vx = 0;
     placement->operand.vy = GOLEM_PAWN_ROOK_GRENADE_LAUNCH_Y;
     placement->operand.vz = GOLEM_PAWN_ROOK_GRENADE_LAUNCH_Z;
-    gte_SetRotMatrix(&root->coord);
+    gte_SetRotMatrix(&grenadeRoot->coord);
     gte_ldv0(&placement->operand);
     gte_rtv0();
     gte_stlvnl(&placement->offset);
-    root->parent      = &gGfxViewCoord;
-    root->coord.t[0] += placement->offset.vx;
-    root->coord.t[1] += placement->offset.vy;
-    root->coord.t[2] += placement->offset.vz;
+    grenadeRoot->parent      = &gGfxViewCoord;
+    grenadeRoot->coord.t[0] += placement->offset.vx;
+    grenadeRoot->coord.t[1] += placement->offset.vy;
+    grenadeRoot->coord.t[2] += placement->offset.vz;
 
     placement->operand.vx = GOLEM_PAWN_ROOK_GRENADE_LAUNCH_PITCH;
     placement->operand.vy = 0;
     placement->operand.vz = GOLEM_PAWN_ROOK_GRENADE_LAUNCH_ROLL;
     RotMatrix(&placement->operand, &placement->rotation);
-    gte_SetRotMatrix(&root->coord);
-    gte_ldclmv(&placement->rotation);
-    gte_rtir();
-    gte_stclmv(&root->coord);
-    gte_ldclmv(&placement->rotation.m[0][1]);
-    gte_rtir();
-    gte_stclmv(&root->coord.m[0][1]);
-    gte_ldclmv(&placement->rotation.m[0][2]);
-    gte_rtir();
-    gte_stclmv(&root->coord.m[0][2]);
+    // The GTE retains the original basis while its in-place product columns are stored.
+    gte_MulMatrix0(&grenadeRoot->coord, &placement->rotation, &grenadeRoot->coord);
 }
 
 /// Launches a grenade from the attached launcher and starts its independent flight.

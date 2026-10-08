@@ -20,112 +20,122 @@ typedef struct {
 } _GolemPawnRookLaserBeamScratch;
 STATIC_ASSERT_SIZEOF(_GolemPawnRookLaserBeamScratch, 0x48);
 
-/// Draws the aim beam from `arg2` to `arg1` in eight projected steps. Each
-/// step nearer than OTZ 30 is skipped; otherwise the segment's screen normal
-/// (`VectorNormalS`) offsets the ends by a depth-scaled width into two
-/// semi-transparent red-to-black `POLY_G4`s (corner order from
-/// `gGolemPawnRookBeamRibbonCorners`), a red `LINE_F2` core and a blend `DR_TPAGE`.
-void golemPawnRookDrawLaserBeam(Task* arg0, SVECTOR* arg1, SVECTOR* arg2)
+/// Draws a red additive laser sight between two borrowed body-root-space endpoints.
+///
+/// nearEnd starts the beam; farEnd defines its span. The body's root workm must
+/// already be composed for the active view. Seven segments cover seven eighths
+/// of the span, with integer division truncating each step. Segments whose mean
+/// ordering depth is below 30 are skipped. Each visible segment takes two shaded
+/// quads, a centre line and a draw-mode packet from the current primitive arena;
+/// the caller must leave room for up to seven such groups. Scratch is call-owned.
+static void _golemPawnRookDrawLaserBeam(Task* actor, const SVECTOR* farEnd, const SVECTOR* nearEnd)
 {
-    _GolemPawnRookLaserBeamScratch* s;
-    GfxCoord*                       self;
-    POLY_G4*                        poly;
+    enum {
+        GOLEM_PAWN_ROOK_LASER_SUBDIVISIONS         = 8,
+        GOLEM_PAWN_ROOK_LASER_MIN_DEPTH            = 30,
+        GOLEM_PAWN_ROOK_LASER_WIDTH                = 0x900,
+        GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS = 12,
+        GOLEM_PAWN_ROOK_LASER_DRAW_MODE            = 0xE1000620, // Draw-to-display, dithering and additive blend.
+    };
+    _GolemPawnRookLaserBeamScratch* scratch;
+    GfxCoord*                       root;
+    POLY_G4*                        ribbon;
     LINE_F2*                        line;
-    DR_TPAGE*                       page;
-    s32                             i;
-    s32                             j;
-    s32                             depth;
+    DR_TPAGE*                       drawMode;
+    s32                             pointIndex;
+    s32                             ribbonIndex;
+    s32                             segmentDepth;
 
-    s          = SCRATCH_STACK_RESERVE_BLOCK(_GolemPawnRookLaserBeamScratch);
-    self       = arg0->extra.tmd->coords;
-    s->step.vx = (arg1->vx - arg2->vx) / 8;
-    s->step.vy = (arg1->vy - arg2->vy) / 8;
-    s->step.vz = (arg1->vz - arg2->vz) / 8;
-    gte_SetRotMatrix(&self->workm);
-    gte_SetTransMatrix(&self->workm);
-    gte_ldv0(arg2);
-    gte_rtps();
-    gte_stsxy(&s->prevScreen);
-    gte_stszotz(&s->prevDepth);
-    for (i = 1; i < 8; i++) {
-        s->point.vx = arg2->vx + s->step.vx * i;
-        s->point.vy = arg2->vy + s->step.vy * i;
-        s->point.vz = arg2->vz + s->step.vz * i;
-        gte_SetRotMatrix(&self->workm);
-        gte_SetTransMatrix(&self->workm);
-        gte_ldv0(&s->point);
-        gte_rtps();
-        gte_stsxy(&s->screen);
-        gte_stszotz(&s->depth);
-        depth = (s->prevDepth + s->depth) / 2;
-        if (depth < 30) {
-            s->prevScreen = s->screen;
-            s->prevDepth  = s->depth;
+    /// Projects a root-space point to packed screen XY and quarter-Z ordering depth.
+    ///
+    /// root is already composed for this view; point is a borrowed SVECTOR pointer.
+    /// screen/depth are writable s32 lvalues. Arguments must be side-effect-free,
+    /// including through the GTE macros. Captures no locals, changes GTE state and
+    /// expands to a compound statement; undefined below this handler.
+#define GOLEM_PAWN_ROOK_PROJECT_LASER_POINT(root, point, screen, depth) \
+    {                                                                   \
+        gte_SetRotMatrix(&(root)->workm);                               \
+        gte_SetTransMatrix(&(root)->workm);                             \
+        gte_ldv0((point));                                              \
+        gte_rtps();                                                     \
+        gte_stsxy(&(screen));                                           \
+        gte_stszotz(&(depth));                                          \
+    }
+
+    scratch          = SCRATCH_STACK_RESERVE_BLOCK(_GolemPawnRookLaserBeamScratch);
+    root             = actor->extra.tmd->coords;
+    scratch->step.vx = (farEnd->vx - nearEnd->vx) / GOLEM_PAWN_ROOK_LASER_SUBDIVISIONS;
+    scratch->step.vy = (farEnd->vy - nearEnd->vy) / GOLEM_PAWN_ROOK_LASER_SUBDIVISIONS;
+    scratch->step.vz = (farEnd->vz - nearEnd->vz) / GOLEM_PAWN_ROOK_LASER_SUBDIVISIONS;
+    GOLEM_PAWN_ROOK_PROJECT_LASER_POINT(root, nearEnd, scratch->prevScreen, scratch->prevDepth);
+    // Project seven adjacent segments; the final eighth remains undrawn.
+    for (pointIndex = 1; pointIndex < GOLEM_PAWN_ROOK_LASER_SUBDIVISIONS; pointIndex++) {
+        scratch->point.vx = nearEnd->vx + scratch->step.vx * pointIndex;
+        scratch->point.vy = nearEnd->vy + scratch->step.vy * pointIndex;
+        scratch->point.vz = nearEnd->vz + scratch->step.vz * pointIndex;
+        GOLEM_PAWN_ROOK_PROJECT_LASER_POINT(root, &scratch->point, scratch->screen, scratch->depth);
+        segmentDepth = (scratch->prevDepth + scratch->depth) / 2;
+        if (segmentDepth < GOLEM_PAWN_ROOK_LASER_MIN_DEPTH) {
+            scratch->prevScreen = scratch->screen;
+            scratch->prevDepth  = scratch->depth;
             continue;
         }
-        s->span.vz    = 0;
-        s->vertexX[0] = s->prevScreen;
-        s->vertexY[0] = s->prevScreen >> 16;
-        s->vertexX[1] = s->screen;
-        s->vertexY[1] = s->screen >> 16;
-        s->span.vx    = s->vertexX[1] - s->vertexX[0];
-        s->span.vy    = s->vertexY[1] - s->vertexY[0];
-        VectorNormalS(&s->span, &s->point);
-        s->point.vy  *= -1;
-        s->vertexX[2] = s->vertexX[0] + (-(s->point.vy * 0x900) >> 12) / depth;
-        s->vertexX[3] = s->vertexX[1] + (-(s->point.vy * 0x900) >> 12) / depth;
-        s->vertexX[4] = s->vertexX[0] + ((s->point.vy * 9) >> 4) / depth;
-        s->vertexY[2] = s->vertexY[0] + (-(s->point.vx * 0x900) >> 12) / depth;
-        s->vertexY[3] = s->vertexY[1] + (-(s->point.vx * 0x900) >> 12) / depth;
-        s->vertexY[4] = s->vertexY[0] + ((s->point.vx * 9) >> 4) / depth;
-        s->vertexY[5] = s->vertexY[1] + ((s->point.vx * 9) >> 4) / depth;
-        s->vertexX[5] = s->vertexX[1] + ((s->point.vy * 9) >> 4) / depth;
-        for (j = 0; j < 2; j++) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setPolyG4(poly);
-            setSemiTrans(poly, 1);
-            poly->x0 = s->vertexX[gGolemPawnRookBeamRibbonCorners[j][0]];
-            poly->y0 = s->vertexY[gGolemPawnRookBeamRibbonCorners[j][0]];
-            poly->x1 = s->vertexX[gGolemPawnRookBeamRibbonCorners[j][1]];
-            poly->y1 = s->vertexY[gGolemPawnRookBeamRibbonCorners[j][1]];
-            poly->x2 = s->vertexX[gGolemPawnRookBeamRibbonCorners[j][2]];
-            poly->y2 = s->vertexY[gGolemPawnRookBeamRibbonCorners[j][2]];
-            poly->x3 = s->vertexX[gGolemPawnRookBeamRibbonCorners[j][3]];
-            poly->y3 = s->vertexY[gGolemPawnRookBeamRibbonCorners[j][3]];
-            poly->r0 = 0xFF;
-            poly->g0 = 0;
-            poly->b0 = 0;
-            poly->r1 = 0xFF;
-            poly->g1 = 0;
-            poly->b1 = 0;
-            poly->r2 = 0;
-            poly->g2 = 0;
-            poly->b2 = 0;
-            poly->r3 = 0;
-            poly->g3 = 0;
-            poly->b3 = 0;
-            addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
+        // Build two fading ribbons around the projected centre line.
+        scratch->span.vz    = 0;
+        scratch->vertexX[0] = scratch->prevScreen;
+        scratch->vertexY[0] = scratch->prevScreen >> 16;
+        scratch->vertexX[1] = scratch->screen;
+        scratch->vertexY[1] = scratch->screen >> 16;
+        scratch->span.vx    = scratch->vertexX[1] - scratch->vertexX[0];
+        scratch->span.vy    = scratch->vertexY[1] - scratch->vertexY[0];
+        VectorNormalS(&scratch->span, &scratch->point);
+        scratch->point.vy  *= -1;
+        scratch->vertexX[2] = scratch->vertexX[0] + (-(scratch->point.vy * GOLEM_PAWN_ROOK_LASER_WIDTH) >> GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS) / segmentDepth;
+        scratch->vertexX[3] = scratch->vertexX[1] + (-(scratch->point.vy * GOLEM_PAWN_ROOK_LASER_WIDTH) >> GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS) / segmentDepth;
+        scratch->vertexX[4] = scratch->vertexX[0] + ((scratch->point.vy * (GOLEM_PAWN_ROOK_LASER_WIDTH >> 8)) >> (GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS - 8)) / segmentDepth;
+        scratch->vertexY[2] = scratch->vertexY[0] + (-(scratch->point.vx * GOLEM_PAWN_ROOK_LASER_WIDTH) >> GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS) / segmentDepth;
+        scratch->vertexY[3] = scratch->vertexY[1] + (-(scratch->point.vx * GOLEM_PAWN_ROOK_LASER_WIDTH) >> GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS) / segmentDepth;
+        scratch->vertexY[4] = scratch->vertexY[0] + ((scratch->point.vx * (GOLEM_PAWN_ROOK_LASER_WIDTH >> 8)) >> (GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS - 8)) / segmentDepth;
+        scratch->vertexY[5] = scratch->vertexY[1] + ((scratch->point.vx * (GOLEM_PAWN_ROOK_LASER_WIDTH >> 8)) >> (GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS - 8)) / segmentDepth;
+        scratch->vertexX[5] = scratch->vertexX[1] + ((scratch->point.vy * (GOLEM_PAWN_ROOK_LASER_WIDTH >> 8)) >> (GOLEM_PAWN_ROOK_LASER_NORMAL_FRACTION_BITS - 8)) / segmentDepth;
+        for (ribbonIndex = 0; ribbonIndex < ARRAY_SIZE(gGolemPawnRookBeamRibbonCorners); ribbonIndex++) {
+            ribbon         = gGpuPrimCursor;
+            gGpuPrimCursor = ribbon + 1;
+            setPolyG4(ribbon);
+            setSemiTrans(ribbon, 1);
+            ribbon->x0 = scratch->vertexX[gGolemPawnRookBeamRibbonCorners[ribbonIndex][0]];
+            ribbon->y0 = scratch->vertexY[gGolemPawnRookBeamRibbonCorners[ribbonIndex][0]];
+            ribbon->x1 = scratch->vertexX[gGolemPawnRookBeamRibbonCorners[ribbonIndex][1]];
+            ribbon->y1 = scratch->vertexY[gGolemPawnRookBeamRibbonCorners[ribbonIndex][1]];
+            ribbon->x2 = scratch->vertexX[gGolemPawnRookBeamRibbonCorners[ribbonIndex][2]];
+            ribbon->y2 = scratch->vertexY[gGolemPawnRookBeamRibbonCorners[ribbonIndex][2]];
+            ribbon->x3 = scratch->vertexX[gGolemPawnRookBeamRibbonCorners[ribbonIndex][3]];
+            ribbon->y3 = scratch->vertexY[gGolemPawnRookBeamRibbonCorners[ribbonIndex][3]];
+            setRGB0(ribbon, 0xFF, 0, 0);
+            setRGB1(ribbon, 0xFF, 0, 0);
+            setRGB2(ribbon, 0, 0, 0);
+            setRGB3(ribbon, 0, 0, 0);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(segmentDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), ribbon);
         }
         line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
         setLineF2(line);
         setSemiTrans(line, 1);
-        line->x0 = s->prevScreen;
-        line->y0 = s->prevScreen >> 16;
-        line->x1 = s->screen;
-        line->y1 = s->screen >> 16;
-        line->r0 = 0xFF;
-        line->g0 = 0;
-        line->b0 = 0;
-        addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), line);
-        page           = gGpuPrimCursor;
-        gGpuPrimCursor = page + 1;
-        setlen(page, 1);
-        page->code[0] = 0xE1000620;
-        addPrim((&gGpuCurrentOt[((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), page);
-        s->prevScreen = s->screen;
-        s->prevDepth  = s->depth;
+        line->x0 = scratch->prevScreen;
+        line->y0 = scratch->prevScreen >> 16;
+        line->x1 = scratch->screen;
+        line->y1 = scratch->screen >> 16;
+        setRGB0(line, 0xFF, 0, 0);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(segmentDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), line);
+        drawMode       = gGpuPrimCursor;
+        gGpuPrimCursor = drawMode + 1;
+        setlen(drawMode, 1);
+        drawMode->code[0] = GOLEM_PAWN_ROOK_LASER_DRAW_MODE;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(segmentDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), drawMode);
+        scratch->prevScreen = scratch->screen;
+        scratch->prevDepth  = scratch->depth;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_GolemPawnRookLaserBeamScratch);
+
+#undef GOLEM_PAWN_ROOK_PROJECT_LASER_POINT
 }

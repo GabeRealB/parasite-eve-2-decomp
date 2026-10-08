@@ -63,7 +63,7 @@
 extern s32 gGolemPawnRookVoiceCues[];
 
 /// Per-animation frame marks: row `anim` holds the frame the 0x1C, 0x28
-/// and 0x7A marks of `golemPawnRookLungeStrikeState` are measured from.
+/// and 0x7A marks of `_golemPawnRookLauncherStrikeState` are measured from.
 extern s16 gGolemPawnRookAnimBlendFrames[];
 
 /// The body objects' variant flag comes from `gGolemPawnRookAttacks`.
@@ -1232,16 +1232,16 @@ AnimationSet* gGolemPawnRookAnimSets[31] = {
 TaskFunc gGolemPawnRookStates[15] = {
     _golemPawnRookIdleState,
     _golemPawnRookPatrolState,
-    golemPawnRookLungeCycle,
-    golemPawnRookNopState,
-    golemPawnRookNopState,
+    _golemPawnRookEngageState,
+    _golemPawnRookNopState,
+    _golemPawnRookNopState,
     golemPawnRookSilenceScreamState,
     golemPawnRookCompanionCycle,
-    golemPawnRookLungeStrikeState,
+    _golemPawnRookLauncherStrikeState,
     _golemPawnRookStaggerState,
-    golemPawnRookRecoilState,
+    _golemPawnRookRecoilState,
     _golemPawnRookBuildupState,
-    golemPawnRookKnockdownState,
+    _golemPawnRookKnockdownState,
     _golemPawnRookDownedHitState,
     _golemPawnRookCollapseState,
     _golemPawnRookDownedDeathState,
