@@ -50,7 +50,7 @@ and only some of it is debt.
   raw         inline asm from no macro at all: hand-written `lw`/`mfc2`/`%hi`
               blocks sitting in the C. The most severe of the three.
 
-Scored on a naive `asm|volatile` grep, `Gp_DrawActorTmdFlagged` comes out the
+Scored on a naive `asm|volatile` grep, `actorRenderComposeAndDrawFlaggedModels` comes out the
 worst function in the tree - and nearly all of that is ordinary graphics code.
 
 Requires the libclang Python bindings, which are deliberately not in

@@ -385,29 +385,37 @@ static __inline__ void _viewApplyCameraCursor(const ViewCamera* cursor, MATRIX* 
 
 /// Uploads the radar footprint's sixteen RGB555 entries for a scaled radius.
 ///
-/// scaledRange uses eight fractional bits per pixel; the radial texture starts
-/// at a four-pixel bias. Palette entries remain borrowed until GPU consumption.
+/// `scaledRange` is a signed radius with eight fractional bits per pixel,
+/// already adjusted for radar zoom. Clamps the radius to 19 pixels, floors it
+/// and subtracts the texture's four-pixel bias, then clamps the edge index to
+/// at least one. Indices before that edge are active; the edge gets a dimmer
+/// colour unless it is the final entry, which always remains transparent.
+/// Negative ranges therefore use the same minimum footprint as small ranges.
+///
+/// Uploads all sixteen RGB555 entries to (32 VRAM words, 242 rows), one row
+/// high. The global palette and transfer rectangle must remain unchanged until
+/// GPU consumption; the palette's word alignment serves the SDK upload API.
 static inline void _hudUploadRadarRangePalette(s32 scaledRange)
 {
-    s32 rangePaletteIndex;
+    s32 paletteEdgeIndex;
     s32 paletteIndex;
 
-    rangePaletteIndex = scaledRange;
-    if (rangePaletteIndex > HUD_RADAR_RANGE_FIXED) {
-        rangePaletteIndex = HUD_RADAR_RANGE_FIXED;
+    paletteEdgeIndex = scaledRange;
+    if (paletteEdgeIndex > HUD_RADAR_RANGE_FIXED) {
+        paletteEdgeIndex = HUD_RADAR_RANGE_FIXED;
     }
-    rangePaletteIndex >>= HUD_RADAR_POSITION_FRACTION_BITS;
-    rangePaletteIndex  -= HUD_RADAR_PALETTE_RADIUS_BIAS;
-    if (rangePaletteIndex <= 0) {
-        rangePaletteIndex = 1;
+    paletteEdgeIndex >>= HUD_RADAR_POSITION_FRACTION_BITS;
+    paletteEdgeIndex  -= HUD_RADAR_PALETTE_RADIUS_BIAS;
+    if (paletteEdgeIndex <= 0) {
+        paletteEdgeIndex = 1;
     }
     for (paletteIndex = 0; paletteIndex < ARRAY_SIZE(D_80114BB0); paletteIndex++) {
-        if (paletteIndex < rangePaletteIndex) {
+        if (paletteIndex < paletteEdgeIndex) {
             D_80114BB0[paletteIndex] = HUD_RADAR_PALETTE_ACTIVE;
         } else {
             D_80114BB0[paletteIndex] = HUD_RADAR_PALETTE_INACTIVE;
         }
-        if (paletteIndex == rangePaletteIndex && paletteIndex != ARRAY_SIZE(D_80114BB0) - 1) {
+        if (paletteIndex == paletteEdgeIndex && paletteIndex != ARRAY_SIZE(D_80114BB0) - 1) {
             D_80114BB0[paletteIndex] = HUD_RADAR_PALETTE_EDGE;
         }
     }
@@ -415,6 +423,7 @@ static inline void _hudUploadRadarRangePalette(s32 scaledRange)
     D_80114BD0.y = HUD_RADAR_RANGE_PALETTE_Y_ROWS;
     D_80114BD0.w = ARRAY_SIZE(D_80114BB0);
     D_80114BD0.h = 1;
+    // LoadImage consumes RGB555 halfwords through its word-oriented payload API.
     LoadImage(&D_80114BD0, (u_long*)D_80114BB0);
 }
 

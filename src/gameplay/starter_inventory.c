@@ -78,15 +78,20 @@ InventoryItemRange* Gp_ScanPtrs[12] = { &D_8010CA2C, &D_8010D524, &D_8010D528, &
 
 /// Stores carried extras and converts selected training equipment before the reset.
 ///
-/// The borrowed ranges must be disjoint and backed by live writable tables.
+/// `carriedTable` is the readable table selected by `carriedRange`; the complete
+/// range must fit it. `storedRange` selects a disjoint, live writable range.
+/// Descriptors and carried rows remain unchanged. Standard training gear is
+/// omitted; each MP5A5 becomes one Ringer's Solution, Grenade Pistol one Protein
+/// Capsule, and Tactical Vest one Belt Pouch. Other occupied rows contribute
+/// their item id and quantity, without carrying over attachment positions.
 /// Transfers can fail without stopping the pass; the caller still clears carried rows.
-static inline void _inventoryStoreStarterExtras(const InventoryItemRange* carriedRange, const InventoryItemRange* storedRange, InventoryItemRow* itemTable)
+static inline void _inventoryStoreStarterExtras(const InventoryItemRange* carriedRange, const InventoryItemRange* storedRange, const InventoryItemRow* carriedTable)
 {
-    InventoryItemRow* carriedRow;
-    s32               carriedRowIndex;
-    u8                itemId;
+    const InventoryItemRow* carriedRow;
+    s32                     carriedRowIndex;
+    u8                      itemId;
 
-    carriedRow      = &itemTable[carriedRange->firstRow];
+    carriedRow      = &carriedTable[carriedRange->firstRow];
     carriedRowIndex = 0;
     if (carriedRange->rowCount != 0) {
         do {

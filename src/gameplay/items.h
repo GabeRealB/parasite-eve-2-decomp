@@ -307,9 +307,17 @@ void inventoryUpdateIceBag(void);
 
 void func_800B8014(void);
 
-/// Moves the item at scan slot `arg1` onto slot `arg2`, shifting the
-/// occupied rows between them toward the hole left at `arg1`.
-void Gp_MoveItemSlot(InventoryItemRange* arg0, s32 arg1, s32 arg2);
+/// Moves a complete inventory row to a range-relative slot, preserving occupied-row order.
+///
+/// Both indices must be in 0..`range->rowCount`-1. The readable descriptor
+/// selects a live writable table containing the whole range; it is not changed.
+/// Equal indices leave the table intact. Otherwise the source id and quantity
+/// are cleared, and the occupied run from the destination to the nearest free
+/// row toward the source shifts into that hole. Rows beyond that hole stay put.
+/// The saved four-byte row, including its attachment slot, replaces the
+/// destination. A source row need not be occupied. No bounds checks or pointer
+/// fixups are performed; borrowed row pointers may identify different items afterwards.
+void inventoryMoveItemRow(const InventoryItemRange* range, s32 sourceIndex, s32 destinationIndex);
 
 extern ArmorStats Gp_ModStatAttrs[];
 

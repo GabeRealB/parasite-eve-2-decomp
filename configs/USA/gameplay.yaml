@@ -110,7 +110,7 @@ segments:
       - [0x3FB8, .rodata, player_actor] # effect and player-state dispatch tables through playerStateApplyReactionEffect
       - [0x4268, .rodata, player_state] # player state jump tables and callbacks
       # Code units group related functions where the section layout permits it.
-      - [0x42C0, c, actor_render] # Gp_DrawActorTmdFlagged
+      - [0x42C0, c, actor_render] # actorRenderComposeAndDrawFlaggedModels
       - [0x582C, c, model_objects] # modelObjectAttachTmd
       - [0x7790, c, model_lighting] # tmdXformStreamVertsEnvLayer
       - [0xCF18, c, ending] # Gp_EndingTask

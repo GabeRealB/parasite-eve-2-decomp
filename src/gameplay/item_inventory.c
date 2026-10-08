@@ -352,7 +352,19 @@ extern const u8 D_80096E28[];
 extern const u8 D_80096E38[];
 
 /* Item table a scan window lies in. */
-static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan);
+static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan);
+
+/// Saves a complete moved row and marks its former slot free, retaining the slot metadata.
+///
+/// `rowTable` and `index` are evaluated three times and must have no side
+/// effects; `result` is a disjoint writable InventoryItemRow lvalue. Captures
+/// no locals. Use as a standalone block statement inside braces.
+#define INVENTORY_TAKE_MOVED_ROW(rowTable, index, result) \
+    {                                                     \
+        (result)                   = (rowTable)[(index)]; \
+        (rowTable)[(index)].itemId = INVENTORY_ITEM_NONE; \
+        (rowTable)[(index)].qty    = 0;                   \
+    }
 
 /* Item names and descriptions shared by the inventory tables. */
 const u8 D_80093E68[]   = "\n\n\n\n\n\n";
@@ -987,7 +999,7 @@ void func_800B8014(void)
 }
 
 /* Item table a scan window lies in. */
-static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan)
+static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan)
 {
     InventoryItemRow* table;
 
@@ -1005,44 +1017,44 @@ static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan)
     return table;
 }
 
-void Gp_MoveItemSlot(InventoryItemRange* scan, s32 from, s32 to)
+void inventoryMoveItemRow(const InventoryItemRange* range, s32 sourceIndex, s32 destinationIndex)
 {
-    InventoryItemRow* table;
-    InventoryItemRow  saved;
-    s32               i;
+    InventoryItemRow* rows;
+    InventoryItemRow  movedRow;
+    s32               holeIndex;
 
-    table = _gpScanTable(scan);
-    if (from == to) {
+    rows = _gpScanTable(range);
+    if (sourceIndex == destinationIndex) {
         return;
     }
 
-    from += scan->firstRow;
-    to   += scan->firstRow;
+    // Convert range-relative slots to absolute table indices.
+    sourceIndex      += range->firstRow;
+    destinationIndex += range->firstRow;
 
-    if (from < to) {
-        saved              = table[from];
-        table[from].itemId = INVENTORY_ITEM_NONE;
-        table[from].qty    = 0;
-        for (i = to; from < i; i--) {
-            if (table[i].itemId == INVENTORY_ITEM_NONE) {
+    if (sourceIndex < destinationIndex) {
+        INVENTORY_TAKE_MOVED_ROW(rows, sourceIndex, movedRow);
+        // The nearest free row bounds the occupied run that needs shifting.
+        for (holeIndex = destinationIndex; sourceIndex < holeIndex; holeIndex--) {
+            if (rows[holeIndex].itemId == INVENTORY_ITEM_NONE) {
                 break;
             }
         }
-        for (; i < to; i++) {
-            table[i] = table[i + 1];
+        for (; holeIndex < destinationIndex; holeIndex++) {
+            rows[holeIndex] = rows[holeIndex + 1];
         }
     } else {
-        saved              = table[from];
-        table[from].itemId = INVENTORY_ITEM_NONE;
-        table[from].qty    = 0;
-        for (i = to; i < from; i++) {
-            if (table[i].itemId == INVENTORY_ITEM_NONE) {
+        INVENTORY_TAKE_MOVED_ROW(rows, sourceIndex, movedRow);
+        for (holeIndex = destinationIndex; holeIndex < sourceIndex; holeIndex++) {
+            if (rows[holeIndex].itemId == INVENTORY_ITEM_NONE) {
                 break;
             }
         }
-        for (; to < i; i--) {
-            table[i] = table[i - 1];
+        for (; destinationIndex < holeIndex; holeIndex--) {
+            rows[holeIndex] = rows[holeIndex - 1];
         }
     }
-    table[to] = saved;
+    rows[destinationIndex] = movedRow;
 }
+
+#undef INVENTORY_TAKE_MOVED_ROW

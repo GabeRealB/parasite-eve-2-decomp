@@ -32954,10 +32954,10 @@ The target keeps every case in `$v0` and copies once at the join
 (`addiu v0, %lo(...)` / `lw v0` / `move a3, v0`). Pin `tmp` to `$v0`:
 
 ```c
-register GpItemRec* tmp asm("v0");
-register GpItemRec* table asm("a3");
+register InventoryItemRow* tmp asm("v0");
+register InventoryItemRow* rows asm("a3");
 
-switch (scan->tableId) {
+switch (range->tableId) {
 case 2:
     tmp = Gp_ItemTable2;
     break;
@@ -32965,13 +32965,13 @@ case 1:
     tmp = Gp_ItemTable1;
     break;
 default:
-    tmp = gMcSaveData.itemRows;
+    tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
     break;
 }
-table = tmp;
+rows = tmp;
 ```
 
-`Gp_MoveItemSlot` is the example.
+`inventoryMoveItemRow` is the example.
 
 ## Write the join dest through `off + table`, not a `rec` temp
 
@@ -32980,21 +32980,21 @@ Two arms that join on a 4-byte struct store compute the dest in `$v0`
 Assigning that address to a walk pointer first moves it to `$v1`:
 
 ```c
-rec  = (GpItemRec*)(off + (s32)table);
-*rec = saved; /* addu v1, v0, a3 / swl 3(v1) */
+rec  = (InventoryItemRow*)(off + (s32)rows);
+*rec = movedRow; /* addu v1, v0, a3 / swl 3(v1) */
 ```
 
 Write the store through the computed address so dest stays in `$v0`:
 
 ```c
-*(GpItemRec*)((arg2 << 2) + (s32)table) = saved;
+*(InventoryItemRow*)((destinationIndex << 2) + (s32)rows) = movedRow;
 ```
 
-`Gp_MoveItemSlot` is the example.
+`inventoryMoveItemRow` is the example.
 
 ## Occupancy walk: goto, not `while`, so the ptr step stays in the continue delay
 
-Walking toward a hole (`if (rec->itemId == 0) break; i--; if (src < i) rec--;`)
+Walking toward a hole (`if (rec->itemId == 0) break; holeIndex--; if (sourceIndex < holeIndex) rec--;`)
 as a `while (rec->itemId != 0)` rotates: the `lbu` moves to the bottom and
 the bound check becomes `beqz` plus a compensating `i++`. The target checks
 at the top and only steps the pointer when continuing:
@@ -33014,16 +33014,16 @@ in the `bnez` delay slot:
 
 ```c
 loop:
-    if (rec->field_0 != 0) {
-        i--;
-        if (src < i) {
+    if (rec->itemId != 0) {
+        holeIndex--;
+        if (sourceIndex < holeIndex) {
             rec--;
             goto loop;
         }
     }
 ```
 
-`Gp_MoveItemSlot` is the example.
+`inventoryMoveItemRow` is the example.
 
 ## Preload `coord->parent` and the LCG addend so they take `$v0` / `$a0`
 

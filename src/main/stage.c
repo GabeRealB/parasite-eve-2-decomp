@@ -598,7 +598,7 @@ static void Display_FlipOtAndDispatch(s32 unused)
         case STAGE_TRANSITION_FILTERED:
             taskExecListForPriority(&gTaskDefaultList, 0x62);
             spriteLinkViewCachedPackets();
-            Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->otBuffer]);
+            actorRenderComposeAndDrawFlaggedModels(&Gpu_OtBuffers[temp->otBuffer]);
             break;
     }
     gGpuCurrentOt = saved;

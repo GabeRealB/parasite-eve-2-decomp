@@ -110,27 +110,34 @@ u16 Gp_PollAreaCdLoads(void)
     return 0;
 }
 
-/// Queues the file of `resource` for loading with the given texture relocation.
-static inline void _areaCdQueueResource(AreaResource* resource, s16 texturePageOffset, s16 clutRowOffset)
+/// Queues an area's global-library base file with its image relocation offsets.
+///
+/// `resource` is borrowed for this call; its file-group selector must be 0..8
+/// and its nonnegative file number must name a catalogued file. The base file's
+/// low index is zero. Offsets retain their low signed byte: X counts 64-word
+/// VRAM pages and CLUT Y counts rows. `cdCmdEnqueue` copies the request before
+/// returning; its ring-capacity contract applies and its slot result is ignored.
+static inline void _loadingQueueAreaResource(const AreaResource* resource, s16 texturePageOffset, s16 clutRowOffset)
 {
-    u8  fileKey[8];
-    u8  fileParams[8];
+    u8  fileKey[4];
+    u8  commandArgs[4];
     s32 fileNumber;
 
+    // Split the decimal file number between the group and hundreds byte.
     fileKey[3] = 0;
     fileKey[0] = 0;
     fileNumber = resource->fileNumber;
     if (fileNumber >= LOADING_FILE_ID_RADIX) {
-        fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
+        commandArgs[0] = fileNumber % LOADING_FILE_ID_RADIX;
+        fileKey[2]     = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
     } else {
-        fileParams[0] = resource->fileNumber;
-        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex];
+        commandArgs[0] = resource->fileNumber;
+        fileKey[2]     = D_8010CAD0[resource->fileGroupIndex];
     }
-    fileParams[1] = 0;
-    fileParams[2] = texturePageOffset;
-    fileParams[3] = clutRowOffset;
-    cdCmdEnqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
+    commandArgs[1] = CD_COMMAND_LOAD_DEFAULT;
+    commandArgs[2] = texturePageOffset;
+    commandArgs[3] = clutRowOffset;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, commandArgs);
 }
 
 u16 func_800AA120(void)
@@ -168,14 +175,14 @@ u16 func_800AA120(void)
                 resource = D_80114C68;
                 if (resource->fileGroupIndex != AREA_RESOURCE_FILE_GROUP_BASE_60) {
                     if (D_80114C72 != 0) {
-                        _areaCdQueueResource(resource, Gp_CdRecCur->texturePageOffset, Gp_CdRecCur->clutRowOffset);
+                        _loadingQueueAreaResource(resource, Gp_CdRecCur->texturePageOffset, Gp_CdRecCur->clutRowOffset);
                     } else {
-                        _areaCdQueueResource(resource, 0, 0);
+                        _loadingQueueAreaResource(resource, 0, 0);
                     }
                     D_80114C70++;
                     break;
                 } else if (D_80114C72 != 0) {
-                    _areaCdQueueResource(resource, Gp_CdRecCur->texturePageOffset, Gp_CdRecCur->clutRowOffset);
+                    _loadingQueueAreaResource(resource, Gp_CdRecCur->texturePageOffset, Gp_CdRecCur->clutRowOffset);
                     D_80114C70++;
                     break;
                 } else {

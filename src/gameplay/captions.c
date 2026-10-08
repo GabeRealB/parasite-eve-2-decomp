@@ -534,15 +534,21 @@ void func_800E44A0(Task* task)
     }
 }
 
-/// Queues the CAP box's two gradient passes and single drawing-mode packet.
+/// Queues two translucent black-to-green gradients behind the CAP text.
 ///
-/// Uses cached screen-pixel left/height metrics and the live vertical shake.
+/// Uses cached screen-pixel left/height metrics and the live vertical shake;
+/// coordinates narrow to signed halfword pixels. The draw-mode command precedes
+/// both gradients in the GPU chain, selecting dithering and average blending.
 /// Requires writable primitive storage for two G4s and one DR_MODE, plus OT 3;
 /// those packets remain live through GPU completion. The final command has one
 /// payload word even though DR_MODE reserves space for two.
 static inline void _capDrawTextBackground(void)
 {
-    enum { CAP_TEXT_BACKGROUND_DRAW_MODE = 0xE100020A };
+    enum { CAP_TEXT_BACKGROUND_DRAW_MODE    = 0xE100020A,
+           CAP_TEXT_BACKGROUND_OT_INDEX     = 3,
+           CAP_TEXT_BACKGROUND_BOTTOM_GREEN = 0x40,
+           CAP_TEXT_BACKGROUND_BOTTOM_BLUE  = 0x20,
+           CAP_TEXT_BACKGROUND_MODE_WORDS   = 1 };
     POLY_G4* background;
     POLY_G4* backgroundCopy;
     DR_MODE* backgroundDrawMode;
@@ -553,8 +559,8 @@ static inline void _capDrawTextBackground(void)
     setSemiTrans(background, 1);
     setRGB0(background, 0, 0, 0);
     setRGB1(background, 0, 0, 0);
-    setRGB2(background, 0, 0x40, 0x20);
-    setRGB3(background, 0, 0x40, 0x20);
+    setRGB2(background, 0, CAP_TEXT_BACKGROUND_BOTTOM_GREEN, CAP_TEXT_BACKGROUND_BOTTOM_BLUE);
+    setRGB3(background, 0, CAP_TEXT_BACKGROUND_BOTTOM_GREEN, CAP_TEXT_BACKGROUND_BOTTOM_BLUE);
     background->x0 = (u16)D_801155B2 - CAP_TEXT_BOX_LEFT_X_OFFSET;
     background->y0 = (CAP_TEXT_BOX_BOTTOM_Y - (u16)D_801155B6) - gDisplayState.vramYOffset;
     background->x1 = (u16)D_801155B2 - D_801155B2 * 2 + CAP_TEXT_BOX_RIGHT_X_OFFSET;
@@ -563,16 +569,16 @@ static inline void _capDrawTextBackground(void)
     background->y2 = CAP_TEXT_BOX_BOTTOM_Y - gDisplayState.vramYOffset;
     background->x3 = (u16)D_801155B2 - D_801155B2 * 2 + CAP_TEXT_BOX_RIGHT_X_OFFSET;
     background->y3 = CAP_TEXT_BOX_BOTTOM_Y - gDisplayState.vramYOffset;
-    addPrim(&gGpuCurrentOt[3], background);
+    addPrim(&gGpuCurrentOt[CAP_TEXT_BACKGROUND_OT_INDEX], background);
     backgroundCopy  = gGpuPrimCursor;
     gGpuPrimCursor  = backgroundCopy + 1;
     *backgroundCopy = *background;
-    addPrim(&gGpuCurrentOt[3], backgroundCopy);
+    addPrim(&gGpuCurrentOt[CAP_TEXT_BACKGROUND_OT_INDEX], backgroundCopy);
     backgroundDrawMode = gGpuPrimCursor;
     gGpuPrimCursor     = backgroundDrawMode + 1;
-    setlen(backgroundDrawMode, 1);
+    setlen(backgroundDrawMode, CAP_TEXT_BACKGROUND_MODE_WORDS);
     backgroundDrawMode->code[0] = CAP_TEXT_BACKGROUND_DRAW_MODE;
-    addPrim(&gGpuCurrentOt[3], backgroundDrawMode);
+    addPrim(&gGpuCurrentOt[CAP_TEXT_BACKGROUND_OT_INDEX], backgroundDrawMode);
 }
 
 /// Draws the current CAP text box and replays its visible text/control codes.

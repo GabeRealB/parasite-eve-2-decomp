@@ -103,10 +103,9 @@ static __inline__ void _actorRenderComposeListedCoords(void)
     D_80071210 += 1;
 }
 
-/// Refreshes every coordinate for this frame, then draws the models the
-/// flagged pass draws.
-void Gp_DrawActorTmdFlagged(GsOT* arg0)
+void actorRenderComposeAndDrawFlaggedModels(GsOT* unusedOt)
 {
+    // Compose both lists before drawing, including models omitted from this pass.
     _actorRenderComposeListedCoords();
     tmdDrawFlaggedModels(PARENT_OF(gTmdList.next, TmdObject, link));
 }

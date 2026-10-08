@@ -95,7 +95,7 @@ static __inline__ void _itemMenuSetReorderableRows(UiList* list);
 
 static inline void _itemMenuHandleMainPanelChild(UiObject* object, UiObject* childObject, s32 childResult);
 
-static inline void _itemMenuDrawPlayerSummaryContents(const UiObject* object);
+static inline void _itemMenuDrawPlayerSummaryContents(const UiPanel* panel);
 
 static inline void _itemMenuAcceptPanelChild(UiObject* object, UiObject* childObject, s32 beginDestinationSelection);
 
@@ -731,14 +731,20 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
 
 /// Draws the fixed decorations and live statistics in the player-summary panel.
 ///
-/// Borrows the panel and requires menu textures and writable GPU storage.
-static inline void _itemMenuDrawPlayerSummaryContents(const UiObject* object)
+/// Borrows a readable panel; origins and bounds are screen pixels narrowed
+/// into packet halfwords. Requires menu textures, live player/HUD statistics
+/// and writable primitive/OT storage through GPU completion. Decorations use
+/// the panel's signed OT index plus one; the side image bypasses RGB modulation.
+/// The panel is unchanged and no pointer to it is retained.
+static inline void _itemMenuDrawPlayerSummaryContents(const UiPanel* panel)
 {
     enum { ITEM_MENU_SUMMARY_HEADING_CLUT  = 0x3C02,
            ITEM_MENU_SUMMARY_IMAGE_CLUT    = 0x3C40,
            ITEM_MENU_SUMMARY_IMAGE_TPAGE   = 0x9E,
            ITEM_MENU_SUMMARY_SPRITE_CODE   = 0x64,
-           ITEM_MENU_SUMMARY_RAW_QUAD_CODE = 0x2D };
+           ITEM_MENU_SUMMARY_RAW_QUAD_CODE = 0x2D,
+           ITEM_MENU_SUMMARY_HEADING_WORDS = sizeof(SPRT) / sizeof(u32) - 1,
+           ITEM_MENU_SUMMARY_IMAGE_WORDS   = sizeof(POLY_FT4) / sizeof(u32) - 1 };
     SPRT*     headingSprite;
     POLY_FT4* playerImageQuad;
     s32       headingColorRgb;
@@ -750,42 +756,42 @@ static inline void _itemMenuDrawPlayerSummaryContents(const UiObject* object)
     headingColorRgb   = ITEM_MENU_STAT_TEXT_COLOR;
     headingSprite     = gGpuPrimCursor;
     gGpuPrimCursor    = headingSprite + 1;
-    headingSprite->x0 = object->panel.contentOriginX.unsignedValue + object->panel.contentRight.unsignedValue - 0x72;
+    headingSprite->x0 = panel->contentOriginX.unsignedValue + panel->contentRight.unsignedValue - 0x72;
     {
         s32 headingTop;
-        headingTop          = object->panel.bounds.unsignedRect.y;
+        headingTop          = panel->bounds.unsignedRect.y;
         headingSprite->u0   = 0x38;
         headingSprite->v0   = 0x60;
         headingSprite->w    = 0x40;
         headingSprite->h    = 8;
         headingSprite->clut = ITEM_MENU_SUMMARY_HEADING_CLUT;
-        setlen(headingSprite, 4);
+        setlen(headingSprite, ITEM_MENU_SUMMARY_HEADING_WORDS);
         GPU_PRIMITIVE_COLOR_WORD(headingSprite, 0) = headingColorRgb;
         setcode(headingSprite, ITEM_MENU_SUMMARY_SPRITE_CODE);
         headingSprite->y0 = headingTop + 3;
-        addPrim(gGpuCurrentOt + object->panel.otIndex.signedValue + 1, headingSprite);
+        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, headingSprite);
     }
-    uiQueueTexturePage(object->panel.otIndex.signedValue + 1, 0);
+    uiQueueTexturePage(panel->otIndex.signedValue + 1, GPU_BLEND_AVERAGE);
 
     playerImageQuad     = gGpuPrimCursor;
-    imageX              = object->panel.bounds.unsignedRect.x + object->panel.bounds.unsignedRect.w;
+    imageX              = panel->bounds.unsignedRect.x + panel->bounds.unsignedRect.w;
     imageRight          = imageX - 1;
     imageX              = imageX - 0x32;
     gGpuPrimCursor      = playerImageQuad + 1;
     playerImageQuad->x0 = playerImageQuad->x2 = imageX;
     playerImageQuad->x1 = playerImageQuad->x3 = imageRight;
-    imageTop                                  = object->panel.bounds.unsignedRect.y;
+    imageTop                                  = panel->bounds.unsignedRect.y;
     playerImageQuad->y0 = playerImageQuad->y1 = imageTop + 2;
     playerImageQuad->y2 = playerImageQuad->y3 = imageTop + 0x40;
     setUVWH(playerImageQuad, 0, 0x80, 0x31, 0x3E);
     playerImageQuad->clut  = ITEM_MENU_SUMMARY_IMAGE_CLUT;
     playerImageQuad->tpage = ITEM_MENU_SUMMARY_IMAGE_TPAGE;
-    setlen(playerImageQuad, 9);
+    setlen(playerImageQuad, ITEM_MENU_SUMMARY_IMAGE_WORDS);
     setcode(playerImageQuad, ITEM_MENU_SUMMARY_RAW_QUAD_CODE);
-    addPrim(gGpuCurrentOt + object->panel.otIndex.signedValue + 1, playerImageQuad);
-    uiDrawVerticalSeparator(&(object)->panel, object->panel.contentTop.signedValue - 3, object->panel.contentBottom.signedValue + 2, object->panel.contentRight.signedValue - 0x32);
-    uiDrawHorizontalSeparator(&(object)->panel, object->panel.contentLeft.signedValue - 2, object->panel.contentRight.signedValue - 0x32, object->panel.contentTop.signedValue + 8);
-    itemMenuDrawPlayerStats(&(object)->panel, 0xB);
+    addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, playerImageQuad);
+    uiDrawVerticalSeparator(panel, panel->contentTop.signedValue - 3, panel->contentBottom.signedValue + 2, panel->contentRight.signedValue - 0x32);
+    uiDrawHorizontalSeparator(panel, panel->contentLeft.signedValue - 2, panel->contentRight.signedValue - 0x32, panel->contentTop.signedValue + 8);
+    itemMenuDrawPlayerStats(panel, 0xB);
 }
 
 void itemMenuPlayerSummaryTask(Task* task)
@@ -803,7 +809,7 @@ void itemMenuPlayerSummaryTask(Task* task)
         Gp_HpMpWork.mp = player->mp;
         task->state    = task->state + 1;
     }
-    _itemMenuDrawPlayerSummaryContents(object);
+    _itemMenuDrawPlayerSummaryContents(&object->panel);
 }
 
 void itemMenuArmorSummaryTask(Task* task)
@@ -1353,7 +1359,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (idx1 >= 0) {
                 if (idx2 >= 0) {
-                    Gp_MoveItemSlot(scan2, idx1, idx2);
+                    inventoryMoveItemRow(scan2, idx1, idx2);
                 }
             }
             Gp_ItemOrderMode = 0;

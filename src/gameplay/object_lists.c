@@ -290,8 +290,11 @@ s32 worldCollisionSegmentOccluded(const SVECTOR* segmentStart, const SVECTOR* se
 
 /// Dispatches one body-kind rule with its prescribed argument order.
 ///
-/// Bodies remain borrowed from live lists. Passes the selected handler slot
-/// through unchanged and ignores the handler's return value.
+/// `rule` must select an installed handler slot 0..4 matching the bodies'
+/// initialized shapes. Any nonzero swap flag exchanges the arguments. Bodies
+/// are borrowed and writable for contact recording; handlers must preserve
+/// their live lists' links. Passes the u16 slot as the handler's s32 third
+/// argument and ignores its return value. Retains no pointers.
 static inline void _worldCollisionDispatchBodyPair(const WorldCollisionPairRule* rule, WorldCollisionBody* firstBody, WorldCollisionBody* secondBody)
 {
     u16 swapBodies;

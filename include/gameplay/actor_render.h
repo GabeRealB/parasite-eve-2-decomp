@@ -59,9 +59,27 @@ void actorRenderComposeCoord(GfxCoord* coord);
 /// except the persistent view parent installed in `placed`.
 void actorRenderPlaceCoordOffset(GfxCoord* source, GfxCoord* placed, const SVECTOR* localOffset);
 
-/// Refreshes every coordinate for this frame, then draws the models the
-/// flagged pass draws.
-void Gp_DrawActorTmdFlagged(GsOT* arg0);
+/// Composes attached coordinates, then draws buffered models selected for the flagged pass.
+///
+/// Refreshes every body in `gModelObjectCoordBodyList` and every model's
+/// `partCount` coordinates in `gTmdList`, including undrawn models. Full parent
+/// chains share one rebuild stamp and visit parity; the pass counter advances
+/// once before drawing, even for empty lists. This is a composition pass,
+/// independent of the frame clock.
+///
+/// `unusedOt` is ignored. The caller must select `gGpuCurrentOt` and establish
+/// the depth shift and GTE projection/depth-average settings. Drawing follows
+/// `tmdDrawFlaggedModels`: a non-NULL buffer and `TMD_OBJECT_FLAGGED_PASS` select
+/// a model independently of active-pass exclusion; drawing toggles its buffer half.
+///
+/// Lists, borrowed parents and model resources must stay live and fixed during
+/// the pass. Parent chains must be acyclic; each model supplies its nonnegative
+/// `partCount` coordinates. Clear `composeStamp` after local matrix or parent
+/// changes and before reusing caches composed with an excluded ancestor.
+/// Roots must provide the intended view transform. Buffer bounds, scratch
+/// capacity and GPU packet lifetime follow `tmdDrawFlaggedModels`'s contract.
+/// GTE working registers are left changed.
+void actorRenderComposeAndDrawFlaggedModels(GsOT* unusedOt);
 
 /// Composes attached coordinates, then draws buffered models enabled for the active pass.
 ///
