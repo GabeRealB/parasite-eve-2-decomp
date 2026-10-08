@@ -565,13 +565,13 @@ static void _playerActorTickDamage(Task* task);
 
 static void _playerActorTickScripted(Task* task);
 
-static void func_80108FA0(Task* arg0);
+static void _playerActorNormalState0(Task* task);
 
 static void _playerActorNormalState1(Task* task);
 
 static void _playerActorUpdateAimExit(Task* task);
 
-static void func_80109138(Task* arg0);
+static void _playerActorNormalState4(Task* task);
 
 static void _playerActorTickDamageReaction(Task* task);
 
@@ -596,8 +596,6 @@ static void _playerActorTickScriptedPresentation(Task* task);
 static void _playerActorScriptedState9(Task* task);
 
 static void _playerActorUpdateTurnYawOffset(Task* task);
-
-static void func_80109818(Task* arg0);
 
 static inline s32 _playerActorClampHitEffectLevel(s32 hitEffectLevel);
 
@@ -8409,11 +8407,11 @@ static const TaskFuncTable3 Gp_PlayerModeFns = { {
 
 /// `state` dispatcher copied by `_playerActorTickNormal`.
 static const TaskFuncTable8 D_8009794C = { {
-    func_80108FA0,
+    _playerActorNormalState0,
     _playerActorNormalState1,
     _playerActorNormalState2,
     _playerActorUpdateAimExit,
-    func_80109138,
+    _playerActorNormalState4,
     _playerActorNormalState5,
     _playerActorNormalState6,
     _playerActorUpdateParalysis,
@@ -9878,13 +9876,15 @@ void playerActorEnterReload(Task* task, s32 loadSelection, s32 reloadSource)
     playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_RELOAD_BLEND_FRAMES);
 }
 
-/// Selects the player's release/charge/cast clip family from the current attachment id.
+/// Selects the native release/charge/cast clip family for the current attachment.
 ///
-/// Writes `actionArgument` (0 sets 26..28, 1 sets 29..31, 2 sets 42..44).
-/// Each family supplies release, charge and cast clips, in that order.
-/// Items select 0 for tens digit 1 and 1 otherwise; spells select 2 for digit 3,
-/// otherwise 1 below 300 and 0 at or above it.
-/// Borrows live player work and attachment state without starting playback.
+/// Borrows writable `GameActor` work and the live attachment's u16 packed ID.
+/// Its decimal tens digit is 0..9, independent of the level in the ones digit.
+/// IDs at or above 601 select family 0 for digit 1, family 1 otherwise;
+/// lower IDs select family 2 for digit 3, otherwise family 1 below 300 or 0
+/// at or above 300. Writes `actionArgument` in 0..2 without starting playback.
+/// Families 0, 1 and 2 supply release, charge and cast sets 26..28, 29..31
+/// and 42..44 respectively; subsequent playback requires the native bank.
 static inline void _playerActorChoosePeClipFamily(GameActor* actor)
 {
     enum {
@@ -10187,11 +10187,18 @@ static void _playerActorTickScripted(Task* task)
     }
 }
 
-static void func_80108FA0(Task* arg0)
+/// Updates ordinary locomotion, accepts a held PE action and processes footsteps (normal state 0).
+///
+/// Requires live player work/model, native child playback, attachment/equipment
+/// state and footstep surface, sound and effect resources. Locomotion may enter
+/// aim first; a held attachment then enters PE state 6 and saves that resulting
+/// state for resumption. Footstep cues are processed even on a transition tick.
+/// The normal-mode dispatcher advances animation, facing and movement afterward.
+static void _playerActorNormalState0(Task* task)
 {
-    _playerActorUpdateNormalLocomotion(arg0);
-    _playerActorTryEnterPeAction(arg0);
-    playerActorPlayFootstepCue(arg0);
+    _playerActorUpdateNormalLocomotion(task);
+    _playerActorTryEnterPeAction(task);
+    playerActorPlayFootstepCue(task);
 }
 
 /// Completes a finished normal aim-entry phase and blends into aim locomotion.
@@ -10267,11 +10274,21 @@ static void _playerActorUpdateAimExit(Task* task)
     }
 }
 
-static void func_80109138(Task* arg0)
+/// Drives the equipped weapon attack, vibration and lock selection (normal state 4).
+///
+/// Requires live player work/model/playback, weapon index 0..32 and that slot's
+/// attack code loaded. Posts port 0's variable-motor preset whenever the attack
+/// has cleared the rumble latch, then applies target-selection input. Borrowed
+/// target nodes must stay live; selection requires a non-NULL scan result.
+/// Vibration and selection still run when the weapon handler changes state;
+/// the normal-mode dispatcher advances animation, facing and movement afterward.
+static void _playerActorNormalState4(Task* task)
 {
-    _playerActorDispatchWeaponAttack(arg0);
-    _playerActorPostVibrationPreset(arg0, 0);
-    _playerActorUpdateLockTargetFromPad(arg0);
+    enum { PLAYER_ACTOR_ATTACK_VIBRATION_PRESET = 0 };
+
+    _playerActorDispatchWeaponAttack(task);
+    _playerActorPostVibrationPreset(task, PLAYER_ACTOR_ATTACK_VIBRATION_PRESET);
+    _playerActorUpdateLockTargetFromPad(task);
 }
 
 /// Dispatches damage presentation for player hit-region selectors 0, 1 and 2.
@@ -10680,18 +10697,32 @@ static void _playerActorUpdateTurnYawOffset(Task* task)
 #undef PLAYER_ACTOR_RECENTER_TURN_YAW
 }
 
-static void func_80109818(Task* arg0)
+/// Prepares stopped weapon-attack control and selects return-to-aim animation handling.
+///
+/// Requires writable live `GameActor` work. Selects normal state 4, disables
+/// movement and turning, and clears the attack phase and rumble latch.
+/// Animation controller 5 returns to aim locomotion when slot 1's current
+/// linear run ends; subsequent ticks require the equipped attack code and
+/// native playback resources. This entry helper has no callers in this image.
+static void _playerActorEnterWeaponAttack(Task* task)
 {
-    GameActor* inner;
+    enum {
+        PLAYER_ACTOR_ATTACK_STATE                    = 4,
+        PLAYER_ACTOR_ATTACK_MOVEMENT_STOPPED         = 0,
+        PLAYER_ACTOR_ATTACK_TURN_DISABLED            = 0,
+        PLAYER_ACTOR_ATTACK_RETURN_TO_AIM_CONTROLLER = 5,
+        PLAYER_ACTOR_ATTACK_PHASE_START              = 0,
+    };
+    GameActor* actor;
 
-    inner                 = arg0->work;
-    inner->mode           = GAME_ACTOR_MODE_NORMAL;
-    inner->state          = 4;
-    inner->movementMode   = 0;
-    inner->turnRateIndex  = 0;
-    inner->animationState = 5;
-    inner->statePhase     = 0;
-    inner->rumblePosted   = 0;
+    actor                 = task->work;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->state          = PLAYER_ACTOR_ATTACK_STATE;
+    actor->movementMode   = PLAYER_ACTOR_ATTACK_MOVEMENT_STOPPED;
+    actor->turnRateIndex  = PLAYER_ACTOR_ATTACK_TURN_DISABLED;
+    actor->animationState = PLAYER_ACTOR_ATTACK_RETURN_TO_AIM_CONTROLLER;
+    actor->statePhase     = PLAYER_ACTOR_ATTACK_PHASE_START;
+    actor->rumblePosted   = 0;
 }
 
 /// Caps the player's damage-derived hit-effect level at 2.
