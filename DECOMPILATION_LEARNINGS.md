@@ -26691,28 +26691,28 @@ while (1) {
 A `for (; cond; slot++)` or `while (cond) slot++;` stuck at ~79% with only
 that loop inverted. `attachmentAddTargetContact` is the example.
 
-## Reload the stored field for later `~` / `& 1`, not the source temp
+## Reload the stored button mask when deriving edges and run state
 
-After `field = src;` a later `field & ~other` / `(field >> K) & 1` must read
-*the field*, not `src`. Keeping `src` in a temp lets CSE skip the `move` that
-copies the value before `and` clobbers it; the extra live register then hoists
-an unrelated byte load and the `& 1` rematerializes as a bare `andi` in the
-wrong slot.
+After capturing a session mask into the actor, derive edges and the run bit
+from the stored actor field. Reusing the source temporary lets CSE skip the
+move before `and` clobbers its input and changes the scheduling of an unrelated
+byte load.
 
-Use the stored field for both bitwise ops, and route the `1` through an `s32`
-temp (same wider-constant rule as the CSE entry above):
+The current matched `_playerActorCapturePadState` reads the stored field for
+all three predicates, and tests Cross directly:
 
 ```c
-buttons          = session->padHeld;
-actor->padHeld = buttons;
+heldButtons       = session->padHeld;
+actor->padHeld    = heldButtons;
 actor->padPressed = actor->padHeld & ~actor->previousPadHeld;
 actor->padReleased = actor->previousPadHeld & ~actor->padHeld;
-flag             = 1;
-actor->runButtonHeld = (actor->padHeld >> 6) & flag;
+actor->runButtonHeld = (actor->padHeld & PAD_BUTTON_CROSS) != 0;
 ```
 
-`actor->padPressed = buttons & ~actor->previousPadHeld` (and a literal `& 1`) stuck
-at 84% with only that register move missing. `Gp_CaptureActorPad` is the example.
+The earlier `buttons`-based edge calculation with a literal shifted `& 1`
+stuck at 84% with only a register move missing. Reading the field and routing
+that mask through an `s32` temporary recovered the match then; the direct
+Cross predicate also matches and removes the temporary.
 
 ## Hoist the list-head load before the already-linked early-out
 
@@ -32627,61 +32627,32 @@ if (id != term) {
 Passing `id` into the call becomes `move a2, v1` instead of `lhu a2, 0(v1)`.
 `Gp_SpawnPlaces` is the example.
 
-## Scratch alloc in `$v0`/`$v1`, pin the block, name the 3-arg src
+## Reserve typed scratch, then load the source before staging a zero offset
 
-A downward `SCRATCH_STACK_CURSOR_SLOT` alloc that is then guarded by a NULL check
-wants the head pointer in `$v0` and the subtracted pointer in `$v1`,
-with the store *before* the branch and the saved block copy in the
-`beqz` delay slot:
-
-```
-lui   v0, 0x1F80
-ori   v0, v0, 0x3FC
-lw    s2, 0(v0)
-lw    s3, 0x1C(a0)
-addiu v1, s2, -0x84
-sw    v1, 0(v0)
-lw    v0, 0x90C(s3)
-nop
-beqz  v0, cleanup
- move s1, v1
-```
-
-An unpinned `scratch` / `tmp` pair lands in `$v1`/`$a1` and sinks the
-store into the delay slot. Pin them, then force the block copy so it
-does not become the call's `$a1`:
+A typed scratch-stack reservation can preserve the cursor store before a
+NULL-target branch and the saved block copy in its delay slot. The matched
+`_playerActorAimDirectPitchToLock` uses the ordinary block helper:
 
 ```c
-register void** scratch asm("v0");
-register u8*    tmp asm("v1");
-
-scratch  = SCRATCH_STACK_CURSOR_SLOT;
-head     = *scratch;
-actor    = arg0->actor;
-tmp      = head - 0x84;
-*scratch = tmp;
+actor = task->work;
+scratch = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimPitchScratch);
 if (actor->targetNode != NULL) {
-    block = (_PlayerActorAimPitchScratch*)tmp;
-    __asm__ volatile("" : "+r"(block));
+    weaponCoords = actor->equipmentTasks[1]->extra.tmd->coords;
+    scratch->originOffset.vx = 0;
+    scratch->originOffset.vy = 0;
+    scratch->originOffset.vz = 0;
+    actorRenderPlaceCoordOffset(weaponCoords, &scratch->originCoord,
+                               &scratch->originOffset);
+    ...
+}
+SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimPitchScratch);
 ```
 
-Without the asm, GCC copies `tmp` into `$a1` (the upcoming
-`actorRenderPlaceCoordOffset` dest) and only then into `$s1`. Independent
-`block->originOffset = 0` stores written *before* the field walk emit first and
-leave `addiu a2, head, -0x14` in the jal delay. Name the first call
-argument so those loads exist, then write the zeros after that load:
-
-```c
-src = actor->equipmentTasks[1]->extra.tmd->coords;
-block->originOffset.vx = 0;
-block->originOffset.vy = 0;
-block->originOffset.vz = 0;
-actorRenderPlaceCoordOffset(src, (GfxCoord*)block, (SVECTOR*)(head - 0x14));
-```
-
-`-fschedule-insns` lifts the three `sh zero` into the `equipmentTasks[1]` /
-`extra` / `field_8` load delays and puts the last one in the jal delay
-slot. `Gp_AimPitchDirect` is the example.
+The named source load precedes the independent zero stores, allowing
+`-fschedule-insns` to place those stores in the equipment/model load delays
+and the placement call's delay slot. The typed reservation matches without
+register pins or an asm barrier; those older cursor-allocation experiments
+are superseded for this example.
 
 ## Nested `$v0` pin reloads a field used as both `if` and later index
 
@@ -38144,7 +38115,7 @@ spelling.
 
 When a basic block holds two independent dependency chains, GCC's scheduler
 picks one by priority and there is no source ordering that changes its mind —
-moving the statements around produces byte-identical output. In `Gp_EffCtlTask7F`
+moving the statements around produces byte-identical output. In `effectControlTask7F`
 the block computes a spread from `mem->field_24` *and* advances the global LCG:
 
 ```c
@@ -38213,7 +38184,7 @@ makes GCC emit the shared `move a1, …` / `addiu a3, …` once at the join and
 raises register pressure enough to spill `$s8`. Duplicating the call in each
 branch is what the target compiles from: GCC emits the argument moves per
 branch and cross-jumping merges only the `jal` itself, because the insn before
-the call (`a0`, the differing id) is not common. `Gp_EffCtlTask7F` went from 91%
+the call (`a0`, the differing id) is not common. `effectControlTask7F` went from 91%
 to 96% on this change alone.
 
 ## Pin a loop-invariant pointer with `asm("" : "+r"(p))` to lock its schedule slot and its register
@@ -139031,7 +139002,7 @@ and an instruction belonging to a *later* statement scheduled between the
 compare and its branch. Both say the abs was one insn.
 
 **Fix.** Use the macro in the condition, exactly as the matched
-`Gp_AimPitchDirect` does:
+`_playerActorAimDirectPitchToLock` does:
 
 ```c
 if (ABS(accum + (s16)step) < 0x1F4) {
@@ -149282,7 +149253,7 @@ put the last copy where the image has the block:
   (age < period) goto spawn; } kill(); return; spawn:`) is an early
   `if (flag >= MIN) { kill(); return; }` plus `if (age >= period) { kill();
   return; }` at the later site (`func_800F91AC`, `Gp_EffCtlTask9B`,
-  `Gp_EffCtlTask7F`, `Gp_EffCtlTaskA6`, `effectSpriteTaskF4`, first try each).
+  `effectControlTask7F`, `Gp_EffCtlTaskA6`, `effectSpriteTaskF4`, first try each).
 - **A tail with its own branches merges too** when it is a `static inline`
   called in both arms (`Gp_EffSprTask81`: guard, LCG step, conditional spawn).
 - **`if (a) goto body; <statements>; if (b) { body: ... }`** where the
@@ -153326,7 +153297,7 @@ gfxSetRotIdentity(&coord->coord);
 
 on the first build, with the constant and the pointer locals deleted and the
 neighbouring statements untouched (`effectSpriteTaskE2` and
-`effectControlTask0E` through their init inlines, `Gp_EffCtlTask7F`,
+`effectControlTask0E` through their init inlines, `effectControlTask7F`,
 `effectSpriteTaskA7`, `effectControlTaskAE`, `effectSpriteTask32`,
 `Gp_EffSprTask81`, `func_800F91AC`, `Gp_EffSprTask30`; `func_800FF710` the day
 before). The first store through the coordinate and the rest through

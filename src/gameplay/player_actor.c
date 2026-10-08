@@ -469,7 +469,7 @@ static inline s32 _playerActorGetAimPitchTargetDelta(const GameActor* actor, _Pl
 
 static void _playerActorAimRollToLock(Task* task);
 
-static void Gp_AimPitchDirect(Task* arg0);
+static void _playerActorAimDirectPitchToLock(Task* task);
 
 static void _playerActorTickTextureSequences(Task* task);
 
@@ -477,7 +477,7 @@ static Task* func_80103294(Task* arg0, s32 arg1, s32 arg2);
 
 inline static Task* _playerActorSpawnEquippedWeapon(Task* parent, s32 characterId, s32 weaponId);
 
-static void Gp_CaptureActorPad(Task* arg0);
+static void _playerActorCapturePadState(Task* task);
 
 static void _animationBindPlayerWeaponBank(Task* task);
 
@@ -511,7 +511,7 @@ static s32 _playerActorEnterItemUse(Task* task, s32 unusedMessageId, s32 unusedF
 
 static s32 _animationCopyPlayerBankExtension(Task* unusedTask, s32 unusedMessageId, const AnimationBankCopyRequest* request, s32 unusedSecondArg);
 
-s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg);
+static s32 _playerActorApplyDamage(Task* task, s32 unusedMessageId, s32 attackKey, s32 unusedSecondArg);
 
 static s32 _playerActorSetRunMovement(Task* task, s32 unusedMessageId, s32 runEnabled, s32 unusedSecondArg);
 
@@ -543,7 +543,7 @@ static void Gp_PlayerMode2StateB(Task* arg0);
 
 static void _playerActorTick(Task* task);
 
-static void Gp_ArmLockOnState(Task* arg0);
+static void _playerActorUpdateAimEntry(Task* task);
 
 static void func_80108568(Task* arg0);
 
@@ -990,7 +990,7 @@ TaskMessageEntry Gp_PlayerMsgTable[28] = {
     { GAME_ACTOR_MESSAGE_WALK_STEPS, playerActorWalkSteps },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, _animationCopyPlayerBankExtension },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, _playerActorAwaitButtonPresses },
-    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_ApplyPlayerDamage },
+    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, _playerActorApplyDamage },
     { PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, _playerActorEnterScriptedPresentation },
     { GAME_ACTOR_MESSAGE_RUN_TO, _playerActorRunTo },
     { GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT, _playerActorSetRunMovement },
@@ -3326,12 +3326,12 @@ static void _effectControlTask07State0(Task* task)
     task->state = task->state + 1;
 }
 
-void Gp_EffCtlTask07(Task* arg0)
+void effectControlTask07(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = Gp_EffTask07States;
-    sp.funcs[arg0->state](arg0);
+    stateHandlers = Gp_EffTask07States;
+    stateHandlers.funcs[task->state](task);
 }
 
 void Gp_EffCtlTaskA5(Task* arg0)
@@ -3874,91 +3874,112 @@ static const TaskFuncTable4 Gp_PlayerWorkStates = { {
     _playerActorTeardown,
 } };
 
-void Gp_EffCtlTask7F(Task* arg0)
+/// Chooses one hit-blast offset, consuming three successive shared random draws.
+///
+/// Requires writable work and a positive signed-halfword range. X/Z are centred
+/// by offsetHalfRange; Y remains in 0..range-1, in parent-coordinate units.
+/// Only XYZ are written, each narrowed to s16; vector metadata stays intact.
+static inline void _effectChooseHitBlastOffset(EffectWork* work, s16 offsetRange, s16 offsetHalfRange)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s16         flag;
-    s16         step;
-    s32         temp;
-    s32         span;
-    s16         divisor;
-    s16         half;
-    s32         count;
-    s32         i;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vx   = ((s32)(gRandomLcgState >> 16) % offsetRange) - offsetHalfRange;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vy   = (s32)(gRandomLcgState >> 16) % offsetRange;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vz   = ((s32)(gRandomLcgState >> 16) % offsetRange) - offsetHalfRange;
+}
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+void effectControlTask7F(Task* task)
+{
+    enum {
+        EFFECT_HIT_BLAST_SINGLE_DURATION    = 1,
+        EFFECT_HIT_BLAST_UNITS_PER_EMISSION = 1280,
+        EFFECT_HIT_BLAST_FLAME_SIZE         = 0x300,
+        EFFECT_HIT_BLAST_PUFF_RISE_FLAG     = 0x10000,
+        // Quarter-additive smoke: size 512, period 3, view-rise motion 1.
+        EFFECT_HIT_BLAST_SMOKE_ARGUMENT_BASE = 0xC0013200,
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
+    s16         flameTicks;
+    s32         durationUnits;
+    s32         offsetSpan;
+    s16         offsetRange;
+    s16         offsetHalfRange;
+    s32         burstCount;
+    s32         burstIndex;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
-    if (arg0->state == 0) {
-        coord->parent = mem->parent;
+    if (task->state == EFFECT_DRAW_TASK_NEW) {
+        // Retain the size/duration halves; angle and period count phase ticks here.
+        coord->parent = work->parent;
         gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[0]   = mem->pos.vx;
-        coord->coord.t[1]   = mem->pos.vy;
-        coord->coord.t[2]   = mem->pos.vz;
+        coord->coord.t[0]   = work->pos.vx;
+        coord->coord.t[1]   = work->pos.vy;
+        coord->coord.t[2]   = work->pos.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->state         = 1;
-        mem->scale          = arg0->spawnArg1.halves.low;
-        temp                = arg0->spawnArg1.halves.high;
-        step                = temp;
-        mem->index          = temp;
-        if (step != 1) {
-            step = step * 3;
+        task->state         = EFFECT_DRAW_TASK_ACTIVE;
+        work->scale         = task->spawnArg1.halves.low;
+        durationUnits       = task->spawnArg1.halves.high;
+        flameTicks          = durationUnits;
+        work->index         = durationUnits;
+        if (flameTicks != EFFECT_HIT_BLAST_SINGLE_DURATION) {
+            flameTicks = flameTicks * 3;
         } else {
-            step = 1;
+            flameTicks = EFFECT_HIT_BLAST_SINGLE_DURATION;
         }
-        mem->angle  = step;
-        mem->period = step * 2;
-        mem->step   = mem->scale / 1280;
+        work->angle  = flameTicks;
+        work->period = flameTicks * 2;
+        work->step   = work->scale / EFFECT_HIT_BLAST_UNITS_PER_EMISSION;
     }
     actorRenderComposeCoord(coord);
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
-    if (mem->age >= mem->period) {
-        effectKillTask(mem, arg0);
+    if (work->age >= work->period) {
+        effectKillTask(work, task);
         return;
     }
-    span            = mem->scale >> 1;
-    half            = (u32)span >> 1;
-    divisor         = span;
+    // Keep both signed-halfword range stores and the logical half-range shift.
+    offsetSpan      = work->scale >> 1;
+    offsetHalfRange = (u32)offsetSpan >> 1;
+    offsetRange     = offsetSpan;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16) & 1) {
-        count = mem->step;
+        burstCount = work->step;
     } else {
-        count = 1;
+        burstCount = 1;
     }
-    for (i = 0; i < count; i++) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vx    = ((s32)(gRandomLcgState >> 16) % divisor) - half;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vy    = (s32)(gRandomLcgState >> 16) % divisor;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vz    = ((s32)(gRandomLcgState >> 16) % divisor) - half;
-        if (mem->age < mem->angle) {
+    for (burstIndex = 0; burstIndex < burstCount; burstIndex++) {
+        _effectChooseHitBlastOffset(work, offsetRange, offsetHalfRange);
+        if (work->age < work->angle) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (mem->age < (s32)(gRandomLcgState >> 16) % mem->period) {
-                effectSpawn(EFFECT_ADDITIVE_PUFF, coord, (mem->move.vx & 0x10000) | 0x300,
-                            &mem->move);
+            if (work->age < (s32)(gRandomLcgState >> 16) % work->period) {
+                // The signed X promotion sets the rise flag only on the negative side.
+                effectSpawn(EFFECT_ADDITIVE_PUFF, coord, (work->move.vx & EFFECT_HIT_BLAST_PUFF_RISE_FLAG) | EFFECT_HIT_BLAST_FLAME_SIZE,
+                            &work->move);
             } else {
-                effectSpawn(EFFECT_FIRE_BURST, coord, 0x300, &mem->move);
+                effectSpawn(EFFECT_FIRE_BURST, coord, EFFECT_HIT_BLAST_FLAME_SIZE, &work->move);
             }
         } else {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 16) & 1) {
-                effectSpawn(EFFECT_SMOKE_PUFF, coord, (mem->scale >> 2) + 0xC0013200,
-                            &mem->move);
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, (work->scale >> 2) + EFFECT_HIT_BLAST_SMOKE_ARGUMENT_BASE,
+                            &work->move);
             }
         }
     }
-    mem->age++;
+    work->age++;
 }
 
 void Gp_EffCtlTaskE3(Task* arg0)
@@ -5868,38 +5889,42 @@ void playerActorAimPart6PitchToLock(Task* task, s32 weaponId, s32 minGroundDista
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimPitchScratch);
 }
-#undef PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP
 
-static void Gp_AimPitchDirect(Task* arg0)
+/// Eases independently tracked pitch toward the lock from the weapon's root origin.
+///
+/// Uses a zero local offset. Deltas below 32 angle units are ignored; changes
+/// are limited to 48 units per call and absolute pitch to 640, in 4096 units
+/// per turn. A missing target changes nothing. Requires live actor work,
+/// equipped model 1 and a borrowed target in the world frame beneath the view.
+/// Scratch/GTE state and planar arithmetic must meet the pitch helpers' contracts.
+static void _playerActorAimDirectPitchToLock(Task* task)
 {
+    enum {
+        PLAYER_ACTOR_DIRECT_PITCH_DEAD_ZONE = 0x20,
+        PLAYER_ACTOR_DIRECT_PITCH_LIMIT     = 0x280,
+    };
     GameActor*                   actor;
-    _PlayerActorAimPitchScratch* block;
-    GfxCoord*                    src;
+    _PlayerActorAimPitchScratch* scratch;
+    GfxCoord*                    weaponCoords;
 
-    actor = arg0->work;
-    block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimPitchScratch);
+    actor   = task->work;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimPitchScratch);
     if (actor->targetNode != NULL) {
-        src                    = actor->equipmentTasks[1]->extra.tmd->coords;
-        block->originOffset.vx = 0;
-        block->originOffset.vy = 0;
-        block->originOffset.vz = 0;
-        actorRenderPlaceCoordOffset(src, &block->originCoord, &block->originOffset);
-        block->groundDistance = _playerActorGetAimPitchTargetDelta(actor, block);
-        block->pitch          = ratan2(-block->targetDelta.vy, block->groundDistance);
-        block->pitch         -= actor->directAimPitch;
-        if (ABS(block->pitch) >= 0x20) {
-            if (block->pitch > 0x30) {
-                block->pitch = 0x30;
-            } else if (block->pitch < -0x30) {
-                block->pitch = -0x30;
-            }
-            if (ABS(actor->directAimPitch + block->pitch) <= 0x280) {
-                actor->directAimPitch += block->pitch;
-            }
+        weaponCoords             = actor->equipmentTasks[1]->extra.tmd->coords;
+        scratch->originOffset.vx = 0;
+        scratch->originOffset.vy = 0;
+        scratch->originOffset.vz = 0;
+        actorRenderPlaceCoordOffset(weaponCoords, &scratch->originCoord, &scratch->originOffset);
+        scratch->groundDistance = _playerActorGetAimPitchTargetDelta(actor, scratch);
+        scratch->pitch          = ratan2(-scratch->targetDelta.vy, scratch->groundDistance);
+        scratch->pitch         -= actor->directAimPitch;
+        if (ABS(scratch->pitch) >= PLAYER_ACTOR_DIRECT_PITCH_DEAD_ZONE) {
+            PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch, actor->directAimPitch, PLAYER_ACTOR_DIRECT_PITCH_LIMIT);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimPitchScratch);
 }
+#undef PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP
 
 /// Queues a texture frame in a rectangle relative to the player model's texture page.
 ///
@@ -6228,23 +6253,27 @@ Task* playerActorSpawn(const ActorSpawnTransform* spawnTransform, u16 unusedChar
     return task;
 }
 
-static void Gp_CaptureActorPad(Task* arg0)
+/// Captures session buttons and preserves the actor's preceding input and motion signs.
+///
+/// Requires live GameActor work and session input already remapped/suppressed
+/// for this tick. Press/release edges compare the full 16-bit masks; held
+/// Cross supplies the logical run bit. Snapshots signs before movement derives
+/// their new values. Borrows task and session storage only for this call.
+static void _playerActorCapturePadState(Task* task)
 {
     GameActor* actor;
-    u16        buttons;
-    s32        flag;
+    u16        heldButtons;
 
-    actor                        = arg0->work;
+    actor                        = task->work;
     actor->previousMovementSign  = actor->movementSign;
     actor->previousTurnSign      = actor->turnSign;
     actor->previousPadHeld       = actor->padHeld;
-    buttons                      = gGameSession->padHeld;
+    heldButtons                  = gGameSession->padHeld;
     actor->previousRunButtonHeld = actor->runButtonHeld;
-    actor->padHeld               = buttons;
+    actor->padHeld               = heldButtons;
     actor->padPressed            = actor->padHeld & ~actor->previousPadHeld;
     actor->padReleased           = actor->previousPadHeld & ~actor->padHeld;
-    flag                         = 1;
-    actor->runButtonHeld         = (actor->padHeld >> 6) & flag;
+    actor->runButtonHeld         = (actor->padHeld & PAD_BUTTON_CROSS) != 0;
 }
 
 /// Binds the character's equipped-weapon bank to the player's animation context.
@@ -7424,23 +7453,33 @@ static s32 _animationCopyPlayerBankExtension(Task* unusedTask, s32 unusedMessage
     return 0;
 }
 
-s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg)
+/// Applies a packed enemy attack to HP and reports whether the damage was fatal.
+///
+/// `GAME_ACTOR_MESSAGE_APPLY_DAMAGE` supplies a category-4 attack key: 12-bit
+/// power and a four-bit reaction. Requires live actor/player/session state and
+/// the HP and difficulty domains of `damageComputeReceived`. Cheat mode
+/// bypasses damage.
+/// Fatal damage broadcasts release-hold; a surviving player receives the low
+/// reaction byte, while companion work suppresses that effect. Returns the
+/// fatal reply unchanged. The message id and second payload are unused.
+/// Other key categories leave reaction unwritten; callers must supply category 4.
+static s32 _playerActorApplyDamage(Task* task, s32 unusedMessageId, s32 attackKey, s32 unusedSecondArg)
 {
     GameActor* actor;
-    s32        ret;
-    s32        out;
+    s32        fatalReply;
+    s32        reaction;
 
-    actor = arg0->work;
-    ret   = 0;
+    actor      = task->work;
+    fatalReply = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
-        ret = playerStateApplyHpDamage(damageComputeReceived(arg2, 0, &out, 0));
-        if (ret != 0) {
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
-        } else if (actor->companionWork == 0) {
-            playerStateApplyReactionEffect(arg0, (u8)out);
+        fatalReply = playerStateApplyHpDamage(damageComputeReceived(attackKey, 0, &reaction, 0));
+        if (fatalReply != 0) {
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, 0, ACTOR_MESSAGE_RELEASE_HOLD);
+        } else if (actor->companionWork == NULL) {
+            playerStateApplyReactionEffect(task, (u8)reaction);
         }
     }
-    return ret;
+    return fatalReply;
 }
 
 s32 playerActorAttachToCoord(Task* task, s32 unusedMessageId, GfxCoord* parent, s32 unusedSecondArg)
@@ -9043,37 +9082,56 @@ static void _playerActorTick(Task* task)
     _playerActorTickTextureSequences(task);
 }
 
-static void Gp_ArmLockOnState(Task* arg0)
+/// Completes aim entry or requests aim exit without advancing target tracking.
+///
+/// Requires live actor/native animation resources and a live borrowed target
+/// if selected. Stops movement and samples a target candidate. An unfinished
+/// battle with a candidate, engaged battle, or nonzero saved gate retains aim;
+/// completed entry consumes its transition and blends into aim locomotion.
+/// Without those gates, an exit request releases the lock and starts decay.
+/// The saved gate's broader purpose is unproven.
+static void _playerActorUpdateAimEntry(Task* task)
 {
-    GameActor*       inner;
-    WorldTargetNode* node;
-    s32              flag;
+    enum { PLAYER_ACTOR_AIM_ENTRY_BLEND_FRAMES = 3 };
+    GameActor*       actor;
+    WorldTargetNode* targetCandidate;
 
-    inner               = arg0->work;
-    node                = worldTargetFindLockNode(arg0);
-    inner->movementSign = 0;
-    if ((node != NULL && gSceneCombatState.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || (flag = 1, gSceneCombatState.signals.bytes.battlePhase == flag) ||
+/// Completes a nonzero aim-entry phase, consuming its pending target transition.
+///
+/// Arguments must be stable, side-effect-free pointers; all repeat. Requires
+/// live actor/native playback and a live candidate when non-NULL. Captures
+/// this function's three-frame blend constant; undefined after this function.
+#define PLAYER_ACTOR_COMPLETE_AIM_ENTRY(playerTask, playerWork, lockCandidate)                 \
+    do {                                                                                       \
+        if ((playerWork)->statePhase != 0) {                                                   \
+            sceneEngageBattle(1);                                                              \
+            if ((playerWork)->aimTransitionPending != 0) {                                     \
+                (playerWork)->aimTransitionPending = 0;                                        \
+                if ((lockCandidate) != NULL) {                                                 \
+                    playerActorSetLockTarget((playerTask), (lockCandidate));                   \
+                }                                                                              \
+            }                                                                                  \
+            _playerActorEnterAimLocomotion((playerTask), PLAYER_ACTOR_AIM_ENTRY_BLEND_FRAMES); \
+        }                                                                                      \
+    } while (0)
+
+    actor               = task->work;
+    targetCandidate     = worldTargetFindLockNode(task);
+    actor->movementSign = 0;
+    if ((targetCandidate != NULL && gSceneCombatState.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED ||
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.field_929 != 0) {
-        if (inner->statePhase != 0) {
-            sceneEngageBattle(1);
-            if (inner->aimTransitionPending != 0) {
-                inner->aimTransitionPending = 0;
-                if (node != NULL) {
-                    playerActorSetLockTarget(arg0, node);
-                }
-            }
-            _playerActorEnterAimLocomotion(arg0, 3);
-        }
+        PLAYER_ACTOR_COMPLETE_AIM_ENTRY(task, actor, targetCandidate);
     } else {
-        _playerActorUpdateAimRequest(arg0);
-        if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_EXIT) {
-            inner->aimTransitionPending = 0;
-            inner->aimTrackingState     = flag;
-            playerActorClearLockTarget(arg0);
-            playerActorExitAim(arg0);
+        _playerActorUpdateAimRequest(task);
+        if (actor->aimControl & GAME_ACTOR_AIM_REQUEST_EXIT) {
+            actor->aimTransitionPending = 0;
+            actor->aimTrackingState     = GAME_ACTOR_AIM_TRACKING_DECAY;
+            playerActorClearLockTarget(task);
+            playerActorExitAim(task);
         }
     }
 }
+#undef PLAYER_ACTOR_COMPLETE_AIM_ENTRY
 
 static void func_80108568(Task* arg0)
 {
@@ -10071,9 +10129,11 @@ static inline s32 _playerActorClampHitEffectLevel(s32 hitEffectLevel)
 
 /// Sets an XYZ offset at a motion body's origin, shifted upward for the root body.
 ///
-/// localOffset is writable scratch; actor's recorded motion-body selector is
-/// 0..2. Components use game-coordinate units; vector metadata stays
-/// untouched. The root offset is -400 on Y, all other components are zero.
+/// Borrows writable localOffset and live actor work for this call. The recorded
+/// hit-body byte is interpreted as signed; valid motion-body indices are 0..2.
+/// Only root index 0 selects Y = -400; every other byte selects the zero vector.
+/// Components use game-coordinate units in the chosen body's local frame.
+/// Vector metadata is untouched, and no pointer is retained.
 static inline void _playerActorInitHitOffset(SVECTOR* localOffset, const GameActor* actor)
 {
     enum { PLAYER_ACTOR_HIT_ROOT_OFFSET_Y = -400 };
@@ -10176,17 +10236,22 @@ static void _playerActorTickSparkPuffHit(Task* task)
 
 /// Emits a damage-scaled blast at an already selected player-model coordinate.
 ///
-/// hitEffectLevel is 0..2; size is 192 + 96*level game-coordinate units and
-/// the high spawn half is level+1, controlling emission/lifetime. spawnRecord
-/// must already retain blastCoord, which must outlive the spawned effect.
-/// Requires the live player and effect/graphics/scratch resources.
-static inline void _effectSpawnPlayerHitBlast(EffectSpawnArg* spawnRecord, GfxCoord* blastCoord, s32 hitEffectLevel)
+/// hitEffectLevel is 0..2; size is 192 + 96*level parent-coordinate units.
+/// The high half is level+1: the flame phase lasts 1/6/9 running ticks and the
+/// total lifetime 2/12/18 ticks, followed by release on the next running tick.
+/// Borrows a writable spawnRecord already holding the selected coordinate.
+/// The record may be reused after return; the spawned blast borrows that
+/// coordinate through its lifetime. Requires live player and effect/graphics/
+/// scratch resources.
+static inline void _effectSpawnPlayerHitBlast(EffectSpawnArg* spawnRecord, s32 hitEffectLevel)
 {
     enum {
         EFFECT_PLAYER_HIT_BLAST_SIZE_BASE = 192,
         EFFECT_PLAYER_HIT_BLAST_SIZE_STEP = 96,
     };
+    GfxCoord* blastCoord;
 
+    blastCoord              = spawnRecord->coord;
     spawnRecord->spawnArgLo = (hitEffectLevel * EFFECT_PLAYER_HIT_BLAST_SIZE_STEP) + EFFECT_PLAYER_HIT_BLAST_SIZE_BASE;
     spawnRecord->spawnArgHi = hitEffectLevel + 1;
     effectSpawnHit(EFFECT_HIT_KIND_BLAST, blastCoord, NULL, spawnRecord);
@@ -10233,7 +10298,7 @@ static void _playerActorTickBodyBlastHit(Task* task)
                 spawnRecord->coord = blastCoord;
                 hitEffectLevel     = (u16)((u16)actor->pendingDamage / PLAYER_ACTOR_EFFECT_HIT_DAMAGE_STEP);
                 hitEffectLevel     = _playerActorClampHitEffectLevel(hitEffectLevel);
-                _effectSpawnPlayerHitBlast(spawnRecord, blastCoord, hitEffectLevel);
+                _effectSpawnPlayerHitBlast(spawnRecord, hitEffectLevel);
             } else {
                 actor->stateTimer--;
             }

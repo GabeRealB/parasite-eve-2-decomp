@@ -185,9 +185,29 @@ void playerActorExitAim(Task* task);
 
 void func_800FAA14(Task* arg0);
 
-void Gp_EffCtlTask07(Task* arg0);
+/// Dispatches the persistent PE-effect controller in bank 6 slot 07.
+///
+/// Task state must be 0..2: initialization advances to the attachment-effect
+/// dispatcher, and state 2 releases the task. Copies the three-entry callback
+/// table before dispatch. The active state requires live room/attachment state
+/// and a valid attachment id; it tolerates a missing player task. No task work
+/// or coordinate body is used by this dispatcher.
+void effectControlTask07(Task* task);
 
-void Gp_EffCtlTask7F(Task* arg0);
+/// Emits the hit blast's flame bursts followed by smoke, bank 6 slot 7F.
+///
+/// Requires owned EffectWork and a coordinate body with a live borrowed parent.
+/// The signed low spawn half is the size in parent-coordinate units; active
+/// emission requires size >= 2 so its half-size random range is nonzero. The
+/// signed high half selects flame ticks: 1 gives one, other values give three
+/// times that value, narrowed to s16. Total lifetime is twice the flame phase,
+/// also narrowed to s16; positive phases must fit those halfwords.
+///
+/// Initializes the local transform from the copied spawn offset, composes it
+/// while paused, and advances age only while running. Hidden control suspends
+/// it; cancellation or completed lifetime releases its work and task. Spawned
+/// sprites snapshot placement and offsets and run independently.
+void effectControlTask7F(Task* task);
 
 /// Turns the actor's body yaw toward its lock target beyond a planar dead zone.
 ///

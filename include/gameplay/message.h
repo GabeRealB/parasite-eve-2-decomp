@@ -297,7 +297,7 @@ enum {
     /// that do not implement the hold read `animation` through the generic
     /// animation handler and always return 0.
     GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES = 0x3F8,
-    /// Applies damage to the receiver (`Gp_ApplyPlayerDamage`, `companionApplyDamage`).
+    /// Applies damage to the receiver (`_playerActorApplyDamage`, `companionApplyDamage`).
     GAME_ACTOR_MESSAGE_APPLY_DAMAGE = 0x3F9,
     /// Takes scripted control and runs to borrowed destination XYZ, with optional
     /// `GameActorMoveAnim` clips. The player reads a `VECTOR3` or the leading

@@ -413,7 +413,7 @@ enum {
     EFFECT_ACROPOLIS_FIRE_ESCAPE_FLICKER_LIGHT = EFFECT_ID(EFFECT_TASK_BANK, 0x08C),
     /// Additive 8-frame animated sprite (clut 0x430D) that grows then fades while
     /// rising; spawned with 0x60080 and smoke on special-ammo hits (weaponSlotItem
-    /// 0xE), by Gp_EffCtlTask7F and by the night gas-station explosion.
+    /// 0xE), by effectControlTask7F and by the night gas-station explosion.
     EFFECT_FIRE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x08D),
     /// Hit spark burst: draws the E2 sprite and sprays 0x600E0 then 0x600E1 sparks from
     /// random offsets; spawned by effectSpawnHit hit kinds 7 and 15.

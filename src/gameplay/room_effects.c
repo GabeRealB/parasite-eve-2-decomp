@@ -542,7 +542,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_NONE, 0x4F } }, _roomEffectControllerTask, { NULL } },                                               // 0x004
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsFlashTask, { NULL } },                         // 0x005
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGasStationRoomVisualEffectsFlashTask, { NULL } },                      // 0x006
-    { { { TASK_BODY_NONE, 0x70 } }, Gp_EffCtlTask07, { NULL } },                                                         // 0x007
+    { { { TASK_BODY_NONE, 0x70 } }, effectControlTask07, { NULL } },                                                     // 0x007
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGasStationRoomVisualEffectsTwinTrailTask, { NULL } },                  // 0x008
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGasStationRoomVisualEffectsSparkBurstTask, { NULL } },                 // 0x009
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightBackStreetRoomVisualEffectsFlashTask, { NULL } },                      // 0x00A
@@ -662,7 +662,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask7C, { NULL } },                                                     // 0x07C
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x07D
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyFlameTask, { NULL } },                                     // 0x07E
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask7F, { NULL } },                                                        // 0x07F
+    { { { TASK_BODY_COORD, 0x70 } }, effectControlTask7F, { NULL } },                                                    // 0x07F
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask80, { NULL } },                                                     // 0x080
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask81, { NULL } },                                                        // 0x081
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x082
