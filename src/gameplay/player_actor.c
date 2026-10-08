@@ -8295,7 +8295,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
     }
     if (done != 0) {
         if (actor->actionValue != 0) {
-            Gp_FlushPendingRelated(gPlayerStatus.weapon + 0x7F, actor->stateAux);
+            equipmentLoadPendingConsumable(gPlayerStatus.weapon + 0x7F, actor->stateAux);
         } else {
             equipmentReloadSelectedWeaponConsumable(gPlayerStatus.weapon + 0x7F, actor->stateAux);
         }

@@ -107,16 +107,16 @@ void Gp_HudTask(HudState* hud);
 
 void Gp_ApplyAttachStats(s32 arg0, HudState* hud);
 
-/// Pending flags written by `Gp_ApplyItemUse` and consumed by `Gp_MenuExitCallback`.
+/// Pending flags written by `_itemUseAttachedItem` and consumed by `Gp_MenuExitCallback`.
 /// `Gp_HealPending == 1` requests `taskMessageDispatch(..., 0x402, ...)`.
 extern s32 Gp_HealPending;
 
-/// Attachment slot selected by `func_800D6334` and its child UI descriptor.
+/// Attachment slot selected by `itemMenuArmorAttachmentPanelTask` and its child UI descriptor.
 extern s32 D_8010F884;
 
 extern UiObjectDesc D_8010F8B4;
 
-/// Signed pending item id consumed by `Gp_FlushPendingRelated`. `Gp_ApplyItemUse`
+/// Signed pending item id consumed by `equipmentLoadPendingConsumable`. `_itemUseAttachedItem`
 /// stores the id for the primary consumable pair, its negation for the secondary pair.
 /// `Gp_MenuExitCallback` also consumes it (with `Gp_RelatedPending`) via `playerActorEnterReload`.
 extern s32 Gp_PendingRelatedId;

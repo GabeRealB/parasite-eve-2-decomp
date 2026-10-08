@@ -24831,7 +24831,7 @@ callee, but omitting it drops an instruction and fails the match.
 
 If the callee has no other C callers whose codegen would change, add
 the unused parameter to the real prototype and pass `0`. An unused
-register argument does not change the callee body. `Gp_DrawWeaponLabel` /
+register argument does not change the callee body. `itemMenuAttachmentUseWeaponPanelTask` /
 `uiUpdatePanelContentLayout(..., 0)` is the example.
 
 ## Non-void callee return occupies `$v0` so the next `li` uses `$v1`
@@ -28554,7 +28554,7 @@ GCC 2.8.1 emits `switch` case bodies in **source order**. The jump table
 still indexes by `arg - first`, but the `.rdata` words point at whatever
 label order the bodies were written.
 
-`Gp_ItemIsUnusable` has case 8's `lb` immediately after case 4's `lb`, then
+`_itemIsAttachedItemUnusable` has case 8's `lb` immediately after case 4's `lb`, then
 cases 5 / 6-7. Writing `case 8:` after `case 7:` stuck at 95% with the
 case-8 block inserted after 6-7 and the table slots swapped. Moving
 `case 8:` to sit under `case 4:` matched the table and the instruction
@@ -28612,9 +28612,9 @@ block cannot just emit another table at the current C `.rodata` cursor
 
 Fill that hole with a `const` in the C file **after** the `INCLUDE_ASM`
 that emits the previous rodata, so `.rdata`/`.rodata` concatenation stays
-packed. `Gp_ItemIsUnusable` is the example: yaml `.rodata, 3A34` moved from
+packed. `_itemIsAttachedItemUnusable` is the example: yaml `.rodata, 3A34` moved from
 `0x3CB4` to `0x3B3C`, and `Gp_StrWeapon` is a C `const char[]` after
-`func_800D6334`.
+`itemMenuArmorAttachmentPanelTask`.
 
 ## Pin the flag, not the pointer, so `&Global[i]` keeps `$v1`
 
@@ -37689,21 +37689,21 @@ the SImode one:
 ret = Gp_HealPending = Gp_StateC08.mindWard = 1; /* sb then sw, each via `move v0,s5` */
 ```
 
-`Gp_ApplyItemUse` needed both spellings (cases 4/8 chained, case 0x3C reordered);
+`_itemUseAttachedItem` needed both spellings (cases 4/8 chained, case 0x3C reordered);
 4 missing `move` instructions were the whole difference between 97.5% and 98.7%.
 
 ## Give every `p = &Global;` site its own local, and every loop bound its field width
 
-Two register-allocation levers that together took `Gp_ApplyItemUse` from 99.2% to
+Two register-allocation levers that together took `_itemUseAttachedItem` from 99.2% to
 a byte match:
 
-* A single `InventoryItemRange* scan` reassigned `&gMcSaveData.carriedItems` at five
+* A single `const InventoryItemRange* range` reassigned `&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems` at five
   different sites becomes **one** pseudo, so it is pinned in one callee-saved
   register for the whole function. The target used `s0` / `s1` / `s2` at
-  different sites, i.e. five distinct locals. Splitting them (`scanEquip`,
-  `scanQty`, `scanRel`, `scanFree`, `scanId`) fixed a three-way `s0`/`s1`/`s2`
+  different sites, i.e. five distinct locals. Splitting them (`weaponRange`,
+  `stockRange`, `previousConsumableRange`, `attachmentRange`, `newConsumableRange`) fixed a three-way `s0`/`s1`/`s2`
   permutation. Sweeping the set partitions of the sites is cheap and mechanical.
-* `count = scan->rowCount` where `rowCount` is `u8`: declaring the local `u8`
+* `rowCount = range->rowCount` where `rowCount` is `u8`: declaring the local `u8`
   rather than `s32` changed the live ranges enough to move the last mismatched
   pointer into the right callee-saved register (99.5% -> 100%). Match the local
   to the field's width whenever a loop bound is copied out of a struct.
@@ -66015,7 +66015,7 @@ func_8004E200 worktree; the standalone spuGetVoiceRef leaf was not changed.
 
 ## A dead scan-pointer initialization can prevent loop-invariant hoisting
 
-`func_800D6334` assigns a scan pointer to `&gMcSaveData.carriedItems` inside an
+An earlier expanded form of `itemMenuArmorAttachmentPanelTask` assigned a range pointer to `&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems` inside an
 attachment-icon loop. With only that assignment, GCC 2.8.1's `.loop` hoisted
 both the `%hi` and full pointer, extending its lifetime across four calls and
 eventually spilling the armor id. Initializing this otherwise local pointer
@@ -66027,7 +66027,7 @@ unpinned attempt from 95.025% to 99.803%, with branch/insert/delete all zero.
 
 The final register difference was the inner search count: a named `s32 count`
 gave counter/count/slot-plus-one `$a0/$a2/$a1`. The permuter replaced the
-assignment and `i < count` with `i < scan->rowCount`; GCC still hoisted the
+assignment and `rowIndex < count` with `rowIndex < range->rowCount`; GCC still hoisted the
 byte load out of the inner search, but assigned `$a1/$a0/$a2`, matching.
 Check `.loop`, `.lreg`, and `.greg` before using this pattern; the dead
 initialization matters to optimization even though it emits no instructions.

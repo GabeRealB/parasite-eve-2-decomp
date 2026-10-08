@@ -65,11 +65,29 @@ extern const char D_8009745C[];
 
 extern const char Gp_StrGetLockPosNull[];
 
-void func_800D6334(Task* arg0);
+/// Draws equipped armor and its attachments, and handles attachment item use.
+///
+/// Spawn argument 2 borrows the owning live `UiObject`. State 0 clears pending
+/// use notifications, resets selection at or past armor capacity and spawns the
+/// companion weapon panel; state 1 draws the attachment choices. Stored slots
+/// are one-based, selection is zero-based, and duplicate slots choose the first
+/// row without checking its item id. Active Left/Right wrap over armor capacity.
+/// Successful Confirm, Cancel or Menu publishes CANCEL and enters state 2.
+/// Armor selection must be 1..32, the carried range must fit its writable table,
+/// and the selected index must lie within the armor's capacity while selecting.
+/// Using a consumable requires weapon selection 1..32 and a live player task.
+/// Menu/text textures and writable GPU storage must be ready, even when inactive.
+void itemMenuArmorAttachmentPanelTask(Task* panelTask);
 
-/// `arg1` is passed by `Gp_PlayerNormalState5` (the actor's `field_960`) but the body
-/// ignores it.
-s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1);
+/// Consumes the pending item-use reload request and loads its consumable to capacity.
+///
+/// Zero pending id returns -1. Otherwise its magnitude selects the consumable;
+/// the sign has already selected the reload animation and does not choose a load
+/// here. The request is cleared before loading, including on failure. Uses the
+/// live carried range, which must fit its readable table, and the loader's
+/// primary-preference and stock rules. Returns loaded units or -1 on failure;
+/// inventory quantities stay intact. `unused` is ignored by the original body.
+s32 equipmentLoadPendingConsumable(s32 weaponItemId, s32 unused);
 
 /// Borrows the last carried inventory row with this exact item id.
 ///
@@ -90,6 +108,12 @@ InventoryItemRow* inventoryFindLastCarriedItemRow(s32 itemId);
 /// the item at the same address. The descriptor and rows are left intact.
 InventoryItemRow* inventoryFindLastItemRowInRange(s32 itemId, const InventoryItemRange* range);
 
-void Gp_DrawWeaponLabel(Task* arg0);
+/// Draws the companion weapon summary for the armor attachment-use panel.
+///
+/// Spawn argument 2 borrows the owning live `UiObject`. Positions the panel at
+/// screen-relative Y 28, accounting for the draw-buffer offset, and draws the
+/// equipped weapon, consumable rows and title. Weapon selection must be 0..32;
+/// menu/text textures and writable GPU storage must be ready even when inactive.
+void itemMenuAttachmentUseWeaponPanelTask(Task* panelTask);
 
 #endif // GAMEPLAY_PRIVATE_ITEM_USE_H

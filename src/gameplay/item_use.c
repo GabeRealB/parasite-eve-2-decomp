@@ -54,15 +54,42 @@ static const char D_80097440[];
 
 static const char D_80097448[];
 
-/* After Armor/Attachments from func_800D6334 so overlay .rodata stays packed. */
-/// "Weapon" string drawn by `Gp_DrawWeaponLabel` (trailing 0x60 byte).
+/* After Armor/Attachments from itemMenuArmorAttachmentPanelTask so overlay .rodata stays packed. */
+/// "Weapon" string drawn by `itemMenuAttachmentUseWeaponPanelTask` (trailing 0x60 byte).
 static const char Gp_StrWeapon[];
 
-static s32 Gp_ApplyItemUse(InventoryItemRow* arg0);
+// Catalogue items handled by the attachment-use panel.
+enum {
+    INVENTORY_ITEM_RECOVERY1        = 1,
+    INVENTORY_ITEM_RECOVERY2        = 2,
+    INVENTORY_ITEM_RECOVERY3        = 3,
+    INVENTORY_ITEM_STIM             = 4,
+    INVENTORY_ITEM_COLA             = 5,
+    INVENTORY_ITEM_MP_BOOST1        = 6,
+    INVENTORY_ITEM_MP_BOOST2        = 7,
+    INVENTORY_ITEM_PENICILLIN       = 8,
+    INVENTORY_ITEM_FLARE            = 0x3A,
+    INVENTORY_ITEM_PEPPER_SPRAY     = 0x3B,
+    INVENTORY_ITEM_PROTEIN_CAPSULE  = 0x3C,
+    INVENTORY_ITEM_RINGERS_SOLUTION = 0x3D,
+    INVENTORY_ITEM_EAU_DE_TOILETTE  = 0x3E,
+    INVENTORY_ITEM_COMBAT_LIGHT     = 0x41
+};
 
-/// Returns 1 if item `arg0` cannot be used, 0 if it can.
-/// `arg1` supplies the total quantity for ammo ids 0xA0–0xBF, including loaded rounds.
-static s32 Gp_ItemIsUnusable(s32 arg0, InventoryItemRow* arg1);
+// Item-id domains used here; weapon and consumable selectors cover 32 ids each.
+enum {
+    ITEM_USE_ORDINARY_ITEM_FIRST          = 1,
+    ITEM_USE_ORDINARY_ITEM_COUNT          = 0x41,
+    ITEM_USE_ARMOR_ITEM_FIRST             = 0x60,
+    ITEM_USE_ARMOR_ITEM_COUNT             = 0x20,
+    ITEM_USE_WEAPON_ITEM_COUNT            = 0x20,
+    ITEM_MENU_ATTACHMENT_PANEL_TOP_PIXELS = 28,
+    ITEM_MENU_ATTACHMENT_TEXT_COLOR_RGB   = 0x606060
+};
+
+static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow);
+
+static s32 _itemIsAttachedItemUnusable(s32 itemId, const InventoryItemRow* attachedRow);
 
 WorldCoordRoomAmbientEntry Gp_RoomBoundDefault = { .color = { 16, 16, 16, 16 } };
 
@@ -96,528 +123,550 @@ WorldCollisionFaceEdge Gp_FaceEdgePairs[5] = {
     { 3, 1 },
 };
 
-static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
+/// Applies an armor attachment's item use and returns 1 when accepted, else 0.
+///
+/// The writable row must remain in the live carried range, whose rows must fit
+/// its table; the player task must be live. Call after the availability check.
+/// Consumables require an equipped weapon selector in 1..32. Weapon selection
+/// exchanges attachment positions with the last carried row of the old weapon;
+/// scripted player mode accepts that request without changing equipment.
+/// Consumables queue a signed reload id, clear a changed load and reattach its
+/// old stock, trying only armor slots 1..3 before exchanging attachment positions.
+/// Medicines change player state now and queue the menu-exit notification;
+/// successful medicine uses clear the whole row, independently of quantity.
+/// Flare, Pepper Spray and Combat Light retain the row in `Gp_SelItemRec` for
+/// their queued attachment action, so its storage must survive that action.
+static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
 {
-    // Catalogue ids and level-one sound files supplied to the attachment hooks.
+    // Borrow the last exact-id row. Arguments must be side-effect-free locals;
+    // result starts NULL. The range must fit its table. The workspace arguments
+    // are writable traversal locals; neither the range nor its rows is changed.
+#define ITEM_USE_FIND_LAST_ROW(range, soughtItemId, result, workspaceRow, workspaceRowIndex, workspaceRowCount) \
+    {                                                                                                           \
+        (workspaceRow)      = inventoryGetRangeTable(range);                                                    \
+        (workspaceRowIndex) = 0;                                                                                \
+        (workspaceRow)      = &(workspaceRow)[(range)->firstRow];                                               \
+        (workspaceRowCount) = (range)->rowCount;                                                                \
+        for (; (workspaceRowIndex) < (workspaceRowCount); (workspaceRowIndex)++) {                              \
+            if ((workspaceRow)->itemId == (soughtItemId)) {                                                     \
+                (result) = (workspaceRow);                                                                      \
+            }                                                                                                   \
+            (workspaceRow)++;                                                                                   \
+        }                                                                                                       \
+    }
     enum {
-        INVENTORY_ITEM_FLARE                     = 0x3A,
-        INVENTORY_ITEM_PEPPER_SPRAY              = 0x3B,
-        INVENTORY_ITEM_COMBAT_LIGHT              = 0x41,
-        ATTACHMENT_FLARE_SOUND_FILE_INDEX        = ATTACHMENT_INDEX_FLARE * ATTACHMENT_AREA_LEVEL_COUNT + 1,
-        ATTACHMENT_COMBAT_LIGHT_SOUND_FILE_INDEX = ATTACHMENT_INDEX_COMBAT_LIGHT * ATTACHMENT_AREA_LEVEL_COUNT + 1
+        ATTACHMENT_FLARE_SOUND_FILE_INDEX         = ATTACHMENT_INDEX_FLARE * ATTACHMENT_AREA_LEVEL_COUNT + 1,
+        ATTACHMENT_COMBAT_LIGHT_SOUND_FILE_INDEX  = ATTACHMENT_INDEX_COMBAT_LIGHT * ATTACHMENT_AREA_LEVEL_COUNT + 1,
+        ITEM_USE_REATTACH_SLOT_COUNT              = 3,
+        ITEM_USE_NO_ATTACHMENT_SLOT               = -1,
+        ITEM_USE_HP_BONUS_LIMIT                   = 250,
+        ITEM_USE_PRIMARY_CONSUMABLE_SELECTOR_BIAS = 0x100 - (INVENTORY_CONSUMABLE_ITEM_FIRST - 1)
     };
-    PlayerStatus*        cfg;
-    GameActor*           actor;
-    InventoryItemRange*  scanEquip;
-    InventoryItemRange*  scanQty;
-    InventoryItemRange*  scanRel;
-    InventoryItemRange*  scanFree;
-    InventoryItemRange*  scanId;
-    EquipmentWeaponLoad* slot;
-    InventoryItemRow*    table;
-    InventoryItemRow*    rec;
-    InventoryItemRow*    found;
-    s32                  id;
-    s32                  ret;
-    s32                  flag;
-    s32                  i;
-    u8                   count;
-    s32                  held;
-    s32                  prevId;
-    s32                  relId;
-    s32                  qty;
-    s32                  k;
-    s32                  avail;
-    s32                  slotNum;
-    s32                  attachmentSlot;
-    InventoryItemRow*    hit;
+    PlayerStatus*             player;
+    GameActor*                playerActor;
+    const InventoryItemRange* weaponRange;
+    const InventoryItemRange* stockRange;
+    const InventoryItemRange* previousConsumableRange;
+    const InventoryItemRange* attachmentRange;
+    const InventoryItemRange* newConsumableRange;
+    EquipmentWeaponLoad*      weaponLoad;
+    InventoryItemRow*         row;
+    InventoryItemRow*         previousWeaponRow;
+    InventoryItemRow*         previousConsumableRow;
+    s32                       itemId;
+    s32                       applied;
+    s32                       consumeRow;
+    s32                       rowIndex;
+    u8                        rowCount;
+    s32                       weaponItemId;
+    s32                       previousWeaponItemId;
+    s32                       previousConsumableItemId;
+    s32                       unloadedQuantity;
+    s32                       attachmentIndex;
+    s32                       slotAvailable;
+    s32                       freeAttachmentSlot;
+    s32                       transferredAttachmentSlot;
+    InventoryItemRow*         matchingRow;
 
-    ret   = 0;
-    flag  = 1;
-    id    = arg0->itemId;
-    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    cfg   = &gPlayerStatus;
+    applied     = 0;
+    consumeRow  = 1;
+    itemId      = attachedRow->itemId;
+    playerActor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+    player      = &gPlayerStatus;
 
-    if (id != 0) {
-        if ((u32)(id - 0x80) < 0x20U) {
-            if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
-                rec       = NULL;
-                scanEquip = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                prevId    = cfg->weapon + 0x7F;
+    if (itemId != INVENTORY_ITEM_NONE) {
+        if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < (u32)ITEM_USE_WEAPON_ITEM_COUNT) {
+            // Keep the old weapon on the attachment position vacated by the new one.
+            if (playerActor->mode != GAME_ACTOR_MODE_SCRIPTED) {
+                previousWeaponRow    = NULL;
+                weaponRange          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+                previousWeaponItemId = player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
 
-                cfg->weapon = id - 0x7F;
+                player->weapon = itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
 
-                table = inventoryGetRangeTable(scanEquip);
-                table = &table[scanEquip->firstRow];
-                count = scanEquip->rowCount;
-                for (i = 0; i < count; i++) {
-                    if (table->itemId == prevId) {
-                        rec = table;
-                    }
-                    table++;
+                ITEM_USE_FIND_LAST_ROW(weaponRange, previousWeaponItemId, previousWeaponRow, row, rowIndex, rowCount);
+                if (previousWeaponRow != NULL) {
+                    previousWeaponRow->attachSlot = attachedRow->attachSlot;
+                    inventoryDetachItem(attachedRow);
                 }
-                if (rec != NULL) {
-                    rec->attachSlot = arg0->attachSlot;
-                    inventoryDetachItem(arg0);
-                }
-                itemSetIdentified(id, 1);
+                itemSetIdentified(itemId, 1);
             }
-            ret = 1;
-        } else if ((u32)(id - 0xA0) < 0x20U) {
-            relId = 0;
-            qty   = 0;
-            held  = cfg->weapon + 0x7F;
-            slot  = equipmentGetWeaponLoad(held);
-            if (equipmentLoadCarriedWeaponConsumable(0, held, id, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY) == 0) {
-                Gp_PendingRelatedId = id;
-                Gp_RelatedPending   = flag;
-                relId               = slot->primaryItemId;
-                if (relId != id) {
-                    cfg->weaponSlotItem = id + 0x61;
-                    slot->primaryItemId = id;
-                    slot->primaryQty    = 0;
+            applied = 1;
+        } else if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
+            // Select primary before secondary; actual loading waits for the reload cue.
+            previousConsumableItemId = INVENTORY_ITEM_NONE;
+            unloadedQuantity         = 0;
+            weaponItemId             = player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+            weaponLoad               = equipmentGetWeaponLoad(weaponItemId);
+            if (equipmentLoadCarriedWeaponConsumable(EQUIPMENT_WEAPON_SUPPLY_PRIMARY, weaponItemId, itemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY) == 0) {
+                Gp_PendingRelatedId      = itemId;
+                Gp_RelatedPending        = consumeRow;
+                previousConsumableItemId = weaponLoad->primaryItemId;
+                if (previousConsumableItemId != itemId) {
+                    // Encode the one-based consumable selector modulo the stored byte.
+                    player->weaponSlotItem    = itemId + ITEM_USE_PRIMARY_CONSUMABLE_SELECTOR_BIAS;
+                    weaponLoad->primaryItemId = itemId;
+                    weaponLoad->primaryQty    = 0;
                 }
-                itemSetIdentified(id, 1);
-                ret = 1;
-            } else if (equipmentLoadCarriedWeaponConsumable(1, held, id, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY) == 0) {
-                Gp_PendingRelatedId = -id;
-                Gp_RelatedPending   = flag;
-                relId               = slot->secondaryItemId;
-                if (relId != id) {
-                    slot->secondaryItemId = id;
-                    slot->secondaryQty    = 0;
+                itemSetIdentified(itemId, 1);
+                applied = 1;
+            } else if (equipmentLoadCarriedWeaponConsumable(EQUIPMENT_WEAPON_SUPPLY_SECONDARY, weaponItemId, itemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY) == 0) {
+                Gp_PendingRelatedId      = -itemId;
+                Gp_RelatedPending        = consumeRow;
+                previousConsumableItemId = weaponLoad->secondaryItemId;
+                if (previousConsumableItemId != itemId) {
+                    weaponLoad->secondaryItemId = itemId;
+                    weaponLoad->secondaryQty    = 0;
                 }
-                itemSetIdentified(id, 1);
-                ret = 1;
+                itemSetIdentified(itemId, 1);
+                applied = 1;
             }
 
-            if (relId != INVENTORY_ITEM_NONE && relId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-                scanQty = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                qty     = inventoryGetConsumableStackQuantity(scanQty, relId);
-                qty    -= equipmentGetLoadedConsumableQuantity(scanQty, relId);
+            if (previousConsumableItemId != INVENTORY_ITEM_NONE && previousConsumableItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+                stockRange        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+                unloadedQuantity  = inventoryGetConsumableStackQuantity(stockRange, previousConsumableItemId);
+                unloadedQuantity -= equipmentGetLoadedConsumableQuantity(stockRange, previousConsumableItemId);
             }
-            if (qty > 0) {
-                scanRel = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                hit     = NULL;
-                table   = inventoryGetRangeTable(scanRel);
-                i       = 0;
-                table   = &table[scanRel->firstRow];
-                count   = scanRel->rowCount;
-                for (; i < count; i++) {
-                    if (table->itemId == relId) {
-                        hit = table;
-                    }
-                    table++;
-                }
-                found = hit;
-                if (found != NULL && found->attachSlot == INVENTORY_ATTACHMENT_NONE) {
-                    slotNum  = -1;
-                    scanFree = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                    inventoryGetRangeTable(scanFree);
-                    for (k = 0; k < 3; k++) {
-                        avail = 1;
-                        table = inventoryGetRangeTable(scanFree);
-                        i     = 0;
-                        table = &table[scanFree->firstRow];
-                        count = scanFree->rowCount;
-                        for (; i < count; i++) {
-                            if (table->itemId != INVENTORY_ITEM_NONE && table->attachSlot == k + 1) {
-                                avail = 0;
+            if (unloadedQuantity > 0) {
+                // Return displaced unloaded stock to an armor attachment position.
+                previousConsumableRange = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+                matchingRow             = NULL;
+                ITEM_USE_FIND_LAST_ROW(previousConsumableRange, previousConsumableItemId, matchingRow, row, rowIndex, rowCount);
+                previousConsumableRow = matchingRow;
+                if (previousConsumableRow != NULL && previousConsumableRow->attachSlot == INVENTORY_ATTACHMENT_NONE) {
+                    freeAttachmentSlot = ITEM_USE_NO_ATTACHMENT_SLOT;
+                    attachmentRange    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+                    inventoryGetRangeTable(attachmentRange);
+                    for (attachmentIndex = 0; attachmentIndex < ITEM_USE_REATTACH_SLOT_COUNT; attachmentIndex++) {
+                        slotAvailable = 1;
+                        row           = inventoryGetRangeTable(attachmentRange);
+                        rowIndex      = 0;
+                        row           = &row[attachmentRange->firstRow];
+                        rowCount      = attachmentRange->rowCount;
+                        for (; rowIndex < rowCount; rowIndex++) {
+                            if (row->itemId != INVENTORY_ITEM_NONE && row->attachSlot == attachmentIndex + 1) {
+                                slotAvailable = 0;
                                 break;
                             }
-                            table++;
+                            row++;
                         }
-                        if (avail == 1) {
-                            slotNum = k + 1;
+                        if (slotAvailable == 1) {
+                            freeAttachmentSlot = attachmentIndex + 1;
                             break;
                         }
                     }
 
-                    if (slotNum == -1) {
-                        scanId = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                        hit    = NULL;
-                        table  = inventoryGetRangeTable(scanId);
-                        i      = 0;
-                        table  = &table[scanId->firstRow];
-                        count  = scanId->rowCount;
-                        for (; i < count; i++) {
-                            if (table->itemId == id) {
-                                hit = table;
-                            }
-                            table++;
-                        }
-                        if (hit != NULL) {
-                            attachmentSlot    = hit->attachSlot;
-                            hit->attachSlot   = INVENTORY_ATTACHMENT_NONE;
-                            found->attachSlot = attachmentSlot;
+                    if (freeAttachmentSlot == ITEM_USE_NO_ATTACHMENT_SLOT) {
+                        newConsumableRange = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+                        matchingRow        = NULL;
+                        ITEM_USE_FIND_LAST_ROW(newConsumableRange, itemId, matchingRow, row, rowIndex, rowCount);
+                        if (matchingRow != NULL) {
+                            transferredAttachmentSlot         = matchingRow->attachSlot;
+                            matchingRow->attachSlot           = INVENTORY_ATTACHMENT_NONE;
+                            previousConsumableRow->attachSlot = transferredAttachmentSlot;
                         }
                     } else {
-                        found->attachSlot = slotNum;
+                        previousConsumableRow->attachSlot = freeAttachmentSlot;
                     }
                 }
             }
-        } else if ((u32)(id - 0x60) >= 0x20U) {
-            Gp_UsedItemId = id;
+        } else if ((u32)(itemId - ITEM_USE_ARMOR_ITEM_FIRST) >= (u32)ITEM_USE_ARMOR_ITEM_COUNT) {
+            // Apply immediate medicine effects, or lend the row to a queued defense action.
+            Gp_UsedItemId = itemId;
 
-            if ((u32)(id - 1) < 0x41U) {
-                switch (id) {
-                    case 1:
-                    case 2:
-                    case 3:
-                        if (cfg->hp < cfg->hpMax) {
-                            if (id == 1) {
-                                cfg->hp += 0x2D;
-                            } else if (id == 2) {
-                                cfg->hp += 0x5A;
+            if ((u32)(itemId - ITEM_USE_ORDINARY_ITEM_FIRST) < (u32)ITEM_USE_ORDINARY_ITEM_COUNT) {
+                switch (itemId) {
+                    case INVENTORY_ITEM_RECOVERY1:
+                    case INVENTORY_ITEM_RECOVERY2:
+                    case INVENTORY_ITEM_RECOVERY3:
+                        if (player->hp < player->hpMax) {
+                            if (itemId == INVENTORY_ITEM_RECOVERY1) {
+                                player->hp += 0x2D;
+                            } else if (itemId == INVENTORY_ITEM_RECOVERY2) {
+                                player->hp += 0x5A;
                             } else {
-                                cfg->hp += 0x96;
+                                player->hp += 0x96;
                             }
-                            if (cfg->hp > cfg->hpMax) {
-                                cfg->hp = cfg->hpMax;
+                            if (player->hp > player->hpMax) {
+                                player->hp = player->hpMax;
                             }
                             Gp_HealPending = 1;
-                            ret            = 1;
+                            applied        = 1;
                         }
                         break;
-                    case 0x3C:
-                        if ((u32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.hpBonus < 0xFAU) {
+                    case INVENTORY_ITEM_PROTEIN_CAPSULE:
+                        if ((u32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.hpBonus < (u32)ITEM_USE_HP_BONUS_LIMIT) {
                             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.hpBonus += 5;
                         }
                         equipmentRecalculateMaxHp();
                         Gp_HealPending = 1;
-                        ret            = 1;
-                        cfg->hp        = cfg->hpMax;
+                        applied        = 1;
+                        player->hp     = player->hpMax;
                         break;
-                    case 4:
+                    case INVENTORY_ITEM_STIM:
                         playerStateSetStatusEffects(1, (PLAYER_STATUS_SILENCE | PLAYER_STATUS_CONFUSION | PLAYER_STATUS_BERSERKER));
-                        ret = Gp_HealPending = Gp_StateC08.mindWard = 1;
+                        applied = Gp_HealPending = Gp_StateC08.mindWard = 1;
                         break;
-                    case 8:
+                    case INVENTORY_ITEM_PENICILLIN:
                         playerStateSetStatusEffects(1, (PLAYER_STATUS_DARKNESS | PLAYER_STATUS_PARALYSIS | PLAYER_STATUS_POISON));
-                        ret = Gp_HealPending = Gp_StateC08.bodyWard = 1;
+                        applied = Gp_HealPending = Gp_StateC08.bodyWard = 1;
                         break;
-                    case 5:
-                        if (cfg->mp < cfg->mpMax || cfg->hp < cfg->hpMax) {
-                            cfg->mp += 0x50;
-                            cfg->hp += 0x14;
-                            if (cfg->mp > cfg->mpMax) {
-                                cfg->mp = cfg->mpMax;
+                    case INVENTORY_ITEM_COLA:
+                        if (player->mp < player->mpMax || player->hp < player->hpMax) {
+                            player->mp += 0x50;
+                            player->hp += 0x14;
+                            if (player->mp > player->mpMax) {
+                                player->mp = player->mpMax;
                             }
-                            if (cfg->hp > cfg->hpMax) {
-                                cfg->hp = cfg->hpMax;
+                            if (player->hp > player->hpMax) {
+                                player->hp = player->hpMax;
                             }
                             Gp_HealPending = 1;
-                            ret            = 1;
+                            applied        = 1;
                         }
                         break;
-                    case 6:
-                    case 7:
-                        if (cfg->mp < cfg->mpMax) {
-                            if (id == 6) {
-                                cfg->mp += 0x19;
+                    case INVENTORY_ITEM_MP_BOOST1:
+                    case INVENTORY_ITEM_MP_BOOST2:
+                        if (player->mp < player->mpMax) {
+                            if (itemId == INVENTORY_ITEM_MP_BOOST1) {
+                                player->mp += 0x19;
                             } else {
-                                cfg->mp += 0x64;
+                                player->mp += 0x64;
                             }
-                            if (cfg->mp > cfg->mpMax) {
-                                cfg->mp = cfg->mpMax;
+                            if (player->mp > player->mpMax) {
+                                player->mp = player->mpMax;
                             }
                             Gp_HealPending = 1;
-                            ret            = 1;
+                            applied        = 1;
                         }
                         break;
                     case INVENTORY_ITEM_FLARE:
                     case INVENTORY_ITEM_PEPPER_SPRAY:
-                        attachmentSoundLoadStub((u8)((id - INVENTORY_ITEM_FLARE) * ATTACHMENT_AREA_LEVEL_COUNT + ATTACHMENT_FLARE_SOUND_FILE_INDEX));
-                        attachmentQueueIndex(id - (INVENTORY_ITEM_FLARE - ATTACHMENT_INDEX_FLARE));
-                        Gp_SelItemRec = arg0;
-                        flag          = 0;
-                        ret           = 1;
+                        attachmentSoundLoadStub((u8)((itemId - INVENTORY_ITEM_FLARE) * ATTACHMENT_AREA_LEVEL_COUNT + ATTACHMENT_FLARE_SOUND_FILE_INDEX));
+                        attachmentQueueIndex(itemId - (INVENTORY_ITEM_FLARE - ATTACHMENT_INDEX_FLARE));
+                        Gp_SelItemRec = attachedRow;
+                        consumeRow    = 0;
+                        applied       = 1;
                         break;
                     case INVENTORY_ITEM_COMBAT_LIGHT:
                         attachmentSoundLoadStub(ATTACHMENT_COMBAT_LIGHT_SOUND_FILE_INDEX);
                         attachmentQueueIndex(ATTACHMENT_INDEX_COMBAT_LIGHT);
-                        Gp_SelItemRec = arg0;
-                        flag          = 0;
-                        ret           = 1;
+                        Gp_SelItemRec = attachedRow;
+                        consumeRow    = 0;
+                        applied       = 1;
                         break;
-                    case 0x3D:
-                        if (cfg->mp < cfg->mpMax || cfg->hp < cfg->hpMax) {
-                            cfg->mp        = cfg->mpMax;
+                    case INVENTORY_ITEM_RINGERS_SOLUTION:
+                        if (player->mp < player->mpMax || player->hp < player->hpMax) {
+                            player->mp     = player->mpMax;
                             Gp_HealPending = 1;
-                            cfg->hp        = cfg->hpMax;
+                            player->hp     = player->hpMax;
                         }
                         Gp_HealPending = 1;
-                        ret            = 1;
+                        applied        = 1;
                         break;
-                    case 0x3E:
+                    case INVENTORY_ITEM_EAU_DE_TOILETTE:
                         Gp_HealPending = 1;
-                        ret            = 1;
+                        applied        = 1;
                         break;
                 }
             }
 
-            if (ret == 1 && flag != 0) {
-                arg0->itemId     = INVENTORY_ITEM_NONE;
-                arg0->qty        = 0;
-                arg0->attachSlot = INVENTORY_ATTACHMENT_NONE;
-                itemSetIdentified(id, 1);
+            if (applied == 1 && consumeRow != 0) {
+                attachedRow->itemId     = INVENTORY_ITEM_NONE;
+                attachedRow->qty        = 0;
+                attachedRow->attachSlot = INVENTORY_ATTACHMENT_NONE;
+                itemSetIdentified(itemId, 1);
             }
         }
     }
-    return ret;
+#undef ITEM_USE_FIND_LAST_ROW
+    return applied;
 }
 
-/// Returns 1 if item `arg0` cannot be used, 0 if it can.
-/// `arg1` supplies the total quantity for ammo ids 0xA0–0xBF, including loaded rounds.
-static s32 Gp_ItemIsUnusable(s32 arg0, InventoryItemRow* arg1)
+/// Returns 1 when an attachment's item use is unavailable, otherwise 0.
+///
+/// Weapons always qualify. Medicines test missing HP/MP, active wards or
+/// Berserker resistance; the disposable defense items and Protein Capsule
+/// always qualify. Empty rows, armor and unhandled catalogue ids return 1.
+/// For consumable ids 0xA0..0xBF, attachedRow must be readable and supply that
+/// item's total quantity, including loaded units. Other ids permit NULL.
+/// The live carried range must fit its readable table and the weapon selector
+/// must be 0..32. Compatibility and positive unloaded stock are checked without
+/// changing inventory, weapon loads, identification or player state.
+static s32 _itemIsAttachedItemUnusable(s32 itemId, const InventoryItemRow* attachedRow)
 {
-    PlayerStatus*       cfg;
-    InventoryItemRange* scan;
-    s32                 ret;
-    s32                 val;
+    const PlayerStatus*       player;
+    const InventoryItemRange* range;
+    s32                       unusable;
+    s32                       unloadedQuantity;
 
-    ret = 1;
-    cfg = &gPlayerStatus;
-    if (arg0 != 0) {
-        if ((u32)(arg0 - 0x80) < 0x20U) {
-            ret = 0;
-        } else if ((u32)(arg0 - 0xA0) < 0x20U) {
-            scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-            val  = arg1->qty - equipmentGetLoadedConsumableQuantity(scan, arg0);
-            if (val > 0) {
-                if (equipmentLoadWeaponConsumable(scan, cfg->weapon + 0x7F, arg0, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY) == 0) {
-                    ret = 0;
+    unusable = 1;
+    player   = &gPlayerStatus;
+    if (itemId != INVENTORY_ITEM_NONE) {
+        if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < (u32)ITEM_USE_WEAPON_ITEM_COUNT) {
+            unusable = 0;
+        } else if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
+            // A loaded round cannot be selected again as free stock in this panel.
+            range            = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+            unloadedQuantity = attachedRow->qty - equipmentGetLoadedConsumableQuantity(range, itemId);
+            if (unloadedQuantity > 0) {
+                if (equipmentLoadWeaponConsumable(range, player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1), itemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY) == 0) {
+                    unusable = 0;
                 }
             }
-        } else if ((u32)(arg0 - 1) < 0x41U) {
-            switch (arg0) {
-                case 1:
-                case 2:
-                case 3:
-                    if (cfg->hp < cfg->hpMax) {
-                        ret = 0;
+        } else if ((u32)(itemId - ITEM_USE_ORDINARY_ITEM_FIRST) < (u32)ITEM_USE_ORDINARY_ITEM_COUNT) {
+            switch (itemId) {
+                case INVENTORY_ITEM_RECOVERY1:
+                case INVENTORY_ITEM_RECOVERY2:
+                case INVENTORY_ITEM_RECOVERY3:
+                    if (player->hp < player->hpMax) {
+                        unusable = 0;
                     }
                     break;
-                case 4:
+                case INVENTORY_ITEM_STIM:
                     if (Gp_StateC08.mindWard == 0) {
-                        ret = 0;
+                        unusable = 0;
                     }
                     break;
-                case 8:
-                    if ((s8)Gp_StateC08.bodyWard == 0) {
-                        ret = 0;
+                case INVENTORY_ITEM_PENICILLIN:
+                    if (Gp_StateC08.bodyWard == 0) {
+                        unusable = 0;
                     }
                     break;
-                case 5:
-                    if (cfg->mp < cfg->mpMax) {
-                        ret = 0;
-                    } else if (cfg->hp < cfg->hpMax) {
-                        ret = 0;
+                case INVENTORY_ITEM_COLA:
+                    if (player->mp < player->mpMax) {
+                        unusable = 0;
+                    } else if (player->hp < player->hpMax) {
+                        unusable = 0;
                     }
                     break;
-                case 6:
-                case 7:
-                    if (cfg->mp < cfg->mpMax) {
-                        ret = 0;
+                case INVENTORY_ITEM_MP_BOOST1:
+                case INVENTORY_ITEM_MP_BOOST2:
+                    if (player->mp < player->mpMax) {
+                        unusable = 0;
                     }
                     break;
-                case 0x3A:
-                case 0x3B:
-                case 0x3C:
-                case 0x41:
-                    ret = 0;
+                case INVENTORY_ITEM_FLARE:
+                case INVENTORY_ITEM_PEPPER_SPRAY:
+                case INVENTORY_ITEM_PROTEIN_CAPSULE:
+                case INVENTORY_ITEM_COMBAT_LIGHT:
+                    unusable = 0;
                     break;
-                case 0x3D:
-                    if (cfg->mp < cfg->mpMax) {
-                        ret = 0;
-                    } else if (cfg->hp < cfg->hpMax) {
-                        ret = 0;
+                case INVENTORY_ITEM_RINGERS_SOLUTION:
+                    if (player->mp < player->mpMax) {
+                        unusable = 0;
+                    } else if (player->hp < player->hpMax) {
+                        unusable = 0;
                     }
                     break;
-                case 0x3E:
+                case INVENTORY_ITEM_EAU_DE_TOILETTE:
                     if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_BERSERKER) == 0) {
-                        ret = 0;
+                        unusable = 0;
                     }
                     break;
             }
         }
     }
-    return ret;
+    return unusable;
 }
 
 static const char D_80097440[] = { 'A', 'r', 'm', 'o', 'r', 0, 0, 0 };
 static const char D_80097448[] = { 'A', 't', 't', 'a', 'c', 'h', 'm', 'e', 'n', 't', 's', 0 };
 
-void func_800D6334(Task* task)
+void itemMenuArmorAttachmentPanelTask(Task* panelTask)
 {
-    TextDrawReq         name;
-    TextDrawReq         label;
-    UiObject*           panel;
-    InventoryItemRow*   selected;
-    InventoryItemRow*   table;
-    InventoryItemRange* scan;
-    InventoryItemRow*   firstRec;
-    InventoryItemRow*   firstTable;
-    InventoryItemRow*   useRec;
-    InventoryItemRow*   useTable;
-    InventoryItemRange* firstScan;
-    InventoryItemRange* useScan;
-    s32                 firstI;
-    s32                 firstCount;
-    s32                 useI;
-    s32                 useCount;
-    s32                 useSlot;
-    s32                 usable;
-    s32                 armor;
-    s32                 x;
-    s32                 y;
-    s32                 selectedX;
-    s32                 item;
-    s32                 flags;
-    s32                 slot;
-    s32                 i;
-    s32                 selectedSlot;
-    s32                 labelX;
-    s32                 labelY;
+    // Borrow the first row storing attachmentIndex + 1; item id is ignored.
+    // The result starts NULL, the workspace row points at the range start,
+    // and its index starts at zero. rowLimit counts rows and is re-read each
+    // iteration. All arguments must be side-effect-free locals or field views.
+#define ITEM_MENU_FIND_ATTACHMENT_ROW(attachmentIndex, result, workspaceRow, workspaceIndex, rowLimit) \
+    {                                                                                                  \
+        for (; (workspaceIndex) < (rowLimit); (workspaceIndex)++) {                                    \
+            if ((workspaceRow)->attachSlot == (attachmentIndex) + 1) {                                 \
+                (result) = (workspaceRow);                                                             \
+                break;                                                                                 \
+            }                                                                                          \
+            (workspaceRow)++;                                                                          \
+        }                                                                                              \
+    }
+    enum {
+        ITEM_MENU_ATTACHMENT_PANEL_INITIAL   = 0,
+        ITEM_MENU_ATTACHMENT_PANEL_SELECTING = 1,
+        ITEM_MENU_ATTACHMENT_PANEL_CLOSED    = 2
+    };
+    TextDrawReq         itemName;
+    TextDrawReq         attachmentLabel;
+    UiObject*           object;
+    InventoryItemRow*   attachedRow;
+    InventoryItemRow*   row;
+    InventoryItemRange* range;
+    InventoryItemRow*   selectedRow;
+    InventoryItemRow*   selectedScanRow;
+    InventoryItemRow*   useRow;
+    InventoryItemRow*   useScanRow;
+    InventoryItemRange* selectedRange;
+    InventoryItemRange* useRange;
+    s32                 selectedRowIndex;
+    s32                 selectedRowCount;
+    s32                 useRowIndex;
+    s32                 useRowCount;
+    s32                 useAttachmentIndex;
+    s32                 selectedUsable;
+    s32                 armorItemId;
+    s32                 attachmentX;
+    s32                 attachmentY;
+    s32                 iconX;
+    s32                 itemId;
+    s32                 iconFlags;
+    s32                 attachmentIndex;
+    s32                 rowIndex;
+    s32                 selectedAttachmentIndex;
+    s32                 armorX;
+    s32                 armorY;
 
-    scan                               = NULL;
-    armor                              = gPlayerStatus.armor + 0x5F;
-    panel                              = task->spawnArg2.pointer;
-    panel->result                      = USER_INTERFACE_RESULT_NONE;
-    panel->panel.bounds.unsignedRect.y = 0x1C - gDisplayState.vramYOffset;
-    uiUpdatePanelContentLayout(&(panel)->panel, 0, 0, 0);
-    uiDrawPanelLabel(&(panel)->panel, D_80097440);
-    usable = 1;
-    if (task->state == 0) {
+    armorItemId                         = gPlayerStatus.armor + (ITEM_USE_ARMOR_ITEM_FIRST - 1);
+    object                              = panelTask->spawnArg2.pointer;
+    object->result                      = USER_INTERFACE_RESULT_NONE;
+    object->panel.bounds.unsignedRect.y = ITEM_MENU_ATTACHMENT_PANEL_TOP_PIXELS - gDisplayState.vramYOffset;
+    uiUpdatePanelContentLayout(&object->panel, NULL, NULL, 0);
+    uiDrawPanelLabel(&object->panel, D_80097440);
+    selectedUsable = 1;
+    if (panelTask->state == ITEM_MENU_ATTACHMENT_PANEL_INITIAL) {
+        // Reset item-use notifications and open the companion weapon summary once.
         Gp_HealPending = 0;
-        Gp_UsedItemId  = 0;
-        if (D_8010F884 >= equipmentGetArmorAttachmentSlotCount(armor)) {
+        Gp_UsedItemId  = INVENTORY_ITEM_NONE;
+        if (D_8010F884 >= equipmentGetArmorAttachmentSlotCount(armorItemId)) {
             D_8010F884 = 0;
         }
-        uiSpawnObject(&D_8010F8B4, 0, 0, 0, panel);
-        task->state++;
+        uiSpawnObject(&D_8010F8B4, 0, 0, 0, object);
+        panelTask->state++;
     }
-    x = panel->panel.contentLeft.signedValue + 4;
-    y = panel->panel.contentTop.signedValue + 0x2B;
-    if (task->state == 1) {
-        selectedSlot = D_8010F884;
-        selectedX    = x + selectedSlot * 13;
-        firstRec     = NULL;
-        firstScan    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-        firstTable   = inventoryGetRangeTable(firstScan);
-        firstI       = 0;
-        firstTable   = &firstTable[firstScan->firstRow];
-        firstCount   = firstScan->rowCount;
-        for (; firstI < firstCount; firstI++) {
-            if (firstTable->attachSlot == selectedSlot + 1) {
-                firstRec = firstTable;
-                break;
-            }
-            firstTable++;
-        }
-        selected = firstRec;
-        if (selected != NULL) {
-            item            = selected->itemId;
-            name.x          = panel->panel.contentOriginX.unsignedValue + x;
-            name.y          = panel->panel.contentOriginY.unsignedValue + 10 + y;
-            name.otIndex    = panel->panel.otIndex.signedValue + 1;
-            name.colorRgb   = 0x606060;
-            name.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            name.alignment  = TEXT_ALIGNMENT_LEFT;
-            name.drawMode   = TEXT_DRAW_OUTLINED;
-            textDrawString(&name, itemGetText(item, ITEM_TEXT_NAME, 0));
-            itemMenuDrawUnloadedConsumableQuantity(panel, x - 15, y + 16, selected, 0x606060, 0);
+    attachmentX = object->panel.contentLeft.signedValue + 4;
+    attachmentY = object->panel.contentTop.signedValue + 0x2B;
+    if (panelTask->state == ITEM_MENU_ATTACHMENT_PANEL_SELECTING) {
+        // Enlarge the selected attachment and dim every currently unusable item.
+        selectedAttachmentIndex = D_8010F884;
+        iconX                   = attachmentX + selectedAttachmentIndex * 13;
+        selectedRow             = NULL;
+        selectedRange           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+        selectedScanRow         = inventoryGetRangeTable(selectedRange);
+        selectedRowIndex        = 0;
+        selectedScanRow         = &selectedScanRow[selectedRange->firstRow];
+        selectedRowCount        = selectedRange->rowCount;
+        ITEM_MENU_FIND_ATTACHMENT_ROW(selectedAttachmentIndex, selectedRow, selectedScanRow, selectedRowIndex, selectedRowCount);
+        attachedRow = selectedRow;
+        if (attachedRow != NULL) {
+            itemId              = attachedRow->itemId;
+            itemName.x          = object->panel.contentOriginX.unsignedValue + attachmentX;
+            itemName.y          = object->panel.contentOriginY.unsignedValue + 10 + attachmentY;
+            itemName.otIndex    = object->panel.otIndex.signedValue + 1;
+            itemName.colorRgb   = ITEM_MENU_ATTACHMENT_TEXT_COLOR_RGB;
+            itemName.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+            itemName.alignment  = TEXT_ALIGNMENT_LEFT;
+            itemName.drawMode   = TEXT_DRAW_OUTLINED;
+            textDrawString(&itemName, itemGetText(itemId, ITEM_TEXT_NAME, 0));
+            itemMenuDrawUnloadedConsumableQuantity(object, attachmentX - 15, attachmentY + 16, attachedRow, ITEM_MENU_ATTACHMENT_TEXT_COLOR_RGB, 0);
         } else {
-            item = 0;
+            itemId = INVENTORY_ITEM_NONE;
         }
-        flags  = ITEM_MENU_ICON_ENLARGED;
-        usable = 1;
-        if (Gp_ItemIsUnusable(item, selected)) {
-            flags  = ITEM_MENU_ICON_ENLARGED | ITEM_MENU_ICON_DIMMED;
-            usable = 0;
+        iconFlags      = ITEM_MENU_ICON_ENLARGED;
+        selectedUsable = 1;
+        if (_itemIsAttachedItemUnusable(itemId, attachedRow)) {
+            iconFlags      = ITEM_MENU_ICON_ENLARGED | ITEM_MENU_ICON_DIMMED;
+            selectedUsable = 0;
         }
-        itemMenuDrawItemIcon(panel, selectedX, y, item, flags);
-        selectedX = x;
-        for (slot = 0; slot < equipmentGetArmorAttachmentSlotCount(armor); slot++, selectedX += 13) {
-            if (slot != D_8010F884) {
-                selected = NULL;
-                scan     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                table    = inventoryGetRangeTable(scan);
-                i        = 0;
-                table    = &table[scan->firstRow];
-                for (; i < scan->rowCount; i++) {
-                    if (table->attachSlot == slot + 1) {
-                        selected = table;
-                        break;
-                    }
-                    table++;
+        itemMenuDrawItemIcon(object, iconX, attachmentY, itemId, iconFlags);
+        iconX = attachmentX;
+        for (attachmentIndex = 0; attachmentIndex < equipmentGetArmorAttachmentSlotCount(armorItemId); attachmentIndex++, iconX += 13) {
+            if (attachmentIndex != D_8010F884) {
+                attachedRow = NULL;
+                range       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+                row         = inventoryGetRangeTable(range);
+                rowIndex    = 0;
+                row         = &row[range->firstRow];
+                ITEM_MENU_FIND_ATTACHMENT_ROW(attachmentIndex, attachedRow, row, rowIndex, range->rowCount);
+                itemId = INVENTORY_ITEM_NONE;
+                if (attachedRow != NULL) {
+                    itemId = attachedRow->itemId;
                 }
-                item = 0;
-                if (selected != NULL) {
-                    item = selected->itemId;
-                }
-                flags = (Gp_ItemIsUnusable(item, selected) != 0) * ITEM_MENU_ICON_DIMMED;
-                itemMenuDrawItemIcon(panel, selectedX, y, item, flags);
+                iconFlags = (_itemIsAttachedItemUnusable(itemId, attachedRow) != 0) * ITEM_MENU_ICON_DIMMED;
+                itemMenuDrawItemIcon(object, iconX, attachmentY, itemId, iconFlags);
             }
         }
     }
-    labelX = panel->panel.contentLeft.signedValue + 2;
-    labelY = panel->panel.contentTop.signedValue;
-    itemMenuDrawItemRow(panel, labelX, labelY + 15, armor, 0x606060, 0);
-    uiDrawHorizontalSeparator(&(panel)->panel, panel->panel.contentLeft.signedValue, panel->panel.contentRight.signedValue, panel->panel.contentTop.signedValue + 17);
-    label.x          = panel->panel.contentOriginX.unsignedValue + labelX;
-    label.y          = panel->panel.contentOriginY.unsignedValue + labelY + 24;
-    label.otIndex    = panel->panel.otIndex.signedValue + 1;
-    label.colorRgb   = 0x606060;
-    label.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    label.alignment  = TEXT_ALIGNMENT_LEFT;
-    label.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&label, (const u8*)D_80097448);
-    if (panel->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    armorX = object->panel.contentLeft.signedValue + 2;
+    armorY = object->panel.contentTop.signedValue;
+    itemMenuDrawItemRow(object, armorX, armorY + 15, armorItemId, ITEM_MENU_ATTACHMENT_TEXT_COLOR_RGB, 0);
+    uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + 17);
+    attachmentLabel.x          = object->panel.contentOriginX.unsignedValue + armorX;
+    attachmentLabel.y          = object->panel.contentOriginY.unsignedValue + armorY + 24;
+    attachmentLabel.otIndex    = object->panel.otIndex.signedValue + 1;
+    attachmentLabel.colorRgb   = ITEM_MENU_ATTACHMENT_TEXT_COLOR_RGB;
+    attachmentLabel.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    attachmentLabel.alignment  = TEXT_ALIGNMENT_LEFT;
+    attachmentLabel.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&attachmentLabel, (const u8*)D_80097448);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        // Re-read the selected position on Confirm before applying its item use.
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm)) {
-            if (usable == 1) {
-                useSlot  = D_8010F884;
-                useRec   = NULL;
-                useScan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                useTable = inventoryGetRangeTable(useScan);
-                useI     = 0;
-                useTable = &useTable[useScan->firstRow];
-                useCount = useScan->rowCount;
-                for (; useI < useCount; useI++) {
-                    if (useTable->attachSlot == useSlot + 1) {
-                        useRec = useTable;
-                        break;
-                    }
-                    useTable++;
-                }
-                if (Gp_ApplyItemUse(useRec)) {
+            if (selectedUsable == 1) {
+                useAttachmentIndex = D_8010F884;
+                useRow             = NULL;
+                useRange           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+                useScanRow         = inventoryGetRangeTable(useRange);
+                useRowIndex        = 0;
+                useScanRow         = &useScanRow[useRange->firstRow];
+                useRowCount        = useRange->rowCount;
+                ITEM_MENU_FIND_ATTACHMENT_ROW(useAttachmentIndex, useRow, useScanRow, useRowIndex, useRowCount);
+                if (_itemUseAttachedItem(useRow)) {
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                    panel->result = USER_INTERFACE_RESULT_CANCEL;
-                    task->state   = 2;
+                    object->result   = USER_INTERFACE_RESULT_CANCEL;
+                    panelTask->state = ITEM_MENU_ATTACHMENT_PANEL_CLOSED;
                 }
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT)) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             D_8010F884--;
             if (D_8010F884 < 0) {
-                D_8010F884 += equipmentGetArmorAttachmentSlotCount(armor);
+                D_8010F884 += equipmentGetArmorAttachmentSlotCount(armorItemId);
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT)) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             D_8010F884++;
-            if (D_8010F884 >= equipmentGetArmorAttachmentSlotCount(armor)) {
+            if (D_8010F884 >= equipmentGetArmorAttachmentSlotCount(armorItemId)) {
                 D_8010F884 = 0;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu)) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            panel->result = USER_INTERFACE_RESULT_CANCEL;
-            task->state   = 2;
+            object->result   = USER_INTERFACE_RESULT_CANCEL;
+            panelTask->state = ITEM_MENU_ATTACHMENT_PANEL_CLOSED;
         }
     }
+#undef ITEM_MENU_FIND_ATTACHMENT_ROW
 }
 
-/* After Armor/Attachments from func_800D6334 so overlay .rodata stays packed. */
-/// "Weapon" string drawn by `Gp_DrawWeaponLabel` (trailing 0x60 byte).
+/* After Armor/Attachments from itemMenuArmorAttachmentPanelTask so overlay .rodata stays packed. */
+/// "Weapon" string drawn by `itemMenuAttachmentUseWeaponPanelTask` (trailing 0x60 byte).
 static const char Gp_StrWeapon[] = {
     'W',
     'e',
@@ -629,19 +678,19 @@ static const char Gp_StrWeapon[] = {
     0x60,
 };
 
-s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1)
+s32 equipmentLoadPendingConsumable(s32 weaponItemId, s32 unused)
 {
-    s32 val;
+    s32 consumableItemId;
 
-    val = Gp_PendingRelatedId;
-    if (val <= 0) {
-        if (val >= 0) {
-            return -1;
+    consumableItemId = Gp_PendingRelatedId;
+    if (consumableItemId <= 0) {
+        if (consumableItemId >= 0) {
+            return EQUIPMENT_WEAPON_LOAD_FAILED;
         }
-        val = -val;
+        consumableItemId = -consumableItemId;
     }
-    Gp_PendingRelatedId = 0;
-    return equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, val, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
+    Gp_PendingRelatedId = INVENTORY_ITEM_NONE;
+    return equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, consumableItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
 }
 
 /// Borrows the highest-index row in `range` whose item id equals `itemId`.
@@ -715,18 +764,20 @@ InventoryItemRow* inventoryFindLastItemRowInRange(s32 itemId, const InventoryIte
     return _inventoryFindLastItemRowInRange(itemId, range);
 }
 
-void Gp_DrawWeaponLabel(Task* arg0)
+void itemMenuAttachmentUseWeaponPanelTask(Task* panelTask)
 {
-    UiPanel* panel;
-    s32      x;
-    s32      y;
+    UiObject* object;
+    UiPanel*  panel;
+    s32       weaponX;
+    s32       weaponY;
 
-    panel                = arg0->spawnArg2.pointer;
-    panel->bounds.rect.y = 0x1C - gDisplayState.vramYOffset;
+    object               = panelTask->spawnArg2.pointer;
+    panel                = &object->panel;
+    panel->bounds.rect.y = ITEM_MENU_ATTACHMENT_PANEL_TOP_PIXELS - gDisplayState.vramYOffset;
     uiUpdatePanelContentLayout(panel, NULL, NULL, 0);
-    x = panel->contentLeft.signedValue;
-    y = panel->contentTop.signedValue;
-    itemMenuDrawWeaponSummary(PARENT_OF(panel, UiObject, panel), x + 2, y + 0xF, 1);
+    weaponX = panel->contentLeft.signedValue;
+    weaponY = panel->contentTop.signedValue;
+    itemMenuDrawWeaponSummary(object, weaponX + 2, weaponY + 0xF, 1);
     uiDrawPanelLabel(panel, Gp_StrWeapon);
 }
 

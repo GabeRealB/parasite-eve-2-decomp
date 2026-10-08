@@ -667,14 +667,14 @@ itemMenuPreviewPanelTask = 0x800D5A48; // type:func
 // ---------------------------------------------------------------------------
 // Code (src/gameplay/item_use.c) — file-split 0x42314
 // ---------------------------------------------------------------------------
-Gp_ApplyItemUse = 0x800D5B14; // type:func
-Gp_ItemIsUnusable = 0x800D6170; // type:func
-func_800D6334 = 0x800D6334; // type:func
-Gp_FlushPendingRelated = 0x800D68C4; // type:func
+_itemUseAttachedItem = 0x800D5B14; // type:func
+_itemIsAttachedItemUnusable = 0x800D6170; // type:func
+itemMenuArmorAttachmentPanelTask = 0x800D6334; // type:func
+equipmentLoadPendingConsumable = 0x800D68C4; // type:func
 inventoryFindLastCarriedItemRow = 0x800D6910; // type:func
 _inventoryFindCarriedAttachmentRow = 0x800D6994; // type:func
 inventoryFindLastItemRowInRange = 0x800D6A24; // type:func
-Gp_DrawWeaponLabel = 0x800D6AA4; // type:func
+itemMenuAttachmentUseWeaponPanelTask = 0x800D6AA4; // type:func
 worldCoordUpdateRoomLightsTask = 0x800D6B20; // type:func
 _worldCoordScoreRoomPointLight = 0x800D6E5C; // type:func
 _worldCoordScoreTransientPointLight = 0x800D70E4; // type:func

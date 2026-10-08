@@ -289,8 +289,8 @@ s32               Gp_HealPending      = 0;
 s32               Gp_PendingRelatedId = 0;
 s32               Gp_RelatedPending   = 0;
 s32               Gp_UsedItemId       = 0;
-UiObjectDesc      D_8010F898          = { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, 28, 152, 72 }, 56, 0, TASK_BODY_NONE, 192, func_800D6334, 0 };
-UiObjectDesc      D_8010F8B4          = { USER_INTERFACE_PANEL_TITLE_STYLE, { -152, 28, 152, 72 }, 60, 0, TASK_BODY_NONE, 192, Gp_DrawWeaponLabel, 0 };
+UiObjectDesc      D_8010F898          = { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, 28, 152, 72 }, 56, 0, TASK_BODY_NONE, 192, itemMenuArmorAttachmentPanelTask, 0 };
+UiObjectDesc      D_8010F8B4          = { USER_INTERFACE_PANEL_TITLE_STYLE, { -152, 28, 152, 72 }, 60, 0, TASK_BODY_NONE, 192, itemMenuAttachmentUseWeaponPanelTask, 0 };
 
 const u8 Gp_StrWrongAmmo2[] = "You do not have the correct ammo.";
 
