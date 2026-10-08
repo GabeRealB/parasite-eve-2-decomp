@@ -27,7 +27,7 @@
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 
-void func_dryfield_night_motel_balcony_8017E068(Task*);
+static void _dryfieldNightMotelBalconyBlackoutTask(Task* task);
 
 static void _dryfieldNightMotelBalconyMovieTask(Task* task);
 
@@ -35,19 +35,19 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskMessageEntry D_dryfield_night_motel_balcony_80182804[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },
-    { 5105, func_dryfield_night_motel_balcony_8017DC18 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_balcony_8017DC28 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_balcony_8017DC20 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldNightMotelBalconyRefuseKeyItemMsg },
+    { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldNightMotelBalconyIgnoreRoomActionMsg },
+    { ROOM_MESSAGE_COMMAND, dryfieldNightMotelBalconyIgnoreCommandMsg },
     { ROOM_MESSAGE_SOUND, motelBalconyCueSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_night_motel_balcony_80182834[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_balcony_8017E0C8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, dryfieldNightMotelBalconyBeginMoviesTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelBalconyMovieTask, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_night_motel_balcony_8018284C = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_balcony_8017E068, { .value = 0 } };
+TaskDesc D_dryfield_night_motel_balcony_8018284C = { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelBalconyBlackoutTask, { .value = 0 } };
 
 /// Reveals a ready movie and advances the borrowed controller to playback.
 ///
@@ -177,16 +177,24 @@ static void _dryfieldNightMotelBalconyMovieTask(Task* task)
     }
 }
 
-/// Draws a white fade overlay (mode 2) each tick while `killCountdown`
-/// climbs by 4, and kills the task once it reaches 0x100.
-void func_dryfield_night_motel_balcony_8017E068(Task* arg0)
+/// Holds presentation black until its callback counter reaches 256.
+///
+/// A bodyless display task with `killCountdown` initially zero lasts 64 ticks.
+/// Each tick subtracts full white, increments the wrapping halfword by four,
+/// and releases the task when the signed result is at least 256. Requires the
+/// current frame's packet arena and ordering table; the counter does not fade RGB.
+static void _dryfieldNightMotelBalconyBlackoutTask(Task* task)
 {
-    u16 temp_v0;
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BLACKOUT_COUNTER_STEP = 4,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BLACKOUT_COUNTER_END  = 256,
+    };
+    u16 nextCounter;
 
     fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
-    temp_v0             = arg0->killCountdown + 4;
-    arg0->killCountdown = temp_v0;
-    if ((s16)temp_v0 >= 0x100) {
-        taskKill(arg0);
+    nextCounter         = task->killCountdown + DRYFIELD_NIGHT_MOTEL_BALCONY_BLACKOUT_COUNTER_STEP;
+    task->killCountdown = nextCounter;
+    if ((s16)nextCounter >= DRYFIELD_NIGHT_MOTEL_BALCONY_BLACKOUT_COUNTER_END) {
+        taskKill(task);
     }
 }

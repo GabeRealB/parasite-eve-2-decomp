@@ -180,21 +180,21 @@ D_actor_403100_8015580C = 0x8015580C; // size:0x4 defined:True
 D_actor_403100_80155810 = 0x80155810; // size:0x2 defined:True
 D_actor_403100_80155814 = 0x80155814; // size:0x1A40 defined:True
 
-func_dryfield_night_motel_balcony_80182730 = 0x80182730; // type:func absolute:True owner=dryfield_night_motel_balcony shared=rooms
+dryfieldNightMotelBalconyTrySpawnFlame = 0x80182730; // type:func absolute:True owner=dryfield_night_motel_balcony shared=rooms
 
-func_dryfield_night_motel_balcony_8018257C = 0x8018257C; // type:func absolute:True owner=dryfield_night_motel_balcony
+dryfieldNightMotelBalconySpawnFlameBurst = 0x8018257C; // type:func absolute:True owner=dryfield_night_motel_balcony
 
 D_dryfield_night_motel_balcony_8018F2CC = 0x8018F2CC; // absolute:True owner=dryfield_night_motel_balcony
 
-func_dryfield_night_motel_balcony_8017E128 = 0x8017E128; // type:func absolute:True owner=dryfield_night_motel_balcony
+dryfieldNightMotelBalconyUpdateSceneSprites = 0x8017E128; // type:func absolute:True owner=dryfield_night_motel_balcony
 
-func_dryfield_night_motel_balcony_8017E250 = 0x8017E250; // type:func absolute:True owner=dryfield_night_motel_balcony
+dryfieldNightMotelBalconySetSectionState = 0x8017E250; // type:func absolute:True owner=dryfield_night_motel_balcony
 
-func_dryfield_night_motel_balcony_8017E3C8 = 0x8017E3C8; // type:func absolute:True owner=dryfield_night_motel_balcony
+dryfieldNightMotelBalconyRestoreSectionStates = 0x8017E3C8; // type:func absolute:True owner=dryfield_night_motel_balcony
 
-func_dryfield_night_motel_balcony_8017E4B8 = 0x8017E4B8; // type:func absolute:True owner=dryfield_night_motel_balcony
+dryfieldNightMotelBalconyResetSceneSprites = 0x8017E4B8; // type:func absolute:True owner=dryfield_night_motel_balcony
 
-func_dryfield_night_motel_balcony_8017F6C8 = 0x8017F6C8; // type:func absolute:True owner=dryfield_night_motel_balcony
+dryfieldNightMotelBalconyDrawBreathFlame = 0x8017F6C8; // type:func absolute:True owner=dryfield_night_motel_balcony
 _actorRenderTransformPointToWorld = 0x8013D460; // type:func
 _actor403100ApplyAnimationBlend = 0x801326dc; // type:func
 _actor403100UpdateAnimation = 0x801327cc; // type:func

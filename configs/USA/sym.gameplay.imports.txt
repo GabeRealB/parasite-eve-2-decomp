@@ -744,7 +744,7 @@ dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask = 0x80180B48; // typ
 func_dryfield_night_main_street_80181F58 = 0x80181F58; // type:func absolute:True owner=dryfield_night_main_street
 
 
-func_dryfield_night_motel_balcony_8017E554 = 0x8017E554; // type:func absolute:True owner=dryfield_night_motel_balcony
+dryfieldNightMotelBalconyAmbientEffectsTask = 0x8017E554; // type:func absolute:True owner=dryfield_night_motel_balcony
 
 dryfieldNightMotelBalconyDebrisTask = 0x8017F84C; // type:func absolute:True owner=dryfield_night_motel_balcony
 

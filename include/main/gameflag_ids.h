@@ -426,39 +426,39 @@ enum {
     /// sprite setup and required for the sterilization room's point-1 event.
     GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN = 0x084,
     /// Saved scenery state of night motel balcony section 0 (0 intact, 1/2 altered
-    /// sprite sets), written by func_dryfield_night_motel_balcony_8017E250 when the
+    /// sprite sets), written by dryfieldNightMotelBalconySetSectionState when the
     /// Burner (actor_403100) fire hits that region, and reapplied on room entry.
     GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_0_STATE = 0x085,
     /// Saved scenery state of night motel balcony section 1 (0 intact, 1/2 altered
-    /// sprite sets), written by func_dryfield_night_motel_balcony_8017E250 when the
+    /// sprite sets), written by dryfieldNightMotelBalconySetSectionState when the
     /// Burner (actor_403100) fire hits that region, and reapplied on room entry.
     GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_1_STATE = 0x086,
-    /// Saved scenery state of night motel balcony section 2 (0 intact, 1/2 altered
-    /// sprite sets), written by func_dryfield_night_motel_balcony_8017E250 when the
+    /// Saved scenery state of night motel balcony section 2 (0 intact, 1 altered
+    /// sprite sets), written by dryfieldNightMotelBalconySetSectionState when the
     /// Burner (actor_403100) fire hits that region, and reapplied on room entry.
     GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_2_STATE = 0x087,
-    /// Saved scenery state of night motel balcony section 3 (0 intact, 1/2 altered
-    /// sprite sets), written by func_dryfield_night_motel_balcony_8017E250 when the
+    /// Saved scenery state of night motel balcony section 3 (0 intact, 1 altered
+    /// sprite sets), written by dryfieldNightMotelBalconySetSectionState when the
     /// Burner (actor_403100) fire hits that region, and reapplied on room entry.
     GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE = 0x088,
-    /// Saved scenery state of night motel balcony section 4 (0 intact, 1/2 altered
-    /// sprite sets), written by func_dryfield_night_motel_balcony_8017E250 when the
+    /// Saved scenery state of night motel balcony section 4 (0 intact, 1 altered
+    /// sprite sets), written by dryfieldNightMotelBalconySetSectionState when the
     /// Burner (actor_403100) fire hits that region, and reapplied on room entry.
     GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE = 0x089,
-    /// Saved scenery state of night motel balcony section 5 (0 intact, 1/2 altered
-    /// sprite sets), written by func_dryfield_night_motel_balcony_8017E250 when the
+    /// Saved scenery state of night motel balcony section 5 (0 intact, 1 altered
+    /// sprite sets), written by dryfieldNightMotelBalconySetSectionState when the
     /// Burner (actor_403100) fire hits that region, and reapplied on room entry.
     GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE = 0x08A,
-    /// Saved scenery state of night motel balcony section 6 (0 intact, 1/2 altered
-    /// sprite sets), written by func_dryfield_night_motel_balcony_8017E250 when the
+    /// Saved scenery state of night motel balcony section 6 (0 intact, 1 altered
+    /// sprite sets), written by dryfieldNightMotelBalconySetSectionState when the
     /// Burner (actor_403100) fire hits that region, and reapplied on room entry.
     GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_6_STATE = 0x08B,
-    /// Saved scenery state of night motel balcony section 7 (0 intact, 1/2 altered
-    /// sprite sets), written by func_dryfield_night_motel_balcony_8017E250 when the
+    /// Saved scenery state of night motel balcony section 7 (0 intact, 1 altered
+    /// sprite sets), written by dryfieldNightMotelBalconySetSectionState when the
     /// Burner (actor_403100) fire hits that region, and reapplied on room entry.
     GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE = 0x08C,
-    /// Saved scenery state of night motel balcony section 8 (0 intact, 1/2 altered
-    /// sprite sets), written by func_dryfield_night_motel_balcony_8017E250 when the
+    /// Saved scenery state of night motel balcony section 8 (0 intact, 1 altered
+    /// sprite sets), written by dryfieldNightMotelBalconySetSectionState when the
     /// Burner (actor_403100) fire hits that region, and reapplied on room entry. Also
     /// read by the night gas station to show/hide two sprite records.
     GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE = 0x08D,

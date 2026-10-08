@@ -194,19 +194,19 @@ gRoomEventTaskDesc = 0x801827F8; // size:0xC defined:True
 D_dryfield_night_motel_balcony_80182804 = 0x80182804; // size:0x30 defined:True
 D_dryfield_night_motel_balcony_80182834 = 0x80182834; // size:0x18 defined:True
 
-func_dryfield_night_motel_balcony_80182730 = 0x80182730; // type:func
+dryfieldNightMotelBalconyTrySpawnFlame = 0x80182730; // type:func
 
-func_dryfield_night_motel_balcony_8018257C = 0x8018257C; // type:func
+dryfieldNightMotelBalconySpawnFlameBurst = 0x8018257C; // type:func
 
-func_dryfield_night_motel_balcony_8017E128 = 0x8017E128; // type:func
+dryfieldNightMotelBalconyUpdateSceneSprites = 0x8017E128; // type:func
 
-func_dryfield_night_motel_balcony_8017E250 = 0x8017E250; // type:func
+dryfieldNightMotelBalconySetSectionState = 0x8017E250; // type:func
 
-func_dryfield_night_motel_balcony_8017E3C8 = 0x8017E3C8; // type:func
+dryfieldNightMotelBalconyRestoreSectionStates = 0x8017E3C8; // type:func
 
-func_dryfield_night_motel_balcony_8017E4B8 = 0x8017E4B8; // type:func
+dryfieldNightMotelBalconyResetSceneSprites = 0x8017E4B8; // type:func
 
-func_dryfield_night_motel_balcony_8017F6C8 = 0x8017F6C8; // type:func
+dryfieldNightMotelBalconyDrawBreathFlame = 0x8017F6C8; // type:func
 
 dryfieldNightMotelBalconyDebrisTask = 0x8017F84C; // type:func
 
@@ -220,9 +220,9 @@ func_dryfield_night_motel_balcony_80181024 = 0x80181024; // type:func
 
 dryfieldNightMotelBalconyDriftPuffTask = 0x8018158C; // type:func
 
-func_dryfield_night_motel_balcony_8017DD0C = 0x8017DD0C; // type:func
+_dryfieldNightMotelBalconyCheckFollowUpScene = 0x8017DD0C; // type:func
 
-func_dryfield_night_motel_balcony_8017E554 = 0x8017E554; // type:func
+dryfieldNightMotelBalconyAmbientEffectsTask = 0x8017E554; // type:func
 _glowDrawShaft = 0x8017EC58; // type:func
 _roomEventGate = 0x8017D694; // type:func
 roomEventTask = 0x8017D7F8; // type:func
@@ -234,3 +234,10 @@ _dryfieldNightMotelBalconyDrawFallingParticle = 0x80180c60; // type:func
 _dryfieldNightMotelBalconyDrawDriftPuff = 0x801819e0; // type:func
 _dryfieldNightMotelBalconyDrawFlame = 0x8018221c; // type:func
 _dryfieldNightMotelBalconyMovieTask = 0x8017ddd0; // type:func
+dryfieldNightMotelBalconyRefuseKeyItemMsg = 0x8017dc18; // type:func
+dryfieldNightMotelBalconyIgnoreCommandMsg = 0x8017dc20; // type:func
+dryfieldNightMotelBalconyIgnoreRoomActionMsg = 0x8017dc28; // type:func
+_dryfieldNightMotelBalconyInitRoom = 0x8017dc30; // type:func
+dryfieldNightMotelBalconyRoomTask = 0x8017dd78; // type:func
+_dryfieldNightMotelBalconyBlackoutTask = 0x8017e068; // type:func
+dryfieldNightMotelBalconyBeginMoviesTask = 0x8017e0c8; // type:func

@@ -22,6 +22,45 @@
 
 extern u8** D_dryfield_night_motel_balcony_80182C3C[];
 
+/// Sets the five breakaway scenery batches in view 18 to the same hidden byte.
+///
+/// Borrows the writable batch table (indices 6..10 must exist).
+static inline void _dryfieldNightMotelBalconySetBreakawaySprites(SpriteBatch* batches, u8 hidden)
+{
+    batches[6].hidden  = hidden;
+    batches[7].hidden  = hidden;
+    batches[8].hidden  = hidden;
+    batches[9].hidden  = hidden;
+    batches[10].hidden = hidden;
+}
+
+/// Applies a terminated stream of byte pairs to writable area sprite batches.
+///
+/// (view, 255) selects a zero-based view; following (batch, hidden) pairs write
+/// exact visibility bytes. A pair starting with 255 ends the stream. Requires
+/// a nonempty stream beginning with a view selection and valid indices; every
+/// view selection must be followed by a batch write. Borrows all data for this call.
+static inline void _dryfieldNightMotelBalconyApplySectionSpriteCommands(const SpriteView* areaViews, const u8* command)
+{
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER = 0xFF,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_BYTES  = 2,
+    };
+    SpriteBatch* batches;
+
+    batches = areaViews[command[0]].batches;
+    if (command[0] != DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER) {
+        do {
+            if (command[1] == DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER) {
+                batches  = areaViews[command[0]].batches;
+                command += DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_BYTES;
+            }
+            batches[command[0]].hidden = command[1];
+            command                   += DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_BYTES;
+        } while (command[0] != DRYFIELD_NIGHT_MOTEL_BALCONY_SPRITE_COMMAND_MARKER);
+    }
+}
+
 u8 D_dryfield_night_motel_balcony_80182858[68] = {
     8,
     255,
@@ -1072,54 +1111,51 @@ SVECTOR D_dryfield_night_motel_balcony_80182C88 = { -6010, -2870, -4150, 0 };
 
 SVECTOR D_dryfield_night_motel_balcony_80182C90 = { -160, -3100, 8360, 0 };
 
-void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
+void dryfieldNightMotelBalconyBeginMoviesTask(Task* task)
 {
     displaySpawnTaskFromTable(D_dryfield_night_motel_balcony_80182834, 1, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
     sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    taskKill(arg0);
+    taskKill(task);
 }
 
-void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
+void dryfieldNightMotelBalconyUpdateSceneSprites(u8 sceneStep)
 {
-    GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->location.loc;
-    SpriteView*      rec;
-    SpriteBatch*     batches;
+    const GameSession*     session  = gGameSession;
+    const GameLocationKey* location = &session->location.loc;
+    const SpriteView*      areaViews;
+    SpriteBatch*           batches;
 
-    rec = gSpriteAreaTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
+    areaViews = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
 
-    switch (sess->view) {
+    switch (location->view) {
         case 17:
-            batches = rec[16].batches;
-            if (arg0 == 0) {
+            batches = areaViews[16].batches;
+            if (sceneStep == 0) {
                 batches[2].hidden = 1;
             } else {
                 batches[3].hidden = 1;
             }
             break;
         case 18:
-            batches            = rec[17].batches;
-            batches[6].hidden  = 0;
-            batches[7].hidden  = 0;
-            batches[8].hidden  = 0;
-            batches[9].hidden  = 0;
-            batches[10].hidden = 0;
+            batches = areaViews[17].batches;
+            _dryfieldNightMotelBalconySetBreakawaySprites(batches, 0);
             break;
         case 19:
-            batches = rec[18].batches;
-            if (arg0 == 0) {
+            batches = areaViews[18].batches;
+            if (sceneStep == 0) {
                 batches[2].hidden = 0;
             } else {
                 batches[1].hidden = 0;
             }
+            // The view-19 cue also updates the alternate view-22 sprites.
         case 22:
-            batches = rec[21].batches;
-            if (arg0 == 1) {
+            batches = areaViews[21].batches;
+            if (sceneStep == 1) {
                 batches[1].hidden = 0;
                 batches[2].hidden = 1;
-            } else if (arg0 == 2) {
+            } else if (sceneStep == 2) {
                 batches[1].hidden = 1;
                 batches[2].hidden = 0;
             } else {
@@ -1130,96 +1166,82 @@ void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
     }
 }
 
-void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1)
+void dryfieldNightMotelBalconySetSectionState(s16 sectionIndex, s16 sectionState)
 {
-    GameLocationKey* sess;
-    SpriteView*      rec;
-    SpriteBatch*     batches;
-    u8*              p;
+    const GameLocationKey* location;
+    const SpriteView*      areaViews;
+    const u8*              command;
 
-    p       = D_dryfield_night_motel_balcony_80182C3C[arg0][arg1];
-    sess    = &gGameSession->location.loc;
-    rec     = gSpriteAreaTables[sess->stage - 1]->areaViews[sess->area - 1];
-    batches = rec[p[0]].batches;
-    if (p[0] != 0xFF) {
-        do {
-            if (p[1] == 0xFF) {
-                batches = rec[p[0]].batches;
-                p      += 2;
-            }
-            batches[p[0]].hidden = p[1];
-            p                   += 2;
-        } while (p[0] != 0xFF);
-    }
-    switch (arg0) {
+    command   = D_dryfield_night_motel_balcony_80182C3C[sectionIndex][sectionState];
+    location  = &gGameSession->location.loc;
+    areaViews = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
+    _dryfieldNightMotelBalconyApplySectionSpriteCommands(areaViews, command);
+    // Persist the same state used to choose the visibility stream.
+    switch (sectionIndex) {
         case 0:
-            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_0_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_0_STATE, sectionState);
             break;
         case 1:
-            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_1_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_1_STATE, sectionState);
             break;
         case 2:
-            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_2_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_2_STATE, sectionState);
             break;
         case 3:
-            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE, sectionState);
             break;
         case 4:
-            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE, sectionState);
             break;
         case 5:
-            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE, sectionState);
             break;
         case 6:
-            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_6_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_6_STATE, sectionState);
             break;
         case 7:
-            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE, sectionState);
             break;
         case 8:
-            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE, arg1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE, sectionState);
             break;
     }
 }
 
-void func_dryfield_night_motel_balcony_8017E3C8(void)
+void dryfieldNightMotelBalconyRestoreSectionStates(void)
 {
-    func_dryfield_night_motel_balcony_8017E250(0, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_0_STATE));
-    func_dryfield_night_motel_balcony_8017E250(1, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_1_STATE));
-    func_dryfield_night_motel_balcony_8017E250(2, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_2_STATE));
-    func_dryfield_night_motel_balcony_8017E250(3, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE));
-    func_dryfield_night_motel_balcony_8017E250(4, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE));
-    func_dryfield_night_motel_balcony_8017E250(5, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE));
-    func_dryfield_night_motel_balcony_8017E250(6, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_6_STATE));
-    func_dryfield_night_motel_balcony_8017E250(7, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE));
-    func_dryfield_night_motel_balcony_8017E250(8, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE));
+    dryfieldNightMotelBalconySetSectionState(0, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_0_STATE));
+    dryfieldNightMotelBalconySetSectionState(1, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_1_STATE));
+    dryfieldNightMotelBalconySetSectionState(2, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_2_STATE));
+    dryfieldNightMotelBalconySetSectionState(3, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE));
+    dryfieldNightMotelBalconySetSectionState(4, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE));
+    dryfieldNightMotelBalconySetSectionState(5, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE));
+    dryfieldNightMotelBalconySetSectionState(6, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_6_STATE));
+    dryfieldNightMotelBalconySetSectionState(7, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE));
+    dryfieldNightMotelBalconySetSectionState(8, gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE));
 }
 
-void func_dryfield_night_motel_balcony_8017E4B8(void)
+void dryfieldNightMotelBalconyResetSceneSprites(void)
 {
-    GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->location.loc;
-    SpriteView*      rec;
-    SpriteBatch*     batches;
+    const GameSession*     session  = gGameSession;
+    const GameLocationKey* location = &session->location.loc;
+    const SpriteView*      areaViews;
+    SpriteBatch*           batches;
 
-    rec = gSpriteAreaTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
+    areaViews = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
 
-    batches           = rec[16].batches;
+    batches           = areaViews[16].batches;
     batches[2].hidden = 0;
     batches[3].hidden = 0;
 
-    batches            = rec[17].batches;
-    batches[6].hidden  = 1;
-    batches[7].hidden  = 1;
-    batches[8].hidden  = 1;
-    batches[9].hidden  = 1;
-    batches[10].hidden = 1;
+    batches = areaViews[17].batches;
+    _dryfieldNightMotelBalconySetBreakawaySprites(batches, 1);
 
-    batches           = rec[18].batches;
+    batches           = areaViews[18].batches;
     batches[1].hidden = 1;
     batches[2].hidden = 1;
 
-    batches           = rec[21].batches;
+    batches           = areaViews[21].batches;
     batches[1].hidden = 1;
     batches[2].hidden = 1;
 }

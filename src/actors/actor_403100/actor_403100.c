@@ -2785,7 +2785,7 @@ static void func_actor_403100_801342B4(Task* arg0)
         if (_actor403100FindBalconySection(pos1.vx, pos1.vz) == i) {
             if (D_actor_403100_80155808->sectionDamaged[i] == 0) {
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord1, 0, &offset1);
-                func_dryfield_night_motel_balcony_8017E250((s16)i, 1);
+                dryfieldNightMotelBalconySetSectionState((s16)i, 1);
                 D_actor_403100_80155808->sectionDamaged[i] = 1;
             } else {
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord1, 1, &offset1);
@@ -2796,7 +2796,7 @@ static void func_actor_403100_801342B4(Task* arg0)
         if (_actor403100FindBalconySection(pos2.vx, pos2.vz) == i) {
             if (D_actor_403100_80155808->sectionDamaged[i] == 0) {
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord2, 0, &offset2);
-                func_dryfield_night_motel_balcony_8017E250((s16)i, 1);
+                dryfieldNightMotelBalconySetSectionState((s16)i, 1);
                 D_actor_403100_80155808->sectionDamaged[i] = 1;
             } else {
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord2, 1, &offset2);
@@ -2883,7 +2883,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
         }
         if (D_actor_403100_80155808->sectionDamaged[2] == 0 &&
             _actor403100FindPlayerRegion(flame->position.vx, flame->position.vz) == ACTOR_403100_PLAYER_REGION_2) {
-            func_dryfield_night_motel_balcony_8017E250(2, 1);
+            dryfieldNightMotelBalconySetSectionState(2, 1);
             D_actor_403100_80155808->sectionDamaged[2] = 1;
         }
         pos.vx = flame->position.vx;
@@ -2902,7 +2902,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
             size   = baseSize + growth;
         }
         if (flag >= 0) {
-            func_dryfield_night_motel_balcony_8017F6C8(screen, (depth << 0xC) >> 0x10, (s16)((size << 0x10 >> 1) / (depth * 4)), flame->spriteStep);
+            dryfieldNightMotelBalconyDrawBreathFlame(screen, (depth << 0xC) >> 0x10, (s16)((size << 0x10 >> 1) / (depth * 4)), flame->spriteStep);
         } else {
             _actor403100MaskCollisionFlags(&D_actor_403100_80155814[i].body, (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED), WORLD_COLLISION_BODY_GRID_ENABLED);
         }
@@ -3051,7 +3051,7 @@ static void func_actor_403100_8013506C(Task* arg0)
         D_actor_403100_80155808->stateFrames = 0;
         padScriptSpawnVariableMotorRamp(0x1E, 0xFF, 8);
         D_actor_403100_80155808->shakeFrames = 0x1E;
-        func_dryfield_night_motel_balcony_8017E128(0);
+        dryfieldNightMotelBalconyUpdateSceneSprites(0);
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         sndEvtRequestScriptStart(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
@@ -3072,7 +3072,7 @@ static void func_actor_403100_801351F8(Task* arg0)
     frame                                = D_actor_403100_80155808->stateFrames + 1;
     D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x3E) {
-        func_dryfield_night_motel_balcony_8017E128(0);
+        dryfieldNightMotelBalconyUpdateSceneSprites(0);
         padScriptSpawnVariableMotorRamp(0x1E, 0xFF, 8);
         D_actor_403100_80155808->shakeFrames = 0x1E;
         sound                                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
@@ -3136,10 +3136,10 @@ static void func_actor_403100_801354A0(Task* arg0)
         sndEvtRequestScriptStart(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
         padScriptSpawnVariableMotorRamp(0x1E, 0xFFU, 8U);
         D_actor_403100_80155808->shakeFrames = 0x1E;
-        func_dryfield_night_motel_balcony_8017E128(1);
+        dryfieldNightMotelBalconyUpdateSceneSprites(1);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x18) {
-        func_dryfield_night_motel_balcony_8017E128(0);
+        dryfieldNightMotelBalconyUpdateSceneSprites(0);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x28) {
         D_actor_403100_80155808->subState += 1;
@@ -3237,7 +3237,7 @@ static void func_actor_403100_8013588C(Task* arg0)
         D_actor_403100_80155808->shakeFrames = 0x1E;
     }
     if ((u32)(D_actor_403100_80155808->stateFrames - 0xE) < 7U) {
-        func_dryfield_night_motel_balcony_8017E128(D_actor_403100_801557A8[D_actor_403100_80155808->auxFrames]);
+        dryfieldNightMotelBalconyUpdateSceneSprites(D_actor_403100_801557A8[D_actor_403100_80155808->auxFrames]);
         D_actor_403100_80155808->auxFrames += 1;
     }
     if ((s16)D_actor_403100_80155808->stateFrames >= 0x15) {
@@ -3333,7 +3333,7 @@ static void func_actor_403100_80135C00(Task* arg0)
     frame                                = D_actor_403100_80155808->stateFrames + 1;
     D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x1E) {
-        func_dryfield_night_motel_balcony_8018257C();
+        dryfieldNightMotelBalconySpawnFlameBurst();
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
@@ -3343,7 +3343,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x28) {
-        func_dryfield_night_motel_balcony_8018257C();
+        dryfieldNightMotelBalconySpawnFlameBurst();
         sound_2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan_2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth_2 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
@@ -3353,7 +3353,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x3C) {
-        func_dryfield_night_motel_balcony_8018257C();
+        dryfieldNightMotelBalconySpawnFlameBurst();
         sound_3 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan_3   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth_3 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
@@ -3363,7 +3363,7 @@ static void func_actor_403100_80135C00(Task* arg0)
         sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x5A) {
-        func_dryfield_night_motel_balcony_8018257C();
+        dryfieldNightMotelBalconySpawnFlameBurst();
         sound_4 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan_4   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth_4 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
@@ -3395,7 +3395,7 @@ static void func_actor_403100_80135F30(Task* arg0)
     frame                                = D_actor_403100_80155808->stateFrames + 1;
     D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0xA) {
-        func_dryfield_night_motel_balcony_8018257C();
+        dryfieldNightMotelBalconySpawnFlameBurst();
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
@@ -3641,8 +3641,8 @@ static void func_actor_403100_80136610(Task* arg0)
     for (i = ARRAY_SIZE(D_actor_403100_80155814) - 1; i >= 0; i--) {
         D_actor_403100_80155814[i].active = 0;
     }
-    func_dryfield_night_motel_balcony_8017E4B8();
-    func_dryfield_night_motel_balcony_8017E3C8();
+    dryfieldNightMotelBalconyResetSceneSprites();
+    dryfieldNightMotelBalconyRestoreSectionStates();
     D_actor_403100_80155810     = 0;
     D_actor_403100_8015580C->hp = D_actor_403100_8015580C->hpMax = D_actor_403100_8014762C.hpMax;
     arg0->state                                                  = 1;
@@ -4445,7 +4445,7 @@ static void func_actor_403100_80138048(Task* arg0)
             D_actor_403100_80155808->aimMode      = ACTOR_403100_AIM_TRACK_FAST;
         }
         if ((s16)D_actor_403100_80155808->stateFrames < 0x33) {
-            func_dryfield_night_motel_balcony_80182730();
+            dryfieldNightMotelBalconyTrySpawnFlame();
         }
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x33) {
@@ -5404,10 +5404,10 @@ static void func_actor_403100_8013A254(Task* task)
     D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0xB) {
         if (D_actor_403100_80155808->sectionDamaged[1] == 0) {
-            func_dryfield_night_motel_balcony_8017E250(1, 1);
+            dryfieldNightMotelBalconySetSectionState(1, 1);
             D_actor_403100_80155808->sectionDamaged[1] = 1;
         } else {
-            func_dryfield_night_motel_balcony_8017E250(1, 2);
+            dryfieldNightMotelBalconySetSectionState(1, 2);
         }
         padScriptSpawnVariableMotorRamp(8, 0xFFU, 8U);
         D_actor_403100_80155808->shakeFrames = 8;
@@ -5727,10 +5727,10 @@ static void func_actor_403100_8013AE28(Task* task)
     D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0xA) {
         if (D_actor_403100_80155808->sectionDamaged[0] == 0) {
-            func_dryfield_night_motel_balcony_8017E250(0, 1);
+            dryfieldNightMotelBalconySetSectionState(0, 1);
             D_actor_403100_80155808->sectionDamaged[0] = 1;
         } else {
-            func_dryfield_night_motel_balcony_8017E250(0, 2);
+            dryfieldNightMotelBalconySetSectionState(0, 2);
         }
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0xB) {
@@ -7827,7 +7827,7 @@ static void func_actor_403100_8013EDDC(Task* task)
     frame                                = D_actor_403100_80155808->stateFrames + 1;
     D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x1E) {
-        func_dryfield_night_motel_balcony_8017E128(1);
+        dryfieldNightMotelBalconyUpdateSceneSprites(1);
     }
 }
 

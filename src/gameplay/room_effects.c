@@ -816,7 +816,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightJunkYardDrawGlowsTask, { NULL } },                                     // 0x116
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightTrailerCoachDrawGlowsTask, { NULL } },                                 // 0x117
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelRoom5DrawFlareTask, { NULL } },                                   // 0x118
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_8017E554, { NULL } },                             // 0x119
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyAmbientEffectsTask, { NULL } },                            // 0x119
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelRoom6DrawGlowTask, { NULL } },                                    // 0x11A
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelLoftFlaresAndShardsTask, { NULL } },                              // 0x11B
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_water_hole_8017E6D0, { NULL } },                                // 0x11C

@@ -63,8 +63,14 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 115, 55, 136 } };
 
 RoomEventReq gRoomEventReq;
 
-static void func_dryfield_night_motel_balcony_8017DC30(Task* task);
-static void func_dryfield_night_motel_balcony_8017DD0C(Task* task);
+static void _dryfieldNightMotelBalconyInitRoom(Task* task);
+static void _dryfieldNightMotelBalconyCheckFollowUpScene(Task* unusedTask);
+
+enum {
+    DRYFIELD_NIGHT_MOTEL_BALCONY_SCENE_VARIANT     = 2,
+    DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_PENDING = 1,
+    DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_STARTED = 2,
+};
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -76,38 +82,38 @@ static void func_dryfield_night_motel_balcony_8017DD0C(Task* task);
 #define MOTEL_BALCONY_CUE_SOUND_MSG motelBalconyCueSoundMsg
 #include "../../shared/room_variants_motel_balcony_sound.inc.c"
 
-s32 func_dryfield_night_motel_balcony_8017DC18(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 dryfieldNightMotelBalconyRefuseKeyItemMsg(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
+{
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+s32 dryfieldNightMotelBalconyIgnoreCommandMsg(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandKey, s32 unusedSecondArg)
 {
     return 0;
 }
 
-s32 func_dryfield_night_motel_balcony_8017DC20(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 dryfieldNightMotelBalconyIgnoreRoomActionMsg(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     return 0;
 }
 
-s32 func_dryfield_night_motel_balcony_8017DC28(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Registers the room, restores damaged scenery and starts its unseen entry scene.
+///
+/// State 0 borrows the live room task/session and loaded sprite tables. Variant
+/// 2, room 2 starts the script pair once and arms the follow-up scene. Advances
+/// to state 1 after setup; the message table stays live with the room overlay.
+static void _dryfieldNightMotelBalconyInitRoom(Task* task)
 {
-    return 0;
-}
-
-/// Room task state 0: installs the room's message table, registers the task
-/// in pointer slot 7 and reapplies the nine saved sprite-command states. On
-/// place 2, room 2 with flag nibble 0x61 still clear, it also starts the
-/// script pair, sets nibbles 0x61, 0x10E (arming state 1) and 0x155, clears
-/// nibble 3 and sets `flowFlags` to 0x85. Then advances to the next state.
-static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
-{
-    u8 field9;
+    u8 variant;
 
     task->msgTable = D_dryfield_night_motel_balcony_80182804;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    func_dryfield_night_motel_balcony_8017E3C8();
-    field9 = gGameSession->location.loc.variant;
-    if (field9 == 2 && gGameSession->location.loc.room == field9 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
+    dryfieldNightMotelBalconyRestoreSectionStates();
+    variant = gGameSession->location.loc.variant;
+    if (variant == DRYFIELD_NIGHT_MOTEL_BALCONY_SCENE_VARIANT && gGameSession->location.loc.room == variant && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
         evsStartScriptWithSkip(D_actor_335800_80165060, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_335800_80165798);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN, 1);
-        gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, 1);
+        gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_PENDING);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_LOAD_ENDING_MUSIC_ONLY | GAME_SESSION_FLOW_REEQUIP_WEAPON);
@@ -115,30 +121,31 @@ static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
     task->state = task->state + 1;
 }
 
-/// Room task state 1: once the event state is idle, `Gp_StateC08.mode` is not 1 and
-/// flag nibble 0x10E is 1, runs the one-shot script and moves the nibble to 2.
-static void func_dryfield_night_motel_balcony_8017DD0C(Task* task)
+/// Starts the armed follow-up scene when event and attachment control allow it.
+///
+/// State 1 requires the live session, attachment state and loaded event script.
+/// The task argument is unused. Marks the saved script state as started without
+/// advancing the task, so subsequent ticks leave the scene alone.
+static void _dryfieldNightMotelBalconyCheckFollowUpScene(Task* unusedTask)
 {
-    if (gGameSession->eventState == 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE) == 1) {
+    if (gGameSession->eventState == 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE) == DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_PENDING) {
         evsStartScript(D_actor_335800_80165720, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-        gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, 2);
+        gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_STARTED);
     }
 }
 
 /// The room task's three states: setup, the per-tick balcony event check,
 /// and exit.
 static const TaskFuncTable3 D_dryfield_night_motel_balcony_8017D5DC = {
-    func_dryfield_night_motel_balcony_8017DC30,
-    func_dryfield_night_motel_balcony_8017DD0C,
+    _dryfieldNightMotelBalconyInitRoom,
+    _dryfieldNightMotelBalconyCheckFollowUpScene,
     taskKill,
 };
 
-/// Runs the room task's current state from its state table, dispatching
-/// through a copy of the table taken onto the stack.
-void func_dryfield_night_motel_balcony_8017DD78(Task* task)
+void dryfieldNightMotelBalconyRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_dryfield_night_motel_balcony_8017D5DC;
-    sp.funcs[task->state](task);
+    states = D_dryfield_night_motel_balcony_8017D5DC;
+    states.funcs[task->state](task);
 }

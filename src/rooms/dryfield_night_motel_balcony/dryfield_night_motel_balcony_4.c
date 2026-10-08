@@ -94,6 +94,48 @@ static void _dryfieldNightMotelBalconyDrawFallingParticle(const Task* task, cons
 static void _dryfieldNightMotelBalconyDrawDriftPuff(const Task* task, s32 clutOriginIndex);
 static void _dryfieldNightMotelBalconyDrawFlame(const Task* task, const u8* tintRgb, s16 unusedAge);
 
+/// Applies an atlas frame's CLUT and inclusive 40-texel UV rectangle.
+///
+/// Borrows the packet and frame for this call; command, page, geometry and
+/// submission remain with the drawer. Palette coordinates are VRAM words and
+/// scanlines; UV origins and spans are page-relative texels.
+static inline void _dryfieldNightMotelBalconySetBreathFlameTexture(POLY_FT4* quad, const EffectSpriteTextureFrame* textureFrame)
+{
+    quad->clut = getClut(textureFrame->clutX, textureFrame->clutY);
+    quad->u0   = textureFrame->u;
+    quad->v0   = textureFrame->v;
+    quad->u1   = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
+    quad->v1   = textureFrame->v;
+    quad->u2   = textureFrame->u;
+    quad->v2   = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
+    quad->u3   = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
+    quad->v3   = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
+}
+
+/// Disables both points of the broken lamp in both view-mask words.
+static inline void _dryfieldNightMotelBalconyDisableBrokenLamp(void)
+{
+    D_dryfield_night_motel_balcony_80182D40[0][3] = 0;
+    D_dryfield_night_motel_balcony_80182D40[0][2] = 0;
+    D_dryfield_night_motel_balcony_80182D40[1][3] = 0;
+    D_dryfield_night_motel_balcony_80182D40[1][2] = 0;
+}
+
+/// Chooses a burst offset in model-part coordinates with three shared LCG draws.
+///
+/// Writes XYZ only: X -127..128, Y -639..-384 and Z 1409..1664. The writable
+/// vector pointer is evaluated three times and must have no side effects.
+/// Captures and advances `gRandomLcgState`; leaves the fourth halfword intact.
+#define DRYFIELD_NIGHT_MOTEL_BALCONY_CHOOSE_FLAME_BURST_OFFSET(offset)                    \
+    {                                                                                     \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
+        (offset)->vx    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);                        \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
+        (offset)->vy    = 0xFE80 - ((gRandomLcgState >> 16) & 0xFF);                      \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
+        (offset)->vz    = 0x680 - ((gRandomLcgState >> 16) & 0xFF);                       \
+    }
+
 /// Projects a debris billboard's cached centre through the current screen matrix.
 ///
 /// `composedCoord->workm.t` must contain the centre to draw in `GsWSMATRIX`'s
@@ -3233,131 +3275,151 @@ WorldCollisionSurfaceProperties* D_dryfield_night_motel_balcony_8018F2AC[8] = {
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 
-/// The room's ambient effect task. Each tick it draws the glows whose bit for
-/// the current view is set in the per-view mask table, turns two of them off
-/// for good once flag nibble 0x7F is set (spawning effect 0x60094 the first
-/// time), and runs the current view's timed effect bursts off the work
-/// block's two counters.
-void func_dryfield_night_motel_balcony_8017E554(Task* task)
+void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
 {
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_MASK_BITS                   = 32,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE               = 0x180,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLARE_RADIUS_SCALE               = 0x380,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FIRST_FLARE_POINT                = 10,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLARE_POINT_END                  = 18,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_LAMP_BREAK_PENDING               = 1,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_LAMP_BREAK_DONE                  = 2,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_17_BURST_TICK               = 92,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_18_BREAK_TICK               = 63,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_19_BREAK_TICK               = 43,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_20_23_BREAK_TICK            = 12,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_29_BURST_TICK               = 65,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_EXPANSION_START            = 71,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_EMISSION_PERIOD            = 6,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_PAIR_COUNT                = 3,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_SCATTERED_PUFF_ARGS              = 0x40000300,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_LARGE_DEBRIS_ARGS                = 0x80010100,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_ARGS                = 0x80000080,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_EXPANDING_FLAME_ARGS             = 0x40000600,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_SCATTERED_PUFFS_AND_DEBRIS = 2,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_PUFFS_AND_LARGE_DEBRIS     = 3,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_PUFFS_ONLY                 = 4,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_LARGE_DEBRIS_SIZE_MASK           = 0xFF,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_SIZE_MASK           = 0x7F,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_SIZE_STEP                  = 40,
+    };
     EffectWork* work;
     GfxCoord*   coord;
-    s32         hi;
-    s32         mask;
-    s32         i;
-    s32         n;
-    s16         cnt;
-    SVECTOR     pos;
-    SVECTOR     ofs;
+    s32         viewMaskWord;
+    s32         viewBit;
+    s32         effectIndex;
+    s32         expansionFrames;
+    s16         elapsedFrames;
+    SVECTOR     spawnOffset;
+    SVECTOR     randomOffset;
 
     work                                = task->spawnArg2.pointer;
     coord                               = task->extra.coordBody->coord;
     gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_MAX_SHADE;
-    hi                                  = 0;
-    if (gGameSession->location.loc.view < 0x20) {
-        mask = 1 << gGameSession->location.loc.view;
+    // Select this view in the low or high 32-bit mask word.
+    viewMaskWord = 0;
+    if (gGameSession->location.loc.view < DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_MASK_BITS) {
+        viewBit = 1 << gGameSession->location.loc.view;
     } else {
-        mask = 1 << (gGameSession->location.loc.view - 0x20);
-        hi   = 1;
+        viewBit      = 1 << (gGameSession->location.loc.view - DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_MASK_BITS);
+        viewMaskWord = 1;
     }
-    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][0]) {
-        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C60[0], 0x180);
+    if (viewBit & D_dryfield_night_motel_balcony_80182D40[viewMaskWord][0]) {
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C60[0], DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
     }
-    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][2]) {
-        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C70, 0x180);
+    if (viewBit & D_dryfield_night_motel_balcony_80182D40[viewMaskWord][2]) {
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C70, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
     }
-    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][4]) {
-        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C80, 0x180);
+    if (viewBit & D_dryfield_night_motel_balcony_80182D40[viewMaskWord][4]) {
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C80, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
     }
-    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][6]) {
-        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C90, 0x180);
+    if (viewBit & D_dryfield_night_motel_balcony_80182D40[viewMaskWord][6]) {
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C90, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
     }
-    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][8]) {
-        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182CA0, 0x180);
+    if (viewBit & D_dryfield_night_motel_balcony_80182D40[viewMaskWord][8]) {
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182CA0, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
     }
-    for (i = 10; i < 18; i++) {
-        if (mask & D_dryfield_night_motel_balcony_80182D40[hi][i]) {
-            _glowDrawFlare(&D_dryfield_night_motel_balcony_80182C60[i], 1, 0x380);
+    for (effectIndex = DRYFIELD_NIGHT_MOTEL_BALCONY_FIRST_FLARE_POINT; effectIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_FLARE_POINT_END; effectIndex++) {
+        if (viewBit & D_dryfield_night_motel_balcony_80182D40[viewMaskWord][effectIndex]) {
+            _glowDrawFlare(&D_dryfield_night_motel_balcony_80182C60[effectIndex], 1, DRYFIELD_NIGHT_MOTEL_BALCONY_FLARE_RADIUS_SCALE);
         }
     }
-    if (mask & D_dryfield_night_motel_balcony_80182D40[hi][18]) {
-        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182CF0, 0x180);
+    if (viewBit & D_dryfield_night_motel_balcony_80182D40[viewMaskWord][18]) {
+        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182CF0, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
     }
-    if (gameFlagGetNibble(GAME_FLAG_07F) == 1) {
-        D_dryfield_night_motel_balcony_80182D40[0][3] = 0;
-        D_dryfield_night_motel_balcony_80182D40[0][2] = 0;
-        D_dryfield_night_motel_balcony_80182D40[1][3] = 0;
-        D_dryfield_night_motel_balcony_80182D40[1][2] = 0;
+    // Keep a broken lamp dark across subsequent visits.
+    if (gameFlagGetNibble(GAME_FLAG_07F) == DRYFIELD_NIGHT_MOTEL_BALCONY_LAMP_BREAK_PENDING) {
+        _dryfieldNightMotelBalconyDisableBrokenLamp();
         effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_LAMP_BURST, coord, 0, &D_dryfield_night_motel_balcony_80182C70);
-        gameFlagSetNibble(GAME_FLAG_07F, 2);
-    } else if (gameFlagGetNibble(GAME_FLAG_07F) == 2) {
-        D_dryfield_night_motel_balcony_80182D40[0][3] = 0;
-        D_dryfield_night_motel_balcony_80182D40[0][2] = 0;
-        D_dryfield_night_motel_balcony_80182D40[1][3] = 0;
-        D_dryfield_night_motel_balcony_80182D40[1][2] = 0;
+        gameFlagSetNibble(GAME_FLAG_07F, DRYFIELD_NIGHT_MOTEL_BALCONY_LAMP_BREAK_DONE);
+    } else if (gameFlagGetNibble(GAME_FLAG_07F) == DRYFIELD_NIGHT_MOTEL_BALCONY_LAMP_BREAK_DONE) {
+        _dryfieldNightMotelBalconyDisableBrokenLamp();
     }
+    // These counters continue across the coordinated scene views.
     switch (gGameSession->location.loc.view) {
         case 17:
-            if (++work->angle == 0x5C) {
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x40000300, &D_dryfield_night_motel_balcony_80182D28);
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x40000300, &D_dryfield_night_motel_balcony_80182D28);
-                for (i = 0; i < 3; i++) {
+            if (++work->angle == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_17_BURST_TICK) {
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_SCATTERED_PUFF_ARGS, &D_dryfield_night_motel_balcony_80182D28);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_SCATTERED_PUFF_ARGS, &D_dryfield_night_motel_balcony_80182D28);
+                for (effectIndex = 0; effectIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_PAIR_COUNT; effectIndex++) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x80010100,
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_LARGE_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_LARGE_DEBRIS_ARGS,
                                 &D_dryfield_night_motel_balcony_80182D28);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80000080,
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_ARGS,
                                 &D_dryfield_night_motel_balcony_80182D28);
                 }
             }
             break;
         case 18:
-            if (++work->scale == 0x3F) {
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 3, &D_dryfield_night_motel_balcony_80182D08);
+            if (++work->scale == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_18_BREAK_TICK) {
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_PUFFS_AND_LARGE_DEBRIS, &D_dryfield_night_motel_balcony_80182D08);
                 work->angle = 0;
             }
             break;
         case 21:
-            cnt = ++work->angle;
-            if (cnt >= 0x47) {
-                n = cnt - 0x46;
-                if ((s16)(cnt % 6) == 0) {
-                    memset(&ofs, 0, sizeof(ofs));
+            elapsedFrames = ++work->angle;
+            if (elapsedFrames >= DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_EXPANSION_START) {
+                // Every sixth tick scatters a flame within an expanding region.
+                expansionFrames = elapsedFrames - (DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_EXPANSION_START - 1);
+                if ((s16)(elapsedFrames % DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_EMISSION_PERIOD) == 0) {
+                    memset(&randomOffset, 0, sizeof(randomOffset));
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    ofs.vx          = -((s32)(gRandomLcgState >> 16) % (n * 10));
+                    randomOffset.vx = -((s32)(gRandomLcgState >> 16) % (expansionFrames * 10));
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    ofs.vy          = (s32)(gRandomLcgState >> 16) % (n * 10);
+                    randomOffset.vy = (s32)(gRandomLcgState >> 16) % (expansionFrames * 10);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    ofs.vz          = (s32)(gRandomLcgState >> 16) % (n * 10);
-                    pos             = ofs;
-                    pos.vx         += D_dryfield_night_motel_balcony_80182D30.vx;
-                    pos.vy         += D_dryfield_night_motel_balcony_80182D30.vy;
-                    pos.vz         += D_dryfield_night_motel_balcony_80182D30.vz;
-                    effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, coord, n * 0x28 + 0x40000600, &pos);
+                    randomOffset.vz = (s32)(gRandomLcgState >> 16) % (expansionFrames * 10);
+                    spawnOffset     = randomOffset;
+                    spawnOffset.vx += D_dryfield_night_motel_balcony_80182D30.vx;
+                    spawnOffset.vy += D_dryfield_night_motel_balcony_80182D30.vy;
+                    spawnOffset.vz += D_dryfield_night_motel_balcony_80182D30.vz;
+                    effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, coord, expansionFrames * DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_SIZE_STEP + DRYFIELD_NIGHT_MOTEL_BALCONY_EXPANDING_FLAME_ARGS, &spawnOffset);
                 }
                 work->scale = 0;
             }
             break;
         case 19:
-            if (++work->scale == 0x2B) {
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 4, &D_dryfield_night_motel_balcony_80182D10);
+            if (++work->scale == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_19_BREAK_TICK) {
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_PUFFS_ONLY, &D_dryfield_night_motel_balcony_80182D10);
             }
             break;
         case 20:
-            if (++work->scale == 0xC) {
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 2, &D_dryfield_night_motel_balcony_80182D00);
+            if (++work->scale == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_20_23_BREAK_TICK) {
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_SCATTERED_PUFFS_AND_DEBRIS, &D_dryfield_night_motel_balcony_80182D00);
             }
             break;
         case 23:
-            if (++work->scale == 0xC) {
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 2, &D_dryfield_night_motel_balcony_80182D38);
+            if (++work->scale == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_20_23_BREAK_TICK) {
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_BREAK_SCATTERED_PUFFS_AND_DEBRIS, &D_dryfield_night_motel_balcony_80182D38);
             }
             break;
         case 29:
-            if (++work->scale == 0x41) {
-                for (i = 0; i < 3; i++) {
+            if (++work->scale == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_29_BURST_TICK) {
+                for (effectIndex = 0; effectIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_PAIR_COUNT; effectIndex++) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80000080,
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_ARGS,
                                 &D_dryfield_night_motel_balcony_80182D18);
                 }
             }
@@ -3373,56 +3435,48 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
 
 #include "../../shared/glow_draw_flare.inc.c"
 
-/// Draws one axis-aligned `POLY_FT4` panel of a 0x28-pixel sprite at the packed
-/// screen position `arg0` (x in the low half, y in the high half). `arg1` is
-/// the ordering-table index, `arg2` the panel width and `arg3` the animation
-/// step, which walks frames 2..11 of `gEffectSpriteAtlasFrames`. The quad is `2 * d` wide and
-/// `4 * d` tall, anchored three quarters of the way down, and both `d` and the
-/// rounded weight `3 * d` are the one reused local the ROM keeps for them.
-void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s16 arg3)
+void dryfieldNightMotelBalconyDrawBreathFlame(s32 packedScreenPosition, s16 otIndex, s16 projectedScaleQ12, s16 animationStep)
 {
-    enum { FIRST_TEXTURE_FRAME = 2 };
-    POLY_FT4*                       prim;
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BREATH_FIRST_TEXTURE_FRAME = 2,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BREATH_QUAD_CODE           = 0x2F,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BREATH_EXTENT_NUMERATOR    = 31,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BREATH_SCALE_SHIFT         = 12,
+    };
+    POLY_FT4*                       quad;
     const EffectSpriteTextureFrame* textureFrame;
     s16                             textureFrameIndex;
     const EffectSpriteTextureFrame* textureFrames;
-    s32                             d;
-    s32                             y;
+    s32                             screenExtent;
+    s32                             screenY;
 
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2F);
-    prim->tpage = EFFECT_SPRITE_ATLAS_TEXTURE_PAGE;
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setlen(quad, sizeof(*quad) / sizeof(quad->tag) - 1);
+    setcode(quad, DRYFIELD_NIGHT_MOTEL_BALCONY_BREATH_QUAD_CODE);
+    quad->tpage = EFFECT_SPRITE_ATLAS_TEXTURE_PAGE;
 
     // Repeat the atlas tail, skipping the two opening frames.
-    textureFrameIndex = arg3 % (ARRAY_SIZE(gEffectSpriteAtlasFrames) - FIRST_TEXTURE_FRAME) + FIRST_TEXTURE_FRAME;
+    textureFrameIndex = animationStep % (ARRAY_SIZE(gEffectSpriteAtlasFrames) - DRYFIELD_NIGHT_MOTEL_BALCONY_BREATH_FIRST_TEXTURE_FRAME) + DRYFIELD_NIGHT_MOTEL_BALCONY_BREATH_FIRST_TEXTURE_FRAME;
     textureFrames     = gEffectSpriteAtlasFrames;
     textureFrame      = &textureFrames[textureFrameIndex];
-    prim->clut        = getClut(textureFrame->clutX, textureFrame->clutY);
-    prim->u0          = textureFrame->u;
-    prim->v0          = textureFrame->v;
-    prim->u1          = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
-    prim->v1          = textureFrame->v;
-    prim->u2          = textureFrame->u;
-    prim->v2          = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
-    prim->u3          = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
-    prim->v3          = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
+    _dryfieldNightMotelBalconySetBreathFlameTexture(quad, textureFrame);
 
-    d        = (arg2 * 0x1F) >> 12;
-    prim->x2 = arg0 - d;
-    prim->x0 = arg0 - d;
-    prim->x3 = arg0 + d;
-    prim->x1 = arg0 + d;
+    // Narrow packed X at the stores; reuse the extent for the vertical anchor.
+    screenExtent = (projectedScaleQ12 * DRYFIELD_NIGHT_MOTEL_BALCONY_BREATH_EXTENT_NUMERATOR) >> DRYFIELD_NIGHT_MOTEL_BALCONY_BREATH_SCALE_SHIFT;
+    quad->x2     = packedScreenPosition - screenExtent;
+    quad->x0     = packedScreenPosition - screenExtent;
+    quad->x3     = packedScreenPosition + screenExtent;
+    quad->x1     = packedScreenPosition + screenExtent;
 
-    d        = (arg2 * 0x1F) >> 13;
-    y        = arg0 >> 16;
-    prim->y1 = y - d * 3;
-    prim->y0 = y - d * 3;
-    prim->y3 = y + d;
-    prim->y2 = y + d;
+    screenExtent = (projectedScaleQ12 * DRYFIELD_NIGHT_MOTEL_BALCONY_BREATH_EXTENT_NUMERATOR) >> (DRYFIELD_NIGHT_MOTEL_BALCONY_BREATH_SCALE_SHIFT + 1);
+    screenY      = packedScreenPosition >> 16;
+    quad->y1     = screenY - screenExtent * 3;
+    quad->y0     = screenY - screenExtent * 3;
+    quad->y3     = screenY + screenExtent;
+    quad->y2     = screenY + screenExtent;
 
-    addPrim(&gGpuCurrentOt[arg1], prim);
+    addPrim(&gGpuCurrentOt[otIndex], quad);
 }
 
 void dryfieldNightMotelBalconyDebrisTask(Task* task)
@@ -4347,57 +4401,53 @@ static void _dryfieldNightMotelBalconyDrawFlame(const Task* task, const u8* tint
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-/// Spawns an 8-step burst of effect 0x6007E and then a 6-step burst of 0x60070
-/// around part 3 of the model owned by the slot-4 task's child. Each step rolls
-/// the room LCG four times (three for the second burst) and builds the offset
-/// vector from the top byte of each draw; the first burst also carries the last
-/// draw's low nine bits, biased by 0x300, in the spawn argument.
-void func_dryfield_night_motel_balcony_8018257C(void)
+void dryfieldNightMotelBalconySpawnFlameBurst(void)
 {
-    Task*     task;
-    GfxCoord* coord;
-    SVECTOR   sv;
-    s32       i;
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_MODEL_PART  = 3,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_FLAME_COUNT = 8,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SMOKE_COUNT = 6,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SIZE_MASK   = 0x1FF,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SIZE_BASE   = 0x300,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SMOKE_ARGS  = 0xC0033800,
+    };
+    Task*     sceneTask;
+    GfxCoord* emissionCoord;
+    SVECTOR   spawnOffset;
+    s32       particleIndex;
 
-    task  = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
-    coord = task->firstChild->extra.tmd->coords + 3;
+    sceneTask     = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
+    emissionCoord = sceneTask->firstChild->extra.tmd->coords + DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_MODEL_PART;
 
-    for (i = 0; i < 8; i++) {
+    for (particleIndex = 0; particleIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_FLAME_COUNT; particleIndex++) {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_CHOOSE_FLAME_BURST_OFFSET(&spawnOffset);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        sv.vx           = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        sv.vy           = 0xFE80 - ((gRandomLcgState >> 16) & 0xFF);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        sv.vz           = 0x680 - ((gRandomLcgState >> 16) & 0xFF);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x300, &sv);
+        effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, emissionCoord, ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SIZE_MASK) + DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SIZE_BASE, &spawnOffset);
     }
 
-    for (i = 0; i < 6; i++) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        sv.vx           = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        sv.vy           = 0xFE80 - ((gRandomLcgState >> 16) & 0xFF);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        sv.vz           = 0x680 - ((gRandomLcgState >> 16) & 0xFF);
-        effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xC0033800, &sv);
+    for (particleIndex = 0; particleIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SMOKE_COUNT; particleIndex++) {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_CHOOSE_FLAME_BURST_OFFSET(&spawnOffset);
+        effectSpawn(EFFECT_SMOKE_PUFF, emissionCoord, DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SMOKE_ARGS, &spawnOffset);
     }
 }
 
-/// Draws once from the shared LCG (`gRandomLcgState`) and, on a draw whose upper half is
-/// a multiple of three, rolls it again and spawns effect 0x6007E at part 3 of
-/// the model owned by the slot-4 task's child, carrying the second draw's low
-/// nine bits in the upper half of the spawn argument.
-void func_dryfield_night_motel_balcony_80182730(void)
+void dryfieldNightMotelBalconyTrySpawnFlame(void)
 {
-    Task* task;
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_MODEL_PART     = 3,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_CHANCE_DIVISOR = 3,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_SIZE_MASK      = 0x1FF,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_SLOW_SIZE_BASE = 0x80000100,
+    };
+    Task* sceneTask;
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((u16)((gRandomLcgState >> 16) % 3U) == 0) {
-        task            = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
+    if ((u16)((gRandomLcgState >> 16) % (u32)DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_CHANCE_DIVISOR) == 0) {
+        sceneTask       = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, task->firstChild->extra.tmd->coords + 3,
-                    ((gRandomLcgState >> 16) & 0x1FF) + 0x80000100,
+        // Bit 31 selects slow drift; the random bits alter only the size.
+        effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, sceneTask->firstChild->extra.tmd->coords + DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_MODEL_PART,
+                    ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_SIZE_MASK) + DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_SLOW_SIZE_BASE,
                     &D_dryfield_night_motel_balcony_80182D20);
     }
 }

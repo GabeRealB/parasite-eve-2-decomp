@@ -779,7 +779,7 @@ before writing the next.
 
 ## One local assigned twice is one quantity: the reused definition cannot tie to its source, and that is what keeps both halves in one register
 
-`func_dryfield_night_motel_balcony_8017F6C8` builds a quad's half-width and
+`dryfieldNightMotelBalconyDrawBreathFlame` builds a quad's half-width and
 half-height from the same product, one shift apart, and the ROM keeps both in
 `$t3`:
 
@@ -799,16 +799,16 @@ whose live range the first shift ends. One change, 68.04% → 98.25%, and with i
 every later register home and the whole schedule:
 
 ```c
-    d = (arg2 * 0x1F) >> 12;   /* half-width */
-    prim->x2 = arg0 - d;  prim->x0 = arg0 - d;
-    prim->x3 = arg0 + d;  prim->x1 = arg0 + d;
-    d = (arg2 * 0x1F) >> 13;   /* half-height, same local */
-    y = arg0 >> 16;
-    prim->y1 = y - d * 3;  prim->y0 = y - d * 3;
-    prim->y3 = y + d;      prim->y2 = y + d;
+    screenExtent = (projectedScaleQ12 * 0x1F) >> 12;   /* half-width */
+    quad->x2 = packedScreenPosition - screenExtent;  quad->x0 = packedScreenPosition - screenExtent;
+    quad->x3 = packedScreenPosition + screenExtent;  quad->x1 = packedScreenPosition + screenExtent;
+    screenExtent = (projectedScaleQ12 * 0x1F) >> 13;   /* half-height, same local */
+    screenY = packedScreenPosition >> 16;
+    quad->y1 = screenY - screenExtent * 3;  quad->y0 = screenY - screenExtent * 3;
+    quad->y3 = screenY + screenExtent;      quad->y2 = screenY + screenExtent;
 ```
 
-`y - d * 3` expands to `(d << 1) + d` taken off `y`, and the shared local also
+`screenY - screenExtent * 3` expands to `(screenExtent << 1) + screenExtent` taken off `screenY`, and the shared local also
 forces the x statements ahead of the y ones (the second assignment is a
 statement between them), which the target's schedule shows. When a value used
 twice lands in the register that its own source owns, try one reused local
@@ -845,19 +845,19 @@ be scheduled before the division's last `$v0` read.
 
 ## Two stores of the same value are independent, so the emitted order is the source's
 
-`func_dryfield_night_motel_balcony_8017F6C8` writes four pairs of `POLY_FT4`
+`dryfieldNightMotelBalconyDrawBreathFlame` writes four pairs of `POLY_FT4`
 coordinates where both members of a pair hold one value (`x0`/`x2` are both
-`index - d`, `y0`/`y1` both `y - d * 3`, …). Duplicating the expression CSEs it
+`packedScreenPosition - screenExtent`, `y0`/`y1` both `screenY - screenExtent * 3`, …). Duplicating the expression CSEs it
 and the two stores then depend only on that value, so `rank_for_schedule` finds
 them equal in priority and class and falls through to `INSN_LUID`: they are
 emitted in RTL order. The target stores the *higher* offset of every pair first
 (`y1`,`y0`; `y3`,`y2`; `x2`,`x0`; `x3`,`x1`), so the source wrote:
 
 ```c
-    prim->y1 = y - d * 3;  prim->y0 = y - d * 3;
-    prim->y3 = y + d;      prim->y2 = y + d;
-    prim->x2 = arg0 - d;   prim->x0 = arg0 - d;
-    prim->x3 = arg0 + d;   prim->x1 = arg0 + d;
+    quad->y1 = screenY - screenExtent * 3;  quad->y0 = screenY - screenExtent * 3;
+    quad->y3 = screenY + screenExtent;      quad->y2 = screenY + screenExtent;
+    quad->x2 = packedScreenPosition - screenExtent;   quad->x0 = packedScreenPosition - screenExtent;
+    quad->x3 = packedScreenPosition + screenExtent;   quad->x1 = packedScreenPosition + screenExtent;
 ```
 
 Corner-major order (`x0`,`y0`,`x1`,`y1`,…) also emits each pair in RTL order but
@@ -86566,7 +86566,7 @@ type — matching the width turns the fold back into the copy. Likely applies to
 the sibling scanners (82C24/82D34/82F18/829B4). Found by decomp-permuter distance
 search (bind mount, see [[pe2-windows-toolchain-gotchas]] 3e), confirmed by port.
 
-## An overlay import named by address must keep its `D_<vram>` form, not the struct field it denotes (func_dryfield_night_motel_balcony_8017DD0C, 2026-09-15)
+## An overlay import named by address must keep its `D_<vram>` form, not the struct field it denotes (_dryfieldNightMotelBalconyCheckFollowUpScene, 2026-09-15)
 
 A room or actor overlay touching `Gp_StateC08.mode` can write it two ways.
 `extern s8 D_80114C12;` is the name splat generates and the one
@@ -86604,7 +86604,7 @@ file, needs it for the aliasing of that store with its `work->fallingPropTask` r
 Prefer whichever name the target relocates against, and when a body's schedule
 needs the other one, say so at both sites.
 
-## `Task::msgTable` tables are 8-byte `TaskMessageEntry[]`; type them from `taskMessageDispatch` (func_dryfield_night_motel_balcony_8017DC30, 2026-09-15)
+## `Task::msgTable` tables are 8-byte `TaskMessageEntry[]`; type them from `taskMessageDispatch` (_dryfieldNightMotelBalconyInitRoom, 2026-09-15)
 
 A room's state-0 opener parks its message table in `Task::msgTable` and the C
 body shows nothing but the address, so the `D_<room>_<vram>` label it names has
@@ -94394,7 +94394,7 @@ register-to-register copy rather than a `lw`, and the copies carry their own
 allocnos. That is what drops the reference count on the outer pointer and
 restores the target's `s0`/`s1`/`s2`/`s3` assignment.
 
-## An m2c seed that emits `mult` where the target has `multu` was unsigned in the original (func_dryfield_night_motel_balcony_80182730, 2026-09-16)
+## An m2c seed that emits `mult` where the target has `multu` was unsigned in the original (dryfieldNightMotelBalconyTrySpawnFlame, 2026-09-16)
 
 **Problem.** The LCG draw is tested for a multiple of three, and the target
 divides with the *unsigned* magic — no sign correction after `mfhi`:
@@ -94433,38 +94433,38 @@ where the target has `multu`, the original operand was unsigned, and a `(u32)`
 cast (or the project's own matched spelling) is the fix. Do not hand-write the
 magic constant, and do not chase the operand's register home — it follows.
 
-## A displacement past the struct's own size is an array index: `rec[16].batches` reads as `0xC4` (func_dryfield_night_motel_balcony_8017E4B8, 2026-09-16)
+## A displacement past the struct's own size is an array index: `areaViews[16].batches` reads as `0xC4` (dryfieldNightMotelBalconyResetSceneSprites, 2026-09-16)
 
-The room sprite idiom `gSpriteAreaTables[sess->field_3 - 1][g->spriteVariant - 1].areaViews[sess->field_2 - 1]`
+The room sprite idiom `gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1]`
 yields a `SpriteView*` (`SpriteView` is 0xC bytes), but the m2c seed then loaded
 four "fields" of it — `M2C_FIELD(temp_v1, void **, 0xC4)`, `0xD0`, `0xDC`,
 `0x100` — none of which exists. Each is a subscript:
 
 ```
-k = (disp - field_offset) / sizeof(*rec)
+k = (disp - field_offset) / sizeof(*areaViews)
 ```
 
-`0xC4 = 0xC * 16 + 4` → `rec[16].batches`, `0xD0` → `rec[17]`, `0xDC` →
-`rec[18]`, `0x100` → `rec[21]`. All four divide exactly, and the member name is
+`0xC4 = 0xC * 16 + 4` → `areaViews[16].batches`, `0xD0` → `areaViews[17]`, `0xDC` →
+`areaViews[18]`, `0x100` → `areaViews[21]`. All four divide exactly, and the member name is
 what confirms it: the writes off each loaded pointer land on
-`SpriteBatch.hidden` (`cmd[2].hidden = 0` at `0x14`, `cmd[3]` at `0x1C`,
-`cmd[6..10]` at `0x34`..`0x54`), the byte `spriteLinkViewCachedPackets` reads as "skip
+`SpriteBatch.hidden` (`batches[2].hidden = 0` at `0x14`, `batches[3]` at `0x1C`,
+`batches[6..10]` at `0x34`..`0x54`), the byte `spriteLinkViewCachedPackets` reads as "skip
 OT-linking" in the matched siblings `room_util16/17.c` and `acropolis_bridge_6.c`.
 
 Gaps are the source's business, not a mis-read: index 21 skips 19 and 20 because
 the function touches four sprites of that view, not a contiguous run.
 
 ```c
-rec = gSpriteAreaTables[sess->field_3 - 1][g->spriteVariant - 1].areaViews[sess->field_2 - 1];
+areaViews = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
 
-cmd            = rec[16].batches;
-cmd[2].hidden = 0;
-cmd[3].hidden = 0;
+batches            = areaViews[16].batches;
+batches[2].hidden = 0;
+batches[3].hidden = 0;
 ```
 
 Do this before the register work, not after: the four groups share one live
 range for the base pointer, so the flat spelling settles its home too. One build
-carrying both the retyping and the `rec[k]` indexing took the seed from 91.744%
+carrying both the retyping and the `areaViews[k]` indexing took the seed from 91.744%
 (`regs=24 delete=2 stack=2`) to 100.000% with every penalty zero — in the seed
 the base sat in `$a0` and the loaded commands cycled through `$v0`, where the
 target keeps the base in `$v1` and the commands in `$a0`. The two fixes were not
@@ -94549,7 +94549,7 @@ if (location->stage == 2) {
 The session pointer then stays in `$v0` and the byte loads become `0x3($a1)` /
 `0x2($a1)`. `gMcSaveData` has the same overlay in use. The prologue recurs
 across the rooms (the dryfield night motel balcony's
-`func_dryfield_night_motel_balcony_8017E4B8` opens with it), and
+`dryfieldNightMotelBalconyResetSceneSprites` opens with it), and
 `dryfieldWaterTowerSetMechanismSpriteVisible` is the worked example: the m2c baseline sat
 at 96% with `branch=2 regs=1 delete=1` and the overlay struct alone took it to
 100% on the first edit. Read the shape-similar matched siblings for the rest of
@@ -120200,8 +120200,8 @@ local b2 q2 [84]:  refs=7 span=14 priority=10000 -> $v1     /* third load */
 The constant's range spans the arm, so the third load must avoid `$v0`; the two
 before it do not overlap it and take `$v0` unopposed. The target's answer is that
 the *whole* function reads through one variable, as the matched room bodies do
-(`func_dryfield_night_motel_balcony_8017E4B8` writes `cmd = rec[16].batches;
-cmd[2].hidden = 0;` five times over). One name is one pseudo, and a pseudo with
+(`dryfieldNightMotelBalconyResetSceneSprites` writes `batches = areaViews[16].batches;
+batches[2].hidden = 0;` five times over). One name is one pseudo, and a pseudo with
 a definition in *both* arms is not block-local at all -- it goes to
 `global_alloc`, which homes every one of its ranges in a single register and
 cannot pick `$v0`, because the branch constant has it over an overlapping range.
