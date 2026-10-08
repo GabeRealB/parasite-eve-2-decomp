@@ -7,7 +7,8 @@
  * Include this header in the prologue and each fragment at its function's
  * position. The code sees the work block as MadChaserWork. The
  * three carriers each include the creep fragment twice, for emerge behaviors
- * 3 and 9; `MAD_CHASER_EMERGE_CREEP_HANDLER` selects the second identifier.
+ * 3 and 9; each carrier declares both instances static in its prologue, and
+ * `MAD_CHASER_EMERGE_CREEP_HANDLER` selects the definition's identifier.
  */
 
 #ifndef SRC_SHARED_MAD_CHASER_H
@@ -230,7 +231,6 @@ static void _madChaserTwistSpine(Task* task);
 static void _madChaserLinkBodies(Task* task);
 static void _madChaserPinPart(Task* task, s16 partIndex, const SVECTOR* worldAnchor);
 static void _madChaserDeathStartShrink(Task* task);
-void        madChaserCreepUntilHit(Task* task);
 
 static void _madChaserStartLeap(Task* task);
 static void _madChaserLurkStartIdleHold(Task* task);

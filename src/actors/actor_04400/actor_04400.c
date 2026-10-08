@@ -71,6 +71,7 @@ static const TaskFuncTable6 gMadChaserPullSteps;      // dispatcher table _madCh
 /// so a negated angle is passed without re-truncation to 16 bits.
 
 static void _madChaserLurkTick(Task* task);
+static void _madChaserEmergeCreep3(Task* task);
 static void _madChaserEmergeCreep9(Task* task);
 static void _madChaserDropDeathStart(Task* task);
 static void _madChaserDeathTurnTranslucent(Task* task);
@@ -1232,7 +1233,7 @@ static const TaskFuncTable10 gMadChaserEmergeStates = { {
     madChaserEmergeAtSpot,
     _madChaserEmergeBackflip,
     _madChaserEmergeHopForward,
-    madChaserCreepUntilHit,
+    _madChaserEmergeCreep3,
     _madChaserEmergeArcBack,
     _madChaserEmergeHopBack,
     _madChaserEmergeBackOff,

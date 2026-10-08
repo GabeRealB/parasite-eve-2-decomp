@@ -71,6 +71,7 @@ extern u8               gMadChaserSettleAnims[]; // per animation id (1-based): 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
+static void _madChaserEmergeCreep3(Task* task);
 static void _madChaserEmergeCreep9(Task* task);
 static void _madChaserDropDeathStart(Task* task);
 static void _madChaserDeathTurnTranslucent(Task* task);
@@ -872,7 +873,7 @@ static const TaskFuncTable10 gMadChaserEmergeStates = { {
     madChaserEmergeAtSpot,
     _madChaserEmergeBackflip,
     _madChaserEmergeHopForward,
-    madChaserCreepUntilHit,
+    _madChaserEmergeCreep3,
     _madChaserEmergeArcBack,
     _madChaserEmergeHopBack,
     _madChaserEmergeBackOff,
