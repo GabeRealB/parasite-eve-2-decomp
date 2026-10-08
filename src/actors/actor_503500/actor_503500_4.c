@@ -593,45 +593,45 @@ static void func_actor_503500_8014215C(Task* arg0, WorldCollisionBody* arg1, Wor
 static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* arg1, s32 arg2);
 static void func_actor_503500_8013B460(Task* arg0);
 static void func_actor_503500_8013B8D0(Task* arg0);
-static void func_actor_503500_8013BE0C(Task* arg0);
+static void _actor503500LargeOrbEmitterStepIdle(Task* task);
 static void _actor503500LargeOrbEmitterClearReactions(Task* task);
 static void _actor503500RearPartExit(Task* task);
-static void func_actor_503500_8013C9DC(Task* arg0);
+static void _actor503500RearPartClearReactions(Task* task);
 static void func_actor_503500_8013C960(Task* arg0);
 static void func_actor_503500_8013CA34(Task* arg0);
 static void _actor503500RearPartEnterState(Task* task, s8 state);
-static void func_actor_503500_8013D8BC(Task* arg0);
+static void _actor503500ChainBaseClearReactions(Task* task);
 static void func_actor_503500_8013D914(Task* arg0);
 static void func_actor_503500_8013D990(Task* arg0);
 static void func_actor_503500_8013DA2C(Task* arg0, s32 arg1);
-static void func_actor_503500_8013DC4C(Task* arg0);
+static void _actor503500ChainBaseStepCovered(Task* task);
 static void func_actor_503500_8013F8AC(Task* arg0);
 static void func_actor_503500_801440F0(Task* arg0);
 static void func_actor_503500_8013BD88(Task* arg0);
 static void func_actor_503500_8013C558(Task* arg0);
 static void func_actor_503500_8013E384(Task* arg0);
 static void func_actor_503500_8013E740(Task* arg0);
-static void func_actor_503500_8013EBE4(Task* arg0);
-static void func_actor_503500_8013EA8C(Task* arg0);
+static void _actor503500SmallOrbEmitterStepIdle(Task* task);
+static void _actor503500SmallOrbEmitterClearReactions(Task* task);
 static void func_actor_503500_8013EAE4(Task* arg0);
 static void func_actor_503500_8013EB60(Task* arg0);
 static void _actor503500YellowFlashEmitterExit(Task* task);
-static void func_actor_503500_8013F7D8(Task* arg0);
+static void _actor503500YellowFlashEmitterClearReactions(Task* task);
 static void func_actor_503500_8013F830(Task* arg0);
 static void _actor503500ChainBaseEnterState(Task* task, s32 state);
 static void func_actor_503500_8013F328(Task* arg0);
 static void func_actor_503500_8013F4A4(Task* arg0);
-static void func_actor_503500_8013F948(Task* arg0);
-static void func_actor_503500_8013F984(Task* arg0);
+static void _actor503500YellowFlashEmitterStepIdle(Task* task);
+static void _actor503500YellowFlashEmitterStepDormant(Task* task);
 static void _actor503500YellowFlashEmitterEnterState(Task* task, s32 state);
-static void func_actor_503500_801400A4(Task* arg0);
+static void _actor503500LungingChainStepLunge(Task* task);
 static void func_actor_503500_80140654(Task* arg0);
-static void func_actor_503500_80140BE8(Task* arg0);
-static void func_actor_503500_80141248(Task* arg0);
-static void func_actor_503500_80141448(Task* arg0);
-static void func_actor_503500_80141B94(Task* arg0);
+static void _actor503500LungingChainReactToDamage(Task* task);
+static void _actor503500LungingChainStepTip(Task* task);
+static void _actor503500LungingChainUpdatePose(Task* task);
+static void _actor503500LungingChainBlendPose(Task* task);
 static void func_actor_503500_80141D7C(Task* arg0);
-static void func_actor_503500_80141E64(Task* arg0);
+static void _actor503500LungingChainStepIdle(Task* task);
 static void func_actor_503500_80141F48(Task* arg0);
 static void func_actor_503500_80141FC8(Task* arg0);
 static void func_actor_503500_801420C4(Task* arg0);
@@ -719,12 +719,14 @@ static inline void _actor503500BallisticShotIntegratePosition(_Actor503500Ballis
     coord->coord.t[2]             = work->position.fixed.vz.halves.integer;
 }
 
-/// Places a link at the endpoint of a segment expressed in world axes.
+/// Aims the next link's Z axis along a world-space segment and places its origin at the segment's end.
 ///
-/// Requires the accumulated current-link world rotation in `scratch`, with
-/// the world segment and +Y hint prepared. The segment must normalize to a
-/// nonzero direction independent of the hint. Changes GTE state and writes
-/// the next link's local matrix without changing its composition stamp.
+/// `scratch` holds the current link's orthonormal world rotation, a signed
+/// halfword segment in world axes and a +Y hint in the current link's frame.
+/// The segment must normalize to a nonzero direction independent of the hint.
+/// Borrows both live objects, uses the scratch stack through the basis builder,
+/// and changes GTE state. Writes the next link's local rotation and integer
+/// translation; the caller manages its composition stamp.
 static inline void _actor503500LungingChainAimNextLink(Actor503500ChainScratch* scratch, GfxCoord* nextLink)
 {
     MATRIX*  inverseRotation;
@@ -1230,7 +1232,7 @@ static void func_actor_503500_8013BD88(Task* arg0)
 
     switch (work->state) {
         case ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE:
-            func_actor_503500_8013BE0C(arg0);
+            _actor503500LargeOrbEmitterStepIdle(arg0);
             break;
         case ACTOR_503500_LARGE_ORB_EMITTER_STATE_ATTACK:
             func_actor_503500_8013B460(arg0);
@@ -1241,15 +1243,15 @@ static void func_actor_503500_8013BD88(Task* arg0)
     }
 }
 
-/// `ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE` step of a large-orb emitter,
-/// the counterpart of `func_actor_503500_80138454`: when the boss has left
-/// command 2 in the task's `killCountdown`, takes it and starts
-/// `ACTOR_503500_LARGE_ORB_EMITTER_STATE_ATTACK`.
-static void func_actor_503500_8013BE0C(Task* arg0)
+/// Starts a large-orb emitter attack when its idle task receives the boss's attack command.
+///
+/// Requires initialized emitter work. Consumes `ACTOR_503500_SLOT_COMMAND_ATTACK`
+/// from `killCountdown`; other requests remain pending.
+static void _actor503500LargeOrbEmitterStepIdle(Task* task)
 {
-    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
-        _actor503500LargeOrbEmitterEnterState(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_ATTACK);
-        arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    if (task->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
+        _actor503500LargeOrbEmitterEnterState(task, ACTOR_503500_LARGE_ORB_EMITTER_STATE_ATTACK);
+        task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
@@ -1537,7 +1539,7 @@ static void func_actor_503500_8013C878(Task* arg0)
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
-        func_actor_503500_8013C9DC(arg0);
+        _actor503500RearPartClearReactions(arg0);
     }
     func_actor_503500_8013C960(arg0);
     func_actor_503500_8013CA34(arg0);
@@ -1581,9 +1583,13 @@ static void func_actor_503500_8013C960(Task* arg0)
     worldCollisionClearContacts(work->contacts);
 }
 
-static void func_actor_503500_8013C9DC(Task* arg0)
+/// Discards the rear part's stagger, buildup and damage-over-time reactions.
+///
+/// Requires its live enemy in `spawnArg2.pointer`. Retains other reaction bits,
+/// health and behavior state, including the damage-over-time counters.
+static void _actor503500RearPartClearReactions(Task* task)
 {
-    Enemy* enemy = arg0->spawnArg2.pointer;
+    Enemy* enemy = task->spawnArg2.pointer;
 
     if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
         enemy->reactionFlags &= ~ENEMY_REACTION_STAGGER;
@@ -1994,7 +2000,7 @@ static void func_actor_503500_8013D7D4(Task* arg0)
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
-        func_actor_503500_8013D8BC(arg0);
+        _actor503500ChainBaseClearReactions(arg0);
     }
     func_actor_503500_8013D914(arg0);
     func_actor_503500_8013D990(arg0);
@@ -2019,9 +2025,13 @@ static void _actor503500ChainBaseExit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-static void func_actor_503500_8013D8BC(Task* arg0)
+/// Discards a chain base's stagger, buildup and damage-over-time reactions.
+///
+/// Requires its live enemy in `spawnArg2.pointer`. Retains other reaction bits,
+/// health and behavior state, including the damage-over-time counters.
+static void _actor503500ChainBaseClearReactions(Task* task)
 {
-    Enemy* enemy = arg0->spawnArg2.pointer;
+    Enemy* enemy = task->spawnArg2.pointer;
 
     if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
         enemy->reactionFlags &= ~ENEMY_REACTION_STAGGER;
@@ -2060,7 +2070,7 @@ static void func_actor_503500_8013D990(Task* arg0)
     temp_v1 = ((_Actor503500ChainBaseWork*)arg0->work)->state;
     switch (temp_v1) {
         case ACTOR_503500_CHAIN_BASE_STATE_COVERED:
-            func_actor_503500_8013DC4C(arg0);
+            _actor503500ChainBaseStepCovered(arg0);
             break;
         case ACTOR_503500_CHAIN_BASE_STATE_EXPOSED:
             func_actor_503500_8013DA2C(arg0, ACTOR_503500_CHAIN_BASE_EXPOSED_FRAMES);
@@ -2159,33 +2169,36 @@ void func_actor_503500_8013DBF4(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// `ACTOR_503500_CHAIN_BASE_STATE_COVERED` step of a chain base: once the
-/// side's large-chain slot and both of its lunging-chain slots are empty,
-/// enters `ACTOR_503500_CHAIN_BASE_STATE_EXPOSED`, turns the target sphere's
-/// pair tests on and links the enemy node.
-static void func_actor_503500_8013DC4C(Task* arg0)
+/// Exposes a covered chain base once all three chain slots on its side are empty.
+///
+/// Requires an initialized base in slot 7 or 8 and its live enemy. Enters the
+/// exposed state, enables the target sphere's pair tests and links the target
+/// node. A surviving large chain or either lunging chain keeps the base covered.
+static void _actor503500ChainBaseStepCovered(Task* task)
 {
     _Actor503500ChainBaseWork* work;
-    s32                        kind;
-    s32                        slotA;
-    s32                        slotB;
+    Enemy*                     enemy;
+    s32                        largeChainSlot;
+    s32                        firstLungingChainSlot;
+    s32                        secondLungingChainSlot;
 
-    kind = 3;
-    if (arg0->spawnArg1.value == ACTOR_503500_CHAIN_BASE_FIRST_SLOT) {
-        kind  = 2;
-        slotA = 0xD;
-        slotB = 0xE;
+    largeChainSlot = ACTOR_503500_SLOT_LARGE_CHAIN_1;
+    if (task->spawnArg1.value == ACTOR_503500_CHAIN_BASE_FIRST_SLOT) {
+        largeChainSlot         = ACTOR_503500_SLOT_LARGE_CHAIN_0;
+        firstLungingChainSlot  = ACTOR_503500_SLOT_LUNGING_CHAIN_0;
+        secondLungingChainSlot = ACTOR_503500_SLOT_LUNGING_CHAIN_1;
     } else {
-        slotA = 0xF;
-        slotB = 0x10;
+        firstLungingChainSlot  = ACTOR_503500_SLOT_LUNGING_CHAIN_2;
+        secondLungingChainSlot = ACTOR_503500_SLOT_LUNGING_CHAIN_3;
     }
-    if ((actor503500IsSlotEmpty(arg0->parent, kind) != 0) &&
-        (actor503500IsSlotEmpty(arg0->parent, slotA) != 0) &&
-        (actor503500IsSlotEmpty(arg0->parent, slotB) != 0)) {
-        _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
-        work              = arg0->work;
+    if ((actor503500IsSlotEmpty(task->parent, largeChainSlot) != 0) &&
+        (actor503500IsSlotEmpty(task->parent, firstLungingChainSlot) != 0) &&
+        (actor503500IsSlotEmpty(task->parent, secondLungingChainSlot) != 0)) {
+        _actor503500ChainBaseEnterState(task, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
+        work              = task->work;
         work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
+        enemy             = task->spawnArg2.pointer;
+        worldTargetLinkNode(&enemy->node);
     }
 }
 
@@ -2535,7 +2548,7 @@ static void func_actor_503500_8013E9A4(Task* arg0)
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
-        func_actor_503500_8013EA8C(arg0);
+        _actor503500SmallOrbEmitterClearReactions(arg0);
     }
     func_actor_503500_8013EAE4(arg0);
     func_actor_503500_8013EB60(arg0);
@@ -2560,11 +2573,15 @@ static void _actor503500SmallOrbEmitterExit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-static void func_actor_503500_8013EA8C(Task* arg0)
+/// Discards the small-orb emitter's stagger, buildup and damage-over-time reactions.
+///
+/// Requires its live enemy in `spawnArg2.pointer`. Retains other reaction bits,
+/// health and behavior state, including the damage-over-time counters.
+static void _actor503500SmallOrbEmitterClearReactions(Task* task)
 {
     Enemy* enemy;
 
-    enemy = arg0->spawnArg2.pointer;
+    enemy = task->spawnArg2.pointer;
     if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
         enemy->reactionFlags &= ~ENEMY_REACTION_STAGGER;
     }
@@ -2598,7 +2615,7 @@ static void func_actor_503500_8013EB60(Task* arg0)
 
     switch (work->state) {
         case ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE:
-            func_actor_503500_8013EBE4(arg0);
+            _actor503500SmallOrbEmitterStepIdle(arg0);
             break;
         case ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK:
             func_actor_503500_8013E384(arg0);
@@ -2609,15 +2626,15 @@ static void func_actor_503500_8013EB60(Task* arg0)
     }
 }
 
-/// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE` step of the small-orb emitter,
-/// the counterpart of `func_actor_503500_80138454`: when the boss has left
-/// command 2 in the task's `killCountdown`, takes it and starts
-/// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK`.
-static void func_actor_503500_8013EBE4(Task* arg0)
+/// Starts the small-orb emitter's attack when its idle task receives the boss's attack command.
+///
+/// Requires initialized emitter work. Consumes `ACTOR_503500_SLOT_COMMAND_ATTACK`
+/// from `killCountdown`; other requests remain pending.
+static void _actor503500SmallOrbEmitterStepIdle(Task* task)
 {
-    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
-        _actor503500SmallOrbEmitterEnterState(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK);
-        arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    if (task->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
+        _actor503500SmallOrbEmitterEnterState(task, ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK);
+        task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
@@ -2952,7 +2969,7 @@ static void func_actor_503500_8013F6F0(Task* arg0)
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
-        func_actor_503500_8013F7D8(arg0);
+        _actor503500YellowFlashEmitterClearReactions(arg0);
     }
     func_actor_503500_8013F830(arg0);
     func_actor_503500_8013F8AC(arg0);
@@ -2977,11 +2994,15 @@ static void _actor503500YellowFlashEmitterExit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-static void func_actor_503500_8013F7D8(Task* arg0)
+/// Discards the yellow-flash emitter's stagger, buildup and damage-over-time reactions.
+///
+/// Requires its live enemy in `spawnArg2.pointer`. Retains other reaction bits,
+/// health and behavior state, including the damage-over-time counters.
+static void _actor503500YellowFlashEmitterClearReactions(Task* task)
 {
     Enemy* enemy;
 
-    enemy = arg0->spawnArg2.pointer;
+    enemy = task->spawnArg2.pointer;
     if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
         enemy->reactionFlags &= ~ENEMY_REACTION_STAGGER;
     }
@@ -3018,7 +3039,7 @@ static void func_actor_503500_8013F8AC(Task* arg0)
 
     switch (work->state) {
         case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE:
-            func_actor_503500_8013F948(arg0);
+            _actor503500YellowFlashEmitterStepIdle(arg0);
             break;
         case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK:
             func_actor_503500_8013F328(arg0);
@@ -3027,34 +3048,35 @@ static void func_actor_503500_8013F8AC(Task* arg0)
             func_actor_503500_8013F4A4(arg0);
             break;
         case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT:
-            func_actor_503500_8013F984(arg0);
+            _actor503500YellowFlashEmitterStepDormant(arg0);
             break;
     }
 }
 
-/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE` step of the yellow-flash
-/// emitter, the counterpart of `func_actor_503500_80138454`: when the boss has
-/// left command 2 in the task's `killCountdown`, takes it and starts
-/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK`.
-static void func_actor_503500_8013F948(Task* arg0)
+/// Starts the yellow-flash emitter's attack when its idle task receives the boss's attack command.
+///
+/// Requires initialized emitter work. Consumes `ACTOR_503500_SLOT_COMMAND_ATTACK`
+/// from `killCountdown`; other requests remain pending.
+static void _actor503500YellowFlashEmitterStepIdle(Task* task)
 {
-    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
-        _actor503500YellowFlashEmitterEnterState(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK);
-        arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    if (task->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
+        _actor503500YellowFlashEmitterEnterState(task, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK);
+        task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
-/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT` step of the yellow-flash
-/// emitter: when the boss has left command 8 in the task's `killCountdown`,
-/// starts `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE` and has `body`
-/// pair-tested, which makes the emitter a target.
-static void func_actor_503500_8013F984(Task* arg0)
+/// Makes the dormant yellow-flash emitter targetable on the boss's expose command.
+///
+/// Requires initialized emitter work. `ACTOR_503500_SLOT_COMMAND_BECOME_TARGET`
+/// enters idle, consumes the request and enables the target sphere's pair tests.
+/// The target node is already linked at set-up; other requests remain pending.
+static void _actor503500YellowFlashEmitterStepDormant(Task* task)
 {
     _Actor503500YellowFlashEmitterWork* work;
 
-    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_BECOME_TARGET) {
-        _actor503500YellowFlashEmitterEnterState(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
-        work              = arg0->work;
+    if (task->killCountdown == ACTOR_503500_SLOT_COMMAND_BECOME_TARGET) {
+        _actor503500YellowFlashEmitterEnterState(task, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
+        work              = task->work;
         work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 }
@@ -3234,100 +3256,130 @@ static void func_actor_503500_8013FF0C(Task* arg0)
             break;
         default:
             if (enemy->reactionFlags != 0) {
-                func_actor_503500_80140BE8(arg0);
+                _actor503500LungingChainReactToDamage(arg0);
             }
             func_actor_503500_801420C4(arg0);
             func_actor_503500_80141D7C(arg0);
             if (work->detached == 0) {
-                func_actor_503500_80141248(arg0);
-                func_actor_503500_80141448(arg0);
+                _actor503500LungingChainStepTip(arg0);
+                _actor503500LungingChainUpdatePose(arg0);
             }
             func_actor_503500_801421A8(arg0);
-            func_actor_503500_80141B94(arg0);
+            _actor503500LungingChainBlendPose(arg0);
             break;
     }
 }
 
-/// Lunge state of the lunging chains. Step 0 latches the position behind
-/// `gPlayerStatus.coordMtx` in `lungeTarget` and rotates its offset from the
-/// parent coordinate into `tipTarget`; step 1 ramps `curlWeight` to 0x2000 and
-/// re-aims once `tipArrived` is set; steps 2..4 ramp it back to 0. While in
-/// steps 0..1, returns to idle through `_actor503500LungingChainEnterState`
-/// when its frame count exceeds 120
-/// or when `actor503500GetPlayerBearing`'s reading leaves the window the slot
-/// (and whether its partner slot is empty) allows.
-static void func_actor_503500_801400A4(Task* arg0)
+/// Winds a lunging chain above the player's latched position, throws its tip and recovers.
+///
+/// Requires initialized work, a live nine-part model in slot 13..16 and its
+/// boss parent. World positions use integer game units; the target is converted
+/// into the root parent's frame. Weights use 4096 for 1.0 and tip speed is 16.16.
+/// The throw enables the attack sphere until arrival or interruption. Wind-up
+/// expires once its counter exceeds 120 or outside the slot's allowed bearing
+/// window; throw and recovery each wait until their counters exceed 30.
+static void _actor503500LungingChainStepLunge(Task* task)
 {
-    SVECTOR                       v;
-    SVECTOR                       pos;
-    MATRIX                        mtx;
-    MATRIX                        rot;
+    enum {
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_AIM          = 0,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_WIND_UP      = 1,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_THROW        = 2,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_WAIT_FOR_TIP = 3,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_RECOVER      = 4,
+    };
+    enum {
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_WINDUP_HEIGHT         = 5000,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_TARGET_Y_OFFSET       = 500,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_ANIMATION_PRESET      = 18,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_TIP_SPEED             = 1024 * 0x10000,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_MAX_CURL              = 2 * ONE,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_WINDUP_CURL_STEP      = 0x88,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_THROW_CURL_STEP       = 0x200,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_LANDING_CURL_STEP     = 0x2AA,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_RECOVERY_CURL_STEP    = 0x400,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_SWAY_STEP             = 0x80,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_RELEASE_SWAY_PHASE    = 2000,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_THROW_FRAMES          = 30,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_RECOVERY_FRAMES       = 30,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_WINDUP_TIMEOUT_FRAMES = 120,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_OUTER_BEARING         = 1900,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_INNER_BEARING         = 1000,
+        ACTOR_503500_LUNGING_CHAIN_LUNGE_SPLIT_BEARING         = 1700,
+    };
+
+    SVECTOR                       targetOffset;
+    SVECTOR                       parentWorldPosition;
+    MATRIX                        parentWorldRotation;
+    MATRIX                        worldToParentRotation;
     _Actor503500LungingChainWork* work;
-    GfxCoord*                     coord;
-    s32                           keep;
+    GfxCoord*                     rootCoord;
+    s32                           withinAttackArc;
     s32                           playerBearing;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
-        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
-        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
+    // Convert the latched world target into the root parent's frame, after a
+    // world-Y offset. Captures work, rootCoord and the four matrix/vector locals;
+    // worldYOffset is evaluated once. Inputs narrow to signed halfwords before
+    // inverse rotation. Writes tipTarget's XYZ and changes GTE state. This
+    // binding exists only in the lunge step. This is a statement sequence;
+    // never use it as an unbraced if/loop body.
+#define ACTOR_503500_LUNGING_CHAIN_AIM_AT_WORLD_TARGET(worldYOffset)                             \
+    gfxComposeNodeWorldTransform(rootCoord->parent, &parentWorldRotation, &parentWorldPosition); \
+    targetOffset.vx = work->lungeTarget.vx - parentWorldPosition.vx;                             \
+    targetOffset.vy = work->lungeTarget.vy - parentWorldPosition.vy + (worldYOffset);            \
+    targetOffset.vz = work->lungeTarget.vz - parentWorldPosition.vz;                             \
+    gte_TransposeMatrix(&parentWorldRotation, &worldToParentRotation);                           \
+    gte_SetRotMatrix(&worldToParentRotation);                                                    \
+    gte_ldv0(&targetOffset);                                                                     \
+    gte_rtv0();                                                                                  \
+    gte_stsv(&work->tipTarget)
+
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    if (actor503500ShouldInterruptAttack(task->parent) != 0) {
+        _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+        actor503500ReleaseSlotEffects(task->spawnArg1.value);
         return;
     }
     switch (work->stateStep) {
-        case 0:
+        case ACTOR_503500_LUNGING_CHAIN_LUNGE_AIM:
+            // Latch the player in world space, then aim above that point in the root parent's frame.
             work->lungeTarget.vx = gPlayerStatus.coordMtx->t[0];
             work->lungeTarget.vy = gPlayerStatus.coordMtx->t[1];
             work->lungeTarget.vz = gPlayerStatus.coordMtx->t[2];
-            gfxComposeNodeWorldTransform(coord->parent, &mtx, &pos);
-            v.vx = work->lungeTarget.vx - pos.vx;
-            v.vy = work->lungeTarget.vy - pos.vy - 5000;
-            v.vz = work->lungeTarget.vz - pos.vz;
-            gte_TransposeMatrix(&mtx, &rot);
-            gte_SetRotMatrix(&rot);
-            gte_ldv0(&v);
-            gte_rtv0();
-            gte_stsv(&work->tipTarget);
-            actor503500PlayAnimationPreset(arg0->parent, 0x12, 0x10);
+            ACTOR_503500_LUNGING_CHAIN_AIM_AT_WORLD_TARGET(-ACTOR_503500_LUNGING_CHAIN_LUNGE_WINDUP_HEIGHT);
+            actor503500PlayAnimationPreset(task->parent, ACTOR_503500_LUNGING_CHAIN_LUNGE_ANIMATION_PRESET, ANIMATION_RATE_ONE);
             work->stateStep++;
             break;
-        case 1:
-            work->curlWeight += 0x88;
-            if (work->curlWeight > 0x2000) {
-                work->curlWeight = 0x2000;
+        case ACTOR_503500_LUNGING_CHAIN_LUNGE_WIND_UP:
+            work->curlWeight += ACTOR_503500_LUNGING_CHAIN_LUNGE_WINDUP_CURL_STEP;
+            if (work->curlWeight > ACTOR_503500_LUNGING_CHAIN_LUNGE_MAX_CURL) {
+                work->curlWeight = ACTOR_503500_LUNGING_CHAIN_LUNGE_MAX_CURL;
             }
-            if (work->tipArrived != 0 && work->swayPhase[ACTOR_503500_LUNGING_CHAIN_TIP_PART] > 2000) {
-                gfxComposeNodeWorldTransform(coord->parent, &mtx, &pos);
-                v.vx = work->lungeTarget.vx - pos.vx;
-                v.vy = work->lungeTarget.vy - pos.vy + 500;
-                v.vz = work->lungeTarget.vz - pos.vz;
-                gte_TransposeMatrix(&mtx, &rot);
-                gte_SetRotMatrix(&rot);
-                gte_ldv0(&v);
-                gte_rtv0();
-                gte_stsv(&work->tipTarget);
-                work->tipSpeedLimit.word = 0x4000000;
+            if (work->tipArrived != 0 && work->swayPhase[ACTOR_503500_LUNGING_CHAIN_TIP_PART] > ACTOR_503500_LUNGING_CHAIN_LUNGE_RELEASE_SWAY_PHASE) {
+                // Release toward the latched point when the tip and sway phase are ready.
+                ACTOR_503500_LUNGING_CHAIN_AIM_AT_WORLD_TARGET(ACTOR_503500_LUNGING_CHAIN_LUNGE_TARGET_Y_OFFSET);
+                work->tipSpeedLimit.word = ACTOR_503500_LUNGING_CHAIN_LUNGE_TIP_SPEED;
                 work->attackBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->stateStep++;
             }
             break;
-        case 2:
-            work->curlWeight -= 0x200;
+        case ACTOR_503500_LUNGING_CHAIN_LUNGE_THROW:
+            work->curlWeight -= ACTOR_503500_LUNGING_CHAIN_LUNGE_THROW_CURL_STEP;
             if (work->curlWeight < 0) {
                 work->curlWeight = 0;
             }
-            work->swayWeight -= 0x80;
+            work->swayWeight -= ACTOR_503500_LUNGING_CHAIN_LUNGE_SWAY_STEP;
             if (work->swayWeight < 0) {
                 work->swayWeight = 0;
             }
             work->stepFrames++;
-            if (work->stepFrames > 30) {
+            if (work->stepFrames > ACTOR_503500_LUNGING_CHAIN_LUNGE_THROW_FRAMES) {
                 work->stepFrames = 0;
                 work->stateStep++;
             }
             break;
-        case 3:
-            work->curlWeight -= 0x2AA;
+        case ACTOR_503500_LUNGING_CHAIN_LUNGE_WAIT_FOR_TIP:
+            work->curlWeight -= ACTOR_503500_LUNGING_CHAIN_LUNGE_LANDING_CURL_STEP;
             if (work->curlWeight < 0) {
                 work->curlWeight = 0;
             }
@@ -3337,63 +3389,65 @@ static void func_actor_503500_801400A4(Task* arg0)
                 work->stateStep++;
             }
             break;
-        case 4:
-            work->curlWeight -= 0x400;
+        case ACTOR_503500_LUNGING_CHAIN_LUNGE_RECOVER:
+            work->curlWeight -= ACTOR_503500_LUNGING_CHAIN_LUNGE_RECOVERY_CURL_STEP;
             if (work->curlWeight < 0) {
                 work->curlWeight = 0;
             }
             work->stepFrames++;
-            if (work->stepFrames > 30) {
-                _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+            if (work->stepFrames > ACTOR_503500_LUNGING_CHAIN_LUNGE_RECOVERY_FRAMES) {
+                _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             }
             break;
     }
-    keep          = 0;
-    playerBearing = actor503500GetPlayerBearing();
-    switch (arg0->spawnArg1.value) {
-        case 13:
-            if (actor503500IsSlotEmpty(arg0, 0xE) != 0) {
-                if (playerBearing < -1900 || playerBearing > 1000) {
-                    keep = 1;
+    // Wind-up is allowed only in this slot's bearing window; a missing partner widens it.
+    withinAttackArc = 0;
+    playerBearing   = actor503500GetPlayerBearing();
+    switch (task->spawnArg1.value) {
+        case ACTOR_503500_SLOT_LUNGING_CHAIN_0:
+            if (actor503500IsSlotEmpty(task, ACTOR_503500_SLOT_LUNGING_CHAIN_1) != 0) {
+                if (playerBearing < -ACTOR_503500_LUNGING_CHAIN_LUNGE_OUTER_BEARING || playerBearing > ACTOR_503500_LUNGING_CHAIN_LUNGE_INNER_BEARING) {
+                    withinAttackArc = 1;
                 }
-            } else if (playerBearing > 1000 && playerBearing < 1700) {
-                keep = 1;
+            } else if (playerBearing > ACTOR_503500_LUNGING_CHAIN_LUNGE_INNER_BEARING && playerBearing < ACTOR_503500_LUNGING_CHAIN_LUNGE_SPLIT_BEARING) {
+                withinAttackArc = 1;
             }
             break;
-        case 14:
-            if (actor503500IsSlotEmpty(arg0, 0xD) != 0) {
-                if (playerBearing < -1900 || playerBearing > 1000) {
-                    keep = 1;
+        case ACTOR_503500_SLOT_LUNGING_CHAIN_1:
+            if (actor503500IsSlotEmpty(task, ACTOR_503500_SLOT_LUNGING_CHAIN_0) != 0) {
+                if (playerBearing < -ACTOR_503500_LUNGING_CHAIN_LUNGE_OUTER_BEARING || playerBearing > ACTOR_503500_LUNGING_CHAIN_LUNGE_INNER_BEARING) {
+                    withinAttackArc = 1;
                 }
-            } else if (playerBearing < -1900 || playerBearing > 1699) {
-                keep = 1;
+            } else if (playerBearing < -ACTOR_503500_LUNGING_CHAIN_LUNGE_OUTER_BEARING || playerBearing > (ACTOR_503500_LUNGING_CHAIN_LUNGE_SPLIT_BEARING - 1)) {
+                withinAttackArc = 1;
             }
             break;
-        case 15:
-            if (actor503500IsSlotEmpty(arg0, 0x10) != 0) {
-                if (playerBearing < -1000 || playerBearing > 1900) {
-                    keep = 1;
+        case ACTOR_503500_SLOT_LUNGING_CHAIN_2:
+            if (actor503500IsSlotEmpty(task, ACTOR_503500_SLOT_LUNGING_CHAIN_3) != 0) {
+                if (playerBearing < -ACTOR_503500_LUNGING_CHAIN_LUNGE_INNER_BEARING || playerBearing > ACTOR_503500_LUNGING_CHAIN_LUNGE_OUTER_BEARING) {
+                    withinAttackArc = 1;
                 }
-            } else if (playerBearing < -1699 || playerBearing > 1900) {
-                keep = 1;
+            } else if (playerBearing < (1 - ACTOR_503500_LUNGING_CHAIN_LUNGE_SPLIT_BEARING) || playerBearing > ACTOR_503500_LUNGING_CHAIN_LUNGE_OUTER_BEARING) {
+                withinAttackArc = 1;
             }
             break;
-        case 16:
-            if (actor503500IsSlotEmpty(arg0, 0xF) != 0) {
-                if (playerBearing < -1000 || playerBearing > 1900) {
-                    keep = 1;
+        case ACTOR_503500_SLOT_LUNGING_CHAIN_3:
+            if (actor503500IsSlotEmpty(task, ACTOR_503500_SLOT_LUNGING_CHAIN_2) != 0) {
+                if (playerBearing < -ACTOR_503500_LUNGING_CHAIN_LUNGE_INNER_BEARING || playerBearing > ACTOR_503500_LUNGING_CHAIN_LUNGE_OUTER_BEARING) {
+                    withinAttackArc = 1;
                 }
-            } else if (playerBearing < -1000) {
-                if (playerBearing >= -1699) {
-                    keep = 1;
+            } else if (playerBearing < -ACTOR_503500_LUNGING_CHAIN_LUNGE_INNER_BEARING) {
+                if (playerBearing >= (1 - ACTOR_503500_LUNGING_CHAIN_LUNGE_SPLIT_BEARING)) {
+                    withinAttackArc = 1;
                 }
             }
             break;
     }
     work->stateFrames++;
-    if (work->stateStep < 2 && (work->stateFrames > 120 || keep == 0)) {
-        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+    if (work->stateStep < ACTOR_503500_LUNGING_CHAIN_LUNGE_THROW && (work->stateFrames > ACTOR_503500_LUNGING_CHAIN_LUNGE_WINDUP_TIMEOUT_FRAMES || withinAttackArc == 0)) {
+        _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
     }
+#undef ACTOR_503500_LUNGING_CHAIN_AIM_AT_WORLD_TARGET
 }
 
 /// Death state of the lunging chains, the same body as
@@ -3529,42 +3583,57 @@ static void func_actor_503500_80140654(Task* arg0)
     }
 }
 
-static void func_actor_503500_80140BE8(Task* arg0)
+/// Handles a lunging chain's stagger and damage-over-time reactions while discarding buildup.
+///
+/// Requires live initialized work and enemy parameters. Does nothing after boss
+/// defeat or during an event. Stagger resumes idle, writes a five-frame hold
+/// count and slows tip movement; damage-over-time pulses reduce HP, show damage
+/// and slow the tip. Between pulses the chain remains in the damage-over-time
+/// state; expiry resumes idle and a lethal pulse starts dying. State changes
+/// disable its attack sphere. The dispatcher decrements the slow counter later
+/// in the same update; the stagger's hold count does not enter the hold state.
+static void _actor503500LungingChainReactToDamage(Task* task)
 {
+    enum {
+        ACTOR_503500_LUNGING_CHAIN_STAGGER_HOLD_FRAMES  = 5,
+        ACTOR_503500_LUNGING_CHAIN_REACTION_SLOW_FRAMES = 8,
+    };
+
     _Actor503500LungingChainWork* work;
     Enemy*                        enemy;
-    s32                           dmg;
-    u8                            flags;
+    s32                           damage;
+    u8                            reactionFlags;
 
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
     if ((actor503500IsDefeated() == 0) && (gGameSession->eventState == 0)) {
-        flags = enemy->reactionFlags;
-        if (flags & ENEMY_REACTION_STAGGER) {
-            enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
-            _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
-            work->holdFrames = 5;
-            work->slowFrames = 8;
+        reactionFlags = enemy->reactionFlags;
+        if (reactionFlags & ENEMY_REACTION_STAGGER) {
+            enemy->reactionFlags = reactionFlags & ENEMY_REACTION_STAGGER_CLEAR;
+            _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+            work->holdFrames = ACTOR_503500_LUNGING_CHAIN_STAGGER_HOLD_FRAMES;
+            work->slowFrames = ACTOR_503500_LUNGING_CHAIN_REACTION_SLOW_FRAMES;
         }
         if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
             enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         }
+        // Hold between damage pulses; a pulse resumes idle or starts dying.
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DAMAGE_OVER_TIME);
-            if (damageIsEnemyDamageOverTimeExpired(arg0->spawnArg2.pointer) != 0) {
+            _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_DAMAGE_OVER_TIME);
+            if (damageIsEnemyDamageOverTimeExpired(task->spawnArg2.pointer) != 0) {
                 enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
-                _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+                _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             } else {
-                dmg = damageTickEnemyDamageOverTime(enemy);
-                if (dmg != 0) {
-                    enemy->hp -= dmg;
-                    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
-                    work->slowFrames = 8;
+                damage = damageTickEnemyDamageOverTime(enemy);
+                if (damage != 0) {
+                    enemy->hp -= damage;
+                    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+                    work->slowFrames = ACTOR_503500_LUNGING_CHAIN_REACTION_SLOW_FRAMES;
                     if (enemy->hp <= 0) {
                         enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
-                        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DYING);
+                        _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_DYING);
                     } else {
-                        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+                        _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
                     }
                 }
             }
@@ -3693,135 +3762,155 @@ static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, Wor
     }
 }
 
-/// The lunging chain's copy of `func_actor_503500_80139EFC`: saves
-/// `tipPosition` into `previousTipPosition`, then steers it toward `tipTarget`.
-/// Inside the arrival distance (the integer half of `tipSpeedLimit`) it snaps
-/// onto the target and sets `tipArrived`; otherwise the speed `tipSpeed`
-/// accelerates toward +/-`tipSpeedLimit` while `tipAdvancing` is set, or decays
-/// to 0, and moves `tipPosition` along the normalized offset (at a quarter
-/// speed while `slowFrames` runs).
-static void func_actor_503500_80141248(Task* arg0)
+/// Advances the lunging chain's tip toward its target in the root parent's frame.
+///
+/// Requires initialized work. Positions and offsets narrow to signed halfword
+/// game units; speed and its limit use signed 16.16. A strict Manhattan-distance
+/// test against the signed integer half of the limit snaps to the target and
+/// retains speed. Otherwise speed changes by one thirty-second of the limit
+/// and the normalized direction advances the tip, at quarter speed while slow.
+/// Saves the previous position, updates arrival and leaves countdowns untouched.
+static void _actor503500LungingChainStepTip(Task* task)
 {
-    SVECTOR                       d;
-    SVECTOR                       n;
-    VECTOR                        step;
+    enum {
+        ACTOR_503500_LUNGING_CHAIN_TIP_ACCELERATION_DIVISOR = 32,
+        ACTOR_503500_LUNGING_CHAIN_DIRECTION_FRACTION_BITS  = 12,
+        ACTOR_503500_LUNGING_CHAIN_POSITION_FRACTION_BITS   = 16,
+    };
+
+    SVECTOR                       targetOffset;
+    SVECTOR                       direction;
+    VECTOR                        positionStep;
     _Actor503500LungingChainWork* work;
-    s32                           lim;
+    s32                           speedLimit;
     s32                           speed;
 
-    work                         = arg0->work;
+    work                         = task->work;
     work->previousTipPosition.vx = work->tipPosition.vx;
     work->previousTipPosition.vy = work->tipPosition.vy;
     work->previousTipPosition.vz = work->tipPosition.vz;
-    d.vx                         = work->tipTarget.vx - work->tipPosition.vx;
-    d.vy                         = work->tipTarget.vy - work->tipPosition.vy;
-    d.vz                         = work->tipTarget.vz - work->tipPosition.vz;
-    if (ABS(d.vx) + ABS(d.vy) + ABS(d.vz) < work->tipSpeedLimit.halves.integer) {
+    targetOffset.vx              = work->tipTarget.vx - work->tipPosition.vx;
+    targetOffset.vy              = work->tipTarget.vy - work->tipPosition.vy;
+    targetOffset.vz              = work->tipTarget.vz - work->tipPosition.vz;
+    if (ABS(targetOffset.vx) + ABS(targetOffset.vy) + ABS(targetOffset.vz) < work->tipSpeedLimit.halves.integer) {
         work->tipArrived     = 1;
         work->tipPosition.vx = work->tipTarget.vx;
         work->tipPosition.vy = work->tipTarget.vy;
         work->tipPosition.vz = work->tipTarget.vz;
         return;
     }
-    lim              = work->tipSpeedLimit.word;
+    speedLimit       = work->tipSpeedLimit.word;
     work->tipArrived = 0;
     if (work->tipAdvancing != 0) {
-        speed = work->tipSpeed + lim / 32;
+        speed = work->tipSpeed + speedLimit / ACTOR_503500_LUNGING_CHAIN_TIP_ACCELERATION_DIVISOR;
         if (speed > 0) {
-            if (speed > lim) {
-                speed = lim;
+            if (speed > speedLimit) {
+                speed = speedLimit;
             }
-        } else if (speed < -lim) {
-            speed = -lim;
+        } else if (speed < -speedLimit) {
+            speed = -speedLimit;
         }
     } else {
-        speed = work->tipSpeed - lim / 32;
+        speed = work->tipSpeed - speedLimit / ACTOR_503500_LUNGING_CHAIN_TIP_ACCELERATION_DIVISOR;
         if (speed < 0) {
             speed = 0;
         }
     }
     work->tipSpeed = speed;
-    VectorNormalSS(&d, &n);
+    // Reduce fixed-point speed before the Q12 product, then discard position fractions.
+    VectorNormalSS(&targetOffset, &direction);
     if (work->slowFrames != 0) {
         speed >>= 2;
     }
-    step.vx               = n.vx * (speed >> 12);
-    step.vy               = n.vy * (speed >> 12);
-    step.vz               = n.vz * (speed >> 12);
-    work->tipPosition.vx += step.vx >> 16;
-    work->tipPosition.vy += step.vy >> 16;
-    work->tipPosition.vz += step.vz >> 16;
+    positionStep.vx       = direction.vx * (speed >> ACTOR_503500_LUNGING_CHAIN_DIRECTION_FRACTION_BITS);
+    positionStep.vy       = direction.vy * (speed >> ACTOR_503500_LUNGING_CHAIN_DIRECTION_FRACTION_BITS);
+    positionStep.vz       = direction.vz * (speed >> ACTOR_503500_LUNGING_CHAIN_DIRECTION_FRACTION_BITS);
+    work->tipPosition.vx += positionStep.vx >> ACTOR_503500_LUNGING_CHAIN_POSITION_FRACTION_BITS;
+    work->tipPosition.vy += positionStep.vy >> ACTOR_503500_LUNGING_CHAIN_POSITION_FRACTION_BITS;
+    work->tipPosition.vz += positionStep.vz >> ACTOR_503500_LUNGING_CHAIN_POSITION_FRACTION_BITS;
 }
 
-/// Lays the lunging chain's nine points along a cubic Bezier from the root
-/// coordinate's world position to its parent's, with the near control point
-/// offset 1000 units in the root's frame (X mirrored for spawn slots 15 / 16)
-/// and both far control points at the parent plus its rotated `tipPosition`. The
-/// samples land in `linkPoints`, `_actor503500LungingChainPlaceLinks` re-aims the links along
-/// them, and links 2..8 get a pitch of a fading sine sway plus the scaled rest
-/// pitch before `_actor503500LungingChainApplyPitch` applies it.
-static void func_actor_503500_80141448(Task* arg0)
+/// Lays out the lunging chain along a world-space cubic and adds its sway and curl pitch.
+///
+/// Requires live initialized work and nine root-first model coordinates with
+/// an orthonormal parent hierarchy. Control points use signed halfword game
+/// units: the root, its rotated (1000, 0, 1000) tangent (X mirrored for slots
+/// 15/16), then the tip twice. Nine samples run from approximately t=1/9 to
+/// just below t=1; no t=0 sample is used. The segment and basis requirements of
+/// `_actor503500LungingChainPlaceLinks` must hold. Pitch is in 4096ths of a turn
+/// and weights use 4096 for 1.0. Advances sway phases 2..8, applies pitch only
+/// to links 2..7, and leaves composition stamps to the caller. Changes GTE state.
+static void _actor503500LungingChainUpdatePose(Task* task)
 {
-    SVECTOR                       ctrl[4];
-    SVECTOR                       ofs;
-    SVECTOR                       tmp;
-    VECTOR                        out[ACTOR_503500_LUNGING_CHAIN_PART_COUNT];
-    MATRIX                        m;
-    GfxCoord*                     coord;
-    _Actor503500LungingChainWork* work;
-    s32                           i;
-    s32                           v;
+    enum {
+        ACTOR_503500_LUNGING_CHAIN_CURVE_ROOT_OFFSET         = 1000,
+        ACTOR_503500_LUNGING_CHAIN_SWAY_PHASE_STEP           = 0x80,
+        ACTOR_503500_LUNGING_CHAIN_POSE_WEIGHT_FRACTION_BITS = 12,
+    };
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    gfxComposeNodeWorldTransform(coord, &m, &ctrl[0]);
-    work->linkPoints[0].vx = ctrl[0].vx;
-    work->linkPoints[0].vy = ctrl[0].vy;
-    work->linkPoints[0].vz = ctrl[0].vz;
-    if ((u32)(arg0->spawnArg1.value - 15) < 2) {
-        ofs.vx = -1000;
-        ofs.vy = 0;
-        ofs.vz = 1000;
+    SVECTOR                       controlPoints[4];
+    SVECTOR                       offset;
+    SVECTOR                       tipWorldPosition;
+    VECTOR                        samples[ACTOR_503500_LUNGING_CHAIN_PART_COUNT];
+    MATRIX                        worldRotation;
+    GfxCoord*                     rootCoord;
+    _Actor503500LungingChainWork* work;
+    s32                           linkIndex;
+    s32                           swayPitch;
+
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
+    // Build the cubic in world space: root, outward tangent, tip, tip.
+    gfxComposeNodeWorldTransform(rootCoord, &worldRotation, &controlPoints[0]);
+    work->linkPoints[0].vx = controlPoints[0].vx;
+    work->linkPoints[0].vy = controlPoints[0].vy;
+    work->linkPoints[0].vz = controlPoints[0].vz;
+    if ((u32)(task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_2) < 2) {
+        offset.vx = -ACTOR_503500_LUNGING_CHAIN_CURVE_ROOT_OFFSET;
+        offset.vy = 0;
+        offset.vz = ACTOR_503500_LUNGING_CHAIN_CURVE_ROOT_OFFSET;
     } else {
-        ofs.vx = 1000;
-        ofs.vy = 0;
-        ofs.vz = 1000;
+        offset.vx = ACTOR_503500_LUNGING_CHAIN_CURVE_ROOT_OFFSET;
+        offset.vy = 0;
+        offset.vz = ACTOR_503500_LUNGING_CHAIN_CURVE_ROOT_OFFSET;
     }
-    gte_SetRotMatrix(&m);
-    gte_ldv0(&ofs);
+    gte_SetRotMatrix(&worldRotation);
+    gte_ldv0(&offset);
     gte_rtv0();
-    gte_stsv(&ctrl[1]);
-    ctrl[1].vx += ctrl[0].vx;
-    ctrl[1].vy += ctrl[0].vy;
-    ctrl[1].vz += ctrl[0].vz;
-    gfxComposeNodeWorldTransform(coord->parent, &m, &tmp);
-    gte_SetRotMatrix(&m);
+    gte_stsv(&controlPoints[1]);
+    controlPoints[1].vx += controlPoints[0].vx;
+    controlPoints[1].vy += controlPoints[0].vy;
+    controlPoints[1].vz += controlPoints[0].vz;
+    gfxComposeNodeWorldTransform(rootCoord->parent, &worldRotation, &tipWorldPosition);
+    gte_SetRotMatrix(&worldRotation);
     gte_ldv0(&work->tipPosition);
     gte_rtv0();
-    gte_stsv(&ofs);
-    tmp.vx    += ofs.vx;
-    tmp.vy    += ofs.vy;
-    tmp.vz    += ofs.vz;
-    ctrl[2].vx = tmp.vx;
-    ctrl[2].vy = tmp.vy;
-    ctrl[2].vz = tmp.vz;
-    ctrl[3].vx = tmp.vx;
-    ctrl[3].vy = tmp.vy;
-    ctrl[3].vz = tmp.vz;
-    for (i = ACTOR_503500_LUNGING_CHAIN_TIP_PART; i >= 0; i--) {
-        _bezierCurveEvaluate(ctrl, &ctrl[3], ACTOR_503500_LUNGING_CHAIN_PART_COUNT, i, &out[i].vx);
-        copyVector(&work->linkPoints[ACTOR_503500_LUNGING_CHAIN_TIP_PART - i], &out[i]);
+    gte_stsv(&offset);
+    tipWorldPosition.vx += offset.vx;
+    tipWorldPosition.vy += offset.vy;
+    tipWorldPosition.vz += offset.vz;
+    controlPoints[2].vx  = tipWorldPosition.vx;
+    controlPoints[2].vy  = tipWorldPosition.vy;
+    controlPoints[2].vz  = tipWorldPosition.vz;
+    controlPoints[3].vx  = tipWorldPosition.vx;
+    controlPoints[3].vy  = tipWorldPosition.vy;
+    controlPoints[3].vz  = tipWorldPosition.vz;
+    // Reverse the backward sampler into root-to-tip order without adding an endpoint sample.
+    for (linkIndex = ACTOR_503500_LUNGING_CHAIN_TIP_PART; linkIndex >= 0; linkIndex--) {
+        _bezierCurveEvaluate(controlPoints, &controlPoints[3], ARRAY_SIZE(samples), linkIndex, &samples[linkIndex].vx);
+        copyVector(&work->linkPoints[ACTOR_503500_LUNGING_CHAIN_TIP_PART - linkIndex], &samples[linkIndex]);
     }
-    _actor503500LungingChainPlaceLinks(work->linkPoints, arg0->extra.tmd->coords);
-    for (i = ACTOR_503500_LUNGING_CHAIN_TIP_PART; i >= 2; i--) {
-        v                       = ((work->swayAmplitude * work->swayWeight >> 12) * rsin(work->swayPhase[i])) >> 12;
-        work->linkAngles[i].vx  = v;
-        work->linkAngles[i].vx += D_actor_503500_8016F434[i] * work->curlWeight >> 12;
-        work->linkAngles[i].vy  = 0;
-        work->linkAngles[i].vz  = 0;
-        work->swayPhase[i]      = (work->swayPhase[i] + 0x80) & 0xFFF;
+    _actor503500LungingChainPlaceLinks(work->linkPoints, task->extra.tmd->coords);
+    // Advance sway even on the tip, whose pitch is excluded by the pitch applicator.
+    for (linkIndex = ACTOR_503500_LUNGING_CHAIN_TIP_PART; linkIndex >= 2; linkIndex--) {
+        swayPitch                       = ((work->swayAmplitude * work->swayWeight >> ACTOR_503500_LUNGING_CHAIN_POSE_WEIGHT_FRACTION_BITS) * rsin(work->swayPhase[linkIndex])) >> ACTOR_503500_LUNGING_CHAIN_POSE_WEIGHT_FRACTION_BITS;
+        work->linkAngles[linkIndex].vx  = swayPitch;
+        work->linkAngles[linkIndex].vx += D_actor_503500_8016F434[linkIndex] * work->curlWeight >> ACTOR_503500_LUNGING_CHAIN_POSE_WEIGHT_FRACTION_BITS;
+        work->linkAngles[linkIndex].vy  = 0;
+        work->linkAngles[linkIndex].vz  = 0;
+        work->swayPhase[linkIndex]      = (work->swayPhase[linkIndex] + ACTOR_503500_LUNGING_CHAIN_SWAY_PHASE_STEP) & ACTOR_TRANSFORM_ANGLE_MASK;
     }
-    _actor503500LungingChainApplyPitch(work->linkAngles, arg0->extra.tmd->coords);
+    _actor503500LungingChainApplyPitch(work->linkAngles, task->extra.tmd->coords);
 }
 
 /// Places the lunging chain's eight links along nine world-space points.
@@ -3875,47 +3964,67 @@ static void _actor503500LungingChainPlaceLinks(const SVECTOR* points, GfxCoord* 
 
 #include "../../shared/bezier_curve_evaluate.inc.c"
 
-/// The lunging chain's counterpart of `func_actor_503500_8013AB38`: while
-/// `blendWeight` is below 0x1000, blends parts 1..8 toward `blendStart`,
-/// copying the lerped rotation back word-wise and keeping a
-/// `blendWeight / 0x1000` share of each part's offset from its `blendStart`
-/// entry.
-static void func_actor_503500_80141B94(Task* arg0)
+/// Blends the laid-out links from their stored starting pose during unfolding or regrowth.
+///
+/// Requires initialized work and nine root-first model coordinates.
+/// `blendWeight` is 0..4096: zero selects `blendStart`, 4096 leaves the laid-out
+/// pose unchanged. Blends rotations through an orthonormal basis and translations
+/// with signed 12-fractional-bit products, rounding down. Only links 1..8 change;
+/// the root, matrix alignment bytes and composition stamps are retained. Rotation
+/// word views require word alignment and transfer exactly 18 bytes, without
+/// reading the unwritten translation in the temporary matrix. Changes GTE state.
+static void _actor503500LungingChainBlendPose(Task* task)
 {
-    MATRIX                        m;
-    VECTOR                        d;
-    _Actor503500LungingChainWork* work;
-    GfxCoord*                     coord;
-    MATRIX*                       mat;
-    s32*                          src;
-    s32*                          dst;
-    s32                           t;
-    s32                           i;
-    s32                           j;
+    enum {
+        ACTOR_503500_LUNGING_CHAIN_BLEND_WEIGHT_FRACTION_BITS = 12,
+        ACTOR_503500_LUNGING_CHAIN_ROTATION_WORD_COUNT        = 4,
+    };
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords + 1;
-    if (work->blendWeight < 0x1000) {
-        mat = &work->blendStart[1];
-        t   = work->blendWeight;
-        for (i = 1; i < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; i++) {
-            gfxBlendOrthonormalRotation(mat, &coord->coord, &m, t);
-            dst = (s32*)&coord->coord;
-            src = (s32*)&m;
-            for (j = 0; j < 4; j++) {
-                *dst++ = *src++;
-            }
-            coord->coord.m[2][2] = m.m[2][2];
-            d.vx                 = ((coord->coord.t[0] - mat->t[0]) * t) >> 12;
-            d.vy                 = ((coord->coord.t[1] - mat->t[1]) * t) >> 12;
-            d.vz                 = ((coord->coord.t[2] - mat->t[2]) * t) >> 12;
-            coord->coord.t[0]    = mat->t[0] + d.vx;
-            coord->coord.t[1]    = mat->t[1] + d.vy;
-            coord->coord.t[2]    = mat->t[2] + d.vz;
-            mat++;
-            coord++;
+    MATRIX                        blendedRotation;
+    VECTOR                        translationOffset;
+    _Actor503500LungingChainWork* work;
+    GfxCoord*                     linkCoord;
+    const MATRIX*                 blendStart;
+    const s32*                    sourceWords;
+    s32*                          destinationWords;
+    s32                           blendWeight;
+    s32                           linkIndex;
+    s32                           rotationWordIndex;
+
+    // Copy exactly 18 rotation bytes from live, word-aligned matrices, leaving
+    // alignment bytes and translation untouched. Captures destinationWords,
+    // sourceWords and rotationWordIndex. Both pointer arguments are evaluated
+    // twice and must have no side effects; only identical-pointer overlap is
+    // supported. This binding exists only in the pose blend.
+#define ACTOR_503500_LUNGING_CHAIN_COPY_ROTATION(sourceMatrix, destinationMatrix)                                              \
+    do {                                                                                                                       \
+        destinationWords = (s32*)(destinationMatrix);                                                                          \
+        sourceWords      = (const s32*)(sourceMatrix);                                                                         \
+        for (rotationWordIndex = 0; rotationWordIndex < ACTOR_503500_LUNGING_CHAIN_ROTATION_WORD_COUNT; rotationWordIndex++) { \
+            *destinationWords++ = *sourceWords++;                                                                              \
+        }                                                                                                                      \
+        (destinationMatrix)->m[2][2] = (sourceMatrix)->m[2][2];                                                                \
+    } while (0)
+
+    work      = task->work;
+    linkCoord = task->extra.tmd->coords + 1;
+    if (work->blendWeight < ONE) {
+        blendStart  = &work->blendStart[1];
+        blendWeight = work->blendWeight;
+        for (linkIndex = 1; linkIndex < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; linkIndex++) {
+            gfxBlendOrthonormalRotation(blendStart, &linkCoord->coord, &blendedRotation, blendWeight);
+            ACTOR_503500_LUNGING_CHAIN_COPY_ROTATION(&blendedRotation, &linkCoord->coord);
+            translationOffset.vx  = ((linkCoord->coord.t[0] - blendStart->t[0]) * blendWeight) >> ACTOR_503500_LUNGING_CHAIN_BLEND_WEIGHT_FRACTION_BITS;
+            translationOffset.vy  = ((linkCoord->coord.t[1] - blendStart->t[1]) * blendWeight) >> ACTOR_503500_LUNGING_CHAIN_BLEND_WEIGHT_FRACTION_BITS;
+            translationOffset.vz  = ((linkCoord->coord.t[2] - blendStart->t[2]) * blendWeight) >> ACTOR_503500_LUNGING_CHAIN_BLEND_WEIGHT_FRACTION_BITS;
+            linkCoord->coord.t[0] = blendStart->t[0] + translationOffset.vx;
+            linkCoord->coord.t[1] = blendStart->t[1] + translationOffset.vy;
+            linkCoord->coord.t[2] = blendStart->t[2] + translationOffset.vz;
+            blendStart++;
+            linkCoord++;
         }
     }
+#undef ACTOR_503500_LUNGING_CHAIN_COPY_ROTATION
 }
 
 /// Releases a lunging chain's effect reservation, collision bodies and enemy.
@@ -3947,10 +4056,10 @@ static void func_actor_503500_80141D7C(Task* arg0)
     work = arg0->work;
     switch (work->state) {
         case ACTOR_503500_LUNGING_CHAIN_STATE_IDLE:
-            func_actor_503500_80141E64(arg0);
+            _actor503500LungingChainStepIdle(arg0);
             break;
         case ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE:
-            func_actor_503500_801400A4(arg0);
+            _actor503500LungingChainStepLunge(arg0);
             break;
         case ACTOR_503500_LUNGING_CHAIN_STATE_HOLD:
             work->holdFrames--;
@@ -3974,26 +4083,37 @@ static void func_actor_503500_80141D7C(Task* arg0)
     }
 }
 
-static void func_actor_503500_80141E64(Task* arg0)
+/// Restores a lunging chain's resting target and sway while accepting the boss's attack command.
+///
+/// Requires initialized work in slot 13..16. Consumes the attack command and
+/// enters lunge; other requests remain pending. On that same update it still
+/// restores sway toward 4096, releases curl toward zero and reloads the slot's
+/// rest tip offset in the root parent's frame. Tip movement belongs to the later
+/// movement step. The rest table is indexed by slot minus the first chain slot.
+static void _actor503500LungingChainStepIdle(Task* task)
 {
+    enum {
+        ACTOR_503500_LUNGING_CHAIN_IDLE_SWAY_STEP = 0x20,
+        ACTOR_503500_LUNGING_CHAIN_IDLE_CURL_STEP = 0x111,
+    };
+
     _Actor503500LungingChainWork* work;
 
-    work = arg0->work;
-    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
-        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE);
-        arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    work = task->work;
+    if (task->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
+        _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE);
+        task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
-    work->swayWeight += 0x20;
-    if (work->swayWeight > 0x1000) {
-        work->swayWeight = 0x1000;
+    // Restore the resting shape on this update even if it just accepted a lunge.
+    work->swayWeight += ACTOR_503500_LUNGING_CHAIN_IDLE_SWAY_STEP;
+    if (work->swayWeight > ONE) {
+        work->swayWeight = ONE;
     }
-    work->curlWeight -= 0x111;
+    work->curlWeight -= ACTOR_503500_LUNGING_CHAIN_IDLE_CURL_STEP;
     if (work->curlWeight < 0) {
         work->curlWeight = 0;
     }
-    work->tipTarget.vx = D_actor_503500_8016F3AC[arg0->spawnArg1.value].vx;
-    work->tipTarget.vy = D_actor_503500_8016F3AC[arg0->spawnArg1.value].vy;
-    work->tipTarget.vz = D_actor_503500_8016F3AC[arg0->spawnArg1.value].vz;
+    copyVector(&work->tipTarget, &D_actor_503500_8016F414[task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0]);
 }
 
 static void func_actor_503500_80141F48(Task* arg0)

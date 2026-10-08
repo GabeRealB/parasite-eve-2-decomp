@@ -69769,12 +69769,12 @@ force a callee-saved register for the inner loop's counter as well.
 ## `K(T)` then `addiu T, T, K` for field copies: PsyQ `copyVector(&a[i], &b[j])`
 
 A second source of the same `(mult + base) + K` form, with no inline function.
-`func_actor_503500_80141448` copies a sampled `VECTOR out[9]` into
-`work->linkPoints[8 - i]` in a loop, and the target's first access folds the field
+`_actor503500LungingChainUpdatePose` copies a sampled `VECTOR samples[9]` into
+`work->linkPoints[8 - linkIndex]` in a loop, and the target's first access folds the field
 offset while the other two go through the finished pointer:
 
 ```
-sll    a0, s2, 4            # i*16, not reduced
+sll    a0, s2, 4            # linkIndex*16, not reduced
 addiu  v0, sp, 0x18         # frame base
 addu   a0, a0, v0
 lhu    v0, 0x30(a0)         # first use: K folded
@@ -69782,7 +69782,7 @@ addiu  a0, a0, 0x30         # then P = T + K
 lhu    v0, 4(a0) ...        # P+4, P+8
 ```
 
-`copyVector(&work->linkPoints[8 - i], &out[i])` from `psyq/libgpu.h` matched. The macro
+`copyVector(&work->linkPoints[8 - linkIndex], &samples[linkIndex])` from `psyq/libgpu.h` matched. The macro
 expands to `(&a[i])->vx`. The front end turns `&a[i]` into a pointer sum, the
 `->` makes it an `INDIRECT_REF`, and `expand_expr` expands that address in
 `EXPAND_SUM` mode as `(mult + base) + K`. `memory_address` then forces the whole
@@ -69794,7 +69794,7 @@ Spellings that did not give this form:
 - `dst = a; dst += i` stops the reduction, but combine never re-associates it.
 
 To get the loop's walking register to be the call argument rather than `T`, the
-argument has to be `&out[i].vx` itself, not a separately decremented pointer.
+argument has to be `&samples[linkIndex].vx` itself, not a separately decremented pointer.
 
 In the same function, a `sh zero` pair that the target schedules *after* two
 loads of an unrelated table came from writing those stores after the
@@ -70296,9 +70296,9 @@ Read the `.loop` dump header (`N real insns`) and each movable's line before
 restructuring the loop: adding or removing a few loop-time insns is often all a
 `%hi` hoist mismatch needs.
 
-### A `.word >> 16` compare shares its word load with a later `lim = .word`: use `.halves.integer`
+### A `.word >> 16` compare shares its word load with a later `speedLimit = .word`: use `.halves.integer`
 
-`func_actor_503500_80141248` tests a Manhattan distance against the integer
+`_actor503500LungingChainStepTip` tests a Manhattan distance against the integer
 half of a 16.16 limit, then reloads the whole limit in the fall-through block:
 
 ```
@@ -70307,12 +70307,12 @@ lh   $v1, 0x39E($s0)      # compare: high half only
 lw   $a0, 0x39C($s0)      # after the early return
 ```
 
-Writing the compare as `work->field_39C >> 16` gives the `lh` (combine narrows
+Writing the compare as `work->tipSpeedLimit.word >> 16` gives the `lh` (combine narrows
 the `ashiftrt` of a word MEM to the `+2` half) only while no other read of the
-word sits in the same extended basic block. Adding `lim = work->field_39C;`
+word sits in the same extended basic block. Adding `speedLimit = work->tipSpeedLimit.word;`
 before the next store makes cse reuse the first load for both, and the compare
 becomes `lw` + `sra 16` with shifted registers (95.7% to 92.6%). Either keep the
-reload behind an intervening store (`work->field_3D4 = 0;` first), or declare
+reload behind an intervening store (`work->tipArrived = 0;` first), or declare
 the field `Fixed16` and compare `.halves.integer` / load `.word`: the HImode and SImode
 MEMs are distinct cse entries, so statement order stops mattering. Both match;
 the union is what the large-chain sibling `func_actor_503500_80139EFC` uses.
