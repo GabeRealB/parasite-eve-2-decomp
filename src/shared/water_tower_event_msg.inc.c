@@ -1,50 +1,51 @@
-/* Part of the water tower library; see water_tower.h. */
+/* Included water-tower departure resolver; declared in water_tower.h. */
 
-/// The room's handler for message 0x13EE, the first entry of its message table.
-/// It copies the incoming record to `out` and answers by the record's first
-/// halfword. For 0x13 it builds the room's event request -- flag nibble 0x34,
-/// collected bit 0x10, CAP commands 0xA and 6 and two stage sounds -- and
-/// hands it to the event gate with the incoming record; the gate's 0 (the
-/// prerequisite missing) is answered as 2, and once the gate has latched the
-/// event item 0x110 is identified. Any other record first drops nibble 0x55
-/// from 2 back to 1 unless it is only a query. For 0x15 it also clears nibble
-/// 0x4B when it reads 7, and answers 1 on stage 3 and otherwise only while
-/// nibble 0x32 is 2. Everything else answers 1.
-s32 waterTowerEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
+s32 roomVariantWaterTowerMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq req;
-    s32          ret;
+    enum {
+        WATER_TOWER_KITCHEN_DOOR_CAP_COMMAND         = 10,
+        WATER_TOWER_KITCHEN_DOOR_MISSING_CAP_COMMAND = 6,
+        WATER_TOWER_KITCHEN_DOOR_COLLECTION_BIT      = 0x10,
+        WATER_TOWER_KITCHEN_DOOR_ITEM_ID             = 0x110,
+        WATER_TOWER_COMPANION_SCHEDULE_TO_CLEAR      = 7,
+        WATER_TOWER_COMPANION_ABSENT                 = 0,
+        WATER_TOWER_PROGRESS_EVENT_FINISHED          = 2,
+    };
+    RoomEventReq eventRequest;
+    s32          transitionResult;
 
-    *out = *msg;
-    if (msg->areaId == 0x13) {
-        req.capCmd        = 0xA;
-        req.missingCapCmd = 6;
-        req.firstSnd      = sndScriptResolveStageId(SOUND_WATER_TOWER_KITCHEN_DOOR_UNLOCK);
-        req.secondSnd     = sndScriptResolveStageId(SOUND_WATER_TOWER_KITCHEN_DOOR_OPEN);
-        req.flagId        = GAME_FLAG_KITCHEN_WATER_TOWER_DOOR_UNLOCKED;
-        req.collectedBit  = 0x10;
-        ret               = _roomEventGate(&req, msg);
-        if (ret == 0) {
-            ret = 2;
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_G_R_KITCHEN) {
+        eventRequest.capCmd        = WATER_TOWER_KITCHEN_DOOR_CAP_COMMAND;
+        eventRequest.missingCapCmd = WATER_TOWER_KITCHEN_DOOR_MISSING_CAP_COMMAND;
+        eventRequest.firstSnd      = sndScriptResolveStageId(SOUND_WATER_TOWER_KITCHEN_DOOR_UNLOCK);
+        eventRequest.secondSnd     = sndScriptResolveStageId(SOUND_WATER_TOWER_KITCHEN_DOOR_OPEN);
+        eventRequest.flagId        = GAME_FLAG_KITCHEN_WATER_TOWER_DOOR_UNLOCKED;
+        eventRequest.collectedBit  = WATER_TOWER_KITCHEN_DOOR_COLLECTION_BIT;
+        transitionResult           = _roomEventGate(&eventRequest, request);
+        if (transitionResult == ROOM_VARIANT_TRANSITION_REFUSED) {
+            transitionResult = ROOM_VARIANT_TRANSITION_HANDLED;
         }
+        // The gate clears this indication even for queries; only its start path identifies the item.
         if (ROOM_EVENT_ACTIVE != 0) {
-            itemSetIdentified(0x110, 1);
+            itemSetIdentified(WATER_TOWER_KITCHEN_DOOR_ITEM_ID, 1);
         }
-        return ret;
+        return transitionResult;
     }
-    if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) == 2) {
-        gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 1);
+    // Kitchen departures return above and preserve both mechanism and companion state.
+    if (request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) == GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED) {
+        gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_RESTORED);
     }
-    if (msg->areaId == 0x15) {
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 7) {
-            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
+    if (request->areaId == GAME_AREA_DRYFIELD_WATER_TANK) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == WATER_TOWER_COMPANION_SCHEDULE_TO_CLEAR) {
+            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, WATER_TOWER_COMPANION_ABSENT);
         }
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
-            return 1;
+            return ROOM_VARIANT_TRANSITION_DIRECT;
         }
-        if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) != 2) {
-            return 0;
+        if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) != WATER_TOWER_PROGRESS_EVENT_FINISHED) {
+            return ROOM_VARIANT_TRANSITION_REFUSED;
         }
     }
-    return 1;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }

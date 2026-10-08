@@ -13,7 +13,17 @@
 
 #include "main/task_types.h"
 
-s32 waterTowerEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out);
+/// Resolves water-tower departures and starts the kitchen-door event when eligible.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` in the day and night rooms. Borrows
+/// complete eight-byte request and reply records, which may alias, and copies
+/// the request before resolving it. Queries suppress departure writes and
+/// event starts. Executing a kitchen-door event identifies its required item;
+/// other departures restore an operated tower mechanism and departure toward
+/// the tank can clear companion schedule 7. Returns 0 to refuse, 1 for a
+/// direct departure, or 2 for room-managed handling. Task and ID are unused.
+/// Deferred event storage belongs to the room and must outlive the event task.
+s32 roomVariantWaterTowerMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
 /// Plays the water-tower bank's stage-relative scripts for CAP sound cues 8 and 13.
 ///

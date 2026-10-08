@@ -1,33 +1,44 @@
-/* Part of the general store library; see general_store.h. */
+/* Included General Store flag prompt; each carrier declares its static instance. */
 
-/// A task that runs cap command `spawnArg2` and waits for it to finish; if the
-/// cap then reports an event key of 0xA or above, it toggles game-flag nibble
-/// `spawnArg1` between 0 and 1. The task then kills itself.
-void storeToggleTask(Task* task)
+/// Runs a CAP prompt and toggles the requested flag for a variant key of 10 or above.
+///
+/// Start in state 0. `spawnArg1.value` is a valid game-flag nibble index
+/// (0..503); `spawnArg2.value` is a command index in the loaded CAP table.
+/// Both stay fixed through the task's lifetime. After CAP becomes idle, the
+/// retained key selects whether to toggle zero to one or nonzero to zero.
+/// A later tick releases the task. The room and CAP resources must stay loaded.
+static void _generalStoreToggleFlagTask(Task* task)
 {
-    s32 flag;
-    s32 cmd;
+    enum {
+        GENERAL_STORE_TOGGLE_START       = 0,
+        GENERAL_STORE_TOGGLE_WAIT        = 1,
+        GENERAL_STORE_TOGGLE_APPLY       = 2,
+        GENERAL_STORE_TOGGLE_FINISH      = 3,
+        GENERAL_STORE_TOGGLE_KEY_MINIMUM = 10,
+    };
+    s32 flagId;
+    s32 capCommand;
 
-    flag = task->spawnArg1.value;
-    cmd  = task->spawnArg2.value;
+    flagId     = task->spawnArg1.value;
+    capCommand = task->spawnArg2.value;
     switch (task->state) {
-        case 0:
-            capRunCommandWithTransition(cmd);
+        case GENERAL_STORE_TOGGLE_START:
+            capRunCommandWithTransition(capCommand);
             task->state = task->state + 1;
             break;
-        case 1:
+        case GENERAL_STORE_TOGGLE_WAIT:
             if (capIsBusy() != 0) {
                 break;
             }
             task->state = task->state + 1;
             break;
-        case 2:
-            if (capGetVariantKey() >= 0xA) {
-                gameFlagSetNibble(flag, gameFlagGetNibble(flag) == 0);
+        case GENERAL_STORE_TOGGLE_APPLY:
+            if (capGetVariantKey() >= GENERAL_STORE_TOGGLE_KEY_MINIMUM) {
+                gameFlagSetNibble(flagId, gameFlagGetNibble(flagId) == 0);
             }
             task->state = task->state + 1;
             break;
-        case 3:
+        case GENERAL_STORE_TOGGLE_FINISH:
             taskKill(task);
             break;
     }

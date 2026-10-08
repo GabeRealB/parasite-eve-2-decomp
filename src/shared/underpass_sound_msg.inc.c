@@ -1,4 +1,4 @@
-/* Part of the underpass switches library; see underpass_switches.h. */
+/* Included sound handler for the paired underpass rooms. */
 
 /// Queues underpass-bank entry 2 for room sound cue 2.
 ///

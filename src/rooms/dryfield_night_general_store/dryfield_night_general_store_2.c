@@ -39,7 +39,6 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
-#include "../../shared/general_store.h"
 
 extern WorldCollisionGrid         D_dryfield_night_general_store_8017F484[1];
 extern WorldCollisionOccluder     D_dryfield_night_general_store_801855C4[4];

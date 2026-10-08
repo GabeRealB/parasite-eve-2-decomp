@@ -252,12 +252,12 @@ enum {
     /// 2), a transition request to the water hole spawns _drivewayCutsceneTask instead
     /// while this nibble is clear. No C setter.
     GAME_FLAG_050 = 0x050,
-    /// Toggle (0/1) flipped by the underpass's first switch (underpassSwitchMsg arg 1,
+    /// Toggle (0/1) flipped by the underpass's first switch (_underpassSwitchMsg arg 1,
     /// CAP 1). Selects the water-hole and underpass room variants (1 when set, 2 when
     /// clear, +2 with 0x53; 5/6 without 0xC9) and, at 1, lights the night water hole's
     /// glow shafts.
     GAME_FLAG_UNDERPASS_SWITCH_1 = 0x051,
-    /// Toggle (0/1) flipped by the underpass's second switch (underpassSwitchMsg arg 2,
+    /// Toggle (0/1) flipped by the underpass's second switch (_underpassSwitchMsg arg 2,
     /// CAP 2). Selects the cellar room variant (1 when set, 2 when clear) and at 1
     /// draws the glow sprites in the day and night cellar.
     GAME_FLAG_UNDERPASS_SWITCH_2 = 0x052,
@@ -329,7 +329,7 @@ enum {
     /// and refuses driveway->main street with CAP 6.
     GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN = 0x061,
     /// While set, the general store's passage to the underpass (area 0x26) runs CAP
-    /// command 0xE instead of spawning storeCutsceneTask. Set by the dilapidated-house
+    /// command 0xE instead of spawning _generalStoreUnderpassTransitionTask. Set by the dilapidated-house
     /// scene clear, cleared when the night gas station sequence arms.
     GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED = 0x062,
     /// Night gas station sequence: 0 not started (scatter effects drawn); 1 sequence

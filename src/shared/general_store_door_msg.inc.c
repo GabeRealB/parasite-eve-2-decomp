@@ -1,77 +1,94 @@
-/* Part of the general store library; see general_store.h. */
+/* Included General Store departure resolver; each carrier declares its static instance. */
 
-/// Handler for transitions to the store's two neighbouring areas, in the day
-/// and night stages alike. Both answer with a "which variant" byte in
-/// `out->room`, and a non-zero `queryOnly` asks what would happen without the
-/// side effects.
-///
-/// Area 1 is the gas station: with nibble 0x63 clear the reply is the
-/// id itself, otherwise 4, or 2 + nibble 0x61 while nibble 0x7A is still below
-/// 4. The final arm offers the gate a request that plays the two stage sounds
-/// 0x5203000C / 0x52030003 under flag nibble 0x3B.
-///
-/// Area 0x26 is the underpass: with nibble 0xC9 set the reply is 2, or 1
-/// while nibble 0x53 is clear, plus 2 more while nibble 0x51 is clear;
-/// otherwise 5, or 6 while nibble 0x51 is clear. The arm that is not asking
-/// latches `warp` / `room` for the spawned task and answers 2, or runs
-/// CAP command 0xE when nibble 0x62 is set. Anything else answers 1.
-s32 storeDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Selects the General Store's underpass destination from event and switch state.
+static inline void _roomVariantGeneralStoreSelectUnderpassRoom(RoomEventMsg* reply)
 {
-    RoomEventReq req;
-    u16          msgId;
-    s32          v;
+    enum {
+        GENERAL_STORE_UNDERPASS_ROOM_AFTER_EVENT      = 1,
+        GENERAL_STORE_UNDERPASS_ROOM_FLAG_053         = 2,
+        GENERAL_STORE_UNDERPASS_SWITCH_OFF_OFFSET     = 2,
+        GENERAL_STORE_UNDERPASS_ROOM_BEFORE_EVENT_ON  = 5,
+        GENERAL_STORE_UNDERPASS_ROOM_BEFORE_EVENT_OFF = 6,
+    };
+    if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_053) == 0) {
+            reply->room = GENERAL_STORE_UNDERPASS_ROOM_AFTER_EVENT;
+        } else {
+            reply->room = GENERAL_STORE_UNDERPASS_ROOM_FLAG_053;
+        }
+        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
+            reply->room = reply->room + GENERAL_STORE_UNDERPASS_SWITCH_OFF_OFFSET;
+        }
+    } else if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
+        reply->room = GENERAL_STORE_UNDERPASS_ROOM_BEFORE_EVENT_OFF;
+    } else {
+        reply->room = GENERAL_STORE_UNDERPASS_ROOM_BEFORE_EVENT_ON;
+    }
+}
 
-    *out  = *in;
-    msgId = in->areaId;
-    if (msgId == 1 && in->queryOnly == ROOM_EVENT_EXECUTE) {
+/// Resolves the General Store's gas-station and underpass departures.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`. Borrows complete eight-byte request
+/// and reply records, which may alias, and copies the request first. Execution
+/// selects destination rooms from progress flags; queries keep the input room.
+/// Gas-station requests use the room event gate. Underpass execution either
+/// starts the transition prompt or plays the blocked-departure CAP command.
+/// Returns 1 for a direct departure or 2 for room-managed handling. Task and
+/// message ID are unused. A started transition retains the request's warp and
+/// room, so an aliased request sees the reply's resolved room at that point.
+/// Keep the room loaded for its deferred event and transition tasks.
+static s32 _roomVariantGeneralStoreMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum {
+        GENERAL_STORE_GAS_STATION_BASE_ROOM           = 2,
+        GENERAL_STORE_GAS_STATION_FINAL_ROOM          = 4,
+        GENERAL_STORE_GAS_STATION_CAP_COMMAND         = 13,
+        GENERAL_STORE_UNDERPASS_BLOCKED_CAP_COMMAND   = 14,
+        GENERAL_STORE_UNDERPASS_TRANSITION_TASK_INDEX = 1,
+    };
+    RoomEventReq eventRequest;
+    u16          areaId;
+    s32          destinationRoom;
+
+    *reply = *request;
+    areaId = request->areaId;
+    if (areaId == GAME_AREA_DRYFIELD_GAS_STATION && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
-            out->room = msgId;
+            reply->room = areaId;
         } else {
-            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
-                v = 4;
+            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= ROOM_VARIANT_DRYFIELD_FINAL_CHAPTER) {
+                destinationRoom = GENERAL_STORE_GAS_STATION_FINAL_ROOM;
             } else {
-                v = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 2;
+                destinationRoom = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + GENERAL_STORE_GAS_STATION_BASE_ROOM;
             }
-            out->room = v;
+            reply->room = destinationRoom;
         }
     }
-    if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
-            if (gameFlagGetNibble(GAME_FLAG_053) == 0) {
-                out->room = 1;
-            } else {
-                out->room = 2;
-            }
-            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
-                out->room = out->room + 2;
-            }
-        } else if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
-            out->room = 6;
-        } else {
-            out->room = 5;
-        }
+    if (request->areaId == GAME_AREA_DRYFIELD_UNDERPASS && request->queryOnly == ROOM_EVENT_EXECUTE) {
+        _roomVariantGeneralStoreSelectUnderpassRoom(reply);
     }
-    if (in->areaId == 1) {
-        req.capCmd        = 0xD;
-        req.missingCapCmd = 0xD;
-        req.firstSnd      = sndScriptResolveStageId(SOUND_GENERAL_STORE_DOOR_UNLOCK);
-        req.secondSnd     = sndScriptResolveStageId(SOUND_GENERAL_STORE_DOOR_OPEN);
-        req.flagId        = GAME_FLAG_GENERAL_STORE_DOOR_UNLOCKED;
-        req.collectedBit  = 0;
-        return _roomEventGate(&req, in);
+    if (request->areaId == GAME_AREA_DRYFIELD_GAS_STATION) {
+        eventRequest.capCmd        = GENERAL_STORE_GAS_STATION_CAP_COMMAND;
+        eventRequest.missingCapCmd = GENERAL_STORE_GAS_STATION_CAP_COMMAND;
+        eventRequest.firstSnd      = sndScriptResolveStageId(SOUND_GENERAL_STORE_DOOR_UNLOCK);
+        eventRequest.secondSnd     = sndScriptResolveStageId(SOUND_GENERAL_STORE_DOOR_OPEN);
+        eventRequest.flagId        = GAME_FLAG_GENERAL_STORE_DOOR_UNLOCKED;
+        eventRequest.collectedBit  = ROOM_EVENT_GATE_NO_COLLECTION_REQUIRED;
+        return _roomEventGate(&eventRequest, request);
     }
-    if (in->areaId != 0x26) {
-        return 1;
+    if (request->areaId != GAME_AREA_DRYFIELD_UNDERPASS) {
+        return ROOM_VARIANT_TRANSITION_DIRECT;
     }
-    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-        return 2;
+    if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+        return ROOM_VARIANT_TRANSITION_HANDLED;
     }
     if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED) == 0) {
-        taskSpawnFromTable(gStoreTaskDescs, 1, 0, 0);
-        gStoreWarp = in->warp;
-        gStoreRoom = in->room;
+        // The singleton destination is latched after requesting the deferred task.
+        taskSpawnFromTable(gStoreTaskDescs, GENERAL_STORE_UNDERPASS_TRANSITION_TASK_INDEX, 0, 0);
+        gStoreWarp = request->warp;
+        gStoreRoom = request->room;
     } else {
-        capRunCommandWithTransition(0xE);
+        capRunCommandWithTransition(GENERAL_STORE_UNDERPASS_BLOCKED_CAP_COMMAND);
     }
-    return 2;
+    return ROOM_VARIANT_TRANSITION_HANDLED;
 }

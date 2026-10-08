@@ -1,17 +1,25 @@
-/* Part of the underpass switches library; see underpass_switches.h. */
+/* Included underpass switch command handler; each carrier declares its static instance. */
 
-/// Handler for message 0x13F0: for `arg2` 1 or 2, spawns the room's switch
-/// task `underpassSwitchTask` from the task table, toggling
-/// nibble 0x51 with cap command 1 or nibble 0x52 with cap command 2. Any other
-/// value spawns nothing. Always returns 0.
-s32 underpassSwitchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Starts the underpass switch prompt selected by a CAP room command.
+///
+/// `ROOM_MESSAGE_COMMAND` supplies integer `switchId`: 1 asks CAP command 1
+/// about switch 1, and 2 asks command 2 about switch 2. The deferred task
+/// toggles the corresponding nibble for a retained CAP key of 10 or above.
+/// Other keys do nothing. All other parameters are ignored; returns zero.
+/// Spawn failure is unchecked. Keep the room and CAP file loaded for the task.
+static s32 _underpassSwitchMsg(Task* unusedTask, s32 unusedMessageId, s32 switchId, s32 unusedSecondArg)
 {
-    switch (arg2) {
-        case 1:
-            taskSpawnFromTable(gUnderpassSwitchTaskDesc, 0, 0x51, 1);
+    enum {
+        UNDERPASS_SWITCH_COMMAND_FIRST  = 1,
+        UNDERPASS_SWITCH_COMMAND_SECOND = 2,
+        UNDERPASS_SWITCH_TASK_INDEX     = 0,
+    };
+    switch (switchId) {
+        case UNDERPASS_SWITCH_COMMAND_FIRST:
+            taskSpawnFromTable(gUnderpassSwitchTaskDesc, UNDERPASS_SWITCH_TASK_INDEX, GAME_FLAG_UNDERPASS_SWITCH_1, UNDERPASS_SWITCH_COMMAND_FIRST);
             break;
-        case 2:
-            taskSpawnFromTable(gUnderpassSwitchTaskDesc, 0, 0x52, 2);
+        case UNDERPASS_SWITCH_COMMAND_SECOND:
+            taskSpawnFromTable(gUnderpassSwitchTaskDesc, UNDERPASS_SWITCH_TASK_INDEX, GAME_FLAG_UNDERPASS_SWITCH_2, UNDERPASS_SWITCH_COMMAND_SECOND);
             break;
     }
     return 0;

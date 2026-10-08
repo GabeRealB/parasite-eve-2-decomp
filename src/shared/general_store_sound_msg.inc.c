@@ -1,4 +1,4 @@
-/* Part of the general store library; see general_store.h. */
+/* Included sound handler for the paired General Store rooms. */
 
 /// Queues general-store bank entry 7 for room sound cue 7.
 ///

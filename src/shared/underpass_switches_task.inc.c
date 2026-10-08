@@ -1,76 +1,107 @@
-/* Part of the underpass switches library; see underpass_switches.h. */
+/* Included underpass switch prompt; each carrier declares its static instance. */
 
-/// Switch task the room's 0x13F0 handler spawns: plays cap command `spawnArg2`,
-/// waits for it to finish, and once its event key reaches 0xA toggles game
-/// nibble `spawnArg1`. When that nibble is 0x51 it also picks the room variant
-/// to load next from nibbles 0xC9, 0x53 and 0x51 and writes it to both the
-/// session and the save data. The last state flags the view dirty when the
-/// chosen room is 5 or above, then kills the task.
-void underpassSwitchTask(Task* task)
+/// Plays a switch prompt, toggles its flag and updates the live underpass variant.
+///
+/// Start in state 0 with a valid nibble index (0..503) in `spawnArg1.value`
+/// and a loaded CAP command index in `spawnArg2.value`; keep both fixed.
+/// Once CAP is idle, keys 10 and above toggle zero to one or nonzero to zero.
+/// Toggling switch 1 selects underpass room 1..6 from the event latch, flag 053
+/// and switch 1, committing the room to session and live save. The final tick
+/// marks the view dirty for rooms 5 and above even when no switch was toggled,
+/// then releases the task. Keep the room and CAP resources loaded throughout.
+static void _underpassSwitchTask(Task* task)
 {
-    RoomEventMsg  src;
-    RoomEventMsg  dst;
-    RoomEventMsg* s;
-    RoomEventMsg* d;
-    GameSession*  session;
-    s32           flag;
-    s32           state;
-    s32           arg;
-    u8            room;
+    enum {
+        UNDERPASS_SWITCH_START          = 0,
+        UNDERPASS_SWITCH_WAIT           = 1,
+        UNDERPASS_SWITCH_APPLY          = 2,
+        UNDERPASS_SWITCH_FINISH         = 3,
+        UNDERPASS_SWITCH_KEY_MINIMUM    = 10,
+        UNDERPASS_SWITCH_VIEW_DIRTY_MIN = 5,
+    };
+    enum {
+        UNDERPASS_SWITCH_ROOM_AFTER_EVENT      = 1,
+        UNDERPASS_SWITCH_ROOM_AFTER_EVENT_053  = 2,
+        UNDERPASS_SWITCH_OFF_ROOM_OFFSET       = 2,
+        UNDERPASS_SWITCH_ROOM_BEFORE_EVENT_ON  = 5,
+        UNDERPASS_SWITCH_ROOM_BEFORE_EVENT_OFF = 6,
+    };
+    /// Resolves the local switch request into its reply's room selector.
+    ///
+    /// Captures `requestPtr`, `replyPtr` and `reply`; `replyPtr` must address
+    /// `reply`. Reads only the initialized execution byte and writes only the
+    /// room byte (1..6). Queries leave the reply untouched. The pointer and
+    /// record access paths preserve the selector's compiled byte accesses.
+    /// Expands to one conditional statement, takes no arguments and is
+    /// undefined at the end of this function.
+#define UNDERPASS_SELECT_SWITCH_ROOM()                                      \
+    if (requestPtr->queryOnly == ROOM_EVENT_EXECUTE) {                      \
+        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {       \
+            if (gameFlagGetNibble(GAME_FLAG_053) != 0) {                    \
+                replyPtr->room = UNDERPASS_SWITCH_ROOM_AFTER_EVENT_053;     \
+            } else {                                                        \
+                replyPtr->room = UNDERPASS_SWITCH_ROOM_AFTER_EVENT;         \
+            }                                                               \
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {     \
+                reply.room = reply.room + UNDERPASS_SWITCH_OFF_ROOM_OFFSET; \
+            }                                                               \
+        } else {                                                            \
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {     \
+                replyPtr->room = UNDERPASS_SWITCH_ROOM_BEFORE_EVENT_ON;     \
+            } else {                                                        \
+                replyPtr->room = UNDERPASS_SWITCH_ROOM_BEFORE_EVENT_OFF;    \
+            }                                                               \
+        }                                                                   \
+    }
 
-    flag  = task->spawnArg1.value;
-    state = task->state;
-    arg   = task->spawnArg2.value;
+    RoomEventMsg  request;
+    RoomEventMsg  reply;
+    RoomEventMsg* requestPtr;
+    RoomEventMsg* replyPtr;
+    GameSession*  session;
+    s32           flagId;
+    s32           state;
+    s32           capCommand;
+    u8            destinationRoom;
+
+    flagId     = task->spawnArg1.value;
+    state      = task->state;
+    capCommand = task->spawnArg2.value;
     switch (state) {
-        case 0:
-            capRunCommandWithTransition(arg);
+        case UNDERPASS_SWITCH_START:
+            capRunCommandWithTransition(capCommand);
             task->state = task->state + 1;
             return;
-        case 1:
+        case UNDERPASS_SWITCH_WAIT:
             if (capIsBusy() != 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
-        case 2:
-            if (capGetVariantKey() >= 0xA) {
-                gameFlagSetNibble(flag, gameFlagGetNibble(flag) == 0);
-                if (flag == 0x51) {
-                    d             = &dst;
-                    s             = &src;
-                    src.areaId    = 0x26;
-                    src.queryOnly = ROOM_EVENT_EXECUTE;
-                    if (s->queryOnly == ROOM_EVENT_EXECUTE) {
-                        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
-                            if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
-                                d->room = 2;
-                            } else {
-                                d->room = 1;
-                            }
-                            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
-                                dst.room = dst.room + 2;
-                            }
-                        } else {
-                            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {
-                                d->room = 5;
-                            } else {
-                                d->room = 6;
-                            }
-                        }
-                    }
+        case UNDERPASS_SWITCH_APPLY:
+            if (capGetVariantKey() >= UNDERPASS_SWITCH_KEY_MINIMUM) {
+                gameFlagSetNibble(flagId, gameFlagGetNibble(flagId) == 0);
+                if (flagId == GAME_FLAG_UNDERPASS_SWITCH_1) {
+                    // Keep the request/reply records: scalar selection changes the compiled frame.
+                    replyPtr          = &reply;
+                    requestPtr        = &request;
+                    request.areaId    = GAME_AREA_DRYFIELD_UNDERPASS;
+                    request.queryOnly = ROOM_EVENT_EXECUTE;
+                    UNDERPASS_SELECT_SWITCH_ROOM();
                     session                                                    = gGameSession;
-                    room                                                       = dst.room;
-                    session->location.loc.room                                 = room;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
+                    destinationRoom                                            = reply.room;
+                    session->location.loc.room                                 = destinationRoom;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = destinationRoom;
                 }
             }
             task->state = task->state + 1;
             return;
-        case 3:
-            if (gGameSession->location.loc.room >= 5) {
+        case UNDERPASS_SWITCH_FINISH:
+            if (gGameSession->location.loc.room >= UNDERPASS_SWITCH_VIEW_DIRTY_MIN) {
                 gGameSession->viewDirty = 1;
             }
             taskKill(task);
             return;
     }
+#undef UNDERPASS_SELECT_SWITCH_ROOM
 }

@@ -11,6 +11,7 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/companion_load.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/player_actor.h"
@@ -46,7 +47,12 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
-#include "../../shared/general_store.h"
+#include "../../shared/room_variants.h"
+
+static s32  _roomVariantGeneralStoreMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static void _generalStoreUnderpassTransitionTask(Task* task);
+static void _generalStoreToggleFlagTask(Task* task);
+static s32  _generalStoreCommandMsg(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 
 static s32 _generalStoreSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
@@ -62,7 +68,7 @@ extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc gStoreTaskDescs[];
 
 /// The stage byte `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` held when the cutscene began, saved by
-/// `storeCutsceneTask`'s first state and restored into
+/// `_generalStoreUnderpassTransitionTask`'s first state and restored into
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` when the cutscene is cut short.
 extern u8 gStoreSavedView;
 
@@ -72,7 +78,7 @@ extern u8 gStoreSavedView;
 extern u8 gStoreWarp;
 extern u8 gStoreRoom;
 
-/// The 4-byte record `storeCutsceneTask` hands the helper
+/// The 4-byte record `_generalStoreUnderpassTransitionTask` hands the helper
 /// task 0x31 when the script's CAP event key asks for it.
 extern ScreenFade gStoreFade;
 
@@ -116,15 +122,15 @@ enum {
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskDesc gStoreTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, storeToggleTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, storeCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _generalStoreToggleFlagTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _generalStoreUnderpassTransitionTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 TaskMessageEntry D_dryfield_general_store_8017E188[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGeneralStoreMsg },
     { DRYFIELD_GENERAL_STORE_MESSAGE_USE_KEY_ITEM, _dryfieldGeneralStoreRejectKeyItemUse },
-    { ROOM_MESSAGE_COMMAND, storeActionMsg },
+    { ROOM_MESSAGE_COMMAND, _generalStoreCommandMsg },
     { ROOM_MESSAGE_SOUND, _generalStoreSoundMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_general_store_8017DDFC },
     { TASK_MESSAGE_TABLE_END, NULL },

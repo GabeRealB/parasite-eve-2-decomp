@@ -5,6 +5,7 @@
 #include "dryfield_night_general_store_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/companion_load.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/player_actor.h"
@@ -29,7 +30,12 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
-#include "../../shared/general_store.h"
+#include "../../shared/room_variants.h"
+
+static s32  _roomVariantGeneralStoreMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static void _generalStoreUnderpassTransitionTask(Task* task);
+static void _generalStoreToggleFlagTask(Task* task);
+static s32  _generalStoreCommandMsg(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 
 static s32 _generalStoreSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
@@ -37,8 +43,8 @@ static s32 _generalStoreSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueK
 extern TaskDesc gRoomEventTaskDesc;
 
 /// The room's two spawnable tasks: entry 0 the CAP-command task
-/// `storeToggleTask`, entry 1 the cutscene task
-/// `storeCutsceneTask`.
+/// `_generalStoreToggleFlagTask`, entry 1 the cutscene task
+/// `_generalStoreUnderpassTransitionTask`.
 extern TaskDesc gStoreTaskDescs[];
 
 /// The room's message table, installed by the room task's entry state.
@@ -53,16 +59,16 @@ static s32 _dryfieldNightGeneralStoreIgnoreRoomAction(Task* unusedTask, s32 unus
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskDesc gStoreTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, storeToggleTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, storeCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _generalStoreToggleFlagTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _generalStoreUnderpassTransitionTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 TaskMessageEntry D_dryfield_night_general_store_8017E7BC[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGeneralStoreMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightGeneralStoreRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightGeneralStoreIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, storeActionMsg },
+    { ROOM_MESSAGE_COMMAND, _generalStoreCommandMsg },
     { ROOM_MESSAGE_SOUND, _generalStoreSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

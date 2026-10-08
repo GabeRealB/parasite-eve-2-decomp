@@ -674,6 +674,12 @@ surrounds the corresponding fragment include and is undefined afterwards.
 
 Dryfield's room-transition message handlers also use `roomVariant`. Their
 request is borrowed and their reply writable; both may be the same record.
+The General Store's local departure resolvers use this identity, while its
+command handler, flag prompt and underpass transition task use `generalStore`.
+Those included instances and the `underpass` switch command/prompt instances
+are static, with prototypes in each carrier's prologue. The water-tower
+departure resolver uses `roomVariant` and remains externally linked between
+each room overlay's translation units, declared in `src/shared/water_tower.h`.
 The paired cellar rooms' underpass resolver follows this interface as well;
 its implementation declaration is in `src/shared/cellar.h`.
 The paired water-hole rooms' driveway/underpass resolver also uses this

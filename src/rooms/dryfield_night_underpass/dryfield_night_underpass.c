@@ -39,7 +39,9 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
-#include "../../shared/underpass_switches.h"
+
+static void _underpassSwitchTask(Task* task);
+static s32  _underpassSwitchMsg(Task* unusedTask, s32 unusedMessageId, s32 switchId, s32 unusedSecondArg);
 
 static s32 _underpassSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
@@ -62,7 +64,7 @@ extern WorldCoordRoomLights   D_dryfield_night_underpass_8017FFF4[1];
 extern WorldCoordRoomLights   D_dryfield_night_underpass_8018024C[1];
 
 TaskDesc gUnderpassSwitchTaskDesc[2] = {
-    { { { TASK_BODY_NONE, 32 } }, underpassSwitchTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _underpassSwitchTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -70,7 +72,7 @@ TaskMessageEntry D_dryfield_night_underpass_8017DCF0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantUnderpassMsg },
     { DRYFIELD_NIGHT_UNDERPASS_MESSAGE_USE_KEY_ITEM, _dryfieldNightUnderpassRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightUnderpassIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, underpassSwitchMsg },
+    { ROOM_MESSAGE_COMMAND, _underpassSwitchMsg },
     { ROOM_MESSAGE_SOUND, _underpassSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

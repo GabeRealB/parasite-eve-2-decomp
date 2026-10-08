@@ -484,7 +484,7 @@ static s32                    _dryfieldWaterTowerApplyPropCommand(Task* task, s3
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_water_tower_801803A0[7] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, waterTowerEventMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantWaterTowerMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldWaterTowerUseKeyItemMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldWaterTowerRoomActionMsg },
     { ROOM_MESSAGE_COMMAND, func_dryfield_water_tower_8017DD04 },

@@ -61,7 +61,7 @@ extern TaskDesc Actor04400_D107E4;
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_water_tower_8017E6EC[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, waterTowerEventMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantWaterTowerMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldNightWaterTowerRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldNightWaterTowerIgnoreActionMessage },
     { ROOM_MESSAGE_SOUND, waterTowerSoundMsg },

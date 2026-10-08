@@ -27,6 +27,8 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
+#include "../../shared/water_tower.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
 

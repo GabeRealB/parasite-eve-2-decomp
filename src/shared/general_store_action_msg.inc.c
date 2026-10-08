@@ -1,23 +1,34 @@
-/* Part of the general store library; see general_store.h. */
+/* Included General Store command handler; each carrier declares its static instance. */
 
-/// 0x13F0 handler. Action 0x18 shows caption 0x18, or 0x19 when pointer slot
-/// 0xA is empty, if no caption is running. Action 9 spawns storeToggleTask on
-/// nibble 0x53 with caption 9. Returns 0.
-s32 storeActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles the General Store's CAP commands for companion dialogue and flag toggling.
+///
+/// `ROOM_MESSAGE_COMMAND` supplies integer `commandId`: 24 queues CAP command
+/// 24 with a companion or 25 without one, only while CAP is idle; 9 requests
+/// the flag-toggle prompt task. Other values do nothing. All other parameters
+/// are ignored, and every command returns zero. Spawn failure is unchecked;
+/// the room and its CAP resources must remain loaded for the deferred tasks.
+static s32 _generalStoreCommandMsg(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    s32   arg;
+    enum {
+        GENERAL_STORE_COMMAND_COMPANION_DIALOGUE = 24,
+        GENERAL_STORE_CAP_COMPANION_ABSENT       = 25,
+        GENERAL_STORE_COMMAND_TOGGLE_FLAG        = 9,
+        GENERAL_STORE_CAP_TOGGLE_FLAG            = 9,
+        GENERAL_STORE_TOGGLE_FLAG_TASK_INDEX     = 0,
+    };
+    s32   capCommand;
     Task* companionTask;
 
-    if (arg2 == 0x18) {
+    if (commandId == GENERAL_STORE_COMMAND_COMPANION_DIALOGUE) {
         companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-        arg           = 0x19;
-        if (companionTask != 0) {
-            arg = 0x18;
+        capCommand    = GENERAL_STORE_CAP_COMPANION_ABSENT;
+        if (companionTask != NULL) {
+            capCommand = GENERAL_STORE_COMMAND_COMPANION_DIALOGUE;
         }
-        capSpawnEventIfIdle(arg, CAP_EVENT_NO_FLAGS);
+        capSpawnEventIfIdle(capCommand, CAP_EVENT_NO_FLAGS);
     }
-    if (arg2 == 9) {
-        taskSpawnFromTable(gStoreTaskDescs, 0, 0x53, 9);
+    if (commandId == GENERAL_STORE_COMMAND_TOGGLE_FLAG) {
+        taskSpawnFromTable(gStoreTaskDescs, GENERAL_STORE_TOGGLE_FLAG_TASK_INDEX, GAME_FLAG_053, GENERAL_STORE_CAP_TOGGLE_FLAG);
     }
     return 0;
 }

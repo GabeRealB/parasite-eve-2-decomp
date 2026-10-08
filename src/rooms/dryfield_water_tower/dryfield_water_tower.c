@@ -34,6 +34,8 @@ Task* D_dryfield_water_tower_801876A4;
 
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
+#include "../../shared/water_tower.h"
 
 /// The event the room's gate `_roomEventGate` latched:
 /// the incoming message and the request, kept for the event task it spawns
