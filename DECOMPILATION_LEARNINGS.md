@@ -107169,7 +107169,7 @@ Judge the archive by the `GIVEUP_SAVED=` / `GIVEUP_SKIP=` line, not the exit
 status: piping the command through `tail`/`head` makes `$?` report the pager's
 status instead.
 
-## The abs-difference of two halfwords: `s32` only removes the re-extend, the ternary spelling is what settles the allocation (func_actor_521100_80132C70, 2026-09-16)
+## The abs-difference of two halfwords: `s32` only removes the re-extend, the ternary spelling is what settles the allocation (_actor521100TryStartGrab, 2026-09-16)
 
 **Symptom 1 - a redundant re-extension.** The target negates the already
 sign-extended halfword in place:
@@ -107411,7 +107411,7 @@ source `base_2.c`
 
 ## A no-argument call at a matched caller says nothing about the callee's signature (_actor521100FlinchState, 2026-09-16)
 
-The dispatcher `func_actor_521100_801355C8` was matched first, so its case-5
+The dispatcher `_actor521100TickState` was matched first, so its case-5
 body was declared `void f(void)` and called as `f();` - the target's `jal` has a
 bare `nop` in its delay slot and no `$a0` setup, which reads as "no arguments".
 The callee's own prologue disagrees: `lw $a3, 0x1C($a0)` is a live incoming
@@ -107439,13 +107439,13 @@ source `base.c`
 `67502914dfac4660de6071a83e46c3514bb4025aec3460ab83928f5aa2a291bb`. Scratch
 `nonmatchings/_actor521100FlinchState-vacuum`.
 
-## A copy followed by an in-place `addiu` is a combine-blocked copy+modify, not an address computation (func_actor_521100_80133104, 2026-09-16)
+## A copy followed by an in-place `addiu` is a combine-blocked copy+modify, not an address computation (_actor521100SlashAttack, 2026-09-16)
 
 *Note 2026-10-06:* wrong for this function. The copy is a memory re-read that
 `reload_cse` turned into a move after register allocation; no barrier is
 needed. See the section at the end of this file with this function's name.
 
-The burn-out body takes an 8th-element coordinate as `effectSpawn`'s second
+The short-slash body takes an 8th-element coordinate as `effectSpawn`'s second
 argument, and the ROM does it in two instructions:
 
 ```
@@ -107502,7 +107502,7 @@ source `base.c`
 `base_15.i` `4e30157abb702934a77516bc95d8e7c89e7a877073dec269f361b966dc0aa239`
 (98.219%), source `base_15.c`
 `4a8b3ed57670b6afd5fcb9ec313b642d3b93f631be54d88d22b16e2b3e97efcb`. Scratch
-`nonmatchings/func_actor_521100_80133104-vacuum`.
+`nonmatchings/_actor521100SlashAttack-vacuum`.
 
 ## An m2c seed's element-wise copy of one struct is a struct assignment
 
@@ -107805,7 +107805,7 @@ to a wider mode and emits a single `lh` directly - a lower uid, ahead of the
 `(s16)clipId` expansion, and the block comes out `lh / sll / sra / addiu / slt`
 with nothing else moved. Same C semantics, same instruction count, one type
 changed: that one difference was 60 of the remaining 60 bytes on
-`func_actor_521100_8013334C` (99.221% -> 99.610%).
+`_actor521100LongSlashAttack` (99.221% -> 99.610%).
 
 Two such reads in one body need not agree - the same function's `+0x90` compare
 keeps its `s16` local (the target emits that one *after* the `sll`/`sra`), so
@@ -107976,7 +107976,7 @@ source `base_1.c` `cb2ffab3886c6cf58d30c7362bac1b40421e18a66f62d0949e30dadcb1146
 `32a3452f1157b1b95a9afc2b2eaad663fd642cf01b3ed82a4a24fce2da2ccdd2`. Scratch
 `nonmatchings/_actor521100ApplyHitTwist-vacuum`.
 
-## A pointer *assigned* in three arms is a global allocno, and its `high` half comes apart from its `lo_sum` half (func_actor_521100_801335B4, 2026-09-16)
+## A pointer *assigned* in three arms is a global allocno, and its `high` half comes apart from its `lo_sum` half (_actor521100StanceAttack, 2026-09-16)
 
 **Problem.** `u16* tbl;` declared once at the top of the function and assigned
 in three `switch` arms:
@@ -108034,7 +108034,7 @@ source `base_4.c` `bfe4a8dc5ce87eff93bc0d59ca5876dc61382a668cb6a863026a3f7181581
 `base_8.i` `ea33b5ef780e30f8bc4b3224a8aa9208bfe536f482342f240e1707b2ddf19c8a`
 (100.000%), source `base_8.c`
 `b9aa1843f3c710c2851e85f6d718124e730a64d777ab83e1900c0c004acb105c`. Scratch
-`nonmatchings/func_actor_521100_801335B4-vacuum`. The permuter router ran three
+`nonmatchings/_actor521100StanceAttack-vacuum`. The permuter router ran three
 searches on this function and beat the distance only by mutations that broke
 semantics (one deleted the `tbl` assignment altogether); the fix was found by
 following the `.lreg`/`.greg` allocno lists, not by the search.
@@ -136499,9 +136499,9 @@ contains the paired dumps, extent pass walk, baseline trace and verification log
 ## Grouped call inputs can put a coordinate increment in the call delay slot without pins
 
 *Note 2026-10-06:* superseded; both touches are gone. See the section at the
-end of this file named for `func_actor_521100_80133104`.
+end of this file named for `_actor521100SlashAttack`.
 
-`func_actor_521100_80133104` needed `li a2,12; move a1,s1; move a3,zero; jal effectSpawn; addiu a1,a1,640`. A single soft coordinate touch preserved the copy and in-place addition, but ordinary argument setup left the a3 clear in the delay slot (98.767%).
+`_actor521100SlashAttack` needed `li a2,12; move a1,s1; move a3,zero; jal effectSpawn; addiu a1,a1,640`. A single soft coordinate touch preserved the copy and in-place addition, but ordinary argument setup left the a3 clear in the delay slot (98.767%).
 
 Materializing the four arguments through `SOFT_TOUCH_REG4(effect, kind, effectCoord, offset)` makes the increment depend on every input materialization. In base_3, the outputs coalesced into a0/a2/a1/a3, so the hard-register argument copies disappeared and dbr selected the increment. This reached 99.863%, but reload inserted `move a1,s1` immediately before the grouped asm, after the a3 clear. Adding `SOFT_TOUCH_REG(effectCoord)` before `offset = NULL` moved that reload copy to the earlier touch and matched:
 
@@ -136519,12 +136519,12 @@ The controlled base_4 prediction required both earlier copy placement and unchan
 
 The port reuses `ScratchStackCursor.top`. Its fixed member access also matters: base_1's scalar scratch store was absent from the work load's scheduler dependencies; base_2's member store UID21 became a dependency of work-load UID24 and restored the prologue. This confirms the existing MEM_IN_STRUCT rule, without changing it.
 
-Evidence: `tools/permuter_findings/func_actor_521100_80133104/` retains session sources and compressed inputs; selected dumps are under `PERMUTER_EVIDENCE/4e43c88700eb4b09/analysis/manual/`. The router missed; these gains are manual experiments. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; base_3 input `d1a901aab076a90787ad2591cbcb3be5f88c62177db371c99ce14d4fb76731b5`; controlled base_4 input `cbc7dc155ee9d2865608905f5f88a033a26bae75b8ccbcf8b8920c4ab42aee9f`. The readable base_5 port remained exact and passed the full unscoped build.
+Evidence: `tools/permuter_findings/_actor521100SlashAttack/` retains session sources and compressed inputs; selected dumps are under `PERMUTER_EVIDENCE/4e43c88700eb4b09/analysis/manual/`. The router missed; these gains are manual experiments. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; base_3 input `d1a901aab076a90787ad2591cbcb3be5f88c62177db371c99ce14d4fb76731b5`; controlled base_4 input `cbc7dc155ee9d2865608905f5f88a033a26bae75b8ccbcf8b8920c4ab42aee9f`. The readable base_5 port remained exact and passed the full unscoped build.
 
 
 ## Independent branch-local LCG draws need separate locals before table hoisting can match
 
-`func_actor_521100_80132958` (GCC 2.8.1, 2026-09-20) improved from 92.894%
+`_actor521100ApproachState` (GCC 2.8.1, 2026-09-20) improved from 92.894%
 to 99.687% by combining two changes: separate table/RNG locals for each of
 three independent branches, and each table assignment before its RNG draw.
 The archived seed reused one `tbl` and `rng`; `.lreg` recorded three deaths
@@ -136549,7 +136549,7 @@ interval was 5..7, r102 still born 8. r102 changed from local v1 to v0 in
 penalties, and passed the unscoped build-and-verify. No pins or asm helpers.
 Exact scheduler hazard decisions and quantity priorities were not traced.
 
-Evidence: scratch `nonmatchings/func_actor_521100_80132958-vacuum/`,
+Evidence: scratch `nonmatchings/_actor521100ApproachState-vacuum/`,
 `LEARNINGS.md`, planned/concluded `experiments.jsonl`, and the candidates'
 `.sched`, `.lreg`, `.greg` dumps. Preprocessed input SHA-256:
 - base.i: `4f729a97ed69a0b649cff4961ee63434e3f79460ee6f9e209d022f16c6f71e8e`
@@ -136558,7 +136558,7 @@ Evidence: scratch `nonmatchings/func_actor_521100_80132958-vacuum/`,
 - base_3.i: `60031f15360e96a5f06ce29c0ba51006bec2bf0e1d788567c4fd056565b11d53`
 
 
-## Separate draw locals before late cross-jumping; preserve member-memory annotation in byte-indexed tables (func_actor_521100_80132DE8, 2026-09-20)
+## Separate draw locals before late cross-jumping; preserve member-memory annotation in byte-indexed tables (_actor521100AttackState, 2026-09-20)
 
 The archived source shared two RNG tails with gotos and reused the RNG local.
 It scored 87.829%; the target kept four LCG materializations before two shared
@@ -136587,7 +136587,7 @@ Inputs: base_5 `bbc49ba32c98767971d14d2cb9da3b378025422af8307984f0b3ecbca0eee0c2
 base_6 `2e82ef32ae7ddccee32373ccb699d9f01cc2dea9dbfe16e3e2c50c46d9a9975a`,
 ported base_8 `129bbd54e24c5722fd229c0a86a2e7bcfc44ea51d464b439f6b7ab2da56ab52a`.
 
-### Swapping two pointer-read chains changes a third value's lifetime and the call delay slot (func_actor_521100_801322F8)
+### Swapping two pointer-read chains changes a third value's lifetime and the call delay slot (_actor521100ResolveContacts)
 
 The 99.534% candidate had only a prologue mismatch: the object pointer was
 in v0, `move s7,v0` happened early, and `addiu a0,s2,1180` occupied the first
@@ -136621,7 +136621,7 @@ T-5 through T-7, yielding identical assembly. This result supports inspecting
 the load chains and the resulting live overlap, not assuming a ready-list
 ranking or an explicit alias assignment determines the final schedule.
 
-Retained evidence: `tools/permuter_findings/func_actor_521100_801322F8/`, run
+Retained evidence: `tools/permuter_findings/_actor521100ResolveContacts/`, run
 `99fe9be8195348a0`; its `PERMUTER_ANALYSIS.md` and conclusion retain the paired
 sources, scheduling/allocation/dbr dumps, and integration log. No trace was
 needed for the limited dump-observed chain; exact hazard weights were not
@@ -136635,7 +136635,7 @@ Controlled matching input SHA256:
 
 ## Disjoint scalar phases can reuse a call-crossing local to inherit its saved register
 
-`func_actor_521100_801339B0` matched on 2026-09-20 without pins. The archived
+`_actor521100GrabState` matched on 2026-09-20 without pins. The archived
 seed put an angle difference in a1: `.lreg` showed its global pseudo r91 with
 4 references/14 instructions and no calls. Target s0 did not mean that this
 particular value crossed a call. Reusing the existing case-1 flag local for
@@ -148848,7 +148848,7 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   *Note 2026-10-06:* now one. The count in `$a1` was not a birth that must not
   sink: it follows from where sched1 leaves the `a0 = &dest` argument copy.
   See the section at the end of this file with this function's name.
-- `func_actor_521100_80133104` (two). `move a1,s1` / `addiu a1,a1,0x280` is
+- `_actor521100SlashAttack` (two). `move a1,s1` / `addiu a1,a1,0x280` is
   still only reachable with the touch: `&coord[8]`, an inline taking the
   element, an inline incrementing its parameter, an inline returning the
   element and a re-read of `arg0->extra.tmd->coords` all fold to one `addiu`.
@@ -150442,7 +150442,7 @@ attempts; left as it was.
   the copy behind `third` survives and the block order is wrong. The
   `do { } while (0)` went with the goto.
 - **A mode ladder whose `case 1` jumps to the two calls that end the
-  function** (`func_actor_521100_80135478`) is `case 1: f(); g(); return;`
+  function** (`_actor521100FightTick`) is `case 1: f(); g(); return;`
   written out; it merges into the function's tail.
 - Not converted: the re-fire jump of `func_actor_800100_80165F50` (`case 4`
   back to `case 1`'s body). One attempt, with the two bodies as inlines called
@@ -151326,14 +151326,14 @@ differing. Nothing else in either function is positional.
   (`i = 0; i = n;`). When a register copy "cannot be written", run it once on
   the plain source before concluding that an asm is required.
 
-## `move a1,s1` / `addiu a1,a1,C` is a field read twice, with a scalar store between the reads (func_actor_521100_80133104, 2026-10-06)
+## `move a1,s1` / `addiu a1,a1,C` is a field read twice, with a scalar store between the reads (_actor521100SlashAttack, 2026-10-06)
 
 **Symptom.** The target passes `&coords[8]` as `move a1,s1` ... `jal` /
 `addiu a1,a1,0x280` (the add in the delay slot, after the `a3` clear), where
-`s1` already holds `arg0->extra.tmd->coords`. Every spelling of the address
+`s1` already holds `task->extra.tmd->coords`. Every spelling of the address
 folds to `addiu a1,s1,0x280`; two empty-`asm` touches held the pair apart. The
 two sibling functions have `lw v0,0x2c(s0)` / `lw a1,8(v0)` / `addiu a1,a1,0x280`
-at the same place, from `arg0->extra.tmd->coords + 8`.
+at the same place, from `task->extra.tmd->coords + 8`.
 
 **Mechanism.** It is the same source as the siblings. The `move` is the second
 `lw`, rewritten after register allocation:
@@ -151341,7 +151341,7 @@ at the same place, from `arg0->extra.tmd->coords + 8`.
 - `reload_cse_regs` (reload1.c) runs after reload. It tracks which hard
   register holds which memory value, forgets everything at a `CODE_LABEL`, but
   walks straight through a conditional branch into its fall-through arm. Here
-  `v0` still holds `arg0->extra.tmd` and `s1` holds `->coords`, so
+  `v0` still holds `task->extra.tmd` and `s1` holds `->coords`, so
   `lw v0,0x2c(s0)` becomes a no-op and is deleted and `lw a1,8(v0)` becomes
   `move a1,s1`. Nothing after reload folds a copy into an add, so the pair
   stays, and the add (the last insn before the call) fills the delay slot.
@@ -151359,14 +151359,14 @@ at the same place, from `arg0->extra.tmd->coords + 8`.
 **Fix.** Statement order only:
 
 ```c
-work                          = arg0->work;
-coord                         = arg0->extra.tmd->coords;
+work                          = task->work;
+coord                         = task->extra.tmd->coords;
 head                          = SCRATCH_STACK_CURSOR(SVECTOR);
 vec                           = head - 1;
 SCRATCH_STACK_CURSOR(SVECTOR) = vec;          /* after the first read */
 clip                          = D_actor_521100_8015F894[work->animationId];
 ...
-effectSpawn(EFFECT_NO9_GOLEM_SWING_TRAIL, arg0->extra.tmd->coords + 8, 0xC, NULL);
+effectSpawn(EFFECT_NO9_GOLEM_SWING_TRAIL, task->extra.tmd->coords + 8, 0xC, NULL);
 ```
 
 The old body had the reservation first, written through
@@ -152738,7 +152738,7 @@ the second operand of the selection sum. The source held the row in a local,
 pinned the copy to `$a0` and kept it with `TOUCH_REG`. Three earlier passes
 recorded it as unresolved.
 
-**Mechanism.** The same as func_actor_521100_80133104: there is no copy in the
+**Mechanism.** The same as _actor521100SlashAttack: there is no copy in the
 source. Each statement reads the field itself:
 
 ```c
