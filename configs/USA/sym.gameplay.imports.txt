@@ -819,7 +819,7 @@ mineMesaRoomVisualEffectsFlashTask = 0x8017F230; // type:func absolute:True owne
 
 mineMesaRoomVisualEffectsTwinTrailTask = 0x8017FC94; // type:func absolute:True owner=mine_mesa
 
-func_mine_mesa_8018057C = 0x8018057C; // type:func absolute:True owner=mine_mesa
+mineMesaRoomVisualEffectsSparkBurstTask = 0x8018057C; // type:func absolute:True owner=mine_mesa
 
 mineSecretPassageRoomVisualEffectsMoteTask = 0x8017E868; // type:func absolute:True owner=mine_secret_passage
 
@@ -1008,7 +1008,7 @@ shelterB1ElevatorHallRoomVisualEffectsTwinTrailTask = 0x8018177C; // type:func a
 
 shelterB1GolemFreezer1FloorMistTask = 0x8017DFFC; // type:func absolute:True owner=shelter_b1_golem_freezer_1
 
-shelterB1MainCorridorDrawViewLightsTask = 0x8017DDF0; // type:func absolute:True owner=shelter_b1_main_corridor shared=rooms
+shelterB1MainCorridorDrawViewLightsTask = 0x8017DDF0; // type:func absolute:True owner=shelter_b1_main_corridor
 
 shelterB1MainCorridorRoomVisualEffectsMoteTask = 0x8017EAD4; // type:func absolute:True owner=shelter_b1_main_corridor
 
@@ -1065,7 +1065,7 @@ func_shelter_b1_sleeping_quarters_8017E6DC = 0x8017E6DC; // type:func absolute:T
 
 shelterB1SleepingQuartersRoomVisualEffectsFlyingOrangeBurstTask = 0x8017F894; // type:func absolute:True owner=shelter_b1_sleeping_quarters
 
-shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x8017E760; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
+shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x8017E760; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
 
 shelterB1SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x8017F1C4; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
 

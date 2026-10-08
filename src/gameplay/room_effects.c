@@ -771,7 +771,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, mineMesaRoomVisualEffectsFlashTask, { NULL } },                                     // 0x0E9
     { { { TASK_BODY_COORD, 0x70 } }, lifedrainExpandingGlowBandTask, { NULL } },                                         // 0x0EA
     { { { TASK_BODY_COORD, 0x70 } }, mineMesaRoomVisualEffectsTwinTrailTask, { NULL } },                                 // 0x0EB
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8018057C, { NULL } },                                                // 0x0EC
+    { { { TASK_BODY_COORD, 0x70 } }, mineMesaRoomVisualEffectsSparkBurstTask, { NULL } },                                // 0x0EC
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4LowerSewerRoomVisualEffectsFlashTask, { NULL } },                          // 0x0ED
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4LowerSewerRoomVisualEffectsTwinTrailTask, { NULL } },                      // 0x0EE
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_801811FC, { NULL } },                                   // 0x0EF

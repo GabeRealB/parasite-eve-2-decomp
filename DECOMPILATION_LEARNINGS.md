@@ -86791,7 +86791,7 @@ check the MEM flags before assuming a scheduler heuristic.
 
 `M2C_FIELD(ptr, T*, off)` is that cast form, so the same flag decides the mirror
 case, where the *seed* is the cast and the struct form is the fix
-(func_mine_mesa_8017DC80, 2026-09-15). There, m2c's `M2C_FIELD(index, s32*, 0x30)`
+(_mineMesaInitializeRoomState, 2026-09-15). There, m2c's `M2C_FIELD(index, s32*, 0x30)`
 kept the state load/store non-struct, and `M2C_FIELD(index, M2C_UNK**, 0x24)` did
 the same for `field_24`; the seed scored 99.796% with `regs=2` — every byte right
 except the trailing `lui` for a zeroed global, `$v0` where the target has `$v1`.
@@ -88865,7 +88865,7 @@ beside it.** `addiu $v0, $v1, %lo(` (or any register pair) followed within a few
 instructions by `sw $zero, 0x4($vN)` hits 19 functions across the tree, and a
 matched one spells out the idiom in three lines.
 
-## A register in the compare names the arity: m2c undercounts parameters, and the fix is not register allocation (func_mine_mesa_8017DA7C, 2026-09-15)
+## A register in the compare names the arity: m2c undercounts parameters, and the fix is not register allocation (_mineMesaRoomCommandMsg, 2026-09-15)
 
 m2c infers a prototype from the uses it can see in the body, so an argument whose
 only use is one side of a comparison can go missing. The seed then compiles, the
@@ -88894,7 +88894,7 @@ the constant *after* the call (`li $a0, 0xC` in the `bnez` delay slot, `li
 $a0, 0xD` in the fall-through), which is a ternary argument, not a variable:
 
 ```c
-s32 func_mine_mesa_8017DA7C(s32 arg0, s32 arg1, s32 arg2)
+s32 _mineMesaRoomCommandMsg(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 0xD) {
         capRunCommandWithTransition(gameFlagGetNibble(0x11A) >= 2 ? 0xD : 0xC);
@@ -89068,7 +89068,7 @@ needs no scheduler reasoning. `_mineMesaInitializeEnemyWaveState`, the sibling t
 the same array, matched the same day with `arr[1] = 0; arr[0] = 0;` written out.
 
 Note the arity was wrong too - the handler's third argument is in `$a2` - so this
-seed needed the message-handler prototype from the `func_mine_mesa_8017DA7C`
+seed needed the message-handler prototype from the `_mineMesaRoomCommandMsg`
 entry above before the ordering mattered. Fixing both in one build (80.2% -> 100%)
 is what the two-attempt history here shows: `regs=0 stack=0` after the prototype,
 `reorder=0 insert=0` after the subscript form.
@@ -89076,7 +89076,7 @@ is what the two-attempt history here shows: `regs=0 stack=0` after the prototype
 ## An unsigned read of a signed global is a per-use cast, and a sibling's load sign says which (_mineMesaEnemyWaveActorEventMsg, 2026-09-15)
 
 The matched body reads a countdown with `lhu` and writes it back with `sh`, which
-is what `u16` gives - but the sibling `func_mine_mesa_80181358`, still
+is what `u16` gives - but the sibling `_mineMesaSpawnEnemyWaveState`, still
 `INCLUDE_ASM` in the same TU, reads the *same* symbol with `lh` and compares it
 against 0 and 1. The two are not interchangeable and the choice is a property of
 the declaration, not of the use: a probe built against this compiler shows
@@ -90561,7 +90561,7 @@ outlives the call in the source; the slot's address alone cannot say, because
 the filler moves the store in from before the call. The two directions of the
 same m2c guess are worth telling apart: a register in a compare that the seed
 never declared means the seed *undercounts* parameters (see the
-`func_mine_mesa_8017DA7C` entry above), while an `$a3` fed by a delay-slot store
+`_mineMesaRoomCommandMsg` entry above), while an `$a3` fed by a delay-slot store
 usually means it is overcounting.
 
 ## A value that merely *lands* in an argument register is a third way m2c overcounts parameters (dryfieldNightGarageFindPlacedActor, 2026-09-16)
@@ -93052,7 +93052,7 @@ Inputs: `base_1.c` (100%). Compiler SHA256
 
 The room opcode callbacks that pick between two command ids passed to
 `capRunCommandWithTransition` are a recurring family: `func_dryfield_garage_8017DA18`
-(`gameFlagGetNibble(0xFD) != 0 ? 0x16 : 0x10`), `func_mine_mesa_8017DA7C`
+(`gameFlagGetNibble(0xFD) != 0 ? 0x16 : 0x10`), `_mineMesaRoomCommandMsg`
 (`>= 2 ? 0xD : 0xC`), `func_shelter_b3_dumping_hole_8017D82C` (`!= 0 ? 0x12 :
 0x17`). Written as the ternary **in the call argument**, GCC 2.8.1 materialises
 the *else* constant into the argument register in the branch delay slot and
@@ -119051,7 +119051,7 @@ instruction counts already matched exactly -- when `Structure: match` and
 `insert`/`delete` are small, read the two-line diffs as variable-count and
 type-shape problems, not as allocation or scheduling ones.
 
-## A stack object's address sits in a register because the source passed it to an inlined helper (func_mine_mesa_8017D8F8, 2026-09-17)
+## A stack object's address sits in a register because the source passed it to an inlined helper (_mineMesaResolveRoomEventMsg, 2026-09-17)
 
 The corpus's named-`&local` tell ("`0x28(sp)` accesses mean the source had no
 pointer variable, `8(s1)` accesses mean it did") has a third route besides a
@@ -119071,17 +119071,17 @@ frame is one callee-saved slot short (`sw ra,0x28(sp)`, no `$s2`), and the
 of sitting just before its `beqz`. Moving the tail into
 
 ```c
-static __inline__ s32 MineMesa_StartEvent(RoomEventMsg* dst, MineMesaEvent* event)
+static __inline__ s32 _mineMesaLatchStagedEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
     D_mine_mesa_80189B48 = 0;
-    if (gameFlagGetNibble(event->field_8) == 0 || event->field_8 == 0) {
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         ...
     }
     return 1;
 }
 ```
 
-and calling it with `return MineMesa_StartEvent(out, &event);` scored 100.000%
+and calling it with `return _mineMesaLatchStagedEvent(reply, &event);` scored 100.000%
 with every penalty zero on the first build, unpinned, no search. The prediction
 (`addiu s0,sp,0x10` + `lh 8(s0)`, four saved registers, frame 0x30) held exactly.
 
@@ -119100,7 +119100,7 @@ Inputs: `base_1.c` SHA256 `4b40e09f2905a5c21905a19a757c60767a756a97d5b2a879626a1
 `6ce3b375bd8d2acdd9c565b16a8de34561552793219cc07fcb187dca41b82c39`; target
 `target.s` SHA256 `aa9adf25894be6a624fd06d98559dcfec719a6652adf5b9e90a2051300225151`;
 two builds, no pins, no search. Scratch
-`nonmatchings/func_mine_mesa_8017D8F8-vacuum`.
+`nonmatchings/_mineMesaResolveRoomEventMsg-vacuum`.
 
 ## m2c address arithmetic is scaled by the pointee type: `M2C_UNK` is `s32` (mineMesaBuildWalls, 2026-09-17)
 
@@ -149476,7 +149476,7 @@ attempts; left as it was.
   allocation.
 - **`goto end;` out of a `for` to the code behind `if (remaining > 0) return;`**
   is `break` when the jump's own condition (`remaining == 0`) makes that test
-  false; jump threading removes the second test (`func_mine_mesa_80181358`).
+  false; jump threading removes the second test (`_mineMesaSpawnEnemyWaveState`).
 - **`(mask & (1 << idx)) == 0` is folded to `((mask >> idx) & 1) == 0`** (`srav;
   andi`), so the `tierBit = 1` local in `_replayBonusResolveShopTier` stays; a
   `static inline` returning `1 << tier` keeps the `sllv` but emits the mask load

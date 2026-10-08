@@ -59,7 +59,15 @@ void mineMesaRoomVisualEffectsFlashTask(Task* task);
 /// values of 2 or above freeze it. History-allocation failure retries next tick.
 void mineMesaRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_mine_mesa_8018057C(Task* task);
+/// Runs an impact flash followed by smoke puffs or orange rings and sparks.
+///
+/// Requires a counted effect with a coordinate body and zero-aged owned
+/// `EffectWork` in `spawnArg2.pointer`. Nonzero `spawnArg1.value` selects
+/// smoke; zero selects rings and bouncing sparks. Release begins at active
+/// age seven and frees work on the next active tick. Room effect control
+/// pauses at nonzero values below four and cancels at four or above.
+/// Spawned child effects run independently; their parent coordinate must live.
+void mineMesaRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Installs Mine Mesa's actor-effect IDs and draws the mapped view's fixed flares.
 ///
