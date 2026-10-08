@@ -215,11 +215,13 @@ static void _effectDrawImpactSparkFlash(const GfxCoord* coord, u16 frame, s16 si
 
 static void _effectDrawCriticalHitBurst(const GfxCoord* coord, s16 radius, s16 brightness, u16 color);
 
-/// Applies the explosion atlas frame's palette and inclusive texture rectangle.
+/// Sets an explosion quad's palette and 40-by-40 atlas texture rectangle.
 ///
-/// Borrows a writable packet and an atlas entry (frame index 0..11). Writes
-/// only CLUT and UV fields; page selection, command and geometry stay with
-/// the caller. Palette coordinates count VRAM words/scanlines and UVs texels.
+/// `textureFrame` borrows one `gEffectSpriteAtlasFrames` entry; `quad` must
+/// be writable. U/V are page-relative texels, with inclusive endpoints 39
+/// texels beyond the origin, in top-left, top-right, bottom-left, bottom-right
+/// order. Palette X/Y are VRAM words/scanlines, encoded into the packet's CLUT.
+/// The caller selects the texture page, blend command and geometry.
 static __inline__ void _effectSetExplosionTexture(POLY_FT4* quad, const EffectSpriteTextureFrame* textureFrame)
 {
     quad->clut = getClut(textureFrame->clutX, textureFrame->clutY);
@@ -233,29 +235,13 @@ static __inline__ void _effectSetExplosionTexture(POLY_FT4* quad, const EffectSp
     quad->v3   = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
 }
 
-/// Chooses one grenade-burst offset with three consecutive shared LCG draws.
+/// Sets the shotgun flash light at the effect's initial position.
 ///
-/// Writes move XYZ in -255..256 parent-local coordinate units, leaving its
-/// fourth halfword intact. The work is borrowed; effectSpawn snapshots the
-/// offset before the next draw can replace it. No transform or allocation.
-static __inline__ void _effectChooseGrenadeBurstOffset(EffectWork* work)
-{
-    enum { EFFECT_GRENADE_BURST_OFFSET_CENTRE = 256,
-           EFFECT_GRENADE_BURST_OFFSET_MASK   = 511 };
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vx   = EFFECT_GRENADE_BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & EFFECT_GRENADE_BURST_OFFSET_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vy   = EFFECT_GRENADE_BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & EFFECT_GRENADE_BURST_OFFSET_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vz   = EFFECT_GRENADE_BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & EFFECT_GRENADE_BURST_OFFSET_MASK);
-}
-
-/// Lights the original shotgun spawn position before attachment to the weapon.
-///
-/// Borrows a live spawn coordinate and an initialized transient slot's point
-/// light in the same view-parent frame. Writes Q12 reddish intensity
-/// (7/8, 5/8, 5/8), radii 4000/4800 world units and dirty local translation.
-/// Retains parent, rotation and expiry; the caller enables the shared slot.
+/// Borrow `spawnCoord` before attaching it to the weapon muzzle. Its local
+/// translation and the initialized `pointLight` must share the view parent.
+/// Sets Q12 RGB intensity (7/8, 5/8, 5/8), full-strength radius 4000 and outer
+/// radius 4800 in game coordinate units, and marks placement dirty.
+/// The caller enables the shared transient slot and manages its lifetime.
 static __inline__ void _effectInitializeShotgunLight(const GfxCoord* spawnCoord, WorldCoordPointLight* pointLight)
 {
     enum { EFFECT_SHOTGUN_FLASH_RED_INTENSITY   = ONE * 7 / 8,
@@ -273,14 +259,16 @@ static __inline__ void _effectInitializeShotgunLight(const GfxCoord* spawnCoord,
     pointLight->head.transform.coord.coord.t[2]   = spawnZ;
 }
 
-/// Refreshes a grenade burst's shared light at its unchanged spawn position.
+/// Refreshes a grenade burst's point light while its full-strength radius contracts.
 ///
-/// Borrows the initialized transient slot, its point-light and coordinate
-/// aliases, the live blast coordinate and work. Both coordinates have the
-/// same view parent. RGB inputs are Q12; the full-strength radius is
-/// 8800 - 400 * age world units with outer reach fixed at 9600. Refreshes
-/// expiry to sixteen light updates and dirties placement without composing.
-static __inline__ void _effectRefreshGrenadeBurstLight(WorldCoordTransientPointLight* transientLight, WorldCoordPointLight* pointLight, GfxCoord* lightCoord, const GfxCoord* blastCoord, const EffectWork* work, s16 redIntensity, s16 greenIntensity, s16 blueIntensity)
+/// All pointers are borrowed. `pointLight` must be `&transientLight->light`
+/// and `lightCoord` must be `&pointLight->head.transform.coord`. The initialized
+/// light and `blastCoord` must share the view parent. `ageCounter` supplies a
+/// readable signed-halfword frame count, 1..21 for the burst's live updates.
+/// RGB inputs use Q12. Sets inner radius to 8800 - 400 * age and outer radius
+/// to 9600 in game coordinate units, copies local translation, marks placement
+/// dirty and refreshes expiry to sixteen unpaused transient-light updates.
+static __inline__ void _effectRefreshGrenadeBurstLight(WorldCoordTransientPointLight* transientLight, WorldCoordPointLight* pointLight, GfxCoord* lightCoord, const GfxCoord* blastCoord, const s16* ageCounter, s16 redIntensity, s16 greenIntensity, s16 blueIntensity)
 {
     enum {
         EFFECT_GRENADE_BURST_LIGHT_TICKS    = 16,
@@ -291,7 +279,7 @@ static __inline__ void _effectRefreshGrenadeBurstLight(WorldCoordTransientPointL
     s32 age;
     s32 spawnZ;
     transientLight->framesLeft = EFFECT_GRENADE_BURST_LIGHT_TICKS;
-    age                        = work->age;
+    age                        = *ageCounter;
     pointLight->outer          = EFFECT_GRENADE_BURST_OUTER_RADIUS;
     pointLight->head.color.r   = redIntensity;
     pointLight->head.color.g   = greenIntensity;
@@ -457,17 +445,6 @@ enum { EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS = 12 };
     (quad)->x2                 = (scratch)->screenX - (scratch)->extent.corner.x;                                                                                                \
     (quad)->y1                 = (scratch)->screenY - (scratch)->extent.corner.y;                                                                                                \
     (quad)->y2                 = (scratch)->screenY + (scratch)->extent.corner.y;
-
-/// Places the explosion billboard's rotated opposite-corner pairs.
-///
-/// Borrows the packet, a projected scratch centre with positive SZ3 / 4 + 1
-/// depth, and work. The growing signed-halfword size supplies size * 39 / depth
-/// pixels before Q12 rotation in 4096-unit turns. Writes only packet XY and
-/// scratch corner offsets, leaving the quarter-turn pair on return.
-static __inline__ void _effectSetExplosionCorners(POLY_FT4* quad, EffectShapeScratch* scratch, const EffectWork* work)
-{
-    EFFECT_SET_PUFF_CORNERS(quad, scratch, work, EFFECT_SPRITE_ATLAS_UV_SPAN);
-}
 
 /// Texture-cell side in texels, shared by the dust animation and corner sizing.
 enum { EFFECT_DUST_PUFF_CELL_SIZE = 32 };
@@ -2295,7 +2272,8 @@ void effectSpriteTask5C(Task* task)
             quad->code  |= EFFECT_EXPLOSION_RAW_BLEND_BITS;
             quad->tpage  = EFFECT_SPRITE_ATLAS_TEXTURE_PAGE;
             _effectSetExplosionTexture(quad, textureFrame);
-            _effectSetExplosionCorners(quad, scratch, work);
+            // Size the rotated billboard from its growing size and biased depth.
+            EFFECT_SET_PUFF_CORNERS(quad, scratch, work, EFFECT_SPRITE_ATLAS_UV_SPAN);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     quad);
         }
@@ -2775,6 +2753,27 @@ void effectControlTask71(Task* task)
     s32                            randomState;
     s32                            redBrightnessEncoding;
 
+/// Chooses the local displacement of a grenade burst's next child effect.
+///
+/// Consumes three consecutive draws from `gRandomLcgState`, one per axis.
+/// Writes XYZ in -255..256 units of the blast coordinate's local frame;
+/// the vector's fourth halfword is untouched. The caller supplies writable
+/// storage and spawns each child before choosing another displacement.
+/// `offset` must be a side-effect-free writable `SVECTOR*` expression; it is
+/// evaluated three times. No caller locals are captured. The expansion is a
+/// braced block; invoke only within a braced caller block.
+#define EFFECT_CHOOSE_GRENADE_BURST_OFFSET(offset)                                                                           \
+    {                                                                                                                        \
+        enum { EFFECT_GRENADE_BURST_OFFSET_CENTRE = 256,                                                                     \
+               EFFECT_GRENADE_BURST_OFFSET_MASK   = 511 };                                                                     \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                    \
+        (offset)->vx    = EFFECT_GRENADE_BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & EFFECT_GRENADE_BURST_OFFSET_MASK); \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                    \
+        (offset)->vy    = EFFECT_GRENADE_BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & EFFECT_GRENADE_BURST_OFFSET_MASK); \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                    \
+        (offset)->vz    = EFFECT_GRENADE_BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & EFFECT_GRENADE_BURST_OFFSET_MASK); \
+    }
+
     transientLight = &gWorldCoordTransientPointLights[EFFECT_GRENADE_BURST_LIGHT_SLOT];
     pointLight     = &transientLight->light;
     lightCoord     = &pointLight->head.transform.coord;
@@ -2795,7 +2794,7 @@ void effectControlTask71(Task* task)
         case GRENADE_ROUND_FRAGMENTATION:
             switch (task->state) {
                 case EFFECT_GRENADE_BURST_STATE_FLASH:
-                    _effectChooseGrenadeBurstOffset(work);
+                    EFFECT_CHOOSE_GRENADE_BURST_OFFSET(&work->move);
                     spawnOffset = &work->move;
                     effectSpawn(EFFECT_EXPLOSION, blastCoord, EFFECT_GRENADE_BURST_EXPLOSION_SIZE, spawnOffset);
                     randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2805,7 +2804,7 @@ void effectControlTask71(Task* task)
                     task->state++;
                     break;
                 case EFFECT_GRENADE_BURST_STATE_SMOKE:
-                    _effectChooseGrenadeBurstOffset(work);
+                    EFFECT_CHOOSE_GRENADE_BURST_OFFSET(&work->move);
                     randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_SMOKE_PUFF, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_SMOKE_JITTER_MASK) | EFFECT_GRENADE_BURST_FAST_SMOKE_ARG,
                                 &work->move);
@@ -2814,7 +2813,7 @@ void effectControlTask71(Task* task)
                     }
                     break;
                 case EFFECT_GRENADE_BURST_STATE_LATE_SMOKE:
-                    _effectChooseGrenadeBurstOffset(work);
+                    EFFECT_CHOOSE_GRENADE_BURST_OFFSET(&work->move);
                     randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_SMOKE_PUFF, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_LATE_JITTER_MASK) | EFFECT_GRENADE_BURST_SLOW_SMOKE_ARG,
                                 &work->move);
@@ -2823,7 +2822,7 @@ void effectControlTask71(Task* task)
                     }
                     break;
             }
-            _effectRefreshGrenadeBurstLight(transientLight, pointLight, lightCoord, blastCoord, work, ONE, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, ONE / 2);
+            _effectRefreshGrenadeBurstLight(transientLight, pointLight, lightCoord, blastCoord, &work->age, ONE, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, ONE / 2);
             if (work->age >= EFFECT_GRENADE_BURST_LAST_AGE) {
                 effectKillTask(work, task);
             }
@@ -2831,7 +2830,7 @@ void effectControlTask71(Task* task)
         case GRENADE_ROUND_AIRBURST:
             switch (task->state) {
                 case EFFECT_GRENADE_BURST_STATE_FLASH:
-                    _effectChooseGrenadeBurstOffset(work);
+                    EFFECT_CHOOSE_GRENADE_BURST_OFFSET(&work->move);
                     effectSpawn(EFFECT_IMPACT_FLASH, blastCoord, EFFECT_GRENADE_BURST_IMPACT_SIZE, &work->move);
                     if (work->age >= EFFECT_GRENADE_BURST_FLASH_LAST_AGE) {
                         task->state++;
@@ -2840,7 +2839,7 @@ void effectControlTask71(Task* task)
                 case EFFECT_GRENADE_BURST_STATE_SMOKE:
                     particleIndex = 0;
                     do {
-                        _effectChooseGrenadeBurstOffset(work);
+                        EFFECT_CHOOSE_GRENADE_BURST_OFFSET(&work->move);
                         randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         effectSpawn(EFFECT_SMOKE_PUFF, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_SMOKE_JITTER_MASK) | EFFECT_GRENADE_BURST_PAIR_SMOKE_ARG,
                                     &work->move);
@@ -2853,7 +2852,7 @@ void effectControlTask71(Task* task)
                 case EFFECT_GRENADE_BURST_STATE_LATE_SMOKE:
                     particleIndex = 0;
                     do {
-                        _effectChooseGrenadeBurstOffset(work);
+                        EFFECT_CHOOSE_GRENADE_BURST_OFFSET(&work->move);
                         randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         effectSpawn(EFFECT_SMOKE_PUFF, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_LATE_JITTER_MASK) | EFFECT_GRENADE_BURST_FAST_SMOKE_ARG,
                                     &work->move);
@@ -2880,7 +2879,7 @@ void effectControlTask71(Task* task)
                     particleIndex += 1;
                 } while (particleIndex < EFFECT_GRENADE_BURST_STREAK_COUNT);
             }
-            _effectRefreshGrenadeBurstLight(transientLight, pointLight, lightCoord, blastCoord, work, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, ONE / 2);
+            _effectRefreshGrenadeBurstLight(transientLight, pointLight, lightCoord, blastCoord, &work->age, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, ONE / 2);
             if (work->age >= EFFECT_GRENADE_BURST_LAST_AGE) {
                 effectKillTask(work, task);
             }
@@ -2888,7 +2887,7 @@ void effectControlTask71(Task* task)
         case GRENADE_ROUND_RIOT:
             switch (task->state) {
                 case EFFECT_GRENADE_BURST_STATE_FLASH:
-                    _effectChooseGrenadeBurstOffset(work);
+                    EFFECT_CHOOSE_GRENADE_BURST_OFFSET(&work->move);
                     effectSpawn(EFFECT_IMPACT_FLASH, blastCoord, EFFECT_GRENADE_BURST_IMPACT_SIZE, &work->move);
                     if (work->age >= EFFECT_GRENADE_BURST_FLASH_LAST_AGE) {
                         task->state++;
@@ -2897,7 +2896,7 @@ void effectControlTask71(Task* task)
                 case EFFECT_GRENADE_BURST_STATE_SMOKE:
                     particleIndex = 0;
                     do {
-                        _effectChooseGrenadeBurstOffset(work);
+                        EFFECT_CHOOSE_GRENADE_BURST_OFFSET(&work->move);
                         randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         effectSpawn(EFFECT_SMOKE_PUFF, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_SMOKE_JITTER_MASK) | EFFECT_GRENADE_BURST_PAIR_SMOKE_ARG,
                                     &work->move);
@@ -2922,12 +2921,14 @@ void effectControlTask71(Task* task)
                     effectDrawScreenTint(glowRgb, GPU_BLEND_ADD);
                 }
             }
-            _effectRefreshGrenadeBurstLight(transientLight, pointLight, lightCoord, blastCoord, work, ONE / 2, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, ONE);
+            _effectRefreshGrenadeBurstLight(transientLight, pointLight, lightCoord, blastCoord, &work->age, ONE / 2, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, ONE);
             if (work->age >= EFFECT_GRENADE_BURST_LAST_AGE) {
                 effectKillTask(work, task);
             }
             break;
     }
+
+#undef EFFECT_CHOOSE_GRENADE_BURST_OFFSET
 }
 
 void effectLineTask92(Task* task)
