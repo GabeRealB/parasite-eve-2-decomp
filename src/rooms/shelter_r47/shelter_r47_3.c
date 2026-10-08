@@ -55,26 +55,46 @@
 static TaskDesc             D_shelter_r47_8018760C;
 static SVECTOR              D_shelter_r47_80187624[10];
 static WorldCoordPointLight D_shelter_r47_80189E90[9];
-static void                 func_shelter_r47_80185214(Task*);
+static void                 _shelterR47MapTerminalTask(Task* task);
 static void                 _shelterR47MapTerminalPromptTask(Task* task);
 
-static void func_shelter_r47_8018431C(Task* task);
-static void func_shelter_r47_801844A0(Task* task);
-static void func_shelter_r47_80184658(Task* task);
+static void _shelterR47MapTerminalInitTask(Task* task);
+static void _shelterR47MapTerminalSelectHotspotTask(Task* task);
+static void _shelterR47MapTerminalHandleHotspotTask(Task* task);
 static void _actionPromptMoveCursors(Task* task);
 static void _actionPromptDrawCursor(s32 cursorX, s32 cursorY, s32 cursorMode);
 static void _actionPromptOutlineRect(const ActionPromptHotspot* hotspot, u8 red, u8 green, u8 blue);
-static void func_shelter_r47_80185028(Task* task);
-static void func_shelter_r47_80185098(Task* task);
+static void _shelterR47MapTerminalBeginFadeOutTask(Task* task);
+static void _shelterR47MapTerminalFadeOutTask(Task* task);
 static void _shelterR47MapTerminalUpdateAndDraw(Task* task);
 static s32  _actionPromptHitTest(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
-static void func_shelter_r47_80185354(Task* task);
-static void func_shelter_r47_80185450(Task* task);
+static void _shelterR47MapTerminalOpenTask(Task* task);
+static void _shelterR47MapTerminalOpenCommandsTask(Task* task);
 static void _shelterR47MapTerminalRestoreRoomTask(Task* task);
-static void func_shelter_r47_801855B8(Task* task);
-static void func_shelter_r47_801856AC(Task* task);
-static void func_shelter_r47_8018571C(Task* task);
+static void _shelterR47MapTerminalSwitchPageTask(Task* task);
+static void _shelterR47MapTerminalReopenPageTask(Task* task);
+static void _shelterR47MapTerminalTimedViewTask(Task* task);
 static void _actionPromptReset(Task* task);
+
+/// Destinations in the terminal's eleven-entry task state table.
+enum {
+    SHELTER_R47_MAP_STATE_SELECT_HOTSPOT = 2,
+    SHELTER_R47_MAP_STATE_OPEN_COMMANDS  = 3,
+    SHELTER_R47_MAP_STATE_HANDLE_HOTSPOT = 4,
+    SHELTER_R47_MAP_STATE_RESTORE_ROOM   = 5,
+    SHELTER_R47_MAP_STATE_TIMED_VIEW     = 8,
+    SHELTER_R47_MAP_STATE_BEGIN_FADE_OUT = 9,
+};
+
+/// Subtractive overlay intensity, in byte levels per task tick.
+///
+/// The halfword accumulator crosses the byte range before it is clamped.
+enum {
+    SHELTER_R47_MAP_FADE_BLACK    = 0xFF,
+    SHELTER_R47_MAP_FADE_RANGE    = 0x100,
+    SHELTER_R47_MAP_FADE_IN_STEP  = 8,
+    SHELTER_R47_MAP_FADE_OUT_STEP = 0x10,
+};
 
 /// Disc colours and perspective radius scales for this room's view glows.
 ///
@@ -89,26 +109,26 @@ enum {
 };
 
 /// State handlers of the room's map terminal, run by
-/// `func_shelter_r47_80185214`.
+/// `_shelterR47MapTerminalTask`.
 static const TaskFuncTable11 D_shelter_r47_8017D7DC = {
     {
-        func_shelter_r47_8018431C,
-        func_shelter_r47_80185354,
-        func_shelter_r47_801844A0,
-        func_shelter_r47_80185450,
-        func_shelter_r47_80184658,
+        _shelterR47MapTerminalInitTask,
+        _shelterR47MapTerminalOpenTask,
+        _shelterR47MapTerminalSelectHotspotTask,
+        _shelterR47MapTerminalOpenCommandsTask,
+        _shelterR47MapTerminalHandleHotspotTask,
         _shelterR47MapTerminalRestoreRoomTask,
-        func_shelter_r47_801855B8,
-        func_shelter_r47_801856AC,
-        func_shelter_r47_8018571C,
-        func_shelter_r47_80185028,
-        func_shelter_r47_80185098,
+        _shelterR47MapTerminalSwitchPageTask,
+        _shelterR47MapTerminalReopenPageTask,
+        _shelterR47MapTerminalTimedViewTask,
+        _shelterR47MapTerminalBeginFadeOutTask,
+        _shelterR47MapTerminalFadeOutTask,
     },
 };
 
 static TaskDesc D_shelter_r47_8018760C = { { { TASK_BODY_NONE, 192 } }, _shelterR47MapTerminalPromptTask, { .value = 0 } };
 
-TaskDesc D_shelter_r47_80187618 = { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80185214, { .value = 0 } };
+TaskDesc D_shelter_r47_80187618 = { { { TASK_BODY_NONE, 192 } }, _shelterR47MapTerminalTask, { .value = 0 } };
 
 static SVECTOR D_shelter_r47_80187624[10] = {
     { 0x3098, -2480, 7430, 0 },
@@ -1669,113 +1689,129 @@ RoomCutsceneRec D_shelter_r47_8018A698;
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-/// State-0 entry of the map terminal. It allocates the `ShelterR47MapTerminalWork`
-/// work, spawns the companion task from `D_shelter_r47_8018760C`, picks the
-/// hotspot table by `spawnArg1` (`SHELTER_R47_MAP_MODE_TOUR` selects the
-/// previous/next table) and clears every entry's `hit`. It holds the HUD and
-/// cutscene, sets the two quads' and the label's targets, saves the view and
-/// switches to `SHELTER_R47_MAP_ENTRY_VIEW`. A timed viewing or a tour also
-/// opens the quads fully, starts the fade at 0xFF and records the argument in
-/// `openMode`.
+/// Opens a map-terminal session and allocates its work and cursor task.
 ///
-/// The empty `do {} while (0)` statements are required for the match: their
-/// loop notes stop the scheduler moving instructions across them.
-static void func_shelter_r47_8018431C(Task* task)
+/// State 0 takes a `SHELTER_R47_MAP_MODE_*` opening mode in spawn argument 1.
+/// The task owns the zeroed primary-heap work; spawn argument 2 becomes its
+/// port-0 cursor task, which completion must kill separately. Work allocation
+/// failure kills the terminal before acquiring any display or room holds.
+/// Requires the room's mutable, sentinel-terminated hotspot tables. Player use
+/// grows the quads from zero; timed viewing and the tour begin fully open behind
+/// a black overlay. Saves the current view and selects the B1 map view.
+static void _shelterR47MapTerminalInitTask(Task* task)
 {
-    ShelterR47MapTerminalWork* state;
-    s16                        spriteX;
-    ActionPromptHotspot*       hs;
-    s32                        arg;
-    u8                         view;
-    s16                        quadW, quadH, quad2W, quad2H;
+    enum { SHELTER_R47_MAP_CURSOR_PORT_0 = 1 };
+    ShelterR47MapTerminalWork* work;
+    s16                        labelX;
+    ActionPromptHotspot*       hotspot;
+    s32                        openMode;
+    u8                         savedView;
+    s16                        mapWidth, mapHeight, panelWidth, panelHeight;
 
-    state = memCalloc(sizeof(ShelterR47MapTerminalWork), false);
-    if (state == NULL) {
+    work = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer = taskSpawnFromTable(&D_shelter_r47_8018760C, 0, 1, 0);
-    task->work              = state;
+    task->spawnArg2.pointer = taskSpawnFromTable(&D_shelter_r47_8018760C, 0, SHELTER_R47_MAP_CURSOR_PORT_0, 0);
+    task->work              = work;
     task->state            += 1;
     displayAcquireMenuHold();
-    state->hotspots = task->spawnArg1.value == SHELTER_R47_MAP_MODE_TOUR ? D_shelter_r47_801873D8 : D_shelter_r47_8018739C;
+    // The tour exposes only navigation; discard hits from an earlier session.
+    work->hotspots = task->spawnArg1.value == SHELTER_R47_MAP_MODE_TOUR ? D_shelter_r47_801873D8 : D_shelter_r47_8018739C;
+    // Retained scheduling boundary before walking the stored table pointer.
     do {
     } while (0);
-    for (hs = state->hotspots; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
-        hs->hit = 0;
+    for (hotspot = work->hotspots; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+        hotspot->hit = 0;
     }
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
-    quadW                      = SHELTER_R47_MAP_WIDTH;
-    quadH                      = SHELTER_R47_MAP_HEIGHT;
-    quad2W                     = SHELTER_R47_MAP_PANEL_WIDTH;
-    quad2H                     = SHELTER_R47_MAP_PANEL_HEIGHT;
-    spriteX                    = SHELTER_R47_MAP_LABEL_X;
+    mapWidth                   = SHELTER_R47_MAP_WIDTH;
+    mapHeight                  = SHELTER_R47_MAP_HEIGHT;
+    panelWidth                 = SHELTER_R47_MAP_PANEL_WIDTH;
+    panelHeight                = SHELTER_R47_MAP_PANEL_HEIGHT;
+    labelX                     = SHELTER_R47_MAP_LABEL_X;
+    // Retained scheduling boundary keeps the shared opening sizes grouped.
     do {
     } while (0);
-    view                                                       = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    state->labelX                                              = SHELTER_R47_MAP_LABEL_X_AWAY;
-    state->mapTargetWidth                                      = quadW;
-    state->mapTargetHeight                                     = quadH;
-    state->panelTargetWidth                                    = quad2W;
-    state->panelTargetHeight                                   = quad2H;
-    state->labelTargetX                                        = spriteX;
-    state->savedView                                           = view;
+    savedView                                                  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    work->labelX                                               = SHELTER_R47_MAP_LABEL_X_AWAY;
+    work->mapTargetWidth                                       = mapWidth;
+    work->mapTargetHeight                                      = mapHeight;
+    work->panelTargetWidth                                     = panelWidth;
+    work->panelTargetHeight                                    = panelHeight;
+    work->labelTargetX                                         = labelX;
+    work->savedView                                            = savedView;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_R47_MAP_ENTRY_VIEW;
-    if ((arg = task->spawnArg1.value) == SHELTER_R47_MAP_MODE_TIMED || arg == SHELTER_R47_MAP_MODE_TOUR) {
-        state->fade        = 0xFF;
-        state->mapWidth    = quadW;
-        state->mapHeight   = quadH;
-        state->panelWidth  = quad2W;
-        state->panelHeight = quad2H;
-        state->labelX      = spriteX;
-        fadeDrawOverlay(state->fade, state->fade, state->fade, GPU_BLEND_SUBTRACT);
-        state->openMode = arg;
+    if ((openMode = task->spawnArg1.value) == SHELTER_R47_MAP_MODE_TIMED || openMode == SHELTER_R47_MAP_MODE_TOUR) {
+        work->fade        = SHELTER_R47_MAP_FADE_BLACK;
+        work->mapWidth    = mapWidth;
+        work->mapHeight   = mapHeight;
+        work->panelWidth  = panelWidth;
+        work->panelHeight = panelHeight;
+        work->labelX      = labelX;
+        fadeDrawOverlay(work->fade, work->fade, work->fade, GPU_BLEND_SUBTRACT);
+        work->openMode = openMode;
     }
 }
 
-/// Idle state of the map terminal. It counts `screenOnDelay` down (with a
-/// sound on reaching zero), runs `_shelterR47MapTerminalUpdateAndDraw`, and while no cap
-/// is running and `holdPrompt` is clear, hit-tests the cursor against `hotspots`.
-/// A confirmed hit (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) latches the hotspot's `id` and
-/// `promptKind` and advances to state 3; `buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED` advances to
-/// state 5 when `openMode` is player use and otherwise starts cap slot 0x25.
-/// `SHELTER_R47_MAP_MODE_TOUR_DONE` moves straight to state 9.
-static void func_shelter_r47_801844A0(Task* task)
+/// Latches a confirmed hotspot and stops its cursor while the command menu opens.
+///
+/// Borrows the live task, its work, its port-0 prompt and a hit-tested entry.
+static inline void _shelterR47MapTerminalAcceptHotspot(Task* task, ShelterR47MapTerminalWork* work,
+                                                       ActionPrompt* prompt, const ActionPromptHotspot* hotspot)
 {
-    ActionPrompt*              prompt = D_80114D28;
-    ShelterR47MapTerminalWork* st     = (ShelterR47MapTerminalWork*)task->work;
-    ActionPromptHotspot*       hs     = st->hotspots;
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+    work->hotspotId     = hotspot->id;
+    work->promptKind    = hotspot->promptKind;
+    task->state         = SHELTER_R47_MAP_STATE_OPEN_COMMANDS;
+}
 
-    if (st->screenOnDelay != 0) {
-        if (--st->screenOnDelay == 0) {
+/// Selects the first confirmed hotspot while the map terminal is idle.
+///
+/// State 2 requires live terminal work, a page in 0..4 and the port-0 prompt.
+/// Refreshes the display and screen-on countdown before gating input on CAP
+/// playback and settled geometry. Confirmation saves the hotspot and command
+/// kind for state 3. Player cancel restores the room; tour cancel plays a
+/// refusal, and a completed tour starts fade-out after CAP playback ends.
+static void _shelterR47MapTerminalSelectHotspotTask(Task* task)
+{
+    enum {
+        SHELTER_R47_MAP_CONFIRM_BUTTON          = 0,
+        SHELTER_R47_MAP_CANCEL_BUTTON           = 1,
+        SHELTER_R47_MAP_CANCEL_REFUSED_CAP_SLOT = 0x25,
+    };
+    ActionPrompt*              prompt  = D_80114D28;
+    ShelterR47MapTerminalWork* work    = task->work;
+    ActionPromptHotspot*       hotspot = work->hotspots;
+
+    if (work->screenOnDelay != 0) {
+        if (--work->screenOnDelay == 0) {
             sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_SCREEN_ON, 0, 0);
         }
     }
     _shelterR47MapTerminalUpdateAndDraw(task);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
-    if ((capIsBusy() != 0) || (st->holdPrompt != 0)) {
+    if ((capIsBusy() != 0) || (work->holdPrompt != 0)) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
-    if (st->openMode == SHELTER_R47_MAP_MODE_TOUR_DONE) {
-        task->state = 9;
+    if (work->openMode == SHELTER_R47_MAP_MODE_TOUR_DONE) {
+        task->state = SHELTER_R47_MAP_STATE_BEGIN_FADE_OUT;
         return;
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    if (_actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (_actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            for (; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
-                if (hs->hit != 0) {
-                    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
-                    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    st->hotspotId       = hs->id;
-                    st->promptKind      = hs->promptKind;
-                    task->state         = 3;
+        if (prompt->buttons.slots[SHELTER_R47_MAP_CONFIRM_BUTTON].state == ACTION_PROMPT_BUTTON_PRESSED) {
+            for (; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+                if (hotspot->hit != 0) {
+                    _shelterR47MapTerminalAcceptHotspot(task, work, prompt, hotspot);
                     return;
                 }
             }
@@ -1783,12 +1819,12 @@ static void func_shelter_r47_801844A0(Task* task)
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
-        if (st->openMode == SHELTER_R47_MAP_MODE_USE) {
-            task->state = 5;
+    if (prompt->buttons.slots[SHELTER_R47_MAP_CANCEL_BUTTON].state == ACTION_PROMPT_BUTTON_PRESSED) {
+        if (work->openMode == SHELTER_R47_MAP_MODE_USE) {
+            task->state = SHELTER_R47_MAP_STATE_RESTORE_ROOM;
             return;
         }
-        capStartSequenceSlot(0x25, 0, 0);
+        capStartSequenceSlot(SHELTER_R47_MAP_CANCEL_REFUSED_CAP_SLOT, 0, 0);
     }
 }
 
@@ -1814,74 +1850,96 @@ static inline void _shelterR47MapTerminalLeavePage(Task* task, ShelterR47MapTerm
     sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
 }
 
-static void func_shelter_r47_80184658(Task* task)
+/// Resolves the terminal's accepted Examine/Push command or cancellation.
+///
+/// State 4 requires the completed hotspot menu's result and live terminal work.
+/// Panel/title actions select a CAP sequence for page 0..4. Navigation first
+/// plays its one-off player-use sequence, then closes the page on a later
+/// acceptance; the tour refuses previous-page navigation. Cancellation and
+/// ordinary actions return to selection. The cursor stays hidden and stopped.
+static void _shelterR47MapTerminalHandleHotspotTask(Task* task)
 {
+    enum {
+        SHELTER_R47_MAP_PANEL_B1_CAP_SLOT           = 0x1D,
+        SHELTER_R47_MAP_PANEL_B2_CAP_SLOT           = 0x1E,
+        SHELTER_R47_MAP_PANEL_B3_CAP_SLOT           = 0x1F,
+        SHELTER_R47_MAP_PANEL_NEO_ARK_CAP_SLOT      = 0x20,
+        SHELTER_R47_MAP_PANEL_1F_CAP_SLOT           = 0x21,
+        SHELTER_R47_MAP_PREVIOUS_REFUSED_CAP_SLOT   = 0x24,
+        SHELTER_R47_MAP_TITLE_B1_CAP_SLOT           = 0x2F,
+        SHELTER_R47_MAP_TITLE_B2_CAP_SLOT           = 0x30,
+        SHELTER_R47_MAP_TITLE_B3_CAP_SLOT           = 0x31,
+        SHELTER_R47_MAP_TITLE_NEO_ARK_CAP_SLOT      = 0x32,
+        SHELTER_R47_MAP_TITLE_1F_CAP_SLOT           = 0x33,
+        SHELTER_R47_MAP_NEXT_FIRST_USE_CAP_SLOT     = 0x34,
+        SHELTER_R47_MAP_PREVIOUS_FIRST_USE_CAP_SLOT = 0x35,
+    };
     ActionPrompt*              prompt = D_80114D28;
-    ShelterR47MapTerminalWork* st     = (ShelterR47MapTerminalWork*)task->work;
+    ShelterR47MapTerminalWork* work   = task->work;
 
     _shelterR47MapTerminalUpdateAndDraw(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
-        switch (st->hotspotId) {
+        switch (work->hotspotId) {
             case SHELTER_R47_MAP_HOTSPOT_PANEL:
-                switch (st->page) {
+                switch (work->page) {
                     case SHELTER_R47_MAP_PAGE_B1:
-                        capStartSequenceSlot(0x1D, 0, 0);
+                        capStartSequenceSlot(SHELTER_R47_MAP_PANEL_B1_CAP_SLOT, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_B2:
-                        capStartSequenceSlot(0x1E, 0, 0);
+                        capStartSequenceSlot(SHELTER_R47_MAP_PANEL_B2_CAP_SLOT, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_B3:
-                        capStartSequenceSlot(0x1F, 0, 0);
+                        capStartSequenceSlot(SHELTER_R47_MAP_PANEL_B3_CAP_SLOT, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_NEO_ARK:
-                        capStartSequenceSlot(0x20, 0, 0);
+                        capStartSequenceSlot(SHELTER_R47_MAP_PANEL_NEO_ARK_CAP_SLOT, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_1F:
-                        capStartSequenceSlot(0x21, 0, 0);
+                        capStartSequenceSlot(SHELTER_R47_MAP_PANEL_1F_CAP_SLOT, 0, 0);
                         break;
                 }
                 break;
             case SHELTER_R47_MAP_HOTSPOT_PREV:
-                if (st->openMode != SHELTER_R47_MAP_MODE_USE) {
-                    capStartSequenceSlot(0x24, 0, 0);
-                    task->state = 2;
+                if (work->openMode != SHELTER_R47_MAP_MODE_USE) {
+                    capStartSequenceSlot(SHELTER_R47_MAP_PREVIOUS_REFUSED_CAP_SLOT, 0, 0);
+                    task->state = SHELTER_R47_MAP_STATE_SELECT_HOTSPOT;
                     return;
                 }
                 if (D_shelter_r47_8018A696 == 0) {
-                    capStartSequenceSlot(0x35, 0, 0);
+                    capStartSequenceSlot(SHELTER_R47_MAP_PREVIOUS_FIRST_USE_CAP_SLOT, 0, 0);
                     D_shelter_r47_8018A696 = 1;
-                    task->state            = 2;
+                    task->state            = SHELTER_R47_MAP_STATE_SELECT_HOTSPOT;
                     return;
                 }
-                _shelterR47MapTerminalLeavePage(task, st);
+                _shelterR47MapTerminalLeavePage(task, work);
                 return;
             case SHELTER_R47_MAP_HOTSPOT_NEXT:
-                if (st->openMode == SHELTER_R47_MAP_MODE_USE && D_shelter_r47_8018A697 == 0) {
-                    capStartSequenceSlot(0x34, 0, 0);
+                if (work->openMode == SHELTER_R47_MAP_MODE_USE && D_shelter_r47_8018A697 == 0) {
+                    capStartSequenceSlot(SHELTER_R47_MAP_NEXT_FIRST_USE_CAP_SLOT, 0, 0);
                     D_shelter_r47_8018A697 = 1;
-                    task->state            = 2;
+                    task->state            = SHELTER_R47_MAP_STATE_SELECT_HOTSPOT;
                     return;
                 }
-                _shelterR47MapTerminalLeavePage(task, st);
+                _shelterR47MapTerminalLeavePage(task, work);
                 return;
             case SHELTER_R47_MAP_HOTSPOT_TITLE:
-                switch (st->page) {
+                switch (work->page) {
                     case SHELTER_R47_MAP_PAGE_B1:
-                        capStartSequenceSlot(0x2F, 0, 0);
+                        capStartSequenceSlot(SHELTER_R47_MAP_TITLE_B1_CAP_SLOT, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_B2:
-                        capStartSequenceSlot(0x30, 0, 0);
+                        capStartSequenceSlot(SHELTER_R47_MAP_TITLE_B2_CAP_SLOT, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_B3:
-                        capStartSequenceSlot(0x31, 0, 0);
+                        capStartSequenceSlot(SHELTER_R47_MAP_TITLE_B3_CAP_SLOT, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_NEO_ARK:
-                        capStartSequenceSlot(0x32, 0, 0);
+                        capStartSequenceSlot(SHELTER_R47_MAP_TITLE_NEO_ARK_CAP_SLOT, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_1F:
-                        capStartSequenceSlot(0x33, 0, 0);
+                        capStartSequenceSlot(SHELTER_R47_MAP_TITLE_1F_CAP_SLOT, 0, 0);
                         break;
                 }
                 break;
@@ -1889,7 +1947,7 @@ static void func_shelter_r47_80184658(Task* task)
                 return;
         }
     }
-    task->state = 2;
+    task->state = SHELTER_R47_MAP_STATE_SELECT_HOTSPOT;
 }
 
 /// Selects the additional private outline drawer; its rectangle is read-only.
@@ -1913,51 +1971,73 @@ static void func_shelter_r47_80184658(Task* task)
 #undef ACTION_PROMPT_DRAW_CURSOR
 #define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursorDefault
 
-static void func_shelter_r47_80185028(Task* task)
+/// Draws the final clear terminal frame and starts the closing fade.
+///
+/// State 9 requires live terminal work and a valid page; state 10 advances
+/// the fade on subsequent ticks. This frame still updates geometry and labels.
+static void _shelterR47MapTerminalBeginFadeOutTask(Task* task)
 {
-    ShelterR47MapTerminalWork* state;
+    ShelterR47MapTerminalWork* work;
 
-    state = (ShelterR47MapTerminalWork*)task->work;
+    work = task->work;
     shelterR47MapTerminalUpdateAndDrawQuads(task);
     shelterR47MapTerminalDrawPreviousButton();
     shelterR47MapTerminalDrawNextButton();
-    shelterR47MapTerminalDrawPageTitle(task, state->page);
-    shelterR47MapTerminalDrawPageCaptions(task, state->page);
-    state->fade = 0;
+    shelterR47MapTerminalDrawPageTitle(task, work->page);
+    shelterR47MapTerminalDrawPageCaptions(task, work->page);
+    work->fade = 0;
     task->state++;
 }
 
-static void func_shelter_r47_80185098(Task* task)
+/// Releases the closing terminal's holds and cursor, then hands off result zero.
+///
+/// Requires live work and cursor. Timed viewing leaves scripted control and
+/// event-state restoration to its event script. The completion request keeps
+/// the terminal and work live until an exit handler is dispatched.
+static inline void _shelterR47MapTerminalCompleteFadeOut(Task* task, const ShelterR47MapTerminalWork* work)
 {
-    ShelterR47MapTerminalWork* state;
-    u16                        fade;
-    u8                         level;
+    if (task->spawnArg1.value != SHELTER_R47_MAP_MODE_TIMED) {
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    }
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+    displayReleaseMenuHold();
+    if (work->openMode != SHELTER_R47_MAP_MODE_TIMED) {
+        gGameSession->eventState = 0;
+    }
+    gGameSession->cutsceneHold = 0;
+    taskKill(task->spawnArg2.pointer);
+    taskRequestKill(task, 0);
+}
 
-    state = (ShelterR47MapTerminalWork*)task->work;
+/// Fades the terminal to black and requests completion when fully covered.
+///
+/// State 10 borrows live terminal work and the cursor task in spawn argument 2.
+/// Adds 16 intensity levels per tick, clamps at 255, releases the display hold,
+/// kills the cursor and requests result zero. Timed mode leaves control and
+/// event-state restoration to the script; other modes release those holds.
+/// An exit dispatch later tears down the stopped task and frees its work.
+static void _shelterR47MapTerminalFadeOutTask(Task* task)
+{
+    ShelterR47MapTerminalWork* work;
+    u16                        nextFade;
+    u8                         fadeLevel;
+
+    work = task->work;
     shelterR47MapTerminalUpdateAndDrawQuads(task);
     shelterR47MapTerminalDrawPreviousButton();
     shelterR47MapTerminalDrawNextButton();
-    shelterR47MapTerminalDrawPageTitle(task, state->page);
-    shelterR47MapTerminalDrawPageCaptions(task, state->page);
-    fade        = state->fade + 0x10;
-    state->fade = fade;
-    if ((s16)fade >= 0x100) {
-        state->fade = 0xFF;
-        if (task->spawnArg1.value != SHELTER_R47_MAP_MODE_TIMED) {
-            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-        }
-        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-        displayReleaseMenuHold();
-        if (state->openMode != SHELTER_R47_MAP_MODE_TIMED) {
-            gGameSession->eventState = 0;
-        }
-        gGameSession->cutsceneHold = 0;
-        taskKill(task->spawnArg2.pointer);
-        taskRequestKill(task, 0);
+    shelterR47MapTerminalDrawPageTitle(task, work->page);
+    shelterR47MapTerminalDrawPageCaptions(task, work->page);
+    nextFade   = work->fade + SHELTER_R47_MAP_FADE_OUT_STEP;
+    work->fade = nextFade;
+    if ((s16)nextFade >= SHELTER_R47_MAP_FADE_RANGE) {
+        work->fade = SHELTER_R47_MAP_FADE_BLACK;
+        // Requesting completion retains work for the final black overlay below.
+        _shelterR47MapTerminalCompleteFadeOut(task, work);
     }
     sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    level = (u8)state->fade;
-    fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+    fadeLevel = (u8)work->fade;
+    fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
 }
 
 /// Updates the terminal's opening geometry and queues its complete page display.
@@ -1978,15 +2058,19 @@ static void _shelterR47MapTerminalUpdateAndDraw(Task* task)
     shelterR47MapTerminalDrawPageCaptions(task, work->page);
 }
 
-/// Dispatcher of the map terminal: copies the state table
-/// `D_shelter_r47_8017D7DC` to the stack and runs the entry for the task's
-/// state.
-static void func_shelter_r47_80185214(Task* task)
+/// Runs one state of the room's interactive, timed or tour map terminal.
+///
+/// The bodyless task begins at state 0 with a `SHELTER_R47_MAP_MODE_*` spawn
+/// argument. State must stay in 0..10: setup/open, hotspot selection/menu/result,
+/// room restoration, page switch/reopen, timed viewing, then fade setup/closing.
+/// Each tick copies all eleven callback pointers before dispatch; callbacks
+/// may stop or release the task. Keep the room overlay loaded through teardown.
+static void _shelterR47MapTerminalTask(Task* task)
 {
-    TaskFuncTable11 states;
+    TaskFuncTable11 stateHandlers;
 
-    states = D_shelter_r47_8017D7DC;
-    states.funcs[task->state](task);
+    stateHandlers = D_shelter_r47_8017D7DC;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Selects the private hotspot tester for the map-terminal prompt.
@@ -1998,62 +2082,78 @@ static void func_shelter_r47_80185214(Task* task)
 #undef ACTION_PROMPT_HIT_TEST
 #define ACTION_PROMPT_HIT_TEST actionPromptHitTest
 
-static void func_shelter_r47_80185354(Task* task)
+/// Starts player input, timed viewing or the tour's opening CAP sequence.
+///
+/// State 1 requires live work and the port-0 prompt. Timed mode enters state 8
+/// behind the initial black overlay. The tour hides the cursor while subtracting
+/// eight intensity levels per tick, starting its CAP sequence only on signed
+/// underflow; player use sets the screen-on delay and enters selection.
+/// Zeroes the sampled screen position on every invocation, including tour fade
+/// ticks; the cursor task retains its separate fixed-point motion position.
+static void _shelterR47MapTerminalOpenTask(Task* task)
 {
-    ShelterR47MapTerminalWork* state;
+    enum { SHELTER_R47_MAP_TOUR_START_CAP_SLOT = 0x12 };
+    ShelterR47MapTerminalWork* work;
     ActionPrompt*              prompt = D_80114D28;
-    u8                         level;
+    u8                         fadeLevel;
 
-    state = (ShelterR47MapTerminalWork*)task->work;
-    if (state->openMode == SHELTER_R47_MAP_MODE_TIMED) {
-        level = state->fade;
-        fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
-        task->state         = 8;
+    work = task->work;
+    if (work->openMode == SHELTER_R47_MAP_MODE_TIMED) {
+        fadeLevel = work->fade;
+        fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
+        task->state         = SHELTER_R47_MAP_STATE_TIMED_VIEW;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
-    } else if (state->openMode == SHELTER_R47_MAP_MODE_TOUR) {
+    } else if (work->openMode == SHELTER_R47_MAP_MODE_TOUR) {
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
-        if ((s16)state->fade > 0) {
-            state->fade -= 8;
-            if ((s16)state->fade < 0) {
-                state->fade = 0;
-                capStartSequenceSlot(0x12, 0, 0);
+        if ((s16)work->fade > 0) {
+            work->fade -= SHELTER_R47_MAP_FADE_IN_STEP;
+            if ((s16)work->fade < 0) {
+                work->fade = 0;
+                capStartSequenceSlot(SHELTER_R47_MAP_TOUR_START_CAP_SLOT, 0, 0);
                 task->state++;
             } else {
-                level = state->fade;
-                fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+                fadeLevel = work->fade;
+                fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
             }
         }
     } else {
-        state->screenOnDelay = SHELTER_R47_MAP_SCREEN_ON_DELAY;
-        prompt->cursorSpeed  = ACTION_PROMPT_SPEED_AIM;
-        prompt->mode         = ACTION_PROMPT_MODE_IDLE;
+        work->screenOnDelay = SHELTER_R47_MAP_SCREEN_ON_DELAY;
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
+        prompt->mode        = ACTION_PROMPT_MODE_IDLE;
         task->state++;
     }
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
 }
 
-static void func_shelter_r47_80185450(Task* task)
+/// Opens the command menu at the selected terminal hotspot's cursor position.
+///
+/// State 3 requires live work with the latched hotspot and command kind.
+/// First-use previous/next buttons offer Examine before their normal Push
+/// action. Coordinates are signed pixels from the display centre. Stops and
+/// hides the cursor, queues the menu, then enters state 4 to resolve its result.
+static void _shelterR47MapTerminalOpenCommandsTask(Task* task)
 {
-    ShelterR47MapTerminalWork* state;
+    enum { SHELTER_R47_MAP_COMMAND_EXAMINE = 0 };
+    ShelterR47MapTerminalWork* work;
     ActionPrompt*              prompt = D_80114D28;
 
-    state = (ShelterR47MapTerminalWork*)task->work;
+    work = task->work;
     _shelterR47MapTerminalUpdateAndDraw(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (state->openMode == SHELTER_R47_MAP_MODE_USE) {
-        if (state->hotspotId == SHELTER_R47_MAP_HOTSPOT_PREV && D_shelter_r47_8018A696 == 0) {
-            state->promptKind = 0;
+    if (work->openMode == SHELTER_R47_MAP_MODE_USE) {
+        if (work->hotspotId == SHELTER_R47_MAP_HOTSPOT_PREV && D_shelter_r47_8018A696 == 0) {
+            work->promptKind = SHELTER_R47_MAP_COMMAND_EXAMINE;
         }
-        if (state->hotspotId == SHELTER_R47_MAP_HOTSPOT_NEXT && D_shelter_r47_8018A697 == 0) {
-            state->promptKind = 0;
+        if (work->hotspotId == SHELTER_R47_MAP_HOTSPOT_NEXT && D_shelter_r47_8018A697 == 0) {
+            work->promptKind = SHELTER_R47_MAP_COMMAND_EXAMINE;
         }
     }
-    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, state->promptKind);
-    task->state = 4;
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    task->state = SHELTER_R47_MAP_STATE_HANDLE_HOTSPOT;
 }
 
 /// Restores play after map-terminal use and hands the stopped task to its caller.
@@ -2082,69 +2182,87 @@ static void _shelterR47MapTerminalRestoreRoomTask(Task* task)
     taskRequestKill(task, 0);
 }
 
-static void func_shelter_r47_801855B8(Task* task)
+/// Selects the adjacent floor view after the current map has closed.
+///
+/// State 6 requires live work with page 0..4 and a previous/next hotspot.
+/// Draws the closing geometry until width reaches zero, wraps the page within
+/// the five-page range, selects its room view and starts reopening the map and
+/// labels. The side panel stays closed until state 7 opens it.
+static void _shelterR47MapTerminalSwitchPageTask(Task* task)
 {
-    ShelterR47MapTerminalWork* state;
+    ShelterR47MapTerminalWork* work;
 
-    state = (ShelterR47MapTerminalWork*)task->work;
+    work = task->work;
     _shelterR47MapTerminalUpdateAndDraw(task);
-    if (state->mapWidth <= 0) {
-        state->mapTargetWidth  = SHELTER_R47_MAP_WIDTH;
-        state->mapTargetHeight = SHELTER_R47_MAP_HEIGHT;
-        state->labelTargetX    = SHELTER_R47_MAP_LABEL_X;
-        switch (state->hotspotId) {
+    if (work->mapWidth <= 0) {
+        work->mapTargetWidth  = SHELTER_R47_MAP_WIDTH;
+        work->mapTargetHeight = SHELTER_R47_MAP_HEIGHT;
+        work->labelTargetX    = SHELTER_R47_MAP_LABEL_X;
+        switch (work->hotspotId) {
             case SHELTER_R47_MAP_HOTSPOT_PREV:
-                state->page--;
-                if (state->page < 0) {
-                    state->page = SHELTER_R47_MAP_PAGE_1F;
+                work->page--;
+                if (work->page < 0) {
+                    work->page = SHELTER_R47_MAP_PAGE_1F;
                 }
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_801873FC[state->page];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_801873FC[work->page];
                 break;
             case SHELTER_R47_MAP_HOTSPOT_NEXT:
-                state->page++;
-                if (state->page >= SHELTER_R47_MAP_PAGE_COUNT) {
-                    state->page = SHELTER_R47_MAP_PAGE_B1;
+                work->page++;
+                if (work->page >= SHELTER_R47_MAP_PAGE_COUNT) {
+                    work->page = SHELTER_R47_MAP_PAGE_B1;
                 }
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_801873FC[state->page];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_801873FC[work->page];
                 break;
         }
         task->state++;
     }
 }
 
-static void func_shelter_r47_801856AC(Task* task)
+/// Reopens the side panel once the new map is wide enough, then resumes input.
+///
+/// State 7 requires live work for the newly selected page. Draws every tick;
+/// reaching the panel threshold plays the screen-on sound and enters state 2.
+/// Selection continues to hide the cursor until the map has fully settled.
+static void _shelterR47MapTerminalReopenPageTask(Task* task)
 {
-    ShelterR47MapTerminalWork* state;
+    ShelterR47MapTerminalWork* work;
 
-    state = (ShelterR47MapTerminalWork*)task->work;
+    work = task->work;
     _shelterR47MapTerminalUpdateAndDraw(task);
-    if (state->mapWidth >= SHELTER_R47_MAP_WIDTH_PANEL) {
+    if (work->mapWidth >= SHELTER_R47_MAP_WIDTH_PANEL) {
         sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_SCREEN_ON, 0, 0);
-        state->panelTargetWidth  = SHELTER_R47_MAP_PANEL_WIDTH;
-        state->panelTargetHeight = SHELTER_R47_MAP_PANEL_HEIGHT;
-        task->state              = 2;
+        work->panelTargetWidth  = SHELTER_R47_MAP_PANEL_WIDTH;
+        work->panelTargetHeight = SHELTER_R47_MAP_PANEL_HEIGHT;
+        task->state             = SHELTER_R47_MAP_STATE_SELECT_HOTSPOT;
     }
 }
 
-static void func_shelter_r47_8018571C(Task* task)
+/// Shows the timed map while fading in, then closes after the limit or a skip.
+///
+/// State 8 requires live work and a valid page. The signed halfword frame count
+/// includes the eight-level-per-tick opening fade; closure begins after 300
+/// ticks (on tick 301), or when the event is skipped. The transition frame still
+/// draws the terminal and applies its HUD/event holds. CAP playback hides the
+/// cursor; this state never enables interactive hotspot commands.
+static void _shelterR47MapTerminalTimedViewTask(Task* task)
 {
-    ShelterR47MapTerminalWork* state;
+    ShelterR47MapTerminalWork* work;
     ActionPrompt*              prompt = D_80114D28;
-    u8                         level;
+    u8                         fadeLevel;
 
-    state = (ShelterR47MapTerminalWork*)task->work;
-    if ((s16)state->fade > 0) {
-        state->fade -= 8;
-        if ((s16)state->fade < 0) {
-            state->fade = 0;
+    work = task->work;
+    if ((s16)work->fade > 0) {
+        work->fade -= SHELTER_R47_MAP_FADE_IN_STEP;
+        if ((s16)work->fade < 0) {
+            work->fade = 0;
         } else {
-            level = state->fade;
-            fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+            fadeLevel = work->fade;
+            fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
         }
     }
-    state->showFrames++;
-    if (state->showFrames > SHELTER_R47_MAP_SHOW_LIMIT || gGameSession->evtSkipped != 0) {
-        task->state = 9;
+    work->showFrames++;
+    if (work->showFrames > SHELTER_R47_MAP_SHOW_LIMIT || gGameSession->evtSkipped != 0) {
+        task->state = SHELTER_R47_MAP_STATE_BEGIN_FADE_OUT;
     }
     _shelterR47MapTerminalUpdateAndDraw(task);
     gGameSession->hideHud    = 1;

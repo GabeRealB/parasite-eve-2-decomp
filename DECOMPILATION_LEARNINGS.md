@@ -47176,7 +47176,7 @@ its own `Task::work` block") settles the *dispatched* states, but a room's
 `.text` is mostly helpers that appear in no state table at all, and two families
 in one room routinely use the same low offsets. `shelter_r47` has two:
 `D_shelter_r47_8017D6C8` (state 0 `shelterR47ConsoleInitializeTask`, `memCalloc(0x54)`)
-and `D_shelter_r47_8017D7DC` (state 0 `func_shelter_r47_8018431C`,
+and `D_shelter_r47_8017D7DC` (state 0 `_shelterR47MapTerminalInitTask`,
 `memCalloc(0x30)`). Both read `work` fields `0x18` and `0x1C` as `s16`, so the
 access pattern alone cannot tell them apart, and picking the wrong struct still
 scores 100% because the two spellings emit the same `lh`.
@@ -140839,7 +140839,7 @@ to the host file.
 
 **Fix.** Write the trailing `task->state = 2` on every path with early `return`s, instead of once after the `if`. The last arm's block then holds `sb` and `sw`, so the sched1 trace shows `insn N has a greater potential hazard` and the `sb` lands directly above the call. jump2 later merges the identical `jal; li; sw` tails into what the target has. Check the `.sched` trace for that line. When no `potential hazard` line appears, the block has only one memory insn.
 
-### sched1 sinks every single-set `li` onto its store; an empty `do {} while (0)` after the constant locals keeps them grouped (func_shelter_r47_8018431C, 2026-09-23)
+### sched1 sinks every single-set `li` onto its store; an empty `do {} while (0)` after the constant locals keeps them grouped (_shelterR47MapTerminalInitTask, 2026-09-23)
 
 **Problem.** Five constants are stored in one block (`li`+`sh` each) and stored again, unchanged, in
 a conditional body later on (the same pseudos, one `sh` apart). Global allocation handed them out in
@@ -140857,17 +140857,17 @@ hoists and the neighbouring allocation changes.
 loop notes are a scheduling barrier (sched1 and sched2), so the `li`s stay grouped ahead of it. All
 five live lengths tie, and `allocno_compare` falls back to allocno (pseudo) number. Declare the
 local that has to win first, because pseudo numbers follow declaration order here. The same barrier
-between a `state->p = cond ? A : B;` store and the loop over `state->p` stopped sched2's
+between a `work->hotspots = cond ? A : B;` store and the loop over `work->hotspots` stopped sched2's
 potential-hazard tie from lifting the `move` copy above the `sw`. Plausible origin: a
 compiled-out debug macro.
 
 ```c
-s16 spriteX;              /* declared first: lowest pseudo */
+s16 labelX;              /* declared first: lowest pseudo */
 ...
-quadW = 0xE8; quadH = 0xCE; quad2W = 0x50; quad2H = 0x60; spriteX = -0x9C;
+mapWidth = 0xE8; mapHeight = 0xCE; panelWidth = 0x50; panelHeight = 0x60; labelX = -0x9C;
 do {
 } while (0);
-state->field_E = quadW; ... state->field_1E = spriteX;
+work->mapTargetWidth = mapWidth; ... work->labelTargetX = labelX;
 ```
 ### Folding the RHS update into the array store puts the array base first in the loop preheader (shelterR48InitRingsAndDrawGlowTask, 2026-09-23)
 
