@@ -29788,7 +29788,7 @@ obj  = arg0->spawnArg2;
 cfg  = &gPlayerStatus;
 ```
 
-`Gp_SelectWeaponMenuTask` is the example. Unconstrained allocation stuck at 93%
+`itemMenuWeaponSelectionTask` is the example. Unconstrained allocation stuck at 93%
 with `$s0`/`$s1` swapped; pinning the list address stuck at 97.4% with
 only the prologue `lui` temps different.
 
@@ -34731,7 +34731,7 @@ The second redefines `lum` so it is not CSE-equivalent to `inner`, and
 `addiu s2, s2, 0x7F`. The target loads to `$v0` then adds into `$s2`.
 A nested `register s32 t asm("v0"); t = cfg->field_21; item = t + 0x7F;`
 restores `lbu v0` / `addiu s2, v0, 0x7F`. Same for `field_23 + 0x5F`.
-`Gp_EquipSummaryTask` is the example.
+`itemMenuEquipmentDetailTask` is the example.
 
 ## Color a 3-store loop so the table pointer is `$a2` with split `la`
 
@@ -34741,7 +34741,7 @@ Without those pins the table absorbs `$v1` (or `$a0`) and the `%lo` load
 folds. Keep `table` and `p = table` distinct with `asm volatile("" :
 "+r"(table), "+r"(p))` so the loop walks `$v1` (`move v1, a2` / `p++`).
 Reuse a later `flags` local as the early `idx` copy so `move a3, s8` fills
-the `*stored != item` delay. `Gp_EquipSummaryTask` is the example.
+the `*stored != item` delay. `itemMenuEquipmentDetailTask` is the example.
 
 ## `$v1`-pinned `sel` so `andi` delay-slots then copies before `p` reuses `$v1`
 
@@ -34759,7 +34759,7 @@ li     t0, -1
 move   v1, a2
 ```
 
-`Gp_EquipSummaryTask` is the example.
+`itemMenuEquipmentDetailTask` is the example.
 
 ## Copy a live-across-call arg inside the calling branch, not at entry
 
@@ -142865,7 +142865,7 @@ SCRATCH_STACK_RELEASE_BYTES(sizeof(RoomFxFanScratch));
 ```
 
 Try the plain spelling on the other copies before porting their pins.
-## A pinned `slot = sel & 0xFF` copy plus `TOUCH_REG` on a table pointer is an inlined helper with a `u8` parameter (Gp_EquipSummaryTask, 2026-09-26)
+## A pinned `slot = sel & 0xFF` copy plus `TOUCH_REG` on a table pointer is an inlined helper with a `u8` parameter (itemMenuEquipmentDetailTask, 2026-09-26)
 
 **Symptom.** A "fill three slots, mark one" loop matched only with pins: the
 slot variable copied (`move a3,fp`), narrowed into a second register
@@ -149777,7 +149777,7 @@ attempts; left as it was.
   `work->t = 5; } else if (work->t <= 0) { clear; } else { work->t =
   (u16)work->t - 1; }`.
 - **A tail that ORs a bit into a variable cannot be duplicated behind a
-  constant assignment.** `Gp_SelectWeaponMenuTask` ends both of its arms in
+  constant assignment.** `itemMenuWeaponSelectionTask` ends both of its arms in
   `if (cdCmdIsIdle() == 0) flags |= 0x100;`, entered with `flags` 0x12 or
   0x10 and skipped by `flags = 0x112` / `0x110` when there is no item. Written
   in each arm, the copy that directly follows `flags = 0x10` is folded to

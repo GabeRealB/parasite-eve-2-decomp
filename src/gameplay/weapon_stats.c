@@ -59,6 +59,15 @@ enum {
 /// Opening delay for choice-row child panels, in callback ticks.
 enum { ITEM_MENU_CHOICE_CHILD_OPEN_DELAY_TICKS = 1 };
 
+/// Equipment-detail content kinds and its menu descriptor.
+enum {
+    ITEM_MENU_DETAIL_WEAPON           = 0,
+    ITEM_MENU_DETAIL_CONSUMABLE       = 1,
+    ITEM_MENU_DETAIL_ARMOR            = 2,
+    ITEM_MENU_EQUIPMENT_DETAIL_PANEL  = 14,
+    ITEM_MENU_DETAIL_OPEN_DELAY_TICKS = 16
+};
+
 /// Borrows the read-only range/rate/weight row for weapon item id 0x80..0x9F.
 ///
 /// The synthetic id 0x7F selects the all-zero unequipped row. The four-halfword
@@ -89,9 +98,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
 /// already shows `item`.
 static inline void _gpSetPreviewItem(s32 item, u8 slot);
 
-/// `_gpSetPreviewItem` written as a walk of a pointer over `Gp_PreviewItems`
-/// rather than an indexed store.
-static inline void _gpSetPreviewItemWalk(s32 item, u8 slot);
+static inline void _itemMenuRequestSelectionPreview(s32 itemId, u8 loadProfile);
 
 static inline void _itemMenuDrawUnmarkedItemRowAt(UiObject* object, s32 x, s32 y, s32 colorRgb, s32 itemId);
 
@@ -390,106 +397,123 @@ static inline void _gpSetPreviewItem(s32 item, u8 slot)
     }
 }
 
-/// `_gpSetPreviewItem` written as a walk of a pointer over `Gp_PreviewItems`
-/// rather than an indexed store.
-static inline void _gpSetPreviewItemWalk(s32 item, u8 slot)
+/// Publishes one selected preview item and requests its display-resource load.
+///
+/// loadProfile must be 0..2 after byte narrowing. A changed selection replaces
+/// that profile's id and invalidates the other two; slots 3 and 4 are untouched.
+/// An unchanged id does nothing. The ids are published even when the loader
+/// suppresses or rejects the request. Resources remain menu-owned; the caller
+/// must wait for readiness before drawing the picture.
+static inline void _itemMenuRequestSelectionPreview(s32 itemId, u8 loadProfile)
 {
-    s32  i;
-    s32* p;
+    enum {
+        ITEM_MENU_PREVIEW_PROFILE_COUNT = CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW + 1,
+        ITEM_MENU_PREVIEW_EMPTY         = -1
+    };
+    s32  profileIndex;
+    s32* previewItemIds;
 
-    p = Gp_PreviewItems;
-    if (item != p[slot]) {
-        for (i = 0; i < 3; i++) {
-            if (i == slot) {
-                *p++ = item;
+    previewItemIds = Gp_PreviewItems;
+    if (itemId != previewItemIds[loadProfile]) {
+        for (profileIndex = 0; profileIndex < ITEM_MENU_PREVIEW_PROFILE_COUNT; profileIndex++) {
+            if (profileIndex == loadProfile) {
+                *previewItemIds++ = itemId;
             } else {
-                *p++ = -1;
+                *previewItemIds++ = ITEM_MENU_PREVIEW_EMPTY;
             }
         }
-        itemMenuEnqueuePreviewLoad(item, slot);
+        itemMenuEnqueuePreviewLoad(itemId, loadProfile);
     }
 }
 
-void Gp_EquipSummaryTask(Task* arg0)
+void itemMenuEquipmentDetailTask(Task* task)
 {
-    PlayerStatus*        cfg;
-    UiObject*            obj;
-    EquipmentWeaponLoad* slotp;
-    s32*                 stored;
-    s32                  mode;
-    s32                  item;
-    s32                  skip;
-    s32                  slot;
-    s32                  flags;
+    enum {
+        ITEM_MENU_DETAIL_INITIAL          = 0,
+        ITEM_MENU_DETAIL_READY            = 1,
+        ITEM_MENU_DETAIL_WAITING_FOR_LOAD = 2
+    };
+    const PlayerStatus*        player;
+    UiObject*                  object;
+    const EquipmentWeaponLoad* weaponLoad;
+    s32*                       previousItemId;
+    s32                        detailKind;
+    s32                        itemId;
+    s32                        omitStats;
+    s32                        loadProfile;
+    s32                        previewFlags;
 
-    item   = 0;
-    skip   = 0;
-    cfg    = &gPlayerStatus;
-    stored = (s32*)arg0->work;
-    mode   = arg0->spawnArg1.value;
-    obj    = arg0->spawnArg2.pointer;
-    slot   = 0;
-    if (mode == 0) {
-        uiDrawPanelLabel(&(obj)->panel, Gp_StrWeaponTitle);
-        item = cfg->weapon + 0x7F;
-        if (item < 0x80) {
-            item = 0;
+    itemId         = INVENTORY_ITEM_NONE;
+    omitStats      = false;
+    player         = &gPlayerStatus;
+    previousItemId = task->work;
+    detailKind     = task->spawnArg1.value;
+    object         = task->spawnArg2.pointer;
+    loadProfile    = CD_COMMAND_DISPLAY_LOAD_MENU;
+    // Equipped selectors are one-based; attachments use the selected carried row.
+    if (detailKind == ITEM_MENU_DETAIL_WEAPON) {
+        uiDrawPanelLabel(&object->panel, Gp_StrWeaponTitle);
+        itemId = player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+        if (itemId < EQUIPMENT_WEAPON_ITEM_FIRST) {
+            itemId = INVENTORY_ITEM_NONE;
         }
-    } else if (mode == 1) {
-        uiDrawPanelLabel(&(obj)->panel, Gp_StrAmmoCaps);
-        slotp = equipmentGetWeaponLoad(cfg->weapon + 0x7F);
-        item  = slotp->primaryItemId;
-        if (Gp_ReloadMode == 2) {
-            item = slotp->secondaryItemId;
+    } else if (detailKind == ITEM_MENU_DETAIL_CONSUMABLE) {
+        uiDrawPanelLabel(&object->panel, Gp_StrAmmoCaps);
+        weaponLoad = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));
+        itemId     = weaponLoad->primaryItemId;
+        if (Gp_ReloadMode == EQUIPMENT_CLEAR_LOAD_SECONDARY) {
+            itemId = weaponLoad->secondaryItemId;
         }
-    } else if (mode == 2) {
-        uiDrawPanelLabel(&(obj)->panel, Gp_StrArmor);
-        item = cfg->armor + 0x5F;
+    } else if (detailKind == ITEM_MENU_DETAIL_ARMOR) {
+        uiDrawPanelLabel(&object->panel, Gp_StrArmor);
+        itemId = player->armor + (ITEM_MENU_ARMOR_ITEM_FIRST - 1);
     } else {
-        uiDrawPanelLabel(&(obj)->panel, Gp_StrAttachments);
-        skip = 1;
+        uiDrawPanelLabel(&object->panel, Gp_StrAttachments);
+        omitStats = true;
         if (Gp_SelItemRec != NULL) {
-            item = Gp_SelItemRec->itemId;
+            itemId = Gp_SelItemRec->itemId;
         }
     }
 
-    if (arg0->state == 0) {
-        stored           = memCalloc(4, 0);
-        Gp_ItemCountShow = 1;
-        arg0->work       = stored;
-        *stored          = item;
-        arg0->state      = 2;
+    if (task->state == ITEM_MENU_DETAIL_INITIAL) {
+        previousItemId   = memCalloc(sizeof(*previousItemId), false);
+        Gp_ItemCountShow = true;
+        task->work       = previousItemId;
+        *previousItemId  = itemId;
+        task->state      = ITEM_MENU_DETAIL_WAITING_FOR_LOAD;
     }
 
-    if (*stored != item) {
-        _gpSetPreviewItem(item, slot);
-        *stored     = item;
-        arg0->state = 2;
+    // The initial item uses the existing menu preview; only changes request a load.
+    if (*previousItemId != itemId) {
+        _gpSetPreviewItem(itemId, loadProfile);
+        *previousItemId = itemId;
+        task->state     = ITEM_MENU_DETAIL_WAITING_FOR_LOAD;
     }
 
-    if (item != 0) {
-        _gpDrawItemNameAt(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL), item, 1);
+    if (itemId != INVENTORY_ITEM_NONE) {
+        _gpDrawItemNameAt(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL), itemId, ITEM_MENU_ATTACHMENT_MARK_UNATTACHED);
     }
 
-    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
-    if (skip == 0) {
-        itemMenuDrawEquipmentStats(obj, item, ITEM_MENU_EQUIPMENT_STATS_SUMMARY, 0);
+    uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + 0x11);
+    if (omitStats == false) {
+        itemMenuDrawEquipmentStats(object, itemId, ITEM_MENU_EQUIPMENT_STATS_SUMMARY, 0);
     }
 
-    flags = slot + ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
-    if ((arg0->state != 1) || (item == 0)) {
-        flags |= ITEM_MENU_PREVIEW_HIDDEN;
+    previewFlags = loadProfile + ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
+    if ((task->state != ITEM_MENU_DETAIL_READY) || (itemId == INVENTORY_ITEM_NONE)) {
+        previewFlags |= ITEM_MENU_PREVIEW_HIDDEN;
     }
-    itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x16, flags);
+    itemMenuDrawPreview(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x16, previewFlags);
 
-    if (arg0->state == 2) {
+    // Readiness affects the next update, after this update's preview has been drawn.
+    if (task->state == ITEM_MENU_DETAIL_WAITING_FOR_LOAD) {
         if (cdCmdIsIdle()) {
-            arg0->state = 1;
+            task->state = ITEM_MENU_DETAIL_READY;
         }
     }
 
-    if (obj->panel.state == USER_INTERFACE_PANEL_CLOSING) {
-        Gp_ItemCountShow = 0;
+    if (object->panel.state == USER_INTERFACE_PANEL_CLOSING) {
+        Gp_ItemCountShow = false;
     }
 }
 
@@ -591,22 +615,24 @@ void itemMenuDrawWeaponChoiceRow(UiList* list, UiObject* object)
     }
 }
 
-/// Propagates a child result or closes its accepted panel and restores list input.
+/// Propagates dismissal/cancellation or closes an accepted child and restores list input.
 ///
-/// Both objects are live members of the menu's task tree. The child is retained
-/// through its closing animation; this operation neither frees it nor unlinks it.
-static inline void _itemMenuApplyWeaponChoiceChildResult(UiObject* object, UiObject* childObject, s32 childResult)
+/// DISMISS and CANCEL replace the list's result. CONFIRM starts closing the
+/// child's tree, detaches it from its parent and activates the list. Other
+/// results leave both objects unchanged. Both objects must remain live; closing
+/// retains the child through its animation and does not free either object here.
+static inline void _itemMenuApplyWeaponChoiceChildResult(UiObject* listObject, UiObject* childObject, s32 childResult)
 {
     switch (childResult) {
         case USER_INTERFACE_RESULT_DISMISS:
-            object->result = childResult;
+            listObject->result = childResult;
             break;
         case USER_INTERFACE_RESULT_CANCEL:
-            object->result = childResult;
+            listObject->result = childResult;
             break;
         case USER_INTERFACE_RESULT_CONFIRM:
             uiStartTreeClosing(childObject, childObject->owner);
-            object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+            listObject->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             break;
     }
 }
@@ -708,51 +734,54 @@ void itemMenuWeaponChoiceListTask(Task* task)
         }                                        \
     } while (0)
 
-void Gp_SelectWeaponMenuTask(Task* arg0)
+void itemMenuWeaponSelectionTask(Task* task)
 {
-    UiList*       menu;
-    UiObject*     obj;
-    s32           val;
-    PlayerStatus* cfg;
-    s32           flags;
-    Task*         parent;
+    enum { ITEM_MENU_SUSPENDED_CONTROL_SHIFT = 16 };
+    const UiList*       weaponChoices;
+    UiObject*           object;
+    s32                 weaponItemId;
+    const PlayerStatus* player;
+    s32                 previewFlags;
+    Task*               parentTask;
 
-    menu = &D_8010E9A4;
-    obj  = arg0->spawnArg2.pointer;
-    cfg  = &gPlayerStatus;
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrSelectWeapon);
-    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
-    if (arg0->state == 0) {
-        parent     = arg0->parent;
+    weaponChoices = &D_8010E9A4;
+    object        = task->spawnArg2.pointer;
+    player        = &gPlayerStatus;
+    uiDrawPanelLabel(&object->panel, Gp_StrSelectWeapon);
+    uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + 0x4A);
+    if (task->state == ITEM_MENU_WEAPON_CHOICE_INITIAL) {
+        parentTask = task->parent;
         D_80114DD8 = -1;
-        uiStartPanelHiding(parent->spawnArg2.pointer, parent);
-        uiSpawnObject(&D_8010EAB4[14], 0, 0, 0x10, obj);
+        uiStartPanelHiding(parentTask->spawnArg2.pointer, parentTask);
+        uiSpawnObject(&D_8010EAB4[ITEM_MENU_EQUIPMENT_DETAIL_PANEL], ITEM_MENU_DETAIL_WEAPON, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_DETAIL_OPEN_DELAY_TICKS, object);
     }
-    val = inventoryGetNthWeaponForConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
-    if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) || (val != cfg->weapon + 0x7F)) {
-        flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
-        if (val == 0) {
-            flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
-            goto draw;
+    weaponItemId = inventoryGetNthWeaponForConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponChoices->selectedItemIndex, INVENTORY_ITEM_NONE);
+    // Opening, hiding and hidden panels carry suspended input in the high half.
+    if (((object->panel.control.word >> ITEM_MENU_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) || (weaponItemId != player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))) {
+        previewFlags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
+        if (weaponItemId == INVENTORY_ITEM_NONE) {
+            previewFlags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
+            goto drawPreview;
         }
-        if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
-            _gpSetPreviewItemWalk(val, 2);
+        if (((object->panel.control.word >> ITEM_MENU_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
+            _itemMenuRequestSelectionPreview(weaponItemId, CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW);
         }
     } else {
-        flags = ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
-        if (val == 0) {
-            flags = ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
-            goto draw;
+        previewFlags = ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
+        if (weaponItemId == INVENTORY_ITEM_NONE) {
+            previewFlags = ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
+            goto drawPreview;
         }
     }
-    GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags);
-draw:
-    itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
-    itemMenuDrawEquipmentStats(obj, val, ITEM_MENU_EQUIPMENT_STATS_COMPARE, 0);
-    itemMenuWeaponChoiceListTask(arg0);
-    obj->resultValue = 0;
-    if (obj->result == USER_INTERFACE_RESULT_DISMISS) {
-        obj->result = USER_INTERFACE_RESULT_CONFIRM;
+    GP_HIDE_PREVIEW_WHILE_CD_BUSY(previewFlags);
+drawPreview:
+    itemMenuDrawPreview(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 2, previewFlags);
+    itemMenuDrawEquipmentStats(object, weaponItemId, ITEM_MENU_EQUIPMENT_STATS_COMPARE, 0);
+    // Draw before advancing the shared list, then adapt its result for this panel.
+    itemMenuWeaponChoiceListTask(task);
+    object->resultValue = 0;
+    if (object->result == USER_INTERFACE_RESULT_DISMISS) {
+        object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 
@@ -876,27 +905,32 @@ void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object)
     }
 }
 
-/// Gets available rounds/supply units, including the selected load only for BOTH mode.
+/// Returns a consumable's unloaded stock, adding back one weapon load in BOTH mode.
 ///
-/// Borrows a readable carried range and its weapon's live load record. itemId
-/// selects a consumable stack; secondary is 0 for primary, nonzero for secondary.
-/// The stack query's signed-16-bit quantity promotion is preserved. No storage
-/// is changed or retained, and built-in supply quantities are handled alike.
-static inline s32 _itemMenuGetLoadableQuantity(const InventoryItemRange* range, const EquipmentWeaponLoad* weaponLoad, s32 loadSelection, s32 itemId, s32 secondary)
+/// carriedItems must fit its readable table and weaponLoad must be that carried
+/// weapon's live saved load. consumableItemId is 0xA0..0xBF. loadSelection is
+/// 0 (both), 1 (primary) or 2 (secondary); isSecondaryLoad selects which one
+/// load to add back (0 primary, nonzero secondary), only when selection is both
+/// and its item id matches. The first stack's quantity promotes through s16;
+/// all matching loads in the range are subtracted, including both firing modes
+/// and repeated weapon rows. The signed result may be nonpositive and is not
+/// limited to load capacity. Built-in supply charge gets no special treatment.
+/// No inventory/load storage is changed or retained.
+static inline s32 _itemMenuGetLoadableQuantity(const InventoryItemRange* carriedItems, const EquipmentWeaponLoad* weaponLoad, s32 loadSelection, s32 consumableItemId, s32 isSecondaryLoad)
 {
-    s32 quantity;
-    quantity  = inventoryGetConsumableStackQuantity(range, itemId);
-    quantity -= equipmentGetLoadedConsumableQuantity(range, itemId);
+    s32 availableQuantity;
+    availableQuantity  = inventoryGetConsumableStackQuantity(carriedItems, consumableItemId);
+    availableQuantity -= equipmentGetLoadedConsumableQuantity(carriedItems, consumableItemId);
     if (loadSelection == EQUIPMENT_CLEAR_LOAD_BOTH) {
-        if (secondary) {
-            if (weaponLoad->secondaryItemId == itemId)
-                quantity += weaponLoad->secondaryQty;
+        if (isSecondaryLoad) {
+            if (weaponLoad->secondaryItemId == consumableItemId)
+                availableQuantity += weaponLoad->secondaryQty;
         } else {
-            if (weaponLoad->primaryItemId == itemId)
-                quantity += weaponLoad->primaryQty;
+            if (weaponLoad->primaryItemId == consumableItemId)
+                availableQuantity += weaponLoad->primaryQty;
         }
     }
-    return quantity;
+    return availableQuantity;
 }
 
 void itemMenuBuildConsumableChoiceList(UiList* list, s32 weaponItemId)

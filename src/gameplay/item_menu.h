@@ -1076,7 +1076,21 @@ enum {
 /// No pointers are retained; the shared caption-table pointer is replaced.
 void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayMode, s32 unused);
 
-void Gp_EquipSummaryTask(Task* arg0);
+/// Shows the equipped or selected item beside an equipment-choice panel.
+///
+/// spawnArg1 selects weapon (0), loaded consumable (1), armor (2), or the
+/// published carried row (other values); spawnArg2 borrows the live UiObject.
+/// Consumables require an equipped weapon selector 1..32 and a selected load
+/// id 0 or 0xA0..0xBF; reload mode 2 selects secondary. Armor requires selector
+/// 1..32. The carried row, when non-NULL, must stay readable and select an item
+/// accepted by the menu's name/icon/preview APIs. Its pane omits equipment stats.
+/// State 0 allocates one cached s32 item id on the primary heap and marks the
+/// detail panel open. Initialization uses the existing menu-profile preview;
+/// subsequent item changes request profile 0. State 2 hides the picture until
+/// the CD queue is idle, then state 1 displays it on the next callback.
+/// Closing clears the shared detail visibility flag; task teardown frees work.
+/// Requires successful work allocation, live menu textures and GPU/OT storage.
+void itemMenuEquipmentDetailTask(Task* task);
 
 /// Draws and handles a carried-weapon choice for equipment or consumable loading.
 ///
@@ -1090,7 +1104,23 @@ void Gp_EquipSummaryTask(Task* arg0);
 /// carried range and menu resources; no input pointer is retained.
 void itemMenuDrawWeaponChoiceRow(UiList* list, UiObject* object);
 
-void Gp_SelectWeaponMenuTask(Task* arg0);
+/// Runs the weapon equipment-choice panel with preview and stat comparison.
+///
+/// spawnArg1 must be 0 (unfiltered equipment selection); spawnArg2 borrows the
+/// live UiObject and the task must have a live UI parent. State 0 hides that
+/// parent and opens its equipped-weapon detail child after sixteen nominal
+/// 60-Hz ticks. Uses the singleton weapon list and readable carried range.
+/// selectedItemIndex must already identify a carried weapon on every callback,
+/// including initialization: the preview scan precedes the list's index reset
+/// and does not stop at the range's row count.
+/// Active or temporarily suspended active control requests the selected weapon's
+/// relocated preview (profile 2). Other control uses profile 0 only when the
+/// selected weapon is equipped.
+/// A returned empty id or a busy CD queue hides the picture. Drawing precedes list
+/// input processing. Clears resultValue and maps list DISMISS to CONFIRM;
+/// other results follow `itemMenuWeaponChoiceListTask`. Menu resources and
+/// the parent/object must remain live; drawing requires GPU/OT storage.
+void itemMenuWeaponSelectionTask(Task* task);
 
 /// Draws and handles a weapon's consumable choice or its Remove Ammo row.
 ///
