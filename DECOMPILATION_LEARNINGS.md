@@ -42922,7 +42922,7 @@ the `if`, so the only thing available to merge is the increment.
 
 Symptom: `branch` penalty with the function three instructions short, and a
 `j <hub-4>` where the target has `beqz v0, <hub>` followed by `j <epilogue>`.
-`func_mist_parking_80182A44` went 98.8% → 100% on that flip alone.
+`_mistParkingJodiePrizeAndShopTalkTask` went 98.8% → 100% on that flip alone.
 
 ## Sharing one text unit between overlays needs every reference to be a relocation
 
@@ -47785,7 +47785,7 @@ capStartSequenceSlot(arg0 >> 16, 0, arg0);   /* arg0 is s32 */
 ```
 
 Passing an `s16` (or `(s16)index`) twice instead CSEs into `sll`/`sra` once
-plus a `move`, which is the 81% shape. `func_mist_parking_80183100` is the
+plus a `move`, which is the 81% shape. `_mistParkingStartPackedDialogue` is the
 example; the give-away is that the two extends read the same register but
 only one of them has an `sll`.
 
