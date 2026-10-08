@@ -208,7 +208,7 @@ D_shelter_b1_underground_parking_8018794C = 0x8018794C; // absolute:True owner=s
 D_shelter_b1_underground_parking_80189778 = 0x80189778; // absolute:True owner=shelter_b1_underground_parking
 D_shelter_b1_underground_parking_8018AB9C = 0x8018AB9C; // absolute:True owner=shelter_b1_underground_parking
 D_shelter_b1_underground_parking_8018D724 = 0x8018D724; // absolute:True owner=shelter_b1_underground_parking
-shelterB1GolemFreezer1RoomTask = 0x8017D6EC; // type:func absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
+shelterB1GolemFreezer1RoomTask = 0x8017D6EC; // type:func absolute:True owner=shelter_b1_golem_freezer_1
 D_shelter_b1_golem_freezer_1_8017E790 = 0x8017E790; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 D_shelter_b1_golem_freezer_1_8017E794 = 0x8017E794; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 D_shelter_b1_golem_freezer_1_8017E798 = 0x8017E798; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
@@ -422,7 +422,7 @@ gShelterB3DumpingHoleRoom2Lights = 0x8018E874; // absolute:True owner=shelter_b3
 gShelterB3DumpingHoleRoom1AmbientByView = 0x8018F1FC; // absolute:True owner=shelter_b3_dumping_hole
 gShelterB3DumpingHoleRoom2AmbientByView = 0x8018F32C; // absolute:True owner=shelter_b3_dumping_hole
 D_shelter_b3_dumping_hole_8018F480 = 0x8018F480; // absolute:True owner=shelter_b3_dumping_hole
-func_shelter_b3_garbage_incinerator_8017DC7C = 0x8017DC7C; // type:func absolute:True owner=shelter_b3_garbage_incinerator
+shelterB3GarbageIncineratorRoomTask = 0x8017DC7C; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 gShelterB3GarbageIncineratorRoomLighting = 0x80187280; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
 D_shelter_b3_garbage_incinerator_801872B8 = 0x801872B8; // absolute:True owner=shelter_b3_garbage_incinerator
 gShelterB3GarbageIncineratorViewMaps = 0x801873F0; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
@@ -431,7 +431,7 @@ D_shelter_b3_garbage_incinerator_8018741C = 0x8018741C; // absolute:True owner=s
 D_shelter_b3_garbage_incinerator_801883AC = 0x801883AC; // absolute:True owner=shelter_b3_garbage_incinerator
 D_shelter_b3_garbage_incinerator_8018D100 = 0x8018D100; // absolute:True owner=shelter_b3_garbage_incinerator
 D_shelter_b3_garbage_incinerator_8018FB4C = 0x8018FB4C; // absolute:True owner=shelter_b3_garbage_incinerator
-func_shelter_b3_incinerator_control_room_8017FCB8 = 0x8017FCB8; // type:func absolute:True owner=shelter_b3_incinerator_control_room
+shelterB3IncineratorControlRoomTask = 0x8017FCB8; // type:func absolute:True owner=shelter_b3_incinerator_control_room
 D_shelter_b3_incinerator_control_room_80181920 = 0x80181920; // absolute:True owner=shelter_b3_incinerator_control_room
 D_shelter_b3_incinerator_control_room_80181928 = 0x80181928; // absolute:True owner=shelter_b3_incinerator_control_room
 D_shelter_b3_incinerator_control_room_8018192C = 0x8018192C; // absolute:True owner=shelter_b3_incinerator_control_room

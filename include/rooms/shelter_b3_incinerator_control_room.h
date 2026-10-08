@@ -39,7 +39,14 @@ extern WorldCollisionOccluder D_shelter_b3_incinerator_control_room_801829AC[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b3_incinerator_control_room_80182A20[];
 
-void func_shelter_b3_incinerator_control_room_8017FCB8(Task* task);
+/// Runs control-room entry setup, message-service idle and teardown.
+///
+/// The map's room descriptor starts in state 0; valid states are 0 setup,
+/// 1 idle and 2 release the task. Dispatch copies the three-entry table by
+/// value and does not check the state. Setup installs the room message slot;
+/// arrival warp 4 also starts the incinerator follow-up scene. The room overlay
+/// and scene resources must remain loaded while their tasks use them.
+void shelterB3IncineratorControlRoomTask(Task* task);
 
 void func_shelter_b3_incinerator_control_room_8017EA64(Task* task);
 

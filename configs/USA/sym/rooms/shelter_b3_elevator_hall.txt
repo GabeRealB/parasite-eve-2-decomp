@@ -68,7 +68,7 @@ _gRoomEffectHaloShades = 0x80182B34; // size:0x14 defined:True
 
 shelterB3ElevatorHallDrawGlowsTask = 0x8017DE70; // type:func
 
-func_shelter_b3_elevator_hall_80180E18 = 0x80180E18; // type:func
+shelterB3ElevatorHallRoomVisualEffectsGlowDiscTask = 0x80180E18; // type:func
 
 shelterB3ElevatorHallRoomVisualEffectsFlyingSparkTask = 0x80181370; // type:func
 
@@ -80,7 +80,7 @@ shelterB3ElevatorHallRoomVisualEffectsHaloTask = 0x8017F53C; // type:func
 
 shelterB3ElevatorHallRoomVisualEffectsHaloOrangeBurstTask = 0x8017F8D4; // type:func
 
-func_shelter_b3_elevator_hall_80180CE4 = 0x80180CE4; // type:func
+shelterB3ElevatorHallRoomVisualEffectsSparkEmitterTask = 0x80180CE4; // type:func
 _roomVisualEffectsDrawMote = 0x8017EAC0; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017ED84; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017F1A8; // type:func

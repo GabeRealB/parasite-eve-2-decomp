@@ -95,7 +95,7 @@ extern u16 D_shelter_b3_garbage_incinerator_8018FBCC[][4];
 // Indexed views below share one contiguous table.
 extern TaskDesc D_actor_207000_801575F0;
 extern TaskDesc D_shelter_b3_garbage_incinerator_8018FAC0[2];
-void            func_shelter_b3_garbage_incinerator_80184D84(Task*);
+static void     _shelterB3GarbageIncineratorGluttonEntranceTask(Task* task);
 static void     _shelterB3GarbageIncineratorKillTask(Task* task);
 
 OverlayEncounterSpot D_shelter_b3_garbage_incinerator_801874C4[16] = {
@@ -1750,7 +1750,7 @@ AreaVariant D_shelter_b3_garbage_incinerator_8018FA58[13] = {
 };
 
 TaskDesc D_shelter_b3_garbage_incinerator_8018FAC0[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_80184D84, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterB3GarbageIncineratorGluttonEntranceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _shelterB3GarbageIncineratorKillTask, { .value = 0 } },
 };
 
@@ -2461,53 +2461,76 @@ static void _shelterB3GarbageIncineratorNoop(void)
 {
 }
 
-void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
+/// Runs the Glutton entrance scene and queues file 342200 after its controller exits.
+///
+/// Starts in state 0 with the player and actor 341900 resources loaded. Selects
+/// the equipped weapon's character-specific animation bank, resets clip 1 with
+/// grid participation disabled, and retains the spawned scene task until its
+/// stop request is polled. One intervening tick precedes the CD request.
+/// The animation and CD arguments are borrowed only for their synchronous calls.
+static void _shelterB3GarbageIncineratorGluttonEntranceTask(Task* task)
 {
-    union {
-        s32 msg[5];
-        struct {
-            u8 param1[8];
-            u8 param2[8];
-        } cd;
-    } buf;
-    s32 out;
-    s32 v;
+    enum {
+        SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_START,
+        SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_WAIT_SCENE,
+        SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_DELAY,
+        SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_LOAD_ACTOR,
+        SHELTER_B3_GARBAGE_INCINERATOR_PRIMARY_CHARACTER           = 1,
+        SHELTER_B3_GARBAGE_INCINERATOR_PRIMARY_WEAPON_BANK_BASE    = 1,
+        SHELTER_B3_GARBAGE_INCINERATOR_ALTERNATE_WEAPON_BANK_BASE  = 34,
+        SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_WEAPON_CLIP        = 1,
+        SHELTER_B3_GARBAGE_INCINERATOR_POST_ENTRANCE_FILE_GROUP    = 34,
+        SHELTER_B3_GARBAGE_INCINERATOR_POST_ENTRANCE_FILE_HUNDREDS = 22,
+    };
 
-    switch (arg0->state) {
-        case 0:
-            v = gPlayerStatus.weapon;
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                v = v + 1;
+    // Only the first four bytes of each CD buffer are consumed.
+    // Retain their storage extents; the additional bytes have no established role.
+    union {
+        AnimationPlayRequest animation;
+        struct {
+            u8 fileKey[8];
+            u8 commandArgs[8];
+        } cd;
+    } scratch;
+    s32 sceneResult;
+    s32 animationBank;
+
+    switch (task->state) {
+        case SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_START:
+            animationBank = gPlayerStatus.weapon;
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_GARBAGE_INCINERATOR_PRIMARY_CHARACTER) {
+                animationBank = animationBank + SHELTER_B3_GARBAGE_INCINERATOR_PRIMARY_WEAPON_BANK_BASE;
             } else {
-                v = v + 0x22;
+                animationBank = animationBank + SHELTER_B3_GARBAGE_INCINERATOR_ALTERNATE_WEAPON_BANK_BASE;
             }
-            buf.msg[0] = v;
-            buf.msg[1] = 1;
-            buf.msg[2] = 0;
-            buf.msg[3] = 0;
-            buf.msg[4] = 0;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, buf.msg, 0);
-            arg0->spawnArg2.pointer = taskSpawnFromTable(D_actor_341900_80164190, 0, 0, 0);
-            arg0->state++;
+            scratch.animation.source.index         = animationBank;
+            scratch.animation.animationId          = SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_WEAPON_CLIP;
+            scratch.animation.blend                = ANIMATION_BLEND_RESET;
+            scratch.animation.blendFrames          = 0;
+            scratch.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.animation, 0);
+            task->spawnArg2.pointer = taskSpawnFromTable(D_actor_341900_80164190, 0, 0, 0);
+            task->state++;
             return;
-        case 1:
-            if (taskPollKill(arg0->spawnArg2.pointer, &out) != 0) {
-                arg0->state++;
+        case SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_WAIT_SCENE:
+            if (taskPollKill(task->spawnArg2.pointer, &sceneResult) != 0) {
+                task->state++;
             }
             return;
-        case 2:
-            arg0->state = 3;
+        case SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_DELAY:
+            task->state = SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_LOAD_ACTOR;
             return;
-        case 3:
-            buf.cd.param1[2] = 0x22;
-            buf.cd.param1[3] = 0;
-            buf.cd.param1[0] = 0;
-            buf.cd.param2[0] = 0x16;
-            buf.cd.param2[1] = 0;
-            buf.cd.param2[2] = 0;
-            buf.cd.param2[3] = 0;
-            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, buf.cd.param1, buf.cd.param2);
-            taskKill(arg0);
+        case SHELTER_B3_GARBAGE_INCINERATOR_ENTRANCE_LOAD_ACTOR:
+            // Byte 1 of the key is ignored; every CD argument byte is consumed.
+            scratch.cd.fileKey[2]     = SHELTER_B3_GARBAGE_INCINERATOR_POST_ENTRANCE_FILE_GROUP;
+            scratch.cd.fileKey[3]     = 0;
+            scratch.cd.fileKey[0]     = 0;
+            scratch.cd.commandArgs[0] = SHELTER_B3_GARBAGE_INCINERATOR_POST_ENTRANCE_FILE_HUNDREDS;
+            scratch.cd.commandArgs[1] = CD_COMMAND_LOAD_DEFAULT;
+            scratch.cd.commandArgs[2] = 0;
+            scratch.cd.commandArgs[3] = 0;
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, scratch.cd.fileKey, scratch.cd.commandArgs);
+            taskKill(task);
             break;
     }
 }

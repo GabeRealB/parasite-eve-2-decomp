@@ -103,7 +103,7 @@ extern TaskDesc D_shelter_b4_upper_sewer_8018643C[];
 /// spawned: `field_2` / `field_4` / `field_1` take its `field_0` / `field_2` /
 /// `field_3`.
 extern RoomEventMsg D_shelter_b4_upper_sewer_80188D24;
-/// Spawn argument for the task `func_shelter_b4_upper_sewer_8017D80C` starts
+/// Spawn argument for the task `_shelterB4UpperSewerExitTransitTask` starts
 /// with `taskSpawn(1, 0x31, ...)`.
 extern RoomFadeStorage D_shelter_b4_upper_sewer_80188D1C;
 
@@ -148,8 +148,8 @@ s32         func_shelter_b4_upper_sewer_8017D9C4(Task*, s32, RoomEventMsg*, Room
 s32         func_shelter_b4_upper_sewer_8017DAB0(Task*, s32, s32, s32);
 static s32  _shelterB4UpperSewerIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32  _shelterB4UpperSewerHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
-void        func_shelter_b4_upper_sewer_8017D660(Task*);
-void        func_shelter_b4_upper_sewer_8017D80C(Task*);
+static void _shelterB4UpperSewerOpenWaterHoleTask(Task* task);
+static void _shelterB4UpperSewerExitTransitTask(Task* task);
 static void _shelterB4UpperSewerRestoreSavedView(void);
 
 extern TaskDesc D_actor_100400_80147E48;
@@ -166,8 +166,8 @@ TaskMessageEntry D_shelter_b4_upper_sewer_801862D0[6] = {
 };
 
 TaskDesc D_shelter_b4_upper_sewer_80186300[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_upper_sewer_8017D660, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_upper_sewer_8017D80C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB4UpperSewerOpenWaterHoleTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB4UpperSewerExitTransitTask, { .value = 0 } },
 };
 
 EvsCommand D_shelter_b4_upper_sewer_80186318[12] = {
@@ -806,28 +806,48 @@ u8* D_shelter_b4_upper_sewer_80188D30;
 
 static void _shelterB4UpperSewerUpdateWater(Task* task);
 
-void func_shelter_b4_upper_sewer_8017D660(Task* task)
+/// Runs the water-hole opening choice and its route-unlocking event script.
+///
+/// Starts in state 0 after both actors have been hidden and held and view 13
+/// selected. CAP key 12 cancels, restoring the saved view, actors and HUD.
+/// Another key starts the room's event script, opens the Shelter route and
+/// clears the water map marker. Completion waits for the script to clear
+/// `GameSession::eventState`. Requires the room's CAP and event resources live.
+static void _shelterB4UpperSewerOpenWaterHoleTask(Task* task)
 {
+    enum {
+        SHELTER_B4_UPPER_SEWER_WATER_HOLE_SHOW_SPRITE,
+        SHELTER_B4_UPPER_SEWER_WATER_HOLE_START_CAP,
+        SHELTER_B4_UPPER_SEWER_WATER_HOLE_WAIT_CAP,
+        SHELTER_B4_UPPER_SEWER_WATER_HOLE_CHOOSE,
+        SHELTER_B4_UPPER_SEWER_WATER_HOLE_WAIT_EVENT,
+        SHELTER_B4_UPPER_SEWER_WATER_HOLE_CAP_COMMAND    = 1,
+        SHELTER_B4_UPPER_SEWER_WATER_HOLE_CANCEL_KEY     = 12,
+        SHELTER_B4_UPPER_SEWER_CAP_KEEP_ACTORS_PAUSED    = 1,
+        SHELTER_B4_UPPER_SEWER_CAP_CHOICE_ROW_STRIDE     = 5,
+        SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES = 10,
+    };
+
     switch (task->state) {
-        case 0:
+        case SHELTER_B4_UPPER_SEWER_WATER_HOLE_SHOW_SPRITE:
             _shelterB4UpperSewerSetView13SpriteHidden(0);
             gGameSession->eventState = 1;
             task->state++;
             break;
-        case 1:
+        case SHELTER_B4_UPPER_SEWER_WATER_HOLE_START_CAP:
             gGameSession->hideHud = 1;
-            capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
-            D_80115690 = 1;
-            D_80115680 = 5;
+            capRunCommand(SHELTER_B4_UPPER_SEWER_WATER_HOLE_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE);
+            D_80115690 = SHELTER_B4_UPPER_SEWER_CAP_KEEP_ACTORS_PAUSED;
+            D_80115680 = SHELTER_B4_UPPER_SEWER_CAP_CHOICE_ROW_STRIDE;
             task->state++;
             break;
-        case 2:
+        case SHELTER_B4_UPPER_SEWER_WATER_HOLE_WAIT_CAP:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 3:
-            if (capGetVariantKey() == 0xC) {
+        case SHELTER_B4_UPPER_SEWER_WATER_HOLE_CHOOSE:
+            if (capGetVariantKey() == SHELTER_B4_UPPER_SEWER_WATER_HOLE_CANCEL_KEY) {
                 taskKill(task);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b4_upper_sewer_80188D2C[0];
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -837,17 +857,18 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
                 gGameSession->eventState       = 0;
                 gGameSession->hideHud          = 0;
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                D_80114D08                     = 0xA;
+                D_80114D08                     = SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES;
                 break;
             }
+            // The event script restores the view and releases the held actors.
             evsStartScript(D_shelter_b4_upper_sewer_80186318, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN, 1);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 0);
             task->state++;
             break;
-        case 4:
+        case SHELTER_B4_UPPER_SEWER_WATER_HOLE_WAIT_EVENT:
             if (gGameSession->eventState == 0) {
-                D_80114D08                     = 0xA;
+                D_80114D08                     = SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES;
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
             }
@@ -855,55 +876,78 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
     }
 }
 
-void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
+/// Runs an exit CAP choice, a 30-tick fade, transit sound and saved-destination reload.
+///
+/// Starts in state 0; `spawnArg1.value` selects the loaded CAP command (the
+/// room resolver supplies 7 for the reservoir or 8 for water supply). Key 10
+/// commits the exit; another key resumes the player and actors. The room-owned
+/// fade record and stored destination must remain live until reload. Pauses
+/// actors throughout the accepted exit and requests battle escape before fading.
+static void _shelterB4UpperSewerExitTransitTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum {
+        SHELTER_B4_UPPER_SEWER_EXIT_START_CAP,
+        SHELTER_B4_UPPER_SEWER_EXIT_WAIT_CAP,
+        SHELTER_B4_UPPER_SEWER_EXIT_CHOOSE,
+        SHELTER_B4_UPPER_SEWER_EXIT_WAIT_FADE,
+        SHELTER_B4_UPPER_SEWER_EXIT_WAIT_SOUND,
+        SHELTER_B4_UPPER_SEWER_EXIT_RELOAD,
+        SHELTER_B4_UPPER_SEWER_EXIT_ACCEPT_KEY           = 10,
+        SHELTER_B4_UPPER_SEWER_EXIT_FADE_TICKS           = 30,
+        SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES = 10,
+        SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_BANK     = 1,
+        SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_TYPE     = 0x31,
+        SHELTER_B4_UPPER_SEWER_DEFAULT_SPRITE_VARIANT    = 1,
+    };
+
+    switch (task->state) {
+        case SHELTER_B4_UPPER_SEWER_EXIT_START_CAP:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommand(arg0->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
-            arg0->state++;
+            capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
+            task->state++;
             break;
-        case 1:
+        case SHELTER_B4_UPPER_SEWER_EXIT_WAIT_CAP:
             if (capIsBusy() == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 2:
-            if (capGetVariantKey() != 0xA) {
-                taskKill(arg0);
+        case SHELTER_B4_UPPER_SEWER_EXIT_CHOOSE:
+            if (capGetVariantKey() != SHELTER_B4_UPPER_SEWER_EXIT_ACCEPT_KEY) {
+                taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                D_80114D08                     = 0xA;
+                D_80114D08                     = SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES;
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+            // Freeze the battle result before fading the outgoing room.
             sceneQueueBattleEscapeResult();
             D_shelter_b4_upper_sewer_80188D1C.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b4_upper_sewer_80188D1C.fade.phase      = SCREEN_FADE_RUNNING;
-            D_shelter_b4_upper_sewer_80188D1C.fade.rampFrames = 0x1E;
-            taskSpawn(1, 0x31, 0, &D_shelter_b4_upper_sewer_80188D1C.fade);
-            arg0->killCountdown = 0x1E;
-            arg0->state++;
+            D_shelter_b4_upper_sewer_80188D1C.fade.rampFrames = SHELTER_B4_UPPER_SEWER_EXIT_FADE_TICKS;
+            taskSpawn(SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_BANK, SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_TYPE, 0, &D_shelter_b4_upper_sewer_80188D1C.fade);
+            task->killCountdown = SHELTER_B4_UPPER_SEWER_EXIT_FADE_TICKS;
+            task->state++;
             break;
-        case 3:
-            if (--arg0->killCountdown == 0) {
+        case SHELTER_B4_UPPER_SEWER_EXIT_WAIT_FADE:
+            if (--task->killCountdown == 0) {
                 sndEvtRequestScriptStart(SOUND_SHELTER_B4_UPPER_SEWER_EXIT_TRANSIT, 0, 0);
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 4:
+        case SHELTER_B4_UPPER_SEWER_EXIT_WAIT_SOUND:
             if (sndScriptHasActiveId(SOUND_SHELTER_B4_UPPER_SEWER_EXIT_TRANSIT) == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 5:
-            gDisplayState.spriteVariant                                = 1;
+        case SHELTER_B4_UPPER_SEWER_EXIT_RELOAD:
+            gDisplayState.spriteVariant                                = SHELTER_B4_UPPER_SEWER_DEFAULT_SPRITE_VARIANT;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b4_upper_sewer_80188D24.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b4_upper_sewer_80188D24.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1];
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }

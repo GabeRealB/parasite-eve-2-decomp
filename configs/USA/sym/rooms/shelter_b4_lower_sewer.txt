@@ -75,7 +75,7 @@ shelterB4LowerSewerRoomVisualEffectsFlashTask = 0x8017FEB0; // type:func
 
 shelterB4LowerSewerRoomVisualEffectsTwinTrailTask = 0x80180914; // type:func
 
-func_shelter_b4_lower_sewer_801811FC = 0x801811FC; // type:func
+shelterB4LowerSewerRoomVisualEffectsSparkBurstTask = 0x801811FC; // type:func
 
 shelterB4LowerSewerWaterRippleTask = 0x8017EEE4; // type:func
 

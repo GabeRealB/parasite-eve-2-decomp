@@ -120,8 +120,8 @@ extern TaskMessageEntry D_shelter_b3_incinerator_control_room_80181838[];
 #include "../../shared/telephone.h"
 
 static s32 _shelterB3IncineratorControlRoomRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
-s32        func_shelter_b3_incinerator_control_room_8017FA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_shelter_b3_incinerator_control_room_8017FB20(Task*, s32, s32, s32);
+static s32 _shelterB3IncineratorControlRoomResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _shelterB3IncineratorControlRoomHandleCommand(Task* task, s32 messageId, s32 command, s32 unusedArg);
 static s32 _shelterB3IncineratorControlRoomIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
 static s32 _shelterB3IncineratorControlRoomHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unused);
 
@@ -134,15 +134,15 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 TaskMessageEntry D_shelter_b3_incinerator_control_room_80181838[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_incinerator_control_room_8017FA8C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB3IncineratorControlRoomResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB3IncineratorControlRoomRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB3IncineratorControlRoomIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b3_incinerator_control_room_8017FB20 },
+    { ROOM_MESSAGE_COMMAND, _shelterB3IncineratorControlRoomHandleCommand },
     { ROOM_MESSAGE_SOUND, _shelterB3IncineratorControlRoomHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task);
+static void _shelterB3IncineratorControlRoomInitializeRoom(Task* task);
 static void _shelterB3IncineratorControlRoomIdleRoom(Task* task);
 
 #include "../../shared/telephone.inc.c"
@@ -169,41 +169,80 @@ static s32 _shelterB3IncineratorControlRoomRejectKeyItem(Task* task, s32 message
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Blocks the elevator-hall exit until the control-room door is unlocked.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with borrowed eight-byte request/reply
+/// records, which may alias. Copies and resolves the destination first. Returns
+/// 1 for another destination or an unlocked door, otherwise 0. Only execution
+/// writes the optional flag to 2 and starts the blocked-door CAP command.
+static s32 _shelterB3IncineratorControlRoomResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId != GAME_AREA_SHELTER_B3_ELEVATOR_HALL) {
-        return 1;
+    enum {
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_EXIT_BLOCKED             = 0,
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_EXIT_ALLOWED             = 1,
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_BLOCKED_DOOR_FLAG_VALUE  = 2,
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_BLOCKED_DOOR_CAP_COMMAND = 3,
+    };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId != GAME_AREA_SHELTER_B3_ELEVATOR_HALL) {
+        return SHELTER_B3_INCINERATOR_CONTROL_ROOM_EXIT_ALLOWED;
     }
     if (gameFlagGetNibble(GAME_FLAG_B3_INCINERATOR_CONTROL_DOOR_UNLOCKED) != 0) {
-        return 1;
+        return SHELTER_B3_INCINERATOR_CONTROL_ROOM_EXIT_ALLOWED;
     }
-    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-        return 0;
+    if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+        return SHELTER_B3_INCINERATOR_CONTROL_ROOM_EXIT_BLOCKED;
     }
-    gameFlagSetNibbleIfPresent(in->flagId, 2);
-    capRunCommandWithTransition(3);
-    return 0;
+    gameFlagSetNibbleIfPresent(request->flagId, SHELTER_B3_INCINERATOR_CONTROL_ROOM_BLOCKED_DOOR_FLAG_VALUE);
+    capRunCommandWithTransition(SHELTER_B3_INCINERATOR_CONTROL_ROOM_BLOCKED_DOOR_CAP_COMMAND);
+    return SHELTER_B3_INCINERATOR_CONTROL_ROOM_EXIT_BLOCKED;
 }
 
-s32 func_shelter_b3_incinerator_control_room_8017FB20(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Configures and starts the repeat-use control-panel scene in view 8.
+static inline void _shelterB3IncineratorControlRoomStartPanelScene(s32 capIndex)
 {
-    if (arg2 == 1) {
+    enum {
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_VIEW              = 8,
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_FOLLOW_UP_COMMAND = 7,
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_START_SOUND       = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 1),
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_END_SOUND         = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 4),
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_SCENE_SOUND       = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 2),
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_AFTER_SCENE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 3),
+    };
+
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp     = capIndex;
+    D_shelter_b3_incinerator_control_room_80182A58.view            = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_VIEW;
+    D_shelter_b3_incinerator_control_room_80182A58.capSlot         = capIndex;
+    D_shelter_b3_incinerator_control_room_80182A58.capFile         = capIndex;
+    D_shelter_b3_incinerator_control_room_80182A58.skipScene       = 0;
+    D_shelter_b3_incinerator_control_room_80182A58.startSound      = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_START_SOUND;
+    D_shelter_b3_incinerator_control_room_80182A58.endSound        = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_END_SOUND;
+    D_shelter_b3_incinerator_control_room_80182A58.sceneSound      = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_SCENE_SOUND;
+    D_shelter_b3_incinerator_control_room_80182A58.afterSceneSound = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_AFTER_SCENE_SOUND;
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_FOLLOW_UP_COMMAND, &D_shelter_b3_incinerator_control_room_80182A58);
+}
+
+/// Handles control-panel command 1, separating first-use dialogue from repeat-use scenes.
+///
+/// `ROOM_MESSAGE_COMMAND` supplies an integer command and unused second word.
+/// The first use sets its progress flag and runs CAP command 6. Later uses
+/// start the view-8 cutscene with CAP slot/file 1; its room-owned record must
+/// remain live through playback. Other commands do nothing; returns zero.
+static s32 _shelterB3IncineratorControlRoomHandleCommand(Task* task, s32 messageId, s32 command, s32 unusedArg)
+{
+    enum {
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_COMMAND         = 1,
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_FIRST_USE_CAP_COMMAND = 6,
+    };
+
+    if (command == SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_COMMAND) {
         if (gameFlagGetNibble(GAME_FLAG_INCINERATOR_CONTROL_FIRST_USE) != 0) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp     = arg2;
-            D_shelter_b3_incinerator_control_room_80182A58.view            = 8;
-            D_shelter_b3_incinerator_control_room_80182A58.capSlot         = arg2;
-            D_shelter_b3_incinerator_control_room_80182A58.capFile         = arg2;
-            D_shelter_b3_incinerator_control_room_80182A58.skipScene       = 0;
-            D_shelter_b3_incinerator_control_room_80182A58.startSound      = 0x54290001;
-            D_shelter_b3_incinerator_control_room_80182A58.endSound        = 0x54290004;
-            D_shelter_b3_incinerator_control_room_80182A58.sceneSound      = 0x54290002;
-            D_shelter_b3_incinerator_control_room_80182A58.afterSceneSound = 0x54290003;
-            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 7, &D_shelter_b3_incinerator_control_room_80182A58);
+            _shelterB3IncineratorControlRoomStartPanelScene(command);
         } else {
             gameFlagSetNibble(GAME_FLAG_INCINERATOR_CONTROL_FIRST_USE, 1);
-            capSpawnEventIfIdle(6, CAP_EVENT_PAUSE_ACTORS);
+            capSpawnEventIfIdle(SHELTER_B3_INCINERATOR_CONTROL_ROOM_FIRST_USE_CAP_COMMAND, CAP_EVENT_PAUSE_ACTORS);
         }
     }
     return 0;
@@ -234,13 +273,23 @@ static s32 _shelterB3IncineratorControlRoomHandleSoundCue(Task* task, s32 messag
     return 0;
 }
 
-static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task)
+/// Installs the room message interface and applies the incinerator arrival scene.
+///
+/// State 0 registers the room slot and advances to idle. Arrival warp 4 updates
+/// the objective and saved areas, restores companion HP and starts the skippable
+/// actor-142600 scene. Other arrivals only install the message interface.
+static void _shelterB3IncineratorControlRoomInitializeRoom(Task* task)
 {
+    enum {
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_INCINERATOR_ARRIVAL = 4,
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_ARRIVAL_OBJECTIVE   = 35,
+    };
+
     task->msgTable = D_shelter_b3_incinerator_control_room_80181838;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
-    if (gGameSession->location.loc.warp == 4) {
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x23);
+    if (gGameSession->location.loc.warp == SHELTER_B3_INCINERATOR_CONTROL_ROOM_INCINERATOR_ARRIVAL) {
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_ARRIVAL_OBJECTIVE);
         areaApplySavedUpdates(D_shelter_b3_incinerator_control_room_80182A40);
         companionRestoreFullHp();
         evsStartScriptWithSkip(D_actor_142600_801360E4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_142600_80136804);
@@ -257,22 +306,20 @@ static void _shelterB3IncineratorControlRoomIdleRoom(Task* task)
 }
 
 /// States of the room's message task, run by
-/// `func_shelter_b3_incinerator_control_room_8017FCB8`: install the message
+/// `shelterB3IncineratorControlRoomTask`: install the message
 /// table and apply the warp-4 entry setup, idle, die.
 static const TaskFuncTable3 D_shelter_b3_incinerator_control_room_8017D6A4 = {
     {
-        func_shelter_b3_incinerator_control_room_8017FC1C,
+        _shelterB3IncineratorControlRoomInitializeRoom,
         _shelterB3IncineratorControlRoomIdleRoom,
         taskKill,
     },
 };
 
-/// Runs the handler for the task's current state, from a local copy of
-/// `D_shelter_b3_incinerator_control_room_8017D6A4`.
-void func_shelter_b3_incinerator_control_room_8017FCB8(Task* task)
+void shelterB3IncineratorControlRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_shelter_b3_incinerator_control_room_8017D6A4;
-    sp.funcs[task->state](task);
+    handlers = D_shelter_b3_incinerator_control_room_8017D6A4;
+    handlers.funcs[task->state](task);
 }

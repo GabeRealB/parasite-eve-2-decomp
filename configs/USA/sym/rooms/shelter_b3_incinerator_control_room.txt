@@ -114,3 +114,7 @@ _shelterB3IncineratorControlRoomRejectKeyItem = 0x8017fa84; // type:func
 _shelterB3IncineratorControlRoomIgnoreRoomAction = 0x8017fbe0; // type:func
 _shelterB3IncineratorControlRoomHandleSoundCue = 0x8017fbe8; // type:func
 _shelterB3IncineratorControlRoomIdleRoom = 0x8017fca8; // type:func
+_shelterB3IncineratorControlRoomResolveRoomEvent = 0x8017fa8c; // type:func
+_shelterB3IncineratorControlRoomHandleCommand = 0x8017fb20; // type:func
+_shelterB3IncineratorControlRoomInitializeRoom = 0x8017fc1c; // type:func
+shelterB3IncineratorControlRoomTask = 0x8017fcb8; // type:func

@@ -53,7 +53,17 @@ void shelterB3ElevatorHallRoomTask(Task* task);
 /// room effect control does not pause it.
 void shelterB3ElevatorHallDrawGlowsTask(Task* task);
 
-void func_shelter_b3_elevator_hall_80180E18(Task* arg0);
+/// Runs the hall's attached charge disc, player-joint sparks and fading release ring.
+///
+/// Requires a coordinate body, zeroed counted `EffectWork` in `spawnArg2.pointer`
+/// and initial state 0. `spawnArg1.value` selects tint 0 or 1. The work's parent
+/// and ancestors must remain live; attachment uses its copied local position.
+/// The owner selects grow, flicker, release or cancel through task state.
+/// Growth emits adopted child sparks from live player model coordinates 3..18,
+/// using the installed flying-spark callback. Room control pauses at nonzero
+/// values below four and cancels at four or above. Completion releases work,
+/// the body and child tasks. The effect callbacks and overlay must remain loaded.
+void shelterB3ElevatorHallRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Animates the elevator hall's flying spark along its initial target displacement.
 ///
@@ -112,6 +122,15 @@ void shelterB3ElevatorHallRoomVisualEffectsHaloTask(Task* task);
 /// four or above cancels it. Completion or cancellation releases its work and task.
 void shelterB3ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_shelter_b3_elevator_hall_80180CE4(Task* arg0);
+/// Emits twenty independent descending motes at rotating local offsets in the hall.
+///
+/// Requires a coordinate body, zero-aged counted `EffectWork` in
+/// `spawnArg2.pointer` and live coordinate ancestors; `spawnArg1` is unused.
+/// Active ages 1..20 emit through the installed mote callback; age 21 retires
+/// the emitter. Motes descend eight parent-coordinate units per active tick
+/// and can outlive it. Nonzero room control below four pauses the emitter;
+/// four or above cancels it. Retirement releases work and the body. Keep the
+/// overlay and both callbacks loaded while their tasks remain live.
+void shelterB3ElevatorHallRoomVisualEffectsSparkEmitterTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B3_ELEVATOR_HALL_H

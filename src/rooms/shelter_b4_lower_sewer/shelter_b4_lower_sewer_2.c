@@ -649,7 +649,7 @@ void shelterB4LowerSewerRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b4_lower_sewer_801811FC(Task* task)
+void shelterB4LowerSewerRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

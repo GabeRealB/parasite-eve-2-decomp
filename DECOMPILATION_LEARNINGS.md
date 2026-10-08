@@ -88008,7 +88008,7 @@ Isolating it: rebuilding m2c's own structure with only the *arity* corrected
 
 Writing each path as an early `return` is the whole fix, and it is what the
 matched family members already do (`_neoArkShrineResolveRoomEvent`,
-`func_acropolis_cafeteria_8017D700`, `func_shelter_b3_incinerator_control_room_8017FA8C`):
+`func_acropolis_cafeteria_8017D700`, `_shelterB3IncineratorControlRoomResolveRoomEvent`):
 
 ```c
     if (in->msgId == 9) {
@@ -92228,7 +92228,7 @@ function can print `Nearby matched functions in this TU: (none)` and still be
 handed its answer.
 
 `func_mine_gorge_8017D6E8` is `1.00 shape` / `1.00 fields` / `1.00 calls`
-against `func_shelter_b3_incinerator_control_room_8017FA8C` - a different
+against `_shelterB3IncineratorControlRoomResolveRoomEvent` - a different
 overlay, a different link address, sharing no data symbol. Only two constants
 differ (`msgId != 2` vs `!= 0x2A`, nibble `0xB5` vs `0xA7`); `capRunCommandWithTransition(3)`
 is identical in both. The `.s` diff that made `dryfieldWaterTankMovePlayerSecondLegTask`
@@ -92515,7 +92515,7 @@ static s32 _dryfieldMotelRoom6GateWaterTowerExit(Task* task, s32 messageId, cons
 }
 ```
 
-`_neoArkShrineResolveRoomEvent`, `func_shelter_b3_incinerator_control_room_8017FA8C`
+`_neoArkShrineResolveRoomEvent`, `_shelterB3IncineratorControlRoomResolveRoomEvent`
 and this one differ only in destination `areaId`, the nibble index and the cap command (and, in
 the shrine and incinerator, a `gameFlagSetNibbleIfPresent(in->flagId, 2)` where this one has a
 plain `gameFlagSetNibble`). Two of the three carry the required duplicated

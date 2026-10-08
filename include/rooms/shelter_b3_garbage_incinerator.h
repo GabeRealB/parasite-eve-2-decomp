@@ -66,7 +66,14 @@ extern SpriteView D_shelter_b3_garbage_incinerator_8018D100[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b3_garbage_incinerator_8018FB4C[];
 
-void func_shelter_b3_garbage_incinerator_8017DC7C(Task* task);
+/// Runs garbage-incinerator room setup, switch timing and teardown.
+///
+/// The map's room descriptor starts in state 0; valid states are 0 setup,
+/// 1 advance the switch timer and 2 release the task. Dispatch copies the
+/// three-entry table by value and does not check the state. Setup registers
+/// the room message slot and starts the lift and applicable encounters.
+/// Requires this room overlay and its actor/caption resources to remain loaded.
+void shelterB3GarbageIncineratorRoomTask(Task* task);
 
 /// Caption selectors and task-tick duration used by the lift and exit encounter.
 enum {

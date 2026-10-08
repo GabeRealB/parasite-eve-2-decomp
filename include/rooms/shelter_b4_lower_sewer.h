@@ -78,7 +78,15 @@ void shelterB4LowerSewerRoomVisualEffectsFlashTask(Task* task);
 /// scratch storage and frame packet space available for drawing.
 void shelterB4LowerSewerRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b4_lower_sewer_801811FC(Task* task);
+/// Runs the lower sewer's impact flash with smoke or orange rings and bouncing sparks.
+///
+/// Requires a coordinate body, zero-aged counted `EffectWork` in
+/// `spawnArg2.pointer`, initial state 0 and live coordinate ancestors.
+/// Nonzero `spawnArg1.value` selects smoke; zero selects rings and two sparks.
+/// Age seven enters release, and age eight frees work and the body. Spawned
+/// effects are independent. Nonzero room control below four pauses it; four
+/// or above cancels it. Keep the overlay and effect resources loaded.
+void shelterB4LowerSewerRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Advances and draws an expanding, fading water-surface ripple for the lower sewer.
 ///

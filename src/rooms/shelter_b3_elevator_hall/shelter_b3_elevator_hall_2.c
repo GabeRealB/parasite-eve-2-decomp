@@ -471,12 +471,12 @@ RoomEventMsg gRoomEventMsg = { 0 };
 
 RoomEventActiveBytes gRoomEventActive = { 0, { 18, 230, 216 } };
 
-RoomEventReq gRoomEventReq = { 0 }; /// A glowing disc anchored to its parent at the work block's position. In
+RoomEventReq gRoomEventReq = { 0 };
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_shelter_b3_elevator_hall_80180E18(Task* arg0)
+void shelterB3ElevatorHallRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void shelterB3ElevatorHallRoomVisualEffectsFlyingSparkTask(Task* task)

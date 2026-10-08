@@ -149,3 +149,5 @@ _shelterB4UpperSewerRestoreSavedView = 0x8017db94; // type:func
 _shelterB4UpperSewerIdleRoom = 0x8017dc28; // type:func
 shelterB4UpperSewerRoomTask = 0x8017dc30; // type:func
 _shelterB4UpperSewerWaterTask = 0x8017e4f4; // type:func
+_shelterB4UpperSewerOpenWaterHoleTask = 0x8017d660; // type:func
+_shelterB4UpperSewerExitTransitTask = 0x8017d80c; // type:func
