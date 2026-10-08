@@ -260,14 +260,14 @@ static void _actor405800PrepareBackLeap(Task* task);
 static void _actor405800TickBackLeap(Task* task);
 static void _actor405800TickCeilingLeap(Task* task);
 static void _actor405800TickCeilingDrop(Task* task);
-static void func_actor_405800_80135558(Task* arg0);
+static void _actor405800FinishCeilingFallLanding(Task* task);
 static void func_actor_405800_801356A8(Task* arg0);
 static void func_actor_405800_80135780(Task* arg0);
 static void _actor405800TickHorizontalWalk(Task* task, s16 nextLoopRate);
 static void func_actor_405800_801361F8(Task* arg0);
 static void func_actor_405800_80136388(Task* arg0);
 static s32  _actor405800TakeArmedHitReaction(Task* task);
-static s32  func_actor_405800_80136CE0(Task* arg0);
+static s16  _actor405800TakeArmedStrikeReaction(Task* task);
 static void func_actor_405800_80136E14(Task* task);
 static void _actor405800StartWallProbe(Task* task, s16 probeMode);
 static s32  _actor405800TrySelectAttack(Task* task);
@@ -293,7 +293,7 @@ static void func_actor_405800_801381BC(Task* task);
 void        func_actor_405800_80138634(Task* task);
 static void func_actor_405800_80138698(Task* arg0);
 static void func_actor_405800_80138788(Task* arg0);
-void        func_actor_405800_801388C4(Task* task, s32 msgId, s32 arg2, s32 arg3);
+static void _actor405800HandleHoldReleaseMessage(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 static void _actor405800LeftArmTask(Task* task);
 static void _actor405800RightArmTask(Task* task);
 static void func_actor_405800_801388E4(Task* task);
@@ -313,19 +313,19 @@ static void func_actor_405800_801390FC(Task* arg0);
 static void func_actor_405800_80139188(Task* arg0);
 static void func_actor_405800_80139260(Task* arg0);
 static void func_actor_405800_801392EC(Task* arg0);
-static void func_actor_405800_80139358(Task* arg0);
-static void func_actor_405800_801393E8(Task* arg0);
-static void func_actor_405800_801394E4(Task* arg0);
+static void _actor405800StartStun(Task* task);
+static void _actor405800TickStun(Task* task);
+static void _actor405800FinishStun(Task* task);
 static void func_actor_405800_80139550(Task* task);
 static void func_actor_405800_801395E8(Task* task);
 static void func_actor_405800_8013967C(Task* task);
-static void func_actor_405800_801397B8(Task* task);
+static void _actor405800ProbeBackLeap(Task* task);
 static void func_actor_405800_80139844(Task* task);
-static void func_actor_405800_80139880(Task* task);
-static void func_actor_405800_801398C0(Task* task);
-static void func_actor_405800_80139928(Task* task);
-static void func_actor_405800_801399C4(Task* arg0);
-static void func_actor_405800_80139AC4(Task* arg0);
+static void _actor405800StartCeilingLeap(Task* task);
+static void _actor405800FinishCeilingLeap(Task* task);
+static void _actor405800StartCeilingDrop(Task* task);
+static void _actor405800FinishCeilingDrop(Task* task);
+static void _actor405800StartCeilingFall(Task* task);
 static void func_actor_405800_80139B3C(Task* arg0);
 static void _actor405800StartKnockdownRecoil(Task* task);
 static void _actor405800BlendKnockdownRest(Task* task);
@@ -341,7 +341,6 @@ void             func_actor_405800_80138634(Task*);
 
 static TmdSource _gActor405800IvoryStalkerBurstArmRight;
 static TmdSource _gActor405800IvoryStalkerBurstArmLeft;
-void             func_actor_405800_801388C4(Task*, s32, s32, s32);
 
 static TmdBone _gActor405800IvoryStalkerBodySkeleton[18] = {
 #include "assets/ivory_stalker_body_skeleton.inc"
@@ -1426,7 +1425,7 @@ AnimationSet* D_actor_405800_80151410[35] = {
 
 TaskMessageEntry D_actor_405800_8015149C[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _stalkerZebraIvoryApplyRoomCommand },
-    { 2014, func_actor_405800_801388C4 },
+    { ACTOR_MESSAGE_RELEASE_HOLD, _actor405800HandleHoldReleaseMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1443,38 +1442,47 @@ static __inline__ void Actor405800_ProjectPart(GfxCoord* part);
 
 #include "../../shared/stalker_zebra_ivory_inlines.inc.c"
 
-/// Indices, motion timing and sound cues used by the Ivory movement handlers.
+/// Indices, motion timing and sound cues used by the Ivory movement and stun handlers.
 enum {
-    ACTOR_405800_CLIP_WALK              = 2,
-    ACTOR_405800_CLIP_STANDING_REST     = 16,
-    ACTOR_405800_CLIP_ON_BACK_REST      = 20,
-    ACTOR_405800_CLIP_LEAP              = 21,
-    ACTOR_405800_CLIP_LANDING           = 25,
-    ACTOR_405800_CLIP_KNOCKDOWN_UPRIGHT = 26,
-    ACTOR_405800_CLIP_KNOCKDOWN_ON_BACK = 27,
-    ACTOR_405800_PART_BODY              = 3,
-    ACTOR_405800_PART_RIGHT_HAND        = 8,
-    ACTOR_405800_PART_LEFT_HAND         = 11,
-    ACTOR_405800_ARM_LEFT               = 0,
-    ACTOR_405800_ARM_RIGHT              = 1,
-    ACTOR_405800_PROBE_HIT_ONLY         = 0,
-    ACTOR_405800_PROBE_XZ               = 1,
-    ACTOR_405800_SOUND_LEFT_STEP        = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 1,
-    ACTOR_405800_SOUND_RIGHT_STEP       = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 2,
-    ACTOR_405800_SOUND_LANDING          = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 3,
-    ACTOR_405800_SOUND_WATER_LEFT_STEP  = 0x404A0001,
-    ACTOR_405800_SOUND_WATER_RIGHT_STEP = 0x404A0002,
-    ACTOR_405800_SOUND_WATER_LANDING    = 0x404A0003,
-    ACTOR_405800_BACK_LEAP_REACH        = 6000,
-    ACTOR_405800_LEAP_COMMIT_FRAME      = 17,
-    ACTOR_405800_SHADOW_FULL_SHADE      = 255
+    ACTOR_405800_CLIP_WALK                  = 2,
+    ACTOR_405800_CLIP_CEILING_FALL          = 9,
+    ACTOR_405800_CLIP_STUN_UPRIGHT          = 15,
+    ACTOR_405800_CLIP_STANDING_REST         = 16,
+    ACTOR_405800_CLIP_STUN_ON_BACK          = 17,
+    ACTOR_405800_CLIP_STUN_RECOVERY_ON_BACK = 18,
+    ACTOR_405800_CLIP_ON_BACK_REST          = 20,
+    ACTOR_405800_CLIP_LEAP                  = 21,
+    ACTOR_405800_CLIP_LANDING               = 25,
+    ACTOR_405800_CLIP_KNOCKDOWN_UPRIGHT     = 26,
+    ACTOR_405800_CLIP_KNOCKDOWN_ON_BACK     = 27,
+    ACTOR_405800_CLIP_CEILING_DROP          = 32,
+    ACTOR_405800_PART_BODY                  = 3,
+    ACTOR_405800_PART_RIGHT_HAND            = 8,
+    ACTOR_405800_PART_LEFT_HAND             = 11,
+    ACTOR_405800_ARM_LEFT                   = 0,
+    ACTOR_405800_ARM_RIGHT                  = 1,
+    ACTOR_405800_PROBE_HIT_ONLY             = 0,
+    ACTOR_405800_PROBE_XZ                   = 1,
+    ACTOR_405800_SOUND_LEFT_STEP            = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 1,
+    ACTOR_405800_SOUND_RIGHT_STEP           = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 2,
+    ACTOR_405800_SOUND_LANDING              = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 3,
+    ACTOR_405800_SOUND_FALL_LANDING         = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 6,
+    ACTOR_405800_SOUND_WATER_LEFT_STEP      = 0x404A0001,
+    ACTOR_405800_SOUND_WATER_RIGHT_STEP     = 0x404A0002,
+    ACTOR_405800_SOUND_WATER_LANDING        = 0x404A0003,
+    ACTOR_405800_BACK_LEAP_REACH            = 6000,
+    ACTOR_405800_LEAP_COMMIT_FRAME          = 17,
+    ACTOR_405800_LEAP_COOLDOWN_TICKS        = 300,
+    ACTOR_405800_CEILING_Y                  = -2500,
+    ACTOR_405800_SHADOW_FULL_SHADE          = 255
 };
 
 /// Requests a body-clip blend without applying or ticking it immediately.
 ///
 /// Requires a live work block and a loaded clip index. The signed halfword
 /// rate is in sixteenths of a frame per update; blendFrames counts updates.
-/// Reloads the work pointer and preserves the current playback and counter.
+/// Playback later narrows rate to a signed byte. Reloads the work pointer
+/// and preserves the current playback and counter.
 static __inline__ void _actor405800SetBlendRequest(Task* task, s16 clipIndex, s16 rate, s16 blendFrames)
 {
     _Actor405800IvoryStalkerWork* requestWork = task->work;
@@ -1485,7 +1493,7 @@ static __inline__ void _actor405800SetBlendRequest(Task* task, s16 clipIndex, s1
     requestWork->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
 }
 
-/// Starts revealing the body unless that same reveal is already running.
+/// Requests a body reveal unless that same reveal is already running.
 ///
 /// Reloads the live work pointer and restarts only the cloak fade's phase.
 static __inline__ void _actor405800RequestShow(Task* task)
@@ -1520,7 +1528,8 @@ static __inline__ u8 _actor405800WalkFrameToTicks(Task* task, s32 normalFrame)
 ///
 /// Water-entrance spawns use waterScriptId. Both script IDs leave bits 8..11
 /// free for the Enemy placement voice. Requires a live Enemy spawn record and
-/// root coordinates; pan and depth each narrow to their signed low byte.
+/// a valid composed view cache on the root. Pan is a spatial offset; one depth
+/// unit spans 256 game-coordinate units. Both narrow to their signed low byte.
 static __inline__ void _actor405800PlayMovementSound(Task* task, s32 baseScriptId, s32 waterScriptId)
 {
     enum { ACTOR_405800_SPAWN_ENTRANCE_MASK  = 0xF0,
@@ -1960,9 +1969,9 @@ static const TaskFuncTable18 D_actor_405800_80131E64 = {
 /// Sub-state handlers of `func_actor_405800_80137C04`, by `subState`.
 static const TaskFuncTable3 D_actor_405800_80131EAC = {
     {
-        func_actor_405800_80139358,
-        func_actor_405800_801393E8,
-        func_actor_405800_801394E4,
+        _actor405800StartStun,
+        _actor405800TickStun,
+        _actor405800FinishStun,
     },
 };
 
@@ -1980,7 +1989,7 @@ static const TaskFuncTable5 D_actor_405800_80131EB8 = {
 /// Sub-state handlers of `func_actor_405800_80137DE4`, by `subState`.
 static const TaskFuncTable4 D_actor_405800_80131ECC = {
     {
-        func_actor_405800_801397B8,
+        _actor405800ProbeBackLeap,
         _actor405800PrepareBackLeap,
         _actor405800TickBackLeap,
         _stalkerZebraIvoryWaitClip,
@@ -1990,27 +1999,27 @@ static const TaskFuncTable4 D_actor_405800_80131ECC = {
 /// Sub-state handlers of `func_actor_405800_80137F58`, by `subState`.
 static const TaskFuncTable3 D_actor_405800_80131EDC = {
     {
-        func_actor_405800_80139880,
+        _actor405800StartCeilingLeap,
         _actor405800TickCeilingLeap,
-        func_actor_405800_801398C0,
+        _actor405800FinishCeilingLeap,
     },
 };
 
 /// Sub-state handlers of `func_actor_405800_80137FCC`, by `subState`.
 static const TaskFuncTable3 D_actor_405800_80131EE8 = {
     {
-        func_actor_405800_80139928,
+        _actor405800StartCeilingDrop,
         _actor405800TickCeilingDrop,
-        func_actor_405800_801399C4,
+        _actor405800FinishCeilingDrop,
     },
 };
 
 /// Sub-state handlers of `func_actor_405800_80138040`, by `subState`.
 static const TaskFuncTable4 D_actor_405800_80131EF4 = {
     {
-        func_actor_405800_80139AC4,
+        _actor405800StartCeilingFall,
         func_actor_405800_80139B3C,
-        func_actor_405800_80135558,
+        _actor405800FinishCeilingFallLanding,
         _stalkerZebraIvoryFinishCeilingFall,
     },
 };
@@ -2593,41 +2602,33 @@ static void _actor405800TickCeilingDrop(Task* task)
     }
 }
 
-static void func_actor_405800_80135558(Task* arg0)
+/// Finishes the on-back landing after the Stalker is knocked from the ceiling.
+///
+/// Releases the death hold and queues the fall cue on the first update. Clip
+/// completion either blends into on-back rest or consumes a pending status
+/// reaction, seeds a 30..157-update crawl countdown and enters the stun state.
+/// Requires the initialized body rig, root coordinates and live Enemy record.
+static void _actor405800FinishCeilingFallLanding(Task* task)
 {
+    enum { ACTOR_405800_STATE_STATUS_HOLD = 5 };
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
-    _Actor405800IvoryStalkerWork* work3;
-    u32                           sound;
-    s32                           pan;
-    u32                           rnd;
 
-    work = (_Actor405800IvoryStalkerWork*)arg0->work;
+    work = task->work;
     if (work->stateFrames == 0) {
         work->holding = 0;
-        sound         = 0x40050006 | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        pan           = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan         >>= 24;
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        _actor405800PlayMovementSound(task, ACTOR_405800_SOUND_FALL_LANDING, ACTOR_405800_SOUND_FALL_LANDING);
         work->stateFrames++;
     }
-    if ((_stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+    if ((s16)_stalkerZebraIvoryClipDone(task) != 0) {
         if (work->pendingAction != STALKER_ZEBRA_IVORY_PENDING_STATUS) {
-            work2              = (_Actor405800IvoryStalkerWork*)arg0->work;
-            work2->animBlend   = 2;
-            work2->animStep    = 0x10;
-            work2->animClip    = 0x14;
-            work2->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+            _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_ON_BACK_REST, ANIMATION_RATE_ONE, 2);
             work->subState++;
             return;
         }
+        // A ceiling status survives the fall and starts its hold after landing.
         work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
-        rnd                 = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        gRandomLcgState     = rnd;
-        work->countdown     = ((rnd >> 0x10) & 0x7F) + 0x1E;
-        work3               = (_Actor405800IvoryStalkerWork*)arg0->work;
-        work3->state        = 5;
-        work3->subState     = 0;
+        _stalkerZebraIvorySeedCrawlCountdown(work);
+        _stalkerZebraIvorySelectState(task, ACTOR_405800_STATE_STATUS_HOLD);
     }
 }
 
@@ -3088,12 +3089,18 @@ static s32 _actor405800TakeArmedHitReaction(Task* task)
 
 #include "../../shared/stalker_zebra_ivory_apply_pending_reaction.inc.c"
 
-static s32 func_actor_405800_80136CE0(Task* arg0)
+/// Takes an armed reaction that can interrupt an arm strike.
+///
+/// Returns signed-halfword 1 on transition, 0 otherwise. Requires pendingArmed
+/// exactly 1. Light reactions are consumed without recoil;
+/// heavy/blast, status and knockdown select their behavior and reset subState.
+/// Ceiling status stays pending for the fall. Unknown floor requests are cleared;
+/// unknown ceiling and unarmed requests are preserved. Keeps pendingArmed intact.
+static s16 _actor405800TakeArmedStrikeReaction(Task* task)
 {
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
 
-    work = (_Actor405800IvoryStalkerWork*)arg0->work;
+    work = task->work;
     if (work->pendingArmed == 1) {
         if (work->onCeiling == 0) {
             switch (work->pendingAction) {
@@ -3102,27 +3109,19 @@ static s32 func_actor_405800_80136CE0(Task* arg0)
                     return 0;
                 case STALKER_ZEBRA_IVORY_PENDING_HEAVY:
                     work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
-                    work2               = (_Actor405800IvoryStalkerWork*)arg0->work;
-                    work2->state        = 4;
-                    work2->subState     = 0;
+                    _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
                     return 1;
                 case STALKER_ZEBRA_IVORY_PENDING_STATUS:
                     work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
-                    work2               = (_Actor405800IvoryStalkerWork*)arg0->work;
-                    work2->state        = 5;
-                    work2->subState     = 0;
+                    _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_STATUS_HOLD);
                     return 1;
                 case STALKER_ZEBRA_IVORY_PENDING_BLAST:
                     work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
-                    work2               = (_Actor405800IvoryStalkerWork*)arg0->work;
-                    work2->state        = 4;
-                    work2->subState     = 0;
+                    _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
                     return 1;
                 case STALKER_ZEBRA_IVORY_PENDING_KNOCKDOWN:
                     work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
-                    work2               = (_Actor405800IvoryStalkerWork*)arg0->work;
-                    work2->state        = 0xF;
-                    work2->subState     = 0;
+                    _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_KNOCKDOWN);
                     return 1;
             }
             work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
@@ -3133,26 +3132,18 @@ static s32 func_actor_405800_80136CE0(Task* arg0)
                     work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                     return 0;
                 case STALKER_ZEBRA_IVORY_PENDING_HEAVY:
-                    work2               = (_Actor405800IvoryStalkerWork*)arg0->work;
-                    work2->state        = 4;
-                    work2->subState     = 0;
+                    _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
                     work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                     return 1;
                 case STALKER_ZEBRA_IVORY_PENDING_STATUS:
-                    work2           = (_Actor405800IvoryStalkerWork*)arg0->work;
-                    work2->state    = 0xE;
-                    work2->subState = 0;
+                    _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_CEILING_FALL);
                     return 1;
                 case STALKER_ZEBRA_IVORY_PENDING_BLAST:
-                    work2               = (_Actor405800IvoryStalkerWork*)arg0->work;
-                    work2->state        = 4;
-                    work2->subState     = 0;
+                    _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_HEAVY_RECOIL);
                     work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                     return 1;
                 case STALKER_ZEBRA_IVORY_PENDING_KNOCKDOWN:
-                    work2               = (_Actor405800IvoryStalkerWork*)arg0->work;
-                    work2->state        = 0xE;
-                    work2->subState     = 0;
+                    _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_CEILING_FALL);
                     work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_NONE;
                     return 1;
             }
@@ -3582,7 +3573,7 @@ static void func_actor_405800_80137C78(Task* task)
     _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
     TaskFunc                      states[2] = { func_actor_405800_80139550, func_actor_405800_80133DB0 };
 
-    if ((s16)func_actor_405800_80136CE0(task) == 0) {
+    if (_actor405800TakeArmedStrikeReaction(task) == 0) {
         states[work->subState](task);
     }
 }
@@ -3592,7 +3583,7 @@ static void func_actor_405800_80137CEC(Task* task)
     _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
     TaskFunc                      states[2] = { func_actor_405800_801395E8, func_actor_405800_80133F48 };
 
-    if ((s16)func_actor_405800_80136CE0(task) == 0) {
+    if (_actor405800TakeArmedStrikeReaction(task) == 0) {
         states[work->subState](task);
     }
 }
@@ -3752,7 +3743,12 @@ static void func_actor_405800_80138788(Task* arg0)
 
 #include "../../shared/stalker_zebra_ivory_apply_room_command.inc.c"
 
-void func_actor_405800_801388C4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Latches a request to release the player from the Stalker's hold.
+///
+/// Handles `ACTOR_MESSAGE_RELEASE_HOLD` after struggle completion or death.
+/// Takes no payload; the hold update consumes the latch. Returns void to retain
+/// the callback's binary ABI, so senders must ignore the unspecified result.
+static void _actor405800HandleHoldReleaseMessage(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     ((_Actor405800IvoryStalkerWork*)task->work)->playerDied = 1;
 }
@@ -4129,98 +4125,76 @@ static void func_actor_405800_801392EC(Task* arg0)
     }
 }
 
-static void func_actor_405800_80139358(Task* arg0)
+/// Begins the stun hold in the current upright or on-back pose.
+///
+/// Blends clip 15 upright over eight updates or clip 17 on the back over three,
+/// both at normal rate. Requests a reveal, clears the hold's frame counter and
+/// advances subState. A running reveal keeps its current phase.
+static void _actor405800StartStun(Task* task)
 {
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
 
-    work = (_Actor405800IvoryStalkerWork*)arg0->work;
+    work = task->work;
     if (work->onBack == 0) {
-        work->animBlend   = 8;
-        work->animStep    = 0x10;
-        work->animClip    = 0xF;
-        work->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+        _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_STUN_UPRIGHT, ANIMATION_RATE_ONE, 8);
     } else {
-        work->animBlend   = 3;
-        work->animStep    = 0x10;
-        work->animClip    = 0x11;
-        work->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+        _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_STUN_ON_BACK, ANIMATION_RATE_ONE, 3);
     }
-    work2 = (_Actor405800IvoryStalkerWork*)arg0->work;
-    if (((s8)work2->cloakRequest >= 0) || ((work2->cloakRequest & ACTOR_405800_CLOAK_KIND_MASK) != ACTOR_405800_CLOAK_SHOW)) {
-        work2->cloakRequest = ACTOR_405800_CLOAK_RUNNING | ACTOR_405800_CLOAK_SHOW;
-        work2->cloakPhase   = 0;
-    }
+    _actor405800RequestShow(task);
     work->stateFrames = 0;
     work->subState    = work->subState + 1;
 }
 
-static void func_actor_405800_801393E8(Task* arg0)
+/// Waits for buildup expiry or 21 stun updates, then starts the recovery clip.
+///
+/// Status holds tick the live Enemy's buildup until it completes; every other
+/// stun kind advances the signed halfword frame counter. Recovery blends into
+/// upright clip 16 or on-back clip 18 over eight updates and advances subState.
+static void _actor405800TickStun(Task* task)
 {
+    enum { ACTOR_405800_STUN_HOLD_TICKS = 21 };
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
-    _Actor405800IvoryStalkerWork* work3;
-    _Actor405800IvoryStalkerWork* work4;
-    _Actor405800IvoryStalkerWork* work5;
-    u16                           count;
+    u16                           elapsedTicks;
 
-    work = (_Actor405800IvoryStalkerWork*)arg0->work;
+    work = task->work;
     if (work->stunKind == ACTOR_405800_STUN_STATUS) {
-        if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
+        if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
             if (work->onBack == 0) {
-                work2              = (_Actor405800IvoryStalkerWork*)arg0->work;
-                work2->animBlend   = 8;
-                work2->animStep    = 0x10;
-                work2->animClip    = 0x10;
-                work2->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+                _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_STANDING_REST, ANIMATION_RATE_ONE, 8);
             } else {
-                work3              = (_Actor405800IvoryStalkerWork*)arg0->work;
-                work3->animBlend   = 8;
-                work3->animStep    = 0x10;
-                work3->animClip    = 0x12;
-                work3->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+                _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_STUN_RECOVERY_ON_BACK, ANIMATION_RATE_ONE, 8);
             }
             work->subState = work->subState + 1;
         }
     } else {
-        count             = work->stateFrames + 1;
-        work->stateFrames = count;
-        if ((s16)count >= 0x15) {
+        elapsedTicks      = work->stateFrames + 1;
+        work->stateFrames = elapsedTicks;
+        if ((s16)elapsedTicks >= ACTOR_405800_STUN_HOLD_TICKS) {
             if (work->onBack == 0) {
-                work4              = (_Actor405800IvoryStalkerWork*)arg0->work;
-                work4->animBlend   = 8;
-                work4->animStep    = 0x10;
-                work4->animClip    = 0x10;
-                work4->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+                _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_STANDING_REST, ANIMATION_RATE_ONE, 8);
             } else {
-                work5              = (_Actor405800IvoryStalkerWork*)arg0->work;
-                work5->animBlend   = 8;
-                work5->animStep    = 0x10;
-                work5->animClip    = 0x12;
-                work5->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+                _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_STUN_RECOVERY_ON_BACK, ANIMATION_RATE_ONE, 8);
             }
             work->subState = work->subState + 1;
         }
     }
 }
 
-static void func_actor_405800_801394E4(Task* arg0)
+/// Returns a completed stun recovery to walking upright or crawling on the back.
+///
+/// Clears stunKind only when the current body clip completes. Selects behavior
+/// 2 upright or 10 on the back and resets subState without reseeding countdown.
+static void _actor405800FinishStun(Task* task)
 {
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
-    _Actor405800IvoryStalkerWork* work3;
 
-    work = (_Actor405800IvoryStalkerWork*)arg0->work;
-    if ((_stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
+    work = task->work;
+    if ((s16)_stalkerZebraIvoryClipDone(task) != 0) {
         work->stunKind = ACTOR_405800_STUN_NONE;
         if (work->onBack == 0) {
-            work2           = (_Actor405800IvoryStalkerWork*)arg0->work;
-            work2->state    = 2;
-            work2->subState = 0;
+            _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_WALK);
         } else {
-            work3           = (_Actor405800IvoryStalkerWork*)arg0->work;
-            work3->state    = 0xA;
-            work3->subState = 0;
+            _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_CRAWL_ON_BACK);
         }
     }
 }
@@ -4284,11 +4258,15 @@ static void func_actor_405800_8013967C(Task* task)
 
 #include "../../shared/stalker_zebra_ivory_release_hold.inc.c"
 
-static void func_actor_405800_801397B8(Task* task)
+/// Starts the rear wall probe whose horizontal distance bounds the back leap.
+///
+/// Selects X/Z probe-distance mode and advances to leap preparation. Requires
+/// the initialized capsule and root; its grid contacts are resolved by the frame update.
+static void _actor405800ProbeBackLeap(Task* task)
 {
     _Actor405800IvoryStalkerWork* work;
 
-    work = (_Actor405800IvoryStalkerWork*)task->work;
+    work = task->work;
     _actor405800StartWallProbe(task, ACTOR_405800_PROBE_XZ);
     work->subState = work->subState + 1;
 }
@@ -4309,103 +4287,95 @@ static void func_actor_405800_80139844(Task* task)
     work->subState     = work->subState + 1;
 }
 
-static void func_actor_405800_80139880(Task* task)
+/// Begins the ceiling leap with a four-update blend into the normal-rate leap clip.
+///
+/// Clears stateFrames, sets the root destination to Y -2500 in room units and
+/// advances to the motion step. Collision and death-hold changes occur there.
+static void _actor405800StartCeilingLeap(Task* task)
 {
     _Actor405800IvoryStalkerWork* work;
 
-    work              = (_Actor405800IvoryStalkerWork*)task->work;
-    work->animBlend   = 4;
-    work->animStep    = 0x10;
-    work->animClip    = 0x15;
-    work->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+    work = task->work;
+    _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_LEAP, ANIMATION_RATE_ONE, 4);
     work->stateFrames = 0;
-    work->leapY       = -0x9C4;
+    work->leapY       = ACTOR_405800_CEILING_Y;
     work->subState    = work->subState + 1;
 }
 
-static void func_actor_405800_801398C0(Task* task)
+/// Finishes ceiling-leap landing once no pending reaction takes priority.
+///
+/// Clip completion starts a 300-update leap cooldown and returns to the walking
+/// behavior on the ceiling. A taken reaction preserves the cooldown it found.
+static void _actor405800FinishCeilingLeap(Task* task)
 {
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
 
-    work = (_Actor405800IvoryStalkerWork*)task->work;
-    if (((s16)_stalkerZebraIvoryApplyPendingReaction(task) == 0) && ((s16)_stalkerZebraIvoryClipDone(task) != 0)) {
-        work->leapCooldown = 0x12C;
-        work2              = (_Actor405800IvoryStalkerWork*)task->work;
-        work2->state       = 2;
-        work2->subState    = 0;
+    work = task->work;
+    if ((s16)_stalkerZebraIvoryApplyPendingReaction(task) == 0 && (s16)_stalkerZebraIvoryClipDone(task) != 0) {
+        work->leapCooldown = ACTOR_405800_LEAP_COOLDOWN_TICKS;
+        _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_WALK);
     }
 }
 
-static void func_actor_405800_80139928(Task* task)
+/// Begins the upright ceiling drop and fixes its landing X/Z to the current root.
+///
+/// Disables capsule-grid probing, blends clip 32 over four normal-rate updates,
+/// starts vertical acceleration at 64 room units per update squared and speed
+/// at zero, clears stateFrames and holds death processing through the landing.
+static void _actor405800StartCeilingDrop(Task* task)
 {
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
-    GfxCoord*                     coord;
-    u16                           next;
+    GfxCoord*                     rootCoord;
+    u16                           subStateBeforeAdvance;
 
-    work  = (_Actor405800IvoryStalkerWork*)task->work;
-    coord = task->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     _stalkerZebraIvoryDisableCapsuleGrid(task);
-    work2              = (_Actor405800IvoryStalkerWork*)task->work;
-    work2->animBlend   = 4;
-    work2->animStep    = 0x10;
-    work2->animClip    = 0x20;
-    work2->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
-    work->moveAccel    = 0x40;
-    work->moveSpeed    = 0;
-    work->stateFrames  = 0;
-    work->leapX        = coord->coord.t[0];
-    next               = work->subState;
-    work->leapZ        = coord->coord.t[2];
-    work->holding      = 1;
-    work->subState     = next + 1;
+    _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_CEILING_DROP, ANIMATION_RATE_ONE, 4);
+    work->moveAccel   = 0x40;
+    work->moveSpeed   = 0;
+    work->stateFrames = 0;
+    // Keep the counter sample between the two root-coordinate accesses.
+    work->leapX           = rootCoord->coord.t[0];
+    subStateBeforeAdvance = work->subState;
+    work->leapZ           = rootCoord->coord.t[2];
+    work->holding         = 1;
+    work->subState        = subStateBeforeAdvance + 1;
 }
 
-static void func_actor_405800_801399C4(Task* arg0)
+/// Releases the ceiling-drop death hold and waits for landing-clip completion.
+///
+/// Queues the placement's dry/water landing cue on its first update. Pending
+/// reactions take priority; otherwise completion sets a 300-update cooldown
+/// and returns to the walking behavior. Requires the live root and Enemy record.
+static void _actor405800FinishCeilingDrop(Task* task)
 {
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
-    u32                           sound;
-    s32                           id;
-    s32                           pan;
 
-    work = (_Actor405800IvoryStalkerWork*)arg0->work;
+    work = task->work;
     if (work->stateFrames == 0) {
-        id = 0x40050003;
-        if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
-            id = 0x404A0003;
-        }
-        sound = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        pan   = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan >>= 24;
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        _actor405800PlayMovementSound(task, ACTOR_405800_SOUND_LANDING, ACTOR_405800_SOUND_WATER_LANDING);
         work->holding = 0;
         work->stateFrames++;
     }
-    if ((_stalkerZebraIvoryApplyPendingReaction(arg0) << 0x10) == 0 && (_stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
-        work->leapCooldown = 0x12C;
-        work2              = (_Actor405800IvoryStalkerWork*)arg0->work;
-        work2->state       = 2;
-        work2->subState    = 0;
+    if ((s16)_stalkerZebraIvoryApplyPendingReaction(task) == 0 && (s16)_stalkerZebraIvoryClipDone(task) != 0) {
+        work->leapCooldown = ACTOR_405800_LEAP_COOLDOWN_TICKS;
+        _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_WALK);
     }
 }
 
-static void func_actor_405800_80139AC4(Task* arg0)
+/// Starts falling onto the back after a ceiling status hit or knockdown.
+///
+/// Requests a reveal and a two-update blend into normal-rate clip 9. Holds
+/// death processing, zeros vertical acceleration and speed, advances subState
+/// and restores the floor shadow height. The motion step establishes onBack.
+static void _actor405800StartCeilingFall(Task* task)
 {
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
 
-    work = (_Actor405800IvoryStalkerWork*)arg0->work;
-    if (((s8)work->cloakRequest >= 0) || ((work->cloakRequest & ACTOR_405800_CLOAK_KIND_MASK) != ACTOR_405800_CLOAK_SHOW)) {
-        work->cloakRequest = ACTOR_405800_CLOAK_RUNNING | ACTOR_405800_CLOAK_SHOW;
-        work->cloakPhase   = 0;
-    }
-    work2              = (_Actor405800IvoryStalkerWork*)arg0->work;
-    work2->animBlend   = 2;
-    work2->animStep    = 0x10;
-    work2->animClip    = 9;
-    work2->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+    work = task->work;
+    _actor405800RequestShow(task);
+    _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_CEILING_FALL, ANIMATION_RATE_ONE, 2);
     work->holding      = 1;
     work->moveAccel    = 0;
     work->moveSpeed    = 0;

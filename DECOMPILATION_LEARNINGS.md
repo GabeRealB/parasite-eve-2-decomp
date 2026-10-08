@@ -75306,7 +75306,7 @@ The router failed setup on a missing `m2c_macros.h` include; this was a manual
 controlled experiment, not a permuter discovery.
 ## Split a RMW so its load sits between two other assignments
 
-**Symptom.** `func_actor_405800_80139928` (shape-sibling of matched
+**Symptom.** `_actor405800StartCeilingDrop` (shape-sibling of matched
 `_actor400600StartCeilingDrop`) was 99.2% with only two independent `lhu`s swapped.
 Retail does `lhu subState; lhu t[2]` after `sh leapX` plus a load-delay nop
 on `t[0]`. Writing `work->subState = work->subState + 1` last kept the nop
@@ -75319,19 +75319,19 @@ store (87%, same object as m2c). Putting `holding = 1` immediately after
 added an insn.
 
 **Fix.** Load the counter into its own local between the `leapX` store and
-the `leapZ` assignment, then write `next + 1` after the flag:
+the `leapZ` assignment, then write `subStateBeforeAdvance + 1` after the flag:
 
 ```c
-work->leapX    = coord->coord.t[0];
-next           = work->subState;
-work->leapZ    = coord->coord.t[2];
-work->holding  = 1;
-work->subState = next + 1;
+work->leapX              = rootCoord->coord.t[0];
+subStateBeforeAdvance   = work->subState;
+work->leapZ              = rootCoord->coord.t[2];
+work->holding            = 1;
+work->subState           = subStateBeforeAdvance + 1;
 ```
 
 The extra statement gives the counter load an LUID between the two coordinate
 accesses, so sched1 ranks it first of the post-store pair, while `sh leapX`
-still has no ready filler and keeps the nop. `func_actor_405800_80139928`.
+still has no ready filler and keeps the nop. `_actor405800StartCeilingDrop`.
 
 ## Two-entry `TaskFunc` table: initializer vs assignment moves the first `lui`
 
