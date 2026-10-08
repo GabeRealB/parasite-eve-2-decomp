@@ -150380,11 +150380,11 @@ attempts; left as it was.
   separate `return 1` statements differ: the first one's `li v0,1` goes into
   the branch delay slot and the second test reloads `p->q`.
 - **A tail shared by two switch cases whose duplication costs a register**
-  (`Actor03700_Fn0042C`: `z = ...; goto move_z;` from the push-out and the
-  restore case into `coord->coord.t[2] = z`). The store written in both cases
+  (`_actor03700ProcessContacts`: `correctedZ = ...; goto move_z;` from the push-out and the
+  restore case into `coord->coord.t[2] = correctedZ`). The store written in both cases
   merges, but the extra mention of `coord` swaps `$s3/$s4`. As a
   `static inline` with `default: return;` and the store once after the switch
-  it matches. The `one = 1` of the mode ladder in `Actor03700_Fn03004` stays
+  it matches. The `notLockable = WORLD_TARGET_NOT_LOCKABLE` of the mode ladder in `_actor03700UpdateEnemy` stays
   (it is also the third argument of a call, and the image has it in `$a2`
   from the dispatch on); in `Actor02100_Fn031C4`, where it only feeds a store,
   the plain `switch` matches without it.
