@@ -928,14 +928,14 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, gunbladeTrailTask, { NULL } },                                                      // 0x186
     { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathWaterDriftTaskU16, { NULL } },                                    // 0x187
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseTwinTrailTask, { NULL } },                                  // 0x188
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E4C4, { NULL } },                                              // 0x189
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017EC18, { NULL } },                                              // 0x18A
+    { { { TASK_BODY_COORD, 0x70 } }, shelterR48SmallOrbTask, { NULL } },                                                 // 0x189
+    { { { TASK_BODY_COORD, 0x70 } }, shelterR48YellowRingFlashTask, { NULL } },                                          // 0x18A
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48WaterDriftTaskU16, { NULL } },                                            // 0x18B
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48SpriteDriftTask, { NULL } },                                              // 0x18C
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E704, { NULL } },                                              // 0x18D
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E9B8, { NULL } },                                              // 0x18E
+    { { { TASK_BODY_COORD, 0x70 } }, shelterR48ProjectileTask, { NULL } },                                               // 0x18D
+    { { { TASK_BODY_COORD, 0x70 } }, shelterR48LargeOrbTask, { NULL } },                                                 // 0x18E
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48RingWallTask, { NULL } },                                                 // 0x18F
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_801810B0, { NULL } },                                              // 0x190
+    { { { TASK_BODY_COORD, 0x70 } }, shelterR48OrangeRingFlashTask, { NULL } },                                          // 0x190
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48ShockwaveRingsTask, { NULL } },                                           // 0x191
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSubmarineGalleryDrawViewGlowsTask, { NULL } },                                // 0x192
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSubmarineGalleryWaterRippleTask, { NULL } },                                  // 0x193

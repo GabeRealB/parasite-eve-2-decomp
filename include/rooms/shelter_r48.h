@@ -65,9 +65,32 @@ void shelterR48SetBackgroundSpritesVisible(u8 visible);
 /// teardown owns its lifetime.
 void shelterR48InitRingsAndDrawGlowTask(Task* task);
 
-void func_shelter_r48_8017E4C4(Task* arg0);
+/// Draws Brahman's small orb, trails spray and emits its requested final burst.
+///
+/// Bank-6 slot 0x189 requires counted, zero-initialized owned `EffectWork`,
+/// a coordinate body and a live borrowed parent. State 0 attaches and composes
+/// an identity transform. `spawnArg1.value` is a mutable mode: 0 emits launch
+/// spray and selects 1; 1 draws a size-896 tile and trails spray; 2 emits one
+/// core plus four spray/drift pairs and selects 3; 3 retires next active tick.
+/// Trail mode increments signed-halfword age twice per tick, retaining its
+/// even-age emission test. Suspension redraws without aging; cancellation
+/// redraws once before freeing work/body/task and decrementing the count.
+/// Requires composed drawing coordinates, scratch and primitive capacity.
+void shelterR48SmallOrbTask(Task* task);
 
-void func_shelter_r48_8017EC18(Task* task);
+/// Charges two yellow discs and a contracting glow band, then flashes and fades.
+///
+/// Bank-6 slot 0x18A requires counted, zero-initialized owned `EffectWork`,
+/// a coordinate body and a live parent. Initialization attaches an identity
+/// transform, overwrites `spawnArg1.value` with a 90-active-tick countdown and
+/// draws the first charge tick. Scale/period hold disc/band brightness and
+/// angle holds disc radius in drawing-coordinate units. Brightness 97 enables
+/// the band; charge completion spawns the ring wall and starts a shrinking,
+/// additive screen flash fading by 16 per active tick. Suspension freezes
+/// charge and fade but still increments age; cancellation retires without
+/// drawing. Retirement frees work/body/task and decrements the effect count.
+/// Requires composed drawing coordinates, scratch and primitive capacity.
+void shelterR48YellowRingFlashTask(Task* task);
 
 /// Advances one counted eight-cell water-spray particle using this room's drawers.
 ///
@@ -102,9 +125,33 @@ void shelterR48WaterDriftTaskU16(Task* task);
 /// requires composed coordinates, initialized scratch and primitive-packet space.
 void shelterR48SpriteDriftTask(Task* task);
 
-void func_shelter_r48_8017E704(Task* arg0);
+/// Draws Brahman's projectile and emits spray until its particle-only linger mode.
+///
+/// Bank-6 slot 0x18D requires counted, zero-initialized owned `EffectWork`,
+/// a coordinate body and a live parent. State 0 attaches an identity transform.
+/// `spawnArg1.value` modes: 0 emits launch spray and selects 1; 1 draws the
+/// twelve-cell size-2048 sprite and trails spray; 2 draws no core and emits
+/// drift every sixth age tick and spray on even ticks. Trail mode increments
+/// signed-halfword age twice per active tick; particle mode increments once.
+/// Suspension redraws the core without aging; cancellation redraws once, then
+/// frees work/body/task and decrements the count. The caller owns natural
+/// teardown; there is no self-expiring linger timer. Requires composed drawing
+/// coordinates, scratch and primitive capacity.
+void shelterR48ProjectileTask(Task* task);
 
-void func_shelter_r48_8017E9B8(Task* arg0);
+/// Draws Brahman's large orb with the alternate palette and trails drifting sprites.
+///
+/// Bank-6 slot 0x18E requires counted, zero-initialized owned `EffectWork`,
+/// a coordinate body and a live parent. State 0 attaches an identity transform.
+/// `spawnArg1.value` modes: 0 emits launch drift and selects 1; 1 draws a
+/// twelve-cell size-2048 core and trails drift; 2 emits drift on even age ticks
+/// without drawing a core. Trail mode increments signed-halfword age twice per
+/// active tick; particle mode increments once. Suspension redraws a size-2560
+/// core without aging; cancellation redraws once, then frees work/body/task
+/// and decrements the count. The caller owns natural teardown; there is no
+/// self-expiring linger timer. Requires composed coordinates, scratch and
+/// primitive capacity.
+void shelterR48LargeOrbTask(Task* task);
 
 /// Expands and fades the three textured bands of the room's ring-wall effect.
 ///
@@ -119,7 +166,20 @@ void func_shelter_r48_8017E9B8(Task* arg0);
 /// and primitive space.
 void shelterR48RingWallTask(Task* task);
 
-void func_shelter_r48_801810B0(Task* task);
+/// Charges two orange discs and a pulsing band, then flashes with shockwave rings.
+///
+/// Bank-6 slot 0x190 requires counted, zero-initialized owned `EffectWork`,
+/// a coordinate body and a live parent. `spawnArg1.value` is the positive
+/// active-tick charge count: 1..256 gives a nonzero brightness step. Initialization
+/// attaches a minus-quarter-turn X rotation and immediately draws a charge tick.
+/// Scale holds brightness, angle the disc radius in drawing-coordinate units,
+/// and step the unsigned-read increment floor(256 / initial countdown).
+/// Charge completion starts a 4-per-tick additive screen fade, spawns shockwave
+/// rings and parents their task to this task if spawning succeeds. Suspension
+/// freezes charge/fade but still increments age; cancellation retires without
+/// drawing. Retirement frees work/body/task and decrements the count. Requires
+/// composed drawing coordinates, scratch and primitive capacity.
+void shelterR48OrangeRingFlashTask(Task* task);
 
 /// Expands three shockwave bands with an orange screen tint, then fades them.
 ///

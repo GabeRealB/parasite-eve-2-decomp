@@ -94,7 +94,7 @@ extern SVECTOR         D_shelter_r48_8018300C;
 extern u8              D_shelter_r48_8018BE54[6][16];
 extern EffectBandShape D_shelter_r48_80182FE8[];
 
-static void func_shelter_r48_8017E1A4(Task* arg0);
+static void _shelterR48RoomSetupState(Task* task);
 static void _shelterR48RoomIdleState(Task* task);
 static void _shelterR48DrawRingBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex);
 static void _shelterR48DrawRoomGlow(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
@@ -120,8 +120,8 @@ enum {
 static s32 _shelterR48UseStaffCard(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _shelterR48ResolveTransitionMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterR48IgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
-s32        func_shelter_r48_8017E090(Task*, s32, RoomEventMsg*, s32);
-s32        func_shelter_r48_8017E0EC(Task*, s32, s32, s32);
+static s32 _shelterR48RoomActionMsg(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32 _shelterR48AdvanceBossSceneMsg(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 extern TmdBone D_shelter_r48_8018BE30[1];
 static void    _shelterR48WaterRefractionTask(Task* task);
@@ -141,9 +141,9 @@ TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MOD
 TaskMessageEntry D_shelter_r48_80182FB8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR48ResolveTransitionMessage },
     { SHELTER_R48_MESSAGE_USE_KEY_ITEM, _shelterR48UseStaffCard },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r48_8017E090 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterR48RoomActionMsg },
     { ROOM_MESSAGE_COMMAND, _shelterR48IgnoreRoomCommand },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_r48_8017E0EC },
+    { ROOM_MESSAGE_ACTOR_EVENT, _shelterR48AdvanceBossSceneMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2155,13 +2155,15 @@ static void _shelterR48WaterRefractionTask(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(WaterRefractionScratch);
 }
 
-/// Tests whether an active room-event trigger can accept a staff card.
+/// Tests whether the live action-trigger list contains a latched room event.
 ///
-/// Borrows the room's live pending-trigger list and retains no pointer.
-static inline s32 _shelterR48StaffCardTriggerHit(void)
+/// Returns 1 for a room action with event ID 255 and a nonzero hit, otherwise
+/// 0, including an empty list. Borrows live, NULL-terminated records without
+/// changing the links, consuming the hit or retaining a pointer.
+static inline s32 _shelterR48HasRoomEventTriggerHit(void)
 {
-    WorldCollisionTrigger* trigger;
-    s32                    triggerHit;
+    const WorldCollisionTrigger* trigger;
+    s32                          triggerHit;
 
     trigger    = Gp_PendingObj4C;
     triggerHit = 1;
@@ -2204,7 +2206,7 @@ static s32 _shelterR48UseStaffCard(Task* task, s32 messageId, s32 itemId, s32 un
     if (itemId == SHELTER_R48_ITEM_BOWMANS_CARD || itemId == SHELTER_R48_ITEM_YOSHIDAS_CARD) {
         if (gameFlagGetNibble(GAME_FLAG_100) == SHELTER_R48_CARD_USE_READY) {
             // Card use is accepted only at an active room-event trigger.
-            if (_shelterR48StaffCardTriggerHit() != 0) {
+            if (_shelterR48HasRoomEventTriggerHit() != 0) {
                 // Hold gameplay before queuing the card-use scene.
                 gGameSession->eventState = SHELTER_R48_EVENT_HOLD;
                 D_80115768               = SHELTER_R48_PLAYER_UPDATE_HOLD;
@@ -2221,7 +2223,7 @@ static s32 _shelterR48UseStaffCard(Task* task, s32 messageId, s32 itemId, s32 un
 /// State handlers of the room task `shelterR48RoomTask` runs: its
 /// setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_r48_8017D608 = {
-    { func_shelter_r48_8017E1A4, _shelterR48RoomIdleState, taskKill }
+    { _shelterR48RoomSetupState, _shelterR48RoomIdleState, taskKill }
 };
 
 /// Allows a room transition after resolving its Mine/Shelter destination room.
@@ -2249,44 +2251,75 @@ static s32 _shelterR48IgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg,
     return 0;
 }
 
-s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in, s32 arg3)
+/// Plays the progress-selected CAP response to the room's action 1.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION` with a borrowed four-byte request.
+/// Progress 0 selects command 6, progress 1 command 7; other progress values
+/// and action IDs do nothing. Ignores control, argument, receiver, message ID
+/// and the zero second payload word; retains no storage and returns zero.
+static s32 _shelterR48RoomActionMsg(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedArg)
 {
-    if (in->warp == 1) {
+    enum {
+        SHELTER_R48_ACTION_PROGRESS_RESPONSE = 1,
+        SHELTER_R48_CARD_USE_UNAVAILABLE     = 0,
+        SHELTER_R48_CAP_BEFORE_CARD_READY    = 6,
+        SHELTER_R48_CAP_CARD_READY           = 7
+    };
+    if (request->actionId == SHELTER_R48_ACTION_PROGRESS_RESPONSE) {
         switch (gameFlagGetNibble(GAME_FLAG_100)) {
-            case 0:
-                capRunCommandWithTransition(6);
+            case SHELTER_R48_CARD_USE_UNAVAILABLE:
+                capRunCommandWithTransition(SHELTER_R48_CAP_BEFORE_CARD_READY);
                 break;
-            case 1:
-                capRunCommandWithTransition(7);
+            case SHELTER_R48_CARD_USE_READY:
+                capRunCommandWithTransition(SHELTER_R48_CAP_CARD_READY);
                 break;
         }
     }
     return 0;
 }
 
-s32 func_shelter_r48_8017E0EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Advances the boss encounter to its interruption or defeat scene.
+///
+/// Handles `ROOM_MESSAGE_ACTOR_EVENT`; the receiver, message ID and both
+/// integer payload words are unused. Scene state 1 starts the interruption
+/// script and becomes 2. Every other state starts the defeat script with its
+/// skip target, spawns drift emitters at position indices 0, 1 and 3, and becomes 3.
+/// Requires the room and actor overlay loaded; returns zero.
+static s32 _shelterR48AdvanceBossSceneMsg(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    if (gameFlagGetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE) == 1) {
+    enum {
+        SHELTER_R48_SCENE_BATTLE              = 1,
+        SHELTER_R48_SCENE_INTERRUPTED         = 2,
+        SHELTER_R48_SCENE_DEFEATED            = 3,
+        SHELTER_R48_DEFEAT_DRIFT_EMITTER_TASK = 0
+    };
+    if (gameFlagGetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE) == SHELTER_R48_SCENE_BATTLE) {
         evsStartScript(D_actor_503500_8014D158, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-        gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 2);
+        gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, SHELTER_R48_SCENE_INTERRUPTED);
     } else {
+        // Queue the scene before the drift emitters at its three fixed positions.
         evsStartScriptWithSkip(D_actor_503500_8014C540, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_503500_8014CAF8);
-        taskSpawnFromTable(D_actor_503500_8014B964, 0, 0, 0);
-        taskSpawnFromTable(D_actor_503500_8014B964, 0, 1, 0);
-        taskSpawnFromTable(D_actor_503500_8014B964, 0, 3, 0);
-        gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 3);
+        taskSpawnFromTable(D_actor_503500_8014B964, SHELTER_R48_DEFEAT_DRIFT_EMITTER_TASK, 0, 0);
+        taskSpawnFromTable(D_actor_503500_8014B964, SHELTER_R48_DEFEAT_DRIFT_EMITTER_TASK, 1, 0);
+        taskSpawnFromTable(D_actor_503500_8014B964, SHELTER_R48_DEFEAT_DRIFT_EMITTER_TASK, 3, 0);
+        gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, SHELTER_R48_SCENE_DEFEATED);
     }
     return 0;
 }
 
-static void func_shelter_r48_8017E1A4(Task* arg0)
+/// Registers the room receiver and starts the skippable boss-entry scene.
+///
+/// Requires the room task in setup state 0 and its actor overlay loaded.
+/// Resets the actor's fade handle, sets scene state 1 and advances to idle.
+static void _shelterR48RoomSetupState(Task* task)
 {
-    arg0->msgTable = D_shelter_r48_80182FB8;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    enum { SHELTER_R48_SCENE_BATTLE = 1 };
+    task->msgTable = D_shelter_r48_80182FB8;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     actor503500ClearFadeFromBlackHandle(0);
     evsStartScriptWithSkip(D_actor_503500_8014BD48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_503500_8014C288);
-    gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 1);
-    arg0->state = (s32)(arg0->state + 1);
+    gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, SHELTER_R48_SCENE_BATTLE);
+    task->state += 1;
 }
 
 /// Leaves the initialized room task idle until another state is selected.
@@ -2395,153 +2428,236 @@ void shelterR48InitRingsAndDrawGlowTask(Task* task)
     }
 }
 
-void func_shelter_r48_8017E4C4(Task* arg0)
+/// Places an effect at its parent's origin and refreshes its composed transform.
+///
+/// `coord` must be a live writable node, disjoint from its borrowed `parent`.
+/// A non-NULL parent and all ancestors must remain live in an acyclic chain
+/// until the effect detaches; NULL makes a root node. Replaces the nine Q12
+/// rotation coefficients and all three translation words, preserving matrix
+/// alignment bytes and `param` storage.
+/// Clears the composition stamp before composing the full chain, which may
+/// refresh ancestors and overwrite GTE state. Allocates and releases nothing.
+static inline void _shelterR48AttachEffectCoord(GfxCoord* coord, GfxCoord* parent)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s32         i;
+    coord->parent = parent;
+    gfxSetRotIdentity(&coord->coord);
+    coord->coord.t[2]   = 0;
+    coord->coord.t[1]   = 0;
+    coord->coord.t[0]   = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
 
-    mem   = (EffectWork*)arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+void shelterR48SmallOrbTask(Task* task)
+{
+    enum {
+        SHELTER_R48_SMALL_ORB_STATE_NEW         = 0,
+        SHELTER_R48_SMALL_ORB_STATE_ATTACHED    = 1,
+        SHELTER_R48_SMALL_ORB_MODE_NEW          = 0,
+        SHELTER_R48_SMALL_ORB_MODE_TRAIL        = 1,
+        SHELTER_R48_SMALL_ORB_MODE_BURST        = 2,
+        SHELTER_R48_SMALL_ORB_MODE_FINISHED     = 3,
+        SHELTER_R48_SMALL_ORB_TILE_RADIUS_SCALE = 0x380,
+        SHELTER_R48_SMALL_ORB_BURST_PAIR_COUNT  = 4,
+        SHELTER_R48_SMALL_ORB_LAUNCH_SPRAY_ARG  = 0x14002400,
+        SHELTER_R48_SMALL_ORB_TRAIL_SPRAY_ARG   = 0x1001400,
+        SHELTER_R48_SMALL_ORB_BURST_CORE_ARG    = 0x10002380,
+        SHELTER_R48_SMALL_ORB_BURST_SPRAY_ARG   = 0x2002400,
+        SHELTER_R48_SMALL_ORB_BURST_DRIFT_ARG   = 0x2202300
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         burstPairIndex;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
+    // Suspension redraws the cached sprite before cancellation retires the effect.
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        _waterDrawTileU16(coord, (mem->age / 2) & 0xFFFF, 0x380);
+        _waterDrawTileU16(coord, (u16)(work->age / 2), SHELTER_R48_SMALL_ORB_TILE_RADIUS_SCALE);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
         }
         return;
     }
-    if (arg0->state == 0) {
-        coord->parent = mem->parent;
-        gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[2]   = 0;
-        coord->coord.t[1]   = 0;
-        coord->coord.t[0]   = 0;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
-        arg0->state = 1;
+    if (task->state == SHELTER_R48_SMALL_ORB_STATE_NEW) {
+        _shelterR48AttachEffectCoord(coord, work->parent);
+        task->state = SHELTER_R48_SMALL_ORB_STATE_ATTACHED;
     }
-    mem->age += 1;
-    switch (arg0->spawnArg1.value) {
-        case 0:
-            effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x14002400, NULL);
-            arg0->spawnArg1.value = 1;
+    work->age += 1;
+    switch (task->spawnArg1.value) {
+        case SHELTER_R48_SMALL_ORB_MODE_NEW:
+            effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, SHELTER_R48_SMALL_ORB_LAUNCH_SPRAY_ARG, NULL);
+            task->spawnArg1.value = SHELTER_R48_SMALL_ORB_MODE_TRAIL;
             return;
-        case 1:
-            _waterDrawTileU16(coord, (mem->age / 2) & 0xFFFF, 0x380);
-            if (!(mem->age & 1)) {
-                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x1001400, NULL);
+        case SHELTER_R48_SMALL_ORB_MODE_TRAIL:
+            _waterDrawTileU16(coord, (u16)(work->age / 2), SHELTER_R48_SMALL_ORB_TILE_RADIUS_SCALE);
+            if (!(work->age & 1)) {
+                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, SHELTER_R48_SMALL_ORB_TRAIL_SPRAY_ARG, NULL);
             }
-            mem->age += 1;
+            // Trail mode retains its second age increment after drawing and emission.
+            work->age += 1;
             return;
-        case 2:
-            effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x10002380, NULL);
-            for (i = 0; i < 4; i++) {
-                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x2002400, NULL);
-                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x2202300, NULL);
+        case SHELTER_R48_SMALL_ORB_MODE_BURST:
+            // Emit the stationary core before the four spray/drift pairs, then retire next tick.
+            effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, SHELTER_R48_SMALL_ORB_BURST_CORE_ARG, NULL);
+            for (burstPairIndex = 0; burstPairIndex < SHELTER_R48_SMALL_ORB_BURST_PAIR_COUNT; burstPairIndex++) {
+                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, SHELTER_R48_SMALL_ORB_BURST_SPRAY_ARG, NULL);
+                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, SHELTER_R48_SMALL_ORB_BURST_DRIFT_ARG, NULL);
             }
-            arg0->spawnArg1.value = 3;
+            task->spawnArg1.value = SHELTER_R48_SMALL_ORB_MODE_FINISHED;
             return;
-        case 3:
-            effectKillTask(mem, arg0);
+        case SHELTER_R48_SMALL_ORB_MODE_FINISHED:
+            effectKillTask(work, task);
             return;
     }
 }
 
-void func_shelter_r48_8017E704(Task* arg0)
+void shelterR48ProjectileTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        SHELTER_R48_PROJECTILE_STATE_NEW           = 0,
+        SHELTER_R48_PROJECTILE_STATE_ATTACHED      = 1,
+        SHELTER_R48_PROJECTILE_MODE_NEW            = 0,
+        SHELTER_R48_PROJECTILE_MODE_TRAIL          = 1,
+        SHELTER_R48_PROJECTILE_MODE_PARTICLES      = 2,
+        SHELTER_R48_PROJECTILE_SPRITE_FRAME_COUNT  = 12,
+        SHELTER_R48_PROJECTILE_SPRITE_RADIUS_SCALE = 0x800,
+        SHELTER_R48_PROJECTILE_DRIFT_PERIOD        = 6,
+        SHELTER_R48_PROJECTILE_LAUNCH_SPRAY_ARG    = 0x14002800,
+        SHELTER_R48_PROJECTILE_TRAIL_SPRAY_ARG     = 0x12801800,
+        SHELTER_R48_PROJECTILE_LINGER_DRIFT_ARG    = 0x2802800,
+        SHELTER_R48_PROJECTILE_LINGER_SPRAY_ARG    = 0x12803800
+    };
+    EffectWork* work;
     GfxCoord*   coord;
 
-    mem   = (EffectWork*)arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
+    // Suspension redraws the cached sprite before cancellation retires the effect.
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        _shelterR48DrawBankedDriftSprite(coord, ((s16)(mem->age / 2) % 12) & 0xFFFF, 0x800, 0);
+        _shelterR48DrawBankedDriftSprite(coord, ((work->age / 2) % SHELTER_R48_PROJECTILE_SPRITE_FRAME_COUNT), SHELTER_R48_PROJECTILE_SPRITE_RADIUS_SCALE, 0);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
         }
         return;
     }
-    if (arg0->state == 0) {
-        coord->parent = mem->parent;
-        gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[2]   = 0;
-        coord->coord.t[1]   = 0;
-        coord->coord.t[0]   = 0;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
-        arg0->state = 1;
+    if (task->state == SHELTER_R48_PROJECTILE_STATE_NEW) {
+        _shelterR48AttachEffectCoord(coord, work->parent);
+        task->state = SHELTER_R48_PROJECTILE_STATE_ATTACHED;
     }
-    mem->age += 1;
-    switch (arg0->spawnArg1.value) {
-        case 0:
-            effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x14002800, NULL);
-            arg0->spawnArg1.value = 1;
+    work->age += 1;
+    switch (task->spawnArg1.value) {
+        case SHELTER_R48_PROJECTILE_MODE_NEW:
+            effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, SHELTER_R48_PROJECTILE_LAUNCH_SPRAY_ARG, NULL);
+            task->spawnArg1.value = SHELTER_R48_PROJECTILE_MODE_TRAIL;
             return;
-        case 1:
-            _shelterR48DrawBankedDriftSprite(coord, ((s16)(mem->age / 2) % 12) & 0xFFFF, 0x800, 0);
-            if (!(mem->age & 1)) {
-                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x12801800, NULL);
+        case SHELTER_R48_PROJECTILE_MODE_TRAIL:
+            _shelterR48DrawBankedDriftSprite(coord, ((work->age / 2) % SHELTER_R48_PROJECTILE_SPRITE_FRAME_COUNT), SHELTER_R48_PROJECTILE_SPRITE_RADIUS_SCALE, 0);
+            if (!(work->age & 1)) {
+                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, SHELTER_R48_PROJECTILE_TRAIL_SPRAY_ARG, NULL);
             }
-            mem->age += 1;
+            // Trail mode retains its second age increment after drawing and emission.
+            work->age += 1;
             return;
-        case 2:
-            if ((s16)(mem->age % 6) == 0) {
-                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x2802800, NULL);
+        case SHELTER_R48_PROJECTILE_MODE_PARTICLES:
+            // Keep emitting without a core until the shot owner tears down this effect.
+            if ((work->age % SHELTER_R48_PROJECTILE_DRIFT_PERIOD) == 0) {
+                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, SHELTER_R48_PROJECTILE_LINGER_DRIFT_ARG, NULL);
             }
-            if (!(mem->age & 1)) {
-                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x12803800, NULL);
+            if (!(work->age & 1)) {
+                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, SHELTER_R48_PROJECTILE_LINGER_SPRAY_ARG, NULL);
             }
             return;
     }
 }
 
-void func_shelter_r48_8017E9B8(Task* arg0)
+void shelterR48LargeOrbTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        SHELTER_R48_LARGE_ORB_STATE_NEW              = 0,
+        SHELTER_R48_LARGE_ORB_STATE_ATTACHED         = 1,
+        SHELTER_R48_LARGE_ORB_MODE_NEW               = 0,
+        SHELTER_R48_LARGE_ORB_MODE_TRAIL             = 1,
+        SHELTER_R48_LARGE_ORB_MODE_PARTICLES         = 2,
+        SHELTER_R48_LARGE_ORB_SPRITE_FRAME_COUNT     = 12,
+        SHELTER_R48_LARGE_ORB_TRAIL_RADIUS_SCALE     = 0x800,
+        SHELTER_R48_LARGE_ORB_SUSPENDED_RADIUS_SCALE = 0xa00,
+        SHELTER_R48_LARGE_ORB_ALTERNATE_PALETTE      = 0x1000,
+        SHELTER_R48_LARGE_ORB_LAUNCH_DRIFT_ARG       = 0x94002a00,
+        SHELTER_R48_LARGE_ORB_TRAIL_DRIFT_ARG        = 0x92801800,
+        SHELTER_R48_LARGE_ORB_LINGER_DRIFT_ARG       = 0x92603c00
+    };
+    EffectWork* work;
     GfxCoord*   coord;
 
-    mem   = (EffectWork*)arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
+    // Suspension redraws the cached sprite before cancellation retires the effect.
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        _shelterR48DrawBankedDriftSprite(coord, ((s16)(mem->age / 2) % 12 | 0x1000) & 0xFFFF, 0xA00, 0);
+        _shelterR48DrawBankedDriftSprite(coord, ((work->age / 2) % SHELTER_R48_LARGE_ORB_SPRITE_FRAME_COUNT | SHELTER_R48_LARGE_ORB_ALTERNATE_PALETTE), SHELTER_R48_LARGE_ORB_SUSPENDED_RADIUS_SCALE, 0);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
         }
         return;
     }
-    if (arg0->state == 0) {
-        coord->parent = mem->parent;
-        gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[2]   = 0;
-        coord->coord.t[1]   = 0;
-        coord->coord.t[0]   = 0;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
-        arg0->state = 1;
+    if (task->state == SHELTER_R48_LARGE_ORB_STATE_NEW) {
+        _shelterR48AttachEffectCoord(coord, work->parent);
+        task->state = SHELTER_R48_LARGE_ORB_STATE_ATTACHED;
     }
-    mem->age += 1;
-    switch (arg0->spawnArg1.value) {
-        case 0:
-            effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x94002A00, NULL);
-            arg0->spawnArg1.value = 1;
+    work->age += 1;
+    switch (task->spawnArg1.value) {
+        case SHELTER_R48_LARGE_ORB_MODE_NEW:
+            effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, SHELTER_R48_LARGE_ORB_LAUNCH_DRIFT_ARG, NULL);
+            task->spawnArg1.value = SHELTER_R48_LARGE_ORB_MODE_TRAIL;
             return;
-        case 1:
-            _shelterR48DrawBankedDriftSprite(coord, ((s16)(mem->age / 2) % 12 | 0x1000) & 0xFFFF, 0x800, 0);
-            if (!(mem->age & 1)) {
-                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x92801800, NULL);
+        case SHELTER_R48_LARGE_ORB_MODE_TRAIL:
+            _shelterR48DrawBankedDriftSprite(coord, ((work->age / 2) % SHELTER_R48_LARGE_ORB_SPRITE_FRAME_COUNT | SHELTER_R48_LARGE_ORB_ALTERNATE_PALETTE), SHELTER_R48_LARGE_ORB_TRAIL_RADIUS_SCALE, 0);
+            if (!(work->age & 1)) {
+                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, SHELTER_R48_LARGE_ORB_TRAIL_DRIFT_ARG, NULL);
             }
-            mem->age += 1;
+            // Trail mode retains its second age increment after drawing and emission.
+            work->age += 1;
             return;
-        case 2:
-            if (!(mem->age & 1)) {
-                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x92603C00, NULL);
+        case SHELTER_R48_LARGE_ORB_MODE_PARTICLES:
+            // Keep emitting without a core until the shot owner tears down this effect.
+            if (!(work->age & 1)) {
+                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, SHELTER_R48_LARGE_ORB_LINGER_DRIFT_ARG, NULL);
             }
             return;
     }
 }
 
-void func_shelter_r48_8017EC18(Task* task)
+void shelterR48YellowRingFlashTask(Task* task)
 {
+    /// Draws both yellow discs and leaves their tint in three writable RGB bytes.
+    ///
+    /// Arguments must be live object pointers and a writable three-byte array,
+    /// disjoint from both objects. Expanded repeatedly: pass simple variables
+    /// without side effects. Requires composed coordinates, scratch and primitive
+    /// capacity. Expands to a compound statement; radius keeps its signed low halfword.
+#define SHELTER_R48_DRAW_YELLOW_FLASH_DISCS(coord, work, rgb)                 \
+    {                                                                         \
+        (rgb)[0] = (work)->scale;                                             \
+        (rgb)[1] = (work)->scale;                                             \
+        (rgb)[2] = (work)->scale >> 2;                                        \
+        effectDrawGouraudDisc((coord), (work)->angle, (rgb));                 \
+        effectDrawGouraudDisc((coord), (s16)((u16)(work)->angle * 2), (rgb)); \
+    }
+    enum {
+        SHELTER_R48_YELLOW_FLASH_STATE_NEW           = 0,
+        SHELTER_R48_YELLOW_FLASH_STATE_CHARGING      = 1,
+        SHELTER_R48_YELLOW_FLASH_STATE_FADING        = 2,
+        SHELTER_R48_YELLOW_FLASH_CHARGE_UPDATES      = 90,
+        SHELTER_R48_YELLOW_FLASH_BRIGHTNESS_RAMP     = 256,
+        SHELTER_R48_YELLOW_FLASH_INITIAL_RADIUS      = 256,
+        SHELTER_R48_YELLOW_FLASH_RADIUS_STEP         = 24,
+        SHELTER_R48_YELLOW_FLASH_BAND_MIN_BRIGHTNESS = 97,
+        SHELTER_R48_YELLOW_FLASH_BAND_RADIUS_SHIFT   = 8,
+        SHELTER_R48_YELLOW_FLASH_BAND_WIDTH          = 512,
+        SHELTER_R48_YELLOW_FLASH_FULL_BRIGHTNESS     = 255,
+        SHELTER_R48_YELLOW_FLASH_FADE_STEP           = 16,
+        SHELTER_R48_YELLOW_FLASH_FADE_RADIUS_STEP    = 96
+    };
     EffectWork* work;
     GfxCoord*   coord;
     u8          rgb[3];
@@ -2549,67 +2665,52 @@ void func_shelter_r48_8017EC18(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        // Age counts even suspended visits; charge and fade advance only while running.
         work->age++;
         switch (task->state) {
-            case 0:
-                coord->parent = work->parent;
-                gfxSetRotIdentity(&coord->coord);
-                coord->coord.t[2]   = 0;
-                coord->coord.t[1]   = 0;
-                coord->coord.t[0]   = 0;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                task->spawnArg1.value = 0x5A;
-                task->state           = 1;
+            case SHELTER_R48_YELLOW_FLASH_STATE_NEW:
+                _shelterR48AttachEffectCoord(coord, work->parent);
+                task->spawnArg1.value = SHELTER_R48_YELLOW_FLASH_CHARGE_UPDATES;
+                task->state           = SHELTER_R48_YELLOW_FLASH_STATE_CHARGING;
                 work->scale           = 0;
-                work->angle           = 0x100;
-                work->step            = 0x100 / task->spawnArg1.value;
-            case 1:
+                work->angle           = SHELTER_R48_YELLOW_FLASH_INITIAL_RADIUS;
+                work->step            = SHELTER_R48_YELLOW_FLASH_BRIGHTNESS_RAMP / task->spawnArg1.value;
+                // Fall through to draw the first charge tick after initialization.
+            case SHELTER_R48_YELLOW_FLASH_STATE_CHARGING:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                    rgb[0] = work->scale;
-                    rgb[1] = work->scale;
-                    rgb[2] = work->scale >> 2;
-                    effectDrawGouraudDisc(coord, work->angle, rgb);
-                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                    if (work->scale >= 0x61) {
+                    SHELTER_R48_DRAW_YELLOW_FLASH_DISCS(coord, work, rgb);
+                    if (work->scale >= SHELTER_R48_YELLOW_FLASH_BAND_MIN_BRIGHTNESS) {
                         rgb[0] = work->period;
                         rgb[1] = work->period;
                         rgb[2] = work->period >> 2;
-                        effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value << 8), 0x200, rgb);
+                        effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value << SHELTER_R48_YELLOW_FLASH_BAND_RADIUS_SHIFT), SHELTER_R48_YELLOW_FLASH_BAND_WIDTH, rgb);
                     }
                     return;
                 }
                 work->scale += work->step;
-                work->angle += 0x18;
+                work->angle += SHELTER_R48_YELLOW_FLASH_RADIUS_STEP;
                 task->spawnArg1.value--;
-                rgb[0] = work->scale;
-                rgb[1] = work->scale;
-                rgb[2] = work->scale >> 2;
-                effectDrawGouraudDisc(coord, work->angle, rgb);
-                effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                if (work->scale >= 0x61) {
+                SHELTER_R48_DRAW_YELLOW_FLASH_DISCS(coord, work, rgb);
+                if (work->scale >= SHELTER_R48_YELLOW_FLASH_BAND_MIN_BRIGHTNESS) {
                     work->period += (u16)work->step * 2;
                     rgb[0]        = work->period;
                     rgb[1]        = work->period;
                     rgb[2]        = work->period >> 2;
-                    effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value << 8), 0x200, rgb);
+                    effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value << SHELTER_R48_YELLOW_FLASH_BAND_RADIUS_SHIFT), SHELTER_R48_YELLOW_FLASH_BAND_WIDTH, rgb);
                 }
                 if (task->spawnArg1.value == 0) {
-                    work->scale = 0xFF;
-                    task->state = 2;
+                    work->scale = SHELTER_R48_YELLOW_FLASH_FULL_BRIGHTNESS;
+                    task->state = SHELTER_R48_YELLOW_FLASH_STATE_FADING;
                     effectSpawn(EFFECT_SHELTER_R48_RING_WALL, coord, 0, NULL);
                 }
                 return;
-            case 2:
-                if (work->scale >= 0x11) {
-                    rgb[0] = work->scale;
-                    rgb[1] = work->scale;
-                    rgb[2] = work->scale >> 2;
-                    effectDrawGouraudDisc(coord, work->angle, rgb);
-                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
+            case SHELTER_R48_YELLOW_FLASH_STATE_FADING:
+                // Draw the saved brightness before applying the active-tick fade.
+                if (work->scale >= SHELTER_R48_YELLOW_FLASH_FADE_STEP + 1) {
+                    SHELTER_R48_DRAW_YELLOW_FLASH_DISCS(coord, work, rgb);
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                        work->scale -= 0x10;
-                        work->angle -= 0x60;
+                        work->scale -= SHELTER_R48_YELLOW_FLASH_FADE_STEP;
+                        work->angle -= SHELTER_R48_YELLOW_FLASH_FADE_RADIUS_STEP;
                     }
                     effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                     return;
@@ -2620,6 +2721,7 @@ void func_shelter_r48_8017EC18(Task* task)
         }
     }
     effectKillTask(work, task);
+#undef SHELTER_R48_DRAW_YELLOW_FLASH_DISCS
 }
 
 void shelterR48RingWallTask(Task* task)
@@ -3242,71 +3344,88 @@ static void _shelterR48DrawAlternateDriftSprite(const GfxCoord* coord, u16 frame
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-void func_shelter_r48_801810B0(Task* task)
+void shelterR48OrangeRingFlashTask(Task* task)
 {
+    /// Draws both orange discs and leaves their tint in three writable RGB bytes.
+    ///
+    /// Arguments must be live object pointers and a writable three-byte array,
+    /// disjoint from both objects. Expanded repeatedly: pass simple variables
+    /// without side effects. Requires composed coordinates, scratch and primitive
+    /// capacity. Expands to a compound statement; radius keeps its signed low halfword.
+#define SHELTER_R48_DRAW_ORANGE_FLASH_DISCS(coord, work, rgb)                 \
+    {                                                                         \
+        (rgb)[0] = (work)->scale;                                             \
+        (rgb)[1] = (work)->scale >> 1;                                        \
+        (rgb)[2] = (work)->scale >> 2;                                        \
+        effectDrawGouraudDisc((coord), (work)->angle, (rgb));                 \
+        effectDrawGouraudDisc((coord), (s16)((u16)(work)->angle * 2), (rgb)); \
+    }
+    enum {
+        SHELTER_R48_ORANGE_FLASH_STATE_NEW         = 0,
+        SHELTER_R48_ORANGE_FLASH_STATE_CHARGING    = 1,
+        SHELTER_R48_ORANGE_FLASH_STATE_FADING      = 2,
+        SHELTER_R48_ORANGE_FLASH_ATTACH_PITCH      = -1024,
+        SHELTER_R48_ORANGE_FLASH_BRIGHTNESS_RAMP   = 256,
+        SHELTER_R48_ORANGE_FLASH_INITIAL_RADIUS    = 256,
+        SHELTER_R48_ORANGE_FLASH_BAND_PULSE_PERIOD = 10,
+        SHELTER_R48_ORANGE_FLASH_BAND_WIDTH        = 256,
+        SHELTER_R48_ORANGE_FLASH_FULL_BRIGHTNESS   = 255,
+        SHELTER_R48_ORANGE_FLASH_FADE_STEP         = 4
+    };
     EffectWork* work;
     GfxCoord*   coord;
-    EffectWork* eff;
+    EffectWork* shockwaveWork;
     u8          rgb[3];
-    s32         step;
-    s16         scale;
+    s32         brightnessStep;
+    s16         previousBrightness;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        // Age counts even suspended visits; charge and fade advance only while running.
         work->age++;
         switch (task->state) {
-            case 0:
+            case SHELTER_R48_ORANGE_FLASH_STATE_NEW:
                 coord->parent = work->parent;
-                gfxRotMatrixX(&coord->coord, -0x400, GRAPHICS_ROTATION_REPLACE);
+                gfxRotMatrixX(&coord->coord, SHELTER_R48_ORANGE_FLASH_ATTACH_PITCH, GRAPHICS_ROTATION_REPLACE);
                 coord->coord.t[2]   = 0;
                 coord->coord.t[1]   = 0;
                 coord->coord.t[0]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                task->state = 1;
+                task->state = SHELTER_R48_ORANGE_FLASH_STATE_CHARGING;
                 work->scale = 0;
-                work->angle = 0x100;
-                work->step  = 0x100 / task->spawnArg1.value;
-            case 1:
+                work->angle = SHELTER_R48_ORANGE_FLASH_INITIAL_RADIUS;
+                work->step  = SHELTER_R48_ORANGE_FLASH_BRIGHTNESS_RAMP / task->spawnArg1.value;
+                // Fall through to draw the first charge tick after initialization.
+            case SHELTER_R48_ORANGE_FLASH_STATE_CHARGING:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                    rgb[0] = work->scale;
-                    rgb[1] = work->scale >> 1;
-                    rgb[2] = work->scale >> 2;
-                    effectDrawGouraudDisc(coord, work->angle, rgb);
-                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                    effectDrawOuterGlowBand(coord, (s16)((task->spawnArg1.value % 10) * (work->scale << 2)), 0x100, rgb);
+                    SHELTER_R48_DRAW_ORANGE_FLASH_DISCS(coord, work, rgb);
+                    effectDrawOuterGlowBand(coord, (s16)((task->spawnArg1.value % SHELTER_R48_ORANGE_FLASH_BAND_PULSE_PERIOD) * (work->scale << 2)), SHELTER_R48_ORANGE_FLASH_BAND_WIDTH, rgb);
                     return;
                 }
-                scale        = work->scale;
-                step         = (u16)work->step;
-                work->scale  = scale + step;
-                work->angle += (u16)work->step * 8;
+                previousBrightness = work->scale;
+                brightnessStep     = (u16)work->step;
+                work->scale        = previousBrightness + brightnessStep;
+                work->angle       += (u16)work->step * 8;
                 task->spawnArg1.value--;
-                rgb[0] = work->scale;
-                rgb[1] = work->scale >> 1;
-                rgb[2] = work->scale >> 2;
-                effectDrawGouraudDisc(coord, work->angle, rgb);
-                effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                effectDrawOuterGlowBand(coord, (s16)((task->spawnArg1.value % 10) * (work->scale << 2)), 0x100, rgb);
+                SHELTER_R48_DRAW_ORANGE_FLASH_DISCS(coord, work, rgb);
+                effectDrawOuterGlowBand(coord, (s16)((task->spawnArg1.value % SHELTER_R48_ORANGE_FLASH_BAND_PULSE_PERIOD) * (work->scale << 2)), SHELTER_R48_ORANGE_FLASH_BAND_WIDTH, rgb);
                 if (task->spawnArg1.value == 0) {
-                    work->scale = 0xFF;
-                    task->state = 2;
-                    eff         = effectSpawn(EFFECT_SHELTER_R48_SHOCKWAVE_RINGS, coord, 0, NULL);
-                    if (eff != NULL) {
-                        taskReparent(task, eff->task);
+                    work->scale   = SHELTER_R48_ORANGE_FLASH_FULL_BRIGHTNESS;
+                    task->state   = SHELTER_R48_ORANGE_FLASH_STATE_FADING;
+                    shockwaveWork = effectSpawn(EFFECT_SHELTER_R48_SHOCKWAVE_RINGS, coord, 0, NULL);
+                    if (shockwaveWork != NULL) {
+                        taskReparent(task, shockwaveWork->task);
                     }
                 }
                 return;
-            case 2:
-                if (work->scale >= 5) {
-                    rgb[0] = work->scale;
-                    rgb[1] = work->scale >> 1;
-                    rgb[2] = work->scale >> 2;
-                    effectDrawGouraudDisc(coord, work->angle, rgb);
-                    effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
+            case SHELTER_R48_ORANGE_FLASH_STATE_FADING:
+                // Draw the saved brightness before applying the active-tick fade.
+                if (work->scale >= SHELTER_R48_ORANGE_FLASH_FADE_STEP + 1) {
+                    SHELTER_R48_DRAW_ORANGE_FLASH_DISCS(coord, work, rgb);
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                        work->scale -= 4;
+                        work->scale -= SHELTER_R48_ORANGE_FLASH_FADE_STEP;
                     }
                     effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                     return;
@@ -3317,26 +3436,7 @@ void func_shelter_r48_801810B0(Task* task)
         }
     }
     effectKillTask(work, task);
-}
-
-/// Places an effect at its parent's origin and refreshes its composed transform.
-///
-/// `coord` must be a live writable node, disjoint from its borrowed `parent`.
-/// A non-NULL parent and all ancestors must remain live in an acyclic chain
-/// until the effect detaches; NULL makes a root node. Replaces the nine Q12
-/// rotation coefficients and all three translation words, preserving matrix
-/// alignment bytes and `param` storage.
-/// Clears the composition stamp before composing the full chain, which may
-/// refresh ancestors and overwrite GTE state. Allocates and releases nothing.
-static inline void _shelterR48AttachEffectCoord(GfxCoord* coord, GfxCoord* parent)
-{
-    coord->parent = parent;
-    gfxSetRotIdentity(&coord->coord);
-    coord->coord.t[2]   = 0;
-    coord->coord.t[1]   = 0;
-    coord->coord.t[0]   = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
+#undef SHELTER_R48_DRAW_ORANGE_FLASH_DISCS
 }
 
 void shelterR48ShockwaveRingsTask(Task* task)

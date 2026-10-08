@@ -1355,13 +1355,13 @@ shelterB6TrainingRoomHealSpiralTask = 0x80182804; // type:func absolute:True own
 
 shelterR48InitRingsAndDrawGlowTask = 0x8017E3B8; // type:func absolute:True owner=shelter_r48
 
-func_shelter_r48_8017E4C4 = 0x8017E4C4; // type:func absolute:True owner=shelter_r48
+shelterR48SmallOrbTask = 0x8017E4C4; // type:func absolute:True owner=shelter_r48
 
-func_shelter_r48_8017E704 = 0x8017E704; // type:func absolute:True owner=shelter_r48
+shelterR48ProjectileTask = 0x8017E704; // type:func absolute:True owner=shelter_r48
 
-func_shelter_r48_8017E9B8 = 0x8017E9B8; // type:func absolute:True owner=shelter_r48
+shelterR48LargeOrbTask = 0x8017E9B8; // type:func absolute:True owner=shelter_r48
 
-func_shelter_r48_8017EC18 = 0x8017EC18; // type:func absolute:True owner=shelter_r48
+shelterR48YellowRingFlashTask = 0x8017EC18; // type:func absolute:True owner=shelter_r48
 
 shelterR48RingWallTask = 0x8017EFD8; // type:func absolute:True owner=shelter_r48
 
@@ -1369,7 +1369,7 @@ shelterR48WaterDriftTaskU16 = 0x8017F6C0; // type:func absolute:True owner=shelt
 
 shelterR48SpriteDriftTask = 0x80180210; // type:func absolute:True owner=shelter_r48
 
-func_shelter_r48_801810B0 = 0x801810B0; // type:func absolute:True owner=shelter_r48
+shelterR48OrangeRingFlashTask = 0x801810B0; // type:func absolute:True owner=shelter_r48
 
 shelterR48ShockwaveRingsTask = 0x8018147C; // type:func absolute:True owner=shelter_r48
 

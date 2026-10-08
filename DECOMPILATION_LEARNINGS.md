@@ -140885,7 +140885,7 @@ expands the array reference's address before the right-hand side, so the base
 is the first invariant loop.c meets. m2c's `temp_a0 = j + i*16` computed ahead
 of the LCG is the hint.
 
-### `field += step; field2 += step << 3` with a `move` copy: reload the addend, no asm needed (func_shelter_r48_801810B0, 2026-09-23)
+### `field += step; field2 += step << 3` with a `move` copy: reload the addend, no asm needed (shelterR48OrangeRingFlashTask, 2026-09-23)
 
 The `addu / sh / move v0,v1 / lhu v1,field2 / sll v0,v0,3` shape described
 under "Earlyclobber empty asm copies an SI value" also comes out of plain C.
@@ -140896,16 +140896,17 @@ full SI `zero_extend`, not the HI load a narrowed `s16 += (u16)x` produces
 through an `s32` local:
 
 ```c
-scale       = work->scale;          /* s16 local: puts the lhu of scale first */
-step        = (u16)work->step;      /* s32 local: SI zero_extend, not narrowed */
-work->scale = scale + step;
+previousBrightness = work->scale;     /* s16 local: puts the lhu of scale first */
+brightnessStep     = (u16)work->step;  /* s32 local: SI zero_extend, not narrowed */
+work->scale        = previousBrightness + brightnessStep;
 work->angle += (u16)work->step * 8; /* second load -> reload_cse `move` */
 ```
 
-The `scale` local fixes the load order only: with `work->scale += step` the
-HI mem of `scale` is not loaded until the add, after `step`'s assignment has
-already been emitted, so the two `lhu`s come out swapped. Embedding the
-assignment (`work->scale += (step = ...)`, either operand order) does not help.
+The `previousBrightness` local fixes the load order only: with
+`work->scale += brightnessStep` the HI mem of `scale` is not loaded until the
+add, after `brightnessStep`'s assignment has already been emitted, so the two
+`lhu`s come out swapped. Embedding the assignment
+(`work->scale += (brightnessStep = ...)`, either operand order) does not help.
 
 ### A copy that crosses no call but lands in a callee-saved register is a reused long-lived variable (_shelterR48DrawGlowBeam, 2026-09-23)
 
@@ -149505,7 +149506,7 @@ attempts; left as it was.
   found = 1; break; } }` is not the same code: the zero is loaded before the
   loop and the hit path gets its own `j; li 1`.
 - Not converted to a loop without a goto: the scan in
-  `_shelterR48StaffCardTriggerHit`, inlined by `_shelterR48UseStaffCard`, has the 1
+  `_shelterR48HasRoomEventTriggerHit`, inlined by `_shelterR48UseStaffCard`, has the 1
   loaded *before* the loop (`beqz node,exhausted; li a0,1`). A direct-return inline
   gives the armory shape, the flag-and-`break` form gives the zero before the
   loop, and `found = 1; for (;;) { if (!node) { found = 0; break; } ... }` is

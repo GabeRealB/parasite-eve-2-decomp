@@ -76,21 +76,21 @@ shelterR48SetBackgroundSpritesVisible = 0x8017E27C; // type:func
 
 shelterR48InitRingsAndDrawGlowTask = 0x8017E3B8; // type:func
 
-func_shelter_r48_8017E4C4 = 0x8017E4C4; // type:func
+shelterR48SmallOrbTask = 0x8017E4C4; // type:func
 
-func_shelter_r48_8017EC18 = 0x8017EC18; // type:func
+shelterR48YellowRingFlashTask = 0x8017EC18; // type:func
 
 shelterR48WaterDriftTaskU16 = 0x8017F6C0; // type:func
 
 shelterR48SpriteDriftTask = 0x80180210; // type:func
 
-func_shelter_r48_8017E704 = 0x8017E704; // type:func
+shelterR48ProjectileTask = 0x8017E704; // type:func
 
-func_shelter_r48_8017E9B8 = 0x8017E9B8; // type:func
+shelterR48LargeOrbTask = 0x8017E9B8; // type:func
 
 shelterR48RingWallTask = 0x8017EFD8; // type:func
 
-func_shelter_r48_801810B0 = 0x801810B0; // type:func
+shelterR48OrangeRingFlashTask = 0x801810B0; // type:func
 
 shelterR48ShockwaveRingsTask = 0x8018147C; // type:func
 
@@ -108,3 +108,6 @@ _shelterR48RoomIdleState = 0x8017e214; // type:func
 _shelterR48UseStaffCard = 0x8017df50; // type:func
 shelterR48RoomTask = 0x8017e224; // type:func
 _shelterR48ResolveTransitionMessage = 0x8017e044; // type:func
+_shelterR48RoomActionMsg = 0x8017e090; // type:func
+_shelterR48AdvanceBossSceneMsg = 0x8017e0ec; // type:func
+_shelterR48RoomSetupState = 0x8017e1a4; // type:func
