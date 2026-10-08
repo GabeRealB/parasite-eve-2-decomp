@@ -335,7 +335,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_TMD, 0x52 } }, func_mm1_8011DBD0, { &D_mm1_8012D444 } },
-    { { { TASK_BODY_TMD, 0x52 } }, func_kyle_800102_801682B4, { &D_kyle_800102_801775A8 } },
+    { { { TASK_BODY_TMD, 0x52 } }, kyle800102GrenadeShellTask, { &D_kyle_800102_801775A8 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },

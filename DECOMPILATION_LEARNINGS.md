@@ -68235,7 +68235,7 @@ splat symbol (`%hi(D_kyle_800102_80167A74)`). The scorer treats the two operands
 as different registers-or-symbols and charges two `regs`; nothing about
 allocation differs.
 
-`func_kyle_800102_801682B4` is the worked example - 99.6%, `regs: 2`, every
+`kyle800102GrenadeShellTask` is the worked example - 99.6%, `regs: 2`, every
 instruction and every `.word` of the template correct, and the unscoped
 `./tools/build-and-verify.sh` matched unchanged.
 

@@ -13,3 +13,4 @@ gGrenadeShellMuzzleOffsets = 0x80177424;
 gGrenadeShellBlastRadii = 0x80177434;
 gGrenadeShellSpeeds = 0x8017743C;
 _grenadeShellBlast = 0x80168244; // type:func
+kyle800102GrenadeShellTask = 0x801682b4; // type:func

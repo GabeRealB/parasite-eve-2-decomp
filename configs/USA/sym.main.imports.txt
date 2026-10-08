@@ -200,7 +200,7 @@ D_m4a1_grenade_8012E1FC = 0x8012E1FC; // absolute:True owner=m4a1_grenade
 actor800300Task = 0x801625F4; // type:func absolute:True owner=actor_800300
 actor800200Task = 0x801626EC; // type:func absolute:True owner=actor_800200
 actor800100Task = 0x80163CF0; // type:func absolute:True owner=actor_800100
-func_kyle_800102_801682B4 = 0x801682B4; // type:func absolute:True owner=kyle_800102
+kyle800102GrenadeShellTask = 0x801682B4; // type:func absolute:True owner=kyle_800102
 gActor800300Model02CF4 = 0x8016885C; // absolute:True owner=actor_800300
 gActor800200FlintBody = 0x80169ECC; // absolute:True owner=actor_800200
 D_kyle_800102_8016CE38 = 0x8016CE38; // absolute:True owner=kyle_800102

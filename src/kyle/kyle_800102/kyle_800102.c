@@ -44,16 +44,16 @@ static void _grenadeShellSpawn(Task* task);
 
 #include "../../shared/grenade_shell_exit.inc.c"
 #include "gameplay/animation.h"
-void func_kyle_800102_801682B4(Task* task)
+void kyle800102GrenadeShellTask(Task* projectileTask)
 {
-    TaskFunc states[4] = {
+    const TaskFunc stateHandlers[] = {
         _grenadeShellSpawn,
         _grenadeShellFly,
         _grenadeShellBlast,
         _grenadeShellExit,
     };
 
-    states[task->state](task);
+    stateHandlers[projectileTask->state](projectileTask);
 }
 
 static TmdBone _gKyle800102KyleMadiganBodySkeleton[20] = {
