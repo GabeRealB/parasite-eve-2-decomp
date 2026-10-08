@@ -136,7 +136,7 @@ enum {
     /// Sucklerceph burst, many actors).
     EFFECT_030 = EFFECT_ID(EFFECT_TASK_BANK, 0x030),
     /// A particle orbiting and bobbing around the player, spreading out and fading as
-    /// the charge ends; up to 32 are spawned by the PE charge task func_800FAA14 while
+    /// the charge ends; up to 32 are spawned by the PE charge task effectPeChargeTask while
     /// a Parasite Energy is charging.
     EFFECT_PE_CHARGE_PARTICLE = EFFECT_ID(EFFECT_TASK_BANK, 0x032),
     /// Ramps the lift bay CLUT from its unlit to its lit palette (gpuBlendRgb555ClutRow)

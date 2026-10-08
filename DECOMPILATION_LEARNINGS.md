@@ -29341,7 +29341,7 @@ s                           = tmp;       /* move a0, v0 */
 same, so the cast buys nothing.
 
 Free by rematerialising `*SCRATCH_STACK_CURSOR_SLOT` — `$a0` now holds `s`,
-so a saved `scratch` local would need another register. `func_8010133C`
+so a saved `scratch` local would need another register. `_playerActorWalkTextGrid`
 is the example. Direct `s = head - N` stuck at 95.8% with `$a0`/`$a1`
 swapped and no `move`.
 
@@ -33342,7 +33342,7 @@ if (p->next != NULL) {
 p->next = helper(p, 1, a, b);
 ```
 
-`func_80103294` is the example.
+`_playerActorReplaceAttachments` is the example.
 
 ## `register ... asm("v1")` steals anonymous `mflo`; assign the last square into that pin
 
@@ -37133,7 +37133,7 @@ sll   a2,a2,0x10      # unwanted
 sra   a2,a2,0x10      # unwanted
 ```
 
-The target for `func_800FF710` has only `lh a2,0x24(s0)` / `addiu a2,a2,-0x40`,
+The target for `effectHitSparkBurstTask` has only `lh a2,0x24(s0)` / `addiu a2,a2,-0x40`,
 i.e. no truncation at all, which only happens when the parameter is `s32`.
 Grepping the callee confirmed it: `_effectDrawSparkBurstBillboard` does `srl $a2, $s4, 16`, so
 it consumes the *upper* half of the argument — it cannot be `s16`.
@@ -148562,7 +148562,7 @@ source.
   *2026-10-06: resolved without a pin. The row is a cursor advanced between
   the two lines; see "A row cursor advanced with `+=` keeps the references
   combine merged away" at the end of this file.*
-- **func_800FF710**, `one`/`old` pinned to `$v1`, `k` to `$a2`. The split
+- **effectHitSparkBurstTask**, `one`/`old` pinned to `$v1`, `k` to `$a2`. The split
   `lui 0x7135` ... `ori 0x7911` is what a plain `+ RANDOM_LCG_INCREMENT`
   expands to (two insns on one pseudo); the hand split is not needed for
   that. Those two insns have sched1 priority 1 and are only picked when a
@@ -149272,7 +149272,7 @@ put the last copy where the image has the block:
 - **Guard at the top and the same kill later** (`if (flag < MIN) { ...; if
   (age < period) goto spawn; } kill(); return; spawn:`) is an early
   `if (flag >= MIN) { kill(); return; }` plus `if (age >= period) { kill();
-  return; }` at the later site (`func_800F91AC`, `effectHitSplatterSprayTask`,
+  return; }` at the later site (`effectHitPuffEmitterTask`, `effectHitSplatterSprayTask`,
   `effectControlTask7F`, `effectDeathFlameTask`, `effectSpriteTaskF4`, first try each).
 - **A tail with its own branches merges too** when it is a `static inline`
   called in both arms (`effectProjectileGlowTask`: guard, LCG step, conditional spawn).
@@ -151587,7 +151587,7 @@ No instruction changes; only the order of allocation does.
   (`7f000001` = a boosted birth) and ends with `register N life shortened from
   A to B`; here the `.lreg` header already showed B.
 
-## One pin was carrying three, a barrier and two contortions (func_800FF710, 2026-10-06)
+## One pin was carrying three, a barrier and two contortions (effectHitSparkBurstTask, 2026-10-06)
 
 **Problem.** The `state == 0` block needed `one`/`old` pinned to `$v1`, `k`
 pinned to `$a2`, a `TOUCH_REG(k)`, the LCG increment split by hand into
@@ -151608,13 +151608,13 @@ makes of the inline, not something to spell.
 **Fix (partial).** One pin, on a local that has a meaning:
 
 ```c
-register s32 old asm("v1");
+register s32 previousRandomState asm("v1");
 ...
 gfxSetRotIdentity(&coord->coord);
 ...
-old             = gRandomLcgState;
-gRandomLcgState = old * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-mem->index      = (gRandomLcgState >> 16) & 0xFFF;
+previousRandomState = gRandomLcgState;
+gRandomLcgState     = previousRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+work->index         = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
 ```
 
 **Why the last pin is still there, with the numbers** (`tools/trace_gcc.py`
@@ -153319,7 +153319,7 @@ on the first build, with the constant and the pointer locals deleted and the
 neighbouring statements untouched (`effectSpriteTaskE2` and
 `effectControlTask0E` through their init inlines, `effectControlTask7F`,
 `effectSpriteTaskA7`, `effectControlTaskAE`, `effectSpriteTask32`,
-`effectProjectileGlowTask`, `func_800F91AC`, `effectGravityParticleTask`; `func_800FF710` the day
+`effectProjectileGlowTask`, `effectHitPuffEmitterTask`, `effectGravityParticleTask`; `effectHitSparkBurstTask` the day
 before). The first store through the coordinate and the rest through
 `coord + 4`, the parent store landing after the first `ONE` store, and the
 `ONE, ONE, ONE, 0, 0` store order `effectGravityParticleTask` spelled by hand are all

@@ -350,8 +350,8 @@ extern s16 D_80112E10[];
 /// adds `D_80112E20[turnRateIndex] * turnSign` onto `rotation.vy` (masked `0xFFF`).
 extern u16 D_80112E20[];
 
-/// 2-wide rows of `GfxCoord` indices. `func_8010403C` indexes
-/// `D_80112E2C[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1][arg0]`.
+/// 2-wide rows of `GfxCoord` indices. `_playerActorGetCharacterPartCoord` indexes
+/// `D_80112E2C[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1][partSelector]`.
 extern u8 D_80112E2C[][2];
 
 /// u16 turn-rate rows indexed by `gPlayerStatus.weapon`. `playerActorAimYawToLock`
@@ -455,8 +455,6 @@ static void _playerActorInitWork(Task* task);
 
 static void _playerActorWorkState1(Task* task);
 
-static void func_8010133C(void);
-
 static void _playerActorWorkState2(Task* task);
 
 static void _playerActorTeardown(Task* task);
@@ -479,8 +477,6 @@ static void _playerActorAimDirectPitchToLock(Task* task);
 
 static void _playerActorTickTextureSequences(Task* task);
 
-static Task* func_80103294(Task* arg0, s32 arg1, s32 arg2);
-
 inline static Task* _playerActorSpawnEquippedWeapon(Task* parent, s32 characterId, s32 weaponId);
 
 static void _playerActorCapturePadState(Task* task);
@@ -490,10 +486,6 @@ static void _animationBindPlayerWeaponBank(Task* task);
 static s32 _playerActorGetIdleHealthBand(void);
 
 static s32 _playerActorSetMovementSignFromDisplacement(Task* task, const GameActorMoveBy* move);
-
-static void func_80103CB4(GfxCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3);
-
-static GfxCoord* func_8010403C(s32 arg0);
 
 static void _playerActorPostVibrationPreset(Task* task, s32 presetIndex);
 
@@ -2024,56 +2016,77 @@ void effectSpriteTask42(Task* task)
 #undef EFFECT_TRAIL_PUFF_SET_CORNERS
 }
 
-void func_800F91AC(Task* arg0)
+/// Attaches the puff emitter and decodes its signed width and duration tuning.
+///
+/// Borrows the live task, counted work and writable coordinate for this call.
+/// The parent remains borrowed after attachment; the duration is three ticks
+/// per high-half unit and one extra puff is emitted per 768 width units.
+static inline void _effectInitHitPuffEmitter(Task* task, EffectWork* work, GfxCoord* coord)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s16         flag;
-    s16         width;
-    s32         half;
-    s32         i;
+    enum {
+        EFFECT_HIT_PUFF_TICKS_PER_DURATION_UNIT = 3,
+        EFFECT_HIT_PUFF_WIDTH_PER_PARTICLE      = 768,
+        EFFECT_HIT_PUFF_DURATION_SHIFT          = 16,
+    };
+    coord->parent = work->parent;
+    gfxSetRotIdentity(&coord->coord);
+    coord->coord.t[0]   = work->pos.vx;
+    coord->coord.t[1]   = work->pos.vy;
+    coord->coord.t[2]   = work->pos.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->state         = EFFECT_DRAW_TASK_ACTIVE;
+    work->scale         = task->spawnArg1.value;
+    work->angle         = task->spawnArg1.value >> EFFECT_HIT_PUFF_DURATION_SHIFT;
+    work->period        = work->angle * EFFECT_HIT_PUFF_TICKS_PER_DURATION_UNIT;
+    work->step          = work->scale / EFFECT_HIT_PUFF_WIDTH_PER_PARTICLE + 1;
+}
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        effectKillTask(mem, arg0);
+void effectHitPuffEmitterTask(Task* task)
+{
+    enum {
+        // Size 512, additive blending; choose one or two ticks per texture cell.
+        EFFECT_HIT_PUFF_CHILD_ARGUMENT   = 0x11200,
+        EFFECT_HIT_PUFF_CHILD_PERIOD_BIT = 0x1000,
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
+    s16         emissionWidth;
+    s32         halfWidth;
+    s32         particleIndex;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        effectKillTask(work, task);
         return;
     }
-    if (arg0->state == 0) {
-        coord->parent = mem->parent;
-        gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[0]   = mem->pos.vx;
-        coord->coord.t[1]   = mem->pos.vy;
-        coord->coord.t[2]   = mem->pos.vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->state         = 1;
-        mem->scale          = arg0->spawnArg1.value;
-        mem->angle          = arg0->spawnArg1.value >> 16;
-        mem->period         = mem->angle * 3;
-        mem->step           = mem->scale / 768 + 1;
+    if (task->state == EFFECT_DRAW_TASK_NEW) {
+        _effectInitHitPuffEmitter(task, work, coord);
     }
     actorRenderComposeCoord(coord);
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
-    if (mem->age >= mem->period) {
-        effectKillTask(mem, arg0);
+    if (work->age >= work->period) {
+        effectKillTask(work, task);
         return;
     }
-    width = mem->scale;
-    half  = width >> 1;
-    for (i = 0; i < mem->step; i++) {
+    // Children snapshot independent placements within the emitter's local cube.
+    emissionWidth = work->scale;
+    halfWidth     = emissionWidth >> 1;
+    for (particleIndex = 0; particleIndex < work->step; particleIndex++) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vx    = (s32)(gRandomLcgState >> 16) % width - half;
+        work->move.vx   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vy    = (s32)(gRandomLcgState >> 16) % width - half;
+        work->move.vy   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vz    = (s32)(gRandomLcgState >> 16) % width - half;
+        work->move.vz   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectSpawn(EFFECT_HIT_PUFF, coord, ((gRandomLcgState >> 16) & 0x1000) + 0x11200, &mem->move);
+        effectSpawn(EFFECT_HIT_PUFF, coord, ((gRandomLcgState >> 16) & EFFECT_HIT_PUFF_CHILD_PERIOD_BIT) + EFFECT_HIT_PUFF_CHILD_ARGUMENT, &work->move);
     }
-    mem->age++;
+    work->age++;
 }
 
 void effectHitSplatterSprayTask(Task* task)
@@ -2660,37 +2673,43 @@ static void _effectControlTask07State1(Task* unusedTask)
     }
 }
 
-void func_800FAA14(Task* arg0)
+void effectPeChargeTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        EFFECT_PE_CHARGE_PARTICLE_LIMIT     = 32,
+        EFFECT_PE_CHARGE_MIN_EMISSION_TICKS = 9,
+        EFFECT_PE_CHARGE_GROUP_STRIDE       = 9,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s32         pan;
+    s32         audioPan;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    if (arg0->state == 0) {
-        arg0->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
-                                           ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 +
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
+    // This callback leaves state unchanged, so new tasks refresh the sound each tick.
+    if (task->state == EFFECT_DRAW_TASK_NEW) {
+        task->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.attachId / 100U) - 1) * EFFECT_PE_CHARGE_GROUP_STRIDE +
+                                           ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * ATTACHMENT_AREA_LEVEL_COUNT +
                                            ((u16)(Gp_StateC08.attachId % 10U) - 1U)];
     }
     actorRenderComposeCoord(coord);
     if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || Gp_StateC08.duration == 0 ||
         Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
         (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && (u16)(Gp_StateC08.attachId / 10U) != ATTACHMENT_ID_HEALING_FAMILY)) {
-        if (arg0->spawnArg1.value != 0) {
-            sndEvtRequestScriptStop(arg0->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        if (task->spawnArg1.value != 0) {
+            sndEvtRequestScriptStop(task->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
-    if (Gp_StateC08.duration >= 9) {
-        if (mem->scale < 0x20) {
-            if (mem->scale == 0) {
-                pan = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(arg0->spawnArg1.value, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    if (Gp_StateC08.duration >= EFFECT_PE_CHARGE_MIN_EMISSION_TICKS) {
+        if (work->scale < EFFECT_PE_CHARGE_PARTICLE_LIMIT) {
+            if (work->scale == 0) {
+                audioPan = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(task->spawnArg1.value, audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            effectSpawn(EFFECT_PE_CHARGE_PARTICLE, coord, 0, 0);
-            mem->scale++;
+            effectSpawn(EFFECT_PE_CHARGE_PARTICLE, coord, 0, NULL);
+            work->scale++;
         }
     }
 }
@@ -4607,81 +4626,105 @@ void effectSpriteTask3F(Task* task)
 #undef EFFECT_PROJECTILE_BURST_PARTICLE_SET_CORNERS
 }
 
-void func_800FF710(Task* arg0)
+/// Emits one independent hit spark at a random parent-local offset.
+///
+/// Borrows live counted work and the composed emitter coordinate. widthBits
+/// encodes a positive signed-halfword width and halfWidth is width / 2.
+/// work->period must be positive. Advances the shared random stream for XYZ,
+/// an age-dependent flash/fade choice and a size in 128..639 coordinate units.
+static inline void _effectEmitHitSparkParticle(EffectWork* work, GfxCoord* coord, u16 widthBits, s32 halfWidth)
 {
-    EffectWork*  mem;
-    GfxCoord*    coord;
-    s16          flag;
-    register s32 old asm("v1");
-    s32          temp;
-    s32          temp2;
-    s32          i;
-    s32          half;
-    s32          r3;
-    s32          id;
-    u16          v;
+    enum {
+        EFFECT_HIT_SPARK_PARTICLE_SIZE_MASK = 511,
+        EFFECT_HIT_SPARK_PARTICLE_MIN_SIZE  = 128,
+    };
+    s32 transitionAge;
+    s32 particleEffectId;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vx   = (s32)(gRandomLcgState >> 16) % (s16)widthBits - halfWidth;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vy   = (s32)(gRandomLcgState >> 16) % (s16)widthBits - halfWidth;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vz   = (s32)(gRandomLcgState >> 16) % (s16)widthBits - halfWidth;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    transitionAge   = (s32)(gRandomLcgState >> 16) % work->period;
+
+    particleEffectId = EFFECT_SPARK_FADE;
+    if (work->age < transitionAge) {
+        particleEffectId = EFFECT_FLASH_BURST;
+    }
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    effectSpawn(particleEffectId, coord, ((gRandomLcgState >> 16) & EFFECT_HIT_SPARK_PARTICLE_SIZE_MASK) + EFFECT_HIT_SPARK_PARTICLE_MIN_SIZE, &work->move);
+}
+
+void effectHitSparkBurstTask(Task* task)
+{
+    enum {
+        EFFECT_HIT_SPARK_DENSITY_SHIFT   = 10,
+        EFFECT_HIT_SPARK_DURATION_SHIFT  = 2,
+        EFFECT_HIT_SPARK_FRAME_AGE_SHIFT = 1,
+        EFFECT_HIT_SPARK_BILLBOARD_INSET = 64,
+        EFFECT_HIT_SPARK_EMISSION_MASK   = 3,
+    };
+    EffectWork*  work;
+    GfxCoord*    coord;
+    s16          effectControl;
+    register s32 previousRandomState asm("v1");
+    s32          requestedWidth;
+    s32          durationUnits;
+    s32          particleIndex;
+    s32          halfWidth;
+    u16          widthBits;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
     } else {
-        if (arg0->state == 0) {
-            coord->parent = mem->parent;
+        // Attach at the copied offset; the high half tunes chance and lifetime.
+        if (task->state == EFFECT_DRAW_TASK_NEW) {
+            coord->parent = work->parent;
             gfxSetRotIdentity(&coord->coord);
-            coord->coord.t[0]   = mem->pos.vx;
-            coord->coord.t[1]   = mem->pos.vy;
-            coord->coord.t[2]   = mem->pos.vz;
+            coord->coord.t[0]   = work->pos.vx;
+            coord->coord.t[1]   = work->pos.vy;
+            coord->coord.t[2]   = work->pos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            arg0->state         = 1;
-            /* The previous random state shares $v1 with the identity's ONE. */
-            old             = gRandomLcgState;
-            gRandomLcgState = old * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->index      = (gRandomLcgState >> 16) & 0xFFF;
-            temp            = arg0->spawnArg1.halves.low;
-            mem->scale      = temp;
-            temp2           = arg0->spawnArg1.halves.high;
-            mem->step       = ((s16)temp >> 10) + 1;
-            mem->angle      = temp2;
-            mem->period     = temp2 << 2;
+            task->state         = EFFECT_DRAW_TASK_ACTIVE;
+            // The previous random state shares $v1 with the identity's ONE.
+            previousRandomState = gRandomLcgState;
+            gRandomLcgState     = previousRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->index         = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+            requestedWidth      = task->spawnArg1.halves.low;
+            work->scale         = requestedWidth;
+            durationUnits       = task->spawnArg1.halves.high;
+            work->step          = ((s16)requestedWidth >> EFFECT_HIT_SPARK_DENSITY_SHIFT) + 1;
+            work->angle         = durationUnits;
+            work->period        = durationUnits << EFFECT_HIT_SPARK_DURATION_SHIFT;
         }
         actorRenderComposeCoord(coord);
-        _effectDrawSparkBurstBillboard(coord, (u16)(mem->age >> 1), mem->scale - 0x40, mem->index);
+        // Draw before the running-only expiry test, including the final frame.
+        _effectDrawSparkBurstBillboard(coord, (u16)(work->age >> EFFECT_HIT_SPARK_FRAME_AGE_SHIFT), work->scale - EFFECT_HIT_SPARK_BILLBOARD_INSET, work->index);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        if (mem->age >= mem->period) {
-            effectKillTask(mem, arg0);
+        if (work->age >= work->period) {
+            effectKillTask(work, task);
             return;
         }
-        v    = mem->scale;
-        half = (s16)v >> 1;
-        for (i = 0; i < mem->step; i++) {
+        widthBits = work->scale;
+        halfWidth = (s16)widthBits >> 1;
+        for (particleIndex = 0; particleIndex < work->step; particleIndex++) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (mem->angle >= (s32)((gRandomLcgState >> 16) & 3)) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = (s32)(gRandomLcgState >> 16) % (s16)v - half;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = (s32)(gRandomLcgState >> 16) % (s16)v - half;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = (s32)(gRandomLcgState >> 16) % (s16)v - half;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                r3              = (s32)(gRandomLcgState >> 16) % mem->period;
-
-                id = 0x600E1;
-                if (mem->age < r3) {
-                    id = 0x600E0;
-                }
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effectSpawn(id, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x80,
-                            &mem->move);
+            if (work->angle >= (s32)((gRandomLcgState >> 16) & EFFECT_HIT_SPARK_EMISSION_MASK)) {
+                _effectEmitHitSparkParticle(work, coord, widthBits, halfWidth);
             }
         }
-        mem->age++;
+        work->age++;
     }
 }
 
@@ -5367,31 +5410,45 @@ s32 worldCollisionApplyResponsePushback(GfxCoord* coord, const WorldCollisionCon
     return response;
 }
 
-static void func_8010133C(void)
+/// Walks the retained text-grid pen and colour state without drawing any text.
+///
+/// Has no callers in this image. Borrows one complete scratch-stack block for
+/// two rows of three cells and releases it before returning; no output survives.
+static void _playerActorWalkTextGrid(void)
 {
-    void**                       scratch;
-    _PlayerActorTextGridScratch* head;
+    enum {
+        PLAYER_ACTOR_TEXT_GRID_ROW_COUNT      = 2,
+        PLAYER_ACTOR_TEXT_GRID_COLUMN_COUNT   = 3,
+        PLAYER_ACTOR_TEXT_GRID_COLUMN_PITCH   = 64,
+        PLAYER_ACTOR_TEXT_GRID_CELL_Y_STEP    = 80,
+        PLAYER_ACTOR_TEXT_GRID_FIRST_ROW_Y    = -88,
+        PLAYER_ACTOR_TEXT_GRID_SECOND_ROW_Y   = 8,
+        PLAYER_ACTOR_TEXT_GRID_FIRST_ROW_RGB  = 0x808008,
+        PLAYER_ACTOR_TEXT_GRID_SECOND_ROW_RGB = 0x37A78,
+    };
+    void**                       cursorSlot;
+    _PlayerActorTextGridScratch* previousCursor;
     _PlayerActorTextGridScratch* block;
     _PlayerActorTextGridScratch* grid;
-    s32                          color;
+    u32                          firstRowColorRgb;
 
-    scratch                                               = SCRATCH_HEAD_ADDR;
-    color                                                 = 0x808008;
-    head                                                  = SCRATCH_HEAD_AT(scratch, _PlayerActorTextGridScratch);
-    block                                                 = head - 1;
-    SCRATCH_HEAD_AT(scratch, _PlayerActorTextGridScratch) = block;
-    grid                                                  = block;
-    grid->colorRgb                                        = color;
-    grid->penY                                            = -0x58;
-    for (grid->row = 0; grid->row < 2; grid->row++) {
+    cursorSlot                                               = SCRATCH_HEAD_ADDR;
+    firstRowColorRgb                                         = PLAYER_ACTOR_TEXT_GRID_FIRST_ROW_RGB;
+    previousCursor                                           = SCRATCH_HEAD_AT(cursorSlot, _PlayerActorTextGridScratch);
+    block                                                    = previousCursor - 1;
+    SCRATCH_HEAD_AT(cursorSlot, _PlayerActorTextGridScratch) = block;
+    grid                                                     = block;
+    grid->colorRgb                                           = firstRowColorRgb;
+    grid->penY                                               = PLAYER_ACTOR_TEXT_GRID_FIRST_ROW_Y;
+    for (grid->row = 0; grid->row < PLAYER_ACTOR_TEXT_GRID_ROW_COUNT; grid->row++) {
         grid->column = 0;
-        grid->penX   = -0x40;
-        for (; grid->column < 3; grid->column++) {
-            grid->penX += 0x40;
-            grid->penY -= 0x50;
+        grid->penX   = -PLAYER_ACTOR_TEXT_GRID_COLUMN_PITCH;
+        for (; grid->column < PLAYER_ACTOR_TEXT_GRID_COLUMN_COUNT; grid->column++) {
+            grid->penX += PLAYER_ACTOR_TEXT_GRID_COLUMN_PITCH;
+            grid->penY -= PLAYER_ACTOR_TEXT_GRID_CELL_Y_STEP;
         }
-        grid->colorRgb = 0x37A78;
-        grid->penY     = 8;
+        grid->colorRgb = PLAYER_ACTOR_TEXT_GRID_SECOND_ROW_RGB;
+        grid->penY     = PLAYER_ACTOR_TEXT_GRID_SECOND_ROW_Y;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorTextGridScratch);
 }
@@ -6305,19 +6362,33 @@ static inline Task* _playerActorSpawnAttachment(Task* actorTask, s32 attachmentI
     return task;
 }
 
-static Task* func_80103294(Task* arg0, s32 arg1, s32 arg2)
+/// Kills an attachment slot's old child before attempting its replacement.
+///
+/// Slot 0 or 1 belongs to the borrowed actor task/work. Uses the attachment
+/// spawner's rig and variant contract; allocation failure leaves this slot NULL.
+static inline void _playerActorReplaceAttachmentSlot(Task* actorTask, GameActor* actor, s32 attachmentIndex, s32 rigIndex, s32 pairVariant)
+{
+    if (actor->attachmentTasks[attachmentIndex] != NULL) {
+        taskKill(actor->attachmentTasks[attachmentIndex]);
+    }
+    actor->attachmentTasks[attachmentIndex] = _playerActorSpawnAttachment(actorTask, attachmentIndex, rigIndex, pairVariant);
+}
+
+/// Replaces both actor attachment slots in order and returns the second new task.
+///
+/// Has no callers in this image. Requires live actor/model resources, rigIndex
+/// 0..5, pairVariant 0..1, and rigIndex + resourceVariant - 2 in 0..7 with the
+/// selected bank-7 descriptors loaded. Each old child is killed before its
+/// replacement is attempted. A failed spawn leaves that slot NULL, without
+/// rolling back the other slot; the result reports only the second spawn.
+/// Successful children borrow rig coordinates until their parent is torn down.
+static Task* _playerActorReplaceAttachments(Task* actorTask, s32 rigIndex, s32 pairVariant)
 {
     GameActor* actor;
 
-    actor = arg0->work;
-    if (actor->attachmentTasks[0] != NULL) {
-        taskKill(actor->attachmentTasks[0]);
-    }
-    actor->attachmentTasks[0] = _playerActorSpawnAttachment(arg0, 0, arg1, arg2);
-    if (actor->attachmentTasks[1] != NULL) {
-        taskKill(actor->attachmentTasks[1]);
-    }
-    actor->attachmentTasks[1] = _playerActorSpawnAttachment(arg0, 1, arg1, arg2);
+    actor = actorTask->work;
+    _playerActorReplaceAttachmentSlot(actorTask, actor, 0, rigIndex, pairVariant);
+    _playerActorReplaceAttachmentSlot(actorTask, actor, 1, rigIndex, pairVariant);
     return actor->attachmentTasks[1];
 }
 
@@ -6658,22 +6729,30 @@ void playerActorGetPointDelta(const GfxCoord* coord, const VECTOR3* point, VECTO
     delta->vz = point->vz - coord->coord.t[2];
 }
 
-static void func_80103CB4(GfxCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3)
+/// Subtracts a coordinate's transformed local point (0, -1536, 0) from a point.
+///
+/// Has no callers in this image; unusedArgument has no effect. Inputs share
+/// the coordinate's parent frame and use game-coordinate units. Reads only
+/// the local transform, without composing it; writes XYZ with retained GTE
+/// fixed-point behavior. Inputs are borrowed for the call and point may alias
+/// delta. Uses one VECTOR scratch block and changes GTE state.
+static void _playerActorGetElevatedPointDelta(GfxCoord* coord, s32 unusedArgument, const VECTOR3* point, VECTOR3* delta)
 {
-    u8*     head;
-    VECTOR* vec;
+    enum { PLAYER_ACTOR_ELEVATED_POINT_HEIGHT = 1536 };
+    VECTOR* scratchEnd;
+    VECTOR* localOffset;
 
-    head                         = SCRATCH_STACK_CURSOR(u8);
-    vec                          = (VECTOR*)(head - 0x10);
-    SCRATCH_STACK_CURSOR(VECTOR) = vec;
-    ((VECTOR*)(head - 0x10))->vx = 0;
-    vec->vy                      = -0x600;
-    vec->vz                      = 0;
-    ApplyMatrixLV(&arg0->coord, vec, vec);
-    arg3->vx = arg2->vx - (arg0->coord.t[0] + ((VECTOR*)(head - 0x10))->vx);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-    arg3->vy = arg2->vy - (arg0->coord.t[1] + vec->vy);
-    arg3->vz = arg2->vz - (arg0->coord.t[2] + vec->vz);
+    scratchEnd                   = SCRATCH_STACK_CURSOR(VECTOR);
+    localOffset                  = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = localOffset;
+    localOffset->vx              = 0;
+    localOffset->vy              = -PLAYER_ACTOR_ELEVATED_POINT_HEIGHT;
+    localOffset->vz              = 0;
+    ApplyMatrixLV(&coord->coord, localOffset, localOffset);
+    delta->vx = point->vx - (coord->coord.t[0] + localOffset->vx);
+    delta->vy = point->vy - (coord->coord.t[1] + localOffset->vy);
+    delta->vz = point->vz - (coord->coord.t[2] + localOffset->vz);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 s32 playerActorPlanarLength(s32 x, s32 z)
@@ -6772,14 +6851,20 @@ void playerActorTrackLockTarget(Task* task)
     }
 }
 
-static GfxCoord* func_8010403C(s32 arg0)
+/// Returns the live player's character-specific coordinate for selector 0 or 1.
+///
+/// Has no callers in this image. Requires an occupied player slot, a loaded
+/// model and saved characterId 1..2. Character 1 selects parts 18/15;
+/// character 2 selects root 0 for either selector. Selector roles are unproven.
+/// Returns a borrowed node valid only while that player's model remains live.
+static GfxCoord* _playerActorGetCharacterPartCoord(s32 partSelector)
 {
-    Task* slot;
-    u8    idx;
+    Task* playerTask;
+    u8    partIndex;
 
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    idx  = D_80112E2C[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1][arg0];
-    return &slot->extra.tmd->coords[idx];
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    partIndex  = D_80112E2C[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1][partSelector];
+    return &playerTask->extra.tmd->coords[partIndex];
 }
 
 void actorRenderPlaceCoordOffset(GfxCoord* source, GfxCoord* placed, const SVECTOR* localOffset)
@@ -8343,7 +8428,9 @@ static const TaskFuncTable8 D_8009794C = { {
 ///
 /// Borrows live player/native playback and status resources. Clears movement,
 /// turn, phase and rumble state, releases lock-on and locks attachment events
-/// before resetting weapon effects and blending child slots 3 onward.
+/// before resetting weapon effects and blending child slots 3..5 to set 25
+/// over six normal-rate frames. Requires normal state 0..6 and an equipped
+/// weapon index 0..32; stateAux retains the interrupted state for recovery.
 static inline void _playerActorEnterParalysis(Task* task, const PlayerStatus* status)
 {
     enum {

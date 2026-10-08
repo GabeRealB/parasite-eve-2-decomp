@@ -67,8 +67,6 @@ void playerActorUpdateMove(void);
 /// Hidden or cancelled room effects immediately free the work and kill the task.
 void effectProjectileGlowTask(Task* task);
 
-void func_800F91AC(Task* arg0);
-
 /// Runs the Berserker shot-burst controller, gameplay effect bank 6 slot 0x0E.
 ///
 /// Uses the task's owned `EffectWork` spawn argument and coordinate body. First
@@ -79,8 +77,6 @@ void func_800F91AC(Task* arg0);
 /// burst guard and releases its work/task. Effect control can pause it or cancel
 /// it directly; direct cancellation does not clear that guard.
 void effectControlTask0E(Task* task);
-
-void func_800FF710(Task* arg0);
 
 /// Sources of a player reload animation; state 5 retains this value until completion.
 enum {
@@ -178,8 +174,6 @@ void playerActorEnterAim(Task* task, s32 blendFrames);
 /// frames. Clears the selected node's targeted mark and requests angle decay.
 /// Requires live actor/native playback and a live selected target if present.
 void playerActorExitAim(Task* task);
-
-void func_800FAA14(Task* arg0);
 
 /// Dispatches the persistent PE-effect controller in bank 6 slot 07.
 ///

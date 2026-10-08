@@ -6,6 +6,50 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
+/// Emits additive hit puffs at random points in a parent-local cube, bank 6 slot 0x9A.
+///
+/// Requires counted, initially zeroed EffectWork and a coordinate body. The
+/// signed low spawn half is emission width in game-coordinate units; emitting
+/// ticks require nonzero width (positive widths are 1..32767). The signed high
+/// half supplies three ticks per unit, narrowed to s16 (1..10922 without overflow).
+/// work->scale holds width, angle duration units, period lifetime and step
+/// width / 768 + 1 puffs per tick. work->move is each copied child offset.
+/// First update attaches at work->pos under the borrowed parent, which must
+/// outlive the emitter. Non-running effects compose but freeze emission/age;
+/// cancellation or expiry releases work/task. Children run independently.
+void effectHitPuffEmitterTask(Task* task);
+
+/// Emits the PE charge's first 32 particles and starts its sound, bank 6 slot 0xA8.
+///
+/// Requires counted, zeroed EffectWork, a coordinate body, initialized live
+/// attachment/effect state and ability indices 0..17 with levels 1..3. State 0
+/// refreshes the sound ID from the 54-entry table on every callback; state is
+/// never advanced. work->scale counts spawn attempts, including failures.
+/// With at least nine charge ticks left, the first attempt starts positional
+/// sound and every attempt emits an independently owned orbiting particle.
+/// Emission does not test the ordinary or PE pause state. Zero duration, PE
+/// cancellation, a cancelled attachment or combat ending (except Healing)
+/// stops the currently selected nonzero sound and frees work/task. Keeps the
+/// spawner's view-parent placement; particle tasks obtain their own player root.
+void effectPeChargeTask(Task* task);
+
+/// Draws a hit burst and emits randomized flash/fade particles, bank 6 slot 0x8E.
+///
+/// Requires counted, zeroed EffectWork, a coordinate body and a borrowed parent
+/// that outlives the task. The signed low spawn half is emission width in
+/// coordinate units; positive emitting widths are 1..32767. The signed high
+/// half supplies four ticks per duration unit (1..8191 without s16 overflow)
+/// and an inclusive emission threshold against a random value 0..3.
+/// work->scale holds width, angle threshold, period lifetime, step
+/// (width >> 10) + 1 trials per tick and index a 4096-unit billboard angle.
+/// Billboard size/palette uses the packed word width - 64 and frame age / 2,
+/// retaining carries and masking in the drawer. A random age threshold biases
+/// children from flash bursts toward fading sparks; their size is 128..639.
+/// Draws before testing expiry. Visible pause draws without aging/emission;
+/// hidden control waits, and cancellation/expiry frees work/task. Children
+/// retain copied placement and live independently of this emitter.
+void effectHitSparkBurstTask(Task* task);
+
 /// Six CLUT X coordinates (0x20, 0x30, 0xC0, 0xD0, 0xE0, 0xF0) selected by
 /// bits 12..15 of `effectDrawSpinningBillboard`'s packed angle/palette argument and paired with CLUT
 /// Y 0x10B.
