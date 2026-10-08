@@ -44287,7 +44287,7 @@ mips-linux-gnu-as -EL -I include -I build -I include/psyq -I include/decomp \
     -O2 -march=r3000 -mtune=r3000 -no-pad-sections -G0 -o target.o target.s
 ```
 
-`Actor02500_Fn01E60` (0x1E60-0x1F8C, nine L-labels) matched at 100% on the
+`_actor02500Tick` (0x1E60-0x1F8C, nine L-labels) matched at 100% on the
 second attempt this way, against a fragment that cannot be expressed in C at
 all.
 
@@ -45077,7 +45077,7 @@ chosen by an `if` must be a ternary, not a pre-set local".
 
 ## A named `Jt` table mid-header still moves with one `rodata` cut
 
-`Actor02500_L02050` is a four-instruction `jlabel` arm of `Actor02500_Fn02008`'s
+`Actor02500_L02050` is a four-instruction `jlabel` arm of `_actor02500DispatchAction`'s
 `jr $v0` switch, so the parent is what gets matched (see "A vacuum `L`-label is
 a basic block, not a function"). What is new here is where the table sat:
 `Actor02500_Jt0005C` is the *fifth* symbol in `actor_102500_header.rodata.s`,
@@ -75221,9 +75221,9 @@ Evidence: `tools/permuter_findings/_actor02500TickSounds/`, session
 `bef67713ebe94c2eafc87e1a4f2dee96`, run `6d16af41db434cd7`;
 PERMUTER_ANALYSIS.md and retained base_1/base_2 .lreg/.greg dumps.
 
-## Actor02500_Fn025D0: coordinate flag clear after translation copy
+## _actor02500SpawnCorpsePoison: coordinate flag clear after translation copy
 
-Controlled base_2 moved composeStamp=0 after coord.t[2] assignment, improving 97.812% to 100%. sched2 clear UID81 gains REG_DEP_ANTI on Z load UID76, preventing the earlier clear placement observed in base_1. Saved register homes remain unchanged. This is an observed memory anti-dependency, not a universal statement-order scheduler rule. MATRIX assignment first restored the 32-byte block-copy instruction. Full evidence retained in tools/permuter_findings/Actor02500_Fn025D0/.
+Controlled base_2 moved composeStamp=0 after poisonCoord->coord.t[2] assignment, improving 97.812% to 100%. sched2 clear UID81 gains REG_DEP_ANTI on Z load UID76, preventing the earlier clear placement observed in base_1. Saved register homes remain unchanged. This is an observed memory anti-dependency, not a universal statement-order scheduler rule. MATRIX assignment first restored the 32-byte block-copy instruction. Full evidence retained in tools/permuter_findings/_actor02500SpawnCorpsePoison/.
 
 base_1.i: 4f5dc4438614656d665dc2cf26a057a95a800f591eb622581efc1a5052ad1eed
 base_2.i: 39176c30f42af258ae5536f26564ef7defc494ce284297ef9b2225b98994e255
@@ -131332,12 +131332,12 @@ third of it belonging to some other function drags all of them below the
 threshold together. Treat a suspiciously empty `similar` on a large function as
 one more reason to check the boundary.
 
-## Design the block-0 register assignment from the local-alloc priority formula, and use a multi-output `asm` as the ref multiplier (Actor02500_Fn00494, 2026-09-18)
+## Design the block-0 register assignment from the local-alloc priority formula, and use a multi-output `asm` as the ref multiplier (_actor02500ResolveContacts, 2026-09-18)
 
 **Problem.** A 417-instruction function sat at 99.88-99.90% across two earlier
 sessions with `regs` as the only penalty. The whole residue was three block-0
 quantities landing in each other's registers: the scratchpad-head pointer, the
-`head - 0x30` allocation result and the `index->field_2C` temp wanted `$v0`,
+`head - 0x30` allocation result and the `actor->spawnArg2.pointer` temp wanted `$v0`,
 `$v1` and `$a1`, and every attempt permuted which of them got which.
 
 **What settles it.** `CODEGEN_MODEL.md` §10.3's priority is not just for reading
@@ -144267,7 +144267,7 @@ single stepped pointer per matrix without help, and `&block->currentColumn` for 
 operand folds to the old head minus 0x10 on its own once the block is taken
 with `SCRATCH_STACK_RESERVE_BLOCK`.
 
-## A table walked with a stepped index keeps `sll`/`addu` per iteration only as `T[base + i * 2]`; a one-ref priority gap is a reused local (Actor02500_Fn012F0, 2026-09-26)
+## A table walked with a stepped index keeps `sll`/`addu` per iteration only as `T[base + i * 2]`; a one-ref priority gap is a reused local (_actor02500Ambush, 2026-09-26)
 
 Target loop: the table base hoisted into `$sN`, and every iteration recomputing
 `sll v1,s0,2; addu v1,v1,s6` from a register that steps by 2, beside a separate
@@ -144281,7 +144281,7 @@ reduced giv (the register stepping by 2) and the address giv is left alone.
 The same touch also paid for an allocation. Without it the counter and the
 radius were at `3589` against `3571` in `allocno_compare` (7 refs / 39 insns vs
 5 / 28), one reference apart. Using the radius variable for the earlier
-`SquareRoot0` distance test as well (`dist = SquareRoot0(...); if (dist < 0x7D0
+`SquareRoot0` distance test as well (`distance = SquareRoot0(...); if (distance < ACTOR_02500_AMBUSH_NOTICE_RADIUS
 ...)`) adds two refs and a two-insn range, and the order flips with no change to
 the code. When a touch's only job is extra refs on a value, look for an earlier,
 short-lived value of the same kind that the original may have kept in the same
