@@ -194,8 +194,12 @@ WorldCollisionSurfaceProperties* D_shelter_r49_8017DDF8[8] = {
 
 /// Queues movie 100 for the current room, borrowing the loaded stream descriptors.
 ///
-/// Requires a matching slot in 0..14 and prepared movie workspace. The CD queue
-/// copies the four-byte argument block synchronously and consumes its slot byte.
+/// Requires a live session, prepared movie workspace, a loaded descriptor for
+/// the current room/sub-ID 0 and room in the CD ring. Lookup must yield slot
+/// 0..14; failure is unchecked. Enqueue copies all four argument bytes
+/// synchronously, but playback reads only the initialized slot byte. The other
+/// three bytes retain their stack contents. The resident zero-key convention
+/// supplies the ignored file key. Movie resources must stay live through playback.
 static inline void _shelterR49QueueRoomMovie(void)
 {
     enum { SHELTER_R49_MOVIE_STREAM_ID = 100 };

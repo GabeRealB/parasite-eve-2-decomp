@@ -90815,7 +90815,7 @@ Backing files: `base_7.i.dbr` (the winning fill), `base_3.i.dbr` (the copied one
 ## A shared record's block-0 schedule is the *conditional's shape*, not the scheduler
 
 The "ternary over a global needs its load bound to a local" section above is
-about `_actor341900FinishSkippedScene`; `func_dryfield_motel_room_1_8017DFD0` sends
+about `_actor341900FinishSkippedScene`; `_dryfieldMotelRoom1RestorePlayerAfterSkip` sends
 the same slot-3 msg 0x3E8 record, and it is the diagnostic that is worth
 generalising. Written the natural sequential way,
 

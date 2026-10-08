@@ -101,6 +101,7 @@ static void _dryfieldNightDrivewayRoomIdle(Task* task);
 enum {
     DRYFIELD_NIGHT_DRIVEWAY_MESSAGE_USE_KEY_ITEM = 0x13F1,
     DRYFIELD_NIGHT_DRIVEWAY_ENCOUNTER_WAVE_BEGIN = 1,
+    DRYFIELD_NIGHT_DRIVEWAY_PLAYER_STATE_RUNNING = 0,
 };
 
 extern WorldCollisionGrid         D_dryfield_night_driveway_80180C0C[1];
@@ -120,7 +121,7 @@ static s32                      _dryfieldNightDrivewayRejectKeyItem(Task* task, 
 static s32                      _dryfieldNightDrivewayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandMode);
 static s32                      _dryfieldNightDrivewayIgnoreDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static void                     _dryfieldNightDrivewaySetEncounterWave(s32 waveStage);
-void                            func_dryfield_night_driveway_8017DC88(u8);
+static void                     _dryfieldNightDrivewaySetPlayerStateHold(u8 hold);
 
 TaskDesc gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -258,7 +259,7 @@ EvsCommand gDrivewayBlackoutScript[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_dryfield_night_driveway_8017DC88 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _dryfieldNightDrivewaySetPlayerStateHold }, { .value = DRYFIELD_NIGHT_DRIVEWAY_PLAYER_STATE_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F524 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -978,10 +979,14 @@ static void _dryfieldNightDrivewaySetEncounterWave(s32 waveStage)
 
 #include "../../shared/dryfield_driveway_set_view_dirty.inc.c"
 
-/// Script callback: stores its argument into `D_80115768`.
-void func_dryfield_night_driveway_8017DC88(u8 arg0)
+/// Sets whether the player's actor-state update is held during the blackout scene.
+///
+/// Zero resumes state updates; every other byte holds them. The script resumes
+/// updates after the blackout task held them. Pending displacement, coordinate
+/// composition and collision processing still run while state updates are held.
+static void _dryfieldNightDrivewaySetPlayerStateHold(u8 hold)
 {
-    D_80115768 = arg0;
+    D_80115768 = hold;
 }
 
 #include "../../shared/dryfield_driveway_script_sound.inc.c"

@@ -71,3 +71,5 @@ _dryfieldMotelRoom1RejectKeyItemUse = 0x8017d5ec; // type:func
 _dryfieldMotelRoom1ResolveTransition = 0x8017d5f4; // type:func
 _dryfieldMotelRoom1IgnoreRoomCommand = 0x8017d61c; // type:func
 _dryfieldMotelRoom1IdleRoomTask = 0x8017d74c; // type:func
+_dryfieldMotelRoom1RequestEventAction = 0x8017dfb0; // type:func
+_dryfieldMotelRoom1RestorePlayerAfterSkip = 0x8017dfd0; // type:func

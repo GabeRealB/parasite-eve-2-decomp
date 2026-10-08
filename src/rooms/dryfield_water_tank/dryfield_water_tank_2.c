@@ -767,13 +767,20 @@ static inline void _dryfieldWaterTankResumeAfterMovie(Task* task)
 }
 
 /// Restarts the equipped weapon's standing clip without enabling grid collision.
+///
+/// Requires the registered player/model, character 1 and equipped weapon slot
+/// 0..32 with clip 1 loaded. Takes scripted control and requests disabled grid
+/// participation through a synchronously borrowed animation request, resetting
+/// playback without blending. The selected resources remain borrowed through
+/// playback. The other-character bank offset is retained; its reachable storage
+/// is unproven. Position and orientation are supplied separately by the caller.
 static inline void _dryfieldWaterTankRestoreWeaponStance(void)
 {
     enum {
-        DRYFIELD_WATER_TANK_PRIMARY_CHARACTER_ID       = 1,
-        DRYFIELD_WATER_TANK_PRIMARY_WEAPON_BANK_BASE   = 1,
-        DRYFIELD_WATER_TANK_ALTERNATE_WEAPON_BANK_BASE = 0x22,
-        DRYFIELD_WATER_TANK_WEAPON_STANCE_CLIP         = 1,
+        DRYFIELD_WATER_TANK_PRIMARY_CHARACTER_ID        = 1,
+        DRYFIELD_WATER_TANK_PRIMARY_WEAPON_BANK_BASE    = 1,
+        DRYFIELD_WATER_TANK_OTHER_CHARACTER_BANK_OFFSET = 0x22,
+        DRYFIELD_WATER_TANK_WEAPON_STANCE_CLIP          = 1,
     };
 
     AnimationPlayRequest stance;
@@ -781,7 +788,7 @@ static inline void _dryfieldWaterTankRestoreWeaponStance(void)
     s32                  animationBank;
 
     weaponId                    = gPlayerStatus.weapon;
-    animationBank               = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_WATER_TANK_PRIMARY_CHARACTER_ID) ? weaponId + DRYFIELD_WATER_TANK_PRIMARY_WEAPON_BANK_BASE : weaponId + DRYFIELD_WATER_TANK_ALTERNATE_WEAPON_BANK_BASE;
+    animationBank               = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_WATER_TANK_PRIMARY_CHARACTER_ID) ? weaponId + DRYFIELD_WATER_TANK_PRIMARY_WEAPON_BANK_BASE : weaponId + DRYFIELD_WATER_TANK_OTHER_CHARACTER_BANK_OFFSET;
     stance.source.index         = animationBank;
     stance.animationId          = DRYFIELD_WATER_TANK_WEAPON_STANCE_CLIP;
     stance.blend                = ANIMATION_BLEND_RESET;

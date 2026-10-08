@@ -32,3 +32,9 @@ D_actor_143900_801413EC = 0x801413EC; // absolute:True owner=actor_143900
 
 shelterR49EffectNoopTask = 0x8017D9D0; // type:func
 _shelterR49PlayMovieTask = 0x8017d71c; // type:func
+_shelterR49RejectKeyItem = 0x8017d5ec; // type:func
+_shelterR49ResolveRoomTransition = 0x8017d5f4; // type:func
+_shelterR49IgnoreRoomCommand = 0x8017d638; // type:func
+_shelterR49IgnoreDirectionAction = 0x8017d640; // type:func
+_shelterR49RoomIdle = 0x8017d6b4; // type:func
+shelterR49RoomTask = 0x8017d6c4; // type:func

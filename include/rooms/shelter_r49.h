@@ -32,7 +32,15 @@ extern SpriteView D_shelter_r49_8017DCA0[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_r49_8017DDF8[];
 
-void func_shelter_r49_8017D6C4(Task* task);
+/// Runs Shelter R49's room initialization, idle or teardown state.
+///
+/// The stage's room-task table starts this bodyless task in state 0. Initialization
+/// installs its message handlers, publishes it in the room slot and starts the
+/// room scene unless the live save's demo scene is 9. State 1 remains idle;
+/// state 2 kills the task. The state must stay in 0..2; dispatch has no bounds
+/// check. Requires the room, map and scene-actor overlays to remain loaded while
+/// their callbacks or scripts can run. No work block or spawn payload is used.
+void shelterR49RoomTask(Task* task);
 
 /// No-op per-frame callback for Shelter R49's room-effect task.
 ///

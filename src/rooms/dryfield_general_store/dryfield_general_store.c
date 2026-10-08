@@ -1651,6 +1651,10 @@ void func_dryfield_general_store_8017DF5C(Task* task)
 }
 
 /// Advances the scene-cue lifetime and destroys its task once the counter is negative.
+///
+/// Borrows a live task. Decrements its counter modulo 65536 and interprets the
+/// stored result as a signed halfword. The cue begins at 90 and survives zero,
+/// so teardown occurs on the 91st wait update. Owns no work or spawn payload.
 static inline void _dryfieldGeneralStoreExpireSceneCue(Task* task)
 {
     s16 framesLeft;

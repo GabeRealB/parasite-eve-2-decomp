@@ -137,3 +137,4 @@ _dryfieldNightDrivewayRejectKeyItem = 0x8017dce4; // type:func
 _dryfieldNightDrivewayIgnoreRoomCommand = 0x8017dcec; // type:func
 _dryfieldNightDrivewayIgnoreDirectionAction = 0x8017dcf4; // type:func
 _dryfieldNightDrivewayRoomIdle = 0x8017dd7c; // type:func
+_dryfieldNightDrivewaySetPlayerStateHold = 0x8017dc88; // type:func

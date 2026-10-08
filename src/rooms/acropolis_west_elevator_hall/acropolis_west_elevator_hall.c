@@ -1110,8 +1110,10 @@ void acropolisWestElevatorHallRoomTask(Task* task)
 
 /// Places a drawable leaf at the closed doorway in the current view hierarchy.
 ///
-/// Borrows a live leaf model and its root coordinate. Coordinates are whole
-/// world units; invalidates composition after parenting and setting translation.
+/// Borrows a live leaf model and its root coordinate, clearing all model draw
+/// flags and parenting the root to the current view. Sets the room-coordinate
+/// translation to (-1000, -20, 2420) in whole units and invalidates composition.
+/// Rotation and scale remain intact; no composition or draw is performed here.
 static inline void _acropolisWestElevatorHallPlaceClosedDoorLeaf(TmdObject* doorModel, GfxCoord* doorCoord)
 {
     enum {

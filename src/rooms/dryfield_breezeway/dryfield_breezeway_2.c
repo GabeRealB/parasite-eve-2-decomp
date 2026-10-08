@@ -1405,8 +1405,11 @@ void dryfieldBreezewayAmbientEffectsTask(Task* task)
 
 /// Reserves and initializes a diamond half with a red centre and black rim.
 ///
-/// Advances the frame arena by one quad; coordinates, sorting and blending
-/// remain for the caller. The intensity narrows to an RGB byte.
+/// Requires a word-aligned frame cursor with space for one `POLY_G4`; advances
+/// it by that packet's full extent without a capacity check. Vertex 2 takes the
+/// low red byte and the other vertices are black. The returned packet belongs
+/// to the frame arena and must stay live through GPU consumption; the caller
+/// supplies coordinates, ordering-table linkage and blending.
 static inline POLY_G4* _dryfieldBreezewayAllocateDiamondHalf(s32 redIntensity)
 {
     POLY_G4* quad;
@@ -1423,8 +1426,11 @@ static inline POLY_G4* _dryfieldBreezewayAllocateDiamondHalf(s32 redIntensity)
 
 /// Reserves a glow diagonal fading from a red centre to two black endpoints.
 ///
-/// Advances the frame arena by one line; coordinates, sorting and blending
-/// remain for the caller. The intensity narrows to an RGB byte.
+/// Requires a word-aligned frame cursor with space for one `LINE_G3`; advances
+/// it by that packet's full extent without a capacity check. Vertex 1 takes the
+/// low red byte; the endpoints are black and the polyline terminator is set.
+/// The returned packet belongs to the frame arena and must stay live through
+/// GPU consumption; the caller supplies coordinates, sorting and blending.
 static inline LINE_G3* _dryfieldBreezewayAllocateGlowDiagonal(s32 redIntensity)
 {
     LINE_G3* diagonal;

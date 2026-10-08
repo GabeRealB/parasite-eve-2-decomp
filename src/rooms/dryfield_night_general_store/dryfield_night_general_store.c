@@ -47,8 +47,8 @@ extern TaskMessageEntry D_dryfield_night_general_store_8017E7BC[];
 static void func_dryfield_night_general_store_8017DE34(Task* arg0);
 static void func_dryfield_night_general_store_8017DE80(Task* task);
 
-s32 func_dryfield_night_general_store_8017DE24(Task*, s32, s32, s32);
-s32 func_dryfield_night_general_store_8017DE2C(Task*, s32, s32, s32);
+static s32 _dryfieldNightGeneralStoreRejectKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+s32        func_dryfield_night_general_store_8017DE2C(Task*, s32, s32, s32);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -60,7 +60,7 @@ TaskDesc gStoreTaskDescs[3] = {
 
 TaskMessageEntry D_dryfield_night_general_store_8017E7BC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
-    { 5105, func_dryfield_night_general_store_8017DE24 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightGeneralStoreRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_general_store_8017DE2C },
     { ROOM_MESSAGE_COMMAND, storeActionMsg },
     { ROOM_MESSAGE_SOUND, _generalStoreSoundMsg },
@@ -89,11 +89,14 @@ static const TaskFuncTable3 D_dryfield_night_general_store_8017D5F4 = {
 
 #include "../../shared/general_store_sound_msg.inc.c"
 
-/// Message handler that takes no action and reports the message as not
-/// handled.
-s32 func_dryfield_night_general_store_8017DE24(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in the night General Store without changing inventory.
+///
+/// All arguments are ignored. The item menu supplies the selected collected-item
+/// ID as `itemId` and zero as `unusedSecondArg`; the refused reply shows its
+/// cannot-use notice.
+static s32 _dryfieldNightGeneralStoreRejectKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Message handler that takes no action and reports the message as not

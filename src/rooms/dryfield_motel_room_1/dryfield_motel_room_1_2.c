@@ -134,25 +134,10 @@ extern ActorTransform D_dryfield_motel_room_1_8017E100[2];
 /// the session's `location.loc.view` has reached 2, which is where the task kills itself.
 void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
 
-/// Install the player's weapon animation set on slot 3 (message 0x3E8: the
-/// equip-slot id `gPlayerStatus.weapon` plus 1 in the alternate weapon block, plus 0x22
-/// in the base one, `field_4` 9, the rest of the frame zero), then copy the
-/// player matrix translation into `_DryfieldMotelRoom1EventWork::playerPlacement`, set its
-/// yaw to 0x500 and place the player there with `GAME_ACTOR_MESSAGE_PLACE`. Same slot-3 record the actors'
-/// `_actor341900FinishSkippedScene` builds.
-void func_dryfield_motel_room_1_8017DFD0(void);
-
-/// Set the event task's pending `action`, resetting the `actionStep` that goes with
-/// it - the same body as `_actor444000EventRequestPlayerAction`.
-void func_dryfield_motel_room_1_8017DFB0(s16 arg0);
+static void _dryfieldMotelRoom1RestorePlayerAfterSkip(void);
+static void _dryfieldMotelRoom1RequestEventAction(s16 action);
 
 static void _dryfieldMotelRoom1FinishOpeningScene(void);
-
-/// `gPlayerStatus.weapon` is the
-/// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
-/// `gDisplayState.pendingMode` and `Gp_StateC08.mode` (1 while the attachment wheel is open) gate the room task's
-/// setup, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record
-/// uses.
 
 /// The cutscene script's two blocks, handed to `evsStartScriptWithSkip` by the room
 /// task's state 0.
@@ -196,19 +181,19 @@ ActorTransform D_dryfield_motel_room_1_8017E130[2] = {
 
 EvsCommand D_dryfield_motel_room_1_8017E160[20] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_OPENING_SOUND_5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldMotelRoom1RequestEventAction }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_OPENING_SOUND_5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_TURN_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldMotelRoom1RequestEventAction }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_TURN_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SOUND_5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldMotelRoom1RequestEventAction }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SOUND_5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SOUND_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldMotelRoom1RequestEventAction }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SOUND_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_FIRST_STAGING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldMotelRoom1RequestEventAction }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_FIRST_STAGING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SECOND_STAGING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldMotelRoom1RequestEventAction }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SECOND_STAGING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldMotelRoom1FinishOpeningScene }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -221,7 +206,7 @@ EvsCommand D_dryfield_motel_room_1_8017E340[13] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_motel_room_1_8017DFD0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldMotelRoom1RestorePlayerAfterSkip }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1062,7 +1047,7 @@ static inline void _dryfieldMotelRoom1PlayPlayerAnimation(u16 animationId, u16 b
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
 }
 
-/// The room's script driver: runs the action `func_dryfield_motel_room_1_8017DFB0`
+/// The room's script driver: runs the action `_dryfieldMotelRoom1RequestEventAction`
 /// left in `_DryfieldMotelRoom1EventWork::action`. Actions 1 and 2 send the 0x7DA message to the
 /// slot-4 task and one of the two placement pairs as `ACTOR_MESSAGE_PLACE` (action 2
 /// also sends 0x3F3 to the slot-3 task); 3, 4 and 5 play a sound. Each of these
@@ -1236,37 +1221,45 @@ static void _dryfieldMotelRoom1FinishOpeningScene(void)
     TASK_MESSAGE_DISPATCH_POINTER(work->enemySucklerTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E130[1], 0);
 }
 
-void func_dryfield_motel_room_1_8017DFB0(s16 arg0)
+/// Posts an event action and restarts its per-action step at the beginning.
+///
+/// The event task and its work must still be live. Script callers supply a
+/// `DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_*` value; the signed argument is stored
+/// as an unsigned halfword without validation. Replaces any pending action,
+/// leaving the turn's placement, yaw and settle counter intact.
+static void _dryfieldMotelRoom1RequestEventAction(s16 action)
 {
     _DryfieldMotelRoom1EventWork* work = D_dryfield_motel_room_1_8018159C->work;
 
-    work->action     = arg0;
+    work->action     = action;
     work->actionStep = DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_BEGIN;
 }
 
-void func_dryfield_motel_room_1_8017DFD0(void)
+/// Restores the opening event's final player pose and facing after a skip.
+///
+/// Requires the live event work and its cached player task, the registered
+/// player/model, character 1 and equipped weapon slot 0..32 with clip 9 loaded.
+/// Takes scripted control and requests disabled grid participation. The current
+/// player translation is sampled after animation dispatch and placed at a yaw
+/// of 5/16 turn, with pitch and roll cleared. Requests are borrowed synchronously;
+/// animation resources remain live through playback. Script cleanup resumes play.
+static void _dryfieldMotelRoom1RestorePlayerAfterSkip(void)
 {
+    enum {
+        DRYFIELD_MOTEL_ROOM_1_SKIP_FINAL_POSE_CLIP = 9,
+        DRYFIELD_MOTEL_ROOM_1_SKIP_PLAYER_YAW      = ACTOR_TRANSFORM_ANGLE_TURN * 5 / 16,
+    };
     _DryfieldMotelRoom1EventWork* work;
-    AnimationPlayRequest          msg;
-    PlayerStatus*                 cfg;
-    s32                           weaponId;
-    s32                           anim;
+    PlayerStatus*                 playerStatus;
 
-    work                     = D_dryfield_motel_room_1_8018159C->work;
-    weaponId                 = gPlayerStatus.weapon;
-    anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.source.index         = anim;
-    msg.animationId          = 9;
-    msg.blend                = ANIMATION_BLEND_RESET;
-    msg.blendFrames          = 0;
-    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
-    cfg                          = &gPlayerStatus;
-    work->playerPlacement.pos.vx = cfg->coordMtx->t[0];
-    work->playerPlacement.pos.vy = cfg->coordMtx->t[1];
-    work->playerPlacement.pos.vz = cfg->coordMtx->t[2];
+    work = D_dryfield_motel_room_1_8018159C->work;
+    _dryfieldMotelRoom1PlayPlayerAnimation(DRYFIELD_MOTEL_ROOM_1_SKIP_FINAL_POSE_CLIP, ANIMATION_BLEND_RESET, 0);
+    playerStatus                 = &gPlayerStatus;
+    work->playerPlacement.pos.vx = playerStatus->coordMtx->t[0];
+    work->playerPlacement.pos.vy = playerStatus->coordMtx->t[1];
+    work->playerPlacement.pos.vz = playerStatus->coordMtx->t[2];
     work->playerPlacement.rot.vx = 0;
-    work->playerPlacement.rot.vy = 0x500;
+    work->playerPlacement.rot.vy = DRYFIELD_MOTEL_ROOM_1_SKIP_PLAYER_YAW;
     work->playerPlacement.rot.vz = 0;
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
 }

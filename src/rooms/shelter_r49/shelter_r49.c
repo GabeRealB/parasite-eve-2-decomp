@@ -21,49 +21,66 @@ extern EvsCommand D_actor_143900_80133560[];
 extern EvsCommand D_actor_143900_80133860[];
 
 static void func_shelter_r49_8017D648(Task* arg0);
-static void func_shelter_r49_8017D6B4(Task* task);
+static void _shelterR49RoomIdle(Task* unusedTask);
 
 /// The room task's states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_shelter_r49_8017D5C4 = {
-    { func_shelter_r49_8017D648, func_shelter_r49_8017D6B4, taskKill },
+    { func_shelter_r49_8017D648, _shelterR49RoomIdle, taskKill },
 };
 
-s32 func_shelter_r49_8017D5EC(Task*, s32, s32, s32);
-s32 func_shelter_r49_8017D5F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_r49_8017D638(Task*, s32, s32, s32);
-s32 func_shelter_r49_8017D640(Task*, s32, s32, s32);
+static s32 _shelterR49RejectKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32 _shelterR49ResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _shelterR49IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandMode);
+static s32 _shelterR49IgnoreDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 TaskMessageEntry D_shelter_r49_8017D9D8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r49_8017D5F4 },
-    { 5105, func_shelter_r49_8017D5EC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r49_8017D640 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_r49_8017D638 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR49ResolveRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterR49RejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterR49IgnoreDirectionAction },
+    { ROOM_MESSAGE_COMMAND, _shelterR49IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_shelter_r49_8017D5EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in Shelter R49 without changing inventory.
+///
+/// Ignores all arguments. The item menu supplies the collected-item ID and a
+/// zero second payload; the refused reply selects its cannot-use notice.
+static s32 _shelterR49RejectKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
+{
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+/// Accepts a room transition with its Mine/Shelter destination variant resolved.
+///
+/// Borrows complete, two-byte-aligned request and writable reply records until
+/// return; they may be the same object. Copies all eight bytes, then updates the
+/// destination room from game progress for an executing request. Queries retain
+/// the copied destination. Requires the loaded `map_shelter` overlay and valid
+/// destination selectors/progress nibbles. Task and message ID are ignored.
+static s32 _shelterR49ResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum { SHELTER_R49_ROOM_TRANSITION_ACCEPTED = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return SHELTER_R49_ROOM_TRANSITION_ACCEPTED;
+}
+
+/// Ignores CAP and direction room commands, returning zero.
+///
+/// All arguments are ignored, including the integer command ID and mode; the
+/// senders do not inspect the result.
+static s32 _shelterR49IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandMode)
 {
     return 0;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming record onto the
-/// outgoing one, passes both to `mapShelterRoomVariantResolve` and returns 1.
-s32 func_shelter_r49_8017D5F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
-}
-
-/// The room's handler for message 0x13F0: does nothing and returns 0.
-s32 func_shelter_r49_8017D638(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-/// The room's handler for message 0x13EF: does nothing and returns 0.
-s32 func_shelter_r49_8017D640(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores action requests from direction triggers, returning zero.
+///
+/// The request is borrowed until return and is neither read nor retained.
+/// All arguments are ignored; the sender supplies zero as the second payload
+/// and does not inspect the result.
+static s32 _shelterR49IgnoreDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -81,19 +98,18 @@ static void func_shelter_r49_8017D648(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// The room task's idle state: does nothing. The unused local reproduces the
-/// original's stack frame.
-static void func_shelter_r49_8017D6B4(Task* task)
+/// Leaves the initialized room task live until external teardown.
+///
+/// The unused array preserves the original idle stub's 16-byte stack frame.
+static void _shelterR49RoomIdle(Task* unusedTask)
 {
-    char pad[0x10];
+    char unusedStack[0x10];
 }
 
-/// The room task: copies its three-state table to the stack and runs the
-/// entry the task's state selects.
-void func_shelter_r49_8017D6C4(Task* task)
+void shelterR49RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_r49_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_r49_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
