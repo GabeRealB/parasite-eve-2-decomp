@@ -708,18 +708,23 @@ static void _actor205200ScanPartHits(Task* task, s32 unusedArg)
 #undef ACTOR_205200_DESTROY_PART
 }
 
-/// Saturates the signed distance from the view's projection plane, in game-coordinate units.
+/// Returns a saturated camera-distance offset for positional sound attenuation.
+///
+/// distance and the current screen projection distance use game-coordinate
+/// units. Subtracts screenDistance, then clamps the signed result to -32767..32767.
+/// Does not divide by 256; callers apply the attenuation shift. The subtraction
+/// requires a representable signed result.
 static inline s32 _actor205200ClampAudioDistance(s32 distance)
 {
-    s32 delta = distance - gDisplayState.screenDistance;
+    s32 distanceOffset = distance - gDisplayState.screenDistance;
 
-    if (delta >= ACTOR_205200_AUDIO_DISTANCE_LIMIT) {
-        delta = ACTOR_205200_AUDIO_DISTANCE_LIMIT;
+    if (distanceOffset >= ACTOR_205200_AUDIO_DISTANCE_LIMIT) {
+        distanceOffset = ACTOR_205200_AUDIO_DISTANCE_LIMIT;
     }
-    if (delta < -ACTOR_205200_AUDIO_DISTANCE_LIMIT) {
-        delta = -ACTOR_205200_AUDIO_DISTANCE_LIMIT;
+    if (distanceOffset < -ACTOR_205200_AUDIO_DISTANCE_LIMIT) {
+        distanceOffset = -ACTOR_205200_AUDIO_DISTANCE_LIMIT;
     }
-    return delta;
+    return distanceOffset;
 }
 
 /// Removes a downed part from combat and advances its persistent wreck effects.

@@ -1914,10 +1914,13 @@ static void _actor01100UpdateAwareness(Enemy* enemy, Task* task, _Actor01100Work
     }
 }
 
-/// Scales an upper-arm basis by its Q12 extension, using caller-owned column scratch.
+/// Extends an upper-arm basis with weaker growth across its other two axes.
 ///
-/// The extension is read for each column; inputs must be live and nonoverlapping.
-/// Column 0 takes full extension and columns 1/2 take one quarter. Clobbers the GTE.
+/// `stretch` is a signed Q12 increment: column 0 uses ONE+stretch and columns
+/// 1/2 use ONE+(stretch>>2), with an arithmetic shift. Requires live, disjoint
+/// matrix, extension and writable vector storage. Each column rereads the
+/// extension and narrows the GTE result to halfwords. Translation is preserved;
+/// the caller invalidates coordinate composition. Clobbers the GTE and scratch.
 static __inline__ void _actor01100StretchArmBasis(MATRIX* armMatrix, SVECTOR* columnScratch, const s16* stretch)
 {
     SCALE_COL(armMatrix, columnScratch, 0, *stretch + ONE);

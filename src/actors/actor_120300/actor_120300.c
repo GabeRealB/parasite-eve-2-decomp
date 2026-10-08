@@ -148,7 +148,7 @@ static TmdSource _gActor120300GaryDouglasHeadHat;
 static TmdSource _gActor120300Model082F8;
 void             func_actor_120300_80132004(Task*);
 static void      _actor120300RifleTask(Task* task);
-void             func_actor_120300_80133330(s32);
+static void      _actor120300PrepareRoomPlay(s32 preservePlayer);
 void             func_actor_120300_801337C4(Task*);
 static void      _actor120300HandleModelDrawMessage(Task* task, s32 unusedMessageId, s32 visible, s32 unusedSecondArg);
 static void      _actor120300SetModelsVisible(s32 visible);
@@ -1237,7 +1237,7 @@ EvsCommand D_actor_120300_80141524[18] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_120300_80133E94 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_120300_80133330 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300PrepareRoomPlay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1921,58 +1921,59 @@ static void func_actor_120300_80132C60(Task* arg0)
     work->bodyRequest = 0;
 }
 
-/// Sets the actor up for play: clears the model's flags, places the body,
-/// resets animation slots 1..19 to animation 8, which it records in
-/// `bodyAnimation`, shows the models of `headTask` and `rifleTask` and sets
-/// the rifle down at its place in the room.
-/// `func_actor_120300_801337C4` calls it with 1 once flag nibble 0x2D is set; a
-/// zero argument additionally sends `playerTask` the equipped weapon's
-/// animation (`AnimationPlayRequest`, built from `gPlayerStatus.weapon`) and a
-/// placement, restores `scale` to 0x1000 and drops the pending overlay
-/// replacement. `playerRequest` and `bodyRequest` are cleared either way.
-void func_actor_120300_80133330(s32 arg0)
+/// Prepares Gary Douglas and his rifle for ordinary garage play.
+///
+/// Requires the published body task, initialized rig and live head/rifle tasks.
+/// Places the body and rifle at their room poses, shows all models and restarts
+/// body clip 8 at normal rate. Zero preservePlayer also requires a live player:
+/// resets its equipped-weapon clip with world collision enabled, restores player
+/// placement and the actor models' unit scale, and cancels the pending scene load.
+/// Nonzero preservePlayer keeps those values. Clears both choreography request
+/// channels; synchronous messages borrow stack and overlay records.
+static void _actor120300PrepareRoomPlay(s32 preservePlayer)
 {
+    enum {
+        ACTOR_120300_ROOM_PLAY_BODY_ANIMATION   = 8,
+        ACTOR_120300_ROOM_PLAY_BODY_PLACEMENT   = 9,
+        ACTOR_120300_ROOM_PLAY_RIFLE_PLACEMENT  = 11,
+        ACTOR_120300_ROOM_PLAY_PLAYER_PLACEMENT = 5,
+        ACTOR_120300_PRIMARY_CHARACTER          = 1,
+        ACTOR_120300_PRIMARY_WEAPON_BANK_BASE   = 1,
+        ACTOR_120300_ALTERNATE_WEAPON_BANK_BASE = 0x22,
+        ACTOR_120300_WEAPON_ANIMATION           = 1
+    };
     Task*                task;
     _Actor120300Work*    work;
-    _Actor120300Work*    animWork;
-    SVECTOR              unused;
-    AnimationPlayRequest rec;
-    s32                  i;
+    SVECTOR              unused; // Retained stack slot; original role unproven.
+    AnimationPlayRequest playerAnimationRequest;
     s32                  weaponId;
-    s32                  id;
+    s32                  weaponBank;
 
     task                   = D_actor_120300_80141BA8;
     work                   = task->work;
     task->extra.tmd->flags = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[9], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[ACTOR_120300_ROOM_PLAY_BODY_PLACEMENT], 0);
 
-    animWork                = task->work;
-    animWork->bodyAnimation = 8;
-    i                       = 1;
-    do {
-        animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&animWork->rig.anim, (u16)i, 8);
-        i++;
-    } while ((u16)i < ARRAY_SIZE(animWork->rig.slots));
+    _actor120300ResetBodyAnimation(task, ACTOR_120300_ROOM_PLAY_BODY_ANIMATION);
 
-    taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[11], 0);
-    if (arg0 == 0) {
-        weaponId                 = gPlayerStatus.weapon;
-        id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-        rec.source.index         = id;
-        rec.animationId          = 1;
-        rec.blend                = ANIMATION_BLEND_RESET;
-        rec.blendFrames          = 0;
-        rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
-        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[5], 0);
-        work->scale = 0x1000;
+    taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+    taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[ACTOR_120300_ROOM_PLAY_RIFLE_PLACEMENT], 0);
+    if (preservePlayer == 0) {
+        weaponId                                    = gPlayerStatus.weapon;
+        weaponBank                                  = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_120300_PRIMARY_CHARACTER) ? weaponId + ACTOR_120300_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_120300_ALTERNATE_WEAPON_BANK_BASE;
+        playerAnimationRequest.source.index         = weaponBank;
+        playerAnimationRequest.animationId          = ACTOR_120300_WEAPON_ANIMATION;
+        playerAnimationRequest.blend                = ANIMATION_BLEND_RESET;
+        playerAnimationRequest.blendFrames          = 0;
+        playerAnimationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &playerAnimationRequest, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[ACTOR_120300_ROOM_PLAY_PLAYER_PLACEMENT], 0);
+        work->scale = ONE;
         cdCmdCancelScene();
     }
-    work->playerRequest = 0;
-    work->bodyRequest   = 0;
+    work->playerRequest = ACTOR_120300_PLAYER_REQUEST_NONE;
+    work->bodyRequest   = ACTOR_120300_BODY_REQUEST_NONE;
 }
 
 /// Runs the interaction selected in the block's `interaction`. On
@@ -2092,7 +2093,7 @@ static void func_actor_120300_801335D8(Task* task)
 
 /// Main tick of the cutscene actor. State 0 waits until no other cutscene is
 /// up (`Gp_StateC08.mode` / `gDisplayState.pendingMode`), builds the work block, then either arms
-/// play (`func_actor_120300_80133330`) once flag nibble 0x2D is set or sends
+/// play (`_actor120300PrepareRoomPlay`) once flag nibble 0x2D is set or sends
 /// the slot-3 weapon record and starts the script. States 1-4 step the area
 /// records, the pending `worldCollisionReadActionHit` cue, and the overlay-load
 /// phases. Every path but the cutscene-busy early-out then ticks the two
@@ -2127,7 +2128,7 @@ void func_actor_120300_801337C4(Task* arg0)
                 func_actor_120300_801335D8(arg0);
                 work = arg0->work;
                 if (gameFlagGetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN) != 0) {
-                    func_actor_120300_80133330(1);
+                    _actor120300PrepareRoomPlay(1);
                     if (gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_6_DOOR_UNLOCKED) != 0) {
                         work->talkStage = 1;
                     }

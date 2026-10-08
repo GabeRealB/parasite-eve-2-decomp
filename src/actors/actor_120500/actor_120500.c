@@ -144,10 +144,10 @@ extern EvsCommand D_actor_120500_80138318[];
 /// The actor's own placement, sent to itself as message 0x7D4.
 extern ActorTransform D_actor_120500_801380C0;
 
-void func_actor_120500_801328C0(s16);
-void func_actor_120500_801328E0(s16);
-void func_actor_120500_80132900(s16);
-void func_actor_120500_80132920(void);
+static void _actor120500PostPlayerRequest(s16 requestId);
+static void _actor120500PostBodyRequest(s16 requestId);
+void        func_actor_120500_80132900(s16);
+void        func_actor_120500_80132920(void);
 
 static TmdSource _gActor120500KyleMadiganBody;
 void             func_actor_120500_80131E58(Task*);
@@ -293,7 +293,7 @@ ActorTransform D_actor_120500_801380C0 = { { 800, -0x2EE0, -2750, 0 }, { 0, 2048
 
 EvsCommand D_actor_120500_801380D8[24] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostPlayerRequest }, { .value = ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -302,17 +302,17 @@ EvsCommand D_actor_120500_801380D8[24] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_80132900 }, { .value = ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328E0 }, { .value = ACTOR_120500_BODY_REQUEST_APPEAR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostBodyRequest }, { .value = ACTOR_120500_BODY_REQUEST_APPEAR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_80132900 }, { .value = ACTOR_120500_SCREEN_REQUEST_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = ACTOR_120500_PLAYER_REQUEST_HIDE_BODY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostPlayerRequest }, { .value = ACTOR_120500_PLAYER_REQUEST_HIDE_BODY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = ACTOR_120500_PLAYER_REQUEST_SECOND_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostPlayerRequest }, { .value = ACTOR_120500_PLAYER_REQUEST_SECOND_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = ACTOR_120500_PLAYER_REQUEST_THIRD_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostPlayerRequest }, { .value = ACTOR_120500_PLAYER_REQUEST_THIRD_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_801328C0 }, { .value = ACTOR_120500_PLAYER_REQUEST_WEAPON_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostPlayerRequest }, { .value = ACTOR_120500_PLAYER_REQUEST_WEAPON_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -421,7 +421,7 @@ void func_actor_120500_80131E58(Task* arg0)
 }
 
 /// Performs the request posted in `_Actor120500Work::playerRequest`, stepped by
-/// the tick body and posted by `func_actor_120500_801328C0`. Every tick first
+/// the tick body and posted by `_actor120500PostPlayerRequest`. Every tick first
 /// sends `ANIMATION_MESSAGE_IS_PLAYING` to `playerTask`, then dispatches on the
 /// request. `ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION` is the only one that
 /// does not clear itself: after its first tick it keeps sending the placement
@@ -700,23 +700,33 @@ void func_actor_120500_8013241C(Task* arg0)
 
 #include "../../shared/screen_fade_out.inc.c"
 
-/// Request setters, reached from the tables in the actor's data: each posts
-/// `arg0` in one request channel of the actor's work block and restarts its
-/// step. This one posts the player request `func_actor_120500_80132028`
-/// performs; the next two post the body and screen requests the tick performs.
-void func_actor_120500_801328C0(s16 arg0)
+/// Posts a player-choreography request for the motel room 6 scene.
+///
+/// Requires the published body task and initialized work to remain live.
+/// Stores requestId's halfword bits in the unsigned request channel and resets
+/// its step. ACTOR_120500_PLAYER_REQUEST_* selects the scene beats; zero cancels
+/// a pending request and other codes are consumed without effect. The tick
+/// performs the request later; this callback sends no player message.
+static void _actor120500PostPlayerRequest(s16 requestId)
 {
     _Actor120500Work* work = D_actor_120500_80138454->work;
 
-    work->playerRequest     = arg0;
+    work->playerRequest     = requestId;
     work->playerRequestStep = 0;
 }
 
-void func_actor_120500_801328E0(s16 arg0)
+/// Posts a body-choreography request for the motel room 6 scene.
+///
+/// Requires the published body task and initialized work to remain live.
+/// Stores requestId's halfword bits and resets the body step. APPEAR (1) asks
+/// the next tick to allocate buffers, fade in and place the body; zero cancels,
+/// and other codes are consumed without effect. The step is retained storage
+/// that this scene does not read. This callback performs no rendering or fade.
+static void _actor120500PostBodyRequest(s16 requestId)
 {
     _Actor120500Work* work = D_actor_120500_80138454->work;
 
-    work->bodyRequest     = arg0;
+    work->bodyRequest     = requestId;
     work->bodyRequestStep = 0;
 }
 

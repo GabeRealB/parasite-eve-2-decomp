@@ -2371,12 +2371,14 @@ static void _actor01500DrawGroundShadow(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// Restores the corpse's unscaled matrix and applies its Q12 local Y scale.
+/// Applies the corpse's Q12 Y scale to its saved pre-squash root transform.
 ///
-/// Root, work and ActorScaleScratch storage are borrowed and disjoint. Restoring
-/// the complete matrix preserves translation and prevents compounded scaling.
-/// Invalidates composition; the caller owns scratch reservation and release.
-static __inline__ void _actor01500ApplyCorpseScale(GfxCoord* rootCoord, _Actor01500Work* work, ActorScaleScratch* scratch)
+/// Requires the death-entry matrix and current scale in live, read-only work.
+/// The root and caller-reserved scratch must be writable and disjoint from work
+/// and each other. Restores the complete saved matrix before multiplying by
+/// diag(ONE, deathScaleY, ONE), preserving translation and avoiding accumulated
+/// squash. Marks composition dirty; reserves no scratch and retains no pointers.
+static __inline__ void _actor01500ApplyCorpseScale(GfxCoord* rootCoord, const _Actor01500Work* work, ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->deathScaleY;

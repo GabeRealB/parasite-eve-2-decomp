@@ -1887,7 +1887,9 @@ static void _actor548100SetLegFlowProgress(s32 routeId, s32 stopNode, s16 progre
 /// Resets the authored wire table to STOP or ABSENT for the current wiring.
 ///
 /// Stage 2 hides first-only wires; every other stage hides second-only wires.
-/// Reads the stage once and preserves geometry and stored flow distances.
+/// Reads the stage once. The writable authored table ends at nodeA zero; each
+/// preceding record becomes STOP unless its layout excludes the selected wiring.
+/// Preserves the terminator, geometry and stored partial-flow distances.
 static inline void _actor548100ResetWireStatesForStage(void)
 {
     _Actor548100Edge* edge;
@@ -2258,22 +2260,26 @@ static void _actor548100OpenHotspotCommands(Task* task)
 
 /// Restores room presentation and input after closing the mine power panel.
 ///
-/// Releases this panel's menu hold, shows and resumes the player, restores the
-/// refuge view and HUD, and gives interaction a ten-update rearm delay.
+/// Requires the live player/model, session, live save and this panel's menu hold.
+/// Resumes control and automatic drawing before delaying manual interaction for
+/// ten eligible direction updates. Releases one menu hold, clears the event,
+/// HUD and cutscene gates, and selects saved refuge view 3. The caller owns
+/// cursor and panel teardown; this neither loads the view nor destroys tasks.
 static inline void _actor548100RestoreRoomPlay(void)
 {
     enum {
         ACTOR_548100_INTERACTION_REARM_UPDATES = 10,
         ACTOR_548100_REFUGE_VIEW               = 3,
+        ACTOR_548100_EVENT_IDLE                = 0,
     };
 
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     D_80114D08 = ACTOR_548100_INTERACTION_REARM_UPDATES;
     displayReleaseMenuHold();
-    gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->cutsceneHold                                 = 0;
+    gGameSession->eventState                                   = ACTOR_548100_EVENT_IDLE;
+    gGameSession->hideHud                                      = false;
+    gGameSession->cutsceneHold                                 = false;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_548100_REFUGE_VIEW;
 }
 

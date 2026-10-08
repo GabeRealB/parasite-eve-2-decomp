@@ -238,3 +238,5 @@ _actor401800IgnoreMessage2015 = 0x8013dcb4; // type:func
 _actor401800Hidden = 0x8013e138; // type:func
 _actor401800RiseFront = 0x8013e4f0; // type:func
 _actor401800Task = 0x8013e68c; // type:func
+_actor401800Initialize = 0x8013423c; // type:func
+_actor401800BurstDeath = 0x8013bb10; // type:func

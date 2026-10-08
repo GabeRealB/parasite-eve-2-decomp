@@ -3985,7 +3985,7 @@ RTL shows the difference before the load is chosen: the direct spelling folds to
 rule the `s16`-into-`u16` entry above states, reached through an AND rather than
 a store.
 
-`func_actor_401800_8013423C` needed the `s32` form: the direct spelling is
+`_actor401800Initialize` needed the `s32` form: the direct spelling is
 `base_2.c` at 99.075% with `lhu` the only code difference (preprocessed
 `4144fed43817de8dc7fc4f18110895f6367336b4284120480952188e265d2c80`), the `s32`
 form `base_3.c` at 100% (`ea5a55313315223846a5748c640bbd457ac2f973d8c7ec32799212ea0909e3dd`).
@@ -98849,7 +98849,7 @@ offsets do not move, so the neighbouring matched bodies stay matched.
 
 ## m2c's masked loop variable is a `(u16)i` cast at each use site, not a variable of its own
 
-`func_actor_120300_80133330` opens by walking animation slots 1..19 through
+`_actor120300PrepareRoomPlay` opens by walking animation slots 1..19 through
 `animationResetSlot`. m2c renders that as a `var_s1`/`var_a1` pair — a counter and a
 separate `var_a1 = var_s1 & 0xFFFF` re-derived at the loop bottom — and the seed
 scores 80.892% with `regs=31 delete=10`. The source is the ordinary shape:
@@ -108230,7 +108230,7 @@ halfword disagree, the declaration is decided by the read no narrowing can expla
 the narrowing readers by rebuilding rather than by reading their `.s`, because their casts are
 expected to absorb the change.
 
-## `similar`'s starred multi-class hit is a source twin - prove it by diffing the two `.s` streams (func_actor_401800_8013BB10, 2026-09-16)
+## `similar`'s starred multi-class hit is a source twin - prove it by diffing the two `.s` streams (_actor401800BurstDeath, 2026-09-16)
 
 Fourth instance of "transcribe the twin" in this TU, and the one that shows how to *know* before
 writing any C. The brief's `similar matched bodies` listed `func_actor_401300_8013B6E8` starred
@@ -124470,7 +124470,7 @@ value out of the shared tail block and into the delay slots of both branches
 leaving it in the `j`'s slot as retail does.
 
 Declaring a second variable for the reload - `work` then `restartWork`, the pair
-this overlay already uses in `func_actor_120300_80133330` /
+this overlay already uses in `_actor120300PrepareRoomPlay` /
 `func_actor_120300_801335D8` - makes two pseudos. The reload's birth at
 `lw` ties it to the dying `task` in `$s2` (`lw $s2,0x1c($s2)`), which leaves
 `$s1` free for the animation id, and the whole tail falls into place:

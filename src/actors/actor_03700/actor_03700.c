@@ -72,6 +72,9 @@ enum {
     ACTOR_03700_ANIM_TAKEOFF_BACK = 5  // 50-tick take-off of `ACTION_PERCH_BACK`
 };
 
+/// Height spread used by the chase, held-player attack and scripted-wave targets.
+enum { ACTOR_03700_PLAYER_TARGET_HEIGHT_MASK = 0x3FF };
+
 /// Work block of the package's enemy task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
@@ -1377,10 +1380,13 @@ static void _actor03700BackOffPerch(Task* task)
     }
 }
 
-/// Chooses an overhead player waypoint, preserving one shared LCG draw.
+/// Chooses an overhead waypoint at the live player's X/Z position.
 ///
-/// The height mask is 0x3FF for these actions: Y is 800..1823 units above
-/// the player. All components narrow into signed-halfword target storage.
+/// Requires live player translation and writable actor work in the same parent
+/// frame. Advances the shared LCG once, masks its high halfword with heightMask
+/// and subtracts that value plus 800 game units from player Y (up is negative Y).
+/// Current callers use 0x3FF, giving 800..1823 units of height before XYZ narrow
+/// to signed halfwords. Does not retain a pointer or change the target's pad.
 static inline void _actor03700PickPlayerTarget(_Actor03700Work* work, u32 heightMask)
 {
     enum { ACTOR_03700_PLAYER_TARGET_HEIGHT = 800 };
@@ -1420,7 +1426,7 @@ static void _actor03700Chase(Task* task)
     switch (work->actionStep) {
         // Select the next dash after turning toward an overhead waypoint.
         case ACTOR_03700_CHASE_TURN:
-            _actor03700PickPlayerTarget(work, 0x3FF);
+            _actor03700PickPlayerTarget(work, ACTOR_03700_PLAYER_TARGET_HEIGHT_MASK);
             if (work->dashDone == 0) {
                 work->speed = 5;
             } else {
@@ -1529,7 +1535,7 @@ static void _actor03700AttackHeldPlayer(Task* task)
             }
             break;
         case ACTOR_03700_ATTACK_RETURN:
-            _actor03700PickPlayerTarget(work, 0x3FF);
+            _actor03700PickPlayerTarget(work, ACTOR_03700_PLAYER_TARGET_HEIGHT_MASK);
             work->speed    = Actor03700_D07F1C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             work->turnRate = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             if (work->touchingPlayer != 0) {
@@ -2236,7 +2242,7 @@ static void _actor03700EnterScriptedWave(Task* task)
             }
             break;
         case ACTOR_03700_SCRIPTED_FACE_PLAYER:
-            _actor03700PickPlayerTarget(work, 0x3FF);
+            _actor03700PickPlayerTarget(work, ACTOR_03700_PLAYER_TARGET_HEIGHT_MASK);
             work->turnRate = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             _actor03700TurnTowardTarget(task);
 

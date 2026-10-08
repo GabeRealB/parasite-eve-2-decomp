@@ -2345,6 +2345,11 @@ static void _actor107600SetTargetState(Task* task, s16 state)
 }
 
 /// Enters a hit-selected target state and restarts its step sequence.
+///
+/// Requires live gallery-target work in task. state is a signed-halfword
+/// ACTOR_107600_TARGET_STATE_* behaviour index; callers select flinch or resume
+/// states. Resets only the behaviour step, leaving Task::state and the queued
+/// hit request unchanged. Retains no pointer.
 static inline void _actor107600EnterTargetHitState(Task* task, s16 state)
 {
     _Actor107600TargetWork* reactionWork = task->work;

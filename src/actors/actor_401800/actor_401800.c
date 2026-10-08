@@ -109,19 +109,19 @@ extern u16 gOddStrangerChaseDistance;
 extern AnimationSet gOddStrangerDormantAnimSet;
 
 /// Gameplay slot `effectSpawn` effects read their model data from; set before
-/// each spawn in `func_actor_401800_8013BB10`.
+/// each spawn in `_actor401800BurstDeath`.
 
 /// The records closing three of the overlay's model streams, which
-/// `func_actor_401800_8013BB10` points `D_80114B34[5].data.model` at before spawning: the
-/// 0x60030 debris burst, then the 0xA0005 fan the step counter trips at 3 and 5
-/// and the two 0xA0005 bursts at 7 and 9.
+/// `_actor401800BurstDeath` points `D_80114B34[5].data.model` at before spawning: the
+/// body-part effects on updates 3, 5, 7 and 9. The entry particle uses no model
+/// from this slot.
 extern TmdSource gOddStrangerBurstModelA;
 static TmdSource _gActor401800Model12280;
 extern TmdSource gOddStrangerBurstModelC;
 
 #include "../../shared/actor_contacts.h"
 
-static void func_actor_401800_8013423C(Enemy* enemy, Task* actor);
+static void _actor401800Initialize(Enemy* enemy, Task* actor);
 static void _actor401800Hidden(Task* task);
 static void _actor401800RiseFront(Task* task);
 
@@ -1109,7 +1109,7 @@ OddStrangerTransformStorage gOddStrangerGrabTransform;
 
 GameActorButtonPressHold D_actor_401800_80155AF8;
 
-static void func_actor_401800_8013BB10(Task* arg0);
+static void _actor401800BurstDeath(Task* task);
 
 #include "../../shared/actor_contacts.h"
 
@@ -1140,31 +1140,55 @@ static __inline__ void _actor401800BindLightingMatrices(const Task* actor)
     model->colorMtx = &work->colorMtx;
 }
 
-/// Enemy init: allocates the work block, binds the model matrices, sets up both
-/// animation contexts and the three hit/body `WorldCollisionBody` nodes, then picks the
-/// starting state and tint row from the spawn flags and rescales the model.
-/// Same body as `_actor01900Initialize` / `func_actor_401300_80134454`.
-static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
+/// Initializes this Odd Stranger's work, animation, collision and patrol state.
+///
+/// Requires a live enemy and TMD task with at least parts 0..6 and loaded model,
+/// animation and area data. Allocation failure destroys the enemy/task. Success
+/// acquires a battle hold, installs teardown, lends work matrices and contacts
+/// to the model/enemy, and links two body spheres and one attack sphere.
+/// Seeds a 2000-game-unit patrol segment along the root's horizontal +Z axis.
+/// Spawn bits 16..19 select hidden (2), dormant (4) or ordinary patrol; low
+/// nibble 2 selects tuning row 0, 1 row 2, and every other value row 1.
+/// Rebuilds root yaw at Q12 scale 4500 and advances Task::state. Work and the
+/// loaded package data must remain live until teardown; clobbers the GTE.
+static void _actor401800Initialize(Enemy* enemy, Task* actor)
 {
-    SVECTOR             dir;
-    VECTOR              pos;
-    SVECTOR*            v;
-    TmdObject*          obj;
-    GfxCoord*           root;
+    enum {
+        ACTOR_401800_TARGET_PART             = 2,
+        ACTOR_401800_ATTACK_PART             = 6,
+        ACTOR_401800_GRID_BODY_Y             = -172,
+        ACTOR_401800_GRID_KEY_DETAIL         = 0x12,
+        ACTOR_401800_ATTACK_RADIUS           = 384,
+        ACTOR_401800_HIT_EFFECT_PART         = 1,
+        ACTOR_401800_HIT_EFFECT_ARGUMENT_LOW = 0x300,
+        ACTOR_401800_HIT_EFFECT_REPEAT_COUNT = 2,
+        ACTOR_401800_SPAWN_BEHAVIOUR_SHIFT   = 16,
+        ACTOR_401800_SPAWN_SELECTOR_MASK     = 0xF,
+        ACTOR_401800_SPAWN_HIDDEN            = 2,
+        ACTOR_401800_SPAWN_DORMANT           = 4,
+        ACTOR_401800_PREVIOUS_STATE_NONE     = -1,
+        ACTOR_401800_TUNING_FIRST_SELECTOR   = 2,
+        ACTOR_401800_TUNING_THIRD_SELECTOR   = 1
+    };
+    SVECTOR             direction;
+    VECTOR              lightingPosition;
+    SVECTOR*            directionScratch;
+    TmdObject*          model;
+    GfxCoord*           rootCoord;
     OddStrangerWork*    work;
-    WorldCollisionBody* body;
-    WorldCollisionBody* head;
-    s32                 kind;
+    WorldCollisionBody* hitBody;
+    WorldCollisionBody* attackBody;
+    s32                 spawnBehaviour;
 
-    root        = actor->extra.tmd->coords;
-    obj         = actor->extra.tmd;
+    rootCoord   = actor->extra.tmd->coords;
+    model       = actor->extra.tmd;
     work        = memCalloc(sizeof(OddStrangerWork), 0);
     actor->work = work;
     if (work == NULL) {
         enemyDestroy(enemy, actor);
         return;
     }
-    (sceneAcquireBattleRef)(0);
+    sceneAcquireBattleRef(0);
     actor->exitCallback = _oddStrangerExit;
     _actor401800BindLightingMatrices(actor);
     enemy->field_4    = &actor->extra.tmd->coords->coord;
@@ -1172,24 +1196,24 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     enemy->bodyPos.vx = 0;
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
-    enemy->coord      = &actor->extra.tmd->coords[2];
+    enemy->coord      = &actor->extra.tmd->coords[ACTOR_401800_TARGET_PART];
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
     enemy->hp                     = (s16)D_actor_401800_8013E6F0.hpMax;
     enemy->param                  = &D_actor_401800_8013E6F0;
     enemy->recs                   = work->hitContacts;
-    animationInitContext(&work->rig.anim, gOddStrangerAnimSets, obj,
+    animationInitContext(&work->rig.anim, gOddStrangerAnimSets, model,
                          work->rig.poses, work->rig.slots);
-    animationInitContext(&work->blend.anim, gOddStrangerAnimSets, obj,
+    animationInitContext(&work->blend.anim, gOddStrangerAnimSets, model,
                          work->blend.poses, work->blend.slots);
     work->animRequest   = ODD_STRANGER_ANIM_REQUEST_RESET;
-    work->animId        = 2;
+    work->animId        = ODD_STRANGER_ANIM_WALK;
     work->blendActive   = 0;
     work->lookYaw       = 0;
     work->lookYawTarget = 0;
-    work->chaseRate     = 0x10;
-    work->animRate      = 0x10;
+    work->chaseRate     = ANIMATION_RATE_ONE;
+    work->animRate      = ANIMATION_RATE_ONE;
     if ((s16)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) & 1) == 1) {
         work->chaseRate++;
     } else {
@@ -1197,96 +1221,111 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     }
     _oddStrangerDriveAnimation(actor);
 
+    // The root sphere handles room-grid push; the part sphere receives hits.
     work->gridBody.context.contacts = work->gridContacts;
-    work->gridBody.coord            = root;
+    work->gridBody.coord            = rootCoord;
     work->gridBody.pos.vx           = 0;
-    work->gridBody.pos.vy           = -0xAC;
+    work->gridBody.pos.vy           = ACTOR_401800_GRID_BODY_Y;
     work->gridBody.pos.vz           = 0;
-    work->gridBody.key              = 0x30012;
-    work->gridBody.radius           = 0x12C;
+    work->gridBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_401800_GRID_KEY_DETAIL;
+    work->gridBody.radius           = ODD_STRANGER_BODY_RADIUS;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     work->hitCooldown     = 0;
     work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     worldCollisionInitContacts(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
 
-    body                   = &work->hitBody;
-    body->coord            = &actor->extra.tmd->coords[2];
-    body->context.contacts = work->hitContacts;
-    body->pos.vx           = 0;
-    body->pos.vy           = 0;
-    body->pos.vz           = 0;
-    body->key              = 0x30000;
-    body->radius           = 0x12C;
-    body->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
-    body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
+    hitBody                   = &work->hitBody;
+    hitBody->coord            = &actor->extra.tmd->coords[ACTOR_401800_TARGET_PART];
+    hitBody->context.contacts = work->hitContacts;
+    hitBody->pos.vx           = 0;
+    hitBody->pos.vy           = 0;
+    hitBody->pos.vz           = 0;
+    hitBody->key              = WORLD_COLLISION_CONTACT_ENEMY_BODY;
+    hitBody->radius           = ODD_STRANGER_BODY_RADIUS;
+    hitBody->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, hitBody);
+    hitBody->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    worldCollisionInitContacts(hitBody->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
 
-    dir.vx                 = 0;
-    dir.vy                 = 0;
-    dir.vz                 = 0;
-    head                   = &work->attackBody;
-    head->coord            = &actor->extra.tmd->coords[6];
-    head->context.contacts = work->attackContacts;
-    v                      = &dir;
-    head->pos.vx           = v->vx;
-    head->pos.vy           = v->vy;
-    head->pos.vz           = v->vz;
-    head->radius           = 0x180;
-    head->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, head);
-    worldCollisionInitContacts(head->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
+    direction.vx                 = 0;
+    direction.vy                 = 0;
+    direction.vz                 = 0;
+    attackBody                   = &work->attackBody;
+    attackBody->coord            = &actor->extra.tmd->coords[ACTOR_401800_ATTACK_PART];
+    attackBody->context.contacts = work->attackContacts;
+    directionScratch             = &direction;
+    attackBody->pos.vx           = directionScratch->vx;
+    attackBody->pos.vy           = directionScratch->vy;
+    attackBody->pos.vz           = directionScratch->vz;
+    attackBody->radius           = ACTOR_401800_ATTACK_RADIUS;
+    attackBody->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, attackBody);
+    worldCollisionInitContacts(attackBody->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
 
-    work->patrolTarget      = 0;
-    work->patrolPoints[0].x = actor->extra.tmd->coords->coord.t[0];
-    work->patrolPoints[0].z = actor->extra.tmd->coords->coord.t[2];
-    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, v);
-    dir.vy = 0;
-    VectorNormalSS(v, v);
-    gte_lddp(2000);
-    gte_ldsv(v);
-    gte_gpf12();
-    gte_stsv(v);
-    work->patrolPoints[1].x = actor->extra.tmd->coords->coord.t[0] + dir.vx;
-    work->patrolPoints[1].z = actor->extra.tmd->coords->coord.t[2] + dir.vz;
+/// Seeds a patrol segment with caller-owned forward-axis scratch.
+///
+/// Invoke inside a braced function body with side-effect-free task/work pointers,
+/// a writable SVECTOR lvalue forwardVector, and vectorScratch == &forwardVector.
+/// Arguments are evaluated repeatedly; no identifiers are captured. Clears Y,
+/// normalizes and scales to 2000 game units, narrows the two waypoints to s16,
+/// and clobbers the GTE. Expands to one compound statement.
+#define ACTOR_401800_INITIALIZE_PATROL_POINTS(actorTask, actorWork, vectorScratch, forwardVector)         \
+    {                                                                                                     \
+        enum { ACTOR_401800_PATROL_LENGTH = 2000 };                                                       \
+        (actorWork)->patrolTarget      = 0;                                                               \
+        (actorWork)->patrolPoints[0].x = (actorTask)->extra.tmd->coords->coord.t[0];                      \
+        (actorWork)->patrolPoints[0].z = (actorTask)->extra.tmd->coords->coord.t[2];                      \
+        gfxReadMatrixZAxis(&(actorTask)->extra.tmd->coords->coord, (vectorScratch));                      \
+        (forwardVector).vy = 0;                                                                           \
+        VectorNormalSS((vectorScratch), (vectorScratch));                                                 \
+        gte_lddp(ACTOR_401800_PATROL_LENGTH);                                                             \
+        gte_ldsv((vectorScratch));                                                                        \
+        gte_gpf12();                                                                                      \
+        gte_stsv((vectorScratch));                                                                        \
+        (actorWork)->patrolPoints[1].x = (actorTask)->extra.tmd->coords->coord.t[0] + (forwardVector).vx; \
+        (actorWork)->patrolPoints[1].z = (actorTask)->extra.tmd->coords->coord.t[2] + (forwardVector).vz; \
+    }
 
-    actor->msgTable    = D_actor_401800_80155A80;
-    root->parent       = &gGfxViewCoord;
-    root->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(root);
-    pos.vx = root->workm.t[0];
-    pos.vy = root->workm.t[1];
-    pos.vz = root->workm.t[2];
-    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
+    ACTOR_401800_INITIALIZE_PATROL_POINTS(actor, work, directionScratch, direction);
+#undef ACTOR_401800_INITIALIZE_PATROL_POINTS
 
-    work->effectArg.coord      = &actor->extra.tmd->coords[1];
-    work->effectArg.spawnArgLo = 0x300;
-    work->effectArg.spawnArgHi = 2;
-    kind                       = (actor->spawnArg1.value >> 16);
-    switch (kind & 0xF) {
-        case 2:
-            work->prevState = -1;
+    actor->msgTable         = D_actor_401800_80155A80;
+    rootCoord->parent       = &gGfxViewCoord;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    lightingPosition.vx = rootCoord->workm.t[0];
+    lightingPosition.vy = rootCoord->workm.t[1];
+    lightingPosition.vz = rootCoord->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &lightingPosition, 0, 0);
+
+    work->effectArg.coord      = &actor->extra.tmd->coords[ACTOR_401800_HIT_EFFECT_PART];
+    work->effectArg.spawnArgLo = ACTOR_401800_HIT_EFFECT_ARGUMENT_LOW;
+    work->effectArg.spawnArgHi = ACTOR_401800_HIT_EFFECT_REPEAT_COUNT;
+    spawnBehaviour             = (actor->spawnArg1.value >> ACTOR_401800_SPAWN_BEHAVIOUR_SHIFT);
+    switch (spawnBehaviour & ACTOR_401800_SPAWN_SELECTOR_MASK) {
+        case ACTOR_401800_SPAWN_HIDDEN:
+            work->prevState = ACTOR_401800_PREVIOUS_STATE_NONE;
             work->state     = ODD_STRANGER_STATE_HIDDEN;
             break;
-        case 4:
-            work->prevState = -1;
+        case ACTOR_401800_SPAWN_DORMANT:
+            work->prevState = ACTOR_401800_PREVIOUS_STATE_NONE;
             work->state     = ODD_STRANGER_STATE_DORMANT;
             break;
         default:
-            work->prevState = -1;
+            work->prevState = ACTOR_401800_PREVIOUS_STATE_NONE;
             work->state     = ODD_STRANGER_STATE_PATROL;
-            tmdAllocPrimitiveBuffer(obj);
+            tmdAllocPrimitiveBuffer(model);
             break;
     }
-    switch (actor->spawnArg1.value & 0xF) {
-        case 2:
+    switch (actor->spawnArg1.value & ACTOR_401800_SPAWN_SELECTOR_MASK) {
+        case ACTOR_401800_TUNING_FIRST_SELECTOR:
             work->downFramesBase = D_actor_401800_8013E700[0].downFramesBase;
             work->sidestepAngle  = D_actor_401800_8013E700[0].sidestepAngle;
             work->sidestepDelay  = D_actor_401800_8013E700[0].sidestepDelay;
             work->noticeRadius   = D_actor_401800_8013E700[0].noticeRadius;
             break;
-        case 1:
+        case ACTOR_401800_TUNING_THIRD_SELECTOR:
             work->downFramesBase = D_actor_401800_8013E700[2].downFramesBase;
             work->sidestepAngle  = D_actor_401800_8013E700[2].sidestepAngle;
             work->sidestepDelay  = D_actor_401800_8013E700[2].sidestepDelay;
@@ -1318,8 +1357,12 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
 
 /// Refreshes player heading, the offset to the player and its reverse bearing.
 ///
-/// Both model roots must use the same parent frame. Offsets narrow to signed
-/// halfwords; angles use 4096 units per turn and retain both half-turn endpoints.
+/// Requires live actor/player model roots in the same parent frame, the live
+/// player-status translation and writable caller-owned scratch. Reads player
+/// heading first, then refreshes delta from the player-status matrix. Offsets
+/// narrow to signed-halfword game units. The reverse bearing is measured from
+/// that narrowed X/Z delta; angles use 4096 units per turn and normalization
+/// retains both half-turn endpoints. Other scratch fields remain unchanged.
 static __inline__ void _actor401800ReadPlayerBearings(const Task* task, ActorChaseScratch* chase)
 {
     chase->playerYaw = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
@@ -1543,7 +1586,10 @@ static __inline__ void _actor401800SelectPlayerGrabAnimations(void)
 
 /// Saves the root origin to restore when this grab or its strike ends.
 ///
-/// The live task's parent-space translation narrows to signed halfwords.
+/// Requires live task/model storage and writable work for that same actor.
+/// Saves XYZ in parent-space game units, narrowed to signed halfwords without
+/// saturation; pad is unchanged. The behaviour dispatcher restores these values
+/// when leaving GRAB or GRAB_STRIKE. The caller resolves contacts before saving.
 static __inline__ void _actor401800SaveGrabOrigin(const Task* task, OddStrangerWork* work)
 {
     work->grabStartPos.vx = task->extra.tmd->coords->coord.t[0];
@@ -1675,9 +1721,13 @@ static void _actor401800Grab(Task* task)
 
 #include "../../shared/odd_stranger_grab_release.inc.c"
 
-/// Ends hit-body grid response and selects the rest or death after a knockdown.
+/// Disables hit-body grid response and selects the completed-knockdown behaviour.
 ///
-/// Call at the state's animation boundary with live work and enemy records.
+/// Requires live work and its enemy at the fall handler's boundary or settled
+/// cue. Nonpositive HP selects DEATH_BURN before considering status buildup;
+/// positive HP selects STATUS_HOLD with buildup, otherwise DOWN. Changes only
+/// the grid-enable flag and behaviour state; the dispatcher performs entry on
+/// its next update. Does not unlink bodies or alter Task::state.
 static __inline__ void _actor401800CompleteKnockdown(OddStrangerWork* work, const Enemy* enemy)
 {
     work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
@@ -2010,58 +2060,96 @@ static void _actor401800Ambush(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-/// Step-driven effect spawner for the actor's live ramp: while the spawn flag
-/// is set the actor crouches (0x8C8 node pitched to 0x12C, 0xA08 flags bit
-/// 0x4000 cleared), plays the 0x60030 debris burst and hands the task to the
-/// state-F0 list; the step counter then fires the 0xA0005 effects at 3, 5, 7
-/// and 9, applying the enemy's current area-placement texture offsets to each
-/// effect model, and parks the actor at 0x3D.
-static void func_actor_401800_8013BB10(Task* arg0)
+/// Runs the stationary body-part burst in ODD_STRANGER_STATE_DEATH_BURST.
+///
+/// Requires live work, enemy/model parts 1, 3, 9 and 12, and loaded effect banks.
+/// Entry hides the body, disables lock-on/root grid response, spawns a particle
+/// and releases the battle hold with rewards. Updates 3, 5, 7 and 9 launch
+/// body-part models, applying the enemy's current area-placement textures.
+/// Replaces bank 10's shared model descriptor before each spawn; the loaded
+/// model sources must outlive the spawned effects. At update 61 selects HIDDEN
+/// without destroying this task. Effect allocation failures are tolerated.
+static void _actor401800BurstDeath(Task* task)
 {
-    SVECTOR          vec;
+    enum {
+        ACTOR_401800_BURST_PARTICLE_PART  = 1,
+        ACTOR_401800_BURST_FIRST_PART     = 9,
+        ACTOR_401800_BURST_SECOND_PART    = 12,
+        ACTOR_401800_BURST_LAST_PART      = 3,
+        ACTOR_401800_BURST_MODEL_SLOT     = 5,
+        ACTOR_401800_BURST_LOCAL_OFFSET   = 100,
+        ACTOR_401800_BURST_MODEL_ARGUMENT = 0x200, // Child-puff size 512
+        ACTOR_401800_BURST_FIRST_TICK     = 3,
+        ACTOR_401800_BURST_SECOND_TICK    = 5,
+        ACTOR_401800_BURST_THIRD_TICK     = 7,
+        ACTOR_401800_BURST_LAST_TICK      = 9,
+        ACTOR_401800_BURST_HIDE_TICK      = 61
+    };
+    SVECTOR          burstOffset;
     OddStrangerWork* work;
     Enemy*           enemy;
-    u16              next;
+    u16              elapsedTicks;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+/// Starts stationary burst death, borrowing the caller's offset vector.
+///
+/// The task/work/enemy arguments must be side-effect-free live pointers and
+/// localOffset a writable SVECTOR lvalue. Arguments are evaluated repeatedly;
+/// no identifiers are captured. Hides drawing and lock-on, disables root-grid
+/// response, resets the timer, initializes XYZ, spawns the particle and releases
+/// one battle hold with rewards. Expands to one compound statement.
+#define ACTOR_401800_BEGIN_BURST_DEATH(actorTask, actorWork, enemyRecord, localOffset)                                                                    \
+    {                                                                                                                                                     \
+        enum {                                                                                                                                            \
+            ACTOR_401800_BURST_PARTICLE_PART     = 1,                                                                                                     \
+            ACTOR_401800_BURST_LOCAL_OFFSET      = 100,                                                                                                   \
+            ACTOR_401800_BURST_PARTICLE_ARGUMENT = 0x10300,                                                                                               \
+            ACTOR_401800_BURST_REWARD_ARGUMENT   = 10                                                                                                     \
+        };                                                                                                                                                \
+        (actorTask)->extra.tmd->flags         = TMD_OBJECT_SKIP_ACTIVE_DRAW;                                                                              \
+        (actorWork)->hitBody.radius           = ODD_STRANGER_BODY_RADIUS;                                                                                 \
+        (actorWork)->gridBody.flags           = (actorWork)->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);      \
+        (enemyRecord)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;                                                                                \
+        (actorWork)->lookYawTarget            = 0;                                                                                                        \
+        (actorWork)->stateTimer               = 0U;                                                                                                       \
+        (localOffset).vx                      = ACTOR_401800_BURST_LOCAL_OFFSET;                                                                          \
+        (localOffset).vz                      = 0;                                                                                                        \
+        (localOffset).vy                      = 0;                                                                                                        \
+        effectSpawn(EFFECT_030, (actorTask)->extra.tmd->coords + ACTOR_401800_BURST_PARTICLE_PART, ACTOR_401800_BURST_PARTICLE_ARGUMENT, &(localOffset)); \
+        sceneReleaseBattleRefWithRewards((actorTask), ACTOR_401800_BURST_REWARD_ARGUMENT);                                                                \
+    }
+
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->hitBody.radius          = 0x12C;
-        work->gridBody.flags          = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->lookYawTarget           = 0;
-        work->stateTimer              = 0U;
-        vec.vx                        = 0x64;
-        vec.vz                        = 0;
-        vec.vy                        = 0;
-        effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
-        sceneReleaseBattleRefWithRewards(arg0, 0xA);
+        ACTOR_401800_BEGIN_BURST_DEATH(task, work, enemy, burstOffset);
     }
-    next             = work->stateTimer + 1;
-    work->stateTimer = next;
-    if ((s16)next == 3) {
-        D_80114B34[5].data.model = &gOddStrangerBurstModelA;
-        vec.vz                   = 0x64;
-        vec.vy                   = 0;
-        vec.vx                   = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
+#undef ACTOR_401800_BEGIN_BURST_DEATH
+    elapsedTicks     = work->stateTimer + 1;
+    work->stateTimer = elapsedTicks;
+    // Publish each model immediately before its independent effect is spawned.
+    if ((s16)elapsedTicks == ACTOR_401800_BURST_FIRST_TICK) {
+        D_80114B34[ACTOR_401800_BURST_MODEL_SLOT].data.model = &gOddStrangerBurstModelA;
+        burstOffset.vz                                       = ACTOR_401800_BURST_LOCAL_OFFSET;
+        burstOffset.vy                                       = 0;
+        burstOffset.vx                                       = 0;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_FIRST_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, &burstOffset), enemy);
     }
-    if (work->stateTimer == 5) {
-        D_80114B34[5].data.model = &_gActor401800Model12280;
-        vec.vy                   = 0;
-        vec.vx                   = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
+    if (work->stateTimer == ACTOR_401800_BURST_SECOND_TICK) {
+        D_80114B34[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gActor401800Model12280;
+        // The binary leaves this invocation's Z offset uninitialized.
+        burstOffset.vy = 0;
+        burstOffset.vx = 0;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_SECOND_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, &burstOffset), enemy);
     }
-    if (work->stateTimer == 7) {
-        D_80114B34[5].data.model = &gOddStrangerBurstModelA;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+    if (work->stateTimer == ACTOR_401800_BURST_THIRD_TICK) {
+        D_80114B34[ACTOR_401800_BURST_MODEL_SLOT].data.model = &gOddStrangerBurstModelA;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_PARTICLE_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, NULL), enemy);
     }
-    if (work->stateTimer == 9) {
-        D_80114B34[5].data.model = &gOddStrangerBurstModelC;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
+    if (work->stateTimer == ACTOR_401800_BURST_LAST_TICK) {
+        D_80114B34[ACTOR_401800_BURST_MODEL_SLOT].data.model = &gOddStrangerBurstModelC;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_LAST_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, NULL), enemy);
     }
-    if (work->stateTimer >= 0x3D) {
+    if (work->stateTimer >= ACTOR_401800_BURST_HIDE_TICK) {
         work->state = ODD_STRANGER_STATE_HIDDEN;
     }
 }
@@ -2100,7 +2188,7 @@ static const OddStrangerStateTable gOddStrangerStates = { {
     oddStrangerAdvance,
     oddStrangerHoldAim,
     _actor401800Ambush,
-    func_actor_401800_8013BB10,
+    _actor401800BurstDeath,
     oddStrangerStalk,
     _actor401800RefallBack,
     _actor401800RefallFront,
@@ -2121,7 +2209,7 @@ static s32 _actor401800IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPa
 /// initialises the actor, the second runs it every frame, and the third tears
 /// the enemy down.
 static const EnemyTaskFuncTable3 D_actor_401800_80132064 = { {
-    func_actor_401800_8013423C,
+    _actor401800Initialize,
     oddStrangerTick,
     enemyDestroy,
 } };

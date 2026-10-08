@@ -227,3 +227,4 @@ _actor120300FinishSceneStream = 0x80133df4; // type:func
 _actor120300PostPlayerRequest = 0x80133e14; // type:func
 _actor120300PostBodyRequest = 0x80133e34; // type:func
 _actor120300RemovePlayerEquipment = 0x80133e54; // type:func
+_actor120300PrepareRoomPlay = 0x80133330; // type:func

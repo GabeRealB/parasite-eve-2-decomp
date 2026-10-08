@@ -40,3 +40,5 @@ D_actor_120500_80138090 = 0x80138090; // size:0x18 defined:True
 _screenFadeInTask = 0x80132708; // type:func
 _screenFadeOutTask = 0x801327E4; // type:func
 actorMsgPlaceInView = 0x80132A74; // type:func
+_actor120500PostPlayerRequest = 0x801328c0; // type:func
+_actor120500PostBodyRequest = 0x801328e0; // type:func

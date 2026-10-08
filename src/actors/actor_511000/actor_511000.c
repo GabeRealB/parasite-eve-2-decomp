@@ -1175,10 +1175,13 @@ static void func_actor_511000_80131E78(Task* arg0)
 
 /// Posts the next timed blink image and restarts its display interval.
 ///
-/// Requires a live Rupert TMD task and its initialized work. The writable,
-/// terminated upload list and rectangle are borrowed through the call; image
+/// Requires a live Rupert TMD task and its initialized work in CLOSED or HALF.
+/// Resets the signed countdown from blinkFrameDelay and advances to the next
+/// step; a nonnegative delay lasts that many later blink ticks plus one.
+/// The writable, terminated upload list and rectangle are borrowed through the call; image
 /// pixels remain live until GPU transfer completes. Rectangle units follow
-/// `actorRenderUploadTexture`. The caller has already expired the countdown.
+/// `actorRenderUploadTexture`. The caller expires the countdown; this does not
+/// test it. The upload rewrites the first list entry's destination.
 /// Upload results are ignored; this does not wait for the GPU.
 static inline void _actor511000AdvanceRupertBlinkImage(Task* task, _Actor511000RupertBroderickWork* work,
                                                        GpuImageUpload* uploadList, const RECT* eyeRect)
