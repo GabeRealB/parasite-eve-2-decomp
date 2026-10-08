@@ -36,6 +36,13 @@ extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_2_801804B0[];
 /// Keep the Dryfield Motel Room 2 overlay loaded while this callback is scheduled.
 void dryfieldMotelRoom2EffectNoopTaskCA(Task* unusedTask);
 
-void func_dryfield_motel_room_2_8017D65C(Task* task);
+/// Runs the motel room 2's room-message receiver.
+///
+/// Start the borrowed task in state 0 to install this overlay's message table
+/// and register `GAME_TASK_SLOT_ROOM`; state 1 idles and state 2 releases it.
+/// The state index must be 0..2; dispatch is unchecked. Keep this overlay and
+/// the registered task live while messages can arrive. Registration borrows
+/// the task pointer and does not clear the slot on teardown.
+void dryfieldMotelRoom2Task(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_MOTEL_ROOM_2_H

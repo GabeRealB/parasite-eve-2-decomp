@@ -303,3 +303,4 @@ dryfieldNightDilapidatedHouseDrawLightPrismsTask = 0x8017E670; // type:func
 _roomEventGate = 0x8017D600; // type:func
 roomEventTask = 0x8017D764; // type:func
 _glowDrawPrism = 0x8017DD30; // type:func
+_dryfieldNightDilapidatedHouseMovieTask = 0x8017db20; // type:func

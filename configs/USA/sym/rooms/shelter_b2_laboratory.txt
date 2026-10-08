@@ -112,7 +112,7 @@ D_shelter_b2_laboratory_80186540 = 0x80186540; // size:0x2 defined:True
 
 shelterB2LaboratoryGlowTask = 0x80180548; // type:func
 
-func_shelter_b2_laboratory_8017EAB4 = 0x8017EAB4; // type:func
+shelterB2LaboratoryTelephoneMenuTask = 0x8017EAB4; // type:func
 _telephoneDrawPlayDataRow = 0x8017D71C; // type:func
 Telephone_DrawUsageRow = 0x8017DEE8; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E2E4; // type:func
@@ -143,3 +143,6 @@ _shelterB2LaboratoryIdleMessageTask = 0x80180494; // type:func
 _shelterB2LaboratoryDrawGlowDiamond = 0x801812f8; // type:func
 _shelterB2LaboratorySetFastGlowPulse = 0x801820f4; // type:func
 _shelterB2LaboratoryAmbienceTask = 0x8017feb8; // type:func
+_shelterB2LaboratoryCueSoundMsg = 0x8018025c; // type:func
+_shelterB2LaboratoryInitRoomTask = 0x80180450; // type:func
+shelterB2LaboratoryTask = 0x801804a4; // type:func

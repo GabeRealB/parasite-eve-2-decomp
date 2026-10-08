@@ -42827,7 +42827,7 @@ is the minimal example.
 A task-state dispatcher whose cases mostly end by advancing the state has two
 equivalent C spellings, and they cross-jump differently.
 
-`func_dryfield_night_motel_balcony_8017DDD0` is a 9-case `switch (task->state)`
+`_dryfieldNightMotelBalconyMovieTask` is a 9-case `switch (task->state)`
 in which cases 2 and 5 are byte-identical (`lhu 0x1FA(a0)` / `SetDispMask(1)`),
 as are the `SetDispMask(0)` heads of cases 3 and 6 and the
 `streamFindMovieSlot` / `cdCmdEnqueue` tails of cases 1 and 4. The ROM keeps
@@ -90370,9 +90370,9 @@ data" refusal. Each carrier is matched in its own overlay.
 Inputs: `base.i`
 `dcb93d512e15741805c91d823d3ac711794060212ad496cfaf41e48e01d7000b` (100.000%).
 
-## A `base + const` argument off a reused `%hi`/`%lo` means one symbol indexed - and the const is the element size (func_dryfield_motel_room_1_8017DF08, 2026-09-15)
+## A `base + const` argument off a reused `%hi`/`%lo` means one symbol indexed - and the const is the element size (_dryfieldMotelRoom1FinishOpeningScene, 2026-09-15)
 
-`func_dryfield_motel_room_1_8017DF08` hands `taskMessageDispatch` two payload
+`_dryfieldMotelRoom1FinishOpeningScene` hands `taskMessageDispatch` two payload
 pointers and the target reads
 
 ```

@@ -207,7 +207,7 @@ extern u16 D_shelter_b2_laboratory_80186540;
 #include "../../shared/telephone.h"
 
 static s32  _shelterB2LaboratoryRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
-static void func_shelter_b2_laboratory_80180450(Task* task);
+static void _shelterB2LaboratoryInitRoomTask(Task* task);
 static void _shelterB2LaboratoryIdleMessageTask(Task* task);
 static void _shelterB2LaboratoryDrawGlowDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _shelterB2LaboratorySetFastGlowPulse(s16 enabled);
@@ -221,7 +221,7 @@ enum {
 s32         func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, s32);
 s32         func_shelter_b2_laboratory_801800FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32         func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* firstArg, s32);
-s32         func_shelter_b2_laboratory_8018025C(Task*, s32, s32, s32);
+static s32  _shelterB2LaboratoryCueSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueId, s32 unusedSecondArg);
 static void _shelterB2LaboratoryAmbienceTask(Task* task);
 void        func_shelter_b2_laboratory_80180290(Task*);
 void        func_shelter_b2_laboratory_80180350(Task*);
@@ -280,7 +280,7 @@ TaskMessageEntry D_shelter_b2_laboratory_80182A38[6] = {
     { SHELTER_B2_LABORATORY_MESSAGE_USE_KEY_ITEM, _shelterB2LaboratoryRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_laboratory_801801D0 },
     { ROOM_MESSAGE_COMMAND, func_shelter_b2_laboratory_8017FD18 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b2_laboratory_8018025C },
+    { ROOM_MESSAGE_SOUND, _shelterB2LaboratoryCueSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1071,7 +1071,7 @@ u16 D_shelter_b2_laboratory_80186540;
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-void func_shelter_b2_laboratory_8017EAB4(Task* task)
+void shelterB2LaboratoryTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }
@@ -1131,21 +1131,27 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, s32 arg3
 }
 
 /// States of the room's message task, run by
-/// `func_shelter_b2_laboratory_801804A4`: install the message table, idle, die.
+/// `shelterB2LaboratoryTask`: install the message table, idle, die.
 static const TaskFuncTable3 D_shelter_b2_laboratory_8017D6BC = {
     {
-        func_shelter_b2_laboratory_80180450,
+        _shelterB2LaboratoryInitRoomTask,
         _shelterB2LaboratoryIdleMessageTask,
         taskKill,
     },
 };
 
-/// Composes the laboratory ambience's room-space origin against the current view.
+/// Refreshes the laboratory ambience point's local-to-view transform.
+///
+/// Places the retained origin at room coordinates (3100, -1500, -3200), attaches
+/// it to the current view and invalidates its cache before composing. The
+/// caller reads that cache for spatial pan and attenuation; the view and its
+/// ancestors must be live. Leaves the node's local rotation and Euler state
+/// intact and borrows the view parent until the next refresh.
 static inline void _shelterB2LaboratoryComposeAmbienceOrigin(void)
 {
-    D_shelter_b2_laboratory_801864DC.coord.t[0]   = 0xC1C;
-    D_shelter_b2_laboratory_801864DC.coord.t[1]   = -0x5DC;
-    D_shelter_b2_laboratory_801864DC.coord.t[2]   = -0xC80;
+    D_shelter_b2_laboratory_801864DC.coord.t[0]   = 3100;
+    D_shelter_b2_laboratory_801864DC.coord.t[1]   = -1500;
+    D_shelter_b2_laboratory_801864DC.coord.t[2]   = -3200;
     D_shelter_b2_laboratory_801864DC.parent       = &gGfxViewCoord;
     D_shelter_b2_laboratory_801864DC.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&D_shelter_b2_laboratory_801864DC);
@@ -1273,10 +1279,20 @@ s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* first
     return 0;
 }
 
-s32 func_shelter_b2_laboratory_8018025C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Maps laboratory sound cue 99 to room-bank sound script 23.
+///
+/// Receives `ROOM_MESSAGE_SOUND` with an integer cue in the first payload;
+/// other arguments and cues are ignored. Always returns zero, including when
+/// the sound queue rejects the start. Keep the room sound bank loaded through
+/// playback; uses its base pan and depth rather than a spatial origin.
+static s32 _shelterB2LaboratoryCueSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueId, s32 unusedSecondArg)
 {
-    if (arg2 == 0x63) {
-        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x17), 0, 0);
+    enum {
+        SHELTER_B2_LABORATORY_SOUND_CUE_99       = 99,
+        SHELTER_B2_LABORATORY_CUE_99_SOUND_ENTRY = 0x17
+    };
+    if (cueId == SHELTER_B2_LABORATORY_SOUND_CUE_99) {
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, SHELTER_B2_LABORATORY_CUE_99_SOUND_ENTRY), 0, 0);
     }
     return 0;
 }
@@ -1328,13 +1344,16 @@ void func_shelter_b2_laboratory_80180350(Task* task)
     }
 }
 
-/// Installs `D_shelter_b2_laboratory_80182A38` as the task's message table,
-/// registers the task in pointer slot 7 and steps it on one state.
-static void func_shelter_b2_laboratory_80180450(Task* task)
+/// Registers the laboratory's room-message receiver and advances to idle.
+///
+/// Runs in state 0, borrowing this overlay's message table and publishing the
+/// live task in `GAME_TASK_SLOT_ROOM`. Keep both loaded while messages can
+/// arrive; registration neither retains the task nor clears the slot at exit.
+static void _shelterB2LaboratoryInitRoomTask(Task* task)
 {
     task->msgTable = D_shelter_b2_laboratory_80182A38;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the laboratory's room-message task idle between messages.
@@ -1347,14 +1366,12 @@ static void _shelterB2LaboratoryIdleMessageTask(Task* task)
     char unusedStack[0x10];
 }
 
-/// Runs the handler for the task's current state, from a local copy of
-/// `D_shelter_b2_laboratory_8017D6BC`.
-void func_shelter_b2_laboratory_801804A4(Task* task)
+void shelterB2LaboratoryTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b2_laboratory_8017D6BC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b2_laboratory_8017D6BC;
+    stateHandlers.funcs[task->state](task);
 }
 
 void func_shelter_b2_laboratory_801804FC(void)

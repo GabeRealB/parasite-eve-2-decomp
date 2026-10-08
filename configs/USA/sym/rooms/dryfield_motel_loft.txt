@@ -38,3 +38,4 @@ _dryfieldMotelLoftIgnoreRoomCommand = 0x8017d600; // type:func
 _dryfieldMotelLoftIgnoreRoomAction = 0x8017d608; // type:func
 _dryfieldMotelLoftInitRoomTask = 0x8017d610; // type:func
 _dryfieldMotelLoftIdleRoomTask = 0x8017d654; // type:func
+dryfieldMotelLoftTask = 0x8017d65c; // type:func

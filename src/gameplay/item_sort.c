@@ -885,7 +885,7 @@ void func_800B92CC(Task* task)
             shelterB1UndergroundParkingTelephoneMenuTask(task);
             break;
         case GAME_LOCATION_KEY(4, 31, 0, 0):
-            func_shelter_b2_laboratory_8017EAB4(task);
+            shelterB2LaboratoryTelephoneMenuTask(task);
             break;
         case GAME_LOCATION_KEY(4, 41, 0, 0):
             func_shelter_b3_incinerator_control_room_8017EA64(task);

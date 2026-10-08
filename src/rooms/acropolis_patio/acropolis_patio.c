@@ -123,14 +123,13 @@ extern AnimationPlayRequest D_acropolis_patio_8018261C;
 extern ActorTransform       D_acropolis_patio_80182690;
 extern ActorTransform       D_acropolis_patio_801827BC;
 extern ActorTransform       D_acropolis_patio_801827D4;
-void                        func_acropolis_patio_8017DFE4(s32);
+static void                 _acropolisPatioSetBattleActive(s32 battleActive);
 
 extern AnimationPlayRequest     D_acropolis_patio_8018270C;
 extern AnimationPlayRequest     D_acropolis_patio_80182720;
 extern AnimationBankCopyRequest D_acropolis_patio_801825C4;
 extern ActorTransform           D_acropolis_patio_80182630;
 extern ActorTransform           D_acropolis_patio_80182678;
-void                            func_acropolis_patio_8017DFE4(s32);
 void                            func_acropolis_patio_8017E024(void);
 static void                     _acropolisPatioPlayerTurnLeftTask(Task* task);
 
@@ -709,7 +708,7 @@ EvsCommand D_acropolis_patio_8018280C[41] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_patio_8017E024 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_patio_8017DFE4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetBattleActive }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
@@ -726,7 +725,7 @@ EvsCommand D_acropolis_patio_8018280C[41] = {
 };
 
 EvsCommand D_acropolis_patio_80182BE4[21] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_patio_8017DFE4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetBattleActive }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -743,7 +742,7 @@ EvsCommand D_acropolis_patio_80182BE4[21] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_patio_8017DFE4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetBattleActive }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -2071,9 +2070,14 @@ void func_acropolis_patio_8017DF8C(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_acropolis_patio_8017DFE4(s32 arg0)
+/// Pauses the patio's actors or resumes them and engages battle.
+///
+/// Event scripts pass zero to pause, or nonzero to resume actor updates and
+/// latch an idle battle as engaged. Pausing leaves the battle phase intact.
+/// Requires the live scene-combat state; no task or payload is retained.
+static void _acropolisPatioSetBattleActive(s32 battleActive)
 {
-    if (arg0 != 0) {
+    if (battleActive != 0) {
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
         sceneEngageBattle(1);
         return;

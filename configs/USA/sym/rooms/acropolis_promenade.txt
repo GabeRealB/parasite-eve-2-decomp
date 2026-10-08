@@ -115,3 +115,4 @@ _acropolisPromenadeRefuseKeyItem = 0x8017d8d8; // type:func
 _acropolisPromenadeIgnoreRoomAction = 0x8017d930; // type:func
 _acropolisPromenadeUpdateBridgeVisibility = 0x8017db48; // type:func
 _acropolisPromenadeSceneFadeInTask = 0x8017dfd4; // type:func
+_acropolisPromenadeMovieSkipFadeOutTask = 0x8017df74; // type:func

@@ -146,9 +146,7 @@ void func_dryfield_motel_room_1_8017DFD0(void);
 /// it - the same body as `_actor444000EventRequestPlayerAction`.
 void func_dryfield_motel_room_1_8017DFB0(s16 arg0);
 
-/// Arm the player's weapon, then re-issue the room task's messages: the 0x7DA
-/// poke at the slot-4 task and the `ACTOR_MESSAGE_PLACE` of both bone suckler enemies.
-void func_dryfield_motel_room_1_8017DF08(void);
+static void _dryfieldMotelRoom1FinishOpeningScene(void);
 
 /// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
@@ -213,7 +211,7 @@ EvsCommand D_dryfield_motel_room_1_8017E160[20] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_motel_room_1_8017DFB0 }, { .value = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SECOND_STAGING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_motel_room_1_8017DF08 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldMotelRoom1FinishOpeningScene }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -228,10 +226,10 @@ EvsCommand D_dryfield_motel_room_1_8017E340[13] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_motel_room_1_8017DF08 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldMotelRoom1FinishOpeningScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_motel_room_1_8017DF08 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldMotelRoom1FinishOpeningScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1214,16 +1212,18 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
     func_dryfield_motel_room_1_8017D7AC(arg0);
 }
 
-void func_dryfield_motel_room_1_8017DF08(void)
+/// Ends the opening scene by engaging battle and placing both bone sucklers.
+///
+/// Used by normal and skipped event scripts. Requires the retained event task,
+/// its initialized work, both live enemy tasks and the scene-manager task.
+/// The start-combat command and placement records are borrowed synchronously;
+/// this callback neither releases the event task nor waits for actor motion.
+static void _dryfieldMotelRoom1FinishOpeningScene(void)
 {
     _DryfieldMotelRoom1EventWork* work = D_dryfield_motel_room_1_8018159C->work;
-    ActorCommand                  msg;
 
     sceneEngageBattle(1);
-    msg.context.loc.stage = gGameSession->location.loc.stage;
-    msg.context.loc.area  = gGameSession->location.loc.area;
-    msg.command           = 3;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    _dryfieldMotelRoom1BroadcastActorCommand(DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_START_COMBAT);
     TASK_MESSAGE_DISPATCH_POINTER(work->enemySucklerTasks[0], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E130[0], 0);
     TASK_MESSAGE_DISPATCH_POINTER(work->enemySucklerTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E130[1], 0);
 }

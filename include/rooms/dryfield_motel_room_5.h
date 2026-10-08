@@ -27,6 +27,13 @@ extern SpriteView D_dryfield_motel_room_5_8017DDF8[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_5_8017E5BC[];
 
-void func_dryfield_motel_room_5_8017D65C(Task* task);
+/// Runs the motel room 5's room-message receiver.
+///
+/// Start the borrowed task in state 0 to install this overlay's message table
+/// and register `GAME_TASK_SLOT_ROOM`; state 1 idles and state 2 releases it.
+/// The state index must be 0..2; dispatch is unchecked. Keep this overlay and
+/// the registered task live while messages can arrive. Registration borrows
+/// the task pointer and does not clear the slot on teardown.
+void dryfieldMotelRoom5Task(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_MOTEL_ROOM_5_H

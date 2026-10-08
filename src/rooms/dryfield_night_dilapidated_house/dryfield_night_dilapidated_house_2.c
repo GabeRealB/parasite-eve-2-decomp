@@ -55,8 +55,8 @@ extern WorldCollisionGrid D_dryfield_night_dilapidated_house_80187D44[1];
 
 extern WorldCollisionTrigger D_dryfield_night_dilapidated_house_801892A0[8];
 
-void func_dryfield_night_dilapidated_house_8017DB20(Task*);
-void func_dryfield_night_dilapidated_house_8017DCE0(Task*);
+static void _dryfieldNightDilapidatedHouseMovieTask(Task* task);
+void        func_dryfield_night_dilapidated_house_8017DCE0(Task*);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -1175,7 +1175,7 @@ EvsCommand D_dryfield_night_dilapidated_house_80187134[16] = {
 
 TaskDesc D_dryfield_night_dilapidated_house_801872B4[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_dilapidated_house_8017DCE0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_dilapidated_house_8017DB20, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightDilapidatedHouseMovieTask, { .value = 0 } },
 };
 
 SVECTOR gGlowPrismCorners[24] = {
@@ -2390,74 +2390,85 @@ static u8 _gDryfieldNightDilapidatedHouseUnreferencedData[] = {
     0xF3,
 };
 
-/// Entry 1 of the room's two-entry descriptor table, the task that plays a
-/// stream. It blanks the display and allocates the auxiliary buffers, looks
-/// up the stream slot for the current location with view 0x65 or 0x64
-/// (0x65 on disc 2, by `Wip_SysFlags.discNumber`) and queues CD command 0x61 for it,
-/// shows the display once the queue's `field_1FA` is set, and blanks it again
-/// when the CD goes idle - or, on the pad's 0x800 flag, early, activating CD
-/// phase 1. Once the CD is idle it restores the stream state, clears the
-/// image buffers, shows the display again, kills itself and restores session
-/// image memory and game-loop presentation.
-void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
+/// Plays the house's skippable movie and restores game presentation.
+///
+/// Start this bodyless controller in state 0 with the room's movie slots and
+/// display task loaded. Disc 2 selects stream 101; other discs select 100.
+/// The lookup must succeed with slot 0..14; its failure sentinel is unchecked.
+/// Requires exclusive movie/CD workspace use and intact saved VRAM images.
+/// Start cancels playback; restoration waits for CD idle, restores memory,
+/// clears the image workspace and releases this task before resuming drawing.
+/// The no-sprite restore call does not itself clear the CD pause block.
+static void _dryfieldNightDilapidatedHouseMovieTask(Task* task)
 {
-    u8          slotParam[4];
-    GameLoc     key;
-    CdCmdQueue* queue;
-    s16         slot;
+    enum {
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_PREPARE           = 0,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_QUEUE             = 1,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_WAIT_READY        = 2,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_PLAY              = 3,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_BEGIN_RESTORE     = 4,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_RESTORE           = 5,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DEFAULT_STREAM_ID = 100,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DISC_2_STREAM_ID  = 101,
+    };
+    u8          streamArgs[4]; // Serialized command bytes; only the slot byte is consumed by playback.
+    GameLoc     movieKey;
+    CdCmdQueue* cdQueue;
+    s16         movieSlot;
 
-    queue = &gCdCmdQueue;
+    cdQueue = &gCdCmdQueue;
     switch (task->state) {
-        case 0:
-            SetDispMask(0);
-            streamPrepareMovieWorkspace(1);
+        case DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_PREPARE:
+            SetDispMask(false);
+            streamPrepareMovieWorkspace(true);
             task->state = task->state + 1;
             return;
-        case 1:
-            key = gGameSession->location;
+        case DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_QUEUE:
+            movieKey = gGameSession->location;
             if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
-                key.loc.view = 0x65;
+                movieKey.loc.view = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DISC_2_STREAM_ID;
             } else {
-                key.loc.view = 0x64;
+                movieKey.loc.view = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DEFAULT_STREAM_ID;
             }
-            slot         = streamFindMovieSlot(&key.loc, 0, 0);
-            slotParam[0] = slot;
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            movieSlot     = streamFindMovieSlot(&movieKey.loc, 0, 0);
+            streamArgs[0] = movieSlot;
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state = task->state + 1;
             return;
-        case 2:
-            if (queue->movieReady == 0) {
+        case DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_WAIT_READY:
+            if (cdQueue->movieReady == 0) {
                 return;
             }
-            SetDispMask(1);
+            SetDispMask(true);
             task->state = task->state + 1;
             return;
-        case 3:
-            if (cdCmdIsIdle() & 0xFFFF) {
-                SetDispMask(0);
+        case DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_PLAY:
+            if (cdCmdIsIdle()) {
+                SetDispMask(false);
                 task->state = task->state + 1;
                 return;
             }
             if (padIsStartPressed() == 0) {
                 return;
             }
-            SetDispMask(0);
+            SetDispMask(false);
             cdCmdRequestCancel();
             task->state = task->state + 1;
             return;
-        case 4:
-            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
+        // Cancellation must drain before the decoder workspace can be restored.
+        case DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_BEGIN_RESTORE:
+            if (cdCmdIsIdle() == 0) {
                 return;
             }
             streamResetGameRestore();
             task->state = task->state + 1;
             return;
-        case 5:
-            if ((streamPollGameRestore(0, 0) & 0xFFFF) == 0) {
+        case DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_RESTORE:
+            if (streamPollGameRestore(false, false) == 0) {
                 return;
             }
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
-            SetDispMask(1);
+            SetDispMask(true);
             taskKill(task);
             displayResumeGameLoop();
             return;

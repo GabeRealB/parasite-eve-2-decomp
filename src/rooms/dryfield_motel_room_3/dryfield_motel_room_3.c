@@ -339,12 +339,10 @@ static const TaskFuncTable3 D_dryfield_motel_room_3_8017D5C4 = {
     { _dryfieldMotelRoom3InitRoomTask, _dryfieldMotelRoom3IdleRoomTask, taskKill },
 };
 
-/// The room task's callback: runs the state `Task::state` selects from a
-/// stack copy of `D_dryfield_motel_room_3_8017D5C4`.
-void func_dryfield_motel_room_3_8017D65C(Task* task)
+void dryfieldMotelRoom3Task(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_motel_room_3_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_motel_room_3_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

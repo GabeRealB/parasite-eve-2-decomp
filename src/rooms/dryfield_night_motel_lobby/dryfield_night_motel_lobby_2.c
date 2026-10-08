@@ -733,10 +733,12 @@ void dryfieldNightMotelLobbyDrawCashRegisterDisplay(Task* task)
     }
 }
 
-/// Shifts the seven display slots toward older positions and inserts a digit.
+/// Inserts a decimal digit at the right of the seven-slot register display.
 ///
-/// `digit` is 0..9 and occupies index 0, the right-hand display slot.
-/// The caller owns the capacity and leading-zero checks and updates its count.
+/// `digit` must be 0..9; it narrows to the stored byte at index 0. Moves older
+/// slots left and discards index 6, including empty-slot markers. No capacity
+/// or leading-zero check occurs here: the caller checks those and updates its
+/// entered-digit count. The display array is retained room storage.
 static inline void _dryfieldNightMotelLobbyCashRegisterShiftDigit(s16 digit)
 {
     D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];

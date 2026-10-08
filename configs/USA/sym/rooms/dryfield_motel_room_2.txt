@@ -57,3 +57,4 @@ _dryfieldMotelRoom2IgnoreRoomCommand = 0x8017d600; // type:func
 _dryfieldMotelRoom2IgnoreRoomAction = 0x8017d608; // type:func
 _dryfieldMotelRoom2IdleRoomTask = 0x8017d654; // type:func
 _dryfieldMotelRoom2InitRoomTask = 0x8017d610; // type:func
+dryfieldMotelRoom2Task = 0x8017d65c; // type:func

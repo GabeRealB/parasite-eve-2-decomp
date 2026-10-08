@@ -29,7 +29,7 @@
 
 void func_dryfield_night_motel_balcony_8017E068(Task*);
 
-void func_dryfield_night_motel_balcony_8017DDD0(Task*);
+static void _dryfieldNightMotelBalconyMovieTask(Task* task);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -44,104 +44,129 @@ TaskMessageEntry D_dryfield_night_motel_balcony_80182804[6] = {
 
 TaskDesc D_dryfield_night_motel_balcony_80182834[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_balcony_8017E0C8, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_balcony_8017DDD0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelBalconyMovieTask, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_night_motel_balcony_8018284C = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_balcony_8017E068, { .value = 0 } }; /// The balcony movie task. It blanks the display, allocates the movie
-/// buffers and plays two streams keyed on the current location - view 0x65
-/// then 0x64, or 0x67 then 0x66 when `Wip_SysFlags.discNumber` is disc 2 - either of
-/// which the pad can skip, then restores the stream state, kills itself and
-/// restores session image memory and game-loop presentation.
-void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
-{
-    u8          slotParam[4];
-    GameLoc     introKey;
-    GameLoc     loopKey;
-    CdCmdQueue* queue;
-    s16         slot;
+TaskDesc D_dryfield_night_motel_balcony_8018284C = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_balcony_8017E068, { .value = 0 } };
 
-    queue = &gCdCmdQueue;
+/// Reveals a ready movie and advances the borrowed controller to playback.
+///
+/// An unset ready latch leaves the state and display unchanged.
+static inline void _dryfieldNightMotelBalconyRevealReadyMovie(Task* task, const CdCmdQueue* cdQueue)
+{
+    if (cdQueue->movieReady == 0) {
+        return;
+    }
+    SetDispMask(true);
+    task->state = task->state + 1;
+}
+
+/// Plays the balcony's two-movie sequence, allowing Start to skip either part.
+///
+/// Start this bodyless controller in state 0 with the movie slots and display
+/// task loaded. Disc 2 selects streams 103/102, other discs 101/100. Each lookup
+/// must succeed with slot 0..14; failure is unchecked. Skipping the first movie
+/// bypasses the second. Playback needs exclusive movie/CD workspace use and
+/// intact saved VRAM images. After CD idle, reloads sprite images and restores
+/// memory before releasing this task and resuming game-loop presentation.
+static void _dryfieldNightMotelBalconyMovieTask(Task* task)
+{
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_PREPARE                  = 0,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_QUEUE_FIRST              = 1,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_WAIT_FIRST_READY         = 2,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_PLAY_FIRST               = 3,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_QUEUE_SECOND             = 4,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_WAIT_SECOND_READY        = 5,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_PLAY_SECOND              = 6,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_BEGIN_RESTORE            = 7,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_RESTORE                  = 8,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DEFAULT_FIRST_STREAM_ID  = 101,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DISC_2_FIRST_STREAM_ID   = 103,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DEFAULT_SECOND_STREAM_ID = 100,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DISC_2_SECOND_STREAM_ID  = 102,
+    };
+    u8          streamArgs[4]; // Serialized command bytes; only the slot byte is consumed by playback.
+    GameLoc     firstMovieKey;
+    GameLoc     secondMovieKey;
+    CdCmdQueue* cdQueue;
+    s16         movieSlot;
+
+    cdQueue = &gCdCmdQueue;
     switch (task->state) {
-        case 0:
-            SetDispMask(0);
-            streamPrepareMovieWorkspace(1);
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_PREPARE:
+            SetDispMask(false);
+            streamPrepareMovieWorkspace(true);
             task->state = task->state + 1;
             return;
-        case 1:
-            introKey = gGameSession->location;
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_QUEUE_FIRST:
+            firstMovieKey = gGameSession->location;
             if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
-                introKey.loc.view = 0x67;
+                firstMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DISC_2_FIRST_STREAM_ID;
             } else {
-                introKey.loc.view = 0x65;
+                firstMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DEFAULT_FIRST_STREAM_ID;
             }
-            slot         = streamFindMovieSlot(&introKey.loc, 0, 0);
-            slotParam[0] = slot;
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            movieSlot     = streamFindMovieSlot(&firstMovieKey.loc, 0, 0);
+            streamArgs[0] = movieSlot;
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state = task->state + 1;
             return;
-        case 2:
-            if (queue->movieReady == 0) {
-                return;
-            }
-            SetDispMask(1);
-            task->state = task->state + 1;
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_WAIT_FIRST_READY:
+            _dryfieldNightMotelBalconyRevealReadyMovie(task, cdQueue);
             return;
-        case 3:
-            if (cdCmdIsIdle() & 0xFFFF) {
-                SetDispMask(0);
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_PLAY_FIRST:
+            if (cdCmdIsIdle()) {
+                SetDispMask(false);
                 task->state = task->state + 1;
                 return;
             }
             if (padIsStartPressed() == 0) {
                 return;
             }
-            SetDispMask(0);
+            SetDispMask(false);
             cdCmdRequestCancel();
-            task->state = 7;
+            task->state = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_BEGIN_RESTORE;
             return;
-        case 4:
-            if (cdCmdIsIdle() & 0xFFFF) {
-                loopKey = gGameSession->location;
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_QUEUE_SECOND:
+            if (cdCmdIsIdle()) {
+                secondMovieKey = gGameSession->location;
                 if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
-                    loopKey.loc.view = 0x66;
+                    secondMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DISC_2_SECOND_STREAM_ID;
                 } else {
-                    loopKey.loc.view = 0x64;
+                    secondMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DEFAULT_SECOND_STREAM_ID;
                 }
-                slot         = streamFindMovieSlot(&loopKey.loc, 0, 0);
-                slotParam[0] = slot;
-                cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+                movieSlot     = streamFindMovieSlot(&secondMovieKey.loc, 0, 0);
+                streamArgs[0] = movieSlot;
+                cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             }
             task->state = task->state + 1;
             return;
-        case 5:
-            if (queue->movieReady == 0) {
-                return;
-            }
-            SetDispMask(1);
-            task->state = task->state + 1;
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_WAIT_SECOND_READY:
+            _dryfieldNightMotelBalconyRevealReadyMovie(task, cdQueue);
             return;
-        case 6:
-            if (cdCmdIsIdle() & 0xFFFF) {
-                SetDispMask(0);
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_PLAY_SECOND:
+            if (cdCmdIsIdle()) {
+                SetDispMask(false);
                 task->state = task->state + 1;
                 return;
             }
             if (padIsStartPressed() == 0) {
                 return;
             }
-            SetDispMask(0);
+            SetDispMask(false);
             cdCmdRequestCancel();
             task->state = task->state + 1;
             return;
-        case 7:
-            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
+        // Cancellation must drain before the decoder workspace can be restored.
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_BEGIN_RESTORE:
+            if (cdCmdIsIdle() == 0) {
                 return;
             }
             streamResetGameRestore();
             task->state = task->state + 1;
             return;
-        case 8:
-            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_RESTORE:
+            if (streamPollGameRestore(false, true) == 0) {
                 return;
             }
             taskKill(task);

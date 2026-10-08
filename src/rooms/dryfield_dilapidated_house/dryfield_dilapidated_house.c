@@ -253,7 +253,7 @@ void                              func_dryfield_dilapidated_house_8017EA7C(void)
 void                              func_dryfield_dilapidated_house_80180F04(Task*);
 static void                       _dryfieldDilapidatedHouseCurveDebugTask(Task* task);
 static void                       _dryfieldDilapidatedHouseCappedBeamTask(Task* task);
-void                              func_dryfield_dilapidated_house_8018145C(Task*);
+static void                       _dryfieldDilapidatedHouseMorphConeTask(Task* task);
 
 TaskDesc D_dryfield_dilapidated_house_80183E48[2] = {
     { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
@@ -850,7 +850,7 @@ TaskDesc D_dryfield_dilapidated_house_80186854[4] = {
     { { { TASK_BODY_TMD, 192 } }, func_dryfield_dilapidated_house_80180F04, { .model = &_gDryfieldDilapidatedHouseModel08794 } },
     { { { TASK_BODY_TMD, 192 } }, _dryfieldDilapidatedHouseCurveDebugTask, { .model = &_gDryfieldDilapidatedHouseModel08D0C } },
     { { { TASK_BODY_COORD, 192 } }, _dryfieldDilapidatedHouseCappedBeamTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 192 } }, func_dryfield_dilapidated_house_8018145C, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _dryfieldDilapidatedHouseMorphConeTask, { .value = 0 } },
 };
 
 SVECTOR D_dryfield_dilapidated_house_80186884[24] = {
@@ -2880,7 +2880,7 @@ static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D628 = {
       _dryfieldDilapidatedHouseRingBeamExit },
 };
 
-/// State handlers of the task `func_dryfield_dilapidated_house_8018145C` dispatches.
+/// State handlers of the task `_dryfieldDilapidatedHouseMorphConeTask` dispatches.
 static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D634 = {
     { _dryfieldDilapidatedHouseMorphConeInit, _dryfieldDilapidatedHouseMorphConeUpdate,
       _dryfieldDilapidatedHouseMorphConeExit },
@@ -3870,14 +3870,19 @@ static void _dryfieldDilapidatedHouseRingBeamExit(Task* task)
     taskKill(task);
 }
 
-/// Runs the task's current state out of `D_dryfield_dilapidated_house_8017D634`,
-/// copied onto the stack.
-void func_dryfield_dilapidated_house_8018145C(Task* task)
+/// Runs the morph cone's initialization, build/draw or detachment state.
+///
+/// `task->state` must be 0, 1 or 2; dispatch is unchecked. Start with a live
+/// coordinate body, argument 1's phase advance in frames and argument 2's
+/// spawning morph-model task. Initialization owns the rim-phase work block
+/// and links the cone to that parent's teardown tree; keep both tasks and
+/// this overlay live until the coordinate is detached and the cone released.
+static void _dryfieldDilapidatedHouseMorphConeTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_dilapidated_house_8017D634;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_dilapidated_house_8017D634;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Attaches the morph cone's coordinate and seeds its sixteen rim phases.

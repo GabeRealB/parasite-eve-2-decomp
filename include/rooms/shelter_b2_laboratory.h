@@ -45,7 +45,14 @@ extern WorldCoordRoomAmbientEntry D_shelter_b2_laboratory_801863B8[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_laboratory_80186468[];
 
-void func_shelter_b2_laboratory_801804A4(Task* task);
+/// Runs the laboratory's room-message receiver.
+///
+/// Start the borrowed task in state 0 to install this overlay's message table
+/// and register `GAME_TASK_SLOT_ROOM`; state 1 idles and state 2 releases it.
+/// The state index must be 0..2; dispatch is unchecked. Keep this overlay and
+/// the registered task live while messages can arrive. Registration borrows
+/// the task pointer and does not clear the slot on teardown.
+void shelterB2LaboratoryTask(Task* task);
 
 // Called by the actor overlay's event scripts while this room is loaded.
 void func_shelter_b2_laboratory_801804FC(void);
@@ -60,6 +67,11 @@ void func_shelter_b2_laboratory_801804FC(void);
 /// absent from the dispatch and releases temporary scratch storage each call.
 void shelterB2LaboratoryGlowTask(Task* task);
 
-void func_shelter_b2_laboratory_8017EAB4(Task* task);
+/// Updates the laboratory telephone's save menu and optional play statistics.
+///
+/// `spawnArg2.pointer` borrows the live UI object owned by this task. Save,
+/// notice and statistics children must stay linked until their answers are
+/// consumed. Requires this overlay and its telephone UI resources to stay loaded.
+void shelterB2LaboratoryTelephoneMenuTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B2_LABORATORY_H

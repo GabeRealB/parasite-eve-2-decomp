@@ -233,3 +233,4 @@ _dryfieldNightMotelBalconyDrawDebris = 0x8017ff78; // type:func
 _dryfieldNightMotelBalconyDrawFallingParticle = 0x80180c60; // type:func
 _dryfieldNightMotelBalconyDrawDriftPuff = 0x801819e0; // type:func
 _dryfieldNightMotelBalconyDrawFlame = 0x8018221c; // type:func
+_dryfieldNightMotelBalconyMovieTask = 0x8017ddd0; // type:func

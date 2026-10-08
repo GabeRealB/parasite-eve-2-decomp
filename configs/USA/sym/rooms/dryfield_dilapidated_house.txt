@@ -238,3 +238,4 @@ _dryfieldDilapidatedHouseCappedBeamUpdate = 0x801813dc; // type:func
 _dryfieldDilapidatedHouseCappedBeamTask = 0x801812e8; // type:func
 _dryfieldDilapidatedHouseMorphConeInit = 0x801814b4; // type:func
 _dryfieldDilapidatedHouseMorphConeUpdate = 0x80181584; // type:func
+_dryfieldDilapidatedHouseMorphConeTask = 0x8018145c; // type:func

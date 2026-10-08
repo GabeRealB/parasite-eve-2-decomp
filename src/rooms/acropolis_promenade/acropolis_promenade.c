@@ -105,7 +105,7 @@ static void func_acropolis_promenade_8017D9E0(Task* arg0);
 static void _acropolisPromenadeUpdateBridgeVisibility(Task* task);
 
 void        func_acropolis_promenade_8017DB9C(Task*);
-void        func_acropolis_promenade_8017DF74(Task*);
+static void _acropolisPromenadeMovieSkipFadeOutTask(Task* task);
 static void _acropolisPromenadeSceneFadeInTask(Task* task);
 
 extern WorldCollisionGrid    D_acropolis_promenade_801823DC[1];
@@ -233,7 +233,7 @@ TaskDesc D_acropolis_promenade_80181148[5] = {
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_promenade_8017DB9C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_promenade_8017DF74, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisPromenadeMovieSkipFadeOutTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPromenadeSceneFadeInTask, { .value = 0 } },
 };
 
@@ -1807,21 +1807,28 @@ void func_acropolis_promenade_8017DB9C(Task* task)
     }
 }
 
-/// Entry 3 of the room's task table: draws `fadeDrawOverlay` at the grey
-/// level `killCountdown`, which rises by 0x20 a frame; at 0x100 the task asks
-/// to be killed with `taskRequestKill`, which the streamed-scene task that
-/// spawned it polls for.
-void func_acropolis_promenade_8017DF74(Task* arg0)
+/// Darkens the promenade movie before its skip transition.
+///
+/// Start this bodyless task with `killCountdown` zero. Draws subtractive grey
+/// levels 0, 32, ... 224, advancing the signed 16-bit counter after each draw.
+/// At 256 requests deferred teardown with result zero; the spawning movie
+/// task polls that completion before placing the player and starting fade-in.
+/// Requires a live overlay and the current frame's primitive arena.
+static void _acropolisPromenadeMovieSkipFadeOutTask(Task* task)
 {
-    u8  fade;
-    s16 temp_v0;
+    enum {
+        ACROPOLIS_PROMENADE_MOVIE_SKIP_FADE_STEP = 32,
+        ACROPOLIS_PROMENADE_MOVIE_SKIP_FADE_END  = 256
+    };
+    u8  darkness;
+    s16 nextFadeCounter;
 
-    fade = (u8)arg0->killCountdown;
-    fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
-    temp_v0             = (u16)arg0->killCountdown + 0x20;
-    arg0->killCountdown = temp_v0;
-    if (temp_v0 >= 0x100) {
-        taskRequestKill(arg0, 0);
+    darkness = (u8)task->killCountdown;
+    fadeDrawOverlay(darkness, darkness, darkness, GPU_BLEND_SUBTRACT);
+    nextFadeCounter     = (u16)task->killCountdown + ACROPOLIS_PROMENADE_MOVIE_SKIP_FADE_STEP;
+    task->killCountdown = nextFadeCounter;
+    if (nextFadeCounter >= ACROPOLIS_PROMENADE_MOVIE_SKIP_FADE_END) {
+        taskRequestKill(task, 0);
     }
 }
 

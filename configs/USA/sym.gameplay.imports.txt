@@ -1715,7 +1715,7 @@ shelterB1SterilizationRoomTelephoneMenuTask = 0x8017EB2C; // type:func absolute:
 
 shelterB1UndergroundParkingTelephoneMenuTask = 0x8017EDE8; // type:func absolute:True owner=shelter_b1_underground_parking
 
-func_shelter_b2_laboratory_8017EAB4 = 0x8017EAB4; // type:func absolute:True owner=shelter_b2_laboratory
+shelterB2LaboratoryTelephoneMenuTask = 0x8017EAB4; // type:func absolute:True owner=shelter_b2_laboratory
 
 func_shelter_b3_incinerator_control_room_8017EA64 = 0x8017EA64; // type:func absolute:True owner=shelter_b3_incinerator_control_room
 
