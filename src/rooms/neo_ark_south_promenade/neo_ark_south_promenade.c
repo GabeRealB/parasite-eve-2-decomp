@@ -403,14 +403,12 @@ static void _neoArkSouthPromenadeIdleRoomTask(Task* task)
 {
 }
 
-/// Dispatches the room's message-driven task through its three-state table,
-/// copied onto the stack before the call.
-void func_neo_ark_south_promenade_8017D678(Task* task)
+void neoArkSouthPromenadeRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_neo_ark_south_promenade_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_neo_ark_south_promenade_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 void neoArkSouthPromenadeRegisterGolemEffectsTask(Task* task)

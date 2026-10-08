@@ -133,21 +133,19 @@ static void _shelterB1ControlRoomAccessTunnelIdle(Task* task)
 {
 }
 
-/// State handlers of the task `func_shelter_b1_control_room_access_tunnel_8017D68C`
+/// State handlers of the task `shelterB1ControlRoomAccessTunnelRoomTask`
 /// runs, which copies the table to the stack and calls the entry for the
 /// task's state: the room's setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b1_control_room_access_tunnel_8017D5C4 = {
     { _shelterB1ControlRoomAccessTunnelInitializeRoom, _shelterB1ControlRoomAccessTunnelIdle, taskKill }
 };
 
-/// Runs the room's task through its three-state handler table, copied onto
-/// the stack before the call.
-void func_shelter_b1_control_room_access_tunnel_8017D68C(Task* task)
+void shelterB1ControlRoomAccessTunnelRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b1_control_room_access_tunnel_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b1_control_room_access_tunnel_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_cone.inc.c"

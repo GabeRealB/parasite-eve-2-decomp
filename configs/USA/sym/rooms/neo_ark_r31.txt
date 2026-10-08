@@ -22,4 +22,10 @@ D_actor_461800_80139F8C = 0x80139F8C; // absolute:True owner=actor_461800
 D_actor_461800_801437EC = 0x801437EC; // absolute:True owner=actor_461800
 D_map_neo_ark_8017C550 = 0x8017C550; // absolute:True owner=map_neo_ark
 
-func_neo_ark_r31_8017D990 = 0x8017D990; // type:func
+neoArkR31RoomTask = 0x8017D990; // type:func
+_neoArkR31FramebufferShiftTask = 0x8017d5d0; // type:func
+_neoArkR31RejectKeyItemUse = 0x8017d8b0; // type:func
+_neoArkR31ResolveRoomTransition = 0x8017d8b8; // type:func
+_neoArkR31IgnoreRoomCommand = 0x8017d8fc; // type:func
+_neoArkR31IgnoreRoomAction = 0x8017d904; // type:func
+_neoArkR31SetImageMaskMode = 0x8017d980; // type:func

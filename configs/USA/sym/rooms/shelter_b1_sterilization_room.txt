@@ -226,3 +226,5 @@ _shelterB1SterilizationRoomCrossfadeTask = 0x801811e0; // type:func
 _shelterB1SterilizationRoomDoorPassageTask = 0x80180d74; // type:func
 _shelterB1SterilizationRoomTrapDamageTask = 0x80180f74; // type:func
 shelterB1SterilizationRoomResetSpawnMaskTask = 0x80181634; // type:func
+_shelterB1SterilizationRoomAttenuateTrapSounds = 0x80181658; // type:func
+_shelterB1SterilizationRoomResetCapResource = 0x80181698; // type:func

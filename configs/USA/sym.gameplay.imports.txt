@@ -916,7 +916,7 @@ neoArkPyramidRoomVisualEffectsTwinTrailTask = 0x8017E6B4; // type:func absolute:
 
 func_neo_ark_pyramid_8017EF9C = 0x8017EF9C; // type:func absolute:True owner=neo_ark_pyramid
 
-func_neo_ark_r31_8017D990 = 0x8017D990; // type:func absolute:True owner=neo_ark_r31 shared=rooms
+neoArkR31RoomTask = 0x8017D990; // type:func absolute:True owner=neo_ark_r31 shared=rooms
 
 neoArkSavannaZoneConfigureEffectsTask = 0x8017D9AC; // type:func absolute:True owner=neo_ark_savanna_zone
 

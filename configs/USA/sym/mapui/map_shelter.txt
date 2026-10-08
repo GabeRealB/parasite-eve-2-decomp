@@ -238,7 +238,7 @@ D_shelter_b1_pod_service_gantry_801801E8 = 0x801801E8; // absolute:True owner=sh
 D_shelter_b1_pod_service_gantry_80181BA0 = 0x80181BA0; // absolute:True owner=shelter_b1_pod_service_gantry
 D_shelter_b1_pod_service_gantry_801824F4 = 0x801824F4; // absolute:True owner=shelter_b1_pod_service_gantry
 D_shelter_b1_pod_service_gantry_80182520 = 0x80182520; // absolute:True owner=shelter_b1_pod_service_gantry shared=rooms
-func_shelter_b1_transfer_tunnel_8017D678 = 0x8017D678; // type:func absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
+shelterB1TransferTunnelRoomTask = 0x8017D678; // type:func absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
 D_shelter_b1_transfer_tunnel_80182954 = 0x80182954; // absolute:True owner=shelter_b1_transfer_tunnel
 D_shelter_b1_transfer_tunnel_80182958 = 0x80182958; // absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
 D_shelter_b1_transfer_tunnel_8018295C = 0x8018295C; // absolute:True owner=shelter_b1_transfer_tunnel
@@ -249,7 +249,7 @@ D_shelter_b1_transfer_tunnel_80182D90 = 0x80182D90; // absolute:True owner=shelt
 D_shelter_b1_transfer_tunnel_80182DA8 = 0x80182DA8; // absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
 D_shelter_b1_transfer_tunnel_80182ED8 = 0x80182ED8; // absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
 D_shelter_b1_transfer_tunnel_80183184 = 0x80183184; // absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
-func_shelter_b1_control_room_access_tunnel_8017D68C = 0x8017D68C; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
+shelterB1ControlRoomAccessTunnelRoomTask = 0x8017D68C; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
 D_shelter_b1_control_room_access_tunnel_80181F00 = 0x80181F00; // absolute:True owner=shelter_b1_control_room_access_tunnel
 D_shelter_b1_control_room_access_tunnel_80181F04 = 0x80181F04; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
 D_shelter_b1_control_room_access_tunnel_80181F08 = 0x80181F08; // absolute:True owner=shelter_b1_control_room_access_tunnel

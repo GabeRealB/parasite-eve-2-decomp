@@ -29,24 +29,26 @@
 
 #include "mapui/map_neo_ark.h"
 
+#include "../../shared/room_variants.h"
+
 /// Room message handler table installed into `Task::msgTable`.
 extern TaskMessageEntry D_neo_ark_r31_8017D9F4[];
 extern EvsCommand       D_actor_461800_80133F90[];
 extern EvsCommand       D_actor_461800_80134470[];
 
-s32  func_neo_ark_r31_8017D8B0(Task*, s32, s32, s32);
-s32  func_neo_ark_r31_8017D8B8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_r31_8017D8FC(Task*, s32, s32, s32);
-s32  func_neo_ark_r31_8017D904(Task*, s32, s32, s32);
-void func_neo_ark_r31_8017D5D0(Task*);
+static s32  _neoArkR31RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _neoArkR31ResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _neoArkR31IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32  _neoArkR31IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static void _neoArkR31FramebufferShiftTask(Task* task);
 
-TaskDesc D_neo_ark_r31_8017D9E8 = { { { TASK_BODY_NONE, 192 } }, func_neo_ark_r31_8017D5D0, { .value = 0 } };
+TaskDesc D_neo_ark_r31_8017D9E8 = { { { TASK_BODY_NONE, 192 } }, _neoArkR31FramebufferShiftTask, { .value = 0 } };
 
 TaskMessageEntry D_neo_ark_r31_8017D9F4[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_r31_8017D8B8 },
-    { 5105, func_neo_ark_r31_8017D8B0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_r31_8017D904 },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_r31_8017D8FC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkR31ResolveRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkR31RejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkR31IgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _neoArkR31IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -139,93 +141,146 @@ WorldCollisionSurfaceProperties* D_neo_ark_r31_8017DC34[8] = {
 s32 D_neo_ark_r31_8017DC54 = 0;
 
 static void func_neo_ark_r31_8017D90C(Task* arg0);
-static void func_neo_ark_r31_8017D980(Task* task);
+static void _neoArkR31SetImageMaskMode(Task* unusedTask);
 
-void func_neo_ark_r31_8017D5D0(Task* task)
+/// Brackets the shifted framebuffer draw with GPU mask-bit writes enabled and disabled.
+///
+/// Borrows two DR_STP packets from the frame arena. Reverse OT traversal runs
+/// the enable command first at the last tag and the disable command before the
+/// shifted quads at `drawDepth`: preceding draws set pixel bit 15, while the
+/// shifted overlay does not force that bit in its output.
+static inline void _neoArkR31QueueFramebufferMaskModes(s32 drawDepth)
 {
-    POLY_FT4* poly;
-    DR_STP*   stp;
-    s32       buf;
-    s32       otz;
-    s32       x;
-    s32       y;
-    s32       sx;
-    s32       sy;
-    s32       px;
+    DR_STP* maskMode;
 
-    otz = 6;
-    buf = gDisplayState.otBuffer;
-    if (task->state == 0) {
-        D_neo_ark_r31_8017DC54 = 3;
+    maskMode       = gGpuPrimCursor;
+    gGpuPrimCursor = maskMode + 1;
+    SetDrawStp(maskMode, 0);
+    addPrim(gGpuCurrentOt + drawDepth, maskMode);
+    maskMode       = gGpuPrimCursor;
+    gGpuPrimCursor = maskMode + 1;
+    SetDrawStp(maskMode, 1);
+    addPrim(gGpuCurrentOt + GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt), maskMode);
+}
+
+/// Overlays the current draw framebuffer shifted left by the scene's pixel displacement.
+///
+/// State 0 initializes the displacement to three pixels; subsequent calls use
+/// the scene controller's nonnegative value. A negative displacement requests
+/// task exit before drawing. Requires the 320x240 double-buffered display, OT
+/// tags 6 and 1023 and word-aligned arena space for two POLY_FT4 and two DR_STP
+/// packets. Packets borrow that storage until GPU drawing completes.
+static void _neoArkR31FramebufferShiftTask(Task* task)
+{
+    enum {
+        INITIALIZE           = 0,
+        INITIAL_SHIFT_PIXELS = 3,
+        DRAW_DEPTH           = 6,
+        SCREEN_WIDTH         = 320,
+        SCREEN_HEIGHT        = 240,
+        TILE_WIDTH           = 160,
+        SCREEN_CENTER_X      = 160,
+        SCREEN_CENTER_Y      = 120,
+        TEXTURE_16_BIT       = 2,
+        TEXTURE_PAGE_X_MASK  = 63,
+        TEXTURE_PAGE_Y_SHIFT = 8,
+        FRAMEBUFFER_V_SHIFT  = 4,
+        FULL_TILE_V_LIMIT    = 16,
+        FULL_TILE_U_LIMIT    = 96,
+        TEXTURE_UV_MAX       = 255,
+    };
+    POLY_FT4* poly;
+    s32       sourceBuffer;
+    s32       drawDepth;
+    s32       sourceX;
+    s32       sourceY;
+    s32       screenX;
+    s32       screenY;
+    s32       shiftedX;
+
+    drawDepth    = DRAW_DEPTH;
+    sourceBuffer = gDisplayState.otBuffer;
+    if (task->state == INITIALIZE) {
+        D_neo_ark_r31_8017DC54 = INITIAL_SHIFT_PIXELS;
         task->state++;
     }
     if (D_neo_ark_r31_8017DC54 < 0) {
         taskCallExit(task);
         return;
     }
-    for (x = 0; x < 0x140; x += 0xA0) {
-        sx = x - 0xA0;
-        for (y = 0; y < 0xF0; y += 0xF0) {
-            sy             = y - 0x78;
+    // Sample two 16-bit texture strips, clipping their ends to the byte-sized UV range.
+    for (sourceX = 0; sourceX < SCREEN_WIDTH; sourceX += TILE_WIDTH) {
+        screenX = sourceX - SCREEN_CENTER_X;
+        for (sourceY = 0; sourceY < SCREEN_HEIGHT; sourceY += SCREEN_HEIGHT) {
+            screenY        = sourceY - SCREEN_CENTER_Y;
             poly           = gGpuPrimCursor;
-            gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(POLY_FT4);
-            poly->tpage    = getTPage(2, 0, x & ~0x3F, buf << 8);
-            poly->y0 = poly->y1 = sy;
-            poly->v0 = poly->v1 = (y + (buf << 4)) + gDisplayState.vramYOffset;
-            if (poly->v0 < 0x10) {
-                poly->y2 = poly->y3 = y + 0x78;
-                poly->v2 = poly->v3 = poly->v0 + 0xF0;
+            gGpuPrimCursor = poly + 1;
+            poly->tpage    = getTPage(TEXTURE_16_BIT, GPU_BLEND_AVERAGE, sourceX & ~TEXTURE_PAGE_X_MASK, sourceBuffer << TEXTURE_PAGE_Y_SHIFT);
+            poly->y0 = poly->y1 = screenY;
+            poly->v0 = poly->v1 = (sourceY + (sourceBuffer << FRAMEBUFFER_V_SHIFT)) + gDisplayState.vramYOffset;
+            if (poly->v0 < FULL_TILE_V_LIMIT) {
+                poly->y2 = poly->y3 = sourceY + SCREEN_CENTER_Y;
+                poly->v2 = poly->v3 = poly->v0 + SCREEN_HEIGHT;
             } else {
-                s32 d    = 0xFF - poly->v0;
-                poly->y2 = poly->y3 = sy + d;
-                poly->v2 = poly->v3 = poly->v0 + d;
+                s32 remainingRows = TEXTURE_UV_MAX - poly->v0;
+                poly->y2 = poly->y3 = screenY + remainingRows;
+                poly->v2 = poly->v3 = poly->v0 + remainingRows;
             }
-            px       = sx - D_neo_ark_r31_8017DC54;
-            poly->x0 = poly->x2 = px;
-            poly->u0 = poly->u2 = x & 0x3F;
-            if (poly->u0 < 0x60) {
-                poly->x1 = poly->x3 = poly->x0 + 0xA0;
-                poly->u1 = poly->u3 = poly->u0 + 0xA0;
+            shiftedX = screenX - D_neo_ark_r31_8017DC54;
+            poly->x0 = poly->x2 = shiftedX;
+            poly->u0 = poly->u2 = sourceX & TEXTURE_PAGE_X_MASK;
+            if (poly->u0 < FULL_TILE_U_LIMIT) {
+                poly->x1 = poly->x3 = poly->x0 + TILE_WIDTH;
+                poly->u1 = poly->u3 = poly->u0 + TILE_WIDTH;
             } else {
-                s32 d    = 0xFF - poly->u0;
-                poly->x1 = poly->x3 = poly->x0 + d;
-                poly->u1 = poly->u3 = poly->u0 + d;
+                s32 remainingColumns = TEXTURE_UV_MAX - poly->u0;
+                poly->x1 = poly->x3 = poly->x0 + remainingColumns;
+                poly->u1 = poly->u3 = poly->u0 + remainingColumns;
             }
-            setlen(poly, 9);
-            setcode(poly, 0x2F);
-            addPrim(gGpuCurrentOt + otz, poly);
+            setPolyFT4(poly);
+            setSemiTrans(poly, 1);
+            setShadeTex(poly, 1);
+            addPrim(gGpuCurrentOt + drawDepth, poly);
         }
     }
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_STP);
-    SetDrawStp(stp, 0);
-    addPrim(gGpuCurrentOt + otz, stp);
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_STP);
-    SetDrawStp(stp, 1);
-    addPrim(gGpuCurrentOt + 0x3FF, stp);
+    _neoArkR31QueueFramebufferMaskModes(drawDepth);
 }
 
-s32 func_neo_ark_r31_8017D8B0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key item, selecting the inventory's cannot-use notice.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; all arguments are unread and unretained.
+static s32 _neoArkR31RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
+{
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+/// Resolves a Neo Ark destination and permits the ordinary room transition.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; task and messageId are unused.
+/// Request and reply borrow complete eight-byte records and may alias. Copies
+/// the request before resolving its room selector; queries keep the requested
+/// destination. Destination selectors must be valid in the active stage.
+/// Neither pointer is retained. Returns `ROOM_VARIANT_TRANSITION_DIRECT`.
+static s32 _neoArkR31ResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
+{
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return ROOM_VARIANT_TRANSITION_DIRECT;
+}
+
+/// Ignores `ROOM_MESSAGE_COMMAND`, returning zero without changing room state.
+///
+/// Both integer payloads and the receiver and message ID are unused.
+static s32 _neoArkR31IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-/// Message handler for the save location: copies the incoming `RoomEventMsg`
-/// onto the outgoing one and passes both to `mapNeoArkResolveRoomVariant`. Returns 1.
-s32 func_neo_ark_r31_8017D8B8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
-}
-
-s32 func_neo_ark_r31_8017D8FC(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-s32 func_neo_ark_r31_8017D904(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores `DIRECTION_MESSAGE_ROOM_ACTION`, returning zero without changing room state.
+///
+/// The request is borrowed for synchronous dispatch and is neither read nor
+/// retained. All other arguments are unused.
+static s32 _neoArkR31IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -245,28 +300,30 @@ static void func_neo_ark_r31_8017D90C(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// Room task state 1: stores 2 into `gCdCmdQueue.imageMdecMode` every tick.
-static void func_neo_ark_r31_8017D980(Task* task)
+/// Re-arms pixel bit 15 for the next RGB16 background decode.
+///
+/// State 1 refreshes the one-image MDEC mode every tick because decoding consumes
+/// it. The task argument is unused.
+static void _neoArkR31SetImageMaskMode(Task* unusedTask)
 {
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
 }
 
-/// State handlers of the room task `func_neo_ark_r31_8017D990`, indexed by
+/// State handlers of the room task `neoArkR31RoomTask`, indexed by
 /// `Task::state`: the set-up tick, the tick that stores 2 into `gCdCmdQueue.imageMdecMode`,
 /// and `taskKill`.
 static const TaskFuncTable3 D_neo_ark_r31_8017D5C4 = {
     {
         func_neo_ark_r31_8017D90C,
-        func_neo_ark_r31_8017D980,
+        _neoArkR31SetImageMaskMode,
         taskKill,
     },
 };
 
-/// Room task: dispatches through a stack copy of its state table.
-void func_neo_ark_r31_8017D990(Task* task)
+void neoArkR31RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_neo_ark_r31_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_neo_ark_r31_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

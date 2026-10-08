@@ -358,19 +358,17 @@ static void _neoArkSubmarineGalleryIdleRedDiscTask(Task* unusedTask)
 }
 
 /// State handlers of the disc task, indexed by its state through
-/// `func_neo_ark_submarine_gallery_8017EF94`: set-up, the per-frame disc sweep,
+/// `neoArkSubmarineGalleryRedDiscTask`: set-up, the per-frame disc sweep,
 /// then an idle state.
 static const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D63C = {
     { _neoArkSubmarineGalleryInitRedDiscTask, _neoArkSubmarineGalleryUpdateRedDiscTask,
       _neoArkSubmarineGalleryIdleRedDiscTask }
 };
 
-/// Disc task tick: dispatches on the task's state through
-/// `D_neo_ark_submarine_gallery_8017D63C`, copied to the stack first.
-void func_neo_ark_submarine_gallery_8017EF94(Task* task)
+void neoArkSubmarineGalleryRedDiscTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_neo_ark_submarine_gallery_8017D63C;
-    sp.funcs[task->state](task);
+    stateHandlers = D_neo_ark_submarine_gallery_8017D63C;
+    stateHandlers.funcs[task->state](task);
 }

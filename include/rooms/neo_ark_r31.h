@@ -32,6 +32,11 @@ extern WorldCoordRoomLights D_neo_ark_r31_8017DB7C;
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_r31_8017DC34[];
 
-void func_neo_ark_r31_8017D990(Task* task);
+/// Runs the room controller and keeps RGB16 background masking armed.
+///
+/// Requires a live task with state 0 (register handlers and start the scene),
+/// 1 (refresh the one-image decode mode), or 2 (kill). Keep the room, actor-461800
+/// scene resources and Neo Ark map overlay loaded while the controller runs.
+void neoArkR31RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_R31_H

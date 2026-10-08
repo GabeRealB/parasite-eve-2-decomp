@@ -115,10 +115,15 @@ extern AnimationPlayRequest     D_shelter_b6_corridor_8017F27C;
 extern ActorCommand             D_shelter_b6_corridor_8017F34C;
 extern ActorCommand             D_shelter_b6_corridor_8017F350;
 extern AnimationBankCopyRequest D_shelter_b6_corridor_8017F260;
-void                            func_shelter_b6_corridor_8017E19C(s32);
+static void                     _shelterB6CorridorFinishScriptedBattle(s32 endDelayFrames);
 void                            func_shelter_b6_corridor_8017E204(void);
 
-void func_shelter_b6_corridor_8017E19C(s32);
+/// Requested battle-end hold in frames, before any final-release override.
+enum {
+    SHELTER_B6_CORRIDOR_BATTLE_END_NORMAL_FRAMES = 15,
+    SHELTER_B6_CORRIDOR_BATTLE_END_SKIP_FRAMES   = 11,
+};
+
 void func_shelter_b6_corridor_8017E204(void);
 
 static s32 _shelterB6CorridorRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedArg);
@@ -233,7 +238,7 @@ EvsCommand D_shelter_b6_corridor_8017F354[34] = {
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b6_corridor_8017E19C }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB6CorridorFinishScriptedBattle }, { .value = SHELTER_B6_CORRIDOR_BATTLE_END_NORMAL_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -255,7 +260,7 @@ EvsCommand D_shelter_b6_corridor_8017F684[18] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b6_corridor_8017E19C }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB6CorridorFinishScriptedBattle }, { .value = SHELTER_B6_CORRIDOR_BATTLE_END_SKIP_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -681,13 +686,24 @@ void shelterB6CorridorRoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-void func_shelter_b6_corridor_8017E19C(s32 arg0)
+/// Releases the scripted enemy's battle hold and requests its exit once per weapon restore.
+///
+/// Requires placed actor 1 to be live and, for an outstanding battle hold, to
+/// carry enemy parameters. If weapon reequip is already pending, does nothing.
+/// Otherwise stores the low byte of `endDelayFrames`, requests weapon reequip,
+/// credits the enemy's rewards and requests its task exit. Scripts pass 15 on
+/// normal completion and 11 on skip. The last battle-hold release replaces the
+/// supplied delay with the standard battle-end delay.
+static void _shelterB6CorridorFinishScriptedBattle(s32 endDelayFrames)
 {
+    enum { SCRIPTED_ENEMY_PLACEMENT = 1,
+           UNUSED_ENEMY_ID          = 0x31 };
+
     if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON)) {
         gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-        gSceneCombatState.signals.bytes.endDelayFrames = arg0;
-        sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(1), 0x31);
-        taskCallExit(sceneFindPlacedActor(1));
+        gSceneCombatState.signals.bytes.endDelayFrames = endDelayFrames;
+        sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(SCRIPTED_ENEMY_PLACEMENT), UNUSED_ENEMY_ID);
+        taskCallExit(sceneFindPlacedActor(SCRIPTED_ENEMY_PLACEMENT));
     }
 }
 

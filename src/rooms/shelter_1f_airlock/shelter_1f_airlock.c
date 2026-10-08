@@ -460,14 +460,12 @@ static const TaskFuncTable3 D_shelter_1f_airlock_8017D5C4 = {
     },
 };
 
-/// The room's event task: runs the handler for its current state, through a
-/// stack copy of the state table.
-void func_shelter_1f_airlock_8017D678(Task* task)
+void shelter1fAirlockRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_1f_airlock_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_1f_airlock_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Draws two independently projected additive disc glows with one scale and tint.

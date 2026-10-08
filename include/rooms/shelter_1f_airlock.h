@@ -30,7 +30,12 @@ extern SpriteView D_shelter_1f_airlock_8017F07C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_airlock_8017F84C[];
 
-void func_shelter_1f_airlock_8017D678(Task* task);
+/// Runs the Airlock room controller for synchronous room messages.
+///
+/// Requires a live task with state 0 (register handlers), 1 (idle), or 2 (kill).
+/// Keep the room and Neo Ark map overlays loaded while its task and borrowed
+/// message table remain available.
+void shelter1fAirlockRoomTask(Task* task);
 
 /// Draws the airlock's flickering disc and capsule glows for the current mapped view.
 ///

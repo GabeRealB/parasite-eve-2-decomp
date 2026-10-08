@@ -35,7 +35,12 @@ extern WorldCollisionTrigger D_shelter_b1_transfer_tunnel_80182ED8[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_transfer_tunnel_80183184[];
 
-void func_shelter_b1_transfer_tunnel_8017D678(Task* task);
+/// Runs the Transfer Tunnel room controller for synchronous room messages.
+///
+/// Requires a live task with state 0 (register handlers), 1 (idle), or 2 (kill).
+/// Keep the room and Shelter map overlays loaded while its task and borrowed
+/// message table remain available.
+void shelterB1TransferTunnelRoomTask(Task* task);
 
 /// Runs a pink charge flash, a screen tint at its peak, and a fading star.
 ///

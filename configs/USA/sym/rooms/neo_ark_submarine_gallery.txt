@@ -78,3 +78,4 @@ _neoArkSubmarineGalleryDrawRedDisc = 0x8017ec24; // type:func
 _neoArkSubmarineGalleryInitRedDiscTask = 0x8017eed8; // type:func
 _neoArkSubmarineGalleryUpdateRedDiscTask = 0x8017ef14; // type:func
 _neoArkSubmarineGalleryIdleRedDiscTask = 0x8017ef8c; // type:func
+neoArkSubmarineGalleryRedDiscTask = 0x8017ef94; // type:func

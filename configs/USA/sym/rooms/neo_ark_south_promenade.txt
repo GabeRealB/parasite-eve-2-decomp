@@ -64,3 +64,4 @@ _neoArkSouthPromenadeIgnoreActionMessage = 0x8017d624; // type:func
 _neoArkSouthPromenadeIdleRoomTask = 0x8017d670; // type:func
 _neoArkSouthPromenadeResolveRoomTransition = 0x8017d5d8; // type:func
 _neoArkSouthPromenadeInitRoomTask = 0x8017d62c; // type:func
+neoArkSouthPromenadeRoomTask = 0x8017d678; // type:func

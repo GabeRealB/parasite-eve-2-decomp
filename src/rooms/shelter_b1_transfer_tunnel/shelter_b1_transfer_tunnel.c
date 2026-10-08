@@ -72,7 +72,7 @@ extern SVECTOR D_shelter_b1_transfer_tunnel_801828F8[];
 static void _shelterB1TransferTunnelInitializeRoom(Task* task);
 static void _shelterB1TransferTunnelIdle(Task* task);
 
-/// State handlers of the task `func_shelter_b1_transfer_tunnel_8017D678`
+/// State handlers of the task `shelterB1TransferTunnelRoomTask`
 /// runs, which copies the table to the stack and calls the entry for the
 /// task's state: the room's setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b1_transfer_tunnel_8017D5C4 = {
@@ -355,14 +355,12 @@ static void _shelterB1TransferTunnelIdle(Task* task)
 {
 }
 
-/// Runs the room's task through its three-state handler table, copied onto
-/// the stack before the call.
-void func_shelter_b1_transfer_tunnel_8017D678(Task* task)
+void shelterB1TransferTunnelRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b1_transfer_tunnel_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b1_transfer_tunnel_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Binds shared actor effect requests to this room's counted bank-6 tasks.

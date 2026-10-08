@@ -57,6 +57,11 @@ void neoArkSouthPromenadeRegisterGolemEffectsTask(Task* task);
 /// and task on the next running tick.
 void neoArkSouthPromenadeRoomVisualEffectsFlashTask(Task* task);
 
-void func_neo_ark_south_promenade_8017D678(Task* task);
+/// Runs the South Promenade room controller for synchronous room messages.
+///
+/// Requires a live task with state 0 (register handlers), 1 (idle), or 2 (kill).
+/// Keep the room and Neo Ark map overlays loaded while its task and borrowed
+/// message table remain available.
+void neoArkSouthPromenadeRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_SOUTH_PROMENADE_H

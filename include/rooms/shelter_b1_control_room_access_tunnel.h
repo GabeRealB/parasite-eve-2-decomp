@@ -35,7 +35,12 @@ extern WorldCollisionTrigger D_shelter_b1_control_room_access_tunnel_80182384[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_control_room_access_tunnel_80182678[];
 
-void func_shelter_b1_control_room_access_tunnel_8017D68C(Task* task);
+/// Runs the Control Room Access Tunnel controller for synchronous room messages.
+///
+/// Requires a live task with state 0 (register handlers), 1 (idle), or 2 (kill).
+/// Keep the room and Shelter map overlays loaded while its task and borrowed
+/// message table remain available.
+void shelterB1ControlRoomAccessTunnelRoomTask(Task* task);
 
 /// Binds the room's actor effects once and draws its glows for the mapped view.
 ///

@@ -80,7 +80,7 @@ TaskDesc D_neo_ark_submarine_gallery_801818AC = { { { TASK_BODY_NONE, 32 } }, fu
 s16 D_neo_ark_submarine_gallery_801818B8 = 0;
 
 TaskDesc D_neo_ark_submarine_gallery_801818BC[1] = {
-    { { { TASK_BODY_COORD, 96 } }, func_neo_ark_submarine_gallery_8017EF94, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, neoArkSubmarineGalleryRedDiscTask, { .value = 0 } },
 };
 
 SVECTOR D_neo_ark_submarine_gallery_801818C8[40] = {

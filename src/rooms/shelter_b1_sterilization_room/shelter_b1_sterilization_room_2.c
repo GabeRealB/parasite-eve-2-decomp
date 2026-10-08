@@ -69,14 +69,20 @@ static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint
 extern WorldCoordRoomAmbientEntry D_shelter_b1_sterilization_room_8018C21C[25];
 extern WorldCoordRoomLights       D_shelter_b1_sterilization_room_8018B630[1];
 
-void func_shelter_b1_sterilization_room_801814B0(void);
-void func_shelter_b1_sterilization_room_80181698(s32);
+void        func_shelter_b1_sterilization_room_801814B0(void);
+static void _shelterB1SterilizationRoomResetCapResource(s32 selectSceneFile);
+
+/// CAP resource choices carried by the scene-entry and exit callbacks.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_CAP_DEFAULT = 0,
+    SHELTER_B1_STERILIZATION_ROOM_CAP_SCENE   = 1,
+};
 
 extern WorldCollisionOccluder D_shelter_b1_sterilization_room_8018C1A4[2];
 extern WorldCollisionTrigger  D_shelter_b1_sterilization_room_8018B648[8];
 
-void func_shelter_b1_sterilization_room_801815EC(void);
-void func_shelter_b1_sterilization_room_80181658(void);
+void        func_shelter_b1_sterilization_room_801815EC(void);
+static void _shelterB1SterilizationRoomAttenuateTrapSounds(void);
 
 DamageAttack D_shelter_b1_sterilization_room_80188738 = { 25, 0 };
 
@@ -115,7 +121,7 @@ EvsCommand D_shelter_b1_sterilization_room_8018873C[37] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_sterilization_room_80181658 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomAttenuateTrapSounds }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -123,7 +129,7 @@ EvsCommand D_shelter_b1_sterilization_room_8018873C[37] = {
 EvsCommand D_shelter_b1_sterilization_room_80188AB4[20] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_sterilization_room_80181658 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomAttenuateTrapSounds }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x54100010 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b1_sterilization_room_8018118C }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -174,7 +180,7 @@ EvsCommand D_shelter_b1_sterilization_room_80188E14[8] = {
 };
 
 EvsCommand D_shelter_b1_sterilization_room_80188ED4[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b1_sterilization_room_80181698 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB1SterilizationRoomResetCapResource }, { .value = SHELTER_B1_STERILIZATION_ROOM_CAP_SCENE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -183,7 +189,7 @@ EvsCommand D_shelter_b1_sterilization_room_80188ED4[11] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100015 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b1_sterilization_room_80181698 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB1SterilizationRoomResetCapResource }, { .value = SHELTER_B1_STERILIZATION_ROOM_CAP_DEFAULT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -193,7 +199,7 @@ EvsCommand D_shelter_b1_sterilization_room_80188FDC[8] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b1_sterilization_room_80181698 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB1SterilizationRoomResetCapResource }, { .value = SHELTER_B1_STERILIZATION_ROOM_CAP_DEFAULT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1013,19 +1019,39 @@ void shelterB1SterilizationRoomResetSpawnMaskTask(Task* task)
     taskKill(task);
 }
 
-void func_shelter_b1_sterilization_room_80181658(void)
+/// Lowers the two trap-sequence sound instances after normal or skipped playback.
+///
+/// Queues neutral pan and attenuation 36 for area-bank entries 6 and 7. Their
+/// gain-index scale is 91/127; absent instances or a full sound-event pool make
+/// the corresponding request a no-op. Does not stop either sound script.
+static void _shelterB1SterilizationRoomAttenuateTrapSounds(void)
 {
-    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 6), 0, 0x24);
-    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 7), 0, 0x24);
+    enum { TRAP_SOUND_ENTRY_6     = 6,
+           TRAP_SOUND_ENTRY_7     = 7,
+           TRAP_SOUND_ATTENUATION = 36 };
+
+    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, TRAP_SOUND_ENTRY_6), 0, TRAP_SOUND_ATTENUATION);
+    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, TRAP_SOUND_ENTRY_7), 0, TRAP_SOUND_ATTENUATION);
 }
 
-void func_shelter_b1_sterilization_room_80181698(s32 arg0)
+/// Resets CAP selection, optionally choosing the trap scene's dialogue resource.
+///
+/// Event scripts pass 1 on scene entry and 0 on normal or skipped exit. Exactly
+/// 1 selects data-resource ordinal 1 and texture VRAM origin (704,256); every
+/// other value keeps the default selection from `capReset`. Requires stopped
+/// CAP playback and fully loaded, writable CAP resources and texture data;
+/// the selected file stays borrowed while its text or command tables are used.
+static void _shelterB1SterilizationRoomResetCapResource(s32 selectSceneFile)
 {
+    enum { SCENE_FILE_ORDINAL   = 1,
+           SCENE_TEXTURE_VRAM_X = 704,
+           SCENE_TEXTURE_VRAM_Y = 256 };
+
     capReset();
-    if (arg0 == 1) {
-        Gp_CapFile = 0;
-        capSelectLoadedFile(1);
-        capSetTexturePage(0x2C0, 0x100);
+    if (selectSceneFile == SHELTER_B1_STERILIZATION_ROOM_CAP_SCENE) {
+        Gp_CapFile = NULL;
+        capSelectLoadedFile(SCENE_FILE_ORDINAL);
+        capSetTexturePage(SCENE_TEXTURE_VRAM_X, SCENE_TEXTURE_VRAM_Y);
     }
 }
 

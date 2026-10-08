@@ -63,6 +63,7 @@
 #define ROOM_EVENT_FADE gRoomEventFade
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/streamed_scene.h"
 
 extern s8 D_shelter_1f_bulwark_80180ECC;
 
@@ -86,13 +87,13 @@ extern WorldCollisionTrigger  D_shelter_1f_bulwark_80180A8C[2];
 extern WorldCollisionTrigger  D_shelter_1f_bulwark_80180B24[8];
 extern WorldCoordRoomLights   D_shelter_1f_bulwark_80180A74[1];
 
-s32        func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-static s32 _shelter1fBulwarkRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
-static s32 _shelter1fBulwarkIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 mode);
-static s32 _shelter1fBulwarkIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 unused);
-void       func_shelter_1f_bulwark_8017DA60(Task*);
-void       func_shelter_1f_bulwark_8017DC78(Task*);
-void       func_shelter_1f_bulwark_8017DE04(Task*);
+s32         func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32  _shelter1fBulwarkRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32  _shelter1fBulwarkIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 mode);
+static s32  _shelter1fBulwarkIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 unused);
+void        func_shelter_1f_bulwark_8017DA60(Task*);
+static void _shelter1fBulwarkPlayDepartureMovieTask(Task* movieTask);
+void        func_shelter_1f_bulwark_8017DE04(Task*);
 
 TaskDesc D_shelter_1f_bulwark_80180320 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -111,7 +112,7 @@ TaskDesc D_shelter_1f_bulwark_80180354 = { { { TASK_BODY_NONE, 32 } }, func_shel
 
 TaskDesc D_shelter_1f_bulwark_80180360[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_1f_bulwark_8017DE04, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_1f_bulwark_8017DC78, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelter1fBulwarkPlayDepartureMovieTask, { .value = 0 } },
 };
 
 SVECTOR D_shelter_1f_bulwark_80180378[4] = {
@@ -469,60 +470,66 @@ void func_shelter_1f_bulwark_8017DC20(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_1f_bulwark_8017DC78(Task* arg0)
+/// Plays the Bulwark departure movie and resumes game presentation after restoration.
+///
+/// Requires a live display task in states 0..5, a loaded stream-100 slot for
+/// the current room and valid session and image-memory resources. Start cancels
+/// playback; either path waits for CD idle before restoring model buffers and
+/// saved VRAM images. Sprite images are not reloaded. No task work is allocated.
+static void _shelter1fBulwarkPlayDepartureMovieTask(Task* movieTask)
 {
-    u8          slotParam[4];
-    GameLoc     key;
+    u8          commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLoc     movieLocation;
     CdCmdQueue* queue;
-    Task*       task;
 
-    task  = arg0;
     queue = &gCdCmdQueue;
-    switch (task->state) {
-        case 0:
-            SetDispMask(0);
-            streamPrepareMovieWorkspace(1);
-            task->state = task->state + 1;
+    switch (movieTask->state) {
+        case STREAMED_SCENE_PREPARE:
+            SetDispMask(false);
+            streamPrepareMovieWorkspace(true);
+            movieTask->state++;
             break;
-        case 1:
-            key          = gGameSession->location;
-            key.loc.view = 0x64;
-            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            task->state = task->state + 1;
+        case STREAMED_SCENE_QUEUE_MOVIE:
+            movieLocation          = gGameSession->location;
+            movieLocation.loc.view = STREAMED_SCENE_MOVIE_ID;
+            // The four-byte command block carries the loaded movie slot in byte zero.
+            commandArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
+            movieTask->state++;
             break;
-        case 2:
+        case STREAMED_SCENE_WAIT_READY:
             if (queue->movieReady == 0) {
                 break;
             }
-            SetDispMask(1);
-            task->state = task->state + 1;
+            SetDispMask(true);
+            movieTask->state++;
             break;
-        case 3:
-            if (cdCmdIsIdle() & 0xFFFF) {
-                SetDispMask(0);
-                task->state = task->state + 1;
+        case STREAMED_SCENE_PLAYING:
+            if (cdCmdIsIdle()) {
+                SetDispMask(false);
+                movieTask->state++;
                 break;
             }
             if (padIsStartPressed() == 0) {
                 break;
             }
-            SetDispMask(0);
+            SetDispMask(false);
             cdCmdRequestCancel();
-            task->state = task->state + 1;
+            movieTask->state++;
             break;
-        case 4:
-            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
+        // Cancellation must drain before the movie workspace returns to game use.
+        case STREAMED_SCENE_WAIT_IDLE:
+            if (cdCmdIsIdle() == 0) {
                 break;
             }
             streamResetGameRestore();
-            task->state = task->state + 1;
+            movieTask->state++;
             break;
-        case 5:
-            if ((streamPollGameRestore(0, 0) & 0xFFFF) == 0) {
+        case STREAMED_SCENE_RESTORE_GAME:
+            if (streamPollGameRestore(false, false) == 0) {
                 break;
             }
-            taskKill(task);
+            taskKill(movieTask);
             displayResumeGameLoop();
             break;
     }
