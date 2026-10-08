@@ -1916,15 +1916,6 @@ static __inline__ s32 actorOutOfReach(SVECTOR* gap)
     return v->vx + v->vy >= v->vz;
 }
 
-/// The scratch-pad allocation pointer. These two stay inline functions rather
-/// than `SCRATCH_STACK_CURSOR` at their call sites: inside an inlined body the
-/// pointer's constant address folds into each access, which the callers'
-/// code depends on.
-static __inline__ u8* actorGetScratchHead(void)
-{
-    return SCRATCH_STACK_CURSOR(u8);
-}
-
 /// Moves the scratch-pad allocation pointer to `head`.
 static __inline__ void actorSetScratchHead(void* head)
 {

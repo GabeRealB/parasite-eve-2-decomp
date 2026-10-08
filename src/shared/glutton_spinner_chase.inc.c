@@ -16,8 +16,8 @@ void gluttonSpinnerChase(Enemy* enemy, Task* task)
     GluttonSpinnerWork* work;
     SVECTOR             step;
     SVECTOR*            stepp;
-    VECTOR3*            sq;
-    u8*                 head;
+    VECTOR3*            rangeSquares;
+    VECTOR3*            scratchEnd;
     s16                 speed;
     s32                 delay;
     s32                 phase;
@@ -57,18 +57,20 @@ void gluttonSpinnerChase(Enemy* enemy, Task* task)
     step.vy -= task->extra.tmd->coords->coord.t[1];
     step.vz -= task->extra.tmd->coords->coord.t[2];
 
-    head = actorGetScratchHead();
-    sq   = (VECTOR3*)(head - sizeof(VECTOR3));
-    actorSetScratchHead(sq);
-    speed  = work->chaseSpeed;
-    sq->vx = step.vx;
-    sq->vy = stepp->vz;
-    sq->vz = speed;
-    sq->vx = sq->vx * sq->vx;
-    sq->vy = sq->vy * sq->vy;
-    sq->vz = sq->vz * sq->vz;
-    actorSetScratchHead(head);
-    inside = sq->vx + sq->vy >= sq->vz;
+    // Reserve three words for the horizontal distance and speed squares.
+    scratchEnd   = SCRATCH_STACK_CURSOR(VECTOR3);
+    rangeSquares = scratchEnd - 1;
+    actorSetScratchHead(rangeSquares);
+    speed            = work->chaseSpeed;
+    rangeSquares->vx = step.vx;
+    rangeSquares->vy = stepp->vz;
+    rangeSquares->vz = speed;
+    rangeSquares->vx = rangeSquares->vx * rangeSquares->vx;
+    rangeSquares->vy = rangeSquares->vy * rangeSquares->vy;
+    rangeSquares->vz = rangeSquares->vz * rangeSquares->vz;
+    // Release before the final read; no intervening operation reuses the block.
+    actorSetScratchHead(scratchEnd);
+    inside = rangeSquares->vx + rangeSquares->vy >= rangeSquares->vz;
     if (!inside) {
         task->state++;
     }
