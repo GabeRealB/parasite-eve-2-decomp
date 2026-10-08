@@ -107,7 +107,7 @@ void Gp_HudTask(HudState* hud);
 
 void Gp_ApplyAttachStats(s32 arg0, HudState* hud);
 
-/// Pending flags written by `_itemUseAttachedItem` and consumed by `Gp_MenuExitCallback`.
+/// Pending flags written by `_itemUseAttachedItem` and consumed by `menuApplyPendingItemUseTask`.
 /// `Gp_HealPending == 1` requests `taskMessageDispatch(..., 0x402, ...)`.
 extern s32 Gp_HealPending;
 
@@ -118,13 +118,13 @@ extern UiObjectDesc D_8010F8B4;
 
 /// Signed pending item id consumed by `equipmentLoadPendingConsumable`. `_itemUseAttachedItem`
 /// stores the id for the primary consumable pair, its negation for the secondary pair.
-/// `Gp_MenuExitCallback` also consumes it (with `Gp_RelatedPending`) via `playerActorEnterReload`.
+/// `menuApplyPendingItemUseTask` also consumes it (with `Gp_RelatedPending`) via `playerActorEnterReload`.
 extern s32 Gp_PendingRelatedId;
 
-/// Non-zero when `Gp_PendingRelatedId` should be applied by `Gp_MenuExitCallback`.
+/// Non-zero when `Gp_PendingRelatedId` should be applied by `menuApplyPendingItemUseTask`.
 extern s32 Gp_RelatedPending;
 
-/// Pending id consumed by `Gp_MenuExitCallback`; `0x3E` also calls `playerStateSetStatusEffects`.
+/// Pending id consumed by `menuApplyPendingItemUseTask`; `0x3E` also calls `playerStateSetStatusEffects`.
 extern s32 Gp_UsedItemId;
 
 extern UiObjectDesc D_8010F6FC;

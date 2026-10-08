@@ -49,7 +49,18 @@ void itemMenuDrawTaskPrompt(UiObject* object, const Task* task);
 /// textures and writable primitive/OT storage, even for a hidden panel.
 void itemMenuDrawDefaultItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId);
 
-void func_800CE22C(Task* arg0);
+/// Runs the placed-object pickup prompt through its five task states.
+///
+/// task->state must be 0..4; dispatch has no bounds check. spawnArg2 borrows
+/// the live source Enemy through result handling; its workType must satisfy
+/// itemPickupPublishPlacedObjectTask's kind/pack contract. States publish the place,
+/// open its pickup/save prompt, handle the result, restore frame timing and
+/// exit, in that order. The prompt-opening state sets spawnArg1 to the live root
+/// UiObject after successful allocation. Requires gameplay and its menu/text
+/// resources to remain loaded and stage-managed UI primitive storage while
+/// drawing. The final state releases that storage and requests stage mode exit;
+/// a dispatched handler may release the task, which is not accessed afterwards.
+void itemPickupTask(Task* task);
 
 /// Draws an item's name, icon and optional equipment mark in a menu row.
 ///

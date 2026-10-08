@@ -566,7 +566,7 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_NONE, 0x60 } }, sceneManagerTask },
     { { { TASK_BODY_NONE, 0xC0 } }, _taskNoOpCallback },
     { { { TASK_BODY_NONE, 0x70 } }, planarReflectionDispatchPlayerTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, func_800CE22C },
+    { { { TASK_BODY_NONE, 0xC0 } }, itemPickupTask },
     { { { TASK_BODY_NONE, 0xC2 } }, fadeDisplayTransitionTask },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, func_807127A8 },

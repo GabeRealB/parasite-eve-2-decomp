@@ -230,7 +230,7 @@ u8* D_8010E7C0[]       = {
     Gp_StrFlash,
 };
 
-TaskDesc D_8010E7E8 = { { { TASK_BODY_NONE, 32 } }, Gp_MenuExitCallback, { NULL } };
+TaskDesc D_8010E7E8 = { { { TASK_BODY_NONE, 32 } }, menuApplyPendingItemUseTask, { NULL } };
 
 AnimationPlayRequest D_8010E7F4 = { { 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -333,7 +333,7 @@ UiObjectDesc D_8010EA98 = { 0, { 0, 0, 48, 32 }, 4, 0, TASK_BODY_NONE, 192, item
 
 /// Indexed by menu command ID; empty rows reserve unused commands.
 UiObjectDesc D_8010EAB4[50] = {
-    { 3, { -144, 64, 288, 40 }, 768, 0, TASK_BODY_NONE, 192, Gp_ItemMenuTask, 0 },
+    { 3, { -144, 64, 288, 40 }, 768, 0, TASK_BODY_NONE, 192, itemMenuCaptionTask, 0 },
     { 3, { -144, -104, 72, 64 }, 28, 0, TASK_BODY_NONE, 192, itemMenuMainPanelTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 3, { -72, -104, 216, 65 }, 40, 0, TASK_BODY_NONE, 192, itemMenuPlayerSummaryTask, 0 },
@@ -379,7 +379,7 @@ UiObjectDesc D_8010EAB4[50] = {
     { 0, { 0, 0, 48, 32 }, 16, 0, TASK_BODY_NONE, 192, itemMenuKeyItemCommandTask, 0 },
     { (s32)(USER_INTERFACE_PANEL_NO_FRAME | USER_INTERFACE_PANEL_TITLE_STYLE), { -90, -40, 178, 78 }, 8, 0, TASK_BODY_NONE, 192, itemMenuUseKeyItemTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 208 }, 8, 0, TASK_BODY_NONE, 192, itemMenuInfoTask, 0 },
-    { 3, { -144, 64, 288, 40 }, 56, 0, TASK_BODY_NONE, 192, Gp_ItemMenuTask, 0 },
+    { 3, { -144, 64, 288, 40 }, 56, 0, TASK_BODY_NONE, 192, itemMenuCaptionTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 72 }, 960, 0, TASK_BODY_NONE, 192, itemMenuWeaponPanelTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -32, 144, 91 }, 976, 0, TASK_BODY_NONE, 192, Gp_ArmorMenuTask, 0 },
     { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -150, -80, 120, 70 }, 60, 0, TASK_BODY_NONE, 192, itemPickupPanelTask, 0 },
@@ -688,8 +688,8 @@ static void _itemMenuUpdatePromptTask(UiObject* object, Task* task)
 
 #undef ITEM_MENU_DRAW_PROMPT_PAYLOAD
 
-/// Three-entry dispatcher table indexed by `Task::state` (`Gp_ItemMenuTask`).
-const UiObjectTaskFuncTable3 Gp_ItemMenuStates = { { Gp_ItemMenuInit, _itemMenuUpdatePromptTask, itemMenuDispatchCommand } };
+/// Three-entry dispatcher table indexed by `Task::state` (`itemMenuCaptionTask`).
+const UiObjectTaskFuncTable3 Gp_ItemMenuStates = { { itemMenuInitializeCaptionTask, _itemMenuUpdatePromptTask, itemMenuDispatchCommand } };
 
 /// CLUT ids for the ten item-category icons drawn by `itemMenuDrawItemIcon`,
 /// indexed by the icon index that function derives from the item id.

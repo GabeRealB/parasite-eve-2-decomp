@@ -149,7 +149,7 @@ segments:
       - [0x345A8, c, weapon_stats] # itemMenuDrawEquipmentStats
       - [0x35E54, c, attachment_menu] # itemMenuConsumableChoiceListTask
       - [0x375FC, c, item_panels] # item command lists and panels
-      - [0x3AA2C, c, pickup_dispatch] # func_800CE22C
+      - [0x3AA2C, c, pickup_dispatch] # itemPickupTask
       - [0x3ADF0, c, menu_actions] # itemMenuDrawPeCommandRow
       - [0x42314, c, item_use] # _itemUseAttachedItem
       - [0x43320, c, world_coords] # worldCoordUpdateRoomLightsTask

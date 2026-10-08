@@ -61,11 +61,41 @@ extern UiObjectDesc D_8010D348;
 
 extern UiObjectTaskFunc D_8010D3A0[96];
 
-void Gp_MenuExitCallback(Task* arg0);
+/// Applies deferred item-use actions after menu resource restoration and exits.
+///
+/// Requires the live player task and restored actor/animation/session resources.
+/// A signed pending consumable id selects primary (>0) or secondary (<0) reload
+/// in battle; outside battle the id is discarded. Clears its notification flag,
+/// but retains the id for the reload cue, even if scripted control rejects it.
+/// Pending medicine presentation requests the player's item-use animation;
+/// Eau de Toilette then requests Berserker, subject to equipment resistance.
+/// Clears the presentation/item notifications, releases the menu display hold
+/// and invokes task's exit callback. The caller must have acquired that hold.
+void menuApplyPendingItemUseTask(Task* task);
 
-void Gp_ItemMenuInit(UiObject* arg0, Task* arg1);
+/// Registers the menu caption panel and opens its initial command child.
+///
+/// object must be the live task-owned UiObject in task->spawnArg2. Entry state
+/// is zero and work is empty. Registers the prompt holder before allocating
+/// four cleared primary-heap bytes owned by the task; failure leaves state zero
+/// for retry. The work bytes' purpose is unproven; only a later byte-zero clear
+/// is observed. Scripted hold opens Key Items and clears preview selections;
+/// otherwise opens Status. The child starts active after eight nominal 60-Hz
+/// ticks. Child allocation failure still advances to caption update state one.
+/// Fits two or one fifteen-pixel rows respectively, plus one content pixel,
+/// preserving frame margins and placing the outer bottom at screen-centered
+/// Y=104. Requires initialized panel layout and loaded menu resources.
+void itemMenuInitializeCaptionTask(UiObject* object, Task* task);
 
-void Gp_ItemMenuTask(Task* arg0);
+/// Runs the menu caption panel's initialization, update or delayed command state.
+///
+/// task->state must be 0..2; dispatch has no bounds check. spawnArg2 holds
+/// the live task-owned UiObject. State zero opens the initial child, one draws
+/// the prompt and waits for its result, and two waits to open the selected
+/// command before returning to one. Prompt payloads in spawnArg1 follow
+/// itemMenuDrawTaskPrompt's contracts. Menu, text and UI resources must stay
+/// loaded for dispatch; the selected callback may start closing the UI tree.
+void itemMenuCaptionTask(Task* task);
 
 /// Per-stage table of `MenuMapArea` arrays. Index is `GameSession.location.loc.stage - 1`.
 extern MenuMapArea* Gp_MapRecTables[];
@@ -864,7 +894,7 @@ void itemMenuWeaponPanelTask(Task* task);
 
 void Gp_ArmorMenuTask(Task* arg0);
 
-/// Three-entry dispatcher table: `Gp_ItemMenuInit`, `_itemMenuUpdatePromptTask`, `itemMenuDispatchCommand`.
+/// Three-entry dispatcher table: `itemMenuInitializeCaptionTask`, `_itemMenuUpdatePromptTask`, `itemMenuDispatchCommand`.
 extern const UiObjectTaskFuncTable3 Gp_ItemMenuStates;
 
 extern char Gp_StrUsedDot[];

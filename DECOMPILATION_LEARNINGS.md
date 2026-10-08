@@ -39336,7 +39336,7 @@ definitions in source order, so `.rodata` comes out
 Then trim the leading entries out of `asm/.../rodata_3688.rodata.s` and bump
 that segment's yaml address to the first surviving symbol. Existing `extern`
 declarations must gain `const` too; assigning a `const` struct to a plain local
-(`sp = Gp_ItemMenuStates;` in `Gp_ItemMenuTask`) still compiles and still matches.
+(`states = Gp_ItemMenuStates;` in `itemMenuCaptionTask`) still compiles and still matches.
 
 ## Chained prim assignments give the CSE-forwarded `move` + `addiu`
 

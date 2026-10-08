@@ -7,6 +7,7 @@
 #include "item_menu.h"
 #include "items.h"
 #include "menu.h"
+#include "gameplay/inventory.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "player_actor.h"
@@ -21,7 +22,7 @@
 #include "main/wipsys_types.h"
 
 /// Five-entry dispatcher table: `itemPickupPublishPlacedObjectTask`, `Gp_SpawnPickupUiTask`, `itemPickupHandleResultTask`,
-/// `itemPickupRestoreFrameTimingTask`, `itemPickupExitTask`. Copied onto the stack by `func_800CE22C`.
+/// `itemPickupRestoreFrameTimingTask`, `itemPickupExitTask`. Copied onto the stack by `itemPickupTask`.
 extern const TaskFuncTable5 D_80096E70;
 
 UiObjectTaskFunc D_8010D3A0[96] = {
@@ -128,41 +129,58 @@ const TaskFuncTable5 D_80096E70 = { { itemPickupPublishPlacedObjectTask, Gp_Spaw
 // "EXP"
 // "MP"
 
-void func_800CE22C(Task* arg0)
+void itemPickupTask(Task* task)
 {
-    TaskFuncTable5 sp;
+    TaskFuncTable5 states;
 
-    sp = D_80096E70;
-    sp.funcs[arg0->state](arg0);
+    states = D_80096E70;
+    states.funcs[task->state](task);
 }
 
-void Gp_MenuExitCallback(Task* arg0)
+/// Starts a pending primary/secondary consumable reload, or discards it outside battle.
+///
+/// The signed item id remains for the reload cue to consume in battle, including
+/// when scripted player control declines the request. Only the notification flag
+/// is cleared here. playerTask must be the live player with loaded actor resources.
+static inline void _menuApplyPendingConsumableReload(Task* playerTask)
 {
-    Task* playerTask;
-
-    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if ((Gp_PendingRelatedId != 0) && (Gp_RelatedPending != 0)) {
+    if ((Gp_PendingRelatedId != INVENTORY_ITEM_NONE) && (Gp_RelatedPending != 0)) {
         if (sceneIsBattleActive() == 0) {
-            Gp_PendingRelatedId = 0;
+            Gp_PendingRelatedId = INVENTORY_ITEM_NONE;
         } else if (Gp_PendingRelatedId > 0) {
-            playerActorEnterReload(playerTask, 0, PLAYER_ACTOR_RELOAD_MENU);
+            playerActorEnterReload(playerTask, EQUIPMENT_WEAPON_SUPPLY_PRIMARY, PLAYER_ACTOR_RELOAD_MENU);
         } else {
-            playerActorEnterReload(playerTask, 1, PLAYER_ACTOR_RELOAD_MENU);
+            playerActorEnterReload(playerTask, EQUIPMENT_WEAPON_SUPPLY_SECONDARY, PLAYER_ACTOR_RELOAD_MENU);
         }
         Gp_RelatedPending = 0;
     }
-    if (Gp_HealPending == 1) {
-        taskMessageDispatch(playerTask, 0x402, 0, 0);
+}
+
+void menuApplyPendingItemUseTask(Task* task)
+{
+    enum {
+        MENU_ITEM_USE_PRESENTATION_PENDING  = 1,
+        PLAYER_ACTOR_MESSAGE_ENTER_ITEM_USE = 0x402,
+        MENU_ITEM_EAU_DE_TOILETTE           = 0x3E,
+        MENU_ITEM_USE_APPLY_STATUS_EFFECTS  = 0
+    };
+    Task* playerTask;
+
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    // Resume deferred player actions only after the menu has restored world resources.
+    _menuApplyPendingConsumableReload(playerTask);
+    if (Gp_HealPending == MENU_ITEM_USE_PRESENTATION_PENDING) {
+        taskMessageDispatch(playerTask, PLAYER_ACTOR_MESSAGE_ENTER_ITEM_USE, 0, 0);
         Gp_HealPending = 0;
     }
-    if (Gp_UsedItemId != 0) {
-        if (Gp_UsedItemId == 0x3E) {
-            playerStateSetStatusEffects(0, PLAYER_STATUS_BERSERKER);
+    if (Gp_UsedItemId != INVENTORY_ITEM_NONE) {
+        if (Gp_UsedItemId == MENU_ITEM_EAU_DE_TOILETTE) {
+            playerStateSetStatusEffects(MENU_ITEM_USE_APPLY_STATUS_EFFECTS, PLAYER_STATUS_BERSERKER);
         }
-        Gp_UsedItemId = 0;
+        Gp_UsedItemId = INVENTORY_ITEM_NONE;
     }
     displayReleaseMenuHold();
-    taskCallExit(arg0);
+    taskCallExit(task);
 }
 
 /// Sets the menu-exit room/view restoration latch without normalizing it.
@@ -180,35 +198,47 @@ static s32 _itemMenuGetRoomRestorePending(void)
     return D_80114D88;
 }
 
-void Gp_ItemMenuInit(UiObject* arg0, Task* arg1)
+void itemMenuInitializeCaptionTask(UiObject* object, Task* task)
 {
-    void* mem;
-    s32   scale;
+    enum {
+        ITEM_MENU_CAPTION_WORK_BYTES            = 4,
+        ITEM_MENU_CAPTION_STATUS_COMMAND        = 1,
+        ITEM_MENU_CAPTION_KEY_ITEMS_COMMAND     = 8,
+        ITEM_MENU_CAPTION_CHILD_OPEN_TICKS      = 8,
+        ITEM_MENU_CAPTION_CONTENT_MARGIN_PIXELS = 1,
+        ITEM_MENU_CAPTION_BOTTOM_PIXELS         = 104
+    };
+    void* workAllocation;
+    s32   rowCount;
 
-    Wip_UiHolder = arg0;
-    mem          = memCalloc(4, 0);
-    if (mem != NULL) {
-        arg1->work = mem;
-        if (gGameSession->cutsceneHold == 1) {
+    Wip_UiHolder = object;
+    // The task owns four cleared bytes; the later first-byte clear has no proven reader.
+    workAllocation = memCalloc(ITEM_MENU_CAPTION_WORK_BYTES, false);
+    if (workAllocation != NULL) {
+        task->work = workAllocation;
+        if (gGameSession->cutsceneHold == true) {
             itemMenuClearPreviewItems();
-            uiSpawnObject(&D_8010EAB4[8], 0, 1, 8, arg0);
-            scale = 2;
+            uiSpawnObject(&D_8010EAB4[ITEM_MENU_CAPTION_KEY_ITEMS_COMMAND], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CAPTION_CHILD_OPEN_TICKS, object);
+            rowCount = 2;
         } else {
-            uiSpawnObject(&D_8010EAB4[1], 0, 1, 8, arg0);
-            scale = 1;
+            uiSpawnObject(&D_8010EAB4[ITEM_MENU_CAPTION_STATUS_COMMAND], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_CAPTION_CHILD_OPEN_TICKS, object);
+            rowCount = 1;
         }
-        uiSetPanelContentSize(&(arg0)->panel, 0, uiGetTextRowsHeight(scale) + 1);
-        arg0->panel.bounds.unsignedRect.y = 0x68 - arg0->panel.bounds.unsignedRect.h;
-        arg1->state                       = arg1->state + 1;
+        // Fit the prompt rows while keeping the outer bottom at a fixed screen Y.
+        uiSetPanelContentSize(&object->panel, 0, uiGetTextRowsHeight(rowCount) + ITEM_MENU_CAPTION_CONTENT_MARGIN_PIXELS);
+        object->panel.bounds.unsignedRect.y = ITEM_MENU_CAPTION_BOTTOM_PIXELS - object->panel.bounds.unsignedRect.h;
+        task->state                         = task->state + 1;
     }
 }
 
-void Gp_ItemMenuTask(Task* arg0)
+void itemMenuCaptionTask(Task* task)
 {
-    UiObjectTaskFuncTable3 sp;
+    UiObjectTaskFuncTable3 states;
+    UiObject*              object;
 
-    sp = Gp_ItemMenuStates;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    states = Gp_ItemMenuStates;
+    object = task->spawnArg2.pointer;
+    states.funcs[task->state](object, task);
 }
 
 /// Draws two item-menu prompt rows from a borrowed encoded text stream.
