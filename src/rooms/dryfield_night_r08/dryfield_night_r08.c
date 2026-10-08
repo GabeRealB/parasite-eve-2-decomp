@@ -21,47 +21,58 @@ extern EvsCommand D_actor_535700_801341E0[];
 /// `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF and 0x13F0.
 extern TaskMessageEntry D_dryfield_night_r08_80180544[];
 
-s32 func_dryfield_night_r08_8017D5F0(Task*, s32, s32, s32);
-s32 func_dryfield_night_r08_8017D5F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_r08_8017D620(Task*, s32, s32, s32);
-s32 func_dryfield_night_r08_8017D628(Task*, s32, s32, s32);
+static s32 _dryfieldNightR08RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32 _dryfieldNightR08ResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _dryfieldNightR08IgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
+static s32 _dryfieldNightR08IgnoreActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 TaskMessageEntry D_dryfield_night_r08_80180544[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_r08_8017D5F8 },
-    { 5105, func_dryfield_night_r08_8017D5F0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_r08_8017D628 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_r08_8017D620 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightR08ResolveRoomEvent },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightR08RejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightR08IgnoreActionMessage },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightR08IgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_dryfield_night_r08_8017D630(Task* arg0);
-static void func_dryfield_night_r08_8017D6B0(Task* task);
+static void _dryfieldNightR08IdleState(Task* unusedTask);
 
-/// Handler for message 0x13F1 in the room's message table: the room takes no
-/// action and reports the message as not handled.
-s32 func_dryfield_night_r08_8017D5F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use without consuming the selected inventory item.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; all arguments are ignored. The refused
+/// reply makes the inventory menu display its cannot-use notice.
+static s32 _dryfieldNightR08RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
+{
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+/// Allows a room transition with the requested destination unchanged.
+///
+/// Copies the complete eight-byte request and returns 1 for both query and
+/// execution. Both records must remain live through synchronous dispatch;
+/// `reply` must be writable and may be `request`. No pointer is retained and
+/// no transition effects are performed. The task and message ID are ignored.
+static s32 _dryfieldNightR08ResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum { DRYFIELD_NIGHT_R08_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    return DRYFIELD_NIGHT_R08_TRANSITION_ALLOWED;
+}
+
+/// Ignores every room command and returns zero without changing room state.
+///
+/// `ROOM_MESSAGE_COMMAND` supplies an integer command ID; no argument is read.
+static s32 _dryfieldNightR08IgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
     return 0;
 }
 
-/// Handler for message 0x13EE in the room's message table: copies the location
-/// record the sender passes onto the reply record and answers 1.
-s32 func_dryfield_night_r08_8017D5F8(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
-{
-    *dst = *src;
-    return 1;
-}
-
-/// Handler for message 0x13F0 in the room's message table: does nothing and
-/// answers 0.
-s32 func_dryfield_night_r08_8017D620(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-/// Handler for message 0x13EF in the room's message table: does nothing and
-/// answers 0.
-s32 func_dryfield_night_r08_8017D628(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores every trigger request for a room action and returns zero.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows `request` through synchronous
+/// dispatch. No argument is read or retained and no action is started.
+static s32 _dryfieldNightR08IgnoreActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -81,16 +92,15 @@ static void func_dryfield_night_r08_8017D630(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// The room task's idle state, entry 1 of its three-state table: does nothing.
-/// The 0x10-byte local is never used, but the original reserved the frame.
-static void func_dryfield_night_r08_8017D6B0(Task* task)
+/// Keeps the initialized room task alive to receive messages in state 1.
+static void _dryfieldNightR08IdleState(Task* unusedTask)
 {
-    char pad[0x10];
+    char unusedFrame[0x10]; // Retains the original stack reservation; no bytes are accessed.
 }
 
 /// The room task's three states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_r08_8017D5C4 = {
-    { func_dryfield_night_r08_8017D630, func_dryfield_night_r08_8017D6B0, taskKill },
+    { func_dryfield_night_r08_8017D630, _dryfieldNightR08IdleState, taskKill },
 };
 
 /// The room task: copies its three-state table onto the stack and runs the

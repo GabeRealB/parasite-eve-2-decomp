@@ -32,7 +32,13 @@ extern SpriteView D_dryfield_night_motel_room_6_801857C0[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_6_80186250[];
 
-void func_dryfield_night_motel_room_6_8017EA74(Task* task);
+/// Updates nighttime motel room 6's telephone save and statistics menu.
+///
+/// The UI task owns the live `UiObject` in `spawnArg2.pointer`, including its
+/// save, notice and statistics children. Start in state 0; states 1..3 track
+/// those child dialogs. Cancel clears the session's UI-open flag and publishes
+/// a cancel result. Keep this room overlay loaded until the UI tree closes.
+void dryfieldNightMotelRoom6TelephoneMenuTask(Task* task);
 
 /// Initializes and updates the player's reflection in nighttime motel room 6.
 ///
@@ -53,6 +59,11 @@ void dryfieldNightMotelRoom6PlayerReflectionTask(Task* reflectionTask);
 /// room overlay loaded while the effect task is live.
 void dryfieldNightMotelRoom6DrawGlowTask(Task* unusedTask);
 
-void func_dryfield_night_motel_room_6_80181C80(Task* task);
+/// Runs nighttime motel room 6's room controller and message endpoint.
+///
+/// `state` must be 0 (register task and message table), 1 (idle) or 2 (kill).
+/// Needs no body and ignores spawn payloads. The state table and callbacks are
+/// borrowed from this overlay, which must remain loaded for the task's lifetime.
+void dryfieldNightMotelRoom6RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_MOTEL_ROOM_6_H

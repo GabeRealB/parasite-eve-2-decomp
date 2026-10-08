@@ -247,7 +247,7 @@ D_dryfield_night_motel_balcony_80182EAC = 0x80182EAC; // absolute:True owner=dry
 D_dryfield_night_motel_balcony_80184004 = 0x80184004; // absolute:True owner=dryfield_night_motel_balcony
 D_dryfield_night_motel_balcony_8018D078 = 0x8018D078; // absolute:True owner=dryfield_night_motel_balcony
 D_dryfield_night_motel_balcony_8018F2AC = 0x8018F2AC; // absolute:True owner=dryfield_night_motel_balcony
-func_dryfield_night_motel_room_6_80181C80 = 0x80181C80; // type:func absolute:True owner=dryfield_night_motel_room_6
+dryfieldNightMotelRoom6RoomTask = 0x80181C80; // type:func absolute:True owner=dryfield_night_motel_room_6
 D_dryfield_night_motel_room_6_80182F00 = 0x80182F00; // absolute:True owner=dryfield_night_motel_room_6 shared=rooms
 D_dryfield_night_motel_room_6_80182F08 = 0x80182F08; // absolute:True owner=dryfield_night_motel_room_6 shared=rooms
 D_dryfield_night_motel_room_6_80182F18 = 0x80182F18; // absolute:True owner=dryfield_night_motel_room_6 shared=rooms

@@ -1707,7 +1707,7 @@ func_dryfield_night_motel_lobby_8017EAE0 = 0x8017EAE0; // type:func absolute:Tru
 
 func_dryfield_night_trailer_coach_8018138C = 0x8018138C; // type:func absolute:True owner=dryfield_night_trailer_coach shared=rooms
 
-func_dryfield_night_motel_room_6_8017EA74 = 0x8017EA74; // type:func absolute:True owner=dryfield_night_motel_room_6
+dryfieldNightMotelRoom6TelephoneMenuTask = 0x8017EA74; // type:func absolute:True owner=dryfield_night_motel_room_6
 
 func_mine_refuge_8017EA78 = 0x8017EA78; // type:func absolute:True owner=mine_refuge
 

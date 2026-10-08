@@ -255,3 +255,4 @@ _dryfieldNightSaloonGRDrawTaperedBeam = 0x8017f0a4; // type:func
 _dryfieldNightSaloonGRRejectKeyItemUse = 0x8017dd7c; // type:func
 _dryfieldNightSaloonGRIdleState = 0x8017e040; // type:func
 _dryfieldNightSaloonGRSetRoom = 0x8017e0a8; // type:func
+_dryfieldNightSaloonGRJukeboxMenuTask = 0x8017e28c; // type:func

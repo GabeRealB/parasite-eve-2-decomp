@@ -23,12 +23,21 @@ extern EvsCommand D_dryfield_night_parking_lot_8017ECB4[11];
 /// cues do nothing; returns zero and ignores the other arguments.
 s32 parkingLotSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
-s32 func_dryfield_night_parking_lot_8017DB04(Task*, s32, s32, s32);
+/// Refuses every key-item use without consuming the selected inventory item.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; all arguments are ignored. Returns
+/// `ROOM_KEY_ITEM_USE_REFUSED` so the inventory menu displays its refusal notice.
+s32 dryfieldNightParkingLotRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 
 s32 func_dryfield_night_parking_lot_8017DB0C(Task*, s32, s32, s32);
 
 s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
-void func_dryfield_night_parking_lot_8017DBA4(s32);
+/// Sets the scripted activation wave of the parking lot's scavengers.
+///
+/// The event-script word is narrowed to a signed byte (0 hold, 1 entrance,
+/// 2 engage, 3 and above later waves). The encounter script passes 1 to begin
+/// their entrance; this callback does not itself start combat or spawn actors.
+void dryfieldNightParkingLotSetScavengerWave(s32 wave);
 
 #endif // SRC_ROOMS_DRYFIELD_NIGHT_PARKING_LOT_DRYFIELD_NIGHT_PARKING_LOT_PRIVATE_H

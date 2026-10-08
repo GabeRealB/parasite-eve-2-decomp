@@ -119,7 +119,7 @@ static const char D_dryfield_night_saloon_g_r_8017D898[];
 extern UiList D_dryfield_night_saloon_g_r_80185028;
 
 /// Descriptor of the jukebox menu panel, whose task is
-/// `func_dryfield_night_saloon_g_r_8017E28C`.
+/// `_dryfieldNightSaloonGRJukeboxMenuTask`.
 extern UiObjectDesc gJukeboxPanelDesc;
 
 /// Descriptor of the jukebox task `jukeboxHostTask`.
@@ -140,8 +140,7 @@ static void _dryfieldNightSaloonGRIdleState(Task* task);
 static s32  func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
 static void _dryfieldNightSaloonGRDrawTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoint, const SVECTOR* endPoint, s32 radiusScale);
 
-// Indexed views below share one contiguous table.
-void func_dryfield_night_saloon_g_r_8017E28C(Task*);
+static void _dryfieldNightSaloonGRJukeboxMenuTask(Task* task);
 
 extern WorldCoordRoomLights D_dryfield_night_saloon_g_r_80188304[1];
 
@@ -1007,7 +1006,7 @@ UiListRowCallback D_dryfield_night_saloon_g_r_80185024[1] = {
 
 UiList D_dryfield_night_saloon_g_r_80185028 = { D_dryfield_night_saloon_g_r_80185024, 1, { .unsignedValue = 1 }, 0, 17, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64, 224, 128 }, 48, 0, TASK_BODY_NONE, 192, func_dryfield_night_saloon_g_r_8017E28C, 0 };
+UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64, 224, 128 }, 48, 0, TASK_BODY_NONE, 192, _dryfieldNightSaloonGRJukeboxMenuTask, 0 };
 
 TaskDesc D_dryfield_night_saloon_g_r_80185068 = { { { TASK_BODY_NONE, 192 } }, jukeboxHostTask, { .value = 0 } };
 
@@ -2062,109 +2061,145 @@ static void _dryfieldNightSaloonGRSetRoom(u8 roomId)
 
 #include "../../shared/jukebox_row.inc.c"
 
-/// The jukebox menu task. Draws the title and, on its first tick, lays out the
-/// track list (four rows, three in the debug attach room). While a chosen
-/// track is pending it waits for the MIDI player to go idle, queues the
-/// track's CD load, then starts it once the CD is idle and records it as the
-/// current track. The menu or cancel button plays the back sound and closes
-/// the panel.
-void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
+/// Updates the saloon's jukebox list and loads confirmed music selections.
+///
+/// The UI task owns a live `UiObject` in `spawnArg2.pointer`. State 0 initializes
+/// four rows (three in training mode); state 1 waits for MIDI to stop and queues
+/// a load, and state 2 waits for CD completion before requesting playback.
+/// `spawnArg1.value` holds the selected row (-1 initially). `status` is the
+/// pending sequence byte below 241, 255 when idle, or 254 while training-mode
+/// dismissal is locked. The row callback supplies only IDs in the track lists.
+/// Closing during a load hides the panel until playback is requested; starting
+/// playback marks the room song and skips automatic music outside training.
+/// Keep the overlay, list and UI tree live until the host closes the menu.
+static void _dryfieldNightSaloonGRJukeboxMenuTask(Task* task)
 {
-    u8        param1[8];
-    u8        param2[8];
-    UiObject* obj;
-    UiList*   menu;
-    u8        flags;
-    s32       sent;
-    s32       state;
-    u8        ready;
+    enum {
+        JUKEBOX_MENU_INITIALIZE                = 0,
+        JUKEBOX_MENU_WAIT_MIDI                 = 1,
+        JUKEBOX_MENU_NO_SELECTION              = -1,
+        JUKEBOX_MENU_IDLE                      = 255,
+        JUKEBOX_MENU_TRAINING_LOCKED           = 254,
+        JUKEBOX_MENU_FIRST_NON_SEQUENCE_STATUS = 241,
+        JUKEBOX_MENU_MAX_VISIBLE_ROWS          = 10,
+        JUKEBOX_MENU_NORMAL_ROWS               = ARRAY_SIZE(D_dryfield_night_saloon_g_r_80184F84),
+        JUKEBOX_MENU_TRAINING_ROWS             = ARRAY_SIZE(D_dryfield_night_saloon_g_r_80184F0C),
+        JUKEBOX_MENU_ALL_SEQUENCES             = 0,
+        JUKEBOX_MUSIC_CDF_STAGE                = 0,
+        JUKEBOX_MUSIC_FILE_GROUP               = 4
+    };
+    u8        fileKeyBytes[4];
+    u8        loadArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
+    UiObject* object;
+    UiList*   list;
+    u8        pendingSequence;
+    s32       loadQueued;
+    s32       loadState;
+    u8        playbackRequested;
 
-    obj  = task->spawnArg2.pointer;
-    menu = &D_dryfield_night_saloon_g_r_80185028;
+    /// Queues global music file 40100 plus the selected sequence ID.
+    ///
+    /// `fileKey` and `args` must be side-effect-free writable byte arrays of at
+    /// least four bytes; both expressions are evaluated repeatedly. `sequence`
+    /// and `hundreds` are evaluated once and narrowed to bytes; `hundreds` is 1
+    /// here. Uses this function's music category constants. Byte 1 of `fileKey`
+    /// is ignored; all load arguments are initialized and copied synchronously.
+#define JUKEBOX_MENU_QUEUE_TRACK_LOAD(fileKey, args, sequence, hundreds) \
+    {                                                                    \
+        (fileKey)[3] = JUKEBOX_MUSIC_CDF_STAGE;                          \
+        (fileKey)[2] = JUKEBOX_MUSIC_FILE_GROUP;                         \
+        (fileKey)[0] = (sequence);                                       \
+        (args)[0]    = (hundreds);                                       \
+        (args)[3]    = 0;                                                \
+        (args)[2]    = 0;                                                \
+        (args)[1]    = CD_COMMAND_LOAD_DEFAULT;                          \
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, (fileKey), (args));           \
+    }
 
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, D_dryfield_night_saloon_g_r_8017D898);
-    if (task->state == 0) {
-        task->spawnArg1.value = -1;
+    object = task->spawnArg2.pointer;
+    list   = &D_dryfield_night_saloon_g_r_80185028;
+
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, D_dryfield_night_saloon_g_r_8017D898);
+    if (task->state == JUKEBOX_MENU_INITIALIZE) {
+        task->spawnArg1.value = JUKEBOX_MENU_NO_SELECTION;
         if (attachmentIsTrainingMode() == 0) {
-            menu->itemCount = 4;
+            list->itemCount = JUKEBOX_MENU_NORMAL_ROWS;
         } else {
-            menu->itemCount = 3;
+            list->itemCount = JUKEBOX_MENU_TRAINING_ROWS;
         }
-        if (menu->itemCount >= 0xB) {
-            menu->visibleRowCount.unsignedValue = 0xA;
+        if (list->itemCount >= JUKEBOX_MENU_MAX_VISIBLE_ROWS + 1) {
+            list->visibleRowCount.unsignedValue = JUKEBOX_MENU_MAX_VISIBLE_ROWS;
         } else {
-            menu->visibleRowCount.unsignedValue = menu->itemCount;
+            list->visibleRowCount.unsignedValue = list->itemCount;
         }
-        menu->selectedItemIndex                   = 0;
-        menu->firstVisibleItemIndex.unsignedValue = 0;
-        uiFitPanelToList(menu, &(obj)->panel);
-        menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        uiSetListSystemCursorSound(menu, 1);
-        obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
-        obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
+        list->selectedItemIndex                   = 0;
+        list->firstVisibleItemIndex.unsignedValue = 0;
+        uiFitPanelToList(list, &object->panel);
+        list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        uiSetListSystemCursorSound(list, 1);
+        object->panel.bounds.unsignedRect.x = -((s16)object->panel.bounds.unsignedRect.w / 2);
+        object->panel.bounds.unsignedRect.y = -((s16)object->panel.bounds.unsignedRect.h / 2);
         if (attachmentIsTrainingMode() == 0) {
-            task->status = 0xFF;
+            task->status = JUKEBOX_MENU_IDLE;
         } else {
-            task->status = 0xFE;
+            task->status = JUKEBOX_MENU_TRAINING_LOCKED;
         }
         task->state += 1;
     }
-    uiUpdateList(menu, &obj->panel);
-    flags = task->status;
-    if (flags < 0xF1) {
-        state = task->state;
-        if (state == 1) {
-            if (midiIsSequenceBusy(0) == 0) {
-                param1[3] = 0;
-                param1[2] = 4;
-                param1[0] = flags;
-                param2[0] = state;
-                param2[3] = 0;
-                param2[2] = 0;
-                param2[1] = 0;
-                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-                sent = 1;
+    uiUpdateList(list, &object->panel);
+
+    // A selection fades MIDI first; playback is requested only after its CD load.
+    pendingSequence = task->status;
+    if (pendingSequence < JUKEBOX_MENU_FIRST_NON_SEQUENCE_STATUS) {
+        loadState = task->state;
+        if (loadState == JUKEBOX_MENU_WAIT_MIDI) {
+            if (midiIsSequenceBusy(JUKEBOX_MENU_ALL_SEQUENCES) == 0) {
+                JUKEBOX_MENU_QUEUE_TRACK_LOAD(fileKeyBytes, loadArgs, pendingSequence, loadState);
+                loadQueued = 1;
             } else {
-                sent = 0;
+                loadQueued = 0;
             }
-            if (sent == 1) {
+            if (loadQueued == 1) {
                 task->state += 1;
             }
         } else {
-            if (cdCmdIsIdle() & 0xFFFF) {
-                sndEvtRequestMidiStart(flags, 0);
-                sndEvtRequestMidiVolume(flags, (u8)D_8007A396);
-                ready          = 1;
-                gStageRoomSong = flags;
+            if (cdCmdIsIdle()) {
+                sndEvtRequestMidiStart(pendingSequence, 0);
+                sndEvtRequestMidiVolume(pendingSequence, (u8)D_8007A396);
+                playbackRequested = 1;
+                gStageRoomSong    = pendingSequence;
             } else {
-                ready = 0;
+                playbackRequested = 0;
             }
-            if (ready == 1) {
-                task->state  = 1;
-                task->status = 0xFF;
+            if (playbackRequested == 1) {
+                task->state  = JUKEBOX_MENU_WAIT_MIDI;
+                task->status = JUKEBOX_MENU_IDLE;
                 if (attachmentIsTrainingMode() == 0) {
                     gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
                 }
-                if (obj->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {
-                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
+                if (object->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {
+                    object->result = USER_INTERFACE_RESULT_CONFIRM;
                 }
             }
         }
     }
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+
+    // Dismissal during a pending load leaves the host waiting for its completion.
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu | Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
-            if (task->status != 0xFE) {
-                if (task->status == 0xFF) {
-                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            if (task->status != JUKEBOX_MENU_TRAINING_LOCKED) {
+                if (task->status == JUKEBOX_MENU_IDLE) {
+                    object->result = USER_INTERFACE_RESULT_CONFIRM;
                 } else {
-                    uiStartPanelHiding(obj, obj->owner);
-                    obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                    uiStartPanelHiding(object, object->owner);
+                    object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             }
         }
     }
+#undef JUKEBOX_MENU_QUEUE_TRACK_LOAD
 }
 
 #include "../../shared/jukebox_host.inc.c"

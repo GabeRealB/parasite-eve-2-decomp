@@ -94,7 +94,7 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskMessageEntry D_dryfield_night_parking_lot_8017EC60[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotEventMsg },
-    { 5105, func_dryfield_night_parking_lot_8017DB04 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldNightParkingLotRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_parking_lot_8017DB34 },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_parking_lot_8017DB0C },
     { ROOM_MESSAGE_SOUND, parkingLotSoundMsg },
@@ -110,10 +110,13 @@ AnimationBankCopyRequest D_dryfield_night_parking_lot_8017EC98 = { { .sets = D_d
 
 AnimationPlayRequest D_dryfield_night_parking_lot_8017ECA0 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
+/// Scavenger activation wave requested as the encounter's entrance begins.
+enum { DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_ENTRANCE_WAVE = 1 };
+
 EvsCommand D_dryfield_night_parking_lot_8017ECB4[11] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_parking_lot_8017EC98 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_parking_lot_8017DBA4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldNightParkingLotSetScavengerWave }, { .value = DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_ENTRANCE_WAVE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_parking_lot_8017ECA0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

@@ -69,3 +69,5 @@ roomEventTask = 0x8017D770; // type:func
 _glowDrawFlare = 0x8017E458; // type:func
 waterTowerEventMsg = 0x8017D8E0; // type:func
 waterTowerSoundMsg = 0x8017DA4C; // type:func
+dryfieldNightWaterTowerRejectKeyItemUse = 0x8017da9c; // type:func
+dryfieldNightWaterTowerIgnoreActionMessage = 0x8017dad4; // type:func

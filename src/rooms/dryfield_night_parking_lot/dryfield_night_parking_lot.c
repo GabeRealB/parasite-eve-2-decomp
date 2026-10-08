@@ -54,7 +54,7 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 63, 252, 16 } };
 RoomEventReq gRoomEventReq;
 
 static void func_dryfield_night_parking_lot_8017DBB0(Task* task);
-static void func_dryfield_night_parking_lot_8017DC28(Task* task);
+static void _dryfieldNightParkingLotIdleState(Task* unusedTask);
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -65,11 +65,9 @@ static void func_dryfield_night_parking_lot_8017DC28(Task* task);
 #define PARKING_LOT_SOUND_MSG parkingLotSoundMsg
 #include "../../shared/parking_lot_sound_msg.inc.c"
 
-/// Handler for message 0x13F1 in the room's message table: does nothing and
-/// returns 0.
-s32 func_dryfield_night_parking_lot_8017DB04(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 dryfieldNightParkingLotRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Handler for message 0x13F0 in the room's message table: point 4 runs CAP
@@ -98,11 +96,9 @@ s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, const void* 
     return 0;
 }
 
-/// Script callback the room's script table names: stores its argument in
-/// `gSceneCombatState.actor01600Wave`.
-void func_dryfield_night_parking_lot_8017DBA4(s32 arg0)
+void dryfieldNightParkingLotSetScavengerWave(s32 wave)
 {
-    gSceneCombatState.actor01600Wave = arg0;
+    gSceneCombatState.actor01600Wave = wave;
 }
 
 /// Room entry task state 0: parks the room's message table in `Task::msgTable`
@@ -120,14 +116,14 @@ static void func_dryfield_night_parking_lot_8017DBB0(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Room entry task state 1: does nothing, and nothing here advances the state.
-static void func_dryfield_night_parking_lot_8017DC28(Task* task)
+/// Keeps the initialized parking-lot room task alive to receive messages in state 1.
+static void _dryfieldNightParkingLotIdleState(Task* unusedTask)
 {
 }
 
 /// The room entry task's states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_parking_lot_8017D5DC = {
-    { func_dryfield_night_parking_lot_8017DBB0, func_dryfield_night_parking_lot_8017DC28, taskKill },
+    { func_dryfield_night_parking_lot_8017DBB0, _dryfieldNightParkingLotIdleState, taskKill },
 };
 
 /// The room entry task: copies the three-state table to the stack and runs the

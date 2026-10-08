@@ -76,3 +76,4 @@ dryfieldNightWaterTankNoOpEffectTask = 0x8017DD8C; // type:func
 waterTankSwayTask = 0x8017DB8C; // type:func
 _dryfieldNightWaterTankRejectKeyItemUse = 0x8017d70c; // type:func
 _dryfieldNightWaterTankResolveRoomEvent = 0x8017d714; // type:func
+_dryfieldNightWaterTankHoldIceBagTimerState = 0x8017d94c; // type:func

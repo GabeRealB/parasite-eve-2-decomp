@@ -903,7 +903,7 @@ void func_800B92CC(Task* task)
             func_dryfield_motel_room_6_8017EA58(task);
             break;
         case GAME_LOCATION_KEY(3, 30, 0, 0):
-            func_dryfield_night_motel_room_6_8017EA74(task);
+            dryfieldNightMotelRoom6TelephoneMenuTask(task);
             break;
     }
 }

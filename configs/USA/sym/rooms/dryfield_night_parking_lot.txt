@@ -95,3 +95,6 @@ glowDrawFlareClipped = 0x8017DE10; // type:func
 parkingLotEventMsg = 0x8017D8D0; // type:func
 parkingLotSoundMsg = 0x8017DAB4; // type:func
 _dryfieldNightParkingLotDrawGreyCapsule = 0x8017e08c; // type:func
+dryfieldNightParkingLotRejectKeyItemUse = 0x8017db04; // type:func
+dryfieldNightParkingLotSetScavengerWave = 0x8017dba4; // type:func
+_dryfieldNightParkingLotIdleState = 0x8017dc28; // type:func

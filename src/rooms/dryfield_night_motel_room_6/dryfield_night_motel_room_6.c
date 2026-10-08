@@ -178,7 +178,7 @@ extern Task* gRoomCutsceneSoundTask;
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
 #include "../../shared/planar_reflection.h"
 
-static void func_dryfield_night_motel_room_6_80181C34(Task* task);
+static void _dryfieldNightMotelRoom6InitRoomTask(Task* task);
 static void _dryfieldNightMotelRoom6IdleTask(Task* unusedTask);
 
 extern WorldCollisionGrid    D_dryfield_night_motel_room_6_80183984[1];
@@ -187,7 +187,7 @@ extern WorldCollisionTrigger D_dryfield_night_motel_room_6_80185D40[15];
 extern WorldCoordRoomLights  D_dryfield_night_motel_room_6_80185A30[1];
 static s32                   _dryfieldNightMotelRoom6RejectKeyItemMessage(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32                   _dryfieldNightMotelRoom6IgnoreActionMessage(Task* receiver, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
-s32                          func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, s32);
+static s32                   _dryfieldNightMotelRoom6SoundMessage(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 void                         func_dryfield_night_motel_room_6_8018189C(Task*);
 
 /// Key-item use request sent to the room task by the inventory menu.
@@ -223,7 +223,7 @@ TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
     { DRYFIELD_NIGHT_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom6RejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom6IgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, motelRoom6CutsceneMsg },
-    { ROOM_MESSAGE_SOUND, func_dryfield_night_motel_room_6_80181C00 },
+    { ROOM_MESSAGE_SOUND, _dryfieldNightMotelRoom6SoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -876,7 +876,7 @@ static const char Telephone_Data_8017D638[];
 
 #include "../../shared/telephone.inc.c"
 
-void func_dryfield_night_motel_room_6_8017EA74(Task* task)
+void dryfieldNightMotelRoom6TelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }
@@ -896,11 +896,11 @@ void dryfieldNightMotelRoom6PlayerReflectionTask(Task* reflectionTask)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// State handlers of the room entry task `func_dryfield_night_motel_room_6_80181C80`,
+/// State handlers of the room entry task `dryfieldNightMotelRoom6RoomTask`,
 /// indexed by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_motel_room_6_8017D6B4 = {
     {
-        func_dryfield_night_motel_room_6_80181C34,
+        _dryfieldNightMotelRoom6InitRoomTask,
         _dryfieldNightMotelRoom6IdleTask,
         taskKill,
     },
@@ -1018,23 +1018,33 @@ static s32 _dryfieldNightMotelRoom6IgnoreActionMessage(Task* receiver, s32 messa
     return 0;
 }
 
-/// Handler of message 0x13F2 in the room's message table: plays sound event
-/// 0x531E000C for event 0x63.
-s32 func_dryfield_night_motel_room_6_80181C00(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Queues the room's sound script 12 for CAP sound cue 99.
+///
+/// Handles `ROOM_MESSAGE_SOUND` with an integer cue key. Other cues do nothing;
+/// returns zero and ignores the other callback arguments. Requires the room's
+/// sound bank to remain loaded for the queued script.
+static s32 _dryfieldNightMotelRoom6SoundMessage(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg)
 {
-    if (arg2 == 0x63) {
-        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6, 0x0C), 0, 0);
+    enum {
+        DRYFIELD_NIGHT_MOTEL_ROOM_6_SOUND_CUE    = 99,
+        DRYFIELD_NIGHT_MOTEL_ROOM_6_SOUND_SCRIPT = 12
+    };
+
+    if (cueKey == DRYFIELD_NIGHT_MOTEL_ROOM_6_SOUND_CUE) {
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6, DRYFIELD_NIGHT_MOTEL_ROOM_6_SOUND_SCRIPT), 0, 0);
     }
     return 0;
 }
 
-/// First state of the room entry task: installs the room's message table,
-/// publishes the task in pointer slot 7 and advances the state.
-static void func_dryfield_night_motel_room_6_80181C34(Task* task)
+/// Registers the room task and its message handlers, then enters the idle state.
+///
+/// Runs once in state 0 on a bodyless task. The task borrows this overlay's
+/// message table for its lifetime; the overlay must remain loaded.
+static void _dryfieldNightMotelRoom6InitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_night_motel_room_6_80182EB0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state += 1;
 }
 
 /// Keeps the room task alive to receive messages after initialization.
@@ -1044,14 +1054,12 @@ static void _dryfieldNightMotelRoom6IdleTask(Task* unusedTask)
 {
 }
 
-/// Room entry task: runs the state handler `D_dryfield_night_motel_room_6_8017D6B4`
-/// names for `Task::state`, through a copy of the table taken onto the stack.
-void func_dryfield_night_motel_room_6_80181C80(Task* task)
+void dryfieldNightMotelRoom6RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_dryfield_night_motel_room_6_8017D6B4;
-    sp.funcs[task->state](task);
+    states = D_dryfield_night_motel_room_6_8017D6B4;
+    states.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_wide_diamond.inc.c"

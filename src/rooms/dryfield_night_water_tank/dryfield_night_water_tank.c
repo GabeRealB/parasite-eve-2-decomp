@@ -604,7 +604,7 @@ AreaApplyRec D_dryfield_night_water_tank_801808B0[2] = {
 };
 
 static void func_dryfield_night_water_tank_8017D870(Task* task);
-static void func_dryfield_night_water_tank_8017D94C(Task* task);
+static void _dryfieldNightWaterTankHoldIceBagTimerState(Task* unusedTask);
 
 /// Exit task of the night water-tank room, in the shape the other rooms' wait
 /// tasks have: three states on `Task::state`. State 0 raises bit 0x80 of
@@ -735,11 +735,15 @@ static void func_dryfield_night_water_tank_8017D870(Task* task)
     task->state = task->state + 1;
 }
 
-/// The room task's second state, run every frame after the entry tick: marks
-/// the play time while the visit sub-id is 0xB.
-static void func_dryfield_night_water_tank_8017D94C(Task* task)
+/// Holds the Ice Bag's melting timer at the current play time during variant 11.
+///
+/// Called every frame in room-task state 1. Other variants leave the timer
+/// unchanged; the task argument is ignored and the state does not advance.
+static void _dryfieldNightWaterTankHoldIceBagTimerState(Task* unusedTask)
 {
-    if (gGameSession->location.loc.variant == 0xB) {
+    enum { DRYFIELD_NIGHT_WATER_TANK_ICE_BAG_HELD_VARIANT = 11 };
+
+    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_TANK_ICE_BAG_HELD_VARIANT) {
         inventoryResetIceBagTimer();
     }
 }
@@ -748,7 +752,7 @@ static void func_dryfield_night_water_tank_8017D94C(Task* task)
 /// `func_dryfield_night_water_tank_8017D984`: the entry tick, the per-frame
 /// state, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_water_tank_8017D5C4 = {
-    { func_dryfield_night_water_tank_8017D870, func_dryfield_night_water_tank_8017D94C, taskKill },
+    { func_dryfield_night_water_tank_8017D870, _dryfieldNightWaterTankHoldIceBagTimerState, taskKill },
 };
 
 /// The room task: copies its three-state table onto the stack and runs the
