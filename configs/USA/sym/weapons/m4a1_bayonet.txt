@@ -3,3 +3,4 @@ D_m4a1_bayonet_8011E9FC = 0x8011E9FC; // model named by a task descriptor
 
 m4a1BayonetTrailTask = 0x8011D1E4; // type:func
 _bladeTrailDraw = 0x8011D69C; // type:func
+m4a1BayonetAttackState = 0x8011da34; // type:func

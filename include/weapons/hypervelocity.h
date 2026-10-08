@@ -17,7 +17,22 @@
 /// and its owned effect work and coordinate body.
 void hypervelocityDischargeConeTask(Task* task);
 
-void func_hypervelocity_8011D830(Task* task);
+/// Flies a Hypervelocity round, lights its path and collapses its visuals on a grid hit.
+///
+/// Bank-6 effect 0x00C owns a coordinate body, counted `EffectWork` in
+/// `spawnArg2.pointer` and a separately allocated collision block in `work`.
+/// Requires the loaded weapon/gameplay overlays, live player model, current
+/// view/GTE state, frame-arena room and initialized scratch storage.
+/// Initialization copies only the player's 3x3 coefficients and rotates the
+/// 1024-unit local muzzle velocity into `move`. `scale` is visual brightness;
+/// `angle` is the visual radius/perspective-size numerator in game units;
+/// `period` is a fixed sprite rotation in 4096 units per turn. Refreshes
+/// transient point-light slot zero. Flight ends at active age 21 or a grid
+/// segment hit; pair contacts are cleared without stopping flight. A grid hit
+/// unlinks the body and shrinks the radius by 64 per tick until below 128.
+/// Non-running effect control decrements age; cancellation unlinks initialized
+/// collision and releases the effect. Exit frees the separate collision block.
+void hypervelocityRoundTask(Task* task);
 
 /// Expands and fades the blue-white shock ring at a hypervelocity round's launch.
 ///

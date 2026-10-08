@@ -16,4 +16,19 @@
 /// and an initialized scratch stack with 48 free bytes, released before return.
 void m4a1BayonetTrailTask(Task* task);
 
+/// Runs the M4A1 bayonet's three-round burst or timed thrust.
+///
+/// Primary input selects the burst, with shots four dispatches apart and
+/// impacts resolved on the following tick. Secondary input selects an 18-tick
+/// windup and ten-tick live thrust; contact sound can repeat each contact tick.
+/// Recovery allows action-button cancellation after the attack's nine/ten-tick
+/// delay. Reserves 80 scratch bytes for the temporary impact node.
+///
+/// Requires live player `GameActor` work, its model and initialized animation
+/// slots, equipped weapon/contact storage, and the matching weapon overlay
+/// loaded throughout dispatch and owned effects. Phase 0 enters normal mode
+/// state 4; later calls advance `GameActor::statePhase`. Counts are dispatch
+/// ticks. Scratch reservations are released before returning.
+void m4a1BayonetAttackState(Task* playerTask);
+
 #endif // INCLUDE_WEAPONS_M4A1_BAYONET_H

@@ -352,198 +352,210 @@ void hypervelocityChargeEffectTask(Task* task)
     }
 }
 
-/// Per-frame task for the hypervelocity round in flight. `Task::spawnArg2` is
-/// the `EffectWork` holding the round's velocity (`move` /
-/// `move.vy` / `move.vz`), its age (`age`), the trail brightness
-/// (`scale`), the ring spin (`angle`) and the ring's start angle
-/// (`period`); `Task::extra` reaches the coordinate it flies on. Nonzero effect control
-/// (`gRoomEffectState->effectControl`) winds the age back down instead of advancing, and
-/// tears the round down at the cancellation threshold of 4.
+/// Copies a borrowed word-aligned matrix's 3x3 coefficients onto the round.
 ///
-/// - State 0 allocates the `_HypervelocityRoundBody`, copies the player's
-///   rotation onto the round's own frame, rotates the fixed `(0, 0, 0x400)`
-///   muzzle velocity through it, re-rolls the 16 trail jitters and the ring
-///   angle, links the body, spawns the launch effect as a child task and
-///   claims room-light slot 0.
-/// - State 1 flies the round, draws the ring plus both trail halves, traces the
-///   ground under it for a splash, and until frame 0x15 keeps spawning sparks.
-///   It then re-aims the room light and asks `worldCollisionProbeGridSegment` whether the step
-///   crossed geometry: a hit unlinks the body and switches to state 2, and
-///   living past frame 0x15 unlinks it and releases the pool block. Otherwise
-///   the body's occupied contacts are cleared unread, so the round is not
-///   stopped by what it touches.
-/// - State 2 shrinks the ring by 0x40 a frame, spawning one more spark burst
-///   per frame until the ring falls under 0x80.
-void func_hypervelocity_8011D830(Task* task)
+/// Transfers exactly 18 bytes as four words and a halfword, preserving the
+/// destination's alignment halfword and translation. Coefficients have twelve
+/// fractional bits. Both matrices must be live and disjoint; retains no pointer.
+static inline void _hypervelocityCopyRoundRotation(MATRIX* destination, const MATRIX* source)
 {
-    GfxCoord                       ground;
-    SVECTOR                        after;
-    SVECTOR                        before;
-    u8                             rgb[3];
-    GfxCoord*                      coord;
-    GfxCoord*                      player;
-    GfxCoord*                      light;
-    WorldCoordTransientPointLight* lightSlot;
-    WorldCoordPointLight*          slot;
-    EffectWork*                    work;
-    EffectWork*                    eff;
-    _HypervelocityRoundBody*       roundBody;
-    GfxRotationWords*              destinationRotation;
-    GfxRotationWords*              sourceRotation;
-    u32                            ang;
-    s32                            i;
+    GfxRotationWords*       destinationRotation = (GfxRotationWords*)destination;
+    const GfxRotationWords* sourceRotation      = (const GfxRotationWords*)source;
 
-    roundBody = task->work;
-    work      = task->spawnArg2.pointer;
-    coord     = task->extra.coordBody->coord;
-    lightSlot = &gWorldCoordTransientPointLights[0];
-    light     = &lightSlot->light.head.transform.coord;
-    slot      = &lightSlot->light;
+    destinationRotation->m00M01 = sourceRotation->m00M01;
+    destinationRotation->m02M10 = sourceRotation->m02M10;
+    destinationRotation->m11M12 = sourceRotation->m11M12;
+    destinationRotation->m20M21 = sourceRotation->m20M21;
+    destinationRotation->m22    = sourceRotation->m22;
+}
+
+void hypervelocityRoundTask(Task* task)
+{
+    enum {
+        HYPERVELOCITY_ROUND_INIT                = 0,
+        HYPERVELOCITY_ROUND_FLY                 = 1,
+        HYPERVELOCITY_ROUND_COLLAPSE            = 2,
+        HYPERVELOCITY_ROUND_SPEED               = 0x400,
+        HYPERVELOCITY_ROUND_BRIGHTNESS          = 0xC0,
+        HYPERVELOCITY_ROUND_VISUAL_RADIUS       = 0x500,
+        HYPERVELOCITY_ROUND_COLLISION_RADIUS    = 0x800,
+        HYPERVELOCITY_ROUND_LIFETIME_TICKS      = 0x15,
+        HYPERVELOCITY_ROUND_COLLAPSE_STEP       = 0x40,
+        HYPERVELOCITY_ROUND_COLLAPSE_MIN_RADIUS = 0x80,
+        HYPERVELOCITY_ROUND_SPARK_ARGUMENT      = 0x400,
+        HYPERVELOCITY_ROUND_LIGHT_SLOT          = 0,
+        HYPERVELOCITY_ROUND_LIGHT_TTL           = 4,
+        HYPERVELOCITY_ROUND_LIGHT_INNER_BASE    = 0x200,
+        HYPERVELOCITY_ROUND_LIGHT_INDEX_SHIFT   = 9,
+        HYPERVELOCITY_ROUND_LIGHT_OUTER_SCALE   = 16,
+        HYPERVELOCITY_ROUND_LIGHT_RANDOM_MASK   = 0x700,
+        HYPERVELOCITY_ROUND_LIGHT_BLUE_BASE     = 0x800,
+        HYPERVELOCITY_ROUND_ROTATION_MASK       = 0xFFF,
+        HYPERVELOCITY_ROUND_JITTER_MASK         = 0xFF,
+    };
+    GfxCoord                       groundCoord;
+    SVECTOR                        stepEnd;
+    SVECTOR                        stepStart;
+    u8                             rgb[3];
+    GfxCoord*                      roundCoord;
+    GfxCoord*                      playerRootCoord;
+    GfxCoord*                      lightCoord;
+    WorldCoordTransientPointLight* lightSlot;
+    WorldCoordPointLight*          pointLight;
+    EffectWork*                    effectWork;
+    EffectWork*                    childEffect;
+    _HypervelocityRoundBody*       roundBody;
+    u32                            lightRandom;
+    s32                            jitterIndex;
+
+    roundBody  = task->work;
+    effectWork = task->spawnArg2.pointer;
+    roundCoord = task->extra.coordBody->coord;
+    lightSlot  = &gWorldCoordTransientPointLights[HYPERVELOCITY_ROUND_LIGHT_SLOT];
+    lightCoord = &lightSlot->light.head.transform.coord;
+    pointLight = &lightSlot->light;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        work->age = work->age - 1;
+        effectWork->age = effectWork->age - 1;
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            if (task->state != 0) {
+            if (task->state != HYPERVELOCITY_ROUND_INIT) {
                 worldCollisionUnlinkBody(&roundBody->body);
             }
-            effectKillTask(work, task);
+            effectKillTask(effectWork, task);
         }
         return;
     }
 
-    work->age = work->age + 1;
+    effectWork->age = effectWork->age + 1;
     switch (task->state) {
-        case 0:
+        case HYPERVELOCITY_ROUND_INIT:
+            // Allocate collision separately and borrow only the player's local rotation.
             roundBody = memCalloc(sizeof(_HypervelocityRoundBody), 0);
             if (roundBody == NULL) {
-                work->age = 0;
+                effectWork->age = 0;
                 return;
             }
-            task->exitCallback          = _hypervelocityReleaseRound;
-            player                      = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            destinationRotation         = (GfxRotationWords*)&coord->coord;
-            sourceRotation              = (GfxRotationWords*)&player->coord;
-            destinationRotation->m00M01 = sourceRotation->m00M01;
-            destinationRotation->m02M10 = sourceRotation->m02M10;
-            destinationRotation->m11M12 = sourceRotation->m11M12;
-            destinationRotation->m20M21 = sourceRotation->m20M21;
-            destinationRotation->m22    = sourceRotation->m22;
-            coord->composeStamp         = GRAPHICS_COORD_DIRTY;
-            gGfxViewCoord.composeStamp  = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            work->move.vx = 0;
-            work->move.vy = 0;
-            work->move.vz = 0x400;
-            gte_SetRotMatrix(&player->coord);
-            gte_ldv0(&work->move);
+            task->exitCallback = _hypervelocityReleaseRound;
+            playerRootCoord    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+            _hypervelocityCopyRoundRotation(&roundCoord->coord, &playerRootCoord->coord);
+            roundCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
+            gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(roundCoord);
+            effectWork->move.vx = 0;
+            effectWork->move.vy = 0;
+            effectWork->move.vz = HYPERVELOCITY_ROUND_SPEED;
+            gte_SetRotMatrix(&playerRootCoord->coord);
+            gte_ldv0(&effectWork->move);
             gte_rtv0();
-            gte_stsv(&work->move);
-            for (i = 0; i < 0x10; i++) {
-                gRandomLcgState             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                D_hypervelocity_8012EF0C[i] = (gRandomLcgState >> 16) & 0xFF;
+            gte_stsv(&effectWork->move);
+            for (jitterIndex = 0; jitterIndex < ARRAY_SIZE(D_hypervelocity_8012EF0C); jitterIndex++) {
+                gRandomLcgState                       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                D_hypervelocity_8012EF0C[jitterIndex] = (gRandomLcgState >> 16) & HYPERVELOCITY_ROUND_JITTER_MASK;
             }
-            work->scale                      = 0xC0;
-            work->angle                      = 0x500;
+            effectWork->scale                = HYPERVELOCITY_ROUND_BRIGHTNESS;
+            effectWork->angle                = HYPERVELOCITY_ROUND_VISUAL_RADIUS;
             gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period                     = (gRandomLcgState >> 16) & 0xFFF;
+            effectWork->period               = (gRandomLcgState >> 16) & HYPERVELOCITY_ROUND_ROTATION_MASK;
             task->work                       = roundBody;
             roundBody->body.context.contacts = roundBody->contacts;
-            roundBody->body.radius           = 0x800;
-            roundBody->body.coord            = coord;
+            roundBody->body.radius           = HYPERVELOCITY_ROUND_COLLISION_RADIUS;
+            roundBody->body.coord            = roundCoord;
             roundBody->body.key              = HYPERVELOCITY_ROUND_COLLISION_KEY;
             roundBody->body.flags            = WORLD_COLLISION_BODY_SPHERE;
             worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &roundBody->body);
             // The allocation already zeroed the entry; LAST terminates the table.
             roundBody->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
             roundBody->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            eff                          = effectSpawn(EFFECT_HYPERVELOCITY_SHOCK_RING, coord, 0, NULL);
-            if (eff != NULL) {
-                taskReparent(task, eff->task);
+            childEffect                  = effectSpawn(EFFECT_HYPERVELOCITY_SHOCK_RING, roundCoord, 0, NULL);
+            if (childEffect != NULL) {
+                taskReparent(task, childEffect->task);
             }
-            task->state           = 1;
-            lightSlot->framesLeft = 4;
-            slot->inner           = (work->index << 9) + 0x200;
-            slot->outer           = slot->inner * 16;
-            ang                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b    = ((ang >> 16) & 0x700) + 0x800;
-            slot->head.color.r    = (u16)slot->head.color.b >> 1;
-            slot->head.color.g    = slot->head.color.b >> 1;
-            light->coord.t[0]     = coord->coord.t[0];
-            light->coord.t[1]     = coord->coord.t[1];
-            light->coord.t[2]     = coord->coord.t[2];
-            light->composeStamp   = GRAPHICS_COORD_DIRTY;
-            rgb[0]                = work->scale >> 2;
-            rgb[1]                = work->scale >> 2;
-            rgb[2]                = work->scale >> 1;
-            gRandomLcgState       = ang;
-            spriteQuadDraw(coord, work->age, work->angle, work->period);
-            effectDrawGouraudDisc(coord, work->angle, rgb);
+            task->state              = HYPERVELOCITY_ROUND_FLY;
+            lightSlot->framesLeft    = HYPERVELOCITY_ROUND_LIGHT_TTL;
+            pointLight->inner        = (effectWork->index << HYPERVELOCITY_ROUND_LIGHT_INDEX_SHIFT) + HYPERVELOCITY_ROUND_LIGHT_INNER_BASE;
+            pointLight->outer        = pointLight->inner * HYPERVELOCITY_ROUND_LIGHT_OUTER_SCALE;
+            lightRandom              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            pointLight->head.color.b = ((lightRandom >> 16) & HYPERVELOCITY_ROUND_LIGHT_RANDOM_MASK) + HYPERVELOCITY_ROUND_LIGHT_BLUE_BASE;
+            pointLight->head.color.r = (u16)pointLight->head.color.b >> 1;
+            pointLight->head.color.g = pointLight->head.color.b >> 1;
+            lightCoord->coord.t[0]   = roundCoord->coord.t[0];
+            lightCoord->coord.t[1]   = roundCoord->coord.t[1];
+            lightCoord->coord.t[2]   = roundCoord->coord.t[2];
+            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            rgb[0]                   = effectWork->scale >> 2;
+            rgb[1]                   = effectWork->scale >> 2;
+            rgb[2]                   = effectWork->scale >> 1;
+            gRandomLcgState          = lightRandom;
+            spriteQuadDraw(roundCoord, effectWork->age, effectWork->angle, effectWork->period);
+            effectDrawGouraudDisc(roundCoord, effectWork->angle, rgb);
             return;
-        case 1:
-            actorRenderComposeCoord(coord);
-            before.vx                  = coord->workm.t[0];
-            before.vy                  = coord->workm.t[1];
-            before.vz                  = coord->workm.t[2];
-            coord->coord.t[0]         += work->move.vx;
-            coord->coord.t[1]         += work->move.vy;
-            coord->coord.t[2]         += work->move.vz;
-            coord->composeStamp        = GRAPHICS_COORD_DIRTY;
+        case HYPERVELOCITY_ROUND_FLY:
+            // Probe the composed step segment; pair contacts do not stop the round.
+            actorRenderComposeCoord(roundCoord);
+            stepStart.vx               = roundCoord->workm.t[0];
+            stepStart.vy               = roundCoord->workm.t[1];
+            stepStart.vz               = roundCoord->workm.t[2];
+            roundCoord->coord.t[0]    += effectWork->move.vx;
+            roundCoord->coord.t[1]    += effectWork->move.vy;
+            roundCoord->coord.t[2]    += effectWork->move.vz;
+            roundCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
             gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            after.vx = coord->workm.t[0];
-            after.vy = coord->workm.t[1];
-            after.vz = coord->workm.t[2];
-            rgb[0]   = work->scale >> 2;
-            rgb[1]   = work->scale >> 2;
-            rgb[2]   = work->scale >> 1;
-            spriteQuadDraw(coord, work->age, work->angle, work->period);
-            effectDrawGouraudDisc(coord, work->angle, rgb);
-            _jetConeDraw(coord, work->age, work->angle, 0);
-            _jetConeDraw(coord, work->age, work->angle, 1);
-            if (gRoomEffectState->groundTraceEnabled != 0 && worldCollisionProjectGroundCoord(coord, &ground) == 1) {
-                _groundGlowDraw(&ground, work->angle);
+            actorRenderComposeCoord(roundCoord);
+            stepEnd.vx = roundCoord->workm.t[0];
+            stepEnd.vy = roundCoord->workm.t[1];
+            stepEnd.vz = roundCoord->workm.t[2];
+            rgb[0]     = effectWork->scale >> 2;
+            rgb[1]     = effectWork->scale >> 2;
+            rgb[2]     = effectWork->scale >> 1;
+            spriteQuadDraw(roundCoord, effectWork->age, effectWork->angle, effectWork->period);
+            effectDrawGouraudDisc(roundCoord, effectWork->angle, rgb);
+            _jetConeDraw(roundCoord, effectWork->age, effectWork->angle, 0);
+            _jetConeDraw(roundCoord, effectWork->age, effectWork->angle, 1);
+            if (gRoomEffectState->groundTraceEnabled != 0 && worldCollisionProjectGroundCoord(roundCoord, &groundCoord) == 1) {
+                _groundGlowDraw(&groundCoord, effectWork->angle);
             }
-            if (work->age < 0x15) {
-                effectSpawn(EFFECT_FLASH_BURST, coord, 0x400, NULL);
-                eff = effectSpawn(EFFECT_HYPERVELOCITY_DISCHARGE_CONE, coord, 0, NULL);
-                if (eff != NULL) {
-                    taskReparent(task, eff->task);
+            if (effectWork->age < HYPERVELOCITY_ROUND_LIFETIME_TICKS) {
+                effectSpawn(EFFECT_FLASH_BURST, roundCoord, HYPERVELOCITY_ROUND_SPARK_ARGUMENT, NULL);
+                childEffect = effectSpawn(EFFECT_HYPERVELOCITY_DISCHARGE_CONE, roundCoord, 0, NULL);
+                if (childEffect != NULL) {
+                    taskReparent(task, childEffect->task);
                 }
             }
-            light->coord.t[0]     = coord->coord.t[0];
-            light->coord.t[1]     = coord->coord.t[1];
-            light->coord.t[2]     = coord->coord.t[2];
-            light->composeStamp   = GRAPHICS_COORD_DIRTY;
-            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            slot->head.color.r    = (u16)slot->head.color.b >> 1;
-            lightSlot->framesLeft = 4;
-            slot->head.color.g    = slot->head.color.b >> 1;
-            if (worldCollisionProbeGridSegment(&after, &before, NULL, NULL) == 1) {
+            lightCoord->coord.t[0]   = roundCoord->coord.t[0];
+            lightCoord->coord.t[1]   = roundCoord->coord.t[1];
+            lightCoord->coord.t[2]   = roundCoord->coord.t[2];
+            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            pointLight->head.color.b = ((gRandomLcgState >> 16) & HYPERVELOCITY_ROUND_LIGHT_RANDOM_MASK) + HYPERVELOCITY_ROUND_LIGHT_BLUE_BASE;
+            pointLight->head.color.r = (u16)pointLight->head.color.b >> 1;
+            lightSlot->framesLeft    = HYPERVELOCITY_ROUND_LIGHT_TTL;
+            pointLight->head.color.g = pointLight->head.color.b >> 1;
+            if (worldCollisionProbeGridSegment(&stepEnd, &stepStart, NULL, NULL) == 1) {
                 worldCollisionUnlinkBody(&roundBody->body);
-                task->state = 2;
+                task->state = HYPERVELOCITY_ROUND_COLLAPSE;
                 return;
             }
-            if (work->age >= 0x15) {
+            if (effectWork->age >= HYPERVELOCITY_ROUND_LIFETIME_TICKS) {
                 worldCollisionUnlinkBody(&roundBody->body);
-                effectKillTask(work, task);
+                effectKillTask(effectWork, task);
                 return;
             }
             worldCollisionClearContacts(roundBody->contacts);
             return;
-        case 2:
-            actorRenderComposeCoord(coord);
-            work->angle = work->angle - 0x40;
-            rgb[0]      = work->scale >> 2;
-            rgb[1]      = work->scale >> 2;
-            rgb[2]      = work->scale >> 1;
-            spriteQuadDraw(coord, work->age, work->angle, work->period);
-            effectDrawGouraudDisc(coord, work->angle, rgb);
-            if (work->angle < 0x80) {
-                effectKillTask(work, task);
+        case HYPERVELOCITY_ROUND_COLLAPSE:
+            // The unlinked round stays at the hit point while its visual radius contracts.
+            actorRenderComposeCoord(roundCoord);
+            effectWork->angle = effectWork->angle - HYPERVELOCITY_ROUND_COLLAPSE_STEP;
+            rgb[0]            = effectWork->scale >> 2;
+            rgb[1]            = effectWork->scale >> 2;
+            rgb[2]            = effectWork->scale >> 1;
+            spriteQuadDraw(roundCoord, effectWork->age, effectWork->angle, effectWork->period);
+            effectDrawGouraudDisc(roundCoord, effectWork->angle, rgb);
+            if (effectWork->angle < HYPERVELOCITY_ROUND_COLLAPSE_MIN_RADIUS) {
+                effectKillTask(effectWork, task);
                 return;
             }
-            effectSpawn(EFFECT_FLASH_BURST, coord, 0x400, NULL);
+            effectSpawn(EFFECT_FLASH_BURST, roundCoord, HYPERVELOCITY_ROUND_SPARK_ARGUMENT, NULL);
             return;
     }
 }

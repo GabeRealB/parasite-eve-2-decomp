@@ -45,6 +45,11 @@
 
 #include "actors/companion.h"
 
+#include "weapons/as12.h"
+#include "weapons/m249.h"
+#include "weapons/m4a1.h"
+#include "weapons/gunblade.h"
+#include "weapons/m4a1_bayonet.h"
 #include "weapons/hypervelocity.h"
 #include "weapons/m4a1_hammer.h"
 #include "weapons/m4a1_javelin.h"
@@ -710,9 +715,6 @@ extern AnimationBank D_actor_800200_8016F208;
 extern AnimationBank D_actor_800300_8016CB98;
 
 /// Weapon overlay entry points, at fixed addresses.
-void func_m4a1_8011D1C4(Task* arg0);
-void func_m4a1_p1_8011D1C4(Task* arg0);
-void func_m4a1_p2_8011D1C4(Task* arg0);
 
 void func_grenade_pistol_8011D1D4(Task* arg0);
 void func_mm1_8011D1D4(Task* arg0);
@@ -721,17 +723,11 @@ void func_p08_snail_8011D1D8(Task* arg0);
 void func_mongoose_8011D1D8(Task* arg0);
 
 void func_sp12_8011D1DC(Task* arg0);
-void func_as12_8011D1DC(Task* arg0);
-void func_m249_8011D1DC(Task* arg0);
 
 void func_m4a1_grenade_8011D1EC(Task* arg0);
 
-void func_m4a1_bayonet_8011DA34(Task* arg0);
-
 void func_mp5a5_p1_8011DDA4(Task* arg0);
 void func_mp5a5_p2_8011DDA4(Task* arg0);
-
-void func_gunblade_8011E040(Task* arg0);
 
 u16 D_80112964[5][2] = {
     { 16, 240 },
@@ -7586,18 +7582,18 @@ static const _PlayerActorWeaponAttacks D_800978BC = { {
     func_mm1_8011D1D4,
     pa3AttackState,
     func_sp12_8011D1DC,
-    func_as12_8011D1DC,
-    func_m4a1_8011D1C4,
-    func_m249_8011D1DC,
+    as12AttackState,
+    m4a1AttackState,
+    m249AttackState,
     _playerActorNoWeaponAttack,
     tonfaBatonAttackState,
     func_m4a1_p1_8011D1C4,
     func_m4a1_p2_8011D1C4,
     hypervelocityAttackState,
-    func_gunblade_8011E040,
+    gunbladeAttackState,
     _playerActorNoWeaponAttack,
     m4a1HammerAttackState,
-    func_m4a1_bayonet_8011DA34,
+    m4a1BayonetAttackState,
     func_m4a1_grenade_8011D1EC,
     m4a1PykeAttackState,
     m4a1JavelinAttackState,

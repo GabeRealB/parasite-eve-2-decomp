@@ -127,7 +127,7 @@ slots = [
     { kind = "model", at = "0xE27C", in_c = true },
     { kind = "modelSource", at = "0xE3E4", in_c = true },
   ] },
-  { package = "mm1", id = 19, label = "MM1", defines = { GRENADE_VARIANT = 1 }, aliases = { func_grenade_pistol_8011D1D4 = "func_mm1_8011D1D4", func_grenade_pistol_8011DBD0 = "func_mm1_8011DBD0" }, objects = [
+  { package = "mm1", id = 19, label = "MM1", defines = { GRENADE_VARIANT = 1 }, aliases = { func_grenade_pistol_8011D1D4 = "func_mm1_8011D1D4", grenadePistolShellTask = "func_mm1_8011DBD0" }, objects = [
     { kind = "packageId" },
     { unit = "grenade_pistol", variant = true, rodata = "0x4", text = "0x14", data = "0xA7C" },
     { kind = "model", at = "0xA7C", in_c = true },
@@ -182,8 +182,8 @@ label = "M4A1 Rifle"
 # weapon index, and the item follows from it.
 slots = [
   { package = "m4a1", id = 23, label = "M4A1 Rifle", defines = { WEAPON_ID = 0x10 } },
-  { package = "m4a1_p1", id = 27, label = "M4A1(+1)", defines = { WEAPON_ID = 0x14 }, aliases = { func_m4a1_8011D1C4 = "func_m4a1_p1_8011D1C4" } },
-  { package = "m4a1_p2", id = 28, label = "M4A1(+2)", defines = { WEAPON_ID = 0x15 }, aliases = { func_m4a1_8011D1C4 = "func_m4a1_p2_8011D1C4" } },
+  { package = "m4a1_p1", id = 27, label = "M4A1(+1)", defines = { WEAPON_ID = 0x14 }, aliases = { m4a1AttackState = "func_m4a1_p1_8011D1C4" } },
+  { package = "m4a1_p2", id = 28, label = "M4A1(+2)", defines = { WEAPON_ID = 0x15 }, aliases = { m4a1AttackState = "func_m4a1_p2_8011D1C4" } },
 ]
 objects = [
   { kind = "packageId" },

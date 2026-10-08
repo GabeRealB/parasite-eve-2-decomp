@@ -1,3 +1,5 @@
+#include "weapons/gunblade.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -19,12 +21,15 @@
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/sound.h"
 #include "main/session_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+
+#include "weapons/weapon.h"
 
 /// Divisor that turns the model's forward axis into the distance the spinning
 /// slash covers per frame: 4096 / 136, about 30 coordinate units.
@@ -60,198 +65,220 @@ typedef struct {
 } _GunbladeAttackScratch;
 STATIC_ASSERT_SIZEOF(_GunbladeAttackScratch, 0x68);
 
-/// `gPlayerStatus.weaponSlotItem`, the encoded primary weapon-slot item, read under
-/// its own address wherever the value is wanted once rather than as one of a
-/// run of accesses to the config block.
-
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId`, the 1-based difficulty/mode row of `D_80112E04`.
-
-void func_gunblade_8011E040(Task* arg0);
-
-/// Per-frame firing state machine for the gunblade. State 0 arms the shot and
-/// raises the weapon (clip 6 instead of 1 when it was already up), state 1
-/// waits for that clip. State 2 branches on `field_97F`: the blade swing (1)
-/// goes to state 3, seeding the 0x12-frame swing timer and the 0x39-frame
-/// recoil counter and re-aiming the muzzle record with the attach-0x17 spread,
-/// while anything else fires the gun and drops straight into the lock-on of
-/// state 6, spending a magazine round and spawning the muzzle flash. States
-/// 3-5 count `field_934` down: at 0 state 3 hands over to state 4 and spawns
-/// the beam effect (parented to the weapon task so `gunbladeRequestChargeFlash`
-/// can reach it), and any later state falls out to 7. State 4 asks
-/// `playerActorReadAttackButton` for held fire input; secondary input (2) advances to
-/// state 5 and, if there is still a round to spend, charges the beam and
-/// re-grades the shot from the attachment id. Every frame in this group plays
-/// the hit sound once the swing has collided and, while the recoil counter
-/// runs, spins the actor 0xC units and flags the shake for the tail. State 6
-/// picks the lock-on target - attachment 0xE aims the sound at the target's own
-/// position rather than the scratch coordinate - and falls into state 7, which
-/// drops out of the firing pose once the aim check fails.
+/// Publishes the spin movement sign and adds its local forward step to the root.
 ///
-/// The tail is common to every state: it reads the model's forward axis out
-/// of its root coordinate's matrix and, only while `shake` is set, moves that
-/// coordinate forward by a `GUNBLADE_SPIN_ADVANCE_DIVISOR`th of it.
-void func_gunblade_8011E040(Task* arg0)
+/// `advanceThisFrame` is 0 or 1. Borrows live disjoint actor/root/scratch storage;
+/// divides the unnormalized 4096-scale Z axis by 136, narrows before the flag
+/// multiplication and adds signed game-coordinate displacement. Leaves vector
+/// pad fields and the root's composition stamp unchanged; retains no pointer.
+static inline void _gunbladeAdvanceAttack(GfxCoord* rootCoord, GameActor* actor, _GunbladeAttackScratch* scratch, s32 advanceThisFrame)
 {
-    GameActor*              actor;
-    GfxCoord*               coord;
-    _GunbladeAttackScratch* scratch;
-    WorldCollisionCapsule*  rec;
-    EffectWork*             eff;
-    s32                     sfx;
-    s32                     anim;
-    s32                     hit;
-    s32                     lvl;
-    s16                     spread;
-    s32                     shake;
+    gfxReadMatrixZAxis(&rootCoord->coord, &scratch->forward);
+    actor->movementSign    = advanceThisFrame;
+    scratch->advance.vx    = (s16)(scratch->forward.vx / GUNBLADE_SPIN_ADVANCE_DIVISOR) * advanceThisFrame;
+    scratch->advance.vy    = (s16)(scratch->forward.vy / GUNBLADE_SPIN_ADVANCE_DIVISOR) * advanceThisFrame;
+    scratch->advance.vz    = (s16)(scratch->forward.vz / GUNBLADE_SPIN_ADVANCE_DIVISOR) * advanceThisFrame;
+    rootCoord->coord.t[0] += scratch->advance.vx;
+    rootCoord->coord.t[1] += scratch->advance.vy;
+    rootCoord->coord.t[2] += scratch->advance.vz;
+}
 
-    shake   = 0;
-    actor   = arg0->work;
-    sfx     = (gPlayerStatus.weaponSlotItem - 0xD) << 24;
-    rec     = &actor->weaponShape;
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_GunbladeAttackScratch);
-    coord   = arg0->extra.tmd->coords;
-    if (sfx < 0) {
-        sfx = 0;
+void gunbladeAttackState(Task* playerTask)
+{
+    enum {
+        GUNBLADE_PHASE_PREPARE                 = 0,
+        GUNBLADE_PHASE_WAIT_READY              = 1,
+        GUNBLADE_PHASE_SELECT_ATTACK           = 2,
+        GUNBLADE_PHASE_SWING_WINDUP            = 3,
+        GUNBLADE_PHASE_CHARGE_WINDOW           = 4,
+        GUNBLADE_PHASE_SWING_FOLLOWTHROUGH     = 5,
+        GUNBLADE_PHASE_SHOT_IMPACT             = 6,
+        GUNBLADE_PHASE_RECOVER                 = 7,
+        GUNBLADE_PLAYER_ATTACK_STATE           = 4,
+        GUNBLADE_ANIMATION_READY               = 9,
+        GUNBLADE_READY_BLEND_FRAMES            = 1,
+        GUNBLADE_IMPACT_SOUND                  = SOUND_COMMON(0x17),
+        GUNBLADE_MOVING_READY_BLEND_FRAMES     = 6,
+        GUNBLADE_ANIMATION_SLASH               = 0xA,
+        GUNBLADE_ANIMATION_SHOT                = 0xB,
+        GUNBLADE_SLASH_WINDUP_FRAMES           = 0x12,
+        GUNBLADE_SPIN_COUNTER_TICKS            = 0x39,
+        GUNBLADE_CHARGE_WINDOW_FRAMES          = 8,
+        GUNBLADE_SPIN_YAW_STEP                 = 0xC,
+        GUNBLADE_SLASH_KEY                     = 0x2171B,
+        GUNBLADE_ATTACK_KEY_BASE               = 0x21700,
+        GUNBLADE_SLASH_RADIUS                  = 0x180,
+        GUNBLADE_SHOT_REACH                    = 0x2200,
+        GUNBLADE_SHOT_RADIUS                   = 0x100,
+        GUNBLADE_BUCKSHOT_RADIUS               = 0x900,
+        GUNBLADE_AMMUNITION_BUCKSHOT           = 13,
+        GUNBLADE_AMMUNITION_FIREFLY            = 14,
+        GUNBLADE_AMMUNITION_SLUG               = 15,
+        GUNBLADE_CHARGED_SLUG_KEY_LOW          = 0x20,
+        GUNBLADE_CHARGED_AMMUNITION_KEY_OFFSET = 0xB,
+        GUNBLADE_CONTACT_SOUND_POSTED          = 1,
+        GUNBLADE_EMPTY_SOUND                   = SOUND_WEAPON(23, 1),
+        GUNBLADE_FIREFLY_IMPACT_SOUND          = SOUND_WEAPON(23, 4),
+        GUNBLADE_FIRE_SOUND                    = SOUND_WEAPON(23, 5),
+        GUNBLADE_SLASH_SOUND                   = SOUND_WEAPON(23, 6),
+        GUNBLADE_CONTACT_SOUND                 = SOUND_WEAPON(23, 7),
+        GUNBLADE_CHARGE_SOUND                  = SOUND_WEAPON(23, 8),
+    };
+    GameActor*              actor;
+    GfxCoord*               rootCoord;
+    _GunbladeAttackScratch* scratch;
+    WorldCollisionCapsule*  weaponCapsule;
+    EffectWork*             trailWork;
+    s32                     ammunitionSoundBits;
+    s32                     readyBlendFrames;
+    s32                     impactFound;
+    s32                     chargedAttackKey;
+    s16                     muzzleRadius;
+    s32                     advanceThisFrame;
+
+    advanceThisFrame    = 0;
+    actor               = playerTask->work;
+    ammunitionSoundBits = (gPlayerStatus.weaponSlotItem - GUNBLADE_AMMUNITION_BUCKSHOT) << 24;
+    weaponCapsule       = &actor->weaponShape;
+    scratch             = SCRATCH_STACK_RESERVE_BLOCK(_GunbladeAttackScratch);
+    rootCoord           = playerTask->extra.tmd->coords;
+    if (ammunitionSoundBits < 0) {
+        ammunitionSoundBits = 0;
     }
     switch (actor->statePhase) {
-        case 0:
+        case GUNBLADE_PHASE_PREPARE:
             actor->mode           = GAME_ACTOR_MODE_NORMAL;
-            actor->state          = 4;
+            actor->state          = GUNBLADE_PLAYER_ATTACK_STATE;
             actor->turnRateIndex  = 0;
             actor->animationState = 0;
-            playerActorSetWeaponAttackFlags(arg0, 0, 0);
-            anim                                                  = 1;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
-            actor->statePhase                                    += anim;
+            playerActorSetWeaponAttackFlags(playerTask, 0, 0);
+            readyBlendFrames                                      = GUNBLADE_READY_BLEND_FRAMES;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT;
+            actor->statePhase++;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 6;
+                readyBlendFrames = GUNBLADE_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, GUNBLADE_ANIMATION_READY, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
-        case 1:
+        case GUNBLADE_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
-            if (actor->attackButton == 1) {
-                actor->statePhase        = 3;
-                actor->stateTimer        = 0x12;
+        case GUNBLADE_PHASE_SELECT_ATTACK:
+            // The slash extends the capsule briefly; the shot uses ammunition-dependent spread.
+            if (actor->attackButton == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY) {
+                actor->statePhase        = GUNBLADE_PHASE_SWING_WINDUP;
+                actor->stateTimer        = GUNBLADE_SLASH_WINDUP_FRAMES;
                 actor->actionValue       = 0;
-                actor->gunbladeSpinTicks = 0x39;
+                actor->gunbladeSpinTicks = GUNBLADE_SPIN_COUNTER_TICKS;
                 weaponRecordUse(GUNBLADE_WEAPON_ID);
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = 0x2171B;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = GUNBLADE_SLASH_KEY;
                 {
-                    u16 reach       = rec->ends[1].vz + D_80112F60[23];
-                    rec->end0Radius = 0x180;
-                    rec->end1Radius = 0x180;
-                    rec->ends[0].vz = reach;
+                    u16 slashReach            = weaponCapsule->ends[1].vz + D_80112F60[GUNBLADE_WEAPON_ID];
+                    weaponCapsule->end0Radius = GUNBLADE_SLASH_RADIUS;
+                    weaponCapsule->end1Radius = GUNBLADE_SLASH_RADIUS;
+                    weaponCapsule->ends[0].vz = slashReach;
                 }
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
-                playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 3);
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
+                playerActorPlayChildSlotsWithBlend(playerTask, GUNBLADE_ANIMATION_SLASH, 0, 3);
                 break;
             }
-            actor->statePhase = 6;
+            actor->statePhase = GUNBLADE_PHASE_SHOT_IMPACT;
             actor->weaponShape.ends[0].vz =
-                actor->weaponShape.ends[1].vz + 0x2200;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = gPlayerStatus.weaponSlotItem | 0x21700;
-            rec->end1Radius                                    = 0x100;
-            rec->ends[0].vz                                    = rec->ends[1].vz + 0x2200;
-            spread                                             = 0x900;
-            if (gPlayerStatus.weaponSlotItem != 0xD) {
-                spread = 0x100;
+                actor->weaponShape.ends[1].vz + GUNBLADE_SHOT_REACH;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = gPlayerStatus.weaponSlotItem | GUNBLADE_ATTACK_KEY_BASE;
+            weaponCapsule->end1Radius                          = GUNBLADE_SHOT_RADIUS;
+            weaponCapsule->ends[0].vz                          = weaponCapsule->ends[1].vz + GUNBLADE_SHOT_REACH;
+            muzzleRadius                                       = GUNBLADE_BUCKSHOT_RADIUS;
+            if (gPlayerStatus.weaponSlotItem != GUNBLADE_AMMUNITION_BUCKSHOT) {
+                muzzleRadius = GUNBLADE_SHOT_RADIUS;
             }
-            rec->end0Radius = spread;
-            if (gPlayerStatus.weaponSlotItem == 0xE) {
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
+            weaponCapsule->end0Radius = muzzleRadius;
+            if (gPlayerStatus.weaponSlotItem == GUNBLADE_AMMUNITION_FIREFLY) {
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
             } else {
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
             }
-            equipmentConsumeWeaponLoad(0x96, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+            equipmentConsumeWeaponLoad(WEAPON_ITEM(GUNBLADE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170005, 1);
+            worldCoordPlaySound(playerTask->extra.tmd->coords, ammunitionSoundBits | GUNBLADE_FIRE_SOUND, 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH, actor->equipmentTasks[1]->extra.tmd->coords,
-                        (gPlayerStatus.weaponSlotItem << 16) | 0x17, NULL);
-            playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 3);
+                        (gPlayerStatus.weaponSlotItem << 16) | GUNBLADE_WEAPON_ID, NULL);
+            playerActorPlayChildSlotsWithBlend(playerTask, GUNBLADE_ANIMATION_SHOT, 0, 3);
             break;
-        case 3:
-        case 4:
-        case 5:
+        case GUNBLADE_PHASE_SWING_WINDUP:
+        case GUNBLADE_PHASE_CHARGE_WINDOW:
+        case GUNBLADE_PHASE_SWING_FOLLOWTHROUGH:
             actor->stateTimer = actor->stateTimer - 1;
             if (actor->stateTimer == 0) {
-                if (actor->statePhase == 3) {
-                    actor->statePhase                                     = 4;
-                    actor->stateTimer                                     = 8;
+                if (actor->statePhase == GUNBLADE_PHASE_SWING_WINDUP) {
+                    actor->statePhase                                     = GUNBLADE_PHASE_CHARGE_WINDOW;
+                    actor->stateTimer                                     = GUNBLADE_CHARGE_WINDOW_FRAMES;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170006, 0);
-                    eff = effectSpawn(EFFECT_GUNBLADE_TRAIL,
-                                      actor->equipmentTasks[1]->extra.tmd->coords,
-                                      0x17, NULL);
-                    if (eff != NULL) {
-                        taskReparent(actor->equipmentTasks[1], eff->task);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, ammunitionSoundBits | GUNBLADE_SLASH_SOUND, 0);
+                    trailWork = effectSpawn(EFFECT_GUNBLADE_TRAIL,
+                                            actor->equipmentTasks[1]->extra.tmd->coords,
+                                            GUNBLADE_WEAPON_ID, NULL);
+                    if (trailWork != NULL) {
+                        taskReparent(actor->equipmentTasks[1], trailWork->task);
                     }
-                } else if (actor->statePhase >= 4) {
-                    actor->statePhase = 7;
+                } else if (actor->statePhase >= GUNBLADE_PHASE_CHARGE_WINDOW) {
+                    actor->statePhase = GUNBLADE_PHASE_RECOVER;
                 }
             }
-            if (actor->statePhase == 4 && playerActorReadAttackButton(arg0) == PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY) {
-                actor->statePhase = 5;
+            if (actor->statePhase == GUNBLADE_PHASE_CHARGE_WINDOW && playerActorReadAttackButton(playerTask) == PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY) {
+                actor->statePhase = GUNBLADE_PHASE_SWING_FOLLOWTHROUGH;
                 if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) != 0) {
-                    if (gPlayerStatus.weaponSlotItem < 0xF) {
-                        lvl = gPlayerStatus.weaponSlotItem + 0xB;
+                    if (gPlayerStatus.weaponSlotItem < GUNBLADE_AMMUNITION_SLUG) {
+                        chargedAttackKey = gPlayerStatus.weaponSlotItem + GUNBLADE_CHARGED_AMMUNITION_KEY_OFFSET;
                     } else {
-                        lvl = 0x20;
+                        chargedAttackKey = GUNBLADE_CHARGED_SLUG_KEY_LOW;
                     }
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = lvl | 0x21700;
-                    equipmentConsumeWeaponLoad(0x96, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-                    worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170008, 1);
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = chargedAttackKey | GUNBLADE_ATTACK_KEY_BASE;
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM(GUNBLADE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, ammunitionSoundBits | GUNBLADE_CHARGE_SOUND, 1);
                     gunbladeRequestChargeFlash(gPlayerStatus.weaponSlotItem);
                 } else {
-                    worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170001, 0);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, ammunitionSoundBits | GUNBLADE_EMPTY_SOUND, 0);
                 }
             }
-            if (actor->actionValue != 1 && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
-                actor->actionValue = 1;
-                worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170007, 0);
+            if (actor->actionValue != GUNBLADE_CONTACT_SOUND_POSTED && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
+                actor->actionValue = GUNBLADE_CONTACT_SOUND_POSTED;
+                worldCoordPlaySound(playerTask->extra.tmd->coords, ammunitionSoundBits | GUNBLADE_CONTACT_SOUND, 0);
             }
             if (actor->gunbladeSpinTicks != 0) {
-                shake                     = 1;
-                actor->rotation.vy       += 0xC;
+                advanceThisFrame          = 1;
+                actor->rotation.vy       += GUNBLADE_SPIN_YAW_STEP;
                 actor->gunbladeSpinTicks -= 1;
             }
             break;
-        case 6:
+        case GUNBLADE_PHASE_SHOT_IMPACT:
             actor->statePhase++;
-            if (gPlayerStatus.weaponSlotItem != 0xD) {
-                hit = playerActorSpawnWeaponImpact(actor->weaponContacts, coord, &scratch->impactCoord);
-                if (gPlayerStatus.weaponSlotItem == 0xE) {
-                    if (hit != 0 || worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
+            if (gPlayerStatus.weaponSlotItem != GUNBLADE_AMMUNITION_BUCKSHOT) {
+                impactFound = playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, &scratch->impactCoord);
+                if (gPlayerStatus.weaponSlotItem == GUNBLADE_AMMUNITION_FIREFLY) {
+                    if (impactFound != 0 || worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                         scratch->impactCoord.workm.t[0] = actor->weaponContacts[0].point.vx;
                         scratch->impactCoord.workm.t[1] = actor->weaponContacts[0].point.vy;
                         scratch->impactCoord.workm.t[2] = actor->weaponContacts[0].point.vz;
-                        worldCoordPlaySound(&scratch->impactCoord, sfx | 0x20170004, 1);
+                        worldCoordPlaySound(&scratch->impactCoord, ammunitionSoundBits | GUNBLADE_FIREFLY_IMPACT_SOUND, 1);
                     }
-                } else if (hit != 0) {
-                    worldCoordPlaySound(&scratch->impactCoord, 0x17, 1);
+                } else if (impactFound != 0) {
+                    worldCoordPlaySound(&scratch->impactCoord, GUNBLADE_IMPACT_SOUND, 1);
                 }
             }
             /* fallthrough */
-        case 7:
+        case GUNBLADE_PHASE_RECOVER:
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
-                playerActorFinishWeaponAttack(arg0);
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    gfxReadMatrixZAxis(&coord->coord, &scratch->forward);
-    actor->movementSign = shake;
-    scratch->advance.vx = (s16)(scratch->forward.vx / GUNBLADE_SPIN_ADVANCE_DIVISOR) * shake;
-    scratch->advance.vy = (s16)(scratch->forward.vy / GUNBLADE_SPIN_ADVANCE_DIVISOR) * shake;
-    scratch->advance.vz = (s16)(scratch->forward.vz / GUNBLADE_SPIN_ADVANCE_DIVISOR) * shake;
-    coord->coord.t[0]  += scratch->advance.vx;
-    coord->coord.t[1]  += scratch->advance.vy;
-    coord->coord.t[2]  += scratch->advance.vz;
+    // Only spinning-slash ticks move the actor along its unnormalized local forward axis.
+    _gunbladeAdvanceAttack(rootCoord, actor, scratch, advanceThisFrame);
     SCRATCH_STACK_RELEASE_BLOCK(_GunbladeAttackScratch);
 }

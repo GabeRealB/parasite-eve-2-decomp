@@ -1,3 +1,5 @@
+#include "weapons/m4a1.h"
+
 #include "types.h"
 
 #include "gameplay/animation.h"
@@ -11,6 +13,7 @@
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/sound.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -24,103 +27,124 @@
 #error "WEAPON_ID is a per-package build parameter"
 #endif
 
-void func_m4a1_8011D1C4(Task* arg0);
+enum { M4A1_IMPACT_SOUND = SOUND_COMMON(0x17) };
 
-void func_m4a1_8011D1C4(Task* arg0)
+/// Disables shot contacts and plays the selected surface impact, when present.
+///
+/// Requires live actor contacts, the player model root and a writable temporary
+/// impact node. Picking writes only the node's composed translation on success;
+/// sound uses it before this dispatch releases scratch storage. Preserves
+/// unrelated collision flags and leaves contacts available to the picker.
+static inline void _m4a1ResolveShotImpact(GameActor* actor, GfxCoord* rootCoord, GfxCoord* impactCoord)
 {
-    GameActor* actor;
-    GfxCoord*  coord;
-    GfxCoord*  spot;
-    s32        anim;
-    s32        delay;
-    /* Narrower than the field it feeds on purpose: an `s32 shots = 1` would join
-       the switch's SImode `1` in the same cse class and steal its register for
-       the `field_97F == 1` compare below. */
-    s16 shots;
+    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
+        worldCoordPlaySound(impactCoord, M4A1_IMPACT_SOUND, 1);
+    }
+}
 
-    SCRATCH_STACK_RESERVE_BYTES(0x50);
-    spot  = SCRATCH_STACK_CURSOR(GfxCoord);
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
+void m4a1AttackState(Task* playerTask)
+{
+    enum {
+        M4A1_PHASE_PREPARE             = 0,
+        M4A1_PHASE_WAIT_READY          = 1,
+        M4A1_PHASE_BURST               = 2,
+        M4A1_PHASE_RECOVER             = 3,
+        M4A1_PLAYER_ATTACK_STATE       = 4,
+        M4A1_ANIMATION_READY           = 9,
+        M4A1_ANIMATION_PRIMARY         = 0xA,
+        M4A1_READY_BLEND_FRAMES        = 1,
+        M4A1_MOVING_READY_BLEND_FRAMES = 6,
+        M4A1_BURST_ROUNDS              = 3,
+        M4A1_SHOT_DELAY_FRAMES         = 3,
+        M4A1_IMPACT_DELAY_FRAMES       = 2,
+        M4A1_CANCEL_FRAMES             = 9,
+        M4A1_RECOVERY_COOLDOWN_FRAMES  = 0xC,
+        M4A1_FIRE_SOUND_BASE           = SOUND_WEAPON(0, 4),
+    };
+    GameActor* actor;
+    GfxCoord*  rootCoord;
+    GfxCoord*  impactCoord;
+    s32        readyBlendFrames;
+    s32        shotDelay;
+    // Preserve the halfword shot count before storing it in actionValue.
+    s16 burstRounds;
+
+    impactCoord = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
+    actor       = playerTask->work;
+    rootCoord   = playerTask->extra.tmd->coords;
     switch (actor->statePhase) {
-        case 0:
-            actor->state             = 4;
+        case M4A1_PHASE_PREPARE:
+            actor->state             = M4A1_PLAYER_ATTACK_STATE;
             actor->mode              = GAME_ACTOR_MODE_NORMAL;
             actor->turnRateIndex     = 0;
             actor->animationState    = 0;
-            actor->statePhase        = 1;
+            actor->statePhase        = M4A1_PHASE_WAIT_READY;
             actor->rumblePosted      = 0;
             actor->stateTimer        = 0;
-            actor->attackCancelTicks = 9;
-            shots                    = 1;
-            if (actor->attackButton == 1) {
-                shots = 3;
+            actor->attackCancelTicks = M4A1_CANCEL_FRAMES;
+            burstRounds              = 1;
+            if (actor->attackButton == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY) {
+                burstRounds = M4A1_BURST_ROUNDS;
             }
-            actor->actionValue = shots;
-            playerActorSetWeaponAttackFlags(arg0, 0, actor->attackButton == 1);
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC00;
-            anim                                                  = 1;
+            actor->actionValue = burstRounds;
+            playerActorSetWeaponAttackFlags(playerTask, 0, actor->attackButton == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY);
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT);
+            readyBlendFrames                                      = M4A1_READY_BLEND_FRAMES;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 6;
+                readyBlendFrames = M4A1_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, M4A1_ANIMATION_READY, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
-        case 1:
+        case M4A1_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
+        case M4A1_PHASE_BURST:
+            // Enable contacts for one dispatch and resolve each round on the next.
             if (actor->actionValue != 0) {
-                delay = actor->stateTimer;
-                if (delay == 0) {
+                shotDelay = actor->stateTimer;
+                if (shotDelay == 0) {
                     actor->actionValue--;
-                    actor->stateTimer                                     = 3;
+                    actor->stateTimer                                     = M4A1_SHOT_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
-                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20000004 | (WEAPON_ID << 16), 1);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_FIRE_SOUND_BASE | (WEAPON_ID << 16), 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 WEAPON_ID, NULL);
-                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
+                    playerActorPlayChildSlotsWithBlend(playerTask, M4A1_ANIMATION_PRIMARY, 0, 2);
                     break;
                 }
-                actor->stateTimer = delay - 1;
-                if (delay - 1 == 2) {
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                    if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                        worldCoordPlaySound(spot, 0x17, 1);
-                    }
+                actor->stateTimer = shotDelay - 1;
+                if (shotDelay - 1 == M4A1_IMPACT_DELAY_FRAMES) {
+                    _m4a1ResolveShotImpact(actor, rootCoord, impactCoord);
                 }
             } else {
-                /* The lock-on block is spelled out in both arms, not shared: with
-                   one copy after the `if`, cross-jumping merges the `field_12A`
-                   load into the tail and drops two instructions. */
-                actor->statePhase                                     = 3;
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                    worldCoordPlaySound(spot, 0x17, 1);
-                }
+                // Resolve the final impact before entering recovery.
+                actor->statePhase = M4A1_PHASE_RECOVER;
+                _m4a1ResolveShotImpact(actor, rootCoord, impactCoord);
             }
             break;
-        case 3:
+        case M4A1_PHASE_RECOVER:
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
-                actor->attackControl.cooldownTicks = 0xC;
-                playerActorFinishWeaponAttack(arg0);
+                actor->attackControl.cooldownTicks = M4A1_RECOVERY_COOLDOWN_FRAMES;
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
 static TmdBone _gM4a1Model006ACSkeleton[1] = {

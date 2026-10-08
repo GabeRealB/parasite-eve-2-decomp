@@ -42,251 +42,283 @@ static SVECTOR D_gunblade_8011E704[1] = { { 0, 0x0060, 0x0080, 0 } };
 /// to its own address - so it has to be a separate object, not element 1.
 static SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
 
-void func_gunblade_8011D1E4(Task* task)
+/// Stores a composed endpoint as a world-space trail pose independent of the weapon.
+///
+/// Borrows disjoint word-aligned nodes and current orthonormal world-to-view
+/// `gGfxViewCoord.workm`. Copies the complete composed matrix and removes the
+/// view into the local matrix, with the persistent view node as parent.
+/// Leaves stamp/parameters unchanged; mark dirty before recomposing. Requires
+/// 48 free scratch bytes, released by the relative-transform helper. Changes
+/// GTE rotation, translation and arithmetic state; retains no source pointer.
+static inline void _gunbladeStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* composedEndpoint)
 {
-    GfxCoord    local;
-    GfxCoord*   coord;
-    GfxCoord*   dst;
-    EffectWork* work;
-    EffectWork* eff;
-    s32         keep;
-    SVECTOR*    vec;
-    s32         i;
+    historyFrame->parent = &gGfxViewCoord;
+    historyFrame->workm  = composedEndpoint->workm;
+    gte_SetRotMatrix(&composedEndpoint->workm);
+    gte_SetTransMatrix(&composedEndpoint->workm);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &historyFrame->workm, &historyFrame->coord);
+}
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
+void gunbladeTrailTask(Task* task)
+{
+    enum {
+        GUNBLADE_TRAIL_SEED               = 0,
+        GUNBLADE_TRAIL_RECORD             = 1,
+        GUNBLADE_TRAIL_CHARGE_START_TICKS = 9,
+        GUNBLADE_TRAIL_LIFETIME_TICKS     = 13,
+        GUNBLADE_TRAIL_CHARGE_PENDING     = 1,
+    };
+    GfxCoord       farEndpoint;
+    GfxCoord*      nearCoord;
+    GfxCoord*      historyFrame;
+    EffectWork*    effectWork;
+    EffectWork*    flashWork;
+    s32            keepTask;
+    const SVECTOR* farOffset;
+    s32            historyIndex;
+
+    effectWork = task->spawnArg2.pointer;
+    nearCoord  = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        keep = gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN;
+        keepTask = gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN;
     } else {
-        work->age++;
+        effectWork->age++;
         switch (task->state) {
-            case 0:
-                coord->parent       = work->parent;
-                coord->coord.t[0]   = D_gunblade_8011E704[0].vx;
-                D_gunblade_8012E244 = task;
-                coord->coord.t[1]   = D_gunblade_8011E704[0].vy;
-                D_gunblade_8012E248 = work;
-                coord->coord.t[2]   = D_gunblade_8011E704[0].vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                task->state        = 1;
-                vec                = &D_gunblade_8011E704[1];
-                local.parent       = work->parent;
-                local.coord.t[0]   = vec->vx;
-                local.coord.t[1]   = vec->vy;
-                local.coord.t[2]   = vec->vz;
-                local.composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(&local);
-                for (i = 0; i < 8; i++) {
-                    dst         = &gBladeTrailBase[i];
-                    dst->parent = &gGfxViewCoord;
-                    dst->workm  = coord->workm;
-                    gte_SetRotMatrix(&coord->workm);
-                    gte_SetTransMatrix(&coord->workm);
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst         = &gBladeTrailTip[i];
-                    dst->parent = &gGfxViewCoord;
-                    dst->workm  = local.workm;
-                    gte_SetRotMatrix(&local.workm);
-                    gte_SetTransMatrix(&local.workm);
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+            case GUNBLADE_TRAIL_SEED:
+                // Seed both histories with the current endpoint poses before drawing any ribbon.
+                nearCoord->parent       = effectWork->parent;
+                nearCoord->coord.t[0]   = D_gunblade_8011E704[0].vx;
+                D_gunblade_8012E244     = task;
+                nearCoord->coord.t[1]   = D_gunblade_8011E704[0].vy;
+                D_gunblade_8012E248     = effectWork;
+                nearCoord->coord.t[2]   = D_gunblade_8011E704[0].vz;
+                nearCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(nearCoord);
+                task->state              = GUNBLADE_TRAIL_RECORD;
+                farOffset                = &D_gunblade_8011E704[1];
+                farEndpoint.parent       = effectWork->parent;
+                farEndpoint.coord.t[0]   = farOffset->vx;
+                farEndpoint.coord.t[1]   = farOffset->vy;
+                farEndpoint.coord.t[2]   = farOffset->vz;
+                farEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(&farEndpoint);
+                for (historyIndex = 0; historyIndex < ARRAY_SIZE(gBladeTrailBase); historyIndex++) {
+                    historyFrame = &gBladeTrailBase[historyIndex];
+                    _gunbladeStoreTrailFrame(historyFrame, nearCoord);
+                    historyFrame = &gBladeTrailTip[historyIndex];
+                    _gunbladeStoreTrailFrame(historyFrame, &farEndpoint);
                 }
                 return;
-            case 1:
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                local.parent       = work->parent;
-                local.coord.t[0]   = D_gunblade_8011E70C.vx;
-                local.coord.t[1]   = D_gunblade_8011E70C.vy;
-                local.coord.t[2]   = D_gunblade_8011E70C.vz;
-                local.composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(&local);
-                dst         = &gBladeTrailBase[work->age & 7];
-                dst->parent = &gGfxViewCoord;
-                dst->workm  = coord->workm;
-                gte_SetRotMatrix(&coord->workm);
-                gte_SetTransMatrix(&coord->workm);
-                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst         = &gBladeTrailTip[work->age & 7];
-                dst->parent = &gGfxViewCoord;
-                dst->workm  = local.workm;
-                gte_SetRotMatrix(&local.workm);
-                gte_SetTransMatrix(&local.workm);
-                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                for (i = 0; i < 8; i++) {
-                    dst               = &gBladeTrailBase[i];
-                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(dst);
-                    dst               = &gBladeTrailTip[i];
-                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(dst);
+            case GUNBLADE_TRAIL_RECORD:
+                // Record world poses so old frames follow the camera, independently of the weapon.
+                nearCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(nearCoord);
+                farEndpoint.parent       = effectWork->parent;
+                farEndpoint.coord.t[0]   = D_gunblade_8011E70C.vx;
+                farEndpoint.coord.t[1]   = D_gunblade_8011E70C.vy;
+                farEndpoint.coord.t[2]   = D_gunblade_8011E70C.vz;
+                farEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(&farEndpoint);
+                historyFrame = &gBladeTrailBase[effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1)];
+                _gunbladeStoreTrailFrame(historyFrame, nearCoord);
+                historyFrame = &gBladeTrailTip[effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1)];
+                _gunbladeStoreTrailFrame(historyFrame, &farEndpoint);
+                for (historyIndex = 0; historyIndex < ARRAY_SIZE(gBladeTrailBase); historyIndex++) {
+                    historyFrame               = &gBladeTrailBase[historyIndex];
+                    historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
+                    actorRenderComposeCoord(historyFrame);
+                    historyFrame               = &gBladeTrailTip[historyIndex];
+                    historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
+                    actorRenderComposeCoord(historyFrame);
                 }
-                if (work->age < 9) {
-                    _bladeTrailDraw(work->age & 7, BLADE_TRAIL_TINT_BLUE_WHITE);
+                if (effectWork->age < GUNBLADE_TRAIL_CHARGE_START_TICKS) {
+                    _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1), BLADE_TRAIL_TINT_BLUE_WHITE);
                     return;
                 }
-                if (work->index == 1) {
-                    work->index++;
-                    eff = effectSpawn(EFFECT_GUNBLADE_CHARGE_FLASH, coord, task->spawnArg1.value, NULL);
-                    if (eff != NULL) {
-                        taskReparent(task, eff->task);
+                // Post a deferred charge once the ribbon changes tint; repeated requests remain a counter.
+                if (effectWork->index == GUNBLADE_TRAIL_CHARGE_PENDING) {
+                    effectWork->index++;
+                    flashWork = effectSpawn(EFFECT_GUNBLADE_CHARGE_FLASH, nearCoord, task->spawnArg1.value, NULL);
+                    if (flashWork != NULL) {
+                        taskReparent(task, flashWork->task);
                     }
                 }
-                _bladeTrailDraw(work->age & 7, BLADE_TRAIL_TINT_YELLOW_WHITE);
-                keep = work->age < 0xD;
+                _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1), BLADE_TRAIL_TINT_YELLOW_WHITE);
+                keepTask = effectWork->age < GUNBLADE_TRAIL_LIFETIME_TICKS;
                 break;
             default:
                 return;
         }
     }
-    if (!keep) {
+    if (!keepTask) {
         D_gunblade_8012E248 = NULL;
-        effectKillTask(work, task);
+        effectKillTask(effectWork, task);
     }
 }
 
 #include "../../shared/blade_trail_draw.inc.c"
 
-/// Charge-up / blast flash for the gunblade's three shot grades
-/// (`Task::spawnArg1` 13, 14 and 15). Frame 0 of each grade spawns the same
-/// four effects with a grade-coloured parameter plus a burst of sparks, then
-/// seeds the ring size (`scale`), its spin (`angle`), the arc size
-/// (`period`) and the arc angle (`step`). Every frame draws the ring at
-/// twice the spin, then either the two crossing arcs and a full-screen fade
-/// while the arc is still large, or shrinks the ring and releases the pool
-/// block once it falls under 0x20. The three grades differ only in which RGB
-/// channel gets the full brightness, so the tails are identical and the
-/// compiler cross-jumps them.
-void func_gunblade_8011DAA4(Task* task)
+enum {
+    GUNBLADE_FLASH_AMMUNITION_BUCKSHOT       = 13,
+    GUNBLADE_FLASH_AMMUNITION_FIREFLY        = 14,
+    GUNBLADE_FLASH_AMMUNITION_SLUG           = 15,
+    GUNBLADE_FLASH_INIT                      = 0,
+    GUNBLADE_FLASH_DRAW                      = 1,
+    GUNBLADE_FLASH_INITIAL_BRIGHTNESS        = 0xE0,
+    GUNBLADE_FLASH_INITIAL_HALF_RADIUS       = 0x80,
+    GUNBLADE_FLASH_DISC_RADIUS_STEP          = 0x10,
+    GUNBLADE_FLASH_BAND_RADIUS_STEP          = 0x40,
+    GUNBLADE_FLASH_BAND_BRIGHTNESS_STEP      = 0x10,
+    GUNBLADE_FLASH_DISC_BRIGHTNESS_STEP      = 0x20,
+    GUNBLADE_FLASH_BAND_BRIGHTNESS_MIN       = 0x11,
+    GUNBLADE_FLASH_DISC_BRIGHTNESS_MIN       = 0x20,
+    GUNBLADE_FLASH_BAND_WIDTH                = 0x60,
+    GUNBLADE_FLASH_IMPACT_RADIUS             = 0x600,
+    GUNBLADE_FLASH_BAND_BUCKSHOT_ARGUMENT    = 0x10000,
+    GUNBLADE_FLASH_BAND_FIREFLY_ARGUMENT     = 0x20000,
+    GUNBLADE_FLASH_BAND_SLUG_ARGUMENT        = 0x30000,
+    GUNBLADE_FLASH_BAND_SECOND_ANGLE         = 0x2AA,
+    GUNBLADE_FLASH_BAND_THIRD_ANGLE          = 0x555,
+    GUNBLADE_FLASH_SPARK_COUNT               = 8,
+    GUNBLADE_FLASH_BOUNCING_SPARK_COUNT      = 4,
+    GUNBLADE_FLASH_BOUNCING_SPARK_SPEED_MASK = 0x3F,
+    GUNBLADE_FLASH_BOUNCING_SPARK_COLOR      = 0x100,
+    GUNBLADE_FLASH_SLUG_SPARK_ARGUMENT       = 1,
+};
+
+/// Draws the bright charge bands and screen tint, then advances their fade and radius.
+///
+/// Borrows live effect work and a composed centre; RGB has three already
+/// narrowed bytes. The odd-age band swaps inner radius and width deliberately.
+/// Keeps signed-halfword radius narrowing and writes period/step after drawing.
+/// Pointer arguments repeat and must have no side effects; captures no locals.
+/// The block has no return/break and updates only this flash's period/step.
+#define GUNBLADE_DRAW_CHARGE_BANDS(effectWork, coord, rgb)                                                     \
+    {                                                                                                          \
+        effectDrawOuterGlowBand(coord, (s16)((effectWork)->step * 3 / 2), GUNBLADE_FLASH_BAND_WIDTH, rgb);     \
+        if ((effectWork)->age & 1) {                                                                           \
+            effectDrawOuterGlowBand(coord, GUNBLADE_FLASH_BAND_WIDTH, (s16)((effectWork)->step * 3 / 2), rgb); \
+        }                                                                                                      \
+        effectDrawScreenTint(rgb, GPU_BLEND_ADD);                                                              \
+        (effectWork)->period -= GUNBLADE_FLASH_BAND_BRIGHTNESS_STEP;                                           \
+        (effectWork)->step   += GUNBLADE_FLASH_BAND_RADIUS_STEP;                                               \
+    }
+
+void gunbladeChargeFlashTask(Task* task)
 {
-    EffectWork* work;
+    EffectWork* effectWork;
     GfxCoord*   coord;
     u8          rgb[3];
-    s32         i;
+    s32         sparkIndex;
 
-    coord = task->extra.coordBody->coord;
-    work  = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
+    effectWork = task->spawnArg2.pointer;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(work, task);
+            effectKillTask(effectWork, task);
         }
         return;
     }
 
     actorRenderComposeCoord(coord);
-    work->age++;
+    effectWork->age++;
 
+    // Ammunition changes the RGB channel ratios and the initial spark recipe.
     switch (task->spawnArg1.value) {
-        case 13:
-            if (task->state == 0) {
-                effectSpawn(EFFECT_IMPACT_FLASH, coord, 0x600, NULL);
-                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x10000, NULL);
-                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x102AA, NULL);
-                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x10555, NULL);
-                for (i = 0; i < 8; i++) {
+        case GUNBLADE_FLASH_AMMUNITION_BUCKSHOT:
+            if (task->state == GUNBLADE_FLASH_INIT) {
+                effectSpawn(EFFECT_IMPACT_FLASH, coord, GUNBLADE_FLASH_IMPACT_RADIUS, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, GUNBLADE_FLASH_BAND_BUCKSHOT_ARGUMENT, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, (GUNBLADE_FLASH_BAND_BUCKSHOT_ARGUMENT | GUNBLADE_FLASH_BAND_SECOND_ANGLE), NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, (GUNBLADE_FLASH_BAND_BUCKSHOT_ARGUMENT | GUNBLADE_FLASH_BAND_THIRD_ANGLE), NULL);
+                for (sparkIndex = 0; sparkIndex < GUNBLADE_FLASH_SPARK_COUNT; sparkIndex++) {
                     effectSpawn(EFFECT_SPARK_STREAK, coord, 0, NULL);
                 }
-                task->state = 1;
-                work->scale = work->period = 0xE0;
-                work->angle = work->step = 0x80;
+                task->state       = GUNBLADE_FLASH_DRAW;
+                effectWork->scale = effectWork->period = GUNBLADE_FLASH_INITIAL_BRIGHTNESS;
+                effectWork->angle = effectWork->step = GUNBLADE_FLASH_INITIAL_HALF_RADIUS;
             }
-            rgb[0] = rgb[1] = work->scale;
-            rgb[2]          = work->scale >> 2;
-            work->angle    += 0x10;
-            effectDrawGouraudDisc(coord, (s16)(work->angle * 2), rgb);
-            if (work->period >= 0x11) {
-                rgb[0] = rgb[1] = work->period;
-                rgb[2]          = work->period >> 2;
-                effectDrawOuterGlowBand(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
-                if (work->age & 1) {
-                    effectDrawOuterGlowBand(coord, 0x60, (s16)(work->step * 3 / 2), rgb);
-                }
-                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
-                work->period -= 0x10;
-                work->step   += 0x40;
+            rgb[0] = rgb[1]    = effectWork->scale;
+            rgb[2]             = effectWork->scale >> 2;
+            effectWork->angle += GUNBLADE_FLASH_DISC_RADIUS_STEP;
+            effectDrawGouraudDisc(coord, (s16)(effectWork->angle * 2), rgb);
+            if (effectWork->period >= GUNBLADE_FLASH_BAND_BRIGHTNESS_MIN) {
+                rgb[0] = rgb[1] = effectWork->period;
+                rgb[2]          = effectWork->period >> 2;
+                GUNBLADE_DRAW_CHARGE_BANDS(effectWork, coord, rgb);
                 return;
             }
-            work->scale -= 0x20;
-            if (work->scale < 0x20) {
-                effectKillTask(work, task);
+            effectWork->scale -= GUNBLADE_FLASH_DISC_BRIGHTNESS_STEP;
+            if (effectWork->scale < GUNBLADE_FLASH_DISC_BRIGHTNESS_MIN) {
+                effectKillTask(effectWork, task);
             }
             return;
-        case 14:
-            if (task->state == 0) {
-                effectSpawn(EFFECT_IMPACT_FLASH, coord, 0x600, NULL);
-                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x20000, NULL);
-                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x202AA, NULL);
-                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x20555, NULL);
-                for (i = 0; i < 4; i++) {
+        case GUNBLADE_FLASH_AMMUNITION_FIREFLY:
+            if (task->state == GUNBLADE_FLASH_INIT) {
+                effectSpawn(EFFECT_IMPACT_FLASH, coord, GUNBLADE_FLASH_IMPACT_RADIUS, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, GUNBLADE_FLASH_BAND_FIREFLY_ARGUMENT, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, (GUNBLADE_FLASH_BAND_FIREFLY_ARGUMENT | GUNBLADE_FLASH_BAND_SECOND_ANGLE), NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, (GUNBLADE_FLASH_BAND_FIREFLY_ARGUMENT | GUNBLADE_FLASH_BAND_THIRD_ANGLE), NULL);
+                for (sparkIndex = 0; sparkIndex < GUNBLADE_FLASH_BOUNCING_SPARK_COUNT; sparkIndex++) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_BOUNCING_SPARK, coord, ((gRandomLcgState >> 16) & 0x3F) | 0x100, NULL);
+                    effectSpawn(EFFECT_BOUNCING_SPARK, coord, ((gRandomLcgState >> 16) & GUNBLADE_FLASH_BOUNCING_SPARK_SPEED_MASK) | GUNBLADE_FLASH_BOUNCING_SPARK_COLOR, NULL);
                 }
-                task->state = 1;
-                work->scale = work->period = 0xE0;
-                work->angle = work->step = 0x80;
+                task->state       = GUNBLADE_FLASH_DRAW;
+                effectWork->scale = effectWork->period = GUNBLADE_FLASH_INITIAL_BRIGHTNESS;
+                effectWork->angle = effectWork->step = GUNBLADE_FLASH_INITIAL_HALF_RADIUS;
             }
-            rgb[0]       = work->scale;
-            rgb[1]       = work->scale >> 1;
-            rgb[2]       = work->scale >> 2;
-            work->angle += 0x10;
-            effectDrawGouraudDisc(coord, (s16)(work->angle * 2), rgb);
-            if (work->period >= 0x11) {
-                rgb[0] = work->period;
-                rgb[1] = work->period >> 1;
-                rgb[2] = work->period >> 2;
-                effectDrawOuterGlowBand(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
-                if (work->age & 1) {
-                    effectDrawOuterGlowBand(coord, 0x60, (s16)(work->step * 3 / 2), rgb);
-                }
-                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
-                work->period -= 0x10;
-                work->step   += 0x40;
+            rgb[0]             = effectWork->scale;
+            rgb[1]             = effectWork->scale >> 1;
+            rgb[2]             = effectWork->scale >> 2;
+            effectWork->angle += GUNBLADE_FLASH_DISC_RADIUS_STEP;
+            effectDrawGouraudDisc(coord, (s16)(effectWork->angle * 2), rgb);
+            if (effectWork->period >= GUNBLADE_FLASH_BAND_BRIGHTNESS_MIN) {
+                rgb[0] = effectWork->period;
+                rgb[1] = effectWork->period >> 1;
+                rgb[2] = effectWork->period >> 2;
+                GUNBLADE_DRAW_CHARGE_BANDS(effectWork, coord, rgb);
                 return;
             }
-            work->scale -= 0x20;
-            if (work->scale < 0x20) {
-                effectKillTask(work, task);
+            effectWork->scale -= GUNBLADE_FLASH_DISC_BRIGHTNESS_STEP;
+            if (effectWork->scale < GUNBLADE_FLASH_DISC_BRIGHTNESS_MIN) {
+                effectKillTask(effectWork, task);
             }
             return;
-        case 15:
-            if (task->state == 0) {
-                effectSpawn(EFFECT_IMPACT_FLASH, coord, 0x600, NULL);
-                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x30000, NULL);
-                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x302AA, NULL);
-                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x30555, NULL);
-                for (i = 0; i < 8; i++) {
-                    effectSpawn(EFFECT_SPARK_STREAK, coord, 1, NULL);
+        case GUNBLADE_FLASH_AMMUNITION_SLUG:
+            if (task->state == GUNBLADE_FLASH_INIT) {
+                effectSpawn(EFFECT_IMPACT_FLASH, coord, GUNBLADE_FLASH_IMPACT_RADIUS, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, GUNBLADE_FLASH_BAND_SLUG_ARGUMENT, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, (GUNBLADE_FLASH_BAND_SLUG_ARGUMENT | GUNBLADE_FLASH_BAND_SECOND_ANGLE), NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, (GUNBLADE_FLASH_BAND_SLUG_ARGUMENT | GUNBLADE_FLASH_BAND_THIRD_ANGLE), NULL);
+                for (sparkIndex = 0; sparkIndex < GUNBLADE_FLASH_SPARK_COUNT; sparkIndex++) {
+                    effectSpawn(EFFECT_SPARK_STREAK, coord, GUNBLADE_FLASH_SLUG_SPARK_ARGUMENT, NULL);
                 }
-                task->state = 1;
-                work->scale = work->period = 0xE0;
-                work->angle = work->step = 0x80;
+                task->state       = GUNBLADE_FLASH_DRAW;
+                effectWork->scale = effectWork->period = GUNBLADE_FLASH_INITIAL_BRIGHTNESS;
+                effectWork->angle = effectWork->step = GUNBLADE_FLASH_INITIAL_HALF_RADIUS;
             }
-            rgb[0]       = work->scale >> 2;
-            rgb[1]       = work->scale >> 1;
-            rgb[2]       = work->scale;
-            work->angle += 0x10;
-            effectDrawGouraudDisc(coord, (s16)(work->angle * 2), rgb);
-            if (work->period >= 0x11) {
-                rgb[0] = work->period >> 2;
-                rgb[1] = work->period >> 1;
-                rgb[2] = work->period;
-                effectDrawOuterGlowBand(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
-                if (work->age & 1) {
-                    effectDrawOuterGlowBand(coord, 0x60, (s16)(work->step * 3 / 2), rgb);
-                }
-                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
-                work->period -= 0x10;
-                work->step   += 0x40;
+            rgb[0]             = effectWork->scale >> 2;
+            rgb[1]             = effectWork->scale >> 1;
+            rgb[2]             = effectWork->scale;
+            effectWork->angle += GUNBLADE_FLASH_DISC_RADIUS_STEP;
+            effectDrawGouraudDisc(coord, (s16)(effectWork->angle * 2), rgb);
+            if (effectWork->period >= GUNBLADE_FLASH_BAND_BRIGHTNESS_MIN) {
+                rgb[0] = effectWork->period >> 2;
+                rgb[1] = effectWork->period >> 1;
+                rgb[2] = effectWork->period;
+                GUNBLADE_DRAW_CHARGE_BANDS(effectWork, coord, rgb);
                 return;
             }
-            work->scale -= 0x20;
-            if (work->scale < 0x20) {
-                effectKillTask(work, task);
+            effectWork->scale -= GUNBLADE_FLASH_DISC_BRIGHTNESS_STEP;
+            if (effectWork->scale < GUNBLADE_FLASH_DISC_BRIGHTNESS_MIN) {
+                effectKillTask(effectWork, task);
             }
             return;
     }
 }
+
+#undef GUNBLADE_DRAW_CHARGE_BANDS
 
 void gunbladeRequestChargeFlash(s32 ammunitionIndex)
 {

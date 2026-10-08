@@ -312,7 +312,7 @@ Two maintenance commands, neither run by the build:
   Run it after adding a family or after a naming pass.
 
 Overlays in a family all load at the same address, so `symbol_name_format`
-prefixes generated names with the segment (`func_m4a1_8011D1C4`). Keep that:
+prefixes generated names with the segment (for example, `func_sp12_8011D1DC`). Keep that:
 the decomp tooling (`decomp_overlay.py find`, `tools/claude`,
 `score_functions.py`, the vacuum) assumes a function name identifies one
 overlay.

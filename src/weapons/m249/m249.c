@@ -1,3 +1,5 @@
+#include "weapons/m249.h"
+
 #include "common.h"
 
 #include "gameplay/animation.h"
@@ -11,6 +13,7 @@
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/sound.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -36,79 +39,109 @@ typedef struct {
 } _M249AttackScratch;
 STATIC_ASSERT_SIZEOF(_M249AttackScratch, 0x68);
 
-void func_m249_8011D1DC(Task* arg0);
+#include "weapons/weapon.h"
 
-void func_m249_8011D1DC(Task* arg0)
+enum { M249_IMPACT_SOUND = SOUND_COMMON(0x17) };
+
+/// Disables shot contacts and plays the selected surface impact, when present.
+///
+/// Requires live actor contacts, the player model root and a writable temporary
+/// impact node. Picking writes only the node's composed translation on success;
+/// sound uses it before this dispatch releases scratch storage. Preserves
+/// unrelated collision flags and leaves contacts available to the picker.
+static inline void _m249ResolveShotImpact(GameActor* actor, GfxCoord* rootCoord, GfxCoord* impactCoord)
 {
-    GameActor*          actor;
-    GfxCoord*           coord;
-    GfxCoord*           spot;
-    _M249AttackScratch* scratch;
-    s32                 anim;
+    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
+        worldCoordPlaySound(impactCoord, M249_IMPACT_SOUND, 1);
+    }
+}
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_M249AttackScratch);
-    actor   = arg0->work;
-    coord   = arg0->extra.tmd->coords;
+void m249AttackState(Task* playerTask)
+{
+    enum {
+        M249_PHASE_PREPARE             = 0,
+        M249_PHASE_WAIT_READY          = 1,
+        M249_PHASE_ARM_SHOT            = 2,
+        M249_PHASE_SHOT_DELAY          = 3,
+        M249_PHASE_IMPACT              = 4,
+        M249_PHASE_RECOVER             = 5,
+        M249_PLAYER_ATTACK_STATE       = 4,
+        M249_ANIMATION_READY           = 9,
+        M249_ANIMATION_PRIMARY         = 0xA,
+        M249_READY_BLEND_FRAMES        = 1,
+        M249_WEAPON_ID                 = 17,
+        M249_MOVING_READY_BLEND_FRAMES = 8,
+        M249_SHOT_DELAY_FRAMES         = 2,
+        M249_FIRE_SOUND                = SOUND_WEAPON(17, 4),
+    };
+    GameActor*          actor;
+    GfxCoord*           rootCoord;
+    GfxCoord*           impactCoord;
+    _M249AttackScratch* scratch;
+    s32                 readyBlendFrames;
+
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(_M249AttackScratch);
+    actor     = playerTask->work;
+    rootCoord = playerTask->extra.tmd->coords;
     switch (actor->statePhase) {
-        case 0:
-            anim                                                  = 1;
-            actor->state                                          = 4;
-            actor->turnRateIndex                                  = 2;
-            actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
-            actor->animationState                                 = 0;
-            actor->statePhase                                    += anim;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC00;
+        case M249_PHASE_PREPARE:
+            readyBlendFrames      = M249_READY_BLEND_FRAMES;
+            actor->state          = M249_PLAYER_ATTACK_STATE;
+            actor->turnRateIndex  = 2;
+            actor->mode           = GAME_ACTOR_MODE_NORMAL;
+            actor->animationState = 0;
+            actor->statePhase++;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT);
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 8;
+                readyBlendFrames = M249_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, M249_ANIMATION_READY, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
-        case 1:
+        case M249_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
+        case M249_PHASE_ARM_SHOT:
         fire:
-            actor->statePhase                  = 3;
+            actor->statePhase                  = M249_PHASE_SHOT_DELAY;
             actor->attackControl.cooldownTicks = 0;
             actor->rumblePosted                = 0;
-            actor->stateTimer                  = 2;
-            playerActorSetWeaponAttackFlags(arg0, 0, actor->attackButton != 1);
+            actor->stateTimer                  = M249_SHOT_DELAY_FRAMES;
+            playerActorSetWeaponAttackFlags(playerTask, 0, actor->attackButton != PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY);
             /* fallthrough */
-        case 3:
+        case M249_PHASE_SHOT_DELAY:
+            // The arm dispatch consumes the first of the two delay ticks.
             if (--actor->stateTimer == 0) {
                 actor->statePhase++;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                equipmentConsumeWeaponLoad(0x90, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20110004, 1);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM(M249_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                worldCoordPlaySound(playerTask->extra.tmd->coords, M249_FIRE_SOUND, 1);
                 effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
-                            actor->equipmentTasks[1]->extra.tmd->coords, 0x11,
+                            actor->equipmentTasks[1]->extra.tmd->coords, M249_WEAPON_ID,
                             NULL);
-                playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 2);
+                playerActorPlayChildSlotsWithBlend(playerTask, M249_ANIMATION_PRIMARY, 1, M249_SHOT_DELAY_FRAMES);
             }
             break;
-        case 4:
-            spot                = &scratch->impactCoord;
+        case M249_PHASE_IMPACT:
+            impactCoord         = &scratch->impactCoord;
             actor->movementSign = 0;
             actor->statePhase++;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                worldCoordPlaySound(spot, 0x17, 1);
-            }
+            _m249ResolveShotImpact(actor, rootCoord, impactCoord);
             /* fallthrough */
-        case 5:
-            if (playerActorReadAttackButton(arg0) != 0 && playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) > 0) {
+        case M249_PHASE_RECOVER:
+            if (playerActorReadAttackButton(playerTask) != 0 && playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) > 0) {
                 goto fire;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
-                playerActorFinishWeaponAttack(arg0);
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    playerActorTrackLockTarget(arg0);
+    playerActorTrackLockTarget(playerTask);
     SCRATCH_STACK_RELEASE_BLOCK(_M249AttackScratch);
 }
 

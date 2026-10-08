@@ -325,7 +325,14 @@ void tonfaBatonModelTask(Task* task)
     stateHandlers[task->state](task);
 }
 
-/// Adds a strike's local forward step; advanceThisFrame must be 0 or 1.
+/// Adds this strike tick's local forward displacement to the player's root.
+///
+/// Reads the root's unnormalized Z column (4096 per unit), divides each signed
+/// component by 84 and narrows the quotient to s16 before multiplying by
+/// `advanceThisFrame`, which must be 0 or 1. Translations stay in the parent's
+/// game-coordinate units. Borrows a live writable scratch block disjoint from
+/// the root; writes XYZ of `forward` and `advance`, leaving their pad fields
+/// and the root's composition stamp untouched. Retains no pointer.
 static inline void _tonfaBatonAdvanceAttack(GfxCoord* rootCoord, _TonfaBatonAttackScratch* scratch, s32 advanceThisFrame)
 {
     gfxReadMatrixZAxis(&rootCoord->coord, &scratch->forward);

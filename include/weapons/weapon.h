@@ -127,6 +127,4 @@ extern TmdSource D_mm1_8012D444;
 
 extern TmdSource D_m4a1_grenade_8012E1FC;
 
-void func_grenade_pistol_8011DBD0(Task* arg0);
-
 #endif // INCLUDE_WEAPONS_WEAPON_H

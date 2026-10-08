@@ -10401,7 +10401,7 @@ actor_146300 = { rodata_head = "0x4" }
 Every `weapons` package carries the same 4-byte header word at rodata `0x0`, so
 this is the standing shape for a weapon overlay: the entry point is the first
 function, and the moment its state switch grows past four cases GCC emits a
-jump table at `0x4`. `m249` is the worked example - `func_m249_8011D1DC`
+jump table at `0x4`. `m249` is the worked example - `m249AttackState`
 matched 100% while `build/USA/out/m249` still FAILED, because `.align 3` after
 the header word pushed `jtbl_m249_8011D1C4` to `0x8011D1C8`. Adding
 `rodata_head = "0x4"` and dropping the `INCLUDE_RODATA` line from the C file
@@ -56196,7 +56196,7 @@ lui  $a0, 0x6
 ori  $a0, $a0, 0x29a
 ```
 
-`func_gunblade_8011D1E4` sat at 99.8% with `reorder=1` on exactly that one swap
+`gunbladeTrailTask` sat at 99.8% with `reorder=1` on exactly that one swap
 and reached 100% on the flag rewrite alone. When a single delay slot is the last
 diff and the function ends in a merged tail, try the other spelling of the tail
 before blaming `dbr` — the effect is several blocks away from the edit.
@@ -56210,7 +56210,7 @@ spellings generate different address code and the ROM can use *both*:
 - `D_gunblade_8011E704[1].vx` in a block where the array base is already in a
   register gives `addiu $v0, $s0, 8` plus `lh ... 8($s0)` / `2($v0)` / `4($v0)` —
   a register for the element, with the first field folded back onto the base.
-  A pointer local (`vec = &D_gunblade_8011E704[1]; vec->vx; …`) is what produces
+  A pointer local (`farOffset = &D_gunblade_8011E704[1]; farOffset->vx; …`) is what produces
   that shape; writing `D_gunblade_8011E704[1].vy` directly folds every offset
   into the base and drops the `addiu`.
 - `D_gunblade_8011E70C.vx` in a block with no live base gives its own
@@ -56218,7 +56218,7 @@ spellings generate different address code and the ROM can use *both*:
 
 Declare both (`extern SVECTOR D_gunblade_8011E704[2];` *and*
 `extern SVECTOR D_gunblade_8011E70C;`) and use whichever the block wants; they
-are the same bytes, so the link is unaffected. `func_gunblade_8011D1E4` needs
+are the same bytes, so the link is unaffected. `gunbladeTrailTask` needs
 the array form in state 0 and the standalone symbol in state 1.
 
 ## A target `D_8007xxxx` that is a named global's *interior* is not a real diff
@@ -56246,7 +56246,7 @@ exactly this and matched the ROM unchanged.
 ## A merged tail that *carries a value* is still just three duplicated case bodies
 
 Cross-jumping does not stop at tails that are reachable with different values in
-a register. `func_gunblade_8011DAA4` is a three-way `switch` whose cases share
+a register. `gunbladeChargeFlashTask` is a three-way `switch` whose cases share
 two tails, and the merge point of the first one is a store of a value each case
 computed differently:
 
@@ -56452,9 +56452,9 @@ CSE forwards the just-stored value to both reads — two MEMs on the same base
 register at different constant offsets are disambiguated, so an intervening
 `sh` to a sibling field does not kill the equivalence — and the value dies
 where the source says it does. A read of the same field through a *different*
-base register (here `light->composeStamp = 0` on an aliasing pointer) does kill it, and
+base register (here `lightCoord->composeStamp = 0` on an aliasing pointer) does kill it, and
 then the target really does emit a `lhu` reload; that reload is the signal
-telling you which spelling the original used. `func_hypervelocity_8011D830`
+telling you which spelling the original used. `hypervelocityRoundTask`
 went 93.9% → 97.8% on this change alone.
 
 Corollary for the `sll 16` / `sra 17` pair: it comes from
@@ -56665,7 +56665,7 @@ Before adding a reference, check that the surrounding structure is right.
 
 ## A 0/1 flag that is `sb`-stored but also multiplied is `s32`, not `s8`
 
-`func_gunblade_8011E040` keeps a "recoil active" flag in a callee-saved
+`gunbladeAttackState` keeps a "spin advance active" flag in a callee-saved
 register, stores it with `sb` into an `s8` field, and multiplies three
 values by it. Declaring the local `s8` to match the field it is stored into
 costs two instructions in two unrelated places:
@@ -56676,7 +56676,7 @@ costs two instructions in two unrelated places:
                                      +mult v0,a2
 ```
 
-`s8 shake` is a **QImode** pseudo (`(reg/v:QI 92)` in the `.cse` dump;
+`s8 advanceThisFrame` is a **QImode** pseudo (`(reg/v:QI 92)` in the `.cse` dump;
 `PROMOTE_MODE` only promotes parameters and returns, not locals). Two things
 follow. The multiply needs an SImode operand, so GCC materialises a copy of
 the QI pseudo instead of using it directly. And a nearby `x = 0` cannot be
@@ -149546,7 +149546,7 @@ attempts; left as it was.
   `sltiu x,2`. The nested form `if (x < 2) { if (x >= 0) { store; return; } }`
   keeps the two signed tests (`_mineMesaSetPlayerHeadAimMode`).
 - Not converted: **a backward `goto fire` from case 5 into case 2, which
-  falls through into case 3** (`m950AttackState`, `func_m249_8011D1DC`).
+  falls through into case 3** (`m950AttackState`, `m249AttackState`).
   Writing the start-shot and step-shot blocks as inlines called in both places
   fails two ways: in m950 the inlined step after `stateTimer = 4` is folded
   (`--timer == 0` is known false, so the copy becomes `stateTimer = 3`), and
@@ -149582,7 +149582,7 @@ attempts; left as it was.
   `if (a && f(c ? 0xA : 0xB) == 0) X; else Y;` (`func_actor_503500_8013FF0C`,
   `_80138898`). Written `if (!a || f() != 0) Y; else X;` the arms come out in
   the other order.
-- Not converted: `func_as12_8011D1DC`'s `goto fire` from state 5 back into
+- Not converted: `as12AttackState`'s `goto fire` from state 5 back into
   state 2 (the `mp5a5` case of batch 05). Two inlines (state 2's and state 3's
   bodies) called in both places do merge, at the same length, but the surviving
   copy is the later one, so the block sits in state 5 instead of state 2.

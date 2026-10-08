@@ -1,8 +1,9 @@
 // Overlay-local symbols for Gunblade (file 10323).
 D_gunblade_8011EEB0 = 0x8011EEB0; // model named by a task descriptor
 
-func_gunblade_8011D1E4 = 0x8011D1E4; // type:func
+gunbladeTrailTask = 0x8011D1E4; // type:func
 
-func_gunblade_8011DAA4 = 0x8011DAA4; // type:func
+gunbladeChargeFlashTask = 0x8011DAA4; // type:func
 _bladeTrailDraw = 0x8011D70C; // type:func
 gunbladeRequestChargeFlash = 0x8011e008; // type:func
+gunbladeAttackState = 0x8011e040; // type:func

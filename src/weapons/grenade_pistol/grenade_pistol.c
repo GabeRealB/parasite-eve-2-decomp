@@ -121,12 +121,12 @@ static const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
     _grenadeShellExit,
 } };
 
-void func_grenade_pistol_8011DBD0(Task* arg0)
+void grenadePistolShellTask(Task* task)
 {
-    TaskFuncTable4 handlers;
+    TaskFuncTable4 stateHandlers;
 
-    handlers = D_grenade_pistol_8011D1C4;
-    handlers.funcs[arg0->state](arg0);
+    stateHandlers = D_grenade_pistol_8011D1C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /* Each package carries its own model. */

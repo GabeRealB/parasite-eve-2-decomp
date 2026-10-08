@@ -83,7 +83,7 @@ Choose the owner before composing the name:
   The packages one source is built into are the same case: gameplay's weapon
   table is indexed by weapon, each index is one package, and so each package
   exports its handler under a name of its own - `func_m4a1_p1_8011D1C4` beside
-  `func_m4a1_8011D1C4`. The source defines the handler once, under one ordinary
+  `m4a1AttackState`. The source defines the handler once, under one ordinary
   name; the other packages' names are aliases, declared on their slots in the
   overlay manifest (`aliases = { definition = "public name" }`) and emitted by
   the `PACKAGE_ALIASES` line that ends the source, as `DEFINE_ALIAS`

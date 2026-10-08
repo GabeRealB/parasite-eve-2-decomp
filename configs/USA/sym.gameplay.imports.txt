@@ -300,7 +300,7 @@ func_80724748 = 0x80724748; // type:func absolute:True
 func_80724E2C = 0x80724E2C; // type:func absolute:True
 D_80760618 = 0x80760618; // absolute:True
 m93rAttackState = 0x8011D1C4; // type:func absolute:True owner=m93r shared=weapons
-func_m4a1_8011D1C4 = 0x8011D1C4; // type:func absolute:True owner=m4a1 shared=weapons
+m4a1AttackState = 0x8011D1C4; // type:func absolute:True owner=m4a1 shared=weapons
 func_m4a1_p1_8011D1C4 = 0x8011D1C4; // type:func absolute:True owner=m4a1_p1 shared=weapons
 func_m4a1_p2_8011D1C4 = 0x8011D1C4; // type:func absolute:True owner=m4a1_p2 shared=weapons
 func_grenade_pistol_8011D1D4 = 0x8011D1D4; // type:func absolute:True owner=grenade_pistol
@@ -311,16 +311,16 @@ func_mongoose_8011D1D8 = 0x8011D1D8; // type:func absolute:True owner=mongoose
 m950AttackState = 0x8011D1DC; // type:func absolute:True owner=m950 shared=weapons
 pa3AttackState = 0x8011D1DC; // type:func absolute:True owner=pa3 shared=weapons
 func_sp12_8011D1DC = 0x8011D1DC; // type:func absolute:True owner=sp12 shared=weapons
-func_as12_8011D1DC = 0x8011D1DC; // type:func absolute:True owner=as12 shared=weapons
-func_m249_8011D1DC = 0x8011D1DC; // type:func absolute:True owner=m249 shared=weapons
+as12AttackState = 0x8011D1DC; // type:func absolute:True owner=as12 shared=weapons
+m249AttackState = 0x8011D1DC; // type:func absolute:True owner=m249 shared=weapons
 func_m4a1_grenade_8011D1EC = 0x8011D1EC; // type:func absolute:True owner=m4a1_grenade shared=weapons
-func_m4a1_bayonet_8011DA34 = 0x8011DA34; // type:func absolute:True owner=m4a1_bayonet
+m4a1BayonetAttackState = 0x8011DA34; // type:func absolute:True owner=m4a1_bayonet
 tonfaBatonAttackState = 0x8011DBFC; // type:func absolute:True owner=tonfa_baton
 p229AttackState = 0x8011DDA0; // type:func absolute:True owner=p229
 mp5a5AttackState = 0x8011DDA4; // type:func absolute:True owner=mp5a5
 func_mp5a5_p1_8011DDA4 = 0x8011DDA4; // type:func absolute:True owner=mp5a5_p1
 func_mp5a5_p2_8011DDA4 = 0x8011DDA4; // type:func absolute:True owner=mp5a5_p2
-func_gunblade_8011E040 = 0x8011E040; // type:func absolute:True owner=gunblade
+gunbladeAttackState = 0x8011E040; // type:func absolute:True owner=gunblade
 m4a1PykeAttackState = 0x8011E4F8; // type:func absolute:True owner=m4a1_pyke
 m4a1HammerAttackState = 0x8011E710; // type:func absolute:True owner=m4a1_hammer
 m4a1JavelinAttackState = 0x8011F5D4; // type:func absolute:True owner=m4a1_javelin
@@ -1967,7 +1967,7 @@ mistParkingContinueDepartureChoiceTask = 0x8018345C; // type:func absolute:True 
 
 hypervelocityDischargeConeTask = 0x8011F270; // type:func absolute:True owner=hypervelocity
 
-func_hypervelocity_8011D830 = 0x8011D830; // type:func absolute:True owner=hypervelocity
+hypervelocityRoundTask = 0x8011D830; // type:func absolute:True owner=hypervelocity
 
 hypervelocityShockRingTask = 0x8011F168; // type:func absolute:True owner=hypervelocity
 
@@ -2059,13 +2059,13 @@ func_actor_510900_8013482C = 0x8013482C; // type:func absolute:True owner=actor_
 
 func_actor_510900_801346D4 = 0x801346D4; // type:func absolute:True owner=actor_510900
 
-func_gunblade_8011D1E4 = 0x8011D1E4; // type:func absolute:True owner=gunblade shared=weapons
+gunbladeTrailTask = 0x8011D1E4; // type:func absolute:True owner=gunblade shared=weapons
 
 flareSparkTask = 0x8012F0B8; // type:func absolute:True owner=flare
 
 combustionCastTask = 0x801308E0; // type:func absolute:True owner=combustion
 
-func_gunblade_8011DAA4 = 0x8011DAA4; // type:func absolute:True owner=gunblade
+gunbladeChargeFlashTask = 0x8011DAA4; // type:func absolute:True owner=gunblade
 
 metabolismCastTask = 0x8012EF34; // type:func absolute:True owner=metabolism shared=pe
 

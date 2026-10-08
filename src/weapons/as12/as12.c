@@ -1,3 +1,5 @@
+#include "weapons/as12.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -15,113 +17,138 @@
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/scratch.h"
+#include "main/sound.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-void func_as12_8011D1DC(Task* arg0);
+#include "weapons/weapon.h"
 
-/// Per-frame firing state machine for the AS12 automatic shotgun. Case 0 arms
-/// the shot and queues the ready animation, choosing the long variant when the
-/// weapon was left dirty (`field_958`) or the actor is flagged in `field_975`;
-/// the muzzle-flash grip bit in `field_12A` is set only for the 0xE weapon
-/// variant. Case 1 waits for that animation to reach its second slot. Case 2
-/// fires - consuming ammo 0x8E, playing the report and spawning the flash -
-/// and case 4 re-acquires the lock-on target, sourcing the impact sound from
-/// the actor's own contact point on the 0xE variant. Case 5 runs out the
-/// `field_979` grace, re-fires while the trigger is held and otherwise hands
-/// back to `playerActorFinishWeaponAttack`.
-void func_as12_8011D1DC(Task* arg0)
+enum { AS12_AMMUNITION_BUCKSHOT  = 13,
+       AS12_FIREFLY_IMPACT_SOUND = SOUND_WEAPON(15, 4) };
+
+/// Places the Firefly impact sound at the first weapon contact point.
+///
+/// Requires a live first contact in the root's composition frame, writable
+/// uninitialized scratch node and the current loaded ammunition selector.
+/// Writes only the cached translation, then plays the sound without retaining
+/// the node. Does not consume the contact or initialize unrelated node fields.
+static inline void _as12PlayFireflyImpact(GameActor* actor, GfxCoord* impactCoord)
 {
-    GameActor* actor;
-    GfxCoord*  coord;
-    GfxCoord*  spot;
-    s32        anim;
-    s32        hit;
+    impactCoord->workm.t[0] = actor->weaponContacts[0].point.vx;
+    impactCoord->workm.t[1] = actor->weaponContacts[0].point.vy;
+    impactCoord->workm.t[2] = actor->weaponContacts[0].point.vz;
+    worldCoordPlaySound(impactCoord,
+                        ((gPlayerStatus.weaponSlotItem - AS12_AMMUNITION_BUCKSHOT) << 0x18) | AS12_FIREFLY_IMPACT_SOUND, 1);
+}
 
-    SCRATCH_STACK_RESERVE_BYTES(0x50);
-    spot  = SCRATCH_STACK_CURSOR(GfxCoord);
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
+void as12AttackState(Task* playerTask)
+{
+    enum {
+        AS12_PHASE_PREPARE             = 0,
+        AS12_PHASE_WAIT_READY          = 1,
+        AS12_PHASE_ARM_SHOT            = 2,
+        AS12_PHASE_FIRE                = 3,
+        AS12_PHASE_IMPACT              = 4,
+        AS12_PHASE_RECOVER             = 5,
+        AS12_PLAYER_ATTACK_STATE       = 4,
+        AS12_ANIMATION_READY           = 9,
+        AS12_ANIMATION_PRIMARY         = 0xA,
+        AS12_READY_BLEND_FRAMES        = 1,
+        AS12_IMPACT_SOUND              = SOUND_COMMON(0x17),
+        AS12_WEAPON_ID                 = 15,
+        AS12_MOVING_READY_BLEND_FRAMES = 5,
+        AS12_COOLDOWN_FRAMES           = 0x21,
+        AS12_CANCEL_FRAMES             = 0x16,
+        AS12_AMMUNITION_FIREFLY        = 14,
+        AS12_FIRE_SOUND                = SOUND_WEAPON(15, 5),
+        AS12_EFFECT_AMMUNITION_SHIFT   = 16,
+    };
+    GameActor* actor;
+    GfxCoord*  rootCoord;
+    GfxCoord*  impactCoord;
+    s32        readyBlendFrames;
+    s32        impactFound;
+
+    impactCoord = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
+    actor       = playerTask->work;
+    rootCoord   = playerTask->extra.tmd->coords;
     switch (actor->statePhase) {
-        case 0:
-            actor->state          = 4;
+        case AS12_PHASE_PREPARE:
+            actor->state          = AS12_PLAYER_ATTACK_STATE;
             actor->mode           = GAME_ACTOR_MODE_NORMAL;
             actor->turnRateIndex  = 0;
             actor->animationState = 0;
             actor->statePhase++;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
-            if (gPlayerStatus.weaponSlotItem == 0xE) {
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT;
+            if (gPlayerStatus.weaponSlotItem == AS12_AMMUNITION_FIREFLY) {
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
             } else {
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= ~0x800;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= ~WORLD_COLLISION_BODY_SINGLE_CONTACT;
             }
-            anim = 1;
+            readyBlendFrames = AS12_READY_BLEND_FRAMES;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 5;
+                readyBlendFrames = AS12_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, AS12_ANIMATION_READY, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
-        case 1:
+        case AS12_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
+        case AS12_PHASE_ARM_SHOT:
         fire:
-            actor->statePhase                  = 3;
-            actor->attackControl.cooldownTicks = 0x21;
+            actor->statePhase                  = AS12_PHASE_FIRE;
+            actor->attackControl.cooldownTicks = AS12_COOLDOWN_FRAMES;
             actor->rumblePosted                = 0;
-            playerActorSetWeaponAttackFlags(arg0, 0, actor->attackButton != 1);
+            playerActorSetWeaponAttackFlags(playerTask, 0, actor->attackButton != PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY);
             /* fallthrough */
-        case 3:
+        case AS12_PHASE_FIRE:
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            equipmentConsumeWeaponLoad(0x8E, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-            worldCoordPlaySound(arg0->extra.tmd->coords,
-                                ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x200F0005, 1);
+            equipmentConsumeWeaponLoad(WEAPON_ITEM(AS12_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+            worldCoordPlaySound(playerTask->extra.tmd->coords,
+                                ((gPlayerStatus.weaponSlotItem - AS12_AMMUNITION_BUCKSHOT) << 0x18) | AS12_FIRE_SOUND, 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords,
-                        (gPlayerStatus.weaponSlotItem << 0x10) | 0xF, NULL);
-            playerActorResetChildSlots(arg0, 0xA);
+                        (gPlayerStatus.weaponSlotItem << AS12_EFFECT_AMMUNITION_SHIFT) | AS12_WEAPON_ID, NULL);
+            playerActorResetChildSlots(playerTask, AS12_ANIMATION_PRIMARY);
             break;
-        case 4:
-            actor->attackCancelTicks = 0x16;
+        case AS12_PHASE_IMPACT:
+            // Firefly uses the first contact position; other non-Buckshot loads use the picked impact.
+            actor->attackCancelTicks = AS12_CANCEL_FRAMES;
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (gPlayerStatus.weaponSlotItem != 0xD) {
-                hit = playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot);
-                if (gPlayerStatus.weaponSlotItem == 0xE) {
-                    if (hit != 0 || worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
-                        spot->workm.t[0] = actor->weaponContacts[0].point.vx;
-                        spot->workm.t[1] = actor->weaponContacts[0].point.vy;
-                        spot->workm.t[2] = actor->weaponContacts[0].point.vz;
-                        worldCoordPlaySound(spot,
-                                            ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x200F0004, 1);
+            if (gPlayerStatus.weaponSlotItem != AS12_AMMUNITION_BUCKSHOT) {
+                impactFound = playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord);
+                if (gPlayerStatus.weaponSlotItem == AS12_AMMUNITION_FIREFLY) {
+                    if (impactFound != 0 || worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
+                        _as12PlayFireflyImpact(actor, impactCoord);
                     }
-                } else if (hit != 0) {
-                    worldCoordPlaySound(spot, 0x17, 1);
+                } else if (impactFound != 0) {
+                    worldCoordPlaySound(impactCoord, AS12_IMPACT_SOUND, 1);
                 }
             }
             /* fallthrough */
-        case 5:
-            if (playerActorReadAttackButton(arg0) != 0 && playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) > 0 && actor->attackControl.cooldownTicks == 0) {
+        case AS12_PHASE_RECOVER:
+            if (playerActorReadAttackButton(playerTask) != 0 && playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) > 0 && actor->attackControl.cooldownTicks == 0) {
                 goto fire;
             }
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
-                playerActorFinishWeaponAttack(arg0);
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
 static TmdBone _gAs12Model00660Skeleton[1] = {

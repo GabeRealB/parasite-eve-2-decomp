@@ -1,2 +1,3 @@
 // Overlay-local symbols for M4A1 Rifle (file 10316).
 D_m4a1_8011DEC4 = 0x8011DEC4; // model named by a task descriptor
+m4a1AttackState = 0x8011d1c4; // type:func

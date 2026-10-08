@@ -547,7 +547,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGasStationRoomVisualEffectsSparkBurstTask, { NULL } },                 // 0x009
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightBackStreetRoomVisualEffectsFlashTask, { NULL } },                      // 0x00A
     { { { TASK_BODY_COORD, 0x70 } }, hypervelocityDischargeConeTask, { NULL } },                                         // 0x00B
-    { { { TASK_BODY_COORD, 0x70 } }, func_hypervelocity_8011D830, { NULL } },                                            // 0x00C
+    { { { TASK_BODY_COORD, 0x70 } }, hypervelocityRoundTask, { NULL } },                                                 // 0x00C
     { { { TASK_BODY_COORD, 0x70 } }, hypervelocityShockRingTask, { NULL } },                                             // 0x00D
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTask0E, { NULL } },                                                    // 0x00E
     { { { TASK_BODY_COORD, 0x70 } }, _effectStatusScreenTintTaskF, { NULL } },                                           // 0x00F
@@ -925,7 +925,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, m4a1JavelinContactFlashTask, { NULL } },                                            // 0x183
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_8013482C, { NULL } },                                             // 0x184
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801346D4, { NULL } },                                             // 0x185
-    { { { TASK_BODY_COORD, 0x70 } }, func_gunblade_8011D1E4, { NULL } },                                                 // 0x186
+    { { { TASK_BODY_COORD, 0x70 } }, gunbladeTrailTask, { NULL } },                                                      // 0x186
     { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathWaterDriftTaskU16, { NULL } },                                    // 0x187
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseTwinTrailTask, { NULL } },                                  // 0x188
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E4C4, { NULL } },                                              // 0x189
@@ -1201,7 +1201,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsTwinTrailTask, { NULL } },                       // 0x297
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_back_street_8017ED1C, { NULL } },                                     // 0x298
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6CorridorPlayerHitGlowTask, { NULL } },                                     // 0x299
-    { { { TASK_BODY_COORD, 0x70 } }, func_gunblade_8011DAA4, { NULL } },                                                 // 0x29A
+    { { { TASK_BODY_COORD, 0x70 } }, gunbladeChargeFlashTask, { NULL } },                                                // 0x29A
 };
 s32 D_80111B70[20] = {
     45,
