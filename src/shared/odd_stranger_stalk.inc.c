@@ -22,11 +22,14 @@
         _actorRenderRescaleYaw((task)->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);                 \
     }
 
-/// Reads the player heading and the wrapped bearing back to this enemy.
+/// Snapshots the player heading and a fresh reverse bearing for stalking.
 ///
-/// Roots share a parent space; bearings use 4096 units per turn and narrow
-/// to signed halfwords. Scratch belongs to the caller and remains reserved.
-static __inline__ void _oddStrangerReadStalkPlayerBearings(Task* task, ActorChaseScratch* chase)
+/// Requires live enemy/player roots in the same parent frame and reserved
+/// scratch. Reads the player heading before refreshing XYZ player-minus-enemy
+/// translation, narrowed to signed halfwords; vector pad and turn stay intact.
+/// The reverse X/Z bearing wraps to [-2048, 2048] in 4096ths of a turn. No
+/// root is composed or rotated. Scratch remains reserved for the caller.
+static __inline__ void _oddStrangerReadStalkPlayerBearings(const Task* task, ActorChaseScratch* chase)
 {
 #if ODD_STRANGER_VARIANT == 1
     s16 reverseBearing;

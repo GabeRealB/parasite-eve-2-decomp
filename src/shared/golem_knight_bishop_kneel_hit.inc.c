@@ -2,7 +2,13 @@
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Returns to the downed lying pose with a fresh 0..63-frame dwell.
+/// Resumes the downed lying pose with a freshly rolled rest countdown.
+///
+/// Requires live GOLEM work and the lying clip matching its retained downed
+/// side. Selects knockdown rest step 3 and consumes one LCG draw for a timer
+/// in 0..63 updates; the rest step decrements before testing, so 0 and 1 both
+/// leave the lying pose on its next update. Animation playback follows in
+/// the caller's frame update; this helper does not reset playback slots.
 static inline void _golemKnightBishopResumeDownedRest(GolemKnightBishopWork* work, s16 lyingAnimation)
 {
     enum {

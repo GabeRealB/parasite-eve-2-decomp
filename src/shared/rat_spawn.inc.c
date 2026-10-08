@@ -3,23 +3,16 @@
 /// Fifth model coordinate used by both the target node and hit sphere.
 enum { RAT_HIT_COORD_INDEX = 4 };
 
-/// Links the rat's sensor, hit, grid and bite spheres with their contact tables.
+/// Links and arms the keyless sphere that detects a player ahead of the rat.
 ///
-/// Borrows live work and the model task/root; the work must outlive all links.
-/// The sensor and bite use the enemy-attack list; hit/grid use enemy bodies.
-/// Preserve flag-enabling order across contact initialization: sensor/hit
-/// enable pairing, the grid enables floor/grid queries, and the bite is disabled.
-static __inline__ void _ratInitCollisionBodies(RatWork* work, Task* actor, GfxCoord* rootCoord)
+/// Requires unlinked sensor storage in live work and the model root. Clears
+/// the complete sensor contact array before enabling pairing; work and root
+/// must remain live until the sensor is unlinked. Uses local coordinate units.
+static __inline__ void _ratInitSensorBody(RatWork* work, GfxCoord* rootCoord)
 {
     enum {
-        RAT_COLLISION_BODY_KEY    = 0x30007,
         RAT_SENSOR_FORWARD_OFFSET = 750,
-        RAT_SENSOR_RADIUS         = 300,
-        RAT_HIT_RADIUS            = 150,
-        RAT_GRID_VERTICAL_OFFSET  = -250,
-        RAT_GRID_RADIUS           = 250,
-        RAT_ATTACK_FORWARD_OFFSET = 500,
-        RAT_ATTACK_RADIUS         = 200
+        RAT_SENSOR_RADIUS         = 300
     };
 
     work->sensorBody.coord            = rootCoord;
@@ -32,7 +25,31 @@ static __inline__ void _ratInitCollisionBodies(RatWork* work, Task* actor, GfxCo
     work->sensorBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sensorBody);
     worldCollisionInitContacts(work->sensorContacts, ARRAY_SIZE(work->sensorContacts), 0);
-    work->sensorBody.flags        |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->sensorBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+}
+
+/// Links the rat's sensor, hit, grid and bite spheres with their contact tables.
+///
+/// Requires unlinked bodies in zeroed work and a live seven-coordinate model;
+/// the supplied root is that model's coordinate 0. Borrows work/model storage,
+/// which must outlive all links. Centres and radii use local game-coordinate
+/// units. Each contact array is cleared completely and its last entry marked.
+/// The sensor and bite use the enemy-attack list; hit/grid use enemy bodies.
+/// Preserve flag-enabling order across contact initialization: sensor/hit
+/// enable pairing, the grid enables floor/grid queries, and the bite is disabled.
+static __inline__ void _ratInitCollisionBodies(RatWork* work, const Task* actor, GfxCoord* rootCoord)
+{
+    enum {
+        RAT_COLLISION_BODY_ID     = 7,
+        RAT_COLLISION_BODY_KEY    = WORLD_COLLISION_CONTACT_ENEMY_BODY | RAT_COLLISION_BODY_ID,
+        RAT_HIT_RADIUS            = 150,
+        RAT_GRID_VERTICAL_OFFSET  = -250,
+        RAT_GRID_RADIUS           = 250,
+        RAT_ATTACK_FORWARD_OFFSET = 500,
+        RAT_ATTACK_RADIUS         = 200
+    };
+
+    _ratInitSensorBody(work, rootCoord);
     work->hitBody.coord            = &actor->extra.tmd->coords[RAT_HIT_COORD_INDEX];
     work->hitBody.context.contacts = work->hitContacts;
     work->hitBody.pos.vx           = 0;

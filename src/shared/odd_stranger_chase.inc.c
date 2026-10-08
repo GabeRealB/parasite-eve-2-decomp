@@ -1,12 +1,15 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Reads the player heading and the wrapped bearing back to this enemy.
+/// Snapshots the player heading and the reverse bearing used by the circling dash.
 ///
-/// Roots share a parent space; bearings use 4096 units per turn and narrow
-/// to signed halfwords. Scratch belongs to the caller and remains reserved.
+/// Requires live enemy/player roots in the same parent frame and reserved
+/// scratch. The player heading comes from its local matrix, while the reverse
+/// bearing comes from the signed-halfword X/Z offset; angles use 4096 units
+/// per turn and the reverse bearing wraps to [-2048, 2048]. No root is composed
+/// or rotated. Scratch belongs to the caller and remains reserved.
 /// Nonzero `refreshOffset` reads a fresh player offset after the heading;
 /// zero uses the caller's existing `chase->delta`.
-static __inline__ void _oddStrangerReadCircleDashPlayerBearings(Task* task, ActorChaseScratch* chase, s32 refreshOffset)
+static __inline__ void _oddStrangerReadCircleDashPlayerBearings(const Task* task, ActorChaseScratch* chase, s32 refreshOffset)
 {
     chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                               (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);

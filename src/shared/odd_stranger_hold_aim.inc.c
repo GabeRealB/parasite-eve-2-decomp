@@ -1,13 +1,17 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Keeps the root's current heading and restores the normal model scale.
+/// Rebuilds the watch pose's yaw-only root without applying the player turn.
 ///
-/// Borrows a live model and reserved chase scratch; yaw uses 4096 units per turn.
-static __inline__ void _oddStrangerTurnWatchRoot(Task* task, ActorChaseScratch* watch)
+/// Requires a live model root and caller-reserved chase scratch. Replaces
+/// `watch->turn` with the root heading in 4096 units per turn, discards pitch
+/// and roll, and replaces the scale with the normal Q12 model scale.
+/// Translation is retained and composition marked dirty. Nested matrix scratch
+/// is released here; the caller retains and releases the chase block.
+static __inline__ void _oddStrangerRebuildWatchRoot(Task* task, ActorChaseScratch* watch)
 {
     GfxCoord* headingRoot;
 
-    // Both signs reduce to zero; the full player turn remains in the look target.
+    // Both clamps cancel the player turn; their ordered stores preserve matching.
     if (watch->turn > 0) {
         watch->turn = 0;
     }
@@ -64,7 +68,7 @@ static void _oddStrangerWatch(Task* task)
     }
     watch->turn         = _actorAngleTurnToPlayer(task, &watch->delta, &gPlayerStatus);
     work->lookYawTarget = watch->turn;
-    _oddStrangerTurnWatchRoot(task, watch);
+    _oddStrangerRebuildWatchRoot(task, watch);
     _oddStrangerDriveAnimation(task);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }

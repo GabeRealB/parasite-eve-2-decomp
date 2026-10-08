@@ -1,10 +1,13 @@
 /* Part of the ground glow library; see ground_glow.h. */
 
-/// Builds a world-ground square around a composed view-space centre.
+/// Builds the four view-space corners of a world-ground square.
 ///
-/// Borrows all four scratch vertices and the coordinate during this call.
-/// Each offset narrows to s16 before view rotation and again after translation.
-/// Overwrites GTE rotation/translation; projection follows in the caller.
+/// `ground->workm.t` supplies the already-composed view-space centre;
+/// `halfExtent` is the half-side in world-coordinate units. The four unit
+/// corner signs select X/Z offsets in GPU strip order. Offsets narrow to s16
+/// before view rotation and again after adding the centre; vector pads and
+/// screen corners remain untouched. Borrows a complete, word-aligned scratch
+/// block and overwrites GTE rotation/translation. The caller projects next.
 static inline void _groundGlowBuildCorners(EffectGroundQuadScratch* quadScratch, const GfxCoord* ground, s32 halfExtent)
 {
     s32 cornerIndex;

@@ -1,31 +1,38 @@
-/* Part of the Mad Chaser waves library; see mad_chaser_waves.h. */
+/* Part of the scripted encounter library; see mad_chaser_waves.h. */
 
-/// Pair spawner: drops dead Mad Chasers; 60 frames later reveals the second with
-/// the same command, then advances.
-void madChaserWavePairRevealSecond(Task* arg0)
+/// Forgets dead pair members, then reveals the second Sucklerceph after its delay.
+///
+/// Requires initialized pair work with the counter reset by the first reveal.
+/// Borrowed enemies and their model tasks must remain live until forgotten.
+/// A surviving second enemy is revealed on update 61 with the low spawn
+/// halfword's command; a missing one skips the wait. Dispatch consumes the
+/// stack request synchronously. Completion resets the counter and advances.
+static void _overlayEncounterPairRevealSecond(Task* waveTask)
 {
-    OverlayEncounterPairWork* work = arg0->work;
+    enum { OVERLAY_ENCOUNTER_PAIR_REVEAL_WAIT_UPDATES = 60 };
+    OverlayEncounterPairWork* work = waveTask->work;
     Enemy*                    enemy;
-    Task*                     task;
-    TmdObject*                obj;
-    ActorCommand              msg;
+    Task*                     enemyTask;
+    TmdObject*                model;
+    ActorCommand              request;
 
+    // Retain the partner only if the HP check leaves its borrowed pointer live.
     enemy = work->enemy1;
-    _overlayEncounterForgetDeadPairMembers(arg0);
+    _overlayEncounterForgetDeadPairMembers(waveTask);
     if (work->enemy1 != NULL) {
-        if (++work->frames <= 60) {
+        if (++work->frames <= OVERLAY_ENCOUNTER_PAIR_REVEAL_WAIT_UPDATES) {
             return;
         }
-        task                   = work->enemy1->task;
-        obj                    = task->extra.tmd;
-        obj->texturePageOffset = 3;
-        obj->clutRowOffset     = 5;
-        enemy->workType        = ENEMY_WORK_PLAIN;
-        msg.context.loc.stage  = 0;
-        msg.context.loc.area   = 0x2E;
-        msg.command            = arg0->spawnArg1.value;
-        TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        enemyTask                 = work->enemy1->task;
+        model                     = enemyTask->extra.tmd;
+        model->texturePageOffset  = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
+        model->clutRowOffset      = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
+        enemy->workType           = ENEMY_WORK_PLAIN;
+        request.context.loc.stage = OVERLAY_ENCOUNTER_PAIR_COMMAND_STAGE;
+        request.context.loc.area  = OVERLAY_ENCOUNTER_PAIR_COMMAND_AREA;
+        request.command           = waveTask->spawnArg1.value;
+        TASK_MESSAGE_DISPATCH_POINTER(enemyTask, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
     }
     work->frames = 0;
-    arg0->state++;
+    waveTask->state++;
 }

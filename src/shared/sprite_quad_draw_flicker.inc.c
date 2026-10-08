@@ -21,32 +21,46 @@
 #define SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK 0
 #endif
 
+/// Rotates the flicker quad's perspective half-diagonal into a pixel offset.
+///
+/// Borrows live scratch with positive depth; writes only its corner offsets.
+/// `sizeFactor * SPRITE_QUAD_SCALE / depth` truncates toward zero before
+/// multiplying Q12 trigonometric samples. Products must fit s32; angle uses
+/// 4096 units per turn, zero upward and a quarter turn rightward.
+static inline void _spriteQuadComputeFlickerCornerOffset(EffectShapeScratch* scratch, s16 sizeFactor, s32 cornerAngle)
+{
+    enum { SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS = 12 };
+
+    scratch->extent.corner.x = (((sizeFactor * SPRITE_QUAD_SCALE) / scratch->depth) * rsin(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((sizeFactor * SPRITE_QUAD_SCALE) / scratch->depth) * rcos(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
+}
+
 /// Places the flicker quad's opposite corner pairs around its projected centre.
 ///
-/// Borrows live scratch and packet storage. Requires a positive depth and the
-/// carrier's signed-integer SPRITE_QUAD_SCALE binding. sizeFactor controls the
-/// perspective half-diagonal; spinAngle uses 4096 units per turn. GPU corner
-/// sums retain their low 16 bits. No packet is reserved or queued here.
-static inline void _spriteQuadSetFlickerCorners(EffectShapeScratch* block, POLY_FT4* prim, s16 sizeFactor, s16 spinAngle)
+/// Requires live, disjoint scratch and packet storage with a projected centre
+/// and positive depth. `sizeFactor * SPRITE_QUAD_SCALE / depth` is the signed
+/// pixel half-diagonal, truncated before Q12 rotation; products must fit s32.
+/// The carrier supplies the signed-integer scale binding. `spinAngle` uses
+/// 4096 units per turn, zero upward and a quarter turn rightward. Writes all
+/// four packet XY pairs and scratch corner offsets; GPU sums retain their low
+/// 16 bits. No packet is reserved or queued here and no pointer is retained.
+static inline void _spriteQuadSetFlickerCorners(EffectShapeScratch* scratch, POLY_FT4* prim, s16 sizeFactor, s16 spinAngle)
 {
-    enum { SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS = 12,
-           SPRITE_QUAD_FLICKER_QUARTER_TURN       = 1024 };
+    enum { SPRITE_QUAD_FLICKER_QUARTER_TURN = 1024 };
     s32 cornerAngle;
     // Opposite corner pairs use directions a quarter turn apart.
-    cornerAngle            = spinAngle;
-    block->extent.corner.x = (((sizeFactor * SPRITE_QUAD_SCALE) / block->depth) * rsin(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
-    block->extent.corner.y = (((sizeFactor * SPRITE_QUAD_SCALE) / block->depth) * rcos(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
-    prim->x0               = block->screenX + (u16)block->extent.corner.x;
-    prim->x3               = block->screenX - (u16)block->extent.corner.x;
-    prim->y0               = block->screenY - (u16)block->extent.corner.y;
-    prim->y3               = block->screenY + (u16)block->extent.corner.y;
-    cornerAngle            = cornerAngle + SPRITE_QUAD_FLICKER_QUARTER_TURN;
-    block->extent.corner.x = (((sizeFactor * SPRITE_QUAD_SCALE) / block->depth) * rsin(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
-    block->extent.corner.y = (((sizeFactor * SPRITE_QUAD_SCALE) / block->depth) * rcos(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
-    prim->x1               = block->screenX + (u16)block->extent.corner.x;
-    prim->x2               = block->screenX - (u16)block->extent.corner.x;
-    prim->y1               = block->screenY - (u16)block->extent.corner.y;
-    prim->y2               = block->screenY + (u16)block->extent.corner.y;
+    cornerAngle = spinAngle;
+    _spriteQuadComputeFlickerCornerOffset(scratch, sizeFactor, cornerAngle);
+    prim->x0    = scratch->screenX + (u16)scratch->extent.corner.x;
+    prim->x3    = scratch->screenX - (u16)scratch->extent.corner.x;
+    prim->y0    = scratch->screenY - (u16)scratch->extent.corner.y;
+    prim->y3    = scratch->screenY + (u16)scratch->extent.corner.y;
+    cornerAngle = cornerAngle + SPRITE_QUAD_FLICKER_QUARTER_TURN;
+    _spriteQuadComputeFlickerCornerOffset(scratch, sizeFactor, cornerAngle);
+    prim->x1 = scratch->screenX + (u16)scratch->extent.corner.x;
+    prim->x2 = scratch->screenX - (u16)scratch->extent.corner.x;
+    prim->y1 = scratch->screenY - (u16)scratch->extent.corner.y;
+    prim->y2 = scratch->screenY + (u16)scratch->extent.corner.y;
 }
 
 /// Draws a spinning billboard alternating the carrier's two flame looks.

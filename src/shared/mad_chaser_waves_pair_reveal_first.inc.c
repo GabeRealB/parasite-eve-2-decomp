@@ -1,27 +1,31 @@
-/* Part of the Mad Chaser waves library; see mad_chaser_waves.h. */
+/* Part of the scripted encounter library; see mad_chaser_waves.h. */
 
-/// Pair spawner: reveals the first Mad Chaser with the 0x2E00 command carrying the
-/// spawn argument, restarts the frame counter and advances.
-void madChaserWavePairRevealFirst(Task* arg0)
+/// Reveals the first Sucklerceph and starts the delay before revealing its partner.
+///
+/// Requires initialized pair work; non-NULL enemies and their model tasks must
+/// be live. The low spawn halfword is the reveal command, including its spot
+/// index. Dispatch borrows the stack request only until it returns. A missing
+/// first enemy still resets the update counter and advances the spawner state.
+static void _overlayEncounterPairRevealFirst(Task* waveTask)
 {
-    OverlayEncounterPairWork* work = arg0->work;
+    OverlayEncounterPairWork* work = waveTask->work;
     Enemy*                    enemy;
-    Task*                     task;
-    TmdObject*                obj;
-    ActorCommand              msg;
+    Task*                     enemyTask;
+    TmdObject*                model;
+    ActorCommand              request;
 
     enemy = work->enemy0;
     if (enemy != NULL) {
-        task                   = enemy->task;
-        obj                    = task->extra.tmd;
-        obj->texturePageOffset = 3;
-        obj->clutRowOffset     = 5;
-        enemy->workType        = ENEMY_WORK_PLAIN;
-        msg.context.loc.stage  = 0;
-        msg.context.loc.area   = 0x2E;
-        msg.command            = arg0->spawnArg1.value;
-        TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+        enemyTask                 = enemy->task;
+        model                     = enemyTask->extra.tmd;
+        model->texturePageOffset  = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
+        model->clutRowOffset      = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
+        enemy->workType           = ENEMY_WORK_PLAIN;
+        request.context.loc.stage = OVERLAY_ENCOUNTER_PAIR_COMMAND_STAGE;
+        request.context.loc.area  = OVERLAY_ENCOUNTER_PAIR_COMMAND_AREA;
+        request.command           = waveTask->spawnArg1.value;
+        TASK_MESSAGE_DISPATCH_POINTER(enemyTask, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
     }
     work->frames = 0;
-    arg0->state++;
+    waveTask->state++;
 }

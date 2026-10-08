@@ -1,11 +1,15 @@
 /* Part of the Rat library; see rat.h. */
 
-/// Measures the unsigned-heading separation along the shorter arc.
+/// Returns the rat's aim error with a single-turn wrap adjustment.
 ///
-/// Retains the signed low-halfword difference and final caller narrowing;
-/// headings use 4096 units per turn, including a temporarily wrapped current
-/// heading. No coordinate or work storage is changed.
-static __inline__ s32 _ratGetAimError(u16 targetYaw, u16 currentYaw)
+/// `targetYaw` is in 0..4095; `currentYaw` is the u16 encoding of the stored
+/// heading, including a turn step just outside that range. Angles use 4096
+/// units per turn. The low signed halfword chooses the arc, while the wrapped
+/// arc uses the full subtraction before narrowing the result. Normalized
+/// inputs give 0..2048; a heading just outside the range can give a negative
+/// error when the target changes across the wrap. That retained value still
+/// passes the caller's one-sided aim test. No work or coordinate is changed.
+static __inline__ s16 _ratGetAimError(u16 targetYaw, u16 currentYaw)
 {
     s32 rawYawDelta;
     s16 yawDelta;
@@ -81,7 +85,7 @@ static void _ratAttack(Task* actor)
             }
             distance = SquareRoot0(targetOffset->vx * targetOffset->vx + targetOffset->vz * targetOffset->vz);
             if (distance < RAT_ATTACK_REACH) {
-                if ((s16)_ratGetAimError(work->targetYaw, (u16)work->yaw) < RAT_ATTACK_AIM_TOLERANCE) {
+                if (_ratGetAimError(work->targetYaw, (u16)work->yaw) < RAT_ATTACK_AIM_TOLERANCE) {
                     work->animId       = RAT_ANIM_ATTACK;
                     work->forwardSpeed = 0;
                     work->turnRate     = 0;

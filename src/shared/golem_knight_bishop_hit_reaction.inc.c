@@ -1,10 +1,16 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
 /// Starts an upright reaction and prevents the interrupted strike from hitting.
+///
+/// Requires live GOLEM work. `sequence` selects light/heavy flinch, knockdown
+/// or collapse death; resetting its step restarts that sequence on the next
+/// dispatch. Disables body pairing without unlinking the strike sphere.
 static inline void _golemKnightBishopBeginHitReaction(GolemKnightBishopWork* work, s16 sequence)
 {
+    enum { GOLEM_KNIGHT_BISHOP_HIT_REACTION_START_STEP = 0 };
+
     work->sequence          = sequence;
-    work->step              = 0;
+    work->step              = GOLEM_KNIGHT_BISHOP_HIT_REACTION_START_STEP;
     work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 

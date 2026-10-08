@@ -34,6 +34,14 @@ enum {
     ACTOR_342400_CULL_ZONE_AXIS_Z = 1, // The zone is every z at or above the limit (any nonzero value)
 };
 
+/// Model palette offsets and synthetic command context for encounter Sucklercephs.
+enum {
+    OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET = 3,
+    OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET     = 5,
+    OVERLAY_ENCOUNTER_PAIR_COMMAND_STAGE       = 0,
+    OVERLAY_ENCOUNTER_PAIR_COMMAND_AREA        = 0x2E
+};
+
 /// One region of the room in which the wave spawners kill their enemies.
 ///
 /// `GameSession::enemyCullZone` selects the region in force, 1..16, or 0 for
@@ -70,6 +78,9 @@ static void _actor342400WaveSpawnSlouch(Task* waveTask);
 static void _actor342400WaveBeginSlouchWatch(Task* waveTask);
 static void _actor342400WaveWatchSlouch(Task* waveTask);
 static void _actor342400WaveBeginPairReveal(Task* waveTask);
+static void _overlayEncounterPairRevealFirst(Task* waveTask);
+static void _overlayEncounterPairRevealSecond(Task* waveTask);
+static void _overlayEncounterPairWatch(Task* waveTask);
 
 static void _actor342400WaveControllerTask(Task* controllerTask);
 static void _overlayEncounterForgetDeadPairMembers(Task* task);
@@ -505,9 +516,9 @@ void func_actor_342400_80162824(Task* arg0)
 static const TaskFuncTable5 D_actor_342400_80161E54 = { {
     madChaserWavePairSpawn,
     _actor342400WaveBeginPairReveal,
-    madChaserWavePairRevealFirst,
-    madChaserWavePairRevealSecond,
-    madChaserWavePairWatch,
+    _overlayEncounterPairRevealFirst,
+    _overlayEncounterPairRevealSecond,
+    _overlayEncounterPairWatch,
 } };
 
 void func_actor_342400_80162888(Task* arg0)

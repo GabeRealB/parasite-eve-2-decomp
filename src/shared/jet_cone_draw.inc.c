@@ -2,14 +2,18 @@
 
 /// Projects one cone segment through the currently installed GTE matrices.
 ///
-/// Requires a live scratch block and segmentIndex in 0..15. Wraps the next
-/// segment, fills the four screen corners and retains only the final RTPT
-/// flags. Leaves SZ3 at the last hub vertex for depth capture by the caller.
+/// Requires a live, word-aligned scratch block with both rings initialized
+/// in the installed matrices' input frame, and `segmentIndex` in
+/// 0..`EFFECT_BAND_SEGMENT_COUNT`-1. Wraps the next index, writes corners
+/// 0/1 from the rim and 2/3 from the hub, and retains only the final RTPT
+/// flags. Rings and `otz` stay intact. Leaves SZ3 at the next hub vertex for
+/// depth capture by the caller; retains no pointer.
 static inline void _jetConeProjectSegment(EffectBandScratch* scratch, s32 segmentIndex)
 {
     s32 nextSegmentIndex;
     gte_ldv0(&scratch->topRing[segmentIndex]);
     gte_rtps();
+    // Preserve corner 0 before the three-corner projection advances the FIFO.
     gte_stsxy(&scratch->sxy0);
     nextSegmentIndex = (segmentIndex + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
     gte_ldv3(&scratch->topRing[nextSegmentIndex], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextSegmentIndex]);

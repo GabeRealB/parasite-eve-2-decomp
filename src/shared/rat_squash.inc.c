@@ -2,9 +2,11 @@
 
 /// Restores the saved death pose and applies its stored Q12 local Y scale.
 ///
-/// Work/root and reserved scratch must be live and disjoint. Translation is
-/// copied from the saved pose, X/Z scale factors are unity; the caller owns
-/// scale decay, coordinate invalidation and scratch release.
+/// Work/root and reserved scratch must be live and disjoint. The saved matrix
+/// is the pose captured at death entry; `squashScale` is signed Q12 (4096 = 1).
+/// Restoring it avoids compounding scale. Translation is copied from that pose;
+/// unity X/Z factors preserve its other axes. Only the scratch matrix's 3x3
+/// is initialized or read. The caller owns scale decay, invalidation and release.
 static __inline__ void _ratApplyRootScale(GfxCoord* rootCoord, const RatWork* work, ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;

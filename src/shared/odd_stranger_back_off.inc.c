@@ -2,9 +2,13 @@
 
 /// Applies the retreat's asymmetric turn and restores the normal model scale.
 ///
-/// Borrows a live model and reserved chase scratch. `turnLimit` is a positive
-/// angle in 4096ths of a turn: positive turns are capped then halved, while
-/// turns below the negative limit retain that full cap.
+/// Requires a live model root and reserved chase scratch holding the signed
+/// player turn. `turnLimit` is positive in 4096ths of a turn (128 at the call):
+/// values above it are capped then halved; values below its negative retain
+/// the full negative cap; all other values are arithmetically halved.
+/// Replaces scratch turn with the resulting absolute heading. Discards pitch
+/// and roll, retains translation and marks composition dirty. Nested matrix
+/// scratch is released here; the caller retains the chase block.
 static __inline__ void _oddStrangerTurnBackOffRoot(Task* task, ActorChaseScratch* retreat, s16 turnLimit)
 {
     if (retreat->turn >= (turnLimit + 1)) {
