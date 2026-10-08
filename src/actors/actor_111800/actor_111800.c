@@ -91,7 +91,7 @@ extern AnimationSet* D_actor_111800_8013A448[8];
 /// the room overlay's handler the view-matrix test calls with `t[0]`.
 
 static TmdSource _gActor111800GrinningStrangerBody;
-void             func_actor_111800_8013251C(Task*);
+static void      _actor111800GrinningStrangerTask(Task* task);
 
 static TmdBone _gActor111800GrinningStrangerBodySkeleton[19] = {
 #include "assets/grinning_stranger_body_skeleton.inc"
@@ -246,7 +246,7 @@ AnimationSet* D_actor_111800_8013A448[8] = {
     NULL,
 };
 
-TaskDesc D_actor_111800_8013A468 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_111800_8013251C, { .model = &_gActor111800GrinningStrangerBody } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
+TaskDesc D_actor_111800_8013A468 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor111800GrinningStrangerTask, { .model = &_gActor111800GrinningStrangerBody } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 
 static inline void _actor111800TickAnim(Task* task);
 static inline void _actor111800BlendBodyAnimation(Task* task, u16 animationId, u16 blendFrames);
@@ -454,81 +454,96 @@ static void _actor111800InitBody(Task* task)
     tmdSetTextureOffsets(model, place->texturePageOffset, place->clutRowOffset);
 }
 
-/// Per-frame state machine. State 0 waits until no cutscene is up, then runs
-/// the spawn handler and advances. State 1 ticks slots 1..0x12, latches
-/// `slot1RecordIndex`, and advances after `acropolisSquareStartSirenSequence` when the player is in
-/// range. State 2 runs the sequence handler and kills the task once the
-/// session is idle. Every path but the state-0 wait then pitches part 5 by
-/// `part5Pitch`, writes it back, yaws it by `part5Yaw` through `_actorRenderYawJointInWorld`, and
-/// rebuilds the colour matrix around part 1's translation.
-void func_actor_111800_8013251C(Task* task)
+/// Stages the Grinning Stranger's trigger, scripted departure and joint lighting.
+///
+/// State 0 waits for the attachment wheel and pending display change to clear,
+/// then initializes the body; state 1 ticks tracks 1..18 until the player crosses
+/// the room trigger; state 2 runs the sequence until session event state is 0.
+/// The common tail applies part 5's pitch and world yaw in 4096-turn units,
+/// samples three lights at part 1, and scales colour by truncated Q12 one-third.
+/// The tail retains entry-time work after initialization and continues after
+/// a kill request; no lifetime guard is present.
+static void _actor111800GrinningStrangerTask(Task* task)
 {
-    MATRIX            mtx;
+    enum {
+        ACTOR_111800_TASK_INITIALIZE       = 0,
+        ACTOR_111800_TASK_IDLE             = 1,
+        ACTOR_111800_TASK_SEQUENCE         = 2,
+        ACTOR_111800_SEQUENCE_PART         = 5,
+        ACTOR_111800_LIGHTING_PART         = 1,
+        ACTOR_111800_LIGHT_COUNT           = 3,
+        ACTOR_111800_COLOR_SCALE_ONE_THIRD = ONE / 3,
+        ACTOR_111800_TRIGGER_NEAR_X        = 1501,
+        ACTOR_111800_TRIGGER_FAR_X         = 3201,
+        ACTOR_111800_TRIGGER_NEAR_Z        = -1299,
+        ACTOR_111800_TRIGGER_FAR_Z         = -1300,
+    };
+
+    // Reuse one 32-byte frame slot for successive rotation, position and scale phases.
+    union {
+        MATRIX rotation;     // Joint rotation composed above the view coordinate
+        VECTOR viewPosition; // Part 1 cached view-space position for lighting
+        VECTOR colorScale;   // Three Q12 components applied to the colour matrix
+    } frameScratch;
     _Actor111800Work* work;
-    _Actor111800Work* ctx;
-    _Actor111800Work* work2;
-    TmdObject*        extra;
-    TmdObject*        obj;
-    GfxCoord*         coords;
-    GfxCoord*         part;
+    _Actor111800Work* lightingWork;
+    TmdObject*        bodyModel;
+    TmdObject*        lightingModel;
+    GfxCoord*         bodyCoords;
+    GfxCoord*         sequencePart;
     MATRIX*           playerMtx;
     s32               state;
-    s32               i;
-    s32               x;
-    u16               angle;
+    s32               playerX;
+    s16               partPitch;
 
     state = task->state;
     work  = task->work;
     switch (state) {
-        case 0:
+        case ACTOR_111800_TASK_INITIALIZE:
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 _actor111800InitBody(task);
                 task->state += 1;
                 break;
             }
             return;
-        case 1:
-            ctx = work;
-            i   = 1;
-            do {
-                animationTickSlot(&ctx->rig.anim, i & 0xFFFF);
-                i += 1;
-            } while ((u32)(i & 0xFFFF) < 0x13U);
-            ctx->slot1RecordIndex = ctx->rig.slots[1].currentPose.indices.recordIndex;
-            playerMtx             = work->playerMtx;
-            x                     = playerMtx->t[0];
-            if ((x >= 0x5DD && playerMtx->t[2] >= -0x513) || (x >= 0xC81 && playerMtx->t[2] < -0x514)) {
+        case ACTOR_111800_TASK_IDLE:
+            _actor111800TickAnim(task);
+            playerMtx = work->playerMtx;
+            playerX   = playerMtx->t[0];
+            if ((playerX >= ACTOR_111800_TRIGGER_NEAR_X && playerMtx->t[2] >= ACTOR_111800_TRIGGER_NEAR_Z) || (playerX >= ACTOR_111800_TRIGGER_FAR_X && playerMtx->t[2] < ACTOR_111800_TRIGGER_FAR_Z)) {
                 work->sequenceStep = ACTOR_111800_STEP_START;
-                acropolisSquareStartSirenSequence(x);
+                acropolisSquareStartSirenSequence(playerX);
                 task->state += 1;
             }
             break;
-        case 2:
+        case ACTOR_111800_TASK_SEQUENCE:
             _actor111800RunSequence(task);
             if (gGameSession->eventState == 0) {
                 taskKill(task);
             }
             break;
     }
-    extra  = task->extra.tmd;
-    angle  = (u16)work->part5Pitch;
-    coords = extra->coords;
-    part   = coords + 5;
-    _actorRenderAccumulateRotation(part, &mtx, &gGfxViewCoord);
-    RotMatrixX((s32)(s16)angle, &mtx);
-    _actorRenderLocalizeRotation(part, &mtx);
-    memCopyBytes(mtx.m, part->coord.m, sizeof(mtx.m));
-    part->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(part);
-    _actorRenderYawJointInWorld(task->extra.tmd->coords + 5, work->part5Yaw);
-    obj                 = task->extra.tmd;
-    work2               = task->work;
-    ((VECTOR*)&mtx)->vx = obj->coords[1].workm.t[0];
-    ((VECTOR*)&mtx)->vy = task->extra.tmd->coords[1].workm.t[1];
-    ((VECTOR*)&mtx)->vz = task->extra.tmd->coords[1].workm.t[2];
-    worldCoordSetModelLighting(obj, &mtx, 0, 3);
-    ((VECTOR*)&mtx)->vz = 0x555;
-    ((VECTOR*)&mtx)->vy = 0x555;
-    ((VECTOR*)&mtx)->vx = 0x555;
-    ScaleMatrix(&work2->color, (VECTOR*)&mtx);
+    // Apply the sequence's pitch and world yaw after the animation pose.
+    bodyModel    = task->extra.tmd;
+    partPitch    = work->part5Pitch;
+    bodyCoords   = bodyModel->coords;
+    sequencePart = bodyCoords + ACTOR_111800_SEQUENCE_PART;
+    _actorRenderAccumulateRotation(sequencePart, &frameScratch.rotation, &gGfxViewCoord);
+    RotMatrixX(partPitch, &frameScratch.rotation);
+    _actorRenderLocalizeRotation(sequencePart, &frameScratch.rotation);
+    memCopyBytes(frameScratch.rotation.m, sequencePart->coord.m, sizeof(frameScratch.rotation.m));
+    sequencePart->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(sequencePart);
+    _actorRenderYawJointInWorld(task->extra.tmd->coords + ACTOR_111800_SEQUENCE_PART, work->part5Yaw);
+    // Relight the pose, then apply the truncated one-third colour scale.
+    lightingModel                = task->extra.tmd;
+    lightingWork                 = task->work;
+    frameScratch.viewPosition.vx = lightingModel->coords[ACTOR_111800_LIGHTING_PART].workm.t[0];
+    frameScratch.viewPosition.vy = task->extra.tmd->coords[ACTOR_111800_LIGHTING_PART].workm.t[1];
+    frameScratch.viewPosition.vz = task->extra.tmd->coords[ACTOR_111800_LIGHTING_PART].workm.t[2];
+    worldCoordSetModelLighting(lightingModel, &frameScratch.viewPosition, 0, ACTOR_111800_LIGHT_COUNT);
+    frameScratch.colorScale.vz = ACTOR_111800_COLOR_SCALE_ONE_THIRD;
+    frameScratch.colorScale.vy = ACTOR_111800_COLOR_SCALE_ONE_THIRD;
+    frameScratch.colorScale.vx = ACTOR_111800_COLOR_SCALE_ONE_THIRD;
+    ScaleMatrix(&lightingWork->color, &frameScratch.colorScale);
 }

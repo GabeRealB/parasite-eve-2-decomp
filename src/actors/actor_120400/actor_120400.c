@@ -69,7 +69,7 @@ extern TaskDesc D_actor_120400_8013E748[];
 
 extern TaskMessageEntry D_actor_120400_8013E76C[];
 
-static void func_actor_120400_80131E5C(Task* arg0);
+static void _actor120400SpawnKyleMadiganWalker(Task* task);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void _actor120400UpdateKyleMadiganWalker(Task* task);
 static void _actor120400ExitKyleMadiganWalker(Task* task);
@@ -89,7 +89,7 @@ static const TaskFuncTable3 D_actor_120400_80131E24 = { {
 /// Spawn, tick and teardown handlers of the parent task, dispatched by
 /// `_actor120400KyleMadiganWalkerTask`.
 static const TaskFuncTable3 D_actor_120400_80131E30 = { {
-    func_actor_120400_80131E5C,
+    _actor120400SpawnKyleMadiganWalker,
     _actor120400UpdateKyleMadiganWalker,
     _actor120400ExitKyleMadiganWalker,
 } };
@@ -881,89 +881,53 @@ TaskMessageEntry D_actor_120400_8013E76C[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// The parent's spawn handler. Allocates the `_Actor120400KyleMadiganWork` block, seeds it, and spawns the
-/// two children `D_actor_120400_8013E748` holds -- table entries 1 and 2. Each
-/// has `TmdObject::texturePageOffset` / `clutRowOffset` loaded with the texture page and CLUT
-/// row of the `AreaPlacement` that entry selects, reached through the area key
-/// `&gGameSession->location.loc` and indexed by the model id the child's own
-/// `spawnArg2` carries at `Enemy::placeKey >> ENEMY_PLACE_INDEX_SHIFT`, and each then has its
-/// texture stream processed twice when it has a buffer. The body ends by
-/// pointing the parent's model at its light/colour matrices
-/// (`_actor120400BindKyleMadiganWalkerLighting`), pointing `msgTable` at the message table and
-/// installing `_actor120400ExitKyleMadiganWalker` as its exit callback.
-static void func_actor_120400_80131E5C(Task* arg0)
+/// Allocates Kyle's scripted-walker work and spawns his two attached hand models.
+///
+/// Requires the body model, enemy placement index and current loaded area.
+/// Allocation failure exits the enemy task. On success initializes absent
+/// clip/bank and buffer-release sentinels, clears 16.16 movement carry, and
+/// spawns hand slots 1/2 attached to body parts 8/12. Failed child spawns are
+/// skipped independently; successful children receive placement texture offsets
+/// and both existing buffer halves are rebuilt. Binds the body's borrowed light
+/// and colour matrices, messages and exit callback, then advances task state.
+static void _actor120400SpawnKyleMadiganWalker(Task* task)
 {
+    enum {
+        ACTOR_120400_KYLE_FREE_NOT_PENDING = -1,
+        ACTOR_120400_KYLE_LEFT_HAND_TASK   = 1,
+        ACTOR_120400_KYLE_RIGHT_HAND_TASK  = 2,
+        ACTOR_120400_KYLE_LEFT_HAND_PART   = 8,
+        ACTOR_120400_KYLE_RIGHT_HAND_PART  = 12,
+    };
+
     _Actor120400KyleMadiganWork* work;
-    GameLocationKey              key;
-    GameLocationKey*             sessionKey;
-    GameLocationKey*             keyAddr;
-    Task*                        spawned;
+    Task*                        childTask;
 
     work = memCalloc(sizeof(_Actor120400KyleMadiganWork), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
-    arg0->work               = work;
+    task->work               = work;
     work->model.animId       = ACTOR_MODEL_STATE_NONE;
     work->model.bank         = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown      = -1;
+    work->freeCountdown      = ACTOR_120400_KYLE_FREE_NOT_PENDING;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
-    spawned                  = taskSpawnFromTable(D_actor_120400_8013E748, 1, 8, arg0);
-    if (spawned != NULL) {
-        TmdObject*     model;
-        AreaVariant*   layout;
-        AreaPlacement* place;
-        s32            idx;
-
-        model      = spawned->extra.tmd;
-        idx        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionKey = &gGameSession->location.loc;
-        key.stage  = sessionKey->stage;
-        key.area   = sessionKey->area;
-        key.room   = sessionKey->room;
-        key.view   = sessionKey->view;
-        areaSyncLocationVariant(&key);
-        layout                   = areaGetVariant(&key);
-        place                    = gpAreaPlaceAt(layout->placements, idx);
-        model->texturePageOffset = place->texturePageOffset;
-        model->clutRowOffset     = place->clutRowOffset;
-        if (model->buffer != NULL) {
-            tmdBuildBufferHalf(model);
-            tmdBuildBufferHalf(model);
-        }
+    // Spawn independent hand models, borrowing the body task until teardown.
+    childTask = taskSpawnFromTable(D_actor_120400_8013E748, ACTOR_120400_KYLE_LEFT_HAND_TASK, ACTOR_120400_KYLE_LEFT_HAND_PART, task);
+    if (childTask != NULL) {
+        _actorRenderApplyTaskPlacementTextureOffsets(childTask, task->spawnArg2.pointer);
     }
-    spawned = taskSpawnFromTable(D_actor_120400_8013E748, 2, 0xC, arg0);
-    if (spawned != NULL) {
-        TmdObject*     model;
-        AreaVariant*   layout;
-        AreaPlacement* place;
-        s32            idx;
-
-        model = spawned->extra.tmd;
-        idx   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        // Keep this block's key address separate across the spawn calls.
-        sessionKey = (keyAddr = &gGameSession->location.loc);
-        key.stage  = sessionKey->stage;
-        key.area   = sessionKey->area;
-        key.room   = keyAddr->room;
-        key.view   = gGameSession->location.loc.view;
-        areaSyncLocationVariant(&key);
-        layout                   = areaGetVariant(&key);
-        place                    = gpAreaPlaceAt(layout->placements, idx);
-        model->texturePageOffset = place->texturePageOffset;
-        model->clutRowOffset     = place->clutRowOffset;
-        if (model->buffer != NULL) {
-            tmdBuildBufferHalf(model);
-            tmdBuildBufferHalf(model);
-        }
+    childTask = taskSpawnFromTable(D_actor_120400_8013E748, ACTOR_120400_KYLE_RIGHT_HAND_TASK, ACTOR_120400_KYLE_RIGHT_HAND_PART, task);
+    if (childTask != NULL) {
+        _actorRenderApplyTaskPlacementTextureOffsets(childTask, task->spawnArg2.pointer);
     }
-    _actor120400BindKyleMadiganWalkerLighting(arg0);
-    arg0->msgTable     = D_actor_120400_8013E76C;
-    arg0->exitCallback = _actor120400ExitKyleMadiganWalker;
-    arg0->state       += 1;
+    _actor120400BindKyleMadiganWalkerLighting(task);
+    task->msgTable     = D_actor_120400_8013E76C;
+    task->exitCallback = _actor120400ExitKyleMadiganWalker;
+    task->state       += 1;
 }
 
 /// Applies one frame's signed 16.16 velocity and retains the fractional carry.

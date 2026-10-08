@@ -6679,16 +6679,16 @@ static void _actor560800InitChainModel(Task* task)
 ///
 /// Both tasks must own live seven-part models. Copies MATRIX values only;
 /// coordinate parents, composition stamps and lighting bindings are retained.
-static inline void _actor560800CopyChainPose(Task* intactTask, Task* fallingTask)
+static inline void _actor560800CopyChainPose(const Task* intactTask, Task* fallingTask)
 {
-    s32 partIndex;
+    u16 partIndex;
 
     partIndex = 0;
     do {
-        memCopyBytes(&intactTask->extra.tmd->coords[partIndex & 0xFFFF].coord,
-                     &fallingTask->extra.tmd->coords[partIndex & 0xFFFF].coord, sizeof(fallingTask->extra.tmd->coords[partIndex & 0xFFFF].coord));
+        memCopyBytes(&intactTask->extra.tmd->coords[partIndex].coord,
+                     &fallingTask->extra.tmd->coords[partIndex].coord, sizeof(fallingTask->extra.tmd->coords[partIndex].coord));
         partIndex++;
-    } while ((u32)(partIndex & 0xFFFF) < ARRAY_SIZE(_gActor560800Model40064Skeleton));
+    } while (partIndex < ARRAY_SIZE(_gActor560800Model40064Skeleton));
 }
 
 /// Controls one intact gantry chain through bending, clip playback and detachment.

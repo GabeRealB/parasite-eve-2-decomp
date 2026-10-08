@@ -678,7 +678,7 @@ extern u16 D_actor_356100_80173290;
 /// applied, rounded away from zero when the step had a fraction.
 static SVECTOR ActorContact_ScratchPosition;
 
-/// Effect record `func_actor_356100_80167818` fills for `effectSpawnHit`:
+/// Effect record `_actor356100ScriptedDormantState` fills for `effectSpawnHit`:
 /// coordinate index 5 of the model, scale 0x100 and count 2. Same shape and
 /// roles as `_Actor401300Work.effectArg`.
 extern EffectSpawnArg D_actor_356100_801732A8;
@@ -709,16 +709,7 @@ static void _actor356100Initialize(Enemy* enemy, Task* actor);
 /// work and model, the player task and the placement message handler.
 static void _actor356100GrabPull(Task* actor);
 
-/// Approach tick, and the sibling of `_actor356100Dormant` above it. Going
-/// live clears `D_actor_356100_80173170[16]` and re-seeds the animation slots at
-/// clip 2 / speed 0x10 with the enemy's link node cleared; otherwise a single
-/// sound 0x51030008 is queued the first time through, keyed on the enemy's
-/// `field_8 >> 12` bank. Each frame then snapshots `field_5A & 0x3FF` into
-/// `lastCueFrame`, and the frame that first lands on clip 4 spawns the
-/// `D_actor_356100_801732A8` effect at model coordinate 5. Once the player is
-/// further than 3000 away it plays 0x51030008 as a type-7 event and enters
-/// state 6. Same shape as `_actor401300StateDormantScripted`.
-static void func_actor_356100_80167818(Task* arg0);
+static void _actor356100ScriptedDormantState(Task* task);
 
 static void _actor356100Exit(Task* task);
 
@@ -937,7 +928,7 @@ static void _actor356100HeadTurn(Task* actor);
 
 /// The death-throes tick: runs the per-frame clip, walks part 1's coordinate
 /// and fires the 0x600FB effect burst over the model's part coordinates.
-static void func_actor_356100_80169180(Task* arg0);
+static void _actor356100ScriptedDeathState(Task* task);
 
 /// The actor's state handlers, stored as a value for whole-table copies.
 ///
@@ -957,7 +948,7 @@ STATIC_ASSERT_SIZEOF(_Actor356100StateTable, 0x7C);
 /// draws the second quad there, advances the state and dispatches it through
 /// the table copy, then walks part 2's chain and rings the result into
 /// `_Actor356100Work::bodyPosHistory` as the enemy's next local position.
-static void func_actor_356100_80169854(Enemy* arg0, Task* arg1);
+static void _actor356100Update(Enemy* enemy, Task* task);
 
 static __inline__ void _actor356100BindLightingMatrices(Task* actor);
 static __inline__ void _actorPositionDeltaToLivePlayer(const GfxCoord* coord, SVECTOR* toPlayer);
@@ -2380,51 +2371,69 @@ static void _actor356100Dormant(Task* actor)
     }
 }
 
-static void func_actor_356100_80167818(Task* arg0)
+/// Plays scripted dormant clip 16 until the player reaches its 3000-unit wake radius.
+///
+/// Requires live enemy/work/model and the loaded clip. Entry allocates the
+/// primitive buffer and resets playback/look angles; the following tick starts
+/// the placement-keyed patio sound once. A new slot-1 cue 4 requests a part-5
+/// hit effect. Each tick caches the cue and tests signed-halfword player offsets
+/// in the common parent frame; distance at most 3000 stops the dormant sound
+/// and selects ALERT. This state has no recovered local selector.
+static void _actor356100ScriptedDormantState(Task* task)
 {
+    enum {
+        ACTOR_356100_SCRIPTED_DORMANT_CLIP    = 16,
+        ACTOR_356100_SCRIPTED_HIT_ATTACK_KEY  = 0x1001,
+        ACTOR_356100_SCRIPTED_HIT_CUE         = 4,
+        ACTOR_356100_SCRIPTED_HIT_PART        = 5,
+        ACTOR_356100_SCRIPTED_EFFECT_ARGUMENT = 256,
+        ACTOR_356100_SCRIPTED_EFFECT_REPEATS  = 2,
+        ACTOR_356100_SCRIPTED_WAKE_DISTANCE   = 3000,
+    };
+
     _Actor356100Work* work;
     Enemy*            enemy;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    SVECTOR           delta;
-    SVECTOR*          d;
-    s32               sound;
+    TmdObject*        bodyModel;
+    GfxCoord*         rootCoord;
+    SVECTOR           toPlayer;
+    SVECTOR*          playerOffset;
+    s32               soundKey;
     s32               pan;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj                         = arg0->extra.tmd;
-        D_actor_356100_80173170[16] = NULL;
-        work->animId                = 0x10;
-        work->animRequest           = ACTOR_356100_ANIM_REQUEST_RESET;
-        obj->flags                  = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitRadius               = 0x180;
+        bodyModel                                                   = task->extra.tmd;
+        D_actor_356100_80173170[ACTOR_356100_SCRIPTED_DORMANT_CLIP] = NULL;
+        work->animId                                                = ACTOR_356100_SCRIPTED_DORMANT_CLIP;
+        work->animRequest                                           = ACTOR_356100_ANIM_REQUEST_RESET;
+        bodyModel->flags                                            = 0;
+        tmdAllocPrimitiveBuffer(bodyModel);
+        work->hitRadius               = ACTOR_356100_HIT_RADIUS;
         enemy->node.state.parts.flags = 0;
         work->lookYaw                 = 0;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lookYawTarget           = 0;
         work->stateTimer              = 0;
     } else if (work->stateTimer == 0) {
-        sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51030008;
-        pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        soundKey = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT;
+        pan      = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundKey, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         work->stateTimer = 1;
     }
-    _actor356100UpdateAnimation(arg0);
-    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 4 && work->lastCueFrame != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)) {
-        D_actor_356100_801732A8.coord      = arg0->extra.tmd->coords;
-        D_actor_356100_801732A8.spawnArgLo = 0x100;
-        D_actor_356100_801732A8.spawnArgHi = 2;
-        effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL,
+    _actor356100UpdateAnimation(task);
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_356100_SCRIPTED_HIT_CUE && work->lastCueFrame != (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+        D_actor_356100_801732A8.coord      = task->extra.tmd->coords;
+        D_actor_356100_801732A8.spawnArgLo = ACTOR_356100_SCRIPTED_EFFECT_ARGUMENT;
+        D_actor_356100_801732A8.spawnArgHi = ACTOR_356100_SCRIPTED_EFFECT_REPEATS;
+        effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_356100_SCRIPTED_HIT_ATTACK_KEY), task->extra.tmd->coords + ACTOR_356100_SCRIPTED_HIT_PART, NULL,
                        &D_actor_356100_801732A8);
     }
-    work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
-    coord              = arg0->extra.tmd->coords;
-    d                  = &delta;
-    _actorPositionDeltaToLivePlayer(coord, d);
-    if (!_actorRangeOutsideRadiusXZ(d, 3000)) {
+    work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    rootCoord          = task->extra.tmd->coords;
+    playerOffset       = &toPlayer;
+    _actorPositionDeltaToLivePlayer(rootCoord, playerOffset);
+    if (!_actorRangeOutsideRadiusXZ(playerOffset, ACTOR_356100_SCRIPTED_WAKE_DISTANCE)) {
         sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         work->state = ACTOR_356100_STATE_ALERT;
     }
@@ -2767,118 +2776,129 @@ static void _actor356100HeadTurn(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-/// The overlay's death-throes tick, the sibling of `_actor356100HeadTurn`:
-/// going live re-seeds the model (the enemy's link node, `obj->field_C`, the
-/// animation request fields) and queues sound 0x550B0007 against the root
-/// part, whose coordinate the live arm clears outright. Each frame then bumps
-/// `stateTimer`, runs the clip and walks part 1's coordinate by a fixed 0x1044 /
-/// 0x4AA per frame. Four frames each fire their own sound (0x550B0008 with the
-/// 6/0xFF/0x80 pad rumble, 0x400D0002 with 8/0x7F/0x30, 0x400D0001 with
-/// 6/0x7F/0x30, 0x550B0009 bare), and `stateTimer` 0x29..0x2D drives a 16-effect
-/// 0x600FB burst over the model's part coordinates — 0x2E..0x31 the same burst
-/// with six effects, alternating on the frame's parity.
+/// Samples part 1's pan/depth and queues one spatial scripted-death sound.
 ///
-/// The parity test re-reads `stateTimer` from memory rather than reusing the range
-/// test's value (the two reads are what the original emits), so the read is
-/// spelled volatile.
-static void func_actor_356100_80169180(Task* arg0)
+/// Requires the live body task; both spatial results narrow to signed bytes.
+static inline void _actor356100PlayScriptedDeathCue(Task* task, s32 soundKey)
 {
+    s32 pan;
+
+    pan = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[1]);
+    sndEvtRequestScriptStart(soundKey, pan, (s8)worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[1]));
+}
+
+/// Runs the room-command death clip, timed audio, vibration and falling-leaf bursts.
+///
+/// Requires live work/model/enemy and clip 1. Entry makes the actor untargetable,
+/// replaces root rotation with a half-turn and clears its translation. Each update
+/// increments the signed halfword timer and moves part 1 by (4164, 0, 1194)
+/// parent units. Audio fires at ticks 49, 77, 88 and 206; the first three also
+/// request motor ramps. Ticks 41..45 emit sixteen leaves; 46..49 emit six from
+/// alternating parts. The parity test intentionally rereads the timer as an
+/// unsigned volatile halfword. This handler never selects a later state.
+static void _actor356100ScriptedDeathState(Task* task)
+{
+    enum {
+        ACTOR_356100_DEATH_IMPACT_TICK         = 49,
+        ACTOR_356100_DEATH_SOUND2_TICK         = 77,
+        ACTOR_356100_DEATH_SOUND1_TICK         = 88,
+        ACTOR_356100_DEATH_END_TICK            = 206,
+        ACTOR_356100_DEATH_DENSE_LEAF_START    = 41,
+        ACTOR_356100_DEATH_DENSE_LEAF_TICKS    = 5,
+        ACTOR_356100_DEATH_SPARSE_LEAF_START   = 46,
+        ACTOR_356100_DEATH_SPARSE_LEAF_TICKS   = 4,
+        ACTOR_356100_DEATH_STEP_X              = 4164,
+        ACTOR_356100_DEATH_STEP_Z              = 1194,
+        ACTOR_356100_DEATH_IMPACT_RUMBLE_TICKS = 6,
+        ACTOR_356100_DEATH_SECOND_RUMBLE_TICKS = 8,
+        ACTOR_356100_DEATH_RUMBLE_MAX          = 255,
+        ACTOR_356100_DEATH_RUMBLE_HALF         = 128,
+        ACTOR_356100_DEATH_RUMBLE_START        = 127,
+        ACTOR_356100_DEATH_RUMBLE_END          = 48,
+    };
+
     _Actor356100Work* work;
-    Enemy*            ctx;
-    GfxCoord*         coord;
+    Enemy*            enemy;
+    GfxCoord*         rootCoord;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        s32 pan;
-
-        ctx                    = arg0->spawnArg2.pointer;
-        arg0->extra.tmd->flags = 0;
-        tmdAllocPrimitiveBuffer(arg0->extra.tmd);
-        ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->animId                = 1;
-        work->animRequest           = ACTOR_356100_ANIM_REQUEST_RESET;
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x800, 1);
-        coord                                 = arg0->extra.tmd->coords;
-        coord->coord.t[2]                     = 0;
-        coord->coord.t[1]                     = 0;
-        coord->coord.t[0]                     = 0;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(arg0->extra.tmd->coords);
+        enemy                  = task->spawnArg2.pointer;
+        task->extra.tmd->flags = 0;
+        tmdAllocPrimitiveBuffer(task->extra.tmd);
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->animId                  = ACTOR_356100_ANIM_INITIAL;
+        work->animRequest             = ACTOR_356100_ANIM_REQUEST_RESET;
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, ACTOR_TRANSFORM_ANGLE_TURN / 2, GRAPHICS_ROTATION_REPLACE);
+        rootCoord                             = task->extra.tmd->coords;
+        rootCoord->coord.t[2]                 = 0;
+        rootCoord->coord.t[1]                 = 0;
+        rootCoord->coord.t[0]                 = 0;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(task->extra.tmd->coords);
         work->stateTimer = 0;
-        pan              = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_START, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+        _actor356100PlayScriptedDeathCue(task, SOUND_NEO_ARK_FOREST_STRANGER_DEATH_START);
     }
-    work->stateTimer = (s16)((u16)work->stateTimer + 1);
-    _actor356100UpdateAnimation(arg0);
-    arg0->extra.tmd->coords[1].coord.t[0]  += 0x1044;
-    arg0->extra.tmd->coords[1].coord.t[2]  += 0x4AA;
-    arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-    if (work->stateTimer == 0x31) {
-        s32 pan;
-
-        pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_IMPACT, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
-        padScriptSpawnVariableMotorRamp(6, 0xFF, 0x80);
+    work->stateTimer++;
+    _actor356100UpdateAnimation(task);
+    task->extra.tmd->coords[1].coord.t[0]  += ACTOR_356100_DEATH_STEP_X;
+    task->extra.tmd->coords[1].coord.t[2]  += ACTOR_356100_DEATH_STEP_Z;
+    task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&task->extra.tmd->coords[1]);
+    if (work->stateTimer == ACTOR_356100_DEATH_IMPACT_TICK) {
+        _actor356100PlayScriptedDeathCue(task, SOUND_NEO_ARK_FOREST_STRANGER_DEATH_IMPACT);
+        padScriptSpawnVariableMotorRamp(ACTOR_356100_DEATH_IMPACT_RUMBLE_TICKS, ACTOR_356100_DEATH_RUMBLE_MAX, ACTOR_356100_DEATH_RUMBLE_HALF);
     }
-    if (work->stateTimer == 0x4D) {
-        s32 pan;
-
-        pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 2), pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
-        padScriptSpawnVariableMotorRamp(8, 0x7F, 0x30);
+    if (work->stateTimer == ACTOR_356100_DEATH_SOUND2_TICK) {
+        _actor356100PlayScriptedDeathCue(task, SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_356100_DEATH_SECOND_RUMBLE_TICKS, ACTOR_356100_DEATH_RUMBLE_START, ACTOR_356100_DEATH_RUMBLE_END);
     }
-    if (work->stateTimer == 0x58) {
-        s32 pan;
-
-        pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 1), pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
-        padScriptSpawnVariableMotorRamp(6, 0x7F, 0x30);
+    if (work->stateTimer == ACTOR_356100_DEATH_SOUND1_TICK) {
+        _actor356100PlayScriptedDeathCue(task, SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 1));
+        padScriptSpawnVariableMotorRamp(ACTOR_356100_DEATH_IMPACT_RUMBLE_TICKS, ACTOR_356100_DEATH_RUMBLE_START, ACTOR_356100_DEATH_RUMBLE_END);
     }
-    if (work->stateTimer == 0xCE) {
-        s32 pan;
-
-        pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_END, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
+    if (work->stateTimer == ACTOR_356100_DEATH_END_TICK) {
+        _actor356100PlayScriptedDeathCue(task, SOUND_NEO_ARK_FOREST_STRANGER_DEATH_END);
     }
-    if ((u32)((u16)work->stateTimer - 0x29) < 5U) {
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[3], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x10], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[1], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x12], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[2], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x11], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[3], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[4], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[5], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x10], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[1], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x13], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x11], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x10], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[5], 0, 0);
-        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x12], 0, 0);
+    // Leaf bursts thin out and alternate attachment sets after the first five ticks.
+    if ((u32)((u16)work->stateTimer - ACTOR_356100_DEATH_DENSE_LEAF_START) < ACTOR_356100_DEATH_DENSE_LEAF_TICKS) {
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[3], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x10], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[1], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x12], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[2], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x11], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[3], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[4], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[5], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x10], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[1], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x13], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x11], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x10], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[5], 0, 0);
+        effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x12], 0, 0);
     }
-    if ((u32)((u16)work->stateTimer - 0x2E) < 4U) {
-        if (!(*(volatile u16*)&work->stateTimer & 1)) {
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[2], 0, 0);
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x11], 0, 0);
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[3], 0, 0);
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[4], 0, 0);
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[5], 0, 0);
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x10], 0, 0);
+    if ((u32)((u16)work->stateTimer - ACTOR_356100_DEATH_SPARSE_LEAF_START) < ACTOR_356100_DEATH_SPARSE_LEAF_TICKS) {
+        if (!((u16) * (volatile s16*)&work->stateTimer & 1)) {
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[2], 0, 0);
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x11], 0, 0);
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[3], 0, 0);
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[4], 0, 0);
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[5], 0, 0);
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x10], 0, 0);
         } else {
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[1], 0, 0);
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x13], 0, 0);
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x11], 0, 0);
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x10], 0, 0);
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[5], 0, 0);
-            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &arg0->extra.tmd->coords[0x12], 0, 0);
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[1], 0, 0);
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x13], 0, 0);
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x11], 0, 0);
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x10], 0, 0);
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[5], 0, 0);
+            effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, &task->extra.tmd->coords[0x12], 0, 0);
         }
     }
 }
 
-/// The 31 state handlers `func_actor_356100_80169854` dispatches through, in
+/// The 31 state handlers `_actor356100Update` dispatches through, in
 /// state order; entry 0x1D has no handler and the `state` values the ticks
 /// park (0, 6, 7, 8, 9, 0xB, 0xC, 0x10, 0x11, 0x13, 0x15, 0x16, 0x18, 0x19,
 /// 0x1E) are its live entries. Same role as `Actor01900_D1728C`.
@@ -2907,14 +2927,14 @@ static const _Actor356100StateTable D_actor_356100_80161EC4 = {
         _actor356100FallFront,
         _actor356100DeathBurn,
         _actor356100Dormant,
-        func_actor_356100_80167818,
+        _actor356100ScriptedDormantState,
         _actor356100Patrol,
         _actor356100BackOff,
         _actor356100Slide,
         _actor356100GrabWindup,
         _actor356100HeadTurn,
         NULL,
-        func_actor_356100_80169180,
+        _actor356100ScriptedDeathState,
     }
 };
 
@@ -2922,54 +2942,69 @@ static const _Actor356100StateTable D_actor_356100_80161EC4 = {
 /// runs by `Task::state`: setup, per-frame tick and teardown.
 static const EnemyTaskFuncTable3 D_actor_356100_80161F40 = {
     _actor356100Initialize,
-    func_actor_356100_80169854,
+    _actor356100Update,
     enemyDestroy,
 };
 
-static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
+/// Updates the Horned Stranger state and publishes its current or delayed world target.
+///
+/// Requires live enemy/work/model, scratch storage and a valid non-NULL handler
+/// for the work state (0..30). Paused and hidden modes return after lighting
+/// and optional shadow handling. Active dispatch tracks entry, runs the state
+/// and responds to the combat alert. Part 2's world point is narrowed to signed
+/// halfwords and appended to the seven-sample ring. Clips 20/21 publish its
+/// oldest point; other clips publish the current point. Scripted death draws a
+/// separate world-parented shadow from part 1. Scratch release precedes the
+/// current-point read, with no intervening scratch use.
+static void _actor356100Update(Enemy* enemy, Task* task)
 {
-    VECTOR                   pos;
-    _Actor356100StateTable   tbl;
-    _Actor356100Work*        work;
-    _Actor356100TickScratch* blk;
-    s16                      next;
+    enum {
+        ACTOR_356100_SHADOW_HALF_SIZE                = 384,
+        ACTOR_356100_SCRIPTED_DEATH_SHADOW_HALF_SIZE = 640,
+    };
 
-    work   = arg1->work;
-    tbl    = D_actor_356100_80161EC4;
-    pos.vx = arg1->extra.tmd->coords[1].workm.t[0];
-    pos.vy = arg1->extra.tmd->coords[1].workm.t[1];
-    pos.vz = arg1->extra.tmd->coords[1].workm.t[2];
-    worldCoordUpdateActorColor(arg0, &pos, 0, 0);
+    VECTOR                   lightingPosition;
+    _Actor356100StateTable   stateHandlers;
+    _Actor356100Work*        work;
+    _Actor356100TickScratch* scratch;
+    s16                      nextHistoryIndex;
+
+    work                = task->work;
+    stateHandlers       = D_actor_356100_80161EC4;
+    lightingPosition.vx = task->extra.tmd->coords[1].workm.t[0];
+    lightingPosition.vy = task->extra.tmd->coords[1].workm.t[1];
+    lightingPosition.vz = task->extra.tmd->coords[1].workm.t[2];
+    worldCoordUpdateActorColor(enemy, &lightingPosition, 0, 0);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->state != ACTOR_356100_STATE_HIDDEN && work->state != ACTOR_356100_STATE_DEATH_BURN && work->state != ACTOR_356100_STATE_SCRIPTED_DEATH) {
-                arg1->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
+                task->extra.tmd->flags = 0;
+                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_356100_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->state != ACTOR_356100_STATE_HIDDEN && work->state != ACTOR_356100_STATE_DEATH_BURN && work->state != ACTOR_356100_STATE_SCRIPTED_DEATH) {
-                arg1->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
+                task->extra.tmd->flags = 0;
+                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_356100_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
     SCRATCH_STACK_RESERVE_BLOCK(_Actor356100TickScratch);
-    blk = SCRATCH_STACK_CURSOR(_Actor356100TickScratch);
+    scratch = SCRATCH_STACK_CURSOR(_Actor356100TickScratch);
     if (work->state == ACTOR_356100_STATE_SCRIPTED_DEATH) {
-        blk->viewPos.vx = blk->viewPos.vy = blk->viewPos.vz = 0;
-        _actorRenderTransformToWorld(&arg1->extra.tmd->coords[1], &blk->viewPos);
-        gfxSetRotIdentity(&blk->shadowCoord.coord);
-        blk->shadowCoord.parent       = &gGfxViewCoord;
-        blk->shadowCoord.coord.t[0]   = blk->viewPos.vx;
-        blk->shadowCoord.coord.t[1]   = 0;
-        blk->shadowCoord.coord.t[2]   = blk->viewPos.vz;
-        blk->shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&blk->shadowCoord);
-        effectDrawGroundShadow(MATRIX_TRANS(&blk->shadowCoord.workm), 0x280, gRoomEffectState->groundShadowShade);
+        scratch->viewPos.vx = scratch->viewPos.vy = scratch->viewPos.vz = 0;
+        _actorRenderTransformToWorld(&task->extra.tmd->coords[1], &scratch->viewPos);
+        gfxSetRotIdentity(&scratch->shadowCoord.coord);
+        scratch->shadowCoord.parent       = &gGfxViewCoord;
+        scratch->shadowCoord.coord.t[0]   = scratch->viewPos.vx;
+        scratch->shadowCoord.coord.t[1]   = 0;
+        scratch->shadowCoord.coord.t[2]   = scratch->viewPos.vz;
+        scratch->shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(&scratch->shadowCoord);
+        effectDrawGroundShadow(MATRIX_TRANS(&scratch->shadowCoord.workm), ACTOR_356100_SCRIPTED_DEATH_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
     }
     if (work->prevState != work->state) {
         work->stateEntered = 1;
@@ -2977,35 +3012,37 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
         work->stateEntered = 0;
     }
     work->prevState = work->state;
-    tbl.handlers[work->state](arg1);
+    stateHandlers.handlers[work->state](task);
     if (gSceneCombatState.signals.bytes.enemyAlert == 1) {
         if (work->state == ACTOR_356100_STATE_PATROL) {
             work->state = ACTOR_356100_STATE_ALERT;
         }
     }
-    blk->viewPos.vx = 0;
-    blk->viewPos.vy = 0;
-    blk->viewPos.vz = 0;
-    _actorRenderTransformToWorld(&arg1->extra.tmd->coords[2], &blk->viewPos);
-    work->bodyPosHistory[work->bodyPosCursor].vx = blk->viewPos.vx;
-    work->bodyPosHistory[work->bodyPosCursor].vy = blk->viewPos.vy;
-    work->bodyPosHistory[work->bodyPosCursor].vz = blk->viewPos.vz;
+    // Retain seven world positions so sidestep targeting uses the oldest sample.
+    scratch->viewPos.vx = 0;
+    scratch->viewPos.vy = 0;
+    scratch->viewPos.vz = 0;
+    _actorRenderTransformToWorld(&task->extra.tmd->coords[2], &scratch->viewPos);
+    work->bodyPosHistory[work->bodyPosCursor].vx = scratch->viewPos.vx;
+    work->bodyPosHistory[work->bodyPosCursor].vy = scratch->viewPos.vy;
+    work->bodyPosHistory[work->bodyPosCursor].vz = scratch->viewPos.vz;
+    // No scratch user intervenes before the retained post-release position read.
     SCRATCH_STACK_RELEASE_BLOCK(_Actor356100TickScratch);
-    next                = (u16)work->bodyPosCursor + 1;
-    work->bodyPosCursor = next;
-    if (next == ARRAY_SIZE(work->bodyPosHistory)) {
+    nextHistoryIndex    = (u16)work->bodyPosCursor + 1;
+    work->bodyPosCursor = nextHistoryIndex;
+    if (nextHistoryIndex == ARRAY_SIZE(work->bodyPosHistory)) {
         work->bodyPosCursor = 0;
     }
-    if ((u32)((u16)work->animId - 0x14) < 2U) {
-        arg0->bodyPos.vx = work->bodyPosHistory[work->bodyPosCursor].vx;
-        arg0->bodyPos.vy = work->bodyPosHistory[work->bodyPosCursor].vy;
-        arg0->bodyPos.vz = work->bodyPosHistory[work->bodyPosCursor].vz;
+    if ((u32)((u16)work->animId - ACTOR_356100_ANIM_SIDESTEP_NEGATIVE_YAW) < (ACTOR_356100_ANIM_SIDESTEP_POSITIVE_YAW - ACTOR_356100_ANIM_SIDESTEP_NEGATIVE_YAW + 1)) {
+        enemy->bodyPos.vx = work->bodyPosHistory[work->bodyPosCursor].vx;
+        enemy->bodyPos.vy = work->bodyPosHistory[work->bodyPosCursor].vy;
+        enemy->bodyPos.vz = work->bodyPosHistory[work->bodyPosCursor].vz;
     } else {
-        arg0->bodyPos.vx = blk->viewPos.vx;
-        arg0->bodyPos.vy = blk->viewPos.vy;
-        arg0->bodyPos.vz = blk->viewPos.vz;
+        enemy->bodyPos.vx = scratch->viewPos.vx;
+        enemy->bodyPos.vy = scratch->viewPos.vy;
+        enemy->bodyPos.vz = scratch->viewPos.vz;
     }
-    arg0->coord = &gGfxViewCoord;
+    enemy->coord = &gGfxViewCoord;
 }
 
 /// Declines the play-animation message without changing the actor.

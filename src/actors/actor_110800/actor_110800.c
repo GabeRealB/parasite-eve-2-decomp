@@ -28,7 +28,7 @@ static s32 _viewFigurePlayMessage(Task* unusedTask, s32 unusedMessageId, const A
 
 static void _viewFigureStepAnim(Task* task);
 
-/// The block above, published by `func_actor_110800_801322A0` from the task's
+/// The block above, published by `_actor110800ViewFigureTask` from the task's
 /// `Task::work`.
 extern ViewFigureWork* gViewFigureWork;
 
@@ -58,7 +58,7 @@ extern TaskMessageEntry gViewFigureMessages[];
 
 static TmdSource _gActor110800SwatMember2Body;
 static TmdSource _gActor110800Model060A0;
-void             func_actor_110800_801322A0(Task*);
+static void      _actor110800ViewFigureTask(Task* task);
 static void      _actor110800AttachModelTask(Task* task);
 
 static TmdBone _gActor110800SwatMember2BodySkeleton[20] = {
@@ -242,7 +242,7 @@ TaskMessageEntry gViewFigureMessages[3] = {
 };
 
 TaskDesc gViewFigureTasks[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_110800_801322A0, { .model = &_gActor110800SwatMember2Body } },
+    { { { TASK_BODY_TMD, 192 } }, _actor110800ViewFigureTask, { .model = &_gActor110800SwatMember2Body } },
     { { { TASK_BODY_TMD, 192 } }, _actor110800AttachModelTask, { .model = &_gActor110800Model060A0 } },
 };
 
@@ -347,19 +347,21 @@ static void _actor110800UpdateViewFigure(Enemy* unusedEnemy, Task* task)
 }
 #undef ACTOR_110800_CUE_ANIMATION_SOUND
 
-/// The actor's task entry: a two-state dispatcher whose handler table is built
-/// on the stack. It publishes the task's work block in
-/// `gViewFigureWork` before calling the handler, which is how the
-/// overlay's other functions reach the block without the task.
-void func_actor_110800_801322A0(Task* task)
+/// Dispatches the SWAT figure's spawn or per-frame update and publishes its work.
+///
+/// Task state must be 0 (spawn) or 1 (update), with a live TMD body and enemy
+/// spawn argument. Publishes the current task work before dispatch; the spawn
+/// handler replaces it after allocation. The published block is borrowed until
+/// actor teardown. The package's body descriptor is this entry's only consumer.
+static void _actor110800ViewFigureTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc stateHandlers[2] = {
         _viewFigureSpawnState,
         _actor110800UpdateViewFigure,
     };
 
     gViewFigureWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Attaches the helper model's root to body part 8 with a -50-unit local x translation.

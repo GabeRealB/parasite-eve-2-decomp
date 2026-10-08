@@ -170,7 +170,7 @@ avoid-walk carriers. Pass `--unit actors_shared_80131f58` (a free VRAM from
 another copy) when `src/actors/lib/<default>.c` already exists and holds a
 different body.
 
-## Duplicate a switch-arm `state += 1`; a shared `goto` under-counts the task pointer (func_actor_111800_8013251C, 2026-09-21)
+## Duplicate a switch-arm `state += 1`; a shared `goto` under-counts the task pointer (_actor111800GrinningStrangerTask, 2026-09-21)
 
 A three-state task handler whose cases 0 and 1 both increment `task->state` and
 then join a long common tail compiled with the task pointer in `$s3` and the
@@ -1989,7 +1989,7 @@ branch delay slot". Bind the halfword to a pointer for the increment/wrap so
 `$a0` dies at the argument setup and the post-call zero-check rematerializes
 `lui` into `$v0` as `lh`.
 
-`func_actor_110600_80138900`. Inputs: `base_2.i`
+`_actor110600StepFootstepShake`. Inputs: `base_2.i`
 `1f2f565f4d45c5fa44803509e1f3a3db60b531759e4e33ce13e2781f54c16fd0`
 (91.9%, `beqz` / delay 0), `base_3.i`
 `738c0b0af4f76b69c0b74e9de02ac90d9d66a2408910fa5ba2e926a8f3bd2342`
@@ -99213,7 +99213,7 @@ narrowing. `_actor335800SceneScreenShakeTask` is the worked example: the direct
 assignment was 95.65% with `insert=1 delete=1` and exactly one differing line
 (`lbu` for `lhu` at the first of three loads of the same field); the latch
 scored 100.00% on the first build. Same rule stated for a *call argument* is in
-"A ? 1 : 0 into an `s8` call folds" (`func_actor_110600_80138900`), which is
+"A ? 1 : 0 into an `s8` call folds" (`_actor110600StepFootstepShake`), which is
 where `cur = (u16)*p;` first appeared.
 
 ## m2c's `s8` parameter guess from `sb` stores adds a sign extension the target does not have
@@ -113075,9 +113075,9 @@ is not the lever. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
 `base_1.i` SHA256 `bc1eccbb67a322bbf956b04609c90c6d12ca581170809fb8ff5c62942ef12191`.
 
-## The same 0xC scratch block allocates differently from a differently-shaped inliner (func_actor_356100_80167818, 2026-09-16)
+## The same 0xC scratch block allocates differently from a differently-shaped inliner (_actor356100ScriptedDormantState, 2026-09-16)
 
-**Symptom.** `func_actor_356100_80167818` reached 97.778% with `regs=16` and every
+**Symptom.** `_actor356100ScriptedDormantState` reached 97.778% with `regs=16` and every
 instruction, block and branch correct except one register pair: the 0xC
 `SCRATCH_STACK_CURSOR_SLOT` squared-distance block put its block pointer in `$v1` and the
 radius constant in `$a0`, where the target has the block pointer in `$a0` and the
@@ -113197,9 +113197,9 @@ baseline. Compiler SHA256
 `base_2.i` SHA256
 `5d3732963d6a8a885c47e29449b42c04f18468461b5bfa39e52a2bb85fbe0555`.
 
-## A field the target reads *twice in one block* is a `volatile` read: local CSE merges the second one away (func_actor_356100_80169180, 2026-09-16)
+## A field the target reads *twice in one block* is a `volatile` read: local CSE merges the second one away (_actor356100ScriptedDeathState, 2026-09-16)
 
-`func_actor_356100_80169180` opens its parity arm by reading `field_6` again, and
+`_actor356100ScriptedDeathState` opens its parity arm by reading `stateTimer` again, and
 the target keeps both loads — three instructions the compiler otherwise deletes:
 
 ```
@@ -113215,7 +113215,7 @@ andi  $v0, $v0, 0x1
 bnez  $v0, .Lodd
 ```
 
-Written the obvious way (`if (!((u16)work->field_6 & 1))`) the entry is 437
+Written the obvious way (`if (!((u16)work->stateTimer & 1))`) the entry is 437
 target / 434 built with `delete=3`: both reads are
 `(zero_extend:SI (mem/s:HI (plus (reg work) (const_int 6))))`, `cse_insn` hashes
 the first into the block's table and rewrites the second to that register, and
@@ -113224,11 +113224,11 @@ the second read is spelled:
 
 | spelling of the second read | result |
 |---|---|
-| `(u16)work->field_6 & 1` | merged — the two MEMs are the same expression |
-| `*(u16*)&work->field_6 & 1` | merged — `exp_equiv_p` compares the address and mode, not the alias set or `MEM_IN_STRUCT_P` |
+| `(u16)work->stateTimer & 1` | merged — the two MEMs are the same expression |
+| `*(u16*)&work->stateTimer & 1` | merged — `exp_equiv_p` compares the address and mode, not the alias set or `MEM_IN_STRUCT_P` |
 | a `u16*` local computed as `(u16*)work + 3` | merged — `fold_rtx` canonicalises the address register |
-| `work->field_6 & 1` (signed) | no merge, but `combine` cannot drop the dead sign extension here, so it emits `lh` where the target has `lhu` |
-| `((u16*)&work->field_4)[1] & 1` | merged — the tree fold builds the same `6($s2)` address before CSE runs |
+| `work->stateTimer & 1` (signed) | no merge, but `combine` cannot drop the dead sign extension here, so it emits `lh` where the target has `lhu` |
+| `((u16*)&work->stateEntered)[1] & 1` | merged — the tree fold builds the same `6($s2)` address before CSE runs |
 
 `volatile` is what survives. `canon_hash` sets `do_not_record` for any MEM with
 `MEM_VOLATILE_P` (`cse.c`, the `case MEM` arm), so the load is never entered in
@@ -113238,8 +113238,8 @@ the arm stays a bare `lhu` + `andi` — unlike assigning a `volatile u16` to an
 `_acropolisPlazaUpdateSceneAmbience` entry).
 
 ```c
-if ((u32)((u16)work->field_6 - 0x2E) < 4U) {
-    if (!(*(volatile u16*)&work->field_6 & 1)) {   /* the target re-reads */
+if ((u32)((u16)work->stateTimer - 0x2E) < 4U) {
+    if (!((u16)*(volatile s16*)&work->stateTimer & 1)) {   /* the target re-reads */
 ```
 
 **Scope.** A field the target loads twice from the same address with no store
@@ -113505,7 +113505,7 @@ can keep it across the `lh v0,0x18(s7)` that would otherwise clobber it. Every
 spelling that should have prevented the fold — `(s16)` casts on both sides,
 operand order, a named `s16 one` local (function- and block-scoped), nested
 `if`s instead of `&&`, declaration reordering — produced the identical object.
-See the `func_actor_356100_80169180` entry above for the `volatile` hammer that
+See the `_actor356100ScriptedDeathState` entry above for the `volatile` hammer that
 works for merged *loads*; it does not apply to a constant. 99.012%, all
 `branch`/`reorder` penalties zero, `regs=10 insert=1 delete=1`.
 
@@ -113986,9 +113986,9 @@ both stages, per-allocno priority) and the analysis
 (`PERMUTER_ANALYSIS.md`) are cited in the retained conclusion,
 `PERMUTER_EVIDENCE/conclusions/34757a0747784c5aa973c4ca7154a81d/`.
 
-## Local declaration order is the stack-slot order, and a chained assignment reverses the stores (func_actor_356100_80169854)
+## Local declaration order is the stack-slot order, and a chained assignment reverses the stores (_actor356100Update)
 
-`func_actor_356100_80169854` has five locals and the target's frame is tight
+`_actor356100Update` has five locals and the target's frame is tight
 enough that both of the following show up as the *only* mismatches, at 98.4%
 and 99.97% respectively.
 
@@ -114009,11 +114009,11 @@ its three halfword stores in *descending* offset order (`0x64`, `0x62`,
 Both come from the same statement shape; the difference is the statement:
 
 ```c
-    blk->viewPos.vx = blk->viewPos.vy = blk->viewPos.vz = 0;   /* stores 0x64, 0x62, 0x60 */
+    scratch->viewPos.vx = scratch->viewPos.vy = scratch->viewPos.vz = 0;   /* stores 0x64, 0x62, 0x60 */
     /* ... */
-    blk->viewPos.vx = 0;                                        /* stores 0x60, 0x62, 0x64 */
-    blk->viewPos.vy = 0;
-    blk->viewPos.vz = 0;
+    scratch->viewPos.vx = 0;                                        /* stores 0x60, 0x62, 0x64 */
+    scratch->viewPos.vy = 0;
+    scratch->viewPos.vz = 0;
 ```
 
 C evaluates the chain right-to-left, so the RTL is emitted `vz`, `vy`, `vx`,
@@ -114035,7 +114035,7 @@ Inputs: `base_4.i` (100%) SHA256
 SHA256 `e38e9b61697d530e5ffbbcbd967fbcaf8ad5b9291b075b675b3e002538d13636`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_356100_80169854-vacuum`.
+Scratch `nonmatchings/_actor356100Update-vacuum`.
 
 ## One temp per `ABS()`-guarded condition: a shared one is a global allocno
 
@@ -114336,20 +114336,20 @@ Scratch `nonmatchings/_actor110600IdleState-vacuum`.
 
 ## A pointer read through the actor is re-loaded after every store to another of its fields unless the source binds it to a local
 
-`func_actor_110600_80136ECC` writes `index->field_2C->field_C` between its reads of
-`index->field_1C`, and the target keeps the work pointer in `$a2` across the store
+`_actor110600DeathBurstState` writes `task->extra.tmd->flags` between its reads of
+`task->work`, and the target keeps the work pointer in `$a2` across the store
 (`lw a2, 0x1C(s2)` once, then `lhu v0, 0xAAE(a2)` after `sh zero, 0xC(a1)`).
-Written the natural way — `index->field_1C->attackBody.flags &= 0x7FFF;` — GCC 2.8.1
+Written the natural way — `((_Actor110600Work*)task->work)->attackBody.flags &= 0x7FFF;` — GCC 2.8.1
 does not CSE it: the store through the other pointer invalidates the memory
 expression, and every later use re-loads (`lw v1, 0x1C(s2)`, five of them). Cost
 22 points (77.7% instead of 100%), and the spare register also cost `$s3` and the
 frame size. Binding the pointer to a local removes the reloads:
 
 ```c
-    work = arg0->field_1C;          /* $a2, live across the stores below */
+    work = task->work;          /* $a2, live across the stores below */
     if (work->stateEntered != 0) {
-        obj            = arg0->field_2C;
-        obj->field_C   = 0;
+        bodyModel      = task->extra.tmd;
+        bodyModel->flags = 0;
         work->attackBody.flags &= 0x7FFF;
 ```
 
@@ -114357,7 +114357,7 @@ m2c's `temp_a2` / `temp_a1` / `temp_s3` locals are exactly this and are therefor
 worth keeping rather than folding inline; the sibling `_actor110600IdleState`
 one function up needs the same three names. Which of them are read inside the
 `if` and which above it is read off the target's own load placement — see the
-`80136888` entry above: `work` is above the `beqz` here, `enemy` and `obj` below
+`80136888` entry above: `work` is above the `beqz` here, `enemy` and `bodyModel` below
 it, so those two are assigned on the first line of the block. GCC 2.8.1 sinks
 neither across a branch, so the target decides.
 
@@ -114367,7 +114367,7 @@ Inputs: `base_1.i` (77.745%) SHA256
 `2ea94ad16cdd8cacb09ca2b01ce76ce190c66c3948dfca5a4e26068695132f18`;
 target.o SHA256 `16346a4b72614bf119587034e548eea2cec8d4e46f86e0321fc79bfc92634c47`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80136ECC-vacuum`.
+Scratch `nonmatchings/_actor110600DeathBurstState-vacuum`.
 
 ## An inline cast folds `0xB28 + 0x5E` into `0xB86`, so a self-store disappears; and the load that feeds it wants an early birth (_actor110600FallBackState, 2026-09-16)
 
@@ -115120,7 +115120,7 @@ statements are adjacent in the source: `attackBody.flags &= 0x7FFF` and
 the whole first block's schedule in a different shape — `sched` hoisted all
 three loads and deferred every `andi`. Written adjacent, with the timer clears
 after them and `burnHeightScale = walker.scale` last, the block matched (92.15% → 94.2%).
-The sibling `func_actor_110600_80136ECC` in the same overlay has the same
+The sibling `_actor110600DeathBurstState` in the same overlay has the same
 adjacency, which is how the source order was spotted.
 
 Inputs: `base_1.i` SHA256
@@ -115246,7 +115246,7 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_bossStrangerApplyGroundStep-vacuum`.
 
-## Two read-modify-writes on one object are emitted in the scheduler's order, not the source's; the reload scratch pairing is what identifies the source order (func_actor_110600_80137F2C, 2026-09-17)
+## Two read-modify-writes on one object are emitted in the scheduler's order, not the source's; the reload scratch pairing is what identifies the source order (_actor110600Update, 2026-09-17)
 
 The tick's tail shifts three words of a colour matrix down by the shrink amount:
 
@@ -115302,7 +115302,7 @@ target.o SHA256
 `b009318c70f4c60d781ff65ca1358f3930006525aca5b768f90553376588bb79`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80137F2C-vacuum`.
+Scratch `nonmatchings/_actor110600Update-vacuum`.
 
 ## A retired `.s` takes a string symbol with it; naming it in C reaches 100% where a literal caps at 99.9% (_bossStrangerPlanToward, 2026-09-17)
 
@@ -136139,7 +136139,7 @@ retained under tools/permuter_findings/_actor401800Grab/.
 
 ## Splitting a shared coordinate temporary changes local eligibility and a neighboring saved-register tie
 
-`func_actor_110600_801372CC` reached 100% without pins by keeping each of its
+`_actor110600ScriptedState` reached 100% without pins by keeping each of its
 three effect-coordinate reads in a separate local. The stores still write the
 same global record, and each pointer read precedes its two halfword stores while
 the pointer store follows them. A shared temporary was global (6 references,
@@ -136166,7 +136166,7 @@ The separately planned coordinate split base_5 then scored 0; the overlay-header
 port base_6 also scored 0. No values, masks, stores or calls were removed.
 
 Evidence is retained under
-`tools/permuter_findings/func_actor_110600_801372CC/` (run `7655216881f1456c`),
+`tools/permuter_findings/_actor110600ScriptedState/` (run `7655216881f1456c`),
 including source deltas, paired builds and assembly-preserving traces.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Traced base_3 input: `e87b6b499f116fe62e7aff10edf457c429fee3ccbaeeef31bafa3042634ebd25`.
@@ -149909,7 +149909,7 @@ attempts; left as it was.
   reorg copying the join's first insn, not a second assignment.
 - **`if (hp > 0) { ...; if (hp > 0) goto skip; } if (player.hp <= 0) hp = 1;
   skip:`** is `if (hp > 0) { ... } if (hp <= 0 && player.hp <= 0) hp = 1;`
-  (`func_actor_110600_80137F2C`): the first test's false edge is threaded past
+  (`_actor110600Update`): the first test's false edge is threaded past
   the second.
 - **A draw tail reached by `goto tail` from an inner switch case, skipping one
   store in front of it** (`_actor311500Task`, 13 gotos with the mode

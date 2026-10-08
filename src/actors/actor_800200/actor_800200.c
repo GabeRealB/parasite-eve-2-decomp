@@ -1078,6 +1078,9 @@ static void _actor800200InitTask(Task* task)
 }
 
 /// Restores the root's last accepted position in its parent-coordinate frame.
+///
+/// Requires live root and actor storage. The caller invalidates composition
+/// before recomposing; this operation changes only the three translation words.
 static inline void _actor800200RestorePreviousPosition(GfxCoord* rootCoord, const GameActor* actor)
 {
     rootCoord->coord.t[0] = actor->previousPosition.vx;
@@ -1085,10 +1088,11 @@ static inline void _actor800200RestorePreviousPosition(GfxCoord* rootCoord, cons
     rootCoord->coord.t[2] = actor->previousPosition.vz;
 }
 
-/// Publishes a Q12 movement or pushback heading to all three motion contexts.
+/// Publishes a Q12 view-space movement or pushback heading to all three motion contexts.
 ///
-/// Uses the root's composed Z axis times movementSign, or the normalized
-/// pushback direction in that frame. Borrows a writable scratch block and
+/// Requires the composed root and initialized collision-motion contexts. Uses
+/// its Z axis times movementSign, or the normalized pushback direction in that
+/// frame. Borrows a writable scratch block and
 /// stages/copies only XYZ halfwords, retaining the vector pads.
 static inline void _actor800200PublishMotionDirection(GameActor* actor, const GfxCoord* rootCoord, CompanionMoveScratch* block)
 {

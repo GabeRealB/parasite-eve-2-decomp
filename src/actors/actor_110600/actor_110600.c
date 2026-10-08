@@ -309,7 +309,7 @@ static void _actor110600HiddenState(Task* task);
 
 static void _actor110600ChaseState(Task* task);
 static void _actor110600DeathBurnState(Task* task);
-static void func_actor_110600_801372CC(Task* arg0);
+static void _actor110600ScriptedState(Task* task);
 static void _actor110600LurkState(Task* task);
 static void _actor110600FallState(Task* task);
 static void _actor110600DownState(Task* task);
@@ -333,7 +333,7 @@ static s32 _actor110600Place(Task* task, s32 messageId, const ActorTransform* pl
 /// Five-frame shake counter. Incremented each call, wraps at 5, and drives
 /// `displaySetShakeY` with the low bit (0 or 1). Returns 1 on wrap.
 extern s16 D_actor_110600_8014865C;
-static s32 func_actor_110600_80138900(void);
+static s32 _actor110600StepFootstepShake(void);
 
 /// Allocation holding the step counter of `ACTOR_110600_STATE_SHUDDER`.
 ///
@@ -1077,12 +1077,12 @@ static __inline__ s32  _actor110600FindAttackContact(SVECTOR* hitPoint, const Wo
 static void            _actor110600IdleState(Task* task);
 static void            _actor110600FallBackState(Task* task);
 static __inline__ void _actor110600ShrinkBurnRootYaw(Task* task, const _Actor110600Work* work, s16 heightScale);
-static void            func_actor_110600_80136ECC(Task* arg0);
+static void            _actor110600DeathBurstState(Task* task);
 static void            _actor110600DeathThrashState(Task* task);
 static void            _actor110600LurkAlertState(Task* task);
 static void            _actor110600ShudderState(Task* task);
 static void            _actor110600EnrageState(Task* task);
-static void            func_actor_110600_80137F2C(Enemy* arg0, Task* arg1);
+static void            _actor110600Update(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts_turn_joint.inc.c"
 
@@ -2843,240 +2843,145 @@ static void _actor110600DeathBurnState(Task* task)
     }
 }
 
-/// Re-dresses a live actor: take the model object out of draw, drop bit 0x8000
-/// of `attackBody.flags` and bit 0x4000 of `gridBody.flags`, tag the enemy's
-/// link node, clear the `walker.turnLimit` / `lookYaw` / `lookYawTarget` timers and hand
-/// the model the 0x80 texture page, then spawn five effects off its part
-/// coordinates 6, 8, 10, 11 and 15 (`effectSpawn` bank 0xA0005, buffer sizes
-/// 0x200 / 0x200 / 0x200 / 0x300 / 0x300). Each spawned model object takes its
-/// texture page and CLUT from the nested area record the actor's own area key
-/// resolves to, and is streamed twice once its aux buffer exists.
-static void func_actor_110600_80136ECC(Task* arg0)
+/// Hides the dying body and spawns five textured body-part effects on state entry.
+///
+/// Requires live work, enemy, nineteen-part model and current area placement.
+/// Disables attacks, grid correction and targeting, then spawns parts 6, 8, 10,
+/// 11 and 15. Each successful effect borrows the current placement texture
+/// offsets and rebuilds both existing primitive-buffer halves. Failed spawns
+/// are skipped independently. Later ticks leave the body and state unchanged.
+/// Bank 10 slot 5 must already have a live burst-model source. The low twelve
+/// argument bits select puff size 512 for parts 6/8/10 and 768 for parts 11/15.
+static void _actor110600DeathBurstState(Task* task)
 {
+    enum {
+        ACTOR_110600_BURST_SMALL_PUFF_SIZE = 0x200,
+        ACTOR_110600_BURST_LARGE_PUFF_SIZE = 0x300,
+    };
+
     _Actor110600Work* work;
     Enemy*            enemy;
-    TmdObject*        obj;
-    GameLocationKey   key;
-    u8                areaByte0;
-    u32               raw1, index1;
-    EffectWork*       effect1;
-    TmdObject*        model1;
-    AreaPlacement*    entry1;
-    GameLocationKey*  sessionKey1;
-    u32               raw2, index2;
-    EffectWork*       effect2;
-    TmdObject*        model2;
-    AreaPlacement*    entry2;
-    GameLocationKey*  sessionKey2;
-    u32               raw3, index3;
-    EffectWork*       effect3;
-    TmdObject*        model3;
-    AreaPlacement*    entry3;
-    GameLocationKey*  sessionKey3;
-    u32               raw4, index4;
-    EffectWork*       effect4;
-    TmdObject*        model4;
-    AreaPlacement*    entry4;
-    GameLocationKey*  sessionKey4;
-    u32               raw5, index5;
-    EffectWork*       effect5;
-    TmdObject*        model5;
-    AreaPlacement*    entry5;
-    GameLocationKey*  sessionKey5;
+    TmdObject*        bodyModel;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        enemy                         = arg0->spawnArg2.pointer;
-        obj                           = arg0->extra.tmd;
-        obj->flags                    = 0;
+        enemy                         = task->spawnArg2.pointer;
+        bodyModel                     = task->extra.tmd;
+        bodyModel->flags              = 0;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->walker.turnLimit        = 0;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
-        obj->flags                    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        bodyModel->flags              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
-        effect1 = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[6], 0x200, NULL);
-        if (effect1 != NULL) {
-            sessionKey1 = &gGameSession->location.loc;
-            raw1        = enemy->placeKey;
-            model1      = effect1->task->extra.tmd;
-            key.stage   = sessionKey1->stage;
-            key.area    = sessionKey1->area;
-            key.room    = sessionKey1->room;
-            areaByte0   = gGameSession->location.loc.view;
-            index1      = raw1 >> 12;
-            key.view    = areaByte0;
-            areaSyncLocationVariant(&key);
-            entry1                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index1);
-            model1->texturePageOffset = entry1->texturePageOffset;
-            model1->clutRowOffset     = entry1->clutRowOffset;
-            if (model1->buffer != NULL) {
-                tmdBuildBufferHalf(model1);
-                tmdBuildBufferHalf(model1);
-            }
-        }
+        // Detach five parts; each successful spawn resolves the current placement anew.
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[6], ACTOR_110600_BURST_SMALL_PUFF_SIZE, NULL), enemy);
 
-        effect2 = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[8], 0x200, NULL);
-        if (effect2 != NULL) {
-            sessionKey2 = &gGameSession->location.loc;
-            raw2        = enemy->placeKey;
-            model2      = effect2->task->extra.tmd;
-            key.stage   = sessionKey2->stage;
-            key.area    = sessionKey2->area;
-            key.room    = sessionKey2->room;
-            areaByte0   = gGameSession->location.loc.view;
-            index2      = raw2 >> 12;
-            key.view    = areaByte0;
-            areaSyncLocationVariant(&key);
-            entry2                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index2);
-            model2->texturePageOffset = entry2->texturePageOffset;
-            model2->clutRowOffset     = entry2->clutRowOffset;
-            if (model2->buffer != NULL) {
-                tmdBuildBufferHalf(model2);
-                tmdBuildBufferHalf(model2);
-            }
-        }
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[8], ACTOR_110600_BURST_SMALL_PUFF_SIZE, NULL), enemy);
 
-        effect3 = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[10], 0x200, NULL);
-        if (effect3 != NULL) {
-            sessionKey3 = &gGameSession->location.loc;
-            raw3        = enemy->placeKey;
-            model3      = effect3->task->extra.tmd;
-            key.stage   = sessionKey3->stage;
-            key.area    = sessionKey3->area;
-            key.room    = sessionKey3->room;
-            areaByte0   = gGameSession->location.loc.view;
-            index3      = raw3 >> 12;
-            key.view    = areaByte0;
-            areaSyncLocationVariant(&key);
-            entry3                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index3);
-            model3->texturePageOffset = entry3->texturePageOffset;
-            model3->clutRowOffset     = entry3->clutRowOffset;
-            if (model3->buffer != NULL) {
-                tmdBuildBufferHalf(model3);
-                tmdBuildBufferHalf(model3);
-            }
-        }
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[10], ACTOR_110600_BURST_SMALL_PUFF_SIZE, NULL), enemy);
 
-        effect4 = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[11], 0x300, NULL);
-        if (effect4 != NULL) {
-            sessionKey4 = &gGameSession->location.loc;
-            raw4        = enemy->placeKey;
-            model4      = effect4->task->extra.tmd;
-            key.stage   = sessionKey4->stage;
-            key.area    = sessionKey4->area;
-            key.room    = sessionKey4->room;
-            areaByte0   = gGameSession->location.loc.view;
-            index4      = raw4 >> 12;
-            key.view    = areaByte0;
-            areaSyncLocationVariant(&key);
-            entry4                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index4);
-            model4->texturePageOffset = entry4->texturePageOffset;
-            model4->clutRowOffset     = entry4->clutRowOffset;
-            if (model4->buffer != NULL) {
-                tmdBuildBufferHalf(model4);
-                tmdBuildBufferHalf(model4);
-            }
-        }
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[11], ACTOR_110600_BURST_LARGE_PUFF_SIZE, NULL), enemy);
 
-        effect5 = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[15], 0x300, NULL);
-        if (effect5 != NULL) {
-            sessionKey5 = &gGameSession->location.loc;
-            raw5        = enemy->placeKey;
-            model5      = effect5->task->extra.tmd;
-            key.stage   = sessionKey5->stage;
-            key.area    = sessionKey5->area;
-            key.room    = sessionKey5->room;
-            areaByte0   = gGameSession->location.loc.view;
-            index5      = raw5 >> 12;
-            key.view    = areaByte0;
-            areaSyncLocationVariant(&key);
-            entry5                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index5);
-            model5->texturePageOffset = entry5->texturePageOffset;
-            model5->clutRowOffset     = entry5->clutRowOffset;
-            if (model5->buffer != NULL) {
-                tmdBuildBufferHalf(model5);
-                tmdBuildBufferHalf(model5);
-            }
-        }
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[15], ACTOR_110600_BURST_LARGE_PUFF_SIZE, NULL), enemy);
     }
 }
 
-/// Offset, 100 units along Z, that `func_actor_110600_801372CC` hands
+/// Offset, 100 units along Z, that `_actor110600ScriptedState` hands
 /// `effectSpawnHit` with the model's seventh coordinate when it spawns its
 /// three effects.
 static const SVECTOR D_actor_110600_80131F1C = { 0, 0, 100, 0 };
 
-static void func_actor_110600_801372CC(Task* arg0)
+/// Plays the script-selected clip and its cafeteria-command hit effects.
+///
+/// Requires live work, model, enemy and the selected loaded clip. Entry resets
+/// playback at one frame per tick, disables attacks and targeting, and clears
+/// look angles. Cafeteria command 6 chooses one of two part-local hit offsets
+/// with one random draw. Command 3 emits three hit requests on a new slot-1 cue
+/// 4 and blends to clip 30 on cue 11, setting that transition to six frames.
+/// Every tick clears hit blending and reapplies the walker's Q12 root scale.
+static void _actor110600ScriptedState(Task* task)
 {
+    enum {
+        ACTOR_110600_SCRIPTED_COMMAND_RANDOM_HIT      = 6,
+        ACTOR_110600_SCRIPTED_COMMAND_TRIPLE_HIT      = 3,
+        ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY          = 0x1001,
+        ACTOR_110600_SCRIPTED_EFFECT_ARGUMENT         = 0x100,
+        ACTOR_110600_SCRIPTED_EFFECT_REPEATS          = 3,
+        ACTOR_110600_SCRIPTED_TRANSITION_CUE          = 11,
+        ACTOR_110600_SCRIPTED_TRIPLE_HIT_CUE          = 4,
+        ACTOR_110600_SCRIPTED_TRANSITION_BLEND_FRAMES = 6,
+    };
+
     _Actor110600Work* work;
     Enemy*            enemy;
-    SVECTOR           vec;
-    EffectSpawnArg*   d;
+    SVECTOR           localHitOffset;
+    EffectSpawnArg*   alternateEffect;
     EffectSpawnArg*   tailEffect;
-    GfxCoord*         effectCoord;
-    GfxCoord*         effectCoord2;
-    GfxCoord*         effectCoord3;
-    u32               rng;
+    GfxCoord*         firstRootCoord;
+    GfxCoord*         alternateRootCoord;
+    GfxCoord*         tripleRootCoord;
+    u32               randomValue;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        enemy                         = arg0->spawnArg2.pointer;
+        enemy                         = task->spawnArg2.pointer;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_RESET;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lookYawTarget           = 0;
         work->lookYaw                 = 0;
-        if ((work->lastCommand.stage == GAME_STAGE_ACROPOLIS) && (work->lastCommand.area == GAME_AREA_ACROPOLIS_CAFETERIA) && (work->lastCommand.command == 6)) {
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng;
-            if ((rng >> 16) & 1) {
-                vec.vx                             = -0xE;
-                vec.vy                             = 0;
-                vec.vz                             = 0;
-                effectCoord                        = arg0->extra.tmd->coords;
-                D_actor_110600_80148698.spawnArgLo = 0x100;
-                D_actor_110600_80148698.spawnArgHi = 3;
-                D_actor_110600_80148698.coord      = effectCoord;
-                effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[9], &vec, &D_actor_110600_80148698);
+        if ((work->lastCommand.stage == GAME_STAGE_ACROPOLIS) && (work->lastCommand.area == GAME_AREA_ACROPOLIS_CAFETERIA) && (work->lastCommand.command == ACTOR_110600_SCRIPTED_COMMAND_RANDOM_HIT)) {
+            randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = randomValue;
+            if ((randomValue >> 16) & 1) {
+                localHitOffset.vx                  = -0xE;
+                localHitOffset.vy                  = 0;
+                localHitOffset.vz                  = 0;
+                firstRootCoord                     = task->extra.tmd->coords;
+                D_actor_110600_80148698.spawnArgLo = ACTOR_110600_SCRIPTED_EFFECT_ARGUMENT;
+                D_actor_110600_80148698.spawnArgHi = ACTOR_110600_SCRIPTED_EFFECT_REPEATS;
+                D_actor_110600_80148698.coord      = firstRootCoord;
+                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[9], &localHitOffset, &D_actor_110600_80148698);
             } else {
-                d             = &D_actor_110600_80148698;
-                vec.vx        = -0x19;
-                vec.vy        = 0;
-                vec.vz        = 0;
-                effectCoord2  = arg0->extra.tmd->coords;
-                d->spawnArgLo = 0x100;
-                d->spawnArgHi = 3;
-                d->coord      = effectCoord2;
-                effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[2], &vec, &D_actor_110600_80148698);
+                alternateEffect             = &D_actor_110600_80148698;
+                localHitOffset.vx           = -0x19;
+                localHitOffset.vy           = 0;
+                localHitOffset.vz           = 0;
+                alternateRootCoord          = task->extra.tmd->coords;
+                alternateEffect->spawnArgLo = ACTOR_110600_SCRIPTED_EFFECT_ARGUMENT;
+                alternateEffect->spawnArgHi = ACTOR_110600_SCRIPTED_EFFECT_REPEATS;
+                alternateEffect->coord      = alternateRootCoord;
+                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[2], &localHitOffset, &D_actor_110600_80148698);
             }
         }
     }
+    // Play the selected room clip without the hit-reaction overlay.
     work->blendActive = 0;
-    _actor110600TickAnimation(arg0);
+    _actor110600TickAnimation(task);
 
-    _actorRenderRescaleYaw(arg0->extra.tmd->coords, work->walker.scale);
+    _actorRenderRescaleYaw(task->extra.tmd->coords, work->walker.scale);
 
-    if ((work->lastCommand.stage == GAME_STAGE_ACROPOLIS) && (work->lastCommand.area == GAME_AREA_ACROPOLIS_CAFETERIA) && (work->lastCommand.command == 3) && (work->animId != 0x1E)) {
-        if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xB) {
-            D_actor_110600_80147D20[0x24][0x1E] = 6;
-            work->animId                        = 0x1E;
-            work->animRequest                   = ACTOR_110600_ANIM_REQUEST_BLEND;
+    if ((work->lastCommand.stage == GAME_STAGE_ACROPOLIS) && (work->lastCommand.area == GAME_AREA_ACROPOLIS_CAFETERIA) && (work->lastCommand.command == ACTOR_110600_SCRIPTED_COMMAND_TRIPLE_HIT) && (work->animId != ACTOR_110600_ANIM_FALL_BACK_END)) {
+        if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_110600_SCRIPTED_TRANSITION_CUE) {
+            D_actor_110600_80147D20[ACTOR_110600_ANIM_SCRIPTED_SLOT2][ACTOR_110600_ANIM_FALL_BACK_END] = ACTOR_110600_SCRIPTED_TRANSITION_BLEND_FRAMES;
+            work->animId                                                                               = ACTOR_110600_ANIM_FALL_BACK_END;
+            work->animRequest                                                                          = ACTOR_110600_ANIM_REQUEST_BLEND;
         }
-        if (work->animId != 0x1E) {
-            if (((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 4) && (work->lastCueIndex != (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
-                vec                    = D_actor_110600_80131F1C;
+        if (work->animId != ACTOR_110600_ANIM_FALL_BACK_END) {
+            if (((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_110600_SCRIPTED_TRIPLE_HIT_CUE) && (work->lastCueIndex != (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
+                localHitOffset         = D_actor_110600_80131F1C;
                 tailEffect             = &D_actor_110600_80148698;
-                effectCoord3           = arg0->extra.tmd->coords;
-                tailEffect->spawnArgLo = 0x100;
-                tailEffect->spawnArgHi = 3;
-                tailEffect->coord      = effectCoord3;
-                effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
-                effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
-                effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
+                tripleRootCoord        = task->extra.tmd->coords;
+                tailEffect->spawnArgLo = ACTOR_110600_SCRIPTED_EFFECT_ARGUMENT;
+                tailEffect->spawnArgHi = ACTOR_110600_SCRIPTED_EFFECT_REPEATS;
+                tailEffect->coord      = tripleRootCoord;
+                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &D_actor_110600_80148698);
+                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &D_actor_110600_80148698);
+                effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_110600_SCRIPTED_HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &D_actor_110600_80148698);
             }
         }
     }
@@ -3391,7 +3296,7 @@ static void _actor110600EnrageState(Task* task)
 /// The actor's state handlers, indexed by `_Actor110600Work::state`. splat
 /// migrates the table into the `.s` of the function that reads it, so it is
 /// written out here to keep the block in the unit's `.rodata` now that
-/// `func_actor_110600_80137F2C` is decompiled.
+/// `_actor110600Update` is decompiled.
 static const _Actor110600StateTable D_actor_110600_80131F3C = { {
     _actor110600HiddenState,
     NULL,
@@ -3406,11 +3311,11 @@ static const _Actor110600StateTable D_actor_110600_80131F3C = { {
     _actor110600RiseState,
     _actor110600DownState,
     _actor110600DeathBurnState,
-    func_actor_110600_80136ECC,
+    _actor110600DeathBurstState,
     _actor110600StatusHoldState,
     NULL,
     NULL,
-    func_actor_110600_801372CC,
+    _actor110600ScriptedState,
     NULL,
     _actor110600DeathThrashState,
     _actor110600LurkState,
@@ -3420,104 +3325,101 @@ static const _Actor110600StateTable D_actor_110600_80131F3C = { {
     _actor110600EnrageState,
 } };
 
-/// The actor's enemy tick, the middle entry of the `D_actor_110600_80131FA0`
-/// triple `_actor110600Spawn` / this / `enemyDestroy`: copies
-/// `D_actor_110600_80131F3C` onto its frame, rebuilds the model root's
-/// coordinate and hands its translation to `worldCoordUpdateActorColor`, then switches
-/// on `gSceneCombatState.actorControl`.
-///
-/// Modes 1 and 2 skip the state handler entirely — each clears the three
-/// `WorldCollisionContact` tables and returns, mode 2 stamping `field_C` to 0x80 for the
-/// hidden pose first, and mode 1 drawing the ground quad on the way unless the
-/// model sits in the death or hit pose. Mode 0 draws the quad the same way with
-/// `field_C` zeroed and then falls through.
-///
-/// The fall-through stages the model root's translation into the `gridBody`
-/// display node, runs the handler `state` selects out of the stack copy,
-/// restages the same three halfwords with Y dropped by 0x124 for the pose it
-/// just advanced into, and gives the enemy 1 HP back once the remaining-enemy
-/// count has run out. The tail clears the three tables again, marks the root
-/// clean, shifts the colour matrix's translation down by the shrink `enrageTint`
-/// — the matrix state 12 scales — and keeps `hitBody` out of the ground
-/// effect's way by clearing bit 0x8000 while the actor is in a death or hit
-/// pose.
-static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
+/// Clears this tick's grid, received-hit and outgoing-attack contacts in order.
+static inline void _actor110600ClearTickContacts(_Actor110600Work* work)
 {
-    VECTOR                 pos;
+    worldCollisionClearContacts(work->gridContacts);
+    worldCollisionClearContacts(work->hitContacts);
+    worldCollisionClearContacts(work->attackContacts);
+}
+
+/// Updates the Boss Stranger state, collision pose, damage and lighting each tick.
+///
+/// Requires live enemy/work/model and a valid non-NULL state-table entry.
+/// Paused or hidden actor control clears all three contact tables and returns;
+/// paused actors can still draw the shadow. Running updates publish entry state,
+/// dispatch the selected handler, then stage the grid point 292 parent units
+/// below the root. Damage, contact clearing, root recomposition and enrage tint
+/// follow. A dead enemy is given 1 HP while the player is also dead. Hit contact
+/// is disabled for hidden and death states. The shadow half-size is 640 units.
+static void _actor110600Update(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_110600_SHADOW_HALF_SIZE   = 640,
+        ACTOR_110600_GRID_POSE_Y_OFFSET = 292,
+    };
+
+    VECTOR                 lightingPosition;
     _Actor110600StateTable states;
     _Actor110600Work*      work;
 
-    work   = arg1->work;
+    work   = task->work;
     states = D_actor_110600_80131F3C;
 
-    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(arg1->extra.tmd->coords);
-    pos.vx = arg1->extra.tmd->coords->workm.t[0];
-    pos.vy = arg1->extra.tmd->coords->workm.t[1];
-    pos.vz = arg1->extra.tmd->coords->workm.t[2];
-    worldCoordUpdateActorColor(arg0, &pos, 0, 0);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(task->extra.tmd->coords);
+    lightingPosition.vx = task->extra.tmd->coords->workm.t[0];
+    lightingPosition.vy = task->extra.tmd->coords->workm.t[1];
+    lightingPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &lightingPosition, 0, 0);
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if ((work->state != ACTOR_110600_STATE_HIDDEN) && (work->state != ACTOR_110600_STATE_DEATH_BURN)) {
-                arg1->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x280, gRoomEffectState->groundShadowShade);
+                task->extra.tmd->flags = 0;
+                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_110600_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             if ((work->state != ACTOR_110600_STATE_DEATH_BURN) && (work->state != ACTOR_110600_STATE_HIDDEN)) {
-                effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x280, gRoomEffectState->groundShadowShade);
+                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_110600_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
-            worldCollisionClearContacts(work->gridContacts);
-            worldCollisionClearContacts(work->hitContacts);
-            worldCollisionClearContacts(work->attackContacts);
+            _actor110600ClearTickContacts(work);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            worldCollisionClearContacts(work->gridContacts);
-            worldCollisionClearContacts(work->hitContacts);
-            worldCollisionClearContacts(work->attackContacts);
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            _actor110600ClearTickContacts(work);
             return;
     }
 
+    // Publish state entry and the pre-step grid position before dispatch.
     if (work->prevState != work->state) {
         work->stateEntered = 1;
     } else {
         work->stateEntered = 0;
     }
-    work->prevState = (u16)work->state;
+    work->prevState = work->state;
 
-    work->gridBody.pos.vx = (u16)arg1->extra.tmd->coords->coord.t[0];
-    work->gridBody.pos.vy = (u16)arg1->extra.tmd->coords->coord.t[1];
-    work->gridBody.pos.vz = (u16)arg1->extra.tmd->coords->coord.t[2];
-    states.handlers[work->state](arg1);
-    work->gridBody.pos.vx = (u16)arg1->extra.tmd->coords->coord.t[0];
-    work->gridBody.pos.vy = (u16)((u16)arg1->extra.tmd->coords->coord.t[1] - 0x124);
-    work->gridBody.pos.vz = (u16)arg1->extra.tmd->coords->coord.t[2];
+    work->gridBody.pos.vx = (u16)task->extra.tmd->coords->coord.t[0];
+    work->gridBody.pos.vy = (u16)task->extra.tmd->coords->coord.t[1];
+    work->gridBody.pos.vz = (u16)task->extra.tmd->coords->coord.t[2];
+    states.handlers[work->state](task);
+    work->gridBody.pos.vx = (u16)task->extra.tmd->coords->coord.t[0];
+    work->gridBody.pos.vy = (u16)((u16)task->extra.tmd->coords->coord.t[1] - ACTOR_110600_GRID_POSE_Y_OFFSET);
+    work->gridBody.pos.vz = (u16)task->extra.tmd->coords->coord.t[2];
 
-    if (arg0->hp > 0) {
+    // Apply damage after the pose update, then discard this tick's contacts.
+    if (enemy->hp > 0) {
         if (work->hitCooldown > 0) {
-            work->hitCooldown = (s16)((u16)work->hitCooldown - 1);
+            work->hitCooldown--;
         } else {
-            _actor110600ApplyDamage(arg1);
+            _actor110600ApplyDamage(task);
         }
     }
-    if ((arg0->hp <= 0) && (gPlayerStatus.hp <= 0)) {
-        arg0->hp = 1;
+    if ((enemy->hp <= 0) && (gPlayerStatus.hp <= 0)) {
+        enemy->hp = 1;
     }
-    worldCollisionClearContacts(work->gridContacts);
-    worldCollisionClearContacts(work->hitContacts);
-    worldCollisionClearContacts(work->attackContacts);
+    _actor110600ClearTickContacts(work);
     if (gGameSession->viewReady != 0) {
-        arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (arg1->extra.tmd->coords->composeStamp == GRAPHICS_COORD_DIRTY) {
+    if (task->extra.tmd->coords->composeStamp == GRAPHICS_COORD_DIRTY) {
         work->rootDirty = 1;
     } else {
         work->rootDirty = 0;
     }
-    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(arg1->extra.tmd->coords);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(task->extra.tmd->coords);
     work->colorMtx.t[1] -= work->enrageTint;
     work->colorMtx.t[2] -= work->enrageTint;
     work->colorMtx.t[0] -= (work->enrageTint * 2) / 3;
@@ -3540,7 +3442,7 @@ static void _actor110600IgnoreMessage2015(Task* task, s32 messageId, s32 firstAr
 /// that `_actor110600Task` dispatches through by `Task::state`.
 static const EnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
     _actor110600Spawn,
-    func_actor_110600_80137F2C,
+    _actor110600Update,
     enemyDestroy,
 };
 
@@ -3772,29 +3674,14 @@ static void _actor110600HiddenState(Task* task)
     }
 }
 
-static s32 func_actor_110600_80138900(void)
+/// Advances the overlay-wide five-tick vertical footstep shake and reports completion.
+///
+/// Cycles the shared counter through 1..4 then 0, alternating shake 1/0 and
+/// leaving it at 0 on completion. Returns 1 on wrap, otherwise 0. This retained
+/// standalone entry has no recovered callers; the chase uses the inline step.
+static s32 _actor110600StepFootstepShake(void)
 {
-    s16* p;
-    s16  next;
-    s32  cur;
-
-    p    = &D_actor_110600_8014865C;
-    next = (u16)*p + 1;
-    *p   = next;
-    if (next == 5) {
-        *p = 0;
-    }
-    cur = (u16)*p;
-    if ((cur & 1) == 0) {
-        displaySetShakeY(0);
-    } else {
-        displaySetShakeY(1);
-    }
-    if (D_actor_110600_8014865C != 0) {
-        return 0;
-    }
-    displaySetShakeY(0);
-    return 1;
+    return _actor110600TickFootstepShake();
 }
 
 /// Plays the forward fall while edging ahead, then selects DOWN or DEATH_BURN.

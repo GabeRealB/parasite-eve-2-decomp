@@ -179,3 +179,4 @@ _actor120400KyleMadiganHandTask = 0x8013254c; // type:func
 _actor120400KyleMadiganWalkerTask = 0x80132748; // type:func
 _actor120400SetKyleMadiganDrawMode = 0x80132c38; // type:func
 _actor120400IgnoreKyleMadiganCommand = 0x80132d14; // type:func
+_actor120400SpawnKyleMadiganWalker = 0x80131e5c; // type:func

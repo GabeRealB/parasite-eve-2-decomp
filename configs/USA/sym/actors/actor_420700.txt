@@ -197,3 +197,5 @@ _actor420700ShotgunTask = 0x801327ec; // type:func
 _actor420700HandleAnimationMessage = 0x80132644; // type:func
 _actor420700HandleModelDrawMessage = 0x801326f4; // type:func
 _actor420700HandleHeadTurnCommand = 0x80132784; // type:func
+_actor420700Spawn = 0x80131e24; // type:func
+_actor420700GaryDouglasTask = 0x80132340; // type:func

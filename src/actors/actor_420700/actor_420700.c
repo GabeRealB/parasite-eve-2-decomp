@@ -80,7 +80,7 @@ STATIC_ASSERT_SIZEOF(_Actor420700Work, 0x5A0);
 static _Actor420700Work* _gScriptedWalkWork;
 
 /// The actor's own task, the `task` the state-0 handler
-/// `func_actor_420700_80131E24` is entered with. Its `Task::extra` holds the
+/// `_actor420700Spawn` is entered with. Its `Task::extra` holds the
 /// `TmdObject` whose trailing coordinate array `_actor420700HeadHatTask`
 /// hangs the model task's own root off, at frame 4.
 extern Task* D_actor_420700_8013EFE4;
@@ -114,7 +114,7 @@ extern s32              D_actor_420700_8013EFF4;
 static TmdSource _gActor420700GaryDouglasBody;
 static TmdSource _gActor420700GaryDouglasHeadHat;
 static TmdSource _gActor420700GaryDouglasShotgun;
-void             func_actor_420700_80132340(Task*);
+static void      _actor420700GaryDouglasTask(Task* task);
 static void      _actor420700HeadHatTask(Task* task);
 static void      _actor420700ShotgunTask(Task* task);
 
@@ -945,7 +945,7 @@ TaskMessageEntry D_actor_420700_8013EF48[4] = {
 };
 
 TaskDesc D_actor_420700_8013EF68[3] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_420700_80132340, { .model = &_gActor420700GaryDouglasBody } },
+    { { { TASK_BODY_TMD, 192 } }, _actor420700GaryDouglasTask, { .model = &_gActor420700GaryDouglasBody } },
     { { { TASK_BODY_TMD, 192 } }, _actor420700HeadHatTask, { .model = &_gActor420700GaryDouglasHeadHat } },
     { { { TASK_BODY_TMD, 192 } }, _actor420700ShotgunTask, { .model = &_gActor420700GaryDouglasShotgun } },
 };
@@ -1047,23 +1047,36 @@ s32 D_actor_420700_8013EFF0;
 
 s32 D_actor_420700_8013EFF4;
 
-static void func_actor_420700_80131E24(Enemy* enemy, Task* task);
+static void _actor420700Spawn(Enemy* enemy, Task* task);
 static void _actor420700Update(Enemy* enemy, Task* task);
 
-/// Step 0 of the `func_actor_420700_80132340` dispatcher: allocate and publish the
-/// work block, spawn the two model tasks, texture the first from the placement
-/// the actor was spawned from, then seed the model's matrices and animation
-/// context before running the first step body.
-static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
+/// Initializes Gary Douglas's singleton body, head-and-hat and shotgun tasks.
+///
+/// Requires a live enemy/body model and current area placement. Publishes the
+/// zeroed work allocation; allocation failure destroys the enemy task. On
+/// success installs teardown, view-parents the body and disables targeting,
+/// then spawns both attachment tasks. The first child must exist for texture
+/// binding; no failure guard is present. Binds borrowed matrices and the loaded
+/// 21-entry animation bank, samples three lights at cached root view-space XYZ
+/// with Y reduced by 800, starts clip 5, installs messages and advances state.
+static void _actor420700Spawn(Enemy* enemy, Task* task)
 {
-    VECTOR            vec;
-    GfxCoord*         coord;
-    TmdObject*        obj;
+    enum {
+        ACTOR_420700_SPAWN_HEAD_HAT_TASK = 1,
+        ACTOR_420700_SPAWN_SHOTGUN_TASK  = 2,
+        ACTOR_420700_SPAWN_IDLE_CLIP     = 5,
+        ACTOR_420700_SPAWN_OT_OFFSET     = 1,
+        ACTOR_420700_SPAWN_LIGHT_COUNT   = 3,
+    };
+
+    VECTOR            lightingPosition;
+    GfxCoord*         rootCoord;
+    TmdObject*        bodyModel;
     _Actor420700Work* work;
 
-    obj                = task->extra.tmd;
-    coord              = obj->coords;
-    work               = memCalloc(sizeof(_Actor420700Work), 0);
+    bodyModel          = task->extra.tmd;
+    rootCoord          = bodyModel->coords;
+    work               = memCalloc(sizeof(_Actor420700Work), false);
     _gScriptedWalkWork = work;
     task->work         = work;
     if (work == NULL) {
@@ -1071,28 +1084,29 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
         return;
     }
     task->exitCallback               = _actor420700Exit;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->flags                       = 0;
-    D_actor_420700_8013EFE4          = task;
-    D_actor_420700_8013EFE8          = taskSpawnFromTable(D_actor_420700_8013EF68, 1, 0, 0);
-    D_actor_420700_8013EFEC          = taskSpawnFromTable(D_actor_420700_8013EF68, 2, 0, 0);
+    bodyModel->otOffset              = ACTOR_420700_SPAWN_OT_OFFSET;
+    bodyModel->flags                 = 0;
+    // The head-and-hat must spawn successfully before its texture binding.
+    D_actor_420700_8013EFE4 = task;
+    D_actor_420700_8013EFE8 = taskSpawnFromTable(D_actor_420700_8013EF68, ACTOR_420700_SPAWN_HEAD_HAT_TASK, 0, NULL);
+    D_actor_420700_8013EFEC = taskSpawnFromTable(D_actor_420700_8013EF68, ACTOR_420700_SPAWN_SHOTGUN_TASK, 0, NULL);
     _actorRenderApplyTaskPlacementTextureOffsets(D_actor_420700_8013EFE8, enemy);
-    obj->lightMtx           = &_gScriptedWalkWork->light;
-    obj->colorMtx           = &_gScriptedWalkWork->color;
+    bodyModel->lightMtx     = &_gScriptedWalkWork->light;
+    bodyModel->colorMtx     = &_gScriptedWalkWork->color;
     D_actor_420700_8013EFF0 = 0;
-    vec.vx                  = coord->workm.t[0];
-    vec.vy                  = coord->workm.t[1] - 0x320;
-    D_actor_420700_8013EFF4 = 0x96;
-    vec.vz                  = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&_gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_420700_8013EF8C, obj,
+    lightingPosition.vx     = rootCoord->workm.t[0];
+    lightingPosition.vy     = rootCoord->workm.t[1] + ACTOR_420700_LIGHTING_Y_OFFSET;
+    D_actor_420700_8013EFF4 = 150; // No reader is recovered; the stored value's role is unproven.
+    lightingPosition.vz     = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(bodyModel, &lightingPosition, 0, ACTOR_420700_SPAWN_LIGHT_COUNT);
+    animationInitContext(&_gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_420700_8013EF8C, bodyModel,
                          _gScriptedWalkWork->rig.poses, _gScriptedWalkWork->rig.slots);
-    _gScriptedWalkWork->st.animId = 5;
+    _gScriptedWalkWork->st.animId = ACTOR_420700_SPAWN_IDLE_CLIP;
     _gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable                = D_actor_420700_8013EF48;
     _actor420700UpdateAnimation(task);
@@ -1191,20 +1205,21 @@ static void _actor420700Update(Enemy* enemy, Task* task)
     }
 }
 
-/// Task handler of the actor: republishes the task's work block in
-/// `_gScriptedWalkWork`, so the rest of the overlay can reach it without
-/// the task, then runs the handler for the task's state from a two-entry table
-/// built on the stack -- the spawn step `func_actor_420700_80131E24` or the
-/// per-frame step `_actor420700Update`.
-void func_actor_420700_80132340(Task* task)
+/// Dispatches Gary Douglas's spawn or per-frame update and publishes his work.
+///
+/// Task state must be 0 (spawn) or 1 (update), with a live TMD body and enemy
+/// spawn argument. Publishes the current task work before dispatch; the spawn
+/// handler replaces it after allocation. The published block is borrowed until
+/// actor teardown. The package's body descriptor is this entry's only consumer.
+static void _actor420700GaryDouglasTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
-        func_actor_420700_80131E24,
+    EnemyTaskFunc stateHandlers[2] = {
+        _actor420700Spawn,
         _actor420700Update,
     };
 
     _gScriptedWalkWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Releases the head-and-hat attachment, enemy record and body task at actor exit.

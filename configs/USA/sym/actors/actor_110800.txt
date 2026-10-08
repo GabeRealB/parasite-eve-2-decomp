@@ -52,3 +52,4 @@ _viewFigureExit = 0x8013232C; // type:func
 _viewFigureTickAnim = 0x801323DC; // type:func
 _actor110800AttachModelTask = 0x801322fc; // type:func
 _actor110800UpdateViewFigure = 0x80131f9c; // type:func
+_actor110800ViewFigureTask = 0x801322a0; // type:func

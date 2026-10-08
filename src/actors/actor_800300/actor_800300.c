@@ -1233,7 +1233,9 @@ static void _actor800300IdleDecisionState(Task* task)
 
 /// Starts run movement and the approach clip with a fresh phase timer.
 ///
-/// Requires the task's live GameActor work and native animation bindings.
+/// `actor` must be the task's live GameActor work. Native set 12 is blended
+/// over five normal-rate frames into the non-root slots at the actor's rate;
+/// the playback bank and pose storage must remain live.
 static inline void _actor800300StartApproach(Task* task, GameActor* actor)
 {
     enum {

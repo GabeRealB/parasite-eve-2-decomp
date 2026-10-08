@@ -37,3 +37,4 @@ acropolisSquareStartSirenSequence = 0x80182360; // type:func absolute:True owner
 _actorRenderYawJointInWorld = 0x80131E40; // type:func
 _actor111800RunSequence = 0x8013214c; // type:func
 _actor111800InitBody = 0x80132390; // type:func
+_actor111800GrinningStrangerTask = 0x8013251c; // type:func

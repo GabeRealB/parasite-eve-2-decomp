@@ -182,3 +182,7 @@ _actor110600StatusHoldState = 0x80138d7c; // type:func
 _actor110600Task = 0x80138ea8; // type:func
 _actor110600ApplyDamage = 0x80136210; // type:func
 _actor110600DeathBurnState = 0x80136b20; // type:func
+_actor110600DeathBurstState = 0x80136ecc; // type:func
+_actor110600ScriptedState = 0x801372cc; // type:func
+_actor110600Update = 0x80137f2c; // type:func
+_actor110600StepFootstepShake = 0x80138900; // type:func
