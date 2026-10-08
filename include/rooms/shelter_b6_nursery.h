@@ -40,7 +40,13 @@ extern WorldCoordRoomAmbientEntry D_shelter_b6_nursery_8018789C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b6_nursery_80187958[];
 
-void func_shelter_b6_nursery_8017FF9C(Task* task);
+/// Dispatches the nursery room task's initialization, idle or release state.
+///
+/// Requires this overlay and `task->state` in 0..2. Initialization installs
+/// room messages, registers the room task, restores companion HP and starts
+/// the entry script selected by nursery progress. State 1 waits for messages;
+/// state 2 releases the task. Dispatch uses a copy of the three-entry table.
+void shelterB6NurseryRoomTask(Task* task);
 
 void func_shelter_b6_nursery_8017FFF4(void);
 
@@ -70,9 +76,29 @@ void shelterB6NurserySparkShowerShardTask(Task* task);
 /// loaded until the cues are consumed; (0, 0) clears any pending cues.
 void shelterB6NurserySetEffectCues(s32 fastGlintPulse, s32 sparkShowerScale);
 
-void func_shelter_b6_nursery_801800A0(Task* task);
+/// Draws the nursery's view glints and spawns its debris, particles and cued shower.
+///
+/// Requires the nursery overlay, active view, room-effect state and effect
+/// resources. Initialization publishes the nursery flash/trail/burst IDs and
+/// clears both effect cues. View 12 spawns three chunks once; view 13 enables
+/// ongoing particles at two anchors, including after leaving that view.
+/// A shower cue in view 13 spawns sixteen shards and then clears both cues.
+/// Particle emission uses alternate animation frames. This controller does
+/// not inspect room-effect control or release itself; children own their work.
+void shelterB6NurseryViewEffectsTask(Task* task);
 
-void func_shelter_b6_nursery_80181314(Task* task);
+/// Tumbles and bounces one nursery debris model while emitting trail particles.
+///
+/// Requires a TMD body and counted, owned `EffectWork` in `spawnArg2.pointer`.
+/// Initialization enables model drawing, seeds a Q12 direction and speed
+/// 64..127 coordinate units per active frame, and stores Euler increments in
+/// `work->pos` at 4096 units per turn. Collision mixes the room-space normal
+/// into that direction and reduces speed to two thirds; a missed collision
+/// adds 384 to its signed-halfword Y direction. Trail particles spawn on odd
+/// active ages and switch texture strips after age 64. Control 2..3 pauses;
+/// control 4 or above or leaving mapped view 12 releases the work. There is
+/// no age-based release, and the signed-halfword age retains its wrap.
+void shelterB6NurseryDebrisChunkTask(Task* task);
 
 /// Animates one nursery particle through a ten-frame or eight-frame texture strip.
 ///
@@ -107,8 +133,22 @@ void shelterB6NurseryRoomVisualEffectsFlashTask(Task* task);
 /// for retry. Teardown releases both allocations.
 void shelterB6NurseryRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b6_nursery_80184074(Task* task);
+/// Runs the nursery's impact flash with smoke or fading rings and bouncing sparks.
+///
+/// Requires a coordinate body and counted, zero-aged `EffectWork` in
+/// `spawnArg2.pointer`. Nonzero `spawnArg1.value` selects smoke; zero selects
+/// rings and sparks. Enters release at active age 7 and frees work on the next
+/// active tick. Nonzero room control below 4 pauses; 4 or above cancels.
+/// Spawned effects are independent tasks and keep their own lifetimes.
+void shelterB6NurseryRoomVisualEffectsSparkBurstTask(Task* task);
 
-void func_shelter_b6_nursery_8017EAC4(Task* task);
+/// Runs the nursery telephone's save menu and optional statistics panels.
+///
+/// Requires a live telephone `UiObject` in `task->spawnArg2.pointer` and this
+/// overlay to stay loaded. Normal uncleared play opens saving directly; a
+/// cleared game or attract-demo scene 1 enables the four-row menu. Save results
+/// open a saved/cancelled notice; dismissal returns to the menu or closes the
+/// save-only telephone. Cancel publishes the No result and clears UI-open state.
+void shelterB6NurseryTelephoneMenuTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B6_NURSERY_H

@@ -194,7 +194,7 @@ D_neo_ark_shrine_80182814 = 0x80182814; // absolute:True owner=neo_ark_shrine sh
 D_neo_ark_shrine_801836BC = 0x801836BC; // absolute:True owner=neo_ark_shrine
 D_neo_ark_shrine_80185280 = 0x80185280; // absolute:True owner=neo_ark_shrine
 D_neo_ark_shrine_80186844 = 0x80186844; // absolute:True owner=neo_ark_shrine shared=rooms
-func_shelter_b6_nursery_8017FF9C = 0x8017FF9C; // type:func absolute:True owner=shelter_b6_nursery
+shelterB6NurseryRoomTask = 0x8017FF9C; // type:func absolute:True owner=shelter_b6_nursery
 D_shelter_b6_nursery_80185304 = 0x80185304; // absolute:True owner=shelter_b6_nursery shared=rooms
 D_shelter_b6_nursery_80185308 = 0x80185308; // absolute:True owner=shelter_b6_nursery
 D_shelter_b6_nursery_8018530C = 0x8018530C; // absolute:True owner=shelter_b6_nursery

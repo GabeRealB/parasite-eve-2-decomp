@@ -111,7 +111,7 @@ static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
     {
         func_dryfield_night_motel_lobby_80180E98,
         _dryfieldNightMotelLobbyCashRegisterArmCursor,
-        func_dryfield_night_motel_lobby_8017FE90,
+        dryfieldNightMotelLobbyCashRegisterScanTask,
         _dryfieldNightMotelLobbyCashRegisterOpenPrompt,
         func_dryfield_night_motel_lobby_8018103C,
         _actionPromptEventEnd,

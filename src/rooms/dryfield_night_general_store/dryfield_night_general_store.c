@@ -45,10 +45,10 @@ extern TaskDesc gStoreTaskDescs[];
 extern TaskMessageEntry D_dryfield_night_general_store_8017E7BC[];
 
 static void func_dryfield_night_general_store_8017DE34(Task* arg0);
-static void func_dryfield_night_general_store_8017DE80(Task* task);
+static void _dryfieldNightGeneralStoreRoomIdle(Task* unusedTask);
 
 static s32 _dryfieldNightGeneralStoreRejectKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
-s32        func_dryfield_night_general_store_8017DE2C(Task*, s32, s32, s32);
+static s32 _dryfieldNightGeneralStoreIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -61,7 +61,7 @@ TaskDesc gStoreTaskDescs[3] = {
 TaskMessageEntry D_dryfield_night_general_store_8017E7BC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightGeneralStoreRejectKeyItem },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_general_store_8017DE2C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightGeneralStoreIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, storeActionMsg },
     { ROOM_MESSAGE_SOUND, _generalStoreSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -78,9 +78,9 @@ TaskMessageEntry D_dryfield_night_general_store_8017E7BC[6] = {
 /// The room task's three-state table, run from a stack copy by
 /// `func_dryfield_night_general_store_8017DE88`: the entry state
 /// `func_dryfield_night_general_store_8017DE34`, the idle state
-/// `func_dryfield_night_general_store_8017DE80`, then `taskKill`.
+/// `_dryfieldNightGeneralStoreRoomIdle`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_general_store_8017D5F4 = {
-    { func_dryfield_night_general_store_8017DE34, func_dryfield_night_general_store_8017DE80, taskKill },
+    { func_dryfield_night_general_store_8017DE34, _dryfieldNightGeneralStoreRoomIdle, taskKill },
 };
 
 #include "../../shared/general_store_toggle_task.inc.c"
@@ -99,9 +99,11 @@ static s32 _dryfieldNightGeneralStoreRejectKeyItem(Task* unusedTask, s32 unusedM
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Message handler that takes no action and reports the message as not
-/// handled.
-s32 func_dryfield_night_general_store_8017DE2C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores the General Store's direction-action requests and returns zero.
+///
+/// The first payload is a borrowed `DirectionActionRequest`, left unread;
+/// all four arguments are ignored and no room event is started.
+static s32 _dryfieldNightGeneralStoreIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -117,8 +119,8 @@ static void func_dryfield_night_general_store_8017DE34(Task* arg0)
     D_80115598  = 1;
 }
 
-/// Idle state of the room task: does nothing.
-static void func_dryfield_night_general_store_8017DE80(Task* task)
+/// Keeps the General Store room task alive to receive messages.
+static void _dryfieldNightGeneralStoreRoomIdle(Task* unusedTask)
 {
 }
 

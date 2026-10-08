@@ -1315,6 +1315,11 @@ void func_shelter_r47_8018138C(Task* task)
 }
 
 /// Latches a confirmed console hotspot and advances to its command prompt.
+///
+/// Borrows live task, console work and cursor records and a non-terminator
+/// hotspot. Hides and stops the cursor, copies its choice and prompt kind,
+/// and selects state 4. The caller has already tested and confirmed the hit;
+/// this helper retains no pointer to the hotspot.
 static inline void _shelterR47ConsoleAcceptHotspot(Task* task, ShelterR47ConsoleWork* work, ActionPrompt* prompt, const ActionPromptHotspot* hotspot)
 {
     enum { SHELTER_R47_CONSOLE_STATE_OPEN_COMMANDS = 4 };

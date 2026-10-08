@@ -872,7 +872,7 @@ _ShelterB6NurseryEffectCues D_shelter_b6_nursery_801879F0;
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-void func_shelter_b6_nursery_8017EAC4(Task* task)
+void shelterB6NurseryTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }
@@ -884,7 +884,7 @@ void func_shelter_b6_nursery_8017EAC4(Task* task)
 #include "../../shared/room_cutscene_task.inc.c"
 
 /// States of the room's message task, run by
-/// `func_shelter_b6_nursery_8017FF9C`: install the message table, idle, die.
+/// `shelterB6NurseryRoomTask`: install the message table, idle, die.
 static const TaskFuncTable3 D_shelter_b6_nursery_8017D6A4 = {
     {
         func_shelter_b6_nursery_8017FEC4,
@@ -937,8 +937,10 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 /// Refreshes the nursery's fixed sound origin through the current view.
 ///
-/// Sets room coordinates (6000, 0, -830), borrows the live view parent and
-/// composes its local-to-view matrix for the spatial pan and depth queries.
+/// Replaces the persistent origin's translation with room-coordinate units
+/// (6000, 0, -830), attaches it to the live view and refreshes its composed
+/// matrix for the spatial pan and depth queries. Leaves its stored basis
+/// unchanged; the current view and composition pass must be initialized.
 static inline void _shelterB6NurseryComposeAmbienceOrigin(void)
 {
     D_shelter_b6_nursery_801879A0.coord.t[0]   = 6000;
@@ -1065,14 +1067,12 @@ static void _shelterB6NurseryMessageIdle(Task* task)
     char unusedStackFrame[0x10];
 }
 
-/// Runs the room's message task: calls the state handler `task->state` selects
-/// from a stack copy of its three-entry table.
-void func_shelter_b6_nursery_8017FF9C(Task* task)
+void shelterB6NurseryRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b6_nursery_8017D6A4;
-    sp.funcs[task->state](task);
+    states = D_shelter_b6_nursery_8017D6A4;
+    states.funcs[task->state](task);
 }
 
 void func_shelter_b6_nursery_8017FFF4(void)
@@ -1101,60 +1101,75 @@ void shelterB6NurserySetView13SpriteHidden(u8 hidden)
     }
 }
 
-void func_shelter_b6_nursery_801800A0(Task* task)
+void shelterB6NurseryViewEffectsTask(Task* task)
 {
-    SVECTOR* pos;
-    u32      a;
-    u32      b;
-    s32      angle;
-    s32      r;
-    s32      i;
+    enum { VIEW_EFFECT_INITIALIZE,
+           VIEW_EFFECT_WAIT_DEBRIS,
+           VIEW_EFFECT_DEBRIS_SPAWNED,
+           VIEW_EFFECT_SHOWER_ANCHORS_ACTIVE,
+           GLINT_PULSE_IDLE         = 0x60,
+           GLINT_PULSE_CUED         = 0x180,
+           GLINT_RADIUS_SCALE       = 0x80,
+           SPARK_SHOWER_SHARD_COUNT = 16,
+           SPARK_SHOWER_Q12_SHIFT   = 12,
+           // Scatter, speed 48, period 3..4, half-diagonal 768..1279.
+           AMBIENT_PARTICLE_SPAWN_BASE  = 0x02303300,
+           AMBIENT_PARTICLE_RANDOM_MASK = 0x11FF };
 
-    if (task->state == 0) {
+    SVECTOR* glintPoint;
+    u32      angleRandom;
+    u32      spreadRandom;
+    s32      angle;
+    s32      spread;
+    s32      shardIndex;
+
+    if (task->state == VIEW_EFFECT_INITIALIZE) {
         gRoomEffectFlashId                             = EFFECT_SHELTER_B6_NURSERY_FLASH;
         gRoomEffectTwinTrailId                         = EFFECT_SHELTER_B6_NURSERY_TWIN_TRAIL;
         gRoomEffectSparkBurstId                        = EFFECT_SHELTER_B6_NURSERY_SPARK_BURST;
         D_shelter_b6_nursery_801879F0.fastGlintPulse   = 0;
         D_shelter_b6_nursery_801879F0.sparkShowerScale = 0;
-        task->state                                    = 1;
+        task->state                                    = VIEW_EFFECT_WAIT_DEBRIS;
     }
     switch (viewGetMappedIndex() & 0xFF) {
         case 3:
         case 8:
             if (D_shelter_b6_nursery_801879F0.fastGlintPulse != 0) {
-                _glowDrawDiamond(D_shelter_b6_nursery_8018504C, 0x180, 0x80);
+                _glowDrawDiamond(D_shelter_b6_nursery_8018504C, GLINT_PULSE_CUED, GLINT_RADIUS_SCALE);
             } else {
-                _glowDrawDiamond(D_shelter_b6_nursery_8018504C, 0x60, 0x80);
+                _glowDrawDiamond(D_shelter_b6_nursery_8018504C, GLINT_PULSE_IDLE, GLINT_RADIUS_SCALE);
             }
             break;
         case 6:
         case 10:
             if (D_shelter_b6_nursery_801879F0.fastGlintPulse != 0) {
-                _glowDrawPulsingDisc(D_shelter_b6_nursery_8018504C, 0x180, 0x80);
+                _glowDrawPulsingDisc(D_shelter_b6_nursery_8018504C, GLINT_PULSE_CUED, GLINT_RADIUS_SCALE);
             } else {
-                _glowDrawPulsingDisc(D_shelter_b6_nursery_8018504C, 0x60, 0x80);
+                _glowDrawPulsingDisc(D_shelter_b6_nursery_8018504C, GLINT_PULSE_IDLE, GLINT_RADIUS_SCALE);
             }
             break;
         case 12:
-            if (task->state == 1) {
+            // Spawn the three independent model chunks once before the shower phase.
+            if (task->state == VIEW_EFFECT_WAIT_DEBRIS) {
                 effectSpawn(EFFECT_SHELTER_B6_NURSERY_DEBRIS_CHUNK, NULL, task->spawnArg1.value, &D_shelter_b6_nursery_8018504C[1]);
                 effectSpawn(EFFECT_SHELTER_B6_NURSERY_DEBRIS_CHUNK, NULL, task->spawnArg1.value, &D_shelter_b6_nursery_8018504C[1]);
                 effectSpawn(EFFECT_SHELTER_B6_NURSERY_DEBRIS_CHUNK, NULL, task->spawnArg1.value, &D_shelter_b6_nursery_8018504C[1]);
-                task->state = 2;
+                task->state = VIEW_EFFECT_DEBRIS_SPAWNED;
             }
             break;
         case 13:
-            task->state = 3;
+            task->state = VIEW_EFFECT_SHOWER_ANCHORS_ACTIVE;
             if (D_shelter_b6_nursery_801879F0.sparkShowerScale != 0) {
-                for (i = 0; i < 16; i++) {
-                    a                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    b                                   = a * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    angle                               = (a >> 16) & 0xFFF;
-                    gRandomLcgState                     = b;
-                    r                                   = ((b >> 16) & 0xFF) * D_shelter_b6_nursery_801879F0.sparkShowerScale;
+                // Consume one cue as sixteen scaled shards; retain the identical Y/Z sine offsets.
+                for (shardIndex = 0; shardIndex < SPARK_SHOWER_SHARD_COUNT; shardIndex++) {
+                    angleRandom                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    spreadRandom                        = angleRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    angle                               = (angleRandom >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+                    gRandomLcgState                     = spreadRandom;
+                    spread                              = ((spreadRandom >> 16) & 0xFF) * D_shelter_b6_nursery_801879F0.sparkShowerScale;
                     D_shelter_b6_nursery_8018504C[6].vx = 0x1C20;
-                    D_shelter_b6_nursery_8018504C[6].vy = ((r * rsin(angle)) >> 12) - 0x6D6;
-                    D_shelter_b6_nursery_8018504C[6].vz = ((r * rsin(angle)) >> 12) + 0x7D0;
+                    D_shelter_b6_nursery_8018504C[6].vy = ((spread * rsin(angle)) >> SPARK_SHOWER_Q12_SHIFT) - 0x6D6;
+                    D_shelter_b6_nursery_8018504C[6].vz = ((spread * rsin(angle)) >> SPARK_SHOWER_Q12_SHIFT) + 0x7D0;
                     gRandomLcgState                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_SHELTER_B6_NURSERY_SPARK_SHOWER, NULL,
                                 (((gRandomLcgState >> 16) & 0x1F) + 8) * D_shelter_b6_nursery_801879F0.sparkShowerScale,
@@ -1167,29 +1182,30 @@ void func_shelter_b6_nursery_801800A0(Task* task)
         case 15:
             if (!(gDisplayState.animFrame & 1)) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &D_shelter_b6_nursery_8018504C[5]);
+                effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & AMBIENT_PARTICLE_RANDOM_MASK) + AMBIENT_PARTICLE_SPAWN_BASE, &D_shelter_b6_nursery_8018504C[5]);
             }
             break;
         case 17:
-            pos = D_shelter_b6_nursery_8018504C;
-            _glowDrawDiamond(pos, 0x60, 0x80);
+            glintPoint = D_shelter_b6_nursery_8018504C;
+            _glowDrawDiamond(glintPoint, GLINT_PULSE_IDLE, GLINT_RADIUS_SCALE);
             if (!(gDisplayState.animFrame & 1)) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &D_shelter_b6_nursery_8018504C[4]);
+                effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & AMBIENT_PARTICLE_RANDOM_MASK) + AMBIENT_PARTICLE_SPAWN_BASE, &D_shelter_b6_nursery_8018504C[4]);
             }
             break;
         case 18:
             if (!(gDisplayState.animFrame & 1)) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &D_shelter_b6_nursery_8018504C[4]);
+                effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & AMBIENT_PARTICLE_RANDOM_MASK) + AMBIENT_PARTICLE_SPAWN_BASE, &D_shelter_b6_nursery_8018504C[4]);
             }
             break;
     }
-    if (task->state == 3 && !(gDisplayState.animFrame & 1)) {
+    // Visiting view 13 latches these two emitters for the rest of the task.
+    if (task->state == VIEW_EFFECT_SHOWER_ANCHORS_ACTIVE && !(gDisplayState.animFrame & 1)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &(D_shelter_b6_nursery_8018504C + 2)[0]);
+        effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & AMBIENT_PARTICLE_RANDOM_MASK) + AMBIENT_PARTICLE_SPAWN_BASE, &D_shelter_b6_nursery_8018504C[2]);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & 0x11FF) + 0x2303300, &(D_shelter_b6_nursery_8018504C + 2)[1]);
+        effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & AMBIENT_PARTICLE_RANDOM_MASK) + AMBIENT_PARTICLE_SPAWN_BASE, &D_shelter_b6_nursery_8018504C[3]);
     }
 }
 
@@ -1197,102 +1213,122 @@ void func_shelter_b6_nursery_801800A0(Task* task)
 
 #include "../../shared/glow_draw_pulsing_disc.inc.c"
 
-void func_shelter_b6_nursery_80181314(Task* task)
+void shelterB6NurseryDebrisChunkTask(Task* task)
 {
-    SVECTOR     step;
-    SVECTOR     pos;
-    SVECTOR     base;
-    TmdObject*  obj;
+    /// Advances a debris coordinate by its speed-scaled Q12 direction.
+    ///
+    /// Arguments must be side-effect-free pointers, evaluated repeatedly.
+    /// Requires distinct live coordinate, work and output storage; the GTE
+    /// narrows the displacement to signed-halfword coordinate units. The
+    /// caller invalidates composition. Invoke inside a braced block only.
+#define SHELTER_B6_NURSERY_INTEGRATE_DEBRIS_MOTION(coordNode, effectWork, displacementOut) \
+    {                                                                                      \
+        gte_lddp((effectWork)->scale);                                                     \
+        gte_ldsv(&(effectWork)->move);                                                     \
+        gte_gpf12();                                                                       \
+        gte_stsv(displacementOut);                                                         \
+        (coordNode)->coord.t[0] += (displacementOut)->vx;                                  \
+        (coordNode)->coord.t[1] += (displacementOut)->vy;                                  \
+        (coordNode)->coord.t[2] += (displacementOut)->vz;                                  \
+    }
+
+    enum { DEBRIS_INITIALIZE     = 0,
+           DEBRIS_VIEW           = 12,
+           DEBRIS_GRAVITY_Q12    = 0x180,
+           DEBRIS_LATE_TRAIL_AGE = 0x40,
+           // Small strip, scatter, speed 16, period 1..2, half-diagonal 768.
+           DEBRIS_EARLY_PARTICLE_SPAWN_BASE  = 0x82101300,
+           DEBRIS_EARLY_PARTICLE_RANDOM_MASK = 0x1000,
+           // Large strip, scatter, speed 24, period 3..4, half-diagonal 768..1023.
+           DEBRIS_LATE_PARTICLE_SPAWN_BASE  = 0x02183300,
+           DEBRIS_LATE_PARTICLE_RANDOM_MASK = 0x10FF };
+
+    SVECTOR     displacement;
+    SVECTOR     probeEnd;
+    SVECTOR     probeStartOrNormal;
+    TmdObject*  model;
     EffectWork* work;
     GfxCoord*   coord;
     s16         effectControl;
 
-    obj   = task->extra.tmd;
+    model = task->extra.tmd;
     work  = task->spawnArg2.pointer;
-    coord = obj->coords;
-    if ((viewGetMappedIndex() & 0xFF) != 0xC) {
+    coord = model->coords;
+    if ((viewGetMappedIndex() & 0xFF) != DEBRIS_VIEW) {
         effectKillTask(work, task);
         return;
     }
-    {
-        effectControl = gRoomEffectState->effectControl;
-        if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
-            if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                effectKillTask(work, task);
-            }
-        } else {
-            actorRenderComposeCoord(coord);
-            if (task->state == 0) {
-                obj->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vx   = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
-                work->move.vy   = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vz   = ((gRandomLcgState >> 16) & 0x3F) + 0x20;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->scale     = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
-                VectorNormalSS(&work->move, &work->move);
-                work->pos.vy        = 0;
-                gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->pos.vx        = -((gRandomLcgState >> 16) & 0x3F);
-                gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->pos.vz        = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                task->state++;
-                return;
-            }
-            gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
-            MatrixNormal(&coord->coord, &coord->coord);
-            gte_lddp(work->scale);
-            gte_ldsv(&work->move);
-            gte_gpf12();
-            gte_stsv(&step);
-            coord->coord.t[0]  += step.vx;
-            coord->coord.t[1]  += step.vy;
-            coord->coord.t[2]  += step.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            gte_SetRotMatrix(&gGfxViewCoord.workm);
-            gte_ldv0(&step);
-            gte_rtv0();
-            gte_stsv(&pos);
-            base.vx = coord->workm.t[0];
-            base.vy = coord->workm.t[1];
-            base.vz = coord->workm.t[2];
-            pos.vx += base.vx;
-            pos.vy += base.vy;
-            pos.vz += base.vz;
-            if (worldCollisionProbeGridSegment(&pos, &base, &pos, &base) == 1) {
-                coord->coord.t[0] -= step.vx;
-                coord->coord.t[1] -= step.vy;
-                coord->coord.t[2] -= step.vz;
-                work->move.vx      = (base.vx >> 1) + (work->move.vx >> 1);
-                work->move.vy      = base.vy + (work->move.vy >> 1);
-                work->move.vz      = (base.vz >> 1) + (work->move.vz >> 1);
-                VectorNormalSS(&work->move, &work->move);
-                work->scale = work->scale * 2 / 3;
-                gte_lddp(work->scale);
-                gte_ldsv(&work->move);
-                gte_gpf12();
-                gte_stsv(&step);
-                coord->coord.t[0] += step.vx;
-                coord->coord.t[1] += step.vy;
-                coord->coord.t[2] += step.vz;
-            } else {
-                work->move.vy += 0x180;
-            }
-            if (work->age & 1) {
-                if (work->age > 0x40) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_1A4, coord, ((gRandomLcgState >> 16) & 0x10FF) + 0x02183300, NULL);
-                } else {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_1A4, coord, ((gRandomLcgState >> 16) & 0x1000) + 0x82101300, NULL);
-                }
-            }
-            work->age++;
+    effectControl = gRoomEffectState->effectControl;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            effectKillTask(work, task);
         }
+    } else {
+        actorRenderComposeCoord(coord);
+        if (task->state == DEBRIS_INITIALIZE) {
+            model->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vx   = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
+            work->move.vy   = 0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vz   = ((gRandomLcgState >> 16) & 0x3F) + 0x20;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->scale     = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
+            VectorNormalSS(&work->move, &work->move);
+            work->pos.vy        = 0;
+            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vx        = -((gRandomLcgState >> 16) & 0x3F);
+            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vz        = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state++;
+            return;
+        }
+        // Tumble the model, then integrate its speed-scaled Q12 direction.
+        gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
+        MatrixNormal(&coord->coord, &coord->coord);
+        SHELTER_B6_NURSERY_INTEGRATE_DEBRIS_MOTION(coord, work, &displacement);
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        // Probe the candidate segment in view space; reuse the start as a room-space hit normal.
+        gte_SetRotMatrix(&gGfxViewCoord.workm);
+        gte_ldv0(&displacement);
+        gte_rtv0();
+        gte_stsv(&probeEnd);
+        probeStartOrNormal.vx = coord->workm.t[0];
+        probeStartOrNormal.vy = coord->workm.t[1];
+        probeStartOrNormal.vz = coord->workm.t[2];
+        probeEnd.vx          += probeStartOrNormal.vx;
+        probeEnd.vy          += probeStartOrNormal.vy;
+        probeEnd.vz          += probeStartOrNormal.vz;
+        if (worldCollisionProbeGridSegment(&probeEnd, &probeStartOrNormal, &probeEnd, &probeStartOrNormal) == 1) {
+            // Undo the blocked step and mix the normal into the direction before retrying.
+            coord->coord.t[0] -= displacement.vx;
+            coord->coord.t[1] -= displacement.vy;
+            coord->coord.t[2] -= displacement.vz;
+            work->move.vx      = (probeStartOrNormal.vx >> 1) + (work->move.vx >> 1);
+            work->move.vy      = probeStartOrNormal.vy + (work->move.vy >> 1);
+            work->move.vz      = (probeStartOrNormal.vz >> 1) + (work->move.vz >> 1);
+            VectorNormalSS(&work->move, &work->move);
+            work->scale = work->scale * 2 / 3;
+            SHELTER_B6_NURSERY_INTEGRATE_DEBRIS_MOTION(coord, work, &displacement);
+        } else {
+            work->move.vy += DEBRIS_GRAVITY_Q12;
+        }
+        // Alternate active frames emit a particle; age selects its strip and launch parameters.
+        if (work->age & 1) {
+            if (work->age > DEBRIS_LATE_TRAIL_AGE) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                effectSpawn(EFFECT_1A4, coord, ((gRandomLcgState >> 16) & DEBRIS_LATE_PARTICLE_RANDOM_MASK) + DEBRIS_LATE_PARTICLE_SPAWN_BASE, NULL);
+            } else {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                effectSpawn(EFFECT_1A4, coord, ((gRandomLcgState >> 16) & DEBRIS_EARLY_PARTICLE_RANDOM_MASK) + DEBRIS_EARLY_PARTICLE_SPAWN_BASE, NULL);
+            }
+        }
+        work->age++;
     }
 }
+
+#undef SHELTER_B6_NURSERY_INTEGRATE_DEBRIS_MOTION
 
 /// Advances a moving particle in its parent's coordinate frame and updates its Y velocity.
 ///
@@ -1753,7 +1789,7 @@ void shelterB6NurseryRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b6_nursery_80184074(Task* task)
+void shelterB6NurseryRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

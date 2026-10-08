@@ -30,18 +30,18 @@ extern TaskMessageEntry D_dryfield_night_junk_yard_8018055C[];
 extern s32        D_dryfield_night_junk_yard_801805A0;
 extern EvsCommand D_dryfield_night_junk_yard_801805A4[];
 
-s32 func_dryfield_night_junk_yard_8017D6A4(Task*, s32, s32, s32);
-s32 func_dryfield_night_junk_yard_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_junk_yard_8017D82C(Task*, s32, RoomEventMsg*, s32);
+static s32 _dryfieldNightJunkYardRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+s32        func_dryfield_night_junk_yard_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_dryfield_night_junk_yard_8017D82C(Task*, s32, RoomEventMsg*, s32);
 
 extern AnimationPlayRequest D_dryfield_night_junk_yard_80180584;
 extern ActorCommand         D_dryfield_night_junk_yard_80180598;
 extern ActorCommand         D_dryfield_night_junk_yard_8018059C;
-void                        func_dryfield_night_junk_yard_8017D894(u8);
+static void                 _dryfieldNightJunkYardSetRoomNumber(u8 roomNumber);
 
 TaskMessageEntry D_dryfield_night_junk_yard_8018055C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_junk_yard_8017D6AC },
-    { 5105, func_dryfield_night_junk_yard_8017D6A4 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightJunkYardRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_junk_yard_8017D82C },
     { ROOM_MESSAGE_COMMAND, junkYardCapMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -65,7 +65,7 @@ EvsCommand D_dryfield_night_junk_yard_801805A4[17] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_dryfield_night_junk_yard_8017D894 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _dryfieldNightJunkYardSetRoomNumber }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -76,15 +76,17 @@ EvsCommand D_dryfield_night_junk_yard_801805A4[17] = {
 };
 
 static void func_dryfield_night_junk_yard_8017D8B0(Task* task);
-static void func_dryfield_night_junk_yard_8017D958(Task* task);
+static void _dryfieldNightJunkYardRoomIdle(Task* unusedTask);
 
 #include "../../shared/junk_yard_cap_msg.inc.c"
 
-/// Handler for message 0x13F1 in the room's message table: does nothing and
-/// returns 0.
-s32 func_dryfield_night_junk_yard_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in the night Junk Yard without changing inventory.
+///
+/// The item menu supplies the collected-item ID and a zero second payload.
+/// All arguments are ignored; the refused reply requests the cannot-use notice.
+static s32 _dryfieldNightJunkYardRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Handler for message 0x13EE in the room's message table. Copies the incoming
@@ -164,12 +166,14 @@ s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg* i
     return 0;
 }
 
-/// Stores `arg0` as the session's current room number and mirrors it into the
-/// main-executable byte `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`.
-void func_dryfield_night_junk_yard_8017D894(u8 arg0)
+/// Sets the room number in both the active session and the live save.
+///
+/// The event script passes room number 2 after engaging the battle. The byte
+/// is stored unchanged, without loading resources or validating the room number.
+static void _dryfieldNightJunkYardSetRoomNumber(u8 roomNumber)
 {
-    gGameSession->location.loc.room                            = arg0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
+    gGameSession->location.loc.room                            = roomNumber;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomNumber;
 }
 
 /// Room entry task tick: publish the message table, claim game pointer slot 7,
@@ -191,14 +195,14 @@ static void func_dryfield_night_junk_yard_8017D8B0(Task* task)
     task->state = task->state + 1;
 }
 
-/// Entry task state 1: does nothing, and nothing here advances the state.
-static void func_dryfield_night_junk_yard_8017D958(Task* task)
+/// Keeps the Junk Yard room task alive to receive messages.
+static void _dryfieldNightJunkYardRoomIdle(Task* unusedTask)
 {
 }
 
 /// The room entry task's states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_junk_yard_8017D5C4 = {
-    { func_dryfield_night_junk_yard_8017D8B0, func_dryfield_night_junk_yard_8017D958, taskKill },
+    { func_dryfield_night_junk_yard_8017D8B0, _dryfieldNightJunkYardRoomIdle, taskKill },
 };
 
 /// The room entry task: copies the three-state table to the stack and runs the

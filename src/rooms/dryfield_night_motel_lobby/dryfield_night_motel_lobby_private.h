@@ -80,9 +80,15 @@ void dryfieldNightMotelLobbyDrawCashRegisterDisplay(Task* task);
 /// Submission latches `codeAccepted` for exactly 3033, or plays the error sound.
 void dryfieldNightMotelLobbyPressCashRegisterKey(Task* task, s16 keyId);
 
-/// Hit-tests (`x`, `y`) against every entry of the hotspot `table`, setting
-/// each entry's `hit` flag, and returns whether any entry was hit.
-
-void func_dryfield_night_motel_lobby_8017FE90(Task* task);
+/// Scans the cash-register hotspots and handles one frame of confirm/cancel input.
+///
+/// Borrows live cash-register work from `task->work` and port 0's cursor.
+/// A busy CAP hides and stops the cursor but still updates the digit display.
+/// Confirmation takes the first hit: before examination it selects prompt state
+/// 3; afterwards hash opens entry and keys edit it. Accepted code selects saved
+/// view 7 and completion state 6; cancel selects state 5. Clears last one draw.
+/// Every path draws the display exactly once before returning, including the
+/// two early exits; keep those calls separate to preserve the compiled tail.
+void dryfieldNightMotelLobbyCashRegisterScanTask(Task* task);
 
 #endif // SRC_ROOMS_DRYFIELD_NIGHT_MOTEL_LOBBY_DRYFIELD_NIGHT_MOTEL_LOBBY_PRIVATE_H

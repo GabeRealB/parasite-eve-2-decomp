@@ -110,9 +110,9 @@ shelterB6NurserySparkShowerShardTask = 0x80182730; // type:func
 
 shelterB6NurserySetEffectCues = 0x80182D14; // type:func
 
-func_shelter_b6_nursery_801800A0 = 0x801800A0; // type:func
+shelterB6NurseryViewEffectsTask = 0x801800A0; // type:func
 
-func_shelter_b6_nursery_80181314 = 0x80181314; // type:func
+shelterB6NurseryDebrisChunkTask = 0x80181314; // type:func
 
 shelterB6NurseryAnimatedParticleTask = 0x80181820; // type:func
 
@@ -120,9 +120,9 @@ shelterB6NurseryRoomVisualEffectsFlashTask = 0x80182D28; // type:func
 
 shelterB6NurseryRoomVisualEffectsTwinTrailTask = 0x8018378C; // type:func
 
-func_shelter_b6_nursery_80184074 = 0x80184074; // type:func
+shelterB6NurseryRoomVisualEffectsSparkBurstTask = 0x80184074; // type:func
 
-func_shelter_b6_nursery_8017EAC4 = 0x8017EAC4; // type:func
+shelterB6NurseryTelephoneMenuTask = 0x8017EAC4; // type:func
 _telephoneDrawPlayDataRow = 0x8017D72C; // type:func
 _telephoneDrawUsageRow = 0x8017DEF8; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E2F4; // type:func
@@ -157,3 +157,4 @@ shelterB6NurserySetView13SpriteHidden = 0x80180038; // type:func
 _shelterB6NurseryDrawParticleFrame = 0x80181edc; // type:func
 _shelterB6NurseryDrawSparkShowerShard = 0x801829e4; // type:func
 _shelterB6NurseryAmbienceTask = 0x8017fbc0; // type:func
+shelterB6NurseryRoomTask = 0x8017ff9c; // type:func

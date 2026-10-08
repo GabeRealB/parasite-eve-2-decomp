@@ -93,3 +93,5 @@ storeToggleTask = 0x8017DCA8; // type:func
 storeActionMsg = 0x8017DD88; // type:func
 _generalStoreSoundMsg = 0x8017DDF0; // type:func
 _dryfieldNightGeneralStoreRejectKeyItem = 0x8017de24; // type:func
+_dryfieldNightGeneralStoreIgnoreRoomAction = 0x8017de2c; // type:func
+_dryfieldNightGeneralStoreRoomIdle = 0x8017de80; // type:func

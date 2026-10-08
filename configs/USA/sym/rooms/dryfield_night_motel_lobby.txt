@@ -132,3 +132,7 @@ _dryfieldNightMotelLobbyCashRegisterOpenPrompt = 0x80180fd8; // type:func
 _dryfieldNightMotelLobbyCashRegisterAcceptCode = 0x80181138; // type:func
 _dryfieldNightMotelLobbyCashRegisterPlayAcceptSound = 0x8018119c; // type:func
 _dryfieldNightMotelLobbyCashRegisterFinish = 0x8018122c; // type:func
+_dryfieldNightMotelLobbyRejectKeyItemUse = 0x8017fb00; // type:func
+_dryfieldNightMotelLobbySoundMsg = 0x8017fcdc; // type:func
+_dryfieldNightMotelLobbyUpdateMasterkeyObjective = 0x8017fde8; // type:func
+dryfieldNightMotelLobbyCashRegisterScanTask = 0x8017fe90; // type:func

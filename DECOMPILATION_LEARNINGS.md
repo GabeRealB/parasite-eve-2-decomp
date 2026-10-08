@@ -118910,7 +118910,7 @@ and score 100%. The tail `if (digits[1] != digits[3]) return 0; return digits[0]
 stay split the same way -- the trailing `return 0` is its own block in the
 target, not merged with the first guard's.
 
-## A `goto` to a shared tail call is not the source of a merged call pad: duplicate the call and `return` (func_dryfield_night_motel_lobby_8017FE90, 2026-09-17)
+## A `goto` to a shared tail call is not the source of a merged call pad: duplicate the call and `return` (dryfieldNightMotelLobbyCashRegisterScanTask, 2026-09-17)
 
 **Symptom:** 93.6%, `branch=8 delete=5 reorder=4`. Everything matches except the
 tail, where retail has the call's argument setup as a block of its own:
@@ -141669,12 +141669,12 @@ if (arg2 == 3) {
 
 ### An unrelated constant store between LCG draws decides which draw's chain wins `$v1`
 
-`func_shelter_b6_nursery_80181314` seeds `field_10.vx`, `.vz` and `field_24`
-from three chained `gRandomLcgState` draws and also clears `field_10.vy`. With
+`shelterB6NurseryDebrisChunkTask` seeds `work->move.vx`, `.vz` and `work->scale`
+from three chained `gRandomLcgState` draws and also clears `work->move.vy`. With
 `vy = 0` written after the second draw, everything matched except the first two
 draws' registers swapped (`$v1`/`$a2`, 99.68%). In `.lreg` the two multiply
 chains (`sll`/`addu`/`addu` tied into one quantity each) had identical refs and
-spans, so the tie went to the earlier quantity. Moving `work->field_10.vy = 0;`
+spans, so the tie went to the earlier quantity. Moving `work->move.vy = 0;`
 to between the first and second draws shifted the sched1 order by one insn,
 broke the tie in favour of the second chain, and matched outright. Operand
 order, chained `x = (gRandomLcgState = ...)` forms and temps did nothing here; when

@@ -139,17 +139,17 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 func_dryfield_night_motel_lobby_8017FB00(Task*, s32, s32, s32);
-s32 func_dryfield_night_motel_lobby_8017FB7C(Task*, s32, s32, s32);
-s32 func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, const void*, s32);
-s32 func_dryfield_night_motel_lobby_8017FCDC(Task*, s32, s32, s32);
+static s32 _dryfieldNightMotelLobbyRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+s32        func_dryfield_night_motel_lobby_8017FB7C(Task*, s32, s32, s32);
+s32        func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, const void*, s32);
+static s32 _dryfieldNightMotelLobbySoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
 TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantParkingLotMsg },
-    { 5105, func_dryfield_night_motel_lobby_8017FB00 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelLobbyRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_lobby_8017FC6C },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_lobby_8017FB7C },
-    { ROOM_MESSAGE_SOUND, func_dryfield_night_motel_lobby_8017FCDC },
+    { ROOM_MESSAGE_SOUND, _dryfieldNightMotelLobbySoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -159,7 +159,7 @@ TaskDesc D_dryfield_night_motel_lobby_801827FC[2] = {
 };
 
 static void func_dryfield_night_motel_lobby_8017FD9C(Task* task);
-static void func_dryfield_night_motel_lobby_8017FDE8(Task* task);
+static void _dryfieldNightMotelLobbyUpdateMasterkeyObjective(Task* unusedTask);
 
 #include "../../shared/telephone.inc.c"
 
@@ -176,9 +176,13 @@ void func_dryfield_night_motel_lobby_8017EAE0(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_dryfield_night_motel_lobby_8017FB00(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
+/// Refuses key-item use in the night motel lobby without changing inventory.
+///
+/// The item menu supplies the collected-item ID and a zero second payload.
+/// All arguments are ignored; the refused reply requests the cannot-use notice.
+static s32 _dryfieldNightMotelLobbyRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #include "../../shared/room_variants_parking_lot.inc.c"
@@ -229,10 +233,17 @@ s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, const void* 
     return 0;
 }
 
-s32 func_dryfield_night_motel_lobby_8017FCDC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Queues the night lobby's area sound for room sound cue 99.
+///
+/// Cue 99 selects script 10 of the night lobby sound bank, with zero pan and
+/// depth offsets. Other cues have no effect. Always returns zero.
+static s32 _dryfieldNightMotelLobbySoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg)
 {
-    if (arg2 == 0x63) {
-        sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 0x0A), 0, 0);
+    enum { LOBBY_SOUND_CUE    = 0x63,
+           LOBBY_SOUND_SCRIPT = 0x0A };
+
+    if (cueKey == LOBBY_SOUND_CUE) {
+        sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, LOBBY_SOUND_SCRIPT), 0, 0);
     }
     return 0;
 }
@@ -262,15 +273,21 @@ static void func_dryfield_night_motel_lobby_8017FD9C(Task* task)
     task->state                           = (s32)(task->state + 1);
 }
 
-static void func_dryfield_night_motel_lobby_8017FDE8(Task* task)
+/// Updates the objective when the Bronco masterkey collection bit turns on.
+///
+/// Tests the persistent collection bit, rather than current item quantity.
+/// The room's initial cached value of one suppresses an already-collected key;
+/// each tick replaces that cache with the current zero-or-one collection result.
+static void _dryfieldNightMotelLobbyUpdateMasterkeyObjective(Task* unusedTask)
 {
-    s32 temp_v0;
+    enum { MASTERKEY_COLLECTED_OBJECTIVE = 0x14 };
+    s32 masterkeyCollected;
 
-    temp_v0 = inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY);
-    if ((temp_v0 != 0) && (D_dryfield_night_motel_lobby_801844D4 == 0)) {
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x14);
+    masterkeyCollected = inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY);
+    if ((masterkeyCollected != 0) && (D_dryfield_night_motel_lobby_801844D4 == 0)) {
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MASTERKEY_COLLECTED_OBJECTIVE);
     }
-    D_dryfield_night_motel_lobby_801844D4 = temp_v0;
+    D_dryfield_night_motel_lobby_801844D4 = masterkeyCollected;
 }
 
 /// The three states of the task `func_dryfield_night_motel_lobby_8017FE38` runs:
@@ -278,7 +295,7 @@ static void func_dryfield_night_motel_lobby_8017FDE8(Task* task)
 static const TaskFuncTable3 D_dryfield_night_motel_lobby_8017D6A4 = {
     {
         func_dryfield_night_motel_lobby_8017FD9C,
-        func_dryfield_night_motel_lobby_8017FDE8,
+        _dryfieldNightMotelLobbyUpdateMasterkeyObjective,
         taskKill,
     },
 };
@@ -291,26 +308,33 @@ void func_dryfield_night_motel_lobby_8017FE38(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Runs one frame of the lobby's cash-register scan. A busy cap suspends the
-/// whole scan for that frame; otherwise the cursor is hit-tested against the
-/// room's hotspot table. Until the register has been examined, a confirm press
-/// on a hit hotspot latches it for the examine prompt the next state opens.
-/// Afterwards the press goes to the keypad
-/// (`dryfieldNightMotelLobbyPressCashRegisterKey`), once the hash key has opened
-/// code entry, and a code that checks out ends the sequence in state 6. A
-/// cancel press ends it in state 5.
+/// Hides the cursor and records a confirmed key for the cash-register prompt.
 ///
-/// The two paths that leave early call the cursor draw themselves and return
-/// rather than jumping to a shared label: the three identical call-and-epilogue
-/// tails are what GCC's cross jumping folds into one, and that fold is what
-/// leaves the argument setup standing before the merged call with the branches
-/// landing past it. Writing a `goto` there compiles to a different tail.
-void func_dryfield_night_motel_lobby_8017FE90(Task* task)
+/// Borrows live task, work, cursor and non-terminator hotspot records. Copies
+/// the key ID and prompt kind; the following state opens the command menu.
+static inline void _dryfieldNightMotelLobbyCashRegisterLatchHotspot(Task* task, DryfieldNightMotelLobbyCashRegisterWork* work, ActionPrompt* prompt, const ActionPromptHotspot* hotspot)
 {
-    DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
-    ActionPromptHotspot*                     hs     = D_dryfield_night_motel_lobby_80182820;
-    ActionPrompt*                            prompt = D_80114D28;
+    enum { CASH_REGISTER_STATE_OPEN_PROMPT = 3 };
 
+    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
+    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+    work->hotspotId     = hotspot->id;
+    work->promptKind    = hotspot->promptKind;
+    task->state         = CASH_REGISTER_STATE_OPEN_PROMPT;
+}
+
+void dryfieldNightMotelLobbyCashRegisterScanTask(Task* task)
+{
+    enum { CASH_REGISTER_STATE_CANCEL      = 5,
+           CASH_REGISTER_STATE_ACCEPT_CODE = 6,
+           CASH_REGISTER_ACCEPTED_VIEW     = 7,
+           CASH_REGISTER_CONFIRM_SLOT      = 0,
+           CASH_REGISTER_CANCEL_SLOT       = 1 };
+    DryfieldNightMotelLobbyCashRegisterWork* work    = task->work;
+    ActionPromptHotspot*                     hotspot = D_dryfield_night_motel_lobby_80182820;
+    ActionPrompt*                            prompt  = D_80114D28;
+
+    // A key clear belongs to one drawn frame; reset its latch before scanning.
     work->entryCleared       = 0;
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -319,45 +343,41 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     } else {
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-        if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        if (actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-            if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-                while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
-                    if (hs->hit != 0) {
+            if (prompt->buttons.slots[CASH_REGISTER_CONFIRM_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
+                while (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {
+                    if (hotspot->hit != 0) {
                         if (work->examined == 0) {
-                            prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
-                            prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                            work->hotspotId     = hs->id;
-                            work->promptKind    = hs->promptKind;
-                            task->state         = 3;
+                            _dryfieldNightMotelLobbyCashRegisterLatchHotspot(task, work, prompt, hotspot);
                             dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
                             return;
                         }
                         if (work->entryOpen == 0) {
-                            if (hs->id == DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_HASH) {
+                            if (hotspot->id == DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_HASH) {
                                 work->entryOpen    = 1;
                                 work->entryCleared = 1;
                                 sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
                             }
                             break;
                         }
-                        dryfieldNightMotelLobbyPressCashRegisterKey(task, hs->id);
+                        dryfieldNightMotelLobbyPressCashRegisterKey(task, hotspot->id);
                         if (work->codeAccepted != 0) {
-                            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
-                            task->state                                                = 6;
+                            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = CASH_REGISTER_ACCEPTED_VIEW;
+                            task->state                                                = CASH_REGISTER_STATE_ACCEPT_CODE;
                             dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
                             return;
                         }
                         break;
                     }
-                    hs++;
+                    hotspot++;
                 }
             }
         } else {
             prompt->mode = ACTION_PROMPT_MODE_IDLE;
         }
-        if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            task->state = 5;
+        if (prompt->buttons.slots[CASH_REGISTER_CANCEL_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
+            task->state = CASH_REGISTER_STATE_CANCEL;
         }
     }
     dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);

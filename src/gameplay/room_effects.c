@@ -883,7 +883,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSouthPromenadeRegisterGolemEffectsTask, { NULL } },                           // 0x159
     { { { TASK_BODY_COORD, 0x70 } }, neoArkAltarEffectNoopTask, { NULL } },                                              // 0x15A
     { { { TASK_BODY_COORD, 0x70 } }, neoArkShrineFlareTask, { NULL } },                                                  // 0x15B
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_nursery_801800A0, { NULL } },                                       // 0x15C
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurseryViewEffectsTask, { NULL } },                                        // 0x15C
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6GrowthRoomAmbientEffectsTask, { NULL } },                                  // 0x15D
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6CorridorDrawViewGlowsTask, { NULL } },                                     // 0x15E
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomGlowTask, { NULL } },                                          // 0x15F
@@ -954,7 +954,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, combustionCastTask, { NULL } },                                                     // 0x1A0
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6GrowthRoomMistTask, { NULL } },                                            // 0x1A1
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6GrowthRoomDriftPuffTask, { NULL } },                                       // 0x1A2
-    { { { TASK_BODY_TMD, 0x70 } }, func_shelter_b6_nursery_80181314, { &gShelterB6NurseryModel07BAC } },                 // 0x1A3
+    { { { TASK_BODY_TMD, 0x70 } }, shelterB6NurseryDebrisChunkTask, { &gShelterB6NurseryModel07BAC } },                  // 0x1A3
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurseryAnimatedParticleTask, { NULL } },                                   // 0x1A4
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurserySparkShowerShardTask, { NULL } },                                   // 0x1A5
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1GolemFreezer1FloorMistTask, { NULL } },                                    // 0x1A6
@@ -1071,7 +1071,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_savanna_zone_8017ED58, { NULL } },                                     // 0x215
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_south_promenade_8017EA6C, { NULL } },                                  // 0x216
     { { { TASK_BODY_COORD, 0x70 } }, neoArkShrineRoomVisualEffectsSparkBurstTask, { NULL } },                            // 0x217
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_nursery_80184074, { NULL } },                                       // 0x218
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurseryRoomVisualEffectsSparkBurstTask, { NULL } },                        // 0x218
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_801812D0, { NULL } },                                           // 0x219
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pyramid_8017EF9C, { NULL } },                                          // 0x21A
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask, { NULL } },       // 0x21B
