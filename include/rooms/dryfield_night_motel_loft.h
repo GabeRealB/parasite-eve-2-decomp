@@ -46,8 +46,25 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_loft_8018090C[];
 /// and values >=4 release both the counted effect work and the task.
 void dryfieldNightMotelLoftFallingShardTask(Task* task);
 
-void func_dryfield_night_motel_loft_8017DB64(Task* arg0);
+/// Draws the loft's light flares and emits two view-triggered shard bursts.
+///
+/// Gameplay room-effect task 0x11B, requiring the loft overlay and frame packet
+/// arena live. Mapped views select six fixed flare anchors. Starting at state
+/// 0, view 8 emits 48 shards and advances to 1; view 3 or 10 then emits 32 and
+/// advances to 2. State 2 keeps drawing flares without further bursts.
+/// Each attempt consumes four random draws, even if effect allocation fails;
+/// the last vector of the room's seven-point array supplies shared writable
+/// spawn storage. Positions use the effect spawner's world-matrix input units;
+/// radii are 16..79 coordinate units. The task is released by its external owner.
+void dryfieldNightMotelLoftFlaresAndShardsTask(Task* task);
 
-void func_dryfield_night_motel_loft_8017D964(Task* task);
+/// Dispatches the nighttime loft's room controller through states 0..2.
+///
+/// The Dryfield map spawns it for stage 3, area 31 with no body. State 0
+/// publishes the room message table and controller slot and restores encounter
+/// state; state 1 updates pickup collision and gates the Stalker event; state
+/// 2 kills the task. The state must index these three handlers. Room tables,
+/// session, live save and gameplay services must remain available while it runs.
+void dryfieldNightMotelLoftRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_MOTEL_LOFT_H

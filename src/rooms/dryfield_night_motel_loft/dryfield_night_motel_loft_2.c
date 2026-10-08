@@ -59,7 +59,7 @@ STATIC_ASSERT_SIZEOF(_DryfieldNightMotelLoftTriScratch, 0x20);
 /// at.
 
 /// The room's grid params: `8017ED54` is the template, `8017F120` the live
-/// copy `func_dryfield_night_motel_loft_8017D9BC` rebuilds from it.
+/// copy `dryfieldNightMotelLoftRebuildJerryCanCollision` rebuilds from it.
 extern WorldCollisionGrid D_dryfield_night_motel_loft_8017ED54;
 extern WorldCollisionGrid D_dryfield_night_motel_loft_8017F120;
 
@@ -97,10 +97,10 @@ TmdSource gDryfieldNightMotelLoftActor135400Model071AC = {
 
 TaskMessageEntry D_dryfield_night_motel_loft_8017EB1C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyMsg },
-    { 5105, func_dryfield_night_motel_loft_8017D5F8 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_loft_8017D6BC },
+    { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldNightMotelLoftRefuseKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldNightMotelLoftIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_loft_8017D67C },
-    { ROOM_MESSAGE_SOUND, func_dryfield_night_motel_loft_8017D6C4 },
+    { ROOM_MESSAGE_SOUND, dryfieldNightMotelLoftPlaySoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -121,7 +121,7 @@ EvsCommand D_dryfield_night_motel_loft_8017EB78[17] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_motel_loft_8017EB58 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_dryfield_night_motel_loft_8017D7EC }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = dryfieldNightMotelLoftSetCurrentRoom }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_night_motel_loft_8017EB6C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x531F0006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -418,121 +418,132 @@ SpriteBatch D_dryfield_night_motel_loft_8017FB64[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-/// Restores the live grid's first face normal, its face record and its four
-/// face corners from the template, then raises the corners by 0xBB8 in Y when
-/// `arg0` is set.
-void func_dryfield_night_motel_loft_8017D9BC(s32 arg0)
+void dryfieldNightMotelLoftRebuildJerryCanCollision(s32 collected)
 {
-    WorldCollisionGrid* dst;
-    WorldCollisionGrid* src;
-    SVECTOR             d;
-    s32                 i;
+    enum { DRYFIELD_NIGHT_MOTEL_LOFT_COLLECTED_BARRIER_Y_OFFSET = 3000 };
+    WorldCollisionGrid*       liveGrid;
+    const WorldCollisionGrid* templateGrid;
+    SVECTOR                   displacement;
+    s32                       geometryIndex;
 
-    dst = &D_dryfield_night_motel_loft_8017F120;
-    src = &D_dryfield_night_motel_loft_8017ED54;
+    liveGrid     = &D_dryfield_night_motel_loft_8017F120;
+    templateGrid = &D_dryfield_night_motel_loft_8017ED54;
 
-    for (i = 0; i < 1; i++) {
-        dst->normals[i].vx = src->normals[i].vx;
-        dst->normals[i].vy = src->normals[i].vy;
-        dst->normals[i].vz = src->normals[i].vz;
-        dst->faces[i]      = src->faces[i];
+    // Restore only the template's obstacle prefix, leaving the room mesh intact.
+    for (geometryIndex = 0; geometryIndex < (s32)ARRAY_SIZE(_gDryfieldNightMotelLoftCollision01794Faces); geometryIndex++) {
+        liveGrid->normals[geometryIndex].vx = templateGrid->normals[geometryIndex].vx;
+        liveGrid->normals[geometryIndex].vy = templateGrid->normals[geometryIndex].vy;
+        liveGrid->normals[geometryIndex].vz = templateGrid->normals[geometryIndex].vz;
+        liveGrid->faces[geometryIndex]      = templateGrid->faces[geometryIndex];
     }
 
-    for (i = 0; i < 4; i++) {
-        dst->vertices[i].vx = src->vertices[i].vx;
-        dst->vertices[i].vy = src->vertices[i].vy;
-        dst->vertices[i].vz = src->vertices[i].vz;
+    for (geometryIndex = 0; geometryIndex < (s32)ARRAY_SIZE(_gDryfieldNightMotelLoftCollision01794Verts); geometryIndex++) {
+        liveGrid->vertices[geometryIndex].vx = templateGrid->vertices[geometryIndex].vx;
+        liveGrid->vertices[geometryIndex].vy = templateGrid->vertices[geometryIndex].vy;
+        liveGrid->vertices[geometryIndex].vz = templateGrid->vertices[geometryIndex].vz;
     }
 
-    if (arg0 == 0) {
-        d.vx = 0;
-        d.vy = 0;
+    if (collected == 0) {
+        displacement.vx = 0;
+        displacement.vy = 0;
     } else {
-        d.vx = 0;
-        d.vy = 0xBB8;
+        displacement.vx = 0;
+        displacement.vy = DRYFIELD_NIGHT_MOTEL_LOFT_COLLECTED_BARRIER_Y_OFFSET;
     }
-    d.vz = 0;
+    displacement.vz = 0;
 
-    for (i = 0; i < 4; i++) {
-        dst->vertices[i].vx += d.vx;
-        dst->vertices[i].vy += d.vy;
-        dst->vertices[i].vz += d.vz;
+    // Move the wall below the floor once the pickup's saved state is removed.
+    for (geometryIndex = 0; geometryIndex < (s32)ARRAY_SIZE(_gDryfieldNightMotelLoftCollision01794Verts); geometryIndex++) {
+        liveGrid->vertices[geometryIndex].vx += displacement.vx;
+        liveGrid->vertices[geometryIndex].vy += displacement.vy;
+        liveGrid->vertices[geometryIndex].vz += displacement.vz;
     }
 }
 
-/// Per-view room draw. Views 2 and 9, 4, 6 and 7 and 11 each queue one or two
-/// of the room's points, and views 3, 10 and 8 additionally run a burst of
-/// effect 0x601B0 at the room's seventh point: 0x20 steps from state 1 (to
-/// state 2) and 0x30 from state 0 (to state 1). Every step rolls the room LCG
-/// (`gRandomLcgState`) four times and builds the offset vector from the top bits of
-/// each draw, the last draw's low six bits biased by 0x10 riding along as the
-/// spawn argument.
-void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
+/// Attempts one falling-shard spawn using the seventh room point as workspace.
+///
+/// `points` borrows the room's writable seven-vector array. Four LCG draws
+/// replace element 6's XYZ with world-matrix input coordinates and select a
+/// radius of 16..79 coordinate units. The effect spawner snapshots placement
+/// and retains this overlay-owned pointer; its shard task never reads it again.
+/// An allocation failure still consumes all four draws.
+static inline void _dryfieldNightMotelLoftSpawnShard(SVECTOR* points)
 {
-    s32 i;
+    enum { DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS = 16 };
+
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    points[6].vx    = 0xFB8 - ((gRandomLcgState >> 16) & 0x3FF);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    points[6].vy    = ((gRandomLcgState >> 16) & 0x1FF) - 0xD5C;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    points[6].vz    = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    effectSpawn(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & 0x3F) + DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS, &points[6]);
+}
+
+void dryfieldNightMotelLoftFlaresAndShardsTask(Task* task)
+{
+    enum {
+        DRYFIELD_NIGHT_MOTEL_LOFT_SHARDS_WAIT_VIEW_8        = 0,
+        DRYFIELD_NIGHT_MOTEL_LOFT_SHARDS_WAIT_VIEWS_3_OR_10 = 1,
+        DRYFIELD_NIGHT_MOTEL_LOFT_SHARDS_DONE               = 2,
+        DRYFIELD_NIGHT_MOTEL_LOFT_FIRST_SHARD_BURST_COUNT   = 48,
+        DRYFIELD_NIGHT_MOTEL_LOFT_SECOND_SHARD_BURST_COUNT  = 32,
+        DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE             = 0,
+        DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE        = 0x300
+    };
+    s32 shardIndex;
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
         case 9:
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[0], 0, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[5], 0, 0x300);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[0], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[5], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             break;
         case 3:
         case 10: {
-            SVECTOR* p = &D_dryfield_night_motel_loft_8017ED78[1];
+            SVECTOR* viewFlarePoints = &D_dryfield_night_motel_loft_8017ED78[1];
 
-            glowDrawFlareClipped(&p[0], 0, 0x300);
-            glowDrawFlareClipped(&p[1], 0, 0x300);
-            glowDrawFlareClipped(&p[3], 0, 0x300);
-            if (arg0->state == 1) {
-                SVECTOR* pos;
+            glowDrawFlareClipped(&viewFlarePoints[0], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&viewFlarePoints[1], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&viewFlarePoints[3], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
+            // This second burst waits until the first burst has run in view 8.
+            if (task->state == DRYFIELD_NIGHT_MOTEL_LOFT_SHARDS_WAIT_VIEWS_3_OR_10) {
+                SVECTOR* spawnPoints;
 
-                i   = 0;
-                pos = &p[-1];
+                shardIndex  = 0;
+                spawnPoints = &viewFlarePoints[-1];
                 do {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    pos[6].vx       = 0xFB8 - ((gRandomLcgState >> 16) & 0x3FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    pos[6].vy       = ((gRandomLcgState >> 16) & 0x1FF) - 0xD5C;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    pos[6].vz       = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & 0x3F) + 0x10, &pos[6]);
-                    i++;
-                } while (i < 0x20);
-                arg0->state = 2;
+                    _dryfieldNightMotelLoftSpawnShard(spawnPoints);
+                    shardIndex++;
+                } while (shardIndex < DRYFIELD_NIGHT_MOTEL_LOFT_SECOND_SHARD_BURST_COUNT);
+                task->state = DRYFIELD_NIGHT_MOTEL_LOFT_SHARDS_DONE;
             }
             break;
         }
         case 4:
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[2], 0, 0x300);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[2], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             break;
         case 6:
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[3], 0, 0x300);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[3], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             break;
         case 7:
         case 11:
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[4], 0, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[5], 0, 0x300);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[4], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[5], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             break;
         case 8:
-            if (arg0->state == 0) {
-                SVECTOR* pos;
+            // Advance even if some of the 48 effect allocations fail.
+            if (task->state == DRYFIELD_NIGHT_MOTEL_LOFT_SHARDS_WAIT_VIEW_8) {
+                SVECTOR* spawnPoints;
 
-                i   = 0;
-                pos = &D_dryfield_night_motel_loft_8017ED78[0];
+                shardIndex  = 0;
+                spawnPoints = &D_dryfield_night_motel_loft_8017ED78[0];
                 do {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    pos[6].vx       = 0xFB8 - ((gRandomLcgState >> 16) & 0x3FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    pos[6].vy       = ((gRandomLcgState >> 16) & 0x1FF) - 0xD5C;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    pos[6].vz       = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & 0x3F) + 0x10, &pos[6]);
-                    i++;
-                } while (i < 0x30);
-                arg0->state = 1;
+                    _dryfieldNightMotelLoftSpawnShard(spawnPoints);
+                    shardIndex++;
+                } while (shardIndex < DRYFIELD_NIGHT_MOTEL_LOFT_FIRST_SHARD_BURST_COUNT);
+                task->state = DRYFIELD_NIGHT_MOTEL_LOFT_SHARDS_WAIT_VIEWS_3_OR_10;
             }
             break;
     }

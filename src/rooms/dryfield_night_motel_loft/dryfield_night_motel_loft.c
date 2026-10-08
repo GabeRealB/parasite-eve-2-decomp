@@ -331,13 +331,18 @@ WorldCollisionSurfaceProperties* D_dryfield_night_motel_loft_8018090C[8] = {
 
 ActorCommand D_dryfield_night_motel_loft_8018092C = { 0 };
 
-static void func_dryfield_night_motel_loft_8017D808(Task* arg0);
-static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0);
+static void _dryfieldNightMotelLoftInitializeRoom(Task* task);
+static void _dryfieldNightMotelLoftUpdateRoom(Task* task);
 
-/// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_night_motel_loft_8017D5F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+// Saved object slot shared by the Jerry Can placement and its collision barrier.
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOFT_JERRY_CAN_OBJECT = 0xA,
+    DRYFIELD_NIGHT_MOTEL_LOFT_OBJECT_REMOVED   = 2
+};
+
+s32 dryfieldNightMotelLoftRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #define ROOM_VARIANT_MOTEL_BALCONY_MSG roomVariantMotelBalconyMsg
@@ -355,18 +360,17 @@ s32 func_dryfield_night_motel_loft_8017D67C(Task* arg0, s32 arg1, s32 arg2, s32 
     return 0;
 }
 
-/// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_night_motel_loft_8017D6BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 dryfieldNightMotelLoftIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
 
-/// Message-table handler for id 0x13F2: queues stage sound 0x531F0005 on
-/// command 5.
-s32 func_dryfield_night_motel_loft_8017D6C4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 dryfieldNightMotelLoftPlaySoundCue(Task* task, s32 messageId, s32 cueKey, s32 unusedSecondArg)
 {
-    if (arg2 == 5) {
-        sndEvtRequestStageScriptStart(0x531F0000 | 5, 0, 0);
+    enum { DRYFIELD_NIGHT_MOTEL_LOFT_SOUND_CUE = 5 };
+
+    if (cueKey == DRYFIELD_NIGHT_MOTEL_LOFT_SOUND_CUE) {
+        sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT, DRYFIELD_NIGHT_MOTEL_LOFT_SOUND_CUE), 0, 0);
     }
     return 0;
 }
@@ -401,61 +405,67 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
     }
 }
 
-/// Sets the session's current room to `arg0` and mirrors it in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`.
-void func_dryfield_night_motel_loft_8017D7EC(u8 arg0)
+void dryfieldNightMotelLoftSetCurrentRoom(u8 roomId)
 {
-    gGameSession->location.loc.room                            = arg0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
+    gGameSession->location.loc.room                            = roomId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomId;
 }
 
-/// First state of the room task: publishes the room's message table, claims
-/// pointer slot 7 and, once the slot-4 task exists and game nibble 0x96 is set,
-/// raises the 0x7DB payload's halfword and sends it to that task. It then sets
-/// the grid for flag 0xA and advances to the next state.
-static void func_dryfield_night_motel_loft_8017D808(Task* arg0)
+/// Publishes the room controller and restores its encounter and pickup collision.
+///
+/// State 0 of `dryfieldNightMotelLoftRoomTask`. Requires the loaded room's
+/// tables and live session/save state. If the encounter was already triggered,
+/// command 1 restores placement 0's Stalker to its running floor state.
+/// Advances to state 1 after rebuilding the Jerry Can barrier.
+static void _dryfieldNightMotelLoftInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_dryfield_night_motel_loft_8017EB1C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    enum { DRYFIELD_NIGHT_MOTEL_LOFT_RESTORE_STALKER_COMMAND = 1 };
+
+    task->msgTable = D_dryfield_night_motel_loft_8017EB1C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (sceneFindPlacedActor(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) != 0) {
-        D_dryfield_night_motel_loft_8018092C.command = 1;
+        D_dryfield_night_motel_loft_8018092C.command = DRYFIELD_NIGHT_MOTEL_LOFT_RESTORE_STALKER_COMMAND;
         TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_motel_loft_8018092C, 0);
     }
-    func_dryfield_night_motel_loft_8017D9BC(areaGetCurrentObjectState(0xA) == 2);
-    arg0->state = (s32)(arg0->state + 1);
+    dryfieldNightMotelLoftRebuildJerryCanCollision(areaGetCurrentObjectState(DRYFIELD_NIGHT_MOTEL_LOFT_JERRY_CAN_OBJECT) == DRYFIELD_NIGHT_MOTEL_LOFT_OBJECT_REMOVED);
+    task->state = task->state + 1;
 }
 
-/// Second state of the room task, run every frame: keeps the grid in step with
-/// flag 0xA, disables the action trigger while the flag is 2, and the first
-/// time collected bit 0x117 is seen with nibble 0x96 still clear and the slot-4
-/// task present, sets the nibble and starts the room's event.
-static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
+/// Keeps the Jerry Can barrier current and starts the Stalker encounter once.
+///
+/// State 1 of `dryfieldNightMotelLoftRoomTask`. Collection removes the barrier
+/// and disables the pickup interaction. The event starts only while placement
+/// 0 is live, and its saved latch prevents another start on later updates.
+static void _dryfieldNightMotelLoftUpdateRoom(Task* task)
 {
-    func_dryfield_night_motel_loft_8017D9BC(areaGetCurrentObjectState(0xA) == 2);
-    if (areaGetCurrentObjectState(0xA) == 2) {
-        {
-            WorldCollisionTrigger* object = &D_dryfield_night_motel_loft_801803F4[1];
-            object->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-        }
+    enum {
+        DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_OBJECTIVE = 0x15,
+        DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_MUSIC_KEY = 3
+    };
+
+    dryfieldNightMotelLoftRebuildJerryCanCollision(areaGetCurrentObjectState(DRYFIELD_NIGHT_MOTEL_LOFT_JERRY_CAN_OBJECT) == DRYFIELD_NIGHT_MOTEL_LOFT_OBJECT_REMOVED);
+    if (areaGetCurrentObjectState(DRYFIELD_NIGHT_MOTEL_LOFT_JERRY_CAN_OBJECT) == DRYFIELD_NIGHT_MOTEL_LOFT_OBJECT_REMOVED) {
+        WorldCollisionTrigger* pickupTrigger = &D_dryfield_night_motel_loft_801803F4[1];
+        pickupTrigger->flags                &= ~WORLD_COLLISION_TRIGGER_ENABLED;
     }
+    // Latch before launching the script, which changes rooms and commands the Stalker.
     if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN) && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0 && sceneFindPlacedActor(0)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN, 1);
         evsStartScript(D_dryfield_night_motel_loft_8017EB78, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x15);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_OBJECTIVE);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_MUSIC_KEY;
     }
 }
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_night_motel_loft_8017D5C4 = {
-    { func_dryfield_night_motel_loft_8017D808, func_dryfield_night_motel_loft_8017D8B0, taskKill },
+    { _dryfieldNightMotelLoftInitializeRoom, _dryfieldNightMotelLoftUpdateRoom, taskKill },
 };
 
-/// The room task's callback: runs the state `Task::state` selects from a
-/// stack copy of `D_dryfield_night_motel_loft_8017D5C4`.
-void func_dryfield_night_motel_loft_8017D964(Task* task)
+void dryfieldNightMotelLoftRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_night_motel_loft_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_night_motel_loft_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -51,9 +52,15 @@ extern SpriteSource D_dryfield_night_motel_loft_8017F9AC[22];
 
 extern SpriteBatch D_dryfield_night_motel_loft_8017FB64[4];
 
-/// Resets the room's live grid from its template and, when `arg0` is set,
-/// raises the grid's four corners by 0xBB8 in Y.
-void func_dryfield_night_motel_loft_8017D9BC(s32 arg0);
+/// Rebuilds the movable collision wall beside the Jerry Can from its template.
+///
+/// Copies normal 0's XYZ, the complete first face and vertices 0..3's XYZ
+/// into the live grid; the vectors' fourth halfwords and all other geometry
+/// and cell lists remain intact. A nonzero `collected` shifts those vertices
+/// 3000 integer coordinate units in positive Y, below the walkable floor.
+/// Repeated calls restore before shifting, so the offset does not accumulate.
+/// Requires both room-owned grids live; no pointer is retained.
+void dryfieldNightMotelLoftRebuildJerryCanCollision(s32 collected);
 
 // Callbacks referenced by the overlay's shared data tables.
 /// Resolves the night balcony's room after its story scene.
@@ -64,16 +71,35 @@ void func_dryfield_night_motel_loft_8017D9BC(s32 arg0);
 /// it. Queries retain the copied room. Returns 1 for every destination.
 s32 roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
-s32 func_dryfield_night_motel_loft_8017D5F8(Task*, s32, s32, s32);
+/// Refuses every key-item use in the nighttime loft.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM` and returns `ROOM_KEY_ITEM_USE_REFUSED`.
+/// All four arguments are unused; no item is consumed or event started.
+s32 dryfieldNightMotelLoftRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 
 s32 func_dryfield_night_motel_loft_8017D67C(Task*, s32, s32, s32);
 
-s32 func_dryfield_night_motel_loft_8017D6BC(Task*, s32, s32, s32);
+/// Ignores direction-trigger room-action requests in the nighttime loft.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION` and returns zero. All arguments
+/// are unused; the borrowed request is neither read nor retained.
+s32 dryfieldNightMotelLoftIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-s32 func_dryfield_night_motel_loft_8017D6C4(Task*, s32, s32, s32);
+/// Starts loft-bank sound entry 5 for room sound cue 5.
+///
+/// Handles `ROOM_MESSAGE_SOUND`; other cue keys do nothing. Uses the current
+/// stage with zero pan and attenuation offsets, requiring the room sound bank
+/// to be loaded. `task`, `messageId` and `unusedSecondArg` are unused.
+/// Returns zero whether or not the sound queue accepts the request.
+s32 dryfieldNightMotelLoftPlaySoundCue(Task* task, s32 messageId, s32 cueKey, s32 unusedSecondArg);
 
 void func_dryfield_night_motel_loft_8017D6F8(Task*);
 
-void func_dryfield_night_motel_loft_8017D7EC(u8);
+/// Sets the current room selector in both the live session and live save.
+///
+/// Event-script byte callback: `roomId` is a valid room of the current area;
+/// the loft encounter supplies 2. Requires both records live. This updates
+/// their selectors without loading resources or moving actors.
+void dryfieldNightMotelLoftSetCurrentRoom(u8 roomId);
 
 #endif // SRC_ROOMS_DRYFIELD_NIGHT_MOTEL_LOFT_DRYFIELD_NIGHT_MOTEL_LOFT_PRIVATE_H

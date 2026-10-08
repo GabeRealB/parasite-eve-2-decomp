@@ -74,7 +74,15 @@ D_dryfield_night_motel_loft_8017EB78 = 0x8017EB78; // size:0x198 defined:True
 
 dryfieldNightMotelLoftFallingShardTask = 0x8017E090; // type:func
 
-func_dryfield_night_motel_loft_8017DB64 = 0x8017DB64; // type:func
+dryfieldNightMotelLoftFlaresAndShardsTask = 0x8017DB64; // type:func
 glowDrawFlareClipped = 0x8017DE14; // type:func
 roomVariantMotelBalconyMsg = 0x8017D600; // type:func
 _dryfieldNightMotelLoftDrawShard = 0x8017e540; // type:func
+dryfieldNightMotelLoftRebuildJerryCanCollision = 0x8017d9bc; // type:func
+dryfieldNightMotelLoftRefuseKeyItem = 0x8017d5f8; // type:func
+dryfieldNightMotelLoftIgnoreRoomAction = 0x8017d6bc; // type:func
+dryfieldNightMotelLoftPlaySoundCue = 0x8017d6c4; // type:func
+dryfieldNightMotelLoftSetCurrentRoom = 0x8017d7ec; // type:func
+_dryfieldNightMotelLoftInitializeRoom = 0x8017d808; // type:func
+_dryfieldNightMotelLoftUpdateRoom = 0x8017d8b0; // type:func
+dryfieldNightMotelLoftRoomTask = 0x8017d964; // type:func

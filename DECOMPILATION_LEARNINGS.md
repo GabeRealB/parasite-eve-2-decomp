@@ -91478,7 +91478,7 @@ Inputs: `base_6.i` (97.2%, `delete=1`), `base_11.i` (99.4%, `reorder=1`),
 
 ## A cast-offset store to a global materialises `&global+off`; the typed member keeps `&global`
 
-`func_dryfield_night_motel_loft_8017D808` writes the halfword at 0x2 of a global
+`_dryfieldNightMotelLoftInitializeRoom` writes the halfword at 0x2 of a global
 and then passes that same global's address to `taskMessageDispatch`. m2c's cast form
 scores 88.929% with `insert=2 delete=2 regs=1 reorder=1`, and the residue is not
 a register choice or a schedule - the *value* in the address register is
@@ -93202,7 +93202,7 @@ No pointer local is needed for the fix here. A member access on a global whose
 *type* has the field - `extern WorldCollisionTrigger D_x;` then `D_x.flags &= 0xBF;` -
 leaves the symbol bare and puts the displacement in the memory operand. That is
 what the sibling rooms do for the same clear (`_acropolisFireEscapeDisableAbsentActorInteraction`,
-`func_dryfield_night_motel_loft_8017D8B0`, `func_acropolis_helicopter_landing_pad_8017EA6C`,
+`_dryfieldNightMotelLoftUpdateRoom`, `func_acropolis_helicopter_landing_pad_8017EA6C`,
 all `extern WorldCollisionTrigger`), so it is also the shape the original source had. One
 build, 100.000%, all penalties zero.
 
@@ -122211,7 +122211,7 @@ Inputs: `base_1.c` (82.382%, `regs=7 branch=2`), `base_2.c` (100.000%).
 Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Consecutive splat labels are one array; indexing it changes the relocation, not the code (func_dryfield_night_motel_loft_8017DB64, 2026-09-17)
+## Consecutive splat labels are one array; indexing it changes the relocation, not the code (dryfieldNightMotelLoftFlaresAndShardsTask, 2026-09-17)
 
 Seven consecutive 8-byte `SVECTOR`s at `8017ED78`: splat named `…ED80`, `…ED88`,
 `…ED90`, `…ED98`, `…EDA0` because the ROM's code loads each address directly.
