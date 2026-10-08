@@ -127,23 +127,24 @@ enum {
     GRAPHICS_AREA_FRAME_SECOND_Y = FILE_SYSTEM_IMAGE_HEIGHT + 32,
 };
 
-/// Queues stage-zero file 1 for title startup.
+/// Queues the stage-zero title startup file with normal loading and no image shift.
 ///
-/// Borrows writable key and option blocks of at least four bytes for this call.
-/// Key byte 1 is ignored by the enqueue API and left untouched. All four option
-/// bytes are supplied: zero hundreds/X/Y and normal loading. The CD queue copies
-/// the seven consumed bytes immediately; loading completes asynchronously.
-static inline void _bootQueueStartupFile(u8* fileKey, u8* loadOptions)
+/// Borrows a writable key and four option bytes for this call. The enqueue API
+/// ignores `fileKey->fileIdHundreds`; that member stays untouched, and the options
+/// supply the zero hundreds component instead. X/Y offsets are zero VRAM pages
+/// and rows. The CD ring must have room for one request; it copies all consumed
+/// bytes before returning and retains neither pointer. Loading is asynchronous.
+static inline void _bootQueueStartupFile(FsFileLoadKey* fileKey, u8 loadOptions[4])
 {
     enum { BOOT_STARTUP_FILE_INDEX = 1 };
 
-    fileKey[3]     = GAME_STAGE_NONE;
-    fileKey[2]     = 0;
-    fileKey[0]     = BOOT_STARTUP_FILE_INDEX;
-    loadOptions[0] = 0;
-    loadOptions[1] = CD_COMMAND_LOAD_DEFAULT;
-    loadOptions[2] = 0;
-    loadOptions[3] = 0;
+    fileKey->stage     = GAME_STAGE_NONE;
+    fileKey->fileGroup = 0;
+    fileKey->fileIndex = BOOT_STARTUP_FILE_INDEX;
+    loadOptions[0]     = 0;
+    loadOptions[1]     = CD_COMMAND_LOAD_DEFAULT;
+    loadOptions[2]     = 0;
+    loadOptions[3]     = 0;
     cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadOptions);
 }
 
@@ -251,11 +252,11 @@ void bootColdStartTask(Task* task)
         BOOT_START_TITLE_TASK_SLOT   = 13,
         BOOT_SCAN_WITH_STARTUP_IMAGE = 1,
     };
-    u8          driveMode[8]; // Only byte 0 is sent; the retained scratch extent preserves stack placement.
-    u8          fileKey[4];
-    u8          loadOptions[sizeof(gCdCmdQueue.entries[0].args)];
-    u8          brightness;
-    CdCmdQueue* queue;
+    u8            driveMode[8]; // Only byte 0 is sent; the retained scratch extent preserves stack placement.
+    FsFileLoadKey fileKey;
+    u8            loadOptions[sizeof(gCdCmdQueue.entries[0].args)];
+    u8            brightness;
+    CdCmdQueue*   queue;
 
     queue = &gCdCmdQueue;
     switch (task->state) {
@@ -273,7 +274,7 @@ void bootColdStartTask(Task* task)
             while (queue->imageLoadStatus != CD_COMMAND_IMAGE_COMPLETE) {
                 mdecStepImageDecode();
             }
-            _bootQueueStartupFile(fileKey, loadOptions);
+            _bootQueueStartupFile(&fileKey, loadOptions);
             task->killCountdown = BOOT_FADE_FULL_BRIGHTNESS;
             brightness          = task->killCountdown;
             fadeDrawOverlay(brightness, brightness, brightness, GPU_BLEND_SUBTRACT);
@@ -413,10 +414,10 @@ void bootReloadTitleTask(Task* task)
         BOOT_TITLE_RELOAD_WAIT        = 1,
         BOOT_TITLE_STARTUP_DESCRIPTOR = 0,
     };
-    u8  driveMode[8]; // Only byte 0 is sent; the retained scratch extent preserves stack placement.
-    u8  fileKey[4];
-    u8  loadOptions[sizeof(gCdCmdQueue.entries[0].args)];
-    s32 state;
+    u8            driveMode[8]; // Only byte 0 is sent; the retained scratch extent preserves stack placement.
+    FsFileLoadKey fileKey;
+    u8            loadOptions[sizeof(gCdCmdQueue.entries[0].args)];
+    s32           state;
 
     state = task->state;
     switch (state) {
@@ -424,7 +425,7 @@ void bootReloadTitleTask(Task* task)
             driveMode[0] = CdlModeSpeed | CdlModeSize1;
             CdControlB(CdlSetmode, driveMode, NULL);
             SetDispMask(0);
-            _bootQueueStartupFile(fileKey, loadOptions);
+            _bootQueueStartupFile(&fileKey, loadOptions);
             task->state = task->state + 1;
             return;
         case BOOT_TITLE_RELOAD_WAIT:

@@ -243,19 +243,21 @@ static s32 _primDrawTimedDimTile(const RECT* rect, const u8* phase, s16* framesL
 #undef PRIMITIVE_INIT_BLACK_DIM_TILE
 }
 
-/// Sets the SDK packet flags for an opaque or semitransparent tile.
+/// Selects opaque or semitransparent drawing in an initialized tile packet.
 ///
-/// Borrows a writable TILE; nonzero semiTrans enables blending and clears the
-/// raw-texture flag, while zero does the reverse. The latter flag has no texture
-/// to affect on an untextured tile, but its packet bit is retained.
+/// Borrows a writable TILE only for this call. Any nonzero `semiTrans` enables
+/// semitransparency and clears the raw-texture bit; zero disables it and sets
+/// that bit. The raw-texture bit has no effect on this untextured primitive.
+/// Other packet bits and fields survive. The GPU draw mode selects the blend
+/// equation separately; this helper neither queues the tile nor sets that mode.
 static inline void _primSetTileBlend(TILE* tile, s32 semiTrans)
 {
     if (semiTrans == 0) {
-        SetShadeTex(tile, 1);
-        SetSemiTrans(tile, 0);
+        SetShadeTex(tile, true);
+        SetSemiTrans(tile, false);
     } else {
-        SetShadeTex(tile, 0);
-        SetSemiTrans(tile, 1);
+        SetShadeTex(tile, false);
+        SetSemiTrans(tile, true);
     }
 }
 

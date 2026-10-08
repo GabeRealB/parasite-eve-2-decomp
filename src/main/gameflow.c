@@ -165,19 +165,34 @@ static const TaskFuncTable3 GameFlow_States3 = { {
     _gameFlowHandOffSessionLoad,
 } };
 
-/// Stops dispatch and replaces disposable session resources with a startup task.
+/// Discards the default task and model lists and resets the configured session heaps.
 ///
-/// The launch task and every current task/model/heap allocation become invalid.
-/// GPU and decoder borrowers must have finished using those resources. Stop the
-/// current walk before killing its cursor and resetting lists; spawn only after
-/// the primary and selected auxiliary heaps have been reinitialized.
-static inline void _gameFlowHandOffSessionStartup(Task* launchTask)
+/// Selects the emptied default task list for subsequent spawns and resets the
+/// model-coordinate pass counter before heap reuse. The primary heap and any
+/// configured auxiliary heap must have no live users, including GPU/decoder
+/// work. No task exits or resource teardown handlers run here. A caller inside
+/// task dispatch must stop the walk before invalidating its current allocation.
+static inline void _gameFlowResetSessionResources(void)
 {
-    gDisplayState.stopTaskWalk = 1;
-    taskKill(launchTask);
     taskResetDefaultList();
     actorRenderResetLists();
     memInitHeaps();
+}
+
+/// Replaces the launch task and session resources with the session-start task.
+///
+/// Requires a live launch task in the current walk and initialized heap regions.
+/// Discards the task/model lists and allocations in the primary and selected
+/// auxiliary heaps; their GPU, CD and decoder users must already have finished.
+/// Resident session/save state survives. Neither this task nor other discarded
+/// allocations may be accessed afterwards. The new task joins the default list;
+/// spawning failure is ignored, with no restoration of the previous resources.
+static inline void _gameFlowHandOffSessionStartup(Task* launchTask)
+{
+    // The dispatcher must return before reading its soon-to-be-invalid cursor.
+    gDisplayState.stopTaskWalk = true;
+    taskKill(launchTask);
+    _gameFlowResetSessionResources();
     taskSpawn(GAME_FLOW_RESIDENT_TASK_BANK, GAME_FLOW_START_SESSION_TASK_SLOT, 0, 0);
 }
 
@@ -306,20 +321,6 @@ void gameClearSession(void)
 {
     MEM_CLEAR(gGameSession, sizeof(*gGameSession));
     gDisplayState.control.flags.pendingPlayerPos = 0;
-}
-
-/// Discards the default task and model lists and resets the configured session heaps.
-///
-/// Selects the emptied default task list for subsequent spawns and resets the
-/// model-coordinate pass counter before heap reuse. The primary heap and any
-/// configured auxiliary heap must have no live users, including GPU/decoder
-/// work. No task exits or resource teardown handlers run here. A caller inside
-/// task dispatch must stop the walk before invalidating its current allocation.
-static inline void _gameFlowResetSessionResources(void)
-{
-    taskResetDefaultList();
-    actorRenderResetLists();
-    memInitHeaps();
 }
 
 /// Resets disposable session resources and queues startup from the live save.
