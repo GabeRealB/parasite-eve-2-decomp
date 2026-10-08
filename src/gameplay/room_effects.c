@@ -613,7 +613,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGlowStarTask, { NULL } },                                         // 0x04B
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask4C, { NULL } },                                           // 0x04C
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_plaza_8018251C, { NULL } },                                          // 0x04D
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_fire_escape_8017FF7C, { NULL } },                                    // 0x04E
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeLightEmitterTask, { NULL } },                                    // 0x04E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlareTask, { NULL } },                                           // 0x04F
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_80180580, { NULL } },                             // 0x050
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadLeafFallTask, { NULL } },                                        // 0x051

@@ -72,6 +72,11 @@ TaskDesc D_shelter_b3_garbage_incinerator_801855CC = { { { TASK_BODY_NONE, 32 } 
 u16 D_shelter_b3_garbage_incinerator_801855DE;
 
 /// Commits the deferred control-room destination and schedules a captured-frame reload.
+///
+/// Requires a live departure task and a prepared room-event destination.
+/// Copies its area, warp and room into the live save, retaining stage and view.
+/// Stops non-ambient scripts, selects sprite variant 1 and kills the departure
+/// task after queuing reload; the reload consumes the saved selectors later.
 static inline void _shelterB3GarbageIncineratorCommitControlRoomExit(Task* task)
 {
     enum { SHELTER_B3_GARBAGE_INCINERATOR_DEFAULT_SPRITE_VARIANT = 1 };

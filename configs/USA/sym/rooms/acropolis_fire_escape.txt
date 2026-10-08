@@ -94,9 +94,9 @@ acropolisFireEscapeFlareTask = 0x80180B20; // type:func
 
 acropolisFireEscapeFlickerLightTask = 0x80180154; // type:func
 
-func_acropolis_fire_escape_8017EA68 = 0x8017EA68; // type:func
+acropolisFireEscapeTelephoneMenuTask = 0x8017EA68; // type:func
 
-func_acropolis_fire_escape_8017FF7C = 0x8017FF7C; // type:func
+acropolisFireEscapeLightEmitterTask = 0x8017FF7C; // type:func
 _telephoneDrawPlayDataRow = 0x8017D6D0; // type:func
 _telephoneDrawUsageRow = 0x8017DE9C; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E298; // type:func
@@ -124,3 +124,5 @@ _acropolisFireEscapeResolveRoomTransition = 0x8017fd98; // type:func
 _acropolisFireEscapeDisableAbsentActorInteraction = 0x8017fecc; // type:func
 acropolisFireEscapeRoomTask = 0x8017ff24; // type:func
 _acropolisFireEscapeAmbienceTask = 0x8017fb40; // type:func
+_acropolisFireEscapeHandleRoomCommand = 0x8017f9f8; // type:func
+_acropolisFireEscapeInitializeRoomTask = 0x8017fe50; // type:func

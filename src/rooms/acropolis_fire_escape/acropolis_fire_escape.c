@@ -177,10 +177,10 @@ enum { ACROPOLIS_FIRE_ESCAPE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
             setRGB2((quad), (red), (green), (blue)),                 \
             setRGB3((quad), 0, 0, 0)))
 
-static void func_acropolis_fire_escape_8017FE50(Task* task);
+static void _acropolisFireEscapeInitializeRoomTask(Task* task);
 static void _acropolisFireEscapeDisableAbsentActorInteraction(Task* unusedTask);
 
-s32        func_acropolis_fire_escape_8017F9F8(Task*, s32, s32, s32);
+static s32 _acropolisFireEscapeHandleRoomCommand(Task* unusedTask, s32 messageId, s32 command, s32 unusedArg);
 static s32 _acropolisFireEscapeResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _acropolisFireEscapeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _acropolisFireEscapeIgnoreSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 unusedArg);
@@ -218,7 +218,7 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 TaskMessageEntry D_acropolis_fire_escape_80181D3C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisFireEscapeResolveRoomTransition },
     { ACROPOLIS_FIRE_ESCAPE_MESSAGE_USE_KEY_ITEM, _acropolisFireEscapeRejectKeyItemUse },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_fire_escape_8017F9F8 },
+    { ROOM_MESSAGE_COMMAND, _acropolisFireEscapeHandleRoomCommand },
     { ROOM_MESSAGE_SOUND, _acropolisFireEscapeIgnoreSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -606,7 +606,7 @@ RoomCutsceneRec D_acropolis_fire_escape_80183048;
 
 #include "../../shared/telephone.inc.c"
 
-void func_acropolis_fire_escape_8017EA68(Task* task)
+void acropolisFireEscapeTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }
@@ -622,58 +622,99 @@ void func_acropolis_fire_escape_8017EA68(Task* task)
 /// per-frame check, die.
 static const TaskFuncTable3 D_acropolis_fire_escape_8017D6A4 = {
     {
-        func_acropolis_fire_escape_8017FE50,
+        _acropolisFireEscapeInitializeRoomTask,
         _acropolisFireEscapeDisableAbsentActorInteraction,
         taskKill,
     },
 };
 
-/// The `0x13F0` message handler of `D_acropolis_fire_escape_80181D3C`.
-/// Event 4 runs CAP command 0xB the first time (setting game flag 0x16A), and
-/// afterwards starts the room's cutscene in view 9 with CAP slot and file 1.
-/// Event 3 raises flag 0x155 to at least 6 and starts CAP 3. Event 1 starts
-/// CAP 9 when the slot-4 task answers message 0x7D6, CAP 1 otherwise.
-s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 arg3)
+/// Starts the repeat fire-escape scene using the room's persistent playback record.
+///
+/// The record and scene resources must remain loaded and unchanged until the
+/// runner finishes; its follow-up command advances the room dialogue.
+static inline void _acropolisFireEscapeStartRepeatScene(void)
 {
-    Task* slot;
-    s32   cap;
-    s32   result;
+    enum {
+        ACROPOLIS_FIRE_ESCAPE_SCENE_VIEW              = 9,
+        ACROPOLIS_FIRE_ESCAPE_SCENE_CAP_SLOT          = 1,
+        ACROPOLIS_FIRE_ESCAPE_SCENE_CAP_FILE          = 1,
+        ACROPOLIS_FIRE_ESCAPE_SCENE_PLAY              = 0,
+        ACROPOLIS_FIRE_ESCAPE_SCENE_TASK              = 0,
+        ACROPOLIS_FIRE_ESCAPE_SCENE_FOLLOW_UP_COMMAND = 3,
+        ACROPOLIS_FIRE_ESCAPE_SCENE_START_SOUND       = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, 1),
+        ACROPOLIS_FIRE_ESCAPE_SCENE_END_SOUND         = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, 4),
+        ACROPOLIS_FIRE_ESCAPE_SCENE_PLAYBACK_SOUND    = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, 7),
+        ACROPOLIS_FIRE_ESCAPE_SCENE_AFTER_SOUND       = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, 8),
+    };
 
-    if (event == 4) {
-        if (gameFlagGetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE) == 0) {
-            gameFlagSetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE, 1);
-            capRunCommandWithTransition(0xB);
+    D_acropolis_fire_escape_80183048.view            = ACROPOLIS_FIRE_ESCAPE_SCENE_VIEW;
+    D_acropolis_fire_escape_80183048.capSlot         = ACROPOLIS_FIRE_ESCAPE_SCENE_CAP_SLOT;
+    D_acropolis_fire_escape_80183048.capFile         = ACROPOLIS_FIRE_ESCAPE_SCENE_CAP_FILE;
+    D_acropolis_fire_escape_80183048.skipScene       = ACROPOLIS_FIRE_ESCAPE_SCENE_PLAY;
+    D_acropolis_fire_escape_80183048.startSound      = ACROPOLIS_FIRE_ESCAPE_SCENE_START_SOUND;
+    D_acropolis_fire_escape_80183048.endSound        = ACROPOLIS_FIRE_ESCAPE_SCENE_END_SOUND;
+    D_acropolis_fire_escape_80183048.sceneSound      = ACROPOLIS_FIRE_ESCAPE_SCENE_PLAYBACK_SOUND;
+    D_acropolis_fire_escape_80183048.afterSceneSound = ACROPOLIS_FIRE_ESCAPE_SCENE_AFTER_SOUND;
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, ACROPOLIS_FIRE_ESCAPE_SCENE_TASK, ACROPOLIS_FIRE_ESCAPE_SCENE_FOLLOW_UP_COMMAND, &D_acropolis_fire_escape_80183048);
+}
+
+/// Handles the fire escape's scene, story-progress and placed-actor dialogue commands.
+///
+/// `ROOM_MESSAGE_COMMAND` supplies integer command 4 for the first/repeat scene,
+/// 3 for dialogue progress 6 and objective 7, or 1 for actor-dependent dialogue.
+/// Other commands do nothing. Requires loaded room/CAP resources and live save
+/// state; repeated scenes borrow the persistent record through completion.
+/// Receiver, message ID and second payload are ignored; always returns zero.
+static s32 _acropolisFireEscapeHandleRoomCommand(Task* unusedTask, s32 messageId, s32 command, s32 unusedArg)
+{
+    enum {
+        ACROPOLIS_FIRE_ESCAPE_COMMAND_SCENE             = 4,
+        ACROPOLIS_FIRE_ESCAPE_COMMAND_ADVANCE_DIALOGUE  = 3,
+        ACROPOLIS_FIRE_ESCAPE_COMMAND_ACTOR_DIALOGUE    = 1,
+        ACROPOLIS_FIRE_ESCAPE_SCENE_UNSEEN              = 0,
+        ACROPOLIS_FIRE_ESCAPE_SCENE_SEEN                = 1,
+        ACROPOLIS_FIRE_ESCAPE_FIRST_SCENE_CAP_COMMAND   = 11,
+        ACROPOLIS_FIRE_ESCAPE_DIALOGUE_PROGRESS         = 6,
+        ACROPOLIS_FIRE_ESCAPE_FOLLOW_UP_RESET           = 0,
+        ACROPOLIS_FIRE_ESCAPE_DIALOGUE_CAP_COMMAND      = 3,
+        ACROPOLIS_FIRE_ESCAPE_DIALOGUE_OBJECTIVE        = 7,
+        ACROPOLIS_FIRE_ESCAPE_DIALOGUE_ACTOR_PLACEMENT  = 0,
+        ACROPOLIS_FIRE_ESCAPE_ACTOR_ABSENT_CAP_COMMAND  = 1,
+        ACROPOLIS_FIRE_ESCAPE_ACTOR_PRESENT_CAP_COMMAND = 9,
+    };
+    Task* actorTask;
+    s32   capCommand;
+    s32   actorPresent;
+
+    if (command == ACROPOLIS_FIRE_ESCAPE_COMMAND_SCENE) {
+        if (gameFlagGetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE) == ACROPOLIS_FIRE_ESCAPE_SCENE_UNSEEN) {
+            gameFlagSetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE, ACROPOLIS_FIRE_ESCAPE_SCENE_SEEN);
+            capRunCommandWithTransition(ACROPOLIS_FIRE_ESCAPE_FIRST_SCENE_CAP_COMMAND);
             return 0;
         }
-        D_acropolis_fire_escape_80183048.view            = 9;
-        D_acropolis_fire_escape_80183048.capSlot         = 1;
-        D_acropolis_fire_escape_80183048.capFile         = 1;
-        D_acropolis_fire_escape_80183048.skipScene       = 0;
-        D_acropolis_fire_escape_80183048.startSound      = 0x510F0001;
-        D_acropolis_fire_escape_80183048.endSound        = 0x510F0004;
-        D_acropolis_fire_escape_80183048.sceneSound      = 0x510F0007;
-        D_acropolis_fire_escape_80183048.afterSceneSound = 0x510F0008;
-        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_acropolis_fire_escape_80183048);
+        _acropolisFireEscapeStartRepeatScene();
     }
-    if (event == 3) {
-        if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) < 6) {
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
+    if (command == ACROPOLIS_FIRE_ESCAPE_COMMAND_ADVANCE_DIALOGUE) {
+        // Advancing dialogue rearms its follow-up without lowering later progress.
+        if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) < ACROPOLIS_FIRE_ESCAPE_DIALOGUE_PROGRESS) {
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACROPOLIS_FIRE_ESCAPE_FOLLOW_UP_RESET);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_FIRE_ESCAPE_DIALOGUE_PROGRESS);
         }
-        capSpawnEventIfIdle(3, CAP_EVENT_PAUSE_ACTORS);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 7);
+        capSpawnEventIfIdle(ACROPOLIS_FIRE_ESCAPE_DIALOGUE_CAP_COMMAND, CAP_EVENT_PAUSE_ACTORS);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_FIRE_ESCAPE_DIALOGUE_OBJECTIVE);
     }
-    if (event == 1) {
-        slot = sceneFindPlacedActor(0);
-        cap  = 1;
-        if (slot != NULL) {
-            result = taskMessageDispatch(slot, ACTOR_MESSAGE_IS_PRESENT, 0, 0);
-            cap    = 9;
-            if (result == 0) {
-                cap = 1;
+    if (command == ACROPOLIS_FIRE_ESCAPE_COMMAND_ACTOR_DIALOGUE) {
+        actorTask  = sceneFindPlacedActor(ACROPOLIS_FIRE_ESCAPE_DIALOGUE_ACTOR_PLACEMENT);
+        capCommand = ACROPOLIS_FIRE_ESCAPE_ACTOR_ABSENT_CAP_COMMAND;
+        if (actorTask != NULL) {
+            // Retain the original zero output payload; this actor also writes through it.
+            actorPresent = taskMessageDispatch(actorTask, ACTOR_MESSAGE_IS_PRESENT, 0, 0);
+            capCommand   = ACROPOLIS_FIRE_ESCAPE_ACTOR_PRESENT_CAP_COMMAND;
+            if (actorPresent == 0) {
+                capCommand = ACROPOLIS_FIRE_ESCAPE_ACTOR_ABSENT_CAP_COMMAND;
             }
         }
-        capSpawnEventIfIdle(cap, CAP_EVENT_PAUSE_ACTORS);
+        capSpawnEventIfIdle(capCommand, CAP_EVENT_PAUSE_ACTORS);
     }
     return 0;
 }
@@ -802,15 +843,22 @@ static s32 _acropolisFireEscapeIgnoreSoundMessage(Task* task, s32 messageId, s32
     return 0;
 }
 
-/// First state of the room's message task: installs the message table, takes
-/// pointer slot 7, spawns the ambient-sound task and, when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` is 5,
-/// sets the session's flow flags to 8.
-static void func_acropolis_fire_escape_8017FE50(Task* task)
+/// Publishes the room receiver and starts its view-dependent ambience.
+///
+/// State 0 requires a live bodyless task and loaded room/gameplay resources.
+/// Saved scene event 5 selects load-only mode for area music. Advances
+/// to the interaction-check state even if the ambience task fails to spawn.
+static void _acropolisFireEscapeInitializeRoomTask(Task* task)
 {
+    enum {
+        ACROPOLIS_FIRE_ESCAPE_INITIAL_AMBIENCE_TASK = 0,
+        ACROPOLIS_FIRE_ESCAPE_ENTRY_MUSIC_EVENT     = 5,
+    };
+
     task->msgTable = D_acropolis_fire_escape_80181D3C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(D_acropolis_fire_escape_80181D64, 0, 0, 0);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 5) {
+    taskSpawnFromTable(D_acropolis_fire_escape_80181D64, ACROPOLIS_FIRE_ESCAPE_INITIAL_AMBIENCE_TASK, 0, 0);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == ACROPOLIS_FIRE_ESCAPE_ENTRY_MUSIC_EVENT) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;
     }
     task->state = task->state + 1;
@@ -840,50 +888,69 @@ void acropolisFireEscapeRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-/// Task body of the room's effect emitter. On its first frame it spawns effect
-/// 0x6008C at a fixed offset from the task's coordinate; every later frame
-/// outside a cutscene it spawns effect 0x6004F at the offset and with the
-/// parameters of the current view, for views 3, 6, 8 and 9.
-void func_acropolis_fire_escape_8017FF7C(Task* task)
+/// Places a flare from the emitter's reusable local-offset storage.
+///
+/// Spawning copies XYZ into the new coordinate before this storage is reused;
+/// the new work also retains the pointer. The one-frame flare never reads it.
+static inline void _acropolisFireEscapeSpawnFlare(EffectWork* emitterWork, GfxCoord* emitterCoord,
+                                                  s16 offsetX, s16 offsetY, s16 offsetZ, s32 options)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
+    emitterWork->move.vx = offsetX;
+    emitterWork->move.vy = offsetY;
+    emitterWork->move.vz = offsetZ;
+    effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, emitterCoord, options, &emitterWork->move);
+}
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
+void acropolisFireEscapeLightEmitterTask(Task* task)
+{
+    enum {
+        ACROPOLIS_FIRE_ESCAPE_LIGHT_EMITTER_INITIALIZE = 0,
+        ACROPOLIS_FIRE_ESCAPE_LIGHT_EMITTER_EMIT       = 1,
+        // Radius byte 32; the lamp does not read the retained upper bits.
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_SPAWN_OPTIONS = 0x42000,
+        ACROPOLIS_FIRE_ESCAPE_RED_DIAMOND_VIEW      = 3,
+        ACROPOLIS_FIRE_ESCAPE_RED_RADIAL_VIEW       = 8,
+        ACROPOLIS_FIRE_ESCAPE_CYAN_DIAMOND_VIEW     = 6,
+        ACROPOLIS_FIRE_ESCAPE_CYAN_RADIAL_VIEW      = 9,
+        ACROPOLIS_FIRE_ESCAPE_RED_PULSE_RATE        = 14,
+        ACROPOLIS_FIRE_ESCAPE_CYAN_PULSE_RATE       = 8,
+        ACROPOLIS_FIRE_ESCAPE_RED_DIAMOND_RADIUS    = 6,
+        ACROPOLIS_FIRE_ESCAPE_RED_RADIAL_RADIUS     = 3,
+        ACROPOLIS_FIRE_ESCAPE_CYAN_DIAMOND_RADIUS   = 4,
+        ACROPOLIS_FIRE_ESCAPE_CYAN_RADIAL_RADIUS    = 2,
+    };
+    EffectWork* emitterWork;
+    GfxCoord*   emitterCoord;
+
+    emitterWork  = task->spawnArg2.pointer;
+    emitterCoord = task->extra.coordBody->coord;
     switch (task->state) {
-        case 0:
-            work->move.vx = 0xB58;
-            work->move.vy = -0x822;
-            work->move.vz = -0xE5;
-            effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLICKER_LIGHT, coord, 0x42000, &work->move);
+        case ACROPOLIS_FIRE_ESCAPE_LIGHT_EMITTER_INITIALIZE:
+            // The persistent lamp snapshots this local placement once.
+            emitterWork->move.vx = 2904;
+            emitterWork->move.vy = -2082;
+            emitterWork->move.vz = -229;
+            effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLICKER_LIGHT, emitterCoord, ACROPOLIS_FIRE_ESCAPE_FLICKER_SPAWN_OPTIONS, &emitterWork->move);
             task->state = task->state + 1;
             break;
-        case 1:
+        case ACROPOLIS_FIRE_ESCAPE_LIGHT_EMITTER_EMIT:
+            // Actor pause/hide modes still emit; a cancellation update suppresses emission.
             if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                if (gGameSession->location.loc.view == 3) {
-                    work->move.vx = 0x48F;
-                    work->move.vy = -0x391;
-                    work->move.vz = 0x686;
-                    effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, (6 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 14, &work->move);
+                if (gGameSession->location.loc.view == ACROPOLIS_FIRE_ESCAPE_RED_DIAMOND_VIEW) {
+                    _acropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, 1167, -913, 1670,
+                                                   (ACROPOLIS_FIRE_ESCAPE_RED_DIAMOND_RADIUS << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | ACROPOLIS_FIRE_ESCAPE_RED_PULSE_RATE);
                 }
-                if (gGameSession->location.loc.view == 8) {
-                    work->move.vx = 0x48F;
-                    work->move.vy = -0x391;
-                    work->move.vz = 0x686;
-                    effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | (3 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 14, &work->move);
+                if (gGameSession->location.loc.view == ACROPOLIS_FIRE_ESCAPE_RED_RADIAL_VIEW) {
+                    _acropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, 1167, -913, 1670,
+                                                   ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | (ACROPOLIS_FIRE_ESCAPE_RED_RADIAL_RADIUS << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | ACROPOLIS_FIRE_ESCAPE_RED_PULSE_RATE);
                 }
-                if (gGameSession->location.loc.view == 6) {
-                    work->move.vx = -0xC1F;
-                    work->move.vy = -0xD10;
-                    work->move.vz = 0x8E0;
-                    effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (4 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 8, &work->move);
+                if (gGameSession->location.loc.view == ACROPOLIS_FIRE_ESCAPE_CYAN_DIAMOND_VIEW) {
+                    _acropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, -3103, -3344, 2272,
+                                                   ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (ACROPOLIS_FIRE_ESCAPE_CYAN_DIAMOND_RADIUS << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | ACROPOLIS_FIRE_ESCAPE_CYAN_PULSE_RATE);
                 }
-                if (gGameSession->location.loc.view == 9) {
-                    work->move.vx = -0xC1F;
-                    work->move.vy = -0xD10;
-                    work->move.vz = 0x8E0;
-                    effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (2 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 8, &work->move);
+                if (gGameSession->location.loc.view == ACROPOLIS_FIRE_ESCAPE_CYAN_RADIAL_VIEW) {
+                    _acropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, -3103, -3344, 2272,
+                                                   ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (ACROPOLIS_FIRE_ESCAPE_CYAN_RADIAL_RADIUS << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | ACROPOLIS_FIRE_ESCAPE_CYAN_PULSE_RATE);
                 }
             }
             break;

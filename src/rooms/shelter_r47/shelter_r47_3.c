@@ -1759,7 +1759,9 @@ static void _shelterR47MapTerminalInitTask(Task* task)
 
 /// Latches a confirmed hotspot and stops its cursor while the command menu opens.
 ///
-/// Borrows the live task, its work, its port-0 prompt and a hit-tested entry.
+/// Borrows the live task, its work, its port-0 prompt and the first confirmed
+/// hit-tested entry before the -1 terminator. Copies its ID and command kind;
+/// no pointer to the hotspot is retained. Enters command-menu state 3.
 static inline void _shelterR47MapTerminalAcceptHotspot(Task* task, ShelterR47MapTerminalWork* work,
                                                        ActionPrompt* prompt, const ActionPromptHotspot* hotspot)
 {
@@ -1991,9 +1993,11 @@ static void _shelterR47MapTerminalBeginFadeOutTask(Task* task)
 
 /// Releases the closing terminal's holds and cursor, then hands off result zero.
 ///
-/// Requires live work and cursor. Timed viewing leaves scripted control and
-/// event-state restoration to its event script. The completion request keeps
-/// the terminal and work live until an exit handler is dispatched.
+/// Requires live work and a cursor task in spawnArg2.pointer. The original
+/// spawn mode gates player-control release; the current work mode gates event
+/// release. Timed viewing leaves those holds to its event script. Releases
+/// model/display/cutscene holds and kills the cursor before requesting result 0.
+/// The terminal and work remain live until an exit handler is dispatched.
 static inline void _shelterR47MapTerminalCompleteFadeOut(Task* task, const ShelterR47MapTerminalWork* work)
 {
     if (task->spawnArg1.value != SHELTER_R47_MAP_MODE_TIMED) {

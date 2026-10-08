@@ -900,20 +900,23 @@ static const TaskFuncTable3 D_shelter_b6_nursery_8017D6A4 = {
 
 /// Starts a nursery cutscene with the current CAP file and the selected follow-up.
 ///
-/// Borrows the persistent record through cutscene completion. Slot and skip
-/// values narrow to signed bytes; followUpCommand is the runner's CAP command.
+/// Requires preconfigured sound fields and loaded view-6/CAP resources. Borrows
+/// the persistent record unchanged through completion. Slot and skip values
+/// narrow to signed bytes; skipScene zero plays the scene, nonzero skips its CAP playback.
+/// capFile zero retains the selected file; followUpCommand runs after dialogue.
 static inline void _shelterB6NurseryStartCommandScene(RoomCutsceneRec* scene, s32 capSlot, s32 skipScene, s32 followUpCommand)
 {
     enum {
         SHELTER_B6_NURSERY_SCENE_VIEW            = 6,
-        SHELTER_B6_NURSERY_CAP_FILE_KEEP_CURRENT = 0
+        SHELTER_B6_NURSERY_CAP_FILE_KEEP_CURRENT = 0,
+        SHELTER_B6_NURSERY_COMMAND_SCENE_TASK    = 0
     };
 
     scene->view      = SHELTER_B6_NURSERY_SCENE_VIEW;
     scene->capSlot   = capSlot;
     scene->capFile   = SHELTER_B6_NURSERY_CAP_FILE_KEEP_CURRENT;
     scene->skipScene = skipScene;
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, followUpCommand, scene);
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, SHELTER_B6_NURSERY_COMMAND_SCENE_TASK, followUpCommand, scene);
 }
 
 /// Handles command 10's nursery progress, CAP playback and cutscene selection.

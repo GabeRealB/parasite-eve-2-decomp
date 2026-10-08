@@ -63,6 +63,10 @@ enum {
 };
 
 /// Sets the GPU mask bit on every RGB16 pixel in the complete decoded image workspace.
+///
+/// Requires exclusive writable access to all 320x240 decoded pixels; no decode
+/// or VLC-table build may overlap this pass. The u16 pointer is the pixel view
+/// of the word-packed workspace. RGB bits remain intact and storage is borrowed.
 static inline void _shelterB6TrainingRoomMaskBackdrop(void)
 {
     u16* imagePixel;

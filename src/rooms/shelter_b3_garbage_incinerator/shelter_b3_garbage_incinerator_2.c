@@ -897,10 +897,12 @@ static inline void _shelterB3GarbageIncineratorSetRoom(s16 room)
     gGameSession->roomObjsDirty                                = 1;
 }
 
-/// Lowers the lift in view-coordinate units and clamps at its first rest pose.
+/// Lowers the lift in parent-coordinate units and clamps at its first rest pose.
 ///
-/// Requires a live root coordinate. Returns 1 only on crossing below the rest
-/// height; equality continues moving on the next tick. Arrival stops the move sound.
+/// Requires a live TMD root parented to the view and a positive descentStep
+/// in integer coordinate units per task tick. Returns signed-halfword 1 only
+/// on crossing below placement 0's rest height, otherwise 0; equality takes
+/// another step next tick. Arrival stops the move sound and starts the stop sound.
 static inline s16 _shelterB3GarbageIncineratorLowerLift(Task* task, s32 descentStep)
 {
     GfxCoord* movingCoord;
@@ -920,10 +922,11 @@ static inline s16 _shelterB3GarbageIncineratorLowerLift(Task* task, s32 descentS
     return arrived;
 }
 
-/// Records first-pose arrival and waits for a view change before changing room variant.
+/// Commits lift arrival and enters the state that waits for a logical view change.
 ///
-/// The lift must already be clamped at its first rest height. Work remains live
-/// through the collision-wall update; arrivalView captures the session's logical view.
+/// Call in descending state 2 with the lift clamped at placement 0's rest height
+/// and its owned work live. Updates the descent phase and collision walls,
+/// records the current logical view and advances to state 3 without releasing work.
 static inline void _shelterB3GarbageIncineratorFinishLiftDescent(Task* task)
 {
     _ShelterB3GarbageIncineratorLiftWork* work;
@@ -940,7 +943,7 @@ static inline void _shelterB3GarbageIncineratorFinishLiftDescent(Task* task)
 /// Requires a live TMD body and this area's placement-0 actor. State 0 owns
 /// a primary-heap work block and supplies the model's lighting matrices.
 /// The saved descent phase selects the starting pose. Room action 1 lowers
-/// the lift three view-coordinate units per tick, then a view change selects
+/// the lift three parent-coordinate units per tick, then a view change selects
 /// room 3 or 6. `ROOM_MESSAGE_ACTOR_EVENT` starts the carried move from the
 /// waiting state. Completion applies saved area updates and tears down the
 /// task/work. Room changes rebuild the model's lighting at its cached XYZ.

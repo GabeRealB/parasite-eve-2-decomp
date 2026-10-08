@@ -1035,7 +1035,9 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 
 /// Restores player and companion control and model drawing after a declined event.
 ///
-/// Requires the live actor task slots; retains no task pointer.
+/// Requires a live player and, when present, a live companion with its loaded
+/// animation bank. Resumes scripted control and selects automatic model drawing;
+/// the caller releases the HUD and event holds separately. Retains no task pointer.
 static inline void _shelterB4ReservoirRestoreEventActors(void)
 {
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -1419,6 +1421,10 @@ static void _shelterB4ReservoirView8ModelTask(Task* task)
 #include "../../shared/screen_wave_run.inc.c"
 
 /// Stops the retained water-ramp task, if live, and clears its shared handle.
+///
+/// The room's shared handle must be NULL or a live main/view-10 ramp task.
+/// Teardown precedes clearing it. Water heights remain at their current values;
+/// the finishing command sets the appropriate endpoint after this returns.
 static inline void _shelterB4ReservoirStopWaterRamp(void)
 {
     if (D_shelter_b4_reservoir_8018492C != NULL) {

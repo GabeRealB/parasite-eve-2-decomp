@@ -1689,7 +1689,7 @@ D_mist_shooting_gallery_80185000 = 0x80185000; // absolute:True owner=mist_shoot
 
 acropolisSquareTelephoneMenuTask = 0x80180804; // type:func absolute:True owner=acropolis_square
 
-func_acropolis_fire_escape_8017EA68 = 0x8017EA68; // type:func absolute:True owner=acropolis_fire_escape
+acropolisFireEscapeTelephoneMenuTask = 0x8017EA68; // type:func absolute:True owner=acropolis_fire_escape
 
 mistParkingTelephoneMenuTask = 0x80181468; // type:func absolute:True owner=mist_parking
 
@@ -1757,7 +1757,7 @@ neoArkSubstationDrawLightGlowsTask = 0x8017D874; // type:func absolute:True owne
 
 mistParkingDrawGlowsTask = 0x80184728; // type:func absolute:True owner=mist_parking
 
-func_acropolis_fire_escape_8017FF7C = 0x8017FF7C; // type:func absolute:True owner=acropolis_fire_escape shared=rooms
+acropolisFireEscapeLightEmitterTask = 0x8017FF7C; // type:func absolute:True owner=acropolis_fire_escape shared=rooms
 
 acropolisCafeteriaPuffTask = 0x8017EA90; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
 

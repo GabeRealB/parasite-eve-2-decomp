@@ -201,9 +201,16 @@ static s32 _shelterB3IncineratorControlRoomResolveRoomEvent(Task* task, s32 mess
 }
 
 /// Configures and starts the repeat-use control-panel scene in view 8.
-static inline void _shelterB3IncineratorControlRoomStartPanelScene(s32 capIndex)
+///
+/// capSlot selects the CAP slot, loaded file and saved arrival warp; the sole
+/// caller supplies 1. Slot/file values narrow to signed bytes and warp to an
+/// unsigned byte. The room-owned record and resources must remain loaded and
+/// unchanged through playback. Completion runs CAP command 7.
+static inline void _shelterB3IncineratorControlRoomStartPanelScene(s32 capSlot)
 {
     enum {
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_TASK              = 0,
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_PLAY_SCENE        = 0,
         SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_VIEW              = 8,
         SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_FOLLOW_UP_COMMAND = 7,
         SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_START_SOUND       = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 1),
@@ -212,16 +219,16 @@ static inline void _shelterB3IncineratorControlRoomStartPanelScene(s32 capIndex)
         SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_AFTER_SCENE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 3),
     };
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp     = capIndex;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp     = capSlot;
     D_shelter_b3_incinerator_control_room_80182A58.view            = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_VIEW;
-    D_shelter_b3_incinerator_control_room_80182A58.capSlot         = capIndex;
-    D_shelter_b3_incinerator_control_room_80182A58.capFile         = capIndex;
-    D_shelter_b3_incinerator_control_room_80182A58.skipScene       = 0;
+    D_shelter_b3_incinerator_control_room_80182A58.capSlot         = capSlot;
+    D_shelter_b3_incinerator_control_room_80182A58.capFile         = capSlot;
+    D_shelter_b3_incinerator_control_room_80182A58.skipScene       = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_PLAY_SCENE;
     D_shelter_b3_incinerator_control_room_80182A58.startSound      = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_START_SOUND;
     D_shelter_b3_incinerator_control_room_80182A58.endSound        = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_END_SOUND;
     D_shelter_b3_incinerator_control_room_80182A58.sceneSound      = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_SCENE_SOUND;
     D_shelter_b3_incinerator_control_room_80182A58.afterSceneSound = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_AFTER_SCENE_SOUND;
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_FOLLOW_UP_COMMAND, &D_shelter_b3_incinerator_control_room_80182A58);
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_TASK, SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_FOLLOW_UP_COMMAND, &D_shelter_b3_incinerator_control_room_80182A58);
 }
 
 /// Handles control-panel command 1, separating first-use dialogue from repeat-use scenes.

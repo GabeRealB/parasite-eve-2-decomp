@@ -90,9 +90,30 @@ void acropolisFireEscapeFlareTask(Task* task);
 /// frame-arena space; queued packets live through GPU completion.
 void acropolisFireEscapeFlickerLightTask(Task* task);
 
-void func_acropolis_fire_escape_8017EA68(Task* task);
+/// Runs the fire escape's telephone save menu and optional statistics panels.
+///
+/// Borrows the UI object in `spawnArg2.pointer` and its child objects. Start
+/// in state 0 with the room overlay, UI and memory-card resources loaded.
+/// Cleared games and demo scene 1 show the four-row menu; other games open
+/// saving directly. The UI owns object lifetime and consumes the result.
+void acropolisFireEscapeTelephoneMenuTask(Task* task);
 
-void func_acropolis_fire_escape_8017FF7C(Task* task);
+/// Emits the fire escape's persistent flicker lamp and view-selected one-frame flares.
+///
+/// Bank-6 slot 0x4E requires a single-coordinate body and counted `EffectWork`
+/// in `spawnArg2.pointer`. State 0 places the lamp at local (2904, -2082, -229),
+/// then enters state 1. Spawn failures are ignored, including the initial lamp.
+/// State 1 emits while room-effect control is below the cancellation threshold,
+/// including actor pause/hide modes; it remains live until task teardown.
+///
+/// Views 3/8 place red diamond/radial flares at (1167, -913, 1670), with radius
+/// bytes 6/3 and pulse step 14. Views 6/9 place cyan diamond/radial flares at
+/// (-3103, -3344, 2272), with radius bytes 4/2 and pulse step 8. Pulse steps
+/// advance the low-byte phase per animation frame; radii use perspective scaling.
+/// Offsets are signed game units in the emitter's local frame, copied on spawn.
+/// The emitter reuses its offset storage; these light callbacks use the copied
+/// coordinates. Keep room, gameplay and coordinate resources live through teardown.
+void acropolisFireEscapeLightEmitterTask(Task* task);
 
 /// Runs the fire escape's room messages and actor interaction check.
 ///
