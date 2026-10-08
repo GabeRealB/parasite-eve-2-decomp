@@ -69,10 +69,8 @@ static void func_replay_bonus_80117E04(void);
 static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds);
 static void _replayBonusSelectCreditsResource(s32 dataResourceIndex);
 
-static void func_replay_bonus_801178C0(Task* arg0);
-void        func_replay_bonus_8011797C(Task* arg0);
-void        func_replay_bonus_80117A08(Task* arg0);
-void        func_replay_bonus_80118C64(Task* arg0);
+void func_replay_bonus_80117A08(Task* arg0);
+void func_replay_bonus_80118C64(Task* arg0);
 
 /// Advances the replay-award panels and the cleared-save confirmation sequence.
 ///
@@ -321,12 +319,21 @@ static void _replayBonusWaitToLoadAwardUi(Task* task)
     }
 }
 
-static void func_replay_bonus_801178C0(Task* arg0)
+/// Opens the Complete Bonus panel once the queued award UI load is idle.
+///
+/// Receives the award controller in state 1 after its resource request.
+/// Uploads text palettes before opening an active, unparented panel with a
+/// one-tick opening delay. Stores a borrowed pointer to the panel's task-owned
+/// UI object in spawn argument 2 and advances to state 2; subsequent panel
+/// dispatch requires a successful allocation. The controller does not free it.
+static void _replayBonusWaitForAwardUi(Task* task)
 {
-    if (cdCmdIsIdle() & 0xFFFF) {
+    enum { REPLAY_BONUS_PANEL_OPEN_DELAY_TICKS = 1 };
+
+    if (cdCmdIsIdle() != 0) {
         textUploadPalettes();
-        arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_80119154, 0, 1, 1, NULL);
-        arg0->state             = (s32)(arg0->state + 1);
+        task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_80119154, 0, USER_INTERFACE_PANEL_ACTIVE, REPLAY_BONUS_PANEL_OPEN_DELAY_TICKS, NULL);
+        task->state             = task->state + 1;
     }
 }
 
@@ -350,23 +357,34 @@ static void _replayBonusRestartAfterAwards(Task* task)
     }
 }
 
-void func_replay_bonus_8011797C(Task* arg0)
+/// Presents replay awards, confirms the cleared save and restarts the game.
+///
+/// Starts as a zeroed bodyless task. State 0 delays the UI resource request
+/// for 120 callbacks; state 1 waits for it and opens Complete Bonus. States
+/// 2..9 borrow the live panel in spawn argument 2 and advance through the
+/// balances, three unlocked items (or extra BP), save prompt, quit warning
+/// and final notice. State 10 delays the restart until the countdown is
+/// negative. Dispatch requires state 0..10 and performs no bounds check.
+/// Requires the replay package, gameplay catalogue and live save to remain live, with
+/// one award sequence using the shared totals. Panel tasks own their UI objects;
+/// the controller requests their closing before replacing its borrowed pointer.
+static void _replayBonusAwardScreenTask(Task* task)
 {
-    TaskFunc states[11] = {
+    const TaskFuncTable11 stateHandlers = { {
         _replayBonusWaitToLoadAwardUi,
-        func_replay_bonus_801178C0,
-        _replayBonusAdvanceAwardScreen,
-        _replayBonusAdvanceAwardScreen,
-        _replayBonusAdvanceAwardScreen,
-        _replayBonusAdvanceAwardScreen,
-        _replayBonusAdvanceAwardScreen,
-        _replayBonusAdvanceAwardScreen,
-        _replayBonusAdvanceAwardScreen,
-        _replayBonusAdvanceAwardScreen,
+        _replayBonusWaitForAwardUi,
+        _replayBonusAdvanceAwardScreen, // 2 Complete Bonus item list
+        _replayBonusAdvanceAwardScreen, // 3 Balance and NEXT REPLAY BONUS
+        _replayBonusAdvanceAwardScreen, // 4 First unlocked item
+        _replayBonusAdvanceAwardScreen, // 5 Second unlocked item
+        _replayBonusAdvanceAwardScreen, // 6 Third unlocked item or extra BP
+        _replayBonusAdvanceAwardScreen, // 7 Cleared-save prompt
+        _replayBonusAdvanceAwardScreen, // 8 Quit warning
+        _replayBonusAdvanceAwardScreen, // 9 Save completion or cancellation notice
         _replayBonusRestartAfterAwards,
-    };
+    } };
 
-    states[arg0->state](arg0);
+    stateHandlers.funcs[task->state](task);
 }
 
 void func_replay_bonus_80117A08(Task* arg0)
@@ -1158,7 +1176,7 @@ UiObjectDesc D_replay_bonus_801191E0 = { 2, { -144, -104, 288, 208 }, 0x28, 0, 0
 
 UiObjectDesc D_replay_bonus_801191FC = { 2, { -72, -32, 144, 40 }, 0x2C, 0, 0, 0xC0, replayBonusExtraBpPanelTask, 0 };
 
-TaskDesc D_replay_bonus_80119218 = { { { TASK_BODY_NONE, 0xC0 } }, func_replay_bonus_8011797C, { NULL } };
+TaskDesc D_replay_bonus_80119218 = { { { TASK_BODY_NONE, 0xC0 } }, _replayBonusAwardScreenTask, { NULL } };
 
 u8 D_replay_bonus_80119224 = 0;
 

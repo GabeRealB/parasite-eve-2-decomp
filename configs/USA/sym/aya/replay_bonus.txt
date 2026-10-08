@@ -31,3 +31,5 @@ _replayBonusFadeCreditsInTask = 0x80118d7c; // type:func
 _replayBonusFadeCreditsOutTask = 0x80118e3c; // type:func
 _replayBonusSelectCreditsResource = 0x80118f00; // type:func
 replayBonusCompleteBonusPanelTask = 0x80115ed0; // type:func
+_replayBonusWaitForAwardUi = 0x801178c0; // type:func
+_replayBonusAwardScreenTask = 0x8011797c; // type:func

@@ -363,11 +363,14 @@ static inline s32 _replayBonusGetDisplayedTotalBp(const UiList* list, const UiOb
     return totalBp;
 }
 
-/// Computes the extra BP award for a clear with every shop tier unlocked.
+/// Computes the BP award that replaces a shop-tier unlock.
 ///
-/// Sums all three full purchase prices in every tier, including repeated ids,
-/// then rounds up to 100000 BP. Borrows the loaded shop and item catalogues;
-/// currency is applied later when preparing the cleared save.
+/// Counts all three full purchase prices in each of the thirteen tiers,
+/// including repeated item ids, and rounds the total up to a multiple of
+/// 100000 BP. Requires the shop and gameplay item catalogues to remain loaded;
+/// tier item ids must index the ordinary catalogue. The caller checks that
+/// every tier is unlocked. Returns 0..2600000 BP without changing the save,
+/// unlocks or currency; preparing the cleared save applies the award later.
 static inline s32 _replayBonusComputeExtraBonusBp(void)
 {
     enum { REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT = 100000 };
@@ -378,7 +381,7 @@ static inline s32 _replayBonusComputeExtraBonusBp(void)
 
     totalBp      = 0;
     shopRow      = D_replay_bonus_80118F78;
-    shopRowIndex = totalBp;
+    shopRowIndex = 0;
     do {
         itemColumn = 0;
         do {
@@ -387,7 +390,7 @@ static inline s32 _replayBonusComputeExtraBonusBp(void)
         } while (itemColumn < ARRAY_SIZE(shopRow->items));
         shopRowIndex++;
         shopRow++;
-    } while (shopRowIndex < SHOP_TIER_COUNT);
+    } while (shopRowIndex < ARRAY_SIZE(D_replay_bonus_80118F78));
     totalBp += REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT - 1;
     totalBp  = totalBp / REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT;
     totalBp *= REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT;
