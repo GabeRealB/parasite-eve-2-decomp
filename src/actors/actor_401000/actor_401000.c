@@ -1091,7 +1091,7 @@ static void            _actor401000ClampRootHeight(const GameLocationKey* locati
 static __inline__ s32  _actor401000HasRoomHeightClamp(const GameLocationKey* location);
 static s32             _actor401000ApplyGridPushback(GfxCoord* root, const WorldCollisionContact* contacts, s16 contactCount, s16 heightOffset);
 static void            _actor401000Chase(Task* task);
-static void            func_actor_401000_801378DC(Task* arg0);
+static void            _oddStrangerGrabReach(Task* task);
 static void            _actor401000FallBack(Task* task);
 static void            _actor401000FallFront(Task* task);
 static void            _actor401000Dormant(Task* task);
@@ -1652,99 +1652,136 @@ static void _actor401000Chase(Task* task)
 
 #include "../../shared/odd_stranger_sidestep.inc.c"
 
-static void func_actor_401000_801378DC(Task* arg0)
+/// Starts the player's struggle hold and enters pull only when it is accepted.
+///
+/// Requires live actor work and the player animation request's bank already
+/// selected. Dispatch borrows both global requests synchronously; acceptance
+/// is reply 0. Stores the held state before starting player animation 1.
+static __inline__ void _oddStrangerTryStartPlayerHold(OddStrangerWork* work)
 {
-    SVECTOR          delta;
-    OddStrangerWork* work;
-    Enemy*           enemy;
-    GameActor*       player;
-    PlayerStatus*    config;
-    GfxCoord*        coord;
-    SVECTOR*         p;
-    s16              angle;
+    enum { ODD_STRANGER_GRAB_HOLD_PRESS_COUNT = 8,
+           ODD_STRANGER_GRAB_PLAYER_HOLD_ANIM = 1 };
 
-    enemy  = arg0->spawnArg2.pointer;
-    work   = arg0->work;
-    player = (GameActor*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    config = &gPlayerStatus;
+    D_actor_401000_80155038.pressCount = ODD_STRANGER_GRAB_HOLD_PRESS_COUNT;
+    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_401000_80155038, 0) == 0) {
+        work->state                        = ODD_STRANGER_STATE_GRAB_PULL;
+        work->playerHeld                   = 1;
+        gOddStrangerPlayerAnim.animationId = ODD_STRANGER_GRAB_PLAYER_HOLD_ANIM;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gOddStrangerPlayerAnim, 0);
+    }
+}
+
+/// Reaches for the player and starts the Odd Stranger's hold on acceptance.
+///
+/// Requires initialized work/model, live player state and loaded grab banks.
+/// Entry disables attacks and resolves grid contacts; the next tick saves the
+/// root and faces the player. Offsets narrow to signed halfwords in a common
+/// parent frame; angles use 4096 units per turn. Cue 16 requires a turn strictly
+/// below 16 and range strictly below 1100 units. An accepted eight-press hold enters
+/// GRAB_PULL and starts player animation 1. After the cue, retreats ten units
+/// strictly within 1400 units, then corrects grid/body contacts. Direct retreat ignores
+/// actor freeze. The animation boundary returns to CHASE.
+/// Requires initialized scratch/GTE state; squared X/Z sums must fit s32.
+static void _oddStrangerGrabReach(Task* task)
+{
+    enum {
+        ODD_STRANGER_GRAB_CUE                 = 16,
+        ODD_STRANGER_GRAB_TURN_LIMIT          = 16,
+        ODD_STRANGER_GRAB_REACH               = 1100,
+        ODD_STRANGER_GRAB_RETREAT_RADIUS      = 1400,
+        ODD_STRANGER_GRAB_RETREAT_STEP        = 10,
+        ODD_STRANGER_GRAB_PRIMARY_CHARACTER   = 1,
+        ODD_STRANGER_GRAB_PRIMARY_BANK_OFFSET = 2,
+        ODD_STRANGER_GRAB_COOLDOWN_TICKS      = 10
+    };
+    SVECTOR             playerOffset;
+    OddStrangerWork*    work;
+    Enemy*              enemy;
+    const GameActor*    playerActor;
+    const PlayerStatus* playerStatus;
+    GfxCoord*           stepCoord;
+    SVECTOR*            offsetVector;
+    s16                 playerTurn;
+
+    enemy        = task->spawnArg2.pointer;
+    work         = task->work;
+    playerActor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+    playerStatus = &gPlayerStatus;
     if (work->stateEntered != 0) {
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ODD_STRANGER_ANIM_REQUEST_BLEND;
-        work->animRate                = 0x10;
-        work->animId                  = 4;
-        _oddStrangerDriveAnimation(arg0);
+        work->animRate                = ANIMATION_RATE_ONE;
+        work->animId                  = ODD_STRANGER_ANIM_GRAB_REACH;
+        _oddStrangerDriveAnimation(task);
         work->lookYawTarget                   = 0;
         work->lookYaw                         = 0;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(arg0->extra.tmd->coords);
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(task->extra.tmd->coords);
         work->sidestepCount = 0;
         work->playerHeld    = 0;
-        work->grabCooldown  = 0xA;
-        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        work->grabCooldown  = ODD_STRANGER_GRAB_COOLDOWN_TICKS;
+        _actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
         work->stateTimer = 0;
         return;
     }
+    // Resolve the entry contacts before fixing the facing on the next tick.
     if (++work->stateTimer == 1) {
-        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-        work->grabStartPos.vx                 = arg0->extra.tmd->coords->coord.t[0];
-        work->grabStartPos.vy                 = arg0->extra.tmd->coords->coord.t[1];
-        work->grabStartPos.vz                 = arg0->extra.tmd->coords->coord.t[2];
-        work->hitBody.radius                  = 0x1AE;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, _actorAngleTurnToPlayer(arg0, &delta, config), 0);
-        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
-        delta.vx                              = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
-        delta.vy                              = 0;
-        delta.vz                              = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
+        _actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        work->grabStartPos.vx                 = task->extra.tmd->coords->coord.t[0];
+        work->grabStartPos.vy                 = task->extra.tmd->coords->coord.t[1];
+        work->grabStartPos.vz                 = task->extra.tmd->coords->coord.t[2];
+        work->hitBody.radius                  = ODD_STRANGER_BODY_RADIUS;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, _actorAngleTurnToPlayer(task, &playerOffset, playerStatus), GRAPHICS_ROTATION_COMPOSE);
+        _actorRenderRescaleYaw(task->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
+        playerOffset.vx                       = task->extra.tmd->coords->coord.t[0] - playerStatus->coordMtx->t[0];
+        playerOffset.vy                       = 0;
+        playerOffset.vz                       = task->extra.tmd->coords->coord.t[2] - playerStatus->coordMtx->t[2];
         work->lookYawTarget                   = 0;
         work->lookYaw                         = 0;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->sidestepCount                   = 0;
         work->playerHeld                      = 0;
-        work->grabCooldown                    = 0xA;
+        work->grabCooldown                    = ODD_STRANGER_GRAB_COOLDOWN_TICKS;
     }
-    _oddStrangerDriveAnimation(arg0);
-    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        angle = _actorAngleTurnToMatrixPosition(arg0, &delta, gPlayerStatus.coordMtx);
-        if (abs(angle) < 0x10 && !_oddStrangerOutOfRange(&delta, 0x44C)) {
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                gOddStrangerPlayerAnim.source.sets = &D_actor_401000_80154F00[2];
+    _oddStrangerDriveAnimation(task);
+    // Only the reach cue can request a hold from a nonscripted player.
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ODD_STRANGER_GRAB_CUE && playerActor->mode != GAME_ACTOR_MODE_SCRIPTED) {
+        playerTurn = _actorAngleTurnToMatrixPosition(task, &playerOffset, gPlayerStatus.coordMtx);
+        if (abs(playerTurn) < ODD_STRANGER_GRAB_TURN_LIMIT && !_oddStrangerOutOfRange(&playerOffset, ODD_STRANGER_GRAB_REACH)) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ODD_STRANGER_GRAB_PRIMARY_CHARACTER) {
+                gOddStrangerPlayerAnim.source.sets = &D_actor_401000_80154F00[ODD_STRANGER_GRAB_PRIMARY_BANK_OFFSET];
             } else {
                 gOddStrangerPlayerAnim.source.sets = D_actor_401000_80154F00;
             }
-            D_actor_401000_80155038.pressCount = 8;
-            if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_401000_80155038, 0) == 0) {
-                work->state                        = ODD_STRANGER_STATE_GRAB_PULL;
-                work->playerHeld                   = 1;
-                gOddStrangerPlayerAnim.animationId = 1;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gOddStrangerPlayerAnim, 0);
-            }
+            _oddStrangerTryStartPlayerHold(work);
         }
     }
-    if (work->animId == 4 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+    if (work->animId == ODD_STRANGER_ANIM_GRAB_REACH && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->state = ODD_STRANGER_STATE_CHASE;
     }
-    if ((u32)(work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x11) {
-        p        = &delta;
-        delta.vx = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
-        delta.vy = 0;
-        delta.vz = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
-        if (!_oddStrangerOutOfRange(p, 0x578)) {
-            VectorNormalSS(p, p);
-            gte_lddp(10);
-            gte_ldsv(p);
+    // After the reach cue, step away along the horizontal separation.
+    if ((u32)(work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= ODD_STRANGER_GRAB_CUE + 1) {
+        offsetVector    = &playerOffset;
+        playerOffset.vx = task->extra.tmd->coords->coord.t[0] - playerStatus->coordMtx->t[0];
+        playerOffset.vy = 0;
+        playerOffset.vz = task->extra.tmd->coords->coord.t[2] - playerStatus->coordMtx->t[2];
+        if (!_oddStrangerOutOfRange(offsetVector, ODD_STRANGER_GRAB_RETREAT_RADIUS)) {
+            VectorNormalSS(offsetVector, offsetVector);
+            gte_lddp(ODD_STRANGER_GRAB_RETREAT_STEP);
+            gte_ldsv(offsetVector);
             gte_gpf12();
-            gte_stsv(p);
-            coord                                 = arg0->extra.tmd->coords;
-            coord->coord.t[0]                    += delta.vx;
-            coord                                 = arg0->extra.tmd->coords;
-            coord->coord.t[2]                    += delta.vz;
-            arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+            gte_stsv(offsetVector);
+            stepCoord                             = task->extra.tmd->coords;
+            stepCoord->coord.t[0]                += playerOffset.vx;
+            stepCoord                             = task->extra.tmd->coords;
+            stepCoord->coord.t[2]                += playerOffset.vz;
+            task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-            _oddStrangerApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+        if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+            _oddStrangerApplyBodyPushback(task, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
 }
@@ -2214,7 +2251,7 @@ static const OddStrangerStateTable gOddStrangerStates = { {
     _oddStrangerCircleDash,
     _oddStrangerTurnAround,
     _oddStrangerSidestep,
-    func_actor_401000_801378DC,
+    _oddStrangerGrabReach,
     _oddStrangerGrabPull,
     _oddStrangerGrabStrike,
     _oddStrangerGrabRelease,

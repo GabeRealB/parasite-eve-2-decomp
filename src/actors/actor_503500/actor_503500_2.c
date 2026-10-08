@@ -121,7 +121,7 @@ static void                      _actor503500ClearSavedPlayerTransform(void);
 static void                      _actor503500SavePlayerTransform(void);
 static void                      _actor503500RestorePlayerTransform(void);
 static void                      _actor503500SetPlayerUpdateHold(u8 holdPlayerUpdate);
-void                             func_actor_503500_80132EF4(void);
+static void                      _actor503500ResetPlayerWeaponAttack(void);
 static void                      _actor503500HaltPadScript(void);
 
 /// Progress value installed by both normal and skipped Shelter R48 entry scripts.
@@ -748,7 +748,7 @@ EvsCommand D_actor_503500_8014D098[8] = {
 EvsCommand D_actor_503500_8014D158[17] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_503500_8014B9CC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_503500_8014B9E8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132EF4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500ResetPlayerWeaponAttack }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500LockAttachmentsForEvent }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500SavePlayerTransform }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_503500_8014BB38 } }, { .value = 0 } },
@@ -2011,7 +2011,12 @@ static void _actor503500SetPlayerUpdateHold(u8 holdPlayerUpdate)
     D_80115768 = holdPlayerUpdate;
 }
 
-void func_actor_503500_80132EF4(void)
+/// Resets the player's weapon attack before the temporary card-use scene.
+///
+/// Requires the live player task and equipped weapon. Resets weapon effects,
+/// eases aiming back and disables weapon pair/grid collision before the script
+/// holds and temporarily places the player.
+static void _actor503500ResetPlayerWeaponAttack(void)
 {
     playerActorResetWeaponAttack(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), gPlayerStatus.weapon, 0);
 }

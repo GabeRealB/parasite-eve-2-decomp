@@ -664,9 +664,9 @@ extern _Actor356100TransformStorage D_actor_356100_801732B0;
 /// zero in the image.
 extern GameActorButtonPressHold D_actor_356100_801732D0;
 
-/// Player-character flag selecting which animation block
-/// `func_actor_356100_80166018` points `D_actor_356100_80173244.field_0` at:
-/// the second block when it is 1, the first otherwise.
+/// Player animation table `_actor356100GrabReach` lends through
+/// `D_actor_356100_80173244.source.sets`: starts at entry 2 for saved character
+/// 1, entry 0 otherwise. Its entries are initially NULL; population is unproven.
 extern AnimationSet* D_actor_356100_80173228[7];
 
 /// Free-running scroll `_actor356100Circle` accumulates `runStep`
@@ -780,8 +780,7 @@ static void _actor356100TurnAround(Task* actor);
 /// Shares the alternating-hop sequence with `_actor01900StateSidestep`.
 static void _actor356100Sidestep(Task* actor);
 
-/// Tick of the state-0xB aim run.
-static void func_actor_356100_80166018(Task* arg0);
+static void _actor356100GrabReach(Task* task);
 
 /// Translates along normalized local Z unless the supplied save freezes actors.
 ///
@@ -1990,91 +1989,111 @@ static void _actor356100Sidestep(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-/// Turn-and-close tick, and the sibling of `_actor356100GrabPull` above
-/// it. Going live writes the animation request fields with `hitRadius`
-/// forced to 0x180 and the enemy's link node cleared, then turns the root
-/// coordinate onto the player through `_actorAngleTurnToPlayer` and rebuilds
-/// its Y rotation at a uniform 0x1194 scale, re-seeding the offset from the
-/// player and clearing the two halfwords next to `playerHeld`. Each frame then
-/// re-runs the animation and, while the clip sits on 0x10 and the player is not
-/// in mode 2, takes the player offset again through
-/// `_actorAngleTurnToMatrixPosition` and — if the turn is within 0x10 and the
-/// player is closer than 0x44C — points `D_actor_356100_80173244.field_0` at
-/// one of the two blocks `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects, then queries message 0x3F8 and
-/// on acceptance moves to state 0xC, sets `playerHeld` and re-sends the handler
-/// as message 0x3FF. Bit 0 of `field_68` forces `state` to 7 on clip 4, and
-/// past clip 0x10 the actor is pushed one normalised unit away from the player
-/// unless it is further than 0x578.
-static void func_actor_356100_80166018(Task* arg0)
+/// Starts the player's struggle hold and enters pull only when it is accepted.
+///
+/// Requires live actor work and the player animation request's bank already
+/// selected. Dispatch borrows both global requests synchronously; acceptance
+/// is reply 0. Stores the held state before starting player animation 1.
+static __inline__ void _actor356100TryStartPlayerHold(_Actor356100Work* work)
 {
-    SVECTOR           pos;
-    SVECTOR*          p;
-    _Actor356100Work* work;
-    Enemy*            enemy;
-    GameActor*        player;
-    PlayerStatus*     config;
-    GfxCoord*         coord;
-    s16               angle;
+    enum { ACTOR_356100_GRAB_HOLD_PRESS_COUNT = 8,
+           ACTOR_356100_GRAB_PLAYER_HOLD_ANIM = 1 };
 
-    enemy  = arg0->spawnArg2.pointer;
-    work   = arg0->work;
-    player = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
-    config = &gPlayerStatus;
+    D_actor_356100_801732D0.pressCount = ACTOR_356100_GRAB_HOLD_PRESS_COUNT;
+    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_356100_801732D0, 0) == 0) {
+        work->state                         = ACTOR_356100_STATE_GRAB_PULL;
+        work->playerHeld                    = 1;
+        D_actor_356100_80173244.animationId = ACTOR_356100_GRAB_PLAYER_HOLD_ANIM;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_356100_80173244, 0);
+    }
+}
+
+/// Reaches for the player and starts the Horned Stranger's hold on acceptance.
+///
+/// Requires initialized work/model, live player state and loaded grab banks.
+/// Root and player translations share a parent frame; offsets narrow to signed
+/// halfwords and angles use 4096 units per turn. Cue 16 requires a turn strictly
+/// below 16 and range strictly below 1100 units. An accepted eight-press hold enters
+/// GRAB_PULL and starts player animation 1. After that cue, a player strictly within
+/// 1400 units causes a ten-unit normalized retreat, without a freeze check.
+/// Reaching the animation boundary returns to CHASE.
+/// Requires initialized scratch/GTE state; squared X/Z sums must fit s32.
+static void _actor356100GrabReach(Task* task)
+{
+    enum {
+        ACTOR_356100_GRAB_CUE                 = 16,
+        ACTOR_356100_GRAB_TURN_LIMIT          = 16,
+        ACTOR_356100_GRAB_REACH               = 1100,
+        ACTOR_356100_GRAB_RETREAT_RADIUS      = 1400,
+        ACTOR_356100_GRAB_RETREAT_STEP        = 10,
+        ACTOR_356100_GRAB_PRIMARY_CHARACTER   = 1,
+        ACTOR_356100_GRAB_PRIMARY_BANK_OFFSET = 2,
+        ACTOR_356100_ANIM_GRAB_REACH          = 4
+    };
+    SVECTOR             playerOffset;
+    SVECTOR*            offsetVector;
+    _Actor356100Work*   work;
+    Enemy*              enemy;
+    const GameActor*    playerActor;
+    const PlayerStatus* playerStatus;
+    GfxCoord*           stepCoord;
+    s16                 playerTurn;
+
+    enemy        = task->spawnArg2.pointer;
+    work         = task->work;
+    playerActor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+    playerStatus = &gPlayerStatus;
     if (work->stateEntered != 0) {
-        work->hitRadius               = 0x180;
+        work->hitRadius               = ACTOR_356100_HIT_RADIUS;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ACTOR_356100_ANIM_REQUEST_BLEND;
-        work->animRate                = 0x10;
-        work->animId                  = 4;
-        _actor356100UpdateAnimation(arg0);
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, _actorAngleTurnToPlayer(arg0, &pos, config), 0);
-        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_356100_ROOT_SCALE);
-        pos.vx                                = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
-        pos.vy                                = 0;
-        pos.vz                                = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
+        work->animRate                = ANIMATION_RATE_ONE;
+        work->animId                  = ACTOR_356100_ANIM_GRAB_REACH;
+        _actor356100UpdateAnimation(task);
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, _actorAngleTurnToPlayer(task, &playerOffset, playerStatus), GRAPHICS_ROTATION_COMPOSE);
+        _actorRenderRescaleYaw(task->extra.tmd->coords, ACTOR_356100_ROOT_SCALE);
+        playerOffset.vx                       = task->extra.tmd->coords->coord.t[0] - playerStatus->coordMtx->t[0];
+        playerOffset.vy                       = 0;
+        playerOffset.vz                       = task->extra.tmd->coords->coord.t[2] - playerStatus->coordMtx->t[2];
         work->lookYawTarget                   = 0;
         work->lookYaw                         = 0;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->sidestepCount                   = 0;
         work->playerHeld                      = 0;
     }
-    _actor356100UpdateAnimation(arg0);
-    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        angle = _actorAngleTurnToMatrixPosition(arg0, &pos, gPlayerStatus.coordMtx);
-        if (abs(angle) < 0x10 && !_actorRangeOutsideRadiusXZ(&pos, 0x44C)) {
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                D_actor_356100_80173244.source.sets = &D_actor_356100_80173228[2];
+    _actor356100UpdateAnimation(task);
+    // Only the reach cue can request a hold from a nonscripted player.
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_356100_GRAB_CUE && playerActor->mode != GAME_ACTOR_MODE_SCRIPTED) {
+        playerTurn = _actorAngleTurnToMatrixPosition(task, &playerOffset, gPlayerStatus.coordMtx);
+        if (abs(playerTurn) < ACTOR_356100_GRAB_TURN_LIMIT && !_actorRangeOutsideRadiusXZ(&playerOffset, ACTOR_356100_GRAB_REACH)) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_356100_GRAB_PRIMARY_CHARACTER) {
+                D_actor_356100_80173244.source.sets = &D_actor_356100_80173228[ACTOR_356100_GRAB_PRIMARY_BANK_OFFSET];
             } else {
                 D_actor_356100_80173244.source.sets = D_actor_356100_80173228;
             }
-            D_actor_356100_801732D0.pressCount = 8;
-            if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_356100_801732D0, 0) == 0) {
-                work->state                         = ACTOR_356100_STATE_GRAB_PULL;
-                work->playerHeld                    = 1;
-                D_actor_356100_80173244.animationId = 1;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_356100_80173244, 0);
-            }
+            _actor356100TryStartPlayerHold(work);
         }
     }
-    if (work->animId == 4 && (work->rig.slots[1].status.fields.flags & 1)) {
+    if (work->animId == ACTOR_356100_ANIM_GRAB_REACH && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->state = ACTOR_356100_STATE_CHASE;
     }
-    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) > 0x10) {
-        p      = &pos;
-        pos.vx = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
-        pos.vy = 0;
-        pos.vz = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
-        if (!_actorRangeOutsideRadiusXZ(p, 0x578)) {
-            VectorNormalSS(p, p);
-            gte_lddp(10);
-            gte_ldsv(p);
+    // After the reach cue, step away along the horizontal separation.
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) > ACTOR_356100_GRAB_CUE) {
+        offsetVector    = &playerOffset;
+        playerOffset.vx = task->extra.tmd->coords->coord.t[0] - playerStatus->coordMtx->t[0];
+        playerOffset.vy = 0;
+        playerOffset.vz = task->extra.tmd->coords->coord.t[2] - playerStatus->coordMtx->t[2];
+        if (!_actorRangeOutsideRadiusXZ(offsetVector, ACTOR_356100_GRAB_RETREAT_RADIUS)) {
+            VectorNormalSS(offsetVector, offsetVector);
+            gte_lddp(ACTOR_356100_GRAB_RETREAT_STEP);
+            gte_ldsv(offsetVector);
             gte_gpf12();
-            gte_stsv(p);
-            coord                                 = arg0->extra.tmd->coords;
-            coord->coord.t[0]                    += pos.vx;
-            coord                                 = arg0->extra.tmd->coords;
-            coord->coord.t[2]                    += pos.vz;
-            arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+            gte_stsv(offsetVector);
+            stepCoord                             = task->extra.tmd->coords;
+            stepCoord->coord.t[0]                += playerOffset.vx;
+            stepCoord                             = task->extra.tmd->coords;
+            stepCoord->coord.t[2]                += playerOffset.vz;
+            task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
 }
@@ -2860,7 +2879,7 @@ static const _Actor356100StateTable D_actor_356100_80161EC4 = {
         _actor356100Circle,
         _actor356100TurnAround,
         _actor356100Sidestep,
-        func_actor_356100_80166018,
+        _actor356100GrabReach,
         _actor356100GrabPull,
         _actor356100GrabStrike,
         _actor356100GrabRelease,

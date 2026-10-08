@@ -105,7 +105,7 @@ enum {
 
 extern TaskMessageEntry D_actor_521100_8015F6FC[8];
 
-s32 func_actor_521100_80135BEC(Task*, s32, s32, s32);
+static s32 _actor521100ReleasePlayerHold(Task* task, s32 unusedMessageId, s32 unusedArg, s32 unusedSecondArg);
 
 s32 func_actor_521100_80135C14(Task*, s32, AnimationPlayRequest*, s32);
 
@@ -1643,7 +1643,7 @@ TaskDesc D_actor_521100_8015F6E4[2] = {
 };
 
 TaskMessageEntry D_actor_521100_8015F6FC[8] = {
-    { 2014, func_actor_521100_80135BEC },
+    { ACTOR_MESSAGE_RELEASE_HOLD, _actor521100ReleasePlayerHold },
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_521100_80135C14 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actor521100SetModelDrawFlags },
@@ -3659,10 +3659,18 @@ static void _actor521100UpdateGunbladeDrawMode(Enemy* unusedEnemy, Task* task)
     }
 }
 
-s32 func_actor_521100_80135BEC(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
+/// Latches a living player's escape request for No. 9's grab sequence.
+///
+/// Requires initialized work. The next grab update consumes the latch and
+/// chooses release or a counterattack. A dead player leaves it unchanged.
+/// Ignores the message ID and both payloads; always returns 0.
+static s32 _actor521100ReleasePlayerHold(Task* task, s32 unusedMessageId, s32 unusedArg, s32 unusedSecondArg)
 {
+    Actor521100Work* work;
+
     if (gPlayerStatus.hp > 0) {
-        ((Actor521100Work*)arg0->work)->playerEscaped = 1;
+        work                = task->work;
+        work->playerEscaped = 1;
     }
     return 0;
 }

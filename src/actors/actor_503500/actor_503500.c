@@ -136,7 +136,7 @@ DVECTOR_XZ D_actor_503500_80148330[360] = {
 };
 
 static void func_actor_503500_8013223C(Task* arg0);
-static void func_actor_503500_80132430(Task* arg0);
+static void _actor503500SliderInit(Task* task);
 
 static void func_actor_503500_8013223C(Task* arg0)
 {
@@ -205,25 +205,34 @@ static void func_actor_503500_8013223C(Task* arg0)
     }
 }
 
-static void func_actor_503500_80132430(Task* arg0)
+/// Allocates and initializes the hidden slider before its first update.
+///
+/// Requires a live enemy task and TMD model. Owns zeroed primary-heap work;
+/// the model borrows its lighting matrices until default teardown. Drawing and
+/// automatic buffering start disabled. A zero release countdown requests a
+/// buffer release on the first update, harmless when no buffer exists.
+/// Allocation failure exits the task; success installs messages/teardown and
+/// advances to update state 1.
+static void _actor503500SliderInit(Task* task)
 {
-    TmdObject*              ext;
+    TmdObject*              model;
     _Actor503500SliderWork* work;
 
-    ext  = arg0->extra.tmd;
-    work = memCalloc(sizeof(_Actor503500SliderWork), false);
+    model = task->extra.tmd;
+    work  = memCalloc(sizeof(_Actor503500SliderWork), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
 
-    arg0->work          = work;
-    ext->flags         |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    task->work    = work;
+    model->flags |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    // The first update releases any existing buffer; a NULL buffer is a no-op.
     work->freeCountdown = 0;
-    _actor503500SliderBindLighting(arg0);
-    arg0->msgTable     = D_actor_503500_80146888;
-    arg0->exitCallback = _actor503500SliderExit;
-    arg0->state       += 1;
+    _actor503500SliderBindLighting(task);
+    task->msgTable     = D_actor_503500_80146888;
+    task->exitCallback = _actor503500SliderExit;
+    task->state       += 1;
 }
 
 /// Releases the slider's enemy allocation and begins default task teardown.
@@ -353,7 +362,7 @@ static s32 _actor503500SliderApplyCommand(Task* task, s32 messageId, const Actor
 /// `Task::state` handlers `func_actor_503500_8013270C` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80131E24 = {
     {
-        func_actor_503500_80132430,
+        _actor503500SliderInit,
         func_actor_503500_8013223C,
         _actor503500SliderExit,
     },

@@ -131,7 +131,7 @@ extern ActorTransform           D_actor_341300_801652DC;
 static void                     _actor341300StageSceneAudioStart(void);
 static void                     _actor341300EnqueueScenePlayback(void);
 static void                     _actor341300FinishSceneStream(void);
-void                            func_actor_341300_801623FC(void);
+static void                     _actor341300CancelScene(void);
 static void                     _actor341300StartTexturedQuads(void);
 static void                     _actor341300RequestTexturedQuadsExit(void);
 static void                     _actor341300StartPlayerFacingTask(void);
@@ -367,7 +367,7 @@ EvsCommand D_actor_341300_80165834[21] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341300StopDebrisEmitterCallback }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341300StopDebrisEmitterCallback }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300RequestTexturedQuadsExit }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341300_801623FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -604,9 +604,11 @@ static void _actor341300FinishSceneStream(void)
     streamFinishScene();
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data: cancels the queued
-/// CD command and restarts the CD queue.
-void func_actor_341300_801623FC(void)
+/// Cancels and finishes the selected scene when the event script is skipped.
+///
+/// Discards its deferred CD request, requests queue cancellation and finishes
+/// the scene stream, restoring the RNG state saved at scene selection.
+static void _actor341300CancelScene(void)
 {
     cdCmdCancelScene();
 }

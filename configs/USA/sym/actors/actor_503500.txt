@@ -672,3 +672,5 @@ actor503500YellowFlashEmitterTask = 0x8013fa1c; // type:func
 actor503500LungingChainTask = 0x80142370; // type:func
 actor503500ArmTask = 0x801442a8; // type:func
 actor503500BallisticShotTask = 0x80144890; // type:func
+_actor503500SliderInit = 0x80132430; // type:func
+_actor503500ResetPlayerWeaponAttack = 0x80132ef4; // type:func

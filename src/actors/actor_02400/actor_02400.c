@@ -1392,10 +1392,12 @@ static void _actor02400TeardownBody(Enemy* enemy, Task* task)
     }
 }
 
-/// Links the initialized fireball wall capsule to its live coordinate.
+/// Registers the fireball's keyless wall probe and clears its contact slot.
 ///
-/// The caller supplies zeroed work with initialized capsule endpoints and
-/// contacts; its coordinate and work remain live until unlinking.
+/// Requires zeroed work with capsule endpoints, radii and contact pointer set,
+/// and a live coordinate-body task. Borrows its coordinate and work until
+/// unlinking. Grid testing and contact clipping remain disabled for the caller
+/// to enable; the body does not participate in pair tests.
 static __inline__ void _actor02400LinkFireballWall(Task* task, _Actor02400FireballWork* work)
 {
     GfxCoord* wallProbeCoord;

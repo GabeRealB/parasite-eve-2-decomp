@@ -66,3 +66,4 @@ _actor341300StopDebrisEmitterCallback = 0x80162588; // type:func
 _actor341300SetSceneEvent = 0x80162680; // type:func
 _actor341300Emitter0ShardTask = 0x80162878; // type:func
 _actor341300Emitter2ShardTask = 0x801631d4; // type:func
+_actor341300CancelScene = 0x801623fc; // type:func

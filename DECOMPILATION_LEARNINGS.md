@@ -99626,7 +99626,7 @@ local still costs frame space` describes: an unused `SVECTOR` (8 bytes at
 
 ## A switch selector kept in a `u16` local re-extends, and the whole case tree changes register
 
-`func_actor_323000_80164A54` was one instruction from a match at 96.64%: the
+`_actor323000ApplyCommand` was one instruction from a match at 96.64%: the
 case tree ran in `$v1` instead of the target's `$a2` and carried a mask the
 target does not have.
 
@@ -99644,7 +99644,7 @@ The seed had copied the halfword into a local and switched on that:
 ```c
     u16 mode;
     ...
-    mode = msg->mode;
+    mode = command->command;
     switch (mode) { ...; case 3: work->state = mode; ... }
 ```
 
@@ -99655,7 +99655,7 @@ use re-extends it out of the register, which is `zero_extendhisi2/1` - the
 `lhu` keeps a single SImode use (`zero_extendhisi2/2`) and no mask exists:
 
 ```c
-    switch (msg->mode) { ...; case 3: work->state = msg->mode; ... }
+    switch (command->command) { ...; case 3: work->state = command->command; ... }
 ```
 
 The second read costs nothing: CSE reuses the load, since nothing stores to
@@ -109788,18 +109788,18 @@ Inputs: base_1.i SHA256
 `a0a7a8a24d13ec228b4e3e7aae8701ceeef35823c8a740256c5c24e8cc6ddcda`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Direct stores in both arms resolve the global-address residue (func_actor_401000_801378DC, 2026-09-20)
+## Direct stores in both arms resolve the global-address residue (_oddStrangerGrabReach, 2026-09-20)
 
 This supersedes the September 16 explanation that the final extra instruction
 required changing cross-call address sharing or forcing reload rematerialization.
 The earlier handler-temporary experiments did not test a global assignment in
-each arm. The matched sibling `func_actor_356100_80166018` supplies that form:
+each arm. The matched sibling `_actor356100GrabReach` supplies that form:
 
 ```c
-if (D_8007218A == 1) {
-    D_actor_401000_80154F1C.field_0 = &D_actor_401000_80154F08;
+if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
+    gOddStrangerPlayerAnim.source.sets = &D_actor_401000_80154F00[2];
 } else {
-    D_actor_401000_80154F1C.field_0 = &D_actor_401000_80154F00;
+    gOddStrangerPlayerAnim.source.sets = D_actor_401000_80154F00;
 }
 ```
 
@@ -109824,7 +109824,7 @@ base_2 `febbf1ca33a240d90aeceb2cc4223ef7e3e44d5a3f93280dd57fbaad554d12e5`. Compi
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`;
 target `f755b141962a05bb6f1efba0d7fd59a9d820aaf0185298bf486c261a75bf5576`.
 Retained inputs, dumps, instruction walks and prediction/results:
-`tools/permuter_findings/func_actor_401000_801378DC/` session snapshots,
+`tools/permuter_findings/_oddStrangerGrabReach/` session snapshots,
 `PERMUTER_EVIDENCE/68f51493f5024fb1/analysis/observations.json`.
 The router itself produced no discovery; this is an independent controlled fix.
 
@@ -113666,7 +113666,7 @@ sw     v0,%lo(D_av)(v1)      /* 2 insns                           */
 
 jump2 still merges the two arms to a single store, so the CFG is identical and
 the object's `insert=4 delete=3` plus shifted branch displacements are the only
-symptom — `func_actor_356100_80166018` read 98.125% with the ternary (its own
+symptom — `_actor356100GrabReach` read 98.125% with the ternary (its own
 m2c shape) and 100% with the arms, the diff before the fix being exactly this
 one extra `addiu` and the branch targets after it.
 
@@ -113682,7 +113682,7 @@ Inputs: `base_1.i` (98.125%) SHA256
 target SHA256 `fee99d8299ff7b2d2cbcda61e2ac22b3a1fd9d6acef867d8fa61556c894d35bd`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
-`nonmatchings/func_actor_356100_80166018-vacuum`; matching candidate `base_2.c`.
+`nonmatchings/_actor356100GrabReach-vacuum`; matching candidate `base_2.c`.
 
 ## A hand-expanded scratch walk can be an inline helper defined below its caller (_actor356100GrabRelease, 2026-10-04)
 
@@ -127991,22 +127991,22 @@ Inputs: `base_1.c` source `4c2bdd79…`, preprocessed `a12e1450…` (97.819%),
 `base_2.c` source `0b947826…`, preprocessed `b4ce2c26…` (100.000%), target
 `9ede8929…`, compiler `60d886cd…`; scratch
 `nonmatchings/_actor210600DriveAnimation-vacuum/`.
-## Any struct-member store evicts every struct memory entry from CSE, not just its neighbours (func_actor_323400_80164974, 2026-09-17)
+## Any struct-member store evicts every struct memory entry from CSE, not just its neighbours (_actor323400ApplyCommand, 2026-09-17)
 
-`func_actor_323400_80164974` is the message handler sibling of
-`func_actor_323000_80164A54`: it copies three payload bytes into the work block
+`_actor323400ApplyCommand` is the message handler sibling of
+`_actor323000ApplyCommand`: it copies three payload bytes into the work block
 and then selects on the message. The target loads the mode **once** and carries
 it into the case body:
 
 ```
-    lhu        $a2, 0x2($a2)      /* dispatch: the index overwrites msg, which dies here */
+    lhu        $a2, 0x2($a2)      /* dispatch: the index overwrites command, which dies here */
     ...
   .Lactor_323400_801649E4:
     sw         $a2, 0x1C($v0)     /* the same register stores it */
 ```
 
-Writing the body the sibling's way — `switch (msg->mode) { case 1: ...
-coord.t[1] = msg->mode; ... }` — scores 97.4% with a **second `lhu`** in the
+Writing the body the sibling's way — `switch (command->command) { case 1: ...
+coord.t[1] = command->command; ... }` — scores 97.4% with a **second `lhu`** in the
 case block, and the reload takes `$v0` while the dispatch value takes `$v1`
 (`regs=8 branch=3 insert=1`). The two loads are one opcode apart in
 `.diagnosis.json` (`opcode_delta {"37:0": 1}` — `lhu`); the rest is allocation
@@ -128037,11 +128037,11 @@ source's statement order implies, the store between them is the reason, and the
 fix is a source local, not a pin or a scheduler barrier:
 
 ```c
-    if (msg->code == 0x1602) {
-        mode = msg->mode;           /* one pseudo, live into the case body */
-        switch (mode) {
+    if (command->context.key == 0x1602) {
+        commandSelector = command->command;           /* one pseudo, live into the case body */
+        switch (commandSelector) {
             case 1:
-                ((TmdObject*)task->extra)->coords->coord.t[1] = mode;
+                task->extra.tmd->coords->coord.t[1] = commandSelector;
 ```
 
 100.000%, and the merged pseudo takes `$a2` for free: its defining load has the
@@ -128049,18 +128049,18 @@ message pointer dying as its input, and global.c's `find_reg` prefers a dying
 input's register. `base_1.c` 97.4% -> `base_2.c` 100.000% is that one change.
 
 **It also explains the reloads you should *not* remove.** The same rule is why
-the target re-loads `task->extra` (`lw $v0, 0x2C($a0)`) once per coordinate
-store: each store through `field_8` evicts the entry for the previous one. Four
-written-out `((TmdObject*)task->extra)->coords->...` expressions are the
+the target re-loads `task->extra.tmd` (`lw $v0, 0x2C($a0)`) once per coordinate
+store: each store through `coord` evicts the entry for the previous one. Four
+written-out `task->extra.tmd->coords->...` expressions are the
 matching form; a cached `TmdObject* obj` local would hold one home and change
 the four loads into one.
 
 This subsumes "A store to a neighbouring field kills CSE's memory equivalence":
 the neighbour is not special, and the eviction is not a failed disjointness
 proof at a constant offset. It is the `nonscalar` flag, and it takes out
-unrelated bases too. The sibling `func_actor_323000_80164A54` keeps the
+unrelated bases too. The sibling `_actor323000ApplyCommand` keeps the
 one-load shape without a local only because nothing is stored between its
-dispatch and its `msg->mode` read.
+dispatch and its `command->command` read.
 
 ## Two identical `case` bodies are merged after reload into one copy that the earlier case `j`s into (_actor113000TickBlink, 2026-09-17)
 

@@ -90,7 +90,7 @@ static const DesertChaserTaskStates gDesertChaserTaskStates = {
 };
 
 static TmdSource _gActor323000DesertChaserBody;
-s32              func_actor_323000_80164A54(Task* task, s32 msgId, ActorCommand* msg, s32);
+static s32       _actor323000ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* command, s32 unusedArg);
 static void      _actor323000IgnoreMessage2015(Task* unusedTask, s32 unusedMessageId, s32 unusedArg, s32 unusedSecondArg);
 
 DamageAttack D_actor_323000_80164D40[5] = {
@@ -1014,7 +1014,7 @@ TaskMessageEntry gRigMessages[7] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _desertChaserSetVisibility },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawFirst },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_323000_80164A54 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor323000ApplyCommand },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _desertChaserMsgPlayAnim },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1445,31 +1445,43 @@ static void _actor323000IgnoreMessage2015(Task* unusedTask, s32 unusedMessageId,
 
 #include "../../shared/actor_messages_place_yaw_first.inc.c"
 
-/// Handler for message 0x7DB: copies the payload's three leading bytes into
-/// the work block and, when `code` is 0x202, selects the state from `mode`:
-/// 1 starts state 2, 0 and 2 state 0, and 3 state 3. Other codes only store
-/// the bytes.
-s32 func_actor_323000_80164A54(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Applies the Main Street cutscene chaser's stage/area command.
+///
+/// Borrows a complete command for this call and requires initialized task work.
+/// Always records stage, area and the low command byte. Dryfield/Main Street
+/// commands 0/2 hide, 1 starts clip 13's state and 3 starts clip 14's state.
+/// Other contexts or selectors leave the state intact. Returns 0; the message
+/// ID and second payload are unused.
+static s32 _actor323000ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* command, s32 unusedArg)
 {
+    enum {
+        ACTOR_323000_COMMAND_CONTEXT        = (GAME_AREA_DRYFIELD_MAIN_STREET << 8) | GAME_STAGE_DRYFIELD,
+        ACTOR_323000_COMMAND_HIDE           = 0,
+        ACTOR_323000_COMMAND_PLAY_CLIP_13   = 1,
+        ACTOR_323000_COMMAND_HIDE_ALTERNATE = 2,
+        ACTOR_323000_COMMAND_PLAY_CLIP_14   = 3,
+        ACTOR_323000_STATE_HIDDEN           = 0,
+        ACTOR_323000_STATE_PLAY_CLIP_13     = 2
+    };
     DesertChaserWork* work;
 
     work = task->work;
 
-    work->commandBytes[0] = msg->context.loc.stage;
-    work->commandBytes[1] = msg->context.loc.area;
-    work->commandBytes[2] = (u8)msg->command;
+    work->commandBytes[0] = command->context.loc.stage;
+    work->commandBytes[1] = command->context.loc.area;
+    work->commandBytes[2] = (u8)command->command;
 
-    if (msg->context.key == 0x202) {
-        switch (msg->command) {
-            case 1:
-                work->state = 2;
+    if (command->context.key == ACTOR_323000_COMMAND_CONTEXT) {
+        switch (command->command) {
+            case ACTOR_323000_COMMAND_PLAY_CLIP_13:
+                work->state = ACTOR_323000_STATE_PLAY_CLIP_13;
                 break;
-            case 0:
-            case 2:
-                work->state = 0;
+            case ACTOR_323000_COMMAND_HIDE:
+            case ACTOR_323000_COMMAND_HIDE_ALTERNATE:
+                work->state = ACTOR_323000_STATE_HIDDEN;
                 break;
-            case 3:
-                work->state = msg->command;
+            case ACTOR_323000_COMMAND_PLAY_CLIP_14:
+                work->state = command->command;
                 break;
         }
     }

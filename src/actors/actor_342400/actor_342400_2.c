@@ -94,7 +94,7 @@ static void _madChaserLurkIdleState(Task* task);
 static void _madChaserLurkLookState(Task* task);
 static void _madChaserLurkShiftState(Task* task);
 static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
-static void func_actor_342400_8016BBD0(Task* arg0);
+static void _madChaserDropDeathHold(Task* unusedTask);
 static void _madChaserShrinkDeathStart(Task* task);
 static void _madChaserShrinkDeathTurnTranslucent(Task* task);
 static void _madChaserShrinkDeathStartDespawn(Task* task);
@@ -898,7 +898,7 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,
     _madChaserDropBodies,
-    func_actor_342400_8016BBD0,
+    _madChaserDropDeathHold,
 } };
 
 /// Seven state handlers, indexed by `MadChaserWork::state`; copied to
@@ -1197,8 +1197,12 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 #include "../../shared/mad_chaser_drop_bodies.inc.c"
 
-/// Empty state handler.
-static void func_actor_342400_8016BBD0(Task* arg0)
+/// Holds the command drop-death corpse after its collision bodies are detached.
+///
+/// Final behavior 4 leaves the task and model alive. The enclosing death tick
+/// continues drawing, colouring and spawning periodic blasts; unusedTask is
+/// retained for state-table dispatch.
+static void _madChaserDropDeathHold(Task* unusedTask)
 {
 }
 

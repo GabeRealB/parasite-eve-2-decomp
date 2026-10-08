@@ -91,8 +91,8 @@ static const DesertChaserTaskStates gDesertChaserTaskStates = {
 };
 
 static TmdSource _gActor323400DesertChaserBody;
-s32              func_actor_323400_80164974(Task* task, s32 msgId, ActorCommand* msg, s32);
-s32              func_actor_323400_8016475C(Task*, s32, s32, s32);
+static s32       _actor323400ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* command, s32 unusedArg);
+static void      _actor323400IgnoreMessage2015(Task* unusedTask, s32 unusedMessageId, s32 unusedArg, s32 unusedSecondArg);
 
 DamageAttack D_actor_323400_80164D48[5] = {
     { 30, 0 },
@@ -986,12 +986,14 @@ u8 gRigAnimSource[340] = {
     0,
 };
 
+enum { ACTOR_323400_MESSAGE_NO_OP = 2015 };
+
 TaskMessageEntry gRigMessages[7] = {
-    { 2015, func_actor_323400_8016475C },
+    { ACTOR_323400_MESSAGE_NO_OP, _actor323400IgnoreMessage2015 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _desertChaserSetVisibility },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawFirst },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_323400_80164974 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor323400ApplyCommand },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _desertChaserMsgPlayAnim },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1380,7 +1382,11 @@ static void func_actor_323400_801641C4(Enemy* enemy, Task* task)
 
 #include "../../shared/desert_chaser_frame.inc.c"
 
-s32 func_actor_323400_8016475C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores the cutscene chaser's message 2015 without changing any state.
+///
+/// All arguments are unused. The result register is left unspecified; senders
+/// must ignore the dispatch result.
+static void _actor323400IgnoreMessage2015(Task* unusedTask, s32 unusedMessageId, s32 unusedArg, s32 unusedSecondArg)
 {
 }
 
@@ -1390,35 +1396,48 @@ s32 func_actor_323400_8016475C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 #include "../../shared/actor_messages_place_yaw_first.inc.c"
 
-/// Handler for message 0x7DB: copies the payload's three leading bytes into
-/// the work block and, when its `code` is 0x1602, picks the state from `mode`:
-/// 1 moves the root coordinate to (0x4330, 1, 0xA8C), marks it for rebuilding
-/// and starts state 2; 0 and 2 restart state 0; any other mode only stores the
-/// bytes.
-s32 func_actor_323400_80164974(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Applies the Breezeway cutscene chaser's stage/area command.
+///
+/// Borrows a complete command for this call and requires initialized work/model.
+/// Always records stage, area and the low command byte. Dryfield/Breezeway
+/// commands 0/2 hide; 1 places the root at (17200, 1, 2700) parent-coordinate
+/// units, dirties composition and starts clip 13's state. Other contexts or
+/// selectors leave placement and state intact. Returns 0; the message ID and
+/// second payload are unused.
+static s32 _actor323400ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* command, s32 unusedArg)
 {
+    enum {
+        ACTOR_323400_COMMAND_CONTEXT        = (GAME_AREA_DRYFIELD_BREEZEWAY << 8) | GAME_STAGE_DRYFIELD,
+        ACTOR_323400_COMMAND_HIDE           = 0,
+        ACTOR_323400_COMMAND_PLAY_CLIP_13   = 1,
+        ACTOR_323400_COMMAND_HIDE_ALTERNATE = 2,
+        ACTOR_323400_STATE_HIDDEN           = 0,
+        ACTOR_323400_STATE_PLAY_CLIP_13     = 2,
+        ACTOR_323400_SCENE_ROOT_X           = 17200,
+        ACTOR_323400_SCENE_ROOT_Z           = 2700
+    };
     DesertChaserWork* work;
-    u16               mode;
+    u16               commandSelector;
 
     work = task->work;
 
-    work->commandBytes[0] = msg->context.loc.stage;
-    work->commandBytes[1] = msg->context.loc.area;
-    work->commandBytes[2] = (u8)msg->command;
+    work->commandBytes[0] = command->context.loc.stage;
+    work->commandBytes[1] = command->context.loc.area;
+    work->commandBytes[2] = (u8)command->command;
 
-    if (msg->context.key == 0x1602) {
-        mode = msg->command;
-        switch (mode) {
-            case 1:
-                task->extra.tmd->coords->coord.t[0]   = 0x4330;
-                task->extra.tmd->coords->coord.t[1]   = mode;
-                task->extra.tmd->coords->coord.t[2]   = 0xA8C;
+    if (command->context.key == ACTOR_323400_COMMAND_CONTEXT) {
+        commandSelector = command->command;
+        switch (commandSelector) {
+            case ACTOR_323400_COMMAND_PLAY_CLIP_13:
+                task->extra.tmd->coords->coord.t[0]   = ACTOR_323400_SCENE_ROOT_X;
+                task->extra.tmd->coords->coord.t[1]   = commandSelector;
+                task->extra.tmd->coords->coord.t[2]   = ACTOR_323400_SCENE_ROOT_Z;
                 task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                work->state                           = 2;
+                work->state                           = ACTOR_323400_STATE_PLAY_CLIP_13;
                 break;
-            case 0:
-            case 2:
-                work->state = 0;
+            case ACTOR_323400_COMMAND_HIDE:
+            case ACTOR_323400_COMMAND_HIDE_ALTERNATE:
+                work->state = ACTOR_323400_STATE_HIDDEN;
                 break;
         }
     }

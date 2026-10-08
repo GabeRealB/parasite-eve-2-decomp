@@ -132,3 +132,5 @@ _desertChaserTask = 0x80164CEC; // type:func
 actorMsgIsPresent = 0x80164824; // type:func
 _desertChaserHideState = 0x80164B98; // type:func
 _desertChaserMsgPlayAnim = 0x80164A50; // type:func
+_actor323400IgnoreMessage2015 = 0x8016475c; // type:func
+_actor323400ApplyCommand = 0x80164974; // type:func

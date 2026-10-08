@@ -288,3 +288,4 @@ _madChaserShrinkDeathStart = 0x8016bbd8; // type:func
 _madChaserShrinkDeathTurnTranslucent = 0x8016BD3C; // type:func
 _madChaserLurkShiftState = 0x8016B038; // type:func
 _gMadChaserLurkShiftSteps = 0x80161fd8;
+_madChaserDropDeathHold = 0x8016bbd0; // type:func
