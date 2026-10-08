@@ -1900,7 +1900,7 @@ return ret;                                 /* 100% */
 `Task*`/`NULL` typing but the early-return shape reproduced `base.c`
 byte-for-byte, so the statement shape, not the types, decides the layout.
 `func_neo_ark_woodland_path_8017E8DC` is the identical body with `ret = -1` and
-is the sibling to read first; `func_dryfield_breezeway_8017D90C` is a third copy.
+is the sibling to read first; `dryfieldBreezewayForwardKeyItemUse` is a third copy.
 
 The same lever works when the guard is not the whole function. In
 `func_dryfield_warehouse_8017D764` the guard arm is a search loop rather than a
@@ -87556,7 +87556,7 @@ two paths as assignments to one local instead and jump.c has nothing to swap:
 the `if/else` expands in source order, the taken arm stays inline and the
 single epilogue is reached by fall-through.
 
-`func_dryfield_breezeway_8017D90C` is the guarded-dispatch wrapper most rooms
+`dryfieldBreezewayForwardKeyItemUse` is the guarded-dispatch wrapper most rooms
 carry - read a room-local `Task*`, return 0 when it is null, else forward it to
 `taskMessageDispatch` and return that. m2c's two-`return` seed scored exactly 60%
 (`insert=3 delete=2 reorder=1`) with the call as the fall-through, `beqz`, and
@@ -89820,9 +89820,9 @@ m2c split into scalars is a *shape* error, not a scheduling one - no amount of
 statement reordering recovers instructions that were deleted before the
 scheduler ever ran.
 
-## m2c drops a call argument that is already in `$a0`, and the missing argument costs a callee-saved register (func_dryfield_breezeway_8017FD9C, 2026-09-15)
+## m2c drops a call argument that is already in `$a0`, and the missing argument costs a callee-saved register (_dryfieldBreezewayOpenKeyItemCommands, 2026-09-15)
 
-`func_dryfield_breezeway_8017FD9C` updates the room's hanging line as
+`_dryfieldBreezewayOpenKeyItemCommands` updates the room's hanging line as
 `_dryfieldBreezewayUpdateKeyItemLine(task, 0, 0x20)` - the task itself, passed
 straight through from `$a0`. m2c sees only `a1`/`a2` being set before the `jal`,
 so it renders the call as `_dryfieldBreezewayUpdateKeyItemLine(0, 0x20)` and the
@@ -120371,11 +120371,11 @@ A `MATRIX* m = &rot` variable used for the call instead lets sched hoist its `ad
 earlier call. Same function: `{sxy0, dp, sxy1, otz}` packed at 0x40..0x50 needs a local
 `struct { DVECTOR sxy; s32 z; } proj[2]` — separate `DVECTOR` locals round to 8 bytes each and
 push the addressable scalars after them.
-## A register-relative struct fill needs its pointer to die before the next call (func_dryfield_breezeway_8017DEC0, 2026-09-17)
+## A register-relative struct fill needs its pointer to die before the next call (_dryfieldBreezewayProcessFirstEventAction, 2026-09-17)
 
 "A pointer local is what makes a *local* struct's stores register-relative"
 has the mechanism; this is the constraint on the other end of it. The record
-fill in `func_dryfield_breezeway_8017DEC0`'s state 2 has the split
+fill in `_dryfieldBreezewayProcessFirstEventAction`'s state 2 has the split
 (`0x18(sp)` and `0x28(sp)` for `source.index`/`enableWorldCollision`,
 `4/8/0xc($a1)` for the middle three, `addiu $a1,$sp,0x18` in the case's first
 delay slot). With the record as a plain local of the function, a pointer local
@@ -120406,7 +120406,7 @@ helper before the pointer whenever the same fill recurs with other values. The
 helper also explained the union the two payloads used to share there: two
 helpers inlined one after the other reuse one frame slot.
 
-## `lhu` + `slti` in a dispatch means a `u16` field compared through an `s32` local (func_dryfield_breezeway_8017DEC0, 2026-09-17)
+## `lhu` + `slti` in a dispatch means a `u16` field compared through an `s32` local (_dryfieldBreezewayProcessFirstEventAction, 2026-09-17)
 
 The same function's state dispatch loads `lhu $v1,0xC($s1)` and then tests
 `slti $v0,$v1,2` - unsigned load, signed compare. m2c's transcription (a `u16`
@@ -120465,7 +120465,7 @@ cross-jumping merging the identical `sb` tails, not a front-end if-conversion.
 So the two-stores form is the original writing here, and `m2c`'s single-store
 `var_v0` shape - like the ternary that replaces it - is an artefact.
 
-## A `default:` label nested inside a case means those guards `return`, and the tail is shared (func_dryfield_breezeway_8017E114, 2026-09-17)
+## A `default:` label nested inside a case means those guards `return`, and the tail is shared (_dryfieldBreezewayFirstEventTask, 2026-09-17)
 
 m2c's seed for this function printed its shared tail as `default:` / `block_13:`
 *inside* case 0's body, with case 0 falling into it and case 1 reaching it by
@@ -120482,7 +120482,7 @@ case0:  beq  v1,v0,.Lepilogue     # cutscene running
 case1:  bnez v0,.Ltail            # sequence still running
         jal  taskKill
         j    .Lepilogue
-Ltail:  jal  func_..._8017DEC0
+Ltail:  jal  _dryfieldBreezewayProcessFirstEventAction
 ```
 
 Both case-0 guards go to the epilogue, not to the tail, so the tail is only
@@ -120490,22 +120490,22 @@ reached after `state += 1` — and the default (`state` past 1) reaches it too.
 That is one `return` per guard and one call after the switch:
 
 ```c
-switch (arg0->state) {
+switch (task->state) {
     case 0:
         if (D_80114C12 == 1 || D_80071075 != 0) {
             return;
         }
         ...
-        arg0->state += 1;
+        task->state += 1;
         break;
     case 1:
         if (gGameSession->eventState == 0) {
-            taskKill(arg0);
+            taskKill(task);
             return;
         }
         break;
 }
-func_dryfield_breezeway_8017DEC0(arg0);
+_dryfieldBreezewayProcessFirstEventAction(task);
 ```
 
 100.000%, no other change. m2c's shape scores 84.5625% with

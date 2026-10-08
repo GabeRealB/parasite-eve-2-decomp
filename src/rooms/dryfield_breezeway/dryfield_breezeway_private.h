@@ -28,13 +28,22 @@ void func_dryfield_breezeway_8017DC3C(Task* arg0);
 
 // Callbacks referenced by the overlay's shared data tables.
 
-s32 func_dryfield_breezeway_8017D90C(Task*, s32, s32, s32);
+/// Forwards a key-item-use query to the live model event, or refuses it while absent.
+///
+/// `messageId` is `ROOM_MESSAGE_USE_KEY_ITEM`; `itemId` is a collected-item id
+/// and `secondArg` is forwarded unchanged (the item menu sends zero). Returns
+/// the event's item-menu reply. The receiver handle is borrowed through dispatch.
+s32 dryfieldBreezewayForwardKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 secondArg);
 
 s32 func_dryfield_breezeway_8017D940(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 s32 func_dryfield_breezeway_8017DA48(Task*, s32, s32, s32);
 
-s32 func_dryfield_breezeway_8017DBA4(Task*, s32, s32, s32);
+/// Starts breezeway sound-bank entry 7 for sound cue 7; other cues do nothing.
+///
+/// Handles `ROOM_MESSAGE_SOUND` and always returns zero. The sound's further
+/// role is unproven; the task, message id and second payload are unused.
+s32 dryfieldBreezewayHandleSoundMessage(Task* unusedTask, s32 unusedMessageId, s32 soundCue, s32 unusedSecondArg);
 
 s32 func_dryfield_breezeway_8017DBD8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

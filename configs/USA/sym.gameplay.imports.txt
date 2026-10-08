@@ -662,7 +662,7 @@ dryfieldBackStreetRoomVisualEffectsTwinTrailTask = 0x8017E434; // type:func abso
 func_dryfield_back_street_8017ED1C = 0x8017ED1C; // type:func absolute:True owner=dryfield_back_street
 
 
-func_dryfield_breezeway_80181264 = 0x80181264; // type:func absolute:True owner=dryfield_breezeway
+dryfieldBreezewayBouncingParticleTask = 0x80181264; // type:func absolute:True owner=dryfield_breezeway
 
 dryfieldCellarDrawGlowsTask = 0x8017DAEC; // type:func absolute:True owner=dryfield_cellar
 
@@ -1785,7 +1785,7 @@ dryfieldWaterTowerUpdateViewEffectGateTask = 0x80180348; // type:func absolute:T
 
 dryfieldWaterTankUpdateViewEffectGateTask = 0x8017F084; // type:func absolute:True owner=dryfield_water_tank
 
-func_dryfield_breezeway_8017FF7C = 0x8017FF7C; // type:func absolute:True owner=dryfield_breezeway shared=rooms
+dryfieldBreezewayAmbientEffectsTask = 0x8017FF7C; // type:func absolute:True owner=dryfield_breezeway shared=rooms
 
 dryfieldFactoryDrawGlowsTask = 0x801825F0; // type:func absolute:True owner=dryfield_factory shared=rooms
 

@@ -56,7 +56,7 @@ extern RoomEventReq gRoomEventReq;
 /// `func_dryfield_breezeway_8017DC3C` spawns from
 /// `D_dryfield_breezeway_80182E18` in its state 0 and drops again once
 /// `taskPollKill` reaps it; `func_dryfield_breezeway_8017DDB0` clears it when
-/// the message task starts. `func_dryfield_breezeway_8017D90C` forwards message
+/// the message task starts. `dryfieldBreezewayForwardKeyItemUse` forwards message
 /// 0x13F1 to it through `taskMessageDispatch`, answering 0 while there is none.
 extern Task* D_dryfield_breezeway_801843A8;
 
@@ -373,22 +373,22 @@ RoomEventReq gRoomEventReq = { 0 };
 Task* D_dryfield_breezeway_801843C0;
 
 static void func_dryfield_breezeway_8017DDB0(Task* task);
-static void func_dryfield_breezeway_8017DE60(Task* task);
+static void _dryfieldBreezewayMessageTaskIdle(Task* unusedTask);
 
 #include "../../shared/room_event_gate.inc.c"
 
 #include "../../shared/room_event_task.inc.c"
 
-s32 func_dryfield_breezeway_8017D90C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 dryfieldBreezewayForwardKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 secondArg)
 {
-    s32 ret;
+    s32 reply;
 
     if (D_dryfield_breezeway_801843A8 == NULL) {
-        ret = 0;
+        reply = ROOM_KEY_ITEM_USE_REFUSED;
     } else {
-        ret = taskMessageDispatch(D_dryfield_breezeway_801843A8, msgId, arg2, arg3);
+        reply = taskMessageDispatch(D_dryfield_breezeway_801843A8, messageId, itemId, secondArg);
     }
-    return ret;
+    return reply;
 }
 
 /// `TaskMessageEntry` handler for message 0x13EE, the room's own progress gate. It
@@ -471,10 +471,12 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_dryfield_breezeway_8017DBA4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 dryfieldBreezewayHandleSoundMessage(Task* unusedTask, s32 unusedMessageId, s32 soundCue, s32 unusedSecondArg)
 {
-    if (arg2 == 7) {
-        sndEvtRequestScriptStart(0x52160000 | 7, 0, 0);
+    enum { DRYFIELD_BREEZEWAY_SOUND_CUE_7 = 7 };
+
+    if (soundCue == DRYFIELD_BREEZEWAY_SOUND_CUE_7) {
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BREEZEWAY, DRYFIELD_BREEZEWAY_SOUND_CUE_7), 0, 0);
     }
     return 0;
 }
@@ -560,26 +562,22 @@ static void func_dryfield_breezeway_8017DDB0(Task* task)
     D_dryfield_breezeway_801843A8 = NULL;
 }
 
-static void func_dryfield_breezeway_8017DE60(Task* task)
+/// Keeps the registered room-message task alive without advancing its idle state.
+static void _dryfieldBreezewayMessageTaskIdle(Task* unusedTask)
 {
 }
 
 /// State handlers of the room's message task, indexed by its state through
-/// `func_dryfield_breezeway_8017DE68`: publish the message table, idle, then
+/// `dryfieldBreezewayMessageTask`: publish the message table, idle, then
 /// kill.
 static const TaskFuncTable3 D_dryfield_breezeway_8017D5DC = {
-    { func_dryfield_breezeway_8017DDB0, func_dryfield_breezeway_8017DE60, taskKill }
+    { func_dryfield_breezeway_8017DDB0, _dryfieldBreezewayMessageTaskIdle, taskKill }
 };
 
-/// Runs the room's message task through its three states: publishing the
-/// room's message table (`func_dryfield_breezeway_8017DDB0`), idling
-/// (`func_dryfield_breezeway_8017DE60`) and `taskKill`. The table is copied
-/// onto the stack first, so the call goes through a local copy rather than the
-/// rodata.
-void func_dryfield_breezeway_8017DE68(Task* task)
+void dryfieldBreezewayMessageTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_breezeway_8017D5DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_breezeway_8017D5DC;
+    stateHandlers.funcs[task->state](task);
 }

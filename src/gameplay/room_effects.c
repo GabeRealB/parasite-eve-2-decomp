@@ -595,7 +595,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, mistParkingDrawGlowsTask, { NULL } },                                               // 0x039
     { { { TASK_BODY_COORD, 0x70 } }, tonfaBatonSwingTrailTask, { NULL } },                                               // 0x03A
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask3B, { NULL } },                                                        // 0x03B
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_breezeway_80181264, { NULL } },                                       // 0x03C
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldBreezewayBouncingParticleTask, { NULL } },                                  // 0x03C
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyDebrisTask, { NULL } },                                    // 0x03D
     { { { TASK_BODY_COORD, 0x70 } }, m4a1BayonetTrailTask, { NULL } },                                                   // 0x03E
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask3F, { NULL } },                                                     // 0x03F
@@ -747,7 +747,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldGRKitchenDrawLightBeamsTask, { NULL } },                                    // 0x0D1
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldWaterTowerUpdateViewEffectGateTask, { NULL } },                             // 0x0D2
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldWaterTankUpdateViewEffectGateTask, { NULL } },                              // 0x0D3
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_breezeway_8017FF7C, { NULL } },                                       // 0x0D4
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldBreezewayAmbientEffectsTask, { NULL } },                                    // 0x0D4
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldFactoryDrawGlowsTask, { NULL } },                                           // 0x0D5
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldGarageEffectNoopTaskD6, { NULL } },                                         // 0x0D6
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDrivewayEnableAmbientEffectsTask, { NULL } },                               // 0x0D7

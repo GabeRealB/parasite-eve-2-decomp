@@ -69,6 +69,30 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 
+/// Motion, fade and texture units of the breezeway's bouncing sprite particle.
+enum {
+    DRYFIELD_BREEZEWAY_PARTICLE_INITIALIZE        = 0,
+    DRYFIELD_BREEZEWAY_PARTICLE_FLYING            = 1,
+    DRYFIELD_BREEZEWAY_PARTICLE_SETTLED           = 2,
+    DRYFIELD_BREEZEWAY_PARTICLE_INITIAL_SPEED     = 80,
+    DRYFIELD_BREEZEWAY_PARTICLE_SIZE_MASK         = 0xFFF,
+    DRYFIELD_BREEZEWAY_PARTICLE_SETTLE_SPEED      = 32,
+    DRYFIELD_BREEZEWAY_PARTICLE_SETTLE_INTERVAL   = 8,
+    DRYFIELD_BREEZEWAY_PARTICLE_GRAVITY_Q12       = 0x5000,
+    DRYFIELD_BREEZEWAY_PARTICLE_FADE_START        = 30,
+    DRYFIELD_BREEZEWAY_PARTICLE_LIFETIME          = 60,
+    DRYFIELD_BREEZEWAY_PARTICLE_FADE_STEP         = 4,
+    DRYFIELD_BREEZEWAY_PARTICLE_FRAME_COUNT       = 8,
+    DRYFIELD_BREEZEWAY_PARTICLE_FRAME_PERIOD_MASK = 7,
+    DRYFIELD_BREEZEWAY_PARTICLE_FRAME_TEXELS      = 16,
+    DRYFIELD_BREEZEWAY_PARTICLE_TEXTURE_ROW       = 0xF0,
+    DRYFIELD_BREEZEWAY_PARTICLE_TEXTURE_PAGE      = 0x2B,
+    DRYFIELD_BREEZEWAY_PARTICLE_CLUT              = 0x43C0,
+    DRYFIELD_BREEZEWAY_PARTICLE_RADIUS_SCALE      = 23,
+    // Dust uses two ticks per texture frame and a size 256 units larger than the particle.
+    DRYFIELD_BREEZEWAY_PARTICLE_DUST_ARG_BIAS = (2 << 12) + 256,
+};
+
 /// Requests the first event's script makes of its task, held in
 /// `_DryfieldBreezewayFirstEventWork::action`.
 ///
@@ -211,11 +235,11 @@ STATIC_ASSERT_SIZEOF(_DryfieldBreezewayLineEdge, 0x12);
 
 /// Placement this room hands on with message 0x7D4 from
 /// `_dryfieldBreezewayStageSecondDesertChaser`, `_dryfieldBreezewayStageFirstEventSkip` and
-/// `func_dryfield_breezeway_8017DEC0`: world x 17000, y 0, z 3000, yaw 0xA00.
+/// `_dryfieldBreezewayProcessFirstEventAction`: world x 17000, y 0, z 3000, yaw 0xA00.
 extern ActorTransform D_dryfield_breezeway_80181E28;
 
 /// The two placements that follow it in the same three-record run, which
-/// `func_dryfield_breezeway_8017DEC0` sends to slot 3 as the second and third
+/// `_dryfieldBreezewayProcessFirstEventAction` sends to slot 3 as the second and third
 /// message of its state-1 sequence: `[0]` is the record message 0x3E9 places the
 /// player with, and `[1]` -- the run's third record -- the one message 0x3EE
 /// does. The label the decomp references is the start of this array, so the
@@ -253,14 +277,14 @@ static s16  _dryfieldBreezewayIsLinePointNearTarget(const SVECTOR* target, const
 static void _dryfieldBreezewayPlaceKeyItemModelAtLineTip(Task* task, s16 tipX, s16 tipY);
 static s16  _dryfieldBreezewayGetLineBearing(s16 fromX, s16 fromY, s16 toX, s16 toY);
 static void _dryfieldBreezewayArmKeyItemPrompt(Task* task);
-static void func_dryfield_breezeway_8017FD9C(Task* task);
+static void _dryfieldBreezewayOpenKeyItemCommands(Task* task);
 static void func_dryfield_breezeway_8017FE08(Task* task);
 static void _actionPromptEventEnd(Task* eventTask);
-static void func_dryfield_breezeway_8018034C(GfxCoord* coord, SVECTOR* data, s32 arg2, s32 arg3);
-static void func_dryfield_breezeway_80181938(Task* task, u8* color);
+static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR* localPoint, s16 pulseRate, s16 radiusScale);
+static void _dryfieldBreezewayDrawBouncingParticle(Task* task, const u8 rgb[3]);
 
 /// State handlers of the room's key-item event task, indexed by its state
-/// through `func_dryfield_breezeway_8017FC38`: set-up, prompt arming, the
+/// through `_dryfieldBreezewayKeyItemEventTask`: set-up, prompt arming, the
 /// prompt-position scan, prompt spawning, the key-item answer, the exit and
 /// the cursor-hotspot scan.
 static const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
@@ -268,7 +292,7 @@ static const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
         func_dryfield_breezeway_8017E464,
         _dryfieldBreezewayArmKeyItemPrompt,
         _dryfieldBreezewayScanKeyItemHotspot,
-        func_dryfield_breezeway_8017FD9C,
+        _dryfieldBreezewayOpenKeyItemCommands,
         func_dryfield_breezeway_8017FE08,
         _actionPromptEventEnd,
         func_dryfield_breezeway_8017E81C,
@@ -279,21 +303,21 @@ static void _dryfieldBreezewayStageSecondDesertChaser(void);
 static void _dryfieldBreezewayRequestFirstEventAction(s16 action);
 
 static void _dryfieldBreezewayInitFirstEventTask(Task* task);
-void        func_dryfield_breezeway_8017E114(Task*);
+static void _dryfieldBreezewayFirstEventTask(Task* task);
 static void _dryfieldBreezewayEngageFirstEventBattle(void);
 static void _dryfieldBreezewayStageFirstEventSkip(void);
 
 static s32  _dryfieldBreezewayUseBottlecapMagnet(Task* task, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static void _dryfieldBreezewayActionPromptTask(Task* task);
-void        func_dryfield_breezeway_8017FC38(Task*);
+static void _dryfieldBreezewayKeyItemEventTask(Task* task);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_breezeway_80181DE0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_breezeway_8017D940 },
-    { 5105, func_dryfield_breezeway_8017D90C },
+    { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldBreezewayForwardKeyItemUse },
     { ROOM_MESSAGE_COMMAND, func_dryfield_breezeway_8017DA48 },
-    { ROOM_MESSAGE_SOUND, func_dryfield_breezeway_8017DBA4 },
+    { ROOM_MESSAGE_SOUND, dryfieldBreezewayHandleSoundMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_breezeway_8017DBD8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -342,7 +366,7 @@ EvsCommand D_dryfield_breezeway_80181F90[12] = {
 
 TaskDesc D_dryfield_breezeway_801820B0[2] = {
     { { { TASK_BODY_NONE, 192 } }, _dryfieldBreezewayInitFirstEventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_breezeway_8017E114, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldBreezewayFirstEventTask, { .value = 0 } },
 };
 
 TaskDesc D_dryfield_breezeway_801820C8 = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
@@ -397,7 +421,7 @@ ActionPromptHotspot D_dryfield_breezeway_80182E00[2] = {
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-TaskDesc D_dryfield_breezeway_80182E18 = { { { TASK_BODY_TMD, 192 } }, func_dryfield_breezeway_8017FC38, { .model = &_gDryfieldBreezewayModel04E8C } };
+TaskDesc D_dryfield_breezeway_80182E18 = { { { TASK_BODY_TMD, 192 } }, _dryfieldBreezewayKeyItemEventTask, { .model = &_gDryfieldBreezewayModel04E8C } };
 
 u_long D_dryfield_breezeway_80182E24[64] = {
 #include "assets/dryfield_breezeway_image_05864.inc"
@@ -414,7 +438,7 @@ extern EvsCommand D_dryfield_breezeway_80181E70[];
 
 extern EvsCommand D_dryfield_breezeway_80181F90[];
 
-static void func_dryfield_breezeway_8017DEC0(Task* arg0);
+static void _dryfieldBreezewayProcessFirstEventAction(Task* task);
 
 /// Broadcasts a stage/area-scoped command to the scene's placed actors.
 ///
@@ -459,22 +483,22 @@ static inline void _dryfieldBreezewayPlayPlayerAnimation(u16 animationId, u16 bl
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
 }
 
-/// Carries out the request the first event's script left in
-/// `_DryfieldBreezewayFirstEventWork::action`, then clears it.
+/// Consumes the opening script's pending actor-staging or player-animation request.
 ///
-/// `DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_STAGE` broadcasts actor command 1,
-/// puts the first desert chaser at `D_dryfield_breezeway_80181E28`, places the
-/// player at `D_dryfield_breezeway_80181E40[0]` and turns the player to the yaw of
-/// `[1]`, and saves the index of view 4 as the live view.
-/// `DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_PLAY_ANIMATION_9` plays the player's
-/// animation 9. A value above the last request is cleared without the shared
-/// tail; the empty `case` for no request is what gives the switch that shape.
-static void func_dryfield_breezeway_8017DEC0(Task* arg0)
+/// Staging places the first desert chaser, places and turns the player, and
+/// saves logical view 4. The other request plays equipped-bank clip 9 with a
+/// ten-frame interpolation. Every selector, including unsupported values, is
+/// cleared. The task needs initialized work and live borrowed actor tasks;
+/// messages consume their placement and animation records synchronously.
+static void _dryfieldBreezewayProcessFirstEventAction(Task* task)
 {
+    enum { DRYFIELD_BREEZEWAY_FIRST_EVENT_CUTSCENE_CHASER = 0,
+           DRYFIELD_BREEZEWAY_FIRST_EVENT_STAGING_VIEW    = 4 };
+
     _DryfieldBreezewayFirstEventWork* work;
     s32                               action;
 
-    work   = arg0->work;
+    work   = task->work;
     action = work->action;
 
     switch (action) {
@@ -485,10 +509,10 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             break;
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_STAGE:
             _dryfieldBreezewayBroadcastActorCommand(DRYFIELD_BREEZEWAY_ACTOR_COMMAND_STAGE);
-            TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[0], ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E28, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[DRYFIELD_BREEZEWAY_FIRST_EVENT_CUTSCENE_CHASER], ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E28, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E40[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &D_dryfield_breezeway_80181E40[1], 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(4);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_BREEZEWAY_FIRST_EVENT_STAGING_VIEW);
             break;
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_PLAY_ANIMATION_9:
             _dryfieldBreezewayPlayPlayerAnimation(DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_ANIMATION, ANIMATION_BLEND_INTERPOLATE, 10);
@@ -547,66 +571,38 @@ static void _dryfieldBreezewayInitFirstEventTask(Task* task)
     }
 }
 
-/// The long-lived half of the arming pair: `_dryfieldBreezewayInitFirstEventTask`
-/// initializes the same borrowed actor bindings at room startup and then retires.
-/// This one arms the room and then
-/// stays resident to run `func_dryfield_breezeway_8017DEC0` every frame.
+/// Starts the breezeway's first encounter and services its script until the event ends.
 ///
-/// State 0 arms the room, but only while no cutscene is running
-/// (`Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL`) and the area is not cleared (`gDisplayState.pendingMode == DISPLAY_MODE_NONE`) --
-/// otherwise it returns having done nothing, which retires the task on the
-/// next frame. It allocates the `_DryfieldBreezewayFirstEventWork` block, publishes the room task
-/// in `D_dryfield_breezeway_801843C0`, plays the player's animation 1 for the
-/// equipped weapon (`ANIMATION_MESSAGE_PLAY`, interpolated over 10 frames) and starts the room's
-/// opening cutscene through `evsStartScriptWithSkip`, which is what raises
-/// `gGameSession::eventState`. It then advances to state 1.
-///
-/// State 1 runs the sequencer every frame until the cutscene clears
-/// `gGameSession::eventState`, at which point the task kills itself. Any other
-/// state goes straight to the sequencer.
-void func_dryfield_breezeway_8017E114(Task* arg0)
+/// State 0 waits while the attachment wheel or a pending display mode blocks
+/// startup, then publishes borrowed player/desert-chaser bindings, plays clip
+/// 1 and starts the normal/skip scripts. State 1 consumes script requests until
+/// eventState becomes zero, then releases the task and its work. The published
+/// handle is not cleared. Placements 0/1 and the equipped animation bank must
+/// be live. The retained allocation-failure path continues after task teardown.
+static void _dryfieldBreezewayFirstEventTask(Task* task)
 {
-    AnimationPlayRequest              buf;
-    _DryfieldBreezewayFirstEventWork* work;
-    s32                               id;
+    enum { DRYFIELD_BREEZEWAY_FIRST_EVENT_TASK_WAIT_TO_START = 0,
+           DRYFIELD_BREEZEWAY_FIRST_EVENT_TASK_RUN_SCRIPT    = 1 };
 
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case DRYFIELD_BREEZEWAY_FIRST_EVENT_TASK_WAIT_TO_START:
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            work       = memMalloc(sizeof(*work), false);
-            arg0->work = work;
-            if (work == NULL) {
-                taskKill(arg0);
-            } else {
-                memFillBytes(work, 0, sizeof(*work));
-                work->playerTask              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_dryfield_breezeway_801843C0 = arg0;
-                // The placed actors are found by place key: the session's stage and area with the placement index.
-                id                         = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
-                work->desertChaserTasks[0] = sceneFindEnemyByPlaceKey(id)->task;
-                id                         = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (1 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
-                work->desertChaserTasks[1] = sceneFindEnemyByPlaceKey(id)->task;
-            }
-            id                       = gPlayerStatus.weapon;
-            buf.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? id + 1 : id + 0x22;
-            buf.animationId          = 1;
-            buf.blend                = ANIMATION_BLEND_INTERPOLATE;
-            buf.blendFrames          = 0xA;
-            buf.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &buf, 0);
+            // Bind the actors before scripts can send their staging requests.
+            _dryfieldBreezewayInitializeFirstEventWork(task);
+            _dryfieldBreezewayPlayPlayerAnimation(1, ANIMATION_BLEND_INTERPOLATE, 10);
             evsStartScriptWithSkip(D_dryfield_breezeway_80181E70, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_breezeway_80181F90);
-            arg0->state += 1;
+            task->state += 1;
             break;
-        case 1:
+        case DRYFIELD_BREEZEWAY_FIRST_EVENT_TASK_RUN_SCRIPT:
             if (gGameSession->eventState == 0) {
-                taskKill(arg0);
+                taskKill(task);
                 return;
             }
             break;
     }
-    func_dryfield_breezeway_8017DEC0(arg0);
+    _dryfieldBreezewayProcessFirstEventAction(task);
 }
 
 /// Hands the opening encounter from its cutscene chaser to its pursuing combat chaser.
@@ -1228,16 +1224,18 @@ static s16 _dryfieldBreezewayGetLineBearing(s16 fromX, s16 fromY, s16 toX, s16 t
     return ratan2(direction.vx, direction.vy);
 }
 
-/// The room's key-item event task, run from `D_dryfield_breezeway_80182E18`:
-/// dispatches the current state through the seven handlers of
-/// `D_dryfield_breezeway_8017D5E8`, copied onto the stack first so the call
-/// goes through a local table rather than through `.rodata`.
-void func_dryfield_breezeway_8017FC38(Task* task)
+/// Runs the model-and-line interaction used to offer the bottlecap magnet to the room.
+///
+/// Starts with a TMD body at state 0. The seven handlers initialize the model,
+/// arm and scan its prompt, open and wait for item commands, exit, or let the
+/// accepted magnet lead the line toward a prop hotspot. States must remain
+/// within 0..6. The event owns its work; it borrows the live action-prompt slot.
+static void _dryfieldBreezewayKeyItemEventTask(Task* task)
 {
-    TaskFuncTable7 sp;
+    TaskFuncTable7 stateHandlers;
 
-    sp = D_dryfield_breezeway_8017D5E8;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_breezeway_8017D5E8;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/action_prompt_hit_test.inc.c"
@@ -1259,13 +1257,12 @@ static void _dryfieldBreezewayArmKeyItemPrompt(Task* task)
     task->state         = task->state + 1;
 }
 
-/// State 3 of the room's key-item event task, run once the room's hotspot
-/// scan has landed on an entry: updates the line
-/// through `_dryfieldBreezewayUpdateKeyItemLine` using the rest point, clears the
-/// prompt's highlight state, then re-spawns the prompt at the coordinates the
-/// gameplay side left in `D_80114D28` with the Examine/Push action the scan latched in
-/// `_DryfieldBreezewayKeyItemEventWork::promptKind`, and steps the caller's script on one state.
-static void func_dryfield_breezeway_8017FD9C(Task* task)
+/// Opens the confirmed model hotspot's item commands and waits for their answer.
+///
+/// Keeps the hanging line at rest, hides/stops the cursor, and opens the menu
+/// at its current screen-pixel position with the hotspot's prompt kind. Requires
+/// initialized event work and a live action-prompt slot; selects the item-wait state.
+static void _dryfieldBreezewayOpenKeyItemCommands(Task* task)
 {
     ActionPrompt*                       prompt = D_80114D28;
     _DryfieldBreezewayKeyItemEventWork* work   = task->work;
@@ -1274,7 +1271,7 @@ static void func_dryfield_breezeway_8017FD9C(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
-    task->state = 4;
+    task->state = DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_WAIT_FOR_ITEM;
 }
 
 /// Closes whatever the hotspot scan left up and picks the room's next state:
@@ -1314,103 +1311,159 @@ static void func_dryfield_breezeway_8017FE08(Task* task)
 
 #include "../../shared/action_prompt_reset.inc.c"
 
-void func_dryfield_breezeway_8017FF7C(Task* task)
+void dryfieldBreezewayAmbientEffectsTask(Task* task)
 {
-    s32         mask;
-    EffectWork* eff;
-    GfxCoord*   coord;
-    GfxCoord*   player;
-    s32         limit;
-    s32         pan;
+    enum {
+        DRYFIELD_BREEZEWAY_DIAMOND_GLOW_VIEWS     = (1 << 3) | (1 << 4),
+        DRYFIELD_BREEZEWAY_RAY_GLOW_VIEW          = 1 << 5,
+        DRYFIELD_BREEZEWAY_GLOW_PULSE_RATE        = 0x600,
+        DRYFIELD_BREEZEWAY_DIAMOND_GLOW_SCALE     = 128,
+        DRYFIELD_BREEZEWAY_RAY_GLOW_SCALE         = 16,
+        DRYFIELD_BREEZEWAY_PARTICLE_APPROACH_VIEW = 2,
+        DRYFIELD_BREEZEWAY_PARTICLE_NEAR_VIEW     = 3,
+        DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE      = 64,
+        DRYFIELD_BREEZEWAY_PARTICLE_END_TICKS     = 16,
+        DRYFIELD_BREEZEWAY_SOUND_NOT_STARTED      = 0,
+        DRYFIELD_BREEZEWAY_SOUND_LOOP_STARTED     = 1,
+        DRYFIELD_BREEZEWAY_SOUND_BURST_STARTED    = 2,
+    };
 
-    mask   = 1 << gGameSession->location.loc.view;
-    eff    = task->spawnArg2.pointer;
-    coord  = task->extra.coordBody->coord;
-    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-    if (mask & 0x18) {
-        func_dryfield_breezeway_8018034C(coord, &D_dryfield_breezeway_80183164, 0x600, 0x80);
-    } else if (mask & 0x20) {
-        _glowDrawRayStar(coord, &D_dryfield_breezeway_80183164, 0x600, 0x10);
+    s32         viewMask;
+    EffectWork* work;
+    GfxCoord*   coord;
+    GfxCoord*   playerCoord;
+    s32         spawnChance;
+    s32         panOffset;
+
+    viewMask    = 1 << gGameSession->location.loc.view;
+    work        = task->spawnArg2.pointer;
+    coord       = task->extra.coordBody->coord;
+    playerCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+    // Draw the fixed glow before the control gate; paused emission still draws it.
+    if (viewMask & DRYFIELD_BREEZEWAY_DIAMOND_GLOW_VIEWS) {
+        _dryfieldBreezewayDrawRedDiamondGlow(coord, &D_dryfield_breezeway_80183164, DRYFIELD_BREEZEWAY_GLOW_PULSE_RATE, DRYFIELD_BREEZEWAY_DIAMOND_GLOW_SCALE);
+    } else if (viewMask & DRYFIELD_BREEZEWAY_RAY_GLOW_VIEW) {
+        _glowDrawRayStar(coord, &D_dryfield_breezeway_80183164, DRYFIELD_BREEZEWAY_GLOW_PULSE_RATE, DRYFIELD_BREEZEWAY_RAY_GLOW_SCALE);
     }
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0) {
-        if (gGameSession->location.loc.view == 2) {
-            limit           = (player->coord.t[0] - 5856) >> 7;
-            eff->move.vx    = 12000;
-            eff->move.vy    = -3000;
-            eff->move.vz    = 3000;
+        // Offsets use this task's placement frame; work->move stages each spawn position.
+        if (gGameSession->location.loc.view == DRYFIELD_BREEZEWAY_PARTICLE_APPROACH_VIEW) {
+            spawnChance     = (playerCoord->coord.t[0] - 5856) >> 7;
+            work->move.vx   = 12000;
+            work->move.vy   = -3000;
+            work->move.vz   = 3000;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % 100) < limit) {
+            if ((u16)((gRandomLcgState >> 16) % 100) < spawnChance) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, (s32)(gRandomLcgState >> 16) % limit + 0x40, &eff->move);
+                effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, (s32)(gRandomLcgState >> 16) % spawnChance + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
             }
-            if (eff->step == 0) {
+            if (work->step == DRYFIELD_BREEZEWAY_SOUND_NOT_STARTED) {
                 sndEvtRequestScriptStart(SOUND_BREEZEWAY_EFFECT_LOOP, 0, 0);
-                eff->step = 1;
+                work->step = DRYFIELD_BREEZEWAY_SOUND_LOOP_STARTED;
             }
-        } else if (gGameSession->location.loc.view == 3) {
-            eff->scale      = 0x10;
-            eff->move.vx    = player->coord.t[0] + 0x100;
-            eff->move.vy    = -3000;
-            eff->move.vz    = 3000;
+        } else if (gGameSession->location.loc.view == DRYFIELD_BREEZEWAY_PARTICLE_NEAR_VIEW) {
+            work->scale     = DRYFIELD_BREEZEWAY_PARTICLE_END_TICKS;
+            work->move.vx   = playerCoord->coord.t[0] + 0x100;
+            work->move.vy   = -3000;
+            work->move.vz   = 3000;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0x7F) + 0x40, &eff->move);
-            if (eff->step < 2) {
+            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0x7F) + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
+            if (work->step < DRYFIELD_BREEZEWAY_SOUND_BURST_STARTED) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (!((gRandomLcgState >> 16) & 3)) {
-                    pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(SOUND_BREEZEWAY_EFFECT_BURST, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-                    eff->step = 2;
+                    panOffset = (s8)worldCoordGetOriginAudioPan(coord);
+                    sndEvtRequestScriptStart(SOUND_BREEZEWAY_EFFECT_BURST, panOffset, (s8)worldCoordGetOriginAudioDepth(coord));
+                    work->step = DRYFIELD_BREEZEWAY_SOUND_BURST_STARTED;
                 }
             }
         }
     } else if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 1) {
-        if (eff->step != 0) {
+        // Once the encounter is seen, stop the loop and drain the final paired emission.
+        if (work->step != DRYFIELD_BREEZEWAY_SOUND_NOT_STARTED) {
             sndEvtRequestScriptStop(SOUND_BREEZEWAY_EFFECT_LOOP, SOUND_SCRIPT_STOP_NO_FADE);
-            eff->step = 0;
+            work->step = DRYFIELD_BREEZEWAY_SOUND_NOT_STARTED;
         }
-        if (eff->scale != 0) {
-            eff->scale--;
-            eff->move.vx    = 16000;
-            eff->move.vy    = -3000;
-            eff->move.vz    = 2750;
+        if (work->scale != 0) {
+            work->scale--;
+            work->move.vx   = 16000;
+            work->move.vy   = -3000;
+            work->move.vz   = 2750;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x40, &eff->move);
-            eff->move.vx    = 17000;
-            eff->move.vy    = -3000;
-            eff->move.vz    = 4000;
+            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xFF) + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
+            work->move.vx   = 17000;
+            work->move.vy   = -3000;
+            work->move.vz   = 4000;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x40, &eff->move);
+            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xFF) + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
         }
     }
 }
 
-/// Draws a red light shaft at a point. `data` is rotated by
-/// `coord`'s `workm` and offset by its translation, then projected through
-/// `GsWSMATRIX` into a `RoomGlowSpriteScratch` block; nothing is drawn when
-/// `otz` is 0x10 or less. Two gouraud `POLY_G4` halves of half width
-/// `(s16)arg3 * 32 / otz` and two `LINE_G3` diagonals meet at the projected
-/// point, whose vertex pulses red as `rsin(animFrame * arg2) / 34 + 0x78`.
-static void func_dryfield_breezeway_8018034C(GfxCoord* coord, SVECTOR* data, s32 arg2, s32 arg3)
+/// Reserves and initializes a diamond half with a red centre and black rim.
+///
+/// Advances the frame arena by one quad; coordinates, sorting and blending
+/// remain for the caller. The intensity narrows to an RGB byte.
+static inline POLY_G4* _dryfieldBreezewayAllocateDiamondHalf(s32 redIntensity)
+{
+    POLY_G4* quad;
+
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyG4(quad);
+    setRGB0(quad, 0, 0, 0);
+    setRGB1(quad, 0, 0, 0);
+    setRGB2(quad, redIntensity, 0, 0);
+    setRGB3(quad, 0, 0, 0);
+    return quad;
+}
+
+/// Reserves a glow diagonal fading from a red centre to two black endpoints.
+///
+/// Advances the frame arena by one line; coordinates, sorting and blending
+/// remain for the caller. The intensity narrows to an RGB byte.
+static inline LINE_G3* _dryfieldBreezewayAllocateGlowDiagonal(s32 redIntensity)
+{
+    LINE_G3* diagonal;
+
+    diagonal       = gGpuPrimCursor;
+    gGpuPrimCursor = diagonal + 1;
+    setLineG3(diagonal);
+    setRGB0(diagonal, 0, 0, 0);
+    setRGB1(diagonal, redIntensity, 0, 0);
+    setRGB2(diagonal, 0, 0, 0);
+    return diagonal;
+}
+
+/// Draws an additive pulsing red diamond and two diagonals around a local point.
+///
+/// Composes `coord`, transforms the borrowed point to world space, and projects
+/// it through the view. `pulseRate` is in 4096 angle units per animation frame;
+/// `radiusScale` gives a pixel half-extent of scale * 32 / (camera Z / 4).
+/// Depths below 17 emit nothing. The second diagonal extends twice as far as
+/// the diamond. Requires composed view matrices, scratch-stack space and room
+/// for four packets plus blend commands in the current frame arena/ordering table.
+static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR* localPoint, s16 pulseRate, s16 radiusScale)
 {
     RoomGlowSpriteScratch* block;
-    POLY_G4*               prim;
-    LINE_G3*               line;
-    s32                    i;
-    s32                    color;
-    s32                    pulse;
-    s32                    twice;
-    s32                    t;
-    s32                    t2;
+    POLY_G4*               quad;
+    LINE_G3*               diagonal;
+    s32                    partIndex;
+    s32                    redIntensity;
+    s32                    pulseSine;
+    s32                    verticalSide;
+    s32                    xRadiusMultiple;
+    s32                    yRadiusMultiple;
 
     actorRenderComposeCoord(coord);
     block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
 
+    // Transform the local centre, narrowing the resulting world point to halfwords.
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(data);
+    gte_ldv0(localPoint);
     gte_rtv0();
     gte_stsv(&block->worldPos);
     block->worldPos.vx += coord->workm.t[0];
@@ -1423,52 +1476,42 @@ static void func_dryfield_breezeway_8018034C(GfxCoord* coord, SVECTOR* data, s32
     gte_rtps();
     gte_stsxy(&block->screenPos);
     gte_stszotz(&block->otz);
-    if (block->otz >= 0x11) {
-        pulse             = rsin(gDisplayState.animFrame * (s16)arg2);
-        i                 = 0;
-        block->halfExtent = ((s16)arg3 << 5) / block->otz;
-        color             = pulse / 34 + 0x78;
+    if (block->otz >= GLOW_MIN_DEPTH) {
+        pulseSine         = rsin(gDisplayState.animFrame * pulseRate);
+        partIndex         = 0;
+        block->halfExtent = (radiusScale * GLOW_DIAMOND_RADIUS_SCALE) / block->otz;
+        redIntensity      = pulseSine / GLOW_PULSE_DIVISOR + GLOW_PULSE_BASE_INTENSITY;
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, color, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenPos.vx - block->halfExtent;
-            prim->x1 = prim->x2 = block->screenPos.vx;
-            prim->x3            = block->screenPos.vx + block->halfExtent;
-            prim->y0 = prim->y2 = prim->y3 = block->screenPos.vy;
-            twice                          = i << 1;
-            prim->y1                       = (block->screenPos.vy - block->halfExtent) + block->halfExtent * twice;
+            quad     = _dryfieldBreezewayAllocateDiamondHalf(redIntensity);
+            quad->x0 = block->screenPos.vx - block->halfExtent;
+            quad->x1 = quad->x2 = block->screenPos.vx;
+            quad->x3            = block->screenPos.vx + block->halfExtent;
+            quad->y0 = quad->y2 = quad->y3 = block->screenPos.vy;
+            verticalSide                   = partIndex << 1;
+            quad->y1                       = (block->screenPos.vy - block->halfExtent) + block->halfExtent * verticalSide;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-            i++;
-        } while (i < 2);
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->otz);
+            partIndex++;
+        } while (partIndex < 2);
 
-        i = 0;
+        // The longer second diagonal gives the glow its asymmetric rays.
+        partIndex = 0;
         do {
-            line           = gGpuPrimCursor;
-            gGpuPrimCursor = line + 1;
-            setLineG3(line);
-            setRGB0(line, 0, 0, 0);
-            setRGB1(line, color, 0, 0);
-            setRGB2(line, 0, 0, 0);
-            t        = i * 3 - 1;
-            t2       = i + 1;
-            line->x0 = block->screenPos.vx + (block->halfExtent * t);
-            line->y0 = block->screenPos.vy - (block->halfExtent * t2);
-            line->x1 = block->screenPos.vx;
-            line->y1 = block->screenPos.vy;
-            line->x2 = block->screenPos.vx - (block->halfExtent * t);
-            line->y2 = block->screenPos.vy + (block->halfExtent * t2);
-            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
-                    line);
-            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
-            i = t2;
-        } while (i < 2);
+            diagonal        = _dryfieldBreezewayAllocateGlowDiagonal(redIntensity);
+            xRadiusMultiple = partIndex * 3 - 1;
+            yRadiusMultiple = partIndex + 1;
+            diagonal->x0    = block->screenPos.vx + (block->halfExtent * xRadiusMultiple);
+            diagonal->y0    = block->screenPos.vy - (block->halfExtent * yRadiusMultiple);
+            diagonal->x1    = block->screenPos.vx;
+            diagonal->y1    = block->screenPos.vy;
+            diagonal->x2    = block->screenPos.vx - (block->halfExtent * xRadiusMultiple);
+            diagonal->y2    = block->screenPos.vy + (block->halfExtent * yRadiusMultiple);
+            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK >> 2)]),
+                    diagonal);
+            gpuSetPrimitiveBlendMode(diagonal, GPU_BLEND_ADD, block->otz);
+            partIndex = yRadiusMultiple;
+        } while (partIndex < 2);
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 }
@@ -1479,25 +1522,47 @@ static void func_dryfield_breezeway_8018034C(GfxCoord* coord, SVECTOR* data, s32
 #define GLOW_DRAW_RAY_STAR_RAY_HALFWORD   1
 #include "../../shared/glow_draw_ray_star.inc.c"
 
-/// Per-frame update for a bouncing sprite particle drawn by
-/// `func_dryfield_breezeway_80181938`. The first frame resets the model's
-/// rotation, rolls a frame period, start frame, angle and spin from the LCG,
-/// picks a random direction in `move` when none was supplied, and
-/// normalises it. Afterwards it steps along `move` at speed `scale`
-/// and tests the step with `worldCollisionProbeGridSegment`; a hit undoes the step, blends the
-/// direction with the returned vector, halves speed and spin, and spawns
-/// effect 0x60054 while the particle is young, settling into state 2 once hits
-/// come close together at low speed. A miss adds `0x5000 / scale` to the
-/// direction's y component. Over `age` the sprite fades from 30 to 60 and
-/// is then released. The age does not advance while an event is running.
-void func_dryfield_breezeway_80181264(Task* task)
+void dryfieldBreezewayBouncingParticleTask(Task* task)
 {
     EffectWork* work  = task->spawnArg2.pointer;
     GfxCoord*   coord = task->extra.coordBody->coord;
-    SVECTOR     delta;
-    SVECTOR     dir;
-    SVECTOR     pos;
-    u8          color[3];
+    SVECTOR     localStep;
+    SVECTOR     viewTarget;
+    SVECTOR     viewStartOrNormal;
+    u8          fadeRgb[3];
+
+/// Applies a Q12 direction-times-speed step and writes its XYZ for collision undo.
+///
+/// Arguments must be side-effect-free work, coordinate and writable SVECTOR
+/// pointers. Repeated evaluation preserves the same live objects throughout.
+/// Leaves coordinate composition to the caller; changes the GTE vector registers.
+/// Expands to statements; invoke only in a braced block.
+#define DRYFIELD_BREEZEWAY_ADVANCE_PARTICLE(effectWork, particleCoord, stepOut) \
+    gte_lddp((effectWork)->scale);                                              \
+    gte_ldsv(&(effectWork)->move);                                              \
+    gte_gpf12();                                                                \
+    gte_stsv(stepOut);                                                          \
+    (particleCoord)->coord.t[0] += (stepOut)->vx;                               \
+    (particleCoord)->coord.t[1] += (stepOut)->vy;                               \
+    (particleCoord)->coord.t[2] += (stepOut)->vz
+
+/// Draws the age-dependent fade or releases the particle at its lifetime limit.
+///
+/// Arguments must be side-effect-free task/work pointers and a writable RGB
+/// byte array of length three. The drawer consumes the bytes synchronously.
+/// Expands to an if/else chain; invoke only in a braced block. Teardown ends
+/// the task/work lifetime, so callers must not use them afterward.
+#define DRYFIELD_BREEZEWAY_DRAW_OR_RETIRE_PARTICLE(particleTask, effectWork, rgbOut) \
+    if ((effectWork)->age < DRYFIELD_BREEZEWAY_PARTICLE_FADE_START) {                \
+        _dryfieldBreezewayDrawBouncingParticle((particleTask), NULL);                \
+    } else if ((effectWork)->age < DRYFIELD_BREEZEWAY_PARTICLE_LIFETIME) {           \
+        (rgbOut)[0] = (rgbOut)[1] = (rgbOut)[2] =                                    \
+            (DRYFIELD_BREEZEWAY_PARTICLE_LIFETIME - (effectWork)->age) *             \
+            DRYFIELD_BREEZEWAY_PARTICLE_FADE_STEP;                                   \
+        _dryfieldBreezewayDrawBouncingParticle((particleTask), (rgbOut));            \
+    } else {                                                                         \
+        effectKillTask((effectWork), (particleTask));                                \
+    }
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1511,16 +1576,17 @@ void func_dryfield_breezeway_80181264(Task* task)
     work->age++;
 
     switch (task->state) {
-        case 0:
+        case DRYFIELD_BREEZEWAY_PARTICLE_INITIALIZE:
+            // Choose independent texture timing, spin and a Q12 launch direction.
             gfxSetRotIdentity(&coord->coord);
-            work->pos.vx    = (u16)task->spawnArg1.value & 0xFFF;
-            work->scale     = 0x50;
+            work->pos.vx    = (u16)task->spawnArg1.value & DRYFIELD_BREEZEWAY_PARTICLE_SIZE_MASK;
+            work->scale     = DRYFIELD_BREEZEWAY_PARTICLE_INITIAL_SPEED;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vy    = (gRandomLcgState >> 16) & 7;
+            work->pos.vy    = (gRandomLcgState >> 16) & DRYFIELD_BREEZEWAY_PARTICLE_FRAME_PERIOD_MASK;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->index     = (gRandomLcgState >> 16) & 7;
+            work->index     = (gRandomLcgState >> 16) & (DRYFIELD_BREEZEWAY_PARTICLE_FRAME_COUNT - 1);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vz    = (gRandomLcgState >> 16) & 0xFFF;
+            work->pos.vz    = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->period    = 0x200 - ((gRandomLcgState >> 16) & 0x3FF);
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
@@ -1537,9 +1603,9 @@ void func_dryfield_breezeway_80181264(Task* task)
             }
             VectorNormalSS(&work->move, &work->move);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            task->state         = 1;
+            task->state         = DRYFIELD_BREEZEWAY_PARTICLE_FLYING;
             break;
-        case 1:
+        case DRYFIELD_BREEZEWAY_PARTICLE_FLYING:
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->age--;
             } else {
@@ -1547,96 +1613,74 @@ void func_dryfield_breezeway_80181264(Task* task)
                 if (work->pos.vy != 0 && work->age % work->pos.vy == 0) {
                     work->index++;
                 }
-                gte_lddp(work->scale);
-                gte_ldsv(&work->move);
-                gte_gpf12();
-                gte_stsv(&delta);
-                coord->coord.t[0]  += delta.vx;
-                coord->coord.t[1]  += delta.vy;
-                coord->coord.t[2]  += delta.vz;
+                DRYFIELD_BREEZEWAY_ADVANCE_PARTICLE(work, coord, &localStep);
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                // Probe the attempted step in view space; the start also receives the room normal.
                 gte_SetRotMatrix(&gGfxViewCoord.workm);
-                gte_ldv0(&delta);
+                gte_ldv0(&localStep);
                 gte_rtv0();
-                gte_stsv(&dir);
-                pos.vx  = coord->workm.t[0];
-                pos.vy  = coord->workm.t[1];
-                pos.vz  = coord->workm.t[2];
-                dir.vx += pos.vx;
-                dir.vy += pos.vy;
-                dir.vz += pos.vz;
-                if (worldCollisionProbeGridSegment(&dir, &pos, &dir, &pos) == 1) {
-                    coord->coord.t[0] -= delta.vx;
-                    coord->coord.t[1] -= delta.vy;
-                    coord->coord.t[2] -= delta.vz;
-                    work->move.vx      = (pos.vx >> 1) + (work->move.vx >> 1);
-                    work->move.vy      = pos.vy + (work->move.vy >> 1);
-                    work->move.vz      = (pos.vz >> 1) + (work->move.vz >> 1);
+                gte_stsv(&viewTarget);
+                viewStartOrNormal.vx = coord->workm.t[0];
+                viewStartOrNormal.vy = coord->workm.t[1];
+                viewStartOrNormal.vz = coord->workm.t[2];
+                viewTarget.vx       += viewStartOrNormal.vx;
+                viewTarget.vy       += viewStartOrNormal.vy;
+                viewTarget.vz       += viewStartOrNormal.vz;
+                if (worldCollisionProbeGridSegment(&viewTarget, &viewStartOrNormal, &viewTarget, &viewStartOrNormal) == 1) {
+                    // Undo the rejected step, blend the normal into direction, and retry at half speed.
+                    coord->coord.t[0] -= localStep.vx;
+                    coord->coord.t[1] -= localStep.vy;
+                    coord->coord.t[2] -= localStep.vz;
+                    work->move.vx      = (viewStartOrNormal.vx >> 1) + (work->move.vx >> 1);
+                    work->move.vy      = viewStartOrNormal.vy + (work->move.vy >> 1);
+                    work->move.vz      = (viewStartOrNormal.vz >> 1) + (work->move.vz >> 1);
                     VectorNormalSS(&work->move, &work->move);
                     work->scale  = work->scale >> 1;
                     work->period = work->period >> 1;
-                    gte_lddp(work->scale);
-                    gte_ldsv(&work->move);
-                    gte_gpf12();
-                    gte_stsv(&delta);
-                    coord->coord.t[0] += delta.vx;
-                    coord->coord.t[1] += delta.vy;
-                    coord->coord.t[2] += delta.vz;
-                    if (work->age < 60) {
-                        effectSpawn(EFFECT_DUST_PUFF, coord, work->pos.vx + 0x2100, NULL);
+                    DRYFIELD_BREEZEWAY_ADVANCE_PARTICLE(work, coord, &localStep);
+                    if (work->age < DRYFIELD_BREEZEWAY_PARTICLE_LIFETIME) {
+                        effectSpawn(EFFECT_DUST_PUFF, coord, work->pos.vx + DRYFIELD_BREEZEWAY_PARTICLE_DUST_ARG_BIAS, NULL);
                     }
-                    if (work->age - work->step < 8 && work->scale < 0x20) {
-                        task->state = 2;
+                    if (work->age - work->step < DRYFIELD_BREEZEWAY_PARTICLE_SETTLE_INTERVAL && work->scale < DRYFIELD_BREEZEWAY_PARTICLE_SETTLE_SPEED) {
+                        task->state = DRYFIELD_BREEZEWAY_PARTICLE_SETTLED;
                     } else {
                         work->step = work->age;
                     }
                 } else if (work->scale > 0) {
-                    work->move.vy += 0x5000 / work->scale;
+                    work->move.vy += DRYFIELD_BREEZEWAY_PARTICLE_GRAVITY_Q12 / work->scale;
                 }
             }
-            if (work->age < 30) {
-                func_dryfield_breezeway_80181938(task, NULL);
-            } else if (work->age < 60) {
-                color[0] = color[1] = color[2] = (60 - work->age) * 4;
-                func_dryfield_breezeway_80181938(task, color);
-            } else {
-                effectKillTask(work, task);
-            }
+            DRYFIELD_BREEZEWAY_DRAW_OR_RETIRE_PARTICLE(task, work, fadeRgb);
             break;
-        case 2:
+        case DRYFIELD_BREEZEWAY_PARTICLE_SETTLED:
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->age--;
             }
-            if (work->age < 30) {
-                func_dryfield_breezeway_80181938(task, NULL);
-            } else if (work->age < 60) {
-                color[0] = color[1] = color[2] = (60 - work->age) * 4;
-                func_dryfield_breezeway_80181938(task, color);
-            } else {
-                effectKillTask(work, task);
-            }
+            DRYFIELD_BREEZEWAY_DRAW_OR_RETIRE_PARTICLE(task, work, fadeRgb);
             break;
     }
+#undef DRYFIELD_BREEZEWAY_ADVANCE_PARTICLE
+#undef DRYFIELD_BREEZEWAY_DRAW_OR_RETIRE_PARTICLE
 }
 
-/// Draws `task`'s effect as a camera-facing 16x16 `POLY_FT4` sprite at the
-/// translation of its body's single coordinate, through a 0x1C-byte scratch stack
-/// block. Nothing is drawn when the projection flags a negative result. The
-/// frame is `index & 7` along row 0xF0 of texture page 0x2B, and the quad's
-/// half extent is `pos.vx * 23 / otz`, rotated by the angle in `pos.vz`.
-/// A non-null `color` tints the sprite and makes it semi-transparent.
-static void func_dryfield_breezeway_80181938(Task* task, u8* color)
+/// Draws the particle's spinning eight-frame billboard with an optional fade tint.
+///
+/// The task needs a composed coordinate body and its effect work. `pos.vx`
+/// supplies the size scale and `pos.vz` the angle (4096 units per turn); texture
+/// frames wrap modulo eight. NULL `rgb` selects unmodulated texture colour;
+/// three borrowed RGB bytes select a tinted semitransparent quad. Negative GTE
+/// flags emit nothing; accepted projections must have nonzero depth. Scratch
+/// storage is released before return; the packet belongs to the current frame.
+static void _dryfieldBreezewayDrawBouncingParticle(Task* task, const u8 rgb[3])
 {
-    ModelObjectCoordBody* body = task->extra.coordBody;
-    EffectWork*           work = task->spawnArg2.pointer;
-    void**                scratch;
+    ModelObjectCoordBody* coordBody = task->extra.coordBody;
+    EffectWork*           work      = task->spawnArg2.pointer;
     GfxCoord*             coord;
     EffectShapeScratch*   block;
-    POLY_FT4*             prim;
+    POLY_FT4*             sprite;
 
-    scratch              = SCRATCH_HEAD_ADDR;
-    coord                = body->coord;
-    block                = SCRATCH_PUSH_AT(scratch, EffectShapeScratch);
+    coord                = coordBody->coord;
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
     block->worldPoint.vx = coord->workm.t[0];
     block->worldPoint.vy = coord->workm.t[1];
     block->worldPoint.vz = coord->workm.t[2];
@@ -1648,41 +1692,41 @@ static void func_dryfield_breezeway_80181938(Task* task, u8* color)
     gte_stflg(&block->projectionFlags);
     if (block->projectionFlags >= 0) {
         gte_stszotz(&block->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        if (color != NULL) {
-            prim->r0 = color[0];
-            prim->g0 = color[1];
-            prim->b0 = color[2];
-            setSemiTrans(prim, 1);
+        sprite         = gGpuPrimCursor;
+        gGpuPrimCursor = sprite + 1;
+        setPolyFT4(sprite);
+        if (rgb != NULL) {
+            sprite->r0 = rgb[0];
+            sprite->g0 = rgb[1];
+            sprite->b0 = rgb[2];
+            setSemiTrans(sprite, 1);
         } else {
-            setcode(prim, 0x2D);
+            setShadeTex(sprite, 1);
         }
-        prim->tpage            = 0x2B;
-        prim->clut             = 0x43C0;
-        prim->u0               = (work->index & 7) * 16;
-        prim->v0               = 0xF0;
-        prim->u1               = (work->index & 7) * 16 + 0xF;
-        prim->v1               = 0xF0;
-        prim->u2               = (work->index & 7) * 16;
-        prim->v2               = 0xFF;
-        prim->u3               = (work->index & 7) * 16 + 0xF;
-        prim->v3               = 0xFF;
-        block->extent.corner.x = (((work->pos.vx * 0x17) / block->depth) * rsin(work->pos.vz)) >> 12;
-        block->extent.corner.y = (((work->pos.vx * 0x17) / block->depth) * rcos(work->pos.vz)) >> 12;
-        prim->x0               = block->screenX + block->extent.corner.x;
-        prim->x3               = block->screenX - block->extent.corner.x;
-        prim->y0               = block->screenY - block->extent.corner.y;
-        prim->y3               = block->screenY + block->extent.corner.y;
-        block->extent.corner.x = (((work->pos.vx * 0x17) / block->depth) * rsin(work->pos.vz + 0x400)) >> 12;
-        block->extent.corner.y = (((work->pos.vx * 0x17) / block->depth) * rcos(work->pos.vz + 0x400)) >> 12;
-        prim->x1               = block->screenX + block->extent.corner.x;
-        prim->x2               = block->screenX - block->extent.corner.x;
-        prim->y1               = block->screenY - block->extent.corner.y;
-        prim->y2               = block->screenY + block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        sprite->tpage = DRYFIELD_BREEZEWAY_PARTICLE_TEXTURE_PAGE;
+        sprite->clut  = DRYFIELD_BREEZEWAY_PARTICLE_CLUT;
+        sprite->u0    = (work->index & (DRYFIELD_BREEZEWAY_PARTICLE_FRAME_COUNT - 1)) * DRYFIELD_BREEZEWAY_PARTICLE_FRAME_TEXELS;
+        sprite->v0    = DRYFIELD_BREEZEWAY_PARTICLE_TEXTURE_ROW;
+        sprite->u1    = (work->index & (DRYFIELD_BREEZEWAY_PARTICLE_FRAME_COUNT - 1)) * DRYFIELD_BREEZEWAY_PARTICLE_FRAME_TEXELS + (DRYFIELD_BREEZEWAY_PARTICLE_FRAME_TEXELS - 1);
+        sprite->v1    = DRYFIELD_BREEZEWAY_PARTICLE_TEXTURE_ROW;
+        sprite->u2    = (work->index & (DRYFIELD_BREEZEWAY_PARTICLE_FRAME_COUNT - 1)) * DRYFIELD_BREEZEWAY_PARTICLE_FRAME_TEXELS;
+        sprite->v2    = DRYFIELD_BREEZEWAY_PARTICLE_TEXTURE_ROW + DRYFIELD_BREEZEWAY_PARTICLE_FRAME_TEXELS - 1;
+        sprite->u3    = (work->index & (DRYFIELD_BREEZEWAY_PARTICLE_FRAME_COUNT - 1)) * DRYFIELD_BREEZEWAY_PARTICLE_FRAME_TEXELS + (DRYFIELD_BREEZEWAY_PARTICLE_FRAME_TEXELS - 1);
+        sprite->v3    = DRYFIELD_BREEZEWAY_PARTICLE_TEXTURE_ROW + DRYFIELD_BREEZEWAY_PARTICLE_FRAME_TEXELS - 1;
+        // Project two rotated diagonal offsets to form the four screen-space corners.
+        block->extent.corner.x = (((work->pos.vx * DRYFIELD_BREEZEWAY_PARTICLE_RADIUS_SCALE) / block->depth) * rsin(work->pos.vz)) >> GLOW_TRIG_SHIFT;
+        block->extent.corner.y = (((work->pos.vx * DRYFIELD_BREEZEWAY_PARTICLE_RADIUS_SCALE) / block->depth) * rcos(work->pos.vz)) >> GLOW_TRIG_SHIFT;
+        sprite->x0             = block->screenX + block->extent.corner.x;
+        sprite->x3             = block->screenX - block->extent.corner.x;
+        sprite->y0             = block->screenY - block->extent.corner.y;
+        sprite->y3             = block->screenY + block->extent.corner.y;
+        block->extent.corner.x = (((work->pos.vx * DRYFIELD_BREEZEWAY_PARTICLE_RADIUS_SCALE) / block->depth) * rsin(work->pos.vz + GLOW_QUARTER_TURN)) >> GLOW_TRIG_SHIFT;
+        block->extent.corner.y = (((work->pos.vx * DRYFIELD_BREEZEWAY_PARTICLE_RADIUS_SCALE) / block->depth) * rcos(work->pos.vz + GLOW_QUARTER_TURN)) >> GLOW_TRIG_SHIFT;
+        sprite->x1             = block->screenX + block->extent.corner.x;
+        sprite->x2             = block->screenX - block->extent.corner.x;
+        sprite->y1             = block->screenY - block->extent.corner.y;
+        sprite->y2             = block->screenY + block->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), sprite);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
