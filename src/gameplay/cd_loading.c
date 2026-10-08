@@ -1190,12 +1190,12 @@ void companionRelocateModelTextures(Task* companionTask)
 const TaskFuncTable3 Gp_SessionStates = { {
     gameFlowPrepareSessionReloadTask,
     gameFlowHoldSessionDisplayTask,
-    Gp_BeginSessionTask,
+    gameFlowRebuildSessionTask,
 } };
 const TaskFuncTable8 Gp_LoadStateFns  = { {
-    Gp_LoadWaitBoot,
+    loadingPrepareCharacterResourcesTask,
     loadingEnqueueStageResourcesTask,
-    Gp_LoadState2,
+    loadingInitializeAreaMemoryAndAudioTask,
     loadingEnqueueAreaAndCompanionResourcesTask,
     loadingPrepareAreaStateTask,
     Gp_LoadWaitAreaCd,

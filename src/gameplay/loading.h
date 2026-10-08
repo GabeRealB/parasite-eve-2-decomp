@@ -164,9 +164,21 @@ extern DirectionWarpEntry** Gp_WarpTables[];
 
 void func_800AA548(s32 arg0);
 
-void Gp_BeginSessionTask(Task* arg0);
-
-void Gp_LoadWaitBoot(Task* task);
+/// Queues character, weapon and healing-sound resources after CD and disk readiness.
+///
+/// State 0 of the gameplay loading task. Renews the loading-status byte while
+/// waiting. An incomplete disk-swap prompt returns before drawing; otherwise
+/// holds/starts an active boot image, clears all 15 stream slots and queues
+/// character/weapon resources only if the saved character or resource variant
+/// differs from the session cache. Always queues the healing sound and advances
+/// to state 1 without waiting; cache updates record requests, not completion.
+///
+/// Requires a live task, matching live save/session destinations, retired stream
+/// slots, valid character/equipment resources, initialized scratch/CD state and
+/// capacity for the queued requests. Boot-image starts require configured load
+/// screen assets. Draws with the darkness-8 packet/OT contract of
+/// `loadingEnqueueStageResourcesTask` unless a boot image is active.
+void loadingPrepareCharacterResourcesTask(Task* task);
 
 /// Queues a changed stage's mount and map resources once pending CD work finishes.
 ///
@@ -178,7 +190,23 @@ void Gp_LoadWaitBoot(Task* task);
 /// buffer index must be 0 or 1, with previous GPU uses of that half finished.
 void loadingEnqueueStageResourcesTask(Task* task);
 
-void Gp_LoadState2(Task* task);
+/// Initializes destination-area image memory, first-visit state and audio policy.
+///
+/// State 2 of the gameplay loading task. Waits for CD idle, initializes new-game
+/// or unvisited-stage state as needed, then configures and resets the auxiliary
+/// heap for the saved area. Sets companion sound retention before resetting the
+/// live area's sound context. Initializes the later countdown-music selector
+/// to entry 1 for nighttime Dryfield at story chapter 4 or later, otherwise 0;
+/// restores death sound/restart timing to 1/30 task ticks and requests ordinary
+/// area music with a nominal 60-audio-update fade out.
+/// Advances to state 3 without waiting for the music task or its resource load.
+///
+/// Requires a live task and matching saved/session stage and area, valid loaded
+/// map/object/music and companion-schedule tables, available music-task storage,
+/// and finished uses of the image/heap storage being repurposed. Uses
+/// `memConfigureImageMemory`'s bounds/lifetime contract. Drawing has the
+/// darkness-8 packet/OT contract of `loadingEnqueueStageResourcesTask`.
+void loadingInitializeAreaMemoryAndAudioTask(Task* task);
 
 /// Queues the area's base file and any companion resources needing replacement.
 ///

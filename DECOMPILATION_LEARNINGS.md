@@ -27724,29 +27724,30 @@ with `ABS(vz)` in `$a0` and the `vx` reload in `$v0`.
 
 ## Index a global array field by name so dest is `base+off` then scale
 
-`ds = &gDisplayState` plus `MoveImage(&ds->dispEnv[i].disp, …)` folds the
-array offset into the scaled index (`addiu a0, scaled, 0x20; addu a0, ds`).
-The target computes the array base first (`addiu v0, ds, 0x20`) and adds
+`displayState = &gDisplayState` plus `MoveImage(&displayState->dispEnv[i].disp, …)` folds the
+array offset into the scaled index (`addiu a0, scaled, 0x20; addu a0, displayState`).
+The target computes the array base first (`addiu v0, displayState, 0x20`) and adds
 the scaled index in the `jal` delay slot.
 
 Write dest through the global name and x/y through the local pointer:
 
 ```c
 MoveImage(
-    &gDisplayState.dispEnv[ds->drawBuffer ^ 1].disp,
-    ds->dispEnv[ds->drawBuffer].disp.x,
-    ds->dispEnv[ds->drawBuffer].disp.y);
+    &gDisplayState.dispEnv[displayState->drawBuffer ^ 1].disp,
+    displayState->dispEnv[displayState->drawBuffer].disp.x,
+    displayState->dispEnv[displayState->drawBuffer].disp.y);
 ```
 
 That also rematerializes `drawBuffer` between the two `lh`s (`lbu` in the
-`lh a1` delay slot). A local `DISPENV* dest = ds->dispEnv` emits the
+`lh a1` delay slot). A local `DISPENV* dest = displayState->dispEnv` emits the
 `addiu` base but schedules the reload after both loads.
 
-Keep the `^ 1` as a HImode `u16 one = 1` (used for later `sh`s) so CSE
-cannot turn `xori` into `xor s1`. See "Constant CSE across
+Keep `^ 1` as an immediate operand and assign the later halfword flags
+with literal `true`; no constant local is needed. Sharing a full-width
+constant local can turn `xori` into `xor s1`. See "Constant CSE across
 differently-sized stores".
 
-`Gp_BeginSessionTask` is the example. `&ds->dispEnv[i]` stuck at 97.5% with
+`gameFlowRebuildSessionTask` is the example. `&displayState->dispEnv[i]` stuck at 97.5% with
 only those three dest instructions different.
 
 ## Separate temps so a later switch can keep the child in `$a0`
@@ -32719,7 +32720,7 @@ is the example.
 
 `Gp_FadeTiles` is `TILE[2]` and `Gp_FadeTpages` is `DR_TPAGE[2]`, indexed by
 `gDisplayState.otBuffer` (16-byte / 8-byte stride). Several neighboring
-D4 task states share this pair (`Gp_LoadWaitBoot` … `loadingHoldFadeAndReleaseBootImageTask`).
+D4 task states share this pair (`loadingPrepareCharacterResourcesTask` … `loadingHoldFadeAndReleaseBootImageTask`).
 
 On the leaf overlay (`loadingHoldFadeAndReleaseBootImageTask`) the target hoists `0x64` and both
 prim pointers before the `gCdCmdQueue.bootLoadActive` check. Keep that order
@@ -32784,11 +32785,11 @@ instruction as `%hi/%lo`. `loadingEnqueueStageResourcesTask` is the example.
 `GameSession.loadedStage` is an `s16` cache of `location.loc.stage`; compare with
 `lbu`/`lh` and write back with `lbu`/`sh`.
 
-When idle-queue work runs *before* the overlay (`Gp_LoadWaitBoot`), assign
-`color = 8` *after* the idle `if`, not before it. GCC copies that
+When idle-queue work runs *before* the overlay (`loadingPrepareCharacterResourcesTask`), assign
+`darkness = 8` *after* the idle `if`, not before it. GCC copies that
 assignment into the `beqz` delay slot on the skip path and keeps it after
 `task->state++` on the taken path (`lw` / `nop` / `addiu` / `sw` /
-`li a2,8`). Assigning color before the `if` (or rematerialising it at
+`li a2,8`). Assigning darkness before the `if` (or rematerialising it at
 the end of the body) schedules `li a2,8` into the `lw state` delay and
 puts `lui gDisplayState` in the `beqz` slot instead.
 
@@ -51163,7 +51164,7 @@ live here and has `REG_N_SETS == 1` ("birthing") gets the `7f000001`
 launch priority and is placed right next to the call. Everything else with
 priority 1 drifts to the top of the block. Hard registers count too, and
 `REG_N_SETS` is per hard register over the *whole function*, so a
-`register s32 color asm("a2")` pin earlier in the function gives `$a2` a
+`register s32 darkness asm("a2")` pin earlier in the function gives `$a2` a
 second set, `a2 = a1` stops birthing, `a3 = a1` births instead and lands by
 the call, and the hoisted `a2` copy then blocks the store temporaries from
 using `$a2`.
@@ -51173,13 +51174,13 @@ breaks priority ties by LUID, and LUIDs are renumbered from the post-sched1
 order: the launched copy keeps a high LUID and wins the load-delay slot
 after `lw a2`, while a hoisted one loses it to `li v0, 1`.
 
-Fix in `Gp_LoadState2`: make `color` an unpinned pseudo with *two* sets
-(`color = 8; SOFT_TOUCH_REG(color);` — the `+r` output is the second set,
+Fix in `loadingInitializeAreaMemoryAndAudioTask`: make `darkness` an unpinned pseudo with *two* sets
+(`darkness = 8; SOFT_TOUCH_REG(darkness);` — the `+r` output is the second set,
 and it also stops CSE from folding the 8 into the three `sb`s), keep it live
 into the hand-written `lui` asm so it still colours to `$a2`, and leave the
 argument copies alone. Both `a2 = a1` and `a3 = a1` then birth, both are
 launched, and the target's interleaving falls out with no pins on the
-temporaries. `color = 0; color = 8;` works the same way. When the diff is
+temporaries. `darkness = 0; darkness = 8;` works the same way. When the diff is
 "the other argument register got hoisted", count the sets of that hard
 register before touching the C shape.
 
@@ -68319,9 +68320,9 @@ them adjacent, and the tempting fix is to fabricate the pair by hand:
 
 ```c
 s32 qhi;
-asm("lui %0, %%hi(gCdCmdQueue)" : "=r"(qhi) : "r"(color), "r"(ds));
-SOFT_USE_REG2(qhi, tile);
-queued = *(u16*)((s32)qhi + (s16)0x91C4);   /* 0x91C4 == %lo(gCdCmdQueue + 0x224) */
+asm("lui %0, %%hi(gCdCmdQueue)" : "=r"(qhi) : "r"(darkness), "r"(displayState));
+SOFT_USE_REG2(qhi, fadeTile);
+bootLoadActive = *(u16*)((s32)qhi + (s16)0x91C4);   /* 0x91C4 == %lo(gCdCmdQueue + 0x224) */
 ```
 
 **Symptom:** the checksum passes and `diff.py` says 100%, because the assembled
@@ -68329,14 +68330,14 @@ words are identical - but the load now carries a bare displacement where the
 original carries `R_MIPS_LO16 gCdCmdQueue`. objdiff compares relocations, so it
 reports the function at 99.97% with everything else green. Nothing else can see
 it: the linker resolves `%lo(gCdCmdQueue)` to exactly the constant the hand-written
-offset already holds. `Gp_LoadState2` in `src/gameplay/D4.c` was the worked example.
+offset already holds. `loadingInitializeAreaMemoryAndAudioTask` in `src/gameplay/load_screen.c` was the worked example.
 
-**Fix:** delete the asm and write the field access (`queued = gCdCmdQueue.bootLoadActive;`),
+**Fix:** delete the asm and write the field access (`bootLoadActive = gCdCmdQueue.bootLoadActive;`),
 then recover the schedule by moving the *statement* earlier in the function. The
 list scheduler breaks priority ties on RTL order, so a read placed near the top of
 the block lets sched1 hoist the `lui` on its own and leave the dependent load down
 by the branch that consumes it - which is the gap the hack was imitating. Here,
-hoisting the read above `ds = &gDisplayState;` reproduced all 150 instructions and
+hoisting the read above `displayState = &gDisplayState;` reproduced all 150 instructions and
 both relocations, and made the `SOFT_TOUCH_REG` pin on the neighbouring constant
 unnecessary as well.
 
@@ -68348,7 +68349,7 @@ checksum and `diff.py` both stay silent on it.
 ## splat sometimes prints the resolved displacement, so removing a faked `%lo` *lowers* the scratch score
 
 **Problem:** the entry above says to replace a hand-built `%hi`/`%lo` pair with the
-plain field access. On `Gp_LoadWaitBoot` that reproduced all 139 instructions and
+plain field access. On `loadingPrepareCharacterResourcesTask` that reproduced all 139 instructions and
 both registers, and the scratch score still fell from 100.000% to 99.964% with
 `regs=1`.
 
@@ -68362,9 +68363,9 @@ both registers, and the scratch score still fell from 100.000% to 99.964% with
 splat named the `lui` (`%hi(gCdCmdQueue + 0x224)`) but printed the load's
 displacement literally, so `target.o` has no `R_MIPS_LO16` for the scorer to
 compare against and the correct relocated form is charged as a register
-difference. This is not a property of the code: `Gp_LoadState2` and
+difference. This is not a property of the code: `loadingInitializeAreaMemoryAndAudioTask` and
 `loadingEnqueueStageResourcesTask` have byte-identical instruction windows here, and splat pairs
-the load in the first and not the second. Six functions in `src/gameplay/D4.c`
+the load in the first and not the second. Six functions in `src/gameplay/load_screen.c`
 read `gCdCmdQueue.bootLoadActive` this way and exactly one gets the paired render.
 
 **Fix:** treat it like the symbol-name artifact above - the scratch score cannot

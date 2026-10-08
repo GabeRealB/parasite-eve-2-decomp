@@ -73,11 +73,14 @@ enum {
 /// Suffix selecting the area's base/view-resource folder.
 enum { LOADING_AREA_FOLDER_SUFFIX = 1 };
 
+/// Saved visit-flag bit recording completion of one-off new-game setup.
+enum { AREA_NEW_GAME_SETUP_DONE = 1 };
+
 static inline void _loadingDrawFadeOverlay(TILE* fadeTile, DR_TPAGE* blendCommand, const DisplayState* displayState, s32 darkness);
 
 static inline u16 _gpAdvanceAreaCd(void);
 
-static void Gp_InitStageVisit(GameLocationKey* arg0);
+static void _areaInitializeStageVisit(GameLocationKey* location);
 
 void func_80724748(GameLocationKey* arg0);
 
@@ -219,100 +222,55 @@ void func_800AA548(s32 arg0)
     gGameSession->freezeRoomObjs  = 0;
 }
 
-void Gp_BeginSessionTask(Task* arg0)
+/// Discards the default task list and both frame ordering tables before heap reuse.
+///
+/// Previous tasks and GPU packet users must already be disposable or finished.
+/// The stop request prevents the walker from reading its discarded cursor again.
+static inline void _gameFlowDiscardSessionTasksAndPackets(DisplayState* displayState)
 {
-    CdCmdQueue*   queue;
-    DisplayState* ds;
-    u16           one;
+    enum { GAME_FLOW_STOP_TASK_WALK = 1 };
 
-    queue = &gCdCmdQueue;
-    gameClearTaskSlots();
-    ds               = &gDisplayState;
-    ds->stopTaskWalk = 1;
+    displayState->stopTaskWalk = GAME_FLOW_STOP_TASK_WALK;
     taskResetDefaultList();
     gpuClearFrameOrderingTable(0);
     gpuClearFrameOrderingTable(1);
-    one = 1;
-    memInitHeaps();
-    cdCmdRequestCancel();
-    gGameSession->location           = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
-    gGameSession->spriteVariant      = ds->spriteVariant;
-    queue->suppressMoviePresentation = one;
-    if ((arg0->spawnArg1.value & GAME_FLOW_RELOAD_DISPLAY_MODE_MASK) == GAME_FLOW_RELOAD_CAPTURE_FRAME) {
-        MoveImage(
-            &gDisplayState.dispEnv[ds->drawBuffer ^ 1].disp,
-            ds->dispEnv[ds->drawBuffer].disp.x,
-            ds->dispEnv[ds->drawBuffer].disp.y);
-        ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
-        displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
-    }
-    taskSpawn(0, 0x1C, arg0->spawnArg1.value & GAME_FLOW_RELOAD_DISPLAY_MODE_MASK, 0);
-    ds->skipDraw                      = 0;
-    queue->blockGamePause             = one;
-    queue->releasePauseBlockAfterFade = one;
-    D_8007A394                        = 0;
 }
 
-void Gp_LoadWaitBoot(Task* task)
+void gameFlowRebuildSessionTask(Task* task)
 {
-    TILE*         tile;
-    DR_TPAGE*     dr;
-    DisplayState* ds;
-    CdCmdQueue*   queue;
-    McSaveData*   save;
-    GameSession*  session;
-    s32           color;
-    s32           queued;
-    s32           buf;
-    s8            yoff;
+    enum {
+        GAME_FLOW_LOADING_TASK_BANK           = 0,
+        GAME_FLOW_LOADING_TASK_SLOT           = 0x1C,
+        LOAD_UI_DISK_SWAP_CHECK_REQUIRED_DISC = 0,
+    };
+    CdCmdQueue*   cdQueue;
+    DisplayState* displayState;
 
-    Pad_RemapState->loadingActive = GAME_DEBUG_LOADING_ACTIVE;
-    queue                         = &gCdCmdQueue;
-    if (cdCmdIsIdle() & 0xFFFF) {
-        if (loadUiPollDiskSwap() != LOAD_UI_DISK_SWAP_COMPLETE) {
-            return;
-        }
-        queue->holdBootImage = 1;
-        if (queue->bootLoadActive != 0) {
-            gameFlowEnsureLoadScreenImageStarted();
-        }
-        memFillBytes(Stream_Slots, 0, sizeof(Stream_Slots));
-        session = gGameSession;
-        save    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        if (session->loadedCharacterId != save->state.characterId || session->loadedConfigSet != gPlayerStatus.resourceVariant) {
-            GameSession* sess;
-
-            loadingEnqueueCharacterResources(0);
-            loadingEnqueueEquippedWeaponResources();
-            sess                    = gGameSession;
-            sess->loadedCharacterId = save->state.characterId;
-            sess->loadedConfigSet   = gPlayerStatus.resourceVariant;
-        }
-        attachmentEnqueueHealingSoundLoad();
-        task->state++;
+    cdQueue = &gCdCmdQueue;
+    // Stop the walker before discarding its current task and all heap allocations.
+    gameClearTaskSlots();
+    displayState = &gDisplayState;
+    _gameFlowDiscardSessionTasksAndPackets(displayState);
+    memInitHeaps();
+    cdCmdRequestCancel();
+    gGameSession->location             = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
+    gGameSession->spriteVariant        = displayState->spriteVariant;
+    cdQueue->suppressMoviePresentation = true;
+    // Preserve the presented frame in the other framebuffer for capture mode.
+    if ((task->spawnArg1.value & GAME_FLOW_RELOAD_DISPLAY_MODE_MASK) == GAME_FLOW_RELOAD_CAPTURE_FRAME) {
+        MoveImage(
+            &gDisplayState.dispEnv[displayState->drawBuffer ^ 1].disp,
+            displayState->dispEnv[displayState->drawBuffer].disp.x,
+            displayState->dispEnv[displayState->drawBuffer].disp.y);
+        displayState->control.flags.imageSource = DISPLAY_IMAGE_NONE;
+        displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     }
-    color  = 8;
-    queued = gCdCmdQueue.bootLoadActive;
-    ds     = &gDisplayState;
-    buf    = ds->otBuffer;
-    tile   = &Gp_FadeTiles[buf];
-    dr     = &Gp_FadeTpages[buf];
-    if (queued == 0) {
-        setlen(tile, 3);
-        setcode(tile, 0x62);
-        tile->r0 = color;
-        tile->g0 = color;
-        tile->b0 = color;
-        tile->x0 = -0xA0;
-        yoff     = ds->vramYOffset;
-        tile->w  = 0x140;
-        tile->h  = 0xF0;
-        tile->y0 = -0x78 - yoff;
-        addPrim(gGpuCurrentOt - 0x10, tile);
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(gGpuCurrentOt - 0x10, dr);
-    }
+    // This spawn can reuse the discarded task's storage; consume its option first.
+    taskSpawn(GAME_FLOW_LOADING_TASK_BANK, GAME_FLOW_LOADING_TASK_SLOT, task->spawnArg1.value & GAME_FLOW_RELOAD_DISPLAY_MODE_MASK, 0);
+    displayState->skipDraw              = false;
+    cdQueue->blockGamePause             = true;
+    cdQueue->releasePauseBlockAfterFade = true;
+    D_8007A394                          = LOAD_UI_DISK_SWAP_CHECK_REQUIRED_DISC;
 }
 
 /// Queues the loading screen's subtractive full-screen overlay in the foreground.
@@ -355,6 +313,57 @@ static inline void _loadingDrawFadeOverlay(TILE* fadeTile, DR_TPAGE* blendComman
     addPrim(gGpuCurrentOt + LOADING_FADE_FOREGROUND_TAG, blendCommand);
 }
 
+void loadingPrepareCharacterResourcesTask(Task* task)
+{
+    enum { LOADING_CHARACTER_RESOURCES_FULL_LOAD = 0 };
+    TILE*         fadeTile;
+    DR_TPAGE*     blendCommand;
+    DisplayState* displayState;
+    CdCmdQueue*   cdQueue;
+    McSaveData*   liveSave;
+    GameSession*  session;
+    s32           darkness;
+    u16           bootLoadActive;
+    s32           packetBufferIndex;
+
+    Pad_RemapState->loadingActive = GAME_DEBUG_LOADING_ACTIVE;
+    cdQueue                       = &gCdCmdQueue;
+    if (cdCmdIsIdle()) {
+        if (loadUiPollDiskSwap() != LOAD_UI_DISK_SWAP_COMPLETE) {
+            return;
+        }
+        // Hold the boot image while the resource-loading states run.
+        cdQueue->holdBootImage = true;
+        if (cdQueue->bootLoadActive != 0) {
+            gameFlowEnsureLoadScreenImageStarted();
+        }
+        memFillBytes(Stream_Slots, 0, sizeof(Stream_Slots));
+        session  = gGameSession;
+        liveSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        if (session->loadedCharacterId != liveSave->state.characterId || session->loadedConfigSet != gPlayerStatus.resourceVariant) {
+            GameSession* resourceSession;
+
+            loadingEnqueueCharacterResources(LOADING_CHARACTER_RESOURCES_FULL_LOAD);
+            loadingEnqueueEquippedWeaponResources();
+            // Cache requests now; later states wait for CD completion.
+            resourceSession                    = gGameSession;
+            resourceSession->loadedCharacterId = liveSave->state.characterId;
+            resourceSession->loadedConfigSet   = gPlayerStatus.resourceVariant;
+        }
+        attachmentEnqueueHealingSoundLoad();
+        task->state++;
+    }
+    darkness          = LOADING_FADE_WAIT_DARKNESS;
+    bootLoadActive    = gCdCmdQueue.bootLoadActive;
+    displayState      = &gDisplayState;
+    packetBufferIndex = displayState->otBuffer;
+    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
+    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    if (bootLoadActive == 0) {
+        _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
+    }
+}
+
 void loadingEnqueueStageResourcesTask(Task* task)
 {
     TILE*         fadeTile;
@@ -383,62 +392,59 @@ void loadingEnqueueStageResourcesTask(Task* task)
     }
 }
 
-void Gp_LoadState2(Task* task)
+void loadingInitializeAreaMemoryAndAudioTask(Task* task)
 {
-    TILE*            tile;
-    DR_TPAGE*        dr;
-    DisplayState*    ds;
-    s32              color;
-    s32              queued;
-    s32              buf;
-    s8               yoff;
-    McSaveData*      save;
-    GameLocationKey* sess;
+    enum {
+        LOADING_NIGHT_MUSIC_FIRST_CHAPTER = 4,
+        LOADING_SCENE_MUSIC_DEFAULT       = 0,
+        LOADING_SCENE_MUSIC_NIGHT         = 1,
+        LOADING_DEATH_SOUND_INITIAL_TICKS = 1,
+        LOADING_DEATH_RESTART_DELAY_TICKS = 30,
+        LOADING_MUSIC_FADE_OUT_TICKS      = 60,
+        STAGE_MUSIC_REQUEST_ORDINARY      = 0,
+    };
+    TILE*            fadeTile;
+    DR_TPAGE*        blendCommand;
+    DisplayState*    displayState;
+    s32              darkness;
+    u16              bootLoadActive;
+    s32              packetBufferIndex;
+    McSaveData*      liveSave;
+    GameLocationKey* savedLocation;
 
-    color  = 8;
-    queued = gCdCmdQueue.bootLoadActive;
-    ds     = &gDisplayState;
-    buf    = ds->otBuffer;
-    tile   = &Gp_FadeTiles[buf];
-    dr     = &Gp_FadeTpages[buf];
-    if (queued == 0) {
-        setlen(tile, 3);
-        setcode(tile, 0x62);
-        tile->r0 = color;
-        tile->g0 = color;
-        tile->b0 = color;
-        tile->x0 = -0xA0;
-        yoff     = ds->vramYOffset;
-        tile->w  = 0x140;
-        tile->h  = 0xF0;
-        tile->y0 = -0x78 - yoff;
-        addPrim(gGpuCurrentOt - 0x10, tile);
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(gGpuCurrentOt - 0x10, dr);
+    darkness          = LOADING_FADE_WAIT_DARKNESS;
+    bootLoadActive    = gCdCmdQueue.bootLoadActive;
+    displayState      = &gDisplayState;
+    packetBufferIndex = displayState->otBuffer;
+    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
+    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    if (bootLoadActive == 0) {
+        _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
-    if (cdCmdIsIdle() & 0xFFFF) {
-        sess = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-        Gp_InitStageVisit(sess);
-        save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        memConfigureImageMemory(save->state.location.loc.stage, save->state.location.loc.area);
-        if ((GAME_LOCATION_WORD(save->state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
+    if (cdCmdIsIdle()) {
+        savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+        _areaInitializeStageVisit(savedLocation);
+        // Reuse area image storage only after the preceding CD requests finish.
+        liveSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        memConfigureImageMemory(liveSave->state.location.loc.stage, liveSave->state.location.loc.area);
+        if ((GAME_LOCATION_WORD(liveSave->state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
             memSelectAuxHeapRegion(true);
         }
         memInitAuxHeap();
+        // Retain scheduled companion sounds before resetting the area's sound context.
         companionConfigureSoundBankRetention();
         sndScriptResetForArea(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
-            gStageSceneMusicEntry = 1;
+        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= LOADING_NIGHT_MUSIC_FIRST_CHAPTER) {
+            gStageSceneMusicEntry = LOADING_SCENE_MUSIC_NIGHT;
         } else {
-            gStageSceneMusicEntry = 0;
+            gStageSceneMusicEntry = LOADING_SCENE_MUSIC_DEFAULT;
         }
-        gGameSession->deathSoundCountdown = 1;
+        gGameSession->deathSoundCountdown = LOADING_DEATH_SOUND_INITIAL_TICKS;
         gGameSession->deathFadeFrames     = GAME_SESSION_DEATH_FADE_DEFAULT;
-        gGameSession->deathRestartDelay   = 0x1E;
-        gStageMusicParams.fadeOutTicks    = 0x3C;
+        gGameSession->deathRestartDelay   = LOADING_DEATH_RESTART_DELAY_TICKS;
+        gStageMusicParams.fadeOutTicks    = LOADING_MUSIC_FADE_OUT_TICKS;
         gStageMusicParams.field_2         = 0;
-        taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
+        taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_ORDINARY, 0);
         task->state++;
     }
 }
@@ -624,29 +630,48 @@ void loadingHoldFadeAndReleaseBootImageTask(Task* task)
     }
 }
 
-static void Gp_InitStageVisit(GameLocationKey* arg0)
+/// Installs the initial live flags, map marks, companion health and inventory.
+///
+/// Called only while the save's new-game setup bit is clear. Replaces its visit
+/// flags with that bit; the save and resident state must be live and writable.
+static inline void _areaInitializeNewGameState(McSaveData* liveSave)
 {
-    McSaveData*           save;
-    GameFlagStageHeader** banks;
-    GameFlagStageHeader*  bank;
+    enum { AREA_NEW_GAME_COMPANION_HP = 100 };
 
-    banks = Gp_FlagBanks;
-    save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    if ((save->state.visitFlags & 1) == 0) {
-        save->state.visitFlags = 1;
-        gameFlagClearLiveNibbles();
-        areaApplyNewGameMapMarks();
-        save->state.companionHpMax = 0x64;
-        save->state.companionHp    = 0x64;
-        inventoryInitializeNewGame();
+    liveSave->state.visitFlags = AREA_NEW_GAME_SETUP_DONE;
+    gameFlagClearLiveNibbles();
+    areaApplyNewGameMapMarks();
+    liveSave->state.companionHpMax = AREA_NEW_GAME_COMPANION_HP;
+    liveSave->state.companionHp    = AREA_NEW_GAME_COMPANION_HP;
+    inventoryInitializeNewGame();
+}
+
+/// Initializes new-game state and an unvisited stage's area/object state before loading.
+///
+/// Requires a live save and writable location with stage 1..5, resident flag banks
+/// and loaded object-state tables. Bit 0 of the saved visit flags gates new-game
+/// flags, map marks, companion HP and inventory initialization. An unset stage
+/// bit clears its two visited-area words and seeds object state; nighttime
+/// Dryfield retains the daytime object words. Does not mark the stage visited;
+/// a later area visit does that. Debug mode forwards the location to its hook.
+static void _areaInitializeStageVisit(GameLocationKey* location)
+{
+    McSaveData*           liveSave;
+    GameFlagStageHeader** stageFlagBanks;
+    GameFlagStageHeader*  stageFlags;
+
+    stageFlagBanks = Gp_FlagBanks;
+    liveSave       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    if ((liveSave->state.visitFlags & AREA_NEW_GAME_SETUP_DONE) == 0) {
+        _areaInitializeNewGameState(liveSave);
     }
-    if ((((s8)save->state.visitFlags >> arg0->stage) & 1) == 0) {
-        bank                  = banks[arg0->stage];
-        bank->visitedAreas[0] = 0;
-        bank->visitedAreas[1] = 0;
-        areaSeedStageObjectStates(arg0->stage);
+    if ((((s8)liveSave->state.visitFlags >> location->stage) & 1) == 0) {
+        stageFlags                  = stageFlagBanks[location->stage];
+        stageFlags->visitedAreas[0] = 0;
+        stageFlags->visitedAreas[1] = 0;
+        areaSeedStageObjectStates(location->stage);
         if (gDisplayState.debugMode != 0) {
-            func_80724748(arg0);
+            func_80724748(location);
         }
     }
 }

@@ -53,6 +53,24 @@ void gameFlowHoldSessionDisplayTask(Task* task);
 /// to the display-hold phase. Task teardown can invalidate `task` immediately.
 void gameFlowPrepareSessionReloadTask(Task* task);
 
+/// Rebuilds session-reload phase 2 from the live save and starts the loading task.
+///
+/// Requires the reload task and resident save/session/display state. Requests
+/// that the task walker stop, discards the default list without exit callbacks,
+/// clears both frame ordering tables and resets the heaps. Old task/resources,
+/// GPU reads and image decoding must be disposable or finished before this call.
+/// CD cancellation is requested after heap reset and completes asynchronously.
+///
+/// Copies the complete saved location and display sprite variant into the
+/// session. Display mode 0 copies the presented framebuffer to the other one
+/// and retains the view without clearing; other low-nibble values skip capture.
+/// Requires draw-buffer index 0 or 1 and valid framebuffer environments. Reads
+/// the reload option from the discarded task before spawning bank-0 slot 28;
+/// its storage must remain readable until that spawn, which may reuse it.
+/// Neither caller nor task walker may inspect the old task afterwards. Blocks
+/// game pause until the later fade completes and resets disk-swap presentation.
+void gameFlowRebuildSessionTask(Task* task);
+
 void Gp_LoadFinishTask(Task* task);
 
 void Gp_LinkRoomObjectsSpawn(Task* task);
