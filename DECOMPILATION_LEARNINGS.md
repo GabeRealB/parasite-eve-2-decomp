@@ -7500,7 +7500,7 @@ lw  a3, 0x684(v1)   sw  a3, 0x14(s1)
 
 two groups of four with the second group reusing the same four temporaries
 (which registers they are depends on what else the function is holding;
-`Actor02500_Fn02480` gets `t0`-`t3` where this one gets `a3`, `t0`-`t2`).
+`_actor02500SquashCorpse` gets `t0`-`t3` where this one gets `a3`, `t0`-`t2`).
 m2c renders the same bytes as eight independent `M2C_FIELD(ptr, s32*, off)`
 stores, and that source does *not* reproduce it: with one temporary the loads
 and stores interleave and the scheduler fills the load delays with six `nop`s.
@@ -42315,7 +42315,7 @@ grep -rl "capStartSequenceSlot" src/
 
 `overlay_dup_index.py` compares instruction shape, so it also misses a sibling
 that is the same routine written against another actor's work struct: every
-field offset differs, and often a constant does too. `Actor02500_Fn016FC`
+field offset differs, and often a constant does too. `_actor02500TurnTowardTargetYaw`
 (0x16FC-0x184C, ten splat labels) is `Actor03800_Fn026F8` with `0x360/0x362/
 0x364` renumbered to `0x328/0x32C/0x32A` and a 0x18-byte scratchpad frame
 instead of 0x8 — no rebuild of the index would ever report it, and the port is a
@@ -45099,18 +45099,18 @@ lands in the hole, and `SUBALIGN(4)` in the linker script absorbs GCC's
 `// type:label`.
 
 The body is the plain switch; case 0 and case 1 both end
-`Actor02500_Fn01144(index)`, and cross-jumping produces the target's
+`_actor02500TickSounds(arg0)`, and cross-jumping produces the target's
 `j Actor02500_L02068` out of case 0 with no goto in the C:
 
 ```c
 switch (work->action) {
 case 0:
-    Actor02500_Fn00B18(arg0);
-    Actor02500_Fn01144(arg0);
+    _actor02500Wander(arg0);
+    _actor02500TickSounds(arg0);
     break;
 case 1:
-    Actor02500_Fn00DD8(arg0);
-    Actor02500_Fn01144(arg0);
+    _actor02500Chase(arg0);
+    _actor02500TickSounds(arg0);
     break;
 /* … */
 }
@@ -45383,7 +45383,7 @@ when one turn block folds and its twin does not, look at the local's width
 before touching the control flow.
 
 The current-angle **field** must also be `s16`. `Actor00700_Fn012E4` is the
-same body as `Actor02500_Fn016FC` / `Actor03800_Fn026F8`, but `field_388` had
+same body as `_actor02500TurnTowardTargetYaw` / `Actor03800_Fn026F8`, but `field_388` had
 been declared `u16` because a sibling (`Fn00BC0`) loads it with `lhu`. Assigning
 `ang` through a `u16` field stores immediately (`sh` before the `andi`/`subu`)
 and the later `next = field` reloads with `lhu`, so GCC never keeps `ang` in
@@ -45545,7 +45545,7 @@ one — GCC subtracts the low bound when there is no `case 0`.
 Rebuilding `target.o` for a multi-label parent (see "A vacuum `L`-label is a
 basic block, not a function") concatenates splat's per-fragment `.s` files, and
 splat can only pair a `lui`/`lw` when both halves sit in the **same** fragment.
-`Actor02500_Fn00078` hoists the `lui` for `gRandomLcgState` into two `j` delay slots
+`_actor02500Spawn` hoists the `lui` for `gRandomLcgState` into two `j` delay slots
 and one join block, so three fragments carry the raw form:
 
 ```
@@ -47396,7 +47396,7 @@ Two things worth carrying forward:
 
 Splat exports a branch target inside a function as its own symbol when it has
 no better name, so one C function can appear as a run of `INCLUDE_ASM` lines:
-`Actor02500_Fn02874` was really `Fn02874` plus `L028A8`, `L028CC`, `L028E0` and
+`_actor02500ReleaseCorpsePoison` was really `Fn02874` plus `L028A8`, `L028CC`, `L028E0` and
 `L02904` (the shared epilogue). The tell is that the `Fn…` fragment ends on a
 branch/`j` into the next names, and the last fragment is the `lw $ra` / `jr $ra`
 teardown.
@@ -47501,7 +47501,7 @@ named one.
 
 ## A switch scrutinee stored back into a field wants an `s32` local, not `s16`
 
-`Actor02500_Fn021F8` switches on `work->actionStep` (an `s16`) and, in the
+`_actor02500Buildup` switches on `work->actionStep` (an `s16`) and, in the
 `case 1` arm, writes that same value into `work->action`. Holding it in an
 `s16` local made GCC 2.8.1 emit *two* loads of the field — `lh` for the
 comparison and a separate `lhu` for the value that gets stored — and the second
@@ -47523,7 +47523,7 @@ s32 state = work->actionStep;
 switch (state) {
 /* … */
 case 1:
-    if (damageTickEnemyBuildup(arg0->field_20) != 0) {
+    if (damageTickEnemyBuildup(actor->spawnArg2.pointer) != 0) {
         work->action = state;   /* sh $s1 — no reload */
     }
 }
@@ -47537,8 +47537,8 @@ already knows the scrutinee equals `N`, so storing the constant reuses the
 scrutinee's register exactly as the local did. The function now reads
 `switch (work->actionStep) { case 1: work->action = ACTOR_02500_ACTION_CHASE; }`
 with no local and still emits `sh $s1`. The same substitution matched in
-`Actor02500_Fn020D0` (a compare against the scrutinee, `work->inBuildup == 1`,
-and two stores), `Actor02500_Fn02178`, and case 3 of `Actor02500_Fn00DD8`,
+`_actor02500Flinch` (a compare against the scrutinee, `work->inBuildup == 1`,
+and two stores), `_actor02500Stagger`, and case 3 of `_actor02500Chase`,
 where one scrutinee was stored into two fields with different meanings. So a
 `field = state` in a case arm is a candidate for the named constant; try it
 before keeping the variable.
@@ -47553,12 +47553,12 @@ from the whole function before the first score:
 ```sh
 sed -n '1,71p' target.s > /tmp/macros.inc          # the macro prelude only
 { cat /tmp/macros.inc
-  echo 'nonmatching Actor02500_Fn021F8, 0x8C'      # combined size
-  grep -hv -e '^nonmatching' -e '^endlabel' $ASM/Actor02500_Fn021F8.s
+  echo 'nonmatching _actor02500Buildup, 0x8C'      # combined size
+  grep -hv -e '^nonmatching' -e '^endlabel' $ASM/_actor02500Buildup.s
   for f in Actor02500_L02230 Actor02500_L02254 Actor02500_L02274; do
       grep -hv -e '^nonmatching' -e '^endlabel' $ASM/$f.s | sed "s/^glabel $f/$f:/"
   done
-  echo 'endlabel Actor02500_Fn021F8'
+  echo 'endlabel _actor02500Buildup'
 } > target.s
 mips-linux-gnu-as -EL -march=r3000 -mtune=r3000 -no-pad-sections -I include -o target.o target.s
 ```
@@ -68035,7 +68035,7 @@ leftover is `reorder` and the block has independent chains of visibly different
 length, try permuting the statements before reaching for pins.
 
 **The shadow is not a property of the body — read the sibling's own source.**
-`Actor02500_Fn02288` is the same sequence as `ActorsShared8013454c`, field for
+`_actor02500Move` is the same sequence as `ActorsShared8013454c`, field for
 field, and its target has the Y chain in the *first* `mult`'s shadow instead:
 after `mult` come `lw t[1]` / `nop` / `addiu` / `sw t[1]`, then `lw t[0]` /
 `mflo`. So the m2c-order seed (X, Y, Z) scores 92% with `reorder=3 delete=1`
@@ -75201,7 +75201,7 @@ takes `s32 y`, because `func_actor_444000_80138490` passes it an `s32` local and
 has no sign extension at the store, while `_actorRenderRescaleYawY` takes
 `s16 verticalScale`. Folding them together breaks whichever caller wants the other form.
 
-### Actor02500_Fn01144: shared sound ID separates three local load chains
+### _actor02500TickSounds: shared sound ID separates three local load chains
 
 Corroborates Actor02000_Fn018A4. Three separate sound locals gave 98.318%
 (regs=36 only); the router shared first/third and verified 99.439%. Controlled
@@ -75214,7 +75214,7 @@ remain exact. This supports local/global eligibility, not a local priority
 ratio explanation. Clean real-header base_3 also matches; no pins/helpers.
 
 Controlled input SHA256: `2c0a928060d6cdc816bb092217a98e1460056d28e4eba296daec1079a6b13bbb`. Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Evidence: `tools/permuter_findings/Actor02500_Fn01144/`, session
+Evidence: `tools/permuter_findings/_actor02500TickSounds/`, session
 `bef67713ebe94c2eafc87e1a4f2dee96`, run `6d16af41db434cd7`;
 PERMUTER_ANALYSIS.md and retained base_1/base_2 .lreg/.greg dumps.
 
@@ -75226,7 +75226,7 @@ base_1.i: 4f5dc4438614656d665dc2cf26a057a95a800f591eb622581efc1a5052ad1eed
 base_2.i: 39176c30f42af258ae5536f26564ef7defc494ce284297ef9b2225b98994e255
 
 
-### A shared random-mask temporary changes allocation, late store order and cross-jump extent (Actor02500_Fn00B18)
+### A shared random-mask temporary changes allocation, late store order and cross-jump extent (_actor02500Wander)
 
 Observed with patched GCC 2.8.1 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Two switch arms assigned their masked RNG results to the same `s32` temporary before storing `temporary + 30` to a halfword timer. Inlining only the first arm's mask into its timer assignment changed scratch distance 203 to 0. The permuter also proposed splitting an unsigned shift by 16 into two shifts by 8; the controlled base_2 build proved that change unnecessary.
@@ -75235,7 +75235,7 @@ In the original `.lreg`, the shared mask pseudo r91 spans blocks and has two dea
 
 This supports a narrow allocation → scheduling-dependency → cross-jump mechanism, not a general claim that inlining suppresses cross-jumping. Exact local quantity ranking was not traced. The source change preserves all values, masks and memory effects.
 
-Controlled input SHA256: `3003043ab848f442d8ed027768d275357c52c3eb152cae828a3031e9dfd17906` (base_2.i). Readable no-goto port base_3 also matches. Plans, paired inputs, dumps and conclusions are retained under `tools/permuter_findings/Actor02500_Fn00B18/sessions/9e1d01d4d85748159ef121f63a646d51/`, including `PERMUTER_ANALYSIS.md` and run `b22f48f5aa884c37` evidence.
+Controlled input SHA256: `3003043ab848f442d8ed027768d275357c52c3eb152cae828a3031e9dfd17906` (base_2.i). Readable no-goto port base_3 also matches. Plans, paired inputs, dumps and conclusions are retained under `tools/permuter_findings/_actor02500Wander/sessions/9e1d01d4d85748159ef121f63a646d51/`, including `PERMUTER_ANALYSIS.md` and run `b22f48f5aa884c37` evidence.
 
 
 ## Actor05500_Fn00914: explicit builtin absolute preserves the MIPS abs pattern
@@ -75775,7 +75775,7 @@ depth call, the id falls to `$s1`, the chain returns to `$v0`, and the function
 reaches 100% with every penalty zero.
 
 That is the eligibility effect recorded for Actor02000_Fn018A4 and
-Actor02500_Fn01144 seen from the other operand: there the *sound* result was
+_actor02500TickSounds seen from the other operand: there the *sound* result was
 widened into a block-spanning local so it could take `$s1`; here the *pan* is
 promoted to `s32` so it takes `$s0` and pushes the id up. Either way, a QImode
 temporary whose conversion happens at the call site is not a neutral choice -
@@ -78090,7 +78090,7 @@ Three near-identical actors bodies settle it:
 
 | body | table load vs `i = 1` | emitted |
 |---|---|---|
-| `Actor02500_Fn02318` | load first, then `i = 1` | `sll $v0,$a0,1` |
+| `_actor02500TickAnimation` | load first, then `seekSlot = 1` | `sll $v0,$a0,1` |
 | `Actor05500_Fn039AC` | `i = 1` in the `beq` delay slot, load later | `sllv $v0,$v0,$s0` |
 | `func_actor_300700_80165230` | same | `sllv $v0,$v0,$s0` |
 
@@ -79037,7 +79037,7 @@ Unlike the `addiu aN,sp,off` signature in the entry above, this needs *no*
 explicit local pointer: `&vec` is what produces the single `addiu a0,sp,0x10`.
 
 Matched as `_actor105100DrawShadow`; the same body already exists in
-`Actor00700_Fn01E9C`, `Actor02500_Fn02430` and `func_actor_300700_8016534C`,
+`Actor00700_Fn01E9C`, `_actor02500DrawShadow` and `func_actor_300700_8016534C`,
 differing only in the actor type and the second constant.
 
 Preprocessed SHA256 (baseline m2c seed, then the matching source):
@@ -79237,7 +79237,7 @@ So the only thing the C has to do is make *some* register hold that constant
 before the branch, which here is the `i = 1` shared by both loops. That comes
 for free when the body is written the way its already-matched siblings in
 `src/actors/lib/` are written (`Actor00700_Fn01D80` in `actor_100700_text.c`,
-`Actor05500_Fn039AC` in `actor_105500_text.c`, `Actor02500_Fn02318` in
+`Actor05500_Fn039AC` in `actor_105500_text.c`, `_actor02500TickAnimation` in
 `actor_102500_tail.c`); m2c's transcription instead scales a `s64` `M2C_UNK`
 pointer and emits `sll v0,v0,0x3`, which no register can satisfy.
 
@@ -107236,7 +107236,7 @@ source `base_2.c` `af3be70374726d9dfb13f67b97ac8adccf867ef72901095f6ef27b0cbab4c
 
 The "turn towards a target yaw" body - `ratan2` of the coordinate's Z axis,
 step the difference by a limit, wrap the far half, `RotMatrix` the result - is
-the same 84 instruction words in `Actor02500_Fn016FC` (actor_102500),
+the same 84 instruction words in `_actor02500TurnTowardTargetYaw` (actor_102500),
 `func_actor_300700_80164794` and `_actor521100TurnTowardTargetYaw`. Porting the
 `actor_300700` source into 521100 and renaming the fields scored **89.85%**
 (`regs=13 branch=8 insert=5 delete=3`). The bodies are identical; the headers
@@ -149863,6 +149863,8 @@ attempts; left as it was.
   + d) goto snap; else goto turn; snap: ...; goto done; turn: ...`** (the
   wrap-around arm of the actors' turn-to-yaw step, `Actor02500_Fn016FC`,
   `_actor02400TurnTowardTarget`, `_actor01500TurnTowardTarget`) is a conditional expression in
+  wrap-around arm of the actors' turn-to-yaw step, `_actor02500TurnTowardTargetYaw`,
+  `Actor02400_Fn02264`, `_actor01500TurnTowardTarget`) is a conditional expression in
   the test: `if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
   snap } else { turn }`. Each arm of the `?:` branches straight to the two
   bodies, so the image's two compares with opposite polarity (`beqz snap; j
