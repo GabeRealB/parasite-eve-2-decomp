@@ -491,7 +491,7 @@ static void _playerActorPostVibrationPreset(Task* task, s32 presetIndex);
 
 static void _playerActorCaptureInteractionPress(Task* task);
 
-static void func_80104AAC(Task* arg0);
+static void _playerActorBeginScriptedControl(Task* task);
 
 static s32 _playerActorReplaceAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
 
@@ -543,9 +543,9 @@ static void _playerActorTick(Task* task);
 
 static void _playerActorUpdateAimEntry(Task* task);
 
-static void func_80108568(Task* arg0);
+static void _playerActorRefreshAimLocomotionAnimation(Task* task);
 
-static void func_801085D0(Task* arg0);
+static void _playerActorTryEnterAim(Task* task);
 
 static void _playerActorUpdateIdleTurnAnimation(Task* task);
 
@@ -553,9 +553,9 @@ static void _playerActorUpdateAimTurnAnimation(Task* task);
 
 static void _playerActorEnterAimLocomotion(Task* task, s32 blendFrames);
 
-static void func_80108A0C(Task* arg0);
+static void _playerActorEnterPeAction(Task* task);
 
-static void func_80108AD4(Task* arg0);
+static void _playerActorStartParalysis(Task* task);
 
 static void _playerActorTickScriptedRunTo(Task* task);
 
@@ -2016,11 +2016,13 @@ void effectSpriteTask42(Task* task)
 #undef EFFECT_TRAIL_PUFF_SET_CORNERS
 }
 
-/// Attaches the puff emitter and decodes its signed width and duration tuning.
+/// Initializes a hit-puff emitter's parent-local placement and emission budget.
 ///
-/// Borrows the live task, counted work and writable coordinate for this call.
-/// The parent remains borrowed after attachment; the duration is three ticks
-/// per high-half unit and one extra puff is emitted per 768 width units.
+/// Requires the task's zeroed, counted work and writable coordinate, with a
+/// parent that stays live until emitter teardown. The signed low spawn half is
+/// cube width in game-coordinate units (1..32767 for emission); the signed high
+/// half is duration in three-tick units (1..10922 without s16 overflow).
+/// Stores lifetime in `period` and width / 768 + 1 attempts per tick in `step`.
 static inline void _effectInitHitPuffEmitter(Task* task, EffectWork* work, GfxCoord* coord)
 {
     enum {
@@ -2028,6 +2030,8 @@ static inline void _effectInitHitPuffEmitter(Task* task, EffectWork* work, GfxCo
         EFFECT_HIT_PUFF_WIDTH_PER_PARTICLE      = 768,
         EFFECT_HIT_PUFF_DURATION_SHIFT          = 16,
     };
+    s32 durationUnits;
+
     coord->parent = work->parent;
     gfxSetRotIdentity(&coord->coord);
     coord->coord.t[0]   = work->pos.vx;
@@ -2036,7 +2040,8 @@ static inline void _effectInitHitPuffEmitter(Task* task, EffectWork* work, GfxCo
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     task->state         = EFFECT_DRAW_TASK_ACTIVE;
     work->scale         = task->spawnArg1.value;
-    work->angle         = task->spawnArg1.value >> EFFECT_HIT_PUFF_DURATION_SHIFT;
+    durationUnits       = task->spawnArg1.value >> EFFECT_HIT_PUFF_DURATION_SHIFT;
+    work->angle         = durationUnits;
     work->period        = work->angle * EFFECT_HIT_PUFF_TICKS_PER_DURATION_UNIT;
     work->step          = work->scale / EFFECT_HIT_PUFF_WIDTH_PER_PARTICLE + 1;
 }
@@ -4626,13 +4631,14 @@ void effectSpriteTask3F(Task* task)
 #undef EFFECT_PROJECTILE_BURST_PARTICLE_SET_CORNERS
 }
 
-/// Emits one independent hit spark at a random parent-local offset.
+/// Attempts one independently placed flash or fading spark within an emitter cube.
 ///
-/// Borrows live counted work and the composed emitter coordinate. widthBits
-/// encodes a positive signed-halfword width and halfWidth is width / 2.
-/// work->period must be positive. Advances the shared random stream for XYZ,
-/// an age-dependent flash/fade choice and a size in 128..639 coordinate units.
-static inline void _effectEmitHitSparkParticle(EffectWork* work, GfxCoord* coord, u16 widthBits, s32 halfWidth)
+/// Requires live emitter work and a composed coordinate, emissionWidth 1..32767
+/// game-coordinate units, halfWidth = emissionWidth / 2 and positive period.
+/// Consumes five random samples, even when spawning fails. Writes the offset
+/// into `move`; the child snapshots it and runs independently of the emitter.
+/// Age biases the choice toward fading sparks; the size argument is 128..639.
+static inline void _effectEmitHitSparkParticle(EffectWork* work, GfxCoord* coord, s16 emissionWidth, s32 halfWidth)
 {
     enum {
         EFFECT_HIT_SPARK_PARTICLE_SIZE_MASK = 511,
@@ -4642,11 +4648,11 @@ static inline void _effectEmitHitSparkParticle(EffectWork* work, GfxCoord* coord
     s32 particleEffectId;
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vx   = (s32)(gRandomLcgState >> 16) % (s16)widthBits - halfWidth;
+    work->move.vx   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vy   = (s32)(gRandomLcgState >> 16) % (s16)widthBits - halfWidth;
+    work->move.vy   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vz   = (s32)(gRandomLcgState >> 16) % (s16)widthBits - halfWidth;
+    work->move.vz   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     transitionAge   = (s32)(gRandomLcgState >> 16) % work->period;
 
@@ -4675,7 +4681,7 @@ void effectHitSparkBurstTask(Task* task)
     s32          durationUnits;
     s32          particleIndex;
     s32          halfWidth;
-    u16          widthBits;
+    s16          emissionWidth;
 
     work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
@@ -4716,12 +4722,12 @@ void effectHitSparkBurstTask(Task* task)
             effectKillTask(work, task);
             return;
         }
-        widthBits = work->scale;
-        halfWidth = (s16)widthBits >> 1;
+        emissionWidth = work->scale;
+        halfWidth     = emissionWidth >> 1;
         for (particleIndex = 0; particleIndex < work->step; particleIndex++) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (work->angle >= (s32)((gRandomLcgState >> 16) & EFFECT_HIT_SPARK_EMISSION_MASK)) {
-                _effectEmitHitSparkParticle(work, coord, widthBits, halfWidth);
+                _effectEmitHitSparkParticle(work, coord, emissionWidth, halfWidth);
             }
         }
         work->age++;
@@ -6362,14 +6368,20 @@ static inline Task* _playerActorSpawnAttachment(Task* actorTask, s32 attachmentI
     return task;
 }
 
-/// Kills an attachment slot's old child before attempting its replacement.
+/// Tears down one owned attachment anchor and installs its replacement, or NULL.
 ///
-/// Slot 0 or 1 belongs to the borrowed actor task/work. Uses the attachment
-/// spawner's rig and variant contract; allocation failure leaves this slot NULL.
+/// actor must be actorTask's live work; attachmentIndex and pairVariant are
+/// 0..1, rigIndex is 0..5 and rigIndex + resourceVariant - 2 must be 0..7.
+/// Requires loaded bank-7 descriptors and the selected rig coordinates.
+/// Teardown precedes allocation, so failure leaves the slot empty. Successful
+/// children borrow the rig joint until teardown; no old child is restored.
 static inline void _playerActorReplaceAttachmentSlot(Task* actorTask, GameActor* actor, s32 attachmentIndex, s32 rigIndex, s32 pairVariant)
 {
-    if (actor->attachmentTasks[attachmentIndex] != NULL) {
-        taskKill(actor->attachmentTasks[attachmentIndex]);
+    Task* oldAttachment;
+
+    oldAttachment = actor->attachmentTasks[attachmentIndex];
+    if (oldAttachment != NULL) {
+        taskKill(oldAttachment);
     }
     actor->attachmentTasks[attachmentIndex] = _playerActorSpawnAttachment(actorTask, attachmentIndex, rigIndex, pairVariant);
 }
@@ -7302,32 +7314,15 @@ static void _playerActorCaptureInteractionPress(Task* task)
     }
 }
 
-static void func_80104AAC(Task* arg0)
+/// Takes scripted control after clearing movement, aim offsets and weapon contact.
+///
+/// Requires live player work, session and equipped weapon-effect resources.
+/// Clears the interaction latch and pending hit, then resets weapon effects;
+/// an active event also suppresses root-body view triggers. The scripted state,
+/// animation bank and clip remain for the caller to select. No callers in this image.
+static void _playerActorBeginScriptedControl(Task* task)
 {
-    GameActor*    actor;
-    PlayerStatus* p;
-
-    actor                                                 = arg0->work;
-    p                                                     = &gPlayerStatus;
-    actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
-    actor->statePhase                                     = 0;
-    actor->movementSign                                   = 0;
-    actor->turnSign                                       = 0;
-    p->interactionPressed                                 = 0;
-    actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_OFF;
-    actor->part3Pitch                                     = 0;
-    actor->part2Pitch                                     = 0;
-    actor->part3Roll                                      = 0;
-    actor->part2Roll                                      = 0;
-    actor->aimYaw                                         = 0;
-    actor->field_68                                       = 0;
-    actor->part6Pitch                                     = 0;
-    actor->hitRegion                                      = 0;
-    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    playerActorResetWeaponAttack(arg0, p->weapon, 0);
-    if (gGameSession->eventState != 0) {
-        actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
-    }
+    _playerActorEnterScriptedMode(task);
 }
 
 s32 playerActorInstallScriptedAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
@@ -9590,29 +9585,42 @@ static void _playerActorUpdateAimEntry(Task* task)
 }
 #undef PLAYER_ACTOR_COMPLETE_AIM_ENTRY
 
-static void func_80108568(Task* arg0)
+/// Refreshes aim locomotion's clip when movement changes, or turning changes at rest.
+///
+/// Requires live player work and native-bank playback. A movement-sign change
+/// reenters normal state 2 with a four-frame blend and refreshes aim tracking.
+/// Otherwise only a stationary turn-sign change blends the turn clip (five
+/// frames), preserving the state and tracking. Unchanged input does nothing.
+/// Has no callers in this image; captured previous signs must describe the prior tick.
+static void _playerActorRefreshAimLocomotionAnimation(Task* task)
 {
+    enum { PLAYER_ACTOR_AIM_MOVEMENT_BLEND_FRAMES = 4 };
     GameActor* actor;
 
-    actor = arg0->work;
+    actor = task->work;
     if (actor->movementSign != actor->previousMovementSign) {
-        _playerActorEnterAimLocomotion(arg0, 4);
-    } else if (actor->movementSign == 0) {
-        if (actor->turnSign != actor->previousTurnSign) {
-            _playerActorUpdateAimTurnAnimation(arg0);
-        }
+        _playerActorEnterAimLocomotion(task, PLAYER_ACTOR_AIM_MOVEMENT_BLEND_FRAMES);
+    } else if (actor->movementSign == 0 && actor->turnSign != actor->previousTurnSign) {
+        _playerActorUpdateAimTurnAnimation(task);
     }
 }
 
-static void func_801085D0(Task* arg0)
+/// Stops movement input and enters aim when the refreshed held-button request permits it.
+///
+/// Requires live player work, equipment/attachment state and native playback.
+/// Held Square, idle attachment effects, an equipped weapon and unrestricted
+/// aim request normal state 1 with a four-frame blend. Other combinations leave
+/// the current state intact with an exit request. Has no callers in this image.
+static void _playerActorTryEnterAim(Task* task)
 {
-    GameActor* inner;
+    enum { PLAYER_ACTOR_AIM_REQUEST_BLEND_FRAMES = 4 };
+    GameActor* actor;
 
-    inner               = arg0->work;
-    inner->movementSign = 0;
-    _playerActorUpdateAimRequest(arg0);
-    if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
-        playerActorEnterAim(arg0, 4);
+    actor               = task->work;
+    actor->movementSign = 0;
+    _playerActorUpdateAimRequest(task);
+    if (actor->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
+        playerActorEnterAim(task, PLAYER_ACTOR_AIM_REQUEST_BLEND_FRAMES);
     }
 }
 
@@ -9870,61 +9878,103 @@ void playerActorEnterReload(Task* task, s32 loadSelection, s32 reloadSource)
     playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_RELOAD_BLEND_FRAMES);
 }
 
-static void func_80108A0C(Task* arg0)
+/// Selects the player's release/charge/cast clip family from the current attachment id.
+///
+/// Writes `actionArgument` (0 sets 26..28, 1 sets 29..31, 2 sets 42..44).
+/// Each family supplies release, charge and cast clips, in that order.
+/// Items select 0 for tens digit 1 and 1 otherwise; spells select 2 for digit 3,
+/// otherwise 1 below 300 and 0 at or above it.
+/// Borrows live player work and attachment state without starting playback.
+static inline void _playerActorChoosePeClipFamily(GameActor* actor)
 {
-    GameActor* inner;
-    u16        prev;
-    s32        tens;
+    enum {
+        PLAYER_ACTOR_PE_CLIP_FAMILY0             = 0,
+        PLAYER_ACTOR_PE_CLIP_FAMILY1             = 1,
+        PLAYER_ACTOR_PE_CLIP_FAMILY2             = 2,
+        PLAYER_ACTOR_PE_ITEM_FAMILY0_TENS_DIGIT  = 1,
+        PLAYER_ACTOR_PE_SPELL_FAMILY2_TENS_DIGIT = 3,
+    };
+    s32 attachmentTensDigit;
 
-    inner                   = arg0->work;
-    prev                    = inner->state;
-    inner->state            = 6;
-    inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
-    inner->mode             = GAME_ACTOR_MODE_NORMAL;
-    inner->movementMode     = 0;
-    inner->turnRateIndex    = 0;
-    inner->animationState   = 0;
-    inner->statePhase       = 0;
-    inner->movementSign     = 0;
-    inner->stateAux         = prev;
-    tens                    = Gp_StateC08.attachId % 100 / 10;
+    attachmentTensDigit = Gp_StateC08.attachId % 100 / 10;
     if (Gp_StateC08.attachId >= ATTACHMENT_ID_ITEM) {
-        if (tens == 1) {
-            inner->actionArgument = 0;
+        if (attachmentTensDigit == PLAYER_ACTOR_PE_ITEM_FAMILY0_TENS_DIGIT) {
+            actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;
         } else {
-            inner->actionArgument = 1;
+            actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY1;
         }
-    } else if (tens == 3) {
-        inner->actionArgument = 2;
+    } else if (attachmentTensDigit == PLAYER_ACTOR_PE_SPELL_FAMILY2_TENS_DIGIT) {
+        actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY2;
     } else if (Gp_StateC08.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT_U) {
-        inner->actionArgument = 1;
+        actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY1;
     } else {
-        inner->actionArgument = 0;
+        actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;
     }
 }
 
-static void func_80108AD4(Task* arg0)
+/// Enters the normal-mode Parasite Energy action and saves the interrupted state.
+///
+/// Requires live player/attachment state and a normal state to resume;
+/// subsequent release/charge/cast playback requires the native animation bank.
+/// Entry is unconditional: the caller supplies an attachment ready for release.
+/// Stops displacement, disables turning, resets controller/phase and requests
+/// aim decay. Selects clip family 0..2 from the attachment id without releasing
+/// the lock target or changing attachment ownership. Has no callers in this image.
+static void _playerActorEnterPeAction(Task* task)
 {
-    GameActor* inner;
-    u16        prev;
+    enum { PLAYER_ACTOR_PE_ENTRY_STATE = 6 };
+    GameActor* actor;
+    u16        previousState;
 
-    inner                 = arg0->work;
-    prev                  = inner->state;
-    inner->mode           = GAME_ACTOR_MODE_NORMAL;
-    inner->state          = 7;
-    inner->movementMode   = 0;
-    inner->turnRateIndex  = 0;
-    inner->animationState = 0;
-    inner->statePhase     = 0;
-    inner->rumblePosted   = 0;
-    inner->movementSign   = 0;
-    inner->turnSign       = 0;
-    inner->stateAux       = prev;
-    playerActorClearLockTarget(arg0);
-    inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    actor                   = task->work;
+    previousState           = actor->state;
+    actor->state            = PLAYER_ACTOR_PE_ENTRY_STATE;
+    actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
+    actor->mode             = GAME_ACTOR_MODE_NORMAL;
+    actor->movementMode     = 0;
+    actor->turnRateIndex    = 0;
+    actor->animationState   = 0;
+    actor->statePhase       = 0;
+    actor->movementSign     = 0;
+    actor->stateAux         = previousState;
+    _playerActorChoosePeClipFamily(actor);
+}
+
+/// Starts a paralysis episode with stopped control and disabled weapon contacts.
+///
+/// Requires live player/native playback, session and weapon-effect resources,
+/// a normal state 0..6 and equipped weapon index 0..32. Saves the old state for
+/// recovery, clears rumble, releases lock-on and locks attachment events before
+/// resetting weapon effects. Blends child slots 3..5 into native set 25 over
+/// six normal-rate frames. Has no callers in this image.
+static void _playerActorStartParalysis(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_PARALYSIS_FIRST_SLOT   = 3,
+        PLAYER_ACTOR_PARALYSIS_SET          = 25,
+        PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES = 6,
+    };
+    GameActor* actor;
+    u16        previousState;
+
+    actor                 = task->work;
+    previousState         = actor->state;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->state          = PLAYER_ACTOR_NORMAL_PARALYSIS_STATE;
+    actor->movementMode   = 0;
+    actor->turnRateIndex  = 0;
+    actor->animationState = 0;
+    actor->statePhase     = 0;
+    actor->rumblePosted   = 0;
+    actor->movementSign   = 0;
+    actor->turnSign       = 0;
+    actor->stateAux       = previousState;
+    // Release targeting and lock attachment events before restarting weapon effects.
+    playerActorClearLockTarget(task);
+    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     Gp_StateC08.flags                                    |= ATTACHMENT_FLAG_EVENT_LOCK;
-    playerActorResetWeaponAttack(arg0, gPlayerStatus.weapon, 0);
-    playerActorPlayChildSlotsWithBlend(arg0, 0x19, 3, 6);
+    playerActorResetWeaponAttack(task, gPlayerStatus.weapon, 0);
+    playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_PARALYSIS_SET, PLAYER_ACTOR_PARALYSIS_FIRST_SLOT, PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES);
 }
 
 void playerActorScriptedState0(Task* task)

@@ -31672,9 +31672,9 @@ the first function’s last `jr ra` comes a standard prologue
 order and add the second address to `sym.*.txt` so a later extract
 splits them.
 
-`func_80108A0C` / `func_80108AD4` is the example. The first function is
+`_playerActorEnterPeAction` / `_playerActorStartParalysis` is the example. The first function is
 the `state = 6` body of `_playerActorTryEnterPeAction` (without the
-`field_3 == -2` guard); the second is the `state = 7` body inlined
+`effectPhase == ATTACHMENT_EFFECT_HELD` guard); the second is the `state = 7` body inlined
 in `_playerActorTickNormal` through `_playerActorEnterParalysis`.
 
 ## Duplicate the 1/0 call so the flag stays a branch, not `sltu`
