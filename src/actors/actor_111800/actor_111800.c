@@ -396,17 +396,17 @@ static inline void _actor111800StartIdleTracks(Task* task)
         ACTOR_111800_IDLE_CLIP = 5,
     };
 
-    _Actor111800Work* slotsWork;
+    _Actor111800Work* work;
     s32               slotIndex;
 
-    slotIndex                   = 1;
-    slotsWork                   = task->work;
-    slotsWork->slot1RecordIndex = 0;
+    slotIndex              = 1;
+    work                   = task->work;
+    work->slot1RecordIndex = 0;
     do {
-        slotsWork->rig.slots[slotIndex & 0xFFFF].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&slotsWork->rig.anim, slotIndex & 0xFFFF, ACTOR_111800_IDLE_CLIP);
+        work->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&work->rig.anim, (u16)slotIndex, ACTOR_111800_IDLE_CLIP);
         slotIndex += 1;
-    } while ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(slotsWork->rig.slots));
+    } while ((u32)((u16)slotIndex) < ARRAY_SIZE(work->rig.slots));
 }
 
 /// Initializes the staged Stranger body and its eighteen non-root animation tracks.

@@ -2467,8 +2467,6 @@ static __inline__ s32 _actor04000FindAttackContactKey(SVECTOR* hitPos, const Wor
 /// wrapped to [-2048, 2048], retaining both half-turn endpoints.
 static inline void _actor04000ComputeHitBearing(Task* task, ActorHitTakenScratch* hitScratch)
 {
-    s16 hitYaw;
-
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
     hitScratch->hitOffset.vx = task->extra.tmd->coords->workm.t[0];
@@ -2478,10 +2476,9 @@ static inline void _actor04000ComputeHitBearing(Task* task, ActorHitTakenScratch
     hitScratch->hitOffset.vx = hitScratch->hitPos.vx - task->extra.tmd->coords->workm.t[0];
     hitScratch->hitOffset.vy = hitScratch->hitPos.vy - task->extra.tmd->coords->workm.t[1];
     hitScratch->hitOffset.vz = hitScratch->hitPos.vz - task->extra.tmd->coords->workm.t[2];
-    hitYaw                   = ratan2(hitScratch->hitOffset.vx, hitScratch->hitOffset.vz) -
-             ratan2(-task->extra.tmd->coords->workm.m[2][0], task->extra.tmd->coords->workm.m[2][2]);
-    hitScratch->hitYaw = hitYaw;
-    hitScratch->hitYaw = _actorAngleNormalizeYaw(hitYaw);
+    hitScratch->hitYaw       = ratan2(hitScratch->hitOffset.vx, hitScratch->hitOffset.vz) -
+                         ratan2(-task->extra.tmd->coords->workm.m[2][0], task->extra.tmd->coords->workm.m[2][2]);
+    hitScratch->hitYaw = _actorAngleNormalizeYaw(hitScratch->hitYaw);
 }
 
 /// Applies the first attack contact and releases any player held by the Blood Suckler.

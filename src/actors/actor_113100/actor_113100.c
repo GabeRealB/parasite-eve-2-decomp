@@ -1170,41 +1170,6 @@ TaskMessageEntry D_actor_113100_80144338[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Applies the parent's area-placement textures to one attached model.
-///
-/// Borrows live parent/child tasks and the parent's Enemy spawn argument.
-/// The placement index comes from the owning enemy's high place-key bits;
-/// the current scene location supplies the area and its synchronized variant.
-/// A present primitive buffer has both halves rebuilt before the child runs.
-static inline void _actor113100BindChildPlacementTextures(Task* task, Task* childTask)
-{
-    GameLocationKey  placementLocation;
-    GameLocationKey* sessionLocation;
-    TmdObject*       attachedModel;
-    AreaPlacement*   placement;
-    u8               viewId;
-    u32              placementKey;
-    u32              placementIndex;
-
-    sessionLocation         = &gGameSession->location.loc;
-    placementKey            = ((Enemy*)task->spawnArg2.pointer)->placeKey;
-    attachedModel           = childTask->extra.tmd;
-    placementLocation.stage = sessionLocation->stage;
-    placementLocation.area  = sessionLocation->area;
-    placementLocation.room  = sessionLocation->room;
-    viewId                  = gGameSession->location.loc.view;
-    placementIndex          = placementKey >> ENEMY_PLACE_INDEX_SHIFT;
-    placementLocation.view  = viewId;
-    areaSyncLocationVariant(&placementLocation);
-    placement                        = gpAreaPlaceAt(areaGetVariant(&placementLocation)->placements, placementIndex);
-    attachedModel->texturePageOffset = placement->texturePageOffset;
-    attachedModel->clutRowOffset     = placement->clutRowOffset;
-    if (attachedModel->buffer != NULL) {
-        tmdBuildBufferHalf(attachedModel);
-        tmdBuildBufferHalf(attachedModel);
-    }
-}
-
 /// Creates Pierce Carradine's scripted body, attached models and collision sphere.
 ///
 /// Requires a live twenty-part TMD and owning Enemy in `spawnArg2.pointer`.
@@ -1250,12 +1215,12 @@ static void _actor113100SpawnPierceCarradine(Task* task)
 
     attachedTask2 = taskSpawnFromTable(D_actor_113100_80144308, ACTOR_113100_ATTACHED_CHILD_2, ACTOR_113100_CHILD_2_PARENT_PART, task);
     if (attachedTask2 != NULL) {
-        _actor113100BindChildPlacementTextures(task, attachedTask2);
+        _actorRenderApplyTaskPlacementTextureOffsets(attachedTask2, task->spawnArg2.pointer);
     }
 
     attachedTask3 = taskSpawnFromTable(D_actor_113100_80144308, ACTOR_113100_ATTACHED_CHILD_3, ACTOR_113100_CHILD_3_PARENT_PART, task);
     if (attachedTask3 != NULL) {
-        _actor113100BindChildPlacementTextures(task, attachedTask3);
+        _actorRenderApplyTaskPlacementTextureOffsets(attachedTask3, task->spawnArg2.pointer);
     }
 
     _actor113100BindLighting(task);
@@ -1311,11 +1276,11 @@ static inline void _actor113100StepHeadAimWeight(_Actor113100PierceCarradineWork
            ACTOR_113100_HEAD_WEIGHT_FULL  = ONE,
            ACTOR_113100_HEAD_RAMP_RELEASE = 0,
            ACTOR_113100_HEAD_RAMP_AIM     = 1 };
-    s8  turnDirection;
+    s8  rampSelector;
     s16 steppedWeight;
 
-    turnDirection = (s8)work->turnUp;
-    switch (turnDirection) {
+    rampSelector = (s8)work->turnUp;
+    switch (rampSelector) {
         case ACTOR_113100_HEAD_RAMP_RELEASE:
             steppedWeight    = work->turnWeight - ACTOR_113100_HEAD_WEIGHT_STEP;
             work->turnWeight = steppedWeight;

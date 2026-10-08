@@ -1382,14 +1382,14 @@ static inline void _actor121300RestartMarkTracks(Task* task)
         ACTOR_121300_MARK_CLIP = 1,
     };
 
-    _Actor121300AyaBreaWork* slotsWork;
+    _Actor121300AyaBreaWork* work;
     s32                      slotIndex;
 
-    slotsWork          = task->work;
-    slotsWork->animSet = ACTOR_121300_MARK_CLIP;
-    for (slotIndex = 1; (u16)slotIndex < ARRAY_SIZE(slotsWork->rig.slots); slotIndex++) {
-        slotsWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&slotsWork->rig.anim, (u16)slotIndex, ACTOR_121300_MARK_CLIP);
+    work          = task->work;
+    work->animSet = ACTOR_121300_MARK_CLIP;
+    for (slotIndex = 1; (u16)slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&work->rig.anim, (u16)slotIndex, ACTOR_121300_MARK_CLIP);
     }
 }
 

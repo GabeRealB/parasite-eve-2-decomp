@@ -125,3 +125,7 @@ _actor105100FireballTask = 0x8013667c; // type:func
 _actor105100TickChargedStrike = 0x80133a14; // type:func
 _actor105100TickPlayerKnockback = 0x80133ce4; // type:func
 _actor105100TakeHits = 0x80132c2c; // type:func
+_actor105100TickActions = 0x80133134; // type:func
+_actor105100Tick = 0x80132aa0; // type:func
+_actor105100Death = 0x80134284; // type:func
+_actor105100FireballTick = 0x80134b00; // type:func

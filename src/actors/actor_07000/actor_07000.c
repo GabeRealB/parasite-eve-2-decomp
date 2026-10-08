@@ -2079,7 +2079,7 @@ static inline void _actor07000SlouchInitHiddenRig(_Actor07000SlouchWork* work, T
 {
     s32 slotIndex;
 
-    animationInitContext(&work->rig.anim, Actor07000_D0D77C, model, work->rig.poses, &work->rig.slots[0]);
+    animationInitContext(&work->rig.anim, Actor07000_D0D77C, model, work->rig.poses, work->rig.slots);
     slotIndex = 1;
     do {
         animationResetSlot(&work->rig.anim, slotIndex, ACTOR_07000_SLOUCH_ANIM_IDLE);

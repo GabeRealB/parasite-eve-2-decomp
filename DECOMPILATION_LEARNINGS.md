@@ -273,7 +273,7 @@ i = 0;
 count = arg1->field_16; /* s16 field, s32 local */
 ```
 
-## Copy a parameter into a local to drop REG_EQUIV live-length doubling (func_actor_105100_80134284, 2026-09-21)
+## Copy a parameter into a local to drop REG_EQUIV live-length doubling (_actor105100Death, 2026-09-21)
 
 `$s3`/`$s4` were swapped between the `Actor105100*` parameter and a `GfxCoord*` loaded from it at the top of the function. Topology already matched; the leftover was global allocation.
 
@@ -41775,7 +41775,7 @@ already uses `work` can flip the pair without emitting a MIPS insn. Put that
 keep-live in the later block, not next to the prologue assignments: a
 prologue `SOFT_USE_REG` is a schedule fence and moves `li a0, 1` past
 `lui %hi(D_801153F4)` (the target wants `lui` then `li`).
-`func_actor_105100_80132AA0` is the example.
+`_actor105100Tick` is the example.
 
 ## `asm("")` instead of a wider temp to keep a `0`/`1` flag branchy
 
@@ -79395,8 +79395,8 @@ must be deleted from the unit's `.c` (otherwise their bytes are emitted twice),
 and the tables belonging to still-`INCLUDE_ASM` functions move out of those
 functions' `.s` into the header `.s` on the next split, which splat does itself.
 
-Verified on `actor_105100`: `func_actor_105100_80133134`'s 8-entry table sits at
-0x3C with `func_actor_105100_80134284`/`_80134B00`'s tables at 0x5C/0x7C, and the
+Verified on `actor_105100`: `_actor105100TickActions`'s 8-entry table sits at
+0x3C with `_actor105100Death`/`_actor105100FireballTick`'s tables at 0x5C/0x7C, and the
 overlay checksums with the unit numbering unchanged.
 
 ## A duplicated body's matched sibling is a whole answer — but `promote` may still refuse it
@@ -138976,7 +138976,7 @@ earlier 71.5% seed were actively wrong once the body around them was rewritten;
 removing them fixed the placement of a `li` and a `$v0`/`$v1` pair twenty
 instructions away.
 
-## `ABS()` is one RTL insn on MIPS, so the abs does not split the basic block (func_actor_105100_80134B00, 2026-09-21)
+## `ABS()` is one RTL insn on MIPS, so the abs does not split the basic block (_actor105100FireballTick, 2026-09-21)
 
 **Symptom.** A clamp of the form "take the step only while the accumulated
 value stays inside a bound" written with an explicit temp:

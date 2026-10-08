@@ -281,18 +281,18 @@ enum { ACTOR_105100_SHIELD_RECOVERY_TICKS = 30 };
 static void _actor105100Task(Task* task);
 static void _actor105100FireballTask(Task* task);
 static void _actor105100Spawn(Enemy* enemy, Task* task);
-static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1);
+static void _actor105100Tick(Enemy* enemy, Task* task);
 static void _actor105100TakeHits(Task* task);
-static void func_actor_105100_80133134(Task* arg0);
+static void _actor105100TickActions(Task* task);
 static void _actor105100Idle(Task* task, Enemy* unusedEnemy);
 static void _actor105100SummonFireballs(Task* task, Enemy* unusedEnemy);
 static void _actor105100SummonBeams(Task* task, Enemy* unusedEnemy);
 static void _actor105100TickChargedStrike(Task* task, Enemy* unusedEnemy);
 static void _actor105100TickPlayerKnockback(Task* task);
 static void _actor105100PlayAnimationSounds(Task* task);
-static void func_actor_105100_80134284(Enemy* arg0, Task* arg1);
+static void _actor105100Death(Enemy* enemy, Task* task);
 static void _actor105100FireballSpawn(Enemy* enemy, Task* task);
-static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1);
+static void _actor105100FireballTick(Enemy* unusedEnemy, Task* task);
 static void _actor105100BeamSpawn(Enemy* enemy, Task* task);
 static void _actor105100BeamTick(Enemy* unusedEnemy, Task* task);
 static void _actor105100BeamMovePair(Task* task);
@@ -361,8 +361,8 @@ extern SVECTOR D_actor_105100_801414E0[];
 static const EnemyTaskFuncTable3 D_actor_105100_80131E24 = {
     {
         _actor105100Spawn,
-        func_actor_105100_80132AA0,
-        func_actor_105100_80134284,
+        _actor105100Tick,
+        _actor105100Death,
     },
 };
 
@@ -1016,67 +1016,76 @@ static void _actor105100Spawn(Enemy* enemy, Task* task)
     task->state            = ACTOR_105100_TASK_UPDATE;
 }
 
-static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
+/// Advances the training-room enemy's reactions, actions and model presentation.
+///
+/// Requires live enemy/model work and the paired room's resources. Paused actors
+/// refresh colour and shadow without aging; hidden actors also withdraw targeting.
+/// Both modes mute character sounds until running resumes. Running ticks process
+/// status and hits before actions, then knockback, animation and uniform Q12 scale.
+static void _actor105100Tick(Enemy* enemy, Task* task)
 {
-    GfxCoord*         coord;
-    TmdObject*        obj;
+    GfxCoord*         rootCoord;
+    TmdObject*        model;
     _Actor105100Work* work;
-    s32               state;
+    s32               actorControl;
 
-    obj   = arg1->extra.tmd;
-    state = gSceneCombatState.actorControl;
-    work  = arg1->work;
-    coord = obj->coords;
-    switch (state) {
-        case 0:
-            obj->flags                   = 0;
-            arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+    model        = task->extra.tmd;
+    actorControl = gSceneCombatState.actorControl;
+    work         = task->work;
+    rootCoord    = model->coords;
+    switch (actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            model->flags                  = 0;
+            enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
             if (work->soundsMuted != 0) {
                 sndEvtRequestScriptUnmute(SOUND_BANK_TYPE_CHARACTER_ALL);
                 work->soundsMuted = 0;
             }
             break;
-        case 1:
-            _actor105100RefreshColor(arg1);
-            _actor105100DrawShadow(arg1);
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _actor105100RefreshColor(task);
+            _actor105100DrawShadow(task);
             if (work->soundsMuted == 0) {
                 sndEvtRequestScriptMute(SOUND_BANK_TYPE_CHARACTER_ALL);
             }
-            work->soundsMuted = state;
+            work->soundsMuted = actorControl;
             return;
-        case 2:
-            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             if (work->soundsMuted == 0) {
                 sndEvtRequestScriptMute(SOUND_BANK_TYPE_CHARACTER_ALL);
             }
-            work->soundsMuted = state;
+            work->soundsMuted = actorControl;
             return;
     }
-    if (arg0->reactionFlags != 0) {
-        _actor105100UpdateStatusReactions(arg1);
+    // Reactions may replace the action before its handler runs this tick.
+    if (enemy->reactionFlags != 0) {
+        _actor105100UpdateStatusReactions(task);
     }
-    _actor105100TakeHits(arg1);
-    func_actor_105100_80133134(arg1);
+    _actor105100TakeHits(task);
+    _actor105100TickActions(task);
     if (work->knockbackActive != 0) {
-        _actor105100TickPlayerKnockback(arg1);
+        _actor105100TickPlayerKnockback(task);
     }
-    _actor105100UpdateAnimation(arg1);
-    _actor105100PlayAnimationSounds(arg1);
-    _modelPlacementSetScaled(arg1, &work->placementMtx, work->scale, MODEL_PLACEMENT_SCALE_UNIFORM);
+    _actor105100UpdateAnimation(task);
+    _actor105100PlayAnimationSounds(task);
+    _modelPlacementSetScaled(task, &work->placementMtx, work->scale, MODEL_PLACEMENT_SCALE_UNIFORM);
     if (work->shield.fields.active != 0) {
-        shelterB6TrainingRoomSpawnShieldArcs(arg1);
+        shelterB6TrainingRoomSpawnShieldArcs(task);
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    _actor105100RefreshColor(arg1);
-    _actor105100DrawShadow(arg1);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    _actor105100RefreshColor(task);
+    _actor105100DrawShadow(task);
 }
 
-/// Requests retirement of the current summon or charge ring after a hit interruption.
+/// Stops drawing the active summon or charge ring after a hit interruption.
 ///
-/// Borrows live enemy work. The effect task owns its teardown; clearing the saved
-/// handle prevents another request. Strike collision is handled later by the intake.
+/// Borrows live enemy work and a live effect task when the handle is non-NULL.
+/// State 4 releases a summon ring, but leaves a charge ring dormant until room
+/// cancellation. Drops the saved handle; the effect retains ownership of its work.
+/// The hit intake disables strike collision separately.
 static inline void _actor105100StopHitRing(_Actor105100Work* work)
 {
     enum { ACTOR_105100_HIT_RING_STOP_STATE = 4 };
@@ -1247,63 +1256,61 @@ static void _actor105100TakeHits(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor105100HitScratch);
 }
 
-/// The enemy's action dispatcher, run every frame. Bit 3 of
-/// `gSceneCombatState.pairedEnemySignals` is a reset request: it is cleared
-/// here and the actor is put in `ACTION_STAGGER` with its shield down.
+/// Dispatches the current action and services paired healing and shield recovery.
 ///
-/// `ACTION_DEFEATED` hands the task to its death state, so it falls straight
-/// through to the tail, as does an action outside the enumeration. The tail
-/// answers the paired enemy's heal (`SCENE_COMBAT_PAIRED_HEAL_READY`) and
-/// steps `shield.fields.cooldown` down while it is positive. `ACTION_IDLE`
-/// also raises the heal request once the HP drops under the cap in
-/// `D_actor_105100_80141398.hpMax`.
-static void func_actor_105100_80133134(Task* arg0)
+/// Requires live work and the owning Enemy in spawnArg2.pointer. A paired reset
+/// starts stagger with the shield down. Idle requests healing below maximum HP;
+/// readiness applies the partner's heal after the action, even when that action
+/// selects death or is outside the action enumeration. Positive shield cooldown
+/// counts down once per call. The caller supplies the actor freeze gate.
+static void _actor105100TickActions(Task* task)
 {
     _Actor105100Work* work;
-    Enemy*            ctx;
-    s16               state;
+    Enemy*            enemy;
+    s16               action;
 
-    work = arg0->work;
-    ctx  = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (gSceneCombatState.pairedEnemySignals & SCENE_COMBAT_PAIRED_RESET_REQUEST) {
         gSceneCombatState.pairedEnemySignals &= (0xFF ^ SCENE_COMBAT_PAIRED_RESET_REQUEST);
         work->action                          = ACTOR_105100_ACTION_STAGGER;
         work->actionStep                      = 0;
         work->shield.fields.active            = 0;
     }
-    state = work->action;
-    switch (state) {
+    action = work->action;
+    switch (action) {
         case ACTOR_105100_ACTION_IDLE:
-            if (ctx->hp < (s32)D_actor_105100_80141398.hpMax) {
+            if (enemy->hp < (s32)D_actor_105100_80141398.hpMax) {
                 gSceneCombatState.pairedEnemySignals |= SCENE_COMBAT_PAIRED_HEAL_REQUEST;
             }
-            _actor105100Idle(arg0, ctx);
+            _actor105100Idle(task, enemy);
             break;
         case ACTOR_105100_ACTION_FIREBALLS:
-            _actor105100SummonFireballs(arg0, ctx);
+            _actor105100SummonFireballs(task, enemy);
             break;
         case ACTOR_105100_ACTION_BEAMS:
-            _actor105100SummonBeams(arg0, ctx);
+            _actor105100SummonBeams(task, enemy);
             break;
         case ACTOR_105100_ACTION_CHARGE:
-            _actor105100TickChargedStrike(arg0, ctx);
+            _actor105100TickChargedStrike(task, enemy);
             break;
         case ACTOR_105100_ACTION_RAISE_SHIELD:
-            _actor105100RaiseShield(arg0);
+            _actor105100RaiseShield(task);
             break;
         case ACTOR_105100_ACTION_BUILDUP:
-            _actor105100Buildup(arg0);
+            _actor105100Buildup(task);
             break;
         case ACTOR_105100_ACTION_STAGGER:
-            _actor105100Stagger(arg0);
+            _actor105100Stagger(task);
             break;
         case ACTOR_105100_ACTION_DEFEATED:
-            _actor105100Defeated(arg0);
+            _actor105100Defeated(task);
         default:
             break;
     }
+    // The partner's reply and shield recovery run after every action selection.
     if (gSceneCombatState.pairedEnemySignals & SCENE_COMBAT_PAIRED_HEAL_READY) {
-        _actor105100ApplyPartnerHealing(arg0);
+        _actor105100ApplyPartnerHealing(task);
     }
     if (work->shield.fields.cooldown > 0) {
         work->shield.fields.cooldown--;
@@ -1920,112 +1927,151 @@ static inline void _actor105100UpdateColor(Task* task)
     worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0);
 }
 
-/// Teardown handler in `D_actor_105100_80131E24`. Mode 1 of `gSceneCombatState.actorControl` only
-/// refreshes the actor colour; mode 2 hides the model and returns. Otherwise it
-/// walks `actionStep`: unlink the collision bodies, wait out the fade delay,
-/// play the death animation and send the room its actor event, shrink the
-/// model's height, then destroy the enemy. A knockback in progress keeps
-/// running throughout.
-static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
+/// Withdraws the dying enemy's target, hit intake and three registered bodies.
+///
+/// Requires live enemy/work with linked bodies. Keeps work allocated for the
+/// remaining death animation and shrink sequence.
+static inline void _actor105100WithdrawDeathCollision(Enemy* enemy, _Actor105100Work* work)
 {
-    SVECTOR           dir;
-    Task*             actor;
-    TmdObject*        obj;
-    _Actor105100Work* work;
-    GfxCoord*         coord;
-    Task*             player;
-    s32               snd;
-    s16               flag;
+    enemy->recs = NULL;
+    worldTargetUnlinkNode(&enemy->node);
+    worldCollisionUnlinkBody(&work->hitBody);
+    worldCollisionUnlinkBody(&work->touchBody);
+    worldCollisionUnlinkBody(&work->strikeBody);
+}
 
-    actor  = arg1;
-    obj    = actor->extra.tmd;
-    work   = actor->work;
-    coord  = obj->coords;
-    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+/// Runs the enemy's collision withdrawal, death animation, burn and height collapse.
+///
+/// Requires live enemy/model work; starts with actionStep zero. Paused actors
+/// refresh colour, hidden actors hide the model, and neither ages the sequence.
+/// Running ticks continue any player knockback. Releases battle ownership after
+/// 31 ticks, then waits for the death animation and a room notification outside
+/// scripted player control, the attachment wheel and display transitions.
+/// Height uses Q12 scale over the captured root matrix; teardown follows 60
+/// shrink ticks. The corpse-burn effect copies its stack offset synchronously.
+static void _actor105100Death(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_105100_DEATH_BEGIN               = 0,
+        ACTOR_105100_DEATH_FADE_DELAY          = 1,
+        ACTOR_105100_DEATH_ANIMATION           = 2,
+        ACTOR_105100_DEATH_SHRINK              = 3,
+        ACTOR_105100_DEATH_DESTROY             = 4,
+        ACTOR_105100_DEATH_SEMI_TRANS_TICK     = 10,
+        ACTOR_105100_DEATH_FADE_TICKS          = 31,
+        ACTOR_105100_DEATH_RELEASE_ARGUMENT    = 0x33,
+        ACTOR_105100_DEATH_FIRST_CUE_FRAME     = 11,
+        ACTOR_105100_DEATH_SECOND_CUE_FRAME    = 40,
+        ACTOR_105100_DEATH_BURN_FRAME          = 54,
+        ACTOR_105100_DEATH_FIRST_SOUND         = SOUND_CHARACTER(0x33, 14),
+        ACTOR_105100_DEATH_SECOND_SOUND        = SOUND_CHARACTER(0x33, 3),
+        ACTOR_105100_DEATH_FIRST_RUMBLE_TICKS  = 10,
+        ACTOR_105100_DEATH_SECOND_RUMBLE_TICKS = 15,
+        ACTOR_105100_DEATH_RUMBLE_START        = 255,
+        ACTOR_105100_DEATH_FIRST_RUMBLE_END    = 64,
+        ACTOR_105100_DEATH_SECOND_RUMBLE_END   = 128,
+        ACTOR_105100_DEATH_BURN_PART           = 3,
+        ACTOR_105100_DEATH_BURN_BURSTS         = 5,
+        ACTOR_105100_DEATH_BURN_OFFSET_Z       = 150,
+        ACTOR_105100_DEATH_SHRINK_THRESHOLD    = ONE / 8,
+        ACTOR_105100_DEATH_Y_SCALE_STEP        = 80,
+        ACTOR_105100_DEATH_SHRINK_TICKS        = 60
+    };
+    SVECTOR           burnOffset;
+    Task*             deathTask;
+    TmdObject*        model;
+    _Actor105100Work* work;
+    GfxCoord*         rootCoord;
+    Task*             playerTask;
+    s32               soundId;
+    s16               deathEventPending;
+
+    deathTask  = task;
+    model      = deathTask->extra.tmd;
+    work       = deathTask->work;
+    rootCoord  = model->coords;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (gSceneCombatState.actorControl) {
-        case 1:
-            _actor105100UpdateColor(actor);
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _actor105100UpdateColor(deathTask);
             return;
-        case 2:
-            actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            deathTask->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             break;
     }
     if (work->knockbackActive != 0) {
-        _actor105100TickPlayerKnockback(actor);
+        _actor105100TickPlayerKnockback(deathTask);
     }
     switch (work->actionStep) {
-        case 0:
+        case ACTOR_105100_DEATH_BEGIN:
             work->anim         = ACTOR_105100_ANIM_IDLE;
-            work->scale        = 0x1000;
-            work->placementMtx = coord->coord;
-            arg0->recs         = 0;
-            worldTargetUnlinkNode(&arg0->node);
-            worldCollisionUnlinkBody(&work->hitBody);
-            worldCollisionUnlinkBody(&work->touchBody);
-            worldCollisionUnlinkBody(&work->strikeBody);
-            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
+            work->scale        = ONE;
+            work->placementMtx = rootCoord->coord;
+            _actor105100WithdrawDeathCollision(enemy, work);
+            worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
             work->timer      = 0;
-            work->actionStep = 1;
-            _actor105100UpdateColor(actor);
+            work->actionStep = ACTOR_105100_DEATH_FADE_DELAY;
+            _actor105100UpdateColor(deathTask);
             return;
-        case 1:
-            if (++work->timer == 0xA) {
-                obj->flags = (u16)obj->flags | TMD_OBJECT_SEMI_TRANS;
+        case ACTOR_105100_DEATH_FADE_DELAY:
+            if (++work->timer == ACTOR_105100_DEATH_SEMI_TRANS_TICK) {
+                model->flags = model->flags | TMD_OBJECT_SEMI_TRANS;
             }
-            if (work->timer >= 0x1F) {
+            if (work->timer >= ACTOR_105100_DEATH_FADE_TICKS) {
                 work->anim       = ACTOR_105100_ANIM_DIE;
-                work->actionStep = 2;
-                sceneReleaseBattleRefWithRewards(actor, 0x33);
+                work->actionStep = ACTOR_105100_DEATH_ANIMATION;
+                // The retained actor argument is ignored; rewards come from EnemyParams.
+                sceneReleaseBattleRefWithRewards(deathTask, ACTOR_105100_DEATH_RELEASE_ARGUMENT);
                 work->deathEventPending = 1;
             }
-            _actor105100AnimUpdate(actor);
-            _actor105100UpdateColor(actor);
+            _actor105100AnimUpdate(deathTask);
+            _actor105100UpdateColor(deathTask);
             return;
-        case 2:
-            flag = work->deathEventPending;
-            if ((flag == 1) && (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.mode != flag) &&
+        case ACTOR_105100_DEATH_ANIMATION:
+            deathEventPending = work->deathEventPending;
+            if ((deathEventPending == 1) && (((GameActor*)playerTask->work)->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) &&
                 (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
                 work->deathEventPending = 0;
             }
-            if (work->animFrame == 0xB) {
-                snd = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000E;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x40);
+            if (work->animFrame == ACTOR_105100_DEATH_FIRST_CUE_FRAME) {
+                soundId = ((((Enemy*)deathTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_105100_DEATH_FIRST_SOUND;
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
+                padScriptSpawnVariableMotorRamp(ACTOR_105100_DEATH_FIRST_RUMBLE_TICKS, ACTOR_105100_DEATH_RUMBLE_START, ACTOR_105100_DEATH_FIRST_RUMBLE_END);
             }
-            if (work->animFrame == 0x28) {
-                snd = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330003;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                padScriptSpawnVariableMotorRamp(0xF, 0xFF, 0x80);
+            if (work->animFrame == ACTOR_105100_DEATH_SECOND_CUE_FRAME) {
+                soundId = ((((Enemy*)deathTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_105100_DEATH_SECOND_SOUND;
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
+                padScriptSpawnVariableMotorRamp(ACTOR_105100_DEATH_SECOND_RUMBLE_TICKS, ACTOR_105100_DEATH_RUMBLE_START, ACTOR_105100_DEATH_SECOND_RUMBLE_END);
             }
-            if (work->animFrame == 0x36) {
-                dir.vx = 0;
-                dir.vy = 0;
-                dir.vz = 0x96;
-                effectSpawn(EFFECT_CORPSE_BURN, &actor->extra.tmd->coords[3], 5, &dir);
+            if (work->animFrame == ACTOR_105100_DEATH_BURN_FRAME) {
+                burnOffset.vx = 0;
+                burnOffset.vy = 0;
+                burnOffset.vz = ACTOR_105100_DEATH_BURN_OFFSET_Z;
+                effectSpawn(EFFECT_CORPSE_BURN, &deathTask->extra.tmd->coords[ACTOR_105100_DEATH_BURN_PART], ACTOR_105100_DEATH_BURN_BURSTS, &burnOffset);
                 work->timer = 0;
             }
-            if ((work->animFrame >= 0x36) && (work->deathEventPending == 0)) {
-                work->actionStep = 3;
+            if ((work->animFrame >= ACTOR_105100_DEATH_BURN_FRAME) && (work->deathEventPending == 0)) {
+                work->actionStep = ACTOR_105100_DEATH_SHRINK;
             }
-            _actor105100AnimUpdate(actor);
-            _actor105100UpdateColor(actor);
+            _actor105100AnimUpdate(deathTask);
+            _actor105100UpdateColor(deathTask);
             return;
-        case 3:
-            if (work->scale >= 0x201) {
-                work->scale -= 0x50;
+        case ACTOR_105100_DEATH_SHRINK:
+            if (work->scale >= ACTOR_105100_DEATH_SHRINK_THRESHOLD + 1) {
+                work->scale -= ACTOR_105100_DEATH_Y_SCALE_STEP;
             }
-            _modelPlacementSetScaled(actor, &work->placementMtx, work->scale, MODEL_PLACEMENT_SCALE_Y_ONLY);
-            if (++work->timer >= 0x3C) {
-                work->actionStep = 4;
+            _modelPlacementSetScaled(deathTask, &work->placementMtx, work->scale, MODEL_PLACEMENT_SCALE_Y_ONLY);
+            if (++work->timer >= ACTOR_105100_DEATH_SHRINK_TICKS) {
+                work->actionStep = ACTOR_105100_DEATH_DESTROY;
             }
-            _actor105100UpdateColor(actor);
+            _actor105100UpdateColor(deathTask);
             return;
-        case 4:
-            enemyDestroy(arg0, actor);
+        case ACTOR_105100_DEATH_DESTROY:
+            enemyDestroy(enemy, deathTask);
             return;
     }
 }
@@ -2155,93 +2201,121 @@ static void _actor105100FireballSpawn(Enemy* enemy, Task* task)
 static const EnemyTaskFuncTable3 D_actor_105100_80131E90 = {
     {
         _actor105100FireballSpawn,
-        func_actor_105100_80134B00,
+        _actor105100FireballTick,
         _actor105100FireballDestroy,
     },
 };
 
-/// Per-frame handler of the glowing projectile this overlay spawns as its
-/// second enemy task, the middle entry of `D_actor_105100_80131E90`. Mode 1 of
-/// `gSceneCombatState.actorControl` only redraws the billboard and mode 2 skips the frame.
+/// Doubles a fireball's halfword speed, caps it and moves along local +Z.
 ///
-/// `_Actor105100FireballWork::step` takes the fireball through its life. In
-/// the hover it drifts by a random step on each axis, held near where it
-/// appeared, and watches the parent's `summonPhase`: with the summon broken
-/// off the task ends, and once the summon launches its fireballs each counts
-/// down its own delay. The launch tips the fireball a little further every
-/// tick while it picks up speed, the aim turns it onto the player, and the
-/// flight carries it straight on, with its two collision bodies armed once it
-/// is under 4000 units up. A contact or the end of the flight's time turns it
-/// into the burst: the sphere is re-keyed and widened, the burst's effect and
-/// sound are started, and the task ends when the burst's time is up.
-static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
+/// Borrows live work and coordinate; maximumSpeed is 50 or 300 game units per
+/// update. Matrix direction coefficients use Q12; narrowing precedes the cap.
+static inline void _actor105100AdvanceFireball(_Actor105100FireballWork* work, GfxCoord* coord, s32 maximumSpeed)
 {
+    work->speed += work->speed;
+    if (work->speed >= maximumSpeed + 1) {
+        work->speed = maximumSpeed;
+    }
+    coord->coord.t[0] += (coord->coord.m[0][2] * work->speed) >> ACTOR_105100_DIRECTION_SHIFT;
+    coord->coord.t[1] += (coord->coord.m[1][2] * work->speed) >> ACTOR_105100_DIRECTION_SHIFT;
+    coord->coord.t[2] += (coord->coord.m[2][2] * work->speed) >> ACTOR_105100_DIRECTION_SHIFT;
+}
+
+/// Steps a summoned fireball through hover, launch, player aim, flight and burst.
+///
+/// Requires live fireball work, a single-coordinate body and the parent's live
+/// summon work. Paused actors redraw the glow without aging; hidden actors return.
+/// Hover stays strictly within 500 units per axis of the spawn point and reads
+/// the parent's release/cancel signal. Launch lasts 16 ticks, aiming 3, flight at
+/// most 26 and burst 30. Pair/grid collision arms when local Y > -4000.
+/// Speed is game units per update; launch pitch uses 4096 angle units per turn.
+/// Scratch storage is released before return. `unusedEnemy` preserves EnemyTaskFunc.
+static void _actor105100FireballTick(Enemy* unusedEnemy, Task* task)
+{
+    enum {
+        ACTOR_105100_FIREBALL_HOVER_STEP_MASK         = 63,
+        ACTOR_105100_FIREBALL_HOVER_POSITIVE_BIT      = 64,
+        ACTOR_105100_FIREBALL_HOVER_LIMIT             = 500,
+        ACTOR_105100_FIREBALL_LAUNCH_PITCH            = 32,
+        ACTOR_105100_FIREBALL_LAUNCH_SPEED            = 50,
+        ACTOR_105100_FIREBALL_FLIGHT_SPEED            = 300,
+        ACTOR_105100_FIREBALL_LAUNCH_TICKS            = 16,
+        ACTOR_105100_FIREBALL_AIM_TICKS               = 3,
+        ACTOR_105100_FIREBALL_FLIGHT_SOUND_TICK       = 4,
+        ACTOR_105100_FIREBALL_COLLISION_MIN_Y         = -3999,
+        ACTOR_105100_FIREBALL_FLIGHT_TICKS            = 26,
+        ACTOR_105100_FIREBALL_BURST_ATTACK            = 1,
+        ACTOR_105100_FIREBALL_BURST_RADIUS            = 500,
+        ACTOR_105100_FIREBALL_BURST_TICKS             = 30,
+        ACTOR_105100_FIREBALL_BURST_DISARM_TICKS_LEFT = 20,
+        ACTOR_105100_FIREBALL_FLIGHT_SOUND            = SOUND_CHARACTER(0x33, 5),
+        ACTOR_105100_FIREBALL_BURST_SOUND             = SOUND_CHARACTER(0x33, 6)
+    };
     _Actor105100FireballWork*    work;
     _Actor105100Work*            parentWork;
     GfxCoord*                    coord;
     _Actor105100FireballScratch* scratch;
-    u32                          rng;
-    u32                          hi;
-    s32                          val;
-    s32                          snd;
+    u32                          randomState;
+    u32                          randomDraw;
+    s32                          hoverStep;
+    s32                          soundId;
 
-    work       = arg1->work;
-    coord      = arg1->extra.tmd->coords;
-    parentWork = (arg1->parent)->work;
+    work       = task->work;
+    coord      = task->extra.coordBody->coord;
+    parentWork = (task->parent)->work;
     switch (gSceneCombatState.actorControl) {
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             _fireballDrawGlow(coord, work->glowSize);
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             break;
     }
-    SCRATCH_STACK_RESERVE_BLOCK(_Actor105100FireballScratch);
-    scratch = SCRATCH_STACK_CURSOR(_Actor105100FireballScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor105100FireballScratch);
     switch (work->step) {
         case ACTOR_105100_FIREBALL_HOVER:
             // Take a step of up to 63 units either way on each axis, unless it
             // would carry the fireball 500 units from where it appeared.
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            hi              = rng >> 16;
-            val             = hi & 0x3F;
-            gRandomLcgState = rng;
-            if (!(hi & 0x40)) {
-                val = -val;
+            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomDraw      = randomState >> 16;
+            hoverStep       = randomDraw & ACTOR_105100_FIREBALL_HOVER_STEP_MASK;
+            gRandomLcgState = randomState;
+            if (!(randomDraw & ACTOR_105100_FIREBALL_HOVER_POSITIVE_BIT)) {
+                hoverStep = -hoverStep;
             }
-            scratch->operand.vx = val;
-            if (ABS(work->hoverOffset.vx + (s16)val) < 0x1F4) {
-                work->hoverOffset.vx += val;
+            scratch->operand.vx = hoverStep;
+            if (ABS(work->hoverOffset.vx + (s16)hoverStep) < ACTOR_105100_FIREBALL_HOVER_LIMIT) {
+                work->hoverOffset.vx += hoverStep;
                 coord->coord.t[0]    += scratch->operand.vx;
             }
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            hi              = rng >> 16;
-            val             = hi & 0x3F;
-            gRandomLcgState = rng;
-            if (!(hi & 0x40)) {
-                val = -val;
+            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomDraw      = randomState >> 16;
+            hoverStep       = randomDraw & ACTOR_105100_FIREBALL_HOVER_STEP_MASK;
+            gRandomLcgState = randomState;
+            if (!(randomDraw & ACTOR_105100_FIREBALL_HOVER_POSITIVE_BIT)) {
+                hoverStep = -hoverStep;
             }
-            scratch->operand.vy = val;
-            if (ABS(work->hoverOffset.vy + (s16)val) < 0x1F4) {
-                work->hoverOffset.vy += val;
+            scratch->operand.vy = hoverStep;
+            if (ABS(work->hoverOffset.vy + (s16)hoverStep) < ACTOR_105100_FIREBALL_HOVER_LIMIT) {
+                work->hoverOffset.vy += hoverStep;
                 coord->coord.t[1]    += scratch->operand.vy;
             }
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            hi              = rng >> 16;
-            val             = hi & 0x3F;
-            gRandomLcgState = rng;
-            if (!(hi & 0x40)) {
-                val = -val;
+            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomDraw      = randomState >> 16;
+            hoverStep       = randomDraw & ACTOR_105100_FIREBALL_HOVER_STEP_MASK;
+            gRandomLcgState = randomState;
+            if (!(randomDraw & ACTOR_105100_FIREBALL_HOVER_POSITIVE_BIT)) {
+                hoverStep = -hoverStep;
             }
-            scratch->operand.vz = val;
-            if (ABS(work->hoverOffset.vz + (s16)val) < 0x1F4) {
-                work->hoverOffset.vz += val;
+            scratch->operand.vz = hoverStep;
+            if (ABS(work->hoverOffset.vz + (s16)hoverStep) < ACTOR_105100_FIREBALL_HOVER_LIMIT) {
+                work->hoverOffset.vz += hoverStep;
                 coord->coord.t[2]    += scratch->operand.vz;
             }
             if (parentWork->summonPhase == ACTOR_105100_SUMMON_NONE) {
-                arg1->state = 2;
+                task->state = ACTOR_105100_TASK_TEARDOWN;
             }
             if (parentWork->summonPhase == ACTOR_105100_SUMMON_FIREBALLS_LAUNCH) {
                 if (--work->timer <= 0) {
@@ -2257,7 +2331,7 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
         case ACTOR_105100_FIREBALL_LAUNCH:
             // Turn the coordinate about its own X: its rotation times the
             // tick's turn, a column at a time.
-            scratch->operand.vx = 0x20;
+            scratch->operand.vx = ACTOR_105100_FIREBALL_LAUNCH_PITCH;
             scratch->operand.vy = 0;
             scratch->operand.vz = 0;
             RotMatrix(&scratch->operand, &scratch->rotation);
@@ -2271,14 +2345,8 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
             gte_ldclmv(&scratch->rotation.m[0][2]);
             gte_rtir();
             gte_stclmv(&coord->coord.m[0][2]);
-            work->speed += work->speed;
-            if (work->speed >= 0x33) {
-                work->speed = 0x32;
-            }
-            coord->coord.t[0] += (coord->coord.m[0][2] * work->speed) >> 12;
-            coord->coord.t[1] += (coord->coord.m[1][2] * work->speed) >> 12;
-            coord->coord.t[2] += (coord->coord.m[2][2] * work->speed) >> 12;
-            if (++work->timer >= 0x10) {
+            _actor105100AdvanceFireball(work, coord, ACTOR_105100_FIREBALL_LAUNCH_SPEED);
+            if (++work->timer >= ACTOR_105100_FIREBALL_LAUNCH_TICKS) {
                 work->step  = ACTOR_105100_FIREBALL_AIM;
                 work->timer = 0;
             }
@@ -2287,7 +2355,7 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
             _fireballDrawGlow(coord, work->glowSize);
             break;
         case ACTOR_105100_FIREBALL_AIM:
-            if (++work->timer >= 3) {
+            if (++work->timer >= ACTOR_105100_FIREBALL_AIM_TICKS) {
                 scratch->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
                 scratch->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
                 scratch->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
@@ -2301,43 +2369,37 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
             _fireballDrawGlow(coord, work->glowSize);
             break;
         case ACTOR_105100_FIREBALL_FLY:
-            if (++work->timer == 4) {
-                snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330005;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            if (++work->timer == ACTOR_105100_FIREBALL_FLIGHT_SOUND_TICK) {
+                soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_105100_FIREBALL_FLIGHT_SOUND;
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            if (coord->coord.t[1] >= -0xF9F) {
+            if (coord->coord.t[1] >= ACTOR_105100_FIREBALL_COLLISION_MIN_Y) {
                 work->body.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->sweepBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             }
-            work->speed += work->speed;
-            if (work->speed >= 0x12D) {
-                work->speed = 0x12C;
-            }
-            coord->coord.t[0]  += (coord->coord.m[0][2] * work->speed) >> 12;
-            coord->coord.t[1]  += (coord->coord.m[1][2] * work->speed) >> 12;
-            coord->coord.t[2]  += (coord->coord.m[2][2] * work->speed) >> 12;
+            _actor105100AdvanceFireball(work, coord, ACTOR_105100_FIREBALL_FLIGHT_SPEED);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             _fireballDrawGlow(coord, work->glowSize);
-            if (work->contacts[0].key.value != 0 || work->timer >= 0x1A) {
+            if (work->contacts[0].key.value != 0 || work->timer >= ACTOR_105100_FIREBALL_FLIGHT_TICKS) {
                 // Become the burst: stop sweeping the room and carry the burst's attack.
                 work->sweepBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                 worldCollisionClearContacts(work->contacts);
-                work->body.key    = damagePackAttackKey(D_actor_105100_80141380, 1);
-                work->body.radius = 0x1F4;
-                work->timer       = 0x1E;
+                work->body.key    = damagePackAttackKey(D_actor_105100_80141380, ACTOR_105100_FIREBALL_BURST_ATTACK);
+                work->body.radius = ACTOR_105100_FIREBALL_BURST_RADIUS;
+                work->timer       = ACTOR_105100_FIREBALL_BURST_TICKS;
                 work->step        = ACTOR_105100_FIREBALL_BURST;
                 effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_ORANGE_BURST, coord, 0, NULL);
-                snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330006;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_105100_FIREBALL_BURST_SOUND;
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
         case ACTOR_105100_FIREBALL_BURST:
-            if (work->timer == 0x14) {
+            if (work->timer == ACTOR_105100_FIREBALL_BURST_DISARM_TICKS_LEFT) {
                 work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             if (--work->timer <= 0) {
-                arg1->state = 2;
+                task->state = ACTOR_105100_TASK_TEARDOWN;
             }
             break;
     }
