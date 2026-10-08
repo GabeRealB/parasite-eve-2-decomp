@@ -5182,12 +5182,12 @@ jump to the *addiu*. `goto advance` jumps to DA8 and drops that `lw`
 return`, and let cross-jumping pick DAC:
 
 ```c
-arg0->killCountdown = 0x1E;
-arg0->state += 1;
+task->killCountdown = 0x1E;
+task->state += 1;
 return;
 ```
 
-`func_replay_bonus_80117A08` case 10 is the example.
+`_replayBonusCreditsTask` case 10 is the example.
 
 ## Two identical calls, not a pointer temp, for if/else string args
 

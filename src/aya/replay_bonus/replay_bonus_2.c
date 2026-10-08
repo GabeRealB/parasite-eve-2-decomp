@@ -83,8 +83,6 @@ static void _replayBonusSelectCreditsResource(s32 dataResourceIndex);
 
 static void _replayBonusStartCreditsPictureTask(Task* task);
 
-void func_replay_bonus_80117A08(Task* arg0);
-
 /// Advances the replay-award panels and the cleared-save confirmation sequence.
 ///
 /// States 2..9 borrow the live UI object in spawn argument 2. A panel result
@@ -400,134 +398,180 @@ static void _replayBonusAwardScreenTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-void func_replay_bonus_80117A08(Task* arg0)
+/// Clears both credits picture pages before any picture is decoded.
+static inline void _replayBonusClearCreditsPictureBuffers(void)
+{
+    RECT pictureRegion;
+
+    pictureRegion.x = REPLAY_BONUS_PICTURE_VRAM_X;
+    pictureRegion.w = REPLAY_BONUS_PICTURE_WIDTH;
+    pictureRegion.y = 0;
+    pictureRegion.h = REPLAY_BONUS_PICTURE_HEIGHT;
+    ClearImage(&pictureRegion, 0, 0, 0);
+    pictureRegion.y = 1 << REPLAY_BONUS_PICTURE_VRAM_Y_SHIFT;
+    ClearImage(&pictureRegion, 0, 0, 0);
+}
+
+/// Plays the ending credits and hands presentation to the replay-award screen.
+///
+/// Starts as a bodyless task in state zero; spawn arguments are unused. Requires
+/// the ending memory layout, a writable STF document with at least one row and
+/// its picture resources, and successful picture-record/VLC allocations. Only
+/// one credits controller may use the shared drawing and decoder state.
+/// Holds before scrolling, advances at the document's 8.8 pixels-per-frame
+/// speed, then holds the last row. Holds use six callbacks per STF timing unit.
+/// Start in the initial hold or scroll requests a 30-tick fade. Normal fades
+/// last 180 ticks; the final fade starts when the countdown decrements to 180.
+/// Drawing runs once per callback while holding or scrolling.
+/// Waits for picture decoding to end before freeing the primary-heap request.
+/// The auxiliary-heap VLC table survives awards until the game restart
+/// reconfigures image memory and rebuilds the heaps. Restores the normal display
+/// over successive callbacks before releasing this task.
+static void _replayBonusCreditsTask(Task* task)
 {
     enum {
-        DISPLAY_SETUP_INTERLACED_640X480 = 0x1141,
+        REPLAY_BONUS_CREDITS_INITIALIZE             = 0,
+        REPLAY_BONUS_CREDITS_WAIT_AUDIO             = 1,
+        REPLAY_BONUS_CREDITS_START_HOLD             = 2,
+        REPLAY_BONUS_CREDITS_SCROLL                 = 10,
+        REPLAY_BONUS_CREDITS_END_HOLD               = 11,
+        REPLAY_BONUS_CREDITS_WAIT_PICTURE           = 20,
+        REPLAY_BONUS_CREDITS_RESTORE_DISPLAY        = 21,
+        REPLAY_BONUS_CREDITS_WAIT_DISPLAY_FIRST     = 22,
+        REPLAY_BONUS_CREDITS_WAIT_DISPLAY_SECOND    = 23,
+        REPLAY_BONUS_CREDITS_START_AWARDS           = 24,
+        REPLAY_BONUS_CREDITS_FINISH                 = 25,
+        REPLAY_BONUS_CREDITS_DISPLAY_SETUP          = 0x1141, // Interlaced 640x480, 16-bit colour
+        REPLAY_BONUS_CREDITS_VIEWPORT_HEIGHT_PIXELS = 480,
+        REPLAY_BONUS_CREDITS_FADE_IN_TASK_INDEX     = 1,
+        REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX    = 2,
+        REPLAY_BONUS_CREDITS_FADE_TICKS             = 180,
+        REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS        = 30,
+        REPLAY_BONUS_CREDITS_SCROLL_FRACTION_BITS   = 8,
+        REPLAY_BONUS_CREDITS_SCROLL_FRACTION_MASK   = 0xFF,
+        REPLAY_BONUS_CREDITS_AUDIO_GROUP            = 0,
+        REPLAY_BONUS_CREDITS_AUDIO_STREAM_ID        = 1,
+        REPLAY_BONUS_CREDITS_AUDIO_SUB_ID           = 11,
     };
 
-    RECT                  rect;
-    s32                   temp_a1;
-    s32                   temp_v1_2;
-    s32                   temp_v1_3;
-    u16*                  temp_v0;
-    u16                   temp_v0_2;
-    u16                   temp_v0_3;
-    u32                   temp_v1;
-    ReplayBonusStfParams* params;
+    s32                   nextScrollY;
+    s32                   scrollFixedPoint;
+    s32                   lastScrollY;
+    u16*                  vlcTable;
+    u16                   startHoldTicksLeft;
+    u16                   endHoldTicksLeft;
+    ReplayBonusStfParams* creditsParams;
 
-    temp_v1 = arg0->state;
-    switch (temp_v1) {
-        case 0:
+    switch (task->state) {
+        case REPLAY_BONUS_CREDITS_INITIALIZE:
+            // Keep both picture pages black until the first decode and fade-in.
             D_replay_bonus_80119226           = 0;
             D_replay_bonus_80119227           = 0;
             D_replay_bonus_801192AC           = 0;
             D_replay_bonus_801192BC           = memCalloc(sizeof(ReplayBonusPictureDecode), false);
-            temp_v0                           = replayBonusCreatePictureVlcTable();
+            vlcTable                          = replayBonusCreatePictureVlcTable();
             D_replay_bonus_80119228           = NULL;
-            D_replay_bonus_80119225           = 0;
-            D_replay_bonus_801192BC->vlcTable = temp_v0;
+            D_replay_bonus_80119225           = REPLAY_BONUS_PICTURE_IDLE;
+            D_replay_bonus_801192BC->vlcTable = vlcTable;
             _replayBonusSelectCreditsResource(0);
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-            SetDispMask(1);
-            displayConfigureFramebuffers(DISPLAY_SETUP_INTERLACED_640X480);
-            rect.x = REPLAY_BONUS_PICTURE_VRAM_X;
-            rect.w = REPLAY_BONUS_PICTURE_WIDTH;
-            rect.y = 0;
-            rect.h = REPLAY_BONUS_PICTURE_HEIGHT;
-            ClearImage(&rect, 0, 0, 0);
-            rect.y = 0x100;
-            ClearImage(&rect, 0, 0, 0);
-            D_replay_bonus_801192A4                 = -0x1E0;
+            SetDispMask(true);
+            displayConfigureFramebuffers(REPLAY_BONUS_CREDITS_DISPLAY_SETUP);
+            _replayBonusClearCreditsPictureBuffers();
+            D_replay_bonus_801192A4                 = -REPLAY_BONUS_CREDITS_VIEWPORT_HEIGHT_PIXELS;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             D_replay_bonus_801192B0                 = 0;
-            arg0->killCountdown                     = D_replay_bonus_80119294->startHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
-            cdCmdSelectScene(0U, 1U, 0xBU);
+            task->killCountdown                     = D_replay_bonus_80119294->startHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
+            cdCmdSelectScene(REPLAY_BONUS_CREDITS_AUDIO_GROUP, REPLAY_BONUS_CREDITS_AUDIO_STREAM_ID, REPLAY_BONUS_CREDITS_AUDIO_SUB_ID);
             cdCmdEnqueueSceneAudioStart();
-            arg0->state += 1;
+            task->state += 1;
             return;
-        case 1:
-            if (cdCmdIsIdle() & 0xFFFF) {
+        case REPLAY_BONUS_CREDITS_WAIT_AUDIO:
+            if (cdCmdIsIdle()) {
                 cdCmdEnqueueScenePlayback();
-                arg0->state += 1;
+                task->state += 1;
                 return;
             }
             return;
-        case 2:
+        case REPLAY_BONUS_CREDITS_START_HOLD:
             D_replay_bonus_801192B0 += 1;
             _replayBonusDrawCreditsFrame();
-            temp_v0_2           = arg0->killCountdown - 1;
-            arg0->killCountdown = temp_v0_2;
-            if ((temp_v0_2 << 0x10) <= 0) {
-                taskSpawnFromTable(D_replay_bonus_8011922C, 1, 0xB4, 0);
-                arg0->state = 0xA;
+            startHoldTicksLeft  = task->killCountdown - 1;
+            task->killCountdown = startHoldTicksLeft;
+            if ((s16)startHoldTicksLeft <= 0) {
+                taskSpawnFromTable(D_replay_bonus_8011922C, REPLAY_BONUS_CREDITS_FADE_IN_TASK_INDEX, REPLAY_BONUS_CREDITS_FADE_TICKS, 0);
+                task->state = REPLAY_BONUS_CREDITS_SCROLL;
             }
             if (padIsStartPressed() != 0) {
-                taskSpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
+                taskSpawnFromTable(D_replay_bonus_8011922C, REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX, REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS, 0);
                 cdCmdCancelScene();
-                arg0->state         = 0xB;
-                arg0->killCountdown = 0x1E;
+                task->state         = REPLAY_BONUS_CREDITS_END_HOLD;
+                task->killCountdown = REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS;
                 return;
             }
             break;
-        case 10:
+        case REPLAY_BONUS_CREDITS_SCROLL:
             D_replay_bonus_801192B0 += 1;
             _replayBonusDrawCreditsFrame();
-            params                  = D_replay_bonus_80119294;
-            temp_v1_2               = D_replay_bonus_801192A8 + params->scrollSpeed;
-            temp_a1                 = D_replay_bonus_801192A4 + (temp_v1_2 >> 8);
-            D_replay_bonus_801192A8 = temp_v1_2;
-            D_replay_bonus_801192A4 = temp_a1;
-            D_replay_bonus_801192A8 = temp_v1_2 & 0xFF;
-            temp_v1_3               = D_replay_bonus_80119298[D_replay_bonus_801192A0 - 1].y - 0x1E0;
-            if (temp_v1_3 < temp_a1) {
-                D_replay_bonus_801192A4 = temp_v1_3;
-                arg0->state            += 1;
-                arg0->killCountdown     = params->endHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
+            // Carry whole pixels into document Y, retaining the fractional byte.
+            creditsParams           = D_replay_bonus_80119294;
+            scrollFixedPoint        = D_replay_bonus_801192A8 + creditsParams->scrollSpeed;
+            nextScrollY             = D_replay_bonus_801192A4 + (scrollFixedPoint >> REPLAY_BONUS_CREDITS_SCROLL_FRACTION_BITS);
+            D_replay_bonus_801192A8 = scrollFixedPoint;
+            D_replay_bonus_801192A4 = nextScrollY;
+            D_replay_bonus_801192A8 = scrollFixedPoint & REPLAY_BONUS_CREDITS_SCROLL_FRACTION_MASK;
+            lastScrollY             = D_replay_bonus_80119298[D_replay_bonus_801192A0 - 1].y - REPLAY_BONUS_CREDITS_VIEWPORT_HEIGHT_PIXELS;
+            if (lastScrollY < nextScrollY) {
+                D_replay_bonus_801192A4 = lastScrollY;
+                task->state            += 1;
+                task->killCountdown     = creditsParams->endHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
             }
             if (padIsStartPressed() != 0) {
                 cdCmdCancelScene();
-                taskSpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
-                arg0->killCountdown = 0x1E;
-                arg0->state        += 1;
+                taskSpawnFromTable(D_replay_bonus_8011922C, REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX, REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS, 0);
+                task->killCountdown = REPLAY_BONUS_CREDITS_SKIP_FADE_TICKS;
+                task->state        += 1;
                 return;
             }
             break;
-        case 11:
+        case REPLAY_BONUS_CREDITS_END_HOLD:
             D_replay_bonus_801192B0 += 1;
             _replayBonusDrawCreditsFrame();
-            temp_v0_3           = arg0->killCountdown - 1;
-            arg0->killCountdown = temp_v0_3;
-            if ((s16)temp_v0_3 == 0xB4) {
-                taskSpawnFromTable(D_replay_bonus_8011922C, 2, 0xB4, 0);
+            endHoldTicksLeft    = task->killCountdown - 1;
+            task->killCountdown = endHoldTicksLeft;
+            if ((s16)endHoldTicksLeft == REPLAY_BONUS_CREDITS_FADE_TICKS) {
+                taskSpawnFromTable(D_replay_bonus_8011922C, REPLAY_BONUS_CREDITS_FADE_OUT_TASK_INDEX, REPLAY_BONUS_CREDITS_FADE_TICKS, 0);
             }
-            if ((s16)arg0->killCountdown <= 0) {
-                arg0->state = 0x14;
+            if (task->killCountdown <= 0) {
+                task->state = REPLAY_BONUS_CREDITS_WAIT_PICTURE;
                 return;
             }
             break;
-        case 20:
-            if (D_replay_bonus_80119225 != 1) {
-                SetDispMask(0);
-                arg0->state += 1;
+        case REPLAY_BONUS_CREDITS_WAIT_PICTURE:
+            // The request record remains borrowed until the picture worker finishes.
+            if (D_replay_bonus_80119225 != REPLAY_BONUS_PICTURE_DECODING) {
+                SetDispMask(false);
+                task->state += 1;
                 return;
             }
             break;
-        case 21:
+        case REPLAY_BONUS_CREDITS_RESTORE_DISPLAY:
             streamFinishScene();
+            // The separate VLC allocation is retired by the post-awards restart.
             memFree(D_replay_bonus_801192BC);
             displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
-            arg0->state += 1;
+            task->state += 1;
             return;
-        case 24:
+        case REPLAY_BONUS_CREDITS_START_AWARDS:
             endingSpawnReplayAwardScreen();
-        case 22:
-        case 23:
-            arg0->state += 1;
+            // Fall through to the same delayed display handoff as the preceding states.
+        case REPLAY_BONUS_CREDITS_WAIT_DISPLAY_FIRST:
+        case REPLAY_BONUS_CREDITS_WAIT_DISPLAY_SECOND:
+            task->state += 1;
             return;
-        case 25:
-            SetDispMask(1);
-            taskKill(arg0);
+        case REPLAY_BONUS_CREDITS_FINISH:
+            SetDispMask(true);
+            taskKill(task);
             break;
     }
 }
@@ -545,11 +589,18 @@ static void _replayBonusSetCreditsFade(u8 fadeAmount)
 }
 
 /// Selects the next private credits primitive buffer and resets its byte cursor.
+///
+/// The selector must be 0 or 1. Uses one of two 64-KiB arenas immediately after
+/// the normal primitive arena, then toggles the selector for the next call.
+/// The ending memory layout reserves both arenas before the auxiliary heap.
+/// Packets in the selected arena must have finished drawing before reuse;
+/// subsequent row-guide and glyph packets must fit its 64-KiB byte extent.
+/// This only selects existing storage and does not allocate or clear packets.
 static inline void _replayBonusSelectCreditsPrimitiveBuffer(void)
 {
-    enum { REPLAY_BONUS_CREDITS_PRIMITIVE_BUFFER_SHIFT = 16 };
+    enum { REPLAY_BONUS_CREDITS_PRIMITIVE_BUFFER_BYTES = 0x10000 };
     D_replay_bonus_801192B4  = 0;
-    D_replay_bonus_801192C0  = Gpu_PrimHeapBase + Gpu_PrimHeapSize + (D_replay_bonus_80119224 << REPLAY_BONUS_CREDITS_PRIMITIVE_BUFFER_SHIFT);
+    D_replay_bonus_801192C0  = Gpu_PrimHeapBase + Gpu_PrimHeapSize + D_replay_bonus_80119224 * REPLAY_BONUS_CREDITS_PRIMITIVE_BUFFER_BYTES;
     D_replay_bonus_80119224 ^= 1;
 }
 
@@ -1255,7 +1306,7 @@ u8 D_replay_bonus_80119227 = 0;
 Task* D_replay_bonus_80119228 = NULL;
 
 TaskDesc D_replay_bonus_8011922C[4] = {
-    { { { TASK_BODY_NONE, 0x20 } }, func_replay_bonus_80117A08, { NULL } },
+    { { { TASK_BODY_NONE, 0x20 } }, _replayBonusCreditsTask, { NULL } },
     { { { TASK_BODY_NONE, 0x20 } }, _replayBonusFadeCreditsInTask, { NULL } },
     { { { TASK_BODY_NONE, 0x20 } }, _replayBonusFadeCreditsOutTask, { NULL } },
     { { { TASK_BODY_NONE, 0x20 } }, _replayBonusStartCreditsPictureTask, { NULL } },
