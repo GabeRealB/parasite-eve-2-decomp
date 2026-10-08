@@ -866,9 +866,29 @@ void itemMenuPreviewPanelTask(Task* task);
 
 extern char Gp_StrReleasePe[];
 
-void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj);
+/// Draws a weapon's selected consumable and remaining load, and accepts reloading.
+///
+/// `list->currentItemIndex` is 1 for the primary load or 2 for the secondary;
+/// row zero belongs to the equipped weapon. Rows use the pane's last capacity
+/// refresh, so weapon replacement can change saved loads before later rows draw.
+/// Active input publishes that index as the load selector. Normal Confirm opens compatible consumable choices;
+/// destination Confirm loads the selected carried item to capacity, returning
+/// parent focus if incompatible. A zero loaded quantity can retain its item id.
+/// Requires a live equipped weapon, selected source in destination mode, menu
+/// tree and text/GPU resources. Row positions are content-relative pixels.
+void itemMenuDrawWeaponLoadRow(UiList* list, UiObject* object);
 
-void func_800C41A4(UiList* prompt, UiObject* obj);
+/// Draws an armor attachment slot and accepts attachment replacement.
+///
+/// `list->currentItemIndex` is zero-based within the armor's attachment capacity;
+/// carried rows store positions as index + 1. Empty slots open attachment choices,
+/// occupied slots open item commands. Destination Confirm attaches an eligible
+/// selected source, then detaches the prior occupant; no-attachment items return
+/// focus to the inventory parent. For consumables, the count excludes all weapon
+/// loads. Requires a valid live carried range, selected source in destination
+/// mode, menu tree and drawing resources; row coordinates are content-relative
+/// pixels. Saved row pointers borrow storage and may change contents after sorting.
+void itemMenuDrawArmorAttachmentRow(UiList* list, UiObject* object);
 
 /// Drawing modifiers for itemMenuDrawItemIcon; unknown bits are ignored.
 enum {
@@ -975,7 +995,17 @@ void itemMenuArmorSummaryTask(Task* task);
 /// share the panel's ordering-table layer; the result is cleared each draw.
 void itemMenuParasiteEnergySummaryTask(Task* task);
 
-void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1);
+/// Draws a loose carried-item row and accepts commands or a reorder destination.
+///
+/// `list->currentItemIndex` is zero-based among unattached, unequipped carried rows;
+/// the final row invokes Sort. Saved row quantities include loaded consumables,
+/// so the displayed stock subtracts all weapon loads. Active-row Confirm opens
+/// commands in normal mode or moves the selected source to this row in destination
+/// mode. The selected source borrows the live carried table, whose range must fit
+/// its backing; moving rows replaces the contents at retained row addresses.
+/// Requires the current menu tree and text/GPU resources. Row coordinates are
+/// content-relative pixels; no list or object pointer is retained.
+void itemMenuDrawReorderableItemRow(UiList* list, UiObject* object);
 
 /// Sets row counts for carried weapons or their compatible consumable loads.
 ///
@@ -999,7 +1029,16 @@ void itemMenuSetWeaponChoiceRows(UiList* list, s32 consumableItemId);
 /// Requires the live carried range, shared lists and menu drawing resources.
 void itemMenuInventoryPanelTask(Task* task);
 
-void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj);
+/// Draws the equipped-weapon row and accepts weapon replacement.
+///
+/// Used for row zero of the equipped-weapon list; adds a ten-pixel gap before
+/// its load rows. Normal Confirm opens the carried-weapon chooser when another
+/// selection exists, otherwise a notice. Destination Confirm equips a selected
+/// weapon after clearing the previous weapon's removable loads; other source
+/// kinds restore parent focus. The equipped nonzero weapon must have a carried
+/// row, and destination mode requires a live selected source. The list/object,
+/// inventory-pane parent and menu drawing resources must remain live.
+void itemMenuDrawEquippedWeaponRow(UiList* list, UiObject* object);
 
 /// Updates the equipped-weapon and load-slot pane of the item destination menu.
 ///
@@ -1012,7 +1051,18 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj);
 /// tree, shared lists and drawing resources for the task's lifetime.
 void itemMenuWeaponPanelTask(Task* task);
 
-void Gp_ArmorMenuTask(Task* arg0);
+/// Updates the equipped-armor header and its scrolling attachment-slot list.
+///
+/// `task->spawnArg2` is the live UiObject with an inventory-pane parent. State zero
+/// initializes the list, one focuses attachments and two focuses equipped armor.
+/// Up from armor moves to the weapon pane; Right maps unsigned cursor-Y bits to
+/// the inventory's scrolled row and transfers focus. Incoming screen-pixel Y
+/// selects the header or an attachment row. Confirm opens armor choices or equips
+/// a selected armor destination; accepted child dialogs restore focus and may
+/// enter destination selection. The pane hides while item details are open.
+/// Requires the live carried table, parent/weapon panes, shared lists and menu
+/// resources throughout the task; resets the object's result each update.
+void itemMenuArmorPanelTask(Task* task);
 
 /// Three-entry dispatcher table: `itemMenuInitializeCaptionTask`, `_itemMenuUpdatePromptTask`, `itemMenuDispatchCommand`.
 extern const UiObjectTaskFuncTable3 Gp_ItemMenuStates;

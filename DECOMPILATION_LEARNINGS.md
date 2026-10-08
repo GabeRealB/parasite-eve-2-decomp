@@ -26842,7 +26842,7 @@ CSE's `1` into a callee-saved (`li s0, 1`) and skips the second load. The
 - rematerializes each `1` in `$v0` / `$v1` instead of `$sN`
 
 `itemMenuInventoryPanelTask` is the example. The nested if/else stuck at 88% with only the
-flag block different. `itemMenuWeaponPanelTask` and `Gp_ArmorMenuTask` share the same shape.
+flag block different. `itemMenuWeaponPanelTask` and `itemMenuArmorPanelTask` share the same shape.
 
 ## Copy a packed halfword to a temp so `lhu` sits between two stores
 
@@ -35221,7 +35221,7 @@ uiSetPromptText(t, a1v, a1v);
 itemMenuSetPreviewItem(item, 0);
 ```
 
-`Gp_DrawItemOrderRow` is the example.
+`itemMenuDrawReorderableItemRow` is the example.
 
 ## C `lui` of a shifted 16-bit constant fills a branch delay; `asm("lui")` does not
 
@@ -35931,7 +35931,7 @@ asm("" : "+r"(prompt));
 cfg = &gPlayerStatus;
 ```
 
-`Gp_DrawWeaponSlotRow` is the example.
+`itemMenuDrawEquippedWeaponRow` is the example.
 
 ## C `&global` fills a delay-slot `lui`; `volatile` field load keeps the split `%hi`
 
@@ -35948,7 +35948,7 @@ idx   = ((volatile InventoryItemRange*)&gMcSaveData.carriedItems)->firstRow;
 count = scan->rowCount;
 ```
 
-`Gp_DrawWeaponSlotRow` is the example.
+`itemMenuDrawEquippedWeaponRow` is the example.
 
 ## Assign through the pinned dest so `addu v1, v1, v0` / `sh v1`
 
@@ -35964,7 +35964,7 @@ vy    = vy + vx;
 req.y = vy;
 ```
 
-`Gp_DrawWeaponSlotRow` is the example. Same dest-first add as `sum = sum + tmp`
+`itemMenuDrawEquippedWeaponRow` is the example. Same dest-first add as `sum = sum + tmp`
 (`_spriteEmitBatch`).
 
 ## Pin early `$s` locals so args land in `$s2`/`$s3` with a split `la`
@@ -36470,7 +36470,7 @@ Unpinning `menu` was enough: GCC still colored it `$s4` (other long-lived
 values were already pinned to `$s1`/`$s5`/`$s7`) and used `$v0` for `%hi`.
 A dummy `$v0` temp plus `menu = p` coalesced back to `lui s4`.
 
-`Gp_ArmorMenuTask` is the example.
+`itemMenuArmorPanelTask` is the example.
 
 ## A search over a scan window at a fixed global needs no hand-built `%hi/%lo`
 
@@ -65943,8 +65943,8 @@ scheduled to the target's different store order.
 
 ## Keep the source pointer live to preserve a byte-load delay before a table address
 
-`func_800C41A4` reached 98.898% after adapting the matched
-`Gp_DrawWeaponSlotRow2` drawing blocks. Its remaining mismatch was the item
+`itemMenuDrawArmorAttachmentRow` reached 98.898% after adapting the matched
+`itemMenuDrawWeaponLoadRow` drawing blocks. Its remaining mismatch was the item
 descriptor lookup: sched1 moved the descriptor `lui` between the selected-record
 `lw` and its `lbu`, and local allocation reused `$v0` for the byte. The target
 keeps the record pointer in `$v0` through a `nop`, loads the byte into `$v1`,
@@ -142754,7 +142754,7 @@ loop's head - and the outer loop then hoisted only their first steps. With
 both loops written as `for`, the `addPrim` masks were not hoisted either (the
 bigger loop is past the span cut), and the second `scratch->otz` load was
 just `addPrim(&ot[scratch->otz], p)` re-reading after the store to `p->tag`.
-## Unresolved: `move a0,v0; addu a0,a0,v1; addu v0,a1,v0` - a copy accumulated in place while its source is read later as the *second* operand (Gp_ArmorMenuTask, 2026-09-26)
+## Unresolved: `move a0,v0; addu a0,a0,v1; addu v0,a1,v0` - a copy accumulated in place while its source is read later as the *second* operand (itemMenuArmorPanelTask, 2026-09-26)
 
 *Note 2026-10-07:* resolved with no pin and no barrier. The copy is a second
 read of the field, turned into a move by `reload_cse_regs`; see the section at
@@ -142789,7 +142789,7 @@ pseudo (`r448` in `base_16.i.cse`), and the decrement result (`r453`) locally
 allocates to `v0`. `base_16.c` preserves the seed's 99.971% score and the full
 build matches. The end pin and `TOUCH_REG` remain: unpinning end exchanges
 `a0`/`a1`, and removing the barrier still eliminates the copy. Evidence is in
-`nonmatchings/Gp_ArmorMenuTask-dehack`; preprocessed input SHA256
+`nonmatchings/itemMenuArmorPanelTask-dehack`; preprocessed input SHA256
 `f9d920b291bf8c683378cc6bff69e6cde2219323016ed7d276f3dbb73c145c73`.
 
 ## An inline helper called without its header compiles to a real `jal`, silently (bearing helpers, 2026-09-26)
@@ -142834,11 +142834,11 @@ both arms start with into the branch's delay slot. Selecting a table pointer fir
 indexing it afterwards cannot reproduce this: local-alloc always gives the arm's `%hi`
 temp `$v0`, so the shift loses `$v0`. Only the relocation spelling differs
 (`%lo(Gp_RelatedQty0-0x200)` vs `%lo(Gp_QtyById0)`), and the linked bytes are the same.
-## A statement written in both arms adds a reference that cross-jumping later removes (Gp_DrawWeaponSlotRow, 2026-09-26)
+## A statement written in both arms adds a reference that cross-jumping later removes (itemMenuDrawEquippedWeaponRow, 2026-09-26)
 
 `REG_N_REFS` is fixed by flow, long before jump2 merges identical tails. So
-`obj->status = 0;` written at the end of *both* arms of an if/else emits one
-`sw` in the object but counts two references to `obj`. Where two long-lived
+`object->panel.control.word = 0;` written at the end of *both* arms of an if/else emits one
+`sw` in the object but counts two references to `object`. Where two long-lived
 pseudos sit a hair apart in global priority (`floor_log2(refs) * refs / length`,
 here 21 refs over a doubled parameter length of 466 against 13 over 209), that
 one reference swaps their callee-saved registers. The tree had pinned both; the
@@ -143390,10 +143390,10 @@ In the same function a `j`/`dest` swap in a byte-copy loop, pinned with
 *dest++ = *src++; }` matches where `if (count != 0) do { ... } while (j < count)`
 with separate `+= 1` statements does not.
 
-## A `for` loop's pretest decides which of two zero-inits is copied from the other (Gp_DrawItemOrderRow, 2026-09-26)
+## A `for` loop's pretest decides which of two zero-inits is copied from the other (itemMenuDrawReorderableItemRow, 2026-09-26)
 
 A search loop that returns a pointer starts with two zeros: `found = NULL`
-and the counter `i = 0`. The target of `Gp_DrawItemOrderRow` reads
+and the counter `i = 0`. The target of `itemMenuDrawReorderableItemRow` reads
 `move a1,zero; move t0,a1` (found first, counter copied from it); its
 out-of-line twin `_inventoryFindNthReorderableRow` reads the reverse.
 
@@ -146411,7 +146411,7 @@ allocation of every pseudo in the block.
 ## A pin swapping two block-local constants is local-alloc priority: move a statement out of the pinned one's range (itemMenuDrawMeter, 2026-09-27)
 A `register s32 clut asm("t3")` held a clut constant stored into two SPRTs and a POLY_FT4; unpinned, it swapped `t3`/`t4` with the `%hi(gGpuCurrentOt)` pseudo. Both had 4 refs in one block, so `local-alloc` ranked them by live length alone (170 vs 166 insns in `.lreg`'s `Register N used ... across` lines), and the constant lost by a few insns. The fix was a statement sitting inside the constant's range that belonged after it: `setlen(poly, 9)` had been written mid-primitive, and moving it down beside `setcode(poly, ...)`, after the last `clut` store, shortened the range by two insns and sched2 still emitted the stores in target order. When two equal-ref pseudos swap, compare their ranges in `.lreg` and look for a statement that can move across either end.
 
-## A `nop` after the index load, then `lui` of the table, is a `desc = &table[i]` local (func_800C41A4, 2026-09-27)
+## A `nop` after the index load, then `lui` of the table, is a `desc = &table[i]` local (itemMenuDrawArmorAttachmentRow, 2026-09-27)
 The target read `lw v0,Gp_SelItemRec; nop; lbu v1,0(v0); lui v0,%hi(Gp_ItemDescs)` - the table's `lui` reusing the pointer's register and leaving the load delay unfilled. `Gp_ItemDescs[*p].flags` in one expression (with or without an `s32`/`u8` index local, or an inline returning the field) lets sched1 hoist the independent `lui` above the `lbu`, and a `USE_REG(p)` barrier after the index load had been holding it back. Taking the element address into its own local, `const ItemDesc* desc = &Gp_ItemDescs[*p]; if (desc->flags & ITEM_FLAG_NO_ATTACHMENT)`, reproduces the order unaided; an inline returning `&Gp_ItemDescs[id]` does too.
 
 ## A pinned flag in a loop may be the inlined body of the function just before it, written as one `||` condition (_inventoryFindNthReorderableRow, 2026-09-27)
@@ -148336,7 +148336,7 @@ is a block-local pseudo crossing a call, local-alloc gives it `$s0`, and a
 the target computes). Splitting `y2` in two makes both halves block-local, and
 local-alloc hands the first one `$s0` before `x` is considered.
 
-**`Gp_ArmorMenuTask`'s copy.** `end = top; end += count` survives cse only when
+**`itemMenuArmorPanelTask`'s copy.** `end = top; end += count` survives cse only when
 `top` is reassigned between the two, and `top = t + top` is then expanded with
 the operands swapped. `top = menu->selectedItemIndex = t + top` keeps the
 operand order but `top` is not the class head there and the copy dies again.
@@ -152733,7 +152733,7 @@ order, look for one biv; here the image contradicts that through the bare
 read, which is the open question (a tail statement recomputing the `(quadRow+1)`
 terms would settle it, and would be a dead store).
 
-### `move a0,v0` / `addu a0,a0,v1` / `addu v0,a1,v0`: the field is read at each use, and the `+ 1` is its own statement (Gp_ArmorMenuTask, 2026-10-07)
+### `move a0,v0` / `addu a0,a0,v1` / `addu v0,a1,v0`: the field is read at each use, and the `+ 1` is its own statement (itemMenuArmorPanelTask, 2026-10-07)
 
 **Symptom.** `lb v0,9(s4)` / `lb v1,5(s4)` / `move a0,v0` / `addu a0,a0,v1` /
 `addiu a1,a1,1` / `addu v0,a1,v0` / `sw v0,16(s4)`: the first visible row is
@@ -152746,10 +152746,10 @@ recorded it as unresolved.
 source. Each statement reads the field itself:
 
 ```c
-t                       = t / h;
-t                       = t + 1;
-menu->selectedItemIndex = t + menu->firstVisibleItemIndex.signedValue;
-_itemMenuClampArmorSelection(menu, menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue);
+rowOffsetY                       = rowOffsetY / rowHeight;
+rowOffsetY                       = rowOffsetY + 1;
+attachmentList->selectedItemIndex = rowOffsetY + attachmentList->firstVisibleItemIndex.signedValue;
+_itemMenuClampArmorSelection(attachmentList, attachmentList->firstVisibleItemIndex.signedValue + attachmentList->visibleRowCount.signedValue);
 ```
 
 - The store to `selectedItemIndex` sits between the two reads, so cse does not
@@ -152760,12 +152760,12 @@ _itemMenuClampArmorSelection(menu, menu->firstVisibleItemIndex.signedValue + men
   `addu a0,a0,v1`, and `reload_cse_regs` rewrites the second load as
   `move a0,v0` because `$v0` still holds the field. sched2 then gives the
   final order.
-- The sum of the two fields is the inline's argument and lands in `$a0`; `t`
+- The sum of the two fields is the inline's argument and lands in `$a0`; `rowOffsetY`
   keeps `$a1`. Neither needed a pin.
-- `t + 1` has to be a statement of its own. With `menu->sel = t + 1 + first`
+- `rowOffsetY + 1` has to be a statement of its own. With `attachmentList->selectedItemIndex = rowOffsetY + 1 + attachmentList->firstVisibleItemIndex.signedValue`
   the `1` is added to the field's register (`addiu v0,v0,1`) before the second
   read is reached, `$v0` no longer holds the field and both `lb` stay. With
-  `t = t / h + 1` the quotient is a separate pseudo (`mflo v0` /
+  `rowOffsetY = rowOffsetY / rowHeight + 1` the quotient is a separate pseudo (`mflo v0` /
   `addiu a1,v0,1`).
 
 **Use.** A `move` followed by an in-place add of a value loaded just before,
@@ -153338,7 +153338,7 @@ what cse and the schedulers make of the inline.
   cells, is describing the output. Try the inline with the parent store first.
 - The rest of the tree has 51 more sites spelled with `MATRIX_PAIR` (some mixed
   with `rotationWords` fields); all 51 set the full identity. None was tried.
-### `lb a0,5` / `lb v1,9` / `addu v0,v0,v1` / `addu v1,v1,a0` / `sw v0,16`: one load of the field is still the field read twice (itemMenuWeaponPanelTask, Gp_ArmorMenuTask, 2026-10-07)
+### `lb a0,5` / `lb v1,9` / `addu v0,v0,v1` / `addu v1,v1,a0` / `sw v0,16`: one load of the field is still the field read twice (itemMenuWeaponPanelTask, itemMenuArmorPanelTask, 2026-10-07)
 
 **Symptom.** The cursor-row blocks of both tasks held `vis`, `row9` and `sel`
 locals and a written-out clamp. The image loads the first visible row once,
@@ -153346,7 +153346,7 @@ keeps the selection in `$v0` across its store and compares the register, which
 reads like three locals.
 
 **Finding.** None of them is in the source. The block is the same call as the
-other `Gp_ArmorMenuTask` site, without the `+ 1`:
+other `itemMenuArmorPanelTask` site, without the `+ 1`:
 
 ```c
 cursorRow                        = cursorRow / inventoryList->rowHeight;

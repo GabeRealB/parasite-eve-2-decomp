@@ -245,15 +245,15 @@ MenuParasiteEnergyCaption D_8010E844[4] = {
     { 120, 80, 0 },
 };
 
-UiListRowCallback D_8010E850[1] = { Gp_DrawItemOrderRow };
+UiListRowCallback D_8010E850[1] = { itemMenuDrawReorderableItemRow };
 
 UiList D_8010E854 = { D_8010E850, 10, { 10 }, 1, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListRowCallback Gp_WeaponSlotRows[3] = { Gp_DrawWeaponSlotRow, Gp_DrawWeaponSlotRow2, Gp_DrawWeaponSlotRow2 };
+UiListRowCallback Gp_WeaponSlotRows[3] = { itemMenuDrawEquippedWeaponRow, itemMenuDrawWeaponLoadRow, itemMenuDrawWeaponLoadRow };
 
 UiList D_8010E884 = { Gp_WeaponSlotRows, 3, { 3 }, 0, 16, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListRowCallback D_8010E8A8[1] = { func_800C41A4 };
+UiListRowCallback D_8010E8A8[1] = { itemMenuDrawArmorAttachmentRow };
 
 UiList D_8010E8AC = { D_8010E8A8, 1, { 1 }, 0, 16, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
@@ -381,7 +381,7 @@ UiObjectDesc D_8010EAB4[50] = {
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 208 }, 8, 0, TASK_BODY_NONE, 192, itemMenuInfoTask, 0 },
     { 3, { -144, 64, 288, 40 }, 56, 0, TASK_BODY_NONE, 192, itemMenuCaptionTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 72 }, 960, 0, TASK_BODY_NONE, 192, itemMenuWeaponPanelTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -32, 144, 91 }, 976, 0, TASK_BODY_NONE, 192, Gp_ArmorMenuTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -32, 144, 91 }, 976, 0, TASK_BODY_NONE, 192, itemMenuArmorPanelTask, 0 },
     { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -150, -80, 120, 70 }, 60, 0, TASK_BODY_NONE, 192, itemPickupPanelTask, 0 },
 };
 
