@@ -1,9 +1,24 @@
 #ifndef INCLUDE_ACTORS_ACTOR_444000_H
 #define INCLUDE_ACTORS_ACTOR_444000_H
 
+#include "types.h"
+
+#include "actors/glutton_shake.h"
+
 #include "gameplay/animation.h"
 
 #include "main/tmd_types.h"
+
+/// Requests a vertical screen shake from the garbage-incinerator Glutton host.
+///
+/// `actor_444000` must be loaded and its successfully spawned host task and work
+/// block must still be alive. The request is handled on a later host update;
+/// repeating the armed level does not restart the shake.
+/// `GLUTTON_SHAKE_SHORT`, `GLUTTON_SHAKE_MEDIUM` and `GLUTTON_SHAKE_LONG` select
+/// 5, 10 and 22 frames. `level` is stored as an unsigned byte without validation;
+/// other values, including `GLUTTON_SHAKE_NONE`, neither arm a changed request
+/// nor immediately clear the display offset.
+void actor444000GluttonSetShakeLevel(s8 level);
 
 // Native animation sets shared with the companion actor overlay.
 extern AnimationSet gActor444000Animation20BD4;

@@ -77,6 +77,7 @@
 #include "types.h"
 
 #include "actors/actor.h"
+#include "actors/glutton_shake.h"
 
 #include "gameplay/message.h"
 
@@ -235,17 +236,6 @@ enum {
     GLUTTON_ANIM_STEP_BLEND   = 1, // Seek the driving rigs to `animId`, blending from their pose, unless it is already applied
     GLUTTON_ANIM_STEP_RESTART = 2, // Reset the driving rigs to the start of `animId`
     GLUTTON_ANIM_STEP_PLAYING = 3, // Seeded: the slots only tick
-};
-
-/// `GluttonWork::shakeLevel`: the screen shake a state asks for.
-///
-/// Each level is a fixed run of frames with its own vertical pattern; a level
-/// outside this set is never armed.
-enum {
-    GLUTTON_SHAKE_NONE   = 0, // No shake
-    GLUTTON_SHAKE_SHORT  = 1, // 5 frames alternating 0 and 2 pixels
-    GLUTTON_SHAKE_MEDIUM = 2, // 10 frames of a four-frame 0, 2, 3, 2 pattern
-    GLUTTON_SHAKE_LONG   = 3, // 22 frames of an eight-frame ramp peaking at 4 pixels
 };
 
 /// Fight states and clip used by the contact handlers in both encounters.
@@ -423,6 +413,18 @@ static void _gluttonSpinnerTask(Task* task);
 static void _gluttonRainTask(Task* task);
 static void _gluttonThrowTask(Task* task);
 void        gluttonPropTask(Task* arg0);
-void        gluttonSetShakeLevel(s8 arg0);
+
+/// Selects the function identifier of this carrier's screen-shake request setter.
+///
+/// The identifier must have signature `void(s8 level)`. An override must be
+/// declared by the carrier's interface before this header and retained through
+/// `glutton_shake_level.inc.c`, with `GLUTTON_HOST_TASK` bound to the same host.
+/// The default defines actor_403200's existing `gluttonSetShakeLevel` instance;
+/// actor_444000 supplies its cross-image export. This binding has no arguments
+/// or runtime evaluation and does not determine the function's linkage.
+#ifndef GLUTTON_SET_SHAKE_LEVEL
+#define GLUTTON_SET_SHAKE_LEVEL gluttonSetShakeLevel
+void GLUTTON_SET_SHAKE_LEVEL(s8 level);
+#endif
 
 #endif /* SRC_SHARED_GLUTTON_H */

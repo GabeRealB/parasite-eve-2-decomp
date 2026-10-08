@@ -76,8 +76,12 @@
 /// header defines `GLUTTON_INCINERATOR` as the dimensionless integer 2;
 /// the binding must remain a macro for the shared code's `#if` comparisons.
 #define GLUTTON_ROOM GLUTTON_INCINERATOR
-// Exported instance: another image refers to this package's copy by name.
-#define gluttonSetShakeLevel actor444000GluttonSetShakeLevel
+/// Selects this package's public `void(s8 level)` screen-shake request setter.
+///
+/// Its interface is declared in `actors/actor_444000.h` for actor_341900 and
+/// actor_342000. Bind before `glutton.h` and retain through the setter fragment;
+/// `GLUTTON_HOST_TASK` selects the live host whose request byte it writes.
+#define GLUTTON_SET_SHAKE_LEVEL actor444000GluttonSetShakeLevel
 #include "../../shared/glutton.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).

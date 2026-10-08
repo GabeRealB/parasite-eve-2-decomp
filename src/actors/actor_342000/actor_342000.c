@@ -413,8 +413,6 @@ extern PadScriptCmd D_actor_444000_80144A74[2];
 
 extern PadScriptVibrationSegment D_actor_444000_80144A7C[2];
 
-void actor444000GluttonSetShakeLevel(s8 arg0);
-
 /// Spawn table of the event task's children: entry 2 is the script parent,
 /// 3..7 its five script tasks and 8/9 the two effect actors.
 extern TaskDesc D_actor_342000_80164FF8[];
@@ -1017,7 +1015,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                         work->doorPlacements[0].pos.vx = 0x36B0;
                         work->doorPlacements[1].pos.vx = 0x36B0;
                         taskReparent(arg0, padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C));
-                        actor444000GluttonSetShakeLevel(3);
+                        actor444000GluttonSetShakeLevel(GLUTTON_SHAKE_LONG);
                         work->stagingMode = ACTOR_342000_STAGING_NONE;
                     }
                     TASK_MESSAGE_DISPATCH_POINTER(work->doors[0], ACTOR_MESSAGE_PLACE, &work->doorPlacements[0], 0);
@@ -1029,7 +1027,7 @@ static void func_actor_342000_80162F28(Task* arg0)
             sndEvtRequestScriptStop(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_DOORS_SHUT, 0, 0);
             taskReparent(arg0, padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C));
-            actor444000GluttonSetShakeLevel(3);
+            actor444000GluttonSetShakeLevel(GLUTTON_SHAKE_LONG);
             break;
         default:
             break;
