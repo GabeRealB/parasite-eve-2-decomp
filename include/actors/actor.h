@@ -1715,16 +1715,29 @@ static __inline__ s32 actorPlayerContactMessage(Enemy* ctx, s32 mode)
     return taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(ctx, mode), 0);
 }
 
-/// Relights `enemy` for the world position of `coord`.
-static __inline__ void actorUpdateColor(Enemy* enemy, GfxCoord* coord)
+/// Updates an enemy model's lighting and colour from a coordinate's cached translation.
+///
+/// `enemy` must own a live task/model with writable light and colour matrices.
+/// `sampleCoord` must be live and word-aligned. Copies its signed 32-bit XYZ
+/// in game units unchanged; the lighting query interprets them as a world
+/// position. Neither refreshes nor converts the cache, whose frame and age
+/// belong to the caller's composition sequence.
+///
+/// Requires an initialized, word-aligned scratch stack with room for one
+/// VECTOR plus `worldCoordUpdateActorColor`'s nested reservations. The unused
+/// fourth word is left intact. Releases the sample before returning, retains
+/// no pointer and changes GTE state through the lighting query.
+static __inline__ void _actorRenderUpdateCoordColor(Enemy* enemy, const GfxCoord* sampleCoord)
 {
-    VECTOR* block                = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
-    block->vx                    = coord->workm.t[0];
-    block->vy                    = coord->workm.t[1];
-    block->vz                    = coord->workm.t[2];
-    SCRATCH_STACK_CURSOR(VECTOR) = block;
-    worldCoordUpdateActorColor(enemy, block, 0, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    VECTOR* samplePosition = SCRATCH_STACK_CURSOR(VECTOR) - 1;
+
+    // Keep the sample stores before publishing the reservation for nested queries.
+    samplePosition->vx           = sampleCoord->workm.t[0];
+    samplePosition->vy           = sampleCoord->workm.t[1];
+    samplePosition->vz           = sampleCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR(VECTOR) = samplePosition;
+    worldCoordUpdateActorColor(enemy, samplePosition, 0, 0);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Updates an enemy model's lighting and colour from coordinate 1's cached translation.

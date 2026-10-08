@@ -18,7 +18,7 @@ void sucklercephDropState(Enemy* arg0, Task* arg1)
     work = arg1->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
+            _actorRenderUpdateCoordColor(arg0, &arg1->extra.tmd->coords[1]);
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -32,7 +32,7 @@ void sucklercephDropState(Enemy* arg0, Task* arg1)
             _sucklercephFallStep(arg1);
             _sucklercephDropCollide(arg1);
             _sucklercephTickAnim(arg1);
-            actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
+            _actorRenderUpdateCoordColor(arg0, &arg1->extra.tmd->coords[1]);
             arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(arg1->extra.tmd->coords);
             work->forwardSpeed -= 2;

@@ -94,7 +94,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                 task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
                 task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-                actorUpdateColor(enemy, &task->extra.tmd->coords[1]);
+                _actorRenderUpdateCoordColor(enemy, &task->extra.tmd->coords[1]);
             }
             break;
     }
