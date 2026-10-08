@@ -110,7 +110,7 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 static TmdSource _gActor210600GrinningStrangerBody;
 static s32       _actor210600SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedArg);
 static s32       _actor210600ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* message, s32 unusedArg);
-void             func_actor_210600_8014BA3C(Task*);
+static void      _actor210600Task(Task* task);
 
 #include "../../shared/actor_contacts.h"
 
@@ -248,7 +248,7 @@ TaskMessageEntry D_actor_210600_8015A4CC[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_210600_8015A4EC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_210600_8014BA3C, { .model = &_gActor210600GrinningStrangerBody } };
+TaskDesc D_actor_210600_8015A4EC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor210600Task, { .model = &_gActor210600GrinningStrangerBody } };
 
 static AnimationPackedPose _gActor210600Animation11F5CBank1[37] = {
 #include "assets/actor_210600_animation_11F5C_bank1.inc"
@@ -375,8 +375,8 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 }
 
 static void _actor210600DriveAnimation(Task* task);
-static void func_actor_210600_8014B434(Enemy* enemy, Task* task);
-static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task);
+static void _actor210600Update(Enemy* unusedEnemy, Task* task);
+static void _actor210600Spawn(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts.inc.c"
 
@@ -443,32 +443,40 @@ static void _actor210600DriveAnimation(Task* task)
     }
 }
 
-/// Update state of the actor. While `_Actor210600Work::suspended` is clear it
-/// runs the animation driver, rebuilds the model root's rotation around its
-/// yaw at 0.75 scale, and when the current pose of animation slot 1 is at cue
-/// index 7 while `lastCueIndex` is not, spawns the effect
-/// `damageGetPlayerAttackEffectId(0x1001)` on the model's second part. `lastCueIndex` is then
-/// taken from slot 0, not from the slot just tested. `enemy` is unused.
-static void func_actor_210600_8014B434(Enemy* enemy, Task* task)
+/// Advances the Grinning Stranger animation and emits its cue-7 effect.
+///
+/// Requires live work/model and the bound nineteen-part rig. Suspension skips
+/// all work. Rebuilds root yaw at Q12 scale 3072; compares slot 1 cue index with
+/// the saved slot 0 index and emits at model part 1. Slot 0 is not advanced by
+/// this package, so its zero-initialized index remains the latch source. The
+/// Enemy callback argument is unused.
+static void _actor210600Update(Enemy* unusedEnemy, Task* task)
 {
+    enum {
+        ACTOR_210600_EFFECT_CUE_INDEX    = 7,
+        ACTOR_210600_EFFECT_ATTACK_ID    = 0x1001,
+        ACTOR_210600_EFFECT_SPAWN_ARG_LO = 256,
+        ACTOR_210600_EFFECT_COUNT        = 2,
+    };
     _Actor210600Work* work;
-    SVECTOR           vec;
-    EffectSpawnArg    eff;
-    s32               id;
+    SVECTOR           offset;
+    EffectSpawnArg    effectArg;
+    s32               cueIndex;
 
     work = task->work;
     if (work->suspended == 0) {
         _actor210600DriveAnimation(task);
         _actorRenderRescaleYaw(task->extra.tmd->coords, ONE * 3 / 4);
 
-        id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-        if (id == 7 && work->lastCueIndex != id) {
-            memset(&vec, 0, 8);
-            eff.coord      = task->extra.tmd->coords;
-            eff.spawnArgLo = 0x100;
-            eff.spawnArgHi = 2;
-            effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), task->extra.tmd->coords + 1, &vec, &eff);
+        cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+        if (cueIndex == ACTOR_210600_EFFECT_CUE_INDEX && work->lastCueIndex != cueIndex) {
+            memset(&offset, 0, sizeof(offset));
+            effectArg.coord      = task->extra.tmd->coords;
+            effectArg.spawnArgLo = ACTOR_210600_EFFECT_SPAWN_ARG_LO;
+            effectArg.spawnArgHi = ACTOR_210600_EFFECT_COUNT;
+            effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_210600_EFFECT_ATTACK_ID), task->extra.tmd->coords + 1, &offset, &effectArg);
         }
+        // Slot 0 is retained as the latch source although only slots 1..18 are driven.
         work->lastCueIndex = work->rig.slots[0].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
 }
@@ -541,80 +549,82 @@ static s32 _actor210600ApplyCommand(Task* task, s32 unusedMessageId, const Actor
 
 #include "../../shared/coord_math_yaw_scale.inc.c"
 
-/// Spawn state of the actor: allocates its `_Actor210600Work`, destroying the
-/// enemy if that fails, and points the task's `TmdObject` at the block's
-/// light / colour matrices. The enemy takes the model root's matrix and its
-/// third part coordinate, with its body offset zeroed, and is linked in. The
-/// animation context is started from `D_actor_210600_8015A4B4` and restarted
-/// on animation 1, the message table is installed, and the model root is parented to
-/// `gGfxViewCoord` and rebuilt once before its world position is handed to
-/// `worldCoordSetModelLighting`. Advances the task to the next state.
-static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task)
+/// Initializes the Grinning Stranger task, rig, target node and lighting storage.
+///
+/// Allocates owned zeroed work or destroys the enemy/task on failure. The model
+/// borrows its lighting matrices from that work; initializes nonroot animation
+/// tracks on set 1, with rate initially zero until a room command resumes them.
+/// Parents the root to the view coordinate and advances to the update state.
+static void _actor210600Spawn(Enemy* enemy, Task* task)
 {
-    VECTOR            vec;
-    GfxCoord*         coord;
-    TmdObject*        obj;
+    enum { ACTOR_210600_INITIAL_ANIMATION_SET = 1 };
+    VECTOR            composedPosition;
+    GfxCoord*         rootCoord;
+    TmdObject*        model;
     _Actor210600Work* work;
-    _Actor210600Work* mem;
-    TmdObject*        tmd;
+    _Actor210600Work* allocatedWork;
+    TmdObject*        lightingModel;
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
-    mem        = memCalloc(sizeof(_Actor210600Work), false);
-    work       = mem;
-    task->work = mem;
-    if (mem == NULL) {
+    model         = task->extra.tmd;
+    rootCoord     = model->coords;
+    allocatedWork = memCalloc(sizeof(_Actor210600Work), false);
+    work          = allocatedWork;
+    task->work    = allocatedWork;
+    if (allocatedWork == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
-    tmd               = task->extra.tmd;
-    tmd->lightMtx     = &work->light;
-    tmd->colorMtx     = &work->color;
-    enemy->field_4    = &coord->coord;
-    enemy->field_48   = 0;
-    enemy->bodyPos.vx = 0;
-    enemy->bodyPos.vy = 0;
-    enemy->bodyPos.vz = 0;
-    enemy->coord      = &task->extra.tmd->coords[2];
+    lightingModel           = task->extra.tmd;
+    lightingModel->lightMtx = &work->light;
+    lightingModel->colorMtx = &work->color;
+    enemy->field_4          = &rootCoord->coord;
+    enemy->field_48         = 0;
+    enemy->bodyPos.vx       = 0;
+    enemy->bodyPos.vy       = 0;
+    enemy->bodyPos.vz       = 0;
+    enemy->coord            = &task->extra.tmd->coords[2];
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->field_4D               = 0;
     enemy->reactionFlags          = 0;
     enemy->field_4D               = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_210600_8015A4B4, obj, work->rig.poses, work->rig.slots);
+    // The byte-declared bank is consumed as an animation-set pointer table.
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_210600_8015A4B4, model, work->rig.poses, work->rig.slots);
     work->animRequest = ACTOR_210600_ANIM_REQUEST_RESET;
-    work->animId      = 1;
+    work->animId      = ACTOR_210600_INITIAL_ANIMATION_SET;
     _actor210600DriveAnimation(task);
-    task->msgTable      = D_actor_210600_8015A4CC;
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(task->extra.tmd, &vec, 0, 3);
+    task->msgTable          = D_actor_210600_8015A4CC;
+    rootCoord->parent       = &gGfxViewCoord;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    composedPosition.vx = rootCoord->workm.t[0];
+    composedPosition.vy = rootCoord->workm.t[1];
+    composedPosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(task->extra.tmd, &composedPosition, 0, 3);
     task->state++;
 }
 
 /// The actor's three task states - spawn, update and teardown - which
-/// `func_actor_210600_8014BA3C` runs by `Task::state`.
+/// `_actor210600Task` runs by `Task::state`.
 static const EnemyTaskFuncTable3 D_actor_210600_80149E24 = {
     {
-        func_actor_210600_8014B8C8,
-        func_actor_210600_8014B434,
+        _actor210600Spawn,
+        _actor210600Update,
         enemyDestroy,
     },
 };
 
-/// State dispatcher: copies the state table onto the stack and calls the entry
-/// `Task::state` selects with the task's enemy and the task itself.
-void func_actor_210600_8014BA3C(Task* arg0)
+/// Dispatches the Grinning Stranger spawn, update or teardown task state.
+///
+/// Requires Task::state in 0..2 and a live Enemy in the second spawn argument.
+/// Spawn establishes owned work; later states require it until teardown.
+static void _actor210600Task(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
-    // Nothing reads or writes these bytes, but the frame is eight bytes larger
-    // than the table copy alone needs. Their original declaration is unknown.
+    EnemyTaskFuncTable3 stateHandlers;
+    // Never accessed. The stack slot could hold a 1..8-byte aggregate;
+    // its original type and extent are unproven.
     byte unused[8];
 
-    sp = D_actor_210600_80149E24;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers = D_actor_210600_80149E24;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

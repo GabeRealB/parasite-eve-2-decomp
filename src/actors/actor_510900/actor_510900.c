@@ -2371,35 +2371,43 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     arg1->state = 1;
 }
 
-void func_actor_510900_801355B4(Enemy* arg0, Task* arg1)
+void actor510900TickEvent(Enemy* enemy, Task* task)
 {
-    GfxCoord*        coord;
+    enum {
+        ACTOR_510900_EVENT_FLAME_ANIMATION   = 32,
+        ACTOR_510900_EVENT_FLAME_FRAME       = 210,
+        ACTOR_510900_EVENT_FLAME_FRAMES      = 255,
+        ACTOR_510900_EVENT_FLAME_START_SOUND = SOUND_CHARACTER(0x78, 14),
+        ACTOR_510900_EVENT_FLAME_LOOP_SOUND  = SOUND_CHARACTER(0x78, 17),
+    };
+    GfxCoord*        rootCoord;
     Actor510900Work* work;
-    s32              snd;
-    s32              pan;
-    s32              pan2;
-    s32              i;
+    s32              startSound;
+    s32              startPan;
+    s32              loopPan;
+    s32              slotIndex;
 
-    work                         = arg1->work;
-    coord                        = arg1->extra.tmd->coords;
-    arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    if (work->animationId == 0x20 && work->animationFrame == 0xD2) {
+    work                          = task->work;
+    rootCoord                     = task->extra.tmd->coords;
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    if (work->animationId == ACTOR_510900_EVENT_FLAME_ANIMATION && work->animationFrame == ACTOR_510900_EVENT_FLAME_FRAME) {
         work->flameMode   = ACTOR_510900_FLAME_BURNING;
-        work->flameFrames = 0xFF;
-        snd               = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
-        pan               = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-        work->eventFlameSound = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780011;
-        pan2                  = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(work->eventFlameSound, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+        work->flameFrames = ACTOR_510900_EVENT_FLAME_FRAMES;
+        startSound        = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_EVENT_FLAME_START_SOUND;
+        startPan          = (s8)worldCoordGetOriginAudioPan(rootCoord);
+        sndEvtRequestScriptStart(startSound, startPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
+        work->eventFlameSound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_EVENT_FLAME_LOOP_SOUND;
+        loopPan               = (s8)worldCoordGetOriginAudioPan(rootCoord);
+        sndEvtRequestScriptStart(work->eventFlameSound, loopPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
     }
     work->animationFrame++;
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationTickSlot(&work->rig.anim, i);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    actor510900UpdateLighting(arg1, coord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    actor510900UpdateLighting(task, rootCoord);
+    // Publish changed flame modes to the adopted jet after updating the body pose.
     if (work->flameMode != work->sentFlameMode) {
         if (work->flameJetTask != NULL) {
             work->flameJetTask->spawnArg1.value = work->flameMode;

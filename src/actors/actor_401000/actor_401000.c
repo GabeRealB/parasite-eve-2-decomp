@@ -55,19 +55,19 @@
 #define ODD_STRANGER_VARIANT 1
 #include "../../shared/odd_stranger.h"
 
-/// Animation bank `func_actor_401000_80133274` hands to both `animationInitContext`
+/// Animation bank `_actor401000Spawn` hands to both `animationInitContext`
 /// calls; the same `s32` the 401300 sibling keeps in `D_actor_401300_80158838`.
 extern AnimationSet* gOddStrangerAnimSets[46];
 
-/// Parameter pair `func_actor_401000_80133274` installs as `Enemy::param`
+/// Parameter pair `_actor401000Spawn` installs as `Enemy::param`
 /// and reads `hpMax` out of as the actor's initial `field_40`.
 extern EnemyParams D_actor_401000_8013E09C;
 
-/// Three combat-parameter records `func_actor_401000_80133274` picks between
+/// Three combat-parameter records `_actor401000Spawn` picks between
 /// with `Task::spawnArg1 & 0xF`.
 extern ActorStrangerVariant D_actor_401000_8013E0AC[3];
 
-/// Animation table `func_actor_401000_80133274` writes to `Task::msgTable`.
+/// Animation table `_actor401000Spawn` writes to `Task::msgTable`.
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_401000_80154F90[8];
@@ -1086,7 +1086,7 @@ enum {
 
 static __inline__ void _actor401000BindLightingMatrices(Task* actor);
 static __inline__ void _actor401000InitRootPose(GfxCoord* rootCoord, OddStrangerWork* work);
-static void            func_actor_401000_80133274(Enemy* enemy, Task* actor);
+static void            _actor401000Spawn(Enemy* enemy, Task* actor);
 static void            _actor401000ClampRootHeight(const GameLocationKey* location, GfxCoord* root);
 static __inline__ s32  _actor401000HasRoomHeightClamp(const GameLocationKey* location);
 static s32             _actor401000ApplyGridPushback(GfxCoord* root, const WorldCollisionContact* contacts, s16 contactCount, s16 heightOffset);
@@ -1143,25 +1143,43 @@ static __inline__ void _actor401000InitRootPose(GfxCoord* rootCoord, OddStranger
     worldCollisionClearContacts(work->hitContacts);
 }
 
-/// Enemy init: allocates the 0xC80-byte work block, binds the model's light
-/// and colour matrices to its copies, seeds both animation contexts and the
-/// three `WorldCollisionBody` nodes, then picks the opening clip from the low bits of
-/// `Enemy::placeKey` and the `downFramesBase` parameter run from the spawn flags.
-/// The tail rebuilds the root coordinate through `_actor401000InitRootPose`.
-static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
+/// Initializes this Odd Stranger instance, collision bodies and opening behavior.
+///
+/// Allocates owned work or destroys the enemy/task on failure. Acquires a battle
+/// reference and exit handler, binds both nineteen-part animation contexts and
+/// work-owned lighting matrices, and links three spheres. Placement index selects
+/// one of five chase rates in sixteenths of a frame; spawn-argument nibbles select
+/// hidden/dormant/patrol behavior and one of three combat tunings. The two patrol
+/// points are 2000 game units apart. Advances the task state after initialization.
+static void _actor401000Spawn(Enemy* enemy, Task* actor)
 {
-    SVECTOR             dir;
-    VECTOR              pos;
-    SVECTOR*            v;
-    TmdObject*          obj;
-    GfxCoord*           root;
+    enum {
+        ACTOR_401000_CHASE_RATE_VARIANTS = 5,
+        ACTOR_401000_GRID_CENTER_Y       = -172,
+        ACTOR_401000_GRID_RADIUS         = 300,
+        ACTOR_401000_HIT_RADIUS          = 430,
+        ACTOR_401000_ATTACK_RADIUS       = 384,
+        ACTOR_401000_SPAWN_HIDDEN        = 2,
+        ACTOR_401000_SPAWN_DORMANT       = 4,
+        ACTOR_401000_PREVIOUS_STATE_NONE = -1,
+        ACTOR_401000_INITIAL_HIT_BODY_ID = 10,
+        ACTOR_401000_EFFECT_SPAWN_ARG_LO = 768,
+        ACTOR_401000_EFFECT_SPAWN_ARG_HI = 2,
+        ACTOR_401000_SPAWN_MODE_SHIFT    = 16,
+        ACTOR_401000_SPAWN_NIBBLE_MASK   = 0xF,
+    };
+    SVECTOR             patrolDirection;
+    VECTOR              composedPosition;
+    SVECTOR*            direction;
+    TmdObject*          model;
+    GfxCoord*           rootCoord;
     OddStrangerWork*    work;
-    WorldCollisionBody* body;
-    WorldCollisionBody* head;
-    s32                 variant;
+    WorldCollisionBody* hitBody;
+    WorldCollisionBody* attackBody;
+    s32                 spawnMode;
 
-    root        = actor->extra.tmd->coords;
-    obj         = actor->extra.tmd;
+    rootCoord   = actor->extra.tmd->coords;
+    model       = actor->extra.tmd;
     work        = memCalloc(sizeof(OddStrangerWork), 0);
     actor->work = work;
     if (work == NULL) {
@@ -1183,122 +1201,137 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
     enemy->hp                     = (s16)D_actor_401000_8013E09C.hpMax;
     enemy->param                  = &D_actor_401000_8013E09C;
     enemy->recs                   = work->hitContacts;
-    animationInitContext(&work->rig.anim, gOddStrangerAnimSets, obj,
+    animationInitContext(&work->rig.anim, gOddStrangerAnimSets, model,
                          work->rig.poses, work->rig.slots);
     animationInitContext(&work->blend.anim, gOddStrangerAnimSets,
-                         obj, work->blend.poses,
+                         model, work->blend.poses,
                          work->blend.slots);
     work->animRequest   = ODD_STRANGER_ANIM_REQUEST_RESET;
-    work->animId        = 2;
+    work->animId        = ODD_STRANGER_ANIM_WALK;
     work->blendActive   = 0;
     work->lookYaw       = 0;
     work->lookYawTarget = 0;
-    work->chaseRate     = 0x10;
-    work->animRate      = 0x10;
-    switch (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) % 5) {
+    work->chaseRate     = ANIMATION_RATE_ONE;
+    work->animRate      = ANIMATION_RATE_ONE;
+    switch (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) % ACTOR_401000_CHASE_RATE_VARIANTS) {
         case 0:
-            work->chaseRate = 0x11;
+            work->chaseRate = ANIMATION_RATE_ONE + 1;
             break;
         case 1:
-            work->chaseRate = 0xF;
+            work->chaseRate = ANIMATION_RATE_ONE - 1;
             break;
         case 2:
-            work->chaseRate = 0x10;
+            work->chaseRate = ANIMATION_RATE_ONE;
             break;
         case 3:
-            work->chaseRate = 0x12;
+            work->chaseRate = ANIMATION_RATE_ONE + 2;
             break;
         case 4:
         default:
-            work->chaseRate = 0xE;
+            work->chaseRate = ANIMATION_RATE_ONE - 2;
             break;
     }
     _oddStrangerDriveAnimation(actor);
 
+    // Link distinct grid, incoming-hit and attack spheres with owned contact storage.
     work->gridBody.context.contacts = work->gridContacts;
-    work->gridBody.coord            = root;
+    work->gridBody.coord            = rootCoord;
     work->gridBody.pos.vx           = 0;
-    work->gridBody.pos.vy           = -0xAC;
+    work->gridBody.pos.vy           = ACTOR_401000_GRID_CENTER_Y;
     work->gridBody.pos.vz           = 0;
-    work->gridBody.key              = 0x30000;
-    work->gridBody.radius           = 0x12C;
+    work->gridBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY;
+    work->gridBody.radius           = ACTOR_401000_GRID_RADIUS;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     work->hitCooldown     = 0;
     work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     worldCollisionInitContacts(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
 
-    body                   = &work->hitBody;
-    body->coord            = &actor->extra.tmd->coords[2];
-    body->context.contacts = work->hitContacts;
-    body->pos.vx           = 0;
-    body->pos.vy           = 0;
-    body->pos.vz           = 0;
-    body->key              = 0x3000A;
-    body->radius           = 0x1AE;
-    body->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
-    body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
-    work->hitBody.key = 0x30000;
+    hitBody                   = &work->hitBody;
+    hitBody->coord            = &actor->extra.tmd->coords[2];
+    hitBody->context.contacts = work->hitContacts;
+    hitBody->pos.vx           = 0;
+    hitBody->pos.vy           = 0;
+    hitBody->pos.vz           = 0;
+    hitBody->key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_401000_INITIAL_HIT_BODY_ID;
+    hitBody->radius           = ACTOR_401000_HIT_RADIUS;
+    hitBody->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, hitBody);
+    hitBody->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    worldCollisionInitContacts(hitBody->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
+    work->hitBody.key = WORLD_COLLISION_CONTACT_ENEMY_BODY;
 
-    dir.vx                 = 0;
-    dir.vy                 = 0;
-    dir.vz                 = 0;
-    head                   = &work->attackBody;
-    head->coord            = &actor->extra.tmd->coords[6];
-    head->context.contacts = work->attackContacts;
-    v                      = &dir;
-    head->pos.vx           = v->vx;
-    head->pos.vy           = v->vy;
-    head->pos.vz           = v->vz;
-    head->radius           = 0x180;
-    head->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, head);
-    worldCollisionInitContacts(head->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
+    patrolDirection.vx           = 0;
+    patrolDirection.vy           = 0;
+    patrolDirection.vz           = 0;
+    attackBody                   = &work->attackBody;
+    attackBody->coord            = &actor->extra.tmd->coords[6];
+    attackBody->context.contacts = work->attackContacts;
+    direction                    = &patrolDirection;
+    attackBody->pos.vx           = direction->vx;
+    attackBody->pos.vy           = direction->vy;
+    attackBody->pos.vz           = direction->vz;
+    attackBody->radius           = ACTOR_401000_ATTACK_RADIUS;
+    attackBody->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, attackBody);
+    worldCollisionInitContacts(attackBody->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
 
-    work->patrolTarget      = 0;
-    work->patrolPoints[0].x = actor->extra.tmd->coords->coord.t[0];
-    work->patrolPoints[0].z = actor->extra.tmd->coords->coord.t[2];
-    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, v);
-    dir.vy = 0;
-    VectorNormalSS(v, v);
-    gte_lddp(2000);
-    gte_ldsv(v);
-    gte_gpf12();
-    gte_stsv(v);
-    work->patrolPoints[1].x = actor->extra.tmd->coords->coord.t[0] + dir.vx;
-    work->patrolPoints[1].z = actor->extra.tmd->coords->coord.t[2] + dir.vz;
+    /// Seeds the patrol pair from the root axis using caller-owned direction storage.
+    ///
+    /// Arguments must be side-effect-free locals. directionVector is an SVECTOR
+    /// lvalue, directionPtr addresses it, and actorTask/spawnWork are live pointers.
+    /// Normalizes and overwrites that direction, then stores a 2000-unit XZ span.
+#define ACTOR_401000_INIT_PATROL_POINTS(actorTask, spawnWork, directionVector, directionPtr)                \
+    {                                                                                                       \
+        enum {                                                                                              \
+            ACTOR_401000_PATROL_SPAN = 2000,                                                                \
+        };                                                                                                  \
+        (spawnWork)->patrolTarget      = 0;                                                                 \
+        (spawnWork)->patrolPoints[0].x = (actorTask)->extra.tmd->coords->coord.t[0];                        \
+        (spawnWork)->patrolPoints[0].z = (actorTask)->extra.tmd->coords->coord.t[2];                        \
+        gfxReadMatrixZAxis(&(actorTask)->extra.tmd->coords->coord, directionPtr);                           \
+        (directionVector).vy = 0;                                                                           \
+        VectorNormalSS(directionPtr, directionPtr);                                                         \
+        gte_lddp(ACTOR_401000_PATROL_SPAN);                                                                 \
+        gte_ldsv(directionPtr);                                                                             \
+        gte_gpf12();                                                                                        \
+        gte_stsv(directionPtr);                                                                             \
+        (spawnWork)->patrolPoints[1].x = (actorTask)->extra.tmd->coords->coord.t[0] + (directionVector).vx; \
+        (spawnWork)->patrolPoints[1].z = (actorTask)->extra.tmd->coords->coord.t[2] + (directionVector).vz; \
+    }
+    ACTOR_401000_INIT_PATROL_POINTS(actor, work, patrolDirection, direction);
+#undef ACTOR_401000_INIT_PATROL_POINTS
 
-    actor->msgTable    = D_actor_401000_80154F90;
-    root->parent       = &gGfxViewCoord;
-    root->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(root);
-    pos.vx = root->workm.t[0];
-    pos.vy = root->workm.t[1];
-    pos.vz = root->workm.t[2];
-    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
+    actor->msgTable         = D_actor_401000_80154F90;
+    rootCoord->parent       = &gGfxViewCoord;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    composedPosition.vx = rootCoord->workm.t[0];
+    composedPosition.vy = rootCoord->workm.t[1];
+    composedPosition.vz = rootCoord->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &composedPosition, 0, 0);
 
     work->effectArg.coord      = &actor->extra.tmd->coords[1];
-    work->effectArg.spawnArgLo = 0x300;
-    work->effectArg.spawnArgHi = 2;
-    variant                    = (actor->spawnArg1.value >> 16);
-    switch (variant & 0xF) {
-        case 2:
-            work->prevState = -1;
+    work->effectArg.spawnArgLo = ACTOR_401000_EFFECT_SPAWN_ARG_LO;
+    work->effectArg.spawnArgHi = ACTOR_401000_EFFECT_SPAWN_ARG_HI;
+    // Spawn argument nibbles independently select opening state and combat tuning.
+    spawnMode = (actor->spawnArg1.value >> ACTOR_401000_SPAWN_MODE_SHIFT);
+    switch (spawnMode & ACTOR_401000_SPAWN_NIBBLE_MASK) {
+        case ACTOR_401000_SPAWN_HIDDEN:
+            work->prevState = ACTOR_401000_PREVIOUS_STATE_NONE;
             work->state     = ODD_STRANGER_STATE_HIDDEN;
             break;
-        case 4:
-            work->prevState = -1;
+        case ACTOR_401000_SPAWN_DORMANT:
+            work->prevState = ACTOR_401000_PREVIOUS_STATE_NONE;
             work->state     = ODD_STRANGER_STATE_DORMANT;
             break;
         default:
-            work->prevState = -1;
+            work->prevState = ACTOR_401000_PREVIOUS_STATE_NONE;
             work->state     = ODD_STRANGER_STATE_PATROL;
-            tmdAllocPrimitiveBuffer(obj);
+            tmdAllocPrimitiveBuffer(model);
             break;
     }
-    switch (actor->spawnArg1.value & 0xF) {
+    switch (actor->spawnArg1.value & ACTOR_401000_SPAWN_NIBBLE_MASK) {
         case 2:
             work->downFramesBase = D_actor_401000_8013E0AC[0].downFramesBase;
             work->sidestepAngle  = D_actor_401000_8013E0AC[0].sidestepAngle;
@@ -2294,7 +2327,7 @@ static s32 _actor401000IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPa
 /// block, the second runs the per-state logic every frame, and the third tears
 /// the enemy down.
 static const EnemyTaskFuncTable3 D_actor_401000_8013207C = { {
-    func_actor_401000_80133274,
+    _actor401000Spawn,
     oddStrangerTick,
     enemyDestroy,
 } };

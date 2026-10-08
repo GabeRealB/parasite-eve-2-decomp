@@ -142,7 +142,7 @@ static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task);
 static void _actor521100AnmcWomanUpdate(Task* task);
 static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task);
 static void func_actor_521100_80136290(Enemy* arg0, Task* task);
-static void func_actor_521100_80136680(Enemy* arg0, Task* task);
+static void _actor521100TickAnmcWoman(Enemy* unusedEnemy, Task* task);
 static void _actor521100AnmcWomanExit(Task* task);
 static void _actor521100AnmcWomanTickAnim(void);
 static void _actor521100AnmcWomanResetAnim(void);
@@ -726,7 +726,7 @@ static void _actor521100AnmcWomanEffectTask(Task* task)
 /// create, update and teardown.
 static const EnemyTaskFuncTable3 D_actor_521100_80131E68 = { {
     func_actor_521100_80135DDC,
-    func_actor_521100_80136680,
+    _actor521100TickAnmcWoman,
     func_actor_521100_801360C4,
 } };
 
@@ -756,19 +756,27 @@ static void _actor521100AnmcWomanTask(Task* task)
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_521100_80136680(Enemy* arg0, Task* task)
+/// Composes and lights the ANMC woman before advancing her behavior.
+///
+/// Requires initialized work/model and the published singleton work pointer.
+/// Lighting samples the composed position with Y lowered by 800 game units.
+/// The update may subsequently change the pose; the Enemy argument is unused.
+static void _actor521100TickAnmcWoman(Enemy* unusedEnemy, Task* task)
 {
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     vec;
+    enum {
+        ACTOR_521100_ANMC_WOMAN_LIGHT_Y_OFFSET = 800,
+    };
+    TmdObject* model;
+    GfxCoord*  rootCoord;
+    VECTOR     lightingPosition;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    actorRenderComposeCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1] - 0x320;
-    vec.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    actorRenderComposeCoord(rootCoord);
+    lightingPosition.vx = rootCoord->workm.t[0];
+    lightingPosition.vy = rootCoord->workm.t[1] - ACTOR_521100_ANMC_WOMAN_LIGHT_Y_OFFSET;
+    lightingPosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightingPosition, 0, 3);
     _actor521100AnmcWomanUpdate(task);
 }
 

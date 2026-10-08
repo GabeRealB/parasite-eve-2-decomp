@@ -941,7 +941,7 @@ static void _actor800200TickTimedWait(Task* task);
 static void _actor800200TickClearanceEscape(Task* task);
 static void _actor800200TickScriptedWalkToDestination(Task* task);
 static void _actor800200TickScriptedRunToDestination(Task* task);
-static s32  func_actor_800200_80165104(Task* arg0);
+static s32  _actor800200PlayFootstepCue(Task* task);
 
 /// Resets a normal stationary action burst while retaining its borrowed focus.
 ///
@@ -2857,69 +2857,78 @@ static const TaskFuncTable9 D_actor_800200_80161EC8 = { {
     _actor800200TickScriptedRunToDestination,
 } };
 
-static s32 func_actor_800200_80165104(Task* arg0)
+/// Consumes a new companion animation cue and requests its surface footstep.
+///
+/// Requires live GameActor/root and room surfaceClass in 0..7 with loaded surface
+/// tables. Only cues 1/2 return 1, even when no sound is queued; other or repeated
+/// records return 0. Walk/run modes 5/6 map nine room walk bases to four paired
+/// actor-bank sounds; cue 1 selects base + 1. An unmapped base retains zero but
+/// cue 1 still requests sound 1. Running also latches the footstep action signal
+/// when a footstep table exists. Queued sounds use signed-byte pan and depth.
+static s32 _actor800200PlayFootstepCue(Task* task)
 {
-    GameActor*                          actor;
-    const AnimationRecord*              rec;
-    GfxCoord*                           obj;
-    WorldCollisionSurfaceProperties*    surface;
-    const WorldCollisionFootstepSounds* footstepSounds;
-    s32                                 ret;
-    s32                                 sound;
-    s8                                  cueBits;
-    s32                                 pan;
+    GameActor*                             actor;
+    const AnimationRecord*                 cueRecord;
+    GfxCoord*                              rootCoord;
+    const WorldCollisionSurfaceProperties* surface;
+    const WorldCollisionFootstepSounds*    footstepSounds;
+    s32                                    recognizedCue;
+    s32                                    soundId;
+    s8                                     cueBits;
+    s32                                    pan;
 
-    ret   = 0;
-    sound = WORLD_COLLISION_FOOTSTEP_SILENT;
-    actor = arg0->work;
-    obj   = arg0->extra.tmd->coords;
-    rec   = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
-    if (rec != NULL && rec != actor->lastCueRecord) {
-        actor->lastCueRecord = rec;
-        switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {
+    recognizedCue = 0;
+    soundId       = WORLD_COLLISION_FOOTSTEP_SILENT;
+    actor         = task->work;
+    rootCoord     = task->extra.tmd->coords;
+    cueRecord     = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
+    if (cueRecord != NULL && cueRecord != actor->lastCueRecord) {
+        actor->lastCueRecord = cueRecord;
+        switch (cueBits = cueRecord->flags & ANIMATION_RECORD_CUE_MASK) {
             case ANIMATION_RECORD_CUE_1:
             case ANIMATION_RECORD_CUE_2:
                 surface        = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass];
                 footstepSounds = surface->footstepSounds;
                 if (footstepSounds != NULL) {
-                    if ((u16)actor->movementMode - 5 < 2U) {
+                    if ((u16)actor->movementMode - ACTOR_800200_MOVEMENT_WALK < 2U) {
                         switch (footstepSounds->walk) {
                             case 0x10000015:
-                                sound = 0x40720007;
+                                soundId = SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 7);
                                 break;
                             case 0x1000002D:
-                                sound = 0x40720003;
+                                soundId = SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 3);
                                 break;
                             case 0x1000001D:
                             case 0x10000049:
-                                sound = 0x40720001;
+                                soundId = SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 1);
                                 break;
                             case 0x1000003D:
                             case 0x10000041:
                             case 0x10000051:
                             case 0x10000059:
                             case 0x1000005D:
-                                sound = 0x40720005;
+                                soundId = SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 5);
                                 break;
                         }
+                        // An unmapped room base remains zero; cue 1 still increments it to 1.
                         if (cueBits == ANIMATION_RECORD_CUE_1) {
-                            sound++;
+                            soundId++;
                         }
-                        if ((u16)actor->movementMode == 6) {
+                        if ((u16)actor->movementMode == ACTOR_800200_MOVEMENT_RUN) {
                             sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_FOOTSTEP);
                         }
                     }
-                    if (sound != WORLD_COLLISION_FOOTSTEP_SILENT) {
-                        pan = (s8)worldCoordGetOriginAudioPan(obj);
-                        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(obj));
+                    if (soundId != WORLD_COLLISION_FOOTSTEP_SILENT) {
+                        pan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+                        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
                         roomEffectRecordAnimationSoundCue(cueBits != ANIMATION_RECORD_CUE_2);
                     }
                 }
-                ret = 1;
+                recognizedCue = 1;
                 break;
         }
     }
-    return ret;
+    return recognizedCue;
 }
 
 static void func_actor_800200_801652EC(Task* arg0)
@@ -2933,7 +2942,7 @@ static void func_actor_800200_801652EC(Task* arg0)
         actor->recoveryTicks--;
     }
     sp.funcs[actor->mode](arg0);
-    func_actor_800200_80165104(arg0);
+    _actor800200PlayFootstepCue(arg0);
     actor->usesPushbackDirection = 0;
 }
 

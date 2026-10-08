@@ -351,7 +351,7 @@ extern s16                        Actor02100_D03E2C[];
 
 static void Actor02100_Fn03168(Task* arg0);
 static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1);
-static void Actor02100_Fn032E4(Task* arg0);
+static void _actor02100TickMode(Task* task);
 static void _actor02100DestroyState(Enemy* enemy, Task* task);
 static s32  _actor02100UpdateTargetPosition(Task* task);
 
@@ -521,9 +521,9 @@ static void _actor02100DrawBeam(Task* task, s32 beamStyle);
 
 static void _actor02100ProjectBeamPoints(Task* task);
 
-static void Actor02100_Fn004C4(Task* arg0);
+static void _actor02100UpdateCombatContacts(Task* task);
 
-static void Actor02100_Fn03488(Task* arg0);
+static void _actor02100UpdateLighting(Task* task);
 
 static void _actor02100TickPatrol(Task* task);
 
@@ -693,25 +693,58 @@ static void _actor02100Initialize(Enemy* enemy, Task* task)
     SCRATCH_STACK_CURSOR(ActorEulerTurnScratch) = SCRATCH_STACK_CURSOR(ActorEulerTurnScratch) + 1;
 }
 
-static void Actor02100_Fn004C4(Task* arg0)
+/// Disables the beam's player/enemy pair and room-grid collision passes.
+///
+/// Work and both linked strike bodies remain live; keys and links are retained.
+static __inline__ void _actor02100DisableBeamCollision(_Actor02100Work* work)
 {
-    _Actor02100VectorScratch*        scratch;
-    _Actor02100Work*                 work;
-    Enemy*                           enemy;
-    GfxCoord*                        coord;
-    GfxCoord*                        src;
-    WorldCollisionSurfaceProperties* surface;
-    s32                              damage;
-    s32                              stun;
-    s32                              sound;
-    s32                              pan;
-    s32                              depth;
-    s32                              index;
+    work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+    work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+}
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100VectorScratch);
-    coord   = arg0->extra.tmd->coords;
-    work    = arg0->work;
-    enemy   = arg0->spawnArg2.pointer;
+/// Applies incoming weapon hits and measures the Watcher beam against its contacts.
+///
+/// Requires initialized live work, enemy/root, party task slots and room surface
+/// tables. Critical hits multiply damage by four. Death disables both strikes
+/// and selects teardown; surviving hits can start cooldown and impact effects.
+/// Strike points and the composed muzzle share composition coordinates in game units.
+/// Consumes both contact tables and releases its vector scratch block.
+static void _actor02100UpdateCombatContacts(Task* task)
+{
+    enum {
+        ACTOR_02100_HIT_EFFECT_COOLDOWN        = 10,
+        ACTOR_02100_CRITICAL_DAMAGE_MULTIPLIER = 4,
+        ACTOR_02100_HIT_EFFECT_FORWARD_OFFSET  = 200,
+        ACTOR_02100_TASK_DEATH                 = 2,
+        ACTOR_02100_ATTACK_PE_BIT              = 0x8000,
+        ACTOR_02100_WEAPON_ROW_SHIFT           = 8,
+        ACTOR_02100_WEAPON_ROW_MASK            = 0x3F,
+        ACTOR_02100_WEAPON_ROW_LIMIT           = 33U,
+        ACTOR_02100_ATTACKER_SHIFT             = 7,
+        ACTOR_02100_SOUND_HIT                  = SOUND_CHARACTER(0x15, 9),
+        ACTOR_02100_SOUND_DEATH                = SOUND_CHARACTER(0x15, 10),
+        ACTOR_02100_DEATH_EXPLOSION_ARG        = 0x10002400,
+        ACTOR_02100_DEATH_SMOKE_ARG            = 0x32FF1400,
+    };
+    _Actor02100VectorScratch*              scratch;
+    _Actor02100Work*                       work;
+    Enemy*                                 enemy;
+    GfxCoord*                              rootCoord;
+    GfxCoord*                              attackerCoord;
+    const WorldCollisionSurfaceProperties* surface;
+    s32                                    damage;
+    s32                                    hitCooldown;
+    s32                                    soundId;
+    s32                                    pan;
+    s32                                    depth;
+    s32                                    surfaceClass;
+
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100VectorScratch);
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
+    enemy     = task->spawnArg2.pointer;
 
     if (work->hitCooldown != 0) {
         work->hitCooldown--;
@@ -724,90 +757,89 @@ static void Actor02100_Fn004C4(Task* arg0)
         work->hitEffectCooldown--;
     }
 
+    // Consume eligible weapon damage; PE contacts only refresh the target readout.
     if (work->hitCooldown == 0) {
-        if ((work->hitContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x20000) {
-            if (work->hitContacts[0].key.value & 0x8000) {
+        if ((work->hitContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            if (work->hitContacts[0].key.value & ACTOR_02100_ATTACK_PE_BIT) {
                 worldTargetAddReadoutAmount(&enemy->node, 0, 0);
-            } else if ((((u32)work->hitContacts[0].key.value >> 8) & 0x3F) < 0x21U) {
-                src             = gPlayerActorTasks[((u32)work->hitContacts[0].key.value >> 7) & 1]->extra.tmd->coords;
-                scratch->vec.vx = src->coord.t[0] - coord->coord.t[0];
-                scratch->vec.vy = src->coord.t[1] - coord->coord.t[1];
-                scratch->vec.vz = src->coord.t[2] - coord->coord.t[2];
+            } else if ((((u32)work->hitContacts[0].key.value >> ACTOR_02100_WEAPON_ROW_SHIFT) & ACTOR_02100_WEAPON_ROW_MASK) < ACTOR_02100_WEAPON_ROW_LIMIT) {
+                attackerCoord   = gPlayerActorTasks[((u32)work->hitContacts[0].key.value >> ACTOR_02100_ATTACKER_SHIFT) & 1]->extra.tmd->coords;
+                scratch->vec.vx = attackerCoord->coord.t[0] - rootCoord->coord.t[0];
+                scratch->vec.vy = attackerCoord->coord.t[1] - rootCoord->coord.t[1];
+                scratch->vec.vz = attackerCoord->coord.t[2] - rootCoord->coord.t[2];
                 damage          = damageComputePlayerAttack(work->hitContacts[0].key.value,
                                                             SquareRoot0(scratch->vec.vx * scratch->vec.vx +
                                                                         scratch->vec.vy * scratch->vec.vy +
                                                                         scratch->vec.vz * scratch->vec.vz),
                                                             0, 0);
-                if (damageRollCriticalHit(arg0->spawnArg2.pointer,
+                if (damageRollCriticalHit(task->spawnArg2.pointer,
                                           work->hitContacts[0].key.value, 0) != 0) {
-                    damage *= 4;
-                    effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, 0);
+                    damage *= ACTOR_02100_CRITICAL_DAMAGE_MULTIPLIER;
+                    effectSpawn(EFFECT_CRITICAL_HIT, rootCoord, 0, 0);
                 }
                 enemy->hp -= damage;
                 worldTargetAddReadoutAmount(&enemy->node, damage, 0);
                 work->hitThisTick = 1;
                 if (enemy->hp <= 0) {
-                    effectSpawn(EFFECT_EXPLOSION, coord, 0x10002400, 0);
-                    effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x32FF1400, 0);
-                    work->mode                    = ACTOR_02100_MODE_DESTROYED;
-                    work->step                    = ACTOR_02100_DEATH_STEP_RELEASE;
-                    work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-                    work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-                    arg0->state                   = 2;
-                    sound                         = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4015000A;
-                    sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(coord),
-                                             (s8)worldCoordGetOriginAudioDepth(coord));
+                    effectSpawn(EFFECT_EXPLOSION, rootCoord, ACTOR_02100_DEATH_EXPLOSION_ARG, 0);
+                    effectSpawn(EFFECT_SMOKE_PUFF, rootCoord, ACTOR_02100_DEATH_SMOKE_ARG, 0);
+                    work->mode = ACTOR_02100_MODE_DESTROYED;
+                    work->step = ACTOR_02100_DEATH_STEP_RELEASE;
+                    _actor02100DisableBeamCollision(work);
+                    task->state = ACTOR_02100_TASK_DEATH;
+                    soundId     = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02100_SOUND_DEATH;
+                    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord),
+                                             (s8)worldCoordGetOriginAudioDepth(rootCoord));
                 } else if (damage > 0) {
                     if (work->hitEffectCooldown == 0) {
                         scratch->shortVec.vx = 0;
                         scratch->shortVec.vy = 0;
-                        scratch->shortVec.vz = 0xC8;
+                        scratch->shortVec.vz = ACTOR_02100_HIT_EFFECT_FORWARD_OFFSET;
                         if ((damageGetPlayerAttackReaction(work->hitContacts[0].key.value) & 0xFFFF) == DAMAGE_PLAYER_REACTION_INCENDIARY) {
-                            effectSpawn(EFFECT_HIT_BLAST, coord,
+                            effectSpawn(EFFECT_HIT_BLAST, rootCoord,
                                         work->hitEffect.spawnArgLo | (work->hitEffect.spawnArgHi << 16),
                                         &scratch->shortVec);
                         }
-                        effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, coord, &scratch->shortVec, &work->hitEffect);
-                        work->hitEffectCooldown = 10;
+                        effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, rootCoord, &scratch->shortVec, &work->hitEffect);
+                        work->hitEffectCooldown = ACTOR_02100_HIT_EFFECT_COOLDOWN;
                     }
-                    sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150009;
-                    pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                    depth = (s8)worldCoordGetOriginAudioDepth(coord);
-                    sndEvtRequestScriptStart(sound, pan, depth);
-                    stun = damageGetPlayerAttackHitCooldown(work->hitContacts[0].key.value);
-                    if (stun > 0) {
-                        work->hitCooldown = stun;
+                    soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02100_SOUND_HIT;
+                    pan     = (s8)worldCoordGetOriginAudioPan(rootCoord);
+                    depth   = (s8)worldCoordGetOriginAudioDepth(rootCoord);
+                    sndEvtRequestScriptStart(soundId, pan, depth);
+                    hitCooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[0].key.value);
+                    if (hitCooldown > 0) {
+                        work->hitCooldown = hitCooldown;
                     }
                 }
             }
         }
     }
 
+    // Measure a blocking beam contact from the transformed muzzle in composition space.
     worldCollisionClearContacts(work->hitContacts);
     work->beamBlocked = 0;
     if (worldCollisionCountContactsByKind(work->strikeContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-        index   = worldCollisionSurfaceClassFromKey(work->strikeContacts[0].key.value);
-        surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
-                                    [gGameSession->location.loc.area - 1][index];
+        surfaceClass = worldCollisionSurfaceClassFromKey(work->strikeContacts[0].key.value);
+        surface      = Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
+                                    [gGameSession->location.loc.area - 1][surfaceClass];
         if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             work->beamBlocked = 1;
         }
     }
 
-    if ((work->strikeContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000 ||
-        (work->strikeContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x30000 || work->beamBlocked == 1) {
+    if ((work->strikeContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY ||
+        (work->strikeContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ENEMY_BODY || work->beamBlocked == 1) {
         scratch->shortVec.vx = 0;
         scratch->shortVec.vy = 0;
         scratch->shortVec.vz = ACTOR_02100_MUZZLE_OFFSET;
-        gte_SetRotMatrix(&coord->workm);
+        gte_SetRotMatrix(&rootCoord->workm);
         gte_ldv0(&scratch->shortVec);
         gte_rtv0();
         gte_stlvnl(&scratch->vec);
-        scratch->vec.vx += coord->workm.t[0];
-        scratch->vec.vy += coord->workm.t[1];
-        scratch->vec.vz += coord->workm.t[2];
+        scratch->vec.vx += rootCoord->workm.t[0];
+        scratch->vec.vy += rootCoord->workm.t[1];
+        scratch->vec.vz += rootCoord->workm.t[2];
         scratch->vec.vx  = work->strikeContacts[0].point.vx - scratch->vec.vx;
         scratch->vec.vy  = work->strikeContacts[0].point.vy - scratch->vec.vy;
         scratch->vec.vz  = work->strikeContacts[0].point.vz - scratch->vec.vz;
@@ -825,7 +857,7 @@ static void Actor02100_Fn004C4(Task* arg0)
             gte_rtv0();
             gte_stsv(&scratch->shortVec);
             scratch->shortVec.vz += ACTOR_02100_MUZZLE_OFFSET;
-            effectSpawn(EFFECT_IMPACT_SPARK, coord, 0, &scratch->shortVec);
+            effectSpawn(EFFECT_IMPACT_SPARK, rootCoord, 0, &scratch->shortVec);
         }
     }
 
@@ -1407,17 +1439,6 @@ static __inline__ void _actor02100BuildLockedBeamAndStrikePoints(Task* task, _Ac
     _actor02100BuildStrikeEndpoints(task);
 }
 
-/// Disables the beam's player/enemy pair and room-grid collision passes.
-///
-/// Work and both linked strike bodies remain live; keys and links are retained.
-static __inline__ void _actor02100DisableBeamCollision(_Actor02100Work* work)
-{
-    work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-    work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-}
-
 /// Advances the Watcher's tracked charge, locked aim, beam strike and recovery.
 ///
 /// Requires live work/model/enemy, beam weapon index 0..3 and initialized scratch/GTE
@@ -1923,21 +1944,21 @@ static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
             break;
         case 1:
-            Actor02100_Fn03488(arg1);
+            _actor02100UpdateLighting(arg1);
             return;
         case 2:
             obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags = 1;
             return;
     }
-    Actor02100_Fn004C4(arg1);
+    _actor02100UpdateCombatContacts(arg1);
     coord->coord.t[0]  += work->velocity.vx;
     coord->coord.t[1]  += work->velocity.vy;
     coord->coord.t[2]  += work->velocity.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    Actor02100_Fn032E4(arg1);
-    Actor02100_Fn03488(arg1);
+    _actor02100TickMode(arg1);
+    _actor02100UpdateLighting(arg1);
     if (gSceneCombatState.generatorDeathStarted == 1) {
         work->mode  = ACTOR_02100_MODE_DESTROYED;
         work->step  = ACTOR_02100_DEATH_STEP_RELEASE;
@@ -1945,26 +1966,32 @@ static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1)
     }
 }
 
-static void Actor02100_Fn032E4(Task* arg0)
+/// Runs the Watcher patrol, target-acquisition or attack mode for this tick.
+///
+/// Requires initialized work with an ACTOR_02100_MODE_* value. Patrol intentionally
+/// falls through into target acquisition in the same tick. The disabled-Watcher
+/// flag suppresses acquisition only; beam and gun modes continue their handlers.
+static void _actor02100TickMode(Task* task)
 {
-    _Actor02100Work* work;
-    s16              state;
+    const _Actor02100Work* work;
+    s16                    mode;
 
-    work  = arg0->work;
-    state = work->mode;
-    switch (state) {
+    work = task->work;
+    mode = work->mode;
+    switch (mode) {
         case ACTOR_02100_MODE_PATROL:
-            _actor02100TickPatrol(arg0);
+            _actor02100TickPatrol(task);
+            // A patrol tick may immediately acquire a target.
         case ACTOR_02100_MODE_WATCH:
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED) == 0) {
-                _actor02100AcquireTarget(arg0);
+                _actor02100AcquireTarget(task);
             }
             break;
         case ACTOR_02100_MODE_BEAM:
-            _actor02100TickBeamAttack(arg0);
+            _actor02100TickBeamAttack(task);
             break;
         case ACTOR_02100_MODE_GUN:
-            _actor02100TickGunAttack(arg0);
+            _actor02100TickGunAttack(task);
             break;
         case ACTOR_02100_MODE_DESTROYED:
             break;
@@ -2019,16 +2046,20 @@ static s32 _actor02100SegmentOccluded(const SVECTOR* segmentStart, const SVECTOR
     return occluded;
 }
 
-static void Actor02100_Fn03488(Task* arg0)
+/// Refreshes Watcher colour from its composed root position.
+///
+/// Requires a live enemy and current root work matrix. Samples composed-coordinate
+/// translation in game units without recomposing the transform.
+static void _actor02100UpdateLighting(Task* task)
 {
-    GfxCoord* coord;
-    VECTOR    vec;
+    const GfxCoord* rootCoord;
+    VECTOR          composedPosition;
 
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    rootCoord           = task->extra.tmd->coords;
+    composedPosition.vx = rootCoord->workm.t[0];
+    composedPosition.vy = rootCoord->workm.t[1];
+    composedPosition.vz = rootCoord->workm.t[2];
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &composedPosition, 0, 0);
 }
 
 /// Projects the local beam endpoints to screen pixels and SZ3/4 sorting depths.

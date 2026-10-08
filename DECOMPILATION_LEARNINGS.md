@@ -894,7 +894,7 @@ the arm of the copy, while the long-lived `work` takes `$a0`. 100.000%.
 
 Note the direction: this is the mirror of the `reg/v` pseudo with two
 *definitions* - there one variable is two pseudos too many, here one variable is
-one pseudo too few. `func_actor_210600_8014B8C8` is the same `mem = memCalloc(...);
+one pseudo too few. `_actor210600Spawn` is the same `mem = memCalloc(...);
 work = mem;` shape already matched, and is worth reading before reaching for a
 pin when a calloc result's register pair looks wrong.
 
@@ -905,7 +905,7 @@ Inputs: `base_1.i` (99.900%)
 
 ## A local's declared *width* decides how many pseudos a `switch (x = expr)` operand costs — and with them the callee-saved home
 
-`func_actor_800200_80165104` sat at 97.951% with the whole structure matching and
+`_actor800200PlayFootstepCue` sat at 97.951% with the whole structure matching and
 one register pair swapped: the target keeps the animation flags in `$s4` and the
 coordinate pointer in `$s3`, ours had the two the other way round, and the target
 also had a copy pair ours lacked.
@@ -949,7 +949,7 @@ calls and set to a non-zero constant later. Constant returns would put `li $v0,0
 / `li $v0,1` in those slots instead, and a void function would have no `$v0` write
 at all.
 
-Restoring it is what makes the tail allocate at all: `func_actor_800200_80165104`
+Restoring it is what makes the tail allocate at all: `_actor800200PlayFootstepCue`
 went from 79.426% (`stack=0 branch=10 regs=20 insert=8 delete=16`) to 94.426%
 (`branch=10 regs=14 insert=2 delete=4`) on that change alone, because the new
 callee-saved value also displaced the flags mask out of `$s2` and into `$s4`.
@@ -17997,7 +17997,7 @@ which puts the `move a0` first so dbr sinks the store into the `jal` delay
 slot. The target has `sh v0,field` / `jal` / `move a0` instead. Per-case stores
 keep that block down to the move and the call, because cross-jumping only
 merges the stores later, in jump2. A `SCHED_BARRIER()` between the store and
-the call was standing in for this (func_actor_401000_80133274).
+the call was standing in for this (_actor401000Spawn).
 
 ## Capture TaskDesc tail field before assigning the callback
 
@@ -44604,10 +44604,10 @@ header (package id, dispatch pointers) still must not join the shared
 object, but a table at the *end* of that header can: keep
 `[0x0, rodata, <name>_header]` up to the cut and emit
 `[0x34, .rodata, lib/<shared-unit>]` so GCC's table relocates into every
-slot. `actor_102100` / `Actor02100_Fn032E4` is the example.
+slot. `actor_102100` / `_actor02100TickMode` is the example.
 
 A vacuum `jlabel` inside a `jr $v0` switch is not a standalone function.
-Match the parent (`Actor02100_Fn032E4` here): case 1 falls through into
+Match the parent (`_actor02100TickMode` here): case 1 falls through into
 case 0 (`gameFlagGetNibble(0xD2)`), and an empty `case 4:` is required
 so the range check stays `sltiu …, 5`.
 
@@ -51635,7 +51635,7 @@ if (mem == NULL) { ... }
 
 Gives the target `addu s2,v0,zero` / `bnez v0` / `sw v0,0x1C(s4)` exactly;
 naming only `work` throughout gives `bnez s2` / `sw s2` at the same score
-otherwise (`_actor312200Spawn`, `func_actor_210600_8014B8C8`). The
+otherwise (`_actor312200Spawn`, `_actor210600Spawn`). The
 `mist_parking` case has no such intervening read, which is why it needed the
 soft use.
 
@@ -75644,7 +75644,7 @@ discriminate them and the callee's `VECTOR *` parameter does not force the
 local's type. Declare whichever the source reads better as. What matters is only
 that the three writes share one addressable object. `actor510900UpdateLighting`.
 
-The next function in that TU, `func_actor_510900_8013C338`, is the same body with
+The next function in that TU, `_actor510900UpdateHelipadLightLighting`, is the same body with
 a different callee (`worldCoordSetModelLighting(obj, &pos, 0, 3)`) and shows the same numbers:
 63.3% with `delete=5` from m2c's three scalars, 100% from the single `VECTOR`.
 
@@ -85864,7 +85864,7 @@ Inputs: `base.c` (two parameters, 98.938%)
 
 ## The frame tells you the locals' size; when it exceeds the stores, the function has locals it never touches
 
-`func_actor_210600_8014BA3C` is the family's state dispatcher: copy a global
+`_actor210600Task` is the family's state dispatcher: copy a global
 function-pointer table to the stack, index it by `Task::state`, call the entry.
 The 3-word table type reproduces every instruction - `lw` the three entries into
 `$v1`/`$a2`/`$a3`, `sw` them to `0x10`/`0x14`/`0x18`, index, `jalr` - and still
@@ -85893,11 +85893,11 @@ declaring those bytes beside the table is enough - the copy stays 3 words and
 only the frame grows. This is what the tree has, with the same bare
 `EnemyTaskFuncTable3` local as every other dispatcher of the family:
 
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
     byte                unused[8];               /* never read or written */
 
-    sp = D_actor_210600_80149E24;                /* still 3 lw / 3 sw */
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);   /* 100.000% */
+    stateHandlers = D_actor_210600_80149E24;       /* still 3 lw / 3 sw */
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);   /* 100.000% */
 
 A struct assignment moves exactly the **source's** size, so the first form that
 matched put the extra bytes in the *destination* instead: a 20-byte record with
@@ -87763,7 +87763,7 @@ slots and passes one of those addresses, the C is one aggregate — declare the
 named repo type (`VECTOR`, `SVECTOR`, the work struct) rather than an array or
 a set of scalars, so the field names also match the siblings. The BRIEF's
 "similar matched bodies" listed the identical body minus its trailing call
-(`func_actor_521100_80136680`, actor_460200's `_actorRenderWalkerFrame`); reading one of
+(`_actor521100TickAnmcWoman`, actor_460200's `_actorRenderWalkerFrame`); reading one of
 those gave the whole source shape, which is the fast path for a `calls`-class
 1.00 neighbour.
 
@@ -93923,7 +93923,7 @@ the diff is a pure permutation of `$sN` with `Structure: match`. Read the
 Y insns` block at the head of the `.lreg` dump; the two together reproduce the
 order exactly, and the arithmetic says how far a pseudo has to move.
 
-## Two address-taken locals: slots follow declaration order, and a chained assignment stores right-to-left (Actor00400_Fn058C4, 2026-09-16)
+## Two address-taken locals: slots follow declaration order, and a chained assignment stores right-to-left (_actor00400SwimEmergeWait, 2026-09-16)
 
 **Problem.** `Structure: match`, `blocks=28/28 instructions=271/271`, every
 penalty zero except `regs=9` - and the whole diff was two `SVECTOR` locals
@@ -102923,7 +102923,7 @@ the pre-call value stays in `$s4` for the call argument.
 the target branches and stores with `$v0` but also copies it to a saved
 register. One source value used at two different live lengths is the tell.
 
-Evidence: scratch `nonmatchings/func_actor_210600_8014B8C8-vacuum/`. `base.c`
+Evidence: scratch `nonmatchings/_actor210600Spawn-vacuum/`. `base.c`
 `3a61147c...` (m2c seed, 92.634%), `base_1.c` `b9197345...` (99.892%, the
 address-taken `VECTOR` fix above), `base_2.c` `9aa3a97f...` (100.000%,
 preprocessed `b03db8ba...`), `base_3.c` `750273c6...` (typed port of
@@ -109624,7 +109624,7 @@ Inputs: base_1.i SHA256
 `7b1973d8b57236fdecefecd70d3f9d175ff469d3b19891368db12d6911b3c2d1`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## This build's switch table needs five case values, not four (func_actor_401000_80133274, 2026-09-16)
+## This build's switch table needs five case values, not four (_actor401000Spawn, 2026-09-16)
 
 `expand_end_case` (`gcc/stmt.c`) takes the `casesi` / `tablejump` branch only when
 the case list is long enough; otherwise `balance_case_nodes` builds a comparison
@@ -109658,7 +109658,7 @@ greater than the number of distinct case values means the source names the
 extra value explicitly. Four values scored 87.046% with a `beq`/`slti` cascade;
 five scored 87.733% with the block topology matching.
 
-## A `SCHED_BARRIER()` before a call keeps its argument `move` in the delay slot (func_actor_401000_80133274, 2026-09-16)
+## A `SCHED_BARRIER()` before a call keeps its argument `move` in the delay slot (_actor401000Spawn, 2026-09-16)
 
 A store followed by a call whose argument needs a register copy:
 
@@ -109706,7 +109706,7 @@ Only the first of the two `worldCollisionClearContacts` arguments is hoisted tha
 the second stays an expression and lands in the second call's delay slot, as the
 target shows.
 
-## A cached pointer local suppresses reloads the target's full chains force (func_actor_401000_80133274, 2026-09-16)
+## A cached pointer local suppresses reloads the target's full chains force (_actor401000Spawn, 2026-09-16)
 
 `root` and `obj` are live in callee-saved registers for the whole init, so every
 `root->...` / `obj->...` reads them directly and no load appears. The target
@@ -109738,7 +109738,7 @@ from `$s3` and lets the `addiu` go first, matching the target (98.954%).
 `body->field_8` / `field_C` / the rest keep the local, which is why only this one
 store names the node through `work`.
 
-## An `s32` intermediate is what makes a masked `s16` field load with `lh` (func_actor_401000_80133274, 2026-09-16)
+## An `s32` intermediate is what makes a masked `s16` field load with `lh` (_actor401000Spawn, 2026-09-16)
 
 `switch (actor->field_36 & 0xF)` on an `s16` field loads with `lhu`: the `& 0xF`
 kills every bit the sign extension would set, so combine is free to pick the
@@ -127891,7 +127891,7 @@ Inputs: scratch `nonmatchings/_actor450900CompanionDistressTask-vacuum`, `base_2
 SHA256 `30f4e6e2cbde1adb2f31d908cc1e25b33aeb6d8fedca89ab162c7e5e7eaaee00`,
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## The same inlined rotation block without the doubled close-out: the caller's guard is what follows it (func_actor_210600_8014B434, 2026-09-17)
+## The same inlined rotation block without the doubled close-out: the caller's guard is what follows it (_actor210600Update, 2026-09-17)
 
 The entry above reads a tail that clears `composeStamp` twice and re-fetches
 `task->extra->coords` as the tell that the rescale is an inlined helper. This
@@ -127907,13 +127907,13 @@ The pick-up after the inline is an effect guarded on an animation cue index, and
 two halves of that guard read **different slots** -- do not assume symmetry:
 
 ```c
-id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;               /* 0x3E, `lhu` + `andi` */
-if (id == 7 && work->lastCueIndex != id) {
-    memset(&vec, 0, 8);                               /* SVECTOR, not NULL */
-    eff.coord      = ((TmdObject*)task->extra)->coords; /* part 0, no addiu */
-    eff.spawnArgLo = 0x100;
-    eff.spawnArgHi = 2;
-    effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
+cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;               /* 0x3E, `lhu` + `andi` */
+if (cueIndex == 7 && work->lastCueIndex != cueIndex) {
+    memset(&offset, 0, 8);                               /* SVECTOR, not NULL */
+    effectArg.coord      = task->extra.tmd->coords; /* part 0, no addiu */
+    effectArg.spawnArgLo = 0x100;
+    effectArg.spawnArgHi = 2;
+    effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), task->extra.tmd->coords + 1, &offset, &effectArg);
 }
 work->lastCueIndex = work->rig.slots[0].currentPose.indices.recordIndex & 0x3FF; /* 0x16 -- slot 0, not 1 */
 ```
@@ -127932,7 +127932,7 @@ scratch pointer by `sizeof(MATRIX)` (`addiu s0,s2,-0x680`) and burned an extra
 
 Inputs: `base_1.c` source `e46795b5…`, preprocessed `dd76ada1…`, target
 `f7bd92eb…`, compiler `60d886cd…`; scratch
-`nonmatchings/func_actor_210600_8014B434-vacuum/`.
+`nonmatchings/_actor210600Update-vacuum/`.
 
 ## A `u16` field that feeds a call argument *and* an array index needs the `(s16)` cast at both uses
 
@@ -137045,7 +137045,7 @@ in `tools/compiler_evidence/2026-09-20-actor403200-38748.json`. Unpeeled input:
 `c556a2194c22ecec70a371db7b5116cea7151f90f8a1cbd44f8131d657c8364d`;
 peeled input: `de97bea767cc751b0d923307ec4554ba6e748f8faebf6ac7d9a69e44e30ae1e2`.
 
-### A phony loop can expose the scheduling boundary a named helper must preserve (func_actor_548100_80132420, 2026-09-20)
+### A phony loop can expose the scheduling boundary a named helper must preserve (_actor548100InitPanel, 2026-09-20)
 
 The archived unpinned seed reproduced 98.158%: the state load interleaved with
 `D_8007216C = 4`, making the constant live alongside state and pushing its
@@ -148085,7 +148085,7 @@ body uses `Snd_BankSlotsByType[...]` and `&Snd_Banks[slotIndex]` directly;
 the early `entryIndex = 0`, the mid-body `entryIndex++` and the hoist order
 in the target were all the scheduler and loop pass.
 
-### A local in the dead parameter's register after the parameter died: a block-local temp that local-alloc put there hands it over (func_actor_403600_8013289C, 2026-10-05)
+### A local in the dead parameter's register after the parameter died: a block-local temp that local-alloc put there hands it over (_actor403600PlaceDistortionVertex, 2026-10-05)
 
 Target: `vtx = a0 + 32` / `page = a0 + 39` (`$a2`, `$t2`), then the screen `x`
 lives in `$a0` to the end. With a typed `quad` parameter and a separate `s32 x`

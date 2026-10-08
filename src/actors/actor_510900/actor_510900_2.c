@@ -951,7 +951,7 @@ static void _actor510900TickHelipadLightBreak(Task* task);
 
 static s32 _actor510900CheckHelipadLightView(Task* task);
 
-static void func_actor_510900_8013C338(Task* arg0, GfxCoord* arg1);
+static void _actor510900UpdateHelipadLightLighting(Task* task, const GfxCoord* rootCoord);
 
 static void _actor510900TickBlastSourcePhases(Task* task);
 
@@ -3537,7 +3537,7 @@ static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            func_actor_510900_8013C338(arg1, coord);
+            _actor510900UpdateHelipadLightLighting(arg1, coord);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3557,7 +3557,7 @@ static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1)
     } while (i < 0xB);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    func_actor_510900_8013C338(arg1, coord);
+    _actor510900UpdateHelipadLightLighting(arg1, coord);
 }
 
 /// Breaks a shot or slashed helipad light and runs its sparks and one-hit blast.
@@ -4000,7 +4000,7 @@ void actor510900ExitBody(Task* task)
 static void func_actor_510900_8013B658(Enemy* arg0, Task* arg1)
 {
     if (gGameSession->eventState != 0) {
-        func_actor_510900_801355B4(arg0, arg1);
+        actor510900TickEvent(arg0, arg1);
         return;
     }
     _actor510900TickCombat(arg0, arg1);
@@ -4552,14 +4552,18 @@ static s32 _actor510900CheckHelipadLightView(Task* task)
     return 0;
 }
 
-static void func_actor_510900_8013C338(Task* arg0, GfxCoord* arg1)
+/// Refreshes helipad-light model lighting at its composed root position.
+///
+/// Requires a live light model and current root work matrix. Uses composed-coordinate
+/// translation in game units and leaves composition to the caller.
+static void _actor510900UpdateHelipadLightLighting(Task* task, const GfxCoord* rootCoord)
 {
-    VECTOR pos;
+    VECTOR composedPosition;
 
-    pos.vx = arg1->workm.t[0];
-    pos.vy = arg1->workm.t[1];
-    pos.vz = arg1->workm.t[2];
-    worldCoordSetModelLighting(arg0->extra.tmd, &pos, 0, 3);
+    composedPosition.vx = rootCoord->workm.t[0];
+    composedPosition.vy = rootCoord->workm.t[1];
+    composedPosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(task->extra.tmd, &composedPosition, 0, 3);
 }
 
 /// Unregisters the helipad light's target and collision bodies, then destroys it.

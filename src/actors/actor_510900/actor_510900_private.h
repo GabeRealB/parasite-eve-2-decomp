@@ -166,7 +166,13 @@ extern TaskMessageEntry D_actor_510900_80167A6C[7];
 
 void func_actor_510900_801350F8(Enemy* arg0, Task* arg1);
 
-void func_actor_510900_801355B4(Enemy* arg0, Task* arg1);
+/// Advances No. 9 event playback and its frame-triggered flame presentation.
+///
+/// Requires live initialized body work/model/enemy and an event-selected rig.
+/// Animation 32 at elapsed frame 210 starts 255 flame ticks and two sounds.
+/// Advances tracks 1..19, composes the root, refreshes lighting and publishes
+/// changed flame modes to the adopted jet without running combat behavior.
+void actor510900TickEvent(Enemy* enemy, Task* task);
 
 /// Installs or collapses the landing pad's extra collision-grid face.
 ///

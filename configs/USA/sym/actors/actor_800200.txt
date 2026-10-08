@@ -189,3 +189,4 @@ _actor800200TickDamageMode = 0x80165e90; // type:func
 _actor800200TickScriptedMode = 0x80165f50; // type:func
 actor800200Task = 0x801626ec; // type:func
 _actor800200TickNormalMode = 0x80165b84; // type:func
+_actor800200PlayFootstepCue = 0x80165104; // type:func

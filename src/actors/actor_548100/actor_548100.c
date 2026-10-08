@@ -286,7 +286,7 @@ STATIC_ASSERT_SIZEOF(_Actor548100ColorRow, 16);
 extern _Actor548100ColorRow D_actor_548100_801358A8[3];
 
 static void _actionPromptResetDefault(Task* task);
-static void func_actor_548100_80132420(Task* task);
+static void _actor548100InitPanel(Task* task);
 static void _actor548100ScanHotspots(Task* task);
 static void func_actor_548100_80132684(Task* task);
 static void _actor548100WaitSwitchCaption(Task* task);
@@ -965,7 +965,7 @@ static const char D_actor_548100_80131E64[] = "Flow";
 /// indexing. States 0 and 2 are the spawners, 1 and 3 arm and re-spawn the
 /// action prompt, 4 is the `choice` switch and 9 the switch-on animation.
 static const TaskFuncTable11 D_actor_548100_80131E6C = { {
-    func_actor_548100_80132420,
+    _actor548100InitPanel,
     _actor548100ArmCursor,
     _actor548100ScanHotspots,
     _actor548100OpenHotspotCommands,
@@ -980,13 +980,34 @@ static const TaskFuncTable11 D_actor_548100_80131E6C = { {
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 
-/// State 0 of the actor's callback: allocates the work block, spawns the
-/// action-prompt task and initializes the map UI.
-static void func_actor_548100_80132420(Task* task)
+/// Holds scripted player control and hides player/HUD for the open panel.
+///
+/// The panel exit restores presentation and releases the menu hold separately.
+static __inline__ void _actor548100HoldPanelPresentation(void)
 {
+    gGameSession->cutsceneHold = 1;
+    gGameSession->hideHud      = 1;
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+}
+
+/// Opens the mine power-panel interface and takes control of its menu presentation.
+///
+/// Allocates owned zeroed work or kills the panel task on failure. Spawns the
+/// action prompt, installs messages and advances to cursor arming. First use
+/// seeds the panel/socket flags; each visit clears hotspot hits and rebuilds the
+/// wire graph. Holds menu display and scripted player control, hides the player
+/// and HUD, and sets saved view 4. The panel exit releases those holds. Prompt
+/// spawn failure is retained without a local check.
+static void _actor548100InitPanel(Task* task)
+{
+    enum {
+        ACTOR_548100_PANEL_SAVED_VIEW    = 4,
+        ACTOR_548100_INITIAL_COLOR_PULSE = 16,
+    };
     _Actor548100Work*    work;
-    ActionPromptHotspot* rec;
-    ActionPromptHotspot* start;
+    ActionPromptHotspot* hotspot;
+    ActionPromptHotspot* hotspots;
 
     work = memCalloc(sizeof(_Actor548100Work), 0);
     if (work == NULL) {
@@ -996,25 +1017,23 @@ static void func_actor_548100_80132420(Task* task)
     task->spawnArg2.pointer                                    = taskSpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
     task->msgTable                                             = D_actor_548100_801351C0;
     task->work                                                 = work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_548100_PANEL_SAVED_VIEW;
     task->state                                               += 1;
     if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 0) {
         gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, 1);
         gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SOCKET_4, 1);
     }
     work->usedItem = 0;
+    // Begin the panel menu hold and reset room-owned hotspot feedback.
     displayAcquireMenuHold();
-    start = D_actor_548100_801357E8;
-    for (rec = start; rec->id != ACTION_PROMPT_HOTSPOT_END; rec++) {
-        rec->hit = 0;
+    hotspots = D_actor_548100_801357E8;
+    for (hotspot = hotspots; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+        hotspot->hit = 0;
     }
-    D_actor_548100_80135B50 = 0x10;
+    D_actor_548100_80135B50 = ACTOR_548100_INITIAL_COLOR_PULSE;
     D_actor_548100_80135B52 = 0;
     _actor548100InitWireGraph();
-    gGameSession->cutsceneHold = 1;
-    gGameSession->hideHud      = 1;
-    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+    _actor548100HoldPanelPresentation();
 }
 
 /// Lets the player select a panel hotspot or cancel while no caption is playing.

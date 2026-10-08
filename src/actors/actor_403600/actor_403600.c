@@ -939,7 +939,7 @@ enum {
 };
 
 static void        _actor403600UnifyGridQuadTexturePage(_Actor403600GridQuad* quad);
-static void        func_actor_403600_8013289C(_Actor403600GridQuad* quad, s32 corner, SVECTOR* arg2, s32 fade);
+static void        _actor403600PlaceDistortionVertex(_Actor403600GridQuad* quad, s32 corner, SVECTOR* unusedVector, s32 distortion);
 static inline void _actor403600RotateSv(const MATRIX* rotationMatrix, const SVECTOR* input, SVECTOR* output);
 static inline void _actor403600TrailTick(Actor403600Ripple* state);
 static inline s32  _actor403600TrailEmpty(Actor403600Ripple* state);
@@ -1156,78 +1156,107 @@ static void _actor403600UnifyGridQuadTexturePage(_Actor403600GridQuad* quad)
     quad->page0     = pageShift;
 }
 
-/* Places vertex `corner` of a grid quad on screen: the vertex is moved to
- * screen space, jittered by a few pixels with probability rising with `fade`,
- * clamped to the 320x240 frame (the clamp is folded back into the vertex), and
- * given the texture coordinate of the frame copy beneath it.
- * The third argument's value is never read. */
-static void func_actor_403600_8013289C(_Actor403600GridQuad* quad, s32 corner, SVECTOR* arg2, s32 fade)
+/// Jitters one distortion-grid corner and assigns its captured-screen texel.
+///
+/// Requires a live quad and distortion in 0..4096. Corners 0..2 select their
+/// named vertex; every other value selects corner 3 (callers use 0..3). Input
+/// geometry is centred at (0,0); screen pixels add (160,120). One private LCG
+/// draw tests against distortion + 1024, with two more draws giving -4..3 pixel
+/// jitter when selected. Clamps to 320x240, correcting geometry by the clamp
+/// delta, then stores page shift 0/64 and byte UV. The vector argument is ignored.
+static void _actor403600PlaceDistortionVertex(_Actor403600GridQuad* quad, s32 corner, SVECTOR* unusedVector, s32 distortion)
 {
-    _Actor403600GridVertex* vtx;
-    s16                     vx;
-    s16                     vy;
-    s32                     x;
-    s32                     y;
-    s32                     left;
-    s32                     top;
-    s32                     seed;
-    s32                     seed2;
-    s32                     seed3;
-    u8*                     page;
+    enum {
+        ACTOR_403600_DISTORTION_SCREEN_CENTER_X = 160,
+        ACTOR_403600_DISTORTION_SCREEN_CENTER_Y = 120,
+        ACTOR_403600_DISTORTION_JITTER_RADIUS   = 4,
+        ACTOR_403600_DISTORTION_JITTER_MASK     = 7,
+        ACTOR_403600_DISTORTION_RANDOM_MASK     = 0xFFF,
+        ACTOR_403600_DISTORTION_BASE_CHANCE     = 1024,
+    };
+    _Actor403600GridVertex* vertex;
+    s16                     localX;
+    s16                     localY;
+    s32                     screenX;
+    s32                     screenY;
+    s32                     jitterLeft;
+    s32                     jitterTop;
+    s32                     chanceState;
+    s32                     xState;
+    s32                     yState;
+    u8*                     pageShift;
 
     switch (corner) {
         case 0:
-            vtx  = &quad->vertex0;
-            page = &quad->page0;
+            vertex    = &quad->vertex0;
+            pageShift = &quad->page0;
             break;
         case 1:
-            vtx  = &quad->vertex1;
-            page = &quad->page1;
+            vertex    = &quad->vertex1;
+            pageShift = &quad->page1;
             break;
         case 2:
-            vtx  = &quad->vertex2;
-            page = &quad->page2;
+            vertex    = &quad->vertex2;
+            pageShift = &quad->page2;
             break;
         default:
-            vtx  = &quad->vertex3;
-            page = &quad->page3;
+            vertex    = &quad->vertex3;
+            pageShift = &quad->page3;
             break;
     }
-    vx                      = vtx->x;
-    vy                      = vtx->y;
-    x                       = vx + 0xA0;
-    y                       = vy + 0x78;
-    seed                    = D_actor_403600_80160698 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    D_actor_403600_80160698 = seed;
-    if (((seed >> 16) & 0xFFF) < fade + 0x400) {
-        left                    = vx + 0x9C;
-        seed2                   = seed * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        x                       = left + ((seed2 >> 16) & 7);
-        seed3                   = seed2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        D_actor_403600_80160698 = seed3;
-        top                     = vy + 0x74;
-        y                       = top + ((seed3 >> 16) & 7);
+    localX  = vertex->x;
+    localY  = vertex->y;
+    screenX = localX + ACTOR_403600_DISTORTION_SCREEN_CENTER_X;
+    screenY = localY + ACTOR_403600_DISTORTION_SCREEN_CENTER_Y;
+    // Advance modulo 2^32, retaining signed snapshots for the masked draws.
+    chanceState             = (u32)D_actor_403600_80160698 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    D_actor_403600_80160698 = chanceState;
+    if (((chanceState >> 16) & ACTOR_403600_DISTORTION_RANDOM_MASK) < distortion + ACTOR_403600_DISTORTION_BASE_CHANCE) {
+        jitterLeft              = localX + ACTOR_403600_DISTORTION_SCREEN_CENTER_X - ACTOR_403600_DISTORTION_JITTER_RADIUS;
+        xState                  = (u32)chanceState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        screenX                 = jitterLeft + ((xState >> 16) & ACTOR_403600_DISTORTION_JITTER_MASK);
+        yState                  = (u32)xState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        D_actor_403600_80160698 = yState;
+        jitterTop               = localY + ACTOR_403600_DISTORTION_SCREEN_CENTER_Y - ACTOR_403600_DISTORTION_JITTER_RADIUS;
+        screenY                 = jitterTop + ((yState >> 16) & ACTOR_403600_DISTORTION_JITTER_MASK);
     }
-    if (y >= 0xF0) {
-        vtx->y += 0xEF - y;
-        y       = 0xEF;
-    } else if (y < 0) {
-        vtx->y -= y;
-        y       = 0;
+    /// Clamps the grid geometry and selects page/UV under the displaced pixel.
+    ///
+    /// Arguments must be distinct, side-effect-free pointer/scalar locals.
+    /// pixelX/pixelY are writable s32 lvalues; vertex/page storage stays live.
+    /// Each argument may be evaluated repeatedly. Use as a standalone statement.
+#define ACTOR_403600_CLAMP_DISTORTION_VERTEX(gridVertex, pageOffset, pixelX, pixelY) \
+    {                                                                                \
+        enum {                                                                       \
+            ACTOR_403600_DISTORTION_SCREEN_WIDTH  = 320,                             \
+            ACTOR_403600_DISTORTION_SCREEN_HEIGHT = 240,                             \
+            ACTOR_403600_DISTORTION_PAGE_PIXELS   = 256,                             \
+            ACTOR_403600_DISTORTION_PAGE_SHIFT    = 64,                              \
+        };                                                                           \
+        /* Fold edge clamping back into geometry, then sample the capture page. */   \
+        if (pixelY >= ACTOR_403600_DISTORTION_SCREEN_HEIGHT) {                       \
+            (gridVertex)->y += (ACTOR_403600_DISTORTION_SCREEN_HEIGHT - 1) - pixelY; \
+            pixelY           = ACTOR_403600_DISTORTION_SCREEN_HEIGHT - 1;            \
+        } else if (pixelY < 0) {                                                     \
+            (gridVertex)->y -= pixelY;                                               \
+            pixelY           = 0;                                                    \
+        }                                                                            \
+        if (pixelX >= ACTOR_403600_DISTORTION_SCREEN_WIDTH) {                        \
+            (gridVertex)->x += (ACTOR_403600_DISTORTION_SCREEN_WIDTH - 1) - pixelX;  \
+            pixelX           = ACTOR_403600_DISTORTION_SCREEN_WIDTH - 1;             \
+        } else if (pixelX < 0) {                                                     \
+            (gridVertex)->x -= pixelX;                                               \
+            pixelX           = 0;                                                    \
+        }                                                                            \
+        *(pageOffset) = 0;                                                           \
+        if (pixelX >= ACTOR_403600_DISTORTION_PAGE_PIXELS) {                         \
+            *(pageOffset) = ACTOR_403600_DISTORTION_PAGE_SHIFT;                      \
+        }                                                                            \
+        (gridVertex)->u = pixelX - *(pageOffset);                                    \
+        (gridVertex)->v = pixelY;                                                    \
     }
-    if (x >= 0x140) {
-        vtx->x += 0x13F - x;
-        x       = 0x13F;
-    } else if (x < 0) {
-        vtx->x -= x;
-        x       = 0;
-    }
-    *page = 0;
-    if (x >= 0x100) {
-        *page = 0x40;
-    }
-    vtx->u = x - *page;
-    vtx->v = y;
+    ACTOR_403600_CLAMP_DISTORTION_VERTEX(vertex, pageShift, screenX, screenY);
+#undef ACTOR_403600_CLAMP_DISTORTION_VERTEX
 }
 
 static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx)
@@ -1269,7 +1298,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
             if (x == -0xA0) {
                 poly->vertex2.x = x;
                 poly->vertex2.y = y + 0x10;
-                func_actor_403600_8013289C(poly, 2, &scratch->field_14, fade);
+                _actor403600PlaceDistortionVertex(poly, 2, &scratch->field_14, fade);
             } else {
                 previous                                        = poly - 1;
                 ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex2) = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex3);
@@ -1281,7 +1310,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
                 if (x == -0xA0) {
                     poly->vertex0.x = x;
                     poly->vertex0.y = y;
-                    func_actor_403600_8013289C(poly, 0, &scratch->field_14, fade);
+                    _actor403600PlaceDistortionVertex(poly, 0, &scratch->field_14, fade);
                 } else {
                     previous                                        = poly - 1;
                     ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0) = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex1);
@@ -1291,7 +1320,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
                 }
                 poly->vertex1.x = x + 0x10;
                 poly->vertex1.y = y;
-                func_actor_403600_8013289C(poly, 1, &scratch->field_14, fade);
+                _actor403600PlaceDistortionVertex(poly, 1, &scratch->field_14, fade);
             } else {
                 above                                           = poly - 20;
                 ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0) = ACTOR_403600_GRID_VERTEX_XY_WORD(above->vertex2);
@@ -1305,7 +1334,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor4
             }
             poly->vertex3.x = x + 0x10;
             poly->vertex3.y = y + 0x10;
-            func_actor_403600_8013289C(poly, 3, &scratch->field_14, fade);
+            _actor403600PlaceDistortionVertex(poly, 3, &scratch->field_14, fade);
             _actor403600UnifyGridQuadTexturePage(poly);
             if (fade < 0xC00) {
                 setlen(poly, 9);

@@ -394,3 +394,4 @@ _actor521100EventTick = 0x80135414; // type:func
 _actor521100FightTick = 0x80135478; // type:func
 _actor521100Update = 0x801353cc; // type:func
 _actor521100BodyTask = 0x80135378; // type:func
+_actor521100TickAnmcWoman = 0x80136680; // type:func

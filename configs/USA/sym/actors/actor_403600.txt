@@ -223,3 +223,4 @@ actor403600DrawStreamGt3PlaneClamp = 0x801379b4; // type:func
 actor403600DrawStreamGt4PlaneClamp = 0x80138004; // type:func
 actor403600XformStreamVertsPlaneClamp = 0x801386ec; // type:func
 _gActor403600NeutralLightColor = 0x80131e34;
+_actor403600PlaceDistortionVertex = 0x8013289c; // type:func

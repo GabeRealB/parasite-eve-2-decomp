@@ -1357,7 +1357,7 @@ static void _actor00400GroundStainFade(Task* task);
 
 static void _actor00400SwimEmergeEnter(Task* task);
 
-static void Actor00400_Fn058C4(Task* arg0);
+static void _actor00400SwimEmergeWait(Task* task);
 
 static void            _actor00400InitModelAndEnemy(Task* task);
 static void            _actor00400CrawlStride(Task* task);
@@ -1374,9 +1374,9 @@ static __inline__ void _actor00400UpdateModelColor(Task* task, GfxCoord* sampleC
                                                    const _Actor00400Work* work, const TmdObject* model);
 static inline void     _actor00400TurnTowardPoint(Task* task, const SVECTOR* target, s32 yawStep, s32 deadband);
 static void            _actor00400DiveSwimToSurfaceSpot(Task* task);
-static void            Actor00400_Fn061E8(Task* arg0);
+static void            _actor00400SwimHeavyRecoilEnter(Task* task);
 static void            _actor00400SwimAttackWindup(Task* task);
-static inline void     Actor00400_SpawnMarker(Task* arg0);
+static inline void     _actor00400SpawnShot(Task* parentTask);
 static void            Actor00400_Fn064B0(Task* arg0);
 static void            _actor00400TunnelPatrolSwim(Task* task);
 static void            _actor00400RoomIntroBeginDischarge(Task* task);
@@ -3790,86 +3790,98 @@ static void _actor00400SwimDecide(Task* task)
     }
 }
 
-static void Actor00400_Fn058C4(Task* arg0)
+/// Finishes swimming emergence, then chooses a shot attack or another surface spot.
+///
+/// Requires live work/root, target distance and bearing, and history cursor 0..2.
+/// Approaches emergePos by one sixteenth per tick and targets water level + 100.
+/// Sounds and spray fire at ticks 8, 12 and 20; turns from tick 21 and decides
+/// from tick 31. Distances narrow to signed halfwords; yaw uses 4096 per turn.
+/// Three attacks force a dive with a 90-tick delay. An out-of-reach target only
+/// causes a dive when the nearest eligible surface spot is at least 3500 units away.
+static void _actor00400SwimEmergeWait(Task* task)
 {
+    enum {
+        ACTOR_00400_EMERGE_NECK_SOUND_FRAME    = 8,
+        ACTOR_00400_EMERGE_SPRAY_FRAME         = 12,
+        ACTOR_00400_EMERGE_SURFACE_SOUND_FRAME = 20,
+        ACTOR_00400_EMERGE_TURN_FRAME          = 21,
+        ACTOR_00400_EMERGE_DECISION_FRAME      = 31,
+        ACTOR_00400_EMERGE_HEIGHT              = 100,
+        ACTOR_00400_EMERGE_ATTACK_DISTANCE     = 10000,
+        ACTOR_00400_EMERGE_EXCLUDED_START      = 192,
+        ACTOR_00400_EMERGE_EXCLUDED_WIDTH      = 3713U,
+        ACTOR_00400_EMERGE_RELOCATE_DISTANCE   = 3500,
+        ACTOR_00400_EMERGE_RETRY_DELAY         = 90,
+    };
     _Actor00400Work* work;
-    _Actor00400Work* work2;
-    _Actor00400Work* w;
-    _Actor00400Work* w2;
-    GfxCoord*        coord;
+    _Actor00400Work* attackWork;
+    _Actor00400Work* fallbackWork;
+    _Actor00400Work* relocateWork;
+    GfxCoord*        rootCoord;
     SVECTOR          nearestSpotOffset;
     SVECTOR          nearestSurfaceSpot;
-    s32              sound;
-    s32              pan;
-    s32              sound2;
-    s32              pan2;
-    s16              next;
-    u8               idx;
-    u8               idx2;
+    s32              neckSound;
+    s32              neckPan;
+    s32              surfaceSound;
+    s32              surfacePan;
+    s16              fallbackState;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     work->stateFrames++;
-    coord->coord.t[0] += (work->emergePos.vx - coord->coord.t[0]) >> 4;
-    coord->coord.t[2] += (work->emergePos.vz - coord->coord.t[2]) >> 4;
-    work->goalY        = work->waterLevel + 0x64;
-    if (work->stateFrames == 8) {
-        sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040007;
-        pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    rootCoord->coord.t[0] += (work->emergePos.vx - rootCoord->coord.t[0]) >> 4;
+    rootCoord->coord.t[2] += (work->emergePos.vz - rootCoord->coord.t[2]) >> 4;
+    work->goalY            = work->waterLevel + ACTOR_00400_EMERGE_HEIGHT;
+    if (work->stateFrames == ACTOR_00400_EMERGE_NECK_SOUND_FRAME) {
+        neckSound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_NECK_RELEASE;
+        neckPan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(neckSound, neckPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    if (work->stateFrames == 0xC) {
-        _actor00400SpawnSurfaceSprayRing(arg0, work, coord);
+    if (work->stateFrames == ACTOR_00400_EMERGE_SPRAY_FRAME) {
+        _actor00400SpawnSurfaceSprayRing(task, work, rootCoord);
     }
-    if (work->stateFrames == 0x14) {
-        sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040004;
-        pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    if (work->stateFrames == ACTOR_00400_EMERGE_SURFACE_SOUND_FRAME) {
+        surfaceSound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_SURFACE_CUE;
+        surfacePan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(surfaceSound, surfacePan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    if (work->stateFrames < 0x15) {
+    if (work->stateFrames < ACTOR_00400_EMERGE_TURN_FRAME) {
         return;
     }
-    _actor00400TurnTowardPoint(arg0, &work->targetPos, 0x18, 0x30);
-    if (work->stateFrames < 0x1F) {
+    _actor00400TurnTowardPoint(task, &work->targetPos, 0x18, 0x30);
+    if (work->stateFrames < ACTOR_00400_EMERGE_DECISION_FRAME) {
         return;
     }
-    if (work->targetDistance < 0x2710 && (u32)(work->targetBearing - 0xC0) >= 0xE81U) {
-        work2                                         = arg0->work;
-        work2->state                                  = ACTOR_00400_SWIM_STATE_ATTACK;
-        work2->subState                               = 0;
-        work2->stateHistory[work2->stateHistoryIndex] = work2->state;
-        next                                          = ACTOR_00400_SWIM_STATE_DIVE;
-        if (work2->stateHistory[0] == work2->stateHistory[1] &&
-            work2->stateHistory[0] == work2->stateHistory[2] && work2->stateHistory[0] == ACTOR_00400_SWIM_STATE_ATTACK) {
-            w                                             = arg0->work;
-            w->state                                      = next;
-            w->subState                                   = 0;
-            work2->stateHistory[work2->stateHistoryIndex] = next;
-            work2->emergeCooldown                         = 90;
+    // Replace a third consecutive attack with a delayed dive.
+    if (work->targetDistance < ACTOR_00400_EMERGE_ATTACK_DISTANCE && (u32)(work->targetBearing - ACTOR_00400_EMERGE_EXCLUDED_START) >= ACTOR_00400_EMERGE_EXCLUDED_WIDTH) {
+        attackWork                                              = task->work;
+        attackWork->state                                       = ACTOR_00400_SWIM_STATE_ATTACK;
+        attackWork->subState                                    = 0;
+        attackWork->stateHistory[attackWork->stateHistoryIndex] = attackWork->state;
+        fallbackState                                           = ACTOR_00400_SWIM_STATE_DIVE;
+        if (attackWork->stateHistory[0] == attackWork->stateHistory[1] &&
+            attackWork->stateHistory[0] == attackWork->stateHistory[2] && attackWork->stateHistory[0] == ACTOR_00400_SWIM_STATE_ATTACK) {
+            fallbackWork                                            = task->work;
+            fallbackWork->state                                     = fallbackState;
+            fallbackWork->subState                                  = 0;
+            attackWork->stateHistory[attackWork->stateHistoryIndex] = fallbackState;
+            attackWork->emergeCooldown                              = ACTOR_00400_EMERGE_RETRY_DELAY;
         }
-        idx                      = work2->stateHistoryIndex + 1;
-        work2->stateHistoryIndex = idx;
-        if (idx >= (u32)ARRAY_SIZE(work2->stateHistory)) {
-            work2->stateHistoryIndex = 0;
-        }
+        _actor00400AdvanceDecisionHistory(attackWork);
     } else {
         nearestSurfaceSpot.vx = nearestSurfaceSpot.vy = nearestSurfaceSpot.vz = 0;
-        _actor00400FindNearestSurfaceSpot(arg0, &nearestSurfaceSpot);
-        nearestSpotOffset.vx = nearestSurfaceSpot.vx - coord->coord.t[0];
+        _actor00400FindNearestSurfaceSpot(task, &nearestSurfaceSpot);
+        nearestSpotOffset.vx = nearestSurfaceSpot.vx - rootCoord->coord.t[0];
         nearestSpotOffset.vy = 0;
-        nearestSpotOffset.vz = nearestSurfaceSpot.vz - coord->coord.t[2];
-        if ((s16)SquareRoot0(nearestSpotOffset.vx * nearestSpotOffset.vx + nearestSpotOffset.vz * nearestSpotOffset.vz) >= 0xDAC) {
-            _actor00400ClaimNearestSurfaceSpot(arg0);
-            w2           = arg0->work;
-            w2->state    = ACTOR_00400_SWIM_STATE_DIVE;
-            w2->subState = 0;
+        nearestSpotOffset.vz = nearestSurfaceSpot.vz - rootCoord->coord.t[2];
+        if ((s16)SquareRoot0(nearestSpotOffset.vx * nearestSpotOffset.vx + nearestSpotOffset.vz * nearestSpotOffset.vz) >= ACTOR_00400_EMERGE_RELOCATE_DISTANCE) {
+            _actor00400ClaimNearestSurfaceSpot(task);
+            relocateWork           = task->work;
+            relocateWork->state    = ACTOR_00400_SWIM_STATE_DIVE;
+            relocateWork->subState = 0;
         }
         work->stateHistory[work->stateHistoryIndex] = work->state;
-        idx2                                        = work->stateHistoryIndex + 1;
-        work->stateHistoryIndex                     = idx2;
-        if (idx2 >= (u32)ARRAY_SIZE(work->stateHistory)) {
-            work->stateHistoryIndex = 0;
-        }
+        _actor00400AdvanceDecisionHistory(work);
     }
 }
 
@@ -3994,41 +4006,33 @@ static void _actor00400SwimLightRecoilWait(Task* task)
     }
 }
 
-static void Actor00400_Fn061E8(Task* arg0)
+/// Starts heavy swimming recoil with hit audio and a surface spray ring.
+///
+/// Requires live diver work, model root and enemy. Requests clip 11 at normal
+/// rate with a three-frame blend, queues the hit sound before sixteen spray
+/// particles, then queues the dive sound and advances to the recoil wait.
+static void _actor00400SwimHeavyRecoilEnter(Task* task)
 {
+    enum {
+        ACTOR_00400_ANIM_SWIM_RECOIL_HEAVY = 11,
+        ACTOR_00400_RECOIL_BLEND_FRAMES    = 3,
+    };
     _Actor00400Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        coord2;
-    SVECTOR          vec;
-    s32              sound;
-    s32              pan;
-    s32              sound2;
-    s32              pan2;
-    s32              i;
-    s16              y;
+    GfxCoord*        rootCoord;
+    s32              diveSound;
+    s32              divePan;
 
-    work              = arg0->work;
-    coord             = arg0->extra.tmd->coords;
-    work->animBlend   = 3;
+    work              = task->work;
+    rootCoord         = task->extra.tmd->coords;
+    work->animBlend   = ACTOR_00400_RECOIL_BLEND_FRAMES;
     work->animStep    = ANIMATION_RATE_ONE;
-    work->animClip    = 0xB;
+    work->animClip    = ACTOR_00400_ANIM_SWIM_RECOIL_HEAVY;
     work->animRequest = DIVER_ANIM_REQUEST_BLEND;
-    sound             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    i                 = 0;
-    pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    y      = work->waterLevel - coord->coord.t[1] + 0xFA;
-    coord2 = arg0->extra.tmd->coords;
-    do {
-        vec.vx = (u32)rsin(i << 8) >> 3;
-        vec.vy = y;
-        vec.vz = (u32)rcos(i << 8) >> 3;
-        effectSpawn(gRoomEffectWaterSprayId, coord2, 0x01202148, &vec);
-        i++;
-    } while (i < 16);
-    sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040008;
-    pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    sndEvtRequestScriptStart(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    _actor00400PlayHitSound(task);
+    _actor00400SpawnSurfaceSprayRing(task, work, rootCoord);
+    diveSound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_DIVE;
+    divePan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    sndEvtRequestScriptStart(diveSound, divePan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     work->subState++;
 }
 
@@ -4062,60 +4066,70 @@ static void _actor00400SwimAttackWindup(Task* task)
     }
 }
 
-/// Spawns the shot's task from `Actor00400_D16028[1]` and hands it a zeroed
-/// `_Actor00400ShotWork`: coordinate 5 gives the task's root translation, and
-/// the span from coordinate 4's origin to the point `height` along its Z axis -
-/// the speed `Actor00400_D1609C` holds for the enemy's placement row - becomes
-/// the shot's `velocity`.
-static inline void Actor00400_SpawnMarker(Task* arg0)
+/// Spawns a coordinate-body shot at the muzzle with placement-selected velocity.
+///
+/// Borrows the live diver model with parts 4 and 5. The low three placement-row
+/// bits select speed; absent placement uses 190 local coordinate units per tick.
+/// Part 5 supplies the origin and part 4 transforms the forward span to world
+/// units. The task owns its zeroed shot work; allocation failure kills the new
+/// task, and task-spawn failure leaves the parent unchanged.
+static inline void _actor00400SpawnShot(Task* parentTask)
 {
-    AreaPlacement*       params;
+    enum {
+        ACTOR_00400_SHOT_TASK_INDEX     = 1,
+        ACTOR_00400_SHOT_DEFAULT_SPEED  = 190,
+        ACTOR_00400_SHOT_SPEED_ROW_MASK = 7,
+        ACTOR_00400_SHOT_ORIGIN_PART    = 5,
+        ACTOR_00400_SHOT_DIRECTION_PART = 4,
+    };
+    const AreaPlacement* placement;
     _Actor00400ShotWork* shot;
     GfxCoord*            coords;
-    GfxCoord*            origin;
-    GfxCoord*            span;
-    GfxCoord*            dst;
-    Task*                task;
-    SVECTOR              pos;
+    GfxCoord*            muzzleCoord;
+    GfxCoord*            directionCoord;
+    GfxCoord*            shotCoord;
+    Task*                shotTask;
+    SVECTOR              muzzlePosition;
     SVECTOR              base;
-    SVECTOR              tip;
-    u16                  height;
+    SVECTOR              forwardPoint;
+    u16                  speed;
 
-    params = ((Enemy*)arg0->spawnArg2.pointer)->place;
-    if (params != NULL) {
-        height = Actor00400_D1609C[params->rowIndex & 7];
+    placement = ((Enemy*)parentTask->spawnArg2.pointer)->place;
+    if (placement != NULL) {
+        speed = Actor00400_D1609C[placement->rowIndex & ACTOR_00400_SHOT_SPEED_ROW_MASK];
     } else {
-        height = 0xBE;
+        speed = ACTOR_00400_SHOT_DEFAULT_SPEED;
     }
-    coords = arg0->extra.tmd->coords;
-    origin = &coords[5];
-    span   = &coords[4];
-    task   = taskSpawnFromTable(Actor00400_D16028, 1, 0, 0);
-    if (task != NULL) {
+    coords         = parentTask->extra.tmd->coords;
+    muzzleCoord    = &coords[ACTOR_00400_SHOT_ORIGIN_PART];
+    directionCoord = &coords[ACTOR_00400_SHOT_DIRECTION_PART];
+    shotTask       = taskSpawnFromTable(Actor00400_D16028, ACTOR_00400_SHOT_TASK_INDEX, 0, 0);
+    if (shotTask != NULL) {
         shot = memCalloc(sizeof(_Actor00400ShotWork), false);
         if (shot == NULL) {
-            taskKill(task);
+            taskKill(shotTask);
         } else {
-            base.vx = 0;
-            base.vy = 0;
-            base.vz = 0;
-            tip.vx  = 0;
-            tip.vy  = 0;
-            tip.vz  = height;
-            _actorRenderTransformPointToWorld(span, &base);
-            _actorRenderTransformPointToWorld(span, &tip);
-            task->work = shot;
-            dst        = task->extra.tmd->coords;
-            pos.vx     = 0;
-            pos.vy     = 0;
-            pos.vz     = 0;
-            _actorRenderTransformPointToWorld(origin, &pos);
-            dst->coord.t[0]   = pos.vx;
-            dst->coord.t[1]   = pos.vy;
-            dst->coord.t[2]   = pos.vz;
-            shot->velocity.vx = tip.vx - base.vx;
-            shot->velocity.vy = tip.vy - base.vy;
-            shot->velocity.vz = tip.vz - base.vz;
+            // Transform two points to retain the joint basis scale in the shot velocity.
+            base.vx         = 0;
+            base.vy         = 0;
+            base.vz         = 0;
+            forwardPoint.vx = 0;
+            forwardPoint.vy = 0;
+            forwardPoint.vz = speed;
+            _actorRenderTransformPointToWorld(directionCoord, &base);
+            _actorRenderTransformPointToWorld(directionCoord, &forwardPoint);
+            shotTask->work    = shot;
+            shotCoord         = shotTask->extra.coordBody->coord;
+            muzzlePosition.vx = 0;
+            muzzlePosition.vy = 0;
+            muzzlePosition.vz = 0;
+            _actorRenderTransformPointToWorld(muzzleCoord, &muzzlePosition);
+            shotCoord->coord.t[0] = muzzlePosition.vx;
+            shotCoord->coord.t[1] = muzzlePosition.vy;
+            shotCoord->coord.t[2] = muzzlePosition.vz;
+            shot->velocity.vx     = forwardPoint.vx - base.vx;
+            shot->velocity.vy     = forwardPoint.vy - base.vy;
+            shot->velocity.vz     = forwardPoint.vz - base.vz;
         }
     }
 }
@@ -4136,7 +4150,7 @@ static void Actor00400_Fn064B0(Task* arg0)
         sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->stateFrames == 0x2B) {
-        Actor00400_SpawnMarker(arg0);
+        _actor00400SpawnShot(arg0);
     }
     if (_diverClipHasBoundaryOrJump(arg0)) {
         work2           = arg0->work;
@@ -4554,7 +4568,7 @@ static void Actor00400_Fn078C8(Task* arg0)
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
         _actor00400SwimEmergeEnter,
-        Actor00400_Fn058C4,
+        _actor00400SwimEmergeWait,
     };
 
     if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
@@ -4650,7 +4664,7 @@ static void Actor00400_Fn079FC(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn061E8,
+        _actor00400SwimHeavyRecoilEnter,
         _actor00400SwimHeavyRecoilWait,
     };
     s16 taken;

@@ -71,3 +71,6 @@ actorMsgPlace = 0x8014B6A0; // type:func
 _actor210600DriveAnimation = 0x8014b2c0; // type:func
 _actor210600SetModelDraw = 0x8014b5f4; // type:func
 _actor210600ApplyCommand = 0x8014b770; // type:func
+_actor210600Update = 0x8014b434; // type:func
+_actor210600Spawn = 0x8014b8c8; // type:func
+_actor210600Task = 0x8014ba3c; // type:func
