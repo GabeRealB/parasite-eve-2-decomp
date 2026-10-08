@@ -153519,7 +153519,7 @@ that step was inferred from the result, not read out of a dump.
 - Pointer locals that had to stay, passed as `&p->mat`:
   `_actor400500SelectCrawlRoute` (`rotation`), `_actor400600SpawnArmModels`
   (`leftRotation`, `rightRotation`) and
-  `func_actor_405800_80135780` (`pm`, `pm2`). In the last two the copy that
+  `_actor405800SpawnArmModels` (`leftRotation`, `rightRotation`). In the last two the copy that
   follows also reads through the pointer, so they are not the helper above.
 - A TU without `main/gfx.h` compiles the call as an implicit declaration:
   `actor_342100`, `pe/apobiosis` and `pe/energyshot` needed the include.
