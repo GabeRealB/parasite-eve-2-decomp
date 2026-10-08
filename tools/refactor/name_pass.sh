@@ -884,6 +884,20 @@ EOF
 }
 
 # --- the round ----------------------------------------------------------------
+# Verification brings the symbol maps up to date as it goes: a reference tagged
+# `shared=` loses the tag once only its owner still starts a symbol there. In a
+# worker that edit is part of the step's commit. At the join it belongs to no
+# step - two steps each made one of the last copies private, and only together
+# do they leave a single owner - so it is committed here. Left in the tree it
+# made the committed state fail the very check that had just passed, and would
+# have stopped the next replay that touched the file.
+settle_commit() {
+  [[ -n "$(git status --porcelain -- configs)" ]] || return 0
+  git add -A -- configs
+  git commit -q -m "naming: symbol annotations settled by the join's verification" >>"$LOG" 2>&1
+  echo "--- committed the symbol annotations the join's verification settled" | tee -a "$LOG"
+}
+
 # Replay the workers' commits onto the driver's branch and verify the result
 # once. Everything mechanical is done here; anything that is not is handed over.
 join_round() {
@@ -903,6 +917,8 @@ join_round() {
       needs_agent="Every commit replayed cleanly, but the joined tree fails
 \`tools/refactor/verify_name_pass.py\` - the steps agree textually and disagree in
 substance. The build output is at $LOG.build."
+    else
+      settle_commit
     fi
   fi
   if [[ -n "$needs_agent" ]]; then
@@ -920,6 +936,7 @@ substance. The build output is at $LOG.build."
       git reset -q --hard "$pre"
       return 1
     fi
+    settle_commit
   fi
   return 0
 }
@@ -954,6 +971,7 @@ salvage_round() {
       echo "--- step $order does not build on the steps already landed; left for a later round" | tee -a "$LOG" >&2
       continue
     fi
+    settle_commit >&2
     echo "$order"
   done
 }
