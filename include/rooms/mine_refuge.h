@@ -30,7 +30,14 @@ extern SpriteView D_mine_refuge_8018264C[];
 
 extern WorldCollisionSurfaceProperties* D_mine_refuge_80182AB4[];
 
-void func_mine_refuge_8017EA78(Task* task);
+/// Runs the refuge telephone's save menu and unlocked statistics panels.
+///
+/// Called each tick by the saved-area telephone dispatcher with the loaded
+/// refuge overlay. Borrows the live `UiObject` in `task->spawnArg2` and owns
+/// its child dialogs; their storage must remain live through dismissal.
+/// Before a clear, normal play enters the save dialog directly. A cleared game
+/// or statistics demo shows Save, Play Data, Weapon Data and PE Data choices.
+void mineRefugeTelephoneMenuTask(Task* task);
 
 /// Draws the Mine Refuge lights selected by the mapped camera view.
 ///
@@ -43,6 +50,12 @@ void func_mine_refuge_8017EA78(Task* task);
 /// until the enclosing stack reset. The normal game loop resets it each frame.
 void mineRefugeDrawGlowsTask(Task* task);
 
-void func_mine_refuge_8017FFBC(Task* task);
+/// Dispatches the refuge room task's initialization, idle and release states.
+///
+/// `task->state` must be 0..2. Initialization installs the room message table,
+/// publishes the room task and enables CAP completion sound cues; idle keeps
+/// those handlers available, and state 2 releases the task. The refuge overlay
+/// must remain loaded while the task or its installed callbacks can run.
+void mineRefugeRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_MINE_REFUGE_H

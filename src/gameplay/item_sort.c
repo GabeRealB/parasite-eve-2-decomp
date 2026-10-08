@@ -876,7 +876,7 @@ void func_800B92CC(Task* task)
             dryfieldNightTrailerCoachTelephoneMenuTask(task);
             break;
         case GAME_LOCATION_KEY(4, 6, 0, 0):
-            func_mine_refuge_8017EA78(task);
+            mineRefugeTelephoneMenuTask(task);
             break;
         case GAME_LOCATION_KEY(4, 16, 0, 0):
             shelterB1SterilizationRoomTelephoneMenuTask(task);

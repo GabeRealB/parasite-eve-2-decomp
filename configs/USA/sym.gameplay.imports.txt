@@ -1709,7 +1709,7 @@ dryfieldNightTrailerCoachTelephoneMenuTask = 0x8018138C; // type:func absolute:T
 
 dryfieldNightMotelRoom6TelephoneMenuTask = 0x8017EA74; // type:func absolute:True owner=dryfield_night_motel_room_6
 
-func_mine_refuge_8017EA78 = 0x8017EA78; // type:func absolute:True owner=mine_refuge
+mineRefugeTelephoneMenuTask = 0x8017EA78; // type:func absolute:True owner=mine_refuge
 
 shelterB1SterilizationRoomTelephoneMenuTask = 0x8017EB2C; // type:func absolute:True owner=shelter_b1_sterilization_room
 

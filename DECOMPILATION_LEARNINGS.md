@@ -57354,7 +57354,7 @@ single expression but leaves two statements alone.
 
 The same ranking that made the split statement above work also makes a plain
 reorder work, and there the whole decision is `death - birth`.
-`func_mine_refuge_8017FE78` fills a cap-script global with four sound ids and
+`_mineRefugeStartCutscene` fills a cap-script global with four sound ids and
 sat at 98.3% (`regs=6`) with control flow, instruction order and store order
 otherwise exact: the ROM builds `0x54060006` in `$a1`, `0x54060004` in `$v1`,
 `0x54060005` in `$v0`, and the decompile had `$a1` and `$v1` the other way
@@ -90500,7 +90500,7 @@ Inputs: `base_1.i` (100.000%)
 `base_2.i` (93.548%)
 `8b9a4eabab100532c0ffa9fd234941e23bfad35346d7f9cf44d7ee28059d273c`.
 
-## m2c's cast access and a real struct field access are different MEMs, and sched1 can see the difference (func_mine_refuge_8017FF4C, 2026-09-15)
+## m2c's cast access and a real struct field access are different MEMs, and sched1 can see the difference (_mineRefugeInitRoomTask, 2026-09-15)
 
 An m2c body with a stubborn `regs` penalty that survives every reordering of the
 statements: two `sb` stores share one constant 1, and the build puts the constant
@@ -90534,11 +90534,11 @@ the *expression*, not of the layout, so a cast-based access is never a free
 substitute for the field it names - even when the offsets are identical and the
 instruction count matches.
 
-## m2c's argument count is a guess in both directions: a store in the `jal` delay slot is not a fourth argument (func_mine_refuge_8017FC2C, 2026-09-16)
+## m2c's argument count is a guess in both directions: a store in the `jal` delay slot is not a fourth argument (_mineRefugeRoomCommandMsg, 2026-09-16)
 
 m2c reads the `sb` in a call's delay slot as a use of `$a3` at the call, so a
 byte loaded just before the call and stored in that slot comes out as a fourth
-argument: `sndEvtRequestScriptStart(0x54060003, 0, 0, temp_a3)`, when the project
+argument: `sndEvtRequestScriptStart(0x54060003, 0, 0, savedView)`, when the project
 declares the callee with three parameters. Following m2c there is a dead end -
 the call does not compile - and the obvious repair, casting to a
 four-parameter pointer type, "works" only by adding `andi a3,t0,0xff` (the `s32`
@@ -90548,13 +90548,13 @@ with `branch=1 regs=2 insert=1`.
 The target is the three-argument call with the store written *before* it:
 
 ```c
-temp_a3                = gMcSaveData.location.loc.view;   /* lbu a3,4(v0) */
+savedView                = gMcSaveData.location.loc.view;   /* lbu a3,4(v0) */
 gMcSaveData.location.loc.view = 6;
-D_mine_refuge_80182ADC = temp_a3;
+D_mine_refuge_80182ADC[0] = savedView;
 sndEvtRequestScriptStart(0x54060003, 0, 0);
 ```
 
-`temp_a3`'s live range now ends before the call, so an ordinary temp takes
+`savedView`'s live range now ends before the call, so an ordinary temp takes
 `$a3` and reorg fills the `jal` slot with the store. 100% on the second build,
 all penalties zero.
 
@@ -91970,7 +91970,7 @@ an argument is fixed by the argument's *position* in the source call. So when a
 `regs` penalty includes a different argument register at a call, check the
 callee's real prototype in `include/` before treating the leftover as
 allocation. This is the undercount direction of the m2c argument guess whose
-overcount direction is recorded in the `func_mine_refuge_8017FC2C` entry above;
+overcount direction is recorded in the `_mineRefugeRoomCommandMsg` entry above;
 unlike that one it produces a *silently compiling* seed, because a call with
 too few arguments is still a valid C expression.
 
@@ -119513,9 +119513,9 @@ work.
 
 Inputs: `base_3.i` (100.000%) `cde9982b06b559d9`, `base_2.i` (98.962%, m2c's three
 temps per case) `52265102113fd4bd`, `base_1.i` (66.465%, no temps) `455a347ea08533d7`.
-## Several arms entering one block at *different* offsets: the block is the last-written arm's body (func_mine_refuge_8017FA08, 2026-09-17)
+## Several arms entering one block at *different* offsets: the block is the last-written arm's body (_mineRefugeCircuitPanelTask, 2026-09-17)
 
-`func_mine_refuge_8017FA08` is a six-state room task. Its `switch (task->state)`
+`_mineRefugeCircuitPanelTask` is a six-state room task. Its `switch (task->state)`
 increments `task->state` in four of the states, and the target's jump table
 sends cases 1 and 4 to `.LFAE0`, where case 0 arrives by `j .LFAE0` and case 3
 by `j .LFAE4` - four bytes *into* that block, past its `lw`. One block, two
@@ -119574,7 +119574,7 @@ target.o SHA256
 `71e611ad02c369e7f55f94f40dada98c381a51db350c157b0584fada3c310601`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_mine_refuge_8017FA08-vacuum`.
+Scratch `nonmatchings/_mineRefugeCircuitPanelTask-vacuum`.
 ## A `lui` in a branch delay slot is not a call argument: m2c invents the parameter from a split address (func_dryfield_warehouse_8017DA58, 2026-09-17)
 
 The seed for this room message handler declared `M2C_UNK playerActorRestoreEquipment(u8 *)`

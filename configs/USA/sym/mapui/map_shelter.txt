@@ -49,7 +49,7 @@ D_mine_gorge_8017E7F0 = 0x8017E7F0; // absolute:True owner=mine_gorge shared=roo
 D_mine_gorge_8017FA14 = 0x8017FA14; // absolute:True owner=mine_gorge shared=rooms
 D_mine_gorge_801827F8 = 0x801827F8; // absolute:True owner=mine_gorge shared=rooms
 D_mine_gorge_80183644 = 0x80183644; // absolute:True owner=mine_gorge shared=rooms
-func_mine_refuge_8017FFBC = 0x8017FFBC; // type:func absolute:True owner=mine_refuge
+mineRefugeRoomTask = 0x8017FFBC; // type:func absolute:True owner=mine_refuge
 D_mine_refuge_801818F0 = 0x801818F0; // absolute:True owner=mine_refuge
 D_mine_refuge_801818F8 = 0x801818F8; // absolute:True owner=mine_refuge shared=rooms
 D_mine_refuge_80181908 = 0x80181908; // absolute:True owner=mine_refuge

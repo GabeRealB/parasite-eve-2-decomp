@@ -80,7 +80,7 @@ D_mine_refuge_801818D8 = 0x801818D8; // size:0x10 defined:True
 D_mine_refuge_80182ADC = 0x80182ADC; // size:0x4 defined:True
 D_mine_refuge_80182AE0 = 0x80182AE0; // size:0x18 defined:True
 
-func_mine_refuge_8017EA78 = 0x8017EA78; // type:func
+mineRefugeTelephoneMenuTask = 0x8017EA78; // type:func
 
 mineRefugeDrawGlowsTask = 0x80181454; // type:func
 _telephoneDrawPlayDataRow = 0x8017D6E0; // type:func
@@ -112,3 +112,10 @@ _mineRefugeDrawLayeredGlow = 0x80181094; // type:func
 _mineRefugeUseKeyItemMsg = 0x8017fbb4; // type:func
 _mineRefugeResolveRoomEventMsg = 0x8017fbe8; // type:func
 _mineRefugeSoundMsg = 0x8017fd48; // type:func
+_mineRefugeStartCutscene = 0x8017fe78; // type:func
+_mineRefugeCutscenePromptTask = 0x8017fdbc; // type:func
+_mineRefugeCircuitPanelTask = 0x8017fa08; // type:func
+_mineRefugeRoomCommandMsg = 0x8017fc2c; // type:func
+_mineRefugeCircuitPanelActionMsg = 0x8017fcd0; // type:func
+_mineRefugeInitRoomTask = 0x8017ff4c; // type:func
+mineRefugeRoomTask = 0x8017ffbc; // type:func

@@ -133,7 +133,7 @@ extern TaskDesc gRoomCutsceneTaskDescs[];
 extern TaskMessageEntry D_mine_refuge_80181884[];
 
 /// Task table of the room's two scripted sequences,
-/// `func_mine_refuge_8017FA08` and `func_mine_refuge_8017FDBC`.
+/// `_mineRefugeCircuitPanelTask` and `_mineRefugeCutscenePromptTask`.
 extern TaskDesc D_mine_refuge_801818B4[];
 
 /// World-space anchors of the room's per-view glows: `D8` and `E0` are the two
@@ -146,22 +146,25 @@ extern SVECTOR D_mine_refuge_801818E8;
 /// The cutscene's sound task, killed when the scene is skipped.
 extern Task* gRoomCutsceneSoundTask;
 
-/// Task `func_mine_refuge_8017FA08` spawns from `D_actor_548100_801358D8` and waits on;
+/// Task `_mineRefugeCircuitPanelTask` spawns from `D_actor_548100_801358D8` and waits on;
 /// message 0x13F1 is relayed to it while it exists.
 extern Task* D_mine_refuge_80182AD8;
 
-/// View saved when `func_mine_refuge_8017FC2C` forces view 6 for its scene,
+/// View saved when `_mineRefugeRoomCommandMsg` forces view 6 for its scene,
 /// restored when the scene ends.
 
-/// Parameters of the cutscene `func_mine_refuge_8017FE78` starts.
+/// Parameters of the cutscene `_mineRefugeStartCutscene` starts.
 extern RoomCutsceneRec D_mine_refuge_80182AE0;
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\x1A\x1C"
 #include "../../shared/telephone.h"
 
-static void func_mine_refuge_8017FE78(s32 arg0);
-static void func_mine_refuge_8017FF4C(Task* task);
+static void _mineRefugeStartCutscene(s32 restoreView);
+static void _mineRefugeInitRoomTask(Task* task);
 static void _mineRefugeIdleRoomTask(Task* task);
+
+/// Camera view used by the refuge cutscene and its confirmation prompt.
+enum { MINE_REFUGE_CUTSCENE_VIEW = 6 };
 
 extern WorldCollisionGrid         D_mine_refuge_80181BA4[1];
 extern WorldCollisionTrigger      D_mine_refuge_80182778[2];
@@ -170,11 +173,11 @@ extern WorldCoordRoomAmbientEntry D_mine_refuge_80182A58[8];
 extern WorldCoordRoomLights       D_mine_refuge_80182760[1];
 static s32                        _mineRefugeUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 static s32                        _mineRefugeResolveRoomEventMsg(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
-s32                               func_mine_refuge_8017FC2C(Task*, s32, s32, s32);
-s32                               func_mine_refuge_8017FCD0(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32                        _mineRefugeRoomCommandMsg(Task* task, s32 messageId, s32 commandIndex, s32 secondArg);
+static s32                        _mineRefugeCircuitPanelActionMsg(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 secondArg);
 static s32                        _mineRefugeSoundMsg(Task* task, s32 messageId, s32 cueId, s32 secondArg);
-void                              func_mine_refuge_8017FA08(Task*);
-void                              func_mine_refuge_8017FDBC(Task*);
+static void                       _mineRefugeCircuitPanelTask(Task* task);
+static void                       _mineRefugeCutscenePromptTask(Task* task);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -187,15 +190,15 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 TaskMessageEntry D_mine_refuge_80181884[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineRefugeResolveRoomEventMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _mineRefugeUseKeyItemMsg },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_refuge_8017FCD0 },
-    { ROOM_MESSAGE_COMMAND, func_mine_refuge_8017FC2C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _mineRefugeCircuitPanelActionMsg },
+    { ROOM_MESSAGE_COMMAND, _mineRefugeRoomCommandMsg },
     { ROOM_MESSAGE_SOUND, _mineRefugeSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_mine_refuge_801818B4[3] = {
-    { { { TASK_BODY_NONE, 32 } }, func_mine_refuge_8017FA08, { .value = 0 } },
-    { { { TASK_BODY_NONE, 31 } }, func_mine_refuge_8017FDBC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _mineRefugeCircuitPanelTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 31 } }, _mineRefugeCutscenePromptTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -537,7 +540,7 @@ static void _mineRefugeDrawLayeredGlow(const SVECTOR* worldPoint, s32 radiusScal
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
-void func_mine_refuge_8017EA78(Task* task)
+void mineRefugeTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }
@@ -548,44 +551,62 @@ void func_mine_refuge_8017EA78(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// States of the room's message task, run by `func_mine_refuge_8017FFBC`:
+/// States of the room's message task, run by `mineRefugeRoomTask`:
 /// install the message table, idle, die.
 static const TaskFuncTable3 D_mine_refuge_8017D6A4 = {
     {
-        func_mine_refuge_8017FF4C,
+        _mineRefugeInitRoomTask,
         _mineRefugeIdleRoomTask,
         taskKill,
     },
 };
 
-void func_mine_refuge_8017FA08(Task* task)
+/// Runs the circuit-panel session, publishing its live task for battery-item use.
+///
+/// States 0..5 advance through the pending follow-up caption, one opening-delay
+/// tick, panel spawn, exit polling, one closing-delay tick and the close sound.
+/// Clears the published handle immediately after polling its exit. Requires the
+/// panel overlay and CAP commands loaded; the panel spawn must succeed.
+static void _mineRefugeCircuitPanelTask(Task* task)
 {
-    s32 sp10;
+    enum {
+        MINE_REFUGE_PANEL_INITIALIZE    = 0,
+        MINE_REFUGE_PANEL_OPEN_DELAY    = 1,
+        MINE_REFUGE_PANEL_OPEN          = 2,
+        MINE_REFUGE_PANEL_WAIT_EXIT     = 3,
+        MINE_REFUGE_PANEL_CLOSE_DELAY   = 4,
+        MINE_REFUGE_PANEL_CLOSE         = 5,
+        MINE_REFUGE_PANEL_SCENE_PENDING = 1,
+        MINE_REFUGE_PANEL_SCENE_SEEN    = 2,
+        MINE_REFUGE_CAP_PANEL_FOLLOWUP  = 0xF,
+    };
+    s32 panelResult;
 
     switch (task->state) {
-        case 0:
-            if (gameFlagGetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE) == 1) {
-                gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE, 2);
-                capRunCommandWithTransition(0xF);
+        case MINE_REFUGE_PANEL_INITIALIZE:
+            if (gameFlagGetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE) == MINE_REFUGE_PANEL_SCENE_PENDING) {
+                gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE, MINE_REFUGE_PANEL_SCENE_SEEN);
+                capRunCommandWithTransition(MINE_REFUGE_CAP_PANEL_FOLLOWUP);
             }
             task->state = task->state + 1;
             return;
-        case 2:
+        case MINE_REFUGE_PANEL_OPEN:
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_PANEL_OPEN, 0, 0);
             D_mine_refuge_80182AD8 = taskSpawnFromTable(&D_actor_548100_801358D8, 0, 0, 0);
             task->state            = task->state + 1;
             return;
-        case 3:
-            if (taskPollKill(D_mine_refuge_80182AD8, &sp10) != 0) {
+        case MINE_REFUGE_PANEL_WAIT_EXIT:
+            if (taskPollKill(D_mine_refuge_80182AD8, &panelResult) != 0) {
+                // Item-use messages must stop reaching the panel after its exit.
                 D_mine_refuge_80182AD8 = NULL;
                 task->state            = task->state + 1;
             }
             return;
-        case 1:
-        case 4:
+        case MINE_REFUGE_PANEL_OPEN_DELAY:
+        case MINE_REFUGE_PANEL_CLOSE_DELAY:
             task->state = task->state + 1;
             return;
-        case 5:
+        case MINE_REFUGE_PANEL_CLOSE:
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_PANEL_CLOSE, 0, 0);
             taskKill(task);
             break;
@@ -624,40 +645,72 @@ static s32 _mineRefugeResolveRoomEventMsg(Task* task, s32 messageId, RoomEventMs
     return 1;
 }
 
-s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Holds the player in the scene view while the first cutscene prompt runs.
+///
+/// Saves the live view for the prompt task before starting CAP command 13.
+/// The room permits only one outstanding prompt; its task restores play or
+/// hands the saved view to the cutscene runner after CAP completes.
+static inline void _mineRefugeStartCutscenePrompt(void)
 {
-    u8 temp_a3;
+    enum {
+        MINE_REFUGE_CAP_PROMPT  = 0xD,
+        MINE_REFUGE_TASK_PROMPT = 1,
+    };
+    u8 savedView;
 
-    if (arg2 == 1) {
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+    savedView                                                  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = MINE_REFUGE_CUTSCENE_VIEW;
+    D_mine_refuge_80182ADC[0]                                  = savedView;
+    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3), 0, 0);
+    capRunCommand(MINE_REFUGE_CAP_PROMPT, CAP_PLAYBACK_IN_PLACE);
+    taskSpawnFromTable(D_mine_refuge_801818B4, MINE_REFUGE_TASK_PROMPT, 0, 0);
+}
+
+/// Starts the refuge cutscene, asking for confirmation until it has been accepted.
+///
+/// Handles `ROOM_MESSAGE_COMMAND` index 1; other indices and the second word
+/// are ignored. The first prompt holds and hides the player in view 6 until its
+/// task restores the saved view or hands it to the cutscene runner. Returns zero.
+/// Requires loaded room CAP resources and at most one prompt or cutscene active.
+static s32 _mineRefugeRoomCommandMsg(Task* task, s32 messageId, s32 commandIndex, s32 secondArg)
+{
+    enum { MINE_REFUGE_COMMAND_CUTSCENE = 1 };
+
+    if (commandIndex == MINE_REFUGE_COMMAND_CUTSCENE) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_REFUGE_PROMPT_ACCEPTED) != 0) {
-            func_mine_refuge_8017FE78(0U);
+            _mineRefugeStartCutscene(0U);
         } else {
-            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-            temp_a3                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6U;
-            D_mine_refuge_80182ADC[0]                                  = temp_a3;
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3), 0, 0);
-            capRunCommand(0xD, CAP_PLAYBACK_IN_PLACE);
-            taskSpawnFromTable(D_mine_refuge_801818B4, 1, 0, 0);
+            _mineRefugeStartCutscenePrompt();
         }
     }
     return 0;
 }
 
-s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Opens the circuit panel unless the secret passage has already been opened.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION` action 1, borrowing the four-byte
+/// request only during dispatch. Its control and argument fields and the second
+/// word are ignored. An opened passage instead runs CAP command 10; other
+/// actions do nothing. Returns zero. Requires the panel overlay and room CAP.
+static s32 _mineRefugeCircuitPanelActionMsg(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 secondArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum {
+        MINE_REFUGE_ACTION_CIRCUIT_PANEL  = 1,
+        MINE_REFUGE_CAP_PANEL_UNAVAILABLE = 0xA,
+        MINE_REFUGE_TASK_CIRCUIT_PANEL    = 0,
+    };
+    u8 actionId = actionRequest->actionId;
 
-    u8 actionId = request->actionId;
-
-    if (actionId == 1) {
+    if (actionId == MINE_REFUGE_ACTION_CIRCUIT_PANEL) {
+        // Action 1 also equals the passage flag's opened state.
         if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != actionId) {
             gameFlagSetNibble(GAME_FLAG_0C4, 0);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_mine_refuge_801818B4, 0, 0, 0);
+            taskSpawnFromTable(D_mine_refuge_801818B4, MINE_REFUGE_TASK_CIRCUIT_PANEL, 0, 0);
         } else {
-            capRunCommandWithTransition(0xA);
+            capRunCommandWithTransition(MINE_REFUGE_CAP_PANEL_UNAVAILABLE);
         }
     }
     return 0;
@@ -689,72 +742,105 @@ static s32 _mineRefugeSoundMsg(Task* task, s32 messageId, s32 cueId, s32 secondA
     return 0;
 }
 
-void func_mine_refuge_8017FDBC(Task* arg0)
+/// Resolves the cutscene prompt, restoring play or handing its saved view to the scene.
+///
+/// State 0 waits for CAP completion; choice key 5 advances to acceptance on the
+/// next tick, while other keys restore the camera and player control and drawing.
+/// State 1 records acceptance and starts the cutscene. Releases this task after
+/// either outcome; the saved view must remain unchanged while the prompt waits.
+static void _mineRefugeCutscenePromptTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum {
+        MINE_REFUGE_PROMPT_WAIT_CAP = 0,
+        MINE_REFUGE_PROMPT_ACCEPT   = 1,
+        MINE_REFUGE_CAP_KEY_ACCEPT  = 5,
+    };
+    switch (task->state) {
+        case MINE_REFUGE_PROMPT_WAIT_CAP:
             if (capIsBusy() != 0) {
                 return;
             }
-            if (capGetVariantKey() == 5) {
-                arg0->state = arg0->state + 1;
+            if (capGetVariantKey() == MINE_REFUGE_CAP_KEY_ACCEPT) {
+                task->state = task->state + 1;
                 return;
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_mine_refuge_80182ADC[0];
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             break;
-        case 1:
+        case MINE_REFUGE_PROMPT_ACCEPT:
             gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_PROMPT_ACCEPTED, 1);
-            func_mine_refuge_8017FE78(D_mine_refuge_80182ADC[0]);
+            _mineRefugeStartCutscene(D_mine_refuge_80182ADC[0]);
             break;
         default:
             return;
     }
-    taskKill(arg0);
+    taskKill(task);
 }
 
-/// Fills `D_mine_refuge_80182AE0` and spawns the cutscene task with it. A
-/// non-zero `arg0` is the view restored when the scene ends, with no opening
-/// sound; zero forces view 6 for the scene and opens with sound 0x54060003.
-/// Progress nibble 0x155 picks the scene: when it is 0xF, CAP slot 0xE with no
-/// file and CAP command 1 afterwards; otherwise CAP slot 1 from file 1 and
-/// command 5 afterwards.
-static void func_mine_refuge_8017FE78(s32 arg0)
+/// Starts the refuge cutscene with its room-owned script and sound sequence.
+///
+/// `restoreView` is 0 to save the live view and force view 6 with the opening
+/// sound, or a saved room view 1..7 to restore after the prompt without repeating
+/// that sound or changing the current view. Final dialogue index 15 uses CAP
+/// slot 14 in the current file and follow-up command 1; otherwise slot/file 1
+/// and follow-up command 5. The record is borrowed until the runner finishes:
+/// no second cutscene may overwrite it while active. Requires loaded CAP resources.
+static void _mineRefugeStartCutscene(s32 restoreView)
 {
-    s32 slot;
+    enum {
+        MINE_REFUGE_DIALOGUE_FINAL     = 0xF,
+        MINE_REFUGE_CAP_SLOT_FINAL     = 0xE,
+        MINE_REFUGE_CAP_SLOT_STORY     = 1,
+        MINE_REFUGE_CAP_FILE_CURRENT   = 0,
+        MINE_REFUGE_CAP_FILE_STORY     = 1,
+        MINE_REFUGE_CAP_FOLLOWUP_FINAL = 1,
+        MINE_REFUGE_CAP_FOLLOWUP_STORY = 5,
+        MINE_REFUGE_TASK_CUTSCENE      = 0,
+    };
+    s32 followupCommandIndex;
 
-    if (arg0 != 0) {
+    if (restoreView != 0) {
         D_mine_refuge_80182AE0.startSound = 0;
-        D_mine_refuge_80182AE0.view       = -arg0;
+        D_mine_refuge_80182AE0.view       = -restoreView;
     } else {
-        D_mine_refuge_80182AE0.view       = 6;
-        D_mine_refuge_80182AE0.startSound = 0x54060003;
+        D_mine_refuge_80182AE0.view       = MINE_REFUGE_CUTSCENE_VIEW;
+        D_mine_refuge_80182AE0.startSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3);
     }
-    if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 0xF) {
-        slot                           = 1;
-        D_mine_refuge_80182AE0.capSlot = 0xE;
-        D_mine_refuge_80182AE0.capFile = 0;
+    if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == MINE_REFUGE_DIALOGUE_FINAL) {
+        followupCommandIndex           = MINE_REFUGE_CAP_FOLLOWUP_FINAL;
+        D_mine_refuge_80182AE0.capSlot = MINE_REFUGE_CAP_SLOT_FINAL;
+        D_mine_refuge_80182AE0.capFile = MINE_REFUGE_CAP_FILE_CURRENT;
     } else {
-        slot                           = 5;
-        D_mine_refuge_80182AE0.capSlot = 1;
-        D_mine_refuge_80182AE0.capFile = 1;
+        followupCommandIndex           = MINE_REFUGE_CAP_FOLLOWUP_STORY;
+        D_mine_refuge_80182AE0.capSlot = MINE_REFUGE_CAP_SLOT_STORY;
+        D_mine_refuge_80182AE0.capFile = MINE_REFUGE_CAP_FILE_STORY;
     }
+    // Keep the room-owned record live while the runner and its sound task use it.
     D_mine_refuge_80182AE0.skipScene       = 0;
-    D_mine_refuge_80182AE0.endSound        = 0x54060006;
-    D_mine_refuge_80182AE0.sceneSound      = 0x54060004;
-    D_mine_refuge_80182AE0.afterSceneSound = 0x54060005;
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, slot, &D_mine_refuge_80182AE0);
+    D_mine_refuge_80182AE0.endSound        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 6);
+    D_mine_refuge_80182AE0.sceneSound      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 4);
+    D_mine_refuge_80182AE0.afterSceneSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 5);
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, MINE_REFUGE_TASK_CUTSCENE, followupCommandIndex, &D_mine_refuge_80182AE0);
 }
 
-static void func_mine_refuge_8017FF4C(Task* arg0)
+/// Installs the room handlers and enables CAP completion sound cues.
+///
+/// Runs in state 0, registers this task in the room slot, clears the panel
+/// handle, selects music entry 1 and advances to the idle state.
+static void _mineRefugeInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_mine_refuge_80181884;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    enum {
+        MINE_REFUGE_SCENE_MUSIC_ENTRY             = 1,
+        MINE_REFUGE_CAP_COMPLETION_SOUNDS_ENABLED = 1,
+    };
+
+    task->msgTable = D_mine_refuge_80181884;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     D_mine_refuge_80182AD8 = NULL;
-    gStageSceneMusicEntry  = 1;
-    arg0->state            = arg0->state + 1;
-    D_80115598             = 1;
+    gStageSceneMusicEntry  = MINE_REFUGE_SCENE_MUSIC_ENTRY;
+    task->state            = task->state + 1;
+    D_80115598             = MINE_REFUGE_CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Keeps the room message task idle while its installed handlers remain available.
@@ -764,14 +850,12 @@ static void _mineRefugeIdleRoomTask(Task* task)
     char stackFrame[0x10];
 }
 
-/// Runs the handler for the task's current state, from a local copy of
-/// `D_mine_refuge_8017D6A4`.
-void func_mine_refuge_8017FFBC(Task* task)
+void mineRefugeRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_mine_refuge_8017D6A4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_mine_refuge_8017D6A4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_flare.inc.c"
