@@ -1718,8 +1718,9 @@ static void _acropolisPromenadeUpdateBridgeVisibility(Task* task)
 /// and, when that task finishes, warps slot 3 with a 0x3E9 placement and spawns
 /// entry 4 instead; once the countdown is within 6 frames of the end it sends
 /// the same placement as a 0x3F2 and moves on either way. State 3 waits for
-/// slot 3 to go idle (msg 0x3F0), releases it (0x3F1), stops the stream
-/// (0xFA5), records the room in the save and kills the task.
+/// slot 3 to go idle (msg 0x3F0), releases it (0x3F1), releases event HUD
+/// suppression (`CAP_CONTROL_MESSAGE_SHOW_HUD`), records the room in the save
+/// and kills the task.
 void func_acropolis_promenade_8017DB9C(Task* task)
 {
     AnimationPlayRequest rec;

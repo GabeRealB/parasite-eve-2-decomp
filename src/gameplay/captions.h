@@ -35,9 +35,22 @@ void Gp_SpawnEvt1(s32 arg0, s32 arg1);
 
 extern s16 D_801156BC;
 
+/// Scene-sync completion bit and delay measured in active CAP control ticks.
+enum {
+    CAP_CONTROL_SCENE_SYNC_COMPLETE     = 0x20,
+    CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES = 30
+};
+
 void Gp_InitCapTask(Task* task);
 
-void Gp_CapTaskState1(Task* task);
+/// Relocates the loaded CAP file and advances the scene-sync gate each task tick.
+///
+/// Debug mode also runs the two debug control hooks. File validity and borrowed
+/// lifetime follow `capRelocateFile`. An armed gate counts only while a CAP
+/// sequence is selected and publishes completion at thirty active ticks, or on
+/// the next tick for a request that primes the elapsed count to thirty.
+/// The task argument is unused; all control state belongs to the CAP singleton.
+void capUpdateControlTask(Task* unusedTask);
 
 extern CapChoice D_801155D0[CAP_CHOICE_CAPACITY];
 

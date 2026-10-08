@@ -195,8 +195,9 @@ void func_acropolis_observatory_8017D9A8(Task* task)
 /// with a 0x3E9 placement and spawns the fade-in (entry 3); past frame 0xE6 it
 /// sends the same placement as a
 /// 0x3F2 and moves on either way. State 3 waits for slot 3 to go idle (msg
-/// 0x3F0), releases it (0x3F1) and records the view in the save. State 4 stops
-/// the stream (0xFA5), clears the scene flags and kills the task.
+/// 0x3F0), releases it (0x3F1) and records the view in the save. State 4 releases
+/// event HUD suppression (`CAP_CONTROL_MESSAGE_SHOW_HUD`), clears the scene
+/// flags and kills the task.
 void func_acropolis_observatory_8017DD3C(Task* task)
 {
     AnimationPlayRequest rec;

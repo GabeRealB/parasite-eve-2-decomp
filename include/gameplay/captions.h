@@ -13,22 +13,37 @@
 /// Messages of the CAP control task in `GAME_TASK_SLOT_CAP_CONTROL`.
 ///
 /// Event scripts, actors and overlays bracket a scripted presentation with
-/// these. In demo scene 9 the HUD messages manage the demo's presentation task
-/// instead of the HUD flag. Every handler here returns 0 unless noted.
+/// these. In demo scene 9 the HUD messages manage the HUD slide task instead of
+/// the HUD flag. Every handler here returns 0 unless noted. Dispatch only the
+/// listed IDs; unsupported IDs have no safe lookup terminator in this table.
 enum {
     /// Starts the CAP sequence in the slot given by the first argument and clears
     /// the control's completion flag (`Gp_StartCapAndClear`).
     CAP_CONTROL_MESSAGE_START = 0xFA0,
-    /// Clears the completion flag and aborts the running CAP sequence, returning
-    /// `capAbortPlayback`'s result (`Gp_AbortCapClear`).
+    /// Releases both timing waits of the current CAP record, including an
+    /// indefinite pause. Both arguments are ignored; playback advances later.
+    CAP_CONTROL_MESSAGE_RESUME_TIMED_RECORD = 0xFA1,
+    /// Disarms scene synchronization and aborts allocated CAP playback, returning
+    /// `capAbortPlayback`'s result. Both arguments are ignored.
     CAP_CONTROL_MESSAGE_ABORT = 0xFA2,
-    /// Returns nonzero while a CAP sequence table is loaded (`capIsBusy`).
+    /// Returns 1 while a CAP sequence is selected, including queued playback.
+    /// Both arguments are ignored.
     CAP_CONTROL_MESSAGE_IS_BUSY = 0xFA3,
     /// Hides the HUD for a presentation; in demo scene 9 spawns its task.
     CAP_CONTROL_MESSAGE_HIDE_HUD = 0xFA4,
-    /// Shows the HUD again; in demo scene 9 lets its task finish.
+    /// Releases HUD suppression; in demo scene 9 reverses its initialized slide
+    /// task and releases the handle so that task can return the HUD and end.
     CAP_CONTROL_MESSAGE_SHOW_HUD = 0xFA5,
-    /// Shows the HUD again; in demo scene 9 kills its task at once.
+    /// Selects the descriptor named by a borrowed `EvsSceneKey` first argument.
+    /// NULL leaves CD selection intact; either value updates the scene-sync mode.
+    /// The key is read only during dispatch; the second argument is ignored.
+    CAP_CONTROL_MESSAGE_SELECT_SCENE = 0xFA6,
+    /// Arms the scene-sync wait while the event is unskipped. First argument 2
+    /// primes immediate completion only without a scene key; all other requests
+    /// wait thirty active control ticks. The second argument is ignored.
+    CAP_CONTROL_MESSAGE_BEGIN_SCENE_SYNC = 0xFA7,
+    /// Releases normal HUD suppression; in demo scene 9 kills the held slide task
+    /// immediately, retaining its current HUD offset. Both arguments are ignored.
     CAP_CONTROL_MESSAGE_SHOW_HUD_ABORT = 0xFA8,
 };
 

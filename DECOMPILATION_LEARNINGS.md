@@ -23781,11 +23781,11 @@ Write the live arm first with an early return. NULL and else then share one
 already 0 from the `beqz` delay slot):
 
 ```c
-if (D_8007218B == 9) {
-    task = D_801156B8;
-    if (task != NULL) {
-        task->spawnArg1 = 1;
-        D_801156B8      = NULL;
+if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
+    hudSlideTask = D_801156B8;
+    if (hudSlideTask != NULL) {
+        hudSlideTask->spawnArg1.value = 1;
+        D_801156B8                   = NULL;
         return 0;
     }
 } else {
@@ -23794,7 +23794,7 @@ if (D_8007218B == 9) {
 return 0;
 ```
 
-`func_800E73E8` is the example. The sibling `func_800E7434` can use
+`_capReleaseEventHud` is the example. The sibling `_capAbortEventHud` can use
 `if (ptr == NULL) return 0; taskKill(ptr);` because the call creates a
 stack frame and a shared epilogue.
 

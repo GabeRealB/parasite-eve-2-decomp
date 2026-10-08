@@ -280,7 +280,7 @@ const char          Gp_StrEvsFmt[]   = "evs%d_%d_%d.txt";
 
 const TaskFuncTable3 Gp_CapTaskStates = { {
     Gp_InitCapTask,
-    Gp_CapTaskState1,
+    capUpdateControlTask,
     taskKill,
 } };
 

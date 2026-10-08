@@ -383,7 +383,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_SELECT_SCENE:
                 D_801156F4.sceneKey = work->command->operand0.sceneKey;
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA6, D_801156F4.value, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SELECT_SCENE, D_801156F4.sceneKey, 0);
                 if (D_801156F4.sceneKey != NULL) {
                     D_801156CA = 1;
                 }

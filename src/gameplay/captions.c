@@ -221,10 +221,10 @@ void func_800E44A0(Task* task)
         }
         if (phase == 2) {
             D_8011566E = nextPhase + 1;
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA7, (s32)(s8)D_801155BB, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_BEGIN_SCENE_SYNC, (s32)(s8)D_801155BB, 0);
             return;
         }
-        if (!(D_801156A4 & 0x20)) {
+        if (!(D_801156A4 & CAP_CONTROL_SCENE_SYNC_COMPLETE)) {
             return;
         }
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 5) {
@@ -232,9 +232,9 @@ void func_800E44A0(Task* task)
         }
         D_801155BB  = 0;
         D_8011566E  = 0;
-        D_801156A4 &= 0xDF;
+        D_801156A4 &= 0xFF ^ CAP_CONTROL_SCENE_SYNC_COMPLETE;
         if (D_8011566A == 1) {
-            D_8011566A = (u16)D_801156BC - 0x1E;
+            D_8011566A = (u16)D_801156BC - CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES;
         }
     }
     savedViewPhase = D_801155BB;
