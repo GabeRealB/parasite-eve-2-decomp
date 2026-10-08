@@ -148,8 +148,6 @@ void hudDrawHpReadout(s32 x, s32 y, s32 hp, s32 hpMax, s32 layout);
 /// Requires 72 free scratch-stack bytes, released before return; changes GTE state.
 void worldTargetUpdatePlayerRelativePositions(void);
 
-s32 func_800A7550(void);
-
 /// Draws the player's locked enemy's HP, retaining its readout placement between frames.
 ///
 /// Draws only if the player and its work exist and the lock points into the

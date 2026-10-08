@@ -288,8 +288,14 @@ static __inline__ void Gp_ObjWorldPosInline(const WorldCollisionBody* obj, VECTO
 
 /// Stores an accepted floor hit and clips the segment for the remaining face scan.
 ///
-/// Borrows contact zero and initialized query scratch. Occupied keys change only
-/// for a greater unsigned surface class; hit geometry and distance always update.
+/// Requires a kind-4 body's live motion context, writable contact zero and an
+/// active grid. `faceIndex` selects an accepted floor face and its valid normal;
+/// `scratch->ray[1]` holds the accepted view-space intersection. Copies that
+/// point and the room-grid normal (4096 per unit), then stores the distance from
+/// the original placed endpoint in game units, narrowed to s16. XYZ square/sum
+/// arithmetic must fit s32. Full SVECTOR copies retain their fourth halfwords.
+/// Occupied keys change only for a greater unsigned surface class; hit geometry
+/// and distance always update, and endpoint zero clips the remaining face scan.
 static inline void _worldCollisionRecordMotionSphereFloorHit(const WorldCollisionBody* body, _WorldCollisionFloorQueryScratch* scratch, s32 faceIndex)
 {
     enum { WORLD_COLLISION_FLOOR_SURFACE_CLASS_MASK = 0xF };

@@ -112,9 +112,7 @@ static __inline__ s32 _hudCanSwitchCategory(s32 ignoreSwapLock);
 
 static __inline__ s32 _attachmentIsBattleSoundLoadReady(void);
 
-/// Inline copy of `attachmentSoundLoadStub`, which evaluates the same gate as
-/// `sceneIsBattleActive` but always returns 0.
-static __inline__ u8 stateF0Gate_(void);
+static __inline__ u8 _attachmentPreviewSoundLoadStub(void);
 
 static void Gp_UseItemTask(HudState* hud);
 
@@ -1248,20 +1246,16 @@ static __inline__ s32 _attachmentIsBattleSoundLoadReady(void)
     return ready;
 }
 
-/// Inline copy of `attachmentSoundLoadStub`, which evaluates the same gate as
-/// `sceneIsBattleActive` but always returns 0.
-static __inline__ u8 stateF0Gate_(void)
+/// Inert sound-load hook whose zero reply discards the pending preview sound.
+///
+/// Evaluates the battle hold/end-delay gate but submits no load or playback and
+/// changes no state. Retains an unsigned-byte zero result on both paths.
+static __inline__ u8 _attachmentPreviewSoundLoadStub(void)
 {
-    SceneCombatState* combat;
-    s32               cond;
+    s32 battleActive;
 
-    combat = &gSceneCombatState;
-    if ((combat->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && combat->battleRefs != 0) || combat->signals.bytes.endDelayFrames != 0) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    battleActive = _sceneIsBattleActive();
+    if (battleActive) {
         return 0;
     }
     return 0;
@@ -1306,7 +1300,7 @@ static void Gp_UseItemTask(HudState* hud)
     hud->field_E         = 0;
     gGameSession->uiOpen = 0;
     if (Gp_StateC08.flags & ATTACHMENT_FLAG_APPLY_STATS) {
-        func_800A7550();
+        attachmentReleaseTargetEffects();
         Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_APPLY_STATS;
     }
 
@@ -1471,7 +1465,7 @@ static void Gp_UseItemTask(HudState* hud)
         Gp_StateC08.previewSound = Gp_StateC08.wheelIndex * 3 + idx;
     }
     if (Gp_StateC08.previewSound > 0) {
-        if (stateF0Gate_() == 0) {
+        if (_attachmentPreviewSoundLoadStub() == 0) {
             Gp_StateC08.previewSound = 0;
         }
     }

@@ -14,7 +14,14 @@ extern AreaObjectStage Gp_Bit2Banks[];
 
 extern TaskDesc D_8010D1FC;
 
-void func_800B25B0(void);
+/// Starts room-specific presentation tasks or the shooting-gallery carryover menu.
+///
+/// Selects the live save's stage/area, ignoring room/view/warp/variant. Call once
+/// at play startup with the selected room overlay and its resources loaded;
+/// keep callback code and borrowed resources live until the spawned tasks end.
+/// The tunnel/gallery water descriptor pairs must remain contiguous in memory.
+/// Unsupported areas do nothing. Task allocation failures are not retried.
+void sceneStartRoomTasks(void);
 
 /// Queues a stage-zero PE sound file unless that file was already requested.
 ///

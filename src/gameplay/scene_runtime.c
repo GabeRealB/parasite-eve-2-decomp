@@ -2154,53 +2154,62 @@ void fadeScreenTask(Task* task)
     }
 }
 
-void func_800B25B0(void)
+void sceneStartRoomTasks(void)
 {
+    enum {
+        SCENE_ROOM_REFLECTION_MODE_FLOOR       = 0,
+        SCENE_ROOM_REFLECTION_MODE_PLANE       = 1,
+        SCENE_ROOM_WATER_REFRACTION_TASK_INDEX = 0,
+        SCENE_ROOM_WATER_DISTORTION_TASK_INDEX = 1
+    };
+
+    // Room callbacks belong to the overlay selected by the live save's area.
     switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
-        case GAME_LOCATION_KEY(5, 27, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 0, 0):
             taskSpawnFromTable(&D_neo_ark_bridge_80181F18, 0, 0, 0);
             break;
-        case GAME_LOCATION_KEY(5, 15, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 0, 0):
             taskSpawnFromTable(&D_neo_ark_garden_80181398, 0, 0, 0);
             break;
-        case GAME_LOCATION_KEY(5, 14, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 0, 0):
             taskSpawnFromTable(&D_neo_ark_island_80181B30, 0, 0, 0);
             break;
-        case GAME_LOCATION_KEY(5, 13, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 0, 0):
             taskSpawnFromTable(&D_neo_ark_pavilion_8018384C, 0, 0, 0);
             break;
-        case GAME_LOCATION_KEY(5, 12, 0, 0):
-            taskSpawnFromTable(&D_neo_ark_submarine_tunnel_801810E4, 1, 0, 0);
+        case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, 0, 0):
+            // Index one reaches the adjacent water-distortion descriptor.
+            taskSpawnFromTable(&D_neo_ark_submarine_tunnel_801810E4, SCENE_ROOM_WATER_DISTORTION_TASK_INDEX, 0, 0);
             break;
-        case GAME_LOCATION_KEY(5, 7, 0, 0):
-            taskSpawnFromTable(D_neo_ark_observatory_80180DBC, 0, 0, 0);
+        case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_OBSERVATORY, 0, 0):
+            taskSpawnFromTable(D_neo_ark_observatory_80180DBC, 0, SCENE_ROOM_REFLECTION_MODE_FLOOR, 0);
             break;
-        case GAME_LOCATION_KEY(2, 30, 0, 0):
-            taskSpawnFromTable(D_dryfield_motel_room_6_80182D0C, 0, 1, 0);
+        case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_6, 0, 0):
+            taskSpawnFromTable(D_dryfield_motel_room_6_80182D0C, 0, SCENE_ROOM_REFLECTION_MODE_PLANE, 0);
             break;
-        case GAME_LOCATION_KEY(3, 30, 0, 0):
-            taskSpawnFromTable(D_dryfield_night_motel_room_6_80182E74, 0, 1, 0);
+        case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6, 0, 0):
+            taskSpawnFromTable(D_dryfield_night_motel_room_6_80182E74, 0, SCENE_ROOM_REFLECTION_MODE_PLANE, 0);
             break;
-        case GAME_LOCATION_KEY(4, 18, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, 0, 0):
             taskSpawnFromTable(&D_shelter_b1_control_room_80181B88, 0, 0, 0);
             break;
-        case GAME_LOCATION_KEY(5, 31, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_R31, 0, 0):
             taskSpawnFromTable(&D_neo_ark_r31_8017D9E8, 0, 0, 0);
             break;
-        case GAME_LOCATION_KEY(5, 30, 0, 0):
-            taskSpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, 0, 0, 0);
-            taskSpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, 1, 0, 0);
+        case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, 0, 0):
+            taskSpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, SCENE_ROOM_WATER_REFRACTION_TASK_INDEX, 0, 0);
+            taskSpawnFromTable(&D_neo_ark_submarine_gallery_8018186C, SCENE_ROOM_WATER_DISTORTION_TASK_INDEX, 0, 0);
             break;
-        case GAME_LOCATION_KEY(5, 29, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 0):
             taskSpawnFromTable(&D_neo_ark_woodland_path_80181638, 0, 0, 0);
             break;
-        case GAME_LOCATION_KEY(4, 22, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 0, 0):
             taskSpawnFromTable(&D_actor_361100_801637C8, 0, 0, 0);
             break;
-        case GAME_LOCATION_KEY(4, 48, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, 0, 0):
             taskSpawnFromTable(&D_shelter_r48_80182FAC, 0, 0, 0);
             break;
-        case GAME_LOCATION_KEY(1, 20, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0):
             mistShootingGalleryOpenCarryoverModeMenu();
             break;
     }

@@ -47,6 +47,7 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/gameflag_types.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -2829,43 +2830,65 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
     }
 }
 
-void Gp_InitPlayClock(Task* task)
+/// Initializes deterministic demo playback after the play clock's initial tick sample.
+///
+/// Requires a demo display and a loaded, word-aligned save-and-input resource.
+/// The serialized prefix precedes native u16 button/duration pairs; only that
+/// stream is viewed as halfwords. Reset order preserves the startup timing.
+static inline void _gameDebugInitializePlayReplay(DisplayState* display)
+{
+    enum {
+        GAME_DEBUG_REPLAY_RANDOM_SEED         = 1,
+        GAME_DEBUG_REPLAY_BUTTONS_INVALID     = 0xFFFF,
+        GAME_DEBUG_REPLAY_INITIAL_FRAMES_LEFT = 1,
+        GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES = sizeof(McSaveData) + PLAYER_STATUS_SAVE_RECORD_BYTES +
+                                                GAME_FLAG_ACROPOLIS_BANK_BYTES + GAME_FLAG_DRYFIELD_BANK_BYTES + GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES +
+                                                GAME_FLAG_MINE_SHELTER_BANK_BYTES + GAME_FLAG_NEO_ARK_BANK_BYTES + sizeof(GameFlagNibbleBank)
+    };
+
+    srand(GAME_DEBUG_REPLAY_RANDOM_SEED);
+    display->animFrame       = 0;
+    gDisplayState.frameCount = 0;
+    gRandomLcgState          = 0;
+    display->gameTick        = 0;
+    display->loopCount       = 0;
+    display->vsyncCount      = 0;
+    display->loopTicks       = 0;
+    if (display->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
+        Gp_ReplayCursor = (u16*)(FILE_SYSTEM_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
+    } else {
+        Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
+    }
+    // Invalidate the button cache so the first record installs its duration.
+    Gp_ReplayButtons                  = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
+    Gp_ReplayFramesLeft               = GAME_DEBUG_REPLAY_INITIAL_FRAMES_LEFT;
+    Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
+}
+
+void playClockInitializeTask(Task* task)
 {
     _PlayClockWork* work;
-    DisplayState*   ds;
+    DisplayState*   display;
 
+    // Sample input before giving the task its zeroed clock and HUD storage.
     padInputUpdate();
     gGameSession->field_5E = 1;
-    work                   = memCalloc(sizeof(_PlayClockWork), 0);
+    work                   = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
     hudReset(&work->hud);
     displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
+    // Snapshot the saved minutes and current tick before room startup and demo resets.
     task->work         = work;
     work->hours        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime / 60;
     work->minutes      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime % 60;
-    ds                 = &gDisplayState;
-    work->lastGameTick = ds->gameTick;
-    func_800B25B0();
-    if (ds->demoScene != DISPLAY_DEMO_NONE) {
-        srand(1);
-        ds->animFrame            = 0;
-        gDisplayState.frameCount = 0;
-        gRandomLcgState          = 0;
-        ds->gameTick             = 0;
-        ds->loopCount            = 0;
-        ds->vsyncCount           = 0;
-        ds->loopTicks            = 0;
-        if (ds->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-            Gp_ReplayCursor = (u16*)(FILE_SYSTEM_FIXED_REPLAY_BASE + 0xD4C);
-        } else {
-            Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + 0xD4C);
-        }
-        Gp_ReplayButtons                  = 0xFFFF;
-        Gp_ReplayFramesLeft               = 1;
-        Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
+    display            = &gDisplayState;
+    work->lastGameTick = display->gameTick;
+    sceneStartRoomTasks();
+    if (display->demoScene != DISPLAY_DEMO_NONE) {
+        _gameDebugInitializePlayReplay(display);
     } else if (Pad_RemapState->field_9 == 1) {
         func_80715198();
     }

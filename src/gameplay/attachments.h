@@ -128,6 +128,13 @@ void Gp_HudTask(HudState* hud);
 /// Borrows live player/combat/attachment state and targeting resources.
 void attachmentDispatchTargetArea(s32 releaseEffects, HudState* hud);
 
+/// Releases the active ability's target or self effect without a HUD preview.
+///
+/// Uses activeIndex (0..17), the learned/training level and live targeting state
+/// as required by `attachmentDispatchTargetArea`. Outside battle only Healing
+/// is applied. Resets cast target/life-drain totals and always returns zero.
+s32 attachmentReleaseTargetEffects(void);
+
 /// Pending flags written by `_itemUseAttachedItem` and consumed by `menuApplyPendingItemUseTask`.
 /// `Gp_HealPending == 1` requests `taskMessageDispatch(..., 0x402, ...)`.
 extern s32 Gp_HealPending;

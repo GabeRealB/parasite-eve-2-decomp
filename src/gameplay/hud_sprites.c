@@ -193,8 +193,11 @@ ScreenFade D_80114BD8;
 
 /// Starts the persistent death-screen fade using the session's signed frame count.
 ///
-/// The fade owns no allocation for its borrowed record. No return is requested,
-/// so it holds the covered screen until the area transition tears down its task.
+/// Borrows the session only for this call. Sign-extends its s8 duration into the
+/// fade's s16 frame count; non-positive values select the 32-frame default when
+/// the task starts. The persistent record must not already serve another fade.
+/// The spawned task borrows it through teardown, holding black without a return
+/// request. Allocation failure leaves the record initialized but starts no fade.
 static inline void _playClockQueueDeathFade(const GameSession* session)
 {
     enum { PLAY_CLOCK_DEATH_FADE_TASK_BANK = 1,
@@ -949,7 +952,7 @@ s32 sceneIsBattleActive(void)
     return 0;
 }
 
-s32 func_800A7550(void)
+s32 attachmentReleaseTargetEffects(void)
 {
     attachmentDispatchTargetArea(ATTACHMENT_TARGET_RELEASE, NULL);
     return 0;

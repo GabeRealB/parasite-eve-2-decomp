@@ -2160,8 +2160,11 @@ void menuMapWaitForPageTask(Task* mapTask)
 
 /// Queues the loaded map's four content passes while its closing animation runs.
 ///
-/// Borrows the live map task, object and loaded stage/page resources. The order
-/// matches the ready-page draw, with navigation arrows omitted during closing.
+/// Borrows the live UiObject in `mapTask->spawnArg2.pointer` and loaded resources
+/// for stage 1..5, with the selected page/area in their tables. Requires current
+/// player/view state, scratch stack and frame GPU buffers. Queues cursor, flag
+/// markers, picture and area shapes in that order, without navigation arrows or
+/// changing task state. Queued packets live until the frame's GPU work completes.
 static inline void _menuMapDrawClosingPage(Task* mapTask)
 {
     _menuMapDrawPlayerCursor(mapTask);

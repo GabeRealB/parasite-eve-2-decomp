@@ -889,7 +889,10 @@ ItemDesc Gp_KeyItemDescs[] = {
 ///
 /// Scans raw ids 0..383 after clearing all 96 stored words. Text contains three
 /// NUL/newline-terminated identified fields; a following newline means there is
-/// no unknown name. The raw ordinary/key mapping must preserve its physical aliases.
+/// no unknown name. Requires live saved storage and terminated catalogue text.
+/// Raw ids 192..255 use the first 64 key-item descriptors through the contiguous
+/// ordinary-table address; ids 256..383 use key rows 0..127 again. Those physical
+/// aliases are retained, but their containing C declaration remains unproven.
 static inline void _itemInitializeNewGameIdentification(void)
 {
     enum { ITEM_IDENTIFICATION_KEY_ITEM_FIRST = 0x100,
@@ -901,10 +904,12 @@ static inline void _itemInitializeNewGameIdentification(void)
     s32 identificationIndex;
     s32 fieldsRemaining;
 
+    // Reset the whole saved storage, including words beyond the queried id range.
     for (identificationIndex = ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemSeenBits) - 1; identificationIndex >= 0; identificationIndex--) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemSeenBits[identificationIndex] = 0;
     }
 
+    // Identify entries whose three known fields are followed by an empty unknown name.
     identificationIndex = 0;
     do {
         fieldsRemaining = ITEM_IDENTIFIED_TEXT_FIELD_COUNT;

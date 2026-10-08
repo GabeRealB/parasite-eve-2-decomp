@@ -450,7 +450,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | `D_8006268C[0]` | `0x800BF9FC` (gameplay) |
 | `Stage_Ctx->taskDesc` | Per-stage desc table; `_stageSpawnModeTask` spawns index 0 |
 | `D_80725C54` | External debug-address descriptor view, from `taskDebugLaunchCallback`; backing storage unproven |
-| `D_8010D1FC`, `D_8010FB4C`, `D_80115D9C`, `D_80119218`, `D_8011922C`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`1BC.c` `func_800B25B0` switches on `gMcSaveData`) |
+| `D_8010D1FC`, `D_8010FB4C`, `D_80115D9C`, `D_80119218`, `D_8011922C`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`sceneStartRoomTasks` selects room startup tasks from the live save's stage/area) |
 | Stack `TaskDesc` | `uiSpawnObject` copies `UiObjectDesc.taskFlags`, `taskPriority` and `taskDataValue`; task callback dispatches the panel, which keeps `contentCallback` |
 
 `taskGetDesc(bank, index)` borrows `gTaskDescBanks[bank][index]` without copying
@@ -503,8 +503,8 @@ releasing tasks; session reset does this before discarding the list and heap.
 - **Bank 6** (667 room-overlay callbacks) and most of **bank 7** (per-item TMD
   sources). The tables are complete; the functions are not.
 - **`0x807xxxxx`** overlays referenced from banks 0/1/3/4/5/14. No splat tree.
-- **Enemy / room `TaskDesc` tables** (`enemySpawnFromTable`, `func_800B25B0`
-  save-slot switch). Overlay-local, mostly unnamed.
+- **Enemy / room `TaskDesc` tables** (`enemySpawnFromTable`, `sceneStartRoomTasks`
+  saved-area switch). Overlay-local, mostly unnamed.
 - **UI** tasks built from `UiObjectDesc` rather than a bank index.
 - Bank-0 play monitoring is named `playClockTask`; remaining unnamed matched
   callbacks still need their own role review.
