@@ -2962,16 +2962,16 @@ Example: `func_actor_400500_801385D0`. Inputs: `base.i`
 
 ## One work pointer in three tails prefers `$a0`; split it per leaf so local-alloc takes `$v1`
 
-`func_actor_400500_801391B0` reloads `index->work` in each of three animation
+`_actor400500StartKnockdownRecoil` reloads `task->work` in each of three animation
 leaves and writes `animRate` / `animId` / `animRequest` through that pointer.
-One `work2` used in all three leaves is a global allocno (`dies in 3 places`).
+One work pointer used in all three leaves is a global allocno (`dies in 3 places`).
 `.greg` gave it `preferences: 4` (`$a0`) from the earlier `addiu a0, 0x80`
 TmdObject hide, so every tail was `lw a0, 0x1C(a2)` against the target's
 `lw v1, 0x1C(a2)` — 99.3%, `regs=10`, identical structure.
 
 It does not conflict with `$v1` (`;; 82 conflicts: 81 82 2 29`). Numeric order
 would have taken `$v1` without the copy preference. Three block-local pointers
-(`work2` / `work3` / `work4`) are local-alloc eligible; each block has `$v0`
+(one per animation request) are local-alloc eligible; each block has `$v0`
 busy with the constant chain (`1`, `0x10`, `0xF`/`0x11`, `2`, `3`/`1`) so the
 lowest free register is `$v1`.
 
@@ -2980,11 +2980,11 @@ Write the three leaves as complete duplicated stores, not a shared `animId` /
 stores and speculate both anim ids. Cross-jumping then rebuilds the shared
 `animId` phi and the final `subState` store from the duplicated C.
 
-The unused `0x30` leaf frame is an unreferenced `u8 unused[0x30]` (no stack
-accesses). `s32 flag = 0x81` is required so `cloakRequest` gets `addiu 0x81`
+The unused `0x30` leaf frame is an unreferenced `u8 unusedStack[0x30]` (no stack
+accesses). `s32 cloakRequest = 0x81` is required so `cloakRequest` gets `addiu 0x81`
 rather than `li -0x7f`.
 
-Example: `func_actor_400500_801391B0` / `func_actor_400500_8013A5D8`. Inputs:
+Example: `_actor400500StartKnockdownRecoil` / `_actor400500StartStatusHoldRecoil`. Inputs:
 `base_2.i` `c89ff53043af044bf5c881600217eb4a630b437486bd5ea021d530efdcbfeea3`,
 `base_3.i` `1b1ba6e3b905016c9873f1a99a4b1b56adbb8ee01239826ad6adbcd6bfad2e1a`.
 
@@ -3627,7 +3627,7 @@ step  = (u16)work->moveAccel + 2;
 accum = (u16)work->moveSpeed + step;
 ```
 
-`func_actor_400500_8013BB18` is the example (scratch `base_4.c`).
+`_actor400500TickCrawlDeathFall` is the example (scratch `base_4.c`).
 
 ## Two call-diamonds need two flags; one `s32` lives in `$a0` and jump-threads
 
@@ -4193,8 +4193,8 @@ at the `jal` (83.9%). Assigning `s32 angle` *after* the `field_C` store makes
 that store a true alias dep of the reload: `lhu` cannot fill the child-load
 delay, `&rot` is born next to `a1 = src`, and two load-delay nops remain
 (92.8%). Moving the assignment before `field_C` (after the child load, so
-CSE cannot reuse the increment) is 100%. Compare `func_actor_400500_80138CE8`,
-which keeps the increment in `angle` and never reloads.
+CSE cannot reuse the increment) is 100%. Compare `_actor400500RetractFloorStrikeArm`,
+which keeps the increment in `swingAngle` and never reloads.
 
 ## Reusing a pointer across a call keeps the pre-call home
 
@@ -71522,16 +71522,16 @@ Example: `func_actor_400500_801385D0`. Inputs: `base.i`
 
 ## One work pointer in three tails prefers `$a0`; split it per leaf so local-alloc takes `$v1`
 
-`func_actor_400500_801391B0` reloads `index->work` in each of three animation
+`_actor400500StartKnockdownRecoil` reloads `task->work` in each of three animation
 leaves and writes `animRate` / `animId` / `animRequest` through that pointer.
-One `work2` used in all three leaves is a global allocno (`dies in 3 places`).
+One work pointer used in all three leaves is a global allocno (`dies in 3 places`).
 `.greg` gave it `preferences: 4` (`$a0`) from the earlier `addiu a0, 0x80`
 TmdObject hide, so every tail was `lw a0, 0x1C(a2)` against the target's
 `lw v1, 0x1C(a2)` — 99.3%, `regs=10`, identical structure.
 
 It does not conflict with `$v1` (`;; 82 conflicts: 81 82 2 29`). Numeric order
 would have taken `$v1` without the copy preference. Three block-local pointers
-(`work2` / `work3` / `work4`) are local-alloc eligible; each block has `$v0`
+(one per animation request) are local-alloc eligible; each block has `$v0`
 busy with the constant chain (`1`, `0x10`, `0xF`/`0x11`, `2`, `3`/`1`) so the
 lowest free register is `$v1`.
 
@@ -71540,11 +71540,11 @@ Write the three leaves as complete duplicated stores, not a shared `animId` /
 stores and speculate both anim ids. Cross-jumping then rebuilds the shared
 `animId` phi and the final `subState` store from the duplicated C.
 
-The unused `0x30` leaf frame is an unreferenced `u8 unused[0x30]` (no stack
-accesses). `s32 flag = 0x81` is required so `cloakRequest` gets `addiu 0x81`
+The unused `0x30` leaf frame is an unreferenced `u8 unusedStack[0x30]` (no stack
+accesses). `s32 cloakRequest = 0x81` is required so `cloakRequest` gets `addiu 0x81`
 rather than `li -0x7f`.
 
-Example: `func_actor_400500_801391B0` / `func_actor_400500_8013A5D8`. Inputs:
+Example: `_actor400500StartKnockdownRecoil` / `_actor400500StartStatusHoldRecoil`. Inputs:
 `base_2.i` `c89ff53043af044bf5c881600217eb4a630b437486bd5ea021d530efdcbfeea3`,
 `base_3.i` `1b1ba6e3b905016c9873f1a99a4b1b56adbb8ee01239826ad6adbcd6bfad2e1a`.
 
@@ -71857,7 +71857,7 @@ step  = (u16)work->moveAccel + 2;
 accum = (u16)work->moveSpeed + step;
 ```
 
-`func_actor_400500_8013BB18` is the example (scratch `base_4.c`).
+`_actor400500TickCrawlDeathFall` is the example (scratch `base_4.c`).
 
 ## Two call-diamonds need two flags; one `s32` lives in `$a0` and jump-threads
 
@@ -72114,8 +72114,8 @@ at the `jal` (83.9%). Assigning `s32 angle` *after* the `field_C` store makes
 that store a true alias dep of the reload: `lhu` cannot fill the child-load
 delay, `&rot` is born next to `a1 = src`, and two load-delay nops remain
 (92.8%). Moving the assignment before `field_C` (after the child load, so
-CSE cannot reuse the increment) is 100%. Compare `func_actor_400500_80138CE8`,
-which keeps the increment in `angle` and never reloads.
+CSE cannot reuse the increment) is 100%. Compare `_actor400500RetractFloorStrikeArm`,
+which keeps the increment in `swingAngle` and never reloads.
 
 ## Reusing a pointer across a call keeps the pre-call home
 
@@ -133809,18 +133809,18 @@ Preprocessed input hashes: base_2
 `63c6e52cc614cebaa75fa9a61afcaf0778bdbec3d6d9b28cdd52d70b8c7eebc6`,
 base_3 `a6b966ea24de7ddd6175c1f9caecc27997897953b7a1b75042eef17f7044195e`.
 
-## Widen a captured halfword at definition to preserve its load position (func_actor_400500_8013973C, 2026-09-19)
+## Widen a captured halfword at definition to preserve its load position (_actor400500TickDropFromCeiling, 2026-09-19)
 
-The 98.960% seed computed dz from two stack MATRIX translations before loading
-posMain->z. Earlier retry attempts put that read in an s16 temporary ahead of
-dz, but widening at its arithmetic use allowed combine to put the signed load
-back after the stack reads. An s32 viewZ assigned before dz widens at definition:
+The 98.960% seed computed the translation difference from two stack MATRIX translations before loading
+worldPosition->vz. Earlier retry attempts put that read in an s16 temporary ahead of
+the difference, but widening at its arithmetic use allowed combine to put the signed load
+back after the stack reads. An s32 capture of world Z before the translation difference widens at definition:
 combine UID195 is sign_extend:SI of mem:HI ahead of stack loads UID198/200.
 
 The recorded prediction succeeded: sched1 blocks all three loads for one cycle
 at T-25, launches them together at T-26, then selects 200,198,195 backward,
-producing z before the stack reads forward. Final homes are viewZ/result v1,
-dz v0, address v0, and stack operands v0/a1. Saved-register homes stay unchanged.
+producing z before the stack reads forward. Final homes are the world-Z capture/result v1,
+the translation difference v0, address v0, and stack operands v0/a1. Saved-register homes stay unchanged.
 Scratch base_2 scores 100.000% with all-zero penalties and the host body passes
 unscoped build-and-verify.sh. No new barrier or register pin was needed; the
 seed's existing SCHED_BARRIER after the preceding x store remains. Actual local
@@ -133834,7 +133834,7 @@ experiment. Current router skipped stale archived candidates, so this gain was
 manual, on the seed containing the prior session's mask-store permutation.
 
 Evidence: scratch base_1/base_2 dumps and plans, LEARNINGS.md, and immutable local
-archive tools/permuter_findings/func_actor_400500_8013973C/ with
+archive under tools/permuter_findings/ for address 8013973C with
 PERMUTER_EVIDENCE/retry_resolution/manifest.json. Input SHA256:
 base_1.i `faa1032d42587bb19cf9ca05f8584cab1048635d893d0c0bcfba3a397fcc0042`;
 base_2.i `4f1d00ee43514c8f43ea709cc11821d1536f55ddf346b8b911925c255b136d3b`.
@@ -153494,8 +153494,8 @@ inlined callee's frame is addressed through). Presumably the callee's frame
 becomes a stack temporary whose address is such an equivalence at any offset;
 that step was inferred from the result, not read out of a dump.
 
-**Not converted (4 blocks).**
-- `func_actor_400500_8013973C` (1) and `func_actor_400500_8013A0B8` (2): the
+**Not converted (3 blocks).**
+- `func_actor_400500_8013A0B8` (2): the
   run is clearly an inline (reload `task->work` and the root coordinate, mask
   the three angles, identity, Z/X/Y, copy) but its matrix shares the caller's
   `rot` slot with `gfxMakeRelativeTransform(..., &rot.mat)` in a sibling block.
@@ -153559,9 +153559,9 @@ files - no function needed its union kept. The same held for the Glutton's
 The build compiles with `-w`, so the retype was also checked by running `cc1`
 without it on every rebuilt `.i` before and after: no new pointer-type warning.
 
-**What is left.** `GfxMatrix` remains for six locals that still store through
+**What is left.** `GfxMatrix` remains for four locals that still store through
 `rotationWords` by hand: `worldTransform`/`identityTransform` in `_actor403100EmitFlame`
-and `rot`/`src` in `func_actor_400500_8013973C` and `_8013A0B8`. Do not
+and `rot`/`src` in `func_actor_400500_8013A0B8`. Do not
 declare a new matrix as `GfxMatrix` unless it needs that view.
 
 **Survey caveat.** A libclang member-access scan does not see designated
