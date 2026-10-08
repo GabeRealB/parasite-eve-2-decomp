@@ -3325,7 +3325,12 @@ static const _Actor110600StateTable D_actor_110600_80131F3C = { {
     _actor110600EnrageState,
 } };
 
-/// Clears this tick's grid, received-hit and outgoing-attack contacts in order.
+/// Discards the Boss Stranger's grid, received-hit and outgoing-attack contacts.
+///
+/// Requires live work with all three contact tables initialized, including
+/// their final-entry markers. Clears occupied records in that order while
+/// retaining the markers and the tables borrowed by the collision bodies,
+/// enemy and walker. Does not unlink or disable those bodies.
 static inline void _actor110600ClearTickContacts(_Actor110600Work* work)
 {
     worldCollisionClearContacts(work->gridContacts);

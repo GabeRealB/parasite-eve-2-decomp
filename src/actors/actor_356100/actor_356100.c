@@ -2776,15 +2776,21 @@ static void _actor356100HeadTurn(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-/// Samples part 1's pan/depth and queues one spatial scripted-death sound.
+/// Requests a scripted-death sound at the Stranger's body-part origin.
 ///
-/// Requires the live body task; both spatial results narrow to signed bytes.
-static inline void _actor356100PlayScriptedDeathCue(Task* task, s32 soundKey)
+/// Requires a live model with coordinate 1 already composed into view space,
+/// current projection settings and 24 bytes of free scratch stack. `soundId`
+/// is a packed sound-script ID whose bank must stay loaded through playback.
+/// Samples pan before depth, converting both to the event's signed-byte units;
+/// pan is -16..15 and depth is -128..127, with 256 game units per depth unit.
+/// Changes GTE state, retains no coordinate pointer and ignores admission failure.
+static inline void _actor356100PlayScriptedDeathCue(Task* task, s32 soundId)
 {
-    s32 pan;
+    enum { ACTOR_356100_DEATH_SOUND_PART = 1 };
+    s32 panOffset;
 
-    pan = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[1]);
-    sndEvtRequestScriptStart(soundKey, pan, (s8)worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[1]));
+    panOffset = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_356100_DEATH_SOUND_PART]);
+    sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_356100_DEATH_SOUND_PART]));
 }
 
 /// Runs the room-command death clip, timed audio, vibration and falling-leaf bursts.

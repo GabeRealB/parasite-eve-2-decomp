@@ -336,7 +336,12 @@ static void _actor342400WaveCullPair(Task* waveTask)
 #undef ACTOR_342400_WAVE_CULL_PAIR_ENEMY
 }
 
-/// Counts encounter rows whose spawner has made an enemy live.
+/// Returns the number of live spawner rows in the incinerator encounter.
+///
+/// Counts rows marked `OVERLAY_ENCOUNTER_SLOT_LIVE`, yielding 0..17. A row
+/// spawning a pair counts once, even if one member has already died. Waiting
+/// and completed rows do not count; enemy health and visibility are not tested.
+/// Reads the spawners' bookkeeping without changing it.
 static inline s16 _actor342400WaveCountLiveSlots(void)
 {
     s16 liveSlotCount = 0;

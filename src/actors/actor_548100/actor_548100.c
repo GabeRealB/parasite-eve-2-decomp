@@ -1098,11 +1098,15 @@ static void _actor548100ScanHotspots(Task* task)
     }
 }
 
-/// Offers the selected socket's battery through its room pickup caption.
+/// Offers the selected power-panel socket's battery as a room pickup.
 ///
-/// Requires a filled socket 1..4 with panel power off. Sets pickup object 4 or
-/// 5 available and starts the matching caption; the socket remains filled until
-/// the pickup wait observes collection. Other nonzero contents select battery 2.
+/// Requires live panel work selecting a filled socket 1..4, panel power off
+/// and room CAP resources loaded through playback. Socket content 1 selects pickup
+/// object 4 and caption variant 2; every other content selects object 5 and
+/// variant 5. Marks that object available in the live save's stage and requests
+/// command 6 in place, ignoring caption admission failure. Records the object
+/// in `work->pickupObject` for the collection wait; the socket contents and
+/// inventory are unchanged here.
 static inline void _actor548100OfferSocketBattery(_Actor548100Work* work)
 {
     enum {

@@ -1822,12 +1822,16 @@ static void _actor511000InitHelicopter(Task* task)
     task->state                      += 1;
 }
 
-/// Advances the helicopter sequence cursor and applies its camera and hull pose.
+/// Advances the helicopter's synchronized camera and hull-pose playback by one frame.
 ///
-/// Requires a cursor in 0..119 and loaded 120-entry camera/pose tables. A signed
-/// halfword increment clamps to the last frame. The queued camera task borrows
-/// its table entry until dispatch. Invalidates root composition after posing;
-/// drawing visibility is ignored.
+/// Requires a live helicopter task, `rootCoord` equal to its model root and
+/// `killCountdown` holding a frame index in 0..119. The camera, rotation and
+/// translation tables each contain 120 frames. Increments through a signed
+/// halfword, then clamps at 119; later calls repeat that final frame.
+/// Queues the camera before applying the hull pose and invalidating the root.
+/// The queued task borrows its camera entry until it runs, so the table must
+/// remain loaded. Camera allocation failure does not stop pose playback.
+/// Euler angles use 4096 units per turn; translation uses parent coordinates.
 static inline void _actor511000AdvanceHelicopterSequence(Task* task, GfxCoord* rootCoord)
 {
     s16 nextFrame;

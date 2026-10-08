@@ -503,10 +503,13 @@ s32 actor521100IsPresent(Task* task, s32 messageId, s32 unusedFirstArgument, s32
     return work->present;
 }
 
-/// Binds the ANMC woman's rig and requests the initial walk clip without ticking it.
+/// Binds the ANMC woman's animation context and requests her initial walk clip.
 ///
-/// Requires her live published work, model and loaded clip table. Playback
-/// borrows model coordinates, pose storage and animation data through teardown.
+/// Requires her live published work and nineteen-part model allocation, plus
+/// the loaded eleven-entry clip table. Borrows that allocation's coordinates,
+/// work-owned encoded pose buffers and clip data for the lifetime of playback.
+/// Requests a reset to clip 1, leaving the slots and pose buffers untouched;
+/// the following animation update seeds slots 1..18 without advancing them.
 static inline void _actor521100AnmcWomanPrepareAnimation(TmdObject* model)
 {
     animationBindModelContext(&_gActor521100AnmcWomanWork->rig.anim, D_actor_521100_8016A3A0, model, _gActor521100AnmcWomanWork->rig.poses);
