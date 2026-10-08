@@ -25,8 +25,18 @@ extern EvsCommand D_shelter_b3_dumping_hole_8018B080[39];
 
 extern EvsCommand D_shelter_b3_dumping_hole_8018B428[14];
 
-s16 func_shelter_b3_dumping_hole_8017FB70(void);
+/// Returns the incinerator-exit block flag, except that room 2 always permits passage.
+///
+/// The flag starts set and is cleared when the collapse event starts. The room's
+/// transition handler treats a nonzero result as a refused incinerator departure.
+s16 shelterB3DumpingHoleIsIncineratorExitBlocked(void);
 
-void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2);
+/// Selects the room's loaded CAP caption data and font texture-page origin.
+///
+/// X counts VRAM words and Y counts rows. `dataResourceIndex` is zero-based
+/// among data resources. Requires completed bundle loading and storage/textures
+/// that remain live during caption use. Invalid data keeps the prior captions;
+/// page coordinates are stored regardless. Performs no I/O or allocation.
+void shelterB3DumpingHoleSelectCaptionResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex);
 
 #endif // SRC_ROOMS_SHELTER_B3_DUMPING_HOLE_SHELTER_B3_DUMPING_HOLE_PRIVATE_H

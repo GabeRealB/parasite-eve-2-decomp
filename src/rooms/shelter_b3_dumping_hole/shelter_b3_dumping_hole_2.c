@@ -182,7 +182,7 @@ enum { SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES = 0x24 };
 
 extern SVECTOR D_shelter_b3_dumping_hole_8018B86C[44];
 
-static void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2);
+static void _shelterB3DumpingHoleShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks);
 #include "../../shared/cap_captions.h"
 
 static void _capCaptionRunSchedule(Task* task);
@@ -504,9 +504,9 @@ enum { SHELTER_B3_DUMPING_HOLE_ACTOR_COMMAND_RESUME_BATTLE = 5 };
 /// Selector enabling the arrival event's player-sprite spawn and stop callbacks.
 enum { SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITES_SELECT = 0 };
 
-static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
+static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTask);
 
-static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
+static void _shelterB3DumpingHoleDebrisEventHandleSceneCommand(Task* directorTask);
 /// Visibility operations on the collapse event's view-14 sprite batches.
 /// Showing one batch retains the other batch's current visibility.
 enum {
@@ -534,10 +534,20 @@ enum {
 static void _shelterB3DumpingHoleCollapseEventSetViewSprites(u8 spriteMode);
 static void _shelterB3DumpingHoleSpawnPlayerSpriteBurst(GfxCoord* sourceCoord, s16 selector);
 
-static void func_shelter_b3_dumping_hole_801833EC(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2);
+/// Enemy kinds and task-table entries selected by this room's encounter controller.
+enum {
+    SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER          = 0,
+    SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH              = 1,
+    SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR    = 2,
+    SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_MAD_CHASER       = 1,
+    SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SLOUCH           = 2,
+    SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SUCKLERCEPH_PAIR = 3,
+};
 
-static void func_shelter_b3_dumping_hole_80183298(Task* arg0);
+static void _shelterB3DumpingHoleEncounterFeed(Task* controllerTask);
+static void _shelterB3DumpingHoleEncounterSpawnSlot(s16 slotIndex, s16 kind, s16 appearCommand);
+
+static void _shelterB3DumpingHoleEncounterPairSpawn(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterInitialize(Task* controllerTask);
 static void func_shelter_b3_dumping_hole_8018378C(Task* arg0);
 static void _shelterB3DumpingHoleEncounterArmBattle(Task* controllerTask);
@@ -558,10 +568,10 @@ static void _shelterB3DumpingHoleDebrisSpriteTask(Task* task);
 static void _shelterB3DumpingHoleActorSpriteTask(Task* task);
 static void _shelterB3DumpingHolePlayerSpriteTask(Task* task);
 static void _shelterB3DumpingHoleDebrisModelTask(Task* task);
-void        func_shelter_b3_dumping_hole_8017F820(Task*);
+static void _shelterB3DumpingHoleDebrisEventTask(Task* directorTask);
 static void _shelterB3DumpingHoleFadeFromBlackTask(Task* task);
 static void _shelterB3DumpingHoleBroadcastActorCommand(s16 command);
-void        func_shelter_b3_dumping_hole_8017FE34(void);
+static void _shelterB3DumpingHoleDebrisEventStartFade(void);
 static void _shelterB3DumpingHoleDebrisEventSetActor0DrawMode(s32 drawMode);
 static void _shelterB3DumpingHoleDebrisEventSetActor1DrawMode(s32 drawMode);
 static void _shelterB3DumpingHoleDebrisEventPostPlayerCommand(s16 command);
@@ -573,7 +583,7 @@ static void _shelterB3DumpingHoleDebrisEventFinishPlayback(void);
 
 static void _shelterB3DumpingHoleShardTask(Task* task);
 static void _shelterB3DumpingHoleCollapseEventSkip(void);
-void        func_shelter_b3_dumping_hole_80181560(Task*);
+static void _shelterB3DumpingHoleCollapseEventTask(Task* task);
 static void _shelterB3DumpingHoleCollapseEventReleaseBattleOnce(void);
 static void _shelterB3DumpingHoleCollapseEventSetPlayerDrawMode(s32 drawMode);
 static void _shelterB3DumpingHoleCollapseEventPostCommand(s16 command);
@@ -604,11 +614,11 @@ extern WorldCollisionGrid    D_shelter_b3_dumping_hole_8018C3EC[1];
 extern WorldCollisionTrigger D_shelter_b3_dumping_hole_8018E88C[8];
 extern WorldCollisionTrigger D_shelter_b3_dumping_hole_8018EF9C[8];
 
-s32  _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, ActorCommand* request, s32 unused);
-void func_shelter_b3_dumping_hole_80183550(Task*);
-void func_shelter_b3_dumping_hole_801835C8(Task*);
-void func_shelter_b3_dumping_hole_80183620(Task*);
-void func_shelter_b3_dumping_hole_80183678(Task*);
+s32         _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, ActorCommand* request, s32 unused);
+static void _shelterB3DumpingHoleEncounterTask(Task* task);
+static void _shelterB3DumpingHoleEncounterMadChaserTask(Task* task);
+static void _shelterB3DumpingHoleEncounterSlouchTask(Task* task);
+static void _shelterB3DumpingHoleEncounterPairTask(Task* task);
 
 extern TaskDesc D_actor_342100_80164B78[];
 extern TaskDesc D_actor_341700_80174D58;
@@ -750,7 +760,7 @@ EvsSceneKey D_shelter_b3_dumping_hole_80188638 = { 4, 17, 11 };
 
 EvsCommand D_shelter_b3_dumping_hole_80188640[45] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_8017FE34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleDebrisEventStartFade }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PREPARE_ANIMATION_47 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_PLACE_ACTOR1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor0DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -814,7 +824,7 @@ EvsCommand D_shelter_b3_dumping_hole_80188A78[14] = {
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80188BC8[5] = {
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_8017F820, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterB3DumpingHoleDebrisEventTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _shelterB3DumpingHoleFadeFromBlackTask, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterB3DumpingHoleDebrisModelTask, { .model = &gShelterB3DumpingHoleModel0A0CC } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterB3DumpingHoleDebrisModelTask, { .model = &gShelterB3DumpingHoleModel0A348 } },
@@ -922,7 +932,7 @@ EvsCommand D_shelter_b3_dumping_hole_801899A4[13] = {
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80189ADC[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_80181560, { .model = &_gShelterB3DumpingHoleModel0BAC8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterB3DumpingHoleCollapseEventTask, { .model = &_gShelterB3DumpingHoleModel0BAC8 } },
     { { { TASK_BODY_COORD, 192 } }, _shelterB3DumpingHoleShardTask, { .value = 0 } },
 };
 
@@ -1163,10 +1173,10 @@ OverlayEncounterSlot D_shelter_b3_dumping_hole_8018B7BC[16] = {
 };
 
 TaskDesc D_shelter_b3_dumping_hole_8018B83C[4] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b3_dumping_hole_80183550, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, func_shelter_b3_dumping_hole_801835C8, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, func_shelter_b3_dumping_hole_80183620, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, func_shelter_b3_dumping_hole_80183678, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB3DumpingHoleEncounterTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, _shelterB3DumpingHoleEncounterMadChaserTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, _shelterB3DumpingHoleEncounterSlouchTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, _shelterB3DumpingHoleEncounterPairTask, { .value = 0 } },
 };
 
 // Lighting task indexes a shared pool through entry 40; interior bases also address entries in the same pool. The final existing eight-point view ends at entry 43.
@@ -2402,7 +2412,7 @@ u16 D_shelter_b3_dumping_hole_8018F4D6 = 0xD086;
 
 s32 D_shelter_b3_dumping_hole_8018F4D8;
 
-static void func_shelter_b3_dumping_hole_8018098C(Task* task);
+static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task);
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -2968,334 +2978,388 @@ static void _shelterB3DumpingHoleDebrisModelTask(Task* task)
 
 #undef SHELTER_B3_DUMPING_HOLE_CULL_DEBRIS_MODEL
 
-static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
+/// Advances the debris event's pending player command and clears it once complete.
+///
+/// Requires live director work and a player for any active command. Multi-frame
+/// commands retain their selector while waiting for scripted motion or 6/16 ticks.
+/// Animation playback borrows the equipped bank; stack messages are consumed
+/// synchronously. Clip 51 sets twice the normal rate. Unknown commands are cleared.
+static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTask)
 {
-    _ShelterB3DumpingHoleDebrisEventWork* work = arg0->work;
+    enum {
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_PLACE           = 0,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_WAIT_MOTION     = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_WAIT_CLIP       = 2,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_RISE_SEND               = 0,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_RISE_WAIT_CLIP          = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_DELAY_TICKS     = 6,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_RISE_DELAY_TICKS        = 16,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_COMMAND_RISE_PROP = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_RESTORE_CLIP            = 9,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES            = 10,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_47                 = 47,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_48                 = 48,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_49                 = 49,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_50                 = 50,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_51                 = 51,
+    };
+    _ShelterB3DumpingHoleDebrisEventWork* work = directorTask->work;
     union {
-        AnimationPlayRequest anim;
-        ActorCommand         loc;
-    } msg;
-    u8 area;
+        AnimationPlayRequest animation;
+        ActorCommand         actorCommand;
+    } request;
+    u8 commandArea;
+
+    /// Builds and synchronously dispatches a debris player's equipped-bank animation.
+    ///
+    /// `task` must be a stable director pointer and `message` a side-effect-free
+    /// union lvalue with an AnimationPlayRequest member named animation. The task is
+    /// evaluated once; the message repeatedly. Scalar arguments are evaluated once.
+    /// Reloads task work, reads the saved character/weapon and disables world collision.
+#define SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(task, message, clipId, blendMode, blendFrameCount) \
+    {                                                                                                           \
+        _ShelterB3DumpingHoleDebrisEventWork* animationWork = (task)->work;                                     \
+        s32                                   weaponId      = gPlayerStatus.weapon;                             \
+        (message).animation.source.index =                                                                      \
+            (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER) \
+                ? weaponId + SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET                              \
+                : weaponId + SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET;                          \
+        (message).animation.animationId          = (clipId);                                                    \
+        (message).animation.blend                = (blendMode);                                                 \
+        (message).animation.blendFrames          = (blendFrameCount);                                           \
+        (message).animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                           \
+        TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_PLAY, &(message), 0);            \
+    }
 
     if (work->player != NULL) {
         taskMessageDispatch(work->player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0);
     }
     switch (work->playerCommand) {
-        case 0:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_NONE:
             break;
-        case 1:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PREPARE_ANIMATION_47:
             switch (work->playerStep) {
-                case 0:
-                    TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3E9, D_shelter_b3_dumping_hole_8018819C, 0);
-                    TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3F2, &D_shelter_b3_dumping_hole_8018819C[6], 0);
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_PLACE:
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, D_shelter_b3_dumping_hole_8018819C, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_MOVE_TO, &D_shelter_b3_dumping_hole_8018819C[6], 0);
                     work->playerStep++;
                     return;
-                case 1:
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_WAIT_MOTION:
                     if (taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                         work->playerTimer = 0;
                         work->playerStep++;
                     }
                     return;
-                case 2:
-                    if (++work->playerTimer < 6) {
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_WAIT_CLIP:
+                    if (++work->playerTimer < SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_DELAY_TICKS) {
                         return;
                     }
-                    {
-                        _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
-                        s32                                   weaponId = gPlayerStatus.weapon;
-                        msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                        msg.anim.animationId                           = 0x2F;
-                        msg.anim.blend                                 = ANIMATION_BLEND_INTERPOLATE;
-                        msg.anim.blendFrames                           = 0xA;
-                        msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
-                    }
+                    SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_47, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
                     break;
                 default:
                     return;
             }
             break;
-        case 2: {
-            _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
-            s32                                   weaponId = gPlayerStatus.weapon;
-            msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.anim.animationId                           = 0x32;
-            msg.anim.blend                                 = ANIMATION_BLEND_RESET;
-            msg.anim.blendFrames                           = 0;
-            msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
-        } break;
-        case 3:
-            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_50:
+            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_50, ANIMATION_BLEND_RESET, 0);
             break;
-        case 4:
-            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
-            {
-                _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
-                s32                                   weaponId = gPlayerStatus.weapon;
-                msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                msg.anim.animationId                           = 9;
-                msg.anim.blend                                 = ANIMATION_BLEND_RESET;
-                msg.anim.blendFrames                           = 0;
-                msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
-            }
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_HIDE_MODEL:
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE, 0);
             break;
-        case 5:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_RESTORE_PLAYER:
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_shelter_b3_dumping_hole_801881CC, 0);
+            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_RESTORE_CLIP, ANIMATION_BLEND_RESET, 0);
+            break;
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_48:
             switch (work->playerStep) {
-                case 0:
-                    msg.loc.context.loc.stage = gGameSession->location.loc.stage;
-                    area                      = gGameSession->location.loc.area;
-                    msg.loc.command           = 1;
-                    msg.loc.context.loc.area  = area;
-                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_RISE_SEND:
+                    request.actorCommand.context.loc.stage = gGameSession->location.loc.stage;
+                    commandArea                            = gGameSession->location.loc.area;
+                    request.actorCommand.command           = SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_COMMAND_RISE_PROP;
+                    request.actorCommand.context.loc.area  = commandArea;
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
                     work->playerTimer = 0;
                     work->playerStep++;
                     return;
-                case 1:
-                    if (++work->playerTimer < 0x10) {
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_RISE_WAIT_CLIP:
+                    if (++work->playerTimer < SHELTER_B3_DUMPING_HOLE_DEBRIS_RISE_DELAY_TICKS) {
                         return;
                     }
-                    {
-                        _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
-                        s32                                   weaponId = gPlayerStatus.weapon;
-                        msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                        msg.anim.animationId                           = 0x30;
-                        msg.anim.blend                                 = ANIMATION_BLEND_INTERPOLATE;
-                        msg.anim.blendFrames                           = 0xA;
-                        msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
-                    }
+                    SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_48, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
                     break;
                 default:
                     return;
             }
             break;
-        case 6: {
-            _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
-            s32                                   weaponId = gPlayerStatus.weapon;
-            msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.anim.animationId                           = 0x33;
-            msg.anim.blend                                 = ANIMATION_BLEND_INTERPOLATE;
-            msg.anim.blendFrames                           = 0xA;
-            msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
-        }
-            taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 0x20, 0);
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_51_DOUBLE_RATE:
+            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_51, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
+            taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 2 * ANIMATION_RATE_ONE, 0);
             break;
-        case 7: {
-            _ShelterB3DumpingHoleDebrisEventWork* w2       = arg0->work;
-            s32                                   weaponId = gPlayerStatus.weapon;
-            msg.anim.source.index                          = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.anim.animationId                           = 0x31;
-            msg.anim.blend                                 = ANIMATION_BLEND_INTERPOLATE;
-            msg.anim.blendFrames                           = 0xA;
-            msg.anim.enableWorldCollision                  = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
-        } break;
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_49:
+            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_49, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
+            break;
     }
-    work->playerCommand = 0;
+    work->playerCommand = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_NONE;
 }
 
-static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
+#undef SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION
+
+/// Advances the debris event's pending scene command and clears it once complete.
+///
+/// Requires live director work, its placement actors and terminated placement
+/// tables. Launch waits three ticks before restoring actor 0; creation stops actor
+/// sprites for one update before spawning rubble and optional five-sprite rings.
+/// Models borrow placement records through setup; sprite seeds are copied at spawn.
+/// Value 3 and other unknown commands have no action and are cleared.
+static void _shelterB3DumpingHoleDebrisEventHandleSceneCommand(Task* directorTask)
 {
-    _ShelterB3DumpingHoleDebrisEventWork* work = arg0->work;
-    ActorCommand                          msg;
+    enum {
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL0_TASK_INDEX          = 2,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL1_TASK_INDEX          = 3,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL2_TASK_INDEX          = 4,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_X_SPEED_FAST               = 0,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_X_SPEED_MEDIUM             = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_X_SPEED_SLOW               = 2,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_BEGIN                = 0,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMPLETE             = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_LAUNCH_DELAY_TICKS         = 3,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_DRAW_SHOW_ALLOCATE   = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_COMMAND_PLAY_POSE    = 2,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_COMMAND_RESTORE_POSE = 3,
+    };
+    _ShelterB3DumpingHoleDebrisEventWork* work = directorTask->work;
+    ActorCommand                          actorCommand;
     _ShelterB3DumpingHoleSpriteSeed       seed;
     _ShelterB3DumpingHoleDebrisPlacement* placement;
-    _ShelterB3DumpingHoleDebrisPlacement* ringed;
-    u16                                   i;
-    u8                                    area;
+    _ShelterB3DumpingHoleDebrisPlacement* ringPlacement;
+    u16                                   placementIndex;
+    u8                                    commandArea;
+
+    /// Spawns a rubble model and its optional five-sprite ring in the world YZ plane.
+    ///
+    /// `entry` is a stable placement pointer, evaluated repeatedly. Captures this
+    /// function's seed and ringPlacement locals; sprite seeds narrow XYZ to signed
+    /// halfwords and are copied immediately, while the model borrows the transform
+    /// through its first tick. No early return is added on a sprite allocation failure.
+#define SHELTER_B3_DUMPING_HOLE_SPAWN_RINGED_DEBRIS_PLACEMENT(entry)                                                                                                                \
+    {                                                                                                                                                                               \
+        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL2_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_DEBRIS_X_SPEED_SLOW, &(entry)->transform); \
+        if ((entry)->spriteRing != 0) {                                                                                                                                             \
+            ringPlacement = (entry);                                                                                                                                                \
+            seed.pos.vx   = ringPlacement->transform.pos.vx;                                                                                                                        \
+            seed.pos.vy   = ringPlacement->transform.pos.vy;                                                                                                                        \
+            seed.pos.vz   = ringPlacement->transform.pos.vz;                                                                                                                        \
+            seed.scale    = ONE;                                                                                                                                                    \
+            seed.field_A  = 1;                                                                                                                                                      \
+            DUMPING_HOLE_SPAWN_DEBRIS(seed);                                                                                                                                        \
+            seed.pos.vy = ringPlacement->transform.pos.vy + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                             \
+            seed.pos.vz = ringPlacement->transform.pos.vz + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                             \
+            DUMPING_HOLE_SPAWN_DEBRIS(seed);                                                                                                                                        \
+            seed.pos.vy = ringPlacement->transform.pos.vy + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                             \
+            seed.pos.vz = ringPlacement->transform.pos.vz - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                             \
+            DUMPING_HOLE_SPAWN_DEBRIS(seed);                                                                                                                                        \
+            seed.pos.vy = ringPlacement->transform.pos.vy - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                             \
+            seed.pos.vz = ringPlacement->transform.pos.vz + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                             \
+            DUMPING_HOLE_SPAWN_DEBRIS(seed);                                                                                                                                        \
+            seed.pos.vy = ringPlacement->transform.pos.vy - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                             \
+            seed.pos.vz = ringPlacement->transform.pos.vz - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                             \
+            DUMPING_HOLE_SPAWN_DEBRIS(seed);                                                                                                                                        \
+        }                                                                                                                                                                           \
+    }
 
     switch (work->sceneCommand) {
-        case 0:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_NONE:
             break;
-        case 1:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_LAUNCH_DEBRIS:
             switch (work->sceneStep) {
-                case 0:
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_BEGIN:
                     work->debrisModelSignal  = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_LAUNCH;
                     work->debrisSpriteSignal = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_RISE;
                     work->sceneTimer         = 0;
                     work->sceneStep++;
                     return;
-                case 1:
-                    if (++work->sceneTimer < 3) {
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMPLETE:
+                    if (++work->sceneTimer < SHELTER_B3_DUMPING_HOLE_DEBRIS_LAUNCH_DELAY_TICKS) {
                         return;
                     }
-                    taskMessageDispatch(((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                    msg.context.loc.stage = gGameSession->location.loc.stage;
-                    area                  = gGameSession->location.loc.area;
-                    msg.command           = 2;
-                    msg.context.loc.area  = area;
-                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+                    taskMessageDispatch(((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_DRAW_SHOW_ALLOCATE, 0);
+                    actorCommand.context.loc.stage = gGameSession->location.loc.stage;
+                    commandArea                    = gGameSession->location.loc.area;
+                    actorCommand.command           = SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_COMMAND_PLAY_POSE;
+                    actorCommand.context.loc.area  = commandArea;
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
                     break;
                 default:
                     return;
             }
             break;
-        case 2:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_RESTORE_ACTOR0:
             TASK_MESSAGE_DISPATCH_POINTER(work->placement0Actor, ACTOR_MESSAGE_PLACE, &work->pose, 0);
-            msg.context.loc.stage = gGameSession->location.loc.stage;
-            area                  = gGameSession->location.loc.area;
-            msg.command           = 3;
-            msg.context.loc.area  = area;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+            actorCommand.context.loc.stage = gGameSession->location.loc.stage;
+            commandArea                    = gGameSession->location.loc.area;
+            actorCommand.command           = SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_COMMAND_RESTORE_POSE;
+            actorCommand.context.loc.area  = commandArea;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             break;
-        case 4:
-            msg.context.loc.stage = gGameSession->location.loc.stage;
-            area                  = gGameSession->location.loc.area;
-            msg.command           = 5;
-            msg.context.loc.area  = area;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_RESUME_BATTLE:
+            actorCommand.context.loc.stage = gGameSession->location.loc.stage;
+            commandArea                    = gGameSession->location.loc.area;
+            actorCommand.command           = SHELTER_B3_DUMPING_HOLE_ACTOR_COMMAND_RESUME_BATTLE;
+            actorCommand.context.loc.area  = commandArea;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             break;
-        case 5:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_PLACE_ACTOR1:
             TASK_MESSAGE_DISPATCH_POINTER(work->placement1Actor, ACTOR_MESSAGE_PLACE, &D_shelter_b3_dumping_hole_801881E4, 0);
             break;
-        case 6:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_CREATE_DEBRIS:
             switch (work->sceneStep) {
-                case 0:
-                    work->actorSpritesStop = 1;
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_BEGIN:
+                    work->actorSpritesStop = true;
                     work->sceneStep++;
                     return;
-                case 1:
-                    for (i = 0; D_shelter_b3_dumping_hole_801881FC[i].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; i++) {
-                        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 2, 0, &D_shelter_b3_dumping_hole_801881FC[i]);
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMPLETE:
+                    // Placement tables retain their terminators; models borrow entries until setup.
+                    for (placementIndex = 0; D_shelter_b3_dumping_hole_801881FC[placementIndex].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; placementIndex++) {
+                        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL0_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_DEBRIS_X_SPEED_FAST, &D_shelter_b3_dumping_hole_801881FC[placementIndex]);
                     }
-                    for (i = 0; D_shelter_b3_dumping_hole_80188304[i].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; i++) {
-                        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 3, 1, &D_shelter_b3_dumping_hole_80188304[i]);
+                    for (placementIndex = 0; D_shelter_b3_dumping_hole_80188304[placementIndex].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; placementIndex++) {
+                        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL1_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_DEBRIS_X_SPEED_MEDIUM, &D_shelter_b3_dumping_hole_80188304[placementIndex]);
                     }
-                    for (i = 0; D_shelter_b3_dumping_hole_801884CC[i].transform.pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; i++) {
-                        placement = &D_shelter_b3_dumping_hole_801884CC[i];
-                        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 4, 2, &placement->transform);
-                        if (placement->spriteRing != 0) {
-                            // One sprite at the piece, then one at each diagonal around it in the YZ plane.
-                            ringed       = placement;
-                            seed.pos.vx  = ringed->transform.pos.vx;
-                            seed.pos.vy  = ringed->transform.pos.vy;
-                            seed.pos.vz  = ringed->transform.pos.vz;
-                            seed.scale   = ONE;
-                            seed.field_A = 1;
-                            DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.pos.vy = ringed->transform.pos.vy + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
-                            seed.pos.vz = ringed->transform.pos.vz + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
-                            DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.pos.vy = ringed->transform.pos.vy + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
-                            seed.pos.vz = ringed->transform.pos.vz - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
-                            DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.pos.vy = ringed->transform.pos.vy - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
-                            seed.pos.vz = ringed->transform.pos.vz + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
-                            DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                            seed.pos.vy = ringed->transform.pos.vy - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
-                            seed.pos.vz = ringed->transform.pos.vz - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;
-                            DUMPING_HOLE_SPAWN_DEBRIS(seed);
-                        }
+                    for (placementIndex = 0; D_shelter_b3_dumping_hole_801884CC[placementIndex].transform.pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; placementIndex++) {
+                        placement = &D_shelter_b3_dumping_hole_801884CC[placementIndex];
+                        SHELTER_B3_DUMPING_HOLE_SPAWN_RINGED_DEBRIS_PLACEMENT(placement);
                     }
                     break;
                 default:
                     return;
             }
             break;
-        case 7:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_REMOVE_DEBRIS:
             work->debrisSpriteSignal = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_REMOVE;
             work->debrisModelSignal  = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_REMOVE;
             break;
     }
-    work->sceneCommand = 0;
+    work->sceneCommand = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_NONE;
 }
 
-void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
+#undef SHELTER_B3_DUMPING_HOLE_SPAWN_RINGED_DEBRIS_PLACEMENT
+
+/// Runs the debris event after the player reaches its world-X trigger.
+///
+/// Owns task work and publishes the director for script callbacks and effects;
+/// requires placement actors 0 and 1. Saves actor 0's starting pose, waits for idle
+/// caption/event/display state, copies five borrowed animation sets into the
+/// player's bank extension, then runs the normal/skip scripts and their pending
+/// commands. Script completion disables trigger 8 and releases the director.
+static void _shelterB3DumpingHoleDebrisEventTask(Task* directorTask)
 {
-    _ShelterB3DumpingHoleDebrisEventWork* work;
-    _ShelterB3DumpingHoleDebrisEventWork* w;
-    Task*                                 t;
-    _ShelterB3DumpingHoleDebrisEventWork* w2;
-    AnimationBankCopyRequest              msg;
-    AnimationPlayRequest                  anim;
-    AnimationPlayRequest*                 p;
-    s32                                   n;
+    enum {
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_SETUP        = 0,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_WAIT_TRIGGER = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_START_SCRIPT = 2,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_RUN_SCRIPT   = 3,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_TRIGGER_X    = 0x36B1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_ACTOR_YAW    = 0x400,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_SCENE_EVENT  = 12,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_MUSIC_ENTRY  = 3,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_IDLE_CLIP    = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_BLEND_FRAMES = 10,
+    };
+    _ShelterB3DumpingHoleDebrisEventWork* allocatedWork;
+    _ShelterB3DumpingHoleDebrisEventWork* poseWork;
+    Task*                                 placementActor;
+    _ShelterB3DumpingHoleDebrisEventWork* animationWork;
+    AnimationBankCopyRequest              bankCopyRequest;
+    AnimationPlayRequest                  animation;
+    AnimationPlayRequest*                 animationRequest;
+    s32                                   extensionCount;
     s32                                   weaponId;
 
-    switch (arg0->state) {
-        case 0:
-            work       = memMalloc(sizeof(*work), false);
-            arg0->work = work;
-            if (work == NULL) {
-                taskKill(arg0);
+    switch (directorTask->state) {
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_SETUP:
+            allocatedWork      = memMalloc(sizeof(*allocatedWork), false);
+            directorTask->work = allocatedWork;
+            if (allocatedWork == NULL) {
+                taskKill(directorTask);
             } else {
-                memFillBytes(work, 0, sizeof(*work));
-                work->player                       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_shelter_b3_dumping_hole_8018F4A8 = arg0;
-                work->placement0Actor              = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
-                work->placement1Actor              = sceneFindEnemyByPlaceKey((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (u16)(gGameSession->location.loc.area | (1 << ENEMY_PLACE_INDEX_SHIFT)))->task;
-                work->debrisSpriteSignal           = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_WAIT;
-                work->debrisModelSignal            = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_WAIT;
-                work->field_4A                     = 0;
-                work->playerSpritesStop            = 0;
-                work->field_46                     = 0;
+                memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));
+                allocatedWork->player              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                D_shelter_b3_dumping_hole_8018F4A8 = directorTask;
+                allocatedWork->placement0Actor     = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
+                allocatedWork->placement1Actor     = sceneFindEnemyByPlaceKey((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (u16)(gGameSession->location.loc.area | (1 << ENEMY_PLACE_INDEX_SHIFT)))->task;
+                allocatedWork->debrisSpriteSignal  = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_WAIT;
+                allocatedWork->debrisModelSignal   = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_WAIT;
+                allocatedWork->field_4A            = 0;
+                allocatedWork->playerSpritesStop   = 0;
+                allocatedWork->field_46            = 0;
             }
             // Keep the placement-0 actor's starting pose (a quarter-turn yaw)
             // for the scene command that places it back.
-            w                                                   = arg0->work;
-            w->pose.pos.vx                                      = w->placement0Actor->extra.tmd->coords->coord.t[0];
-            t                                                   = w->placement0Actor;
-            w->pose.pos.vy                                      = t->extra.tmd->coords->coord.t[1];
-            w->pose.pos.vz                                      = t->extra.tmd->coords->coord.t[2];
-            w->pose.rot.vy                                      = 0x400;
-            w->pose.rot.vx                                      = 0;
-            w->pose.rot.vz                                      = 0;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xC;
-            gStageSceneMusicEntry                               = 3;
-            arg0->state++;
+            poseWork                                            = directorTask->work;
+            poseWork->pose.pos.vx                               = poseWork->placement0Actor->extra.tmd->coords->coord.t[0];
+            placementActor                                      = poseWork->placement0Actor;
+            poseWork->pose.pos.vy                               = placementActor->extra.tmd->coords->coord.t[1];
+            poseWork->pose.pos.vz                               = placementActor->extra.tmd->coords->coord.t[2];
+            poseWork->pose.rot.vy                               = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_ACTOR_YAW;
+            poseWork->pose.rot.vx                               = 0;
+            poseWork->pose.rot.vz                               = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_SCENE_EVENT;
+            gStageSceneMusicEntry                               = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_MUSIC_ENTRY;
+            directorTask->state++;
             break;
-        case 1:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_WAIT_TRIGGER:
             if (gGameSession->eventState != 0) {
                 break;
             }
             if (capIsBusy() != 0) {
                 break;
             }
-            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE || gPlayerStatus.coordMtx->t[0] < 0x36B1) {
+            if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE || gPlayerStatus.coordMtx->t[0] < SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_TRIGGER_X) {
                 break;
             }
-            w2 = arg0->work;
-            n  = 0;
-            while (D_shelter_b3_dumping_hole_801880A0[n & 0xFFFF] != 0) {
-                n += 1;
+            animationWork  = directorTask->work;
+            extensionCount = 0;
+            // Count the NULL-terminated extension in set pointers, retaining the halfword index.
+            while (D_shelter_b3_dumping_hole_801880A0[extensionCount & 0xFFFF] != NULL) {
+                extensionCount += 1;
             }
-            msg.source.sets = &D_shelter_b3_dumping_hole_801880A0[0];
-            msg.wordCount   = n & 0xFFFF;
-            TASK_MESSAGE_DISPATCH_POINTER(w2->player, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
-            weaponId                  = gPlayerStatus.weapon;
-            p                         = &anim;
-            anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            p->animationId            = 1;
-            p->blend                  = ANIMATION_BLEND_INTERPOLATE;
-            p->blendFrames            = 0xA;
-            anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &anim, 0);
-            arg0->state++;
+            bankCopyRequest.source.sets = &D_shelter_b3_dumping_hole_801880A0[0];
+            bankCopyRequest.wordCount   = extensionCount & 0xFFFF;
+            TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankCopyRequest, 0);
+            weaponId                       = gPlayerStatus.weapon;
+            animationRequest               = &animation;
+            animation.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER) ? weaponId + SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : weaponId + SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET;
+            animationRequest->animationId  = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_IDLE_CLIP;
+            animationRequest->blend        = ANIMATION_BLEND_INTERPOLATE;
+            animationRequest->blendFrames  = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_BLEND_FRAMES;
+            animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &animation, 0);
+            directorTask->state++;
             break;
-        case 2:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_START_SCRIPT:
             evsStartScriptWithSkip(D_shelter_b3_dumping_hole_80188640, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b3_dumping_hole_80188A78);
-            arg0->state++;
+            directorTask->state++;
             break;
-        case 3:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_RUN_SCRIPT:
             if (gGameSession->eventState == 0) {
                 WorldCollisionTrigger* collision = &D_shelter_b3_dumping_hole_8018ECA4[8];
                 collision->flags                &= ~WORLD_COLLISION_TRIGGER_ENABLED;
-                taskKill(arg0);
+                taskKill(directorTask);
                 return;
             }
-            func_shelter_b3_dumping_hole_8017EDB8(arg0);
-            func_shelter_b3_dumping_hole_8017F1B0(arg0);
+            _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(directorTask);
+            _shelterB3DumpingHoleDebrisEventHandleSceneCommand(directorTask);
             break;
     }
 }
 
-s16 func_shelter_b3_dumping_hole_8017FB70(void)
+s16 shelterB3DumpingHoleIsIncineratorExitBlocked(void)
 {
-    if (gGameSession->location.loc.room == 2) {
+    enum {
+        SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BYPASS_ROOM = 2,
+    };
+    if (gGameSession->location.loc.room == SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BYPASS_ROOM) {
         return 0;
     }
     return D_shelter_b3_dumping_hole_8018809C;
@@ -3409,9 +3473,17 @@ static void _shelterB3DumpingHoleStopPlayerSprites(s32 selector)
     }
 }
 
-void func_shelter_b3_dumping_hole_8017FE34(void)
+/// Starts the debris event's subtractive black fade at nine channel units per tick.
+///
+/// Requires the live debris director; the spawned task owns its fade work and
+/// observes the director's fade-stop flag.
+static void _shelterB3DumpingHoleDebrisEventStartFade(void)
 {
-    taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 1, 9, 0);
+    enum {
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_FADE_TASK_INDEX   = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_FADE_CHANNEL_STEP = 9,
+    };
+    taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, SHELTER_B3_DUMPING_HOLE_DEBRIS_FADE_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_DEBRIS_FADE_CHANNEL_STEP, 0);
 }
 
 /// Sets the debris event's placement-0 actor model draw/reset mode.
@@ -3686,75 +3758,111 @@ static void _shelterB3DumpingHoleShardTask(Task* task)
     }
 }
 
-/// Per-frame handler of the collapse event's director task: runs the pending
-/// `_ShelterB3DumpingHoleCollapseEventWork::command`, which is cleared once
-/// handled unless it is a multi-frame sequence.
+/// Advances the collapse event's pending command, model motion and presentation effects.
 ///
-/// - `PREPARE` sends the slot-3 task its animation and the slot-4 task message
-///   0x7DA for the current stage and area.
-/// - `COLLAPSE` is a sequence stepped by `step`. Step 0 sends the opening
-///   messages, overrides the view vector and places the task at its starting
-///   pose. Step 1 spawns a burst of shard tasks every 16 frames and moves model
-///   part 2; from frame 0x3D it also shrinks part 3 along X and Z, rebuilding
-///   its rotation from identity each frame, and at frame 0x5B it spawns the
-///   closing effects and advances. Until then the pose rotation alternates
-///   either side of its starting value each frame. Step 2 keeps moving part 2
-///   and, after six frames, tips part 1 about X. Every frame of the sequence
-///   also shakes the screen by one unit.
-/// - `END_COLLAPSE` and `FINISH` undo the sequence's overrides and send the
-///   slot-4 task message 0x7DA; `FINISH` also restores the saved view, resets
-///   the slot-3 animation and ends the framebuffer-blend task.
-/// - `HIDE_ACTOR` sends the placement-0 actor message 0x7D5.
-/// - `FLICKER` is a second sequence that alternates
-///   `_shelterB3DumpingHoleCollapseEventSetViewSprites` calls, then spawns the
-///   framebuffer-blend task.
-///
-/// The message buffers are unions because the cases share their stack slots.
-static void func_shelter_b3_dumping_hole_8018098C(Task* task)
+/// Requires live director work, player and placement-0 actor, and model coordinates
+/// 0..3. Commands retain their selector during multi-frame collapse/flicker; completed
+/// or unknown commands clear it. Model scales and ambient colour use Q12; pitch uses
+/// 4096 units per turn. Shards borrow the work's spawn record through their first tick.
+/// Animation and actor-command payloads are consumed synchronously.
+static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
 {
+    enum {
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_SMOKE_SIZE               = 0x608,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLASH_SIZE               = 0x200,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_STEP_SETUP               = 0,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_STEP_SHAKE               = 1,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_STEP_FALL                = 2,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_SHOW_FIRST       = 0,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_HIDE_FIRST       = 1,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_SHOW_SECOND      = 2,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_HIDE_SECOND      = 3,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_SHOW_THIRD       = 4,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_HIDE_THIRD       = 5,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_WAIT_BLEND       = 6,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_RESTORE          = 7,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_RESTORE_CLIP             = 9,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_IDLE_CLIP                = 1,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_BLEND_FRAMES             = 10,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_COMMAND_START      = 10,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_COMMAND_SKIP_SHORT = 11,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_COMMAND_RESET_VIEW = 12,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_DRAW_SHOW_ALLOCATE = 1,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_SHARDS_PER_BURST         = 10,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_BURST_PERIOD_FRAMES      = 16,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_DROP_START_TICK          = 31,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_SHRINK_START_TICK        = 61,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_SHAKE_END_TICK           = 91,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_TIP_DELAY_TICKS          = 6,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_BLEND_DELAY_TICKS        = 11,
+        SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_BANK         = 1,
+        SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_TASK_INDEX   = 0x2D,
+        SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_DOUBLE_PASS  = 16,
+    };
     _ShelterB3DumpingHoleCollapseEventWork* work;
-    u16                                     i;
-    ActorCommand*                           command3;
-    ActorCommand*                           command5;
-    s32*                                    p;
+    u16                                     shardIndex;
+    ActorCommand*                           endCommand;
+    ActorCommand*                           finishCommand;
+    AnimationPlayRequest*                   animationRequest;
     union {
-        s32          words[5];
-        ActorCommand loc;
-        SVECTOR      vec[4];
-    } buf;
+        AnimationPlayRequest animation;
+        ActorCommand         actorCommand;
+        struct {
+            SVECTOR ambientColor;
+            SVECTOR flashOffset;
+            SVECTOR smokeOffset;
+            SVECTOR smokeRotatedOffset;
+        } effects;
+    } scratch;
     union {
-        SVECTOR      vec;
-        ActorCommand loc;
-    } buf2;
-    s32 words[5];
+        SVECTOR      effectOffset;
+        ActorCommand actorCommand;
+    } effectScratch;
+    AnimationPlayRequest animation;
+
+    /// Pre-rotates an authored offset, then spawns a smoke/flash sprite that transforms it again.
+    ///
+    /// Offset arguments are distinct writable SVECTOR lvalues without side effects,
+    /// evaluated repeatedly. Scalar arguments are evaluated once. Captures the live
+    /// director task; spriteSize is a low-twelve-bit base size with palette zero.
+    /// These two sprite callbacks use the copied position, not the retained offset pointer.
+#define SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(localOffset, rotatedOffset, offsetZ, effectId, spriteSize) \
+    {                                                                                                                    \
+        (localOffset).vx = 200;                                                                                          \
+        (localOffset).vy = 400;                                                                                          \
+        (localOffset).vz = (offsetZ);                                                                                    \
+        ApplyMatrixSV(&task->extra.tmd->coords->coord, &(localOffset), &(rotatedOffset));                                \
+        effectSpawn((effectId), task->extra.tmd->coords, (spriteSize), &(rotatedOffset));                                \
+    }
 
     work = task->work;
     switch (work->command) {
         case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_PREPARE:
             roomEffectRequestCancelAll();
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-            buf.words[0]       = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
-            buf.words[1]       = 9;
-            buf.words[2]       = 1;
-            buf.words[3]       = 0xA;
-            buf.words[4]       = 0;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, buf.words, 0);
-            buf.loc.context.loc.stage = gGameSession->location.loc.stage;
-            buf.loc.context.loc.area  = gGameSession->location.loc.area;
-            buf.loc.command           = 0xA;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.loc, ACTOR_COMMAND_MESSAGE_APPLY);
+            Gp_StateC08.flags                     |= ATTACHMENT_FLAG_EVENT_LOCK;
+            scratch.animation.source.index         = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER ? SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET);
+            scratch.animation.animationId          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_RESTORE_CLIP;
+            scratch.animation.blend                = ANIMATION_BLEND_INTERPOLATE;
+            scratch.animation.blendFrames          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_BLEND_FRAMES;
+            scratch.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.animation, 0);
+            scratch.actorCommand.context.loc.stage = gGameSession->location.loc.stage;
+            scratch.actorCommand.context.loc.area  = gGameSession->location.loc.area;
+            scratch.actorCommand.command           = SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_COMMAND_START;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &scratch.actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             work->command = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE;
             return;
         case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_COLLAPSE:
+            // Replace actor visibility with the room model, then shake, shed shards and drop its parts.
             switch (work->step) {
-                case 0:
-                    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-                    buf.vec[0].vx = 0x800;
-                    buf.vec[0].vy = 0x800;
-                    buf.vec[0].vz = 0x800;
-                    worldCoordSetAmbientColorOverride(&buf.vec[0]);
-                    taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-                    taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                case SHELTER_B3_DUMPING_HOLE_COLLAPSE_STEP_SETUP:
+                    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE, 0);
+                    scratch.effects.ambientColor.vx = ONE / 2;
+                    scratch.effects.ambientColor.vy = ONE / 2;
+                    scratch.effects.ambientColor.vz = ONE / 2;
+                    worldCoordSetAmbientColorOverride(&scratch.effects.ambientColor);
+                    taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET, 0);
+                    taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
                     work->pose.pos.vx = D_shelter_b3_dumping_hole_8018966C.pos.vx;
                     work->pose.pos.vy = D_shelter_b3_dumping_hole_8018966C.pos.vy;
                     work->pose.pos.vz = D_shelter_b3_dumping_hole_8018966C.pos.vz;
@@ -3765,66 +3873,50 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     work->shardSpawn.offset.vx         = 0;
                     work->shardSpawn.offset.vy         = 0;
                     work->shardSpawn.offset.vz         = 0;
-                    D_shelter_b3_dumping_hole_8018F4B0 = 1;
+                    D_shelter_b3_dumping_hole_8018F4B0 = true;
                     work->shardSpawn.emitter           = &task->extra.tmd->coords[2];
                     work->shardSpawn.radius            = 0x14;
-                    work->part3Scale.vx                = 0x1000;
-                    work->part3Scale.vy                = 0x1000;
-                    work->part3Scale.vz                = 0x1000;
+                    work->part3Scale.vx                = ONE;
+                    work->part3Scale.vy                = ONE;
+                    work->part3Scale.vz                = ONE;
                     work->timer                        = 0;
                     work->step++;
                     break;
-                case 1:
+                case SHELTER_B3_DUMPING_HOLE_COLLAPSE_STEP_SHAKE:
                     work->timer++;
-                    if (!(gDisplayState.animFrame & 0xF)) {
+                    if (!(gDisplayState.animFrame & (SHELTER_B3_DUMPING_HOLE_COLLAPSE_BURST_PERIOD_FRAMES - 1))) {
                         work->shardSpawn.vel.vx  = 0;
                         work->shardSpawn.vel.vy  = 0;
                         work->shardSpawn.vel.vz  = 0;
                         work->shardSpawn.gravity = 4;
-                        for (i = 0; i < 10; i++) {
+                        for (shardIndex = 0; shardIndex < SHELTER_B3_DUMPING_HOLE_COLLAPSE_SHARDS_PER_BURST; shardIndex++) {
                             taskSpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 1, 0, &work->shardSpawn);
                         }
                     }
-                    if (work->timer >= 0x5B) {
-                        buf.vec[2].vx = 0xC8;
-                        buf.vec[2].vy = 0x190;
-                        buf.vec[2].vz = -0xC8;
-                        ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[2], &buf.vec[3]);
-                        effectSpawn(EFFECT_SMOKE_PUFF, task->extra.tmd->coords, 0x608, &buf.vec[3]);
-                        buf.vec[2].vx = 0xC8;
-                        buf.vec[2].vy = 0x190;
-                        buf.vec[2].vz = -0x320;
-                        ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[2], &buf.vec[3]);
-                        effectSpawn(EFFECT_SMOKE_PUFF, task->extra.tmd->coords, 0x608, &buf.vec[3]);
+                    if (work->timer >= SHELTER_B3_DUMPING_HOLE_COLLAPSE_SHAKE_END_TICK) {
+                        SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(scratch.effects.smokeOffset, scratch.effects.smokeRotatedOffset, -0xC8, EFFECT_SMOKE_PUFF, SHELTER_B3_DUMPING_HOLE_COLLAPSE_SMOKE_SIZE);
+                        SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(scratch.effects.smokeOffset, scratch.effects.smokeRotatedOffset, -0x320, EFFECT_SMOKE_PUFF, SHELTER_B3_DUMPING_HOLE_COLLAPSE_SMOKE_SIZE);
                         work->timer      = 0;
                         work->part1Pitch = 0;
                         work->field_9A   = 0x80;
                         work->step++;
                         break;
                     }
-                    if (work->timer >= 0x1F) {
-                        if (work->timer >= 0x3D) {
+                    if (work->timer >= SHELTER_B3_DUMPING_HOLE_COLLAPSE_DROP_START_TICK) {
+                        if (work->timer >= SHELTER_B3_DUMPING_HOLE_COLLAPSE_SHRINK_START_TICK) {
                             task->extra.tmd->coords[2].coord.t[1] += 8;
                             work->part3Scale.vx                   -= 10;
                             work->part3Scale.vz                   -= 10;
                             gfxSetRotIdentity(&task->extra.tmd->coords[3].coord);
 
                             _gfxScaleMatrixColumns(&task->extra.tmd->coords[3].coord, &work->part3Scale);
-                        } else if (work->timer < 0x20) {
+                        } else if (work->timer < SHELTER_B3_DUMPING_HOLE_COLLAPSE_DROP_START_TICK + 1) {
                             task->extra.tmd->coords[2].coord.t[1] += 0x20;
                             gfxSetRotIdentity(&task->extra.tmd->coords[3].coord);
                         }
-                        if (!(gDisplayState.animFrame & 0xF)) {
-                            buf.vec[1].vx = 0xC8;
-                            buf.vec[1].vy = 0x190;
-                            buf.vec[1].vz = -0xC8;
-                            ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[1], &buf2.vec);
-                            effectSpawn(EFFECT_FLASH_BURST, task->extra.tmd->coords, 0x200, &buf2.vec);
-                            buf.vec[1].vx = 0xC8;
-                            buf.vec[1].vy = 0x190;
-                            buf.vec[1].vz = -0x320;
-                            ApplyMatrixSV(&task->extra.tmd->coords->coord, &buf.vec[1], &buf2.vec);
-                            effectSpawn(EFFECT_FLASH_BURST, task->extra.tmd->coords, 0x200, &buf2.vec);
+                        if (!(gDisplayState.animFrame & (SHELTER_B3_DUMPING_HOLE_COLLAPSE_BURST_PERIOD_FRAMES - 1))) {
+                            SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(scratch.effects.flashOffset, effectScratch.effectOffset, -0xC8, EFFECT_FLASH_BURST, SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLASH_SIZE);
+                            SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(scratch.effects.flashOffset, effectScratch.effectOffset, -0x320, EFFECT_FLASH_BURST, SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLASH_SIZE);
                         }
                     }
                     if (gDisplayState.animFrame & 1) {
@@ -3835,13 +3927,13 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &work->pose, 0);
                     break;
                 case 2:
-                    if (!(gDisplayState.animFrame & 0xF)) {
-                        buf2.vec.vx = -0x190;
-                        buf2.vec.vy = 0x190;
-                        buf2.vec.vz = 0x190;
-                        effectSpawn(EFFECT_FLASH_BURST, &task->extra.tmd->coords[1], 0x200, &buf2.vec);
+                    if (!(gDisplayState.animFrame & (SHELTER_B3_DUMPING_HOLE_COLLAPSE_BURST_PERIOD_FRAMES - 1))) {
+                        effectScratch.effectOffset.vx = -0x190;
+                        effectScratch.effectOffset.vy = 0x190;
+                        effectScratch.effectOffset.vz = 0x190;
+                        effectSpawn(EFFECT_FLASH_BURST, &task->extra.tmd->coords[1], SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLASH_SIZE, &effectScratch.effectOffset);
                     }
-                    if (++work->timer >= 6) {
+                    if (++work->timer >= SHELTER_B3_DUMPING_HOLE_COLLAPSE_TIP_DELAY_TICKS) {
                         if (work->part1Pitch < -0x154) {
                             work->part1Pitch -= 1;
                         } else {
@@ -3861,41 +3953,42 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             return;
         case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_END_COLLAPSE:
             worldCoordSetAmbientColorOverride(NULL);
-            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-            D_shelter_b3_dumping_hole_8018F4B0 = 0;
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
+            taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_DRAW_SHOW_ALLOCATE, 0);
+            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
+            D_shelter_b3_dumping_hole_8018F4B0 = false;
             work->field_96                     = 1;
             roomEffectRequestCancelAll();
-            buf2.loc.context.loc.stage = gGameSession->location.loc.stage;
-            buf2.loc.context.loc.area  = gGameSession->location.loc.area;
-            command3                   = &buf2.loc;
-            command3->command          = 0xB;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, command3, ACTOR_COMMAND_MESSAGE_APPLY);
+            effectScratch.actorCommand.context.loc.stage = gGameSession->location.loc.stage;
+            effectScratch.actorCommand.context.loc.area  = gGameSession->location.loc.area;
+            endCommand                                   = &effectScratch.actorCommand;
+            endCommand->command                          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_COMMAND_SKIP_SHORT;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, endCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             displaySetShakeY(0);
             work->command = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE;
             return;
         case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_HIDE_ACTOR:
-            taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET, 0);
             break;
         case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FINISH:
+            // Restore the saved view and player before ending temporal blending.
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
-            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
+            taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_DRAW_SHOW_ALLOCATE, 0);
             work->field_96 = 1;
             roomEffectRequestCancelAll();
-            buf2.loc.context.loc.stage = gGameSession->location.loc.stage;
-            buf2.loc.context.loc.area  = gGameSession->location.loc.area;
-            command5                   = &buf2.loc;
-            command5->command          = 0xC;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, command5, ACTOR_COMMAND_MESSAGE_APPLY);
-            p        = words;
-            words[0] = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
-            p[1]     = 1;
-            p[2]     = 1;
-            p[3]     = 0xA;
-            words[4] = 0;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, words, 0);
+            effectScratch.actorCommand.context.loc.stage = gGameSession->location.loc.stage;
+            effectScratch.actorCommand.context.loc.area  = gGameSession->location.loc.area;
+            finishCommand                                = &effectScratch.actorCommand;
+            finishCommand->command                       = SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_COMMAND_RESET_VIEW;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, finishCommand, ACTOR_COMMAND_MESSAGE_APPLY);
+            animationRequest               = &animation;
+            animation.source.index         = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER ? SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET);
+            animationRequest->animationId  = SHELTER_B3_DUMPING_HOLE_COLLAPSE_IDLE_CLIP;
+            animationRequest->blend        = ANIMATION_BLEND_INTERPOLATE;
+            animationRequest->blendFrames  = SHELTER_B3_DUMPING_HOLE_COLLAPSE_BLEND_FRAMES;
+            animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &animation, 0);
             if (work->framebufferBlend != NULL) {
                 taskCallExit(work->framebufferBlend);
                 work->framebufferBlend = NULL;
@@ -3905,29 +3998,29 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             break;
         case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FLICKER:
             switch (work->step) {
-                case 1:
-                case 3:
-                case 5:
+                case SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_HIDE_FIRST:
+                case SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_HIDE_SECOND:
+                case SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_HIDE_THIRD:
                     _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_HIDE_BOTH);
                     work->timer = 0;
                     work->step++;
                     return;
-                case 0:
-                case 2:
-                case 4:
+                case SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_SHOW_FIRST:
+                case SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_SHOW_SECOND:
+                case SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_SHOW_THIRD:
                     _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_SHOW_BATCH2);
                     work->timer = 0;
                     work->step++;
                     return;
-                case 6:
-                    if (++work->timer >= 0xB) {
-                        work->framebufferBlend = taskSpawn(1, 0x2D, 0x10, 0);
+                case SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_WAIT_BLEND:
+                    if (++work->timer >= SHELTER_B3_DUMPING_HOLE_COLLAPSE_BLEND_DELAY_TICKS) {
+                        work->framebufferBlend = taskSpawn(SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_BANK, SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_DOUBLE_PASS, 0);
                         work->timer            = 0;
                         work->step++;
                     }
                     return;
-                case 7:
-                    if (++work->timer >= 6) {
+                case SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_RESTORE:
+                    if (++work->timer >= SHELTER_B3_DUMPING_HOLE_COLLAPSE_TIP_DELAY_TICKS) {
                         _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_SHOW_BATCH2);
                         _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_SHOW_BATCH1);
                         break;
@@ -3940,6 +4033,8 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
     }
     work->command = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE;
 }
+
+#undef SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT
 
 /// Stops the collapse presentation and fast-forwards the boss when the event is skipped.
 ///
@@ -3989,20 +4084,37 @@ static void _shelterB3DumpingHoleCollapseEventSkip(void)
     cdCmdCancelScene();
 }
 
-void func_shelter_b3_dumping_hole_80181560(Task* task)
+/// Runs the room-model collapse event and updates its lighting each tick.
+///
+/// Owns director work and lighting matrices; requires the player, placement-0
+/// actor and live model coordinates. Publishes work for script callbacks, holds
+/// scripted player control, opens the incinerator exit and runs the normal/skip
+/// scripts. On completion sets GAME_FLAG_11D and kills the director. Stack request
+/// storage is reused as a three-word world position only after dispatch returns.
+static void _shelterB3DumpingHoleCollapseEventTask(Task* task)
 {
-    s32                                     desc[5];
-    TmdObject*                              obj;
-    TmdObject*                              tail;
+    enum {
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_SETUP        = 0,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_START_SCRIPT = 1,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_RUN_SCRIPT   = 2,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_RESTORE_CLIP = 9,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_BLEND_FRAMES = 10,
+    };
+    union {
+        AnimationPlayRequest animation;
+        VECTOR3              position;
+    } scratch;
+    TmdObject*                              model;
+    TmdObject*                              lightingModel;
     _ShelterB3DumpingHoleCollapseEventWork* work;
 
     switch (task->state) {
-        case 0:
+        case SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_SETUP:
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            obj        = task->extra.tmd;
-            task->work = memCalloc(sizeof(_ShelterB3DumpingHoleCollapseEventWork), false);
+            model      = task->extra.tmd;
+            task->work = memCalloc(sizeof(*work), false);
             if (task->work == NULL) {
                 taskKill(task);
             } else {
@@ -4011,42 +4123,43 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
                 memFillBytes(work, 0, sizeof(*work));
                 work->player                       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 D_shelter_b3_dumping_hole_8018F4AC = task;
-                work->placement0Actor              = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
-                obj->lightMtx                      = &work->lightMtx;
-                obj->colorMtx                      = &work->colorMtx;
+                work->placement0Actor              = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
+                model->lightMtx                    = &work->lightMtx;
+                model->colorMtx                    = &work->colorMtx;
                 task->msgTable                     = D_shelter_b3_dumping_hole_8018965C;
                 _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_HIDE_BOTH);
             }
             D_shelter_b3_dumping_hole_8018F4D8                               = 0;
             ((_ShelterB3DumpingHoleCollapseEventWork*)task->work)->savedView = gGameSession->location.loc.view;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            desc[0] = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
-            desc[1] = 9;
-            desc[2] = 1;
-            desc[3] = 0xA;
-            desc[4] = 0;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, desc, 0);
+            scratch.animation.source.index         = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER ? SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET);
+            scratch.animation.animationId          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_RESTORE_CLIP;
+            scratch.animation.blend                = ANIMATION_BLEND_INTERPOLATE;
+            scratch.animation.blendFrames          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_BLEND_FRAMES;
+            scratch.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.animation, 0);
             task->state++;
             break;
-        case 1:
+        case SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_START_SCRIPT:
             D_shelter_b3_dumping_hole_8018809C = 0;
             evsStartScriptWithSkip(D_shelter_b3_dumping_hole_8018968C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b3_dumping_hole_801899A4);
             task->state++;
             break;
-        case 2:
+        case SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_RUN_SCRIPT:
             if (gGameSession->eventState == 0) {
                 gameFlagSetNibble(GAME_FLAG_11D, 1);
                 taskKill(task);
             } else {
-                func_shelter_b3_dumping_hole_8018098C(task);
+                _shelterB3DumpingHoleCollapseEventHandleCommand(task);
             }
             break;
     }
-    tail    = task->extra.tmd;
-    desc[0] = tail->coords->workm.t[0];
-    desc[1] = task->extra.tmd->coords->workm.t[1];
-    desc[2] = task->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(tail, desc, 0, 3);
+    // Reuse the request storage after dispatch for the composed world lighting sample.
+    lightingModel       = task->extra.tmd;
+    scratch.position.vx = lightingModel->coords->workm.t[0];
+    scratch.position.vy = task->extra.tmd->coords->workm.t[1];
+    scratch.position.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(lightingModel, &scratch.position, 0, 3);
 }
 
 #include "../../shared/actor_messages_draw_mode.inc.c"
@@ -4183,16 +4296,22 @@ static void _shelterB3DumpingHoleRequestPlayerSpriteStop(s32 selector)
 
 #include "../../shared/cap_captions.inc.c"
 
-static void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2)
+/// Selects a keyed room caption and spawns its timed drawing task.
+///
+/// Requires relocated CAP data, a valid command index and nonterminal key 0..255.
+/// Duration counts task ticks; zero/negative durations still draw on the first tick.
+/// CAP storage and font textures remain live until the task ends. Later caption
+/// selection replaces the shared text, and failed spawning leaves it selected.
+static void _shelterB3DumpingHoleShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks)
 {
-    _capCaptionShowTimed(arg0, arg1, arg2);
+    _capCaptionShowTimed(commandIndex, key, durationTicks);
 }
 
 #include "../../shared/cap_captions_resource.inc.c"
 
-void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
+void shelterB3DumpingHoleSelectCaptionResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex)
 {
-    _capCaptionLoadResource(arg0, arg1, arg2);
+    _capCaptionLoadResource(texturePageX, texturePageY, dataResourceIndex);
 }
 
 /// Hides both collapse sprite batches or shows one while retaining the other's visibility.
@@ -4221,81 +4340,94 @@ static void _shelterB3DumpingHoleCollapseEventSetViewSprites(u8 spriteMode)
     }
 }
 
-/// Spawns the two enemies of one slot from the `D_actor_207000_80151E60` table, numbering
-/// them from the spawn counter, and marks the slot live. Actor 342400 carries
-/// the same body.
-static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
+/// Starts a Sucklerceph-pair slot with two numbered enemies, each at one HP.
+///
+/// Entry is pair-task state 0. The spawn argument's high halfword selects room
+/// slot 0..15. Allocates task-owned work on the primary heap, borrows the enemy
+/// pointers, applies page/CLUT offsets, marks the row live and advances. Either enemy
+/// may fail to spawn; no work or neither enemy kills the slot task.
+static void _shelterB3DumpingHoleEncounterPairSpawn(Task* waveTask)
 {
     OverlayEncounterPairWork* work;
     Enemy*                    enemy;
-    Task*                     task;
-    TmdObject*                obj;
+    Task*                     enemyTask;
+    TmdObject*                model;
 
-    work = memCalloc(sizeof(*work), 0);
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(waveTask);
         return;
     }
-    arg0->work   = work;
-    work->enemy0 = enemySpawnFromTable(&D_actor_207000_80151E60, 1, 1, 0);
-    work->enemy1 = enemySpawnFromTable(&D_actor_207000_80151E60, 1, 1, 0);
+    waveTask->work = work;
+    work->enemy0   = enemySpawnFromTable(&D_actor_207000_80151E60, 1, 1, 0);
+    work->enemy1   = enemySpawnFromTable(&D_actor_207000_80151E60, 1, 1, 0);
     if (work->enemy0 == NULL && work->enemy1 == NULL) {
-        taskKill(arg0);
+        taskKill(waveTask);
         return;
     }
     if (work->enemy0 != NULL) {
         enemy           = work->enemy0;
         enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << ENEMY_PLACE_INDEX_SHIFT;
         D_shelter_b3_dumping_hole_8018F4D4++;
-        task                   = enemy->task;
-        obj                    = task->extra.tmd;
-        obj->texturePageOffset = 3;
-        obj->clutRowOffset     = 5;
-        enemy->hp              = 1;
+        enemyTask                = enemy->task;
+        model                    = enemyTask->extra.tmd;
+        model->texturePageOffset = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
+        model->clutRowOffset     = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
+        enemy->hp                = 1;
     }
     if (work->enemy1 != NULL) {
         enemy           = work->enemy1;
         enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << ENEMY_PLACE_INDEX_SHIFT;
         D_shelter_b3_dumping_hole_8018F4D4++;
-        task                   = enemy->task;
-        obj                    = task->extra.tmd;
-        obj->texturePageOffset = 3;
-        obj->clutRowOffset     = 5;
-        enemy->hp              = 1;
+        enemyTask                = enemy->task;
+        model                    = enemyTask->extra.tmd;
+        model->texturePageOffset = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
+        model->clutRowOffset     = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
+        enemy->hp                = 1;
     }
-    D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
-    arg0->state++;
+    D_shelter_b3_dumping_hole_8018B7BC[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
+    waveTask->state++;
 }
 
-static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
+/// Feeds the next encounter slot while at least 61 script frames remain and fewer than three slots are live.
+///
+/// Requires live controller work with nextSlot in 0..16 and the complete room
+/// table and the signed frame countdown. Counts live slots, including a pair as one. Packs the row into the high
+/// spawn halfword and its nonnegative 12-bit appearance command into the low word.
+/// Advances nextSlot even for an unsupported kind or a failed task spawn.
+static void _shelterB3DumpingHoleEncounterFeed(Task* controllerTask)
 {
-    OverlayEncounterControllerWork* work = arg0->work;
-    s16                             count;
-    s16                             i;
-    s16                             idx;
-    s16                             type;
-    s16                             arg;
+    enum {
+        SHELTER_B3_DUMPING_HOLE_ENCOUNTER_LIVE_SLOT_LIMIT      = 3,
+        SHELTER_B3_DUMPING_HOLE_ENCOUNTER_FEED_MIN_SCENE_CLOCK = 61,
+    };
+    OverlayEncounterControllerWork* work = controllerTask->work;
+    s16                             liveSlots;
+    s16                             slotIndex;
+    s16                             nextSlot;
+    s16                             kind;
+    s16                             appearCommand;
 
-    count = 0;
-    for (i = 0; i < 16; i++) {
-        if (D_shelter_b3_dumping_hole_8018B7BC[i].status == OVERLAY_ENCOUNTER_SLOT_LIVE) {
-            count++;
+    liveSlots = 0;
+    for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(D_shelter_b3_dumping_hole_8018B7BC); slotIndex++) {
+        if (D_shelter_b3_dumping_hole_8018B7BC[slotIndex].status == OVERLAY_ENCOUNTER_SLOT_LIVE) {
+            liveSlots++;
         }
     }
-    if (count < 3) {
-        idx = work->nextSlot;
-        if (idx < 16 && gGameSession->sceneClock >= 0x3D) {
-            type = D_shelter_b3_dumping_hole_8018B7BC[idx].kind;
-            arg  = D_shelter_b3_dumping_hole_8018B7BC[idx].command;
-            switch (type) {
-                case 0:
-                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 1, (idx << 16) + arg, 0);
+    if (liveSlots < SHELTER_B3_DUMPING_HOLE_ENCOUNTER_LIVE_SLOT_LIMIT) {
+        nextSlot = work->nextSlot;
+        if (nextSlot < (s32)ARRAY_SIZE(D_shelter_b3_dumping_hole_8018B7BC) && gGameSession->sceneClock >= SHELTER_B3_DUMPING_HOLE_ENCOUNTER_FEED_MIN_SCENE_CLOCK) {
+            kind          = D_shelter_b3_dumping_hole_8018B7BC[nextSlot].kind;
+            appearCommand = D_shelter_b3_dumping_hole_8018B7BC[nextSlot].command;
+            switch (kind) {
+                case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER:
+                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_MAD_CHASER, (nextSlot << 16) + appearCommand, 0);
                     break;
-                case 1:
-                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 2, (idx << 16) + arg, 0);
+                case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH:
+                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SLOUCH, (nextSlot << 16) + appearCommand, 0);
                     break;
-                case 2:
-                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 3, (idx << 16) + arg, 0);
+                case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR:
+                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SUCKLERCEPH_PAIR, (nextSlot << 16) + appearCommand, 0);
                     break;
             }
             work->nextSlot++;
@@ -4353,14 +4485,19 @@ static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D670 = { {
 /// them, one idle frame, send the first message 0x7DB, send the second the
 /// same after a delay, then wait until both are gone.
 static const TaskFuncTable5 D_shelter_b3_dumping_hole_8017D67C = { {
-    func_shelter_b3_dumping_hole_80183298,
+    _shelterB3DumpingHoleEncounterPairSpawn,
     _shelterB3DumpingHoleEncounterPairWaitFrame,
     _overlayEncounterPairRevealFirst,
     _shelterB3DumpingHoleEncounterPairRevealSecond,
     _shelterB3DumpingHoleEncounterPairWatch,
 } };
 
-void func_shelter_b3_dumping_hole_80183550(Task* task)
+/// Dispatches the encounter controller's four states while actors are running.
+///
+/// The controller owns its work and follows setup, opening slots, battle arming
+/// and feeding/completion. Task::state must be 0..3; actor-control pauses suspend
+/// the whole controller, including its waits.
+static void _shelterB3DumpingHoleEncounterTask(Task* task)
 {
     TaskFuncTable4 handlers;
 
@@ -4370,28 +4507,44 @@ void func_shelter_b3_dumping_hole_80183550(Task* task)
     }
 }
 
-void func_shelter_b3_dumping_hole_801835C8(Task* task)
+/// Dispatches the three states of one encounter Mad Chaser slot.
+///
+/// Task::state must be 0..2: spawn, delayed reveal/command, then watch until death.
+/// The packed spawn argument selects room row 0..15 and its appearance command.
+/// The slot owns its work and borrows its enemy; actor-control pauses do not gate it.
+static void _shelterB3DumpingHoleEncounterMadChaserTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_shelter_b3_dumping_hole_8017D664;
-    sp.funcs[task->state](task);
+    handlers = D_shelter_b3_dumping_hole_8017D664;
+    handlers.funcs[task->state](task);
 }
 
-void func_shelter_b3_dumping_hole_80183620(Task* task)
+/// Dispatches the three states of one encounter Slouch slot.
+///
+/// Task::state must be 0..2: spawn, delayed reveal/command, then watch until death.
+/// The packed spawn argument selects room row 0..15 and its appearance command.
+/// The slot owns its work and borrows its enemy; actor-control pauses do not gate it.
+static void _shelterB3DumpingHoleEncounterSlouchTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_shelter_b3_dumping_hole_8017D670;
-    sp.funcs[task->state](task);
+    handlers = D_shelter_b3_dumping_hole_8017D670;
+    handlers.funcs[task->state](task);
 }
 
-void func_shelter_b3_dumping_hole_80183678(Task* task)
+/// Dispatches the five states of one encounter Sucklerceph-pair slot.
+///
+/// Task::state must be 0..4: spawn, one idle tick, first reveal, delayed second
+/// reveal, and watch until both are gone. The packed spawn argument selects room
+/// row 0..15 and its appearance command. Owns work while borrowing enemy pointers;
+/// actor-control pauses do not gate it.
+static void _shelterB3DumpingHoleEncounterPairTask(Task* task)
 {
-    TaskFuncTable5 sp;
+    TaskFuncTable5 handlers;
 
-    sp = D_shelter_b3_dumping_hole_8017D67C;
-    sp.funcs[task->state](task);
+    handlers = D_shelter_b3_dumping_hole_8017D67C;
+    handlers.funcs[task->state](task);
 }
 
 /// Initializes the dumping-hole encounter's sixteen slots or kills a completed encounter.
@@ -4430,8 +4583,8 @@ static void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
 
     for (i = 0; i < 3; i++) {
         s16 idx = work->nextSlot;
-        func_shelter_b3_dumping_hole_80183E6C(idx, D_shelter_b3_dumping_hole_8018B7BC[idx].kind,
-                                              D_shelter_b3_dumping_hole_8018B7BC[idx].command);
+        _shelterB3DumpingHoleEncounterSpawnSlot(idx, D_shelter_b3_dumping_hole_8018B7BC[idx].kind,
+                                                D_shelter_b3_dumping_hole_8018B7BC[idx].command);
         work->nextSlot += 1;
     }
     arg0->state += 1;
@@ -4463,7 +4616,7 @@ static void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
 
     count = 0;
     if (work->stop != OVERLAY_ENCOUNTER_COMMAND_STOP) {
-        func_shelter_b3_dumping_hole_801833EC(arg0);
+        _shelterB3DumpingHoleEncounterFeed(arg0);
         for (i = 0; i < 0x10; i++) {
             if (D_shelter_b3_dumping_hole_8018B7BC[i].status == OVERLAY_ENCOUNTER_SLOT_DONE) {
                 count++;
@@ -4647,17 +4800,22 @@ static void _shelterB3DumpingHoleEncounterPairWatch(Task* waveTask)
     }
 }
 
-static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2)
+/// Spawns a room encounter slot of the selected enemy kind.
+///
+/// slotIndex must be 0..15 and appearCommand a nonnegative 12-bit appearance
+/// command. Packs them into the high/low spawn halfwords for a Mad Chaser, Slouch
+/// or Sucklerceph pair. Other kinds do nothing; no task pointer is retained.
+static void _shelterB3DumpingHoleEncounterSpawnSlot(s16 slotIndex, s16 kind, s16 appearCommand)
 {
-    switch (arg1) {
-        case 0:
-            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 1, (arg0 << 16) + arg2, 0);
+    switch (kind) {
+        case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER:
+            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_MAD_CHASER, (slotIndex << 16) + appearCommand, 0);
             break;
-        case 1:
-            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 2, (arg0 << 16) + arg2, 0);
+        case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH:
+            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SLOUCH, (slotIndex << 16) + appearCommand, 0);
             break;
-        case 2:
-            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 3, (arg0 << 16) + arg2, 0);
+        case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR:
+            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SUCKLERCEPH_PAIR, (slotIndex << 16) + appearCommand, 0);
             break;
     }
 }

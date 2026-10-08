@@ -48180,7 +48180,7 @@ the body symbol by hand, then move the body to `src/<family>/lib/`.
 
 The alias trick that gets a `Desc`/`Task` global past `promote`'s
 overlay-local-reference refusal works just as well when the reference is a
-`jal` to a sibling function that is still `INCLUDE_ASM`. `func_shelter_b3_dumping_hole_801830F0`
+`jal` to a sibling function that is still `INCLUDE_ASM`. `_shelterB3DumpingHoleShowTimedCaption`
 is two lines and both of them are local:
 
 ```c
@@ -71387,7 +71387,7 @@ extension as its own early statement, so it emits right after the first init.
 **Fix.** Drop the temp and use the parameter directly in the loop compare
 (`if (count == arg2)`). GCC still hoists the single extension out of the loop,
 but now schedules it *among* the other loop-invariants (after `i=0` and the
-compare constant), matching retail. `func_shelter_b3_dumping_hole_80183198`.
+compare constant), matching retail. `shelterB3DumpingHoleSelectCaptionResource`.
 
 ## Local-alloc 3/12 tie: `USE_REG` at the end of the range so the addiu dest wins `$a0`
 
@@ -81105,7 +81105,7 @@ The same function settles a second guess in the same direction. A literal
 compared inside the loop is hoisted into a register *before* the loop —
 `addiu $t1, $zero, 0x3` with `bne $v0, $t1` — so the sibling's `resourceKind = FILE_SYSTEM_RESOURCE_DATA;` local
 is not needed to explain a hoisted constant; `kind == 3` written inline
-produces it. `func_shelter_b3_dumping_hole_80183198` (rooms) has that inline
+produces it. `shelterB3DumpingHoleSelectCaptionResource` (rooms) has that inline
 form and is instruction-for-instruction identical to this target.
 
 Both are copies of one `FsResourceSlot` scan: walk `D_8006C338[0..49]`, take the
@@ -141406,7 +141406,7 @@ live lengths are recomputed; jump2 threads them away after allocation. It also
 makes the right-nesting unnecessary, since `screenX < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH` and `screenX > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH` are no
 longer operands of one `||`.
 
-### A scratchpad scale block whose loads straddle the head store wants a C store, not `asm("sw …")` (func_shelter_b3_dumping_hole_8018098C, 2026-09-24)
+### A scratchpad scale block whose loads straddle the head store wants a C store, not `asm("sw …")` (_shelterB3DumpingHoleCollapseEventHandleCommand, 2026-09-24)
 
 **Symptom.** The `actor_342000` scale-matrix idiom (scratch `SVECTOR`, three
 `gpf12` columns) reproduced everything but one slot: the target loads the

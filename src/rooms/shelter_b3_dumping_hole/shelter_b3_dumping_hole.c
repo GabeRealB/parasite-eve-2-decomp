@@ -229,7 +229,7 @@ s32 func_shelter_b3_dumping_hole_8017D760(Task* arg0, s32 arg1, RoomEventMsg* in
     *out = *in;
     mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
-        if (func_shelter_b3_dumping_hole_8017FB70() != 0) {
+        if (shelterB3DumpingHoleIsIncineratorExitBlocked() != 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 capRunCommandWithTransition(0x16);
             }
@@ -270,7 +270,7 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
 {
     arg0->msgTable = D_shelter_b3_dumping_hole_80187574;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    func_shelter_b3_dumping_hole_80183198(0x180, 0, 0);
+    shelterB3DumpingHoleSelectCaptionResource(0x180, 0, 0);
     if (gameFlagGetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN) == 0) {
         if (gGameSession->location.loc.variant == 1) {
             if (gGameSession->location.loc.warp == 3) {
