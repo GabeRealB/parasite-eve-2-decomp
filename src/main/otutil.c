@@ -48,7 +48,7 @@ static u_long Gpu_SmallOtTags[2 * GPU_SMALL_ORDERING_TABLE_ENTRIES];
 
 static TaskDesc Display_MenuTaskDesc;
 
-static void Display_FlipOt(void);
+static void _displayFlipOtAndDrawViewActors(void);
 
 static void _displayResumeGameLoop(void);
 
@@ -219,21 +219,28 @@ void displayResumeGameLoop(void)
     _displayResumeGameLoop();
 }
 
-static void Display_FlipOt(void)
+/// Rebuilds the alternate game ordering table with cached view sprites and active models.
+///
+/// Requires an OT buffer index of 0 or 1, finished GPU use of the alternate
+/// table, loaded view/model data and sufficient live primitive storage.
+/// Composes the listed model coordinates before drawing and enables full
+/// presentation. Restores the borrowed OT pointer; leaves the primitive cursor
+/// and other draw-buffer selectors as the drawing operations leave them.
+static void _displayFlipOtAndDrawViewActors(void)
 {
-    DisplayState* temp;
-    u_long*       saved;
-    s32           buf;
+    DisplayState* display;
+    u_long*       savedOt;
+    s32           otBuffer;
 
-    temp           = &gDisplayState;
-    saved          = gGpuCurrentOt;
-    buf            = temp->otBuffer ^ 1;
-    temp->otBuffer = buf;
-    _gpuBeginOt(buf);
+    display           = &gDisplayState;
+    savedOt           = gGpuCurrentOt;
+    otBuffer          = display->otBuffer ^ 1;
+    display->otBuffer = otBuffer;
+    _gpuBeginOt(otBuffer);
     spriteLinkViewCachedPackets();
-    actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[temp->otBuffer]);
-    gGpuCurrentOt                = saved;
-    temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
+    actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[display->otBuffer]);
+    gGpuCurrentOt                   = savedOt;
+    display->control.flags.flipMode = DISPLAY_FLIP_FULL;
 }
 
 void displayAcquireMenuHold(void)

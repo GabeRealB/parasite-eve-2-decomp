@@ -155,13 +155,13 @@ static Task* _stageSpawnModeTask(void);
 
 static void Display_TransitionTask(Task* task);
 
-static void Display_FlipOtAndDispatch(s32 unused);
+static void _stageFlipOtAndRedraw(s32 unused);
 
 static void _gfxInvertCapturedFrameGray(void);
 
-static s32 Stage_BeginTransitionKind3(void);
+static s32 _stageRequestCurrentViewTransition(void);
 
-static void Stage_SetModeAndFlip(u8 arg0);
+static void _stageSetTransitionKindAndRedraw(u8 transitionKind);
 
 static void _stageSuspendCdAndSpawnModeTask(Task* task);
 
@@ -520,7 +520,7 @@ static void Display_TransitionTask(Task* task)
                 break;
             case 2:
                 gDisplayState.otBuffer = gDisplayState.frameBuffer;
-                Display_FlipOtAndDispatch(0);
+                _stageFlipOtAndRedraw(0);
                 Stage_Ctx->fadeFlags                 = Stage_Ctx->fadeFlags | STAGE_FADE_SKIP;
                 gDisplayState.control.flags.flipMode = gDisplayState.control.flags.flipMode | DISPLAY_FLIP_SKIP_TASK_OT;
                 task->killCountdown                  = 3;
@@ -567,41 +567,53 @@ static void Display_TransitionTask(Task* task)
     }
 
     if (Stage_Ctx->entryMode == STAGE_ENTRY_DRAW_ACTORS) {
-        Display_FlipOtAndDispatch(0);
+        _stageFlipOtAndRedraw(0);
     }
 }
 
-static void Display_FlipOtAndDispatch(s32 unused)
+/// Rebuilds the alternate game OT using the stage transition's draw selection.
+///
+/// Kinds 3 and 0x20 execute the default task list, 2 draws cached view sprites
+/// and active models, and 1 executes priority-0x62 tasks then draws the cached
+/// sprites and flagged models. Other kinds leave the cleared OT empty.
+/// Requires initialized stage/view/model data, OT index 0 or 1, finished GPU
+/// use of the alternate table and enough primitive storage for the selected
+/// draws. Enables full presentation and selects the current framebuffer for
+/// drawing. Restores the borrowed OT pointer after dispatch.
+/// The argument is ignored; its zero-valued call setup is present in the binary.
+static void _stageFlipOtAndRedraw(s32 unused)
 {
-    DisplayState* temp;
-    u_long*       saved;
-    s32           buf;
-    u32           mode;
+    enum { STAGE_REDRAW_TASK_PRIORITY = 0x62 };
+    DisplayState* display;
+    u_long*       savedOt;
+    s32           otBuffer;
+    u32           transitionKind;
 
-    temp           = &gDisplayState;
-    saved          = gGpuCurrentOt;
-    buf            = temp->otBuffer ^ 1;
-    temp->otBuffer = buf;
-    _gpuBeginOt(buf);
-    temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
-    temp->drawBuffer             = temp->frameBuffer;
-    mode                         = Stage_Ctx->transitionKind;
-    switch (mode) {
+    display = &gDisplayState;
+    savedOt = gGpuCurrentOt;
+    // Draw through the alternate game OT while retaining the caller's task OT.
+    otBuffer          = display->otBuffer ^ 1;
+    display->otBuffer = otBuffer;
+    _gpuBeginOt(otBuffer);
+    display->control.flags.flipMode = DISPLAY_FLIP_FULL;
+    display->drawBuffer             = display->frameBuffer;
+    transitionKind                  = Stage_Ctx->transitionKind;
+    switch (transitionKind) {
         case STAGE_TRANSITION_TASKS:
         case STAGE_TRANSITION_TASKS_ALT:
             taskExecDefaultList(&gTaskDefaultList);
             break;
         case STAGE_TRANSITION_ACTORS:
             spriteLinkViewCachedPackets();
-            actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[temp->otBuffer]);
+            actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[display->otBuffer]);
             break;
         case STAGE_TRANSITION_FILTERED:
-            taskExecListForPriority(&gTaskDefaultList, 0x62);
+            taskExecListForPriority(&gTaskDefaultList, STAGE_REDRAW_TASK_PRIORITY);
             spriteLinkViewCachedPackets();
-            actorRenderComposeAndDrawFlaggedModels(&Gpu_OtBuffers[temp->otBuffer]);
+            actorRenderComposeAndDrawFlaggedModels(&Gpu_OtBuffers[display->otBuffer]);
             break;
     }
-    gGpuCurrentOt = saved;
+    gGpuCurrentOt = savedOt;
 }
 
 /// Replaces four RGB555 pixels in two writable words with inverted grey, clearing bit 15.
@@ -840,22 +852,27 @@ void displaySetTaskDrawMode(s32 drawMode)
     }
 }
 
-/// View transition that keeps the current view, with the transition kind fixed to 3.
-static s32 Stage_BeginTransitionKind3(void)
+/// Requests a current-view transition that redraws the default task list.
+///
+/// With no view transition pending, retains the live view resources and resets
+/// the transition's held-frame selector and step. Leaves an existing request
+/// untouched, does not block controller input, and always returns zero.
+static s32 _stageRequestCurrentViewTransition(void)
 {
+    enum { STAGE_VIEW_TRANSITION_INITIAL_STEP = 0 };
     StageCtx* stage;
-    u32       flags;
-    s32       val;
+    u32       requestFlags;
+    s32       currentView;
 
-    stage = Stage_Ctx;
-    flags = stage->requestFlags;
-    if (!(flags & STAGE_REQUEST_TRANSITION)) {
-        stage->requestFlags    = flags | STAGE_REQUEST_KEEP_TRANSITION;
-        val                    = gGameSession->location.loc.view;
+    stage        = Stage_Ctx;
+    requestFlags = stage->requestFlags;
+    if (!(requestFlags & STAGE_REQUEST_TRANSITION)) {
+        stage->requestFlags    = requestFlags | STAGE_REQUEST_KEEP_TRANSITION;
+        currentView            = gGameSession->location.loc.view;
         stage->heldFrameBuffer = 0;
-        stage->transitionStep  = 0;
+        stage->transitionStep  = STAGE_VIEW_TRANSITION_INITIAL_STEP;
         stage->transitionKind  = STAGE_TRANSITION_TASKS;
-        stage->pendingView     = val;
+        stage->pendingView     = currentView;
     }
     return 0;
 }
@@ -892,14 +909,20 @@ s32 stageGetLoadBuffersCleared(void)
     return Stage_Ctx->loadBuffersCleared;
 }
 
-static void Stage_SetModeAndFlip(u8 arg0)
+/// Selects transition OT contents and redraws only while the keep-resources arm is set.
+///
+/// Accepts the byte-sized STAGE_TRANSITION_* draw selections; other values
+/// produce an empty game OT. The arm is set after a keep/hold/actor mode task
+/// spawns and cleared by view-transition processing. An unarmed call changes
+/// nothing. Requires the same drawing resources as `_stageFlipOtAndRedraw`.
+static void _stageSetTransitionKindAndRedraw(u8 transitionKind)
 {
     StageCtx* stage;
 
     stage = Stage_Ctx;
     if (stage->otFlipArmed == 1) {
-        stage->transitionKind = arg0;
-        Display_FlipOtAndDispatch(0);
+        stage->transitionKind = transitionKind;
+        _stageFlipOtAndRedraw(0);
     }
 }
 

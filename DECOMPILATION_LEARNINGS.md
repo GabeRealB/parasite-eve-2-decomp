@@ -14505,7 +14505,7 @@ ot = gGpuCurrentOt;
 gGpuCurrentOt = ot + 0x20; /* addiu reuses ot — no reload */
 ```
 
-`Display_FlipOt` is the pure example (double-buffer OT flip).
+`_displayFlipOtAndDrawViewActors` is the pure example (double-buffer OT flip).
 
 ## Volatile on independent BSS stores preserves assignment order
 
@@ -15229,7 +15229,7 @@ case 1:
 }
 ```
 
-`Display_FlipOtAndDispatch` is the pure example (`u8 mode` → 97.6%, `u32 mode` → 100%).
+`_stageFlipOtAndRedraw` is the pure example (`u8 mode` → 97.6%, `u32 mode` → 100%).
 
 ## Reassign `ptr = base + i` instead of `ptr++` to avoid mid-struct IV
 

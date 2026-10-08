@@ -398,9 +398,9 @@ static void _sndEvtHandleScriptKeyOff(SndEvt* event);
 
 static s32 _midiStartSequence(u8 sequenceId, u16 fadeTicks);
 
-static s32 SndEvt_EnqueueType3(s32 arg0);
+static s32 _sndEvtRequestMidiMute(s32 sequenceSelector);
 
-static s32 SndEvt_EnqueueType4(s32 arg0);
+static s32 _sndEvtRequestMidiUnmute(s32 sequenceSelector);
 
 static void _midiStopMatching(u8 sequenceSelector, u16 fadeTicks);
 
@@ -1144,39 +1144,56 @@ s32 sndEvtRequestMidiStop(s32 sequenceSelector, s32 fadeTicks)
     return 0;
 }
 
-static s32 SndEvt_EnqueueType3(s32 arg0)
+/// Queues a matching-sequence mute ramp while its MIDI tracks continue playing.
+///
+/// Only the selector's low byte matters: 0 selects all sequences, 1..254
+/// matches a loaded id, and 255 returns SOUND_EVENT_MIDI_REQUEST_INVALID_SEQUENCE.
+/// Returns SOUND_EVENT_MIDI_REQUEST_POOL_FULL if no event can be reserved,
+/// otherwise zero. Dispatch accepts playing/unmuting songs and starts an
+/// eight-audio-update ramp; rounding can extend it. The music-output gate is
+/// independent. The selector is copied, and acceptance does not ensure a match.
+static s32 _sndEvtRequestMidiMute(s32 sequenceSelector)
 {
-    SndEvt* event;
+    /// Validates a selector, reserves an event and transfers its copied command to the FIFO.
+    ///
+    /// `selector` must be a side-effect-free integer expression; it is evaluated
+    /// again when copied to the event's byte after allocation. `commandKind` is
+    /// evaluated once on success and must select MIDI mute or unmute.
+    /// Expands to a compound statement that returns from its enclosing s32
+    /// request function on every path: -3 invalid selector, -2 full pool, 0 queued.
+    /// Captures no caller locals; audio dispatch owns the reservation until release.
+#define SOUND_EVENT_REQUEST_MIDI_MUTE_CHANGE(selector, commandKind) \
+    {                                                               \
+        SndEvt* event;                                              \
+        if ((u8)(selector) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {  \
+            return SOUND_EVENT_MIDI_REQUEST_INVALID_SEQUENCE;       \
+        }                                                           \
+        event = sndEvtAlloc();                                      \
+        if (event == NULL) {                                        \
+            return SOUND_EVENT_MIDI_REQUEST_POOL_FULL;              \
+        }                                                           \
+        event->command              = (commandKind);                \
+        event->args.midi.sequenceId = (selector);                   \
+        sndEvtEnqueue(event);                                       \
+        return 0;                                                   \
+    }
 
-    if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
-        return -3;
-    }
-    event = sndEvtAlloc();
-    if (event == NULL) {
-        return -2;
-    }
-    event->command              = SOUND_EVENT_MIDI_MUTE;
-    event->args.midi.sequenceId = arg0;
-    sndEvtEnqueue(event);
-    return 0;
+    SOUND_EVENT_REQUEST_MIDI_MUTE_CHANGE(sequenceSelector, SOUND_EVENT_MIDI_MUTE);
 }
 
-static s32 SndEvt_EnqueueType4(s32 arg0)
+/// Queues a matching-sequence unmute ramp while its MIDI tracks continue playing.
+///
+/// Only the selector's low byte matters: 0 selects all sequences, 1..254
+/// matches a loaded id, and 255 returns SOUND_EVENT_MIDI_REQUEST_INVALID_SEQUENCE.
+/// Returns SOUND_EVENT_MIDI_REQUEST_POOL_FULL if no event can be reserved,
+/// otherwise zero. Dispatch accepts only muted songs and starts an
+/// eight-audio-update ramp; rounding can extend it. The music-output gate is
+/// independent. The selector is copied, and acceptance does not ensure a match.
+static s32 _sndEvtRequestMidiUnmute(s32 sequenceSelector)
 {
-    SndEvt* event;
-
-    if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
-        return -3;
-    }
-    event = sndEvtAlloc();
-    if (event == NULL) {
-        return -2;
-    }
-    event->command              = SOUND_EVENT_MIDI_UNMUTE;
-    event->args.midi.sequenceId = arg0;
-    sndEvtEnqueue(event);
-    return 0;
+    SOUND_EVENT_REQUEST_MIDI_MUTE_CHANGE(sequenceSelector, SOUND_EVENT_MIDI_UNMUTE);
 }
+#undef SOUND_EVENT_REQUEST_MIDI_MUTE_CHANGE
 
 /// Queues a reserved MIDI sequence-gain request and records its normalized gain.
 ///

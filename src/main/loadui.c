@@ -56,6 +56,14 @@ static void _loadUiDrawDiskSwapMessage(void);
 /// Foreground ordering-table tag shared by the prompt sprite and its texture page.
 enum { LOAD_UI_DISK_SWAP_MESSAGE_OT_INDEX = -16 };
 
+/// Retry state and packed call countdown shared by prompt rejection and polling.
+enum {
+    LOAD_UI_DISK_SWAP_WAIT_PROMPT_LOAD = 1,
+    LOAD_UI_DISK_SWAP_MESSAGE_REJECTED = 2,
+    LOAD_UI_DISK_SWAP_REJECTION_POLLS  = 128,
+    LOAD_UI_DISK_SWAP_RESTORE_PROMPT   = 0x8000,
+};
+
 static const _SndMusicVolumeTable D_80013F18;
 
 u8       D_800626E8    = 0;
@@ -141,91 +149,121 @@ void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProf
     SCRATCH_STACK_RELEASE_BYTES(CD_COMMAND_DISPLAY_FILE_KEY_STACK_BYTES);
 }
 
-s32 LoadUi_PollDiskSwap(void)
+/// Restarts the stopped-drive prompt with a timed rejection message.
+///
+/// The existing prompt texture remains loaded. After 128 countdown calls,
+/// the packed high bit restores the required-disc message before another probe.
+static inline void _loadUiRestartRejectedDiskSwapPrompt(void)
 {
+    D_8007A392 = LOAD_UI_DISK_SWAP_MESSAGE_REJECTED;
+    D_8007A390 = LOAD_UI_DISK_SWAP_RESTORE_PROMPT | LOAD_UI_DISK_SWAP_REJECTION_POLLS;
+    D_8007A394 = LOAD_UI_DISK_SWAP_WAIT_PROMPT_LOAD;
+}
+
+u8 loadUiPollDiskSwap(void)
+{
+    enum {
+        LOAD_UI_DISK_SWAP_CHECK_REQUIRED_DISC = 0,
+        LOAD_UI_DISK_SWAP_DELAY_BEFORE_PROBE  = 2,
+        LOAD_UI_DISK_SWAP_PROBE_DISC          = 3,
+        LOAD_UI_DISK_SWAP_VALIDATE_DISC       = 4,
+        LOAD_UI_DISK_SWAP_DISMISS_PROMPT      = 5,
+        LOAD_UI_DISK_SWAP_MESSAGE_DISC_1      = 0,
+        LOAD_UI_DISK_SWAP_MESSAGE_DISC_2      = 1,
+        LOAD_UI_DISK_SWAP_RESOURCE_HUNDREDS   = 1,
+        LOAD_UI_DISK_SWAP_DISC_1_FILE_INDEX   = 0x3C,
+        LOAD_UI_DISK_SWAP_DISC_2_FILE_INDEX   = 0x3D,
+        LOAD_UI_DISK_SWAP_MIDI_ALL_SEQUENCES  = 0,
+        LOAD_UI_DISK_SWAP_MIDI_FADE_TICKS     = 8,
+        LOAD_UI_DISK_SWAP_SCRIPT_STOP_CONTROL = 0x78,
+        LOAD_UI_DISK_SWAP_DELAY_POLLS         = 5,
+        LOAD_UI_DISK_SWAP_COUNTDOWN_MASK      = 0x7FFF,
+        LOAD_UI_DISK_SWAP_HED_READ_DONE       = 0xFF,
+        LOAD_UI_DISK_SWAP_HED_READ_RESTART    = 0x80,
+    };
     CdCmdQueue* queue = &gCdCmdQueue;
 
     switch (D_8007A394) {
-        case 0:
+        case LOAD_UI_DISK_SWAP_CHECK_REQUIRED_DISC:
             D_8007A393 = fsGetRequiredStageDisc();
-            if (D_8007A393 == 0) {
+            if (D_8007A393 == GAME_MAIN_DISC_UNKNOWN) {
                 break;
             }
-            sndEvtRequestMidiStop(0, 8);
-            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0x78);
-            sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, 0x78);
+            // Silence the loaded scene before borrowing its presentation for the prompt.
+            sndEvtRequestMidiStop(LOAD_UI_DISK_SWAP_MIDI_ALL_SEQUENCES, LOAD_UI_DISK_SWAP_MIDI_FADE_TICKS);
+            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, LOAD_UI_DISK_SWAP_SCRIPT_STOP_CONTROL);
+            sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, LOAD_UI_DISK_SWAP_SCRIPT_STOP_CONTROL);
             gDisplayState.gameMode                  = DISPLAY_GAME_MODAL;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
-            if (D_8007A393 == 1) {
-                cdCmdEnqueueDisplayResource(1, 0x3C, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
-                D_8007A392 = 0;
+            if (D_8007A393 == GAME_MAIN_DISC_1) {
+                cdCmdEnqueueDisplayResource(LOAD_UI_DISK_SWAP_RESOURCE_HUNDREDS, LOAD_UI_DISK_SWAP_DISC_1_FILE_INDEX, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
+                D_8007A392 = LOAD_UI_DISK_SWAP_MESSAGE_DISC_1;
             }
-            if (D_8007A393 == 2) {
-                cdCmdEnqueueDisplayResource(1, 0x3D, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
-                D_8007A392 = 1;
+            if (D_8007A393 == GAME_MAIN_DISC_2) {
+                cdCmdEnqueueDisplayResource(LOAD_UI_DISK_SWAP_RESOURCE_HUNDREDS, LOAD_UI_DISK_SWAP_DISC_2_FILE_INDEX, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
+                D_8007A392 = LOAD_UI_DISK_SWAP_MESSAGE_DISC_2;
             }
-            D_8007A390            = 5;
+            D_8007A390            = LOAD_UI_DISK_SWAP_DELAY_POLLS;
             queue->blockGamePause = 1;
             D_8007A394++;
-            return 0xFF;
-        case 1:
+            return LOAD_UI_DISK_SWAP_PENDING;
+        case LOAD_UI_DISK_SWAP_WAIT_PROMPT_LOAD:
             if (cdCmdIsIdle()) {
                 cdSyncStopDisc();
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
                 D_8007A394++;
             }
-            return 0xFF;
-        case 2:
+            return LOAD_UI_DISK_SWAP_PENDING;
+        case LOAD_UI_DISK_SWAP_DELAY_BEFORE_PROBE:
+            // Countdown units are calls in this state; bit 15 requests the normal prompt again.
             _loadUiDrawDiskSwapMessage();
             D_8007A390--;
-            if ((D_8007A390 & 0x7FFF) == 0) {
-                if (D_8007A390 & 0x8000) {
-                    if (D_8007A393 == 1) {
-                        D_8007A392 = 0;
-                    } else if (D_8007A393 == 2) {
-                        D_8007A392 = 1;
+            if ((D_8007A390 & LOAD_UI_DISK_SWAP_COUNTDOWN_MASK) == 0) {
+                if (D_8007A390 & LOAD_UI_DISK_SWAP_RESTORE_PROMPT) {
+                    if (D_8007A393 == GAME_MAIN_DISC_1) {
+                        D_8007A392 = LOAD_UI_DISK_SWAP_MESSAGE_DISC_1;
+                    } else if (D_8007A393 == GAME_MAIN_DISC_2) {
+                        D_8007A392 = LOAD_UI_DISK_SWAP_MESSAGE_DISC_2;
                     }
-                    D_8007A390 = 5;
-                    return 0xFF;
+                    D_8007A390 = LOAD_UI_DISK_SWAP_DELAY_POLLS;
+                    return LOAD_UI_DISK_SWAP_PENDING;
                 } else {
                     D_8007A394++;
                 }
             }
-            return 0xFF;
-        case 3:
+            return LOAD_UI_DISK_SWAP_PENDING;
+        case LOAD_UI_DISK_SWAP_PROBE_DISC:
+            // The drive probe blocks through a tray cycle; its result does not identify the game disc.
             if (cdSyncWaitForDiscSwap() == CD_SYNC_DISC_SWAP_ERROR) {
                 cdSyncWaitForCommandCompletion();
-                D_8007A392 = 2;
-                D_8007A390 = 0x8080;
-                D_8007A394 = 1;
-                return 0xFF;
+                _loadUiRestartRejectedDiskSwapPrompt();
+                return LOAD_UI_DISK_SWAP_PENDING;
             } else {
                 cdSyncWaitForCommandCompletion();
                 D_8007A394++;
-                return 0xFF;
+                return LOAD_UI_DISK_SWAP_PENDING;
             }
-        case 4:
+        case LOAD_UI_DISK_SWAP_VALIDATE_DISC:
+            // Directory discovery identifies the disc and starts an asynchronous HED read.
             fsScanIsoDirectory(0);
             if (Wip_SysFlags.discNumber != GAME_MAIN_DISC_UNKNOWN) {
-                while (Fs_CdOpStatus != 0xFF) {
-                    if (Fs_CdOpStatus == 0x80) {
-                        return 0xFF;
+                while (Fs_CdOpStatus != LOAD_UI_DISK_SWAP_HED_READ_DONE) {
+                    if (Fs_CdOpStatus == LOAD_UI_DISK_SWAP_HED_READ_RESTART) {
+                        return LOAD_UI_DISK_SWAP_PENDING;
                     }
                     VSync(0);
                 }
                 cdSyncWaitForCommandCompletion();
             }
             if (Wip_SysFlags.discNumber != D_8007A393) {
-                D_8007A392 = 2;
-                D_8007A390 = 0x8080;
-                D_8007A394 = 1;
-                return 0xFF;
+                _loadUiRestartRejectedDiskSwapPrompt();
+                return LOAD_UI_DISK_SWAP_PENDING;
             } else {
-                D_8007A390 = 5;
+                D_8007A390 = LOAD_UI_DISK_SWAP_DELAY_POLLS;
                 D_8007A394++;
-                return 0xFF;
+                return LOAD_UI_DISK_SWAP_PENDING;
             }
-        case 5:
+        case LOAD_UI_DISK_SWAP_DISMISS_PROMPT:
             D_8007A390--;
             if (D_8007A390 == 0) {
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
@@ -233,9 +271,9 @@ s32 LoadUi_PollDiskSwap(void)
                 queue->blockGamePause                   = 0;
                 break;
             }
-            return 0xFF;
+            return LOAD_UI_DISK_SWAP_PENDING;
     }
-    return 0;
+    return LOAD_UI_DISK_SWAP_COMPLETE;
 }
 
 /// Prepends the loaded disk-prompt texture page to its foreground ordering tag.

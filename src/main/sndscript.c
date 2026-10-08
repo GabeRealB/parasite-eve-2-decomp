@@ -499,7 +499,7 @@ static _SndBankInitEntry Snd_BankInitTable[];
 
 static s16 SndScript_VoiceRanges[];
 
-static void Snd_ClearBusy(void);
+static void _sndBankReleaseAmbientTables(void);
 
 static void _sndBankSetAmbientRetention(s32 retainBank);
 
@@ -825,7 +825,12 @@ s32 stageMusicSelectColumn(s32 stage, s32 sceneEvent, s32 sceneEventBase)
     return sceneEvent & 0xFF;
 }
 
-static void Snd_ClearBusy(void)
+/// Releases the ambient sample-bank tables and clears their retention flag.
+///
+/// The separate script image and uploaded SPU samples remain loaded. Call only
+/// after users of the tables have finished; the volatile flag is cleared after
+/// release. The flag's consumer role is unproven.
+static void _sndBankReleaseAmbientTables(void)
 {
     _sndBankSetAmbientRetention(0);
 }

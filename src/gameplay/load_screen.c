@@ -267,7 +267,7 @@ void Gp_LoadWaitBoot(Task* task)
     Pad_RemapState->loadingActive = GAME_DEBUG_LOADING_ACTIVE;
     queue                         = &gCdCmdQueue;
     if (cdCmdIsIdle() & 0xFFFF) {
-        if ((u8)LoadUi_PollDiskSwap()) {
+        if (loadUiPollDiskSwap() != LOAD_UI_DISK_SWAP_COMPLETE) {
             return;
         }
         queue->holdBootImage = 1;
