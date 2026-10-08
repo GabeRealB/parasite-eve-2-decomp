@@ -149864,10 +149864,8 @@ attempts; left as it was.
 
 - **`if (d > 0) { if (s >= K - d) goto snap; else goto turn; } else if (s >= K
   + d) goto snap; else goto turn; snap: ...; goto done; turn: ...`** (the
-  wrap-around arm of the actors' turn-to-yaw step, `Actor02500_Fn016FC`,
-  `_actor02400TurnTowardTarget`, `_actor01500TurnTowardTarget`) is a conditional expression in
   wrap-around arm of the actors' turn-to-yaw step, `_actor02500TurnTowardTargetYaw`,
-  `Actor02400_Fn02264`, `_actor01500TurnTowardTarget`) is a conditional expression in
+  `_actor02400TurnTowardTarget`, `_actor01500TurnTowardTarget`) is a conditional expression in
   the test: `if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
   snap } else { turn }`. Each arm of the `?:` branches straight to the two
   bodies, so the image's two compares with opposite polarity (`beqz snap; j
