@@ -349,8 +349,8 @@ extern s16                        Actor02100_D03E00[];
 extern _Actor02100BeamQuadCorners Actor02100_D03E1C[];
 extern s16                        Actor02100_D03E2C[];
 
-static void Actor02100_Fn03168(Task* arg0);
-static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1);
+static void _actor02100Task(Task* task);
+static void _actor02100Tick(Enemy* enemy, Task* task);
 static void _actor02100TickMode(Task* task);
 static void _actor02100DestroyState(Enemy* enemy, Task* task);
 static s32  _actor02100UpdateTargetPosition(Task* task);
@@ -359,7 +359,7 @@ static void _actor02100Initialize(Enemy* enemy, Task* task);
 
 static const EnemyTaskFuncTable3 Actor02100_D00004 = { {
     _actor02100Initialize,
-    Actor02100_Fn031C4,
+    _actor02100Tick,
     _actor02100DestroyState,
 } };
 
@@ -423,7 +423,7 @@ _Actor02100BeamEdges Actor02100_D03DD8[5][ACTOR_02100_BEAM_STYLE_COUNT] = {
 
 s16 Actor02100_D03E00[8] = { 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000 };
 
-TaskDesc Actor02100_D03E10 = { { { TASK_BODY_TMD, 0x60 } }, Actor02100_Fn03168, { .model = &_gActor02100WatcherBody } };
+TaskDesc Actor02100_D03E10 = { { { TASK_BODY_TMD, 0x60 } }, _actor02100Task, { .model = &_gActor02100WatcherBody } };
 
 _Actor02100BeamQuadCorners Actor02100_D03E1C[2] = {
     { { 0, 1, 2, 3 } },
@@ -1912,57 +1912,64 @@ static void _actor02100DrawBeam(Task* task, s32 beamStyle)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02100BeamDrawScratch);
 }
 
-static void Actor02100_Fn03168(Task* arg0)
+/// Dispatches the Watcher task's spawn, tick or destroy phase.
+///
+/// Requires state 0..2 and its live Enemy in spawnArg2.pointer. The initialized
+/// task body is a TMD model; the lifecycle table is copied by value for dispatch.
+static void _actor02100Task(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 lifecycleHandlers;
 
-    sp = Actor02100_D00004;
-    sp.funcs[arg0->state]((Enemy*)arg0->spawnArg2.pointer, arg0);
+    lifecycleHandlers = Actor02100_D00004;
+    lifecycleHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Per-frame tick, entry 1 of `Actor02100_D00004`. `gSceneCombatState.actorControl` is the global
-/// gameplay mode: mode 1 only refreshes the actor colour, mode 2 parks the
-/// actor (`field_C` 0x80, node not lockable) and returns, and mode 0 re-shows it
-/// (`field_C` 0, node HP hidden) before falling into the normal body. The body
-/// adds the per-tick translation at `velocity` to the actor's
-/// coordinate, runs the state machine, and switches to state 4 - handing the
-/// task over to `_actor02100DestroyState` - once `gSceneCombatState.generatorDeathStarted` reports the kill.
-static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1)
+/// Updates the Watcher's contacts, velocity, behavior and lighting for one frame.
+///
+/// Paused actors only relight; hidden actors skip drawing and lock-on. Running
+/// actors hide the HP display, consume combat contacts and add whole coordinate
+/// units per tick to the root before composing it. Generator death stages release
+/// and moves the task into destroy phase. Requires initialized enemy/model/work.
+static void _actor02100Tick(Enemy* enemy, Task* task)
 {
-    TmdObject*       obj;
-    _Actor02100Work* work;
-    GfxCoord*        coord;
-    s32              mode;
+    enum {
+        ACTOR_02100_TASK_DESTROY = 2
+    };
 
-    obj   = arg1->extra.tmd;
-    mode  = gSceneCombatState.actorControl;
-    work  = arg1->work;
-    coord = obj->coords;
-    switch (mode) {
-        case 0:
-            obj->flags                   = 0;
-            arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+    TmdObject*       model;
+    _Actor02100Work* work;
+    GfxCoord*        rootCoord;
+    s32              actorControl;
+
+    model        = task->extra.tmd;
+    actorControl = gSceneCombatState.actorControl;
+    work         = task->work;
+    rootCoord    = model->coords;
+    switch (actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            model->flags                  = 0;
+            enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
             break;
-        case 1:
-            _actor02100UpdateLighting(arg1);
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _actor02100UpdateLighting(task);
             return;
-        case 2:
-            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = 1;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
-    _actor02100UpdateCombatContacts(arg1);
-    coord->coord.t[0]  += work->velocity.vx;
-    coord->coord.t[1]  += work->velocity.vy;
-    coord->coord.t[2]  += work->velocity.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    _actor02100TickMode(arg1);
-    _actor02100UpdateLighting(arg1);
+    _actor02100UpdateCombatContacts(task);
+    rootCoord->coord.t[0]  += work->velocity.vx;
+    rootCoord->coord.t[1]  += work->velocity.vy;
+    rootCoord->coord.t[2]  += work->velocity.vz;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    _actor02100TickMode(task);
+    _actor02100UpdateLighting(task);
     if (gSceneCombatState.generatorDeathStarted == 1) {
         work->mode  = ACTOR_02100_MODE_DESTROYED;
         work->step  = ACTOR_02100_DEATH_STEP_RELEASE;
-        arg1->state = 2;
+        task->state = ACTOR_02100_TASK_DESTROY;
     }
 }
 

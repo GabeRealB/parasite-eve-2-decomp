@@ -45147,7 +45147,7 @@ register, where `s16` gives `lh` and `u16` gives `lhu`.
 
 That makes the type of such a field decidable, and the change safe to make.
 `_Actor02100Work.velocity.vx` was `u16` because the already-matched
-`_actor02100AcquireTarget` copies it to `resumeVelocity.vx` with `lhu`; `Actor02100_Fn031C4`
+`_actor02100AcquireTarget` copies it to `resumeVelocity.vx` with `lhu`; `_actor02100Tick`
 adds it into `GfxCoord.coord.t[0]` with `lh`. The widening site is the
 evidence, so the field is `s16` — and flipping it left `Fn00DCC` matching.
 
@@ -90968,7 +90968,7 @@ local in the C, not two".
 
 ### Inlined bool check: `move v0,v1` before `bnez` wants an `s16` local, and a shared `sh v0,field` wants per-case stores
 
-`Actor00400_Fn079FC` inlines a state-request check whose result lands in `$v1`
+`_actor00400SwimHeavyRecoil` inlines a state-request check whose result lands in `$v1`
 and is copied to `$v0` right before the branch (`addu v0,v1,zero; bnez v0`).
 Two things were needed.
 
@@ -115100,7 +115100,7 @@ GCC builds a switch's dispatch tree from the *sorted* case values — the same
 tree for any source order — but the bodies are expanded where the `case` labels
 appear, and `reorder_basic_blocks` then lays them out from there. A target whose
 bodies sit in an order no source reading implies is telling you what the source
-order was. `func_actor_110600_80136B20` has cases 0xC8/0x190 (shared),
+order was. `_actor110600DeathBurnState` has cases 0xC8/0x190 (shared),
 0xE6, 0xFA/0x1A4 (shared), 0x258; written in that order the two jump regions
 did not line up, and the target emits them 0xE6, 0xC8/0x190, 0xFA/0x1A4, 0x258.
 Reordering the `case` labels to match — no other change — took the score from
@@ -115130,7 +115130,7 @@ target.o SHA256
 `3df6c15641ad3c9b5fb517c55f8634b0346d83ad64210a4e15d2c7ccae3d7a8e`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80136B20-vacuum`.
+Scratch `nonmatchings/_actor110600DeathBurnState-vacuum`.
 
 ## Three identical word stores at descending addresses are a chained assignment, and a negative multiplier is what emits `negu`
 
@@ -115163,7 +115163,7 @@ target.o SHA256
 `3df6c15641ad3c9b5fb517c55f8634b0346d83ad64210a4e15d2c7ccae3d7a8e`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80136B20-vacuum`.
+Scratch `nonmatchings/_actor110600DeathBurnState-vacuum`.
 
 ## A constant address in a MEM is a pseudo that only allocation can remove, and a one-use one always is
 
@@ -115179,7 +115179,7 @@ ADDRESS_COST (addr)` never fires for a `0x1F80xxxx` address. Reload is the only
 way out, and it only fires for a pseudo the allocator left unallocated.
 
 Which pseudos survive is then decided by how many times the address is used.
-`func_actor_110600_80136B20`'s ROM tail rematerialises all four of its
+`_actor110600DeathBurnState`'s ROM tail rematerialises all four of its
 scratch-word addresses (`lui $s4,(0x1F8003FC>>16)` + `lw
 $s4,(0x1F8003FC&0xFFFF)($s4)` for the load, `lui $at,...` + `sw ...` for the
 store, twice more for the bump). Writing the load as the literal
@@ -115209,7 +115209,7 @@ target.o SHA256
 `3df6c15641ad3c9b5fb517c55f8634b0346d83ad64210a4e15d2c7ccae3d7a8e`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80136B20-vacuum`.
+Scratch `nonmatchings/_actor110600DeathBurnState-vacuum`.
 
 ## `promote` is family-scoped, so a cross-family twin is a template rather than a shared body (_bossStrangerApplyGroundStep, 2026-09-17)
 
@@ -136223,7 +136223,7 @@ these are manual controlled experiments. Preprocessed input SHA256:
 ## A single-use scratch address can fold in combine before allocation (actor_110600 retry, 2026-09-20)
 
 This corrects the earlier entry "A constant address in a MEM is a pseudo that
-only allocation can remove" for `func_actor_110600_80136B20`. In the rebuilt
+only allocation can remove" for `_actor110600DeathBurnState`. In the rebuilt
 95.111% seed, UID305 changes from `MEM(reg164)` to `MEM(const528483324)` in
 **combine**, before local allocation. Do not infer reload from absolute
 addressing in final assembly.
@@ -136249,7 +136249,7 @@ preserve the match.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Baseline input: `4cb6675c0b81b1e8c094dc3ded42f8b8521404e2c557b4090c9b02d6fb75d0ca`.
 Controlled base_4 input: `8d36dde129753e85d16cf83c0a4c56efb93025b4d991f3a2304145f9534ef72a`.
-Evidence: `tools/permuter_findings/func_actor_110600_80136B20/`, session
+Evidence: `tools/permuter_findings/_actor110600DeathBurnState/`, session
 `5e2b5a66e8554ac78246385599fff569`; retained `base_4.address-trace.txt`,
 `base_4.compare.txt`, `baseline-address-trace.txt`, and the conclusion bundle.
 
@@ -143223,7 +143223,7 @@ setups issue before the `extra.tmd` load;
 addresses first and the long-result address after that load. When only those three
 `addiu`s are out of place, swap to the other helper.
 
-## An inlined helper's early `return` lets its value land in the caller's variable; one `return` keeps a separate pseudo (Actor01100_Fn04DB4, 2026-09-26)
+## An inlined helper's early `return` lets its value land in the caller's variable; one `return` keeps a separate pseudo (_actor01100Spit, 2026-09-26)
 
 Symptom: `yaw = helper(...)` where the target computes the bearing in one
 register, copies it (or 0 on the no-player path) into a second, and only then
@@ -150387,7 +150387,7 @@ attempts; left as it was.
   `static inline` with `default: return;` and the store once after the switch
   it matches. The `notLockable = WORLD_TARGET_NOT_LOCKABLE` of the mode ladder in `_actor03700UpdateEnemy` stays
   (it is also the third argument of a call, and the image has it in `$a2`
-  from the dispatch on); in `Actor02100_Fn031C4`, where it only feeds a store,
+  from the dispatch on); in `_actor02100Tick`, where it only feeds a store,
   the plain `switch` matches without it.
 - An inline whose only local is a `VECTOR` replaces a caller's `VECTOR` and
   three copies of the fill only if *every* site uses it

@@ -578,7 +578,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 static void _actor01600Init(Enemy* enemy, Task* actor);
 static void _actor01600LinkCollisionBodies(Task* actor);
-static void Actor01600_Fn00674(Enemy* arg0, Task* arg1);
+static void _actor01600Tick(Enemy* enemy, Task* task);
 static void _actor01600ConsumeReactions(Task* actor);
 static void _actor01600ProcessContacts(Task* actor);
 static void _actor01600ApplyDamage(Task* actor, s32 damage);
@@ -1601,7 +1601,7 @@ static __inline__ void _actor01600SampleColorAtCoord(Enemy* enemy, GfxCoord* sam
 }
 
 static const EnemyTaskFuncTable3 Actor01600_D00004 = {
-    { _actor01600Init, Actor01600_Fn00674, _actor01600StepDeath },
+    { _actor01600Init, _actor01600Tick, _actor01600StepDeath },
 };
 
 /// Creates the scavenger's work, animation and target entry, then applies its placement mode.
@@ -1805,85 +1805,114 @@ static void _actor01600LinkCollisionBodies(Task* actor)
     _actor01600LinkBiteSphere(work, rootCoord, work->bite.contacts);
 }
 
-static void Actor01600_Fn00674(Enemy* arg0, Task* arg1)
+/// Requests a tick sound at the root's signed-byte pan and depth, in that order.
+///
+/// Requires a caller-packed script key and a live composed root coordinate.
+/// Borrows the coordinate for both queries and retains neither argument.
+static __inline__ void _actor01600PlayTickSoundAtRoot(s32 soundKey, GfxCoord* rootCoord)
 {
-    _Actor01600Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    s32              id;
-    s32              stageAreaKey;
-    u16              count;
+    s32 soundPan;
 
-    work  = arg1->work;
-    coord = arg1->extra.tmd->coords;
-    if (!(_actor01600StepActivation(arg1) & 0xFF)) {
+    soundPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+    sndEvtRequestScriptStart(soundKey, soundPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
+}
+
+/// Advances an activated scavenger's combat behavior, animation and presentation.
+///
+/// Activation may consume the tick. Paused actors only refresh color and shadow;
+/// hidden actors become unshown and not lockable. Running actors process target
+/// tracking, reactions and contacts, then request grounded death or room-specific
+/// fall removal before behavior, animation and recoil. Color refreshes every five
+/// active ticks or on a dirty view; the root cache supplies shadow and audio.
+/// Requires initialized work, its enemy/model and current scene/room state.
+static void _actor01600Tick(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_01600_TASK_DEATH          = 2,
+        ACTOR_01600_GROUND_RESET_HEIGHT = 100,
+        ACTOR_01600_GROUND_RESET_Y      = -10,
+        ACTOR_01600_STAGE_3_FALL_Y      = -1000,
+        ACTOR_01600_STAGE_4_FALL_Y      = 1000,
+        ACTOR_01600_SOUND_SCRIPT_A      = 0x4010000A
+    };
+
+    _Actor01600Work* work;
+    GfxCoord*        rootCoord;
+    TmdObject*       hiddenModel;
+    s32              soundKey;
+    s32              stageAreaKey;
+    u16              colorFrame;
+
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    if (!((u8)_actor01600StepActivation(task))) {
         switch (gSceneCombatState.actorControl) {
             case SCENE_COMBAT_ACTORS_RUNNING:
-                arg1->extra.tmd->flags       = 0;
-                arg0->node.state.parts.flags = 0;
+                task->extra.tmd->flags        = 0;
+                enemy->node.state.parts.flags = 0;
                 break;
             case SCENE_COMBAT_ACTORS_PAUSED:
-                _actor01600RefreshBodyColor(arg0, arg1);
-                _actor01600DrawGroundShadow(arg1);
+                _actor01600RefreshBodyColor(enemy, task);
+                _actor01600DrawGroundShadow(task);
                 return;
             case SCENE_COMBAT_ACTORS_HIDDEN:
-                obj                          = arg1->extra.tmd;
-                obj->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+                hiddenModel                   = task->extra.tmd;
+                hiddenModel->flags           |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 return;
             default:
                 break;
         }
-        _actor01600StepTargetAnchor(arg1);
-        if (arg0->reactionFlags != 0) {
-            _actor01600ConsumeReactions(arg1);
+        _actor01600StepTargetAnchor(task);
+        if (enemy->reactionFlags != 0) {
+            _actor01600ConsumeReactions(task);
         }
-        _actor01600ProcessContacts(arg1);
+        _actor01600ProcessContacts(task);
         if (work->airborne == 0) {
             if (work->dead != 0) {
-                arg1->state = 2;
+                task->state = ACTOR_01600_TASK_DEATH;
             }
         }
         stageAreaKey = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
         if (stageAreaKey != GAME_LOCATION_KEY(3, 38, 0, 0) && stageAreaKey != GAME_LOCATION_KEY(4, 7, 0, 0) && stageAreaKey != GAME_LOCATION_KEY(4, 1, 0, 0)) {
-            if (coord->coord.t[1] >= 0x65) {
-                coord->coord.t[1] = -0xA;
+            if (rootCoord->coord.t[1] >= ACTOR_01600_GROUND_RESET_HEIGHT + 1) {
+                rootCoord->coord.t[1] = ACTOR_01600_GROUND_RESET_Y;
             }
         }
-        if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 29, 0, 0)) && (coord->coord.t[1] >= -0x3E7)) {
-            id = (((u16)((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40100005;
-            sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            id = (((u16)((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4010000A;
-            sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            _actor01600ReleaseGrab(arg1);
-            _actor01600Remove(arg1, 0);
+        if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 29, 0, 0)) && (rootCoord->coord.t[1] >= ACTOR_01600_STAGE_3_FALL_Y + 1)) {
+            soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_SCRIPT_5;
+            _actor01600PlayTickSoundAtRoot(soundKey, rootCoord);
+            soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_SCRIPT_A;
+            _actor01600PlayTickSoundAtRoot(soundKey, rootCoord);
+            _actor01600ReleaseGrab(task);
+            _actor01600Remove(task, 0);
         }
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
-            if (coord->coord.t[1] > 0) {
+            if (rootCoord->coord.t[1] > 0) {
                 work->shadowHidden = 1;
             }
-            if (coord->coord.t[1] >= 0x3E9) {
-                id = (((u16)((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40100005;
-                sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                id = (((u16)((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4010000A;
-                sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                _actor01600ReleaseGrab(arg1);
-                _actor01600Remove(arg1, 0);
+            if (rootCoord->coord.t[1] >= ACTOR_01600_STAGE_4_FALL_Y + 1) {
+                soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_SCRIPT_5;
+                _actor01600PlayTickSoundAtRoot(soundKey, rootCoord);
+                soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_SCRIPT_A;
+                _actor01600PlayTickSoundAtRoot(soundKey, rootCoord);
+                _actor01600ReleaseGrab(task);
+                _actor01600Remove(task, 0);
             }
         }
-        _actor01600StepBehavior(arg1);
-        _actor01600StepAnimation(arg1);
-        _actor01600StepRecoil(arg1);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
-        count            = work->colorTimer + 1;
-        work->colorTimer = count;
-        if (((s16)count >= 5) || (gGameSession->viewDirty == 1)) {
+        _actor01600StepBehavior(task);
+        _actor01600StepAnimation(task);
+        _actor01600StepRecoil(task);
+        rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(rootCoord);
+        colorFrame       = work->colorTimer + 1;
+        work->colorTimer = colorFrame;
+        if (((s16)colorFrame >= ACTOR_01600_COLOR_INTERVAL) || (gGameSession->viewDirty == 1)) {
             work->colorTimer = 0;
-            _actor01600RefreshBodyColor(arg0, arg1);
+            _actor01600RefreshBodyColor(enemy, task);
         }
         if (work->shadowHidden == 0) {
-            _actor01600DrawGroundShadow(arg1);
+            _actor01600DrawGroundShadow(task);
         }
     }
 }

@@ -1266,7 +1266,7 @@ static void _actor04000StateDrop(Enemy* enemy, Task* task);
 static void _actor04000StateScriptedThrash(Enemy* enemy, Task* task);
 static void _actor04000StateScriptedFall(Enemy* enemy, Task* task);
 static void _actor04000StateScriptedLeap(Enemy* enemy, Task* task);
-static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1);
+static void _actor04000Tick(Enemy* enemy, Task* task);
 
 /// Clamps a wrapped turn and rebuilds the root yaw in 4096ths of a turn.
 ///
@@ -3020,61 +3020,90 @@ static const _Actor04000StateTable Actor04000_D001F4 = {
     }
 };
 
-/// Per-frame tick: tints the model from its position, draws the ground shadow
-/// for the current light mode, runs the state handler (flagging a state change
-/// in `stateEntered`), applies pending hits and plays the queued sound.
-static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
+/// Consumes this tick's grid, hit and burst-attack contacts without unlinking bodies.
+static __inline__ void _actor04000ClearTickContacts(_Actor04000Work* work)
 {
-    VECTOR                pos;
-    SVECTOR               unused; // never written; retail's frame keeps 8 bytes here
-    _Actor04000StateTable table;
-    GfxCoord              coord;
-    _Actor04000Work*      work;
-    s32                   snd;
-    s32                   pan;
-    s32                   id;
+    worldCollisionClearContacts(work->gridContacts);
+    worldCollisionClearContacts(work->hitContacts);
+    worldCollisionClearContacts(work->burstAttackContacts);
+}
 
-    work                                  = arg1->work;
-    table                                 = Actor04000_D001F4;
-    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(arg1->extra.tmd->coords);
-    pos.vx = arg1->extra.tmd->coords->workm.t[0];
-    pos.vy = arg1->extra.tmd->coords->workm.t[1];
-    pos.vz = arg1->extra.tmd->coords->workm.t[2];
-    worldCoordUpdateActorColor(arg0, &pos, 0, 0);
+/// Ends scripted control of the held player before clearing the actor's hold flag.
+///
+/// Requires live actor work and the current player task. Each synchronous
+/// message uses a fresh slot lookup, so no player task/work pointer survives it.
+static __inline__ void _actor04000ReleaseTickHold(_Actor04000Work* work)
+{
+    if (((GameActor*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+    }
+    work->holdingPlayer = 0;
+}
+
+/// Updates the hanging actor's behavior, player hold, combat and presentation for one frame.
+///
+/// Requires initialized work with a state in the nineteen-entry handler table.
+/// Paused/hidden actors consume contacts and return without behavior or hold/hit
+/// processing. Running actors draw state-dependent ground shadows, detect entry
+/// and dispatch behavior. A held player is released when its animation stops or
+/// the enemy's HP is negative; scripted control ends synchronously before the hold
+/// flag clears. Hits may stage death. Audio samples pan before depth, and view
+/// readiness marks the composed root dirty for its next use.
+static void _actor04000Tick(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_04000_ACTIVE_SHADOW_HALF_SIZE = 256,
+        ACTOR_04000_DROP_SHADOW_HALF_SIZE   = 96,
+        ACTOR_04000_PAUSED_SHADOW_HALF_SIZE = 384,
+        ACTOR_04000_SOUND_PLACEMENT_SHIFT   = 8
+    };
+
+    VECTOR                worldPosition;
+    u8                    unusedFrameStorage[8]; // Unaccessed frame storage; its purpose is unproven.
+    _Actor04000StateTable stateHandlers;
+    GfxCoord              groundCoord;
+    _Actor04000Work*      work;
+    s32                   soundKey;
+    s32                   soundPan;
+    s32                   soundCue;
+
+    work                                  = task->work;
+    stateHandlers                         = Actor04000_D001F4;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(task->extra.tmd->coords);
+    worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+    worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &worldPosition, 0, 0);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->state != ACTOR_04000_STATE_HIDDEN && work->state != ACTOR_04000_STATE_DEATH_BURST && work->state != ACTOR_04000_STATE_SELF_BURST && work->state != ACTOR_04000_STATE_RELEASE_BURST &&
                 work->state != ACTOR_04000_STATE_DROP && work->state != ACTOR_04000_STATE_SCRIPTED_THRASH && work->state != ACTOR_04000_STATE_SCRIPTED_FALL) {
-                arg1->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x100, gRoomEffectState->groundShadowShade);
+                task->extra.tmd->flags = 0;
+                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_04000_ACTIVE_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             if (work->state == ACTOR_04000_STATE_DROP) {
-                gfxSetRotIdentity(&coord.coord);
-                coord.coord.t[0]   = arg1->extra.tmd->coords->coord.t[0];
-                coord.coord.t[1]   = 0;
-                coord.coord.t[2]   = arg1->extra.tmd->coords->coord.t[2];
-                coord.parent       = &gGfxViewCoord;
-                coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(&coord);
-                effectDrawGroundShadow(MATRIX_TRANS(&coord.workm), 0x60, gRoomEffectState->groundShadowShade);
+                gfxSetRotIdentity(&groundCoord.coord);
+                groundCoord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
+                groundCoord.coord.t[1]   = 0;
+                groundCoord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
+                groundCoord.parent       = &gGfxViewCoord;
+                groundCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(&groundCoord);
+                effectDrawGroundShadow(MATRIX_TRANS(&groundCoord.workm), ACTOR_04000_DROP_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->state != ACTOR_04000_STATE_HIDDEN && work->state != ACTOR_04000_STATE_DEATH_BURST && work->state != ACTOR_04000_STATE_RELEASE_BURST && work->state != ACTOR_04000_STATE_SELF_BURST &&
                 work->state != ACTOR_04000_STATE_DROP && work->state != ACTOR_04000_STATE_SCRIPTED_THRASH && work->state != ACTOR_04000_STATE_SCRIPTED_FALL) {
-                arg1->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
+                task->extra.tmd->flags = 0;
+                effectDrawGroundShadow(MATRIX_TRANS(&task->extra.tmd->coords->workm), ACTOR_04000_PAUSED_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
-            worldCollisionClearContacts(work->gridContacts);
-            worldCollisionClearContacts(work->hitContacts);
-            worldCollisionClearContacts(work->burstAttackContacts);
+            _actor04000ClearTickContacts(work);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            worldCollisionClearContacts(work->gridContacts);
-            worldCollisionClearContacts(work->hitContacts);
-            worldCollisionClearContacts(work->burstAttackContacts);
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            _actor04000ClearTickContacts(work);
             return;
     }
     if (work->prevState != work->state) {
@@ -3083,32 +3112,27 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
         work->stateEntered = 0;
     }
     work->prevState = work->state;
-    table.handlers[work->state](arg0, arg1);
+    stateHandlers.handlers[work->state](enemy, task);
     if (work->holdingPlayer == 1) {
-        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0 || arg0->hp < 0) {
-            if (((GameActor*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-            }
-            work->holdingPlayer = 0;
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0 || enemy->hp < 0) {
+            _actor04000ReleaseTickHold(work);
         }
     }
-    if (arg0->hp > 0) {
-        _actor04000ApplyAttackHit(arg0, arg1);
-        if (arg0->hp <= 0) {
+    if (enemy->hp > 0) {
+        _actor04000ApplyAttackHit(enemy, task);
+        if (enemy->hp <= 0) {
             work->state = ACTOR_04000_STATE_DEATH_BURST;
         }
     }
-    worldCollisionClearContacts(work->gridContacts);
-    worldCollisionClearContacts(work->hitContacts);
-    worldCollisionClearContacts(work->burstAttackContacts);
-    id = _actor04000PollAnimationSound(work);
-    if (id != 0) {
-        snd = id | ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+    _actor04000ClearTickContacts(work);
+    soundCue = _actor04000PollAnimationSound(work);
+    if (soundCue != 0) {
+        soundKey = soundCue | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_04000_SOUND_PLACEMENT_SHIFT);
+        soundPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundKey, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
     if (gGameSession->viewReady != 0) {
-        arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }
 
@@ -3499,7 +3523,7 @@ static void _actor04000StateHang(Enemy* enemy, Task* task)
 /// state.
 static const EnemyTaskFuncTable3 Actor04000_D00240 = {
     _actor04000SpawnEnemy,
-    Actor04000_Fn05F0C,
+    _actor04000Tick,
     enemyDestroy,
 };
 

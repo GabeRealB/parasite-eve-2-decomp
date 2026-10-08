@@ -534,7 +534,7 @@ static void _actor00400Dive(Task* task);
 static void _actor00400SwimUnusedState5(Task* task);
 static void _actor00400SwimUnusedState6(Task* task);
 static void _actor00400SwimLightRecoil(Task* task);
-static void Actor00400_Fn079FC(Task* arg0);
+static void _actor00400SwimHeavyRecoil(Task* task);
 static void _actor00400SwimStatusHold(Task* task);
 static void _actor00400SwimAttack(Task* task);
 static void _actor00400TunnelPatrol(Task* task);
@@ -3456,7 +3456,7 @@ static const _Actor00400SwimStateTable Actor00400_D000F8 = { {
     _actor00400SwimUnusedState5,
     _actor00400SwimUnusedState6,
     _actor00400SwimLightRecoil,
-    Actor00400_Fn079FC,
+    _actor00400SwimHeavyRecoil,
     _actor00400SwimStatusHold,
     _actor00400SwimAttack,
     _actor00400TunnelPatrol,
@@ -4693,18 +4693,23 @@ static inline s32 _actor00400ConsumeSwimHeavyRecoilHitReaction(Task* task)
     return 0;
 }
 
-static void Actor00400_Fn079FC(Task* arg0)
+/// Dispatches the swimming heavy-recoil entry or wait after consuming a hit reaction.
+///
+/// Requires swimming work with subState 0 (entry) or 1 (wait). A reaction that
+/// changes the outer state suppresses dispatch. The reply is narrowed to s16,
+/// and the work pointer is captured before the reaction consumer runs.
+static void _actor00400SwimHeavyRecoil(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[2])(Task*) = {
+    _Actor00400Work* work                = task->work;
+    TaskFunc         subStateHandlers[2] = {
         _actor00400SwimHeavyRecoilEnter,
         _actor00400SwimHeavyRecoilWait,
     };
-    s16 taken;
+    s16 hitReactionConsumed;
 
-    taken = _actor00400ConsumeSwimHeavyRecoilHitReaction(arg0);
-    if (taken == 0) {
-        states[work->subState](arg0);
+    hitReactionConsumed = _actor00400ConsumeSwimHeavyRecoilHitReaction(task);
+    if (hitReactionConsumed == 0) {
+        subStateHandlers[work->subState](task);
     }
 }
 

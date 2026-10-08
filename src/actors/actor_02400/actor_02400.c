@@ -249,7 +249,7 @@ extern TaskDesc Actor02400_D0465C[];
 static void _actor02400InitBody(Enemy* enemy, Task* task);
 static void _actor02400TeardownBody(Enemy* enemy, Task* task);
 static void _actor02400InitFireball(Enemy* enemy, Task* task);
-static void Actor02400_Fn02AF0(Enemy* enemy, Task* task);
+static void _actor02400FlyFireball(Enemy* unusedEnemy, Task* task);
 static void _actor02400UpdateBody(Enemy* enemy, Task* task);
 static void _actor02400TeardownFireball(Enemy* enemy, Task* task);
 static void _actor02400UpdateBehavior(Task* task);
@@ -748,7 +748,7 @@ static void _actor02400ResolveBodyContacts(Task* task)
 /// The projectile's state handlers, run by `_actor02400FireballTask` for the task's
 /// state: spawn, flight and teardown.
 static const EnemyTaskFuncTable3 Actor02400_D0003C = {
-    { _actor02400InitFireball, Actor02400_Fn02AF0, _actor02400TeardownFireball },
+    { _actor02400InitFireball, _actor02400FlyFireball, _actor02400TeardownFireball },
 };
 
 /// Wakes a dormant amoeba when the player approaches or combat alerts it.
@@ -1539,45 +1539,56 @@ static void _actor02400InitFireball(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorOffsetScratch);
 }
 
-/// Flight handler of the projectile: moves it along `direction` on X and Z
-/// and draws its glow. Once the lifetime `timer` runs out, its record is
-/// hit, or its swept shape touches a surface whose room parameter blocks it,
-/// it spawns the burst effect and moves the task to state 2.
-static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
+/// Moves the fireball, draws its glow and ends flight on timeout or collision.
+///
+/// Requires initialized fireball work and a coordinate-only task body. Running
+/// ticks move X/Z by direction*25>>9 (200 coordinate units at unit Q12 scale),
+/// compose the root and draw a 256-unit glow half-extent. Paused ticks only draw;
+/// hidden ticks return. Wall contacts are consumed before the lifetime decrement.
+/// Timeout, occupied strike contact or a probe-blocking surface spawns a burst and
+/// stages unlinking in teardown; no storage is freed here.
+static void _actor02400FlyFireball(Enemy* unusedEnemy, Task* task)
 {
-    _Actor02400FireballWork* work;
-    GfxCoord*                coord;
-    s32                      rec;
-    s32                      spawn;
+    enum {
+        ACTOR_02400_FIREBALL_GLOW_HALF_EXTENT = 256,
+        ACTOR_02400_FIREBALL_STEP_NUMERATOR   = 25,
+        ACTOR_02400_FIREBALL_STEP_SHIFT       = 9,
+        ACTOR_02400_FIREBALL_TASK_TEARDOWN    = 2
+    };
 
-    coord = arg1->extra.tmd->coords;
-    work  = arg1->work;
-    spawn = 0;
+    _Actor02400FireballWork* work;
+    GfxCoord*                fireballCoord;
+    s32                      wallContactKey;
+    s32                      wallBlocked;
+
+    fireballCoord = task->extra.coordBody->coord;
+    work          = task->work;
+    wallBlocked   = 0;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _fireballDrawGlow(coord, 0x100);
+            _fireballDrawGlow(fireballCoord, ACTOR_02400_FIREBALL_GLOW_HALF_EXTENT);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
-            coord->coord.t[0]  += (work->direction.vx * 25) >> 9;
-            coord->coord.t[2]  += (work->direction.vz * 25) >> 9;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            _fireballDrawGlow(coord, 0x100);
-            rec = work->wallContacts[0].key.value;
-            if ((rec != 0) &&
+            fireballCoord->coord.t[0]  += (work->direction.vx * ACTOR_02400_FIREBALL_STEP_NUMERATOR) >> ACTOR_02400_FIREBALL_STEP_SHIFT;
+            fireballCoord->coord.t[2]  += (work->direction.vz * ACTOR_02400_FIREBALL_STEP_NUMERATOR) >> ACTOR_02400_FIREBALL_STEP_SHIFT;
+            fireballCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(fireballCoord);
+            _fireballDrawGlow(fireballCoord, ACTOR_02400_FIREBALL_GLOW_HALF_EXTENT);
+            wallContactKey = work->wallContacts[0].key.value;
+            if ((wallContactKey != 0) &&
                 (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
-                                   [worldCollisionSurfaceClassFromKey(rec)]
+                                   [worldCollisionSurfaceClassFromKey(wallContactKey)]
                                        ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES)) {
-                spawn = 1;
+                wallBlocked = 1;
             }
             worldCollisionClearContacts(work->wallContacts);
             work->timer--;
-            if ((work->timer <= 0) || (work->strikeContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) || (spawn != 0)) {
-                effectSpawn(gRoomEffectOrangeBurst2Id, coord, 0, NULL);
-                arg1->state        = 2;
+            if ((work->timer <= 0) || (work->strikeContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) || (wallBlocked != 0)) {
+                effectSpawn(gRoomEffectOrangeBurst2Id, fireballCoord, 0, NULL);
+                task->state        = ACTOR_02400_FIREBALL_TASK_TEARDOWN;
                 work->teardownStep = ACTOR_02400_FIREBALL_TEARDOWN_UNLINK;
             }
             break;

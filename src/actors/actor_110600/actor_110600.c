@@ -308,7 +308,7 @@ static s32  _actor110600Alert(Task* task, s32 messageId, s32 firstArg, s32 secon
 static void _actor110600HiddenState(Task* task);
 
 static void _actor110600ChaseState(Task* task);
-static void func_actor_110600_80136B20(Task* arg0);
+static void _actor110600DeathBurnState(Task* task);
 static void func_actor_110600_801372CC(Task* arg0);
 static void _actor110600LurkState(Task* task);
 static void _actor110600FallState(Task* task);
@@ -2735,17 +2735,60 @@ static __inline__ void _actor110600ShrinkBurnRootYaw(Task* task, const _Actor110
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
-static void func_actor_110600_80136B20(Task* arg0)
+/// Scales a fresh corpse color matrix and its RGB translation by a signed Q12 factor.
+///
+/// Work and the caller's full VECTOR stay live through the GTE transfer. The
+/// factor is not clamped: the hidden corpse keeps its retail negative tail.
+static __inline__ void _actor110600FadeBurnColor(_Actor110600Work* work, VECTOR* colorScale)
 {
+    work->colorMtx = work->burnColorMtx;
+    ScaleMatrix(&work->colorMtx, colorScale);
+    gte_lddp(colorScale->vz);
+    gte_ldlvl(&work->colorMtx.t[0]);
+    gte_gpf12();
+    gte_stlvl(&work->colorMtx.t[0]);
+}
+
+/// Burns, flattens and fades the dead Stranger while its task remains alive.
+///
+/// Entry disables attack pairs, grid tests and lock-on and saves the walker Q12
+/// height. Burn effects use chest-local offsets at frames 200 and 400; frame 230
+/// captures color and starts the signed Q12 fade 3000-4*frame. The root flattens
+/// from frame 201 while saved height exceeds 2048; the yaw helper also applies its
+/// tick-dependent Y correction. Drawing stops at frame 600, while the counter
+/// continues to its cap of 1000. Requires live model/work and 0x58 free aligned
+/// scratch bytes for the root rebuild. Work is retained for the task's teardown.
+static void _actor110600DeathBurnState(Task* task)
+{
+    enum {
+        ACTOR_110600_BURN_FRAME_LIMIT                = 1000,
+        ACTOR_110600_BURN_EFFECT_FRAME_1             = 200,
+        ACTOR_110600_BURN_EFFECT_FRAME_2             = 400,
+        ACTOR_110600_BURN_FADE_START_FRAME           = 230,
+        ACTOR_110600_BURN_UNUSED_OFFSET_FRAME_1      = 250,
+        ACTOR_110600_BURN_UNUSED_OFFSET_FRAME_2      = 420,
+        ACTOR_110600_BURN_REASSERT_TRANSLUCENT_FRAME = 253,
+        ACTOR_110600_BURN_HIDE_FRAME                 = 600,
+        ACTOR_110600_BURN_FLATTEN_START_FRAME        = 201,
+        ACTOR_110600_BURN_CHEST_PART                 = 3,
+        ACTOR_110600_BURN_EFFECT_ARGUMENT            = 3,
+        ACTOR_110600_BURN_EFFECT_OFFSET              = 300,
+        ACTOR_110600_BURN_UNUSED_OFFSET              = 400,
+        ACTOR_110600_BURN_FADE_ORIGIN_Q12            = 3000,
+        ACTOR_110600_BURN_FADE_STEP_Q12              = 4,
+        ACTOR_110600_BURN_HEIGHT_FLOOR_Q12           = 2048,
+        ACTOR_110600_BURN_HEIGHT_STEP_Q12            = 8
+    };
+
     _Actor110600Work* work;
     Enemy*            enemy;
-    SVECTOR           pos;
-    VECTOR            scale;
-    s16               y;
+    SVECTOR           effectOffset;
+    VECTOR            colorScale;
+    s16               heightScale;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        enemy                         = arg0->spawnArg2.pointer;
+        enemy                         = task->spawnArg2.pointer;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
@@ -2754,49 +2797,46 @@ static void func_actor_110600_80136B20(Task* arg0)
         work->stateFrame              = 0;
         work->burnHeightScale         = work->walker.scale;
     }
-    if (work->stateFrame < 0x3E8) {
+    if (work->stateFrame < ACTOR_110600_BURN_FRAME_LIMIT) {
         work->stateFrame = (u16)work->stateFrame + 1;
     }
     switch (work->stateFrame) {
-        case 0xE6:
-            arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+        case ACTOR_110600_BURN_FADE_START_FRAME:
+            task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             work->burnColorMtx     = work->colorMtx;
             break;
-        case 0xC8:
-        case 0x190:
-            pos.vx = 0x12C;
-            pos.vy = 0;
-            pos.vz = 0;
-            effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[3], 3, &pos);
+        case ACTOR_110600_BURN_EFFECT_FRAME_1:
+        case ACTOR_110600_BURN_EFFECT_FRAME_2:
+            effectOffset.vx = ACTOR_110600_BURN_EFFECT_OFFSET;
+            effectOffset.vy = 0;
+            effectOffset.vz = 0;
+            effectSpawn(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[ACTOR_110600_BURN_CHEST_PART], ACTOR_110600_BURN_EFFECT_ARGUMENT, &effectOffset);
             break;
-        case 0xFA:
-        case 0x1A4:
-            pos.vx = 0x190;
-            pos.vy = 0;
-            pos.vz = 0;
+        // These retail cue frames prepare an offset without spawning an effect.
+        case ACTOR_110600_BURN_UNUSED_OFFSET_FRAME_1:
+        case ACTOR_110600_BURN_UNUSED_OFFSET_FRAME_2:
+            effectOffset.vx = ACTOR_110600_BURN_UNUSED_OFFSET;
+            effectOffset.vy = 0;
+            effectOffset.vz = 0;
             break;
-        case 0x258:
-            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_110600_BURN_HIDE_FRAME:
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
-    if (work->stateFrame >= 0xE6) {
-        scale.vx = scale.vy = scale.vz = 0xBB8 + work->stateFrame * -4;
-        work->colorMtx                 = work->burnColorMtx;
-        ScaleMatrix(&work->colorMtx, &scale);
-        gte_lddp(scale.vz);
-        gte_ldlvl(&work->colorMtx.t[0]);
-        gte_gpf12();
-        gte_stlvl(&work->colorMtx.t[0]);
+    // Reapply the fade to the saved matrix, rather than compounding it each tick.
+    if (work->stateFrame >= ACTOR_110600_BURN_FADE_START_FRAME) {
+        colorScale.vx = colorScale.vy = colorScale.vz = ACTOR_110600_BURN_FADE_ORIGIN_Q12 + work->stateFrame * -ACTOR_110600_BURN_FADE_STEP_Q12;
+        _actor110600FadeBurnColor(work, &colorScale);
     }
-    if (work->stateFrame == 0xFD) {
-        arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+    if (work->stateFrame == ACTOR_110600_BURN_REASSERT_TRANSLUCENT_FRAME) {
+        task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
     }
-    if (work->stateFrame >= 0xC9) {
-        y = work->burnHeightScale;
-        if (work->burnHeightScale >= 0x801) {
-            y                    -= 8;
-            work->burnHeightScale = y;
-            _actor110600ShrinkBurnRootYaw(arg0, work, y);
+    if (work->stateFrame >= ACTOR_110600_BURN_FLATTEN_START_FRAME) {
+        heightScale = work->burnHeightScale;
+        if (work->burnHeightScale >= ACTOR_110600_BURN_HEIGHT_FLOOR_Q12 + 1) {
+            heightScale          -= ACTOR_110600_BURN_HEIGHT_STEP_Q12;
+            work->burnHeightScale = heightScale;
+            _actor110600ShrinkBurnRootYaw(task, work, heightScale);
         }
     }
 }
@@ -3363,7 +3403,7 @@ static const _Actor110600StateTable D_actor_110600_80131F3C = { {
     _actor110600RiseBackState,
     _actor110600RiseState,
     _actor110600DownState,
-    func_actor_110600_80136B20,
+    _actor110600DeathBurnState,
     func_actor_110600_80136ECC,
     _actor110600StatusHoldState,
     NULL,

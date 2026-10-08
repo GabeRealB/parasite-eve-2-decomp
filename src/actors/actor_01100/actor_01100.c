@@ -377,10 +377,10 @@ static void _actor01100NoticePlayer(Enemy* unusedEnemy, Task* task, _Actor01100W
 static void _actor01100FacePlayer(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void _actor01100PunchLeft(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void _actor01100PunchRight(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
-static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void _actor01100Spit(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void _actor01100Advance(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void _actor01100Death(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
-static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void _actor01100FallAgain(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void _actor01100SpitGlobInit(Task* task);
 static void _actor01100SpitGlobFly(Task* task);
 static void _actor01100SpitCloudInit(Task* task);
@@ -390,9 +390,9 @@ static s32  _actor01100BearingToPlayerSlot(const GfxCoord* self, s32 playerSlot)
 static s32  _actor01100MeasurePlayerDistanceSquared(const GfxCoord* self);
 static void _actor01100Idle(Enemy* unusedEnemy, Task* unusedTask, _Actor01100Work* work, _Actor01100Scratch* unusedScratch);
 static void _actor01100IdleRest(Enemy* unusedEnemy, Task* unusedTask, _Actor01100Work* work, _Actor01100Scratch* scratch);
-static void Actor01100_Fn07014(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void _actor01100Stunned(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void _actor01100Flinch(Enemy* unusedEnemy, Task* unusedTask, _Actor01100Work* work, _Actor01100Scratch* unusedScratch);
-static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void _actor01100Fall(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void _actor01100Rise(Enemy* enemy, Task* unusedTask, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void _actor01100SpitGlobCountdown(Task* task);
 static void _actor01100SpitExit(Task* task);
@@ -1095,8 +1095,8 @@ static __inline__ void _actor01100WriteScratchCursor(u8* cursor);
 static __inline__ void _actor01100ScaleForwardAxis(const MATRIX* matrix, SVECTOR* scaledForward, s32 distance);
 static __inline__ void _actor01100SpawnBurstPart(Task* task, TmdSource* model);
 static void            _actor01100StepForward(GfxCoord* coord, _Actor01100Scratch* scratch, s32 distance);
-static void            Actor01100_Fn06C0C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
-static void            Actor01100_Fn06D3C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void            _actor01100UpdateEngaged(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void            _actor01100UpdateReacting(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 
 #include "../../shared/actor_contacts_find_push.inc.c"
 
@@ -2057,7 +2057,7 @@ static const _Actor01100StateTable Actor01100_D00064 = { {
     _actor01100Idle,
     _actor01100Idle,
     _actor01100NoticePlayer,
-    Actor01100_Fn04DB4,
+    _actor01100Spit,
     _actor01100PunchLeft,
     _actor01100PunchRight,
     _actor01100Advance,
@@ -2066,12 +2066,12 @@ static const _Actor01100StateTable Actor01100_D00064 = { {
     _actor01100Idle,
     _actor01100Idle,
     _actor01100Idle,
-    Actor01100_Fn07014,
+    _actor01100Stunned,
     _actor01100Flinch,
-    Actor01100_Fn07148,
+    _actor01100Fall,
     _actor01100Rise,
     _actor01100Death,
-    Actor01100_Fn05CFC,
+    _actor01100FallAgain,
 } };
 
 /// Advances Mossback animation, behavior, hit reactions and presentation for one frame.
@@ -3092,81 +3092,104 @@ static void _actor01100PunchRight(Enemy* enemy, Task* task, _Actor01100Work* wor
     }
 }
 
-/// Countdown handler for `stateStep`. While the previous count is below 0x1F,
-/// `leftShoulderSwell` climbs by 0x40 toward 0x800; from 0x20 it falls by 0x80,
-/// and each frame is mirrored into `rightShoulderSwell`.
+/// Spawns the glob volley or cloud pair and queues every attempted shot's cue.
 ///
-/// Frame 0x20 aims a yaw at actor slot 0 — scratchpad delta, transpose,
-/// `ratan2`, wrapped into [-0x800, 0x800) — then spawns from
-/// `Actor01100_D155E0`. Placement `entryId` 0x31 is a pair of shots; otherwise
-/// one fan of three, each at ±0x12C on model part 4, with cue `0x400B000A`. A
-/// set `motionEnded` stages state 0xE.
-static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
+/// Requires initialized task/work/scratch pointers without side effects: each
+/// argument is read repeatedly. Borrows the head coordinate and scratch vector,
+/// measures the signed player bearing and reparents only successful children.
+/// Private to the spit state; the surrounding compound statement owns its locals.
+#define ACTOR_01100_SPAWN_SPIT_VOLLEY(task, work, scratch)                                                                                                                                                                                   \
+    {                                                                                                                                                                                                                                        \
+        enum {                                                                                                                                                                                                                               \
+            ACTOR_01100_SPIT_GLOB_TASK   = 1,                                                                                                                                                                                                \
+            ACTOR_01100_SPIT_CLOUD_TASK  = 2,                                                                                                                                                                                                \
+            ACTOR_01100_SPIT_GLOB_COUNT  = 3,                                                                                                                                                                                                \
+            ACTOR_01100_SPIT_SIDE_OFFSET = 300,                                                                                                                                                                                              \
+            ACTOR_01100_SOUND_SPIT       = 0x400B000A                                                                                                                                                                                        \
+        };                                                                                                                                                                                                                                   \
+        GfxCoord* headCoord;                                                                                                                                                                                                                 \
+        Task*     projectile;                                                                                                                                                                                                                \
+        s32       sideCount;                                                                                                                                                                                                                 \
+        s32       playerYaw;                                                                                                                                                                                                                 \
+        s32       projectileKind;                                                                                                                                                                                                            \
+        s32       projectilesPerSide;                                                                                                                                                                                                        \
+        s32       sideIndex;                                                                                                                                                                                                                 \
+        s32       projectileIndex;                                                                                                                                                                                                           \
+        s32       positiveSide;                                                                                                                                                                                                              \
+                                                                                                                                                                                                                                             \
+        playerYaw      = _actor01100BearingToPlayer((task)->extra.tmd->coords);                                                                                                                                                              \
+        projectileKind = ACTOR_01100_SPIT_GLOB_TASK;                                                                                                                                                                                         \
+        if ((work)->entryId == ACTOR_01100_ENTRY_LARGE) {                                                                                                                                                                                    \
+            projectileKind = ACTOR_01100_SPIT_CLOUD_TASK;                                                                                                                                                                                    \
+        }                                                                                                                                                                                                                                    \
+        if (projectileKind == ACTOR_01100_SPIT_GLOB_TASK) {                                                                                                                                                                                  \
+            sideCount          = 1;                                                                                                                                                                                                          \
+            projectilesPerSide = ACTOR_01100_SPIT_GLOB_COUNT;                                                                                                                                                                                \
+        } else {                                                                                                                                                                                                                             \
+            sideCount          = 2;                                                                                                                                                                                                          \
+            projectilesPerSide = 1;                                                                                                                                                                                                          \
+        }                                                                                                                                                                                                                                    \
+        for (sideIndex = 0; sideIndex < sideCount; sideIndex++) {                                                                                                                                                                            \
+            positiveSide = sideIndex;                                                                                                                                                                                                        \
+            if (projectileKind == ACTOR_01100_SPIT_GLOB_TASK) {                                                                                                                                                                              \
+                positiveSide = playerYaw >= 0;                                                                                                                                                                                               \
+            }                                                                                                                                                                                                                                \
+            headCoord = &(task)->extra.tmd->coords[ACTOR_01100_PART_HEAD];                                                                                                                                                                   \
+            for (projectileIndex = 0; projectileIndex < projectilesPerSide; projectileIndex++) {                                                                                                                                             \
+                (scratch)->shortVector.vx = (positiveSide != 0) ? ACTOR_01100_SPIT_SIDE_OFFSET : -ACTOR_01100_SPIT_SIDE_OFFSET;                                                                                                              \
+                (scratch)->shortVector.vy = 0;                                                                                                                                                                                               \
+                (scratch)->shortVector.vz = 0;                                                                                                                                                                                               \
+                projectile                = taskSpawnFromTable(Actor01100_D155E0, projectileKind, playerYaw, 0);                                                                                                                             \
+                if (projectile != NULL) {                                                                                                                                                                                                    \
+                    actorRenderCopyCoordBodyTransform(projectile, headCoord, &(scratch)->shortVector);                                                                                                                                       \
+                    taskReparent((task), projectile);                                                                                                                                                                                        \
+                }                                                                                                                                                                                                                            \
+                sndEvtRequestScriptStart(((work)->waterRoom << ACTOR_01100_SOUND_WATER_VARIANT_SHIFT) | (((u8)(work)->placeIndex << ACTOR_01100_SOUND_PLACEMENT_SHIFT) | ACTOR_01100_SOUND_SPIT), (s8)(scratch)->pan, (s8)(scratch)->depth); \
+            }                                                                                                                                                                                                                                \
+        }                                                                                                                                                                                                                                    \
+    }
+
+/// Swells the Mossback's shoulders and launches its spit volley at frame 32.
+///
+/// The standard variant throws three globs from one side of the head; the large
+/// variant places a cloud on each side. Swell is an additive Q12 scale, mirrored
+/// to both shoulders. The look continues tracking the player, and motion completion
+/// restarts advance. Requires initialized model/work and live per-tick scratch.
+static void _actor01100Spit(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
-    GfxCoord* part;
-    Task*     spawned;
-    s32       nOuter;
-    s32       yaw;
-    s32       kind;
-    s32       nInner;
-    s32       i;
-    s32       j;
-    s32       dir;
-    u16       prev;
-    u16       time;
+    enum {
+        ACTOR_01100_MOTION_SPIT       = 8,
+        ACTOR_01100_SPIT_LAUNCH_FRAME = 32,
+        ACTOR_01100_SPIT_MAX_SWELL    = 2048,
+        ACTOR_01100_SPIT_SWELL_STEP   = 64,
+        ACTOR_01100_SPIT_RETRACT_STEP = 128
+    };
+
+    u16 previousFrame;
+    u16 spitFrame;
 
     if (work->stateStep == 0) {
-        work->motion       = 8;
+        work->motion       = ACTOR_01100_MOTION_SPIT;
         work->stateCounter = 0;
         work->stateStep++;
     }
-    prev               = work->stateCounter;
-    time               = prev + 1;
-    work->stateCounter = time;
-    if (prev < 0x1F) {
-        if (work->leftShoulderSwell < 0x800) {
-            work->leftShoulderSwell += 0x40;
+    previousFrame      = work->stateCounter;
+    spitFrame          = previousFrame + 1;
+    work->stateCounter = spitFrame;
+    if (previousFrame < ACTOR_01100_SPIT_LAUNCH_FRAME - 1) {
+        if (work->leftShoulderSwell < ACTOR_01100_SPIT_MAX_SWELL) {
+            work->leftShoulderSwell += ACTOR_01100_SPIT_SWELL_STEP;
         }
-    } else if ((s16)time >= 0x20) {
-        if (work->leftShoulderSwell >= 0x80) {
-            work->leftShoulderSwell -= 0x80;
+    } else if ((s16)spitFrame >= ACTOR_01100_SPIT_LAUNCH_FRAME) {
+        if (work->leftShoulderSwell >= ACTOR_01100_SPIT_RETRACT_STEP) {
+            work->leftShoulderSwell -= ACTOR_01100_SPIT_RETRACT_STEP;
         } else {
             work->leftShoulderSwell = 0;
         }
     }
     work->rightShoulderSwell = work->leftShoulderSwell;
-    if (work->stateCounter == 0x20) {
-        yaw = _actor01100BearingToPlayer(task->extra.tmd->coords);
-
-        kind = 1;
-        if (work->entryId == 0x31) {
-            kind = 2;
-        }
-        if (kind == 1) {
-            nOuter = 1;
-            nInner = 3;
-        } else {
-            nOuter = 2;
-            nInner = 1;
-        }
-        for (i = 0; i < nOuter; i++) {
-            dir = i;
-            if (kind == 1) {
-                dir = yaw >= 0;
-            }
-            part = &task->extra.tmd->coords[4];
-            for (j = 0; j < nInner; j++) {
-                scratch->shortVector.vx = (dir != 0) ? 0x12C : -0x12C;
-                scratch->shortVector.vy = 0;
-                scratch->shortVector.vz = 0;
-                spawned                 = taskSpawnFromTable(Actor01100_D155E0, kind, yaw, 0);
-                if (spawned != NULL) {
-                    actorRenderCopyCoordBodyTransform(spawned, part, &scratch->shortVector);
-                    taskReparent(task, spawned);
-                }
-                sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B000A), (s8)scratch->pan, (s8)scratch->depth);
-            }
-        }
+    if (work->stateCounter == ACTOR_01100_SPIT_LAUNCH_FRAME) {
+        ACTOR_01100_SPAWN_SPIT_VOLLEY(task, work, scratch);
     }
     _actor01100TrackPlayerLookYaw(enemy, task, work, scratch);
     if (work->motionEnded != 0) {
@@ -3175,6 +3198,7 @@ static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, 
         work->field_BAA = work->field_BAA + 1;
     }
 }
+#undef ACTOR_01100_SPAWN_SPIT_VOLLEY
 
 /// Reads the shared scratch-stack cursor as a byte address without reserving storage.
 ///
@@ -3561,41 +3585,53 @@ static void _actor01100Death(
     }
 }
 
-/// Countdown handler built around `stateCounter`.
+/// Advances the signed-halfword fall counter and queues its delayed landing cue.
 ///
-/// The first frame arms the motion pair: `motion` takes 0x13, or 0x14 while
-/// `hitFromBehind` is set, `startedMotion` and `downState` both take 1 and the
-/// countdown is zeroed, with `stateStep` stepped either way. Every later frame
-/// moves the countdown up by one and, on the frame it reaches 5, cues the
-/// 0x400B0003 event - the low byte of `placeIndex` in bits 8..15 and
-/// `waterRoom` in bit 22, pan and depth from the scratch block - then parks the
-/// countdown at -0x7FFF so it fires only once. The scratch block's `splashPart`
-/// takes 3 either way, and `motionEnded` ends the sub-state: while `hp` still
-/// counts it keeps the state on the 0x17 motion with the 0x10 pair when
-/// `reactionFlags` has no buildup, and stages the 0x14 motion through `mode`
-/// when it does; once that count has run out it hands the frame to
-/// `_actor01100Death` on state 0x18 instead.
-static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
+/// cueFrame counts active handler calls. Increment wraps through u16; comparison
+/// uses s16. After the cue the negative counter delays any repeat past the fall.
+/// scratch supplies the tick's signed-byte pan/depth; no pointer is retained.
+static __inline__ void _actor01100TickFallSound(_Actor01100Work* work, _Actor01100Scratch* scratch, s32 cueFrame)
 {
-    u16 time;
+    enum { ACTOR_01100_SOUND_FALL             = 0x400B0003,
+           ACTOR_01100_FALL_CUE_COUNTER_RESET = -32767 };
+    u16 fallFrame;
+
+    fallFrame          = (u16)work->stateCounter + 1;
+    work->stateCounter = fallFrame;
+    if ((s16)fallFrame >= cueFrame) {
+        sndEvtRequestScriptStart((work->waterRoom << ACTOR_01100_SOUND_WATER_VARIANT_SHIFT) |
+                                     (((u8)work->placeIndex << ACTOR_01100_SOUND_PLACEMENT_SHIFT) | ACTOR_01100_SOUND_FALL),
+                                 (s8)scratch->pan, (s8)scratch->depth);
+        work->stateCounter = ACTOR_01100_FALL_CUE_COUNTER_RESET;
+    }
+}
+
+/// Plays the renewed knockdown caused by a hit while the Mossback is rising.
+///
+/// Selects the front/rear renewed-fall motion, restarts it and cues landing after
+/// five active calls. Watches the chest for water crossings. Completion clears
+/// recent damage and chooses rise, buildup-held stun or death from HP/reactions;
+/// death runs immediately. Requires initialized model/work and tick scratch.
+static void _actor01100FallAgain(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
+{
+    enum {
+        ACTOR_01100_MOTION_FALL_AGAIN_FRONT  = 19,
+        ACTOR_01100_MOTION_FALL_AGAIN_BEHIND = 20,
+        ACTOR_01100_FALL_AGAIN_CUE_FRAME     = 5
+    };
 
     if (work->stateStep == 0) {
         if (work->hitFromBehind == 0) {
-            work->motion = 0x13;
+            work->motion = ACTOR_01100_MOTION_FALL_AGAIN_FRONT;
         } else {
-            work->motion = 0x14;
+            work->motion = ACTOR_01100_MOTION_FALL_AGAIN_BEHIND;
         }
-        work->startedMotion = 1;
+        work->startedMotion = ACTOR_01100_MOTION_IDLE;
         work->downState     = ACTOR_01100_DOWN_FALLING;
         work->stateCounter  = 0;
         work->stateStep     = (u8)work->stateStep + 1;
     }
-    time               = (u16)work->stateCounter + 1;
-    work->stateCounter = time;
-    if ((s16)time >= 5) {
-        sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0003), (s8)scratch->pan, (s8)scratch->depth);
-        work->stateCounter = -0x7FFF;
-    }
+    _actor01100TickFallSound(work, scratch, ACTOR_01100_FALL_AGAIN_CUE_FRAME);
     scratch->splashPart = ACTOR_01100_PART_CHEST;
     if (work->motionEnded != 0) {
         work->recentDamage = 0;
@@ -4085,37 +4121,47 @@ static void _actor01100StepForward(GfxCoord* coord, _Actor01100Scratch* scratch,
     }
 }
 
-/// Points the enemy's body at the model's fourth part coordinate - the same
-/// `TmdObject::coords[3]` that `worldTargetUpdatePlayerRelativePositions` reads back through
-/// `Enemy.coord` - and sets the body position the actor spawns inside, and
-/// clears the lock-on node's flags.
+/// Refreshes the chest-local point published to lock-on and range queries.
 ///
-/// The restart path then needs three things at once: `_actor01100ProcessHits` idle,
-/// `Task::spawnArg1` clear, and the work block's trigger pair (`prevMode`,
-/// `motionEnded`) both at 1. With them, and only while the squared distance to
-/// the player's slot-3 coordinate stays above 0xA62B10, the 0xC000 pair is
-/// masked back out of both `WorldCollisionBody` nodes in the motion block, and
-/// one LCG draw picks the next state: 4 for three draws in four, else 0.
-/// `stateStep` is cleared either way, so the sub-state re-arms from the top.
-static void Actor01100_Fn06C0C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
+/// The point is 200 local units above and ahead of model part 3. Requires a
+/// live model and Enemy; the enemy borrows the coordinate until the next update.
+static __inline__ void _actor01100RefreshTargetAnchor(Enemy* enemy, Task* task)
 {
-    WorldTargetNode* lockNode;
-    u8               trigger;
+    enum { ACTOR_01100_TARGET_OFFSET = 200 };
+    WorldTargetNode* targetNode;
 
-    lockNode                            = &enemy->node;
-    enemy->node.state.parts.flags       = 0;
-    GP_NODE_ENEMY(lockNode)->coord      = &task->extra.tmd->coords[3];
-    GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
-    GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
-    GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
+    targetNode                                     = &enemy->node;
+    PARENT_OF(targetNode, Enemy, node)->coord      = &task->extra.tmd->coords[ACTOR_01100_PART_CHEST];
+    PARENT_OF(targetNode, Enemy, node)->bodyPos.vx = 0;
+    PARENT_OF(targetNode, Enemy, node)->bodyPos.vy = -ACTOR_01100_TARGET_OFFSET;
+    PARENT_OF(targetNode, Enemy, node)->bodyPos.vz = ACTOR_01100_TARGET_OFFSET;
+}
+
+/// Refreshes the Mossback's combat target point, consumes hits and checks disengagement.
+///
+/// A hit-free tick may return to unaware mode only with no spawn boundary override,
+/// an engaged previous mode, a finished motion and player distance strictly above
+/// 3300 room units. Both hand bodies are disabled, then the LCG selects rest with
+/// probability 12/16 or idle otherwise. Requires initialized model/work and tick scratch.
+static void _actor01100UpdateEngaged(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
+{
+    enum {
+        ACTOR_01100_DISENGAGE_RANDOM_MASK    = 15,
+        ACTOR_01100_DISENGAGE_REST_THRESHOLD = 12
+    };
+
+    u8 previousMode;
+
+    enemy->node.state.parts.flags = 0;
+    _actor01100RefreshTargetAnchor(enemy, task);
     if ((_actor01100ProcessHits(enemy, task, work, scratch) == 0) && (task->spawnArg1.value == 0)) {
-        trigger = work->prevMode;
-        if ((trigger == 1) && (work->motionEnded == trigger)) {
-            if (_actor01100MeasurePlayerDistanceSquared(task->extra.tmd->coords) > 0xA62B10) {
+        previousMode = work->prevMode;
+        if ((previousMode == ACTOR_01100_MODE_ENGAGED) && (work->motionEnded == previousMode)) {
+            if (_actor01100MeasurePlayerDistanceSquared(task->extra.tmd->coords) > ACTOR_01100_PUNCH_RANGE_SQUARED) {
                 _actor01100DisableHandBodies(work);
                 work->mode      = ACTOR_01100_MODE_UNAWARE;
                 gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 0x10) & 0xF) < 0xC) {
+                if (((gRandomLcgState >> 0x10) & ACTOR_01100_DISENGAGE_RANDOM_MASK) < ACTOR_01100_DISENGAGE_REST_THRESHOLD) {
                     work->state = ACTOR_01100_STATE_IDLE_REST;
                 } else {
                     work->state = ACTOR_01100_STATE_IDLE;
@@ -4126,55 +4172,53 @@ static void Actor01100_Fn06C0C(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
 }
 
-/// Decays the two arm stretches and the two shoulder swells - the axis pair by
-/// 0x400, the two after them by 0x100, each clamped at zero once it falls below
-/// its step - and walks `lookYaw` 0x30 back toward zero from either end of the
-/// +-0x30 band. `downState` gates the walk, `reaction` the whole block, which
-/// is why the locals read signed for the test and unsigned for the step.
+/// Relaxes the Mossback's hit deformation, refreshes its target point and consumes hits.
 ///
-/// Either way the link transform is re-armed exactly as `Actor01100_Fn06C0C`
-/// arms it - model part 3 through `TmdObject::coords[3]` as `coord`, the
-/// 0xC8-box local offset through `src` - and `_actor01100ProcessHits` runs last.
-static void Actor01100_Fn06D3C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
+/// Except during a twitch, arm stretches and shoulder swells decay toward zero in
+/// Q12 scale units. While not standing, look yaw eases by 48 angle units only
+/// outside the -48..48 band (4096 units per turn). Hit processing always runs last.
+/// Requires initialized model/work and live per-tick scratch.
+static void _actor01100UpdateReacting(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
-    WorldTargetNode* lockNode;
-    s16              walk;
+    enum {
+        ACTOR_01100_REACTION_STRETCH_STEP = 1024,
+        ACTOR_01100_REACTION_SWELL_STEP   = 256,
+        ACTOR_01100_REACTION_LOOK_STEP    = 48
+    };
+
+    s16 lookYaw;
 
     if (work->reaction != ACTOR_01100_REACTION_TWITCH) {
-        if (work->rightArmStretch >= 0x400) {
-            work->rightArmStretch = (s16)((u16)work->rightArmStretch - 0x400);
+        if (work->rightArmStretch >= ACTOR_01100_REACTION_STRETCH_STEP) {
+            work->rightArmStretch = (s16)((u16)work->rightArmStretch - ACTOR_01100_REACTION_STRETCH_STEP);
         } else {
             work->rightArmStretch = 0;
         }
-        if (work->leftArmStretch >= 0x400) {
-            work->leftArmStretch = (s16)((u16)work->leftArmStretch - 0x400);
+        if (work->leftArmStretch >= ACTOR_01100_REACTION_STRETCH_STEP) {
+            work->leftArmStretch = (s16)((u16)work->leftArmStretch - ACTOR_01100_REACTION_STRETCH_STEP);
         } else {
             work->leftArmStretch = 0;
         }
-        if (work->leftShoulderSwell >= 0x100) {
-            work->leftShoulderSwell = (s16)((u16)work->leftShoulderSwell - 0x100);
+        if (work->leftShoulderSwell >= ACTOR_01100_REACTION_SWELL_STEP) {
+            work->leftShoulderSwell = (s16)((u16)work->leftShoulderSwell - ACTOR_01100_REACTION_SWELL_STEP);
         } else {
             work->leftShoulderSwell = 0;
         }
-        if (work->rightShoulderSwell >= 0x100) {
-            work->rightShoulderSwell = (s16)((u16)work->rightShoulderSwell - 0x100);
+        if (work->rightShoulderSwell >= ACTOR_01100_REACTION_SWELL_STEP) {
+            work->rightShoulderSwell = (s16)((u16)work->rightShoulderSwell - ACTOR_01100_REACTION_SWELL_STEP);
         } else {
             work->rightShoulderSwell = 0;
         }
         if (work->downState != ACTOR_01100_DOWN_STANDING) {
-            walk = work->lookYaw;
-            if (walk >= 0x31) {
-                work->lookYaw = (s16)((u16)work->lookYaw - 0x30);
-            } else if (walk < -0x30) {
-                work->lookYaw = (s16)((u16)work->lookYaw + 0x30);
+            lookYaw = work->lookYaw;
+            if (lookYaw >= ACTOR_01100_REACTION_LOOK_STEP + 1) {
+                work->lookYaw = (s16)((u16)work->lookYaw - ACTOR_01100_REACTION_LOOK_STEP);
+            } else if (lookYaw < -ACTOR_01100_REACTION_LOOK_STEP) {
+                work->lookYaw = (s16)((u16)work->lookYaw + ACTOR_01100_REACTION_LOOK_STEP);
             }
         }
     }
-    lockNode                            = &enemy->node;
-    GP_NODE_ENEMY(lockNode)->coord      = &task->extra.tmd->coords[3];
-    GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
-    GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
-    GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
+    _actor01100RefreshTargetAnchor(enemy, task);
     _actor01100ProcessHits(enemy, task, work, scratch);
 }
 
@@ -4257,26 +4301,33 @@ static void _actor01100IdleRest(Enemy* unusedEnemy, Task* unusedTask, _Actor0110
     }
 }
 
-/// Arms the 0x15 / 0x16 motion pair on the first frame of the sub-state. Once
-/// slot 1 reports `ANIMATION_SLOT_FOLLOWED_JUMP`, it clears `recentDamage`.
-/// While `hp` is still positive and `reactionFlags` value 2 is clear, it moves
-/// to motion 0x17; once that count has run out it hands the frame to
-/// `_actor01100Death` on motion 0x18.
-static void Actor01100_Fn07014(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
+/// Holds the fallen Mossback until its buildup reaction permits it to rise.
+///
+/// Starts the front/rear stunned motion. On a slot-1 control jump, clears recent
+/// damage and enters engaged rise if buildup has ended, or runs death immediately
+/// if HP is exhausted. A living enemy with buildup stays here. Requires live
+/// model/work, its primary animation slot and per-tick scratch.
+static void _actor01100Stunned(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
-    AnimationSlot* motion = &work->rig.slots[1];
+    enum {
+        ACTOR_01100_MOTION_STUNNED_FRONT  = 21,
+        ACTOR_01100_MOTION_STUNNED_BEHIND = 22,
+        ACTOR_01100_STUN_INITIAL_COUNTER  = 10
+    };
+
+    AnimationSlot* primarySlot = &work->rig.slots[1];
 
     if (work->stateStep == 0) {
         if (work->hitFromBehind == 0) {
-            work->motion = 0x15;
+            work->motion = ACTOR_01100_MOTION_STUNNED_FRONT;
         } else {
-            work->motion = 0x16;
+            work->motion = ACTOR_01100_MOTION_STUNNED_BEHIND;
         }
-        work->startedMotion = 1;
-        work->stateCounter  = 0xA;
+        work->startedMotion = ACTOR_01100_MOTION_IDLE;
+        work->stateCounter  = ACTOR_01100_STUN_INITIAL_COUNTER;
         work->stateStep     = (u8)work->stateStep + 1;
     }
-    if (motion->status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
+    if (primarySlot->status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
         work->recentDamage = 0;
         if (work->hp > 0) {
             if (!(enemy->reactionFlags & ENEMY_REACTION_BUILDUP)) {
@@ -4318,41 +4369,31 @@ static void _actor01100Flinch(Enemy* unusedEnemy, Task* unusedTask, _Actor01100W
     }
 }
 
-/// Countdown handler built around `stateCounter`, the entry before
-/// `_actor01100Rise` in `Actor01100_D00064`.
+/// Plays the Mossback's directional knockdown and selects recovery when it ends.
 ///
-/// The first frame arms the motion pair: `motion` takes 0xA, or 0xD while
-/// `hitFromBehind` is set, `downState` takes 1 and the countdown is zeroed,
-/// with `stateStep` stepped in both cases. Every later frame moves the
-/// countdown up by one and, on the frame it reaches 0xD, cues the 0x400B0003
-/// event - the low byte of `placeIndex` in bits 8..15 and `waterRoom` in bit
-/// 22, pan and depth from the scratch block - then parks the countdown at -0x7FFF
-/// so it fires only once. The scratch block's `splashPart` takes 3 either
-/// way, and `motionEnded` ends the sub-state: while `hp` still counts it keeps
-/// the state on the 0x17 motion with the 0x10 pair when `reactionFlags` has no
-/// buildup, and stages the 0x14 motion through `mode` when it does; once that
-/// count has run out it hands the frame to `_actor01100Death` on the 0x18
-/// motion instead.
-static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
+/// Starts the front/rear fall motion, cues landing after thirteen active calls and
+/// watches the chest for water crossings. Completion clears recent damage and
+/// selects rise, buildup-held stun or death; death runs immediately. Requires
+/// initialized model/work and live per-tick scratch.
+static void _actor01100Fall(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
-    u16 time;
+    enum {
+        ACTOR_01100_MOTION_FALL_FRONT  = 10,
+        ACTOR_01100_MOTION_FALL_BEHIND = 13,
+        ACTOR_01100_FALL_CUE_FRAME     = 13
+    };
 
     if (work->stateStep == 0) {
         if (work->hitFromBehind == 0) {
-            work->motion = 0xA;
+            work->motion = ACTOR_01100_MOTION_FALL_FRONT;
         } else {
-            work->motion = 0xD;
+            work->motion = ACTOR_01100_MOTION_FALL_BEHIND;
         }
         work->downState    = ACTOR_01100_DOWN_FALLING;
         work->stateCounter = 0;
         work->stateStep    = (u8)work->stateStep + 1;
     }
-    time               = (u16)work->stateCounter + 1;
-    work->stateCounter = time;
-    if ((s16)time >= 0xD) {
-        sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0003), (s8)scratch->pan, (s8)scratch->depth);
-        work->stateCounter = -0x7FFF;
-    }
+    _actor01100TickFallSound(work, scratch, ACTOR_01100_FALL_CUE_FRAME);
     scratch->splashPart = ACTOR_01100_PART_CHEST;
     if (work->motionEnded != 0) {
         work->recentDamage = 0;
