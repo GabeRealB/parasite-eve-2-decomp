@@ -51,25 +51,31 @@ TaskMessageEntry D_8010FAD4[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Releases room event presentation holds and applies the persistent music override.
+/// Resets room event presentation and reapplies the saved music policy.
 ///
-/// Requires a live session and resident music selector. Submarine progress uses
-/// entry 1 at Dryfield night and suppresses area/ending music elsewhere;
-/// parking progress uses entry 9. Other flag values leave the selector intact.
+/// Requires a live session. Clears event gating, HUD suppression, CAP completion
+/// sound cues and all session music/weapon flow options before room task selection.
+/// Music override 1 (submarine progress) selects countdown-table entry 1 at
+/// Dryfield night and suppresses battle-start/area-restoration music elsewhere;
+/// override 2 (parking progress) selects entry 9. Other nibble values preserve
+/// the existing entry. Selection and load policy take effect on later requests.
 static inline void _objectTaskResetRoomPresentation(void)
 {
     enum {
-        OBJECT_TASK_MUSIC_OVERRIDE_SUBMARINE   = 1,
-        OBJECT_TASK_MUSIC_OVERRIDE_PARKING     = 2,
-        OBJECT_TASK_DRYFIELD_NIGHT_MUSIC_ENTRY = 1,
-        OBJECT_TASK_PARKING_MUSIC_ENTRY        = 9
+        OBJECT_TASK_ROOM_EVENT_IDLE                = 0,
+        OBJECT_TASK_CAP_COMPLETION_SOUNDS_DISABLED = 0,
+        OBJECT_TASK_MUSIC_OVERRIDE_SUBMARINE       = 1,
+        OBJECT_TASK_MUSIC_OVERRIDE_PARKING         = 2,
+        OBJECT_TASK_DRYFIELD_NIGHT_MUSIC_ENTRY     = 1,
+        OBJECT_TASK_PARKING_MUSIC_ENTRY            = 9
     };
 
     s32 musicOverride;
 
-    gGameSession->eventState = 0;
-    gGameSession->hideHud    = 0;
-    D_80115598               = 0;
+    // The selected room task can opt into CAP completion sound cues after setup.
+    gGameSession->eventState = OBJECT_TASK_ROOM_EVENT_IDLE;
+    gGameSession->hideHud    = false;
+    D_80115598               = OBJECT_TASK_CAP_COMPLETION_SOUNDS_DISABLED;
     gGameSession->flowFlags  = 0;
     musicOverride            = gameFlagGetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE);
     switch (musicOverride) {
