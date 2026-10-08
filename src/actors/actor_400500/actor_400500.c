@@ -160,6 +160,65 @@ enum {
     ACTOR_400500_PART_LEFT_ARM_TIP  = 11
 };
 
+/// Steps of the ordinary crawl route, indexed by the living crawl's `subState`.
+enum {
+    ACTOR_400500_CRAWL_STEP_SELECT                 = 0,
+    ACTOR_400500_CRAWL_STEP_POSITIVE_X             = 1,
+    ACTOR_400500_CRAWL_STEP_TURN_NEGATIVE_X        = 2,
+    ACTOR_400500_CRAWL_STEP_NEGATIVE_X             = 3,
+    ACTOR_400500_CRAWL_STEP_TURN_POSITIVE_X        = 4,
+    ACTOR_400500_CRAWL_STEP_CORNER_CHOICE          = 5,
+    ACTOR_400500_CRAWL_STEP_POSITIVE_Z             = 6,
+    ACTOR_400500_CRAWL_STEP_TURN_NEGATIVE_Z        = 7,
+    ACTOR_400500_CRAWL_STEP_NEGATIVE_Z             = 8,
+    ACTOR_400500_CRAWL_STEP_CORNER_TURN_NEGATIVE_X = 9,
+    ACTOR_400500_CRAWL_STEP_TURN_POSITIVE_Z        = 10
+};
+
+/// IDs of the route rectangles; zero is outside every rectangle.
+enum {
+    ACTOR_400500_CRAWL_ZONE_X_SEGMENT = 1,
+    ACTOR_400500_CRAWL_ZONE_CORNER    = 2,
+    ACTOR_400500_CRAWL_ZONE_Z_SEGMENT = 3,
+    ACTOR_400500_CRAWL_ZONE_X_END     = 4,
+    ACTOR_400500_CRAWL_ZONE_PATROL    = 5,
+    ACTOR_400500_CRAWL_ZONE_Z_END     = 6
+};
+
+/// Crawl headings in 4096ths of a turn, clip index and sixteenth-frame rate.
+enum {
+    ACTOR_400500_CRAWL_YAW_POSITIVE_Z = 0,
+    ACTOR_400500_CRAWL_YAW_POSITIVE_X = ACTOR_TRANSFORM_ANGLE_TURN / 4,
+    ACTOR_400500_CRAWL_YAW_NEGATIVE_Z = ACTOR_TRANSFORM_ANGLE_HALF_TURN,
+    ACTOR_400500_CRAWL_YAW_NEGATIVE_X = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4,
+    ACTOR_400500_ANIM_CRAWL           = 2,
+    ACTOR_400500_CRAWL_RATE           = ANIMATION_RATE_ONE * 3 / 2
+};
+
+/// The two crawl lines and the ceiling reset position, in room-coordinate units.
+enum {
+    ACTOR_400500_CRAWL_LINE_X               = 16500,
+    ACTOR_400500_CRAWL_LINE_Z               = -8350,
+    ACTOR_400500_CRAWL_RESET_X              = -1000,
+    ACTOR_400500_CRAWL_CEILING_Y            = -4000,
+    ACTOR_400500_CRAWL_RESET_Z              = -8470,
+    ACTOR_400500_POSTURE_CHANGE_TARGET_GAP  = 4000,
+    ACTOR_400500_POSTURE_CHANGE_CHANCE_MASK = 31 // One accepted high-word value out of 32
+};
+
+/// Arm-strike cues, whole state ticks and 4096ths-of-a-turn return increments.
+enum {
+    ACTOR_400500_SOUND_ARM_STRIKE            = 0x40050005,
+    ACTOR_400500_CEILING_STRIKE_CONTACT_TICK = 11,
+    ACTOR_400500_CEILING_STRIKE_RETURN_TICK  = 18,
+    ACTOR_400500_FLOOR_STRIKE_CONTACT_TICK   = 13,
+    ACTOR_400500_FLOOR_STRIKE_RETURN_TICK    = 16,
+    ACTOR_400500_ARM_RETURN_ANGLE_STEP       = 128,
+    ACTOR_400500_ATTACK_COOLDOWN_TICKS       = 60,
+    ACTOR_400500_ARM_LEFT                    = 0,
+    ACTOR_400500_ARM_RIGHT                   = 1
+};
+
 /// Work block of the Gray Stalker task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`. It holds
@@ -302,21 +361,21 @@ static void _actor400500TickFallenCrawl(Task* task);
 static void func_actor_400500_8013456C(Task* arg0);
 static void func_actor_400500_80135770(Task* arg0);
 static void func_actor_400500_80135EBC(Task* arg0);
-static void func_actor_400500_801361EC(Task* arg0);
-static void func_actor_400500_8013662C(Task* arg0);
-static void func_actor_400500_80136864(Task* arg0);
-static void func_actor_400500_801369A4(Task* arg0);
-static void func_actor_400500_80136B94(Task* arg0);
-static void func_actor_400500_80136D00(Task* arg0);
-static void func_actor_400500_80136EB8(Task* arg0);
-static void func_actor_400500_80137034(Task* arg0);
-static void func_actor_400500_801371A0(Task* arg0);
-static void func_actor_400500_80137338(Task* arg0);
-static void func_actor_400500_80137478(Task* arg0);
+static void _actor400500SelectCrawlRoute(Task* task);
+static void _actor400500TickCrawlPositiveX(Task* task);
+static void _actor400500TickCrawlTurnNegativeX(Task* task);
+static void _actor400500TickCrawlNegativeX(Task* task);
+static void _actor400500TickCrawlTurnPositiveX(Task* task);
+static void _actor400500TickCrawlCornerChoice(Task* task);
+static void _actor400500TickCrawlPositiveZ(Task* task);
+static void _actor400500TickCrawlTurnNegativeZ(Task* task);
+static void _actor400500TickCrawlNegativeZ(Task* task);
+static void _actor400500TickCrawlCornerTurnNegativeX(Task* task);
+static void _actor400500TickCrawlTurnPositiveZ(Task* task);
 static void func_actor_400500_801385D0(Task* arg0);
-static void func_actor_400500_801387E8(Task* arg0);
+static void _actor400500TickCeilingArmStrike(Task* task);
 static void func_actor_400500_8013899C(Task* arg0);
-static void func_actor_400500_80138B78(Task* arg0);
+static void _actor400500TickFloorArmStrike(Task* task);
 static void func_actor_400500_80138CE8(Task* arg0);
 static void func_actor_400500_80138DC4(Task* arg0);
 static void func_actor_400500_80138EA0(Task* arg0);
@@ -2087,12 +2146,13 @@ static void func_actor_400500_80132E94(Task* arg0)
     }
 }
 
-/// Queues a packed sound-script id at the composed model root.
+/// Queues a packed sound-script start at the model root's cached view position.
 ///
-/// Requires a live TMD task and a current root cache for origin-audio projection.
-/// The supplied bank, instance and entry bytes stay intact. Pan and attenuation
-/// narrow to signed bytes; admission failure is ignored. Sound resources remain
-/// loaded until queued playback finishes; no task pointer is retained.
+/// Requires a live TMD task, composed root, initialized GTE/scratch facilities
+/// and loaded sound resources that remain live through playback. `soundId`
+/// supplies bank, instance and entry bytes unchanged. Pan uses three SPU steps
+/// per signed-byte unit; depth uses 256 game-coordinate units per signed-byte
+/// unit. Admission failure is ignored and no task pointer is retained.
 static inline void _actor400500EnqueueRootSound(Task* task, s32 soundId)
 {
     s32 panOffset;
@@ -2498,7 +2558,8 @@ static inline void _actor400500SetCoordYaw(GfxCoord* coord, s16 yawAngle)
 
 /// Converts a clip frame to a rate-scaled whole tick, retaining the low byte.
 ///
-/// Requires live Stalker work and a nonnegative clip frame no greater than 27.
+/// Requires live Stalker work and a nonnegative clip frame whose product with
+/// 256 fits s32. Current callers use contact boundaries through clip frame 27.
 /// Rates use signed sixteenths of a frame; zero yields zero. Signed division
 /// occurs before unsigned division by 16 and byte narrowing, including at a
 /// negative rate. This only reads the rate and retains no pointer.
@@ -3288,17 +3349,17 @@ static void func_actor_400500_80135770(Task* arg0)
 /// Sub-state handlers `func_actor_400500_80135EBC` copies onto the stack and runs
 /// by `subState` every frame.
 static const TaskFuncTable11 D_actor_400500_80131E90 = { {
-    func_actor_400500_801361EC,
-    func_actor_400500_8013662C,
-    func_actor_400500_80136864,
-    func_actor_400500_801369A4,
-    func_actor_400500_80136B94,
-    func_actor_400500_80136D00,
-    func_actor_400500_80136EB8,
-    func_actor_400500_80137034,
-    func_actor_400500_801371A0,
-    func_actor_400500_80137338,
-    func_actor_400500_80137478,
+    _actor400500SelectCrawlRoute,
+    _actor400500TickCrawlPositiveX,
+    _actor400500TickCrawlTurnNegativeX,
+    _actor400500TickCrawlNegativeX,
+    _actor400500TickCrawlTurnPositiveX,
+    _actor400500TickCrawlCornerChoice,
+    _actor400500TickCrawlPositiveZ,
+    _actor400500TickCrawlTurnNegativeZ,
+    _actor400500TickCrawlNegativeZ,
+    _actor400500TickCrawlCornerTurnNegativeX,
+    _actor400500TickCrawlTurnPositiveZ,
 } };
 
 /// Handlers `func_actor_400500_80135EBC` also runs, by `deathStep`, while the
@@ -3394,775 +3455,674 @@ static void func_actor_400500_80135EBC(Task* arg0)
     }
 }
 
-static void func_actor_400500_801361EC(Task* arg0)
+/// Copies only the nine rotation coefficients, preserving translation and alignment bytes.
+///
+/// Requires live readable/writable matrices; arguments are borrowed for this call.
+static inline void _actor400500CopyCrawlResetRotation(const MATRIX* source, MATRIX* destination)
 {
-    MATRIX                       rot;
-    MATRIX*                      src;
-    MATRIX*                      dst;
+    destination->m[0][0] = source->m[0][0];
+    destination->m[0][1] = source->m[0][1];
+    destination->m[0][2] = source->m[0][2];
+    destination->m[1][0] = source->m[1][0];
+    destination->m[1][1] = source->m[1][1];
+    destination->m[1][2] = source->m[1][2];
+    destination->m[2][0] = source->m[2][0];
+    destination->m[2][1] = source->m[2][1];
+    destination->m[2][2] = source->m[2][2];
+}
+
+/// Consumes a ceiling-fall request through the caller's live work cursor.
+///
+/// `task`, `workCursor` and `taken` must be side-effect-free identifiers. The
+/// cursor is refreshed, the request is cleared and `taken` receives 0 or 1;
+/// entering fall evaluates `task` again. The caller supplies a writable work
+/// pointer and s32 result. No pointer is retained.
+#define ACTOR_400500_TAKE_CEILING_FALL(task, workCursor, taken)          \
+    {                                                                    \
+        (workCursor) = (task)->work;                                     \
+        if ((workCursor)->ceilingFallPending != 0) {                     \
+            (workCursor)->ceilingFallPending = 0;                        \
+            if ((workCursor)->posture & ACTOR_400500_POSTURE_ON_FLOOR) { \
+                (taken) = 0;                                             \
+            } else {                                                     \
+                _actor400500EnterState((task), ACTOR_400500_STATE_FALL); \
+                (taken) = 1;                                             \
+            }                                                            \
+        } else {                                                         \
+            (taken) = 0;                                                 \
+        }                                                                \
+    }
+
+/// Chooses a crawl direction from the room zone and current target offset.
+///
+/// Requires the live Stalker work, model beneath the view coordinate and current
+/// targeting results. Knockdown, ceiling fall and attack requests take priority.
+/// Otherwise resets the crawl clip, clears turn progress and saves the left arm
+/// tip's world X/Z anchor. An unrecognized zone restores the ceiling start pose.
+static void _actor400500SelectCrawlRoute(Task* task)
+{
+    MATRIX                       resetRotation;
+    MATRIX*                      rotation;
+    MATRIX*                      rootRotation;
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* workA;
-    _Actor400500GrayStalkerWork* work3;
-    GfxCoord*                    coord;
-    s32                          flag2;
-    s32                          heading;
-    s32                          tx;
+    _Actor400500GrayStalkerWork* fallWork;
+    _Actor400500GrayStalkerWork* turnWork;
+    GfxCoord*                    rootCoord;
+    s32                          fallTaken;
+    s32                          yawHeading;
     s32                          playerZone;
 
-    work    = (_Actor400500GrayStalkerWork*)arg0->work;
-    heading = (u16)work->yaw & 0xFFF;
-    coord   = arg0->extra.tmd->coords;
-    if (!_actor400500TakeKnockdown(arg0)) {
-        workA = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (workA->ceilingFallPending != 0) {
-            workA->ceilingFallPending = 0;
-            if (workA->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
-                flag2 = 0;
-            } else {
-                _actor400500EnterState(arg0, ACTOR_400500_STATE_FALL);
-                flag2 = 1;
-            }
-        } else {
-            flag2 = 0;
-        }
-        if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0)) {
-            work3              = (_Actor400500GrayStalkerWork*)arg0->work;
-            work3->turnRequest = ACTOR_400500_TURN_NONE;
-            work3->turnStarted = 0;
-            _actor400500SetAnim(arg0, 2, 0x18);
-            _actor400500TickAnim(arg0);
-            switch ((s16)((u16)work->zone - 1)) {
-                case 3:
-                    if (heading == 0x400) {
-                        work->subState = 1;
+    work       = task->work;
+    yawHeading = (u16)work->yaw & ACTOR_TRANSFORM_ANGLE_MASK;
+    rootCoord  = task->extra.tmd->coords;
+    if (!_actor400500TakeKnockdown(task)) {
+        ACTOR_400500_TAKE_CEILING_FALL(task, fallWork, fallTaken);
+        if ((fallTaken == 0) && ((_actor400500TryStartAttack(task) << 0x10) == 0)) {
+            turnWork              = task->work;
+            turnWork->turnRequest = ACTOR_400500_TURN_NONE;
+            turnWork->turnStarted = 0;
+            _actor400500SetAnim(task, ACTOR_400500_ANIM_CRAWL, ACTOR_400500_CRAWL_RATE);
+            _actor400500TickAnim(task);
+            switch ((s16)((u16)work->zone - ACTOR_400500_CRAWL_ZONE_X_SEGMENT)) {
+                case ACTOR_400500_CRAWL_ZONE_X_END - ACTOR_400500_CRAWL_ZONE_X_SEGMENT:
+                    if (yawHeading == ACTOR_400500_CRAWL_YAW_POSITIVE_X) {
+                        work->subState = ACTOR_400500_CRAWL_STEP_POSITIVE_X;
                     } else {
-                        work->subState = 4;
+                        work->subState = ACTOR_400500_CRAWL_STEP_TURN_POSITIVE_X;
                     }
                     break;
-                case 0:
+                case ACTOR_400500_CRAWL_ZONE_X_SEGMENT - ACTOR_400500_CRAWL_ZONE_X_SEGMENT:
                     if (work->toTarget.vx < 0) {
-                        work->subState = 3;
+                        work->subState = ACTOR_400500_CRAWL_STEP_NEGATIVE_X;
                     } else {
-                        work->subState = 1;
+                        work->subState = ACTOR_400500_CRAWL_STEP_POSITIVE_X;
                     }
                     break;
-                case 1:
+                case ACTOR_400500_CRAWL_ZONE_CORNER - ACTOR_400500_CRAWL_ZONE_X_SEGMENT:
                     playerZone = (s16)work->playerZone;
-                    if ((playerZone == 1) || (playerZone == 4) || (playerZone == 5)) {
-                        work->subState = 3;
-                    } else if ((playerZone == 3) && (heading == 0) && (coord->coord.t[0] >= 0x4074)) {
-                        work->subState = 6;
-                    } else if ((s16)work->playerZone == 2) {
-                        if (coord->coord.t[2] >= -0x209D) {
-                            work->subState = 6;
+                    if ((playerZone == ACTOR_400500_CRAWL_ZONE_X_SEGMENT) || (playerZone == ACTOR_400500_CRAWL_ZONE_X_END) || (playerZone == ACTOR_400500_CRAWL_ZONE_PATROL)) {
+                        work->subState = ACTOR_400500_CRAWL_STEP_NEGATIVE_X;
+                    } else if ((playerZone == ACTOR_400500_CRAWL_ZONE_Z_SEGMENT) && (yawHeading == ACTOR_400500_CRAWL_YAW_POSITIVE_Z) && (rootCoord->coord.t[0] >= ACTOR_400500_CRAWL_LINE_X)) {
+                        work->subState = ACTOR_400500_CRAWL_STEP_POSITIVE_Z;
+                    } else if ((s16)work->playerZone == ACTOR_400500_CRAWL_ZONE_CORNER) {
+                        if (rootCoord->coord.t[2] >= (ACTOR_400500_CRAWL_LINE_Z + 1)) {
+                            work->subState = ACTOR_400500_CRAWL_STEP_POSITIVE_Z;
                         } else {
-                            work->subState = 1;
+                            work->subState = ACTOR_400500_CRAWL_STEP_POSITIVE_X;
                         }
                     } else {
-                        work->subState = 1;
+                        work->subState = ACTOR_400500_CRAWL_STEP_POSITIVE_X;
                     }
                     break;
-                case 2:
+                case ACTOR_400500_CRAWL_ZONE_Z_SEGMENT - ACTOR_400500_CRAWL_ZONE_X_SEGMENT:
                     if (work->toTarget.vz < 0) {
-                        work->subState = 8;
+                        work->subState = ACTOR_400500_CRAWL_STEP_NEGATIVE_Z;
                     } else {
-                        work->subState = 6;
+                        work->subState = ACTOR_400500_CRAWL_STEP_POSITIVE_Z;
                     }
                     break;
-                case 5:
-                    if (heading == 0x800) {
-                        work->subState = 8;
+                case ACTOR_400500_CRAWL_ZONE_Z_END - ACTOR_400500_CRAWL_ZONE_X_SEGMENT:
+                    if (yawHeading == ACTOR_400500_CRAWL_YAW_NEGATIVE_Z) {
+                        work->subState = ACTOR_400500_CRAWL_STEP_NEGATIVE_Z;
                     } else {
-                        work->subState = 7;
+                        work->subState = ACTOR_400500_CRAWL_STEP_TURN_NEGATIVE_Z;
                     }
                     break;
                 default:
-                    tx                = -0x3E8;
-                    coord->coord.t[0] = tx;
-                    tx                = -0xFA0;
-                    coord->coord.t[1] = tx;
-                    tx                = -0x2116;
-                    coord->coord.t[2] = tx;
-                    tx                = 0x400;
-                    work->yaw         = tx;
-                    tx                = 0x800;
-                    work->roll        = tx;
-                    src               = &rot;
-                    work->pitch       = 0;
-                    work->posture     = 0;
-                    gfxSetRotIdentity(src);
-                    RotMatrixZ(work->roll, src);
-                    RotMatrixY(work->yaw, src);
-                    dst          = &coord->coord;
-                    dst->m[0][0] = src->m[0][0];
-                    dst->m[0][1] = src->m[0][1];
-                    dst->m[0][2] = src->m[0][2];
-                    dst->m[1][0] = src->m[1][0];
-                    dst->m[1][1] = src->m[1][1];
-                    dst->m[1][2] = src->m[1][2];
-                    dst->m[2][0] = src->m[2][0];
-                    dst->m[2][1] = src->m[2][1];
-                    dst->m[2][2] = src->m[2][2];
-                    _actor400500ReadPartWorldXZ(arg0, 11, &work->anchorPos);
-                    work->subState = 1;
+                    rootCoord->coord.t[0] = ACTOR_400500_CRAWL_RESET_X;
+                    rootCoord->coord.t[1] = ACTOR_400500_CRAWL_CEILING_Y;
+                    rootCoord->coord.t[2] = ACTOR_400500_CRAWL_RESET_Z;
+                    work->yaw             = ACTOR_400500_CRAWL_YAW_POSITIVE_X;
+                    work->roll            = ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+                    rotation              = &resetRotation;
+                    work->pitch           = 0;
+                    work->posture         = 0;
+                    gfxSetRotIdentity(rotation);
+                    RotMatrixZ(work->roll, rotation);
+                    RotMatrixY(work->yaw, rotation);
+                    rootRotation = &rootCoord->coord;
+                    _actor400500CopyCrawlResetRotation(rotation, rootRotation);
+                    _actor400500ReadPartWorldXZ(task, ACTOR_400500_PART_LEFT_ARM_TIP, &work->anchorPos);
+                    work->subState = ACTOR_400500_CRAWL_STEP_POSITIVE_X;
                     break;
             }
-            _actor400500ReadPartWorldXZ(arg0, 11, &work->anchorPos);
+            _actor400500ReadPartWorldXZ(task, ACTOR_400500_PART_LEFT_ARM_TIP, &work->anchorPos);
         }
     }
 }
 
-static void func_actor_400500_8013662C(Task* arg0)
+/// Crawls toward +X on the fixed-Z route, turning or taking the corner as needed.
+///
+/// Requires live Stalker work/root and current target and animation-slot results.
+/// State changes, recoil and active turns preempt route movement. At the X end,
+/// a cooled attack permits reversal; while cooling, a distant target gives a
+/// 1/32 chance per eligible tick to drop from the ceiling or jump off the floor.
+/// The caller advances ordinary animation playback.
+static void _actor400500TickCrawlPositiveX(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    GfxCoord*                    coord;
-    s32                          flag;
-    s32                          flag2;
-    s32                          heading;
+    _Actor400500GrayStalkerWork* requestWork;
+    GfxCoord*                    rootCoord;
+    s32                          knockdownTaken;
+    s32                          fallTaken;
+    s32                          yawHeading;
     s32                          zone;
-    s32                          val;
-    u32                          rnd;
+    s32                          nextState;
+    u32                          randomState;
     u16                          playerZone;
 
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->knockdownPending != 0) {
-        work->knockdownPending = 0;
-        _actor400500EnterState(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag == 0) {
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->ceilingFallPending != 0) {
-            work2->ceilingFallPending = 0;
-            if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
-                flag2 = 0;
-            } else {
-                _actor400500EnterState(arg0, ACTOR_400500_STATE_FALL);
-                flag2 = 1;
-            }
-        } else {
-            flag2 = 0;
-        }
-        if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
-            ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
-            heading = (u16)work->yaw;
-            if ((heading & 0xFFF) != 0x400) {
-                if (((0x400 - heading) << 0x14) > 0) {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_UP;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    // Consume preempting actions before changing the route or pinning its axis.
+    knockdownTaken = _actor400500TakeKnockdown(task);
+    if (knockdownTaken == 0) {
+        ACTOR_400500_TAKE_CEILING_FALL(task, requestWork, fallTaken);
+        if ((fallTaken == 0) && ((_actor400500TryStartAttack(task) << 0x10) == 0) &&
+            ((_actor400500HandleHeavyHitReaction(task) << 0x10) == 0) &&
+            ((_actor400500TickTurn(task) << 0x10) == 0)) {
+            yawHeading = (u16)work->yaw;
+            if ((yawHeading & ACTOR_TRANSFORM_ANGLE_MASK) != ACTOR_400500_CRAWL_YAW_POSITIVE_X) {
+                if (((ACTOR_400500_CRAWL_YAW_POSITIVE_X - yawHeading) << 0x14) > 0) {
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
                 } else {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
                 }
-                work2->turnStarted = 0;
+                requestWork->turnStarted = 0;
             } else {
                 zone = work->zone;
-                if (zone != 1) {
-                    if ((zone == 2) && (coord->coord.t[0] >= 0x4075)) {
+                if (zone != ACTOR_400500_CRAWL_ZONE_X_SEGMENT) {
+                    if ((zone == ACTOR_400500_CRAWL_ZONE_CORNER) && (rootCoord->coord.t[0] >= (ACTOR_400500_CRAWL_LINE_X + 1))) {
                         playerZone = work->playerZone;
-                        if (((u32)(playerZone - 2) < 2U) || ((s16)playerZone == 6)) {
-                            work->subState = 5;
+                        if (((u32)(playerZone - ACTOR_400500_CRAWL_ZONE_CORNER) < 2U) || ((s16)playerZone == ACTOR_400500_CRAWL_ZONE_Z_END)) {
+                            work->subState = ACTOR_400500_CRAWL_STEP_CORNER_CHOICE;
                         } else {
                             work->subState = zone;
                         }
                     } else {
-                        _actor400500TickCrawl(arg0);
+                        _actor400500TickCrawl(task);
                     }
                 } else {
                     if (work->attackCooling == 0) {
                         if (work->toTarget.vx <= 0) {
-                            work->subState = 2;
+                            work->subState = ACTOR_400500_CRAWL_STEP_TURN_NEGATIVE_X;
                         }
-                    } else if (work->toTarget.vx < -0xF9F) {
-                        rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                        gRandomLcgState = rnd;
-                        if (((rnd >> 0x10) & 0x1F) == 0) {
+                    } else if (work->toTarget.vx < (-ACTOR_400500_POSTURE_CHANGE_TARGET_GAP + 1)) {
+                        randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = randomState;
+                        if (((randomState >> 0x10) & ACTOR_400500_POSTURE_CHANGE_CHANCE_MASK) == 0) {
                             if (!(work->posture & ACTOR_400500_POSTURE_ON_FLOOR)) {
-                                work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-                                val   = ACTOR_400500_STATE_DROP;
+                                requestWork = task->work;
+                                nextState   = ACTOR_400500_STATE_DROP;
                             } else {
-                                work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-                                val   = ACTOR_400500_STATE_JUMP;
+                                requestWork = task->work;
+                                nextState   = ACTOR_400500_STATE_JUMP;
                             }
-                            work2->state    = val;
-                            work2->subState = 0;
+                            requestWork->state    = nextState;
+                            requestWork->subState = ACTOR_400500_CRAWL_STEP_SELECT;
                         }
                     }
-                    _actor400500TickCrawl(arg0);
+                    _actor400500TickCrawl(task);
                 }
             }
-            coord->coord.t[2] = -0x209E;
+            rootCoord->coord.t[2] = ACTOR_400500_CRAWL_LINE_Z;
         }
     }
 }
 
-static void func_actor_400500_80136864(Task* arg0)
+/// Turns the X-route crawl toward -X, then restarts the crawl clip.
+///
+/// Requires live Stalker work and current target and slot results. Pending state
+/// changes, recoil and active turns take priority; a 4096-unit yaw uses the signed
+/// wrapped 12-bit difference to choose the next turn. Playback advances elsewhere.
+static void _actor400500TickCrawlTurnNegativeX(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    _Actor400500GrayStalkerWork* work3;
-    _Actor400500GrayStalkerWork* work4;
-    s32                          flag;
-    s32                          flag2;
-    s32                          heading;
+    _Actor400500GrayStalkerWork* requestWork;
+    _Actor400500GrayStalkerWork* increasingTurnWork;
+    _Actor400500GrayStalkerWork* decreasingTurnWork;
+    s32                          knockdownTaken;
+    s32                          fallTaken;
+    s32                          yawHeading;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
-    if (work->knockdownPending != 0) {
-        work->knockdownPending = 0;
-        _actor400500EnterState(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag == 0) {
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->ceilingFallPending != 0) {
-            work2->ceilingFallPending = 0;
-            if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
-                flag2 = 0;
-            } else {
-                _actor400500EnterState(arg0, ACTOR_400500_STATE_FALL);
-                flag2 = 1;
-            }
-        } else {
-            flag2 = 0;
-        }
-        if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
-            ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
-            heading = (u16)work->yaw;
-            if ((heading & 0xFFF) == 0xC00) {
-                work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->animRate    = 0x18;
-                work2->animId      = 2;
-                work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-                work->subState     = 3;
+    work = task->work;
+    // Consume preempting actions before changing the route or pinning its axis.
+    knockdownTaken = _actor400500TakeKnockdown(task);
+    if (knockdownTaken == 0) {
+        ACTOR_400500_TAKE_CEILING_FALL(task, requestWork, fallTaken);
+        if ((fallTaken == 0) && ((_actor400500TryStartAttack(task) << 0x10) == 0) &&
+            ((_actor400500HandleHeavyHitReaction(task) << 0x10) == 0) &&
+            ((_actor400500TickTurn(task) << 0x10) == 0)) {
+            yawHeading = (u16)work->yaw;
+            if ((yawHeading & ACTOR_TRANSFORM_ANGLE_MASK) == ACTOR_400500_CRAWL_YAW_NEGATIVE_X) {
+                _actor400500SetAnim(task, ACTOR_400500_ANIM_CRAWL, ACTOR_400500_CRAWL_RATE);
+                work->subState = ACTOR_400500_CRAWL_STEP_NEGATIVE_X;
                 return;
             }
-            if (((0xC00 - heading) << 0x14) > 0) {
-                work3              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work3->turnRequest = ACTOR_400500_TURN_YAW_UP;
-                work3->turnStarted = 0;
+            if (((ACTOR_400500_CRAWL_YAW_NEGATIVE_X - yawHeading) << 0x14) > 0) {
+                increasingTurnWork              = task->work;
+                increasingTurnWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
+                increasingTurnWork->turnStarted = 0;
             } else {
-                work4              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work4->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
-                work4->turnStarted = 0;
+                decreasingTurnWork              = task->work;
+                decreasingTurnWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                decreasingTurnWork->turnStarted = 0;
             }
         }
     }
 }
 
-static void func_actor_400500_801369A4(Task* arg0)
+/// Crawls toward -X on the fixed-Z route and reverses at the X end or target.
+///
+/// Requires live Stalker work/root and current target and slot results. State
+/// changes, recoil and active turns preempt movement. A distant target while an
+/// attack cools gives a 1/32 chance per eligible tick to change floor/ceiling
+/// posture. The caller advances ordinary animation playback.
+static void _actor400500TickCrawlNegativeX(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    GfxCoord*                    coord;
-    s32                          flag;
-    s32                          flag2;
-    s32                          heading;
+    _Actor400500GrayStalkerWork* requestWork;
+    GfxCoord*                    rootCoord;
+    s32                          knockdownTaken;
+    s32                          fallTaken;
+    s32                          yawHeading;
     s32                          zone;
-    s32                          val;
-    u32                          rnd;
+    s32                          nextState;
+    u32                          randomState;
 
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->knockdownPending != 0) {
-        work->knockdownPending = 0;
-        _actor400500EnterState(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag == 0) {
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->ceilingFallPending != 0) {
-            work2->ceilingFallPending = 0;
-            if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
-                flag2 = 0;
-            } else {
-                _actor400500EnterState(arg0, ACTOR_400500_STATE_FALL);
-                flag2 = 1;
-            }
-        } else {
-            flag2 = 0;
-        }
-        if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
-            ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
-            heading = (u16)work->yaw;
-            if ((heading & 0xFFF) != 0xC00) {
-                if (((0xC00 - heading) << 0x14) > 0) {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_UP;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    // Consume preempting actions before changing the route or pinning its axis.
+    knockdownTaken = _actor400500TakeKnockdown(task);
+    if (knockdownTaken == 0) {
+        ACTOR_400500_TAKE_CEILING_FALL(task, requestWork, fallTaken);
+        if ((fallTaken == 0) && ((_actor400500TryStartAttack(task) << 0x10) == 0) &&
+            ((_actor400500HandleHeavyHitReaction(task) << 0x10) == 0) &&
+            ((_actor400500TickTurn(task) << 0x10) == 0)) {
+            yawHeading = (u16)work->yaw;
+            if ((yawHeading & ACTOR_TRANSFORM_ANGLE_MASK) != ACTOR_400500_CRAWL_YAW_NEGATIVE_X) {
+                if (((ACTOR_400500_CRAWL_YAW_NEGATIVE_X - yawHeading) << 0x14) > 0) {
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
                 } else {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
                 }
-                work2->turnStarted = 0;
+                requestWork->turnStarted = 0;
             } else {
                 zone = work->zone;
-                if (zone != 1) {
-                    if (zone == 4) {
+                if (zone != ACTOR_400500_CRAWL_ZONE_X_SEGMENT) {
+                    if (zone == ACTOR_400500_CRAWL_ZONE_X_END) {
                         work->subState = zone;
                     }
                 } else if (work->attackCooling == 0) {
                     if (work->toTarget.vx >= 0) {
-                        work->subState = 4;
+                        work->subState = ACTOR_400500_CRAWL_STEP_TURN_POSITIVE_X;
                     }
-                } else if (work->toTarget.vx >= 0xFA0) {
-                    rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState = rnd;
-                    if (((rnd >> 0x10) & 0x1F) == 0) {
+                } else if (work->toTarget.vx >= ACTOR_400500_POSTURE_CHANGE_TARGET_GAP) {
+                    randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = randomState;
+                    if (((randomState >> 0x10) & ACTOR_400500_POSTURE_CHANGE_CHANCE_MASK) == 0) {
                         if (!(work->posture & ACTOR_400500_POSTURE_ON_FLOOR)) {
-                            work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-                            val   = ACTOR_400500_STATE_DROP;
+                            requestWork = task->work;
+                            nextState   = ACTOR_400500_STATE_DROP;
                         } else {
-                            work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-                            val   = ACTOR_400500_STATE_JUMP;
+                            requestWork = task->work;
+                            nextState   = ACTOR_400500_STATE_JUMP;
                         }
-                        work2->state    = val;
-                        work2->subState = 0;
+                        requestWork->state    = nextState;
+                        requestWork->subState = ACTOR_400500_CRAWL_STEP_SELECT;
                     }
                 }
-                _actor400500TickCrawl(arg0);
+                _actor400500TickCrawl(task);
             }
-            coord->coord.t[2] = -0x209E;
+            rootCoord->coord.t[2] = ACTOR_400500_CRAWL_LINE_Z;
         }
     }
 }
 
-static void func_actor_400500_80136B94(Task* arg0)
+/// Turns the X-route crawl toward +X, then restarts the crawl clip.
+///
+/// Requires live Stalker work and current target and slot results. Pending state
+/// changes, recoil and active turns take priority. At the X-end zone the target's
+/// Z side chooses the turn; elsewhere the wrapped 12-bit yaw difference does.
+static void _actor400500TickCrawlTurnPositiveX(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    s32                          flag;
-    s32                          flag2;
-    s32                          heading;
+    _Actor400500GrayStalkerWork* requestWork;
+    s32                          knockdownTaken;
+    s32                          fallTaken;
+    s32                          yawHeading;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
-    if (work->knockdownPending != 0) {
-        work->knockdownPending = 0;
-        _actor400500EnterState(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag == 0) {
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->ceilingFallPending != 0) {
-            work2->ceilingFallPending = 0;
-            if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
-                flag2 = 0;
-            } else {
-                _actor400500EnterState(arg0, ACTOR_400500_STATE_FALL);
-                flag2 = 1;
-            }
-        } else {
-            flag2 = 0;
-        }
-        if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
-            ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
-            heading = (u16)work->yaw;
-            if ((heading & 0xFFF) == 0x400) {
-                work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->animRate    = 0x18;
-                work2->animId      = 2;
-                work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-                work->subState     = 1;
+    work = task->work;
+    // Consume preempting actions before changing the route or pinning its axis.
+    knockdownTaken = _actor400500TakeKnockdown(task);
+    if (knockdownTaken == 0) {
+        ACTOR_400500_TAKE_CEILING_FALL(task, requestWork, fallTaken);
+        if ((fallTaken == 0) && ((_actor400500TryStartAttack(task) << 0x10) == 0) &&
+            ((_actor400500HandleHeavyHitReaction(task) << 0x10) == 0) &&
+            ((_actor400500TickTurn(task) << 0x10) == 0)) {
+            yawHeading = (u16)work->yaw;
+            if ((yawHeading & ACTOR_TRANSFORM_ANGLE_MASK) == ACTOR_400500_CRAWL_YAW_POSITIVE_X) {
+                _actor400500SetAnim(task, ACTOR_400500_ANIM_CRAWL, ACTOR_400500_CRAWL_RATE);
+                work->subState = ACTOR_400500_CRAWL_STEP_POSITIVE_X;
                 return;
             }
-            if ((s16)work->playerZone == 4) {
+            if ((s16)work->playerZone == ACTOR_400500_CRAWL_ZONE_X_END) {
                 if (work->toTarget.vz > 0) {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_UP;
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
                 } else {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
                 }
-            } else if (((0x400 - heading) << 0x14) > 0) {
-                work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->turnRequest = ACTOR_400500_TURN_YAW_UP;
+            } else if (((ACTOR_400500_CRAWL_YAW_POSITIVE_X - yawHeading) << 0x14) > 0) {
+                requestWork              = task->work;
+                requestWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
             } else {
-                work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                requestWork              = task->work;
+                requestWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
             }
-            work2->turnStarted = 0;
+            requestWork->turnStarted = 0;
         }
     }
 }
 
-static void func_actor_400500_80136D00(Task* arg0)
+/// Chooses the corner's outgoing +Z or -X crawl from the player's zone.
+///
+/// Requires live Stalker work and current target and slot results. Player zones
+/// 2, 3 and 6 select +Z; all others select -X. State changes, recoil and active
+/// turns preempt routing. Reaching the chosen yaw restarts the crawl clip.
+static void _actor400500TickCrawlCornerChoice(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    s32                          flag;
-    s32                          flag2;
-    s32                          heading;
+    _Actor400500GrayStalkerWork* requestWork;
+    s32                          knockdownTaken;
+    s32                          fallTaken;
+    s32                          yawHeading;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
-    if (work->knockdownPending != 0) {
-        work->knockdownPending = 0;
-        _actor400500EnterState(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag == 0) {
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->ceilingFallPending != 0) {
-            work2->ceilingFallPending = 0;
-            if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
-                flag2 = 0;
-            } else {
-                _actor400500EnterState(arg0, ACTOR_400500_STATE_FALL);
-                flag2 = 1;
-            }
-        } else {
-            flag2 = 0;
-        }
-        if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
-            ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
-            if (((u32)(work->playerZone - 2) < 2U) || ((s16)work->playerZone == 6)) {
-                heading = (u16)work->yaw;
-                if ((heading & 0xFFF) == 0) {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->animRate    = 0x18;
-                    work2->animId      = 2;
-                    work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-                    work->subState     = 6;
+    work = task->work;
+    // Consume preempting actions before changing the route or pinning its axis.
+    knockdownTaken = _actor400500TakeKnockdown(task);
+    if (knockdownTaken == 0) {
+        ACTOR_400500_TAKE_CEILING_FALL(task, requestWork, fallTaken);
+        if ((fallTaken == 0) && ((_actor400500TryStartAttack(task) << 0x10) == 0) &&
+            ((_actor400500HandleHeavyHitReaction(task) << 0x10) == 0) &&
+            ((_actor400500TickTurn(task) << 0x10) == 0)) {
+            if (((u32)(work->playerZone - ACTOR_400500_CRAWL_ZONE_CORNER) < 2U) || ((s16)work->playerZone == ACTOR_400500_CRAWL_ZONE_Z_END)) {
+                yawHeading = (u16)work->yaw;
+                if ((yawHeading & ACTOR_TRANSFORM_ANGLE_MASK) == ACTOR_400500_CRAWL_YAW_POSITIVE_Z) {
+                    requestWork              = task->work;
+                    requestWork->animRate    = ACTOR_400500_CRAWL_RATE;
+                    requestWork->animId      = ACTOR_400500_ANIM_CRAWL;
+                    requestWork->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
+                    work->subState           = ACTOR_400500_CRAWL_STEP_POSITIVE_Z;
                     return;
                 }
-                if (((0 - heading) << 0x14) > 0) {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_UP;
+                if (((ACTOR_400500_CRAWL_YAW_POSITIVE_Z - yawHeading) << 0x14) > 0) {
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
                 } else {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
                 }
             } else {
-                heading = (u16)work->yaw;
-                if ((heading & 0xFFF) == 0xC00) {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->animRate    = 0x18;
-                    work2->animId      = 2;
-                    work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-                    work->subState     = 3;
+                yawHeading = (u16)work->yaw;
+                if ((yawHeading & ACTOR_TRANSFORM_ANGLE_MASK) == ACTOR_400500_CRAWL_YAW_NEGATIVE_X) {
+                    requestWork              = task->work;
+                    requestWork->animRate    = ACTOR_400500_CRAWL_RATE;
+                    requestWork->animId      = ACTOR_400500_ANIM_CRAWL;
+                    requestWork->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
+                    work->subState           = ACTOR_400500_CRAWL_STEP_NEGATIVE_X;
                     return;
                 }
-                if (((0xC00 - heading) << 0x14) > 0) {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_UP;
+                if (((ACTOR_400500_CRAWL_YAW_NEGATIVE_X - yawHeading) << 0x14) > 0) {
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
                 } else {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
                 }
             }
-            work2->turnStarted = 0;
+            requestWork->turnStarted = 0;
         }
     }
 }
 
-static void func_actor_400500_80136EB8(Task* arg0)
+/// Crawls toward +Z on the fixed-X route and reverses at the Z end or target.
+///
+/// Requires live Stalker work/root and current target and slot results. Pending
+/// state changes, recoil and active turns preempt movement. The root stays on
+/// X = 16500; the caller advances ordinary animation playback.
+static void _actor400500TickCrawlPositiveZ(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    GfxCoord*                    coord;
-    s32                          flag;
-    s32                          flag2;
-    s32                          heading;
+    _Actor400500GrayStalkerWork* requestWork;
+    GfxCoord*                    rootCoord;
+    s32                          knockdownTaken;
+    s32                          fallTaken;
+    s32                          yawHeading;
 
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->knockdownPending != 0) {
-        work->knockdownPending = 0;
-        _actor400500EnterState(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag == 0) {
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->ceilingFallPending != 0) {
-            work2->ceilingFallPending = 0;
-            if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
-                flag2 = 0;
-            } else {
-                _actor400500EnterState(arg0, ACTOR_400500_STATE_FALL);
-                flag2 = 1;
-            }
-        } else {
-            flag2 = 0;
-        }
-        if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
-            ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
-            heading = (u16)work->yaw;
-            if (heading & 0xFFF) {
-                if (((0 - heading) << 0x14) > 0) {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_UP;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    // Consume preempting actions before changing the route or pinning its axis.
+    knockdownTaken = _actor400500TakeKnockdown(task);
+    if (knockdownTaken == 0) {
+        ACTOR_400500_TAKE_CEILING_FALL(task, requestWork, fallTaken);
+        if ((fallTaken == 0) && ((_actor400500TryStartAttack(task) << 0x10) == 0) &&
+            ((_actor400500HandleHeavyHitReaction(task) << 0x10) == 0) &&
+            ((_actor400500TickTurn(task) << 0x10) == 0)) {
+            yawHeading = (u16)work->yaw;
+            if (yawHeading & ACTOR_TRANSFORM_ANGLE_MASK) {
+                if (((ACTOR_400500_CRAWL_YAW_POSITIVE_Z - yawHeading) << 0x14) > 0) {
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
                 } else {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
                 }
-                work2->turnStarted = 0;
+                requestWork->turnStarted = 0;
             } else {
-                if (work->zone != 3) {
-                    if (work->zone == 6) {
-                        work->subState = 7;
+                if (work->zone != ACTOR_400500_CRAWL_ZONE_Z_SEGMENT) {
+                    if (work->zone == ACTOR_400500_CRAWL_ZONE_Z_END) {
+                        work->subState = ACTOR_400500_CRAWL_STEP_TURN_NEGATIVE_Z;
                     }
                 } else if ((work->attackCooling == 0) && (work->toTarget.vz < 0)) {
-                    work->subState = 7;
+                    work->subState = ACTOR_400500_CRAWL_STEP_TURN_NEGATIVE_Z;
                 }
-                _actor400500TickCrawl(arg0);
+                _actor400500TickCrawl(task);
             }
-            coord->coord.t[0] = 0x4074;
+            rootCoord->coord.t[0] = ACTOR_400500_CRAWL_LINE_X;
         }
     }
 }
 
-static void func_actor_400500_80137034(Task* arg0)
+/// Turns the Z-route crawl toward -Z, then restarts the crawl clip.
+///
+/// Requires live Stalker work and current target and slot results. Pending state
+/// changes, recoil and active turns take priority. At the Z-end zone the target's
+/// X side chooses the turn; elsewhere the wrapped 12-bit yaw difference does.
+static void _actor400500TickCrawlTurnNegativeZ(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    s32                          flag;
-    s32                          flag2;
-    s32                          heading;
+    _Actor400500GrayStalkerWork* requestWork;
+    s32                          knockdownTaken;
+    s32                          fallTaken;
+    s32                          yawHeading;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
-    if (work->knockdownPending != 0) {
-        work->knockdownPending = 0;
-        _actor400500EnterState(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag == 0) {
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->ceilingFallPending != 0) {
-            work2->ceilingFallPending = 0;
-            if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
-                flag2 = 0;
-            } else {
-                _actor400500EnterState(arg0, ACTOR_400500_STATE_FALL);
-                flag2 = 1;
-            }
-        } else {
-            flag2 = 0;
-        }
-        if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
-            ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
-            heading = (u16)work->yaw;
-            if ((heading & 0xFFF) == 0x800) {
-                work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->animRate    = 0x18;
-                work2->animId      = 2;
-                work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-                work->subState     = 8;
+    work = task->work;
+    // Consume preempting actions before changing the route or pinning its axis.
+    knockdownTaken = _actor400500TakeKnockdown(task);
+    if (knockdownTaken == 0) {
+        ACTOR_400500_TAKE_CEILING_FALL(task, requestWork, fallTaken);
+        if ((fallTaken == 0) && ((_actor400500TryStartAttack(task) << 0x10) == 0) &&
+            ((_actor400500HandleHeavyHitReaction(task) << 0x10) == 0) &&
+            ((_actor400500TickTurn(task) << 0x10) == 0)) {
+            yawHeading = (u16)work->yaw;
+            if ((yawHeading & ACTOR_TRANSFORM_ANGLE_MASK) == ACTOR_400500_CRAWL_YAW_NEGATIVE_Z) {
+                _actor400500SetAnim(task, ACTOR_400500_ANIM_CRAWL, ACTOR_400500_CRAWL_RATE);
+                work->subState = ACTOR_400500_CRAWL_STEP_NEGATIVE_Z;
                 return;
             }
-            if ((s16)work->playerZone == 6) {
+            if ((s16)work->playerZone == ACTOR_400500_CRAWL_ZONE_Z_END) {
                 if (work->toTarget.vx > 0) {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_UP;
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
                 } else {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
                 }
-            } else if (((0x800 - heading) << 0x14) > 0) {
-                work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->turnRequest = ACTOR_400500_TURN_YAW_UP;
+            } else if (((ACTOR_400500_CRAWL_YAW_NEGATIVE_Z - yawHeading) << 0x14) > 0) {
+                requestWork              = task->work;
+                requestWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
             } else {
-                work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                requestWork              = task->work;
+                requestWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
             }
-            work2->turnStarted = 0;
+            requestWork->turnStarted = 0;
         }
     }
 }
 
-static void func_actor_400500_801371A0(Task* arg0)
+/// Crawls toward -Z, choosing an X-route turn at the corner or reversing at the target.
+///
+/// Requires live Stalker work/root and current target and slot results. Pending
+/// state changes, recoil and active turns preempt movement. The root stays on
+/// X = 16500; the caller advances ordinary animation playback.
+static void _actor400500TickCrawlNegativeZ(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    GfxCoord*                    coord;
-    s32                          flag;
-    s32                          flag2;
-    s32                          heading;
+    _Actor400500GrayStalkerWork* requestWork;
+    GfxCoord*                    rootCoord;
+    s32                          knockdownTaken;
+    s32                          fallTaken;
+    s32                          yawHeading;
 
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->knockdownPending != 0) {
-        work->knockdownPending = 0;
-        _actor400500EnterState(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag == 0) {
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->ceilingFallPending != 0) {
-            work2->ceilingFallPending = 0;
-            if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
-                flag2 = 0;
-            } else {
-                _actor400500EnterState(arg0, ACTOR_400500_STATE_FALL);
-                flag2 = 1;
-            }
-        } else {
-            flag2 = 0;
-        }
-        if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
-            ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
-            heading = (u16)work->yaw;
-            if ((heading & 0xFFF) != 0x800) {
-                if (((0x800 - heading) << 0x14) > 0) {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_UP;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    // Consume preempting actions before changing the route or pinning its axis.
+    knockdownTaken = _actor400500TakeKnockdown(task);
+    if (knockdownTaken == 0) {
+        ACTOR_400500_TAKE_CEILING_FALL(task, requestWork, fallTaken);
+        if ((fallTaken == 0) && ((_actor400500TryStartAttack(task) << 0x10) == 0) &&
+            ((_actor400500HandleHeavyHitReaction(task) << 0x10) == 0) &&
+            ((_actor400500TickTurn(task) << 0x10) == 0)) {
+            yawHeading = (u16)work->yaw;
+            if ((yawHeading & ACTOR_TRANSFORM_ANGLE_MASK) != ACTOR_400500_CRAWL_YAW_NEGATIVE_Z) {
+                if (((ACTOR_400500_CRAWL_YAW_NEGATIVE_Z - yawHeading) << 0x14) > 0) {
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
                 } else {
-                    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                    work2->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                    requestWork              = task->work;
+                    requestWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
                 }
-                work2->turnStarted = 0;
+                requestWork->turnStarted = 0;
             } else {
                 switch (work->zone) {
-                    case 2:
-                        if (coord->coord.t[2] < -0x209E) {
-                            work->subState = 9;
+                    case ACTOR_400500_CRAWL_ZONE_CORNER:
+                        if (rootCoord->coord.t[2] < ACTOR_400500_CRAWL_LINE_Z) {
+                            work->subState = ACTOR_400500_CRAWL_STEP_CORNER_TURN_NEGATIVE_X;
                         }
                         break;
-                    case 3:
+                    case ACTOR_400500_CRAWL_ZONE_Z_SEGMENT:
                         if ((work->attackCooling == 0) && (work->toTarget.vz > 0)) {
-                            work->subState = 0xA;
+                            work->subState = ACTOR_400500_CRAWL_STEP_TURN_POSITIVE_Z;
                         }
                         break;
                 }
-                _actor400500TickCrawl(arg0);
+                _actor400500TickCrawl(task);
             }
-            coord->coord.t[0] = 0x4074;
+            rootCoord->coord.t[0] = ACTOR_400500_CRAWL_LINE_X;
         }
     }
 }
 
-static void func_actor_400500_80137338(Task* arg0)
+/// Turns from the Z-route corner toward -X, then restarts the X-route crawl.
+///
+/// Requires live Stalker work and current target and slot results. Pending state
+/// changes, recoil and active turns take priority. Yaw uses 4096 units per turn;
+/// the signed wrapped 12-bit difference chooses the next requested turn.
+static void _actor400500TickCrawlCornerTurnNegativeX(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    _Actor400500GrayStalkerWork* work3;
-    _Actor400500GrayStalkerWork* work4;
-    s32                          flag;
-    s32                          flag2;
-    s32                          heading;
+    _Actor400500GrayStalkerWork* requestWork;
+    _Actor400500GrayStalkerWork* increasingTurnWork;
+    _Actor400500GrayStalkerWork* decreasingTurnWork;
+    s32                          knockdownTaken;
+    s32                          fallTaken;
+    s32                          yawHeading;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
-    if (work->knockdownPending != 0) {
-        work->knockdownPending = 0;
-        _actor400500EnterState(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag == 0) {
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->ceilingFallPending != 0) {
-            work2->ceilingFallPending = 0;
-            if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
-                flag2 = 0;
-            } else {
-                _actor400500EnterState(arg0, ACTOR_400500_STATE_FALL);
-                flag2 = 1;
-            }
-        } else {
-            flag2 = 0;
-        }
-        if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
-            ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
-            heading = (u16)work->yaw;
-            if ((heading & 0xFFF) == 0xC00) {
-                work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->animRate    = 0x18;
-                work2->animId      = 2;
-                work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-                work->subState     = 3;
+    work = task->work;
+    // Consume preempting actions before changing the route or pinning its axis.
+    knockdownTaken = _actor400500TakeKnockdown(task);
+    if (knockdownTaken == 0) {
+        ACTOR_400500_TAKE_CEILING_FALL(task, requestWork, fallTaken);
+        if ((fallTaken == 0) && ((_actor400500TryStartAttack(task) << 0x10) == 0) &&
+            ((_actor400500HandleHeavyHitReaction(task) << 0x10) == 0) &&
+            ((_actor400500TickTurn(task) << 0x10) == 0)) {
+            yawHeading = (u16)work->yaw;
+            if ((yawHeading & ACTOR_TRANSFORM_ANGLE_MASK) == ACTOR_400500_CRAWL_YAW_NEGATIVE_X) {
+                _actor400500SetAnim(task, ACTOR_400500_ANIM_CRAWL, ACTOR_400500_CRAWL_RATE);
+                work->subState = ACTOR_400500_CRAWL_STEP_NEGATIVE_X;
                 return;
             }
-            if (((0xC00 - heading) << 0x14) > 0) {
-                work3              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work3->turnRequest = ACTOR_400500_TURN_YAW_UP;
-                work3->turnStarted = 0;
+            if (((ACTOR_400500_CRAWL_YAW_NEGATIVE_X - yawHeading) << 0x14) > 0) {
+                increasingTurnWork              = task->work;
+                increasingTurnWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
+                increasingTurnWork->turnStarted = 0;
             } else {
-                work4              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work4->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
-                work4->turnStarted = 0;
+                decreasingTurnWork              = task->work;
+                decreasingTurnWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                decreasingTurnWork->turnStarted = 0;
             }
         }
     }
 }
 
-static void func_actor_400500_80137478(Task* arg0)
+/// Turns the Z-route crawl toward +Z, then restarts the crawl clip.
+///
+/// Requires live Stalker work and current target and slot results. Pending state
+/// changes, recoil and active turns take priority. Yaw uses 4096 units per turn;
+/// the signed wrapped 12-bit difference chooses the next requested turn.
+static void _actor400500TickCrawlTurnPositiveZ(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    _Actor400500GrayStalkerWork* work3;
-    _Actor400500GrayStalkerWork* work4;
-    s32                          flag;
-    s32                          flag2;
-    s32                          heading;
+    _Actor400500GrayStalkerWork* requestWork;
+    _Actor400500GrayStalkerWork* increasingTurnWork;
+    _Actor400500GrayStalkerWork* decreasingTurnWork;
+    s32                          knockdownTaken;
+    s32                          fallTaken;
+    s32                          yawHeading;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
-    if (work->knockdownPending != 0) {
-        work->knockdownPending = 0;
-        _actor400500EnterState(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag == 0) {
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->ceilingFallPending != 0) {
-            work2->ceilingFallPending = 0;
-            if (work2->posture & ACTOR_400500_POSTURE_ON_FLOOR) {
-                flag2 = 0;
-            } else {
-                _actor400500EnterState(arg0, ACTOR_400500_STATE_FALL);
-                flag2 = 1;
-            }
-        } else {
-            flag2 = 0;
-        }
-        if ((flag2 == 0) && ((_actor400500TryStartAttack(arg0) << 0x10) == 0) &&
-            ((_actor400500HandleHeavyHitReaction(arg0) << 0x10) == 0) &&
-            ((_actor400500TickTurn(arg0) << 0x10) == 0)) {
-            heading = (u16)work->yaw;
-            if ((heading & 0xFFF) == 0) {
-                work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->animRate    = 0x18;
-                work2->animId      = 2;
-                work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-                work->subState     = 6;
+    work = task->work;
+    // Consume preempting actions before changing the route or pinning its axis.
+    knockdownTaken = _actor400500TakeKnockdown(task);
+    if (knockdownTaken == 0) {
+        ACTOR_400500_TAKE_CEILING_FALL(task, requestWork, fallTaken);
+        if ((fallTaken == 0) && ((_actor400500TryStartAttack(task) << 0x10) == 0) &&
+            ((_actor400500HandleHeavyHitReaction(task) << 0x10) == 0) &&
+            ((_actor400500TickTurn(task) << 0x10) == 0)) {
+            yawHeading = (u16)work->yaw;
+            if ((yawHeading & ACTOR_TRANSFORM_ANGLE_MASK) == ACTOR_400500_CRAWL_YAW_POSITIVE_Z) {
+                _actor400500SetAnim(task, ACTOR_400500_ANIM_CRAWL, ACTOR_400500_CRAWL_RATE);
+                work->subState = ACTOR_400500_CRAWL_STEP_POSITIVE_Z;
                 return;
             }
-            if (((0 - heading) << 0x14) > 0) {
-                work3              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work3->turnRequest = ACTOR_400500_TURN_YAW_UP;
-                work3->turnStarted = 0;
+            if (((ACTOR_400500_CRAWL_YAW_POSITIVE_Z - yawHeading) << 0x14) > 0) {
+                increasingTurnWork              = task->work;
+                increasingTurnWork->turnRequest = ACTOR_400500_TURN_YAW_UP;
+                increasingTurnWork->turnStarted = 0;
             } else {
-                work4              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work4->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
-                work4->turnStarted = 0;
+                decreasingTurnWork              = task->work;
+                decreasingTurnWork->turnRequest = ACTOR_400500_TURN_YAW_DOWN;
+                decreasingTurnWork->turnStarted = 0;
             }
         }
     }
 }
+
+#undef ACTOR_400500_TAKE_CEILING_FALL
 
 static void func_actor_400500_801375B8(Task* arg0)
 {
@@ -4232,8 +4192,12 @@ static inline void _actor400500RequestCloakFade(Task* task, s32 cloakRequest)
 
 /// Pre-multiplies and normalizes a Q12 rotation using caller-owned matrix storage.
 ///
-/// All matrices must be live, word-aligned and separate for this call. Only the normalized
-/// 3x3 is valid; copying the whole temporary leaves other bytes unspecified.
+/// Requires separate live, word-aligned matrices; `rotation` is writable and
+/// `normalizedRotation` is caller-owned temporary storage. The GTE multiplies
+/// `parentRotation * rotation`, then normalization writes the nine signed Q12
+/// coefficients. The complete MATRIX copy also transfers the temporary's
+/// untouched translation/alignment bytes: only the resulting 3x3 is valid.
+/// Retains no pointer and clobbers GTE rotation/product registers.
 static inline void _actor400500PreMultiplyNormalizedRotation(const MATRIX* parentRotation, MATRIX* rotation, MATRIX* normalizedRotation)
 {
     gte_SetRotMatrix(parentRotation);
@@ -4488,7 +4452,7 @@ static const TaskFuncTable3 D_actor_400500_80131EE4 = { {
 static const TaskFuncTable3 D_actor_400500_80131EF0 = { {
     func_actor_400500_8013BE50,
     func_actor_400500_8013BEC4,
-    func_actor_400500_801387E8,
+    _actor400500TickCeilingArmStrike,
 } };
 
 /// Handlers `func_actor_400500_801385D0` runs by `deathStep`, instead of the
@@ -4531,56 +4495,46 @@ static void func_actor_400500_801385D0(Task* arg0)
     _actor400500TickAnim(arg0);
 }
 
-static void func_actor_400500_801387E8(Task* arg0)
+/// Times the ceiling strike's right-arm contacts and return to crawling.
+///
+/// Requires the live Stalker work, composed model root, enemy placement and
+/// right-arm child. Increments a wrapping halfword tick counter, sounds and
+/// enables the two attack spheres at tick 11, and retracts the arm from tick 18.
+/// Once fully retracted, hides the child and disables the spheres. An animation
+/// boundary returns to crawl, requests a hide when permitted and starts a
+/// 60-tick attack cooldown; the caller advances playback.
+static void _actor400500TickCeilingArmStrike(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    _Actor400500GrayStalkerWork* work3;
-    _Actor400500GrayStalkerWork* hit;
-    MATRIX                       rot;
-    s32                          soundId;
-    s32                          pan;
-    s32                          cond;
-    s32                          flag;
-    u16                          frame;
+    MATRIX                       unusedRotation; // Untouched storage retained in the handler's stack frame.
+    s32                          placedSoundId;
+    s32                          animationEnded;
+    u16                          strikeFrame;
 
-    work              = (_Actor400500GrayStalkerWork*)arg0->work;
-    frame             = work->stateFrames + 1;
-    work->stateFrames = frame;
-    if ((s16)frame == 0xB) {
+    work              = task->work;
+    strikeFrame       = work->stateFrames + 1;
+    work->stateFrames = strikeFrame;
+    // Contact activation precedes the timed retraction and animation completion.
+    if ((s16)strikeFrame == ACTOR_400500_CEILING_STRIKE_CONTACT_TICK) {
         work->rightArmOuter.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->rightArmInner.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        soundId                    = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050005;
-        pan                        = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        placedSoundId              = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_ARM_STRIKE;
+        _actor400500EnqueueRootSound(task, placedSoundId);
     }
-    if ((s16)work->stateFrames >= 0x12) {
+    if ((s16)work->stateFrames >= ACTOR_400500_CEILING_STRIKE_RETURN_TICK) {
         if ((s16)work->armSwingAngle != 0) {
-            work->armSwingAngle = (u16)work->armSwingAngle - 0x80;
+            work->armSwingAngle = (u16)work->armSwingAngle - ACTOR_400500_ARM_RETURN_ANGLE_STEP;
         } else {
-            ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[1]->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->rightArmOuter.flags                                                &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            work->rightArmInner.flags                                                &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            ((_Actor400500GrayStalkerWork*)task->work)->armTasks[ACTOR_400500_ARM_RIGHT]->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->rightArmOuter.flags                                                                     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->rightArmInner.flags                                                                     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
     }
-    hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work2->state    = ACTOR_400500_STATE_CRAWL;
-        work2->subState = 0;
-        work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (((work3->cloakRequest >= 0) || ((u8)work3->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK)) && (work3->hideCooldown == 0)) {
-            flag                = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_HIDE;
-            work3->cloakRequest = flag;
-            work3->cloakPhase   = 0;
-        }
-        work->attackCooldown = 0x3C;
+    animationEnded = _actor400500HasAnimBoundary(task);
+    if (animationEnded) {
+        _actor400500SetState(task, ACTOR_400500_STATE_CRAWL, ACTOR_400500_CRAWL_STEP_SELECT);
+        _actor400500RequestCloakFade(task, ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_HIDE);
+        work->attackCooldown = ACTOR_400500_ATTACK_COOLDOWN_TICKS;
     }
 }
 
@@ -4588,7 +4542,7 @@ static void func_actor_400500_801387E8(Task* arg0)
 static const TaskFuncTable5 D_actor_400500_80131F08 = { {
     func_actor_400500_8013BFB0,
     func_actor_400500_8013C018,
-    func_actor_400500_80138B78,
+    _actor400500TickFloorArmStrike,
     func_actor_400500_80138CE8,
     func_actor_400500_80138DC4,
 } };
@@ -4619,43 +4573,42 @@ static void func_actor_400500_8013899C(Task* arg0)
     ((_Actor400500GrayStalkerWork*)arg0->work)->ceilingFallPending = 0;
 }
 
-static void func_actor_400500_80138B78(Task* arg0)
+/// Times the floor strike's left-arm contacts and advances to its recovery step.
+///
+/// Requires the live Stalker work, composed model root, enemy placement and
+/// left-arm child. Increments a wrapping halfword tick counter, sounds and
+/// enables the two attack spheres at tick 13, and retracts the arm from tick 16.
+/// Once fully retracted, hides the child and disables the spheres. An animation
+/// boundary advances the sub-state; the caller advances playback.
+static void _actor400500TickFloorArmStrike(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* hit;
-    MATRIX                       rot;
-    s32                          soundId;
-    s32                          pan;
-    s32                          cond;
-    u16                          frame;
+    MATRIX                       unusedRotation; // Untouched storage retained in the handler's stack frame.
+    s32                          placedSoundId;
+    s32                          animationEnded;
+    u16                          strikeFrame;
 
-    work              = (_Actor400500GrayStalkerWork*)arg0->work;
-    frame             = work->stateFrames + 1;
-    work->stateFrames = frame;
-    if ((s16)frame == 0xD) {
+    work              = task->work;
+    strikeFrame       = work->stateFrames + 1;
+    work->stateFrames = strikeFrame;
+    // Contact activation precedes the timed retraction and animation completion.
+    if ((s16)strikeFrame == ACTOR_400500_FLOOR_STRIKE_CONTACT_TICK) {
         work->leftArmOuter.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->leftArmInner.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        soundId                   = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050005;
-        pan                       = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        placedSoundId             = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_ARM_STRIKE;
+        _actor400500EnqueueRootSound(task, placedSoundId);
     }
-    if ((s16)work->stateFrames >= 0x10) {
+    if ((s16)work->stateFrames >= ACTOR_400500_FLOOR_STRIKE_RETURN_TICK) {
         if ((s16)work->armSwingAngle != 0) {
-            work->armSwingAngle = (u16)work->armSwingAngle - 0x80;
+            work->armSwingAngle = (u16)work->armSwingAngle - ACTOR_400500_ARM_RETURN_ANGLE_STEP;
         } else {
-            ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[0]->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->leftArmOuter.flags                                                 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            work->leftArmInner.flags                                                 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            ((_Actor400500GrayStalkerWork*)task->work)->armTasks[ACTOR_400500_ARM_LEFT]->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->leftArmOuter.flags                                                                     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            work->leftArmInner.flags                                                                     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
     }
-    hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    animationEnded = _actor400500HasAnimBoundary(task);
+    if (animationEnded) {
         work->subState = work->subState + 1;
     }
 }

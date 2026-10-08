@@ -3667,7 +3667,7 @@ if (flag == 0) {
     if (flag2 == 0 && ...) {
 ```
 
-`func_actor_400500_80136864` (`base_1.c` 89.4% one flag in `$a0`, `base_2.c`
+`_actor400500TickCrawlTurnNegativeX` (`base_1.c` 89.4% one flag in `$a0`, `base_2.c`
 99.7% two flags / leftover `$a0` on the shared `work` reload, `base_3.c`
 100%; preprocessed
 `c94bebb11bdc205b8397160000a8a22a0347e2613b0ad275a84bc36696387834`).
@@ -4101,7 +4101,7 @@ work2->state = val;
 
 `if (flags & 1) { A06 = 8; } else { A06 = 7; }` inverts to `beqz` and stores in
 each arm. The shared `sh $v0` needs the temp. Example:
-`func_actor_400500_801369A4`. Inputs: `base_2.i`
+`_actor400500TickCrawlNegativeX`. Inputs: `base_2.i`
 `d6fa594d680cbd4a4c1a1545385cbdcf58206e1d1a26e01c36f76f2a00d12bd8`,
 `base_3.i`
 `403131c1eb39b3e99712c3d36d375cab3aef9f9a5a796f6bf948e9f3aeae268a`.
@@ -71893,7 +71893,7 @@ if (flag == 0) {
     if (flag2 == 0 && ...) {
 ```
 
-`func_actor_400500_80136864` (`base_1.c` 89.4% one flag in `$a0`, `base_2.c`
+`_actor400500TickCrawlTurnNegativeX` (`base_1.c` 89.4% one flag in `$a0`, `base_2.c`
 99.7% two flags / leftover `$a0` on the shared `work` reload, `base_3.c`
 100%; preprocessed
 `c94bebb11bdc205b8397160000a8a22a0347e2613b0ad275a84bc36696387834`).
@@ -72018,7 +72018,7 @@ work2->state = val;
 
 `if (flags & 1) { A06 = 8; } else { A06 = 7; }` inverts to `beqz` and stores in
 each arm. The shared `sh $v0` needs the temp. Example:
-`func_actor_400500_801369A4`. Inputs: `base_2.i`
+`_actor400500TickCrawlNegativeX`. Inputs: `base_2.i`
 `d6fa594d680cbd4a4c1a1545385cbdcf58206e1d1a26e01c36f76f2a00d12bd8`,
 `base_3.i`
 `403131c1eb39b3e99712c3d36d375cab3aef9f9a5a796f6bf948e9f3aeae268a`.
@@ -133909,7 +133909,7 @@ to keep the overlay ID word ahead of the generated table; the unscoped build
 succeeded.
 
 
-### Literal stores need a common trailing store in the default arm too (func_actor_400500_801361EC, 2026-09-19)
+### Literal stores need a common trailing store in the default arm too (_actor400500SelectCrawlRoute, 2026-09-19)
 
 A switch result carried in `next` scored 99.007% (`regs=14 insert=1 delete=1`). The early jump pass hoisted result assignments into comparison blocks; local comparison temps occupied v0, so the global result hard-conflicted with v0 and received v1. Writing literal field stores in each arm avoids this overlap, but an earlier retry stopped at 91.227% because its default arm wrote the field **before** `coords[11].composeStamp = 0`. The stores were not a common trailing operation.
 
@@ -133917,7 +133917,7 @@ The successful planned edit uses literal `work->subState = N` in every arm and p
 
 When per-arm stores fix register allocation but fail to merge, inspect the final operation of **every** predecessor, including a long default arm. Do not conclude that literal stores are exhausted from the register improvement alone. The current result verifies both the v0 allocation and the late common-store merge; the old direct-store score is historical, not a current paired rebuild.
 
-Evidence: `nonmatchings/func_actor_400500_801361EC-vacuum/{LEARNINGS.md,experiments.jsonl,base_1.i.lreg,base_1.i.greg,base_1.i.jump2,base_1.i.dbr}`. Bundled compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; baseline input `1a9e00acf3c4f419befb0a0f60793afab3c01a3a862929e36db4c95ee250a2eb`; matching base_1 input `7562dc7dcad0f7246cb53606c7a330bf41b86931b255a6b815a6855b9c86d4ec`. The integrated base_2 passed the unscoped build-and-verify check.
+Evidence: `nonmatchings/_actor400500SelectCrawlRoute-vacuum/{LEARNINGS.md,experiments.jsonl,base_1.i.lreg,base_1.i.greg,base_1.i.jump2,base_1.i.dbr}`. Bundled compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; baseline input `1a9e00acf3c4f419befb0a0f60793afab3c01a3a862929e36db4c95ee250a2eb`; matching base_1 input `7562dc7dcad0f7246cb53606c7a330bf41b86931b255a6b815a6855b9c86d4ec`. The integrated base_2 passed the unscoped build-and-verify check.
 
 ## A call-separated subobject pointer survives combine, then sched1 can sink it (_actor400500TickScriptedCrawl, 2026-09-19)
 
@@ -153513,7 +153513,7 @@ that step was inferred from the result, not read out of a dump.
   with the other statements left on `D.node.x`; the old `GfxMatrix* mtx` into
   the `packed` view goes.
 - Pointer locals that had to stay, passed as `&p->mat`:
-  `func_actor_400500_801361EC` (`src`), `func_actor_400600_801356E0` and
+  `_actor400500SelectCrawlRoute` (`rotation`), `func_actor_400600_801356E0` and
   `func_actor_405800_80135780` (`pm`, `pm2`). In the last two the copy that
   follows also reads through the pointer, so they are not the helper above.
 - A TU without `main/gfx.h` compiles the call as an implicit declaration:
