@@ -50,8 +50,20 @@ s32 neoArkForestZoneIgnoreCommandMessage(Task* task, s32 messageId, s32 commandI
 
 s32 func_neo_ark_forest_zone_8017D958(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_neo_ark_forest_zone_8017DA14(Task*, s32, s32, s32);
+/// Forwards forest actor events to the room's roaming-enemy pool B.
+///
+/// Installed for `ROOM_MESSAGE_ACTOR_EVENT`; both payload words pass through
+/// unchanged and `unusedTask` is ignored. Returns -1 before the pool task
+/// exists, zero when it has no message table, or the pool's reply (1 after
+/// extending its arrival cooldown). The receiver and overlay must stay live
+/// through synchronous dispatch; no payload is retained here.
+s32 neoArkForestZoneForwardActorEvent(Task* unusedTask, s32 messageId, s32 eventValue, s32 secondArg);
 
-void func_neo_ark_forest_zone_8017DA48(void);
+/// Requests the forest pool's placed-enemy ambush from the first-visit script.
+///
+/// Sends forest command 2 to the live pool-B task, reviving placed actor 0
+/// from reserve when available. Does nothing before that task exists and
+/// ignores its reply. The command storage is borrowed through dispatch.
+void neoArkForestZoneStartRoamerAmbush(void);
 
 #endif // SRC_ROOMS_NEO_ARK_FOREST_ZONE_NEO_ARK_FOREST_ZONE_PRIVATE_H

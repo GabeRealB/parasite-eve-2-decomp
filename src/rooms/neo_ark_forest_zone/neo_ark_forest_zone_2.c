@@ -150,7 +150,7 @@ TaskMessageEntry D_neo_ark_forest_zone_80181DC8[6] = {
     { NEO_ARK_FOREST_ZONE_MESSAGE_USE_KEY_ITEM, neoArkForestZoneRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_forest_zone_8017D958 },
     { ROOM_MESSAGE_COMMAND, neoArkForestZoneIgnoreCommandMessage },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_forest_zone_8017DA14 },
+    { ROOM_MESSAGE_ACTOR_EVENT, neoArkForestZoneForwardActorEvent },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -194,7 +194,7 @@ EvsCommand D_neo_ark_forest_zone_80181E6C[23] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .pointer = &D_neo_ark_forest_zone_80181E38 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_neo_ark_forest_zone_8017DA48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = neoArkForestZoneStartRoamerAmbush }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -578,7 +578,7 @@ TaskDesc D_neo_ark_forest_zone_80182E24 = { { { TASK_BODY_NONE, 32 } }, func_neo
 
 static void func_neo_ark_forest_zone_80180D24(Task* arg0);
 
-static void func_neo_ark_forest_zone_80181508(Task* arg0);
+static void _neoArkForestZoneFinishRoamerPoolBState(Task* task);
 
 #include "../../shared/roaming_enemies_bank_retreat.inc.c"
 
@@ -762,16 +762,20 @@ void func_neo_ark_forest_zone_80181430(Task* task)
 #include "../../shared/roaming_enemies_latch_request.inc.c"
 #undef ROAMER_LATCH_SPAWN_REQUEST
 
-static void func_neo_ark_forest_zone_80181508(Task* arg0)
+/// Advances the forest pool-B controller from its finishing state to teardown.
+///
+/// State 2 only increments the task's signed state; state 3 releases it on the
+/// next dispatch. This state does not clear shared reserves or release actors.
+static void _neoArkForestZoneFinishRoamerPoolBState(Task* task)
 {
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// State table of the second arming task, indexed by `Task::state`.
 static const TaskFuncTable4 D_neo_ark_forest_zone_8017D634 = { {
     _roamerArmPoolB,
     func_neo_ark_forest_zone_80180D24,
-    func_neo_ark_forest_zone_80181508,
+    _neoArkForestZoneFinishRoamerPoolBState,
     taskKill,
 } };
 

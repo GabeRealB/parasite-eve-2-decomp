@@ -60,8 +60,8 @@ TaskDesc D_neo_ark_garden_801813A4 = { { { TASK_BODY_NONE, 192 } }, waterDistort
 
 TaskMessageEntry D_neo_ark_garden_801813B0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_garden_8017E848 },
-    { 5105, func_neo_ark_garden_8017E840 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_garden_8017E9AC },
+    { ROOM_MESSAGE_USE_KEY_ITEM, neoArkGardenRejectKeyItemMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, neoArkGardenIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, func_neo_ark_garden_8017E8DC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

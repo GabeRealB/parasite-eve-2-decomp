@@ -33,7 +33,11 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task*);
 
 void func_neo_ark_eve_access_tunnel_8017DB18(Task*);
 
-s32 func_neo_ark_eve_access_tunnel_8017DC64(Task*, s32, s32, s32);
+/// Refuses key-item use in the EVE access tunnel without changing room state.
+///
+/// Installed for `ROOM_MESSAGE_USE_KEY_ITEM`. All arguments are ignored;
+/// returns `ROOM_KEY_ITEM_USE_REFUSED` so the item menu shows its refusal.
+s32 neoArkEveAccessTunnelRejectKeyItemMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
 
 s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
@@ -41,7 +45,12 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task*, s32, s32, s32);
 
 s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
-s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task*, s32, s32, s32);
+/// Plays the EVE access tunnel's room-bank script for sound cue 1.
+///
+/// Installed for `ROOM_MESSAGE_SOUND`; `cueKey` is the CAP sound selector.
+/// Other keys do nothing. Always returns zero; the remaining arguments are
+/// ignored. Queues the sound with zero pan and depth while the room is loaded.
+s32 neoArkEveAccessTunnelSoundMessage(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
 /// Records the tunnel's CAP completion in the supplied game-flag nibble.
 ///

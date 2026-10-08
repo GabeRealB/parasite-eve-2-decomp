@@ -90614,9 +90614,9 @@ intended way to get a store in a fresh worktree, not a stray write.
 A room message handler that cues one sound is one compare and one call:
 
 ```c
-s32 func_neo_ark_eve_access_tunnel_8017DE9C(s32 arg0, s32 arg1, s32 arg2)
+s32 neoArkEveAccessTunnelSoundMessage(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg)
 {
-    if (arg2 == 1) {
+    if (cueKey == 1) {
         sndEvtRequestScriptStart(0x55080000 | 1, 0, 0);
     }
     return 0;
@@ -91569,14 +91569,14 @@ promotion later.
 Scratch `nonmatchings/func_dryfield_night_driveway_8017DAF4-vacuum`; target
 SHA256 `36881b06e1c0fa5cf8e07e2028a24ea9d4ea56d803cc1b88e2a910bf50dc1bbc`,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## A switch's shared tail belongs after the switch, not at the first case (func_neo_ark_island_8017EA34, 2026-09-16)
+## A switch's shared tail belongs after the switch, not at the first case (neoArkIslandSoundMessage, 2026-09-16)
 
 When two cases of a small switch assign a value and then make the *same* call,
 m2c reconstructs it as the call written inside the first case with a label on
 it, and a `goto` to that label from the later cases:
 
 ```c
-    switch (arg2) {
+    switch (cueKey) {
     case 3:
         var_a0 = 0x550E0003;
 block_6:
@@ -91602,7 +91602,7 @@ Move the call to the switch's real join point, after the closing brace under its
 own label, and give the *earlier* cases an explicit `goto`:
 
 ```c
-    switch (arg2) {
+    switch (cueKey) {
     case 3:
         id = 0x550E0003;
         goto play;
@@ -91662,7 +91662,7 @@ Do not chase `switch` vs `if` for the dispatch when only **one** case is present
 `switch (*(u16*)src) { case 0x1E: ...; return 0; } return 1;` and
 `if (*(u16*)src == 0x1E) { ...; return 0; } return 1;` compile to
 **byte-identical** assembly here - a controlled variation confirmed it, both at
-100.00%. Only the multi-case neighbour `func_neo_ark_island_8017EA34` needs the
+100.00%. Only the multi-case neighbour `neoArkIslandSoundMessage` needs the
 `switch` (see "A switch's shared tail belongs after the switch"); the load-bearing
 shape in both is just that the return value is preset once and every exit shares
 the epilogue.

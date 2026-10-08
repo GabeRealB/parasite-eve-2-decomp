@@ -67,3 +67,6 @@ waterDistortBandTask = 0x8017E2A0; // type:func
 waterRefractionTask = 0x8017D64C; // type:func
 glowDrawPulsingStar = 0x8017EFB8; // type:func
 _neoArkGardenDrawRotatingSquare = 0x8017f42c; // type:func
+neoArkGardenRejectKeyItemMessage = 0x8017e840; // type:func
+neoArkGardenIgnoreActionMessage = 0x8017e9ac; // type:func
+_neoArkGardenRoomIdleState = 0x8017ea34; // type:func

@@ -35,14 +35,14 @@ extern TaskMessageEntry D_neo_ark_altar_8017EF98[];
 extern TaskDesc D_neo_ark_altar_8017EF8C;
 
 static void func_neo_ark_altar_8017D974(Task* task);
-static void func_neo_ark_altar_8017D9E0(Task* task);
+static void _neoArkAltarRoomIdleState(Task* unusedTask);
 
 /// State table of the room's message task: set-up
 /// (`func_neo_ark_altar_8017D974`), an empty per-frame state and `taskKill`.
 /// Its bytes open the room's rodata, ahead of the cutscene driver's jump table.
 static const TaskFuncTable3 D_neo_ark_altar_8017D5C4 = {
     func_neo_ark_altar_8017D974,
-    func_neo_ark_altar_8017D9E0,
+    _neoArkAltarRoomIdleState,
     taskKill,
 };
 
@@ -197,18 +197,17 @@ static void func_neo_ark_altar_8017D974(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Per-frame state of the room's message task: nothing to do, the task only
-/// holds the message table.
-static void func_neo_ark_altar_8017D9E0(Task* task)
+/// Keeps the altar room task available for messages after initialization.
+///
+/// State 1 performs no per-frame work and leaves `unusedTask` unchanged.
+static void _neoArkAltarRoomIdleState(Task* unusedTask)
 {
 }
 
-/// Runs the room's message task's current state through a stack copy of
-/// `D_neo_ark_altar_8017D5C4`.
-void func_neo_ark_altar_8017D9E8(Task* task)
+void neoArkAltarRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_neo_ark_altar_8017D5C4;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_altar_8017D5C4;
+    handlers.funcs[task->state](task);
 }

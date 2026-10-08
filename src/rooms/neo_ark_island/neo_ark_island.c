@@ -57,7 +57,7 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 extern RoomEventMsg D_neo_ark_island_80184008;
 
 static void func_neo_ark_island_8017EA94(Task* arg0);
-static void func_neo_ark_island_8017EB08(Task* task);
+static void _neoArkIslandRoomIdleState(Task* unusedTask);
 
 extern AreaResource D_neo_ark_island_80183EDC[2];
 extern AreaResource D_neo_ark_island_80183EF4[2];
@@ -564,7 +564,7 @@ RoomEventMsg D_neo_ark_island_80184008;
 /// State handlers of the room's entry task, indexed by its state through
 /// `func_neo_ark_island_8017EB10`: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_island_8017D614 = {
-    { func_neo_ark_island_8017EA94, func_neo_ark_island_8017EB08, taskKill }
+    { func_neo_ark_island_8017EA94, _neoArkIslandRoomIdleState, taskKill }
 };
 
 /// Island arrival sequence, advanced one step per call: step 0 asks for the
@@ -610,9 +610,9 @@ void func_neo_ark_island_8017E844(Task* arg0)
     }
 }
 
-s32 func_neo_ark_island_8017E960(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkIslandRejectKeyItemMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Island message handler. Message 0x1E, while the incoming location still
@@ -636,29 +636,34 @@ s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, RoomEventMsg* src, RoomE
     return 1;
 }
 
-s32 func_neo_ark_island_8017EA24(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkIslandIgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedSecondArg)
 {
     return 0;
 }
 
-s32 func_neo_ark_island_8017EA2C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkIslandIgnoreActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg)
 {
     return 0;
 }
 
-/// Maps a cap (cutscene) script event key to the island cue it should play:
-/// key 3 plays `0x550E0003` outright, key 0x65 plays `0x550E0004` only while
-/// the running cap script reports no event key. Every other key, and key 0x65
-/// with a script still parked on one, is ignored. Always returns 0.
-s32 func_neo_ark_island_8017EA34(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 neoArkIslandSoundMessage(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg)
 {
-    switch (arg2) {
-        case 3:
-            sndEvtRequestScriptStart(0x550E0003, 0, 0);
+    enum {
+        NEO_ARK_ISLAND_SOUND_CUE_3      = 3,
+        NEO_ARK_ISLAND_SOUND_CUE_101    = 101,
+        NEO_ARK_ISLAND_CAP_VARIANT_NONE = 0,
+        NEO_ARK_ISLAND_SCRIPT_CUE_3     = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 3),
+        NEO_ARK_ISLAND_SCRIPT_CUE_101   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 4),
+    };
+
+    switch (cueKey) {
+        case NEO_ARK_ISLAND_SOUND_CUE_3:
+            sndEvtRequestScriptStart(NEO_ARK_ISLAND_SCRIPT_CUE_3, 0, 0);
             break;
-        case 0x65:
-            if (capGetVariantKey() == 0) {
-                sndEvtRequestScriptStart(0x550E0004, 0, 0);
+        case NEO_ARK_ISLAND_SOUND_CUE_101:
+            // A CAP sequence's selected variant suppresses the completion cue.
+            if (capGetVariantKey() == NEO_ARK_ISLAND_CAP_VARIANT_NONE) {
+                sndEvtRequestScriptStart(NEO_ARK_ISLAND_SCRIPT_CUE_101, 0, 0);
             }
             break;
     }
@@ -678,7 +683,10 @@ static void func_neo_ark_island_8017EA94(Task* arg0)
     D_80115598  = 1;
 }
 
-static void func_neo_ark_island_8017EB08(Task* task)
+/// Keeps the island room task available for messages after initialization.
+///
+/// State 1 performs no per-frame work and leaves `unusedTask` unchanged.
+static void _neoArkIslandRoomIdleState(Task* unusedTask)
 {
 }
 

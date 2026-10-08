@@ -56,3 +56,5 @@ roomDepartureTask = 0x8017D810; // type:func
 _roomVariantResolveShelter = 0x8017D6D4; // type:func
 neoArkEveAccessTunnelSetPartDestroyedSprites = 0x8017e090; // type:func
 neoArkEveAccessTunnelRecordCapCompletionTask = 0x8017ded0; // type:func
+neoArkEveAccessTunnelRejectKeyItemMessage = 0x8017dc64; // type:func
+neoArkEveAccessTunnelSoundMessage = 0x8017de9c; // type:func

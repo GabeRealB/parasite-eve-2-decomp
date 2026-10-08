@@ -124,15 +124,15 @@ AreaApplyRec D_neo_ark_garden_80182BF8[3] = {
 };
 
 static void func_neo_ark_garden_8017E9B4(Task* arg0);
-static void func_neo_ark_garden_8017EA34(Task* task);
+static void _neoArkGardenRoomIdleState(Task* unusedTask);
 
 #include "../../shared/water_refraction_task.inc.c"
 
 #include "../../shared/water_distort_band_task.inc.c"
 
-s32 func_neo_ark_garden_8017E840(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkGardenRejectKeyItemMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -171,7 +171,7 @@ s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_neo_ark_garden_8017E9AC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkGardenIgnoreActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -188,16 +188,18 @@ static void func_neo_ark_garden_8017E9B4(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// Idle state of the room's entry task: does nothing. The unused 0x10-byte
-/// local reproduces the stack frame the retail code reserves.
-static void func_neo_ark_garden_8017EA34(Task* task)
+/// Keeps the garden room task available for messages after initialization.
+///
+/// State 1 leaves `unusedTask` unchanged and performs no per-frame work.
+static void _neoArkGardenRoomIdleState(Task* unusedTask)
 {
-    char pad[0x10];
+    // Preserve the otherwise unused 16-byte stack reservation in this state.
+    char stackFrame[0x10];
 }
 
 /// State handlers of the room's entry task: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_garden_8017D614 = {
-    { func_neo_ark_garden_8017E9B4, func_neo_ark_garden_8017EA34, taskKill }
+    { func_neo_ark_garden_8017E9B4, _neoArkGardenRoomIdleState, taskKill }
 };
 
 /// Tick of the room's entry task: copies its state table to the stack and

@@ -47,10 +47,10 @@ TaskDesc D_neo_ark_eve_access_tunnel_8017EA88 = { { { TASK_BODY_NONE, 32 } }, ro
 
 TaskMessageEntry D_neo_ark_eve_access_tunnel_8017EA94[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_eve_access_tunnel_8017DC6C },
-    { 5105, func_neo_ark_eve_access_tunnel_8017DC64 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, neoArkEveAccessTunnelRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_eve_access_tunnel_8017DE1C },
     { ROOM_MESSAGE_COMMAND, func_neo_ark_eve_access_tunnel_8017DD70 },
-    { ROOM_MESSAGE_SOUND, func_neo_ark_eve_access_tunnel_8017DE9C },
+    { ROOM_MESSAGE_SOUND, neoArkEveAccessTunnelSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

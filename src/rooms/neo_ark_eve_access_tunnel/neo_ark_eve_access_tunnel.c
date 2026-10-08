@@ -532,11 +532,9 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
     }
 }
 
-/// Message handler for id 0x13F1 in the room's message table: accepts the
-/// message and does nothing.
-s32 func_neo_ark_eve_access_tunnel_8017DC64(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkEveAccessTunnelRejectKeyItemMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Tunnel message handler. Message 9 either raises the CAP command that opens
@@ -619,10 +617,15 @@ s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, const void* f
     return 0;
 }
 
-s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 neoArkEveAccessTunnelSoundMessage(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg)
 {
-    if (arg2 == 1) {
-        sndEvtRequestScriptStart(0x55080000 | 1, 0, 0);
+    enum {
+        NEO_ARK_EVE_ACCESS_TUNNEL_SOUND_CUE_1  = 1,
+        NEO_ARK_EVE_ACCESS_TUNNEL_SCRIPT_CUE_1 = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL, 1),
+    };
+
+    if (cueKey == NEO_ARK_EVE_ACCESS_TUNNEL_SOUND_CUE_1) {
+        sndEvtRequestScriptStart(NEO_ARK_EVE_ACCESS_TUNNEL_SCRIPT_CUE_1, 0, 0);
     }
     return 0;
 }

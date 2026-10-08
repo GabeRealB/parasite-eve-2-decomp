@@ -131,3 +131,7 @@ neoArkForestZoneIgnoreCommandMessage = 0x8017d950; // type:func
 _neoArkForestZoneSetupIdleState = 0x8017dbac; // type:func
 _roamerExtendCooldown = 0x80181494; // type:func
 _neoArkForestZoneIgnorePoolAActorCommand = 0x801813bc; // type:func
+neoArkForestZoneForwardActorEvent = 0x8017da14; // type:func
+neoArkForestZoneStartRoamerAmbush = 0x8017da48; // type:func
+_neoArkForestZonePauseRoamersState = 0x8017db40; // type:func
+_neoArkForestZoneFinishRoamerPoolBState = 0x80181508; // type:func

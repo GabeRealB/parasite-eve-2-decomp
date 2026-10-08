@@ -67,7 +67,7 @@ extern RoomFadeStorage gRoomEventFade;
 /// `[1]` under its own name, which the per-frame path reads directly.
 
 static void func_neo_ark_forest_zone_8017DA80(Task* arg0);
-static void func_neo_ark_forest_zone_8017DB40(Task* arg0);
+static void _neoArkForestZonePauseRoamersState(Task* task);
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
@@ -184,25 +184,18 @@ s32 func_neo_ark_forest_zone_8017D958(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     return -1;
 }
 
-/// 0x13F4 handler of the room's message table: passes the message on to the
-/// room's own task, answering -1 while that task does not exist.
-s32 func_neo_ark_forest_zone_8017DA14(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkForestZoneForwardActorEvent(Task* unusedTask, s32 messageId, s32 eventValue, s32 secondArg)
 {
-    s32 ret;
+    enum { NEO_ARK_FOREST_ZONE_ROAMER_TASK_ABSENT = -1 };
 
-    if (D_neo_ark_forest_zone_80181E68 == NULL) {
-        ret = -1;
-    } else {
-        ret = taskMessageDispatch(D_neo_ark_forest_zone_80181E68, msgId, arg2, arg3);
-    }
-    return ret;
+    return D_neo_ark_forest_zone_80181E68 == NULL
+               ? NEO_ARK_FOREST_ZONE_ROAMER_TASK_ABSENT
+               : taskMessageDispatch(D_neo_ark_forest_zone_80181E68, messageId, eventValue, secondArg);
 }
 
-/// Once the room's own task exists, broadcast message 0x7DB to it, carrying
-/// the room's payload record as `arg2`.
-void func_neo_ark_forest_zone_8017DA48(void)
+void neoArkForestZoneStartRoamerAmbush(void)
 {
-    if (D_neo_ark_forest_zone_80181E68 != 0) {
+    if (D_neo_ark_forest_zone_80181E68 != NULL) {
         TASK_MESSAGE_DISPATCH_POINTER(D_neo_ark_forest_zone_80181E68, ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_forest_zone_80181E38, 0);
     }
 }
@@ -224,16 +217,19 @@ static void func_neo_ark_forest_zone_8017DA80(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// State 1 of the room setup task: on the first visit
-/// (`gGameSession->location.loc.variant == 1`) with flag 0xBD unset, sends message
-/// 0x7DB to the room's own task carrying its first payload record, then
-/// advances state.
-static void func_neo_ark_forest_zone_8017DB40(Task* arg0)
+/// Pauses the forest roaming-enemy pool before the first-visit ambush scene.
+///
+/// Room-task state 1 sends the pause command only in variant 1 while the
+/// first-visit flag is clear, then advances to the room task's idle state.
+/// The live pool-B task must already have been created by initialization.
+static void _neoArkForestZonePauseRoamersState(Task* task)
 {
-    if (gGameSession->location.loc.variant == 1 && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
+    enum { NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT = 1 };
+
+    if (gGameSession->location.loc.variant == NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(D_neo_ark_forest_zone_80181E68, ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_forest_zone_80181E30, 0);
     }
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// Holds the room setup task in state 2 with its message handlers installed.
@@ -246,7 +242,7 @@ static void _neoArkForestZoneSetupIdleState(Task* task)
 /// State table of the room setup task, indexed by `Task::state`.
 static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5D8 = { {
     func_neo_ark_forest_zone_8017DA80,
-    func_neo_ark_forest_zone_8017DB40,
+    _neoArkForestZonePauseRoamersState,
     _neoArkForestZoneSetupIdleState,
     taskKill,
 } };

@@ -53,10 +53,10 @@ TaskDesc D_neo_ark_island_80181B3C = { { { TASK_BODY_NONE, 192 } }, waterDistort
 
 TaskMessageEntry D_neo_ark_island_80181B48[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_island_8017E968 },
-    { 5105, func_neo_ark_island_8017E960 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_island_8017EA2C },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_island_8017EA24 },
-    { ROOM_MESSAGE_SOUND, func_neo_ark_island_8017EA34 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, neoArkIslandRejectKeyItemMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, neoArkIslandIgnoreActionMessage },
+    { ROOM_MESSAGE_COMMAND, neoArkIslandIgnoreCommandMessage },
+    { ROOM_MESSAGE_SOUND, neoArkIslandSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
