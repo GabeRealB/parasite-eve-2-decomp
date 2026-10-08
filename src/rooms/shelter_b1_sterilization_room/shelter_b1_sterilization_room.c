@@ -63,6 +63,8 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/backdrop_crossfade.h"
 
+static void _roomCutsceneTask(Task* task);
+
 static void _roomCutsceneSoundTask(Task* task);
 
 /// The "%" suffix appended to a formatted percentage.
@@ -73,7 +75,7 @@ static u8 Telephone_Data_80181A78[];
 static UiObjectDesc Telephone_Data_80181C90;
 
 /// Task descriptor table used by the cutscene runner
-/// `roomCutsceneTask`, which spawns entry 1 and
+/// `_roomCutsceneTask`, which spawns entry 1 and
 /// waits on it while the cutscene plays. The room's event handler spawns
 /// entry 0 with a `RoomCutsceneRec` as its argument.
 extern TaskDesc gRoomCutsceneTaskDescs[];
@@ -144,7 +146,7 @@ extern AnimationPlayRequest                       D_shelter_b1_sterilization_roo
 extern ActorTransform                             D_shelter_b1_sterilization_room_80188668[];
 extern _ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_room_80188728[];
 
-/// Area records `roomCutsceneTask` applies when it
+/// Area records `_roomCutsceneTask` applies when it
 /// advances game flag nibble 0 from 2 to 3 in one particular view.
 
 extern UiObjectDesc D_800611E4;
@@ -229,7 +231,7 @@ TmdSource gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 = {
 };
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };

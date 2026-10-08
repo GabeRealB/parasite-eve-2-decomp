@@ -65,7 +65,7 @@ gParkingLotAreaRecs = 0x8018155C; // absolute:True owner=dryfield_night_parking_
 dryfieldParkingLotUpdateViewEffectGateTask = 0x8017DBAC; // type:func
 _roomEventGate = 0x8017D5E8; // type:func
 roomEventTask = 0x8017D74C; // type:func
-parkingLotEventMsg = 0x8017D8BC; // type:func
+parkingLotResolveMessage = 0x8017D8BC; // type:func
 _parkingLotSoundMsg = 0x8017DAA0; // type:func
 _dryfieldParkingLotRejectKeyItemMessage = 0x8017daf0; // type:func
 _dryfieldParkingLotIgnoreCommandMessage = 0x8017daf8; // type:func

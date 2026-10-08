@@ -136076,7 +136076,7 @@ and the plans preceding those builds. Final unscoped build verification passed.
 
 ## Fence a reload-generated constant separately from its empty-asm consumer (actor 401800 tick, 2026-09-20)
 
-`oddStrangerTick`'s archived 99.707% seed already had every register right. Its lone mismatch was `li s3,21` filling the first load delay in `lhu; sh; lh; sll`, whereas the target fills the second. Earlier attempts changed dependencies on `TOUCH_REG_MEM(stop)` and called the residue unreachable from C.
+`_oddStrangerTick`'s archived 99.707% seed already had every register right. Its lone mismatch was `li s3,21` filling the first load delay in `lhu; sh; lh; sll`, whereas the target fills the second. Earlier attempts changed dependencies on `TOUCH_REG_MEM(stop)` and called the residue unreachable from C.
 
 The dumps narrow that claim. Combine puts literal 21 directly into the tied register input of the empty asm (UID 486). Reload then creates a separate constant load (UID 909), which sched2 can move before store UID 481. Dependencies on the consuming asm do not by themselves prevent its new input load from moving. Meanwhile the volatile asm keeps the signed state load after itself.
 
@@ -149000,7 +149000,7 @@ shared one had `s32` parameters and a `(u16)`/`(s16)` cast at each use. Casts
 at every use of an `s32` parameter are a reason to try the narrow type on the
 parameter itself. Callers that pass a field of that width do not change.
 
-## A local set twice keeps its second load behind the store between them (oddStrangerTick, 2026-10-05)
+## A local set twice keeps its second load behind the store between them (_oddStrangerTick, 2026-10-05)
 
 `work->prevState = (u16)work->state; states.handlers[work->state](actor);`
 compiles to `lh; lhu; sll; addu; sh; lw; jalr` in one variant (sched1
@@ -152510,7 +152510,7 @@ preference; the questions are then "where is this variable's other surviving
 assignment" and "is that other life in the same register in the target". If
 no value in the target can be the other life, plain C does not reach it.
 
-## A constant kept above a call by a block boundary, not by a second set (oddStrangerTick, 2026-10-07)
+## A constant kept above a call by a block boundary, not by a second set (_oddStrangerTick, 2026-10-07)
 
 **Problem.** Variant 2's image has `lhu v0; sh v0; lh v0; li s3,21; sll; addu;
 lw; jalr` and tests `state == s3` after the call. The source needed a

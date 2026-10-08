@@ -48,6 +48,8 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/gas_station_sounds.h"
 
+static void _roomCutsceneTask(Task* task);
+
 static void _roomCutsceneSoundTask(Task* task);
 
 extern UiObjectDesc D_800611E4;
@@ -120,7 +122,7 @@ static void _dryfieldGasStationArrivalSupervisorTask(Task* task);
 #include "../../shared/telephone_data.inc.c"
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };

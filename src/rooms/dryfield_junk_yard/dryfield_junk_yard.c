@@ -42,7 +42,8 @@
 #include "main/tmd_types.h"
 
 #include "mapui/map_dryfield.h"
-#include "../../shared/junk_yard.h"
+
+static s32 _junkYardCommandMessage(Task* task, s32 messageId, s32 command, s32 unusedSecondArg);
 
 /// Resident routine at the fixed address `0x80724608`, outside every image
 /// the build links. The room hands it the slot-0xA game pointer, two
@@ -113,7 +114,7 @@ static void                       _dryfieldJunkYardSetSceneEvent(s8 sceneEvent);
 TaskMessageEntry D_dryfield_junk_yard_8017DD20[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldJunkYardResolveRoomTransition },
     { DRYFIELD_JUNK_YARD_MESSAGE_USE_KEY_ITEM, _dryfieldJunkYardRejectKeyItemUse },
-    { ROOM_MESSAGE_COMMAND, junkYardCapMsg },
+    { ROOM_MESSAGE_COMMAND, _junkYardCommandMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldJunkYardHandleRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

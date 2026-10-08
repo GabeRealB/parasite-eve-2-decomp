@@ -25,8 +25,10 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
-#include "../../shared/mad_chaser_waves.h"
 #include "../../shared/mad_chaser.h"
+
+static void _overlayEncounterOpen(Task* controllerTask);
+static void _overlayEncounterPairSpawn(Task* waveTask);
 
 /// Which coordinate a `_Actor342400CullZone` bounds, and from which side.
 enum {
@@ -484,7 +486,7 @@ static s16 _actor342400InCullZone(s16 zoneId, s16 worldX, s16 worldZ)
 /// `_actor342400WaveControllerTask` on `Task::state`.
 static const TaskFuncTable4 D_actor_342400_80161E24 = { {
     _actor342400WaveInitialize,
-    madChaserWaveOpen,
+    _overlayEncounterOpen,
     _actor342400WaveArmBattle,
     _actor342400WaveRun,
 } };
@@ -549,7 +551,7 @@ static void _actor342400WaveSlouchTask(Task* waveTask)
 /// The five state handlers `_actor342400WavePairTask` dispatches through by
 /// `Task::state`.
 static const TaskFuncTable5 D_actor_342400_80161E54 = { {
-    madChaserWavePairSpawn,
+    _overlayEncounterPairSpawn,
     _actor342400WaveBeginPairReveal,
     _overlayEncounterPairRevealFirst,
     _overlayEncounterPairRevealSecond,

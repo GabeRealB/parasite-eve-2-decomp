@@ -176,7 +176,7 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
     return D_neo_ark_observatory_80180DBC;
 }
 
-TaskDesc D_neo_ark_observatory_80180DD4 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
+TaskDesc D_neo_ark_observatory_80180DD4 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
 
 static AnimationPackedPose _gNeoArkObservatoryAnimation03BC4Bank1[6] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank1.inc"

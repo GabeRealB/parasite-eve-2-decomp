@@ -80,8 +80,34 @@
 #endif
 
 static s32 _roomEventGate(const RoomEventReq* request, const RoomEventMsg* message);
-void       roomEventTask(Task* task);
-void       roomEventStagedTask(Task* arg0);
-void       roomDepartureTask(Task* arg0);
+/// Plays the latched door-event command and sounds, then reloads its destination.
+///
+/// Requires live room-owned `ROOM_EVENT_REQ` and `gRoomEventMsg` snapshots that
+/// remain unchanged until state 5. State must be 0..5; spawn arguments are unused.
+/// Pauses actors and holds the player; each zero sound ID skips that voice wait.
+/// The command is started with a display transition, without a separate CAP wait.
+/// Commits area/warp/room to the live save and requests session reload, then
+/// kills this task. Does not update the gate's start-request indication.
+void roomEventTask(Task* task);
+/// Plays a latched room scene, optional blackout and sound before reloading.
+///
+/// Requires stable room-owned `ROOM_EVENT_LATCHED` and `gRoomEventStagedMsg`
+/// through state 4; spawn arguments are unused and states are 0..4. Waits for
+/// CAP completion before starting a requested 30-frame subtractive fade, then
+/// plays the optional stage-relative sound and waits for its resolved voice.
+/// The fade borrows `ROOM_EVENT_FADE` and never receives a return request here:
+/// session reload discards its task list before replacing room storage. Keep
+/// that record loaded and unchanged until teardown. Does not wait for the
+/// fade ramp before committing area/warp/room and requesting session reload.
+void roomEventStagedTask(Task* task);
+/// Turns the player, waits for an optional departure sound and reloads the session.
+///
+/// Requires a live player task and stable room-owned `ROOM_DEPARTURE` through
+/// state 4; spawn arguments are unused and active states are 0..4. Facing uses
+/// 4096 units per turn; `ROOM_DEPARTURE_SKIP_FACING` bypasses the turn and wait.
+/// Dispatch reads the stack transform synchronously and only its yaw is set.
+/// A zero sound ID skips playback. Commits stage/area/warp/room to the live
+/// save, requests session reload and kills this task.
+void roomEventDepartureTask(Task* task);
 
 #endif /* SRC_SHARED_ROOM_EVENTS_H */

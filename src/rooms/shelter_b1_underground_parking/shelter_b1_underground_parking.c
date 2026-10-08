@@ -86,6 +86,8 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 #include "../../shared/room_cutscene.h"
 #include "../../shared/room_variants.h"
 
+static void _roomCutsceneTask(Task* task);
+
 static void _roomCutsceneSoundTask(Task* task);
 
 static void _actionPromptResetDefault(Task* task);
@@ -510,10 +512,10 @@ extern SpriteSource D_shelter_b1_underground_parking_80189C14[32];
 
 ShelterB1UndergroundParkingShopSessionTaskDescStorage D_shelter_b1_underground_parking_801871F0 = { { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } }, { 0 } };
 
-TaskDesc D_shelter_b1_underground_parking_80187200 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
+TaskDesc D_shelter_b1_underground_parking_80187200 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };

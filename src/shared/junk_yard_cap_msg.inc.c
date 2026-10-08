@@ -1,25 +1,36 @@
 /* Part of the junk yard library; see junk_yard.h. */
 
-/// Handler for message 0x13F0 in the room's message table, keyed by `arg2`.
-/// Point 6 plays CAP command 0xC until nibble 0x3A is set, and 6 after. Point 8
-/// plays command 9 unless bit flag 0x1C is set; with it set, command 8 plays
-/// only while nibble 0x73 is still clear and 0x7C is set, and otherwise the
-/// point's own CAP slot starts. Always returns 0.
-s32 junkYardCapMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects progress-dependent junk-yard dialogue for room commands 6 and 8.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`; the receiver, message ID and second payload
+/// are unused. Command 6 selects dialogue from driveway progress. Command 8
+/// selects from object state and the night story flags, falling back to its
+/// CAP slot with variant 0. Requires the room's relocated CAP table to remain
+/// loaded through playback. Unsupported commands also return 0.
+static s32 _junkYardCommandMessage(Task* task, s32 messageId, s32 command, s32 unusedSecondArg)
 {
-    switch (arg2) {
-        case 6:
-            capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) <= 0 ? 0xC : 6);
+    enum {
+        JUNK_YARD_COMMAND_PROGRESS_DIALOGUE    = 6,
+        JUNK_YARD_COMMAND_NIGHT_DIALOGUE       = 8,
+        JUNK_YARD_CAP_BEFORE_DRIVEWAY_PROGRESS = 12,
+        JUNK_YARD_CAP_AFTER_DRIVEWAY_PROGRESS  = 6,
+        JUNK_YARD_CAP_NIGHT_BEFORE_BURNER      = 8,
+        JUNK_YARD_CAP_NIGHT_OBJECT_UNSET       = 9,
+        JUNK_YARD_NIGHT_DIALOGUE_OBJECT_SLOT   = 28,
+    };
+    switch (command) {
+        case JUNK_YARD_COMMAND_PROGRESS_DIALOGUE:
+            capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) <= 0 ? JUNK_YARD_CAP_BEFORE_DRIVEWAY_PROGRESS : JUNK_YARD_CAP_AFTER_DRIVEWAY_PROGRESS);
             break;
-        case 8:
-            if (areaGetCurrentObjectState(0x1C) == 1) {
+        case JUNK_YARD_COMMAND_NIGHT_DIALOGUE:
+            if (areaGetCurrentObjectState(JUNK_YARD_NIGHT_DIALOGUE_OBJECT_SLOT) == 1) {
                 if (gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) == 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN) != 0) {
-                    capRunCommandWithTransition(8);
+                    capRunCommandWithTransition(JUNK_YARD_CAP_NIGHT_BEFORE_BURNER);
                 } else {
-                    capStartSequenceSlot(arg2, 1, 0);
+                    capStartSequenceSlot(command, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
                 }
             } else {
-                capRunCommandWithTransition(9);
+                capRunCommandWithTransition(JUNK_YARD_CAP_NIGHT_OBJECT_UNSET);
             }
             break;
     }

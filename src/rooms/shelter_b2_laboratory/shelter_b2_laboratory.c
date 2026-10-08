@@ -72,6 +72,8 @@
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
 #include "../../shared/room_cutscene.h"
 
+static void _roomCutsceneTask(Task* task);
+
 static void _roomCutsceneSoundTask(Task* task);
 
 /// Scratch block this room's diamond glow drawer takes from the scratch stack
@@ -265,7 +267,7 @@ TmdSource gShelterB2LaboratoryAcropolisSanctuaryModel090F0 = {
 };
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };

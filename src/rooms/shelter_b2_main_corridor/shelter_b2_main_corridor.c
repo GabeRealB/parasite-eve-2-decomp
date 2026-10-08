@@ -82,7 +82,7 @@ static s32 _roomVariantResolveNeoArk(RoomEventMsg* request, RoomEventMsg* reply)
 ///
 /// `desc` is the spawn recipe the room's exit task hands to the task system
 /// once it has staged `gRoomDeparture`: a bodyless task running
-/// `roomDepartureTask`. It is addressed on its own, as a single descriptor.
+/// `roomEventDepartureTask`. It is addressed on its own, as a single descriptor.
 ///
 /// The four bytes before it open the room's initialised data. They are zero
 /// in the image and have no established access. They are not alignment: the
@@ -194,7 +194,7 @@ enum {
     SHELTER_B2_MAIN_CORRIDOR_FLARE_RADIUS_SCALE   = 0x300,
 };
 
-_ShelterB2MainCorridorDepartureTaskDescStorage D_shelter_b2_main_corridor_801828E0 = { { 0 }, { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } } };
+_ShelterB2MainCorridorDepartureTaskDescStorage D_shelter_b2_main_corridor_801828E0 = { { 0 }, { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } } };
 
 static AnimationPackedPose _gShelterB2MainCorridorAnimation05620Bank1[2] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank1.inc"

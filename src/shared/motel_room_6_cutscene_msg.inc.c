@@ -1,37 +1,49 @@
 /* Part of the motel room 6 library; see motel_room_6.h. */
 
-/// Handler of message 0x13F0 in the room's message table. For event 0x16 it
-/// fills in the cutscene script record - the cap file and fade chosen from
-/// flag nibble 0x7A and the stage, and the scene's sound events - and spawns
-/// the cutscene task on it. Other commands go to the carrier's private handler.
+/// Configures and requests the motel-room-6 story cutscene for command 22.
 ///
-/// Requires `MOTEL_ROOM_6_HANDLE_OTHER_COMMAND` to name a declared four-word
-/// handler taking Task*, message ID, command and second payload. Its return
-/// value is ignored; the day carrier's handler returns void.
-s32 motelRoom6CutsceneMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles `ROOM_MESSAGE_COMMAND`; other commands are forwarded with all four
+/// arguments through `MOTEL_ROOM_6_HANDLE_OTHER_COMMAND`, ignoring its reply.
+/// That binding must name a declared four-argument handler; the day instance
+/// returns void. The room owns the cutscene record and must leave it unchanged
+/// until the runner completes. Chapters 0..6 select the CAP file, VRAM page and
+/// post-scene command. Other chapters retain file/page and use command 0.
+/// Does not reset the record's texture-page Y. Always returns 0.
+static s32 _motelRoom6CutsceneMessage(Task* task, s32 messageId, s32 command, s32 secondArg)
 {
-    s32 count;
+    enum {
+        MOTEL_ROOM_6_COMMAND_CUTSCENE    = 22,
+        MOTEL_ROOM_6_CUTSCENE_VIEW       = 12,
+        MOTEL_ROOM_6_CUTSCENE_CAP_SLOT   = 1,
+        MOTEL_ROOM_6_CAP_DAY_FOLLOW_UP   = 4,
+        MOTEL_ROOM_6_CAP_LATER_FOLLOW_UP = 2,
+        MOTEL_ROOM_6_CAP_TPAGE_RIGHT_X   = 960,
+        MOTEL_ROOM_6_CAP_TPAGE_LEFT_X    = 896,
+        MOTEL_ROOM_6_FIRST_CAP_FILE      = 1,
+    };
+    s32 followUpCommand;
 
-    count = 0;
-    if (arg2 == 0x16) {
-        gMotelRoom6CutsceneRec.view    = 0xC;
-        gMotelRoom6CutsceneRec.capSlot = 1;
+    // Retain untouched record fields; the runner borrows this singleton.
+    followUpCommand = 0;
+    if (command == MOTEL_ROOM_6_COMMAND_CUTSCENE) {
+        gMotelRoom6CutsceneRec.view    = MOTEL_ROOM_6_CUTSCENE_VIEW;
+        gMotelRoom6CutsceneRec.capSlot = MOTEL_ROOM_6_CUTSCENE_CAP_SLOT;
         switch (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER)) {
             case 0 ... 3:
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                    count                            = 4;
-                    gMotelRoom6CutsceneRec.capTPageX = 0x3C0;
-                    gMotelRoom6CutsceneRec.capFile   = 1;
+                    followUpCommand                  = MOTEL_ROOM_6_CAP_DAY_FOLLOW_UP;
+                    gMotelRoom6CutsceneRec.capTPageX = MOTEL_ROOM_6_CAP_TPAGE_RIGHT_X;
+                    gMotelRoom6CutsceneRec.capFile   = MOTEL_ROOM_6_FIRST_CAP_FILE;
                 } else {
-                    count                            = 2;
-                    gMotelRoom6CutsceneRec.capTPageX = 0x380;
-                    gMotelRoom6CutsceneRec.capFile   = 1;
+                    followUpCommand                  = MOTEL_ROOM_6_CAP_LATER_FOLLOW_UP;
+                    gMotelRoom6CutsceneRec.capTPageX = MOTEL_ROOM_6_CAP_TPAGE_LEFT_X;
+                    gMotelRoom6CutsceneRec.capFile   = MOTEL_ROOM_6_FIRST_CAP_FILE;
                 }
                 break;
             case 4 ... 6:
-                count                            = 2;
-                gMotelRoom6CutsceneRec.capTPageX = 0x3C0;
-                gMotelRoom6CutsceneRec.capFile   = count;
+                followUpCommand                  = MOTEL_ROOM_6_CAP_LATER_FOLLOW_UP;
+                gMotelRoom6CutsceneRec.capTPageX = MOTEL_ROOM_6_CAP_TPAGE_RIGHT_X;
+                gMotelRoom6CutsceneRec.capFile   = followUpCommand;
                 break;
         }
         gMotelRoom6CutsceneRec.skipScene       = 0;
@@ -39,9 +51,9 @@ s32 motelRoom6CutsceneMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         gMotelRoom6CutsceneRec.endSound        = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_END);
         gMotelRoom6CutsceneRec.sceneSound      = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_TRACK);
         gMotelRoom6CutsceneRec.afterSceneSound = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_COMPLETE);
-        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, count, &gMotelRoom6CutsceneRec);
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, followUpCommand, &gMotelRoom6CutsceneRec);
     } else {
-        MOTEL_ROOM_6_HANDLE_OTHER_COMMAND(arg0, arg1, arg2, arg3);
+        MOTEL_ROOM_6_HANDLE_OTHER_COMMAND(task, messageId, command, secondArg);
     }
     return 0;
 }

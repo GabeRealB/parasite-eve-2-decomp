@@ -31,8 +31,6 @@ enum {
     MAIN_STREET_PUFF_TRIG_FRACTION_BITS = 12,
 };
 
-s32         mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out);
-s32         mainStreetTalkMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void _mainStreetDrawPuff(const GfxCoord* coord, u16 frame, s16 sizeFactor, s16 angle);
 
 #endif /* SRC_SHARED_MAIN_STREET_H */

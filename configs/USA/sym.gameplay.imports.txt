@@ -633,7 +633,7 @@ acropolisSanctuaryMosaicTileTask = 0x8017E338; // type:func absolute:True owner=
 
 acropolisSanctuaryMosaicShardTask = 0x8017EC90; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
 
-acropolisSanctuaryFlameTask = 0x8017F4E8; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
+acropolisSanctuaryFlameTask = 0x8017F4E8; // type:func absolute:True owner=acropolis_sanctuary
 
 acropolisSecurityRoomMonitorFeedsTask = 0x801805A4; // type:func absolute:True owner=acropolis_security_room
 
@@ -1284,7 +1284,7 @@ shelterB4UpperSewerRoomVisualEffectsMoteTask = 0x80180110; // type:func absolute
 
 shelterB4UpperSewerRoomVisualEffectsHaloTask = 0x80180E58; // type:func absolute:True owner=shelter_b4_upper_sewer
 
-shelterB4UpperSewerRoomVisualEffectsHaloOrangeBurstTask = 0x801811F0; // type:func absolute:True owner=shelter_b4_upper_sewer shared=rooms
+shelterB4UpperSewerRoomVisualEffectsHaloOrangeBurstTask = 0x801811F0; // type:func absolute:True owner=shelter_b4_upper_sewer
 
 shelterB4UpperSewerRoomVisualEffectsSparkEmitterTask = 0x80182600; // type:func absolute:True owner=shelter_b4_upper_sewer
 
@@ -1901,7 +1901,7 @@ neoArkEveElevatorIdleEffectTask = 0x8017D71C; // type:func absolute:True owner=n
 
 neoArkNorthPromenadeBindRoomEffectsTask = 0x8017D720; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
 
-neoArkSubmarineTunnelConfigureEffectsTask = 0x8017F48C; // type:func absolute:True owner=neo_ark_submarine_tunnel shared=rooms
+neoArkSubmarineTunnelConfigureEffectsTask = 0x8017F48C; // type:func absolute:True owner=neo_ark_submarine_tunnel
 
 neoArkPowerPlant2UpdateViewLightingTask = 0x8017D8AC; // type:func absolute:True owner=neo_ark_power_plant_2
 

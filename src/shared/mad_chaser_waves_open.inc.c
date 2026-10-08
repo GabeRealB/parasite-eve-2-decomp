@@ -1,18 +1,27 @@
-/* Part of the Mad Chaser waves library; see mad_chaser_waves.h. */
+/* Part of the scripted encounter library; see mad_chaser_waves.h. */
 
-/// Controller state 1: spawns the first three encounter slots and advances.
-void madChaserWaveOpen(Task* arg0)
+/// Starts the encounter's first three rows and advances its controller.
+///
+/// Requires live controller work initialized with nextSlot 0 and at least
+/// three complete `gMadChaserWaveSlots` rows. The carrier binds the declared
+/// void(s16, s16, s16) `OVERLAY_ENCOUNTER_SPAWN_SLOT` callback around inclusion.
+/// Each argument is evaluated once; the binding is undefined after the body.
+/// Advances the cursor even when the requested row fails to spawn.
+static void _overlayEncounterOpen(Task* controllerTask)
 {
-    s32                             i;
-    OverlayEncounterControllerWork* work = arg0->work;
+    enum {
+        OVERLAY_ENCOUNTER_OPEN_SLOT_COUNT = 3,
+    };
+    s32                             openingSlot;
+    OverlayEncounterControllerWork* work = controllerTask->work;
     OverlayEncounterSlot*           slot;
 
-    for (i = 0; i < 3; i++) {
+    for (openingSlot = 0; openingSlot < OVERLAY_ENCOUNTER_OPEN_SLOT_COUNT; openingSlot++) {
         slot = &gMadChaserWaveSlots[work->nextSlot];
         OVERLAY_ENCOUNTER_SPAWN_SLOT(work->nextSlot, slot->kind, slot->command);
         work->nextSlot++;
     }
-    arg0->state++;
+    controllerTask->state++;
 }
 
 #undef OVERLAY_ENCOUNTER_SPAWN_SLOT

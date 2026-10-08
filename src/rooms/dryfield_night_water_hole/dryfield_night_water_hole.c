@@ -116,7 +116,7 @@ extern TaskDesc D_actor_146000_801351FC;
 
 /// Descriptor the room's event task is spawned from, index 0 of the table
 /// `_dryfieldNightWaterHoleCommandMessage` hands `taskSpawnFromTable`. Its
-/// callback is that same task, `roomDepartureTask`.
+/// callback is that same task, `roomEventDepartureTask`.
 extern TaskDesc D_dryfield_night_water_hole_801805EC;
 /// The room's message table, the `TaskMessageEntry` list the room task publishes in
 /// `Task::msgTable` for `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF and
@@ -202,7 +202,7 @@ static AnimationSet _gDryfieldNightWaterHoleAnimation03004 = {
     { NULL, _gDryfieldNightWaterHoleAnimation03004Bank1, NULL, NULL, _gDryfieldNightWaterHoleAnimation03004Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_dryfield_night_water_hole_801805EC = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
+TaskDesc D_dryfield_night_water_hole_801805EC = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_water_hole_801805F8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveWaterHole },

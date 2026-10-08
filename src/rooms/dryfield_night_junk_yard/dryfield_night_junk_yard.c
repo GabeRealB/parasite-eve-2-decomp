@@ -21,7 +21,8 @@
 #include "main/session_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "../../shared/junk_yard.h"
+
+static s32 _junkYardCommandMessage(Task* task, s32 messageId, s32 command, s32 unusedSecondArg);
 
 /// The room's message table, published in `Task::msgTable` for
 /// `taskMessageDispatch` to walk.
@@ -43,7 +44,7 @@ TaskMessageEntry D_dryfield_night_junk_yard_8018055C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantNightJunkYardMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightJunkYardRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightJunkYardHandleRoomAction },
-    { ROOM_MESSAGE_COMMAND, junkYardCapMsg },
+    { ROOM_MESSAGE_COMMAND, _junkYardCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

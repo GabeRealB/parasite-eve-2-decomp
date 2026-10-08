@@ -649,6 +649,8 @@ root's local-to-room matrix and an optional room-axis offset without rebuilding
 the grid's cell lists. Geometry counts use `FOLLOW_COLLISION_OBSTACLE_`.
 
 `roomCutscene` owns the included room cutscene runner and its timed sound task.
+Both callbacks are private to each carrier and declared in its source prologue;
+the runner borrows a room-owned scene record through completion.
 Its implementation interface is `src/shared/room_cutscene.h`; rooms supply the
 cutscene record, task descriptors and running sound-task handle. The sound
 callback is private to each carrier, declared in its source prologue and
@@ -1196,6 +1198,18 @@ drifting puff effect shared by the day and night Dryfield main street packages. 
 is `src/shared/main_street.h`. Each carrier exports its own puff task to the
 gameplay effect table and keeps the puff drawer private; rendering constants
 use `MAIN_STREET_PUFF_`.
+
+`junkYard` owns the included progress-dependent junk-yard dialogue commands;
+`motelRoom6` owns the paired rooms' cutscene trigger. Their private fragments
+are described in `src/shared/junk_yard.h` and `src/shared/motel_room_6.h`;
+carriers declare their static message callbacks in their source prologues.
+Their command constants use `JUNK_YARD_` and `MOTEL_ROOM_6_`.
+
+`shelterElevator` owns the included elevator floor-selection task shared by the
+three Shelter halls. Its interface is `src/shared/shelter_elevator.h`; it waits
+for the CAP choice and lift voice, then resolves and reloads the selected hall.
+Some carriers reference it from another translation unit, so it retains
+external linkage. Constants use `SHELTER_ELEVATOR_`.
 
 `parkingLot`, `generalStore`, `toilet` and `underpass` own the paired Dryfield
 rooms' included sound-cue mappings. They translate `ROOM_MESSAGE_SOUND` integer

@@ -130,7 +130,7 @@ enum { SHELTER_B4_WATER_SUPPLY_MESSAGE_USE_KEY_ITEM = 5105 };
 
 extern TaskDesc D_actor_100400_80147E48;
 
-TaskDesc D_shelter_b4_water_supply_801825E4 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
+TaskDesc D_shelter_b4_water_supply_801825E4 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b4_water_supply_801825F0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB4WaterSupplyResolveRoomEvent },

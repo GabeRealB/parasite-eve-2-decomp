@@ -39,6 +39,4 @@
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask
 #endif
 
-void roomCutsceneTask(Task* task);
-
 #endif /* SRC_SHARED_ROOM_CUTSCENE_H */

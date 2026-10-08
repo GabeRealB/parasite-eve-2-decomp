@@ -1,205 +1,265 @@
 /* Part of the room cutscene library; see room_cutscene.h. */
 
-/// Task body of the room's cutscene, driven by the
-/// `RoomCutsceneRec` in `spawnArg2`. It holds both characters'
-/// weapons, hides the HUD, forces the scripted view and selects the loaded CAP resource,
-/// then starts the scene's CAP slot together with its sound task (entry 1 of
-/// `gRoomCutsceneTaskDescs`); confirm or cancel skips the scene.
-/// Afterwards it runs the follow-up CAP command (slot 1 picks it from game
-/// flag 0x155), advances the story flags the scene settles, and restores the
-/// view, weapons and HUD. While flag 0x155 is 0xE and flag 3 is clear, the end
-/// loops through states 20-23 instead, running the command the CAP event key
-/// selects until the key is neither 0xB nor 0xC.
-void roomCutsceneTask(Task* task)
-{
-    s32              poll;
-    s32              cmd;
-    s32              a0;
-    s32              a1;
-    s32              flag;
-    RoomCutsceneRec* script;
-    McSaveData*      save;
+/// Only companion family 1 participates in this runner's scripted-control hold.
+enum { ROOM_CUTSCENE_COMPANION_FAMILY = 1 };
 
-    script = task->spawnArg2.pointer;
+/// Releases the cutscene's actor/HUD hold and resets a CAP file it selected.
+static inline void _roomCutsceneReleasePresentation(const RoomCutsceneRec* cutscene)
+{
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == ROOM_CUTSCENE_COMPANION_FAMILY) {
+        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    }
+    gGameSession->hideHud          = 0;
+    gGameSession->eventState       = 0;
+    gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+    if (cutscene->capFile != 0) {
+        capReset();
+    }
+}
+
+/// Runs a room-owned cutscene, its sound task and the post-scene dialogue.
+///
+/// spawnArg2 borrows a `RoomCutsceneRec` that must remain unchanged and loaded
+/// until this task ends. spawnArg1 is the post-scene CAP command. Runs states
+/// 0..14 with frame gaps and an optional story-dialogue loop at 20..23.
+/// Holds player/companion control, hides actors and HUD, selects the loaded CAP
+/// file and scripted view, and starts the CAP slot with descriptor entry 1's
+/// sound task. Confirm/cancel skips that scene; sound-task completion also ends
+/// it. Advances story flags and restores the saved view, actors and control.
+/// Requires a live descriptor table, CAP resources and non-overlapping use of
+/// the room's sound handle and the shared saved-view storage.
+static void _roomCutsceneTask(Task* task)
+{
+    enum {
+        ROOM_CUTSCENE_INTERACTION_REARM_UPDATES = 10,
+        ROOM_CUTSCENE_STORY_CAP_SLOT            = 1,
+        ROOM_CUTSCENE_ITEM_FOLLOW_UP_CHAPTER    = 5,
+        ROOM_CUTSCENE_ITEM_FOLLOW_UP_DIALOGUE   = 9,
+        ROOM_CUTSCENE_REPEAT_DIALOGUE           = 14,
+        ROOM_CUTSCENE_FOLLOW_UP_CLEAR           = 0,
+        ROOM_CUTSCENE_FOLLOW_UP_RUNNING         = 1,
+        ROOM_CUTSCENE_FOLLOW_UP_COMPLETE        = 2,
+        ROOM_CUTSCENE_OPENING_CHAPTER           = 1,
+        ROOM_CUTSCENE_ACROPOLIS_PROGRESS_BEFORE = 2,
+        ROOM_CUTSCENE_ACROPOLIS_PROGRESS_AFTER  = 3,
+        ROOM_CUTSCENE_POST_SCENE_FLAG_VALUE     = 4,
+        ROOM_CUTSCENE_SQUARE_OBJECTIVE          = 5,
+        ROOM_CUTSCENE_DEFAULT_TPAGE_X           = 960,
+        ROOM_CUTSCENE_SCENE_VARIANT             = 99,
+        ROOM_CUTSCENE_DIALOGUE_COMMAND_BASE     = 16,
+        ROOM_CUTSCENE_LOOP_CHOICE_1             = 11,
+        ROOM_CUTSCENE_LOOP_CHOICE_2             = 12,
+        ROOM_CUTSCENE_LOOP_COMMAND_1            = 32,
+        ROOM_CUTSCENE_LOOP_COMMAND_2            = 33,
+    };
+    enum {
+        ROOM_CUTSCENE_STATE_HOLD             = 0,
+        ROOM_CUTSCENE_STATE_HOLD_GAP_1       = 1,
+        ROOM_CUTSCENE_STATE_HOLD_GAP_2       = 2,
+        ROOM_CUTSCENE_STATE_SELECT_CAP       = 3,
+        ROOM_CUTSCENE_STATE_START_SCENE      = 4,
+        ROOM_CUTSCENE_STATE_WAIT_SCENE       = 5,
+        ROOM_CUTSCENE_STATE_ABORT_CAP        = 6,
+        ROOM_CUTSCENE_STATE_START_DIALOGUE   = 7,
+        ROOM_CUTSCENE_STATE_WAIT_DIALOGUE    = 8,
+        ROOM_CUTSCENE_STATE_WAIT_FOLLOW_UP   = 9,
+        ROOM_CUTSCENE_STATE_RESTORE_GAP      = 10,
+        ROOM_CUTSCENE_STATE_RESTORE_VIEW     = 11,
+        ROOM_CUTSCENE_STATE_VIEW_GAP_1       = 12,
+        ROOM_CUTSCENE_STATE_VIEW_GAP_2       = 13,
+        ROOM_CUTSCENE_STATE_FINISH           = 14,
+        ROOM_CUTSCENE_STATE_UNUSED_15        = 15,
+        ROOM_CUTSCENE_STATE_UNUSED_16        = 16,
+        ROOM_CUTSCENE_STATE_UNUSED_17        = 17,
+        ROOM_CUTSCENE_STATE_UNUSED_18        = 18,
+        ROOM_CUTSCENE_STATE_UNUSED_19        = 19,
+        ROOM_CUTSCENE_STATE_START_LOOP       = 20,
+        ROOM_CUTSCENE_STATE_WAIT_LOOP        = 21,
+        ROOM_CUTSCENE_STATE_SELECT_LOOP      = 22,
+        ROOM_CUTSCENE_STATE_WAIT_LOOP_CHOICE = 23,
+    };
+    s32                    soundTaskStatus;
+    s32                    tpageX;
+    s32                    tpageY;
+    s32                    storyChapter;
+    const RoomCutsceneRec* cutscene;
+    McSaveData*            save;
+
+    cutscene = task->spawnArg2.pointer;
     switch (task->state) {
-        case 0:
+        // Take over presentation before selecting the scene resource.
+        case ROOM_CUTSCENE_STATE_HOLD:
             ROOM_CUTSCENE_SOUND_TASK = NULL;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-            if (save->state.companionType == 1) {
+            if (save->state.companionType == ROOM_CUTSCENE_COMPANION_FAMILY) {
                 companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
-            if (script->view > 0) {
+            if (cutscene->view > 0) {
                 D_80115694                    = save->state.location.loc.view;
-                save->state.location.loc.view = script->view;
+                save->state.location.loc.view = cutscene->view;
             } else {
-                D_80115694 = -script->view;
+                D_80115694 = -cutscene->view;
             }
             gGameSession->hideHud          = 1;
             gGameSession->eventState       = 1;
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-            if (script->startSound != 0) {
-                sndEvtRequestScriptStart(script->startSound, 0, 0);
+            if (cutscene->startSound != 0) {
+                sndEvtRequestScriptStart(cutscene->startSound, 0, 0);
             }
             task->state++;
             break;
-        case 1:
-        case 2:
+        case ROOM_CUTSCENE_STATE_HOLD_GAP_1:
+        case ROOM_CUTSCENE_STATE_HOLD_GAP_2:
             task->state++;
             break;
-        case 3:
-            if (script->capFile != 0) {
-                Gp_CapFile = 0;
-                capSelectLoadedFile(script->capFile);
-                a0 = script->capTPageX;
-                a1 = 0;
-                if (a0 == 0) {
-                    a0 = 0x3C0;
+        case ROOM_CUTSCENE_STATE_SELECT_CAP:
+            if (cutscene->capFile != 0) {
+                Gp_CapFile = NULL;
+                capSelectLoadedFile(cutscene->capFile);
+                tpageX = cutscene->capTPageX;
+                tpageY = 0;
+                if (tpageX == 0) {
+                    tpageX = ROOM_CUTSCENE_DEFAULT_TPAGE_X;
                 } else {
-                    a1 = script->capTPageY;
+                    tpageY = cutscene->capTPageY;
                 }
-                capSetTexturePage(a0, a1);
+                capSetTexturePage(tpageX, tpageY);
             }
-            if (script->skipScene != 0) {
-                task->state = 6;
+            if (cutscene->skipScene != 0) {
+                task->state = ROOM_CUTSCENE_STATE_ABORT_CAP;
             } else {
                 task->state++;
             }
             break;
-        case 4:
+        case ROOM_CUTSCENE_STATE_START_SCENE:
             ROOM_CUTSCENE_SOUND_TASK =
-                taskSpawnFromTable(gRoomCutsceneTaskDescs, 1, 0, script->sceneSound);
-            capStartSequenceSlot(script->capSlot, 0, 0x63);
+                taskSpawnFromTable(gRoomCutsceneTaskDescs, 1, 0, cutscene->sceneSound);
+            capStartSequenceSlot(cutscene->capSlot, CAP_PLAYBACK_IN_PLACE, ROOM_CUTSCENE_SCENE_VARIANT);
             task->state++;
             break;
-        case 5:
+        case ROOM_CUTSCENE_STATE_WAIT_SCENE:
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-                sndEvtRequestScriptStop(script->sceneSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                sndEvtRequestScriptStop(cutscene->sceneSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 taskKill(ROOM_CUTSCENE_SOUND_TASK);
                 task->state++;
-            } else if (taskPollKill(ROOM_CUTSCENE_SOUND_TASK, &poll) != 0) {
+            } else if (taskPollKill(ROOM_CUTSCENE_SOUND_TASK, &soundTaskStatus) != 0) {
                 task->state++;
             }
             break;
-        case 6:
+        case ROOM_CUTSCENE_STATE_ABORT_CAP:
             capAbortPlayback();
             task->state++;
             break;
-        case 7:
-            if (script->skipScene == 0) {
-                sndEvtRequestScriptStart(script->afterSceneSound, 0, 0);
+        // Settle story progress after either natural completion or a skip.
+        case ROOM_CUTSCENE_STATE_START_DIALOGUE:
+            if (cutscene->skipScene == 0) {
+                sndEvtRequestScriptStart(cutscene->afterSceneSound, 0, 0);
             }
-            flag = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
-            if (flag > 0) {
-                if (flag >= 5) {
-                    if (flag == 5) {
+            storyChapter = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
+            if (storyChapter > 0) {
+                if (storyChapter >= ROOM_CUTSCENE_ITEM_FOLLOW_UP_CHAPTER) {
+                    if (storyChapter == ROOM_CUTSCENE_ITEM_FOLLOW_UP_CHAPTER) {
                         if (gameFlagGetNibble(GAME_FLAG_ITEM_125_EXAMINED) != 0) {
                             if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) == 0) {
-                                gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 9);
+                                gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ROOM_CUTSCENE_FOLLOW_UP_CLEAR);
+                                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ROOM_CUTSCENE_ITEM_FOLLOW_UP_DIALOGUE);
                                 gameFlagSetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN, 1);
                             }
                         }
                     }
                 }
             }
-            if (script->capSlot == 1) {
-                capRunCommand(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + 0x10, CAP_PLAYBACK_IN_PLACE);
+            if (cutscene->capSlot == ROOM_CUTSCENE_STORY_CAP_SLOT) {
+                capRunCommand(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + ROOM_CUTSCENE_DIALOGUE_COMMAND_BASE, CAP_PLAYBACK_IN_PLACE);
             } else {
-                capRunCommand(script->capSlot, CAP_PLAYBACK_IN_PLACE);
+                capRunCommand(cutscene->capSlot, CAP_PLAYBACK_IN_PLACE);
             }
-            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == 1) {
-                if (gameFlagGetNibble(0) == 2) {
-                    gameFlagSetNibble(0, 3);
-                    gameFlagSetNibble(GAME_FLAG_00E, 4);
-                    if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
+            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == ROOM_CUTSCENE_OPENING_CHAPTER) {
+                if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ROOM_CUTSCENE_ACROPOLIS_PROGRESS_BEFORE) {
+                    gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PROGRESS, ROOM_CUTSCENE_ACROPOLIS_PROGRESS_AFTER);
+                    gameFlagSetNibble(GAME_FLAG_00E, ROOM_CUTSCENE_POST_SCENE_FLAG_VALUE);
+                    if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 0, 0)) {
                         areaApplySavedUpdates(D_acropolis_square_80188888);
-                        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 5);
+                        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ROOM_CUTSCENE_SQUARE_OBJECTIVE);
                     }
                 }
             }
             task->state++;
             break;
-        case 8:
+        case ROOM_CUTSCENE_STATE_WAIT_DIALOGUE:
             if (capIsBusy() == 0) {
-                if ((gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 0xE) && (gameFlagGetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE) == 0)) {
-                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 1);
-                    task->state = 0x14;
+                if ((gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == ROOM_CUTSCENE_REPEAT_DIALOGUE) && (gameFlagGetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE) == ROOM_CUTSCENE_FOLLOW_UP_CLEAR)) {
+                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ROOM_CUTSCENE_FOLLOW_UP_RUNNING);
+                    task->state = ROOM_CUTSCENE_STATE_START_LOOP;
                 } else {
                     capRunCommandWithTransition(task->spawnArg1.value);
                     task->state++;
                 }
             }
             break;
-        case 9:
+        case ROOM_CUTSCENE_STATE_WAIT_FOLLOW_UP:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 10:
+        case ROOM_CUTSCENE_STATE_RESTORE_GAP:
             task->state++;
             break;
-        case 11:
+        // Restore the view before releasing the actor and HUD hold.
+        case ROOM_CUTSCENE_STATE_RESTORE_VIEW:
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_80115694;
             task->state++;
             break;
-        case 12:
-        case 13:
+        case ROOM_CUTSCENE_STATE_VIEW_GAP_1:
+        case ROOM_CUTSCENE_STATE_VIEW_GAP_2:
             task->state++;
             break;
-        case 14:
-            sndEvtRequestScriptStart(script->endSound, 0, 0);
-            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1) {
-                companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            }
-            gGameSession->hideHud          = 0;
-            gGameSession->eventState       = 0;
-            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            if (script->capFile != 0) {
-                capReset();
-            }
-            D_80114D08 = 0xA;
+        case ROOM_CUTSCENE_STATE_FINISH:
+            sndEvtRequestScriptStart(cutscene->endSound, 0, 0);
+            _roomCutsceneReleasePresentation(cutscene);
+            D_80114D08 = ROOM_CUTSCENE_INTERACTION_REARM_UPDATES;
             taskKill(task);
             break;
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19:
+        case ROOM_CUTSCENE_STATE_UNUSED_15:
+        case ROOM_CUTSCENE_STATE_UNUSED_16:
+        case ROOM_CUTSCENE_STATE_UNUSED_17:
+        case ROOM_CUTSCENE_STATE_UNUSED_18:
+        case ROOM_CUTSCENE_STATE_UNUSED_19:
             break;
-        case 20:
-            capRunCommand(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + 0x10, CAP_PLAYBACK_IN_PLACE);
+        case ROOM_CUTSCENE_STATE_START_LOOP:
+            capRunCommand(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + ROOM_CUTSCENE_DIALOGUE_COMMAND_BASE, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
-        case 21:
+        case ROOM_CUTSCENE_STATE_WAIT_LOOP:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 22:
+        case ROOM_CUTSCENE_STATE_SELECT_LOOP:
             switch (capGetVariantKey()) {
-                case 11:
-                    capRunCommand(0x20, CAP_PLAYBACK_IN_PLACE);
+                case ROOM_CUTSCENE_LOOP_CHOICE_1:
+                    capRunCommand(ROOM_CUTSCENE_LOOP_COMMAND_1, CAP_PLAYBACK_IN_PLACE);
                     task->state++;
                     break;
-                case 12:
-                    capRunCommand(0x21, CAP_PLAYBACK_IN_PLACE);
+                case ROOM_CUTSCENE_LOOP_CHOICE_2:
+                    capRunCommand(ROOM_CUTSCENE_LOOP_COMMAND_2, CAP_PLAYBACK_IN_PLACE);
                     task->state++;
                     break;
                 default:
-                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 2);
-                    task->state = 8;
+                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ROOM_CUTSCENE_FOLLOW_UP_COMPLETE);
+                    task->state = ROOM_CUTSCENE_STATE_WAIT_DIALOGUE;
                     break;
             }
             break;
-        case 23:
+        case ROOM_CUTSCENE_STATE_WAIT_LOOP_CHOICE:
             if (capIsBusy() == 0) {
-                task->state = 0x14;
+                task->state = ROOM_CUTSCENE_STATE_START_LOOP;
             }
             break;
     }

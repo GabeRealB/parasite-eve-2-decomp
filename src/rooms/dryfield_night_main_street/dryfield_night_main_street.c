@@ -72,6 +72,9 @@
 #define MAIN_STREET_PUFF_TASK dryfieldNightMainStreetPuffTask
 #include "../../shared/main_street.h"
 
+static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _mainStreetTalkMessage(Task* task, s32 messageId, s32 command, s32 unusedSecondArg);
+
 static void _mainStreetFinishIceBagEvent(Task* task);
 
 static s32 _mainStreetCapSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
@@ -222,10 +225,10 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, _mainStreetFinishIceBagEvent, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_main_street_801820B0[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _mainStreetResolveMessage },
     { DRYFIELD_NIGHT_MAIN_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldNightMainStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMainStreetIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, mainStreetTalkMsg },
+    { ROOM_MESSAGE_COMMAND, _mainStreetTalkMessage },
     { ROOM_MESSAGE_SOUND, _mainStreetCapSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

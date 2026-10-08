@@ -62,6 +62,8 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 
+static void _roomCutsceneTask(Task* task);
+
 static void _roomCutsceneSoundTask(Task* task);
 
 // Preserve the following nonzero bytes with this scalar's storage.
@@ -182,7 +184,7 @@ static void                       _mineRefugeCutscenePromptTask(Task* task);
 #include "../../shared/telephone_data.inc.c"
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };

@@ -55,6 +55,8 @@
 #define ODD_STRANGER_VARIANT 1
 #include "../../shared/odd_stranger.h"
 
+static void _oddStrangerTick(Enemy* enemy, Task* actor);
+
 /// Animation bank `_actor401000Spawn` hands to both `animationInitContext`
 /// calls; the same `s32` the 401300 sibling keeps in `D_actor_401300_80158838`.
 extern AnimationSet* gOddStrangerAnimSets[46];
@@ -2285,7 +2287,7 @@ static void _actor401000RefallFront(Task* task)
 }
 
 /// The actor's state handlers, indexed by `OddStrangerWork::state`. Copied to
-/// the frame by `oddStrangerTick` before the dispatch, so the
+/// the frame by `_oddStrangerTick` before the dispatch, so the
 /// handler may overwrite the live table entry.
 static const OddStrangerStateTable gOddStrangerStates = { {
     _actor401000Hidden,
@@ -2340,7 +2342,7 @@ static s32 _actor401000IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPa
 /// the enemy down.
 static const EnemyTaskFuncTable3 D_actor_401000_8013207C = { {
     _actor401000Spawn,
-    oddStrangerTick,
+    _oddStrangerTick,
     enemyDestroy,
 } };
 

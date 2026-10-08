@@ -1,27 +1,45 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// The actor's per-frame tick, as in the Horned Stranger's `_actor401300Tick`:
-/// copy the state table to the frame, advance the root coordinate and hand it
-/// to `worldCoordUpdateActorColor`, then run the `gSceneCombatState.actorControl` arm. Arms 1 and 2 only
-/// drop the two obstacle records (2 also opening the `patrolPoints` draw to 0x80)
-/// and return; arm 0 falls through into the common tail, which counts
-/// `hitCooldown` down into `_oddStrangerTakeHit`, carries a new
-/// `state` into `prevState`/`stateEntered` (snapping the root to `grabStartPos` on a
-/// 0xB/0xD transition), dispatches through the table, re-flags `hitBody`,
-/// then appends the world-space position to the `bodyPosHistory` ring and publishes
-/// it as `Enemy::bodyPos` while the `animId` clip is 0x14/0x15.
-void oddStrangerTick(Enemy* enemy, Task* actor)
+/// Shows the ordinary actor shadow, including the walking burst-death pose.
+static inline void _oddStrangerDrawFrameShadow(Task* actor, OddStrangerWork* work)
 {
-    VECTOR                    pos;
+    enum { ODD_STRANGER_GROUND_SHADOW_RADIUS = 384 };
+    s32 state = work->state;
+
+    if ((state != ODD_STRANGER_STATE_HIDDEN) && (state != ODD_STRANGER_STATE_DEATH_BURN) && (state != ODD_STRANGER_STATE_DEATH_BURST) && (state != ODD_STRANGER_STATE_DEATH_BURST_WALK)) {
+        actor->extra.tmd->flags = 0;
+        effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ODD_STRANGER_GROUND_SHADOW_RADIUS, gRoomEffectState->groundShadowShade);
+        state = work->state;
+    }
+    if ((state == ODD_STRANGER_STATE_DEATH_BURST_WALK) && (work->animId == ODD_STRANGER_ANIM_WALK)) {
+        effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ODD_STRANGER_GROUND_SHADOW_RADIUS, gRoomEffectState->groundShadowShade);
+    }
+}
+
+/// Updates Odd Stranger presentation, behavior and collision targeting each frame.
+///
+/// Requires the owning enemy and live model task with initialized work and rigs.
+/// State must select a non-NULL handler within `ODD_STRANGER_STATE_COUNT`;
+/// `bodyPosCursor` must index the seven-entry history. Paused or hidden actor
+/// control refreshes presentation and clears contacts without advancing behavior.
+/// Running actors process hits, restore the root after leaving GRAB or
+/// GRAB_STRIKE, dispatch the copied state table and update collision enablement.
+/// Appends part 2's world position to the history; sidestep clips target the
+/// oldest entry, and other clips target the current position. Positions narrow
+/// to signed halfword game units. Borrows one position scratch block plus the
+/// dispatched handler's nested workspace.
+static void _oddStrangerTick(Enemy* enemy, Task* actor)
+{
+    VECTOR                    rootPosition;
     OddStrangerStateTable     states;
     OddStrangerWork*          work;
-    ActorPartPositionScratch* scratch;
-    ActorPartPositionScratch* head;
+    ActorPartPositionScratch* bodyPosition;
+    ActorPartPositionScratch* savedCursor;
     s32                       state;
 #if ODD_STRANGER_VARIANT == 2
-    s32      stop;
-    s32      index;
-    TaskFunc handler;
+    s32      deathBurnState;
+    s32      dispatchState;
+    TaskFunc stateHandler;
 #endif
 
     work   = actor->work;
@@ -29,33 +47,17 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
 
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(actor->extra.tmd->coords);
-    pos.vx = actor->extra.tmd->coords->workm.t[0];
-    pos.vy = actor->extra.tmd->coords->workm.t[1];
-    pos.vz = actor->extra.tmd->coords->workm.t[2];
-    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
+    rootPosition.vx = actor->extra.tmd->coords->workm.t[0];
+    rootPosition.vy = actor->extra.tmd->coords->workm.t[1];
+    rootPosition.vz = actor->extra.tmd->coords->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &rootPosition, 0, 0);
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            state = work->state;
-            if ((state != ODD_STRANGER_STATE_HIDDEN) && (state != ODD_STRANGER_STATE_DEATH_BURN) && (state != ODD_STRANGER_STATE_DEATH_BURST) && (state != ODD_STRANGER_STATE_DEATH_BURST_WALK)) {
-                actor->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
-                state = work->state;
-            }
-            if ((state == ODD_STRANGER_STATE_DEATH_BURST_WALK) && (work->animId == 2)) {
-                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
-            }
+            _oddStrangerDrawFrameShadow(actor, work);
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            state = work->state;
-            if ((state != ODD_STRANGER_STATE_HIDDEN) && (state != ODD_STRANGER_STATE_DEATH_BURN) && (state != ODD_STRANGER_STATE_DEATH_BURST) && (state != ODD_STRANGER_STATE_DEATH_BURST_WALK)) {
-                actor->extra.tmd->flags = 0;
-                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
-                state = work->state;
-            }
-            if ((state == ODD_STRANGER_STATE_DEATH_BURST_WALK) && (work->animId == 2)) {
-                effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), 0x180, gRoomEffectState->groundShadowShade);
-            }
+            _oddStrangerDrawFrameShadow(actor, work);
             worldCollisionClearContacts(work->gridContacts);
             worldCollisionClearContacts(work->hitContacts);
             return;
@@ -66,15 +68,16 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
             return;
     }
 
-    head                                           = SCRATCH_STACK_CURSOR(ActorPartPositionScratch);
-    SCRATCH_STACK_CURSOR(ActorPartPositionScratch) = head - 1;
-    scratch                                        = head - 1;
+    savedCursor                                    = SCRATCH_STACK_CURSOR(ActorPartPositionScratch);
+    SCRATCH_STACK_CURSOR(ActorPartPositionScratch) = savedCursor - 1;
+    bodyPosition                                   = savedCursor - 1;
 
     if (work->hitCooldown > 0) {
         work->hitCooldown = (s16)((u16)work->hitCooldown - 1);
     } else {
         _oddStrangerTakeHit(actor);
     }
+    // Leaving a grab restores the root captured before its scripted movement.
     if (work->prevState != work->state) {
         if ((work->prevState == ODD_STRANGER_STATE_GRAB) || (work->prevState == ODD_STRANGER_STATE_GRAB_STRIKE)) {
             actor->extra.tmd->coords->coord.t[0]   = work->grabStartPos.vx;
@@ -99,22 +102,22 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
     }
 #else
     work->prevState = (u16)work->state;
-    index           = work->state;
-    stop            = ODD_STRANGER_STATE_DEATH_BURN;
+    dispatchState   = work->state;
+    deathBurnState  = ODD_STRANGER_STATE_DEATH_BURN;
     /* Fitted. The image reads `state` again only after the `prevState` store and
        loads the DEATH_BURN constant beside that read, before the call, in a
        call-saved register. Both hold only if the table lookup was in a later
        basic block than the read when the scheduler ran, so a branch stood
        here and was deleted after scheduling. What it tested and what its arms
-       held is not known; equal arms on the index's sign leave no code. */
-    if (index >= 0) {
-        handler = states.handlers[index];
+       held is not known; equal arms on the dispatchState's sign leave no code. */
+    if (dispatchState >= 0) {
+        stateHandler = states.handlers[dispatchState];
     } else {
-        handler = states.handlers[index];
+        stateHandler = states.handlers[dispatchState];
     }
-    handler(actor);
+    stateHandler(actor);
     state = work->state;
-    if ((state == ODD_STRANGER_STATE_AMBUSH) || (state == stop) || (state == ODD_STRANGER_STATE_HIDDEN) || (state == ODD_STRANGER_STATE_DEATH_BURST) || (state == ODD_STRANGER_STATE_DEATH_BURST_WALK)) {
+    if ((state == ODD_STRANGER_STATE_AMBUSH) || (state == deathBurnState) || (state == ODD_STRANGER_STATE_HIDDEN) || (state == ODD_STRANGER_STATE_DEATH_BURST) || (state == ODD_STRANGER_STATE_DEATH_BURST_WALK)) {
         work->hitBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else {
@@ -129,28 +132,29 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
         work->state = ODD_STRANGER_STATE_ALERT;
     }
 
-    scratch->position.vx = 0;
-    scratch->position.vy = 0;
-    scratch->position.vz = 0;
-    _actorRenderTransformToWorld(actor->extra.tmd->coords + 2, &scratch->position);
+    bodyPosition->position.vx = 0;
+    bodyPosition->position.vy = 0;
+    bodyPosition->position.vz = 0;
+    _actorRenderTransformToWorld(actor->extra.tmd->coords + 2, &bodyPosition->position);
 
-    work->bodyPosHistory[work->bodyPosCursor].vx = scratch->position.vx;
-    work->bodyPosHistory[work->bodyPosCursor].vy = scratch->position.vy;
-    work->bodyPosHistory[work->bodyPosCursor].vz = scratch->position.vz;
+    work->bodyPosHistory[work->bodyPosCursor].vx = bodyPosition->position.vx;
+    work->bodyPosHistory[work->bodyPosCursor].vy = bodyPosition->position.vy;
+    work->bodyPosHistory[work->bodyPosCursor].vz = bodyPosition->position.vz;
 
+    // No further scratch allocation occurs before the sampled point is consumed.
     SCRATCH_STACK_RELEASE_BLOCK(ActorPartPositionScratch);
     work->bodyPosCursor = (u16)work->bodyPosCursor + 1;
     if (work->bodyPosCursor == ARRAY_SIZE(work->bodyPosHistory)) {
         work->bodyPosCursor = 0;
     }
-    if ((u32)((u16)work->animId - 0x14) < 2U) {
+    if ((u32)((u16)work->animId - ODD_STRANGER_ANIM_SIDESTEP_NEGATIVE) < 2U) {
         enemy->bodyPos.vx = work->bodyPosHistory[work->bodyPosCursor].vx;
         enemy->bodyPos.vy = work->bodyPosHistory[work->bodyPosCursor].vy;
         enemy->bodyPos.vz = work->bodyPosHistory[work->bodyPosCursor].vz;
     } else {
-        enemy->bodyPos.vx = scratch->position.vx;
-        enemy->bodyPos.vy = scratch->position.vy;
-        enemy->bodyPos.vz = scratch->position.vz;
+        enemy->bodyPos.vx = bodyPosition->position.vx;
+        enemy->bodyPos.vy = bodyPosition->position.vy;
+        enemy->bodyPos.vz = bodyPosition->position.vz;
     }
     enemy->coord = &gGfxViewCoord;
 }

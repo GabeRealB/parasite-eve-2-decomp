@@ -14,7 +14,4 @@
 
 #include "main/task_types.h"
 
-void madChaserWavePairSpawn(Task* arg0);
-void madChaserWaveOpen(Task* arg0);
-
 #endif /* SRC_SHARED_MAD_CHASER_WAVES_H */

@@ -1,52 +1,67 @@
 /* Part of the room events library; see room_events.h. */
 
-/// The room's event task, spawned by its message handler for a latched event.
-/// State 0 runs the event's CAP command; state 1 waits for it and, when the
-/// event asks for it, starts helper task 0x31; states 2 and 3 play the event's
-/// stage sound and wait for it; state 4 writes the latched message's
-/// destination into the save data and hands over to task type 0x11.
-void roomEventStagedTask(Task* arg0)
+/// Starts a borrowed room blackout that the subsequent session reload retires.
+static inline void _roomEventStartStagedBlackout(ScreenFade* fade)
 {
-    switch (arg0->state) {
-        case 0:
+    enum {
+        ROOM_EVENT_STAGED_FADE_FRAMES = 30,
+        ROOM_EVENT_STAGED_FADE_BANK   = 1,
+        ROOM_EVENT_STAGED_FADE_SLOT   = 49,
+    };
+    fade->blend      = SCREEN_FADE_SUBTRACT;
+    fade->phase      = SCREEN_FADE_RUNNING;
+    fade->rampFrames = ROOM_EVENT_STAGED_FADE_FRAMES;
+    taskSpawn(ROOM_EVENT_STAGED_FADE_BANK, ROOM_EVENT_STAGED_FADE_SLOT, 0, fade);
+}
+
+void roomEventStagedTask(Task* task)
+{
+    enum {
+        ROOM_EVENT_STAGED_RESTORE_ACTORS_ON_CAP_EXIT = 1,
+        ROOM_EVENT_STAGED_STATE_START                = 0,
+        ROOM_EVENT_STAGED_STATE_WAIT_CAP             = 1,
+        ROOM_EVENT_STAGED_STATE_START_SOUND          = 2,
+        ROOM_EVENT_STAGED_STATE_WAIT_SOUND           = 3,
+        ROOM_EVENT_STAGED_STATE_RELOAD               = 4,
+    };
+    switch (task->state) {
+        case ROOM_EVENT_STAGED_STATE_START:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capRunCommand(ROOM_EVENT_LATCHED.capCmd, CAP_PLAYBACK_IN_PLACE);
-            D_80115690 = 1;
-            arg0->state++;
+            D_80115690 = ROOM_EVENT_STAGED_RESTORE_ACTORS_ON_CAP_EXIT;
+            task->state++;
             break;
-        case 1:
+        case ROOM_EVENT_STAGED_STATE_WAIT_CAP:
             if (capIsBusy() == 0) {
                 if (ROOM_EVENT_LATCHED.fade != 0) {
-                    ROOM_EVENT_FADE.blend      = SCREEN_FADE_SUBTRACT;
-                    ROOM_EVENT_FADE.phase      = SCREEN_FADE_RUNNING;
-                    ROOM_EVENT_FADE.rampFrames = 0x1E;
-                    taskSpawn(1, 0x31, 0, &ROOM_EVENT_FADE);
+                    // Hold the blackout until reload discards the old task list.
+                    _roomEventStartStagedBlackout(&ROOM_EVENT_FADE);
                 }
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 2:
+        case ROOM_EVENT_STAGED_STATE_START_SOUND:
             if (ROOM_EVENT_LATCHED.stageSnd != 0) {
                 sndEvtRequestStageScriptStart(ROOM_EVENT_LATCHED.stageSnd, 0, 0);
-                arg0->state++;
+                task->state++;
             } else {
-                arg0->state = 4;
+                task->state = ROOM_EVENT_STAGED_STATE_RELOAD;
             }
             break;
-        case 3:
+        case ROOM_EVENT_STAGED_STATE_WAIT_SOUND:
             if (sndScriptHasActiveId(sndScriptResolveStageId(ROOM_EVENT_LATCHED.stageSnd)) == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 4:
+        case ROOM_EVENT_STAGED_STATE_RELOAD:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gDisplayState.spriteVariant                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = gRoomEventStagedMsg.areaId;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = gRoomEventStagedMsg.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = gRoomEventStagedMsg.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }

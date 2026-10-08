@@ -54,6 +54,8 @@
 #define ODD_STRANGER_VARIANT 2
 #include "../../shared/odd_stranger.h"
 
+static void _oddStrangerTick(Enemy* enemy, Task* actor);
+
 static const OddStrangerStateTable gOddStrangerStates;
 
 /// Payload of the `0x3FF` message `_oddStrangerGrabStrike` sends: the same
@@ -2210,7 +2212,7 @@ static s32 _actor401800IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPa
 /// the enemy down.
 static const EnemyTaskFuncTable3 D_actor_401800_80132064 = { {
     _actor401800Initialize,
-    oddStrangerTick,
+    _oddStrangerTick,
     enemyDestroy,
 } };
 

@@ -85,7 +85,7 @@ static void _dryfieldParkingLotIdle(Task* task);
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_parking_lot_8017DC04[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotEventMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotResolveMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldParkingLotRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldParkingLotIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _dryfieldParkingLotIgnoreCommandMessage },

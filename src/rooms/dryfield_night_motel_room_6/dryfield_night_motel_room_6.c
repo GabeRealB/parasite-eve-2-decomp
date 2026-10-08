@@ -69,12 +69,16 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/room_variants.h"
 
+static void _roomCutsceneTask(Task* task);
+
 static s32 _roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 /// Selects the nighttime motel room 6 glow export.
 ///
 /// Keep this binding through all motel room 6 implementation fragments.
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/motel_room_6.h"
+
+static s32 _motelRoom6CutsceneMessage(Task* task, s32 messageId, s32 command, s32 secondArg);
 
 static s32 _dryfieldNightMotelRoom6HandleCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
 
@@ -147,7 +151,7 @@ static UiList Telephone_Data_80181CF4;
 static u8 Reflection_Data_8017FC8C[];
 
 /// Task table of the room's cutscene: entry 0 is the cutscene task
-/// `roomCutsceneTask`, entry 1 the sound task
+/// `_roomCutsceneTask`, entry 1 the sound task
 /// `_roomCutsceneSoundTask` it runs alongside the scene.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
@@ -215,7 +219,7 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
 }
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
@@ -224,7 +228,7 @@ TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMotelBalconyMsg },
     { DRYFIELD_NIGHT_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom6RejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom6IgnoreActionMessage },
-    { ROOM_MESSAGE_COMMAND, motelRoom6CutsceneMsg },
+    { ROOM_MESSAGE_COMMAND, _motelRoom6CutsceneMessage },
     { ROOM_MESSAGE_SOUND, _dryfieldNightMotelRoom6SoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

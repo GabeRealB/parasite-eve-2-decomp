@@ -93,7 +93,7 @@ static AnimationSet _gDryfieldNightParkingLotAnimation0166C = {
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_parking_lot_8017EC60[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotEventMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotResolveMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldNightParkingLotRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldNightParkingLotStartScavengerEncounterMessage },
     { ROOM_MESSAGE_COMMAND, dryfieldNightParkingLotCommandMessage },

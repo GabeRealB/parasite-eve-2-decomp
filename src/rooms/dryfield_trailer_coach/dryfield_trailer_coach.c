@@ -75,6 +75,8 @@
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
 #include "../../shared/room_cutscene.h"
 #include "../../shared/glow_draw.h"
+static void _roomCutsceneTask(Task* task);
+
 /// Selects the daytime trailer coach view that uses the finer depth shift.
 ///
 /// Keep this binding through the depth-shift implementation fragment.
@@ -93,7 +95,7 @@ static s32 Shop_Data_801819EC;
 
 /// Task descriptor table the room's cutscene tasks spawn from: the room spawns
 /// entry 0 with a cutscene record as its argument, and
-/// `roomCutsceneTask` spawns entry 1 for the scene.
+/// `_roomCutsceneTask` spawns entry 1 for the scene.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xD0\xFF"
@@ -319,7 +321,7 @@ static AnimationSet _gDryfieldTrailerCoachAnimation07994 = {
 };
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };

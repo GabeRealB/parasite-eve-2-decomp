@@ -21,8 +21,6 @@ extern RoomCutsceneRec gMotelRoom6CutsceneRec;
 /// Where the room's glow is drawn.
 extern SVECTOR gMotelRoom6GlowPos[];
 
-s32 motelRoom6CutsceneMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-
 /// Binds the shared glow task definition to its room overlay's public export.
 ///
 /// The carrier must define `DRYFIELD_TIME` as `DRYFIELD_DAY` or

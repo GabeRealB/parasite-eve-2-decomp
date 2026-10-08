@@ -1145,7 +1145,7 @@ enum {
     /// in C.
     GAME_FLAG_154 = 0x154,
     /// Story-progress index (0-0xF) that picks the follow-up CAP dialogue of slot-1
-    /// room cutscenes (CAP command 0x155+0x10 in roomCutsceneTask); story beats across
+    /// room cutscenes (CAP command 0x155+0x10 in _roomCutsceneTask); story beats across
     /// all stages set it to increasing values (always clearing flag 3), and stage
     /// starts reset it to 0. Value 0xE adds a looping dialogue choice.
     GAME_FLAG_STORY_DIALOGUE_INDEX = 0x155,

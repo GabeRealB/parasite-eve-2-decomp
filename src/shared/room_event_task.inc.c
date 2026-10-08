@@ -1,14 +1,17 @@
 /* Part of the room events library; see room_events.h. */
 
-/// The event task `gRoomEventTaskDesc` describes, spawned by the gate
-/// above once it has latched a request: it runs the request's CAP command,
-/// plays and waits out its two sounds (`firstSnd`, then `secondSnd`, either
-/// skipped when zero), then writes the latched message's destination into the
-/// save's location and spawns the room-change task, killing itself.
 void roomEventTask(Task* task)
 {
+    enum {
+        ROOM_EVENT_STATE_START              = 0,
+        ROOM_EVENT_STATE_WAIT_FIRST_SOUND   = 1,
+        ROOM_EVENT_STATE_GAP                = 2,
+        ROOM_EVENT_STATE_START_SECOND_SOUND = 3,
+        ROOM_EVENT_STATE_WAIT_SECOND_SOUND  = 4,
+        ROOM_EVENT_STATE_RELOAD             = 5,
+    };
     switch (task->state) {
-        case 0:
+        case ROOM_EVENT_STATE_START:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capRunCommandWithTransition(ROOM_EVENT_REQ.capCmd);
@@ -16,31 +19,32 @@ void roomEventTask(Task* task)
                 sndEvtRequestScriptStart(ROOM_EVENT_REQ.firstSnd, 0, 0);
                 task->state++;
             } else {
-                task->state = 2;
+                task->state = ROOM_EVENT_STATE_GAP;
             }
             break;
-        case 1:
+        case ROOM_EVENT_STATE_WAIT_FIRST_SOUND:
             if (sndScriptHasActiveId(ROOM_EVENT_REQ.firstSnd) == 0) {
                 task->state++;
             }
             break;
-        case 2:
+        case ROOM_EVENT_STATE_GAP:
             task->state++;
             break;
-        case 3:
+        case ROOM_EVENT_STATE_START_SECOND_SOUND:
             if (ROOM_EVENT_REQ.secondSnd != 0) {
                 sndEvtRequestScriptStart(ROOM_EVENT_REQ.secondSnd, 0, 0);
                 task->state++;
             } else {
-                task->state = 5;
+                task->state = ROOM_EVENT_STATE_RELOAD;
             }
             break;
-        case 4:
+        case ROOM_EVENT_STATE_WAIT_SECOND_SOUND:
             if (sndScriptHasActiveId(ROOM_EVENT_REQ.secondSnd) == 0) {
                 task->state++;
             }
             break;
-        case 5:
+        // Leave control restoration to the session reload and room startup.
+        case ROOM_EVENT_STATE_RELOAD:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gDisplayState.spriteVariant                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = gRoomEventMsg.areaId;

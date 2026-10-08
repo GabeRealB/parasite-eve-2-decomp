@@ -96,7 +96,7 @@ enum {
     SHELTER_1F_PARKING_GARAGE_KEY_ITEM_UNUSABLE    = 0,
 };
 
-TaskDesc D_shelter_1f_parking_garage_80180BA0 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
+TaskDesc D_shelter_1f_parking_garage_80180BA0 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
 
 TaskDesc D_shelter_1f_parking_garage_80180BAC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 

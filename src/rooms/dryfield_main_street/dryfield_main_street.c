@@ -75,6 +75,9 @@
 #define MAIN_STREET_PUFF_TASK dryfieldMainStreetPuffTask
 #include "../../shared/main_street.h"
 
+static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _mainStreetTalkMessage(Task* task, s32 messageId, s32 command, s32 unusedSecondArg);
+
 static void _mainStreetFinishIceBagEvent(Task* task);
 
 static s32 _mainStreetCapSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
@@ -91,7 +94,7 @@ extern TaskDesc gMainStreetEventTaskDesc;
 /// Descriptor of the event task the event gate spawns.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// Descriptor of the task `mainStreetTalkMsg` spawns.
+/// Descriptor of the task `_mainStreetTalkMessage` spawns.
 extern TaskDesc gMainStreetPlayTimeTaskDesc;
 
 /// Message table the room entry task installs at `Task::msgTable`.
@@ -179,10 +182,10 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, _mainStreetFinishIceBagEvent, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_main_street_80180EA0[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _mainStreetResolveMessage },
     { DRYFIELD_MAIN_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldMainStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMainStreetStartFirstVisitCutscene },
-    { ROOM_MESSAGE_COMMAND, mainStreetTalkMsg },
+    { ROOM_MESSAGE_COMMAND, _mainStreetTalkMessage },
     { ROOM_MESSAGE_SOUND, _mainStreetCapSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
