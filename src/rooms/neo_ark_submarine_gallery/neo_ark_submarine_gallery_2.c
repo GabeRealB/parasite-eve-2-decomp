@@ -68,14 +68,14 @@ TaskDesc D_neo_ark_submarine_gallery_8018186C = { { { TASK_BODY_NONE, 192 } }, w
 TaskDesc D_neo_ark_submarine_gallery_80181878 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
 TaskMessageEntry D_neo_ark_submarine_gallery_80181884[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_submarine_gallery_8017EA0C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, neoArkSubmarineGalleryResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, neoArkSubmarineGalleryRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, neoArkSubmarineGalleryIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, neoArkSubmarineGalleryHandleCapCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_neo_ark_submarine_gallery_801818AC = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_submarine_gallery_8017E86C, { .value = 0 } };
+TaskDesc D_neo_ark_submarine_gallery_801818AC = { { { TASK_BODY_NONE, 32 } }, neoArkSubmarineGalleryDepartToIslandTask, { .value = 0 } };
 
 s16 D_neo_ark_submarine_gallery_801818B8 = 0;
 

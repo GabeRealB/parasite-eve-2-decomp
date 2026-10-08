@@ -69,7 +69,7 @@ static const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
 static void _neoArkSubstationAmbienceTask(Task* task);
 static s32  _neoArkSubstationRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32  _neoArkSubstationResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
-s32         func_neo_ark_substation_8017D768(Task*, s32, s32, s32);
+static s32  _neoArkSubstationHandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg);
 static s32  _neoArkSubstationIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
 
 /// Key-item menu request and the reply that displays the cannot-use notice.
@@ -87,7 +87,7 @@ TaskMessageEntry D_neo_ark_substation_8017E294[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSubstationResolveRoomEvent },
     { NEO_ARK_SUBSTATION_MESSAGE_USE_KEY_ITEM, _neoArkSubstationRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSubstationIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_substation_8017D768 },
+    { ROOM_MESSAGE_COMMAND, _neoArkSubstationHandleCapCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -606,10 +606,19 @@ static s32 _neoArkSubstationResolveRoomEvent(Task* task, s32 messageId, RoomEven
     return NEO_ARK_SUBSTATION_TRANSITION_ALLOWED;
 }
 
-s32 func_neo_ark_substation_8017D768(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects substation dialogue for room command 3 according to Power Plant 2 clearance.
+///
+/// Runs CAP 3 after clearance or CAP 5 before it, using display-transition
+/// playback. Other commands do nothing. Returns zero; only `commandIndex` is
+/// read. Keep the substation CAP resources loaded through playback.
+static s32 _neoArkSubstationHandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg)
 {
-    if (arg2 == 3) {
-        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) != 0 ? 3 : 5);
+    enum { COMMAND_CHECK_SECOND_PLANT = 3,
+           CAP_SECOND_PLANT_CLEARED   = 3,
+           CAP_SECOND_PLANT_UNCLEARED = 5 };
+
+    if (commandIndex == COMMAND_CHECK_SECOND_PLANT) {
+        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) != 0 ? CAP_SECOND_PLANT_CLEARED : CAP_SECOND_PLANT_UNCLEARED);
     }
     return 0;
 }

@@ -53,9 +53,11 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 extern RoomFadeStorage D_neo_ark_submarine_gallery_8018591C;
 
 /// Staging save location the gallery commits: area / warp / room
-/// hold what `func_neo_ark_submarine_gallery_8017EA0C` copies out of the
-/// incoming location, and `func_neo_ark_submarine_gallery_8017E86C` moves those
-/// same three bytes into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area` / `field_8` / `field_5`.
+/// hold what `neoArkSubmarineGalleryResolveRoomEvent` copies out of the
+/// resolved destination, and `neoArkSubmarineGalleryDepartToIslandTask` moves
+/// those same three bytes into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area`,
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp` and
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`.
 extern RoomEventMsg D_neo_ark_submarine_gallery_80185924;
 
 AreaApplyRec D_neo_ark_submarine_gallery_8018590C[4] = {
@@ -69,7 +71,7 @@ RoomFadeStorage D_neo_ark_submarine_gallery_8018591C = { 0 };
 
 RoomEventMsg D_neo_ark_submarine_gallery_80185924 = { 0 };
 
-static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0);
+static void _neoArkSubmarineGalleryInitializeRoom(Task* task);
 
 static void _neoArkSubmarineGalleryMessageTaskIdle(Task* unusedTask);
 
@@ -92,61 +94,79 @@ enum {
 /// State handlers of the room's entry task, indexed by its state through
 /// `neoArkSubmarineGalleryMessageTask`: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D614 = {
-    { func_neo_ark_submarine_gallery_8017EB50, _neoArkSubmarineGalleryMessageTaskIdle, taskKill }
+    { _neoArkSubmarineGalleryInitializeRoom, _neoArkSubmarineGalleryMessageTaskIdle, taskKill }
 };
 
-/// Runs the gallery's save sequence once state 0 has asked for the caption.
-/// State 1 waits for that caption, state 2 takes the confirm key or backs out,
-/// state 3 raises the helper task 0x31 and queues the sound event, state 4
-/// waits for that voice, and state 5 - the commit - copies the staged location
-/// into `gMcSaveData` and reloads. Every state advances by one except a
-/// confirmed cancel and the commit itself.
-void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
+/// Commits the staged destination and replaces the departure task with a reload request.
+static inline void _neoArkSubmarineGalleryCommitIslandDeparture(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum { STAGED_ROOM_BYTE      = 1,
+           RELOAD_SPRITE_VARIANT = 1 };
+
+    gDisplayState.spriteVariant                                = RELOAD_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_submarine_gallery_80185924.warp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_submarine_gallery_80185924)[STAGED_ROOM_BYTE];
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
+    taskKill(task);
+}
+
+void neoArkSubmarineGalleryDepartToIslandTask(Task* task)
+{
+    enum { DEPARTURE_ASK,
+           DEPARTURE_WAIT_CAP,
+           DEPARTURE_CHECK_CHOICE,
+           DEPARTURE_START_FADE,
+           DEPARTURE_WAIT_SOUND,
+           DEPARTURE_RELOAD,
+           CAP_CONFIRM_DEPARTURE = 9,
+           CAP_CHOICE_DEPART     = 10,
+           CAP_KEEP_ACTORS_HELD  = 1,
+           FADE_DURATION_FRAMES  = 30,
+           FADE_TASK_BANK        = 1,
+           FADE_TASK_SLOT        = 0x31 };
+
+    switch (task->state) {
+        case DEPARTURE_ASK:
+            // Keep actor control held after CAP playback until the choice is handled.
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommand(9, CAP_PLAYBACK_IN_PLACE);
-            D_80115690 = 1;
-            arg0->state++;
+            capRunCommand(CAP_CONFIRM_DEPARTURE, CAP_PLAYBACK_IN_PLACE);
+            D_80115690 = CAP_KEEP_ACTORS_HELD;
+            task->state++;
             break;
-        case 1:
+        case DEPARTURE_WAIT_CAP:
             if (capIsBusy() == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 2:
-            if (capGetVariantKey() != 0xA) {
-                taskKill(arg0);
+        case DEPARTURE_CHECK_CHOICE:
+            if (capGetVariantKey() != CAP_CHOICE_DEPART) {
+                taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             sceneQueueBattleEscapeResult();
-            arg0->state++;
+            task->state++;
             break;
-        case 3:
+        case DEPARTURE_START_FADE:
             D_neo_ark_submarine_gallery_8018591C.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_neo_ark_submarine_gallery_8018591C.fade.phase      = SCREEN_FADE_RUNNING;
-            D_neo_ark_submarine_gallery_8018591C.fade.rampFrames = 0x1E;
-            taskSpawn(1, 0x31, 0, &D_neo_ark_submarine_gallery_8018591C.fade);
+            D_neo_ark_submarine_gallery_8018591C.fade.rampFrames = FADE_DURATION_FRAMES;
+            taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, 0, &D_neo_ark_submarine_gallery_8018591C.fade);
             sndEvtRequestScriptStart(SOUND_NEO_ARK_SUB_GALLERY_TO_ISLAND, 0, 0);
-            arg0->state++;
+            task->state++;
             break;
-        case 4:
+        case DEPARTURE_WAIT_SOUND:
             if (sndScriptHasActiveId(SOUND_NEO_ARK_SUB_GALLERY_TO_ISLAND) == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 5:
-            gDisplayState.spriteVariant                                = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_submarine_gallery_80185924.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_submarine_gallery_80185924.areaId)[1];
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
-            taskKill(arg0);
+        case DEPARTURE_RELOAD:
+            // Commit the staged destination only after the departure sound finishes.
+            _neoArkSubmarineGalleryCommitIslandDeparture(task);
             break;
     }
 }
@@ -156,24 +176,25 @@ s32 neoArkSubmarineGalleryRejectKeyItemUse(Task* task, s32 messageId, s32 itemId
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Gallery message handler. Message 0xE, while the incoming location still
-/// reports no pending flag, latches the save location the outgoing message
-/// carries and starts the cutscene the gallery leads out of. Returns 0 for that
-/// message and 1 for every other one.
-s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+s32 neoArkSubmarineGalleryResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    mapNeoArkResolveRoomVariant(src, dst);
-    if (src->areaId == GAME_AREA_NEO_ARK_ISLAND) {
-        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_neo_ark_submarine_gallery_80185924.warp              = (u8)dst->areaId;
-            D_neo_ark_submarine_gallery_80185924.field_4           = dst->warp;
-            ((u8*)&D_neo_ark_submarine_gallery_80185924.areaId)[1] = dst->room;
+    enum { TRANSITION_DEFERRED = 0,
+           TRANSITION_ALLOWED  = 1,
+           STAGED_ROOM_BYTE    = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId == GAME_AREA_NEO_ARK_ISLAND) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            // Preserve the resolved destination for the asynchronous confirmation task.
+            D_neo_ark_submarine_gallery_80185924.warp                      = (u8)reply->areaId;
+            D_neo_ark_submarine_gallery_80185924.field_4                   = reply->warp;
+            ((u8*)&D_neo_ark_submarine_gallery_80185924)[STAGED_ROOM_BYTE] = reply->room;
             taskSpawnFromTable(&D_neo_ark_submarine_gallery_801818AC, 0, 0, 0);
         }
-        return 0;
+        return TRANSITION_DEFERRED;
     }
-    return 1;
+    return TRANSITION_ALLOWED;
 }
 
 s32 neoArkSubmarineGalleryHandleCapCommand(Task* task, s32 messageId, s32 commandIndex, s32 unused)
@@ -215,14 +236,18 @@ s32 neoArkSubmarineGalleryIgnoreRoomAction(Task* task, s32 messageId, const Dire
     return 0;
 }
 
-static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
+/// Installs the gallery's room-message receiver and starts the full red-disc variant.
+///
+/// State 0 publishes the borrowed live task in the room slot. Variant 4 spawns
+/// the coordinate-bodied red disc; other variants do not. Advances to idle.
+static void _neoArkSubmarineGalleryInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_neo_ark_submarine_gallery_80181884;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 4) {
+    task->msgTable = D_neo_ark_submarine_gallery_80181884;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gGameSession->location.loc.variant == NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT) {
         taskSpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the initialized room-message task alive without per-frame work.

@@ -1287,7 +1287,7 @@ Inputs: `base.i` (one `void *arg2`, 87.184%)
 
 The severity is a property of the function, not of the mistake, so the same
 one-parameter seed can land at 99.963% and read as nothing but `regs=1`:
-`func_neo_ark_submarine_tunnel_8017F064` had all 24 blocks, all 134 instructions
+`_neoArkSubmarineTunnelHandleRoomAction` had all 24 blocks, all 134 instructions
 and every call matching, with a single differing line -
 `addu $s2,$a0,$zero` where the target has `addu $s2,$a2,$zero` - because the
 seed's first use of the pointer is a copy to a callee-saved register, which
@@ -1502,7 +1502,7 @@ So a mid-pipeline dump is not evidence that the source had one call; only
 
 `func_dryfield_underpass_8017D868` (rooms/dryfield_underpass). Its third
 parameter carries the command, so it takes the sibling
-`func_neo_ark_power_plant_2_8017D61C` signature `(s32 index, s32 value, s32 arg2)`
+`_neoArkPowerPlant2HandleCapCommand` signature `(s32 index, s32 value, s32 arg2)`
 — with one parameter the compare lands in `$a0` instead of `$a2`. The sibling
 `func_dryfield_night_underpass_8017D868` is the identical body, but
 `overlay_dup_index.py promote` refuses it: the table it reads sits at a
@@ -9808,7 +9808,7 @@ against the sum of the `.s` runs before adding a pad word - `4 + 0xC + 0x14 +
 
 **`rodata_head` is not limited to the id word - it takes the whole assembly run
 ahead of the table.** `neo_ark_submarine_gallery`'s
-`func_neo_ark_submarine_gallery_8017E86C` scored 100.00% with all-zero penalties
+`neoArkSubmarineGalleryDepartToIslandTask` scored 100.00% with all-zero penalties
 and failed only its own overlay, which came out 8 bytes longer than the package.
 Its table sits at `0x64`, behind *two* rodata runs that live in the same unit's
 `.c`: the 0x54-byte header blob and the 0x10-byte `D_..._8017D614` pointer
@@ -21247,8 +21247,8 @@ The same trap reports as a `regs` penalty only while the seed *keeps* a
 placeholder for the dead argument. When **every** leading parameter is dead,
 m2c's seed drops them from the signature, and then the symptom is a **missing
 instruction**, not a wrong register. A room message handler takes
-`TaskMessageHandler`'s `s32 (*)(Task*, s32, TaskMessageArg, TaskMessageArg)` shape; for
-`func_neo_ark_submarine_tunnel_8017F2C8` only the third one is read, and m2c
+`TaskMessageHandler`'s four-word callback shape, with each payload declared as
+its message-specific type; for `_neoArkSubmarineTunnelHandleCapCommand` only the third one is read, and m2c
 emitted `s32 f(s32 arg2)` — so the value arrived in `$a0` and the target's
 `move $a0,$a2` had nothing to reproduce. The prologue is the tell: a `move`
 whose source is a *later* argument register, ahead of any use, means the seed's
@@ -45044,7 +45044,7 @@ The command must still be assigned *after* `gameFlagGetNibble` (if/else
 or a ternary) so it is not live across that `jal` — otherwise GCC saves
 it in `$s0` and the prologue no longer matches. See "A call argument
 chosen by an `if` must be a ternary, not a pre-set local".
-`func_neo_ark_power_plant_2_8017D61C` is the example.
+`_neoArkPowerPlant2HandleCapCommand` is the example.
 
 ## A named `Jt` table mid-header still moves with one `rodata` cut
 
@@ -92645,13 +92645,13 @@ once - `func_dryfield_night_factory_801825F0` passes it straight into
 did, and the local is the redundant one.
 
 Inputs: `base.i` (100%), `base_2.i` (53.5%, inline form). Compiler SHA256
-## m2c names parameters by argument register and drops the leading ones it never reads (func_neo_ark_pavilion_8017EB3C, 2026-09-16)
+## m2c names parameters by argument register and drops the leading ones it never reads (_neoArkPavilionHandleCapCommand, 2026-09-16)
 
-`func_neo_ark_pavilion_8017EB3C` reads no argument but `$a2` (the message id,
+`_neoArkPavilionHandleCapCommand` reads no argument but `$a2` (the command index,
 `bne $a2, $v0`), and m2c emitted:
 
 ```c
-s32 func_neo_ark_pavilion_8017EB3C(s32 arg2) {
+s32 _neoArkPavilionHandleCapCommand(s32 arg2) {
 ```
 
 That is m2c's naming convention showing through, not the function's signature.
@@ -95045,13 +95045,13 @@ sibling's C and transplant it, changing only the message constant, the latched
 varies (island returns 0 for its message, `shelter_1f_bulwark` 2 for one branch,
 the observatory's event handler always 1) independently of the rest.
 
-`func_neo_ark_submarine_gallery_8017EA0C` was matched this way in one build off
+`neoArkSubmarineGalleryResolveRoomEvent` was matched this way in one build off
 `func_neo_ark_island_8017E968`, at 100.000% / zero penalties, from an m2c seed at
 57.227%.
 
 Sizing the two data symbols is the one thing to check first: on this overlay the
 spawned `D_..._801818AC` is 0xC bytes (`TaskDesc`) and the latched
-`D_..._80185924` is 8 zero bytes (`RoomEventMsg`), confirmed in
+`D_..._80185924` is 8 zero bytes (destination staging storage), confirmed in
 `asm/USA/rooms/data/<room>_data.data.s`.
 
 Input `base_1.c`
@@ -140536,7 +140536,7 @@ plain-C form. Inputs: `base_54.i`
 `04fc9381abcdfa41f9a64db7baa8ee7d0511a25669f8721f892673b9650ce4db` (per-copy
 `area`, 100%).
 
-### A sched1 priority diagnosis on an untyped m2c seed can come from aliasing: retype the seed before you chase the scheduler (func_neo_ark_power_plant_2_8017D8AC, 2026-09-23)
+### A sched1 priority diagnosis on an untyped m2c seed can come from aliasing: retype the seed before you chase the scheduler (neoArkPowerPlant2UpdateViewLightingTask, 2026-09-23)
 
 The earlier session left this function at 98.868% (`reorder=2`). It traced the
 swap to sched1's birthing boost on the LCG load, confirmed that with a
@@ -149941,7 +149941,7 @@ attempts; left as it was.
   stores go through it); with the vector passed in from the caller another
   scratch address is kept in `$s3` across the call.
 - **`default: goto done;` past a call that follows the switch**
-  (`func_neo_ark_power_plant_2_8017D61C`) is the call written in each case
+  (`_neoArkPowerPlant2HandleCapCommand`) is the call written in each case
   with `break`, not `default: return 0;` (the `move v0,zero` is then local to
   the arm, 2 insns longer; the `break` vs `return 0` entry above).
 - A mode ladder on `gSceneCombatState.actorControl` whose mode 0 has a body

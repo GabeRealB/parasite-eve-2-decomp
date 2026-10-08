@@ -118,9 +118,26 @@ void neoArkPavilionRoomVisualEffectsFlashTask(Task* task);
 /// the history until resumed or torn down.
 void neoArkPavilionRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_neo_ark_pavilion_80180FFC(Task* task);
+/// Runs an impact flash followed by smoke puffs or expanding orange rings and sparks.
+///
+/// Starts in state 0 with a coordinate body and owned, zero-aged `EffectWork`
+/// in `spawnArg2.pointer`. Nonzero `spawnArg1.value` selects smoke; zero selects
+/// rings. Active age 7 enters release; age 8 releases work and the task.
+/// Room effect control 1..3 pauses and 4 or above cancels. Spawned effects
+/// remain independent. Keep this overlay and the effect controller loaded.
+void neoArkPavilionRoomVisualEffectsSparkBurstTask(Task* task);
 
-void func_neo_ark_pavilion_80181C44(Task* arg0);
+/// Runs an anchored charge disc with player-joint sparks, flicker and a fading ring.
+///
+/// Requires a coordinate body and owned, zeroed `EffectWork` in
+/// `spawnArg2.pointer`. `spawnArg1.value` selects tint 0 or 1; the work's parent
+/// coordinate and its ancestors must outlive the task. State 0 attaches without
+/// drawing; growth emits an adopted spark every fourth active age from player
+/// parts 3..18. The owner requests flicker, release or cancel with
+/// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Control 1..3 pauses and 4 or above
+/// cancels. Teardown releases work and adopted sparks. Keep the player model,
+/// installed flying-spark callback, room overlay and effect controller live.
+void neoArkPavilionRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Sends an animated spark toward an initial target position for twenty active ticks.
 ///

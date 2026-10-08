@@ -92,7 +92,7 @@ D_neo_ark_submarine_tunnel_80181AF0 = 0x80181AF0; // size:0x300 defined:True
 gScreenWaveRows = 0x80187960; // size:0xC0 defined:True
 gScreenWaveSpawnCtx = 0x80187A20; // size:0xC defined:True
 
-func_neo_ark_submarine_tunnel_8017F4DC = 0x8017F4DC; // type:func
+neoArkSubmarineTunnelRoomVisualEffectsGlowDiscTask = 0x8017F4DC; // type:func
 
 neoArkSubmarineTunnelRoomVisualEffectsFlyingSparkTask = 0x8017FA34; // type:func
 
@@ -114,3 +114,5 @@ _neoArkSubmarineTunnelSetEventSeen = 0x8017f398; // type:func
 _neoArkSubmarineTunnelMessageTaskIdle = 0x8017f414; // type:func
 _neoArkSubmarineTunnelInitializeRoom = 0x8017f3bc; // type:func
 neoArkSubmarineTunnelRoomTask = 0x8017f434; // type:func
+_neoArkSubmarineTunnelHandleRoomAction = 0x8017f064; // type:func
+_neoArkSubmarineTunnelHandleCapCommand = 0x8017f2c8; // type:func

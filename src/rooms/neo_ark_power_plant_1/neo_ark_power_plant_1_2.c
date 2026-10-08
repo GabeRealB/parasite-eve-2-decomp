@@ -85,7 +85,7 @@ TaskMessageEntry D_neo_ark_power_plant_1_8017EB18[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, neoArkPowerPlant1ResolveRoomVariant },
     { ROOM_MESSAGE_USE_KEY_ITEM, neoArkPowerPlant1RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, neoArkPowerPlant1IgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_power_plant_1_8017D7F8 },
+    { ROOM_MESSAGE_COMMAND, neoArkPowerPlant1HandleCapCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

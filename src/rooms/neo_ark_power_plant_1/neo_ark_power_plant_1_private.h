@@ -41,7 +41,15 @@ s32 neoArkPowerPlant1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32
 /// Always returns 1 to allow the transition; task and message ID are unused.
 s32 neoArkPowerPlant1ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 
-s32 func_neo_ark_power_plant_1_8017D7F8(Task*, s32, s32, s32);
+/// Selects Power Plant 1 CAP dialogue from generator and plant progress.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`: command 2 tests this plant's clearance;
+/// command 3 tests battle completion, then generator-part defeat. Commands 9
+/// and 12 select two dialogue pairs by Power Plant 2 clearance. Other commands
+/// do nothing. Starts display-transition CAP playback and always returns zero.
+/// The task, message ID and final word are unused; keep the plant CAP resources
+/// loaded through playback.
+s32 neoArkPowerPlant1HandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg);
 
 /// Ignores trigger-driven room actions in Power Plant 1 and returns zero.
 ///

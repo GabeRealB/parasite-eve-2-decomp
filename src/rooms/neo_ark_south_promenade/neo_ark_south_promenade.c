@@ -442,7 +442,7 @@ void neoArkSouthPromenadeRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_neo_ark_south_promenade_8017EA6C(Task* task)
+void neoArkSouthPromenadeRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

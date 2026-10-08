@@ -74,10 +74,10 @@ extern EvsCommand D_neo_ark_submarine_tunnel_80181AF0[];
 static void _neoArkSubmarineTunnelInitializeRoom(Task* task);
 static void _neoArkSubmarineTunnelMessageTaskIdle(Task* task);
 
-s32        func_neo_ark_submarine_tunnel_8017F064(Task*, s32, RoomEventMsg*, s32);
+static s32 _neoArkSubmarineTunnelHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32 _neoArkSubmarineTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32 _neoArkSubmarineTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
-s32        func_neo_ark_submarine_tunnel_8017F2C8(Task*, s32, s32, s32);
+static s32 _neoArkSubmarineTunnelHandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg);
 
 static AnimationSet _gNeoArkSubmarineTunnelAnimation03EE0;
 static AnimationSet _gNeoArkSubmarineTunnelAnimation0444C;
@@ -147,8 +147,8 @@ s32 gScreenWaveRamp = 256;
 TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSubmarineTunnelResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkSubmarineTunnelRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_submarine_tunnel_8017F064 },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_submarine_tunnel_8017F2C8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSubmarineTunnelHandleRoomAction },
+    { ROOM_MESSAGE_COMMAND, _neoArkSubmarineTunnelHandleCapCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -224,44 +224,69 @@ static const TaskFuncTable3 D_neo_ark_submarine_tunnel_8017D614 = {
 
 #include "../../shared/screen_wave.inc.c"
 
-s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
+/// Handles trigger-driven tunnel scenes and arrival-control release.
+///
+/// Borrows a four-byte `DirectionActionRequest` during synchronous dispatch.
+/// Action 1 advances variant-3 progress from 1 to 2 and starts its scene.
+/// Action 2 starts the unseen variant-1 event or releases warp-1 arrival control;
+/// action 3 starts first-entry variant-3 progress or releases warp-2 arrival
+/// control. The room's entry latch suppresses repeated entry/control handling.
+/// Only the unsigned action byte is read; control, argument and other callback
+/// words are ignored. Retains no request pointer and always returns zero.
+static s32 _neoArkSubmarineTunnelHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    u8 temp_s0;
-    u8 temp_s0_2;
-    u8 temp_s0_3;
-    u8 temp_s0_4;
+    enum { ACTION_ADVANCE_PROGRESS      = 1,
+           ACTION_EVENT_OR_WARP_1       = 2,
+           ACTION_ENTRY_OR_WARP_2       = 3,
+           PROGRESS_NOT_STARTED         = 0,
+           PROGRESS_ENTERED             = 1,
+           PROGRESS_ADVANCED            = 2,
+           EVENT_VARIANT                = 1,
+           PROGRESS_VARIANT             = 3,
+           ENTRY_WARP_1                 = 1,
+           ENTRY_WARP_2                 = 2,
+           ENTRY_UNHANDLED              = 0,
+           ENTRY_HANDLED                = 1,
+           PROGRESS_SCENE_EVENT         = 0x1A,
+           OBJECTIVE_AFTER_PROGRESS     = 0x35,
+           SCENE_MUSIC_OVERRIDE_ENABLED = 1 };
+    u8 actionId;
+    u8 eventVariant;
+    u8 entryWarp;
 
-    temp_s0 = arg2->warp;
-    if ((temp_s0 == 1) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == temp_s0) && (gGameSession->location.loc.variant == 3)) {
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x35);
-        gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, 2);
-        gameFlagSetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, 1);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1A;
+    // Advance the staged variant-3 story without changing the entry latch.
+    actionId = request->actionId;
+    if ((actionId == ACTION_ADVANCE_PROGRESS) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == actionId) && (gGameSession->location.loc.variant == PROGRESS_VARIANT)) {
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_AFTER_PROGRESS);
+        gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, PROGRESS_ADVANCED);
+        gameFlagSetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, SCENE_MUSIC_OVERRIDE_ENABLED);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = PROGRESS_SCENE_EVENT;
         evsStartScriptWithSkip(D_actor_451100_80135220, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_451100_80135FD0);
     }
-    if ((arg2->warp == 2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) == 0)) {
-        temp_s0_2 = gGameSession->location.loc.variant;
-        if (temp_s0_2 == 1) {
+    // Scenes claim the entry latch before the fallback arrival-control release.
+    if ((request->actionId == ACTION_EVENT_OR_WARP_1) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) == 0)) {
+        eventVariant = gGameSession->location.loc.variant;
+        if (eventVariant == EVENT_VARIANT) {
             evsStartScript(D_neo_ark_submarine_tunnel_80181AF0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_2;
+            D_neo_ark_submarine_tunnel_80181DF0 = eventVariant;
         }
     }
-    temp_s0_3 = arg2->warp;
-    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->location.loc.warp == 2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == 0) && (gGameSession->location.loc.variant == temp_s0_3)) {
-        gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, 1);
+    actionId = request->actionId;
+    if ((actionId == ACTION_ENTRY_OR_WARP_2) && (D_neo_ark_submarine_tunnel_80181DF0 == ENTRY_UNHANDLED) && (gGameSession->location.loc.warp == ENTRY_WARP_2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == PROGRESS_NOT_STARTED) && (gGameSession->location.loc.variant == actionId)) {
+        gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, PROGRESS_ENTERED);
         evsStartScript(D_actor_451100_80136108, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-        D_neo_ark_submarine_tunnel_80181DF0 = 1;
+        D_neo_ark_submarine_tunnel_80181DF0 = ENTRY_HANDLED;
     }
-    if ((arg2->warp == 2) && (D_neo_ark_submarine_tunnel_80181DF0 == 0)) {
-        temp_s0_4 = gGameSession->location.loc.warp;
-        if (temp_s0_4 == 1) {
+    if ((request->actionId == ACTION_EVENT_OR_WARP_1) && (D_neo_ark_submarine_tunnel_80181DF0 == ENTRY_UNHANDLED)) {
+        entryWarp = gGameSession->location.loc.warp;
+        if (entryWarp == ENTRY_WARP_1) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_4;
+            D_neo_ark_submarine_tunnel_80181DF0 = entryWarp;
         }
     }
-    if ((arg2->warp == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->location.loc.warp == 2)) {
+    if ((request->actionId == ACTION_ENTRY_OR_WARP_2) && (D_neo_ark_submarine_tunnel_80181DF0 == ENTRY_UNHANDLED) && (gGameSession->location.loc.warp == ENTRY_WARP_2)) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-        D_neo_ark_submarine_tunnel_80181DF0 = 1;
+        D_neo_ark_submarine_tunnel_80181DF0 = ENTRY_HANDLED;
     }
     return 0;
 }
@@ -289,14 +314,21 @@ static s32 _neoArkSubmarineTunnelResolveRoomEvent(Task* task, s32 messageId, Roo
     return NEO_ARK_SUBMARINE_TUNNEL_TRANSITION_ALLOWED;
 }
 
-/// Message 0x13F0 handler: for an `arg2` of 4 or 5, and only while the
-/// session's place is 1, passes it to `capSpawnEventIfIdle`. Answers 0.
-s32 func_neo_ark_submarine_tunnel_8017F2C8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Queues tunnel CAP commands 4 and 5 only in variant 1 and while CAP is idle.
+///
+/// Handles `ROOM_MESSAGE_COMMAND` and returns zero for every input. The signed
+/// command index is forwarded unchanged; receiver, message ID and final word
+/// are unused. Keep the selected CAP resources loaded through event playback.
+static s32 _neoArkSubmarineTunnelHandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg)
 {
-    if (arg2 < 6) {
-        if (arg2 >= 4) {
-            if (gGameSession->location.loc.variant == 1) {
-                capSpawnEventIfIdle(arg2, CAP_EVENT_NO_FLAGS);
+    enum { CAP_COMMAND_FIRST = 4,
+           CAP_COMMAND_END   = 6,
+           CAP_VARIANT       = 1 };
+
+    if (commandIndex < CAP_COMMAND_END) {
+        if (commandIndex >= CAP_COMMAND_FIRST) {
+            if (gGameSession->location.loc.variant == CAP_VARIANT) {
+                capSpawnEventIfIdle(commandIndex, CAP_EVENT_NO_FLAGS);
             }
         }
     }

@@ -82,13 +82,13 @@ extern AreaApplyRec     D_neo_ark_power_plant_2_80182F94[];
 /// `[1]` under its own name, which the per-frame path reads directly.
 
 static void _neoArkPowerPlant2InitializeRoom(Task* task);
-static void func_neo_ark_power_plant_2_8017D758(Task* task);
+static void _neoArkPowerPlant2UpdateRoom(Task* unusedTask);
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// install the message table, watch for the room's event trigger, then kill
 /// the task.
 static const TaskFuncTable3 D_neo_ark_power_plant_2_8017D5C4 = {
-    { _neoArkPowerPlant2InitializeRoom, func_neo_ark_power_plant_2_8017D758, taskKill },
+    { _neoArkPowerPlant2InitializeRoom, _neoArkPowerPlant2UpdateRoom, taskKill },
 };
 
 extern AreaResource D_neo_ark_power_plant_2_80182D80[3];
@@ -104,7 +104,7 @@ enum { NEO_ARK_POWER_PLANT_2_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static s32  _neoArkPowerPlant2RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32  _neoArkPowerPlant2ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
-s32         func_neo_ark_power_plant_2_8017D61C(Task*, s32, s32, s32);
+static s32  _neoArkPowerPlant2HandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg);
 static s32  _neoArkPowerPlant2IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _neoArkPowerPlant2PrepareGeneratorClearScene(void);
 static void _neoArkPowerPlant2StopSkippedSceneVibration(void);
@@ -157,7 +157,7 @@ TaskMessageEntry D_neo_ark_power_plant_2_801801F8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPowerPlant2ResolveRoomVariant },
     { NEO_ARK_POWER_PLANT_2_MESSAGE_USE_KEY_ITEM, _neoArkPowerPlant2RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPowerPlant2IgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_power_plant_2_8017D61C },
+    { ROOM_MESSAGE_COMMAND, _neoArkPowerPlant2HandleCapCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -805,25 +805,38 @@ static s32 _neoArkPowerPlant2ResolveRoomVariant(Task* unusedTask, s32 unusedMess
     return NEO_ARK_POWER_PLANT_2_TRANSITION_ALLOWED;
 }
 
-s32 func_neo_ark_power_plant_2_8017D61C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects Power Plant 2 CAP dialogue from plant clearance and generator battle state.
+///
+/// Room command 2 selects CAP 2 or 5 by clearance. Command 3 selects CAP 7
+/// after battle completion, otherwise CAP 6 for a downed part or CAP 3.
+/// Other commands do nothing. Uses display-transition playback and returns zero;
+/// only `commandIndex` is read. Keep the plant CAP resources loaded through playback.
+static s32 _neoArkPowerPlant2HandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg)
 {
-    s32 cmd;
+    enum { COMMAND_CHECK_PLANT     = 2,
+           COMMAND_CHECK_GENERATOR = 3,
+           CAP_PLANT_UNCLEARED     = 2,
+           CAP_PLANT_CLEARED       = 5,
+           CAP_GENERATOR_ACTIVE    = 3,
+           CAP_GENERATOR_PART_DOWN = 6,
+           CAP_BATTLE_FINISHED     = 7 };
+    s32 capCommand;
 
-    switch (arg2) {
-        case 2:
+    switch (commandIndex) {
+        case COMMAND_CHECK_PLANT:
             if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
-                cmd = 2;
+                capCommand = CAP_PLANT_UNCLEARED;
             } else {
-                cmd = 5;
+                capCommand = CAP_PLANT_CLEARED;
             }
-            capRunCommandWithTransition(cmd);
+            capRunCommandWithTransition(capCommand);
             break;
-        case 3:
-            cmd = 7;
+        case COMMAND_CHECK_GENERATOR:
+            capCommand = CAP_BATTLE_FINISHED;
             if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED) {
-                cmd = gameFlagGetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN) != 0 ? 6 : 3;
+                capCommand = gameFlagGetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN) != 0 ? CAP_GENERATOR_PART_DOWN : CAP_GENERATOR_ACTIVE;
             }
-            capRunCommandWithTransition(cmd);
+            capRunCommandWithTransition(capCommand);
             break;
     }
     return 0;
@@ -878,13 +891,25 @@ static void _neoArkPowerPlant2InitializeRoom(Task* task)
     task->state = task->state + 1;
 }
 
-static void func_neo_ark_power_plant_2_8017D758(Task* task)
+/// Starts the generator-clear scene once its actor is gone and presentation is ready.
+///
+/// Room state 1 checks placement 0's presence reply while the plant is uncleared.
+/// Waits for the ability wheel and display transition, then commits clearance,
+/// elevator/map/story updates and starts the clear script with its skip script.
+/// Requires live scene, session and save state; the task argument is unused.
+static void _neoArkPowerPlant2UpdateRoom(Task* unusedTask)
 {
-    Task* temp_v0;
+    enum { GENERATOR_PLACEMENT         = 0,
+           GENERATOR_CLEAR_SCENE_EVENT = 0x17,
+           OBJECTIVE_AFTER_CLEAR       = 0x2E,
+           FOLLOW_UP_RESET             = 0,
+           DIALOGUE_AFTER_CLEAR        = 7 };
+    Task* generatorTask;
 
+    // Commit progress before admitting the clear scene; presentation may defer it.
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
-        temp_v0 = sceneFindPlacedActor(0);
-        if ((temp_v0 != 0) && (taskMessageDispatch(temp_v0, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) &&
+        generatorTask = sceneFindPlacedActor(GENERATOR_PLACEMENT);
+        if ((generatorTask != NULL) && (taskMessageDispatch(generatorTask, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) &&
             (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED, 1);
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED, 1);
@@ -893,10 +918,10 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
             if (gameFlagGetNibble(GAME_FLAG_0F3) != 0) {
                 areaApplySavedUpdates(D_neo_ark_power_plant_2_80182F94);
             }
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x17;
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2E);
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = GENERATOR_CLEAR_SCENE_EVENT;
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_AFTER_CLEAR);
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, FOLLOW_UP_RESET);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, DIALOGUE_AFTER_CLEAR);
             evsStartScriptWithSkip(D_neo_ark_power_plant_2_801802A8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_power_plant_2_80180560);
         }
     }
@@ -910,46 +935,70 @@ void neoArkPowerPlant2RoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
+/// Emits a random generator flash while effects run and the plant remains uncleared.
+static inline void _neoArkPowerPlant2EmitGeneratorFlash(void)
 {
-    u32                            rnd;
-    u16                            intensity;
+    enum { GENERATOR_FLASH_MASK      = 7,
+           GENERATOR_FLASH_BASE_SIZE = 0x400 };
+    u32 randomWord;
+
+    if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
+        randomWord      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = randomWord;
+        if (((randomWord >> 16) & GENERATOR_FLASH_MASK) == 0) {
+            effectSpawn(EFFECT_FLASH_BURST, NULL, GENERATOR_FLASH_BASE_SIZE, &D_neo_ark_power_plant_2_80180678);
+        }
+    }
+}
+
+void neoArkPowerPlant2UpdateViewLightingTask(Task* task)
+{
+    enum { EFFECTS_UNREGISTERED        = 0,
+           EFFECTS_REGISTERED          = 1,
+           GENERATOR_VIEW              = 6,
+           BLUE_LIGHT_VIEW             = 8,
+           GENERATOR_GLOW_RADIUS_SCALE = 0x300,
+           GENERATOR_GLOW_RGB444       = 0x334,
+           BLUE_LIGHT_SLOT             = 4,
+           BLUE_LIGHT_LIFETIME_FRAMES  = 4,
+           BLUE_LIGHT_INNER_RADIUS     = 0x400,
+           BLUE_LIGHT_OUTER_RADIUS     = 0x4000,
+           BLUE_LIGHT_RANDOM_Q12_MASK  = 0x700,
+           BLUE_LIGHT_BASE_Q12         = 0x800 };
+    u32                            randomWord;
+    u16                            blueIntensityQ12;
     WorldCoordPointLight*          pointLight;
     WorldCoordTransientPointLight* lightSlot;
 
-    if (arg0->state == 0) {
+    if (task->state == EFFECTS_UNREGISTERED) {
         gRoomEffectFlashId      = EFFECT_NEO_ARK_POWER_PLANT_2_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_NEO_ARK_POWER_PLANT_2_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_NEO_ARK_POWER_PLANT_2_SPARK_BURST;
-        arg0->state             = 1;
+        task->state             = EFFECTS_REGISTERED;
     }
     switch ((u8)viewGetMappedIndex()) {
-        case 6:
+        case GENERATOR_VIEW:
+            // Consume one random draw only while the damaged generator can flash.
             if (gameFlagGetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN) != 0) {
-                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
-                    rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState = rnd;
-                    if (((rnd >> 16) & 7) == 0) {
-                        effectSpawn(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_2_80180678);
-                    }
-                }
+                _neoArkPowerPlant2EmitGeneratorFlash();
             } else {
-                glowDrawDisc(&D_neo_ark_power_plant_2_80180678, 0x300, 0x334);
+                glowDrawDisc(&D_neo_ark_power_plant_2_80180678, GENERATOR_GLOW_RADIUS_SCALE, GENERATOR_GLOW_RGB444);
             }
             break;
-        case 8:
-            lightSlot                                          = &gWorldCoordTransientPointLights[4];
-            lightSlot->framesLeft                              = 4;
+        case BLUE_LIGHT_VIEW:
+            // Refresh a retained shared slot; leaving the view lets its countdown expire.
+            lightSlot                                          = &gWorldCoordTransientPointLights[BLUE_LIGHT_SLOT];
+            lightSlot->framesLeft                              = BLUE_LIGHT_LIFETIME_FRAMES;
             pointLight                                         = &lightSlot->light;
-            pointLight->inner                                  = 0x400;
-            pointLight->outer                                  = 0x4000;
+            pointLight->inner                                  = BLUE_LIGHT_INNER_RADIUS;
+            pointLight->outer                                  = BLUE_LIGHT_OUTER_RADIUS;
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            rnd                                                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                                    = rnd;
-            intensity                                          = ((rnd >> 16) & 0x700) + 0x800;
-            pointLight->head.color.b                           = intensity;
-            pointLight->head.color.r                           = intensity >> 1;
-            pointLight->head.color.g                           = intensity >> 1;
+            randomWord                                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                                    = randomWord;
+            blueIntensityQ12                                   = ((randomWord >> 16) & BLUE_LIGHT_RANDOM_Q12_MASK) + BLUE_LIGHT_BASE_Q12;
+            pointLight->head.color.b                           = blueIntensityQ12;
+            pointLight->head.color.r                           = blueIntensityQ12 >> 1;
+            pointLight->head.color.g                           = blueIntensityQ12 >> 1;
             pointLight->head.transform.lighting.local.t[0]     = D_neo_ark_power_plant_2_80180668.vx;
             pointLight->head.transform.lighting.local.t[1]     = D_neo_ark_power_plant_2_80180668.vy;
             pointLight->head.transform.lighting.local.t[2]     = D_neo_ark_power_plant_2_80180668.vz;
@@ -977,7 +1026,7 @@ void neoArkPowerPlant2RoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_neo_ark_power_plant_2_8017F140(Task* task)
+void neoArkPowerPlant2RoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

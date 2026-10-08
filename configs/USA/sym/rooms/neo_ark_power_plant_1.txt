@@ -94,3 +94,4 @@ neoArkPowerPlant1StopSkippedSceneVibration = 0x8017d908; // type:func
 _neoArkPowerPlant1InitializeRoom = 0x8017d928; // type:func
 _neoArkPowerPlant1UpdateRoom = 0x8017d5ec; // type:func
 neoArkPowerPlant1RoomTask = 0x8017d9c0; // type:func
+neoArkPowerPlant1HandleCapCommand = 0x8017d7f8; // type:func

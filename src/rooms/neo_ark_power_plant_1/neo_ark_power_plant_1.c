@@ -157,47 +157,57 @@ s32 neoArkPowerPlant1ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, R
     return NEO_ARK_POWER_PLANT_1_TRANSITION_ALLOWED;
 }
 
-/// Handler the room's message table gives message 0x13F0: for `arg2` 2, 3, 9
-/// or 12 runs `capRunCommandWithTransition` with a command picked from that value and the
-/// plant's flags; other values do nothing. Always returns 0.
-s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkPowerPlant1HandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg)
 {
-    s32 cmd;
+    enum { COMMAND_CHECK_PLANT                  = 2,
+           COMMAND_CHECK_GENERATOR              = 3,
+           COMMAND_CHECK_SECOND_PLANT           = 9,
+           COMMAND_CHECK_SECOND_PLANT_ALTERNATE = 12,
+           CAP_PLANT_UNCLEARED                  = 2,
+           CAP_PLANT_CLEARED                    = 5,
+           CAP_GENERATOR_ACTIVE                 = 3,
+           CAP_GENERATOR_PART_DOWN              = 6,
+           CAP_BATTLE_FINISHED                  = 7,
+           CAP_SECOND_PLANT_UNCLEARED           = 9,
+           CAP_SECOND_PLANT_CLEARED             = 11,
+           CAP_SECOND_PLANT_UNCLEARED_ALTERNATE = 12,
+           CAP_SECOND_PLANT_CLEARED_ALTERNATE   = 10 };
+    s32 capCommand;
 
-    switch (arg2) {
-        case 2:
+    switch (commandIndex) {
+        case COMMAND_CHECK_PLANT:
             if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
-                cmd = 2;
+                capCommand = CAP_PLANT_UNCLEARED;
             } else {
-                cmd = 5;
+                capCommand = CAP_PLANT_CLEARED;
             }
-            capRunCommandWithTransition(cmd);
+            capRunCommandWithTransition(capCommand);
             break;
-        case 3:
+        case COMMAND_CHECK_GENERATOR:
             if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
-                cmd = 7;
+                capCommand = CAP_BATTLE_FINISHED;
             } else if (gameFlagGetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN) != 0) {
-                cmd = 6;
+                capCommand = CAP_GENERATOR_PART_DOWN;
             } else {
-                cmd = 3;
+                capCommand = CAP_GENERATOR_ACTIVE;
             }
-            capRunCommandWithTransition(cmd);
+            capRunCommandWithTransition(capCommand);
             break;
-        case 9:
+        case COMMAND_CHECK_SECOND_PLANT:
             if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
-                cmd = 9;
+                capCommand = CAP_SECOND_PLANT_UNCLEARED;
             } else {
-                cmd = 0xB;
+                capCommand = CAP_SECOND_PLANT_CLEARED;
             }
-            capRunCommandWithTransition(cmd);
+            capRunCommandWithTransition(capCommand);
             break;
-        case 12:
+        case COMMAND_CHECK_SECOND_PLANT_ALTERNATE:
             if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) != 0) {
-                cmd = 0xA;
+                capCommand = CAP_SECOND_PLANT_CLEARED_ALTERNATE;
             } else {
-                cmd = 0xC;
+                capCommand = CAP_SECOND_PLANT_UNCLEARED_ALTERNATE;
             }
-            capRunCommandWithTransition(cmd);
+            capRunCommandWithTransition(capCommand);
             break;
     }
     return 0;

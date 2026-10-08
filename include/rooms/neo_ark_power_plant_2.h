@@ -59,9 +59,25 @@ void neoArkPowerPlant2RoomVisualEffectsFlashTask(Task* task);
 /// drawing without cancellation. Requires a live effect controller and room overlay.
 void neoArkPowerPlant2RoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_neo_ark_power_plant_2_8017F140(Task* task);
+/// Runs an impact flash followed by smoke puffs or expanding orange rings and sparks.
+///
+/// Starts in state 0 with a coordinate body and owned, zero-aged `EffectWork`
+/// in `spawnArg2.pointer`. Nonzero `spawnArg1.value` selects smoke; zero selects
+/// rings. Active age 7 enters release; age 8 releases work and the task.
+/// Room effect control 1..3 pauses and 4 or above cancels. Spawned effects
+/// remain independent. Keep this overlay and the effect controller loaded.
+void neoArkPowerPlant2RoomVisualEffectsSparkBurstTask(Task* task);
 
-void func_neo_ark_power_plant_2_8017D8AC(Task* arg0);
+/// Installs the plant's effect IDs and updates its view-dependent generator lighting.
+///
+/// State 0 installs flash, twin-trail and spark-burst callbacks, then enters
+/// state 1. Mapped view 6 draws the intact generator glow or, while its part is
+/// down and effects run before plant clearance, gives each tick a 1/8 chance
+/// of a flash. View 8 refreshes transient light slot 4 for four frames, with
+/// blue Q12 intensity 0x800..0xF00 and half that intensity in red and green.
+/// Requires this overlay, the effect controller and current render resources
+/// to remain loaded. Owns no work allocation; child flashes are independent.
+void neoArkPowerPlant2UpdateViewLightingTask(Task* task);
 
 /// Runs the Neo Ark Power Plant 2 room controller for one tick.
 ///

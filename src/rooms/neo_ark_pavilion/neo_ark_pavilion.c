@@ -101,7 +101,7 @@ enum { NEO_ARK_PAVILION_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static s32 _neoArkPavilionRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedMessageArg);
 s32        func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, s32);
+static s32 _neoArkPavilionHandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg);
 static s32 _neoArkPavilionIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedMessageArg);
 
 extern WorldCollisionGrid     D_neo_ark_pavilion_801841E4[1];
@@ -123,7 +123,7 @@ TaskMessageEntry D_neo_ark_pavilion_80183870[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pavilion_8017E9F4 },
     { NEO_ARK_PAVILION_MESSAGE_USE_KEY_ITEM, _neoArkPavilionRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPavilionIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_pavilion_8017EB3C },
+    { ROOM_MESSAGE_COMMAND, _neoArkPavilionHandleCapCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1151,12 +1151,20 @@ s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomE
     return _neoArkPavilionStartEvent(out, &event);
 }
 
-/// Room message handler: on message `1`, spawns the pavilion's cap entity —
-/// id `5` once flag `0x141` is set, `1` while it is clear.
-s32 func_neo_ark_pavilion_8017EB3C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects the pavilion's progress-dependent CAP event for room command 1.
+///
+/// Queues CAP 1 while the alternate-dialogue flag is clear, otherwise CAP 5,
+/// only while CAP is idle; the event pauses actors. Other commands do nothing.
+/// Returns zero. Only `commandIndex` is read; loaded CAP resources must outlive
+/// playback. The flag's wider story meaning is unproven.
+static s32 _neoArkPavilionHandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg)
 {
-    if (arg2 == 1) {
-        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_141) != 0 ? 5 : 1, CAP_EVENT_PAUSE_ACTORS);
+    enum { COMMAND_CHECK_PROGRESS = 1,
+           CAP_DEFAULT_DIALOGUE   = 1,
+           CAP_ALTERNATE_DIALOGUE = 5 };
+
+    if (commandIndex == COMMAND_CHECK_PROGRESS) {
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_141) != 0 ? CAP_ALTERNATE_DIALOGUE : CAP_DEFAULT_DIALOGUE, CAP_EVENT_PAUSE_ACTORS);
     }
     return 0;
 }
@@ -1247,7 +1255,7 @@ void neoArkPavilionRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_neo_ark_pavilion_80180FFC(Task* task)
+void neoArkPavilionRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }
@@ -1256,9 +1264,9 @@ void func_neo_ark_pavilion_80180FFC(Task* task)
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_neo_ark_pavilion_80181C44(Task* arg0)
+void neoArkPavilionRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void neoArkPavilionRoomVisualEffectsFlyingSparkTask(Task* task)

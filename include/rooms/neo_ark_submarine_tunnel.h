@@ -40,7 +40,17 @@ extern SpriteView D_neo_ark_submarine_tunnel_80186B78[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_submarine_tunnel_801878EC[];
 
-void func_neo_ark_submarine_tunnel_8017F4DC(Task* arg0);
+/// Runs an anchored charge disc with player-joint sparks, flicker and a fading ring.
+///
+/// Requires a coordinate body and owned, zeroed `EffectWork` in
+/// `spawnArg2.pointer`. `spawnArg1.value` selects tint 0 or 1; the work's parent
+/// coordinate and its ancestors must outlive the task. State 0 attaches without
+/// drawing; growth emits an adopted spark every fourth active age from player
+/// parts 3..18. The owner requests flicker, release or cancel with
+/// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Control 1..3 pauses and 4 or above
+/// cancels. Teardown releases work and adopted sparks. Keep the player model,
+/// installed flying-spark callback, room overlay and effect controller live.
+void neoArkSubmarineTunnelRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Runs the tunnel's animated spark along a step fixed from a target's initial position.
 ///

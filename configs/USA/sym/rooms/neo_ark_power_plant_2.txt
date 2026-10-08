@@ -90,9 +90,9 @@ neoArkPowerPlant2RoomVisualEffectsFlashTask = 0x8017DDF4; // type:func
 
 neoArkPowerPlant2RoomVisualEffectsTwinTrailTask = 0x8017E858; // type:func
 
-func_neo_ark_power_plant_2_8017F140 = 0x8017F140; // type:func
+neoArkPowerPlant2RoomVisualEffectsSparkBurstTask = 0x8017F140; // type:func
 
-func_neo_ark_power_plant_2_8017D8AC = 0x8017D8AC; // type:func
+neoArkPowerPlant2UpdateViewLightingTask = 0x8017D8AC; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017E098; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017E4C4; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017ED48; // type:func
@@ -105,3 +105,5 @@ _neoArkPowerPlant2PrepareGeneratorClearScene = 0x8017d69c; // type:func
 _neoArkPowerPlant2StopSkippedSceneVibration = 0x8017d6d4; // type:func
 _neoArkPowerPlant2InitializeRoom = 0x8017d6f4; // type:func
 neoArkPowerPlant2RoomTask = 0x8017d854; // type:func
+_neoArkPowerPlant2HandleCapCommand = 0x8017d61c; // type:func
+_neoArkPowerPlant2UpdateRoom = 0x8017d758; // type:func

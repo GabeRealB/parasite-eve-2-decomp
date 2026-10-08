@@ -1285,9 +1285,9 @@ void neoArkSubmarineTunnelConfigureEffectsTask(Task* task)
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_neo_ark_submarine_tunnel_8017F4DC(Task* arg0)
+void neoArkSubmarineTunnelRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void neoArkSubmarineTunnelRoomVisualEffectsFlyingSparkTask(Task* task)

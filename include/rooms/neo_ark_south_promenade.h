@@ -40,7 +40,14 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_south_promenade_801809AC[];
 /// advance the beam; higher values suspend it without cancelling it.
 void neoArkSouthPromenadeRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_neo_ark_south_promenade_8017EA6C(Task* task);
+/// Runs an impact flash followed by smoke puffs or expanding orange rings and sparks.
+///
+/// Starts in state 0 with a coordinate body and owned, zero-aged `EffectWork`
+/// in `spawnArg2.pointer`. Nonzero `spawnArg1.value` selects smoke; zero selects
+/// rings. Active age 7 enters release; age 8 releases work and the task.
+/// Room effect control 1..3 pauses and 4 or above cancels. Spawned effects
+/// remain independent. Keep this overlay and the effect controller loaded.
+void neoArkSouthPromenadeRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Registers this room's golem scream flash, sword trail and projectile burst once.
 ///

@@ -14,14 +14,31 @@ extern TaskDesc D_neo_ark_submarine_gallery_801818AC;
 
 // Callbacks referenced by the overlay's shared data tables.
 
-void func_neo_ark_submarine_gallery_8017E86C(Task*);
+/// Confirms and performs the gallery's staged departure to the island.
+///
+/// States 0..5 hold actors, ask CAP command 9, accept only choice 10, start a
+/// thirty-frame subtractive fade and departure sound, wait for that sound, then
+/// commit the staged area/warp/room and request reload without a second battle
+/// escape result. Cancellation resumes actors and kills this task. The execute
+/// transition handler must stage the destination before spawning; this overlay,
+/// its singleton staging/fade storage and CAP resources must stay live until
+/// completion. Owns no work or body. The fade helper borrows the stored fade.
+void neoArkSubmarineGalleryDepartToIslandTask(Task* task);
 
 /// Refuses every key-item use with the item menu's cannot-use reply.
 ///
 /// `itemId` is the selected inventory item ID; all arguments are ignored.
 s32 neoArkSubmarineGalleryRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 
-s32 func_neo_ark_submarine_gallery_8017EA0C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+/// Resolves a room transition and stages island departures for confirmation.
+///
+/// Borrows a complete eight-byte request and writable reply; they may alias.
+/// Copies the request before resolving the destination variant. Island requests
+/// return 0 to defer the ordinary warp, including queries; execute mode copies
+/// resolved destination selectors into room-owned staging storage and starts the
+/// departure task. Other areas return 1. Retains neither pointer; task, message
+/// ID and other query values are unused. Requires the Neo Ark map overlay.
+s32 neoArkSubmarineGalleryResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 
 /// Selects a gallery CAP event for room commands 2 and 3.
 ///

@@ -49,7 +49,7 @@ RoomFx_TrailOffsets = 0x8017F6DC; // size:0x10 defined:True
 
 neoArkSouthPromenadeRoomVisualEffectsTwinTrailTask = 0x8017E184; // type:func
 
-func_neo_ark_south_promenade_8017EA6C = 0x8017EA6C; // type:func
+neoArkSouthPromenadeRoomVisualEffectsSparkBurstTask = 0x8017EA6C; // type:func
 
 neoArkSouthPromenadeRegisterGolemEffectsTask = 0x8017D6D0; // type:func
 
