@@ -46,7 +46,22 @@ s32 streamReadSceneImageSector(s32 unused0, s32 unused1);
 /// Buffer allocation and playback start happen separately.
 s16 streamSelectScene(u16 group, u16 id, u16 subId, u16 subId2);
 
-void Gp_StepCdAudioCmd(void);
+/// Advances the ring head's scene-audio open or playback request by one dispatch.
+///
+/// Requires gameplay loaded, a successfully selected live scene descriptor and
+/// reserved playback buffers. The queue's step must be in 0..8. An open-only
+/// request retires after opening; playback reuses that open track, waits for its
+/// end and any trailing wave load, reopens selected sound-script gates and
+/// restores the random state saved at scene selection. Releases no buffers.
+///
+/// When timing is selected, its buffer must be word-aligned and writable for
+/// max(1, ceil(timingBytes / 2048)) complete sectors, even for zero timingBytes.
+/// Later pacing requires every deadline, skip and end word it examines to fit
+/// that reservation. Audio starts after those sectors. The descriptor's volume
+/// index must be in 0..111 for the CD-audio gain table.
+/// Capacities and indexes are trusted. Polls asynchronous drive/audio progress;
+/// pending drive sync returns before image decoding, other paths service it.
+void cdCmdHandleSceneAudio(void);
 
 /// Reopens the script-sound request gates selected by a scene's bank mask.
 ///

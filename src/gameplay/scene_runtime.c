@@ -418,7 +418,7 @@ static void _enemyStartTeardownDelay(Enemy* enemy, Task* task);
 
 static void _enemyWaitTick(Enemy* enemy, Task* task);
 
-void func_800B06F0(Task* arg0);
+static void _loadingRestartPresentationTask(Task* task);
 
 static void Gp_FinishStageLoad(Task* task);
 
@@ -458,8 +458,6 @@ static void func_800B6014(void);
 
 static void _displayStartPreviousFrameRedraw(Task* task);
 
-static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place);
-
 /// Inline form of `equipmentGetWeaponLoadCapacity`: the most of a related item weapon
 /// `item` can hold, from bank `bank`'s table, or 0 for a non-weapon id.
 static inline s32 _gpRelatedQty(s32 item, s32 bank);
@@ -489,7 +487,7 @@ _CdCmdSceneSoundBankBit Gp_SndMaskTable[7] = {
     { 32, SOUND_BANK_TYPE_ALL_NON_AMBIENT },
     { 0, 0 },
 };
-TaskDesc D_8010D1FC = { { { TASK_BODY_NONE, 192 } }, func_800B06F0, { NULL } };
+TaskDesc D_8010D1FC = { { { TASK_BODY_NONE, 192 } }, _loadingRestartPresentationTask, { NULL } };
 
 static const TaskFuncTable3 Gp_StageLoadStates;
 static const VECTOR         D_80093A28;
@@ -784,246 +782,239 @@ s16 streamSelectScene(u16 group, u16 id, u16 subId, u16 subId2)
     return slotIndex;
 }
 
-void Gp_StepCdAudioCmd(void)
+/// Sets the script-sound request gates selected by a scene's sound-bank mask.
+///
+/// Disabling also stops selected scripts without a fade. Bits 0..5 select
+/// decoded bank types; higher bits are ignored. The all-types stop spares
+/// ambient sounds while its gate covers every type. Requires initialized sound
+/// queues and the live zero-terminated decode table. No stopped script restarts.
+static inline void _cdCmdSetSceneAudioSoundRequests(u16 soundBankMask, bool requestsEnabled)
 {
-    enum { STREAM_CD_SECTOR_BYTES = 0x800 };
-    s32         one;
-    s32         i_s1;
-    CdCmdQueue* p;
-    s32         seed;
-    s16         ret;
-    s32         save23;
+    u16                            maskIndex;
+    s32                            promotedMask;
+    const _CdCmdSceneSoundBankBit* entry;
+
+    maskIndex = 0;
+    if (Gp_SndMaskTable[0].mask != 0) {
+        promotedMask = soundBankMask;
+        do {
+            entry = &Gp_SndMaskTable[maskIndex];
+            if (promotedMask & entry->mask) {
+                if (!requestsEnabled) {
+                    sndEvtRequestScriptStop(entry->bankTypeId, SOUND_SCRIPT_STOP_NO_FADE);
+                }
+                sndScriptSetTypeRequestsEnabled(requestsEnabled, entry->bankTypeId);
+            }
+            maskIndex++;
+        } while (Gp_SndMaskTable[maskIndex].mask != 0);
+    }
+}
+
+/// Restores scene state and retires playback after sound gates reopen.
+///
+/// `queue` must be the resident queue, and `seedDestination` a writable s32
+/// local. Both arguments are evaluated repeatedly and must have no side effects.
+/// `wavesLoaded` is evaluated once; nonzero also clears the pending-drive flag
+/// after the trailing wave load. The prior scene selection's saved RNG values
+/// must remain intact. Releases no buffers. Expands to a standalone block and
+/// captures no caller identifiers beyond its arguments. Arguments must not
+/// name the block-local `completionQueue`. Undefined after this handler.
+#define CD_COMMAND_FINISH_SCENE_AUDIO(queue, seedDestination, wavesLoaded)       \
+    {                                                                            \
+        CdCmdQueue* completionQueue;                                             \
+        completionQueue   = &gCdCmdQueue;                                        \
+        (seedDestination) = completionQueue->savedRandSeed;                      \
+        if (wavesLoaded) {                                                       \
+            (queue)->cdOperationPending = 0;                                     \
+        }                                                                        \
+        (queue)->blockGamePause                = 0;                              \
+        (queue)->sceneAudioMode                = CD_COMMAND_SCENE_INACTIVE;      \
+        completionQueue->imageLoadStatus       = CD_COMMAND_IMAGE_COMPLETE;      \
+        completionQueue->sceneEnded            = 1;                              \
+        completionQueue->scenePayloadAvailable = 0;                              \
+        completionQueue->sceneAudioStarted     = 0;                              \
+        completionQueue->sceneBuffersNeeded    = 0;                              \
+        completionQueue->paceToSceneTiming     = 0;                              \
+        gRandomLcgState                        = completionQueue->savedLcgState; \
+        srand(seedDestination);                                                  \
+        cdCmdCompleteHeadRequest();                                              \
+    }
+
+void cdCmdHandleSceneAudio(void)
+{
+    enum {
+        CD_COMMAND_SCENE_AUDIO_BEGIN         = 0,
+        CD_COMMAND_SCENE_AUDIO_DELAY_FIRST   = 1,
+        CD_COMMAND_SCENE_AUDIO_DELAY_SECOND  = 2,
+        CD_COMMAND_SCENE_AUDIO_READ_TIMING   = 3,
+        CD_COMMAND_SCENE_AUDIO_WAIT_TIMING   = 4,
+        CD_COMMAND_SCENE_AUDIO_OPEN_TRACK    = 5,
+        CD_COMMAND_SCENE_AUDIO_WAIT_OPEN     = 6,
+        CD_COMMAND_SCENE_AUDIO_WAIT_PLAYBACK = 7,
+        CD_COMMAND_SCENE_AUDIO_WAIT_WAVES    = 8,
+        CD_COMMAND_SCENE_AUDIO_SECTOR_BYTES  = 0x800,
+        CD_COMMAND_SCENE_AUDIO_READ_COMPLETE = 0xFF
+    };
+    s32         enabled;
+    s32         savedRandSeed;
+    CdCmdQueue* queue;
+    s16         syncResult;
+    s32         demoScene;
     s32         sector;
 
-    p = &gCdCmdQueue;
-    switch (p->entries[p->readIdx].cmd) {
+    queue = &gCdCmdQueue;
+    switch (queue->entries[queue->readIdx].cmd) {
         case CD_COMMAND_EMPTY:
             break;
         case CD_COMMAND_PLAY_SCENE_AUDIO:
         case CD_COMMAND_START_SCENE_AUDIO:
-            switch (p->step) {
-                case 0:
+            switch (queue->step) {
+                case CD_COMMAND_SCENE_AUDIO_BEGIN:
                     cdCmdSetBusy();
-                    p->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
-                    ret               = cdSyncPollCommand(0, 0);
-                    if (ret != CD_SYNC_COMPLETE) {
-                        if (ret < CD_SYNC_RETRY) {
-                            if (ret == CD_SYNC_PENDING) {
+                    queue->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
+                    syncResult            = cdSyncPollCommand(0, 0);
+                    if (syncResult != CD_SYNC_COMPLETE) {
+                        if (syncResult < CD_SYNC_RETRY) {
+                            if (syncResult == CD_SYNC_PENDING) {
                                 return;
                             }
                             break;
                         }
-                        if (ret != CD_SYNC_RETRY) {
+                        if (syncResult != CD_SYNC_RETRY) {
                             break;
                         }
                         CdFlush();
                     }
-                    if (p->sceneAudioStarted == 0) {
-                        p->step = p->step + 1;
+                    if (queue->sceneAudioStarted == 0) {
+                        queue->step = queue->step + 1;
                         break;
                     }
-                    p->step = 6;
-                    goto case6;
-                case 1:
-                case 2:
-                    p->step = p->step + 1;
+                    queue->step = CD_COMMAND_SCENE_AUDIO_WAIT_OPEN;
+                    // Reuse an already opened track without the timing-read and delay states.
+                    goto audioOpened;
+                case CD_COMMAND_SCENE_AUDIO_DELAY_FIRST:
+                case CD_COMMAND_SCENE_AUDIO_DELAY_SECOND:
+                    queue->step = queue->step + 1;
                     break;
-                case 3: {
+                case CD_COMMAND_SCENE_AUDIO_READ_TIMING: {
+                    // Raw timing input occupies complete sectors before the audio track.
                     StreamSlot* sceneStream;
 
-                    sceneStream           = p->sceneStream;
-                    p->cdOperationPending = 1;
+                    sceneStream               = queue->sceneStream;
+                    queue->cdOperationPending = 1;
                     if (sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
                         sector = sceneStream->startSector;
-                        if ((sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES != 0) {
-                            sector += 1 + (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
+                        if ((sceneStream->data.scene.timingBytes - 1) / CD_COMMAND_SCENE_AUDIO_SECTOR_BYTES != 0) {
+                            sector += 1 + (sceneStream->data.scene.timingBytes - 1) / CD_COMMAND_SCENE_AUDIO_SECTOR_BYTES;
                         }
-                        fsStartPayloadRead(p->sceneStream->startSector, sector, p->timingBuffer, FILE_SYSTEM_PAYLOAD_RAW);
-                        p->step = p->step + 1;
+                        fsStartPayloadRead(queue->sceneStream->startSector, sector, queue->timingBuffer, FILE_SYSTEM_PAYLOAD_RAW);
+                        queue->step = queue->step + 1;
                     } else {
-                        p->step = 5;
+                        queue->step = CD_COMMAND_SCENE_AUDIO_OPEN_TRACK;
                     }
                     break;
                 }
-                case 4:
-                    if (Fs_CdOpStatus != 0xFF) {
+                case CD_COMMAND_SCENE_AUDIO_WAIT_TIMING:
+                    if (Fs_CdOpStatus != CD_COMMAND_SCENE_AUDIO_READ_COMPLETE) {
                         break;
                     }
-                    ret = cdSyncPollCommand(0, 0);
-                    if (ret != CD_SYNC_COMPLETE) {
-                        if (ret < CD_SYNC_RETRY) {
-                            if (ret == CD_SYNC_PENDING) {
+                    syncResult = cdSyncPollCommand(0, 0);
+                    if (syncResult != CD_SYNC_COMPLETE) {
+                        if (syncResult < CD_SYNC_RETRY) {
+                            if (syncResult == CD_SYNC_PENDING) {
                                 return;
                             }
                             break;
                         }
-                        if (ret != CD_SYNC_RETRY) {
+                        if (syncResult != CD_SYNC_RETRY) {
                             break;
                         }
                         CdFlush();
-                        p->step = 3;
+                        queue->step = CD_COMMAND_SCENE_AUDIO_READ_TIMING;
                         break;
                     }
-                    p->step = p->step + 1;
+                    queue->step = queue->step + 1;
                     break;
-                case 5: {
-                    StreamSlot*              sceneStream;
-                    s32                      bits;
-                    u16                      maskbits;
-                    _CdCmdSceneSoundBankBit* entry;
+                case CD_COMMAND_SCENE_AUDIO_OPEN_TRACK: {
+                    // Open after the timing prefix and silence the selected script-sound banks.
+                    StreamSlot* sceneStream;
 
-                    sceneStream = p->sceneStream;
+                    sceneStream = queue->sceneStream;
                     sector      = sceneStream->startSector;
                     if (sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
                         sector += 1;
-                        sector += (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
+                        sector += (sceneStream->data.scene.timingBytes - 1) / CD_COMMAND_SCENE_AUDIO_SECTOR_BYTES;
                     }
-                    cdAudioOpenTrack(sector, p->sceneStream->control.scene.volumeIndex);
-                    i_s1     = 0;
-                    maskbits = p->sceneStream->data.scene.soundBankMask;
-                    if (Gp_SndMaskTable[0].mask != 0) {
-                        bits = maskbits;
-                        do {
-                            entry = &Gp_SndMaskTable[(u16)i_s1];
-                            if (bits & entry->mask) {
-                                sndEvtRequestScriptStop(entry->bankTypeId, SOUND_SCRIPT_STOP_NO_FADE);
-                                sndScriptSetTypeRequestsEnabled(0, entry->bankTypeId);
-                            }
-                            i_s1++;
-                        } while (Gp_SndMaskTable[(u16)i_s1].mask != 0);
-                    }
-                    p->releasePauseBlockAfterFade = 0;
-                    p->blockGamePause             = 1;
-                    p->step                       = p->step + 1;
+                    cdAudioOpenTrack(sector, queue->sceneStream->control.scene.volumeIndex);
+                    _cdCmdSetSceneAudioSoundRequests(queue->sceneStream->data.scene.soundBankMask, false);
+                    queue->releasePauseBlockAfterFade = 0;
+                    queue->blockGamePause             = 1;
+                    queue->step                       = queue->step + 1;
                     break;
                 }
-                case 6:
-                case6: {
-                    s32 cmd;
+                case CD_COMMAND_SCENE_AUDIO_WAIT_OPEN:
+                audioOpened: {
+                    s32 command;
 
                     if (CdAudio_Phase.openStep != CD_AUDIO_OPEN_STEP_DONE) {
                         break;
                     }
-                    one                  = 1;
-                    p->sceneAudioStarted = one;
-                    cmd                  = p->entries[p->readIdx].cmd;
-                    if (cmd == CD_COMMAND_START_SCENE_AUDIO) {
+                    enabled                  = CD_COMMAND_SCENE_PLAYING;
+                    queue->sceneAudioStarted = enabled;
+                    command                  = queue->entries[queue->readIdx].cmd;
+                    // An open-only request leaves the session ready for a later playback request.
+                    if (command == CD_COMMAND_START_SCENE_AUDIO) {
                         cdCmdSaveHeadRequest();
                         cdCmdCompleteHeadRequest();
                         break;
                     }
-                    if (cmd != CD_COMMAND_PLAY_SCENE_AUDIO) {
+                    if (command != CD_COMMAND_PLAY_SCENE_AUDIO) {
                         break;
                     }
-                    save23            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
-                    p->sceneAudioMode = one;
-                    if (save23 != 0) {
-                        sndEvtRequestScriptStart(0, 0, 0);
+                    demoScene             = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
+                    queue->sceneAudioMode = enabled;
+                    if (demoScene != 0) {
+                        sndEvtRequestScriptStart(SOUND_SCRIPT_REQUEST_NO_OP, 0, 0);
                     }
-                    if (p->sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
-                        p->paceToSceneTiming = one;
+                    if (queue->sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
+                        queue->paceToSceneTiming = enabled;
                     }
-                    p->timingElapsedLines = 0;
+                    queue->timingElapsedLines = 0;
                     cdAudioPlay();
-                    p->blockGamePause     = one;
-                    p->cdOperationPending = 0;
-                    p->step               = p->step + 1;
+                    queue->blockGamePause     = enabled;
+                    queue->cdOperationPending = 0;
+                    queue->step               = queue->step + 1;
                     break;
                 }
-                case 7: {
-                    StreamSlot*              sceneStream;
-                    s32                      i;
-                    s32                      bits;
-                    u16                      maskbits;
-                    _CdCmdSceneSoundBankBit* entry;
+                case CD_COMMAND_SCENE_AUDIO_WAIT_PLAYBACK: {
+                    // Resume trailing audio when present before restoring the scene's sound and RNG state.
+                    StreamSlot* sceneStream;
 
                     if (CdAudio_Phase.playStep != CD_AUDIO_PLAY_STEP_DONE) {
                         break;
                     }
                     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
-                        sndEvtRequestScriptStart(0, 0, 0);
+                        sndEvtRequestScriptStart(SOUND_SCRIPT_REQUEST_NO_OP, 0, 0);
                     }
-                    memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
-                    sceneStream             = p->sceneStream;
-                    p->replacementEntry.cmd = CD_COMMAND_EMPTY;
+                    memFillBytes(&queue->activeRequest, 0, sizeof(queue->activeRequest));
+                    sceneStream                 = queue->sceneStream;
+                    queue->replacementEntry.cmd = CD_COMMAND_EMPTY;
                     if (sceneStream->data.scene.resumeSectorOffset != 0) {
                         cdAudioLoadWaves(sceneStream->startSector + sceneStream->data.scene.resumeSectorOffset);
-                        p->cdOperationPending = 1;
-                        p->step               = p->step + 1;
+                        queue->cdOperationPending = 1;
+                        queue->step               = queue->step + 1;
                         break;
                     }
-                    i        = 0;
-                    maskbits = sceneStream->data.scene.soundBankMask;
-                    if (Gp_SndMaskTable[0].mask != 0) {
-                        bits = maskbits;
-                        do {
-                            entry = &Gp_SndMaskTable[(u16)i];
-                            if (bits & entry->mask) {
-                                sndScriptSetTypeRequestsEnabled(1, entry->bankTypeId);
-                            }
-                            i++;
-                        } while (Gp_SndMaskTable[(u16)i].mask != 0);
-                    }
-                    {
-                        CdCmdQueue* q;
-                        s32         ff;
-                        q                        = &gCdCmdQueue;
-                        seed                     = q->savedRandSeed;
-                        ff                       = 0xFF;
-                        p->blockGamePause        = 0;
-                        p->sceneAudioMode        = CD_COMMAND_SCENE_INACTIVE;
-                        q->imageLoadStatus       = ff;
-                        q->sceneEnded            = 1;
-                        q->scenePayloadAvailable = 0;
-                        q->sceneAudioStarted     = 0;
-                        q->sceneBuffersNeeded    = 0;
-                        q->paceToSceneTiming     = 0;
-                        gRandomLcgState          = q->savedLcgState;
-                        srand(seed);
-                    }
-                    cdCmdCompleteHeadRequest();
+                    _cdCmdSetSceneAudioSoundRequests(sceneStream->data.scene.soundBankMask, true);
+                    CD_COMMAND_FINISH_SCENE_AUDIO(queue, savedRandSeed, false);
                     break;
                 }
-                case 8: {
-                    s32                      i;
-                    s32                      bits;
-                    u16                      maskbits;
-                    _CdCmdSceneSoundBankBit* entry;
-
+                case CD_COMMAND_SCENE_AUDIO_WAIT_WAVES: {
                     if (CdAudio_Phase.waveLoadStep != CD_AUDIO_WAVE_LOAD_STEP_DONE) {
                         break;
                     }
-                    i        = 0;
-                    maskbits = p->sceneStream->data.scene.soundBankMask;
-                    if (Gp_SndMaskTable[0].mask != 0) {
-                        bits = maskbits;
-                        do {
-                            entry = &Gp_SndMaskTable[(u16)i];
-                            if (bits & entry->mask) {
-                                sndScriptSetTypeRequestsEnabled(1, entry->bankTypeId);
-                            }
-                            i++;
-                        } while (Gp_SndMaskTable[(u16)i].mask != 0);
-                    }
-                    {
-                        CdCmdQueue* q;
-                        s32         ff;
-                        q                        = &gCdCmdQueue;
-                        seed                     = q->savedRandSeed;
-                        ff                       = 0xFF;
-                        p->cdOperationPending    = 0;
-                        p->blockGamePause        = 0;
-                        p->sceneAudioMode        = CD_COMMAND_SCENE_INACTIVE;
-                        q->imageLoadStatus       = ff;
-                        q->sceneEnded            = 1;
-                        q->scenePayloadAvailable = 0;
-                        q->sceneAudioStarted     = 0;
-                        q->sceneBuffersNeeded    = 0;
-                        q->paceToSceneTiming     = 0;
-                        gRandomLcgState          = q->savedLcgState;
-                        srand(seed);
-                    }
-                    cdCmdCompleteHeadRequest();
+                    _cdCmdSetSceneAudioSoundRequests(queue->sceneStream->data.scene.soundBankMask, true);
+                    CD_COMMAND_FINISH_SCENE_AUDIO(queue, savedRandSeed, true);
                     break;
                 }
             }
@@ -1031,6 +1022,8 @@ void Gp_StepCdAudioCmd(void)
     }
     mdecStepImageDecode();
 }
+
+#undef CD_COMMAND_FINISH_SCENE_AUDIO
 
 /// Stops script sounds selected by a scene mask and closes their request gates.
 ///
@@ -1328,12 +1321,20 @@ void sndLoadEnqueuePeFile(u8 fileIndex)
     }
 }
 
-void func_800B06F0(Task* arg0)
+/// Runs the bodyless restart-presentation loader after gameplay teardown.
+///
+/// State 0 queues resources, 1 waits for them and launches the presentation,
+/// and 2 waits for the normal restart UI to exit. State must stay in 0..2;
+/// dispatch is unchecked. The normal path borrows its UI child through
+/// `spawnArg2.pointer` until exit; the ending path spawns replay bonus and
+/// kills this loader in state 1. Gameplay and the selected display package
+/// must remain loaded while their callbacks can run.
+static void _loadingRestartPresentationTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = Gp_StageLoadStates;
-    sp.funcs[arg0->state](arg0);
+    states = Gp_StageLoadStates;
+    states.funcs[task->state](task);
 }
 
 /// Begins restart presentation loading after MIDI sequence 0 becomes idle.
@@ -3485,20 +3486,25 @@ void areaSaveEnemyPose(Enemy* enemy)
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
-/// Restores a saved root transform and actor-specific resume state.
+/// Restores a placed actor's saved root transform and spawn-state byte.
 ///
-/// The live coordinate receives signed translations in its parent's frame and
-/// high-byte Euler angles expanded to signed halfwords, then a rebuilt rotation.
-/// The caller supplies a matching pose and keeps all three objects live.
-static inline void _areaRestoreSavedEnemyPose(Enemy* enemy, GfxCoord* coord, const AreaSavedEnemyPose* savedPose)
+/// All three inputs must be live, and the caller must select a pose with the
+/// enemy's placement key. XYZ sign-extend from saved halfwords into the root's
+/// parent frame. Euler angles use 4096 units per turn: shifting each unsigned
+/// high byte by eight reconstructs a signed halfword with its low byte zero.
+/// Replaces the matrix rotation and preserves the restored translation; copies
+/// the resume state's byte unchanged, including its high bit. The composition
+/// stamp is left intact, so the freshly spawned root must already be dirty.
+/// Borrows the saved record only for this call and changes GTE state.
+static inline void _areaRestoreSavedEnemyPose(Enemy* enemy, GfxCoord* root, const AreaSavedEnemyPose* savedPose)
 {
-    coord->coord.t[0]   = savedPose->x;
-    coord->coord.t[1]   = savedPose->y;
-    coord->coord.t[2]   = savedPose->z;
-    coord->param.rot.vx = savedPose->pitch << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
-    coord->param.rot.vy = savedPose->yaw << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
-    coord->param.rot.vz = savedPose->roll << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
-    RotMatrix_gte(&coord->param.rot, &coord->coord);
+    root->coord.t[0]   = savedPose->x;
+    root->coord.t[1]   = savedPose->y;
+    root->coord.t[2]   = savedPose->z;
+    root->param.rot.vx = savedPose->pitch << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
+    root->param.rot.vy = savedPose->yaw << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
+    root->param.rot.vz = savedPose->roll << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
+    RotMatrix_gte(&root->param.rot, &root->coord);
     enemy->spawnState = savedPose->resumeState;
 }
 
@@ -4445,40 +4451,69 @@ static inline s32 _areaGetCurrentObjectState(s32 flagIndex)
     return stateBits;
 }
 
-/// Spawns the first `spawn` table entry whose kind equals `place->kind`, at that place.
-static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place)
+/// Applies an object placement's identity and transform to a body-backed enemy.
+///
+/// The enemy must own a live TMD or single-coordinate body. Both records are
+/// borrowed only for this call. XYZ are signed game units in the root's parent
+/// frame. Yaw narrows to a signed halfword in 4096 units per turn; zero keeps
+/// the existing matrix rotation, while nonzero replaces it. The packed place
+/// key and work kind are copied, and the root's composition becomes dirty.
+static inline void _areaApplyObjectPlacement(Enemy* enemy, const AreaObjectPlace* place)
 {
-    Enemy*     enemy;
-    Task*      task;
-    TmdObject* extra;
-    GfxCoord*  coord;
-    u16        id;
+    GfxCoord* root;
 
-    id = spawn->kind;
-    while (id != AREA_OBJECT_SPAWN_END) {
-        if (id == place->kind) {
-            enemy = enemySpawnFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
+    if (enemy->task->bodyKind == TASK_BODY_TMD) {
+        root = enemy->task->extra.tmd->coords;
+    } else {
+        root = enemy->task->extra.coordBody->coord;
+    }
+    enemy->placeKey    = place->flagIndex | (place->placeKeyHigh << ENEMY_PLACE_STAGE_SHIFT);
+    enemy->workType    = place->kind;
+    root->coord.t[0]   = place->x;
+    root->coord.t[1]   = place->y;
+    root->coord.t[2]   = place->z;
+    root->param.rot.vy = place->yaw;
+    if (root->param.rot.vy != 0) {
+        gfxRotMatrixY(&root->coord, (s16)place->yaw, GRAPHICS_ROTATION_REPLACE);
+    }
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Spawns the first descriptor whose kind matches an area's object placement.
+///
+/// `spawnEntry` begins a live table ended by `AREA_OBJECT_SPAWN_END`; `place`
+/// must be a live non-terminator placement. Uses descriptor zero of the matched
+/// entry and passes its kind as the first payload word. The new task owns its
+/// enemy work and becomes a child of the registered scene manager. A missing
+/// kind or failed allocation does nothing; a matching entry ends the search
+/// even on failure. Both tables are borrowed only during the call.
+/// Descriptor callbacks and borrowed model resources must outlive the new task.
+///
+/// A bodyless task receives no identity or transform update. TMD and coordinate
+/// bodies must provide a live root. XYZ use signed game units in its parent
+/// frame; yaw narrows to a signed halfword in 4096
+/// units per turn. Zero yaw preserves the matrix rotation; nonzero replaces
+/// it. Copies the packed placement key and kind and marks composition dirty.
+static inline void _areaSpawnObjectFromPlacement(AreaObjectSpawn* spawnEntry, const AreaObjectPlace* place)
+{
+    Enemy* enemy;
+    Task*  task;
+    u16    spawnKind;
+
+    spawnKind = spawnEntry->kind;
+    while (spawnKind != AREA_OBJECT_SPAWN_END) {
+        if (spawnKind == place->kind) {
+            enemy = enemySpawnFromTable(&spawnEntry->taskDesc, 0, spawnEntry->kind, NULL);
             if (enemy != NULL) {
                 task = enemy->task;
                 if (task->bodyKind != TASK_BODY_NONE) {
-                    extra               = task->extra.tmd;
-                    coord               = extra->coords;
-                    enemy->placeKey     = place->flagIndex | (place->placeKeyHigh << ENEMY_PLACE_STAGE_SHIFT);
-                    enemy->workType     = place->kind;
-                    coord->coord.t[0]   = place->x;
-                    coord->coord.t[1]   = place->y;
-                    coord->coord.t[2]   = place->z;
-                    coord->param.rot.vy = place->yaw;
-                    if (coord->param.rot.vy != 0) {
-                        gfxRotMatrixY(&coord->coord, (s16)place->yaw, 1);
-                    }
-                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                    _areaApplyObjectPlacement(enemy, place);
                 }
             }
             return;
         }
-        spawn++;
-        id = spawn->kind;
+        spawnEntry++;
+        spawnKind = spawnEntry->kind;
     }
 }
 

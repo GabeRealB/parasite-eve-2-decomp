@@ -759,7 +759,7 @@ static void CdCmd_ProcessPhase1(void)
             return;
         case 8:
             if (p->cdOperationPending != 0) {
-                Gp_StepCdAudioCmd();
+                cdCmdHandleSceneAudio();
                 return;
             }
             if ((u16)p->sceneAudioMode != CD_COMMAND_SCENE_INACTIVE) {
@@ -1440,7 +1440,7 @@ void CdCmd_Dispatch(void)
                         _cdCmdHandleStageMount();
                         break;
                     case 8:
-                        Gp_StepCdAudioCmd();
+                        cdCmdHandleSceneAudio();
                         break;
                 }
             }

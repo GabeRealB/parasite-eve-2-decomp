@@ -270,7 +270,7 @@ Gp_ApplyAreaFlag4List = 0x800AF500; // type:func
 // ---------------------------------------------------------------------------
 streamReadSceneImageSector = 0x800AF590; // type:func
 streamSelectScene = 0x800AF89C; // type:func
-Gp_StepCdAudioCmd = 0x800AFA44; // type:func
+cdCmdHandleSceneAudio = 0x800AFA44; // type:func
 _cdCmdSuspendSceneSoundRequests = 0x800AFF90; // type:func
 cdCmdResumeSceneSoundRequests = 0x800B0034; // type:func
 streamFinishScene = 0x800B00C4; // type:func
@@ -287,7 +287,7 @@ _enemyWaitTick = 0x800B0560; // type:func
 enemyTeardownDelayTask = 0x800B058C; // type:func
 _sndLoadTryEnqueuePeFile = 0x800B05E8; // type:func
 sndLoadEnqueuePeFile = 0x800B065C; // type:func
-func_800B06F0 = 0x800B06F0; // type:func
+_loadingRestartPresentationTask = 0x800B06F0; // type:func
 _loadingStartRestartResources = 0x800B0748; // type:func
 Gp_FinishStageLoad = 0x800B082C; // type:func
 _loadingFinishRestart = 0x800B08D8; // type:func

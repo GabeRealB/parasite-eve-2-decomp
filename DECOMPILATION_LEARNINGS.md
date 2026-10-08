@@ -6455,24 +6455,24 @@ is the example.
 
 ## Don't name a later load from the same base as an earlier arg
 
-`seed = q->savedRandSeed` then later `rng = q->savedLcgState; gRandomLcgState = rng;
-srand(seed)` hoists the `savedLcgState` load next to the seed load (`lw a0,
+`savedRandSeed = completionQueue->savedRandSeed` then later `rng = completionQueue->savedLcgState; gRandomLcgState = rng;
+srand(savedRandSeed)` hoists the `savedLcgState` load next to the seed load (`lw a0,
 0x1AC` / `lw a1, 0x1A8`). The target reuses `$v1` after `sceneEnded = 1`
 for that load so it sits just before the zero stores. Write the use
 directly so there is no second named value to pair-load:
 
 ```c
-seed = q->savedRandSeed;
-q->imageLoadStatus = 0xFF;
-q->sceneEnded = 1;
-q->scenePayloadAvailable = 0;
-gRandomLcgState   = q->savedLcgState;
-srand(seed);
+savedRandSeed = completionQueue->savedRandSeed;
+completionQueue->imageLoadStatus = CD_COMMAND_IMAGE_COMPLETE;
+completionQueue->sceneEnded = 1;
+completionQueue->scenePayloadAvailable = 0;
+gRandomLcgState   = completionQueue->savedLcgState;
+srand(savedRandSeed);
 ```
 
-`Gp_StepCdAudioCmd` is the example. Same reason to duplicate a small
-cleanup block in two switch cases rather than a shared `q` at function
-scope: a function-level `q` lands in `$v1` instead of `$v0`.
+`cdCmdHandleSceneAudio` is the example. Same reason to duplicate a small
+cleanup block in two switch cases rather than a shared `completionQueue` at function
+scope: a function-level `completionQueue` lands in `$v1` instead of `$v0`.
 
 ## Pin the `(x - 1) / 2048` temp to `$v0` so the dest can be `$v1`
 
@@ -6492,7 +6492,7 @@ if (temp < 0) {
 extra = extra >> 11;
 ```
 
-`Gp_StepCdAudioCmd` is the example. Reassigning the same `a0` pointer
+`cdCmdHandleSceneAudio` is the example. Reassigning the same `a0` pointer
 (`info = (T*)info->field_4`) then `end = (s32)info` keeps the sector in
 `$a0` and copies it to `$a1` before `fsStartPayloadRead` reloads `field_4`.
 
@@ -149211,7 +149211,7 @@ computes `pos` first).
   `switch (x) { case 0: break; case K: case K + 1: ... }`: two nodes, the
   second a range (`group_case_nodes` merges consecutive cases with one
   label). Written as `if (x != 0 && x >= 0 && x < K + 2 && x >= K)` fold
-  turns it into `(unsigned)(x - K) < 2` (`Gp_StepCdAudioCmd`; the room
+  turns it into `(unsigned)(x - K) < 2` (`cdCmdHandleSceneAudio`; the room
   stream tasks have the same test as nested `if`s).
 - `==1; >=2 -> L; ==0; j default; L: ==2; j default` is the plain three-case
   tree. A case that must skip the code after the switch is that code
@@ -150514,7 +150514,7 @@ attempts; left as it was.
     `jal; sll; bnez` stays double because the two tails end at labels
     cross-jumping created itself. Writing the copy's arms the other way round
     gives the same RTL.
-  - `step = 6; goto case6;` in `Gp_StepCdAudioCmd`: an inline for state 6's
+  - `step = CD_COMMAND_SCENE_AUDIO_WAIT_OPEN; goto audioOpened;` in `cdCmdHandleSceneAudio`: an inline for state 6's
     body called from both states is not merged at all (39 insns longer).
   - `_replayBonusBuildItemList`'s two `found = 1; L: if (*p != id) { j++; p++;
     if (j >= N) found = 0; else goto L; }` scans. `for (;;)` with `if/else
