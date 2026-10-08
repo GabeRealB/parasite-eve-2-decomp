@@ -76256,11 +76256,11 @@ inventing a local struct — an existing sender usually has the type already.
 
 ## A `delete` equal to a narrow-store deficit is m2c's per-word local, not codegen
 
-**Problem.** `func_actor_560800_80135BD8` opened at 97.842% with `regs=1
+**Problem.** `_actor560800InitializeCutscene` opened at 97.842% with `regs=1
 delete=2`, and `.diagnosis.json` narrowed it to `opcode_delta: {"41:0": -2}` —
 the candidate emitted one `sh` where retail has three, all storing the same
 constant to `0x10($sp)`, `0x12($sp)` and `0x14($sp)` before a
-`worldCoordSetAmbientColorOverride(&vec)` call.
+`worldCoordSetAmbientColorOverride(&ambientColor)` call.
 
 **Cause.** The same mechanism as the `AnimationPlayRequest` payload above: m2c declared the
 argument as three scalars, `s16 sp10; s16 sp12; s16 sp14;`, and only `&sp10`
@@ -76273,12 +76273,12 @@ are already gone before `cse` — the front end's own dead-store removal.
 room overlays, `3CD8_75C8`) already passes:
 
 ```c
-    SVECTOR vec;
+    SVECTOR ambientColor;
 
-    vec.vx = 0x5A0;
-    vec.vy = 0x5A0;
-    vec.vz = 0x5A0;
-    worldCoordSetAmbientColorOverride(&vec);
+    ambientColor.vx = 0x5A0;
+    ambientColor.vy = 0x5A0;
+    ambientColor.vz = 0x5A0;
+    worldCoordSetAmbientColorOverride(&ambientColor);
 ```
 
 100%, all penalties zero. Read a `delete` count that equals an `opcode_delta`
@@ -83899,7 +83899,7 @@ the calls and takes `$s0`.
 
 Both shapes are already in the tree, so the target decides which to write:
 `_actor160900FadeOutTask` (same overlay) uses the two-name form and compiles to
-exactly this, and `func_actor_560800_80135BD8` uses one name and compiles to
+exactly this, and `_actor560800InitializeCutscene` uses one name and compiles to
 `addu s1, v0` before `bnez s1`. A single reused variable is *not* always the better
 guess — when the target tests `$v0` after a call whose result is stored and kept,
 count the names in the source.
@@ -100310,7 +100310,7 @@ propagates `i = 1` into the guard, keeping it in operand 1's position.
 
 Both operand orders appear in the same target: the guard compares the constant
 (`1 < count`) while the loop back-edge compares the variable (`sltu v0,s1,v1`).
-`func_actor_560800_80132C60` -- the handler of the task `kyle` points at, and
+`_actor560800KyleBodyTask` -- the handler of the task `kyle` points at, and
 the function that allocates the block this one reseeds -- carries the identical
 guard and loop, so the shape is the original source's, not a local quirk.
 
@@ -100356,7 +100356,7 @@ aggregate is the only candidate. A declared-and-unused `SVECTOR unused;` supplie
 it; cc1 probes confirm a never-referenced aggregate still gets a slot
 (`SVECTOR s;` is `vars= 8`) while an unused scalar does not.
 
-## m2c invents a `default:` arm for a fallthrough switch - the cases fall through instead (func_actor_560800_801366B0, 2026-09-16)
+## m2c invents a `default:` arm for a fallthrough switch - the cases fall through instead (_actor560800ReplaceEveBodyTask, 2026-09-16)
 
 This seed scores 74.088% (`branch=2 regs=8 reorder=2 insert=2 delete=14`) with
 two faults from the same dump, both worth recognising on sight.
@@ -100509,8 +100509,9 @@ do {
 
 That is 100.000% with every penalty zero, and it is the shape to reach for
 whenever an object has `andi` + `sll` + `sltiu` around one counter:
-`func_actor_560800_801386D4` in the same overlay writes its slot array the same
-way, as does the matched `_actor310100PlaceOfficerModel`.
+`_actor560800ChainGroupTask` in the same overlay writes its slot array with
+a `u16` counter, producing the same instructions; the matched
+`_actor310100PlaceOfficerModel` uses the explicit-mask form.
 
 Two things follow from the split that are *not* source differences. The single
 `i += 1;` appears twice in the object - once at the join (`addiu a0,a0,1`) and
@@ -105845,21 +105846,22 @@ before the calls schedules the increment first and emits `addiu`; writing the
 natural `i += 1` at the end of the do-while body (after the calls, indices
 through `j`) lets sched1 hoist it just behind `a2 = 1`, and it matched.
 
-### A `sN = sM` copy in a call's delay slot is a second local aliasing the first; place it after the call args (func_actor_560800_801386D4, 2026-09-16)
+### A `sN = sM` copy in a call's delay slot is a second local aliasing the first; place it after the call args (_actor560800ChainGroupTask, 2026-09-16)
 
-**Symptom.** A state-0 spawner does `w = memMalloc(...); task->work = w; ...
+**Symptom.** A state-0 spawner does `currentWork = memMalloc(...); task->work = currentWork; ...
 memFillBytes(task->work, 0, size);` and the target's `memFillBytes` delay slot holds
-`move s2,s0`, after which the loop writes through `s2`. `w` itself (`$s0`) is
+`move s2,s0`, after which the loop writes through `s2`. `currentWork` itself (`$s0`) is
 also the variable reloaded from `task->work` after the switch.
 
-**Fix.** Write a second local (`spawned = w;`) for the loop, *after* the
-`memFillBytes` call statement, preceded by the counter init: `i = 0; spawned = w;`.
-Sched1 still pulls both ahead of the call, `i = 0` becomes `move s1,a1`
+**Fix.** Write a second local (`spawnWork = currentWork;`) for the loop, *after* the
+`memFillBytes` call statement, preceded by the counter init: `spawnIndex = 0; spawnWork = currentWork;`.
+Sched1 still pulls both ahead of the call, `spawnIndex = 0` becomes `move s1,a1`
 (reload_cse against the `a1 = 0` argument) and the copy lands in the delay
-slot. With the copy written before `memFillBytes`, or `i = 0` after it, the two
+slot. With the copy written before `memFillBytes`, or `spawnIndex = 0` after it, the two
 swap registers. The rest of the allocation was settled by giving each switch
 case its own locals (case-0 coord vs case-3 coord, case-2 counter and work
-alias) while case 0 and case 3 share their loop counter (both `$s1`).
+alias) while case 0 and case 3 use separate `spawnIndex` / `burstIndex` counters
+(both `$s1` in the compiled function).
 
 ### A switch's `slti high+1 → <other code>` can be a `case N ... 0x7FFF: break;` right node (func_actor_560800_80137820)
 

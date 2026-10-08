@@ -3114,7 +3114,7 @@ static void func_dryfield_water_tower_8017FBE8(Task* task)
 /// `sceneFindEnemyByPlaceKey`'s search key.
 ///
 /// State 1 starts the room's cutscene pair and state 2 kills the task once the
-/// scene is over, exactly as the actors' `func_actor_560800_80135D54` pairs
+/// scene is over, exactly as the actors' `_actor560800CutsceneTask` pairs
 /// them; the task runs only while the session is not paused
 /// (`GameSession::sceneUpdatesPaused`) and the attachment wheel is closed (`Gp_StateC08.menuOpen`), and every path that is not a kill ends in the room's
 /// per-frame body `func_dryfield_water_tower_8017FBE8`.
