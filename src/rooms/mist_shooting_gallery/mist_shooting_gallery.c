@@ -211,7 +211,7 @@ static const char D_mist_shooting_gallery_8017D65C[];
 static void _mistShootingGalleryJukeboxPanelTask(Task* task);
 static void _mistShootingGalleryModeSplashTask(Task* task);
 static void _mistShootingGalleryClearMovieTask(Task* task);
-void        func_mist_shooting_gallery_801810D8(Task*);
+static void _mistShootingGalleryMovieSessionTask(Task* task);
 
 extern const char D_mist_shooting_gallery_8017D86C[22];
 extern const char D_mist_shooting_gallery_8017D884[19];
@@ -249,12 +249,12 @@ static s32        _mistShootingGalleryRejectKeyItemMessage(Task* task, s32 messa
 s32               func_mist_shooting_gallery_8017FEB8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32               func_mist_shooting_gallery_80180000(Task*, s32, s32, s32);
 s32               func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-void              func_mist_shooting_gallery_8017E234(Task*);
-void              func_mist_shooting_gallery_8017E854(Task*);
-void              func_mist_shooting_gallery_8017EAE0(Task*);
+static void       _mistShootingGalleryResultPanelTask(Task* task);
+static void       _mistShootingGalleryBonusPanelTask(Task* task);
+static void       _mistShootingGalleryModeSelectPanelTask(Task* task);
 static void       _mistShootingGalleryModeStatusPanelTask(Task* task);
 static void       _mistShootingGalleryModeDataPanelTask(Task* task);
-void              func_mist_shooting_gallery_8017F6C8(Task*);
+static void       _mistShootingGalleryCarryoverModeSessionTask(Task* task);
 static void       _mistShootingGalleryModeRow(UiList* list, UiObject* object);
 static void       _mistShootingGalleryModeHelpPanelTask(Task* task);
 void              func_mist_shooting_gallery_8017FDD0(Task* task);
@@ -272,7 +272,7 @@ static const char D_mist_shooting_gallery_8017D63C[4];
 static const char D_mist_shooting_gallery_8017D640[8];
 static const char D_mist_shooting_gallery_8017D648[8];
 static const char D_mist_shooting_gallery_8017D650[12];
-void              func_mist_shooting_gallery_8017DE7C(UiList*, UiObject*);
+static void       _mistShootingGalleryWeaponRow(UiList* list, UiObject* object);
 static void       _mistShootingGalleryWeaponSelectPanelTask(Task* task);
 
 char D_mist_shooting_gallery_80184DD4[80] = {
@@ -668,7 +668,7 @@ s16 D_mist_shooting_gallery_80184F34[10] = {
 };
 
 UiListRowCallback D_mist_shooting_gallery_80184F48[1] = {
-    func_mist_shooting_gallery_8017DE7C,
+    _mistShootingGalleryWeaponRow,
 };
 
 UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
@@ -693,9 +693,9 @@ _MistShootingGalleryTargetScore D_mist_shooting_gallery_80184F98[MIST_SHOOTING_G
     { 600, D_mist_shooting_gallery_8017D5E0 },
 };
 
-UiObjectDesc D_mist_shooting_gallery_80185000 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -104, -48, 208, 64 }, 32, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017E234, 0 };
+UiObjectDesc D_mist_shooting_gallery_80185000 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -104, -48, 208, 64 }, 32, 0, TASK_BODY_NONE, 192, _mistShootingGalleryResultPanelTask, 0 };
 
-UiObjectDesc D_mist_shooting_gallery_8018501C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -72, -48, 144, 56 }, 24, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017E854, 0 };
+UiObjectDesc D_mist_shooting_gallery_8018501C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -72, -48, 144, 56 }, 24, 0, TASK_BODY_NONE, 192, _mistShootingGalleryBonusPanelTask, 0 };
 
 UiListRowCallback D_mist_shooting_gallery_80185038[1] = {
     _mistShootingGalleryModeRow,
@@ -703,7 +703,7 @@ UiListRowCallback D_mist_shooting_gallery_80185038[1] = {
 
 UiList D_mist_shooting_gallery_8018503C = { D_mist_shooting_gallery_80185038, 4, { .unsignedValue = 4 }, 1, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-UiObjectDesc D_mist_shooting_gallery_80185060 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -96, 176, 64 }, 32, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017EAE0, 0 };
+UiObjectDesc D_mist_shooting_gallery_80185060 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -96, 176, 64 }, 32, 0, TASK_BODY_NONE, 192, _mistShootingGalleryModeSelectPanelTask, 0 };
 
 UiObjectDesc D_mist_shooting_gallery_8018507C[3] = {
     { USER_INTERFACE_PANEL_TITLE_STYLE, { 32, -96, 112, 128 }, 28, 0, TASK_BODY_NONE, 192, _mistShootingGalleryModeStatusPanelTask, 0 },
@@ -711,7 +711,7 @@ UiObjectDesc D_mist_shooting_gallery_8018507C[3] = {
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -22, 288, 73 }, 20, 0, TASK_BODY_NONE, 192, _mistShootingGalleryModeDataPanelTask, 0 },
 };
 
-TaskDesc D_mist_shooting_gallery_801850D0 = { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_8017F6C8, { .value = 0 } };
+TaskDesc D_mist_shooting_gallery_801850D0 = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCarryoverModeSessionTask, { .value = 0 } };
 
 TaskDesc D_mist_shooting_gallery_801850DC = { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_8017FDD0, { .value = 0 } };
 
@@ -847,7 +847,7 @@ UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64
 TaskDesc D_mist_shooting_gallery_80185378 = { { { TASK_BODY_NONE, 192 } }, jukeboxHostTask, { .value = 0 } };
 
 TaskDesc D_mist_shooting_gallery_80185384[3] = {
-    { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_801810D8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryMovieSessionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryClearMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryModeSplashTask, { .value = 0 } },
 };
@@ -991,61 +991,73 @@ void mistShootingGalleryPrepareTrainingLoadout(s32 courseLevel)
     equipmentRestoreHpMp();
     equipmentInitializeWeaponSupplies();
 }
-void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
+/// Draws an owned weapon row and handles its training-loadout and help commands.
+///
+/// Borrows the picker object and list. The current row indexes only the owned
+/// entries, in weapon-table order. Confirm replaces carried items with the weapon,
+/// training armour and 999 ammunition units; Triangle suspends input for item help.
+static void _mistShootingGalleryWeaponRow(UiList* list, UiObject* object)
 {
-    s32                               item;
-    s32                               i;
-    s32                               skip;
-    s32                               status;
-    s32                               selected;
-    s32                               ammo;
-    const EquipmentWeaponLoadOptions* row;
-    u8*                               weaponIdx;
-    InventoryItemRange*               scan;
+    enum {
+        MIST_SHOOTING_GALLERY_TRAINING_ARMOR_ITEM = 0x6C,
+        MIST_SHOOTING_GALLERY_TRAINING_AMMO_UNITS = 999,
+        MIST_SHOOTING_GALLERY_WEAPON_HELP_PANEL   = 45,
+    };
+    s32                               weaponItemId;
+    s32                               weaponTableIndex;
+    s32                               ownedRowsToSkip;
+    s32                               panelControl;
+    s32                               rowInputMode;
+    s32                               ammoItemId;
+    const EquipmentWeaponLoadOptions* loadOptions;
+    u8*                               equippedWeapon;
+    InventoryItemRange*               carriedInventory;
 
-    item = 0;
-    skip = arg0->currentItemIndex;
-    i    = 0;
+    // Map the displayed loadOptions through the owned entries of the weapon table.
+    weaponItemId     = 0;
+    ownedRowsToSkip  = list->currentItemIndex;
+    weaponTableIndex = 0;
     do {
-        if (inventoryIsItemLimitReached(D_mist_shooting_gallery_80184F34[i]) != 0) {
-            skip--;
-            if (skip < 0) {
-                item = D_mist_shooting_gallery_80184F34[i];
+        if (inventoryIsItemLimitReached(D_mist_shooting_gallery_80184F34[weaponTableIndex]) != 0) {
+            ownedRowsToSkip--;
+            if (ownedRowsToSkip < 0) {
+                weaponItemId = D_mist_shooting_gallery_80184F34[weaponTableIndex];
                 break;
             }
         }
-        i++;
-    } while (i < 10);
+        weaponTableIndex++;
+    } while (weaponTableIndex < (s32)ARRAY_SIZE(D_mist_shooting_gallery_80184F34));
 
-    itemMenuDrawItemRow(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
-    status = arg1->panel.control.word;
-    if (((status >> 16) == 1) || (status == 1)) {
-        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
+    itemMenuDrawItemRow(object, list->rowTextX.signedValue, list->rowTextY.signedValue, weaponItemId, list->colorRgb, 0);
+    panelControl = object->panel.control.word;
+    if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            itemMenuSetPreviewItem(weaponItemId, CD_COMMAND_DISPLAY_LOAD_MENU);
         }
     }
-    selected = arg0->rowInputEnabled;
-    if (selected == 1) {
+    rowInputMode = list->rowInputEnabled;
+    if (rowInputMode == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            scan       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-            weaponIdx  = &gPlayerStatus.weapon;
-            row        = &Gp_RelatedQty0.rows[item - EQUIPMENT_WEAPON_ITEM_FIRST];
-            ammo       = row->acceptedItemIds[0];
-            *weaponIdx = item - 0x7F;
+            carriedInventory = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+            equippedWeapon   = &gPlayerStatus.weapon;
+            loadOptions      = &Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+            ammoItemId       = loadOptions->acceptedItemIds[0];
+            *equippedWeapon  = weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+            // Replace the training loadout and attach its ammunition in slot one.
             inventoryResetCarriedRange();
-            inventoryClearItems(scan);
-            inventoryGiveItem(scan, item, 1);
-            inventoryGiveItem(scan, 0x6C, 1);
-            equipmentEquipCarriedArmor(0x6C);
-            inventoryGiveItem(scan, ammo, 0x3E7)->attachSlot = selected;
-            equipmentLoadWeaponConsumable(scan, item, ammo, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
+            inventoryClearItems(carriedInventory);
+            inventoryGiveItem(carriedInventory, weaponItemId, 1);
+            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_ARMOR_ITEM, 1);
+            equipmentEquipCarriedArmor(MIST_SHOOTING_GALLERY_TRAINING_ARMOR_ITEM);
+            inventoryGiveItem(carriedInventory, ammoItemId, MIST_SHOOTING_GALLERY_TRAINING_AMMO_UNITS)->attachSlot = rowInputMode;
+            equipmentLoadWeaponConsumable(carriedInventory, weaponItemId, ammoItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
             equipmentRestoreHpMp();
-            arg1->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[45], item, 1, 1, arg1);
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            uiSpawnObject(&D_8010EAB4[MIST_SHOOTING_GALLERY_WEAPON_HELP_PANEL], weaponItemId, 1, 1, object);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
 }
@@ -1124,284 +1136,295 @@ static void _mistShootingGalleryWeaponSelectPanelTask(Task* task)
 }
 static const char D_mist_shooting_gallery_8017D65C[] = "TOTAL SCORE";
 
-void func_mist_shooting_gallery_8017E234(Task* task)
+/// Draws course kill scores and records its first earned BP/prize result.
+///
+/// Borrows the task-owned object and live controller work. Nonzero kill counts
+/// form the rows; negative per-kind points deduct from the total. A pending battle
+/// reset suppresses a second panel. Confirm/cancel opens an unclaimed bonus child
+/// or completes the panel; the child credits BP and reports confirmation.
+static void _mistShootingGalleryResultPanelTask(Task* task)
 {
-    u8                       buf[0x20];
-    TextDrawReq              req1;
-    TextDrawReq              req2;
-    TextDrawReq              req3;
-    TextDrawReq              req4;
-    TextDrawReq              req5;
-    TextDrawReq              req6;
+    enum {
+        MIST_SHOOTING_GALLERY_RESULT_INIT             = 0,
+        MIST_SHOOTING_GALLERY_RESULT_SUPPRESSED       = 0x100,
+        MIST_SHOOTING_GALLERY_RESULT_TEXT_COLOR       = 0x606060,
+        MIST_SHOOTING_GALLERY_COURSE_PRIZE_FLAG_FIRST = GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE - 4,
+        MIST_SHOOTING_GALLERY_COURSE_BP_ONLY          = 1,
+        MIST_SHOOTING_GALLERY_COURSE_PRIZE_WAITING    = 2,
+    };
+    u8                       numberText[0x20];
     MistShootingGalleryWork* work;
-    s32                      rows;
-    s32                      total;
-    UiObject*                obj;
-    s32                      i;
-    s32                      kills;
-    s32                      points;
-    s32                      subtotal;
-    s32                      xOff;
-    s32                      y;
-    s32                      status;
-    s32                      state;
-    s32                      bonus;
-    s32                      flag;
-    UiObject*                childObj;
-    s32                      result;
-    s32                      bottom1;
-    s32                      bottom2;
-    Task*                    child;
+    s32                      rowCount;
+    s32                      totalScore;
+    UiObject*                object;
+    s32                      targetKind;
+    s32                      killCount;
+    s32                      pointsPerKill;
+    s32                      kindScore;
+    s32                      contentInset;
+    s32                      rowY;
+    s32                      panelControl;
+    s32                      panelPhase;
+    s32                      bonusBp;
+    s32                      prizeFlag;
+    UiObject*                bonusObject;
+    s32                      bonusResult;
+    s32                      totalCaptionBaseline;
+    s32                      totalValueBaseline;
+    Task*                    bonusTask;
 
-    i     = 0;
-    rows  = 0;
-    total = 0;
-    obj   = task->spawnArg2.pointer;
-    work  = D_mist_shooting_gallery_8018E0C4->work;
-    xOff  = obj->panel.contentLeft.signedValue + 2;
-    y     = obj->panel.contentTop.signedValue + 0x17;
-    do {
-        kills = work->kills[i];
-        if (kills > 0) {
-            points = D_mist_shooting_gallery_80184F98[i].points;
-            rows  += 1;
+    // Set one result line's style; placement is already in the request.
+    // Captures object. request must be a plain local lvalue (evaluated repeatedly);
+    // selector arguments are each evaluated once and narrow to signed bytes.
+#define MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(request, glyph, align, mode) \
+    {                                                                            \
+        (request).otIndex    = object->panel.otIndex.signedValue + 1;            \
+        (request).colorRgb   = MIST_SHOOTING_GALLERY_RESULT_TEXT_COLOR;          \
+        (request).glyphTable = (glyph);                                          \
+        (request).alignment  = (align);                                          \
+        (request).drawMode   = (mode);                                           \
+    }
 
-            req1.x          = obj->panel.contentOriginX.unsignedValue + xOff;
-            req1.y          = obj->panel.contentOriginY.unsignedValue + y;
-            req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req1.colorRgb   = 0x606060;
-            req1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            req1.alignment  = TEXT_ALIGNMENT_LEFT;
-            req1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&req1, D_mist_shooting_gallery_80184F98[i].name);
+    targetKind   = 0;
+    rowCount     = 0;
+    totalScore   = 0;
+    object       = task->spawnArg2.pointer;
+    work         = D_mist_shooting_gallery_8018E0C4->work;
+    contentInset = object->panel.contentLeft.signedValue + 2;
+    rowY         = object->panel.contentTop.signedValue + 0x17;
+    {
+        TextDrawReq nameText;
+        TextDrawReq pointsText;
+        TextDrawReq killsText;
+        TextDrawReq subtotalText;
 
-            req2.x          = obj->panel.contentOriginX.unsignedValue + 0x6E + xOff;
-            req2.y          = obj->panel.contentOriginY.unsignedValue + y;
-            req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req2.colorRgb   = 0x606060;
-            req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            req2.alignment  = TEXT_ALIGNMENT_RIGHT;
-            req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&req2, textItoaSigned(buf, points));
+        // Only destroyed target kinds get rows; civilian kills deduct points.
+        do {
+            killCount = work->kills[targetKind];
+            if (killCount > 0) {
+                pointsPerKill = D_mist_shooting_gallery_80184F98[targetKind].points;
+                rowCount     += 1;
 
-            req3.x          = obj->panel.contentOriginX.unsignedValue + 0x91 + xOff;
-            req3.y          = obj->panel.contentOriginY.unsignedValue + y;
-            req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req3.colorRgb   = 0x606060;
-            req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            req3.alignment  = TEXT_ALIGNMENT_RIGHT;
-            req3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&req3, textItoaSigned(buf, kills));
-            subtotal = kills * points;
+                nameText.x = object->panel.contentOriginX.unsignedValue + contentInset;
+                nameText.y = object->panel.contentOriginY.unsignedValue + rowY;
+                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(nameText, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                textDrawString(&nameText, D_mist_shooting_gallery_80184F98[targetKind].name);
 
-            req4.x          = obj->panel.contentOriginX.unsignedValue - 5 - xOff;
-            req4.y          = obj->panel.contentOriginY.unsignedValue + y;
-            req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-            req4.colorRgb   = 0x606060;
-            req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            req4.alignment  = TEXT_ALIGNMENT_RIGHT;
-            req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&req4, textItoaSigned(buf, subtotal));
-            total += subtotal;
-            y     += 0xB;
-        }
-        i += 1;
-    } while (i < MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT);
+                pointsText.x = object->panel.contentOriginX.unsignedValue + 0x6E + contentInset;
+                pointsText.y = object->panel.contentOriginY.unsignedValue + rowY;
+                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(pointsText, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                textDrawString(&pointsText, textItoaSigned(numberText, pointsPerKill));
 
-    uiDrawHorizontalSeparator(&(obj)->panel, xOff, -xOff, obj->panel.contentBottom.signedValue - 0xE);
+                killsText.x = object->panel.contentOriginX.unsignedValue + 0x91 + contentInset;
+                killsText.y = object->panel.contentOriginY.unsignedValue + rowY;
+                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(killsText, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                textDrawString(&killsText, textItoaSigned(numberText, killCount));
+                kindScore = killCount * pointsPerKill;
 
-    req1.x          = obj->panel.contentOriginX.unsignedValue + 0x78 + xOff;
-    bottom1         = obj->panel.contentOriginY.unsignedValue - 6;
-    req1.y          = obj->panel.contentBottom.unsignedValue + bottom1;
-    req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req1.colorRgb   = 0x606060;
-    req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req1.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req1.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req1, D_mist_shooting_gallery_8017D65C);
+                subtotalText.x = object->panel.contentOriginX.unsignedValue - 5 - contentInset;
+                subtotalText.y = object->panel.contentOriginY.unsignedValue + rowY;
+                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(subtotalText, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                textDrawString(&subtotalText, textItoaSigned(numberText, kindScore));
+                totalScore += kindScore;
+                rowY       += 0xB;
+            }
+            targetKind += 1;
+        } while (targetKind < MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT);
+    }
 
-    req2.x          = obj->panel.contentOriginX.unsignedValue - 5 - xOff;
-    bottom2         = obj->panel.contentOriginY.unsignedValue - 4;
-    req2.y          = obj->panel.contentBottom.unsignedValue + bottom2;
-    req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req2.colorRgb   = 0x606060;
-    req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req2.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req2, textItoaSigned(buf, total));
+    {
+        TextDrawReq totalCaption;
+        TextDrawReq totalText;
+        TextDrawReq nameHeading;
+        TextDrawReq pointsHeading;
+        TextDrawReq killsHeading;
+        TextDrawReq subtotalHeading;
 
-    uiDrawHorizontalSeparator(&(obj)->panel, xOff, -xOff, obj->panel.contentTop.signedValue + 0xA);
+        uiDrawHorizontalSeparator(&object->panel, contentInset, -contentInset, object->panel.contentBottom.signedValue - 0xE);
 
-    y               = obj->panel.contentTop.signedValue + 6;
-    req3.x          = obj->panel.contentOriginX.unsignedValue + 0x1E + xOff;
-    req3.y          = obj->panel.contentOriginY.unsignedValue + y;
-    req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req3.colorRgb   = 0x606060;
-    req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req3.alignment  = TEXT_ALIGNMENT_CENTER;
-    req3.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req3, "NMC");
+        totalCaption.x       = object->panel.contentOriginX.unsignedValue + 0x78 + contentInset;
+        totalCaptionBaseline = object->panel.contentOriginY.unsignedValue - 6;
+        totalCaption.y       = object->panel.contentBottom.unsignedValue + totalCaptionBaseline;
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(totalCaption, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        textDrawString(&totalCaption, D_mist_shooting_gallery_8017D65C);
 
-    req4.x          = obj->panel.contentOriginX.unsignedValue + 0x73 + xOff;
-    req4.y          = obj->panel.contentOriginY.unsignedValue + y;
-    req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req4.colorRgb   = 0x606060;
-    req4.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req4.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req4.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req4, "SCORE");
+        totalText.x        = object->panel.contentOriginX.unsignedValue - 5 - contentInset;
+        totalValueBaseline = object->panel.contentOriginY.unsignedValue - 4;
+        totalText.y        = object->panel.contentBottom.unsignedValue + totalValueBaseline;
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(totalText, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        textDrawString(&totalText, textItoaSigned(numberText, totalScore));
 
-    req5.x          = obj->panel.contentOriginX.unsignedValue + 0x96 + xOff;
-    req5.y          = obj->panel.contentOriginY.unsignedValue + y;
-    req5.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req5.colorRgb   = 0x606060;
-    req5.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req5.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req5.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req5, "KILL");
+        uiDrawHorizontalSeparator(&object->panel, contentInset, -contentInset, object->panel.contentTop.signedValue + 0xA);
 
-    req6.x          = obj->panel.contentOriginX.unsignedValue - xOff;
-    req6.y          = obj->panel.contentOriginY.unsignedValue + y;
-    req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req6.colorRgb   = 0x606060;
-    req6.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req6.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req6.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req6, "TOTAL");
+        rowY          = object->panel.contentTop.signedValue + 6;
+        nameHeading.x = object->panel.contentOriginX.unsignedValue + 0x1E + contentInset;
+        nameHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(nameHeading, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_OUTLINED);
+        textDrawString(&nameHeading, "NMC");
 
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, "Result");
+        pointsHeading.x = object->panel.contentOriginX.unsignedValue + 0x73 + contentInset;
+        pointsHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(pointsHeading, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        textDrawString(&pointsHeading, "SCORE");
 
-    if (task->state == 0) {
+        killsHeading.x = object->panel.contentOriginX.unsignedValue + 0x96 + contentInset;
+        killsHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(killsHeading, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        textDrawString(&killsHeading, "KILL");
+
+        subtotalHeading.x = object->panel.contentOriginX.unsignedValue - contentInset;
+        subtotalHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(subtotalHeading, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        textDrawString(&subtotalHeading, "TOTAL");
+    }
+
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, "Result");
+
+    if (task->state == MIST_SHOOTING_GALLERY_RESULT_INIT) {
         if (gGameSession->battleResetPending == 1) {
-            uiStartPanelHiding(obj, obj->owner);
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
-            task->state = 0x100;
+            uiStartPanelHiding(object, object->owner);
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
+            task->state    = MIST_SHOOTING_GALLERY_RESULT_SUPPRESSED;
             return;
         }
         gGameSession->battleResetPending = 1;
-        uiSetPanelContentSize(&(obj)->panel, 0, (rows * 0xB) + 0x21);
-        obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
-        task->state                      = task->state + 1;
+        uiSetPanelContentSize(&object->panel, 0, (rowCount * 0xB) + 0x21);
+        object->panel.bounds.unsignedRect.y = -((s16)object->panel.bounds.unsignedRect.h / 2);
+        task->state                         = task->state + 1;
     }
 
-    status = obj->panel.control.word;
-    if ((status == 1) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-        bonus = mistShootingGalleryGetBonusBp(total);
-        state = task->state;
-        if (state == status) {
-            if (bonus > 0) {
-                flag = work->course + 0x125;
-                if (gameFlagGetNibble(flag) == 0) {
-                    if (func_mist_shooting_gallery_80184970(bonus) == state) {
-                        gameFlagSetNibble(flag, 2);
+    // Record a course reward once, then let the bonus child credit its BP.
+    panelControl = object->panel.control.word;
+    if ((panelControl == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        bonusBp    = mistShootingGalleryGetBonusBp(totalScore);
+        panelPhase = task->state;
+        if (panelPhase == panelControl) {
+            if (bonusBp > 0) {
+                prizeFlag = work->course + MIST_SHOOTING_GALLERY_COURSE_PRIZE_FLAG_FIRST;
+                if (gameFlagGetNibble(prizeFlag) == 0) {
+                    if (mistShootingGalleryQualifiesForPrize(bonusBp) == panelPhase) {
+                        gameFlagSetNibble(prizeFlag, MIST_SHOOTING_GALLERY_COURSE_PRIZE_WAITING);
                     } else {
-                        gameFlagSetNibble(flag, 1);
+                        gameFlagSetNibble(prizeFlag, MIST_SHOOTING_GALLERY_COURSE_BP_ONLY);
                     }
-                    uiSpawnObject(&D_mist_shooting_gallery_8018501C, total, 1, 1, obj);
-                    obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                    uiSpawnObject(&D_mist_shooting_gallery_8018501C, totalScore, 1, 1, object);
+                    object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 } else {
-                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
+                    object->result = USER_INTERFACE_RESULT_CONFIRM;
                 }
             } else {
-                obj->result = USER_INTERFACE_RESULT_CONFIRM;
+                object->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         } else {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 
-    child = task->firstChild;
-    if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        result   = childObj->result;
-        if (result == USER_INTERFACE_RESULT_CONFIRM) {
-            obj->result = result;
+    bonusTask = task->firstChild;
+    if (bonusTask != NULL) {
+        bonusObject = bonusTask->spawnArg2.pointer;
+        bonusResult = bonusObject->result;
+        if (bonusResult == USER_INTERFACE_RESULT_CONFIRM) {
+            object->result = bonusResult;
         }
     }
+#undef MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE
 }
 
-void func_mist_shooting_gallery_8017E854(Task* task)
+/// Credits the course's bonus BP once and draws its score and reward panel.
+///
+/// The first spawn argument is the score; the second borrows the task-owned UI
+/// object. Requires live controller work for course selection. BP is capped at
+/// 999999. Confirm or cancel completes the panel when input is active.
+static void _mistShootingGalleryBonusPanelTask(Task* task)
 {
-    u8            buf[0x20];
-    TextDrawReq   req1;
-    TextDrawReq   req2;
-    TextDrawReq   req3;
-    TextDrawReq   req4;
-    UiObject*     obj;
+    enum {
+        MIST_SHOOTING_GALLERY_BONUS_INIT        = 0,
+        MIST_SHOOTING_GALLERY_BONUS_BP_MAX      = 999999,
+        MIST_SHOOTING_GALLERY_BONUS_TEXT_COLOR  = 0x606060,
+        MIST_SHOOTING_GALLERY_BONUS_VALUE_COLOR = 0x037A78,
+    };
+    u8            numberText[0x20];
+    TextDrawReq   scoreCaption;
+    TextDrawReq   scoreText;
+    TextDrawReq   bonusCaption;
+    TextDrawReq   bonusText;
+    UiObject*     object;
     s32           score;
-    s32           bonus;
-    s32           total;
-    s32           xOff;
-    s32           top;
-    s32           y;
-    s32           color;
-    PlayerStatus* cfg;
+    s32           bonusBp;
+    s32           newBp;
+    s32           contentInset;
+    s32           contentTop;
+    s32           rowY;
+    s32           captionColor;
+    PlayerStatus* player;
 
-    obj   = task->spawnArg2.pointer;
-    score = task->spawnArg1.value;
+    object = task->spawnArg2.pointer;
+    score  = task->spawnArg1.value;
 
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, "BONUS");
-    if (task->state == 0) {
-        bonus = mistShootingGalleryGetBonusBp(score);
-        cfg   = &gPlayerStatus;
-        if (bonus > 0) {
-            total   = cfg->bp + bonus;
-            cfg->bp = total;
-            if (total > 999999) {
-                cfg->bp = 999999;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, "BONUS");
+    // Credit the reward only on the first tick; later ticks redraw the amount.
+    if (task->state == MIST_SHOOTING_GALLERY_BONUS_INIT) {
+        bonusBp = mistShootingGalleryGetBonusBp(score);
+        player  = &gPlayerStatus;
+        if (bonusBp > 0) {
+            newBp      = player->bp + bonusBp;
+            player->bp = newBp;
+            if (newBp > MIST_SHOOTING_GALLERY_BONUS_BP_MAX) {
+                player->bp = MIST_SHOOTING_GALLERY_BONUS_BP_MAX;
             }
         }
         task->state = task->state + 1;
     }
 
-    color = 0x606060;
-    xOff  = obj->panel.contentLeft.signedValue + 2;
-    top   = obj->panel.contentTop.signedValue;
-    y     = top + 0xB;
+    captionColor = MIST_SHOOTING_GALLERY_BONUS_TEXT_COLOR;
+    contentInset = object->panel.contentLeft.signedValue + 2;
+    contentTop   = object->panel.contentTop.signedValue;
+    rowY         = contentTop + 0xB;
 
-    req1.x          = obj->panel.contentOriginX.unsignedValue + xOff;
-    req1.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
-    req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req1.colorRgb   = color;
-    req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req1.alignment  = TEXT_ALIGNMENT_LEFT;
-    req1.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req1, D_mist_shooting_gallery_8017D65C);
+    scoreCaption.x          = object->panel.contentOriginX.unsignedValue + contentInset;
+    scoreCaption.y          = (s16)(object->panel.contentOriginY.unsignedValue - 2) + rowY;
+    scoreCaption.otIndex    = object->panel.otIndex.signedValue + 1;
+    scoreCaption.colorRgb   = captionColor;
+    scoreCaption.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    scoreCaption.alignment  = TEXT_ALIGNMENT_LEFT;
+    scoreCaption.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&scoreCaption, D_mist_shooting_gallery_8017D65C);
 
-    req2.x          = obj->panel.contentOriginX.unsignedValue - xOff;
-    req2.y          = obj->panel.contentOriginY.unsignedValue + y;
-    req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req2.colorRgb   = color;
-    req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req2.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req2, textItoaSigned(buf, score));
+    scoreText.x          = object->panel.contentOriginX.unsignedValue - contentInset;
+    scoreText.y          = object->panel.contentOriginY.unsignedValue + rowY;
+    scoreText.otIndex    = object->panel.otIndex.signedValue + 1;
+    scoreText.colorRgb   = captionColor;
+    scoreText.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    scoreText.alignment  = TEXT_ALIGNMENT_RIGHT;
+    scoreText.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+    textDrawString(&scoreText, textItoaSigned(numberText, score));
 
-    uiDrawHorizontalSeparator(&(obj)->panel, xOff, -xOff, top + 0x1B);
+    uiDrawHorizontalSeparator(&object->panel, contentInset, -contentInset, contentTop + 0x1B);
 
-    y               = top + 0x25;
-    req3.x          = obj->panel.contentOriginX.unsignedValue + xOff;
-    req3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
-    req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req3.colorRgb   = color;
-    req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req3.alignment  = TEXT_ALIGNMENT_LEFT;
-    req3.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req3, "BONUS BP");
+    rowY                    = contentTop + 0x25;
+    bonusCaption.x          = object->panel.contentOriginX.unsignedValue + contentInset;
+    bonusCaption.y          = (s16)(object->panel.contentOriginY.unsignedValue - 2) + rowY;
+    bonusCaption.otIndex    = object->panel.otIndex.signedValue + 1;
+    bonusCaption.colorRgb   = captionColor;
+    bonusCaption.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    bonusCaption.alignment  = TEXT_ALIGNMENT_LEFT;
+    bonusCaption.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&bonusCaption, "BONUS BP");
 
-    req4.x          = obj->panel.contentOriginX.unsignedValue - xOff;
-    req4.y          = obj->panel.contentOriginY.unsignedValue + y;
-    req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req4.colorRgb   = 0x37A78;
-    req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req4.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req4, textItoaSigned(buf, mistShootingGalleryGetBonusBp(score)));
+    bonusText.x          = object->panel.contentOriginX.unsignedValue - contentInset;
+    bonusText.y          = object->panel.contentOriginY.unsignedValue + rowY;
+    bonusText.otIndex    = object->panel.otIndex.signedValue + 1;
+    bonusText.colorRgb   = MIST_SHOOTING_GALLERY_BONUS_VALUE_COLOR;
+    bonusText.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    bonusText.alignment  = TEXT_ALIGNMENT_RIGHT;
+    bonusText.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+    textDrawString(&bonusText, textItoaSigned(numberText, mistShootingGalleryGetBonusBp(score)));
 
-    if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-        obj->result = USER_INTERFACE_RESULT_CONFIRM;
+    if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+        object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 static const char D_mist_shooting_gallery_8017D6A0[] = "Replay Mode";
@@ -1414,40 +1437,57 @@ static const char D_mist_shooting_gallery_8017D6C8[] = "Nightmare Mode";
 
 static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8 = { { D_mist_shooting_gallery_8017D6A0, D_mist_shooting_gallery_8017D6AC, D_mist_shooting_gallery_8017D6B8, D_mist_shooting_gallery_8017D6C8 } };
 
-void func_mist_shooting_gallery_8017EAE0(Task* task)
+/// Offers the unlocked carryover modes with status, help and difficulty children.
+///
+/// Borrows the task-owned object and singleton list. Rank zero offers two modes,
+/// rank one three, and higher ranks four; demo scene one exposes all four. The row
+/// callback updates the live mode as selection moves; this panel confirms it.
+static void _mistShootingGalleryModeSelectPanelTask(Task* task)
 {
-    UiObject* obj  = task->spawnArg2.pointer;
-    UiList*   list = &D_mist_shooting_gallery_8018503C;
+    enum {
+        MIST_SHOOTING_GALLERY_MODE_SELECT_INIT           = 0,
+        MIST_SHOOTING_GALLERY_MODE_COUNT_BASE            = 2,
+        MIST_SHOOTING_GALLERY_MODE_COUNT_RANK_ONE        = 3,
+        MIST_SHOOTING_GALLERY_MODE_COUNT_ALL             = 4,
+        MIST_SHOOTING_GALLERY_MODE_UNLOCK_NIGHTMARE_RANK = 2,
+        MIST_SHOOTING_GALLERY_MODE_DEMO_SCENE            = 1,
+        MIST_SHOOTING_GALLERY_MODE_STATUS_PANEL          = 0,
+        MIST_SHOOTING_GALLERY_MODE_HELP_PANEL            = 1,
+        MIST_SHOOTING_GALLERY_MODE_DATA_PANEL            = 2,
+    };
+    UiObject* object = task->spawnArg2.pointer;
+    UiList*   list   = &D_mist_shooting_gallery_8018503C;
 
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, "SELECT");
-    if (task->state == 0) {
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, "SELECT");
+    // Replay rank unlocks the extra rows; the demo exposes every mode.
+    if (task->state == MIST_SHOOTING_GALLERY_MODE_SELECT_INIT) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.replayRank == 0) {
-            list->itemCount                     = 2;
-            list->visibleRowCount.unsignedValue = 2;
-        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.replayRank < 2) {
-            list->itemCount                     = 3;
-            list->visibleRowCount.unsignedValue = 3;
+            list->itemCount                     = MIST_SHOOTING_GALLERY_MODE_COUNT_BASE;
+            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_MODE_COUNT_BASE;
+        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.replayRank < MIST_SHOOTING_GALLERY_MODE_UNLOCK_NIGHTMARE_RANK) {
+            list->itemCount                     = MIST_SHOOTING_GALLERY_MODE_COUNT_RANK_ONE;
+            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_MODE_COUNT_RANK_ONE;
         } else {
-            list->itemCount                     = 4;
-            list->visibleRowCount.unsignedValue = 4;
+            list->itemCount                     = MIST_SHOOTING_GALLERY_MODE_COUNT_ALL;
+            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_MODE_COUNT_ALL;
         }
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
-            list->itemCount                     = 4;
-            list->visibleRowCount.unsignedValue = 4;
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == MIST_SHOOTING_GALLERY_MODE_DEMO_SCENE) {
+            list->itemCount                     = MIST_SHOOTING_GALLERY_MODE_COUNT_ALL;
+            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_MODE_COUNT_ALL;
         }
         list->selectedItemIndex = 0;
-        uiFitPanelToList(list, &(obj)->panel);
+        uiFitPanelToList(list, &object->panel);
         list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        uiSpawnObject(&D_mist_shooting_gallery_8018507C[0], 0, 0, 1, obj);
-        uiSpawnObject(&D_mist_shooting_gallery_8018507C[1], 0, 0, 1, obj);
-        uiSpawnObject(&D_mist_shooting_gallery_8018507C[2], 0, 0, 1, obj);
+        uiSpawnObject(&D_mist_shooting_gallery_8018507C[MIST_SHOOTING_GALLERY_MODE_STATUS_PANEL], 0, 0, 1, object);
+        uiSpawnObject(&D_mist_shooting_gallery_8018507C[MIST_SHOOTING_GALLERY_MODE_HELP_PANEL], 0, 0, 1, object);
+        uiSpawnObject(&D_mist_shooting_gallery_8018507C[MIST_SHOOTING_GALLERY_MODE_DATA_PANEL], 0, 0, 1, object);
         task->state = task->state + 1;
     }
-    uiUpdateList(list, &obj->panel);
-    if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
+    uiUpdateList(list, &object->panel);
+    if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-        obj->result = USER_INTERFACE_RESULT_CONFIRM;
+        object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 /// Converts an accumulated EXP or BP total to the selected run mode's carryover.
@@ -1677,37 +1717,43 @@ static void _mistShootingGalleryModeDataPanelTask(Task* task)
     MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(supplyCaption, supplyRatingText, supplyLevels, D_mist_shooting_gallery_8017D850);
 #undef MIST_SHOOTING_GALLERY_DRAW_MODE_RATING
 }
-/// Task handler for the gallery's closing sequence. State 0 spawns the results
-/// panel and stashes `gPlayerStatus.exp` / `gPlayerStatus.bp` in
-/// `D_mist_shooting_gallery_8018E0BC` / `_8018E0C0`.
-/// State 1 waits for the panel to confirm (`result == USER_INTERFACE_RESULT_CONFIRM`), then writes both
-/// totals back scaled down by the bonus mode - the same divisor table as
-/// `_mistShootingGalleryScaleReward`, clamped to 999999. Once the kill
-/// countdown runs out the task exits and the stage is flagged as ended.
-void func_mist_shooting_gallery_8017F6C8(Task* task)
+/// Runs carryover-mode selection and commits its previewed EXP/BP conversion.
+///
+/// Captures the live totals after creating SELECT and before row callbacks change
+/// the mode. Confirmation recalculates maximum HP/MP, commits scaled carryover and
+/// restores HP/MP. Once the closing countdown becomes negative it restores
+/// 30 Hz display timing and ends the session. The overlay must stay loaded.
+static void _mistShootingGalleryCarryoverModeSessionTask(Task* task)
 {
-    UiObject*     obj;
-    PlayerStatus* cfg = &gPlayerStatus;
+    enum {
+        MIST_SHOOTING_GALLERY_CARRYOVER_OPEN            = 0,
+        MIST_SHOOTING_GALLERY_CARRYOVER_SELECT          = 1,
+        MIST_SHOOTING_GALLERY_CARRYOVER_CLOSE_COUNTDOWN = 10,
+    };
+    UiObject*     object;
+    PlayerStatus* player = &gPlayerStatus;
 
-    if (task->state == 0) {
-        obj = uiSpawnObject(&D_mist_shooting_gallery_80185060, 0, 1, 1, NULL);
-        if (obj != NULL) {
-            D_mist_shooting_gallery_8018E0C0 = cfg->bp;
-            D_mist_shooting_gallery_8018E0BC = cfg->exp;
+    if (task->state == MIST_SHOOTING_GALLERY_CARRYOVER_OPEN) {
+        object = uiSpawnObject(&D_mist_shooting_gallery_80185060, 0, 1, 1, NULL);
+        if (object != NULL) {
+            // Capture before the row callback starts changing the selected run mode.
+            D_mist_shooting_gallery_8018E0C0 = player->bp;
+            D_mist_shooting_gallery_8018E0BC = player->exp;
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-            task->spawnArg2.pointer = obj;
+            task->spawnArg2.pointer = object;
             task->state             = task->state + 1;
         }
-    } else if (task->state == 1) {
-        obj = task->spawnArg2.pointer;
-        if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            task->killCountdown = 0xA;
-            uiStartTreeClosing(obj, obj->owner);
+    } else if (task->state == MIST_SHOOTING_GALLERY_CARRYOVER_SELECT) {
+        object = task->spawnArg2.pointer;
+        if (object->result == USER_INTERFACE_RESULT_CONFIRM) {
+            task->killCountdown = MIST_SHOOTING_GALLERY_CARRYOVER_CLOSE_COUNTDOWN;
+            uiStartTreeClosing(object, object->owner);
             equipmentRecalculateMaxHp();
             equipmentRecalculateMaxMp();
 
-            cfg->exp = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0BC);
-            cfg->bp  = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0C0);
+            // Commit the same conversion the STATUS child has been previewing.
+            player->exp = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0BC);
+            player->bp  = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0C0);
             equipmentRestoreHpMp();
             task->state = task->state + 1;
         }
@@ -2463,23 +2509,36 @@ static void _mistShootingGalleryClearMovieTask(Task* task)
     }
 }
 
-void func_mist_shooting_gallery_801810D8(Task* task)
+/// Sequences the optional cleared-run mode splash before the gallery movie.
+///
+/// The three states start presentation, resume after the splash, then queue the
+/// movie. The splash is skipped without a clear. Display children serialize both
+/// presentations; the movie child restores graphics and resumes the game loop.
+static void _mistShootingGalleryMovieSessionTask(Task* task)
 {
+    enum {
+        MIST_SHOOTING_GALLERY_MOVIE_SESSION_START       = 0,
+        MIST_SHOOTING_GALLERY_MOVIE_SESSION_WAIT_SPLASH = 1,
+        MIST_SHOOTING_GALLERY_MOVIE_SESSION_PLAY        = 2,
+        MIST_SHOOTING_GALLERY_MOVIE_TASK_INDEX          = 1,
+        MIST_SHOOTING_GALLERY_MODE_SPLASH_TASK_INDEX    = 2,
+    };
     switch (task->state) {
-        case 0:
+        case MIST_SHOOTING_GALLERY_MOVIE_SESSION_START:
             SetDispMask(0);
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount == 0) {
-                task->state = 2;
+                task->state = MIST_SHOOTING_GALLERY_MOVIE_SESSION_PLAY;
                 return;
             }
-            displaySpawnTaskFromTable(D_mist_shooting_gallery_80185384, 2, 0, 0);
+            // The display child owns the splash before this session runs again.
+            displaySpawnTaskFromTable(D_mist_shooting_gallery_80185384, MIST_SHOOTING_GALLERY_MODE_SPLASH_TASK_INDEX, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_FULL;
             viewQueueCurrentCameraAndPackets();
-        case 1:
+        case MIST_SHOOTING_GALLERY_MOVIE_SESSION_WAIT_SPLASH:
             task->state = task->state + 1;
             return;
-        case 2:
-            displaySpawnTaskFromTable(D_mist_shooting_gallery_80185384, 1, 0, 0);
+        case MIST_SHOOTING_GALLERY_MOVIE_SESSION_PLAY:
+            displaySpawnTaskFromTable(D_mist_shooting_gallery_80185384, MIST_SHOOTING_GALLERY_MOVIE_TASK_INDEX, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             viewQueueCurrentCameraAndPackets();
             taskKill(task);

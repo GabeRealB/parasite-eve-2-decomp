@@ -101,9 +101,18 @@ s32 mistShootingGalleryOpenJukebox(s32 unused);
 /// per-view ambient table stays selected independently.
 void mistShootingGallerySelectRoomLights(s16 useAlternate);
 
-void func_mist_shooting_gallery_801848B4(void);
+/// Spawns an uncounted fixed demonstration target at world XYZ (6000, 0, 3000).
+///
+/// Requires loaded gallery and actor 107600 overlays and a live scene root.
+/// Allocation failure leaves no target. Kind 13 lies beyond the actor's thirteen
+/// serialized HP entries; its live HP backing remains unproven.
+void mistShootingGallerySpawnDemoTarget(void);
 
-void func_mist_shooting_gallery_80184954(void);
+/// Latches the gallery action point for the active course script.
+///
+/// Requires the published controller and its live initialized work. Repeated
+/// signals coalesce into one byte; the course script clears it after handling.
+void mistShootingGallerySignalAction(void);
 
 /// Issues the chosen training course's items and level-one Parasite Energy spells.
 ///

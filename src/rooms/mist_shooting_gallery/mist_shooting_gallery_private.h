@@ -48,6 +48,10 @@ extern s32 D_mist_shooting_gallery_8018E0C0;
 /// 3: 52000/56000/60000; 4: 50000/53000/55000. Other courses return 0.
 s32 mistShootingGalleryGetBonusBp(s32 score);
 
-s32 func_mist_shooting_gallery_80184970(s32 arg0);
+/// Tests whether bonus BP also qualifies for the active course's parking prize.
+///
+/// Requires live controller work. Courses 0..2 require at least 200 BP; courses
+/// 3..4 require at least 300 BP. Returns 0 or 1 without changing flags or rewards.
+s32 mistShootingGalleryQualifiesForPrize(s32 bonusBp);
 
 #endif // SRC_ROOMS_MIST_SHOOTING_GALLERY_MIST_SHOOTING_GALLERY_PRIVATE_H

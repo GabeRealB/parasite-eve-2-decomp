@@ -2086,7 +2086,7 @@ s32 func_actor_215100_8014AA54(RoomEventMsg* arg0)
 void func_actor_215100_8014AB6C(void)
 {
     if (D_actor_215100_8014D038 != 0) {
-        func_mist_shooting_gallery_80184954();
+        mistShootingGallerySignalAction();
         return;
     }
     capSpawnEventIfIdle(0x11, CAP_EVENT_PAUSE_ACTORS);
@@ -2192,7 +2192,7 @@ void func_actor_215100_8014ADD8(void)
 void func_actor_215100_8014AE08(s32 arg0)
 {
     if (arg0 != 0) {
-        func_mist_shooting_gallery_801848B4();
+        mistShootingGallerySpawnDemoTarget();
     }
 }
 

@@ -49980,8 +49980,8 @@ the case the label goes in, and every other user of it becomes a forward goto.
 A nested record inside a struct reads naturally through one named pointer:
 
 ```c
-WorldCollisionCapsule* rec = &actor->weaponShape;
-rec->ends[0].vz = (rec->ends[1].vz + D_80112F60[D_80073BA9]) << 1;
+WorldCollisionCapsule* rec = &player->weaponShape;
+rec->ends[0].vz = (rec->ends[1].vz + D_80112F60[gPlayerStatus.weapon]) << 1;
 ```
 
 That scores 98% with `regs`/`branch` leftovers, because the local forces GCC to
@@ -49999,14 +49999,14 @@ GCC CSEs the constant offset into the addressing mode and never materializes the
 interior pointer:
 
 ```c
-actor->weaponShape.ends[0].vz =
-    (actor->weaponShape.ends[1].vz + D_80112F60[D_80073BA9]) << 1;
+player->weaponShape.ends[0].vz =
+    (player->weaponShape.ends[1].vz + D_80112F60[gPlayerStatus.weapon]) << 1;
 ```
 
 This is the opposite of "Hold a global's address in a local pointer": a global
 needs the local because its address costs a `lui`/`addiu` pair, while a struct
 interior costs nothing on top of a base register that is already there.
-`func_mist_shooting_gallery_80182B1C` is the worked example.
+`_mistShootingGalleryInitCourse` is the worked example.
 
 ## Whether to name an interior pointer depends on whether the target materialises it
 
@@ -50092,7 +50092,7 @@ fold into the branch, and post-reload cross-jumping merges the three identical
 tails into the single `.Lcont` block instead. The constant also lands in `$v0`
 — the register the loaded value and the `slti` already use — because each `li`
 now lives in its own short block rather than being hoisted above the `slti`.
-`func_mist_shooting_gallery_8017EAE0` went 95.1% → 100% on this change alone.
+`_mistShootingGalleryModeSelectPanelTask` went 95.1% → 100% on this change alone.
 
 Rule of thumb: if the target spends a `j` to reach a common tail, the arms in
 the source own that tail. Sharing a local is what removes the `j`.
@@ -50303,11 +50303,11 @@ store's address, and the store keeps its late position. The `%hi` then sorts to
 the head of the block and delay-slot filling takes it:
 
 ```c
-scan       = &D_80072724;
-weaponIdx  = &D_80073BA9;      /* only the lui moves up */
-row        = &Gp_QtyById0[item];
-ammo       = row->field_1;
-*weaponIdx = item - 0x7F;
+carriedInventory = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+equippedWeapon   = &gPlayerStatus.weapon;      /* only the lui moves up */
+loadOptions      = &Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+ammoItemId       = loadOptions->acceptedItemIds[0];
+*equippedWeapon  = weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
 ```
 
 ```
@@ -50319,14 +50319,14 @@ jal   inventoryResetCarriedRange
  sb   v0, %lo(D_80073BA9)(a0)
 ```
 
-Writing `D_80073BA9 = item - 0x7F;` earlier instead does *not* work - it drags
+Writing `gPlayerStatus.weapon = weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);` earlier instead does *not* work - it drags
 the `sb` up with the `lui` and costs more than it gains.
 
 The same function needed the second half of the trick: `arr[i].field` forms the
 symbol address before the index (`lui`, `addiu`, `sll`, `addu`), while the
 target wants `sll` first. Splitting the row out as its own statement -
-`row = &Gp_QtyById0[item]; ammo = row->field_1;` - reverses those two.
-Together they took `func_mist_shooting_gallery_8017DE7C` from 97.9% to 100%.
+`loadOptions = &Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST]; ammoItemId = loadOptions->acceptedItemIds[0];` - reverses those two.
+Together they took `_mistShootingGalleryWeaponRow` from 97.9% to 100%.
 
 ## A dead `if` still splits the block for `sched1`
 
@@ -50884,7 +50884,7 @@ state and then spawn a record:
 ```c
 work->field_04++;                                  /* mem/s store, varying base */
 spawn = &D_mist_shooting_gallery_80186900[work->field_08];
-func_mist_shooting_gallery_80184CD0(arg0, spawn);
+_mistShootingGallerySpawnTarget(arg0, spawn);
 work->field_08++;
 ```
 
@@ -51711,27 +51711,27 @@ sched1 orders equal-priority insns by insn uid (source order), and the copy is
 emitted as part of the call sequence, after every statement that precedes the
 call in the C. Written before the call, the add keeps a smaller uid and stays
 in front of the copy, however you shuffle it among the struct-field stores —
-a 1620-variant sweep over the positions of `subtotal = …`, `rows += 1`,
-`total += subtotal` and `y += 0xB` produced exactly nine distinct object files
+a 1620-variant sweep over the positions of `kindScore = …`, `rowCount += 1`,
+`totalScore += kindScore` and `rowY += 0xB` produced exactly nine distinct object files
 and none of the pre-call placements changed that operand. Written *after* the
 call, the add's uid is the largest in the block, sched1 hoists it back above
 both `jal`s (its pseudos cross calls, so nothing pins it below them), the
 tie-break now puts it after the copy, and local-alloc substitutes `$a1`:
 
 ```c
-func_8002E53C(&req4, textItoaSigned(buf, subtotal));
-total += subtotal;
-y     += 0xB;
+textDrawString(&subtotalText, textItoaSigned(numberText, kindScore));
+totalScore += kindScore;
+rowY     += 0xB;
 ```
 
-Two side conditions from the same sweep: `y += 0xB` has to move with it (kept
+Two side conditions from the same sweep: `rowY += 0xB` has to move with it (kept
 between the field stores it costs `regs`/`reorder`), and the multiply must not
 sink — with the add gone from the pre-call region the `mult` drifts below the
 next `jal` unless another consumer anchors it there, so keep
-`subtotal = kills * points` immediately before the `req4` block (or anywhere
+`kindScore = killCount * pointsPerKill` immediately before the `subtotalText` block (or anywhere
 earlier; all four positions tied). Look for this whenever the *only* leftover
 diff is an `$aN` where you have an `$sN` in an add/mult that follows a call
-whose argument was that same value. `func_mist_shooting_gallery_8017E234`.
+whose argument was that same value. `_mistShootingGalleryResultPanelTask`.
 
 ## A project header can be latently order-dependent on a psyq type
 
@@ -76840,9 +76840,9 @@ the table symbol across `asm/USA/`:
 grep -rnF 'D_80134F94' asm/USA/          # -> only mist_shooting_gallery
 ```
 
-`func_mist_shooting_gallery_80184CD0` spawns it, calls
-`taskReparent(s0, spawned->task)`, then does `lbu` / `addiu -1` / `sb` on
-`s0->work + 0xE` - and that room's `MistShootingGalleryWork::liveTargets` is the
+`_mistShootingGallerySpawnTarget` spawns it, calls
+`taskReparent(controller, enemy->task)`, then does `lbu` / `addiu +1` / `sb` on
+`controller->work + 0xE` - and that room's `MistShootingGalleryWork::liveTargets` is the
 `u8` there. The gallery's other spawn site (`0x200D`, the phase-2 cursor
 target) skips the increment, which is exactly the `!= 2` guard being matched
 here.
@@ -77236,7 +77236,7 @@ insert=1`: `.greg` homes the variable's allocno as `83 in 3` (`$v1`) with
 sequence then appends `addu $v0,$v1,$zero`.
 
 The same shape seen from the other side confirms it is the compiler's general
-behaviour and not this function's quirk: `func_mist_shooting_gallery_80184970`
+behaviour and not this function's quirk: `mistShootingGalleryQualifiesForPrize`
 (a matched ROM function, `asm/USA/rooms/matchings/mist_shooting_gallery/`) ends
 `jr $ra` / `addu $v0,$v1,$zero` with its accumulator held in `$v1` the whole
 way.
@@ -149461,7 +149461,7 @@ attempts; left as it was.
 ### Goto removal, batch 05: one inline behind two goto shapes, a tail after the switch, a fold that keeps `one` (2026-10-06)
 
 - **The same inline was spelled with two different goto shapes.**
-  `func_mist_shooting_gallery_8017F6C8` had `case 3: bp = 0; goto store;` past
+  `_mistShootingGalleryCarryoverModeSessionTask` had `case 3: bp = 0; goto store;` past
   a clamp after the switch; `_mistShootingGalleryModeStatusPanelTask` had
   `case 2: q = raw / 100; goto clamp;` into the default case with `val = 0;
   break;` for case 3. Both are `_mistShootingGalleryScaleReward(unscaledTotal)`: a

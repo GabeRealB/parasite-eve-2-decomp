@@ -143,25 +143,25 @@ static void   _mistShootingGalleryExitCourse(Task* task);
 static void   _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work);
 static u16    _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work);
 static void   func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2);
-static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, _MistShootingGallerySpawn* arg1);
+static Enemy* _mistShootingGallerySpawnTarget(Task* controller, const _MistShootingGallerySpawn* spawn);
 static void   _mistShootingGalleryDrawClockGlyph(s32 screenX, s16 screenY, s32 glyph);
 static void   _mistShootingGalleryDrawRedFlash(u8 redIntensity);
-static void   func_mist_shooting_gallery_80182B1C(Task* arg0);
+static void   _mistShootingGalleryInitCourse(Task* controller);
 static void   func_mist_shooting_gallery_80182C58(Task* arg0);
 static void   func_mist_shooting_gallery_801831B0(Task* arg0);
 static void   func_mist_shooting_gallery_8018341C(Task* arg0);
 static void   func_mist_shooting_gallery_801838FC(Task* arg0);
 static void   func_mist_shooting_gallery_80183E78(Task* arg0);
 static void   func_mist_shooting_gallery_801842D0(Task* arg0);
-static void   func_mist_shooting_gallery_80184A14(Task* arg0);
+static void   _mistShootingGalleryRunCourse(Task* controller);
 
 /// The gallery controller task's three-state table, run from a stack copy by
-/// `func_mist_shooting_gallery_801849BC`: the setup tick
-/// `func_mist_shooting_gallery_80182B1C`, the round runner
-/// `func_mist_shooting_gallery_80184A14`, then
+/// `_mistShootingGalleryCourseTask`: the setup tick
+/// `_mistShootingGalleryInitCourse`, the round runner
+/// `_mistShootingGalleryRunCourse`, then
 /// `func_mist_shooting_gallery_801842D0`.
 static const TaskFuncTable3 D_mist_shooting_gallery_8017DB80 = {
-    { func_mist_shooting_gallery_80182B1C, func_mist_shooting_gallery_80184A14, func_mist_shooting_gallery_801842D0 },
+    { _mistShootingGalleryInitCourse, _mistShootingGalleryRunCourse, func_mist_shooting_gallery_801842D0 },
 };
 
 /// The five round scripts, indexed by `MistShootingGalleryWork::course`.
@@ -177,11 +177,11 @@ static const TaskFuncTable5 D_mist_shooting_gallery_8017DB8C = {
 
 void func_mist_shooting_gallery_80184C0C(Task*);
 
-void        func_mist_shooting_gallery_801849BC(Task*);
+static void _mistShootingGalleryCourseTask(Task* task);
 static void _mistShootingGalleryRedFlashTask(Task* task);
 
 TaskDesc D_mist_shooting_gallery_801856B8[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_801849BC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCourseTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryRedFlashTask, { .value = 0 } },
 };
 
@@ -2319,36 +2319,50 @@ void mistShootingGalleryTracerTask(Task* task)
 #define BEAM_STRIP_OTZ_BIAS 0
 #include "../../shared/beam_strip_draw.inc.c"
 
-static void func_mist_shooting_gallery_80182B1C(Task* arg0)
+/// Allocates and publishes one course's controller work and prepares player control.
+///
+/// The low spawn-argument nibble must select course 0..4. Zeroed primary-heap work
+/// belongs to the controller until its exit callback. Courses 0..2 lock swapping;
+/// 0..1 also hold movement and acquire a menu hold. Every course acquires a battle
+/// reference, clears the result latch and starts its clock off the left edge.
+static void _mistShootingGalleryInitCourse(Task* controller)
 {
-    Task*                    slot;
-    GameActor*               actor;
+    enum {
+        MIST_SHOOTING_GALLERY_COURSE_ARGUMENT_MASK  = 0xF,
+        MIST_SHOOTING_GALLERY_CLOCK_INITIAL_X       = -220,
+        MIST_SHOOTING_GALLERY_FIRST_MOVEMENT_COURSE = 2,
+        MIST_SHOOTING_GALLERY_FIRST_SWAP_COURSE     = 3,
+    };
+    Task*                    playerTask;
+    GameActor*               player;
     MistShootingGalleryWork* work;
 
-    slot  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    actor = slot->work;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    player     = playerTask->work;
 
-    work       = memCalloc(sizeof(MistShootingGalleryWork), 0);
-    arg0->work = work;
+    work             = memCalloc(sizeof(*work), false);
+    controller->work = work;
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(controller);
         return;
     }
 
-    D_mist_shooting_gallery_8018E0C4 = arg0;
-    arg0->exitCallback               = _mistShootingGalleryExitCourse;
-    arg0->state++;
-    work->course = arg0->spawnArg1.value & 0xF;
-    work->clockX = -0xDC;
+    D_mist_shooting_gallery_8018E0C4 = controller;
+    controller->exitCallback         = _mistShootingGalleryExitCourse;
+    controller->state++;
+    work->course = controller->spawnArg1.value & MIST_SHOOTING_GALLERY_COURSE_ARGUMENT_MASK;
+    work->clockX = MIST_SHOOTING_GALLERY_CLOCK_INITIAL_X;
 
-    actor->weaponShape.ends[0].vz =
-        (actor->weaponShape.ends[1].vz + D_80112F60[gPlayerStatus.weapon]) << 1;
-    playerActorEnterLocomotion(slot, 1);
+    // Extend the weapon capsule in the firing lane before entering locomotion.
+    player->weaponShape.ends[0].vz =
+        (player->weaponShape.ends[1].vz + D_80112F60[gPlayerStatus.weapon]) << 1;
+    playerActorEnterLocomotion(playerTask, 1);
 
-    if (work->course < 3) {
+    // The early courses restrict swapping; the first two also hold movement.
+    if (work->course < MIST_SHOOTING_GALLERY_FIRST_SWAP_COURSE) {
         Gp_StateC08.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
-        if (work->course < 2) {
-            actor->movementInputDisabled = 1;
+        if (work->course < MIST_SHOOTING_GALLERY_FIRST_MOVEMENT_COURSE) {
+            player->movementInputDisabled = 1;
             displayAcquireMenuHold();
         }
     }
@@ -2438,7 +2452,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
             if ((s32)(t6 << 16) <= 0) {
                 work->phase++;
                 spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
-                func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                _mistShootingGallerySpawnTarget(arg0, spawn);
                 work->spawnIndex++;
             }
             break;
@@ -2460,7 +2474,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
                     work->timer = 0x3C;
                     work->phase++;
                     spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
-                    func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                    _mistShootingGallerySpawnTarget(arg0, spawn);
                     work->spawnIndex++;
                 }
             }
@@ -2476,7 +2490,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
         case 10:
             if (work->liveTargets == 0) {
                 spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
-                func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                _mistShootingGallerySpawnTarget(arg0, spawn);
                 work->spawnIndex++;
                 if (work->spawnIndex == 7) {
                     work->phase++;
@@ -2494,7 +2508,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
             work->timer = t12;
             if ((s32)(t12 << 16) <= 0) {
                 spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
-                func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                _mistShootingGallerySpawnTarget(arg0, spawn);
                 work->spawnIndex++;
                 if (work->spawnIndex == 0xC) {
                     work->timer = 0x3C;
@@ -2525,7 +2539,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
                 if (key != MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR) {
                     if (work->scriptFrame == key) {
                         do {
-                            func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                            _mistShootingGallerySpawnTarget(arg0, spawn);
                             spawn++;
                             work->spawnIndex++;
                         } while (work->scriptFrame == spawn->frame);
@@ -2641,7 +2655,7 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
                         if (key != MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR) {
                             if (work->scriptFrame == key) {
                                 do {
-                                    func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                                    _mistShootingGallerySpawnTarget(arg0, spawn);
                                     spawn++;
                                     work->spawnIndex++;
                                 } while (work->scriptFrame == spawn->frame);
@@ -2774,7 +2788,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
         case 7:
             work->timer--;
             if ((s32)(work->timer << 16) <= 0) {
-                func_mist_shooting_gallery_80184CD0(arg0, &D_mist_shooting_gallery_80186908[work->spawnIndex]);
+                _mistShootingGallerySpawnTarget(arg0, &D_mist_shooting_gallery_80186908[work->spawnIndex]);
                 work->spawnIndex++;
                 if (work->spawnIndex == 3) {
                     work->timer = 0x3C;
@@ -2815,7 +2829,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
                 if (key != MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR) {
                     if (work->scriptFrame == key) {
                         do {
-                            func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                            _mistShootingGallerySpawnTarget(arg0, spawn);
                             spawn++;
                             work->spawnIndex++;
                         } while (work->scriptFrame == spawn->frame);
@@ -2909,7 +2923,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
         case 4:
             work->timer--;
             if ((s32)(work->timer << 16) <= 0) {
-                func_mist_shooting_gallery_80184CD0(arg0, &D_mist_shooting_gallery_8018690C[work->spawnIndex]);
+                _mistShootingGallerySpawnTarget(arg0, &D_mist_shooting_gallery_8018690C[work->spawnIndex]);
                 work->spawnIndex++;
                 if (work->spawnIndex == 2) {
                     work->captionStep = 8;
@@ -2975,7 +2989,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
                 if (key != MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR) {
                     if (work->scriptFrame == key) {
                         do {
-                            func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                            _mistShootingGallerySpawnTarget(arg0, spawn);
                             spawn++;
                             work->spawnIndex++;
                         } while (work->scriptFrame == spawn->frame);
@@ -3130,7 +3144,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
                 if (key != MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR) {
                     if (work->scriptFrame == key) {
                         do {
-                            func_mist_shooting_gallery_80184CD0(arg0, spawn);
+                            _mistShootingGallerySpawnTarget(arg0, spawn);
                             spawn++;
                             work->spawnIndex++;
                         } while (work->scriptFrame == spawn->frame);
@@ -3415,66 +3429,82 @@ static void _mistShootingGalleryDrawRedFlash(u8 redIntensity)
     addPrim(gGpuCurrentOt, drawMode);
 }
 
-void func_mist_shooting_gallery_801848B4(void)
+void mistShootingGallerySpawnDemoTarget(void)
 {
+    enum {
+        MIST_SHOOTING_GALLERY_DEMO_TARGET_KIND     = 13,
+        MIST_SHOOTING_GALLERY_DEMO_MOUNT_BEHAVIOUR = 2,
+        MIST_SHOOTING_GALLERY_DEMO_BEHAVIOUR_SHIFT = 12,
+        MIST_SHOOTING_GALLERY_DEMO_CLUT_ROW        = 2,
+    };
     Enemy*     enemy;
-    TmdObject* obj;
-    GfxCoord*  coord;
+    TmdObject* model;
+    GfxCoord*  rootCoord;
 
-    enemy = enemySpawnFromTable(D_actor_107600_80134F94, 0, 0x200D, NULL);
+    enemy = enemySpawnFromTable(D_actor_107600_80134F94, 0, MIST_SHOOTING_GALLERY_DEMO_TARGET_KIND | (MIST_SHOOTING_GALLERY_DEMO_MOUNT_BEHAVIOUR << MIST_SHOOTING_GALLERY_DEMO_BEHAVIOUR_SHIFT), NULL);
     if (enemy != NULL) {
-        obj                    = enemy->task->extra.tmd;
-        obj->texturePageOffset = 0;
-        obj->clutRowOffset     = 2;
-        tmdBuildBufferHalf(obj);
-        tmdBuildBufferHalf(obj);
-        coord             = enemy->task->extra.tmd->coords;
-        coord->coord.t[0] = 0x1770;
-        coord->coord.t[2] = 0xBB8;
-        coord->coord.t[1] = 0;
-        enemy->workType   = ENEMY_WORK_PLAIN;
+        model                    = enemy->task->extra.tmd;
+        model->texturePageOffset = 0;
+        model->clutRowOffset     = MIST_SHOOTING_GALLERY_DEMO_CLUT_ROW;
+        // Both primitive-buffer halves must use the gallery palette.
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
+        rootCoord             = enemy->task->extra.tmd->coords;
+        rootCoord->coord.t[0] = 6000;
+        rootCoord->coord.t[2] = 3000;
+        rootCoord->coord.t[1] = 0;
+        enemy->workType       = ENEMY_WORK_PLAIN;
     }
 }
 
-void func_mist_shooting_gallery_80184954(void)
+void mistShootingGallerySignalAction(void)
 {
     MistShootingGalleryWork* work = D_mist_shooting_gallery_8018E0C4->work;
 
     work->actionTriggered = 1;
 }
 
-s32 func_mist_shooting_gallery_80184970(s32 arg0)
+s32 mistShootingGalleryQualifiesForPrize(s32 bonusBp)
 {
-    MistShootingGalleryWork* work = D_mist_shooting_gallery_8018E0C4->work;
-    s32                      ret  = 0;
+    enum {
+        MIST_SHOOTING_GALLERY_FIRST_ADVANCED_PRIZE_COURSE = 3,
+        MIST_SHOOTING_GALLERY_BASIC_PRIZE_BP              = 200,
+        MIST_SHOOTING_GALLERY_ADVANCED_PRIZE_BP           = 300,
+    };
+    MistShootingGalleryWork* work      = D_mist_shooting_gallery_8018E0C4->work;
+    s32                      qualifies = 0;
 
-    if (work->course < 3) {
-        ret = arg0 >= 0xC8;
-    } else if (arg0 >= 0x12C) {
-        ret = 1;
+    if (work->course < MIST_SHOOTING_GALLERY_FIRST_ADVANCED_PRIZE_COURSE) {
+        qualifies = bonusBp >= MIST_SHOOTING_GALLERY_BASIC_PRIZE_BP;
+    } else if (bonusBp >= MIST_SHOOTING_GALLERY_ADVANCED_PRIZE_BP) {
+        qualifies = 1;
     }
-    return ret;
+    return qualifies;
 }
 
-/// The gallery controller task: copies the three-state table
-/// `D_mist_shooting_gallery_8017DB80` onto the stack and runs the entry for the
-/// task's current state - the setup tick `func_mist_shooting_gallery_80182B1C`,
-/// the round runner `func_mist_shooting_gallery_80184A14`, then
-/// `func_mist_shooting_gallery_801842D0`.
-void func_mist_shooting_gallery_801849BC(Task* task)
+/// Dispatches initialization, course playback and closing for the gallery controller.
+///
+/// The descriptor starts at state zero; current state must remain in 0..2.
+/// Initialization owns and publishes work that targets and result panels borrow.
+/// The gallery and target overlays must remain loaded until controller teardown.
+static void _mistShootingGalleryCourseTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_mist_shooting_gallery_8017DB80;
-    sp.funcs[task->state](task);
+    states = D_mist_shooting_gallery_8017DB80;
+    states.funcs[task->state](task);
 }
 
-static void func_mist_shooting_gallery_80184A14(Task* arg0)
+/// Dispatches the active controller's selected course script for this tick.
+///
+/// Requires initialized live work with course 0..4. Each course owns its phase,
+/// wave and caption progression; its closing transition advances the task state.
+static void _mistShootingGalleryRunCourse(Task* controller)
 {
-    MistShootingGalleryWork* work   = arg0->work;
+    MistShootingGalleryWork* work   = controller->work;
     TaskFuncTable5           rounds = D_mist_shooting_gallery_8017DB8C;
 
-    rounds.funcs[work->course](arg0);
+    rounds.funcs[work->course](controller);
 }
 
 /// Restores movement and queues the player's collision passes and view triggers.
@@ -3593,28 +3623,40 @@ void func_mist_shooting_gallery_80184C0C(Task* arg0)
     }
 }
 
-static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, _MistShootingGallerySpawn* arg1)
+/// Spawns, places and counts one scripted target mount for the active course.
+///
+/// Borrows a non-marker spawn record and initialized controller work. The signed
+/// argument halves retain the original OR/shift packing; XYZ are world-frame game
+/// coordinates. Returns borrowed enemy work on success, NULL on allocation failure.
+/// A successful mount returns the live-target count when it is rejected or exits.
+static Enemy* _mistShootingGallerySpawnTarget(Task* controller, const _MistShootingGallerySpawn* spawn)
 {
+    enum {
+        MIST_SHOOTING_GALLERY_SPAWN_HIGH_HALF_SHIFT = 16,
+        MIST_SHOOTING_GALLERY_TARGET_CLUT_ROW       = 2,
+    };
     MistShootingGalleryWork* work;
     Enemy*                   enemy;
-    TmdObject*               obj;
-    GfxCoord*                coord;
+    TmdObject*               model;
+    GfxCoord*                rootCoord;
 
-    work  = arg0->work;
-    enemy = enemySpawnFromTable(D_actor_107600_80134F94, 0, arg1->spawnArgLo | (arg1->spawnArgHi << 16), NULL);
+    work  = controller->work;
+    enemy = enemySpawnFromTable(D_actor_107600_80134F94, 0, spawn->spawnArgLo | (spawn->spawnArgHi << MIST_SHOOTING_GALLERY_SPAWN_HIGH_HALF_SHIFT), NULL);
     if (enemy != NULL) {
-        enemy->task->parent = arg0;
-        taskReparent(arg0, enemy->task);
-        obj                    = enemy->task->extra.tmd;
-        obj->texturePageOffset = 0;
-        obj->clutRowOffset     = 2;
-        tmdBuildBufferHalf(obj);
-        tmdBuildBufferHalf(obj);
-        coord             = enemy->task->extra.tmd->coords;
-        coord->coord.t[0] = arg1->x;
-        coord->coord.t[1] = arg1->y;
-        coord->coord.t[2] = arg1->z;
-        enemy->workType   = ENEMY_WORK_PLAIN;
+        // Retain the parent overwrite before transfer; source-ring ownership is unproven.
+        enemy->task->parent = controller;
+        taskReparent(controller, enemy->task);
+        model                    = enemy->task->extra.tmd;
+        model->texturePageOffset = 0;
+        model->clutRowOffset     = MIST_SHOOTING_GALLERY_TARGET_CLUT_ROW;
+        // Both primitive-buffer halves must use the gallery palette.
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
+        rootCoord             = enemy->task->extra.tmd->coords;
+        rootCoord->coord.t[0] = spawn->x;
+        rootCoord->coord.t[1] = spawn->y;
+        rootCoord->coord.t[2] = spawn->z;
+        enemy->workType       = ENEMY_WORK_PLAIN;
         work->liveTargets++;
     }
     return enemy;
