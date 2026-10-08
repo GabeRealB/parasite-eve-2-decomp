@@ -84,8 +84,8 @@ static void _madChaserEmergeHopForward(Task* task);
 static void _madChaserKnockdownState(Task* task);
 static void _madChaserPullState(Task* task);
 static void _madChaserDespawnState(Task* task);
-static void func_actor_342400_8016997C(Task* arg0);
-static void func_actor_342400_80169990(Task* arg0);
+static void _madChaserCombatToAlertState1(Task* task);
+static void _madChaserCombatToAlertState2(Task* task);
 static void _madChaserWalkState(Task* task);
 static void func_actor_342400_80169A98(Task* arg0);
 static void func_actor_342400_80169B58(Task* arg0);
@@ -129,8 +129,8 @@ static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
 /// the stack before dispatch.
 static const TaskFuncTable11 gMadChaserCombatStates = { {
     madChaserToAlertState,
-    func_actor_342400_8016997C,
-    func_actor_342400_80169990,
+    _madChaserCombatToAlertState1,
+    _madChaserCombatToAlertState2,
     _madChaserWalkState,
     madChaserLeapState,
     func_actor_342400_80169A98,
@@ -1000,15 +1000,15 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 #include "../../shared/mad_chaser_to_alert.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserToAlertState func_actor_342400_8016997C
+/// Selects the static void(Task*) alert transition for combat table slot 1.
+#define MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER _madChaserCombatToAlertState1
 #include "../../shared/mad_chaser_to_alert.inc.c"
-#undef madChaserToAlertState
+#undef MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER
 
-/// A further copy, under this file's own name.
-#define madChaserToAlertState func_actor_342400_80169990
+/// Selects the static void(Task*) alert transition for combat table slot 2.
+#define MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER _madChaserCombatToAlertState2
 #include "../../shared/mad_chaser_to_alert.inc.c"
-#undef madChaserToAlertState
+#undef MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER
 
 /// Walk-family interrupt binding: a declared s16(Task*) predicate, called once
 /// before sub-state dispatch; nonzero skips that dispatch. Undefine after inclusion.

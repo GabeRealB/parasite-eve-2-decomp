@@ -84,8 +84,8 @@ static void _madChaserEmergeHopForward(Task* task);
 static void _madChaserKnockdownState(Task* task);
 static void _madChaserPullState(Task* task);
 static void _madChaserDespawnState(Task* task);
-static void Actor04400_Fn06848(Task* arg0);
-static void Actor04400_Fn0685C(Task* arg0);
+static void _madChaserCombatToAlertState1(Task* task);
+static void _madChaserCombatToAlertState2(Task* task);
 static void _madChaserWalkState(Task* task);
 static void Actor04400_Fn06964(Task* arg0);
 static void Actor04400_Fn06A24(Task* arg0);
@@ -791,8 +791,8 @@ static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
 /// State handlers `madChaserCombatTick` dispatches by `state`.
 static const TaskFuncTable11 gMadChaserCombatStates = { {
     madChaserToAlertState,
-    Actor04400_Fn06848,
-    Actor04400_Fn0685C,
+    _madChaserCombatToAlertState1,
+    _madChaserCombatToAlertState2,
     _madChaserWalkState,
     madChaserLeapState,
     Actor04400_Fn06964,
@@ -1325,15 +1325,15 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 #include "../../shared/mad_chaser_to_alert.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserToAlertState Actor04400_Fn06848
+/// Selects the static void(Task*) alert transition for combat table slot 1.
+#define MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER _madChaserCombatToAlertState1
 #include "../../shared/mad_chaser_to_alert.inc.c"
-#undef madChaserToAlertState
+#undef MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER
 
-/// A further copy, under this file's own name.
-#define madChaserToAlertState Actor04400_Fn0685C
+/// Selects the static void(Task*) alert transition for combat table slot 2.
+#define MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER _madChaserCombatToAlertState2
 #include "../../shared/mad_chaser_to_alert.inc.c"
-#undef madChaserToAlertState
+#undef MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER
 
 /// Walk-family interrupt binding: a declared s16(Task*) predicate, called once
 /// before sub-state dispatch; nonzero skips that dispatch. Undefine after inclusion.

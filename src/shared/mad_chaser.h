@@ -336,7 +336,7 @@ static void _madChaserLurkRiseStart(Task* task);
 static s32  _madChaserScaleByAnimRate(Task* task, s16 distanceAtNormalRate);
 static void _madChaserAdvanceBehaviorState(Task* task);
 void        madChaserStartDespawn(Task* arg0);
-void        madChaserToAlertState(Task* arg0);
+void        madChaserToAlertState(Task* task);
 
 static __inline__ s16  _madChaserTakePullOrVanishCommand(Task* task);
 static __inline__ void _madChaserUpdateRotation(Task* task);
