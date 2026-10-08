@@ -3,7 +3,7 @@
 /// Task callback: a four-step script. State 0 queues the weapon message and the
 /// captioned command, state 1 waits one tick, state 2 starts the cutscene at
 /// `gDrivewayCutsceneScript`, and state 3 - reached by falling out of
-/// state 2 - clears area flag 4 for the current location and kills the task once
+/// state 2 - clears the current area's saved map mark and kills the task once
 /// `eventState` is zero.
 void drivewayCutsceneTask(Task* arg0)
 {
@@ -25,7 +25,7 @@ void drivewayCutsceneTask(Task* arg0)
             /* fallthrough */
         case 3:
             if (gGameSession->eventState == 0) {
-                Gp_ClearAreaFlag4(&gGameSession->location.loc);
+                areaClearMapMark(&gGameSession->location.loc);
                 taskKill(arg0);
             }
             return;

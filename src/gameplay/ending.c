@@ -87,7 +87,7 @@ void Gp_EndingTask(Task* arg0)
         }
         sndEvtRequestScriptStart(SOUND_AREA_EXIT, 0, 0);
         padScriptSpawn(D_80114A24, D_80114A34);
-        Gp_SetCurAreaFlag4();
+        areaSetCurrentMapMark();
         arg0->state++;
     } else if (arg0->state == 1) {
         session = gGameSession;

@@ -2109,7 +2109,7 @@ void Gp_MapPanelInit(Task* arg0)
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);
         StoreImage2(&rect, (u_long*)(Gpu_PrimHeapBase - 0x25800));
     }
-    Gp_RebuildAreaIdBits();
+    menuMapRebuildMarkedAreaBits();
     session      = gGameSession;
     table        = Gp_MapRecTables;
     idx          = session->location.loc.stage - 1;

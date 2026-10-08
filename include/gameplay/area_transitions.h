@@ -8,11 +8,14 @@
 
 // Area transitions and persistent area-flag updates.
 
-/// Mirror of `Gp_SetCurAreaFlag4` for an explicit key: clears
-/// `AREA_SAVED_MAP_MARK` in `AreaSavedState.spawnFlags` on the record selected
-/// by `Gp_AreaTables[key->stage]` + `key->area`. Null records are skipped, as
-/// in the setter.
-void Gp_ClearAreaFlag4(GameLocationKey* key);
+/// Clears an area's saved map mark without changing its other spawn flags.
+///
+/// Borrows the key synchronously and reads only stage and area; both must index
+/// their loaded directories. Missing stage tables and saved state are skipped.
+/// The referenced save-bank state is updated directly; the map screen refreshes
+/// its cache separately. Visitation and saved enemy-pose restoration flags are
+/// preserved.
+void areaClearMapMark(const GameLocationKey* key);
 
 /// Runs the direction trigger task while a player task exists.
 ///

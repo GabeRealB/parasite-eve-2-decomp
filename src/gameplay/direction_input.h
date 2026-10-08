@@ -80,7 +80,7 @@ static inline void _directionStepDepartureFade(void)
 extern s32 Gp_AreaIdBits[2];
 
 /// Per-stage signed counts, indexed by `GameSession.location.loc.stage - 1`.
-/// `Gp_RebuildAreaIdBits` loops area ids `1..count` when the stage is 1–5.
+/// `menuMapRebuildMarkedAreaBits` loops area ids `1..count` when the stage is 1–5.
 extern s8 Gp_AreaIdCounts[];
 
 void Gp_SetupDirWarp(void);

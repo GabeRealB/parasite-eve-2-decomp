@@ -1253,8 +1253,9 @@ static inline s32 _areaIsSavedMapMarkEnabled(const GameLocationKey* location)
 
 /// Tests whether the terminal should draw an area's saved map marker.
 ///
-/// Stage and area must fit their tables. Requires the map-mark bit set and
-/// saved-pose restoration clear; missing tables or saved state return 0.
+/// Stage and area must fit their tables. Requires `AREA_SAVED_MAP_MARK` set and
+/// `AREA_SPAWN_RESTORE_SAVED_POSES` clear; missing tables or saved state return 0.
+/// This is the predicate used by `menuMapRebuildMarkedAreaBits` for `Gp_AreaIdBits`.
 /// The synthetic room/view values are ignored by both flag queries.
 static inline s16 _shelterR47MapTerminalIsAreaMarkerVisible(s32 stage, s32 area)
 {

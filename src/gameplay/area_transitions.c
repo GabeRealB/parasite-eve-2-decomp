@@ -121,7 +121,7 @@ typedef struct {
 } _DirectionWarpPhaseTable;
 STATIC_ASSERT_SIZEOF(_DirectionWarpPhaseTable, 0x18);
 
-/// `AREA_MAP_MARK_END`-terminated `_AreaMapMarkRec` lists applied by `Gp_ApplyNewGameAreaFlags` to
+/// `AREA_MAP_MARK_END`-terminated `_AreaMapMarkRec` lists applied by `areaApplyNewGameMapMarks` to
 /// `Gp_AreaTables[1]`, `[2]`, `[4]` and `[5]`.
 extern _AreaMapMarkRec Gp_NewGameFlagsStg1[];
 
@@ -139,13 +139,13 @@ static const _DirectionWarpPhaseTable Gp_WarpPhaseFns;
 
 static const _DirectionFacingPhaseTable D_80093990;
 
-static inline s32 _gpGetAreaFlag4(GameLocationKey* key);
+static inline s32 _areaHasMapMark(const GameLocationKey* key);
 
 static inline s16 _menuMapReadMarkerState(const u16* flagEntries, s16 markerIndex);
 
 static void _directionInitTask(Task* task);
 
-static void Gp_DirTaskState1(Task* task);
+static void _directionUpdateTask(Task* task);
 
 static u8 Gp_GetViewCountLo(void);
 
@@ -161,7 +161,7 @@ static void Gp_SpawnEvt1IfCapIdle(void);
 
 static void _directionHoldWarpFrame(void);
 
-static void Gp_CommitSaveLoc(void);
+static void _directionLeaveWarp(void);
 
 static void _directionStartStairTurn(void);
 
@@ -169,20 +169,25 @@ static void _directionAwaitStairTurn(void);
 
 static void _directionStartStairClimb(void);
 
-static void Gp_ApplyAreaFlag4List(s16 arg0, _AreaMapMarkRec* entry);
+static void _areaApplyMapMarkList(s16 stageId, const _AreaMapMarkRec* entry);
 
-static inline s32 _gpGetAreaFlag4(GameLocationKey* key)
+/// Returns whether an area's saved map mark is set, as 0 or 1.
+///
+/// Borrows a key and reads only stage and area, which must index their loaded
+/// directories. A missing stage table or saved state returns 0. This tests the
+/// stored mark independently of visitation and saved enemy-pose restoration.
+static inline s32 _areaHasMapMark(const GameLocationKey* key)
 {
-    AreaRecord*     rec;
-    AreaSavedState* areaState;
-    s32             val;
+    const AreaRecord*     areaRecords;
+    const AreaSavedState* areaState;
+    s32                   mapMarkFlag;
 
-    rec = Gp_AreaTables[key->stage];
-    if (rec != NULL) {
-        areaState = rec[key->area].savedState;
+    areaRecords = Gp_AreaTables[key->stage];
+    if (areaRecords != NULL) {
+        areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
-            val = areaState->spawnFlags & AREA_SAVED_MAP_MARK;
-            return val != 0;
+            mapMarkFlag = areaState->spawnFlags & AREA_SAVED_MAP_MARK;
+            return mapMarkFlag != 0;
         }
     }
     return 0;
@@ -325,129 +330,95 @@ _AreaMapMarkRec Gp_NewGameFlagsStg5[34] = {
     { AREA_MAP_MARK_END, 0 },
 };
 
-void Gp_ApplyNewGameAreaFlags(void)
+/// Applies one new-game list without clearing marks for zero entries.
+///
+/// Borrows an `AREA_MAP_MARK_END`-terminated list; the stage and live area IDs
+/// must fit their directories. Missing tables and saved state are skipped.
+static inline void _areaApplyNewGameMapMarksForStage(s16 stageId, const _AreaMapMarkRec* entry)
 {
-    {
-        AreaRecord*      tbl;
-        AreaSavedState*  areaState;
-        _AreaMapMarkRec* entry;
+    const AreaRecord* areaRecords;
+    AreaSavedState*   areaState;
 
-        entry = Gp_NewGameFlagsStg1;
-        tbl   = Gp_AreaTables[1];
-        if (tbl != NULL) {
-            for (; entry->area != AREA_MAP_MARK_END; entry++) {
-                if (entry->setMapMark != 0) {
-                    areaState = tbl[entry->area].savedState;
-                    if (areaState != NULL) {
-                        areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
-                    }
-                }
-            }
-        }
-    }
-    {
-        AreaRecord*      tbl;
-        AreaSavedState*  areaState;
-        _AreaMapMarkRec* entry;
-
-        entry = Gp_NewGameFlagsStg2;
-        tbl   = Gp_AreaTables[2];
-        if (tbl != NULL) {
-            for (; entry->area != AREA_MAP_MARK_END; entry++) {
-                if (entry->setMapMark != 0) {
-                    areaState = tbl[entry->area].savedState;
-                    if (areaState != NULL) {
-                        areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
-                    }
-                }
-            }
-        }
-    }
-    {
-        AreaRecord*      tbl;
-        AreaSavedState*  areaState;
-        _AreaMapMarkRec* entry;
-
-        entry = Gp_NewGameFlagsStg4;
-        tbl   = Gp_AreaTables[4];
-        if (tbl != NULL) {
-            for (; entry->area != AREA_MAP_MARK_END; entry++) {
-                if (entry->setMapMark != 0) {
-                    areaState = tbl[entry->area].savedState;
-                    if (areaState != NULL) {
-                        areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
-                    }
-                }
-            }
-        }
-    }
-    {
-        AreaRecord*      tbl;
-        AreaSavedState*  areaState;
-        _AreaMapMarkRec* entry;
-
-        entry = Gp_NewGameFlagsStg5;
-        tbl   = Gp_AreaTables[5];
-        if (tbl != NULL) {
-            for (; entry->area != AREA_MAP_MARK_END; entry++) {
-                if (entry->setMapMark != 0) {
-                    areaState = tbl[entry->area].savedState;
-                    if (areaState != NULL) {
-                        areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
-                    }
+    areaRecords = Gp_AreaTables[stageId];
+    if (areaRecords != NULL) {
+        for (; entry->area != AREA_MAP_MARK_END; entry++) {
+            if (entry->setMapMark != 0) {
+                areaState = areaRecords[entry->area].savedState;
+                if (areaState != NULL) {
+                    areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
                 }
             }
         }
     }
 }
 
-void Gp_RebuildAreaIdBits(void)
+void areaApplyNewGameMapMarks(void)
 {
-    GameLocationKey  key;
-    GameLocationKey* sess;
-    s32              count;
-    s32              i;
-    u8               stage;
+    _areaApplyNewGameMapMarksForStage(GAME_STAGE_ACROPOLIS, Gp_NewGameFlagsStg1);
+    _areaApplyNewGameMapMarksForStage(GAME_STAGE_DRYFIELD, Gp_NewGameFlagsStg2);
+    _areaApplyNewGameMapMarksForStage(GAME_STAGE_MINE_SHELTER, Gp_NewGameFlagsStg4);
+    _areaApplyNewGameMapMarksForStage(GAME_STAGE_SHELTER_NEO_ARK, Gp_NewGameFlagsStg5);
+}
 
-    sess      = &gGameSession->location.loc;
-    stage     = sess->stage;
-    key.room  = 1;
-    key.view  = 2;
-    key.stage = stage;
-    if (gGameSession->location.loc.stage - 1 < 5) {
-        count = Gp_AreaIdCounts[sess->stage - 1];
-        for (i = 1; i <= count; i++) {
-            key.area = i;
-            if (_gpGetAreaFlag4(&key) == 1) {
-                if (areaIsSavedPoseRestoreEnabled(&key) == 1) {
-                    if (key.area <= 32) {
-                        Gp_AreaIdBits[0] &= ~(1 << (key.area - 1));
-                    } else {
-                        Gp_AreaIdBits[1] &= ~(1 << (key.area - 33));
-                    }
+void menuMapRebuildMarkedAreaBits(void)
+{
+    enum { MENU_MAP_STAGE_COUNT            = GAME_STAGE_SHELTER_NEO_ARK - GAME_STAGE_ACROPOLIS + 1,
+           MENU_MAP_AREA_BITS_PER_WORD     = 32,
+           MENU_MAP_SECOND_WORD_FIRST_AREA = 33 };
+    GameLocationKey        areaKey;
+    const GameLocationKey* currentLocation;
+    s32                    areaCount;
+    s32                    areaId;
+    u8                     stageId;
+
+    /// Clears the map-screen cache bit for an area ID in 1..64.
+    ///
+    /// The argument must be a side-effect-free area expression: it is evaluated
+    /// in the comparison and again for the shift. Captures `Gp_AreaIdBits` and
+    /// the local word-boundary constants; use as a standalone statement.
+#define MENU_MAP_CLEAR_MARKED_AREA_BIT(areaId)                                        \
+    {                                                                                 \
+        if ((areaId) <= MENU_MAP_AREA_BITS_PER_WORD) {                                \
+            Gp_AreaIdBits[0] &= ~(1 << ((areaId) - 1));                               \
+        } else {                                                                      \
+            Gp_AreaIdBits[1] &= ~(1 << ((areaId) - MENU_MAP_SECOND_WORD_FIRST_AREA)); \
+        }                                                                             \
+    }
+
+    currentLocation = &gGameSession->location.loc;
+    stageId         = currentLocation->stage;
+    // Retain the room/view initialization; both predicates read only stage and area.
+    areaKey.room  = 1;
+    areaKey.view  = 2;
+    areaKey.stage = stageId;
+    // Refresh only this stage's area bits; higher bits retain their prior values.
+    if (gGameSession->location.loc.stage - GAME_STAGE_ACROPOLIS < MENU_MAP_STAGE_COUNT) {
+        areaCount = Gp_AreaIdCounts[currentLocation->stage - GAME_STAGE_ACROPOLIS];
+        for (areaId = 1; areaId <= areaCount; areaId++) {
+            areaKey.area = areaId;
+            if (_areaHasMapMark(&areaKey) == 1) {
+                if (areaIsSavedPoseRestoreEnabled(&areaKey) == 1) {
+                    MENU_MAP_CLEAR_MARKED_AREA_BIT(areaKey.area);
                 } else {
-                    if (key.area <= 32) {
-                        Gp_AreaIdBits[0] |= 1 << (key.area - 1);
+                    if (areaKey.area <= MENU_MAP_AREA_BITS_PER_WORD) {
+                        Gp_AreaIdBits[0] |= 1 << (areaKey.area - 1);
                     } else {
-                        Gp_AreaIdBits[1] |= 1 << (key.area - 33);
+                        Gp_AreaIdBits[1] |= 1 << (areaKey.area - MENU_MAP_SECOND_WORD_FIRST_AREA);
                     }
                 }
             } else {
-                if (key.area <= 32) {
-                    Gp_AreaIdBits[0] &= ~(1 << (key.area - 1));
-                } else {
-                    Gp_AreaIdBits[1] &= ~(1 << (key.area - 33));
-                }
+                MENU_MAP_CLEAR_MARKED_AREA_BIT(areaKey.area);
             }
         }
     }
+#undef MENU_MAP_CLEAR_MARKED_AREA_BIT
 }
 
 /// The flag entry `table[idx]`: its low 11 bits select a flag nibble, and its
 /// bit 0x800 is added onto that nibble's value.
 const TaskFuncTable3 Gp_DirTaskStates = { {
     _directionInitTask,
-    Gp_DirTaskState1,
+    _directionUpdateTask,
     taskKill,
 } };
 
@@ -467,7 +438,7 @@ static const _DirectionWarpPhaseTable Gp_WarpPhaseFns = { {
     [DIRECTION_WARP_PHASE_HOLD]        = _directionHoldWarpFrame,
     [DIRECTION_WARP_PHASE_RESOLVE]     = Gp_CommitWarp,
     [DIRECTION_WARP_PHASE_AWAIT_SOUND] = directionAwaitWarpSound,
-    [DIRECTION_WARP_PHASE_LEAVE]       = Gp_CommitSaveLoc,
+    [DIRECTION_WARP_PHASE_LEAVE]       = _directionLeaveWarp,
 } };
 
 static const _DirectionFacingPhaseTable D_80093990 = { {
@@ -540,16 +511,16 @@ s16 menuMapGetMarkerState(s16 markerIndex)
     return MENU_MAP_MARKER_STATE_UNAVAILABLE;
 }
 
-void Gp_ClearAreaFlag4(GameLocationKey* key)
+void areaClearMapMark(const GameLocationKey* key)
 {
-    AreaRecord*     rec;
-    AreaSavedState* areaState;
+    const AreaRecord* areaRecords;
+    AreaSavedState*   areaState;
 
-    rec = Gp_AreaTables[key->stage];
-    if (rec != NULL) {
-        areaState = rec[key->area].savedState;
+    areaRecords = Gp_AreaTables[key->stage];
+    if (areaRecords != NULL) {
+        areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
-            areaState->spawnFlags &= 0xFF ^ AREA_SAVED_MAP_MARK;
+            areaState->spawnFlags &= (u8)~AREA_SAVED_MAP_MARK;
         }
     }
 }
@@ -579,7 +550,12 @@ static void _directionInitTask(Task* task)
     task->state++;
 }
 
-static void Gp_DirTaskState1(Task* task)
+/// Consumes view-boundary hits before updating the direction action each frame.
+///
+/// Runs in direction-task state 1 while a player exists. Boundary hits may
+/// request a saved view before the action reads the session and trigger state.
+/// The task argument is unused; this callback retains state 1.
+static void _directionUpdateTask(Task* task)
 {
     worldCollisionConsumeViewBoundaryHits();
     directionUpdateAction();
@@ -715,14 +691,24 @@ static void _directionHoldWarpFrame(void)
     Gp_DirPhase++;
 }
 
-static void Gp_CommitSaveLoc(void)
+/// Stores the resolved warp destination and requests a reload from the live save.
+///
+/// The final warp phase requires the room's resolved destination for the active
+/// stage. Only area, arrival and room are copied; the area's selector narrows to
+/// a byte. Draws the departure shade without advancing it, then starts the
+/// frame-capturing reload. Task allocation failure still consumes the primary
+/// action. The phase and secondary trigger remain for later updates to clear.
+static void _directionLeaveWarp(void)
 {
-    u8 fade;
+    u8  fadeShade;
+    s16 activeShade;
 
-    if (*(s16*)&Gp_DirFadeLevel != 0) {
-        fade = *(u8*)&Gp_DirFadeLevel;
-        fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+    activeShade = (s16)Gp_DirFadeLevel;
+    if (activeShade != 0) {
+        fadeShade = (u8)Gp_DirFadeLevel;
+        fadeDrawOverlay(fadeShade, fadeShade, fadeShade, GPU_BLEND_SUBTRACT);
     }
+    // Publish the destination before the reload task can consume the live save.
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)Gp_WarpLoc.areaId;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = Gp_WarpLoc.warp;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = Gp_WarpLoc.room;
@@ -796,32 +782,37 @@ static void _directionStartStairClimb(void)
     Gp_DirPhase++;
 }
 
-void Gp_SetCurAreaFlag4(void)
+void areaSetCurrentMapMark(void)
 {
-    GameLocationKey* key;
-    AreaRecord*      rec;
-    AreaSavedState*  areaState;
+    const GameLocationKey* key;
+    const AreaRecord*      areaRecords;
+    AreaSavedState*        areaState;
 
-    key = &gGameSession->location.loc;
-    rec = Gp_AreaTables[key->stage];
-    if (rec != NULL) {
-        areaState = rec[key->area].savedState;
+    key         = &gGameSession->location.loc;
+    areaRecords = Gp_AreaTables[key->stage];
+    if (areaRecords != NULL) {
+        areaState = areaRecords[key->area].savedState;
         if (areaState != NULL) {
             areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
         }
     }
 }
 
-static void Gp_ApplyAreaFlag4List(s16 arg0, _AreaMapMarkRec* entry)
+/// Sets saved map marks selected by one stage's terminated list.
+///
+/// Borrows the list synchronously; `AREA_MAP_MARK_END` ends it, and zero
+/// `setMapMark` entries preserve existing marks. Missing tables and saved state
+/// are skipped. `stageId` and each live area must index their loaded directories.
+static void _areaApplyMapMarkList(s16 stageId, const _AreaMapMarkRec* entry)
 {
-    AreaRecord*     rec;
-    AreaSavedState* areaState;
+    const AreaRecord* areaRecords;
+    AreaSavedState*   areaState;
 
-    rec = Gp_AreaTables[arg0];
-    if (rec != NULL) {
+    areaRecords = Gp_AreaTables[stageId];
+    if (areaRecords != NULL) {
         for (; entry->area != AREA_MAP_MARK_END; entry++) {
             if (entry->setMapMark != 0) {
-                areaState = rec[entry->area].savedState;
+                areaState = areaRecords[entry->area].savedState;
                 if (areaState != NULL) {
                     areaState->spawnFlags |= AREA_SAVED_MAP_MARK;
                 }

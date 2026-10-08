@@ -6733,7 +6733,7 @@ beq    v1, v0, skip
 
 Give each copy its own block-scope `p`/`tbl` (a macro expansion does the same).
 The next list's `lui %hi` then fills the `== 0xFF` delay, with a second `lui`
-after the loop for the NULL / fall-through paths. `Gp_ApplyNewGameAreaFlags` is the example.
+after the loop for the NULL / fall-through paths. `areaApplyNewGameMapMarks` is the example.
 
 ## Write `if (x != K)` so the `== K` body is the `beq` target
 
@@ -33690,7 +33690,7 @@ constraint used in `mc.c`:
 }
 ```
 
-`Gp_RebuildAreaIdBits` is the example.
+`menuMapRebuildMarkedAreaBits` is the example.
 
 ## Split `la` of a function pointer so `%hi` lands in `$v1` while `$v0` holds a `lhu`
 

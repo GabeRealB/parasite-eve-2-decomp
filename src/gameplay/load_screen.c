@@ -635,7 +635,7 @@ static void Gp_InitStageVisit(GameLocationKey* arg0)
     if ((save->state.visitFlags & 1) == 0) {
         save->state.visitFlags = 1;
         gameFlagClearLiveNibbles();
-        Gp_ApplyNewGameAreaFlags();
+        areaApplyNewGameMapMarks();
         save->state.companionHpMax = 0x64;
         save->state.companionHp    = 0x64;
         inventoryInitializeNewGame();
