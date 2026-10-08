@@ -267,6 +267,7 @@ _madChaserStatusHoldStart = 0x80168A14; // type:func
 _madChaserAdvanceBehaviorState = 0x801697B8; // type:func
 _madChaserDespawnState = 0x8016859C; // type:func
 madChaserStartDespawn = 0x801696C8; // type:func
+_madChaserShrinkDeathStartDespawn = 0x8016ABF4; // type:func
 madChaserToAlertState = 0x80168684; // type:func
 _actor341700PropHiddenState = 0x8016d2b8; // type:func
 _actor341700PropShownState = 0x8016d2e8; // type:func

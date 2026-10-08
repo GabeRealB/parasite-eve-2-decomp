@@ -86,7 +86,7 @@ static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
 static void _madChaserDropDeathHold(Task* task);
 static void _madChaserShrinkDeathStart(Task* task);
 static void _madChaserShrinkDeathTurnTranslucent(Task* task);
-static void Actor04400_Fn08DA4(Task* arg0);
+static void _madChaserShrinkDeathStartDespawn(Task* task);
 
 /* `D_800678F0` selects the model stream the next `effectSpawn` copies into
  * its effect's `TmdObject`. Declared as a one-element array so GCC 2.8.1
@@ -1228,7 +1228,7 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     _madChaserBeginShrink,
     _madChaserShrinkDeathTurnTranslucent,
     madChaserShrink,
-    Actor04400_Fn08DA4,
+    _madChaserShrinkDeathStartDespawn,
 } };
 
 #include "../../shared/mad_chaser_lurk_look.inc.c"
@@ -1530,9 +1530,13 @@ static void _madChaserDropDeathHold(Task* task)
 
 #include "../../shared/mad_chaser_shrink.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserStartDespawn Actor04400_Fn08DA4
+/// Selects the private final behavior of scripted shrink death.
+///
+/// Names a statically declared void(Task*) callback for the following fragment.
+/// This identifier-only binding captures no runtime values; undefine it after
+/// inclusion to restore the ordinary-death definition.
+#define MAD_CHASER_SHRINK_DEATH_DESPAWN_HANDLER _madChaserShrinkDeathStartDespawn
 #include "../../shared/mad_chaser_start_despawn.inc.c"
-#undef madChaserStartDespawn
+#undef MAD_CHASER_SHRINK_DEATH_DESPAWN_HANDLER
 
 #include "../../shared/mad_chaser_take_knockdown_request.inc.c"

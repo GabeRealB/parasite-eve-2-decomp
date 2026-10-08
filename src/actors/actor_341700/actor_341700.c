@@ -82,7 +82,7 @@ static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
 static void func_actor_341700_8016A8EC(Task* arg0);
 static void _madChaserShrinkDeathStart(Task* task);
 static void _madChaserShrinkDeathTurnTranslucent(Task* task);
-static void func_actor_341700_8016ABF4(Task* arg0);
+static void _madChaserShrinkDeathStartDespawn(Task* task);
 
 /// Six task-state handlers of the first enemy form, dispatched by
 /// `madChaserTask` on `Task::state`.
@@ -986,7 +986,7 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     _madChaserBeginShrink,
     _madChaserShrinkDeathTurnTranslucent,
     madChaserShrink,
-    func_actor_341700_8016ABF4,
+    _madChaserShrinkDeathStartDespawn,
 } };
 
 #include "../../shared/mad_chaser_lurk_look.inc.c"
@@ -1294,9 +1294,13 @@ static void func_actor_341700_8016A8EC(Task* arg0)
 
 #include "../../shared/mad_chaser_shrink.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserStartDespawn func_actor_341700_8016ABF4
+/// Selects the private final behavior of scripted shrink death.
+///
+/// Names a statically declared void(Task*) callback for the following fragment.
+/// This identifier-only binding captures no runtime values; undefine it after
+/// inclusion to restore the ordinary-death definition.
+#define MAD_CHASER_SHRINK_DEATH_DESPAWN_HANDLER _madChaserShrinkDeathStartDespawn
 #include "../../shared/mad_chaser_start_despawn.inc.c"
-#undef madChaserStartDespawn
+#undef MAD_CHASER_SHRINK_DEATH_DESPAWN_HANDLER
 
 #include "../../shared/mad_chaser_take_knockdown_request.inc.c"
