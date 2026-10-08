@@ -568,7 +568,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_west_elevator_hall_8017F7D4, { NULL } },                             // 0x01E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallRedBeaconTask, { NULL } },                                 // 0x01F
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallScanlineDistortionTask, { NULL } },                        // 0x020
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_east_elevator_hall_8017F5B4, { NULL } },                             // 0x021
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallReflectionsAndBeaconsTask, { NULL } },                     // 0x021
     { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallRedBeaconTask, { NULL } },                                 // 0x022
     { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallPointTileTask, { NULL } },                                 // 0x023
     { { { TASK_BODY_COORD, 0x70 } }, hypervelocityChargeEffectTask, { NULL } },                                          // 0x024
@@ -668,7 +668,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x082
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_patio_8017E100, { NULL } },                                          // 0x083
     { { { TASK_BODY_COORD, 0x70 } }, acropolisHallwayEffectControlTask84, { NULL } },                                    // 0x084
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_forked_road_8017E298, { NULL } },                                    // 0x085
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadInitializeRoomEffectsTask, { NULL } },                           // 0x085
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenAmbientEffectsTask, { NULL } },                                  // 0x086
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPatioFountainJetTask, { NULL } },                                          // 0x087
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFountainSprayTask, { NULL } },                                             // 0x088
@@ -1193,7 +1193,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisCafeteriaRoomVisualEffectsSparkBurstTask, { NULL } },                      // 0x28F
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadRoomVisualEffectsFlashTask, { NULL } },                          // 0x290
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadRoomVisualEffectsTwinTrailTask, { NULL } },                      // 0x291
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_forked_road_801802CC, { NULL } },                                    // 0x292
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadRoomVisualEffectsSparkBurstTask, { NULL } },                     // 0x292
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsFlashTask, { NULL } },                           // 0x293
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsTwinTrailTask, { NULL } },                       // 0x294
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsSparkBurstTask, { NULL } },                      // 0x295

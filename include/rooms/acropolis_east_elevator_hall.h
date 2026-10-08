@@ -30,7 +30,15 @@ extern ViewCamera D_acropolis_east_elevator_hall_80187A5C[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_east_elevator_hall_80187B74[];
 
-void func_acropolis_east_elevator_hall_8017F5B4(Task* task);
+/// Starts floor/mirror player reflections and refreshes the hall's six red beacons.
+///
+/// Bank-6 slot 0x21 starts in state 0 with a live coordinate body and player.
+/// Spawns both reflection controllers once, then enters state 1, including
+/// that first tick. While view 2 is active, spawns two small and four large
+/// one-frame beacons at room offsets under the borrowed coordinate. Spawn
+/// failures are ignored. The controller remains live until external teardown;
+/// keep the room overlay and its coordinate hierarchy live for its lifetime.
+void acropolisEastElevatorHallReflectionsAndBeaconsTask(Task* task);
 
 /// Draws one frame of a pulsing additive red diamond, then ends the counted effect.
 ///

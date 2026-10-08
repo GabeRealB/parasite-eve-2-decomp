@@ -263,3 +263,6 @@ acropolisCafeteriaMendelPickupTask = 0x801827c4; // type:func
 acropolisCafeteriaStimPickupTask = 0x8018286c; // type:func
 _acropolisCafeteriaObject10DrawTask = 0x80182954; // type:func
 _acropolisCafeteriaObject11DrawTask = 0x80182a08; // type:func
+_acropolisCafeteriaFollowUpSceneTask = 0x8017dd1c; // type:func
+_acropolisCafeteriaHandleCommandMessage = 0x8017e0dc; // type:func
+_acropolisCafeteriaHandleActionMessage = 0x8017e154; // type:func

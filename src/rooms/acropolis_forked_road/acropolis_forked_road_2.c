@@ -95,8 +95,8 @@ extern u16 D_acropolis_forked_road_801821E8[14];
 /// `[0]` places the task's own frame and `[1]`, also reached by its own name,
 /// the second trail's.
 
-void        func_acropolis_forked_road_8017DA24(Task*);
-void        func_acropolis_forked_road_8017DD60(Task*);
+static void _acropolisForkedRoadOutboundMoviePathTask(Task* task);
+static void _acropolisForkedRoadReturnMoviePathTask(Task* task);
 static void _acropolisForkedRoadSkipFadeOutTask(Task* task);
 static void _acropolisForkedRoadSkipFadeInTask(Task* task);
 
@@ -125,9 +125,9 @@ extern SpriteSource D_acropolis_forked_road_80183AE8[58];
 extern SpriteSource D_acropolis_forked_road_80183FC0[62];
 
 TaskDesc D_acropolis_forked_road_80180F44[5] = {
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017DA24, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadOutboundMoviePathTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017DD60, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadReturnMoviePathTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadSkipFadeOutTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadSkipFadeInTask, { .value = 0 } },
 };
@@ -901,94 +901,120 @@ WorldCollisionSurfaceProperties* D_acropolis_forked_road_801850A4[8] = {
     D_acropolis_forked_road_80185084,
 };
 
-/// The forked road's streamed-scene task. State 0 allocates the
-/// `RoomMoviePathWork` block, restarts the stream frame counter, cues the stream
-/// (slot-6 msg 0xFA4), captures the player's coordinate matrix and slot 3 in the
-/// block and warps slot 3 to the head of the path with a 0x3E9 placement.
-/// State 1 sends the same spot again as a 0x3F2. State 2 waits for slot 3 to
-/// go idle (msg 0x3F0) and then queues the stream's CD read. State 3 waits for
-/// the stream to come up (`gCdCmdQueue::movieReady`), starts the script pair and
-/// adopts its task as a child. State 4 drives the ride, moving the camera
-/// target to the `field_1EA`th path entry every frame until the pad interrupts
-/// it or the path runs out at frame 0x78. State 5 stops the scene, restores
-/// the save's room ids, arms the fade-out task and kills this task.
-void func_acropolis_forked_road_8017DA24(Task* task)
-{
-    ActorTransform     place;
-    ActorTransform     place2;
-    u8                 slot;
-    RoomMoviePathWork* work;
-    CdCmdQueue*        queue;
+/// Copies a frame-indexed movie-path sample into the borrowed player root.
+///
+/// Requires a live `RoomMoviePathWork` and index 0..299 in the room's
+/// `D_acropolis_forked_road_80180F80` path. Both arguments are evaluated three
+/// times, once per XYZ store, and must be stable and side-effect-free. Positions
+/// use whole room units; rotation and coordinate cache stamps are untouched.
+/// Expands to a braced statement block; use inside a braced scope.
+#define ACROPOLIS_FORKED_ROAD_APPLY_MOVIE_PATH_POSITION(movieWork, pathIndex)            \
+    {                                                                                    \
+        (movieWork)->playerMtx->t[0] = D_acropolis_forked_road_80180F80[(pathIndex)].vx; \
+        (movieWork)->playerMtx->t[1] = D_acropolis_forked_road_80180F80[(pathIndex)].vy; \
+        (movieWork)->playerMtx->t[2] = D_acropolis_forked_road_80180F80[(pathIndex)].vz; \
+    }
 
-    queue = &gCdCmdQueue;
-    work  = task->work;
+/// Moves the player along the outbound movie path, then reloads the observatory.
+///
+/// Starts bodyless in state 0 with a live player and loaded room/stream resources.
+/// Owns a zeroed `RoomMoviePathWork`; allocation failure kills the controller.
+/// Places the player before walking to the path head, hides the HUD and actors,
+/// then queues the current view's movie. Once ready, adopts the vibration task
+/// and writes XYZ from path index `movieFrame - 1` in whole room units. The
+/// frame must be 1..300 on every path access; reaching index 120 or pressing
+/// Start schedules departure on the next tick. Reload hands off to observatory
+/// room 1, warp 4. Task teardown releases the work and adopted script task.
+static void _acropolisForkedRoadOutboundMoviePathTask(Task* task)
+{
+    enum {
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_INITIALIZE          = 0,
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_APPROACH            = 1,
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_WAIT_APPROACH       = 2,
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_WAIT_MOVIE          = 3,
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_FOLLOW_PATH         = 4,
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_DEPART              = 5,
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_PATH_EXIT_INDEX     = 120,
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_YAW                 = ACTOR_TRANSFORM_ANGLE_TURN / 4,
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_APPROACH_X_DISTANCE = 1620,
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_WARP    = 4,
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_ROOM    = 1
+    };
+    ActorTransform     entryPose;
+    ActorTransform     approachTarget;
+    u8                 streamArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
+    RoomMoviePathWork* movieWork;
+    CdCmdQueue*        cdQueue;
+
+    cdQueue   = &gCdCmdQueue;
+    movieWork = task->work;
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_FORKED_ROAD_OUTBOUND_INITIALIZE:
             task->work = memCalloc(sizeof(RoomMoviePathWork), 0);
             if (task->work == NULL) {
                 taskKill(task);
                 break;
             }
-            queue->movieFrame = 1;
+            cdQueue->movieFrame = 1;
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_AND_HOLD, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
             gSceneCombatState.actorControl               = SCENE_COMBAT_ACTORS_HIDDEN;
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            place.rot.vy = 0x400;
-            place.rot.vx = 0;
-            place.rot.vz = 0;
-            place.pos.vx = D_acropolis_forked_road_80180F80[0].vx - 0x654;
-            place.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
-            place.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
-            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
+            entryPose.rot.vy = ACROPOLIS_FORKED_ROAD_OUTBOUND_YAW;
+            entryPose.rot.vx = 0;
+            entryPose.rot.vz = 0;
+            entryPose.pos.vx = D_acropolis_forked_road_80180F80[0].vx - ACROPOLIS_FORKED_ROAD_OUTBOUND_APPROACH_X_DISTANCE;
+            entryPose.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
+            entryPose.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &entryPose, 0);
             task->state = task->state + 1;
             break;
 
-        case 1:
-            place2.rot.vy = 0x400;
-            place2.pos.vx = D_acropolis_forked_road_80180F80[0].vx;
-            place2.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
-            place2.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
-            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3F2, &place2, 0);
+        case ACROPOLIS_FORKED_ROAD_OUTBOUND_APPROACH:
+            approachTarget.rot.vy = ACROPOLIS_FORKED_ROAD_OUTBOUND_YAW;
+            approachTarget.pos.vx = D_acropolis_forked_road_80180F80[0].vx;
+            approachTarget.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
+            approachTarget.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &approachTarget, 0);
             task->state = task->state + 1;
             break;
 
-        case 2:
-            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-                slot = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
-                cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, &slot);
+        case ACROPOLIS_FORKED_ROAD_OUTBOUND_WAIT_APPROACH:
+            if (taskMessageDispatch(movieWork->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+                // Only byte zero is interpreted by this opcode; preserve the unwritten tail and low-RAM key reads.
+                streamArgs[0] = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
+                cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
                 task->state = task->state + 1;
             }
             break;
 
-        case 3:
-            if (queue->movieReady != 0) {
-                work->padScriptTask           = padScriptSpawn(D_acropolis_forked_road_80185058,
+        case ACROPOLIS_FORKED_ROAD_OUTBOUND_WAIT_MOVIE:
+            if (cdQueue->movieReady != 0) {
+                movieWork->padScriptTask      = padScriptSpawn(D_acropolis_forked_road_80185058,
                                                                D_acropolis_forked_road_80185070);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                taskReparent(task, work->padScriptTask);
+                taskReparent(task, movieWork->padScriptTask);
                 task->state = task->state + 1;
             }
             break;
 
-        case 4:
-            work->playerMtx->t[0] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vx;
-            work->playerMtx->t[1] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vy;
-            work->playerMtx->t[2] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vz;
-            if ((padIsStartPressed() != 0) || ((queue->movieFrame - 1) >= 0x78)) {
+        case ACROPOLIS_FORKED_ROAD_OUTBOUND_FOLLOW_PATH:
+            // Follow encoded frames in the player root's parent-coordinate space.
+            ACROPOLIS_FORKED_ROAD_APPLY_MOVIE_PATH_POSITION(movieWork, cdQueue->movieFrame - 1);
+            if ((padIsStartPressed() != 0) || ((cdQueue->movieFrame - 1) >= ACROPOLIS_FORKED_ROAD_OUTBOUND_PATH_EXIT_INDEX)) {
                 task->state = task->state + 1;
             }
             break;
 
-        case 5:
+        case ACROPOLIS_FORKED_ROAD_OUTBOUND_DEPART:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_OBSERVATORY;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 4;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_ROOM;
             gDisplayState.spriteVariant                                 = 1;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
@@ -997,36 +1023,47 @@ void func_acropolis_forked_road_8017DA24(Task* task)
     }
 }
 
-/// The forked road's return ride: the same streamed scene played backwards
-/// along `D_acropolis_forked_road_80180F80`, whose entries this one walks from
-/// the far end (`0x3B - gCdCmdQueue::movieFrame`).
+/// Moves the player backwards along the arrival movie path and restores local play.
 ///
-/// State 0 allocates the `RoomMoviePathWork` block, captures slot 3 and the
-/// player's coordinate matrix (`gPlayerStatus.coordMtx`) in it, cues the stream
-/// (slot-6 msg 0xFA4) and republishes the player's weapon to slot 3 with a
-/// 0x3E8 record. State 1 waits for the stream to come up
-/// (`gCdCmdQueue::movieReady`), moves the player to the head of the
-/// path, starts the script pair, adopts its task as a child and blanks the
-/// display. State 2 drives the ride: it un-blanks after two frames, walks the
-/// player along the path, and lets the pad spawn the skip task. Once
-/// that task reports done it warps slot 3 to the path's end with a 0x3E9 and
-/// arms the ride's exit; otherwise the ride ends on its own when the path runs
-/// down to its last 11 entries, which is sent as a 0x3F2. State 3 waits for
-/// slot 3 to go idle (msg 0x3F0), releases it (0x3F1), restores the camera
-/// view and the session's ride flag and kills this task.
-void func_acropolis_forked_road_8017DD60(Task* task)
+/// Starts bodyless in state 0 after arrival warp 2 has selected the view movie;
+/// this controller waits for readiness and does not queue playback itself.
+/// Owns a zeroed `RoomMoviePathWork`, borrows the live player/root matrix and
+/// adopts its vibration task. Allocation failure kills the controller.
+/// Path accesses require `movieFrame` in 1..59 and use index `59 - movieFrame`
+/// in whole room units. The first two active path ticks blank the display.
+/// Start requests a fade task polled to suspension before placing the exit pose;
+/// otherwise indices below 11 start a walk to the exit. After movement ends,
+/// restores the HUD, input, actors and logical view 5, then tears down its work
+/// and adopted children. Fade and vibration spawns retain unchecked failures.
+static void _acropolisForkedRoadReturnMoviePathTask(Task* task)
 {
-    AnimationPlayRequest rec;
-    ActorTransform       place;
-    s32                  sp40;
-    RoomMoviePathWork*   work;
-    CdCmdQueue*          queue;
+    enum {
+        ACROPOLIS_FORKED_ROAD_RETURN_INITIALIZE          = 0,
+        ACROPOLIS_FORKED_ROAD_RETURN_WAIT_MOVIE          = 1,
+        ACROPOLIS_FORKED_ROAD_RETURN_FOLLOW_PATH         = 2,
+        ACROPOLIS_FORKED_ROAD_RETURN_WAIT_EXIT           = 3,
+        ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN        = 59,
+        ACROPOLIS_FORKED_ROAD_RETURN_WALK_EXIT_INDEX     = 11,
+        ACROPOLIS_FORKED_ROAD_RETURN_REVEAL_TICK         = 3,
+        ACROPOLIS_FORKED_ROAD_RETURN_YAW                 = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4,
+        ACROPOLIS_FORKED_ROAD_RETURN_LOGICAL_VIEW        = 5,
+        ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_OUT         = 3,
+        ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_IN          = 4,
+        ACROPOLIS_FORKED_ROAD_PRIMARY_CHARACTER_ID       = 1,
+        ACROPOLIS_FORKED_ROAD_ALTERNATE_WEAPON_BANK_BASE = 0x22,
+        ACROPOLIS_FORKED_ROAD_RETURN_IDLE_ANIMATION      = 1
+    };
+    AnimationPlayRequest animationRequest;
+    ActorTransform       exitPose;
+    s32                  fadeResult;
+    RoomMoviePathWork*   movieWork;
+    CdCmdQueue*          cdQueue;
     s32                  weaponId;
 
-    queue = &gCdCmdQueue;
-    work  = task->work;
+    cdQueue   = &gCdCmdQueue;
+    movieWork = task->work;
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_FORKED_ROAD_RETURN_INITIALIZE:
             task->work = memCalloc(sizeof(RoomMoviePathWork), 0);
             if (task->work == NULL) {
                 taskKill(task);
@@ -1035,71 +1072,69 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            weaponId                 = gPlayerStatus.weapon;
-            rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.animationId          = 1;
-            rec.blend                = ANIMATION_BLEND_RESET;
-            rec.blendFrames          = 0;
-            rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            weaponId                              = gPlayerStatus.weapon;
+            animationRequest.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACROPOLIS_FORKED_ROAD_PRIMARY_CHARACTER_ID) ? weaponId + 1 : weaponId + ACROPOLIS_FORKED_ROAD_ALTERNATE_WEAPON_BANK_BASE;
+            animationRequest.animationId          = ACROPOLIS_FORKED_ROAD_RETURN_IDLE_ANIMATION;
+            animationRequest.blend                = ANIMATION_BLEND_RESET;
+            animationRequest.blendFrames          = 0;
+            animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, ANIMATION_MESSAGE_PLAY, &animationRequest, 0);
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_AND_HOLD, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
             task->state                    = task->state + 1;
             break;
 
-        case 1:
-            if (queue->movieReady != 0) {
-                work->playerMtx->t[0]         = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vx;
-                work->playerMtx->t[1]         = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vy;
-                work->playerMtx->t[2]         = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
-                work->padScriptTask           = padScriptSpawn(D_acropolis_forked_road_80185038,
+        case ACROPOLIS_FORKED_ROAD_RETURN_WAIT_MOVIE:
+            if (cdQueue->movieReady != 0) {
+                ACROPOLIS_FORKED_ROAD_APPLY_MOVIE_PATH_POSITION(movieWork, ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame);
+                movieWork->padScriptTask      = padScriptSpawn(D_acropolis_forked_road_80185038,
                                                                D_acropolis_forked_road_80185050);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
-                taskReparent(task, work->padScriptTask);
+                taskReparent(task, movieWork->padScriptTask);
                 SetDispMask(0);
                 task->killCountdown = 0;
                 task->state         = task->state + 1;
             }
             break;
 
-        case 2:
+        case ACROPOLIS_FORKED_ROAD_RETURN_FOLLOW_PATH:
+            // Hide the initial discontinuity for two ticks before revealing the reverse path.
             task->killCountdown = task->killCountdown + 1;
-            if (task->killCountdown >= 3) {
+            if (task->killCountdown >= ACROPOLIS_FORKED_ROAD_RETURN_REVEAL_TICK) {
                 SetDispMask(1);
             }
-            work->playerMtx->t[0] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vx;
-            work->playerMtx->t[1] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vy;
-            work->playerMtx->t[2] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
-            if (work->skipFadeStarted != 0) {
-                if (taskPollKill(work->skipFadeTask, &sp40) != 0) {
-                    place.pos.vx = -0x190;
-                    place.pos.vy = 1;
-                    place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
-                    place.rot.vz = 0;
-                    place.rot.vx = 0;
-                    place.rot.vy = 0xC00;
-                    TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
-                    taskSpawnFromTable(D_acropolis_forked_road_80180F44, 4, 0, 0);
+            ACROPOLIS_FORKED_ROAD_APPLY_MOVIE_PATH_POSITION(movieWork, ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame);
+            // A completed skip fade places the final pose; normal completion walks there.
+            if (movieWork->skipFadeStarted != 0) {
+                if (taskPollKill(movieWork->skipFadeTask, &fadeResult) != 0) {
+                    exitPose.pos.vx = -0x190;
+                    exitPose.pos.vy = 1;
+                    exitPose.pos.vz = D_acropolis_forked_road_80180F80[ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame].vz;
+                    exitPose.rot.vz = 0;
+                    exitPose.rot.vx = 0;
+                    exitPose.rot.vy = ACROPOLIS_FORKED_ROAD_RETURN_YAW;
+                    TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &exitPose, 0);
+                    taskSpawnFromTable(D_acropolis_forked_road_80180F44, ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_IN, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (padIsStartPressed() != 0) {
-                work->skipFadeTask    = taskSpawnFromTable(D_acropolis_forked_road_80180F44, 3, 0, 0);
-                work->skipFadeStarted = 1;
+                movieWork->skipFadeTask    = taskSpawnFromTable(D_acropolis_forked_road_80180F44, ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_OUT, 0, 0);
+                movieWork->skipFadeStarted = 1;
             }
-            if ((0x3B - queue->movieFrame) < 0xB) {
-                place.pos.vx = -0x190;
-                place.pos.vy = 1;
-                place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
-                TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3F2, &place, 0);
+            if ((ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame) < ACROPOLIS_FORKED_ROAD_RETURN_WALK_EXIT_INDEX) {
+                exitPose.pos.vx = -0x190;
+                exitPose.pos.vy = 1;
+                exitPose.pos.vz = D_acropolis_forked_road_80180F80[ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame].vz;
+                TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &exitPose, 0);
                 task->state = task->state + 1;
             }
             break;
 
-        case 3:
-            if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-                taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(5);
+        case ACROPOLIS_FORKED_ROAD_RETURN_WAIT_EXIT:
+            if (taskMessageDispatch(movieWork->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
+                taskMessageDispatch(movieWork->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(ACROPOLIS_FORKED_ROAD_RETURN_LOGICAL_VIEW);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -1109,6 +1144,8 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             break;
     }
 }
+
+#undef ACROPOLIS_FORKED_ROAD_APPLY_MOVIE_PATH_POSITION
 
 /// Darkens the return ride before its skip caller replaces the player's pose.
 ///
@@ -1159,29 +1196,34 @@ static void _acropolisForkedRoadReleaseMaggotCaterpillarEntrance(void)
     gSceneCombatState.maggotCaterpillarEntranceReady = true;
 }
 
-/// Forked-road ambient effect task. On its first frame it fires one effect per
-/// entry of `D_acropolis_forked_road_80182178`, in four runs that differ only
-/// in the flavour bits added to the entry's index - two 0x02000000, two
-/// 0x03000000, eight 0x02000100 and two 0x00000200 - and then publishes the
-/// room's three ambient sound events before marking itself done.
-void func_acropolis_forked_road_8017E298(Task* task)
+void acropolisForkedRoadInitializeRoomEffectsTask(Task* task)
 {
-    GfxCoord* coord;
-    s32       i;
+    enum {
+        ACROPOLIS_FORKED_ROAD_ROOM_EFFECTS_INITIALIZE = 0,
+        ACROPOLIS_FORKED_ROAD_CELL_0_SMALL_END        = 2,
+        ACROPOLIS_FORKED_ROAD_CELL_0_LARGE_END        = 4,
+        ACROPOLIS_FORKED_ROAD_CELL_1_END              = 12,
+        ACROPOLIS_FORKED_ROAD_LAMP_SCALE_512          = 512 << 16,
+        ACROPOLIS_FORKED_ROAD_LAMP_SCALE_768          = 768 << 16,
+        ACROPOLIS_FORKED_ROAD_LAMP_CELL_1             = 1 << 8,
+        ACROPOLIS_FORKED_ROAD_LAMP_CELL_2             = 2 << 8
+    };
+    GfxCoord* effectCoord;
+    s32       lampIndex;
 
-    coord = task->extra.coordBody->coord;
-    if (task->state == 0) {
-        for (i = 0; i < 2; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x2000000, &D_acropolis_forked_road_80182178[i]);
+    effectCoord = task->extra.coordBody->coord;
+    if (task->state == ACROPOLIS_FORKED_ROAD_ROOM_EFFECTS_INITIALIZE) {
+        for (lampIndex = 0; lampIndex < ACROPOLIS_FORKED_ROAD_CELL_0_SMALL_END; lampIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + ACROPOLIS_FORKED_ROAD_LAMP_SCALE_512, &D_acropolis_forked_road_80182178[lampIndex]);
         }
-        for (i = 2; i < 4; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x3000000, &D_acropolis_forked_road_80182178[i]);
+        for (lampIndex = ACROPOLIS_FORKED_ROAD_CELL_0_SMALL_END; lampIndex < ACROPOLIS_FORKED_ROAD_CELL_0_LARGE_END; lampIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + ACROPOLIS_FORKED_ROAD_LAMP_SCALE_768, &D_acropolis_forked_road_80182178[lampIndex]);
         }
-        for (i = 4; i < 0xC; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x2000100, &D_acropolis_forked_road_80182178[i]);
+        for (lampIndex = ACROPOLIS_FORKED_ROAD_CELL_0_LARGE_END; lampIndex < ACROPOLIS_FORKED_ROAD_CELL_1_END; lampIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + (ACROPOLIS_FORKED_ROAD_LAMP_SCALE_512 | ACROPOLIS_FORKED_ROAD_LAMP_CELL_1), &D_acropolis_forked_road_80182178[lampIndex]);
         }
-        for (i = 0xC; i < 0xE; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x200, &D_acropolis_forked_road_80182178[i]);
+        for (lampIndex = ACROPOLIS_FORKED_ROAD_CELL_1_END; lampIndex < (s32)ARRAY_SIZE(D_acropolis_forked_road_80182178); lampIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + ACROPOLIS_FORKED_ROAD_LAMP_CELL_2, &D_acropolis_forked_road_80182178[lampIndex]);
         }
         gRoomEffectFlashId      = EFFECT_ACROPOLIS_FORKED_ROAD_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_ACROPOLIS_FORKED_ROAD_TWIN_TRAIL;
@@ -1330,7 +1372,7 @@ void acropolisForkedRoadRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_acropolis_forked_road_801802CC(Task* task)
+void acropolisForkedRoadRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

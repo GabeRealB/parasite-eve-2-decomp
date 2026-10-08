@@ -108,11 +108,11 @@ extern WorldCollisionTrigger  D_acropolis_cafeteria_801896A4[20];
 static AnimationSet _gAcropolisCafeteriaAnimation07704;
 s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 static s32          _acropolisCafeteriaRefuseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32                 func_acropolis_cafeteria_8017E0DC(Task*, s32, s32, s32);
-s32                 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, const void* firstArg, s32);
+static s32          _acropolisCafeteriaHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg);
+static s32          _acropolisCafeteriaHandleActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedArg);
 static s32          _acropolisCafeteriaPlaySoundMsg(Task* task, s32 messageId, s32 soundCue, s32 unusedArg);
 void                func_acropolis_cafeteria_8017D8F8(Task*);
-void                func_acropolis_cafeteria_8017DD1C(Task*);
+static void         _acropolisCafeteriaFollowUpSceneTask(Task* task);
 static void         _acropolisCafeteriaSettleStrangerTask(Task* task);
 static void         _acropolisCafeteriaSetPlayerSurface(s32 surfaceClass);
 static void         _acropolisCafeteriaCancelPeEffects(void);
@@ -121,8 +121,8 @@ static void         _acropolisCafeteriaPreparePostBattleScene(void);
 
 TaskMessageEntry D_acropolis_cafeteria_80182AA8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_cafeteria_8017D700 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_cafeteria_8017E154 },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_cafeteria_8017E0DC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisCafeteriaHandleActionMessage },
+    { ROOM_MESSAGE_COMMAND, _acropolisCafeteriaHandleCommandMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisCafeteriaRefuseKeyItemMsg },
     { ROOM_MESSAGE_SOUND, _acropolisCafeteriaPlaySoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -130,7 +130,7 @@ TaskMessageEntry D_acropolis_cafeteria_80182AA8[6] = {
 
 TaskDesc D_acropolis_cafeteria_80182AD8[4] = {
     { { { TASK_BODY_NONE, 32 } }, func_acropolis_cafeteria_8017D8F8, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_cafeteria_8017DD1C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _acropolisCafeteriaFollowUpSceneTask, { .value = 0 } },
 
     { { { TASK_BODY_NONE, 32 } }, _acropolisCafeteriaSettleStrangerTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
@@ -1201,74 +1201,114 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
     }
 }
 
-void func_acropolis_cafeteria_8017DD1C(Task* task)
+/// Commits the cafeteria follow-up scene and hands its patio destination to reload.
+///
+/// Requires the live save, loaded area updates and a live bodyless controller.
+/// Applies progress and placement changes before stopping sound and starting
+/// reload. Releases the controller last; reload owns the subsequent handoff.
+static inline void _acropolisCafeteriaCommitFollowUpDeparture(Task* task)
 {
-    char pad[8];
+    enum {
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_DIALOGUE    = 4,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_SCENE_EVENT = 4,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_OBJECTIVE   = 4,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_WARP  = 3,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_ROOM  = 3,
+    };
+    // Commit the completed scene before handing the saved destination to the reload task.
+    gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PROGRESS, ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE);
+    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_CAFETERIA_FOLLOW_UP_DIALOGUE);
+    gameFlagSetNibble(GAME_FLAG_00E, 1);
+    areaApplySavedUpdates(D_acropolis_cafeteria_8018C9D4);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_CAFETERIA_FOLLOW_UP_SCENE_EVENT;
+    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_CAFETERIA_FOLLOW_UP_OBJECTIVE);
+    func_800ABFF8();
+    func_800AC000();
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_PATIO;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_ROOM;
+    gDisplayState.spriteVariant                                 = 1;
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskKill(task);
+}
+
+/// Runs the post-battle interaction and its accepted follow-up scene before returning to the patio.
+///
+/// Starts bodyless in state 0 after the cafeteria battle. Placement 3 state 1
+/// permits CAP command 3 between the player's presentation clips. If that
+/// placement remains at 1, resumes play and ends; otherwise runs a skippable
+/// scene, commits story and area updates, and reloads patio room/warp 3.
+/// Requires a live player and loaded room scripts through the reload handoff.
+static void _acropolisCafeteriaFollowUpSceneTask(Task* task)
+{
+    enum {
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_CHECK             = 0,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_WAIT_PRESENTATION = 1,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_WAIT_CAP          = 2,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_WAIT_RESUME       = 3,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_START_SCENE       = 6,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_WAIT_SCENE        = 7,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_DEPART            = 8,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_PLACEMENT_ID      = 3,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_CAP_COMMAND       = 3,
+        ACROPOLIS_CAFETERIA_PRESENTATION_ENTER          = 0,
+        ACROPOLIS_CAFETERIA_PRESENTATION_LEAVE          = 1,
+        ACROPOLIS_CAFETERIA_EVENT_RUNNING               = 1
+    };
+    // Unused automatic storage retains the scene task's original stack frame.
+    char unusedStack[8];
 
     switch (task->state) {
-        case 0:
-            if (areaGetCurrentObjectState(3) == 1) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 0, 0);
+        case ACROPOLIS_CAFETERIA_FOLLOW_UP_CHECK:
+            if (areaGetCurrentObjectState(ACROPOLIS_CAFETERIA_FOLLOW_UP_PLACEMENT_ID) == 1) {
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, ACROPOLIS_CAFETERIA_PRESENTATION_ENTER, 0);
                 task->state = task->state + 1;
             } else {
                 taskKill(task);
             }
             break;
 
-        case 1:
+        case ACROPOLIS_CAFETERIA_FOLLOW_UP_WAIT_PRESENTATION:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-                capRunCommandWithTransition(3);
+                capRunCommandWithTransition(ACROPOLIS_CAFETERIA_FOLLOW_UP_CAP_COMMAND);
                 task->state = task->state + 1;
             }
             break;
 
-        case 2:
+        case ACROPOLIS_CAFETERIA_FOLLOW_UP_WAIT_CAP:
             if (capIsBusy() == 0) {
-                if (areaGetCurrentObjectState(3) == 1) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 1, 0);
+                if (areaGetCurrentObjectState(ACROPOLIS_CAFETERIA_FOLLOW_UP_PLACEMENT_ID) == 1) {
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, ACROPOLIS_CAFETERIA_PRESENTATION_LEAVE, 0);
                     task->state = task->state + 1;
                 } else {
-                    task->state = 6;
+                    task->state = ACROPOLIS_CAFETERIA_FOLLOW_UP_START_SCENE;
                 }
             }
             break;
 
-        case 3:
+        case ACROPOLIS_CAFETERIA_FOLLOW_UP_WAIT_RESUME:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(task);
             }
             break;
 
-        case 6:
+        case ACROPOLIS_CAFETERIA_FOLLOW_UP_START_SCENE:
             evsStartScriptWithSkip(D_acropolis_cafeteria_8018363C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_cafeteria_80183DBC);
             task->state = task->state + 1;
             break;
 
-        case 7:
-            if (gGameSession->eventState != 1) {
+        case ACROPOLIS_CAFETERIA_FOLLOW_UP_WAIT_SCENE:
+            if (gGameSession->eventState != ACROPOLIS_CAFETERIA_EVENT_RUNNING) {
                 task->state = task->state + 1;
             }
             break;
 
-        case 8:
-            gameFlagSetNibble(0, 2);
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
-            gameFlagSetNibble(GAME_FLAG_00E, 1);
-            areaApplySavedUpdates(D_acropolis_cafeteria_8018C9D4);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 4);
-            func_800ABFF8();
-            func_800AC000();
-            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_PATIO;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 3;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 3;
-            gDisplayState.spriteVariant                                 = 1;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(task);
+        case ACROPOLIS_CAFETERIA_FOLLOW_UP_DEPART:
+            _acropolisCafeteriaCommitFollowUpDeparture(task);
             break;
     }
 }
@@ -1352,34 +1392,56 @@ static s32 _acropolisCafeteriaRefuseKeyItemMsg(Task* task, s32 messageId, s32 it
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_acropolis_cafeteria_8017E0DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Starts CAP sequence 7 for room command 7 after the cafeteria scene is ready.
+///
+/// Requires saved or live scene progress at least 2 and placement 4 in state
+/// 0 or 1. Other commands do nothing. Remaining arguments are unused; returns 0.
+static s32 _acropolisCafeteriaHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg)
 {
-    if (arg2 == 7) {
-        if (gameFlagGetNibble(0) >= 2 || D_acropolis_cafeteria_80184164 >= 2) {
-            if (areaGetCurrentObjectState(4) == 1 || areaGetCurrentObjectState(4) == 0) {
-                capStartSequenceSlot(7, 1, 0);
+    enum {
+        ACROPOLIS_CAFETERIA_COMMAND_SEQUENCE_7 = 7,
+        ACROPOLIS_CAFETERIA_CAP_PLACEMENT_ID   = 4
+    };
+    if (commandId == ACROPOLIS_CAFETERIA_COMMAND_SEQUENCE_7) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE || D_acropolis_cafeteria_80184164 >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE) {
+            if (areaGetCurrentObjectState(ACROPOLIS_CAFETERIA_CAP_PLACEMENT_ID) == 1 || areaGetCurrentObjectState(ACROPOLIS_CAFETERIA_CAP_PLACEMENT_ID) == 0) {
+                capStartSequenceSlot(ACROPOLIS_CAFETERIA_COMMAND_SEQUENCE_7, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
             }
         }
     }
     return 0;
 }
-/// Handler for slot-7 msg `0x13EF`: the directed action selected by `actionId`.
-s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Routes directed cafeteria actions to the battle, follow-up scene or CAP command 9.
+///
+/// Borrows a four-byte request through synchronous dispatch. Action 0 starts
+/// the follow-up task once saved or live scene progress reaches 2; action 2
+/// runs CAP command 9; action 3 starts the battle once while saved progress is
+/// 1 and the live scene latch is zero. No payload is retained. Other arguments
+/// are unused; returns 0. Requires the room task descriptors and scripts loaded.
+static s32 _acropolisCafeteriaHandleActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum {
+        ACROPOLIS_CAFETERIA_ACTION_FOLLOW_UP      = 0,
+        ACROPOLIS_CAFETERIA_ACTION_CAP_COMMAND    = 2,
+        ACROPOLIS_CAFETERIA_ACTION_START_BATTLE   = 3,
+        ACROPOLIS_CAFETERIA_TASK_BATTLE           = 0,
+        ACROPOLIS_CAFETERIA_TASK_FOLLOW_UP        = 1,
+        ACROPOLIS_CAFETERIA_ACTION_CAP_COMMAND_ID = 9,
+        ACROPOLIS_CAFETERIA_PROGRESS_BEFORE_SCENE = 1
+    };
 
-    if (request->actionId == 0) {
-        if (D_acropolis_cafeteria_80184164 >= 2 || gameFlagGetNibble(0) >= 2) {
-            taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, 1, 0, 0);
+    if (actionRequest->actionId == ACROPOLIS_CAFETERIA_ACTION_FOLLOW_UP) {
+        if (D_acropolis_cafeteria_80184164 >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE || gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE) {
+            taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, ACROPOLIS_CAFETERIA_TASK_FOLLOW_UP, 0, 0);
             return 0;
         }
     }
-    if (request->actionId == 2) {
-        capRunCommandWithTransition(9);
-    } else if (request->actionId == 3) {
-        if (D_acropolis_cafeteria_80184164 == 0 && gameFlagGetNibble(0) == 1) {
+    if (actionRequest->actionId == ACROPOLIS_CAFETERIA_ACTION_CAP_COMMAND) {
+        capRunCommandWithTransition(ACROPOLIS_CAFETERIA_ACTION_CAP_COMMAND_ID);
+    } else if (actionRequest->actionId == ACROPOLIS_CAFETERIA_ACTION_START_BATTLE) {
+        if (D_acropolis_cafeteria_80184164 == 0 && gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_CAFETERIA_PROGRESS_BEFORE_SCENE) {
             D_acropolis_cafeteria_80184164 = 1;
-            taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, 0, 0, 0);
+            taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, ACROPOLIS_CAFETERIA_TASK_BATTLE, 0, 0);
         }
     }
     return 0;

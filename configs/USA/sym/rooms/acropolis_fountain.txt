@@ -96,3 +96,5 @@ acropolisFountainEnableClimbTrigger = 0x8017da1c; // type:func
 _acropolisFountainStopWaterMovieTask = 0x8017e72c; // type:func
 _acropolisFountainInitializeRoomTask = 0x8017d960; // type:func
 acropolisFountainRoomTask = 0x8017d9c4; // type:func
+_acropolisFountainResolveTransitionMessage = 0x8017d604; // type:func
+_acropolisFountainHandleCommandMessage = 0x8017d77c; // type:func

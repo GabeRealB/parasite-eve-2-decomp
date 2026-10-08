@@ -90,7 +90,7 @@ static TaskDesc D_acropolis_east_elevator_hall_8017FC90[];
 #define RED_BEACON_TASK acropolisEastElevatorHallRedBeaconTask
 #include "../../shared/red_beacon.h"
 
-static void func_acropolis_east_elevator_hall_8017F478(Task* task);
+static void _acropolisEastElevatorHallInitializeRoomTask(Task* task);
 static void _acropolisEastElevatorHallUpdatePlayerDebugDisplay(Task* unusedTask);
 
 /// Scale handed to `ScaleMatrix` to flip the reflection across X.
@@ -98,7 +98,7 @@ static void _acropolisEastElevatorHallUpdatePlayerDebugDisplay(Task* unusedTask)
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
 static const TaskFuncTable3 D_acropolis_east_elevator_hall_8017D5D4 = {
-    { func_acropolis_east_elevator_hall_8017F478, _acropolisEastElevatorHallUpdatePlayerDebugDisplay, taskKill },
+    { _acropolisEastElevatorHallInitializeRoomTask, _acropolisEastElevatorHallUpdatePlayerDebugDisplay, taskKill },
 };
 
 static AnimationSet _gAcropolisEastElevatorHallAnimation02EB8;
@@ -123,7 +123,7 @@ static s32                   _acropolisEastElevatorHallResolveTransitionMessage(
 static s32                   _acropolisEastElevatorHallRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32                   _acropolisEastElevatorHallStartOpeningEvent(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedSecondArg);
 static s32                   _acropolisEastElevatorHallHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedExecutionMode);
-void                         func_acropolis_east_elevator_hall_8017F450(void);
+static void                  _acropolisEastElevatorHallStartSkipCapSequence(void);
 
 /// Key-item use request sent to the room task by the inventory menu.
 enum { ACROPOLIS_EAST_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -311,7 +311,7 @@ EvsCommand D_acropolis_east_elevator_hall_801860B4[15] = {
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_east_elevator_hall_8017F450 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisEastElevatorHallStartSkipCapSequence }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 240 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -831,17 +831,30 @@ static s32 _acropolisEastElevatorHallHandleCommandMessage(Task* unusedTask, s32 
     return 0;
 }
 
-void func_acropolis_east_elevator_hall_8017F450(void)
+/// Starts CAP sequence 16 at the end of the opening scene's skip script.
+///
+/// Requires the hall's CAP file loaded; uses transition playback and variant 0.
+static void _acropolisEastElevatorHallStartSkipCapSequence(void)
 {
-    capStartSequenceSlot(0x10, 1, 0);
+    enum { ACROPOLIS_EAST_ELEVATOR_HALL_SKIP_CAP_SEQUENCE = 16 };
+    capStartSequenceSlot(ACROPOLIS_EAST_ELEVATOR_HALL_SKIP_CAP_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
 }
 
-static void func_acropolis_east_elevator_hall_8017F478(Task* task)
+/// Registers the hall's room receiver and starts placed actor 0's initial animation.
+///
+/// Requires a live bodyless task in state 0, initialized placements and loaded
+/// animation resources. Publishes `GAME_TASK_SLOT_ROOM`, enables actor drawing
+/// and borrows its animation request synchronously, then enters state 1.
+static void _acropolisEastElevatorHallInitializeRoomTask(Task* task)
 {
+    enum {
+        ACROPOLIS_EAST_ELEVATOR_HALL_INITIAL_PLACED_ACTOR      = 0,
+        ACROPOLIS_EAST_ELEVATOR_HALL_PLACED_ACTOR_DRAW_ENABLED = 1
+    };
     task->msgTable = D_acropolis_east_elevator_hall_801862F4;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    sceneSetPlacedActorDrawMode(0, 1);
-    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_acropolis_east_elevator_hall_80185C8C, 0);
+    sceneSetPlacedActorDrawMode(ACROPOLIS_EAST_ELEVATOR_HALL_INITIAL_PLACED_ACTOR, ACROPOLIS_EAST_ELEVATOR_HALL_PLACED_ACTOR_DRAW_ENABLED);
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_EAST_ELEVATOR_HALL_INITIAL_PLACED_ACTOR), ACTOR_MESSAGE_PLAY_ANIMATION, &D_acropolis_east_elevator_hall_80185C8C, 0);
     task->state++;
 }
 
@@ -876,46 +889,60 @@ void acropolisEastElevatorHallRoomTask(Task* task)
 }
 
 /// Position of the first of the six effects
-/// `func_acropolis_east_elevator_hall_8017F5B4` spawns in view 2; the other
+/// `acropolisEastElevatorHallReflectionsAndBeaconsTask` spawns in view 2; the other
 /// five positions are written into the local copy in turn.
 static const SVECTOR D_acropolis_east_elevator_hall_8017D5E8 = { 0x1600, -0x964, 0x540, 0 };
 
-void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
+void acropolisEastElevatorHallReflectionsAndBeaconsTask(Task* task)
 {
-    GfxCoord* coord;
+    enum {
+        ACROPOLIS_EAST_ELEVATOR_HALL_EFFECTS_INITIALIZE   = 0,
+        ACROPOLIS_EAST_ELEVATOR_HALL_EFFECTS_UPDATE       = 1,
+        ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_BANK = 1,
+        ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_SLOT = 0x25,
+        ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_FLOOR     = 0,
+        ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_MIRROR    = 1,
+        ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_VIEW          = 2,
+        ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_SMALL_RATE    = 3,
+        ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_SMALL_SIZE    = 12,
+        ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_LARGE_RATE    = 4,
+        ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_LARGE_SIZE    = 18
+    };
+    GfxCoord* parentCoord;
 
-    coord = task->extra.coordBody->coord;
+    parentCoord = task->extra.coordBody->coord;
     switch (task->state) {
-        case 0:
-            taskSpawn(1, 0x25, 0, 0);
-            taskSpawn(1, 0x25, 1, 0);
+        case ACROPOLIS_EAST_ELEVATOR_HALL_EFFECTS_INITIALIZE:
+            taskSpawn(ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_BANK, ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_SLOT, ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_FLOOR, 0);
+            taskSpawn(ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_BANK, ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_SLOT, ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_MIRROR, 0);
             task->state++;
             /* fallthrough */
-        case 1:
-            if (gGameSession->location.loc.view == 2) {
-                SVECTOR vec = D_acropolis_east_elevator_hall_8017D5E8;
+        case ACROPOLIS_EAST_ELEVATOR_HALL_EFFECTS_UPDATE:
+            // Each beacon lasts one frame, so refresh all six while this view is active.
+            if (gGameSession->location.loc.view == ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_VIEW) {
+                SVECTOR spawnOffset = D_acropolis_east_elevator_hall_8017D5E8;
 
-                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0xC), &vec);
-                vec.vx = 0x1600;
-                vec.vy = -0x985;
-                vec.vz = 0x55;
-                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0xC), &vec);
-                vec.vx = 0x1600;
-                vec.vy = -0xA81;
-                vec.vz = -0x1CA;
-                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x12), &vec);
-                vec.vx = 0x1600;
-                vec.vy = -0xA93;
-                vec.vz = -0x61C;
-                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x12), &vec);
-                vec.vx = 0x1600;
-                vec.vy = -0x460;
-                vec.vz = -0x1A1;
-                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x12), &vec);
-                vec.vx = 0x1600;
-                vec.vy = -0x449;
-                vec.vz = -0x635;
-                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x12), &vec);
+                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_SMALL_RATE, ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_SMALL_SIZE), &spawnOffset);
+                spawnOffset.vx = 0x1600;
+                spawnOffset.vy = -0x985;
+                spawnOffset.vz = 0x55;
+                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_SMALL_RATE, ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_SMALL_SIZE), &spawnOffset);
+                spawnOffset.vx = 0x1600;
+                spawnOffset.vy = -0xA81;
+                spawnOffset.vz = -0x1CA;
+                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_LARGE_RATE, ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_LARGE_SIZE), &spawnOffset);
+                spawnOffset.vx = 0x1600;
+                spawnOffset.vy = -0xA93;
+                spawnOffset.vz = -0x61C;
+                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_LARGE_RATE, ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_LARGE_SIZE), &spawnOffset);
+                spawnOffset.vx = 0x1600;
+                spawnOffset.vy = -0x460;
+                spawnOffset.vz = -0x1A1;
+                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_LARGE_RATE, ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_LARGE_SIZE), &spawnOffset);
+                spawnOffset.vx = 0x1600;
+                spawnOffset.vy = -0x449;
+                spawnOffset.vz = -0x635;
+                effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_LARGE_RATE, ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_LARGE_SIZE), &spawnOffset);
             }
             break;
     }

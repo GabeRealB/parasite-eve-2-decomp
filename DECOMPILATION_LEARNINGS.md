@@ -7558,7 +7558,7 @@ Referencing the existing symbol as an `extern` avoids the cut entirely, and
 matches how these overlays already reference their compiler-generated
 string literals.
 
-`func_acropolis_east_elevator_hall_8017F5B4` is the example.
+`acropolisEastElevatorHallReflectionsAndBeaconsTask` is the example.
 
 ## A `MATRIX` struct assignment is a rotating 4-register block move, not 8 scalar copies
 
@@ -10895,7 +10895,7 @@ So: dispatch that is one contiguous block at the top of the function is a
 form also lets the delay slot of the first `bne` preload the *next* case's
 constant, which a later `jal` can then reuse (`move a0,v0` instead of
 `li a0,9`) — that reused constant is a reliable tell on its own.
-(`func_acropolis_fountain_8017D604`)
+(`_acropolisFountainResolveTransitionMessage`)
 
 ### A `u16` local re-truncates; use `s32` when the source is `lhu`
 
@@ -10912,7 +10912,7 @@ s32 msgId = in->msgId;   /* lhu s0,0(s1) */
 
 `lhu` already zero-extends, so `s32` (or `int`) is the type that matches when
 the value is only compared and stored back to a narrower field.
-(`func_acropolis_fountain_8017D604`)
+(`_acropolisFountainResolveTransitionMessage`)
 
 ## Force prologue moves before the first load (delay-slot fill)
 
@@ -43423,7 +43423,7 @@ switch (task->state) {
 
 The merged block survives at the **last** case that uses it, which is what puts
 the `state++` tail between the case-7 and case-8 bodies and the `taskKill` tail
-after case 8 in `func_acropolis_cafeteria_8017DD1C`. Hand-written `goto advance`
+after case 8 in `_acropolisCafeteriaFollowUpSceneTask`. Hand-written `goto advance`
 / `goto kill` labels put the tail wherever the label sits in the source and, far
 worse, free cross-jumping to merge something else: there it ate a
 `jal taskMessageDispatch` argument tail shared by two cases (97.2%, `branch`/`delete`
@@ -53132,7 +53132,7 @@ and the branch condition is the ternary's condition unnegated. If your attempt
 has the two constants swapped and the branch polarity flipped (`beqz`+3/6
 against the ROM's `bnez`+6/3), the fix is to negate the condition *and* swap the
 arms — `(x & 2) ? 6 : 3` becomes `((x & 2) == 0) ? 3 : 6`, which is the same
-value but the codegen the ROM has. `func_acropolis_fountain_8017D77C` went from
+value but the codegen the ROM has. `_acropolisFountainHandleCommandMessage` went from
 92% to 99% on that rewrite alone; writing it as a two-armed `if`/`else` around
 the call instead emits the call twice.
 
@@ -61370,10 +61370,10 @@ covers the opposite case, where the target merges and the source does not.
 A message handler with several `if (guard) { side effects } return N;` blocks
 compiles two different ways depending on whether the guards are written as an
 early return or as a plain `if`. Mixing the two forms cost one instruction in
-`func_acropolis_forked_road_8017D5EC`:
+`_acropolisForkedRoadResolveTransitionMessage`:
 
 ```c
-if (msg->field_5 != 0) {     /* early-return form */
+if (request->queryOnly != 0) {     /* early-return form */
     return 0;
 }
 D_8007216C = 7;
@@ -61402,7 +61402,7 @@ filled from the fall-through thread instead — one instruction shorter.
 Writing every guard in the same shape is what keeps the tails local:
 
 ```c
-if (msg->field_5 == 0) {
+if (request->queryOnly == 0) {
     D_8007216C = 7;
     ...
 }
@@ -61419,13 +61419,13 @@ whole function before reaching for anything else.
 
 ## A scalar global and a struct-member load reorder; the same address named as a struct field does not
 
-`func_acropolis_forked_road_8017DA24` stores a flag and then fills a work block
+`_acropolisForkedRoadOutboundMoviePathTask` stores a flag and then fills a work block
 from `Task::work`:
 
 ```c
 D_801153F4 = 2;                                  /* extern u8 */
-((AfrStreamWork*)task->work)->mtx    = D_80073B8C;
-((AfrStreamWork*)task->work)->target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+((RoomMoviePathWork*)task->work)->playerMtx    = D_80073B8C;
+((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 ```
 
 The target keeps source order — `lui/li/sb` for the flag, *then* the

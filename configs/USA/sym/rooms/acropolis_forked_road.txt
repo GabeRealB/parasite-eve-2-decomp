@@ -125,7 +125,7 @@ D_acropolis_forked_road_80185094 = 0x80185094; // size:0x8 defined:True
 D_acropolis_forked_road_8018509C = 0x8018509C; // size:0x8 defined:True
 D_acropolis_forked_road_801850A4 = 0x801850A4; // size:0x20 defined:True
 
-func_acropolis_forked_road_8017E298 = 0x8017E298; // type:func
+acropolisForkedRoadInitializeRoomEffectsTask = 0x8017E298; // type:func
 
 acropolisForkedRoadWallLampTask = 0x8017E410; // type:func
 
@@ -133,7 +133,7 @@ acropolisForkedRoadRoomVisualEffectsFlashTask = 0x8017EF80; // type:func
 
 acropolisForkedRoadRoomVisualEffectsTwinTrailTask = 0x8017F9E4; // type:func
 
-func_acropolis_forked_road_801802CC = 0x801802CC; // type:func
+acropolisForkedRoadRoomVisualEffectsSparkBurstTask = 0x801802CC; // type:func
 
 acropolisForkedRoadLeafFallTask = 0x8017E81C; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017F224; // type:func
@@ -147,3 +147,9 @@ _acropolisForkedRoadSkipFadeOutTask = 0x8017e1c0; // type:func
 _acropolisForkedRoadRejectKeyItemUse = 0x8017d850; // type:func
 _acropolisForkedRoadInitializeRoomTask = 0x8017d92c; // type:func
 acropolisForkedRoadRoomTask = 0x8017d9cc; // type:func
+_acropolisForkedRoadResolveTransitionMessage = 0x8017d5ec; // type:func
+_acropolisForkedRoadHandleCommandMessage = 0x8017d858; // type:func
+_acropolisForkedRoadHandleActionMessage = 0x8017d8a8; // type:func
+_acropolisForkedRoadStartReturnArrivalScene = 0x8017d970; // type:func
+_acropolisForkedRoadOutboundMoviePathTask = 0x8017da24; // type:func
+_acropolisForkedRoadReturnMoviePathTask = 0x8017dd60; // type:func

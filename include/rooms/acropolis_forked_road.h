@@ -30,7 +30,14 @@ extern ViewCamera D_acropolis_forked_road_80184E88[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_forked_road_801850A4[];
 
-void func_acropolis_forked_road_8017E298(Task* task);
+/// Spawns fourteen wall lamps and publishes this room's flash, trail and burst IDs.
+///
+/// Bank-6 slot 0x85 requires a live coordinate body in state 0. Spawns one lamp
+/// per room offset, packing its index, sprite cell and world-size scale into
+/// the argument. Advances to state 1 even if a spawn fails; later ticks do
+/// nothing. The controller remains live until external teardown. Its coordinate
+/// hierarchy and this overlay must remain loaded while the lamps use them.
+void acropolisForkedRoadInitializeRoomEffectsTask(Task* task);
 
 /// Draws a flickering, camera-facing wall lamp in the logical views that see it.
 ///
@@ -64,7 +71,15 @@ void acropolisForkedRoadRoomVisualEffectsFlashTask(Task* task);
 /// Normal effect teardown releases both the counted work and history block.
 void acropolisForkedRoadRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_acropolis_forked_road_801802CC(Task* task);
+/// Runs an impact flash followed by smoke puffs or orange rings and bouncing sparks.
+///
+/// Bank-6 slot 0x292 requires a coordinate body and zeroed, counted `EffectWork`
+/// in `spawnArg2.pointer`. Nonzero `spawnArg1.value` selects smoke; zero selects
+/// two independent sparks and fading rings. Enters release at active age seven
+/// and frees the counted work/task on the next active tick. Nonzero room effect
+/// control pauses below four and cancels at four or above. Keep the room overlay
+/// and the borrowed coordinate hierarchy loaded until effect teardown.
+void acropolisForkedRoadRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs a tumbling leaf through its fall, stationary hold and brightness fade.
 ///

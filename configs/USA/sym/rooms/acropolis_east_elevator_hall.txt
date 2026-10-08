@@ -80,7 +80,7 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor110300ViewFigureTasks = 0x8013A06C; // absolute:True owner=actor_110300
 D_map_akropolis_8017ACDC = 0x8017ACDC; // absolute:True owner=map_akropolis
 
-func_acropolis_east_elevator_hall_8017F5B4 = 0x8017F5B4; // type:func
+acropolisEastElevatorHallReflectionsAndBeaconsTask = 0x8017F5B4; // type:func
 
 acropolisEastElevatorHallRedBeaconTask = 0x8017F77C; // type:func
 
@@ -96,3 +96,5 @@ _acropolisEastElevatorHallUpdatePlayerDebugDisplay = 0x8017f4e8; // type:func
 _acropolisEastElevatorHallStartOpeningEvent = 0x8017f378; // type:func
 _acropolisEastElevatorHallHandleCommandMessage = 0x8017f420; // type:func
 acropolisEastElevatorHallRoomTask = 0x8017f55c; // type:func
+_acropolisEastElevatorHallStartSkipCapSequence = 0x8017f450; // type:func
+_acropolisEastElevatorHallInitializeRoomTask = 0x8017f478; // type:func

@@ -31,15 +31,15 @@ static const TaskFuncTable3 D_acropolis_fountain_8017D5C4 = {
     { _acropolisFountainInitializeRoomTask, _acropolisFountainIdleRoomTask, taskKill },
 };
 
-s32        func_acropolis_fountain_8017D604(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisFountainResolveTransitionMessage(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _acropolisFountainRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_acropolis_fountain_8017D77C(Task*, s32, s32, s32);
+static s32 _acropolisFountainHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg);
 static s32 _acropolisFountainHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
 void       func_acropolis_fountain_8017D868(Task*);
 
 TaskMessageEntry D_acropolis_fountain_8017E764[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_fountain_8017D604 },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_fountain_8017D77C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisFountainResolveTransitionMessage },
+    { ROOM_MESSAGE_COMMAND, _acropolisFountainHandleCommandMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisFountainRejectKeyItemUse },
     { ROOM_MESSAGE_SOUND, _acropolisFountainHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -50,43 +50,52 @@ TaskDesc D_acropolis_fountain_8017E78C[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-/// Message gate for the fountain's hotspot: copies the incoming record to the
-/// outgoing one, then edits the copy's `room` (the answer the caller acts
-/// on) according to the message id and the room's progress nibbles. Message 3
-/// before nibble 0 reaches 5 hands the record's first two bytes to
-/// `D_acropolis_fountain_80183BB0`/`BB1` and spawns the room's own task,
-/// consuming the message (returns 0); from nibble 0 == 5 on it only answers.
-s32 func_acropolis_fountain_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves patio and forked-road departures from the fountain's story progress.
+///
+/// Borrows an eight-byte request and writable reply, which may alias. Copies
+/// the request first. A patio departure before progress 5 returns 0 and, when
+/// executing, latches the arrival selectors and starts the departure task.
+/// Other departures return 1. Queries suppress task starts and flag writes;
+/// the unlocked forked-road room is resolved even for queries. Receiver and
+/// message ID are unused; the room resources must remain loaded.
+static s32 _acropolisFountainResolveTransitionMessage(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    s32 msgId;
+    enum {
+        ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_COMPLETE = 5,
+        ACROPOLIS_FOUNTAIN_PATIO_SCENE_COMPLETE     = 2,
+        ACROPOLIS_FOUNTAIN_FIRST_LOCK_BIT           = 1,
+        ACROPOLIS_FOUNTAIN_UNLOCKED_ROOM            = 2,
+        ACROPOLIS_FOUNTAIN_TASK_PATIO_DEPARTURE     = 0
+    };
+    s32 destinationAreaId;
 
-    *out  = *in;
-    msgId = in->areaId;
-    if (msgId == 3) {
-        if (gameFlagGetNibble(0) < 5) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_acropolis_fountain_80183BB0 = in->warp;
-                D_acropolis_fountain_80183BB1 = in->room;
-                taskSpawnFromTable(D_acropolis_fountain_8017E78C, 0, 0, 0);
+    *reply            = *request;
+    destinationAreaId = request->areaId;
+    if (destinationAreaId == GAME_AREA_ACROPOLIS_PATIO) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_COMPLETE) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                D_acropolis_fountain_80183BB0 = request->warp;
+                D_acropolis_fountain_80183BB1 = request->room;
+                taskSpawnFromTable(D_acropolis_fountain_8017E78C, ACROPOLIS_FOUNTAIN_TASK_PATIO_DEPARTURE, 0, 0);
             }
             return 0;
         }
-        if (in->areaId == msgId && in->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(0) < 2) {
-                if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) {
-                    out->room = 1;
+        if (request->areaId == destinationAreaId && request->queryOnly == ROOM_EVENT_EXECUTE) {
+            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_FOUNTAIN_PATIO_SCENE_COMPLETE) {
+                if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_FOUNTAIN_PATIO_SCENE_COMPLETE) {
+                    reply->room = 1;
                 } else {
-                    out->room = 2;
+                    reply->room = ACROPOLIS_FOUNTAIN_UNLOCKED_ROOM;
                 }
             } else {
-                out->room = msgId;
+                reply->room = destinationAreaId;
             }
         }
-    } else if (msgId == 9) {
-        if (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 1) {
-            out->room = 2;
+    } else if (destinationAreaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
+        if (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_FOUNTAIN_FIRST_LOCK_BIT) {
+            reply->room = ACROPOLIS_FOUNTAIN_UNLOCKED_ROOM;
         }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED) == 0) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED) == 0) {
             gameFlagSetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED, 1);
         }
     }
@@ -101,15 +110,29 @@ static s32 _acropolisFountainRejectKeyItemUse(Task* unusedTask, s32 messageId, s
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_acropolis_fountain_8017D77C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Runs the fountain's lock-dependent CAP command or enables its saved climb trigger.
+///
+/// Command 3 selects CAP command 3 before the second lock is released, 6 after.
+/// Command 4 starts CAP sequence 4, enables the climb trigger and saves that
+/// change. Other commands do nothing. Remaining arguments are unused; returns 0.
+static s32 _acropolisFountainHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg)
 {
-    s32 args[2];
+    enum {
+        ACROPOLIS_FOUNTAIN_COMMAND_LOCK_CAP     = 3,
+        ACROPOLIS_FOUNTAIN_COMMAND_ENABLE_CLIMB = 4,
+        ACROPOLIS_FOUNTAIN_SECOND_LOCK_BIT      = 2,
+        ACROPOLIS_FOUNTAIN_CAP_LOCKED           = 3,
+        ACROPOLIS_FOUNTAIN_CAP_UNLOCKED         = 6,
+        ACROPOLIS_FOUNTAIN_CLIMB_CAP_SEQUENCE   = 4
+    };
+    // Unused automatic storage retains this handler's original stack frame.
+    s32 unusedStack[2];
 
-    if (arg2 == 3) {
-        capRunCommandWithTransition(((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) == 0) ? 3 : 6);
+    if (commandId == ACROPOLIS_FOUNTAIN_COMMAND_LOCK_CAP) {
+        capRunCommandWithTransition(((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_FOUNTAIN_SECOND_LOCK_BIT) == 0) ? ACROPOLIS_FOUNTAIN_CAP_LOCKED : ACROPOLIS_FOUNTAIN_CAP_UNLOCKED);
     }
-    if (arg2 == 4) {
-        capStartSequenceSlot(4, 1, 0);
+    if (commandId == ACROPOLIS_FOUNTAIN_COMMAND_ENABLE_CLIMB) {
+        capStartSequenceSlot(ACROPOLIS_FOUNTAIN_CLIMB_CAP_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
         acropolisFountainEnableClimbTrigger();
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_FOUNTAIN_012, 1);
     }

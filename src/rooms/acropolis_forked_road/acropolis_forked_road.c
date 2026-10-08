@@ -47,61 +47,69 @@ STATIC_ASSERT_SIZEOF(_AcropolisForkedRoadReturnRideLatch, 8);
 extern _AcropolisForkedRoadReturnRideLatch D_acropolis_forked_road_80180F3C;
 
 static void _acropolisForkedRoadInitializeRoomTask(Task* task);
-static void func_acropolis_forked_road_8017D970(Task* task);
+static void _acropolisForkedRoadStartReturnArrivalScene(Task* unusedTask);
 
 /// State handlers of the room's own task.
 static const TaskFuncTable3 D_acropolis_forked_road_8017D5C4 = {
-    { _acropolisForkedRoadInitializeRoomTask, func_acropolis_forked_road_8017D970, taskKill }
+    { _acropolisForkedRoadInitializeRoomTask, _acropolisForkedRoadStartReturnArrivalScene, taskKill }
 };
 
-s32        func_acropolis_forked_road_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _acropolisForkedRoadRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_acropolis_forked_road_8017D858(Task*, s32, s32, s32);
-s32        func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32 _acropolisForkedRoadHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg);
+static s32 _acropolisForkedRoadHandleActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedArg);
 
 TaskMessageEntry D_acropolis_forked_road_80180F14[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_forked_road_8017D5EC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisForkedRoadResolveTransitionMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisForkedRoadRejectKeyItemUse },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_forked_road_8017D858 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_forked_road_8017D8A8 },
+    { ROOM_MESSAGE_COMMAND, _acropolisForkedRoadHandleCommandMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisForkedRoadHandleActionMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 _AcropolisForkedRoadReturnRideLatch D_acropolis_forked_road_80180F3C = { 0, { 0 } };
 
-/// Message gate for the forked road's two hotspots: copies the incoming record
-/// to the outgoing one, then answers according to the message id and the
-/// game's progress nibbles. `queryOnly` non-zero means "report only", so every
-/// side effect below is skipped while the answer stays the same.
+/// Resolves departures to the fountain or observatory and starts their pending scenes.
 ///
-/// Message 8 (the path back down) marks itself with `room = 2` once nibble 9
-/// has bit 1 set, then either plays capture slot 0 while nibble 0 is still
-/// under 3 or, past that, plays slot 3 once and records it in nibble 0x13.
-///
-/// Message 0xA (the path on) runs capture command 2 while nibble 1 is under 2.
-/// Once it is at 2 the forked-road cutscene spawns from
-/// `D_acropolis_forked_road_80180F44` and nibble 1 advances to 3, unless the
-/// disc has no `.STR` movie file (`gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0`), in which
-/// case the message is refused with `warp = 2`.
-s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Borrows an eight-byte request and writable reply, which may alias. Copies
+/// the request first. Returns 0 while a CAP or outbound movie scene handles
+/// the departure, otherwise 1. Queries suppress scene starts and flag writes;
+/// destination edits can differ between queries and execution. Requires the
+/// room resources and live player; receiver and message ID are unused.
+static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
-        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
-            out->room = 2;
+    enum {
+        ACROPOLIS_FORKED_ROAD_FOUNTAIN_CAP_SEQUENCE     = 1,
+        ACROPOLIS_FORKED_ROAD_FIRST_PATH_CAP_VARIANT    = 3,
+        ACROPOLIS_FORKED_ROAD_SECOND_LOCK_BIT           = 2,
+        ACROPOLIS_FORKED_ROAD_FOUNTAIN_READY_PROGRESS   = 3,
+        ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_READY         = 2,
+        ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_STARTED       = 3,
+        ACROPOLIS_FORKED_ROAD_DESTINATION_ROOM_UNLOCKED = 2,
+        ACROPOLIS_FORKED_ROAD_OBSERVATORY_NORMAL_WARP   = 2,
+        ACROPOLIS_FORKED_ROAD_OUTBOUND_MOVIE_VIEW       = 7,
+        ACROPOLIS_FORKED_ROAD_TASK_OUTBOUND_MOVIE       = 0,
+        ACROPOLIS_FORKED_ROAD_MAP_MARKER_SEEN           = 2,
+        ACROPOLIS_FORKED_ROAD_ROUTE_CAP_COMMAND         = 2
+    };
+
+    *reply = *request;
+    if (request->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
+        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_FORKED_ROAD_SECOND_LOCK_BIT) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
+            reply->room = ACROPOLIS_FORKED_ROAD_DESTINATION_ROOM_UNLOCKED;
         }
-        if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
-            if (gameFlagGetNibble(0) < 3) {
-                if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                    gameFlagSetNibbleIfPresent(in->flagId, 2);
-                    capStartSequenceSlot(1, 1, 0);
+        if (request->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
+            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_FORKED_ROAD_FOUNTAIN_READY_PROGRESS) {
+                if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                    gameFlagSetNibbleIfPresent(request->flagId, ACROPOLIS_FORKED_ROAD_MAP_MARKER_SEEN);
+                    capStartSequenceSlot(ACROPOLIS_FORKED_ROAD_FOUNTAIN_CAP_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
                 }
                 return 0;
             }
-            if (gameFlagGetNibble(0) >= 3) {
+            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_FORKED_ROAD_FOUNTAIN_READY_PROGRESS) {
                 if (gameFlagGetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED) == 0) {
-                    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                        capStartSequenceSlot(1, 1, 3);
+                    if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                        capStartSequenceSlot(ACROPOLIS_FORKED_ROAD_FOUNTAIN_CAP_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, ACROPOLIS_FORKED_ROAD_FIRST_PATH_CAP_VARIANT);
                         gameFlagSetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED, 1);
                     }
                 }
@@ -109,40 +117,41 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
             }
         }
     }
-    if (in->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY) {
-        if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                gameFlagSetNibbleIfPresent(in->flagId, 2);
-                capRunCommandWithTransition(2);
+    if (request->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY) {
+        if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_READY) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                gameFlagSetNibbleIfPresent(request->flagId, ACROPOLIS_FORKED_ROAD_MAP_MARKER_SEEN);
+                capRunCommandWithTransition(ACROPOLIS_FORKED_ROAD_ROUTE_CAP_COMMAND);
             }
             return 0;
         }
         if ((gDisplayState.debugMode < 0) || (D_8006AC30.startSector == 0)) {
-            if (in->queryOnly != ROOM_EVENT_EXECUTE) {
+            if (request->queryOnly != ROOM_EVENT_EXECUTE) {
                 return 1;
             }
-            out->warp = 2;
-        } else if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
+            reply->warp = ACROPOLIS_FORKED_ROAD_OBSERVATORY_NORMAL_WARP;
+        } else if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_READY) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                // Select the movie view before starting the controller that owns the departure.
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_FORKED_ROAD_OUTBOUND_MOVIE_VIEW;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(D_acropolis_forked_road_80180F44, 0, 0, 0);
-                gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 3);
+                taskSpawnFromTable(D_acropolis_forked_road_80180F44, ACROPOLIS_FORKED_ROAD_TASK_OUTBOUND_MOVIE, 0, 0);
+                gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_STARTED);
             }
             return 0;
         } else {
-            out->warp = 2;
+            reply->warp = ACROPOLIS_FORKED_ROAD_OBSERVATORY_NORMAL_WARP;
         }
-        if (in->queryOnly != ROOM_EVENT_EXECUTE) {
+        if (request->queryOnly != ROOM_EVENT_EXECUTE) {
             return 1;
         }
-        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) == 0) {
+        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_FORKED_ROAD_SECOND_LOCK_BIT) == 0) {
             return 1;
         }
         if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) != 0) {
             return 1;
         }
-        out->room = 2;
+        reply->room = ACROPOLIS_FORKED_ROAD_DESTINATION_ROOM_UNLOCKED;
         return 1;
     }
     return 1;
@@ -156,30 +165,49 @@ static s32 _acropolisForkedRoadRejectKeyItemUse(Task* unusedTask, s32 messageId,
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_acropolis_forked_road_8017D858(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects CAP command 3 or 4 from placement 24's saved state for room command 3.
+///
+/// States 0 and 1 select CAP command 3; all others select 4. Other room commands
+/// do nothing. The remaining arguments are unused; always returns zero.
+static s32 _acropolisForkedRoadHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg)
 {
-    s32 cmd;
+    enum {
+        ACROPOLIS_FORKED_ROAD_COMMAND_PLACEMENT_CAP = 3,
+        ACROPOLIS_FORKED_ROAD_CAP_PLACEMENT_ID      = 24,
+        ACROPOLIS_FORKED_ROAD_CAP_INITIAL_PLACEMENT = 3,
+        ACROPOLIS_FORKED_ROAD_CAP_CHANGED_PLACEMENT = 4
+    };
+    s32 capCommand;
 
-    if (arg2 == 3) {
-        if ((areaGetCurrentObjectState(0x18) == 0) || (areaGetCurrentObjectState(0x18) == 1)) {
-            cmd = 3;
+    if (commandId == ACROPOLIS_FORKED_ROAD_COMMAND_PLACEMENT_CAP) {
+        if ((areaGetCurrentObjectState(ACROPOLIS_FORKED_ROAD_CAP_PLACEMENT_ID) == 0) || (areaGetCurrentObjectState(ACROPOLIS_FORKED_ROAD_CAP_PLACEMENT_ID) == 1)) {
+            capCommand = ACROPOLIS_FORKED_ROAD_CAP_INITIAL_PLACEMENT;
         } else {
-            cmd = 4;
+            capCommand = ACROPOLIS_FORKED_ROAD_CAP_CHANGED_PLACEMENT;
         }
-        capRunCommandWithTransition(cmd);
+        capRunCommandWithTransition(capCommand);
     }
     return 0;
 }
 
-s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Starts the once-only lock-release event for action 1 in placement variants 4 or 8.
+///
+/// Borrows the four-byte request through synchronous dispatch; no payload is
+/// retained. Requires the second security lock released and the room's event
+/// script loaded. Receiver, message ID and second word are unused; returns 1.
+static s32 _acropolisForkedRoadHandleActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum {
+        ACROPOLIS_FORKED_ROAD_ACTION_LOCK_RELEASE_EVENT = 1,
+        ACROPOLIS_FORKED_ROAD_EVENT_LOCK_BIT            = 2,
+        ACROPOLIS_FORKED_ROAD_EVENT_VARIANT_4           = 4,
+        ACROPOLIS_FORKED_ROAD_EVENT_VARIANT_8           = 8
+    };
+    u8 placementVariant;
 
-    u8 temp;
-
-    if (request->actionId == 1 && (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2)) {
-        temp = gGameSession->location.loc.variant;
-        if (((temp == 4) || (temp == 8)) && (gameFlagGetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN) == 0)) {
+    if (actionRequest->actionId == ACROPOLIS_FORKED_ROAD_ACTION_LOCK_RELEASE_EVENT && (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_FORKED_ROAD_EVENT_LOCK_BIT)) {
+        placementVariant = gGameSession->location.loc.variant;
+        if (((placementVariant == ACROPOLIS_FORKED_ROAD_EVENT_VARIANT_4) || (placementVariant == ACROPOLIS_FORKED_ROAD_EVENT_VARIANT_8)) && (gameFlagGetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN) == 0)) {
             evsStartScript(D_acropolis_forked_road_801820B8, EVENT_SCRIPT_HUD_KEEP);
             gameFlagSetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN, 1);
         }
@@ -198,14 +226,19 @@ static void _acropolisForkedRoadInitializeRoomTask(Task* task)
     task->state = task->state + 1;
 }
 
-/// Per-frame state of the room's own task: the first frame the session's warp
-/// id is 2, spawns entry 2 of the room's task table, the return ride, latching
-/// `D_acropolis_forked_road_80180F3C.spawned` so that happens only once.
-static void func_acropolis_forked_road_8017D970(Task* task)
+/// Starts the return movie path once per overlay load when arriving through warp 2.
+///
+/// Sets the latch before spawning, so a failed spawn is not retried. Requires
+/// the live session and return-scene resources; the room task is unused.
+static void _acropolisForkedRoadStartReturnArrivalScene(Task* unusedTask)
 {
-    if ((D_acropolis_forked_road_80180F3C.spawned == 0) && (gGameSession->location.loc.warp == 2)) {
+    enum {
+        ACROPOLIS_FORKED_ROAD_RETURN_ARRIVAL_WARP = 2,
+        ACROPOLIS_FORKED_ROAD_TASK_RETURN_MOVIE   = 2
+    };
+    if ((D_acropolis_forked_road_80180F3C.spawned == 0) && (gGameSession->location.loc.warp == ACROPOLIS_FORKED_ROAD_RETURN_ARRIVAL_WARP)) {
         D_acropolis_forked_road_80180F3C.spawned = 1;
-        taskSpawnFromTable(D_acropolis_forked_road_80180F44, 2, 0, 0);
+        taskSpawnFromTable(D_acropolis_forked_road_80180F44, ACROPOLIS_FORKED_ROAD_TASK_RETURN_MOVIE, 0, 0);
     }
 }
 
