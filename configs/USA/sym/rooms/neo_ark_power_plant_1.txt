@@ -82,7 +82,7 @@ D_neo_ark_power_plant_1_8017EB74 = 0x8017EB74; // size:0x8 defined:True
 D_neo_ark_power_plant_1_8017EB7C = 0x8017EB7C; // size:0x240 defined:True
 D_neo_ark_power_plant_1_8017EDBC = 0x8017EDBC; // size:0xF0 defined:True
 
-func_neo_ark_power_plant_1_8017E524 = 0x8017E524; // type:func
+neoArkPowerPlant1SetLifeSupportSpritesHidden = 0x8017E524; // type:func
 
 neoArkPowerPlant1DrawLightGlowsTask = 0x8017DA18; // type:func
 glowDrawDisc = 0x8017E184; // type:func

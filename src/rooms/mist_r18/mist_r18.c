@@ -94,7 +94,7 @@ extern EvsCommand D_mist_r18_80186564[];
 /// `_mistR18KillAttachedModel` tears down, by index.
 extern Task* D_mist_r18_80186E90;
 extern Task* D_mist_r18_80186E94;
-/// Handle of the task `func_mist_r18_8017EA2C` spawns.
+/// Handle of the task `_mistR18SpawnPlacedProp` spawns.
 extern Task* D_mist_r18_80186E98;
 /// Step of the cutscene sequence `_mistR18AdvanceBriefingState` walks.
 extern s32 D_mist_r18_80186E9C;
@@ -130,7 +130,7 @@ void                 func_mist_r18_8017E6D8(s32);
 static void          _mistR18KillAttachedModel(s32 modelIndex);
 void                 func_mist_r18_8017E7F0(void);
 void                 func_mist_r18_8017E824(void);
-void                 func_mist_r18_8017EA2C(void);
+static void          _mistR18SpawnPlacedProp(void);
 static void          _mistR18KillPlacedProp(void);
 void                 func_mist_r18_8017EB48(void);
 static void          _mistR18PrepareBriefingScene(void);
@@ -613,7 +613,7 @@ EvsCommand D_mist_r18_8018522C[56] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EA2C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18SpawnPlacedProp }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184F98 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
@@ -762,7 +762,7 @@ EvsCommand D_mist_r18_80185EBC[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EA2C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18SpawnPlacedProp }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -841,7 +841,7 @@ EvsCommand D_mist_r18_80186564[7] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18KillPlacedProp }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EA2C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18SpawnPlacedProp }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1704,11 +1704,16 @@ static void _mistR18WaitForCrossfadeViewState(Task* task)
 
 #include "../../shared/backdrop_crossfade_tpage.inc.c"
 
-/// Spawn entry 4 of the room's task table and keep its handle in
-/// `D_mist_r18_80186E98`, which `_mistR18KillPlacedProp` kills.
-void func_mist_r18_8017EA2C(void)
+/// Spawns the briefing's separately placed prop and saves its task handle.
+///
+/// Requires the room's prop model and task table to remain loaded. Each call
+/// overwrites the saved handle, including on allocation failure; event scripts
+/// pair successful spawns with teardown before spawning again.
+static void _mistR18SpawnPlacedProp(void)
 {
-    D_mist_r18_80186E98 = taskSpawnFromTable(D_mist_r18_80184F04, 4, 0, 0);
+    enum { MIST_R18_PLACED_PROP_TASK_INDEX = 4 };
+
+    D_mist_r18_80186E98 = taskSpawnFromTable(D_mist_r18_80184F04, MIST_R18_PLACED_PROP_TASK_INDEX, 0, 0);
 }
 
 /// Kills the room's separately placed prop task and clears its saved handle.

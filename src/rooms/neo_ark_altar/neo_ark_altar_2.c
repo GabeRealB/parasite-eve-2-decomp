@@ -500,7 +500,7 @@ static void _neoArkAltarSelectPostSequenceRoom(Task* task);
 static void _neoArkAltarResumeTileSequence(Task* task);
 
 static void func_neo_ark_altar_8017DF0C(Task* task);
-static void func_neo_ark_altar_8017E148(void);
+static void _neoArkAltarResetTileSequence(void);
 
 /// Queues the current room's altar movie selected by the task's spawn argument.
 ///
@@ -848,51 +848,59 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
     }
 }
 
-/// Altar state 0: gates the wall sprites of the current view's record on game
-/// flag 0xD9 and resets the altar's work area. The switch state written to
-/// `D_neo_ark_altar_801800AE` is 6 while the flag is clear, 0 otherwise; the
-/// six sprite commands reached through `rec[3]` / `rec[6]` / `rec[4]` are
-/// skipped (1) or linked (0) to match, and the 17 halfwords at
-/// `D_neo_ark_altar_801800B0` are cleared for `func_neo_ark_altar_8017E260`.
-static void func_neo_ark_altar_8017E148(void)
+/// Restores the altar switch scenery and restarts its entered-tile sequence.
+///
+/// Uses the current area's first sprite variant, updating batch 1 in views 4
+/// and 7 and batches 1..6 in view 5. A clear persistent switch flag selects
+/// switch-animation endpoint 6; a set flag selects endpoint 0. Resets the
+/// entered-tile count and preserves the binary's descending 17-halfword clear.
+/// The last store reaches beyond the declared history array into the image's
+/// final halfword; that storage's role is unproven.
+static void _neoArkAltarResetTileSequence(void)
 {
-    GameLocationKey* sess;
-    SpriteView*      rec;
+    enum {
+        NEO_ARK_ALTAR_SWITCH_CLEAR_ENDPOINT    = 6,
+        NEO_ARK_ALTAR_SWITCH_SET_ENDPOINT      = 0,
+        NEO_ARK_ALTAR_HISTORY_CLEAR_LAST_INDEX = 16,
+    };
+    GameLocationKey* location;
+    SpriteView*      areaViews;
     SpriteBatch*     batches;
-    s32              i;
+    s32              historyIndex;
 
-    sess = &gGameSession->location.loc;
-    rec  = gSpriteAreaTables[sess->stage - 1][0].areaViews[sess->area - 1];
+    location  = &gGameSession->location.loc;
+    areaViews = gSpriteAreaTables[location->stage - 1][0].areaViews[location->area - 1];
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) == 0) {
-        batches                  = rec[3].batches;
+        batches                  = areaViews[3].batches;
         batches[1].hidden        = 1;
-        batches                  = rec[6].batches;
+        batches                  = areaViews[6].batches;
         batches[1].hidden        = 1;
-        batches                  = rec[4].batches;
+        batches                  = areaViews[4].batches;
         batches[1].hidden        = 0;
         batches[2].hidden        = 1;
         batches[3].hidden        = 1;
         batches[4].hidden        = 1;
         batches[5].hidden        = 1;
         batches[6].hidden        = 1;
-        D_neo_ark_altar_801800AE = 6;
+        D_neo_ark_altar_801800AE = NEO_ARK_ALTAR_SWITCH_CLEAR_ENDPOINT;
     } else {
-        batches                  = rec[3].batches;
+        batches                  = areaViews[3].batches;
         batches[1].hidden        = 0;
-        batches                  = rec[6].batches;
+        batches                  = areaViews[6].batches;
         batches[1].hidden        = 0;
-        batches                  = rec[4].batches;
+        batches                  = areaViews[4].batches;
         batches[1].hidden        = 1;
         batches[2].hidden        = 1;
         batches[3].hidden        = 1;
         batches[4].hidden        = 1;
         batches[5].hidden        = 1;
         batches[6].hidden        = 0;
-        D_neo_ark_altar_801800AE = 0;
+        D_neo_ark_altar_801800AE = NEO_ARK_ALTAR_SWITCH_SET_ENDPOINT;
     }
     D_neo_ark_altar_801800AC = 0;
-    for (i = 0x10; i >= 0; i--) {
-        D_neo_ark_altar_801800B0[i] = 0;
+    // This is the observed transfer extent, not the declared history array bound.
+    for (historyIndex = NEO_ARK_ALTAR_HISTORY_CLEAR_LAST_INDEX; historyIndex >= 0; historyIndex--) {
+        D_neo_ark_altar_801800B0[historyIndex] = 0;
     }
 }
 
@@ -995,7 +1003,7 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
         }
     }
     if (bad1 == 1 && bad2 == bad1) {
-        func_neo_ark_altar_8017E148();
+        _neoArkAltarResetTileSequence();
         return 0;
     }
     return 3;
@@ -1226,7 +1234,7 @@ static void func_neo_ark_altar_8017ED60(Task* arg0)
         taskKill(arg0);
         return;
     }
-    func_neo_ark_altar_8017E148();
+    _neoArkAltarResetTileSequence();
     arg0->killCountdown = 0;
     arg0->state         = (s32)(arg0->state + 1);
 }

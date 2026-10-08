@@ -30,7 +30,13 @@ extern SpriteView D_neo_ark_power_plant_1_801814F0[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_power_plant_1_80181BE0[];
 
-void func_neo_ark_power_plant_1_8017E524(s32 arg0);
+/// Switches the first power plant's Life Support scenery batches off or on.
+///
+/// Uses the low byte of hidden: 0 shows batch 1 in views 6 and 7, 1 hides it,
+/// and other byte values leave both intact. Requires the current area's sprite
+/// table in its first variant; the generator hides these while its part is live
+/// and restores them at teardown. Borrows room-owned sprite storage for the call.
+void neoArkPowerPlant1SetLifeSupportSpritesHidden(s32 hidden);
 
 /// Draws the first power plant's view-specific light glows and generator flashes.
 ///

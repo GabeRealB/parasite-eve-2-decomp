@@ -25,7 +25,7 @@ void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1)
                 neoArkPowerPlant2SetView6SpritesHidden(0);
                 gameFlagSetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN, 1);
             } else {
-                func_neo_ark_power_plant_1_8017E524(0);
+                neoArkPowerPlant1SetLifeSupportSpritesHidden(0);
                 gameFlagSetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN, 1);
             }
         }

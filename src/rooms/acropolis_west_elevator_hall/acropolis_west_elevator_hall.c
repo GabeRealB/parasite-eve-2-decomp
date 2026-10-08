@@ -1159,7 +1159,7 @@ static void _acropolisWestElevatorHallInitializeDoorLeaf(Task* task)
 /// Borrows initialized task/work/coordinate storage. The task's first spawn
 /// word selects motion (-1/0/1), and its second selects the side (-1 or 1).
 /// Distances are whole world units. Composition remains the caller's.
-static inline void _acropolisWestElevatorHallSlideDoorLeaf(Task* task, _AcropolisWestElevatorHallDoorLeafWork* leafWork, GfxCoord* doorCoord)
+static inline void _acropolisWestElevatorHallSlideDoorLeaf(const Task* task, _AcropolisWestElevatorHallDoorLeafWork* leafWork, GfxCoord* doorCoord)
 {
     leafWork->travel += task->spawnArg1.value * ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_SPEED;
     if (leafWork->travel < 0) {

@@ -49872,7 +49872,7 @@ unsigned range check, even when both halves are plain signed compares:
 
 ```c
 /* addiu v0, s0, -0x21 ; sltiu v0, v0, 2 ; beqz */
-if ((arg2 < 0x23) && (arg2 >= 0x21)) { ... }
+if ((commandIndex < 0x23) && (commandIndex >= 0x21)) { ... }
 ```
 
 The target kept the two compares (`slti 0x23` / `beqz`, then `slti 0x21` /
@@ -49880,14 +49880,14 @@ The target kept the two compares (`slti 0x23` / `beqz`, then `slti 0x21` /
 `&&` does not, and neither does swapping the operand order:
 
 ```c
-if (arg2 < 0x23) {
-    if (arg2 >= 0x21) { ... }
+if (commandIndex < 0x23) {
+    if (commandIndex >= 0x21) { ... }
 }
 ```
 
 Same shape as the `if (x != 0)` nesting above, but the trigger is the pair of
 bounds itself rather than a redundant zero test.
-`func_mist_shooting_gallery_80180000` is the example.
+`_mistShootingGalleryHandleCommand` is the example.
 
 ## A result flag pre-set before a call lands in a callee-saved register
 
@@ -49947,7 +49947,7 @@ compares `(u8)count` and no reload is emitted.
 m2c hoists a block that several arms branch into up to the first arm that uses
 it, and reaches it from the others with a backward `goto`. GCC 2.8.1 lays it
 out the other way: the block stays where it is *fallen into*, and the earlier
-arm jumps forward to it. In `func_mist_shooting_gallery_8017FDD0` (task state
+arm jumps forward to it. In `_mistShootingGalleryCapPlaybackTask` (task state
 machine, `state++` shared by cases 0 and 1), m2c's shape
 
 ```c
@@ -50638,10 +50638,10 @@ does nothing.
 
 ## Two locals for one field read at two sites in the same function
 
-`func_mist_shooting_gallery_801838FC` reads `work->field_20` both in `case 9`
-and in the trailing abort check. Reusing one `u8 step` local for both cost
+`_mistShootingGalleryRunCourse3` reads `work->captionStep` both in `case 9`
+and in the trailing abort check. Reusing one `u8 captionKey` local for both cost
 `$a0`/`$v1` swaps at both sites *and* reordered the two loads in the epilogue.
-Giving each read its own local (`step`, `hold`) was the last edit from 99.2% to
+Giving each read its own local (`captionKey`, `resumeCaptionKey`) was the last edit from 99.2% to
 100%. Same rule as splitting a reused temp for register pressure, but the
 symptom here was `reorder`, not `regs`.
 
@@ -120181,11 +120181,11 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
 `nonmatchings/_neoArkAltarDrawTileWalls-vacuum`.
 
-## One variable read into the same pointer is what keeps a repeated load off `$v0` (func_neo_ark_altar_8017E148, 2026-09-17)
+## One variable read into the same pointer is what keeps a repeated load off `$v0` (_neoArkAltarResetTileSequence, 2026-09-17)
 
-`func_neo_ark_altar_8017E148` reaches six sprite-command pointers through one
-view record -- `rec[3]`, `rec[6]`, `rec[4]` -- and stores a flag byte at `+0xC`
-of each; `rec[4]`'s pointer then takes five more stores at `+0x14 … +0x34`. The
+`_neoArkAltarResetTileSequence` reaches six sprite-command pointers through one
+view record -- `areaViews[3]`, `areaViews[6]`, `areaViews[4]` -- and stores a flag byte at `+0xC`
+of each; `areaViews[4]`'s pointer then takes five more stores at `+0x14 … +0x34`. The
 target loads all six into `$v1` and materialises the flag `1` in `$v0`. m2c's
 shape -- an inline `M2C_FIELD` for the first two, `temp_v1` / `temp_v1_2` for the
 rest -- built 99.714%, `regs=4`, with *only* the else arm's first two loads
@@ -120213,13 +120213,13 @@ a definition in *both* arms is not block-local at all -- it goes to
 cannot pick `$v0`, because the branch constant has it over an overlapping range.
 
 ```c
-    rec = gSpriteAreaTables[sess->field_3 - 1][0].areaViews[sess->field_2 - 1];
+    areaViews = gSpriteAreaTables[location->stage - 1][0].areaViews[location->area - 1];
     if (gameFlagGetNibble(0xD9) == 0) {
-        cmd            = rec[3].batches;
+        cmd            = areaViews[3].batches;
         cmd[1].hidden = 1;
-        cmd            = rec[6].batches;
+        cmd            = areaViews[6].batches;
         cmd[1].hidden = 1;
-        cmd            = rec[4].batches;
+        cmd            = areaViews[4].batches;
         cmd[1].hidden = 0;
         cmd[2].hidden = 1;
         ...
@@ -120238,7 +120238,7 @@ Inputs: `base.i` (96.686%) SHA256
 `2212e343af30c214839f6a16f666e9e620d283a501bb014dc7ebb88e92377640`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
-`nonmatchings/func_neo_ark_altar_8017E148-vacuum`.
+`nonmatchings/_neoArkAltarResetTileSequence-vacuum`.
 
 ## A loop's RTL insn count decides whether its constant is hoisted (func_neo_ark_altar_8017DF0C, 2026-09-17)
 
@@ -122167,23 +122167,23 @@ Inputs: `base_2.i` (100%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 ## An unsigned narrowing into a local defers its `andi` to the use; mask in an `s32` local instead
 
-`func_neo_ark_power_plant_1_8017E524` dispatches on `index & 0xFF`, and the
+`neoArkPowerPlant1SetLifeSupportSpritesHidden` dispatches on `hidden & 0xFF`, and the
 target materialises the mask once, immediately after the argument is live:
 
 ```
 lbu    v0,0x3(a1)
-andi   a0,a0,0xFF          /* a0 = arg0 & 0xFF, before the table walk */
+andi   a0,a0,0xFF          /* a0 = hidden & 0xFF, before the table walk */
 ```
 
 The seed wrote the narrowing the obvious way, into an `u8` local:
 
 ```c
-    u8  v;
+    u8  hiddenByte;
     ...
-    v = arg0;               /* 82.382%, penalties regs=7 branch=2 */
+    hiddenByte = hidden;               /* 82.382%, penalties regs=7 branch=2 */
 ```
 
-GCC keeps `v` as the *raw* argument and defers the zero-extension: a byte store
+GCC keeps `hiddenByte` as the *raw* argument and defers the zero-extension: a byte store
 does not need the mask, so only the comparisons pay for it, and they pay late.
 The object shows the whole consequence in one line each — a `move a1,a0` to
 preserve the untruncated value, the pointer chain displaced into `$a0`, the
@@ -122191,7 +122191,7 @@ preserve the untruncated value, the pointer chain displaced into `$a0`, the
 widened register:
 
 ```
-move  a1,a0                    /* a1 = v (raw arg0) */
+move  a1,a0                    /* a1 = hiddenByte (raw hidden) */
 lw    a0,%lo(gGameSession)(v0)
 ...
 andi  a0,a1,0xff               /* late: only the compares need it */
@@ -122204,9 +122204,9 @@ forces a full SI definition there, and the two swaps disappear at once —
 82.382% → 100.000%, all penalties zero:
 
 ```c
-    s32 v;
+    s32 hiddenByte;
     ...
-    v = arg0 & 0xFF;
+    hiddenByte = hidden & 0xFF;
 ```
 
 Same rule as "A narrowing cast into a *wider* local materialises the

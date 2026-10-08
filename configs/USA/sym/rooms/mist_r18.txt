@@ -183,3 +183,4 @@ _mistR18InitBriefingState = 0x8017ecf4; // type:func
 _mistR18AdvanceBriefingState = 0x8017d960; // type:func
 _mistR18CrossfadeTask = 0x8017e854; // type:func
 mistR18BriefingTask = 0x8017ed64; // type:func
+_mistR18SpawnPlacedProp = 0x8017ea2c; // type:func

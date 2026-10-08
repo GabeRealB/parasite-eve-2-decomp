@@ -247,7 +247,7 @@ extern const char D_mist_shooting_gallery_8017DAB8[16];
 extern const char D_mist_shooting_gallery_8017DAC8[20];
 static s32        _mistShootingGalleryRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 s32               func_mist_shooting_gallery_8017FEB8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32               func_mist_shooting_gallery_80180000(Task*, s32, s32, s32);
+static s32        _mistShootingGalleryHandleCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedSecondArg);
 s32               func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 static void       _mistShootingGalleryResultPanelTask(Task* task);
 static void       _mistShootingGalleryBonusPanelTask(Task* task);
@@ -257,7 +257,7 @@ static void       _mistShootingGalleryModeDataPanelTask(Task* task);
 static void       _mistShootingGalleryCarryoverModeSessionTask(Task* task);
 static void       _mistShootingGalleryModeRow(UiList* list, UiObject* object);
 static void       _mistShootingGalleryModeHelpPanelTask(Task* task);
-void              func_mist_shooting_gallery_8017FDD0(Task* task);
+static void       _mistShootingGalleryCapPlaybackTask(Task* task);
 
 static const char D_mist_shooting_gallery_8017D5E0[12];
 static const char D_mist_shooting_gallery_8017D5EC[16];
@@ -713,13 +713,13 @@ UiObjectDesc D_mist_shooting_gallery_8018507C[3] = {
 
 TaskDesc D_mist_shooting_gallery_801850D0 = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCarryoverModeSessionTask, { .value = 0 } };
 
-TaskDesc D_mist_shooting_gallery_801850DC = { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_8017FDD0, { .value = 0 } };
+TaskDesc D_mist_shooting_gallery_801850DC = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCapPlaybackTask, { .value = 0 } };
 
 TaskMessageEntry D_mist_shooting_gallery_801850E8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_shooting_gallery_8017FEB8 },
     { MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM, _mistShootingGalleryRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_shooting_gallery_8018008C },
-    { ROOM_MESSAGE_COMMAND, func_mist_shooting_gallery_80180000 },
+    { ROOM_MESSAGE_COMMAND, _mistShootingGalleryHandleCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1863,13 +1863,24 @@ static void func_mist_shooting_gallery_8017FD40(Task* task)
     }
     func_actor_215100_8014A398();
 }
-void func_mist_shooting_gallery_8017FDD0(Task* task)
+/// Plays one room CAP command, then restores player control and releases itself.
+///
+/// State 0 selects loaded CAP slot 3 when spawnArg2 is 3, otherwise slot 1;
+/// spawnArg1 is that file's command index. State 1 waits for playback to finish,
+/// and state 2 resumes the player, resets CAP state and kills the task.
+/// The selected file and textures must remain loaded throughout playback.
+static void _mistShootingGalleryCapPlaybackTask(Task* task)
 {
+    enum {
+        MIST_SHOOTING_GALLERY_CAP_PLAYBACK_START = 0,
+        MIST_SHOOTING_GALLERY_CAP_PLAYBACK_WAIT  = 1,
+        MIST_SHOOTING_GALLERY_CAP_PLAYBACK_EXIT  = 2,
+    };
     s16 texturePageX;
 
     switch (task->state) {
-        case 0:
-            Gp_CapFile = 0;
+        case MIST_SHOOTING_GALLERY_CAP_PLAYBACK_START:
+            Gp_CapFile = NULL;
             // Select the relocated CAP file and its VRAM texture-page origin.
             if (task->spawnArg2.value == MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS) {
                 capSelectLoadedFile(MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
@@ -1882,13 +1893,13 @@ void func_mist_shooting_gallery_8017FDD0(Task* task)
             capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             task->state += 1;
             return;
-        case 1:
+        case MIST_SHOOTING_GALLERY_CAP_PLAYBACK_WAIT:
             if (capIsBusy() != 0) {
                 return;
             }
             task->state += 1;
             return;
-        case 2:
+        case MIST_SHOOTING_GALLERY_CAP_PLAYBACK_EXIT:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             capReset();
             taskKill(task);
@@ -1949,19 +1960,33 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src
     return 1;
 }
 
-s32 func_mist_shooting_gallery_80180000(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles room command requests for CAP commands 5..8 and 33..34.
+///
+/// Holds player control and starts the matching CAP playback task: commands
+/// 5..8 use loaded file slot 1, commands 33..34 slot 3. Other indices do nothing.
+/// The receiver and second payload are unused. Returns the room-command reply 0,
+/// including when task creation fails; control is resumed by the playback task.
+static s32 _mistShootingGalleryHandleCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedSecondArg)
 {
-    if (arg2 >= 5) {
-        if (arg2 >= 9) {
-            if (arg2 < 0x23) {
-                if (arg2 >= 0x21) {
+    enum {
+        MIST_SHOOTING_GALLERY_LOW_COMMAND_FIRST  = 5,
+        MIST_SHOOTING_GALLERY_LOW_COMMAND_END    = 9,
+        MIST_SHOOTING_GALLERY_HIGH_COMMAND_FIRST = 33,
+        MIST_SHOOTING_GALLERY_HIGH_COMMAND_END   = 35,
+    };
+
+    // Keep the nested bounds: their separate signed comparisons match dispatch.
+    if (commandIndex >= MIST_SHOOTING_GALLERY_LOW_COMMAND_FIRST) {
+        if (commandIndex >= MIST_SHOOTING_GALLERY_LOW_COMMAND_END) {
+            if (commandIndex < MIST_SHOOTING_GALLERY_HIGH_COMMAND_END) {
+                if (commandIndex >= MIST_SHOOTING_GALLERY_HIGH_COMMAND_FIRST) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
+                    taskSpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, commandIndex, MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
                 }
             }
         } else {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
+            taskSpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, commandIndex, MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
         }
     }
     return 0;

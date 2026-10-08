@@ -887,31 +887,28 @@ void neoArkPowerPlant1DrawLightGlowsTask(Task* unusedTask)
 
 #include "../../shared/glow_draw_disc.inc.c"
 
-/// Sprite-suppression switch for two of the area's views: 0 shows command 1
-/// of views 5 and 6 and 1 hides it, through `SpriteBatch::hidden`; any other
-/// value is ignored.
-void func_neo_ark_power_plant_1_8017E524(s32 arg0)
+void neoArkPowerPlant1SetLifeSupportSpritesHidden(s32 hidden)
 {
-    GameLocationKey* sess;
-    SpriteView*      rec;
+    GameLocationKey* location;
+    SpriteView*      areaViews;
     SpriteBatch*     batches;
-    s32              v;
+    s32              hiddenByte;
 
-    sess = &gGameSession->location.loc;
-    rec  = gSpriteAreaTables[sess->stage - 1]->areaViews[sess->area - 1];
-    v    = arg0 & 0xFF;
+    location   = &gGameSession->location.loc;
+    areaViews  = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
+    hiddenByte = hidden & 0xFF;
 
-    if (v == 0) {
-        batches           = rec[5].batches;
+    if (hiddenByte == 0) {
+        batches           = areaViews[5].batches;
         batches[1].hidden = 0;
-        batches           = rec[6].batches;
+        batches           = areaViews[6].batches;
         batches[1].hidden = 0;
         return;
     }
-    if (v == 1) {
-        batches           = rec[5].batches;
-        batches[1].hidden = v;
-        batches           = rec[6].batches;
-        batches[1].hidden = v;
+    if (hiddenByte == 1) {
+        batches           = areaViews[5].batches;
+        batches[1].hidden = hiddenByte;
+        batches           = areaViews[6].batches;
+        batches[1].hidden = hiddenByte;
     }
 }

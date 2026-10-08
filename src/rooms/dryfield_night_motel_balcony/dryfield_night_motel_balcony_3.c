@@ -40,6 +40,7 @@ static inline void _dryfieldNightMotelBalconySetBreakawaySprites(SpriteBatch* ba
 /// exact visibility bytes. A pair starting with 255 ends the stream. Requires
 /// a nonempty stream beginning with a view selection and valid indices; every
 /// view selection must be followed by a batch write. Borrows all data for this call.
+/// The initial view is read before the terminator test, so an empty stream is invalid.
 static inline void _dryfieldNightMotelBalconyApplySectionSpriteCommands(const SpriteView* areaViews, const u8* command)
 {
     enum {

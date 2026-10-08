@@ -61,7 +61,7 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
         neoArkPowerPlant2SetView6SpritesHidden(1);
         flag = 0x147;
     } else {
-        func_neo_ark_power_plant_1_8017E524(1);
+        neoArkPowerPlant1SetLifeSupportSpritesHidden(1);
         flag = 0x148;
     }
     gameFlagSetNibble(flag, 0);

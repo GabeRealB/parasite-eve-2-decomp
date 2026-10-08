@@ -3183,6 +3183,8 @@ static void _acropolisBridgeKeypadEnterCode(Task* task)
 /// Borrows live work and sprite state. Acceptance blanks then shows the code;
 /// rejection shows error then blanks. Two ten-frame halves are followed by one
 /// counting update. The caller chooses what three completed blinks do.
+/// accepted is zero for rejection and nonzero for acceptance; the final update
+/// resets the frame timer and counts a blink without changing the display.
 static inline void _acropolisBridgeKeypadStepResultBlink(_AcropolisBridgeKeypadWork* work, s32 accepted)
 {
     s16 blinkFrame = work->timer;

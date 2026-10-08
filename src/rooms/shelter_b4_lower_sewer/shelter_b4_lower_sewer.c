@@ -80,7 +80,7 @@ RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E90[2] = {
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-static void func_shelter_b4_lower_sewer_8017D664(Task* task);
+static void _shelterB4LowerSewerInitializeRoom(Task* task);
 static void _shelterB4LowerSewerIdleRoom(Task* task);
 static void _shelterB4LowerSewerDrawXWaveStrips(Task* task);
 static void _shelterB4LowerSewerDrawXWaveStrip(Task* task);
@@ -126,17 +126,19 @@ static s32 _shelterB4LowerSewerIgnoreRoomAction(Task* task, s32 messageId, const
     return SHELTER_B4_LOWER_SEWER_MESSAGE_IGNORED;
 }
 
-/// First state of the room task: installs the room's message table, takes
-/// game pointer slot 7 and, once GameFlag nibble 0xB7 is set, spawns the
-/// tasks of `D_shelter_b4_lower_sewer_80181E70`.
-static void func_shelter_b4_lower_sewer_8017D664(Task* task)
+/// Registers the lower-sewer room and starts its water after the reservoir event.
+///
+/// Called once in state 0. Borrows the room task and installs its message table
+/// in `GAME_TASK_SLOT_ROOM`; a nonzero reservoir-completion flag spawns the
+/// water task. Advances to the idle state even when water task creation fails.
+static void _shelterB4LowerSewerInitializeRoom(Task* task)
 {
     task->msgTable = D_shelter_b4_lower_sewer_80181E44;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
         taskSpawnFromTable(D_shelter_b4_lower_sewer_80181E70, 0, 0, 0);
     }
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the initialized lower-sewer room task live without per-frame work.
@@ -148,7 +150,7 @@ static void _shelterB4LowerSewerIdleRoom(Task* task)
 /// runs, which copies the table to the stack and calls the entry for the
 /// task's state: the room's setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b4_lower_sewer_8017D5C4 = {
-    { func_shelter_b4_lower_sewer_8017D664, _shelterB4LowerSewerIdleRoom, taskKill }
+    { _shelterB4LowerSewerInitializeRoom, _shelterB4LowerSewerIdleRoom, taskKill }
 };
 
 void shelterB4LowerSewerRoomTask(Task* task)
