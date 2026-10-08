@@ -39,6 +39,14 @@ extern WorldCollisionSurfaceProperties* D_dryfield_factory_8018A37C[];
 /// The callback leaves task state unchanged and does not use `task`.
 void dryfieldFactoryDrawGlowsTask(Task* task);
 
-void factoryDayEntryTask(Task* task);
+/// Dispatches the daytime factory room task's setup, idle and teardown states.
+///
+/// Requires a live bodyless task with `Task::state` in 0..2; the three handlers
+/// are copied onto the stack and indexed without a bounds check. Setup installs
+/// the room's message table, owns a panel-task slot at `Task::work`, and starts
+/// the lift and barrier tasks. Idle keeps the room available for messages;
+/// teardown releases its work. The factory overlay must remain loaded while
+/// the task can run or receive messages.
+void dryfieldFactoryEntryTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_FACTORY_H

@@ -262,17 +262,29 @@ void factoryNightShowView11Sprite(s32 show);
 #define FACTORY_DRAW_GLOWS_TASK dryfieldFactoryDrawGlowsTask
 #endif
 
-// Each build exports the view-sprite functions and the entry task under its
+// Each build exports the view-sprite functions under its
 // own name, which gameplay and the other build refer to; the library's names
 // map onto the build's own.
 #if DRYFIELD_TIME == DRYFIELD_NIGHT
 #define factoryShowView9Sprite  factoryNightShowView9Sprite
 #define factoryShowView11Sprite factoryNightShowView11Sprite
-#define factoryEntryTask        factoryNightEntryTask
 #else
 #define factoryShowView9Sprite  factoryDayShowView9Sprite
 #define factoryShowView11Sprite factoryDayShowView11Sprite
-#define factoryEntryTask        factoryDayEntryTask
+#endif
+
+/// Binds the shared factory entry task definition to this room's exported callback.
+///
+/// `DRYFIELD_TIME` must select `DRYFIELD_DAY` or `DRYFIELD_NIGHT` before this
+/// header is included and remain bound through `factory_entry_task.inc.c`.
+/// Expands to a function identifier with signature `void (Task*)`, declared in
+/// the corresponding public room header and imported by its map overlay. It
+/// has no arguments, captured values, stringification or token pasting, and
+/// does not call or evaluate the task.
+#if DRYFIELD_TIME == DRYFIELD_NIGHT
+#define FACTORY_ROOM_INSTANCE_ENTRY_TASK dryfieldNightFactoryEntryTask
+#else
+#define FACTORY_ROOM_INSTANCE_ENTRY_TASK dryfieldFactoryEntryTask
 #endif
 
 void factoryLiftInit(Task* task);

@@ -46,6 +46,14 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_factory_8018A79C[];
 /// arena and ordering table. Packets live until this frame's GPU work completes.
 void dryfieldNightFactoryDrawGlowsTask(Task* task);
 
-void factoryNightEntryTask(Task* task);
+/// Dispatches the nighttime factory room task's setup, idle and teardown states.
+///
+/// Requires a live bodyless task with `Task::state` in 0..2; the three handlers
+/// are copied onto the stack and indexed without a bounds check. Setup installs
+/// the room's message table, owns a panel-task slot at `Task::work`, and starts
+/// the lift and barrier tasks. Idle keeps the room available for messages;
+/// teardown releases its work. The factory overlay must remain loaded while
+/// the task can run or receive messages.
+void dryfieldNightFactoryEntryTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_FACTORY_H

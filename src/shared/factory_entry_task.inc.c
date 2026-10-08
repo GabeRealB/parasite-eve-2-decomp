@@ -1,11 +1,8 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Runs the room entry task's current state, through a copy of its handler
-/// table on the stack.
-void factoryEntryTask(Task* task)
+void FACTORY_ROOM_INSTANCE_ENTRY_TASK(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers = _gFactoryEntryStates;
 
-    sp = _gFactoryEntryStates;
-    sp.funcs[task->state](task);
+    stateHandlers.funcs[task->state](task);
 }
