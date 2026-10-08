@@ -34,7 +34,14 @@ extern SpriteView D_shelter_1f_vehicular_airlock_801824F8[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_vehicular_airlock_80182A80[];
 
-void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task);
+/// Hides the placed airlock model while its saved two-bit object state is 2.
+///
+/// Requires a live TMD body and the owning `Enemy` in `spawnArg2.pointer`, as
+/// supplied by area object placement. The low byte of its place key selects
+/// object-state flag 0..63 (the map places this model at flag 6). State 2 sets
+/// `TMD_OBJECT_SKIP_ACTIVE_DRAW`; every other state clears it. Other flags and
+/// task state are preserved. Both the body and session flag bank must remain live.
+void shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask(Task* task);
 
 void func_shelter_1f_vehicular_airlock_8017DA48(Task* task);
 

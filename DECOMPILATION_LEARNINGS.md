@@ -65265,7 +65265,7 @@ then run `promote` against a name from the aliased half - and remember it needs
 that name to be `matched`, so land the body in its own overlay first.
 ## A redundant `Type* local = index;` copy defers the callee-saved-reg spill
 
-Room state machine `func_shelter_1f_bulwark_8017DE04`: `index` (a `Task*`) is
+Room state machine `_shelter1fBulwarkReloadAfterDepartureMovieTask`: `task` (a `Task*`) is
 live across a call in `case 0` and reused in `case 3`, so it must live in a
 callee-saved reg. Target copies it in the prologue —
 
@@ -65281,13 +65281,13 @@ lw    $v1, 0x30($s1)       # state read via s1
 Writing the body over an explicit alias —
 
 ```c
-Task* task = arg0;
-switch (task->state) { ... taskKill(task); }
+Task* movieTask = task;
+switch (movieTask->state) { ... taskKill(movieTask); }
 ```
 
 made GCC read state via `a0` and slip the `move $s1, $a0` into the delay slot
 of the first `beqz`, and reordered the register saves to `ra, s1, s0`. Dropping
-the local and using `index` throughout (`switch (index->state)`, `taskKill(arg0)`)
+the local and using `task` throughout (`switch (task->state)`, `taskKill(task)`)
 forced the early prologue copy and the `s1, ra, s0` save order — instant match.
 
 Rule: when the prologue's saved-reg copy/order is the only diff and a parameter
@@ -94761,10 +94761,11 @@ top of the block while the stores keep their relative order. So the `lui`/`ori`
 run at the top of the block *is* the statement order of the assignments that
 carry the constants, while the store order is that same order plus whatever the
 post-reload scheduler does to it. The matched sibling
-`func_shelter_1f_tent_8017FCA0` shows the split cleanly: its source assigns
-`field_4 = 0x551C0003`, `field_8 = 0x551C0006`, `field_10 = 0x551C0004`,
-`field_C = 0x551C0005` in that order, the asm materialises exactly
-`03, 06, 04, 05`, and the `field_10` store is hoisted to the front because its
+`_shelter1fTentHandleRoomCommand` shows the split cleanly: its inlined
+`_shelter1fTentStartReplayCutscene` assigns `startSound = 0x551C0003`,
+`endSound = 0x551C0006`, `sceneSound = 0x551C0004`,
+`afterSceneSound = 0x551C0005` in that order, the asm materialises exactly
+`03, 06, 04, 05`, and the `sceneSound` store is hoisted to the front because its
 value sits in `$a2`, which the third argument then overwrites.
 
 Writing the four ids ascending (`field_4`, `field_8`, `field_10`, `field_C`)
@@ -141636,11 +141637,11 @@ setRGB3(poly, 0, 0x10, 0x20);
 This went straight to 100%. When a colour block's order looks grouped by value
 rather than by vertex, try the `setRGBn` macros before permuting field stores.
 
-## A local copied from a parameter inside `if (param == K)` becomes the constant `K`; reassign the parameter instead (func_shelter_1f_vehicular_airlock_8017D990, 2026-09-24)
+## A local copied from a parameter inside `if (param == K)` becomes the constant `K`; reassign the parameter instead (_shelter1fVehicularAirlockHandleRoomCommand, 2026-09-24)
 
 **Symptom.** Target copies the parameter into a callee-saved register *before*
 the compare (`move s0,a2; li v0,3; bne s0,v0`), then passes `s0` (or an
-overriding constant) to a call. m2c's `var = arg2;` inside the `if (arg2 == 3)`
+overriding constant) to a call. m2c's `var = commandId;` inside the `if (commandId == 3)`
 arm compiles to `bne a2,v0; ... move s0,v0` - cse knows the local equals 3 on
 that path and substitutes the compare's constant (83.4%, `regs=3 insert=2
 delete=2`, structure matching).
@@ -141650,11 +141651,12 @@ crosses the calls is the incoming register's pseudo rather than a new birth
 cse can equate with the constant (100%):
 
 ```c
-if (arg2 == 3) {
-    if (areaGetCurrentObjectState(6) == 2 && gameFlagGetNibble(0x7A) >= 6) {
-        arg2 = 5;
+if (commandId == COMMAND_RESPONSE) {
+    if (areaGetCurrentObjectState(RESPONSE_OBJECT_FLAG) == RESPONSE_OBJECT_STATE &&
+        gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= RESPONSE_LATE_CHAPTER) {
+        commandId = RESPONSE_LATE_CAP_EVENT;
     }
-    capSpawnEventIfIdle(arg2, 0);
+    capSpawnEventIfIdle(commandId, CAP_EVENT_NO_FLAGS);
 }
 ```
 

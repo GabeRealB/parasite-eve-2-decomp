@@ -30,9 +30,12 @@ extern SpriteView D_shelter_1f_parking_garage_80181430[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_parking_garage_80181954[];
 
-/// Task entries the Neo Ark map UI overlay's stage tables name: each room's
-/// entry task, started for its location, and the enemy descriptors' tasks.
-void func_shelter_1f_parking_garage_8017DF14(Task* task);
+/// Runs the parking garage's room controller for one tick.
+///
+/// Requires a live bodyless task with state 0..2 and this room loaded. State 0
+/// installs room messages and handles warp-1 arrival, state 1 remains idle for
+/// messages, and state 2 requests teardown. Allocates no work of its own.
+void shelter1fParkingGarageRoomTask(Task* task);
 
 /// Installs the room's actor-effect IDs and draws fixed glows in mapped views 2 and 4.
 ///
@@ -66,6 +69,15 @@ void shelter1fParkingGarageRoomVisualEffectsFlashTask(Task* task);
 /// the counted work and history block.
 void shelter1fParkingGarageRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_1f_parking_garage_8017FF58(Task* task);
+/// Runs the parking garage's impact flash and smoke or orange-ring spark burst.
+///
+/// Requires a counted coordinate-body effect with zero-aged owned `EffectWork`
+/// in `spawnArg2.pointer` and state 0, as supplied by `effectSpawn`.
+/// Nonzero `spawnArg1.value` emits smoke through active age 7; zero starts two
+/// bouncing sparks and fading rings. Age 7 enters release; the next active tick
+/// frees the work, body and task. Nonzero room effect control pauses below 4
+/// and cancels at 4 or above. Keep this overlay and frame resources loaded;
+/// spawned child effects have independent lifetimes.
+void shelter1fParkingGarageRoomVisualEffectsSparkBurstTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_1F_PARKING_GARAGE_H

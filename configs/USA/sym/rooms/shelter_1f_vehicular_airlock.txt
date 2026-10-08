@@ -65,3 +65,7 @@ _shelter1fVehicularAirlockDrawPulsingLight = 0x8017e80c; // type:func
 _shelter1fVehicularAirlockRejectKeyItem = 0x8017d988; // type:func
 _shelter1fVehicularAirlockIgnoreDirectionAction = 0x8017d9f4; // type:func
 _shelter1fVehicularAirlockIdleMessageTask = 0x8017da40; // type:func
+shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask = 0x8017d5e4; // type:func
+_shelter1fVehicularAirlockResolveRoomEvent = 0x8017d7dc; // type:func
+_shelter1fVehicularAirlockHandleRoomCommand = 0x8017d990; // type:func
+_shelter1fVehicularAirlockInitializeRoom = 0x8017d9fc; // type:func

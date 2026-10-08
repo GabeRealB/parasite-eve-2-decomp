@@ -93,7 +93,7 @@ static s32  _shelter1fBulwarkIgnoreRoomCommand(Task* task, s32 messageId, s32 co
 static s32  _shelter1fBulwarkIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 unused);
 void        func_shelter_1f_bulwark_8017DA60(Task*);
 static void _shelter1fBulwarkPlayDepartureMovieTask(Task* movieTask);
-void        func_shelter_1f_bulwark_8017DE04(Task*);
+static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task);
 
 TaskDesc D_shelter_1f_bulwark_80180320 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -111,7 +111,7 @@ TaskMessageEntry D_shelter_1f_bulwark_8018032C[5] = {
 TaskDesc D_shelter_1f_bulwark_80180354 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_bulwark_8017DA60, { .value = 0 } };
 
 TaskDesc D_shelter_1f_bulwark_80180360[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_1f_bulwark_8017DE04, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelter1fBulwarkReloadAfterDepartureMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _shelter1fBulwarkPlayDepartureMovieTask, { .value = 0 } },
 };
 
@@ -549,28 +549,46 @@ static void _shelter1fBulwarkPlayDepartureMovieTask(Task* movieTask)
     }
 }
 
-void func_shelter_1f_bulwark_8017DE04(Task* arg0)
+/// Transfers presentation to the departure movie, then reloads at Neo Ark area 26.
+///
+/// Starts bodyless in state 0. Display-only flipping suspends ordinary gameplay
+/// while the movie display task runs; after gameplay resumes, states 1 and 2
+/// delay the load request until state 3. Commits stage 5, area 26, warp/room 1
+/// to the live save, selects sprite variant 1 and queues a reload without battle
+/// escape handling. Requires the room, display and live-save resources throughout.
+static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
-            displaySpawnTaskFromTable(D_shelter_1f_bulwark_80180360, 1, 0, 0);
+    enum {
+        DEPARTURE_START_MOVIE,
+        DEPARTURE_RESUME_DELAY_FIRST,
+        DEPARTURE_RESUME_DELAY_SECOND,
+        DEPARTURE_RELOAD,
+        DEPARTURE_MOVIE_TASK_INDEX = 1,
+        DEPARTURE_ARRIVAL_WARP     = 1,
+        DEPARTURE_ARRIVAL_ROOM     = 1,
+        DEPARTURE_SPRITE_VARIANT   = 1
+    };
+    switch (task->state) {
+        case DEPARTURE_START_MOVIE:
+            // Give the movie sole presentation ownership until its restore completes.
+            displaySpawnTaskFromTable(D_shelter_1f_bulwark_80180360, DEPARTURE_MOVIE_TASK_INDEX, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             viewQueueCurrentCameraAndPackets();
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             /* fallthrough */
-        case 1:
-        case 2:
-            arg0->state = arg0->state + 1;
+        case DEPARTURE_RESUME_DELAY_FIRST:
+        case DEPARTURE_RESUME_DELAY_SECOND:
+            task->state = task->state + 1;
             break;
-        case 3:
+        case DEPARTURE_RELOAD:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_NEO_ARK_R26;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant                                 = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = DEPARTURE_ARRIVAL_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = DEPARTURE_ARRIVAL_ROOM;
+            gDisplayState.spriteVariant                                 = DEPARTURE_SPRITE_VARIANT;
             gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
@@ -633,7 +651,7 @@ void shelter1fBulwarkRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_1f_bulwark_8017F6D8(Task* task)
+void shelter1fBulwarkRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

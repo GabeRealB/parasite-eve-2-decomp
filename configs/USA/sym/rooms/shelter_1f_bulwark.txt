@@ -50,7 +50,7 @@ shelter1fBulwarkRoomVisualEffectsFlashTask = 0x8017E38C; // type:func
 
 shelter1fBulwarkRoomVisualEffectsTwinTrailTask = 0x8017EDF0; // type:func
 
-func_shelter_1f_bulwark_8017F6D8 = 0x8017F6D8; // type:func
+shelter1fBulwarkRoomVisualEffectsSparkBurstTask = 0x8017F6D8; // type:func
 
 shelter1fBulwarkDrawGlowsTask = 0x8017E2A4; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017E630; // type:func
@@ -66,3 +66,4 @@ _shelter1fBulwarkIdle = 0x8017dc18; // type:func
 _shelter1fBulwarkPlayDepartureMovieTask = 0x8017dc78; // type:func
 _shelter1fBulwarkInitializeRoom = 0x8017dbd4; // type:func
 shelter1fBulwarkRoomTask = 0x8017dc20; // type:func
+_shelter1fBulwarkReloadAfterDepartureMovieTask = 0x8017de04; // type:func

@@ -987,7 +987,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathLeafFallTask, { NULL } },                                         // 0x1C1
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fBulwarkRoomVisualEffectsFlashTask, { NULL } },                             // 0x1C2
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fBulwarkRoomVisualEffectsTwinTrailTask, { NULL } },                         // 0x1C3
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017F6D8, { NULL } },                                       // 0x1C4
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fBulwarkRoomVisualEffectsSparkBurstTask, { NULL } },                        // 0x1C4
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPyramidConfigureEffectsTask, { NULL } },                                      // 0x1C5
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodServiceGantryEffectSpriteRiseTask, { NULL } },                          // 0x1C6
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightR08RoomVisualEffectsFlashTask, { NULL } },                             // 0x1C7
@@ -1061,7 +1061,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_main_corridor_80181C98, { NULL } },                                 // 0x20B
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankRoomVisualEffectsSparkBurstTask, { NULL } },                     // 0x20C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_80182F78, { NULL } },                             // 0x20D
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017FF58, { NULL } },                                // 0x20E
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fParkingGarageRoomVisualEffectsSparkBurstTask, { NULL } },                  // 0x20E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_vehicular_airlock_80180008, { NULL } },                             // 0x20F
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_80181120, { NULL } },                                  // 0x210
     { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneRoomVisualEffectsSparkBurstTask, { NULL } },                        // 0x211

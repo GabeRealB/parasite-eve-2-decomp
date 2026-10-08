@@ -958,7 +958,7 @@ shelter1fBulwarkRoomVisualEffectsFlashTask = 0x8017E38C; // type:func absolute:T
 
 shelter1fBulwarkRoomVisualEffectsTwinTrailTask = 0x8017EDF0; // type:func absolute:True owner=shelter_1f_bulwark
 
-func_shelter_1f_bulwark_8017F6D8 = 0x8017F6D8; // type:func absolute:True owner=shelter_1f_bulwark
+shelter1fBulwarkRoomVisualEffectsSparkBurstTask = 0x8017F6D8; // type:func absolute:True owner=shelter_1f_bulwark
 
 shelter1fParkingGarageDrawViewGlowsTask = 0x8017DF6C; // type:func absolute:True owner=shelter_1f_parking_garage
 
@@ -966,7 +966,7 @@ shelter1fParkingGarageRoomVisualEffectsFlashTask = 0x8017EC0C; // type:func abso
 
 shelter1fParkingGarageRoomVisualEffectsTwinTrailTask = 0x8017F670; // type:func absolute:True owner=shelter_1f_parking_garage
 
-func_shelter_1f_parking_garage_8017FF58 = 0x8017FF58; // type:func absolute:True owner=shelter_1f_parking_garage
+shelter1fParkingGarageRoomVisualEffectsSparkBurstTask = 0x8017FF58; // type:func absolute:True owner=shelter_1f_parking_garage
 
 shelter1fVehicularAirlockRoomVisualEffectsFlashTask = 0x8017ECBC; // type:func absolute:True owner=shelter_1f_vehicular_airlock
 

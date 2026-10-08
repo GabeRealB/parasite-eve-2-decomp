@@ -75,7 +75,7 @@ extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomDeparture    gRoomDeparture;
 extern RoomLatchedEvent gRoomEventLatched;
 
-static void func_shelter_1f_parking_garage_8017DE9C(Task* task);
+static void _shelter1fParkingGarageInitializeRoom(Task* task);
 static void _shelter1fParkingGarageIdle(Task* task);
 
 extern WorldCollisionGrid         D_shelter_1f_parking_garage_80180FE8[1];
@@ -84,11 +84,11 @@ extern WorldCollisionTrigger      D_shelter_1f_parking_garage_80181728[5];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_parking_garage_801818A4[5];
 extern WorldCoordRoomLights       D_shelter_1f_parking_garage_801815E0[1];
 
-static s32 _shelter1fParkingGarageRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
-s32        func_shelter_1f_parking_garage_8017DCF4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-static s32 _shelter1fParkingGarageIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 secondArg);
-s32        func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-void       func_shelter_1f_parking_garage_8017DAF0(Task*);
+static s32  _shelter1fParkingGarageRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+static s32  _shelter1fParkingGarageResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _shelter1fParkingGarageIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 secondArg);
+static s32  _shelter1fParkingGarageHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void _shelter1fParkingGarageUndergroundDepartureTask(Task* task);
 
 /// The room's key-item request ID and the reply that displays "cannot use now".
 enum {
@@ -101,14 +101,14 @@ TaskDesc D_shelter_1f_parking_garage_80180BA0 = { { { TASK_BODY_NONE, 32 } }, ro
 TaskDesc D_shelter_1f_parking_garage_80180BAC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_1f_parking_garage_80180BB8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_parking_garage_8017DCF4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fParkingGarageResolveRoomEvent },
     { SHELTER_1F_PARKING_GARAGE_MESSAGE_USE_KEY_ITEM, _shelter1fParkingGarageRejectKeyItemMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_parking_garage_8017DE4C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fParkingGarageHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelter1fParkingGarageIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_1f_parking_garage_80180BE0 = { { { TASK_BODY_NONE, 32 } }, func_shelter_1f_parking_garage_8017DAF0, { .value = 0 } };
+TaskDesc D_shelter_1f_parking_garage_80180BE0 = { { { TASK_BODY_NONE, 32 } }, _shelter1fParkingGarageUndergroundDepartureTask, { .value = 0 } };
 
 SVECTOR D_shelter_1f_parking_garage_80180BEC[2] = {
     { 400, -3090, 1790, 0 },
@@ -403,32 +403,66 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(const RoomEventMsg* mess
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-/// Task body that holds `gSceneCombatState.actorControl` set while the caption plays. On caption
-/// key 0xB it spawns the 0x31 task and, 30 frames later, advances flag nibble
-/// 0x4B from 9 to 0xA, publishes `gRoomDeparture` and
-/// spawns entry 0 of `D_shelter_1f_parking_garage_80180BA0`. Any other key
-/// clears `gSceneCombatState.actorControl`, restores the weapon and ends the task.
-void func_shelter_1f_parking_garage_8017DAF0(Task* task)
+/// Resolves an initialized departure's selectors through a stage's room resolver.
+///
+/// Borrows both arguments during the call. Only area, warp, room and execute
+/// mode are initialized in the temporary message; the resolver must read no
+/// other fields and must accept aliased request/reply storage. Other departure
+/// fields are preserved.
+static inline void _roomVariantResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolveVariant)
 {
-    RoomDeparture       rec;
-    RoomEventMsg        msg;
-    RoomDeparture*      p;
-    RoomVariantResolver handler;
+    RoomEventMsg request;
+
+    request.areaId    = departure->area;
+    request.warp      = departure->warp;
+    request.room      = departure->room;
+    request.queryOnly = ROOM_EVENT_EXECUTE;
+    resolveVariant(&request, &request);
+    departure->area = request.areaId;
+    departure->warp = request.warp;
+    departure->room = request.room;
+}
+
+/// Waits for the garage travel choice, fades out and stages the underground departure.
+///
+/// Starts bodyless in state 0. Choice 11 starts a 30-tick subtractive fade;
+/// other choices resume actor/player control and end the task. On expiry,
+/// advances companion schedule 9 to 10, resolves the Mine/Shelter destination
+/// and starts the departure task. The final call still decrements the countdown
+/// after requesting teardown. Room, fade and destination resources must remain live.
+static void _shelter1fParkingGarageUndergroundDepartureTask(Task* task)
+{
+    enum {
+        DEPARTURE_WAIT_CAP,
+        DEPARTURE_CHECK_CHOICE,
+        DEPARTURE_WAIT_FADE,
+        DEPARTURE_CONFIRMED_CHOICE          = 11,
+        DEPARTURE_FADE_FRAMES               = 30,
+        DEPARTURE_FADE_TASK_BANK            = 1,
+        DEPARTURE_FADE_TASK_TYPE            = 0x31,
+        DEPARTURE_COMPANION_SCHEDULE_BEFORE = 9,
+        DEPARTURE_COMPANION_SCHEDULE_AFTER  = 10,
+        DEPARTURE_DEFAULT_ROOM              = 1,
+        DEPARTURE_UNDERGROUND_ARRIVAL_WARP  = 2,
+        DEPARTURE_SOUND                     = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_PARKING_GARAGE, 4)
+    };
+    RoomDeparture       departure;
+    RoomVariantResolver resolveVariant;
 
     switch (task->state) {
-        case 0:
+        case DEPARTURE_WAIT_CAP:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 1:
-            if (capGetVariantKey() == 0xB) {
+        case DEPARTURE_CHECK_CHOICE:
+            if (capGetVariantKey() == DEPARTURE_CONFIRMED_CHOICE) {
                 D_shelter_1f_parking_garage_80181978.blend      = SCREEN_FADE_SUBTRACT;
                 D_shelter_1f_parking_garage_80181978.phase      = SCREEN_FADE_RUNNING;
-                D_shelter_1f_parking_garage_80181978.rampFrames = 0x1E;
-                taskSpawn(1, 0x31, 0, &D_shelter_1f_parking_garage_80181978);
-                task->killCountdown = 0x1E;
+                D_shelter_1f_parking_garage_80181978.rampFrames = DEPARTURE_FADE_FRAMES;
+                taskSpawn(DEPARTURE_FADE_TASK_BANK, DEPARTURE_FADE_TASK_TYPE, 0, &D_shelter_1f_parking_garage_80181978);
+                task->killCountdown = DEPARTURE_FADE_FRAMES;
                 task->state++;
             } else {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -436,29 +470,22 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 taskKill(task);
             }
             break;
-        case 2:
+        case DEPARTURE_WAIT_FADE:
             if (task->killCountdown == 0) {
-                if (gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 9) {
-                    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0xA);
+                if (gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == DEPARTURE_COMPANION_SCHEDULE_BEFORE) {
+                    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, DEPARTURE_COMPANION_SCHEDULE_AFTER);
                 }
-                handler      = _roomVariantResolveShelter;
-                rec.stage    = GAME_STAGE_MINE_SHELTER;
-                rec.area     = GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING;
-                rec.room     = 1;
-                rec.warp     = 2;
-                rec.sndEvent = 0x55010004;
-                rec.facing   = ROOM_DEPARTURE_SKIP_FACING;
+                resolveVariant     = _roomVariantResolveShelter;
+                departure.stage    = GAME_STAGE_MINE_SHELTER;
+                departure.area     = GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING;
+                departure.room     = DEPARTURE_DEFAULT_ROOM;
+                departure.warp     = DEPARTURE_UNDERGROUND_ARRIVAL_WARP;
+                departure.sndEvent = DEPARTURE_SOUND;
+                departure.facing   = ROOM_DEPARTURE_SKIP_FACING;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                p             = &rec;
-                msg.areaId    = p->area;
-                msg.warp      = p->warp;
-                msg.room      = p->room;
-                msg.queryOnly = ROOM_EVENT_EXECUTE;
-                handler(&msg, &msg);
-                p->area        = msg.areaId;
-                p->warp        = msg.warp;
-                p->room        = msg.room;
-                gRoomDeparture = rec;
+                // Resolve the destination before publishing the singleton departure.
+                _roomVariantResolveDeparture(&departure, resolveVariant);
+                gRoomDeparture = departure;
                 taskSpawnFromTable(&D_shelter_1f_parking_garage_80180BA0, 0, 0, 0);
                 taskKill(task);
             }
@@ -476,23 +503,33 @@ static s32 _shelter1fParkingGarageRejectKeyItemMessage(Task* task, s32 messageId
     return SHELTER_1F_PARKING_GARAGE_KEY_ITEM_UNUSABLE;
 }
 
-/// Message handler: copies the incoming message to `out` and forwards both to
-/// `mapNeoArkResolveRoomVariant`. Message 5 starts the room's event on flag 0x159; any
-/// other message answers 1.
-s32 func_shelter_1f_parking_garage_8017DCF4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a destination variant and gates the garage-to-airlock departure scene.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; borrows complete eight-byte request
+/// and writable reply records, which may alias. Returns 1 for ordinary passage
+/// or an already-seen scene, otherwise 2 for a room-handled departure. Queries
+/// never latch the scene. An executing first visit copies the records for the
+/// staged controller; keep the room and map overlays loaded until it finishes.
+static s32 _shelter1fParkingGarageResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
+    enum {
+        TRANSITION_DIRECT   = 1,
+        AIRLOCK_CAP_COMMAND = 3,
+        AIRLOCK_SOUND       = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_PARKING_GARAGE, 1),
+        AIRLOCK_FADE_NONE   = 0
+    };
     RoomLatchedEvent event;
 
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    if (in->areaId != GAME_AREA_SHELTER_1F_AIRLOCK) {
-        return 1;
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId != GAME_AREA_SHELTER_1F_AIRLOCK) {
+        return TRANSITION_DIRECT;
     }
-    event.capCmd   = 3;
-    event.stageSnd = 0x55010001;
+    event.capCmd   = AIRLOCK_CAP_COMMAND;
+    event.stageSnd = AIRLOCK_SOUND;
     event.flagId   = GAME_FLAG_1F_GARAGE_TO_AIRLOCK_SCENE;
-    event.fade     = 0;
-    return _shelter1fParkingGarageStartEvent(out, &event);
+    event.fade     = AIRLOCK_FADE_NONE;
+    return _shelter1fParkingGarageStartEvent(reply, &event);
 }
 
 /// Ignores CAP room commands and returns zero without changing the room.
@@ -503,32 +540,44 @@ static s32 _shelter1fParkingGarageIgnoreCommandMessage(Task* task, s32 messageId
     return 0;
 }
 
-s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Starts the underground-parking travel prompt for room action 10.
+///
+/// Borrows the four-byte `DirectionActionRequest` only during dispatch; its
+/// argument and the zero second word are unused. Holds the player, starts CAP
+/// command 2 and spawns the choice/departure task. Every action returns zero.
+static s32 _shelter1fParkingGarageHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum { ACTION_UNDERGROUND_DEPARTURE = 10,
+           CAP_UNDERGROUND_PROMPT       = 2 };
 
-    if (request->actionId == 0xA) {
+    if (request->actionId == ACTION_UNDERGROUND_DEPARTURE) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        capRunCommandWithTransition(2);
+        capRunCommandWithTransition(CAP_UNDERGROUND_PROMPT);
         taskSpawnFromTable(&D_shelter_1f_parking_garage_80180BE0, 0, 0, 0);
     }
     return 0;
 }
 
-static void func_shelter_1f_parking_garage_8017DE9C(Task* task)
+/// Installs the room message receiver and plays the warp-1 arrival CAP command.
+///
+/// State 0 publishes a borrowed live task in `GAME_TASK_SLOT_ROOM`, then enters
+/// idle state 1. Requires initialized session/CAP resources and this room loaded.
+static void _shelter1fParkingGarageInitializeRoom(Task* task)
 {
+    enum { ARRIVAL_CAP_WARP    = 1,
+           ARRIVAL_CAP_COMMAND = 5 };
     task->msgTable = D_shelter_1f_parking_garage_80180BB8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.warp == 1) {
-        capRunCommandWithTransition(5);
+    if (gGameSession->location.loc.warp == ARRIVAL_CAP_WARP) {
+        capRunCommandWithTransition(ARRIVAL_CAP_COMMAND);
     }
     task->state = task->state + 1;
 }
 
 /// State table of the room's controller task
-/// `func_shelter_1f_parking_garage_8017DF14`: set up the room, then idle.
+/// `shelter1fParkingGarageRoomTask`: set up the room, then idle.
 static const TaskFuncTable3 D_shelter_1f_parking_garage_8017D6A0 = { {
-    func_shelter_1f_parking_garage_8017DE9C,
+    _shelter1fParkingGarageInitializeRoom,
     _shelter1fParkingGarageIdle,
     taskKill,
 } };
@@ -540,14 +589,12 @@ static void _shelter1fParkingGarageIdle(Task* task)
     char reservedFrame[0x10];
 }
 
-/// The room's controller task: copies its three-entry state table to the
-/// stack and runs the entry for the current state.
-void func_shelter_1f_parking_garage_8017DF14(Task* task)
+void shelter1fParkingGarageRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_1f_parking_garage_8017D6A0;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_1f_parking_garage_8017D6A0;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Binds actor-spawned effects to the parking garage's room implementations.
@@ -624,7 +671,7 @@ void shelter1fParkingGarageRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_1f_parking_garage_8017FF58(Task* task)
+void shelter1fParkingGarageRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

@@ -55,7 +55,7 @@ shelter1fParkingGarageRoomVisualEffectsFlashTask = 0x8017EC0C; // type:func
 
 shelter1fParkingGarageRoomVisualEffectsTwinTrailTask = 0x8017F670; // type:func
 
-func_shelter_1f_parking_garage_8017FF58 = 0x8017FF58; // type:func
+shelter1fParkingGarageRoomVisualEffectsSparkBurstTask = 0x8017FF58; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017EEB0; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017F2DC; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017FB60; // type:func
@@ -68,3 +68,8 @@ _glowDrawAngledCapsule = 0x8017E080; // type:func
 _shelter1fParkingGarageRejectKeyItemMessage = 0x8017dcec; // type:func
 _shelter1fParkingGarageIgnoreCommandMessage = 0x8017de44; // type:func
 _shelter1fParkingGarageIdle = 0x8017df04; // type:func
+_shelter1fParkingGarageUndergroundDepartureTask = 0x8017daf0; // type:func
+_shelter1fParkingGarageResolveRoomEvent = 0x8017dcf4; // type:func
+_shelter1fParkingGarageHandleRoomAction = 0x8017de4c; // type:func
+_shelter1fParkingGarageInitializeRoom = 0x8017de9c; // type:func
+shelter1fParkingGarageRoomTask = 0x8017df14; // type:func

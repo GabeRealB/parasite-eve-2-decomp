@@ -3,7 +3,7 @@
 // room records, task entries and models in the Neo Ark and Shelter room
 // packages, and marker models in the map pictures. Each lives in a package
 // loaded at a slot of its own, so each is absolute.
-func_shelter_1f_parking_garage_8017DF14 = 0x8017DF14; // type:func absolute:True owner=shelter_1f_parking_garage shared=rooms
+shelter1fParkingGarageRoomTask = 0x8017DF14; // type:func absolute:True owner=shelter_1f_parking_garage shared=rooms
 D_shelter_1f_parking_garage_80180C64 = 0x80180C64; // absolute:True owner=shelter_1f_parking_garage shared=rooms
 D_shelter_1f_parking_garage_80180C74 = 0x80180C74; // absolute:True owner=shelter_1f_parking_garage
 D_shelter_1f_parking_garage_80180C7C = 0x80180C7C; // absolute:True owner=shelter_1f_parking_garage shared=rooms
@@ -12,7 +12,7 @@ D_shelter_1f_parking_garage_80180C84 = 0x80180C84; // absolute:True owner=shelte
 D_shelter_1f_parking_garage_8018100C = 0x8018100C; // absolute:True owner=shelter_1f_parking_garage
 D_shelter_1f_parking_garage_80181430 = 0x80181430; // absolute:True owner=shelter_1f_parking_garage
 D_shelter_1f_parking_garage_80181954 = 0x80181954; // absolute:True owner=shelter_1f_parking_garage shared=rooms
-func_shelter_1f_vehicular_airlock_8017D5E4 = 0x8017D5E4; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
+shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask = 0x8017D5E4; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 func_shelter_1f_vehicular_airlock_8017DA48 = 0x8017DA48; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 gShelter1fVehicularAirlockModel03A58 = 0x80182004; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 D_shelter_1f_vehicular_airlock_801820FC = 0x801820FC; // absolute:True owner=shelter_1f_vehicular_airlock
@@ -262,7 +262,7 @@ D_neo_ark_bridge_8018470C = 0x8018470C; // absolute:True owner=neo_ark_bridge sh
 D_neo_ark_bridge_80184724 = 0x80184724; // absolute:True owner=neo_ark_bridge shared=rooms
 D_neo_ark_bridge_80184AB8 = 0x80184AB8; // absolute:True owner=neo_ark_bridge shared=rooms
 D_neo_ark_bridge_80184BD4 = 0x80184BD4; // absolute:True owner=neo_ark_bridge shared=rooms
-func_shelter_1f_tent_8017FDB8 = 0x8017FDB8; // type:func absolute:True owner=shelter_1f_tent
+shelter1fTentRoomTask = 0x8017FDB8; // type:func absolute:True owner=shelter_1f_tent
 D_shelter_1f_tent_80181D44 = 0x80181D44; // absolute:True owner=shelter_1f_tent shared=rooms
 D_shelter_1f_tent_80181D48 = 0x80181D48; // absolute:True owner=shelter_1f_tent
 D_shelter_1f_tent_80181D4C = 0x80181D4C; // absolute:True owner=shelter_1f_tent

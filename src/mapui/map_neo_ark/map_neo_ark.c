@@ -432,7 +432,7 @@ static AreaObjectSpawn D_map_neo_ark_8017A6AC[1] = {
 };
 
 static AreaObjectSpawn D_map_neo_ark_8017A6BC[2] = {
-    { 0x124, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_1f_vehicular_airlock_8017D5E4, { &gShelter1fVehicularAirlockModel03A58 } } },
+    { 0x124, { { { TASK_BODY_TMD, 0x62 } }, shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask, { &gShelter1fVehicularAirlockModel03A58 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -479,7 +479,7 @@ AreaObjectRoom D_map_neo_ark_8017A6EC[35] = {
 };
 
 TaskDesc D_map_neo_ark_8017A804[] = {
-    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_parking_garage_8017DF14, { .value = GP_TASK_LOC_KEY(5, 1, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, shelter1fParkingGarageRoomTask, { .value = GP_TASK_LOC_KEY(5, 1, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_vehicular_airlock_8017DA48, { .value = GP_TASK_LOC_KEY(5, 2, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelter1fBulwarkRoomTask, { .value = GP_TASK_LOC_KEY(5, 3, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelter1fAirlockRoomTask, { .value = GP_TASK_LOC_KEY(5, 5, 0) } },
@@ -505,7 +505,7 @@ TaskDesc D_map_neo_ark_8017A804[] = {
     { { { TASK_BODY_NONE, 0x20 } }, neoArkR26RoomTask, { .value = GP_TASK_LOC_KEY(5, 26, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, neoArkSubmarineGalleryMessageTask, { .value = GP_TASK_LOC_KEY(5, 30, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, neoArkR31RoomTask, { .value = GP_TASK_LOC_KEY(5, 31, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_tent_8017FDB8, { .value = GP_TASK_LOC_KEY(5, 28, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, shelter1fTentRoomTask, { .value = GP_TASK_LOC_KEY(5, 28, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, neoArkWoodlandPathRoomTask, { .value = GP_TASK_LOC_KEY(5, 29, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, neoArkPowerPlant2RoomTask, { .value = GP_TASK_LOC_KEY(5, 16, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, neoArkPowerPlant1RoomTask, { .value = GP_TASK_LOC_KEY(5, 17, 0) } },

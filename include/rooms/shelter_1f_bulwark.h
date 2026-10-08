@@ -68,7 +68,16 @@ void shelter1fBulwarkRoomVisualEffectsFlashTask(Task* task);
 /// overlay loaded, with current view transforms, scratch and frame packet space.
 void shelter1fBulwarkRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_1f_bulwark_8017F6D8(Task* task);
+/// Runs the Bulwark's impact flash and smoke or orange-ring spark burst.
+///
+/// Requires a counted coordinate-body effect with zero-aged owned `EffectWork`
+/// in `spawnArg2.pointer` and state 0, as supplied by `effectSpawn`.
+/// Nonzero `spawnArg1.value` emits smoke through active age 7; zero starts two
+/// bouncing sparks and fading rings. Age 7 enters release; the next active tick
+/// frees the work, body and task. Nonzero room effect control pauses below 4
+/// and cancels at 4 or above. Keep this overlay and frame resources loaded;
+/// spawned child effects have independent lifetimes.
+void shelter1fBulwarkRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Draws the Bulwark's fixed glows and installs its room-specific combat effects.
 ///

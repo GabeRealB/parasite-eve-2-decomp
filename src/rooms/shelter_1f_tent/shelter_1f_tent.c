@@ -123,8 +123,8 @@ extern TaskMessageEntry D_shelter_1f_tent_80181CDC[];
 
 static s32 _shelter1fTentRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 static s32 _shelter1fTentResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
-s32        func_shelter_1f_tent_8017FCA0(Task*, s32, s32, s32);
-s32        func_shelter_1f_tent_8017FD54(Task*, s32, RoomEventMsg*, s32);
+static s32 _shelter1fTentHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg);
+static s32 _shelter1fTentHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -137,12 +137,12 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 TaskMessageEntry D_shelter_1f_tent_80181CDC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fTentResolveRoomEvent },
     { 5105, _shelter1fTentRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_tent_8017FD54 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_1f_tent_8017FCA0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fTentHandleRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelter1fTentHandleRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static void func_shelter_1f_tent_8017F9F0(Task* task);
+static void _shelter1fTentInitializeRoom(Task* task);
 static void _shelter1fTentRoomIdleState(Task* task);
 
 #include "../../shared/telephone.inc.c"
@@ -158,28 +158,41 @@ void func_shelter_1f_tent_8017EA60(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-static void func_shelter_1f_tent_8017F9F0(Task* task)
+/// Installs the tent receiver and applies first-arrival story, map and actor setup.
+///
+/// Called in state 0 with the room, actor-460200 and session resources loaded.
+/// Variant 1 creates the soldiers. First arrival restores HP/MP, applies saved
+/// area updates and starts the soldier event script; later visits start the two
+/// ambience scripts. Publishes the borrowed room task and advances to idle state 1.
+static void _shelter1fTentInitializeRoom(Task* task)
 {
-    s32 idx;
-    s32 val;
-
+    enum {
+        SOLDIER_ROOM_VARIANT            = 1,
+        FIRST_ARRIVAL_RECORDED          = 1,
+        MAP_MARK_SHOWN                  = 2,
+        ARRIVAL_OBJECTIVE               = 0x36,
+        ARRIVAL_DIALOGUE                = 10,
+        ARRIVAL_FOLLOWUP_DIALOGUE       = 11,
+        COMPANION_SCHEDULE_AFTER_BURNER = 8
+    };
     task->msgTable = D_shelter_1f_tent_80181CDC;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 1) {
+    if (gGameSession->location.loc.variant == SOLDIER_ROOM_VARIANT) {
         actor460200SetupTentSoldiers();
     }
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED) == 0) {
-        gameFlagSetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED, 1);
-        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1B3, 2);
-        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1B0, 2);
-        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1AE, 2);
-        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1CD, 2);
+        // Seed the arrival's saved progress before starting its actor script.
+        gameFlagSetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED, FIRST_ARRIVAL_RECORDED);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1B3, MAP_MARK_SHOWN);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1B0, MAP_MARK_SHOWN);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1AE, MAP_MARK_SHOWN);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1CD, MAP_MARK_SHOWN);
         gameFlagSetNibble(GAME_FLAG_0FC, 0);
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, 0);
         gameFlagSetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED, 0);
         gameFlagSetNibble(GAME_FLAG_SHELTER_1F_TENT_1BA, 2);
-        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1BB, 2);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x36);
+        gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1BB, MAP_MARK_SHOWN);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ARRIVAL_OBJECTIVE);
         playerStateRestoreFullHpMp();
         areaApplySavedUpdates(D_shelter_1f_tent_801842D4);
         evsStartScriptWithSkip(D_actor_460200_801362B8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_460200_80137890);
@@ -187,17 +200,14 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
             areaApplySavedUpdates(D_shelter_1f_tent_801843B0);
             areaApplySavedUpdates(D_shelter_1f_tent_801843B8);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            idx = 0x155;
-            val = 0xB;
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ARRIVAL_FOLLOWUP_DIALOGUE);
         } else {
             areaApplySavedUpdates(D_shelter_1f_tent_801843A8);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            idx = 0x155;
-            val = 0xA;
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ARRIVAL_DIALOGUE);
         }
-        gameFlagSetNibble(idx, val);
         if (gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {
-            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 8);
+            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, COMPANION_SCHEDULE_AFTER_BURNER);
         }
     } else {
         sndEvtRequestScriptStart(SOUND_SHELTER_1F_TENT_AMBIENCE_1, 0, 0);
@@ -233,33 +243,68 @@ static s32 _shelter1fTentResolveRoomEvent(Task* task, s32 messageId, RoomEventMs
     return SHELTER_1F_TENT_TRANSITION_ALLOWED;
 }
 
-s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Configures and starts the tent's replayable room cutscene.
+///
+/// `capSlot` is 1. The singleton record is borrowed by the spawned runner and
+/// must remain unchanged until it finishes; both room and CAP resources stay loaded.
+static inline void _shelter1fTentStartReplayCutscene(s32 capSlot)
 {
-    if (arg2 == 1) {
+    enum {
+        CUTSCENE_VIEW              = 5,
+        CUTSCENE_PLAY              = 0,
+        CUTSCENE_FOLLOWUP_COMMAND  = 12,
+        CUTSCENE_START_SOUND       = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_TENT, 3),
+        CUTSCENE_END_SOUND         = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_TENT, 6),
+        CUTSCENE_SCENE_SOUND       = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_TENT, 4),
+        CUTSCENE_AFTER_SCENE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_TENT, 5)
+    };
+    D_shelter_1f_tent_801843C4.view            = CUTSCENE_VIEW;
+    D_shelter_1f_tent_801843C4.capSlot         = capSlot;
+    D_shelter_1f_tent_801843C4.capFile         = capSlot;
+    D_shelter_1f_tent_801843C4.skipScene       = CUTSCENE_PLAY;
+    D_shelter_1f_tent_801843C4.startSound      = CUTSCENE_START_SOUND;
+    D_shelter_1f_tent_801843C4.endSound        = CUTSCENE_END_SOUND;
+    D_shelter_1f_tent_801843C4.sceneSound      = CUTSCENE_SCENE_SOUND;
+    D_shelter_1f_tent_801843C4.afterSceneSound = CUTSCENE_AFTER_SCENE_SOUND;
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, CUTSCENE_FOLLOWUP_COMMAND, &D_shelter_1f_tent_801843C4);
+}
+
+/// Handles the tent's scene command, choosing the first scene or its replay.
+///
+/// `ROOM_MESSAGE_COMMAND` supplies integer command 1. Its first call marks the
+/// first scene seen and starts CAP command 24; later calls start CAP slot/file 1
+/// in view 5 with follow-up command 12. Other commands do nothing. The receiver,
+/// message ID and second word are unused; every path returns zero.
+static s32 _shelter1fTentHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg)
+{
+    enum { COMMAND_SCENE    = 1,
+           FIRST_SCENE_SEEN = 1,
+           CAP_FIRST_SCENE  = 24 };
+    if (commandId == COMMAND_SCENE) {
         if (gameFlagGetNibble(GAME_FLAG_TENT_FIRST_SCENE) == 0) {
-            gameFlagSetNibble(GAME_FLAG_TENT_FIRST_SCENE, 1);
-            capRunCommandWithTransition(0x18);
+            gameFlagSetNibble(GAME_FLAG_TENT_FIRST_SCENE, FIRST_SCENE_SEEN);
+            capRunCommandWithTransition(CAP_FIRST_SCENE);
             return 0;
         }
-        D_shelter_1f_tent_801843C4.view            = 5;
-        D_shelter_1f_tent_801843C4.capSlot         = arg2;
-        D_shelter_1f_tent_801843C4.capFile         = arg2;
-        D_shelter_1f_tent_801843C4.skipScene       = 0;
-        D_shelter_1f_tent_801843C4.startSound      = 0x551C0003;
-        D_shelter_1f_tent_801843C4.endSound        = 0x551C0006;
-        D_shelter_1f_tent_801843C4.sceneSound      = 0x551C0004;
-        D_shelter_1f_tent_801843C4.afterSceneSound = 0x551C0005;
-        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xC, &D_shelter_1f_tent_801843C4);
+        _shelter1fTentStartReplayCutscene(commandId);
     }
     return 0;
 }
 
-s32 func_shelter_1f_tent_8017FD54(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
+/// Routes tent room actions to the two soldiers' conversation handlers.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a four-byte request synchronously:
+/// action 1 talks to soldier C and action 2 to soldier A. Other actions do
+/// nothing. The argument byte and zero second word are unused, no pointer is
+/// retained, and every action returns zero. Requires the soldiers' resources live.
+static s32 _shelter1fTentHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if (arg2->warp == 1) {
+    enum { ACTION_TALK_SOLDIER_C = 1,
+           ACTION_TALK_SOLDIER_A = 2 };
+    if (request->actionId == ACTION_TALK_SOLDIER_C) {
         actor460200TalkToSoldierC();
     }
-    if (arg2->warp == 2) {
+    if (request->actionId == ACTION_TALK_SOLDIER_A) {
         actor460200TalkToSoldierA();
     }
     return 0;
@@ -275,22 +320,20 @@ static void _shelter1fTentRoomIdleState(Task* task)
 }
 
 /// States of the room's message task, run by
-/// `func_shelter_1f_tent_8017FDB8`: install the message table and apply the
+/// `shelter1fTentRoomTask`: install the message table and apply the
 /// room's first-visit setup, idle, die.
 static const TaskFuncTable3 D_shelter_1f_tent_8017D6A4 = {
     {
-        func_shelter_1f_tent_8017F9F0,
+        _shelter1fTentInitializeRoom,
         _shelter1fTentRoomIdleState,
         taskKill,
     },
 };
 
-/// Runs the handler for the task's current state, from a local copy of
-/// `D_shelter_1f_tent_8017D6A4`.
-void func_shelter_1f_tent_8017FDB8(Task* task)
+void shelter1fTentRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_1f_tent_8017D6A4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_1f_tent_8017D6A4;
+    stateHandlers.funcs[task->state](task);
 }

@@ -121,3 +121,7 @@ _roomCutsceneSoundTask = 0x8017FBC4; // type:func
 _shelter1fTentRejectKeyItemUse = 0x8017fc54; // type:func
 _shelter1fTentResolveRoomEvent = 0x8017fc5c; // type:func
 _shelter1fTentRoomIdleState = 0x8017fda8; // type:func
+_shelter1fTentInitializeRoom = 0x8017f9f0; // type:func
+_shelter1fTentHandleRoomCommand = 0x8017fca0; // type:func
+_shelter1fTentHandleRoomAction = 0x8017fd54; // type:func
+shelter1fTentRoomTask = 0x8017fdb8; // type:func

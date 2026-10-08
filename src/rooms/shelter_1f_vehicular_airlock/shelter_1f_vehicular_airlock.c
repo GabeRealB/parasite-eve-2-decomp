@@ -88,9 +88,9 @@ static void _shelter1fVehicularAirlockDrawPulsingLight(const SVECTOR* worldPoint
 
 enum { SHELTER_1F_VEHICULAR_AIRLOCK_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-s32        func_shelter_1f_vehicular_airlock_8017D7DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelter1fVehicularAirlockResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelter1fVehicularAirlockRejectKeyItem(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg);
-s32        func_shelter_1f_vehicular_airlock_8017D990(Task*, s32, s32, s32);
+static s32 _shelter1fVehicularAirlockHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg);
 static s32 _shelter1fVehicularAirlockIgnoreDirectionAction(Task* receiver, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 static u32     _gShelter1fVehicularAirlockModel03A58PartVerts[1];
@@ -135,10 +135,10 @@ TmdSource gShelter1fVehicularAirlockModel03A58 = {
 TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_1f_vehicular_airlock_80182034[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_vehicular_airlock_8017D7DC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fVehicularAirlockResolveRoomEvent },
     { SHELTER_1F_VEHICULAR_AIRLOCK_MESSAGE_USE_KEY_ITEM, _shelter1fVehicularAirlockRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fVehicularAirlockIgnoreDirectionAction },
-    { ROOM_MESSAGE_COMMAND, func_shelter_1f_vehicular_airlock_8017D990 },
+    { ROOM_MESSAGE_COMMAND, _shelter1fVehicularAirlockHandleRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -336,21 +336,21 @@ u8 D_shelter_1f_vehicular_airlock_80182AB3 = 65;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
-static void func_shelter_1f_vehicular_airlock_8017D9FC(Task* task);
+static void _shelter1fVehicularAirlockInitializeRoom(Task* task);
 static void _shelter1fVehicularAirlockIdleMessageTask(Task* unusedTask);
 
 static void _glowDrawAngledCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 
-/// Sets bit 0x80 of the task's model flags while the 2-bit game flag its spawn
-/// argument names reads 2, and clears it otherwise.
-void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task)
+void shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask(Task* task)
 {
-    TmdObject* obj = task->extra.tmd;
+    enum { OBJECT_STATE_HIDDEN = 2 };
+    TmdObject*   model        = task->extra.tmd;
+    const Enemy* placedObject = task->spawnArg2.pointer;
 
-    if (areaGetCurrentObjectState((u8)((Enemy*)task->spawnArg2.pointer)->placeKey) == 2) {
-        obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if (areaGetCurrentObjectState((u8)placedObject->placeKey) == OBJECT_STATE_HIDDEN) {
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 
@@ -389,34 +389,53 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(const RoomEventMsg* m
     return ROOM_EVENT_DEPARTURE_DIRECT;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves destination variants and gates the airlock's Bulwark and airlock scenes.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`, borrowing complete eight-byte request
+/// and writable reply records, which may alias. A locked Bulwark returns 0;
+/// executing that request also marks its optional trigger flag and starts the
+/// blocked-door CAP command. Unseen departure scenes return 2, latching only
+/// on execution; other destinations and seen scenes return 1. Keep the map and
+/// room resources loaded while a staged scene uses the copied records.
+static s32 _shelter1fVehicularAirlockResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
+    enum {
+        TRANSITION_REFUSED      = 0,
+        TRANSITION_DIRECT       = 1,
+        BLOCKED_TRIGGER_MARK    = 2,
+        CAP_BULWARK_BLOCKED     = 2,
+        CAP_BULWARK_DEPARTURE   = 4,
+        CAP_AIRLOCK_DEPARTURE   = 6,
+        BULWARK_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 3),
+        AIRLOCK_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 1),
+        DEPARTURE_FADE_NONE     = 0
+    };
     RoomLatchedEvent event;
 
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                gameFlagSetNibbleIfPresent(in->flagId, 2);
-                capRunCommandWithTransition(2);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                gameFlagSetNibbleIfPresent(request->flagId, BLOCKED_TRIGGER_MARK);
+                capRunCommandWithTransition(CAP_BULWARK_BLOCKED);
             }
-            return 0;
+            return TRANSITION_REFUSED;
         }
-        event.capCmd   = 4;
-        event.stageSnd = 0x55020003;
+        event.capCmd   = CAP_BULWARK_DEPARTURE;
+        event.stageSnd = BULWARK_DEPARTURE_SOUND;
         event.flagId   = GAME_FLAG_VEHICULAR_AIRLOCK_TO_BULWARK_SCENE;
-        event.fade     = 0;
-        return _shelter1fVehicularAirlockStartEvent(out, &event);
+        event.fade     = DEPARTURE_FADE_NONE;
+        return _shelter1fVehicularAirlockStartEvent(reply, &event);
     }
-    if (in->areaId == GAME_AREA_SHELTER_1F_AIRLOCK) {
-        event.capCmd   = 6;
-        event.stageSnd = 0x55020001;
+    if (request->areaId == GAME_AREA_SHELTER_1F_AIRLOCK) {
+        event.capCmd   = CAP_AIRLOCK_DEPARTURE;
+        event.stageSnd = AIRLOCK_DEPARTURE_SOUND;
         event.flagId   = GAME_FLAG_VEHICULAR_AIRLOCK_TO_AIRLOCK_SCENE;
-        event.fade     = 0;
-        return _shelter1fVehicularAirlockStartEvent(out, &event);
+        event.fade     = DEPARTURE_FADE_NONE;
+        return _shelter1fVehicularAirlockStartEvent(reply, &event);
     }
-    return 1;
+    return TRANSITION_DIRECT;
 }
 
 /// Refuses key-item use in this room, returning 0 without consuming the item.
@@ -428,13 +447,26 @@ static s32 _shelter1fVehicularAirlockRejectKeyItem(Task* receiver, s32 messageId
     return 0;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D990(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects the normal or late-chapter CAP response for room command 3.
+///
+/// `ROOM_MESSAGE_COMMAND` carries an integer command. Command 3 becomes CAP
+/// event 5 when placed-object state 6 is 2 and story chapter is at least 6;
+/// otherwise it requests event 3. Busy CAP playback suppresses the event.
+/// Other commands do nothing. All calls return zero; the second word is unused.
+static s32 _shelter1fVehicularAirlockHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg)
 {
-    if (arg2 == 3) {
-        if (areaGetCurrentObjectState(6) == 2 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
-            arg2 = 5;
+    enum {
+        COMMAND_RESPONSE        = 3,
+        RESPONSE_OBJECT_FLAG    = 6,
+        RESPONSE_OBJECT_STATE   = 2,
+        RESPONSE_LATE_CHAPTER   = 6,
+        RESPONSE_LATE_CAP_EVENT = 5
+    };
+    if (commandId == COMMAND_RESPONSE) {
+        if (areaGetCurrentObjectState(RESPONSE_OBJECT_FLAG) == RESPONSE_OBJECT_STATE && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= RESPONSE_LATE_CHAPTER) {
+            commandId = RESPONSE_LATE_CAP_EVENT;
         }
-        capSpawnEventIfIdle(arg2, CAP_EVENT_NO_FLAGS);
+        capSpawnEventIfIdle(commandId, CAP_EVENT_NO_FLAGS);
     }
     return 0;
 }
@@ -448,14 +480,16 @@ static s32 _shelter1fVehicularAirlockIgnoreDirectionAction(Task* receiver, s32 m
     return 0;
 }
 
-/// State 0 of the room's message task: parks the room's message table in
-/// `Task::msgTable`, publishes the task in pointer slot 7 and advances to
-/// state 1.
-static void func_shelter_1f_vehicular_airlock_8017D9FC(Task* task)
+/// Installs the vehicular airlock's room message receiver and enters idle state 1.
+///
+/// Called in state 0 with initialized gameplay resources and a live room task.
+/// Publishes the borrowed task in `GAME_TASK_SLOT_ROOM`; the room overlay and
+/// message table must remain loaded while it receives messages.
+static void _shelter1fVehicularAirlockInitializeRoom(Task* task)
 {
     task->msgTable = D_shelter_1f_vehicular_airlock_80182034;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Leaves the initialized room-message task idle in state 1.
@@ -466,11 +500,11 @@ static void _shelter1fVehicularAirlockIdleMessageTask(Task* unusedTask)
 /// The message task's three state handlers: publishing the room's message
 /// table, idling and `taskKill`.
 static const TaskFuncTable3 D_shelter_1f_vehicular_airlock_8017D5D8 = {
-    { func_shelter_1f_vehicular_airlock_8017D9FC, _shelter1fVehicularAirlockIdleMessageTask, taskKill },
+    { _shelter1fVehicularAirlockInitializeRoom, _shelter1fVehicularAirlockIdleMessageTask, taskKill },
 };
 
 /// Runs the room's message task through its three states: publishing the
-/// room's message table (`func_shelter_1f_vehicular_airlock_8017D9FC`), idling
+/// room's message table (`_shelter1fVehicularAirlockInitializeRoom`), idling
 /// (`_shelter1fVehicularAirlockIdleMessageTask`) and `taskKill`. The table is
 /// copied onto the stack first, so the call goes through a local copy rather
 /// than the rodata.

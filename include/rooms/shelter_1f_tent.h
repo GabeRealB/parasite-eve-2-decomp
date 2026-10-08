@@ -35,7 +35,13 @@ extern WorldCollisionTrigger D_shelter_1f_tent_80183CF4[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_tent_801842B4[];
 
-void func_shelter_1f_tent_8017FDB8(Task* task);
+/// Runs the tent's room controller for one tick.
+///
+/// Requires a live bodyless task with state 0..2 and loaded room/actor resources.
+/// State 0 installs room messages and applies first-arrival or ambience setup;
+/// state 1 stays idle for messages and state 2 requests teardown. The controller
+/// owns no work; the first-arrival script and scene tasks have their own lifetimes.
+void shelter1fTentRoomTask(Task* task);
 
 void func_shelter_1f_tent_8017EA60(Task* task);
 
