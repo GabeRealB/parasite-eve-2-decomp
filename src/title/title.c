@@ -485,22 +485,27 @@ void titleExitTask(Task* task)
     taskCallExit(task);
 }
 
-/// Queues stage-zero file 2, containing the title background and textures.
+/// Queues the title background, palette and texture from stage-zero file 2.
 ///
-/// Both borrowed byte buffers provide four bytes; the enqueue copies them
-/// immediately. The file selector's byte 1 is unused by the CD request API.
-static inline void _titleEnqueueBackgroundLoad(u8* fileKey, u8* loadOptions)
+/// Uses normal loading with no image displacement. Requires the stage-zero
+/// file table, available image workspace and space in the CD request ring.
+/// The queue copies the selected key bytes and all four argument bytes during
+/// this call; loading finishes asynchronously.
+static inline void _titleEnqueueBackgroundLoad(void)
 {
     enum { TITLE_BACKGROUND_FILE_INDEX = 2 };
+    u8 fileKey[4];
+    u8 fileArgs[sizeof(gCdCmdQueue.entries[0].args)];
 
-    fileKey[3]     = 0;
-    fileKey[2]     = 0;
-    fileKey[0]     = TITLE_BACKGROUND_FILE_INDEX;
-    loadOptions[0] = 0;
-    loadOptions[1] = CD_COMMAND_LOAD_DEFAULT;
-    loadOptions[2] = 0;
-    loadOptions[3] = 0;
-    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadOptions);
+    // Selector byte 1 is ignored; the hundreds component is argument byte 0.
+    fileKey[3]  = 0;
+    fileKey[2]  = 0;
+    fileKey[0]  = TITLE_BACKGROUND_FILE_INDEX;
+    fileArgs[0] = 0;
+    fileArgs[1] = CD_COMMAND_LOAD_DEFAULT;
+    fileArgs[2] = 0;
+    fileArgs[3] = 0;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, fileArgs);
 }
 
 /// Plays the current disc's title intro, then restores the title display.
@@ -525,8 +530,6 @@ static void _titleIntroMovieTask(Task* task)
     };
     u8          movieArgs[sizeof(gCdCmdQueue.entries[0].args)];
     GameLoc     movieLocation;
-    u8          fileKey[4];
-    u8          loadOptions[sizeof(gCdCmdQueue.entries[0].args)];
     CdCmdQueue* queue = &gCdCmdQueue;
 
     switch (task->state) {
@@ -568,7 +571,7 @@ static void _titleIntroMovieTask(Task* task)
         case TITLE_INTRO_QUEUE_BACKGROUND:
             if (cdCmdIsIdle()) {
                 gCdCmdQueue.preserveDisplayAfterDecode = 1;
-                _titleEnqueueBackgroundLoad(fileKey, loadOptions);
+                _titleEnqueueBackgroundLoad();
                 task->state++;
             }
             break;
