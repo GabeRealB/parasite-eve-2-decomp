@@ -1904,10 +1904,4 @@ static __inline__ void _actorRenderAccumulateWorldRotation(const GfxCoord* joint
 }
 #undef ACTOR_RENDER_ACCUMULATE_WORLD_ROTATION_PRODUCT
 
-/// Moves the scratch-pad allocation pointer to `head`.
-static __inline__ void actorSetScratchHead(void* head)
-{
-    SCRATCH_STACK_CURSOR(void) = head;
-}
-
 #endif // INCLUDE_ACTORS_ACTOR_H

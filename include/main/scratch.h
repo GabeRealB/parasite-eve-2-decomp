@@ -50,6 +50,22 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// reservations.
 #define SCRATCH_STACK_CURSOR(type) (*(type**)SCRATCH_STACK_CURSOR_SLOT)
 
+/// Replaces the shared scratch-stack cursor with an absolute scratchpad pointer.
+///
+/// `cursor` must be a valid stack boundary at or below `SCRATCH_STACK_CURSOR_SLOT`,
+/// aligned for the blocks using it and clear of other live scratchpad storage.
+/// On an initialized stack, moving down reserves the intervening bytes;
+/// restoring a saved cursor releases intervening reservations in reverse order.
+/// Released storage becomes available for reuse and must no longer be used.
+///
+/// Writes the cursor slot once without reading its old value or touching block
+/// data. Performs no clearing, bounds or alignment checks. The untyped pointer
+/// carries an address only; it does not establish a block's type or extent.
+static __inline__ void _scratchStackSetCursor(void* cursor)
+{
+    SCRATCH_STACK_CURSOR(void) = cursor;
+}
+
 /// Reserves one uninitialized block on the downward-growing scratch stack.
 ///
 /// `blockType` is a complete, fixed-size object type. The shared cursor in

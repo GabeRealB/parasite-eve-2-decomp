@@ -281,7 +281,8 @@ hardware regions and use the full `PLAYSTATION_` macro prefix. They provide byte
 addresses, not allocation or ownership. The scratch stack in
 `include/main/scratch.h` manages temporary blocks within that region; its cursor
 access, block reservation/release helpers and byte-offset constants use
-`SCRATCH_STACK_`.
+`SCRATCH_STACK_`. Inline cursor writers use `scratchStack`, with `_` for each
+translation unit's static instance, in the same scratch-stack interface.
 
 Source basenames in this table are relative to `src/main/`. Multiple prefixes
 in a row identify different responsibilities in the same source group.

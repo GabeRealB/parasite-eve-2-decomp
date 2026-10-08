@@ -60,7 +60,7 @@ void gluttonSpinnerChase(Enemy* enemy, Task* task)
     // Reserve three words for the horizontal distance and speed squares.
     scratchEnd   = SCRATCH_STACK_CURSOR(VECTOR3);
     rangeSquares = scratchEnd - 1;
-    actorSetScratchHead(rangeSquares);
+    _scratchStackSetCursor(rangeSquares);
     speed            = work->chaseSpeed;
     rangeSquares->vx = step.vx;
     rangeSquares->vy = stepp->vz;
@@ -69,7 +69,7 @@ void gluttonSpinnerChase(Enemy* enemy, Task* task)
     rangeSquares->vy = rangeSquares->vy * rangeSquares->vy;
     rangeSquares->vz = rangeSquares->vz * rangeSquares->vz;
     // Release before the final read; no intervening operation reuses the block.
-    actorSetScratchHead(scratchEnd);
+    _scratchStackSetCursor(scratchEnd);
     inside = rangeSquares->vx + rangeSquares->vy >= rangeSquares->vz;
     if (!inside) {
         task->state++;
