@@ -118689,11 +118689,11 @@ the loop bound's callee-saved register.
 
 ## Hoist an LCG step above unrelated constant stores to load its constant first
 
-`ActorsShared80132de4` (from `func_actor_101500_80132DE4`) writes five constant
+`_actor01500TakeOffAction` writes five constant
 fields and then draws twice from `gRandomLcgState`. With the draw written after the
 stores, the object had `lui/ori 0x400F0002` ahead of `lui/ori 0x71357911`; the
-ROM loads the LCG multiplier constant first. Computing `rnd = gRandomLcgState * 5 +
-0x71357911;` *before* the field stores (and assigning `gRandomLcgState = rnd`
+ROM loads the LCG multiplier constant first. Computing `settleDraw = gRandomLcgState * 5 +
+0x71357911;` *before* the field stores (and assigning `gRandomLcgState = settleDraw`
 after them) moved that load to the front while the stores kept their order:
 99.59% -> 100%. The two `gRandomLcgState` stores also needed the `timer` store
 between them, or flow deletes the first one (see "Back-to-back writes to the
@@ -137955,7 +137955,7 @@ byte-identical assembly with and without observation. Scope: this prologue;
 no general promise that moving any load changes the needed interval.
 
 
-## A retained unused output can change scheduling through its live anchor (func_actor_101500_80132AC4, 2026-09-20)
+## A retained unused output can change scheduling through its live anchor (_actor01500PerchAction, 2026-09-20)
 
 The 99.950% seed shared two table results in one global HI pseudo, assigning
 both to a2 where the first needed a0. Reusing the later pose local for the
@@ -137964,7 +137964,7 @@ its allocation and schedule. A retained unused definition restores global
 eligibility without a second real load. Its live output matters beyond the
 conflicts at the asm.
 
-`__asm__("" : "+r"(work), "=r"(val));` before the final pose store made val
+`__asm__("" : "+r"(work), "=r"(hoverTicks));` before the final pose store made hoverTicks
 global a2, but added a second definition of work. The entry work load UID27
 lost LAUNCH_PRIORITY in sched1 (priority 1 instead of 0x7f000001), moved earlier,
 and removed a load-delay nop. `sched.c:birthing_insn_p` checks REG_N_SETS==1
@@ -137975,13 +137975,13 @@ A preplanned experiment changed only the live anchor to the already
 multiply-defined pose local:
 
 ```c
-__asm__("" : "+r"(takeOffAnim), "=r"(val));
+__asm__("" : "+r"(takeOffAnim), "=r"(hoverTicks));
 work->anim = takeOffAnim;
 ```
 
-The entry load regained launch priority, val retained two deaths and global
+The entry load regained launch priority, hoverTicks retained two deaths and global
 a2, and the candidate matched exactly. Removing the asm as a negative control
-made val a single-death local in v1 and dropped the score to 95.025%. The
+made hoverTicks a single-death local in v1 and dropped the score to 95.025%. The
 header-based port also matched. No register pins or emitted asm were used.
 The original C spelling remains unknown.
 
@@ -137992,7 +137992,7 @@ full session evidence is retained under
 predicted follow-up, distinct from the router's retained alternate improvement.
 
 
-## A later constant store can free a load-hazard slot for an unrelated ori (func_actor_101500_80132FD0, 2026-09-20)
+## A later constant store can free a load-hazard slot for an unrelated ori (_actor01500ChaseAction, 2026-09-20)
 
 The archived seed had perfect registers and structure, but two case-2 scheduling differences (99.551%). The table-address low instruction filled the gRandomLcgState load delay; target used the flag constant's ori there and placed the table address earlier. The permuter's exact change was moving `work->loopSoundTimer = 15` after the flag store, preserving all values and independent stores. A preplanned normal-style port reproduced 100% without pins or asm.
 
@@ -149868,7 +149868,7 @@ attempts; left as it was.
 - **`if (d > 0) { if (s >= K - d) goto snap; else goto turn; } else if (s >= K
   + d) goto snap; else goto turn; snap: ...; goto done; turn: ...`** (the
   wrap-around arm of the actors' turn-to-yaw step, `Actor02500_Fn016FC`,
-  `Actor02400_Fn02264`, `Actor01500_Fn01838`) is a conditional expression in
+  `Actor02400_Fn02264`, `_actor01500TurnTowardTarget`) is a conditional expression in
   the test: `if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
   snap } else { turn }`. Each arm of the `?:` branches straight to the two
   bodies, so the image's two compares with opposite polarity (`beqz snap; j

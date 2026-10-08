@@ -18,6 +18,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/enemy_params.h"
+#include "gameplay/message.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
@@ -44,6 +45,15 @@
 #include "overlay.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
+
+/// Task-table indices entered by spawn and lost-actor retirement.
+enum {
+    ACTOR_01500_TASK_ACTIVE = 1,
+    ACTOR_01500_TASK_DEATH  = 2
+};
+
+/// Fractional bits of the root's facing coefficients used for movement.
+enum { ACTOR_01500_FACING_FRACTION_BITS = 12 };
 
 /// Values of `_Actor01500Work::action`: the handler the per-frame tick runs.
 ///
@@ -223,34 +233,34 @@ static TmdSource _gActor01500MindSucklerBurstWing;
 static TmdSource _gActor01500MindSucklerBurstStinger;
 static TmdSource _gActor01500MindSucklerBurstTail;
 
-/// Points `Actor01500_Fn020D8` measures against: the XZ of
+/// Points `_actor01500ScriptedAction` measures against: the XZ of
 /// `Actor01500_D0A090` is where it heads, its Y (`Actor01500_D0A090.vy`) the
 /// height it settles below, and `gPlayerStatus.coordMtx` passing the X/Z bounds of
 /// `Actor01500_D0A098` ends the state.
 extern SVECTOR Actor01500_D0A090;
 extern SVECTOR Actor01500_D0A098;
 
-static void Actor01500_Fn00094(Enemy* arg0, Task* arg1);
+static void _actor01500Spawn(Enemy* enemy, Task* task);
 static void Actor01500_Fn004EC(Task* actor);
-static void Actor01500_Fn00AFC(Task* actor, s32 damage);
-static void Actor01500_Fn00CA4(Task* actor);
-static void Actor01500_Fn00FC4(Task* actor);
-static void Actor01500_Fn011B0(Task* actor);
-static void Actor01500_Fn015DC(Task* actor);
-static void Actor01500_Fn01708(Task* actor);
-static void Actor01500_Fn01838(Task* actor);
-static void Actor01500_Fn01988(Task* actor);
+static void _actor01500ApplyDamage(Task* actor, s32 damage);
+static void _actor01500PerchAction(Task* actor);
+static void _actor01500TakeOffAction(Task* actor);
+static void _actor01500ChaseAction(Task* actor);
+static void _actor01500GroundedAction(Task* actor);
+static void _actor01500HitAction(Task* actor);
+static void _actor01500TurnTowardTarget(Task* actor);
+static void _actor01500Move(Task* actor);
 static void Actor01500_Fn01AB0(Task* arg0);
 static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1);
-static void Actor01500_Fn020D8(Task* actor);
+static void _actor01500ScriptedAction(Task* actor);
 static void Actor01500_Fn02428(Task* task);
 static void Actor01500_Fn02484(Enemy* enemy, Task* actor);
-static void Actor01500_Fn025C8(Task* actor);
-static void Actor01500_Fn026D8(Task* actor);
-static void Actor01500_Fn027B0(Task* actor);
-static void Actor01500_Fn0288C(Task* actor);
-static void Actor01500_Fn028B0(Task* actor);
-static void Actor01500_Fn02958(Task* actor);
+static void _actor01500ApplyReactions(Task* actor);
+static void _actor01500UpdateAction(Task* actor);
+static void _actor01500AlertAction(Task* actor);
+static void _actor01500FallAction(Task* actor);
+static void _actor01500WallRestAction(Task* actor);
+static void _actor01500UpdateAnimation(Task* actor);
 static void Actor01500_Fn02A1C(Task* actor);
 static void Actor01500_Fn02B14(Task* actor);
 static void Actor01500_Fn02B70(Task* actor);
@@ -260,7 +270,7 @@ static void Actor01500_Fn02C34(Task* actor);
 /// by `Actor01500_Fn02428`.
 static const EnemyTaskFuncTable3 Actor01500_D00004 = {
     {
-        Actor01500_Fn00094,
+        _actor01500Spawn,
         Actor01500_Fn02484,
         Actor01500_Fn01DF0,
     },
@@ -840,51 +850,97 @@ SVECTOR Actor01500_D0A090 = { 1110, -0x2EE0, -2500, 0 };
 
 SVECTOR Actor01500_D0A098 = { 1900, -0x2EE0, 1000, 0 };
 
-/// Spawn handler: allocates the work block, binds the model's matrices and
-/// the three collision bodies, and picks the first action and animation from
-/// the placement's variant and mode.
-static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
+/// Links the part-2 hurt sphere and initializes the enemy's three contact slots.
+static __inline__ void _actor01500InitHurtBody(_Actor01500Work* work, GfxCoord* coord, s32 key)
 {
-    _Actor01500Work*       work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    AreaPlacement*         place;
-    WorldCollisionContact* records;
-    u32                    draw;
-    s32                    i;
-    s32                    r;
+    work->body.coord            = coord;
+    work->body.context.contacts = work->contacts;
+    work->body.pos.vx           = 0;
+    work->body.pos.vy           = 0;
+    work->body.pos.vz           = 0;
+    work->body.key              = key;
+    work->body.radius           = 300;
+    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
+    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
+}
 
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(_Actor01500Work), false);
+/// Aims chase flight at the player using the horizontal parent-frame offset.
+///
+/// XYZ scratch storage is borrowed for this call; X/Z narrow to signed
+/// halfwords for the bearing, and the selected turn limit is 100 angle units.
+static __inline__ void _actor01500AimChaseAtPlayer(_Actor01500Work* work, GfxCoord* rootCoord, VECTOR* playerOffset)
+{
+    playerOffset->vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+    playerOffset->vy = 0;
+    playerOffset->vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+    work->targetYaw  = ratan2((s16)playerOffset->vx, (s16)playerOffset->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+    work->turnRate   = 100;
+}
+
+/// Selects a reaction flinch, preserving a crippled actor's current action.
+static __inline__ void _actor01500StartReactionFall(_Actor01500Work* work)
+{
+    if (work->posture != ACTOR_01500_POSTURE_CRIPPLED) {
+        work->action = ACTOR_01500_ACTION_FALL;
+    }
+    work->timer     = 0;
+    work->anim      = ACTOR_01500_ANIM_FLINCH_AIR;
+    work->loopSound = 0;
+}
+
+/// Creates the actor's work, playback rig, target entry and three collision spheres.
+///
+/// `enemy` is owned by `task`, which already has the seven-coordinate model
+/// and a placement with variant 0 (perched) or 1 (scripted) loaded. The task
+/// owns the zeroed work allocation and keeps the model and clip data live.
+/// Allocation failure destroys the enemy; success acquires one battle hold
+/// and advances to the active task state.
+static void _actor01500Spawn(Enemy* enemy, Task* task)
+{
+    enum { ACTOR_01500_BODY_KEY = WORLD_COLLISION_CONTACT_ENEMY_BODY | 15 };
+
+    _Actor01500Work*       work;
+    TmdObject*             model;
+    GfxCoord*              rootCoord;
+    AreaPlacement*         placement;
+    WorldCollisionContact* attackContacts;
+    u32                    randomDraw;
+    s32                    slotIndex;
+    s32                    blendFrames;
+
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    work      = memCalloc(sizeof(_Actor01500Work), false);
     if (work == NULL) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
-    arg1->work          = work;
-    obj->flags          = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->lightMtx;
-    obj->colorMtx       = &work->colorMtx;
-    arg0->field_4       = &coord->coord;
-    arg0->field_48      = 0;
-    worldTargetLinkNode(&arg0->node);
-    arg0->coord                   = &arg1->extra.tmd->coords[2];
-    arg0->node.state.parts.flags  = 0;
-    arg0->bodyPos.vx              = 0;
-    arg0->bodyPos.vy              = 0;
-    arg0->bodyPos.vz              = 0;
-    arg0->param                   = &Actor01500_D09FB8;
-    arg0->recs                    = work->contacts;
-    arg0->hp                      = Actor01500_D09FB8.hpMax;
-    work->hitEffectArg.coord      = coord;
+    task->work              = work;
+    model->flags            = 0;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->lightMtx         = &work->lightMtx;
+    model->colorMtx         = &work->colorMtx;
+    enemy->field_4          = &rootCoord->coord;
+    enemy->field_48         = 0;
+    worldTargetLinkNode(&enemy->node);
+    enemy->coord                  = &task->extra.tmd->coords[2];
+    enemy->node.state.parts.flags = 0;
+    enemy->bodyPos.vx             = 0;
+    enemy->bodyPos.vy             = 0;
+    enemy->bodyPos.vz             = 0;
+    enemy->param                  = &Actor01500_D09FB8;
+    enemy->recs                   = work->contacts;
+    enemy->hp                     = Actor01500_D09FB8.hpMax;
+    work->hitEffectArg.coord      = rootCoord;
     work->hitEffectArg.spawnArgLo = 0x300;
     work->hitEffectArg.spawnArgHi = 1;
-    place                         = arg0->place;
-    switch (work->variant = place->variant) {
+    placement                     = enemy->place;
+    // The placement selects attachment orientation or an already-airborne start.
+    switch (work->variant = placement->variant) {
         case ACTOR_01500_VARIANT_PERCHED:
-            work->perch       = arg0->place->mode & 1;
-            work->noWallPerch = (arg0->place->mode >> 1) & 1;
+            work->perch       = enemy->place->mode & 1;
+            work->noWallPerch = (enemy->place->mode >> 1) & 1;
             switch (work->perch) {
                 case ACTOR_01500_PERCH_WALL:
                     work->anim        = ACTOR_01500_ANIM_PERCH_WALL;
@@ -898,9 +954,9 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
                     break;
             }
             work->timer = 0;
-            draw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->hoverOffset      = ((draw >> 16) & 0x1F) + 1;
-            work->targetYaw        = (ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) + 0x800) & 0xFFF;
+            randomDraw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->hoverOffset            = ((randomDraw >> 16) & 0x1F) + 1;
+            work->targetYaw              = (ratan2(rootCoord->coord.m[0][2], rootCoord->coord.m[2][2]) + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
             break;
         case ACTOR_01500_VARIANT_SCRIPTED:
             work->noWallPerch    = 1;
@@ -916,31 +972,23 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
             work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
             break;
     }
-    (sceneAcquireBattleRef)(0);
-    animationInitContext(&work->rig.anim, Actor01500_D0A014, obj, work->rig.poses, work->rig.slots);
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationResetSlot(&work->rig.anim, i, work->anim);
+    sceneAcquireBattleRef(0);
+    animationInitContext(&work->rig.anim, Actor01500_D0A014, model, work->rig.poses, work->rig.slots);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationResetSlot(&work->rig.anim, slotIndex, work->anim);
     }
     if (work->variant == ACTOR_01500_VARIANT_PERCHED) {
-        // Restart the perch animation over a random blend, so that neighbours fall out of step.
-        draw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        r                      = (draw >> 16) & 0x3F;
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->anim, 0, r);
+        // Blend from each slot's ticked pose for a random number of whole frames.
+        randomDraw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        blendFrames                  = (randomDraw >> 16) & 0x3F;
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
         }
     }
-    work->body.coord            = &arg1->extra.tmd->coords[2];
-    work->body.context.contacts = work->contacts;
-    work->body.pos.vx           = 0;
-    work->body.pos.vy           = 0;
-    work->body.pos.vz           = 0;
-    work->body.key              = 0x3000F;
-    work->body.radius           = 300;
-    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
-    worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
+    // Keep hurt, room-query and attack contacts separate; a later dive arms attacks.
+    _actor01500InitHurtBody(work, &task->extra.tmd->coords[2], ACTOR_01500_BODY_KEY);
     work->roomBody.context.contacts = work->roomContacts;
-    work->roomBody.coord            = coord;
+    work->roomBody.coord            = rootCoord;
     work->roomBody.pos.vx           = 0;
     work->body.flags               |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     if (work->perch == ACTOR_01500_PERCH_WALL) {
@@ -950,14 +998,14 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
         work->roomBody.pos.vy = 300;
         work->roomBody.pos.vz = 0;
     }
-    work->roomBody.key    = 0x3000F;
+    work->roomBody.key    = ACTOR_01500_BODY_KEY;
     work->roomBody.radius = 300;
     work->roomBody.flags  = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->roomBody);
     worldCollisionInitContacts(work->roomContacts, ARRAY_SIZE(work->roomContacts), 0);
-    records                           = work->attackContacts;
-    work->attackBody.coord            = coord;
-    work->attackBody.context.contacts = records;
+    attackContacts                    = work->attackContacts;
+    work->attackBody.coord            = rootCoord;
+    work->attackBody.context.contacts = attackContacts;
     work->attackBody.pos.vx           = 0;
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 400;
@@ -966,9 +1014,9 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
     work->attackBody.radius           = 300;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
-    worldCollisionInitContacts(records, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    arg1->state             = 1;
+    task->state             = ACTOR_01500_TASK_ACTIVE;
 }
 
 /// Per-frame contact pass. Applies the room's push-back from `roomContacts`,
@@ -1078,7 +1126,7 @@ static void Actor01500_Fn004EC(Task* actor)
                     }
                     worldTargetAddReadoutAmount(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
                     damageAccumulateLifeDrainHp(actor->spawnArg2.pointer, work->contacts[i].key.value, damage, 0);
-                    Actor01500_Fn00AFC(actor, damage);
+                    _actor01500ApplyDamage(actor, damage);
                     switch (damageGetPlayerAttackReaction(work->contacts[i].key.value) & 0xFFFF) {
                         case DAMAGE_PLAYER_REACTION_NONE:
                         case 5:
@@ -1148,23 +1196,37 @@ static void Actor01500_Fn004EC(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactOverlapPushScratch);
 }
 
-static void Actor01500_Fn00AFC(Task* actor, s32 damage)
+/// Subtracts damage and selects a flinch or a permanent fall at 60% HP or less.
+///
+/// `damage` is a signed HP amount; subtraction narrows into the enemy's signed
+/// halfword without clamping. Nonpositive HP requests later teardown, which
+/// waits for grounding unless a burst is pending. Every call queues the damage
+/// cry and publishes this actor's damage alert class, even for zero damage.
+static void _actor01500ApplyDamage(Task* actor, s32 damage)
 {
+    // This actor publishes class 2 on damage; other kinds interpret it separately.
+    enum {
+        ACTOR_01500_DAMAGE_ALERT_CLASS  = 2,
+        ACTOR_01500_CRIPPLED_HP_PERCENT = 60
+    };
+
     Enemy*           enemy;
+    Enemy*           soundEnemy;
     _Actor01500Work* work;
-    GfxCoord*        coord;
-    s32              id;
+    GfxCoord*        rootCoord;
+    s32              soundRequest;
 
     enemy      = actor->spawnArg2.pointer;
     work       = actor->work;
-    coord      = actor->extra.tmd->coords;
+    rootCoord  = actor->extra.tmd->coords;
     enemy->hp -= damage;
     if (enemy->hp <= 0) {
         work->deathPending = 1;
     }
-    id = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01500_SOUND_DAMAGE;
-    sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-    if (enemy->hp <= (Actor01500_D09FB8.hpMax * 60) / 100) {
+    soundEnemy   = actor->spawnArg2.pointer;
+    soundRequest = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01500_SOUND_DAMAGE;
+    sndEvtRequestScriptStart(soundRequest, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
+    if (enemy->hp <= (Actor01500_D09FB8.hpMax * ACTOR_01500_CRIPPLED_HP_PERCENT) / 100) {
         work->posture = ACTOR_01500_POSTURE_CRIPPLED;
         if (work->action != ACTOR_01500_ACTION_GROUNDED) {
             work->action          = ACTOR_01500_ACTION_FALL;
@@ -1172,7 +1234,7 @@ static void Actor01500_Fn00AFC(Task* actor, s32 damage)
             work->roomBody.pos.vz = 0;
         }
     } else {
-        // Each flinch names another animation as the playing one, so that it restarts.
+        // Keep the playing clip different to force the selected flinch to restart.
         work->action = ACTOR_01500_ACTION_HIT;
         switch (work->posture) {
             case ACTOR_01500_POSTURE_PERCHED:
@@ -1196,51 +1258,56 @@ static void Actor01500_Fn00AFC(Task* actor, s32 damage)
         work->loopSound = 0;
         work->animFrame = 0;
     }
-    sceneSetEnemyAlert(2);
+    sceneSetEnemyAlert(ACTOR_01500_DAMAGE_ALERT_CLASS);
 }
 
-/// `ACTOR_01500_ACTION_PERCH`: waits on the spawn perch. The player coming
-/// within 2500 units starts `ACTION_ALERT`. Otherwise a noise in the scene
-/// (after 1 to 32 ticks), the scene's enemy alert (looked at every 1 to 32
-/// ticks) or lost hit points start the take-off, as does a perch the actor
-/// has already been `roused` from.
-static void Actor01500_Fn00CA4(Task* actor)
+/// Watches for the player, scene stimuli or damage while on the spawn perch.
+///
+/// The horizontal proximity test selects alert within 2500 game units;
+/// otherwise a delayed noise, a polled enemy alert or lost HP selects take-off.
+/// A previously roused actor primes wall take-off before the proximity test.
+/// Countdown values measure calls, and the horizontal offset ignores Y.
+static void _actor01500PerchAction(Task* actor)
 {
+    enum { ACTOR_01500_PERCH_ALERT_DISTANCE = 2500 };
+
     _Actor01500Work* work;
-    GfxCoord*        coord;
-    VECTOR*          frame;
-    s32              flag;
-    s16              anim;
-    s16              takeOffAnim; // carries the roused wait first; a local of its own for that changes the register allocation
-    s16              val;
+    Enemy*           enemy;
+    GfxCoord*        rootCoord;
+    VECTOR*          playerOffset;
+    s32              takeOffPending;
+    s16              alertAnim;
+    s16              takeOffAnim; // Hover ticks in the roused path, then the take-off clip
+    s16              hoverTicks;
 
     SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
-    frame = SCRATCH_STACK_CURSOR(VECTOR);
-    work  = actor->work;
-    coord = actor->extra.tmd->coords;
-    flag  = 0;
+    playerOffset   = SCRATCH_STACK_CURSOR(VECTOR);
+    work           = actor->work;
+    rootCoord      = actor->extra.tmd->coords;
+    takeOffPending = 0;
+    // Priming a resumed take-off still allows the proximity test to choose alert.
     if (work->roused != 0) {
         work->action         = ACTOR_01500_ACTION_TAKE_OFF;
         work->anim           = ACTOR_01500_ANIM_TAKE_OFF_WALL;
         work->animFrame      = 0;
-        takeOffAnim          = Actor01500_D09FC8[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+        takeOffAnim          = Actor01500_D09FC8[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
         work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
         work->hoverOffset    = 0;
         work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
         work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
         work->timer          = takeOffAnim;
     }
-    work->turnRate = 0;
-    frame->vx      = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    frame->vy      = 0;
-    frame->vz      = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    if (SquareRoot0(frame->vx * frame->vx + frame->vz * frame->vz) < 2500) {
+    work->turnRate   = 0;
+    playerOffset->vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+    playerOffset->vy = 0;
+    playerOffset->vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+    if (SquareRoot0(playerOffset->vx * playerOffset->vx + playerOffset->vz * playerOffset->vz) < ACTOR_01500_PERCH_ALERT_DISTANCE) {
         work->action = ACTOR_01500_ACTION_ALERT;
-        anim         = ACTOR_01500_ANIM_ALERT_WALL;
+        alertAnim    = ACTOR_01500_ANIM_ALERT_WALL;
         if (work->perch != ACTOR_01500_PERCH_WALL) {
-            anim = ACTOR_01500_ANIM_ALERT_CEILING;
+            alertAnim = ACTOR_01500_ANIM_ALERT_CEILING;
         }
-        work->anim        = anim;
+        work->anim        = alertAnim;
         work->loopSound   = ACTOR_01500_SOUND_ALERT;
         work->timer       = 0;
         work->hoverOffset = 0;
@@ -1255,135 +1322,131 @@ static void Actor01500_Fn00CA4(Task* actor)
         if (work->timer != 0) {
             work->timer--;
             if (work->timer <= 0) {
-                flag = 1;
+                takeOffPending = 1;
             }
         }
-        // On the perch `hoverOffset` times the looks at the enemy alert.
+        // Reuse the hover-height field as a staggered alert-poll countdown on the perch.
         work->hoverOffset--;
         if (work->hoverOffset == 0) {
             if (gSceneCombatState.signals.bytes.enemyAlert != 0) {
-                flag = 1;
+                takeOffPending = 1;
             }
             gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->hoverOffset = ((gRandomLcgState >> 16) & 0x1F) + 1;
         }
-        if (((Enemy*)actor->spawnArg2.pointer)->hp != Actor01500_D09FB8.hpMax) {
-            flag = 1;
+        enemy = actor->spawnArg2.pointer;
+        if (enemy->hp != Actor01500_D09FB8.hpMax) {
+            takeOffPending = 1;
         }
-        if (flag != 0) {
+        if (takeOffPending != 0) {
             work->action = ACTOR_01500_ACTION_TAKE_OFF;
             takeOffAnim  = ACTOR_01500_ANIM_TAKE_OFF_WALL;
             if (work->perch != ACTOR_01500_PERCH_WALL) {
                 takeOffAnim = ACTOR_01500_ANIM_TAKE_OFF_CEILING;
             }
             work->anim           = takeOffAnim;
-            val                  = Actor01500_D09FC8[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+            hoverTicks           = Actor01500_D09FC8[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
             work->hoverOffset    = 0;
             work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
             work->roused         = 1;
             work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
             work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
-            work->timer          = val;
+            work->timer          = hoverTicks;
             sceneEngageBattle(1);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// `ACTOR_01500_ACTION_TAKE_OFF`: once the take-off animation has run 30
-/// ticks, reads `yaw` back from the root's facing and moves the actor 40
-/// units a tick backwards along it, away from the perch; off a ceiling perch
-/// it also drops, fastest at first. At tick 59 it starts the chase with a
-/// random settling time and `hoverOffset`.
-static void Actor01500_Fn00FC4(Task* actor)
+/// Backs away from the perch during take-off, then starts the airborne chase.
+///
+/// Direct root movement begins at animation tick 30 and chase begins at tick
+/// 59. Ceiling take-off also descends, with decreasing speed. Coordinates are
+/// in the root's parent frame, with positive Y downward and 4096 angle units
+/// per turn; the chase starts with a random settling delay and height offset.
+static void _actor01500TakeOffAction(Task* actor)
 {
     _Actor01500Work* work;
-    GfxCoord*        coord;
-    s16              angle;
-    u32              rnd;
-    u32              rnd2;
+    GfxCoord*        rootCoord;
+    s16              yaw;
+    u32              settleDraw;
+    u32              heightDraw;
 
-    work  = actor->work;
-    coord = actor->extra.tmd->coords;
+    work      = actor->work;
+    rootCoord = actor->extra.tmd->coords;
     if (work->animFrame >= 30) {
-        work->yaw = angle = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
+        work->yaw = yaw = ratan2(rootCoord->coord.m[0][2], rootCoord->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;
         switch (work->perch) {
             case ACTOR_01500_PERCH_WALL:
-                coord->coord.t[0] += -(rsin(angle) * 40) >> 12;
-                coord->coord.t[2] += -(rcos(work->yaw) * 40) >> 12;
+                rootCoord->coord.t[0] += -(rsin(yaw) * 40) >> ACTOR_01500_FACING_FRACTION_BITS;
+                rootCoord->coord.t[2] += -(rcos(work->yaw) * 40) >> ACTOR_01500_FACING_FRACTION_BITS;
                 break;
             case ACTOR_01500_PERCH_CEILING:
-                coord->coord.t[0] += -(rsin(angle) * 40) >> 12;
-                coord->coord.t[2] += -(rcos(work->yaw) * 40) >> 12;
+                rootCoord->coord.t[0] += -(rsin(yaw) * 40) >> ACTOR_01500_FACING_FRACTION_BITS;
+                rootCoord->coord.t[2] += -(rcos(work->yaw) * 40) >> ACTOR_01500_FACING_FRACTION_BITS;
                 if (work->animFrame < 36) {
-                    coord->coord.t[1] += 110;
+                    rootCoord->coord.t[1] += 110;
                 } else if (work->animFrame < 46) {
-                    coord->coord.t[1] += 35;
+                    rootCoord->coord.t[1] += 35;
                 } else {
-                    coord->coord.t[1] += 15;
+                    rootCoord->coord.t[1] += 15;
                 }
                 break;
         }
         if (work->animFrame >= 59) {
-            rnd                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            settleDraw           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->action         = ACTOR_01500_ACTION_CHASE;
             work->anim           = ACTOR_01500_ANIM_HOVER;
             work->actionStep     = ACTOR_01500_CHASE_SETTLE;
             work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
             work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
-            gRandomLcgState      = rnd;
-            work->timer          = ((rnd >> 16) & 0x3F) + 0x3C;
-            rnd2                 = rnd * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState      = rnd2;
-            work->hoverOffset    = (rnd2 >> 16) & 0x1FF;
+            gRandomLcgState      = settleDraw;
+            work->timer          = ((settleDraw >> 16) & 0x3F) + 0x3C;
+            heightDraw           = settleDraw * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState      = heightDraw;
+            work->hoverOffset    = (heightDraw >> 16) & 0x1FF;
         }
     }
 }
 
-/// `ACTOR_01500_ACTION_CHASE`, stepped by `actionStep`: settle at 1800 plus
-/// `hoverOffset` above the player while turning to face them, hover, then
-/// advance by a random `Actor01500_D09FE8` distance and hover again. An
-/// advance that comes within 1000 units of the player dives at them with
-/// `attackBody` armed, until the attack lands or the actor is 1600 above
-/// the player, and climbs back before advancing on.
-static void Actor01500_Fn011B0(Task* actor)
+/// Selects heading and velocity through the chase's hover, advance and dive cycle.
+///
+/// Settling aims 1800 plus `hoverOffset` game units above the player. An
+/// advance may dive once when the horizontal distance is below 1000; only
+/// the dive arms the attack sphere. It ends on contact or at the player's
+/// height minus 1600, then climbs toward height minus 1800. Timers count calls;
+/// the subsequent movement pass consumes the selected velocities.
+static void _actor01500ChaseAction(Task* actor)
 {
-    VECTOR3*         vec;
+    VECTOR*          playerOffset;
     _Actor01500Work* work;
-    GfxCoord*        coord;
-    u32              seed;
-    s32              off;
-    u16              val;
-    u16              val2;
-    u16*             tbl;
-    u8*              head;
-    s32              diff;
-    s32              dist;
-    s32              y;
-    s32              off2;
-    s32              diff2;
-    s32              dist2;
+    GfxCoord*        rootCoord;
+    u32              hoverDraw;
+    s32              settleHeight;
+    u16              advanceDistance;
+    u16              hoverTicks;
+    u16*             hoverWaits;
+    s32              settleDeltaY;
+    s32              settleDistanceY;
+    s32              climbHeightReference;
+    s32              heightY; // Dive stop height, then the climb displacement
+    s32              climbDistanceY;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x10;
-    vec                      = (VECTOR3*)(head - 0x10);
-    work                     = actor->work;
-    coord                    = actor->extra.tmd->coords;
+    playerOffset = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+    work         = actor->work;
+    rootCoord    = actor->extra.tmd->coords;
+    // Transitions retain this tick's velocities until the next step updates them.
     switch (work->actionStep) {
         case ACTOR_01500_CHASE_SETTLE:
-            off  = work->hoverOffset + 1800;
-            diff = gPlayerStatus.coordMtx->t[1] - off - coord->coord.t[1];
-            dist = abs(diff);
-            if (dist < 30 || --work->timer <= 0) {
+            settleHeight    = work->hoverOffset + 1800;
+            settleDeltaY    = gPlayerStatus.coordMtx->t[1] - settleHeight - rootCoord->coord.t[1];
+            settleDistanceY = abs(settleDeltaY);
+            if (settleDistanceY < 30 || --work->timer <= 0) {
                 work->actionStep = ACTOR_01500_CHASE_HOVER;
             } else {
-                work->verticalSpeed = diff > 0 ? 30 : -30;
+                work->verticalSpeed = settleDeltaY > 0 ? 30 : -30;
             }
-            vec->vx               = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            vec->vy               = 0;
-            vec->vz               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            work->targetYaw       = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
-            work->turnRate        = 100;
+            _actor01500AimChaseAtPlayer(work, rootCoord, playerOffset);
             work->roomBody.pos.vy = -300;
             work->roomBody.pos.vz = 0;
             break;
@@ -1393,36 +1456,33 @@ static void Actor01500_Fn011B0(Task* actor)
             work->lunged        = 0;
             if (--work->timer < 0) {
                 gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                val               = Actor01500_D09FE8[(gRandomLcgState >> 16) & 0xF];
+                advanceDistance   = Actor01500_D09FE8[(gRandomLcgState >> 16) & (ARRAY_SIZE(Actor01500_D09FE8) - 1)];
                 work->anim        = ACTOR_01500_ANIM_ADVANCE;
                 work->actionStep  = ACTOR_01500_CHASE_ADVANCE;
-                work->advanceLeft = val;
+                work->advanceLeft = advanceDistance;
             }
-            vec->vx         = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            vec->vy         = 0;
-            vec->vz         = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            work->targetYaw = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
-            work->turnRate  = 100;
+            _actor01500AimChaseAtPlayer(work, rootCoord, playerOffset);
             break;
         case ACTOR_01500_CHASE_ADVANCE:
             work->speed        = 200;
             work->advanceLeft -= 200;
             if (work->advanceLeft < 0) {
-                tbl                  = Actor01500_D09FC8;
+                hoverWaits           = Actor01500_D09FC8;
                 work->anim           = ACTOR_01500_ANIM_HOVER;
-                seed                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                val2                 = tbl[(seed >> 16) & 0xF];
-                gRandomLcgState      = seed;
+                hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
+                gRandomLcgState      = hoverDraw;
                 work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
                 work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
                 work->actionStep     = ACTOR_01500_CHASE_HOVER;
-                work->timer          = val2;
+                work->timer          = hoverTicks;
             }
+            // Each advance arms at most one dive; the dive exit disarms it.
             if (work->lunged == 0) {
-                vec->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                vec->vy = 0;
-                vec->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                if (SquareRoot0(vec->vx * vec->vx + vec->vz * vec->vz) < 1000) {
+                playerOffset->vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+                playerOffset->vy = 0;
+                playerOffset->vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+                if (SquareRoot0(playerOffset->vx * playerOffset->vx + playerOffset->vz * playerOffset->vz) < 1000) {
                     work->anim              = ACTOR_01500_ANIM_DIVE;
                     work->actionStep        = ACTOR_01500_CHASE_DIVE;
                     work->loopSound         = 0;
@@ -1432,10 +1492,10 @@ static void Actor01500_Fn011B0(Task* actor)
             }
             break;
         case ACTOR_01500_CHASE_DIVE:
-            diff2               = gPlayerStatus.coordMtx->t[1] - 1600;
+            heightY             = gPlayerStatus.coordMtx->t[1] - 1600;
             work->speed         = 100;
             work->verticalSpeed = 180;
-            if (diff2 < coord->coord.t[1] || work->attackLanded != 0) {
+            if (heightY < rootCoord->coord.t[1] || work->attackLanded != 0) {
                 work->actionStep        = ACTOR_01500_CHASE_CLIMB;
                 work->attackLanded      = 0;
                 work->anim              = ACTOR_01500_ANIM_ADVANCE;
@@ -1445,90 +1505,90 @@ static void Actor01500_Fn011B0(Task* actor)
             }
             break;
         case ACTOR_01500_CHASE_CLIMB:
-            off2  = coord->coord.t[1] + 1800;
-            diff2 = gPlayerStatus.coordMtx->t[1] - off2;
-            dist2 = abs(diff2);
-            if (dist2 < 96 || --work->timer <= 0) {
+            climbHeightReference = rootCoord->coord.t[1] + 1800;
+            heightY              = gPlayerStatus.coordMtx->t[1] - climbHeightReference;
+            climbDistanceY       = abs(heightY);
+            if (climbDistanceY < 96 || --work->timer <= 0) {
                 work->actionStep = ACTOR_01500_CHASE_ADVANCE;
             } else {
-                work->verticalSpeed = diff2 > 0 ? 96 : -96;
+                work->verticalSpeed = heightY > 0 ? 96 : -96;
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// `ACTOR_01500_ACTION_GROUNDED`: holds the actor to the floor, edging away
-/// from the player, and raises `deathPending` once the actor is more than 500
-/// below or 1800 above the player or `timer` counts past 1800 ticks.
-static void Actor01500_Fn015DC(Task* actor)
+/// Edges along the floor away from the player and expires outside its height band.
+///
+/// Positive Y is downward. A root more than 500 game units below or 1800 above
+/// the player, or more than 1800 calls in this action, requests death. The
+/// downward velocity keeps the room sphere in contact with the floor.
+static void _actor01500GroundedAction(Task* actor)
 {
     _Actor01500Work* work;
-    GfxCoord*        coord;
-    VECTOR*          head;
-    VECTOR*          blk;
+    GfxCoord*        rootCoord;
+    VECTOR*          awayFromPlayer;
 
-    work                         = actor->work;
-    coord                        = actor->extra.tmd->coords;
-    work->anim                   = ACTOR_01500_ANIM_GROUNDED;
-    work->speed                  = 5;
-    work->turnRate               = 5;
-    work->loopSound              = 0;
-    work->verticalSpeed          = 128;
-    head                         = SCRATCH_STACK_CURSOR(VECTOR);
-    blk                          = head - 1;
-    head[-1].vx                  = coord->coord.t[0] - gPlayerStatus.coordMtx->t[0];
-    blk->vy                      = 0;
-    blk->vz                      = coord->coord.t[2] - gPlayerStatus.coordMtx->t[2];
-    SCRATCH_STACK_CURSOR(VECTOR) = blk;
-    work->targetYaw              = ratan2((s16)head[-1].vx, (s16)blk->vz) & 0xFFF;
-    if (coord->coord.t[1] > gPlayerStatus.coordMtx->t[1] + 500 ||
-        coord->coord.t[1] < gPlayerStatus.coordMtx->t[1] - 1800 ||
+    work                = actor->work;
+    rootCoord           = actor->extra.tmd->coords;
+    work->anim          = ACTOR_01500_ANIM_GROUNDED;
+    work->speed         = 5;
+    work->turnRate      = 5;
+    work->loopSound     = 0;
+    work->verticalSpeed = 128;
+    awayFromPlayer      = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+    awayFromPlayer->vx  = rootCoord->coord.t[0] - gPlayerStatus.coordMtx->t[0];
+    awayFromPlayer->vy  = 0;
+    awayFromPlayer->vz  = rootCoord->coord.t[2] - gPlayerStatus.coordMtx->t[2];
+    work->targetYaw     = ratan2((s16)awayFromPlayer->vx, (s16)awayFromPlayer->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+    if (rootCoord->coord.t[1] > gPlayerStatus.coordMtx->t[1] + 500 ||
+        rootCoord->coord.t[1] < gPlayerStatus.coordMtx->t[1] - 1800 ||
         ++work->timer > 1800) {
         work->deathPending = 1;
     }
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// `ACTOR_01500_ACTION_HIT`: ends the flinch once it has run its ticks and
-/// resumes by `posture`. A perched actor (20 ticks) goes back to
-/// `ACTION_PERCH`, which its lost hit points turn into a take-off; an airborne
-/// one (10 ticks) hovers into the chase after a random delay; a crippled one
-/// is grounded on the next tick.
-static void Actor01500_Fn01708(Task* actor)
+/// Ends a hit flinch and resumes the action selected by the interrupted posture.
+///
+/// A perched flinch lasts 20 animation ticks, an airborne one 10; the crippled
+/// path grounds the actor after the first tick. The perch path returns to the
+/// perch handler with a take-off clip selected, while the airborne path starts
+/// chase settling with a random wait.
+static void _actor01500HitAction(Task* actor)
 {
     _Actor01500Work* work = actor->work;
-    s16              anim;
-    u32              rnd;
-    u16              val;
-    u16*             tbl;
+    s16              takeOffAnim;
+    u32              hoverDraw;
+    u16              hoverTicks;
+    u16*             hoverWaits;
 
     switch (work->posture) {
         case ACTOR_01500_POSTURE_PERCHED:
-            anim = ACTOR_01500_ANIM_TAKE_OFF_WALL;
+            takeOffAnim = ACTOR_01500_ANIM_TAKE_OFF_WALL;
             if (work->animFrame >= 20) {
                 work->action = ACTOR_01500_ACTION_PERCH;
                 if (work->perch != ACTOR_01500_PERCH_WALL) {
-                    anim = ACTOR_01500_ANIM_TAKE_OFF_CEILING;
+                    takeOffAnim = ACTOR_01500_ANIM_TAKE_OFF_CEILING;
                 }
                 work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
-                work->anim           = anim;
+                work->anim           = takeOffAnim;
                 work->actionStep     = 0;
                 work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
             }
             break;
         case ACTOR_01500_POSTURE_AIRBORNE:
             if (work->animFrame >= 10) {
-                tbl                  = Actor01500_D09FC8;
+                hoverWaits           = Actor01500_D09FC8;
                 work->action         = ACTOR_01500_ACTION_CHASE;
                 work->anim           = ACTOR_01500_ANIM_HOVER;
                 work->actionStep     = ACTOR_01500_CHASE_SETTLE;
-                rnd                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState      = rnd;
-                val                  = tbl[(rnd >> 16) & 0xF];
+                hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState      = hoverDraw;
+                hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
                 work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
                 work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
-                work->timer          = val;
+                work->timer          = hoverTicks;
             }
             break;
         case ACTOR_01500_POSTURE_CRIPPLED:
@@ -1542,91 +1602,108 @@ static void Actor01500_Fn01708(Task* actor)
     }
 }
 
-/// Turns the actor toward `targetYaw` by at most `turnRate` per call, taking
-/// the short way round the 0x1000 circle, then rebuilds its rotation matrix.
-static void Actor01500_Fn01838(Task* arg0)
+/// Turns the root toward its target heading and rebuilds its yaw-only rotation.
+///
+/// Headings use 4096 units per turn and the change is limited by `turnRate`.
+/// The current heading is read from the matrix on every call. Half-turn ties
+/// use the wrapped branch; the stored result may lie outside 0..4095 and is
+/// passed directly to `RotMatrix`. Rebuilding replaces pitch, roll and scale;
+/// translation is retained.
+static void _actor01500TurnTowardTarget(Task* actor)
 {
     _Actor01500Work*  work;
-    GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s32               ang;
-    u16               want;
-    s16               diff;
-    s32               adiff;
-    s32               step;
-    s32               cur;
-    s32               next;
-    s32               wrapStep;
+    GfxCoord*         rootCoord;
+    ActorFaceScratch* scratch;
+    s32               currentYaw;
+    u16               targetYaw;
+    s16               yawDelta;
+    s32               yawDistance;
+    s32               maxTurn;
+    s32               wrappedYaw;
+    s32               nextYaw;
+    s32               wrappedMaxTurn;
 
-    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    want  = work->targetYaw;
-    diff  = want - ang;
-    adiff = diff >= 0 ? diff : -diff;
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    rootCoord   = actor->extra.tmd->coords;
+    work        = actor->work;
+    currentYaw  = ratan2(rootCoord->coord.m[0][2], rootCoord->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;
+    targetYaw   = work->targetYaw;
+    yawDelta    = targetYaw - currentYaw;
+    yawDistance = yawDelta >= 0 ? yawDelta : -yawDelta;
 
-    work->yaw = ang;
-    if (adiff < 0x800) {
-        step = work->turnRate;
-        if (step >= adiff) {
-            work->yaw = want;
+    work->yaw = currentYaw;
+    if (yawDistance < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        maxTurn = work->turnRate;
+        if (maxTurn >= yawDistance) {
+            work->yaw = targetYaw;
         } else {
-            next = work->yaw;
-            if (diff <= 0) {
-                next -= step;
+            nextYaw = work->yaw;
+            if (yawDelta <= 0) {
+                nextYaw -= maxTurn;
             } else {
-                next += step;
+                nextYaw += maxTurn;
             }
-            work->yaw = next;
+            work->yaw = nextYaw;
         }
     } else {
-        step = work->turnRate;
-        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+        maxTurn = work->turnRate;
+        if (yawDelta > 0 ? maxTurn >= ACTOR_TRANSFORM_ANGLE_TURN - yawDelta : maxTurn >= ACTOR_TRANSFORM_ANGLE_TURN + yawDelta) {
             work->yaw = work->targetYaw;
         } else {
-            wrapStep = work->turnRate;
-            cur      = work->yaw;
-            if (diff > 0) {
-                work->yaw = cur - wrapStep;
+            wrappedMaxTurn = work->turnRate;
+            wrappedYaw     = work->yaw;
+            if (yawDelta > 0) {
+                work->yaw = wrappedYaw - wrappedMaxTurn;
             } else {
-                work->yaw = cur + wrapStep;
+                work->yaw = wrappedYaw + wrappedMaxTurn;
             }
         }
     }
-    sc->rot.vx = 0;
-    sc->rot.vy = work->yaw;
-    sc->rot.vz = 0;
-    RotMatrix(&sc->rot, &coord->coord);
+    scratch->rot.vx = 0;
+    scratch->rot.vy = work->yaw;
+    scratch->rot.vz = 0;
+    RotMatrix(&scratch->rot, &rootCoord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-static void Actor01500_Fn01988(Task* arg0)
+/// Saves the root position, applies flight velocity and hover bob, and checks retirement.
+///
+/// Forward motion uses the root's 12-fractional-bit facing basis; vertical
+/// speed and the bob are parent-frame game units per call, positive downward.
+/// Only the hover clip advances the 15-tick bob cycle. A root more than 5000
+/// units below the player enters the lost-actor teardown phase.
+static void _actor01500Move(Task* actor)
 {
-    _Actor01500Work* work;
-    GfxCoord*        coord;
-    s16              bob;
+    // The final element of the 16-entry table is outside the active bob cycle.
+    enum {
+        ACTOR_01500_HOVER_BOB_TICKS = 15,
+        ACTOR_01500_RETIRE_DROP     = 5000
+    };
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    bob   = 0;
+    _Actor01500Work* work;
+    GfxCoord*        rootCoord;
+    s16              bobOffset;
+
+    work      = actor->work;
+    rootCoord = actor->extra.tmd->coords;
+    bobOffset = 0;
     if (work->anim == ACTOR_01500_ANIM_HOVER) {
         work->bobPhase++;
-        if (work->bobPhase >= 15) {
+        if (work->bobPhase >= ACTOR_01500_HOVER_BOB_TICKS) {
             work->bobPhase = 0;
         }
-        bob = Actor01500_D0A070[work->bobPhase];
+        bobOffset = Actor01500_D0A070[work->bobPhase];
     }
-    // Remember the position so that the next contact pass can put it back.
-    work->prevPos.vx   = coord->coord.t[0];
-    work->prevPos.vy   = coord->coord.t[1];
-    work->prevPos.vz   = coord->coord.t[2];
-    coord->coord.t[0] += (coord->coord.m[0][2] * work->speed) >> 12;
-    coord->coord.t[1] += work->verticalSpeed + bob;
-    coord->coord.t[2] += (coord->coord.m[2][2] * work->speed) >> 12;
-    // An actor that has sunk 5000 below the player is removed without a death.
-    if (coord->coord.t[1] - gPlayerStatus.coordMtx->t[1] > 5000) {
-        arg0->state      = 2;
+    // Save the complete root position for the next contact pass's reset response.
+    work->prevPos.vx       = rootCoord->coord.t[0];
+    work->prevPos.vy       = rootCoord->coord.t[1];
+    work->prevPos.vz       = rootCoord->coord.t[2];
+    rootCoord->coord.t[0] += (rootCoord->coord.m[0][2] * work->speed) >> ACTOR_01500_FACING_FRACTION_BITS;
+    rootCoord->coord.t[1] += work->verticalSpeed + bobOffset;
+    rootCoord->coord.t[2] += (rootCoord->coord.m[2][2] * work->speed) >> ACTOR_01500_FACING_FRACTION_BITS;
+    // Retire a lost actor through the delayed teardown path.
+    if (rootCoord->coord.t[1] - gPlayerStatus.coordMtx->t[1] > ACTOR_01500_RETIRE_DROP) {
+        actor->state     = 2;
         work->action     = ACTOR_01500_ACTION_DIE;
         work->actionStep = ACTOR_01500_DEATH_LOST;
         work->timer      = 0;
@@ -1853,41 +1930,43 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
     worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
 }
 
-static void Actor01500_Fn020D8(Task* arg0)
+/// Hovers and advances around a fixed room point until the player enters the trigger region.
+///
+/// Settling aims 800 plus `hoverOffset` game units above `Actor01500_D0A090`.
+/// The trigger requires player X above `Actor01500_D0A098.vx` and Z below
+/// `Actor01500_D0A098.vz`; Y is ignored. It then engages battle and starts
+/// ordinary chase settling. Timers count calls and heading uses 4096 units
+/// per turn in the root's parent frame.
+static void _actor01500ScriptedAction(Task* actor)
 {
-    u8*              head;
-    VECTOR3*         stk;
-    VECTOR3*         vec;
+    VECTOR*          targetOffset;
     _Actor01500Work* work;
-    GfxCoord*        coord;
-    s32              dy;
-    s32              ady;
-    u16              val;
-    u16              val2;
-    u16*             tbl;
-    s32              off;
-    s32              delay;
+    GfxCoord*        rootCoord;
+    s32              settleDeltaY;
+    s32              settleDistanceY;
+    u16              advanceDistance;
+    u16              hoverTicks;
+    u16*             hoverWaits;
+    s32              settleHeight;
+    s32              settleTicks;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    stk                      = (VECTOR3*)(head - 0x10);
-    SCRATCH_STACK_CURSOR(u8) = (u8*)stk;
-    vec                      = stk;
-    work                     = arg0->work;
-    coord                    = arg0->extra.tmd->coords;
+    targetOffset = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+    work         = actor->work;
+    rootCoord    = actor->extra.tmd->coords;
     switch (work->actionStep) {
         case ACTOR_01500_CHASE_SETTLE:
-            off = work->hoverOffset + 800;
-            dy  = Actor01500_D0A090.vy - off - coord->coord.t[1];
-            ady = abs(dy);
-            if (ady < 30 || --work->timer <= 0) {
+            settleHeight    = work->hoverOffset + 800;
+            settleDeltaY    = Actor01500_D0A090.vy - settleHeight - rootCoord->coord.t[1];
+            settleDistanceY = abs(settleDeltaY);
+            if (settleDistanceY < 30 || --work->timer <= 0) {
                 work->actionStep = ACTOR_01500_CHASE_HOVER;
             } else {
-                work->verticalSpeed = dy > 0 ? 30 : -30;
+                work->verticalSpeed = settleDeltaY > 0 ? 30 : -30;
             }
-            vec->vx               = Actor01500_D0A090.vx - coord->coord.t[0];
-            vec->vy               = 0;
-            vec->vz               = Actor01500_D0A090.vz - coord->coord.t[2];
-            work->targetYaw       = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
+            targetOffset->vx      = Actor01500_D0A090.vx - rootCoord->coord.t[0];
+            targetOffset->vy      = 0;
+            targetOffset->vz      = Actor01500_D0A090.vz - rootCoord->coord.t[2];
+            work->targetYaw       = ratan2((s16)targetOffset->vx, (s16)targetOffset->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
             work->turnRate        = 100;
             work->roomBody.pos.vy = -300;
             work->roomBody.pos.vz = 0;
@@ -1898,45 +1977,46 @@ static void Actor01500_Fn020D8(Task* arg0)
             work->lunged        = 0;
             if (--work->timer < 0) {
                 gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                val               = Actor01500_D09FE8[(gRandomLcgState >> 16) & 0xF];
+                advanceDistance   = Actor01500_D09FE8[(gRandomLcgState >> 16) & (ARRAY_SIZE(Actor01500_D09FE8) - 1)];
                 work->anim        = ACTOR_01500_ANIM_ADVANCE;
                 work->actionStep  = ACTOR_01500_CHASE_ADVANCE;
-                work->advanceLeft = val;
+                work->advanceLeft = advanceDistance;
             }
-            ((VECTOR3*)(head - 0x10))->vx = Actor01500_D0A090.vx - coord->coord.t[0];
-            stk->vy                       = 0;
-            stk->vz                       = Actor01500_D0A090.vz - coord->coord.t[2];
-            work->targetYaw               = ratan2((s16)((VECTOR3*)(head - 0x10))->vx, (s16)stk->vz) & 0xFFF;
-            work->turnRate                = 100;
+            targetOffset->vx = Actor01500_D0A090.vx - rootCoord->coord.t[0];
+            targetOffset->vy = 0;
+            targetOffset->vz = Actor01500_D0A090.vz - rootCoord->coord.t[2];
+            work->targetYaw  = ratan2((s16)targetOffset->vx, (s16)targetOffset->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+            work->turnRate   = 100;
             break;
         case ACTOR_01500_CHASE_ADVANCE:
             work->speed        = 200;
             work->advanceLeft -= 200;
             if (work->advanceLeft < 0) {
-                tbl                  = Actor01500_D09FC8;
+                hoverWaits           = Actor01500_D09FC8;
                 work->anim           = ACTOR_01500_ANIM_HOVER;
-                val2                 = tbl[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                hoverTicks           = hoverWaits[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
                 work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
                 work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
                 work->actionStep     = ACTOR_01500_CHASE_HOVER;
-                work->timer          = val2;
+                work->timer          = hoverTicks;
             }
             break;
     }
+    // Crossing both bounds switches from the fixed room point to the player.
     if (gPlayerStatus.coordMtx->t[0] > Actor01500_D0A098.vx && gPlayerStatus.coordMtx->t[2] < Actor01500_D0A098.vz) {
         work->action         = ACTOR_01500_ACTION_CHASE;
-        delay                = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F) + 60;
+        settleTicks          = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F) + 60;
         work->anim           = ACTOR_01500_ANIM_HOVER;
         work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
         work->actionStep     = ACTOR_01500_CHASE_SETTLE;
         work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
         work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
         work->roused         = 1;
-        work->timer          = delay;
+        work->timer          = settleTicks;
         work->hoverOffset    = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1FF;
         sceneEngageBattle(1);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Runs the task's current state handler from `Actor01500_D00004`, copying
@@ -1980,7 +2060,7 @@ static void Actor01500_Fn02484(Enemy* arg0, Task* arg1)
             return;
     }
     if (arg0->reactionFlags != 0) {
-        Actor01500_Fn025C8(arg1);
+        _actor01500ApplyReactions(arg1);
     }
     Actor01500_Fn004EC(arg1);
     if (work->deathPending != 0) {
@@ -1990,12 +2070,12 @@ static void Actor01500_Fn02484(Enemy* arg0, Task* arg1)
             arg1->state      = 2;
         }
     }
-    Actor01500_Fn026D8(arg1);
+    _actor01500UpdateAction(arg1);
     if (work->turnRate != 0) {
-        Actor01500_Fn01838(arg1);
+        _actor01500TurnTowardTarget(arg1);
     }
-    Actor01500_Fn01988(arg1);
-    Actor01500_Fn02958(arg1);
+    _actor01500Move(arg1);
+    _actor01500UpdateAnimation(arg1);
     Actor01500_Fn02A1C(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
@@ -2003,42 +2083,36 @@ static void Actor01500_Fn02484(Enemy* arg0, Task* arg1)
     Actor01500_Fn02B70(arg1);
 }
 
-/// Stagger and buildup both knock the actor into `ACTOR_01500_ANIM_FLINCH_AIR`
-/// and, unless it is already crippled, into a fall; damage over time ticks
-/// the effect and applies each hit.
-static void Actor01500_Fn025C8(Task* actor)
+/// Consumes stagger and buildup requests and applies active damage-over-time pulses.
+///
+/// Stagger and buildup select the airborne flinch, stop its loop sound and
+/// start a fall unless the actor is already crippled. Each nonzero pulse goes
+/// through the ordinary damage handler and adds its HP readout; the stored
+/// damage-over-time bits remain set until the shared expiry test succeeds.
+static void _actor01500ApplyReactions(Task* actor)
 {
     Enemy*           enemy;
     _Actor01500Work* work;
-    s32              damage;
-    u8               flags;
+    s32              pulseDamage;
+    u8               pendingReactions;
 
-    enemy = actor->spawnArg2.pointer;
-    flags = enemy->reactionFlags;
-    work  = actor->work;
-    if (flags & ENEMY_REACTION_STAGGER) {
-        enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
-        if (work->posture != ACTOR_01500_POSTURE_CRIPPLED) {
-            work->action = ACTOR_01500_ACTION_FALL;
-        }
-        work->timer     = 0;
-        work->anim      = ACTOR_01500_ANIM_FLINCH_AIR;
-        work->loopSound = 0;
+    enemy            = actor->spawnArg2.pointer;
+    pendingReactions = enemy->reactionFlags;
+    work             = actor->work;
+    if (pendingReactions & ENEMY_REACTION_STAGGER) {
+        enemy->reactionFlags = pendingReactions & ENEMY_REACTION_STAGGER_CLEAR;
+        _actor01500StartReactionFall(work);
     }
     if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
-        if (work->posture != ACTOR_01500_POSTURE_CRIPPLED) {
-            work->action = ACTOR_01500_ACTION_FALL;
-        }
-        work->timer     = 0;
-        work->anim      = ACTOR_01500_ANIM_FLINCH_AIR;
-        work->loopSound = 0;
+        _actor01500StartReactionFall(work);
     }
+    // Pulse damage can replace the reaction selected above with a hit or crippled fall.
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        damage = damageTickEnemyDamageOverTime(enemy);
-        if (damage != 0) {
-            Actor01500_Fn00AFC(actor, damage);
-            worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+        pulseDamage = damageTickEnemyDamageOverTime(enemy);
+        if (pulseDamage != 0) {
+            _actor01500ApplyDamage(actor, pulseDamage);
+            worldTargetAddReadoutAmount(&enemy->node, pulseDamage, 0);
         }
         if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
@@ -2046,79 +2120,89 @@ static void Actor01500_Fn025C8(Task* actor)
     }
 }
 
-/// Runs the handler `action` selects. `ACTOR_01500_ACTION_DIE` has none.
-static void Actor01500_Fn026D8(Task* arg0)
+/// Runs the current behavior action; the death action has no active handler.
+static void _actor01500UpdateAction(Task* actor)
 {
-    _Actor01500Work* work = arg0->work;
+    _Actor01500Work* work = actor->work;
 
     switch (work->action) {
         case ACTOR_01500_ACTION_PERCH:
-            Actor01500_Fn00CA4(arg0);
+            _actor01500PerchAction(actor);
             break;
         case ACTOR_01500_ACTION_ALERT:
-            Actor01500_Fn027B0(arg0);
+            _actor01500AlertAction(actor);
             break;
         case ACTOR_01500_ACTION_TAKE_OFF:
-            Actor01500_Fn00FC4(arg0);
+            _actor01500TakeOffAction(actor);
             break;
         case ACTOR_01500_ACTION_CHASE:
-            Actor01500_Fn011B0(arg0);
+            _actor01500ChaseAction(actor);
             break;
         case ACTOR_01500_ACTION_FALL:
-            Actor01500_Fn0288C(arg0);
+            _actor01500FallAction(actor);
             break;
         case ACTOR_01500_ACTION_GROUNDED:
-            Actor01500_Fn015DC(arg0);
+            _actor01500GroundedAction(actor);
             break;
         case ACTOR_01500_ACTION_WALL_REST:
-            Actor01500_Fn028B0(arg0);
+            _actor01500WallRestAction(actor);
             break;
         case ACTOR_01500_ACTION_HIT:
-            Actor01500_Fn01708(arg0);
+            _actor01500HitAction(actor);
             break;
         case ACTOR_01500_ACTION_SCRIPTED:
-            Actor01500_Fn020D8(arg0);
+            _actor01500ScriptedAction(actor);
             break;
     }
 }
 
-/// `ACTOR_01500_ACTION_ALERT`: counts `timer` up, raising the state-F0 flags
-/// at tick 60; at tick 90 it starts the take-off for the actor's perch.
-static void Actor01500_Fn027B0(Task* actor)
+/// Signals the player's presence from the perch, then begins take-off.
+///
+/// At call 60 it publishes this actor's proximity alert class and latches the
+/// scene noise signal. At call 90 it selects wall or ceiling take-off, marks
+/// the actor airborne and roused, and loads a random hover wait.
+static void _actor01500AlertAction(Task* actor)
 {
-    _Actor01500Work* work = actor->work;
-    s16              anim;
-    u32              rnd;
-    u16              val;
+    enum {
+        ACTOR_01500_PROXIMITY_ALERT_CLASS = 1,
+        ACTOR_01500_ALERT_SIGNAL_TICKS    = 60,
+        ACTOR_01500_ALERT_TAKE_OFF_TICKS  = 90
+    };
 
-    if (++work->timer == 60) {
-        sceneSetEnemyAlert(1);
+    _Actor01500Work* work = actor->work;
+    s16              takeOffAnim;
+    u32              hoverDraw;
+    u16              hoverTicks;
+
+    if (++work->timer == ACTOR_01500_ALERT_SIGNAL_TICKS) {
+        sceneSetEnemyAlert(ACTOR_01500_PROXIMITY_ALERT_CLASS);
         sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_NOISE);
     }
-    anim = ACTOR_01500_ANIM_TAKE_OFF_WALL;
-    if (work->timer >= 90) {
+    takeOffAnim = ACTOR_01500_ANIM_TAKE_OFF_WALL;
+    if (work->timer >= ACTOR_01500_ALERT_TAKE_OFF_TICKS) {
         work->action = ACTOR_01500_ACTION_TAKE_OFF;
         if (work->perch != ACTOR_01500_PERCH_WALL) {
-            anim = ACTOR_01500_ANIM_TAKE_OFF_CEILING;
+            takeOffAnim = ACTOR_01500_ANIM_TAKE_OFF_CEILING;
         }
-        work->anim           = anim;
-        rnd                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState      = rnd;
-        val                  = Actor01500_D09FC8[(rnd >> 16) & 0xF];
+        work->anim           = takeOffAnim;
+        hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState      = hoverDraw;
+        hoverTicks           = Actor01500_D09FC8[(hoverDraw >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
         work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
         work->roused         = 1;
         work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
         work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
-        work->timer          = val;
+        work->timer          = hoverTicks;
     }
 }
 
-/// `ACTOR_01500_ACTION_FALL`, entered from a stagger or at 60% of the hit
-/// points: a forward drift of 20 a tick while sinking 128, with `roomBody`
-/// held above the root.
-static void Actor01500_Fn0288C(Task* arg0)
+/// Sets a forward drift and downward fall with the room sphere above the root.
+///
+/// Velocities are 20 forward and 128 downward game units per call. The contact
+/// pass handles the transition to grounded when the floor pushes upward.
+static void _actor01500FallAction(Task* actor)
 {
-    _Actor01500Work* work = arg0->work;
+    _Actor01500Work* work = actor->work;
 
     work->speed           = 20;
     work->verticalSpeed   = 128;
@@ -2126,57 +2210,62 @@ static void Actor01500_Fn0288C(Task* arg0)
     work->roomBody.pos.vz = 0;
 }
 
-/// `ACTOR_01500_ACTION_WALL_REST`: holds the actor still on the wall it
-/// settled on; when `timer` runs out it takes off again as from a wall perch.
-static void Actor01500_Fn028B0(Task* actor)
+/// Holds still against a wall until the rest timer expires, then begins wall take-off.
+///
+/// The countdown measures calls and transitions only on reaching zero. Leaving
+/// rest clears the action step, selects wall perch and reloads the hover wait;
+/// it leaves animation restart to the animation update.
+static void _actor01500WallRestAction(Task* actor)
 {
     _Actor01500Work* work = actor->work;
-    u32              rnd;
-    u16              val;
-    u16*             tbl;
+    u32              hoverDraw;
+    u16              hoverTicks;
+    u16*             hoverWaits;
 
     work->anim          = ACTOR_01500_ANIM_WALL_REST;
     work->loopSound     = 0;
     work->speed         = 0;
     work->verticalSpeed = 0;
     if (--work->timer == 0) {
-        tbl                  = Actor01500_D09FC8;
+        hoverWaits           = Actor01500_D09FC8;
         work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
         work->action         = ACTOR_01500_ACTION_TAKE_OFF;
         work->anim           = ACTOR_01500_ANIM_TAKE_OFF_WALL;
         work->actionStep     = 0;
-        rnd                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState      = rnd;
-        val                  = tbl[(rnd >> 16) & 0xF];
-        work->perch          = 0;
+        hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState      = hoverDraw;
+        hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
+        work->perch          = ACTOR_01500_PERCH_WALL;
         work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
         work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
-        work->timer          = val;
+        work->timer          = hoverTicks;
     }
 }
 
-/// Animation tick. When `anim` differs from `playingAnim`, every driven slot
-/// is started on it over that animation's blend frames and `animFrame` is
-/// cleared; while the two agree each slot is ticked and `animFrame` advances
-/// by one.
-static void Actor01500_Fn02958(Task* arg0)
+/// Restarts a changed clip with its blend duration or advances the current clip.
+///
+/// The action supplies a clip index in 1..14. Slots 1..6 drive the six parts
+/// below the root; slot zero is untouched. `Actor01500_D0A050` entries count
+/// whole normal-rate blend frames. A restart resets `animFrame` and blends
+/// from each slot's ticked pose; otherwise the counter advances once per call.
+static void _actor01500UpdateAnimation(Task* actor)
 {
     _Actor01500Work* work;
-    s32              i;
-    s32              value;
+    s32              slotIndex;
+    s32              blendFrames;
 
-    work = arg0->work;
+    work = actor->work;
     if (work->anim != work->playingAnim) {
         work->playingAnim = work->anim;
         work->animFrame   = 0;
-        value             = Actor01500_D0A050[work->anim];
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->anim, 0, value);
+        blendFrames       = Actor01500_D0A050[work->anim];
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
         }
     } else {
         work->animFrame++;
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
 }
