@@ -36661,7 +36661,7 @@ gives the same symptom, even with no loop involved: `pan` lands in the next free
 callee-saved register (`sra s1, v0, 24`) and `move a0, s0` drops into the delay
 slot. Give each arm its own locals (`coord2` / `pan2`), as
 `func_actor_503500_80144E8C` already does. That took
-`func_actor_503500_80145754` from 97.4% (`regs=7 reorder=4`) to 100%.
+`_actor503500YellowFlashAttackUpdatePhase` from 97.4% (`regs=7 reorder=4`) to 100%.
 
 When the sound id is also built in place (`lhu s0; srl s0; sll s0; or s0,s0,a1`)
 and one `sound` / `pan` pair serves both arms, write both halves as a chain of
@@ -51059,12 +51059,12 @@ matched.
 
 ### One pointer local shared by two `switch` cases is set twice: scope it per case
 
-`func_actor_503500_801450A0` was stuck at 98.85% with `regs`/`reorder` only.
+`_actor503500PinkFlashAttackUpdatePhase` was stuck at 98.85% with `regs`/`reorder` only.
 Cases 2 and 3 each seed a matrix through `m = (GfxRotationWords*)&work->sweepRotation`
 and then call `RotMatrixY(angle, &work->sweepRotation)`. The target computes
 `addiu a1, s1, 0x9c` *after* the `sweepAngularVelocity` / `sweepAngle` adds, so the case-2
-`step` (`lui a1, 0xfffe` / `lui a1, 0x2`) can use `a1` too. Ours hoisted the
-`addiu` to the top of the block, and `step` moved to `a2`.
+`angularAcceleration` (`lui a1, 0xfffe` / `lui a1, 0x2`) can use `a1` too. Ours hoisted the
+`addiu` to the top of the block, and `angularAcceleration` moved to `a2`.
 
 One function-scope `m` assigned in both cases has `REG_N_SETS == 2`. Its
 `addiu` therefore never gets the `7f000001` launch boost. With priority 1 and
@@ -51072,12 +51072,12 @@ no predecessors, the backward `sched1` picks it last and places it first.
 Declaring `GfxRotationWords* m;` in a `{ }` block inside each case gives two
 single-set pseudos. The addiu is then launched as soon as the last `m->` store
 is scheduled, which puts it after the adds in `sched1`. `sched2`'s luid
-tie-break keeps that order, and `step` and `m` no longer overlap, so both take
+tie-break keeps that order, and `angularAcceleration` and `m` no longer overlap, so both take
 `a1`. The function matched 100%.
 
-The probe that found it reused `step` as the pointer:
-`step = (s32)&work->sweepRotation; ((GfxRotationWords*)step)->m02M10 = 0; ...`. That scored
-99.7% with `regs=0`. The anti-dependence on the `addu` that reads `step`
+The probe that found it reused `angularAcceleration` as the pointer:
+`angularAcceleration = (s32)&work->sweepRotation; ((GfxRotationWords*)angularAcceleration)->m02M10 = 0; ...`. That scored
+99.7% with `regs=0`. The anti-dependence on the `addu` that reads `angularAcceleration`
 ordered the `addiu`, and the shared pseudo gave `a1`. It showed which property
 mattered, but writing the per-case locals was the actual fix. When a pointer is
 hoisted to the top of a block, check whether the same C variable is also
@@ -68688,13 +68688,13 @@ pseudo enters `global.c` with twice its real length and half its real priority,
 which is the only reason a short-lived local pointer can ever take `$s0` from
 it.
 
-In `func_actor_503500_8014642C` the natural C matched instruction-for-instruction
+In `_actor503500InitTentacle` the natural C matched instruction-for-instruction
 except that the `Task*` parameter and the `Enemy*` it caches were swapped
 between `$s0` and `$s1`. The four allocnos, ranked by
 `floor_log2(n_refs) * n_refs / live_length`:
 
     81 work   9 refs / 11  = 24545
-    80 arg0  10 refs / 64  =  4687     <- 64 is 32 doubled by the REG_EQUIV
+    80 task  10 refs / 64  =  4687     <- 64 is 32 doubled by the REG_EQUIV
     83 enemy  4 refs / 18  =  4444
     82 coord  2 refs / 14  =  1428
 
@@ -68753,7 +68753,7 @@ pins the copy below it and the slot goes to whatever else is free:
 
     ...
     sb    zero,0x48(s0)
-    jal   func_actor_503500_80146508
+    jal   _actor503500BindTentacleLighting
      sw   zero,0x54(s0)          # target: no `move a0` in the block at all
 
 Placing the nudge after the last use of `v` cost `reorder=3`, before it
@@ -68891,17 +68891,17 @@ with its four field stores takes it to 100.000%.
 
 ## Comparing a `u8` global against a constant gives `sltiu`; an `s32` local gives `slti`
 
-`func_actor_503500_80145428` guards its body with `D_801153F4` (a `u8` global)
+`_actor503500PinkFlashAttackUpdate` guards its body with `gSceneCombatState.actorControl` (a `u8` field)
 and the target compares it *signed*:
 
 ```
-lbu   $v1, %lo(D_801153F4)($v0)
+lbu   $v1, %lo(gSceneCombatState + 4)($v0)
 slti  $v0, $v1, 0x3
 beqz  $v0, .body
 bnez  $v1, .ret
 ```
 
-Writing the test straight on the global — `if (D_801153F4 < 3)` — gives
+Writing the test straight on the global — `if (gSceneCombatState.actorControl <= SCENE_COMBAT_ACTORS_HIDDEN)` — gives
 `sltiu` instead, and the function sticks at 90.9% with the whole rest of the
 body identical. The promoted operand is an `int`, so the comparison is signed
 in C, but `fold` narrows a comparison between a widened value and a constant
@@ -68913,11 +68913,11 @@ already unsigned.
 Load the global into an `s32` local first and compare that:
 
 ```c
-s32 state;
+s32 actorControl;
 
-state = D_801153F4;
-if (state < 3) {
-    if (state != 0) {
+actorControl = gSceneCombatState.actorControl;
+if (actorControl <= SCENE_COMBAT_ACTORS_HIDDEN) {
+    if (actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
 }
@@ -68928,6 +68928,8 @@ to narrow and the compare stays `slti`; the `lbu` still feeds it directly. This
 is the house idiom across the actor overlays (`actors_shared_801342a4`,
 `_actor503500BallisticShotUpdate`), and it is why so many of them open with
 `state = D_801153F4;` rather than testing the global in place.
+`func_actor_503500_801446E4`), and it is why so many of them open with
+`actorControl = gSceneCombatState.actorControl;` rather than testing the global in place.
 
 The nested `if`s are the separate-statement trick from "Two bounds on one
 variable fold into a `sltiu` range test": `if (state >= 3 || state == 0)` in one
@@ -69172,15 +69174,15 @@ overlay used (`_actor503500YellowFlashEmitterInit` here).
 
 ## A struct member array that is also a call argument is a pointer local
 
-**Problem.** `func_actor_503500_80145F18` walks the four-entry `WorldCollisionContact` table
+**Problem.** `_actor503500OrangeFlashAttackSweepContacts` walks the four-entry `WorldCollisionContact` table
 that sits at offset 0x38 of the enemy's work block, then hands the same table to
 `worldCollisionClearContacts`. Written with the member named directly,
 
 ```c
-for (i = 0; i < 4; i++) {
-    if ((work->rec[i].key.value & 0xFFFF0000) == 0x10000) { ... }
+for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->contacts); contactIndex++) {
+    if ((work->contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) { ... }
 }
-worldCollisionClearContacts(work->rec);
+worldCollisionClearContacts(work->contacts);
 ```
 
 the loop loads `lw v0, 0x3c(v1)` with `v1` walking the *work block* base, and
@@ -69189,7 +69191,7 @@ insert=1 delete=2`). The target computes `addiu a0, a2, 0x38` in the preheader
 and walks `v1` from it with `lw v0, 4(v1)`.
 
 **Cause.** This is the member-array form of the shared-base entry above. With a
-bare `work->rec[i]` the member offset is a constant inside the address
+bare `work->contacts[contactIndex]` the member offset is a constant inside the address
 expression, so strength reduction initialises the giv from the *containing*
 object's pointer and folds `0x38` into every load's displacement; nothing
 invariant is left for the call to reuse, so the base is rebuilt at the call
@@ -69197,11 +69199,11 @@ site. A pointer local initialises the giv from a register, and that register is
 the call argument too.
 
 ```c
-rec = work->rec;
-for (i = 0; i < 4; i++) {
-    if ((rec[i].key.value & 0xFFFF0000) == 0x10000) { ... }
+contacts = work->contacts;
+for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->contacts); contactIndex++) {
+    if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) { ... }
 }
-worldCollisionClearContacts(rec);
+worldCollisionClearContacts(contacts);
 ```
 
 100%, all penalties zero.
@@ -70374,7 +70376,7 @@ earlier (table at `_6` offset `0x10C`). The slide worked again: `units` `0xC094`
 `0xA268`, `_7`'s `rodata` `0x288` -> `0x218` (`0x70` apart, so `_7`'s existing
 table stays 8-aligned). Try the slide before adding a unit. Adding one renumbers
 every later file, and a lane that renumbers cannot be landed by filename.
-**Third use, sliding the start forward.** `func_actor_503500_801450A0`'s table
+**Third use, sliding the start forward.** `_actor503500PinkFlashAttackUpdatePhase`'s table
 sat at `_8` offset `0xAC` (4 mod 8). `_8` ends at a `shared` span, so its end
 boundary could not move back past it. Instead, its *start* moved forward to the
 function: `units` `0xFF5C` -> `0x13280`, and `_8`'s `rodata` `0x338` -> `0x3E4`.
@@ -83440,7 +83442,7 @@ instruction at all.
 
 **Fix.** Read the *source* of the shape-`1.00` sibling BRIEF.md names, not its
 asm. The same body is matched in `actor_503500` as
-`func_actor_503500_8014642C`, and its C carries a statement ours was missing:
+`_actor503500InitTentacle`, and its C carries a statement ours was missing:
 
 ```c
     _actor361100BindTentacleLighting(task);
@@ -126579,12 +126581,13 @@ other carrier's copy can still be `INCLUDE_ASM`, as `actor_113000`'s was.
 `_actor317000SetDrawMode` loads the work pointer (`lw $v1, 0x1C($a0)`) at the
 top of the function, before the switch dispatch, and uses it once in case 2
 (`sh $a2, 0x4C8($v1)`). Its byte-shaped matched siblings
-`_actor335800FlintSetDrawMode` and `func_actor_503500_801466E0` load the same
+`_actor335800FlintSetDrawMode` and `_actor503500SetTentacleDrawMode` load the same
 pointer *inside* case 2 as `lw $v0, 0x1C($a0)` followed by a `nop`, because their
-sources obtain the work pointer in that branch (Flint uses a typed local there):
+sources obtain the work pointer in that branch (both use typed locals there):
 
 ```c
-((_Actor503500Actor361100Model06038Work*)task->work)->freeCountdown = mode;
+work = task->work;
+work->freeCountdown = mode;
 ```
 
 GCC 2.8.1 schedules strictly one basic block at a time -- `schedule_insns` is
