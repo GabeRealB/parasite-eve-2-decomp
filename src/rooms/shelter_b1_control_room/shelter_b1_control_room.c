@@ -186,8 +186,8 @@ extern EvsCommand       D_actor_150400_80133088[];
 static void _shelterB1ControlRoomConfigureMirror(Task* unusedTask, _ShelterB1ControlRoomMirrorConfig* config);
 
 static s32 _shelterB1ControlRoomRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
-s32        func_shelter_b1_control_room_8017ECD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_shelter_b1_control_room_8017ED68(Task*, s32, s32, s32);
+static s32 _shelterB1ControlRoomResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _shelterB1ControlRoomHandleCapCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedArg);
 static s32 _shelterB1ControlRoomIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
 
 static void _shelterB1ControlRoomMirrorTask(Task* task);
@@ -195,14 +195,14 @@ static void _shelterB1ControlRoomMirrorTask(Task* task);
 TaskDesc D_shelter_b1_control_room_80181B88 = { { { TASK_BODY_NONE, 112 } }, _shelterB1ControlRoomMirrorTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b1_control_room_80181B94[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_8017ECD4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1ControlRoomResolveRoomEvent },
     { 5105, _shelterB1ControlRoomRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1ControlRoomIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_control_room_8017ED68 },
+    { ROOM_MESSAGE_COMMAND, _shelterB1ControlRoomHandleCapCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static void func_shelter_b1_control_room_8017EE2C(Task* arg0);
+static void _shelterB1ControlRoomInitializeRoom(Task* task);
 static void _shelterB1ControlRoomIdleState(Task* task);
 
 /// Rotates a signed short vector by the matrix's Q12 rotation coefficients.
@@ -744,51 +744,83 @@ static s32 _shelterB1ControlRoomRejectKeyItemUse(Task* task, s32 messageId, s32 
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_shelter_b1_control_room_8017ECD4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves departures and intercepts the locked access-tunnel door with CAP playback.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; borrows a readable eight-byte request
+/// and writable reply, which may alias. Copies the request and resolves its
+/// Shelter variant first. Returns 1 for ordinary departures or an unlocked door,
+/// 0 for the locked door. Queries have no departure effects; execution writes 2
+/// to the optional request flag and starts CAP command 1. Neither pointer is
+/// retained. Requires the room and map overlays and loaded CAP data.
+static s32 _shelterB1ControlRoomResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId != GAME_AREA_SHELTER_B1_ACCESS_TUNNEL) {
-        return 1;
+    enum {
+        SHELTER_B1_CONTROL_ROOM_DEPARTURE_ALLOWED     = 1,
+        SHELTER_B1_CONTROL_ROOM_DEPARTURE_INTERCEPTED = 0,
+        SHELTER_B1_CONTROL_ROOM_INTERCEPTED_FLAG      = 2,
+        SHELTER_B1_CONTROL_ROOM_LOCKED_DOOR_CAP       = 1,
+    };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId != GAME_AREA_SHELTER_B1_ACCESS_TUNNEL) {
+        return SHELTER_B1_CONTROL_ROOM_DEPARTURE_ALLOWED;
     }
     if (gameFlagGetNibble(GAME_FLAG_B1_CONTROL_ROOM_TUNNEL_DOOR_UNLOCKED) != 0) {
-        return 1;
+        return SHELTER_B1_CONTROL_ROOM_DEPARTURE_ALLOWED;
     }
-    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-        return 0;
+    if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+        return SHELTER_B1_CONTROL_ROOM_DEPARTURE_INTERCEPTED;
     }
-    gameFlagSetNibbleIfPresent(in->flagId, 2);
-    capRunCommandWithTransition(1);
-    return 0;
+    gameFlagSetNibbleIfPresent(request->flagId, SHELTER_B1_CONTROL_ROOM_INTERCEPTED_FLAG);
+    capRunCommandWithTransition(SHELTER_B1_CONTROL_ROOM_LOCKED_DOOR_CAP);
+    return SHELTER_B1_CONTROL_ROOM_DEPARTURE_INTERCEPTED;
 }
 
-s32 func_shelter_b1_control_room_8017ED68(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Selects the control room's progress-dependent CAP command.
+///
+/// `ROOM_MESSAGE_COMMAND` carries an integer CAP selector: 3..5 play those
+/// commands before the control-room return and 6..8 afterwards; 9 plays only
+/// in story chapter 6. Other selectors do nothing. The second payload, task and
+/// message ID are unused. Requires loaded room CAP data; always returns zero.
+static s32 _shelterB1ControlRoomHandleCapCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedArg)
 {
-    switch (arg2) {
-        case 3:
+    enum {
+        SHELTER_B1_CONTROL_ROOM_SELECT_CAP_3    = 3,
+        SHELTER_B1_CONTROL_ROOM_SELECT_CAP_4    = 4,
+        SHELTER_B1_CONTROL_ROOM_SELECT_CAP_5    = 5,
+        SHELTER_B1_CONTROL_ROOM_RETURN_CAP_3    = 6,
+        SHELTER_B1_CONTROL_ROOM_RETURN_CAP_4    = 7,
+        SHELTER_B1_CONTROL_ROOM_RETURN_CAP_5    = 8,
+        SHELTER_B1_CONTROL_ROOM_CHAPTER_SIX_CAP = 9,
+        SHELTER_B1_CONTROL_ROOM_CAP_CHAPTER     = 6,
+    };
+
+    switch (commandIndex) {
+        case SHELTER_B1_CONTROL_ROOM_SELECT_CAP_3:
             if (gameFlagGetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0) {
-                capRunCommandWithTransition(6);
+                capRunCommandWithTransition(SHELTER_B1_CONTROL_ROOM_RETURN_CAP_3);
             } else {
-                capRunCommandWithTransition(3);
+                capRunCommandWithTransition(SHELTER_B1_CONTROL_ROOM_SELECT_CAP_3);
             }
             break;
-        case 4:
+        case SHELTER_B1_CONTROL_ROOM_SELECT_CAP_4:
             if (gameFlagGetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0) {
-                capRunCommandWithTransition(7);
+                capRunCommandWithTransition(SHELTER_B1_CONTROL_ROOM_RETURN_CAP_4);
             } else {
-                capRunCommandWithTransition(4);
+                capRunCommandWithTransition(SHELTER_B1_CONTROL_ROOM_SELECT_CAP_4);
             }
             break;
-        case 5:
+        case SHELTER_B1_CONTROL_ROOM_SELECT_CAP_5:
             if (gameFlagGetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0) {
-                capRunCommandWithTransition(8);
+                capRunCommandWithTransition(SHELTER_B1_CONTROL_ROOM_RETURN_CAP_5);
             } else {
-                capRunCommandWithTransition(5);
+                capRunCommandWithTransition(SHELTER_B1_CONTROL_ROOM_SELECT_CAP_5);
             }
             break;
-        case 9:
-            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == 6) {
-                capRunCommandWithTransition(9);
+        case SHELTER_B1_CONTROL_ROOM_CHAPTER_SIX_CAP:
+            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == SHELTER_B1_CONTROL_ROOM_CAP_CHAPTER) {
+                capRunCommandWithTransition(SHELTER_B1_CONTROL_ROOM_CHAPTER_SIX_CAP);
             }
             break;
     }
@@ -805,17 +837,27 @@ static s32 _shelterB1ControlRoomIgnoreRoomAction(Task* task, s32 messageId, cons
     return 0;
 }
 
-static void func_shelter_b1_control_room_8017EE2C(Task* arg0)
+/// Publishes the room receiver and starts the sliding-model scene for layout 11.
+///
+/// Requires state 0 and live room/session resources. The scene models are spawned
+/// even in demo scene 9, which skips the event script. The receiver allocates no
+/// work and advances to idle state 1 after the optional scene startup.
+static void _shelterB1ControlRoomInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_shelter_b1_control_room_80181B94;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 0xB) {
+    enum {
+        SHELTER_B1_CONTROL_ROOM_SLIDING_MODEL_LAYOUT = 11,
+        SHELTER_B1_CONTROL_ROOM_SKIP_SCRIPT_DEMO     = 9,
+    };
+
+    task->msgTable = D_shelter_b1_control_room_80181B94;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gGameSession->location.loc.variant == SHELTER_B1_CONTROL_ROOM_SLIDING_MODEL_LAYOUT) {
         actor150400SpawnSlidingModels();
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != SHELTER_B1_CONTROL_ROOM_SKIP_SCRIPT_DEMO) {
             evsStartScriptWithSkip(D_actor_150400_80132D70, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_150400_80133088);
         }
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
 /// Keeps the control room task available for messages in state 1.
@@ -827,19 +869,17 @@ static void _shelterB1ControlRoomIdleState(Task* task)
     char reservedStack[0x10];
 }
 
-/// States of the room task `func_shelter_b1_control_room_8017EECC`: the setup
-/// state `func_shelter_b1_control_room_8017EE2C`, the idle state
+/// States of the room task `shelterB1ControlRoomRoomTask`: the setup
+/// state `_shelterB1ControlRoomInitializeRoom`, the idle state
 /// `_shelterB1ControlRoomIdleState`, then `taskKill`.
 static const TaskFuncTable3 D_shelter_b1_control_room_8017D5C4 = {
-    { func_shelter_b1_control_room_8017EE2C, _shelterB1ControlRoomIdleState, taskKill },
+    { _shelterB1ControlRoomInitializeRoom, _shelterB1ControlRoomIdleState, taskKill },
 };
 
-/// The room task: runs the handler for its state from a stack copy of
-/// `D_shelter_b1_control_room_8017D5C4`.
-void func_shelter_b1_control_room_8017EECC(Task* task)
+void shelterB1ControlRoomRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b1_control_room_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b1_control_room_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

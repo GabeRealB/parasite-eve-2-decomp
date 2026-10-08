@@ -541,9 +541,9 @@ AreaApplyRec D_shelter_b1_control_room_80183BE0[2] = {
     { 255, 0, 0, 0 },
 };
 
-void func_shelter_b1_control_room_8017FF80(Task* arg0)
+void shelterB1ControlRoomRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void shelterB1ControlRoomRoomVisualEffectsFlyingSparkTask(Task* task)

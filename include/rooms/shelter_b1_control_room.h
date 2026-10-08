@@ -44,7 +44,13 @@ extern WorldCoordRoomAmbientEntry D_shelter_b1_control_room_80183B48[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_control_room_80183BC0[];
 
-void func_shelter_b1_control_room_8017EECC(Task* task);
+/// Runs the control room's message receiver and entry-scene setup.
+///
+/// Requires a live task with state 0 (register handlers and optional layout-11
+/// scene), 1 (idle), or 2 (kill). Keep the room and Shelter map overlays loaded
+/// while the receiver and its borrowed message table remain available.
+/// The receiver allocates no work; scene tasks own their own resources.
+void shelterB1ControlRoomRoomTask(Task* task);
 
 /// Draws the control room's fixed glows for the current mapped camera view.
 ///
@@ -57,7 +63,19 @@ void func_shelter_b1_control_room_8017EECC(Task* task);
 /// Uses only `task->state`; keeps running until its owner removes the task.
 void shelterB1ControlRoomDrawGlowsTask(Task* task);
 
-void func_shelter_b1_control_room_8017FF80(Task* arg0);
+/// Runs the control room's attached charge disc, player-joint sparks and release ring.
+///
+/// Requires a coordinate body and counted `EffectWork` initialized by
+/// `effectSpawn` in `spawnArg2.pointer`, with age, brightness, radius and ring
+/// growth initially zero. `spawnArg1.value` selects tint 0 or 1.
+/// Start in `ROOM_VISUAL_EFFECTS_GLOW_DISC_ATTACH`; the owner can request
+/// FLICKER, RELEASE or CANCEL through the corresponding state constants.
+/// Borrows the work's parent coordinate and saved local offset. Growth emits
+/// flying sparks from live player model parts 3..18 and adopts them for teardown;
+/// the flying-spark selector must be installed. Nonzero room effect control
+/// pauses updates; values at least 4 cancel. Release/cancel frees work and child
+/// tasks. Keep the anchor, player, effect controller and room overlay live.
+void shelterB1ControlRoomRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Runs the control room's animated spark toward its initial target position.
 ///

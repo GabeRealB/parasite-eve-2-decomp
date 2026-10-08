@@ -49,7 +49,7 @@ shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlashTask = 0x8017E2D8; // type
 
 shelterB1ControlRoomAccessTunnelRoomVisualEffectsTwinTrailTask = 0x8017ED3C; // type:func
 
-func_shelter_b1_control_room_access_tunnel_8017F624 = 0x8017F624; // type:func
+shelterB1ControlRoomAccessTunnelRoomVisualEffectsSparkBurstTask = 0x8017F624; // type:func
 
 shelterB1ControlRoomAccessTunnelRoomVisualEffectsGlowDiscTask = 0x8018026C; // type:func
 

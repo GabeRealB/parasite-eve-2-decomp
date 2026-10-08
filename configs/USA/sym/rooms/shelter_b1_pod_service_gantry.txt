@@ -99,3 +99,4 @@ _shelterB1PodServiceGantryIgnoreCommand = 0x8017d80c; // type:func
 _shelterB1PodServiceGantryIgnoreRoomAction = 0x8017d814; // type:func
 _shelterB1PodServiceGantryInitRoomState = 0x8017d81c; // type:func
 _shelterB1PodServiceGantryRunSceneSequence = 0x8017d628; // type:func
+shelterB1PodServiceGantryRoomTask = 0x8017d89c; // type:func

@@ -32,7 +32,15 @@ extern WorldCoordRoomLights D_shelter_b1_pod_service_gantry_801824F4;
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_pod_service_gantry_80182520[];
 
-void func_shelter_b1_pod_service_gantry_8017D89C(Task* task);
+/// Runs the pod service gantry's room receiver and two-scene sequence.
+///
+/// Requires a live task with state 0 (register and allocate scene work), 1
+/// (advance the scene sequence), or 2 (kill). Start at 0; the task owns its
+/// allocated work until teardown, and allocation failure kills the receiver.
+/// Keep the room/map overlays and scene resources live while used. Running
+/// state 1 requires the work initialized by state 0; the final sequence step
+/// waits for the area transition to tear down the room.
+void shelterB1PodServiceGantryRoomTask(Task* task);
 
 void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 arg2, s16 arg3);
 

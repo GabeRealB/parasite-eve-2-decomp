@@ -441,7 +441,7 @@ static AreaObjectSpawn D_map_shelter_8017A898[2] = {
 };
 
 static AreaObjectSpawn D_map_shelter_8017A8B8[2] = {
-    { 0x127, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_b1_sleeping_quarters_8017D608, { &gShelterB1SleepingQuartersModel02DFC } } },
+    { 0x127, { { { TASK_BODY_TMD, 0x62 } }, shelterB1SleepingQuartersAreaObjectTask, { &gShelterB1SleepingQuartersModel02DFC } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -543,11 +543,11 @@ TaskDesc D_map_shelter_8017AB30[] = {
     { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_storeroom_8017D794, { .value = GP_TASK_LOC_KEY(4, 11, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterB1NorthMaintenanceWalkwayRoomTask, { .value = GP_TASK_LOC_KEY(4, 12, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterB1ArmoryRoomTask, { .value = GP_TASK_LOC_KEY(4, 13, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_sleeping_quarters_8017D888, { .value = GP_TASK_LOC_KEY(4, 14, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, shelterB1SleepingQuartersRoomTask, { .value = GP_TASK_LOC_KEY(4, 14, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterB1MainCorridorRoomTask, { .value = GP_TASK_LOC_KEY(4, 15, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterB1SterilizationRoomTask, { .value = GP_TASK_LOC_KEY(4, 16, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterB1PodAccessTunnelRoomTask, { .value = GP_TASK_LOC_KEY(4, 17, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_access_tunnel_8017DD08, { .value = GP_TASK_LOC_KEY(4, 19, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, shelterB1AccessTunnelRoomTask, { .value = GP_TASK_LOC_KEY(4, 19, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterB1UndergroundParkingRoomTask, { .value = GP_TASK_LOC_KEY(4, 20, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterB1GolemFreezer1RoomTask, { .value = GP_TASK_LOC_KEY(4, 21, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterB1TransferTunnelRoomTask, { .value = GP_TASK_LOC_KEY(4, 24, 0) } },
@@ -576,8 +576,8 @@ TaskDesc D_map_shelter_8017AB30[] = {
     { { { TASK_BODY_NONE, 0x20 } }, shelterR48RoomTask, { .value = GP_TASK_LOC_KEY(4, 48, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterR47RoomTask, { .value = GP_TASK_LOC_KEY(4, 47, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterR49RoomTask, { .value = GP_TASK_LOC_KEY(4, 49, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_control_room_8017EECC, { .value = GP_TASK_LOC_KEY(4, 18, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_pod_service_gantry_8017D89C, { .value = GP_TASK_LOC_KEY(4, 23, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, shelterB1ControlRoomRoomTask, { .value = GP_TASK_LOC_KEY(4, 18, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, shelterB1PodServiceGantryRoomTask, { .value = GP_TASK_LOC_KEY(4, 23, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_pod_bottom_8017D708, { .value = GP_TASK_LOC_KEY(4, 22, 0) } },
     { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
 };

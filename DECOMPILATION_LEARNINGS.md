@@ -42794,7 +42794,7 @@ and nothing is live across the call.
 The remaining knob is polarity: whichever arm GCC lays out as the *taken*
 branch supplies the first delay slot. `if (x != 0) f(6); else f(3);` gives
 `bnez … li a0,6`; writing the `== 0` test first gives `beqz … li a0,3`.
-Flip the test to move the constants. `func_shelter_b1_control_room_8017ED68`
+Flip the test to move the constants. `_shelterB1ControlRoomHandleCapCommand`
 is the minimal example.
 
 ## Write `state++; return;` out in every switch case, not one shared `goto advance`

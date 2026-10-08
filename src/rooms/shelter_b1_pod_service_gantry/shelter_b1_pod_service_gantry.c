@@ -1692,13 +1692,10 @@ static void _shelterB1PodServiceGantryInitRoomState(Task* task)
     task->state += 1;
 }
 
-/// The room task: copies its three-state table
-/// `D_shelter_b1_pod_service_gantry_8017D5C4` onto the stack and calls the
-/// entry for the task's current state.
-void func_shelter_b1_pod_service_gantry_8017D89C(Task* task)
+void shelterB1PodServiceGantryRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b1_pod_service_gantry_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b1_pod_service_gantry_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

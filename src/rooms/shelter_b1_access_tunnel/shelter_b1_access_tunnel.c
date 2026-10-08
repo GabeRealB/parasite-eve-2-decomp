@@ -72,7 +72,7 @@ extern TaskDesc gRoomEventTaskDesc;
 /// starts the latched event.
 extern TaskDesc D_shelter_b1_access_tunnel_8017E710;
 
-/// Message table `func_shelter_b1_access_tunnel_8017DCBC` installs on its task.
+/// Message table `_shelterB1AccessTunnelInitializeRoom` installs on its task.
 extern TaskMessageEntry D_shelter_b1_access_tunnel_8017E71C[];
 
 extern SVECTOR D_shelter_b1_access_tunnel_8017E744[];
@@ -98,7 +98,7 @@ extern RoomEventReqStorage gRoomEventReq;
 
 extern RoomLatchedEvent gRoomEventLatched;
 
-static void func_shelter_b1_access_tunnel_8017DCBC(Task* task);
+static void _shelterB1AccessTunnelInitializeRoom(Task* task);
 static void _shelterB1AccessTunnelIdle(Task* task);
 
 s32        func_shelter_b1_access_tunnel_8017DA68(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -639,21 +639,24 @@ static s32 _shelterB1AccessTunnelIgnoreRoomAction(Task* task, s32 messageId, con
 }
 
 /// The room's three-entry task state table, dispatched by
-/// `func_shelter_b1_access_tunnel_8017DD08` from a stack copy.
+/// `shelterB1AccessTunnelRoomTask` from a stack copy.
 static const TaskFuncTable3 D_shelter_b1_access_tunnel_8017D5F0 = {
     {
-        func_shelter_b1_access_tunnel_8017DCBC,
+        _shelterB1AccessTunnelInitializeRoom,
         _shelterB1AccessTunnelIdle,
         taskKill,
     },
 };
 
-/// Installs the room's message table on `task` and advances it.
-static void func_shelter_b1_access_tunnel_8017DCBC(Task* task)
+/// Publishes the initialized access-tunnel receiver for synchronous room messages.
+///
+/// Requires state 0 and the loaded room message table. Registers the live task
+/// in `GAME_TASK_SLOT_ROOM` and advances to idle state 1, without allocating work.
+static void _shelterB1AccessTunnelInitializeRoom(Task* task)
 {
     task->msgTable = D_shelter_b1_access_tunnel_8017E71C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the room task available for messages without per-frame work or state changes.
@@ -661,13 +664,12 @@ static void _shelterB1AccessTunnelIdle(Task* task)
 {
 }
 
-/// Runs the handler for the task's state from the room's state table.
-void func_shelter_b1_access_tunnel_8017DD08(Task* task)
+void shelterB1AccessTunnelRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b1_access_tunnel_8017D5F0;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b1_access_tunnel_8017D5F0;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Draws two additive capsule glows with a shared radius scale and tint.

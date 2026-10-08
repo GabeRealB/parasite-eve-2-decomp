@@ -47,11 +47,10 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/streamed_scene.h"
 
-// Indexed views below share one contiguous table.
-void func_shelter_b1_control_room_8017F100(Task*);
+static void _shelterB1ControlRoomStartMovieTask(Task* task);
 
 TaskDesc D_shelter_b1_control_room_80181BBC[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_control_room_8017F100, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterB1ControlRoomStartMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, streamedScenePlayThenHold, { .value = 0 } },
 };
 
@@ -92,12 +91,20 @@ enum {
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-void func_shelter_b1_control_room_8017F100(Task* arg0)
+/// Hands display presentation to the control room's movie and retires the trigger.
+///
+/// Requires the room overlay, session and movie resources to remain loaded through
+/// playback. Spawns descriptor 1 on the display list, requests task-only flipping
+/// and queues the current camera packets. The movie restores game resources and
+/// resumes presentation after completion or cancellation; this trigger owns no work.
+static void _shelterB1ControlRoomStartMovieTask(Task* task)
 {
-    displaySpawnTaskFromTable(D_shelter_b1_control_room_80181BBC, 1, 0, 0);
+    enum { SHELTER_B1_CONTROL_ROOM_MOVIE_DESCRIPTOR = 1 };
+
+    displaySpawnTaskFromTable(D_shelter_b1_control_room_80181BBC, SHELTER_B1_CONTROL_ROOM_MOVIE_DESCRIPTOR, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
-    taskKill(arg0);
+    taskKill(task);
 }
 
 /// Queues the six capsule glows and orange disc common to mapped views 2 and 3.

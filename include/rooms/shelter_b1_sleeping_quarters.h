@@ -40,9 +40,21 @@ extern WorldCollisionTrigger D_shelter_b1_sleeping_quarters_801838D0[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_sleeping_quarters_801840B0[];
 
-void func_shelter_b1_sleeping_quarters_8017D608(Task* task);
+/// Hides the sleeping quarters' placed model when its packed object state is 2.
+///
+/// Requires a live TMD-body task and its area-spawned `Enemy` work in
+/// `spawnArg2.pointer`. The low byte of `Enemy::placeKey` selects an object-state
+/// index in 0..63 in the session's current stage; the room's placement uses 20.
+/// Other state values show the model. Only the active-draw flag changes; the
+/// task keeps its model and work until its owner tears them down.
+void shelterB1SleepingQuartersAreaObjectTask(Task* task);
 
-void func_shelter_b1_sleeping_quarters_8017D888(Task* task);
+/// Runs the sleeping quarters' room-message receiver.
+///
+/// Requires a live task with state 0 (register handlers), 1 (idle), or 2 (kill).
+/// Keep the room and Shelter map overlays loaded while the task and its borrowed
+/// message table remain available. The receiver allocates no work.
+void shelterB1SleepingQuartersRoomTask(Task* task);
 
 /// Draws the Sleeping Quarters' view-specific light beams and red glow disc.
 ///

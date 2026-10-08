@@ -76,7 +76,7 @@ _gShelterB1SleepingQuartersModel02DFCStream = 0x801803BC; // size:0x138 defined:
 
 shelterB1SleepingQuartersDrawViewLightsTask = 0x8017D8E0; // type:func
 
-func_shelter_b1_sleeping_quarters_8017D778 = 0x8017D778; // type:func
+_shelterB1SleepingQuartersPlayAlternateCapTask = 0x8017D778; // type:func
 
 func_shelter_b1_sleeping_quarters_8017E6DC = 0x8017E6DC; // type:func
 
@@ -93,3 +93,8 @@ _glowDrawBitDisc = 0x8017E338; // type:func
 _shelterB1SleepingQuartersRejectKeyItemUse = 0x8017d668; // type:func
 _shelterB1SleepingQuartersIgnoreRoomAction = 0x8017d770; // type:func
 _shelterB1SleepingQuartersIdleRoomState = 0x8017d880; // type:func
+shelterB1SleepingQuartersAreaObjectTask = 0x8017d608; // type:func
+_shelterB1SleepingQuartersResolveRoomEvent = 0x8017d670; // type:func
+_shelterB1SleepingQuartersHandleCapCommand = 0x8017d6fc; // type:func
+_shelterB1SleepingQuartersInitializeRoom = 0x8017d83c; // type:func
+shelterB1SleepingQuartersRoomTask = 0x8017d888; // type:func

@@ -217,7 +217,7 @@ void shelterB1ControlRoomAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b1_control_room_access_tunnel_8017F624(Task* task)
+void shelterB1ControlRoomAccessTunnelRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

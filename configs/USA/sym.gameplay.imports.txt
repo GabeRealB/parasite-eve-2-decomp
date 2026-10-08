@@ -976,7 +976,7 @@ func_shelter_1f_vehicular_airlock_80180008 = 0x80180008; // type:func absolute:T
 
 shelterB1ControlRoomDrawGlowsTask = 0x8017F150; // type:func absolute:True owner=shelter_b1_control_room
 
-func_shelter_b1_control_room_8017FF80 = 0x8017FF80; // type:func absolute:True owner=shelter_b1_control_room shared=rooms
+shelterB1ControlRoomRoomVisualEffectsGlowDiscTask = 0x8017FF80; // type:func absolute:True owner=shelter_b1_control_room shared=rooms
 
 shelterB1ControlRoomRoomVisualEffectsFlyingSparkTask = 0x801804D8; // type:func absolute:True owner=shelter_b1_control_room
 
@@ -988,7 +988,7 @@ shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlashTask = 0x8017E2D8; // type
 
 shelterB1ControlRoomAccessTunnelRoomVisualEffectsTwinTrailTask = 0x8017ED3C; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
 
-func_shelter_b1_control_room_access_tunnel_8017F624 = 0x8017F624; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
+shelterB1ControlRoomAccessTunnelRoomVisualEffectsSparkBurstTask = 0x8017F624; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
 
 shelterB1ControlRoomAccessTunnelRoomVisualEffectsGlowDiscTask = 0x8018026C; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
 
@@ -1923,7 +1923,7 @@ shelter1fHeliportNoOpEffectTask = 0x80180B4C; // type:func absolute:True owner=s
 
 shelter1fGuardroomEffectNoopTask = 0x8017DA28; // type:func absolute:True owner=shelter_1f_guardroom shared=rooms
 
-neoArkR26EffectNoopTask = 0x8017D778; // type:func absolute:True owner=neo_ark_r26 shared=rooms
+neoArkR26EffectNoopTask = 0x8017D778; // type:func absolute:True owner=neo_ark_r26
 
 shelter1fTentDrawViewGlowsTask = 0x8017FE10; // type:func absolute:True owner=shelter_1f_tent
 

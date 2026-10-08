@@ -37,7 +37,12 @@ extern WorldCollisionOccluder D_shelter_b1_access_tunnel_8017FD2C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_access_tunnel_8017FF24[];
 
-void func_shelter_b1_access_tunnel_8017DD08(Task* task);
+/// Runs the access tunnel's room-message receiver.
+///
+/// Requires a live task with state 0 (register handlers), 1 (idle), or 2 (kill).
+/// Keep the room and Shelter map overlays loaded while its task and borrowed
+/// message table remain available. The task allocates no work.
+void shelterB1AccessTunnelRoomTask(Task* task);
 
 /// Draws the access tunnel's light glows for mapped views 2 through 5 each frame.
 ///

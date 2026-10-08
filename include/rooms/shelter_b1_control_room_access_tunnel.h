@@ -74,7 +74,16 @@ void shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlashTask(Task* task);
 /// values at least 2 freeze this task. The room overlay must remain loaded.
 void shelterB1ControlRoomAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b1_control_room_access_tunnel_8017F624(Task* task);
+/// Runs the tunnel's impact flash followed by smoke or fading rings and sparks.
+///
+/// Requires a coordinate body and zero-aged, counted `EffectWork` in
+/// `spawnArg2.pointer`, initialized by `effectSpawn`, with task state 0.
+/// Nonzero `spawnArg1.value` selects smoke puffs; zero selects two bouncing
+/// sparks and orange rings. Enters release at active age 7 and frees the work
+/// and task on the next active tick. Spawned effects are independent tasks.
+/// Nonzero room effect control pauses updates; values at least 4 cancel.
+/// Keep the effect controller and room overlay loaded while dispatched.
+void shelterB1ControlRoomAccessTunnelRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs the tunnel's attached charge disc, player-joint sparks and fading release ring.
 ///

@@ -1054,7 +1054,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1MainCorridorRoomVisualEffectsSparkBurstTask, { NULL } },                   // 0x204
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodAccessTunnelRoomVisualEffectsSparkBurstTask, { NULL } },                // 0x205
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1TransferTunnelRoomVisualEffectsSparkBurstTask, { NULL } },                 // 0x206
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_access_tunnel_8017F624, { NULL } },                    // 0x207
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomAccessTunnelRoomVisualEffectsSparkBurstTask, { NULL } },        // 0x207
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2ElevatorHallRoomVisualEffectsSparkBurstTask, { NULL } },                   // 0x208
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SouthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask, { NULL } },        // 0x209
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_north_maintenance_walkway_80182F00, { NULL } },                     // 0x20A
@@ -1165,7 +1165,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFireBlastTask, { NULL } },                                  // 0x273
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFlameConeTask, { NULL } },                                  // 0x274
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFlameRingTask, { NULL } },                                  // 0x275
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_8017FF80, { NULL } },                                  // 0x276
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomRoomVisualEffectsGlowDiscTask, { NULL } },                      // 0x276
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomRoomVisualEffectsFlyingSparkTask, { NULL } },                   // 0x277
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomRoomVisualEffectsFlyingOrangeBurstTask, { NULL } },             // 0x278
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomAccessTunnelRoomVisualEffectsGlowDiscTask, { NULL } },          // 0x279

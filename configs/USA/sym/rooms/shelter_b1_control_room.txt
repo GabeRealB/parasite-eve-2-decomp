@@ -57,7 +57,7 @@ D_shelter_b1_control_room_80183BE0 = 0x80183BE0; // size:0x8 defined:True
 
 shelterB1ControlRoomDrawGlowsTask = 0x8017F150; // type:func
 
-func_shelter_b1_control_room_8017FF80 = 0x8017FF80; // type:func
+shelterB1ControlRoomRoomVisualEffectsGlowDiscTask = 0x8017FF80; // type:func
 
 shelterB1ControlRoomRoomVisualEffectsFlyingSparkTask = 0x801804D8; // type:func
 
@@ -75,3 +75,8 @@ _shelterB1ControlRoomIgnoreRoomAction = 0x8017ee24; // type:func
 _shelterB1ControlRoomIdleState = 0x8017eebc; // type:func
 _shelterB1ControlRoomConfigureMirror = 0x8017d600; // type:func
 _shelterB1ControlRoomMirrorTask = 0x8017d7b8; // type:func
+_shelterB1ControlRoomResolveRoomEvent = 0x8017ecd4; // type:func
+_shelterB1ControlRoomHandleCapCommand = 0x8017ed68; // type:func
+_shelterB1ControlRoomInitializeRoom = 0x8017ee2c; // type:func
+shelterB1ControlRoomRoomTask = 0x8017eecc; // type:func
+_shelterB1ControlRoomStartMovieTask = 0x8017f100; // type:func
