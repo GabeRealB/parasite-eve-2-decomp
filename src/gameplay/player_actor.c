@@ -88,6 +88,16 @@ enum {
 /// Maximum per-call lock-elevation change, in 4096 angle units per turn.
 enum { PLAYER_ACTOR_LOCK_ELEVATION_STEP = 0x30 };
 
+/// Phases and callback-tick spacing of the spark/puff and body-blast hit reactions.
+enum {
+    PLAYER_ACTOR_EFFECT_HIT_PHASE_START     = 0,
+    PLAYER_ACTOR_EFFECT_HIT_PHASE_EMIT      = 1,
+    PLAYER_ACTOR_EFFECT_HIT_PHASE_WAIT_CLIP = 2,
+    PLAYER_ACTOR_EFFECT_HIT_PHASE_RESUME    = 3,
+    PLAYER_ACTOR_EFFECT_HIT_DELAY_TICKS     = 6,
+    PLAYER_ACTOR_EFFECT_HIT_DAMAGE_STEP     = 12,
+};
+
 /// Number of `PlayerStatus::weapon` indices. 0 is no weapon; 1..32 are the weapons.
 #define PLAYER_ACTOR_WEAPON_COUNT 33
 
@@ -461,8 +471,6 @@ static void Gp_AimPitchDirect(Task* arg0);
 
 static void _playerActorTickTextureSequences(Task* task);
 
-inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-
 static Task* func_80103294(Task* arg0, s32 arg1, s32 arg2);
 
 inline static Task* _playerActorSpawnEquippedWeapon(Task* parent, s32 characterId, s32 weaponId);
@@ -512,8 +520,6 @@ static void _playerActorDispatchWeaponAttack(Task* task);
 static s32 _playerActorTryStartAutomaticReload(Task* task, s32 attackButton);
 
 static void _playerActorNoWeaponAttack(Task* unusedTask);
-
-static void func_801065A8(Task* arg0);
 
 static void Gp_TickPlayerNormal(Task* arg0);
 
@@ -571,9 +577,9 @@ static void Gp_PlayerMode1State0(Task* arg0);
 
 static void _playerActorDamageHitRegion3(Task* unusedTask);
 
-static void func_80109210(Task* arg0);
+static void _playerActorUpdateTurnInput(Task* task);
 
-static void func_80109250(Task* arg0);
+static void _playerActorUpdateMovementInput(Task* task);
 
 static s32 _playerActorTryEnterPeAction(Task* task);
 
@@ -595,9 +601,9 @@ static void func_80109818(Task* arg0);
 
 static inline s32 _playerActorClampHitEffectLevel(s32 hitEffectLevel);
 
-static void func_80109844(Task* arg0);
+static void _playerActorTickSparkPuffHit(Task* task);
 
-static void func_80109A1C(Task* arg0);
+static void _playerActorTickBodyBlastHit(Task* task);
 
 /// Ends the actor's current action: clears the fields `playerActorClearPendingHit` resets,
 /// sets `recoveryTicks` to 0x12 and restarts the state machine in the base state
@@ -5983,40 +5989,71 @@ static void _playerActorTickTextureSequences(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(RECT);
 }
 
-inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects player or companion attachment textures and rebuilds both primitive halves.
+///
+/// Player models use a six-page offset with no CLUT-row displacement; companion
+/// models use four pages and six rows. Requires a live model source, coordinates
+/// and allocated two-half primitive buffer, plus the builder's graphics/scratch
+/// resources. Borrows actor/model storage and restores the next-half selector.
+static inline void _playerActorBindAttachmentTextures(TmdObject* attachmentModel, const GameActor* actor)
 {
-    Task*      task;
-    GameActor* actor;
-    TmdObject* extra;
-    GfxCoord*  coord;
-    TmdObject* obj;
-    GfxCoord*  saved;
-    u8*        table;
-    s32        type;
+    enum {
+        PLAYER_ACTOR_ATTACHMENT_TEXTURE_PAGE_OFFSET           = 6,
+        PLAYER_ACTOR_ATTACHMENT_CLUT_ROW_OFFSET               = 0,
+        PLAYER_ACTOR_COMPANION_ATTACHMENT_TEXTURE_PAGE_OFFSET = 4,
+        PLAYER_ACTOR_COMPANION_ATTACHMENT_CLUT_ROW_OFFSET     = 6,
+    };
 
-    extra = arg0->extra.tmd;
-    actor = arg0->work;
-    saved = &extra->coords[D_80112E04[arg2][arg1]];
-    table = D_80112DFC;
-    type  = gPlayerStatus.resourceVariant - 2;
-    task  = taskSpawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
+    if (actor->companionWork != NULL) {
+        attachmentModel->texturePageOffset = PLAYER_ACTOR_COMPANION_ATTACHMENT_TEXTURE_PAGE_OFFSET;
+        attachmentModel->clutRowOffset     = PLAYER_ACTOR_COMPANION_ATTACHMENT_CLUT_ROW_OFFSET;
+    } else {
+        attachmentModel->texturePageOffset = PLAYER_ACTOR_ATTACHMENT_TEXTURE_PAGE_OFFSET;
+        attachmentModel->clutRowOffset     = PLAYER_ACTOR_ATTACHMENT_CLUT_ROW_OFFSET;
+    }
+    tmdBuildBufferHalf(attachmentModel);
+    tmdBuildBufferHalf(attachmentModel);
+}
+
+/// Creates one attachment model anchor for the private pair-replacement path.
+///
+/// attachmentIndex and pairVariant are 0..1; rigIndex is 0..5 and its sum with
+/// resourceVariant - 2 must index descriptor bases 0..7. The selected rig joint
+/// and bank-7 descriptor/model must exist. Returns NULL on spawn failure;
+/// otherwise the child borrows the actor's joint until teardown and uses its
+/// texture bank. Caller owns the child and installs it in the attachment pair.
+static inline Task* _playerActorSpawnAttachment(Task* actorTask, s32 attachmentIndex, s32 rigIndex, s32 pairVariant)
+{
+    enum {
+        PLAYER_ACTOR_ATTACHMENT_BANK          = 7,
+        PLAYER_ACTOR_ATTACHMENT_RESOURCE_BIAS = 2,
+        PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE     = 2,
+    };
+    Task*            task;
+    const GameActor* actor;
+    TmdObject*       actorModel;
+    GfxCoord*        attachmentCoord;
+    TmdObject*       attachmentModel;
+    GfxCoord*        parentCoord;
+    const u8*        descriptorBases;
+    s32              resourceOffset;
+
+    actorModel      = actorTask->extra.tmd;
+    actor           = actorTask->work;
+    parentCoord     = &actorModel->coords[D_80112E04[rigIndex][attachmentIndex]];
+    descriptorBases = D_80112DFC;
+    resourceOffset  = gPlayerStatus.resourceVariant - PLAYER_ACTOR_ATTACHMENT_RESOURCE_BIAS;
+    task            = taskSpawn(PLAYER_ACTOR_ATTACHMENT_BANK, descriptorBases[rigIndex + resourceOffset] + pairVariant * PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE + attachmentIndex, 0, 0);
     if (task == NULL) {
         return NULL;
     }
-    task->parent            = arg0;
-    coord                   = task->extra.tmd->coords;
-    coord->parent           = saved;
-    coord->param.clearFlags = false;
-    obj                     = task->extra.tmd;
-    if (actor->companionWork != NULL) {
-        obj->texturePageOffset = 4;
-        obj->clutRowOffset     = 6;
-    } else {
-        obj->texturePageOffset = 6;
-        obj->clutRowOffset     = 0;
-    }
-    tmdBuildBufferHalf(obj);
-    tmdBuildBufferHalf(obj);
+    // Keep the first update's draw flags and parent the anchor beneath its rig joint.
+    task->parent                      = actorTask;
+    attachmentCoord                   = task->extra.tmd->coords;
+    attachmentCoord->parent           = parentCoord;
+    attachmentCoord->param.clearFlags = false;
+    attachmentModel                   = task->extra.tmd;
+    _playerActorBindAttachmentTextures(attachmentModel, actor);
     return task;
 }
 
@@ -6028,11 +6065,11 @@ static Task* func_80103294(Task* arg0, s32 arg1, s32 arg2)
     if (actor->attachmentTasks[0] != NULL) {
         taskKill(actor->attachmentTasks[0]);
     }
-    actor->attachmentTasks[0] = spawn_tmd_attach(arg0, 0, arg1, arg2);
+    actor->attachmentTasks[0] = _playerActorSpawnAttachment(arg0, 0, arg1, arg2);
     if (actor->attachmentTasks[1] != NULL) {
         taskKill(actor->attachmentTasks[1]);
     }
-    actor->attachmentTasks[1] = spawn_tmd_attach(arg0, 1, arg1, arg2);
+    actor->attachmentTasks[1] = _playerActorSpawnAttachment(arg0, 1, arg1, arg2);
     return actor->attachmentTasks[1];
 }
 
@@ -6548,30 +6585,6 @@ static void _playerActorPostVibrationPreset(Task* task, s32 presetIndex)
         preset = &D_80112E28[selectedPresetIndex];
         padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, preset->intensity, preset->durationUnits);
     }
-}
-
-/// Applies the actor's attachment texture bank and refreshes both primitive halves.
-///
-/// Borrows live actor and model storage with an allocated primitive buffer.
-/// Two builds restore the original half selector while replacing both halves.
-static inline void _playerActorBindAttachmentTextures(TmdObject* attachmentModel, const GameActor* actor)
-{
-    enum {
-        PLAYER_ACTOR_ATTACHMENT_TEXTURE_PAGE_OFFSET           = 6,
-        PLAYER_ACTOR_ATTACHMENT_CLUT_ROW_OFFSET               = 0,
-        PLAYER_ACTOR_COMPANION_ATTACHMENT_TEXTURE_PAGE_OFFSET = 4,
-        PLAYER_ACTOR_COMPANION_ATTACHMENT_CLUT_ROW_OFFSET     = 6,
-    };
-
-    if (actor->companionWork != NULL) {
-        attachmentModel->texturePageOffset = PLAYER_ACTOR_COMPANION_ATTACHMENT_TEXTURE_PAGE_OFFSET;
-        attachmentModel->clutRowOffset     = PLAYER_ACTOR_COMPANION_ATTACHMENT_CLUT_ROW_OFFSET;
-    } else {
-        attachmentModel->texturePageOffset = PLAYER_ACTOR_ATTACHMENT_TEXTURE_PAGE_OFFSET;
-        attachmentModel->clutRowOffset     = PLAYER_ACTOR_ATTACHMENT_CLUT_ROW_OFFSET;
-    }
-    tmdBuildBufferHalf(attachmentModel);
-    tmdBuildBufferHalf(attachmentModel);
 }
 
 Task* playerActorSpawnAttachment(Task* actorTask, s32 attachmentIndex, s32 rigIndex, s32 pairVariant)
@@ -7912,29 +7925,39 @@ static void _playerActorNoWeaponAttack(Task* unusedTask)
 {
 }
 
-static void func_801065A8(Task* arg0)
+/// Updates normal state 0's aim, locomotion and idle-animation requests.
+///
+/// Requires live actor work and native child playback. Aim entry takes priority;
+/// otherwise movement/run changes select locomotion, stationary turn changes
+/// select a turn clip, and 300 direction-free ticks select a health-band idle
+/// clip. The signed-halfword idle counter saturates at 32767 and is reset by
+/// locomotion entry, not by this function when a direction is held.
+static void _playerActorUpdateNormalLocomotion(Task* task)
 {
     enum {
         PLAYER_ACTOR_HEALTH_IDLE_SET_FIRST    = 23,
         PLAYER_ACTOR_HEALTH_IDLE_BLEND_FRAMES = 5,
+        PLAYER_ACTOR_IDLE_ANIMATION_TICKS     = 300,
+        PLAYER_ACTOR_IDLE_TICKS_MAX           = 32767,
+        PLAYER_ACTOR_NORMAL_AIM_BLEND_FRAMES  = 5,
     };
-    GameActor* inner;
+    GameActor* actor;
 
-    inner = arg0->work;
-    _playerActorUpdateAimRequest(arg0);
-    if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
-        inner->aimTransitionPending = 1;
-        playerActorEnterAim(arg0, 5);
-    } else if (inner->movementSign != inner->previousMovementSign ||
-               (inner->runButtonHeld != inner->previousRunButtonHeld && inner->movementSign == 1)) {
-        playerActorEnterLocomotion(arg0, 0);
-    } else if (inner->movementSign == 0 && inner->turnSign != inner->previousTurnSign) {
-        _playerActorUpdateIdleTurnAnimation(arg0);
-    } else if ((inner->padHeld & 0xF000) == 0) {
-        if (inner->idleTicks < 0x7FFF) {
-            inner->idleTicks++;
-            if (inner->idleTicks == 0x12C) {
-                playerActorPlayChildSlotsWithBlend(arg0, _playerActorGetIdleHealthBand() + PLAYER_ACTOR_HEALTH_IDLE_SET_FIRST,
+    actor = task->work;
+    _playerActorUpdateAimRequest(task);
+    if (actor->aimControl & GAME_ACTOR_AIM_REQUEST_ENTER) {
+        actor->aimTransitionPending = true;
+        playerActorEnterAim(task, PLAYER_ACTOR_NORMAL_AIM_BLEND_FRAMES);
+    } else if (actor->movementSign != actor->previousMovementSign ||
+               (actor->runButtonHeld != actor->previousRunButtonHeld && actor->movementSign == 1)) {
+        playerActorEnterLocomotion(task, 0);
+    } else if (actor->movementSign == 0 && actor->turnSign != actor->previousTurnSign) {
+        _playerActorUpdateIdleTurnAnimation(task);
+    } else if ((actor->padHeld & (PAD_BUTTON_UP | PAD_BUTTON_RIGHT | PAD_BUTTON_DOWN | PAD_BUTTON_LEFT)) == 0) {
+        if (actor->idleTicks < PLAYER_ACTOR_IDLE_TICKS_MAX) {
+            actor->idleTicks++;
+            if (actor->idleTicks == PLAYER_ACTOR_IDLE_ANIMATION_TICKS) {
+                playerActorPlayChildSlotsWithBlend(task, _playerActorGetIdleHealthBand() + PLAYER_ACTOR_HEALTH_IDLE_SET_FIRST,
                                                    0, PLAYER_ACTOR_HEALTH_IDLE_BLEND_FRAMES);
             }
         }
@@ -8068,8 +8091,8 @@ static void Gp_TickPlayerNormal(Task* arg0)
         playerActorApplyConfusionInput(arg0);
     }
     if (actor->movementInputDisabled == 0) {
-        func_80109250(arg0);
-        func_80109210(arg0);
+        _playerActorUpdateMovementInput(arg0);
+        _playerActorUpdateTurnInput(arg0);
     } else {
         actor->movementSign = 0;
         actor->turnSign     = 0;
@@ -8783,11 +8806,14 @@ static void Gp_PlayerMode2State3(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorStairClimbScratch);
 }
 
-/// Turns the actor toward its parent-frame destination and stages the yaw step.
+/// Steps scripted move-to yaw toward the destination and records its clamped turn.
 ///
-/// Borrows live root/actor state and writable scratch. Angles use 4096 units per
-/// turn; XYZ deltas use game-coordinate units. Reaching the final turn interval
-/// advances a newly started move to its turning phase.
+/// Requires the root translation and destination in the same parent frame,
+/// with XYZ in game-coordinate units. Writes all three displacement components;
+/// X/Z set the heading. Angles use 4096 units per turn and the signed step is
+/// clamped to +/-64 before wrapping yaw to 0..4095. Phase 0 becomes phase 1
+/// within that interval, including exactly +/-64. Caller owns the writable
+/// approach scratch; borrows the root and changes actor yaw/target yaw/phase.
 static inline void _playerActorStepMoveToYaw(GameActor* actor, const GfxCoord* rootCoord, PlayerActorApproachScratch* scratch)
 {
     enum {
@@ -9572,7 +9598,7 @@ static void Gp_TickPlayerMode2(Task* arg0)
 
 static void func_80108FA0(Task* arg0)
 {
-    func_801065A8(arg0);
+    _playerActorUpdateNormalLocomotion(arg0);
     _playerActorTryEnterPeAction(arg0);
     playerActorPlayFootstepCue(arg0);
 }
@@ -9678,13 +9704,13 @@ static void Gp_PlayerMode1State0(Task* arg0)
             playerActorTickHitFlashes(arg0);
             break;
         case 6:
-            func_80109A1C(arg0);
+            _playerActorTickBodyBlastHit(arg0);
             break;
         case 3:
             playerActorTickPoisonHit(arg0);
             break;
         case 7:
-            func_80109844(arg0);
+            _playerActorTickSparkPuffHit(arg0);
             break;
     }
 }
@@ -9696,39 +9722,49 @@ static void _playerActorDamageHitRegion3(Task* unusedTask)
 {
 }
 
-static void func_80109210(Task* arg0)
+/// Sets the normal-mode yaw/strafe sign from logical held horizontal directions.
+///
+/// Requires live GameActor work. Left wins simultaneous left/right input;
+/// the signed-byte result is -1 left, +1 right, or 0 neither. Reads the actor's
+/// remapped/confusion-adjusted buttons without consuming input.
+static void _playerActorUpdateTurnInput(Task* task)
 {
-    GameActor* inner;
-    u16        flags;
+    GameActor* actor;
+    u16        heldButtons;
 
-    inner = arg0->work;
-    flags = inner->padHeld;
-    if (flags & 0xA000) {
-        if (flags & 0x8000) {
-            inner->turnSign = -1;
+    actor       = task->work;
+    heldButtons = actor->padHeld;
+    if (heldButtons & (PAD_BUTTON_LEFT | PAD_BUTTON_RIGHT)) {
+        if (heldButtons & PAD_BUTTON_LEFT) {
+            actor->turnSign = -1;
         } else {
-            inner->turnSign = 1;
+            actor->turnSign = 1;
         }
     } else {
-        inner->turnSign = 0;
+        actor->turnSign = 0;
     }
 }
 
-static void func_80109250(Task* arg0)
+/// Sets the normal-mode forward/backward sign from logical held vertical directions.
+///
+/// Requires live GameActor work. Down wins simultaneous up/down input;
+/// the signed-byte result is -1 backward, +1 forward, or 0 neither. Reads the
+/// actor's remapped/confusion-adjusted buttons without consuming input.
+static void _playerActorUpdateMovementInput(Task* task)
 {
-    GameActor* inner;
-    u16        flags;
+    GameActor* actor;
+    u16        heldButtons;
 
-    inner = arg0->work;
-    flags = inner->padHeld;
-    if (flags & 0x5000) {
-        if (flags & 0x4000) {
-            inner->movementSign = -1;
+    actor       = task->work;
+    heldButtons = actor->padHeld;
+    if (heldButtons & (PAD_BUTTON_UP | PAD_BUTTON_DOWN)) {
+        if (heldButtons & PAD_BUTTON_DOWN) {
+            actor->movementSign = -1;
         } else {
-            inner->movementSign = 1;
+            actor->movementSign = 1;
         }
     } else {
-        inner->movementSign = 0;
+        actor->movementSign = 0;
     }
 }
 
@@ -10036,128 +10072,23 @@ static inline s32 _playerActorClampHitEffectLevel(s32 hitEffectLevel)
     return clampedLevel;
 }
 
-static void func_80109844(Task* arg0)
+/// Sets an XYZ offset at a motion body's origin, shifted upward for the root body.
+///
+/// localOffset is writable scratch; actor's recorded motion-body selector is
+/// 0..2. Components use game-coordinate units; vector metadata stays
+/// untouched. The root offset is -400 on Y, all other components are zero.
+static inline void _playerActorInitHitOffset(SVECTOR* localOffset, const GameActor* actor)
 {
-    enum { PLAYER_ACTOR_HIT_EFFECT_DAMAGE_STEP = 12 };
-    u8*             head;
-    SVECTOR*        vec;
-    GameActor*      inner;
-    GameActor*      inner2;
-    EffectSpawnArg* params;
-    GfxCoord*       coord;
-    s32             idx;
-    s32             hitEffectLevel;
-    s32             val;
+    enum { PLAYER_ACTOR_HIT_ROOT_OFFSET_Y = -400 };
+    s32 offsetY;
 
-    inner                    = arg0->work;
-    hitEffectLevel           = (u16)inner->pendingDamage / PLAYER_ACTOR_HIT_EFFECT_DAMAGE_STEP;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    params                   = &D_80113358;
-    head                    -= 8;
-    SCRATCH_STACK_CURSOR(u8) = head;
-    vec                      = (SVECTOR*)head;
-    hitEffectLevel           = _playerActorClampHitEffectLevel(hitEffectLevel);
-    switch (inner->statePhase) {
-        case 0:
-            inner->statePhase  = 1;
-            coord              = ((s8)inner->hitBodyIndex + inner->collisionBodies)->coord;
-            params->spawnArgLo = (hitEffectLevel * 0x20) + 0x120;
-            params->spawnArgHi = hitEffectLevel + 1;
-            D_80113358.coord   = coord;
-            inner->stateTimer  = 0;
-            inner->actionValue = hitEffectLevel;
-            /* fallthrough */
-        case 1:
-            if (inner->stateTimer == 0) {
-                idx = 5;
-                if (hitEffectLevel < 3) {
-                    idx = 6;
-                }
-                inner->actionValue--;
-                if (inner->actionValue == 0) {
-                    inner->statePhase++;
-                } else {
-                    inner->stateTimer = 6;
-                }
-                vec->vx = 0;
-                val     = 0;
-                if ((s8)inner->hitBodyIndex == 0) {
-                    val = -0x190;
-                }
-                vec->vy = val;
-                vec->vz = 0;
-                effectSpawnHit(idx, params->coord, vec, params);
-            } else {
-                inner->stateTimer--;
-            }
-            break;
-        case 2:
-            break;
-        case 3:
-            inner2 = arg0->work;
-            playerActorClearPendingHit(arg0);
-            inner2->recoveryTicks = 0x12;
-            if (inner2->state != 0) {
-                playerActorEnterAim(arg0, 0xC);
-            } else {
-                playerActorEnterLocomotion(arg0, 0);
-            }
-            break;
+    localOffset->vx = 0;
+    offsetY         = 0;
+    if ((s8)actor->hitBodyIndex == GAME_ACTOR_BODY_ROOT) {
+        offsetY = PLAYER_ACTOR_HIT_ROOT_OFFSET_Y;
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
-}
-
-static void func_80109A1C(Task* arg0)
-{
-    GameActor*      inner;
-    EffectSpawnArg* params;
-    GfxCoord*       coords;
-    s32             idx;
-    s32             temp;
-
-    inner = arg0->work;
-    switch (inner->statePhase) {
-        case 0:
-            inner->statePhase  = 1;
-            inner->stateTimer  = 0;
-            inner->actionValue = 0;
-            /* fallthrough */
-        case 1:
-            if (inner->stateTimer == 0) {
-                params = &D_80113358;
-                inner->actionValue++;
-                if (inner->actionValue == 3) {
-                    inner->statePhase++;
-                } else {
-                    inner->stateTimer = 6;
-                }
-                coords        = &arg0->extra.tmd->coords[inner->actionValue + 1];
-                params->coord = coords;
-                temp          = (u16)((u16)inner->pendingDamage / 12);
-                idx           = 2;
-                if (temp < 3) {
-                    idx = temp;
-                }
-                temp               = idx;
-                params->spawnArgLo = (temp * 0x60) + 0xC0;
-                params->spawnArgHi = temp + 1;
-                effectSpawnHit(EFFECT_HIT_KIND_BLAST, coords, 0, params);
-            } else {
-                inner->stateTimer--;
-            }
-            break;
-        case 2:
-            break;
-        case 3:
-            playerActorClearPendingHit(arg0);
-            inner->recoveryTicks = 0x12;
-            if (inner->state != 0) {
-                playerActorEnterAim(arg0, 0xC);
-            } else {
-                playerActorEnterLocomotion(arg0, 0);
-            }
-            break;
-    }
+    localOffset->vy = offsetY;
+    localOffset->vz = 0;
 }
 
 /// Ends the actor's current action: clears the fields `playerActorClearPendingHit` resets,
@@ -10174,5 +10105,146 @@ static inline void _gpResumeBaseState(Task* arg0)
         playerActorEnterAim(arg0, 0xC);
     } else {
         playerActorEnterLocomotion(arg0, 0);
+    }
+}
+
+/// Advances reaction 7's spark-and-puff bursts at the recorded hit body.
+///
+/// Requires live player actor/model, motion body index 0..2, native hit clip
+/// and effect/scratch resources. Interprets pending damage as its unsigned low
+/// halfword, divides by 12 and caps at 2. Phase 0 records the hit coordinate
+/// and puff count; phase 1 decrements the signed-halfword burst counter before
+/// emitting, with six countdown ticks between bursts. A zero level therefore
+/// starts at -1 after decrement. Clip-end controller 7 also advances phases;
+/// phase 2 waits and phase 3 resumes aim or locomotion with recovery.
+/// The shared spawn record must keep this hit's coordinate/count until the
+/// emission phase ends; the coordinate must outlive every spawned effect.
+static void _playerActorTickSparkPuffHit(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_SPARK_PUFF_RECORD_SIZE_BASE = 288,
+        PLAYER_ACTOR_SPARK_PUFF_RECORD_SIZE_STEP = 32,
+        PLAYER_ACTOR_SPARK_PUFF_SPLATTER_LEVEL   = 3,
+    };
+    SVECTOR*        localOffset;
+    GameActor*      actor;
+    EffectSpawnArg* spawnRecord;
+    GfxCoord*       hitCoord;
+    s32             effectKind;
+    s32             hitEffectLevel;
+
+    actor          = task->work;
+    hitEffectLevel = (u16)actor->pendingDamage / PLAYER_ACTOR_EFFECT_HIT_DAMAGE_STEP;
+    localOffset    = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    spawnRecord    = &D_80113358;
+    hitEffectLevel = _playerActorClampHitEffectLevel(hitEffectLevel);
+    switch (actor->statePhase) {
+        case PLAYER_ACTOR_EFFECT_HIT_PHASE_START:
+            // Retain hit placement and count across waits; this recipe ignores the size half.
+            actor->statePhase       = PLAYER_ACTOR_EFFECT_HIT_PHASE_EMIT;
+            hitCoord                = ((s8)actor->hitBodyIndex + actor->collisionBodies)->coord;
+            spawnRecord->spawnArgLo = (hitEffectLevel * PLAYER_ACTOR_SPARK_PUFF_RECORD_SIZE_STEP) + PLAYER_ACTOR_SPARK_PUFF_RECORD_SIZE_BASE;
+            spawnRecord->spawnArgHi = hitEffectLevel + 1;
+            D_80113358.coord        = hitCoord;
+            actor->stateTimer       = 0;
+            actor->actionValue      = hitEffectLevel;
+            /* fallthrough */
+        case PLAYER_ACTOR_EFFECT_HIT_PHASE_EMIT:
+            if (actor->stateTimer == 0) {
+                // Retain the splatter threshold even though the capped level selects sparks/puffs.
+                effectKind = EFFECT_HIT_KIND_SPLATTER;
+                if (hitEffectLevel < PLAYER_ACTOR_SPARK_PUFF_SPLATTER_LEVEL) {
+                    effectKind = EFFECT_HIT_KIND_SPARK_AND_PUFFS;
+                }
+                actor->actionValue--;
+                if (actor->actionValue == 0) {
+                    actor->statePhase++;
+                } else {
+                    actor->stateTimer = PLAYER_ACTOR_EFFECT_HIT_DELAY_TICKS;
+                }
+                _playerActorInitHitOffset(localOffset, actor);
+                effectSpawnHit(effectKind, spawnRecord->coord, localOffset, spawnRecord);
+            } else {
+                actor->stateTimer--;
+            }
+            break;
+        case PLAYER_ACTOR_EFFECT_HIT_PHASE_WAIT_CLIP:
+            break;
+        case PLAYER_ACTOR_EFFECT_HIT_PHASE_RESUME:
+            _gpResumeBaseState(task);
+            break;
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
+}
+
+/// Emits a damage-scaled blast at an already selected player-model coordinate.
+///
+/// hitEffectLevel is 0..2; size is 192 + 96*level game-coordinate units and
+/// the high spawn half is level+1, controlling emission/lifetime. spawnRecord
+/// must already retain blastCoord, which must outlive the spawned effect.
+/// Requires the live player and effect/graphics/scratch resources.
+static inline void _effectSpawnPlayerHitBlast(EffectSpawnArg* spawnRecord, GfxCoord* blastCoord, s32 hitEffectLevel)
+{
+    enum {
+        EFFECT_PLAYER_HIT_BLAST_SIZE_BASE = 192,
+        EFFECT_PLAYER_HIT_BLAST_SIZE_STEP = 96,
+    };
+
+    spawnRecord->spawnArgLo = (hitEffectLevel * EFFECT_PLAYER_HIT_BLAST_SIZE_STEP) + EFFECT_PLAYER_HIT_BLAST_SIZE_BASE;
+    spawnRecord->spawnArgHi = hitEffectLevel + 1;
+    effectSpawnHit(EFFECT_HIT_KIND_BLAST, blastCoord, NULL, spawnRecord);
+}
+
+/// Advances reaction 6's three-part body-blast sequence and clip-driven recovery.
+///
+/// Requires live player work, model parts 2..4, native hit clip and effect
+/// resources. Phase 0 resets the part counter and falls into emission; phase 1
+/// increments it before selecting parts 2, 3, 4, with six countdown ticks
+/// between blasts. Each emission reinterprets pending damage as u16, divides
+/// by 12 and caps at 2. Clip-end controller 7 also advances the phase; phase 2
+/// waits and phase 3 resumes aim or locomotion with 18 recovery ticks.
+/// Borrows the shared spawn record; coordinates must outlive spawned blasts.
+static void _playerActorTickBodyBlastHit(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_BODY_BLAST_COUNT     = 3,
+        PLAYER_ACTOR_BODY_BLAST_PART_BASE = 1,
+    };
+    GameActor*      actor;
+    EffectSpawnArg* spawnRecord;
+    GfxCoord*       blastCoord;
+    s32             hitEffectLevel;
+
+    actor = task->work;
+    switch (actor->statePhase) {
+        case PLAYER_ACTOR_EFFECT_HIT_PHASE_START:
+            actor->statePhase  = PLAYER_ACTOR_EFFECT_HIT_PHASE_EMIT;
+            actor->stateTimer  = 0;
+            actor->actionValue = 0;
+            /* fallthrough */
+        case PLAYER_ACTOR_EFFECT_HIT_PHASE_EMIT:
+            if (actor->stateTimer == 0) {
+                spawnRecord = &D_80113358;
+                actor->actionValue++;
+                if (actor->actionValue == PLAYER_ACTOR_BODY_BLAST_COUNT) {
+                    actor->statePhase++;
+                } else {
+                    actor->stateTimer = PLAYER_ACTOR_EFFECT_HIT_DELAY_TICKS;
+                }
+                // Select the next model part before filling the shared blast recipe.
+                blastCoord         = &task->extra.tmd->coords[actor->actionValue + PLAYER_ACTOR_BODY_BLAST_PART_BASE];
+                spawnRecord->coord = blastCoord;
+                hitEffectLevel     = (u16)((u16)actor->pendingDamage / PLAYER_ACTOR_EFFECT_HIT_DAMAGE_STEP);
+                hitEffectLevel     = _playerActorClampHitEffectLevel(hitEffectLevel);
+                _effectSpawnPlayerHitBlast(spawnRecord, blastCoord, hitEffectLevel);
+            } else {
+                actor->stateTimer--;
+            }
+            break;
+        case PLAYER_ACTOR_EFFECT_HIT_PHASE_WAIT_CLIP:
+            break;
+        case PLAYER_ACTOR_EFFECT_HIT_PHASE_RESUME:
+            _gpResumeBaseState(task);
+            break;
     }
 }

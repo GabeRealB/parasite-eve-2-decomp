@@ -29935,7 +29935,7 @@ effectSpawnHit(3, coords, 0, params);
 The copy-back is what yields `move v1, a0` / `li a0, 3` so the clamped
 value lives in `$v1` while `$a0` is the call's first argument. Clamping
 in place (`if (idx >= 3) idx = 2`) or using the clamp result directly
-puts the value in `$a2` (~96–98%). `func_80109A1C` is the example.
+puts the value in `$a2` (~96–98%). `_playerActorTickBodyBlastHit` is the example.
 
 ## Name the signed `s16` compare so `lh` takes `$a0` and the `lhu` copy takes `$a1`
 
@@ -31529,7 +31529,7 @@ __asm__ volatile("" : "+r"(temp) : "r"(head), "r"(vec));
 ```
 
 `+r`(temp) also stops copy-prop of `temp = idx`, freeing `$a0` for
-the switch's `li a0, 1` (reused as `statePhase = 1`). `func_80109844`
+the switch's `li a0, 1` (reused as `statePhase = 1`). `_playerActorTickSparkPuffHit`
 is the example.
 
 ## `gpl 1` is `0x4BA8003E`; keep an `s32` index after `lbu`
