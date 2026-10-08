@@ -469,7 +469,7 @@ extern SVECTOR D_actor_403000_80158C48[];
 
 /// The overlay's pose table: 8-byte records of three halfwords at 0x0/0x2/0x4
 /// plus padding, i.e. `SVECTOR`s. Indexed by the low signed halfword of the
-/// caller's id -- `func_actor_403000_8013ACBC` scales a byte id by 8 into it
+/// caller's id -- `_actor403000WatchState` scales a byte id by 8 into it
 /// the same way -- so a record's `vx`/`vy`/`vz` are the vector an actor's
 /// handlers copy out of it. Lives in the overlay's trailing data region.
 extern SVECTOR D_actor_403000_80158CE0[];
@@ -523,6 +523,20 @@ extern SVECTOR D_actor_403000_80158D64[];
         }                                                        \
     }
 
+/// Arena geometry, clip and message identities used by the state callbacks.
+///
+/// Player clip IDs index the borrowed catch banks; the aim-state slot keeps
+/// scripted playback running after fatal damage without the usual death fallback.
+enum {
+    ACTOR_403000_ACTIVE_TORSO_RADIUS     = 1000,
+    ACTOR_403000_RING_PROBE_REACH        = 800,
+    ACTOR_403000_CLIP_WALK               = 2,
+    ACTOR_403000_CLIP_STAND              = 4,
+    ACTOR_403000_CLIP_DROP               = 8,
+    ACTOR_403000_PLAYER_FATAL_HOLD_STATE = 10,
+    ACTOR_403000_SOUND_CATCH             = 7,
+};
+
 static void _actor403000UpdateAnimation(Task* task);
 
 static s32 _actor403000ChooseRingDirection(GfxCoord* rootCoord);
@@ -540,7 +554,7 @@ static void _actor403000Exit(Task* task);
 /// Copy the `vx`/`vy`/`vz` of record `arg1` of the pose table into `arg0`.
 static void func_actor_403000_8013D564(SVECTOR* arg0, s32 arg1);
 
-static void func_actor_403000_8013D5F8(Task* arg0);
+static void _actor403000HiddenState(Task* actorTask);
 
 /// Per-frame update for the actor once its work block exists: on the frame
 /// `stateEntered` is set, reinstate the display object's buffers and restart the
@@ -596,9 +610,9 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 static void func_actor_403000_80132AE0(GfxCoord* coord);
 static void func_actor_403000_80134F44(Task* arg0);
 static void func_actor_403000_8013D72C(Task* arg0);
-static void func_actor_403000_8013D648(Task* arg0);
-static void func_actor_403000_801377C8(Task* arg0);
-static void func_actor_403000_8013B74C(Task* arg0);
+static void _actor403000DownHitState(Task* actorTask);
+static void _actor403000GrabState(Task* actorTask);
+static void _actor403000DropState(Task* actorTask);
 
 static AnimationSet _gActor403000Animation139B8;
 static AnimationSet _gActor403000Animation14AB4;
@@ -1599,19 +1613,19 @@ static __inline__ void     _actor403000ScaleVectorQ12(SVECTOR* vector, u16 scale
 static __inline__ SVECTOR* _actor403000ReserveScratchVector(void);
 static __inline__ void     _actor403000ReleaseScratchVector(void);
 static inline s8           _actor403000GetRingCell(GfxCoord* coord);
-static void                func_actor_403000_80137084(Task* arg0);
-static void                func_actor_403000_801384E8(Task* arg0);
-static void                func_actor_403000_801386E8(Task* arg0);
+static void                _actor403000ChaseState(Task* actorTask);
+static void                _actor403000GrabCatchState(Task* actorTask);
+static void                _actor403000LungeState(Task* actorTask);
 static void                func_actor_403000_80138DB0(Task* arg0);
-static void                func_actor_403000_801399A0(Task* arg0);
-static void                func_actor_403000_80139AE0(Task* arg0);
-static void                func_actor_403000_8013A08C(Task* arg0);
-static void                func_actor_403000_8013A678(Task* arg0);
-static void                func_actor_403000_8013ACBC(Task* arg0);
-static void                func_actor_403000_8013B238(Task* arg0);
-static void                func_actor_403000_8013BDE0(Task* arg0);
-static void                func_actor_403000_8013C050(Task* arg0);
-static void                func_actor_403000_8013C2D4(Task* arg0);
+static void                _actor403000KnockdownState(Task* actorTask);
+static void                _actor403000ApproachState(Task* actorTask);
+static void                _actor403000RetreatState(Task* actorTask);
+static void                _actor403000PatrolState(Task* actorTask);
+static void                _actor403000WatchState(Task* actorTask);
+static void                _actor403000TurnState(Task* actorTask);
+static void                _actor403000DropCatchState(Task* actorTask);
+static void                _actor403000AmbushState(Task* actorTask);
+static void                _actor403000ProwlState(Task* actorTask);
 static void                func_actor_403000_8013C864(Enemy* arg0, Task* arg1);
 static s32                 func_actor_403000_8013D98C(s32 arg0);
 
@@ -3554,123 +3568,181 @@ static inline s8 _actor403000RingSide(s16 cellDifference)
     return 1;
 }
 
-/// Turn toward the camera target (state 4) and, once facing it, walk at it
-/// (state 2): hand off to state 8 or 7 by distance, or to state 4 with a
-/// fresh `watchRingDir` direction when the heading error grows past 0x300.
-static void func_actor_403000_80137084(Task* arg0)
+/// Selects the neighboring waypoint of a 0..9 cell in direction +/-1.
+///
+/// Borrows writable waypoint scratch and preserves the signed-halfword sum
+/// before wrapping either end of the ring. Does not reserve or release storage.
+static inline void _actor403000SelectRingNeighbor(_Actor403000WaypointScratch* waypointScratch, s8 ringDirection)
 {
+    waypointScratch->waypoint = waypointScratch->cell + ringDirection;
+    if (waypointScratch->waypoint != -1) {
+        if (waypointScratch->waypoint == ACTOR_403000_RING_WAYPOINT_COUNT) {
+            waypointScratch->waypoint = 0;
+        }
+    } else {
+        waypointScratch->waypoint = ACTOR_403000_RING_WAYPOINT_COUNT - 1;
+    }
+}
+
+/// Advances a chase root along normalized local Z while actors are unfrozen.
+///
+/// `rootCoord` is live in the arena parent frame; distance is signed world
+/// units per tick. Reserves/releases one scratch SVECTOR even at distance zero.
+static inline void _actor403000AdvanceChaseRoot(GfxCoord* rootCoord, s16 distance)
+{
+    SVECTOR* forwardStep;
+
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
+        forwardStep = _actor403000ReserveScratchVector();
+        if (distance != 0) {
+            gfxReadMatrixZAxis(&rootCoord->coord, forwardStep);
+            VectorNormalSS(forwardStep, forwardStep);
+            _actor403000ScaleVectorQ12(forwardStep, distance);
+            rootCoord->coord.t[0]  += forwardStep->vx;
+            rootCoord->coord.t[1]  += forwardStep->vy;
+            rootCoord->coord.t[2]  += forwardStep->vz;
+            rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        }
+        _actor403000ReleaseScratchVector();
+    }
+}
+
+/// Selects the settled downed reaction, leaving a lethal room report pending.
+///
+/// Requires writable actor work and a live enemy. Positive health selects
+/// stunned while build-up is active, otherwise down; zero or negative health
+/// selects dissolve. The report is consumed by the later dissolve state.
+static inline void _actor403000FinishDownReaction(Actor403000Work* work, const Enemy* enemy)
+{
+    if (enemy->hp > 0) {
+        if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
+            work->state = ACTOR_403000_STATE_STUNNED;
+        } else {
+            work->state = ACTOR_403000_STATE_DOWN;
+        }
+    } else {
+        work->roomEventPending = 1;
+        work->state            = ACTOR_403000_STATE_DISSOLVE;
+    }
+}
+
+/// Faces the player, then advances and chooses a grab or a ranged lunge.
+///
+/// Requires live actor work/model, enemy collision tables and the live player
+/// in the same arena coordinate frame. Walks 300 parent-coordinate units per
+/// unfrozen tick, with yaw in 4096 units per turn and a 64-unit turn limit.
+/// An excessive heading error hands control to the ring-turn state. Reserves
+/// and releases one chase scratch block plus the forward-step workspace.
+static void _actor403000ChaseState(Task* actorTask)
+{
+    enum {
+        ACTOR_403000_CHASE_PROBE_REACH      = 900,
+        ACTOR_403000_CHASE_TURN_STEP        = 0x40,
+        ACTOR_403000_CHASE_WALK_ALIGNMENT   = 0x80,
+        ACTOR_403000_CHASE_ATTACK_ALIGNMENT = 0x200,
+        ACTOR_403000_CHASE_TURN_REENTRY     = 0x300,
+        ACTOR_403000_CHASE_WALK_STEP        = 300,
+        ACTOR_403000_CHASE_LUNGE_DISTANCE   = 0x1964,
+        ACTOR_403000_CHASE_LUNGE_TOLERANCE  = 0x1F4,
+        ACTOR_403000_CHASE_GRAB_DISTANCE    = 0x1770,
+    };
+
     Actor403000Work*          work;
     Task*                     player;
     _Actor403000ChaseScratch* scratch;
-    _Actor403000ChaseScratch* head;
-    GfxCoord*                 coord;
-    GfxCoord*                 pos;
-    GfxCoord*                 pos2;
-    SVECTOR*                  dir;
-    SVECTOR*                  t;
-    s32                       mag;
-    s16                       diff;
-    s32                       dist;
-    s8                        sign;
-    PlayerStatus*             wip;
-    TmdObject*                tmd;
+    GfxCoord*                 movementCoord;
+    GfxCoord*                 turnCoord;
+    GfxCoord*                 walkCoord;
+    SVECTOR*                  toPlayer;
+    s32                       headingError;
+    s16                       cellDifference;
+    s32                       lungeRangeError;
+    s8                        towardPlayerDir;
+    PlayerStatus*             playerStatus;
+    TmdObject*                model;
 
-    work                                           = arg0->work;
-    player                                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    wip                                            = &gPlayerStatus;
-    head                                           = SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch);
-    SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch) = head - 1;
-    scratch                                        = head - 1;
+    work         = actorTask->work;
+    player       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerStatus = &gPlayerStatus;
+    scratch      = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000ChaseScratch);
     if (work->stateEntered != 0) {
-        tmd                   = arg0->extra.tmd;
+        model                 = actorTask->extra.tmd;
         work->lockOnSuspended = 0;
-        tmd->flags            = 0;
-        tmdAllocPrimitiveBuffer(tmd);
-        work->torsoSphere.body.radius      = 0x3E8;
+        model->flags          = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->torsoSphere.body.radius      = ACTOR_403000_ACTIVE_TORSO_RADIUS;
         work->animStart                    = ACTOR_403000_ANIM_BLEND_IN;
-        work->animRate                     = 0x10;
-        work->requestedAnimId              = 4;
+        work->animRate                     = ANIMATION_RATE_ONE;
+        work->requestedAnimId              = ACTOR_403000_CLIP_STAND;
         work->overlayActive                = 0;
         work->forelegYawTarget             = 0;
         work->stateFrame                   = 0;
         work->stillFrames                  = 0;
         work->field_FC2                    = 0;
-        work->rootCapsule.shape.ends[1].vz = 0x384;
+        work->rootCapsule.shape.ends[1].vz = ACTOR_403000_CHASE_PROBE_REACH;
         work->rootSphere.body.flags       |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    _actor403000UpdateAnimation(arg0);
-    if (work->requestedAnimId == 4) {
-        t             = &scratch->offset;
-        pos           = arg0->extra.tmd->coords;
-        t->vx         = wip->coordMtx->t[0] - pos->coord.t[0];
-        t->vy         = wip->coordMtx->t[1] - pos->coord.t[1];
-        t->vz         = wip->coordMtx->t[2] - pos->coord.t[2];
-        scratch->turn = mag = _actorAngleTurnToOffset(arg0->extra.tmd->coords, t->vx, t->vz);
-        work->neckYawTarget = mag;
-        if (scratch->turn > 0x40) {
-            scratch->turn = 0x40;
-        } else if (scratch->turn < -0x40) {
-            scratch->turn = -0x40;
+    _actor403000UpdateAnimation(actorTask);
+    // Align before walking; the newly selected walk phase can run this same tick.
+    if (work->requestedAnimId == ACTOR_403000_CLIP_STAND) {
+        toPlayer  = &scratch->offset;
+        turnCoord = actorTask->extra.tmd->coords;
+        _actorPositionDeltaToPlayer(playerStatus, turnCoord, toPlayer);
+        scratch->turn = headingError = _actorAngleTurnToOffset(actorTask->extra.tmd->coords, toPlayer->vx, toPlayer->vz);
+        work->neckYawTarget          = headingError;
+        if (scratch->turn > ACTOR_403000_CHASE_TURN_STEP) {
+            scratch->turn = ACTOR_403000_CHASE_TURN_STEP;
+        } else if (scratch->turn < -ACTOR_403000_CHASE_TURN_STEP) {
+            scratch->turn = -ACTOR_403000_CHASE_TURN_STEP;
         }
-        scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
-        if (ABS(work->neckYawTarget) < 0x80) {
-            work->requestedAnimId = 2;
+        scratch->turn += ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]);
+        gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, scratch->turn, GRAPHICS_ROTATION_REPLACE);
+        if (ABS(work->neckYawTarget) < ACTOR_403000_CHASE_WALK_ALIGNMENT) {
+            work->requestedAnimId = ACTOR_403000_CLIP_WALK;
             work->animStart       = ACTOR_403000_ANIM_BLEND_IN;
         }
-        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+        _actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
     }
-    if (work->requestedAnimId == 2) {
-        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
-        t             = &scratch->offset;
-        pos2          = arg0->extra.tmd->coords;
-        t->vx         = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
-        t->vy         = gPlayerStatus.coordMtx->t[1] - pos2->coord.t[1];
-        t->vz         = gPlayerStatus.coordMtx->t[2] - pos2->coord.t[2];
-        scratch->turn = mag = _actorAngleTurnToOffset(arg0->extra.tmd->coords, t->vx, t->vz);
-        work->neckYawTarget = mag;
-        coord               = arg0->extra.tmd->coords;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-            dir = _actor403000ReserveScratchVector();
-            gfxReadMatrixZAxis(&coord->coord, dir);
-            VectorNormalSS(dir, dir);
-            _actor403000ScaleVectorQ12(dir, 300);
-            coord->coord.t[0]  += dir->vx;
-            coord->coord.t[1]  += dir->vy;
-            coord->coord.t[2]  += dir->vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            _actor403000ReleaseScratchVector();
+    if (work->requestedAnimId == ACTOR_403000_CLIP_WALK) {
+        _actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+        toPlayer  = &scratch->offset;
+        walkCoord = actorTask->extra.tmd->coords;
+        _actorPositionDeltaToPlayer(&gPlayerStatus, walkCoord, toPlayer);
+        scratch->turn = headingError = _actorAngleTurnToOffset(actorTask->extra.tmd->coords, toPlayer->vx, toPlayer->vz);
+        work->neckYawTarget          = headingError;
+        movementCoord                = actorTask->extra.tmd->coords;
+        _actor403000AdvanceChaseRoot(movementCoord, ACTOR_403000_CHASE_WALK_STEP);
+        actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        // Choose attacks from the horizontal range after the forward step.
+        scratch->playerDelta.vx = playerStatus->coordMtx->t[0] - actorTask->extra.tmd->coords->coord.t[0];
+        scratch->playerDelta.vy = 0;
+        scratch->playerDelta.vz = playerStatus->coordMtx->t[2] - actorTask->extra.tmd->coords->coord.t[2];
+        scratch->playerDistance = lungeRangeError = SquareRoot0(scratch->playerDelta.vx * scratch->playerDelta.vx + scratch->playerDelta.vy * scratch->playerDelta.vy + scratch->playerDelta.vz * scratch->playerDelta.vz);
+        lungeRangeError                          -= ACTOR_403000_CHASE_LUNGE_DISTANCE;
+        if (lungeRangeError < 0) {
+            lungeRangeError = -lungeRangeError;
         }
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        scratch->playerDelta.vx               = wip->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-        scratch->playerDelta.vy               = 0;
-        scratch->playerDelta.vz               = wip->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-        scratch->playerDistance = dist = SquareRoot0(scratch->playerDelta.vx * scratch->playerDelta.vx + scratch->playerDelta.vy * scratch->playerDelta.vy + scratch->playerDelta.vz * scratch->playerDelta.vz);
-        dist                          -= 0x1964;
-        if (dist < 0) {
-            dist = -dist;
-        }
-        if (dist < 0x1F4 && ABS(scratch->turn) < 0x200) {
+        if (lungeRangeError < ACTOR_403000_CHASE_LUNGE_TOLERANCE && ABS(scratch->turn) < ACTOR_403000_CHASE_ATTACK_ALIGNMENT) {
             work->state = ACTOR_403000_STATE_LUNGE;
         }
-        if (scratch->playerDistance < 0x1770 && ABS(scratch->turn) < 0x200) {
+        if (scratch->playerDistance < ACTOR_403000_CHASE_GRAB_DISTANCE && ABS(scratch->turn) < ACTOR_403000_CHASE_ATTACK_ALIGNMENT) {
             work->state = ACTOR_403000_STATE_GRAB;
         }
-        if (ABS(work->neckYawTarget) > 0x300) {
+        if (ABS(work->neckYawTarget) > ACTOR_403000_CHASE_TURN_REENTRY) {
             scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
-            scratch->cell       = _actor403000GetRingCell(arg0->extra.tmd->coords);
+            scratch->cell       = _actor403000GetRingCell(actorTask->extra.tmd->coords);
             work->state         = ACTOR_403000_STATE_TURN;
-            diff                = scratch->cell - scratch->playerCell;
-            sign                = _actor403000RingSide(diff);
-            work->turnRingDir = work->watchRingDir = -sign;
+            cellDifference      = scratch->cell - scratch->playerCell;
+            towardPlayerDir     = _actor403000RingSide(cellDifference);
+            work->turnRingDir = work->watchRingDir = -towardPlayerDir;
         }
-        if (scratch->turn > 0x40) {
-            scratch->turn = 0x40;
-        } else if (scratch->turn < -0x40) {
-            scratch->turn = -0x40;
+        if (scratch->turn > ACTOR_403000_CHASE_TURN_STEP) {
+            scratch->turn = ACTOR_403000_CHASE_TURN_STEP;
+        } else if (scratch->turn < -ACTOR_403000_CHASE_TURN_STEP) {
+            scratch->turn = -ACTOR_403000_CHASE_TURN_STEP;
         }
-        scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
+        scratch->turn += ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]);
+        gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, scratch->turn, GRAPHICS_ROTATION_REPLACE);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
 }
@@ -3695,198 +3767,181 @@ static inline s32 _actor403000HasPlayerContact(const WorldCollisionContact* reco
     return 0;
 }
 
-/// Grab approach (animation 2 then 0xB): on the frame `stateEntered` is set, record
-/// the player's offset; walk forward until the player is within 0xDAC, then
-/// switch to the lunge clip with a per-frame step of a fifteenth of the distance.
-/// On frame 10 of the lunge, if a hit record is live and the player accepts
-/// message 0x3F8, snap the model in front of the player and send the grab
-/// (front or back by the facing difference). `ANIMATION_SLOT_SETTLED` on slot 1 ends the
-/// lunge in state 4 with a fresh `watchRingDir` direction.
-static void func_actor_403000_801377C8(Task* arg0)
+/// Aligns the grab models and places the player at the paired clip's yaw.
+///
+/// Requires live actor/player roots in the same parent frame and writable
+/// chase scratch. Places the actor 1350 units short of the player position
+/// along the actor's facing, then sends a borrowed placement synchronously. `playerYawOffset`
+/// uses 4096 units per turn relative to the actor; the shared record persists.
+static inline void _actor403000AlignGrabCatch(Task* actorTask, Task* player, _Actor403000ChaseScratch* scratch, s16 playerYawOffset)
 {
+    enum { ACTOR_403000_GRAB_ALIGNMENT_DISTANCE = 1350 };
+    SVECTOR* alignmentOffset;
+
+    alignmentOffset = &scratch->offset;
+    gfxReadMatrixZAxis(&actorTask->extra.tmd->coords->coord, alignmentOffset);
+    VectorNormalSS(alignmentOffset, alignmentOffset);
+    gte_lddp(-ACTOR_403000_GRAB_ALIGNMENT_DISTANCE);
+    gte_ldsv(alignmentOffset);
+    gte_gpf12();
+    gte_stsv(alignmentOffset);
+    actorTask->extra.tmd->coords->coord.t[0]   = player->extra.tmd->coords->coord.t[0] + scratch->offset.vx;
+    actorTask->extra.tmd->coords->coord.t[1]   = player->extra.tmd->coords->coord.t[1] + scratch->offset.vy;
+    actorTask->extra.tmd->coords->coord.t[2]   = player->extra.tmd->coords->coord.t[2] + scratch->offset.vz;
+    actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    D_actor_403000_80158D90.placement.pos.vx   = player->extra.tmd->coords->coord.t[0];
+    D_actor_403000_80158D90.placement.pos.vy   = player->extra.tmd->coords->coord.t[1];
+    D_actor_403000_80158D90.placement.pos.vz   = player->extra.tmd->coords->coord.t[2];
+    D_actor_403000_80158D90.placement.rot.vx   = 0;
+    D_actor_403000_80158D90.placement.rot.vy   = ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]) + playerYawOffset;
+    D_actor_403000_80158D90.placement.rot.vz   = 0;
+    TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403000_80158D90.placement, 0);
+}
+
+/// Approaches the player and tries to catch them during the grab rush.
+///
+/// Requires live actor work/model/enemy, player and initialized contact tables.
+/// Starts the rush below 3500 horizontal units and moves by distance/15 per
+/// unfrozen tick. At rush frame 10, a neck contact and an accepted player hold
+/// start the paired catch clip and damage attack 1. The player borrows this
+/// overlay's animation bank until catch playback restores the equipped bank.
+/// Entry and movement use the arena's parent frame; yaw uses 4096 per turn.
+/// All chase and vector scratch reservations are released before return.
+static void _actor403000GrabState(Task* actorTask)
+{
+    enum {
+        ACTOR_403000_ATTACK_GRAB                  = 1,
+        ACTOR_403000_PLAYER_CLIP_GRAB_CATCH       = 3,
+        ACTOR_403000_CLIP_GRAB_RUSH               = 11,
+        ACTOR_403000_GRAB_RUSH_DISTANCE           = 0xDAC,
+        ACTOR_403000_GRAB_RUSH_TRAVEL_TICKS       = 15,
+        ACTOR_403000_GRAB_BEFORE_FIRST_FRAME      = -1,
+        ACTOR_403000_GRAB_CATCH_FRAME             = 0xA,
+        ACTOR_403000_GRAB_FRONT_PLAYER_YAW_OFFSET = 0x500,
+        ACTOR_403000_GRAB_FATAL_DELAY             = 0x28,
+        ACTOR_403000_GRAB_WALK_STEP               = 300,
+        ACTOR_403000_GRAB_RUSH_END_FRAME          = 0xE,
+        ACTOR_403000_GRAB_WALL_TURN_DELAY         = 0x10,
+    };
+
     Actor403000Work*          work;
     Task*                     player;
     Enemy*                    enemy;
     _Actor403000ChaseScratch* scratch;
-    _Actor403000ChaseScratch* head;
-    GfxCoord*                 coord;
-    GfxCoord*                 coord2;
-    GfxCoord*                 pos;
-    SVECTOR*                  dir;
-    SVECTOR*                  t;
-    SVECTOR*                  v;
-    SVECTOR*                  dirA;
-    SVECTOR*                  dirB;
-    Task*                     task;
-    GameActor*                pw;
-    s16                       step;
-    s16                       diff;
-    s32                       mag;
-    s8                        sign;
-    s16                       cell;
+    GfxCoord*                 walkCoord;
+    GfxCoord*                 rushCoord;
+    GfxCoord*                 rootCoord;
+    SVECTOR*                  toPlayer;
+    Task*                     damageTarget;
+    GameActor*                playerActor;
+    s16                       rushDistance;
+    s16                       cellDifference;
+    s32                       headingError;
+    s32                       playerFacingDifference;
+    s8                        towardPlayerDir;
+    s16                       actorCell;
 
-    work                                           = arg0->work;
-    player                                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    head                                           = SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch);
-    SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch) = head - 1;
-    enemy                                          = arg0->spawnArg2.pointer;
-    scratch                                        = head - 1;
+    work    = actorTask->work;
+    player  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000ChaseScratch);
+    enemy   = actorTask->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        work->attackTarget.vx = player->extra.tmd->coords->coord.t[0] - arg0->extra.tmd->coords->coord.t[0];
-        work->attackTarget.vy = player->extra.tmd->coords->coord.t[1] - arg0->extra.tmd->coords->coord.t[1];
-        work->attackTarget.vz = player->extra.tmd->coords->coord.t[2] - arg0->extra.tmd->coords->coord.t[2];
-        work->requestedAnimId = 2;
+        work->attackTarget.vx = player->extra.tmd->coords->coord.t[0] - actorTask->extra.tmd->coords->coord.t[0];
+        work->attackTarget.vy = player->extra.tmd->coords->coord.t[1] - actorTask->extra.tmd->coords->coord.t[1];
+        work->attackTarget.vz = player->extra.tmd->coords->coord.t[2] - actorTask->extra.tmd->coords->coord.t[2];
+        work->requestedAnimId = ACTOR_403000_CLIP_WALK;
         work->animStart       = ACTOR_403000_ANIM_BLEND_IN;
         work->stateFrame      = 0;
     }
-    if (work->requestedAnimId == 2) {
-        scratch->playerDelta.vx = player->extra.tmd->coords->coord.t[0] - arg0->extra.tmd->coords->coord.t[0];
+    if (work->requestedAnimId == ACTOR_403000_CLIP_WALK) {
+        scratch->playerDelta.vx = player->extra.tmd->coords->coord.t[0] - actorTask->extra.tmd->coords->coord.t[0];
         scratch->playerDelta.vy = 0;
-        scratch->playerDelta.vz = player->extra.tmd->coords->coord.t[2] - arg0->extra.tmd->coords->coord.t[2];
+        scratch->playerDelta.vz = player->extra.tmd->coords->coord.t[2] - actorTask->extra.tmd->coords->coord.t[2];
         scratch->playerDistance = SquareRoot0(scratch->playerDelta.vx * scratch->playerDelta.vx + scratch->playerDelta.vy * scratch->playerDelta.vy + scratch->playerDelta.vz * scratch->playerDelta.vz);
-        if (scratch->playerDistance < 0xDAC) {
-            work->requestedAnimId = 0xB;
+        if (scratch->playerDistance < ACTOR_403000_GRAB_RUSH_DISTANCE) {
+            work->requestedAnimId = ACTOR_403000_CLIP_GRAB_RUSH;
             work->animStart       = ACTOR_403000_ANIM_RESTART;
-            work->stateFrame      = -1;
-            work->grabStep        = scratch->playerDistance / 15;
+            work->stateFrame      = ACTOR_403000_GRAB_BEFORE_FIRST_FRAME;
+            work->grabStep        = scratch->playerDistance / ACTOR_403000_GRAB_RUSH_TRAVEL_TICKS;
         }
     }
-    if (work->requestedAnimId == 0xB) {
-        if (work->stateFrame == 0xA) {
-            t             = &scratch->offset;
-            pos           = arg0->extra.tmd->coords;
-            t->vx         = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
-            t->vy         = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
-            t->vz         = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
-            scratch->turn = mag = _actorAngleTurnToOffset(arg0->extra.tmd->coords, t->vx, t->vz);
-            if (ABS(mag) < 0x400) {
+    // Catch only at the rush contact frame; the hold must accept before damage.
+    if (work->requestedAnimId == ACTOR_403000_CLIP_GRAB_RUSH) {
+        if (work->stateFrame == ACTOR_403000_GRAB_CATCH_FRAME) {
+            toPlayer  = &scratch->offset;
+            rootCoord = actorTask->extra.tmd->coords;
+            _actorPositionDeltaToPlayer(&gPlayerStatus, rootCoord, toPlayer);
+            scratch->turn = headingError = _actorAngleTurnToOffset(actorTask->extra.tmd->coords, toPlayer->vx, toPlayer->vz);
+            if (ABS(headingError) < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
                 if (_actor403000HasPlayerContact(work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts)) && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
-                    work->state            = ACTOR_403000_STATE_GRAB_CATCH;
-                    work->playerCaught     = 1;
-                    work->attackTarget.vx  = player->extra.tmd->coords->coord.t[0] - arg0->extra.tmd->coords->coord.t[0];
-                    work->attackTarget.vy  = player->extra.tmd->coords->coord.t[1] - arg0->extra.tmd->coords->coord.t[1];
-                    work->attackTarget.vz  = player->extra.tmd->coords->coord.t[2] - arg0->extra.tmd->coords->coord.t[2];
-                    scratch->playerYaw     = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0], gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
-                    t                      = &scratch->offset;
-                    pos                    = arg0->extra.tmd->coords;
-                    t->vx                  = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
-                    t->vy                  = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
-                    t->vz                  = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
+                    work->state           = ACTOR_403000_STATE_GRAB_CATCH;
+                    work->playerCaught    = 1;
+                    work->attackTarget.vx = player->extra.tmd->coords->coord.t[0] - actorTask->extra.tmd->coords->coord.t[0];
+                    work->attackTarget.vy = player->extra.tmd->coords->coord.t[1] - actorTask->extra.tmd->coords->coord.t[1];
+                    work->attackTarget.vz = player->extra.tmd->coords->coord.t[2] - actorTask->extra.tmd->coords->coord.t[2];
+                    scratch->playerYaw    = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0], gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
+                    toPlayer              = &scratch->offset;
+                    rootCoord             = actorTask->extra.tmd->coords;
+                    _actorPositionDeltaToPlayer(&gPlayerStatus, rootCoord, toPlayer);
+                    // Select paired player clips from the facing relative to the attacker.
                     scratch->yawFromPlayer = ratan2(scratch->offset.vx, scratch->offset.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
-                    scratch->yawFromPlayer = mag = _actorAngleNormalizeYaw(scratch->yawFromPlayer);
-                    mag                         -= scratch->playerYaw;
-                    if (ABS(mag) < 0x400) {
+                    scratch->yawFromPlayer = playerFacingDifference = _actorAngleNormalizeYaw(scratch->yawFromPlayer);
+                    playerFacingDifference                         -= scratch->playerYaw;
+                    if (ABS(playerFacingDifference) < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
                         work->playerAnimation.source.sets          = D_actor_403000_80158C08;
-                        work->playerAnimation.animationId          = 3;
-                        work->playerAnimation.blend                = 0;
+                        work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_GRAB_CATCH;
+                        work->playerAnimation.blend                = ANIMATION_BLEND_RESET;
                         work->playerAnimation.blendFrames          = 0;
-                        work->playerAnimation.enableWorldCollision = 1;
+                        work->playerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnimation, 0);
-                        dir = &scratch->offset;
-                        gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, dir);
-                        VectorNormalSS(dir, dir);
-                        gte_lddp(-0x546);
-                        gte_ldsv(dir);
-                        gte_gpf12();
-                        gte_stsv(dir);
-                        arg0->extra.tmd->coords->coord.t[0]      = player->extra.tmd->coords->coord.t[0] + scratch->offset.vx;
-                        arg0->extra.tmd->coords->coord.t[1]      = player->extra.tmd->coords->coord.t[1] + scratch->offset.vy;
-                        arg0->extra.tmd->coords->coord.t[2]      = player->extra.tmd->coords->coord.t[2] + scratch->offset.vz;
-                        arg0->extra.tmd->coords->composeStamp    = GRAPHICS_COORD_DIRTY;
-                        D_actor_403000_80158D90.placement.pos.vx = player->extra.tmd->coords->coord.t[0];
-                        D_actor_403000_80158D90.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
-                        D_actor_403000_80158D90.placement.pos.vz = player->extra.tmd->coords->coord.t[2];
-                        D_actor_403000_80158D90.placement.rot.vx = 0;
-                        D_actor_403000_80158D90.placement.rot.vy = ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]) - 0x500;
-                        D_actor_403000_80158D90.placement.rot.vz = 0;
-                        TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403000_80158D90.placement, 0);
+                        _actor403000AlignGrabCatch(actorTask, player, scratch, -ACTOR_403000_GRAB_FRONT_PLAYER_YAW_OFFSET);
                     } else {
                         work->playerAnimation.source.sets          = D_actor_403000_80158C28;
-                        work->playerAnimation.animationId          = 3;
-                        work->playerAnimation.blend                = 0;
+                        work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_GRAB_CATCH;
+                        work->playerAnimation.blend                = ANIMATION_BLEND_RESET;
                         work->playerAnimation.blendFrames          = 0;
-                        work->playerAnimation.enableWorldCollision = 1;
+                        work->playerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnimation, 0);
-                        dir = &scratch->offset;
-                        gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, dir);
-                        VectorNormalSS(dir, dir);
-                        gte_lddp(-0x546);
-                        gte_ldsv(dir);
-                        gte_gpf12();
-                        gte_stsv(dir);
-                        arg0->extra.tmd->coords->coord.t[0]      = player->extra.tmd->coords->coord.t[0] + scratch->offset.vx;
-                        arg0->extra.tmd->coords->coord.t[1]      = player->extra.tmd->coords->coord.t[1] + scratch->offset.vy;
-                        arg0->extra.tmd->coords->coord.t[2]      = player->extra.tmd->coords->coord.t[2] + scratch->offset.vz;
-                        arg0->extra.tmd->coords->composeStamp    = GRAPHICS_COORD_DIRTY;
-                        D_actor_403000_80158D90.placement.pos.vx = player->extra.tmd->coords->coord.t[0];
-                        D_actor_403000_80158D90.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
-                        D_actor_403000_80158D90.placement.pos.vz = player->extra.tmd->coords->coord.t[2];
-                        D_actor_403000_80158D90.placement.rot.vx = 0;
-                        D_actor_403000_80158D90.placement.rot.vy = ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]) + 0x400;
-                        D_actor_403000_80158D90.placement.rot.vz = 0;
-                        TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403000_80158D90.placement, 0);
+                        _actor403000AlignGrabCatch(actorTask, player, scratch, ACTOR_TRANSFORM_ANGLE_TURN / 4);
                     }
-                    task                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                    scratch->messageResult = taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 1), 0);
+                    damageTarget           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                    scratch->messageResult = taskMessageDispatch(damageTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_403000_ATTACK_GRAB), 0);
                     if (scratch->messageResult == 1) {
-                        pw                              = (GameActor*)player->work;
-                        gGameSession->deathFadeFrames   = 0x28;
-                        gGameSession->deathRestartDelay = 0x28;
-                        pw->state                       = 0xA;
+                        playerActor                     = player->work;
+                        gGameSession->deathFadeFrames   = ACTOR_403000_GRAB_FATAL_DELAY;
+                        gGameSession->deathRestartDelay = ACTOR_403000_GRAB_FATAL_DELAY;
+                        playerActor->state              = ACTOR_403000_PLAYER_FATAL_HOLD_STATE;
                     }
                 }
             }
         }
     }
-    if (work->requestedAnimId == 2) {
-        coord = arg0->extra.tmd->coords;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-            dirA = _actor403000ReserveScratchVector();
-            gfxReadMatrixZAxis(&coord->coord, dirA);
-            VectorNormalSS(dirA, dirA);
-            _actor403000ScaleVectorQ12(dirA, 300);
-            coord->coord.t[0]  += dirA->vx;
-            coord->coord.t[1]  += dirA->vy;
-            coord->coord.t[2]  += dirA->vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            _actor403000ReleaseScratchVector();
-        }
+    if (work->requestedAnimId == ACTOR_403000_CLIP_WALK) {
+        walkCoord = actorTask->extra.tmd->coords;
+        _actor403000AdvanceChaseRoot(walkCoord, ACTOR_403000_GRAB_WALK_STEP);
     }
-    if (work->requestedAnimId == 0xB && work->stateFrame < 0xE) {
-        coord2 = arg0->extra.tmd->coords;
-        step   = work->grabStep;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-            dirB = _actor403000ReserveScratchVector();
-            v    = dirB;
-            if (step != 0) {
-                gfxReadMatrixZAxis(&coord2->coord, dirB);
-                VectorNormalSS(dirB, dirB);
-                _actor403000ScaleVectorQ12(v, step);
-                coord2->coord.t[0]  += dirB->vx;
-                coord2->coord.t[1]  += dirB->vy;
-                coord2->coord.t[2]  += dirB->vz;
-                coord2->composeStamp = GRAPHICS_COORD_DIRTY;
-            }
-            _actor403000ReleaseScratchVector();
-        }
+    if (work->requestedAnimId == ACTOR_403000_CLIP_GRAB_RUSH && work->stateFrame < ACTOR_403000_GRAB_RUSH_END_FRAME) {
+        rushCoord    = actorTask->extra.tmd->coords;
+        rushDistance = work->grabStep;
+        _actor403000AdvanceChaseRoot(rushCoord, rushDistance);
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 1 && work->requestedAnimId == 2 && work->stateFrame >= 0x10) {
+    actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (_actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 1 && work->requestedAnimId == ACTOR_403000_CLIP_WALK && work->stateFrame >= ACTOR_403000_GRAB_WALL_TURN_DELAY) {
         work->state       = ACTOR_403000_STATE_TURN;
         work->turnRingDir = -work->watchRingDir;
     }
-    _actor403000UpdateAnimation(arg0);
+    _actor403000UpdateAnimation(actorTask);
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
-        if (work->requestedAnimId == 0xB) {
+        if (work->requestedAnimId == ACTOR_403000_CLIP_GRAB_RUSH) {
             scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
-            cell                = _actor403000GetRingCell(arg0->extra.tmd->coords);
-            scratch->cell       = cell;
-            diff                = scratch->cell - scratch->playerCell;
-            sign                = _actor403000RingSide(diff);
-            work->watchRingDir  = sign;
-            diff                = scratch->cell - scratch->playerCell;
-            sign                = _actor403000RingSide(diff);
-            work->turnRingDir = work->watchRingDir = -sign;
+            actorCell           = _actor403000GetRingCell(actorTask->extra.tmd->coords);
+            scratch->cell       = actorCell;
+            cellDifference      = scratch->cell - scratch->playerCell;
+            towardPlayerDir     = _actor403000RingSide(cellDifference);
+            work->watchRingDir  = towardPlayerDir;
+            cellDifference      = scratch->cell - scratch->playerCell;
+            towardPlayerDir     = _actor403000RingSide(cellDifference);
+            work->turnRingDir = work->watchRingDir = -towardPlayerDir;
             work->state                            = ACTOR_403000_STATE_TURN;
         }
     }
@@ -3894,30 +3949,37 @@ static void func_actor_403000_801377C8(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
 }
 
-/// Per-frame push: on the frame `stateEntered` is set, turn the display object's
-/// first matrix column into a short push vector and play the enemy's sound,
-/// then send it to the player as `GAME_ACTOR_MESSAGE_MOVE_BY` for the first 0x28 frames.
-/// `ANIMATION_SLOT_REACHED_BOUNDARY` on slot 1 moves the state machine to 4 and flips `watchRingDir`.
-static void func_actor_403000_801384E8(Task* arg0)
+/// Pushes the caught player sideways until the grab clip reaches its boundary.
+///
+/// Requires live actor work/model/enemy and player. Entry latches an 85-unit
+/// ground displacement in persistent message storage; the first 40 ticks send
+/// it synchronously with player control retained. A wall reply cancels later
+/// movement. The boundary hands the reversed ring direction to the turn state.
+/// The chase scratch reservation is released before return.
+static void _actor403000GrabCatchState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_GRAB_CATCH_PUSH_STEP  = 0x55,
+        ACTOR_403000_GRAB_CATCH_PUSH_TICKS = 0x28,
+    };
+
     Actor403000Work*          work;
     Enemy*                    enemy;
     Task*                     player;
     _Actor403000ChaseScratch* scratch;
-    s32                       sound;
-    s32                       pan;
-    s32                       ret;
+    s32                       soundId;
+    s32                       panOffset;
+    s32                       wallBlocked;
 
-    work                                           = arg0->work;
-    player                                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    scratch                                        = SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch) - 1;
-    SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch) = scratch;
+    work    = actorTask->work;
+    player  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000ChaseScratch);
     if (work->stateEntered != 0) {
-        enemy            = arg0->spawnArg2.pointer;
+        enemy            = actorTask->spawnArg2.pointer;
         work->stateFrame = 0;
-        gfxReadMatrixXAxis(&arg0->extra.tmd->coords->coord, &scratch->offset);
+        gfxReadMatrixXAxis(&actorTask->extra.tmd->coords->coord, &scratch->offset);
         VectorNormalSS(&scratch->offset, &scratch->offset);
-        gte_lddp(0x55);
+        gte_lddp(ACTOR_403000_GRAB_CATCH_PUSH_STEP);
         gte_ldsv(&scratch->offset);
         gte_gpf12();
         gte_stsv(&scratch->offset);
@@ -3926,128 +3988,130 @@ static void func_actor_403000_801384E8(Task* arg0)
         D_actor_403000_80158DB0.push.displacement.vz   = scratch->offset.vz;
         D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
         D_actor_403000_80158DB0.push.keepControl       = 1;
-        sound                                          = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
-        pan                                            = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        soundId                                        = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403000_SOUND_CATCH;
+        panOffset                                      = (s8)worldCoordGetOriginAudioPan(actorTask->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(actorTask->extra.tmd->coords));
     }
-    if (work->stateFrame < 0x28) {
-        ret = TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &D_actor_403000_80158DB0.push, 0);
-        if (ret == 1) {
+    // Keep resending the latched shove until a wall reply cancels its displacement.
+    if (work->stateFrame < ACTOR_403000_GRAB_CATCH_PUSH_TICKS) {
+        wallBlocked = TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &D_actor_403000_80158DB0.push, 0);
+        if (wallBlocked == 1) {
             D_actor_403000_80158DB0.push.displacement.vx   = 0;
             D_actor_403000_80158DB0.push.displacement.vy   = 0;
             D_actor_403000_80158DB0.push.displacement.vz   = 0;
             D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
-            D_actor_403000_80158DB0.push.keepControl       = ret;
+            D_actor_403000_80158DB0.push.keepControl       = wallBlocked;
         }
     }
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state        = ACTOR_403000_STATE_TURN;
         work->watchRingDir = work->turnRingDir = work->patrolRingDir = -work->watchRingDir;
     }
-    _actor403000UpdateAnimation(arg0);
+    _actor403000UpdateAnimation(actorTask);
     work->stateFrame++;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
 }
 
-/// Lunge toward the player: on the frame `stateEntered` is set, record the player's
-/// position and turn the distance to it into the per-frame step `lungeStep`;
-/// for frames 5..24 push the display object along its third matrix column by
-/// that step, for frames 5..14 turn it toward the camera target by at most
-/// 0x40, and on frame 0x17 send the grab messages if a hit record is live.
-static void func_actor_403000_801386E8(Task* arg0)
+/// Lunges at the player and catches them on a head-capsule contact at frame 23.
+///
+/// Requires live actor work/model/enemy, player and initialized contact tables.
+/// Entry computes a per-tick forward step of (horizontal distance - 900)/20.
+/// Movement runs on frames 5..24 and steering on 5..14, with a 64-unit yaw
+/// limit in 4096-per-turn angles. A successful hold starts paired player clip
+/// 1 and damage attack 0; its bank remains live through catch playback.
+/// Movement uses the arena parent frame. Scratch reservations are released.
+static void _actor403000LungeState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_ATTACK_LUNGE              = 0,
+        ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH   = 1,
+        ACTOR_403000_CLIP_LUNGE                = 7,
+        ACTOR_403000_LUNGE_STOP_DISTANCE       = 900,
+        ACTOR_403000_LUNGE_TRAVEL_TICKS        = 20,
+        ACTOR_403000_LUNGE_MOVE_START_FRAME    = 5,
+        ACTOR_403000_LUNGE_MOVE_END_FRAME      = 25,
+        ACTOR_403000_LUNGE_STEER_TICKS         = 10,
+        ACTOR_403000_LUNGE_TURN_STEP           = 0x40,
+        ACTOR_403000_LUNGE_PLAYER_BLEND_TICKS  = 3,
+        ACTOR_403000_LUNGE_CATCH_FRAME         = 0x17,
+        ACTOR_403000_LUNGE_FATAL_FADE_TICKS    = 0x1C,
+        ACTOR_403000_LUNGE_FATAL_RESTART_TICKS = 0x1E,
+    };
+
     Actor403000Work*          work;
     Task*                     player;
     Enemy*                    enemy;
     _Actor403000ChaseScratch* scratch;
-    _Actor403000ChaseScratch* head;
-    GfxCoord*                 coord;
-    SVECTOR*                  dir;
-    Task*                     task;
-    s16                       step;
-    s32                       dist;
-    s32                       mag;
-    SVECTOR*                  t;
-    GfxCoord*                 coord3;
-    GameActor*                pw;
+    GfxCoord*                 rootCoord;
+    Task*                     damageTarget;
+    s16                       stepDistance;
+    s32                       playerDistance;
+    SVECTOR*                  toPlayer;
+    GfxCoord*                 steeringCoord;
+    GameActor*                playerActor;
 
-    work                                           = arg0->work;
-    player                                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    head                                           = SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch);
-    SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch) = head - 1;
-    enemy                                          = arg0->spawnArg2.pointer;
-    scratch                                        = head - 1;
+    work    = actorTask->work;
+    player  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000ChaseScratch);
+    enemy   = actorTask->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         work->lungePlayerPos.vx = player->extra.tmd->coords->coord.t[0];
         work->lungePlayerPos.vy = player->extra.tmd->coords->coord.t[1];
         work->lungePlayerPos.vz = player->extra.tmd->coords->coord.t[2];
-        scratch->playerDelta.vx = player->extra.tmd->coords->coord.t[0] - arg0->extra.tmd->coords->coord.t[0];
+        scratch->playerDelta.vx = player->extra.tmd->coords->coord.t[0] - actorTask->extra.tmd->coords->coord.t[0];
         scratch->playerDelta.vy = 0;
-        scratch->playerDelta.vz = player->extra.tmd->coords->coord.t[2] - arg0->extra.tmd->coords->coord.t[2];
-        scratch->playerDistance = dist = SquareRoot0(scratch->playerDelta.vx * scratch->playerDelta.vx + scratch->playerDelta.vy * scratch->playerDelta.vy + scratch->playerDelta.vz * scratch->playerDelta.vz);
-        work->requestedAnimId          = 7;
-        work->animStart                = ACTOR_403000_ANIM_BLEND_IN;
-        work->stateFrame               = 0;
-        work->rootSphere.body.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->neckSphere.body.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->lungeStep                = (dist - 900) / 20;
+        scratch->playerDelta.vz = player->extra.tmd->coords->coord.t[2] - actorTask->extra.tmd->coords->coord.t[2];
+        scratch->playerDistance = playerDistance = SquareRoot0(scratch->playerDelta.vx * scratch->playerDelta.vx + scratch->playerDelta.vy * scratch->playerDelta.vy + scratch->playerDelta.vz * scratch->playerDelta.vz);
+        work->requestedAnimId                    = ACTOR_403000_CLIP_LUNGE;
+        work->animStart                          = ACTOR_403000_ANIM_BLEND_IN;
+        work->stateFrame                         = 0;
+        work->rootSphere.body.flags             |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->neckSphere.body.flags             |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->lungeStep                          = (playerDistance - ACTOR_403000_LUNGE_STOP_DISTANCE) / ACTOR_403000_LUNGE_TRAVEL_TICKS;
     }
-    if (work->stateFrame >= 5 && work->stateFrame < 25) {
-        coord = arg0->extra.tmd->coords;
-        step  = work->lungeStep;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-            dir = _actor403000ReserveScratchVector();
-            if (step != 0) {
-                gfxReadMatrixZAxis(&coord->coord, dir);
-                VectorNormalSS(dir, dir);
-                _actor403000ScaleVectorQ12(dir, step);
-                coord->coord.t[0]  += dir->vx;
-                coord->coord.t[1]  += dir->vy;
-                coord->coord.t[2]  += dir->vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            }
-            _actor403000ReleaseScratchVector();
+    if (work->stateFrame >= ACTOR_403000_LUNGE_MOVE_START_FRAME && work->stateFrame < ACTOR_403000_LUNGE_MOVE_END_FRAME) {
+        rootCoord    = actorTask->extra.tmd->coords;
+        stepDistance = work->lungeStep;
+        _actor403000AdvanceChaseRoot(rootCoord, stepDistance);
+        actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    }
+    if ((u16)(work->stateFrame - ACTOR_403000_LUNGE_MOVE_START_FRAME) < ACTOR_403000_LUNGE_STEER_TICKS) {
+        toPlayer      = &scratch->offset;
+        steeringCoord = actorTask->extra.tmd->coords;
+        _actorPositionDeltaToPlayer(&gPlayerStatus, steeringCoord, toPlayer);
+        scratch->turn = _actorAngleTurnToOffset(actorTask->extra.tmd->coords, toPlayer->vx, toPlayer->vz);
+        if (scratch->turn > ACTOR_403000_LUNGE_TURN_STEP) {
+            scratch->turn = ACTOR_403000_LUNGE_TURN_STEP;
+        } else if (scratch->turn < -ACTOR_403000_LUNGE_TURN_STEP) {
+            scratch->turn = -ACTOR_403000_LUNGE_TURN_STEP;
         }
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        scratch->turn += ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]);
+        gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, scratch->turn, GRAPHICS_ROTATION_REPLACE);
     }
-    if ((u16)(work->stateFrame - 5) < 10) {
-        t             = &scratch->offset;
-        coord3        = arg0->extra.tmd->coords;
-        t->vx         = gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0];
-        t->vy         = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
-        t->vz         = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
-        scratch->turn = mag = _actorAngleTurnToOffset(arg0->extra.tmd->coords, t->vx, t->vz);
-        if (scratch->turn > 0x40) {
-            scratch->turn = 0x40;
-        } else if (scratch->turn < -0x40) {
-            scratch->turn = -0x40;
-        }
-        scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
-    }
-    if (work->stateFrame == 0x17) {
+    // Contact and hold acceptance gate the paired animation and attack damage.
+    if (work->stateFrame == ACTOR_403000_LUNGE_CATCH_FRAME) {
         if (_actor403000HasPlayerContact(work->headCapsule.contacts, ARRAY_SIZE(work->headCapsule.contacts)) && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
             D_actor_403000_80158D90.placement.pos.vx = player->extra.tmd->coords->coord.t[0];
             D_actor_403000_80158D90.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
             D_actor_403000_80158D90.placement.pos.vz = player->extra.tmd->coords->coord.t[2];
             D_actor_403000_80158D90.placement.rot.vx = 0;
-            D_actor_403000_80158D90.placement.rot.vy = ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]) - 0x400;
+            D_actor_403000_80158D90.placement.rot.vy = ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]) - (ACTOR_TRANSFORM_ANGLE_TURN / 4);
             D_actor_403000_80158D90.placement.rot.vz = 0;
             TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403000_80158D90.placement, 0);
-            task                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            scratch->messageResult = taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
+            damageTarget           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            scratch->messageResult = taskMessageDispatch(damageTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_403000_ATTACK_LUNGE), 0);
             if (scratch->messageResult == 1) {
-                pw                              = (GameActor*)player->work;
-                gGameSession->deathFadeFrames   = 0x1C;
-                gGameSession->deathRestartDelay = 0x1E;
-                pw->state                       = 0xA;
+                playerActor                     = player->work;
+                gGameSession->deathFadeFrames   = ACTOR_403000_LUNGE_FATAL_FADE_TICKS;
+                gGameSession->deathRestartDelay = ACTOR_403000_LUNGE_FATAL_RESTART_TICKS;
+                playerActor->state              = ACTOR_403000_PLAYER_FATAL_HOLD_STATE;
             }
             work->state                                = ACTOR_403000_STATE_LUNGE_CATCH;
             work->playerAnimation.source.sets          = D_actor_403000_80158C08;
-            work->playerAnimation.animationId          = 1;
-            work->playerAnimation.blend                = 0;
-            work->playerAnimation.blendFrames          = 3;
-            work->playerAnimation.enableWorldCollision = 1;
+            work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH;
+            work->playerAnimation.blend                = ANIMATION_BLEND_RESET;
+            work->playerAnimation.blendFrames          = ACTOR_403000_LUNGE_PLAYER_BLEND_TICKS;
+            work->playerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnimation, 0);
             work->playerCaught = 1;
         }
@@ -4057,11 +4121,11 @@ static void func_actor_403000_801386E8(Task* arg0)
         work->patrolRingDir = work->watchRingDir;
         work->watchRingDir  = -work->watchRingDir;
     }
-    _actor403000UpdateAnimation(arg0);
-    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 0) {
-        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts));
+    _actor403000UpdateAnimation(actorTask);
+    if (_actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 0) {
+        _actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts));
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
     work->stateFrame++;
 }
@@ -4237,19 +4301,29 @@ static void func_actor_403000_80138DB0(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static void func_actor_403000_801399A0(Task* arg0)
+/// Plays the fall and chooses stunned, down or dissolve when it settles.
+///
+/// Requires live actor work/model/enemy and initialized root/torso contacts.
+/// Enables both grid probes during the fall, resolving the torso only when
+/// the root produces no horizontal pushback, then disables the torso probe.
+/// A lethal fall leaves the room report pending for the dissolve state.
+static void _actor403000KnockdownState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_CLIP_KNOCKDOWN = 14,
+    };
+
     Actor403000Work* work;
     Enemy*           enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actorTask->work;
+    enemy = actorTask->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->torsoSphere.body.radius = 0x3E8;
+        actorTask->extra.tmd->flags   = 0;
+        work->torsoSphere.body.radius = ACTOR_403000_ACTIVE_TORSO_RADIUS;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
-        work->requestedAnimId         = 0xE;
-        work->animRate                = 0x10;
+        work->requestedAnimId         = ACTOR_403000_CLIP_KNOCKDOWN;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lockOnSuspended         = 0;
         work->neckYaw                 = 0;
         work->neckYawTarget           = 0;
@@ -4257,520 +4331,520 @@ static void func_actor_403000_801399A0(Task* arg0)
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->torsoSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 0) {
-        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->torsoSphere.contacts, ARRAY_SIZE(work->torsoSphere.contacts));
+    if (_actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 0) {
+        _actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->torsoSphere.contacts, ARRAY_SIZE(work->torsoSphere.contacts));
     }
-    _actor403000UpdateAnimation(arg0);
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) && work->requestedAnimId == 0xE) {
+    _actor403000UpdateAnimation(actorTask);
+    // The torso grid probe is needed only while the falling clip is active.
+    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) && work->requestedAnimId == ACTOR_403000_CLIP_KNOCKDOWN) {
         work->torsoSphere.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        if (enemy->hp > 0) {
-            if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-                work->state = ACTOR_403000_STATE_STUNNED;
-            } else {
-                work->state = ACTOR_403000_STATE_DOWN;
-            }
-        } else {
-            work->roomEventPending = 1;
-            work->state            = ACTOR_403000_STATE_DISSOLVE;
-        }
+        _actor403000FinishDownReaction(work, enemy);
     }
 }
 
-/// Waypoint-grid cell under `coord`: column by `coord.t[0]` band, row by
-/// `coord.t[2]`, as `_actor403000ChooseRingDirection` computes it inline.
-static void func_actor_403000_80139AE0(Task* arg0)
+/// Walks the shorter ring route toward the player until direct pursuit is allowed.
+///
+/// Requires live actor work/model, player and initialized arena scratch stack.
+/// Ring cells are 0..9 and the latched direction is +/-1. Each unfrozen tick
+/// advances 300 parent-coordinate units toward the neighboring waypoint and
+/// turns at most 48 angle units (4096 per turn). Releases waypoint scratch.
+static void _actor403000ApproachState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_APPROACH_TURN_STEP = 0x30,
+        ACTOR_403000_APPROACH_WALK_STEP = 0x12C,
+    };
+
     Actor403000Work*             work;
     Task*                        player;
     _Actor403000WaypointScratch* scratch;
-    TmdObject*                   obj;
-    SVECTOR*                     table;
-    SVECTOR*                     v;
-    s16                          angle;
-    s16                          diff;
-    s32                          mag;
-    s8                           base;
-    s8                           dir;
+    TmdObject*                   model;
+    const SVECTOR*               waypoints;
+    const SVECTOR*               waypointPos;
+    s16                          waypointTurn;
+    s16                          cellDifference;
+    s8                           actorCell;
+    s8                           towardPlayerDir;
 
-    work    = arg0->work;
+    work    = actorTask->work;
     player  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000WaypointScratch);
     if (work->stateEntered != 0) {
-        obj                   = arg0->extra.tmd;
+        model                 = actorTask->extra.tmd;
         work->lockOnSuspended = 0;
-        obj->flags            = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->torsoSphere.body.radius = 0x3E8;
+        model->flags          = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->torsoSphere.body.radius = ACTOR_403000_ACTIVE_TORSO_RADIUS;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->overlayActive           = 0;
-        work->requestedAnimId         = 2;
+        work->requestedAnimId         = ACTOR_403000_CLIP_WALK;
         work->forelegYawTarget        = 0;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actor403000UpdateAnimation(arg0);
+        _actor403000UpdateAnimation(actorTask);
         work->stateFrame                   = 0;
         work->stillFrames                  = 0;
         work->field_FC2                    = 0;
-        work->rootCapsule.shape.ends[1].vz = 0x320;
+        work->rootCapsule.shape.ends[1].vz = ACTOR_403000_RING_PROBE_REACH;
         scratch->playerCell                = _actor403000GetRingCell(player->extra.tmd->coords);
-        scratch->cell                      = _actor403000GetRingCell(arg0->extra.tmd->coords);
-        diff                               = scratch->cell - scratch->playerCell;
-        dir                                = _actor403000RingSide(diff);
-        work->seekRingDir                  = dir;
+        scratch->cell                      = _actor403000GetRingCell(actorTask->extra.tmd->coords);
+        cellDifference                     = scratch->cell - scratch->playerCell;
+        towardPlayerDir                    = _actor403000RingSide(cellDifference);
+        work->seekRingDir                  = towardPlayerDir;
     }
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+    _actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
     scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
-    base                = _actor403000GetRingCell(arg0->extra.tmd->coords);
-    scratch->cell       = base;
-    if (_actor403000CanChasePlayer(arg0, base, scratch->playerCell) << 16) {
+    actorCell           = _actor403000GetRingCell(actorTask->extra.tmd->coords);
+    scratch->cell       = actorCell;
+    if ((s16)_actor403000CanChasePlayer(actorTask, actorCell, scratch->playerCell)) {
         work->state = ACTOR_403000_STATE_CHASE;
     }
-    scratch->waypoint = scratch->cell + work->seekRingDir;
-    if (scratch->waypoint != -1) {
-        if (scratch->waypoint == ACTOR_403000_RING_WAYPOINT_COUNT) {
-            scratch->waypoint = 0;
-        }
-    } else {
-        scratch->waypoint = ACTOR_403000_RING_WAYPOINT_COUNT - 1;
-    }
-    table               = D_actor_403000_80158CE0;
-    v                   = &table[scratch->waypoint];
-    scratch->offset.vx  = v->vx;
-    scratch->offset.vy  = v->vy;
-    scratch->offset.vz  = v->vz;
-    scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
+    // Follow the neighboring waypoint even on the tick that selects pursuit.
+    _actor403000SelectRingNeighbor(scratch, work->seekRingDir);
+    waypoints           = D_actor_403000_80158CE0;
+    waypointPos         = &waypoints[scratch->waypoint];
+    scratch->offset.vx  = waypointPos->vx;
+    scratch->offset.vy  = waypointPos->vy;
+    scratch->offset.vz  = waypointPos->vz;
+    scratch->offset.vx -= actorTask->extra.tmd->coords->coord.t[0];
     scratch->offset.vy  = 0;
-    scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
-    mag                 = angle;
-    scratch->turn       = mag;
-    work->neckYawTarget = mag;
-    _actor403000UpdateAnimation(arg0);
-    if (scratch->turn > 0x30) {
-        scratch->turn = 0x30;
+    scratch->offset.vz -= actorTask->extra.tmd->coords->coord.t[2];
+    waypointTurn        = _actorAngleTurnToOffset(actorTask->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+    scratch->turn       = waypointTurn;
+    work->neckYawTarget = waypointTurn;
+    _actor403000UpdateAnimation(actorTask);
+    if (scratch->turn > ACTOR_403000_APPROACH_TURN_STEP) {
+        scratch->turn = ACTOR_403000_APPROACH_TURN_STEP;
     }
-    if (scratch->turn < -0x30) {
-        scratch->turn = -0x30;
+    if (scratch->turn < -ACTOR_403000_APPROACH_TURN_STEP) {
+        scratch->turn = -ACTOR_403000_APPROACH_TURN_STEP;
     }
-    scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actorMovementStepForward(arg0->extra.tmd->coords, 0x12C);
+    scratch->turn += ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, scratch->turn, GRAPHICS_ROTATION_REPLACE);
+    actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actorMovementStepForward(actorTask->extra.tmd->coords, ACTOR_403000_APPROACH_WALK_STEP);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 
-/// Waypoint-ring variant of `func_actor_403000_80139AE0`: on entry pick the
-/// ring direction from the player/model cell difference, then steer (clamped to
-/// 0x40 per frame) toward the next waypoint and step forward 0x12C; switch to 5
-/// once `_actor403000CanChasePlayer` allows it after 60 frames.
-static void func_actor_403000_8013A08C(Task* arg0)
+/// Walks away around the ring before permitting a return to direct pursuit.
+///
+/// Requires live actor work/model, player and initialized arena scratch stack.
+/// Ring cells are 0..9 and direction is +/-1; equal entry cells reverse the
+/// existing seek direction. Advances 300 parent-coordinate units per unfrozen
+/// tick, turning at most 64 angle units in 4096 per turn. Pursuit is gated
+/// until the state counter exceeds 60. Releases waypoint scratch.
+static void _actor403000RetreatState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_RETREAT_MIN_TICKS = 0x3C,
+        ACTOR_403000_RETREAT_TURN_STEP = 0x40,
+        ACTOR_403000_RETREAT_WALK_STEP = 0x12C,
+    };
+
     Actor403000Work*             work;
     Task*                        player;
     _Actor403000WaypointScratch* scratch;
-    TmdObject*                   obj;
-    SVECTOR*                     table;
-    SVECTOR*                     v;
-    s16                          angle;
-    s16                          diff;
-    s32                          mag;
-    s32                          cell;
-    s8                           base;
-    s8                           dir;
+    TmdObject*                   model;
+    const SVECTOR*               waypoints;
+    const SVECTOR*               waypointPos;
+    s16                          waypointTurn;
+    s16                          cellDifference;
+    s32                          entryCell;
+    s8                           actorCell;
+    s8                           towardPlayerDir;
 
-    work    = arg0->work;
+    work    = actorTask->work;
     player  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000WaypointScratch);
     if (work->stateEntered != 0) {
-        obj                   = arg0->extra.tmd;
+        model                 = actorTask->extra.tmd;
         work->lockOnSuspended = 0;
-        obj->flags            = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->torsoSphere.body.radius = 0x3E8;
+        model->flags          = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->torsoSphere.body.radius = ACTOR_403000_ACTIVE_TORSO_RADIUS;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->overlayActive           = 0;
-        work->requestedAnimId         = 2;
+        work->requestedAnimId         = ACTOR_403000_CLIP_WALK;
         work->forelegYawTarget        = 0;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actor403000UpdateAnimation(arg0);
+        _actor403000UpdateAnimation(actorTask);
         work->stateFrame                   = 0;
         work->stillFrames                  = 0;
         work->field_FC2                    = 0;
-        work->rootCapsule.shape.ends[1].vz = 0x320;
+        work->rootCapsule.shape.ends[1].vz = ACTOR_403000_RING_PROBE_REACH;
         scratch->playerCell                = _actor403000GetRingCell(player->extra.tmd->coords);
-        cell                               = _actor403000GetRingCell(arg0->extra.tmd->coords);
-        scratch->cell                      = cell;
-        if (cell != scratch->playerCell) {
-            diff = cell - scratch->playerCell;
-            dir  = _actor403000RingSide(diff);
+        entryCell                          = _actor403000GetRingCell(actorTask->extra.tmd->coords);
+        scratch->cell                      = entryCell;
+        if (entryCell != scratch->playerCell) {
+            cellDifference  = entryCell - scratch->playerCell;
+            towardPlayerDir = _actor403000RingSide(cellDifference);
         } else {
-            dir = work->seekRingDir;
+            towardPlayerDir = work->seekRingDir;
         }
-        work->seekRingDir = -dir;
+        work->seekRingDir = -towardPlayerDir;
         work->stateFrame  = 0;
     }
     work->stateFrame++;
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+    _actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
     scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
-    base                = _actor403000GetRingCell(arg0->extra.tmd->coords);
-    scratch->cell       = base;
-    if ((_actor403000CanChasePlayer(arg0, base, scratch->playerCell) << 16) && work->stateFrame > 0x3C) {
+    actorCell           = _actor403000GetRingCell(actorTask->extra.tmd->coords);
+    scratch->cell       = actorCell;
+    if ((s16)_actor403000CanChasePlayer(actorTask, actorCell, scratch->playerCell) && work->stateFrame > ACTOR_403000_RETREAT_MIN_TICKS) {
         work->state = ACTOR_403000_STATE_CHASE;
     }
-    scratch->waypoint = scratch->cell + work->seekRingDir;
-    if (scratch->waypoint != -1) {
-        if (scratch->waypoint == ACTOR_403000_RING_WAYPOINT_COUNT) {
-            scratch->waypoint = 0;
-        }
-    } else {
-        scratch->waypoint = ACTOR_403000_RING_WAYPOINT_COUNT - 1;
-    }
-    table               = D_actor_403000_80158CE0;
-    v                   = &table[scratch->waypoint];
-    scratch->offset.vx  = v->vx;
-    scratch->offset.vy  = v->vy;
-    scratch->offset.vz  = v->vz;
-    scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
+    // Follow the latched away direction throughout the minimum retreat interval.
+    _actor403000SelectRingNeighbor(scratch, work->seekRingDir);
+    waypoints           = D_actor_403000_80158CE0;
+    waypointPos         = &waypoints[scratch->waypoint];
+    scratch->offset.vx  = waypointPos->vx;
+    scratch->offset.vy  = waypointPos->vy;
+    scratch->offset.vz  = waypointPos->vz;
+    scratch->offset.vx -= actorTask->extra.tmd->coords->coord.t[0];
     scratch->offset.vy  = 0;
-    scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
-    mag                 = angle;
-    scratch->turn       = mag;
-    work->neckYawTarget = mag;
-    _actor403000UpdateAnimation(arg0);
-    if (scratch->turn > 0x40) {
-        scratch->turn = 0x40;
+    scratch->offset.vz -= actorTask->extra.tmd->coords->coord.t[2];
+    waypointTurn        = _actorAngleTurnToOffset(actorTask->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+    scratch->turn       = waypointTurn;
+    work->neckYawTarget = waypointTurn;
+    _actor403000UpdateAnimation(actorTask);
+    if (scratch->turn > ACTOR_403000_RETREAT_TURN_STEP) {
+        scratch->turn = ACTOR_403000_RETREAT_TURN_STEP;
     }
-    if (scratch->turn < -0x40) {
-        scratch->turn = -0x40;
+    if (scratch->turn < -ACTOR_403000_RETREAT_TURN_STEP) {
+        scratch->turn = -ACTOR_403000_RETREAT_TURN_STEP;
     }
-    scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actorMovementStepForward(arg0->extra.tmd->coords, 0x12C);
+    scratch->turn += ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, scratch->turn, GRAPHICS_ROTATION_REPLACE);
+    actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actorMovementStepForward(actorTask->extra.tmd->coords, ACTOR_403000_RETREAT_WALK_STEP);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 
-/// Waypoint-ring patrol toward a goal waypoint: on entry derive the goal from
-/// the player's cell and, if unset, the ring direction `patrolRingDir`; every frame
-/// on reaching the goal pick the next state (3, 11 or 15) from a random roll,
-/// then steer (clamped to 0x40) toward the next waypoint and step forward 0x12C.
-static void func_actor_403000_8013A678(Task* arg0)
+/// Walks to a waypoint across the arena and chooses watch, approach or ambush.
+///
+/// Requires live actor work/model, player and initialized arena scratch stack.
+/// Player cells 0..2, 3..4, 5..7 and 8..9 select goals 5, 9, 0 and 4.
+/// A preselected direction is retained; otherwise entry chooses away from the
+/// player. Advances 300 parent-coordinate units per unfrozen tick and turns
+/// at most 64 units in 4096-per-turn angles. Releases waypoint scratch.
+static void _actor403000PatrolState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_TEXTURE_BURNED           = 2,
+        ACTOR_403000_PATROL_GOAL_NONE         = -1,
+        ACTOR_403000_PATROL_TURN_STEP         = 0x40,
+        ACTOR_403000_PATROL_WALK_STEP         = 0x12C,
+        ACTOR_403000_PATROL_DIRECTION_UNSET   = 0,
+        ACTOR_403000_PATROL_ROLL_MASK         = 0xF,
+        ACTOR_403000_PATROL_FIRST_ROLL_SPLIT  = 7,
+        ACTOR_403000_PATROL_SECOND_ROLL_SPLIT = 0xB,
+    };
+
     Actor403000Work*             work;
     Task*                        player;
     _Actor403000WaypointScratch* scratch;
-    TmdObject*                   obj;
-    SVECTOR*                     table;
-    SVECTOR*                     v;
-    s16                          angle;
-    s16                          diff;
-    s32                          mag;
-    s16                          r;
-    s8                           base;
-    s8                           dir;
-    s8                           goal;
+    TmdObject*                   model;
+    const SVECTOR*               waypoints;
+    const SVECTOR*               waypointPos;
+    s16                          waypointTurn;
+    s16                          cellDifference;
+    s16                          behaviorRoll;
+    s8                           actorCell;
+    s8                           towardPlayerDir;
+    s8                           goalCell;
 
-    work    = arg0->work;
+    work    = actorTask->work;
     player  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000WaypointScratch);
     if (work->stateEntered != 0) {
-        obj                   = arg0->extra.tmd;
+        model                 = actorTask->extra.tmd;
         work->lockOnSuspended = 0;
-        obj->flags            = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->torsoSphere.body.radius = 0x3E8;
+        model->flags          = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->torsoSphere.body.radius = ACTOR_403000_ACTIVE_TORSO_RADIUS;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->overlayActive           = 0;
-        work->requestedAnimId         = 2;
+        work->requestedAnimId         = ACTOR_403000_CLIP_WALK;
         work->forelegYawTarget        = 0;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actor403000UpdateAnimation(arg0);
+        _actor403000UpdateAnimation(actorTask);
         work->stateFrame                   = 0;
         work->stillFrames                  = 0;
         work->field_FC2                    = 0;
-        work->rootCapsule.shape.ends[1].vz = 0x320;
+        work->rootCapsule.shape.ends[1].vz = ACTOR_403000_RING_PROBE_REACH;
         scratch->playerCell                = _actor403000GetRingCell(player->extra.tmd->coords);
-        scratch->cell                      = _actor403000GetRingCell(arg0->extra.tmd->coords);
+        scratch->cell                      = _actor403000GetRingCell(actorTask->extra.tmd->coords);
         switch ((u8)scratch->playerCell) {
             case 0:
             case 1:
             case 2:
-                goal = 5;
+                goalCell = 5;
                 break;
             case 3:
             case 4:
-                goal = 9;
+                goalCell = 9;
                 break;
             case 5:
             case 6:
-            case 7:
-                goal = 0;
+            case ACTOR_403000_PATROL_FIRST_ROLL_SPLIT:
+                goalCell = 0;
                 break;
             case 8:
             case 9:
-                goal = 4;
+                goalCell = 4;
                 break;
             default:
-                goal = -1;
+                goalCell = ACTOR_403000_PATROL_GOAL_NONE;
                 break;
         }
-        work->patrolGoalCell = goal;
-        if (work->patrolRingDir == 0) {
-            diff                = scratch->cell - scratch->playerCell;
-            dir                 = _actor403000RingSide(diff);
-            work->patrolRingDir = -dir;
+        work->patrolGoalCell = goalCell;
+        if (work->patrolRingDir == ACTOR_403000_PATROL_DIRECTION_UNSET) {
+            cellDifference      = scratch->cell - scratch->playerCell;
+            towardPlayerDir     = _actor403000RingSide(cellDifference);
+            work->patrolRingDir = -towardPlayerDir;
         }
     }
     work->stateFrame++;
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
-    base          = _actor403000GetRingCell(arg0->extra.tmd->coords);
-    scratch->cell = base;
-    if (base == work->patrolGoalCell) {
+    _actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+    actorCell     = _actor403000GetRingCell(actorTask->extra.tmd->coords);
+    scratch->cell = actorCell;
+    // Burned appearance changes the roll thresholds; an explicit ambush wins first.
+    if (actorCell == work->patrolGoalCell) {
         if (work->ambushRequested == 1) {
             work->state = ACTOR_403000_STATE_AMBUSH;
         } else {
-            r = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF;
-            if (arg0->extra.tmd->texturePageOffset == 2) {
-                if (r <= 0) {
+            behaviorRoll = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & ACTOR_403000_PATROL_ROLL_MASK;
+            if (actorTask->extra.tmd->texturePageOffset == ACTOR_403000_TEXTURE_BURNED) {
+                if (behaviorRoll <= 0) {
                     work->state = ACTOR_403000_STATE_WATCH;
-                } else if (r < 7) {
+                } else if (behaviorRoll < ACTOR_403000_PATROL_FIRST_ROLL_SPLIT) {
                     work->state = ACTOR_403000_STATE_AMBUSH;
                 } else {
                     work->state = ACTOR_403000_STATE_APPROACH;
                 }
-            } else if (r < 7) {
+            } else if (behaviorRoll < ACTOR_403000_PATROL_FIRST_ROLL_SPLIT) {
                 work->state = ACTOR_403000_STATE_WATCH;
-            } else if (r < 0xB) {
+            } else if (behaviorRoll < ACTOR_403000_PATROL_SECOND_ROLL_SPLIT) {
                 work->state = ACTOR_403000_STATE_AMBUSH;
             } else {
                 work->state = ACTOR_403000_STATE_APPROACH;
             }
         }
     }
-    scratch->waypoint = scratch->cell + work->patrolRingDir;
-    if (scratch->waypoint != -1) {
-        if (scratch->waypoint == ACTOR_403000_RING_WAYPOINT_COUNT) {
-            scratch->waypoint = 0;
-        }
-    } else {
-        scratch->waypoint = ACTOR_403000_RING_WAYPOINT_COUNT - 1;
-    }
-    table               = D_actor_403000_80158CE0;
-    v                   = &table[scratch->waypoint];
-    scratch->offset.vx  = v->vx;
-    scratch->offset.vy  = v->vy;
-    scratch->offset.vz  = v->vz;
-    scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
+    _actor403000SelectRingNeighbor(scratch, work->patrolRingDir);
+    waypoints           = D_actor_403000_80158CE0;
+    waypointPos         = &waypoints[scratch->waypoint];
+    scratch->offset.vx  = waypointPos->vx;
+    scratch->offset.vy  = waypointPos->vy;
+    scratch->offset.vz  = waypointPos->vz;
+    scratch->offset.vx -= actorTask->extra.tmd->coords->coord.t[0];
     scratch->offset.vy  = 0;
-    scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
-    mag                 = angle;
-    scratch->turn       = mag;
-    work->neckYawTarget = mag;
-    _actor403000UpdateAnimation(arg0);
-    if (scratch->turn > 0x40) {
-        scratch->turn = 0x40;
+    scratch->offset.vz -= actorTask->extra.tmd->coords->coord.t[2];
+    waypointTurn        = _actorAngleTurnToOffset(actorTask->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+    scratch->turn       = waypointTurn;
+    work->neckYawTarget = waypointTurn;
+    _actor403000UpdateAnimation(actorTask);
+    if (scratch->turn > ACTOR_403000_PATROL_TURN_STEP) {
+        scratch->turn = ACTOR_403000_PATROL_TURN_STEP;
     }
-    if (scratch->turn < -0x40) {
-        scratch->turn = -0x40;
+    if (scratch->turn < -ACTOR_403000_PATROL_TURN_STEP) {
+        scratch->turn = -ACTOR_403000_PATROL_TURN_STEP;
     }
-    scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actorMovementStepForward(arg0->extra.tmd->coords, 0x12C);
+    scratch->turn += ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, scratch->turn, GRAPHICS_ROTATION_REPLACE);
+    actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actorMovementStepForward(actorTask->extra.tmd->coords, ACTOR_403000_PATROL_WALK_STEP);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 
-/// Walk the waypoint ring: on the entry frame snap the model onto its cell's
-/// waypoint and face the neighbour in the `watchRingDir` direction; every frame
-/// finish (state 2) on reaching the player's cell, give up (14) after 300
-/// frames, or switch to 5 once `_actor403000CanChasePlayer` allows it.
-static void func_actor_403000_8013ACBC(Task* arg0)
+/// Waits on its current waypoint facing a neighboring cell of the arena ring.
+///
+/// Requires live actor work/model, player and initialized arena scratch stack.
+/// Entry snaps XYZ to the current cell's waypoint and faces the neighbor in
+/// watch direction +/-1. Returns to patrol when the player enters its cell,
+/// permits pursuit after 60 ticks, or prowls after 300. Cells must be 0..9;
+/// positions use the arena parent frame. Releases waypoint scratch.
+static void _actor403000WatchState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_WATCH_TIMEOUT_TICKS     = 300,
+        ACTOR_403000_WATCH_CHASE_DELAY_TICKS = 60,
+    };
+
     Actor403000Work*             work;
     Task*                        player;
     _Actor403000WaypointScratch* scratch;
-    TmdObject*                   obj;
-    SVECTOR*                     table;
-    SVECTOR*                     v;
-    s16                          angle;
-    s16                          index;
-    s8                           base;
-    SVECTOR*                     last;
+    TmdObject*                   model;
+    const SVECTOR*               waypoints;
+    const SVECTOR*               waypointPos;
+    s16                          waypointTurn;
+    s16                          neighborCell;
+    s8                           actorCell;
+    const SVECTOR*               lastWaypoint;
 
-    work    = arg0->work;
+    work    = actorTask->work;
     player  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000WaypointScratch);
     if (work->stateEntered != 0) {
-        obj                   = arg0->extra.tmd;
+        model                 = actorTask->extra.tmd;
         work->lockOnSuspended = 0;
-        obj->flags            = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->torsoSphere.body.radius = 0x3E8;
+        model->flags          = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->torsoSphere.body.radius = ACTOR_403000_ACTIVE_TORSO_RADIUS;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->overlayActive           = 0;
-        work->requestedAnimId         = 4;
+        work->requestedAnimId         = ACTOR_403000_CLIP_STAND;
         work->forelegYawTarget        = 0;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actor403000UpdateAnimation(arg0);
-        base                                  = _actor403000GetRingCell(arg0->extra.tmd->coords);
-        scratch->cell                         = base;
-        table                                 = D_actor_403000_80158CE0;
-        v                                     = &table[base];
-        scratch->offset.vx                    = v->vx;
-        scratch->offset.vy                    = v->vy;
-        scratch->offset.vz                    = v->vz;
-        arg0->extra.tmd->coords->coord.t[0]   = scratch->offset.vx;
-        arg0->extra.tmd->coords->coord.t[1]   = scratch->offset.vy;
-        arg0->extra.tmd->coords->coord.t[2]   = scratch->offset.vz;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        _actor403000UpdateAnimation(actorTask);
+        // Snap to the cell waypoint and face its neighbor without walking.
+        actorCell                                  = _actor403000GetRingCell(actorTask->extra.tmd->coords);
+        scratch->cell                              = actorCell;
+        waypoints                                  = D_actor_403000_80158CE0;
+        waypointPos                                = &waypoints[actorCell];
+        scratch->offset.vx                         = waypointPos->vx;
+        scratch->offset.vy                         = waypointPos->vy;
+        scratch->offset.vz                         = waypointPos->vz;
+        actorTask->extra.tmd->coords->coord.t[0]   = scratch->offset.vx;
+        actorTask->extra.tmd->coords->coord.t[1]   = scratch->offset.vy;
+        actorTask->extra.tmd->coords->coord.t[2]   = scratch->offset.vz;
+        actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         if (work->watchRingDir == 1) {
             if (scratch->cell + 1 >= ACTOR_403000_RING_WAYPOINT_COUNT) {
-                scratch->offset.vx = table[0].vx;
-                scratch->offset.vy = table[0].vy;
-                scratch->offset.vz = table[0].vz;
+                scratch->offset.vx = waypoints[0].vx;
+                scratch->offset.vy = waypoints[0].vy;
+                scratch->offset.vz = waypoints[0].vz;
             } else {
-                index              = scratch->cell + 1;
-                scratch->offset.vx = table[index].vx;
-                scratch->offset.vy = table[index].vy;
-                scratch->offset.vz = table[index].vz;
+                neighborCell       = scratch->cell + 1;
+                scratch->offset.vx = waypoints[neighborCell].vx;
+                scratch->offset.vy = waypoints[neighborCell].vy;
+                scratch->offset.vz = waypoints[neighborCell].vz;
             }
         } else {
             if (scratch->cell - 1 < 0) {
-                last               = &table[ACTOR_403000_RING_WAYPOINT_COUNT - 1];
-                scratch->offset.vx = last->vx;
-                scratch->offset.vy = last->vy;
-                scratch->offset.vz = last->vz;
+                lastWaypoint       = &waypoints[ACTOR_403000_RING_WAYPOINT_COUNT - 1];
+                scratch->offset.vx = lastWaypoint->vx;
+                scratch->offset.vy = lastWaypoint->vy;
+                scratch->offset.vz = lastWaypoint->vz;
             } else {
-                index              = scratch->cell - 1;
-                scratch->offset.vx = table[index].vx;
-                scratch->offset.vy = table[index].vy;
-                scratch->offset.vz = table[index].vz;
+                neighborCell       = scratch->cell - 1;
+                scratch->offset.vx = waypoints[neighborCell].vx;
+                scratch->offset.vy = waypoints[neighborCell].vy;
+                scratch->offset.vz = waypoints[neighborCell].vz;
             }
         }
-        scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
+        scratch->offset.vx -= actorTask->extra.tmd->coords->coord.t[0];
         scratch->offset.vy  = 0;
-        scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-        angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
-        scratch->turn       = angle;
+        scratch->offset.vz -= actorTask->extra.tmd->coords->coord.t[2];
+        waypointTurn        = _actorAngleTurnToOffset(actorTask->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+        scratch->turn       = waypointTurn;
         work->neckYawTarget = 0;
-        scratch->turn      += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
+        scratch->turn      += ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]);
+        gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, scratch->turn, GRAPHICS_ROTATION_REPLACE);
         work->stateFrame                   = 0;
         work->stillFrames                  = 0;
         work->field_FC2                    = 0;
-        work->rootCapsule.shape.ends[1].vz = 0x320;
+        work->rootCapsule.shape.ends[1].vz = ACTOR_403000_RING_PROBE_REACH;
         scratch->playerCell                = _actor403000GetRingCell(player->extra.tmd->coords);
     }
     work->stateFrame++;
     scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
-    scratch->cell       = _actor403000GetRingCell(arg0->extra.tmd->coords);
-    _actor403000UpdateAnimation(arg0);
-    if (work->stateFrame > 300) {
+    scratch->cell       = _actor403000GetRingCell(actorTask->extra.tmd->coords);
+    _actor403000UpdateAnimation(actorTask);
+    if (work->stateFrame > ACTOR_403000_WATCH_TIMEOUT_TICKS) {
         work->state = ACTOR_403000_STATE_PROWL;
     } else if (scratch->playerCell == scratch->cell) {
         work->state         = ACTOR_403000_STATE_PATROL;
         work->patrolRingDir = work->watchRingDir;
         work->watchRingDir  = -work->watchRingDir;
-    } else if (_actor403000CanChasePlayer(arg0, scratch->cell, scratch->playerCell) << 16) {
-        if (work->stateFrame > 60) {
+    } else if ((s16)_actor403000CanChasePlayer(actorTask, scratch->cell, scratch->playerCell)) {
+        if (work->stateFrame > ACTOR_403000_WATCH_CHASE_DELAY_TICKS) {
             work->state = ACTOR_403000_STATE_CHASE;
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 
-/// Turn toward the next waypoint: on the entry frame pick it from the grid
-/// offset by `turnRingDir`, set state 2 if it is within a quarter turn, and fold
-/// the display object's scaled first and third matrix columns into the drift
-/// `turnDrift`; every frame re-aim by `turnStep` and apply that drift.
-static void func_actor_403000_8013B238(Task* arg0)
+/// Turns toward a neighboring waypoint while applying a latched root drift.
+///
+/// Requires live actor work/model, root contacts and initialized arena scratch.
+/// Cells are 0..9 and turn direction is +/-1. Entry chooses the neighboring
+/// waypoint and converts negative turns to a positive 0..4095 yaw sweep,
+/// divided into 36 steps. Drift combines 27 units along X and -41 along Z
+/// of the entry facing, in parent-coordinate units. A turn below a quarter
+/// turn or a clip boundary selects patrol. Releases waypoint scratch.
+static void _actor403000TurnState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_CLIP_TURN        = 9,
+        ACTOR_403000_TURN_SIDE_DRIFT  = 0x1B,
+        ACTOR_403000_TURN_BACK_DRIFT  = 0x29,
+        ACTOR_403000_TURN_SWEEP_TICKS = 36,
+    };
+
     Actor403000Work*             work;
     _Actor403000WaypointScratch* scratch;
-    s32                          x;
-    s32                          z;
-    s8                           col;
-    s32                          b;
-    s8                           row;
-    TmdObject*                   obj;
-    SVECTOR*                     v;
-    SVECTOR*                     table;
-    s32                          mag;
-    _Actor403000WaypointScratch* head;
-    s16                          angle;
+    s32                          actorCell;
+    TmdObject*                   model;
+    const SVECTOR*               waypointPos;
+    const SVECTOR*               waypoints;
+    s16                          waypointTurn;
 
-    head                                              = SCRATCH_STACK_CURSOR(_Actor403000WaypointScratch);
-    work                                              = arg0->work;
-    SCRATCH_STACK_CURSOR(_Actor403000WaypointScratch) = head - 1;
-    scratch                                           = head - 1;
+    work    = actorTask->work;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000WaypointScratch);
     if (work->stateEntered != 0) {
-        obj                   = arg0->extra.tmd;
+        model                 = actorTask->extra.tmd;
         work->lockOnSuspended = 0;
-        obj->flags            = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->torsoSphere.body.radius = 0x3E8;
+        model->flags          = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->torsoSphere.body.radius = ACTOR_403000_ACTIVE_TORSO_RADIUS;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->overlayActive           = 0;
-        work->requestedAnimId         = 9;
+        work->requestedAnimId         = ACTOR_403000_CLIP_TURN;
         work->forelegYawTarget        = 0;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        x                             = arg0->extra.tmd->coords->coord.t[0];
-        z                             = arg0->extra.tmd->coords->coord.t[2];
-        if (x < 0xD48) {
-            col = 4;
-        } else if (x < 0x1A90) {
-            col = 3;
-        } else if (x < 0x2AF8) {
-            col = 2;
-        } else {
-            col = x < 0x3C8C;
-        }
-        row               = z >= 0x1068;
-        b                 = (s8)D_actor_403000_80158D48[col + row * 5];
-        scratch->cell     = b;
-        scratch->waypoint = scratch->cell + work->turnRingDir;
+        actorCell                     = _actor403000GetRingCell(actorTask->extra.tmd->coords);
+        scratch->cell                 = actorCell;
+        scratch->waypoint             = scratch->cell + work->turnRingDir;
         if (scratch->waypoint >= ACTOR_403000_RING_WAYPOINT_COUNT) {
             scratch->waypoint -= ACTOR_403000_RING_WAYPOINT_COUNT;
         } else if (scratch->waypoint < 0) {
             scratch->waypoint += ACTOR_403000_RING_WAYPOINT_COUNT;
         }
-        table               = D_actor_403000_80158CE0;
-        v                   = &table[scratch->waypoint];
-        scratch->offset.vx  = v->vx;
-        scratch->offset.vy  = v->vy;
-        scratch->offset.vz  = v->vz;
-        scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
-        scratch->offset.vy -= arg0->extra.tmd->coords->coord.t[1];
-        scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-        angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
-        mag                 = angle;
-        scratch->turn       = mag;
-        if (ABS(mag) < 0x400) {
+        waypoints           = D_actor_403000_80158CE0;
+        waypointPos         = &waypoints[scratch->waypoint];
+        scratch->offset.vx  = waypointPos->vx;
+        scratch->offset.vy  = waypointPos->vy;
+        scratch->offset.vz  = waypointPos->vz;
+        scratch->offset.vx -= actorTask->extra.tmd->coords->coord.t[0];
+        scratch->offset.vy -= actorTask->extra.tmd->coords->coord.t[1];
+        scratch->offset.vz -= actorTask->extra.tmd->coords->coord.t[2];
+        waypointTurn        = _actorAngleTurnToOffset(actorTask->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+        scratch->turn       = waypointTurn;
+        if (ABS(waypointTurn) < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
             work->state = ACTOR_403000_STATE_PATROL;
         }
+        // Sweep in the positive yaw direction, carrying the entry-facing drift.
         if (scratch->turn < 0) {
-            scratch->turn += 0x1000;
+            scratch->turn += ACTOR_TRANSFORM_ANGLE_TURN;
         }
-        gfxReadMatrixXAxis(&arg0->extra.tmd->coords->coord, &scratch->offset);
+        gfxReadMatrixXAxis(&actorTask->extra.tmd->coords->coord, &scratch->offset);
         VectorNormalSS(&scratch->offset, &scratch->offset);
-        gte_lddp(0x1B);
+        gte_lddp(ACTOR_403000_TURN_SIDE_DRIFT);
         gte_ldsv(&scratch->offset);
         gte_gpf12();
         gte_stsv(&scratch->offset);
         work->turnDrift = scratch->offset;
-        gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &scratch->offset);
+        gfxReadMatrixZAxis(&actorTask->extra.tmd->coords->coord, &scratch->offset);
         VectorNormalSS(&scratch->offset, &scratch->offset);
-        gte_lddp(-0x29);
+        gte_lddp(-ACTOR_403000_TURN_BACK_DRIFT);
         gte_ldsv(&scratch->offset);
         gte_gpf12();
         gte_stsv(&scratch->offset);
-        work->turnStep          = scratch->turn / 36;
+        work->turnStep          = scratch->turn / ACTOR_403000_TURN_SWEEP_TICKS;
         work->turnDrift.vx     += scratch->offset.vx;
         work->turnDrift.vy     += scratch->offset.vy;
         work->turnDrift.vz     += scratch->offset.vz;
@@ -4781,65 +4855,84 @@ static void func_actor_403000_8013B238(Task* arg0)
         work->stateFrame        = 0;
     }
     work->stateFrame++;
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
-    scratch->turn = work->turnStep + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
-    arg0->extra.tmd->coords->coord.t[0]  += work->turnDrift.vx;
-    arg0->extra.tmd->coords->coord.t[1]  += work->turnDrift.vy;
-    arg0->extra.tmd->coords->coord.t[2]  += work->turnDrift.vz;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actor403000UpdateAnimation(arg0);
+    _actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+    scratch->turn = work->turnStep + ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, scratch->turn, GRAPHICS_ROTATION_REPLACE);
+    actorTask->extra.tmd->coords->coord.t[0]  += work->turnDrift.vx;
+    actorTask->extra.tmd->coords->coord.t[1]  += work->turnDrift.vy;
+    actorTask->extra.tmd->coords->coord.t[2]  += work->turnDrift.vz;
+    actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor403000UpdateAnimation(actorTask);
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_403000_STATE_PATROL;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 
-static void func_actor_403000_8013B74C(Task* arg0)
+/// Drops from the ambush point onto the player's entry position.
+///
+/// Requires live actor work/model/enemy, player and initialized arena scratch.
+/// Entry records the target and freezes the drop clip through the initial
+/// delay. The root falls 300 units per tick and eases X/Z toward that target.
+/// Frame 10 catches a player still within 1000 horizontal units if their hold
+/// accepts, starts paired clip 5 and applies attack 3. The overlay bank must
+/// remain live through player playback. Releases each scratch reservation.
+static void _actor403000DropState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_ATTACK_DROP            = 3,
+        ACTOR_403000_PLAYER_CLIP_DROP_CATCH = 5,
+        ACTOR_403000_DROP_ORIGIN_X          = 0x2134,
+        ACTOR_403000_DROP_HEIGHT            = 0x1518,
+        ACTOR_403000_DROP_ORIGIN_Z          = 0x1194,
+        ACTOR_403000_DROP_CATCH_FRAME       = 10,
+        ACTOR_403000_DROP_CATCH_RADIUS      = 1000,
+        ACTOR_403000_DROP_FATAL_DELAY       = 0x28,
+        ACTOR_403000_DROP_FALL_STEP         = 0x12C,
+        ACTOR_403000_DROP_TURN_THRESHOLD    = 0x300,
+    };
+
     Actor403000Work*          work;
     Task*                     player;
     Enemy*                    enemy;
     _Actor403000ChaseScratch* scratch;
-    _Actor403000ChaseScratch* head;
-    Task*                     task;
-    s16                       b;
-    GameActor*                pw;
-    s32                       frame;
-    s16                       angle;
-    s32                       mag;
-    work   = arg0->work;
+    Task*                     damageTarget;
+    s16                       playerCell;
+    GameActor*                playerActor;
+    s32                       stateFrame;
+    s16                       playerTurn;
+    work   = actorTask->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    enemy  = arg0->spawnArg2.pointer;
+    enemy  = actorTask->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        work->attackTarget.vx               = player->extra.tmd->coords->coord.t[0];
-        work->attackTarget.vy               = player->extra.tmd->coords->coord.t[1];
-        work->attackTarget.vz               = player->extra.tmd->coords->coord.t[2];
-        arg0->extra.tmd->coords->coord.t[0] = 0x2134;
-        arg0->extra.tmd->coords->coord.t[1] = player->extra.tmd->coords->coord.t[1] - 0x1518;
-        arg0->extra.tmd->coords->coord.t[2] = 0x1194;
-        work->requestedAnimId               = 8;
-        work->animStart                     = ACTOR_403000_ANIM_RESTART;
-        work->stateFrame                    = 0;
-        work->animRate                      = 0;
-        work->lockOnSuspended               = 0;
-        scratch                             = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000ChaseScratch);
-        b                                   = _actor403000GetRingCell(player->extra.tmd->coords);
-        scratch->playerCell                 = b;
+        work->attackTarget.vx                    = player->extra.tmd->coords->coord.t[0];
+        work->attackTarget.vy                    = player->extra.tmd->coords->coord.t[1];
+        work->attackTarget.vz                    = player->extra.tmd->coords->coord.t[2];
+        actorTask->extra.tmd->coords->coord.t[0] = ACTOR_403000_DROP_ORIGIN_X;
+        actorTask->extra.tmd->coords->coord.t[1] = player->extra.tmd->coords->coord.t[1] - ACTOR_403000_DROP_HEIGHT;
+        actorTask->extra.tmd->coords->coord.t[2] = ACTOR_403000_DROP_ORIGIN_Z;
+        work->requestedAnimId                    = ACTOR_403000_CLIP_DROP;
+        work->animStart                          = ACTOR_403000_ANIM_RESTART;
+        work->stateFrame                         = 0;
+        work->animRate                           = 0;
+        work->lockOnSuspended                    = 0;
+        scratch                                  = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000ChaseScratch);
+        playerCell                               = _actor403000GetRingCell(player->extra.tmd->coords);
+        scratch->playerCell                      = playerCell;
         switch (scratch->playerCell) {
             case 0:
-                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x800, 1);
+                gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, ACTOR_TRANSFORM_ANGLE_HALF_TURN, GRAPHICS_ROTATION_REPLACE);
                 break;
 
             case 1:
             case 2:
             case 3:
             case 4:
-                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x400, 1);
+                gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, (ACTOR_TRANSFORM_ANGLE_TURN / 4), GRAPHICS_ROTATION_REPLACE);
                 break;
 
             case 5:
-                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0, 1);
+                gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, 0, GRAPHICS_ROTATION_REPLACE);
                 break;
 
             case 6:
@@ -4847,306 +4940,319 @@ static void func_actor_403000_8013B74C(Task* arg0)
             case 8:
             case 9:
             default:
-                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
+                gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, -(ACTOR_TRANSFORM_ANGLE_TURN / 4), GRAPHICS_ROTATION_REPLACE);
                 break;
         }
 
         SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
     }
+    // Delay freezes the whole drop update, including its frame counter.
     if (work->dropDelay != 0) {
         work->dropDelay--;
         return;
     }
-    head    = SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch);
-    scratch = (SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch) = head - 1);
-    frame   = work->stateFrame;
-    if (frame == 10) {
-        work->animRate     = 0x10;
+    scratch    = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000ChaseScratch);
+    stateFrame = work->stateFrame;
+    // Catch tests the latched target before moving the falling root this tick.
+    if (stateFrame == ACTOR_403000_DROP_CATCH_FRAME) {
+        work->animRate     = ANIMATION_RATE_ONE;
         scratch->offset.vx = work->attackTarget.vx - player->extra.tmd->coords->coord.t[0];
         scratch->offset.vy = work->attackTarget.vy - player->extra.tmd->coords->coord.t[1];
         scratch->offset.vz = work->attackTarget.vz - player->extra.tmd->coords->coord.t[2];
-        if (!_actorRangeOutsideRadiusXZ(&scratch->offset, 1000) && enemy->hp > 0 &&
+        if (!_actorRangeOutsideRadiusXZ(&scratch->offset, ACTOR_403000_DROP_CATCH_RADIUS) && enemy->hp > 0 &&
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
-            task                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            scratch->messageResult = taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 3), 0);
+            damageTarget           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            scratch->messageResult = taskMessageDispatch(damageTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_403000_ATTACK_DROP), 0);
             if (scratch->messageResult == 1) {
-                pw                              = (GameActor*)player->work;
-                gGameSession->deathFadeFrames   = 0x28;
-                gGameSession->deathRestartDelay = 0x28;
-                pw->state                       = frame;
+                playerActor                     = player->work;
+                gGameSession->deathFadeFrames   = ACTOR_403000_DROP_FATAL_DELAY;
+                gGameSession->deathRestartDelay = ACTOR_403000_DROP_FATAL_DELAY;
+                playerActor->state              = ACTOR_403000_PLAYER_FATAL_HOLD_STATE;
             }
             work->state                                = ACTOR_403000_STATE_DROP_CATCH;
             work->playerAnimation.source.sets          = D_actor_403000_80158C08;
-            work->playerAnimation.animationId          = 5;
-            work->playerAnimation.blend                = 0;
+            work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_DROP_CATCH;
+            work->playerAnimation.blend                = ANIMATION_BLEND_RESET;
             work->playerAnimation.blendFrames          = 0;
-            work->playerAnimation.enableWorldCollision = 1;
+            work->playerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnimation, 0);
             work->playerCaught = 1;
         }
     }
-    if (arg0->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) {
-        arg0->extra.tmd->coords->coord.t[1] += 0x12C;
+    if (actorTask->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) {
+        actorTask->extra.tmd->coords->coord.t[1] += ACTOR_403000_DROP_FALL_STEP;
     }
     if (work->stateFrame >= 4) {
-        arg0->extra.tmd->coords->coord.t[0] += (work->attackTarget.vx - arg0->extra.tmd->coords->coord.t[0]) >> 2;
-        arg0->extra.tmd->coords->coord.t[2] += (work->attackTarget.vz - arg0->extra.tmd->coords->coord.t[2]) >> 2;
+        actorTask->extra.tmd->coords->coord.t[0] += (work->attackTarget.vx - actorTask->extra.tmd->coords->coord.t[0]) >> 2;
+        actorTask->extra.tmd->coords->coord.t[2] += (work->attackTarget.vz - actorTask->extra.tmd->coords->coord.t[2]) >> 2;
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actor403000UpdateAnimation(arg0);
+    actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor403000UpdateAnimation(actorTask);
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        angle         = _actorAngleTurnToPlayer(arg0, &scratch->offset, &gPlayerStatus);
-        scratch->turn = (mag = angle);
-        if (ABS(mag) > 0x300) {
+        playerTurn    = _actorAngleTurnToPlayer(actorTask, &scratch->offset, &gPlayerStatus);
+        scratch->turn = playerTurn;
+        if (ABS(playerTurn) > ACTOR_403000_DROP_TURN_THRESHOLD) {
             work->state        = ACTOR_403000_STATE_TURN;
-            work->watchRingDir = (work->patrolRingDir = (work->turnRingDir = -_actor403000ChooseRingDirection(arg0->extra.tmd->coords)));
+            work->watchRingDir = (work->patrolRingDir = (work->turnRingDir = -_actor403000ChooseRingDirection(actorTask->extra.tmd->coords)));
         } else {
             work->state         = ACTOR_403000_STATE_PATROL;
-            work->watchRingDir  = -_actor403000ChooseRingDirection(arg0->extra.tmd->coords);
-            work->patrolRingDir = (work->turnRingDir = _actor403000ChooseRingDirection(arg0->extra.tmd->coords));
+            work->watchRingDir  = -_actor403000ChooseRingDirection(actorTask->extra.tmd->coords);
+            work->patrolRingDir = (work->turnRingDir = _actor403000ChooseRingDirection(actorTask->extra.tmd->coords));
         }
     }
     if (work->stateFrame >= 2) {
-        work->animRate = 0x10;
+        work->animRate = ANIMATION_RATE_ONE;
     }
     work->stateFrame++;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
 }
 
-/// Ease the display object up toward the player and across to
-/// `attackTarget.vx`/`attackTarget.vz`, turn the player's third matrix column into the
-/// push vector for the first 8 frames, and once `ANIMATION_SLOT_REACHED_BOUNDARY` is set on slot 1
-/// after frame 0xB move the state machine to 4.
-static void func_actor_403000_8013BDE0(Task* arg0)
+/// Settles toward the captured drop target and prepares the shared player displacement.
+///
+/// Requires live actor work/model/enemy, player and initialized arena scratch.
+/// Descends 300 parent-coordinate units per tick while above the player and
+/// eases X/Z toward the latched target. The first eight ticks derive a -42-unit
+/// ground displacement from the player's facing; later ticks read the bytes
+/// already occupying the uninitialized reservation. This handler fills the
+/// persistent push payload without dispatching it. A boundary from tick 11
+/// selects the ring turn. Releases chase scratch before return.
+static void _actor403000DropCatchState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_DROP_CATCH_FALL_STEP      = 0x12C,
+        ACTOR_403000_DROP_CATCH_PUSH_TICKS     = 8,
+        ACTOR_403000_DROP_CATCH_PUSH_STEP      = 0x2A,
+        ACTOR_403000_DROP_CATCH_TURN_MIN_TICKS = 0xB,
+    };
+
     Actor403000Work*          work;
     Task*                     player;
     _Actor403000ChaseScratch* scratch;
     Enemy*                    enemy;
-    s32                       sound;
-    s32                       pan;
+    s32                       soundId;
+    s32                       panOffset;
 
-    work                                           = arg0->work;
-    player                                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    scratch                                        = SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch) - 1;
-    SCRATCH_STACK_CURSOR(_Actor403000ChaseScratch) = scratch;
+    work    = actorTask->work;
+    player  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000ChaseScratch);
     if (work->stateEntered != 0) {
-        enemy                 = arg0->spawnArg2.pointer;
+        enemy                 = actorTask->spawnArg2.pointer;
         work->lockOnSuspended = 0;
         work->stateFrame      = 0;
-        sound                 = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
-        pan                   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        soundId               = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_403000_DROP_CATCH_PUSH_TICKS) | ACTOR_403000_SOUND_CATCH;
+        panOffset             = (s8)worldCoordGetOriginAudioPan(actorTask->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(actorTask->extra.tmd->coords));
     }
-    if (arg0->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) {
-        arg0->extra.tmd->coords->coord.t[1] += 0x12C;
-        arg0->extra.tmd->coords->coord.t[0] += (work->attackTarget.vx - arg0->extra.tmd->coords->coord.t[0]) >> 2;
-        arg0->extra.tmd->coords->coord.t[2] += (work->attackTarget.vz - arg0->extra.tmd->coords->coord.t[2]) >> 2;
+    if (actorTask->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) {
+        actorTask->extra.tmd->coords->coord.t[1] += ACTOR_403000_DROP_CATCH_FALL_STEP;
+        actorTask->extra.tmd->coords->coord.t[0] += (work->attackTarget.vx - actorTask->extra.tmd->coords->coord.t[0]) >> 2;
+        actorTask->extra.tmd->coords->coord.t[2] += (work->attackTarget.vz - actorTask->extra.tmd->coords->coord.t[2]) >> 2;
     }
-    if (work->stateFrame < 8) {
+    if (work->stateFrame < ACTOR_403000_DROP_CATCH_PUSH_TICKS) {
         gfxReadMatrixZAxis(&player->extra.tmd->coords->coord, &scratch->offset);
         VectorNormalSS(&scratch->offset, &scratch->offset);
-        gte_lddp(-0x2A);
+        gte_lddp(-ACTOR_403000_DROP_CATCH_PUSH_STEP);
         gte_ldsv(&scratch->offset);
         gte_gpf12();
         gte_stsv(&scratch->offset);
     }
+    // Preserve the reused scratch bytes after the sampling interval; no move is sent here.
     D_actor_403000_80158DB0.push.displacement.vx   = scratch->offset.vx;
     D_actor_403000_80158DB0.push.displacement.vy   = 0;
     D_actor_403000_80158DB0.push.displacement.vz   = scratch->offset.vz;
     D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
     D_actor_403000_80158DB0.push.keepControl       = 1;
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->stateFrame >= 0xB) {
+    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->stateFrame >= ACTOR_403000_DROP_CATCH_TURN_MIN_TICKS) {
         work->state        = ACTOR_403000_STATE_TURN;
-        work->watchRingDir = work->patrolRingDir = work->turnRingDir = -_actor403000ChooseRingDirection(arg0->extra.tmd->coords);
+        work->watchRingDir = work->patrolRingDir = work->turnRingDir = -_actor403000ChooseRingDirection(actorTask->extra.tmd->coords);
     }
-    _actor403000UpdateAnimation(arg0);
+    _actor403000UpdateAnimation(actorTask);
     work->stateFrame++;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
 }
 
-static void func_actor_403000_8013C050(Task* arg0)
+/// Waits above the arena before announcing and scheduling the drop attack.
+///
+/// Requires live actor work/model/enemy and player. Entry fixes X/Z to the
+/// ambush point, 5400 parent-coordinate units above the player, suspends
+/// automatic lock-on and freezes the drop clip. After 60 ticks it selects
+/// drop with a further 20-tick delay. The retained stationary-position check
+/// applies only if this handler continues beyond tick 100.
+static void _actor403000AmbushState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_SOUND_AMBUSH             = 0x401E0010,
+        ACTOR_403000_AMBUSH_ORIGIN_X          = 0x2134,
+        ACTOR_403000_AMBUSH_HEIGHT            = 0x1518,
+        ACTOR_403000_AMBUSH_ORIGIN_Z          = 0x1194,
+        ACTOR_403000_AMBUSH_WAIT_TICKS        = 0x3C,
+        ACTOR_403000_AMBUSH_DROP_DELAY_TICKS  = 0x14,
+        ACTOR_403000_AMBUSH_STILL_CHECK_START = 0x64,
+        ACTOR_403000_AMBUSH_STILL_TICKS       = 0x1E,
+    };
+
     Actor403000Work* work;
     Task*            player;
     Enemy*           enemy;
-    s32              sound;
-    s32              pan;
-    s32              sound2;
-    s32              pan2;
+    s32              timedSoundId;
+    s32              timedPanOffset;
+    s32              stillSoundId;
+    s32              stillPanOffset;
 
-    work   = arg0->work;
+    work   = actorTask->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    enemy  = arg0->spawnArg2.pointer;
+    enemy  = actorTask->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        work->ambushRequested               = 0;
-        arg0->extra.tmd->coords->coord.t[0] = 0x2134;
-        arg0->extra.tmd->coords->coord.t[1] = player->extra.tmd->coords->coord.t[1] - 0x1518;
-        arg0->extra.tmd->coords->coord.t[2] = 0x1194;
-        work->lockOnSuspended               = 1;
-        work->requestedAnimId               = 8;
-        work->animStart                     = ACTOR_403000_ANIM_RESTART;
-        work->stateFrame                    = 0;
-        work->stillFrames                   = 0;
-        work->animRate                      = 0;
-        _actor403000UpdateAnimation(arg0);
+        work->ambushRequested                    = 0;
+        actorTask->extra.tmd->coords->coord.t[0] = ACTOR_403000_AMBUSH_ORIGIN_X;
+        actorTask->extra.tmd->coords->coord.t[1] = player->extra.tmd->coords->coord.t[1] - ACTOR_403000_AMBUSH_HEIGHT;
+        actorTask->extra.tmd->coords->coord.t[2] = ACTOR_403000_AMBUSH_ORIGIN_Z;
+        work->lockOnSuspended                    = 1;
+        work->requestedAnimId                    = ACTOR_403000_CLIP_DROP;
+        work->animStart                          = ACTOR_403000_ANIM_RESTART;
+        work->stateFrame                         = 0;
+        work->stillFrames                        = 0;
+        work->animRate                           = 0;
+        _actor403000UpdateAnimation(actorTask);
     }
-    if (work->stateFrame > 0x3C) {
-        work->dropDelay = 0x14;
-        sound           = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401E0010;
-        pan             = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    if (work->stateFrame > ACTOR_403000_AMBUSH_WAIT_TICKS) {
+        work->dropDelay = ACTOR_403000_AMBUSH_DROP_DELAY_TICKS;
+        timedSoundId    = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403000_SOUND_AMBUSH;
+        timedPanOffset  = (s8)worldCoordGetOriginAudioPan(actorTask->extra.tmd->coords);
+        sndEvtRequestScriptStart(timedSoundId, timedPanOffset, (s8)worldCoordGetOriginAudioDepth(actorTask->extra.tmd->coords));
         work->state = ACTOR_403000_STATE_DROP;
     }
-    if (work->stateFrame > 0x64) {
-        if (work->lastRootPos.vx == arg0->extra.tmd->coords->coord.t[0] &&
-            work->lastRootPos.vy == arg0->extra.tmd->coords->coord.t[1] &&
-            work->lastRootPos.vz == arg0->extra.tmd->coords->coord.t[2]) {
+    // Normally the earlier drop transition ends this state before the late fallback.
+    if (work->stateFrame > ACTOR_403000_AMBUSH_STILL_CHECK_START) {
+        if (work->lastRootPos.vx == actorTask->extra.tmd->coords->coord.t[0] &&
+            work->lastRootPos.vy == actorTask->extra.tmd->coords->coord.t[1] &&
+            work->lastRootPos.vz == actorTask->extra.tmd->coords->coord.t[2]) {
             work->stillFrames++;
         } else {
             work->stillFrames = 0;
         }
-        if (work->stillFrames > 0x1E) {
-            work->dropDelay = 0x14;
-            sound2          = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401E0010;
-            pan2            = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            sndEvtRequestScriptStart(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        if (work->stillFrames > ACTOR_403000_AMBUSH_STILL_TICKS) {
+            work->dropDelay = ACTOR_403000_AMBUSH_DROP_DELAY_TICKS;
+            stillSoundId    = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403000_SOUND_AMBUSH;
+            stillPanOffset  = (s8)worldCoordGetOriginAudioPan(actorTask->extra.tmd->coords);
+            sndEvtRequestScriptStart(stillSoundId, stillPanOffset, (s8)worldCoordGetOriginAudioDepth(actorTask->extra.tmd->coords));
             work->state = ACTOR_403000_STATE_DROP;
         }
-        work->lastRootPos.vx = arg0->extra.tmd->coords->coord.t[0];
-        work->lastRootPos.vy = arg0->extra.tmd->coords->coord.t[1];
-        work->lastRootPos.vz = arg0->extra.tmd->coords->coord.t[2];
+        work->lastRootPos.vx = actorTask->extra.tmd->coords->coord.t[0];
+        work->lastRootPos.vy = actorTask->extra.tmd->coords->coord.t[1];
+        work->lastRootPos.vz = actorTask->extra.tmd->coords->coord.t[2];
     }
     work->stateFrame++;
 }
 
-/// Seek the next waypoint: on the entry frame restart the animation and latch
-/// the steering from `_actor403000ChooseRingDirection`; every frame compare the
-/// player's and the actor's grid cells, turn at most 8 units toward the chosen
-/// waypoint and step forward.
-static void func_actor_403000_8013C2D4(Task* arg0)
+/// Walks slowly around the ring until the player can be pursued directly.
+///
+/// Requires live actor work/model, player and initialized arena scratch stack.
+/// Entry chooses direction +/-1 from the current facing. Cells are 0..9;
+/// each unfrozen tick advances 22 parent-coordinate units toward the neighbor
+/// and turns at most eight angle units in 4096 per turn. Releases waypoint scratch.
+static void _actor403000ProwlState(Task* actorTask)
 {
+    enum {
+        ACTOR_403000_CLIP_PROWL      = 1,
+        ACTOR_403000_PROWL_TURN_STEP = 8,
+        ACTOR_403000_PROWL_WALK_STEP = 0x16,
+    };
+
     Actor403000Work*             work;
     Task*                        player;
     _Actor403000WaypointScratch* scratch;
-    TmdObject*                   obj;
-    GfxCoord*                    coord;
-    SVECTOR*                     table;
-    SVECTOR*                     v;
-    s16                          angle;
-    s32                          mag;
-    s8                           base;
+    TmdObject*                   model;
+    const SVECTOR*               waypoints;
+    const SVECTOR*               waypointPos;
+    s16                          waypointTurn;
+    s8                           actorCell;
 
-    work    = arg0->work;
+    work    = actorTask->work;
     player  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000WaypointScratch);
     if (work->stateEntered != 0) {
-        obj                   = arg0->extra.tmd;
+        model                 = actorTask->extra.tmd;
         work->lockOnSuspended = 0;
-        obj->flags            = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->torsoSphere.body.radius = 0x3E8;
+        model->flags          = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->torsoSphere.body.radius = ACTOR_403000_ACTIVE_TORSO_RADIUS;
         work->animStart               = ACTOR_403000_ANIM_BLEND_IN;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->overlayActive           = 0;
-        work->requestedAnimId         = 1;
+        work->requestedAnimId         = ACTOR_403000_CLIP_PROWL;
         work->forelegYawTarget        = 0;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actor403000UpdateAnimation(arg0);
+        _actor403000UpdateAnimation(actorTask);
         work->stateFrame                   = 0;
         work->stillFrames                  = 0;
         work->field_FC2                    = 0;
-        work->rootCapsule.shape.ends[1].vz = 0x320;
+        work->rootCapsule.shape.ends[1].vz = ACTOR_403000_RING_PROBE_REACH;
         scratch->playerCell                = _actor403000GetRingCell(player->extra.tmd->coords);
-        scratch->cell                      = _actor403000GetRingCell(arg0->extra.tmd->coords);
-        work->seekRingDir                  = _actor403000ChooseRingDirection(arg0->extra.tmd->coords);
+        scratch->cell                      = _actor403000GetRingCell(actorTask->extra.tmd->coords);
+        work->seekRingDir                  = _actor403000ChooseRingDirection(actorTask->extra.tmd->coords);
     }
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+    _actorContactApplyGridPushback(actorTask->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
     scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
-    base                = _actor403000GetRingCell(arg0->extra.tmd->coords);
-    scratch->cell       = base;
-    if (_actor403000CanChasePlayer(arg0, base, scratch->playerCell) << 16) {
+    actorCell           = _actor403000GetRingCell(actorTask->extra.tmd->coords);
+    scratch->cell       = actorCell;
+    if ((s16)_actor403000CanChasePlayer(actorTask, actorCell, scratch->playerCell)) {
         work->state = ACTOR_403000_STATE_CHASE;
     }
-    scratch->waypoint = scratch->cell + work->seekRingDir;
-    if (scratch->waypoint != -1) {
-        if (scratch->waypoint == ACTOR_403000_RING_WAYPOINT_COUNT) {
-            scratch->waypoint = 0;
-        }
-    } else {
-        scratch->waypoint = ACTOR_403000_RING_WAYPOINT_COUNT - 1;
-    }
-    table               = D_actor_403000_80158CE0;
-    v                   = &table[scratch->waypoint];
-    scratch->offset.vx  = v->vx;
-    scratch->offset.vy  = v->vy;
-    scratch->offset.vz  = v->vz;
-    scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
+    // Continue round the ring at the slow clip's small steering and movement steps.
+    _actor403000SelectRingNeighbor(scratch, work->seekRingDir);
+    waypoints           = D_actor_403000_80158CE0;
+    waypointPos         = &waypoints[scratch->waypoint];
+    scratch->offset.vx  = waypointPos->vx;
+    scratch->offset.vy  = waypointPos->vy;
+    scratch->offset.vz  = waypointPos->vz;
+    scratch->offset.vx -= actorTask->extra.tmd->coords->coord.t[0];
     scratch->offset.vy  = 0;
-    scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-    coord               = arg0->extra.tmd->coords;
-    angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    if (angle < 0) {
-        while (1) {
-            if (angle < -0x800) {
-                angle += 0x1000;
-                continue;
-            }
-            break;
-        }
-    } else {
-        while (1) {
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                continue;
-            }
-            break;
-        }
+    scratch->offset.vz -= actorTask->extra.tmd->coords->coord.t[2];
+    waypointTurn        = _actorAngleTurnToOffset(actorTask->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+    scratch->turn       = waypointTurn;
+    work->neckYawTarget = waypointTurn;
+    _actor403000UpdateAnimation(actorTask);
+    if (scratch->turn > ACTOR_403000_PROWL_TURN_STEP) {
+        scratch->turn = ACTOR_403000_PROWL_TURN_STEP;
     }
-    mag                 = angle;
-    scratch->turn       = mag;
-    work->neckYawTarget = mag;
-    _actor403000UpdateAnimation(arg0);
-    if (scratch->turn > 8) {
-        scratch->turn = 8;
+    if (scratch->turn < -ACTOR_403000_PROWL_TURN_STEP) {
+        scratch->turn = -ACTOR_403000_PROWL_TURN_STEP;
     }
-    if (scratch->turn < -8) {
-        scratch->turn = -8;
-    }
-    scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actorMovementStepForward(arg0->extra.tmd->coords, 0x16);
+    scratch->turn += ratan2(-actorTask->extra.tmd->coords->coord.m[2][0], actorTask->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&actorTask->extra.tmd->coords->coord, scratch->turn, GRAPHICS_ROTATION_REPLACE);
+    actorTask->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actorMovementStepForward(actorTask->extra.tmd->coords, ACTOR_403000_PROWL_WALK_STEP);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 
 static const _Actor403000StateTable D_actor_403000_80131F44 = {
     {
-        func_actor_403000_8013D5F8,
+        _actor403000HiddenState,
         func_actor_403000_8013D72C,
-        func_actor_403000_8013A678,
-        func_actor_403000_8013ACBC,
-        func_actor_403000_8013B238,
-        func_actor_403000_80137084,
-        func_actor_403000_801384E8,
-        func_actor_403000_801377C8,
-        func_actor_403000_801386E8,
+        _actor403000PatrolState,
+        _actor403000WatchState,
+        _actor403000TurnState,
+        _actor403000ChaseState,
+        _actor403000GrabCatchState,
+        _actor403000GrabState,
+        _actor403000LungeState,
         func_actor_403000_80138DB0,
-        func_actor_403000_8013A08C,
-        func_actor_403000_80139AE0,
-        func_actor_403000_8013B74C,
-        func_actor_403000_8013BDE0,
-        func_actor_403000_8013C2D4,
-        func_actor_403000_8013C050,
+        _actor403000RetreatState,
+        _actor403000ApproachState,
+        _actor403000DropState,
+        _actor403000DropCatchState,
+        _actor403000ProwlState,
+        _actor403000AmbushState,
         _actor403000StunnedState,
-        func_actor_403000_801399A0,
+        _actor403000KnockdownState,
         func_actor_403000_8013D910,
         func_actor_403000_8013D850,
         func_actor_403000_8013603C,
         func_actor_403000_80136B14,
         func_actor_403000_801365D0,
         func_actor_403000_80136D68,
-        func_actor_403000_8013D648,
+        _actor403000DownHitState,
     }
 };
 
@@ -5553,54 +5659,61 @@ static void func_actor_403000_8013D59C(Task* task)
     sp.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_403000_8013D5F8(Task* arg0)
+/// Hides the actor and clears its health when entering the hidden state.
+///
+/// Requires live actor work/model/enemy. Entry suspends automatic lock-on,
+/// hides active model drawing and disables root-sphere grid testing. Later
+/// hidden ticks perform no animation update or other work.
+static void _actor403000HiddenState(Task* actorTask)
 {
-    TmdObject*       obj;
+    TmdObject*       model;
     Actor403000Work* work;
     Enemy*           enemy;
 
-    work = arg0->work;
+    work = actorTask->work;
     if (work->stateEntered != 0) {
-        obj                          = arg0->extra.tmd;
-        enemy                        = arg0->spawnArg2.pointer;
+        model                        = actorTask->extra.tmd;
+        enemy                        = actorTask->spawnArg2.pointer;
         work->lockOnSuspended        = 1;
-        obj->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags                |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->rootSphere.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->hp                    = 0;
     }
 }
 
-static void func_actor_403000_8013D648(Task* arg0)
+/// Plays a short downed-hit jolt, then chooses stunned, down or dissolve.
+///
+/// Requires live actor work/model/enemy. Entry restarts the jolt at three
+/// times normal animation rate and enables the root grid probe. The result
+/// is selected on a jump/settle flag or at counter 5. A lethal result leaves
+/// the dissolve state's room report pending.
+static void _actor403000DownHitState(Task* actorTask)
 {
-    TmdObject*       obj;
+    enum {
+        ACTOR_403000_CLIP_DOWN_HIT      = 15,
+        ACTOR_403000_DOWN_HIT_MAX_TICKS = 5,
+    };
+
+    TmdObject*       model;
     Actor403000Work* work;
     Enemy*           enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actorTask->work;
+    enemy = actorTask->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj                          = arg0->extra.tmd;
+        model                        = actorTask->extra.tmd;
         work->lockOnSuspended        = 0;
-        obj->flags                   = 0;
-        work->animRate               = 0x30;
-        work->requestedAnimId        = 0xF;
+        model->flags                 = 0;
+        work->animRate               = (3 * ANIMATION_RATE_ONE);
+        work->requestedAnimId        = ACTOR_403000_CLIP_DOWN_HIT;
         work->animStart              = ACTOR_403000_ANIM_RESTART;
         work->stateFrame             = 0;
         work->rootSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     work->stateFrame++;
-    _actor403000UpdateAnimation(arg0);
-    if ((work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) || work->stateFrame >= 5) {
-        if (enemy->hp > 0) {
-            if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-                work->state = ACTOR_403000_STATE_STUNNED;
-            } else {
-                work->state = ACTOR_403000_STATE_DOWN;
-            }
-        } else {
-            work->roomEventPending = 1;
-            work->state            = ACTOR_403000_STATE_DISSOLVE;
-        }
+    _actor403000UpdateAnimation(actorTask);
+    if ((work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) || work->stateFrame >= ACTOR_403000_DOWN_HIT_MAX_TICKS) {
+        _actor403000FinishDownReaction(work, enemy);
     }
 }
 

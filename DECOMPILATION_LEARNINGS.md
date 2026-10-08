@@ -104899,7 +104899,7 @@ Codegen note from the same function: `enemy->hp = D.field_4;
 enemy->param = &D;` (read before storing the pointer) put the address in
 `$v1` and the value in `$a0`; the reverse order kept both in `$v0`.
 
-## Threshold ladder: `if/else if` and nested `if` differ only in the first compare's register (func_actor_403000_8013B238, 2026-09-16)
+## Threshold ladder: `if/else if` and nested `if` differ only in the first compare's register (_actor403000TurnState, 2026-09-16)
 
 A band lookup `col = 4; if (x >= A) { col = 3; if (x >= B) { ... } }` and the
 `if (x < A) col = 4; else if (x < B) col = 3; ...` ladder emit the same
@@ -104920,7 +104920,7 @@ branch, and storing it with `$v1`. Also, `addu v1,v1,v0` where the scratch
 field was just stored from a local needed `scratch->index = scratch->base + fd5`.
 Naming the local (`b + fd5`) swapped the operands, and so did `fd5 + b`.
 
-## Default-then-nested-if vs `else if` chain: same branches, different registers (func_actor_403000_8013C2D4, 2026-09-16)
+## Default-then-nested-if vs `else if` chain: same branches, different registers (_actor403000ProwlState, 2026-09-16)
 
 A banded classifier (`col = 4; if (x >= A) { col = 3; if (x >= B) ... }`) and the
 `if (x < A) col = 4; else if (x < B) col = 3; ...` chain emit identical
@@ -104942,7 +104942,7 @@ d >= 5) dir = 1; }` matches branches but keeps `dir` in one global pseudo
 5))` puts `dir` in `v0` but fuses `d >= 0 && d < 5` into `andi 0xffff; sltiu 5`.
 
 **Fix:** two assignment blocks reached by gotos, which jump/reorg turn into the
-slot-filled constant loads (`func_actor_403000_80139AE0`):
+slot-filled constant loads (`_actor403000ApproachState`):
 
 ```c
 if (diff < -5) goto neg;
@@ -104958,7 +104958,7 @@ pos:
 
 ### `sra v0` / `sh v0,field` / `move v1,v0` before a clamp: `field = tmp = x`, then compare the field
 
-`func_actor_403000_801386E8` wraps an `s16` angle, stores it, then clamps the
+`_actor403000LungeState` wraps an `s16` angle, stores it, then clamps the
 stored field to ±0x40. The ROM sign-extends into `$v0`, stores `$v0`, and only
 then copies it to `$v1` for the compares. `scratch->angle = angle` stores the raw
 `HI` pseudo *before* the extension (and drops the `sll` from the wrap loop's
@@ -104974,7 +104974,7 @@ a third inline taking the vector, for the extra `move s3,s0` register.
 
 ### `move v1,a0` in a branch delay slot and `move v0,a0` before `bgtz`: the masked roll is an `s16` local
 
-`func_actor_403000_8013A678` rolls `r = ((gRandomLcgState = ...) >> 16) & 0xF` and
+`_actor403000PatrolState` rolls `r = ((gRandomLcgState = ...) >> 16) & 0xF` and
 tests it in both arms of an `if`. The ROM keeps `r` in `$a0` and copies it into
 each arm's own register (`move v1,a0` in the `bne` delay slot, `move v0,a0`
 ahead of `bgtz v0`). With `s32 r` cse folds the copies away and both arms test
@@ -104984,10 +104984,10 @@ sign-extension appears because the `& 0xF` bounds it.
 
 ### `lb` from a table copied straight into an `s8` field: the inline returns `s32`
 
-`func_actor_403000_80137084` stores `_actor403000GetRingCell(coord)` (a `u8` table
+`_actor403000ChaseState` stores `_actor403000GetRingCell(coord)` (a `u8` table
 lookup) directly into two `s8` scratch fields, and the ROM loads the byte with
 `lb` before the `sb`. With the inline returning `s8` - as it did for
-`func_actor_403000_80139AE0`, which assigns the result to an `s16` - the load
+`_actor403000ApproachState`, which assigns the result to an `s16` - the load
 became `lbu`: the truncating store makes the extension dead, so combine drops
 it. `(s32)` casts at the call site change nothing. Returning `s32` from the
 inline with `return (s8)table[i];` keeps the `sign_extend` in the RTL and
@@ -105039,21 +105039,21 @@ was `u32 sound`), and it was hidden because the ad-hoc
 `awk '{$1=""; print}'` over `*_object_dump_normalized.s` dropped the
 mnemonic along with the address. Diff whole lines, or strip only the offset.
 
-## A loop's early-exit stub lands after the nearest *outer* BARRIER - goto-wrap loops before it pull it backward (func_actor_403000_801377C8, 2026-09-16)
+## A loop's early-exit stub lands after the nearest *outer* BARRIER - goto-wrap loops before it pull it backward (_actor403000GrabState, 2026-09-16)
 
 A record scan `for (i...) { if (v == 0) break; if (hit) { found = 1; goto done; } } found = 0; done:`
 has its `found = 1; j done` stub moved out of the loop by `find_and_verify_loops`
 (`loop.c`): it searches **backward** from `done` for a BARRIER at the same loop
 depth, then forward. An angle wrap written as goto loops earlier in the function
 (`loop: if (a < -0x800) { a += 0x1000; goto loop; }`) leaves depth-0 barriers, so
-the stub lands right after the wrap (the matched sibling `func_actor_403000_801386E8`
+the stub lands right after the wrap (the matched sibling `_actor403000LungeState`
 wants exactly that). When the target puts the stub far *after* the scan instead,
 no depth-0 barrier may precede `done`: write every earlier wrap as a real loop
 that does not get rotated - `for (;;) { if (a >= -0x800) goto wrapped; a += 0x1000; }`
 with `wrapped:` after the if/else. `while`/`break` forms are rotated by
 `expand_end_loop` and leave the if/else jump as a depth-0 barrier.
 
-## `lb x` then `sll/sra` of the same register: an `s16` local between the load and the reread (func_actor_403000_801377C8, 2026-09-16)
+## `lb x` then `sll/sra` of the same register: an `s16` local between the load and the reread (_actor403000GrabState, 2026-09-16)
 
 Target: `lb $a0, 0(tbl)` ... `sll $v0,$a0,24; sra $v0,$v0,24` for `diff`, with
 `sb $a0, 0x24($s4)` scheduled into a later delay slot. `scratch->cell = Cell();
@@ -134515,7 +134515,7 @@ with the same compiler hash above. Evidence and unsuccessful router outputs are
 retained under `tools/permuter_findings/_actor401300StateWithdraw/`.
 
 
-## A signed byte load followed by redundant switch sign extension (func_actor_403000_8013B74C, 2026-09-19)
+## A signed byte load followed by redundant switch sign extension (_actor403000DropState, 2026-09-19)
 
 The target has `lb; sb; sll 24; sra 24`. Direct assignment to the scratch byte
 gives `lbu` and retains the shifts. Widening through s32 gives `lb`, but combine
@@ -134536,7 +134536,7 @@ This is a tested local remedy, not evidence for original source spelling.
 Exact input SHA256: `830feefeffdea9616a648459669823e7a77dc8cffa311dc6c7f4ef867bfdda7c`.
 Control SHA256: `b7f13548c335eee6bf58e48a888816bf131c92147ae715e8c1cf8d163b82bf78`.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Evidence: tools/permuter_findings/func_actor_403000_8013B74C/,
+Evidence: tools/permuter_findings/_actor403000DropState/,
 session `eab7eadfae0e48609c94162bc0c7d03d`, LEARNINGS.md and retained dumps.
 
 
@@ -146235,7 +146235,7 @@ continue label, and jump2 cross-jumps the two into the single tail the target
 branches to, loads first. A plain if/else with the copy in both arms matches
 the same way.
 
-### `lb`, `sb`, then `sll 24`/`sra 24` on the same value: an `s16` local between an `s8` helper and an `s8` field (func_actor_403000_8013B74C, 2026-09-27)
+### `lb`, `sb`, then `sll 24`/`sra 24` on the same value: an `s16` local between an `s8` helper and an `s8` field (_actor403000DropState, 2026-09-27)
 
 **Symptom.** A table byte is loaded with `lb`, stored to an `s8` field, and the
 loaded register is sign-extended again before a `switch`. An `s32` local drops
@@ -149096,6 +149096,9 @@ none needed a hack. The forms, by what the `goto` was standing for:
   `_8013BA70`, `func_actor_444000_8013E058`, `func_actor_403000_8013C2D4`), and
   the same shape with a larger body in `_actor00400FindNearestSurfaceSpot`
   (`if (claimMark != ACTOR_00400_SURFACE_SPOT_END) { ...; spotIndex++; continue; } break;`).
+  `_8013BA70`, `func_actor_444000_8013E058`, `_actor403000ProwlState`), and
+  the same shape with a larger body in `Actor00400_Fn031A4`
+  (`if (kind != -1) { ...; index++; continue; } break;`).
 - **`goto advance` into another case's `task->state++; break;`.** Write the
   increment in each case; jump2's cross-jumping merges them
   (`factoryPowerScene`, `storeToggleTask`, `_shelterR47PlayCapCommandTask`, first
@@ -150051,7 +150054,7 @@ attempts; left as it was.
   (`_actor403000RingSide(s16 cellDifference)`). How its returns are written matters at
   one site only. `if (d < -5) return -1; if (d < 0) return 1; if (d < 5)
   return -1; return 1;` matched every site where the result runs straight
-  into the code after it; in `func_actor_403000_8013A08C`, where the call is
+  into the code after it; in `_actor403000RetreatState`, where the call is
   the `then` arm of an `if`/`else` (`else dir = work->seekRingDir;`), the two
   `return 1` are not merged (`bgez; j; li v0,1; beqz`, 2 insns longer). With
   a single `return 1` the same inline matches all twelve:
@@ -150059,11 +150062,11 @@ attempts; left as it was.
   The two `return -1` stay apart in the image too (`li v0,-1` in two delay
   slots). Nested `if`s, not `d >= 0 && d < 5`, which folds to `sltiu`.
 - **The `for (;;) { if (a >= -0x800) goto wrapped; a += 0x1000; }` wraps of
-  `func_actor_403000_801377C8`** (written that way so that no depth-0
+  `_actor403000GrabState`** (written that way so that no depth-0
   `BARRIER` precedes the scan's found stub, see "A loop's early-exit stub
   lands after the nearest outer BARRIER") are `_actorAngleNormalizeYaw`: its
   explicit top-tested exit loops are real loops as well. The sibling
-  `func_actor_403000_801386E8`, recorded as *needing* the goto wrap's barrier
+  `_actor403000LungeState`, recorded as *needing* the goto wrap's barrier
   for its stub, also matches with `_actorAngleNormalizeYaw` and the found-flag scan as
   a `for` + `break` + `return 1` / `return 0` inline: the barrier its stub
   sits behind is the `if`/`else if` clamp after the wrap, not the wrap.
