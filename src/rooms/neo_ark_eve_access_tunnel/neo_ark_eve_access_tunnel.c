@@ -627,16 +627,18 @@ s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task* arg0, s32 arg1, s32 arg2, s32 
     return 0;
 }
 
-/// Third entry of the room's task table: waits for the CAP command to finish,
-/// then, unless it ended on event key 0xC, sets the game-flag nibble named by
-/// the task's spawn argument to 2, and ends the task.
-void func_neo_ark_eve_access_tunnel_8017DED0(Task* arg0)
+void neoArkEveAccessTunnelRecordCapCompletionTask(Task* task)
 {
+    enum {
+        NEO_ARK_EVE_ACCESS_TUNNEL_CAP_DECLINED_KEY = 12,
+        NEO_ARK_EVE_ACCESS_TUNNEL_FLAG_COMPLETED   = 2,
+    };
+
     if (capIsBusy() == 0) {
-        if (capGetVariantKey() != 0xC) {
-            gameFlagSetNibble(arg0->spawnArg1.value, 2);
+        if (capGetVariantKey() != NEO_ARK_EVE_ACCESS_TUNNEL_CAP_DECLINED_KEY) {
+            gameFlagSetNibble(task->spawnArg1.value, NEO_ARK_EVE_ACCESS_TUNNEL_FLAG_COMPLETED);
         }
-        taskKill(arg0);
+        taskKill(task);
     }
 }
 

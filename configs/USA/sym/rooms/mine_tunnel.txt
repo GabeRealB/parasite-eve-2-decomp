@@ -61,3 +61,4 @@ _gMineTunnelAnimation009DC = 0x8017DF9C; // size:0x28 defined:True
 
 mineTunnelDrawViewFlaresTask = 0x8017D7D4; // type:func
 _glowDrawFlare = 0x8017D8CC; // type:func
+_mineTunnelSetEnemyWave = 0x8017d6e0; // type:func

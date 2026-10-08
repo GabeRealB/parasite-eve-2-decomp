@@ -42,6 +42,11 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_souvenir_shop_8017F6CC[
 /// The room overlay must remain loaded; the callback keeps the task alive.
 void dryfieldNightSouvenirShopPrismLightTask(Task* task);
 
-void func_dryfield_night_souvenir_shop_8017D65C(Task* task);
+/// Runs the night souvenir shop's room-message task for one update.
+///
+/// Requires a live task: state 0 initializes, 1 idles and 2 releases the task.
+/// The state index is unchecked. Keep this room overlay loaded while the task
+/// or its registered message handlers can run; the final state ends its lifetime.
+void dryfieldNightSouvenirShopRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_SOUVENIR_SHOP_H

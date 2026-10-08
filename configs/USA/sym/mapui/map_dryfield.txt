@@ -46,7 +46,7 @@ D_dryfield_back_street_8017F9D4 = 0x8017F9D4; // absolute:True owner=dryfield_ba
 D_dryfield_back_street_801802A8 = 0x801802A8; // absolute:True owner=dryfield_back_street shared=rooms
 D_dryfield_back_street_80180484 = 0x80180484; // absolute:True owner=dryfield_back_street shared=rooms
 D_dryfield_back_street_80181034 = 0x80181034; // absolute:True owner=dryfield_back_street shared=rooms
-func_dryfield_souvenir_shop_8017D65C = 0x8017D65C; // type:func absolute:True owner=dryfield_souvenir_shop shared=rooms
+dryfieldSouvenirShopRoomTask = 0x8017D65C; // type:func absolute:True owner=dryfield_souvenir_shop shared=rooms
 D_dryfield_souvenir_shop_8017E0BC = 0x8017E0BC; // absolute:True owner=dryfield_souvenir_shop shared=rooms
 D_dryfield_souvenir_shop_8017E0CC = 0x8017E0CC; // absolute:True owner=dryfield_souvenir_shop shared=rooms
 D_dryfield_souvenir_shop_8017E0D0 = 0x8017E0D0; // absolute:True owner=dryfield_souvenir_shop shared=rooms

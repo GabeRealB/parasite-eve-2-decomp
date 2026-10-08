@@ -1571,7 +1571,7 @@ extern TaskDesc D_dryfield_trailer_coach_80184FC0[];
 /// The cutscene record this room hands `gRoomCutsceneTaskDescs`.
 extern RoomCutsceneRec D_dryfield_trailer_coach_80189C9C;
 
-static void func_dryfield_trailer_coach_801827D0(Task* arg0);
+static void _dryfieldTrailerCoachExitTopicChoice(Task* task);
 
 extern TaskMessageEntry D_dryfield_trailer_coach_80184FA0[];
 
@@ -1743,7 +1743,7 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
     line               = D_dryfield_trailer_coach_801853E4;
     table              = line;
     task->work         = dialog;
-    task->exitCallback = func_dryfield_trailer_coach_801827D0;
+    task->exitCallback = _dryfieldTrailerCoachExitTopicChoice;
 
     for (; i < ARRAY_SIZE(dialog->options); i++) {
         if (task->spawnArg1.value == mode) {
@@ -1789,11 +1789,14 @@ static void _dryfieldTrailerCoachWaitForTopicChoice(Task* task)
     }
 }
 
-/// Exit callback of the two-option choice task: kills it and calls
-/// `stageRequestModeTaskExit`.
-static void func_dryfield_trailer_coach_801827D0(Task* arg0)
+/// Releases the topic-choice task and requests exit from its stage mode.
+///
+/// Used both as the final state and as the task's exit callback. `taskKill`
+/// releases the owned `RoomOptionDialog` before the mode-exit request; the
+/// result destination in `spawnArg2.pointer` remains caller-owned.
+static void _dryfieldTrailerCoachExitTopicChoice(Task* task)
 {
-    taskKill(arg0);
+    taskKill(task);
     stageRequestModeTaskExit();
 }
 
@@ -1814,7 +1817,7 @@ static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7E8 = {
     {
         func_dryfield_trailer_coach_801826A0,
         _dryfieldTrailerCoachWaitForTopicChoice,
-        func_dryfield_trailer_coach_801827D0,
+        _dryfieldTrailerCoachExitTopicChoice,
     },
 };
 

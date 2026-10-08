@@ -50,7 +50,14 @@ extern SpriteBatch D_dryfield_warehouse_801815D0[3];
 extern SpriteBatch D_dryfield_warehouse_801815E8[2];
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_warehouse_8017D5E8(Task*);
+/// Adjusts warehouse ambience to the current view while room events are idle.
+///
+/// State 0 clears the requested-volume cache and enters state 1; other states
+/// do nothing. State 1 requests 50%, 60% or 100% for views 2, 3 or 4, and silence
+/// elsewhere or during an event. Changes queue a start, mix or 30-audio-update
+/// stop; the cache records the request even when sound admission fails.
+/// Requires a live task and loaded warehouse sound resources while playback runs.
+void dryfieldWarehouseAmbienceTask(Task* task);
 
 s32 func_dryfield_warehouse_8017D764(Task*, s32, s32, s32);
 

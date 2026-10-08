@@ -251,7 +251,7 @@ D_neo_ark_r26_8017E0EC = 0x8017E0EC; // absolute:True owner=neo_ark_r26 shared=r
 D_neo_ark_r26_8017E1C0 = 0x8017E1C0; // absolute:True owner=neo_ark_r26
 D_neo_ark_r26_8017E898 = 0x8017E898; // absolute:True owner=neo_ark_r26 shared=rooms
 D_neo_ark_r26_8017EA30 = 0x8017EA30; // absolute:True owner=neo_ark_r26
-func_neo_ark_bridge_8017E8FC = 0x8017E8FC; // type:func absolute:True owner=neo_ark_bridge
+neoArkBridgeRoomTask = 0x8017E8FC; // type:func absolute:True owner=neo_ark_bridge
 D_neo_ark_bridge_80181F80 = 0x80181F80; // absolute:True owner=neo_ark_bridge
 D_neo_ark_bridge_80181F84 = 0x80181F84; // absolute:True owner=neo_ark_bridge
 D_neo_ark_bridge_80181F88 = 0x80181F88; // absolute:True owner=neo_ark_bridge

@@ -126,17 +126,13 @@ static void _neoArkBridgeIdleRoomTask(Task* unusedTask)
 }
 
 /// State handlers of the room's entry task, indexed by its state through
-/// `func_neo_ark_bridge_8017E8FC`: set-up, idle, then kill.
+/// `neoArkBridgeRoomTask`: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_bridge_8017D614 = {
     { _neoArkBridgeInitRoomTask, _neoArkBridgeIdleRoomTask, taskKill }
 };
 
-/// Task tick that dispatches on the task's state through the three-entry
-/// handler table `D_neo_ark_bridge_8017D614`, copied to the stack first.
-void func_neo_ark_bridge_8017E8FC(Task* task)
+void neoArkBridgeRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_neo_ark_bridge_8017D614;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_neo_ark_bridge_8017D614;
+    stateHandlers.funcs[task->state](task);
 }

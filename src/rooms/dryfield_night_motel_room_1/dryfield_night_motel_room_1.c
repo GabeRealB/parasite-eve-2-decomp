@@ -98,14 +98,10 @@ static const TaskFuncTable3 D_dryfield_night_motel_room_1_8017D5C4 = {
     { _dryfieldNightMotelRoom1InitRoomTask, _dryfieldNightMotelRoom1IdleRoomTask, taskKill },
 };
 
-/// The room task's callback: runs the state `Task::state` selects from a
-/// stack copy of `D_dryfield_night_motel_room_1_8017D5C4`.
-void func_dryfield_night_motel_room_1_8017D6DC(Task* task)
+void dryfieldNightMotelRoom1RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_dryfield_night_motel_room_1_8017D5C4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_dryfield_night_motel_room_1_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_flare_clipped.inc.c"

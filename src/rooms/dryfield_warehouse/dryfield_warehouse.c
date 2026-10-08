@@ -2,7 +2,7 @@
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 /// Volume last asked of the warehouse's ambient track, or 0 when none is
-/// playing. Written by `func_dryfield_warehouse_8017D5E8` and cleared by state 0
+/// playing. Written by `dryfieldWarehouseAmbienceTask` and cleared by state 0
 /// of the same task.
 s32 D_dryfield_warehouse_801821B8;
 
@@ -163,55 +163,66 @@ s16 D_dryfield_warehouse_801821C4;
 static void func_dryfield_warehouse_8017D99C(Task* arg0);
 static void func_dryfield_warehouse_8017D9F8(Task* task);
 
-/// Warehouse ambience: state 0 clears the recorded volume and advances, state 1
-/// maps `gGameSession->location.loc.view` (the area id) to a target volume - 0x32/0x3C/0x64
-/// for areas 2/3/4, 0 elsewhere - and, whenever that differs from the recorded
-/// one, enqueues the matching fade event: type 6 to start the track, type 7 to
-/// stop it, type A to retune it, then records the new volume.
-void func_dryfield_warehouse_8017D5E8(Task* task)
+void dryfieldWarehouseAmbienceTask(Task* task)
 {
-    s32 vol;
+    enum {
+        DRYFIELD_WAREHOUSE_AMBIENCE_INITIALIZE       = 0,
+        DRYFIELD_WAREHOUSE_AMBIENCE_UPDATE           = 1,
+        DRYFIELD_WAREHOUSE_AMBIENCE_SILENT           = 0,
+        DRYFIELD_WAREHOUSE_AMBIENCE_LOW_VIEW         = 2,
+        DRYFIELD_WAREHOUSE_AMBIENCE_MEDIUM_VIEW      = 3,
+        DRYFIELD_WAREHOUSE_AMBIENCE_FULL_VIEW        = 4,
+        DRYFIELD_WAREHOUSE_AMBIENCE_LOW_PERCENT      = 50,
+        DRYFIELD_WAREHOUSE_AMBIENCE_MEDIUM_PERCENT   = 60,
+        DRYFIELD_WAREHOUSE_AMBIENCE_FULL_PERCENT     = 100,
+        DRYFIELD_WAREHOUSE_AMBIENCE_MAX_ATTENUATION  = 127,
+        DRYFIELD_WAREHOUSE_AMBIENCE_STOP_AUDIO_TICKS = 30,
+    };
+
+    s32 targetVolumePercent;
 
     switch (task->state) {
-        case 0:
-            D_dryfield_warehouse_801821B8 = 0;
-            task->state                   = task->state + 1;
+        case DRYFIELD_WAREHOUSE_AMBIENCE_INITIALIZE:
+            D_dryfield_warehouse_801821B8 = DRYFIELD_WAREHOUSE_AMBIENCE_SILENT;
+            task->state                   = task->state + (DRYFIELD_WAREHOUSE_AMBIENCE_UPDATE - DRYFIELD_WAREHOUSE_AMBIENCE_INITIALIZE);
             return;
-        case 1:
+        case DRYFIELD_WAREHOUSE_AMBIENCE_UPDATE:
             break;
         default:
             return;
     }
 
-    vol = 0;
+    // Room events mute the ambience; idle views select a percentage gain.
+    targetVolumePercent = DRYFIELD_WAREHOUSE_AMBIENCE_SILENT;
     if (gGameSession->eventState == 0) {
         switch (gGameSession->location.loc.view) {
-            case 4:
-                vol = 0x64;
+            case DRYFIELD_WAREHOUSE_AMBIENCE_FULL_VIEW:
+                targetVolumePercent = DRYFIELD_WAREHOUSE_AMBIENCE_FULL_PERCENT;
                 break;
-            case 3:
-                vol = 0x3C;
+            case DRYFIELD_WAREHOUSE_AMBIENCE_MEDIUM_VIEW:
+                targetVolumePercent = DRYFIELD_WAREHOUSE_AMBIENCE_MEDIUM_PERCENT;
                 break;
-            case 2:
-                vol = 0x32;
+            case DRYFIELD_WAREHOUSE_AMBIENCE_LOW_VIEW:
+                targetVolumePercent = DRYFIELD_WAREHOUSE_AMBIENCE_LOW_PERCENT;
                 break;
             default:
-                vol = 0;
+                targetVolumePercent = DRYFIELD_WAREHOUSE_AMBIENCE_SILENT;
                 break;
         }
     }
 
-    if (vol == D_dryfield_warehouse_801821B8) {
+    if (targetVolumePercent == D_dryfield_warehouse_801821B8) {
         return;
     }
-    if (D_dryfield_warehouse_801821B8 == 0) {
-        sndEvtRequestScriptStart(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
-    } else if (vol == 0) {
-        sndEvtRequestScriptStop(SOUND_WAREHOUSE_AMBIENCE, 0x1E);
+    // Translate the percentage gain to the sound API's signed-byte attenuation.
+    if (D_dryfield_warehouse_801821B8 == DRYFIELD_WAREHOUSE_AMBIENCE_SILENT) {
+        sndEvtRequestScriptStart(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((DRYFIELD_WAREHOUSE_AMBIENCE_FULL_PERCENT - targetVolumePercent) * DRYFIELD_WAREHOUSE_AMBIENCE_MAX_ATTENUATION) / DRYFIELD_WAREHOUSE_AMBIENCE_FULL_PERCENT));
+    } else if (targetVolumePercent == DRYFIELD_WAREHOUSE_AMBIENCE_SILENT) {
+        sndEvtRequestScriptStop(SOUND_WAREHOUSE_AMBIENCE, DRYFIELD_WAREHOUSE_AMBIENCE_STOP_AUDIO_TICKS);
     } else {
-        sndEvtRequestScriptMix(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((0x64 - vol) * 0x7F) / 100));
+        sndEvtRequestScriptMix(SOUND_WAREHOUSE_AMBIENCE, 0, (s8)(((DRYFIELD_WAREHOUSE_AMBIENCE_FULL_PERCENT - targetVolumePercent) * DRYFIELD_WAREHOUSE_AMBIENCE_MAX_ATTENUATION) / DRYFIELD_WAREHOUSE_AMBIENCE_FULL_PERCENT));
     }
-    D_dryfield_warehouse_801821B8 = vol;
+    D_dryfield_warehouse_801821B8 = targetVolumePercent;
 }
 
 /// Message handler: on msg 0x111, walks the `Gp_PendingObj4C` list looking for

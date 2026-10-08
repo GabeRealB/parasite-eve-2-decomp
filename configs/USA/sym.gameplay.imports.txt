@@ -1099,7 +1099,7 @@ shelterB1StoreroomRoomVisualEffectsFlyingSparkTask = 0x801832B8; // type:func ab
 
 shelterB1StoreroomRoomVisualEffectsFlyingOrangeBurstTask = 0x80183F18; // type:func absolute:True owner=shelter_b1_storeroom
 
-shelterB1TransferTunnelRoomVisualEffectsMoteTask = 0x8017E308; // type:func absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
+shelterB1TransferTunnelRoomVisualEffectsMoteTask = 0x8017E308; // type:func absolute:True owner=shelter_b1_transfer_tunnel
 
 shelterB1TransferTunnelRoomVisualEffectsHaloTask = 0x8017F050; // type:func absolute:True owner=shelter_b1_transfer_tunnel
 

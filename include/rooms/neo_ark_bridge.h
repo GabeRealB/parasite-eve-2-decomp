@@ -111,6 +111,11 @@ void neoArkBridgeRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_neo_ark_bridge_801812D0(Task* task);
 
-void func_neo_ark_bridge_8017E8FC(Task* task);
+/// Runs the Neo Ark bridge's room-message task for one update.
+///
+/// Requires a live task: state 0 initializes, 1 idles and 2 releases the task.
+/// The state index is unchecked. Keep this room overlay loaded while the task
+/// or its registered message handlers can run; the final state ends its lifetime.
+void neoArkBridgeRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_BRIDGE_H

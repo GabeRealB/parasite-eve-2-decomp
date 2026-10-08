@@ -327,3 +327,4 @@ _glowDrawRayStar = 0x80182EB4; // type:func
 _dryfieldTrailerCoachRejectKeyItemUse = 0x80182578; // type:func
 _dryfieldTrailerCoachResolveRoomEvent = 0x80182580; // type:func
 _dryfieldTrailerCoachWaitForTopicChoice = 0x80182794; // type:func
+_dryfieldTrailerCoachExitTopicChoice = 0x801827d0; // type:func

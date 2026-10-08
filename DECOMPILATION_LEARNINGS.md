@@ -6294,7 +6294,7 @@ sceneReleaseBattleRefAndClearRewards(arg0, 0);
 
 A neighboring `void(void)` jal whose delay slot is an unrelated store
 (`displayReleaseMenuHold` + `sh` of actor flags) needs no cast.
-`func_mist_shooting_gallery_80184A80` is the example.
+`_mistShootingGalleryExitCourse` is the example.
 
 ## Scratch `-dp` comments drop maspsx load-delay nops after volatile `lbu`
 
@@ -46481,10 +46481,11 @@ w->field_82 = -0x6B0;           /* -> addiu v0,zero,-1712 */
 ```
 
 The same narrowing applies one size down: `(u8)` of an `s16` field loads `lbu`,
-which is how `func_dryfield_warehouse_8017E308` passes its fade channels to
+which is how `_dryfieldWarehouseFadeOutTask` passes its fade channels to
 `fadeDrawOverlay(w->r, w->g, w->r, GPU_BLEND_SUBTRACT)`: its byte parameters
-now supply that conversion, while the increments beside it are `(u16)` and
-load `lhu`. A byte load is therefore not evidence of a `u8` field either.
+now supply that conversion, while `_dryfieldWarehouseStepFadeOut` reads
+`task->spawnArg1.halves.low` for its increments and loads `lhu`. A byte load
+is therefore not evidence of a `u8` field either.
 
 So for a field that is read both ways: signed declaration, `(u16)` at the reads
 m2c annotated unsigned. The `s32`-staging trick in "Assign a negative constant
@@ -50509,7 +50510,7 @@ slt  $v0, $v0, $a0         /* and the compare is K < x, operands     */
 `slt $v0, $v0, $a0` (constant first) is `K < x`; writing `x >= K + 1` instead
 gives `slt $v0, $a0, $v0` plus an inverted branch. So a chain of thresholds
 that crosses 0x8000 has to switch from `>=` to `>` mid-chain, keeping the
-exact constant from the `ori`. `func_mist_shooting_gallery_80184470` is the
+exact constant from the `ori`. `mistShootingGalleryGetBonusBp` is the
 worked example: its five score tiers use `>=` for the two low difficulties and
 `>` for the three high ones.
 
@@ -119713,18 +119714,18 @@ escapes (`base.c` 89.31%, frame 0x28); `AnimationPlayRequest rec;` with `&rec` e
 restores them and the 0x38 frame. `overlay_dup_index.py find` reports the body
 as its own only copy.
 
-### A decision-tree switch lays its case bodies out in source order, and the last one falls through (func_dryfield_warehouse_8017D5E8, 2026-09-17)
+### A decision-tree switch lays its case bodies out in source order, and the last one falls through (dryfieldWarehouseAmbienceTask, 2026-09-17)
 
-**Problem.** `func_dryfield_warehouse_8017D5E8` (rooms/USA/dryfield_warehouse)
+**Problem.** `dryfieldWarehouseAmbienceTask` (rooms/USA/dryfield_warehouse)
 switches on a `u8` area id and maps it to a volume. Written the obvious way, the
 dispatch tree comes out right:
 
 ```c
 switch (gGameSession->location.loc.view) {
-    case 2: vol = 0x32; break;
-    case 3: vol = 0x3C; break;
-    case 4: vol = 0x64; break;
-    default: vol = 0; break;
+    case 2: targetVolumePercent = 0x32; break;
+    case 3: targetVolumePercent = 0x3C; break;
+    case 4: targetVolumePercent = 0x64; break;
+    default: targetVolumePercent = 0; break;
 }
 ```
 
@@ -119740,10 +119741,10 @@ descending, case 2 last:
 
 ```c
 switch (gGameSession->location.loc.view) {
-    case 4: vol = 0x64; break;
-    case 3: vol = 0x3C; break;
-    case 2: vol = 0x32; break;
-    default: vol = 0; break;
+    case 4: targetVolumePercent = 0x64; break;
+    case 3: targetVolumePercent = 0x3C; break;
+    case 2: targetVolumePercent = 0x32; break;
+    default: targetVolumePercent = 0; break;
 }
 ```
 
@@ -119759,10 +119760,10 @@ arm is last in the source and is the arm that falls through.
 **Two more things this function needed**, both worth checking on any small
 switch:
 
-- The explicit `default: vol = 0;` is not decoration. Without it GCC tests the
+- The explicit `default: targetVolumePercent = 0;` is not decoration. Without it GCC tests the
   top of the range with `beq` and falls through to the break; the target's
   `bne $v1,$v0,<merge>` with the default's assignment in its delay slot is the
-  shape you get *with* the label. The `vol = 0` before the `if` is a separate,
+  shape you get *with* the label. The `targetVolumePercent = 0` before the `if` is a separate,
   earlier assignment - it is what fills the outer `bnez`'s delay slot.
 - Case 0's block only matched once the argument was typed `Task*` and the field
   read `task->state` instead of m2c's `M2C_FIELD(index, s32*, 0x30)`: the
@@ -119778,7 +119779,7 @@ Inputs: base.i `3e3dc04cf769dd87192a1e778d5f1fbbf420462fc2c8df09dc2729cbb25afc6f
 (93.60%), base_2.i `21b4fa1ab97dd5892f82bbd2a38238d3fbebeaca3228309667705a0e14a131a7`
 (95.71%, ascending cases with default), base_3.i
 `a0cc4e95e157fc52040df7fb923ed5d36a5d60d184861a8a1a911f1c7df5dd42` (exact).
-Evidence: scratch `nonmatchings/func_dryfield_warehouse_8017D5E8-vacuum/`,
+Evidence: scratch `nonmatchings/dryfieldWarehouseAmbienceTask-vacuum/`,
 `base_2_diff` vs `base_3_diff`, and the two object dumps' leaf order. No pins,
 no permuter. `overlay_dup_index.py find` reports the body as its own only copy.
 ## A room overlay's leading unaligned 8-byte copy is `*out = *in` on `RoomEventMsg` (func_mine_cavern_8017D908, 2026-09-17)
@@ -122316,7 +122317,7 @@ Inputs: `base_1.c` (100.000%, all penalties zero), `base_3.c` (99.286%,
 ## A switch's zeros belong in `default:`, not in an init before the switch - and the default code is inlined per tree leaf (dryfield_back_street, 2026-09-17)
 
 `func_dryfield_back_street_8017D5D0` is the warehouse ambience sibling
-(`func_dryfield_warehouse_8017D5E8`, "a switch's shared tail belongs after the
+(`dryfieldWarehouseAmbienceTask`, "a switch's shared tail belongs after the
 switch") with one difference: the view it maps comes from `viewGetMappedIndex()`
 instead of `gGameSession->location.loc.view`, it also carries a stereo pan, and its two
 zeroes come from the `default:` case rather than from an assignment before the

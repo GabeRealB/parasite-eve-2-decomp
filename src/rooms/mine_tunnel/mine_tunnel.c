@@ -38,7 +38,13 @@ static AnimationSet _gMineTunnelAnimation009DC;
 
 extern AnimationPlayRequest     D_mine_tunnel_8017DFFC;
 extern AnimationBankCopyRequest D_mine_tunnel_8017DFF4;
-void                            func_mine_tunnel_8017D6E0(s32);
+static void                     _mineTunnelSetEnemyWave(s32 wavePhase);
+
+/// Scripted enemy activation phases selected by this room.
+enum {
+    MINE_TUNNEL_ENEMY_WAVE_ENTRANCE = 1,
+    MINE_TUNNEL_ENEMY_WAVE_ENGAGE   = 2,
+};
 
 static AnimationPackedPose _gMineTunnelAnimation009DCBank1[10] = {
 #include "assets/mine_tunnel_animation_009DC_bank1.inc"
@@ -85,7 +91,7 @@ AnimationPlayRequest D_mine_tunnel_8017E010 = { { .index = 1 }, 7, ANIMATION_BLE
 EvsCommand D_mine_tunnel_8017E024[11] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_tunnel_8017DFF4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_tunnel_8017D6E0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineTunnelSetEnemyWave }, { .value = MINE_TUNNEL_ENEMY_WAVE_ENTRANCE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_tunnel_8017DFFC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -135,23 +141,26 @@ s32 func_mine_tunnel_8017D670(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
     return 0;
 }
 
-/// Stores its argument in `gSceneCombatState.actor01600Wave`; the room's event task calls it with 2
-/// on entry to the tunnel once flag 0xA1 is set.
-void func_mine_tunnel_8017D6E0(s32 arg0)
+/// Selects the tunnel's scripted enemy activation phase.
+///
+/// The event script selects entrance phase 1; later entries select engagement
+/// phase 2. Accepts the event callback's raw signed word and stores its low
+/// signed byte in scene combat state, without acquiring a battle reference.
+static void _mineTunnelSetEnemyWave(s32 wavePhase)
 {
-    gSceneCombatState.actor01600Wave = arg0;
+    gSceneCombatState.actor01600Wave = wavePhase;
 }
 
 /// State 0 of the room's event task: installs the room's message table,
 /// publishes the task in pointer slot 7 and - when the session is at place 1
-/// and flag 0xA1 is 1 - calls `func_mine_tunnel_8017D6E0` with 2. Then sets
+/// and flag 0xA1 is 1 - calls `_mineTunnelSetEnemyWave` with 2. Then sets
 /// scene music entry 1 and advances to state 1.
 static void func_mine_tunnel_8017D6EC(Task* arg0)
 {
     arg0->msgTable = D_mine_tunnel_8017DFC4;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == 1)) {
-        func_mine_tunnel_8017D6E0(2);
+        _mineTunnelSetEnemyWave(MINE_TUNNEL_ENEMY_WAVE_ENGAGE);
     }
     arg0->state           = (s32)(arg0->state + 1);
     gStageSceneMusicEntry = 1;

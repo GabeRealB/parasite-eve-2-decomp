@@ -40,6 +40,11 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_5_80181230[]
 /// queued geometry borrows the frame arena until GPU completion.
 void dryfieldNightMotelRoom5DrawFlareTask(Task* unusedTask);
 
-void func_dryfield_night_motel_room_5_8017D6D0(Task* task);
+/// Runs night motel room 5's room-message task for one update.
+///
+/// Requires a live task: state 0 initializes, 1 idles and 2 releases the task.
+/// The state index is unchecked. Keep this room overlay loaded while the task
+/// or its registered message handlers can run; the final state ends its lifetime.
+void dryfieldNightMotelRoom5RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_MOTEL_ROOM_5_H

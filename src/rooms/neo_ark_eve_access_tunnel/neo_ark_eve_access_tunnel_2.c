@@ -57,7 +57,7 @@ TaskMessageEntry D_neo_ark_eve_access_tunnel_8017EA94[6] = {
 TaskDesc D_neo_ark_eve_access_tunnel_8017EAC4[3] = {
     { { { TASK_BODY_NONE, 32 } }, func_neo_ark_eve_access_tunnel_8017D980, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, func_neo_ark_eve_access_tunnel_8017DB18, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_eve_access_tunnel_8017DED0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, neoArkEveAccessTunnelRecordCapCompletionTask, { .value = 0 } },
 };
 
 SVECTOR D_neo_ark_eve_access_tunnel_8017EAE8[4] = {

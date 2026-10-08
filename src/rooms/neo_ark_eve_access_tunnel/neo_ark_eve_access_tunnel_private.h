@@ -43,6 +43,12 @@ s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, const void* f
 
 s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task*, s32, s32, s32);
 
-void func_neo_ark_eve_access_tunnel_8017DED0(Task*);
+/// Records the tunnel's CAP completion in the supplied game-flag nibble.
+///
+/// While CAP is busy the live task waits. Once idle, variant key 12 preserves
+/// the flag; every other key writes 2 to the flag ID in `spawnArg1.value`.
+/// The task then releases itself regardless of the key. `spawnArg2` and state
+/// are unused. The flag ID must be valid and the room overlay remain loaded.
+void neoArkEveAccessTunnelRecordCapCompletionTask(Task* task);
 
 #endif // SRC_ROOMS_NEO_ARK_EVE_ACCESS_TUNNEL_NEO_ARK_EVE_ACCESS_TUNNEL_PRIVATE_H

@@ -463,14 +463,10 @@ static const TaskFuncTable3 D_dryfield_night_souvenir_shop_8017D5C4 = {
     { _dryfieldNightSouvenirShopInitRoomTask, _dryfieldNightSouvenirShopIdleRoomTask, taskKill },
 };
 
-/// The room task's callback: runs the state `Task::state` selects from a
-/// stack copy of `D_dryfield_night_souvenir_shop_8017D5C4`.
-void func_dryfield_night_souvenir_shop_8017D65C(Task* task)
+void dryfieldNightSouvenirShopRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_dryfield_night_souvenir_shop_8017D5C4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_dryfield_night_souvenir_shop_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_prism.inc.c"

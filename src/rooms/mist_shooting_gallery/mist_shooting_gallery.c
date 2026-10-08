@@ -1287,7 +1287,7 @@ void func_mist_shooting_gallery_8017E234(Task* task)
 
     status = obj->panel.control.word;
     if ((status == 1) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-        bonus = func_mist_shooting_gallery_80184470(total);
+        bonus = mistShootingGalleryGetBonusBp(total);
         state = task->state;
         if (state == status) {
             if (bonus > 0) {
@@ -1344,7 +1344,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     obj->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&(obj)->panel, "BONUS");
     if (task->state == 0) {
-        bonus = func_mist_shooting_gallery_80184470(score);
+        bonus = mistShootingGalleryGetBonusBp(score);
         cfg   = &gPlayerStatus;
         if (bonus > 0) {
             total   = cfg->bp + bonus;
@@ -1398,7 +1398,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req4.alignment  = TEXT_ALIGNMENT_RIGHT;
     req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req4, textItoaSigned(buf, func_mist_shooting_gallery_80184470(score)));
+    textDrawString(&req4, textItoaSigned(buf, mistShootingGalleryGetBonusBp(score)));
 
     if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
         obj->result = USER_INTERFACE_RESULT_CONFIRM;

@@ -139,7 +139,7 @@ extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 /// and jumps to the state-9 shutdown banner.
 extern void   func_actor_215100_8014A908(void);
 extern void   func_actor_215100_8014A9A0(void);
-static void   func_mist_shooting_gallery_80184A80(Task* arg0);
+static void   _mistShootingGalleryExitCourse(Task* task);
 static void   _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work);
 static u16    _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work);
 static void   func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2);
@@ -2336,7 +2336,7 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
     }
 
     D_mist_shooting_gallery_8018E0C4 = arg0;
-    arg0->exitCallback               = func_mist_shooting_gallery_80184A80;
+    arg0->exitCallback               = _mistShootingGalleryExitCourse;
     arg0->state++;
     work->course = arg0->spawnArg1.value & 0xF;
     work->clockX = -0xDC;
@@ -3239,58 +3239,66 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
     }
 }
 
-s32 func_mist_shooting_gallery_80184470(s32 score)
+s32 mistShootingGalleryGetBonusBp(s32 score)
 {
-    s32 bonus = 0;
+    enum {
+        MIST_SHOOTING_GALLERY_BONUS_BP_NONE   = 0,
+        MIST_SHOOTING_GALLERY_BONUS_BP_LOW    = 100,
+        MIST_SHOOTING_GALLERY_BONUS_BP_MEDIUM = 200,
+        MIST_SHOOTING_GALLERY_BONUS_BP_HIGH   = 300,
+    };
 
-    switch (((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->course) {
+    const MistShootingGalleryWork* work    = D_mist_shooting_gallery_8018E0C4->work;
+    s32                            bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_NONE;
+
+    switch (work->course) {
         case 0:
-            if (score >= 0x2710) {
-                bonus = 0x12C;
-            } else if (score >= 0x2328) {
-                bonus = 0xC8;
-            } else if (score >= 0x1F40) {
-                bonus = 0x64;
+            if (score >= 10000) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_HIGH;
+            } else if (score >= 9000) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_MEDIUM;
+            } else if (score >= 8000) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_LOW;
             }
             break;
         case 1:
-            if (score >= 0x43F8) {
-                bonus = 0x12C;
-            } else if (score >= 0x41A0) {
-                bonus = 0xC8;
-            } else if (score >= 0x3E80) {
-                bonus = 0x64;
+            if (score >= 17400) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_HIGH;
+            } else if (score >= 16800) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_MEDIUM;
+            } else if (score >= 16000) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_LOW;
             }
             break;
         case 2:
-            if (score > 0xC34F) {
-                bonus = 0x12C;
-            } else if (score > 0xB3AF) {
-                bonus = 0xC8;
-            } else if (score > 0x9857) {
-                bonus = 0x64;
+            if (score > 49999) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_HIGH;
+            } else if (score > 45999) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_MEDIUM;
+            } else if (score > 38999) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_LOW;
             }
             break;
         case 3:
-            if (score > 0xEA5F) {
-                bonus = 0x12C;
-            } else if (score > 0xDABF) {
-                bonus = 0xC8;
-            } else if (score > 0xCB1F) {
-                bonus = 0x64;
+            if (score > 59999) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_HIGH;
+            } else if (score > 55999) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_MEDIUM;
+            } else if (score > 51999) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_LOW;
             }
             break;
         case 4:
-            if (score > 0xD6D7) {
-                bonus = 0x12C;
-            } else if (score > 0xCF07) {
-                bonus = 0xC8;
-            } else if (score > 0xC34F) {
-                bonus = 0x64;
+            if (score > 54999) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_HIGH;
+            } else if (score > 52999) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_MEDIUM;
+            } else if (score > 49999) {
+                bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_LOW;
             }
             break;
     }
-    return bonus;
+    return bonusBp;
 }
 
 /// Slides the course countdown into view and draws its remaining time as MM:SS.
@@ -3469,17 +3477,29 @@ static void func_mist_shooting_gallery_80184A14(Task* arg0)
     rounds.funcs[work->course](arg0);
 }
 
-static void func_mist_shooting_gallery_80184A80(Task* arg0)
+/// Restores movement and queues the player's collision passes and view triggers.
+static inline void _mistShootingGalleryRestorePlayerControl(GameActor* player)
 {
-    GameActor* actor;
+    player->movementInputDisabled                        = 0;
+    player->pendingCollisionUpdates                      = GAME_ACTOR_COLLISION_REQUEST_MASK;
+    player->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
+}
 
-    actor                                               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    actor->movementInputDisabled                        = 0;
-    actor->pendingCollisionUpdates                      = 7;
-    actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
+/// Restores player control and tears down the gallery controller.
+///
+/// Used as the controller's exit callback. Requires a live player task with
+/// `GameActor` work. Releases one menu hold and battle reference before freeing
+/// controller work; the final battle release clears pending rewards. The menu
+/// release also runs for courses that acquired no hold.
+static void _mistShootingGalleryExitCourse(Task* task)
+{
+    GameActor* player;
+
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+    _mistShootingGalleryRestorePlayerControl(player);
     displayReleaseMenuHold();
-    sceneReleaseBattleRefAndClearRewards(arg0, 0);
-    taskKill(arg0);
+    sceneReleaseBattleRefAndClearRewards(task, 0);
+    taskKill(task);
 }
 
 /// Decrements the course's 30 Hz clock while combat actors run; returns frames left.

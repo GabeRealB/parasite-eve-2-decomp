@@ -56,7 +56,7 @@ static void _mineTunnelEntranceInitRoomTask(Task* task);
 static void _mineTunnelEntranceAdvanceSceneEvent(Task* unusedTask);
 static void _mineTunnelEntranceIdle(Task* unusedTask);
 
-/// State handlers of the room task `func_mine_tunnel_entrance_8017D6BC` runs:
+/// State handlers of the room task `mineTunnelEntranceRoomTask` runs:
 /// set-up, the scene-event state, an idle state and `taskKill`.
 static const TaskFuncTable4 D_mine_tunnel_entrance_8017D5C4 = {
     _mineTunnelEntranceInitRoomTask,
@@ -564,14 +564,10 @@ static void _mineTunnelEntranceIdle(Task* unusedTask)
 {
 }
 
-/// Per-frame entry of the room task: copies the state table onto the stack
-/// and runs the handler for the task's current state.
-void func_mine_tunnel_entrance_8017D6BC(Task* task)
+void mineTunnelEntranceRoomTask(Task* task)
 {
-    TaskFuncTable4 states;
-
-    states = D_mine_tunnel_entrance_8017D5C4;
-    states.funcs[task->state](task);
+    TaskFuncTable4 stateHandlers = D_mine_tunnel_entrance_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 void mineTunnelEntranceDrawFlaresTask(Task* unusedTask)

@@ -55,3 +55,4 @@ _glowDrawCapsule = 0x8017E244; // type:func
 roomDepartureTask = 0x8017D810; // type:func
 _roomVariantResolveShelter = 0x8017D6D4; // type:func
 neoArkEveAccessTunnelSetPartDestroyedSprites = 0x8017e090; // type:func
+neoArkEveAccessTunnelRecordCapCompletionTask = 0x8017ded0; // type:func

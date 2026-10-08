@@ -319,3 +319,5 @@ mistShootingGalleryRoomTask = 0x8018018c; // type:func
 _mistShootingGalleryJukeboxPanelTask = 0x80180728; // type:func
 _mistShootingGalleryModeSplashTask = 0x80180b64; // type:func
 _mistShootingGalleryClearMovieTask = 0x80180f2c; // type:func
+mistShootingGalleryGetBonusBp = 0x80184470; // type:func
+_mistShootingGalleryExitCourse = 0x80184a80; // type:func

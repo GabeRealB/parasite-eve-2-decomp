@@ -40,6 +40,11 @@ extern WorldCollisionSurfaceProperties* D_dryfield_souvenir_shop_8017F640[];
 /// ready; queued packets remain live until the GPU finishes the frame.
 void dryfieldSouvenirShopLightPrismsTask(Task* task);
 
-void func_dryfield_souvenir_shop_8017D65C(Task* task);
+/// Runs the souvenir shop's room-message task for one update.
+///
+/// Requires a live task: state 0 initializes, 1 idles and 2 releases the task.
+/// The state index is unchecked. Keep this room overlay loaded while the task
+/// or its registered message handlers can run; the final state ends its lifetime.
+void dryfieldSouvenirShopRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_SOUVENIR_SHOP_H

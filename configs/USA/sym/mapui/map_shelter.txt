@@ -22,7 +22,7 @@ D_mine_cavern_80189074 = 0x80189074; // absolute:True owner=mine_cavern shared=r
 D_mine_cavern_80189840 = 0x80189840; // absolute:True owner=mine_cavern
 D_mine_cavern_8018CD10 = 0x8018CD10; // absolute:True owner=mine_cavern
 D_mine_cavern_8018E30C = 0x8018E30C; // absolute:True owner=mine_cavern
-func_mine_tunnel_entrance_8017D6BC = 0x8017D6BC; // type:func absolute:True owner=mine_tunnel_entrance shared=rooms
+mineTunnelEntranceRoomTask = 0x8017D6BC; // type:func absolute:True owner=mine_tunnel_entrance shared=rooms
 D_mine_tunnel_entrance_8017DB58 = 0x8017DB58; // absolute:True owner=mine_tunnel_entrance
 D_mine_tunnel_entrance_8017DB60 = 0x8017DB60; // absolute:True owner=mine_tunnel_entrance
 D_mine_tunnel_entrance_8017DB70 = 0x8017DB70; // absolute:True owner=mine_tunnel_entrance

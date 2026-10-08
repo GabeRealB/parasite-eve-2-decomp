@@ -1183,14 +1183,10 @@ static const TaskFuncTable3 D_dryfield_night_motel_room_2_8017D5C4 = {
     },
 };
 
-/// Runs the room's event task through its three-state table, which it copies
-/// onto the stack before the call.
-void func_dryfield_night_motel_room_2_8017D6BC(Task* task)
+void dryfieldNightMotelRoom2RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_dryfield_night_motel_room_2_8017D5C4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_dryfield_night_motel_room_2_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_flare_clipped.inc.c"

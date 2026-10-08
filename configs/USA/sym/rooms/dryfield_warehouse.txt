@@ -77,3 +77,5 @@ func_dryfield_warehouse_8017D9F8 = 0x8017D9F8; // type:func
 _screenFadeInTask = 0x8017E22C; // type:func
 _glowDrawGreyPrism = 0x8017E414; // type:func
 _dryfieldWarehouseDrawLightBeam = 0x8017ed34; // type:func
+dryfieldWarehouseAmbienceTask = 0x8017d5e8; // type:func
+_dryfieldWarehouseFadeOutTask = 0x8017e308; // type:func

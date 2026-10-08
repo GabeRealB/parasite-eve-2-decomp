@@ -41,6 +41,11 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_warehouse_8017FC24[];
 /// Views 4, 7 and 8 draw only beams 3 and 4. Other views queue no geometry.
 void dryfieldNightWarehouseDrawGlowsTask(Task* task);
 
-void func_dryfield_night_warehouse_8017D65C(Task* task);
+/// Runs the night warehouse's room-message task for one update.
+///
+/// Requires a live task: state 0 initializes, 1 idles and 2 releases the task.
+/// The state index is unchecked. Keep this room overlay loaded while the task
+/// or its registered message handlers can run; the final state ends its lifetime.
+void dryfieldNightWarehouseRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_WAREHOUSE_H

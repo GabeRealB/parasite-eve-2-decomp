@@ -125,8 +125,8 @@ extern WorldCollisionGrid D_dryfield_warehouse_801802A8[1];
 extern WorldCollisionGrid D_dryfield_warehouse_801809AC[1];
 extern WorldCollisionGrid D_dryfield_warehouse_80181038[1];
 
-void func_dryfield_warehouse_8017E090(Task*);
-void func_dryfield_warehouse_8017E308(Task*);
+void        func_dryfield_warehouse_8017E090(Task*);
+static void _dryfieldWarehouseFadeOutTask(Task* task);
 
 void func_dryfield_warehouse_8017DA58(s32);
 void func_dryfield_warehouse_8017E3F4(s16);
@@ -139,7 +139,7 @@ TaskMessageEntry D_dryfield_warehouse_8017F554[3] = {
 
 TaskDesc D_dryfield_warehouse_8017F56C[2] = {
     { { { TASK_BODY_NONE, 32 } }, func_dryfield_warehouse_8017D8D4, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_warehouse_8017D5E8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, dryfieldWarehouseAmbienceTask, { .value = 0 } },
 };
 
 static AnimationPackedPose _gDryfieldWarehouseAnimation02260Bank1[2] = {
@@ -208,7 +208,7 @@ EvsCommand D_dryfield_warehouse_8017FA00[11] = {
 
 TaskDesc D_dryfield_warehouse_8017FB08[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_warehouse_8017E090, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_warehouse_8017E308, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldWarehouseFadeOutTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
 };
 
@@ -755,43 +755,61 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
 
 #include "../../shared/screen_fade_in.inc.c"
 
-/// Screen-fade task: on its first tick it allocates the 8-byte `r`/`g`/`b`
-/// block and seeds all three channels to 0, then every frame it draws the fade
-/// overlay and steps each channel up by `Task::spawnArg1`. `r` is the one the
-/// end-of-fade test watches, so once it has reached 0x100 the display is
-/// switched back on, the room's fade-task handle is cleared and the task kills
-/// itself.
-void func_dryfield_warehouse_8017E308(Task* arg0)
+/// Advances all fade channels by the spawn rate's unsigned low halfword.
+///
+/// Each addition narrows back to signed 16 bits without clamping.
+static inline void _dryfieldWarehouseStepFadeOut(ScreenFadeWork* fade, const Task* task)
 {
-    ScreenFadeWork* fade;
-    ScreenFadeWork* alloc;
+    fade->r += task->spawnArg1.halves.low;
+    fade->g += task->spawnArg1.halves.low;
+    fade->b += task->spawnArg1.halves.low;
+}
 
-    fade = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+/// Darkens the warehouse screen, then disables display and releases the fade task.
+///
+/// State 0 owns a primary-heap `ScreenFadeWork`, initially all zero channels;
+/// allocation failure kills the task. State 1 draws red/green/red before each
+/// step. The low unsigned halfword of `spawnArg1.value` is intensity per update
+/// (the cutscene supplies 8); zero holds indefinitely. Signed-halfword channels
+/// may wrap for large rates. At red >= 256 the display is disabled, the room's
+/// fade-task handle is cleared and teardown frees the work. Other states idle.
+/// Requires the overlay, frame packet arena and foreground ordering table.
+static void _dryfieldWarehouseFadeOutTask(Task* task)
+{
+    enum {
+        DRYFIELD_WAREHOUSE_FADE_OUT_INITIALIZE = 0,
+        DRYFIELD_WAREHOUSE_FADE_OUT_RAMP       = 1,
+        DRYFIELD_WAREHOUSE_FADE_OUT_COMPLETE   = 256,
+    };
+
+    ScreenFadeWork* fade;
+    ScreenFadeWork* allocatedFade;
+
+    fade = task->work;
+    switch (task->state) {
+        case DRYFIELD_WAREHOUSE_FADE_OUT_INITIALIZE:
+            allocatedFade = memMalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 return;
             }
-            fade         = alloc;
+            fade         = allocatedFade;
             fade->b      = 0;
             fade->g      = 0;
             fade->r      = 0;
-            arg0->state += 1;
+            task->state += DRYFIELD_WAREHOUSE_FADE_OUT_RAMP - DRYFIELD_WAREHOUSE_FADE_OUT_INITIALIZE;
+            // Draw the initial zero overlay and advance in this same update.
             /* fallthrough */
-        case 1:
+        case DRYFIELD_WAREHOUSE_FADE_OUT_RAMP:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-            fade->r += (u16)arg0->spawnArg1.value;
-            fade->g += (u16)arg0->spawnArg1.value;
-            fade->b += (u16)arg0->spawnArg1.value;
-            if (fade->r < 0x100) {
+            _dryfieldWarehouseStepFadeOut(fade, task);
+            if (fade->r < DRYFIELD_WAREHOUSE_FADE_OUT_COMPLETE) {
                 return;
             }
             SetDispMask(0);
             D_dryfield_warehouse_801821C0 = NULL;
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }

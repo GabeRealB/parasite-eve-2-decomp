@@ -422,14 +422,10 @@ static const TaskFuncTable3 D_dryfield_night_warehouse_8017D5C4 = {
     { _dryfieldNightWarehouseInitRoomTask, _dryfieldNightWarehouseRoomIdle, taskKill },
 };
 
-/// The room task: copies its three-state table onto the stack and runs the
-/// entry for the task's current state.
-void func_dryfield_night_warehouse_8017D65C(Task* task)
+void dryfieldNightWarehouseRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
-
-    sp = D_dryfield_night_warehouse_8017D5C4;
-    sp.funcs[task->state](task);
+    TaskFuncTable3 stateHandlers = D_dryfield_night_warehouse_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_prism.inc.c"

@@ -64,3 +64,4 @@ _mineTunnelEntranceAdvanceSceneEvent = 0x8017d690; // type:func
 _mineTunnelEntranceIdle = 0x8017d6b4; // type:func
 _mineTunnelEntranceResolveRoomTransition = 0x8017d5f0; // type:func
 _mineTunnelEntranceInitRoomTask = 0x8017d644; // type:func
+mineTunnelEntranceRoomTask = 0x8017d6bc; // type:func

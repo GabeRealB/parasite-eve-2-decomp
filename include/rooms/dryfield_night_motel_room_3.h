@@ -44,6 +44,11 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_3_80180DC4[]
 /// below 17. Queued packets remain in the frame arena until GPU completion.
 void dryfieldNightMotelRoom3DrawFlaresTask(Task* task);
 
-void func_dryfield_night_motel_room_3_8017D6E0(Task* task);
+/// Runs night motel room 3's room-message task for one update.
+///
+/// Requires a live task: state 0 initializes, 1 idles and 2 releases the task.
+/// The state index is unchecked. Keep this room overlay loaded while the task
+/// or its registered message handlers can run; the final state ends its lifetime.
+void dryfieldNightMotelRoom3RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_MOTEL_ROOM_3_H

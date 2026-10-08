@@ -92,3 +92,4 @@ _neoArkBridgeIgnoreRoomCommand = 0x8017e878; // type:func
 _neoArkBridgeIgnoreRoomAction = 0x8017e880; // type:func
 _neoArkBridgeInitRoomTask = 0x8017e888; // type:func
 _neoArkBridgeIdleRoomTask = 0x8017e8f4; // type:func
+neoArkBridgeRoomTask = 0x8017e8fc; // type:func

@@ -41,6 +41,12 @@ extern WorldCollisionSurfaceProperties* D_mine_tunnel_entrance_8017F3E8[];
 /// Queued packets live until the current frame has finished on the GPU.
 void mineTunnelEntranceDrawFlaresTask(Task* unusedTask);
 
-void func_mine_tunnel_entrance_8017D6BC(Task* task);
+/// Runs the mine tunnel entrance's room-message task for one update.
+///
+/// Requires a live task: state 0 initializes, 1 advances the arrival event,
+/// 2 idles and 3 releases the task.
+/// The state index is unchecked. Keep this room overlay loaded while the task
+/// or its registered message handlers can run; the final state ends its lifetime.
+void mineTunnelEntranceRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_MINE_TUNNEL_ENTRANCE_H

@@ -39,7 +39,14 @@ extern s32 D_mist_shooting_gallery_8018E0BC;
 
 extern s32 D_mist_shooting_gallery_8018E0C0;
 
-s32 func_mist_shooting_gallery_80184470(s32 score);
+/// Returns the bonus BP earned by a score in the active gallery course.
+///
+/// Requires the live gallery controller and its initialized work. Returns
+/// 0, 100, 200 or 300 BP, without crediting rewards or changing course flags.
+/// Minimum scores for 100/200/300 BP by zero-based course are:
+/// 0: 8000/9000/10000; 1: 16000/16800/17400; 2: 39000/46000/50000;
+/// 3: 52000/56000/60000; 4: 50000/53000/55000. Other courses return 0.
+s32 mistShootingGalleryGetBonusBp(s32 score);
 
 s32 func_mist_shooting_gallery_80184970(s32 arg0);
 

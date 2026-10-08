@@ -40,6 +40,11 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_1_80180844[]
 /// drawing. A selected flare reserves one packet even when depth-clipped.
 void dryfieldNightMotelRoom1DrawGlowsTask(Task* task);
 
-void func_dryfield_night_motel_room_1_8017D6DC(Task* task);
+/// Runs night motel room 1's room-message task for one update.
+///
+/// Requires a live task: state 0 initializes, 1 idles and 2 releases the task.
+/// The state index is unchecked. Keep this room overlay loaded while the task
+/// or its registered message handlers can run; the final state ends its lifetime.
+void dryfieldNightMotelRoom1RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_MOTEL_ROOM_1_H
