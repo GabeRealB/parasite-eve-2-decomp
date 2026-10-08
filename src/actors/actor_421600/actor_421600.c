@@ -3649,21 +3649,23 @@ static __inline__ s32 _actor421600GetRouteQuadrant(s32 x, s32 z)
 
 /// Loads both patrol points for one quadrant and this enemy's placement class.
 ///
-/// `scratch->playerQuadrant` must be 0..3. Placement zero uses columns 0..3; every other
-/// index uses columns 4..7 of the route table. Source words narrow to the
-/// patrol points' signed halfwords in root-parent coordinate units.
-static inline void _actor421600SelectPatrolRoute(DesertChaserWork* work, Enemy* enemy, _Actor421600RouteRoamScratch* scratch)
+/// `playerQuadrant` must point to a live signed-halfword row index 0..3.
+/// Placement zero uses columns 0..3; every other placement index uses columns
+/// 4..7. Rereads the row for each component and copies both XZ points into the work;
+/// source words narrow to signed halfwords in root-parent coordinate units.
+/// Does not change the current patrol target or retain the borrowed pointers.
+static inline void _actor421600SelectPatrolRoute(DesertChaserWork* work, const Enemy* enemy, const s16* playerQuadrant)
 {
     if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
-        work->patrolPoints[0].x = D_actor_421600_801511D4[scratch->playerQuadrant][0];
-        work->patrolPoints[0].z = D_actor_421600_801511D4[scratch->playerQuadrant][1];
-        work->patrolPoints[1].x = D_actor_421600_801511D4[scratch->playerQuadrant][2];
-        work->patrolPoints[1].z = D_actor_421600_801511D4[scratch->playerQuadrant][3];
+        work->patrolPoints[0].x = D_actor_421600_801511D4[*playerQuadrant][0];
+        work->patrolPoints[0].z = D_actor_421600_801511D4[*playerQuadrant][1];
+        work->patrolPoints[1].x = D_actor_421600_801511D4[*playerQuadrant][2];
+        work->patrolPoints[1].z = D_actor_421600_801511D4[*playerQuadrant][3];
     } else {
-        work->patrolPoints[0].x = D_actor_421600_801511D4[scratch->playerQuadrant][4];
-        work->patrolPoints[0].z = D_actor_421600_801511D4[scratch->playerQuadrant][5];
-        work->patrolPoints[1].x = D_actor_421600_801511D4[scratch->playerQuadrant][6];
-        work->patrolPoints[1].z = D_actor_421600_801511D4[scratch->playerQuadrant][7];
+        work->patrolPoints[0].x = D_actor_421600_801511D4[*playerQuadrant][4];
+        work->patrolPoints[0].z = D_actor_421600_801511D4[*playerQuadrant][5];
+        work->patrolPoints[1].x = D_actor_421600_801511D4[*playerQuadrant][6];
+        work->patrolPoints[1].z = D_actor_421600_801511D4[*playerQuadrant][7];
     }
 }
 
@@ -3750,7 +3752,7 @@ static void _actor421600RouteRoamState(Task* task)
         work->lookYawTarget       = _actorAngleTurnToOffset(task->extra.tmd->coords, scratch->toPatrolPoint.vx, playerOffsetZ);
         work->patrolTarget        = 0;
         // Each quadrant row has two points for placement zero and two for other placements.
-        _actor421600SelectPatrolRoute(work, enemy, scratch);
+        _actor421600SelectPatrolRoute(work, enemy, &scratch->playerQuadrant);
         SCRATCH_STACK_RELEASE_BLOCK(_Actor421600RouteRoamScratch);
         work->wallProbe.shape.ends[1].vz = DESERT_CHASER_PATROL_PROBE_REACH;
         return;
@@ -3779,7 +3781,7 @@ static void _actor421600RouteRoamState(Task* task)
         }
         playerRoot              = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
         scratch->playerQuadrant = _actor421600GetRouteQuadrant(playerRoot->coord.t[0], playerRoot->coord.t[2]);
-        _actor421600SelectPatrolRoute(work, enemy, scratch);
+        _actor421600SelectPatrolRoute(work, enemy, &scratch->playerQuadrant);
         work->stateTimer = 0;
     }
     _desertChaserAnimTick(task);
@@ -3993,11 +3995,13 @@ static const DesertChaserStateTable D_actor_421600_80131EFC = { { _actor421600Hi
                                                                   _desertChaserCloseCatchState,
                                                                   _desertChaserRoam,
                                                                   _actor421600RouteRoamState } };
-/// Keeps a collision-enabled held player within 300 vertical units of the chaser.
+/// Snaps the held player to the chaser's height when vertical separation exceeds 300 units.
 ///
-/// Requires live chaser work/model. A missing player is skipped; an enabled
-/// move request with a greater height difference snaps Y and dirties the root.
-/// The frame driver deliberately calls this twice on its eligible states.
+/// Requires live chaser work/model and, when present, the player's live model in
+/// the same parent frame. Acts only when the pending move's collision requests
+/// equal `GAME_ACTOR_COLLISION_REQUEST_MASK`; a missing player is skipped. Copies
+/// root Y and dirties the player's cache without changing X/Z or dispatching a
+/// movement request. The frame driver retains two calls in its eligible states.
 static inline void _actor421600AlignHeldPlayerHeight(Task* task)
 {
     enum { ACTOR421600_HELD_HEIGHT_LIMIT = 300 };

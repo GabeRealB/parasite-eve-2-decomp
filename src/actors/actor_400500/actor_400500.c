@@ -3336,25 +3336,26 @@ static inline ActorOriginDepthScratch* _actor400500PushOriginDepth(void)
     return block;
 }
 
-/// Queues the captured scene behind a coordinate's projected origin.
+/// Queues a scene-frame capture at a coordinate's projected depth plus a tag bias.
 ///
-/// Borrows and composes `coord`; `depthBias` counts ordering-table tags after
-/// projection quantization. Failed projections use zero depth before the bias.
-/// Requires initialized GTE/scratch facilities and an in-bounds biased slot.
-/// Releases all scratch storage before return and retains no pointer.
+/// Refreshes `coord` through its live parent chain, then projects its local origin.
+/// Divides SZ3 by 64 to select the ordering-table tag; `depthBias` is added after
+/// quantization. A negative GTE FLAG substitutes zero depth before that addition.
+/// The biased slot must fit the live ordering table (normally 0..1055), with no
+/// clamp. Requires the loaded frame-capture resources, eleven free GPU packets
+/// and 44 scratch bytes across this projection and its nested capture. Releases
+/// both scratch blocks before returning; GTE working state is clobbered.
 static inline void _actor400500QueueCoordFrameCapture(GfxCoord* coord, s32 depthBias)
 {
     ActorOriginDepthScratch* projection;
-    SVECTOR*                 origin;
     MATRIX*                  composedMatrix;
 
     projection = _actor400500PushOriginDepth();
     actorRenderComposeCoord(coord);
-    origin         = &projection->origin;
     composedMatrix = &coord->workm;
     gte_SetRotMatrix(composedMatrix);
     gte_SetTransMatrix(composedMatrix);
-    gte_ldv0(origin);
+    gte_ldv0(&projection->origin);
     gte_rtps();
     gte_stsxy(&projection->screenPos);
     gte_stdp(&projection->depthCue);

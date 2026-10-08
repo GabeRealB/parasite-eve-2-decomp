@@ -744,10 +744,12 @@ void actor341300ResetScriptTaskHandle(void)
     D_actor_341300_80165AA4 = NULL;
 }
 
-/// Spawns ten slot-1 shards at one position, borrowing the live emitter as parent.
+/// Attempts ten falling debris shards at one of emitter 0's four positions.
 ///
-/// spawnIndex must fit the four-position table. Allocation failures are ignored;
-/// each successful shard attaches itself to the emitter on its first update.
+/// `spawnIndex` must be 0..3 and is forwarded unchanged in spawnArg1. Requires
+/// the loaded shard descriptor and position table. Each successful child borrows
+/// `emitter` through its first update, then joins its teardown tree; the emitter
+/// must stay live until then. Failed spawns still count toward the ten attempts.
 static inline void _actor341300SpawnShardBatch(Task* emitter, s32 spawnIndex)
 {
     s16 shardIndex;
@@ -949,10 +951,13 @@ static void _actor341300Emitter0ShardTask(Task* task)
     }
 }
 
-/// Spawns one three-shard burst, alternating which of the two positions repeats.
+/// Attempts three emitter-2 debris shards in position order 0, middle, 1.
 ///
-/// middleSpawnIndex is 0 or 1. Failed spawns are ignored; successful children
-/// borrow the emitter until they attach themselves on their first update.
+/// `middleSpawnIndex` must be 0 or 1, selecting which of the two loaded positions
+/// repeats. Requires the slot-3 shard descriptor and its two-position table.
+/// Successful children borrow `emitter` until their first update attaches them
+/// to its teardown tree; it must stay live until then. Failures are ignored
+/// independently, preserving all three spawn attempts and their order.
 static inline void _actor341300SpawnEmitter2Burst(Task* emitter, s32 middleSpawnIndex)
 {
     taskSpawnFromTable(D_actor_341300_80165A68, ACTOR_341300_EMITTER_2_SHARD_TASK_INDEX, 0, emitter);

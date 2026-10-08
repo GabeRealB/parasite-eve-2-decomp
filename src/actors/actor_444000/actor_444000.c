@@ -2951,9 +2951,13 @@ static void _actor444000EventUpdateDescentRoom(s32 updateMode)
     }
 }
 
-/// Ends combat and selects event music once, retaining the supplied latch value.
+/// Clears the incinerator event's combat state and selects its post-boss music once.
 ///
-/// Requires live work, session and save; the caller supplies its state latch.
+/// Requires live event work, session and save. If the work is not yet latched,
+/// clears all battle references, action signals and enemy alerts, installs a
+/// fifteen-frame end delay in the idle phase, requests weapon re-equipping and
+/// selects scene event 13. Stores the low 16 bits of `completionLatch`; they must
+/// be nonzero to prevent repetition. The event task supplies its current state, 1.
 static inline void _actor444000EndEventCombat(_Actor444000EventWork* work, s32 completionLatch)
 {
     enum {

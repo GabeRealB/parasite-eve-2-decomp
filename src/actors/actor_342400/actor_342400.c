@@ -69,7 +69,7 @@ static s16  _actor342400PickEncounterSpot(void);
 static s16  _actor342400InCullZone(s16 zoneId, s16 worldX, s16 worldZ);
 static void _actor342400WaveInitialize(Task* controllerTask);
 static void _actor342400WaveArmBattle(Task* controllerTask);
-static void func_actor_342400_80162AB0(Task* arg0);
+static void _actor342400WaveRun(Task* controllerTask);
 static void _actor342400WaveSpawnMadChaser(Task* waveTask);
 static void _actor342400WaveRevealMadChaser(Task* waveTask);
 static void _actor342400WaveBeginMadChaserWatch(Task* waveTask);
@@ -114,14 +114,14 @@ OverlayEncounterSlot gMadChaserWaveSlots[17] = {
 };
 
 static void _actor342400WaveMadChaserTask(Task* waveTask);
-void        func_actor_342400_80162824(Task*);
-void        func_actor_342400_80162888(Task*);
+static void _actor342400WaveSlouchTask(Task* waveTask);
+static void _actor342400WavePairTask(Task* waveTask);
 
 TaskDesc D_actor_342400_8016BFE0[4] = {
     { { { TASK_BODY_NONE, 32 } }, _actor342400WaveControllerTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 97 } }, _actor342400WaveMadChaserTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, func_actor_342400_80162824, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, func_actor_342400_80162888, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, _actor342400WaveSlouchTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, _actor342400WavePairTask, { .value = 0 } },
 };
 
 _Actor342400CullZone D_actor_342400_8016C010[17] = {
@@ -287,8 +287,6 @@ DamageAttack D_actor_342400_80170584[1] = {
 
 EnemyParams gMadChaserEnemyParams = { D_actor_342400_80170584, 110, 20, 40, 1, 100, 10, 100, 0 };
 
-static void func_actor_342400_80162324(Task* arg0);
-static void func_actor_342400_801631DC(s16 arg0);
 static void _actor342400SpawnEncounterSlot(s16 slotIndex, s16 enemyKind, s16 command);
 
 #include "../../shared/mad_chaser_waves_pair_spawn.inc.c"
@@ -336,35 +334,66 @@ static void _actor342400WaveCullPair(Task* waveTask)
 #undef ACTOR_342400_WAVE_CULL_PAIR_ENEMY
 }
 
-static void func_actor_342400_80162324(Task* arg0)
+/// Counts encounter rows whose spawner has made an enemy live.
+static inline s16 _actor342400WaveCountLiveSlots(void)
 {
-    OverlayEncounterControllerWork* work = arg0->work;
-    s16                             count;
-    s16                             i;
-    s16                             idx;
-    s16                             type;
-    s16                             arg;
+    s16 liveSlotCount = 0;
+    s16 slotIndex;
 
-    count = 0;
-    for (i = 0; i < 17; i++) {
-        if (gMadChaserWaveSlots[i].status == OVERLAY_ENCOUNTER_SLOT_LIVE) {
-            count++;
+    for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(gMadChaserWaveSlots); slotIndex++) {
+        if (gMadChaserWaveSlots[slotIndex].status == OVERLAY_ENCOUNTER_SLOT_LIVE) {
+            liveSlotCount++;
         }
     }
-    if (count < 3) {
-        idx = work->nextSlot;
-        if (idx < 17 && gGameSession->sceneClock >= 0x3D) {
-            type = gMadChaserWaveSlots[idx].kind;
-            arg  = gMadChaserWaveSlots[idx].command;
-            switch (type) {
-                case 0:
-                    taskSpawnFromTable(D_actor_342400_8016BFE0, 1, (idx << 16) + arg + (_actor342400PickEncounterSpot() << 16 >> 8), 0);
+    return liveSlotCount;
+}
+
+/// Starts at most one later encounter row when fewer than three rows are live.
+///
+/// Requires initialized controller work, the loaded incinerator descriptors and
+/// a live player model. `nextSlot` is a nonnegative row cursor through the full
+/// slot table; spawning requires at least 61 frames remaining on the scene clock.
+/// Each recognized kind consumes one random spot pick and packs the row into
+/// the high spawn halfword.
+/// Advances the cursor even for an unknown kind or a failed spawn; this call
+/// does not mark the row live, so pending spawners are excluded from the limit.
+static void _actor342400WaveFeed(Task* controllerTask)
+{
+    enum {
+        ACTOR_342400_WAVE_LIVE_SLOT_LIMIT            = 3,
+        ACTOR_342400_WAVE_FEED_MIN_SCENE_CLOCK       = 61,
+        OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER       = 0,
+        OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH           = 1,
+        OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR = 2,
+        ACTOR_342400_MAD_CHASER_SPAWNER_DESCRIPTOR   = 1,
+        ACTOR_342400_SLOUCH_SPAWNER_DESCRIPTOR       = 2,
+        ACTOR_342400_PAIR_SPAWNER_DESCRIPTOR         = 3,
+        OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT           = 16,
+        OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT           = 8,
+        ACTOR_342400_SIGNED_HALFWORD_SHIFT           = 16,
+    };
+    OverlayEncounterControllerWork* work = controllerTask->work;
+    s16                             liveSlotCount;
+    s16                             nextSlotIndex;
+    s16                             enemyKind;
+    s16                             command;
+
+    liveSlotCount = _actor342400WaveCountLiveSlots();
+    if (liveSlotCount < ACTOR_342400_WAVE_LIVE_SLOT_LIMIT) {
+        nextSlotIndex = work->nextSlot;
+        if (nextSlotIndex < (s32)ARRAY_SIZE(gMadChaserWaveSlots) && gGameSession->sceneClock >= ACTOR_342400_WAVE_FEED_MIN_SCENE_CLOCK) {
+            enemyKind = gMadChaserWaveSlots[nextSlotIndex].kind;
+            command   = gMadChaserWaveSlots[nextSlotIndex].command;
+            // Preserve the signed-halfword spot expansion before adding command bits.
+            switch (enemyKind) {
+                case OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER:
+                    taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_MAD_CHASER_SPAWNER_DESCRIPTOR, (nextSlotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << ACTOR_342400_SIGNED_HALFWORD_SHIFT >> (ACTOR_342400_SIGNED_HALFWORD_SHIFT - OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT)), 0);
                     break;
-                case 1:
-                    taskSpawnFromTable(D_actor_342400_8016BFE0, 2, (idx << 16) + arg + (_actor342400PickEncounterSpot() << 16 >> 8), 0);
+                case OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH:
+                    taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_SLOUCH_SPAWNER_DESCRIPTOR, (nextSlotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << ACTOR_342400_SIGNED_HALFWORD_SHIFT >> (ACTOR_342400_SIGNED_HALFWORD_SHIFT - OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT)), 0);
                     break;
-                case 2:
-                    taskSpawnFromTable(D_actor_342400_8016BFE0, 3, (idx << 16) + arg + (_actor342400PickEncounterSpot() << 16 >> 8), 0);
+                case OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR:
+                    taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_PAIR_SPAWNER_DESCRIPTOR, (nextSlotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << ACTOR_342400_SIGNED_HALFWORD_SHIFT >> (ACTOR_342400_SIGNED_HALFWORD_SHIFT - OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT)), 0);
                     break;
             }
             work->nextSlot++;
@@ -457,7 +486,7 @@ static const TaskFuncTable4 D_actor_342400_80161E24 = { {
     _actor342400WaveInitialize,
     madChaserWaveOpen,
     _actor342400WaveArmBattle,
-    func_actor_342400_80162AB0,
+    _actor342400WaveRun,
 } };
 
 /// Dispatches the encounter controller while scene actors are running.
@@ -496,7 +525,7 @@ static void _actor342400WaveMadChaserTask(Task* waveTask)
 }
 
 /// The second spawner task's four state handlers, dispatched by
-/// `func_actor_342400_80162824`.
+/// `_actor342400WaveSlouchTask`.
 static const TaskFuncTable4 D_actor_342400_80161E44 = { {
     _actor342400WaveSpawnSlouch,
     _overlayEncounterRevealSlouch,
@@ -504,16 +533,20 @@ static const TaskFuncTable4 D_actor_342400_80161E44 = { {
     _actor342400WaveWatchSlouch,
 } };
 
-/// Runs the second spawner task's handler for its `Task::state`.
-void func_actor_342400_80162824(Task* arg0)
+/// Dispatches one Slouch slot's spawn, reveal, transition or watch stage.
+///
+/// State must be 0..3. The spawn argument carries a slot index 0..16 in its
+/// high halfword and the packed emerge command in its low halfword. Dispatch
+/// continues independently of the controller's scene-actor pause gate.
+static void _actor342400WaveSlouchTask(Task* waveTask)
 {
     TaskFuncTable4 handlers;
 
     handlers = D_actor_342400_80161E44;
-    handlers.funcs[arg0->state](arg0);
+    handlers.funcs[waveTask->state](waveTask);
 }
 
-/// The five state handlers `func_actor_342400_80162888` dispatches through by
+/// The five state handlers `_actor342400WavePairTask` dispatches through by
 /// `Task::state`.
 static const TaskFuncTable5 D_actor_342400_80161E54 = { {
     madChaserWavePairSpawn,
@@ -523,12 +556,18 @@ static const TaskFuncTable5 D_actor_342400_80161E54 = { {
     _overlayEncounterPairWatch,
 } };
 
-void func_actor_342400_80162888(Task* arg0)
+/// Dispatches a Sucklerceph pair's spawn, transition, two reveals or watch stage.
+///
+/// State must be 0..4. The spawn argument carries a slot index 0..16 in its
+/// high halfword and the packed emerge command in its low halfword. One failed
+/// enemy spawn is tolerated by the pair handlers; they borrow surviving enemies.
+/// Dispatch continues independently of the controller's scene-actor pause gate.
+static void _actor342400WavePairTask(Task* waveTask)
 {
-    TaskFuncTable5 sp;
+    TaskFuncTable5 handlers;
 
-    sp = D_actor_342400_80161E54;
-    sp.funcs[arg0->state](arg0);
+    handlers = D_actor_342400_80161E54;
+    handlers.funcs[waveTask->state](waveTask);
 }
 
 /// Initializes the incinerator's encounter controller or kills an ineligible task.
@@ -580,24 +619,30 @@ static void _actor342400WaveArmBattle(Task* controllerTask)
     }
 }
 
-static void func_actor_342400_80162AB0(Task* arg0)
+/// Feeds the incinerator encounter and releases its battle hold when every row is done.
+///
+/// Requires initialized controller work and the live slot table. A stop command
+/// suspends both feeding and completion without releasing the controller. On
+/// normal completion clears rewards, records spawn phase 1 as complete and kills
+/// the controller, whose teardown releases its work. Does not kill enemy tasks.
+static void _actor342400WaveRun(Task* controllerTask)
 {
-    OverlayEncounterControllerWork* work = arg0->work;
-    s16                             count;
-    s32                             i;
+    OverlayEncounterControllerWork* work = controllerTask->work;
+    s16                             doneSlotCount;
+    s32                             slotIndex;
 
-    count = 0;
+    doneSlotCount = 0;
     if (work->stop != OVERLAY_ENCOUNTER_COMMAND_STOP) {
-        func_actor_342400_80162324(arg0);
-        for (i = 0; i < 17; i++) {
-            if (gMadChaserWaveSlots[i].status == OVERLAY_ENCOUNTER_SLOT_DONE) {
-                count++;
+        _actor342400WaveFeed(controllerTask);
+        for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(gMadChaserWaveSlots); slotIndex++) {
+            if (gMadChaserWaveSlots[slotIndex].status == OVERLAY_ENCOUNTER_SLOT_DONE) {
+                doneSlotCount++;
             }
         }
-        if (count == 17) {
-            sceneReleaseBattleRefAndClearRewards(arg0, 0);
+        if (doneSlotCount == (s32)ARRAY_SIZE(gMadChaserWaveSlots)) {
+            sceneReleaseBattleRefAndClearRewards(controllerTask, 0);
             gGameSession->spawnPhase[1] = GAME_SESSION_SPAWN_COMPLETE;
-            taskKill(arg0);
+            taskKill(controllerTask);
         }
     }
 }
@@ -793,9 +838,14 @@ static void _actor342400WaveBeginPairReveal(Task* waveTask)
 
 #include "../../shared/mad_chaser_waves_pair_watch.inc.c"
 
-static void func_actor_342400_801631DC(s16 arg0)
+/// Selects the normal or reveal camera mapping for the incinerator encounter.
+///
+/// Zero maps logical view 2 to view 2; any nonzero signed halfword maps it to
+/// view 17. Requires the loaded room's writable shared room-1/room-3 view map.
+/// Changes only the mapping byte; it neither reloads nor dirties the live view.
+static void _actor342400SetEncounterRevealView(s16 revealEnabled)
 {
-    if (arg0 == 0) {
+    if (revealEnabled == 0) {
         gShelterB3GarbageIncineratorRoom1And3ViewMap[SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_VIEW_OFFSET] = SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_NORMAL_VIEW;
         return;
     }

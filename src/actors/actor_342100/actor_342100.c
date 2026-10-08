@@ -522,10 +522,13 @@ static void _actor342100BlazeFireEmitterTask(Task* task)
 
 #undef ACTOR_342100_CHOOSE_BLAZE_FIRE_OFFSET
 
-/// Gives a newly spawned blaze emitter identity rotation and a parent-space position.
+/// Places a newly spawned blaze fire emitter in its parent's coordinate frame.
 ///
-/// Borrows a live coordinate and three signed placement components. The spawn
-/// supplies its parent and dirty composition stamp; this preserves both.
+/// Replaces its rotation with Q12 identity and copies signed-halfword XYZ into
+/// the matrix's full-width translation; placement's pad is unused. The coordinate
+/// must already have its parent and a dirty composition stamp from spawning.
+/// Retains both, leaves the cached transform untouched and borrows both pointers
+/// only through this call.
 static inline void _actor342100PlaceBlazeFireEmitter(GfxCoord* coord, const SVECTOR* placement)
 {
     gfxSetRotIdentity(&coord->coord);
@@ -580,27 +583,29 @@ static void _actor342100SpawnBlazeFireEmitters(void)
 
 #include "../../shared/incinerator_blaze_body_fire.inc.c"
 
-/// Copies the blaze's three loaded clip pointers into the player's animation extension.
+/// Installs the blaze's three clip pointers in the selected player bank's extension.
 ///
-/// Requires live controller work, player and writable selected animation bank.
-/// The NULL-terminated set list is scanned with the original low-halfword index;
-/// the terminator is excluded. The synchronous request borrows its stack record,
-/// while the copied clip descriptors and data remain borrowed for later playback.
+/// Requires initialized controller work, its live player and the loaded, writable
+/// character/weapon bank. Scans the four-entry set table through its NULL terminator,
+/// using the counter's low 16 bits as the index and transfer count. Copies three
+/// pointer words starting at `ANIMATION_BANK_BASE_SET_COUNT`, excluding NULL;
+/// does not start playback. Dispatch borrows the stack request synchronously;
+/// the copied set descriptors and clip data must remain loaded during playback.
 static inline void _actor342100CopyBlazeAnimationSets(Task* controller)
 {
     enum { ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK = 0xFFFF };
-    _Actor342100BlazeWork*   dispatchWork;
+    _Actor342100BlazeWork*   work;
     AnimationBankCopyRequest bankCopyRequest;
-    s32                      setWordCount;
+    s32                      setCount;
     // Copy clip pointers before the script can request any of them.
-    dispatchWork = controller->work;
-    setWordCount = 0;
-    while (D_actor_342100_80164900[setWordCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK] != 0) {
-        setWordCount += 1;
+    work     = controller->work;
+    setCount = 0;
+    while (D_actor_342100_80164900[setCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK] != NULL) {
+        setCount += 1;
     }
-    bankCopyRequest.source.sets = &D_actor_342100_80164900[0];
-    bankCopyRequest.wordCount   = setWordCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK;
-    TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankCopyRequest, 0);
+    bankCopyRequest.source.sets = D_actor_342100_80164900;
+    bankCopyRequest.wordCount   = setCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK;
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankCopyRequest, 0);
 }
 
 /// Starts the player's blaze scene and reports completion after its event script ends.
@@ -637,10 +642,13 @@ static s32 _actor342100UpdateBlazeScene(Task* controller)
     return 0;
 }
 
-/// Allocates cleared blaze-controller work and publishes its player and task handles.
+/// Allocates and clears the blaze controller's owned work, then publishes its handles.
 ///
-/// The task owns the block until teardown. Allocation failure kills the task;
-/// its caller preserves the following caption, sound and state operations.
+/// Allocates the complete work block on the primary heap and attaches it to the
+/// task for teardown. On success records the current player and publishes the
+/// controller for event callbacks; neither borrowed task handle outlives its task.
+/// Failure stores NULL work and kills the task without publishing it. The caller
+/// retains its subsequent caption, sound and state operations on that path.
 static inline void _actor342100InitializeBlazeController(Task* task)
 {
     _Actor342100BlazeWork* allocatedWork;

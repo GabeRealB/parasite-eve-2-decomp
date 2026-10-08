@@ -2538,10 +2538,13 @@ static void _actor443500SetSceneEvent(s8 sceneEvent)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }
 
-/// Applies a held model's placement texture offsets to both primitive-buffer halves.
+/// Gives Pierce's held model its owner's placement texture and palette offsets.
 ///
-/// Both borrowed pointers, model source and existing buffer capacities must
-/// stay live through this call; a NULL buffer changes only the stored offsets.
+/// Copies texture-page and CLUT-row offsets, then rebuilds each half of an
+/// existing primitive buffer. A NULL buffer updates only the stored offsets.
+/// Requires a live placement, model source and sufficient writable buffer space
+/// for both halves; the two builds restore the original half selector. Borrows
+/// both pointers through this call and neither allocates nor frees storage.
 static inline void _actor443500ApplyPiercePlacementTextures(TmdObject* model, const AreaPlacement* placement)
 {
     model->texturePageOffset = placement->texturePageOffset;

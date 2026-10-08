@@ -67478,7 +67478,7 @@ at its definition, interleaved with the top-level `INCLUDE_ASM` /
 as the line sits where its block falls in the unit's rodata order - usually
 straight above the dispatcher, when the rodata migrated into the `INCLUDE_ASM`
 above is the block before it. `D_actor_342400_80161E54` (offset `0x34`) sits
-between `func_actor_342400_80162824`'s migrated `0x24` block and the
+between `_actor342400WaveSlouchTask`'s migrated `0x24` block and the
 `INCLUDE_RODATA` of `D_actor_342400_80161E68`, and checksums unscoped. Write
 it as a `TaskFuncTable5` global copied by struct assignment: a local
 `TaskFunc sp[5] = {...}` initializer produces the same `$LC0` bytes but lands

@@ -3981,30 +3981,32 @@ static inline void _actor403100ApplyJawAndHeadPitch(Task* task)
     _actor403100CopyRotation(targetRotation, &rotation);
 }
 
-/// Rebuilds the posed head/arm coordinate caches and samples head-origin lighting.
+/// Refreshes the Burner's posed hand and jaw chains before sampling head-origin lighting.
 ///
-/// Requires live Burner model coordinates 0..8 and enemy lighting state.
-/// Posing has finished for this update; compose the claw and jaw parent chains
-/// after dirtying their shared prefix, then sample the composed head origin.
+/// Requires the live fifteen-part model and enemy lighting state after posing.
+/// Invalidates only coordinates 0..8, then composes the hand and jaw through their
+/// shared parents. The head's resulting cache includes the view transform; its
+/// translation is passed unchanged to the lighting query. Coordinates 9..14 are
+/// outside this refresh. Requires the scratch space of the nested colour query.
 static inline void _actor403100RefreshPosedCoords(Task* task)
 {
     GfxCoord* actorCoords;
     GfxCoord* jawCoord;
     GfxCoord* headCoord;
 
-    actorCoords                 = task->extra.tmd->coords;
-    actorCoords[8].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorCoords[7].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorCoords[6].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorCoords[5].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorCoords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorCoords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorCoords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorCoords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorCoords[0].composeStamp = GRAPHICS_COORD_DIRTY;
-    jawCoord                    = actorCoords + 4;
-    headCoord                   = actorCoords + 3;
-    actorRenderComposeCoord(actorCoords + 8);
+    actorCoords                                              = task->extra.tmd->coords;
+    actorCoords[ACTOR_403100_PART_HAND].composeStamp         = GRAPHICS_COORD_DIRTY;
+    actorCoords[ACTOR_403100_PART_FOREARM].composeStamp      = GRAPHICS_COORD_DIRTY;
+    actorCoords[6].composeStamp                              = GRAPHICS_COORD_DIRTY;
+    actorCoords[5].composeStamp                              = GRAPHICS_COORD_DIRTY;
+    actorCoords[ACTOR_403100_PART_JAW].composeStamp          = GRAPHICS_COORD_DIRTY;
+    actorCoords[ACTOR_403100_PART_HEAD].composeStamp         = GRAPHICS_COORD_DIRTY;
+    actorCoords[ACTOR_403100_PART_MIDDLE_TRUNK].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorCoords[ACTOR_403100_PART_LOWER_TRUNK].composeStamp  = GRAPHICS_COORD_DIRTY;
+    actorCoords[0].composeStamp                              = GRAPHICS_COORD_DIRTY;
+    jawCoord                                                 = actorCoords + ACTOR_403100_PART_JAW;
+    headCoord                                                = actorCoords + ACTOR_403100_PART_HEAD;
+    actorRenderComposeCoord(actorCoords + ACTOR_403100_PART_HAND);
     actorRenderComposeCoord(jawCoord);
     _actor403100UpdateColor(task, headCoord);
 }
