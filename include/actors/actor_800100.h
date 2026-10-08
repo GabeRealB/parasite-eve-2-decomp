@@ -3,7 +3,13 @@
 
 #include "main/task_types.h"
 
-void func_actor_800100_80163CF0(Task* task);
+/// Runs the armed companion task's initialization, frame update or teardown.
+///
+/// Task state must be 0..3. State 0 initializes an actor/model supplied by the
+/// spawner; 1 updates it, 2 defers removal and 3 releases attached tasks and
+/// collision links. Actor work and model resources must remain live until
+/// teardown; the state-3 call kills the task and ends that lifetime.
+void actor800100Task(Task* task);
 
 void func_actor_800100_80161F20(Task* task);
 

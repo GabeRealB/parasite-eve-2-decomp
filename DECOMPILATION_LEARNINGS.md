@@ -13258,7 +13258,7 @@ jalr  v0                 ; a1/a2 still hold D[1]/D[2], a3 the table address
 
 They are local-alloc's choice of destination registers for the multi-load, which
 is why they coincide with the argument registers; the source is the plain
-one-argument dispatch of the sibling (`func_actor_800100_80165528`) with the
+one-argument dispatch of the sibling (`_actor800100TickBehavior`) with the
 table copy above it. `_actor800300TickMode` matched at 100% written that
 way, on the first attempt after the m2c baseline.
 
@@ -76482,7 +76482,7 @@ cross-check: it should equal the original unit's rodata span exactly.
 
 ## A live `$a0` shifts the block-move scratch registers
 
-`func_actor_800100_80166EE8` copies a `.rodata` callback table onto the stack and
+`_actor800100TickWeaponAttack` copies a `.rodata` callback table onto the stack and
 calls through it, exactly like its matched sibling `_actor800100DamageMode`:
 
 ```c
@@ -76515,7 +76515,7 @@ scratch-allocation puzzle to be pinned: read the target's `lw`/`sw` registers as
 "which of `$a0`-`$a3` were already taken" before anything else. Here the tell is
 that the target never touches `$a0` at all - the first free register is `$a1`,
 so something holds `$a0`, and for a void-typed body that something can only be a
-parameter the source passes on. `func_actor_800100_80166EE8` (96.92% -> 100%).
+parameter the source passes on. `_actor800100TickWeaponAttack` (96.92% -> 100%).
 Inputs: `base_1.i`
 `5a2ea948d4e18aa4267c66cc44f6ed16dc68593a2913069c81692ece45d77feb` (argument-less,
 `regs=16`), `base_2.i`
@@ -76523,7 +76523,7 @@ Inputs: `base_1.i`
 
 ## A pointer derived between the last pre-loop load and a block move takes its delay slot
 
-`func_actor_800100_80166514` copies a 0x50-byte `GfxCoord` into a stack local
+`_actor800100DrawAimBeam` copies a 0x50-byte `GfxCoord` into a stack local
 (`sp10 = *((TmdObject*)actor->equipmentTasks[1]->extra)->coords;`), which is the
 `movstrsi` 5x16-byte loop of the entry above, and then uses a *second* pointer
 taken from the same actor (`obj = &actor->collisionBodies[GAME_ACTOR_BODY_AIM];`). Both the copy's
@@ -76560,7 +76560,7 @@ definition and the whole sequence - pointer, RMW and all - is emitted before the
 block move instead, taking `branch=1 reorder=3 insert=3` with the loop's `bne`
 displacement shifted. A register-only computation can be scheduled around a
 `movstrsi`; a memory operation sharing its statement cannot be separated from it,
-so it drags the move. `func_actor_800100_80166514` (96.09% -> 100%).
+so it drags the move. `_actor800100DrawAimBeam` (96.09% -> 100%).
 Inputs: `base_2.i`
 `1ebffb390fe461e8a6845b71afdf03d6f8e7a66b6a40f5f7c1829e230c1bece6`,
 `base_3.i`
@@ -110155,11 +110155,11 @@ Re-emit with the guarded file-scope asm block (the `D_actor_800100_80161E98`
 pattern already in the same file), placed between the neighbouring
 `INCLUDE_RODATA` line and the unit's later tables so the object's `.rodata`
 stays in address order. Point the words at the overlay's own symbols:
-`.word func_actor_800100_80165748` and friends, as the split `.s` did.
+`.word _actor800100IdleState` and friends, as the split `.s` did.
 
 When the table is plain scalars rather than symbol words, a `const` array in the
 `.c` is the shorter re-emission - and it is what the table would have been had
-it been written in C. `func_actor_800100_801668C0`'s `D_actor_800100_80161F10`
+it been written in C. `_actor800100DrawAimBeamQuad`'s `D_actor_800100_80161F10`
 (4 x `{s16 vy, vz}`) came back that way: define it at the matched function's
 position in the file, after every `INCLUDE_RODATA` and `INCLUDE_ASM` above it,
 and GCC emits its `.rodata` in source order, so the table still lands last in
@@ -110313,7 +110313,7 @@ over: an argument only one arm evaluates is still hoisted if the source builds
 it first. All three in one edit took 66.62% to 100.00%. Input: `base_1.i`
 `8f90020d745e1634745797f97d94fa5ee7377f04da6aa6c8d57e24830bf046bd`.
 
-## A store that must not lead its block needs a volatile store to hold it back (func_actor_800100_80164710, 2026-09-16)
+## A store that must not lead its block needs a volatile store to hold it back (_actor800100AttackLoopState, 2026-09-16)
 
 **Symptom:** 99.564% (`reorder=1`, `branch=1`). The target's third instruction,
 `sw $zero,0x90C($s1)`, comes out last in its block and lands in the `bne`'s
@@ -110485,9 +110485,9 @@ value keeps a register of its own.
 Input: `base_11.i`
 `ce6d62ec0d573c5912298781bbef163d5147b09bf42007f993ff4401f516ab35`.
 
-## A constant's source position hoists it into the call block (func_actor_800100_80163A58, 2026-09-16)
+## A constant's source position hoists it into the call block (_actor800100TickTextureSequences, 2026-09-16)
 
-`func_actor_800100_80163A58` is the actor's texture-upload state, the same shape
+`_actor800100TickTextureSequences` is the actor's texture-upload state, the same shape
 as the gameplay twin `_playerActorTickTextureSequences`: two countdown sequences, each posting its
 image over an 8-byte scratch `RECT`. The natural C reached 97.885% with
 `regs=4 insert=1 delete=1` and exactly one instruction out of place: `li s0,8`,
@@ -110514,7 +110514,7 @@ relative to the previously scheduled insn while the producer follows its LUID.
 Input: `base_2.i` (95.962%) `d6c9eef6ccc6340a68c13d60a9704a02142bb4a660a86e359a0ad5330122ea09`
 matched: `base_6.i` (100.000%) `08ada64d36acdd60552864cc7a3a96cfb6cb13bd1ab464f73dfeffb1d613180c`.
 
-## A chained assignment keeps a copy that the split forms coalesce (func_actor_800100_80163A58, 2026-09-16)
+## A chained assignment keeps a copy that the split forms coalesce (_actor800100TickTextureSequences, 2026-09-16)
 
 The same function's two index chains allocated `$v0`/`$v1` the other way round
 from the target (`regs=44`, otherwise identical). The permuter's fix was to
@@ -110549,7 +110549,7 @@ Input: `base_2.i` `d6c9eef6ccc6340a68c13d60a9704a02142bb4a660a86e359a0ad5330122e
 `base_5.i` (97.885%) `9d1d838c6a05e3f6e57660574a66e859244e3c329e30d2d1c424c89ed523ac99`;
 `base_7.i` (98.077%) `5a865d501912059ad3b84e221af1682fa1a4cb656666375d15532db212532c85`.
 
-**The accounting, from a second instance** (`func_actor_800100_801668C0`,
+**The accounting, from a second instance** (`_actor800100DrawAimBeamQuad`,
 2026-09-17). The scratch block here was the same shape:
 
 ```c
@@ -110697,9 +110697,9 @@ every other callee-saved home. Writing the store into each arm (see
 stores then merge into the one the target has, the surviving then-block is a
 single `addiu`, and its branch's delay slot absorbs it as `lh/lhu/bgtz/addiu`.
 
-## A variable assigned in two blocks is a *global* allocno; give the second block its own (func_actor_800100_80164B9C, 2026-09-16)
+## A variable assigned in two blocks is a *global* allocno; give the second block its own (_actor800100ApproachState, 2026-09-16)
 
-The last block of `func_actor_800100_80164B9C` would not come out right. The
+The last block of `_actor800100ApproachState` would not come out right. The
 target loads the actor pointer into `$v0` and keeps it there
 
 ```
@@ -110785,7 +110785,7 @@ widening). What the source needs is a value that is genuinely *used* in `int`
 context — the `s32`/`long` temporary above, or an arithmetic use like the `s16`
 subtraction in `acropolis_bridge_80184024` — and then the whole load is `lh`.
 Assigning the whole pair to `int` locals gives four `lh`, not the two-of-each the
-ROM wants. `func_actor_800100_8016666C` has both `vy` loads `lh` and both `vx`
+ROM wants. `_actor800100DrawAimBeamLine` has both `vy` loads `lh` and both `vx`
 loads `lhu`.
 
 ## Which base register a scratch-block read uses is decided by the address expression, not the pointer variable
@@ -110807,7 +110807,7 @@ and it treats the two address shapes differently:
 
 That is why a block whose `+0` reads are head-based can still have `+4`/`+6`
 reads off the pointer variable: the first is a bare register, the rest are
-`plus`es. `func_actor_800100_8016666C` needs exactly that mix.
+`plus`es. `_actor800100DrawAimBeamLine` needs exactly that mix.
 
 ## Reading a byte field back splits an arithmetic op into copy-then-add; a local fuses the constants
 
@@ -110831,7 +110831,7 @@ and `$v1` swapped relative to the ROM. Writing the read-back instead —
 
 — makes CSE forward the store, and the forwarded value is a `QI` subreg that needs
 its own register, so the copy reappears and the constant stays 0x50. The store of
-`r1` also sinks below `g1`/`b1`, as in the ROM. `func_actor_800100_8016666C`.
+`r1` also sinks below `g1`/`b1`, as in the ROM. `_actor800100DrawAimBeamLine`.
 
 ## A scratch block held in two pointer variables keeps the ROM's register copy
 
@@ -137291,7 +137291,7 @@ The task then became global and gained preferences v0/a0: its death at the model
 Evidence and compiler/preprocessed-input hashes: tools/compiler_evidence/2026-09-20-actor105700-35ae4.json. Scratch keeps TRACE_BASE, TRACE_SHARED, planned base_1/base_3, and all dumps. The bounded router retained no discovery; the match came from manual experiments.
 ## A later scalar byte load can displace an earlier store/load pair in sched2
 
-`func_actor_800100_80166F50` (2026-09-20) resolves another instance of the
+`_actor800100InitAimCollision` (2026-09-20) resolves another instance of the
 fixed-scalar/varying-struct alias exemption. Its archived seed was 95.301%
 (`regs=2 reorder=3 insert=1 delete=1`). Earlier retries rearranged stores to
 `WorldCollisionCapsule` but could not move the `ends[1].vx` store/load pair earlier while
@@ -137359,7 +137359,7 @@ array-access input:
 `eba63f09f1c7e8b8e0f20c74225ed64ff37ee9ac8cde746b20b86426ef9bf0db`.
 
 
-## Reusing a byte-store value supplies the anti-dependency needed by a later angle load (func_actor_800100_801652B0, 2026-09-20)
+## Reusing a byte-store value supplies the anti-dependency needed by a later angle load (_actor800100WanderState, 2026-09-20)
 
 The target needs `lbu v0; nop; sb v0; lh v0,actorAngle; lh v1,heading`.
 Separate local operands allocate the shorter-lived heading in v0, leaving the
@@ -137388,7 +137388,7 @@ Compiler SHA256:
 No pins, empty asm or permuter discovery; unscoped build verification passed.
 
 
-## Confirm allocation before explaining a load hoist (func_actor_800100_80165010, 2026-09-20)
+## Confirm allocation before explaining a load hoist (_actor800100ObstacleScanState, 2026-09-20)
 
 The 97.661% retry had two independent leftovers: the animation default in a
 blez slot, and a heading load hoisted into the previous byte-load delay.
@@ -137420,7 +137420,7 @@ hashes are in tools/compiler_evidence/2026-09-20-actor800100-65010.json.
 Baseline input: f346fa0d8acb2e7241abd91dcf3b07f6ca462acf664143fa56b41aab29a8ec30.
 Exact input: 23a9e3564e2a4522ad42704e1b890ca076cf2f1bac47d8113f2e7cdb445a6965.
 Both traces preserved assembly. Full evidence is archived through
-`tools/permuter_findings/func_actor_800100_80165010/`.
+`tools/permuter_findings/_actor800100ObstacleScanState/`.
 
 
 ## Explicit shared shift preserves signed comparisons and unsigned extraction (func_actor_215100_8014B3C8, 2026-09-20)
@@ -149130,7 +149130,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
   `func_actor_421600_8013BA70`) was an inline with early `return`s: clamp X and
   return, else clamp Z.
 - **A jump into the middle of a nested `if`** from a two-way state test
-  (`func_actor_800100_80164710`) was `switch (phase) { case 0: ...; phase++;
+  (`_actor800100AttackLoopState`) was `switch (phase) { case 0: ...; phase++;
   /* fallthrough */ case 1: ... }` with `break` for the early exits.
 - **`if (r > 0) goto draw; <asm statements>; if (r < 0) { draw: ... }`** (the
   two-triangle facing test of the TMD quad streams) is `if (r > 0 ||

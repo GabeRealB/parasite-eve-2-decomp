@@ -57,8 +57,8 @@
 #include "../../shared/pyke_flame.h"
 
 static void func_actor_800100_801635F4(Task* arg0);
-static void func_actor_800100_80163A58(Task* arg0);
-static void func_actor_800100_80165528(Task* arg0);
+static void _actor800100TickTextureSequences(Task* task);
+static void _actor800100TickBehavior(Task* task);
 
 /// Scratch-stack block of the aim beam: the coordinate the beam is drawn on.
 ///
@@ -132,7 +132,7 @@ typedef struct {
 } _Actor800100AimBeamQuadScratch;
 STATIC_ASSERT_SIZEOF(_Actor800100AimBeamQuadScratch, 0x44);
 
-/// NULL-terminated `GpuImageUpload*` frame lists for `func_actor_800100_80163A58`,
+/// NULL-terminated `GpuImageUpload*` frame lists for `_actor800100TickTextureSequences`,
 /// indexed `table[textureSequenceA - 1][textureFrameA]`; `D_actor_800100_80167210` is
 /// the `textureSequenceB` sequence.
 extern GpuImageUpload** D_actor_800100_80167200[];
@@ -153,37 +153,37 @@ static void func_actor_800100_80163F04(Task* arg0);
 static void _actor800100FollowPlayerState(Task* task);
 static void _actor800100TurnToTargetState(Task* task);
 static void _actor800100CombatEntryState(Task* task);
-static void func_actor_800100_80164710(Task* arg0);
+static void _actor800100AttackLoopState(Task* task);
 static void _actor800100RetreatState(Task* task);
-static void func_actor_800100_80164B9C(Task* arg0);
+static void _actor800100ApproachState(Task* task);
 static void func_actor_800100_80164E60(Task* arg0);
-static void func_actor_800100_80165010(Task* arg0);
-static void func_actor_800100_801652B0(Task* arg0);
-static void func_actor_800100_801655C0(Task* arg0);
+static void _actor800100ObstacleScanState(Task* task);
+static void _actor800100WanderState(Task* task);
+static void _actor800100EnterCombatEntry(Task* task);
 static void _actor800100EnterApproach(Task* task);
 static void _actor800100EnterObstacleScan(Task* task);
 static void _actor800100EnterFollowPlayer(Task* task);
 static void _actor800100EnterTurnToPlayer(Task* task);
 static void _actor800100EnterWander(Task* task);
-static void func_actor_800100_80165748(Task* arg0);
-static void func_actor_800100_801657D8(Task* arg0);
+static void _actor800100IdleState(Task* task);
+static void _actor800100CombatDecisionState(Task* task);
 static void _actor800100CombatExitState(Task* task);
 static void _actor800100DamageMode(Task* task);
 static void _actor800100DamageRecoveryState(Task* task);
 static void _actor800100StoppedDamageState(Task* unusedTask);
-static void func_actor_800100_80165930(Task* arg0);
+static void _actor800100TickScriptedMode(Task* task);
 static void _actor800100DecideCombatBehavior(Task* task);
 static void func_actor_800100_80165C38(Task* arg0);
 static void func_actor_800100_80165DE8(Task* arg0);
 static void func_actor_800100_80165F50(Task* arg0);
 static void func_actor_800100_80166190(Task* arg0);
-static void func_actor_800100_8016666C(GfxCoord* arg0, s16 arg1);
-static void func_actor_800100_801668C0(GfxCoord* arg0);
+static void _actor800100DrawAimBeamLine(const GfxCoord* beamCoord, s16 contactDistance);
+static void _actor800100DrawAimBeamQuad(const GfxCoord* beamCoord);
 static s32  func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2);
 static void _actor800100EnterAttackLoop(Task* task);
 static void _actor800100EnterRetreat(Task* task);
 static void _actor800100EnterCombatExit(Task* task);
-static void func_actor_800100_80166EE8(Task* arg0);
+static void _actor800100TickWeaponAttack(Task* task);
 static s32  _actor800100GetContactDistance(const GfxCoord* originCoord, const WorldCollisionContact* contact, u16 contactZY[2]);
 
 /// Animation controller 0 leaves the behavior phase alone; turn-rate row 1 steps 64/4096 turns per tick.
@@ -194,6 +194,7 @@ enum {
 
 /// Native armed-companion behavior, motion, animation-set and blend selectors.
 enum {
+    ACTOR_800100_STATE_COMBAT_ENTRY            = 3,
     ACTOR_800100_STATE_COMBAT_DECISION         = 4,
     ACTOR_800100_STATE_OBSTACLE_SCAN           = 10,
     ACTOR_800100_MOVEMENT_RUN                  = 3,
@@ -611,8 +612,8 @@ GpuImageUpload* D_actor_800100_80167A60[2] = {
 };
 
 static void _actor800100ScheduleTeardown(Task* task);
-static void func_actor_800100_80166514(Task* arg0);
-static void func_actor_800100_80166F50(Task* arg0);
+static void _actor800100DrawAimBeam(Task* task);
+static void _actor800100InitAimCollision(Task* actorTask);
 
 /// Per-frame flare task of the actor: while the player model is visible
 /// (`field_C & 0x80` clear) and effects are visible
@@ -942,9 +943,9 @@ static void func_actor_800100_801635F4(Task* arg0)
     actor->pendingCollisionUpdates = 0;
 
     if (D_80115768 == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        func_actor_800100_80165528(arg0);
+        _actor800100TickBehavior(arg0);
     }
-    func_actor_800100_80163A58(arg0);
+    _actor800100TickTextureSequences(arg0);
 
     worldCollisionClearContacts(actor->collisionContacts);
     worldCollisionClearContacts(actor->companionWork->probe.contacts);
@@ -987,73 +988,92 @@ static void func_actor_800100_801635F4(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(CompanionMoveScratch);
 }
 
-/// Texture-upload state of the actor: runs two independent sequences, each a
-/// countdown (`textureDelayA` / `textureDelayB`, reloaded with 4 / 8) that advances a
-/// frame index (`textureFrameA` / `textureFrameB`) through the NULL-terminated image
-/// list `D_actor_800100_80167200` / `D_actor_800100_80167210` named by the
-/// sequence number (`textureSequenceA` / `textureSequenceB`), ending the sequence when its
-/// list runs out. Every upload posts its image over an 8-byte `RECT` borrowed
-/// from the scratch stack and gives it back at the end of the call.
-static void func_actor_800100_80163A58(Task* arg0)
+/// Posts one texture frame using a borrowed scratch rectangle.
+///
+/// X counts half VRAM words, width whole words and Y/height rows. The upload
+/// list is writable and terminated; pixel storage stays live for the GPU queue.
+static inline void _actor800100UploadTextureFrame(Task* task, GpuImageUpload* frameUploads, RECT* textureRect,
+                                                  s16 xHalfWords, s16 yRows, s16 widthWords, s16 heightRows)
 {
-    void**            scratch;
-    u8*               head;
-    u8*               temp;
-    RECT*             rect;
+    textureRect->x = xHalfWords;
+    textureRect->y = yRows;
+    textureRect->w = widthWords;
+    textureRect->h = heightRows;
+    actorRenderUploadTexture(task, frameUploads, textureRect);
+}
+
+/// Advances the armed companion's two independent texture sequences.
+///
+/// Requires live actor/model resources, A selectors 1..4 and B selectors 1..2
+/// (zero disables a sequence), and frame lists ending before signed-byte wrap.
+/// Delay and frame bytes are read as s8. Reloads delays to four/eight actor ticks
+/// after each upload and borrows one RECT from scratch; pixels stay live until
+/// the queued GPU transfer completes.
+static void _actor800100TickTextureSequences(Task* task)
+{
+    enum {
+        ACTOR_800100_TEXTURE_SEQUENCE_OFF   = 0,
+        ACTOR_800100_TEXTURE_A_DELAY_TICKS  = 4,
+        ACTOR_800100_TEXTURE_B_DELAY_TICKS  = 8,
+        ACTOR_800100_TEXTURE_A_X_HALF_WORDS = 0,
+        ACTOR_800100_TEXTURE_A_Y_ROWS       = 40,
+        ACTOR_800100_TEXTURE_A_WIDTH_WORDS  = 21,
+        ACTOR_800100_TEXTURE_A_HEIGHT_ROWS  = 8,
+        ACTOR_800100_TEXTURE_B_X_HALF_WORDS = 8,
+        ACTOR_800100_TEXTURE_B_Y_ROWS       = 64,
+        ACTOR_800100_TEXTURE_B_WIDTH_WORDS  = 13,
+        ACTOR_800100_TEXTURE_B_HEIGHT_ROWS  = 12,
+    };
+    void**            scratchCursor;
+    RECT*             previousHead;
+    RECT*             reservedRect;
+    RECT*             textureRect;
     GameActor*        actor;
     GpuImageUpload*** frameLists;
-    s32               idx;
-    u32               row;
-    GpuImageUpload*   uploadList;
+    s32               sequenceIndex;
+    u32               sequenceRow;
+    GpuImageUpload*   frameUploads;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    actor                          = arg0->work;
-    temp                           = head - 8;
-    SCRATCH_HEAD_AT(scratch, void) = temp;
-    rect                           = (RECT*)temp;
+    scratchCursor                        = SCRATCH_HEAD_ADDR;
+    previousHead                         = SCRATCH_HEAD_AT(scratchCursor, RECT);
+    actor                                = task->work;
+    reservedRect                         = previousHead - 1;
+    SCRATCH_HEAD_AT(scratchCursor, RECT) = reservedRect;
+    textureRect                          = reservedRect;
 
-    if ((s8)actor->textureSequenceA != 0) {
+    if ((s8)actor->textureSequenceA != ACTOR_800100_TEXTURE_SEQUENCE_OFF) {
         actor->textureDelayA--;
         if ((s8)actor->textureDelayA <= 0) {
-            frameLists = D_actor_800100_80167200;
-            idx        = (s8)actor->textureSequenceA - 1;
-            uploadList = frameLists[idx][(s8)actor->textureFrameA];
-            if (uploadList != NULL) {
-                ((RECT*)head)[-1].x = 0;
-                rect->y             = 0x28;
-                rect->w             = 0x15;
-                rect->h             = 8;
-                actorRenderUploadTexture(arg0, uploadList, rect);
-                actor->textureDelayA = 4;
+            frameLists    = D_actor_800100_80167200;
+            sequenceIndex = (s8)actor->textureSequenceA - 1;
+            frameUploads  = frameLists[sequenceIndex][(s8)actor->textureFrameA];
+            if (frameUploads != NULL) {
+                _actor800100UploadTextureFrame(task, frameUploads, textureRect, ACTOR_800100_TEXTURE_A_X_HALF_WORDS, ACTOR_800100_TEXTURE_A_Y_ROWS, ACTOR_800100_TEXTURE_A_WIDTH_WORDS, ACTOR_800100_TEXTURE_A_HEIGHT_ROWS);
+                actor->textureDelayA = ACTOR_800100_TEXTURE_A_DELAY_TICKS;
                 actor->textureFrameA++;
             } else {
-                actor->textureSequenceA = 0;
+                actor->textureSequenceA = ACTOR_800100_TEXTURE_SEQUENCE_OFF;
             }
         }
     }
 
-    if ((s8)actor->textureSequenceB != 0) {
+    if ((s8)actor->textureSequenceB != ACTOR_800100_TEXTURE_SEQUENCE_OFF) {
         actor->textureDelayB--;
         if ((s8)actor->textureDelayB <= 0) {
-            frameLists = D_actor_800100_80167210;
-            idx        = (row = (s8)actor->textureSequenceB - 1);
-            uploadList = frameLists[row][(s8)actor->textureFrameB];
-            if (uploadList != NULL) {
-                rect->x = 8;
-                rect->y = 0x40;
-                rect->w = 0xD;
-                rect->h = 0xC;
-                actorRenderUploadTexture(arg0, uploadList, rect);
-                actor->textureDelayB = 8;
+            frameLists   = D_actor_800100_80167210;
+            sequenceRow  = (s8)actor->textureSequenceB - 1;
+            frameUploads = frameLists[sequenceRow][(s8)actor->textureFrameB];
+            if (frameUploads != NULL) {
+                _actor800100UploadTextureFrame(task, frameUploads, textureRect, ACTOR_800100_TEXTURE_B_X_HALF_WORDS, ACTOR_800100_TEXTURE_B_Y_ROWS, ACTOR_800100_TEXTURE_B_WIDTH_WORDS, ACTOR_800100_TEXTURE_B_HEIGHT_ROWS);
+                actor->textureDelayB = ACTOR_800100_TEXTURE_B_DELAY_TICKS;
                 actor->textureFrameB++;
             } else {
-                actor->textureSequenceB = 0;
+                actor->textureSequenceB = ACTOR_800100_TEXTURE_SEQUENCE_OFF;
             }
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BLOCK(RECT);
 }
 
 /// Schedules companion teardown for the next tick of its main task.
@@ -1115,17 +1135,12 @@ static const TaskFuncTable4 D_actor_800100_80161E3C = { {
     _actor800100Teardown,
 } };
 
-/// Per-frame entry point of the actor's main task: runs the handler its state
-/// selects from the four-entry state table - set-up, the per-frame update, a
-/// step that only advances to the last state, and the teardown that kills the
-/// actor's child tasks and unlinks its objects. The table is a local, so it is
-/// copied from `.rodata` onto the stack on every call.
-void func_actor_800100_80163CF0(Task* task)
+void actor800100Task(Task* task)
 {
-    TaskFuncTable4 states;
+    TaskFuncTable4 handlers;
 
-    states = D_actor_800100_80161E3C;
-    states.funcs[task->state](task);
+    handlers = D_actor_800100_80161E3C;
+    handlers.funcs[task->state](task);
 }
 
 /// Chooses following, an idle variation, wandering or a turn toward the player.
@@ -1198,27 +1213,27 @@ static void _actor800100DecideIdleBehavior(Task* task)
     playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
 }
 
-/// Handlers `func_actor_800100_80165528` runs, indexed by `mode`.
+/// Handlers `_actor800100TickBehavior` runs, indexed by `mode`.
 static const TaskFuncTable3 D_actor_800100_80161E4C = { {
     func_actor_800100_80163F04,
     _actor800100DamageMode,
-    func_actor_800100_80165930,
+    _actor800100TickScriptedMode,
 } };
 
 /// Handlers `func_actor_800100_80163F04` runs, indexed by `state`.
 static const TaskFuncTable12 D_actor_800100_80161E58 = { {
-    func_actor_800100_80165748,
+    _actor800100IdleState,
     _actor800100FollowPlayerState,
     _actor800100TurnToTargetState,
     _actor800100CombatEntryState,
-    func_actor_800100_801657D8,
-    func_actor_800100_80164710,
+    _actor800100CombatDecisionState,
+    _actor800100AttackLoopState,
     _actor800100RetreatState,
-    func_actor_800100_80164B9C,
+    _actor800100ApproachState,
     _actor800100CombatExitState,
     func_actor_800100_80164E60,
-    func_actor_800100_80165010,
-    func_actor_800100_801652B0,
+    _actor800100ObstacleScanState,
+    _actor800100WanderState,
 } };
 
 /// Drives the actor's `mode`/`state` callback tables while the
@@ -1529,64 +1544,79 @@ static void _actor800100CombatEntryState(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR));
 }
 
-static void func_actor_800100_80164710(Task* arg0)
+/// Returns this attack loop to combat decisions with its held-weapon pose.
+///
+/// Requires the live actor belonging to task and native animation resources.
+static inline void _actor800100ResetAttackDecision(Task* task, GameActor* decisionActor)
 {
-    GameActor*                 actor;
-    GameActor*                 actor2;
-    GameActor*                 actor3;
-    CompanionWork*             companion;
-    WorldTargetNode*           node;
-    WorldTargetNode*           lock;
-    GfxCoord*                  coord;
-    _Actor800100TargetScratch* block;
-    s32                        turnDelta;
+    decisionActor->mode           = GAME_ACTOR_MODE_NORMAL;
+    decisionActor->state          = ACTOR_800100_STATE_COMBAT_DECISION;
+    decisionActor->animationState = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
+    decisionActor->statePhase     = 0;
+    decisionActor->movementSign   = 0;
+    decisionActor->turnSign       = 0;
+    playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ANIMATION_COMBAT_HOLD, 0, ACTOR_800100_COMBAT_BLEND_FRAMES);
+}
 
-    actor     = arg0->work;
-    block     = SCRATCH_STACK_RESERVE_BLOCK(_Actor800100TargetScratch);
-    companion = actor->companionWork;
-    companionTrackLockTarget(arg0, COMPANION_LOCK_TRACK_YAW | COMPANION_LOCK_TRACK_PITCH);
+/// Faces the selected target and advances its cooldown-gated weapon attack loop.
+///
+/// Requires live native playback, companion work and a valid saved weapon variant
+/// 0..4. A missing target or range at most 768 returns to combat decisions;
+/// otherwise phase 0 waits for yaw within 384/4096 turns. Phase 1 ends on an
+/// exhausted signed-byte repeat budget or an un-lockable target, disabling weapon
+/// contacts and decaying aim. Borrows one target scratch block for this tick.
+static void _actor800100AttackLoopState(Task* task)
+{
+    enum {
+        ACTOR_800100_ATTACK_FACE          = 0,
+        ACTOR_800100_ATTACK_REPEAT        = 1,
+        ACTOR_800100_ATTACK_MIN_DISTANCE  = 768,
+        ACTOR_800100_ATTACK_YAW_TOLERANCE = 384,
+        ACTOR_800100_VARIANT_PYKE         = 4,
+    };
+    GameActor*                 actor;
+    GameActor*                 nearTargetActor;
+    GameActor*                 finishedAttackActor;
+    CompanionWork*             companion;
+    WorldTargetNode*           attackTarget;
+    WorldTargetNode*           entryTarget;
+    GfxCoord*                  rootCoord;
+    _Actor800100TargetScratch* targetScratch;
+    s32                        yawMagnitude;
+
+    actor         = task->work;
+    targetScratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor800100TargetScratch);
+    companion     = actor->companionWork;
+    companionTrackLockTarget(task, COMPANION_LOCK_TRACK_YAW | COMPANION_LOCK_TRACK_PITCH);
     switch (actor->statePhase) {
-        case 0:
-            lock = actor->targetNode;
-            if ((lock == NULL) || (coord = arg0->extra.tmd->coords, worldTargetGetBodyPosition(lock, &block->targetPoint), playerActorGetPointDelta(coord, &block->targetPoint, &block->targetDelta), ((playerActorPlanarLength(block->targetDelta.vx, block->targetDelta.vz) < 0x301) != 0))) {
-                actor2                 = arg0->work;
-                actor2->mode           = GAME_ACTOR_MODE_NORMAL;
-                actor2->state          = 4;
-                actor2->animationState = 0;
-                actor2->statePhase     = 0;
-                actor2->movementSign   = 0;
-                actor2->turnSign       = 0;
-                playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
+        case ACTOR_800100_ATTACK_FACE:
+            entryTarget = actor->targetNode;
+            if ((entryTarget == NULL) || (rootCoord = task->extra.tmd->coords, worldTargetGetBodyPosition(entryTarget, &targetScratch->targetPoint), playerActorGetPointDelta(rootCoord, &targetScratch->targetPoint, &targetScratch->targetDelta), ((playerActorPlanarLength(targetScratch->targetDelta.vx, targetScratch->targetDelta.vz) < (ACTOR_800100_ATTACK_MIN_DISTANCE + 1)) != 0))) {
+                nearTargetActor = task->work;
+                _actor800100ResetAttackDecision(task, nearTargetActor);
                 break;
             }
-            turnDelta = playerActorGetTurnToPoint(arg0, &block->targetPoint);
-            if (turnDelta < 0) {
-                turnDelta = -turnDelta;
+            yawMagnitude = playerActorGetTurnToPoint(task, &targetScratch->targetPoint);
+            if (yawMagnitude < 0) {
+                yawMagnitude = -yawMagnitude;
             }
-            if (turnDelta >= 0x181) {
+            if (yawMagnitude >= (ACTOR_800100_ATTACK_YAW_TOLERANCE + 1)) {
                 break;
             }
             actor->statePhase += 1;
             /* fallthrough */
-        case 1:
-            if (((s8)companion->activity.combat.repeatsRemaining <= 0) || (node = actor->targetNode, node == NULL) || (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-                // Stored through a plain pointer: the member-access spelling schedules differently.
-                *&actor->targetNode                                   = NULL;
+        case ACTOR_800100_ATTACK_REPEAT:
+            if (((s8)companion->activity.combat.repeatsRemaining <= 0) || (attackTarget = actor->targetNode, attackTarget == NULL) || (attackTarget->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
+                actor->targetNode                                     = NULL;
                 actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_DECAY;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                if ((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant == 4) {
-                    playerActorResetWeaponAttack(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+                if ((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant == ACTOR_800100_VARIANT_PYKE) {
+                    playerActorResetWeaponAttack(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
                 }
-                actor3                 = arg0->work;
-                actor3->mode           = GAME_ACTOR_MODE_NORMAL;
-                actor3->state          = 4;
-                actor3->animationState = 0;
-                actor3->statePhase     = 0;
-                actor3->movementSign   = 0;
-                actor3->turnSign       = 0;
-                playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
+                finishedAttackActor = task->work;
+                _actor800100ResetAttackDecision(task, finishedAttackActor);
             } else if (actor->attackControl.cooldownTicks == 0) {
-                func_actor_800100_80166EE8(arg0);
+                _actor800100TickWeaponAttack(task);
             }
             break;
     }
@@ -1700,104 +1730,120 @@ static void _actor800100RetreatState(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR));
 }
 
-/// Aim/lock drive for the actor's `statePhase` phase machine. While the planar distance
-/// to what the ally block's `companionWork->probe.contacts` recorded is nonzero and under
-/// `0x301`, `actionValue` counts up and the LCG decides the next aim window:
-/// once the step passes `((gRandomLcgState >> 16) & 0x3F) + 0x28` the actor
-/// latches into the `0xA` / child-slot-1 chain, keeping the old `state` in
-/// `stateAux` and clearing the aim offset on `companionWork`. Otherwise it reserves
-/// a `_Actor800100TargetScratch` on the scratch stack, fills `targetPoint`
-/// either from the lock node (`worldTargetGetBodyPosition`) or from the player's model
-/// coordinate, runs the `statePhase` switch, measures the planar length of
-/// `targetDelta`, and drops back to child slot 9 once the target is within the
-/// rolled reach. Both arms end by handing `targetPoint` to `playerActorTurnBodyTowardPoint` /
-/// `playerActorTurnAimTowardPoint` and releasing the block.
-static void func_actor_800100_80164B9C(Task* arg0)
+/// Starts the probe scan after this behavior detects an obstruction.
+///
+/// Requires live companion work and native playback; saves the prior state
+/// and clears the scan result before the next behavior tick.
+static inline void _actor800100ApproachStartScan(Task* task)
 {
-    GameActor*                 actor;
-    GameActor*                 actor2;
-    GameActor*                 actor3;
-    CompanionWork*             companion;
-    GfxCoord*                  coord;
-    GfxCoord*                  target;
-    _Actor800100TargetScratch* block;
-    WorldTargetNode*           node;
-    u16                        step;
-    u16                        old;
-    u32                        random;
-    s32                        distance;
-    s32                        val;
+    GameActor*     scanActor;
+    CompanionWork* companion;
+    u16            previousState;
+    scanActor                   = task->work;
+    previousState               = scanActor->state;
+    scanActor->state            = ACTOR_800100_STATE_OBSTACLE_SCAN;
+    scanActor->turnRateIndex    = ACTOR_800100_TURN_RATE_64;
+    scanActor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
+    companion                   = scanActor->companionWork;
+    scanActor->mode             = GAME_ACTOR_MODE_NORMAL;
+    scanActor->animationState   = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
+    scanActor->statePhase       = 0;
+    scanActor->stateAux         = previousState;
+    companion->scanClearance    = COMPANION_SCAN_UNTESTED;
+    companion->scanAngle        = 0;
+    playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ANIMATION_IDLE, 0, ACTOR_800100_COMBAT_BLEND_FRAMES);
+}
 
-    coord    = arg0->extra.tmd->coords;
-    target   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    actor    = arg0->work;
-    distance = _actor800100GetContactDistance(coord, actor->companionWork->probe.contacts, NULL);
-    if (distance != 0 && distance < 0x301) {
-        step               = actor->actionValue + 1;
-        actor->actionValue = step;
-        random             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState    = random;
-        if ((s16)step >= (s32)(((random >> 16) & 0x3F) + 0x28)) {
-            actor2                   = arg0->work;
-            old                      = actor2->state;
-            actor2->state            = 0xA;
-            actor2->turnRateIndex    = 1;
-            actor2->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
-            companion                = actor2->companionWork;
-            actor2->mode             = GAME_ACTOR_MODE_NORMAL;
-            actor2->animationState   = 0;
-            actor2->statePhase       = 0;
-            actor2->stateAux         = old;
-            companion->scanClearance = COMPANION_SCAN_UNTESTED;
-            companion->scanAngle     = 0;
-            playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 6);
+/// Runs toward the selected target or player, then resumes combat decisions.
+///
+/// Requires live actor/companion work and model roots in their common room frame.
+/// Stops within 2816 game units of the player, or a newly rolled 2816..3839 range
+/// of a target. A forward contact within 768 accumulates obstruction ticks and
+/// can start a full probe scan. Borrows one target scratch block; body and aim
+/// turning still run on the tick that returns to decisions.
+static void _actor800100ApproachState(Task* task)
+{
+    enum {
+        ACTOR_800100_APPROACH_START             = 0,
+        ACTOR_800100_APPROACH_MOVE              = 1,
+        ACTOR_800100_APPROACH_TARGET_LOST       = 2,
+        ACTOR_800100_APPROACH_OBSTACLE_DISTANCE = 768,
+        ACTOR_800100_APPROACH_SCAN_TICKS_MASK   = 0x3F,
+        ACTOR_800100_APPROACH_SCAN_MIN_TICKS    = 40,
+        ACTOR_800100_APPROACH_DISTANCE_MASK     = 0x3FF,
+        ACTOR_800100_APPROACH_MIN_DISTANCE      = 2816,
+        ACTOR_800100_ANIMATION_APPROACH         = 12,
+    };
+    GameActor*                 actor;
+    GameActor*                 decisionActor;
+    GfxCoord*                  rootCoord;
+    GfxCoord*                  playerCoord;
+    _Actor800100TargetScratch* targetScratch;
+    WorldTargetNode*           targetNode;
+    u16                        obstructionTicks;
+    u32                        randomState;
+    s32                        planarDistance;
+    s32                        approachDistance;
+
+    rootCoord      = task->extra.tmd->coords;
+    playerCoord    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    actor          = task->work;
+    planarDistance = _actor800100GetContactDistance(rootCoord, actor->companionWork->probe.contacts, NULL);
+    if (planarDistance != 0 && planarDistance < (ACTOR_800100_APPROACH_OBSTACLE_DISTANCE + 1)) {
+        obstructionTicks   = actor->actionValue + 1;
+        actor->actionValue = obstructionTicks;
+        randomState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState    = randomState;
+        if ((s16)obstructionTicks >= (s32)(((randomState >> 16) & ACTOR_800100_APPROACH_SCAN_TICKS_MASK) + ACTOR_800100_APPROACH_SCAN_MIN_TICKS)) {
+            _actor800100ApproachStartScan(task);
             return;
         }
     }
-    block = SCRATCH_STACK_RESERVE_BLOCK(_Actor800100TargetScratch);
-    node  = actor->targetNode;
-    if (node != NULL) {
-        if ((node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) == 0) {
-            worldTargetGetBodyPosition(node, &block->targetPoint);
+    targetScratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor800100TargetScratch);
+    targetNode    = actor->targetNode;
+    if (targetNode != NULL) {
+        if ((targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) == 0) {
+            worldTargetGetBodyPosition(targetNode, &targetScratch->targetPoint);
         } else {
-            actor->statePhase = 2;
+            // Retained behavior: this tick still turns using the uninitialized scratch point.
+            actor->statePhase = ACTOR_800100_APPROACH_TARGET_LOST;
         }
     } else {
-        block->targetPoint.vx = target->coord.t[0];
-        block->targetPoint.vy = target->coord.t[1];
-        block->targetPoint.vz = target->coord.t[2];
+        targetScratch->targetPoint.vx = playerCoord->coord.t[0];
+        targetScratch->targetPoint.vy = playerCoord->coord.t[1];
+        targetScratch->targetPoint.vz = playerCoord->coord.t[2];
     }
     switch (actor->statePhase) {
-        case 0:
-            actor->statePhase   = 1;
+        case ACTOR_800100_APPROACH_START:
+            actor->statePhase   = ACTOR_800100_APPROACH_MOVE;
             actor->stateTimer   = 0;
-            actor->movementMode = 3;
-            playerActorPlayChildSlotsWithBlend(arg0, 0xC, 0, 5);
+            actor->movementMode = ACTOR_800100_MOVEMENT_RUN;
+            playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ANIMATION_APPROACH, 0, ACTOR_800100_MOVEMENT_BLEND_FRAMES);
             /* fallthrough */
-        case 1:
-        case 2:
-            actor->movementSign = 1;
-            playerActorGetPointDelta(coord, &block->targetPoint, &block->targetDelta);
-            distance = playerActorPlanarLength(block->targetDelta.vx, block->targetDelta.vz);
+        case ACTOR_800100_APPROACH_MOVE:
+        case ACTOR_800100_APPROACH_TARGET_LOST:
+            actor->movementSign = ACTOR_800100_MOVE_FORWARD;
+            playerActorGetPointDelta(rootCoord, &targetScratch->targetPoint, &targetScratch->targetDelta);
+            planarDistance = playerActorPlanarLength(targetScratch->targetDelta.vx, targetScratch->targetDelta.vz);
             if (actor->targetNode != NULL) {
-                val = (rand() & 0x3FF) + 0xB00;
+                approachDistance = (rand() & ACTOR_800100_APPROACH_DISTANCE_MASK) + ACTOR_800100_APPROACH_MIN_DISTANCE;
             } else {
-                val = 0xB00;
+                approachDistance = ACTOR_800100_APPROACH_MIN_DISTANCE;
             }
-            if (val >= distance || actor->statePhase == 2) {
-                actor3                 = arg0->work;
-                actor3->mode           = GAME_ACTOR_MODE_NORMAL;
-                actor3->state          = 4;
-                actor3->animationState = 0;
-                actor3->statePhase     = 0;
-                actor3->movementSign   = 0;
-                actor3->turnSign       = 0;
-                playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
+            if (approachDistance >= planarDistance || actor->statePhase == ACTOR_800100_APPROACH_TARGET_LOST) {
+                decisionActor                 = task->work;
+                decisionActor->mode           = GAME_ACTOR_MODE_NORMAL;
+                decisionActor->state          = ACTOR_800100_STATE_COMBAT_DECISION;
+                decisionActor->animationState = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
+                decisionActor->statePhase     = 0;
+                decisionActor->movementSign   = 0;
+                decisionActor->turnSign       = 0;
+                playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ANIMATION_COMBAT_HOLD, 0, ACTOR_800100_COMBAT_BLEND_FRAMES);
             }
             break;
     }
-    playerActorTurnBodyTowardPoint(arg0, &block->targetPoint);
-    playerActorTurnAimTowardPoint(arg0, &block->targetPoint);
+    playerActorTurnBodyTowardPoint(task, &targetScratch->targetPoint);
+    playerActorTurnAimTowardPoint(task, &targetScratch->targetPoint);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor800100TargetScratch);
 }
 
@@ -1866,205 +1912,266 @@ static void func_actor_800100_80164E60(Task* arg0)
     }
 }
 
-static void func_actor_800100_80165010(Task* arg0)
+/// Sweeps the forward probe, turns to the clearest heading, then moves briefly.
+///
+/// Requires a bound probe and scan initialization with clearance -1 and yaw zero.
+/// Samples relative yaw in 128-unit steps (4096 per turn), preferring clear zero
+/// distance over the farthest contact. Once within 64 yaw units, snaps the heading
+/// and runs for 20..83 ticks in combat or walks for 40..167 otherwise. A contact
+/// within 768 game units or timer expiry returns to idle; aim follows the player.
+static void _actor800100ObstacleScanState(Task* task)
 {
+    enum {
+        ACTOR_800100_SCAN_SWEEP             = 0,
+        ACTOR_800100_SCAN_TURN              = 1,
+        ACTOR_800100_SCAN_MOVE              = 2,
+        ACTOR_800100_SCAN_YAW_TOLERANCE     = 64,
+        ACTOR_800100_SCAN_RUN_TICKS_MASK    = 0x3F,
+        ACTOR_800100_SCAN_RUN_MIN_TICKS     = 20,
+        ACTOR_800100_SCAN_WALK_TICKS_MASK   = 0x7F,
+        ACTOR_800100_SCAN_WALK_MIN_TICKS    = 40,
+        ACTOR_800100_SCAN_OBSTACLE_DISTANCE = 768,
+        ACTOR_800100_SCAN_ANIMATION_WALK    = 2,
+        ACTOR_800100_SCAN_MOVEMENT_WALK     = 1,
+        ACTOR_800100_SCAN_BLEND_FRAMES      = 3,
+    };
     GameActor*     actor;
     CompanionWork* companion;
-    GfxCoord*      coord;
-    GfxCoord*      target;
-    s32            dist;
-    u32            rng;
-    s32            arg;
-    s32            slot;
-    s32            diff;
-    s32            flag;
-    s32            turn;
-    s32            state;
-    s32            heading;
-    u16            angle;
+    GfxCoord*      rootCoord;
+    GfxCoord*      playerCoord;
+    s32            probeDistance;
+    u32            randomState;
+    s32            turnSet;
+    s32            moveSet;
+    s32            yawMagnitude;
+    s32            turnPhaseAndForward;
+    s32            turnDelta;
+    s32            phaseOrTargetHeading;
+    s32            currentHeading;
+    u16            targetHeading;
 
-    coord     = arg0->extra.tmd->coords;
-    target    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    actor     = arg0->work;
-    companion = actor->companionWork;
-    dist      = _actor800100GetContactDistance(coord, companion->probe.contacts, NULL);
-    state     = actor->statePhase;
-    flag      = 1;
+    rootCoord            = task->extra.tmd->coords;
+    playerCoord          = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    actor                = task->work;
+    companion            = actor->companionWork;
+    probeDistance        = _actor800100GetContactDistance(rootCoord, companion->probe.contacts, NULL);
+    phaseOrTargetHeading = actor->statePhase;
+    turnPhaseAndForward  = ACTOR_800100_SCAN_TURN;
 
-    switch (state) {
-        case 0:
+    switch (phaseOrTargetHeading) {
+        case ACTOR_800100_SCAN_SWEEP:
             if (companion->scanAngle < ACTOR_TRANSFORM_ANGLE_TURN) {
                 // Prefer the farthest contact, with a clear direction ending the search.
-                if (companion->scanClearance != COMPANION_SCAN_CLEAR && (companion->scanClearance < dist || dist == COMPANION_SCAN_CLEAR)) {
-                    companion->scanClearance = dist;
+                if (companion->scanClearance != COMPANION_SCAN_CLEAR && (companion->scanClearance < probeDistance || probeDistance == COMPANION_SCAN_CLEAR)) {
+                    companion->scanClearance = probeDistance;
                     companion->targetHeading = companion->scanAngle;
                 }
                 companion->scanAngle += COMPANION_SCAN_ANGLE_STEP;
             } else {
-                actor->statePhase        = flag;
-                angle                    = (companion->targetHeading + actor->rotation.vy) & ACTOR_TRANSFORM_ANGLE_MASK;
-                companion->targetHeading = angle;
-                turn                     = playerActorShortestTurn(actor->rotation.vy, angle);
-                arg                      = 5;
-                if (turn > 0) {
-                    arg                = 6;
-                    companion->turnDir = flag;
+                actor->statePhase        = turnPhaseAndForward;
+                targetHeading            = (companion->targetHeading + actor->rotation.vy) & ACTOR_TRANSFORM_ANGLE_MASK;
+                companion->targetHeading = targetHeading;
+                turnDelta                = playerActorShortestTurn(actor->rotation.vy, targetHeading);
+                turnSet                  = ACTOR_800100_ANIMATION_TURN_LEFT;
+                if (turnDelta > 0) {
+                    turnSet            = ACTOR_800100_ANIMATION_TURN_RIGHT;
+                    companion->turnDir = turnPhaseAndForward;
                 } else {
-                    companion->turnDir = -1;
+                    companion->turnDir = ACTOR_800100_TURN_NEGATIVE;
                 }
-                playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 3);
+                playerActorPlayChildSlotsWithBlend(task, turnSet, 0, ACTOR_800100_SCAN_BLEND_FRAMES);
             }
             break;
-        case 1:
+        case ACTOR_800100_SCAN_TURN:
             actor->turnSign = (u8)companion->turnDir;
+            // The retained loop and temporary reuse preserve heading-load ordering.
             do {
-                heading = actor->rotation.vy;
-                state   = companion->targetHeading;
-                diff    = heading - state;
-                if (diff < 0) {
-                    diff = -diff;
+                currentHeading       = actor->rotation.vy;
+                phaseOrTargetHeading = companion->targetHeading;
+                yawMagnitude         = currentHeading - phaseOrTargetHeading;
+                if (yawMagnitude < 0) {
+                    yawMagnitude = -yawMagnitude;
                 }
             } while (0);
-            if (diff < 0x40) {
+            if (yawMagnitude < ACTOR_800100_SCAN_YAW_TOLERANCE) {
                 actor->statePhase++;
                 actor->rotation.vy = companion->targetHeading;
                 actor->turnSign    = 0;
                 if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                    slot                = 4;
-                    actor->movementMode = 3;
-                    rng                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState     = rng;
-                    actor->stateTimer   = ((rng >> 16) & 0x3F) + 0x14;
-                    playerActorPlayChildSlotsWithBlend(arg0, slot, 0, 3);
+                    moveSet             = ACTOR_800100_ANIMATION_RUN;
+                    actor->movementMode = ACTOR_800100_MOVEMENT_RUN;
+                    randomState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState     = randomState;
+                    actor->stateTimer   = ((randomState >> 16) & ACTOR_800100_SCAN_RUN_TICKS_MASK) + ACTOR_800100_SCAN_RUN_MIN_TICKS;
+                    playerActorPlayChildSlotsWithBlend(task, moveSet, 0, ACTOR_800100_SCAN_BLEND_FRAMES);
                 } else {
-                    slot                = 2;
-                    actor->movementMode = 1;
-                    rng                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState     = rng;
-                    actor->stateTimer   = ((rng >> 16) & 0x7F) + 0x28;
-                    playerActorPlayChildSlotsWithBlend(arg0, slot, 0, 3);
+                    moveSet             = ACTOR_800100_SCAN_ANIMATION_WALK;
+                    actor->movementMode = ACTOR_800100_SCAN_MOVEMENT_WALK;
+                    randomState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState     = randomState;
+                    actor->stateTimer   = ((randomState >> 16) & ACTOR_800100_SCAN_WALK_TICKS_MASK) + ACTOR_800100_SCAN_WALK_MIN_TICKS;
+                    playerActorPlayChildSlotsWithBlend(task, moveSet, 0, ACTOR_800100_SCAN_BLEND_FRAMES);
                 }
             }
             break;
-        case 2:
-            if ((dist < 0x301 && dist != 0) || --actor->stateTimer <= 0) {
-                companionEnterIdle(arg0, 0);
+        case ACTOR_800100_SCAN_MOVE:
+            if ((probeDistance < (ACTOR_800100_SCAN_OBSTACLE_DISTANCE + 1) && probeDistance != 0) || --actor->stateTimer <= 0) {
+                companionEnterIdle(task, 0);
             } else {
-                actor->movementSign = 1;
+                actor->movementSign = ACTOR_800100_MOVE_FORWARD;
             }
             break;
     }
-    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
+    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
 }
 
-static void func_actor_800100_801652B0(Task* arg0)
+/// Starts the probe scan after this behavior detects an obstruction.
+///
+/// Requires live companion work and native playback; saves the prior state
+/// and clears the scan result before the next behavior tick.
+static inline void _actor800100WanderStartScan(Task* task)
 {
+    GameActor*     scanActor;
+    CompanionWork* scanCompanion;
+    u16            previousState;
+    s16            scanIdleSet;
+    scanIdleSet                  = ACTOR_800100_ANIMATION_IDLE;
+    scanActor                    = task->work;
+    previousState                = scanActor->state;
+    scanActor->state             = ACTOR_800100_STATE_OBSTACLE_SCAN;
+    scanActor->aimTrackingState  = scanIdleSet;
+    scanCompanion                = scanActor->companionWork;
+    scanActor->mode              = GAME_ACTOR_MODE_NORMAL;
+    scanActor->turnRateIndex     = ACTOR_800100_TURN_RATE_64;
+    scanActor->animationState    = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
+    scanActor->statePhase        = 0;
+    scanActor->stateAux          = previousState;
+    scanCompanion->scanClearance = COMPANION_SCAN_UNTESTED;
+    scanCompanion->scanAngle     = 0;
+    playerActorPlayChildSlotsWithBlend(task, scanIdleSet, 0, ACTOR_800100_COMBAT_BLEND_FRAMES);
+}
+
+/// Turns to a random heading, pauses, then walks until blocked or its timer ends.
+///
+/// Requires live native playback and a bound companion probe. Angles use 4096
+/// units per turn; turning snaps within 64 units. Pauses for 30..157 behavior
+/// ticks, then scans if a contact lies within 1024 game units or walks for
+/// 60..123 ticks. A contact within 768 or timer expiry returns to idle.
+static void _actor800100WanderState(Task* task)
+{
+    enum {
+        ACTOR_800100_WANDER_START            = 0,
+        ACTOR_800100_WANDER_TURN             = 1,
+        ACTOR_800100_WANDER_PAUSE            = 2,
+        ACTOR_800100_WANDER_WALK             = 3,
+        ACTOR_800100_WANDER_YAW_TOLERANCE    = 64,
+        ACTOR_800100_WANDER_PAUSE_TICKS_MASK = 0x7F,
+        ACTOR_800100_WANDER_PAUSE_MIN_TICKS  = 30,
+        ACTOR_800100_WANDER_SCAN_DISTANCE    = 1024,
+        ACTOR_800100_WANDER_STOP_DISTANCE    = 768,
+        ACTOR_800100_WANDER_WALK_TICKS_MASK  = 0x3F,
+        ACTOR_800100_WANDER_WALK_MIN_TICKS   = 60,
+        ACTOR_800100_WANDER_ANIMATION_WALK   = 2,
+        ACTOR_800100_WANDER_MOVEMENT_WALK    = 1,
+        ACTOR_800100_WANDER_BLEND_FRAMES     = 3,
+    };
     GameActor*     actor;
     CompanionWork* companion;
-    GameActor*     target;
-    CompanionWork* targetCompanion;
-    s32            flag;
-    s32            arg;
-    s32            val;
-    s32            dist;
-    s32            targetDist;
-    s32            turn;
-    s32            state;
-    s16            ang;
-    s16            anim;
-    u16            old;
+    s32            turnPhaseAndForward;
+    s32            turnSet;
+    s32            turnAndTimingValue;
+    s32            yawMagnitude;
+    s32            probeDistance;
+    s32            turnDelta;
+    s32            phaseOrTargetHeading;
+    s16            targetHeading;
 
-    actor      = arg0->work;
-    companion  = actor->companionWork;
-    targetDist = _actor800100GetContactDistance(arg0->extra.tmd->coords, companion->probe.contacts, NULL);
-    state      = actor->statePhase;
-    flag       = 1;
-    switch (state) {
-        case 0:
-            actor->statePhase        = flag;
-            ang                      = (actor->rotation.vy + (rand() & ACTOR_TRANSFORM_ANGLE_MASK)) & ACTOR_TRANSFORM_ANGLE_MASK;
-            companion->targetHeading = ang;
-            turn                     = playerActorShortestTurn(actor->rotation.vy, ang);
-            arg                      = 5;
-            if (turn << 16 > 0) {
-                arg                = 6;
-                companion->turnDir = flag;
+    actor                = task->work;
+    companion            = actor->companionWork;
+    probeDistance        = _actor800100GetContactDistance(task->extra.tmd->coords, companion->probe.contacts, NULL);
+    phaseOrTargetHeading = actor->statePhase;
+    turnPhaseAndForward  = ACTOR_800100_WANDER_TURN;
+    switch (phaseOrTargetHeading) {
+        case ACTOR_800100_WANDER_START:
+            actor->statePhase        = turnPhaseAndForward;
+            targetHeading            = (actor->rotation.vy + (rand() & ACTOR_TRANSFORM_ANGLE_MASK)) & ACTOR_TRANSFORM_ANGLE_MASK;
+            companion->targetHeading = targetHeading;
+            turnDelta                = playerActorShortestTurn(actor->rotation.vy, targetHeading);
+            turnSet                  = ACTOR_800100_ANIMATION_TURN_LEFT;
+            if (turnDelta << 16 > 0) {
+                turnSet            = ACTOR_800100_ANIMATION_TURN_RIGHT;
+                companion->turnDir = turnPhaseAndForward;
             } else {
-                companion->turnDir = -1;
+                companion->turnDir = ACTOR_800100_TURN_NEGATIVE;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 3);
-        case 1:
-            val             = (u8)companion->turnDir;
-            actor->turnSign = val;
-            val             = actor->rotation.vy;
-            state           = companion->targetHeading;
-            dist            = val - state;
-            if (dist < 0) {
-                dist = -dist;
+            playerActorPlayChildSlotsWithBlend(task, turnSet, 0, ACTOR_800100_WANDER_BLEND_FRAMES);
+            /* fallthrough */
+        case ACTOR_800100_WANDER_TURN:
+            // Byte, heading and timer values share a temporary to preserve load ordering.
+            turnAndTimingValue   = (u8)companion->turnDir;
+            actor->turnSign      = turnAndTimingValue;
+            turnAndTimingValue   = actor->rotation.vy;
+            phaseOrTargetHeading = companion->targetHeading;
+            yawMagnitude         = turnAndTimingValue - phaseOrTargetHeading;
+            if (yawMagnitude < 0) {
+                yawMagnitude = -yawMagnitude;
             }
-            if (dist < 0x40) {
+            if (yawMagnitude < ACTOR_800100_WANDER_YAW_TOLERANCE) {
                 actor->statePhase  += 1;
                 actor->rotation.vy  = (u16)companion->targetHeading;
                 actor->turnSign     = 0;
-                actor->movementMode = 1;
-                val                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState     = val;
-                val                 = (((u32)val >> 16) & 0x7F) + 0x1E;
-                actor->stateTimer   = val;
-                playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 3);
+                actor->movementMode = ACTOR_800100_WANDER_MOVEMENT_WALK;
+                turnAndTimingValue  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState     = turnAndTimingValue;
+                turnAndTimingValue  = (((u32)turnAndTimingValue >> 16) & ACTOR_800100_WANDER_PAUSE_TICKS_MASK) + ACTOR_800100_WANDER_PAUSE_MIN_TICKS;
+                actor->stateTimer   = turnAndTimingValue;
+                playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ANIMATION_IDLE, 0, ACTOR_800100_WANDER_BLEND_FRAMES);
                 break;
             }
             break;
-        case 2:
-            val               = actor->stateTimer - 1;
-            actor->stateTimer = val;
-            if (val != 0) {
+        case ACTOR_800100_WANDER_PAUSE:
+            turnAndTimingValue = actor->stateTimer - 1;
+            actor->stateTimer  = turnAndTimingValue;
+            if (turnAndTimingValue != 0) {
                 break;
             }
-            if (targetDist < 0x401 && targetDist != 0) {
-                anim                           = 1;
-                target                         = arg0->work;
-                old                            = target->state;
-                target->state                  = 0xA;
-                target->aimTrackingState       = anim;
-                targetCompanion                = target->companionWork;
-                target->mode                   = GAME_ACTOR_MODE_NORMAL;
-                target->turnRateIndex          = flag;
-                target->animationState         = 0;
-                target->statePhase             = 0;
-                target->stateAux               = old;
-                targetCompanion->scanClearance = COMPANION_SCAN_UNTESTED;
-                targetCompanion->scanAngle     = 0;
-                playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 6);
+            if (probeDistance < (ACTOR_800100_WANDER_SCAN_DISTANCE + 1) && probeDistance != 0) {
+                _actor800100WanderStartScan(task);
                 break;
             }
             actor->statePhase += 1;
-            actor->stateTimer  = (rand() & 0x3F) + 0x3C;
-            playerActorPlayChildSlotsWithBlend(arg0, 2, 0, 3);
+            actor->stateTimer  = (rand() & ACTOR_800100_WANDER_WALK_TICKS_MASK) + ACTOR_800100_WANDER_WALK_MIN_TICKS;
+            playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_WANDER_ANIMATION_WALK, 0, ACTOR_800100_WANDER_BLEND_FRAMES);
             break;
-        case 3:
-            if (targetDist < 0x301 && targetDist != 0) {
-                companionEnterIdle(arg0, 0);
+        case ACTOR_800100_WANDER_WALK:
+            if (probeDistance < (ACTOR_800100_WANDER_STOP_DISTANCE + 1) && probeDistance != 0) {
+                companionEnterIdle(task, 0);
                 break;
             }
-            val               = actor->stateTimer - 1;
-            actor->stateTimer = val;
-            if (val <= 0) {
-                companionEnterIdle(arg0, 0);
+            turnAndTimingValue = actor->stateTimer - 1;
+            actor->stateTimer  = turnAndTimingValue;
+            if (turnAndTimingValue <= 0) {
+                companionEnterIdle(task, 0);
                 break;
             }
-            actor->movementSign = flag;
+            actor->movementSign = turnPhaseAndForward;
             break;
     }
 }
 
-static void func_actor_800100_80165528(Task* arg0)
+/// Ticks attack/recovery timers and dispatches the companion's current mode.
+///
+/// Requires live actor work with mode 0 native, 1 damage or 2 scripted. Clears
+/// this tick's movement and turn requests before dispatch and the pushback-
+/// direction override afterward. Timers decrease only while positive; recovery
+/// uses a signed-byte test. The caller gates this whole update while frozen.
+static void _actor800100TickBehavior(Task* task)
 {
     GameActor*     actor;
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp    = D_actor_800100_80161E4C;
-    actor = arg0->work;
+    handlers = D_actor_800100_80161E4C;
+    actor    = task->work;
     if (actor->attackControl.cooldownTicks > 0) {
         actor->attackControl.cooldownTicks--;
     }
@@ -2073,23 +2180,29 @@ static void func_actor_800100_80165528(Task* arg0)
     }
     actor->movementSign = 0;
     actor->turnSign     = 0;
-    sp.funcs[actor->mode](arg0);
+    handlers.funcs[actor->mode](task);
     actor->usesPushbackDirection = 0;
 }
 
-static void func_actor_800100_801655C0(Task* arg0)
+/// Selects a lock target and starts the companion's combat-entry behavior.
+///
+/// Requires live actor/companion work and native animation resources. Clears the
+/// repeat budget, starts target aim tracking and blends idle for six frames.
+/// Retained standalone entry with no callers; the idle state carries the same
+/// transition when combat begins.
+static void _actor800100EnterCombatEntry(Task* task)
 {
     GameActor* actor;
 
-    actor                                                  = arg0->work;
-    actor->state                                           = 3;
+    actor                                                  = task->work;
+    actor->state                                           = ACTOR_800100_STATE_COMBAT_ENTRY;
     actor->mode                                            = GAME_ACTOR_MODE_NORMAL;
-    actor->animationState                                  = 0;
+    actor->animationState                                  = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
     actor->statePhase                                      = 0;
     actor->companionWork->activity.combat.repeatsRemaining = 0;
     actor->aimTrackingState                                = GAME_ACTOR_AIM_TRACKING_TARGET;
-    actor->targetNode                                      = worldTargetFindLockNode(arg0);
-    playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 6);
+    actor->targetNode                                      = worldTargetFindLockNode(task);
+    playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ANIMATION_IDLE, 0, ACTOR_800100_COMBAT_BLEND_FRAMES);
 }
 
 /// Starts the combat approach behavior with a fresh obstruction counter.
@@ -2209,32 +2322,41 @@ static void _actor800100EnterWander(Task* task)
     _actor800100ResetBehaviorProgress(actor);
 }
 
-static void func_actor_800100_80165748(Task* arg0)
+/// Starts combat entry when a battle engages, otherwise chooses idle behavior.
+///
+/// Requires live companion work, native animation resources and a live player.
+/// Combat entry selects a target and resets the attack-repeat budget; the idle
+/// decision timer controls following, turning, wandering and idle variations.
+static void _actor800100IdleState(Task* task)
 {
     GameActor* actor;
 
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-        actor                                                  = arg0->work;
-        actor->state                                           = 3;
+        actor                                                  = task->work;
+        actor->state                                           = ACTOR_800100_STATE_COMBAT_ENTRY;
         actor->mode                                            = GAME_ACTOR_MODE_NORMAL;
-        actor->animationState                                  = 0;
+        actor->animationState                                  = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
         actor->statePhase                                      = 0;
         actor->companionWork->activity.combat.repeatsRemaining = 0;
         actor->aimTrackingState                                = GAME_ACTOR_AIM_TRACKING_TARGET;
-        actor->targetNode                                      = worldTargetFindLockNode(arg0);
-        playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 6);
+        actor->targetNode                                      = worldTargetFindLockNode(task);
+        playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ANIMATION_IDLE, 0, ACTOR_800100_COMBAT_BLEND_FRAMES);
         return;
     }
-    _actor800100DecideIdleBehavior(arg0);
+    _actor800100DecideIdleBehavior(task);
 }
 
-static void func_actor_800100_801657D8(Task* arg0)
+/// Chooses the next combat behavior or starts combat exit when battle ends.
+///
+/// Requires live native actor/companion resources. The battle gate is checked
+/// before the target-range and HP decisions, so combat exit wins that tick.
+static void _actor800100CombatDecisionState(Task* task)
 {
     if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
-        _actor800100EnterCombatExit(arg0);
+        _actor800100EnterCombatExit(task);
         return;
     }
-    _actor800100DecideCombatBehavior(arg0);
+    _actor800100DecideCombatBehavior(task);
 }
 
 /// Returns to idle once the combat-exit animation has advanced the behavior phase.
@@ -2310,7 +2432,7 @@ static void _actor800100StoppedDamageState(Task* unusedTask)
 {
 }
 
-/// Gameplay's player-mode handlers `func_actor_800100_80165930` runs,
+/// Gameplay's player-mode handlers `_actor800100TickScriptedMode` runs,
 /// indexed by `state`.
 static const TaskFuncTable7 D_actor_800100_80161E98 = { {
     Gp_PlayerMode2State0,
@@ -2322,18 +2444,24 @@ static const TaskFuncTable7 D_actor_800100_80161E98 = { {
     playerActorMode2State6,
 } };
 
-static void func_actor_800100_80165930(Task* arg0)
+/// Dispatches the companion's scripted state, updates facing and handles death.
+///
+/// Requires live actor/model resources and a scripted state in 0..6. States
+/// 0/1 advance playback, 2 turns, 4 walks and 6 waits for button presses;
+/// 3 and 5 use ordinary playback. Saved companion HP at most zero restores
+/// native animation and enters the stopped pose after this tick's dispatch.
+static void _actor800100TickScriptedMode(Task* task)
 {
     GameActor*     actor;
-    TaskFuncTable7 sp;
+    TaskFuncTable7 handlers;
 
-    sp    = D_actor_800100_80161E98;
-    actor = arg0->work;
-    sp.funcs[(u16)actor->state](arg0);
-    playerActorUpdateFacing(arg0);
+    handlers = D_actor_800100_80161E98;
+    actor    = task->work;
+    handlers.funcs[(u16)actor->state](task);
+    playerActorUpdateFacing(task);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-        companionInitNativeAnimation(arg0);
-        playerActorEnterStoppedPose(arg0, 0);
+        companionInitNativeAnimation(task);
+        playerActorEnterStoppedPose(task, 0);
     }
 }
 
@@ -2541,7 +2669,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
     }
 }
 
-/// Handlers `func_actor_800100_80166EE8` runs, indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant`.
+/// Handlers `_actor800100TickWeaponAttack` runs, indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant`.
 static const TaskFuncTable5 D_actor_800100_80161EC8 = { {
     func_actor_800100_80165C38,
     func_actor_800100_80165C38,
@@ -2742,113 +2870,136 @@ static void func_actor_800100_80166190(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
-static void func_actor_800100_80166514(Task* arg0)
+/// Draws the retained companion aim beam and its textured end square.
+///
+/// No code or dispatch table calls this routine. Requires an equipped weapon,
+/// initialized aim capsule/contacts, GPU packet space and nested scratch space.
+/// Places the beam from the weapon, ranges against the first aim contact, draws
+/// a line along local Y and places the square 56 units past the stored distance.
+/// Placement includes view ancestors in the composed cache. The contact query
+/// measures X/Z in that composition frame, rather than along the beam axis.
+static void _actor800100DrawAimBeam(Task* task)
 {
-    void**                      scratch;
+    enum {
+        ACTOR_800100_BEAM_WEAPON_PITCH = 1024,
+        ACTOR_800100_BEAM_START_Y      = 288,
+        ACTOR_800100_BEAM_START_Z      = 32,
+        ACTOR_800100_BEAM_TIP_BIAS     = 56,
+    };
+    void**                      scratchCursor;
     GameActor*                  actor;
-    GfxCoord                    sp10;
-    GfxCoord*                   src;
-    WorldCollisionBody*         obj;
-    _Actor800100AimBeamScratch* blk;
-    s16                         distance;
+    GfxCoord                    weaponCoord;
+    GfxCoord*                   weaponRoot;
+    WorldCollisionBody*         aimBody;
+    _Actor800100AimBeamScratch* beamScratch;
+    s16                         contactDistance;
 
-    actor       = arg0->work;
-    src         = actor->equipmentTasks[1]->extra.tmd->coords;
-    obj         = &actor->collisionBodies[GAME_ACTOR_BODY_AIM];
-    sp10        = *src;
-    obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    actor           = task->work;
+    weaponRoot      = actor->equipmentTasks[1]->extra.tmd->coords;
+    aimBody         = &actor->collisionBodies[GAME_ACTOR_BODY_AIM];
+    weaponCoord     = *weaponRoot;
+    aimBody->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    scratch = SCRATCH_HEAD_ADDR;
-    blk     = SCRATCH_PUSH_AT(scratch, _Actor800100AimBeamScratch);
+    scratchCursor = SCRATCH_HEAD_ADDR;
+    beamScratch   = SCRATCH_PUSH_AT(scratchCursor, _Actor800100AimBeamScratch);
 
-    worldCollisionFindContactIndex(obj->context.capsule->contacts, WORLD_COLLISION_FIND_ANY_KEY);
-    gfxRotMatrixX(&sp10.workm, 0x400, GRAPHICS_ROTATION_COMPOSE);
-    blk->offset.vx = 0;
-    blk->offset.vy = 0x120;
-    blk->offset.vz = 0x20;
-    actorRenderPlaceCoordOffset(&sp10, &blk->coord, &blk->offset);
-    distance             = _actor800100GetContactDistance(&blk->coord, actor->aimContacts, NULL);
-    blk->contactDistance = distance;
-    func_actor_800100_8016666C(&blk->coord, distance);
-    blk->offset.vx = 0;
-    blk->offset.vz = 0;
-    blk->offset.vy = blk->contactDistance + 0x38;
-    actorRenderPlaceCoordOffset(&blk->coord, &blk->coord, &blk->offset);
-    func_actor_800100_801668C0(&blk->coord);
+    worldCollisionFindContactIndex(aimBody->context.capsule->contacts, WORLD_COLLISION_FIND_ANY_KEY);
+    // Placement recomposes weaponCoord and overwrites this retained cache-only rotation.
+    gfxRotMatrixX(&weaponCoord.workm, ACTOR_800100_BEAM_WEAPON_PITCH, GRAPHICS_ROTATION_COMPOSE);
+    beamScratch->offset.vx = 0;
+    beamScratch->offset.vy = ACTOR_800100_BEAM_START_Y;
+    beamScratch->offset.vz = ACTOR_800100_BEAM_START_Z;
+    actorRenderPlaceCoordOffset(&weaponCoord, &beamScratch->coord, &beamScratch->offset);
+    contactDistance              = _actor800100GetContactDistance(&beamScratch->coord, actor->aimContacts, NULL);
+    beamScratch->contactDistance = contactDistance;
+    _actor800100DrawAimBeamLine(&beamScratch->coord, contactDistance);
+    beamScratch->offset.vx = 0;
+    beamScratch->offset.vz = 0;
+    beamScratch->offset.vy = beamScratch->contactDistance + ACTOR_800100_BEAM_TIP_BIAS;
+    actorRenderPlaceCoordOffset(&beamScratch->coord, &beamScratch->coord, &beamScratch->offset);
+    _actor800100DrawAimBeamQuad(&beamScratch->coord);
     worldCollisionClearContacts(actor->aimContacts);
-    SCRATCH_POP_AT(scratch, _Actor800100AimBeamScratch);
+    SCRATCH_POP_AT(scratchCursor, _Actor800100AimBeamScratch);
 }
 
-/* The block is carved off `head` into `newhead` and stored there, but the GTE
-   calls address it through `blk`: the ROM keeps that pointer as a copy of
-   `newhead` in `$a3`, and one variable for both drops it. The post-`rcos`
-   reads go through `newhead` for the same reason - naming `blk` there would
-   keep the copy live across the call - and the two `originScreen` reads are
-   spelled off `head`, whose folded address is the one the ROM uses. */
-static void func_actor_800100_8016666C(GfxCoord* arg0, s16 arg1)
+/// Draws a pulsing additive red line along the beam coordinate's local Y axis.
+///
+/// Requires a current full-chain cache, player weapon index 0..32 and GPU/scratch
+/// space and a table with 1024 depth tags. A zero contactDistance uses the
+/// player's weapon reach narrowed to s16;
+/// other s16 values become the local-Y length in game units. Projects directly
+/// through the composed cache and emits the line only at tip SZ3/4 >= 32.
+static void _actor800100DrawAimBeamLine(const GfxCoord* beamCoord, s16 contactDistance)
 {
-    void**                          scratch;
-    _Actor800100AimBeamLineScratch* head;
-    _Actor800100AimBeamLineScratch* newhead;
-    _Actor800100AimBeamLineScratch* blk;
-    LINE_G2*                        prim;
-    s16                             angle;
-    s32                             sy0;
-    s32                             sy1;
+    enum {
+        ACTOR_800100_BEAM_LINE_MIN_DEPTH       = 32,
+        ACTOR_800100_BEAM_LINE_PULSE_MASK      = 0x1F,
+        ACTOR_800100_BEAM_LINE_RED_BIAS        = 128,
+        ACTOR_800100_BEAM_LINE_TIP_FADE        = 80,
+        ACTOR_800100_BEAM_LINE_NEAR_GREEN_BLUE = 32,
+    };
+    void**                          scratchCursor;
+    _Actor800100AimBeamLineScratch* previousHead;
+    _Actor800100AimBeamLineScratch* reservedBlock;
+    _Actor800100AimBeamLineScratch* projectionScratch;
+    LINE_G2*                        line;
+    s16                             beamLength;
+    s32                             originScreenY;
+    s32                             tipScreenY;
 
-    scratch                                                  = SCRATCH_HEAD_ADDR;
-    head                                                     = SCRATCH_HEAD_AT(scratch, _Actor800100AimBeamLineScratch);
-    newhead                                                  = head - 1;
-    blk                                                      = newhead;
-    SCRATCH_HEAD_AT(scratch, _Actor800100AimBeamLineScratch) = newhead;
+    scratchCursor                                                  = SCRATCH_HEAD_ADDR;
+    previousHead                                                   = SCRATCH_HEAD_AT(scratchCursor, _Actor800100AimBeamLineScratch);
+    reservedBlock                                                  = previousHead - 1;
+    projectionScratch                                              = reservedBlock;
+    SCRATCH_HEAD_AT(scratchCursor, _Actor800100AimBeamLineScratch) = reservedBlock;
 
-    angle = arg1;
-    if (arg1 == 0) {
-        angle = D_80112F60[gPlayerStatus.weapon];
+    beamLength = contactDistance;
+    if (contactDistance == 0) {
+        beamLength = D_80112F60[gPlayerStatus.weapon];
     }
-    blk->tip.vy    = angle;
-    blk->origin.vx = 0;
-    blk->origin.vy = 0;
-    blk->origin.vz = 0;
-    blk->tip.vx    = 0;
-    blk->tip.vz    = 0;
+    projectionScratch->tip.vy    = beamLength;
+    projectionScratch->origin.vx = 0;
+    projectionScratch->origin.vy = 0;
+    projectionScratch->origin.vz = 0;
+    projectionScratch->tip.vx    = 0;
+    projectionScratch->tip.vz    = 0;
 
-    gte_SetTransMatrix(&arg0->workm);
-    gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(&blk->origin);
+    gte_SetTransMatrix(&beamCoord->workm);
+    gte_SetRotMatrix(&beamCoord->workm);
+    gte_ldv0(&projectionScratch->origin);
     gte_rtps();
-    gte_stsxy(&blk->originScreen);
-    gte_ldv0(&blk->tip);
+    gte_stsxy(&projectionScratch->originScreen);
+    gte_ldv0(&projectionScratch->tip);
     gte_rtps();
-    gte_stsxy(&blk->tipScreen);
-    gte_stszotz(&blk->otz);
+    gte_stsxy(&projectionScratch->tipScreen);
+    gte_stszotz(&projectionScratch->otz);
 
-    if (newhead->otz >= 0x20) {
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setLineG2(prim);
-        prim->x0 = (head - 1)->originScreen.vx;
+    if (reservedBlock->otz >= ACTOR_800100_BEAM_LINE_MIN_DEPTH) {
+        line           = gGpuPrimCursor;
+        gGpuPrimCursor = line + 1;
+        setLineG2(line);
+        line->x0 = (previousHead - 1)->originScreen.vx;
         /* Both `vy` loads sign-extend, which needs the `s32` locals: a direct
            16-bit field copy assembles to `lhu` for either of them. */
-        sy0      = (head - 1)->originScreen.vy;
-        prim->y0 = sy0;
-        prim->x1 = newhead->tipScreen.vx;
-        sy1      = newhead->tipScreen.vy;
-        prim->y1 = sy1;
+        originScreenY = (previousHead - 1)->originScreen.vy;
+        line->y0      = originScreenY;
+        line->x1      = reservedBlock->tipScreen.vx;
+        tipScreenY    = reservedBlock->tipScreen.vy;
+        line->y1      = tipScreenY;
         /* Both ends pulse with the frame counter, the far one 0x50 darker. */
-        prim->r0 = (rcos(gDisplayState.gameTick) & 0x1F) - 0x80;
-        prim->g0 = 0x20;
-        prim->b0 = 0x20;
-        prim->r1 = prim->r0 - 0x50;
-        prim->g1 = 0;
-        prim->b1 = 0;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)newhead->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, newhead->otz);
+        line->r0 = (rcos(gDisplayState.gameTick) & ACTOR_800100_BEAM_LINE_PULSE_MASK) - ACTOR_800100_BEAM_LINE_RED_BIAS;
+        line->g0 = ACTOR_800100_BEAM_LINE_NEAR_GREEN_BLUE;
+        line->b0 = ACTOR_800100_BEAM_LINE_NEAR_GREEN_BLUE;
+        line->r1 = line->r0 - ACTOR_800100_BEAM_LINE_TIP_FADE;
+        line->g1 = 0;
+        line->b1 = 0;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)reservedBlock->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
+        gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, reservedBlock->otz);
     }
-    SCRATCH_POP_AT(scratch, _Actor800100AimBeamLineScratch);
+    SCRATCH_POP_AT(scratchCursor, _Actor800100AimBeamLineScratch);
 }
 
-/// The four (y, z) corners of the quad `func_actor_800100_801668C0` draws,
+/// The four (y, z) corners of the quad `_actor800100DrawAimBeamQuad` draws,
 /// offset off the placed coordinate's world translation. The table sits in the
 /// unit's .rodata right after the jump tables, so it is written here rather
 /// than left to the split: nothing else refers to it.
@@ -2859,75 +3010,85 @@ static const _Actor800100AimBeamQuadCorner D_actor_800100_80161F10[4] = {
     { 62, 124 },
 };
 
-/* The beam quad `func_actor_800100_80166514` places: the four
-   `D_actor_800100_80161F10` (y, z) offsets, raised to the coordinate's world
-   translation, projected through `GsWSMATRIX` and textured with one 0x20
-   square of the atlas.
-   The block is reserved and its pointer taken in one assignment: the ROM
-   keeps the allocated pointer as a copy of the store's temporary in `$t1`,
-   and splitting the two into separate statements drops that copy. */
-static void func_actor_800100_801668C0(GfxCoord* arg0)
+/// Draws the aim beam's fixed-orientation additive textured end square.
+///
+/// Requires the placed coordinate's current full-chain cache, GPU packet space
+/// and scratch space. Adds four Y/Z offsets to its composed translation, narrows
+/// each component to s16 and projects through GsWSMATRIX. Rotation is not applied
+/// to the offsets; the final corner's SZ3/4 selects one of 1024 depth tags,
+/// which the current ordering table must provide.
+static void _actor800100DrawAimBeamQuad(const GfxCoord* beamCoord)
 {
-    void**                          scratch;
-    _Actor800100AimBeamQuadScratch* blk;
-    POLY_FT4*                       prim;
-    s32                             i;
-    s32                             ay;
-    s32                             az;
-    s32                             sy;
+    enum {
+        ACTOR_800100_BEAM_QUAD_TEXTURE_PAGE        = 0x27,
+        ACTOR_800100_BEAM_QUAD_CLUT                = 0x3CCE,
+        ACTOR_800100_BEAM_QUAD_RAW_SEMITRANSPARENT = 3,
+        ACTOR_800100_BEAM_QUAD_U_MIN               = 32,
+        ACTOR_800100_BEAM_QUAD_U_MAX               = 63,
+        ACTOR_800100_BEAM_QUAD_V_MIN               = 128,
+        ACTOR_800100_BEAM_QUAD_V_MAX               = 159,
+        ACTOR_800100_BEAM_QUAD_DEPTH_TAG_SHIFT     = 4,
+    };
+    void**                          scratchCursor;
+    _Actor800100AimBeamQuadScratch* projectionScratch;
+    POLY_FT4*                       quad;
+    s32                             cornerIndex;
+    s32                             cornerY;
+    s32                             cornerZ;
+    s32                             screenY;
 
-    scratch = SCRATCH_HEAD_ADDR;
-    blk     = SCRATCH_PUSH_AT(scratch, _Actor800100AimBeamQuadScratch);
+    scratchCursor     = SCRATCH_HEAD_ADDR;
+    projectionScratch = SCRATCH_PUSH_AT(scratchCursor, _Actor800100AimBeamQuadScratch);
 
-    for (i = 0; i < 4; i++) {
-        ay                      = D_actor_800100_80161F10[i].vy;
-        az                      = D_actor_800100_80161F10[i].vz;
-        blk->cornerOffset.vx    = 0;
-        blk->cornerOffset.vy    = ay;
-        blk->cornerOffset.vz    = az;
-        blk->worldCorners[i].vx = (u16)blk->cornerOffset.vx + (u16)arg0->workm.t[0];
-        blk->worldCorners[i].vy = (u16)blk->cornerOffset.vy + (u16)arg0->workm.t[1];
-        blk->worldCorners[i].vz = (u16)blk->cornerOffset.vz + (u16)arg0->workm.t[2];
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_actor_800100_80161F10); cornerIndex++) {
+        cornerY                                         = D_actor_800100_80161F10[cornerIndex].vy;
+        cornerZ                                         = D_actor_800100_80161F10[cornerIndex].vz;
+        projectionScratch->cornerOffset.vx              = 0;
+        projectionScratch->cornerOffset.vy              = cornerY;
+        projectionScratch->cornerOffset.vz              = cornerZ;
+        projectionScratch->worldCorners[cornerIndex].vx = (u16)projectionScratch->cornerOffset.vx + (u16)beamCoord->workm.t[0];
+        projectionScratch->worldCorners[cornerIndex].vy = (u16)projectionScratch->cornerOffset.vy + (u16)beamCoord->workm.t[1];
+        projectionScratch->worldCorners[cornerIndex].vz = (u16)projectionScratch->cornerOffset.vz + (u16)beamCoord->workm.t[2];
     }
 
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_SetTransMatrix(&GsWSMATRIX);
 
-    gte_ldv0(&blk->worldCorners[0]);
+    gte_ldv0(&projectionScratch->worldCorners[0]);
     gte_rtps();
 
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyFT4(prim);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
 
-    gte_stsxy2(&blk->screenCorners[0]);
+    gte_stsxy2(&projectionScratch->screenCorners[0]);
 
-    gte_ldv3(&blk->worldCorners[1], &blk->worldCorners[2], &blk->worldCorners[3]);
+    gte_ldv3(&projectionScratch->worldCorners[1], &projectionScratch->worldCorners[2], &projectionScratch->worldCorners[3]);
     gte_rtpt();
-    prim->tpage = 0x27;
-    prim->clut  = 0x3CCE;
-    setUV4(prim, 0x20, 0x80, 0x3F, 0x80, 0x20, 0x9F, 0x3F, 0x9F);
-    prim->code |= 3;
+    quad->tpage = ACTOR_800100_BEAM_QUAD_TEXTURE_PAGE;
+    quad->clut  = ACTOR_800100_BEAM_QUAD_CLUT;
+    setUV4(quad, ACTOR_800100_BEAM_QUAD_U_MIN, ACTOR_800100_BEAM_QUAD_V_MIN, ACTOR_800100_BEAM_QUAD_U_MAX, ACTOR_800100_BEAM_QUAD_V_MIN, ACTOR_800100_BEAM_QUAD_U_MIN, ACTOR_800100_BEAM_QUAD_V_MAX, ACTOR_800100_BEAM_QUAD_U_MAX, ACTOR_800100_BEAM_QUAD_V_MAX);
+    quad->code |= ACTOR_800100_BEAM_QUAD_RAW_SEMITRANSPARENT;
 
-    gte_stsxy3(&blk->screenCorners[1], &blk->screenCorners[2], &blk->screenCorners[3]);
-    gte_stszotz(&blk->otz);
+    gte_stsxy3(&projectionScratch->screenCorners[1], &projectionScratch->screenCorners[2], &projectionScratch->screenCorners[3]);
+    gte_stszotz(&projectionScratch->otz);
 
     /* Both `vy` loads sign-extend, which the `s32` locals keep: a direct
        16-bit field copy assembles to `lhu` for either of them. */
-    prim->x0 = blk->screenCorners[0].vx;
-    sy       = blk->screenCorners[0].vy;
-    prim->y0 = sy;
-    prim->x1 = blk->screenCorners[1].vx;
-    sy       = blk->screenCorners[1].vy;
-    prim->y1 = sy;
-    prim->x2 = blk->screenCorners[2].vx;
-    sy       = blk->screenCorners[2].vy;
-    prim->y2 = sy;
-    prim->x3 = blk->screenCorners[3].vx;
-    sy       = blk->screenCorners[3].vy;
-    prim->y3 = sy;
+    quad->x0 = projectionScratch->screenCorners[0].vx;
+    screenY  = projectionScratch->screenCorners[0].vy;
+    quad->y0 = screenY;
+    quad->x1 = projectionScratch->screenCorners[1].vx;
+    screenY  = projectionScratch->screenCorners[1].vy;
+    quad->y1 = screenY;
+    quad->x2 = projectionScratch->screenCorners[2].vx;
+    screenY  = projectionScratch->screenCorners[2].vy;
+    quad->y2 = screenY;
+    quad->x3 = projectionScratch->screenCorners[3].vx;
+    screenY  = projectionScratch->screenCorners[3].vy;
+    quad->y3 = screenY;
 
-    addPrim(&gGpuCurrentOt[blk->otz >> 4], prim);
+    addPrim(&gGpuCurrentOt[projectionScratch->otz >> ACTOR_800100_BEAM_QUAD_DEPTH_TAG_SHIFT], quad);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor800100AimBeamQuadScratch);
 }
 
@@ -3068,49 +3229,69 @@ void actor800100EnterReload(Task* task, s32 animationVariant)
     playerActorPlayChildSlotsWithBlend(task, animationVariant + ACTOR_800100_ANIMATION_RELOAD_BASE, 0, ACTOR_800100_RELOAD_BLEND_FRAMES);
 }
 
-static void func_actor_800100_80166EE8(Task* arg0)
+/// Advances the armed companion's weapon-specific attack handler.
+///
+/// Requires a saved companion variant 0..4, live actor/companion work and the
+/// variant's weapon/native playback resources. Variants 0/1 share the first
+/// handler; 2, 3 and 4 select grenade, handgun and rifle/Pyke attack sequences.
+/// The attack-loop state calls this only once its cooldown reaches zero.
+static void _actor800100TickWeaponAttack(Task* task)
 {
-    TaskFuncTable5 sp;
+    TaskFuncTable5 handlers;
 
-    sp = D_actor_800100_80161EC8;
-    sp.funcs[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant](arg0);
+    handlers = D_actor_800100_80161EC8;
+    handlers.funcs[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant](task);
 }
 
-static void func_actor_800100_80166F50(Task* arg0)
+/// Initializes and links the retained weapon-relative aiming capsule.
+///
+/// No code or dispatch table calls this routine. With an equipped weapon,
+/// borrows its root cache and uses player weapon index 0..32's reach in game units.
+/// Links the actor-owned capsule to player attacks with one retained contact;
+/// the actor and its contact storage must remain live until that body is unlinked.
+/// The cached quarter turn is preserved without changing the copied local matrix.
+static void _actor800100InitAimCollision(Task* actorTask)
 {
+    enum {
+        ACTOR_800100_AIM_WEAPON_PITCH   = 1024,
+        ACTOR_800100_AIM_COLLISION_KEY  = 0x60000,
+        ACTOR_800100_AIM_CAPSULE_Y      = -16,
+        ACTOR_800100_AIM_CAPSULE_Z      = 32,
+        ACTOR_800100_AIM_CAPSULE_RADIUS = 1,
+    };
     GameActor*             actor;
-    WorldCollisionBody*    obj;
-    WorldCollisionCapsule* rec;
-    GfxCoord*              src;
-    Task*                  task;
+    WorldCollisionBody*    aimBody;
+    WorldCollisionCapsule* aimCapsule;
+    GfxCoord*              weaponRoot;
+    Task*                  weaponTask;
 
-    actor = arg0->work;
-    task  = actor->equipmentTasks[1];
-    if (task != NULL) {
-        obj                         = &actor->collisionBodies[GAME_ACTOR_BODY_AIM];
-        rec                         = &actor->aimShape;
-        src                         = task->extra.tmd->coords;
-        actor->weaponCollisionCoord = *src;
-        gfxRotMatrixX(&actor->weaponCollisionCoord.workm, 0x400, GRAPHICS_ROTATION_COMPOSE);
-        obj->coord           = &actor->weaponCollisionCoord;
-        obj->context.capsule = &actor->aimShape;
-        obj->key             = 0x60000;
-        obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
-        obj->pos.vx          = 0;
-        obj->pos.vy          = 0;
-        obj->pos.vz          = 0;
-        rec->ends[1].vx      = 0;
-        rec->ends[1].vy      = -0x10;
-        rec->ends[0].vx      = rec->ends[1].vx;
-        rec->ends[1].vz      = 0x20;
-        rec->ends[0].vy      = rec->ends[1].vy;
-        rec->ends[0].vz      = rec->ends[1].vz + D_80112F60[gPlayerStatus.weapon];
-        rec->end1Radius      = 1;
-        rec->end0Radius      = 1;
-        rec->contacts        = actor->aimContacts;
-        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, obj);
-        worldCollisionInitContacts(rec->contacts, 1, 0);
-        obj->flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
+    actor      = actorTask->work;
+    weaponTask = actor->equipmentTasks[1];
+    if (weaponTask != NULL) {
+        aimBody                     = &actor->collisionBodies[GAME_ACTOR_BODY_AIM];
+        aimCapsule                  = &actor->aimShape;
+        weaponRoot                  = weaponTask->extra.tmd->coords;
+        actor->weaponCollisionCoord = *weaponRoot;
+        gfxRotMatrixX(&actor->weaponCollisionCoord.workm, ACTOR_800100_AIM_WEAPON_PITCH, GRAPHICS_ROTATION_COMPOSE);
+        aimBody->coord           = &actor->weaponCollisionCoord;
+        aimBody->context.capsule = &actor->aimShape;
+        aimBody->key             = ACTOR_800100_AIM_COLLISION_KEY;
+        aimBody->flags           = WORLD_COLLISION_BODY_CAPSULE;
+        aimBody->pos.vx          = 0;
+        aimBody->pos.vy          = 0;
+        aimBody->pos.vz          = 0;
+        aimCapsule->ends[1].vx   = 0;
+        aimCapsule->ends[1].vy   = ACTOR_800100_AIM_CAPSULE_Y;
+        aimCapsule->ends[0].vx   = aimCapsule->ends[1].vx;
+        aimCapsule->ends[1].vz   = ACTOR_800100_AIM_CAPSULE_Z;
+        aimCapsule->ends[0].vy   = aimCapsule->ends[1].vy;
+        aimCapsule->ends[0].vz   = aimCapsule->ends[1].vz + D_80112F60[gPlayerStatus.weapon];
+        aimCapsule->end1Radius   = ACTOR_800100_AIM_CAPSULE_RADIUS;
+        aimCapsule->end0Radius   = ACTOR_800100_AIM_CAPSULE_RADIUS;
+        aimCapsule->contacts     = actor->aimContacts;
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, aimBody);
+        worldCollisionInitContacts(aimCapsule->contacts, ARRAY_SIZE(actor->aimContacts), 0);
+        aimBody->flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
     }
 }
 
