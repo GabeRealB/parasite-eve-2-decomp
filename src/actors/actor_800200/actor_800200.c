@@ -917,7 +917,7 @@ AnimationBank D_actor_800200_8016F208 = { { {
 } } };
 
 static void _actor800200InitTask(Task* task);
-static void func_actor_800200_801622B0(Task* arg0);
+static void _actor800200UpdateMove(Task* task);
 static void _actor800200AdvanceToTeardown(Task* task);
 static void _actor800200TickFreeIdle(Task* task);
 static void _actor800200TickArea26Route(Task* task);
@@ -1077,97 +1077,125 @@ static void _actor800200InitTask(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(ACTOR_800200_PROBE_SCRATCH_BYTES);
 }
 
-static void func_actor_800200_801622B0(Task* arg0)
+/// Restores the root's last accepted position in its parent-coordinate frame.
+static inline void _actor800200RestorePreviousPosition(GfxCoord* rootCoord, const GameActor* actor)
 {
+    rootCoord->coord.t[0] = actor->previousPosition.vx;
+    rootCoord->coord.t[1] = actor->previousPosition.vy;
+    rootCoord->coord.t[2] = actor->previousPosition.vz;
+}
+
+/// Publishes a Q12 movement or pushback heading to all three motion contexts.
+///
+/// Uses the root's composed Z axis times movementSign, or the normalized
+/// pushback direction in that frame. Borrows a writable scratch block and
+/// stages/copies only XYZ halfwords, retaining the vector pads.
+static inline void _actor800200PublishMotionDirection(GameActor* actor, const GfxCoord* rootCoord, CompanionMoveScratch* block)
+{
+    if (actor->usesPushbackDirection != 0) {
+        block->motionDirection.vx = actor->pushbackDirection.vx;
+        block->motionDirection.vy = actor->pushbackDirection.vy;
+        block->motionDirection.vz = actor->pushbackDirection.vz;
+    } else {
+        block->motionDirection.vx = rootCoord->workm.m[0][2] * actor->movementSign;
+        block->motionDirection.vy = rootCoord->workm.m[1][2] * actor->movementSign;
+        block->motionDirection.vz = rootCoord->workm.m[2][2] * actor->movementSign;
+    }
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].motionDirection.vx  = block->motionDirection.vx;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].motionDirection.vy  = block->motionDirection.vy;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].motionDirection.vz  = block->motionDirection.vz;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART4].motionDirection.vx = block->motionDirection.vx;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART4].motionDirection.vy = block->motionDirection.vy;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART4].motionDirection.vz = block->motionDirection.vz;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART1].motionDirection.vx = block->motionDirection.vx;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART1].motionDirection.vy = block->motionDirection.vy;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART1].motionDirection.vz = block->motionDirection.vz;
+}
+
+/// Applies collision response, advances companion behavior, publishes motion and draws its shadow.
+///
+/// Requires initialized actor/companion work, linked bodies, playback and live
+/// room/view resources. Rejects height jumps of at least 512 game units outside
+/// scripted mode and restores the accepted position for an opposed grid response.
+/// Copies the root into the probe before behavior runs, without applying scanAngle.
+/// Frozen behavior still clears contacts and refreshes transforms and Q12 headings.
+/// Borrows one CompanionMoveScratch until return; its shadow fields are untouched.
+static void _actor800200UpdateMove(Task* task)
+{
+    enum {
+        ACTOR_800200_MAX_VERTICAL_STEP = 512,
+        ACTOR_800200_ROOT_FLOOR_LIFT   = 8,
+        ACTOR_800200_SHADOW_HALF_SIZE  = 512,
+    };
     void**                cursorSlot;
     CompanionMoveScratch* blockEnd;
-    CompanionMoveScratch* scratch;
+    CompanionMoveScratch* block;
     GameActor*            actor;
-    TmdObject*            obj;
-    TmdObject*            extra;
-    GfxCoord*             coord;
+    TmdObject*            model;
+    TmdObject*            coordsModel;
+    GfxCoord*             rootCoord;
     CompanionWork*        companion;
-    WorldCollisionBody*   objs[2];
-    s32                   dy;
-    s32                   i;
-    s8                    bits;
+    WorldCollisionBody*   bodies[2];
+    s32                   verticalDelta;
+    s32                   bodyIndex;
+    s8                    updateRequests;
 
     // Reserve the block: the cursor on entry is the address one past its end.
     cursorSlot                                        = SCRATCH_HEAD_ADDR;
     blockEnd                                          = SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch);
-    obj                                               = arg0->extra.tmd;
+    model                                             = task->extra.tmd;
     SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;
-    extra                                             = obj;
-    scratch                                           = blockEnd - 1;
+    coordsModel                                       = model;
+    block                                             = blockEnd - 1;
 
-    coord     = extra->coords;
-    actor     = arg0->work;
+    rootCoord = coordsModel->coords;
+    actor     = task->work;
     companion = actor->companionWork;
     if (actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
-        (dy = coord->coord.t[1], dy = dy - actor->previousPosition.vy, dy = ABS(dy), dy >= 0x200)) {
-        coord->coord.t[0] = actor->previousPosition.vx;
-        coord->coord.t[1] = actor->previousPosition.vy;
-        coord->coord.t[2] = actor->previousPosition.vz;
+        (verticalDelta = rootCoord->coord.t[1], verticalDelta = verticalDelta - actor->previousPosition.vy, verticalDelta = ABS(verticalDelta), verticalDelta >= ACTOR_800200_MAX_VERTICAL_STEP)) {
+        _actor800200RestorePreviousPosition(rootCoord, actor);
     } else {
-        if (actor->collisionEnableMask & 1) {
-            actor->gridResponse = worldCollisionApplyResponsePushback(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
-            if ((s8)actor->gridResponse == 2) {
-                coord->coord.t[0] = actor->previousPosition.vx;
-                coord->coord.t[1] = actor->previousPosition.vy;
-                coord->coord.t[2] = actor->previousPosition.vz;
+        if (actor->collisionEnableMask & (1 << GAME_ACTOR_BODY_ROOT)) {
+            actor->gridResponse = worldCollisionApplyResponsePushback(rootCoord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
+            if ((s8)actor->gridResponse == WORLD_COLLISION_PUSHBACK_OPPOSED) {
+                _actor800200RestorePreviousPosition(rootCoord, actor);
             }
         } else {
-            actor->gridResponse = 0;
+            actor->gridResponse = WORLD_COLLISION_PUSHBACK_NO_GRID_HIT;
         }
-        actor->previousPosition.vx = coord->coord.t[0];
-        actor->previousPosition.vy = coord->coord.t[1];
-        actor->previousPosition.vz = coord->coord.t[2];
+        actor->previousPosition.vx = rootCoord->coord.t[0];
+        actor->previousPosition.vy = rootCoord->coord.t[1];
+        actor->previousPosition.vz = rootCoord->coord.t[2];
     }
-    companion->probe.coord = *arg0->extra.tmd->coords;
-    objs[0]                = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
-    objs[1]                = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
-    for (i = 0; i < 2; i++) {
-        bits = actor->pendingCollisionUpdates;
-        if ((bits >> i) & 1) {
-            actor->collisionEnableMask |= 1 << i;
-            objs[i]->flags             |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        } else if (bits & (8 << i)) {
-            actor->collisionEnableMask &= ~(1 << i);
-            objs[i]->flags             &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
+    companion->probe.coord = *task->extra.tmd->coords;
+    bodies[0]              = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
+    bodies[1]              = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
+    // Apply the two request bits to this model's root and part-4 bodies.
+    for (bodyIndex = 0; bodyIndex < (s32)ARRAY_SIZE(bodies); bodyIndex++) {
+        updateRequests = actor->pendingCollisionUpdates;
+        if ((updateRequests >> bodyIndex) & 1) {
+            actor->collisionEnableMask |= 1 << bodyIndex;
+            bodies[bodyIndex]->flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        } else if (updateRequests & ((1 << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT) << bodyIndex)) {
+            actor->collisionEnableMask &= ~(1 << bodyIndex);
+            bodies[bodyIndex]->flags   &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
         }
     }
     actor->pendingCollisionUpdates = 0;
     if (D_80115768 == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        _actor800200TickCompanionBehavior(arg0);
+        _actor800200TickCompanionBehavior(task);
     }
+    // Start the next collision pass with fresh contacts and a composed root.
     worldCollisionClearContacts(actor->collisionContacts);
     worldCollisionClearContacts(actor->companionWork->probe.contacts);
-    if (actor->collisionEnableMask & 1) {
-        coord->coord.t[1] = actor->previousPosition.vy + 8;
+    if (actor->collisionEnableMask & (1 << GAME_ACTOR_BODY_ROOT)) {
+        rootCoord->coord.t[1] = actor->previousPosition.vy + ACTOR_800200_ROOT_FLOOR_LIFT;
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    // Stage this frame's collision heading, then give it to every motion context.
-    if ((s8)actor->usesPushbackDirection != 0) {
-        scratch->motionDirection.vx = actor->pushbackDirection.vx;
-        scratch->motionDirection.vy = actor->pushbackDirection.vy;
-        scratch->motionDirection.vz = actor->pushbackDirection.vz;
-    } else {
-        scratch->motionDirection.vx = (u16)coord->workm.m[0][2] * (s8) * (volatile u8*)&actor->movementSign;
-        scratch->motionDirection.vy = (u16)coord->workm.m[1][2] * (s8) * (volatile u8*)&actor->movementSign;
-        scratch->motionDirection.vz = (u16)coord->workm.m[2][2] * (s8) * (volatile u8*)&actor->movementSign;
-    }
-    actor->collisionMotionContexts[0].motionDirection.vx = scratch->motionDirection.vx;
-    actor->collisionMotionContexts[0].motionDirection.vy = scratch->motionDirection.vy;
-    actor->collisionMotionContexts[0].motionDirection.vz = scratch->motionDirection.vz;
-    actor->collisionMotionContexts[1].motionDirection.vx = scratch->motionDirection.vx;
-    actor->collisionMotionContexts[1].motionDirection.vy = scratch->motionDirection.vy;
-    actor->collisionMotionContexts[1].motionDirection.vz = scratch->motionDirection.vz;
-    actor->collisionMotionContexts[2].motionDirection.vx = scratch->motionDirection.vx;
-    actor->collisionMotionContexts[2].motionDirection.vy = scratch->motionDirection.vy;
-    actor->collisionMotionContexts[2].motionDirection.vz = scratch->motionDirection.vz;
-    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        effectDrawGroundShadow(MATRIX_TRANS(&coord->workm), 0x200, gRoomEffectState->groundShadowShade);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    _actor800200PublishMotionDirection(actor, rootCoord, block);
+    if (!(coordsModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        effectDrawGroundShadow(MATRIX_TRANS(&rootCoord->workm), ACTOR_800200_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
     }
     SCRATCH_STACK_RELEASE_BLOCK(CompanionMoveScratch);
 }
@@ -1198,7 +1226,7 @@ static void _actor800200TeardownTask(Task* task)
 /// teardown.
 static const TaskFuncTable4 D_actor_800200_80161E24 = { {
     _actor800200InitTask,
-    func_actor_800200_801622B0,
+    _actor800200UpdateMove,
     _actor800200AdvanceToTeardown,
     _actor800200TeardownTask,
 } };

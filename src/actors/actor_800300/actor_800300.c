@@ -51,7 +51,7 @@ static void _actor800300FollowPlayerState(Task* task);
 static void _actor800300TurnToTargetState(Task* task);
 static void _actor800300TickMode(Task* task);
 static void _actor800300IdleDecisionState(Task* task);
-static void func_actor_800300_80162D74(Task* arg0);
+static void _actor800300ApproachState(Task* task);
 static void _actor800300FlinchState(Task* task);
 static void _actor800300TickDamageMode(Task* task);
 static void _actor800300TickScriptedMode(Task* task);
@@ -71,6 +71,9 @@ enum {
     ACTOR_800300_MOVEMENT_BLEND_FRAMES         = 5,
     ACTOR_800300_FOLLOW_RESELECT_DELAY_TICKS   = 60
 };
+
+// Active phase shared by the approach state and its entry helper.
+enum { ACTOR_800300_APPROACH_MOVE = 1 };
 
 extern GpuImageUpload* D_actor_800300_80169A20[2];
 extern GpuImageUpload* D_actor_800300_80169A28[4];
@@ -900,7 +903,7 @@ static const TaskFuncTable9 D_actor_800300_80161E40 = { {
     _actor800300IdleDecisionState,
     _actor800300FlinchState,
     _actor800300IdleDecisionState,
-    func_actor_800300_80162D74,
+    _actor800300ApproachState,
     _actor800300IdleDecisionState,
 } };
 
@@ -1228,53 +1231,82 @@ static void _actor800300IdleDecisionState(Task* task)
     playerActorPlayFootstepCue(task);
 }
 
-static void func_actor_800300_80162D74(Task* arg0)
+/// Starts run movement and the approach clip with a fresh phase timer.
+///
+/// Requires the task's live GameActor work and native animation bindings.
+static inline void _actor800300StartApproach(Task* task, GameActor* actor)
 {
-    GameActor*       actor;
-    GfxCoord*        coord;
-    GfxCoord*        target;
-    WorldTargetNode* lock;
-    u8*              head;
-    VECTOR3*         vec;
-    u16              state;
+    enum {
+        ACTOR_800300_APPROACH_MOVEMENT_RUN = 3,
+        ACTOR_800300_APPROACH_ANIMATION    = 12,
+    };
 
-    coord                    = arg0->extra.tmd->coords;
-    target                   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x10;
-    vec                      = (VECTOR3*)(head - 0x10);
-    actor                    = arg0->work;
-    lock                     = actor->targetNode;
-    if (lock != NULL) {
-        if (!(lock->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            worldTargetGetBodyPosition(lock, vec);
+    actor->statePhase   = ACTOR_800300_APPROACH_MOVE;
+    actor->stateTimer   = 0;
+    actor->movementMode = ACTOR_800300_APPROACH_MOVEMENT_RUN;
+    playerActorPlayChildSlotsWithBlend(task, ACTOR_800300_APPROACH_ANIMATION, 0, ACTOR_800300_MOVEMENT_BLEND_FRAMES);
+}
+
+/// Runs toward the selected target, or the player, and returns to idle near the player.
+///
+/// Normal behavior state 7 requires live actor/native playback and a player root
+/// in the same room frame. Starts animation set 12 with a five-frame blend and
+/// run movement, then stops within 1536 planar game units of the player even
+/// when facing a lock target. Borrows 16 scratch bytes for a 12-byte XYZ point.
+/// A non-lockable target skips movement phases but still uses the uninitialized
+/// scratch point for both turns; this original behavior is retained.
+static void _actor800300ApproachState(Task* task)
+{
+    enum {
+        ACTOR_800300_APPROACH_START         = 0,
+        ACTOR_800300_APPROACH_TARGET_LOST   = 2,
+        ACTOR_800300_APPROACH_SCRATCH_BYTES = 16,
+        ACTOR_800300_APPROACH_FORWARD       = 1,
+        ACTOR_800300_APPROACH_STOP_DISTANCE = 1536,
+    };
+
+    GameActor*       actor;
+    GfxCoord*        rootCoord;
+    GfxCoord*        playerCoord;
+    WorldTargetNode* targetNode;
+    u8*              scratchEnd;
+    VECTOR3*         targetPoint;
+    u16              approachPhase;
+
+    rootCoord                = task->extra.tmd->coords;
+    playerCoord              = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    scratchEnd               = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = scratchEnd - ACTOR_800300_APPROACH_SCRATCH_BYTES;
+    targetPoint              = (VECTOR3*)(scratchEnd - ACTOR_800300_APPROACH_SCRATCH_BYTES);
+    actor                    = task->work;
+    targetNode               = actor->targetNode;
+    if (targetNode != NULL) {
+        if (!(targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
+            worldTargetGetBodyPosition(targetNode, targetPoint);
         } else {
-            actor->statePhase = 2;
+            actor->statePhase = ACTOR_800300_APPROACH_TARGET_LOST;
         }
     } else {
-        ((VECTOR3*)(head - 0x10))->vx = target->coord.t[0];
-        vec->vy                       = target->coord.t[1];
-        vec->vz                       = target->coord.t[2];
+        ((VECTOR3*)(scratchEnd - ACTOR_800300_APPROACH_SCRATCH_BYTES))->vx = playerCoord->coord.t[0];
+        targetPoint->vy                                                    = playerCoord->coord.t[1];
+        targetPoint->vz                                                    = playerCoord->coord.t[2];
     }
-    state = actor->statePhase;
-    switch (state) {
-        case 0:
-            actor->statePhase   = 1;
-            actor->stateTimer   = 0;
-            actor->movementMode = 3;
-            playerActorPlayChildSlotsWithBlend(arg0, 0xC, 0, 5);
+    approachPhase = actor->statePhase;
+    switch (approachPhase) {
+        case ACTOR_800300_APPROACH_START:
+            _actor800300StartApproach(task, actor);
             /* fallthrough */
-        case 1:
-            actor->movementSign = 1;
-            if (companionGetPlayerPlanarDistance(coord) < 0x601) {
-                companionEnterIdle(arg0, 0);
+        case ACTOR_800300_APPROACH_MOVE:
+            actor->movementSign = ACTOR_800300_APPROACH_FORWARD;
+            if (companionGetPlayerPlanarDistance(rootCoord) < (ACTOR_800300_APPROACH_STOP_DISTANCE + 1)) {
+                companionEnterIdle(task, 0);
             }
             break;
     }
-    playerActorTurnBodyTowardPoint(arg0, vec);
-    playerActorTurnAimTowardPoint(arg0, vec);
-    playerActorPlayFootstepCue(arg0);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    playerActorTurnBodyTowardPoint(task, targetPoint);
+    playerActorTurnAimTowardPoint(task, targetPoint);
+    playerActorPlayFootstepCue(task);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_800300_APPROACH_SCRATCH_BYTES);
 }
 
 /// Returns to normal idle after the distress clip-end controller advances phase 0 to 1.

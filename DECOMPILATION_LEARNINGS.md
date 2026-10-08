@@ -105852,7 +105852,7 @@ case its own locals (case-0 coord vs case-3 coord, case-2 counter and work
 alias) while case 0 and case 3 use separate `spawnIndex` / `burstIndex` counters
 (both `$s1` in the compiled function).
 
-### A switch's `slti high+1 → <other code>` can be a `case N ... 0x7FFF: break;` right node (func_actor_560800_80137820)
+### A switch's `slti high+1 → <other code>` can be a `case N ... 0x7FFF: break;` right node (_actor560800IntactChainTask)
 
 **Symptom.** A tree `beq x,3,hide; slti x,4; beqz → range_check; beq x,1,hide; j call`,
 where the `x > 3` branch lands on the code *after* the switch but a failed `== 1`
@@ -106924,15 +106924,15 @@ immediate, not a statement.
 
 ## A `var = temp;` copy survives three passes, not one
 
-`func_actor_800200_801622B0` needs two register copies in its prologue that
+`_actor800200UpdateMove` needs two register copies in its prologue that
 source shape alone does not give you:
 
 ```c
-    head     = *scratch;
-    obj      = arg0->extra;     /* -> lw $v1,0x2c($s3)  */
-    *scratch = head - 0x18;     /* the store must be the FIRST use of head-0x18 */
-    extra    = obj;             /* -> addu $s5,$v1,$zero */
-    sc       = (T*)(head - 0x18);   /* -> addu $s2,$v0,$zero */
+    blockEnd = SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch);
+    model = task->extra.tmd;     /* -> lw $v1,0x2c($s3)  */
+    SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1; /* first use: 0x18 bytes below blockEnd */
+    coordsModel = model;        /* -> addu $s5,$v1,$zero */
+    block = blockEnd - 1;       /* -> addu $s2,$v0,$zero */
 ```
 
 Each copy is deleted by a different pass, and each pass needs its own
@@ -106973,7 +106973,7 @@ alone is not the lever — one insn and five insns both merged.
 ```
 
 so a *shorter* live range ranks higher, and equal ranks are broken by the lower
-quantity number. With the copy placed after `sc` and `actor`, the temp's range
+quantity number. With the copy placed after `block` and `actor`, the temp's range
 spanned 4 slots and scored `1*2*4/4 = 2` — an exact tie with the
 `(void*)0x1F8003FC` address pseudo (`1*3*4/6 = 2`), which won on its lower
 quantity number and took `$v1`, pushing the temp into `$a0` where the target has
@@ -106982,10 +106982,10 @@ to 3 slots (`8/3 = 2.67 > 2`) and the two swapped into place. No pin was needed;
 the target's prologue order (`move $s3,$a0` before `lui $a0`) then follows from
 the address living in `$a0`.
 
-**The store's operand order matters too.** With `sc = (T*)(head - 0x18);`
-written *before* `*scratch = head - 0x18;`, CSE gives the store `sc`'s register
+**The store's operand order matters too.** With `block = blockEnd - 1;`
+written *before* `SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;`, CSE gives the store `block`'s register
 and there is no copy; with the store first, CSE has to materialise a temporary
-for the store and the later `sc` becomes a copy. Which of the two uses is
+for the store and the later `block` becomes a copy. Which of the two uses is
 written first is a real codegen decision, not style.
 ## A byte read twice at a join: assign it in both branches and let cross-jumping merge the tail (_actor548100SetLegComplete)
 
@@ -123823,7 +123823,7 @@ reloads the field into a second register (`move v0,v1`); the target's direct
 `sw v1` comes from a `u16 streamSubId = q.plazaStreamSubId;` local used for both the test and
 the store.
 
-## A redundant-looking `move $sN,$vN` after a computation is `cse` keeping two pseudos: put the store *before* the variable assignment (func_actor_800300_80162D74, 2026-09-17)
+## A redundant-looking `move $sN,$vN` after a computation is `cse` keeping two pseudos: put the store *before* the variable assignment (_actor800300ApproachState, 2026-09-17)
 
 The target opened with a scratch-vector push:
 
@@ -123839,9 +123839,9 @@ sw     v1,0(a0)
 Writing the natural order
 
 ```c
-    head = *(u8**)0x1F8003FC;
-    vec  = (VECTOR3*)(head - 0x10);      /* assign first */
-    *(u8**)0x1F8003FC = head - 0x10;     /* then store */
+    scratchEnd = *(u8**)0x1F8003FC;
+    targetPoint  = (VECTOR3*)(scratchEnd - 0x10);      /* assign first */
+    *(u8**)0x1F8003FC = scratchEnd - 0x10;     /* then store */
 ```
 
 gives one pseudo and one instruction fewer (`addiu s1,a1,-0x10` / `sw s1,0(v1)`).
@@ -123850,9 +123850,9 @@ Because the miss is 4 bytes *before* every later branch, the penalty line reads
 like a register-allocation problem and is not. Swapping the two statements
 
 ```c
-    head = *(u8**)0x1F8003FC;
-    *(u8**)0x1F8003FC = head - 0x10;     /* store first */
-    vec  = (VECTOR3*)(head - 0x10);      /* recomputed expression */
+    scratchEnd = *(u8**)0x1F8003FC;
+    *(u8**)0x1F8003FC = scratchEnd - 0x10;     /* store first */
+    targetPoint  = (VECTOR3*)(scratchEnd - 0x10);      /* recomputed expression */
 ```
 
 produced the target exactly (`branch=1 regs=0`, then 100% of the object).
@@ -123877,13 +123877,13 @@ Inputs: `base_1.i` `6a7f51fd2c9466b977088bbde88914c8ffb771521cb48b1a7e88a2533904
 Also in this function: m2c's `temp_v1 = temp_a1 - 0x10;` with `VECTOR3 *temp_a1`
 scales by `sizeof(VECTOR3)` and emits `addiu s1,a1,-0xc0`. The scratch pointer
 is byte-addressed - the target's `-0x10` is raw - so the decrement has to be
-written `(VECTOR3*)((u8*)head - 0x10)`, or with the family's own idiom
-`u8* head = *(u8**)0x1F8003FC; vec = (VECTOR3*)(head - 0x10);`
+written `(VECTOR3*)((u8*)scratchEnd - 0x10)`, or with the family's own idiom
+`u8* scratchEnd = *(u8**)0x1F8003FC; targetPoint = (VECTOR3*)(scratchEnd - 0x10);`
 (`actor_800200_2.c`, `actor_300700.c`). Off by 0xc0 versus 0x10 the whole
 function still looked structurally right at `branch=5`, which is worth knowing
 before hunting registers.
 
-## A scratch score just under 100% whose only hunk is a branch/j operand is the *target* object's relocation, not a mismatch (func_actor_800300_80162D74, 2026-09-17)
+## A scratch score just under 100% whose only hunk is a branch/j operand is the *target* object's relocation, not a mismatch (_actor800300ApproachState, 2026-09-17)
 
 `dist.py` compares the built object against `target.o`, and `target.o` is
 assembled from splat's listing. A mid-function `alabel` in that listing (here
@@ -123933,7 +123933,7 @@ Port the source, not the asm, but re-score after conforming it to the host TU.
 The scratch idiom differs between sibling overlays and compiles the same either
 way: `actor_800100` writes `scratch = SCRATCH_STACK_CURSOR_SLOT;` from
 `main/mem.h`, while `actor_800200` and this overlay's own
-`func_actor_800300_80162D74` write `*(u8**)0x1F8003FC` directly. Rewriting the
+`_actor800300ApproachState` write `*(u8**)0x1F8003FC` directly. Rewriting the
 matching body into the local idiom reproduced the object byte for byte
 (`build.sh` reported "Reproduces base_1.c"), so the conformance is free - but
 it is a second build, and the `pos->vx` / `((VECTOR3*)(head - 0x10))->vx`
@@ -149597,7 +149597,7 @@ attempts; left as it was.
   state 2 (the `mp5a5` case of batch 05). Two inlines (state 2's and state 3's
   bodies) called in both places do merge, at the same length, but the surviving
   copy is the later one, so the block sits in state 5 instead of state 2.
-- Not converted: `func_actor_560800_80137820`'s `goto done` from the `default`
+- Not converted: `_actor560800IntactChainTask`'s `goto done` from the `default`
   of a switch nested in the outer switch's case 1 (C has no way to `break` the
   outer one from there). A predicate inline and an inline for the whole case
   both leave `li v1,1; beqz v1`; writing the 5..7 test in the range arm and

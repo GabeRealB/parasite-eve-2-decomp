@@ -191,3 +191,4 @@ actor800200Task = 0x801626ec; // type:func
 _actor800200TickNormalMode = 0x80165b84; // type:func
 _actor800200PlayFootstepCue = 0x80165104; // type:func
 _actor800200TickCompanionBehavior = 0x801652ec; // type:func
+_actor800200UpdateMove = 0x801622b0; // type:func

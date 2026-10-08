@@ -108,3 +108,4 @@ _actor800300DeferRemoval = 0x8016259c; // type:func
 _actor800300Init = 0x80161e80; // type:func
 _actor800300UpdateMove = 0x80162064; // type:func
 actor800300Task = 0x801625f4; // type:func
+_actor800300ApproachState = 0x80162d74; // type:func

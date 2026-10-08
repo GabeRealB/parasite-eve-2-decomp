@@ -729,3 +729,4 @@ _actor560800ReplaceEveBodyTask = 0x801366b0; // type:func
 _actor560800HoldDisplayUntilScenePlaybackEnds = 0x801369a0; // type:func
 _actor560800ApplyChainGroupCommand = 0x801384ec; // type:func
 _actor560800ChainGroupTask = 0x801386d4; // type:func
+_actor560800IntactChainTask = 0x80137820; // type:func

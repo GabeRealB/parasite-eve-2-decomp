@@ -386,7 +386,7 @@ static AnimationSet _gActor560800Animation434A0;
 static TmdSource _gActor560800Model40064;
 static TmdSource _gActor560800Model40E78;
 static TmdSource _gActor560800Model41AC4;
-void             func_actor_560800_80137820(Task*);
+static void      _actor560800IntactChainTask(Task* task);
 static void      _actor560800FallingChainTask(Task* task);
 static void      _actor560800PlaceChainGroup(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArg);
 static void      _actor560800ApplyChainGroupCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
@@ -4137,7 +4137,7 @@ TaskMessageEntry D_actor_560800_80175744[3] = {
 
 TaskDesc D_actor_560800_8017575C[4] = {
     { { { TASK_BODY_COORD, 192 } }, _actor560800ChainGroupTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80137820, { .model = &_gActor560800Model40064 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800IntactChainTask, { .model = &_gActor560800Model40064 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800CarrierTask, { .model = &_gActor560800Model41AC4 } },
     { { { TASK_BODY_TMD, 192 } }, _actor560800FallingChainTask, { .model = &_gActor560800Model40E78 } },
 };
@@ -6675,125 +6675,163 @@ static void _actor560800InitChainModel(Task* task)
     work->chainNumber = task->spawnArg1.value;
 }
 
-/// Per-frame handler of a chain `_actor560800InitChainModel` sets up. State 1
-/// hides the chain (`TmdObject::flags` bit 0x80) for the chain numbers the
-/// current view excludes and otherwise runs `_actor560800BendChainTowardTarget`;
-/// state 2 restarts the rig's slots 1 to 6 in the clip `chainNumber` names,
-/// state 3 ticks them, state 4 spawns the falling copy from
-/// `D_actor_560800_8017575C` and gives it this chain's part coordinates, and
-/// state 5 kills the task a frame later. Every frame that survives rebuilds the root translation and, while
-/// visible, drives `shelterB1PodServiceGantryDrawChainGlow` and the periodic `effectSpawn`.
-void func_actor_560800_80137820(Task* arg0)
+/// Copies the seven local part matrices from an intact chain to its falling copy.
+///
+/// Both tasks must own live seven-part models. Copies MATRIX values only;
+/// coordinate parents, composition stamps and lighting bindings are retained.
+static inline void _actor560800CopyChainPose(Task* intactTask, Task* fallingTask)
 {
-    _Actor560800PropWork* work;
-    TmdObject*            extra;
-    GfxCoord*             coord;
-    _Actor560800PropWork* anim;
-    Task*                 child;
-    s32                   i;
-    u32                   tick;
-    TmdObject*            obj;
-    u32                   state;
-    u16                   id;
-    SVECTOR               unused; // never touched; only reserves the frame slot
+    s32 partIndex;
 
-    extra = arg0->extra.tmd;
-    state = arg0->state;
-    work  = arg0->work;
-    coord = extra->coords;
-    obj   = extra;
-    switch (state) {
-        case 0:
-            _actor560800InitChainModel(arg0);
-            arg0->state++;
+    partIndex = 0;
+    do {
+        memCopyBytes(&intactTask->extra.tmd->coords[partIndex & 0xFFFF].coord,
+                     &fallingTask->extra.tmd->coords[partIndex & 0xFFFF].coord, sizeof(fallingTask->extra.tmd->coords[partIndex & 0xFFFF].coord));
+        partIndex++;
+    } while ((u32)(partIndex & 0xFFFF) < ARRAY_SIZE(_gActor560800Model40064Skeleton));
+}
+
+/// Controls one intact gantry chain through bending, clip playback and detachment.
+///
+/// spawnArg1 selects chain/clip 1..8; spawnArg2 borrows the live chain-group
+/// parent. Initialization owns prop work and binds the seven-part rig. Commands
+/// select bending, reset/tick slots 1..6, or copy all seven local part matrices
+/// to a falling task before delayed removal. Failed detachment returns to bending.
+/// Initialization requires deferred teardown: it still advances the state after
+/// allocation failure kills the task, without accessing the failed work allocation.
+/// Surviving frames rebuild the parent-space root position and draw the visible
+/// tip glow and staggered sprite effect. Hidden chains return without these updates.
+static void _actor560800IntactChainTask(Task* task)
+{
+    enum {
+        ACTOR_560800_CHAIN_INITIALIZE        = 0,
+        ACTOR_560800_CHAIN_TICK_CLIP         = 3,
+        ACTOR_560800_CHAIN_REMOVE_DELAY      = 5,
+        ACTOR_560800_CHAIN_REMOVE_TICKS      = 2,
+        ACTOR_560800_CHAIN_RESTRICTED_VIEW   = 22,
+        ACTOR_560800_CHAIN_FALLING_TASK      = 3,
+        ACTOR_560800_CHAIN_TIP_PART          = 6,
+        ACTOR_560800_CHAIN_GLOW_RADIUS_SCALE = 256,
+        ACTOR_560800_CHAIN_GLOW_PACKED_COLOR = 0x3C36,
+        ACTOR_560800_CHAIN_EFFECT_PART       = 2,
+        ACTOR_560800_CHAIN_EFFECT_TICK_SHIFT = 7,
+        ACTOR_560800_CHAIN_EFFECT_TICK_MASK  = (1 << ACTOR_560800_CHAIN_EFFECT_TICK_SHIFT) - 1,
+        ACTOR_560800_CHAIN_EFFECT_INDEX_MASK = 7,
+        ACTOR_560800_CHAIN_EFFECT_SIZE       = 2048, // Perspective size numerator in spawnArg1's low twelve bits
+    };
+    _Actor560800PropWork* work;
+    TmdObject*            model;
+    GfxCoord*             rootCoord;
+    Task*                 fallingTask;
+    s32                   partIndex;
+    u32                   effectTick;
+    TmdObject*            drawModel;
+    u32                   taskState;
+    u16                   clipIndex;
+    SVECTOR               unusedFrameSlot; // Untouched storage retained for the original stack frame
+
+    model     = task->extra.tmd;
+    taskState = task->state;
+    work      = task->work;
+    rootCoord = model->coords;
+    drawModel = model;
+    switch (taskState) {
+        case ACTOR_560800_CHAIN_INITIALIZE:
+            _actor560800InitChainModel(task);
+            task->state++;
             return;
-        case 1:
-            if (viewFindLogicalIndex(gGameSession->location.loc.view) == 0x16) {
+        case ACTOR_560800_CHAIN_BEND:
+            // The view and placement state select which numbered chains remain visible.
+            if (viewFindLogicalIndex(gGameSession->location.loc.view) == ACTOR_560800_CHAIN_RESTRICTED_VIEW) {
                 switch (work->chainNumber) {
                     case 1:
                     case 3:
-                        obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                        drawModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                         return;
                     case 4 ... 0x7FFF:
                         break;
                     default:
-                        _actor560800BendChainTowardTarget(arg0);
+                        _actor560800BendChainTowardTarget(task);
                         goto done;
                 }
             }
             if (work->chainNumber < 8) {
                 if (work->chainNumber >= 5) {
-                    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                    drawModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     return;
                 }
             }
-            _actor560800BendChainTowardTarget(arg0);
+            _actor560800BendChainTowardTarget(task);
             break;
-        case 2:
+        case ACTOR_560800_CHAIN_START_CLIP: {
+            _Actor560800PropWork* clipWork;
+
             if (work->chainNumber < 4) {
                 if (work->chainNumber >= 2) {
-                    obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                    drawModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     return;
                 }
             }
-            i    = 1;
-            id   = work->chainNumber;
-            anim = arg0->work;
+            partIndex = 1;
+            clipIndex = work->chainNumber;
+            clipWork  = task->work;
             do {
-                anim->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
-                animationResetSlot(&anim->rig.anim, i & 0xFFFF, id);
-                i++;
-            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(anim->rig.slots));
-            arg0->state++;
+                clipWork->rig.slots[partIndex & 0xFFFF].rate = ANIMATION_RATE_ONE;
+                animationResetSlot(&clipWork->rig.anim, partIndex & 0xFFFF, clipIndex);
+                partIndex++;
+            } while ((u32)(partIndex & 0xFFFF) < ARRAY_SIZE(clipWork->rig.slots));
+            task->state++;
             break;
-        case 3:
-            anim = arg0->work;
-            i    = 1;
+        }
+        case ACTOR_560800_CHAIN_TICK_CLIP: {
+            _Actor560800PropWork* clipWork;
+
+            clipWork  = task->work;
+            partIndex = 1;
             do {
-                animationTickSlot(&anim->rig.anim, i & 0xFFFF);
-                i++;
-            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(anim->rig.slots));
-            for (i = 1; (u32)(i & 0xFFFF) < ARRAY_SIZE(anim->rig.slots); i++) {
-                if (!(anim->rig.slots[i & 0xFFFF].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+                animationTickSlot(&clipWork->rig.anim, partIndex & 0xFFFF);
+                partIndex++;
+            } while ((u32)(partIndex & 0xFFFF) < ARRAY_SIZE(clipWork->rig.slots));
+            // Retain the scan even though its result does not advance the task state.
+            for (partIndex = 1; (u32)(partIndex & 0xFFFF) < ARRAY_SIZE(clipWork->rig.slots); partIndex++) {
+                if (!(clipWork->rig.slots[partIndex & 0xFFFF].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
                     break;
                 }
             }
             break;
-        case 4:
-            child = taskSpawnFromTable(D_actor_560800_8017575C, 3,
-                                       (s32)D_actor_560800_801757AC->extra.tmd->coords->coord.t[1],
-                                       arg0->spawnArg2.pointer);
-            if (child == NULL) {
-                arg0->state = 1;
+        }
+        case ACTOR_560800_CHAIN_BREAK:
+            // Transfer the local pose before the falling copy's first update.
+            fallingTask = taskSpawnFromTable(D_actor_560800_8017575C, ACTOR_560800_CHAIN_FALLING_TASK,
+                                             (s32)D_actor_560800_801757AC->extra.tmd->coords->coord.t[1],
+                                             task->spawnArg2.pointer);
+            if (fallingTask == NULL) {
+                task->state = ACTOR_560800_CHAIN_BEND;
                 return;
             }
-            i = 0;
-            do {
-                memCopyBytes(&arg0->extra.tmd->coords[i & 0xFFFF].coord,
-                             &child->extra.tmd->coords[i & 0xFFFF].coord, sizeof(child->extra.tmd->coords[i & 0xFFFF].coord));
-                i++;
-            } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->rot));
-            arg0->killCountdown = 0;
-            arg0->state++;
+            _actor560800CopyChainPose(task, fallingTask);
+            task->killCountdown = 0;
+            task->state++;
             break;
-        case 5:
-            if (++arg0->killCountdown >= 2) {
-                taskKill(arg0);
+        case ACTOR_560800_CHAIN_REMOVE_DELAY:
+            if (++task->killCountdown >= ACTOR_560800_CHAIN_REMOVE_TICKS) {
+                taskKill(task);
                 return;
             }
             break;
     }
 done:
-    coord->coord.t[0]   = work->position.vx + work->offset.vx;
-    coord->coord.t[1]   = work->position.vy + work->offset.vy;
-    coord->coord.t[2]   = work->position.vz + work->offset.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        shelterB1PodServiceGantryDrawChainGlow(&arg0->extra.tmd->coords[6], work->chainNumber, 0x100, 0x3C36);
-        if (viewFindLogicalIndex(gGameSession->location.loc.view) != 0x16) {
-            tick = D_actor_560800_801752E8 + 1;
-            if (!(tick & 0x7F) && ((tick >> 7) & 7) == work->chainNumber) {
-                effectSpawn(EFFECT_SHELTER_B1_GANTRY_RISING_SPRITE, &arg0->extra.tmd->coords[2], 0x800, NULL);
+    rootCoord->coord.t[0]   = work->position.vx + work->offset.vx;
+    rootCoord->coord.t[1]   = work->position.vy + work->offset.vy;
+    rootCoord->coord.t[2]   = work->position.vz + work->offset.vz;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (!(drawModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        shelterB1PodServiceGantryDrawChainGlow(&task->extra.tmd->coords[ACTOR_560800_CHAIN_TIP_PART], work->chainNumber, ACTOR_560800_CHAIN_GLOW_RADIUS_SCALE, ACTOR_560800_CHAIN_GLOW_PACKED_COLOR);
+        if (viewFindLogicalIndex(gGameSession->location.loc.view) != ACTOR_560800_CHAIN_RESTRICTED_VIEW) {
+            effectTick = D_actor_560800_801752E8 + 1;
+            // The retained three-bit selector staggers chains 1..7; it never selects chain 8.
+            if (!(effectTick & ACTOR_560800_CHAIN_EFFECT_TICK_MASK) && ((effectTick >> ACTOR_560800_CHAIN_EFFECT_TICK_SHIFT) & ACTOR_560800_CHAIN_EFFECT_INDEX_MASK) == work->chainNumber) {
+                effectSpawn(EFFECT_SHELTER_B1_GANTRY_RISING_SPRITE, &task->extra.tmd->coords[ACTOR_560800_CHAIN_EFFECT_PART], ACTOR_560800_CHAIN_EFFECT_SIZE, NULL);
             }
         }
     }

@@ -860,7 +860,7 @@ extern TmdSource gMadChaserChunkModel1;
 
 extern TmdSource gMadChaserChunkModel2;
 
-static __inline__ void set_state_s16(Task* arg0, s16 state);
+static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorState);
 
 #include "../../shared/mad_chaser_limb_shadow.inc.c"
 
@@ -1031,16 +1031,18 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 #include "../../shared/mad_chaser_emerge_tick.inc.c"
 
-/// `_madChaserSetBehaviorStateS16` with an `s16` state. The narrower parameter is load-bearing:
-/// with the `s32` one, `_madChaserEmergeAtSpot` no longer matches. Each
-/// call site reloads `work`, and cross-jumping merges the identical stores,
-/// which is what leaves one `lw` per arm in front of a shared tail.
-static __inline__ void set_state_s16(Task* arg0, s16 state)
+/// Selects a signed-halfword behavior index and resets its sub-state to the start.
+///
+/// Requires live MadChaserWork and an index valid for the active behavior table.
+/// Retains the task state, animation and counters. This local copy has no users;
+/// active transitions use the shared `_madChaserSetBehaviorStateS16` helper.
+static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorState)
 {
-    MadChaserWork* w = (MadChaserWork*)arg0->work;
+    enum { MAD_CHASER_BEHAVIOR_START_SUBSTATE = 0 };
+    MadChaserWork* work = task->work;
 
-    w->state    = state;
-    w->subState = 0;
+    work->state    = behaviorState;
+    work->subState = MAD_CHASER_BEHAVIOR_START_SUBSTATE;
 }
 
 #include "../../shared/mad_chaser_emerge_at_spot.inc.c"
