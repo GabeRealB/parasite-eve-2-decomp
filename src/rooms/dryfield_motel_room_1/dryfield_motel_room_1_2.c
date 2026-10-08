@@ -125,14 +125,7 @@ extern ActorTransform D_dryfield_motel_room_1_8017E0D0[2];
 
 extern ActorTransform D_dryfield_motel_room_1_8017E100[2];
 
-/// Main loop of the room's cutscene task. State 0 arms it once -- it waits while
-/// the attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is live, so the task
-/// only steps the script. Otherwise it builds the work block, sends the slot-3
-/// weapon record as message 0x3E8 and hands the cutscene's two script blocks to
-/// `evsStartScriptWithSkip`. States 0 and 1 then advance the state and step the driver;
-/// state 1 does that only while the session is still up, and state 2 only once
-/// the session's `location.loc.view` has reached 2, which is where the task kills itself.
-void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
+static void _dryfieldMotelRoom1OpeningEventTask(Task* task);
 
 static void _dryfieldMotelRoom1RestorePlayerAfterSkip(void);
 static void _dryfieldMotelRoom1RequestEventAction(s16 action);
@@ -218,7 +211,7 @@ EvsCommand D_dryfield_motel_room_1_8017E340[13] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_dryfield_motel_room_1_8017E478 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_motel_room_1_8017DD3C, { .value = 0 } };
+TaskDesc D_dryfield_motel_room_1_8017E478 = { { { TASK_BODY_NONE, 192 } }, _dryfieldMotelRoom1OpeningEventTask, { .value = 0 } };
 
 WorldCollisionRoomResources D_dryfield_motel_room_1_8017E484[2] = {
     { D_dryfield_motel_room_1_8017EABC, D_dryfield_motel_room_1_80180CFC, D_dryfield_motel_room_1_80180F5C, D_dryfield_motel_room_1_801811BC },
@@ -999,7 +992,7 @@ WorldCollisionSurfaceProperties* D_dryfield_motel_room_1_8018157C[8] = {
 
 Task* D_dryfield_motel_room_1_8018159C = NULL;
 
-static void func_dryfield_motel_room_1_8017DC2C(Task* arg0);
+static void _dryfieldMotelRoom1InitializeOpeningEvent(Task* task);
 
 /// Broadcasts an actor command in the active stage/area namespace.
 ///
@@ -1151,64 +1144,85 @@ static void _dryfieldMotelRoom1ExecuteEventAction(Task* task)
     work->action = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_NONE;
 }
 
-/// Room entry point: allocate the `_DryfieldMotelRoom1EventWork` the event task hangs off
-/// `Task::work` (killing the task if the allocation fails), zero it, park the
-/// slot-3 task in `playerTask` and the event task itself in
-/// `D_dryfield_motel_room_1_8018159C`, then resolve the four placed actors into
-/// `stagedSucklerTasks` and `enemySucklerTasks` by place key: the session's
-/// stage and area with placement index 0 to 3.
-static void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
+/// Allocates the opening encounter's work and resolves its player and four sucklers.
+///
+/// The task owns the zeroed work through normal teardown and is published for
+/// script callbacks. Requires a live player and scene placements 0..3 in the
+/// current stage/area: two staged sucklers followed by two combat sucklers.
+/// Their tasks are borrowed and must outlive the event. Allocation failure
+/// kills the task; its caller continues starting the script on that path.
+static void _dryfieldMotelRoom1InitializeOpeningEvent(Task* task)
 {
+    enum { DRYFIELD_MOTEL_ROOM_1_SECOND_STAGED_PLACEMENT = 1,
+           DRYFIELD_MOTEL_ROOM_1_FIRST_ENEMY_PLACEMENT   = 2,
+           DRYFIELD_MOTEL_ROOM_1_SECOND_ENEMY_PLACEMENT  = 3 };
     _DryfieldMotelRoom1EventWork* work;
-    s32                           id;
+    s32                           placeKey;
 
     work       = memMalloc(sizeof(*work), false);
-    arg0->work = work;
+    task->work = work;
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
     memFillBytes(work, 0, sizeof(*work));
     work->playerTask                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    D_dryfield_motel_room_1_8018159C = arg0;
-    id                               = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
-    work->stagedSucklerTasks[0]      = sceneFindEnemyByPlaceKey(id)->task;
-    id                               = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (1 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
-    work->stagedSucklerTasks[1]      = sceneFindEnemyByPlaceKey(id)->task;
-    id                               = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (2 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
-    work->enemySucklerTasks[0]       = sceneFindEnemyByPlaceKey(id)->task;
-    id                               = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (3 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
-    work->enemySucklerTasks[1]       = sceneFindEnemyByPlaceKey(id)->task;
+    D_dryfield_motel_room_1_8018159C = task;
+    placeKey                         = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
+    work->stagedSucklerTasks[0]      = sceneFindEnemyByPlaceKey(placeKey)->task;
+    placeKey                         = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_MOTEL_ROOM_1_SECOND_STAGED_PLACEMENT << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
+    work->stagedSucklerTasks[1]      = sceneFindEnemyByPlaceKey(placeKey)->task;
+    placeKey                         = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_MOTEL_ROOM_1_FIRST_ENEMY_PLACEMENT << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
+    work->enemySucklerTasks[0]       = sceneFindEnemyByPlaceKey(placeKey)->task;
+    placeKey                         = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_MOTEL_ROOM_1_SECOND_ENEMY_PLACEMENT << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
+    work->enemySucklerTasks[1]       = sceneFindEnemyByPlaceKey(placeKey)->task;
 }
-void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
+
+/// Runs the opening suckler encounter, then releases it when view 2 is selected.
+///
+/// State 0 waits for the attachment wheel and display transition to close,
+/// initializes work, plays player clip 1 with a five-frame blend and starts
+/// the event/skip scripts. State 1 waits for script completion before looping
+/// the combat sucklers' walk; state 2 starts their chase and kills this task
+/// on view 2. Each nonterminal update executes any pending script action.
+/// Requires the room, player, placed actors and animation bank to stay live.
+/// Character 1 uses weapon banks 1..33; the alternate-character range is unproven.
+static void _dryfieldMotelRoom1OpeningEventTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum { DRYFIELD_MOTEL_ROOM_1_OPENING_START            = 0,
+           DRYFIELD_MOTEL_ROOM_1_OPENING_WAIT_SCRIPT      = 1,
+           DRYFIELD_MOTEL_ROOM_1_OPENING_WAIT_COMBAT_VIEW = 2,
+           DRYFIELD_MOTEL_ROOM_1_OPENING_PLAYER_CLIP      = 1,
+           DRYFIELD_MOTEL_ROOM_1_OPENING_BLEND_FRAMES     = 5 };
+
+    switch (task->state) {
+        case DRYFIELD_MOTEL_ROOM_1_OPENING_START:
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                func_dryfield_motel_room_1_8017DC2C(arg0);
-                _dryfieldMotelRoom1PlayPlayerAnimation(1, ANIMATION_BLEND_INTERPOLATE, 5);
+                _dryfieldMotelRoom1InitializeOpeningEvent(task);
+                _dryfieldMotelRoom1PlayPlayerAnimation(DRYFIELD_MOTEL_ROOM_1_OPENING_PLAYER_CLIP, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_OPENING_BLEND_FRAMES);
                 evsStartScriptWithSkip(D_dryfield_motel_room_1_8017E160, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        D_dryfield_motel_room_1_8017E340);
-                arg0->state = arg0->state + 1;
+                task->state = task->state + 1;
                 break;
             }
             return;
-        case 1:
+        case DRYFIELD_MOTEL_ROOM_1_OPENING_WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
                 _dryfieldMotelRoom1BroadcastActorCommand(DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_WALK_IN_PLACE);
-                arg0->state = arg0->state + 1;
+                task->state = task->state + 1;
                 break;
             }
             break;
-        case 2:
-            if (gGameSession->location.loc.view == arg0->state) {
+        case DRYFIELD_MOTEL_ROOM_1_OPENING_WAIT_COMBAT_VIEW:
+            // The final state value also selects the view that starts the chase.
+            if (gGameSession->location.loc.view == task->state) {
                 _dryfieldMotelRoom1BroadcastActorCommand(DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_START_COMBAT);
-                taskKill(arg0);
+                taskKill(task);
                 return;
             }
             break;
     }
-    _dryfieldMotelRoom1ExecuteEventAction(arg0);
+    _dryfieldMotelRoom1ExecuteEventAction(task);
 }
 
 /// Ends the opening scene by engaging battle and placing both bone sucklers.

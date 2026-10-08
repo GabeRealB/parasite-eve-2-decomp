@@ -50,7 +50,14 @@ extern WorldCollisionSurfaceProperties* D_dryfield_trailer_coach_80189C30[];
 /// the task keeps no additional work allocation or state between frames.
 void dryfieldTrailerCoachDrawGlowsTask(Task* task);
 
-void func_dryfield_trailer_coach_80181364(Task* task);
+/// Updates the daytime trailer coach's telephone save and statistics menu.
+///
+/// Gameplay dispatches this wrapper while this room overlay is loaded.
+/// Requires a live menu task in state 0..3, its writable UiObject in
+/// `spawnArg2.pointer`, and loaded UI resources. The parent owns the menu;
+/// the implementation opens child dialogs/panels and reports dismissal through
+/// the object's result rather than killing this task.
+void dryfieldTrailerCoachTelephoneMenuTask(Task* task);
 
 /// Runs the trailer-coach room's entry, depth-scale update or teardown state.
 ///

@@ -159,7 +159,7 @@ extern u8 gRoomEventActive;
 
 static void func_dryfield_night_main_street_8017E064(Task* arg0);
 static void _dryfieldNightMainStreetRoomIdle(Task* task);
-static void func_dryfield_night_main_street_8017E118(void);
+static void _dryfieldNightMainStreetRestoreSectionSpriteVisibility(void);
 
 static s32 _dryfieldNightMainStreetRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedSecondArg);
 static s32 _dryfieldNightMainStreetIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -1659,13 +1659,13 @@ static s32 _dryfieldNightMainStreetIgnoreRoomAction(Task* task, s32 messageId, c
 }
 
 /// Room entry task tick: installs the room's message table, hands the task to
-/// pointer slot 7, runs the room's message-table pass, then advances state and
+/// pointer slot 7, restores saved section-sprite visibility, then advances state and
 /// raises the `D_80115598` flag.
 static void func_dryfield_night_main_street_8017E064(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_main_street_801820B0;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    func_dryfield_night_main_street_8017E118();
+    _dryfieldNightMainStreetRestoreSectionSpriteVisibility();
     arg0->state = (s32)(arg0->state + 1);
     D_80115598  = 1;
 }
@@ -1685,14 +1685,18 @@ void func_dryfield_night_main_street_8017E0C0(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Applies the sprite-command patch lists selected by game-flag nibbles 0x88,
-/// 0x89, 0x8A and 0x8C, one table of lists per nibble.
-static void func_dryfield_night_main_street_8017E118(void)
+/// Restores main-street background visibility from four saved balcony-section states.
+///
+/// Requires loaded writable sprite batches and saved states for sections 3,
+/// 4, 5 and 7 in 0..1, each indexing its two-list table. The byte streams select view
+/// slots and write batch hidden flags, ending at 0xFF; no packets are freed.
+/// The room entry task calls this after installing its message receiver.
+static void _dryfieldNightMainStreetRestoreSectionSpriteVisibility(void)
 {
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182168, 0x88);
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_8018216C, 0x89);
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182170, 0x8A);
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182174, 0x8C);
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182168, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE);
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_8018216C, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE);
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182170, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE);
+    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(D_dryfield_night_main_street_80182174, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE);
 }
 
 /// Per-frame room task. On its first run it stores the ids 0x60286-0x60289 in

@@ -171,3 +171,4 @@ _dryfieldWaterTowerFallingPropTask = 0x8017e1dc; // type:func
 _dryfieldWaterTowerSlidingPropTask = 0x8017e764; // type:func
 _dryfieldWaterTowerPropSceneTask = 0x8017f128; // type:func
 _dryfieldWaterTowerActorSceneTask = 0x8017fd64; // type:func
+_dryfieldWaterTowerRestoreMechanismSpriteVisibility = 0x8017dcb4; // type:func

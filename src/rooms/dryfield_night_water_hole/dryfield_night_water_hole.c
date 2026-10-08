@@ -134,7 +134,7 @@ extern _DryfieldNightWaterHoleSurfaceOverride D_dryfield_night_water_hole_801835
 extern RoomDeparture gRoomDeparture;
 
 static void _dryfieldNightWaterHoleRoomIdle(Task* task);
-static void func_dryfield_night_water_hole_8017DE88(_DryfieldNightWaterHoleSurfaceOverride* list);
+static void _dryfieldNightWaterHoleApplySurfaceOverrides(const _DryfieldNightWaterHoleSurfaceOverride* overrides);
 
 extern WorldCollisionGrid         D_dryfield_night_water_hole_80180F50[1];
 extern WorldCollisionOccluder     D_dryfield_night_water_hole_80182D58[2];
@@ -1066,7 +1066,7 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
     if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
         taskSpawnFromTable(D_dryfield_night_water_hole_80180964, 0, 0, 0);
     } else {
-        func_dryfield_night_water_hole_8017DE88(D_dryfield_night_water_hole_801835D8);
+        _dryfieldNightWaterHoleApplySurfaceOverrides(D_dryfield_night_water_hole_801835D8);
     }
     if (gGameSession->location.loc.variant == 1 && sceneFindPlacedActor(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) != 0) {
         if (gGameSession->location.loc.warp == 2) {
@@ -1190,20 +1190,24 @@ void dryfieldNightWaterHoleRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-/// Applies the override list `func_dryfield_night_water_hole_8017D958` holds:
-/// each entry replaces a surface-class record and its cached `suppressPushback`
-/// flag in `Gp_RoomParams`. The list ends at the first NULL record.
-static void func_dryfield_night_water_hole_8017DE88(_DryfieldNightWaterHoleSurfaceOverride* list)
+/// Installs surface-class replacements and refreshes their live pushback policy.
+///
+/// Borrows a list ended by a NULL properties pointer; each preceding class
+/// must be 0..7. Requires the current stage/area's writable property table.
+/// Replacement records remain borrowed until that room table is replaced or
+/// unloaded. The cache widens each record's suppression byte to s32: zero
+/// enables pushback, nonzero suppresses it. Does not change grid geometry.
+static void _dryfieldNightWaterHoleApplySurfaceOverrides(const _DryfieldNightWaterHoleSurfaceOverride* overrides)
 {
-    GameLocationKey*                  sess;
-    s32                               i;
+    GameLocationKey*                  location;
+    s32                               overrideIndex;
     WorldCollisionSurfaceProperties** surfaceProperties;
 
-    sess = &gGameSession->location.loc;
-    for (i = 0; list[i].properties != NULL; i++) {
-        surfaceProperties                       = Gp_RoomParamTables[sess->stage - 1][sess->area - 1];
-        surfaceProperties[list[i].surfaceClass] = list[i].properties;
-        Gp_RoomParams[list[i].surfaceClass]     = surfaceProperties[list[i].surfaceClass]->suppressPushback;
+    location = &gGameSession->location.loc;
+    for (overrideIndex = 0; overrides[overrideIndex].properties != NULL; overrideIndex++) {
+        surfaceProperties                                        = Gp_RoomParamTables[location->stage - 1][location->area - 1];
+        surfaceProperties[overrides[overrideIndex].surfaceClass] = overrides[overrideIndex].properties;
+        Gp_RoomParams[overrides[overrideIndex].surfaceClass]     = surfaceProperties[overrides[overrideIndex].surfaceClass]->suppressPushback;
     }
 }
 

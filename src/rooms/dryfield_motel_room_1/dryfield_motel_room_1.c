@@ -18,12 +18,12 @@ extern TaskMessageEntry D_dryfield_motel_room_1_8017E0A8[];
 static s32 _dryfieldMotelRoom1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldMotelRoom1ResolveTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _dryfieldMotelRoom1IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedCommandArg);
-s32        func_dryfield_motel_room_1_8017D624(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _dryfieldMotelRoom1HandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 TaskMessageEntry D_dryfield_motel_room_1_8017E0A8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelRoom1ResolveTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom1RejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_1_8017D624 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelRoom1HandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldMotelRoom1IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -62,20 +62,21 @@ static s32 _dryfieldMotelRoom1IgnoreRoomCommand(Task* unusedTask, s32 unusedMess
 {
     return 0;
 }
-/// Message gate for the room's hotspot registered under id 0x13EF - the id the
-/// sanctuary's own gate uses. On the phase-3 visit (`gGameSession::location.loc.variant`)
-/// whose sub-id (`RoomEventMsg::field_2`) is 1 and that has not yet latched
-/// nibble 0x5C, it arms the room's script task and latches the nibble. The
-/// record is not copied to the outgoing one: this handler only ever consumes
-/// the message (returns 0).
+/// Starts the one-time opening encounter when its room action is triggered.
 ///
-/// GCC hoists the `gGameSession` load above the `addiu $sp` prologue, which is
-/// why the function starts two instructions before its frame setup.
-s32 func_dryfield_motel_room_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION` with a borrowed four-byte request
+/// and an ignored zero second word. Variant 3 and action 1 latch the seen flag
+/// before requesting the event task; a failed spawn still leaves it latched.
+/// Does not retain the request, use its argument byte or write a reply. Returns 0.
+static s32 _dryfieldMotelRoom1HandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if (gGameSession->location.loc.variant == 3 && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0 && in->warp == 1) {
+    enum { DRYFIELD_MOTEL_ROOM_1_OPENING_VARIANT = 3,
+           DRYFIELD_MOTEL_ROOM_1_ACTION_OPENING  = 1,
+           DRYFIELD_MOTEL_ROOM_1_OPENING_TASK    = 0 };
+
+    if (gGameSession->location.loc.variant == DRYFIELD_MOTEL_ROOM_1_OPENING_VARIANT && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0 && request->actionId == DRYFIELD_MOTEL_ROOM_1_ACTION_OPENING) {
         gameFlagSetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN, 1);
-        taskSpawnFromTable(&D_dryfield_motel_room_1_8017E478, 0, 0, 0);
+        taskSpawnFromTable(&D_dryfield_motel_room_1_8017E478, DRYFIELD_MOTEL_ROOM_1_OPENING_TASK, 0, 0);
     }
     return 0;
 }

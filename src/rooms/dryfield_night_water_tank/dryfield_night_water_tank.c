@@ -78,7 +78,7 @@ extern EvsCommand D_dryfield_night_water_tank_8017DEE0[];
 /// `gfxRotMatrixY` (`>> 8`), `8017EE44` its velocity, `8017EE48` the yaw it
 /// steps toward and `8017EE4C` the target that step chases.
 
-static void func_dryfield_night_water_tank_8017D9DC(s32 arg0);
+static void _dryfieldNightWaterTankRestoreTankCollision(s32 offsetTank);
 
 extern WorldCollisionGrid     D_dryfield_night_water_tank_8017F4B0;
 extern WorldCollisionOccluder D_dryfield_night_water_tank_801807CC[2];
@@ -714,7 +714,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
 /// (`gGameSession::location.loc.variant`).
 ///
 /// Sub-ids 0xA and 0xB -- the two visits that reach this room -- both run the
-/// prop updater `func_dryfield_night_water_tank_8017D9DC` on its zero argument;
+/// collision restorer `_dryfieldNightWaterTankRestoreTankCollision` on its zero argument;
 /// 0xA additionally spawns the exit task from `8017E010`, and 0xB, the visit
 /// the room is announced into, hands over to `actor146300RestoreHandoverPose` instead. The state
 /// advances on every path.
@@ -724,7 +724,7 @@ static void func_dryfield_night_water_tank_8017D870(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(D_dryfield_night_water_tank_8017EE28, 0, 0, 0);
     if ((u32)(gGameSession->location.loc.variant - 0xA) < 2U) {
-        func_dryfield_night_water_tank_8017D9DC(0);
+        _dryfieldNightWaterTankRestoreTankCollision(0);
     }
     if (gGameSession->location.loc.variant == 0xA) {
         taskSpawnFromTable(D_dryfield_night_water_tank_8017E010, 0, 0, 0);
@@ -763,45 +763,63 @@ void dryfieldNightWaterTankRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-/// Restores the room's layout lists from their template, then offsets the six
-/// `field_8` coordinates by (0, 0, -0xC8) when `arg0` is non-zero.
-static void func_dryfield_night_water_tank_8017D9DC(s32 arg0)
+/// Restores the tank obstacle's leading geometry in the live room collision grid.
+///
+/// Copies two faces, normal XYZs and six vertex XYZs from the tank template.
+/// Zero `offsetTank` keeps the template position; any nonzero word offsets
+/// vertex Z by -200 room-coordinate units. Requires both grids' geometry
+/// arrays to cover those prefixes. Other geometry, cell lists and the vectors'
+/// fourth halfwords stay intact; this is a partial copy, not a grid reset.
+static void _dryfieldNightWaterTankRestoreTankCollision(s32 offsetTank)
 {
-    WorldCollisionGrid* dst;
-    WorldCollisionGrid* src;
-    SVECTOR             d;
-    s32                 i;
+    enum { DRYFIELD_NIGHT_WATER_TANK_OBSTACLE_FACE_COUNT   = 2,
+           DRYFIELD_NIGHT_WATER_TANK_OBSTACLE_VERTEX_COUNT = 6,
+           DRYFIELD_NIGHT_WATER_TANK_OBSTACLE_Z_OFFSET     = -200 };
+    WorldCollisionGrid*       roomGrid;
+    const WorldCollisionGrid* tankTemplate;
+    SVECTOR                   offset;
+    s32                       geometryIndex;
 
-    dst = &D_dryfield_night_water_tank_8017F4B0;
-    src = &D_dryfield_night_water_tank_8017E08C;
+    roomGrid     = &D_dryfield_night_water_tank_8017F4B0;
+    tankTemplate = &D_dryfield_night_water_tank_8017E08C;
 
-    for (i = 0; i < 2; i++) {
-        dst->normals[i].vx = src->normals[i].vx;
-        dst->normals[i].vy = src->normals[i].vy;
-        dst->normals[i].vz = src->normals[i].vz;
-        dst->faces[i]      = src->faces[i];
+    // Restores the reserved obstacle prefix without rebuilding the room's cells.
+    // Grid arguments are stable pointers, evaluated repeatedly; index is writable
+    // s32 scratch. The enclosing constants select two faces/normals and six vertices.
+#define DRYFIELD_NIGHT_WATER_TANK_COPY_OBSTACLE_GEOMETRY(destination, source, index)              \
+    {                                                                                             \
+        for ((index) = 0; (index) < DRYFIELD_NIGHT_WATER_TANK_OBSTACLE_FACE_COUNT; (index)++) {   \
+            (destination)->normals[(index)].vx = (source)->normals[(index)].vx;                   \
+            (destination)->normals[(index)].vy = (source)->normals[(index)].vy;                   \
+            (destination)->normals[(index)].vz = (source)->normals[(index)].vz;                   \
+            (destination)->faces[(index)]      = (source)->faces[(index)];                        \
+        }                                                                                         \
+                                                                                                  \
+        for ((index) = 0; (index) < DRYFIELD_NIGHT_WATER_TANK_OBSTACLE_VERTEX_COUNT; (index)++) { \
+            (destination)->vertices[(index)].vx = (source)->vertices[(index)].vx;                 \
+            (destination)->vertices[(index)].vy = (source)->vertices[(index)].vy;                 \
+            (destination)->vertices[(index)].vz = (source)->vertices[(index)].vz;                 \
+        }                                                                                         \
     }
 
-    for (i = 0; i < 6; i++) {
-        dst->vertices[i].vx = src->vertices[i].vx;
-        dst->vertices[i].vy = src->vertices[i].vy;
-        dst->vertices[i].vz = src->vertices[i].vz;
-    }
+    DRYFIELD_NIGHT_WATER_TANK_COPY_OBSTACLE_GEOMETRY(roomGrid, tankTemplate, geometryIndex);
+#undef DRYFIELD_NIGHT_WATER_TANK_COPY_OBSTACLE_GEOMETRY
 
-    if (arg0 == 0) {
-        d.vx = 0;
-        d.vy = 0;
-        d.vz = 0;
+    if (offsetTank == 0) {
+        offset.vx = 0;
+        offset.vy = 0;
+        offset.vz = 0;
     } else {
-        d.vx = 0;
-        d.vy = 0;
-        d.vz = -0xC8;
+        offset.vx = 0;
+        offset.vy = 0;
+        offset.vz = DRYFIELD_NIGHT_WATER_TANK_OBSTACLE_Z_OFFSET;
     }
 
-    for (i = 0; i < 6; i++) {
-        dst->vertices[i].vx += d.vx;
-        dst->vertices[i].vy += d.vy;
-        dst->vertices[i].vz += d.vz;
+    // Apply the room-axis displacement with the original halfword truncation.
+    for (geometryIndex = 0; geometryIndex < DRYFIELD_NIGHT_WATER_TANK_OBSTACLE_VERTEX_COUNT; geometryIndex++) {
+        roomGrid->vertices[geometryIndex].vx += offset.vx;
+        roomGrid->vertices[geometryIndex].vy += offset.vy;
+        roomGrid->vertices[geometryIndex].vz += offset.vz;
     }
 }
 

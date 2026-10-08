@@ -482,7 +482,7 @@ SpriteBatch D_dryfield_warehouse_801815E8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-static void func_dryfield_warehouse_8017DBB0(Task* arg0);
+static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task);
 static void _dryfieldWarehouseDrawLightBeam(const GfxCoord* coord, s16 firstRing, s16 segmentCount);
 
 /// Restores equipment, weapon animation and final placement for the skipped warehouse scene.
@@ -563,49 +563,95 @@ static void _dryfieldWarehouseSkipCutscene(s32 phase)
     }
 }
 
-/// Carries out `_DryfieldWarehouseCutsceneWork::command` for one update.
+/// Advances the warehouse cutscene's pending command for one callback tick.
 ///
-/// The fade-out command, an unknown command and a restore command whose dust
-/// has run out leave the command cleared. The others return with it still
-/// pending, so they run again until the script stores the next one.
-static void func_dryfield_warehouse_8017DBB0(Task* arg0)
+/// Requires initialized cutscene work, a live player and loaded room resources.
+/// Fade-out and unknown commands clear immediately; restore clears after its
+/// 36 dust updates. Other commands repeat until the script replaces them.
+/// Restore reads the published event work and repeats equipment animation and
+/// placement each tick, then refetches this task's work for dust timing.
+/// Animation/placement requests and dust positions are consumed synchronously.
+/// Character 1 uses weapon banks 1..33; the alternate-character range is unproven.
+/// Task-spawn and effect-allocation failures do not stop command progression.
+static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
 {
+    enum { DRYFIELD_WAREHOUSE_COMMAND_STEP_BEGIN          = 0,
+           DRYFIELD_WAREHOUSE_COMMAND_STEP_RUN            = 1,
+           DRYFIELD_WAREHOUSE_COMMAND_STEP_ROOM_REFRESHED = 2,
+           DRYFIELD_WAREHOUSE_TASK_FADE_OUT               = 1,
+           DRYFIELD_WAREHOUSE_TASK_FADE_IN                = 2,
+           DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP         = 8,
+           DRYFIELD_WAREHOUSE_PLAYER_SCENE_CLIP           = 1,
+           DRYFIELD_WAREHOUSE_PRIMARY_CHARACTER           = 1,
+           DRYFIELD_WAREHOUSE_PRIMARY_WEAPON_BANK_BASE    = 1,
+           DRYFIELD_WAREHOUSE_OTHER_WEAPON_BANK_BASE      = 34,
+           DRYFIELD_WAREHOUSE_FINAL_ROOM                  = 2,
+           DRYFIELD_WAREHOUSE_ROOM_SWITCH_SOUND_FRAME     = 10,
+           DRYFIELD_WAREHOUSE_DUST_PERIOD_MASK            = 8 - 1,
+           // Low 12 bits: size 768; bits 12..15: two ticks per texture frame;
+           // sign bit: permit randomized child puffs.
+           DRYFIELD_WAREHOUSE_DUST_SPAWN_ARGUMENT = 0x80002300 };
     _DryfieldWarehouseCutsceneWork* work;
-    _DryfieldWarehouseCutsceneWork* sharedWork;
-    _DryfieldWarehouseCutsceneWork* cur;
+    _DryfieldWarehouseCutsceneWork* publishedWork;
+    _DryfieldWarehouseCutsceneWork* animationWork;
+    // Transient payload storage is reused only after animation dispatch returns.
     union {
-        AnimationPlayRequest rec;
-        SVECTOR              pos;
-    } msg;
+        AnimationPlayRequest animation;
+        SVECTOR              dustPosition;
+    } scratch;
 
-    s32 weaponId;
-    s32 anim;
+    s32 weaponSlot;
+    s32 animationBankIndex;
 
-    work = arg0->work;
+    // Restores equipment, builds the weapon request and places the player.
+    // Work is a stable pointer; request and both indices are writable locals,
+    // evaluated repeatedly. Uses this function's character/bank/clip constants,
+    // the live player/save and the room's closing transform. Requests are borrowed
+    // synchronously; the supplied work may differ from task->work.
+#define DRYFIELD_WAREHOUSE_RESTORE_COMMAND_PLAYER(cutsceneWork, animationRequest, weaponSlot, bankIndex)                                                                                                                                                                  \
+    {                                                                                                                                                                                                                                                                     \
+        if ((cutsceneWork)->playerEffectsSuppressed != 0) {                                                                                                                                                                                                               \
+            playerActorRestoreEquipment();                                                                                                                                                                                                                                \
+            (cutsceneWork)->playerEffectsSuppressed = 0;                                                                                                                                                                                                                  \
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);                                                                                                                                                                                              \
+        }                                                                                                                                                                                                                                                                 \
+        (weaponSlot)                            = gPlayerStatus.weapon;                                                                                                                                                                                                   \
+        (bankIndex)                             = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_WAREHOUSE_PRIMARY_CHARACTER) ? (weaponSlot) + DRYFIELD_WAREHOUSE_PRIMARY_WEAPON_BANK_BASE : (weaponSlot) + DRYFIELD_WAREHOUSE_OTHER_WEAPON_BANK_BASE; \
+        (animationRequest).source.index         = (bankIndex);                                                                                                                                                                                                            \
+        (animationRequest).animationId          = DRYFIELD_WAREHOUSE_PLAYER_SCENE_CLIP;                                                                                                                                                                                   \
+        (animationRequest).blend                = ANIMATION_BLEND_RESET;                                                                                                                                                                                                  \
+        (animationRequest).blendFrames          = 0;                                                                                                                                                                                                                      \
+        (animationRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                                                                                                                                                                                       \
+                                                                                                                                                                                                                                                                          \
+        TASK_MESSAGE_DISPATCH_POINTER((cutsceneWork)->player, ANIMATION_MESSAGE_PLAY, &(animationRequest), 0);                                                                                                                                                            \
+        TASK_MESSAGE_DISPATCH_POINTER((cutsceneWork)->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_warehouse_8017F868, 0);                                                                                                                                               \
+    }
+
+    work = task->work;
     switch (work->command) {
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_NONE:
             break;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_PLACE_AND_FADE_IN:
             switch (work->commandStep) {
-                case 0:
+                case DRYFIELD_WAREHOUSE_COMMAND_STEP_BEGIN:
                     SetDispMask(1);
-                    taskSpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
+                    taskSpawnFromTable(D_dryfield_warehouse_8017FB08, DRYFIELD_WAREHOUSE_TASK_FADE_IN, DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP, 0);
                     playerActorRemoveEquipment();
                     work->playerEffectsSuppressed = 1;
-                    cur                           = arg0->work;
-                    if (cur->player != NULL) {
-                        msg.rec.source.sets          = D_dryfield_warehouse_8017F848;
-                        msg.rec.animationId          = 1;
-                        msg.rec.blend                = ANIMATION_BLEND_RESET;
-                        msg.rec.blendFrames          = 0;
-                        msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
+                    animationWork                 = task->work;
+                    if (animationWork->player != NULL) {
+                        scratch.animation.source.sets          = D_dryfield_warehouse_8017F848;
+                        scratch.animation.animationId          = DRYFIELD_WAREHOUSE_PLAYER_SCENE_CLIP;
+                        scratch.animation.blend                = ANIMATION_BLEND_RESET;
+                        scratch.animation.blendFrames          = 0;
+                        scratch.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &scratch.animation, 0);
                     }
-                    TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3E9, &D_dryfield_warehouse_8017F850, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_warehouse_8017F850, 0);
                     work->commandFrames = 0;
                     work->commandStep++;
                     break;
-                case 1:
+                case DRYFIELD_WAREHOUSE_COMMAND_STEP_RUN:
                     if ((work->soundLoopFrames % DRYFIELD_WAREHOUSE_CUTSCENE_SOUND_LOOP_FRAMES) == 0) {
                         sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 3), 0, 0);
                     }
@@ -614,85 +660,74 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             work->soundLoopFrames++;
             return;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_SPAWN_FADE_OUT:
-            D_dryfield_warehouse_801821C0 = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, 1, 8, 0);
+            D_dryfield_warehouse_801821C0 = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, DRYFIELD_WAREHOUSE_TASK_FADE_OUT, DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP, 0);
             break;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_RESTORE_AND_FADE_IN:
             // The restore goes through the published cutscene task's block.
-            sharedWork = D_dryfield_warehouse_801821BC->work;
-            if (sharedWork->playerEffectsSuppressed != 0) {
-                playerActorRestoreEquipment();
-                sharedWork->playerEffectsSuppressed = 0;
-                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            }
-            weaponId                     = gPlayerStatus.weapon;
-            anim                         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            msg.rec.source.index         = anim;
-            msg.rec.animationId          = 1;
-            msg.rec.blend                = ANIMATION_BLEND_RESET;
-            msg.rec.blendFrames          = 0;
-            msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-
-            TASK_MESSAGE_DISPATCH_POINTER(sharedWork->player, ANIMATION_MESSAGE_PLAY, &msg.rec, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(sharedWork->player, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
+            publishedWork = D_dryfield_warehouse_801821BC->work;
+            DRYFIELD_WAREHOUSE_RESTORE_COMMAND_PLAYER(publishedWork, scratch.animation, weaponSlot, animationBankIndex);
             switch (work->commandStep) {
-                case 0:
-                    taskSpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
+                case DRYFIELD_WAREHOUSE_COMMAND_STEP_BEGIN:
+                    taskSpawnFromTable(D_dryfield_warehouse_8017FB08, DRYFIELD_WAREHOUSE_TASK_FADE_IN, DRYFIELD_WAREHOUSE_FADE_INTENSITY_STEP, 0);
                     work->commandFrames = 0;
                     work->commandStep++;
                     return;
-                case 1:
+                case DRYFIELD_WAREHOUSE_COMMAND_STEP_RUN:
                     // Five puffs along the Z axis, one per update in turn, each
                     // repeating every eighth update. The block is fetched again
                     // from the task for the phase tests.
-                    work->commandFrames++;
-                    sharedWork = arg0->work;
-                    msg.pos.vx = 0x1644;
-                    msg.pos.vy = 0;
-                    if (!(sharedWork->commandFrames & 7)) {
-                        msg.pos.vz = -500;
-                        effectSpawn(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
+                    {
+                        _DryfieldWarehouseCutsceneWork* dustWork;
+                        work->commandFrames++;
+                        dustWork                = task->work;
+                        scratch.dustPosition.vx = 0x1644;
+                        scratch.dustPosition.vy = 0;
+                        if (!(dustWork->commandFrames & DRYFIELD_WAREHOUSE_DUST_PERIOD_MASK)) {
+                            scratch.dustPosition.vz = -500;
+                            effectSpawn(EFFECT_DUST_PUFF, NULL, DRYFIELD_WAREHOUSE_DUST_SPAWN_ARGUMENT, &scratch.dustPosition);
+                        }
+                        if (!((dustWork->commandFrames + 1) & DRYFIELD_WAREHOUSE_DUST_PERIOD_MASK)) {
+                            scratch.dustPosition.vz = -700;
+                            effectSpawn(EFFECT_DUST_PUFF, NULL, DRYFIELD_WAREHOUSE_DUST_SPAWN_ARGUMENT, &scratch.dustPosition);
+                        }
+                        if (!((dustWork->commandFrames + 2) & DRYFIELD_WAREHOUSE_DUST_PERIOD_MASK)) {
+                            scratch.dustPosition.vz = -900;
+                            effectSpawn(EFFECT_DUST_PUFF, NULL, DRYFIELD_WAREHOUSE_DUST_SPAWN_ARGUMENT, &scratch.dustPosition);
+                        }
+                        if (!((dustWork->commandFrames + 3) & DRYFIELD_WAREHOUSE_DUST_PERIOD_MASK)) {
+                            scratch.dustPosition.vz = -1100;
+                            effectSpawn(EFFECT_DUST_PUFF, NULL, DRYFIELD_WAREHOUSE_DUST_SPAWN_ARGUMENT, &scratch.dustPosition);
+                        }
+                        if (!((dustWork->commandFrames + 4) & DRYFIELD_WAREHOUSE_DUST_PERIOD_MASK)) {
+                            scratch.dustPosition.vz = -1300;
+                            effectSpawn(EFFECT_DUST_PUFF, NULL, DRYFIELD_WAREHOUSE_DUST_SPAWN_ARGUMENT, &scratch.dustPosition);
+                        }
+                        if (work->commandFrames >= DRYFIELD_WAREHOUSE_CUTSCENE_DUST_FRAMES) {
+                            work->command = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_NONE;
+                        }
+                        SetDispMask(1);
+                        return;
                     }
-                    if (!((sharedWork->commandFrames + 1) & 7)) {
-                        msg.pos.vz = -700;
-                        effectSpawn(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
-                    }
-                    if (!((sharedWork->commandFrames + 2) & 7)) {
-                        msg.pos.vz = -900;
-                        effectSpawn(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
-                    }
-                    if (!((sharedWork->commandFrames + 3) & 7)) {
-                        msg.pos.vz = -1100;
-                        effectSpawn(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
-                    }
-                    if (!((sharedWork->commandFrames + 4) & 7)) {
-                        msg.pos.vz = -1300;
-                        effectSpawn(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
-                    }
-                    if (work->commandFrames >= DRYFIELD_WAREHOUSE_CUTSCENE_DUST_FRAMES) {
-                        work->command = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_NONE;
-                    }
-                    SetDispMask(1);
-                    return;
             }
             break;
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_SWITCH_ROOM:
             fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             switch (work->commandStep) {
-                case 0:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
-                    gGameSession->location.loc.room                            = 2;
+                case DRYFIELD_WAREHOUSE_COMMAND_STEP_BEGIN:
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = DRYFIELD_WAREHOUSE_FINAL_ROOM;
+                    gGameSession->location.loc.room                            = DRYFIELD_WAREHOUSE_FINAL_ROOM;
                     work->commandFrames                                        = 0;
                     work->commandStep++;
                     break;
-                case 1:
+                case DRYFIELD_WAREHOUSE_COMMAND_STEP_RUN:
                     gGameSession->viewDirty     = 1;
                     gGameSession->roomObjsDirty = 1;
                     work->commandStep++;
                     break;
-                case 2:
+                case DRYFIELD_WAREHOUSE_COMMAND_STEP_ROOM_REFRESHED:
                     break;
             }
-            if (work->commandFrames == 10) {
+            if (work->commandFrames == DRYFIELD_WAREHOUSE_ROOM_SWITCH_SOUND_FRAME) {
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 4), 0, 0);
             }
             work->commandFrames++;
@@ -700,12 +735,12 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
         case DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_LOOP_SOUND:
             fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             switch (work->commandStep) {
-                case 0:
+                case DRYFIELD_WAREHOUSE_COMMAND_STEP_BEGIN:
                     D_80115768            = 0;
                     work->soundLoopFrames = 0;
                     work->commandStep++;
                     break;
-                case 1:
+                case DRYFIELD_WAREHOUSE_COMMAND_STEP_RUN:
                     if ((work->soundLoopFrames % DRYFIELD_WAREHOUSE_CUTSCENE_SOUND_LOOP_FRAMES) == 0) {
                         sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 3), 0, 0);
                     }
@@ -715,6 +750,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             return;
     }
     work->command = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_NONE;
+#undef DRYFIELD_WAREHOUSE_RESTORE_COMMAND_PLAYER
 }
 
 /// Main loop of the warehouse's cutscene task, the owner of the
@@ -773,7 +809,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                 taskRequestKill(arg0, 0);
                 return;
             }
-            func_dryfield_warehouse_8017DBB0(arg0);
+            _dryfieldWarehouseExecuteCutsceneCommand(arg0);
             break;
     }
 }

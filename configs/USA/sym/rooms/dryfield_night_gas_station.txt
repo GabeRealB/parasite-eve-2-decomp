@@ -330,3 +330,4 @@ _dryfieldNightGasStationSpawnCompanionHeadAimTask = 0x801807a0; // type:func
 _dryfieldNightGasStationSpawnTrackRedStreakTask = 0x80180940; // type:func
 _dryfieldNightGasStationSpawnSpriteFlickerTask = 0x80180a00; // type:func
 _dryfieldNightGasStationSpawnCompanionRedStreakTask = 0x80180b04; // type:func
+_dryfieldNightGasStationRestoreBalconySpriteVisibility = 0x80180d1c; // type:func

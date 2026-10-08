@@ -1714,6 +1714,11 @@ static void _dryfieldGeneralStorePlaySceneCueTask(Task* task)
 }
 
 /// Decrements the drop-in counter modulo 65536 and reports signed-halfword expiry.
+///
+/// Mutates a live task's callback-tick counter before testing it. Zero expires
+/// on this call; a starting value of 90 expires on call 91. The unsigned load
+/// and narrowing assignment preserve wraparound; the result is 0 or 1 and
+/// does not kill the task or perform the drop-in's completion actions.
 static inline s32 _dryfieldGeneralStoreDropInExpired(Task* task)
 {
     s16 framesLeft;

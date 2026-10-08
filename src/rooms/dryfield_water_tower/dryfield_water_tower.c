@@ -48,7 +48,7 @@ extern u8           gRoomEventActive;
 static void func_dryfield_water_tower_8017DD6C(Task* arg0);
 static void _dryfieldWaterTowerIdleRoomTask(Task* task);
 
-static void func_dryfield_water_tower_8017DCB4(void);
+static void _dryfieldWaterTowerRestoreMechanismSpriteVisibility(void);
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
@@ -83,7 +83,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
     switch (arg0->state) {
         case 0:
             if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) < 2) {
-                func_dryfield_water_tower_8017DCB4();
+                _dryfieldWaterTowerRestoreMechanismSpriteVisibility();
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
@@ -108,7 +108,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
         case 2:
             if (capGetVariantKey() == 0xA) {
                 gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 2);
-                func_dryfield_water_tower_8017DCB4();
+                _dryfieldWaterTowerRestoreMechanismSpriteVisibility();
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskMessageDispatch(D_dryfield_water_tower_801876A0, DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN, 0, 0);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 9), 0, 0);
@@ -131,18 +131,21 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
 
 #include "../../shared/water_tower_sound_msg.inc.c"
 
-/// Shows or hides the view's sprites from nibble 0x55: modes 0 and 1 draw
-/// them, 2 and 3 skip them, and any other value leaves them alone.
-static void func_dryfield_water_tower_8017DCB4(void)
+/// Restores the tower mechanism's background sprite from its saved operating state.
+///
+/// Initial/restored states show batch 1 of view 19; tower/tank-operated states
+/// hide it. Other values leave it unchanged. Requires the daytime water-tower
+/// sprite table to be loaded; the setter leaves other stages untouched.
+static void _dryfieldWaterTowerRestoreMechanismSpriteVisibility(void)
 {
-    s32 mode = gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE);
+    s32 mechanismState = gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE);
 
-    if (mode < 0) {
+    if (mechanismState < GAME_FLAG_WATER_TOWER_MECHANISM_INITIAL) {
         return;
     }
-    if (mode < 2) {
+    if (mechanismState < GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED) {
         dryfieldWaterTowerSetMechanismSpriteVisible(1);
-    } else if (mode < 4) {
+    } else if (mechanismState < GAME_FLAG_WATER_TOWER_MECHANISM_TANK_OPERATED + 1) {
         dryfieldWaterTowerSetMechanismSpriteVisible(0);
     }
 }

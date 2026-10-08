@@ -1097,7 +1097,7 @@ statement written in each case reproduces the target's merge point.
 
 Where the walk *does* run off the end of both streams, the whole tail merges and
 the `goto` spelling reaches 100% too - so a matching `goto` candidate is not
-evidence the original had one. `func_dryfield_motel_room_1_8017DD3C` (115 insns)
+evidence the original had one. `_dryfieldMotelRoom1OpeningEventTask` (115 insns)
 ends its states 0 and 1 on the same `index->state = index->state + 1;` with no
 `sb` above it, and m2c's label-plus-`goto` rendering and the statement written in
 each case compile to byte-identical objects. What shows a merge happened at all
@@ -9662,7 +9662,7 @@ function in the unit is still `INCLUDE_ASM`.** The table has to start its
 object's `.rodata` so GCC's `.align 3` costs nothing, and `INCLUDE_ASM`
 functions emit no rodata of their own — so a compiler-generated table is the
 first thing in the object even when its function is not the first in the unit.
-`func_dryfield_night_motel_room_6_8018189C` is the second function in
+`_dryfieldNightMotelRoom6RestTask` is the second function in
 `dryfield_night_motel_room_6_6`, its table is the last 0x18 bytes of the block
 `dryfield_night_motel_room_6_3` owned, and
 `rodata = [..., { start = "0x104", unit = "dryfield_night_motel_room_6_6" }]`
@@ -49469,7 +49469,7 @@ block.
 
 When the dispatched-to call is *direct* rather than indirect, the callee settles
 it in one look: `func_dryfield_night_gas_station_8017FB70`'s seed passed the
-table's three words as arguments to `func_dryfield_night_gas_station_80180D1C`,
+table's three words as arguments to `_dryfieldNightGasStationRestoreBalconySpriteVisibility`,
 and that callee's first act is to overwrite `$a0` (`lui/lw $a0, gGameSession`)
 — it reads none of `$a0`-`$a3`, so it takes no arguments and the three loaded
 registers can only be the copy's temporaries. The body is the ordinary
@@ -90200,14 +90200,14 @@ Inputs: `base.i` (m2c `M2C_UNK` payloads, 99.891%)
 `base_3.i` (one `[5]` table, 97.391%)
 `0056ffdc64be396456d95cab5493ab3f40287382c62ef4bdd563707130a622c4`.
 
-## The "write two calls" fix for a shared constant argument is a liveness rule, not a shape rule (func_dryfield_water_tower_8017DCB4, 2026-09-15)
+## The "write two calls" fix for a shared constant argument is a liveness rule, not a shape rule (_dryfieldWaterTowerRestoreMechanismSpriteVisibility, 2026-09-15)
 
 The section above (`m2c's var_a0 = K; if (…) var_a0 = K2; f(var_a0)`) says to
 write the two calls out instead of a shared local. That is only *forced* when
 the local is live across an intervening call; with no call between the
 assignment and the use, both spellings compile to the same object.
 
-`func_dryfield_water_tower_8017DCB4` is the minimal case — m2c reconstructs the
+`_dryfieldWaterTowerRestoreMechanismSpriteVisibility` is the minimal case — m2c reconstructs the
 target's single `jal` as one local assigned in each arm of the if-chain:
 
 ```c
@@ -90225,13 +90225,13 @@ variable before one call is 100.000%, and so is the two-call spelling the
 section above recommends:
 
 ```c
-mode = gameFlagGetNibble(0x55);
-if (mode < 0) {
+mechanismState = gameFlagGetNibble(0x55);
+if (mechanismState < 0) {
     return;
 }
-if (mode < 2) {
+if (mechanismState < 2) {
     dryfieldWaterTowerSetMechanismSpriteVisible(1);
-} else if (mode < 4) {
+} else if (mechanismState < 4) {
     dryfieldWaterTowerSetMechanismSpriteVisible(0);
 }
 ```
@@ -90850,24 +90850,24 @@ then `ior(plain_byte, that)` no matter how the chain is spelled: 108 spellings
 of the three-term form (every `|`/`+`/`^` and association permutation) all
 produce byte-identical assembly.
 
-`func_dryfield_motel_room_1_8017DC2C` needs the constant on the *plain byte*
-operand - `ori $a0,$a0,0x1000` off the `field_6` load, `sll $v0,$v0,8` for
-`field_7 << 8`, `or $a0,$v0,$a0` - and every direct spelling gave the two
+`_dryfieldMotelRoom1InitializeOpeningEvent` needs the constant on the *plain byte*
+operand - `ori $a0,$a0,0x1000` off the `location.loc.area` load, `sll $v0,$v0,8` for
+`location.loc.stage << 8`, `or $a0,$v0,$a0` - and every direct spelling gave the two
 operands swapped. That is `regs=12` and 99.118% with `reorder=0 insert=0`, so
 no statement reordering touches it. The conversion itself is invisible in the
 object (`andi` is elided, the value provably fits 16 bits); only the operand
 order betrays it.
 
-Compute the id into an `s32` local first, so the OR runs as an SImode statement
+Compute the placeKey into an `s32` local first, so the OR runs as an SImode statement
 and only the *variable* is narrowed at the call:
 
 ```c
-s32 id;
+s32 placeKey;
 ...
-id                          = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
-work->stagedSucklerTasks[0] = sceneFindEnemyByPlaceKey(id)->task;
-id                          = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
-work->stagedSucklerTasks[1] = sceneFindEnemyByPlaceKey(id)->task;
+placeKey                          = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
+work->stagedSucklerTasks[0] = sceneFindEnemyByPlaceKey(placeKey)->task;
+placeKey                          = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
+work->stagedSucklerTasks[1] = sceneFindEnemyByPlaceKey(placeKey)->task;
 ```
 
 The same shape appears with `(idx << 12) | (field_3 << 8) | field_2` in
@@ -94830,7 +94830,7 @@ id = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location
 
 That takes the arg0 path, which rebuilds `(f7 << 8) | (f6 | 0x1000)` in the
 tree — the shape the target wants — and the function matched at 100% on the
-first build. The sibling `func_dryfield_motel_room_1_8017DC2C` is already
+first build. The sibling `_dryfieldMotelRoom1InitializeOpeningEvent` is already
 matched with exactly this spelling for its 0x1000/0x2000/0x3000 lookups and
 carries the identical instruction sequence, so it is the form to copy whenever
 a room builds a `sceneFindEnemyByPlaceKey` key.
@@ -121395,9 +121395,9 @@ Scratch `nonmatchings/func_dryfield_night_water_hole_8017DADC-vacuum`.
 
 ## A front-end pointer walk makes `loop.c` buy a `DEST_ADDR` giv; the index form leaves one walking register and the `+const` as a displacement
 
-`func_dryfield_night_water_hole_8017DE88` walks a NULL-terminated array of
+`_dryfieldNightWaterHoleApplySurfaceOverrides` walks a NULL-terminated array of
 8-byte records and reads the `s32` at +4 twice. Spelled as a pointer walk
-(`for (p = list; p->properties != NULL; p++)`) the build carries one register too many:
+(`for (p = overrides; p->properties != NULL; p++)`) the build carries one register too many:
 the preheader materializes `p + 4` (`addiu $a1,$a2,4`) and every iteration keeps
 it current (`addiu $a1,$a1,8`, which the scheduler pushes into the branch delay
 slot). The target has no such register - `lw $v0,4($a1)` twice, one walking
@@ -121408,7 +121408,7 @@ That register is `loop.c`'s: `find_mem_givs` records a `DEST_ADDR` giv for a
 add == 0`", so `MEM(p)` (the record field at offset 0) is skipped while
 `MEM(p + 4)` is recorded - and since the loop's biv is the pointer itself,
 reducing that giv needs a register of its own. The index form never offers that
-choice: `list[i].properties` and `list[i].surfaceClass` are `base + 8*i` and `base + 8*i + 4`,
+choice: `overrides[overrideIndex].properties` and `overrides[overrideIndex].surfaceClass` are `base + 8*overrideIndex` and `base + 8*overrideIndex + 4`,
 two givs over the same integer biv, so `loop.c` strength-reduces them into a
 single walking pointer (`addu $a1,$a0,$zero` in the preheader) and leaves the
 +4 as a load displacement. Same instruction count, same loop, one register
@@ -121422,24 +121422,24 @@ not cosmetic: it moves the walk pointer into `$a1` and the session pointer into
 `$a2`, matching the target's whole allocation.
 
 ```c
-for (i = 0; list[i].properties != NULL; i++) {    /* not  for (p = list; p->properties; p++) */
-    surfaceProperties = Gp_RoomParamTables[sess->field_3 - 1][sess->field_2 - 1];
-    surfaceProperties[list[i].surfaceClass] = list[i].properties;
-    Gp_RoomParams[list[i].surfaceClass] = surfaceProperties[list[i].surfaceClass]->suppressPushback;
+for (overrideIndex = 0; overrides[overrideIndex].properties != NULL; overrideIndex++) {    /* not  for (p = overrides; p->properties; p++) */
+    surfaceProperties = Gp_RoomParamTables[location->stage - 1][location->area - 1];
+    surfaceProperties[overrides[overrideIndex].surfaceClass] = overrides[overrideIndex].properties;
+    Gp_RoomParams[overrides[overrideIndex].surfaceClass] = surfaceProperties[overrides[overrideIndex].surfaceClass]->suppressPushback;
 }
 ```
 
 The session addressing in the same function is the `GameSession.location` sub-object
-documented above (`sess = &gGameSession->location.loc`), which is
+documented above (`location = &gGameSession->location.loc`), which is
 what turns `lbu 6/7($a0)` into `addiu $a2,$v0,4` plus `lbu 2($a2)` / `lbu
 3($a2)`. 80.359% (pointer walk, flat session fields) -> 86.425% (overlay cast
 only) -> 100.00% (index form), every penalty zero.
 
-Inputs: `base_3.i` (100%) SHA256
+Inputs: `base_3.overrideIndex` (100%) SHA256
 `874583871108a60746a7d23e79d6a11fec69fb7d8acd87937dc469436dff92d1`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
-`nonmatchings/func_dryfield_night_water_hole_8017DE88-vacuum`.
+`nonmatchings/_dryfieldNightWaterHoleApplySurfaceOverrides-vacuum`.
 
 ## A jump table for the overlay's *first* code unit needs `rodata_head`, not a `rodata` cut (func_dryfield_junk_yard_8017D848, 2026-09-17)
 

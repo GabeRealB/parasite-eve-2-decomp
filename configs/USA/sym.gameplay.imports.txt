@@ -1697,9 +1697,9 @@ dryfieldGasStationTelephoneMenuTask = 0x8017EA90; // type:func absolute:True own
 
 dryfieldMotelLobbyTelephoneMenuTask = 0x8017E9E8; // type:func absolute:True owner=dryfield_motel_lobby
 
-func_dryfield_trailer_coach_80181364 = 0x80181364; // type:func absolute:True owner=dryfield_trailer_coach
+dryfieldTrailerCoachTelephoneMenuTask = 0x80181364; // type:func absolute:True owner=dryfield_trailer_coach
 
-func_dryfield_motel_room_6_8017EA58 = 0x8017EA58; // type:func absolute:True owner=dryfield_motel_room_6
+dryfieldMotelRoom6TelephoneMenuTask = 0x8017EA58; // type:func absolute:True owner=dryfield_motel_room_6
 
 dryfieldNightGasStationTelephoneMenuTask = 0x8017E9F8; // type:func absolute:True owner=dryfield_night_gas_station
 

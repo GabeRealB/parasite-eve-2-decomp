@@ -864,7 +864,7 @@ void func_800B92CC(Task* task)
             dryfieldMotelLobbyTelephoneMenuTask(task);
             break;
         case GAME_LOCATION_KEY(2, 27, 0, 0):
-            func_dryfield_trailer_coach_80181364(task);
+            dryfieldTrailerCoachTelephoneMenuTask(task);
             break;
         case GAME_LOCATION_KEY(3, 1, 0, 0):
             dryfieldNightGasStationTelephoneMenuTask(task);
@@ -900,7 +900,7 @@ void func_800B92CC(Task* task)
             func_shelter_1f_tent_8017EA60(task);
             break;
         case GAME_LOCATION_KEY(2, 30, 0, 0):
-            func_dryfield_motel_room_6_8017EA58(task);
+            dryfieldMotelRoom6TelephoneMenuTask(task);
             break;
         case GAME_LOCATION_KEY(3, 30, 0, 0):
             dryfieldNightMotelRoom6TelephoneMenuTask(task);

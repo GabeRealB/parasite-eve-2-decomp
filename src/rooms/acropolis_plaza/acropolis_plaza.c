@@ -3495,10 +3495,13 @@ static void _acropolisPlazaUpdateSceneAmbience(Task* task)
     }
 }
 
-/// Restarts the plaza scene watcher at the sequence's saved frame without resetting the stream.
+/// Resumes the plaza scene task at the sequence's saved frame without seeking the stream.
 ///
-/// Borrows live sequence work; the spawned watcher retains its scene argument.
-/// Keep the work and room resources intact until that watcher finishes.
+/// The previous scene task must have ended. Borrows live sequence work and
+/// stores the new task handle, including NULL on allocation failure. The child
+/// reads the embedded argument during initialization, seeds both scene/movie
+/// frame counters and clears the stream's end latch. Keep the work and loaded
+/// stream/room resources alive through that handoff; no CD seek is requested.
 static inline void _acropolisPlazaResumeSequenceStream(_AcropolisPlazaSequenceWork* work)
 {
     enum { ACROPOLIS_PLAZA_RESUME_STREAM_TASK = 1 };

@@ -32,7 +32,14 @@ extern SpriteView D_dryfield_motel_room_6_801856CC[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_6_80186808[];
 
-void func_dryfield_motel_room_6_8017EA58(Task* task);
+/// Updates daytime motel room 6's telephone save and statistics menu.
+///
+/// Gameplay dispatches this wrapper while this room overlay is loaded.
+/// Requires a live menu task in state 0..3, its writable UiObject in
+/// `spawnArg2.pointer`, and loaded UI resources. The parent owns the menu;
+/// the implementation opens child dialogs/panels and reports dismissal through
+/// the object's result rather than killing this task.
+void dryfieldMotelRoom6TelephoneMenuTask(Task* task);
 
 /// Initializes and updates the player's reflection in daytime motel room 6.
 ///

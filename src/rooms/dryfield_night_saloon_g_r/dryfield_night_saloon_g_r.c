@@ -137,7 +137,7 @@ extern s16 D_dryfield_night_saloon_g_r_80185154[];
 
 static void _dryfieldNightSaloonGRInitializeRoom(Task* task);
 static void _dryfieldNightSaloonGRIdleState(Task* task);
-static s32  func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
+static s32  _dryfieldNightSaloonGRQueueJukebox(s32 unusedArg);
 static void _dryfieldNightSaloonGRDrawTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoint, const SVECTOR* endPoint, s32 radiusScale);
 
 static void _dryfieldNightSaloonGRJukeboxMenuTask(Task* task);
@@ -1866,7 +1866,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            func_dryfield_night_saloon_g_r_8017E698(0);
+            _dryfieldNightSaloonGRQueueJukebox(0);
             task->state = task->state + 1;
             return;
         case 3:
@@ -2215,12 +2215,18 @@ static void _dryfieldNightSaloonGRJukeboxMenuTask(Task* task)
 
 #include "../../shared/jukebox_host.inc.c"
 
-/// Starts the jukebox task and reports success. Its argument is unused;
-/// `func_dryfield_night_saloon_g_r_8017DB74` (state 2) still passes one.
-static s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0)
+/// Queues the saloon's jukebox host under a display-mode transition.
+///
+/// Borrows the room-owned descriptor until the display task spawns its host;
+/// keep the overlay loaded through the menu. Both spawn payloads are zero.
+/// The argument is ignored and the result is always 1, regardless of queue
+/// admission. The room cutscene ignores that result.
+static s32 _dryfieldNightSaloonGRQueueJukebox(s32 unusedArg)
 {
+    enum { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_QUEUED_RESULT = 1 };
+
     displayQueueModeTask(&D_dryfield_night_saloon_g_r_80185068, 0, 0, STAGE_ENTRY_RELOAD);
-    return 1;
+    return DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_QUEUED_RESULT;
 }
 
 void dryfieldNightSaloonGRDrawGlowsTask(Task* task)

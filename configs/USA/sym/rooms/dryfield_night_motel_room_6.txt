@@ -133,3 +133,4 @@ _dryfieldNightMotelRoom6IdleTask = 0x80181c78; // type:func
 _dryfieldNightMotelRoom6SoundMessage = 0x80181c00; // type:func
 _dryfieldNightMotelRoom6InitRoomTask = 0x80181c34; // type:func
 dryfieldNightMotelRoom6RoomTask = 0x80181c80; // type:func
+_dryfieldNightMotelRoom6RestTask = 0x8018189c; // type:func

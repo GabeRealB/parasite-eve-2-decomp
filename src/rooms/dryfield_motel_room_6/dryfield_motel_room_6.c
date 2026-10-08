@@ -1995,7 +1995,7 @@ static const char Telephone_Data_8017D638[];
 
 #include "../../shared/telephone.inc.c"
 
-void func_dryfield_motel_room_6_8017EA58(Task* task)
+void dryfieldMotelRoom6TelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }

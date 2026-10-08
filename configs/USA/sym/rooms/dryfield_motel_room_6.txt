@@ -98,7 +98,7 @@ gMotelRoom6CutsceneRec = 0x80186830; // size:0x18 defined:True
 D_map_dryfield_8017BB54 = 0x8017BB54; // absolute:True owner=map_dryfield
 D_map_dryfield_8017BB74 = 0x8017BB74; // absolute:True owner=map_dryfield
 
-func_dryfield_motel_room_6_8017EA58 = 0x8017EA58; // type:func
+dryfieldMotelRoom6TelephoneMenuTask = 0x8017EA58; // type:func
 
 dryfieldMotelRoom6PlayerReflectionTask = 0x80181184; // type:func
 

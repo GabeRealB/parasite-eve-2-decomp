@@ -1595,7 +1595,7 @@ static void _dryfieldTrailerCoachOpenTopicChoice(Task* task);
 
 #include "../../shared/telephone.inc.c"
 
-void func_dryfield_trailer_coach_80181364(Task* task)
+void dryfieldTrailerCoachTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }

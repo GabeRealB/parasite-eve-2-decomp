@@ -199,7 +199,7 @@ static void _dryfieldNightGasStationResetCutsceneObstacleCollision(s32 displaceO
 static void _dryfieldNightGasStationDrawTrackRedStreak(s32 frameIndex);
 static void _dryfieldNightGasStationDrawCompanionRedStreak(s32 unusedFrame);
 static void _dryfieldNightGasStationClearCutsceneTaskHandles(void);
-static void func_dryfield_night_gas_station_80180D1C(void);
+static void _dryfieldNightGasStationRestoreBalconySpriteVisibility(void);
 static void _dryfieldNightGasStationSetFlickerSpritesVisible(s16 visible);
 
 /// Commands for the player-to-companion head-aim blend task.
@@ -2707,7 +2707,7 @@ void func_dryfield_night_gas_station_8017FB70(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = D_dryfield_night_gas_station_8017D644;
-    func_dryfield_night_gas_station_80180D1C();
+    _dryfieldNightGasStationRestoreBalconySpriteVisibility();
     sp.funcs[arg0->state](arg0);
 }
 
@@ -3328,24 +3328,31 @@ static void _dryfieldNightGasStationSetCutsceneSpritesHidden(s32 hiddenArgumentW
     }
 }
 
-/// Gates the room's two sprite command records on game flag nibble 0x8D: a
-/// zero nibble clears both commands' skip-link flag, a one sets it. The two
-/// records are views 10 and 19 of the current room's sprite record array, and
-/// the flag both write is command 6's.
-static void func_dryfield_night_gas_station_80180D1C(void)
+/// Restores the gas station's distant balcony sprites from saved section-8 damage.
+///
+/// Called each room-task update. Section state 0 shows and 1 hides batch 6
+/// of sprite-view slots 10 and 19; other states leave them untouched. Requires
+/// the current room's first sprite-variant table to contain both writable
+/// batches. This changes visibility without discarding their cached packets.
+static void _dryfieldNightGasStationRestoreBalconySpriteVisibility(void)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteView*      view = gSpriteAreaTables[sess->stage - 1][0].areaViews[sess->area - 1];
-    s32              flag = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE);
+    enum { DRYFIELD_NIGHT_GAS_STATION_BALCONY_INTACT           = 0,
+           DRYFIELD_NIGHT_GAS_STATION_BALCONY_ALTERED          = 1,
+           DRYFIELD_NIGHT_GAS_STATION_BALCONY_FIRST_VIEW_SLOT  = 10,
+           DRYFIELD_NIGHT_GAS_STATION_BALCONY_SECOND_VIEW_SLOT = 19,
+           DRYFIELD_NIGHT_GAS_STATION_BALCONY_BATCH            = 6 };
+    GameLocationKey* location     = &gGameSession->location.loc;
+    SpriteView*      views        = gSpriteAreaTables[location->stage - 1][0].areaViews[location->area - 1];
+    s32              sectionState = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE);
 
-    switch (flag) {
-        case 0:
-            view[10].batches[6].hidden = 0;
-            view[19].batches[6].hidden = 0;
+    switch (sectionState) {
+        case DRYFIELD_NIGHT_GAS_STATION_BALCONY_INTACT:
+            views[DRYFIELD_NIGHT_GAS_STATION_BALCONY_FIRST_VIEW_SLOT].batches[DRYFIELD_NIGHT_GAS_STATION_BALCONY_BATCH].hidden  = 0;
+            views[DRYFIELD_NIGHT_GAS_STATION_BALCONY_SECOND_VIEW_SLOT].batches[DRYFIELD_NIGHT_GAS_STATION_BALCONY_BATCH].hidden = 0;
             break;
-        case 1:
-            view[10].batches[6].hidden = flag;
-            view[19].batches[6].hidden = flag;
+        case DRYFIELD_NIGHT_GAS_STATION_BALCONY_ALTERED:
+            views[DRYFIELD_NIGHT_GAS_STATION_BALCONY_FIRST_VIEW_SLOT].batches[DRYFIELD_NIGHT_GAS_STATION_BALCONY_BATCH].hidden  = sectionState;
+            views[DRYFIELD_NIGHT_GAS_STATION_BALCONY_SECOND_VIEW_SLOT].batches[DRYFIELD_NIGHT_GAS_STATION_BALCONY_BATCH].hidden = sectionState;
             break;
     }
 }

@@ -278,7 +278,7 @@ D_dryfield_trailer_coach_80189C9C = 0x80189C9C; // size:0x18 defined:True
 
 dryfieldTrailerCoachDrawGlowsTask = 0x801838DC; // type:func
 
-func_dryfield_trailer_coach_80181364 = 0x80181364; // type:func
+dryfieldTrailerCoachTelephoneMenuTask = 0x80181364; // type:func
 _telephoneDrawPlayDataRow = 0x8017FFCC; // type:func
 _telephoneDrawUsageRow = 0x80180798; // type:func
 _telephoneBuildWeaponUsageList = 0x80180B94; // type:func

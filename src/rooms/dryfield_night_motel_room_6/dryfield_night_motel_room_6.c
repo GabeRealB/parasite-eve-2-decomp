@@ -153,7 +153,7 @@ extern TaskDesc gRoomCutsceneTaskDescs[];
 extern TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[];
 
 /// Task table whose entries run the story task
-/// `func_dryfield_night_motel_room_6_8018189C`.
+/// `_dryfieldNightMotelRoom6RestTask`.
 extern TaskDesc D_dryfield_night_motel_room_6_80182EE0;
 
 /// World position the room's marker is drawn at.
@@ -188,7 +188,7 @@ extern WorldCoordRoomLights  D_dryfield_night_motel_room_6_80185A30[1];
 static s32                   _dryfieldNightMotelRoom6RejectKeyItemMessage(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32                   _dryfieldNightMotelRoom6IgnoreActionMessage(Task* receiver, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32                   _dryfieldNightMotelRoom6SoundMessage(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
-void                         func_dryfield_night_motel_room_6_8018189C(Task*);
+static void                  _dryfieldNightMotelRoom6RestTask(Task* task);
 
 /// Key-item use request sent to the room task by the inventory menu.
 enum { DRYFIELD_NIGHT_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -227,9 +227,9 @@ TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_night_motel_room_6_80182EE0 = { { { TASK_BODY_NONE, 32 } }, func_dryfield_night_motel_room_6_8018189C, { .value = 0 } };
+TaskDesc D_dryfield_night_motel_room_6_80182EE0 = { { { TASK_BODY_NONE, 32 } }, _dryfieldNightMotelRoom6RestTask, { .value = 0 } };
 
-TaskDesc D_dryfield_night_motel_room_6_80182EEC = { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_room_6_8018189C, { .value = 0 } };
+TaskDesc D_dryfield_night_motel_room_6_80182EEC = { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelRoom6RestTask, { .value = 0 } };
 
 SVECTOR gMotelRoom6GlowPos[1] = {
     { 550, -850, 5170, 0 },
@@ -908,57 +908,83 @@ static const TaskFuncTable3 D_dryfield_night_motel_room_6_8017D6B4 = {
 
 #include "../../shared/motel_room_6_cutscene_msg.inc.c"
 
-/// The room's story task: holds the player's weapon and runs cap command 0x10.
-/// If the scene then reports event key 0xB the task ends there, giving the
-/// weapon back. Otherwise it sets flag nibble 0x70 to 2 and, once the scene is
-/// over, refills the player's HP and MP, stops the sound, applies the story's
-/// area records (the second list only while nibble 0xCE is set), updates the
-/// story flags, moves the saved location to area 8, warp 1, room 1 and spawns
-/// task 0x11.
-void func_dryfield_night_motel_room_6_8018189C(Task* arg0)
+/// Heals the player, commits the rest's story updates and reloads the saved arrival.
+///
+/// Requires the completed rest CAP, a live player and room-owned area updates.
+/// Reload allocation failure still commits those updates and kills the task.
+static inline void _dryfieldNightMotelRoom6FinishRest(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum { DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_SALOON_PROGRESS = 2,
+           DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_ARRIVAL_WARP    = 1,
+           DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_ARRIVAL_ROOM    = 1,
+           DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_SPRITE_VARIANT  = 1 };
+    // Commit the rest and destination before handing presentation to reload.
+    playerStateRestoreFullHpMp();
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
+    areaApplySavedUpdates(D_dryfield_night_motel_room_6_80186270);
+    if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
+        areaApplySavedUpdates(D_dryfield_night_motel_room_6_801862B0);
+    }
+    gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
+    gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_SALOON_PROGRESS);
+    gameFlagSetNibble(GAME_FLAG_030, 0);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_DRYFIELD_NIGHT_R08;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_ARRIVAL_ROOM;
+    gDisplayState.spriteVariant                                = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_SPRITE_VARIANT;
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskKill(task);
+}
+
+/// Offers the nighttime rest, then heals the player and reloads the next story area.
+///
+/// States 0..2 hold scripted control and run CAP command 16, leaving one tick
+/// before checking key 11 for refusal. That path kills the task, resumes control
+/// and still increments its state. States 3..5 mark rest taken, wait for CAP,
+/// refill HP/MP, commit saved-area/story changes and reload area 8 at warp/room 1.
+/// Requires a live player, night room resources and valid CAP selection. Owns
+/// no work; spawn arguments are ignored. Failed reload allocation still commits
+/// the story and kills the task.
+static void _dryfieldNightMotelRoom6RestTask(Task* task)
+{
+    enum { DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_START           = 0,
+           DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_SELECTION_DELAY = 1,
+           DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_CHECK_SELECTION = 2,
+           DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_COMMIT          = 3,
+           DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_WAIT_CAP        = 4,
+           DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_RELOAD          = 5,
+           DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_CAP_COMMAND     = 16,
+           DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_DECLINED_KEY    = 11,
+           DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_TAKEN           = 2 };
+
+    switch (task->state) {
+        case DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommandWithTransition(0x10);
-            arg0->state++;
+            capRunCommandWithTransition(DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_CAP_COMMAND);
+            task->state++;
             break;
-        case 1:
-            arg0->state++;
+        case DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_SELECTION_DELAY:
+            task->state++;
             break;
-        case 2:
-            if (capGetVariantKey() == 0xB) {
-                taskKill(arg0);
+        case DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_CHECK_SELECTION:
+            if (capGetVariantKey() == DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_DECLINED_KEY) {
+                taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             }
-            arg0->state++;
+            task->state++;
             break;
-        case 3:
-            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_ROOM_6_REST_TAKEN, 2);
-            arg0->state++;
+        case DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_COMMIT:
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_ROOM_6_REST_TAKEN, DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_TAKEN);
+            task->state++;
             break;
-        case 4:
+        case DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_WAIT_CAP:
             if (capIsBusy() != 0) {
                 return;
             }
-            arg0->state++;
+            task->state++;
             break;
-        case 5:
-            playerStateRestoreFullHpMp();
-            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            areaApplySavedUpdates(D_dryfield_night_motel_room_6_80186270);
-            if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
-                areaApplySavedUpdates(D_dryfield_night_motel_room_6_801862B0);
-            }
-            gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
-            gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 2);
-            gameFlagSetNibble(GAME_FLAG_030, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_DRYFIELD_NIGHT_R08;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-            gDisplayState.spriteVariant                                = 1;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(arg0);
+        case DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_RELOAD:
+            _dryfieldNightMotelRoom6FinishRest(task);
             break;
     }
 }

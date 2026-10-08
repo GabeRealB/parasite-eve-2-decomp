@@ -167,6 +167,12 @@ static s32 _acropolisFountainHandleSoundCue(Task* unusedTask, s32 messageId, s32
 }
 
 /// Commits the deferred patio destination and queues a reload before releasing the task.
+///
+/// Requires the live departure task and its latched arrival warp. Stops
+/// nonambient sound, selects patio room 3 and sprite variant 1 in the live
+/// save/display state, then requests a captured-frame reload. Progress reaches
+/// 5 and the task is killed even if that request cannot allocate a new task.
+/// The separately latched requested room is not used.
 static inline void _acropolisFountainReloadPatio(Task* task)
 {
     enum {
