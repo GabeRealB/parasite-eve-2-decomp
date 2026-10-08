@@ -429,3 +429,4 @@ _actor460200SetSceneEvent = 0x80132204; // type:func
 actor460200SetupTentSoldiers = 0x80132210; // type:func
 actor460200TalkToSoldierC = 0x801322b8; // type:func
 actor460200TalkToSoldierA = 0x80132390; // type:func
+_actor460200NegativeCaptureTask = 0x80131e24; // type:func

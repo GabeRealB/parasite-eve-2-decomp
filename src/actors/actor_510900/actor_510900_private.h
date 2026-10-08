@@ -164,7 +164,17 @@ extern DamageAttack D_actor_510900_80167968;
 
 extern TaskMessageEntry D_actor_510900_80167A6C[7];
 
-void func_actor_510900_801350F8(Enemy* arg0, Task* arg1);
+/// Initializes the Akropolis No. 9 golem body, children and collision spheres.
+///
+/// Requires a live descriptor-created nineteen-part body and unlinked enemy.
+/// Owns zeroed primary-heap work; failed allocation destroys the enemy. The
+/// model borrows work-owned lighting and animation storage until teardown.
+/// Starts seven children: prop, weapon, chest model, three lights and a blast
+/// source, plus an optional adopted flame jet. Weapon/chest allocation must
+/// succeed: their returned enemy/task pointers are used without a NULL check.
+/// Incoming body tests start enabled; both attack spheres remain disabled.
+/// Restores the live helipad grid and advances to the frame-update state.
+void actor510900InitBody(Enemy* enemy, Task* task);
 
 /// Advances No. 9 event playback and its frame-triggered flame presentation.
 ///

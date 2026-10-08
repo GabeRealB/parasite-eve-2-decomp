@@ -1256,7 +1256,6 @@ u16 D_actor_450200_801405E8[256];
 
 u16 D_actor_450200_801407E8[256];
 
-void               func_actor_450200_801322F8(void);
 static void        _actor450200DrawBackdropLayer(s32 screenX, s32 textureX, s32 paletteY, s32 semiTransparent, s32 brightness, s32 rawTexture);
 static inline void _actor450200LoadScaledClut(const u16* sourceColors, u16* scaledColors, s32 scale, s32 vramY);
 
@@ -1472,15 +1471,18 @@ void actor450200StartCompanionTalk(void)
     }
 }
 
-void func_actor_450200_801322F8(void)
+void actor450200InitializeObservatoryCompanion(void)
 {
+    enum {
+        ACTOR_450200_HEAD_AIM_DESCRIPTOR = 2,
+    };
     if (gameFlagGetNibble(GAME_FLAG_0D7) != 0) {
         evsStartScript(D_actor_450200_80139098, EVENT_SCRIPT_HUD_KEEP);
     } else {
         neoArkObservatoryUpdateCompanionObstacle(0);
     }
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        D_actor_450200_801401E0 = taskSpawnFromTable(D_actor_450200_80137A60, 2, 0, 0);
+        D_actor_450200_801401E0 = taskSpawnFromTable(D_actor_450200_80137A60, ACTOR_450200_HEAD_AIM_DESCRIPTOR, 0, 0);
     }
 }
 

@@ -29,8 +29,6 @@ extern TaskMessageEntry D_shelter_b6_growth_room_8017F16C[];
 extern EvsCommand D_actor_450900_80136110[];
 extern EvsCommand D_actor_450900_80136308[];
 
-extern void func_actor_450900_801327A8(void);
-
 static s32 _shelterB6GrowthRoomRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32 _shelterB6GrowthRoomResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* destination);
 s32        func_shelter_b6_growth_room_8017D634(Task*, s32, s32, s32);
@@ -84,7 +82,7 @@ s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, s32 arg
 s32 func_shelter_b6_growth_room_8017D6C8(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
 {
     if (arg2->warp == 1) {
-        func_actor_450900_801327A8();
+        actor450900StartCompanionConversation();
     }
     if (arg2->warp == 2) {
         actor450900HandleDepartureTrigger();

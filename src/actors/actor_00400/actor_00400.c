@@ -474,7 +474,7 @@ static void _actor00400UpdateNeckRetraction(Task* task, s32 unusedNeckRetracted)
 static void _actor00400ClaimNearestSurfaceSpot(Task* task);
 static void _actor00400LaunchShot(Task* task);
 static void _actor00400Despawn(Task* task);
-static void Actor00400_Fn03920(Task* arg0);
+static void _actor00400InitDiver(Task* task);
 static void _actor00400StrandedTask(Task* task);
 static void _actor00400StrandedDeathTask(Task* task);
 static void _actor00400SwimTask(Task* task);
@@ -529,7 +529,7 @@ static void _actor00400StrandedDeathEnter(Task* task);
 static void _actor00400SwimDecide(Task* task);
 static void _actor00400SwimStart(Task* task);
 static void _actor00400SwimPatrol(Task* task);
-static void Actor00400_Fn078C8(Task* arg0);
+static void _actor00400SwimEmerge(Task* task);
 static void _actor00400Dive(Task* task);
 static void _actor00400SwimUnusedState5(Task* task);
 static void _actor00400SwimUnusedState6(Task* task);
@@ -1377,7 +1377,7 @@ static void            _actor00400DiveSwimToSurfaceSpot(Task* task);
 static void            _actor00400SwimHeavyRecoilEnter(Task* task);
 static void            _actor00400SwimAttackWindup(Task* task);
 static inline void     _actor00400SpawnShot(Task* parentTask);
-static void            Actor00400_Fn064B0(Task* arg0);
+static void            _actor00400SwimAttackFireWait(Task* task);
 static void            _actor00400TunnelPatrolSwim(Task* task);
 static void            _actor00400RoomIntroBeginDischarge(Task* task);
 static inline s32      _actor00400ConsumeWoundedHitReaction(_Actor00400Work* work);
@@ -2667,9 +2667,9 @@ static const TaskFuncTable3 Actor00400_D0002C = { {
 
 /// The eight states `_actor00400BodyTask` dispatches on `Task::state`. The zero
 /// word after it in the image is the alignment pad of
-/// `Actor00400_Fn03920`'s jump table, not a terminator.
+/// `_actor00400InitDiver`'s jump table, not a terminator.
 static const TaskFuncTable8 Actor00400_D00038 = { {
-    Actor00400_Fn03920,
+    _actor00400InitDiver,
     _actor00400StrandedTask,
     _actor00400StrandedDeathTask,
     _actor00400SwimTask,
@@ -2741,271 +2741,286 @@ static __inline__ void _actor00400SelectTrunkTarget(Task* task, Enemy* enemy,
     work->gridCollision           = gridCollisionEnabled;
 }
 
-static void Actor00400_Fn03920(Task* arg0)
+/// Initializes the Bog Diver for its placement-selected land, water or scripted role.
+///
+/// Requires the descriptor's live TMD model and enemy in `spawnArg2.pointer`.
+/// Payload bit 16 rejects the spawn; bits 0..3 select kinds 0..7. Tunnel kind
+/// 2 uses bits 4..7 to choose introduction or patrol. Allocates zeroed primary
+/// work; rejection or allocation failure destroys the enemy. The live rig and
+/// collision bodies borrow model/work storage until teardown. Wounded kinds
+/// start at one eighth HP; the ground kind also owns a separate stain task.
+/// Consumes the first clip request and ticks body slots 1..14 before returning.
+static void _actor00400InitDiver(Task* task)
 {
+    enum {
+        ACTOR_00400_INITIAL_BEHAVIOR_STATE          = 0,
+        ACTOR_00400_SPAWN_KIND_MASK                 = 0xF,
+        ACTOR_00400_SPAWN_REJECT_SHIFT              = 16,
+        ACTOR_00400_SPAWN_TUNNEL_CONTINUATION_MASK  = 0xF0,
+        ACTOR_00400_SPAWN_STRANDED                  = 0,
+        ACTOR_00400_SPAWN_WATER_OR_RESERVOIR_GROUND = 1,
+        ACTOR_00400_SPAWN_TUNNEL                    = 2,
+        ACTOR_00400_SPAWN_DIVING                    = 3,
+        ACTOR_00400_SPAWN_ROOM_INTRO                = 4,
+        ACTOR_00400_SPAWN_ROOM_INTRO_PARTNER        = 5,
+        ACTOR_00400_SPAWN_WOUNDED_GROUND            = 6,
+        ACTOR_00400_SPAWN_WOUNDED_FLOAT             = 7,
+        ACTOR_00400_TASK_SWIM                       = 3,
+        ACTOR_00400_TASK_WOUNDED_GROUND             = 6,
+        ACTOR_00400_TASK_WOUNDED_FLOAT              = 7,
+        ACTOR_00400_ANIM_STRANDED_IDLE              = 2,
+        ACTOR_00400_WOUNDED_FLOAT_OFFSET            = 200,
+        ACTOR_00400_WOUNDED_HP_DIVISOR              = 8,
+        ACTOR_00400_DIVE_START_HEIGHT               = 2000,
+        ACTOR_00400_STAIN_DESCRIPTOR                = 2,
+        ACTOR_00400_STAIN_FULL_INTENSITY            = 255,
+        ACTOR_00400_ROOM_INTRO_COMPLETE             = 2,
+        ACTOR_00400_SCENE_MUSIC_ENTRY               = 11,
+    };
     _Actor00400Work*            work;
-    _Actor00400Work*            w;
-    _Actor00400Work*            anim;
-    Enemy*                      obj;
+    _Actor00400Work*            stateWork;
+    Enemy*                      enemy;
     _Actor00400GroundStainWork* stain;
     Enemy*                      stainEnemy;
-    GfxCoord*                   pos;
-    GfxCoord*                   coord;
-    Task*                       task;
+    GfxCoord*                   stainCoord;
+    GfxCoord*                   rootCoord;
+    Task*                       stainTask;
     s32                         spawnRejected;
-    s32                         nibble;
-    s32                         index;
-    u16                         y;
-    s32*                        spawnArg;
+    s32                         introProgress;
+    u16                         stainY;
+    s32*                        spawnPayload;
 
-    spawnArg              = &arg0->spawnArg1.value;
-    gStageSceneMusicEntry = 0xB;
-    obj                   = arg0->spawnArg2.pointer;
-    coord                 = arg0->extra.tmd->coords;
-    if ((*spawnArg >> 16) & 1) {
-        enemyDestroy(obj, arg0);
+    spawnPayload          = &task->spawnArg1.value;
+    gStageSceneMusicEntry = ACTOR_00400_SCENE_MUSIC_ENTRY;
+    enemy                 = task->spawnArg2.pointer;
+    rootCoord             = task->extra.tmd->coords;
+    if ((*spawnPayload >> ACTOR_00400_SPAWN_REJECT_SHIFT) & 1) {
+        enemyDestroy(enemy, task);
         return;
     }
-    arg0->work = memCalloc(sizeof(_Actor00400Work), 0);
-    work       = arg0->work;
+    task->work = memCalloc(sizeof(_Actor00400Work), 0);
+    work       = task->work;
     if (work == NULL) {
-        enemyDestroy(obj, arg0);
+        enemyDestroy(enemy, task);
         return;
     }
 
-    spawnRejected = _actor00400ApplyAreaConfig(arg0);
+    spawnRejected = _actor00400ApplyAreaConfig(task);
     if (spawnRejected) {
-        enemyDestroy(obj, arg0);
+        enemyDestroy(enemy, task);
         return;
     }
 
-    if ((arg0->spawnArg1.value & 0xF) == 0) {
+    if ((task->spawnArg1.value & ACTOR_00400_SPAWN_KIND_MASK) == ACTOR_00400_SPAWN_STRANDED) {
         work->gridCollision = 1;
     }
-    _actor00400InitModelAndEnemy(arg0);
-    arg0->msgTable = Actor00400_D16010;
-    switch (arg0->spawnArg1.value & 0xF) {
-        case 7:
-            work->floatOffset = 200;
+    _actor00400InitModelAndEnemy(task);
+    task->msgTable = Actor00400_D16010;
+    // Select the land, water or scripted state from the placement payload.
+    switch (task->spawnArg1.value & ACTOR_00400_SPAWN_KIND_MASK) {
+        case ACTOR_00400_SPAWN_WOUNDED_FLOAT:
+            work->floatOffset = ACTOR_00400_WOUNDED_FLOAT_OFFSET;
             work->inWater     = 1;
             work->targetPart  = 1;
             work->goalY       = (u16)work->waterLevel;
-            _actor00400SelectTrunkTarget(arg0, obj, work, 0);
-            w              = arg0->work;
-            w->animStep    = ANIMATION_RATE_ONE;
-            w->animClip    = 0x10;
-            w->animRequest = DIVER_ANIM_REQUEST_RESET;
-            w              = arg0->work;
-            arg0->state    = 7;
-            w->state       = 0;
-            w->subState    = 0;
+            _actor00400SelectTrunkTarget(task, enemy, work, 0);
+            stateWork              = task->work;
+            stateWork->animStep    = ANIMATION_RATE_ONE;
+            stateWork->animClip    = ACTOR_00400_ANIM_SWIM_STATUS_HOLD_LOOP;
+            stateWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+            stateWork              = task->work;
+            task->state            = ACTOR_00400_TASK_WOUNDED_FLOAT;
+            stateWork->state       = ACTOR_00400_INITIAL_BEHAVIOR_STATE;
+            stateWork->subState    = 0;
             sceneAcquireBattleRef(0);
-            obj->hp = (s16)obj->hpMax / 8;
+            enemy->hp = (s16)enemy->hpMax / ACTOR_00400_WOUNDED_HP_DIVISOR;
             break;
-        case 6:
+        case ACTOR_00400_SPAWN_WOUNDED_GROUND:
             work->inWater    = 0;
             work->targetPart = 1;
-            _actor00400SelectTrunkTarget(arg0, obj, work, 1);
-            w              = arg0->work;
-            w->animStep    = ANIMATION_RATE_ONE;
-            w->animClip    = 0xF;
-            w->animRequest = DIVER_ANIM_REQUEST_RESET;
-            w              = arg0->work;
-            arg0->state    = 6;
-            w->state       = 0;
-            w->subState    = 0;
+            _actor00400SelectTrunkTarget(task, enemy, work, 1);
+            stateWork              = task->work;
+            stateWork->animStep    = ANIMATION_RATE_ONE;
+            stateWork->animClip    = ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_ENTER;
+            stateWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+            stateWork              = task->work;
+            task->state            = ACTOR_00400_TASK_WOUNDED_GROUND;
+            stateWork->state       = ACTOR_00400_INITIAL_BEHAVIOR_STATE;
+            stateWork->subState    = 0;
             sceneAcquireBattleRef(0);
-            obj->hp    = (s16)obj->hpMax / 8;
-            pos        = arg0->extra.tmd->coords;
-            stainEnemy = arg0->spawnArg2.pointer;
-            y          = (u16)pos->coord.t[1];
-            task       = taskSpawnFromTable(Actor00400_D16028, 2, 0, 0);
-            if (task != NULL) {
+            enemy->hp  = (s16)enemy->hpMax / ACTOR_00400_WOUNDED_HP_DIVISOR;
+            stainCoord = task->extra.tmd->coords;
+            stainEnemy = task->spawnArg2.pointer;
+            stainY     = (u16)stainCoord->coord.t[1];
+            stainTask  = taskSpawnFromTable(Actor00400_D16028, ACTOR_00400_STAIN_DESCRIPTOR, 0, 0);
+            if (stainTask != NULL) {
                 stain = memCalloc(sizeof(_Actor00400GroundStainWork), 0);
                 if (stain == NULL) {
-                    taskKill(task);
+                    taskKill(stainTask);
                 } else {
-                    task->work            = stain;
-                    stain->vertices[0].vx = (u16)pos->coord.t[0] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
-                    stain->vertices[0].vy = y;
-                    stain->vertices[0].vz = (u16)pos->coord.t[2] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
-                    stain->vertices[1].vx = (u16)pos->coord.t[0] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
-                    stain->vertices[1].vy = y;
-                    stain->vertices[1].vz = (u16)pos->coord.t[2] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
-                    stain->vertices[2].vx = (u16)pos->coord.t[0] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
-                    stain->vertices[2].vy = y;
-                    stain->vertices[2].vz = (u16)pos->coord.t[2] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
-                    stain->vertices[3].vx = (u16)pos->coord.t[0] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
-                    stain->vertices[3].vy = y;
-                    stain->vertices[3].vz = (u16)pos->coord.t[2] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
-                    stain->intensity      = 0xFF;
+                    stainTask->work       = stain;
+                    stain->vertices[0].vx = (u16)stainCoord->coord.t[0] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[0].vy = stainY;
+                    stain->vertices[0].vz = (u16)stainCoord->coord.t[2] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[1].vx = (u16)stainCoord->coord.t[0] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[1].vy = stainY;
+                    stain->vertices[1].vz = (u16)stainCoord->coord.t[2] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[2].vx = (u16)stainCoord->coord.t[0] - ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[2].vy = stainY;
+                    stain->vertices[2].vz = (u16)stainCoord->coord.t[2] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[3].vx = (u16)stainCoord->coord.t[0] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->vertices[3].vy = stainY;
+                    stain->vertices[3].vz = (u16)stainCoord->coord.t[2] + ACTOR_00400_GROUND_STAIN_HALF_SIZE;
+                    stain->intensity      = ACTOR_00400_STAIN_FULL_INTENSITY;
                     stain->enemy          = stainEnemy;
                 }
             }
             break;
-        case 0:
-            work->inWater       = 0;
-            work->gridCollision = 1;
-            w                   = arg0->work;
-            w->animStep         = ANIMATION_RATE_ONE;
-            w->animClip         = 2;
-            w->animRequest      = DIVER_ANIM_REQUEST_RESET;
-            arg0->state         = arg0->state + 1;
+        case ACTOR_00400_SPAWN_STRANDED:
+            work->inWater          = 0;
+            work->gridCollision    = 1;
+            stateWork              = task->work;
+            stateWork->animStep    = ANIMATION_RATE_ONE;
+            stateWork->animClip    = ACTOR_00400_ANIM_STRANDED_IDLE;
+            stateWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+            task->state            = task->state + 1;
             break;
-        case 4:
+        case ACTOR_00400_SPAWN_ROOM_INTRO:
             work->inWater = 1;
-            nibble        = gameFlagGetNibble(GAME_FLAG_0EB);
-            if (nibble != 2) {
-                obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-                w                           = arg0->work;
-                w->animStep                 = ANIMATION_RATE_ONE;
-                w->animClip                 = 1;
-                w->animRequest              = DIVER_ANIM_REQUEST_RESET;
-                w                           = arg0->work;
-                arg0->state                 = 3;
-                w->state                    = 0;
-                w->subState                 = 0;
-                w                           = arg0->work;
-                w->state                    = ACTOR_00400_SWIM_STATE_ROOM_INTRO;
-                w->subState                 = 0;
+            introProgress = gameFlagGetNibble(GAME_FLAG_0EB);
+            if (introProgress != ACTOR_00400_ROOM_INTRO_COMPLETE) {
+                enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+                stateWork                     = task->work;
+                stateWork->animStep           = ANIMATION_RATE_ONE;
+                stateWork->animClip           = ACTOR_00400_ANIM_SURFACED;
+                stateWork->animRequest        = DIVER_ANIM_REQUEST_RESET;
+                stateWork                     = task->work;
+                task->state                   = ACTOR_00400_TASK_SWIM;
+                stateWork->state              = ACTOR_00400_INITIAL_BEHAVIOR_STATE;
+                stateWork->subState           = 0;
+                stateWork                     = task->work;
+                stateWork->state              = ACTOR_00400_SWIM_STATE_ROOM_INTRO;
+                stateWork->subState           = 0;
             } else {
-                w              = arg0->work;
-                w->animStep    = ANIMATION_RATE_ONE;
-                w->animClip    = 1;
-                w->animRequest = nibble;
-                w              = arg0->work;
-                arg0->state    = 3;
-                w->state       = 0;
-                w->subState    = 0;
+                stateWork              = task->work;
+                stateWork->animStep    = ANIMATION_RATE_ONE;
+                stateWork->animClip    = ACTOR_00400_ANIM_SURFACED;
+                stateWork->animRequest = introProgress;
+                stateWork              = task->work;
+                task->state            = ACTOR_00400_TASK_SWIM;
+                stateWork->state       = ACTOR_00400_INITIAL_BEHAVIOR_STATE;
+                stateWork->subState    = 0;
             }
             break;
-        case 5:
+        case ACTOR_00400_SPAWN_ROOM_INTRO_PARTNER:
             work->inWater = 1;
-            nibble        = gameFlagGetNibble(GAME_FLAG_0EB);
-            if (nibble != 2) {
-                obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-                work->inWater               = 1;
-                w                           = arg0->work;
-                w->animStep                 = ANIMATION_RATE_ONE;
-                w->animClip                 = 1;
-                w->animRequest              = DIVER_ANIM_REQUEST_RESET;
-                w                           = arg0->work;
-                arg0->state                 = 3;
-                w->state                    = 0;
-                w->subState                 = 0;
-                w                           = arg0->work;
-                w->state                    = ACTOR_00400_SWIM_STATE_AWAIT_FIGHT;
-                w->subState                 = 0;
+            introProgress = gameFlagGetNibble(GAME_FLAG_0EB);
+            if (introProgress != ACTOR_00400_ROOM_INTRO_COMPLETE) {
+                enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+                work->inWater                 = 1;
+                stateWork                     = task->work;
+                stateWork->animStep           = ANIMATION_RATE_ONE;
+                stateWork->animClip           = ACTOR_00400_ANIM_SURFACED;
+                stateWork->animRequest        = DIVER_ANIM_REQUEST_RESET;
+                stateWork                     = task->work;
+                task->state                   = ACTOR_00400_TASK_SWIM;
+                stateWork->state              = ACTOR_00400_INITIAL_BEHAVIOR_STATE;
+                stateWork->subState           = 0;
+                stateWork                     = task->work;
+                stateWork->state              = ACTOR_00400_SWIM_STATE_AWAIT_FIGHT;
+                stateWork->subState           = 0;
             } else {
-                w              = arg0->work;
-                w->animStep    = ANIMATION_RATE_ONE;
-                w->animClip    = 1;
-                w->animRequest = nibble;
-                w              = arg0->work;
-                arg0->state    = 3;
-                w->state       = 0;
-                w->subState    = 0;
+                stateWork              = task->work;
+                stateWork->animStep    = ANIMATION_RATE_ONE;
+                stateWork->animClip    = ACTOR_00400_ANIM_SURFACED;
+                stateWork->animRequest = introProgress;
+                stateWork              = task->work;
+                task->state            = ACTOR_00400_TASK_SWIM;
+                stateWork->state       = ACTOR_00400_INITIAL_BEHAVIOR_STATE;
+                stateWork->subState    = 0;
             }
             break;
-        case 1:
+        case ACTOR_00400_SPAWN_WATER_OR_RESERVOIR_GROUND:
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 45, 0, 0)) {
                 if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0) {
-                    work->inWater  = 1;
-                    w              = arg0->work;
-                    w->animStep    = ANIMATION_RATE_ONE;
-                    w->animClip    = 1;
-                    w->animRequest = DIVER_ANIM_REQUEST_RESET;
-                    w              = arg0->work;
-                    arg0->state    = 3;
-                    w->state       = 0;
-                    w->subState    = 0;
+                    work->inWater          = 1;
+                    stateWork              = task->work;
+                    stateWork->animStep    = ANIMATION_RATE_ONE;
+                    stateWork->animClip    = ACTOR_00400_ANIM_SURFACED;
+                    stateWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+                    stateWork              = task->work;
+                    task->state            = ACTOR_00400_TASK_SWIM;
+                    stateWork->state       = ACTOR_00400_INITIAL_BEHAVIOR_STATE;
+                    stateWork->subState    = 0;
                 } else {
-                    work->gridCollision = 1;
-                    w                   = arg0->work;
-                    w->animStep         = ANIMATION_RATE_ONE;
-                    w->animClip         = 2;
-                    w->animRequest      = DIVER_ANIM_REQUEST_RESET;
-                    work->inWater       = 0;
-                    coord->coord.t[1]   = 0;
-                    w                   = arg0->work;
-                    arg0->state         = 1;
-                    w->state            = 0;
-                    w->subState         = 0;
+                    work->gridCollision    = 1;
+                    stateWork              = task->work;
+                    stateWork->animStep    = ANIMATION_RATE_ONE;
+                    stateWork->animClip    = ACTOR_00400_ANIM_STRANDED_IDLE;
+                    stateWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+                    work->inWater          = 0;
+                    rootCoord->coord.t[1]  = 0;
+                    stateWork              = task->work;
+                    task->state            = ACTOR_00400_TASK_STRANDED;
+                    stateWork->state       = ACTOR_00400_INITIAL_BEHAVIOR_STATE;
+                    stateWork->subState    = 0;
                 }
             } else {
-                work->inWater  = 1;
-                w              = arg0->work;
-                w->animStep    = ANIMATION_RATE_ONE;
-                w->animClip    = 1;
-                w->animRequest = DIVER_ANIM_REQUEST_RESET;
-                w              = arg0->work;
-                arg0->state    = 3;
-                w->state       = 0;
-                w->subState    = 0;
+                work->inWater          = 1;
+                stateWork              = task->work;
+                stateWork->animStep    = ANIMATION_RATE_ONE;
+                stateWork->animClip    = ACTOR_00400_ANIM_SURFACED;
+                stateWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+                stateWork              = task->work;
+                task->state            = ACTOR_00400_TASK_SWIM;
+                stateWork->state       = ACTOR_00400_INITIAL_BEHAVIOR_STATE;
+                stateWork->subState    = 0;
             }
             break;
-        case 3:
-            work->inWater  = 1;
-            w              = arg0->work;
-            w->animStep    = ANIMATION_RATE_ONE;
-            w->animClip    = 3;
-            w->animRequest = DIVER_ANIM_REQUEST_RESET;
-            _actor00400ClaimNearestSurfaceSpot(arg0);
-            coord->coord.t[0] = work->surfaceSpot.vx;
-            work->goalY       = (u16)work->waterLevel;
-            coord->coord.t[1] = work->surfaceSpot.vy + work->waterLevel + 0x7D0;
-            coord->coord.t[2] = work->surfaceSpot.vz;
+        case ACTOR_00400_SPAWN_DIVING:
+            work->inWater          = 1;
+            stateWork              = task->work;
+            stateWork->animStep    = ANIMATION_RATE_ONE;
+            stateWork->animClip    = ACTOR_00400_ANIM_SWIM;
+            stateWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+            _actor00400ClaimNearestSurfaceSpot(task);
+            rootCoord->coord.t[0] = work->surfaceSpot.vx;
+            work->goalY           = (u16)work->waterLevel;
+            rootCoord->coord.t[1] = work->surfaceSpot.vy + work->waterLevel + ACTOR_00400_DIVE_START_HEIGHT;
+            rootCoord->coord.t[2] = work->surfaceSpot.vz;
             sceneAcquireBattleRef(0);
-            w           = arg0->work;
-            arg0->state = 3;
-            w->state    = 0;
-            w->subState = 0;
-            w           = arg0->work;
-            w->state    = ACTOR_00400_SWIM_STATE_DIVE;
-            w->subState = 0;
+            stateWork           = task->work;
+            task->state         = ACTOR_00400_TASK_SWIM;
+            stateWork->state    = ACTOR_00400_INITIAL_BEHAVIOR_STATE;
+            stateWork->subState = 0;
+            stateWork           = task->work;
+            stateWork->state    = ACTOR_00400_SWIM_STATE_DIVE;
+            stateWork->subState = 0;
             break;
-        case 2:
-            work->inWater    = 1;
-            work->ambientOff = 1;
-            w                = arg0->work;
-            w->animStep      = ANIMATION_RATE_ONE;
-            w->animClip      = 3;
-            w->animRequest   = DIVER_ANIM_REQUEST_RESET;
-            w                = arg0->work;
-            arg0->state      = 3;
-            w->state         = 0;
-            w->subState      = 0;
-            if ((arg0->spawnArg1.value & 0xF0) == 0) {
-                w           = arg0->work;
-                w->state    = ACTOR_00400_SWIM_STATE_TUNNEL_INTRO;
-                w->subState = 0;
+        case ACTOR_00400_SPAWN_TUNNEL:
+            work->inWater          = 1;
+            work->ambientOff       = 1;
+            stateWork              = task->work;
+            stateWork->animStep    = ANIMATION_RATE_ONE;
+            stateWork->animClip    = ACTOR_00400_ANIM_SWIM;
+            stateWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+            stateWork              = task->work;
+            task->state            = ACTOR_00400_TASK_SWIM;
+            stateWork->state       = ACTOR_00400_INITIAL_BEHAVIOR_STATE;
+            stateWork->subState    = 0;
+            if ((task->spawnArg1.value & ACTOR_00400_SPAWN_TUNNEL_CONTINUATION_MASK) == 0) {
+                stateWork           = task->work;
+                stateWork->state    = ACTOR_00400_SWIM_STATE_TUNNEL_INTRO;
+                stateWork->subState = 0;
             } else {
-                w           = arg0->work;
-                w->state    = ACTOR_00400_SWIM_STATE_TUNNEL_PATROL;
-                w->subState = 0;
+                stateWork           = task->work;
+                stateWork->state    = ACTOR_00400_SWIM_STATE_TUNNEL_PATROL;
+                stateWork->subState = 0;
             }
             break;
     }
 
-    anim = arg0->work;
-    if (anim->animRequest == DIVER_ANIM_REQUEST_BLEND) {
-        if (anim->animPlaying != anim->animClip) {
-            anim->animFrames = 0;
-        } else {
-            anim->animFrames = _actor00400ScaleFramesForAnimRate(arg0, anim->animFrames);
-        }
-        _actor00400BlendRequestedClip(arg0);
-        anim->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-    } else if (anim->animRequest == DIVER_ANIM_REQUEST_RESET) {
-        _diverRestartClip(arg0);
-        anim->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-        anim->animFrames  = 0;
-    } else if (anim->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
-        anim->animFrames = (u16)anim->animFrames + 1;
-    }
-    for (index = 1; index < ARRAY_SIZE(anim->rig.slots); index++) {
-        animationTickSlot(&anim->rig.anim, index);
-    }
+    _actor00400AdvanceAnimation(task);
     work->field_620 = 0x1000;
     work->field_622 = 0x1000;
 }
@@ -3436,7 +3451,7 @@ static const _Actor00400SwimStateTable Actor00400_D000F8 = { {
     _actor00400SwimStart,
     _actor00400SwimPatrol,
     _actor00400SwimDecide,
-    Actor00400_Fn078C8,
+    _actor00400SwimEmerge,
     _actor00400Dive,
     _actor00400SwimUnusedState5,
     _actor00400SwimUnusedState6,
@@ -4134,28 +4149,41 @@ static inline void _actor00400SpawnShot(Task* parentTask)
     }
 }
 
-static void Actor00400_Fn064B0(Task* arg0)
+/// Aims and releases the swimming attack's shot on its timed animation cues.
+///
+/// Requires live diver work, enemy and model with `stateFrames` initially zero.
+/// Turns by 16 angle units outside a 32-unit deadband (4096 units per turn),
+/// sounds on frame 41 and spawns the shot on frame 43. A published clip boundary
+/// or control jump returns to the decision state after those timed events.
+static void _actor00400SwimAttackFireWait(Task* task)
 {
+    enum {
+        ACTOR_00400_ATTACK_SOUND_FRAME   = 41,
+        ACTOR_00400_ATTACK_SHOT_FRAME    = 43,
+        ACTOR_00400_ATTACK_TURN_STEP     = 16,
+        ACTOR_00400_ATTACK_TURN_DEADBAND = 32,
+        ACTOR_00400_SOUND_SHOT_RELEASE   = 0x4004000A,
+    };
     _Actor00400Work* work;
-    _Actor00400Work* work2;
-    s32              id;
+    _Actor00400Work* nextStateWork;
+    s32              soundId;
     s32              pan;
 
-    work = arg0->work;
+    work = task->work;
     work->stateFrames++;
-    _actor00400TurnTowardPoint(arg0, &work->targetPos, 0x10, 0x20);
-    if (work->stateFrames == 0x29) {
-        id  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4004000A;
-        pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    _actor00400TurnTowardPoint(task, &work->targetPos, ACTOR_00400_ATTACK_TURN_STEP, ACTOR_00400_ATTACK_TURN_DEADBAND);
+    if (work->stateFrames == ACTOR_00400_ATTACK_SOUND_FRAME) {
+        soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_SHOT_RELEASE;
+        pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    if (work->stateFrames == 0x2B) {
-        _actor00400SpawnShot(arg0);
+    if (work->stateFrames == ACTOR_00400_ATTACK_SHOT_FRAME) {
+        _actor00400SpawnShot(task);
     }
-    if (_diverClipHasBoundaryOrJump(arg0)) {
-        work2           = arg0->work;
-        work2->state    = ACTOR_00400_SWIM_STATE_DECIDE;
-        work2->subState = 0;
+    if (_diverClipHasBoundaryOrJump(task)) {
+        nextStateWork           = task->work;
+        nextStateWork->state    = ACTOR_00400_SWIM_STATE_DECIDE;
+        nextStateWork->subState = 0;
     }
 }
 
@@ -4563,16 +4591,21 @@ static void _actor00400SwimPatrol(Task* task)
     }
 }
 
-static void Actor00400_Fn078C8(Task* arg0)
+/// Dispatches the swimming emerge entry or clip wait unless a hit interrupts it.
+///
+/// Requires live diver work and substate 0..1; dispatch has no bounds check.
+/// The reaction result is tested through its low halfword. A reaction that
+/// changes state suppresses the emerge handler for this tick.
+static void _actor00400SwimEmerge(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[2])(Task*) = {
+    _Actor00400Work* work      = task->work;
+    TaskFunc         states[2] = {
         _actor00400SwimEmergeEnter,
         _actor00400SwimEmergeWait,
     };
 
-    if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
-        states[work->subState](arg0);
+    if ((_actor00400ApplyHitReaction(task) << 0x10) == 0) {
+        states[work->subState](task);
     }
 }
 
@@ -4695,7 +4728,7 @@ static void _actor00400SwimStatusHold(Task* task)
 static const TaskFuncTable3 Actor00400_D00150 = { {
     _actor00400SwimAttackEnter,
     _actor00400SwimAttackWindup,
-    Actor00400_Fn064B0,
+    _actor00400SwimAttackFireWait,
 } };
 
 /// Dispatches the swimming discharge and shot attack unless a hit changes state.

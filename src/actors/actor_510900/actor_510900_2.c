@@ -960,7 +960,7 @@ static void _actor510900TickBlastSourcePhases(Task* task);
 /// `_Actor510900BlastSourceWork::state` and the parent work's `light2Status`.
 extern u16 D_actor_510900_80167CEC[][4];
 
-static void func_actor_510900_8013B658(Enemy* arg0, Task* arg1);
+static void _actor510900TickBody(Enemy* enemy, Task* task);
 
 static void _actor510900InitProp(Enemy* enemy, Task* task);
 
@@ -993,7 +993,7 @@ static void _actor510900InitGrenade(Enemy* enemy, Task* task);
 static void _actor510900TickGrenadeFlight(Enemy* enemy, Task* task);
 static void _actor510900TickGrenadeBurst(Enemy* enemy, Task* task);
 static void _actor510900InitHelipadLight(Enemy* enemy, Task* task);
-static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1);
+static void _actor510900TickHelipadLight(Enemy* enemy, Task* task);
 static void _actor510900InitBlastSource(Enemy* enemy, Task* task);
 static void _actor510900TickBlastSource(Enemy* enemy, Task* task);
 
@@ -3510,57 +3510,65 @@ static void _actor510900InitHelipadLight(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
-/// Frame handler (state 1) of the child task. Mode 1 of `gSceneCombatState.actorControl` only
-/// redraws, mode 2 hides the model and flags the context, and mode 0 ticks the
-/// animation alone when `_actor510900CheckHelipadLightView` returns zero; an in-view
-/// light also runs its break state machine.
-static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1)
+/// Advances a helipad light's animation, break state and published status.
+///
+/// Requires its initialized eleven-part model/work and live parent body work.
+/// Running lights outside their selected views tick only slots 1..10. In view,
+/// break processing publishes lights 0/1 to saved flag nibbles 11/12 and light 2
+/// to the parent, then composes the root and refreshes lighting. Paused actors
+/// refresh lighting alone; hidden actors hide the model and target.
+static void _actor510900TickHelipadLight(Enemy* enemy, Task* task)
 {
-    TmdObject*                    obj;
+    enum {
+        ACTOR_510900_PERSISTENT_LIGHT_COUNT = 2,
+        ACTOR_510900_LIGHT_FLAG_BASE        = 11,
+    };
+    TmdObject*                    model;
     _Actor510900HelipadLightWork* work;
-    GfxCoord*                     coord;
-    Actor510900Work*              parent;
-    s32                           i;
+    GfxCoord*                     rootCoord;
+    Actor510900Work*              bodyWork;
+    s32                           slotIndex;
 
-    obj    = arg1->extra.tmd;
-    work   = arg1->work;
-    coord  = obj->coords;
-    parent = arg1->parent->work;
+    model     = task->extra.tmd;
+    work      = task->work;
+    rootCoord = model->coords;
+    bodyWork  = task->parent->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            if (_actor510900CheckHelipadLightView(arg1) == 0) {
-                i = 1;
+            if (_actor510900CheckHelipadLightView(task) == 0) {
+                slotIndex = 1;
                 do {
-                    animationTickSlot(&work->anim, i);
-                    i++;
-                } while (i < 0xB);
+                    animationTickSlot(&work->anim, slotIndex);
+                    slotIndex++;
+                } while (slotIndex < ARRAY_SIZE(work->slots));
                 return;
             }
-            arg1->extra.tmd->flags       = 0;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            task->extra.tmd->flags        = 0;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _actor510900UpdateHelipadLightLighting(arg1, coord);
+            _actor510900UpdateHelipadLightLighting(task, rootCoord);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
-    _actor510900TickHelipadLightBreak(arg1);
-    if (work->lightIndex < 2) {
-        gameFlagSetNibble(work->lightIndex + 0xB, work->status);
+    // Publish damage progress only on the full in-view update.
+    _actor510900TickHelipadLightBreak(task);
+    if (work->lightIndex < ACTOR_510900_PERSISTENT_LIGHT_COUNT) {
+        gameFlagSetNibble(work->lightIndex + ACTOR_510900_LIGHT_FLAG_BASE, work->status);
     } else {
-        parent->light2Status = work->status;
+        bodyWork->light2Status = work->status;
     }
-    i = 1;
+    slotIndex = 1;
     do {
-        animationTickSlot(&work->anim, i);
-        i++;
-    } while (i < 0xB);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    _actor510900UpdateHelipadLightLighting(arg1, coord);
+        animationTickSlot(&work->anim, slotIndex);
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(work->slots));
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    _actor510900UpdateHelipadLightLighting(task, rootCoord);
 }
 
 /// Breaks a shot or slashed helipad light and runs its sparks and one-hit blast.
@@ -3943,7 +3951,7 @@ static void _actor510900TickBlastSourcePhases(Task* task)
 
 void func_actor_510900_8013B3D0(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = { func_actor_510900_801350F8, func_actor_510900_8013B658 };
+    void (*fns[2])(Enemy*, Task*) = { actor510900InitBody, _actor510900TickBody };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
@@ -4000,13 +4008,18 @@ void actor510900ExitBody(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-static void func_actor_510900_8013B658(Enemy* arg0, Task* arg1)
+/// Selects event playback or combat for the initialized No. 9 golem body.
+///
+/// Requires live body work, model and enemy. Any nonzero session event state
+/// runs scripted animation/flame playback; zero selects combat, whose own
+/// activation and actor-control gates determine whether it advances.
+static void _actor510900TickBody(Enemy* enemy, Task* task)
 {
     if (gGameSession->eventState != 0) {
-        actor510900TickEvent(arg0, arg1);
+        actor510900TickEvent(enemy, task);
         return;
     }
-    _actor510900TickCombat(arg0, arg1);
+    _actor510900TickCombat(enemy, task);
 }
 
 /// Runs the active golem's combat, motion, animation and presentation update.
@@ -4504,7 +4517,7 @@ void func_actor_510900_8013C1EC(Task* task)
 {
     EnemyTaskFunc fns[2] = {
         _actor510900InitHelipadLight,
-        func_actor_510900_8013A85C,
+        _actor510900TickHelipadLight,
     };
 
     fns[task->state](task->spawnArg2.pointer, task);

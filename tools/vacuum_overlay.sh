@@ -751,7 +751,7 @@ PYEOF
         # The docs are checked whole as well, because a `matched` commit carries
         # learnings too and the subject test above passes it by name. The
         # section-append merge lost a paragraph actor_521100's
-        # func_actor_521100_80136290 commit added inside an existing section.
+        # _actor521100UpdateAnmcWomanFlattenColor commit added inside an existing section.
         if ! doc_loss=$(lines_on_trunk "$BASE" HEAD '*.md'); then
             log "doc content from the branch is missing on trunk:"
             log "$doc_loss"

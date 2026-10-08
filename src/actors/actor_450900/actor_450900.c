@@ -706,8 +706,6 @@ s32 D_actor_450900_80136C98;
 
 Task* D_actor_450900_80136C9C;
 
-void func_actor_450900_801327A8(void);
-
 /// Advances growth-room distress timing and periodically animates and hurts the companion.
 ///
 /// State 0 spawns the tracked head-aim task. State 1 advances the persistent
@@ -1102,24 +1100,19 @@ static void _actor450900PreparePlayerFacingCompanion(void)
         ratan2(companionCoord->coord.t[0] - playerCoord->coord.t[0], companionCoord->coord.t[2] - playerCoord->coord.t[2]) & ACTOR_TRANSFORM_ANGLE_MASK;
 }
 
-/// Spawns the ally's save-point state handler. Once flag 0xD8 is set (the
-/// capture ran) the one-shot `D_actor_450900_80135E74` swaps the ally onto the
-/// `D_actor_450900_80136890` handler the first time through, and every later
-/// call just re-arms the idle capture. Before the flag is set the handler is
-/// picked by the AI tick counter `D_map_neo_ark_8017A99C`: the low-traffic
-/// `D_actor_450900_80136470` below 0x30C, `D_actor_450900_80136680` at or above
-/// it. The three calls are written out at each site - the `jal` is shared only
-/// because `jump.c` cross-jumps the identical tails.
-void func_actor_450900_801327A8(void)
+void actor450900StartCompanionConversation(void)
 {
+    enum {
+        ACTOR_450900_REPEAT_CONVERSATION_CAP = 12,
+    };
     if (gameFlagGetNibble(GAME_FLAG_0D8) != 0) {
         if (D_actor_450900_80135E74 == 0) {
             D_actor_450900_80135E74 = 1;
             evsStartScript(D_actor_450900_80136890, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         } else {
-            capSpawnEventIfIdle(0xC, CAP_EVENT_PAUSE_ACTORS);
+            capSpawnEventIfIdle(ACTOR_450900_REPEAT_CONVERSATION_CAP, CAP_EVENT_PAUSE_ACTORS);
         }
-    } else if (D_map_neo_ark_8017A99C < 0x30C) {
+    } else if (D_map_neo_ark_8017A99C < ACTOR_450900_COMPANION_DISTRESS_START_TICKS) {
         evsStartScript(D_actor_450900_80136470, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     } else {
         evsStartScript(D_actor_450900_80136680, EVENT_SCRIPT_HUD_HIDE_RESTORE);

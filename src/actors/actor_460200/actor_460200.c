@@ -160,7 +160,7 @@ static void                 _actor460200SelectCaptionFile(s32 dataResourceOrdina
 static void                 _screenNegativeFilterCutscene(void);
 static void                 _actor460200SetSceneEvent(s8 sceneEvent);
 
-void func_actor_460200_80131E24(Task*);
+static void _actor460200NegativeCaptureTask(Task* task);
 
 static AnimationSet _gActor460200Animation1C038;
 static AnimationSet _gActor460200Animation1C304;
@@ -445,7 +445,7 @@ static AnimationSet _gActor460200Animation03FAC = {
 };
 
 TaskDesc D_actor_460200_80135DF4[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_actor_460200_80131E24, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _actor460200NegativeCaptureTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -2153,8 +2153,14 @@ AnimationSet* D_actor_460200_8015153C[17] = {
 
 #include "../../shared/screen_negative_capture.inc.c"
 
-/// The scene's negative freeze-frame (see screen_negative.h).
-void func_actor_460200_80131E24(Task* task)
+/// Captures the scene as a grayscale negative and holds drawing until release.
+///
+/// `spawnArg2.pointer` borrows writable `ScreenNegativeCaptureArgs` until the
+/// task ends; use duration 0..32767 for an ordinary signed-halfword countdown.
+/// Capturing/filtering exclusively borrows the resident RGB555 workspace.
+/// A script gate pauses every phase; expiry or a nonzero done flag resumes
+/// drawing. The scene's other tasks own upload and frozen-frame presentation.
+static void _actor460200NegativeCaptureTask(Task* task)
 {
     _screenNegativeCaptureTask(task);
 }

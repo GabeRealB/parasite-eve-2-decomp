@@ -154,7 +154,7 @@ static void func_actor_511000_80131E78(Task* arg0);
 static void _actor511000TickRupertBlink(Task* task);
 static void _actor511000IdleRupertRevolver(Task* task);
 static void func_actor_511000_80132480(Task* task);
-static void func_actor_511000_801325A4(Task* task);
+static void _actor511000BindRupertLighting(Task* task);
 static void _actor511000TickHelicopterSearchlight(Task* task);
 static void _actor511000DrawHelicopterSearchlightGlow(Task* task, const CVECTOR* centerColor, const u8* rimRgb);
 static void func_actor_511000_80133034(Task* task);
@@ -167,7 +167,7 @@ static void _actor511000AttachHelicopterSearchlight(Task* task);
 static void _actor511000KillHelicopterSearchlight(Task* task);
 static void _actor511000PoseHelicopterSequenceFrame(Task* task, const SVECTOR* rotations, const SVECTOR* translations, s32 frameIndex);
 static void _actor511000PlaceHelicopterPart(Task* task);
-static void func_actor_511000_801337F0(Task* task);
+static void _actor511000BindHelicopterLighting(Task* task);
 static void _actor511000SpawnNo9Golem(Enemy* enemy, Task* task);
 static void _actor511000TickNo9Golem(Enemy* enemy, Task* task);
 static void _actor511000AttachNo9GolemPart8Model(Enemy* enemy, Task* task);
@@ -1325,29 +1325,36 @@ static void func_actor_511000_80132480(Task* task)
     }
     work->gunTask  = taskSpawnFromTable(D_actor_511000_801472E8, 1, 8, task);
     work->propTask = taskSpawnFromTable(D_actor_511000_801472E8, 2, 0xC, task);
-    func_actor_511000_801325A4(task);
+    _actor511000BindRupertLighting(task);
     task->msgTable     = D_actor_511000_8014730C;
     task->exitCallback = enemyTaskExit;
     task->state++;
 }
 
-/// Republishes the work block's light/color matrices onto the TMD object and
-/// rebuilds model part 1's world matrix from it, then hands that part's
-/// translation to the ground-shadow helper.
-static void func_actor_511000_801325A4(Task* task)
+/// Binds Rupert's body lighting matrices and relights it at model part 1.
+///
+/// Requires live body work and a model with part 1 under a composable hierarchy.
+/// The model borrows the work's light and colour matrices until teardown.
+/// Invalidates and composes part 1 before sampling all three light directions.
+static void _actor511000BindRupertLighting(Task* task)
 {
+    enum {
+        ACTOR_511000_RUPERT_LIGHT_SAMPLE_PART = 1,
+        ACTOR_511000_RUPERT_LIGHT_COUNT       = 3,
+    };
     _Actor511000RupertBroderickWork* work;
-    GfxCoord*                        coords;
-    TmdObject*                       extra;
+    GfxCoord*                        partCoords;
+    TmdObject*                       model;
 
-    work                   = task->work;
-    extra                  = task->extra.tmd;
-    coords                 = extra->coords;
-    extra->lightMtx        = &work->light;
-    extra->colorMtx        = &work->color;
-    coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&coords[1]);
-    worldCoordSetModelLighting(extra, coords[1].workm.t, 0, 3);
+    work            = task->work;
+    model           = task->extra.tmd;
+    partCoords      = model->coords;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+
+    partCoords[ACTOR_511000_RUPERT_LIGHT_SAMPLE_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&partCoords[ACTOR_511000_RUPERT_LIGHT_SAMPLE_PART]);
+    worldCoordSetModelLighting(model, partCoords[ACTOR_511000_RUPERT_LIGHT_SAMPLE_PART].workm.t, 0, ACTOR_511000_RUPERT_LIGHT_COUNT);
 }
 
 /// Reseeds Rupert's driven slots, updates their poses and enables ticking.
@@ -1785,7 +1792,7 @@ static void func_actor_511000_80133034(Task* task)
     work->freeCountdown = -1;
     extra->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     _actor511000PoseHelicopterSequenceFrame(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
-    func_actor_511000_801337F0(task);
+    _actor511000BindHelicopterLighting(task);
     do {
         task->msgTable                    = D_actor_511000_80148FC4;
         D_actor_511000_80147EA4[0].pixels = (u_long*)work->palette;
@@ -2096,22 +2103,28 @@ static void _actor511000PlaceHelicopterPart(Task* task)
     root->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Binds the task's TMD object to the work-block light/color matrices, clears
-/// the root coordinate flag, and rebuilds lighting from the world translation.
-static void func_actor_511000_801337F0(Task* task)
+/// Binds the helicopter hull's lighting matrices and relights it at the root.
+///
+/// Requires live helicopter work and a model under a composable hierarchy.
+/// The hull borrows the work's light and colour matrices until teardown.
+/// Invalidates and composes the root before sampling all three light directions.
+static void _actor511000BindHelicopterLighting(Task* task)
 {
-    GfxCoord*                   coord;
+    enum {
+        ACTOR_511000_HELICOPTER_LIGHT_COUNT = 3,
+    };
+    GfxCoord*                   rootCoord;
     _Actor511000HelicopterWork* work;
-    TmdObject*                  extra;
+    TmdObject*                  model;
 
-    work                = task->work;
-    extra               = task->extra.tmd;
-    coord               = extra->coords;
-    extra->lightMtx     = &work->light;
-    extra->colorMtx     = &work->color;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
+    work                    = task->work;
+    model                   = task->extra.tmd;
+    rootCoord               = model->coords;
+    model->lightMtx         = &work->light;
+    model->colorMtx         = &work->color;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    worldCoordSetModelLighting(model, rootCoord->workm.t, 0, ACTOR_511000_HELICOPTER_LIGHT_COUNT);
 }
 
 /// Runs the helicopter's initialization, frame update or teardown state.

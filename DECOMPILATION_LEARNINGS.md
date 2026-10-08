@@ -40262,7 +40262,7 @@ previous draw's readers: all three draws are pinned to one register (`$a1`) and
 sched1 answers the WAR by hoisting draw N+1's `sll` above draw N's `sra` and
 `sw`. Reading the global back instead gives each draw its own pseudo, and the
 target's per-draw register (`$a1`, `$a0`, `$v1` in
-`func_actor_521100_80136290`) falls out of the allocator. 89.4% to 100% on that
+`_actor521100UpdateAnmcWomanFlattenColor`) falls out of the allocator. 89.4% to 100% on that
 one edit; the `.lreg`/`.sched` pair is where the WAR shows up.
 
 ## Bump the scratch head in place (`-=`) rather than storing a precomputed block pointer
@@ -64583,8 +64583,8 @@ renders the dispatcher as a four-argument call through a local copy of the
 table's first word (`M2C_UNK (*sp10)(void*, M2C_UNK, s32, s32)`, plus dead
 `sp14`/`sp18`) and scores 72% with `insert=3 delete=6`. The load count is the
 table's entry count, not the callee's arity: three loads mean `TaskFuncTable3`
-and a one-argument `TaskFunc`. `func_actor_800200_801652EC` is the worked
-example — `sp = D_actor_800200_80161E34; sp.funcs[actor->mode](index);`
+and a one-argument `TaskFunc`. `_actor800200TickCompanionBehavior` is the worked
+example — `modeHandlers = D_actor_800200_80161E34; modeHandlers.funcs[actor->mode](task);`
 matches at 100% first try.
 
 ## Name a two-step pointer chase used inside a store's RHS, or it schedules after the store
@@ -93538,9 +93538,9 @@ delta1` on two `SVECTOR` locals is the `lwl`/`lwr`/`swl`/`swr` block move,
 because `SVECTOR` is 8 bytes at 2-byte alignment and `movstrsi` cannot assume
 more.
 
-## An inline function's stack temp survives a later inline expansion, but an ordinary block-scope local recycles it (Actor00400_Fn064B0, 2026-09-16)
+## An inline function's stack temp survives a later inline expansion, but an ordinary block-scope local recycles it (_actor00400SwimAttackFireWait, 2026-09-16)
 
-`Actor00400_Fn064B0` needs four 8-byte `SVECTOR` slots in a 0x50 frame, in the
+`_actor00400SwimAttackFireWait` needs four 8-byte `SVECTOR` slots in a 0x50 frame, in the
 order `vec` 0x10 (the scratch of the inlined `_actor00400TurnTowardPoint` at the top
 of the function), then `pos` 0x18, `base` 0x20, `tip` 0x28 for the marker task
 it spawns near the end. Three arrangements of the same source give three
@@ -93732,7 +93732,7 @@ static inline void _actor00400SpawnSurfaceSprayRing(Task* task, const _Actor0040
 }
 ```
 
-This refines the `Actor00400_Fn064B0` entry above, which observed two inlines
+This refines the `_actor00400SwimAttackFireWait` entry above, which observed two inlines
 in sequence *stacking* their temps. Both happen; which one you are looking at
 is decided by the frame. Read one slot serving several unrelated scratch uses
 as several expansions of inline helpers, not as one shared local — and expect
@@ -94199,7 +94199,7 @@ load, grep the matched corpus for the pattern rather than guessing at the C —
 `addu $sN, $vM, $zero` turns up ~44 matched functions, and their sources all
 share this ordering.
 
-## A global store does not stop a struct-field load from floating above it (Actor00400_Fn03920, 2026-09-16)
+## A global store does not stop a struct-field load from floating above it (_actor00400InitDiver, 2026-09-16)
 
 **Problem.** The target opened with the store first and the flag load after it:
 
@@ -94236,7 +94236,7 @@ casting the address to a pointer and dereferencing it does *not* work. The
 original almost certainly wrote this byte as a field of a larger object; the
 array form is how the decomp says the same thing with the symbol splat named.
 
-## `scan_loop` will not hoist a conditional invariant whose destination is a user variable (Actor00400_Fn03920, 2026-09-16)
+## `scan_loop` will not hoist a conditional invariant whose destination is a user variable (_actor00400InitDiver, 2026-09-16)
 
 **Problem.** An inlined lookup helper returning 0 on success and 1 on failure
 put its `return 0` constant in the loop preheader:
@@ -94270,7 +94270,7 @@ if (spawnRejected) { ... }
 The local carries `REG_USERVAR_P`, all three `scan_loop` conditions fail, and
 the constant stays where the source put it.
 
-## A local caching a field the loop also tests makes CSE share the sign-extension (Actor00400_Fn03920, 2026-09-16)
+## A local caching a field the loop also tests makes CSE share the sign-extension (_actor00400InitDiver, 2026-09-16)
 
 **Problem.** A table walk whose terminator and whose comparison both read the
 same `s16` field:
@@ -94310,7 +94310,7 @@ preheader's value, carried in a register) while the terminator keeps its own
 what a loop condition also reads is not free — it decides which of the two
 loads `combine` gets to narrow.
 
-## CSE hashes a constant under its destination's mode, so a widened parameter materialises it twice (Actor00400_Fn03920, 2026-09-16)
+## CSE hashes a constant under its destination's mode, so a widened parameter materialises it twice (_actor00400InitDiver, 2026-09-16)
 
 **Problem.** The target writes `1` into two `u8` fields seven instructions
 apart and materialises the constant twice:
@@ -94346,7 +94346,7 @@ substituted at the same width and merges as before. This is worth trying
 whenever a short-lived constant is shared in your output but rematerialised in
 the target.
 
-## Reading a pointer back out of the struct you just stored it into is a register copy (Actor00400_Fn03920, 2026-09-16)
+## Reading a pointer back out of the struct you just stored it into is a register copy (_actor00400InitDiver, 2026-09-16)
 
 **Problem.** The target keeps the allocation result in three places:
 
@@ -95998,7 +95998,7 @@ the block.
 
 So whether a value is loaded into its own single-assignment temp or into a
 variable that is later reassigned changes where its load is scheduled, with
-identical semantics. In `func_actor_510900_801350F8` the target has
+identical semantics. In `actor510900InitBody` the target has
 
 ```
 lw    v0,0(s4)
@@ -96037,7 +96037,7 @@ and `allocno_compare` ranks by `floor_log2 (n_refs) * n_refs / live_length`. One
 shared pair therefore gets a completely different allocation order from two
 short per-repetition pairs, and the registers come out swapped.
 
-`func_actor_510900_801350F8` runs the `areaSyncLocationVariant` /
+`actor510900InitBody` runs the `areaSyncLocationVariant` /
 `areaGetVariant` room-texture lookup twice. With one shared `model` and
 `index` the priorities were 3*12/52 = 0.69 against 3*8/41 = 0.59, so `model`
 took `$s0` and `index` `$s1` — the reverse of the target. Splitting them into
@@ -104199,7 +104199,7 @@ compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 Scratch `nonmatchings/_actor01600StepPathProbe-vacuum`.
 ## A lone `reorder=1` in the prologue, part 2: per-element stores to a local function-pointer array hoist the first `lui`; the aggregate initializer does not (_actor00400StrandedState3, 2026-09-16)
 
-`_actor00400StrandedState3` is a byte-for-byte copy of the matched `Actor00400_Fn078C8`
+`_actor00400StrandedState3` is a byte-for-byte copy of the matched `_actor00400SwimEmerge`
 (one 0x74-byte body, two function-pointer constants) and its m2c seed scored
 97.931% with every penalty zero but `reorder=1` and exactly one instruction
 misplaced: the `lui` (`high`) of the *first* array element's address sat at the
@@ -104289,7 +104289,7 @@ The copy is eight `lw`/`sw` pairs, fixing both the local and the source table
 at `TaskFuncTable8`. The merged `src/actors/actor_00400/actor_00400.c` defines
 `Actor00400_D00038` once, as a `static const TaskFuncTable8` in the same TU.
 There is no ninth callback or terminator: the following zero word aligns the
-compiler-generated jump table of `Actor00400_Fn03920`. The source table must
+compiler-generated jump table of `_actor00400InitDiver`. The source table must
 stay at its position among the functions because `.rodata` follows source order.
 
 The index is the plain `s32` `Task::state`, so no cast belongs on it and the
@@ -142097,7 +142097,7 @@ its `param` or `super` pointer, no libgs coordinate function is called, and the
 `(GfxCoord*)((u8*)p - OFFSET_OF(GfxCoord, coord))` reach from a local matrix
 back to its node is written `PARENT_OF(p, GfxCoord, coord)`.
 
-## A plain global store lets struct-member loads jump ahead of it; a load through a pointer does not (Actor00400_Fn03920, 2026-09-25)
+## A plain global store lets struct-member loads jump ahead of it; a load through a pointer does not (_actor00400InitDiver, 2026-09-25)
 
 `true_dependence` in `sched.c` drops the edge between a store to a plain global
 (non-struct, fixed `%lo` address) and a load that is `MEM_IN_STRUCT_P` at a
@@ -143810,7 +143810,7 @@ once, finding the first case's copy.
 When a merged tail sits in the wrong copy, change how the other copies exit
 rather than adding a barrier.
 
-## `&key` passed to two calls from a non-zero frame offset: the key belongs to an inline helper, not to a pointer local and `TOUCH_REG` (func_actor_461800_80132390, 2026-09-26)
+## `&key` passed to two calls from a non-zero frame offset: the key belongs to an inline helper, not to a pointer local and `TOUCH_REG` (_actor461800InitScriptedWalker, 2026-09-26)
 The area-key sequence (`areaSyncLocationVariant(&key)` then
 `areaGetVariant(&key)`, target `addiu a0,sp,N` at both calls) was
 matched here and in `_actorRenderApplyEffectPlacementTextureOffsets` with the `SOFT_BARRIER(); keyp = &key;

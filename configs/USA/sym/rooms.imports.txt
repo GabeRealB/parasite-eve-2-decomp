@@ -498,10 +498,10 @@ actor450200StartCompanionTalk = 0x80132220; // type:func absolute:True owner=act
 actor146300RestoreHandoverPose = 0x8013224C; // type:func absolute:True owner=actor_146300
 actor161500StartCompanionRequestReminder = 0x801322A0; // type:func absolute:True owner=actor_161500 shared=actors
 actor460200TalkToSoldierC = 0x801322B8; // type:func absolute:True owner=actor_460200
-func_actor_450200_801322F8 = 0x801322F8; // type:func absolute:True owner=actor_450200
+actor450200InitializeObservatoryCompanion = 0x801322F8; // type:func absolute:True owner=actor_450200
 actor161500RestoreCompanionRequestScene = 0x8013230C; // type:func absolute:True owner=actor_161500
 actor460200TalkToSoldierA = 0x80132390; // type:func absolute:True owner=actor_460200
-func_actor_450900_801327A8 = 0x801327A8; // type:func absolute:True owner=actor_450900
+actor450900StartCompanionConversation = 0x801327A8; // type:func absolute:True owner=actor_450900
 actor450900HandleDepartureTrigger = 0x80132834; // type:func absolute:True owner=actor_450900
 D_actor_150400_80132D70 = 0x80132D70; // absolute:True owner=actor_150400
 actor503500ClearFadeFromBlackHandle = 0x80132F58; // type:func absolute:True owner=actor_503500

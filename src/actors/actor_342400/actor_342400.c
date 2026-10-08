@@ -289,6 +289,7 @@ EnemyParams gMadChaserEnemyParams = { D_actor_342400_80170584, 110, 20, 40, 1, 1
 
 static void func_actor_342400_80162324(Task* arg0);
 static void func_actor_342400_801631DC(s16 arg0);
+static void _actor342400SpawnEncounterSlot(s16 slotIndex, s16 enemyKind, s16 command);
 
 #include "../../shared/mad_chaser_waves_pair_spawn.inc.c"
 
@@ -554,6 +555,12 @@ static void _actor342400WaveInitialize(Task* controllerTask)
     controllerTask->state++;
 }
 
+/// Selects the private incinerator row spawner for the encounter opening.
+///
+/// Requires a declared `void (s16 slotIndex, s16 enemyKind, s16 command)`
+/// callback and its live descriptor/placement resources. The opening fragment
+/// evaluates each argument once and undefines this identifier binding.
+#define OVERLAY_ENCOUNTER_SPAWN_SLOT _actor342400SpawnEncounterSlot
 #include "../../shared/mad_chaser_waves_open.inc.c"
 
 /// Arms the encounter on its fifteenth controller tick after the opening slots.
@@ -795,17 +802,35 @@ static void func_actor_342400_801631DC(s16 arg0)
     gShelterB3GarbageIncineratorRoom1And3ViewMap[SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_VIEW_OFFSET] = SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_REVEAL_VIEW;
 }
 
-void madChaserWaveSpawnSlot(s16 arg0, s16 arg1, s16 arg2)
+/// Starts an incinerator encounter row with a randomly chosen entry spot.
+///
+/// `slotIndex` must be 0..16. Kinds 0/1/2 select one Mad Chaser, one Slouch or
+/// a Sucklerceph pair; other kinds do nothing and consume no random draw.
+/// Packs the slot in bits 16..31 and adds a spot (2..15) in bits 8..11 to
+/// `command`, preserving any spot bits already present in that signed word.
+/// Spawn failure is ignored; the controller advances its row separately.
+/// Requires the encounter descriptor table, room spots and live player model.
+static void _actor342400SpawnEncounterSlot(s16 slotIndex, s16 enemyKind, s16 command)
 {
-    switch (arg1) {
-        case 0:
-            taskSpawnFromTable(D_actor_342400_8016BFE0, 1, (arg0 << 16) + arg2 + (_actor342400PickEncounterSpot() << 8), 0);
+    enum {
+        OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER       = 0,
+        OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH           = 1,
+        OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR = 2,
+        ACTOR_342400_MAD_CHASER_SPAWNER_DESCRIPTOR   = 1,
+        ACTOR_342400_SLOUCH_SPAWNER_DESCRIPTOR       = 2,
+        ACTOR_342400_PAIR_SPAWNER_DESCRIPTOR         = 3,
+        OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT           = 16,
+        OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT           = 8,
+    };
+    switch (enemyKind) {
+        case OVERLAY_ENCOUNTER_SLOT_KIND_MAD_CHASER:
+            taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_MAD_CHASER_SPAWNER_DESCRIPTOR, (slotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT), 0);
             break;
-        case 1:
-            taskSpawnFromTable(D_actor_342400_8016BFE0, 2, (arg0 << 16) + arg2 + (_actor342400PickEncounterSpot() << 8), 0);
+        case OVERLAY_ENCOUNTER_SLOT_KIND_SLOUCH:
+            taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_SLOUCH_SPAWNER_DESCRIPTOR, (slotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT), 0);
             break;
-        case 2:
-            taskSpawnFromTable(D_actor_342400_8016BFE0, 3, (arg0 << 16) + arg2 + (_actor342400PickEncounterSpot() << 8), 0);
+        case OVERLAY_ENCOUNTER_SLOT_KIND_SUCKLERCEPH_PAIR:
+            taskSpawnFromTable(D_actor_342400_8016BFE0, ACTOR_342400_PAIR_SPAWNER_DESCRIPTOR, (slotIndex << OVERLAY_ENCOUNTER_SLOT_INDEX_SHIFT) + command + (_actor342400PickEncounterSpot() << OVERLAY_ENCOUNTER_SPOT_INDEX_SHIFT), 0);
             break;
     }
 }

@@ -17,7 +17,4 @@
 void madChaserWavePairSpawn(Task* arg0);
 void madChaserWaveOpen(Task* arg0);
 
-/* Defined by each package. */
-void madChaserWaveSpawnSlot(s16 arg0, s16 arg1, s16 arg2);
-
 #endif /* SRC_SHARED_MAD_CHASER_WAVES_H */

@@ -127,3 +127,4 @@ _actor450900GrowthRoomActionTask = 0x8013223c; // type:func
 _actor450900CompanionDistressTask = 0x80131e38; // type:func
 _actor450900PlayerReactionTask = 0x8013207c; // type:func
 actor450900HandleDepartureTrigger = 0x80132834; // type:func
+actor450900StartCompanionConversation = 0x801327a8; // type:func

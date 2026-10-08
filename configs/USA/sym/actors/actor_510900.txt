@@ -345,3 +345,6 @@ _actor510900CheckHelipadLightView = 0x8013c240; // type:func
 _actor510900BlastSourceTask = 0x8013c3dc; // type:func
 actor510900TickEvent = 0x801355b4; // type:func
 _actor510900UpdateHelipadLightLighting = 0x8013c338; // type:func
+actor510900InitBody = 0x801350f8; // type:func
+_actor510900TickHelipadLight = 0x8013a85c; // type:func
+_actor510900TickBody = 0x8013b658; // type:func

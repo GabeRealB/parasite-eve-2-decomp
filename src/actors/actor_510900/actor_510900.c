@@ -2207,168 +2207,124 @@ STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(_gActor510900Fireba
 #define SPRITE_QUAD_SCALE EFFECT_SPRITE_ATLAS_UV_SPAN
 #include "../../shared/sprite_quad_draw.inc.c"
 
-/// Spawn/setup handler. It allocates the 0x5C8-byte work block and hangs it off
-/// the task, points the model object at the block's `light` and `color`
-/// matrices and fills the context's coordinate, pair
-/// source and HP (`field_40`, seeded from the record's `hpMax`).
-///
-/// The block's rig is bound with `animationInitContext` over its nineteen slots, and
-/// slots 1..18 are reset. Six enemies are spawned from `D_actor_510900_80167A18`; entries 2
-/// and 3 are the two whose models get the current room's texture page and CLUT
-/// row (the `areaGetVariant` placement table, indexed by the context id's top nibble) and whose
-/// tasks are kept in `weaponTask` / `chestModelTask`. Entry 2 also gets the
-/// flame-jet effect, kept in `flameJetTask` and reparented onto this task.
-///
-/// `body`, `weaponAttack` and `forearmAttack` are linked into the global
-/// object lists with their contact tables (`worldCollisionInitContacts`); pair tests
-/// are then enabled for `body` and left disabled for the two attack spheres.
-///
-/// A failed allocation tears the enemy down instead and leaves the task on this
-/// handler; otherwise the task moves to the tick handler (`state` 1).
-void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
+void actor510900InitBody(Enemy* enemy, Task* task)
 {
-    TmdObject*             obj;
-    GfxCoord*              coord;
+    enum {
+        ACTOR_510900_BODY_CHEST_PART          = 3,
+        ACTOR_510900_BODY_FOREARM_PART        = 7,
+        ACTOR_510900_PROP_DESCRIPTOR          = 1,
+        ACTOR_510900_WEAPON_DESCRIPTOR        = 2,
+        ACTOR_510900_CHEST_DESCRIPTOR         = 3,
+        ACTOR_510900_LIGHT_DESCRIPTOR         = 5,
+        ACTOR_510900_BLAST_SOURCE_DESCRIPTOR  = 6,
+        ACTOR_510900_BODY_INITIAL_ANIMATION   = 1,
+        ACTOR_510900_BODY_TASK_RUNNING        = 1,
+        ACTOR_510900_HIT_EFFECT_ARGUMENT_LOW  = 1024,
+        ACTOR_510900_HIT_EFFECT_ARGUMENT_HIGH = 2,
+        ACTOR_510900_BODY_CONTACT_KEY         = WORLD_COLLISION_CONTACT_ENEMY_BODY | 27,
+        ACTOR_510900_BODY_RADIUS              = 450,
+        ACTOR_510900_WEAPON_ATTACK_OFFSET_X   = -320,
+        ACTOR_510900_WEAPON_ATTACK_OFFSET_Y   = 128,
+        ACTOR_510900_ATTACK_RADIUS            = 400,
+    };
+    TmdObject*             bodyModel;
+    GfxCoord*              rootCoord;
     Actor510900Work*       work;
-    Enemy*                 spawned;
-    EffectWork*            eff;
-    u32                    raw1;
-    u32                    raw2;
-    u32                    index1;
-    u32                    index2;
-    TmdObject*             model1;
-    TmdObject*             model2;
-    AreaPlacement*         entry1;
-    AreaPlacement*         entry2;
-    GameLocationKey        key;
-    GameLocationKey*       sessionKey1;
-    GameLocationKey*       sessionKey2;
-    WorldCollisionContact* records1;
-    WorldCollisionContact* records2;
-    u8                     areaByte0;
-    s32                    i;
+    Enemy*                 childEnemy;
+    EffectWork*            flameEffect;
+    WorldCollisionContact* bodyContacts;
+    WorldCollisionContact* attackContacts;
+    s32                    slotIndex;
 
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(Actor510900Work), 0);
+    bodyModel = task->extra.tmd;
+    rootCoord = bodyModel->coords;
+    work      = memCalloc(sizeof(Actor510900Work), 0);
     if (work == NULL) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
-    arg1->work          = work;
-    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->light;
-    obj->colorMtx       = &work->color;
-    arg0->field_4       = &coord->coord;
-    arg0->field_48      = 0;
-    worldTargetLinkNode(&arg0->node);
-    arg0->coord                   = &arg1->extra.tmd->coords[3];
-    arg0->bodyPos.vx              = 0;
-    arg0->bodyPos.vy              = 0;
-    arg0->bodyPos.vz              = 0;
-    arg0->param                   = &D_actor_510900_80167980;
-    arg0->recs                    = work->bodyContacts;
-    arg0->hp                      = D_actor_510900_80167980.hpMax;
-    work->hitEffectArg.coord      = &arg1->extra.tmd->coords[3];
-    work->hitEffectArg.spawnArgLo = 0x400;
-    work->hitEffectArg.spawnArgHi = 2;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_510900_80167AA4, obj,
+    task->work              = work;
+    bodyModel->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    bodyModel->lightMtx     = &work->light;
+    bodyModel->colorMtx     = &work->color;
+    enemy->field_4          = &rootCoord->coord;
+    enemy->field_48         = 0;
+    worldTargetLinkNode(&enemy->node);
+    enemy->coord                  = &task->extra.tmd->coords[ACTOR_510900_BODY_CHEST_PART];
+    enemy->bodyPos.vx             = 0;
+    enemy->bodyPos.vy             = 0;
+    enemy->bodyPos.vz             = 0;
+    enemy->param                  = &D_actor_510900_80167980;
+    enemy->recs                   = work->bodyContacts;
+    enemy->hp                     = D_actor_510900_80167980.hpMax;
+    work->hitEffectArg.coord      = &task->extra.tmd->coords[ACTOR_510900_BODY_CHEST_PART];
+    work->hitEffectArg.spawnArgLo = ACTOR_510900_HIT_EFFECT_ARGUMENT_LOW;
+    work->hitEffectArg.spawnArgHi = ACTOR_510900_HIT_EFFECT_ARGUMENT_HIGH;
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_510900_80167AA4, bodyModel,
                          work->rig.poses, work->rig.slots);
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationResetSlot(&work->rig.anim, i, 1);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationResetSlot(&work->rig.anim, slotIndex, ACTOR_510900_BODY_INITIAL_ANIMATION);
     }
     work->present = 1;
-    enemySpawnFromTable(D_actor_510900_80167A18, 1, 0, arg0);
-    spawned     = enemySpawnFromTable(D_actor_510900_80167A18, 2, 0, arg0);
-    raw1        = arg0->placeKey;
-    model1      = spawned->task->extra.tmd;
-    sessionKey1 = &gGameSession->location.loc;
-    key.stage   = sessionKey1->stage;
-    key.area    = sessionKey1->area;
-    index1      = raw1 >> 12;
-    key.room    = sessionKey1->room;
-    areaByte0   = gGameSession->location.loc.view;
-    key.view    = areaByte0;
-    areaSyncLocationVariant(&key);
-    entry1                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index1);
-    model1->texturePageOffset = entry1->texturePageOffset;
-    model1->clutRowOffset     = entry1->clutRowOffset;
-    if (model1->buffer != NULL) {
-        tmdBuildBufferHalf(model1);
-        tmdBuildBufferHalf(model1);
-    }
-    work->weaponTask = spawned->task;
-    eff              = effectSpawn((EFFECT_ACTOR_510900_FLAME_JET | EFFECT_SPAWN_UNLIMITED), spawned->task->extra.tmd->coords, 0, NULL);
-    if (eff != NULL) {
-        work->flameJetTask = eff->task;
-        taskReparent(arg1, eff->task);
+    enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_PROP_DESCRIPTOR, 0, enemy);
+    childEnemy = enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_WEAPON_DESCRIPTOR, 0, enemy);
+    _actorRenderApplyPlacementTextureOffsets(childEnemy->task->extra.tmd, enemy);
+    work->weaponTask = childEnemy->task;
+    flameEffect      = effectSpawn((EFFECT_ACTOR_510900_FLAME_JET | EFFECT_SPAWN_UNLIMITED), childEnemy->task->extra.tmd->coords, 0, NULL);
+    if (flameEffect != NULL) {
+        work->flameJetTask = flameEffect->task;
+        taskReparent(task, flameEffect->task);
     }
     if (work->flameJetTask != NULL) {
         work->flameJetTask->spawnArg1.value = ACTOR_510900_FLAME_OFF;
     }
-    spawned     = enemySpawnFromTable(D_actor_510900_80167A18, 3, 0, arg0);
-    raw2        = arg0->placeKey;
-    model2      = spawned->task->extra.tmd;
-    sessionKey2 = &gGameSession->location.loc;
-    key.stage   = sessionKey2->stage;
-    key.area    = sessionKey2->area;
-    index2      = raw2 >> 12;
-    key.room    = sessionKey2->room;
-    areaByte0   = gGameSession->location.loc.view;
-    key.view    = areaByte0;
-    areaSyncLocationVariant(&key);
-    entry2                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index2);
-    model2->texturePageOffset = entry2->texturePageOffset;
-    model2->clutRowOffset     = entry2->clutRowOffset;
-    if (model2->buffer != NULL) {
-        tmdBuildBufferHalf(model2);
-        tmdBuildBufferHalf(model2);
-    }
-    work->chestModelTask = spawned->task;
-    enemySpawnFromTable(D_actor_510900_80167A18, 5, 0, arg0);
-    enemySpawnFromTable(D_actor_510900_80167A18, 5, 1, arg0);
-    enemySpawnFromTable(D_actor_510900_80167A18, 5, 2, arg0);
-    enemySpawnFromTable(D_actor_510900_80167A18, 6, 0, arg0);
-    work->body.coord            = &arg1->extra.tmd->coords[3];
-    records1                    = work->bodyContacts;
-    work->body.context.contacts = records1;
+    childEnemy = enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_CHEST_DESCRIPTOR, 0, enemy);
+    _actorRenderApplyPlacementTextureOffsets(childEnemy->task->extra.tmd, enemy);
+    work->chestModelTask = childEnemy->task;
+    enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_LIGHT_DESCRIPTOR, 0, enemy);
+    enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_LIGHT_DESCRIPTOR, 1, enemy);
+    enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_LIGHT_DESCRIPTOR, 2, enemy);
+    enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_BLAST_SOURCE_DESCRIPTOR, 0, enemy);
+    work->body.coord            = &task->extra.tmd->coords[ACTOR_510900_BODY_CHEST_PART];
+    bodyContacts                = work->bodyContacts;
+    work->body.context.contacts = bodyContacts;
     work->body.pos.vx           = 0;
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
-    work->body.key              = 0x3001B;
-    work->body.radius           = 0x1C2;
+    work->body.key              = ACTOR_510900_BODY_CONTACT_KEY;
+    work->body.radius           = ACTOR_510900_BODY_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
-    worldCollisionInitContacts(records1, ARRAY_SIZE(work->bodyContacts), 0);
-    records2                            = work->attackContacts;
+    worldCollisionInitContacts(bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
+    attackContacts                      = work->attackContacts;
     work->body.flags                   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->weaponAttack.coord            = work->weaponTask->extra.tmd->coords;
-    work->weaponAttack.context.contacts = records2;
-    work->weaponAttack.pos.vx           = -0x140;
-    work->weaponAttack.pos.vy           = 0x80;
+    work->weaponAttack.context.contacts = attackContacts;
+    work->weaponAttack.pos.vx           = ACTOR_510900_WEAPON_ATTACK_OFFSET_X;
+    work->weaponAttack.pos.vy           = ACTOR_510900_WEAPON_ATTACK_OFFSET_Y;
     work->weaponAttack.pos.vz           = 0;
     work->weaponAttack.key              = 0;
-    work->weaponAttack.radius           = 0x190;
+    work->weaponAttack.radius           = ACTOR_510900_ATTACK_RADIUS;
     work->weaponAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->weaponAttack);
-    worldCollisionInitContacts(records2, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionInitContacts(attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->weaponAttack.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->forearmAttack.coord            = &arg1->extra.tmd->coords[7];
-    work->forearmAttack.context.contacts = records2;
+    work->forearmAttack.coord            = &task->extra.tmd->coords[ACTOR_510900_BODY_FOREARM_PART];
+    work->forearmAttack.context.contacts = attackContacts;
     work->forearmAttack.pos.vx           = 0;
     work->forearmAttack.pos.vy           = 0;
     work->forearmAttack.pos.vz           = 0;
     work->forearmAttack.key              = 0;
-    work->forearmAttack.radius           = 0x190;
+    work->forearmAttack.radius           = ACTOR_510900_ATTACK_RADIUS;
     work->forearmAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->forearmAttack);
     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    arg1->msgTable             = D_actor_510900_80167A6C;
-    arg1->exitCallback         = actor510900ExitBody;
-    actor510900RestoreGridFaces(arg1);
+    task->msgTable             = D_actor_510900_80167A6C;
+    task->exitCallback         = actor510900ExitBody;
+    actor510900RestoreGridFaces(task);
     actor510900SetExtraGridFace(true);
-    arg1->state = 1;
+    task->state = ACTOR_510900_BODY_TASK_RUNNING;
 }
 
 void actor510900TickEvent(Enemy* enemy, Task* task)

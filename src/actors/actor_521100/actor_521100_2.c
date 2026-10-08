@@ -141,7 +141,7 @@ extern GfxCoord D_actor_521100_8016A3E8;
 static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task);
 static void _actor521100AnmcWomanUpdate(Task* task);
 static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task);
-static void func_actor_521100_80136290(Enemy* arg0, Task* task);
+static void _actor521100UpdateAnmcWomanFlattenColor(Enemy* enemy, Task* task);
 static void _actor521100TickAnmcWoman(Enemy* unusedEnemy, Task* task);
 static void _actor521100AnmcWomanExit(Task* task);
 static void _actor521100AnmcWomanTickAnim(void);
@@ -633,46 +633,47 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
         i++;
     } while (i < 0x13);
 
-    func_actor_521100_80136290(spawnArg2, task);
+    _actor521100UpdateAnmcWomanFlattenColor(spawnArg2, task);
 }
-/// The flatten's colour step: takes a 0x10-byte `VECTOR` off the scratch stack,
-/// fills it with the world position of the model's *second* attach coordinate
-/// (the one the flatten is scaling) and hands it to `worldCoordUpdateActorColor` as the
-/// colour target. The same draw then overwrites the three components with
-/// `st.flattenScaleY` scaled by the top half of three successive `gRandomLcgState` draws,
-/// and `ScaleMatrixL` multiplies the work block's second matrix by it.
+/// Relights the flattening ANMC woman and randomizes her colour-basis scale.
 ///
-/// Each draw reads `gRandomLcgState` back from the global: the initialiser's store
-/// is what the next draw's shift sees, and it is why one `lw` feeds all three
-/// and each draw's value gets its own register.
-static void func_actor_521100_80136290(Enemy* arg0, Task* task)
+/// Requires her live singleton work and model part 1. Composes that part before
+/// sampling actor colour. Three successive unsigned LCG draws scale the Q12
+/// flatten amount by factors from 0.5 through just below 1.5; ScaleMatrixL
+/// applies those per-axis weights to the colour basis, retaining its ambient
+/// translation. Reserves one VECTOR on the initialized scratch stack and
+/// releases it before return.
+static void _actor521100UpdateAnmcWomanFlattenColor(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_521100_FLATTEN_COLOR_SAMPLE_PART  = 1,
+        ACTOR_521100_FLATTEN_COLOR_RANDOM_BIAS  = 32768,
+        ACTOR_521100_FLATTEN_COLOR_RANDOM_SCALE = 65536,
+    };
     _Actor521100AnmcWomanWork* work;
-    GfxCoord*                  coord;
-    void**                     scratch;
-    u8*                        head;
-    VECTOR*                    block;
+    GfxCoord*                  sampleCoord;
+    VECTOR*                    scratchPosition;
 
-    coord                          = &task->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    actorRenderComposeCoord(coord);
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0, block, 0, 0);
-    work            = _gActor521100AnmcWomanWork;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    block->vx       = work->st.flattenScaleY * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    block->vy       = work->st.flattenScaleY * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    block->vz       = work->st.flattenScaleY * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
-    ScaleMatrixL(&work->color, block);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    sampleCoord                  = &task->extra.tmd->coords[ACTOR_521100_FLATTEN_COLOR_SAMPLE_PART];
+    scratchPosition              = SCRATCH_STACK_CURSOR(VECTOR) - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = scratchPosition;
+    actorRenderComposeCoord(sampleCoord);
+    scratchPosition->vx = sampleCoord->workm.t[0];
+    scratchPosition->vy = sampleCoord->workm.t[1];
+    scratchPosition->vz = sampleCoord->workm.t[2];
+    worldCoordUpdateActorColor(enemy, scratchPosition, 0, 0);
+    // Apply independent Q12 channel weights after refreshing base lighting.
+    work                = _gActor521100AnmcWomanWork;
+    gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    scratchPosition->vx = work->st.flattenScaleY * (s32)((gRandomLcgState >> 16) + ACTOR_521100_FLATTEN_COLOR_RANDOM_BIAS) / ACTOR_521100_FLATTEN_COLOR_RANDOM_SCALE;
+    gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    scratchPosition->vy = work->st.flattenScaleY * (s32)((gRandomLcgState >> 16) + ACTOR_521100_FLATTEN_COLOR_RANDOM_BIAS) / ACTOR_521100_FLATTEN_COLOR_RANDOM_SCALE;
+    gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    scratchPosition->vz = work->st.flattenScaleY * (s32)((gRandomLcgState >> 16) + ACTOR_521100_FLATTEN_COLOR_RANDOM_BIAS) / ACTOR_521100_FLATTEN_COLOR_RANDOM_SCALE;
+    ScaleMatrixL(&work->color, scratchPosition);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
+
 /// Emits periodic effects anchored to the ANMC woman or the player.
 ///
 /// `spawnArg1.value` is 0 for the woman and 1 for the player; `spawnArg2.pointer`

@@ -1343,7 +1343,7 @@ static void            _actor00300SpawnBurstFragments(Task* task);
 static __inline__ void _actor00300UpdateDrainModel(Task* task);
 static void            _actor00300DrainModelActive(Enemy* enemy, Task* task);
 static void            _actor00300InitFireball(Enemy* enemy, Task* task);
-static void            Actor00300_Fn04370(Enemy* arg0, Task* arg1);
+static void            _actor00300FlyFireball(Enemy* enemy, Task* task);
 
 #include "../../shared/fireball_glow.inc.c"
 
@@ -3331,41 +3331,58 @@ static void _actor00300InitFireball(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorOffsetScratch);
 }
 
-static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
+/// Advances the homing fireball and starts burst teardown on impact or expiry.
+///
+/// Requires a live coordinate-body task and initialized collision work. Moves
+/// 400 parent-coordinate units per running tick along the Q12 forward basis,
+/// then turns toward the player and decrements the signed flight countdown.
+/// A blocking sweep surface or occupied attack contact also ends flight.
+/// Paused actors retain the glow; hidden actors leave flight untouched.
+/// The burst borrows the coordinate through the following teardown states.
+/// The enemy argument is retained for the state-table callback ABI.
+static void _actor00300FlyFireball(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_00300_FIREBALL_SPEED              = 400,
+        ACTOR_00300_FIREBALL_STEP_FRACTION_BITS = 8,
+        ACTOR_00300_FIREBALL_GLOW_SIZE          = 512,
+        ACTOR_00300_FIREBALL_TASK_TEARDOWN      = 2,
+    };
     _Actor00300FireballWork* work;
     GfxCoord*                coord;
-    s32                      id;
-    s32                      expired;
-    s16                      timer;
+    s32                      surfaceKey;
+    s32                      blockedBySurface;
+    s16                      remainingTicks;
 
-    coord   = arg1->extra.tmd->coords;
-    work    = arg1->work;
-    expired = 0;
+    coord            = task->extra.coordBody->coord;
+    work             = task->work;
+    blockedBySurface = 0;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _fireballDrawGlow(coord, 0x200);
+            _fireballDrawGlow(coord, ACTOR_00300_FIREBALL_GLOW_SIZE);
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
+            // Move before steering so this tick follows the previous heading.
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[0]  += (coord->coord.m[0][2] * 0x19) >> 8;
-            coord->coord.t[2]  += (coord->coord.m[2][2] * 0x19) >> 8;
+            coord->coord.t[0]  += (coord->coord.m[0][2] * (ACTOR_00300_FIREBALL_SPEED >> 4)) >> ACTOR_00300_FIREBALL_STEP_FRACTION_BITS;
+            coord->coord.t[2]  += (coord->coord.m[2][2] * (ACTOR_00300_FIREBALL_SPEED >> 4)) >> ACTOR_00300_FIREBALL_STEP_FRACTION_BITS;
             actorRenderComposeCoord(coord);
-            _fireballDrawGlow(coord, 0x200);
-            id = work->sweepContacts[0].key.value;
-            if (id != 0 && Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
-                                             [gGameSession->location.loc.area - 1][worldCollisionSurfaceClassFromKey(id)]
-                                                 ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
-                expired = 1;
+            _fireballDrawGlow(coord, ACTOR_00300_FIREBALL_GLOW_SIZE);
+            // Consume the sweep contact before the next collision pass.
+            surfaceKey = work->sweepContacts[0].key.value;
+            if (surfaceKey != 0 && Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
+                                                     [gGameSession->location.loc.area - 1][worldCollisionSurfaceClassFromKey(surfaceKey)]
+                                                         ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
+                blockedBySurface = 1;
             }
             worldCollisionClearContacts(work->sweepContacts);
-            _actor00300TurnFireballTowardPlayer(arg1);
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if (timer <= 0 || (work->contacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) || expired != 0) {
+            _actor00300TurnFireballTowardPlayer(task);
+            remainingTicks = work->timer - 1;
+            work->timer    = remainingTicks;
+            if (remainingTicks <= 0 || (work->contacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) || blockedBySurface != 0) {
                 effectSpawn(gRoomEffectOrangeBurstId, coord, 0, NULL);
-                arg1->state        = 2;
+                task->state        = ACTOR_00300_FIREBALL_TASK_TEARDOWN;
                 work->teardownStep = ACTOR_00300_FIREBALL_TEARDOWN_UNLINK;
             }
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -3598,7 +3615,7 @@ static const EnemyTaskFuncTable3 Actor00300_D0003C = {
 static const EnemyTaskFuncTable3 Actor00300_D00048 = {
     {
         _actor00300InitFireball,
-        Actor00300_Fn04370,
+        _actor00300FlyFireball,
         _actor00300TeardownFireball,
     },
 };

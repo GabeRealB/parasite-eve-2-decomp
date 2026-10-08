@@ -225,3 +225,4 @@ _actor450200BackdropCrossFadeTask = 0x80132538; // type:func
 _actor450200StartBackdropCrossFade = 0x80132848; // type:func
 _actor450200SetLightBeamIntensity = 0x80132880; // type:func
 _actor450200SetRoomVariant = 0x801328a0; // type:func
+actor450200InitializeObservatoryCompanion = 0x801322f8; // type:func

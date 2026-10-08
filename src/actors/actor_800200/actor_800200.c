@@ -132,7 +132,7 @@ extern _Actor800200Waypoint D_actor_800200_8016A128[];
 extern _Actor800200Waypoint D_actor_800200_8016A130[];
 
 static void _actor800200TeardownTask(Task* task);
-static void func_actor_800200_801652EC(Task* arg0);
+static void _actor800200TickCompanionBehavior(Task* task);
 static void _actor800200EnterPlayerFollow(Task* task);
 static void _actor800200EnterTargetTurn(Task* task);
 static void _actor800200EnterRest(Task* task);
@@ -1138,7 +1138,7 @@ static void func_actor_800200_801622B0(Task* arg0)
     }
     actor->pendingCollisionUpdates = 0;
     if (D_80115768 == 0 && gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        func_actor_800200_801652EC(arg0);
+        _actor800200TickCompanionBehavior(arg0);
     }
     worldCollisionClearContacts(actor->collisionContacts);
     worldCollisionClearContacts(actor->companionWork->probe.contacts);
@@ -1203,7 +1203,7 @@ static const TaskFuncTable4 D_actor_800200_80161E24 = { {
     _actor800200TeardownTask,
 } };
 
-/// Handlers `func_actor_800200_801652EC` runs, indexed by `mode`.
+/// Handlers `_actor800200TickCompanionBehavior` runs, indexed by `mode`.
 static const TaskFuncTable3 D_actor_800200_80161E34 = { {
     _actor800200TickNormalMode,
     _actor800200TickDamageMode,
@@ -2931,18 +2931,24 @@ static s32 _actor800200PlayFootstepCue(Task* task)
     return recognizedCue;
 }
 
-static void func_actor_800200_801652EC(Task* arg0)
+/// Runs the companion's current behavior mode and consumes its frame cues.
+///
+/// Requires live GameActor work/model and mode 0 normal, 1 damage or 2 scripted;
+/// dispatch has no bounds check. Decrements recovery only when its signed-byte
+/// view is positive, then runs the selected mode and its footstep cue. Clears
+/// the pushback-direction latch after dispatch, preserving that update order.
+static void _actor800200TickCompanionBehavior(Task* task)
 {
     GameActor*     actor;
-    TaskFuncTable3 sp;
+    TaskFuncTable3 modeHandlers;
 
-    sp    = D_actor_800200_80161E34;
-    actor = arg0->work;
+    modeHandlers = D_actor_800200_80161E34;
+    actor        = task->work;
     if ((s8)actor->recoveryTicks > 0) {
         actor->recoveryTicks--;
     }
-    sp.funcs[actor->mode](arg0);
-    _actor800200PlayFootstepCue(arg0);
+    modeHandlers.funcs[actor->mode](task);
+    _actor800200PlayFootstepCue(task);
     actor->usesPushbackDirection = 0;
 }
 

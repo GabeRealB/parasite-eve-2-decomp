@@ -56,7 +56,7 @@ static s16 _gScriptedWalkMode;
 static ScriptedWalkAttachmentsWork* _gScriptedWalkWork;
 
 /// The task the first variant's work block above belongs to, published by
-/// `func_actor_461800_80132390` alongside it.
+/// `_actor461800InitScriptedWalker` alongside it.
 extern Task* D_actor_461800_80143898;
 
 static FootstepWalkWork* _gFootstepWalkWork;
@@ -946,7 +946,7 @@ Task* gFootstepWalkTask;
 /// of the animation clip; request values narrow to 16 bits without checking.
 static s16 _gFootstepWalkMode;
 
-static void func_actor_461800_80132390(Enemy* enemy, Task* task);
+static void _actor461800InitScriptedWalker(Enemy* enemy, Task* task);
 
 /// Advances the scene ramps and publishes the room framebuffer's horizontal shift.
 ///
@@ -1180,56 +1180,71 @@ static void _actor461800FinishScene(void)
     }
 }
 
-/// Spawn tick of the first actor variant: allocates the work block, hangs the
-/// model off the view, seeds the animation context and starts the two attachment
-/// tasks. Each attachment takes its texture page and CLUT row from the nested area
-/// record the actor's spawn index selects, and is streamed twice once its aux
-/// buffer exists.
-static void func_actor_461800_80132390(Enemy* enemy, Task* task)
+/// Initializes the scripted scene walker and its two hand-model attachment tasks.
+///
+/// Owns zeroed primary-heap work and publishes it for singleton walk/message
+/// handlers. Allocation failure destroys the enemy. The view-parented body
+/// borrows work-owned lighting matrices and samples its existing composed
+/// translation with Y reduced by 800; this state does not refresh that cache.
+/// Starts attachment entries 1/2 on parts 8/12, applies the walker's placement
+/// textures to each successful spawn, then updates motion and advances state.
+/// Attachment allocation failures retain NULL in the corresponding work slot.
+static void _actor461800InitScriptedWalker(Enemy* enemy, Task* task)
 {
-    VECTOR     vec;
-    GfxCoord*  coord;
-    TmdObject* obj;
-    Task*      spawned1;
-    Task*      spawned2;
+    enum {
+        ACTOR_461800_WALKER_SORT_OFFSET            = 1,
+        ACTOR_461800_WALKER_LIGHT_SAMPLE_Y_OFFSET  = -800,
+        ACTOR_461800_WALKER_FIRST_ANIMATION        = 1,
+        ACTOR_461800_WALKER_ATTACHMENT1_DESCRIPTOR = 1,
+        ACTOR_461800_WALKER_ATTACHMENT2_DESCRIPTOR = 2,
+        ACTOR_461800_WALKER_ATTACHMENT1_PART       = 8,
+        ACTOR_461800_WALKER_ATTACHMENT2_PART       = 12,
+        ACTOR_461800_WALKER_LIGHT_COUNT            = 3,
+    };
+    VECTOR     lightingPosition;
+    GfxCoord*  rootCoord;
+    TmdObject* model;
+    Task*      attachment1Task;
+    Task*      attachment2Task;
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
+    model      = task->extra.tmd;
+    rootCoord  = model->coords;
     task->work = (_gScriptedWalkWork = memCalloc(sizeof(ScriptedWalkAttachmentsWork), false));
     if (_gScriptedWalkWork == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = _actor461800ExitScriptedWalker;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->flags                       = 0;
-    obj->lightMtx                    = &_gScriptedWalkWork->light;
-    obj->colorMtx                    = &_gScriptedWalkWork->color;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
+    model->otOffset                  = ACTOR_461800_WALKER_SORT_OFFSET;
+    model->flags                     = 0;
+    model->lightMtx                  = &_gScriptedWalkWork->light;
+    model->colorMtx                  = &_gScriptedWalkWork->color;
+    lightingPosition.vx              = rootCoord->workm.t[0];
+    lightingPosition.vy              = rootCoord->workm.t[1] + ACTOR_461800_WALKER_LIGHT_SAMPLE_Y_OFFSET;
     D_actor_461800_80143898          = task;
-    vec.vz                           = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&_gScriptedWalkWork->rig.anim, D_actor_461800_80139FB0, obj,
+    lightingPosition.vz              = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightingPosition, 0, ACTOR_461800_WALKER_LIGHT_COUNT);
+    animationInitContext(&_gScriptedWalkWork->rig.anim, D_actor_461800_80139FB0, model,
                          _gScriptedWalkWork->rig.poses, _gScriptedWalkWork->rig.slots);
-    _gScriptedWalkWork->st.animId = 1;
+    _gScriptedWalkWork->st.animId = ACTOR_461800_WALKER_FIRST_ANIMATION;
     _gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
 
-    spawned1 = taskSpawnFromTable(D_actor_461800_80139F8C, 1, 8, 0);
-    if (spawned1 != NULL) {
-        _gScriptedWalkWork->attachment1 = spawned1;
-        _actorRenderApplyPlacementTextureOffsets(spawned1->extra.tmd, task->spawnArg2.pointer);
+    // Each attachment borrows a hand part and the walker lighting matrices.
+    attachment1Task = taskSpawnFromTable(D_actor_461800_80139F8C, ACTOR_461800_WALKER_ATTACHMENT1_DESCRIPTOR, ACTOR_461800_WALKER_ATTACHMENT1_PART, 0);
+    if (attachment1Task != NULL) {
+        _gScriptedWalkWork->attachment1 = attachment1Task;
+        _actorRenderApplyPlacementTextureOffsets(attachment1Task->extra.tmd, task->spawnArg2.pointer);
     }
 
-    spawned2 = taskSpawnFromTable(D_actor_461800_80139F8C, 2, 0xC, 0);
-    if (spawned2 != NULL) {
-        _gScriptedWalkWork->attachment2 = spawned2;
-        _actorRenderApplyPlacementTextureOffsets(spawned2->extra.tmd, task->spawnArg2.pointer);
+    attachment2Task = taskSpawnFromTable(D_actor_461800_80139F8C, ACTOR_461800_WALKER_ATTACHMENT2_DESCRIPTOR, ACTOR_461800_WALKER_ATTACHMENT2_PART, 0);
+    if (attachment2Task != NULL) {
+        _gScriptedWalkWork->attachment2 = attachment2Task;
+        _actorRenderApplyPlacementTextureOffsets(attachment2Task->extra.tmd, task->spawnArg2.pointer);
     }
 
     _gScriptedWalkWork->st.travel  = 0;
@@ -1247,7 +1262,7 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
 void func_actor_461800_801329B0(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        func_actor_461800_80132390,
+        _actor461800InitScriptedWalker,
         _actorRenderWalkerFrame,
     };
 
