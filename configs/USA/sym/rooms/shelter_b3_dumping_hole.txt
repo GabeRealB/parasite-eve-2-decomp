@@ -276,3 +276,6 @@ _shelterB3DumpingHoleCollapseEventEnqueuePlayback = 0x801819d0; // type:func
 _shelterB3DumpingHoleSpawnShake = 0x80181a18; // type:func
 _shelterB3DumpingHoleSpawnPlayerSprites = 0x80181b04; // type:func
 _shelterB3DumpingHoleRequestPlayerSpriteStop = 0x80181b44; // type:func
+_shelterB3DumpingHoleRejectKeyItem = 0x8017d758; // type:func
+_shelterB3DumpingHoleIgnoreRoomAction = 0x8017d868; // type:func
+_shelterB3DumpingHoleIdleRoom = 0x8017d998; // type:func

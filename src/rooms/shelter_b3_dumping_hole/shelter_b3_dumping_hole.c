@@ -11,6 +11,7 @@
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
+#include "gameplay/direction.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -33,11 +34,12 @@ extern TaskMessageEntry D_shelter_b3_dumping_hole_80187574[6];
 
 extern TaskDesc D_actor_342100_80164B78[];
 
-s32 func_shelter_b3_dumping_hole_8017D758(Task*, s32, s32, s32);
-s32 func_shelter_b3_dumping_hole_8017D760(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b3_dumping_hole_8017D82C(Task*, s32, s32, s32);
-s32 func_shelter_b3_dumping_hole_8017D868(Task*, s32, s32, s32);
-s32 func_shelter_b3_dumping_hole_8017D870(Task*, s32, s32, s32);
+static s32  _shelterB3DumpingHoleRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
+s32         func_shelter_b3_dumping_hole_8017D760(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32         func_shelter_b3_dumping_hole_8017D82C(Task*, s32, s32, s32);
+static s32  _shelterB3DumpingHoleIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
+s32         func_shelter_b3_dumping_hole_8017D870(Task*, s32, s32, s32);
+static void _shelterB3DumpingHoleIdleRoom(Task* task);
 
 static AnimationSet _gShelterB3DumpingHoleAnimation0AAB4;
 
@@ -75,8 +77,8 @@ TmdSource gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 = {
 
 TaskMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_dumping_hole_8017D760 },
-    { 5105, func_shelter_b3_dumping_hole_8017D758 },
-    { 5103, func_shelter_b3_dumping_hole_8017D868 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB3DumpingHoleRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB3DumpingHoleIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_shelter_b3_dumping_hole_8017D82C },
     { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_b3_dumping_hole_8017D870 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -209,14 +211,17 @@ AnimationSet* D_shelter_b3_dumping_hole_801880A0[6] = {
     &gActor403200Animation2D928,
     &gActor403200Animation2CDE0,
     NULL,
-}; /// Message-table handler that accepts every message without acting on it.
+};
 
 static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0);
-static void func_shelter_b3_dumping_hole_8017D998(Task* task);
 
-s32 func_shelter_b3_dumping_hole_8017D758(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use with the inventory menu's refused reply.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; the selected collected-item ID and
+/// unused second word are ignored, with no changes to room state.
+static s32 _shelterB3DumpingHoleRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_shelter_b3_dumping_hole_8017D760(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -246,8 +251,11 @@ s32 func_shelter_b3_dumping_hole_8017D82C(Task* arg0, s32 arg1, s32 arg2, s32 ar
     return 0;
 }
 
-/// Message-table handler that accepts every message without acting on it.
-s32 func_shelter_b3_dumping_hole_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction-triggered room actions and returns zero.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION`; the borrowed four-byte request
+/// and unused second word are neither read nor retained.
+static s32 _shelterB3DumpingHoleIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused)
 {
     return 0;
 }
@@ -280,11 +288,13 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
     D_shelter_b3_dumping_hole_8018F4A4 = 0;
 }
 
-/// Empty function; the unused local reserves the 0x10-byte stack frame the
-/// original carries.
-static void func_shelter_b3_dumping_hole_8017D998(Task* task)
+/// Leaves the initialized room task idle while its message table remains active.
+///
+/// The room controller's state 1 performs no per-frame work or state change.
+static void _shelterB3DumpingHoleIdleRoom(Task* task)
 {
-    char pad[0x10];
+    // Retained unused storage preserves the original 16-byte stack frame.
+    char unusedStackBytes[0x10];
 }
 
 /// State handlers of the room's controller task, run by
@@ -292,7 +302,7 @@ static void func_shelter_b3_dumping_hole_8017D998(Task* task)
 /// kill.
 static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D5C4 = { {
     func_shelter_b3_dumping_hole_8017D8A0,
-    func_shelter_b3_dumping_hole_8017D998,
+    _shelterB3DumpingHoleIdleRoom,
     taskKill,
 } };
 

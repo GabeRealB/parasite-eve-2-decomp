@@ -1059,7 +1059,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_south_maintenance_walkway_8017FCE8, { NULL } },                     // 0x209
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_north_maintenance_walkway_80182F00, { NULL } },                     // 0x20A
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_main_corridor_80181C98, { NULL } },                                 // 0x20B
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_80181F2C, { NULL } },                                   // 0x20C
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankRoomVisualEffectsSparkBurstTask, { NULL } },                     // 0x20C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_80182F78, { NULL } },                             // 0x20D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017FF58, { NULL } },                                // 0x20E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_vehicular_airlock_80180008, { NULL } },                             // 0x20F

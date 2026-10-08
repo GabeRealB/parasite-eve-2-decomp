@@ -38,32 +38,32 @@ extern TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[];
 extern TaskDesc D_shelter_b3_garbage_incinerator_801855CC;
 
 static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task);
-static void func_shelter_b3_garbage_incinerator_8017DC54(Task* task);
+static void _shelterB3GarbageIncineratorAdvanceSwitchTimer(Task* task);
 
 /// State handlers of the room's controller task, run by
 /// `func_shelter_b3_garbage_incinerator_8017DC7C`: set-up, a per-frame tick,
 /// and the kill.
 static const TaskFuncTable3 D_shelter_b3_garbage_incinerator_8017D5C4 = { {
     func_shelter_b3_garbage_incinerator_8017DB7C,
-    func_shelter_b3_garbage_incinerator_8017DC54,
+    _shelterB3GarbageIncineratorAdvanceSwitchTimer,
     taskKill,
 } };
 
-void func_shelter_b3_garbage_incinerator_8017D6EC(Task*);
-s32  func_shelter_b3_garbage_incinerator_8017D838(Task*, s32, s32, s32);
-s32  func_shelter_b3_garbage_incinerator_8017D840(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b3_garbage_incinerator_8017D9B4(Task*, s32, s32, s32);
-s32  func_shelter_b3_garbage_incinerator_8017D9BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b3_garbage_incinerator_8017DA74(Task*, s32, s32, s32);
-s32  func_shelter_b3_garbage_incinerator_8017DB2C(Task*, s32, s32, s32);
+void       func_shelter_b3_garbage_incinerator_8017D6EC(Task*);
+static s32 _shelterB3GarbageIncineratorRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
+s32        func_shelter_b3_garbage_incinerator_8017D840(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB3GarbageIncineratorIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg);
+s32        func_shelter_b3_garbage_incinerator_8017D9BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_shelter_b3_garbage_incinerator_8017DA74(Task*, s32, s32, s32);
+static s32 _shelterB3GarbageIncineratorHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unused);
 
 TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_garbage_incinerator_8017D840 },
-    { 5105, func_shelter_b3_garbage_incinerator_8017D838 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB3GarbageIncineratorRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b3_garbage_incinerator_8017D9BC },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b3_garbage_incinerator_8017D9B4 },
+    { ROOM_MESSAGE_COMMAND, _shelterB3GarbageIncineratorIgnoreCommand },
     { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_b3_garbage_incinerator_8017DA74 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b3_garbage_incinerator_8017DB2C },
+    { ROOM_MESSAGE_SOUND, _shelterB3GarbageIncineratorHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -112,9 +112,13 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
     }
 }
 
-s32 func_shelter_b3_garbage_incinerator_8017D838(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use with the inventory menu's refused reply.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; all arguments are ignored and the
+/// room state remains unchanged.
+static s32 _shelterB3GarbageIncineratorRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -148,7 +152,10 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
     return 1;
 }
 
-s32 func_shelter_b3_garbage_incinerator_8017D9B4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands and returns zero without changing room state.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`; neither the command nor its argument is read.
+static s32 _shelterB3GarbageIncineratorIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg)
 {
     return 0;
 }
@@ -187,14 +194,22 @@ s32 func_shelter_b3_garbage_incinerator_8017DA74(Task* arg0, s32 arg1, s32 arg2,
     return 0;
 }
 
-s32 func_shelter_b3_garbage_incinerator_8017DB2C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Maps room sound cues 9 and 10 to the incinerator bank's corresponding scripts.
+///
+/// Handles `ROOM_MESSAGE_SOUND` with an integer cue and unused second word.
+/// Requires the room sound bank loaded. Other cues do nothing; returns zero.
+static s32 _shelterB3GarbageIncineratorHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unused)
 {
-    switch (arg2) {
-        case 9:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 9), 0, 0);
+    enum {
+        SHELTER_B3_GARBAGE_INCINERATOR_SOUND_CUE_9  = 9,
+        SHELTER_B3_GARBAGE_INCINERATOR_SOUND_CUE_10 = 10
+    };
+    switch (cueId) {
+        case SHELTER_B3_GARBAGE_INCINERATOR_SOUND_CUE_9:
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, SHELTER_B3_GARBAGE_INCINERATOR_SOUND_CUE_9), 0, 0);
             break;
-        case 10:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 0x0A), 0, 0);
+        case SHELTER_B3_GARBAGE_INCINERATOR_SOUND_CUE_10:
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, SHELTER_B3_GARBAGE_INCINERATOR_SOUND_CUE_10), 0, 0);
             break;
     }
     return 0;
@@ -215,11 +230,18 @@ static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
     task->state = task->state + 1;
 }
 
-static void func_shelter_b3_garbage_incinerator_8017DC54(Task* task)
+/// Advances the switch's elapsed-frame counter up to its ready threshold of 61.
+///
+/// The room controller calls this in state 1. A switch press resets the
+/// unsigned halfword counter to zero; calls below 61 increment it once, and
+/// values at least 61 are preserved. `task` is unused.
+static void _shelterB3GarbageIncineratorAdvanceSwitchTimer(Task* task)
 {
-    char pad[0x10];
+    enum { SHELTER_B3_GARBAGE_INCINERATOR_SWITCH_READY_TICKS = 61 };
+    // Retained unused storage preserves the original 16-byte stack frame.
+    char unusedStackBytes[0x10];
 
-    if (D_shelter_b3_garbage_incinerator_801855DC < 0x3D) {
+    if (D_shelter_b3_garbage_incinerator_801855DC < SHELTER_B3_GARBAGE_INCINERATOR_SWITCH_READY_TICKS) {
         D_shelter_b3_garbage_incinerator_801855DC++;
     }
 }

@@ -119,11 +119,11 @@ extern TaskMessageEntry D_shelter_b3_incinerator_control_room_80181838[];
 #define TELEPHONE_TITLE_BYTES "Telephone\0\x14\xCF"
 #include "../../shared/telephone.h"
 
-s32 func_shelter_b3_incinerator_control_room_8017FA84(Task*, s32, s32, s32);
-s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b3_incinerator_control_room_8017FB20(Task*, s32, s32, s32);
-s32 func_shelter_b3_incinerator_control_room_8017FBE0(Task*, s32, s32, s32);
-s32 func_shelter_b3_incinerator_control_room_8017FBE8(Task*, s32, s32, s32);
+static s32 _shelterB3IncineratorControlRoomRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
+s32        func_shelter_b3_incinerator_control_room_8017FA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_shelter_b3_incinerator_control_room_8017FB20(Task*, s32, s32, s32);
+static s32 _shelterB3IncineratorControlRoomIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
+static s32 _shelterB3IncineratorControlRoomHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unused);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -135,15 +135,15 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 
 TaskMessageEntry D_shelter_b3_incinerator_control_room_80181838[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_incinerator_control_room_8017FA8C },
-    { 5105, func_shelter_b3_incinerator_control_room_8017FA84 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b3_incinerator_control_room_8017FBE0 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB3IncineratorControlRoomRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB3IncineratorControlRoomIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_shelter_b3_incinerator_control_room_8017FB20 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b3_incinerator_control_room_8017FBE8 },
+    { ROOM_MESSAGE_SOUND, _shelterB3IncineratorControlRoomHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task);
-static void func_shelter_b3_incinerator_control_room_8017FCA8(Task* task);
+static void _shelterB3IncineratorControlRoomIdleRoom(Task* task);
 
 #include "../../shared/telephone.inc.c"
 
@@ -160,9 +160,13 @@ void func_shelter_b3_incinerator_control_room_8017EA64(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_shelter_b3_incinerator_control_room_8017FA84(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use with the inventory menu's refused reply.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; all arguments are ignored and the
+/// room state remains unchanged.
+static s32 _shelterB3IncineratorControlRoomRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -205,15 +209,27 @@ s32 func_shelter_b3_incinerator_control_room_8017FB20(Task* arg0, s32 arg1, s32 
     return 0;
 }
 
-s32 func_shelter_b3_incinerator_control_room_8017FBE0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction-triggered room actions and returns zero.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION`; the borrowed four-byte request
+/// and unused second word are neither read nor retained.
+static s32 _shelterB3IncineratorControlRoomIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused)
 {
     return 0;
 }
 
-s32 func_shelter_b3_incinerator_control_room_8017FBE8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Maps room sound cue 99 to control-room sound-bank entry 9.
+///
+/// Handles `ROOM_MESSAGE_SOUND` with an integer cue and unused second word.
+/// Requires the room sound bank loaded. Other cues do nothing; returns zero.
+static s32 _shelterB3IncineratorControlRoomHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unused)
 {
-    if (arg2 == 0x63) {
-        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 9), 0, 0);
+    enum {
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_SOUND_CUE_99  = 99,
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_SOUND_ENTRY_9 = 9
+    };
+    if (cueId == SHELTER_B3_INCINERATOR_CONTROL_ROOM_SOUND_CUE_99) {
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SOUND_ENTRY_9), 0, 0);
     }
     return 0;
 }
@@ -231,9 +247,13 @@ static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task)
     }
 }
 
-static void func_shelter_b3_incinerator_control_room_8017FCA8(Task* task)
+/// Leaves the initialized room task idle while its message table remains active.
+///
+/// The room controller's state 1 performs no per-frame work or state change.
+static void _shelterB3IncineratorControlRoomIdleRoom(Task* task)
 {
-    char pad[0x10];
+    // Retained unused storage preserves the original 16-byte stack frame.
+    char unusedStackBytes[0x10];
 }
 
 /// States of the room's message task, run by
@@ -242,7 +262,7 @@ static void func_shelter_b3_incinerator_control_room_8017FCA8(Task* task)
 static const TaskFuncTable3 D_shelter_b3_incinerator_control_room_8017D6A4 = {
     {
         func_shelter_b3_incinerator_control_room_8017FC1C,
-        func_shelter_b3_incinerator_control_room_8017FCA8,
+        _shelterB3IncineratorControlRoomIdleRoom,
         taskKill,
     },
 };

@@ -107,6 +107,14 @@ void shelterB2SepticTankRoomVisualEffectsFlashTask(Task* task);
 /// freeze it. Keep the room overlay and effect controller live.
 void shelterB2SepticTankRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b2_septic_tank_80181F2C(Task* task);
+/// Runs an impact flash followed by smoke puffs or orange rings and bouncing sparks.
+///
+/// Start in state 0 with a coordinate body and counted, owned `EffectWork` in
+/// `spawnArg2.pointer`, with age zero. Nonzero `spawnArg1.value` selects smoke;
+/// zero selects rings and sparks. Enters release at active age seven and frees
+/// work and task on the next active tick. Nonzero room effect control below
+/// four pauses; four or above cancels. Children run independently. Keep the
+/// room overlay, effect controller and borrowed parent live through retirement.
+void shelterB2SepticTankRoomVisualEffectsSparkBurstTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B2_SEPTIC_TANK_H

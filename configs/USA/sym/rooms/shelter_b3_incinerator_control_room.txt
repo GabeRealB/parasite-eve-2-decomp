@@ -110,3 +110,7 @@ _glowDrawPulsingDisc = 0x80180B6C; // type:func
 _glowDrawDiamond = 0x801806F8; // type:func
 roomCutsceneTask = 0x8017F488; // type:func
 _roomCutsceneSoundTask = 0x8017F9F4; // type:func
+_shelterB3IncineratorControlRoomRejectKeyItem = 0x8017fa84; // type:func
+_shelterB3IncineratorControlRoomIgnoreRoomAction = 0x8017fbe0; // type:func
+_shelterB3IncineratorControlRoomHandleSoundCue = 0x8017fbe8; // type:func
+_shelterB3IncineratorControlRoomIdleRoom = 0x8017fca8; // type:func

@@ -249,3 +249,7 @@ _shelterB3GarbageIncineratorPlayBlazeClip = 0x8017f8ac; // type:func
 _shelterB3GarbageIncineratorAdvanceBlazeAnimation = 0x8017f318; // type:func
 _shelterB3GarbageIncineratorSetBlazeFadeState = 0x8017f930; // type:func
 _shelterB3GarbageIncineratorKillPlayerInBlaze = 0x8017fa3c; // type:func
+_shelterB3GarbageIncineratorRejectKeyItem = 0x8017d838; // type:func
+_shelterB3GarbageIncineratorIgnoreCommand = 0x8017d9b4; // type:func
+_shelterB3GarbageIncineratorHandleSoundCue = 0x8017db2c; // type:func
+_shelterB3GarbageIncineratorAdvanceSwitchTimer = 0x8017dc54; // type:func

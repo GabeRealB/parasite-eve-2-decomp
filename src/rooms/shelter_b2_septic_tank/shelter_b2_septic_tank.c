@@ -93,6 +93,7 @@ extern u8 D_shelter_b2_septic_tank_80187045;
 
 static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
 static void           _shelterB2SepticTankInitializeRoom(Task* task);
+static void           _shelterB2SepticTankMonitorEncounterIntro(Task* task);
 
 static void _shelterB2SepticTankInitializeWater(Task* task);
 static void _shelterB2SepticTankDrawWater(Task* task);
@@ -121,14 +122,14 @@ extern AnimationBankCopyRequest D_shelter_b2_septic_tank_80182F78;
 extern ActorTransform           D_shelter_b2_septic_tank_80182FD4;
 extern ActorTransform           D_shelter_b2_septic_tank_80182FEC;
 static void                     _shelterB2SepticTankSetEncounterPhase(s32 encounterPhase);
-void                            func_shelter_b2_septic_tank_8017D9A0(void);
+static void                     _shelterB2SepticTankPrepareEncounterFacing(void);
 
 extern TaskDesc D_actor_100400_80147E48;
 
 static s32 _shelterB2SepticTankRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
-s32        func_shelter_b2_septic_tank_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB2SepticTankResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB2SepticTankIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg);
-s32        func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, s32);
+static s32 _shelterB2SepticTankHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
 
 enum {
     SHELTER_B2_SEPTIC_TANK_MESSAGE_USE_KEY_ITEM     = 5105,
@@ -167,9 +168,9 @@ static AnimationSet _gShelterB2SepticTankAnimation05958 = {
 TaskDesc D_shelter_b2_septic_tank_80182F40 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b2_septic_tank_80182F4C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_septic_tank_8017D7B4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2SepticTankResolveRoomEvent },
     { SHELTER_B2_SEPTIC_TANK_MESSAGE_USE_KEY_ITEM, _shelterB2SepticTankRejectKeyItem },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_septic_tank_8017D90C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2SepticTankHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB2SepticTankIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -219,7 +220,7 @@ EvsCommand D_shelter_b2_septic_tank_80183004[11] = {
 EvsCommand D_shelter_b2_septic_tank_8018310C[18] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b2_septic_tank_80182FC0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b2_septic_tank_8017D9A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB2SepticTankPrepareEncounterFacing }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_shelter_b2_septic_tank_80182FEC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1191,8 +1192,6 @@ u16 D_shelter_b2_septic_tank_80187046 = 0x5868;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static void func_shelter_b2_septic_tank_8017DA74(Task* task);
-
 static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 
 /// Tests a staged room event and latches an eligible executing transition.
@@ -1239,23 +1238,34 @@ static s32 _shelterB2SepticTankRejectKeyItem(Task* task, s32 messageId, s32 item
     return 0;
 }
 
-/// Message handler: copies the incoming message to `out` and forwards both to
-/// `mapShelterRoomVariantResolve`. Message 0x21 starts the room's event on flag 0x131; any
-/// other message answers 1.
-s32 func_shelter_b2_septic_tank_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a destination and gates the one-time scene on departure to the B2 main corridor.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with borrowed complete eight-byte
+/// records; request and reply may alias. Copies and resolves the reply first.
+/// Other destinations return 1. The corridor returns 2 while its scene flag
+/// is clear, otherwise 1; an executing request latches room-owned copies and
+/// starts the scene. A query tests eligibility and clears the event-start marker
+/// without latching or spawning the transition.
+static s32 _shelterB2SepticTankResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
+    enum {
+        SHELTER_B2_SEPTIC_TANK_TRANSITION_ALLOWED   = 1,
+        SHELTER_B2_SEPTIC_TANK_CORRIDOR_CAP_COMMAND = 3,
+        SHELTER_B2_SEPTIC_TANK_CORRIDOR_SOUND_ENTRY = 1,
+        SHELTER_B2_SEPTIC_TANK_CORRIDOR_FADE_NONE   = 0
+    };
     RoomLatchedEvent event;
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId != GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
-        return 1;
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId != GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
+        return SHELTER_B2_SEPTIC_TANK_TRANSITION_ALLOWED;
     }
-    event.capCmd   = 3;
-    event.stageSnd = 0x54220001;
+    event.capCmd   = SHELTER_B2_SEPTIC_TANK_CORRIDOR_CAP_COMMAND;
+    event.stageSnd = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, SHELTER_B2_SEPTIC_TANK_CORRIDOR_SOUND_ENTRY);
     event.flagId   = GAME_FLAG_B2_SEPTIC_TANK_TO_CORRIDOR_SCENE;
-    event.fade     = 0;
-    return _shelterB2SepticTankStartEvent(out, &event);
+    event.fade     = SHELTER_B2_SEPTIC_TANK_CORRIDOR_FADE_NONE;
+    return _shelterB2SepticTankStartEvent(reply, &event);
 }
 
 /// Ignores room-command messages and returns zero without changing room state.
@@ -1266,17 +1276,24 @@ static s32 _shelterB2SepticTankIgnoreCommand(Task* task, s32 messageId, s32 comm
     return 0;
 }
 
-s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
+/// Starts the encounter's combat setup when room action 2 follows the introduction.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION`; the four-byte request is borrowed
+/// only for this call and the second payload word is unused. Requires both the
+/// saved encounter phase and room-local stage to be 1, then starts the script
+/// and advances the local stage to 2. Other actions do nothing; returns zero.
+static s32 _shelterB2SepticTankHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused)
 {
-    u8  kind;
-    s32 flag;
+    enum { SHELTER_B2_SEPTIC_TANK_ACTION_START_COMBAT = 2 };
+    u8  actionId;
+    s32 encounterPhase;
 
-    kind = arg2->warp;
-    if (kind == 2) {
-        flag = gameFlagGetNibble(GAME_FLAG_0EB);
-        if (flag == 1 && D_shelter_b2_septic_tank_80187045 == flag) {
+    actionId = request->actionId;
+    if (actionId == SHELTER_B2_SEPTIC_TANK_ACTION_START_COMBAT) {
+        encounterPhase = gameFlagGetNibble(GAME_FLAG_0EB);
+        if (encounterPhase == SHELTER_B2_SEPTIC_TANK_ENCOUNTER_INTRO_COMPLETE && D_shelter_b2_septic_tank_80187045 == encounterPhase) {
             evsStartScript(D_shelter_b2_septic_tank_8018310C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            D_shelter_b2_septic_tank_80187045 = kind;
+            D_shelter_b2_septic_tank_80187045 = actionId;
         }
     }
     return 0;
@@ -1292,18 +1309,25 @@ static void _shelterB2SepticTankSetEncounterPhase(s32 encounterPhase)
     gameFlagSetNibble(GAME_FLAG_0EB, encounterPhase);
 }
 
-void func_shelter_b2_septic_tank_8017D9A0(void)
+/// Prepares the player's scripted turn toward placed actor zero.
+///
+/// Requires a live player model and scene manager. Writes the room-owned turn
+/// request's yaw in 4096ths of a turn, wrapped to 0..4095, from the roots' X/Z
+/// translations in their common parent frame. A missing target leaves the
+/// previous yaw intact. The encounter script sends the request after this call.
+static void _shelterB2SepticTankPrepareEncounterFacing(void)
 {
-    Task*     target;
-    GfxCoord* player;
-    GfxCoord* coords;
+    enum { SHELTER_B2_SEPTIC_TANK_ENCOUNTER_ACTOR_INDEX = 0 };
+    Task*           targetTask;
+    const GfxCoord* playerRoot;
+    const GfxCoord* targetRoot;
 
-    target = sceneFindPlacedActor(0);
-    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-    if (target != NULL) {
-        coords = target->extra.tmd->coords;
+    targetTask = sceneFindPlacedActor(SHELTER_B2_SEPTIC_TANK_ENCOUNTER_ACTOR_INDEX);
+    playerRoot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+    if (targetTask != NULL) {
+        targetRoot = targetTask->extra.tmd->coords;
         D_shelter_b2_septic_tank_80182FEC.rot.vy =
-            (ratan2(coords->coord.t[0] - player->coord.t[0], coords->coord.t[2] - player->coord.t[2]) + 0x1000) & 0xFFF;
+            (ratan2(targetRoot->coord.t[0] - playerRoot->coord.t[0], targetRoot->coord.t[2] - playerRoot->coord.t[2]) + ACTOR_TRANSFORM_ANGLE_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
     }
 }
 
@@ -1320,17 +1344,29 @@ static void _shelterB2SepticTankInitializeRoom(Task* task)
     task->state = task->state + 1;
 }
 
-static void func_shelter_b2_septic_tank_8017DA74(Task* task)
+/// Handles the encounter introduction once the room's view and display are ready.
+///
+/// The room task's monitoring state waits for view 4, variant 1, a closed
+/// attachment wheel and no display transition. At local stage zero it starts
+/// the introduction if the saved encounter phase is zero, then marks the local
+/// stage 1 even when that saved phase suppresses playback. `task` is unused.
+static void _shelterB2SepticTankMonitorEncounterIntro(Task* task)
 {
-    s32 place;
+    enum {
+        SHELTER_B2_SEPTIC_TANK_INTRO_VIEW              = 4,
+        SHELTER_B2_SEPTIC_TANK_INTRO_VARIANT           = 1,
+        SHELTER_B2_SEPTIC_TANK_INTRO_STAGE_PENDING     = 0,
+        SHELTER_B2_SEPTIC_TANK_ENCOUNTER_PHASE_PENDING = 0
+    };
+    s32 variant;
 
-    if (gGameSession->location.loc.view == 4) {
-        place = gGameSession->location.loc.variant;
-        if (place == 1 && Gp_StateC08.mode != place && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_shelter_b2_septic_tank_80187045 == 0) {
-            if (gameFlagGetNibble(GAME_FLAG_0EB) == 0) {
+    if (gGameSession->location.loc.view == SHELTER_B2_SEPTIC_TANK_INTRO_VIEW) {
+        variant = gGameSession->location.loc.variant;
+        if (variant == SHELTER_B2_SEPTIC_TANK_INTRO_VARIANT && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_shelter_b2_septic_tank_80187045 == SHELTER_B2_SEPTIC_TANK_INTRO_STAGE_PENDING) {
+            if (gameFlagGetNibble(GAME_FLAG_0EB) == SHELTER_B2_SEPTIC_TANK_ENCOUNTER_PHASE_PENDING) {
                 evsStartScript(D_shelter_b2_septic_tank_80183004, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
-            D_shelter_b2_septic_tank_80187045 = place;
+            D_shelter_b2_septic_tank_80187045 = variant;
         }
     }
 }
@@ -1340,7 +1376,7 @@ static void func_shelter_b2_septic_tank_8017DA74(Task* task)
 static const TaskFuncTable3 D_shelter_b2_septic_tank_8017D5D8 = {
     {
         _shelterB2SepticTankInitializeRoom,
-        func_shelter_b2_septic_tank_8017DA74,
+        _shelterB2SepticTankMonitorEncounterIntro,
         taskKill,
     },
 };
@@ -1672,7 +1708,7 @@ void shelterB2SepticTankRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b2_septic_tank_80181F2C(Task* task)
+void shelterB2SepticTankRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }
