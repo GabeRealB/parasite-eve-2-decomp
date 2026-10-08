@@ -7,9 +7,12 @@
 /// Models those descriptors attach.
 extern TmdSource gActor800300Model02CF4;
 
-/// Task entries the resident task descriptor tables name. A table in main or
-/// gameplay reaches each of these by name, so they are the family's interface
-/// to the resident code.
-void func_actor_800300_801625F4(Task* task);
+/// Runs the noncombatant companion's initialization, frame update and teardown states.
+///
+/// The resident model-task descriptor supplies the model; spawning supplies
+/// zeroed GameActor/CompanionWork storage and loaded native animation resources.
+/// Task state must be 0..3. Initialization publishes the companion task and
+/// borrows its work/model coordinates for collision until teardown unlinks them.
+void actor800300Task(Task* task);
 
 #endif // INCLUDE_ACTORS_ACTOR_800300_H

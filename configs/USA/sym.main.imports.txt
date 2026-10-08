@@ -197,7 +197,7 @@ D_hypervelocity_80120860 = 0x80120860; // absolute:True owner=hypervelocity
 D_grenade_pistol_8012B5A4 = 0x8012B5A4; // absolute:True owner=grenade_pistol
 D_mm1_8012D444 = 0x8012D444; // absolute:True owner=mm1
 D_m4a1_grenade_8012E1FC = 0x8012E1FC; // absolute:True owner=m4a1_grenade
-func_actor_800300_801625F4 = 0x801625F4; // type:func absolute:True owner=actor_800300
+actor800300Task = 0x801625F4; // type:func absolute:True owner=actor_800300
 func_actor_800200_801626EC = 0x801626EC; // type:func absolute:True owner=actor_800200
 func_actor_800100_80163CF0 = 0x80163CF0; // type:func absolute:True owner=actor_800100
 func_kyle_800102_801682B4 = 0x801682B4; // type:func absolute:True owner=kyle_800102

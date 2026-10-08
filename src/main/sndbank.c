@@ -363,7 +363,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, func_actor_800100_80163CF0, { &D_kyle_800103_8016C594 } },
     { { { TASK_BODY_TMD, 0x50 } }, func_actor_800100_80163CF0, { &D_kyle_800104_8016C594 } },
     { { { TASK_BODY_TMD, 0x50 } }, func_actor_800200_801626EC, { &gActor800200FlintBody } },
-    { { { TASK_BODY_TMD, 0x50 } }, func_actor_800300_801625F4, { &gActor800300Model02CF4 } },
+    { { { TASK_BODY_TMD, 0x50 } }, actor800300Task, { &gActor800300Model02CF4 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_kyle_800101_8016C9E8 } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_kyle_800101_8016D32C } },

@@ -41,19 +41,36 @@ extern TaskMessageEntry D_actor_800300_80168880[26];
 extern GpuImageUpload** D_actor_800300_80168950[];
 extern GpuImageUpload** D_actor_800300_80168960[];
 
-static void func_actor_800300_801623F8(Task* arg0);
-static void func_actor_800300_801625A8(Task* task);
-static void func_actor_800300_80162658(Task* arg0);
-static void func_actor_800300_801628D0(Task* arg0);
-static void func_actor_800300_80162A98(Task* arg0);
-static void func_actor_800300_80162C2C(Task* arg0);
-static void func_actor_800300_80162C98(Task* arg0);
+static void _actor800300Init(Task* task);
+static void _actor800300UpdateMove(Task* task);
+static void _actor800300DeferRemoval(Task* task);
+static void _actor800300TickTextureSequences(Task* task);
+static void _actor800300KillTask(Task* task);
+static void _actor800300TickNormalMode(Task* task);
+static void _actor800300FollowPlayerState(Task* task);
+static void _actor800300TurnToTargetState(Task* task);
+static void _actor800300TickMode(Task* task);
+static void _actor800300IdleDecisionState(Task* task);
 static void func_actor_800300_80162D74(Task* arg0);
-static void func_actor_800300_80162EEC(Task* arg0);
-static void func_actor_800300_80162F24(Task* arg0);
-static void func_actor_800300_80162F98(Task* arg0);
-static void func_actor_800300_80163048(Task* arg0);
-static void func_actor_800300_80163074(Task* arg0);
+static void _actor800300FlinchState(Task* task);
+static void _actor800300TickDamageMode(Task* task);
+static void _actor800300TickScriptedMode(Task* task);
+static void _actor800300EnterFollowPlayer(Task* task);
+static void _actor800300EnterTurnToTarget(Task* task);
+
+// Native behavior selectors shared by this companion's state transitions.
+enum {
+    ACTOR_800300_STATE_FOLLOW_PLAYER           = 1,
+    ACTOR_800300_STATE_TURN_TO_TARGET          = 2,
+    ACTOR_800300_STATE_FLINCH                  = 5,
+    ACTOR_800300_MOVEMENT_STOPPED              = 0,
+    ACTOR_800300_TURN_DISABLED                 = 0,
+    ACTOR_800300_TURN_RATE_64                  = 1,
+    ACTOR_800300_ANIMATION_CONTROLLER_NONE     = 0,
+    ACTOR_800300_ANIMATION_CONTROLLER_CLIP_END = 7,
+    ACTOR_800300_MOVEMENT_BLEND_FRAMES         = 5,
+    ACTOR_800300_FOLLOW_RESELECT_DELAY_TICKS   = 60
+};
 
 extern GpuImageUpload* D_actor_800300_80169A20[2];
 extern GpuImageUpload* D_actor_800300_80169A28[4];
@@ -531,214 +548,262 @@ AnimationBank D_actor_800300_8016CB98 = { { {
     NULL,
 } } };
 
-static void func_actor_800300_80161E80(Task* arg0);
-static void func_actor_800300_80162064(Task* arg0);
-static void func_actor_800300_8016259C(Task* arg0);
-
-static void func_actor_800300_80161E80(Task* arg0)
+/// Stages a Q12 movement or pushback heading for all three motion contexts.
+///
+/// The composed root basis must be current. The caller owns the live scratch
+/// block; the staged signed halfwords are copied without touching their pad.
+static inline void _actor800300PublishMotionDirection(GameActor* actor, const GfxCoord* rootCoord, CompanionMoveScratch* block)
 {
-    enum { COMPANION_DISTRESS_INITIAL_INTERVAL = 150 };
+    if (actor->usesPushbackDirection != 0) {
+        block->motionDirection.vx = actor->pushbackDirection.vx;
+        block->motionDirection.vy = actor->pushbackDirection.vy;
+        block->motionDirection.vz = actor->pushbackDirection.vz;
+    } else {
+        block->motionDirection.vx = rootCoord->workm.m[0][2] * actor->movementSign;
+        block->motionDirection.vy = rootCoord->workm.m[1][2] * actor->movementSign;
+        block->motionDirection.vz = rootCoord->workm.m[2][2] * actor->movementSign;
+    }
+    actor->collisionMotionContexts[0].motionDirection.vx = block->motionDirection.vx;
+    actor->collisionMotionContexts[0].motionDirection.vy = block->motionDirection.vy;
+    actor->collisionMotionContexts[0].motionDirection.vz = block->motionDirection.vz;
+    actor->collisionMotionContexts[1].motionDirection.vx = block->motionDirection.vx;
+    actor->collisionMotionContexts[1].motionDirection.vy = block->motionDirection.vy;
+    actor->collisionMotionContexts[1].motionDirection.vz = block->motionDirection.vz;
+    actor->collisionMotionContexts[2].motionDirection.vx = block->motionDirection.vx;
+    actor->collisionMotionContexts[2].motionDirection.vy = block->motionDirection.vy;
+    actor->collisionMotionContexts[2].motionDirection.vz = block->motionDirection.vz;
+}
+
+/// Restores all three root translations from the last accepted collision position.
+static inline void _actor800300RestorePreviousPosition(GfxCoord* rootCoord, const GameActor* actor)
+{
+    rootCoord->coord.t[0] = actor->previousPosition.vx;
+    rootCoord->coord.t[1] = actor->previousPosition.vy;
+    rootCoord->coord.t[2] = actor->previousPosition.vz;
+}
+
+/// Starts native playback and links the noncombatant companion's two motion spheres.
+///
+/// Requires zeroed GameActor/CompanionWork storage, a loaded native animation
+/// bank and a model with root and part-4 coordinates. Publishes the companion
+/// task until teardown; the linked bodies borrow its work and model coordinates.
+static void _actor800300Init(Task* task)
+{
+    enum {
+        COMPANION_DISTRESS_INITIAL_INTERVAL       = 150,
+        ACTOR_800300_ROOT_SPHERE_RADIUS           = 300,
+        ACTOR_800300_PART4_SPHERE_RADIUS          = 200,
+        ACTOR_800300_PART4_COORD_INDEX            = 4,
+        ACTOR_800300_INITIAL_DECISION_BASE_TICKS  = 60,
+        ACTOR_800300_INITIAL_DECISION_RANDOM_MASK = 0x7F
+    };
 
     GameActor*             actor;
-    TmdObject*             extra;
-    GfxCoord*              coord;
-    GfxCoord*              next;
-    GfxCoord**             addr;
+    TmdObject*             model;
+    GfxCoord*              rootCoord;
+    GfxCoord*              partCoords;
+    GfxCoord**             coordsSlot;
     CompanionWork*         companion;
-    WorldCollisionBody*    obj;
-    WorldCollisionContact* recs;
+    WorldCollisionBody*    body;
+    WorldCollisionContact* contacts;
     McSaveData*            save;
-    s32                    packed;
+    s32                    bodyKeyKind;
     s8                     intervalByte;
 
-    actor     = arg0->work;
-    extra     = arg0->extra.tmd;
-    companion = actor->companionWork;
-    addr      = &extra->coords;
-    coord     = *addr;
-    arg0->state++;
-    arg0->msgTable                                 = D_actor_800300_80168880;
-    arg0->exitCallback                             = &func_actor_800300_801625A8;
+    actor      = task->work;
+    model      = task->extra.tmd;
+    companion  = actor->companionWork;
+    coordsSlot = &model->coords;
+    rootCoord  = *coordsSlot;
+    task->state++;
+    task->msgTable                                 = D_actor_800300_80168880;
+    task->exitCallback                             = &_actor800300KillTask;
     actor->animationSlotCount                      = GAME_ACTOR_NORMAL_ANIMATION_SLOTS;
-    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = arg0;
-    coord->parent                                  = &gGfxViewCoord;
-    coord->composeStamp                            = GRAPHICS_COORD_DIRTY;
-    extra->flags                                   = 0;
-    RotMatrix(&actor->rotation, &coord->coord);
-    companionInitNativeAnimation(arg0);
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = task;
+    rootCoord->parent                              = &gGfxViewCoord;
+    rootCoord->composeStamp                        = GRAPHICS_COORD_DIRTY;
+    model->flags                                   = 0;
+    RotMatrix(&actor->rotation, &rootCoord->coord);
+    companionInitNativeAnimation(task);
     actor->animationRate = ANIMATION_RATE_ONE;
-    playerActorResetChildSlots(arg0, actor->actionArgument);
-    recs                                       = actor->collisionContacts;
-    obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
-    actor->previousPosition.vx                 = coord->coord.t[0];
-    actor->previousPosition.vy                 = coord->coord.t[1];
-    actor->previousPosition.vz                 = coord->coord.t[2];
-    obj->context.motion                        = &actor->collisionMotionContexts[0];
-    obj->coord                                 = coord;
-    actor->collisionMotionContexts[0].contacts = recs;
+    playerActorResetChildSlots(task, actor->actionArgument);
+    // Both spheres share contacts; only the root requests the floor.
+    contacts                                   = actor->collisionContacts;
+    body                                       = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
+    actor->previousPosition.vx                 = rootCoord->coord.t[0];
+    actor->previousPosition.vy                 = rootCoord->coord.t[1];
+    actor->previousPosition.vz                 = rootCoord->coord.t[2];
+    body->context.motion                       = &actor->collisionMotionContexts[0];
+    body->coord                                = rootCoord;
+    actor->collisionMotionContexts[0].contacts = contacts;
     save                                       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    obj->pos.vx                                = 0;
-    obj->pos.vy                                = -0x12C;
-    obj->pos.vz                                = 0;
+    body->pos.vx                               = 0;
+    body->pos.vy                               = -ACTOR_800300_ROOT_SPHERE_RADIUS;
+    body->pos.vz                               = 0;
     {
-        s32 temp;
+        s32 characterId;
 
-        temp        = save->state.characterId;
-        obj->radius = 0x12C;
-        obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
-        packed      = 0x10000;
-        obj->key    = temp | packed;
-        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
+        characterId  = save->state.characterId;
+        body->radius = ACTOR_800300_ROOT_SPHERE_RADIUS;
+        body->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
+        bodyKeyKind  = WORLD_COLLISION_CONTACT_PLAYER_BODY;
+        body->key    = characterId | bodyKeyKind;
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, body);
     }
     worldCollisionInitContacts(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
-    obj->flags                                |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
-    next                                       = arg0->extra.tmd->coords;
-    obj->context.motion                        = &actor->collisionMotionContexts[1];
-    obj->coord                                 = next + 4;
-    actor->collisionMotionContexts[1].contacts = recs;
-    obj->pos.vx                                = 0;
-    obj->pos.vy                                = 0;
-    obj->pos.vz                                = 0;
+    body->flags                               |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    body                                       = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
+    partCoords                                 = task->extra.tmd->coords;
+    body->context.motion                       = &actor->collisionMotionContexts[1];
+    body->coord                                = partCoords + ACTOR_800300_PART4_COORD_INDEX;
+    actor->collisionMotionContexts[1].contacts = contacts;
+    body->pos.vx                               = 0;
+    body->pos.vy                               = 0;
+    body->pos.vz                               = 0;
     {
-        s32 temp;
+        s32 characterId;
 
-        temp        = save->state.characterId;
-        obj->radius = 0xC8;
-        obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
-        obj->key    = temp | packed;
-        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
+        characterId  = save->state.characterId;
+        body->radius = ACTOR_800300_PART4_SPHERE_RADIUS;
+        body->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
+        body->key    = characterId | bodyKeyKind;
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, body);
     }
-    obj->flags                |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    body->flags               |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actor->collisionEnableMask = GAME_ACTOR_COLLISION_REQUEST_MASK;
-    companionSetDecisionDelay(arg0, 0x3C, 0x7F);
+    companionSetDecisionDelay(task, ACTOR_800300_INITIAL_DECISION_BASE_TICKS, ACTOR_800300_INITIAL_DECISION_RANDOM_MASK);
     intervalByte                                = (s8)COMPANION_DISTRESS_INITIAL_INTERVAL;
     companion->activity.distress.flinchInterval = intervalByte;
 }
 
-static void func_actor_800300_80162064(Task* arg0)
+/// Advances collision response, behavior and textures, then publishes motion and draws the shadow.
+///
+/// Requires initialized companion work, linked bodies and live room/view
+/// resources. Borrows one CompanionMoveScratch block until return. Headings
+/// use Q12 unit vectors; positions and shadow dimensions use game coordinates.
+static void _actor800300UpdateMove(Task* task)
 {
-    void**                scratch;
-    CompanionMoveScratch* frameEnd;
-    CompanionMoveScratch* frame;
-    GameActor*            actor;
-    TmdObject*            obj;
-    TmdObject*            extra;
-    GfxCoord*             coord;
-    WorldCollisionBody*   objs[2];
-    s32                   dy;
-    s32                   i;
-    s8                    bits;
+    enum {
+        ACTOR_800300_MAX_VERTICAL_STEP = 512,
+        ACTOR_800300_ROOT_FLOOR_LIFT   = 16,
+        ACTOR_800300_SHADOW_HALF_SIZE  = 512,
+    };
 
-    scratch                                        = SCRATCH_HEAD_ADDR;
-    frameEnd                                       = SCRATCH_HEAD_AT(scratch, CompanionMoveScratch);
-    obj                                            = arg0->extra.tmd;
-    SCRATCH_HEAD_AT(scratch, CompanionMoveScratch) = frameEnd - 1;
-    extra                                          = obj;
-    frame                                          = frameEnd - 1;
-    actor                                          = arg0->work;
-    coord                                          = extra->coords;
+    void**                cursorSlot;
+    CompanionMoveScratch* blockEnd;
+    CompanionMoveScratch* block;
+    GameActor*            actor;
+    TmdObject*            model;
+    TmdObject*            coordsModel;
+    GfxCoord*             rootCoord;
+    WorldCollisionBody*   bodies[2];
+    s32                   verticalDelta;
+    s32                   bodyIndex;
+    s8                    updateRequests;
+
+    cursorSlot                                        = SCRATCH_HEAD_ADDR;
+    blockEnd                                          = SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch);
+    model                                             = task->extra.tmd;
+    SCRATCH_HEAD_AT(cursorSlot, CompanionMoveScratch) = blockEnd - 1;
+    // Retain the two model locals so the frame prologue keeps its original scheduling.
+    coordsModel = model;
+    block       = blockEnd - 1;
+    actor       = task->work;
+    rootCoord   = coordsModel->coords;
+    // Reject abrupt height changes before consuming the preceding grid pass.
     if (actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
-        (dy = coord->coord.t[1], dy = dy - actor->previousPosition.vy, dy = ABS(dy), dy >= 0x200)) {
-        coord->coord.t[0] = actor->previousPosition.vx;
-        coord->coord.t[1] = actor->previousPosition.vy;
-        coord->coord.t[2] = actor->previousPosition.vz;
+        (verticalDelta = rootCoord->coord.t[1], verticalDelta = verticalDelta - actor->previousPosition.vy, verticalDelta = ABS(verticalDelta), verticalDelta >= ACTOR_800300_MAX_VERTICAL_STEP)) {
+        _actor800300RestorePreviousPosition(rootCoord, actor);
     } else {
-        if (actor->collisionEnableMask & 1) {
-            actor->gridResponse = worldCollisionApplyResponsePushback(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
-            if ((s8)actor->gridResponse == 2) {
-                coord->coord.t[0] = actor->previousPosition.vx;
-                coord->coord.t[1] = actor->previousPosition.vy;
-                coord->coord.t[2] = actor->previousPosition.vz;
+        if (actor->collisionEnableMask & (1 << GAME_ACTOR_BODY_ROOT)) {
+            actor->gridResponse = worldCollisionApplyResponsePushback(rootCoord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
+            if ((s8)actor->gridResponse == WORLD_COLLISION_PUSHBACK_OPPOSED) {
+                _actor800300RestorePreviousPosition(rootCoord, actor);
             }
         } else {
-            actor->gridResponse = 0;
+            actor->gridResponse = WORLD_COLLISION_PUSHBACK_NO_GRID_HIT;
         }
-        actor->previousPosition.vx = coord->coord.t[0];
-        actor->previousPosition.vy = coord->coord.t[1];
-        actor->previousPosition.vz = coord->coord.t[2];
+        actor->previousPosition.vx = rootCoord->coord.t[0];
+        actor->previousPosition.vy = rootCoord->coord.t[1];
+        actor->previousPosition.vz = rootCoord->coord.t[2];
     }
-    objs[0] = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
-    objs[1] = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
-    for (i = 0; i < 2; i++) {
-        bits = actor->pendingCollisionUpdates;
-        if ((bits >> i) & 1) {
-            actor->collisionEnableMask |= 1 << i;
-            objs[i]->flags             |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        } else if (bits & (8 << i)) {
-            actor->collisionEnableMask &= ~(1 << i);
-            objs[i]->flags             &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
+    // Apply deferred enable/disable requests to this model's two linked bodies.
+    bodies[0] = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
+    bodies[1] = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
+    for (bodyIndex = 0; bodyIndex < (s32)ARRAY_SIZE(bodies); bodyIndex++) {
+        updateRequests = actor->pendingCollisionUpdates;
+        if ((updateRequests >> bodyIndex) & 1) {
+            actor->collisionEnableMask |= 1 << bodyIndex;
+            bodies[bodyIndex]->flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        } else if (updateRequests & ((1 << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT) << bodyIndex)) {
+            actor->collisionEnableMask &= ~(1 << bodyIndex);
+            bodies[bodyIndex]->flags   &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
         }
     }
     actor->pendingCollisionUpdates = 0;
     if (D_80115768 == 0) {
-        func_actor_800300_80162C2C(arg0);
+        _actor800300TickMode(task);
     }
-    func_actor_800300_801623F8(arg0);
+    _actor800300TickTextureSequences(task);
     worldCollisionClearContacts(actor->collisionContacts);
-    if (actor->collisionEnableMask & 1) {
-        coord->coord.t[1] = actor->previousPosition.vy + 0x10;
+    if (actor->collisionEnableMask & (1 << GAME_ACTOR_BODY_ROOT)) {
+        rootCoord->coord.t[1] = actor->previousPosition.vy + ACTOR_800300_ROOT_FLOOR_LIFT;
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    if ((s8)actor->usesPushbackDirection != 0) {
-        frame->motionDirection.vx = actor->pushbackDirection.vx;
-        frame->motionDirection.vy = actor->pushbackDirection.vy;
-        frame->motionDirection.vz = actor->pushbackDirection.vz;
-    } else {
-        frame->motionDirection.vx = (u16)coord->workm.m[0][2] * (s8) * (volatile u8*)&actor->movementSign;
-        frame->motionDirection.vy = (u16)coord->workm.m[1][2] * (s8) * (volatile u8*)&actor->movementSign;
-        frame->motionDirection.vz = (u16)coord->workm.m[2][2] * (s8) * (volatile u8*)&actor->movementSign;
-    }
-    actor->collisionMotionContexts[0].motionDirection.vx = frame->motionDirection.vx;
-    actor->collisionMotionContexts[0].motionDirection.vy = frame->motionDirection.vy;
-    actor->collisionMotionContexts[0].motionDirection.vz = frame->motionDirection.vz;
-    actor->collisionMotionContexts[1].motionDirection.vx = frame->motionDirection.vx;
-    actor->collisionMotionContexts[1].motionDirection.vy = frame->motionDirection.vy;
-    actor->collisionMotionContexts[1].motionDirection.vz = frame->motionDirection.vz;
-    actor->collisionMotionContexts[2].motionDirection.vx = frame->motionDirection.vx;
-    actor->collisionMotionContexts[2].motionDirection.vy = frame->motionDirection.vy;
-    actor->collisionMotionContexts[2].motionDirection.vz = frame->motionDirection.vz;
-    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&coord->workm), &frame->shadowCentre) != 0) {
-            effectDrawGroundShadow(&frame->shadowCentre, 0x200, gRoomEffectState->groundShadowShade);
+    // Publish the composed heading before probing the floor for the shadow.
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    _actor800300PublishMotionDirection(actor, rootCoord, block);
+    if (!(coordsModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&rootCoord->workm), &block->shadowCentre) != 0) {
+            effectDrawGroundShadow(&block->shadowCentre, ACTOR_800300_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(CompanionMoveScratch);
 }
 
-static void func_actor_800300_801623F8(Task* arg0)
+/// Advances two null-terminated texture sequences on separate model texture regions.
+///
+/// Selectors are signed-byte views: A must be 0..4 and B 0..2 (0 inactive).
+/// Frame indices start at zero and advance through the selected list's NULL
+/// terminator. X counts two positions per VRAM word; width counts words, and
+/// Y/height count rows. Requires a live texture page, writable upload lists
+/// and eight free scratch bytes for a RECT. Image pixels survive queued transfers.
+static void _actor800300TickTextureSequences(Task* task)
 {
-    void**            scratch;
-    u8*               head;
-    u8*               temp;
-    RECT*             rect;
+    enum {
+        ACTOR_800300_TEXTURE_A_Y           = 0x40,
+        ACTOR_800300_TEXTURE_A_WIDTH_WORDS = 25,
+        ACTOR_800300_TEXTURE_B_X           = 12,
+        ACTOR_800300_TEXTURE_B_Y           = 0x60,
+        ACTOR_800300_TEXTURE_B_WIDTH_WORDS = 14,
+        ACTOR_800300_TEXTURE_HEIGHT        = 20,
+        ACTOR_800300_TEXTURE_A_FRAME_TICKS = 4,
+        ACTOR_800300_TEXTURE_B_FRAME_TICKS = 8,
+    };
+
+    RECT*             uploadRect;
     GameActor*        actor;
-    GpuImageUpload*** frameLists;
-    s32               idx;
-    u32               row;
+    GpuImageUpload*** sequences;
+    s32               sequenceIndex;
+    u32               secondSequenceIndex;
     GpuImageUpload*   uploadList;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    actor                          = arg0->work;
-    temp                           = head - 8;
-    SCRATCH_HEAD_AT(scratch, void) = temp;
-    rect                           = (RECT*)temp;
+    uploadRect = SCRATCH_STACK_RESERVE_BLOCK(RECT);
+    actor      = task->work;
 
     if ((s8)actor->textureSequenceA != 0) {
         actor->textureDelayA--;
         if ((s8)actor->textureDelayA <= 0) {
-            frameLists = D_actor_800300_80168950;
-            idx        = (s8)actor->textureSequenceA - 1;
-            uploadList = frameLists[idx][(s8)actor->textureFrameA];
+            sequences     = D_actor_800300_80168950;
+            sequenceIndex = (s8)actor->textureSequenceA - 1;
+            uploadList    = sequences[sequenceIndex][(s8)actor->textureFrameA];
             if (uploadList != NULL) {
-                ((RECT*)head)[-1].x = 0;
-                rect->y             = 0x40;
-                rect->w             = 0x19;
-                rect->h             = 0x14;
-                actorRenderUploadTexture(arg0, uploadList, rect);
-                actor->textureDelayA = 4;
+                uploadRect->x = 0;
+                uploadRect->y = ACTOR_800300_TEXTURE_A_Y;
+                uploadRect->w = ACTOR_800300_TEXTURE_A_WIDTH_WORDS;
+                uploadRect->h = ACTOR_800300_TEXTURE_HEIGHT;
+                actorRenderUploadTexture(task, uploadList, uploadRect);
+                actor->textureDelayA = ACTOR_800300_TEXTURE_A_FRAME_TICKS;
                 actor->textureFrameA++;
             } else {
                 actor->textureSequenceA = 0;
@@ -749,16 +814,16 @@ static void func_actor_800300_801623F8(Task* arg0)
     if ((s8)actor->textureSequenceB != 0) {
         actor->textureDelayB--;
         if ((s8)actor->textureDelayB <= 0) {
-            frameLists = D_actor_800300_80168960;
-            idx        = (row = (s8)actor->textureSequenceB - 1);
-            uploadList = frameLists[row][(s8)actor->textureFrameB];
+            sequences           = D_actor_800300_80168960;
+            secondSequenceIndex = (s8)actor->textureSequenceB - 1;
+            uploadList          = sequences[secondSequenceIndex][(s8)actor->textureFrameB];
             if (uploadList != NULL) {
-                rect->x = 0xC;
-                rect->y = 0x60;
-                rect->w = 0xE;
-                rect->h = 0x14;
-                actorRenderUploadTexture(arg0, uploadList, rect);
-                actor->textureDelayB = 8;
+                uploadRect->x = ACTOR_800300_TEXTURE_B_X;
+                uploadRect->y = ACTOR_800300_TEXTURE_B_Y;
+                uploadRect->w = ACTOR_800300_TEXTURE_B_WIDTH_WORDS;
+                uploadRect->h = ACTOR_800300_TEXTURE_HEIGHT;
+                actorRenderUploadTexture(task, uploadList, uploadRect);
+                actor->textureDelayB = ACTOR_800300_TEXTURE_B_FRAME_TICKS;
                 actor->textureFrameB++;
             } else {
                 actor->textureSequenceB = 0;
@@ -766,23 +831,28 @@ static void func_actor_800300_801623F8(Task* arg0)
         }
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BLOCK(RECT);
 }
 
-static void func_actor_800300_8016259C(Task* arg0)
+/// Defers companion teardown to the main task's next dispatch.
+static void _actor800300DeferRemoval(Task* task)
 {
-    arg0->state = 3;
+    enum {
+        ACTOR_800300_TASK_TEARDOWN = 3,
+    };
+
+    task->state = ACTOR_800300_TASK_TEARDOWN;
 }
 
-/// Teardown of the actor's main task, run both as its exit callback and as
-/// the last entry of its state table: clears the second `gPlayerActorTasks` slot,
-/// unlinks the two collision objects the set-up state linked, and kills the
-/// task.
-static void func_actor_800300_801625A8(Task* task)
+/// Releases the published companion and unlinks its borrowed collision storage before task destruction.
+///
+/// Runs as task state 3 or the exit callback. Requires initialized GameActor
+/// storage; taskKill owns the remaining model, work and child-task teardown.
+static void _actor800300KillTask(Task* task)
 {
     GameActor* actor;
 
-    actor                                          = (GameActor*)task->work;
+    actor                                          = task->work;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
     worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_ROOT]);
     worldCollisionUnlinkBody(&actor->collisionBodies[GAME_ACTOR_BODY_PART4]);
@@ -793,16 +863,13 @@ static void func_actor_800300_801625A8(Task* task)
 /// per-frame update, a step that only advances to the last state, and the
 /// teardown.
 static const TaskFuncTable4 D_actor_800300_80161E24 = { {
-    func_actor_800300_80161E80,
-    func_actor_800300_80162064,
-    func_actor_800300_8016259C,
-    func_actor_800300_801625A8,
+    _actor800300Init,
+    _actor800300UpdateMove,
+    _actor800300DeferRemoval,
+    _actor800300KillTask,
 } };
 
-/// Per-frame entry point of the actor's main task: runs the handler its state
-/// selects. The table is a local, so it is copied from `.rodata` onto the
-/// stack on every call.
-void func_actor_800300_801625F4(Task* task)
+void actor800300Task(Task* task)
 {
     TaskFuncTable4 states;
 
@@ -810,28 +877,48 @@ void func_actor_800300_801625F4(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Handlers `func_actor_800300_80162C2C` runs, indexed by `mode`.
+/// Handlers `_actor800300TickMode` runs, indexed by `mode`.
 static const TaskFuncTable3 D_actor_800300_80161E34 = { {
-    func_actor_800300_80162658,
-    func_actor_800300_80162F24,
-    func_actor_800300_80162F98,
+    _actor800300TickNormalMode,
+    _actor800300TickDamageMode,
+    _actor800300TickScriptedMode,
 } };
 
-/// Behaviours `func_actor_800300_80162658` runs, indexed by `state`.
+/// Behaviours `_actor800300TickNormalMode` runs, indexed by `state`.
 static const TaskFuncTable9 D_actor_800300_80161E40 = { {
-    func_actor_800300_80162C98,
-    func_actor_800300_801628D0,
-    func_actor_800300_80162A98,
-    func_actor_800300_80162C98,
-    func_actor_800300_80162C98,
-    func_actor_800300_80162EEC,
-    func_actor_800300_80162C98,
+    _actor800300IdleDecisionState,
+    _actor800300FollowPlayerState,
+    _actor800300TurnToTargetState,
+    _actor800300IdleDecisionState,
+    _actor800300IdleDecisionState,
+    _actor800300FlinchState,
+    _actor800300IdleDecisionState,
     func_actor_800300_80162D74,
-    func_actor_800300_80162C98,
+    _actor800300IdleDecisionState,
 } };
 
-static void func_actor_800300_80162658(Task* arg0)
+/// Runs normal companion behavior, recurring distress and contact reactions, then advances motion.
+///
+/// Requires live actor/companion work, native playback, contacts and a player
+/// root in the same room frame. Normal state must be 0..8. Decision and distress
+/// delay counts active normal-mode ticks; flinch intervals count non-flinch
+/// ticks. Interval/count comparisons use signed bytes and retain counter wrap.
+/// Fatal distress damage stops this tick early.
+static void _actor800300TickNormalMode(Task* task)
 {
+    enum {
+        ACTOR_800300_DISTRESS_START_TICKS    = 780,
+        ACTOR_800300_DISTRESS_SOUND_BASE     = 0x55170005,
+        ACTOR_800300_DISTRESS_ATTACK_KEY     = 0x40010,
+        ACTOR_800300_ANIMATION_FLINCH        = 16,
+        ACTOR_800300_ANIMATION_SEVERE_FLINCH = 17,
+        ACTOR_800300_FLINCH_BLEND_FRAMES     = 3,
+        ACTOR_800300_PART4_HIT_SOUND         = 6,
+        ACTOR_800300_OTHER_BODY_HIT_SOUND    = 7,
+        ACTOR_800300_HIT_REGION_NONE         = 0,
+        ACTOR_800300_HIT_REGION_PART4        = 1,
+    };
+
     enum {
         COMPANION_DISTRESS_INTERVAL_DECREMENT  = 7,
         COMPANION_DISTRESS_INTERVAL_THRESHOLD  = 90,
@@ -839,25 +926,26 @@ static void func_actor_800300_80162658(Task* arg0)
         COMPANION_DISTRESS_SEVERE_FLINCH_COUNT = 5
     };
 
-    TaskFuncTable9 sp;
+    TaskFuncTable9 states;
     GameActor*     actor;
     CompanionWork* companion;
-    GfxCoord*      obj;
+    GfxCoord*      rootCoord;
     s8             nextInterval;
     s32            pan;
     s32            depth;
-    s32            anim;
-    s32            sound;
+    s32            animationSet;
+    s32            hitSound;
 
-    sp        = D_actor_800300_80161E40;
-    actor     = arg0->work;
+    states    = D_actor_800300_80161E40;
+    actor     = task->work;
     companion = actor->companionWork;
-    obj       = arg0->extra.tmd->coords;
+    rootCoord = task->extra.tmd->coords;
     if (companion->decisionTimer > 0) {
         companion->decisionTimer = (u16)companion->decisionTimer - 1;
     }
-    if (D_map_neo_ark_8017A99C >= 0x30C) {
-        if (actor->state != 5) {
+    // Distress interrupts normal behavior once the persistent distress counter reaches its threshold.
+    if (D_map_neo_ark_8017A99C >= ACTOR_800300_DISTRESS_START_TICKS) {
+        if (actor->state != ACTOR_800300_STATE_FLINCH) {
             actor->idleTicks++;
             if ((s16)actor->idleTicks >= (s8)companion->activity.distress.flinchInterval) {
                 actor->idleTicks = 0;
@@ -868,209 +956,269 @@ static void func_actor_800300_80162658(Task* arg0)
                 if (nextInterval < COMPANION_DISTRESS_INTERVAL_THRESHOLD) {
                     companion->activity.distress.flinchInterval = COMPANION_DISTRESS_RESTART_INTERVAL;
                 }
-                actor->animationState   = 7;
-                actor->state            = 5;
-                actor->movementMode     = 0;
-                actor->turnRateIndex    = 0;
+                actor->animationState   = ACTOR_800300_ANIMATION_CONTROLLER_CLIP_END;
+                actor->state            = ACTOR_800300_STATE_FLINCH;
+                actor->movementMode     = ACTOR_800300_MOVEMENT_STOPPED;
+                actor->turnRateIndex    = ACTOR_800300_TURN_DISABLED;
                 actor->statePhase       = 0;
                 actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
-                worldCoordPlaySound(obj, (rand() & 1) + 0x55170005, 0);
-                if (companionApplyDamage(arg0, 0, 0x40010, 0) != 0) {
+                worldCoordPlaySound(rootCoord, (rand() & 1) + ACTOR_800300_DISTRESS_SOUND_BASE, 0);
+                if (companionApplyDamage(task, 0, ACTOR_800300_DISTRESS_ATTACK_KEY, 0) != 0) {
                     return;
                 }
-                anim = 0x10;
+                animationSet = ACTOR_800300_ANIMATION_FLINCH;
                 if ((s8)companion->activity.distress.flinchCount >= COMPANION_DISTRESS_SEVERE_FLINCH_COUNT) {
-                    anim = 0x11;
+                    animationSet = ACTOR_800300_ANIMATION_SEVERE_FLINCH;
                 }
-                playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 3);
+                playerActorPlayChildSlotsWithBlend(task, animationSet, 0, ACTOR_800300_FLINCH_BLEND_FRAMES);
             }
         }
     }
-    sp.funcs[actor->state](arg0);
+    states.funcs[actor->state](task);
+    // Resolve contacts after the state step; fatal distress returns before this phase.
     if ((s8)actor->recoveryTicks == 0) {
-        playerActorResolveBodyContacts(arg0, &actor->collisionContacts[0]);
-        if ((u16)actor->hitRegion != 0) {
-            companionEnterDamageReaction(arg0);
-            pan   = (s8)worldCoordGetOriginAudioPan(obj);
-            depth = (s8)worldCoordGetOriginAudioDepth(obj);
-            sound = 7;
-            if ((u16)actor->hitRegion == 1) {
-                sound = 6;
+        playerActorResolveBodyContacts(task, &actor->collisionContacts[0]);
+        if ((u16)actor->hitRegion != ACTOR_800300_HIT_REGION_NONE) {
+            companionEnterDamageReaction(task);
+            pan      = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            depth    = (s8)worldCoordGetOriginAudioDepth(rootCoord);
+            hitSound = ACTOR_800300_OTHER_BODY_HIT_SOUND;
+            if ((u16)actor->hitRegion == ACTOR_800300_HIT_REGION_PART4) {
+                hitSound = ACTOR_800300_PART4_HIT_SOUND;
             }
-            sndEvtRequestScriptStart(sound, pan, depth);
+            sndEvtRequestScriptStart(hitSound, pan, depth);
         }
     }
-    playerActorTickAnimationState(arg0);
-    playerActorTickChildSlots(arg0);
-    playerActorUpdateFacing(arg0);
-    playerActorStepMovement(arg0);
+    playerActorTickAnimationState(task);
+    playerActorTickChildSlots(task);
+    playerActorUpdateFacing(task);
+    playerActorStepMovement(task);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-        playerActorEnterStoppedPose(arg0, 0);
+        playerActorEnterStoppedPose(task, 0);
     }
 }
 
-static void func_actor_800300_801628D0(Task* arg0)
+/// Follows the player, choosing run or slow walk and returning to idle within 768 game units.
+///
+/// Requires live actor/native playback and both roots in the same room frame.
+/// Forces walking after 180 moving ticks; speed may be reconsidered after the
+/// 60-tick delay. Body and aim track the player, and footstep cues advance.
+static void _actor800300FollowPlayerState(Task* task)
 {
-    GameActor* actor;
-    GfxCoord*  coord;
-    GfxCoord*  target;
-    VECTOR3*   vec;
-    s32        dist;
-    s32        angle;
-    s32        arg;
+    enum {
+        ACTOR_800300_FOLLOW_SELECT_SPEED       = 0,
+        ACTOR_800300_FOLLOW_WALK               = 1,
+        ACTOR_800300_FOLLOW_RUN                = 2,
+        ACTOR_800300_FOLLOW_FORCED_WALK        = 3,
+        ACTOR_800300_MOVEMENT_RUN              = 3,
+        ACTOR_800300_MOVEMENT_SLOW_WALK        = 7,
+        ACTOR_800300_MOVE_FORWARD              = 1,
+        ACTOR_800300_ANIMATION_WALK            = 2,
+        ACTOR_800300_ANIMATION_RUN             = 4,
+        ACTOR_800300_FOLLOW_RUN_DISTANCE       = 0xE00,
+        ACTOR_800300_FOLLOW_ARRIVAL_DISTANCE   = 768,
+        ACTOR_800300_FOLLOW_FORCE_WALK_TICKS   = 180,
+        ACTOR_800300_FOLLOW_SPEED_JITTER_MASK  = 0x3FF,
+        ACTOR_800300_FOLLOW_RUN_KEEP_DISTANCE  = 0x800,
+        ACTOR_800300_FOLLOW_WALK_KEEP_DISTANCE = 0xC00,
+    };
 
-    coord  = arg0->extra.tmd->coords;
-    target = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    actor  = arg0->work;
+    GameActor* actor;
+    GfxCoord*  rootCoord;
+    GfxCoord*  playerCoord;
+    VECTOR3*   playerPoint;
+    s32        distance;
+    s32        speedJitter;
+    s32        animationSet;
+
+    rootCoord   = task->extra.tmd->coords;
+    playerCoord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    actor       = task->work;
     switch (actor->statePhase) {
-        case 0:
+        case ACTOR_800300_FOLLOW_SELECT_SPEED:
             actor->stateTimer = 0;
-            if (companionGetPlayerPlanarDistance(coord) >= 0xE00) {
-                arg                 = 4;
-                actor->statePhase   = 2;
-                actor->movementMode = 3;
+            if (companionGetPlayerPlanarDistance(rootCoord) >= ACTOR_800300_FOLLOW_RUN_DISTANCE) {
+                animationSet        = ACTOR_800300_ANIMATION_RUN;
+                actor->statePhase   = ACTOR_800300_FOLLOW_RUN;
+                actor->movementMode = ACTOR_800300_MOVEMENT_RUN;
             } else {
-            resume:
-                if (actor->statePhase != 3) {
-                    actor->statePhase = 1;
+            selectWalk:
+                if (actor->statePhase != ACTOR_800300_FOLLOW_FORCED_WALK) {
+                    actor->statePhase = ACTOR_800300_FOLLOW_WALK;
                 }
-                actor->movementMode = 7;
-                arg                 = 2;
+                actor->movementMode = ACTOR_800300_MOVEMENT_SLOW_WALK;
+                animationSet        = ACTOR_800300_ANIMATION_WALK;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 5);
+            playerActorPlayChildSlotsWithBlend(task, animationSet, 0, ACTOR_800300_MOVEMENT_BLEND_FRAMES);
             /* fallthrough */
-        case 1:
-        case 2:
-        case 3:
-            actor->movementSign = 1;
-            dist                = companionGetPlayerPlanarDistance(coord);
-            if (dist < 0x301) {
-                companionEnterIdle(arg0, 0);
+        case ACTOR_800300_FOLLOW_WALK:
+        case ACTOR_800300_FOLLOW_RUN:
+        case ACTOR_800300_FOLLOW_FORCED_WALK:
+            actor->movementSign = ACTOR_800300_MOVE_FORWARD;
+            distance            = companionGetPlayerPlanarDistance(rootCoord);
+            if (distance < (ACTOR_800300_FOLLOW_ARRIVAL_DISTANCE + 1)) {
+                companionEnterIdle(task, 0);
                 break;
             }
-            if (actor->statePhase == 3) {
+            if (actor->statePhase == ACTOR_800300_FOLLOW_FORCED_WALK) {
                 break;
             }
             actor->stateTimer++;
-            if (actor->stateTimer == 0xB4) {
-                actor->statePhase = 3;
-                goto resume;
+            if (actor->stateTimer == ACTOR_800300_FOLLOW_FORCE_WALK_TICKS) {
+                actor->statePhase = ACTOR_800300_FOLLOW_FORCED_WALK;
+                goto selectWalk;
             }
             if (actor->actionValue > 0) {
                 actor->actionValue = (u16)actor->actionValue - 1;
             } else {
-                angle = rand() & 0x3FF;
-                if (((0x800 - angle) >= dist && actor->statePhase == 2) || (dist >= angle + 0xC00 && actor->statePhase == 1)) {
-                    actor->statePhase  = 0;
-                    actor->actionValue = 0x3C;
+                speedJitter = rand() & ACTOR_800300_FOLLOW_SPEED_JITTER_MASK;
+                if (((ACTOR_800300_FOLLOW_RUN_KEEP_DISTANCE - speedJitter) >= distance && actor->statePhase == ACTOR_800300_FOLLOW_RUN) || (distance >= speedJitter + ACTOR_800300_FOLLOW_WALK_KEEP_DISTANCE && actor->statePhase == ACTOR_800300_FOLLOW_WALK)) {
+                    actor->statePhase  = ACTOR_800300_FOLLOW_SELECT_SPEED;
+                    actor->actionValue = ACTOR_800300_FOLLOW_RESELECT_DELAY_TICKS;
                 }
             }
             break;
     }
-    vec = MATRIX_TRANS(&target->coord);
-    playerActorTurnBodyTowardPoint(arg0, vec);
-    playerActorTurnAimTowardPoint(arg0, vec);
-    playerActorPlayFootstepCue(arg0);
+    playerPoint = MATRIX_TRANS(&playerCoord->coord);
+    playerActorTurnBodyTowardPoint(task, playerPoint);
+    playerActorTurnAimTowardPoint(task, playerPoint);
+    playerActorPlayFootstepCue(task);
 }
 
-static void func_actor_800300_80162A98(Task* arg0)
+/// Turns in place toward the lock target, or the player when no target is selected.
+///
+/// Requires live actor/native playback and player/model coordinates. Completes
+/// within 128 yaw units (4096 per turn); aim follows the player. An invalid lock
+/// skips the turn phases. Borrows 16 scratch bytes for XYZ; the last word is untouched.
+static void _actor800300TurnToTargetState(Task* task)
 {
-    u8*              head;
-    VECTOR3*         vec;
+    enum {
+        ACTOR_800300_TARGET_POINT_SCRATCH_BYTES = 16,
+        ACTOR_800300_TARGET_TURN_START          = 0,
+        ACTOR_800300_TARGET_TURN_ACTIVE         = 1,
+        ACTOR_800300_TARGET_TURN_INVALID        = 2,
+        ACTOR_800300_TARGET_TURN_TOLERANCE      = 128,
+        ACTOR_800300_TURN_NEGATIVE              = -1,
+        ACTOR_800300_TURN_POSITIVE              = 1,
+        ACTOR_800300_ANIMATION_TURN_LEFT        = 5,
+        ACTOR_800300_ANIMATION_TURN_RIGHT       = 6,
+    };
+
+    VECTOR3*         targetPoint;
     GameActor*       actor;
     WorldTargetNode* node;
-    TmdObject*       extra;
-    GfxCoord*        src;
-    s32              turnDelta;
-    s32              arg;
-    s32              flag;
+    TmdObject*       playerModel;
+    GfxCoord*        playerCoord;
+    s32              yawMagnitude;
+    s32              animationSet;
+    s32              turnPhase;
 
-    actor                    = arg0->work;
-    extra                    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x10;
-    vec                      = (VECTOR3*)(head - 0x10);
-    node                     = actor->targetNode;
-    src                      = extra->coords;
+    actor       = task->work;
+    playerModel = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
+    targetPoint = SCRATCH_STACK_RESERVE_BYTES(ACTOR_800300_TARGET_POINT_SCRATCH_BYTES);
+    node        = actor->targetNode;
+    playerCoord = playerModel->coords;
     if (node != NULL) {
         if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            worldTargetGetBodyPosition(node, vec);
+            worldTargetGetBodyPosition(node, targetPoint);
         } else {
-            actor->statePhase = 2;
+            actor->statePhase = ACTOR_800300_TARGET_TURN_INVALID;
         }
     } else {
-        ((VECTOR3*)(head - 0x10))->vx = src->coord.t[0];
-        vec->vy                       = src->coord.t[1];
-        vec->vz                       = src->coord.t[2];
+        targetPoint->vx = playerCoord->coord.t[0];
+        targetPoint->vy = playerCoord->coord.t[1];
+        targetPoint->vz = playerCoord->coord.t[2];
     }
     switch (actor->statePhase) {
-        case 0:
-            flag              = 1;
-            actor->statePhase = flag;
-            if (playerActorGetTurnToPoint(arg0, vec) < 0) {
-                actor->actionValue = -1;
-                arg                = 5;
+        case ACTOR_800300_TARGET_TURN_START:
+            turnPhase         = ACTOR_800300_TARGET_TURN_ACTIVE;
+            actor->statePhase = turnPhase;
+            if (playerActorGetTurnToPoint(task, targetPoint) < 0) {
+                actor->actionValue = ACTOR_800300_TURN_NEGATIVE;
+                animationSet       = ACTOR_800300_ANIMATION_TURN_LEFT;
             } else {
-                actor->actionValue = 1;
-                arg                = 6;
+                actor->actionValue = ACTOR_800300_TURN_POSITIVE;
+                animationSet       = ACTOR_800300_ANIMATION_TURN_RIGHT;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 5);
+            playerActorPlayChildSlotsWithBlend(task, animationSet, 0, ACTOR_800300_MOVEMENT_BLEND_FRAMES);
             /* fallthrough */
-        case 1:
+        case ACTOR_800300_TARGET_TURN_ACTIVE:
             actor->turnSign = (u8)actor->actionValue;
-            turnDelta       = playerActorGetTurnToPoint(arg0, vec);
-            if (turnDelta < 0) {
-                turnDelta = -turnDelta;
+            yawMagnitude    = playerActorGetTurnToPoint(task, targetPoint);
+            if (yawMagnitude < 0) {
+                yawMagnitude = -yawMagnitude;
             }
-            if ((turnDelta < 0x81) || (actor->statePhase == 2)) {
-                companionEnterIdle(arg0, 0);
+            if ((yawMagnitude < (ACTOR_800300_TARGET_TURN_TOLERANCE + 1)) || (actor->statePhase == ACTOR_800300_TARGET_TURN_INVALID)) {
+                companionEnterIdle(task, 0);
             }
             break;
     }
-    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&src->coord));
-    playerActorPlayFootstepCue(arg0);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    playerActorPlayFootstepCue(task);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_800300_TARGET_POINT_SCRATCH_BYTES);
 }
 
-static void func_actor_800300_80162C2C(Task* arg0)
+/// Clears movement requests, dispatches the selected companion mode and releases the pushback override.
+///
+/// Requires initialized GameActor work with mode 0..2. The selected mode owns
+/// this tick's movement/turn signs; the previous collision pushback heading
+/// remains available to it until dispatch returns.
+static void _actor800300TickMode(Task* task)
 {
     GameActor*     actor;
-    TaskFuncTable3 sp;
+    TaskFuncTable3 modes;
 
-    sp                  = D_actor_800300_80161E34;
-    actor               = arg0->work;
+    modes               = D_actor_800300_80161E34;
+    actor               = task->work;
     actor->movementSign = 0;
     actor->turnSign     = 0;
-    sp.funcs[actor->mode](arg0);
+    modes.funcs[actor->mode](task);
     actor->usesPushbackDirection = 0;
 }
 
-static void func_actor_800300_80162C98(Task* arg0)
+/// Periodically chooses player-following or an in-place turn while idle.
+///
+/// Requires live actor/companion work, native playback and the player root.
+/// Decisions recur after 20..83 active normal ticks. Follow starts at planar
+/// distance 1409..3583 game units; a yaw gap of at least 512/4096 turn overrides
+/// it with a turn toward the player. Aim and footstep cues still advance between decisions.
+static void _actor800300IdleDecisionState(Task* task)
 {
-    GameActor* actor;
-    GfxCoord*  coord;
-    GfxCoord*  target;
-    s32        turnDelta;
+    enum {
+        ACTOR_800300_IDLE_DECISION_BASE_TICKS  = 20,
+        ACTOR_800300_IDLE_DECISION_RANDOM_MASK = 0x3F,
+        ACTOR_800300_IDLE_FOLLOW_MIN_DISTANCE  = 0x580,
+        ACTOR_800300_IDLE_FOLLOW_MAX_DISTANCE  = 0xE00,
+        ACTOR_800300_IDLE_TURN_THRESHOLD       = 512,
+    };
 
-    actor  = arg0->work;
-    coord  = arg0->extra.tmd->coords;
-    target = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    if (((GameActor*)arg0->work)->companionWork->decisionTimer <= 0) {
-        companionSetDecisionDelay(arg0, 0x14, 0x3F);
-        if ((u32)(companionGetPlayerPlanarDistance(coord) - 0x581) < 0x87F) {
-            func_actor_800300_80163048(arg0);
+    GameActor* actor;
+    GameActor* timerActor;
+    GfxCoord*  rootCoord;
+    GfxCoord*  playerCoord;
+    s32        yawMagnitude;
+
+    actor       = task->work;
+    rootCoord   = task->extra.tmd->coords;
+    playerCoord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    // Reload work after the player-slot lookup before testing the decision timer.
+    timerActor = task->work;
+    if (timerActor->companionWork->decisionTimer <= 0) {
+        companionSetDecisionDelay(task, ACTOR_800300_IDLE_DECISION_BASE_TICKS, ACTOR_800300_IDLE_DECISION_RANDOM_MASK);
+        if ((u32)(companionGetPlayerPlanarDistance(rootCoord) - (ACTOR_800300_IDLE_FOLLOW_MIN_DISTANCE + 1)) < (ACTOR_800300_IDLE_FOLLOW_MAX_DISTANCE - ACTOR_800300_IDLE_FOLLOW_MIN_DISTANCE - 1)) {
+            _actor800300EnterFollowPlayer(task);
         }
-        turnDelta = playerActorGetTurnToPoint(arg0, MATRIX_TRANS(&target->coord));
-        if (turnDelta < 0) {
-            turnDelta = -turnDelta;
+        yawMagnitude = playerActorGetTurnToPoint(task, MATRIX_TRANS(&playerCoord->coord));
+        if (yawMagnitude < 0) {
+            yawMagnitude = -yawMagnitude;
         }
-        if (turnDelta >= 0x200) {
+        if (yawMagnitude >= ACTOR_800300_IDLE_TURN_THRESHOLD) {
             actor->targetNode = NULL;
-            func_actor_800300_80163074(arg0);
+            _actor800300EnterTurnToTarget(task);
         }
     }
-    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
-    playerActorPlayFootstepCue(arg0);
+    playerActorTurnAimTowardPoint(task, MATRIX_TRANS(&playerCoord->coord));
+    playerActorPlayFootstepCue(task);
 }
 
 static void func_actor_800300_80162D74(Task* arg0)
@@ -1122,35 +1270,55 @@ static void func_actor_800300_80162D74(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-static void func_actor_800300_80162EEC(Task* arg0)
+/// Returns to normal idle after the distress clip-end controller advances phase 0 to 1.
+///
+/// Requires live GameActor work and native playback; earlier phases keep the
+/// flinch state active without starting another animation.
+static void _actor800300FlinchState(Task* task)
 {
-    if (((GameActor*)arg0->work)->statePhase == 1) {
-        companionEnterIdle(arg0, 0);
+    enum {
+        ACTOR_800300_FLINCH_FINISHED = 1,
+    };
+
+    if (((GameActor*)task->work)->statePhase == ACTOR_800300_FLINCH_FINISHED) {
+        companionEnterIdle(task, 0);
     }
 }
 
-static void func_actor_800300_80162F24(Task* arg0)
+/// Lifts the root once on damage-mode entry, then advances playback, facing and movement.
+///
+/// Requires live GameActor/model playback. Phase 0 adds 192 local game units
+/// to Y and enters phase 1; other phases do nothing. HP and contact damage are
+/// handled by the callers that select this mode.
+static void _actor800300TickDamageMode(Task* task)
 {
-    GameActor* actor;
-    GfxCoord*  coord;
-    s32        flag;
+    enum {
+        ACTOR_800300_DAMAGE_START     = 0,
+        ACTOR_800300_DAMAGE_ACTIVE    = 1,
+        ACTOR_800300_DAMAGE_ROOT_LIFT = 192,
+    };
 
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    GameActor* actor;
+    GfxCoord*  rootCoord;
+    s32        activePhase;
+
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
     switch (actor->statePhase) {
-        case 0:
-            flag               = 1;
-            actor->statePhase  = flag;
-            coord->coord.t[1] += 0xC0;
-        case 1:
-            playerActorTickChildSlots(arg0);
-            playerActorUpdateFacing(arg0);
-            playerActorStepMovement(arg0);
+        case ACTOR_800300_DAMAGE_START:
+            activePhase            = ACTOR_800300_DAMAGE_ACTIVE;
+            actor->statePhase      = activePhase;
+            rootCoord->coord.t[1] += ACTOR_800300_DAMAGE_ROOT_LIFT;
+            /* fallthrough */
+        case ACTOR_800300_DAMAGE_ACTIVE:
+            playerActorTickChildSlots(task);
+            playerActorUpdateFacing(task);
+            playerActorStepMovement(task);
             break;
     }
 }
 
-/// Handlers `func_actor_800300_80162F98` runs, indexed by `state`: the
+/// Handlers `_actor800300TickScriptedMode` runs, indexed by `state`: the
 /// gameplay module's own mode-2 player states.
 static const TaskFuncTable7 D_actor_800300_80161E64 = { {
     Gp_PlayerMode2State0,
@@ -1162,49 +1330,57 @@ static const TaskFuncTable7 D_actor_800300_80161E64 = { {
     playerActorMode2State6,
 } };
 
-static void func_actor_800300_80162F98(Task* arg0)
+/// Dispatches the companion's scripted player states, updates facing and selects the zero-HP pose.
+///
+/// Requires live actor/model playback and a state within this package's seven
+/// handlers (0..6). No bound check runs; message-selected states must satisfy
+/// that domain. Movement and slot playback belong to the selected handler.
+static void _actor800300TickScriptedMode(Task* task)
 {
     GameActor*     actor;
-    TaskFuncTable7 sp;
+    TaskFuncTable7 states;
 
-    sp    = D_actor_800300_80161E64;
-    actor = arg0->work;
-    sp.funcs[(u16)actor->state](arg0);
-    playerActorUpdateFacing(arg0);
+    states = D_actor_800300_80161E64;
+    actor  = task->work;
+    states.funcs[(u16)actor->state](task);
+    playerActorUpdateFacing(task);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-        playerActorEnterStoppedPose(arg0, 0);
+        playerActorEnterStoppedPose(task, 0);
     }
 }
 
-/// Switches the actor's update into its approach behaviour (entry 1 of the
-/// behaviour table), restarting the behaviour's step and counters and setting
-/// the approach timer to 60 frames.
-static void func_actor_800300_80163048(Task* arg0)
+/// Starts native player-following with 64-unit yaw steps and a 60-tick speed-selection delay.
+///
+/// Requires live GameActor work. Resets the behavior phase, idle counter and
+/// animation controller; the follow state selects movement speed and playback.
+static void _actor800300EnterFollowPlayer(Task* task)
 {
     GameActor* actor;
 
-    actor                 = arg0->work;
-    actor->state          = 1;
-    actor->turnRateIndex  = 1;
+    actor                 = task->work;
+    actor->state          = ACTOR_800300_STATE_FOLLOW_PLAYER;
+    actor->turnRateIndex  = ACTOR_800300_TURN_RATE_64;
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->animationState = 0;
+    actor->animationState = ACTOR_800300_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;
     actor->idleTicks      = 0;
-    actor->actionValue    = 0x3C;
+    actor->actionValue    = ACTOR_800300_FOLLOW_RESELECT_DELAY_TICKS;
 }
 
-/// Switches the actor's update into its turn-to-face behaviour (entry 2 of
-/// the behaviour table), restarting the behaviour's step and counters.
-static void func_actor_800300_80163074(Task* arg0)
+/// Starts a native in-place turn toward the selected lock target or the player.
+///
+/// Requires live GameActor work. Stops movement, selects 64-unit yaw steps
+/// (4096 per turn) and clears the behavior phase, idle counter and animation controller.
+static void _actor800300EnterTurnToTarget(Task* task)
 {
     GameActor* actor;
 
-    actor                 = arg0->work;
-    actor->state          = 2;
+    actor                 = task->work;
+    actor->state          = ACTOR_800300_STATE_TURN_TO_TARGET;
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->movementMode   = 0;
-    actor->turnRateIndex  = 1;
-    actor->animationState = 0;
+    actor->movementMode   = ACTOR_800300_MOVEMENT_STOPPED;
+    actor->turnRateIndex  = ACTOR_800300_TURN_RATE_64;
+    actor->animationState = ACTOR_800300_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;
     actor->idleTicks      = 0;
 }

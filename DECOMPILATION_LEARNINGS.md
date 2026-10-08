@@ -13258,7 +13258,7 @@ jalr  v0                 ; a1/a2 still hold D[1]/D[2], a3 the table address
 They are local-alloc's choice of destination registers for the multi-load, which
 is why they coincide with the argument registers; the source is the plain
 one-argument dispatch of the sibling (`func_actor_800100_80165528`) with the
-table copy above it. `func_actor_800300_80162C2C` matched at 100% written that
+table copy above it. `_actor800300TickMode` matched at 100% written that
 way, on the first attempt after the m2c baseline.
 
 ## `while (j < n)` vs `if (n) do{}while` for counter/dest reg pair
@@ -84805,7 +84805,7 @@ way *it* loads tells you whether the header is wrong or the source cast.
 
 ## A literal stored into a narrow field cannot share the `switch` case constant's `li`
 
-`func_actor_800300_80162F24` sat at 96.633% with `branch=1 insert=1`: one extra
+`_actor800300TickDamageMode` sat at 96.633% with `branch=1 insert=1`: one extra
 `li v0,1` between the dispatch and the store, with topology, calls and
 predicates already matching. The dispatch's `1` and the stored `1` are the same
 value but not the same pseudo.
@@ -99038,9 +99038,9 @@ Inputs: `base.c` (92.945%)
 `base_3.c` (100.000%, reproduces base_1)
 `9884972180d2e95722d756bd97d550475d60f90b4252c59202ff64e1443bd9ee`.
 
-## An address variable the compiler folds away is still a scheduling lever (func_actor_800300_80161E80, 2026-09-16)
+## An address variable the compiler folds away is still a scheduling lever (_actor800300Init, 2026-09-16)
 
-`func_actor_800300_80161E80` reached 99.008% with `regs=0` and one residue left:
+`_actor800300Init` reached 99.008% with `regs=0` and one residue left:
 `reorder=2`. Everything was byte-identical except that the `lui`/`sw` pair
 storing `D_80115764 = index` was emitted third, right after `lw v1,0x2c(s2)`,
 where the target has it in source order, after `sh v0,0x938(s0)`. So the whole
@@ -99054,15 +99054,15 @@ next entry).
 What fixed it is the idiom the twin body already uses - take the address into a
 variable, then dereference it:
 
-    GfxCoord** addr;
+    GfxCoord** coordsSlot;
     ...
-    addr  = &extra->coords;
-    coord = *addr;
+    coordsSlot  = &model->coords;
+    rootCoord = *coordsSlot;
 
-Over the direct `coord = extra->coords;` this adds two RTL insns (`.rtl` 20:
+Over the direct `rootCoord = model->coords;` this adds two RTL insns (`.rtl` 20:
 `r85 = r82 + 8`, 23: `r83 = [r85]`) instead of one load `r83 = [r82 + 8]`.
 `combine` folds the address back into the load before assembly, so the object is
-still exactly 121 instructions and the diff is empty - but the extra chain
+still exactly 121 instructions and the diff is empty - but the model chain
 changes sched's decisions: `.sched` prints the store's `INSN_PRIORITY` as 2 where
 the direct-load seed printed 1, and it lands in source order.
 
@@ -99077,13 +99077,13 @@ of one memory op* and every penalty but `reorder` is zero, try the sibling body'
 address-variable form. In this family a body that takes `&x->field` into a local
 is not stylistic noise - it is what the original wrote, and it is load-bearing.
 
-Example: `func_actor_800300_80161E80`. Inputs: `base_5.i`
+Example: `_actor800300Init`. Inputs: `base_5.i`
 `7b2f8ae7fea2eafd2a121c527b925db97241e3d7d74dd57735d9ca0f84c3ea62` (99.008%),
 `base_6.i` `ea3f67298eef32f212a937c299f6c248eb646c7024266a1725cabfadd1cd9808` (100%).
 
-## A negative constant into a `u8` field folds to its positive byte; an `s8` temporary keeps the sign (func_actor_800300_80161E80, 2026-09-16)
+## A negative constant into a `u8` field folds to its positive byte; an `s8` temporary keeps the sign (_actor800300Init, 2026-09-16)
 
-The last instruction of `func_actor_800300_80161E80` is `li $2,-0x6a` followed by
+The last instruction of `_actor800300Init` is `li $2,-0x6a` followed by
 `sb $2,0xcc($s6)`. `CompanionWork::activity.distress.flinchInterval` really is `u8` - `func_actor_800100_80165C38`
 reads the same byte as `activity.combat.repeatsRemaining` with `lbu` at 0xCC - and `companion->activity.distress.flinchInterval = -0x6A;` compiles to `li $2,150`:
 
@@ -99105,7 +99105,7 @@ The byte stored is 0x96 either way, so the program is unchanged; only the
 register's upper bits differ, and those are what the object compares. Expect this
 wherever a field the header types `u8` is written with a negative literal.
 
-Example: `func_actor_800300_80161E80`. Inputs: `base_4.i` (cast, 98.967%) vs
+Example: `_actor800300Init`. Inputs: `base_4.i` (cast, 98.967%) vs
 `base_5.i` `7b2f8ae7fea2eafd2a121c527b925db97241e3d7d74dd57735d9ca0f84c3ea62` (99.008%).
 
 ## A value the target keeps across blocks in $a0 is a hard register, and pinning it is what frees $a0 (_actor335800RestorePlayerView, 2026-09-16)
@@ -106239,7 +106239,7 @@ reached by *following* the `beqz`, the path that skips `[const 1]`, so the narro
 is the only one in its EBB (see the `switch` + `field = 1` entry above for the cse/EBB mechanics).
 
 **Fix:** borrow the idiom the already-matched `func_8010771C`, `Gp_PlayerMode2StateB` and
-`func_actor_800300_80162F24` use for this shape - an `s32` local that the store subregs:
+`_actor800300TickDamageMode` use for this shape - an `s32` local that the store subregs:
 
 ```c
     s32 flag;
@@ -110049,7 +110049,7 @@ for all three render nodes, so only one quantity competes.
 original source had. Here the three pointers became one `obj` and the score went
 95.18% -> 97.78% (regs 79 -> 10, frame `-0x40` -> `-0x38`). The already-matched
 siblings in the same family (`_actor800200InitTask`,
-`func_actor_800300_80161E80`) had the answer in their source all along: copy the
+`_actor800300Init`) had the answer in their source all along: copy the
 *source shape*, not just the statements, from a matched sibling.
 
 Related, same function: an `s32 temp;` declared **inside** each object's block
@@ -110109,7 +110109,7 @@ entry above): `actor->statePhase = 1;` for a `u16` field expands to an **HImode*
 `li` (a distinct pseudo that cse cannot equate with the switch's SImode `li $v0,1`
 for the case compare), so it took a callee-saved register and pushed the
 parameter into an extra saved reg. Making the stored value SImode - the matched
-sibling `func_actor_800300_80162F24`'s `flag = 1; actor->statePhase = flag;` - let
+sibling `_actor800300TickDamageMode`'s `activePhase = 1; actor->statePhase = activePhase;` - let
 cse share the switch's constant and removed both.
 
 ## An `SVECTOR` filler written in address order beats the asm's store order
@@ -123916,9 +123916,9 @@ or just `./tools/build-and-verify.sh`. Here the overlay came back `OK`, so the
 0.011% was the listing, not the code. The mirror image is already recorded: a
 genuine `j`-target miss can score a perfect 100.000%.
 
-## `overlay_dup_index find` cannot see a near-twin that differs by one call; `similar` is what finds it, and its *source* is the whole match (func_actor_800300_80162A98, 2026-09-17)
+## `overlay_dup_index find` cannot see a near-twin that differs by one call; `similar` is what finds it, and its *source* is the whole match (_actor800300TurnToTargetState, 2026-09-17)
 
-`func_actor_800300_80162A98` is `_actor800100TurnToTargetState`'s body with a
+`_actor800300TurnToTargetState` is `_actor800100TurnToTargetState`'s body with a
 single extra `playerActorPlayFootstepCue(index)` call before the scratch restore - 101
 instructions against the twin's 98. One extra call is enough to defeat the
 same-body test, so `find` reported only the function itself ("1 copies,
@@ -123948,7 +123948,7 @@ it is a second build, and the `pos->vx` / `((VECTOR3*)(head - 0x10))->vx`
 choice between the two siblings is a codegen-relevant difference, not a
 stylistic one.
 
-## A small `switch` on a `u16` field tests its index *signed* (`bltz` + `slti`); m2c's if-chain rendering tests it `sltiu` (func_actor_800300_801628D0, 2026-09-17)
+## A small `switch` on a `u16` field tests its index *signed* (`bltz` + `slti`); m2c's if-chain rendering tests it `sltiu` (_actor800300FollowPlayerState, 2026-09-17)
 
 **Symptom.** The case dispatch in the target reads
 
@@ -124014,7 +124014,7 @@ the resulting `li $a0,3` is one of the `insert` penalties. Read the target's
 `jal` delay slot — a `nop` there means no argument is set up, whatever m2c
 wrote.
 
-## `addu $a3,$a1,$zero` in a `jal` delay slot says the callee takes a 4th argument, even though the decompiled body ignores it (func_actor_800300_80162658, 2026-09-17)
+## `addu $a3,$a1,$zero` in a `jal` delay slot says the callee takes a 4th argument, even though the decompiled body ignores it (_actor800300TickNormalMode, 2026-09-17)
 
 The target called `companionApplyDamage` with an `a3` setup the tree's prototype did not
 account for:
@@ -124050,7 +124050,7 @@ Read the delay slot of every `jal` before trusting a prototype the decompiled
 body implies: an argument register the body never mentions is a missing
 parameter, not a stray instruction.
 
-## An `s8` local defers the sign-extension to its use; `s32` plus an explicit `(s8)` cast materialises it at the assignment (func_actor_800300_80162658, 2026-09-17)
+## An `s8` local defers the sign-extension to its use; `s32` plus an explicit `(s8)` cast materialises it at the assignment (_actor800300TickNormalMode, 2026-09-17)
 
 Two callees return a `s32` that the target narrows to a byte on the way out of
 the call — `sll $v0,24` in the call's delay slot, `sra $sN,$v0,24` right after:
@@ -150172,7 +150172,7 @@ attempts; left as it was.
 - `gluttonEscortState`: a hand-expanded wrap whose input is `ratan2(x, z) -
   ratan2(-m[2][0], m[2][2])` is `_actorAngleTurnToOffset(coord, x, z)` whole; the `angle`
   local goes.
-- `func_actor_800300_801628D0`: `if (a < d) goto in_range; if (p == 2) goto
+- `_actor800300FollowPlayerState`: `if (a < d) goto in_range; if (p == 2) goto
   reset; in_range: if (d < b) break; if (p != 1) break; reset:` is one
   condition, `(a >= d && p == 2) || (d >= b && p == 1)`. Its third jump goes
   from the follow states back into state 0's `else` arm and then falls
