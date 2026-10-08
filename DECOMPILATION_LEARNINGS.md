@@ -6654,7 +6654,7 @@ lhu s1,8(s5) / srl s1,s1,0xc / sll s1,s1,0x8 / or s1,s1,v1
 ```
 
 Fix: one temp per block, even when the blocks are textually identical.
-`func_actor_444000_801404C0` went 98.83% -> 99.98% on that change alone; note
+`_actor444000ThrowDebrisState` went 98.83% -> 99.98% on that change alone; note
 the register differs per block there (`$s0` in the first, `$s1` in the other
 two), which is itself the tell that each block is allocated on its own.
 
@@ -45744,7 +45744,7 @@ the 2 of 30 functions that touched such a global, and both matched again once
 the global was declared as an aggregate.
 
 It is symmetric in direction, and the missing instruction is then a `nop` rather
-than a filled delay slot. `func_actor_444000_8013CA60` *reads* one such global
+than a filled delay slot. `_actor444000HitGroups3To5` *reads* one such global
 right after a struct store:
 
 ```c
@@ -50746,16 +50746,16 @@ scalar is on the *load* side, but the same exemption is what moves it.
 ## The same array trick stops `dbr` stealing a store into a branch delay slot
 
 A third face of the fixed-address-scalar exemption, and the one that is hardest
-to read off the diff: it can cost you a *delay slot*. `func_actor_444000_8013E058`
+to read off the diff: it can cost you a *delay slot*. `_actor444000InhaleState`
 ends with three stores into a scratchpad frame followed by a compare against a
 global mode byte:
 
 ```c
-sc->push.vx = sc->dir.vx;
-sc->push.vy = 0;
-sc->push.vz = sc->dir.vz;
-if (D_8007218B != 2 && D_8007218B != 0xA && actor->mode != 2) {
-    playerActorSetPendingDisplacement(&sc->push);
+dragScratch->displacement.vx = dragScratch->offset.vx;
+dragScratch->displacement.vy = 0;
+dragScratch->displacement.vz = dragScratch->offset.vz;
+if (D_8007218B != 2 && D_8007218B != 0xA && playerActor->mode != GAME_ACTOR_MODE_SCRIPTED) {
+    playerActorSetPendingDisplacement(&dragScratch->displacement);
 }
 ```
 
@@ -72305,7 +72305,7 @@ build and only shows up as a wrong `STATIC_ASSERT_SIZEOF` and wrong padding.
 allocation site names both the size and the owning global:
 `func_actor_444000_80132358` does `memCalloc(0x34, 0)`, stores it in
 `task->work` and publishes that task in `80161860`, while
-`func_actor_444000_8013AFF8` does `memCalloc(0xF24, 0)` for `80161878`. Those are
+`_actor444000Spawn` does `memCalloc(0xF24, 0)` for `80161878`. Those are
 two structs. The family convention for the smaller one is a separate
 `…EventWork` typedef reached through `Task::work`, as in `actor_342000` and `actor_121300`:
 
@@ -72440,7 +72440,7 @@ the callee's own type far smaller than the stride, and one gap that is exactly
 twice the stride (here 0x88C → 0x9BC, i.e. a skipped element).
 
 **Fix.** Grep the *rest of the overlay* for the intermediate offsets before
-inventing a layout. `func_actor_444000_801423C4` calls
+inventing a layout. `_actor444000Tick` calls
 `worldCollisionClearContacts(work + 0x814)` and `(work + 0x8AC)` — 0x20 past two
 consecutive `WorldCollisionBody`s, and 0x98 apart themselves. `WorldCollisionContact` is 0x18, and
 0x88C - 0x814 = 0x78 = 5 × 0x18, so the stride is `WorldCollisionBody` followed by the
@@ -73228,7 +73228,7 @@ straight into the body is a grouped range node: `expand_end_case` runs
 tested — the lower bound was already established by the parent pivot.
 
 Recovering the switch shape from those three signatures took
-`func_actor_444000_801321FC` from 72.48% (branch=4 regs=14 insert=4 delete=18) to
+`_actor444000EventUpdateDescentRoom` from 72.48% (branch=4 regs=14 insert=4 delete=18) to
 an exact match in one attempt, with the register assignment falling out on its
 own once the block order was right.
 
@@ -73980,7 +73980,7 @@ Two further points for a global rather than a stack coordinate:
   store run; written inline at the assignment they stay at the bottom behind
   two load-delay `nop`s.
 
-`func_actor_444000_80140BBC` is the worked example: 92.5% -> 96.8% -> 100% over
+`_actor444000LimbAnimationState` is the worked example: 92.5% -> 96.8% -> 100% over
 those three changes.
 
 ## loop.c relocates a loop block that ends in a jump out
@@ -74382,7 +74382,7 @@ base-relative ones is the signature; all-sp-relative means a plain local.
 ## A bare-scalar `D_8...` *load* can also let a store float: read the sched2 trace
 
 The converse of "when a store to an unnamed `D_8...` global sinks past nearby
-struct loads". `func_actor_444000_8013FB74` reached 99.899% with a single
+struct loads". `_actor444000SwipeState` reached 99.899% with a single
 `reorder=1`: `sw t0, 0xEB0(s2)` (the message payload's `field_0`) sat two slots
 late inside the `%hi`/`%lo` cluster that computes
 
@@ -74601,7 +74601,7 @@ spot this shape in a target.
 
 ## Group struct writes by object to move a free-floating address computation
 
-`func_actor_444000_8013AFF8` sets up a `WorldCollisionBody` and the `WorldCollisionCapsule` it points
+`_actor444000Spawn` sets up a `WorldCollisionBody` and the `WorldCollisionCapsule` it points
 at, then hands the record table to `worldCollisionInitContacts`. Every version of the
 block emitted all 17 stores in the right order and still left one instruction -
 `addiu s0, s7, 0xd84` (`&work->swipeContacts`, the table pointer) - seven slots too late,
@@ -74656,7 +74656,7 @@ the release straddle calls. In an inlined body each access keeps its own
 materialisation instead. `_actor444000FlattenRoot` and
 `actors/actor_342400_7.c`'s `update_color` (whose comment already records the
 effect) are the inlined form; `func_actor_444000_8013799C` and
-`func_actor_444000_80134688` are the plain form. `func_actor_444000_8013AFF8`
+`func_actor_444000_80134688` are the plain form. `_actor444000Spawn`
 needed the inlined one, which is also why its rotation reset is a helper rather
 than straight-line code: the four accesses must not share `$s3`.
 
@@ -74737,7 +74737,7 @@ few before it reports anything about registers.
 
 ## `jump.c`'s "if (foo) bar; else break;" swap rules out two obvious dispatches
 
-`func_actor_444000_80141618` picks an escort slot from a sub-state, and the
+`_actor444000SummonState` picks an escort slot from a sub-state, and the
 target lays the two arms out with the dispatch first and the `0` arm *before*
 the `1` arm:
 
@@ -74849,7 +74849,7 @@ priorities* rather than as the source order itself.
 
 ## Interleave a store that uses a different constant to force two constants into different registers
 
-`func_actor_444000_8013482C` sat at 99.955% with one register difference: the
+`_actor444000RunArenaRouteState` sat at 99.955% with one register difference: the
 constant `1` wanted `$v1` and got `$v0`, which cost a later `li` its place in the
 load-delay slot. The reset block writes four fields of the same work pointer, and
 the target emits three `1` stores followed by the `2` store:
@@ -74902,7 +74902,7 @@ block makes the ranges disjoint again, restores the shared `$v0`, and scores
 99.445% (distance 430) — worse than the 99.955% seed. Placing it after either of
 the first two `1` stores is exact. Confirmed by counterfactual builds whose
 predictions were recorded first; see
-`nonmatchings/func_actor_444000_8013482C-vacuum/PERMUTER_ANALYSIS.md` and the
+`nonmatchings/_actor444000RunArenaRouteState-vacuum/PERMUTER_ANALYSIS.md` and the
 four `.i.lreg` dumps under its `PERMUTER_EVIDENCE/90d04bd10f594d13/analysis/`.
 Target `397b6c8b…`, matching source `1f5d4ad4…`, seed `a607faa4…`.
 
@@ -74914,11 +74914,11 @@ the guarded call needs:
 
 ```c
 {
-    s32            paused = D_80072729;                        /* lui/lbu first */
-    GfxCoord* c      = ((TmdObject*)task->extra)->coords; /* then lw/lw   */
+    s32       actorsFrozen = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen; /* lui/lbu first */
+    GfxCoord* stepCoord    = task->extra.tmd->coords;                             /* then lw/lw   */
 
-    if (paused != 1) {
-        _actor444000StepForward(c);
+    if (actorsFrozen != 1) {
+        _actor444000StepForward(stepCoord);
     }
 }
 ```
@@ -74926,12 +74926,12 @@ the guarded call needs:
 Both chains are independent and both have to be in the entry block (the
 coordinate is live into the branch delay slot), so only `INSN_LUID` decides
 which goes first — `rank_for_schedule` falls back to original order on a tie.
-Written as `c = ...; if (D_80072729 != 1)` the coordinate load leads, the
+Written as `stepCoord = ...; if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1)` the coordinate load leads, the
 `%hi` lands after it and the block needs a `nop`; naming the flag first gives
 the target's interleaved `lui / li 1 / lw / lbu / lw / beq`. Passing the
 coordinate as the call argument instead is worse still: the loads move into the
 guarded block, which no longer matches at all. This was worth 94.4% → 98.4% on
-`func_actor_444000_8013482C`.
+`_actor444000RunArenaRouteState`.
 
 ## Scratch frame: address the pre-decrement head to get `-0x24(head)` instead of `8(sc)`
 
@@ -74966,12 +74966,12 @@ target has before the branch.
 
 ## A local array initialiser is a copy *loop*: anything before it must be a declaration initialiser
 
-`void (*handlers[0x15])(T*) = { ... };` inside a function compiles to a
+`TaskFunc stateHandlers[] = { ... };` inside a function compiles to a
 rodata-to-stack copy with a real backward branch, so it is a basic-block
 boundary. Any other value the target computes *before* that loop therefore
 cannot be written as a statement after the declarations - sched1 and sched2 only
 reorder within a block, so the statement's insns stay after the loop no matter
-how early the target wants them. In `func_actor_444000_801423C4` the target's
+how early the target wants them. In `_actor444000Tick` the target's
 pre-loop block is
 
 ```
@@ -74980,22 +74980,22 @@ addiu s6, v0, %lo(gPlayerStatus)
 addiu v1, sp, 0x20              /* copy destination */
 lui   v0, %hi(D_actor_444000_80131FF4)
 ...
-lw    s1, 0x1c(s3)              /* work = task->field_1C */
+lw    s1, 0x1c(s3)              /* work = task->work */
 ```
 
-Writing `cfg` and `work` as assignments after the declarations put both *after*
+Writing `playerStatus` and `work` as assignments after the declarations put both *after*
 the copy loop (98.9%, one extra insn because `&gPlayerStatus` then had to be
 re-materialised in `viewGetMappedIndex`'s delay slot). Declaring them as C89
 initialisers ahead of the array is what produces the target block (99.8%):
 
 ```c
-PlayerStatus*    cfg  = &gPlayerStatus;
-Actor444000Work* work = task->field_1C;
-VECTOR           pos;
-void (*handlers[0x15])(Actor444000*) = { ... };
+PlayerStatus* playerStatus = &gPlayerStatus;
+GluttonWork*  work         = task->work;
+VECTOR        lightingPosition;
+TaskFunc      stateHandlers[] = { ... };
 ```
 
-Stack slots are unaffected: `cfg` and `work` are registers, so `pos` still takes
+Stack slots are unaffected: `playerStatus` and `work` are registers, so `lightingPosition` still takes
 the first slot above the argument-save area and the array the next.
 
 ## Two independent `%hi` groups in one block: statement order moves the `lui`, not the store
@@ -75040,7 +75040,7 @@ register is visible in the output:
 
 ```
 sra   v1, v0, 0x10      /* yaw = angle            */
-addu  a0, v1, zero      /* the re-read of sc->angle */
+addu  a0, v1, zero      /* the re-read of catchScratch->playerYaw */
 bgez  a0, 1f            /* compare folded onto op0  */
  addu v0, a0, zero      /* expand_abs's own move    */
 negu  v0, v0
@@ -75049,15 +75049,15 @@ slti  v0, v0, 0x401
 ```
 
 `if (abs(yaw) > 0x400)` produces only the inner two of those (`bgez v1` /
-`move v0,v1`); `if (abs(sc->angle) > 0x400)` produces all four. Writing
+`move v0,v1`); `if (abs(catchScratch->playerYaw) > 0x400)` produces all four. Writing
 `mag = yaw;` and testing `mag` does *not* reproduce it - `cse` merges the two
 pseudos into one quantity and `flow` deletes the copy. Only the memory round
 trip keeps them apart.
 
 So when a leftover is a single `move` in front of an `abs` or a comparison,
 check whether the target re-reads the field it just wrote rather than trying to
-manufacture a copy with an extra local. `func_actor_444000_8013EC84` is the
-worked example: the yaw is stored to `sc->angle`, and both the magnitude test
+manufacture a copy with an extra local. `_actor444000CatchPlayerState` is the
+worked example: the yaw is stored to `catchScratch->playerYaw`, and both the magnitude test
 and the sign test read it back while the `+/-0x800` arithmetic uses the local.
 
 ## Grey from the red channel: `g = r; b = r` re-reads the stored byte, and the copy feeds a cross-jumped tail (Actor02600_Fn02C94, 2026-09-26)
@@ -75092,7 +75092,7 @@ right-hand side is one expression, expanded before any store retires, so the
 address is computed once and the stores run right to left.
 
 `actor_444000` has both shapes against the same chain one unit apart.
-`func_actor_444000_8013AFF8` writes three statements:
+`_actor444000Spawn` writes three statements:
 
 ```c
 ((TmdObject*)work->escorts[4]->task->extra)->coords->coord.t[0] = 0;
@@ -75150,7 +75150,7 @@ store that widens it - which, if the body calls something first, is on the far
 side of that call. That in turn changes which instruction the delay-slot filler
 finds last in the pre-call block.
 
-`func_actor_444000_80135448` squashes seven coordinates through one helper whose
+`_actor444000CollapseState` squashes seven coordinates through one helper whose
 body is `ratan2` / `gfxRotMatrixY` / `ScaleMatrix` around a scratchpad frame.
 The target fills each `jal ratan2` delay slot with the *subtraction* that
 finishes the scale, and does the `sll`/`sra` pair after `gfxRotMatrixY`, next
@@ -112503,9 +112503,9 @@ Taking the address into a pointer local closes it:
 ```
 
 This is the idiom the matched 444000 sibling already uses
-(`func_actor_444000_801404C0` keeps `posp` for the same reason, after
+(`_actor444000ThrowDebrisState` keeps `launchVectorPointer` for the same reason, after
 `_actorRenderTransformLocalPointToWorld` in `include/actors/actor.h` places
-`pos` in world coordinates), and the fix is not just the argument pair: the extra
+`launchVector` in world coordinates), and the fix is not just the argument pair: the extra
 call-crossing `&emissionVector` pseudo is what held `$s0`, so `&D_actor_403200_8015F920`
 and its `+4` were left as `$s0`/`$s1` against the target's `$s1`/`$s0`. Naming
 the pointer gave `$s0` back and both pairs fell into place. Distinct from the
@@ -112516,7 +112516,7 @@ here the same register really is reused by the GTE reads and writes after it.
 The same function confirmed the per-block temp rule from the other direction:
 the target gives `id`/`pan` the *opposite* saved register in the first cue block
 from the other two ($s0/$s1 against $s1/$s0), which one function-scope variable
-cannot do — three separate `s32` pairs, as the matched `func_actor_444000_801404C0`
+cannot do — three separate `s32` pairs, as the matched `_actor444000ThrowDebrisState`
 already writes them, is what the source had. Reusing one pair scored 98.6% with
 `regs=81`; splitting it scored 99.2% with `regs=27`.
 
@@ -112654,13 +112654,13 @@ still merge into the one `sh` at the join — 100% on the change:
 The merge is GCC's, not the source's: a single store in the source does not buy
 a single store in the object, and a *pair* of stores in the source does not cost
 one either. Decide this shape by the extension modes the two uses need, not by
-counting stores. `func_actor_444000_8013FB74`, the sibling arena tick, matched
+counting stores. `_actor444000SwipeState`, the sibling arena tick, matched
 this same tail from this same if/else form.
 
 The rest of the function needed nothing beyond the sibling's idioms: the reset
 half is `_actor403200GlobLaunchState`'s, the cue blocks are
 `_actor403200DebrisState`'s `escorts[0]->task->extra.tmd->coords[1]` shape with `/ 2` on the depth, and
-the five-record scan is `func_actor_444000_8013FB74`'s `swipeContacts` loop verbatim.
+the five-record scan is `_actor444000SwipeState`'s `swipeContacts` loop verbatim.
 Two builds: 86.239% from m2c, 86.239% -> 99.088% on the project-style rewrite,
 99.088% -> 100% on this tail.
 
@@ -149074,7 +149074,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
 
   The exit is then not the loop's first jump, so the test is not duplicated.
   18 of 18 such loops converted this way (`_actor421600WatchRunPlayerState`,
-  `_8013BA70`, `func_actor_444000_8013E058`, `_actor403000ProwlState`), and
+  `_8013BA70`, `_actor444000InhaleState`, `_actor403000ProwlState`), and
   the same shape with a larger body in `_actor00400FindNearestSurfaceSpot`
   (`if (claimMark != ACTOR_00400_SURFACE_SPOT_END) { ...; spotIndex++; continue; } break;`).
 - **`goto advance` into another case's `task->state++; break;`.** Write the
@@ -150049,20 +150049,20 @@ attempts; left as it was.
   a `for` + `break` + `return 1` / `return 0` inline: the barrier its stub
   sits behind is the `if`/`else if` clamp after the wrap, not the wrap.
 - Not converted: **the three-group contact scan of
-  `func_actor_444000_8013CA60`** (`goto hit` from group 3 into group 4's
+  `_actor444000HitGroups3To5`** (`goto hit` from group 3 into group 4's
   effect call, `goto body`, two `goto out`; the 403200 twin went as an `||`
   of three `&&` pairs). Here the image has `lw a0,coord3; j call` after the
   first scan and all three found stubs directly behind that jump, so the
   jump existed before loop.c ran: the `||` form, whose two calls are only
   merged by cross-jumping after loop.c, puts the stubs elsewhere (3 insns
   longer). An inline for groups 3 and 4 with `return 0` on a double miss
-  leaves `move v0,zero; j` and moves the second scan out of line; a `coord`
-  local set in both arms and tested with `id != 0` after the join has the
+  leaves `move v0,zero; j` and moves the second scan out of line; a `hitCoord`
+  local set in both arms and tested with `attackKey != 0` after the join has the
   image's layout plus one duplicated `beqz a1`. With the `goto hit` /
   `goto body` kept and the scans as `_gluttonFindHit` inlines the length is
   right but the second and third scans take different registers (element
   pointer in `$v1` instead of sharing `$a1` with the id). Only the angle
-  wrap and the `dmg` clamp went (13 gotos -> 10).
+  wrap and the `reducedDamage` clamp went (13 gotos -> 10).
 ### Goto removal, batch 18: a tail shared backward that does merge, inlines behind alias locals, an inline defined too late (2026-10-06)
 
 - **A backward `goto tick` from a later case into an earlier case's tail can
