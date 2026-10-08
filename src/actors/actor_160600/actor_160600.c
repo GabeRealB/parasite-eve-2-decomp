@@ -37,8 +37,6 @@ extern TaskMessageEntry gPacedWalkMsgTable[6];
 extern u8               gPacedWalkAnimBank[];
 extern u8               gPacedWalkEffectParts[];
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 static TmdSource _gActor160600SoldierABody;
 void             func_actor_160600_801321B4(Task*);
 

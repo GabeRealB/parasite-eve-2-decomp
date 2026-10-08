@@ -39,8 +39,6 @@ enum {
     ACTOR_160700_MEETING_THIRD_SEEN  = 3,
 };
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 extern TaskDesc D_actor_160700_801416A8[];
 extern u8       D_actor_160700_801416C0[];
 // Message-table callbacks use the argument views required by this TU.

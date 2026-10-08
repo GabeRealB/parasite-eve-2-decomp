@@ -40,8 +40,6 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 /// Values of `_Actor03700Work::action`: the handler the per-frame tick runs.
 ///
 /// A handler numbers its own stages in `actionStep`, from 0 on entry. The

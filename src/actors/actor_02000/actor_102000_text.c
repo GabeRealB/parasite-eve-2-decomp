@@ -50,8 +50,6 @@ static const EnemyTaskFuncTable3 Actor02000_D0006C;
 extern DamageAttack gGolemPawnRookAttacks[];
 extern s32          gGolemPawnRookSwingCue;
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 extern s16 gGolemPawnRookAnimBlendFrames[];
 extern s16 gGolemPawnRookWeakSpotHits[];
 extern s16 gGolemPawnRookWeakSpotHitsFlagged[];

@@ -78,8 +78,6 @@ enum {
 
 static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage;
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 static void _actor215100SpawnPierce(Enemy* enemy, Task* task);
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _pacedWalkExit(Task* task);

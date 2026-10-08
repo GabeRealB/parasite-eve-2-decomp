@@ -65,8 +65,6 @@ static FootstepWalkWork* _gFootstepWalkWork;
 /// `_footstepWalkSpawn` so the handlers can reach its model.
 extern Task* gFootstepWalkTask;
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 extern Task* D_actor_461800_80133EB8;
 
 extern Task*    D_actor_461800_80133EB4;

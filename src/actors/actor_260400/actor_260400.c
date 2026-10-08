@@ -60,8 +60,6 @@ typedef struct {
 } _Actor260400Work;
 STATIC_ASSERT_SIZEOF(_Actor260400Work, 0x4F8);
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 extern EvsCommand D_actor_260400_8014C788[];
 extern EvsCommand D_actor_260400_8014CF38[];
 extern EvsCommand D_actor_260400_8014D118[];

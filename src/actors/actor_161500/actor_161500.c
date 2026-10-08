@@ -101,8 +101,6 @@ extern EvsCommand     D_actor_161500_801376F8[];
 extern EvsCommand     D_actor_161500_801378D8[];
 extern EvsCommand     D_actor_161500_80137AB8[];
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 extern AnimationPlayRequest     D_actor_161500_80133F7C;
 extern AnimationPlayRequest     D_actor_161500_80134020;
 extern AnimationPlayRequest     D_actor_161500_80134034;

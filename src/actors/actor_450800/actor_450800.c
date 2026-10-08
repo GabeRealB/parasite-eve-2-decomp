@@ -136,8 +136,6 @@ extern EvsCommand           D_actor_450800_8013A984[];
 extern EvsCommand           D_actor_450800_8013AB7C[];
 extern EvsCommand           D_actor_450800_8013ACFC[];
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 static inline void _actor450800ApplyHelperPlacementTexture(Task* spawned, Task* actor);
 static void        _actor450800SpawnKyleMadigan(Enemy* enemy, Task* task);
 static void        _actor450800UpdateKyleMadigan(Task* task);

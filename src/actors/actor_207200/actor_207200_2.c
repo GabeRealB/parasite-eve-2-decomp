@@ -46,8 +46,6 @@
 
 #include "overlay.h"
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 extern EnemyParams   D_actor_207200_8014E7D4;
 extern AnimationSet* D_actor_207200_80153ED4[13];
 /// `forwardSpeed` for frames 20..39 of the crawl animation, indexed by frame - 20.

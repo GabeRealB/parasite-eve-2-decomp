@@ -58,8 +58,6 @@
 #include "rooms/shelter_r48.h"
 #include "../../shared/bezier_curve.h"
 
-/// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
-
 /// Boss animation presets and the attachment shared by its orange-flash sequences.
 ///
 /// Presets are table indices; the flash delay uses actor-updating ticks.

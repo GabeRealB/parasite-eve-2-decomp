@@ -634,7 +634,7 @@ _gameMainInitialize               = 0x800271D4; // type:func
 displayPresentTaskFrame               = 0x8002731C; // type:func
 _displayVSyncCallback               = 0x80027498; // type:func
 _gameMainShowPauseScreen               = 0x8002764C; // type:func
-GameMain_Loop               = 0x8002785C; // type:func
+_gameMainRunLoop               = 0x8002785C; // type:func
 gfxResetView               = 0x80027E7C; // type:func
 displayUploadBackgroundImage               = 0x80027F48; // type:func
 displaySetFrameTiming               = 0x800280F4; // type:func
@@ -642,7 +642,7 @@ gpuClearFrameOrderingTable            = 0x80028180; // type:func
 _gameMainInitGraphics               = 0x800281D4; // type:func
 _gameMainSpawnStartupTask               = 0x80028290; // type:func
 _displayPresentGameFrame               = 0x800282D8; // type:func
-GameMain                    = 0x8002838C; // type:func
+gameMainRun                    = 0x8002838C; // type:func
 gameMainGetInitializationCount               = 0x80028404; // type:func
 
 //--------------------------------------------------------------------

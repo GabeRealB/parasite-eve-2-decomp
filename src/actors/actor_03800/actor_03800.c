@@ -222,8 +222,6 @@ extern DamageAttack  Actor03800_D05F40[1];
 extern EnemyParams   Actor03800_D05F44;
 extern AnimationSet* Actor03800_D05F60[12];
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 static void        _actor03800ActionIdle(Task* task);
 static void        _actor03800ActionWander(Task* task);
 static void        _actor03800ActionCharge(Task* task);

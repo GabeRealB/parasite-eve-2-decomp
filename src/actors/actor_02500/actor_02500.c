@@ -237,8 +237,6 @@ typedef struct {
     s16 z;
 } _Actor02500DustDirection;
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 extern EnemyParams              Actor02500_D05B38;
 extern DamageAttack             Actor02500_D05B30[];
 extern s16                      Actor02500_D05B48[];

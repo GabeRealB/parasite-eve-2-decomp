@@ -44,8 +44,6 @@ extern Task* D_actor_260500_80159E50;
 
 static s16 _gFootstepWalkMode;
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 extern EvsCommand D_actor_260500_8014CBF8[];
 extern EvsCommand D_actor_260500_8014D630[];
 extern EvsCommand D_actor_260500_8014D7C8[];

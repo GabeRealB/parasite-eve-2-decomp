@@ -32,5 +32,5 @@ int main(void)
     SetSp(GStackBase);
 
     // Call the entry function.
-    GameMain();
+    gameMainRun();
 }

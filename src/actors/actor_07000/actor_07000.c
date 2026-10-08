@@ -860,8 +860,6 @@ static __inline__ void _actor07000SlouchColorAtCoord(Enemy* enemy, GfxCoord* sam
 static __inline__ void _actor07000SlouchApplyDropTwist(Task* task);
 static __inline__ void _actor07000SlouchTwistPart(MATRIX* partMatrix, SVECTOR* twist, MATRIX* twistMatrix);
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 /// Message dispatch table the caged specimen's spawn parks in `Task::msgTable`.
 
 #include "../../shared/sucklerceph_spawn_state.inc.c"

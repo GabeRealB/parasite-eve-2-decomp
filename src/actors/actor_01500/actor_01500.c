@@ -44,8 +44,6 @@
 
 #include "overlay.h"
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 /// Task-table indices entered by spawn and lost-actor retirement.
 enum {
     ACTOR_01500_TASK_ACTIVE = 1,

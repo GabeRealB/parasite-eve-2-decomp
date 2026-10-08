@@ -120,8 +120,6 @@ typedef struct {
 } _Actor503500ArmWork;
 STATIC_ASSERT_SIZEOF(_Actor503500ArmWork, 0x224);
 
-/// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
-
 /// Shape of a lunging chain's model.
 enum {
     ACTOR_503500_LUNGING_CHAIN_PART_COUNT = 9, // Model parts: the root and the eight links aimed along the curve

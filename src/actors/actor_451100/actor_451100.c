@@ -55,8 +55,6 @@ extern TaskDesc         D_actor_451100_8014E6E4[];
 extern TaskMessageEntry D_actor_451100_8014E6B4[];
 extern u8               D_actor_451100_8014E6FC[];
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actor451100QuietWalkExit(Task* task);
 static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);

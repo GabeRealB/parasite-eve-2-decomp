@@ -13,7 +13,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 |------|-------------|
 | Types + APIs | `include/main/task.h`, `src/main/task.c` |
 | Extra lists / OT spawn | `src/main/otutil.c` (`displaySpawnTaskFromTable`, `displaySpawnTask`, `taskSpawnFromTableOnDefaultList`, `taskSpawnOnDefaultList`) |
-| Frame tick | `src/main/gamemain.c` (`GameMain_Loop` → `taskExecDefaultList`) |
+| Frame tick | `src/main/gamemain.c` (`_gameMainRunLoop` → `taskExecDefaultList`) |
 | Bank tables | `asm/USA/main/data/task.data.s` (`gTaskDescBanks`), plus `52E8C` / `578D0` / `57EA8` / `57F34` / `58028` / `59184.data.s` |
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`D_8010FC2C`, `0x80114B34`) |
 | Title extras | `src/title/title.c`, `Title_TaskDescs` |
@@ -137,7 +137,7 @@ defaults to `taskKill`.
 
 ### 1.3 Tick
 
-`GameMain_Loop` rebuilds the OT, then:
+`_gameMainRunLoop` rebuilds the OT, then:
 
 ```c
 taskExecDefaultList();   // walks and selects gTaskDefaultList

@@ -51,8 +51,6 @@
 static void _sucklercephDropState(Enemy* enemy, Task* task);
 #include "../../shared/skull_stalker.h"
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 /// The first enemy's attack row, packed into its third body's key, and the
 /// enemy parameters whose `attacks` name it; `hpMax` seeds the enemy's HP.
 extern DamageAttack gSucklercephAttack;

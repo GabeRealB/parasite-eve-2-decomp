@@ -8390,7 +8390,7 @@ because it is shared with an interrupt or VSync callback.
 
 Corollary: this is a useful signal *about the game*, not just a matching trick.
 `Display_PendingFlip` is written by the VSync callback `_displayVSyncCallback` and read by the
-main loop `GameMain_Loop`, so `volatile` is semantically correct there.
+main loop `_gameMainRunLoop`, so `volatile` is semantically correct there.
 
 Inverse check: if the target *does* fill the slot with a store, that variable is
 **not** volatile — don't add the qualifier to fix something else.
@@ -22345,7 +22345,7 @@ RTIR via `gte_ldclmv` + `gte_rtir()` (`0x4A49E012` with `gte.h` included) +
 
 ## Local OT pointer for `gGpuCurrentOt` so `%hi` stays temporary
 
-`GameMain_Loop` (and similar dual-buffer main loops) must both:
+`_gameMainRunLoop` (and similar dual-buffer main loops) must both:
 1. pin `Gpu_OtBuffers` as **two** regs (`s8` = `%hi`, `s7` = full via `addiu s7,s8,%lo`) for `displayRunTaskFrame` (`addiu a0,s8,%lo`) and `DrawOTag` (`addu v0,stride,s7`);
 2. use `%hi(gGpuCurrentOt)` only temporarily in `$s0` around `ClearOTagR`, not as a function-wide pin.
 
@@ -23288,7 +23288,7 @@ endFlag = Fs_ChunkEndFlag; /* starts with lui EndFlag — same 0x8007 */
 
 Phase2 then reuses `$2` without a third `lui`.
 
-## GameMain_Loop: prologue `lui v0` / `move sN` without breaking body SRA
+## _gameMainRunLoop: prologue `lui v0` / `move sN` without breaking body SRA
 
 Target opens with interleaved callee-save + init:
 
@@ -142195,9 +142195,9 @@ keeps the first case's copy instead. Ordinary exits `break` to one return after
 the switch. When the target has one shared tail that several cases jump to,
 suspect cross-jumping before writing gotos.
 
-## A `neg1` local, a split `base + idx*size` and pinned struct pointers point to missing helpers and direct global access (GameMain_Loop, 2026-09-25)
+## A `neg1` local, a split `base + idx*size` and pinned struct pointers point to missing helpers and direct global access (_gameMainRunLoop, 2026-09-25)
 
-`GameMain_Loop` carried about 48 hacks: a `neg1` local, a hand-computed
+`_gameMainRunLoop` carried about 48 hacks: a `neg1` local, a hand-computed
 `drawBase`/`stride` pair for `drawEnv[buf]`, a `ds = &gDisplayState` pointer
 and register pins. None of them survived three source changes:
 

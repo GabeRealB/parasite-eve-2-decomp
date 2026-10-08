@@ -84,8 +84,6 @@ extern TaskMessageEntry gPairWalkMessages[];
 extern TaskDesc         gPairWalkTasks[];
 extern u8               gPairWalkAnimParams[];
 
-/* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
-
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);

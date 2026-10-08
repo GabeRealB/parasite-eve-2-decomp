@@ -84,8 +84,6 @@
 #define GLUTTON_SET_SHAKE_LEVEL actor444000GluttonSetShakeLevel
 #include "../../shared/glutton.h"
 
-/// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
-
 /// `_Actor444000EventWork::playerAction`: the one-shot request the event script
 /// hands the player.
 ///
