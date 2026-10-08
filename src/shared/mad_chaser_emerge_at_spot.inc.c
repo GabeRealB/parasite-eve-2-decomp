@@ -5,7 +5,8 @@
 /// Requires live work/root and a loaded spot table. Command bits 8..11 select
 /// an existing row; the nibble mask alone does not bound a shorter table. XYZ
 /// are parent-coordinate units and heading is wrapped to 4096 units per turn.
-/// Borrows every input; the caller composes the changed root after the request.
+/// Borrows all storage and retains the command. Clears pitch/roll and writes
+/// root translation; the caller dirties and composes the changed root.
 static __inline__ void _madChaserPlaceEmergeRoot(MadChaserWork* work, GfxCoord* root, const OverlayEncounterSpot* spots)
 {
     enum {

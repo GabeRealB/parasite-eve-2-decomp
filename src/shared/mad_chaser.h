@@ -248,7 +248,6 @@ static void _madChaserWalkApproach(Task* task);
 static void _madChaserLeapAttack(Task* task);
 static void _madChaserLeapTurnAway(Task* task);
 static void _madChaserLeapRebound(Task* task);
-void        madChaserDangleFrame(Task* arg0);
 static void _madChaserDangleFall(Task* task);
 static void _madChaserDangleLand(Task* task);
 static void _madChaserApplyContacts(Task* task, s16 ignorePlayerBody);
@@ -309,9 +308,6 @@ static inline s32  _madChaserTakeHitReaction(Task* task);
 static inline s32  _madChaserAnimHasBoundaryStatusInline(Task* task);
 static inline void _madChaserSetBehaviorStateS16(Task* task, s16 behaviorState);
 
-void        madChaserLurkTick(Task* arg0);
-void        madChaserCombatTick(Task* arg0);
-void        madChaserEmergeTick(Task* arg0);
 static void _madChaserShrinkDeathTick(Task* task);
 static void _madChaserDropDeathTick(Task* task);
 static void _madChaserDeathTick(Task* task);

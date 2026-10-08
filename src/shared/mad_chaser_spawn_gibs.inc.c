@@ -5,12 +5,15 @@
 /// Gives a detached chunk the body's texture placement and rebuilds its buffer.
 ///
 /// Both tasks must own live models; chunkEffect is a successful model-effect
-/// spawn. Copies only texture-page and CLUT-row offsets. An existing chunk
-/// buffer has both halves rebuilt; an absent buffer is retained as absent.
-static __inline__ void _madChaserBindGibTexture(Task* task, EffectWork* chunkEffect)
+/// spawn. Copies signed texture-page offsets in 64-word VRAM columns and CLUT
+/// row offsets. An existing chunk buffer has both halves rebuilt, preserving
+/// its next-half selector; source/buffer capacities, scratch space and GPU
+/// lifetime must satisfy `tmdBuildBufferHalf`. An absent buffer stays absent.
+/// Borrows the task/effect handles; only the chunk model and buffer are changed.
+static __inline__ void _madChaserBindGibTexture(const Task* bodyTask, const EffectWork* chunkEffect)
 {
-    TmdObject* bodyModel  = task->extra.tmd;
-    TmdObject* chunkModel = chunkEffect->task->extra.tmd;
+    const TmdObject* bodyModel  = bodyTask->extra.tmd;
+    TmdObject*       chunkModel = chunkEffect->task->extra.tmd;
 
     chunkModel->texturePageOffset = bodyModel->texturePageOffset;
     chunkModel->clutRowOffset     = bodyModel->clutRowOffset;

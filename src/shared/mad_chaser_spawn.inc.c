@@ -5,8 +5,9 @@
 /// Requires model == task->extra.tmd, live nine-part coordinates, zeroed work
 /// and a live enemy. Model matrices, contacts, poses and slots borrow task-owned
 /// work until teardown; parameters, message callbacks and clips borrow the
-/// loaded carrier. Initializes the animation context without applying a pose,
-/// linking collision bodies or acquiring a battle reference.
+/// loaded carrier. Sets current/maximum HP and binds the animation context;
+/// it leaves slots and pose buffers zeroed until the caller applies a clip.
+/// Does not link collision bodies or acquire a battle reference.
 static __inline__ void _madChaserBindSpawnResources(Task* task, TmdObject* model, MadChaserWork* work, Enemy* enemy)
 {
     enum {

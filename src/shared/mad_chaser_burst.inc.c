@@ -3,8 +3,9 @@
 /// Unlinks the burst corpse's three collision bodies without releasing storage.
 ///
 /// bodyWork must be live with valid links for any linked body. Detaches pair,
-/// grid and attack bodies in order; their shapes and contact arrays stay owned
-/// by the task until despawn releases its work block.
+/// grid and attack bodies in order, clearing linked bodies' pass-enable flags
+/// and list links. Already unlinked bodies are unchanged. Their shape kinds and
+/// contact arrays stay owned by the task until despawn releases its work block.
 static __inline__ void _madChaserBurstUnlinkBodies(MadChaserWork* bodyWork)
 {
     worldCollisionUnlinkBody(&bodyWork->pairBody);

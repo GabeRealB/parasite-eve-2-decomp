@@ -71,6 +71,10 @@ extern u8               gMadChaserSettleAnims[]; // per animation id (1-based): 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
+static void _madChaserLurkTick(Task* task);
+static void _madChaserCombatTick(Task* task);
+static void _madChaserDangleFrame(Task* task);
+static void _madChaserEmergeTick(Task* task);
 static void _madChaserEmergeCreep3(Task* task);
 static void _madChaserSpawn(Task* task);
 static void _madChaserEmergeAtSpot(Task* task);
@@ -111,9 +115,9 @@ static void _madChaserShrinkDeathStartDespawn(Task* task);
 /// `_madChaserTask` on `Task::state`.
 static const TaskFuncTable6 gMadChaserTaskStates = { {
     _madChaserSpawn,
-    madChaserLurkTick,
-    madChaserDangleFrame,
-    madChaserCombatTick,
+    _madChaserLurkTick,
+    _madChaserDangleFrame,
+    _madChaserCombatTick,
     _madChaserDeathTick,
     _madChaserDespawnState,
 } };
@@ -122,12 +126,12 @@ static const TaskFuncTable6 gMadChaserTaskStates = { {
 /// `_madChaserHiddenTask` on `Task::state`.
 static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     _madChaserSpawnHidden,
-    madChaserLurkTick,
-    madChaserDangleFrame,
-    madChaserCombatTick,
+    _madChaserLurkTick,
+    _madChaserDangleFrame,
+    _madChaserCombatTick,
     _madChaserDeathTick,
     _madChaserDespawnState,
-    madChaserEmergeTick,
+    _madChaserEmergeTick,
     _madChaserVanishState,
     _madChaserDropDeathTick,
     _madChaserShrinkDeathTick,

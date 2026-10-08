@@ -6,17 +6,20 @@
 /// Starts the creep cue at the model root's already-composed origin.
 ///
 /// Requires a live enemy/model and the origin-audio projection's scratch/GTE
-/// setup. Tags character-bank entry 9 with the enemy's four-bit placement index.
-/// Borrows task storage; the sound bank must remain loaded through playback.
-static __inline__ void _madChaserEmergeCreepPlayEntrySound(Task* task)
+/// setup. Tags character-bank entry 9 with placement index 0..15 in sound-id
+/// bits 8..15. The cached root-to-view transform supplies pan (-16..15) and
+/// attenuation depth (-128..127, one unit per 256 game-coordinate units), both
+/// narrowed to s8 for the request. Does not compose the root. Borrows task
+/// storage; the sound bank must remain loaded through playback.
+static __inline__ void _madChaserEmergeCreepPlayEntrySound(const Task* task)
 {
     enum {
         MAD_CHASER_EMERGE_CREEP_SOUND          = SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 9),
         MAD_CHASER_EMERGE_SOUND_INSTANCE_SHIFT = 8
     };
-    Enemy* enemy = task->spawnArg2.pointer;
-    s32    soundId;
-    s32    audioPan;
+    const Enemy* enemy = task->spawnArg2.pointer;
+    s32          soundId;
+    s32          audioPan;
 
     soundId  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << MAD_CHASER_EMERGE_SOUND_INSTANCE_SHIFT) | MAD_CHASER_EMERGE_CREEP_SOUND;
     audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);

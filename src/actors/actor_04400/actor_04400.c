@@ -71,6 +71,9 @@ static const TaskFuncTable6 gMadChaserPullSteps;      // dispatcher table _madCh
 /// so a negated angle is passed without re-truncation to 16 bits.
 
 static void _madChaserLurkTick(Task* task);
+static void _madChaserCombatTick(Task* task);
+static void _madChaserDangleFrame(Task* task);
+static void _madChaserEmergeTick(Task* task);
 static void _madChaserEmergeCreep3(Task* task);
 static void _madChaserSpawn(Task* task);
 static void _madChaserEmergeAtSpot(Task* task);
@@ -775,8 +778,8 @@ static __inline__ s16 _madChaserSelectPushbackStep(s16 gridStep, s16 actorStep)
 static const TaskFuncTable6 gMadChaserTaskStates = { {
     _madChaserSpawn,
     _madChaserLurkTick,
-    madChaserDangleFrame,
-    madChaserCombatTick,
+    _madChaserDangleFrame,
+    _madChaserCombatTick,
     _madChaserDeathTick,
     _madChaserDespawnState,
 } };
@@ -786,17 +789,17 @@ static const TaskFuncTable6 gMadChaserTaskStates = { {
 static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     _madChaserSpawnHidden,
     _madChaserLurkTick,
-    madChaserDangleFrame,
-    madChaserCombatTick,
+    _madChaserDangleFrame,
+    _madChaserCombatTick,
     _madChaserDeathTick,
     _madChaserDespawnState,
-    madChaserEmergeTick,
+    _madChaserEmergeTick,
     _madChaserVanishState,
     _madChaserDropDeathTick,
     _madChaserShrinkDeathTick,
 } };
 
-/// State handlers `madChaserCombatTick` dispatches by `state`.
+/// State handlers `_madChaserCombatTick` dispatches by `state`.
 static const TaskFuncTable11 gMadChaserCombatStates = { {
     _madChaserCombatToAlertState0,
     _madChaserCombatToAlertState1,
@@ -1235,7 +1238,7 @@ static const TaskFuncTable4 _gMadChaserLurkShiftSteps = { {
     _madChaserLurkSidestepLeft,
 } };
 
-/// State handlers `madChaserEmergeTick` dispatches by `state`.
+/// State handlers `_madChaserEmergeTick` dispatches by `state`.
 static const TaskFuncTable10 gMadChaserEmergeStates = { {
     _madChaserEmergeAtSpot,
     _madChaserEmergeBackflip,

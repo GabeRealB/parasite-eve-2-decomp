@@ -1,51 +1,57 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Per-frame callback for the second enemy form, the five-state counterpart
-/// of `madChaserCombatTick`: in mode 0 it aims (`_madChaserTrackPlayer`),
-/// lets a pending pull or vanish command replace the state handler, rebuilds
-/// the root rotation,
-/// then picks the next state - 4 when dead, 8 / 9 for messages 4 / 5, and
-/// state 3 after a consumed `hitReaction` request. Mode 1 only recolours; both
-/// clear bit 0x80 of the model's `field_C`, which mode 2 sets.
-void madChaserLurkTick(Task* arg0)
+#include "mad_chaser_frame_shadows.inc.c"
+
+/// Advances lurking behavior and contacts before selecting death or combat.
+///
+/// Requires live enemy/model/work, initialized nine-part animation and behavior
+/// state 0..4. Running frames track the nearer player and dispatch unless a pull
+/// or vanish command takes over, then animate, twist the spine, rebuild rotation
+/// and apply contacts. Non-busy deaths take priority over a consumed hit reaction;
+/// consumed hit latches enter combat at behavior/sub-state zero. Scripted deaths
+/// require the extended task table. Paused frames still update color and ground
+/// shadows. Both running and paused frames enable model drawing;
+/// hidden frames suppress it and return. Borrows task-owned storage and requires
+/// initialized rendering scratch and frame-arena space.
+static void _madChaserLurkTick(Task* task)
 {
-    TmdObject*     obj   = arg0->extra.tmd;
-    Enemy*         enemy = arg0->spawnArg2.pointer;
-    MadChaserWork* work  = (MadChaserWork*)arg0->work;
-    GfxCoord*      coord = obj->coords;
-    TaskFuncTable5 sp    = gMadChaserLurkStates;
+    TmdObject*     model     = task->extra.tmd;
+    Enemy*         enemy     = task->spawnArg2.pointer;
+    MadChaserWork* work      = task->work;
+    GfxCoord*      rootCoord = model->coords;
+    TaskFuncTable5 states    = gMadChaserLurkStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->frameCount++;
-            _madChaserTrackPlayer(arg0);
-            if (_madChaserTakePullOrVanishCommand(arg0) == 0) {
-                sp.funcs[(s16)work->state](arg0);
+            _madChaserTrackPlayer(task);
+            if (_madChaserTakePullOrVanishCommand(task) == 0) {
+                states.funcs[(s16)work->state](task);
             }
-            _madChaserTickAnim(arg0);
-            _madChaserTwistSpine(arg0);
-            _madChaserUpdateRotation(arg0);
-            _madChaserApplyContacts(arg0, 0);
+            _madChaserTickAnim(task);
+            _madChaserTwistSpine(task);
+            _madChaserUpdateRotation(task);
+            _madChaserApplyContacts(task, 0);
+            // Contacts can end lurking; preserve death/command/reaction priority.
             if (work->busy == 0 && enemy->hp <= 0) {
-                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DEATH);
+                _madChaserEnterTaskState(task, MAD_CHASER_TASK_DEATH);
             } else if (work->command == MAD_CHASER_COMMAND_DROP_DEATH && work->busy == 0) {
-                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DROP_DEATH);
+                _madChaserEnterTaskState(task, MAD_CHASER_TASK_DROP_DEATH);
             } else if (work->command == MAD_CHASER_COMMAND_SHRINK_DEATH && work->busy == 0) {
-                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_SHRINK_DEATH);
-            } else if (_madChaserTakeHitReaction(arg0)) {
+                _madChaserEnterTaskState(task, MAD_CHASER_TASK_SHRINK_DEATH);
+            } else if (_madChaserTakeHitReaction(task)) {
                 work->busy = 0;
-                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_COMBAT);
+                _madChaserEnterTaskState(task, MAD_CHASER_TASK_COMBAT);
             }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            // Fall through so running and paused frames share presentation.
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            _madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-            _madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-            _madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            _madChaserUpdateColor(task->spawnArg2.pointer, &task->extra.tmd->coords[1]);
+            _madChaserDrawFrameShadows(task);
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 }
