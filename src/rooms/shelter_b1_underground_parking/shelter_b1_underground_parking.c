@@ -1767,10 +1767,17 @@ void shelterB1UndergroundParkingTelephoneMenuTask(Task* task)
 #include "../../shared/room_cutscene_task.inc.c"
 
 /// Holds player control for the boundary caption and queues its completion task.
+///
+/// Selects CAP slot 10, variant key 1, in the current display, then spawns a
+/// bodyless waiter that resumes the player once CAP is idle. CAP and room task
+/// resources must remain loaded. Playback/spawn results are ignored; the hold
+/// is already active if either request fails.
 static inline void _shelterB1UndergroundParkingStartCaptionHandoff(void)
 {
+    enum { SHELTER_B1_UNDERGROUND_PARKING_CAP_HANDOFF_BOUNDARY_VARIANT = 1 };
+
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-    capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_HANDOFF, CAP_PLAYBACK_IN_PLACE, 1);
+    capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_HANDOFF, CAP_PLAYBACK_IN_PLACE, SHELTER_B1_UNDERGROUND_PARKING_CAP_HANDOFF_BOUNDARY_VARIANT);
     taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_RESUME_AFTER_CAPTION, 0, 0);
 }
 
@@ -1904,6 +1911,11 @@ static s32 _shelterB1UndergroundParkingHandleDirectionAction(Task* roomTask, s32
 }
 
 /// Holds and hides the player before starting the selector panel session.
+///
+/// Requires a live player model and loaded room/panel resources. The bodyless
+/// session task starts the room-owned selector; leaving that panel restores
+/// player control and drawing. Neither request is checked, so a failed spawn
+/// leaves the player held and hidden.
 static inline void _shelterB1UndergroundParkingStartPanelSession(void)
 {
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -2048,9 +2060,13 @@ static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 message
 
 /// Resolves a departure's destination selectors in place.
 ///
-/// Borrows both arguments synchronously; the resolver must read only areaId,
-/// warp, room and queryOnly from this request. Other departure fields survive.
-static inline void _shelterB1UndergroundParkingResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve)
+/// Borrows a writable departure and a non-NULL resolver for this call. The
+/// resolver must support one record as request and reply and read only areaId,
+/// warp, room and queryOnly; the other message bytes are uninitialized. Copies
+/// resolved selectors back with the departure's byte widths, leaving stage,
+/// facing and sound intact. Ignores the resolver result and retains neither
+/// pointer. Selectors must identify valid records in the destination stage.
+static inline void _roomVariantResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolveVariant)
 {
     RoomEventMsg request;
 
@@ -2058,7 +2074,7 @@ static inline void _shelterB1UndergroundParkingResolveDeparture(RoomDeparture* d
     request.warp      = departure->warp;
     request.room      = departure->room;
     request.queryOnly = ROOM_EVENT_EXECUTE;
-    resolve(&request, &request);
+    resolveVariant(&request, &request);
     departure->area = request.areaId;
     departure->warp = request.warp;
     departure->room = request.room;
@@ -2128,7 +2144,7 @@ static void _shelterB1UndergroundParkingGarageDepartureTask(Task* task)
                 departure.sndEvent = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x08);
                 departure.facing   = ROOM_DEPARTURE_SKIP_FACING;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                _shelterB1UndergroundParkingResolveDeparture(&departure, resolve);
+                _roomVariantResolveDeparture(&departure, resolve);
                 gRoomDeparture = departure;
                 taskSpawnFromTable(&D_shelter_b1_underground_parking_80187200, 0, 0, 0);
                 taskKill(task);

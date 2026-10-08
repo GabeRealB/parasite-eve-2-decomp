@@ -390,11 +390,14 @@ WorldCollisionTrigger D_neo_ark_garden_801828D4[7] = {
     { NULL, NULL, NULL, { -4896, -64, -0x4920, 0 }, { { 1008, 0, -592, 0 }, { 1008, 0, 592, 0 }, { -1008, 0, -592, 0 }, { -1008, 0, 592, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-/// Rolls independent one-in-four smoke spawns at the garden's two fixed emitters.
+/// Attempts ambient smoke at both fixed emitters, in their table order.
 ///
-/// Each successful roll consumes one extra LCG step for size 512..1023 and
-/// atlas period 2 or 3 ticks. The packed options select view-space drifting
-/// rise, motion mode 2. The effect spawner copies each world-space offset.
+/// Each emitter consumes a chance draw; a successful one-in-four draw consumes
+/// one more for half-extent 512..1023 world units and atlas period 2 or 3 active
+/// ticks. Motion selector 2 chooses view-space drift and rise. The spawner
+/// snapshots and retains the world position from the loaded garden table.
+/// The ambience task calls this in views 2 and 4 while effect control runs;
+/// admission failure still consumes the same two to four shared LCG draws.
 static __inline__ void _neoArkGardenSpawnAmbientSmoke(void)
 {
     enum {
@@ -404,20 +407,27 @@ static __inline__ void _neoArkGardenSpawnAmbientSmoke(void)
     };
     u32 randomState;
 
-    randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gRandomLcgState = randomState;
-    if (((randomState >> 16) & NEO_ARK_GARDEN_SMOKE_CHANCE_MASK) == 0) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & NEO_ARK_GARDEN_SMOKE_JITTER_MASK) | NEO_ARK_GARDEN_SMOKE_BASE_ARG,
-                    &D_neo_ark_garden_801813E0[0]);
+    /// Attempts one emitter, preserving chance/option draws even on spawn failure.
+    ///
+    /// Captures `randomState`, the local masks and the shared LCG. Evaluates
+    /// `worldPosition` once on a successful roll; it must point to a live
+    /// `SVECTOR` in world units. The spawner copies XYZ and retains its address.
+    /// Expand only as a standalone braced block; the binding ends below.
+#define NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE(worldPosition)                                                         \
+    {                                                                                                                 \
+        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                             \
+        gRandomLcgState = randomState;                                                                                \
+        if (((randomState >> 16) & NEO_ARK_GARDEN_SMOKE_CHANCE_MASK) == 0) {                                          \
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                         \
+            effectSpawn(EFFECT_SMOKE_PUFF, NULL,                                                                      \
+                        ((gRandomLcgState >> 16) & NEO_ARK_GARDEN_SMOKE_JITTER_MASK) | NEO_ARK_GARDEN_SMOKE_BASE_ARG, \
+                        (worldPosition));                                                                             \
+        }                                                                                                             \
     }
-    randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gRandomLcgState = randomState;
-    if (((randomState >> 16) & NEO_ARK_GARDEN_SMOKE_CHANCE_MASK) == 0) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & NEO_ARK_GARDEN_SMOKE_JITTER_MASK) | NEO_ARK_GARDEN_SMOKE_BASE_ARG,
-                    &D_neo_ark_garden_801813E0[1]);
-    }
+
+    NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE(&D_neo_ark_garden_801813E0[0]);
+    NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE(&D_neo_ark_garden_801813E0[1]);
+#undef NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE
 }
 
 void neoArkGardenAmbienceTask(Task* task)

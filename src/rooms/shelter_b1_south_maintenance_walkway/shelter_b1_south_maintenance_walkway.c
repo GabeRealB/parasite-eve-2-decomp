@@ -84,7 +84,7 @@ extern WorldCollisionOccluder D_shelter_b1_south_maintenance_walkway_80183274[1]
 extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801830AC[6];
 extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801832B0[2];
 extern WorldCoordRoomLights   D_shelter_b1_south_maintenance_walkway_80183094[1];
-s32                           func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32                    _shelterB1SouthMaintenanceWalkwayResolveDepartureMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32                    _shelterB1SouthMaintenanceWalkwayRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32                    _shelterB1SouthMaintenanceWalkwayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32                    _shelterB1SouthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
@@ -94,7 +94,7 @@ enum { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b1_south_maintenance_walkway_80182308[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_south_maintenance_walkway_8017D790 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1SouthMaintenanceWalkwayResolveDepartureMessage },
     { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM, _shelterB1SouthMaintenanceWalkwayRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1SouthMaintenanceWalkwayIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1SouthMaintenanceWalkwayIgnoreRoomCommand },
@@ -436,9 +436,6 @@ u8 D_shelter_b1_south_maintenance_walkway_80183647 = 220;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
-    RoomEventMsg* dst, RoomLatchedEvent* event);
-static void func_shelter_b1_south_maintenance_walkway_8017D9E8(Task* task);
 static void _shelterB1SouthMaintenanceWalkwayIdle(Task* task);
 
 /// Binds this room's six actor-effect selectors to its exported effect tasks.
@@ -458,55 +455,79 @@ static inline void _shelterB1SouthMaintenanceWalkwayBindEffects(void)
     gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2;
 }
 
-/// Starts `event` for the outgoing message `dst` unless its flag says it has
-/// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->field_5` asks for a dry run - latches the message and the event,
-/// sets the flag and spawns the room's event task.
+/// Latches an eligible departure event and starts its staged task on execution.
+///
+/// Returns 2 for an eligible event, including a query, or 1 for direct departure
+/// when its nonzero flag is already set. Every call clears the latest-start byte.
+/// Only `message->queryOnly == ROOM_EVENT_EXECUTE` copies the complete eight-byte
+/// message and twelve-byte event, sets a nonzero flag to 1 and raises that byte
+/// after spawning. Flag IDs must be 0..503, including the always-eligible zero.
+/// Inputs are borrowed for this call. The singleton copies and room CAP/sound
+/// resources must stay live and unchanged until the staged task ends.
 static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
-    RoomEventMsg* dst, RoomLatchedEvent* event)
+    const RoomEventMsg* message, const RoomLatchedEvent* event)
 {
-    D_shelter_b1_south_maintenance_walkway_80183644 = 0;
-    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+    enum { ROOM_EVENT_FLAG_NONE         = 0,
+           ROOM_EVENT_FLAG_CLEAR        = 0,
+           ROOM_EVENT_FLAG_LATCHED      = 1,
+           ROOM_EVENT_DEPARTURE_DIRECT  = 1,
+           ROOM_EVENT_DEPARTURE_HANDLED = 2 };
+
+    D_shelter_b1_south_maintenance_walkway_80183644 = false;
+    if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
+        if (message->queryOnly == ROOM_EVENT_EXECUTE) {
+            gRoomEventStagedMsg = *message;
             gRoomEventLatched   = *event;
-            if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+            if (event->flagId != ROOM_EVENT_FLAG_NONE) {
+                gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
             taskSpawnFromTable(&D_shelter_b1_south_maintenance_walkway_801822FC, 0, 0, 0);
-            D_shelter_b1_south_maintenance_walkway_80183644 = 1;
+            D_shelter_b1_south_maintenance_walkway_80183644 = true;
         }
-        return 2;
+        return ROOM_EVENT_DEPARTURE_HANDLED;
     }
-    return 1;
+    return ROOM_EVENT_DEPARTURE_DIRECT;
 }
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-/// Message handler: copies the incoming message to `out` and forwards both to
-/// `mapShelterRoomVariantResolve`. Messages 9 and 0xB start the room's event, each with its
-/// own parameters and flag; any other message answers 1.
-s32 func_shelter_b1_south_maintenance_walkway_8017D790(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves departures and stages the first elevator-hall and storeroom scenes.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with a complete borrowed request and
+/// writable reply, which may alias. Copies all eight bytes before resolving
+/// the destination. Elevator-hall/storeroom departures select CAP commands 1/2
+/// and separate one-shot flags; neither event fades. Returns 2 for an eligible
+/// scene, otherwise 1 for direct departure. Queries preserve selectors and only
+/// clear the event gate's latest-start byte. Executing scenes retain copies of
+/// both records, so room resources and singleton storage must remain live until
+/// completion. The receiver and message ID are unused.
+static s32 _shelterB1SouthMaintenanceWalkwayResolveDepartureMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
+    enum { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_CAP_TO_ELEVATOR    = 1,
+           SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_CAP_TO_STOREROOM   = 2,
+           SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SOUND_TO_ELEVATOR  = 1,
+           SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SOUND_TO_STOREROOM = 3,
+           SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_EVENT_NO_FADE      = 0,
+           SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_DEPARTURE_DIRECT   = 1 };
     RoomLatchedEvent event;
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
-        event.capCmd   = 1;
-        event.stageSnd = 0x540A0001;
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
+        event.capCmd   = SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_CAP_TO_ELEVATOR;
+        event.stageSnd = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SOUND_TO_ELEVATOR);
         event.flagId   = GAME_FLAG_B1_SOUTH_WALKWAY_TO_ELEVATOR_SCENE;
-        event.fade     = 0;
-        return _shelterB1SouthMaintenanceWalkwayStartEvent(out, &event);
+        event.fade     = SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_EVENT_NO_FADE;
+        return _shelterB1SouthMaintenanceWalkwayStartEvent(reply, &event);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B1_STOREROOM) {
-        event.capCmd   = 2;
-        event.stageSnd = 0x540A0003;
+    if (request->areaId == GAME_AREA_SHELTER_B1_STOREROOM) {
+        event.capCmd   = SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_CAP_TO_STOREROOM;
+        event.stageSnd = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SOUND_TO_STOREROOM);
         event.flagId   = GAME_FLAG_B1_SOUTH_WALKWAY_TO_STOREROOM_SCENE;
-        event.fade     = 0;
-        return _shelterB1SouthMaintenanceWalkwayStartEvent(out, &event);
+        event.fade     = SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_EVENT_NO_FADE;
+        return _shelterB1SouthMaintenanceWalkwayStartEvent(reply, &event);
     }
-    return 1;
+    return SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_DEPARTURE_DIRECT;
 }
 
 /// Rejects key-item use in this room with a zero result.
@@ -533,13 +554,16 @@ static s32 _shelterB1SouthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 mes
     return 0;
 }
 
-/// Installs the room's message table on `task`, publishes the task in pointer
-/// slot 7 and steps it to its next state.
-static void func_shelter_b1_south_maintenance_walkway_8017D9E8(Task* task)
+/// Publishes the initialized room task as the room-message receiver.
+///
+/// Called in state 0; installs the borrowed room message table, replaces
+/// `GAME_TASK_SLOT_ROOM` and advances to idle state 1. The task and this overlay
+/// must remain live while messages can reach that slot.
+static void _shelterB1SouthMaintenanceWalkwayInitializeRoomTask(Task* task)
 {
     task->msgTable = D_shelter_b1_south_maintenance_walkway_80182308;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized room task available for messages without per-frame work.
@@ -549,17 +573,15 @@ static void _shelterB1SouthMaintenanceWalkwayIdle(Task* task)
 
 /// The room task's three states: set-up, idle and exit.
 static const TaskFuncTable3 D_shelter_b1_south_maintenance_walkway_8017D5D8 = {
-    { func_shelter_b1_south_maintenance_walkway_8017D9E8, _shelterB1SouthMaintenanceWalkwayIdle, taskKill },
+    { _shelterB1SouthMaintenanceWalkwayInitializeRoomTask, _shelterB1SouthMaintenanceWalkwayIdle, taskKill },
 };
 
-/// The room task. Runs the handler for its current state from the room's
-/// three-entry state table, copied to the stack first.
-void func_shelter_b1_south_maintenance_walkway_8017DA34(Task* task)
+void shelterB1SouthMaintenanceWalkwayRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b1_south_maintenance_walkway_8017D5D8;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b1_south_maintenance_walkway_8017D5D8;
+    stateHandlers.funcs[task->state](task);
 }
 
 void shelterB1SouthMaintenanceWalkwayDrawGlowsTask(Task* task)
@@ -625,7 +647,7 @@ void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b1_south_maintenance_walkway_8017FAAC(Task* task)
+void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }
@@ -634,9 +656,9 @@ void func_shelter_b1_south_maintenance_walkway_8017FAAC(Task* task)
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_shelter_b1_south_maintenance_walkway_801806F4(Task* arg0)
+void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task)

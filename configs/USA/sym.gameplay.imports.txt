@@ -1069,7 +1069,7 @@ shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x8017E760; // type
 
 shelterB1SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x8017F1C4; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
 
-func_shelter_b1_south_maintenance_walkway_801806F4 = 0x801806F4; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
+shelterB1SouthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask = 0x801806F4; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
 
 shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask = 0x80180C4C; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
 
@@ -1937,7 +1937,7 @@ neoArkSouthPromenadeRoomVisualEffectsFlashTask = 0x8017D720; // type:func absolu
 
 shelterB1ElevatorHallRoomVisualEffectsSparkBurstTask = 0x80182064; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 
-func_shelter_b1_south_maintenance_walkway_8017FAAC = 0x8017FAAC; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
+shelterB1SouthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask = 0x8017FAAC; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
 
 neoArkShrineRoomVisualEffectsSparkBurstTask = 0x801811EC; // type:func absolute:True owner=neo_ark_shrine shared=rooms
 

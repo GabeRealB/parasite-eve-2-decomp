@@ -518,10 +518,13 @@ static const TaskFuncTable3 D_shelter_b2_elevator_8017D5C4 = {
 
 /// Resolves the saved elevator destination and requests a captured-frame reload.
 ///
-/// Requires the Shelter map overlay and saved destination selectors to be live.
-/// Stops nonambient scripts, resolves warp/room and selects sprite variant 1.
-/// Only destination and query fields of the local request are initialized;
-/// the resolver ignores the others. The reload request does not wait for completion.
+/// Requires the live save, display state, sound queue and loaded Shelter map overlay.
+/// Stops all nonambient scripts without fading, resolves the saved destination
+/// and selects sprite variant 1. Only area, warp, room and the execute selector
+/// are initialized in the eight-byte messages; the resolver reads those fields
+/// and changes only room. Saved area is retained and warp/room are written back.
+/// Selectors must identify valid destination records. Queues a captured-frame
+/// reload without waiting for completion or checking spawn admission.
 static inline void _shelterB2ElevatorRequestExitReload(void)
 {
     enum { SHELTER_B2_ELEVATOR_EXIT_SPRITE_VARIANT = 1 };

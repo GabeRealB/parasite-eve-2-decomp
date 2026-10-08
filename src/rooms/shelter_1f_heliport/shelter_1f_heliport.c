@@ -647,6 +647,9 @@ static __inline__ s32 _shelter1fHeliportStartEvent(const RoomEventMsg* message, 
 }
 
 /// Stops both heliport ambience scripts while retaining their release envelopes.
+///
+/// Queues exact sound-ID stops for heliport bank entries 6 and 7; neither waits
+/// for silence. Departure execution calls this before transferring the room.
 static inline void _shelter1fHeliportStopAmbience(void)
 {
     sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -724,6 +727,8 @@ void shelter1fHeliportUpdateCompanionObstacle(s32 unusedEventArg)
 /// Tests the borrowed pending-trigger list for a hit room-event region.
 ///
 /// The list must be live and NULL-terminated. Does not consume hits or retain nodes.
+/// Returns 1 at the first nonzero hit with exact room-action control and room
+/// event ID 0xFF, or 0 after the list. No extra facing or enabled-bit test runs.
 static inline s32 _shelter1fHeliportRoomTriggerHit(void)
 {
     const WorldCollisionTrigger* trigger;

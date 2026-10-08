@@ -97,26 +97,39 @@ static void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0);
 
 static void _shelterB2PodAccessTunnelIdleRoomTask(Task* unusedTask);
 
-static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-
 #include "../../shared/room_event_staged_task.inc.c"
 
-static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Latches an eligible departure event and starts its staged task on execution.
+///
+/// Returns 2 for an eligible event, including a query, or 1 for direct departure
+/// when its nonzero flag is already set. Every call clears the latest-start byte.
+/// Only `message->queryOnly == ROOM_EVENT_EXECUTE` copies the complete eight-byte
+/// message and twelve-byte event, sets a nonzero flag to 1 and raises that byte
+/// after spawning. Flag IDs must be 0..503, including the always-eligible zero.
+/// Inputs are borrowed for this call. The singleton copies and room CAP/sound
+/// resources must stay live and unchanged until the staged task ends.
+static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(const RoomEventMsg* message, const RoomLatchedEvent* event)
 {
-    D_shelter_b2_pod_access_tunnel_80185708 = 0;
-    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+    enum { ROOM_EVENT_FLAG_NONE         = 0,
+           ROOM_EVENT_FLAG_CLEAR        = 0,
+           ROOM_EVENT_FLAG_LATCHED      = 1,
+           ROOM_EVENT_DEPARTURE_DIRECT  = 1,
+           ROOM_EVENT_DEPARTURE_HANDLED = 2 };
+
+    D_shelter_b2_pod_access_tunnel_80185708 = false;
+    if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
+        if (message->queryOnly == ROOM_EVENT_EXECUTE) {
+            gRoomEventStagedMsg = *message;
             gRoomEventLatched   = *event;
-            if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+            if (event->flagId != ROOM_EVENT_FLAG_NONE) {
+                gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
             taskSpawnFromTable(&D_shelter_b2_pod_access_tunnel_80183BC0, 0, 0, 0);
-            D_shelter_b2_pod_access_tunnel_80185708 = 1;
+            D_shelter_b2_pod_access_tunnel_80185708 = true;
         }
-        return 2;
+        return ROOM_EVENT_DEPARTURE_HANDLED;
     }
-    return 1;
+    return ROOM_EVENT_DEPARTURE_DIRECT;
 }
 
 s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)

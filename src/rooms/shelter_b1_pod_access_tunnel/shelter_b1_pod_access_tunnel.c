@@ -1205,6 +1205,12 @@ static void _shelterB1PodAccessTunnelRideToB2Task(Task* task)
 }
 
 /// Commits the gantry access flags, arrival and scene selection before reloading.
+///
+/// Requires a live departure task and held player/actor control. Unlocks the
+/// B2 R48 door, hides the gantry map mark and sets live-save scene event 28,
+/// gantry area, arrival 1 and room 1. Sprite variant 1 accompanies the captured
+/// reload request. Kills the caller's task without waiting for reload; committed
+/// flags and save fields are retained even if the spawn fails.
 static inline void _shelterB1PodAccessTunnelCommitGantryTransit(Task* task)
 {
     enum { GANTRY_DOOR_UNLOCKED          = 1,

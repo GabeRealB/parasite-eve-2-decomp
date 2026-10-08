@@ -30,7 +30,13 @@ extern SpriteView D_shelter_b1_south_maintenance_walkway_80182E18[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_south_maintenance_walkway_80183614[];
 
-void func_shelter_b1_south_maintenance_walkway_8017DA34(Task* task);
+/// Runs this room's persistent message receiver.
+///
+/// The Shelter map spawns a bodyless task in state 0: setup installs its room
+/// message table and publishes `GAME_TASK_SLOT_ROOM`, state 1 is idle, and
+/// state 2 kills the task. State must stay in 0..2; no bound is checked.
+/// Spawn arguments are unused. Keep the room overlay loaded while it runs.
+void shelterB1SouthMaintenanceWalkwayRoomTask(Task* task);
 
 /// Charges a pink flash, tints the screen at its peak, then fades it as a star.
 ///
@@ -61,7 +67,18 @@ void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task);
 /// nonzero and cancels at four or above.
 void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task);
 
-void func_shelter_b1_south_maintenance_walkway_801806F4(Task* arg0);
+/// Runs an attached charge disc with player-joint sparks and a fading release ring.
+///
+/// Bank-6 slot 0x21C owns a zeroed `EffectWork` in `spawnArg2.pointer` and a
+/// coordinate body. `spawnArg1.value` selects tint 0 or 1. The work's parent
+/// coordinate and ancestors must remain live; its copied local offset replaces
+/// the initial placement. Growth emits adopted flying sparks from player parts
+/// 3..18 every fourth active age, requiring the player model and this room's
+/// installed flying-spark callback. The owner may request flicker, release or
+/// cancel through `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Release fades the disc and
+/// expands an orange ring; teardown releases work and adopted child tasks.
+/// Room effect control pauses at nonzero and cancels at four or above.
+void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Expands an orange disc and layered glow, fading its ring before its centre.
 ///
@@ -80,6 +97,13 @@ void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask(Task
 /// room effect state, ordering table and packet arena; owns no effect work.
 void shelterB1SouthMaintenanceWalkwayDrawGlowsTask(Task* task);
 
-void func_shelter_b1_south_maintenance_walkway_8017FAAC(Task* task);
+/// Runs an impact flash followed by smoke or orange rings and bouncing sparks.
+///
+/// Bank-6 slot 0x201 owns a zero-aged `EffectWork` in `spawnArg2.pointer` and
+/// a coordinate body. Nonzero `spawnArg1.value` emits smoke at active ages 1..7;
+/// zero emits two independent bouncing sparks then draws fading orange rings.
+/// Both variants enter release at age 7 and free work on the next active tick.
+/// Room effect control pauses at nonzero and cancels at four or above.
+void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_H
