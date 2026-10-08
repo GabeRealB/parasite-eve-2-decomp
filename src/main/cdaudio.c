@@ -1149,7 +1149,7 @@ void CdAudio_Tick(void)
 {
     if ((_gCdAudioState.playback.baseSector != 0) && (_gCdAudioState.playback.driver != CD_AUDIO_DRIVER_IDLE)) {
         _gCdAudioState.playback.driver = CdAudio_DriveFns[_gCdAudioState.playback.driver & 7]();
-        CdStream_Drive();
+        cdStreamPollPlayback();
     }
 }
 

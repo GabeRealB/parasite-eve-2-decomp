@@ -41,11 +41,11 @@ static s32* CdCmd_MapHeapSizes[];
 
 static void _cdCmdHandleMoviePlayback(void);
 
-static void CdCmd_HandleFileLoad(void);
+static void _cdCmdHandleFileLoad(void);
 
 static void _cdCmdHandleStageMount(void);
 
-static void CdCmd_ProcessPhase1(void);
+static void _cdCmdHandleRequestCancellation(void);
 
 static void _cdCmdHandleRequestSuspension(void);
 
@@ -282,31 +282,48 @@ static void _cdCmdHandleMoviePlayback(void)
     }
 }
 
-static void CdCmd_HandleFileLoad(void)
+/// Advances the head file request through folder lookup, payload read and image decode.
+///
+/// The ring head must be a file-load request with a valid library/folder key.
+/// Default stage-folder loads at index zero rebuild that folder's tables first;
+/// other requests use the existing tables. Serializes drive recovery, owns the
+/// play-clock/CD-busy gates and retires the head only after image output completes.
+static void _cdCmdHandleFileLoad(void)
 {
-    CdCmdQueue*   state;
-    CdCmdQueue*   p;
-    s32           status;
+    enum {
+        CD_COMMAND_FILE_BEGIN           = 0,
+        CD_COMMAND_FILE_READ_DIRECTORY  = 1,
+        CD_COMMAND_FILE_WAIT_DIRECTORY  = 2,
+        CD_COMMAND_FILE_BUILD_DIRECTORY = 3,
+        CD_COMMAND_FILE_READ_PAYLOAD    = 4,
+        CD_COMMAND_FILE_WAIT_PAYLOAD    = 5,
+        CD_COMMAND_FILE_READ_RESUME     = 0x40,
+        CD_COMMAND_FILE_READ_RESTART    = 0x80,
+        CD_COMMAND_FILE_READ_COMPLETE   = 0xFF,
+    };
+    CdCmdQueue*   queue;
+    CdCmdQueue*   completionQueue;
+    s32           readStatus;
     FsFileLoadKey fileKey;
-    u8            mode;
+    u8            readMode;
 
     // The file key's hundreds/folder-suffix byte is stored with the load options.
-    state                  = &gCdCmdQueue;
-    fileKey.stage          = state->entries[state->readIdx].stage;
-    fileKey.fileGroup      = state->entries[state->readIdx].fileGroup;
-    fileKey.fileIndex      = state->entries[state->readIdx].fileIndex;
-    fileKey.fileIdHundreds = state->entries[state->readIdx].args.file.fileIdHundreds;
+    queue                  = &gCdCmdQueue;
+    fileKey.stage          = queue->entries[queue->readIdx].stage;
+    fileKey.fileGroup      = queue->entries[queue->readIdx].fileGroup;
+    fileKey.fileIndex      = queue->entries[queue->readIdx].fileIndex;
+    fileKey.fileIdHundreds = queue->entries[queue->readIdx].args.file.fileIdHundreds;
 
-    switch (state->step) {
-        case 0:
-            p = &gCdCmdQueue;
+    switch (queue->step) {
+        case CD_COMMAND_FILE_BEGIN:
+            completionQueue = &gCdCmdQueue;
             {
-                s32 busy;
-                busy                  = p->busy;
-                state->pausePlayClock = 1;
-                if (busy == 0) {
-                    p->busy              = 1;
-                    gDisplayState.cdBusy = DISPLAY_CD_BUSY;
+                s32 wasBusy;
+                wasBusy               = completionQueue->busy;
+                queue->pausePlayClock = 1;
+                if (wasBusy == 0) {
+                    completionQueue->busy = 1;
+                    gDisplayState.cdBusy  = DISPLAY_CD_BUSY;
                 }
             }
             switch (cdSyncPollCommand(0, 0)) {
@@ -318,32 +335,33 @@ static void CdCmd_HandleFileLoad(void)
                 case CD_SYNC_COMPLETE:
                     break;
                 default:
-                    goto end_check;
+                    goto pollImageDecode;
             }
-            mode = 0xA0;
-            CdControlB(CdlSetmode, &mode, NULL);
-            if (state->entries[state->readIdx].args.file.loadMode != CD_COMMAND_LOAD_DEFAULT || fileKey.stage == 0 || fileKey.fileIndex != 0) {
-                state->step = 4;
-                goto do_load;
+            readMode = CdlModeSpeed | CdlModeSize1;
+            CdControlB(CdlSetmode, &readMode, NULL);
+            if (queue->entries[queue->readIdx].args.file.loadMode != CD_COMMAND_LOAD_DEFAULT || fileKey.stage == GAME_STAGE_NONE || fileKey.fileIndex != 0) {
+                queue->step = CD_COMMAND_FILE_READ_PAYLOAD;
+                goto loadFile;
             }
-            state->step = state->step + 1;
+            queue->step = queue->step + 1;
             /* fallthrough */
-        case 1:
+        case CD_COMMAND_FILE_READ_DIRECTORY:
             fsStartFolderDirectoryRead(fileKey.stage, fileKey.fileGroup, fileKey.fileIdHundreds);
-            state->step = state->step + 1;
+            queue->step = queue->step + 1;
             break;
-        case 2:
+        // Complete or retry the directory read before publishing lookup tables.
+        case CD_COMMAND_FILE_WAIT_DIRECTORY:
             if (CdSync(1, NULL) == CdlDiskError) {
                 CdSyncCallback(NULL);
                 CdReadyCallback(NULL);
                 cdSyncWaitForReadableDisc(1);
-                state->step = 1;
+                queue->step = CD_COMMAND_FILE_READ_DIRECTORY;
                 break;
             }
             fsAbortTimedOutOperation();
-            status = Fs_CdOpStatus;
-            switch (status) {
-                case 0x80:
+            readStatus = Fs_CdOpStatus;
+            switch (readStatus) {
+                case CD_COMMAND_FILE_READ_RESTART:
                     switch (cdSyncPollCommand(0, 0)) {
                         case CD_SYNC_PENDING:
                             return;
@@ -354,18 +372,19 @@ static void CdCmd_HandleFileLoad(void)
                             if (CdSync(1, NULL) == CdlDiskError) {
                                 cdSyncWaitForReadableDisc(1);
                             }
-                            state->step = 1;
+                            queue->step = CD_COMMAND_FILE_READ_DIRECTORY;
                             break;
                     }
                     break;
-                case 0xFF:
+                case CD_COMMAND_FILE_READ_COMPLETE:
                     CdSyncCallback(NULL);
                     CdReadyCallback(NULL);
-                    state->step = state->step + 1;
+                    queue->step = queue->step + 1;
                     break;
+                // Additional resumption statuses; their producers are unproven.
                 case 0x10:
                 case 0x20:
-                case 0x40:
+                case CD_COMMAND_FILE_READ_RESUME:
                     switch (cdSyncPollCommand(0, 0)) {
                         case CD_SYNC_PENDING:
                             return;
@@ -379,7 +398,7 @@ static void CdCmd_HandleFileLoad(void)
                     break;
             }
             break;
-        case 3:
+        case CD_COMMAND_FILE_BUILD_DIRECTORY:
             switch (cdSyncPollCommand(0, 0)) {
                 case CD_SYNC_PENDING:
                     return;
@@ -388,31 +407,31 @@ static void CdCmd_HandleFileLoad(void)
                     /* fallthrough */
                 case CD_SYNC_COMPLETE:
                     fsBuildFolderTables(fileKey.stage, fileKey.fileGroup, fileKey.fileIdHundreds);
-                    state->step = state->step + 1;
+                    queue->step = queue->step + 1;
                     break;
             }
             /* fallthrough */
-        case 4:
-        do_load:
+        case CD_COMMAND_FILE_READ_PAYLOAD:
+        loadFile:
             fsLoadFile(
                 &fileKey,
-                (u8)state->entries[state->readIdx].args.file.loadMode,
-                state->entries[state->readIdx].args.file.imageXPageOffset,
-                state->entries[state->readIdx].args.file.imageYOffset);
-            state->step = state->step + 1;
+                (u8)queue->entries[queue->readIdx].args.file.loadMode,
+                queue->entries[queue->readIdx].args.file.imageXPageOffset,
+                queue->entries[queue->readIdx].args.file.imageYOffset);
+            queue->step = queue->step + 1;
             break;
-        case 5:
+        case CD_COMMAND_FILE_WAIT_PAYLOAD:
             if (CdSync(1, NULL) == CdlDiskError) {
                 CdSyncCallback(NULL);
                 CdReadyCallback(NULL);
                 cdSyncWaitForReadableDisc(1);
-                state->step = 4;
+                queue->step = CD_COMMAND_FILE_READ_PAYLOAD;
                 break;
             }
             fsAbortTimedOutOperation();
-            status = Fs_CdOpStatus;
-            switch (status) {
-                case 0x80:
+            readStatus = Fs_CdOpStatus;
+            switch (readStatus) {
+                case CD_COMMAND_FILE_READ_RESTART:
                     switch (cdSyncPollCommand(0, 0)) {
                         case CD_SYNC_PENDING:
                             return;
@@ -423,34 +442,27 @@ static void CdCmd_HandleFileLoad(void)
                             if (CdSync(1, NULL) == CdlDiskError) {
                                 cdSyncWaitForReadableDisc(1);
                             }
-                            state->step = 4;
+                            queue->step = CD_COMMAND_FILE_READ_PAYLOAD;
                             break;
                     }
                     break;
-                case 0xFF:
-                    if (state->imageLoadStatus != status) {
+                case CD_COMMAND_FILE_READ_COMPLETE:
+                    if (queue->imageLoadStatus != readStatus) {
                         break;
                     }
                     CdSyncCallback(NULL);
                     CdReadyCallback(NULL);
-                    p = &gCdCmdQueue;
-                    if (p->busy != 0) {
-                        p->busy              = 0;
-                        gDisplayState.cdBusy = DISPLAY_CD_IDLE;
+                    completionQueue = &gCdCmdQueue;
+                    if (completionQueue->busy != 0) {
+                        completionQueue->busy = 0;
+                        gDisplayState.cdBusy  = DISPLAY_CD_IDLE;
                     }
-                    p->step               = 0;
-                    p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-                    p->pausePlayClock     = 0;
-                    p->cdOperationPending = 0;
-                    if (p->readIdx != p->writeIdx) {
-                        p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
-                        p->readIdx                 = p->readIdx + 1;
-                        p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
-                    }
+                    _cdCmdRetireHeadRequest(completionQueue);
                     break;
+                // Additional resumption statuses; their producers are unproven.
                 case 0x10:
                 case 0x20:
-                case 0x40:
+                case CD_COMMAND_FILE_READ_RESUME:
                     switch (cdSyncPollCommand(0, 0)) {
                         case CD_SYNC_PENDING:
                             return;
@@ -467,8 +479,9 @@ static void CdCmd_HandleFileLoad(void)
             break;
     }
 
-end_check:
-    if (state->imageDecodePending != 0) {
+pollImageDecode:
+    // Image output can remain pending after the disc operation completes.
+    if (queue->imageDecodePending != 0) {
         mdecStepImageDecode();
     }
 }
@@ -679,105 +692,122 @@ static inline void _cdCmdFinishSceneAudio(void)
     _cdCmdRetireHeadRequest(queue);
 }
 
-static void CdCmd_ProcessPhase1(void)
+/// Advances cancellation of the saved head request and its movie or scene audio.
+///
+/// Pending drive work continues through its normal handler. Movie cancellation
+/// fades selected CD audio, stops playback and releases request gates; scene
+/// audio waits for stop and any descriptor-selected wave reload. Families 0..2
+/// return to normal dispatch. Unsupported families retain cancellation state.
+static void _cdCmdHandleRequestCancellation(void)
 {
-    CdCmdQueue* p;
-    CdCmdQueue* q;
-    u16*        statePtr;
-    u16         ret;
-    s32         temp;
+    enum {
+        CD_COMMAND_EMPTY_FAMILY        = CD_COMMAND_EMPTY >> 4,
+        CD_COMMAND_FILE_FAMILY         = CD_COMMAND_LOAD_FILE >> 4,
+        CD_COMMAND_STAGE_MOUNT_FAMILY  = CD_COMMAND_MOUNT_STAGE >> 4,
+        CD_COMMAND_MOVIE_FAMILY        = CD_COMMAND_CONTINUE_STREAM >> 4,
+        CD_COMMAND_OFFSET_MOVIE_FAMILY = CD_COMMAND_RESUME_STREAM_AT_POSITION >> 4,
+        CD_COMMAND_SCENE_AUDIO_FAMILY  = CD_COMMAND_PLAY_SCENE_AUDIO >> 4,
+    };
+    CdCmdQueue* queue;
+    CdCmdQueue* completionQueue;
+    u16*        cancelStep;
+    u16         movieStopped;
+    s32         resumeSectorOffset;
     StreamSlot* sceneStream;
 
-    p = &gCdCmdQueue;
-    switch (p->activeRequest.entry.cmd >> 4) {
-        case 0:
+    /// Polls shutdown, advancing playback until the drive can stop.
+    ///
+    /// stopped must be a writable u16 lvalue. It is assigned once, to 0 or 1;
+    /// playback work storage and the caller's cancellation state remain live.
+#define CD_COMMAND_POLL_CANCELLED_MOVIE_STOP(stopped) \
+    {                                                 \
+        if (streamPollMovieStop(true)) {              \
+            (stopped) = 1;                            \
+        } else {                                      \
+            _cdCmdHandleMoviePlayback();              \
+            (stopped) = 0;                            \
+        }                                             \
+    }
+
+    queue = &gCdCmdQueue;
+    switch (queue->activeRequest.entry.cmd >> 4) {
+        case CD_COMMAND_EMPTY_FAMILY:
         case 1:
-        case 2:
-            p->activeRequest.phase = CD_COMMAND_PHASE_DISPATCH;
+        case CD_COMMAND_FILE_FAMILY:
+            queue->activeRequest.phase = CD_COMMAND_PHASE_DISPATCH;
             return;
         case 3:
         case 4:
-        case 6:
-        case 7:
-            if (p->cdOperationPending != 0) {
-                if ((p->activeRequest.entry.cmd >> 4) == 7) {
+        case CD_COMMAND_MOVIE_FAMILY:
+        case CD_COMMAND_OFFSET_MOVIE_FAMILY:
+            if (queue->cdOperationPending != 0) {
+                if ((queue->activeRequest.entry.cmd >> 4) == CD_COMMAND_OFFSET_MOVIE_FAMILY) {
                     acropolisPlazaPollStreamCommands();
                     return;
                 }
                 _cdCmdHandleMoviePlayback();
                 return;
             }
-            statePtr = &p->cancelStep;
-            switch (*statePtr) {
+            // Keep playback advancing until fade and drive shutdown both finish.
+            cancelStep = &queue->cancelStep;
+            switch (*cancelStep) {
                 case CD_COMMAND_CANCEL_BEGIN:
                     if (D_8006AC58 != 0) {
                         cdVolBeginFadeOut();
-                        p->cancelStep = p->cancelStep + 1;
+                        queue->cancelStep = queue->cancelStep + 1;
                     } else {
-                        p->cancelStep = CD_COMMAND_CANCEL_FINISH;
-                        goto case_2;
+                        queue->cancelStep = CD_COMMAND_CANCEL_FINISH;
+                        goto stopMovie;
                     }
                     /* fallthrough */
                 case CD_COMMAND_CANCEL_WAIT:
                     if (cdVolStepFadeOut() == 0) {
-                        *statePtr = *statePtr + 1;
+                        *cancelStep = *cancelStep + 1;
                     }
                     _cdCmdHandleMoviePlayback();
-                    ret = 0;
+                    movieStopped = 0;
                     break;
                 case CD_COMMAND_CANCEL_FINISH:
-                case_2:
-                    if (streamPollMovieStop(1)) {
-                        ret = 1;
-                    } else {
-                        _cdCmdHandleMoviePlayback();
-                        ret = 0;
-                    }
+                stopMovie:
+                    CD_COMMAND_POLL_CANCELLED_MOVIE_STOP(movieStopped);
                     break;
                 default:
-                    ret = 0;
+                    movieStopped = 0;
                     break;
             }
-            if (ret != 0) {
-                p->movieFrameAvailable = 0;
-                memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
-                q = &gCdCmdQueue;
-                if (q->busy != 0) {
-                    q->busy              = 0;
-                    gDisplayState.cdBusy = DISPLAY_CD_IDLE;
+            if (movieStopped != 0) {
+                queue->movieFrameAvailable = 0;
+                memFillBytes(&queue->activeRequest, 0, sizeof(queue->activeRequest));
+                completionQueue = &gCdCmdQueue;
+                if (completionQueue->busy != 0) {
+                    completionQueue->busy = 0;
+                    gDisplayState.cdBusy  = DISPLAY_CD_IDLE;
                 }
-                q->step               = 0;
-                q->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-                q->pausePlayClock     = 0;
-                q->cdOperationPending = 0;
-                if (q->readIdx != q->writeIdx) {
-                    q->entries[q->readIdx].cmd = CD_COMMAND_EMPTY;
-                    q->readIdx                 = q->readIdx + 1;
-                    q->readIdx                 = q->readIdx % ARRAY_SIZE(q->entries);
-                }
+                _cdCmdRetireHeadRequest(completionQueue);
             }
             return;
-        case 8:
-            if (p->cdOperationPending != 0) {
+        // Scene audio may need a trailing wave reload before its request retires.
+        case CD_COMMAND_SCENE_AUDIO_FAMILY:
+            if (queue->cdOperationPending != 0) {
                 cdCmdHandleSceneAudio();
                 return;
             }
-            if ((u16)p->sceneAudioMode != CD_COMMAND_SCENE_INACTIVE) {
-                switch (p->cancelStep) {
+            if ((u16)queue->sceneAudioMode != CD_COMMAND_SCENE_INACTIVE) {
+                switch (queue->cancelStep) {
                     case CD_COMMAND_CANCEL_BEGIN:
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
                             sndEvtRequestScriptStart(SOUND_SCRIPT_REQUEST_NO_OP, 0, 0);
                         }
                         cdAudioCancel();
-                        p->cancelStep = p->cancelStep + 1;
+                        queue->cancelStep = queue->cancelStep + 1;
                         return;
                     case CD_COMMAND_CANCEL_WAIT:
                         if (CdAudio_Phase.stopStep == CD_AUDIO_STOP_STEP_DONE) {
-                            sceneStream = p->sceneStream;
-                            temp        = sceneStream->data.scene.resumeSectorOffset;
-                            if (temp) {
-                                cdAudioLoadWaves(sceneStream->startSector + temp);
-                                p->cancelStep = p->cancelStep + 1;
+                            sceneStream        = queue->sceneStream;
+                            resumeSectorOffset = sceneStream->data.scene.resumeSectorOffset;
+                            if (resumeSectorOffset) {
+                                cdAudioLoadWaves(sceneStream->startSector + resumeSectorOffset);
+                                queue->cancelStep = queue->cancelStep + 1;
                                 return;
                             }
                             _cdCmdFinishSceneAudio();
@@ -797,11 +827,12 @@ static void CdCmd_ProcessPhase1(void)
                 _cdCmdFinishSceneAudio();
             }
             return;
-        case 5:
+        case CD_COMMAND_STAGE_MOUNT_FAMILY:
         default:
             return;
     }
 }
+#undef CD_COMMAND_POLL_CANCELLED_MOVIE_STOP
 
 u16 cdCmdRequestSuspend(void)
 {
@@ -1428,7 +1459,7 @@ void CdCmd_Dispatch(void)
                     case CD_COMMAND_PHASE_DISPATCH:
                         break;
                     case CD_COMMAND_PHASE_SUSPEND:
-                        CdCmd_HandleFileLoad();
+                        _cdCmdHandleFileLoad();
                         break;
                     case 6:
                         _cdCmdHandleMoviePlayback();
@@ -1446,7 +1477,7 @@ void CdCmd_Dispatch(void)
             }
             break;
         case CD_COMMAND_PHASE_CANCEL:
-            CdCmd_ProcessPhase1();
+            _cdCmdHandleRequestCancellation();
             break;
         case CD_COMMAND_PHASE_SUSPEND:
             _cdCmdHandleRequestSuspension();
@@ -1454,6 +1485,6 @@ void CdCmd_Dispatch(void)
     }
 
     if (state->bootLoadActive != 0) {
-        Fs_StepBootImage();
+        gameFlowStepLoadScreen();
     }
 }

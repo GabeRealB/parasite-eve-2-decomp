@@ -8,6 +8,7 @@
 
 #include "fs_types.h"
 #include "main/task_types.h"
+#include "main/text.h"
 
 struct Task;
 
@@ -338,7 +339,13 @@ void fsBuildFolderTables(s32 stage, s32 fileGroup, s32 folderIndex);
 /// Boot path: scan ISO, parse HED, load initial CDF file (file id 1).
 void Boot_LoadInitialFile(struct Task* task);
 
-void Fs_StepBootImage(void);
+/// Polls the selected loading image, then advances its caption and fade presentation.
+///
+/// Call once per presentation frame while bootLoadActive is set. The queued
+/// image request owns the load until its ring slot empties; only then are the
+/// presentation cursor and caption reveal started. Selected captions and the
+/// decoded image must remain available through fade-out.
+void gameFlowStepLoadScreen(void);
 
 /// Reissues ReadN at the filesystem's retained absolute request sector.
 ///
@@ -366,7 +373,16 @@ void fsAbortTimedOutOperation(void);
 /// All image files come from category zero of the global stage-zero library.
 void gameFlowStartLoadScreenImage(void);
 
-void Fs_BootImageMachine(void* primaryTim, void* secondaryTim);
+/// Steps loading-screen reveal, caption playback, the minimum hold and fade-out.
+///
+/// Call once per presentation frame after the image load has finished. The
+/// mutable primary caption and its text/font storage must remain live until
+/// completion. The fade mask changes by 16 RGB levels per frame; the retained
+/// secondary delay is 61 frames, and the post-caption hold is at least 60
+/// frames, extended by holdBootImage.
+/// legacySecondaryCaption is retained in the interface but ignored; secondary
+/// drawing is suppressed. Completion releases bootLoadActive and the load phase.
+void gameFlowStepLoadScreenPresentation(TextStream* primaryCaption, TextStream* legacySecondaryCaption);
 
 /// Validates and feeds whole CD sectors to the active sound-bank sequence load.
 ///

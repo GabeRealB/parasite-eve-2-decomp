@@ -400,19 +400,26 @@ void gameFlowEnsureLoadScreenImageStarted(void)
     }
 }
 
-void Fs_StepBootImage(void)
+void gameFlowStepLoadScreen(void)
 {
+    enum {
+        GAME_FLOW_LOAD_IMAGE_IDLE         = 0,
+        GAME_FLOW_LOAD_IMAGE_READ_PENDING = 1,
+        GAME_FLOW_LOAD_IMAGE_PRESENTING   = 2,
+        GAME_FLOW_LOAD_PRESENTATION_BEGIN = 0,
+    };
     switch (Fs_BootLoadPhase) {
-        case 0:
+        case GAME_FLOW_LOAD_IMAGE_IDLE:
             break;
-        case 1:
+        case GAME_FLOW_LOAD_IMAGE_READ_PENDING:
+            // Start captions on the following frame, after the image request retires.
             if (cdCmdIsSlotEmpty(Fs_BootLoadSlot)) {
-                Fs_BootLoadPhase = 2;
-                D5B498_8006AC9C  = 0;
+                Fs_BootLoadPhase = GAME_FLOW_LOAD_IMAGE_PRESENTING;
+                D5B498_8006AC9C  = GAME_FLOW_LOAD_PRESENTATION_BEGIN;
             }
             break;
-        case 2:
-            Fs_BootImageMachine(Fs_BootTimPrimary, Fs_BootTimSecondary);
+        case GAME_FLOW_LOAD_IMAGE_PRESENTING:
+            gameFlowStepLoadScreenPresentation(Fs_BootTimPrimary, Fs_BootTimSecondary);
             break;
     }
 }

@@ -604,7 +604,7 @@ void Audio_IrqFrameWork(void)
     if (D_800680C0 != 0) {
         D_800680C0 = 0;
         spuTickVoices();
-        SndEvt_Process();
+        sndEvtDrainQueue();
         _audioTickProcess();
         spuFlushVoiceUpdates();
         D_800680BC += 1;

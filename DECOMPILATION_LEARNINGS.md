@@ -12107,7 +12107,7 @@ do {
 } while (next != NULL);      /* folds to `j loop` on the non-null path */
 ```
 
-`SndEvt_Process` only matches with this shape; `return` in the null arm stuck at
+`sndEvtDrainQueue` only matches with this shape; `return` in the null arm stuck at
 ~94% with inverted `beqz` and a missing `j` to the shared epilogue.
 
 ## Early-exit guard whose arm shares a tail with the body: write the `return`
@@ -18331,25 +18331,25 @@ bnez v0, skip
 sh   v1, busy(a0)
 ```
 
-writing `state->pausePlayClock = 1; if (p->busy == 0) p->busy = 1;` stores
+writing `queue->pausePlayClock = 1; if (completionQueue->busy == 0) completionQueue->busy = 1;` stores
 `pausePlayClock` *before* the load. Force the load first with a temporary, then
 assign `pausePlayClock` (still before the if body so the store can fill the
 branch delay):
 
 ```c
-p = &gCdCmdQueue;
+completionQueue = &gCdCmdQueue;
 {
-    s32 busy = p->busy;
-    state->pausePlayClock = 1;
-    if (busy == 0) {
-        p->busy = 1;
+    s32 wasBusy = completionQueue->busy;
+    queue->pausePlayClock = 1;
+    if (wasBusy == 0) {
+        completionQueue->busy = 1;
         gDisplayState.cdBusy = 0xFF;
     }
 }
 ```
 
-`CdCmd_HandleFileLoad` is the pure example. The two bases (`s0` for `state`, `a0` for
-the reloaded `p`) are required so `pausePlayClock` and `busy` use different
+`_cdCmdHandleFileLoad` is the pure example. The two bases (`s0` for `queue`, `a0` for
+the reloaded `completionQueue`) are required so `pausePlayClock` and `busy` use different
 addressing.
 
 ## Rematerialize `CdlDiskError` so it is not pinned in `$sN`
@@ -18371,7 +18371,7 @@ if (sync == diskErr) {
 ```
 
 Each site reloads `li v1, 5` after the `jal`, matching the ROM. Same idea as
-other `asm("" : "+r"(...))` REG_EQUAL kills; `CdCmd_HandleFileLoad` is the pure
+other `asm("" : "+r"(...))` REG_EQUAL kills; `_cdCmdHandleFileLoad` is the pure
 CdSync example.
 
 ## Two near-identical status switches: fully inline the shared tails
@@ -18389,7 +18389,7 @@ keep a single handle without the bad merge — and the sites that need a
 separate. Also avoids `move a0, v0` after `cdSyncPollCommand` that appears when
 `ret` is live into a multi-predecessor shared label across calls.
 
-`CdCmd_HandleFileLoad` is the pure example (paired with the busy-temp tip above).
+`_cdCmdHandleFileLoad` is the pure example (paired with the busy-temp tip above).
 
 ## Pin the child task to `$a0` for `lw a0,0x20(a0)` with a separate UI-object pointer
 
@@ -19499,11 +19499,11 @@ Force both copies to stay:
 
 1. End the first cleanup with `return` (not `break` into a shared epilogue
    path that the second arm also falls into).
-2. Use a *fresh* local for the first cleanup's base (`q = &gCdCmdQueue` after
-   `memFillBytes`) while the second arm reassigns the original `p` /
-   `$s0` (`p = &gCdCmdQueue` at the cleanup label).
+2. Use a *fresh* local for the first cleanup's base (`completionQueue = &gCdCmdQueue` after
+   `memFillBytes`) while the second arm reassigns the original `queue` /
+   `$s0` (`queue = &gCdCmdQueue` at the cleanup label).
 
-`CdCmd_ProcessPhase1` is the example — cases 3/4/6/7 clean up via `$a0`, case 8 via
+`_cdCmdHandleRequestCancellation` is the example — cases 3/4/6/7 clean up via `$a0`, case 8 via
 `$s0`.
 
 ## `s32` temp for halfword so the pointer stays in `$v1`
@@ -19515,19 +19515,19 @@ ptr->field` assignment tends to put the pointer in `$v0` and the halfword in
 Hold the halfword in an `s32` temporary (and keep an explicit pointer local):
 
 ```c
-StreamSlot* info;
-s32         temp;
+StreamSlot* sceneStream;
+s32         resumeSectorOffset;
 
-info = p->sceneStream;
-temp = info->data.scene.resumeSectorOffset;
-if (temp) {
-    func(info->startSector + temp);
+sceneStream = queue->sceneStream;
+resumeSectorOffset = sceneStream->data.scene.resumeSectorOffset;
+if (resumeSectorOffset) {
+    func(sceneStream->startSector + resumeSectorOffset);
 }
 ```
 
 The wider temp prefers `$v0` and leaves `$v1` for the pointer. Same family as
 the `s16 ret` tip (narrow vs wide forcing different REG_EQUAL modes), just the
-other direction. `CdCmd_ProcessPhase1` case 8 / `sceneStream` is the pure example.
+other direction. `_cdCmdHandleRequestCancellation` case 8 / `sceneStream` is the pure example.
 
 ## Empty memory clobber forces `sw ra` before the first delayed branch
 
@@ -21183,7 +21183,7 @@ When the second parameter is discarded and a global base is needed later via
 case entry), initialize a typed local at the top of the function:
 
 ```c
-void func(void* arg0, void* arg1)
+void func(TextStream* primaryCaption, TextStream* legacySecondaryCaption)
 {
     CdCmdQueue* queue;
     queue = &gCdCmdQueue; /* materialises into $a1 before the switch */
@@ -21193,7 +21193,7 @@ void func(void* arg0, void* arg1)
 ```
 
 A queue local live across calls can instead be coloured into `$s0` and produce
-`lhu v0, 0x22e(s0)`. The typed local above matches `Fs_BootImageMachine` while
+`lhu v0, 0x22e(s0)`. The typed local above matches `gameFlowStepLoadScreenPresentation` while
 leaving its second parameter unused. Absolute member access is still correct
 for stores that the target emits with
 `%hi(gCdCmdQueue+off)`.
@@ -21305,7 +21305,7 @@ if (other >= 0) {
 ```
 
 Sharing one `ret` for both calls pulls the first result out of `$v0` into a
-saved reg and shrinks the stack (no `$s3`). `Fs_BootImageMachine` is the pure
+saved reg and shrinks the stack (no `$s3`). `gameFlowStepLoadScreenPresentation` is the pure
 example.
 
 ## Shared kill tail: fall out of outer `if` instead of `goto` from both arms
@@ -149107,7 +149107,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
   try each). The known limit applies: cross-jumping runs after allocation, so
   a duplicated tail that mentions a pseudo in a close priority race swaps
   registers. `_actor107600UpdateHangingMountPath` took two of its three `goto stop`
-  as duplicates and swapped `$t0/$t1` on the third; `Fs_BootImageMachine`
+  as duplicates and swapped `$t0/$t1` on the third; `gameFlowStepLoadScreenPresentation`
   swapped `$s1/$s3` when the shared draw tail was duplicated or made an inline.
 - **A hand-written dispatch tree (`if (s == 1) goto case1; if (s >= 2) goto
   ge2; ...`) is a `switch`.** When one case jumps into the code after the
@@ -150319,7 +150319,7 @@ attempts; left as it was.
   `u8` field narrows to `andi 0x87`, so the `s32 flags` temporary stays
   (`worldCollisionClearOccluderList`, `worldCollisionClearTriggerList`).
 - **`goto draw;` from one state into the next state's tail, where the tail's
-  duplicate swapped registers** (`Fs_BootImageMachine`, see the sample entry):
+  duplicate swapped registers** (`gameFlowStepLoadScreenPresentation`, see the sample entry):
   the tail goes after the switch, the two states `break`, the others `return`
   and `default: return;` keeps unknown states out.
 ### Goto removal, batch 19: the collision grid walks, jump.c's own break mover, a hoist that counts mentions (2026-10-06)
@@ -150492,7 +150492,7 @@ attempts; left as it was.
   return; goto out; } if (ret != 2) goto out; CdFlush(); } body`** is
   `switch ((s16)poll()) { case 0: return; case 2: CdFlush(); /* fallthrough */
   case 1: body; break; }` with the default falling out of the inner switch
-  (`CdCmd_HandleFileLoad`, `_cdCmdHandleStageMount`, `_cdCmdHandleMoviePlayback`; 33
+  (`_cdCmdHandleFileLoad`, `_cdCmdHandleStageMount`, `_cdCmdHandleMoviePlayback`; 33
   of 35 gotos in the three went, most of them this way). Where no path tests zero the list still needs
   `case 0:` next to `default:` for the `slti 2` node. A state whose default
   path runs the *next* state's code (`case 3` of the file load) is the inner
@@ -150501,18 +150501,18 @@ attempts; left as it was.
   default: return;` (`_cdCmdHandleMoviePlayback`).
 - **`p = &gCdCmdQueue;` re-assigned at a label two gotos reach** is an inline
   with its own `queue` (`_cdCmdFinishSceneAudio`, called at the three sites of
-  `CdCmd_ProcessPhase1`).
+  `_cdCmdHandleRequestCancellation`).
 - Not converted, and why:
-  - `state->step = 4; goto do_load;` from state 0 of `CdCmd_HandleFileLoad`
+  - `queue->step = CD_COMMAND_FILE_READ_PAYLOAD; goto loadFile;` from state 0 of `_cdCmdHandleFileLoad`
     into state 4. Written out (`step = 4; fsLoadFile(...); step++; break;`)
     the copy has no label between the store and the call; in the build the
     call's first argument load sits above the store (`lhu; li v1,4; j; sh`)
     and the merge starts one insn into the load block, so the store no
-    longer shares `sh v0,step` with state 3's `step++`. The `goto end_check`
+    longer shares `sh v0,step` with state 3's `step++`. The `goto pollImageDecode`
     beside it could only go if state 0 fell out of its inner switch, which it
     cannot while it also falls through into state 1; duplicating the end test
     in the `default:` un-merges the shared `ret == 0` test.
-  - `cancelStep = FINISH; goto case_2;` in `CdCmd_ProcessPhase1` /
+  - `queue->cancelStep = CD_COMMAND_CANCEL_FINISH; goto stopMovie;` in `_cdCmdHandleRequestCancellation` /
     `suspendResumeStep = CD_COMMAND_SUSPEND_STOP; goto stopMovie;` in
     `_cdCmdHandleRequestSuspension` (state 0 jumping over state 1 into state 2). The
     stop block written twice merges only its two tails; the leading
@@ -150609,7 +150609,7 @@ attempts; left as it was.
     tail): as `for (;;)` with `continue`, loop.c hoists `li 5` and two `lui`
     out of the retry loop into `$s8/$s4/$s6` (5 insns longer, larger frame).
     The image reloads them, so the retry was not a loop to loop.c.
-  - `CdStream_TickPlayback`, `_cdStreamAdvanceOddChunk` (`goto stopVoices`
+  - `_cdStreamAdvanceEvenChunk`, `_cdStreamAdvanceOddChunk` (`goto stopVoices`
     back into the first arm): the label has a fresh `lui s1,%hi(CdStream_Runtime)`
     that the backward jump repeats in its delay slot. An inline called in both
     arms reuses the function's `$s2` base in the fall-through copy, the copies

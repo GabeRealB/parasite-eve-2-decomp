@@ -41,10 +41,8 @@ typedef u32 _GpuStatusRegister;
 
 #define GPUEXT_GPU1 (void*)0x1f801814
 
-/// Reads the GPU Status Register.
-///
-/// @return GPU Status Register.
-static inline _GpuStatusRegister GpuExt_GetGpuStatusReg()
+/// Samples the GPU status word from the memory-mapped GP1 read port.
+static inline _GpuStatusRegister _gpuExtReadStatus(void)
 {
     return *(_GpuStatusRegister*)GPUEXT_GPU1;
 }
@@ -53,5 +51,5 @@ i32 GpuExt_IsDisplayEnabled()
 {
     // The original inverts the bit before masking it, which a one-bit bitfield
     // read does not reproduce (it masks first), so the register is a plain word.
-    return (GpuExt_GetGpuStatusReg() >> GPU_STATUS_REGISTER_DISPLAY_DISABLED_BIT ^ 1) & 1;
+    return (_gpuExtReadStatus() >> GPU_STATUS_REGISTER_DISPLAY_DISABLED_BIT ^ 1) & 1;
 }

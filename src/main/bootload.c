@@ -1849,17 +1849,30 @@ void gameFlowStartLoadScreenImage(void)
     Fs_BootLoadSlot              = cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &imageKey, &loadOptions);
 }
 
-void Fs_BootImageMachine(void* arg0, void* arg1)
+void gameFlowStepLoadScreenPresentation(TextStream* primaryCaption, TextStream* legacySecondaryCaption)
 {
+    enum {
+        GAME_FLOW_LOAD_PRESENTATION_BEGIN     = 0,
+        GAME_FLOW_LOAD_PRESENTATION_REVEAL    = 1,
+        GAME_FLOW_LOAD_PRESENTATION_CAPTION   = 2,
+        GAME_FLOW_LOAD_PRESENTATION_HOLD      = 3,
+        GAME_FLOW_LOAD_PRESENTATION_FADE_OUT  = 4,
+        GAME_FLOW_LOAD_SECONDARY_DELAY_FRAMES = 61,
+        GAME_FLOW_LOAD_CAPTION_HOLD_FRAMES    = 60,
+        GAME_FLOW_LOAD_FADE_COLOR_STEP        = 16,
+        GAME_FLOW_LOAD_PHASE_IDLE             = 0,
+        GAME_FLOW_LOAD_CAPTION_END_REACHED    = -1,
+    };
     CdCmdQueue* queue;
-    void*       secondary;
-    s32         ret;
-    s32         temp;
+    TextStream* secondaryCaption;
+    s32         secondaryRevealStatus;
+    s32         primaryRevealStatus;
 
-    queue     = &gCdCmdQueue;
-    secondary = NULL;
+    queue = &gCdCmdQueue;
+    // Retain the suppressed secondary-caption path and its original timing.
+    secondaryCaption = NULL;
     switch ((s16)D5B498_8006AC9C) {
-        case 0:
+        case GAME_FLOW_LOAD_PRESENTATION_BEGIN:
             D_8006ACA0 = 0;
             D_8006AC9F = 0;
             D_8006AC9E = 0;
@@ -1870,30 +1883,30 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
             _fadeBeginBootImageReveal();
             D5B498_8006AC9C++;
             /* fallthrough */
-        case 1:
-            if ((_fadeBootImageFromBlack(0x10) & 0xFFFF) != 0) {
+        case GAME_FLOW_LOAD_PRESENTATION_REVEAL:
+            if ((_fadeBootImageFromBlack(GAME_FLOW_LOAD_FADE_COLOR_STEP) & 0xFFFF) != 0) {
                 D5B498_8006AC9C++;
             }
             return;
-        case 2:
+        case GAME_FLOW_LOAD_PRESENTATION_CAPTION:
             if (D_8006ACA6 < 0) {
                 D_8006ACA2 = 1;
             }
-            temp = textDrawStream(arg0, &D_8006AC9E, &D_8006ACA2, 0);
+            primaryRevealStatus = textDrawStream(primaryCaption, &D_8006AC9E, &D_8006ACA2, 0);
             if (D_8006ACA6 >= 0) {
-                D_8006ACA6 = temp;
+                D_8006ACA6 = primaryRevealStatus;
             }
-            if (D_8006ACA0 >= 0x3D) {
+            if (D_8006ACA0 >= GAME_FLOW_LOAD_SECONDARY_DELAY_FRAMES) {
                 if (D_8006ACA8 < 0) {
                     D_8006ACA4 = 1;
                 }
-                if (secondary != NULL) {
-                    ret = textDrawStream(secondary, &D_8006AC9F, &D_8006ACA4, 0);
+                if (secondaryCaption != NULL) {
+                    secondaryRevealStatus = textDrawStream(secondaryCaption, &D_8006AC9F, &D_8006ACA4, 0);
                 } else {
-                    D_8006ACA8 = -1;
+                    D_8006ACA8 = GAME_FLOW_LOAD_CAPTION_END_REACHED;
                 }
                 if (D_8006ACA8 >= 0) {
-                    D_8006ACA8 = ret;
+                    D_8006ACA8 = secondaryRevealStatus;
                 }
             } else {
                 D_8006ACA0++;
@@ -1903,8 +1916,8 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
                 D5B498_8006AC9C++;
             }
             return;
-        case 3:
-            if (D_8006ACA0 >= 0x3C) {
+        case GAME_FLOW_LOAD_PRESENTATION_HOLD:
+            if (D_8006ACA0 >= GAME_FLOW_LOAD_CAPTION_HOLD_FRAMES) {
                 if (queue->holdBootImage == 0) {
                     D_8006ACB4 = 0;
                     D5B498_8006AC9C++;
@@ -1913,9 +1926,9 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
                 D_8006ACA0++;
             }
             break;
-        case 4:
-            if ((_fadeBootImageToBlack(0x10) & 0xFFFF) != 0) {
-                Fs_BootLoadPhase           = 0;
+        case GAME_FLOW_LOAD_PRESENTATION_FADE_OUT:
+            if ((_fadeBootImageToBlack(GAME_FLOW_LOAD_FADE_COLOR_STEP) & 0xFFFF) != 0) {
+                Fs_BootLoadPhase           = GAME_FLOW_LOAD_PHASE_IDLE;
                 gCdCmdQueue.bootLoadActive = 0;
             }
             break;
@@ -1924,8 +1937,9 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
     }
     D_8006ACA4 = 1;
     D_8006ACA2 = 1;
-    textDrawStream(arg0, &D_8006AC9E, &D_8006ACA2, 0);
-    if (secondary != NULL) {
-        textDrawStream(secondary, &D_8006AC9F, &D_8006ACA4, 0);
+    // Keep the revealed caption visible throughout the hold and fade-out.
+    textDrawStream(primaryCaption, &D_8006AC9E, &D_8006ACA2, 0);
+    if (secondaryCaption != NULL) {
+        textDrawStream(secondaryCaption, &D_8006AC9F, &D_8006ACA4, 0);
     }
 }

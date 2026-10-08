@@ -96,6 +96,14 @@ void cdStreamOpen(const CdStreamParams* params);
 /// `cdStreamIsBusy` to clear before reusing the sector buffer or SPU rings.
 void cdStreamStop(void);
 
-void CdStream_Drive(void);
+/// Services MTS playback and the disc-ready queue for one audio-driver frame.
+///
+/// Nested calls are ignored. Handles fault recovery, seek/stop requests, voice
+/// updates and both SPU ring boundaries, advancing the playhead in vsync units.
+/// The final chunk stops according to its header mode. Ready jobs are polled
+/// even with playback inactive; the borrowed sector buffer and SPU rings must
+/// remain available until playback and queued cancellation have ended.
+/// Voice allocation must yield valid SPU indices (0..23).
+void cdStreamPollPlayback(void);
 
 #endif // MAIN_PRIVATE_CDSTREAM_H

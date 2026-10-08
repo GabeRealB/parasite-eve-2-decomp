@@ -593,50 +593,6 @@ static u8           D_800689F0[]          = {
     0x60,
 };
 
-void SndEvt_Process(void)
-{
-    SndEvt* nextEvent;
-    SndEvt* event;
-    u32     i;
-    s32*    poolWord;
-
-    if (_gSndEvtProcessEnabled == false) {
-        return;
-    }
-    if (_gSndEvtHead == NULL) {
-        return;
-    }
-
-    do {
-        event = _gSndEvtHead;
-        // Unsigned narrowing rejects negative stored commands as well as high ones.
-        if ((u16)event->command >= (u32)ARRAY_SIZE(SndEvt_Handlers)) {
-            // Clear every slot as words, including payloads and unqueued reservations.
-            poolWord = (s32*)_gSndEvtPool;
-            i        = 0;
-            do {
-                *poolWord = 0;
-                i++;
-                poolWord++;
-            } while (i < sizeof(_gSndEvtPool) / sizeof(*poolWord));
-            _gSndEvtHead           = NULL;
-            _gSndEvtTail           = NULL;
-            _gSndEvtProcessEnabled = true;
-            return;
-        }
-        SndEvt_Handlers[event->command](event);
-        event     = _gSndEvtHead;
-        nextEvent = event->next;
-        _sndEvtRelease(event);
-        if (nextEvent == NULL) {
-            _gSndEvtTail = NULL;
-            _gSndEvtHead = NULL;
-            break;
-        }
-        _gSndEvtHead = nextEvent;
-    } while (nextEvent != NULL);
-}
-
 /// Clears every reservation, payload and link in the resident sound-event pool.
 ///
 /// Covers the complete fixed array with aligned 32-bit stores. All queued and
@@ -654,6 +610,43 @@ static inline void _sndEvtClearPool(void)
         wordIndex++;
         poolWord++;
     } while (wordIndex < sizeof(_gSndEvtPool) / sizeof(*poolWord));
+}
+
+void sndEvtDrainQueue(void)
+{
+    SndEvt* nextEvent;
+    SndEvt* event;
+
+    if (_gSndEvtProcessEnabled == false) {
+        return;
+    }
+    if (_gSndEvtHead == NULL) {
+        return;
+    }
+
+    do {
+        event = _gSndEvtHead;
+        // Unsigned narrowing rejects negative stored commands as well as high ones.
+        if ((u16)event->command >= (u32)ARRAY_SIZE(SndEvt_Handlers)) {
+            // Invalidate queued and unqueued reservations before resetting the FIFO.
+            _sndEvtClearPool();
+            _gSndEvtHead           = NULL;
+            _gSndEvtTail           = NULL;
+            _gSndEvtProcessEnabled = true;
+            return;
+        }
+        SndEvt_Handlers[event->command](event);
+        // Reload the head after dispatch before releasing the processed reservation.
+        event     = _gSndEvtHead;
+        nextEvent = event->next;
+        _sndEvtRelease(event);
+        if (nextEvent == NULL) {
+            _gSndEvtTail = NULL;
+            _gSndEvtHead = NULL;
+            break;
+        }
+        _gSndEvtHead = nextEvent;
+    } while (nextEvent != NULL);
 }
 
 void sndEvtReset(void)

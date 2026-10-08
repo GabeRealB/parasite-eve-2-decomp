@@ -377,10 +377,10 @@ DsDataCallback              = 0x8001BB58;
 //--------------------------------------------------------------------
 cdCmdReservePlaybackBuffers               = 0x8001BB7C; // type:func
 _cdCmdHandleMoviePlayback               = 0x8001BE60; // type:func
-CdCmd_HandleFileLoad               = 0x8001C0D4; // type:func
+_cdCmdHandleFileLoad               = 0x8001C0D4; // type:func
 _cdCmdHandleStageMount               = 0x8001C620; // type:func
 cdCmdRequestCancel               = 0x8001C970; // type:func
-CdCmd_ProcessPhase1               = 0x8001CA70; // type:func
+_cdCmdHandleRequestCancellation               = 0x8001CA70; // type:func
 cdCmdRequestSuspend               = 0x8001CDF0; // type:func
 _cdCmdHandleRequestSuspension               = 0x8001CEFC; // type:func
 cdCmdResumeSuspendedMovie               = 0x8001D0E8; // type:func
@@ -529,7 +529,7 @@ _gameFlowSelectDryfieldLoadScreenAssets               = 0x80021B28; // type:func
 _gameFlowSelectDryfieldNightLoadScreenAssets               = 0x80021C0C; // type:func
 _gameFlowSelectMineShelterLoadScreenAssets               = 0x80021D8C; // type:func
 gameFlowStartLoadScreenImage               = 0x8002207C; // type:func
-Fs_BootImageMachine               = 0x8002226C; // type:func
+gameFlowStepLoadScreenPresentation               = 0x8002226C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x12D18   VA: 0x80022518   subsegment: c, fs
@@ -537,7 +537,7 @@ Fs_BootImageMachine               = 0x8002226C; // type:func
 _gameFlowResetLoadScreenState             = 0x80022518; // type:func
 gameFlowBeginLoadScreen             = 0x8002252C; // type:func
 gameFlowEnsureLoadScreenImageStarted             = 0x80022598; // type:func
-Fs_StepBootImage             = 0x800225D4; // type:func
+gameFlowStepLoadScreen             = 0x800225D4; // type:func
 fsLoadFile                 = 0x8002265C; // type:func
 _fsChunkReadyCallback                = 0x80022BD0; // type:func
 _fsReadChunkHeaderSector       = 0x80022CF0; // type:func
@@ -2051,7 +2051,7 @@ WaitEvent                   = 0x800508A0;
 //--------------------------------------------------------------------
 //--- PA: 0x410B0   VA: 0x800508B0   subsegment: c, 410B0
 //--------------------------------------------------------------------
-SndEvt_Process               = 0x800508B0; // type:func
+sndEvtDrainQueue               = 0x800508B0; // type:func
 sndEvtReset               = 0x800509B4; // type:func
 sndEvtAlloc               = 0x800509F4; // type:func
 sndEvtEnqueue               = 0x80050A38; // type:func
@@ -2227,9 +2227,9 @@ cdStreamStop               = 0x8005842C; // type:func
 _cdStreamQueueRestartRead               = 0x8005854C; // type:func
 _cdStreamCompleteRestartRead               = 0x80058748; // type:func
 _cdStreamResumePlayback               = 0x800588D8; // type:func
-CdStream_TickPlayback               = 0x8005896C; // type:func
+_cdStreamAdvanceEvenChunk               = 0x8005896C; // type:func
 _cdStreamAdvanceOddChunk               = 0x80058ED4; // type:func
-CdStream_Drive               = 0x80059348; // type:func
+cdStreamPollPlayback               = 0x80059348; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x4A6E0   VA: 0x80059EE0   subsegment: c, 4A6E0

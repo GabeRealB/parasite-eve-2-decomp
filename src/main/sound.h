@@ -342,7 +342,14 @@ void spuEnableVoiceReverb(u32 voiceIdx);
 /// this request does not change the cached hardware reverb status.
 void spuDisableVoiceReverb(u32 voiceIdx);
 
-void SndEvt_Process(void);
+/// Dispatches queued sound events in FIFO order and releases their reservations.
+///
+/// Called by the serialized audio-frame interrupt before script polling. A
+/// disabled producer gate or empty FIFO does nothing. Commands index the full
+/// resident handler table after unsigned 16-bit validation. An invalid command
+/// clears the entire pool, including unqueued reservations, resets both FIFO
+/// endpoints and reopens the drain gate. Handler effects are applied in order.
+void sndEvtDrainQueue(void);
 
 /// Reserves the first free sound-event slot, or returns `NULL` when every slot
 /// is already reserved.
