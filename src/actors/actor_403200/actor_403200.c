@@ -430,6 +430,7 @@ static s32          _actor403200PickSwipeView(Task* task, s16 phase);
 static s32          _actor403200PickDefaultView(Task* host, s16 phase);
 static s32          _actor403200PickPlayerXView(Task* unusedHost, s16 unusedPhase);
 static void         _gluttonEscort6Task(Task* task);
+static void         _gluttonPropTask(Task* task);
 
 static s32  _actor403200SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedSecondArg);
 static s32  _actor403200ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* command, s32 unusedSecondArg);
@@ -2726,12 +2727,12 @@ AnimationSet* gGluttonCaughtAnimSets[7] = {
 };
 
 TaskDesc D_actor_403200_8015E72C[7] = {
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &_gActor403200GluttonLegRight } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &_gActor403200GluttonLegLeft } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &_gActor403200Model12884 } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &_gActor403200Model13774 } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &_gActor403200Model1785C } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &_gActor403200Model18BE4 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200GluttonLegRight } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200GluttonLegLeft } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200Model12884 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200Model13774 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200Model1785C } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200Model18BE4 } },
     { { { TASK_BODY_TMD, 96 } }, _gluttonEscort6Task, { .model = &_gActor403200Model186D8 } },
 };
 
@@ -3510,7 +3511,7 @@ static const _Actor403200ViewAnchors D_actor_403200_80131E64 = {
     },
 };
 
-/// State handlers of the escort model task `gluttonPropTask` and
+/// State handlers of the escort model task `_gluttonPropTask` and
 /// `_gluttonEscort6Task` dispatch: texture setup, coordinate refresh,
 /// teardown.
 static const EnemyTaskFuncTable3 gGluttonPropStates = {
@@ -6877,8 +6878,8 @@ static void _actor403200DeathHandoffState(Task* task)
 ///
 /// Must name a previously declared `void (Task*)` callback; its declaration
 /// supplies the linkage. Bind around each inclusion, then undefine it. The
-/// first instance serves descriptor slots 0..5; the private copy serves slot 6.
-#define GLUTTON_PROP_TASK gluttonPropTask
+/// first private instance serves descriptor slots 0..5; the second serves slot 6.
+#define GLUTTON_PROP_TASK _gluttonPropTask
 #include "../../shared/glutton_prop_task.inc.c"
 #undef GLUTTON_PROP_TASK
 

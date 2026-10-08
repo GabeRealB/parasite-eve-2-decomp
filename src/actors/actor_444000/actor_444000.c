@@ -2641,6 +2641,7 @@ AnimationSet* gGluttonCaughtAnimSets[7] = {
 };
 
 static void      _gluttonEscort6Task(Task* task);
+static void      _gluttonPropTask(Task* task);
 extern TmdSource gActor444000GluttonLegLeft;
 extern TmdSource gActor444000Actor403200Model12884;
 extern TmdSource gActor444000Actor403200Model13774;
@@ -2649,12 +2650,12 @@ extern TmdSource gActor444000Actor403200Model18BE4;
 extern TmdSource D_actor_444000_80161B50;
 
 TaskDesc D_actor_444000_801616B0[7] = {
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &gActor444000GluttonLegRight } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &gActor444000GluttonLegLeft } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &gActor444000Actor403200Model12884 } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &gActor444000Actor403200Model13774 } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &_gActor444000Actor403200Model1785C } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &gActor444000Actor403200Model18BE4 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &gActor444000GluttonLegRight } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &gActor444000GluttonLegLeft } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &gActor444000Actor403200Model12884 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &gActor444000Actor403200Model13774 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor444000Actor403200Model1785C } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &gActor444000Actor403200Model18BE4 } },
     { { { TASK_BODY_TMD, 96 } }, _gluttonEscort6Task, { .model = &D_actor_444000_80161B50 } },
 };
 
@@ -7060,8 +7061,8 @@ static void _actor444000ReturnToAdvanceState(Task* task)
 ///
 /// Must name a previously declared `void (Task*)` callback; its declaration
 /// supplies the linkage. Bind around each inclusion, then undefine it. The
-/// first instance serves descriptor slots 0..5; the private copy serves slot 6.
-#define GLUTTON_PROP_TASK gluttonPropTask
+/// first private instance serves descriptor slots 0..5; the second serves slot 6.
+#define GLUTTON_PROP_TASK _gluttonPropTask
 #include "../../shared/glutton_prop_task.inc.c"
 #undef GLUTTON_PROP_TASK
 

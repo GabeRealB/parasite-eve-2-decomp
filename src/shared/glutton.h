@@ -412,7 +412,6 @@ static void _gluttonChunkTask(Task* task);
 static void _gluttonSpinnerTask(Task* task);
 static void _gluttonRainTask(Task* task);
 static void _gluttonThrowTask(Task* task);
-void        gluttonPropTask(Task* arg0);
 
 /// Selects the function identifier of this carrier's screen-shake request setter.
 ///
