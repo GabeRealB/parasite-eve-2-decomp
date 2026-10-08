@@ -580,7 +580,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, m4a1PykeNozzleTask, { NULL } },                                                     // 0x02A
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTask2B, { NULL } },                                                    // 0x02B
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x02C
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_square_801823DC, { NULL } },                                         // 0x02D
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisSquareRoomEffectTask, { NULL } },                                          // 0x02D
     { { { TASK_BODY_COORD, 0x70 } }, mistParkingContinueDepartureChoiceTask, { NULL } },                                 // 0x02E
     { { { TASK_BODY_COORD, 0x70 } }, m4a1JavelinGuideBeamTask, { NULL } },                                               // 0x02F
     { { { TASK_BODY_COORD, 0x70 } }, effectGravityParticleTask, { NULL } },                                              // 0x030
@@ -609,10 +609,10 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSquareBeaconGlowTask, { NULL } },                                          // 0x047
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomMonitorFeedsTask, { NULL } },                                  // 0x048
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomMonitorFeedTask, { NULL } },                                   // 0x049
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_promenade_8017E03C, { NULL } },                                      // 0x04A
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeRoomEffectTask, { NULL } },                                       // 0x04A
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGlowStarTask, { NULL } },                                         // 0x04B
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask4C, { NULL } },                                           // 0x04C
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_plaza_8018251C, { NULL } },                                          // 0x04D
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisPlazaSpawnAmbientLightsTask, { NULL } },                                   // 0x04D
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeLightEmitterTask, { NULL } },                                    // 0x04E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlareTask, { NULL } },                                           // 0x04F
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_80180580, { NULL } },                             // 0x050

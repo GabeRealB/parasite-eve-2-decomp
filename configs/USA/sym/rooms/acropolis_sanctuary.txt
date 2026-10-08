@@ -181,3 +181,7 @@ _acropolisSanctuaryInitRoomTask = 0x8017d930; // type:func
 acropolisSanctuaryRoomTask = 0x8017d9e8; // type:func
 _acropolisSanctuaryStartMosaic = 0x8017f918; // type:func
 acropolisSanctuaryItemVisibilityTask = 0x80180264; // type:func
+_acropolisSanctuaryUpdateRoomProgress = 0x8017d5e0; // type:func
+_acropolisSanctuaryCutsceneTask = 0x8017da40; // type:func
+_acropolisSanctuaryHandleRoomAction = 0x8017d848; // type:func
+_acropolisSanctuaryUpdateUnusedPlacedObjectVisibility = 0x801802e0; // type:func

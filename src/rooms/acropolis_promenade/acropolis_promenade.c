@@ -101,10 +101,11 @@ extern u16 D_acropolis_promenade_80181B74;
 extern u16 D_acropolis_promenade_80181B76;
 extern u16 D_acropolis_promenade_80181B78[];
 
-static void func_acropolis_promenade_8017D9E0(Task* arg0);
+static void _acropolisPromenadeInitializeRoomTask(Task* task);
+static void _acropolisPromenadeUpdateRoomProgress(Task* unusedTask);
 static void _acropolisPromenadeUpdateBridgeVisibility(Task* task);
 
-void        func_acropolis_promenade_8017DB9C(Task*);
+static void _acropolisPromenadeMoviePathTask(Task* task);
 static void _acropolisPromenadeMovieSkipFadeOutTask(Task* task);
 static void _acropolisPromenadeSceneFadeInTask(Task* task);
 
@@ -136,9 +137,9 @@ extern SpriteSource D_acropolis_promenade_80184D38[63];
 extern SpriteSource D_acropolis_promenade_8018526C[32];
 extern SpriteSource D_acropolis_promenade_8018552C[46];
 extern SpriteSource D_acropolis_promenade_8018590C[78];
-s32                 func_acropolis_promenade_8017D70C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32          _acropolisPromenadeResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32          _acropolisPromenadeRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s32 secondArg);
-s32                 func_acropolis_promenade_8017D8E0(Task*, s32, s32, s32);
+static s32          _acropolisPromenadeHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
 static s32          _acropolisPromenadeHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
 static s32          _acropolisPromenadeIgnoreRoomAction(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 static void         _acropolisPromenadeTranslucentPlaneTask(Task* task);
@@ -175,8 +176,8 @@ static TmdSource _gAcropolisPromenadeAcropolisBridgeModel0AD9C = {
 };
 
 TaskMessageEntry D_acropolis_promenade_80180E74[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_promenade_8017D70C },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_promenade_8017D8E0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisPromenadeResolveRoomTransition },
+    { ROOM_MESSAGE_COMMAND, _acropolisPromenadeHandleRoomCommand },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisPromenadeIgnoreRoomAction },
     { ACROPOLIS_PROMENADE_MESSAGE_USE_KEY_ITEM, _acropolisPromenadeRefuseKeyItem },
     { ROOM_MESSAGE_SOUND, _acropolisPromenadeHandleSoundCue },
@@ -232,7 +233,7 @@ s32 D_acropolis_promenade_80181144 = 0;
 TaskDesc D_acropolis_promenade_80181148[5] = {
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_promenade_8017DB9C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisPromenadeMoviePathTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPromenadeMovieSkipFadeOutTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPromenadeSceneFadeInTask, { .value = 0 } },
 };
@@ -1500,99 +1501,113 @@ RoomEventMsg D_acropolis_promenade_801862D0;
 
 Task* D_acropolis_promenade_801862D8;
 
-static void func_acropolis_promenade_8017D5E4(Task* task);
-
-/// Per-frame state of the room task. The first frame the session's warp is 4
-/// it spawns the streamed-scene task (entry 2 of the task table), once. While
-/// the location's place is 1 it keeps `flowFlags` at 0xA and runs a latch on
-/// `gSceneCombatState.signals.bytes.battlePhase`: when that flag drops after having been 1, a sound
-/// event is queued, and once the session's `battleResetPending` is then non-zero,
-/// `evsStartScriptWithSkip` is called with the room's two data blocks.
-static void func_acropolis_promenade_8017D5E4(Task* task)
+/// Starts the warp-4 movie once and schedules the variant-1 battle follow-up.
+///
+/// Runs in the room task's active state without advancing it. Normalizes saved
+/// scene event 6 to 5, holds area-music loading during variant 1, and fades MIDI
+/// over 60 audio updates when an observed engaged battle ends. Starts the skippable
+/// follow-up only after battle reset is pending. The receiver is unused.
+static void _acropolisPromenadeUpdateRoomProgress(Task* unusedTask)
 {
-    u8 temp;
-    u8 f0;
+    enum {
+        ACROPOLIS_PROMENADE_MOVIE_ARRIVAL_WARP      = 4,
+        ACROPOLIS_PROMENADE_SCENE_EVENT_SANCTUARY   = 6,
+        ACROPOLIS_PROMENADE_SCENE_EVENT_PROMENADE   = 5,
+        ACROPOLIS_PROMENADE_BATTLE_VARIANT          = 1,
+        ACROPOLIS_PROMENADE_BATTLE_FOLLOWUP_PENDING = 2,
+        ACROPOLIS_PROMENADE_ALL_MIDI_SEQUENCES      = 0,
+        ACROPOLIS_PROMENADE_BATTLE_MIDI_FADE_TICKS  = 60,
+    };
+    u8 placementVariant;
+    u8 battlePhase;
 
     if (D_acropolis_promenade_80181140 == 0) {
-        if (gGameSession->location.loc.warp == 4) {
+        if (gGameSession->location.loc.warp == ACROPOLIS_PROMENADE_MOVIE_ARRIVAL_WARP) {
             D_acropolis_promenade_80181140 = 1;
             taskSpawnFromTable(D_acropolis_promenade_80181148, 2, 0, 0);
         }
     }
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 6) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == ACROPOLIS_PROMENADE_SCENE_EVENT_SANCTUARY) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_PROMENADE_SCENE_EVENT_PROMENADE;
     }
-    temp = gGameSession->location.loc.variant;
-    if (temp == 1) {
+    placementVariant = gGameSession->location.loc.variant;
+    if (placementVariant == ACROPOLIS_PROMENADE_BATTLE_VARIANT) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY);
-        f0                      = gSceneCombatState.signals.bytes.battlePhase;
-        if (f0 == temp) {
-            D_acropolis_promenade_80181144 = f0;
+        battlePhase             = gSceneCombatState.signals.bytes.battlePhase;
+        if (battlePhase == placementVariant) {
+            D_acropolis_promenade_80181144 = battlePhase;
         }
-        if ((D_acropolis_promenade_80181144 == temp) && (f0 != D_acropolis_promenade_80181144)) {
-            D_acropolis_promenade_80181144 = 2;
-            sndEvtRequestMidiStop(0, 0x3C);
+        if ((D_acropolis_promenade_80181144 == placementVariant) && (battlePhase != D_acropolis_promenade_80181144)) {
+            D_acropolis_promenade_80181144 = ACROPOLIS_PROMENADE_BATTLE_FOLLOWUP_PENDING;
+            sndEvtRequestMidiStop(ACROPOLIS_PROMENADE_ALL_MIDI_SEQUENCES, ACROPOLIS_PROMENADE_BATTLE_MIDI_FADE_TICKS);
         }
-        if ((D_acropolis_promenade_80181144 == 2) && (gGameSession->battleResetPending != 0)) {
+        if ((D_acropolis_promenade_80181144 == ACROPOLIS_PROMENADE_BATTLE_FOLLOWUP_PENDING) && (gGameSession->battleResetPending != 0)) {
             D_acropolis_promenade_80181144 = 0;
             evsStartScriptWithSkip(D_acropolis_promenade_80180F00, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_promenade_80181068);
         }
     }
 }
 
-/// Message gate for the promenade's three hotspots: copies the incoming record
-/// to the outgoing one, then edits the copy according to the message id and the
-/// game's progress nibbles.
+/// Resolves promenade exits from movie availability and route progress.
 ///
-/// Message 0xA answers with the `warp` refusal code 1 while the disc has no
-/// `.STR` movie file (`gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0`) or nibble 1 is
-/// not yet at 4; the first pass at 4 advances it to 5 instead of refusing.
-/// Message 0xC, while nibble 2 is still 0, refuses with code 3, latches the
-/// answered record into `D_acropolis_promenade_801862D0` for the room's own
-/// script to pick up, and arms `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` with 4. Message 0xE spawns the
-/// capsule sequence the first time (nibble 2 still 0) and afterwards reports
-/// through `room` whether nibble 2 has reached 3.
-///
-/// `queryOnly` non-zero means "report only", which suppresses every side effect.
-s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Receives `ROOM_EVENT_MESSAGE_RESOLVE` with an eight-byte borrowed request and
+/// writable reply, which may alias. Copies the complete record. Execution
+/// selects observatory arrival 1 when the movie or route is unavailable; it
+/// stores sanctuary arrival 3 before bridge progress and selects scene event 4.
+/// The bridge exit returns 0 and starts CAP command 2 before progress, then
+/// returns 1 and selects room 1 or 2. Queries suppress these side effects.
+static s32 _acropolisPromenadeResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventMsg unused;
-    u16          msgId;
+    enum {
+        ACROPOLIS_PROMENADE_ROUTE_FROM_OBSERVATORY         = 4,
+        ACROPOLIS_PROMENADE_ROUTE_AT_SANCTUARY             = 5,
+        ACROPOLIS_PROMENADE_OBSERVATORY_BLOCKED_ARRIVAL    = 1,
+        ACROPOLIS_PROMENADE_SANCTUARY_SCENE_ARRIVAL        = 3,
+        ACROPOLIS_PROMENADE_SCENE_EVENT_SANCTUARY_APPROACH = 4,
+        ACROPOLIS_PROMENADE_BRIDGE_LOCKED_CAP_COMMAND      = 2,
+        ACROPOLIS_PROMENADE_EXIT_MAP_MARKED                = 2,
+        ACROPOLIS_PROMENADE_BRIDGE_SCENE_COMPLETE          = 3,
+        ACROPOLIS_PROMENADE_BRIDGE_ROOM_AFTER_SCENE        = 2,
+        ACROPOLIS_PROMENADE_BRIDGE_ROOM_BEFORE_SCENE       = 1,
+    };
+    // The unused record retains the original stack reservation.
+    RoomEventMsg retainedEventSpace;
+    u16          destinationArea;
 
-    *out = *in;
-    if (in->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY && in->queryOnly == ROOM_EVENT_EXECUTE) {
+    *reply = *request;
+    if (request->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0) {
-            out->warp = 1;
+            reply->warp = ACROPOLIS_PROMENADE_OBSERVATORY_BLOCKED_ARRIVAL;
         }
-        if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == 4) {
-            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 5);
+        if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == ACROPOLIS_PROMENADE_ROUTE_FROM_OBSERVATORY) {
+            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_PROMENADE_ROUTE_AT_SANCTUARY);
         } else {
-            out->warp = 1;
+            reply->warp = ACROPOLIS_PROMENADE_OBSERVATORY_BLOCKED_ARRIVAL;
         }
     }
-    if (in->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->warp                                           = 3;
-            D_acropolis_promenade_801862D0                      = *out;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
+    if (request->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            reply->warp                                         = ACROPOLIS_PROMENADE_SANCTUARY_SCENE_ARRIVAL;
+            D_acropolis_promenade_801862D0                      = *reply;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_PROMENADE_SCENE_EVENT_SANCTUARY_APPROACH;
         }
         return 1;
     }
-    msgId = in->areaId;
-    if (msgId == 0xE) {
+    destinationArea = request->areaId;
+    if (destinationArea == GAME_AREA_ACROPOLIS_BRIDGE) {
         if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                capSpawnEventIfIdle(2, CAP_EVENT_PAUSE_ACTORS);
-                gameFlagSetNibbleIfPresent(in->flagId, 2);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capSpawnEventIfIdle(ACROPOLIS_PROMENADE_BRIDGE_LOCKED_CAP_COMMAND, CAP_EVENT_PAUSE_ACTORS);
+                gameFlagSetNibbleIfPresent(request->flagId, ACROPOLIS_PROMENADE_EXIT_MAP_MARKED);
             }
             return 0;
         }
-        if (in->areaId == msgId) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
-                    out->room = 2;
+        if (request->areaId == destinationArea) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_PROMENADE_BRIDGE_SCENE_COMPLETE) {
+                    reply->room = ACROPOLIS_PROMENADE_BRIDGE_ROOM_AFTER_SCENE;
                 } else {
-                    out->room = 1;
+                    reply->room = ACROPOLIS_PROMENADE_BRIDGE_ROOM_BEFORE_SCENE;
                 }
             }
         }
@@ -1610,13 +1625,25 @@ static s32 _acropolisPromenadeRefuseKeyItem(Task* task, s32 messageId, s32 itemI
     return ACROPOLIS_PROMENADE_KEY_ITEM_REFUSED;
 }
 
-s32 func_acropolis_promenade_8017D8E0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects CAP playback for promenade room command 5.
+///
+/// The first payload is the integer command; other arguments are unused.
+/// Object state 2 for index 21 selects CAP command 9 with a display transition;
+/// otherwise starts CAP slot 5 in transition mode. Always returns 0.
+static s32 _acropolisPromenadeHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
-    if (arg2 == 5) {
-        if (areaGetCurrentObjectState(0x15) != 2) {
-            capStartSequenceSlot(5, 1, 0);
+    enum {
+        ACROPOLIS_PROMENADE_ROOM_COMMAND_CAP_5    = 5,
+        ACROPOLIS_PROMENADE_CAP_OBJECT_INDEX      = 21,
+        ACROPOLIS_PROMENADE_CAP_OBJECT_COMPLETE   = 2,
+        ACROPOLIS_PROMENADE_CAP_SLOT              = 5,
+        ACROPOLIS_PROMENADE_CAP_COMPLETED_COMMAND = 9,
+    };
+    if (command == ACROPOLIS_PROMENADE_ROOM_COMMAND_CAP_5) {
+        if (areaGetCurrentObjectState(ACROPOLIS_PROMENADE_CAP_OBJECT_INDEX) != ACROPOLIS_PROMENADE_CAP_OBJECT_COMPLETE) {
+            capStartSequenceSlot(ACROPOLIS_PROMENADE_CAP_SLOT, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
         } else {
-            capRunCommandWithTransition(9);
+            capRunCommandWithTransition(ACROPOLIS_PROMENADE_CAP_COMPLETED_COMMAND);
         }
     }
     return 0;
@@ -1656,7 +1683,7 @@ static s32 _acropolisPromenadeHandleSoundCue(Task* unusedTask, s32 messageId, s3
 
 /// State table of the room task, run by `acropolisPromenadeRoomTask`.
 static const TaskFuncTable3 D_acropolis_promenade_8017D5C4 = {
-    { func_acropolis_promenade_8017D9E0, func_acropolis_promenade_8017D5E4, taskKill },
+    { _acropolisPromenadeInitializeRoomTask, _acropolisPromenadeUpdateRoomProgress, taskKill },
 };
 
 /// State table of the prop task, run by `_acropolisPromenadeTranslucentPlaneTask`.
@@ -1677,13 +1704,19 @@ static void _acropolisPromenadeTranslucentPlaneTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-static void func_acropolis_promenade_8017D9E0(Task* arg0)
+/// Registers the promenade room receiver and spawns its translucent plane.
+///
+/// Called in state 0 with this overlay's resources loaded. Publishes the room
+/// task, saves the spawned plane task, advances to the active state and enables
+/// CAP-completion sound forwarding. Spawn failure leaves the saved pointer NULL.
+static void _acropolisPromenadeInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_acropolis_promenade_80180E74;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    enum { ACROPOLIS_PROMENADE_CAP_COMPLETION_SOUNDS_ENABLED = 1 };
+    task->msgTable = D_acropolis_promenade_80180E74;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     D_acropolis_promenade_801862D8 = taskSpawnFromTable(D_acropolis_promenade_80180EA4, 0, 0, 0);
-    arg0->state                    = (s32)(arg0->state + 1);
-    D_80115598                     = 1;
+    task->state                    = task->state + 1;
+    D_80115598                     = ACROPOLIS_PROMENADE_CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 void acropolisPromenadeRoomTask(Task* task)
@@ -1714,33 +1747,61 @@ static void _acropolisPromenadeUpdateBridgeVisibility(Task* task)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// The promenade's streamed-scene task. State 0 allocates the `RoomMoviePathWork`
-/// block, cues the stream (slot-6 msg 0xFA4), captures slot 3 and the player's
-/// coordinate matrix in the block, and republishes the player's weapon to slot
-/// 3 with a 0x3E8 record. State 1 waits for the stream to come up
-/// (`gCdCmdQueue::movieReady`), then starts the script pair and adopts its task
-/// as a child. State 2 drives the ride: every frame it moves the player's
-/// matrix to the path entry the stream's countdown selects, starts a skip task
-/// once on a Start press (`padIsStartPressed`, entry 3 of the room's task table)
-/// and, when that task finishes, warps slot 3 with a 0x3E9 placement and spawns
-/// entry 4 instead; once the countdown is within 6 frames of the end it sends
-/// the same placement as a 0x3F2 and moves on either way. State 3 waits for
-/// slot 3 to go idle (msg 0x3F0), releases it (0x3F1), releases event HUD
-/// suppression (`CAP_CONTROL_MESSAGE_SHOW_HUD`), records the room in the save
-/// and kills the task.
-void func_acropolis_promenade_8017DB9C(Task* task)
-{
-    AnimationPlayRequest rec;
-    ActorTransform       place;
-    s32                  killed;
-    RoomMoviePathWork*   work;
-    CdCmdQueue*          queue;
-    s32                  weaponId;
+/// Copies a movie-path sample into the player root, with the promenade Z offset.
+///
+/// Requires live borrowed work/root and path index 0..299. Positions use whole
+/// room units; rotation and coordinate cache stamps are unchanged.
+/// Work and index are evaluated three times, once per axis, and must be
+/// stable and side-effect-free; zOffset is evaluated once. Captures the room's
+/// path array and expands to a braced statement block inside a braced scope.
+#define ACROPOLIS_PROMENADE_APPLY_MOVIE_PATH_POSITION(movieWork, pathIndex, zOffset)               \
+    {                                                                                              \
+        (movieWork)->playerMtx->t[0] = D_acropolis_promenade_80181184[(pathIndex)].vx;             \
+        (movieWork)->playerMtx->t[1] = D_acropolis_promenade_80181184[(pathIndex)].vy;             \
+        (movieWork)->playerMtx->t[2] = D_acropolis_promenade_80181184[(pathIndex)].vz - (zOffset); \
+    }
 
-    queue = &gCdCmdQueue;
-    work  = task->work;
+/// Moves the player along the promenade movie path and restores player control.
+///
+/// Starts bodyless in state 0 with a live player and loaded movie resources.
+/// Owns `RoomMoviePathWork`; allocation failure kills the task. Waits for movie
+/// readiness, adopts its vibration task, then copies the player root position
+/// from path index 69 - movieFrame, subtracting 200 whole room units from Z.
+/// Every access requires movieFrame <= 69. Start initiates a polled skip fade;
+/// skip places the player with yaw 3072, while the final six samples start a
+/// scripted walk using position only. Waits for that motion before restoring
+/// HUD/input/actors and saved view 2. Resources must remain live through exit.
+static void _acropolisPromenadeMoviePathTask(Task* task)
+{
+    enum {
+        ACROPOLIS_PROMENADE_MOVIE_INITIAL              = 0,
+        ACROPOLIS_PROMENADE_MOVIE_WAIT_READY           = 1,
+        ACROPOLIS_PROMENADE_MOVIE_FOLLOW_PATH          = 2,
+        ACROPOLIS_PROMENADE_MOVIE_WAIT_PLAYER          = 3,
+        ACROPOLIS_PROMENADE_MOVIE_FRAME_ORIGIN         = 69,
+        ACROPOLIS_PROMENADE_MOVIE_Z_OFFSET             = 200,
+        ACROPOLIS_PROMENADE_MOVIE_EXIT_X               = 642,
+        ACROPOLIS_PROMENADE_MOVIE_EXIT_Y               = 41,
+        ACROPOLIS_PROMENADE_MOVIE_EXIT_YAW             = 3072,
+        ACROPOLIS_PROMENADE_MOVIE_EXIT_VIEW            = 2,
+        ACROPOLIS_PROMENADE_MOVIE_WALK_HANDOFF_SAMPLES = 6,
+        ACROPOLIS_PROMENADE_MOVIE_SKIP_FADE_TASK       = 3,
+        ACROPOLIS_PROMENADE_MOVIE_SCENE_FADE_TASK      = 4,
+        ACROPOLIS_PROMENADE_PRIMARY_WEAPON_BANK_BASE   = 1,
+        ACROPOLIS_PROMENADE_ALTERNATE_WEAPON_BANK_BASE = 34,
+    };
+    AnimationPlayRequest animationRequest;
+    ActorTransform       playerPlacement;
+    s32                  skipFadeResult;
+    RoomMoviePathWork*   work;
+    CdCmdQueue*          cdQueue;
+    s32                  equippedWeapon;
+
+    cdQueue = &gCdCmdQueue;
+    work    = task->work;
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_PROMENADE_MOVIE_INITIAL:
+            // Capture the new work through task->work; the early local predates allocation.
             task->work = memCalloc(sizeof(RoomMoviePathWork), 0);
             if (task->work == NULL) {
                 taskKill(task);
@@ -1749,20 +1810,20 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
-            weaponId                                     = gPlayerStatus.weapon;
-            rec.source.index                             = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.animationId                              = 1;
-            rec.blend                                    = ANIMATION_BLEND_RESET;
-            rec.blendFrames                              = 0;
-            rec.enableWorldCollision                     = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            equippedWeapon                               = gPlayerStatus.weapon;
+            animationRequest.source.index                = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? equippedWeapon + ACROPOLIS_PROMENADE_PRIMARY_WEAPON_BANK_BASE : equippedWeapon + ACROPOLIS_PROMENADE_ALTERNATE_WEAPON_BANK_BASE;
+            animationRequest.animationId                 = 1;
+            animationRequest.blend                       = ANIMATION_BLEND_RESET;
+            animationRequest.blendFrames                 = 0;
+            animationRequest.enableWorldCollision        = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, ANIMATION_MESSAGE_PLAY, &animationRequest, 0);
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_AND_HOLD, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state                    = task->state + 1;
             break;
 
-        case 1:
-            if (queue->movieReady != 0) {
+        case ACROPOLIS_PROMENADE_MOVIE_WAIT_READY:
+            if (cdQueue->movieReady != 0) {
                 work->padScriptTask           = padScriptSpawn(D_acropolis_promenade_80186224,
                                                                D_acropolis_promenade_8018623C);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
@@ -1771,41 +1832,42 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             }
             break;
 
-        case 2:
-            work->playerMtx->t[0] = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vx;
-            work->playerMtx->t[1] = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vy;
-            work->playerMtx->t[2] = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vz - 0xC8;
+        case ACROPOLIS_PROMENADE_MOVIE_FOLLOW_PATH:
+            // Follow decoded movie frames, giving a completed skip fade priority over walking.
+            ACROPOLIS_PROMENADE_APPLY_MOVIE_PATH_POSITION(work, ACROPOLIS_PROMENADE_MOVIE_FRAME_ORIGIN - cdQueue->movieFrame, ACROPOLIS_PROMENADE_MOVIE_Z_OFFSET);
             if (work->skipFadeStarted != 0) {
-                if (taskPollKill(work->skipFadeTask, &killed) != 0) {
-                    place.pos.vx = 0x282;
-                    place.pos.vy = 0x29;
-                    place.pos.vz = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vz - 0xC8;
-                    place.rot.vz = 0;
-                    place.rot.vx = 0;
-                    place.rot.vy = 0xC00;
-                    TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3E9, &place, 0);
-                    taskSpawnFromTable(D_acropolis_promenade_80181148, 4, 0, 0);
+                if (taskPollKill(work->skipFadeTask, &skipFadeResult) != 0) {
+                    playerPlacement.pos.vx = ACROPOLIS_PROMENADE_MOVIE_EXIT_X;
+                    playerPlacement.pos.vy = ACROPOLIS_PROMENADE_MOVIE_EXIT_Y;
+                    playerPlacement.pos.vz = D_acropolis_promenade_80181184[ACROPOLIS_PROMENADE_MOVIE_FRAME_ORIGIN - cdQueue->movieFrame].vz - ACROPOLIS_PROMENADE_MOVIE_Z_OFFSET;
+                    playerPlacement.rot.vz = 0;
+                    playerPlacement.rot.vx = 0;
+                    playerPlacement.rot.vy = ACROPOLIS_PROMENADE_MOVIE_EXIT_YAW;
+                    TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &playerPlacement, 0);
+                    taskSpawnFromTable(D_acropolis_promenade_80181148, ACROPOLIS_PROMENADE_MOVIE_SCENE_FADE_TASK, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (padIsStartPressed() != 0) {
-                work->skipFadeTask    = taskSpawnFromTable(D_acropolis_promenade_80181148, 3, 0, 0);
+                work->skipFadeTask    = taskSpawnFromTable(D_acropolis_promenade_80181148, ACROPOLIS_PROMENADE_MOVIE_SKIP_FADE_TASK, 0, 0);
                 work->skipFadeStarted = 1;
             }
-            if ((0x45 - queue->movieFrame) < 6) {
-                place.pos.vx = 0x282;
-                place.pos.vy = 0x29;
-                place.pos.vz = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vz - 0xC8;
-                TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, 0x3F2, &place, 0);
+            // The walk handler reads XYZ only; rotation need not be initialized here.
+            if ((ACROPOLIS_PROMENADE_MOVIE_FRAME_ORIGIN - cdQueue->movieFrame) < ACROPOLIS_PROMENADE_MOVIE_WALK_HANDOFF_SAMPLES) {
+                playerPlacement.pos.vx = ACROPOLIS_PROMENADE_MOVIE_EXIT_X;
+                playerPlacement.pos.vy = ACROPOLIS_PROMENADE_MOVIE_EXIT_Y;
+                playerPlacement.pos.vz = D_acropolis_promenade_80181184[ACROPOLIS_PROMENADE_MOVIE_FRAME_ORIGIN - cdQueue->movieFrame].vz - ACROPOLIS_PROMENADE_MOVIE_Z_OFFSET;
+                TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &playerPlacement, 0);
                 task->state = task->state + 1;
             }
             break;
 
-        case 3:
+        case ACROPOLIS_PROMENADE_MOVIE_WAIT_PLAYER:
+            // Release scene holds only after the scripted player motion finishes.
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_PROMENADE_MOVIE_EXIT_VIEW;
                 padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 gGameSession->padScriptFlags  &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
@@ -1814,6 +1876,8 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             break;
     }
 }
+
+#undef ACROPOLIS_PROMENADE_APPLY_MOVIE_PATH_POSITION
 
 /// Darkens the promenade movie before its skip transition.
 ///
@@ -1863,72 +1927,77 @@ static void _acropolisPromenadeSceneFadeInTask(Task* task)
     }
 }
 
-/// Per-frame effect spawner for the promenade. `D_acropolis_promenade_80181B74`
-/// / `_80181B76` and the twelve-entry mask table `_80181B78` are per-view bit
-/// masks: bit `view - 1` of an entry says whether that emitter is visible from
-/// the camera `viewGetMappedIndex` reports, and the parallel twelve-entry
-/// `_80181B14` array holds each emitter's offset from the room's coordinate
-/// frame. View 7 spawns nothing.
-void func_acropolis_promenade_8017E03C(Task* task)
+void acropolisPromenadeRoomEffectTask(Task* task)
 {
-    GfxCoord*   coord;
+    enum {
+        ACROPOLIS_PROMENADE_EFFECTS_SUPPRESSED_VIEW = 7,
+        ACROPOLIS_PROMENADE_LAMP_SINGLE_END         = 3,
+        ACROPOLIS_PROMENADE_LAMP_GROUP_FIRST        = 3,
+        ACROPOLIS_PROMENADE_LAMP_GROUP_END          = 5,
+        ACROPOLIS_PROMENADE_DRIP_VIEW_ENTRY_COUNT   = 40,
+        ACROPOLIS_PROMENADE_DISC_RADIUS_SCALE       = 256,
+        ACROPOLIS_PROMENADE_DISC_PACKED_COLOR       = 0x5C40,
+    };
+    GfxCoord*   roomCoord;
     EffectWork* work;
-    u8          view;
-    s32         i;
-    s32         mask;
-    s16         prev;
+    u8          mappedView;
+    s32         placementIndex;
+    s32         viewMask;
+    s16         previousView;
 
-    coord = task->extra.coordBody->coord;
-    work  = task->spawnArg2.pointer;
-    view  = viewGetMappedIndex();
+    roomCoord  = task->extra.coordBody->coord;
+    work       = task->spawnArg2.pointer;
+    mappedView = viewGetMappedIndex();
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
     work->age++;
-    if (view == 7) {
+    if (mappedView == ACROPOLIS_PROMENADE_EFFECTS_SUPPRESSED_VIEW) {
         return;
     }
-    mask = 1 << (view - 1);
-    if (D_acropolis_promenade_80181B74 & mask) {
-        effectSpawn((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &D_acropolis_promenade_80181AF4[1]);
-        effectSpawn((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &D_acropolis_promenade_80181AF4[2]);
-        effectSpawn(EFFECT_ACROPOLIS_PROMENADE_GROUND_GLOW, coord, (s32)(work->age), &D_acropolis_promenade_80181B0C[0]);
-        glowDrawTintedDiscNoBias(&D_acropolis_promenade_80181AF4[0], 0x100, 0x5C40);
+    viewMask = 1 << (mappedView - 1);
+    if (D_acropolis_promenade_80181B74 & viewMask) {
+        effectSpawn((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), roomCoord, (s32)(work->age), &D_acropolis_promenade_80181AF4[1]);
+        effectSpawn((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), roomCoord, (s32)(work->age), &D_acropolis_promenade_80181AF4[2]);
+        effectSpawn(EFFECT_ACROPOLIS_PROMENADE_GROUND_GLOW, roomCoord, (s32)(work->age), &D_acropolis_promenade_80181B0C[0]);
+        glowDrawTintedDiscNoBias(&D_acropolis_promenade_80181AF4[0], ACROPOLIS_PROMENADE_DISC_RADIUS_SCALE, ACROPOLIS_PROMENADE_DISC_PACKED_COLOR);
     }
-    for (i = 0; i < 3; i++) {
-        if (D_acropolis_promenade_80181B78[i] & mask) {
-            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 0, &D_acropolis_promenade_80181B14[i]);
-        }
-    }
-    for (i = 3; i < 5; i++) {
-        if (D_acropolis_promenade_80181B78[i] & mask) {
-            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 1, &D_acropolis_promenade_80181B14[i]);
-        }
-        if (D_acropolis_promenade_80181B78[i + 2] & mask) {
-            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 2, &D_acropolis_promenade_80181B14[i + 2]);
-        }
-        if (D_acropolis_promenade_80181B78[i + 4] & mask) {
-            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 1, &D_acropolis_promenade_80181B14[i + 4]);
-        }
-        if (D_acropolis_promenade_80181B78[i + 6] & mask) {
-            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 2, &D_acropolis_promenade_80181B14[i + 6]);
+    // The grouped pairs cover lamp placements 3..10; placement 11 follows separately.
+    for (placementIndex = 0; placementIndex < ACROPOLIS_PROMENADE_LAMP_SINGLE_END; placementIndex++) {
+        if (D_acropolis_promenade_80181B78[placementIndex] & viewMask) {
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 0, &D_acropolis_promenade_80181B14[placementIndex]);
         }
     }
-    if (D_acropolis_promenade_80181B78[11] & mask) {
-        effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 1, &D_acropolis_promenade_80181B14[11]);
+    for (placementIndex = ACROPOLIS_PROMENADE_LAMP_GROUP_FIRST; placementIndex < ACROPOLIS_PROMENADE_LAMP_GROUP_END; placementIndex++) {
+        if (D_acropolis_promenade_80181B78[placementIndex] & viewMask) {
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 1, &D_acropolis_promenade_80181B14[placementIndex]);
+        }
+        if (D_acropolis_promenade_80181B78[placementIndex + 2] & viewMask) {
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 2, &D_acropolis_promenade_80181B14[placementIndex + 2]);
+        }
+        if (D_acropolis_promenade_80181B78[placementIndex + 4] & viewMask) {
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 1, &D_acropolis_promenade_80181B14[placementIndex + 4]);
+        }
+        if (D_acropolis_promenade_80181B78[placementIndex + 6] & viewMask) {
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 2, &D_acropolis_promenade_80181B14[placementIndex + 6]);
+        }
     }
-    if (D_acropolis_promenade_80181B76 & mask) {
-        prev = work->scale;
-        if (prev != view) {
-            for (i = 0; i < 0x28; i++) {
-                effectSpawn(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, coord, (s32)(view), NULL);
+    if (D_acropolis_promenade_80181B78[11] & viewMask) {
+        effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 1, &D_acropolis_promenade_80181B14[11]);
+    }
+    // Seed a drip field on entry; subsequent ticks add two replacements.
+    if (D_acropolis_promenade_80181B76 & viewMask) {
+        previousView = work->scale;
+        if (previousView != mappedView) {
+            for (placementIndex = 0; placementIndex < ACROPOLIS_PROMENADE_DRIP_VIEW_ENTRY_COUNT; placementIndex++) {
+                effectSpawn(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, roomCoord, (s32)(mappedView), NULL);
             }
         } else {
-            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, coord, (s32)(prev), NULL);
-            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, coord, (s32)(prev), NULL);
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, roomCoord, (s32)(previousView), NULL);
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, roomCoord, (s32)(previousView), NULL);
         }
     }
-    work->scale = view;
+    work->scale = mappedView;
 }
 
 /// Seeds one screen drip's pixel position, lifetime, width and descent period.

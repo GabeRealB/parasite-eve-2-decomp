@@ -4179,26 +4179,30 @@ void acropolisPlazaLightGlowTask(Task* task)
 
 #undef ACROPOLIS_PLAZA_DRAW_LIGHT_GLOW_FAN
 
-/// Plaza ambient-effect spawner. On its first frame only, it fires three bursts
-/// of `effectSpawn` against the task's own coordinate frame - seven 0x60096
-/// effects on slots 0xC-0x12, four 0x60099 on slots 7-0xA and six 0x60098 on
-/// slots 1-6 - each anchored at the matching entry of
-/// `D_acropolis_plaza_80198820`. Every later frame is a no-op.
-void func_acropolis_plaza_8018251C(Task* task)
+void acropolisPlazaSpawnAmbientLightsTask(Task* task)
 {
-    GfxCoord* coord;
-    s32       i;
+    enum {
+        ACROPOLIS_PLAZA_AMBIENT_LIGHTS_INITIAL = 0,
+        ACROPOLIS_PLAZA_AMBIENT_GLOW_FIRST     = 12,
+        ACROPOLIS_PLAZA_AMBIENT_GLOW_END       = 19,
+        ACROPOLIS_PLAZA_AMBIENT_FLARE_FIRST    = 7,
+        ACROPOLIS_PLAZA_AMBIENT_FLARE_END      = 11,
+        ACROPOLIS_PLAZA_AMBIENT_SIREN_FIRST    = 1,
+        ACROPOLIS_PLAZA_AMBIENT_SIREN_END      = 7,
+    };
+    GfxCoord* roomCoord;
+    s32       placementIndex;
 
-    coord = task->extra.coordBody->coord;
-    if (task->state == 0) {
-        for (i = 0xC; i < 0x13; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_PLAZA_LIGHT_GLOW, coord, i, &D_acropolis_plaza_80198820[i]);
+    roomCoord = task->extra.coordBody->coord;
+    if (task->state == ACROPOLIS_PLAZA_AMBIENT_LIGHTS_INITIAL) {
+        for (placementIndex = ACROPOLIS_PLAZA_AMBIENT_GLOW_FIRST; placementIndex < ACROPOLIS_PLAZA_AMBIENT_GLOW_END; placementIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_PLAZA_LIGHT_GLOW, roomCoord, placementIndex, &D_acropolis_plaza_80198820[placementIndex]);
         }
-        for (i = 7; i < 0xB; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_PLAZA_LIGHT_FLARE, coord, i, &D_acropolis_plaza_80198820[i]);
+        for (placementIndex = ACROPOLIS_PLAZA_AMBIENT_FLARE_FIRST; placementIndex < ACROPOLIS_PLAZA_AMBIENT_FLARE_END; placementIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_PLAZA_LIGHT_FLARE, roomCoord, placementIndex, &D_acropolis_plaza_80198820[placementIndex]);
         }
-        for (i = 1; i < 7; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_PLAZA_SIREN_LIGHT, coord, i, &D_acropolis_plaza_80198820[i]);
+        for (placementIndex = ACROPOLIS_PLAZA_AMBIENT_SIREN_FIRST; placementIndex < ACROPOLIS_PLAZA_AMBIENT_SIREN_END; placementIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_PLAZA_SIREN_LIGHT, roomCoord, placementIndex, &D_acropolis_plaza_80198820[placementIndex]);
         }
         task->state = task->state + 1;
     }

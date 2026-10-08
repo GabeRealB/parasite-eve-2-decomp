@@ -36,7 +36,17 @@ extern WorldCollisionSurfaceProperties* D_acropolis_square_80188868[];
 
 s32 func_acropolis_square_80182360(s32 unused);
 
-void func_acropolis_square_801823DC(Task* task);
+/// Registers the square's room effects and emits view-dependent beacon glows.
+///
+/// Requires a counted effect with a single-coordinate body and zeroed
+/// `EffectWork` in `spawnArg2.pointer`; its exit callback owns that allocation.
+/// State 0 publishes the effect receiver, resets beacon
+/// mode and spawns floor/plane player reflections. State 1 emits glows in
+/// logical views 4, 6, 7, 10, 14 and 9. Views must be valid before the mask
+/// shift. Mode 1 speeds/enlarges the glows and adds streaks in the front views;
+/// full signed-word modes are retained. Work and overlay resources must remain
+/// live while the task and its spawned effects use them.
+void acropolisSquareRoomEffectTask(Task* task);
 
 /// Draws one frame of the square's pulsing red or cyan beacon glow, then ends the effect.
 ///

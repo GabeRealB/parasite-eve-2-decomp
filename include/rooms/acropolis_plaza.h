@@ -104,7 +104,14 @@ extern WorldCollisionSurfaceProperties* D_acropolis_plaza_80199F28[];
 
 extern AreaVariant D_acropolis_plaza_80199390[3];
 
-void func_acropolis_plaza_8018251C(Task* task);
+/// Spawns the plaza's ambient glows, flares and siren beams on the first tick.
+///
+/// Requires a live single-coordinate body and the plaza's placement resources.
+/// State 0 creates seven glows at placement indices 12..18, four flares at
+/// 7..10 and six siren beams at 1..6, in the task coordinate's local frame.
+/// Advances to state 1 and does nothing on later ticks; children use their own
+/// effect lifetimes. Keep the overlay and placement records live through use.
+void acropolisPlazaSpawnAmbientLightsTask(Task* task);
 
 /// Draws a stationary flickering or pulsing additive glow at a placed light.
 ///

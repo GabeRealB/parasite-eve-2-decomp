@@ -269,7 +269,7 @@ D_acropolis_plaza_80199F20 = 0x80199F20; // size:0x8 defined:True
 D_acropolis_plaza_80199F28 = 0x80199F28; // size:0x20 defined:True
 D_map_akropolis_8017AFEC = 0x8017AFEC; // absolute:True owner=map_akropolis
 
-func_acropolis_plaza_8018251C = 0x8018251C; // type:func
+acropolisPlazaSpawnAmbientLightsTask = 0x8018251C; // type:func
 
 acropolisPlazaLightGlowTask = 0x80182054; // type:func
 

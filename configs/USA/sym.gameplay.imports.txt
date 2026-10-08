@@ -605,9 +605,9 @@ acropolisPlazaLightFlareTask = 0x801811D0; // type:func absolute:True owner=acro
 
 acropolisPlazaLightGlowTask = 0x80182054; // type:func absolute:True owner=acropolis_plaza
 
-func_acropolis_plaza_8018251C = 0x8018251C; // type:func absolute:True owner=acropolis_plaza
+acropolisPlazaSpawnAmbientLightsTask = 0x8018251C; // type:func absolute:True owner=acropolis_plaza
 
-func_acropolis_promenade_8017E03C = 0x8017E03C; // type:func absolute:True owner=acropolis_promenade
+acropolisPromenadeRoomEffectTask = 0x8017E03C; // type:func absolute:True owner=acropolis_promenade
 
 acropolisPromenadeScreenDripTask = 0x8017E394; // type:func absolute:True owner=acropolis_promenade shared=rooms
 
@@ -643,7 +643,7 @@ acropolisSecurityRoomFallingQuadTask = 0x80181108; // type:func absolute:True ow
 
 acropolisSecurityRoomMonitorGlowTask = 0x801817A4; // type:func absolute:True owner=acropolis_security_room
 
-func_acropolis_square_801823DC = 0x801823DC; // type:func absolute:True owner=acropolis_square
+acropolisSquareRoomEffectTask = 0x801823DC; // type:func absolute:True owner=acropolis_square
 
 acropolisSquareBeaconGlowTask = 0x801825DC; // type:func absolute:True owner=acropolis_square
 

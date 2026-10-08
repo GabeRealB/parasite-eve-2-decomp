@@ -184,16 +184,16 @@ extern GfxCoord D_acropolis_square_801888CC;
 static void _acropolisSquareInitializeRoomTask(Task* task);
 static void _acropolisSquareIdleRoomTask(Task* unusedTask);
 
-s32         func_acropolis_square_80181794(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32         func_acropolis_square_801819BC(Task*, s32, s32, s32);
+static s32  _acropolisSquareResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _acropolisSquareHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
 static s32  _acropolisSquareHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32  _acropolisSquareRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
 static s32  _acropolisSquareHandleSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueIndex, s32 unusedSecondArg);
 static s32  _acropolisSquareSetBeaconGlowMode(Task* unusedTask, s32 unusedMessageId, s32 glowMode, s32 unusedSecondArg);
 static void _acropolisSquareSirenSequenceTask(Task* task);
 static void _acropolisSquareScrollingBackdropTask(Task* task);
-void        func_acropolis_square_80182148(Task*);
-void        func_acropolis_square_80182200(s32);
+static void _acropolisSquareCapViewSequenceTask(Task* task);
+static void _acropolisSquareControlScrollingBackdrop(s32 action);
 
 extern WorldCollisionGrid         D_acropolis_square_8018519C[1];
 extern WorldCollisionTrigger      D_acropolis_square_801851C0[16];
@@ -232,10 +232,10 @@ enum { ACROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM = 5105 };
 enum { ACROPOLIS_SQUARE_MESSAGE_SET_BEACON_GLOW_MODE = 3103 };
 
 TaskMessageEntry D_acropolis_square_801837C4[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_square_80181794 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisSquareResolveRoomTransition },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisSquareHandleRoomAction },
     { ACROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM, _acropolisSquareRejectKeyItemUse },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_square_801819BC },
+    { ROOM_MESSAGE_COMMAND, _acropolisSquareHandleRoomCommand },
     { ROOM_MESSAGE_SOUND, _acropolisSquareHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -244,7 +244,7 @@ AnimationPlayRequest D_acropolis_square_801837F4 = { { .index = 1 }, 1, ANIMATIO
 
 TaskDesc D_acropolis_square_80183808[3] = {
     { { { TASK_BODY_NONE, 32 } }, _acropolisSquareSirenSequenceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_square_80182148, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _acropolisSquareCapViewSequenceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisSquareScrollingBackdropTask, { .value = 0 } },
 };
 
@@ -277,7 +277,7 @@ EvsCommand D_acropolis_square_8018399C[8] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_square_801837F4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_square_80182200 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisSquareControlScrollingBackdrop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 395 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -288,7 +288,7 @@ EvsCommand D_acropolis_square_80183A5C[9] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_square_80182200 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisSquareControlScrollingBackdrop }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1401,105 +1401,151 @@ static const TaskFuncTable3 D_acropolis_square_8017D6B4 = {
     },
 };
 
-s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, RoomEventMsg* arg3)
+/// Resolves square exits and prepares the pending siren follow-up on departure.
+///
+/// `ROOM_EVENT_MESSAGE_RESOLVE` borrows an eight-byte request and writable reply,
+/// which may alias; copies the whole record before resolution. Queries avoid
+/// flag/CAP effects. Forked-road exit selects room 2 after lock release; the
+/// elevator exits return 0 and run CAP command 1 once main progress reaches 2.
+/// Executed patio exits select room 1, 2 or 3 from story progress. Returns
+/// 1 for other exits. The retained location stores have no transition effect.
+static s32 _acropolisSquareResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    GameLocationKey key; // filled in but never used: the areaSetPlacementVariant call the
-                         // sibling rooms make with it is absent here
-    u16 temp_s1;
+    enum {
+        ACROPOLIS_SQUARE_EXIT_MAP_MARKED              = 2,
+        ACROPOLIS_SQUARE_ELEVATOR_BLOCKED_CAP_COMMAND = 1,
+        ACROPOLIS_SQUARE_SIREN_FOLLOWUP_DIALOGUE      = 2,
+    };
+    // These unused aggregate stores are present in the original instruction stream.
+    GameLocationKey retainedLocation;
+    u16             destinationArea;
 
-    key.stage = GAME_STAGE_ACROPOLIS;
-    key.area  = GAME_AREA_ACROPOLIS_CAFETERIA;
-    *arg3     = *arg2;
-    if (arg2->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
-        if ((D_acropolis_square_8018382C != 0) && (arg2->queryOnly == ROOM_EVENT_EXECUTE)) {
+    retainedLocation.stage = GAME_STAGE_ACROPOLIS;
+    retainedLocation.area  = GAME_AREA_ACROPOLIS_CAFETERIA;
+    *reply                 = *request;
+    if (request->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
+        if ((D_acropolis_square_8018382C != 0) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_SQUARE_SIREN_FOLLOWUP_DIALOGUE);
         }
-        if (arg2->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
+        if (request->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
             if (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 1) {
-                arg3->room = 2;
+                reply->room = 2;
             }
         }
         return 1;
     }
-    if (arg2->areaId == GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL) {
-        if ((D_acropolis_square_8018382C != 0) && (arg2->queryOnly == ROOM_EVENT_EXECUTE)) {
+    if (request->areaId == GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL) {
+        if ((D_acropolis_square_8018382C != 0) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_SQUARE_SIREN_FOLLOWUP_DIALOGUE);
         }
-        if (gameFlagGetNibble(0) < 2) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < 2) {
             return 1;
         }
-        if ((gameFlagGetNibble(0) == 2) || (gameFlagGetNibble(0) >= 3)) {
-            if (arg2->queryOnly == ROOM_EVENT_EXECUTE) {
+        if ((gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == 2) || (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= 3)) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                // Mark the map and show the blocked-exit caption, retaining the exit.
                 do {
-                    gameFlagSetNibbleIfPresent(arg2->flagId, 2);
-                    capRunCommandWithTransition(1);
+                    gameFlagSetNibbleIfPresent(request->flagId, ACROPOLIS_SQUARE_EXIT_MAP_MARKED);
+                    capRunCommandWithTransition(ACROPOLIS_SQUARE_ELEVATOR_BLOCKED_CAP_COMMAND);
                 } while (0);
             }
             return 0;
         }
     }
-    if (arg2->areaId == GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL) {
-        if (gameFlagGetNibble(0) < 2) {
+    if (request->areaId == GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < 2) {
             return 1;
         }
-        if ((gameFlagGetNibble(0) == 2) || (gameFlagGetNibble(0) >= 3)) {
-            if (arg2->queryOnly == ROOM_EVENT_EXECUTE) {
+        if ((gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == 2) || (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= 3)) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                // Mark the map and show the blocked-exit caption, retaining the exit.
                 do {
-                    gameFlagSetNibbleIfPresent(arg2->flagId, 2);
-                    capRunCommandWithTransition(1);
+                    gameFlagSetNibbleIfPresent(request->flagId, ACROPOLIS_SQUARE_EXIT_MAP_MARKED);
+                    capRunCommandWithTransition(ACROPOLIS_SQUARE_ELEVATOR_BLOCKED_CAP_COMMAND);
                 } while (0);
             }
             return 0;
         }
     }
-    temp_s1 = arg2->areaId;
-    if (temp_s1 == 3) {
-        if (arg2->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(0) < 2) {
+    destinationArea = request->areaId;
+    if (destinationArea == GAME_AREA_ACROPOLIS_PATIO) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < 2) {
                 if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) {
-                    arg3->room = 1;
+                    reply->room = 1;
                 } else {
-                    arg3->room = 2;
+                    reply->room = 2;
                 }
             } else {
-                arg3->room = temp_s1;
+                reply->room = destinationArea;
             }
         }
     }
     return 1;
 }
-s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Publishes the square cutscene record and starts its controller.
+///
+/// Consumes the siren follow-up latch as the skip choice and normalizes
+/// arrival warp 7 to 1. The controller borrows persistent overlay storage
+/// through playback and runs CAP command 2 afterwards.
+static inline void _acropolisSquareStartRoomCutscene(void)
 {
-    s32 var_a0;
+    enum {
+        ACROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP = 7,
+        ACROPOLIS_SQUARE_CUTSCENE_RESUME_WARP  = 1,
+        ACROPOLIS_SQUARE_CUTSCENE_VIEW         = 9,
+        ACROPOLIS_SQUARE_CUTSCENE_CAP_SLOT     = 1,
+        ACROPOLIS_SQUARE_CUTSCENE_CAP_FILE     = 1,
+        ACROPOLIS_SQUARE_CUTSCENE_FOLLOWUP     = 2,
+    };
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ACROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACROPOLIS_SQUARE_CUTSCENE_RESUME_WARP;
+    }
+    D_acropolis_square_801888AC.rec.view            = ACROPOLIS_SQUARE_CUTSCENE_VIEW;
+    D_acropolis_square_801888AC.rec.capSlot         = ACROPOLIS_SQUARE_CUTSCENE_CAP_SLOT;
+    D_acropolis_square_801888AC.rec.capFile         = ACROPOLIS_SQUARE_CUTSCENE_CAP_FILE;
+    D_acropolis_square_801888AC.rec.startSound      = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 1);
+    D_acropolis_square_801888AC.rec.endSound        = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 7);
+    D_acropolis_square_801888AC.rec.sceneSound      = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 6);
+    D_acropolis_square_801888AC.rec.afterSceneSound = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 11);
+    D_acropolis_square_801888AC.rec.skipScene       = D_acropolis_square_8018382C;
+    D_acropolis_square_8018382C                     = 0;
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, ACROPOLIS_SQUARE_CUTSCENE_FOLLOWUP, &D_acropolis_square_801888AC.rec);
+}
 
-    if (arg2 == 2) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 7) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
-        }
-        D_acropolis_square_801888AC.rec.view            = 9;
-        D_acropolis_square_801888AC.rec.capSlot         = 1;
-        D_acropolis_square_801888AC.rec.capFile         = 1;
-        D_acropolis_square_801888AC.rec.startSound      = 0x51010001;
-        D_acropolis_square_801888AC.rec.endSound        = 0x51010007;
-        D_acropolis_square_801888AC.rec.sceneSound      = 0x51010006;
-        D_acropolis_square_801888AC.rec.afterSceneSound = 0x5101000B;
-        D_acropolis_square_801888AC.rec.skipScene       = D_acropolis_square_8018382C;
-        D_acropolis_square_8018382C                     = 0;
-        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 2, &D_acropolis_square_801888AC.rec);
+/// Starts the square cutscene or a one-time CAP hint from an integer room command.
+///
+/// Command 2 consumes the siren follow-up latch as the cutscene skip choice,
+/// normalizes arrival warp 7 to 1 and spawns the room-cutscene controller.
+/// Commands 14 and 16 latch one-time hints; command 16 selects CAP 16 or 17
+/// from the saved button layout. The cutscene record is persistent borrowed
+/// storage; keep the overlay loaded through playback. Always returns 0.
+static s32 _acropolisSquareHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
+{
+    enum {
+        ACROPOLIS_SQUARE_ROOM_COMMAND_CUTSCENE           = 2,
+        ACROPOLIS_SQUARE_ROOM_COMMAND_HINT_14            = 14,
+        ACROPOLIS_SQUARE_ROOM_COMMAND_CONTROLS_HINT      = 16,
+        ACROPOLIS_SQUARE_CONTROLS_HINT_ALTERNATE_COMMAND = 17,
+    };
+    s32 hintCommand;
+
+    if (command == ACROPOLIS_SQUARE_ROOM_COMMAND_CUTSCENE) {
+        _acropolisSquareStartRoomCutscene();
     }
-    if ((arg2 == 0xE) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN) == 0)) {
+    if ((command == ACROPOLIS_SQUARE_ROOM_COMMAND_HINT_14) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN, 1);
-        capSpawnEventIfIdle(0xE, CAP_EVENT_PAUSE_ACTORS);
+        capSpawnEventIfIdle(ACROPOLIS_SQUARE_ROOM_COMMAND_HINT_14, CAP_EVENT_PAUSE_ACTORS);
     }
-    if ((arg2 == 0x10) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_SQUARE_CONTROLS_HINT) == 0)) {
+    if ((command == ACROPOLIS_SQUARE_ROOM_COMMAND_CONTROLS_HINT) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_SQUARE_CONTROLS_HINT) == 0)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_SQUARE_CONTROLS_HINT, 1);
-        var_a0 = 0x11;
+        hintCommand = ACROPOLIS_SQUARE_CONTROLS_HINT_ALTERNATE_COMMAND;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 1) {
-            var_a0 = 0x10;
+            hintCommand = ACROPOLIS_SQUARE_ROOM_COMMAND_CONTROLS_HINT;
         }
-        capSpawnEventIfIdle(var_a0, CAP_EVENT_PAUSE_ACTORS);
+        capSpawnEventIfIdle(hintCommand, CAP_EVENT_PAUSE_ACTORS);
     }
     return 0;
 }
@@ -1747,45 +1793,76 @@ static s32 _acropolisSquareHandleSoundCue(Task* unusedTask, s32 unusedMessageId,
     return 0;
 }
 
-void func_acropolis_square_80182148(Task* task)
+/// Runs the square's CAP-command-5 view sequence and marks its completion.
+///
+/// Bodyless states 0..2 select view 7; alternate states 3..7 select view 8
+/// after two delay ticks. Each route starts CAP command 5 and ends by setting
+/// `GAME_FLAG_015` and killing the task. Entry 1 of the room task table holds
+/// this callback, but no current code spawns that entry. CAP/view resources
+/// must be live for the selected route.
+static void _acropolisSquareCapViewSequenceTask(Task* task)
 {
+    enum {
+        ACROPOLIS_SQUARE_CAP_VIEW_FIRST_START    = 0,
+        ACROPOLIS_SQUARE_CAP_VIEW_FIRST_SELECT   = 1,
+        ACROPOLIS_SQUARE_CAP_VIEW_FIRST_FINISH   = 2,
+        ACROPOLIS_SQUARE_CAP_VIEW_SECOND_START   = 3,
+        ACROPOLIS_SQUARE_CAP_VIEW_SECOND_DELAY_1 = 4,
+        ACROPOLIS_SQUARE_CAP_VIEW_SECOND_DELAY_2 = 5,
+        ACROPOLIS_SQUARE_CAP_VIEW_SECOND_SELECT  = 6,
+        ACROPOLIS_SQUARE_CAP_VIEW_SECOND_FINISH  = 7,
+        ACROPOLIS_SQUARE_CAP_VIEW_COMMAND        = 5,
+        ACROPOLIS_SQUARE_CAP_VIEW_FIRST          = 7,
+        ACROPOLIS_SQUARE_CAP_VIEW_SECOND         = 8,
+    };
     switch (task->state) {
-        case 0:
-            capRunCommandWithTransition(5);
+        case ACROPOLIS_SQUARE_CAP_VIEW_FIRST_START:
+            capRunCommandWithTransition(ACROPOLIS_SQUARE_CAP_VIEW_COMMAND);
             task->state++;
             return;
-        case 1:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
+        case ACROPOLIS_SQUARE_CAP_VIEW_FIRST_SELECT:
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SQUARE_CAP_VIEW_FIRST;
             task->state++;
             return;
-        case 3:
-            capRunCommandWithTransition(5);
+        case ACROPOLIS_SQUARE_CAP_VIEW_SECOND_START:
+            capRunCommandWithTransition(ACROPOLIS_SQUARE_CAP_VIEW_COMMAND);
             task->state++;
             return;
-        case 4:
-        case 5:
+        case ACROPOLIS_SQUARE_CAP_VIEW_SECOND_DELAY_1:
+        case ACROPOLIS_SQUARE_CAP_VIEW_SECOND_DELAY_2:
             task->state++;
             return;
-        case 6:
-            capRunCommandWithTransition(5);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
+        case ACROPOLIS_SQUARE_CAP_VIEW_SECOND_SELECT:
+            capRunCommandWithTransition(ACROPOLIS_SQUARE_CAP_VIEW_COMMAND);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SQUARE_CAP_VIEW_SECOND;
             task->state++;
             return;
-        case 2:
-        case 7:
+        case ACROPOLIS_SQUARE_CAP_VIEW_FIRST_FINISH:
+        case ACROPOLIS_SQUARE_CAP_VIEW_SECOND_FINISH:
             gameFlagSetNibble(GAME_FLAG_015, 1);
             taskKill(task);
             return;
     }
 }
 
-void func_acropolis_square_80182200(s32 arg0)
+/// Starts or stops the square arrival scene's scrolling-backdrop task.
+///
+/// Script action 0 spawns and remembers the singleton; action 1 kills that
+/// task and leaves the pointer unchanged. Other actions do nothing. Stop
+/// requires a successful start whose task is still live; repeated starts can
+/// replace the remembered task without tearing down its predecessor.
+static void _acropolisSquareControlScrollingBackdrop(s32 action)
 {
-    switch (arg0) { /* irregular */
-        case 0:
-            D_acropolis_square_8018889C = taskSpawnFromTable(D_acropolis_square_80183808, 2, 0, 0);
+    enum {
+        ACROPOLIS_SQUARE_BACKDROP_ACTION_START = 0,
+        ACROPOLIS_SQUARE_BACKDROP_ACTION_STOP  = 1,
+        ACROPOLIS_SQUARE_BACKDROP_TASK_INDEX   = 2,
+    };
+    switch (action) {
+        case ACROPOLIS_SQUARE_BACKDROP_ACTION_START:
+            D_acropolis_square_8018889C = taskSpawnFromTable(D_acropolis_square_80183808, ACROPOLIS_SQUARE_BACKDROP_TASK_INDEX, 0, 0);
             return;
-        case 1:
+        case ACROPOLIS_SQUARE_BACKDROP_ACTION_STOP:
             taskKill(D_acropolis_square_8018889C);
             return;
     }
@@ -1845,42 +1922,62 @@ s32 func_acropolis_square_80182360(s32 unused)
     return 1;
 }
 
-void func_acropolis_square_801823DC(Task* task)
+void acropolisSquareRoomEffectTask(Task* task)
 {
+    enum {
+        ACROPOLIS_SQUARE_ROOM_EFFECT_INITIAL  = 0,
+        ACROPOLIS_SQUARE_ROOM_EFFECT_ACTIVE   = 1,
+        ACROPOLIS_SQUARE_REFLECTION_TASK_BANK = 1,
+        ACROPOLIS_SQUARE_REFLECTION_TASK_SLOT = 37,
+        ACROPOLIS_SQUARE_REFLECTION_FLOOR     = 0,
+        ACROPOLIS_SQUARE_REFLECTION_PLANE     = 1,
+        ACROPOLIS_SQUARE_BEACON_VIEW_MASK     = 0x268,
+        ACROPOLIS_SQUARE_BEACON_SIDE_VIEW     = 14,
+        ACROPOLIS_SQUARE_BEACON_ROUND_VIEW    = 9,
+        // Rate 8, radius 14, cyan diamond; mode 1 adds rate 24, radius 2 and streaks.
+        ACROPOLIS_SQUARE_BEACON_FRONT_BASE       = 0x00010E08,
+        ACROPOLIS_SQUARE_BEACON_FRONT_MODE_DELTA = 0x10000218,
+        ACROPOLIS_SQUARE_BEACON_SIDE_BASE        = 0x10010608,
+        ACROPOLIS_SQUARE_BEACON_SIDE_MODE_DELTA  = 0x218,
+        ACROPOLIS_SQUARE_BEACON_ROUND_BASE       = 0x80010308,
+        ACROPOLIS_SQUARE_BEACON_ROUND_MODE_DELTA = 0x118,
+    };
     EffectWork* work;
-    GfxCoord*   coord;
+    GfxCoord*   roomCoord;
 
-    coord = task->extra.coordBody->coord;
-    work  = task->spawnArg2.pointer;
-    switch (task->state) { /* irregular */
-        case 0:
+    roomCoord = task->extra.coordBody->coord;
+    work      = task->spawnArg2.pointer;
+    switch (task->state) {
+        case ACROPOLIS_SQUARE_ROOM_EFFECT_INITIAL:
+            // Install the effect receiver before starting both reflection modes.
             task->msgTable = D_acropolis_square_80183B58;
             gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
             D_acropolis_square_80183B98 = 0;
-            taskSpawn(1, 0x25, 0, 0);
-            taskSpawn(1, 0x25, 1, 0);
+            taskSpawn(ACROPOLIS_SQUARE_REFLECTION_TASK_BANK, ACROPOLIS_SQUARE_REFLECTION_TASK_SLOT, ACROPOLIS_SQUARE_REFLECTION_FLOOR, 0);
+            taskSpawn(ACROPOLIS_SQUARE_REFLECTION_TASK_BANK, ACROPOLIS_SQUARE_REFLECTION_TASK_SLOT, ACROPOLIS_SQUARE_REFLECTION_PLANE, 0);
             task->state++;
             return;
-        case 1:
-            if ((0x268 >> (gGameSession->location.loc.view - 1)) & 1) {
+        case ACROPOLIS_SQUARE_ROOM_EFFECT_ACTIVE:
+            // Each visible beacon uses its own packed pulse/radius/colour/shape preset.
+            if ((ACROPOLIS_SQUARE_BEACON_VIEW_MASK >> (gGameSession->location.loc.view - 1)) & 1) {
                 work->move.vx = 0x19AA;
                 work->move.vy = -0xF96;
                 work->move.vz = 0x8DE;
-                effectSpawn(EFFECT_ACROPOLIS_SQUARE_BEACON_GLOW, coord, D_acropolis_square_80183B98 * 0x10000218 + 0x10E08,
+                effectSpawn(EFFECT_ACROPOLIS_SQUARE_BEACON_GLOW, roomCoord, D_acropolis_square_80183B98 * ACROPOLIS_SQUARE_BEACON_FRONT_MODE_DELTA + ACROPOLIS_SQUARE_BEACON_FRONT_BASE,
                             &work->move);
             }
-            if (gGameSession->location.loc.view == 0xE) {
+            if (gGameSession->location.loc.view == ACROPOLIS_SQUARE_BEACON_SIDE_VIEW) {
                 work->move.vx = 0x18D2;
                 work->move.vy = -0x100B;
                 work->move.vz = 0x8AB;
-                effectSpawn(EFFECT_ACROPOLIS_SQUARE_BEACON_GLOW, coord, D_acropolis_square_80183B98 * 0x218 + 0x10010608,
+                effectSpawn(EFFECT_ACROPOLIS_SQUARE_BEACON_GLOW, roomCoord, D_acropolis_square_80183B98 * ACROPOLIS_SQUARE_BEACON_SIDE_MODE_DELTA + ACROPOLIS_SQUARE_BEACON_SIDE_BASE,
                             &work->move);
             }
-            if (gGameSession->location.loc.view == 9) {
+            if (gGameSession->location.loc.view == ACROPOLIS_SQUARE_BEACON_ROUND_VIEW) {
                 work->move.vx = 0x19AA;
                 work->move.vy = -0xF96;
                 work->move.vz = 0x8E8;
-                effectSpawn(EFFECT_ACROPOLIS_SQUARE_BEACON_GLOW, coord, D_acropolis_square_80183B98 * 0x118 + 0x80010308,
+                effectSpawn(EFFECT_ACROPOLIS_SQUARE_BEACON_GLOW, roomCoord, D_acropolis_square_80183B98 * ACROPOLIS_SQUARE_BEACON_ROUND_MODE_DELTA + ACROPOLIS_SQUARE_BEACON_ROUND_BASE,
                             &work->move);
             }
             return;

@@ -30,7 +30,17 @@ extern ViewCamera D_acropolis_promenade_80186050[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_promenade_801862B0[];
 
-void func_acropolis_promenade_8017E03C(Task* task);
+/// Emits the promenade's view-dependent lamps, ground glow and screen drips.
+///
+/// Requires a counted effect with a single-coordinate body and zeroed
+/// `EffectWork` in `spawnArg2.pointer`. Its exit callback owns that allocation.
+/// Cancellation stops all updates. Otherwise the signed-halfword age
+/// advances each tick, including suppressed mapped view 7. Valid mapped views
+/// are 1..13; masks select twelve room-local lamp placements and the view-6
+/// glow group. `scale` remembers the previous mapped view: entering a drip
+/// view seeds forty drips, and staying there emits two per tick. Keep the work
+/// and room resources live until effect teardown.
+void acropolisPromenadeRoomEffectTask(Task* task);
 
 /// Draws one frame of an animated lamp core and a rotating, flickering flare.
 ///

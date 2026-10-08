@@ -53525,13 +53525,13 @@ a pseudo with two uses (the load and the store), which combine cannot fold into
 both. Write one pointer local per element:
 
 ```c
-p3 = &D_acropolis_sanctuary_80183CAC[3];
-p3->flags &= mask;
+trigger9 = &(D_acropolis_sanctuary_80183AE4 + 6)[3];
+trigger9->flags &= disabledTriggerMask;
 ```
 
 This also fixes the instruction scheduling for free: GCC then interleaves the
 next element's `addiu` with the previous element's `sb`, which is the pairing
-the target shows. `func_acropolis_sanctuary_8017D5E0` is the worked example
+the target shows. `_acropolisSanctuaryUpdateRoomProgress` is the worked example
 (64% -> 77% from the pointer locals, 77% -> 100% from the mask local).
 
 ## Reuse the call-result variable to keep a two-way constant in `$v0`
@@ -53570,7 +53570,7 @@ the ternary, 99.7% -> 100% from the reassignment).
 
 ## `bltz` + `slti N` before the `bne N` is a switch with empty low cases
 
-`func_acropolis_sanctuary_8017DA40` reads a `u16` field and then tests it three
+`_acropolisSanctuaryCutsceneTask` reads a `u16` field and then tests it three
 times before running the only body in sight:
 
 ```asm
@@ -54706,7 +54706,7 @@ is the example.
 delete = reorder = stack = 0` and only `regs` left: every `$s0` in the target
 was `$s1` in the build and vice versa. The two competing values were the
 incoming `RoomEventMsg*` argument (target `$s0`) and a short-lived `u16` temp
-holding `arg2->msgId` in the last block (target `$s1`).
+holding `request->areaId` in the last block (target `$s1`).
 
 **Symptom.** `.lreg` shows the two allocnos with nearly equal priority. GCC
 2.8.1 sorts allocnos by
@@ -54731,9 +54731,9 @@ a block the source duplicates (here the two identical
 together after register allocation) in `do { … } while (0)` was enough:
 
 ```c
-if (arg2->queryOnly == 0) {
+if (request->queryOnly == 0) {
     do {
-        gameFlagSetNibbleIfPresent(arg2->flagId, 2);
+        gameFlagSetNibbleIfPresent(request->flagId, 2);
         capRunCommandWithTransition(1);
     } while (0);
 }
@@ -54742,7 +54742,7 @@ if (arg2->queryOnly == 0) {
 Note the counts that feed the formula are taken *before* `jump2`, so a block
 the source writes twice is counted twice even though it appears once in the
 final assembly — that is why the argument pointer has 13 refs for 11 visible
-uses. `func_acropolis_square_80181794` is the example; the permuter found the
+uses. `_acropolisSquareResolveRoomTransition` is the example; the permuter found the
 `do {} while (0)` after ~12 iterations from a 99.2% seed.
 
 ## Duplicate the join store in every arm to win the lower callee-saved register
@@ -54799,7 +54799,7 @@ block the tail-merge".
 
 ## Constant stores to an unused stack local are kept
 
-`func_acropolis_square_80181794` opens with
+`_acropolisSquareResolveRoomTransition` opens with
 
 ```
 addiu $v0, $zero, 0x1
@@ -54820,7 +54820,7 @@ offsets, and the local's size sets the frame padding.
 ## Cross-jumping merges identical switch arms; `SOFT_BARRIER()` un-merges them
 
 **Correction (2026-09-27): the barrier is unnecessary.** In
-`func_acropolis_square_80182148`, write `task->state++; return;` separately in
+`_acropolisSquareCapViewSequenceTask`, write `task->state++; return;` separately in
 cases 0, 1, 3, 4/5 and 6, placing case 4/5 **before** case 6 and the kill
 cases 2/7 last. Case 6 then owns a complete store/increment tail without an
 intervening case label. `jump2` shares that tail while retaining the separate
@@ -54839,7 +54839,7 @@ A jump table can point two entries at two *separate* blocks holding the same
 instructions. GCC 2.8.1's cross-jumping normally refuses to leave that in:
 given two unconditional jumps to the same label whose preceding insns are
 identical, it deletes the earlier block and repoints the table entry at the
-later one. `func_acropolis_square_80182148` has
+later one. `_acropolisSquareCapViewSequenceTask` has
 
 ```
 .L80182188:  jal capRunCommandWithTransition ; li a0,5 ; j .L801821C8 ; nop   <- case 0
@@ -54933,7 +54933,7 @@ reporting its own lowering, not evidence about the source.
 ## Room effect task prologue: read `body->coord` before `spawnArg2`, and both before `state`
 
 A room's `gRoomEffectState` effect task opens by unpacking three `Task` fields, and
-m2c reliably orders them wrong. `func_acropolis_square_801823DC` starts with
+m2c reliably orders them wrong. `acropolisSquareRoomEffectTask` starts with
 
 ```
 lw v0, 0x2C(s1)     # task->extra.coordBody
@@ -54946,8 +54946,8 @@ m2c emits its temporaries in the order the *values are used*, so `state` comes
 first and the object dump opens `0x30, 0x2C, 0x20, 0x8(v0)`. The source order is
 
 ```c
-coord = task->extra.coordBody->coord;
-work  = task->spawnArg2;
+roomCoord = task->extra.coordBody->coord;
+work = task->spawnArg2.pointer;
 switch (task->state) { ... }
 ```
 
@@ -55150,12 +55150,12 @@ acropolis_promenade = { text = [0x24, 0x2844], ... }
 ```
 
 The function is then named for its real entry point
-(`func_acropolis_promenade_8017D5E4`), takes no arguments, and reads the global
+(`_acropolisPromenadeUpdateRoomProgress`), ignores its task argument, and reads the global
 the hoisted `lw` was loading.
 
 ## `overlay_dup_index find` reporting no copies does not mean there is no twin
 
-**Problem.** `func_acropolis_promenade_8017DB9C` is a 246-instruction streamed
+**Problem.** `_acropolisPromenadeMoviePathTask` is a 246-instruction streamed
 scene driver. `python3 tools/overlay_dup_index.py find` reported one body, no
 copies, so the vacuum treated it as a fresh 246-instruction match.
 
@@ -55191,15 +55191,15 @@ back as four separate `dlabel`s. Reading the target asm literally then suggests
 four source arrays, which is wrong and pushes you toward adding symbols to
 `configs/USA/sym/…` that the original never had.
 
-`func_acropolis_promenade_8017E03C` walks one twelve-entry `SVECTOR` array at
+`acropolisPromenadeRoomEffectTask` walks one twelve-entry `SVECTOR` array at
 `0x80181B14` alongside a twelve-entry `u16` mask table at `0x80181B78`, but the
 disassembly names `D_acropolis_promenade_80181B34` (`+0x20`),
 `_80181B44` (`+0x30`), `_80181B6C` (`+0x58`) and `_80181B8E` (`+0x16` into the
 mask table). Declaring the two arrays once and indexing them,
 
 ```c
-if (D_acropolis_promenade_80181B78[i + 4] & mask) {
-    effectSpawn(0x60062, coord, 1, &D_acropolis_promenade_80181B14[i + 4]);
+if (D_acropolis_promenade_80181B78[placementIndex + 4] & viewMask) {
+    effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 1, &D_acropolis_promenade_80181B14[placementIndex + 4]);
 }
 ```
 
@@ -60806,7 +60806,7 @@ restart helper there moved all four triples and the key into one slot after the
 locals and shrank the frame from 0x98 to 0x90. Those three sites are a plain
 `u8[4]` local.
 
-## Two payload types at one offset behind a base set up before the branch are helpers inside a helper (func_acropolis_sanctuary_8017DA40, 2026-10-03)
+## Two payload types at one offset behind a base set up before the branch are helpers inside a helper (_acropolisSanctuaryCutsceneTask, 2026-10-03)
 
 **Symptom.** One arm of a nested `switch` sends an `AnimationPlayRequest` and
 then an `ActorTransform`, both built at `sp+0x28`, and the address is taken
@@ -92115,7 +92115,7 @@ matches each arm's `jal` + delay `nop` against the exit block and leaves the
 survivor in the block that falls through, which is the arm written last.
 
 This is the positive direction of the two `SOFT_BARRIER` entries above
-(`_acropolisPlazaMovieDisplayTask`, `func_acropolis_square_80182148`): there the
+(`_acropolisPlazaMovieDisplayTask`, `_acropolisSquareCapViewSequenceTask`): there the
 merge had to be *prevented* because the ROM keeps both copies; here it must be
 allowed to happen, and a seed that hand-writes the shared block prevents it
 landing where the ROM puts it.

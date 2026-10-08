@@ -252,7 +252,7 @@ extern AnimationSet* D_acropolis_sanctuary_801820E4[1];
 extern EvsCommand    D_acropolis_sanctuary_801820F0[];
 extern EvsCommand    D_acropolis_sanctuary_801821C8[];
 
-static void func_acropolis_sanctuary_8017D5E0(Task* task);
+static void _acropolisSanctuaryUpdateRoomProgress(Task* unusedTask);
 static void _acropolisSanctuaryInitRoomTask(Task* task);
 static void _acropolisSanctuaryPlaceBlockerCollision(void);
 static void _acropolisSanctuarySelectViewSpriteBatch(s32 useSecondBatch, s32 viewId);
@@ -296,7 +296,7 @@ static inline void _acropolisSanctuarySetFlameQuadBounds(POLY_FT4* flameQuad, co
 /// State handlers of the room task: set-up, the per-frame entry fixup and
 /// `taskKill`.
 static const TaskFuncTable3 D_acropolis_sanctuary_8017D5C4 = {
-    { _acropolisSanctuaryInitRoomTask, func_acropolis_sanctuary_8017D5E0, taskKill },
+    { _acropolisSanctuaryInitRoomTask, _acropolisSanctuaryUpdateRoomProgress, taskKill },
 };
 
 /// Offset the room task's model-coordinate effect is spawned with.
@@ -312,7 +312,7 @@ static const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
 
 static s32 _acropolisSanctuaryStartMosaic(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-void func_acropolis_sanctuary_8017DA40(Task*);
+static void _acropolisSanctuaryCutsceneTask(Task* task);
 
 static void _acropolisSanctuaryRequestCutsceneCue(s32 cue);
 
@@ -354,7 +354,7 @@ static void                     _acropolisSanctuaryRestorePlayerWeaponAnimation(
 static s32 _acropolisSanctuaryResolvePromenadeExit(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _acropolisSanctuaryRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32 _acropolisSanctuaryHandleRoomCommand(Task* task, s32 messageId, s32 command, s32 unused);
-s32        func_acropolis_sanctuary_8017D848(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisSanctuaryHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 static AnimationPackedPose _gAcropolisSanctuaryAnimation03234Bank1[8] = {
 #include "assets/acropolis_sanctuary_animation_03234_bank1.inc"
@@ -382,7 +382,7 @@ TaskMessageEntry D_acropolis_sanctuary_8018081C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisSanctuaryResolvePromenadeExit },
     { ROOM_MESSAGE_COMMAND, _acropolisSanctuaryHandleRoomCommand },
     { ACROPOLIS_SANCTUARY_MESSAGE_USE_KEY_ITEM, _acropolisSanctuaryRejectKeyItem },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_sanctuary_8017D848 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisSanctuaryHandleRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -695,7 +695,7 @@ EvsCommand D_acropolis_sanctuary_801821C8[5] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_acropolis_sanctuary_80182240 = { { { TASK_BODY_NONE, 192 } }, func_acropolis_sanctuary_8017DA40, { .value = 0 } };
+TaskDesc D_acropolis_sanctuary_80182240 = { { { TASK_BODY_NONE, 192 } }, _acropolisSanctuaryCutsceneTask, { .value = 0 } };
 
 static SVECTOR _gAcropolisSanctuaryCollision04D2CNormals[4] = {
 #include "assets/acropolis_sanctuary_collision_04D2C_normals.inc"
@@ -1803,59 +1803,76 @@ Task* D_acropolis_sanctuary_80186C90 = NULL;
 
 SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
-static void func_acropolis_sanctuary_801802E0(Task* task);
-
-/// The room task's per-frame state. Once the session reaches phase 3
-/// (`gameFlagGetNibble(2)` still 0), advances that flag and applies the
-/// room's one-shot state, then disables the action triggers while
-/// `areaGetCurrentObjectState(0x1C)` is 2. `mask` is
-/// a local because the target CSEs `~0x40` into a register and uses `and`
-/// rather than nine `andi`s.
-static void func_acropolis_sanctuary_8017D5E0(Task* task)
+/// Disables the sanctuary's nine weapon-CAP collision triggers.
+///
+/// Requires the live writable 17-entry trigger array; preserves every other flag.
+static inline void _acropolisSanctuaryDisableWeaponTriggers(void)
 {
-    s32                    mask;
-    WorldCollisionTrigger* p0;
-    WorldCollisionTrigger* p3;
-    WorldCollisionTrigger* p4;
-    WorldCollisionTrigger* p5;
-    WorldCollisionTrigger* p6;
-    WorldCollisionTrigger* p7;
-    WorldCollisionTrigger* p8;
-    WorldCollisionTrigger* p9;
-    WorldCollisionTrigger* p10;
+    s32                    disabledTriggerMask;
+    WorldCollisionTrigger* trigger6;
+    WorldCollisionTrigger* trigger9;
+    WorldCollisionTrigger* trigger10;
+    WorldCollisionTrigger* trigger11;
+    WorldCollisionTrigger* trigger12;
+    WorldCollisionTrigger* trigger13;
+    WorldCollisionTrigger* trigger14;
+    WorldCollisionTrigger* trigger15;
+    WorldCollisionTrigger* trigger16;
 
-    if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.loc.warp == 3) {
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, 2);
+    disabledTriggerMask = ~WORLD_COLLISION_TRIGGER_ENABLED;
+    trigger6            = &(D_acropolis_sanctuary_80183AE4 + 6)[0];
+    trigger9            = &(D_acropolis_sanctuary_80183AE4 + 6)[3];
+    trigger10           = &(D_acropolis_sanctuary_80183AE4 + 6)[4];
+    trigger11           = &(D_acropolis_sanctuary_80183AE4 + 6)[5];
+    trigger12           = &(D_acropolis_sanctuary_80183AE4 + 6)[6];
+    trigger13           = &(D_acropolis_sanctuary_80183AE4 + 6)[7];
+    trigger14           = &(D_acropolis_sanctuary_80183AE4 + 6)[8];
+    trigger15           = &(D_acropolis_sanctuary_80183AE4 + 6)[9];
+    trigger16           = &(D_acropolis_sanctuary_80183AE4 + 6)[10];
+
+    trigger6->flags  &= disabledTriggerMask;
+    trigger9->flags  &= disabledTriggerMask;
+    trigger10->flags &= disabledTriggerMask;
+    trigger11->flags &= disabledTriggerMask;
+    trigger12->flags &= disabledTriggerMask;
+    trigger13->flags &= disabledTriggerMask;
+    trigger14->flags &= disabledTriggerMask;
+    trigger15->flags &= disabledTriggerMask;
+    trigger16->flags &= disabledTriggerMask;
+}
+
+/// Starts the sanctuary warp-3 arrival scene and disables completed interactions.
+///
+/// Runs in the room task's active state with live saved flags and collision
+/// triggers. First arrival advances bridge progress, applies saved placement
+/// updates and sets scene/objective/dialogue progress. Object state 2 at index
+/// 28 disables the nine weapon-CAP triggers; this callback never reenables them.
+static void _acropolisSanctuaryUpdateRoomProgress(Task* unusedTask)
+{
+    enum {
+        ACROPOLIS_SANCTUARY_SCENE_ARRIVAL_WARP          = 3,
+        ACROPOLIS_SANCTUARY_WEAPON_INTERACTION_OBJECT   = 28,
+        ACROPOLIS_SANCTUARY_WEAPON_INTERACTION_COMPLETE = 2,
+        ACROPOLIS_SANCTUARY_BRIDGE_PROGRESS_ENTERED     = 2,
+        ACROPOLIS_SANCTUARY_ARRIVAL_SCENE_EVENT         = 6,
+        ACROPOLIS_SANCTUARY_OBSERVATORY_ROUTE_COMPLETE  = 5,
+        ACROPOLIS_SANCTUARY_ARRIVAL_OBJECTIVE           = 6,
+        ACROPOLIS_SANCTUARY_ARRIVAL_DIALOGUE            = 5,
+    };
+
+    if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.loc.warp == ACROPOLIS_SANCTUARY_SCENE_ARRIVAL_WARP) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_SANCTUARY_BRIDGE_PROGRESS_ENTERED);
         evsStartScriptWithSkip(D_acropolis_sanctuary_80180B0C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_sanctuary_80181664);
         areaApplySavedUpdates(D_acropolis_sanctuary_80186418);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
-        gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 5);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_SANCTUARY_ARRIVAL_SCENE_EVENT;
+        gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_SANCTUARY_OBSERVATORY_ROUTE_COMPLETE);
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, 1);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 6);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_SANCTUARY_ARRIVAL_OBJECTIVE);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 5);
+        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_SANCTUARY_ARRIVAL_DIALOGUE);
     }
-    if (areaGetCurrentObjectState(0x1C) == 2) {
-        mask = ~WORLD_COLLISION_TRIGGER_ENABLED;
-        p0   = &(D_acropolis_sanctuary_80183AE4 + 6)[0];
-        p3   = &(D_acropolis_sanctuary_80183AE4 + 6)[3];
-        p4   = &(D_acropolis_sanctuary_80183AE4 + 6)[4];
-        p5   = &(D_acropolis_sanctuary_80183AE4 + 6)[5];
-        p6   = &(D_acropolis_sanctuary_80183AE4 + 6)[6];
-        p7   = &(D_acropolis_sanctuary_80183AE4 + 6)[7];
-        p8   = &(D_acropolis_sanctuary_80183AE4 + 6)[8];
-        p9   = &(D_acropolis_sanctuary_80183AE4 + 6)[9];
-        p10  = &(D_acropolis_sanctuary_80183AE4 + 6)[10];
-
-        p0->flags  &= mask;
-        p3->flags  &= mask;
-        p4->flags  &= mask;
-        p5->flags  &= mask;
-        p6->flags  &= mask;
-        p7->flags  &= mask;
-        p8->flags  &= mask;
-        p9->flags  &= mask;
-        p10->flags &= mask;
+    if (areaGetCurrentObjectState(ACROPOLIS_SANCTUARY_WEAPON_INTERACTION_OBJECT) == ACROPOLIS_SANCTUARY_WEAPON_INTERACTION_COMPLETE) {
+        _acropolisSanctuaryDisableWeaponTriggers();
     }
 }
 
@@ -1926,14 +1943,20 @@ static s32 _acropolisSanctuaryHandleRoomCommand(Task* task, s32 messageId, s32 c
     return 0;
 }
 
-/// Message gate for the sanctuary hotspot registered under id 0x13EF: sub-id 1
-/// arms the room's own task the first time it is seen, latching nibble 7 so a
-/// second visit does nothing. The record is not copied to the outgoing one -
-/// this handler only ever consumes the message (returns 0).
-s32 func_acropolis_sanctuary_8017D848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Starts the sanctuary cutscene on the first room action 1.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows the four-byte request until return.
+/// Reads only actionId; the argument byte and zero second word are ignored.
+/// Latches the event before spawning, so a failed spawn is not retried.
+/// Returns 0 for every action and retains no request pointer.
+static s32 _acropolisSanctuaryHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if (in->warp == 1 && gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
-        gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 1);
+    enum {
+        ACROPOLIS_SANCTUARY_ROOM_ACTION_CUTSCENE = 1,
+        ACROPOLIS_SANCTUARY_EVENT_LATCH_CUTSCENE = 1,
+    };
+    if (request->actionId == ACROPOLIS_SANCTUARY_ROOM_ACTION_CUTSCENE && gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
+        gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, ACROPOLIS_SANCTUARY_EVENT_LATCH_CUTSCENE);
         taskSpawnFromTable(&D_acropolis_sanctuary_80182240, 0, 0, 0);
     }
     return 0;
@@ -2076,70 +2099,76 @@ static inline void _acropolisSanctuaryCutsceneApplyPlacement(Task* task)
     }
 }
 
-/// The sanctuary cutscene task. State 0 allocates the task's `_AcropolisSanctuaryCutsceneWork`
-/// block, captures slot 3 in it, publishes the task itself in
-/// `D_acropolis_sanctuary_80186C90` and cues the scene: slot 3 is sent the
-/// 0x3E8 weapon record for the equipped weapon, the scene's sound event is
-/// enqueued and its script pair is started.
+/// Runs the sanctuary player cutscene, then reloads the roof garden.
 ///
-/// State 1 drives the scene. `GameSession::eventState` reaching 0 instead stops
-/// the sound, writes the room's exit into the save and hands off to task 0x11
-/// before the task kills itself. Otherwise the scene fires exactly
-/// once, when `_acropolisSanctuaryRequestCutsceneCue` has armed `phase` at 2 and
-/// `placementApplied` is still 0: the player's effects are dropped, slot 3 is given the
-/// 0x3F4 record and then warped to the scene's mark with a 0x3E9 placement, and
-/// `placementApplied` is bumped so the next frame does nothing.
-void func_acropolis_sanctuary_8017DA40(Task* arg0)
+/// Starts bodyless in state 0 once wheel/display transitions are clear. Owns
+/// `_AcropolisSanctuaryCutsceneWork` and publishes the singleton for script cues.
+/// Selects the equipped-weapon animation, starts the event/skip pair, then
+/// applies placement requests through the cutscene helpers. Event completion
+/// selects roof-garden room 1, warp 2 and queues a captured-frame reload.
+/// Requires live player and overlay resources through handoff. Allocation
+/// failure kills the task but still falls through into setup in the original.
+static void _acropolisSanctuaryCutsceneTask(Task* task)
 {
+    enum {
+        ACROPOLIS_SANCTUARY_CUTSCENE_INITIAL             = 0,
+        ACROPOLIS_SANCTUARY_CUTSCENE_RUNNING             = 1,
+        ACROPOLIS_SANCTUARY_CUTSCENE_WEAPON_BLEND_FRAMES = 15,
+        ACROPOLIS_SANCTUARY_PRIMARY_WEAPON_BANK_BASE     = 1,
+        ACROPOLIS_SANCTUARY_ALTERNATE_WEAPON_BANK_BASE   = 34,
+        ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_WARP           = 2,
+        ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_ROOM           = 1,
+    };
     AnimationPlayRequest             request;
-    _AcropolisSanctuaryCutsceneWork* work;
-    _AcropolisSanctuaryCutsceneWork* initialWork;
-    s32                              state;
-    s32                              idx;
-    s32                              weaponId;
+    _AcropolisSanctuaryCutsceneWork* allocatedWork;
+    _AcropolisSanctuaryCutsceneWork* animationWork;
+    s32                              weaponBankIndex;
+    s32                              equippedWeapon;
 
-    state = arg0->state;
-    switch (state) {
-        case 0:
+    switch (task->state) {
+        case ACROPOLIS_SANCTUARY_CUTSCENE_INITIAL:
             if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                work       = memCalloc(sizeof(*work), 0);
-                arg0->work = work;
-                if (work == NULL) {
-                    taskKill(arg0);
+                allocatedWork = memCalloc(sizeof(*allocatedWork), 0);
+                task->work    = allocatedWork;
+                if (allocatedWork == NULL) {
+                    // The original continues into animation setup after this failure.
+                    taskKill(task);
                 } else {
-                    memFillBytes(work, 0, sizeof(*work));
-                    work->playerTask               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                    D_acropolis_sanctuary_80186C90 = arg0;
+                    memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));
+                    allocatedWork->playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                    D_acropolis_sanctuary_80186C90 = task;
                 }
-                initialWork = arg0->work;
-                weaponId    = gPlayerStatus.weapon;
-                idx         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                animationWork   = task->work;
+                equippedWeapon  = gPlayerStatus.weapon;
+                weaponBankIndex = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? equippedWeapon + ACROPOLIS_SANCTUARY_PRIMARY_WEAPON_BANK_BASE : equippedWeapon + ACROPOLIS_SANCTUARY_ALTERNATE_WEAPON_BANK_BASE;
 
-                request.source.index         = idx;
+                request.source.index         = weaponBankIndex;
                 request.animationId          = 1;
                 request.blend                = ANIMATION_BLEND_INTERPOLATE;
-                request.blendFrames          = 0xF;
+                request.blendFrames          = ACROPOLIS_SANCTUARY_CUTSCENE_WEAPON_BLEND_FRAMES;
                 request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(initialWork->playerTask, ANIMATION_MESSAGE_PLAY, &request, 0);
+                // Keep the reloaded work alias separate for the animation dispatch.
+                TASK_MESSAGE_DISPATCH_POINTER(animationWork->playerTask, ANIMATION_MESSAGE_PLAY, &request, 0);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 7), 0, 0);
                 evsStartScriptWithSkip(D_acropolis_sanctuary_801820F0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_sanctuary_801821C8);
-                arg0->state = arg0->state + 1;
+                task->state = task->state + 1;
             }
             break;
 
-        case 1:
+        case ACROPOLIS_SANCTUARY_CUTSCENE_RUNNING:
+            // Event completion takes precedence over pending placement cues.
             if (gGameSession->eventState == 0) {
                 sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_ROOF_GARDEN;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_WARP;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_ROOM;
                 gDisplayState.spriteVariant                                 = 1;
                 taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-                taskKill(arg0);
+                taskKill(task);
                 break;
             }
-            _acropolisSanctuaryCutsceneApplyPlacement(arg0);
+            _acropolisSanctuaryCutsceneApplyPlacement(task);
             break;
     }
 }
@@ -2747,23 +2776,29 @@ void acropolisSanctuaryItemVisibilityTask(Task* task)
     }
 }
 
-/// Per-frame visibility hook for an item object: hides the model (`flags`
-/// 0x80) once the item's 2-bit pickup flag has reached 2, otherwise shows it
-/// with the default flags. The current view is queried but not used.
-static void func_acropolis_sanctuary_801802E0(Task* task)
+/// Retains an unreferenced placed-object visibility hook in the sanctuary image.
+///
+/// Hides the TMD model at object state 2; otherwise enables the flagged draw
+/// pass with zero ordering bias. The mapped-view query has no effect. No
+/// spawner or table binds this hook, so the presumed `Enemy` spawn payload
+/// and its placed-item identity are unconfirmed.
+static void _acropolisSanctuaryUpdateUnusedPlacedObjectVisibility(Task* task)
 {
-    Enemy*     enemy;
-    TmdObject* tmd;
-    s32        flag;
+    enum {
+        ACROPOLIS_SANCTUARY_UNUSED_OBJECT_HIDDEN = 2,
+    };
+    Enemy*     placedObject;
+    TmdObject* objectModel;
+    s32        objectState;
 
-    enemy = task->spawnArg2.pointer;
-    tmd   = task->extra.tmd;
-    flag  = areaGetCurrentObjectState((u8)enemy->placeKey);
+    placedObject = task->spawnArg2.pointer;
+    objectModel  = task->extra.tmd;
+    objectState  = areaGetCurrentObjectState((u8)placedObject->placeKey);
     viewGetMappedIndex();
-    if (flag == 2) {
-        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if (objectState == ACROPOLIS_SANCTUARY_UNUSED_OBJECT_HIDDEN) {
+        objectModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
-        tmd->otOffset = 0;
+        objectModel->flags    = TMD_OBJECT_FLAGGED_PASS;
+        objectModel->otOffset = 0;
     }
 }

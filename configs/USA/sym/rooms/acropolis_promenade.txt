@@ -100,7 +100,7 @@ D_acropolis_promenade_801862B0 = 0x801862B0; // size:0x20 defined:True
 D_acropolis_promenade_801862D0 = 0x801862D0; // size:0x8 defined:True
 D_acropolis_promenade_801862D8 = 0x801862D8; // size:0x4 defined:True
 
-func_acropolis_promenade_8017E03C = 0x8017E03C; // type:func
+acropolisPromenadeRoomEffectTask = 0x8017E03C; // type:func
 
 acropolisPromenadeGlowStarTask = 0x8017E634; // type:func
 
@@ -119,3 +119,8 @@ _acropolisPromenadeMovieSkipFadeOutTask = 0x8017df74; // type:func
 _acropolisPromenadeHandleSoundCue = 0x8017d938; // type:func
 _acropolisPromenadeTranslucentPlaneTask = 0x8017d988; // type:func
 acropolisPromenadeRoomTask = 0x8017da4c; // type:func
+_acropolisPromenadeUpdateRoomProgress = 0x8017d5e4; // type:func
+_acropolisPromenadeResolveRoomTransition = 0x8017d70c; // type:func
+_acropolisPromenadeHandleRoomCommand = 0x8017d8e0; // type:func
+_acropolisPromenadeInitializeRoomTask = 0x8017d9e0; // type:func
+_acropolisPromenadeMoviePathTask = 0x8017db9c; // type:func
