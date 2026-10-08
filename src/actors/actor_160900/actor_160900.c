@@ -141,9 +141,9 @@ typedef struct {
 } _Actor160900KyleModelWork;
 STATIC_ASSERT_SIZEOF(_Actor160900KyleModelWork, 0x4BC);
 
-/// The overlay's task table. Entry 0 is `func_actor_160900_8013418C`, which
+/// The overlay's task table. Entry 0 is `_actor160900CutsceneTask`, which
 /// spawns entries 3, 5 and 6 into `_Actor160900CutsceneWork`; entries 1 and 2 are
-/// spawned by `func_actor_160900_801346B0` / `func_actor_160900_801346E0`.
+/// spawned by `_actor160900SpawnFadeIn` / `_actor160900SpawnFadeOut`.
 extern TaskDesc D_actor_160900_8013FB50[];
 
 /// Clip chain `_actor160900AdvancePlayerAnimChain` follows for the player.
@@ -153,7 +153,7 @@ extern u8       D_actor_160900_8013F210[];
 extern u8       D_actor_160900_8013F228[];
 extern TaskDesc D_actor_160900_8013F17C[];
 
-/// Point lists `func_actor_160900_8013418C` hands `_actor160900SpawnDriftingSprites`
+/// Point lists `_actor160900CutsceneTask` hands `_actor160900SpawnDriftingSprites`
 /// for `_Actor160900CutsceneWork::effectCue` ids 1-5.
 extern SVECTOR D_actor_160900_8013F258[];
 extern SVECTOR D_actor_160900_8013F2E0[];
@@ -161,7 +161,7 @@ extern SVECTOR D_actor_160900_8013F3B0[];
 extern SVECTOR D_actor_160900_8013F400[];
 extern SVECTOR D_actor_160900_8013F458[];
 
-/// Pair of blocks `func_actor_160900_8013418C` passes to `evsStartScriptWithSkip`.
+/// Pair of blocks `_actor160900CutsceneTask` passes to `evsStartScriptWithSkip`.
 extern EvsCommand D_actor_160900_8013F538[];
 extern EvsCommand D_actor_160900_8013FAA8[];
 
@@ -191,17 +191,17 @@ static TmdSource _gActor160900KyleMadiganBody;
 static TmdSource _gActor160900KyleMadiganGun;
 static TmdSource _gActor160900KyleMadiganLeft;
 static TmdSource _gActor160900KyleMadiganHandRight;
-void             func_actor_160900_80132A14(Task*);
-void             func_actor_160900_80132C08(Task*);
+static void      _actor160900KyleAttachmentTask(Task* task);
+static void      _actor160900KyleBodyTask(Task* task);
 static void      _actor160900DrawLightQuadTask(Task* task);
-void             func_actor_160900_80133880(void);
-void             func_actor_160900_80133A84(void);
-void             func_actor_160900_80133F90(void);
-void             func_actor_160900_8013418C(Task*);
+static void      _actor160900SpawnOpeningLightPair(void);
+static void      _actor160900SpawnKyleRevealLightQuads(void);
+static void      _actor160900SpawnWalkLightPair(void);
+static void      _actor160900CutsceneTask(Task* task);
 static void      _actor160900FadeOutTask(Task* task);
 static void      _actor160900FadeInTask(Task* task);
-void             func_actor_160900_801346B0(s32);
-void             func_actor_160900_801346E0(s32);
+static void      _actor160900SpawnFadeIn(s32 intensityStep);
+static void      _actor160900SpawnFadeOut(s32 intensityStep);
 static void      _actor160900KillLightQuads(void);
 static void      _actor160900PostPlayerCue(s16 cueId);
 static void      _actor160900PostKyleCue(s16 cueId);
@@ -212,6 +212,36 @@ static void      _actor160900EnqueueScenePlayback(void);
 static void      _actor160900FinishScenePlayback(void);
 
 static void _actor160900SetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg);
+
+/// Entries spawned from this package's task table.
+enum {
+    ACTOR_160900_TASK_FADE_IN        = 1,
+    ACTOR_160900_TASK_FADE_OUT       = 2,
+    ACTOR_160900_TASK_KYLE_BODY      = 3,
+    ACTOR_160900_TASK_KYLE_GUN_HAND  = 5,
+    ACTOR_160900_TASK_KYLE_FREE_HAND = 6,
+    ACTOR_160900_TASK_LIGHT_QUAD     = 7,
+};
+
+/// Attachment selectors and their body coordinates; both hands reuse Kyle's texture placement.
+enum {
+    ACTOR_160900_KYLE_FREE_HAND      = 0,
+    ACTOR_160900_KYLE_GUN_HAND       = 1,
+    ACTOR_160900_KYLE_GUN            = 2,
+    ACTOR_160900_KYLE_FREE_HAND_PART = 12,
+    ACTOR_160900_KYLE_GUN_HAND_PART  = 8,
+    ACTOR_160900_KYLE_PLACEMENT_ID   = 0x65,
+};
+
+/// White-corner patterns passed to the light-quad task; other corners are black.
+enum {
+    ACTOR_160900_LIGHT_PATTERN_CORNER_3    = 0,
+    ACTOR_160900_LIGHT_PATTERN_CORNER_2    = 1,
+    ACTOR_160900_LIGHT_PATTERN_CORNERS_1_3 = 2,
+    ACTOR_160900_LIGHT_PATTERN_CORNERS_0_2 = 3,
+    ACTOR_160900_LIGHT_PATTERN_CORNERS_2_3 = 4,
+    ACTOR_160900_LIGHT_PATTERN_ALL_CORNERS = 5,
+};
 
 static TmdBone _gActor160900KyleMadiganBodySkeleton[20] = {
 #include "assets/kyle_madigan_body_skeleton.inc"
@@ -878,18 +908,18 @@ EvsCommand D_actor_160900_8013F538[58] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_160900_8013F530 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80133880 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900SpawnOpeningLightPair }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_160900_801346B0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor160900SpawnFadeIn }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostEffectCue }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900KillLightQuads }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80133A84 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900SpawnKyleRevealLightQuads }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostKyleCue }, { .value = ACTOR_160900_KYLE_CUE_APPEAR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_CLIP_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -905,7 +935,7 @@ EvsCommand D_actor_160900_8013F538[58] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900KillLightQuads }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160900_80133F90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900SpawnWalkLightPair }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_WALK_TO_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostPlayerCue }, { .value = ACTOR_160900_PLAYER_CUE_WAVE_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -922,7 +952,7 @@ EvsCommand D_actor_160900_8013F538[58] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = roomEffectRequestCancelAll }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_160900_801346E0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor160900SpawnFadeOut }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor160900PostKyleCue }, { .value = ACTOR_160900_KYLE_CUE_GROUND_DECAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160900FinishScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -941,13 +971,13 @@ EvsCommand D_actor_160900_8013FAA8[7] = {
 };
 
 TaskDesc D_actor_160900_8013FB50[8] = {
-    { { { TASK_BODY_NONE, 192 } }, func_actor_160900_8013418C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor160900CutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor160900FadeInTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor160900FadeOutTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132C08, { .model = &_gActor160900KyleMadiganBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &_gActor160900KyleMadiganGun } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &_gActor160900KyleMadiganLeft } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_160900_80132A14, { .model = &_gActor160900KyleMadiganHandRight } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleBodyTask, { .model = &_gActor160900KyleMadiganBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &_gActor160900KyleMadiganGun } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &_gActor160900KyleMadiganLeft } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &_gActor160900KyleMadiganHandRight } },
     { { { TASK_BODY_COORD, 192 } }, _actor160900DrawLightQuadTask, { .value = 0 } },
 };
 
@@ -976,7 +1006,7 @@ static s32         _actor160900AdvanceKyleAnimChain(Task* task);
 static inline void _actor160900InitKyleAnimation(Task* task, TmdObject* bodyModel);
 static inline void _actor160900BlendPlayerAnim(Task* task, u16 animationId);
 static inline void _actor160900ResetPlayerAnim(Task* task, u16 animationId);
-static void        func_actor_160900_80133238(Task* arg0);
+static void        _actor160900UpdatePlayerCue(Task* task);
 static void        _actor160900UpdateKyleCue(Task* task);
 static void        _actor160900SpawnDriftingSprites(const SVECTOR* points);
 
@@ -1134,63 +1164,74 @@ static s32 _actor160900AdvanceKyleAnimChain(Task* task)
     return 0;
 }
 
-void func_actor_160900_80132A14(Task* arg0)
+/// Attaches one of Kyle's hand or handgun models and updates its room lighting.
+///
+/// Start at state zero with a live TMD body and Kyle's body task in spawnArg2.
+/// spawnArg1 selects the free hand (0, part 12), gun hand (1, part 8), or gun
+/// (2, part 8). The body must provide those coordinates and outlive this task.
+/// Hands use placement 0x65's texture offsets; the gun uses zero offsets.
+/// Allocates owned primary-heap work for the model's lighting matrices and joins
+/// the body's teardown tree. Allocation failure kills the task. Initialization
+/// returns without sampling lighting; later updates use the composed root's XYZ.
+static void _actor160900KyleAttachmentTask(Task* task)
 {
-    VECTOR pos;
+    enum { ACTOR_160900_ATTACHMENT_INITIALIZE = 0 };
+    VECTOR worldPosition;
 
-    if (arg0->state == 0) {
-        TmdObject*                 tmd    = arg0->extra.tmd;
-        Task*                      parent = arg0->spawnArg2.pointer;
-        GfxCoord*                  coord  = tmd->coords;
+    if (task->state == ACTOR_160900_ATTACHMENT_INITIALIZE) {
+        TmdObject*                 model     = task->extra.tmd;
+        Task*                      bodyTask  = task->spawnArg2.pointer;
+        GfxCoord*                  rootCoord = model->coords;
         _Actor160900KyleModelWork* work;
-        _Actor160900KyleModelWork* block;
-        AreaPlacement*             place;
-        u8                         id;
+        _Actor160900KyleModelWork* allocatedWork;
+        AreaPlacement*             placement;
+        u8                         entryId;
 
-        block      = memMalloc(sizeof(*block), false);
-        arg0->work = block;
-        if (block == NULL) {
-            taskKill(arg0);
+        allocatedWork = memMalloc(sizeof(*allocatedWork), false);
+        task->work    = allocatedWork;
+        if (allocatedWork == NULL) {
+            taskKill(task);
             return;
         }
-        work = block;
-        switch (arg0->spawnArg1.value) {
-            case 0:
-                coord->parent = &parent->extra.tmd->coords[12];
+        work = allocatedWork;
+        // Coordinate parenting follows the hand; task parenting owns teardown.
+        switch (task->spawnArg1.value) {
+            case ACTOR_160900_KYLE_FREE_HAND:
+                rootCoord->parent = &bodyTask->extra.tmd->coords[ACTOR_160900_KYLE_FREE_HAND_PART];
                 break;
-            case 1:
-            case 2:
-                coord->parent = &parent->extra.tmd->coords[8];
+            case ACTOR_160900_KYLE_GUN_HAND:
+            case ACTOR_160900_KYLE_GUN:
+                rootCoord->parent = &bodyTask->extra.tmd->coords[ACTOR_160900_KYLE_GUN_HAND_PART];
                 break;
         }
-        memFillBytes(arg0->work, 0, sizeof(*work));
-        tmd->lightMtx = &work->light;
-        tmd->colorMtx = &work->color;
-        if (arg0->spawnArg1.value < 2) {
-            place = areaGetVariant(&gGameSession->location.loc)->placements;
-            id    = place->entryId;
-            while (id != AREA_PLACEMENT_END) {
-                if (id == 0x65) {
+        memFillBytes(task->work, 0, sizeof(*work));
+        model->lightMtx = &work->light;
+        model->colorMtx = &work->color;
+        if (task->spawnArg1.value < ACTOR_160900_KYLE_GUN) {
+            placement = areaGetVariant(&gGameSession->location.loc)->placements;
+            entryId   = placement->entryId;
+            while (entryId != AREA_PLACEMENT_END) {
+                if (entryId == ACTOR_160900_KYLE_PLACEMENT_ID) {
                     break;
                 }
-                place++;
-                id = place->entryId;
+                placement++;
+                entryId = placement->entryId;
             }
-            tmdSetTextureOffsets(arg0->extra.tmd, place->texturePageOffset, place->clutRowOffset);
-        } else if (arg0->spawnArg1.value == 2) {
-            tmdSetTextureOffsets(arg0->extra.tmd, 0, 0);
+            tmdSetTextureOffsets(task->extra.tmd, placement->texturePageOffset, placement->clutRowOffset);
+        } else if (task->spawnArg1.value == ACTOR_160900_KYLE_GUN) {
+            tmdSetTextureOffsets(task->extra.tmd, 0, 0);
         }
-        taskReparent(parent, arg0);
-        arg0->msgTable = D_actor_160900_8013F200;
-        arg0->state   += 1;
+        taskReparent(bodyTask, task);
+        task->msgTable = D_actor_160900_8013F200;
+        task->state   += 1;
         return;
     } else {
-        TmdObject* obj = arg0->extra.tmd;
+        TmdObject* model = task->extra.tmd;
 
-        pos.vx = obj->coords->workm.t[0];
-        pos.vy = arg0->extra.tmd->coords->workm.t[1];
-        pos.vz = arg0->extra.tmd->coords->workm.t[2];
-        worldCoordSetModelLighting(obj, &pos, 0, 3);
+        worldPosition.vx = model->coords->workm.t[0];
+        worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+        worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+        worldCoordSetModelLighting(model, &worldPosition, 0, 3);
     }
 }
 
@@ -1228,39 +1269,53 @@ static inline void _actor160900InitKyleAnimation(Task* task, TmdObject* bodyMode
     _actor160900ResetKyleAnimSlots(task);
 }
 
-void func_actor_160900_80132C08(Task* task)
+/// Initializes Kyle's hidden cutscene body, then advances its clip and room lighting.
+///
+/// Start at state zero with the twenty-part TMD body and a live published
+/// cutscene task. Owns primary-heap rig and lighting work, released by teardown;
+/// allocation failure kills the task. Placement 0x65 supplies texture offsets.
+/// The body joins the cutscene's teardown tree and binds two animation sets.
+/// Every update applies the view-dependent part-18 rotation (4096 units/turn)
+/// and samples lighting at the already-composed root; hidden clips do not tick.
+static void _actor160900KyleBodyTask(Task* task)
 {
-    TmdObject*                 obj;
-    TmdObject*                 obj2;
-    GfxCoord*                  coord;
+    enum {
+        ACTOR_160900_BODY_INITIALIZE  = 0,
+        ACTOR_160900_KYLE_POSE_PART   = 18,
+        ACTOR_160900_KYLE_ROLL_VIEW   = 0x2E,
+        ACTOR_160900_KYLE_PITCH_ANGLE = 0x79C,
+    };
+    TmdObject*                 model;
+    TmdObject*                 litModel;
+    GfxCoord*                  rootCoord;
     _Actor160900KyleModelWork* work;
-    AreaPlacement*             place;
-    VECTOR                     pos;
-    s32                        failed;
+    AreaPlacement*             placement;
+    VECTOR                     worldPosition;
+    u16                        allocationFailed;
 
-    if (task->state == 0) {
-        obj        = task->extra.tmd;
-        coord      = obj->coords;
+    if (task->state == ACTOR_160900_BODY_INITIALIZE) {
+        model      = task->extra.tmd;
+        rootCoord  = model->coords;
         work       = memMalloc(sizeof(*work), false);
         task->work = work;
         if (work == NULL) {
-            failed = 1;
+            allocationFailed = true;
         } else {
-            coord->parent = &gGfxViewCoord;
+            rootCoord->parent = &gGfxViewCoord;
             memFillBytes(task->work, 0, sizeof(*work));
-            obj->lightMtx  = &work->light;
-            obj->colorMtx  = &work->color;
-            obj->flags    |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            task->msgTable = D_actor_160900_8013F200;
-            place          = areaGetVariant(&gGameSession->location.loc)->placements;
-            while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x65) {
-                place++;
+            model->lightMtx = &work->light;
+            model->colorMtx = &work->color;
+            model->flags   |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            task->msgTable  = D_actor_160900_8013F200;
+            placement       = areaGetVariant(&gGameSession->location.loc)->placements;
+            while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_160900_KYLE_PLACEMENT_ID) {
+                placement++;
             }
-            tmdSetTextureOffsets(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
+            tmdSetTextureOffsets(task->extra.tmd, placement->texturePageOffset, placement->clutRowOffset);
             taskReparent(D_actor_160900_8013FBB4, task);
-            failed = 0;
+            allocationFailed = false;
         }
-        if ((u16)failed) {
+        if (allocationFailed) {
             taskKill(task);
             return;
         }
@@ -1268,16 +1323,17 @@ void func_actor_160900_80132C08(Task* task)
         task->state++;
     }
     _actor160900AdvanceKyleAnimChain(task);
-    if (gGameSession->location.loc.view == 0x2E) {
-        gfxRotMatrixZ(&task->extra.tmd->coords[18].coord, 0x800, GRAPHICS_ROTATION_REPLACE);
+    // Override this part's animated rotation for the current camera pose.
+    if (gGameSession->location.loc.view == ACTOR_160900_KYLE_ROLL_VIEW) {
+        gfxRotMatrixZ(&task->extra.tmd->coords[ACTOR_160900_KYLE_POSE_PART].coord, ACTOR_TRANSFORM_ANGLE_HALF_TURN, GRAPHICS_ROTATION_REPLACE);
     } else {
-        gfxRotMatrixX(&task->extra.tmd->coords[18].coord, 0x79C, GRAPHICS_ROTATION_REPLACE);
+        gfxRotMatrixX(&task->extra.tmd->coords[ACTOR_160900_KYLE_POSE_PART].coord, ACTOR_160900_KYLE_PITCH_ANGLE, GRAPHICS_ROTATION_REPLACE);
     }
-    obj2   = task->extra.tmd;
-    pos.vx = obj2->coords->workm.t[0];
-    pos.vy = task->extra.tmd->coords->workm.t[1];
-    pos.vz = task->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(obj2, &pos, 0, 3);
+    litModel         = task->extra.tmd;
+    worldPosition.vx = litModel->coords->workm.t[0];
+    worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(litModel, &worldPosition, 0, 3);
 }
 
 /// Shades a light quad from a live task's six-valued spawn pattern.
@@ -1503,62 +1559,81 @@ static inline void _actor160900ResetPlayerAnim(Task* task, u16 animationId)
     }
 }
 
-/// Advances Aya's clip chain, then acts on `_Actor160900CutsceneWork::playerCue`
-/// and clears it, except for the walk to the mark, which stays posted.
-static void func_actor_160900_80133238(Task* arg0)
+/// Advances Aya's clip chain and applies the cutscene's pending player cue.
+///
+/// Requires live cutscene work and loaded player clips 0..10. Placement and walk
+/// cues require the borrowed player task. Messages consume stack requests
+/// synchronously, while playback borrows the loaded animation resources.
+/// The walk cue runs once at step zero and remains posted; other cues clear
+/// after handling. Wave start lends the embedded context to a separate task
+/// for an eight-update rise, so the cutscene work must outlive that task.
+/// The walk cue's resident animation bank requires characterId 1 and weapon 0..32.
+static void _actor160900UpdatePlayerCue(Task* task)
 {
+    enum {
+        ACTOR_160900_PLAYER_PLACE_CLIP          = 10,
+        ACTOR_160900_PLAYER_READY_CLIP          = 1,
+        ACTOR_160900_PRIMARY_CHARACTER          = 1,
+        ACTOR_160900_PRIMARY_WEAPON_BANK_BASE   = 1,
+        ACTOR_160900_ALTERNATE_WEAPON_BANK_BASE = 0x22,
+        ACTOR_160900_WAVE_RISE_UPDATES          = 8,
+        ACTOR_160900_WAVE_FULL_SCALE            = 0x80,
+    };
     _Actor160900CutsceneWork* work;
     union {
         AnimationPlayRequest animation;
         VECTOR3              destination;
     } message;
 
-    _Actor160900CutsceneWork* messageWork;
-    s32                       bankIndex;
+    _Actor160900CutsceneWork* requestWork;
+    s32                       animationBankIndex;
     s32                       weaponId;
 
-    work = arg0->work;
-    _actor160900AdvancePlayerAnimChain(arg0);
+    /// Reloads cutscene work, restarts a clip immediately and resets its hold.
+    ///
+    /// task is a live Task pointer, clipId a valid u16 player-clip id, cueWork a
+    /// writable work-pointer local and request a writable AnimationPlayRequest
+    /// lvalue. Arguments must be stable locals/constants without side effects;
+    /// cueWork, clipId and request are evaluated repeatedly. The request is
+    /// borrowed synchronously, and the package's loaded sets through playback.
+#define ACTOR_160900_RESET_PLAYER_CUE_CLIP(task, clipId, cueWork, request)                                       \
+    do {                                                                                                         \
+        (cueWork) = (task)->work;                                                                                \
+        if ((cueWork)->player != NULL) {                                                                         \
+            (request).source.sets          = _gActor160900PlayerAnimationSets;                                   \
+            (cueWork)->playerAnimId        = (clipId);                                                           \
+            (request).animationId          = (clipId);                                                           \
+            (request).blend                = ANIMATION_BLEND_RESET;                                              \
+            (request).blendFrames          = 0;                                                                  \
+            (request).enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                                   \
+            TASK_MESSAGE_DISPATCH_POINTER((cueWork)->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(request), 0); \
+            (cueWork)->playerAnimHold = 0;                                                                       \
+        }                                                                                                        \
+    } while (0)
+
+    work = task->work;
+    _actor160900AdvancePlayerAnimChain(task);
     switch (work->playerCue.id) {
-        case 0:
+        case ACTOR_160900_CUE_NONE:
             break;
         case ACTOR_160900_PLAYER_CUE_TAKE_PLACE:
             TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, D_actor_160900_8013F210, 0);
-            messageWork = arg0->work;
-            if (messageWork->player != NULL) {
-                message.animation.source.sets          = _gActor160900PlayerAnimationSets;
-                messageWork->playerAnimId              = 10;
-                message.animation.animationId          = 10;
-                message.animation.blend                = ANIMATION_BLEND_RESET;
-                message.animation.blendFrames          = 0;
-                message.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(messageWork->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &message.animation, 0);
-                messageWork->playerAnimHold = 0;
-            }
+            ACTOR_160900_RESET_PLAYER_CUE_CLIP(task, ACTOR_160900_PLAYER_PLACE_CLIP, requestWork, message.animation);
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_1:
-            messageWork = arg0->work;
-            if (messageWork->player != NULL) {
-                message.animation.source.sets          = _gActor160900PlayerAnimationSets;
-                messageWork->playerAnimId              = 1;
-                message.animation.animationId          = 1;
-                message.animation.blend                = ANIMATION_BLEND_RESET;
-                message.animation.blendFrames          = 0;
-                message.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(messageWork->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &message.animation, 0);
-                messageWork->playerAnimHold = 0;
-            }
+            ACTOR_160900_RESET_PLAYER_CUE_CLIP(task, ACTOR_160900_PLAYER_READY_CLIP, requestWork, message.animation);
             break;
         case ACTOR_160900_PLAYER_CUE_WALK_TO_MARK:
             if (work->playerCue.step == 0) {
                 weaponId = gPlayerStatus.weapon;
-                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                    bankIndex = weaponId + 1;
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_160900_PRIMARY_CHARACTER) {
+                    animationBankIndex = weaponId + ACTOR_160900_PRIMARY_WEAPON_BANK_BASE;
                 } else {
-                    bankIndex = weaponId + 0x22;
+                    animationBankIndex = weaponId + ACTOR_160900_ALTERNATE_WEAPON_BANK_BASE;
                 }
-                message.animation.source.index         = bankIndex;
-                message.animation.animationId          = 1;
+                // Return to the equipped bank before taking scripted movement control.
+                message.animation.source.index         = animationBankIndex;
+                message.animation.animationId          = ACTOR_160900_PLAYER_READY_CLIP;
                 message.animation.blend                = ANIMATION_BLEND_RESET;
                 message.animation.blendFrames          = 0;
                 message.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -1573,31 +1648,32 @@ static void func_actor_160900_80133238(Task* arg0)
             }
             return;
         case ACTOR_160900_PLAYER_CUE_WAVE_START:
-            work->wave.span  = 8;
-            work->wave.scale = 0x80;
+            work->wave.span  = ACTOR_160900_WAVE_RISE_UPDATES;
+            work->wave.scale = ACTOR_160900_WAVE_FULL_SCALE;
             taskSpawnFromTable(D_actor_160900_8013F17C, 0, 0, &work->wave);
-            work->playerCue.id = 0;
+            work->playerCue.id = ACTOR_160900_CUE_NONE;
             return;
         case ACTOR_160900_PLAYER_CUE_WAVE_END:
             work->wave.state = SCREEN_WAVE_RAMP_FINISHED;
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_2:
-            _actor160900ResetPlayerAnim(arg0, 2);
+            _actor160900ResetPlayerAnim(task, 2);
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_6:
-            _actor160900BlendPlayerAnim(arg0, 6);
+            _actor160900BlendPlayerAnim(task, 6);
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_7:
-            _actor160900BlendPlayerAnim(arg0, 7);
+            _actor160900BlendPlayerAnim(task, 7);
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_8:
-            _actor160900BlendPlayerAnim(arg0, 8);
+            _actor160900BlendPlayerAnim(task, 8);
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_9:
-            _actor160900BlendPlayerAnim(arg0, 9);
+            _actor160900BlendPlayerAnim(task, 9);
             break;
     }
-    work->playerCue.id = 0;
+    work->playerCue.id = ACTOR_160900_CUE_NONE;
+#undef ACTOR_160900_RESET_PLAYER_CUE_CLIP
 }
 
 /// Applies and consumes one posted Kyle cue for the cutscene.
@@ -1692,383 +1768,371 @@ static void _actor160900SpawnDriftingSprites(const SVECTOR* points)
     }
 }
 
-void func_actor_160900_80133880(void)
+/// Spawns the two additive light quads used at the opening playback cue.
+///
+/// Requires the published cutscene task and work, and empty light slots 0..1.
+/// Places two 1500-by-1000 rectangles beside Z=3000, at root (6000,1000,3000)
+/// in view-parent coordinates; patterns 0 and 1 whiten their outside corners.
+/// Each quad owns primary-heap corner work and a coordinate body. Failure stops
+/// the sequence without rolling back earlier quads. Work-allocation failure
+/// kills that task but retains its saved slot; normal removal kills all slots.
+static void _actor160900SpawnOpeningLightPair(void)
 {
-    _Actor160900CutsceneWork*  data;
-    _Actor160900LightQuadWork* alloc;
-    _Actor160900LightQuadWork* work;
-    Task*                      task;
+    _Actor160900CutsceneWork*  cutsceneWork;
+    _Actor160900LightQuadWork* allocatedQuadWork;
+    _Actor160900LightQuadWork* quadWork;
+    Task*                      quadTask;
 
-    data                = D_actor_160900_8013FBB4->work;
-    task                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
-    data->lightQuads[0] = task;
-    if (task == NULL) {
+    cutsceneWork                = D_actor_160900_8013FBB4->work;
+    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_3, 0);
+    cutsceneWork->lightQuads[0] = quadTask;
+    if (quadTask == NULL) {
         return;
     }
-    alloc      = memCalloc(sizeof(*alloc), false);
-    task->work = alloc;
-    if (alloc == NULL) {
-        taskKill(task);
+    allocatedQuadWork = memCalloc(sizeof(*allocatedQuadWork), false);
+    quadTask->work    = allocatedQuadWork;
+    if (allocatedQuadWork == NULL) {
+        taskKill(quadTask);
         return;
     }
-    work = alloc;
-    memFillBytes(work, 0, sizeof(*work));
-    task->extra.tmd->coords->parent     = &gGfxViewCoord;
-    task->extra.tmd->coords->coord.t[0] = 0x1770;
-    task->extra.tmd->coords->coord.t[1] = 0x3E8;
-    task->extra.tmd->coords->coord.t[2] = 0xBB8;
-    work->corners[0].vx                 = 0;
-    work->corners[0].vy                 = -0x5DC;
-    work->corners[0].vz                 = 0x3E8;
-    work->corners[1].vx                 = 0;
-    work->corners[1].vy                 = -0x5DC;
-    work->corners[1].vz                 = 0;
-    work->corners[2].vx                 = 0;
-    work->corners[2].vy                 = 0;
-    work->corners[2].vz                 = 0x3E8;
-    work->corners[3].vx                 = 0;
-    work->corners[3].vy                 = 0;
-    work->corners[3].vz                 = 0;
-    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
-    data->lightQuads[1]                 = task;
-    if (task == NULL) {
+    quadWork = allocatedQuadWork;
+    memFillBytes(quadWork, 0, sizeof(*quadWork));
+    quadTask->extra.coordBody->coord->parent     = &gGfxViewCoord;
+    quadTask->extra.coordBody->coord->coord.t[0] = 0x1770;
+    quadTask->extra.coordBody->coord->coord.t[1] = 0x3E8;
+    quadTask->extra.coordBody->coord->coord.t[2] = 0xBB8;
+    quadWork->corners[0].vx                      = 0;
+    quadWork->corners[0].vy                      = -0x5DC;
+    quadWork->corners[0].vz                      = 0x3E8;
+    quadWork->corners[1].vx                      = 0;
+    quadWork->corners[1].vy                      = -0x5DC;
+    quadWork->corners[1].vz                      = 0;
+    quadWork->corners[2].vx                      = 0;
+    quadWork->corners[2].vy                      = 0;
+    quadWork->corners[2].vz                      = 0x3E8;
+    quadWork->corners[3].vx                      = 0;
+    quadWork->corners[3].vy                      = 0;
+    quadWork->corners[3].vz                      = 0;
+    quadTask                                     = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_2, 0);
+    cutsceneWork->lightQuads[1]                  = quadTask;
+    if (quadTask == NULL) {
         return;
     }
-    alloc      = memCalloc(sizeof(*alloc), false);
-    task->work = alloc;
-    if (alloc == NULL) {
-        taskKill(task);
+    allocatedQuadWork = memCalloc(sizeof(*allocatedQuadWork), false);
+    quadTask->work    = allocatedQuadWork;
+    if (allocatedQuadWork == NULL) {
+        taskKill(quadTask);
         return;
     }
-    work = alloc;
-    memFillBytes(work, 0, sizeof(*work));
-    task->extra.tmd->coords->parent     = &gGfxViewCoord;
-    task->extra.tmd->coords->coord.t[0] = 0x1770;
-    task->extra.tmd->coords->coord.t[1] = 0x3E8;
-    task->extra.tmd->coords->coord.t[2] = 0xBB8;
-    work->corners[0].vx                 = 0;
-    work->corners[0].vy                 = -0x5DC;
-    work->corners[0].vz                 = 0;
-    work->corners[1].vx                 = 0;
-    work->corners[1].vy                 = -0x5DC;
-    work->corners[1].vz                 = -0x3E8;
-    work->corners[2].vx                 = 0;
-    work->corners[2].vy                 = 0;
-    work->corners[2].vz                 = 0;
-    work->corners[3].vx                 = 0;
-    work->corners[3].vy                 = 0;
-    work->corners[3].vz                 = -0x3E8;
+    quadWork = allocatedQuadWork;
+    memFillBytes(quadWork, 0, sizeof(*quadWork));
+    quadTask->extra.coordBody->coord->parent     = &gGfxViewCoord;
+    quadTask->extra.coordBody->coord->coord.t[0] = 0x1770;
+    quadTask->extra.coordBody->coord->coord.t[1] = 0x3E8;
+    quadTask->extra.coordBody->coord->coord.t[2] = 0xBB8;
+    quadWork->corners[0].vx                      = 0;
+    quadWork->corners[0].vy                      = -0x5DC;
+    quadWork->corners[0].vz                      = 0;
+    quadWork->corners[1].vx                      = 0;
+    quadWork->corners[1].vy                      = -0x5DC;
+    quadWork->corners[1].vz                      = -0x3E8;
+    quadWork->corners[2].vx                      = 0;
+    quadWork->corners[2].vy                      = 0;
+    quadWork->corners[2].vz                      = 0;
+    quadWork->corners[3].vx                      = 0;
+    quadWork->corners[3].vy                      = 0;
+    quadWork->corners[3].vz                      = -0x3E8;
 }
-void func_actor_160900_80133A84(void)
+/// Places one reveal quad in the view frame and fills its local Y/Z rectangle.
+///
+/// Requires a live coordinate body and writable quad work. rootY and the two
+/// Z edges use signed game-coordinate units. Writes XYZ, retaining corner pads;
+/// neither pointer is retained.
+static inline void _actor160900PlaceRevealLightQuad(Task* quadTask, _Actor160900LightQuadWork* quadWork, s32 rootY, s16 rightZ, s16 leftZ)
 {
-    _Actor160900CutsceneWork*  data;
-    _Actor160900LightQuadWork* alloc;
-    _Actor160900LightQuadWork* work;
-    Task*                      task;
+    quadTask->extra.coordBody->coord->parent     = &gGfxViewCoord;
+    quadTask->extra.coordBody->coord->coord.t[0] = 6000;
+    quadTask->extra.coordBody->coord->coord.t[1] = rootY;
+    quadTask->extra.coordBody->coord->coord.t[2] = 2700;
+    quadWork->corners[0].vx                      = 0;
+    quadWork->corners[0].vy                      = -1000;
+    quadWork->corners[0].vz                      = rightZ;
+    quadWork->corners[1].vx                      = 0;
+    quadWork->corners[1].vy                      = -1000;
+    quadWork->corners[1].vz                      = leftZ;
+    quadWork->corners[2].vx                      = 0;
+    quadWork->corners[2].vy                      = 0;
+    quadWork->corners[2].vz                      = rightZ;
+    quadWork->corners[3].vx                      = 0;
+    quadWork->corners[3].vy                      = 0;
+    quadWork->corners[3].vz                      = leftZ;
+}
 
-    data                = D_actor_160900_8013FBB4->work;
-    task                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 5, 0);
-    data->lightQuads[0] = task;
-    if (task == NULL) {
-        return;
-    }
-    alloc      = memCalloc(sizeof(*alloc), false);
-    task->work = alloc;
-    if (alloc == NULL) {
-        taskKill(task);
-        return;
-    }
-    work = alloc;
-    memFillBytes(work, 0, sizeof(*work));
-    task->extra.tmd->coords->parent     = &gGfxViewCoord;
-    task->extra.tmd->coords->coord.t[0] = 0x1770;
-    task->extra.tmd->coords->coord.t[1] = 0x1F4;
-    task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->corners[0].vx                 = 0;
-    work->corners[0].vy                 = -0x3E8;
-    work->corners[0].vz                 = 0x1F4;
-    work->corners[1].vx                 = 0;
-    work->corners[1].vy                 = -0x3E8;
-    work->corners[1].vz                 = -0x1F4;
-    work->corners[2].vx                 = 0;
-    work->corners[2].vy                 = 0;
-    work->corners[2].vz                 = 0x1F4;
-    work->corners[3].vx                 = 0;
-    work->corners[3].vy                 = 0;
-    work->corners[3].vz                 = -0x1F4;
-    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 2, 0);
-    data->lightQuads[1]                 = task;
-    if (task == NULL) {
-        return;
-    }
-    alloc      = memCalloc(sizeof(*alloc), false);
-    task->work = alloc;
-    if (alloc == NULL) {
-        taskKill(task);
-        return;
-    }
-    work = alloc;
-    memFillBytes(work, 0, sizeof(*work));
-    task->extra.tmd->coords->parent     = &gGfxViewCoord;
-    task->extra.tmd->coords->coord.t[0] = 0x1770;
-    task->extra.tmd->coords->coord.t[1] = 0x1F4;
-    task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->corners[0].vx                 = 0;
-    work->corners[0].vy                 = -0x3E8;
-    work->corners[0].vz                 = 0x3E8;
-    work->corners[1].vx                 = 0;
-    work->corners[1].vy                 = -0x3E8;
-    work->corners[1].vz                 = 0x1F4;
-    work->corners[2].vx                 = 0;
-    work->corners[2].vy                 = 0;
-    work->corners[2].vz                 = 0x3E8;
-    work->corners[3].vx                 = 0;
-    work->corners[3].vy                 = 0;
-    work->corners[3].vz                 = 0x1F4;
-    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 3, 0);
-    data->lightQuads[2]                 = task;
-    if (task == NULL) {
-        return;
-    }
-    alloc      = memCalloc(sizeof(*alloc), false);
-    task->work = alloc;
-    if (alloc == NULL) {
-        taskKill(task);
-        return;
-    }
-    work = alloc;
-    memFillBytes(work, 0, sizeof(*work));
-    task->extra.tmd->coords->parent     = &gGfxViewCoord;
-    task->extra.tmd->coords->coord.t[0] = 0x1770;
-    task->extra.tmd->coords->coord.t[1] = 0x1F4;
-    task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->corners[0].vx                 = 0;
-    work->corners[0].vy                 = -0x3E8;
-    work->corners[0].vz                 = -0x1F4;
-    work->corners[1].vx                 = 0;
-    work->corners[1].vy                 = -0x3E8;
-    work->corners[1].vz                 = -0x3E8;
-    work->corners[2].vx                 = 0;
-    work->corners[2].vy                 = 0;
-    work->corners[2].vz                 = -0x1F4;
-    work->corners[3].vx                 = 0;
-    work->corners[3].vy                 = 0;
-    work->corners[3].vz                 = -0x3E8;
-    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 4, 0);
-    data->lightQuads[3]                 = task;
-    if (task == NULL) {
-        return;
-    }
-    alloc      = memCalloc(sizeof(*alloc), false);
-    task->work = alloc;
-    if (alloc == NULL) {
-        taskKill(task);
-        return;
-    }
-    work = alloc;
-    memFillBytes(work, 0, sizeof(*work));
-    task->extra.tmd->coords->parent     = &gGfxViewCoord;
-    task->extra.tmd->coords->coord.t[0] = 0x1770;
-    task->extra.tmd->coords->coord.t[1] = -0x1F4;
-    task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->corners[0].vx                 = 0;
-    work->corners[0].vy                 = -0x3E8;
-    work->corners[0].vz                 = 0x1F4;
-    work->corners[1].vx                 = 0;
-    work->corners[1].vy                 = -0x3E8;
-    work->corners[1].vz                 = -0x1F4;
-    work->corners[2].vx                 = 0;
-    work->corners[2].vy                 = 0;
-    work->corners[2].vz                 = 0x1F4;
-    work->corners[3].vx                 = 0;
-    work->corners[3].vy                 = 0;
-    work->corners[3].vz                 = -0x1F4;
-    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
-    data->lightQuads[4]                 = task;
-    if (task == NULL) {
-        return;
-    }
-    alloc      = memCalloc(sizeof(*alloc), false);
-    task->work = alloc;
-    if (alloc == NULL) {
-        taskKill(task);
-        return;
-    }
-    work = alloc;
-    memFillBytes(work, 0, sizeof(*work));
-    task->extra.tmd->coords->parent     = &gGfxViewCoord;
-    task->extra.tmd->coords->coord.t[0] = 0x1770;
-    task->extra.tmd->coords->coord.t[1] = -0x1F4;
-    task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->corners[0].vx                 = 0;
-    work->corners[0].vy                 = -0x3E8;
-    work->corners[0].vz                 = 0x3E8;
-    work->corners[1].vx                 = 0;
-    work->corners[1].vy                 = -0x3E8;
-    work->corners[1].vz                 = 0x1F4;
-    work->corners[2].vx                 = 0;
-    work->corners[2].vy                 = 0;
-    work->corners[2].vz                 = 0x3E8;
-    work->corners[3].vx                 = 0;
-    work->corners[3].vy                 = 0;
-    work->corners[3].vz                 = 0x1F4;
-    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
-    data->lightQuads[5]                 = task;
-    if (task == NULL) {
-        return;
-    }
-    alloc      = memCalloc(sizeof(*alloc), false);
-    task->work = alloc;
-    if (alloc == NULL) {
-        taskKill(task);
-        return;
-    }
-    work = alloc;
-    memFillBytes(work, 0, sizeof(*work));
-    task->extra.tmd->coords->parent     = &gGfxViewCoord;
-    task->extra.tmd->coords->coord.t[0] = 0x1770;
-    task->extra.tmd->coords->coord.t[1] = -0x1F4;
-    task->extra.tmd->coords->coord.t[2] = 0xA8C;
-    work->corners[0].vx                 = 0;
-    work->corners[0].vy                 = -0x3E8;
-    work->corners[0].vz                 = -0x1F4;
-    work->corners[1].vx                 = 0;
-    work->corners[1].vy                 = -0x3E8;
-    work->corners[1].vz                 = -0x3E8;
-    work->corners[2].vx                 = 0;
-    work->corners[2].vy                 = 0;
-    work->corners[2].vz                 = -0x1F4;
-    work->corners[3].vx                 = 0;
-    work->corners[3].vy                 = 0;
-    work->corners[3].vz                 = -0x3E8;
-}
-void func_actor_160900_80133F90(void)
+/// Spawns the six additive light quads for Kyle's reveal.
+///
+/// Requires the published cutscene's live work and empty light slots 0..5.
+/// Builds two three-quad rows at roots (6000,+/-500,2700), parented to the view.
+/// Each 1000-unit-high row spans local Z=-1000..1000, with the middle quad
+/// 1000 units wide and the outer quads 500 units wide. Patterns 5,2,3 and
+/// 4,0,1 respectively select the white corners. Owns each coordinate body and
+/// primary-heap corner block. Failure stops with earlier quads retained; a
+/// failed work allocation kills its task without clearing the saved slot.
+static void _actor160900SpawnKyleRevealLightQuads(void)
 {
-    _Actor160900CutsceneWork*  data;
-    _Actor160900LightQuadWork* alloc;
-    _Actor160900LightQuadWork* work;
-    Task*                      task;
+    _Actor160900CutsceneWork*  cutsceneWork;
+    _Actor160900LightQuadWork* allocatedQuadWork;
+    _Actor160900LightQuadWork* quadWork;
+    Task*                      quadTask;
 
-    data                = D_actor_160900_8013FBB4->work;
-    task                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 0, 0);
-    data->lightQuads[0] = task;
-    if (task == NULL) {
+    cutsceneWork                = D_actor_160900_8013FBB4->work;
+    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_ALL_CORNERS, 0);
+    cutsceneWork->lightQuads[0] = quadTask;
+    if (quadTask == NULL) {
         return;
     }
-    alloc      = memCalloc(sizeof(*alloc), false);
-    task->work = alloc;
-    if (alloc == NULL) {
-        taskKill(task);
+    allocatedQuadWork = memCalloc(sizeof(*allocatedQuadWork), false);
+    quadTask->work    = allocatedQuadWork;
+    if (allocatedQuadWork == NULL) {
+        taskKill(quadTask);
         return;
     }
-    work = alloc;
-    memFillBytes(work, 0, sizeof(*work));
-    task->extra.tmd->coords->parent     = &gGfxViewCoord;
-    task->extra.tmd->coords->coord.t[0] = 0x1770;
-    task->extra.tmd->coords->coord.t[1] = 0;
-    task->extra.tmd->coords->coord.t[2] = 0xBB8;
-    work->corners[0].vx                 = 0;
-    work->corners[0].vy                 = -0x5DC;
-    work->corners[0].vz                 = 0x3E8;
-    work->corners[1].vx                 = 0;
-    work->corners[1].vy                 = -0x5DC;
-    work->corners[1].vz                 = 0;
-    work->corners[2].vx                 = 0;
-    work->corners[2].vy                 = 0;
-    work->corners[2].vz                 = 0x3E8;
-    work->corners[3].vx                 = 0;
-    work->corners[3].vy                 = 0;
-    work->corners[3].vz                 = 0;
-    task                                = taskSpawnFromTable(D_actor_160900_8013FB50, 7, 1, 0);
-    data->lightQuads[1]                 = task;
-    if (task == NULL) {
+    quadWork = allocatedQuadWork;
+    memFillBytes(quadWork, 0, sizeof(*quadWork));
+    _actor160900PlaceRevealLightQuad(quadTask, quadWork, 0x1F4, 0x1F4, -0x1F4);
+    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNERS_1_3, 0);
+    cutsceneWork->lightQuads[1] = quadTask;
+    if (quadTask == NULL) {
         return;
     }
-    alloc      = memCalloc(sizeof(*alloc), false);
-    task->work = alloc;
-    if (alloc == NULL) {
-        taskKill(task);
+    allocatedQuadWork = memCalloc(sizeof(*allocatedQuadWork), false);
+    quadTask->work    = allocatedQuadWork;
+    if (allocatedQuadWork == NULL) {
+        taskKill(quadTask);
         return;
     }
-    work = alloc;
-    memFillBytes(work, 0, sizeof(*work));
-    task->extra.tmd->coords->parent     = &gGfxViewCoord;
-    task->extra.tmd->coords->coord.t[0] = 0x1770;
-    task->extra.tmd->coords->coord.t[1] = 0;
-    task->extra.tmd->coords->coord.t[2] = 0xBB8;
-    work->corners[0].vx                 = 0;
-    work->corners[0].vy                 = -0x5DC;
-    work->corners[0].vz                 = 0;
-    work->corners[1].vx                 = 0;
-    work->corners[1].vy                 = -0x5DC;
-    work->corners[1].vz                 = -0x3E8;
-    work->corners[2].vx                 = 0;
-    work->corners[2].vy                 = 0;
-    work->corners[2].vz                 = 0;
-    work->corners[3].vx                 = 0;
-    work->corners[3].vy                 = 0;
-    work->corners[3].vz                 = -0x3E8;
+    quadWork = allocatedQuadWork;
+    memFillBytes(quadWork, 0, sizeof(*quadWork));
+    _actor160900PlaceRevealLightQuad(quadTask, quadWork, 0x1F4, 0x3E8, 0x1F4);
+    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNERS_0_2, 0);
+    cutsceneWork->lightQuads[2] = quadTask;
+    if (quadTask == NULL) {
+        return;
+    }
+    allocatedQuadWork = memCalloc(sizeof(*allocatedQuadWork), false);
+    quadTask->work    = allocatedQuadWork;
+    if (allocatedQuadWork == NULL) {
+        taskKill(quadTask);
+        return;
+    }
+    quadWork = allocatedQuadWork;
+    memFillBytes(quadWork, 0, sizeof(*quadWork));
+    _actor160900PlaceRevealLightQuad(quadTask, quadWork, 0x1F4, -0x1F4, -0x3E8);
+    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNERS_2_3, 0);
+    cutsceneWork->lightQuads[3] = quadTask;
+    if (quadTask == NULL) {
+        return;
+    }
+    allocatedQuadWork = memCalloc(sizeof(*allocatedQuadWork), false);
+    quadTask->work    = allocatedQuadWork;
+    if (allocatedQuadWork == NULL) {
+        taskKill(quadTask);
+        return;
+    }
+    quadWork = allocatedQuadWork;
+    memFillBytes(quadWork, 0, sizeof(*quadWork));
+    _actor160900PlaceRevealLightQuad(quadTask, quadWork, -0x1F4, 0x1F4, -0x1F4);
+    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_3, 0);
+    cutsceneWork->lightQuads[4] = quadTask;
+    if (quadTask == NULL) {
+        return;
+    }
+    allocatedQuadWork = memCalloc(sizeof(*allocatedQuadWork), false);
+    quadTask->work    = allocatedQuadWork;
+    if (allocatedQuadWork == NULL) {
+        taskKill(quadTask);
+        return;
+    }
+    quadWork = allocatedQuadWork;
+    memFillBytes(quadWork, 0, sizeof(*quadWork));
+    _actor160900PlaceRevealLightQuad(quadTask, quadWork, -0x1F4, 0x3E8, 0x1F4);
+    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_2, 0);
+    cutsceneWork->lightQuads[5] = quadTask;
+    if (quadTask == NULL) {
+        return;
+    }
+    allocatedQuadWork = memCalloc(sizeof(*allocatedQuadWork), false);
+    quadTask->work    = allocatedQuadWork;
+    if (allocatedQuadWork == NULL) {
+        taskKill(quadTask);
+        return;
+    }
+    quadWork = allocatedQuadWork;
+    memFillBytes(quadWork, 0, sizeof(*quadWork));
+    _actor160900PlaceRevealLightQuad(quadTask, quadWork, -0x1F4, -0x1F4, -0x3E8);
 }
-void func_actor_160900_8013418C(Task* arg0)
+/// Spawns the two additive light quads used when Aya walks to her mark.
+///
+/// Requires the published cutscene's live work and empty light slots 0..1.
+/// Places two 1500-by-1000 rectangles beside Z=3000, at root (6000,0,3000)
+/// in view-parent coordinates; patterns 0 and 1 whiten their outside corners.
+/// Owns each coordinate body and primary-heap corner block. Failure stops with
+/// earlier quads retained; a failed work allocation kills its task without
+/// clearing the saved slot. The script removes the set before reusing slots.
+static void _actor160900SpawnWalkLightPair(void)
 {
+    _Actor160900CutsceneWork*  cutsceneWork;
+    _Actor160900LightQuadWork* allocatedQuadWork;
+    _Actor160900LightQuadWork* quadWork;
+    Task*                      quadTask;
+
+    cutsceneWork                = D_actor_160900_8013FBB4->work;
+    quadTask                    = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_3, 0);
+    cutsceneWork->lightQuads[0] = quadTask;
+    if (quadTask == NULL) {
+        return;
+    }
+    allocatedQuadWork = memCalloc(sizeof(*allocatedQuadWork), false);
+    quadTask->work    = allocatedQuadWork;
+    if (allocatedQuadWork == NULL) {
+        taskKill(quadTask);
+        return;
+    }
+    quadWork = allocatedQuadWork;
+    memFillBytes(quadWork, 0, sizeof(*quadWork));
+    quadTask->extra.coordBody->coord->parent     = &gGfxViewCoord;
+    quadTask->extra.coordBody->coord->coord.t[0] = 0x1770;
+    quadTask->extra.coordBody->coord->coord.t[1] = 0;
+    quadTask->extra.coordBody->coord->coord.t[2] = 0xBB8;
+    quadWork->corners[0].vx                      = 0;
+    quadWork->corners[0].vy                      = -0x5DC;
+    quadWork->corners[0].vz                      = 0x3E8;
+    quadWork->corners[1].vx                      = 0;
+    quadWork->corners[1].vy                      = -0x5DC;
+    quadWork->corners[1].vz                      = 0;
+    quadWork->corners[2].vx                      = 0;
+    quadWork->corners[2].vy                      = 0;
+    quadWork->corners[2].vz                      = 0x3E8;
+    quadWork->corners[3].vx                      = 0;
+    quadWork->corners[3].vy                      = 0;
+    quadWork->corners[3].vz                      = 0;
+    quadTask                                     = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_LIGHT_QUAD, ACTOR_160900_LIGHT_PATTERN_CORNER_2, 0);
+    cutsceneWork->lightQuads[1]                  = quadTask;
+    if (quadTask == NULL) {
+        return;
+    }
+    allocatedQuadWork = memCalloc(sizeof(*allocatedQuadWork), false);
+    quadTask->work    = allocatedQuadWork;
+    if (allocatedQuadWork == NULL) {
+        taskKill(quadTask);
+        return;
+    }
+    quadWork = allocatedQuadWork;
+    memFillBytes(quadWork, 0, sizeof(*quadWork));
+    quadTask->extra.coordBody->coord->parent     = &gGfxViewCoord;
+    quadTask->extra.coordBody->coord->coord.t[0] = 0x1770;
+    quadTask->extra.coordBody->coord->coord.t[1] = 0;
+    quadTask->extra.coordBody->coord->coord.t[2] = 0xBB8;
+    quadWork->corners[0].vx                      = 0;
+    quadWork->corners[0].vy                      = -0x5DC;
+    quadWork->corners[0].vz                      = 0;
+    quadWork->corners[1].vx                      = 0;
+    quadWork->corners[1].vy                      = -0x5DC;
+    quadWork->corners[1].vz                      = -0x3E8;
+    quadWork->corners[2].vx                      = 0;
+    quadWork->corners[2].vy                      = 0;
+    quadWork->corners[2].vz                      = 0;
+    quadWork->corners[3].vx                      = 0;
+    quadWork->corners[3].vy                      = 0;
+    quadWork->corners[3].vz                      = -0x3E8;
+}
+/// Runs the package's Aya/Kyle cutscene and its three script-controlled cue lanes.
+///
+/// State zero waits for the attachment wheel and display transition to finish,
+/// allocates owned cutscene work and publishes this task for script callbacks.
+/// Borrows the player, spawns Kyle's body and hands, and selects CAP file 3.
+/// State one starts the main/skip event scripts; state two waits for eventState
+/// zero, posts scene event 30 and requests teardown. Both states process cues.
+/// Successful setup requires live player/model resources and successful child
+/// spawns. Kyle's models join the teardown tree; light and wave task lifetimes
+/// are controlled by the scripts and must end before the cutscene work dies.
+static void _actor160900CutsceneTask(Task* task)
+{
+    enum {
+        ACTOR_160900_CUTSCENE_INITIALIZE   = 0,
+        ACTOR_160900_CUTSCENE_START_SCRIPT = 1,
+        ACTOR_160900_CUTSCENE_RUN_SCRIPT   = 2,
+        ACTOR_160900_EVENT_FINISHED        = 0,
+        ACTOR_160900_CAP_FILE              = 3,
+        ACTOR_160900_CAP_TEXTURE_X         = 384,
+        ACTOR_160900_CAP_TEXTURE_Y         = 0,
+        ACTOR_160900_NEXT_SCENE_EVENT      = 30,
+        ACTOR_160900_EFFECT_CUE_LIST_1     = 1,
+        ACTOR_160900_EFFECT_CUE_LIST_2     = 2,
+        ACTOR_160900_EFFECT_CUE_LIST_3     = 3,
+        ACTOR_160900_EFFECT_CUE_LIST_4     = 4,
+        ACTOR_160900_EFFECT_CUE_LIST_5     = 5,
+    };
     _Actor160900CutsceneWork* work;
-    _Actor160900CutsceneWork* data;
+    _Actor160900CutsceneWork* cueWork;
 
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case ACTOR_160900_CUTSCENE_INITIALIZE:
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             work       = memMalloc(sizeof(*work), false);
-            arg0->work = work;
+            task->work = work;
             if (work == NULL) {
-                taskKill(arg0);
+                taskKill(task);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
                 work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_actor_160900_8013FBB4 = arg0;
-                work->kyle              = taskSpawnFromTable(D_actor_160900_8013FB50, 3, 0, arg0);
-                work->kyleGunHand       = taskSpawnFromTable(D_actor_160900_8013FB50, 5, 1, work->kyle);
-                work->kyleFreeHand      = taskSpawnFromTable(D_actor_160900_8013FB50, 6, 0, work->kyle);
+                D_actor_160900_8013FBB4 = task;
+                // Publish the cast before event-script callbacks can address it.
+                work->kyle         = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_KYLE_BODY, 0, task);
+                work->kyleGunHand  = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_KYLE_GUN_HAND, ACTOR_160900_KYLE_GUN_HAND, work->kyle);
+                work->kyleFreeHand = taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_KYLE_FREE_HAND, ACTOR_160900_KYLE_FREE_HAND, work->kyle);
             }
-            Gp_CapFile = 0;
-            capSelectLoadedFile(3);
-            capSetTexturePage(0x180, 0);
-            arg0->state += 1;
+            // Caption setup and the state increment also run after allocation failure.
+            Gp_CapFile = NULL;
+            capSelectLoadedFile(ACTOR_160900_CAP_FILE);
+            capSetTexturePage(ACTOR_160900_CAP_TEXTURE_X, ACTOR_160900_CAP_TEXTURE_Y);
+            task->state += 1;
             return;
-        case 1:
+        case ACTOR_160900_CUTSCENE_START_SCRIPT:
             evsStartScriptWithSkip(D_actor_160900_8013F538, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160900_8013FAA8);
-            arg0->state += 1;
+            task->state += 1;
             break;
-        case 2:
-            if (gGameSession->eventState == 0) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1E;
-                taskRequestKill(arg0, 0);
+        case ACTOR_160900_CUTSCENE_RUN_SCRIPT:
+            if (gGameSession->eventState == ACTOR_160900_EVENT_FINISHED) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACTOR_160900_NEXT_SCENE_EVENT;
+                taskRequestKill(task, 0);
             }
             break;
     }
-    func_actor_160900_80133238(arg0);
-    _actor160900UpdateKyleCue(arg0);
-    data = arg0->work;
-    switch (data->effectCue.id) {
-        case 1:
+    _actor160900UpdatePlayerCue(task);
+    _actor160900UpdateKyleCue(task);
+    // Player and Kyle consume their cues; the sprite lane stays posted across frames.
+    cueWork = task->work;
+    switch (cueWork->effectCue.id) {
+        case ACTOR_160900_EFFECT_CUE_LIST_1:
             _actor160900SpawnDriftingSprites(D_actor_160900_8013F258);
             break;
-        case 2:
+        case ACTOR_160900_EFFECT_CUE_LIST_2:
             _actor160900SpawnDriftingSprites(D_actor_160900_8013F2E0);
             break;
-        case 3:
+        case ACTOR_160900_EFFECT_CUE_LIST_3:
             _actor160900SpawnDriftingSprites(D_actor_160900_8013F3B0);
             break;
-        case 4:
+        case ACTOR_160900_EFFECT_CUE_LIST_4:
             _actor160900SpawnDriftingSprites(D_actor_160900_8013F400);
             break;
-        case 5:
+        case ACTOR_160900_EFFECT_CUE_LIST_5:
             _actor160900SpawnDriftingSprites(D_actor_160900_8013F458);
             break;
-        case 0:
+        case ACTOR_160900_CUE_NONE:
         default:
-            data->effectCue.id = 0;
+            cueWork->effectCue.id = ACTOR_160900_CUE_NONE;
             break;
     }
 }
@@ -2206,18 +2270,24 @@ static void _actor160900SetModelDraw(Task* task, s32 messageId, s32 mode, s32 un
 
 #include "../../shared/actor_messages_place_ypr.inc.c"
 
-/// Spawns `_actor160900FadeInTask`, entry 1 of `D_actor_160900_8013FB50`,
-/// with `arg0` as its first spawn argument.
-void func_actor_160900_801346B0(s32 arg0)
+/// Starts the cutscene's reveal fade, restoring display output on its fourth update.
+///
+/// The unsigned low half of intensityStep is subtracted from intensity after
+/// each draw; the upper half is ignored. Zero holds black indefinitely, and
+/// large rates retain signed-halfword wrap. Task/work allocation may fail.
+static void _actor160900SpawnFadeIn(s32 intensityStep)
 {
-    taskSpawnFromTable(D_actor_160900_8013FB50, 1, arg0, 0);
+    taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_FADE_IN, intensityStep, 0);
 }
 
-/// Spawns the fade task `_actor160900FadeOutTask`, entry 2 of
-/// `D_actor_160900_8013FB50`, with `arg0` as its first spawn argument.
-void func_actor_160900_801346E0(s32 arg0)
+/// Starts the cutscene's darkening fade and holds the resulting black overlay.
+///
+/// The unsigned low half of intensityStep is added to intensity after each draw;
+/// the upper half is ignored. Zero holds the starting level, and large rates
+/// retain signed-halfword wrap. Task/work allocation may fail.
+static void _actor160900SpawnFadeOut(s32 intensityStep)
 {
-    taskSpawnFromTable(D_actor_160900_8013FB50, 2, arg0, 0);
+    taskSpawnFromTable(D_actor_160900_8013FB50, ACTOR_160900_TASK_FADE_OUT, intensityStep, 0);
 }
 
 /// Kills and clears every light quad held by the running cutscene.

@@ -324,7 +324,7 @@ case 2:
 
 That is the 0/1/2 body order with a shared tail after case 2. The leftover
 `lui a0,0x8014` vs `lui a0,%hi(D)` on that tail is splat's unpaired-`lui`
-rendering, not a codegen gap (see `func_actor_160900_80133A84`). Nested-block
+rendering, not a codegen gap (see `_actor160900SpawnKyleRevealLightQuads`). Nested-block
 `rnd` locals per outer case keep the two LCG draws from sharing an allocno.
 
 Preprocessed inputs: `base_1.c`
@@ -83861,7 +83861,7 @@ width before the first edit.
 
 ## A call result that is NULL-checked and then kept needs *two* names, or the check reads the callee-saved home
 
-`func_actor_160900_80133F90` allocates a work block per child task, stores it in
+`_actor160900SpawnWalkLightPair` allocates a work block per child task, stores it in
 `Task::work` and bails out if the allocation failed — twice, and the target tests
 the raw return register both times, with the copy to `$s0` *after* the branch:
 
@@ -83878,18 +83878,18 @@ addu   s0, v0            /* the copy, in the continuation block */
 ```
 
 One variable gives the other shape — `addu s0, v0` before the test, `beqz s0` —
-because `work` is then a single pseudo whose live range runs across every later
+because `quadWork` is then a single pseudo whose live range runs across every later
 call, so global-alloc hands it a callee-saved register and the NULL test reads
 that. Naming the result twice splits the range:
 
 ```c
-alloc      = memCalloc(sizeof(*alloc), false);
-task->work = alloc;
-if (alloc == NULL) {
-    taskKill(task);
+allocatedQuadWork = memCalloc(sizeof(*allocatedQuadWork), false);
+quadTask->work    = allocatedQuadWork;
+if (allocatedQuadWork == NULL) {
+    taskKill(quadTask);
     return;
 }
-work = alloc;            /* born after the branch, so the copy lands there */
+quadWork = allocatedQuadWork;            /* born after the branch, so the copy lands there */
 ```
 
 The `.greg` header shows the split directly. In the single-variable form the
@@ -83897,7 +83897,7 @@ pseudo is `used 16 times across 41 insns; crosses 1 call` and is disposed `in 16
 (`$s0`). With the second name it is `used 8 times across 8 insns; dies in 2
 places`, carries `preferences: 2 4` — the call's return register `$v0` and `$a0` —
 and is disposed `in 2` (`$v0`): a block-local quantity that dies at the test, kept
-in the register the call already returned it in. `work` is the one that crosses
+in the register the call already returned it in. `quadWork` is the one that crosses
 the calls and takes `$s0`.
 
 Both shapes are already in the tree, so the target decides which to write:
@@ -83937,9 +83937,9 @@ nothing at all.
 
 ## An m2c seed's shared `goto` label fixes the merged tail's address; duplicate tails let GCC place it
 
-`func_actor_160900_80133880` is 91.91% from the m2c seed and 100.00% from a
+`_actor160900SpawnOpeningLightPair` is 91.91% from the m2c seed and 100.00% from a
 first-build rewrite in the idiom of its already-matched sibling
-`func_actor_160900_80133F90` (same TU, same shape). Two source-shape effects,
+`_actor160900SpawnWalkLightPair` (same TU, same shape). Two source-shape effects,
 both visible in the object dump rather than in any pass dump:
 
 **The two `taskKill(task); return;` tails.** m2c emits one `taskKill` and
@@ -83955,7 +83955,7 @@ bnez  v0, .L...BC0     # second check, inverted, falls into the shared block
 .L...B90: jal taskKill
 ```
 
-Writing the two `if (alloc == NULL) { taskKill(task); return; }` out in full,
+Writing the two `if (allocatedQuadWork == NULL) { taskKill(quadTask); return; }` out in full,
 as the sibling does, reproduces that polarity and placement. The seed's version
 leaves both branches `beqz` to a block placed after the second half, and the
 `branch`/`insert`/`delete` penalties come with it.
@@ -84049,7 +84049,7 @@ overlay is the `units` + `rodata` pair.
 
 ## A `regs=1` residue on an unpaired `lui` is splat's rendering, not a codegen gap
 
-`func_actor_160900_80133A84` matched at 99.985% in the scratch harness with
+`_actor160900SpawnKyleRevealLightQuads` matched at 99.985% in the scratch harness with
 `regs=1` — distance exactly 5, which is `PENALTY_REGALLOC` — and nothing else:
 `topology match`, predicates, calls, condition registers and delay-slot words all
 in agreement, 323 instructions on both sides. The whole `.diff` was one line:
@@ -113271,7 +113271,7 @@ table.
 The rest of the match is two levers this corpus already documents, both of which
 had to land before the score cleared 99%: the six-effect arm writes its
 `effectSpawn` tail out in *both* parity branches (cross-jumping shares the `jal`,
-`func_actor_160900_80133880`), and each block declares its own `s32 pan` rather
+`_actor160900SpawnOpeningLightPair`), and each block declares its own `s32 pan` rather
 than one shared local, so each becomes a local quantity the `extendhisi` temp can
 join (`m4a1PykeFlameTask`). From the 54.396% m2c seed. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
@@ -122051,7 +122051,7 @@ reload CSE substitution in the other direction, legal because the counter and th
 An `s32` counter written `for (i = 1; (u16)i < 20; i++) f(child, (u16)i, ...)` makes the use wider than the recorded
 HI value, the substitution is rejected and `li s0,1` survives. 94.9% -> 100%. `base_15.i` SHA256 `e3e159c3ac8505a4dba61a33fb9ca78447841f65d8e540307cbbec95eb0473a9`.
 
-### A call-argument memory load emitted too late: pass it through an inline helper's parameter (func_actor_160900_80132C08, 2026-09-17)
+### A call-argument memory load emitted too late: pass it through an inline helper's parameter (_actor160900KyleBodyTask, 2026-09-17)
 
 **Symptom.** 96.8%, `reorder=5`, confined to one call's setup. Target:
 `lui/addiu a1,D ; li s1,1 ; lw s0,0x1c(s2) ; lw a2,0x2c(s2) ; move a0,s0 ; addiu a3 ; addiu v0 ; jal ; sw v0,0x10(sp)`.
@@ -131108,6 +131108,7 @@ CSE's block now ends at the `else` label, the two constants stay distinct, and
 (`anim = D_80073BA9; if (...) anim = anim + 1; else anim = anim + 0x22;`) does
 **not** work — that emits the `j`-over-`else` shape instead.
 `func_actor_160900_80133238` and `_actor341900UpdatePlayerAction` are matched
+`_actor160900UpdatePlayerCue` and `func_actor_341900_801628B8` are matched
 examples of the two-variable form; `func_actor_120500_8013241C` is a matched
 example of the one-variable form and does emit the `j`.
 
@@ -153569,7 +153570,7 @@ union stays; dropping it would put a cast on every one of them.
 ## A base pointer loaded twice from the task is a second-level inline; its flattened copy carried three fitted spellings that were never needed (_actor160900InitKyleAnimation, 2026-10-07)
 
 **Was.** The inline `_actor160900InitKyleAnimation` (expanded in
-`func_actor_160900_80132C08`) ended in a hand-flattened tail: `work =
+`_actor160900KyleBodyTask`) ended in a hand-flattened tail: `work =
 task->work` a second time, `i = 1` written above the two stores, an `s32 i`
 with `(u16)` casts at every use, and a `do`/`while`. Image:
 
