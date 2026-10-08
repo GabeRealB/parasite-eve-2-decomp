@@ -712,7 +712,7 @@ static void func_actor_135400_80132064(Task* arg0)
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) <= 0) {
         actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.beforeEvent, 0);
         _actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[0], 0);
-        func_dryfield_night_garage_80180414(0);
+        dryfieldNightGaragePlaceLowCollisionBox(0);
     } else {
         actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.afterEvent, 0);
         _actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[1], 0);

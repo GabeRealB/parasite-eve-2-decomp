@@ -34,7 +34,16 @@ extern SpriteView D_dryfield_night_garage_80186258[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_garage_801875B8[];
 
-void func_dryfield_night_garage_80180414(s32 arg0);
+/// Places the low collision box in the live night-garage mesh.
+///
+/// Replaces its first four faces, four normals and eight vertices with the box
+/// template, then translates XYZ by (4715, -132, 5900) game units for zero
+/// `useFarPosition`, or (4715, -132, 10000) for nonzero. Gary Douglas's setup
+/// uses zero before the refueling event; both completion and skip scripts use
+/// nonzero. Only XYZ and the face records are replaced; the vector fourth
+/// components, remaining mesh and cell lists stay intact. Requires the loaded
+/// room overlay and writable live grid pools, which the room owns.
+void dryfieldNightGaragePlaceLowCollisionBox(s32 useFarPosition);
 
 /// Draws the night garage's additive grey capsule glows for the current view.
 ///
@@ -46,6 +55,12 @@ void func_dryfield_night_garage_80180414(s32 arg0);
 /// initialized scratch stack, ordering table and GPU packet arena.
 void dryfieldNightGarageDrawGlowsTask(Task* unusedTask);
 
-void func_dryfield_night_garage_801803BC(Task* task);
+/// Runs the night garage's persistent room-message task.
+///
+/// `task->state` must be 0 (initialize), 1 (idle for synchronous messages), or
+/// 2 (kill). Initialization registers the task in `GAME_TASK_SLOT_ROOM` and
+/// advances to idle. Spawned by the Dryfield map's stage-3/area-24 descriptor;
+/// requires the room overlay and that variant's actor/map resources to be live.
+void dryfieldNightGarageRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_GARAGE_H

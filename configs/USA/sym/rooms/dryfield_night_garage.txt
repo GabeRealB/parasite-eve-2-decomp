@@ -235,7 +235,7 @@ D_dryfield_night_garage_80182DF0 = 0x80182DF0; // size:0x6 defined:True
 D_dryfield_night_garage_80182DF8 = 0x80182DF8; // size:0x3C0 defined:True
 D_dryfield_night_garage_801831B8 = 0x801831B8; // size:0x1C8 defined:True
 
-func_dryfield_night_garage_80180414 = 0x80180414; // type:func
+dryfieldNightGaragePlaceLowCollisionBox = 0x80180414; // type:func
 
 func_dryfield_night_garage_801807E4 = 0x801807E4; // type:func
 
@@ -265,3 +265,14 @@ _glowDrawGreyCapsule = 0x80180D9C; // type:func
 _garageSoundMsg = 0x80180300; // type:func
 _dryfieldNightGarageBlackoutTask = 0x80180cec; // type:func
 _dryfieldNightGaragePlayMovieTask = 0x80180b20; // type:func
+_dryfieldNightGarageResetTallCollisionBox = 0x80180604; // type:func
+_dryfieldNightGarageRefuseKeyItem = 0x80180358; // type:func
+_roomVariantResolveDryfieldMsg = 0x80180360; // type:func
+_dryfieldNightGarageIgnoreCommand = 0x801803a4; // type:func
+_dryfieldNightGarageIdleRoomTask = 0x801803ac; // type:func
+_dryfieldNightGarageInitRoomTask = 0x8017ff2c; // type:func
+dryfieldNightGarageRoomTask = 0x801803bc; // type:func
+dryfieldNightGarageStageSceneAudioStart = 0x80180924; // type:func
+dryfieldNightGarageEnqueueScenePlayback = 0x80180944; // type:func
+dryfieldNightGarageFinishScene = 0x80180964; // type:func
+dryfieldNightGarageCancelScene = 0x80180984; // type:func

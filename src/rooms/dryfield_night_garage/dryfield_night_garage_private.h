@@ -42,13 +42,30 @@ Task* func_dryfield_night_garage_80180A64(s32 arg0);
 
 void func_dryfield_night_garage_801807E4(Task* arg0);
 
-// Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_night_garage_80180924(void);
+/// Stages audio start for the refueling scene selected by the event script.
+///
+/// View loading later commits the deferred request. Selection and
+/// playback buffers must remain live until it is consumed.
+void dryfieldNightGarageStageSceneAudioStart(void);
 
-void func_dryfield_night_garage_80180944(void);
+/// Enqueues playback of the refueling scene after its setup and caption cues.
+///
+/// Requires the selected scene's prepared buffers to survive playback and
+/// space in the CD request ring.
+void dryfieldNightGarageEnqueueScenePlayback(void);
 
-void func_dryfield_night_garage_80180964(void);
+/// Finishes refueling-scene streaming and restores the saved random state.
+///
+/// Requires a successful scene selection. Marks streaming complete without
+/// freeing buffers or tasks; the event script restores the remaining resources.
+void dryfieldNightGarageFinishScene(void);
 
-void func_dryfield_night_garage_80180984(void);
+/// Cancels the refueling scene when its skip script restores the room.
+///
+/// Discards the deferred CD replacement and requests cancellation; subsequent
+/// CD dispatches complete it. Finishes streaming and restores saved random
+/// state immediately. Requires a successful scene selection; the script owns
+/// buffer and task cleanup.
+void dryfieldNightGarageCancelScene(void);
 
 #endif // SRC_ROOMS_DRYFIELD_NIGHT_GARAGE_DRYFIELD_NIGHT_GARAGE_PRIVATE_H

@@ -42796,7 +42796,7 @@ obj->flags &= 0xBF;
 Order matters: writing `obj = arr + 1;` first anchors CSE on `arr + 0x98` and
 emits `addiu t0, obj, -0x98` for the base instead.
 `func_dryfield_night_garage_801800C8` and its sibling
-`func_dryfield_night_garage_8017FF2C` are the examples. Note this is the
+`_dryfieldNightGarageInitRoomTask` are the examples. Note this is the
 mirror of "Volatile global: index via global name, not a local pointer" — a
 local base pointer is the fix here and the bug there, so score both shapes.
 
@@ -67422,7 +67422,7 @@ units that held those readers. Promoting the garage body at `0x2D40` split unit
 `_7` while the cuts still named `_5` and `_6`:
 
 ```
-cut 0x148 -> dryfield_night_garage_5   now holds 80180414/80180604/801807E4
+cut 0x148 -> dryfield_night_garage_5   now holds dryfieldNightGaragePlaceLowCollisionBox (80180414)/_dryfieldNightGarageResetTallCollisionBox (80180604)/801807E4
 cut 0x160 -> dryfield_night_garage_6   now holds 801809A4/80180A64/80180AB0/80180B20
 re-split:   jtbl_..._8017D708 -> nonmatchings/_5, jtbl_..._8017D720 -> nonmatchings/_6
 ```
